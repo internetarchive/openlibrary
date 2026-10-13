@@ -762,28 +762,25 @@ class SaveBookHelper:
         mixed, in any order — and the result is normalised to refs and
         deduplicated, preserving the posted order.
 
-        The merge only *validates keys the edit adds*. A key already stored on
-        the work passes through unchanged; only a key in the posted set but not
-        in ``stored`` is checked, and kept only if it resolves to an existing Tag
-        whose ``tag_type`` matches ``tag_type`` (the plural form, e.g.
-        ``"genres"``). This is deliberate: re-validating stored keys would turn
-        any unrelated edit (fixing a title typo) into a silent data migration,
-        dropping a genre whose Tag was retyped or carries a legacy singular
-        ``tag_type`` (e.g. ``/tags/OL84T``) — both of which are still live
-        ``/type/tag`` docs that Infobase accepts. Addition is the only operation
-        that validates; a stored key is removed only when the editor drops it
-        from the picker, so it is no longer in the posted set.
+        An **unrelated edit never migrates genres.** If the posted genre set is
+        identical to what is stored (a title edit re-posts the stored keys
+        unchanged), every key passes through untouched — Infobase skips
+        validation of an unchanged value, so nothing is re-checked or dropped.
 
-        Validating additions still matters: a reference to a missing Tag fails
-        the save, and ``save_many`` is atomic, so one bad key would reject the
-        whole edit.
+        When the editor **changes** the genre set, each posted key is checked:
 
-        Known gap (tracked with the #13753 deploy-order work, not fixed here): a
-        stored ref to a Tag since **deleted or merged** also passes through, and
-        once ``/type/work`` declares ``genres`` with ``expected_type /type/tag``,
-        Infobase rejects that dangling ref — but only when the genre list is
-        *changed* (an unchanged value is skipped at save), so a genre-set edit on
-        such a work would fail until the dead ref is removed.
+        - A key already stored on the work is kept if it still resolves to a live
+          ``/type/tag`` document. Its ``tag_type`` is NOT re-checked, so a retyped
+          or legacy singular ``tag_type`` genre (e.g. ``/tags/OL84T``) survives. A
+          ref to a Tag since **deleted or merged** no longer resolves to a
+          ``/type/tag`` and is dropped — otherwise, once ``/type/work`` declares
+          ``genres`` with ``expected_type /type/tag``, that dangling ref would
+          make Infobase reject the whole (atomic) save, leaving the work
+          un-editable on any genre change.
+        - An **added** key (posted but not stored) is kept only if it resolves to
+          an existing Tag whose ``tag_type`` matches ``tag_type`` (the plural
+          form, e.g. ``"genres"``). A ref to a missing Tag would fail the atomic
+          save, so a bad added key is dropped rather than persisted.
 
         :param values: the posted value — a list of key strings and/or
             ``{"key": …}`` refs, or ``None`` when nothing is selected.
@@ -810,13 +807,24 @@ class SaveBookHelper:
             return out
 
         posted = keys_of(values)
-        stored_keys = set(keys_of(stored))
-        added = [key for key in posted if key not in stored_keys]
-        valid_added: set[str] = set()
-        if added:
-            tags = {tag.key: tag for tag in web.ctx.site.get_many(added)}
-            valid_added = {key for key in added if (tag := tags.get(key)) and tag.type.key == "/type/tag" and tag.get("tag_type") == tag_type}
-        return [{"key": key} for key in posted if key in stored_keys or key in valid_added]
+        stored_list = keys_of(stored)
+        # Unchanged set: never migrate on an unrelated edit (Infobase skips an
+        # unchanged value, so a dead stored ref can't reject the save either).
+        if posted == stored_list:
+            return [{"key": key} for key in posted]
+
+        stored_keys = set(stored_list)
+        docs = {doc.key: doc for doc in web.ctx.site.get_many(posted)}
+        out: list[str] = []
+        for key in posted:
+            doc = docs.get(key)
+            if doc is None or doc.type.key != "/type/tag":
+                continue  # missing, deleted or merged (not a live Tag) -> drop
+            # A retained stored ref is kept for being a live Tag (its tag_type is
+            # not re-checked); an added key must be of the right tag_type.
+            if key in stored_keys or doc.get("tag_type") == tag_type:
+                out.append(key)
+        return [{"key": key} for key in out]
 
     def _prevent_ocaid_deletion(self, edition) -> None:
         # Allow admins to modify ocaid

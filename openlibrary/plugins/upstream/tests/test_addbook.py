@@ -507,6 +507,8 @@ class TestProcessManagedTags:
                 # A real genre Tag carrying the LEGACY singular tag_type — it
                 # would fail today's validation, but must survive once stored.
                 {"type": {"key": "/type/tag"}, "key": "/tags/OL84T", "name": "Legacy", "tag_type": "genre"},
+                # A deleted Tag (tombstone): no longer a /type/tag.
+                {"type": {"key": "/type/delete"}, "key": "/tags/OL77T"},
                 # A non-Tag document sharing the key space.
                 {"type": {"key": "/type/work"}, "key": "/works/OL5W", "title": "Not a tag"},
             ]
@@ -583,6 +585,34 @@ class TestProcessManagedTags:
             ["/tags/OL1T"],
             stored=["/tags/OL1T", "/tags/OL2T"],
         ) == [{"key": "/tags/OL1T"}]
+
+    def test_dead_stored_ref_preserved_when_set_unchanged(self):
+        # OL77T is a deleted Tag. An unrelated edit re-posts the stored set
+        # unchanged, so nothing is migrated — the dead ref rides through (Infobase
+        # skips the unchanged value, so it won't reject the save either).
+        assert self.process(
+            ["/tags/OL1T", "/tags/OL77T"],
+            stored=["/tags/OL1T", "/tags/OL77T"],
+        ) == [{"key": "/tags/OL1T"}, {"key": "/tags/OL77T"}]
+
+    def test_dead_stored_ref_dropped_when_set_changes(self):
+        # Adding a genre changes the set, so stored refs are checked: the deleted
+        # OL77T no longer resolves to a /type/tag and is dropped (otherwise it
+        # would reject the atomic save once /type/work declares genres); the valid
+        # stored and added keys survive.
+        assert self.process(
+            ["/tags/OL1T", "/tags/OL77T", "/tags/OL2T"],
+            stored=["/tags/OL1T", "/tags/OL77T"],
+        ) == [{"key": "/tags/OL1T"}, {"key": "/tags/OL2T"}]
+
+    def test_legacy_typed_stored_ref_preserved_when_set_changes(self):
+        # OL84T is a live /type/tag with a legacy singular tag_type. Even when the
+        # set changes (a key is added), a stored ref is checked only for /type/tag,
+        # never tag_type, so the legacy genre survives.
+        assert self.process(
+            ["/tags/OL84T", "/tags/OL1T"],
+            stored=["/tags/OL84T"],
+        ) == [{"key": "/tags/OL84T"}, {"key": "/tags/OL1T"}]
 
     def test_save_persists_genres_as_refs(self, monkeypatch):
         """End-to-end through save(): the indexed form shape the edit page posts
