@@ -17,3 +17,16 @@
 .manageCoversContainer .manageCovers:focus-within {
   opacity: 1;
 }
+
+/* The cover dialog frames its own content, so its tab panels drop the border. */
+ol-dialog ol-tabs > [role="tabpanel"] {
+  border: none;
+}
+
+/* @width-breakpoint-tablet: 768px */
+@media only screen and (min-width: 768px) {
+  ol-dialog ol-tabs > [role="tabpanel"] {
+    border-top: var(--border-width-heavy) solid var(--color-surface-header);
+    padding: var(--spacing-lg) var(--spacing-3xl);
+  }
+}
