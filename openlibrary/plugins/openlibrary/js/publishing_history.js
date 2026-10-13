@@ -33,6 +33,9 @@ export function init() {
 
     const canvas = document.createElement('canvas');
     container.append(canvas);
+    // Keep a zoom drag's mouse events on the chart even once the pointer leaves it (or the window), so the
+    // release still ends the drag. Otherwise Firefox drops it and the next click selects a single year.
+    canvas.addEventListener('pointerdown', event => canvas.setPointerCapture(event.pointerId));
     const chart = new Chart(canvas, {
         type: 'bar',
         data: {

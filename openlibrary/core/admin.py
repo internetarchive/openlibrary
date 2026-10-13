@@ -58,7 +58,8 @@ class Stats:
 
         Bars are oldest first and scaled so the busiest day fills `height`.
         """
-        counts = sorted(self.get_counts(ndays, True))
+        # Graphite reports None for days it has no data for yet (e.g. today)
+        counts = sorted((timestamp, count or 0) for timestamp, count in self.get_counts(ndays, True))
         peak = max((count for _, count in counts), default=0) or 1
         step = width / max(len(counts), 1)
         bars = []
