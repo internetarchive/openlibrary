@@ -29,7 +29,7 @@ export function initAddBookImport() {
             addBookForm.requestSubmit();
         });
     }
-    document.getElementById('bookAddCont').addEventListener('click', function () {
+    document.getElementById('bookAddCont')?.addEventListener('click', function () {
         document.querySelector('input#work').value = 'none-of-these';
         addBookForm.requestSubmit();
     });
