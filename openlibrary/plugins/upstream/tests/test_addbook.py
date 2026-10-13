@@ -616,10 +616,49 @@ class TestProcessManagedTags:
 
         addbook.SaveBookHelper(work, edition).save(formdata)
 
-        assert web.ctx.site.get("/works/OL10W").genres == [
+        # Assert on the persisted shape (what the indexer in #13753 reads), not
+        # the Thing refs MockSite rehydrates on get().
+        assert web.ctx.site.docs["/works/OL10W"]["genres"] == [
             {"key": "/tags/OL1T"},
             {"key": "/tags/OL2T"},
         ]
+
+    def test_save_drops_an_invalid_added_key(self, monkeypatch):
+        """Validation runs on the real save path, not just the helper: an added
+        key that is not an existing genre Tag is dropped before it is persisted
+        (otherwise it would ride through on unflatten's raw refs and, once
+        /type/work declares genres, reject the atomic save)."""
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        web.ctx.site.save_many(
+            [
+                {"type": {"key": "/type/work"}, "key": "/works/OL14W", "title": "A Work"},
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL14M",
+                    "title": "A Work",
+                    "works": [{"key": "/works/OL14W"}],
+                },
+            ]
+        )
+        work = web.ctx.site.get("/works/OL14W")
+        edition = web.ctx.site.get("/books/OL14M")
+
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL14W",
+                "work--title": "A Work",
+                "work--_genres_present": "1",
+                "work--genres--0--key": "/tags/OL1T",  # valid genre
+                "work--genres--1--key": "/tags/OL404T",  # does not exist
+                "work--genres--2--key": "/tags/OL9T",  # exists, but content_formats
+                "edition--title": "A Work",
+                "edition--works--0--key": "/works/OL14W",
+            }
+        )
+
+        addbook.SaveBookHelper(work, edition).save(formdata)
+
+        assert web.ctx.site.docs["/works/OL14W"]["genres"] == [{"key": "/tags/OL1T"}]
 
     def test_save_clears_genres_when_none_posted(self, monkeypatch):
         """With the Genres section present but empty, saving clears the field."""
@@ -655,7 +694,7 @@ class TestProcessManagedTags:
 
         addbook.SaveBookHelper(work, edition).save(formdata)
 
-        assert not web.ctx.site.get("/works/OL11W").get("genres")
+        assert not web.ctx.site.docs["/works/OL11W"].get("genres")
 
     def test_save_preserves_stored_genres_on_an_unrelated_title_edit(self, monkeypatch):
         """A title edit that re-posts the stored genres must keep them all — even
@@ -695,9 +734,9 @@ class TestProcessManagedTags:
 
         addbook.SaveBookHelper(work, edition).save(formdata)
 
-        saved = web.ctx.site.get("/works/OL12W")
-        assert saved.title == "New Title"
-        assert saved.genres == [{"key": "/tags/OL1T"}, {"key": "/tags/OL84T"}]
+        saved = web.ctx.site.docs["/works/OL12W"]
+        assert saved["title"] == "New Title"
+        assert saved["genres"] == [{"key": "/tags/OL1T"}, {"key": "/tags/OL84T"}]
 
     def test_save_without_genres_section_leaves_genres_untouched(self, monkeypatch):
         """A form that doesn't carry the Genres section (no presence marker) must
@@ -733,7 +772,7 @@ class TestProcessManagedTags:
 
         addbook.SaveBookHelper(work, edition).save(formdata)
 
-        assert web.ctx.site.get("/works/OL13W").genres == [{"key": "/tags/OL1T"}]
+        assert web.ctx.site.docs["/works/OL13W"]["genres"] == [{"key": "/tags/OL1T"}]
 
 
 class TestDaisyPage:
