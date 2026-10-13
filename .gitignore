@@ -79,3 +79,8 @@ test-results/
 /_dev-merged_status.txt
 # Written by scripts/i18n-pull-translations.sh: which openlibrary-i18n commit olbase baked
 openlibrary/i18n/openlibrary-i18n.txt
+
+# Local verification for issue 13899; supporting artifacts live in .local/.
+/openlibrary/plugins/upstream/tests/test_genres_local.py
+/tests/unit/js/genres-edit.local.test.js
+/openlibrary/plugins/worksearch/tests/test_genre_search_local.py

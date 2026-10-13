@@ -96,6 +96,9 @@ class WorkSearchScheme(SearchScheme):
             "series_key",
             "series_name",
             "series_position",
+            # Managed genre Tags
+            "genre_key",
+            "genre_name",
             # Subjects
             "subject_key",
             "person_key",

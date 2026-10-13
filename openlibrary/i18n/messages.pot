@@ -885,7 +885,7 @@ msgstr ""
 msgid "Languages"
 msgstr ""
 
-#: search/inside.html search/search_modal_i18n.html work_search.html
+#: books/edit/about.html search/inside.html search/search_modal_i18n.html work_search.html
 msgid "Loading…"
 msgstr ""
 
@@ -3402,6 +3402,30 @@ msgstr ""
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a href=\"/subjects/roman_empire\">Roman Empire</a>, <a href=\"/subjects/psychology\">psychology</a></i>"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Genres?"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Add one or more literary genres for this work."
+msgstr ""
+
+#: books/edit/about.html
+msgid "+ Add genres"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Genres"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Search genres…"
+msgstr ""
+
+#: books/edit/about.html
+msgid "No matches"
 msgstr ""
 
 #: books/edit/about.html
@@ -8454,6 +8478,10 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
+msgid "Invalid genre selection"
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py
