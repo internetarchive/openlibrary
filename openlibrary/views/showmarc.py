@@ -3,15 +3,15 @@ Hook to show MARC or other source record details in Open Library.
 """
 
 import re
-
 import requests
 import web
 
-from openlibrary.catalog.get_ia import MAX_MARC_LENGTH
-
 from .. import app
+from openlibrary.catalog.get_ia import get_from_archive_bulk
+from openlibrary.catalog.marc import html
 
-IA_GET_TIMEOUT = 30
+
+re_bad_meta_mrc = re.compile(r"^([^/]+)_meta\.mrc$")
 
 
 class old_show_marc(app.view):
@@ -63,8 +63,6 @@ class show_ia(app.view):
             }
         )
 
-        from openlibrary.catalog.marc import html
-
         try:
             leader_len = int(data[:5])
         except ValueError:
@@ -108,9 +106,6 @@ class show_google_books(app.view):
         return app.render_template("showgoogle_books", isbn)
 
 
-re_bad_meta_mrc = re.compile(r"^([^/]+)_meta\.mrc$")
-
-
 class show_marc(app.view):
     path = r"/show-records/(.*):(\d+):(\d+)"
 
@@ -118,7 +113,13 @@ class show_marc(app.view):
         if m := re_bad_meta_mrc.match(filename):
             raise web.seeother("/show-records/ia:" + m.group(1))
 
+        offset = int(offset)
+        length = int(length)
         loc = f"marc:{filename}:{offset}:{length}"
+
+        result, next_offset, next_length = get_from_archive_bulk(loc)
+        if (len_in_rec := int(result[:5])) != length:
+            raise web.seeother(f"/show-records/{filename}:{offset}:{len_in_rec}")
 
         books = web.ctx.site.things(
             {
@@ -126,38 +127,15 @@ class show_marc(app.view):
                 "source_records": loc,
             }
         )
-
-        offset = int(offset)
-        length = int(length)
-
-        if not 0 < length < MAX_MARC_LENGTH:
-            raise web.badrequest("Invalid MARC record length - must be between 1 and %d" % MAX_MARC_LENGTH)
-        r0, r1 = offset, offset + length - 1
-        url = "https://archive.org/download/%s" % filename
-        headers = {"Range": "bytes=%d-%d" % (r0, r1)}
+        edition = books[0] if books else None
 
         try:
-            response = requests.get(url, headers=headers, timeout=IA_GET_TIMEOUT)
-            response.raise_for_status()
-            result = response.content[:length]
-        except requests.Timeout:
-            return "ERROR: archive.org timed out"
-        except requests.HTTPError as e:
-            return "ERROR:" + str(e)
-
-        if (len_in_rec := int(result[:5])) != length:
-            raise web.seeother("/show-records/%s:%d:%d" % (filename, offset, len_in_rec))
-
-        from openlibrary.catalog.marc import html
-
-        try:
-            record = html.html_record(result[0:length])
+            record = html.html_record(result)
         except ValueError:
             record = None
 
         # Precompute the edition document for the breadcrumb
-        edition = books[0] if books else None
         if edition:
             edition = web.ctx.site.get(edition)
 
-        return app.render_template("showmarc", record, filename, offset, length, edition=edition)
+        return app.render_template("showmarc", record, filename, offset, length, edition=edition, next_length=next_length)
