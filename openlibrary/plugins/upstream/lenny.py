@@ -67,7 +67,7 @@ import logging
 import secrets
 import time
 from typing import Any, NamedTuple
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import httpx
 import requests
@@ -80,7 +80,7 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.acquisitions import Acquisition
 from openlibrary.core.jinja import render_jinja_template
-from openlibrary.core.provider_loans import prime_provider_loans
+from openlibrary.core.provider_loans import invalidate_provider_loans, prime_provider_loans
 from openlibrary.core.provider_tokens import (
     Grant,
     ProviderToken,
@@ -294,6 +294,16 @@ def borrow_path(edition_olid: str) -> str:
     handler hands it back to itself through the sign-in redirect.
     """
     return f"/borrow/lenny/{edition_olid}"
+
+
+def return_path(edition_olid: str) -> str:
+    """Where a return of this edition is submitted. Mirrors :func:`borrow_path`.
+
+    An Open Library path, not a node URL: the node has no cookie-free return,
+    so Open Library -- which holds the token -- is what ends the loan. POST
+    only; :class:`lenny_return` serves it.
+    """
+    return f"/borrow/lenny/{edition_olid}/return"
 
 
 def mediated_borrow(edition_key: str) -> str | None:
@@ -577,6 +587,11 @@ def loan_from_node(provider_name: str, issuer: str, username: str, payload: dict
         "provider": provider_name,
         "resource_type": PROVIDER_RESOURCE_TYPE,
         "read_url": item_read_url(issuer, edition_id),
+        # Unlike `read_url`, an Open Library path: the return is submitted back
+        # here, because the node accepts a return only from the token holder
+        # (ArchiveLabs/lenny#240) and Open Library is what holds it. Carried on
+        # the loan so the generic read-button template needs no Lenny knowledge.
+        "return_url": return_path(f"OL{edition_id}M"),
     }
 
 
@@ -784,6 +799,65 @@ class LennyBorrowError(Exception):
         return BORROW_ERRORS.get(self.error, "That library could not lend this book right now.")
 
 
+RETURN_NOT_NEEDED = frozenset({"no_active_loan", "not_lendable"})
+"""Node error codes that are not failures from the patron's side: there is
+nothing to give back and they are not in a bad state (ArchiveLabs/lenny#249).
+
+- ``no_active_loan`` (404): the item exists but the patron holds no live loan on
+  it -- it is already returned.
+- ``not_lendable`` (400): the item is open access and never needed returning.
+
+Both reach this flow only through a race (an item flipped open-access on the
+node, or a ``lending.provider_loans`` entry outliving the change), because a
+Return control is offered only where ``get_provider_loan`` reports a loan. The
+handler treats them as an accomplished return -- invalidate and re-render as
+un-borrowed -- rather than showing an error for a state the patron is fine in.
+Matched on the error *code*, never the status: ``not_lendable`` and a genuinely
+malformed request both arrive as 400 and want opposite handling."""
+
+RETURN_ERRORS = {
+    "not_found": "This book is not in that library's collection.",
+}
+"""Typed return failures worth a specific message. The :data:`RETURN_NOT_NEEDED`
+codes are absent on purpose -- they are handled as a success, not shown."""
+
+
+def return_loan(issuer: str, token: str, edition_id: int) -> dict[str, Any]:
+    """End the loan at the node. Mirrors :func:`borrow` (ArchiveLabs/lenny#240).
+
+    ``POST {issuer}/v1/api/oauth2/return``, ``edition_id`` form field, bearer
+    token. The return reuses the ``borrow`` scope, so the grant a borrow
+    already stored works unchanged -- see :data:`SCOPES`.
+
+    Unlike :func:`borrow`, the success body is not read by this flow, so a 204
+    or a plain-text 200 is not an error here; only the error body is parsed,
+    the same way :func:`borrow` parses its failures.
+    """
+    issuer = issuer.rstrip("/")
+    resp = requests.post(
+        f"{issuer}/v1/api/oauth2/return",
+        data={"edition_id": edition_id},
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=HTTP_TIMEOUT_SECONDS,
+    )
+    is_json = resp.headers.get("content-type", "").startswith("application/json")
+    if resp.status_code >= 400:
+        error = (resp.json() or {}).get("error") if is_json else None
+        raise LennyReturnError(error or "unknown_error", resp.status_code)
+    return resp.json() if is_json else {}
+
+
+class LennyReturnError(Exception):
+    def __init__(self, error: str, status: int):
+        super().__init__(error)
+        self.error = error
+        self.status = status
+
+    @property
+    def message(self) -> str:
+        return RETURN_ERRORS.get(self.error, "That library could not return this book right now. Please try again later.")
+
+
 def authorize_url(
     metadata: dict[str, Any],
     node: dict[str, str],
@@ -945,6 +1019,106 @@ class lenny_borrow(delegate.page):
         )
 
         raise web.seeother(authorize_url(metadata, node, state, challenge, user.get_email()))
+
+
+def _return_redirect(raw_redirect: str, edition_key: str) -> str:
+    """The book page to land on after a return, with any host stripped.
+
+    The same open-redirect guard ``handle_borrow_async`` applies to its own
+    ``redirect`` field: only the path, query and fragment of a submitted value
+    survive, so a borrowed ``redirect`` cannot bounce the patron off-site. The
+    edition page is the fallback when nothing usable was submitted.
+    """
+    if raw_redirect:
+        parsed = urlsplit(raw_redirect)
+        path = urlunsplit(("", "", parsed.path, parsed.query, parsed.fragment))
+        if path:
+            return path
+    return edition_key
+
+
+class lenny_return(delegate.page):
+    """Return a Lenny provider loan the patron holds (#13909).
+
+    POST only, and a sibling of :class:`lenny_borrow` rather than part of the
+    Internet Archive ``/borrow/ia`` flow: that flow returns through
+    ``lending.s3_loan_api``, which has nothing to do with a node. The loan is
+    ended by presenting the patron's stored token to the node, so this needs no
+    cookie and no node session -- unlike the read path.
+
+    The cache is invalidated only on a confirmed return. A failure leaves it
+    alone and tells the patron honestly: a stale ``lending.provider_loans``
+    entry is exactly what keeps the book page offering a loan the node no
+    longer holds, and a return that did not happen must not read as one.
+    """
+
+    path = r"/borrow/lenny/(OL\d+M)/return"
+
+    def POST(self, edition_olid: str):
+        edition_key = f"/books/{edition_olid}"
+        if not (user := get_current_user()):
+            # The form only renders for a held loan, so a signed-out POST is an
+            # edge case; send them to the book page to sign in rather than to a
+            # POST-only path a login GET could not replay.
+            raise web.seeother(f"/account/login?redirect={edition_key}")
+        if not (found := node_for_edition(edition_key)):
+            raise web.notfound()
+        provider_name, node = found
+        username = user.get_username()
+        redirect_to = _return_redirect(web.input(redirect="").redirect, edition_key)
+
+        try:
+            token = access_token_for(username, provider_name)
+        except Exception:
+            # An unreadable store (commonly: no `provider_tokens` table) must
+            # not 500 the return, the same way `borrow_with_stored_grant` guards
+            # its own read.
+            logger.exception("lenny could not read a stored grant to return for %s at %s", username, provider_name)
+            token = None
+        if not token:
+            add_flash_message("error", _("Open Library could not reach that library to return this book. Please try again later."))
+            raise web.seeother(redirect_to)
+
+        try:
+            edition_id = int(extract_numeric_id_from_olid(edition_key))
+        except ValueError, TypeError:
+            raise web.notfound()
+
+        try:
+            return_loan(node["issuer"], token, edition_id)
+        except LennyReturnError as e:
+            logger.info("lenny return refused (%s/%s)", e.status, e.error)
+            if e.error in RETURN_NOT_NEEDED:
+                # Nothing to give back and the patron is not in a bad state
+                # (loan already gone, or the item is open access). That is the
+                # outcome they asked for, so this takes the success path, not an
+                # error: the cache is cleared so the next render shows the book
+                # as un-borrowed. Keyed on the code, not the status, because a
+                # benign `not_lendable` and a malformed request are both 400.
+                # `not_found` is a genuine fault and falls through to the error.
+                return self._returned(username, redirect_to)
+            if e.status in REJECTED_TOKEN_STATUSES:
+                # A revoked or under-scoped grant: only re-authorizing fixes it,
+                # and re-authorizing happens through a borrow.
+                add_flash_message("error", _("Open Library is no longer connected to that library. Please borrow again to reconnect, then return."))
+            else:
+                add_flash_message("error", e.message)
+            raise web.seeother(redirect_to)
+        except Exception:
+            logger.exception("lenny return failed for %s at %s", username, provider_name)
+            add_flash_message("error", _("That library could not return this book right now. Please try again later."))
+            raise web.seeother(redirect_to)
+
+        return self._returned(username, redirect_to)
+
+    @staticmethod
+    def _returned(username: str, redirect_to: str):
+        """The shared ending for a return the node confirms is gone: forget the
+        cached loan so the next render shows the book as un-borrowed, and say so.
+        """
+        invalidate_provider_loans(username)
+        add_flash_message("success", _("This book has been returned."))
+        raise web.seeother(redirect_to)
 
 
 class lenny_callback(delegate.page):

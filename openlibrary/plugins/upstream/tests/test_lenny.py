@@ -13,6 +13,7 @@ import base64
 import datetime
 import hashlib
 import pathlib
+import re
 import time
 import urllib.parse
 from typing import ClassVar
@@ -1029,6 +1030,14 @@ class TestLoanFromNode:
         assert loan is not None
         assert loan["read_url"] == "https://lennyforlibraries.org/v1/api/items/46539165/read"
 
+    def test_the_return_url_is_the_open_library_route_not_the_node(self):
+        """Unlike `read_url`, the return is submitted to Open Library, which
+        holds the token -- the node has no cookie-free return. It must be an
+        OL path, not a node URL."""
+        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 46539165})
+        assert loan is not None
+        assert loan["return_url"] == "/borrow/lenny/OL46539165M/return"
+
     def test_borrowed_at_becomes_a_posix_timestamp(self):
         loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "borrowed_at": "2026-09-20T12:00:00Z"})
         assert loan is not None
@@ -1456,3 +1465,304 @@ class TestTheStoredGrantIsReused:
         """ "Lenny" rather than a library name: `NODE` carries no `name`."""
         self._go()
         assert [(m.type, m.message) for m in web.ctx.flash] == [("info", "Borrowed from Lenny. Your loan is due 2026-10-04.")]
+
+
+class TestReturnCall:
+    """`return_loan` mirrors `borrow` against ArchiveLabs/lenny#240:
+    `POST {node}/v1/api/oauth2/return`, `edition_id` form field, bearer token,
+    reusing the `borrow` scope. Weighted at the failure paths for the same
+    reason `TestBorrowCall` is."""
+
+    def test_posts_the_edition_id_with_a_bearer_token(self, monkeypatch):
+        captured = {}
+
+        class Resp:
+            status_code = 200
+            headers: ClassVar[dict] = {"content-type": "application/json"}
+
+            def json(self):
+                return {"status": "returned", "edition_id": 51008637}
+
+        def fake_post(url, data=None, headers=None, timeout=None):
+            captured.update(url=url, data=data, headers=headers)
+            return Resp()
+
+        monkeypatch.setattr(lenny.requests, "post", fake_post)
+        lenny.return_loan(NODE["issuer"], "at-123", 51008637)
+        assert captured["url"] == "https://lennyforlibraries.org/v1/api/oauth2/return"
+        assert captured["data"] == {"edition_id": 51008637}
+        assert captured["headers"]["Authorization"] == "Bearer at-123"
+
+    def test_a_trailing_slash_on_the_issuer_does_not_double_up(self, monkeypatch):
+        captured = {}
+
+        class Resp:
+            status_code = 200
+            headers: ClassVar[dict] = {"content-type": "application/json"}
+
+            def json(self):
+                return {}
+
+        monkeypatch.setattr(lenny.requests, "post", lambda url, **k: captured.update(url=url) or Resp())
+        lenny.return_loan(NODE["issuer"] + "/", "at-123", 1)
+        assert captured["url"] == "https://lennyforlibraries.org/v1/api/oauth2/return"
+
+    def test_a_non_json_success_body_does_not_crash(self, monkeypatch):
+        """The return has no body this flow reads; a 204 or a plain-text 200
+        must not raise where `borrow`'s unconditional `.json()` would."""
+
+        class Resp:
+            status_code = 204
+            headers: ClassVar[dict] = {"content-type": "text/plain"}
+
+            def json(self):
+                raise ValueError("no body")
+
+        monkeypatch.setattr(lenny.requests, "post", lambda *a, **k: Resp())
+        assert lenny.return_loan(NODE["issuer"], "at-123", 1) == {}
+
+    @pytest.mark.parametrize(("status", "error"), [(401, "invalid_token"), (403, "insufficient_scope"), (404, "not_found"), (409, "conflict")])
+    def test_a_failure_status_raises_with_its_status(self, monkeypatch, status, error):
+        class Resp:
+            headers: ClassVar[dict] = {"content-type": "application/json"}
+
+            def __init__(self):
+                self.status_code = status
+
+            def json(self):
+                return {"error": error}
+
+        monkeypatch.setattr(lenny.requests, "post", lambda *a, **k: Resp())
+        with pytest.raises(lenny.LennyReturnError) as excinfo:
+            lenny.return_loan(NODE["issuer"], "at-123", 1)
+        assert excinfo.value.status == status
+        assert excinfo.value.error == error
+
+    def test_a_non_json_failure_does_not_crash(self, monkeypatch):
+        """A proxy or WAF between us and the node returns HTML, not JSON."""
+
+        class Resp:
+            status_code = 502
+            headers: ClassVar[dict] = {"content-type": "text/html"}
+
+            def json(self):
+                raise ValueError("not json")
+
+        monkeypatch.setattr(lenny.requests, "post", lambda *a, **k: Resp())
+        with pytest.raises(lenny.LennyReturnError) as excinfo:
+            lenny.return_loan(NODE["issuer"], "at-123", 1)
+        assert excinfo.value.status == 502
+        assert excinfo.value.error == "unknown_error"
+
+
+class TestLennyReturnRoute:
+    """The `/borrow/lenny/<OLID>/return` handler. The load-bearing property is
+    *when the cached loans are invalidated*: on a confirmed return and never on
+    a failure, because a stale `lending.provider_loans` entry is what keeps the
+    book page offering a loan the node no longer holds (#13909), and pretending
+    a return happened when it did not is the opposite failure."""
+
+    def test_the_route_matches_the_return_url_and_captures_the_olid(self):
+        """web.py anchors a page path as `^{path}\\Z`. These cases guard the
+        boundary the handler tests cannot see, since they call `.POST` directly:
+        the return path must match the return URL, capture the OLID, and NOT
+        collide with `lenny_borrow`'s path either way."""
+        return_re = re.compile(rf"^{lenny.lenny_return.path}\Z")
+        borrow_re = re.compile(rf"^{lenny.lenny_borrow.path}\Z")
+        m = return_re.match("/borrow/lenny/OL51008637M/return")
+        assert m is not None
+        assert m.group(1) == "OL51008637M"
+        # The return URL must not be swallowed by the borrow route...
+        assert borrow_re.match("/borrow/lenny/OL51008637M/return") is None
+        # ...and the borrow URL must not be caught by the return route.
+        assert return_re.match("/borrow/lenny/OL51008637M") is None
+
+    @pytest.fixture
+    def ret(self, monkeypatch, request_context_fixture):
+        request_context_fixture(lang="en")
+        web.ctx.flash = []
+        # `web.notfound()` builds an HTTPError that appends to `web.ctx.headers`;
+        # the request-context fixture does not populate it.
+        web.ctx.headers = []
+        recorded: dict = {"invalidated": [], "returns": [], "redirect_field": ""}
+
+        class FakeUser:
+            key = "/people/patron"
+
+            def get_username(self):
+                return "patron"
+
+            def get_email(self):
+                return "patron@example.org"
+
+        def seeother(url):
+            raise Redirected(url)
+
+        def fake_return(issuer, token, edition_id):
+            recorded["returns"].append((issuer, token, edition_id))
+            return {"status": "returned"}
+
+        monkeypatch.setattr(lenny, "get_current_user", FakeUser)
+        monkeypatch.setattr(lenny, "node_for_edition", lambda key: ("lenny", NODE))
+        monkeypatch.setattr(lenny, "access_token_for", lambda username, provider_name: "stored-at")
+        monkeypatch.setattr(lenny, "return_loan", fake_return)
+        monkeypatch.setattr(lenny, "invalidate_provider_loans", recorded["invalidated"].append)
+        monkeypatch.setattr(lenny.web, "seeother", seeother)
+        monkeypatch.setattr(lenny.web, "input", lambda **kw: web.storage(redirect=recorded["redirect_field"]))
+        return recorded
+
+    @staticmethod
+    def _go(olid="OL51008637M"):
+        with pytest.raises(Redirected) as excinfo:
+            lenny.lenny_return().POST(olid)
+        return excinfo.value.url
+
+    def _flash(self):
+        return [(m.type, m.message) for m in web.ctx.flash]
+
+    def test_a_successful_return_invalidates_the_cached_loans(self, ret):
+        self._go()
+        assert ret["invalidated"] == ["patron"]
+
+    def test_a_successful_return_presents_the_stored_token_to_the_node(self, ret):
+        self._go()
+        assert ret["returns"] == [(NODE["issuer"], "stored-at", 51008637)]
+
+    def test_a_successful_return_flashes_success(self, ret):
+        self._go()
+        assert self._flash() == [("success", "This book has been returned.")]
+
+    def test_a_node_that_cannot_be_reached_does_not_claim_a_return(self, ret, monkeypatch):
+        """The cache is NOT invalidated and the patron is told honestly, so the
+        loan keeps showing rather than vanishing on a return that did not
+        happen -- `provider_unreachable` is a real state the loans page models."""
+
+        def boom(issuer, token, edition_id):
+            raise RuntimeError("connection reset")
+
+        monkeypatch.setattr(lenny, "return_loan", boom)
+        self._go()
+        assert ret["invalidated"] == []
+        assert self._flash()[0][0] == "error"
+
+    @pytest.mark.parametrize(("status", "error"), [(401, "invalid_token"), (403, "insufficient_scope")])
+    def test_a_rejected_token_asks_the_patron_to_reconnect_without_invalidating(self, ret, monkeypatch, status, error):
+        def rejected(issuer, token, edition_id):
+            raise lenny.LennyReturnError(error, status)
+
+        monkeypatch.setattr(lenny, "return_loan", rejected)
+        self._go()
+        assert ret["invalidated"] == []
+        flashed = self._flash()
+        assert flashed[0][0] == "error"
+        assert "reconnect" in flashed[0][1].lower() or "borrow again" in flashed[0][1].lower()
+
+    def test_a_typed_refusal_is_shown_and_does_not_invalidate(self, ret, monkeypatch):
+        def refused(issuer, token, edition_id):
+            raise lenny.LennyReturnError("conflict", 409)
+
+        monkeypatch.setattr(lenny, "return_loan", refused)
+        self._go()
+        assert ret["invalidated"] == []
+        assert self._flash()[0][0] == "error"
+
+    @pytest.mark.parametrize(("error", "status"), [("no_active_loan", 404), ("not_lendable", 400)])
+    def test_a_loan_already_gone_is_treated_as_an_accomplished_return(self, ret, monkeypatch, error, status):
+        """ArchiveLabs/lenny#249's benign codes: `no_active_loan` (404, already
+        returned) and `not_lendable` (400, open access, never needed returning).
+        Both mean there is nothing to give back and the patron is fine; showing
+        an error for the one case where they got what they asked for is the
+        failure the lead flagged. Invalidate and render as un-borrowed instead.
+        Keyed on the error code, not the status -- `not_lendable` is a 400, as
+        is a genuine malformed request below, and they want opposite handling."""
+
+        def gone(issuer, token, edition_id):
+            raise lenny.LennyReturnError(error, status)
+
+        monkeypatch.setattr(lenny, "return_loan", gone)
+        self._go()
+        assert ret["invalidated"] == ["patron"]
+        assert self._flash() == [("success", "This book has been returned.")]
+
+    def test_not_found_is_a_genuine_fault_and_does_not_invalidate(self, ret, monkeypatch):
+        """The other 404: no such item on the node. Unlike `no_active_loan`
+        this is a real error and must not read as a return."""
+
+        def missing(issuer, token, edition_id):
+            raise lenny.LennyReturnError("not_found", 404)
+
+        monkeypatch.setattr(lenny, "return_loan", missing)
+        self._go()
+        assert ret["invalidated"] == []
+        assert self._flash()[0][0] == "error"
+
+    def test_a_malformed_request_400_is_an_error_not_a_return(self, ret, monkeypatch):
+        """A 400 whose code is NOT `not_lendable` is a real fault. Status alone
+        cannot separate it from `not_lendable`; the code is what does."""
+
+        def bad(issuer, token, edition_id):
+            raise lenny.LennyReturnError("invalid_request", 400)
+
+        monkeypatch.setattr(lenny, "return_loan", bad)
+        self._go()
+        assert ret["invalidated"] == []
+        assert self._flash()[0][0] == "error"
+
+    def test_an_unexpected_server_error_is_the_honest_error_path(self, ret, monkeypatch):
+        """A node 5xx -- e.g. an out-of-BIGINT edition_id 500s identically on
+        borrow and return (#249, pre-existing) -- must read as an honest error
+        and must not invalidate: the loan state is unknown, not confirmed gone."""
+
+        def boom(issuer, token, edition_id):
+            raise lenny.LennyReturnError("unknown_error", 500)
+
+        monkeypatch.setattr(lenny, "return_loan", boom)
+        self._go()
+        assert ret["invalidated"] == []
+        assert self._flash()[0][0] == "error"
+
+    def test_no_stored_grant_does_not_invalidate_and_does_not_call_the_node(self, ret, monkeypatch):
+        monkeypatch.setattr(lenny, "access_token_for", lambda username, provider_name: None)
+        self._go()
+        assert ret["returns"] == []
+        assert ret["invalidated"] == []
+        assert self._flash()[0][0] == "error"
+
+    def test_an_unreadable_token_store_does_not_500(self, ret, monkeypatch):
+        """A host with no `provider_tokens` table must flash, not crash."""
+
+        def unreadable(username, provider_name):
+            raise RuntimeError('relation "provider_tokens" does not exist')
+
+        monkeypatch.setattr(lenny, "access_token_for", unreadable)
+        self._go()
+        assert ret["returns"] == []
+        assert ret["invalidated"] == []
+        assert self._flash()[0][0] == "error"
+
+    def test_a_signed_out_patron_is_sent_to_login(self, ret, monkeypatch):
+        monkeypatch.setattr(lenny, "get_current_user", lambda: None)
+        url = self._go()
+        assert url.startswith("/account/login?redirect=")
+        assert ret["returns"] == []
+        assert ret["invalidated"] == []
+
+    def test_an_edition_no_configured_node_lends_is_not_found(self, ret, monkeypatch):
+        monkeypatch.setattr(lenny, "node_for_edition", lambda key: None)
+        with pytest.raises(web.HTTPError):
+            lenny.lenny_return().POST("OL51008637M")
+        assert ret["invalidated"] == []
+
+    def test_the_patron_lands_back_on_the_book_page(self, ret):
+        """With no submitted redirect, the fallback is the edition page."""
+        assert self._go() == "/books/OL51008637M"
+
+    def test_a_submitted_redirect_is_honoured(self, ret):
+        ret["redirect_field"] = "/works/OL1W/Some_Title"
+        assert self._go() == "/works/OL1W/Some_Title"
+
+    def test_an_absolute_redirect_is_stripped_to_a_path(self, ret):
+        """Open-redirect guard, same as `handle_borrow_async`: only the path,
+        query and fragment of a submitted redirect survive."""
+        ret["redirect_field"] = "https://evil.example.com/phish"
+        assert self._go() == "/phish"
