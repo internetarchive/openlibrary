@@ -41,7 +41,7 @@ class CoverItem(BaseModel):
     """One image in the dialog; `id` is "img:<cover id>", or "suggestion:<name>" for an image not stored yet."""
 
     id: str
-    kind: Literal["upload", "archive_cover", "archive_title", "wikidata", "edition"]
+    kind: Literal["upload", "archive_cover", "archive_title", "wikidata"]
     image_id: int | None
     suggestion: str | None = None
     thumb: str

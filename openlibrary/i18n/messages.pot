@@ -4270,10 +4270,6 @@ msgstr ""
 msgid "Current"
 msgstr ""
 
-#: covers/change.html type/work/editions_datatable.html
-msgid "Edition"
-msgstr ""
-
 #: covers/change.html
 msgid "Uploaded"
 msgstr ""
@@ -4288,10 +4284,6 @@ msgstr ""
 
 #: covers/change.html
 msgid "Wikimedia Commons"
-msgstr ""
-
-#: covers/change.html
-msgid "Cover of an edition"
 msgstr ""
 
 #: covers/change.html
@@ -4328,10 +4320,6 @@ msgstr ""
 
 #: covers/change.html
 msgid "Uploading…"
-msgstr ""
-
-#: covers/change.html
-msgid "Removed images can be restored from the edit history."
 msgstr ""
 
 #: covers/change.html
@@ -7160,6 +7148,10 @@ msgstr[1] ""
 #: type/work/editions_datatable.html
 #, python-format
 msgid "View all %(count)d editions?"
+msgstr ""
+
+#: type/work/editions_datatable.html
+msgid "Edition"
 msgstr ""
 
 #: openlibrary/core/shell/search_modal.py type/work/editions_datatable.html

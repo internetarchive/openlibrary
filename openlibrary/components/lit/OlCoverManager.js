@@ -16,12 +16,10 @@ export const DEFAULT_LABELS = {
     current: 'Current',
     sourceArchive: 'Internet Archive',
     sourceWikidata: 'Wikidata',
-    sourceEdition: 'Edition',
     sourceUpload: 'Uploaded',
     detailScanCover: 'Scan · cover page',
     detailScanTitle: 'Scan · title page',
     detailWikidata: 'Wikimedia Commons',
-    detailEdition: 'Cover of an edition',
     detailUploadBy: '%(name)s · %(date)s',
     detailYou: 'You · just now',
     pickLabelCurrent: '%(name)s (current cover)',
@@ -30,7 +28,6 @@ export const DEFAULT_LABELS = {
     undo: 'Undo',
     undoLabel: 'Keep %(name)s',
     uploading: 'Uploading…',
-    statusIdle: 'Removed images can be restored from the edit history.',
     statusSelect: 'When you save, the selected image becomes the cover.',
     statusAdd: { one: '%(count)s new image will be added.', other: '%(count)s new images will be added.' },
     statusRemove: { one: '%(count)s image will be removed.', other: '%(count)s images will be removed.' },
@@ -54,9 +51,9 @@ const MAX_BYTES = 10 * 1024 * 1024;
 /**
  * Picks and manages the images for a book, work, or author: every image
  * attached to it, plus suggestions that are always listed (Internet Archive
- * scans, a Wikidata photo, a work's edition covers). One is selected as the
- * cover; new images are added by drop, paste, or file picker; uploaded images
- * can be removed from the record. Nothing is saved until Save.
+ * scans, a Wikidata photo). One is selected as the cover; new images are added
+ * by drop, paste, or file picker; uploaded images can be removed from the
+ * record. Nothing is saved until Save.
  *
  * Lives inside an `<ol-dialog>`: it loads when the dialog opens, listens for
  * pasted images while open, and closes the dialog on Save or Cancel.
@@ -65,7 +62,7 @@ const MAX_BYTES = 10 * 1024 * 1024;
  *
  * @prop {String} docKey - The record whose images are managed, e.g. `/books/OL1M`.
  *     Attribute: `doc-key`.
- * @prop {String} guidelinesUrl - Link shown in the footer. Attribute: `guidelines-url`.
+ * @prop {String} guidelinesUrl - Link shown after the intro. Attribute: `guidelines-url`.
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS.
  *
  * @fires ol-cover-manager-save - The cover was saved. detail: { coverId: Number|null, thumb: String|null, large: String|null }
@@ -99,6 +96,10 @@ export class OlCoverManager extends LitElement {
             color: var(--color-text-secondary);
             font-size: var(--font-size-body-medium);
             line-height: var(--line-height-body);
+        }
+
+        .intro a {
+            color: var(--color-link);
         }
 
         .grid-wrap {
@@ -231,6 +232,7 @@ export class OlCoverManager extends LitElement {
         }
 
         .meta {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -241,6 +243,14 @@ export class OlCoverManager extends LitElement {
             line-height: var(--line-height-meta);
             color: var(--color-text-secondary);
             overflow-wrap: anywhere;
+        }
+
+        /* One line, cut with an ellipsis; the full name is in the title and the tile's label. */
+        .uploader {
+            max-width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
         }
 
         .source {
@@ -260,6 +270,7 @@ export class OlCoverManager extends LitElement {
 
         /* Remove / Undo: quiet text links, so they sit on a caption line like the detail row. */
         .text-action {
+            margin-top: auto;
             padding: 0;
             border: 0;
             background: none;
@@ -372,10 +383,6 @@ export class OlCoverManager extends LitElement {
             color: var(--color-text-secondary);
             font-size: var(--font-size-body-small);
             line-height: var(--line-height-body);
-        }
-
-        .status a {
-            color: var(--color-link);
         }
 
         .actions {
@@ -677,19 +684,21 @@ export class OlCoverManager extends LitElement {
         case 'archive_cover': return { source: this._t('sourceArchive'), detail: this._t('detailScanCover'), suggested: true };
         case 'archive_title': return { source: this._t('sourceArchive'), detail: this._t('detailScanTitle'), suggested: true };
         case 'wikidata': return { source: this._t('sourceWikidata'), detail: this._t('detailWikidata'), suggested: true };
-        case 'edition': return { source: this._t('sourceEdition'), detail: this._t('detailEdition'), suggested: true };
         default: {
+            if (item.session) return { source: this._t('sourceUpload'), detail: this._t('detailYou'), suggested: false };
+            const uploader = item.added_by?.name ?? '';
             let detail = date;
-            if (item.session) detail = this._t('detailYou');
-            else if (item.added_by && date) detail = this._t('detailUploadBy', { name: item.added_by.name, date });
-            else if (item.added_by) detail = item.added_by.name;
-            return { source: this._t('sourceUpload'), detail, suggested: false };
+            if (uploader && date) detail = this._t('detailUploadBy', { name: uploader, date });
+            else if (uploader) detail = uploader;
+            // `detail` is the one-line form for labels; the caption shows `uploader` and `date` on separate lines.
+            return { source: this._t('sourceUpload'), detail, uploader, date, suggested: false };
         }
         }
     }
 
     _renderTile(item) {
-        const { source, detail, suggested } = this._describe(item);
+        const description = this._describe(item);
+        const { source, detail, suggested } = description;
         const name = detail ? `${source}, ${detail}` : source;
         const selected = item.id === this._selected;
         const isCurrent = item.id === this._data.current;
@@ -714,18 +723,26 @@ export class OlCoverManager extends LitElement {
             </button>
             <div class="meta">
                 <span class="source ${suggested ? 'suggested' : ''}">${source}</span>
-                ${detail ? html`<span>${detail}</span>` : nothing}
+                ${this._renderCaption(description)}
                 ${canRemove && !removed ? html`<button type="button" class="text-action danger" aria-label=${this._t('removeLabel', { name })} @click=${() => this._remove(item)}>${this._t('remove')}</button>` : nothing}
                 ${removed ? html`<button type="button" class="text-action" aria-label=${this._t('undoLabel', { name })} @click=${() => this._undoRemove(item)}>${this._t('undo')}</button>` : nothing}
             </div>
         </li>`;
     }
 
+    /** Uploads give the uploader and the date a line each, so a long name can't wrap into the date. */
+    _renderCaption({ detail, uploader, date }) {
+        if (uploader === undefined) return detail ? html`<span>${detail}</span>` : nothing;
+        return html`${uploader ? html`<span class="uploader" title=${uploader}>${uploader}</span>` : nothing}${date ? html`<span>${date}</span>` : nothing}`;
+    }
+
+    _renderIntro() {
+        return html`<p class="intro">${this._t('intro')} <a href=${this.guidelinesUrl} target="_blank" rel="noopener">${this._t('guidelines')}</a></p>`;
+    }
+
     _renderStatus() {
         if (this._added.some((item) => item.pending)) return this._t('uploading');
-        if (!this._isDirty) {
-            return html`${this._t('statusIdle')} <a href=${this.guidelinesUrl} target="_blank" rel="noopener">${this._t('guidelines')}</a>`;
-        }
+        if (!this._isDirty) return nothing;
         const parts = [];
         if (this._selected !== this._data.current) parts.push(this._t('statusSelect'));
         const newUploads = this._uploadedIds.filter((id) => `img:${id}` !== this._selected).length;
@@ -744,13 +761,13 @@ export class OlCoverManager extends LitElement {
         }
 
         if (this._loadState !== 'ready') {
-            return html`<p class="intro">${this._t('intro')}</p>
+            return html`${this._renderIntro()}
                 <ul class="grid skeleton" aria-busy="true" aria-label=${this._t('loading')}>${[0, 1, 2, 3].map(() => html`<li class="tile"><span class="pick"><span class="frame"></span></span></li>`)}</ul>`;
         }
 
         const pending = this._added.some((item) => item.pending);
         return html`
-            <p class="intro">${this._t('intro')}</p>
+            ${this._renderIntro()}
             <div
                 class="grid-wrap"
                 @dragenter=${this._onDragEnter}

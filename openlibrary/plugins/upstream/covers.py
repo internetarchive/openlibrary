@@ -66,8 +66,8 @@ def upload_to_coverstore(category: str, olid: str, *, data=None, source_url: str
 
 
 # The cover manager dialog: every image attached to a book or author, plus
-# suggestions (Internet Archive scans, Wikidata, a work's edition covers) that
-# stay listed whether or not they've been used.
+# suggestions (Internet Archive scans, Wikidata) that stay listed whether or
+# not they've been used.
 
 IMAGE_CATEGORIES = {"/type/edition": "b", "/type/work": "w", "/type/author": "a"}
 
@@ -89,15 +89,13 @@ def cover_suggestions(doc) -> list[web.storage]:
     if doc.type.key == "/type/edition" and doc.ocaid:
         base = f"https://archive.org/download/{doc.ocaid}/page"
         return [
-            web.storage(name=f"archive-{page}", kind=f"archive_{page}", source_url=f"{base}/{page}", thumb=f"{base}/{page}_w360.jpg", image=None)
+            web.storage(name=f"archive-{page}", kind=f"archive_{page}", source_url=f"{base}/{page}", thumb=f"{base}/{page}_w360.jpg")
             for page in ("cover", "title")
         ]
     if doc.type.key == "/type/author":
         wikidata = doc.wikidata()
         urls = wikidata.get_image_urls() if wikidata else []
-        return [web.storage(name="wikidata", kind="wikidata", source_url=urls[0], thumb=f"{urls[0]}?width=360", image=None)] if urls else []
-    if doc.type.key == "/type/work":
-        return [web.storage(name=f"edition-{img.id}", kind="edition", source_url="", thumb=img.url("M"), image=img) for img in doc.get_edition_covers()]
+        return [web.storage(name="wikidata", kind="wikidata", source_url=urls[0], thumb=f"{urls[0]}?width=360")] if urls else []
     return []
 
 
@@ -137,12 +135,10 @@ def cover_manager_state(doc) -> dict:
 
     items, merged = [], set()
     for s in cover_suggestions(doc):
-        if (img := s.image or by_source.get(s.source_url)) and img.id in infos:
+        if img := by_source.get(s.source_url):
             # A suggestion that's already been copied in shows as that copy.
             merged.add(img.id)
             items.append(_image_item(img, infos[img.id], authors, kind=s.kind, suggestion=s.name, removable=False))
-        elif s.image:
-            items.append(_image_item(s.image, None, authors, kind=s.kind, suggestion=s.name, attached=False, removable=False))
         else:
             items.append(
                 {
@@ -168,8 +164,6 @@ def cover_manager_state(doc) -> dict:
     elif doc.type.key == "/type/edition" and doc.ocaid:
         # With no cover of its own, an edition shows its scan's cover page.
         current = "suggestion:archive-cover"
-    elif doc.type.key == "/type/work" and (cover := doc.get_cover()):
-        current = f"img:{cover.id}"
     else:
         current = None
     if current and not any(item["id"] == current for item in items):
@@ -195,7 +189,7 @@ def apply_cover_changes(doc, selected: str, added: list[int], removed: list[int]
 
     imported_from = None
     if selected.startswith("suggestion:"):
-        if not (s := suggestions.get(selected.removeprefix("suggestion:"))) or not s.source_url:
+        if not (s := suggestions.get(selected.removeprefix("suggestion:"))):
             raise ValueError(f"Unknown suggestion {selected}")
         infos = _fetch_infos([Image(doc._site, category, i) for i in current_ids])
         existing = next((i for i in current_ids if i in infos and infos[i].source_url == s.source_url), None)
@@ -209,8 +203,7 @@ def apply_cover_changes(doc, selected: str, added: list[int], removed: list[int]
             imported_from = s.source_url
     elif selected.startswith("img:") and selected[4:].isdigit():
         selected_id = int(selected[4:])
-        pickable = set(current_ids) | set(added) | {s.image.id for s in suggestions.values() if s.image}
-        if selected_id not in pickable:
+        if selected_id not in set(current_ids) | set(added):
             raise ValueError(f"Image {selected_id} is not one of this book's images")
     else:
         raise ValueError(f"Unknown selection {selected}")

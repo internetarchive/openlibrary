@@ -1,7 +1,7 @@
 {% import "design/_example.html.jinja" as ex %}
 {% macro demos() %}
     <p class="ds-lead">
-        The dialog for choosing a book's cover or an author's photo. It lists every image attached to the record after the ones that are always on offer — Internet Archive scan pages, a Wikidata photo, a work's edition covers — so picking a suggestion is one click and adding an image is a drop, a paste or a file pick. Nothing is saved until Save; uploaded images can be removed from the record and restored from its history.
+        The dialog for choosing a book's cover or an author's photo. It lists every image attached to the record after the ones that are always on offer — Internet Archive scan pages, a Wikidata photo — so picking a suggestion is one click and adding an image is a drop, a paste or a file pick. Nothing is saved until Save; uploaded images can be removed from the record and restored from its history.
     </p>
     {% call ex.example("In a dialog", "It loads when its ol-dialog opens and closes the dialog on Save or Cancel. This demo answers its requests with sample data, so nothing is saved — drop or paste an image to see an upload.",
         code="<ol-dialog id=\"cover-dialog\" label=\"Book Covers\" width=\"large\" fullscreen-on-mobile>\n  <ol-cover-manager doc-key=\"/books/OL1M\"\n                    labels=\"$json_encode(labels)\">\n  </ol-cover-manager>\n</ol-dialog>\n\n// The page updates its own cover once the dialog saves\ndocument.addEventListener('ol-cover-manager-save', (e) => e.detail.coverId);",
