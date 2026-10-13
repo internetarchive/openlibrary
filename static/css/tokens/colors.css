@@ -235,6 +235,9 @@
   --color-chart-bar: var(--pink-400);
   --color-chart-bar-selected: var(--pink-600);
 
+  /* Bars in the publishing-history chart on subject and publisher pages. */
+  --color-publishing-history-bar: var(--blue-500);
+
   /* Default bar colour for the daily stats charts on /stats. */
   --color-stats-chart-bar: var(--stat-yellow);
 

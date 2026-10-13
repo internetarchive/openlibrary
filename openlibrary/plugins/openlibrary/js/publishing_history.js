@@ -37,7 +37,12 @@ export function init() {
         type: 'bar',
         data: {
             labels: years,
-            datasets: [{ data: years.map(year => counts.get(year) ?? 0), backgroundColor: getComputedStyle(container).getPropertyValue('--color-chart-bar') }]
+            datasets: [
+                {
+                    data: years.map(year => counts.get(year) ?? 0),
+                    backgroundColor: getComputedStyle(container).getPropertyValue('--color-publishing-history-bar')
+                }
+            ]
         },
         options: {
             maintainAspectRatio: false,
