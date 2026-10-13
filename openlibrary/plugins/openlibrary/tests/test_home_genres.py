@@ -1,11 +1,18 @@
 """Tests for reading the home page's genres from the editable /config/home doc, with a file
 fallback (#13893). A bad or missing doc must never blank the homepage."""
 
+import json
 import logging
 
 import pytest
 
 from openlibrary.plugins.openlibrary import home_genres
+
+
+def _save_home(mock_site, body):
+    """Seed /config/home as a /type/page data container whose `body` holds `body` (a str)."""
+    mock_site.quicksave("/config/home", "/type/page", body=body)
+
 
 # A minimal but valid /config/home `genres` value, with a marker slug that is NOT in the bundled
 # home_genres.json, so "doc used" and "file used" are distinguishable.
@@ -135,16 +142,41 @@ class TestTTLCache:
         assert len(calls) == 2
 
 
-class TestInfogamiRoundTrip:
-    """The nested genre nodes must come back from infogami as plain dicts, matching the file."""
+class TestConfigHomeDoc:
+    """/config/home is a /type/page whose JSON `body` is {"genres": [...]}. The genres parse out of
+    the body as plain dicts; a broken body falls back to the file and logs; an absent doc is quiet."""
 
-    def test_config_home_genres_reads_nested_plain_dicts(self, mock_site):
-        mock_site.quicksave("/config/home", "/type/object", genres=DOC_GENRES)
+    def test_valid_body_is_used(self, mock_site):
+        _save_home(mock_site, json.dumps({"genres": DOC_GENRES}))
         assert home_genres._config_home_genres() == DOC_GENRES
 
-    def test_no_doc_returns_none(self, mock_site):
+    def test_no_doc_returns_none_quietly(self, mock_site, caplog):
+        with caplog.at_level(logging.ERROR, logger="openlibrary.home_genres"):
+            nodes = home_genres._load_home_genre_nodes()
+        assert "zz-marker" not in {n["slug"] for n in nodes}  # file used
+        assert caplog.records == []  # an unseeded doc is not an error
+
+    def test_body_without_genres_key_returns_none(self, mock_site):
+        _save_home(mock_site, json.dumps({"other": 1}))
         assert home_genres._config_home_genres() is None
 
-    def test_doc_without_genres_key_returns_none(self, mock_site):
-        mock_site.quicksave("/config/home", "/type/object", note="no genres here")
-        assert home_genres._config_home_genres() is None
+    def test_empty_body_falls_back_with_error(self, mock_site, caplog):
+        _save_home(mock_site, "")
+        with caplog.at_level(logging.ERROR, logger="openlibrary.home_genres"):
+            nodes = home_genres._load_home_genre_nodes()
+        assert {"action", "adventure"} <= {n["slug"] for n in nodes}  # file used
+        assert any(r.levelno >= logging.ERROR for r in caplog.records)
+
+    def test_malformed_json_body_falls_back_with_error(self, mock_site, caplog):
+        _save_home(mock_site, '{"genres": [ this is not json')
+        with caplog.at_level(logging.ERROR, logger="openlibrary.home_genres"):
+            nodes = home_genres._load_home_genre_nodes()
+        assert {"action", "adventure"} <= {n["slug"] for n in nodes}  # file used
+        assert any(r.levelno >= logging.ERROR for r in caplog.records)
+
+    def test_valid_json_invalid_data_falls_back_with_error(self, mock_site, caplog):
+        _save_home(mock_site, json.dumps({"genres": [{"name": "x", "slug": "x"}]}))  # missing keys
+        with caplog.at_level(logging.ERROR, logger="openlibrary.home_genres"):
+            nodes = home_genres._load_home_genre_nodes()
+        assert {"action", "adventure"} <= {n["slug"] for n in nodes}  # file used
+        assert any(r.levelno == logging.ERROR and "/config/home" in r.getMessage() for r in caplog.records)

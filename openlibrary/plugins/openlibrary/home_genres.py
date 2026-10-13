@@ -27,9 +27,11 @@ GENRES_JSON_PATH = Path(__file__).parent / "home_genres.json"
 # Hand-picked, not generated.
 GENRE_COVERS_JSON_PATH = Path(__file__).parent / "home_genre_covers.json"
 
-# The editable homepage-config doc (#13893). A `/type/object` like /config/edition, read with
-# web.ctx.site.get(). Only its `genres` key is read here; a bad or missing doc falls back to the
-# bundled file so an edit can never blank the homepage.
+# The editable homepage-config doc (#13893). A `/type/page` used purely as a DATA CONTAINER (Mek,
+# 2026-10-12): its `/type/text` `body` holds a JSON object `{"genres": [...]}`, editable in the
+# standard page editor. The homepage still renders through home.py and the home templates — nothing
+# routes "/" through the page renderer; this only reads the genres out of the doc's body. A bad or
+# missing doc falls back to the bundled file so an edit can never blank the homepage.
 HOME_CONFIG_KEY = "/config/home"
 # Staff edits to /config/home appear within this window, with no restart. Short enough to feel
 # live, long enough that the drill-down partials don't read infobase on every request.
@@ -90,10 +92,12 @@ def _valid_genres(genres: object) -> bool:
 
 
 def _config_home_genres() -> list | None:
-    """The `genres` value from /config/home, or None when there's no site, no doc, or no key.
+    """The `genres` parsed from /config/home's JSON `body`, or None when there's no site or no doc.
 
-    Nested genre nodes come back as infogami Things; .dict() round-trips the keyless ones to plain
-    dicts (client.Thing._dictrepr), matching home_genres.json.
+    /config/home is a /type/page data container; its `body` (a /type/text) holds `{"genres": [...]}`.
+    When the doc is absent (e.g. not seeded yet) this returns None quietly. When the doc is PRESENT
+    but its body is empty or not valid JSON, json.loads raises and the caller logs it and falls back
+    to the file — a broken data container is a real error, unlike an unseeded one.
     """
     site = getattr(web.ctx, "site", None)
     if site is None:
@@ -101,7 +105,13 @@ def _config_home_genres() -> list | None:
     doc = site.get(HOME_CONFIG_KEY)
     if not doc:
         return None
-    return doc.dict().get("genres")
+    body = doc.dict().get("body")
+    # A /type/text round-trips through .dict() as {"type": "/type/text", "value": "..."}; a mock or a
+    # plain-string store gives the string directly. Handle both.
+    if isinstance(body, dict):
+        body = body.get("value")
+    data = json.loads(body or "")  # empty/invalid body -> JSONDecodeError -> logged + file by caller
+    return data.get("genres") if isinstance(data, dict) else None
 
 
 def _load_home_genre_nodes() -> list[dict]:
