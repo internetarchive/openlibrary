@@ -120,11 +120,17 @@ def _load_home_genre_nodes() -> list[dict]:
         genres = _config_home_genres()
     except Exception:
         logger.exception("Reading %s failed; using %s", HOME_CONFIG_KEY, GENRES_JSON_PATH.name)
-        genres = None
-    if genres is not None:
-        if _valid_genres(genres):
+    else:
+        if genres is None:
+            # Absent/unseeded doc is the expected pre-seed state — debug, not error. Only fires once
+            # per process per node TTL (see load_home_genre_nodes), so it's a breadcrumb for "why
+            # isn't my edit showing", not spam.
+            logger.debug("%s absent or has no genres; using %s", HOME_CONFIG_KEY, GENRES_JSON_PATH.name)
+        elif _valid_genres(genres):
+            logger.debug("Using genres from %s", HOME_CONFIG_KEY)
             return genres
-        logger.error("%s has an invalid `genres`; using %s", HOME_CONFIG_KEY, GENRES_JSON_PATH.name)
+        else:
+            logger.error("%s has an invalid `genres`; using %s", HOME_CONFIG_KEY, GENRES_JSON_PATH.name)
     return json.loads(GENRES_JSON_PATH.read_text())
 
 
