@@ -35,7 +35,7 @@ logger = logging.getLogger("openlibrary.fastapi.account")
 
 router = APIRouter()
 
-SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+SHOW_INTERNAL_IN_SCHEMA = get_ol_env().LOCAL_DEV
 
 # Allow overriding ia_sync_secret via env var (for dev/test environments).
 # Legacy production config sets this value outside the repo.
@@ -210,7 +210,7 @@ def account_loans_json(
     try:
         return legacy_account.get_account_loans_json(accounts.get_current_user())
     except Exception:
-        if os.getenv("LOCAL_DEV"):
+        if get_ol_env().LOCAL_DEV:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Loan data requires credentials for the production Internet Archive server and is not available in the local development environment.",
@@ -226,7 +226,7 @@ def account_loan_history_json(
     try:
         return legacy_account.get_account_loan_history_json(accounts.get_current_user(), page)
     except Exception:
-        if os.getenv("LOCAL_DEV"):
+        if get_ol_env().LOCAL_DEV:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Loan history requires credentials for the production Internet Archive server and is not available in the local development environment.",
