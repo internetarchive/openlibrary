@@ -1,9 +1,30 @@
 // @ts-check
 import { uniqBy } from './nonjquery_utils.js';
-import { BarController, BarElement, CategoryScale, Chart, LinearScale, Tooltip } from 'chart.js';
+import { BarController, BarElement, CategoryScale, Chart, LinearScale } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
+Chart.register(BarController, BarElement, CategoryScale, LinearScale);
+
+const ROW_HEIGHT = 28;
+// Room past the longest bar for its count
+const COUNT_GUTTER = 32;
+
+/**
+ * Shorten a label with an ellipsis until it fits, so Chart.js doesn't clip it at the canvas edge
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {string} label
+ * @param {number} maxWidth
+ */
+function truncateToWidth(ctx, label, maxWidth) {
+    ctx.save();
+    ctx.font = `${Chart.defaults.font.size}px ${Chart.defaults.font.family}`;
+    let text = label;
+    while (text.length > 1 && ctx.measureText(text.length < label.length ? `${text}…` : text).width > maxWidth) {
+        text = text.slice(0, -1);
+    }
+    ctx.restore();
+    return text.length < label.length ? `${text.trimEnd()}…` : label;
+}
 
 /**
  * @typedef {object} Work
@@ -39,8 +60,28 @@ Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
  */
 export function init(config) {
     const tokens = getComputedStyle(document.documentElement);
-    const barColor = tokens.getPropertyValue('--color-chart-bar').trim();
-    const barLabelColor = tokens.getPropertyValue('--color-chart-bar-label').trim();
+    const token = name => tokens.getPropertyValue(name).trim();
+    const barColor = token('--color-chart-bar');
+    const selectedBarColor = token('--color-chart-bar-selected');
+    Chart.defaults.font.family = token('--font-family-body');
+    Chart.defaults.font.size = parseInt(token('--font-size-body-small'));
+    Chart.defaults.color = token('--color-text-secondary');
+    /** @type {Chart[]} */
+    const charts = [];
+    const selectedWorksList = document.querySelector('.selected-works--list');
+
+    /**
+     * Highlight one bar (or none) across every chart, since the works list shows a single selection
+     * @param {Chart} [selectedChart]
+     * @param {number} [selectedIndex]
+     */
+    function selectBar(selectedChart, selectedIndex) {
+        for (const chart of charts) {
+            const dataset = chart.data.datasets[0];
+            dataset.backgroundColor = dataset.data.map((_, i) => (chart === selectedChart && i === selectedIndex ? selectedBarColor : barColor));
+            chart.update('none');
+        }
+    }
     const authors_by_id = Object.fromEntries(config.authors.map(a => [a.key, a]));
 
     /**
@@ -74,10 +115,10 @@ export function init(config) {
             .sort((a, b) => b[1].length - a[1].length)
             .slice(0, 20);
         // Let Chart.js size the canvas to the wrapper so its click hit-testing matches what is drawn
-        /** @type {HTMLElement} */ (canvas.parentElement).style.height = `${bars.length * 20 + 5}px`;
+        /** @type {HTMLElement} */ (canvas.parentElement).style.height = `${bars.length * ROW_HEIGHT + 8}px`;
         canvas.setAttribute('role', 'img');
         canvas.setAttribute('aria-label', `${chartConfig.title}: ${bars.map(([label, works]) => `${label} (${works.length})`).join(', ')}`);
-        new Chart(canvas, {
+        const chart = new Chart(canvas, {
             type: 'bar',
             plugins: [ChartDataLabels],
             data: {
@@ -85,6 +126,10 @@ export function init(config) {
                 datasets: [
                     {
                         backgroundColor: barColor,
+                        hoverBackgroundColor: selectedBarColor,
+                        borderRadius: 4,
+                        maxBarThickness: 20,
+                        categoryPercentage: 0.7,
                         barPercentage: 1,
                         data: bars.map(b => b[1].length)
                     }
@@ -93,28 +138,46 @@ export function init(config) {
             options: {
                 indexAxis: 'y',
                 maintainAspectRatio: false,
+                layout: { padding: { right: COUNT_GUTTER } },
                 scales: {
                     x: { display: false },
-                    y: { grid: { display: false } }
+                    y: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            // Chart.js caps the label column at half the width left after layout padding;
+                            // leave room for the tick padding inside it
+                            callback(value) {
+                                return truncateToWidth(this.ctx, this.getLabelForValue(Number(value)), (this.chart.width - COUNT_GUTTER) / 2 - 12);
+                            }
+                        }
+                    }
+                },
+                onHover: (e, elements) => {
+                    canvas.style.cursor = elements.length ? 'pointer' : 'default';
                 },
                 onClick: (e, [chartEl]) => {
                     if (chartEl) {
-                        const bar = bars[chartEl.index];
-                        document.querySelector('.selected-works--list').innerHTML = window.render_works_list(bar[1]);
+                        selectBar(chart, chartEl.index);
+                        selectedWorksList.innerHTML = window.render_works_list(bars[chartEl.index][1]);
                     } else {
-                        document.querySelector('.selected-works--list').innerHTML = '';
+                        selectBar();
+                        selectedWorksList.innerHTML = '';
                     }
                 },
                 plugins: {
+                    tooltip: { enabled: false },
                     datalabels: {
-                        color: barLabelColor,
+                        color: token('--color-text'),
+                        font: { weight: 600 },
                         anchor: 'end',
-                        align: 'left',
-                        offset: 0
+                        align: 'end',
+                        offset: 4
                     }
                 }
             }
         });
+        charts.push(chart);
 
         container.insertAdjacentHTML('beforeend', window.render_excluded_works_list(excluded, config.works.length));
     }
@@ -218,10 +281,11 @@ export function init(config) {
         wrapper.append(canvas);
         container.append(wrapper);
 
+        // Wait for the web font so canvas text isn't drawn in the fallback face
         if (chartConfig.type === 'work-chart') {
-            createWorkChart(config, chartConfig, container, canvas);
+            document.fonts.ready.then(() => createWorkChart(config, chartConfig, container, canvas));
         } else if (chartConfig.type === 'wd-chart') {
-            wdPromise.then(() => createWorkChart(config, chartConfig, container, canvas));
+            Promise.all([wdPromise, document.fonts.ready]).then(() => createWorkChart(config, chartConfig, container, canvas));
         }
     }
 }
