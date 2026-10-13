@@ -4,7 +4,7 @@ import {
     getDeepActiveElement,
     getTabbableElements,
     getTabbableFromSlot,
-    isFocusable,
+    isFocusable
 } from '../../../openlibrary/components/lit/utils/focus-utils.js';
 
 // jsdom implements neither layout nor
@@ -100,9 +100,7 @@ describe('getTabbableElements', () => {
         root.innerHTML = '<button>a</button><span>x</span><a href="#">b</a><input>';
         document.body.appendChild(root);
 
-        expect(getTabbableElements(root).map(el => el.tagName)).toEqual([
-            'BUTTON', 'A', 'INPUT',
-        ]);
+        expect(getTabbableElements(root).map(el => el.tagName)).toEqual(['BUTTON', 'A', 'INPUT']);
     });
 
     test('pierces a nested shadow root — the gap a shallow querySelectorAll misses', () => {
@@ -124,7 +122,7 @@ describe('getTabbableElements', () => {
         expect(found[0]).toBe(root.querySelector('.inner'));
     });
 
-    test('treats a focusable host as a single leaf stop and does not descend (today\'s mixin shape)', () => {
+    test("treats a focusable host as a single leaf stop and does not descend (today's mixin shape)", () => {
         // A custom-element host carrying tabindex (FocusableHostMixin today) is
         // one tab stop; we must not also enumerate its inner button.
         const host = hostWithShadow('<button class="inner">x</button>');
@@ -151,21 +149,14 @@ describe('getTabbableElements', () => {
         // must record the row AND descend to its button (the shadow-boundary
         // leaf rule only applies to elements that have a shadow root).
         const root = document.createElement('div');
-        root.innerHTML =
-            '<div class="row" role="button" tabindex="0">' +
-            '  <span>label</span><button class="remove">x</button>' +
-            '</div>';
+        root.innerHTML = '<div class="row" role="button" tabindex="0">' + '  <span>label</span><button class="remove">x</button>' + '</div>';
         document.body.appendChild(root);
 
         expect(getTabbableElements(root).map(el => el.className)).toEqual(['row', 'remove']);
     });
 
     test('exposes exactly one stop for a roving-tabindex composite', () => {
-        const host = hostWithShadow(
-            '<button tabindex="0" class="active">1</button>' +
-            '<button tabindex="-1">2</button>' +
-            '<button tabindex="-1">3</button>',
-        );
+        const host = hostWithShadow('<button tabindex="0" class="active">1</button>' + '<button tabindex="-1">2</button>' + '<button tabindex="-1">3</button>');
 
         const found = getTabbableElements(document.body);
         expect(found).toEqual([host.shadowRoot.querySelector('.active')]);
@@ -186,24 +177,18 @@ describe('getTabbableElements', () => {
         // A host that projects its light children through a <slot> in its
         // shadow root — the walker should surface the projected buttons.
         const host = document.createElement('div');
-        host.attachShadow({ mode: 'open' }).innerHTML =
-            '<button class="before">before</button><slot></slot><button class="after">after</button>';
+        host.attachShadow({ mode: 'open' }).innerHTML = '<button class="before">before</button><slot></slot><button class="after">after</button>';
         host.innerHTML = '<button class="slotted">slotted</button>';
         document.body.appendChild(host);
 
-        expect(getTabbableElements(document.body).map(el => el.className)).toEqual([
-            'before', 'slotted', 'after',
-        ]);
+        expect(getTabbableElements(document.body).map(el => el.className)).toEqual(['before', 'slotted', 'after']);
     });
 
     test('skips the <use> inside a sprite icon, which has an href but takes no focus', () => {
         // macros.icon() renders <svg><use href="...#icon-eye-off"></use></svg>.
         // As a tab stop it swallows the Tab: focusing it is a silent no-op.
         const root = document.createElement('div');
-        root.innerHTML =
-            '<textarea></textarea>' +
-            '<p><svg><use href="/static/sprite.svg#icon-eye-off"></use></svg></p>' +
-            '<a href="/help">help</a>';
+        root.innerHTML = '<textarea></textarea>' + '<p><svg><use href="/static/sprite.svg#icon-eye-off"></use></svg></p>' + '<a href="/help">help</a>';
         document.body.appendChild(root);
 
         expect(getTabbableElements(root).map(el => el.tagName.toLowerCase())).toEqual(['textarea', 'a']);
@@ -242,7 +227,7 @@ describe('getTabbableFromSlot', () => {
         expect(getTabbableFromSlot(slot)).toEqual([button, inner]);
     });
 
-    test('pierces an assigned custom element\'s shadow root', () => {
+    test("pierces an assigned custom element's shadow root", () => {
         // An assigned element whose only focusable lives in its shadow root —
         // a shallow one-slot-deep scan would miss it; the deep walker finds the
         // real inner control.

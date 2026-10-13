@@ -3,7 +3,7 @@ import { translate } from './utils/labels.js';
 import './OlTooltip.js';
 
 export const DEFAULT_LABELS = {
-    by: 'by %(name)s',
+    by: 'by %(name)s'
 };
 
 /**
@@ -43,7 +43,7 @@ export class OlBookCover extends LitElement {
         year: { type: String },
         href: { type: String },
         size: { type: String, reflect: true },
-        labels: { type: Object },
+        labels: { type: Object }
     };
 
     static styles = css`
@@ -100,11 +100,11 @@ export class OlBookCover extends LitElement {
 
         /* A 72px cover has room for neither the padding nor the type of a
            full-size one. */
-        :host([size="small"]) .blank {
+        :host([size='small']) .blank {
             padding: var(--spacing-inset-xs);
         }
 
-        :host([size="small"]) .blank__title {
+        :host([size='small']) .blank__title {
             font-size: var(--font-size-label-medium);
         }
 
@@ -121,7 +121,7 @@ export class OlBookCover extends LitElement {
         /* The corner is the cover's to own. Whatever is slotted in goes static
            inside it — a wrapper like <ol-shelf-actions> takes the corner and its
            own trigger sits inside that. */
-        slot[name="overlay"]::slotted(*) {
+        slot[name='overlay']::slotted(*) {
             position: absolute;
             top: 4px;
             right: 4px;
@@ -167,9 +167,7 @@ export class OlBookCover extends LitElement {
     }
 
     render() {
-        const art = this.href
-            ? html`<a class="link" href=${this.href} @click=${this._onClick}>${this._renderArt()}</a>`
-            : this._renderArt();
+        const art = this.href ? html`<a class="link" href=${this.href} @click=${this._onClick}>${this._renderArt()}</a>` : this._renderArt();
         return html`
             <ol-tooltip placement="top" arrow>${art}${this._renderTip()}</ol-tooltip>
             <slot name="overlay"></slot>
@@ -201,11 +199,13 @@ export class OlBookCover extends LitElement {
     }
 
     _onClick() {
-        this.dispatchEvent(new CustomEvent('ol-book-cover-click', {
-            bubbles: true,
-            composed: true,
-            detail: { href: this.href },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-book-cover-click', {
+                bubbles: true,
+                composed: true,
+                detail: { href: this.href }
+            })
+        );
     }
 }
 

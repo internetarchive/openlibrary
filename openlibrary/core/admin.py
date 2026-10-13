@@ -7,9 +7,8 @@ import requests
 import web
 
 from openlibrary.core import cache
+from openlibrary.core.async_db import fetch_val
 from openlibrary.core.env import get_ol_env
-
-from . import db
 
 
 class Stats:
@@ -171,23 +170,19 @@ def get_stats(ndays=30, use_mock_data=False):
 
 
 @cache.memoize(engine="memcache", key="logins_since", expires=12 * 60 * 60)
-def get_unique_logins_since(since_days=30):
+async def get_unique_logins_since(since_days=30):
     since_date = datetime.now() - timedelta(days=since_days)
     date_str = since_date.strftime("%Y-%m-%d")
 
     query = """
-        SELECT COUNT(id) FROM store_index
+        SELECT COUNT(*) FROM store_index
             WHERE type = 'account'
             AND name = 'last_login'
-            AND value > $date
+            AND value > %(date)s
     """
 
-    oldb = db.get_db()
-    results = list(oldb.query(query, vars={"date": date_str}))
-
-    if not results:
-        return 0
-    return results[0].get("count", 0)
+    count = await fetch_val(query, {"date": date_str})
+    return count or 0
 
 
 def mock_get_stats():

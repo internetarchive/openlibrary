@@ -29,6 +29,7 @@
  * - /merges
  * - /people/admin
  * - /people/openlibrary9157/lists
+ * - /people/openlibrary9157/books/already-read/stats
  * - /read
  * - /recentchanges
  * - /search/authors
@@ -62,6 +63,8 @@
 /* Import styles for sort options */
 @import "components/sort-dropper.css";
 @import "components/pagination.css";
+/* Import styles for the reading log stats charts */
+@import "components/readinglog-charts.css";
 
 body {
   background-color: var(--color-background);
