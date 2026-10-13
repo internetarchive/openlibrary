@@ -37,8 +37,22 @@ HORROR = {
     "work_count": 1,
     "readable_count": 1,
     "subgenres": [
-        {"name": "Gothic", "slug": "gothic", "query": "gothic_fiction*", "work_count": 1, "readable_count": 1},
-        {"name": "Psychological", "slug": "psychological", "query": "psychological_fiction*", "work_count": 1, "readable_count": 1},
+        {
+            "name": "Gothic",
+            "slug": "gothic",
+            "query": "gothic_fiction*",
+            "work_count": 543,
+            "readable_count": 249,
+            "readable_by_language": {"eng": 222, "fre": 23, "jpn": 3},
+        },
+        {
+            "name": "Psychological",
+            "slug": "psychological",
+            "query": "psychological_fiction*",
+            "work_count": 62,
+            "readable_count": 36,
+            "readable_by_language": {"eng": 37, "fre": 20, "jpn": 4},
+        },
     ],
 }
 
@@ -85,7 +99,7 @@ class TestHomeGenreNarrow:
         assert params.query == f"{trending['query']} language:eng"
         assert "language%3Aeng" in params.url
         assert params.title == "Trending now"
-        assert HomeGenrePartial.jump_links(trending) == []
+        assert HomeGenrePartial.jump_links(trending, []) == []
 
     def test_unknown_subgenre_falls_back_to_the_genre(self):
         params = self.narrow("romance")
@@ -93,7 +107,7 @@ class TestHomeGenreNarrow:
         assert params.subgenre is None
 
     def test_jump_links_go_to_the_subgenre_rows(self):
-        assert HomeGenrePartial.jump_links(HORROR) == [
+        assert HomeGenrePartial.jump_links(HORROR, HORROR["subgenres"]) == [
             {"name": "Gothic", "href": "#genre-horror-gothic"},
             {"name": "Psychological", "href": "#genre-horror-psychological"},
         ]
@@ -101,7 +115,7 @@ class TestHomeGenreNarrow:
     def test_curated_subgenre_names_are_translated(self):
         """Vocabulary names pass through; curated ones (scripts/generate_home_genres.py) are localized."""
         with patch.object(home_genres, "subgenre_labels", return_value={"gothic": "Gothique"}):
-            assert [link["name"] for link in HomeGenrePartial.jump_links(HORROR)] == ["Gothique", "Psychological"]
+            assert [link["name"] for link in HomeGenrePartial.jump_links(HORROR, HORROR["subgenres"])] == ["Gothique", "Psychological"]
             assert self.narrow("gothic").title == "Gothique"
             assert HomeGenrePartial.row(HORROR, HORROR["subgenres"][0]).title == "Gothique"
 
@@ -113,10 +127,11 @@ class TestHomeGenreShelf:
     def setup_context(self, request_context_fixture):
         request_context_fixture(lang="en")
 
-    async def shelf(self, genre=HORROR):
+    async def shelf(self, genre=HORROR, marc=None):
         render = AsyncMock(return_value={"partials": "<ol-carousel></ol-carousel>"})
         with (
             patch("openlibrary.plugins.openlibrary.home_genres.find_genre", return_value=genre),
+            patch("openlibrary.plugins.openlibrary.home_genres.language_marc", return_value=marc),
             patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=""),
             patch.object(CarouselPartial, "generate_async", render),
             # Stub the macro, not the Jinja global: imported macros snapshot globals on first import.
@@ -138,6 +153,15 @@ class TestHomeGenreShelf:
         )
         assert "<ol-carousel></ol-carousel>" in html
         assert 'class="lazy-carousel-loaded"' in html
+        assert html.count('class="lazy-carousel"') == 2
+
+    @pytest.mark.asyncio
+    async def test_thin_subgenre_rows_are_dropped_for_the_users_language(self):
+        """Filtered to Japanese, Horror's subgenres have 3 and 4 books: no lazy rows, no jump links."""
+        html, _row = await self.shelf(marc="jpn")
+        assert html.count('class="lazy-carousel"') == 0
+        assert "genre-shelf__jump-link" not in html
+        html, _row = await self.shelf(marc="fre")
         assert html.count('class="lazy-carousel"') == 2
         assert 'data-sort="trending"' in html
         assert html.count("genre-shelf__sort") == 1

@@ -28,6 +28,9 @@ OL_SEARCH_URL = "https://openlibrary.org/search.json"
 DEFAULT_OUTPUT = Path("openlibrary/plugins/openlibrary/home_genres.json")
 # Matches home_genres.READABLE_CLAUSE: borrowable or public, not print-disabled-only.
 READABLE_CLAUSE = "ebook_access:[borrowable TO *]"
+# The languages the home page filters shelves by: get_populated_languages() minus Latin (see
+# home_genres.language_marc). Each subgenre gets a readable count per language, so thin rows can be hidden per user.
+SHELF_LANGUAGES = ["eng", "fre", "ger", "spa", "chi", "ita", "dut", "rus", "jpn"]
 
 # Not shown on the home page: Erotica by choice, Satire and Tragedy too thin, Comedy folded
 # into Humor (see QUERY_OVERRIDES).
@@ -195,7 +198,13 @@ def node(tag: dict) -> dict:
 def within(parent: dict, sg_node: dict) -> dict:
     """A subgenre filters its parent's shelf, so its counts are for books in both."""
     both = f"subject_key:{parent['query']} subject_key:{sg_node['query']}"
-    return {**sg_node, "work_count": fetch_count(both), "readable_count": fetch_count(f"{both} {READABLE_CLAUSE}")}
+    readable = f"{both} {READABLE_CLAUSE}"
+    return {
+        **sg_node,
+        "work_count": fetch_count(both),
+        "readable_count": fetch_count(readable),
+        "readable_by_language": {lang: fetch_count(f"{readable} language:{lang}") for lang in SHELF_LANGUAGES},
+    }
 
 
 def add_curated_subgenres(parent: dict) -> None:

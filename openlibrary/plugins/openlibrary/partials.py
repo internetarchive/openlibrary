@@ -1128,8 +1128,8 @@ class HomeGenrePartial:
         return _("Trending in %(genre)s", genre=name)
 
     @classmethod
-    def jump_links(cls, genre: home_genres.Genre) -> list[SubgenreOption]:
-        return [SubgenreOption(name=home_genres.subgenre_name(s), href=f"#{cls.row_key(genre, s)}") for s in genre["subgenres"]]
+    def jump_links(cls, genre: home_genres.Genre, subgenres: list[home_genres.GenreNode]) -> list[SubgenreOption]:
+        return [SubgenreOption(name=home_genres.subgenre_name(s), href=f"#{cls.row_key(genre, s)}") for s in subgenres]
 
     @classmethod
     def narrow(cls, params: LazyCarouselParams, genre: home_genres.Genre) -> LazyCarouselParams:
@@ -1164,6 +1164,7 @@ class HomeGenrePartial:
         if not genre:
             return {"partials": ""}
 
+        subgenres = home_genres.subgenres_for(genre, home_genres.language_marc(get_request_lang()))
         # Render the genre row eagerly so opening a shelf takes one request.
         genre_row = cls.row(genre)
         carousel = await CarouselPartial.generate_async(genre_row)
@@ -1177,13 +1178,13 @@ class HomeGenrePartial:
                 layout=row.layout,
                 fallback=None,
             )
-            for row in (cls.row(genre, s) for s in genre["subgenres"])
+            for row in (cls.row(genre, s) for s in subgenres)
         ]
         html = render_jinja_template(
             "home/genre_shelf.html.jinja",
             genre=genre,
             name=home_genres.display_name(genre),
-            jump_links=cls.jump_links(genre),
+            jump_links=cls.jump_links(genre, subgenres),
             sort=genre_row.sort,
             carousel=carousel["partials"],
             # The sort control refetches from this (lazy-carousel.js).

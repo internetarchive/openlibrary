@@ -20,7 +20,7 @@ from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.plugins.worksearch.code import work_search_async
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import async_bridge
-from openlibrary.utils.request_context import caching_prethread, req_context
+from openlibrary.utils.request_context import caching_prethread, get_request_lang, req_context
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -32,13 +32,14 @@ def get_homepage(devmode):
         logger.error("Error in getting stats", exc_info=True)
         stats = None
     blog_posts = get_blog_feeds()
-    # The genre cache is shared across languages, so names are translated per page.
+    # The genre cache is shared across languages, so names are translated and thin rows dropped per page.
     try:
+        marc = home_genres.language_marc(get_request_lang())
         featured_genres = [
             {
                 **genre,
                 "name": home_genres.display_name(genre),
-                "subgenres": [{**s, "name": home_genres.subgenre_name(s)} for s in genre["subgenres"]],
+                "subgenres": [{**s, "name": home_genres.subgenre_name(s)} for s in home_genres.subgenres_for(genre, marc)],
             }
             for genre in get_cached_featured_genres()
         ]

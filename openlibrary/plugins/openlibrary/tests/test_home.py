@@ -133,7 +133,16 @@ TILE_GENRES = [
         "slug": "history",
         "query": "history*",
         "kind": "subject",
-        "subgenres": [{"name": "World War II", "slug": "world-war-ii", "query": "world_war_1939-1945*", "work_count": 1, "readable_count": 1}],
+        "subgenres": [
+            {
+                "name": "World War II",
+                "slug": "world-war-ii",
+                "query": "world_war_1939-1945*",
+                "work_count": 1146,
+                "readable_count": 1146,
+                "readable_by_language": {"eng": 5210, "fre": 324, "jpn": 3},
+            }
+        ],
     },
     {"name": "Absurd", "slug": "absurd", "query": "absurd*", "kind": "genre", "subgenres": []},
 ]
@@ -200,6 +209,7 @@ class TestFeaturedGenres:
             patch.object(home, "get_cached_featured_genres", return_value=genres),
             patch.object(home.home_genres, "subject_tile_labels", return_value={"history": "Histoire"}),
             patch.object(home.home_genres, "subgenre_labels", return_value={"world-war-ii": "Seconde Guerre mondiale"}),
+            patch.object(home.home_genres, "language_marc", return_value="fre"),
             patch.object(home.admin, "get_stats", return_value=None),
             patch.object(home, "get_blog_feeds", return_value=[]),
             patch.object(home, "render_template", return_value={}) as render,
@@ -208,6 +218,18 @@ class TestFeaturedGenres:
         featured = render.call_args.kwargs["featured_genres"]
         assert [g["name"] for g in featured] == ["Trending", "Horror", "Histoire", "Absurd"]
         assert [s["name"] for s in featured[2]["subgenres"]] == ["Seconde Guerre mondiale"]
+
+    def test_thin_subgenre_rows_are_dropped_per_page_language(self):
+        genres = self.featured()
+        with (
+            patch.object(home, "get_cached_featured_genres", return_value=genres),
+            patch.object(home.home_genres, "language_marc", return_value="jpn"),
+            patch.object(home.admin, "get_stats", return_value=None),
+            patch.object(home, "get_blog_feeds", return_value=[]),
+            patch.object(home, "render_template", return_value={}) as render,
+        ):
+            home.get_homepage(devmode=False)
+        assert render.call_args.kwargs["featured_genres"][2]["subgenres"] == []
 
     def test_solr_failure_costs_the_rail_not_the_page(self):
         with (
@@ -244,6 +266,34 @@ class TestFeaturedGenres:
                 assert [g["slug"] for g in home.home_genres.load_home_genres()] == ["horror"]
             finally:
                 home.home_genres.load_home_genres.cache_clear()
+
+
+class TestShelfLanguage:
+    """Shelves filter to the UI language when it's populated; subgenre rows must still be worth a row in it."""
+
+    def marc(self, lang):
+        with (
+            patch("openlibrary.plugins.upstream.utils.convert_iso_to_marc", side_effect={"en": "eng", "es": "spa", "la": "lat", "pt": "por"}.get),
+            patch("openlibrary.plugins.upstream.utils.get_populated_languages", return_value={"eng", "spa", "lat"}),
+        ):
+            return home.home_genres.language_marc(lang)
+
+    def test_populated_languages_filter_except_latin(self):
+        assert (self.marc("en"), self.marc("es"), self.marc("la"), self.marc("pt"), self.marc(None)) == ("eng", "spa", None, None, "eng")
+
+    def test_subgenre_rows_need_books_in_the_language(self):
+        def sub(slug, **by_language):
+            return {"name": slug, "slug": slug, "query": slug, "work_count": 99, "readable_count": 99, "readable_by_language": by_language}
+
+        genre = {**TILE_GENRES[0], "subgenres": [sub("a", eng=25, spa=10), sub("b", eng=19, spa=7), sub("c", eng=500, spa=0)]}
+        rows = lambda marc: [s["slug"] for s in home.home_genres.subgenres_for(genre, marc)]  # noqa: E731
+        assert rows(None) == ["a", "b", "c"]
+        assert rows("eng") == ["a", "c"]  # English keeps the 20 bar
+        assert rows("spa") == ["a"]  # other languages: 8
+
+    def test_rows_without_language_counts_fall_back_to_the_overall_count(self):
+        genre = {**TILE_GENRES[0], "subgenres": [{"name": "x", "slug": "x", "query": "x", "work_count": 30, "readable_count": 30}]}
+        assert [s["slug"] for s in home.home_genres.subgenres_for(genre, "spa")] == ["x"]
 
 
 class TestTrendingStack:

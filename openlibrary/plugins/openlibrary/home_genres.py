@@ -18,6 +18,10 @@ GENRE_COVERS_JSON_PATH = Path(__file__).parent / "home_genre_covers.json"
 # Readable-book thresholds, counted against production when the JSON was generated.
 MIN_GENRE_READABLE = 1000
 MIN_SUBGENRE_READABLE = 20
+# A subgenre row filtered to the user's language is hidden under this many books (English keeps the bar above).
+MIN_SUBGENRE_READABLE_IN_LANGUAGE = 8
+# Populated languages the shelves don't filter by: Latin's ebooks are classics and scholarship, not genre fiction.
+UNFILTERED_LANGUAGES = {"lat"}
 
 # Borrowable or public; the raw `has_fulltext` field also counts print-disabled-only books.
 READABLE_CLAUSE = "ebook_access:[borrowable TO *]"
@@ -29,6 +33,7 @@ class GenreNode(TypedDict):
     query: str
     work_count: int
     readable_count: int
+    readable_by_language: NotRequired[dict[str, int]]  # MARC code -> count; subgenres only
 
 
 class Genre(GenreNode):
@@ -145,13 +150,26 @@ def solr_query(node: GenreNode, parent: GenreNode | None = None) -> str:
     return f"subject_key:{parent['query']} AND {query}" if parent else query
 
 
-def user_language_clause(lang: str | None) -> str:
-    """The same language restriction QueryCarousel.html applies for `user_lang_only`."""
+def language_marc(lang: str | None) -> str | None:
+    """The MARC code shelves are filtered by for a UI language, or None when they aren't (same rule as QueryCarousel's `user_lang_only`)."""
     # Avoids a circular import.
     from openlibrary.plugins.upstream.utils import convert_iso_to_marc, get_populated_languages
 
     marc = convert_iso_to_marc(lang or "en")
-    return f" language:{marc}" if marc and marc in get_populated_languages() else ""
+    return marc if marc and marc in get_populated_languages() - UNFILTERED_LANGUAGES else None
+
+
+def user_language_clause(lang: str | None) -> str:
+    marc = language_marc(lang)
+    return f" language:{marc}" if marc else ""
+
+
+def subgenres_for(genre: Genre, marc: str | None) -> list[GenreNode]:
+    """The subgenre rows worth showing when the shelf is filtered to `marc`: a row of 3 books isn't a shelf."""
+    if not marc:
+        return genre["subgenres"]
+    minimum = MIN_SUBGENRE_READABLE if marc == "eng" else MIN_SUBGENRE_READABLE_IN_LANGUAGE
+    return [s for s in genre["subgenres"] if s.get("readable_by_language", {}).get(marc, s["readable_count"]) >= minimum]
 
 
 def search_url(node: GenreNode, has_fulltext: bool = True, parent: GenreNode | None = None, lang_clause: str = "") -> str:
