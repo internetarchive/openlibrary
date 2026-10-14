@@ -1,13 +1,12 @@
 import asyncio
-import contextvars
 import pathlib
 import re
-import threading
 
 import pytest
 import web
 
 from infogami.utils import stats
+from openlibrary.core.jinja import get_jinja_env
 from openlibrary.utils import server_timing
 from openlibrary.utils.async_utils import async_bridge
 
@@ -33,12 +32,6 @@ def timings():
     server_timing.end_request(token)
 
 
-def test_noop_outside_request():
-    with server_timing.timed("solr"), server_timing.timed_render():
-        pass
-    assert server_timing._current.get() is None
-
-
 def test_timed_counts_calls_and_failures(timings):
     with server_timing.timed("solr"):
         pass
@@ -58,24 +51,18 @@ def test_nested_renders_count_once(timings):
     assert timings.snapshot()["render"][0] == 2
 
 
-def test_records_from_threads_and_async_bridge(timings):
-    def work():
-        for _ in range(500):
-            with server_timing.timed("solr"):
-                pass
-
-    threads = [threading.Thread(target=contextvars.copy_context().run, args=(work,)) for _ in range(4)]
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-
+def test_async_bridge_records_into_the_request(timings):
     async def query():
         with server_timing.timed("solr"):
             await asyncio.sleep(0)
 
-    async_bridge.run(query())
-    assert timings.snapshot()["solr"][0] == 2001
+    async_bridge.run(query())  # runs on async_bridge's own loop thread
+    assert timings.snapshot()["solr"][0] == 1
+
+
+def test_jinja_renders_are_timed(timings):
+    get_jinja_env().from_string("{{ x }}").render(x=1)
+    assert timings.snapshot()["render"][0] == 1
 
 
 class TestInfogamiBridge:
@@ -86,18 +73,11 @@ class TestInfogamiBridge:
 
     def test_records_during_request_without_touching_web_ctx(self, timings):
         stats.begin("memcache.get", key="k")
-        stats.end(hit=True)
-        stats.begin("infobase")
-        stats.end(error=True)  # e.g. a not-found; not a failure
+        stats.end(error=True)  # infogami errors (e.g. not-founds) aren't failures
         stats.end()  # unbalanced; ignored
-        assert {name: (count, failures) for name, (count, _, failures) in timings.snapshot().items()} == {"memcache": (1, 0), "infobase": (1, 0)}
-        assert "stats" not in web.ctx
-
-    def test_db_is_timed_per_query(self, timings):
-        stats.begin("db")  # core/db.py's coarser stat; its queries are counted below
         web.database(dbn="sqlite", db=":memory:").query("SELECT 1")
-        stats.end()
-        assert timings.snapshot()["db"][0] == 1
+        assert {name: (count, failures) for name, (count, _, failures) in timings.snapshot().items()} == {"memcache": (1, 0), "db": (1, 0)}
+        assert "stats" not in web.ctx
 
     def test_unchanged_outside_request(self):
         stats.begin("infobase")

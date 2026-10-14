@@ -86,13 +86,10 @@ def test_header_failure_does_not_break_response(client):
     assert "Server-Timing" not in resp.headers
 
 
-def test_real_app(fastapi_client):
-    assert "total" in parse(fastapi_client.get("/health").headers["Server-Timing"])
-
-
-def test_real_app_can_turn_it_off():
+def test_real_app_on_by_default_and_can_be_turned_off(fastapi_client):
     from openlibrary.asgi_app import create_app  # noqa: PLC0415
 
+    assert "total" in parse(fastapi_client.get("/health").headers["Server-Timing"])
     with patch.object(infogami.config, "server_timing", False, create=True), patch("openlibrary.asgi_app.set_context_from_fastapi", lambda request: None):
         resp = TestClient(create_app()).get("/health")
     assert "Server-Timing" not in resp.headers
