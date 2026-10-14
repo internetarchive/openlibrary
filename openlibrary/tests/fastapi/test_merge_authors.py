@@ -259,6 +259,27 @@ class TestMergeAuthorsJson:
         assert response.status_code == 400
         assert response.json() == {"detail": {"error": "not_found", "message": "internal error"}}
 
+    def test_merge_raises_400_on_client_exception_without_json(
+        self,
+        fastapi_client,
+        mock_authenticated_user,
+        mock_user_factory,
+        mock_merge_engine,
+        mock_process_merge_request,
+    ):
+        """ClientException without a JSON body returns 400 with the error message."""
+        mock_user_factory(is_admin=True)
+        mock_merge_engine.merge.side_effect = ClientException(
+            "503 Service Unavailable",
+            "Unable to connect to infobase server",
+        )
+        response = fastapi_client.post(
+            "/authors/merge.json",
+            json={"master": "/authors/OL1A", "duplicates": ["/authors/OL2A"]},
+        )
+        assert response.status_code == 400
+        assert response.json() == {"detail": "Unable to connect to infobase server"}
+
     def test_merge_raises_400_when_retries_exhausted(
         self,
         fastapi_client,
