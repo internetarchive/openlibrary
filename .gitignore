@@ -79,3 +79,6 @@ test-results/
 /_dev-merged_status.txt
 # Written by scripts/i18n-pull-translations.sh: which openlibrary-i18n commit olbase baked
 openlibrary/i18n/openlibrary-i18n.txt
+
+# Local regression checks and supporting artifacts for issue 13913.
+/openlibrary/plugins/upstream/tests/test_lenny_json_local.py

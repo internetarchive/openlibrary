@@ -213,6 +213,19 @@ def nodes() -> dict[str, dict[str, str]]:
     return config.get("lenny_nodes") or {}
 
 
+def _node_json(resp: requests.Response | httpx.Response) -> dict[str, Any] | None:
+    """A node's JSON object, or None for an unreadable or non-object body.
+
+    A JSON content type does not guarantee valid JSON, and valid JSON need
+    not be an object. Callers decide whether a missing object is fatal.
+    """
+    try:
+        body = resp.json()
+    except ValueError:
+        return None
+    return body if isinstance(body, dict) else None
+
+
 def discover(issuer: str, timeout: int = HTTP_TIMEOUT_SECONDS) -> dict[str, Any]:
     """A node's OAuth metadata, cached.
 
@@ -231,7 +244,9 @@ def discover(issuer: str, timeout: int = HTTP_TIMEOUT_SECONDS) -> dict[str, Any]
 
     resp = requests.get(issuer.rstrip("/") + DISCOVERY_PATH, timeout=timeout)
     resp.raise_for_status()
-    metadata = resp.json()
+    metadata = _node_json(resp)
+    if metadata is None:
+        raise ValueError(f"{issuer} discovery document is not a JSON object")
 
     methods = metadata.get("code_challenge_methods_supported") or []
     if REQUIRED_CODE_CHALLENGE_METHOD not in methods:
@@ -394,7 +409,7 @@ def exchange_code(pending: dict[str, Any], code: str) -> Grant:
         timeout=HTTP_TIMEOUT_SECONDS,
     )
     resp.raise_for_status()
-    return _grant_from_payload(resp.json() or {})
+    return _grant_from_payload(_node_json(resp) or {})
 
 
 def node_refresher(node: dict[str, str]) -> Refresher:
@@ -423,7 +438,7 @@ def node_refresher(node: dict[str, str]) -> Refresher:
             timeout=REFRESH_TIMEOUT_SECONDS,
         )
         resp.raise_for_status()
-        return _grant_from_payload(resp.json() or {})
+        return _grant_from_payload(_node_json(resp) or {})
 
     return refresh
 
@@ -460,9 +475,9 @@ async def fetch_node_loans(issuer: str, token: str, timeout_seconds: float) -> l
     """The ``{"loans": [...]}`` payload from one node, as a list.
 
     Returns the node's own dicts -- ``edition_id``, ``borrowed_at``, ``due_at``
-    -- and does not translate them. Raises on anything that is not a 2xx with a
-    JSON body, which the caller turns into "that library did not answer"
-    rather than into a broken page.
+    -- and does not translate them. Raises on HTTP failures, which the caller
+    turns into "that library did not answer" rather than into a broken page.
+    An unreadable or non-object JSON body is treated as an empty loan list.
 
     The bound is handed to httpx rather than wrapped in ``asyncio.timeout``
     (which is what ruff's ASYNC109 asks for, hence the parameter's name): httpx
@@ -477,7 +492,7 @@ async def fetch_node_loans(issuer: str, token: str, timeout_seconds: float) -> l
         timeout=timeout_seconds,
     )
     resp.raise_for_status()
-    return (resp.json() or {}).get("loans") or []
+    return (_node_json(resp) or {}).get("loans") or []
 
 
 def _parse_iso(value: Any) -> datetime.datetime | None:
@@ -759,7 +774,7 @@ and collapsing them into one generic failure loses that."""
 
 
 def borrow(pending: dict[str, Any], token: str, edition_id: int) -> dict[str, Any]:
-    """Create the loan. Returns the node's response."""
+    """Create the loan. An unreadable response raises ``LennyBorrowError``."""
     issuer = pending["issuer"].rstrip("/")
     resp = requests.post(
         f"{issuer}/v1/api/oauth2/borrow",
@@ -768,9 +783,15 @@ def borrow(pending: dict[str, Any], token: str, edition_id: int) -> dict[str, An
         timeout=HTTP_TIMEOUT_SECONDS,
     )
     if resp.status_code >= 400:
-        error = (resp.json() or {}).get("error") if resp.headers.get("content-type", "").startswith("application/json") else None
+        body = _node_json(resp) if resp.headers.get("content-type", "").startswith("application/json") else None
+        error = (body or {}).get("error")
         raise LennyBorrowError(error or "unknown_error", resp.status_code)
-    return resp.json()
+    body = _node_json(resp)
+    if body is None:
+        # Keep this in the typed-error path: a generic parse failure makes a
+        # stored-grant borrow fall back to OAuth, which cannot fix this body.
+        raise LennyBorrowError("invalid_response", resp.status_code)
+    return body
 
 
 class LennyBorrowError(Exception):
