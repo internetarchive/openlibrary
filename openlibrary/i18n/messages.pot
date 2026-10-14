@@ -5621,6 +5621,16 @@ msgstr ""
 
 #: search/inside.html
 #, python-format
+msgid "No exact matches for \"%(query)s\". Showing books containing all of these words."
+msgstr ""
+
+#: search/inside.html
+#, python-format
+msgid "Showing exact matches for \"%(query)s\". %(link_start)sSearch for all of these words instead.%(link_end)s"
+msgstr ""
+
+#: search/inside.html
+#, python-format
 msgid "About %(total)s result"
 msgid_plural "About %(total)s results"
 msgstr[0] ""

@@ -9,8 +9,8 @@ from urllib.parse import urlencode
 
 import httpx
 import web
-from infogami import config
 
+from infogami import config
 from openlibrary.core.carousels import format_book_data
 from openlibrary.core.lending import get_availability_async
 from openlibrary.utils.async_utils import async_bridge

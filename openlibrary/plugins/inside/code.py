@@ -1,9 +1,9 @@
 from urllib.parse import urlencode
 
 import web
+
 from infogami.utils import delegate
 from infogami.utils.view import render_template
-
 from openlibrary.core.fulltext import (
     fulltext_page,
     fulltext_search_async,
