@@ -1,6 +1,10 @@
 {
   "publish_date": "1904",
   "publish_country": "fi",
+  "identifiers": {
+    "fikka": ["9837"],
+    "melinda": ["016606374", "000609619"]
+  },
   "languages": [
     "fin"
   ],
