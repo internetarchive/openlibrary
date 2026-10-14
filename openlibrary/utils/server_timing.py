@@ -14,18 +14,14 @@ from __future__ import annotations
 
 import threading
 import time
-from contextlib import AbstractContextManager, contextmanager
+from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import TYPE_CHECKING
-from urllib.parse import urlsplit
 
 from infogami.utils import stats
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
-
-# archive.org APIs that get their own metric; anything else is "ia-other".
-_IA_SERVICES = frozenset({"advancedsearch", "availability", "borrow", "fts", "loans", "metadata", "s3auth", "xauthn"})
 
 
 class RequestTimings:
@@ -110,24 +106,6 @@ def timed_render() -> Iterator[None]:
         _rendering.reset(token)
 
 
-def ia_metric_name(url: object) -> str:
-    """``ia-<service>`` from the URL path, e.g. ``/services/loans/...`` -> ``ia-loans``."""
-    if not isinstance(url, str):  # e.g. an unset config URL; timing must never raise
-        return "ia-other"
-    try:
-        segments = [s for s in urlsplit(url).path.split("/") if s]
-    except ValueError:
-        return "ia-other"
-    if segments[:1] == ["services"]:
-        segments = segments[1:]
-    service = segments[0].split(".")[0] if segments else ""
-    return f"ia-{service}" if service in _IA_SERVICES else "ia-other"
-
-
-def timed_ia(url: object) -> AbstractContextManager[Call]:
-    return timed(ia_metric_name(url))
-
-
 def format_header(timings: RequestTimings) -> str:
     """e.g. ``total;dur=294.1, solr;dur=57.0;desc="2 calls (1 failed)"``"""
     parts = [f"total;dur={(time.perf_counter() - timings.start) * 1000:.1f}"]
@@ -137,9 +115,9 @@ def format_header(timings: RequestTimings) -> str:
     return ", ".join(parts)
 
 
-def _infogami_metric_name(name: str, kw: dict) -> str:
-    if name == "archive.org":
-        return ia_metric_name(kw.get("url"))
+def _infogami_metric_name(name: str) -> str:
+    if name == "archive.org":  # ia.get_api_response: item metadata and manifests
+        return "ia-metadata"
     return name.split(".", maxsplit=1)[0]  # "memcache.get" -> "memcache"
 
 
@@ -157,7 +135,7 @@ def install_infogami_bridge() -> None:
     def begin(name, **kw):
         if (timings := _current.get()) is None:
             return original_begin(name, **kw)
-        timings._begin(_infogami_metric_name(name, kw))
+        timings._begin(_infogami_metric_name(name))
 
     def end(**kw):
         if (timings := _current.get()) is None:

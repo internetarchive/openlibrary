@@ -250,7 +250,7 @@ async def fulltext_search_api(params):
     logger.debug("URL: " + search_select)
     try:
         async with httpx.AsyncClient() as client:
-            with server_timing.timed_ia(search_endpoint) as call:
+            with server_timing.timed("ia-fts") as call:
                 response = await client.get(search_select, headers=headers, timeout=30)
                 call.failed = response.is_server_error
             response.raise_for_status()

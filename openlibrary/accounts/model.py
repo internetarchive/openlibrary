@@ -878,7 +878,7 @@ class InternetArchiveAccount(web.storage):
         if test:
             params["developer"] = test
 
-        with server_timing.timed_ia(url) as call:
+        with server_timing.timed("ia-xauthn") as call:
             response = requests.post(url, params=params, json=data, headers=headers or {})
             call.failed = response.status_code >= 500
         if response.status_code == 403:
@@ -904,7 +904,7 @@ class InternetArchiveAccount(web.storage):
             raise TypeError(f"Expected 'url' to be a string, got {type(url).__name__} instead")
 
         try:
-            with server_timing.timed_ia(url) as call:
+            with server_timing.timed("ia-s3auth") as call:
                 response = requests.get(
                     url,
                     headers={

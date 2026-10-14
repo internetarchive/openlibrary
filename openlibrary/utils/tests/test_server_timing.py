@@ -78,21 +78,6 @@ def test_records_from_threads_and_async_bridge(timings):
     assert timings.snapshot()["solr"][0] == 2001
 
 
-@pytest.mark.parametrize(
-    ("url", "name"),
-    [
-        ("http://mockservices:8090/services/loans/loan/", "ia-loans"),
-        ("https://archive.org/metadata/someitem", "ia-metadata"),
-        ("https://archive.org/advancedsearch.php?q=x", "ia-advancedsearch"),
-        ("https://be-api.us.archive.org/fts/v1/search", "ia-fts"),
-        ("https://archive.org/someitem", "ia-other"),  # never an identifier
-        (None, "ia-other"),
-    ],
-)
-def test_ia_metric_name(url, name):
-    assert server_timing.ia_metric_name(url) == name
-
-
 class TestInfogamiBridge:
     @pytest.fixture(autouse=True)
     def bridge(self):
@@ -118,9 +103,8 @@ class TestInfogamiBridge:
 def test_all_metric_names_are_valid():
     root = pathlib.Path(__file__).parents[2]
     names = {name for path in root.rglob("*.py") if "tests" not in path.parts for name in re.findall(r'server_timing\.timed\("([^"]*)"', path.read_text())}
-    names |= {"render", "ia-other"} | {f"ia-{s}" for s in server_timing._IA_SERVICES}
-    names |= {server_timing._infogami_metric_name(n, {}) for n in ["infobase", "db", "memcache.get"]}
-    assert {"solr", "db", "webpy-proxy", "memcache"} <= names
+    names |= {"render"} | {server_timing._infogami_metric_name(n) for n in ["infobase", "db", "memcache.get", "archive.org"]}
+    assert {"solr", "db", "webpy-proxy", "memcache", "ia-loans", "ia-fts", "ia-metadata"} <= names
     for name in names:
         assert re.fullmatch(TOKEN, name), name
         assert name not in {"total", "sentry-trace", "baggage"}, name
