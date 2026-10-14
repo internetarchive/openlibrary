@@ -4350,8 +4350,8 @@ msgstr ""
 msgid "Browse the stacks"
 msgstr ""
 
-#: home/browse_stacks.html.jinja openlibrary/plugins/openlibrary/partials.py
-msgid "Trending now"
+#: home/browse_stacks.html.jinja home/genre_shelf.html.jinja openlibrary/core/shell/nav.py openlibrary/plugins/openlibrary/partials.py search/sort_options.html
+msgid "Trending"
 msgstr ""
 
 #: home/browse_stacks.html.jinja openlibrary/plugins/openlibrary/partials.py
@@ -4366,10 +4366,6 @@ msgstr ""
 #: home/genre_shelf.html.jinja
 #, python-format
 msgid "%(genre)s subgenres"
-msgstr ""
-
-#: home/genre_shelf.html.jinja openlibrary/core/shell/nav.py openlibrary/plugins/openlibrary/home_genres.py search/sort_options.html
-msgid "Trending"
 msgstr ""
 
 #: home/genre_shelf.html.jinja merge_request_table/table_header.html
@@ -8963,11 +8959,19 @@ msgid "What's new"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Books we love"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
 msgid "Classics"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home_genres.py
 msgid "Most wanted"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Featured"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py

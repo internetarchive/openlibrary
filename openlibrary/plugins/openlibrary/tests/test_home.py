@@ -150,61 +150,61 @@ TILE_GENRES = [
 
 PICKED_COVERS = {"horror": [10, 11, 12, 13], "history": [20, 21, 22], "absurd": [30, 31, 32]}
 
-TRENDING = home.home_genres.TRENDING
-TRENDING_QUERY = home.home_genres.solr_query(TRENDING)
+FEATURED = home.home_genres.FEATURED
+TRENDING_QUERY = home.home_genres.solr_query(FEATURED)
 
 
 class TestFeaturedGenres:
-    """The stacks' tiles: the vocabulary's genres with hand-picked covers, led by Trending."""
+    """The stacks' tiles: the vocabulary's genres with hand-picked covers, led by Featured."""
 
     def featured(self, picked=PICKED_COVERS, trending_covers=(1, 2, 3)):
         with (
             patch.object(home.home_genres, "load_home_genres", return_value=TILE_GENRES),
             patch.object(home.home_genres, "load_tile_covers", return_value=picked),
-            patch.object(home, "get_trending_tile_covers", return_value=list(trending_covers)),
+            patch.object(home, "get_featured_tile_covers", return_value=list(trending_covers)),
         ):
             web.ctx.env = {}
             return home.get_featured_genres()
 
     def test_tiles_fan_three_picked_covers(self):
         genres = self.featured()
-        assert [g["slug"] for g in genres] == ["trending", "horror", "history", "absurd"]
+        assert [g["slug"] for g in genres] == ["featured", "horror", "history", "absurd"]
         assert genres[1]["covers"] == [10, 11, 12]
 
-    def test_trending_leads_with_live_covers(self):
-        """Trending leads, with live covers rather than hand-picked ones."""
+    def test_featured_leads_with_live_covers(self):
+        """Featured leads, with live covers rather than hand-picked ones."""
         genres = self.featured(trending_covers=[7, 8, 9])
-        assert genres[0]["slug"] == "trending"
-        assert genres[0]["kind"] == "trending"
+        assert genres[0]["slug"] == "featured"
+        assert genres[0]["kind"] == "featured"
         assert genres[0]["covers"] == [7, 8, 9]
 
     def test_live_trending_covers_beat_the_picked_fallback(self):
-        genres = self.featured(picked={**PICKED_COVERS, "trending": [40, 41, 42]}, trending_covers=[7, 8, 9])
+        genres = self.featured(picked={**PICKED_COVERS, "featured": [40, 41, 42]}, trending_covers=[7, 8, 9])
         assert genres[0]["covers"] == [7, 8, 9]
 
-    def test_empty_trending_falls_back_to_picked_covers(self):
+    def test_empty_featured_falls_back_to_picked_covers(self):
         """A Solr error or a dev index without trending data mustn't leave (and cache) a blank tile."""
-        genres = self.featured(picked={**PICKED_COVERS, "trending": [40, 41, 42]}, trending_covers=[])
-        assert (genres[0]["slug"], genres[0]["covers"]) == ("trending", [40, 41, 42])
+        genres = self.featured(picked={**PICKED_COVERS, "featured": [40, 41, 42]}, trending_covers=[])
+        assert (genres[0]["slug"], genres[0]["covers"]) == ("featured", [40, 41, 42])
 
-    def test_trending_without_any_covers_still_gets_a_tile(self):
+    def test_featured_without_any_covers_still_gets_a_tile(self):
         genres = self.featured(trending_covers=[])
-        assert (genres[0]["slug"], genres[0]["covers"]) == ("trending", [])
+        assert (genres[0]["slug"], genres[0]["covers"]) == ("featured", [])
 
-    def test_trending_tile_covers_come_from_its_row_query(self):
+    def test_featured_tile_covers_come_from_its_row_query(self):
         docs = [{"cover_i": 5}, {}, {"cover_i": 6}, {"cover_i": 7}, {"cover_i": 8}]
         with patch.object(home, "work_search_async", new=AsyncMock(return_value={"docs": docs})) as search:
-            assert home.get_trending_tile_covers() == [5, 6, 7]
+            assert home.get_featured_tile_covers() == [5, 6, 7]
         query, kwargs = search.call_args.args[0], search.call_args.kwargs
         assert (query["q"], query["has_fulltext"], kwargs["sort"]) == (TRENDING_QUERY, "true", "trending")
 
     def test_no_picked_covers_no_tile(self):
         genres = self.featured(picked={"horror": [10, 11, 12]})
-        assert [g["slug"] for g in genres] == ["trending", "horror"]
+        assert [g["slug"] for g in genres] == ["featured", "horror"]
 
     def test_names_are_localized_per_page_not_in_the_cache(self):
         genres = self.featured()
-        assert [g["name"] for g in genres] == ["Trending", "Horror", "History", "Absurd"]
+        assert [g["name"] for g in genres] == ["Featured", "Horror", "History", "Absurd"]
         with (
             patch.object(home, "get_cached_featured_genres", return_value=genres),
             patch.object(home.home_genres, "subject_tile_labels", return_value={"history": "Histoire"}),
@@ -216,7 +216,7 @@ class TestFeaturedGenres:
         ):
             home.get_homepage(devmode=False)
         featured = render.call_args.kwargs["featured_genres"]
-        assert [g["name"] for g in featured] == ["Trending", "Horror", "Histoire", "Absurd"]
+        assert [g["name"] for g in featured] == ["Featured", "Horror", "Histoire", "Absurd"]
         assert [s["name"] for s in featured[2]["subgenres"]] == ["Seconde Guerre mondiale"]
 
     def test_thin_subgenre_rows_are_dropped_per_page_language(self):
@@ -244,7 +244,7 @@ class TestFeaturedGenres:
     def test_picked_covers_file_covers_the_tiles(self):
         """Every tile has picked covers; the file may also hold covers for genres waiting on subgenres."""
         picked = home.home_genres.load_tile_covers()
-        slugs = {g["slug"] for g in home.home_genres.load_home_genres()} | {TRENDING["slug"]}
+        slugs = {g["slug"] for g in home.home_genres.load_home_genres()} | {FEATURED["slug"]}
         assert slugs <= set(picked)
         assert all(len(covers) == home.GENRE_TILE_COVERS for covers in picked.values())
 
@@ -296,42 +296,42 @@ class TestShelfLanguage:
         assert [s["slug"] for s in home.home_genres.subgenres_for(genre, "spa")] == ["x"]
 
 
-class TestTrendingStack:
-    """The Trending stack isn't in the vocabulary: it's one clause across every genre."""
+class TestFeaturedStack:
+    """The Featured stack isn't in the vocabulary: its rows are whole clauses across every genre."""
 
     def test_is_found_by_slug_but_not_a_vocabulary_genre(self):
-        assert home.home_genres.find_genre("trending") is TRENDING
-        assert "trending" not in {g["slug"] for g in home.home_genres.load_home_genres()}
+        assert home.home_genres.find_genre("featured") is FEATURED
+        assert "featured" not in {g["slug"] for g in home.home_genres.load_home_genres()}
 
     def test_query_is_the_clause_itself(self):
-        assert home.home_genres.solr_query(TRENDING) == "trending_score_hourly_sum:[1 TO *] AND readinglog_count:[4 TO *]"
+        assert home.home_genres.solr_query(FEATURED) == "trending_score_hourly_sum:[1 TO *] AND readinglog_count:[4 TO *]"
         assert (
-            home.home_genres.search_url(TRENDING)
+            home.home_genres.search_url(FEATURED)
             == "/search?q=trending_score_hourly_sum%3A%5B1+TO+%2A%5D+AND+readinglog_count%3A%5B4+TO+%2A%5D&sort=trending&has_fulltext=true"
         )
 
     def test_name_is_translated(self):
         with patch.object(home.home_genres, "_", side_effect=lambda text: f"<{text}>"):
-            assert home.home_genres.display_name(TRENDING) == "<Trending>"
+            assert home.home_genres.display_name(FEATURED) == "<Featured>"
 
     def test_rows_are_distinct_signals_with_their_own_sort(self):
-        """Each row is a whole clause with its own order, not a subject within Trending; What's new starts last year."""
-        rows = {s["slug"]: s for s in TRENDING["subgenres"]}
-        assert list(rows) == ["whats-new", "classics", "most-wanted"]
-        assert [s["sort"] for s in rows.values()] == ["new", "trending", "want_to_read"]
+        """Each row is a whole clause with its own order, not a subject within Featured; What's new starts last year."""
+        rows = {s["slug"]: s for s in FEATURED["subgenres"]}
+        assert list(rows) == ["whats-new", "books-we-love", "classics", "most-wanted"]
+        assert [s["sort"] for s in rows.values()] == ["new", "random.daily", "trending", "want_to_read"]
         with patch.object(home.home_genres, "datetime") as now:
             now.now.return_value.year = 2026
-            assert home.home_genres.solr_query(rows["whats-new"], TRENDING) == "first_publish_year:[2025 TO *] AND readinglog_count:[2 TO *]"
-        assert home.home_genres.solr_query(rows["most-wanted"], TRENDING) == "want_to_read_count:[10 TO *]"
-        assert "subject_key" not in home.home_genres.search_url(rows["most-wanted"], parent=TRENDING)
+            assert home.home_genres.solr_query(rows["whats-new"], FEATURED) == "first_publish_year:[2025 TO *] AND readinglog_count:[2 TO *]"
+        assert home.home_genres.solr_query(rows["most-wanted"], FEATURED) == "want_to_read_count:[10 TO *]"
+        assert "subject_key" not in home.home_genres.search_url(rows["most-wanted"], parent=FEATURED)
 
     def test_rows_show_in_every_language(self):
         """The rows have no per-language counts; the thin-row rule is for vocabulary subgenres."""
-        assert home.home_genres.subgenres_for(TRENDING, "spa") == TRENDING["subgenres"]
+        assert home.home_genres.subgenres_for(FEATURED, "spa") == FEATURED["subgenres"]
 
     def test_row_names_are_translated(self):
         with patch.object(home.home_genres, "_", side_effect=lambda text: f"<{text}>"):
-            assert [home.home_genres.subgenre_name(s) for s in TRENDING["subgenres"]] == ["<What's new>", "<Classics>", "<Most wanted>"]
+            assert [home.home_genres.subgenre_name(s) for s in FEATURED["subgenres"]] == ["<What's new>", "<Books we love>", "<Classics>", "<Most wanted>"]
 
 
 class Test_format_book_data:

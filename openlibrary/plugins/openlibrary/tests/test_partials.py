@@ -91,27 +91,28 @@ class TestHomeGenreNarrow:
             assert "sort=rating" in params.url
             assert "sort=trending" not in params.url
 
-    def test_trending_stack_rows_say_only_their_order(self):
-        """The Trending shelf's row isn't "Trending in Trending"."""
-        trending = home_genres.TRENDING
+    def test_featured_stack_rows_say_only_their_order(self):
+        """The Featured shelf's main row is Trending, not "Trending in Featured"."""
+        featured = home_genres.FEATURED
         with patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=" language:eng"):
-            params = HomeGenrePartial.narrow(LazyCarouselParams(query="stale", genre="trending", sort="trending", safe_mode=False), trending)
-        assert params.query == f"{trending['query']} language:eng"
+            params = HomeGenrePartial.narrow(LazyCarouselParams(query="stale", genre="trending", sort="trending", safe_mode=False), featured)
+        assert params.query == f"{featured['query']} language:eng"
         assert "language%3Aeng" in params.url
-        assert params.title == "Trending now"
-        assert [link["href"] for link in HomeGenrePartial.jump_links(trending, trending["subgenres"])] == [
-            "#genre-trending-whats-new",
-            "#genre-trending-classics",
-            "#genre-trending-most-wanted",
+        assert params.title == "Trending"
+        assert [link["href"] for link in HomeGenrePartial.jump_links(featured, featured["subgenres"])] == [
+            "#genre-featured-whats-new",
+            "#genre-featured-books-we-love",
+            "#genre-featured-classics",
+            "#genre-featured-most-wanted",
         ]
 
-    def test_trending_rows_keep_their_own_sort(self):
+    def test_featured_rows_keep_their_own_sort(self):
         """Most wanted is ordered by want-to-read counts, in its row and in its "See all" link."""
-        trending = home_genres.TRENDING
-        row = HomeGenrePartial.row(trending, trending["subgenres"][2])
-        assert (row.key, row.sort, row.title) == ("genre-trending-most-wanted", "want_to_read", "Most wanted")
+        featured = home_genres.FEATURED
+        row = HomeGenrePartial.row(featured, featured["subgenres"][3])
+        assert (row.key, row.sort, row.title) == ("genre-featured-most-wanted", "want_to_read", "Most wanted")
         with patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=""):
-            params = HomeGenrePartial.narrow(row.model_copy(update={"safe_mode": False}), trending)
+            params = HomeGenrePartial.narrow(row.model_copy(update={"safe_mode": False}), featured)
         assert params.query == "want_to_read_count:[10 TO *]"
         assert params.url == "/search?q=want_to_read_count%3A%5B10+TO+%2A%5D&has_fulltext=true&sort=want_to_read"
 
@@ -196,12 +197,12 @@ class TestHomeGenreShelf:
         assert html.index("genre-shelf__header") < html.index("genre-shelf__sort") < html.index("lazy-carousel-loaded")
 
     @pytest.mark.asyncio
-    async def test_trending_shelf_has_no_sort_but_has_rows(self):
-        html, _row = await self.shelf(home_genres.TRENDING)
-        assert 'data-genre="trending"' in html
+    async def test_featured_shelf_has_no_sort_but_has_rows(self):
+        html, _row = await self.shelf(home_genres.FEATURED)
+        assert 'data-genre="featured"' in html
         assert "genre-shelf__sort" not in html
-        assert 'data-ol-link-track="BrowseStacks|JumpTo|genre-trending-whats-new">What&#39;s new</a>' in html
-        assert html.count('id="genre-trending-') == 3
+        assert 'data-ol-link-track="BrowseStacks|JumpTo|genre-featured-whats-new">What&#39;s new</a>' in html
+        assert html.count('id="genre-featured-') == 4
 
     @pytest.mark.asyncio
     async def test_unknown_genre_is_empty(self):

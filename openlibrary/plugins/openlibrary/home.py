@@ -234,11 +234,11 @@ def get_cached_featured_subjects():
 GENRE_TILE_COVERS = 3
 
 
-def get_trending_tile_covers() -> list[int]:
-    """Covers for the Trending tile. Live, unlike the other tiles' hand-picked ones."""
+def get_featured_tile_covers() -> list[int]:
+    """Covers for the Featured tile: its Trending row, live, unlike the other tiles' hand-picked ones."""
     results = async_bridge.run(
         work_search_async(
-            {"q": home_genres.solr_query(home_genres.TRENDING), "has_fulltext": "true"},
+            {"q": home_genres.solr_query(home_genres.FEATURED), "has_fulltext": "true"},
             sort="trending",
             fields="cover_i",
             limit=GENRE_TILE_COVERS * 2,
@@ -250,13 +250,13 @@ def get_trending_tile_covers() -> list[int]:
 
 
 def get_featured_genres():
-    """Tiles for home/browse_stacks.html.jinja, Trending first. A genre without picked covers gets no tile."""
+    """Tiles for home/browse_stacks.html.jinja, Featured first. A genre without picked covers gets no tile."""
     if "env" not in web.ctx:
         delegate.fakeload()
     picked = home_genres.load_tile_covers()
-    # Fall back to the picked Trending covers when the live query is empty (Solr error, or a dev index with no trending data).
-    picked = {**picked, home_genres.TRENDING["slug"]: get_trending_tile_covers() or picked.get(home_genres.TRENDING["slug"], [])}
-    nodes = [home_genres.TRENDING, *(genre for genre in home_genres.load_home_genres() if picked.get(genre["slug"]))]
+    # Fall back to the picked Featured covers when the live query is empty (Solr error, or a dev index with no trending data).
+    picked = {**picked, home_genres.FEATURED["slug"]: get_featured_tile_covers() or picked.get(home_genres.FEATURED["slug"], [])}
+    nodes = [home_genres.FEATURED, *(genre for genre in home_genres.load_home_genres() if picked.get(genre["slug"]))]
     return [{**genre, "covers": picked[genre["slug"]][:GENRE_TILE_COVERS]} for genre in nodes]
 
 

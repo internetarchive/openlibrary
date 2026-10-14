@@ -22,8 +22,8 @@
                     </nav>
                 {% endif %}
             </div>
-            {# Trending is already an order, so its shelf has no sort. #}
-            {% if genre.kind != "trending" %}
+            {# The Featured rows each carry their own order, so the shelf has no sort. #}
+            {% if genre.kind != "featured" %}
                 {% set sort_items = [
                     {"value": "trending", "label": _("Trending")},
                     {"value": "new", "label": _("Newest")},

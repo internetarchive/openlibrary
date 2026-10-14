@@ -12,13 +12,13 @@
                 {# For the skeleton; keep the strings in sync with HomeGenrePartial. #}
                 {% set shelf = {
                     "name": genre.name,
-                    "title": _("Trending now") if genre.kind == "trending" else _("Trending in %(genre)s", genre=genre.name),
+                    "title": _("Trending") if genre.kind == "featured" else _("Trending in %(genre)s", genre=genre.name),
                     "subgenres": genre.subgenres | map(attribute="name") | list,
                 } %}
                 <button class="browse-stacks__tile"
                         type="button"
                         data-genre="{{ genre.slug }}"
-                        {% if genre.kind == "trending" %}data-pinned{% endif %}
+                        {% if genre.kind == "featured" %}data-pinned{% endif %}
                         data-shelf="{{ shelf | tojson | forceescape }}"
                         aria-pressed="false"
                         aria-controls="browse-stacks-shelf">

@@ -35,21 +35,21 @@ class GenreNode(TypedDict):
     work_count: int
     readable_count: int
     readable_by_language: NotRequired[dict[str, int]]  # MARC code -> count; subgenres only
-    sort: NotRequired[str]  # Trending rows only; a subgenre follows its shelf's sort
+    sort: NotRequired[str]  # Featured rows only; a subgenre follows its shelf's sort
 
 
 class Genre(GenreNode):
-    kind: str  # "genre" from the vocabulary, "subject" for the nonfiction/kids tiles, or "trending"
+    kind: str  # "genre" from the vocabulary, "subject" for the nonfiction/kids tiles, or "featured"
     page: NotRequired[str]  # subject page to browse, when there is one
     subgenres: list[GenreNode]
 
 
-# Pinned first and open by default. Its queries are whole Solr clauses, not subject_key values.
-# Each row is a different signal (happening now, just published, revived, long wanted) so they share few books.
-TRENDING: Genre = {
-    "name": "Trending",
-    "slug": "trending",
-    "kind": "trending",
+# Pinned first and open by default. Its queries are whole Solr clauses, not subject_key values; the main
+# row is Trending. Each row is a different signal (happening now, staff-picked, just published, revived, long wanted) so they share few books.
+FEATURED: Genre = {
+    "name": "Featured",
+    "slug": "featured",
+    "kind": "featured",
     "query": "trending_score_hourly_sum:[1 TO *] AND readinglog_count:[4 TO *]",
     "work_count": 0,
     "readable_count": 0,
@@ -60,6 +60,15 @@ TRENDING: Genre = {
             "slug": "whats-new",
             "query": "first_publish_year:[{year} TO *] AND readinglog_count:[2 TO *]",
             "sort": "new",
+            "work_count": 0,
+            "readable_count": 0,
+        },
+        # The home page's Books We Love: staff picks, rotated daily so all ~900 get a turn.
+        {
+            "name": "Books we love",
+            "slug": "books-we-love",
+            "query": "subject_key:open_library_staff_picks",
+            "sort": "random.daily",
             "work_count": 0,
             "readable_count": 0,
         },
@@ -145,28 +154,29 @@ def subgenre_labels() -> dict[str, str]:
     }
 
 
-def trending_row_labels() -> dict[str, str]:
+def featured_row_labels() -> dict[str, str]:
     return {
         "whats-new": _("What's new"),
+        "books-we-love": _("Books we love"),
         "classics": _("Classics"),
         "most-wanted": _("Most wanted"),
     }
 
 
 def subgenre_name(subgenre: GenreNode) -> str:
-    labels = trending_row_labels() if "sort" in subgenre else subgenre_labels()
+    labels = featured_row_labels() if "sort" in subgenre else subgenre_labels()
     return labels.get(subgenre["slug"], subgenre["name"])
 
 
 def display_name(genre: Genre) -> str:
-    if genre["kind"] == "trending":
-        return _("Trending")
+    if genre["kind"] == "featured":
+        return _("Featured")
     return subject_tile_labels().get(genre["slug"], genre["name"]) if genre["kind"] == "subject" else genre["name"]
 
 
 def find_genre(slug: str) -> Genre | None:
-    if slug == TRENDING["slug"]:
-        return TRENDING
+    if slug == FEATURED["slug"]:
+        return FEATURED
     return next((g for g in load_home_genres() if g["slug"] == slug), None)
 
 
@@ -176,9 +186,9 @@ def find_subgenre(genre: Genre, slug: str | None) -> GenreNode | None:
 
 def solr_query(node: GenreNode, parent: GenreNode | None = None) -> str:
     """A subgenre is searched within its parent: Psychological under Horror is psychological horror."""
-    if node.get("kind") == "trending":
+    if node.get("kind") == "featured":
         return node["query"]
-    if parent and parent.get("kind") == "trending":
+    if parent and parent.get("kind") == "featured":
         return node["query"].format(year=datetime.now().year - 1)
     query = f"subject_key:{node['query']}"
     return f"subject_key:{parent['query']} AND {query}" if parent else query
@@ -200,7 +210,7 @@ def user_language_clause(lang: str | None) -> str:
 
 def subgenres_for(genre: Genre, marc: str | None) -> list[GenreNode]:
     """The subgenre rows worth showing when the shelf is filtered to `marc`: a row of 3 books isn't a shelf."""
-    if not marc or genre["kind"] == "trending":
+    if not marc or genre["kind"] == "featured":
         return genre["subgenres"]
     minimum = MIN_SUBGENRE_READABLE if marc == "eng" else MIN_SUBGENRE_READABLE_IN_LANGUAGE
     return [s for s in genre["subgenres"] if s.get("readable_by_language", {}).get(marc, s["readable_count"]) >= minimum]

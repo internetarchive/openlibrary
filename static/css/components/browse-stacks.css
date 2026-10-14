@@ -355,22 +355,7 @@
   margin-top: 0;
 }
 
-/* The Trending shelf's title already names its first row: that row's heading is for screen readers only,
-   and its "See all" moves up beside the title. The rows below keep their headings. */
-[data-genre="trending"] > .genre-shelf__header + * .home-h2 {
-  position: absolute;
-  inset-inline-start: -10000px;
-}
-
-[data-genre="trending"] > .genre-shelf__header + * .carousel-section-header {
-  position: absolute;
-  top: var(--spacing-inset-md);
-  inset-inline-end: var(--shelf-inset);
-  height: calc(var(--font-size-headline-small) * var(--line-height-tight));
-  margin: 0;
-}
-
-.genre-shelf[data-genre="trending"] .genre-shelf__sort-skeleton {
+.genre-shelf[data-genre="featured"] .genre-shelf__sort-skeleton {
   display: none;
 }
 
