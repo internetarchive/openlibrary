@@ -35,9 +35,10 @@ import itertools
 import logging
 import threading
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager, suppress
+from contextlib import AbstractContextManager, AsyncExitStack, asynccontextmanager, nullcontext, suppress
+from contextvars import ContextVar
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Self, cast
 
 import web
 
@@ -48,16 +49,18 @@ logger = logging.getLogger("openlibrary.async_db")
 # Lets modules import without psycopg installed. A configured app fails in
 # _open_pool() at startup instead of on its first request.
 try:
+    from psycopg import AsyncCursor
     from psycopg.rows import class_row, dict_row, tuple_row
     from psycopg_pool import AsyncConnectionPool
 except ModuleNotFoundError:
+    AsyncCursor = None  # type: ignore[assignment,misc]
     class_row = None  # type: ignore[assignment]
     dict_row = None  # type: ignore[assignment]
     tuple_row = None  # type: ignore[assignment]
     AsyncConnectionPool = None  # type: ignore
 
 if TYPE_CHECKING:
-    from psycopg import AsyncConnection, AsyncCursor
+    from psycopg import AsyncConnection
     from psycopg.rows import BaseRowFactory
     from psycopg_pool import AsyncConnectionPool as _PoolClass
 
@@ -78,6 +81,36 @@ _entries: dict[asyncio.AbstractEventLoop, _LoopPool] = {}
 _entries_lock = threading.Lock()
 # Counter for pool names in logs.
 _pool_names = itertools.count(1)
+
+
+# Set while connection() checks out a connection, so the pool's health-check
+# query counts toward ``db-checkout`` instead of as a ``db`` query.
+_checking_out: ContextVar[bool] = ContextVar("async_db_checking_out", default=False)
+
+
+def _timed_query() -> AbstractContextManager[object]:
+    return nullcontext() if _checking_out.get() else server_timing.timed("db")
+
+
+if AsyncCursor is not None:  # see the import guard above
+
+    class TimedCursor(AsyncCursor[Any]):
+        """Times each query as ``db`` for Server-Timing, however it's run: the
+        helpers below, ``conn.execute()``, or ``conn.cursor().execute()``.
+
+        A plain cursor receives all its rows during ``execute()``, so the timing
+        includes them. Named (server-side) cursors, ``stream()`` and ``copy()``
+        aren't timed; nothing here uses them.
+        """
+
+        # Forwarded as-is: callers are typed against psycopg's own signatures, never this class.
+        async def execute(self, *args: Any, **kwargs: Any) -> Self:
+            with _timed_query():
+                return await super().execute(*args, **kwargs)
+
+        async def executemany(self, *args: Any, **kwargs: Any) -> None:
+            with _timed_query():
+                await super().executemany(*args, **kwargs)
 
 
 def _connection_kwargs(db_parameters: dict) -> dict:
@@ -111,7 +144,7 @@ async def _open_pool() -> Pool | None:
     pool = cast(
         "Pool",
         AsyncConnectionPool(
-            kwargs={**_connection_kwargs(db_parameters), "row_factory": dict_row},
+            kwargs={**_connection_kwargs(db_parameters), "row_factory": dict_row, "cursor_factory": TimedCursor},
             open=False,
             min_size=4,
             max_size=20,
@@ -188,12 +221,19 @@ async def connection() -> AsyncIterator[AsyncConnection[dict[str, Any]]]:
     """Check out a connection from the running loop's pool.
 
     Commits on clean exit, rolls back on error. Raises RuntimeError if no
-    database is configured.
+    database is configured. The checkout is timed as ``db-checkout``: waiting
+    for a free connection, plus the pool's health check on it.
     """
     pool = await _pool_for_loop()
     if pool is None:
         raise RuntimeError("No async database pool available; ensure web.config.db_parameters has a 'db' key configured (or call init_pool() during app startup)")
-    async with pool.connection() as conn:
+    async with AsyncExitStack() as stack:
+        token = _checking_out.set(True)
+        try:
+            with server_timing.timed("db-checkout"):
+                conn = await stack.enter_async_context(pool.connection())
+        finally:
+            _checking_out.reset(token)
         yield conn
 
 
@@ -203,13 +243,12 @@ async def _run(
     params: dict[str, Any] | None,
     row_factory: BaseRowFactory[Any] | None,
 ) -> AsyncCursor[Any]:
-    """Run ``query`` on ``conn`` and return the cursor."""
-    with server_timing.timed("db"):
-        if row_factory is None:
-            return await conn.execute(query, params)
-        cursor = conn.cursor(row_factory=row_factory)
-        await cursor.execute(query, params)
-        return cursor
+    """Run ``query`` on ``conn`` and return the cursor. ``TimedCursor`` times it."""
+    if row_factory is None:
+        return await conn.execute(query, params)
+    cursor = conn.cursor(row_factory=row_factory)
+    await cursor.execute(query, params)
+    return cursor
 
 
 async def execute(query: str, params: dict[str, Any] | None = None) -> None:

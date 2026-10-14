@@ -15,7 +15,7 @@ class _TimedTemplate(Template):
     """Times every render for the Server-Timing header, however it's called."""
 
     def render(self, *args: Any, **kwargs: Any) -> str:
-        with server_timing.timed_render():
+        with server_timing.timed_render("render-jinja"):
             return super().render(*args, **kwargs)
 
 

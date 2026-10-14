@@ -36,10 +36,10 @@ class RequestTimings:
         self._metrics: dict[str, list[float]] = {}
         self._open: dict[int, list[tuple[str | None, float]]] = {}  # infogami stats.begin() calls, per thread
 
-    def record(self, name: str, seconds: float, failed: bool = False) -> None:
+    def record(self, name: str, seconds: float, failed: bool = False, count: int = 1) -> None:
         with self._lock:
             metric = self._metrics.setdefault(name, [0, 0.0, 0])
-            metric[0] += 1
+            metric[0] += count
             metric[1] += seconds
             metric[2] += failed
 
@@ -61,7 +61,7 @@ class RequestTimings:
 
 
 _current: ContextVar[RequestTimings | None] = ContextVar("server_timing", default=None)
-_rendering: ContextVar[bool] = ContextVar("server_timing_rendering", default=False)
+_rendering: ContextVar[_Render | None] = ContextVar("server_timing_rendering", default=None)
 
 
 def start_request() -> tuple[RequestTimings, object]:
@@ -224,21 +224,44 @@ class _TimedSyncStream(httpx.SyncByteStream):
             self._call.finish()
 
 
+class _Render:
+    """The template render in progress: its engine's metric name, and when it last (re)started."""
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.started = time.perf_counter()
+
+
 @contextmanager
-def timed_render() -> Iterator[None]:
-    """Time template rendering as ``render``. Nested renders count once, in the outermost.
+def timed_render(name: str) -> Iterator[None]:
+    """Time template rendering as ``name``: ``render-jinja`` or ``render-templetor``.
+
+    The engines nest in each other, so each records only its own time: rendering
+    the other engine pauses the outer one's timer, and the two add up to the total
+    render time. A render nested in the same engine counts once, in the outermost.
 
     Includes any Solr/DB/etc. calls the templates make, which also show under their own names.
     """
-    if _current.get() is None or _rendering.get():
+    outer = _rendering.get()
+    if (timings := _current.get()) is None or (outer is not None and outer.name == name):
         yield
         return
-    token = _rendering.set(True)
+    render = _Render(name)
+    if outer is not None:  # pause the other engine
+        timings.record(outer.name, render.started - outer.started, count=0)
+    token = _rendering.set(render)
+    failed = False
     try:
-        with timed("render"):
-            yield
+        yield
+    except Exception:
+        failed = True
+        raise
     finally:
         _rendering.reset(token)
+        ended = time.perf_counter()
+        timings.record(name, ended - render.started, failed)
+        if outer is not None:  # resume it
+            outer.started = ended
 
 
 def format_header(timings: RequestTimings) -> str:
@@ -272,14 +295,17 @@ _bridge_installed = False
 
 def install_legacy_bridge() -> None:
     """Time legacy code during FastAPI requests: infogami's ``stats.begin()/end()``
-    (infobase, memcache), which would otherwise pile up in thread-local ``web.ctx``,
-    and every web.py DB query as ``db``. infogami's ``end(error=True)`` is ignored:
-    in-process infobase reports ordinary not-founds that way."""
+    (infobase, memcache), which would otherwise pile up in thread-local ``web.ctx``;
+    every web.py DB query as ``db-legacy`` (the async pool reports ``db``); and every
+    Templetor template or macro render as ``render-templetor``, whichever helper called it.
+    infogami's ``end(error=True)`` is ignored: in-process infobase reports ordinary
+    not-founds that way."""
     global _bridge_installed
     if _bridge_installed:
         return
     original_begin, original_end = stats.begin, stats.end
     original_db_execute = web.db.DB._db_execute
+    original_template_call = web.template.Template.__call__
 
     def begin(name, **kw):
         if (timings := _current.get()) is None:
@@ -292,9 +318,14 @@ def install_legacy_bridge() -> None:
         timings._end()
 
     def _db_execute(self, cur, sql_query):
-        with timed("db"):
+        with timed("db-legacy"):
             return original_db_execute(self, cur, sql_query)
+
+    def template_call(self, *a, **kw):
+        with timed_render("render-templetor"):
+            return original_template_call(self, *a, **kw)
 
     stats.begin, stats.end = begin, end
     web.db.DB._db_execute = _db_execute
+    web.template.Template.__call__ = template_call
     _bridge_installed = True
