@@ -364,7 +364,7 @@ def _custom_thing_validate(self):
 
             is_new_record = not (hasattr(self, "revision") and self.revision)
             if not is_new_record and old_works != new_works:
-                raise ValueError(_("Only super librarians and admins can modify 'What work is this an edition of?'."))
+                raise ValueError(_("Only super librarians and admins can modify 'What work is this an edition of?'"))
 
 
 Thing.validate = _custom_thing_validate
