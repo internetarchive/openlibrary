@@ -12,6 +12,12 @@
         <ol-toggle variant="button" label="Readable Only" sublabel="4.6M" checked>
         </ol-toggle>
     {% endcall %}
+    {% call ex.example("Small", "size=\"small\" shrinks the switch and label, for tight spots like under a section heading.", output_style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;") %}
+        <ol-toggle size="small" label="Readable Only" checked>
+        </ol-toggle>
+        <ol-toggle size="small" variant="button" label="Readable Only" checked>
+        </ol-toggle>
+    {% endcall %}
     {% call ex.example("Custom label content", "Put content in the default slot instead of using label / sublabel. Supply accessible-label so the switch still has an accessible name.") %}
         <ol-toggle accessible-label="Dark mode">
             <strong>Dark mode</strong> — easier on the eyes

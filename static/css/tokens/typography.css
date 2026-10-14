@@ -16,15 +16,15 @@
 /**
  * Font families
  * =============
- * Schibsted Grotesk and Literata are self-hosted webfonts (static/css/fonts/)
- * that only render on pages whose bundle imports them; everywhere else the
- * stacks fall through to the system fonts they always used. Schibsted covers
- * Latin and Latin Extended only, so Greek, Cyrillic and the rest fall through
- * to the system sans, with Noto Sans behind that.
+ * Schibsted Grotesk and Literata are self-hosted webfonts (static/css/fonts/).
+ * Literata loads on every page via tokens.css. Schibsted only renders on pages
+ * whose bundle imports it; everywhere else the sans stack falls through to the
+ * system fonts. It covers Latin and Latin Extended only, so Greek, Cyrillic
+ * and the rest fall through to the system sans, with Noto Sans behind that.
  */
 :root {
   --font-family-sans: "Schibsted Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  --font-family-serif: Literata, Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  --font-family-serif: Literata, "Literata Fallback", "Literata Fallback Noto", Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
   --font-family-mono: "Lucida Console", "Courier New", monospace;
 }
 

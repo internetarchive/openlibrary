@@ -4,10 +4,9 @@
  * - /collections
  * - /collections/book-awards (and every other /collections/* wiki page)
  *
- * Same base as the default page-user bundle, plus the Literata webfont and the
- * collections typography.
+ * Same base as the default page-user bundle, plus the Schibsted Grotesk webfont
+ * and the collections typography.
  */
 @import "page-user.css";
-@import "fonts/literata.css";
 @import "fonts/schibsted-grotesk.css";
 @import "components/collections-page.css";

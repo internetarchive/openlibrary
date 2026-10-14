@@ -1,0 +1,59 @@
+{#
+  "Browse the stacks": one tile per genre, fanned with a few trending covers. A tile opens
+  the genre's shelf (home/genre_shelf.html.jinja) in place; browse-stacks.js does the fetching.
+  `genres` comes from home.get_cached_featured_genres().
+#}
+{% if genres is defined and genres %}
+    <section class="browse-stacks"
+             aria-labelledby="browse-stacks-title"
+             data-i18n="{{ i18n_json }}">
+        <div class="carousel-section-header browse-stacks__header">
+            <h2 class="home-h2" id="browse-stacks-title">{{ _("Browse the stacks") }}</h2>
+        </div>
+        {# One row of tiles; the rail pages sideways. Order is shuffled per visit below. #}
+        <ol-carousel id="browse-stacks-rail" class="browse-stacks__rail" label="{{ _('Browse the stacks') }}" gap="12">
+            {% for genre in genres %}
+                <button class="browse-stacks__tile"
+                        type="button"
+                        data-genre="{{ genre.slug }}"
+                        aria-expanded="false"
+                        aria-controls="browse-stacks-shelf">
+                    <span class="browse-stacks__fan" aria-hidden="true">
+                        {% for cover in genre.covers %}
+                            <img src="//covers.openlibrary.org/b/id/{{ cover }}-M.jpg"
+                                 alt=""
+                                 loading="lazy"
+                                 width="44"
+                                 height="66">
+                        {% endfor %}
+                        {% for blank in range(3 - genre.covers | length) %}
+                            <span class="browse-stacks__blank"></span>
+                        {% endfor %}
+                    </span>
+                    <span class="browse-stacks__name">{{ genre.name }}</span>
+                    {# The stacks only ever show readable books, so the count is the readable count. #}
+                    <span class="browse-stacks__count">{{ ngettext("%(count)s Book", "%(count)s Books", genre.readable_count, count=genre.readable_count_str) }}</span>
+                </button>
+            {% endfor %}
+        </ol-carousel>
+        {# Shuffle the tiles before first paint, so every visit leads with a different shelf even
+           though the page itself is cached. Runs inline for that reason; no-JS keeps the server order.
+           browse-stacks.js opens the first tile's shelf once it loads. #}
+        <script>
+            (function () {
+                var rail = document.getElementById('browse-stacks-rail');
+                var tiles = Array.prototype.slice.call(rail.querySelectorAll('.browse-stacks__tile'));
+                for (var i = tiles.length - 1; i > 0; i--) {
+                    var j = Math.floor(Math.random() * (i + 1));
+                    var swap = tiles[i];
+                    tiles[i] = tiles[j];
+                    tiles[j] = swap;
+                }
+                tiles.forEach(function (tile) {
+                    rail.appendChild(tile);
+                });
+            })();
+        </script>
+        <div class="browse-stacks__shelf" id="browse-stacks-shelf" hidden></div>
+    </section>
+{% endif %}
