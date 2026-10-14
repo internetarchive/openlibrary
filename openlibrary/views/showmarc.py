@@ -133,10 +133,10 @@ def _fetch_marc_range(filename, offset, length):
 def _cached_marc_record(filename, offset, length):
     """Record bytes, from memcache when present (base64: memcache is JSON).
 
-    Returns None only when there is no cached copy and the live fetch
-    fails; callers keep the previous timeout/HTTP error behavior then.
-    Raises requests.Timeout / requests.HTTPError on a live-fetch failure
-    with an empty cache, exactly as before.
+    A missing, unreadable, or corrupt cached copy behaves as a miss and
+    triggers a live fetch, so the cache (including a poisoned entry) can
+    never break the view. Raises requests.Timeout / requests.HTTPError on
+    a live-fetch failure with an empty cache, exactly as before.
     """
     key = _marc_cache_key(filename, offset, length)
     try:
@@ -144,7 +144,10 @@ def _cached_marc_record(filename, offset, length):
     except Exception:  # noqa: BLE001 — cache must never break the view
         cached = None
     if cached is not None:
-        return b64decode(cached)
+        try:
+            return b64decode(cached)
+        except Exception:  # noqa: BLE001 — poisoned entry counts as a miss
+            pass
     result = _fetch_marc_range(filename, offset, length)
     with suppress(Exception):
         cache.get_memcache().set(key, b64encode(result).decode("ascii"), expires=MARC_CACHE_TTL)

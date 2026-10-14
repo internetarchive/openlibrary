@@ -133,3 +133,11 @@ def test_broken_cache_falls_back_to_live(showmarc):
     fake.get = MagicMock(side_effect=Exception("down"))
     module.requests.get.return_value = _response()
     assert module._cached_marc_record("f.mrc", 0, 100) == RECORD
+
+
+def test_poisoned_cache_entry_counts_as_miss(showmarc):
+    module, fake = showmarc
+    fake.store[module._marc_cache_key("f.mrc", 0, 100)] = "!!!not-base64!!!"
+    module.requests.get.return_value = _response()
+    assert module._cached_marc_record("f.mrc", 0, 100) == RECORD
+    assert module.requests.get.call_count == 1
