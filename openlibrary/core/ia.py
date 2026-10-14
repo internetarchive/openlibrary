@@ -36,16 +36,19 @@ def get_api_response(url: str, params: dict | None = None) -> dict:
     :param dict params: url parameters
     """
     api_response = {}
+    error = False
     stats.begin("archive.org", url=url)
     try:
         r = session.get(url, params=params, timeout=3)
         if r.status_code == httpx.codes.OK:
             api_response = r.json()
         else:
+            error = r.status_code >= 500
             logger.info(f"{r.status_code} response received from {url}")
     except Exception:
+        error = True
         logger.exception(f"Exception occurred accessing {url}.")
-    stats.end()
+    stats.end(error=error)
     return api_response
 
 

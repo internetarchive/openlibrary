@@ -18,7 +18,7 @@ from openlibrary.accounts.model import OpenLibraryAccount, parse_s3_cookie
 from openlibrary.core import cache, stats
 from openlibrary.core.env import get_ol_env
 from openlibrary.plugins.upstream.utils import urlencode
-from openlibrary.utils import dateutil, uniq
+from openlibrary.utils import dateutil, server_timing, uniq
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import (
     req_context,
@@ -191,7 +191,9 @@ async def get_groundtruth_availability_async(ocaid, s3_keys=None):
     url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
     timeout = 2 if get_ol_env().LOCAL_DEV else config_http_request_timeout
     try:
-        response = await ia.get_async_session().post(url + params, data=s3_keys, timeout=timeout)
+        with server_timing.timed_ia(url) as call:
+            response = await ia.get_async_session().post(url + params, data=s3_keys, timeout=timeout)
+            call.failed = response.is_server_error
         response.raise_for_status()
     except httpx.TimeoutException:
         if get_ol_env().LOCAL_DEV:
@@ -229,7 +231,9 @@ async def s3_loan_api_async(s3_keys, ocaid=None, action="browse", **kwargs):
 
     data = s3_keys | kwargs
 
-    response = await ia.get_async_session().post(url + params, data=data, timeout=config_http_request_timeout)
+    with server_timing.timed_ia(url) as call:
+        response = await ia.get_async_session().post(url + params, data=data, timeout=config_http_request_timeout)
+        call.failed = response.is_server_error
     # We want this to be just `409` but first
     # `www/common/Lending.inc#L111-114` needs to
     # be updated on petabox
@@ -291,7 +295,9 @@ async def get_available_async(
             "x-preferred-client-id": client_ip,
             "x-application-id": "openlibrary",
         }
-        response = await ia.get_async_session().get(url, headers=headers, timeout=config_http_request_timeout)
+        with server_timing.timed_ia(url) as call:
+            response = await ia.get_async_session().get(url, headers=headers, timeout=config_http_request_timeout)
+            call.failed = response.is_server_error
         items = response.json().get("response", {}).get("docs", [])
         results = {}
         for item in items:
@@ -428,15 +434,17 @@ async def get_availability_async(
         }
         if config_ia_ol_metadata_write_s3:
             headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
-        resp = await ia.get_async_session().get(
-            config_ia_availability_api_v2_url,
-            params={
-                id_type: ",".join(ids_to_fetch),
-                "scope": "printdisabled",
-            },
-            headers=headers,
-            timeout=config_http_request_timeout,
-        )
+        with server_timing.timed_ia(config_ia_availability_api_v2_url) as call:
+            resp = await ia.get_async_session().get(
+                config_ia_availability_api_v2_url,
+                params={
+                    id_type: ",".join(ids_to_fetch),
+                    "scope": "printdisabled",
+                },
+                headers=headers,
+                timeout=config_http_request_timeout,
+            )
+            call.failed = resp.is_server_error
 
         # This API should always return 200
         resp.raise_for_status()
@@ -604,7 +612,10 @@ def is_loaned_out_on_ia(identifier: str) -> bool | None:
     """Returns True if the item is checked out on Internet Archive."""
     url = f"https://archive.org/services/borrow/{identifier}?action=status"
     try:
-        response = ia.session.get(url, timeout=config_http_request_timeout).json()
+        with server_timing.timed_ia(url) as call:
+            r = ia.session.get(url, timeout=config_http_request_timeout)
+            call.failed = r.is_server_error
+        response = r.json()
         return response and response.get("checkedout")
     except Exception:  # TODO: Narrow exception scope
         logger.exception(f"is_loaned_out_on_ia({identifier})")
@@ -790,11 +801,14 @@ class IA_Lending_API:
         payload["token"] = config_ia_ol_shared_key
 
         try:
-            jsontext = requests.post(
-                config_ia_loan_api_url,
-                data=payload,
-                timeout=config_http_request_timeout,
-            ).json()
+            with server_timing.timed_ia(config_ia_loan_api_url) as call:
+                resp = requests.post(
+                    config_ia_loan_api_url,
+                    data=payload,
+                    timeout=config_http_request_timeout,
+                )
+                call.failed = resp.status_code >= 500
+            jsontext = resp.json()
             logger.info("POST response: %s", jsontext)
             return jsontext
         except JSONDecodeError:

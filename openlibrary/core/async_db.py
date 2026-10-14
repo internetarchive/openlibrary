@@ -41,6 +41,8 @@ from typing import TYPE_CHECKING, Any, cast
 
 import web
 
+from openlibrary.utils import server_timing
+
 logger = logging.getLogger("openlibrary.async_db")
 
 # Lets modules import without psycopg installed. A configured app fails in
@@ -191,8 +193,9 @@ async def connection() -> AsyncIterator[AsyncConnection[dict[str, Any]]]:
     pool = await _pool_for_loop()
     if pool is None:
         raise RuntimeError("No async database pool available; ensure web.config.db_parameters has a 'db' key configured (or call init_pool() during app startup)")
-    async with pool.connection() as conn:
-        yield conn
+    with server_timing.timed("db"):
+        async with pool.connection() as conn:
+            yield conn
 
 
 async def _run(

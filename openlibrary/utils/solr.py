@@ -9,6 +9,7 @@ from urllib.parse import urlencode, urlsplit
 import httpx
 import web
 
+from openlibrary.utils import server_timing
 from openlibrary.utils.async_utils import async_bridge, cache_per_event_loop
 
 logger = logging.getLogger("openlibrary.logger")
@@ -86,18 +87,19 @@ class Solr:
     ) -> T | None:
         """Get a specific item from solr"""
         logger.debug(f"solr /get: {key}, {fields}")
-        resp = (
-            await self.get_async_session().get(
-                f"{self.base_url}/get",
-                # It's unclear how field=None is getting in here; a better fix would be at the source.
-                params={
-                    "id": key,
-                    **({"fl": ",".join([field for field in fields if field])} if fields else {}),
-                    "ol.label": request_label,
-                },
-                timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
-            )
-        ).json()
+        with server_timing.timed("solr"):
+            resp = (
+                await self.get_async_session().get(
+                    f"{self.base_url}/get",
+                    # It's unclear how field=None is getting in here; a better fix would be at the source.
+                    params={
+                        "id": key,
+                        **({"fl": ",".join([field for field in fields if field])} if fields else {}),
+                        "ol.label": request_label,
+                    },
+                    timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
+                )
+            ).json()
 
         # Solr returns {doc: null} if the record isn't there
         return doc_wrapper(resp["doc"]) if resp["doc"] else None
@@ -112,16 +114,17 @@ class Solr:
         if not ids:
             return []
         logger.debug(f"solr /get: {ids}, {fields}")
-        resp = (
-            await self.get_async_session().post(
-                f"{self.base_url}/get",
-                data={
-                    "ids": ",".join(ids),
-                    **({"fl": ",".join(fields)} if fields else {}),
-                },
-                timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
-            )
-        ).json()
+        with server_timing.timed("solr"):
+            resp = (
+                await self.get_async_session().post(
+                    f"{self.base_url}/get",
+                    data={
+                        "ids": ",".join(ids),
+                        **({"fl": ",".join(fields)} if fields else {}),
+                    },
+                    timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
+                )
+            ).json()
         return [doc_wrapper(doc) for doc in resp["response"]["docs"]]
 
     async def update_in_place_async(
@@ -130,13 +133,14 @@ class Solr:
         commit: bool = False,
         _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
     ):
-        resp = (
-            await self.get_async_session().post(
-                f"{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}",
-                json=request,
-                timeout=_timeout,
-            )
-        ).json()
+        with server_timing.timed("solr"):
+            resp = (
+                await self.get_async_session().post(
+                    f"{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}",
+                    json=request,
+                    timeout=_timeout,
+                )
+            ).json()
         return resp
 
     async def select_async(
@@ -235,11 +239,13 @@ class Solr:
             sep = "&" if "?" in url else "?"
             url = url + sep + payload
             logger.debug("solr request: %s", url)
-            return await self.get_async_session().get(url, timeout=_timeout)
+            with server_timing.timed("solr"):
+                return await self.get_async_session().get(url, timeout=_timeout)
         else:
             logger.debug("solr request: %s ...", url)
             headers = {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}
-            return await self.get_async_session().post(url, data=payload, headers=headers, timeout=_timeout)
+            with server_timing.timed("solr"):
+                return await self.get_async_session().post(url, data=payload, headers=headers, timeout=_timeout)
 
     def _parse_solr_result(self, result, doc_wrapper, facet_wrapper):
         response = result["response"]

@@ -13,6 +13,7 @@ import web
 from infogami import config
 from openlibrary.core.carousels import format_book_data
 from openlibrary.core.lending import get_availability_async
+from openlibrary.utils import server_timing
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import req_context, site
 
@@ -249,7 +250,9 @@ async def fulltext_search_api(params):
     logger.debug("URL: " + search_select)
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(search_select, headers=headers, timeout=30)
+            with server_timing.timed_ia(search_endpoint) as call:
+                response = await client.get(search_select, headers=headers, timeout=30)
+                call.failed = response.is_server_error
             response.raise_for_status()
             return response.json()
     except httpx.HTTPStatusError:

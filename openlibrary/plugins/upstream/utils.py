@@ -50,7 +50,7 @@ from infogami.utils.view import (
 from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
-from openlibrary.utils import normalize_subject_name, request_context
+from openlibrary.utils import normalize_subject_name, request_context, server_timing
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
@@ -167,7 +167,8 @@ class MultiDict(MutableMapping):
 def render_template(name: str, *a, **kw) -> TemplateResult:
     if "." in name:
         name = name.rsplit(".", 1)[0]
-    return render[name](*a, **kw)
+    with server_timing.timed_render():
+        return render[name](*a, **kw)
 
 
 def kebab_case(upper_camel_case: str) -> str:
@@ -242,7 +243,8 @@ def icon_sprite_url() -> str:
 
 
 def render_macro(name, args, **kwargs):
-    return dict(web.template.Template.globals["macros"][name](*args, **kwargs))
+    with server_timing.timed_render():
+        return dict(web.template.Template.globals["macros"][name](*args, **kwargs))
 
 
 def get_message(name: str, *args) -> str:

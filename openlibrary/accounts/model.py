@@ -28,6 +28,7 @@ from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.openlibrary.pd import get_pd_org
+from openlibrary.utils import server_timing
 from openlibrary.utils.request_context import site
 
 try:
@@ -877,7 +878,9 @@ class InternetArchiveAccount(web.storage):
         if test:
             params["developer"] = test
 
-        response = requests.post(url, params=params, json=data, headers=headers or {})
+        with server_timing.timed_ia(url) as call:
+            response = requests.post(url, params=params, json=data, headers=headers or {})
+            call.failed = response.status_code >= 500
         if response.status_code == 403:
             raise OLAuthenticationError("security_error")
         if response.status_code == 504 and op == "create":
@@ -901,13 +904,15 @@ class InternetArchiveAccount(web.storage):
             raise TypeError(f"Expected 'url' to be a string, got {type(url).__name__} instead")
 
         try:
-            response = requests.get(
-                url,
-                headers={
-                    "Content-Type": "application/json",
-                    "authorization": f"LOW {access_key}:{secret_key}",
-                },
-            )
+            with server_timing.timed_ia(url) as call:
+                response = requests.get(
+                    url,
+                    headers={
+                        "Content-Type": "application/json",
+                        "authorization": f"LOW {access_key}:{secret_key}",
+                    },
+                )
+                call.failed = response.status_code >= 500
             response.raise_for_status()
             return response.json()
         except requests.HTTPError as e:
