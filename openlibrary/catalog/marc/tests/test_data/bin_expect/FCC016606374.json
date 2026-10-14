@@ -1,0 +1,52 @@
+{
+  "publish_date": "1904",
+  "publish_country": "fi",
+  "languages": [
+    "fin"
+  ],
+  "work_titles": [
+    "Finland i ord och bild"
+  ],
+  "title": "Suomea samoilemassa",
+  "subtitle": "maamme luonto, kansa ja kehitys",
+  "by_statement": "kuvaillut O.M. Reuter, suomentanut K.V. Puuska",
+  "authors": [
+    {
+      "birth_date": "1850",
+      "death_date": "1913",
+      "name": "Reuter, O. M.",
+      "entity_type": "person",
+      "role": "kirjoittaja."
+    },
+    {
+      "name": "Puuska, K.V.",
+      "entity_type": "person",
+      "role": "kääntäjä."
+    },
+    {
+      "entity_type": "org",
+      "name": "Kustannusosakyhtiö Helios"
+    }
+  ],
+  "notes": "Julkaistu aiemmin 30 vihkona vuosina 1904-1907.\n\nSuomalainen kirjallisuus 1901-1905 / Pakarinen, Simo, sivu 338\n\nSuomentaja Simo Pakarisen mukaan.",
+  "translated_from": [
+    "swe"
+  ],
+  "subjects": [
+    "Historia",
+    "Kansatiede",
+    "Kulttuurihistoria",
+    "Maakunnat"
+  ],
+  "subject_places": [
+    "Suomi"
+  ],
+  "publishers": [
+    "Kustannusyhtiö Helios"
+  ],
+  "publish_places": [
+    "Helsinki"
+  ],
+  "pagination": "976 sivua",
+  "number_of_pages": 976
+}

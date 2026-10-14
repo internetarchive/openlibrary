@@ -21,6 +21,7 @@ from openlibrary.catalog.utils import (
 # National Bibliographic Agencies mapped to OL identfiers:
 AGENCY_MAPPING = {
     "DE-101": "dnb",
+    "FI-H": "fikka",
     "FR-751131015": "bnf",
     "FrPBN": "bnf",
     "GyFmDB": "dnb",
@@ -75,20 +76,19 @@ class SeeAlsoAsTitle(MarcException):
     pass
 
 
-# FIXME: This is SUPER hard to find when needing to add a new field. Why not just decode everything?
 FIELDS_WANTED = (
     [
-        "001",
-        "003",  # for OCLC
-        "008",  # publish date, country and language
-        "010",  # lccn
+        "001",  # Control Number
+        "003",  # Control Number Identifier (OCLC or other)
+        "008",  # Publish date, country and language
+        "010",  # LCCN
         "016",  # National Bibliographic Agency Control Number
-        "020",  # isbn
-        "022",  # issn
-        "035",  # oclc
-        "041",  # languages
-        "050",  # lc classification
-        "082",  # dewey
+        "020",  # ISBN
+        "022",  # ISSN
+        "035",  # System Control Number (OCLC or other agency)
+        "041",  # Languages
+        "050",  # LC classification
+        "082",  # Dewey
         "100",
         "110",
         "111",  # authors
