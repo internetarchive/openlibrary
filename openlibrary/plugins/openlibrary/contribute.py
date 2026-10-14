@@ -5,6 +5,7 @@ Answers save straight to the record as normal edits, so they show in its history
 
 import random
 from collections import Counter
+from datetime import UTC, datetime
 from urllib.parse import urlencode
 
 import web
@@ -12,13 +13,15 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
-from openlibrary.contribute import save, supply, tasks
+from openlibrary.contribute import feed, save, supply, tasks
 from openlibrary.contribute.field_guides import build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values
 from openlibrary.core import helpers
 from openlibrary.i18n import gettext as _
 
 LIST_SIZE = 50
+# Rows the public page renders before the feed script takes over.
+FEED_SIZE = 12
 
 
 def setup():
@@ -195,7 +198,7 @@ def build_task_summary(task: tasks.Task, field_guides, back: str = "") -> dict:
 
 
 def build_task_rows(task: str) -> list[dict]:
-    """The filter's books, most-read first, each with its open tasks weighted by ``tasks.impact`` for "Surprise me"."""
+    """A random draw of the filter's books from the most-read pool, each with its open tasks weighted by ``tasks.impact`` for "Surprise me"."""
     fields = get_filters()[task][1] if task else tuple(tasks.POINTS)
     field_guides = get_field_guides()
     rows: list[dict] = []
@@ -225,14 +228,76 @@ def build_filter_rail(task: str) -> dict:
     return {"all": {"label": _("All open tasks"), "url": build_dashboard_url(), "on": not task}, "filters": filters}
 
 
+def normalize_feed_mode(raw: str) -> str:
+    return raw if raw in feed.MODES else "recent"
+
+
+def landing_figures() -> dict[str, str]:
+    """Social proof on the public page, set as one sentence there. Hand-set round figures for now; revisit when a stats source exists."""
+    return {"readers": "2M+", "books": "55M"}
+
+
+def build_cta(user) -> dict:
+    """The sign-up call: the Librarians page either way, with the extra step a visitor without an account has."""
+    if user:
+        return {
+            "label": _("Become a librarian"),
+            "href": "/librarians",
+            "note": _("You're signed in as %(name)s. Tasks open up once you're a librarian; the Librarians page explains how to apply.", name=user.get_name()),
+            "secondary": [],
+        }
+    return {
+        "label": _("Become a librarian"),
+        "href": "/librarians",
+        "note": _("You'll need a free account first, then ask to join on the Librarians page."),
+        "secondary": [
+            {"label": _("Create an account"), "href": f"/account/create?{urlencode({'redirect': '/tasks'})}"},
+            {"label": _("Log in"), "href": f"/account/login?{urlencode({'redirect': '/tasks'})}"},
+        ],
+    }
+
+
+def format_when(timestamp: str) -> str:
+    """Relative time for a feed row's ISO timestamp; datestr compares naive datetimes."""
+    then = datetime.fromisoformat(timestamp).astimezone(UTC).replace(tzinfo=None)
+    return helpers.datestr(then, now=datetime.now(UTC).replace(tzinfo=None))
+
+
+def build_feed(mode: str) -> dict:
+    """The feed's first rows plus what the script needs to keep it moving."""
+    rows = feed.sample_rows(FEED_SIZE) if mode == "static" else feed.recent_rows(web.ctx.site, FEED_SIZE)
+    for row in rows:
+        row["when"] = format_when(row["timestamp"])
+    return {
+        "mode": mode,
+        "rows": rows,
+        "url": "/tasks/feed.json",
+        "cursor": str(FEED_SIZE),
+    }
+
+
+def render_landing(user):
+    """The public /tasks page for visitors and non-librarians: what tasks are, who is doing them, how to join."""
+    return render_contribute(
+        "contribute/landing.html.jinja",
+        _("Tasks"),
+        signed_in=bool(user),
+        cta=build_cta(user),
+        figures=landing_figures(),
+        feed=build_feed(normalize_feed_mode(query_param("feed", ""))),
+        # A few appealing examples, not the full list. Book cover isn't a task yet.
+        fields=[get_field_guides()[f].label for f in ("languages", "publishers", "oclc_numbers")] + [_("Book cover")],
+    )
+
+
 class contribute_index(delegate.page):
     path = "/tasks"
 
     def GET(self):
-        task = normalize_filter(query_param("task", ""))
-        if denied := require_librarian_access(build_dashboard_url(task)):
-            return denied
         user = accounts.get_current_user()
+        if not user or not user.is_librarian_or_higher():
+            return render_landing(user)
+        task = normalize_filter(query_param("task", ""))
         return render_contribute(
             "contribute/dashboard.html.jinja",
             _("Tasks"),

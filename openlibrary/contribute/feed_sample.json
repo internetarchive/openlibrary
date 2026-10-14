@@ -1,0 +1,1982 @@
+[
+ {
+  "key": "/works/OL257943W",
+  "title": "A Game of Thrones",
+  "authors": "George R. R. Martin",
+  "cover_id": 9269962,
+  "kind": "edit-book",
+  "comment": "Added series",
+  "editor": "folio_42"
+ },
+ {
+  "key": "/works/OL1815443W",
+  "title": "Autobiografía Malcolm X",
+  "authors": "Alex Haley, Malcolm X",
+  "cover_id": 7259420,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "catalogue_kate"
+ },
+ {
+  "key": "/works/OL64365W",
+  "title": "Brave New World",
+  "authors": "Aldous Huxley",
+  "cover_id": 8231823,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "lccn_lou"
+ },
+ {
+  "key": "/works/OL1168007W",
+  "title": "Animal Farm",
+  "authors": "George Orwell",
+  "cover_id": 11261770,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "lccn_lou"
+ },
+ {
+  "key": "/works/OL471932W",
+  "title": "The Murder of Roger Ackroyd",
+  "authors": "Agatha Christie",
+  "cover_id": 13151356,
+  "kind": "add-book",
+  "comment": "Added a new edition",
+  "editor": "lccn_lou"
+ },
+ {
+  "key": "/works/OL27733867W",
+  "title": "It Starts with Us",
+  "authors": "Colleen Hoover",
+  "cover_id": 12749873,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "catalogue_kate"
+ },
+ {
+  "key": "/works/OL77746W",
+  "title": "Anne of Green Gables",
+  "authors": "Lucy Maud Montgomery",
+  "cover_id": 14641084,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "midnightcatalog"
+ },
+ {
+  "key": "/works/OL265426W",
+  "title": "Looking for Alaska",
+  "authors": "John Green, John Green",
+  "cover_id": 12614602,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "lccn_lou"
+ },
+ {
+  "key": "/works/OL244537W",
+  "title": "The Art of War",
+  "authors": "孙武 (Sun Tzu)",
+  "cover_id": 4849549,
+  "kind": "merge-works",
+  "comment": "Merged duplicate works",
+  "editor": "yuki_reads"
+ },
+ {
+  "key": "/works/OL1037811W",
+  "title": "Wings of Fire",
+  "authors": "A. P. J. Abdul Kalam",
+  "cover_id": 9153819,
+  "kind": "edit-book",
+  "comment": "Added series",
+  "editor": "northshelf"
+ },
+ {
+  "key": "/works/OL25515697W",
+  "title": "Twisted Games",
+  "authors": "Ana Huang",
+  "cover_id": 12821465,
+  "kind": "edit-book",
+  "comment": "Added series",
+  "editor": "catalogue_kate"
+ },
+ {
+  "key": "/works/OL5819962W",
+  "title": "The Summer I Turned Pretty",
+  "authors": "Jenny Han",
+  "cover_id": 8783502,
+  "kind": "add-book",
+  "comment": "Imported from a library catalog",
+  "editor": "shelfwright"
+ },
+ {
+  "key": "/works/OL1089297W",
+  "title": "The Prince",
+  "authors": "Niccolò Machiavelli",
+  "cover_id": 12726168,
+  "kind": "edit-book",
+  "comment": "Added description",
+  "editor": "coverfix"
+ },
+ {
+  "key": "/works/OL17800586W",
+  "title": "the sun and her flowers",
+  "authors": "Rupi Kaur",
+  "cover_id": 8084615,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "lccn_lou"
+ },
+ {
+  "key": "/works/OL17078706W",
+  "title": "Zero to One",
+  "authors": "Peter A. Thiel, Blake Masters",
+  "cover_id": 9002334,
+  "kind": "add-book",
+  "comment": "Added a paperback edition",
+  "editor": "mariposa_reads"
+ },
+ {
+  "key": "/works/OL27729743W",
+  "title": "The Housemaid",
+  "authors": "Freida McFadden",
+  "cover_id": 15105883,
+  "kind": "edit-book",
+  "comment": "Added ISBN-13",
+  "editor": "quietstacks"
+ },
+ {
+  "key": "/works/OL18146664W",
+  "title": "The Food Lab",
+  "authors": "J. Kenji López-Alt",
+  "cover_id": 8314250,
+  "kind": "edit-book",
+  "comment": "Added series",
+  "editor": "deweyfan"
+ },
+ {
+  "key": "/works/OL9170454W",
+  "title": "Hamlet",
+  "authors": "William Shakespeare",
+  "cover_id": 8281954,
+  "kind": "edit-book",
+  "comment": "Added ISBN-13",
+  "editor": "ravi_m"
+ },
+ {
+  "key": "/works/OL8193478W",
+  "title": "Oliver Twist",
+  "authors": "Charles Dickens",
+  "cover_id": 13300802,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "hafiz_k"
+ },
+ {
+  "key": "/works/OL2568868W",
+  "title": "In the Night Kitchen",
+  "authors": "Maurice Sendak",
+  "cover_id": 6518765,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "marginalia"
+ },
+ {
+  "key": "/works/OL466510W",
+  "title": "Kitchen Witch's Cookbook",
+  "authors": "Patricia Telesco",
+  "cover_id": 809298,
+  "kind": "edit-book",
+  "comment": "Fixed author name",
+  "editor": "bibliopole"
+ },
+ {
+  "key": "/works/OL4110479W",
+  "title": "On food and cooking",
+  "authors": "Harold McGee",
+  "cover_id": 14231,
+  "kind": "edit-book",
+  "comment": "Added LCCN",
+  "editor": "shelfwright"
+ },
+ {
+  "key": "/works/OL1063267W",
+  "title": "How to Win Friends and Influence People",
+  "authors": "Dale Carnegie",
+  "cover_id": 13314878,
+  "kind": "edit-book",
+  "comment": "Added series",
+  "editor": "folio_42"
+ },
+ {
+  "key": "/works/OL17508740W",
+  "title": "The Summer I Turned Pretty Trilogy",
+  "authors": "Jenny Han",
+  "cover_id": 7719210,
+  "kind": "merge-works",
+  "comment": "Merged duplicate works",
+  "editor": "shelfwright"
+ },
+ {
+  "key": "/works/OL17606111W",
+  "title": "Milk and Honey",
+  "authors": "Rupi Kaur",
+  "cover_id": 8743595,
+  "kind": "edit-book",
+  "comment": "Corrected title capitalization",
+  "editor": "quietstacks"
+ },
+ {
+  "key": "/works/OL17184556W",
+  "title": "Elon Musk",
+  "authors": "Ashlee Vance",
+  "cover_id": 8463846,
+  "kind": "merge-works",
+  "comment": "Merged duplicate works",
+  "editor": "mekBot"
+ },
+ {
+  "key": "/works/OL18543708W",
+  "title": "The Wicked King",
+  "authors": "Holly Black",
+  "cover_id": 8361788,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "isbn_hunter"
+ },
+ {
+  "key": "/works/OL1992198W",
+  "title": "In Cold Blood",
+  "authors": "Truman Capote",
+  "cover_id": 228066,
+  "kind": "edit-book",
+  "comment": "Added description",
+  "editor": "tomes_and_tea"
+ },
+ {
+  "key": "/works/OL17332479W",
+  "title": "Six of Crows",
+  "authors": "Leigh Bardugo",
+  "cover_id": 12667417,
+  "kind": "edit-book",
+  "comment": "Added OCLC number",
+  "editor": "lccn_lou"
+ },
+ {
+  "key": "/works/OL27818823W",
+  "title": "Twisted Lies",
+  "authors": "Ana Huang",
+  "cover_id": 14425197,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "LibrarianJo"
+ },
+ {
+  "key": "/works/OL5682519W",
+  "title": "Dog Days",
+  "authors": "Jeff Kinney",
+  "cover_id": 12366143,
+  "kind": "edit-book",
+  "comment": "Added publisher",
+  "editor": "pagecounter"
+ },
+ {
+  "key": "/works/OL138052W",
+  "title": "Alice's Adventures in Wonderland",
+  "authors": "Lewis Carroll",
+  "cover_id": 10527843,
+  "kind": "merge-authors",
+  "comment": "Merged author records",
+  "editor": "quietstacks"
+ },
+ {
+  "key": "/works/OL675783W",
+  "title": "The Handmaid's Tale",
+  "authors": "Margaret Atwood",
+  "cover_id": 8231851,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "stacks_annie"
+ },
+ {
+  "key": "/works/OL450063W",
+  "title": "Frankenstein; or, The Modern Prometheus",
+  "authors": "Mary Shelley",
+  "cover_id": 12356249,
+  "kind": "edit-book",
+  "comment": "Corrected title capitalization",
+  "editor": "readsbylamp"
+ },
+ {
+  "key": "/works/OL318900W",
+  "title": "The Prophet",
+  "authors": "Kahlil Gibran",
+  "cover_id": 418324,
+  "kind": "add-book",
+  "comment": "Added an audiobook edition",
+  "editor": "lccn_lou"
+ },
+ {
+  "key": "/works/OL922430W",
+  "title": "Sofies verden",
+  "authors": "Jostein Gaarder, Helene Hervieu",
+  "cover_id": 223463,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "sarah.r"
+ },
+ {
+  "key": "/works/OL3946622W",
+  "title": "Gorin no sho",
+  "authors": "Miyamoto Musashi",
+  "cover_id": 6621293,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "stacks_annie"
+ },
+ {
+  "key": "/works/OL679358W",
+  "title": "Coraline",
+  "authors": "Neil Gaiman",
+  "cover_id": 14171421,
+  "kind": "edit-book",
+  "comment": "Filled in Language",
+  "editor": "northshelf"
+ },
+ {
+  "key": "/works/OL1968364W",
+  "title": "The Art of Seduction",
+  "authors": "Robert Greene",
+  "cover_id": 917840,
+  "kind": "edit-book",
+  "comment": "Filled in Language",
+  "editor": "ink_and_index"
+ },
+ {
+  "key": "/works/OL45499W",
+  "title": "Tao te Ching",
+  "authors": "老子, Yang Peng",
+  "cover_id": 662232,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "the_lender"
+ },
+ {
+  "key": "/works/OL2056818W",
+  "title": "Maus I",
+  "authors": "Art Spiegelman",
+  "cover_id": 10210168,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "rare_finds"
+ },
+ {
+  "key": "/works/OL267096W",
+  "title": "Анна Каренина",
+  "authors": "Лев Толстой",
+  "cover_id": 2560652,
+  "kind": "edit-book",
+  "comment": "Added ISBN-13",
+  "editor": "coverfix"
+ },
+ {
+  "key": "/works/OL24156W",
+  "title": "The Strange Case of Dr. Jekyll and Mr. Hyde",
+  "authors": "Robert Louis Stevenson",
+  "cover_id": 295773,
+  "kind": "edit-book",
+  "comment": "Filled in Language",
+  "editor": "northshelf"
+ },
+ {
+  "key": "/works/OL24542623W",
+  "title": "Better Than the Movies",
+  "authors": "Lynn Painter",
+  "cover_id": 11182600,
+  "kind": "merge-works",
+  "comment": "Merged duplicate works",
+  "editor": "nilsvalley"
+ },
+ {
+  "key": "/works/OL74128W",
+  "title": "A short history of nearly everything",
+  "authors": "Bill Bryson",
+  "cover_id": 12725620,
+  "kind": "edit-book",
+  "comment": "Added LCCN",
+  "editor": "northshelf"
+ },
+ {
+  "key": "/works/OL3140822W",
+  "title": "To Kill a Mockingbird",
+  "authors": "Harper Lee",
+  "cover_id": 14351077,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "folio_42"
+ },
+ {
+  "key": "/works/OL46760W",
+  "title": "The Glass Castle",
+  "authors": "Jeannette Walls",
+  "cover_id": 11517692,
+  "kind": "edit-book",
+  "comment": "Added series",
+  "editor": "rare_finds"
+ },
+ {
+  "key": "/works/OL16085155W",
+  "title": "Steve Jobs",
+  "authors": "Walter Isaacson",
+  "cover_id": 12374726,
+  "kind": "edit-book",
+  "comment": "Corrected title capitalization",
+  "editor": "coverfix"
+ },
+ {
+  "key": "/works/OL15987908W",
+  "title": "Inside Out & Back Again",
+  "authors": "Thanhha Lai",
+  "cover_id": 11593737,
+  "kind": "edit-book",
+  "comment": "Added page count",
+  "editor": "midnightcatalog"
+ },
+ {
+  "key": "/works/OL258902W",
+  "title": "Macbeth",
+  "authors": "William Shakespeare",
+  "cover_id": 872432,
+  "kind": "edit-book",
+  "comment": "Added description",
+  "editor": "marginalia"
+ },
+ {
+  "key": "/works/OL18803W",
+  "title": "The Doorbell Rang",
+  "authors": "Pat Hutchins",
+  "cover_id": 430231,
+  "kind": "edit-book",
+  "comment": "Filled in Language",
+  "editor": "tomes_and_tea"
+ },
+ {
+  "key": "/works/OL4321141W",
+  "title": "The Secret History",
+  "authors": "Donna Tartt",
+  "cover_id": 744854,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "deweyfan"
+ },
+ {
+  "key": "/works/OL93227W",
+  "title": "Inferno",
+  "authors": "Dante Alighieri",
+  "cover_id": 6387077,
+  "kind": "edit-book",
+  "comment": "Added publisher",
+  "editor": "pagecounter"
+ },
+ {
+  "key": "/works/OL471576W",
+  "title": "Murder on the Orient Express",
+  "authors": "Agatha Christie",
+  "cover_id": 11100465,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "dustjacket"
+ },
+ {
+  "key": "/works/OL1892617W",
+  "title": "A Brief History of Time",
+  "authors": "Stephen Hawking",
+  "cover_id": 10432365,
+  "kind": "merge-authors",
+  "comment": "Merged author records",
+  "editor": "sarah.r"
+ },
+ {
+  "key": "/works/OL27448W",
+  "title": "The Lord of the Rings",
+  "authors": "J.R.R. Tolkien",
+  "cover_id": 14625765,
+  "kind": "edit-book",
+  "comment": "Corrected title capitalization",
+  "editor": "firstedition"
+ },
+ {
+  "key": "/works/OL28110702W",
+  "title": "I Have to Tell You Something",
+  "authors": "Zara Bas",
+  "cover_id": 13945571,
+  "kind": "add-book",
+  "comment": "Added a new edition",
+  "editor": "dustjacket"
+ },
+ {
+  "key": "/works/OL2347897W",
+  "title": "The Anarchist Cookbook",
+  "authors": "William F. Powell, William Powell",
+  "cover_id": 740051,
+  "kind": "edit-book",
+  "comment": "Added series",
+  "editor": "isbn_hunter"
+ },
+ {
+  "key": "/works/OL80021W",
+  "title": "I Know Why the Caged Bird Sings",
+  "authors": "Maya Angelou",
+  "cover_id": 9367075,
+  "kind": "edit-book",
+  "comment": "Filled in Language",
+  "editor": "dustjacket"
+ },
+ {
+  "key": "/works/OL3029795W",
+  "title": "Zlatin dnevnik",
+  "authors": "Zlata Filipović",
+  "cover_id": 3899848,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "sarah.r"
+ },
+ {
+  "key": "/works/OL27203W",
+  "title": "The Four Agreements",
+  "authors": "Don Miguel Ruiz",
+  "cover_id": 924521,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "bookworm_84"
+ },
+ {
+  "key": "/works/OL1672346W",
+  "title": "Stone soup",
+  "authors": "Marcia Brown",
+  "cover_id": 429038,
+  "kind": "edit-book",
+  "comment": "Filled in Language",
+  "editor": "coverfix"
+ },
+ {
+  "key": "/works/OL1268413W",
+  "title": "... Trotzdem Ja zum Leben sagen",
+  "authors": "Viktor Emil Frankl",
+  "cover_id": 8516506,
+  "kind": "edit-book",
+  "comment": "Corrected title capitalization",
+  "editor": "paper_trail"
+ },
+ {
+  "key": "/works/OL189773W",
+  "title": "Le répertoire de la cuisine",
+  "authors": "Louis Saulnier",
+  "cover_id": 9248006,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "shelfwright"
+ },
+ {
+  "key": "/works/OL151411W",
+  "title": "Alice's Adventures in Wonderland / Through the Looking Glass",
+  "authors": "Lewis Carroll",
+  "cover_id": 8595966,
+  "kind": "edit-book",
+  "comment": "Added series",
+  "editor": "ink_and_index"
+ },
+ {
+  "key": "/works/OL16333W",
+  "title": "Leaves of Grass",
+  "authors": "Walt Whitman",
+  "cover_id": 9000447,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "sarah.r"
+ },
+ {
+  "key": "/works/OL16014245W",
+  "title": "Shatter Me",
+  "authors": "Tahereh Mafi",
+  "cover_id": 6974992,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "the_lender"
+ },
+ {
+  "key": "/works/OL24390422W",
+  "title": "Twisted Love",
+  "authors": "Ana Huang",
+  "cover_id": 12940491,
+  "kind": "add-book",
+  "comment": "Imported from a library catalog",
+  "editor": "marginalia"
+ },
+ {
+  "key": "/works/OL15030502W",
+  "title": "Cookbook",
+  "authors": "Betty Crocker",
+  "cover_id": 4098526,
+  "kind": "edit-book",
+  "comment": "Linked edition to work",
+  "editor": "isbn_hunter"
+ },
+ {
+  "key": "/works/OL51831W",
+  "title": "πολιτεία",
+  "authors": "Plato",
+  "cover_id": 14418448,
+  "kind": "edit-book",
+  "comment": "Fixed author name",
+  "editor": "quietstacks"
+ },
+ {
+  "key": "/works/OL22448002W",
+  "title": "Crying in H Mart",
+  "authors": "Michelle Zauner",
+  "cover_id": 10462708,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "mekBot"
+ },
+ {
+  "key": "/works/OL471565W",
+  "title": "And Then There Were None",
+  "authors": "Agatha Christie",
+  "cover_id": 11172296,
+  "kind": "edit-book",
+  "comment": "Corrected title capitalization",
+  "editor": "readsbylamp"
+ },
+ {
+  "key": "/works/OL26663382W",
+  "title": "I'm Glad My Mom Died",
+  "authors": "Jennette McCurdy, Jannettte Mcury",
+  "cover_id": 12855985,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "stacks_annie"
+ },
+ {
+  "key": "/works/OL16142094W",
+  "title": "Wonder",
+  "authors": "R. J. Palacio",
+  "cover_id": 8223160,
+  "kind": "edit-book",
+  "comment": "Linked edition to work",
+  "editor": "ravi_m"
+ },
+ {
+  "key": "/works/OL82565W",
+  "title": "Harry Potter and the Half-Blood Prince",
+  "authors": "J. K. Rowling",
+  "cover_id": 10716273,
+  "kind": "add-book",
+  "comment": "Added an audiobook edition",
+  "editor": "the_lender"
+ },
+ {
+  "key": "/works/OL17714701W",
+  "title": "The Hate U Give",
+  "authors": "Angie Thomas, Angie Thomas",
+  "cover_id": 11521588,
+  "kind": "add-book",
+  "comment": "Imported from a library catalog",
+  "editor": "yuki_reads"
+ },
+ {
+  "key": "/works/OL1673205W",
+  "title": "The Godfather",
+  "authors": "Mario Puzo",
+  "cover_id": 6507069,
+  "kind": "edit-book",
+  "comment": "Added series",
+  "editor": "shelfwright"
+ },
+ {
+  "key": "/works/OL5735363W",
+  "title": "The Hunger Games",
+  "authors": "Suzanne Collins",
+  "cover_id": 12646537,
+  "kind": "edit-book",
+  "comment": "Added OCLC number",
+  "editor": "LibrarianJo"
+ },
+ {
+  "key": "/works/OL1865528W",
+  "title": "The Bell Jar",
+  "authors": "Sylvia Plath",
+  "cover_id": 8477115,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "bookworm_84"
+ },
+ {
+  "key": "/works/OL16803752W",
+  "title": "Eleanor & Park",
+  "authors": "Rainbow Rowell",
+  "cover_id": 12917595,
+  "kind": "add-book",
+  "comment": "Added a paperback edition",
+  "editor": "ravi_m"
+ },
+ {
+  "key": "/works/OL17837119W",
+  "title": "12 Rules for Life",
+  "authors": "Jordan B. Peterson",
+  "cover_id": 8131760,
+  "kind": "edit-book",
+  "comment": "Filled in Language",
+  "editor": "midnightcatalog"
+ },
+ {
+  "key": "/works/OL17860744W",
+  "title": "A Court of Mist and Fury",
+  "authors": "Sarah J. Maas",
+  "cover_id": 14315081,
+  "kind": "merge-works",
+  "comment": "Merged duplicate works",
+  "editor": "ink_and_index"
+ },
+ {
+  "key": "/works/OL8479867W",
+  "title": "The Name of the Wind",
+  "authors": "Patrick Rothfuss, Marc Simonetti",
+  "cover_id": 11480483,
+  "kind": "add-book",
+  "comment": "Added a new edition",
+  "editor": "coverfix"
+ },
+ {
+  "key": "/works/OL796465W",
+  "title": "O Alquimista",
+  "authors": "Paulo Coelho",
+  "cover_id": 7414780,
+  "kind": "edit-book",
+  "comment": "Added publisher",
+  "editor": "stacks_annie"
+ },
+ {
+  "key": "/works/OL59121W",
+  "title": "Chicka chicka boom boom",
+  "authors": "Bill Martin Jr., John Archambault",
+  "cover_id": 1320266,
+  "kind": "edit-book",
+  "comment": "Added OCLC number",
+  "editor": "yuki_reads"
+ },
+ {
+  "key": "/works/OL1846076W",
+  "title": "The Giver",
+  "authors": "Lois Lowry",
+  "cover_id": 8352502,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "ink_and_index"
+ },
+ {
+  "key": "/works/OL27513W",
+  "title": "The Fellowship of the Ring",
+  "authors": "J.R.R. Tolkien",
+  "cover_id": 14627060,
+  "kind": "edit-book",
+  "comment": "Added publisher",
+  "editor": "hafiz_k"
+ },
+ {
+  "key": "/works/OL8483260W",
+  "title": "Diary of a Wimpy Kid",
+  "authors": "Jeff Kinney",
+  "cover_id": 14376136,
+  "kind": "edit-book",
+  "comment": "Added page count",
+  "editor": "yuki_reads"
+ },
+ {
+  "key": "/works/OL2625431W",
+  "title": "海辺のカフカ",
+  "authors": "村上春樹",
+  "cover_id": 4982600,
+  "kind": "edit-book",
+  "comment": "Added subjects",
+  "editor": "dustjacket"
+ },
+ {
+  "key": "/works/OL262421W",
+  "title": "The Adventures of Sherlock Holmes [12 stories]",
+  "authors": "Arthur Conan Doyle",
+  "cover_id": 6717853,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "ink_and_index"
+ },
+ {
+  "key": "/works/OL264729W",
+  "title": "Go Ask Alice",
+  "authors": "Beatrice Sparks",
+  "cover_id": 8749018,
+  "kind": "edit-book",
+  "comment": "Added page count",
+  "editor": "catalogue_kate"
+ },
+ {
+  "key": "/works/OL455327W",
+  "title": "Lord of the Flies",
+  "authors": "William Golding",
+  "cover_id": 8684447,
+  "kind": "edit-book",
+  "comment": "Filled in Language",
+  "editor": "mariposa_reads"
+ },
+ {
+  "key": "/works/OL66347W",
+  "title": "The Crucible",
+  "authors": "Arthur Miller",
+  "cover_id": 8431392,
+  "kind": "edit-book",
+  "comment": "Added page count",
+  "editor": "northshelf"
+ },
+ {
+  "key": "/works/OL308980W",
+  "title": "Ramayana, a Holy Bible of India",
+  "authors": "Vālmīki, Robert P. Goldman",
+  "cover_id": 8238736,
+  "kind": "edit-book",
+  "comment": "Added publisher",
+  "editor": "nilsvalley"
+ },
+ {
+  "key": "/works/OL266178W",
+  "title": "Het Achterhuis",
+  "authors": "Anne Frank",
+  "cover_id": 8584021,
+  "kind": "edit-book",
+  "comment": "Corrected title capitalization",
+  "editor": "mariposa_reads"
+ },
+ {
+  "key": "/works/OL81613W",
+  "title": "It",
+  "authors": "Stephen King",
+  "cover_id": 8569284,
+  "kind": "add-book",
+  "comment": "Added an audiobook edition",
+  "editor": "bibliopole"
+ },
+ {
+  "key": "/works/OL29226517W",
+  "title": "Fourth Wing",
+  "authors": "Rebecca Yarros",
+  "cover_id": 14407898,
+  "kind": "add-book",
+  "comment": "Added an audiobook edition",
+  "editor": "mariposa_reads"
+ },
+ {
+  "key": "/works/OL6027236W",
+  "title": "The Maze Runner",
+  "authors": "James Dashner",
+  "cover_id": 10464801,
+  "kind": "edit-book",
+  "comment": "Added description",
+  "editor": "mariposa_reads"
+ },
+ {
+  "key": "/works/OL2163649W",
+  "title": "The Hitchhiker's Guide to the Galaxy",
+  "authors": "Douglas Adams",
+  "cover_id": 12986869,
+  "kind": "edit-book",
+  "comment": "Added series",
+  "editor": "ravi_m"
+ },
+ {
+  "key": "/works/OL3368231W",
+  "title": "The Giving Tree",
+  "authors": "Shel Silverstein, Kjell Hill Silverstein",
+  "cover_id": 655727,
+  "kind": "add-book",
+  "comment": "Imported from a library catalog",
+  "editor": "quietstacks"
+ },
+ {
+  "key": "/works/OL8193416W",
+  "title": "The Picture of Dorian Gray",
+  "authors": "Oscar Wilde",
+  "cover_id": 14314858,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "catalogue_kate"
+ },
+ {
+  "key": "/works/OL41081W",
+  "title": "The Raven",
+  "authors": "Edgar Allan Poe",
+  "cover_id": 8246077,
+  "kind": "edit-book",
+  "comment": "Added ISBN-13",
+  "editor": "rare_finds"
+ },
+ {
+  "key": "/works/OL28128736W",
+  "title": "She Is the Poem",
+  "authors": "June Bates",
+  "cover_id": 13011134,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "stacks_annie"
+ },
+ {
+  "key": "/works/OL1968368W",
+  "title": "The 48 Laws of Power",
+  "authors": "Robert Greene",
+  "cover_id": 6424160,
+  "kind": "edit-book",
+  "comment": "Linked edition to work",
+  "editor": "quietstacks"
+ },
+ {
+  "key": "/works/OL45089W",
+  "title": "Robinson Crusoe",
+  "authors": "Daniel Defoe",
+  "cover_id": 368541,
+  "kind": "add-book",
+  "comment": "Imported from a library catalog",
+  "editor": "firstedition"
+ },
+ {
+  "key": "/works/OL43024W",
+  "title": "As a Man Thinketh",
+  "authors": "James Allen",
+  "cover_id": 6268048,
+  "kind": "edit-book",
+  "comment": "Added subjects",
+  "editor": "bookworm_84"
+ },
+ {
+  "key": "/works/OL166894W",
+  "title": "Преступление и наказание",
+  "authors": "Fiódor Dostoievski",
+  "cover_id": 9411873,
+  "kind": "add-book",
+  "comment": "Added a new edition",
+  "editor": "bookworm_84"
+ },
+ {
+  "key": "/works/OL52266W",
+  "title": "The Invisible Man",
+  "authors": "H. G. Wells",
+  "cover_id": 6419199,
+  "kind": "add-book",
+  "comment": "Added an audiobook edition",
+  "editor": "sarah.r"
+ },
+ {
+  "key": "/works/OL29983W",
+  "title": "Little Women",
+  "authors": "Louisa May Alcott",
+  "cover_id": 8775559,
+  "kind": "merge-authors",
+  "comment": "Merged author records",
+  "editor": "ink_and_index"
+ },
+ {
+  "key": "/works/OL263273W",
+  "title": "Odd Thomas",
+  "authors": "Dean Koontz",
+  "cover_id": 7075051,
+  "kind": "add-book",
+  "comment": "Imported from a library catalog",
+  "editor": "nilsvalley"
+ },
+ {
+  "key": "/works/OL18020194W",
+  "title": "It Ends With Us",
+  "authors": "Colleen Hoover",
+  "cover_id": 10473609,
+  "kind": "add-book",
+  "comment": "Added an audiobook edition",
+  "editor": "firstedition"
+ },
+ {
+  "key": "/works/OL1184991W",
+  "title": "The Art of Loving",
+  "authors": "Erich Fromm",
+  "cover_id": 4741809,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "lccn_lou"
+ },
+ {
+  "key": "/works/OL15292640W",
+  "title": "Metamorphoses",
+  "authors": "Ovid",
+  "cover_id": 7212118,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "pagecounter"
+ },
+ {
+  "key": "/works/OL93082W",
+  "title": "La Divina Commedia",
+  "authors": "Dante Alighieri",
+  "cover_id": 11621024,
+  "kind": "add-book",
+  "comment": "Imported from a library catalog",
+  "editor": "bookworm_84"
+ },
+ {
+  "key": "/works/OL103123W",
+  "title": "Fahrenheit 451",
+  "authors": "Ray Bradbury",
+  "cover_id": 12993656,
+  "kind": "edit-book",
+  "comment": "Added OCLC number",
+  "editor": "sarah.r"
+ },
+ {
+  "key": "/works/OL518262W",
+  "title": "Vincent van Gogh",
+  "authors": "Vincent van Gogh, Colta Ives",
+  "cover_id": 4703873,
+  "kind": "add-book",
+  "comment": "Added a paperback edition",
+  "editor": "shelfwright"
+ },
+ {
+  "key": "/works/OL19985136W",
+  "title": "La Gara Dei Supercuochi",
+  "authors": "Elisabetta Dami",
+  "cover_id": 8995758,
+  "kind": "edit-book",
+  "comment": "Added page count",
+  "editor": "firstedition"
+ },
+ {
+  "key": "/works/OL82563W",
+  "title": "Harry Potter and the Philosopher's Stone",
+  "authors": "J. K. Rowling",
+  "cover_id": 15155833,
+  "kind": "edit-book",
+  "comment": "Linked edition to work",
+  "editor": "deweyfan"
+ },
+ {
+  "key": "/works/OL503666W",
+  "title": "Don Quijote de la Mancha",
+  "authors": "Miguel de Cervantes Saavedra",
+  "cover_id": 14428305,
+  "kind": "add-book",
+  "comment": "Added an audiobook edition",
+  "editor": "marginalia"
+ },
+ {
+  "key": "/works/OL2003465W",
+  "title": "Mindset",
+  "authors": "Carol S. Dweck",
+  "cover_id": 746414,
+  "kind": "add-book",
+  "comment": "Added a paperback edition",
+  "editor": "coverfix"
+ },
+ {
+  "key": "/works/OL267968W",
+  "title": "Joy of Cooking",
+  "authors": "Irma S. Rombauer, Marion Rombauer Becker",
+  "cover_id": 475157,
+  "kind": "edit-book",
+  "comment": "Fixed author name",
+  "editor": "tomes_and_tea"
+ },
+ {
+  "key": "/works/OL17824318W",
+  "title": "Born a Crime",
+  "authors": "Trevor Noah",
+  "cover_id": 8294078,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "the_lender"
+ },
+ {
+  "key": "/works/OL20646061W",
+  "title": "A Good Girl's Guide to Murder",
+  "authors": "Holly Jackson",
+  "cover_id": 13156188,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "quietstacks"
+ },
+ {
+  "key": "/works/OL953162W",
+  "title": "Como agua para chocolate",
+  "authors": "Laura Esquivel",
+  "cover_id": 8372632,
+  "kind": "edit-book",
+  "comment": "Filled in Language",
+  "editor": "stacks_annie"
+ },
+ {
+  "key": "/works/OL20002259W",
+  "title": "Every last word",
+  "authors": "Tamara Ireland Stone",
+  "cover_id": 8861320,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "hafiz_k"
+ },
+ {
+  "key": "/works/OL14856842W",
+  "title": "La Nuit",
+  "authors": "Elie Wiesel",
+  "cover_id": 9154540,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "bookworm_84"
+ },
+ {
+  "key": "/works/OL17825802W",
+  "title": "Shoe Dog",
+  "authors": "Phil Knight",
+  "cover_id": 8858487,
+  "kind": "edit-book",
+  "comment": "Added ISBN-13",
+  "editor": "sarah.r"
+ },
+ {
+  "key": "/works/OL45790W",
+  "title": "Charlie and the Chocolate Factory",
+  "authors": "Roald Dahl",
+  "cover_id": 12459564,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "dustjacket"
+ },
+ {
+  "key": "/works/OL17352669W",
+  "title": "A Court of Thorns and Roses",
+  "authors": "Sarah J. Maas",
+  "cover_id": 15254465,
+  "kind": "merge-works",
+  "comment": "Merged duplicate works",
+  "editor": "nilsvalley"
+ },
+ {
+  "key": "/works/OL1822313W",
+  "title": "Tuesdays with Morrie",
+  "authors": "Mitch Albom",
+  "cover_id": 12560417,
+  "kind": "edit-book",
+  "comment": "Added subjects",
+  "editor": "northshelf"
+ },
+ {
+  "key": "/works/OL26492W",
+  "title": "The Autobiography of Benjamin Franklin",
+  "authors": "Benjamin Franklin",
+  "cover_id": 5647361,
+  "kind": "edit-book",
+  "comment": "Added page count",
+  "editor": "firstedition"
+ },
+ {
+  "key": "/works/OL528094W",
+  "title": "Autobiography of a Yogi",
+  "authors": "Yogananda Paramahansa",
+  "cover_id": 805448,
+  "kind": "add-book",
+  "comment": "Added an audiobook edition",
+  "editor": "the_lender"
+ },
+ {
+  "key": "/works/OL21692056W",
+  "title": "The Inheritance Games",
+  "authors": "Jennifer Lynn Barnes",
+  "cover_id": 10472357,
+  "kind": "add-book",
+  "comment": "Added an audiobook edition",
+  "editor": "folio_42"
+ },
+ {
+  "key": "/works/OL891786W",
+  "title": "Things Fall Apart",
+  "authors": "Chinua Achebe",
+  "cover_id": 12816943,
+  "kind": "edit-book",
+  "comment": "Filled in Language",
+  "editor": "yuki_reads"
+ },
+ {
+  "key": "/works/OL18108064W",
+  "title": "Can't Hurt Me",
+  "authors": "David Goggins",
+  "cover_id": 8305903,
+  "kind": "edit-book",
+  "comment": "Fixed author name",
+  "editor": "yuki_reads"
+ },
+ {
+  "key": "/works/OL3296483W",
+  "title": "Omnivore's Dilemma. A Natural History of Four Meals",
+  "authors": "Michael Pollan, Richie Chevat",
+  "cover_id": 8596706,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "readsbylamp"
+ },
+ {
+  "key": "/works/OL1874827W",
+  "title": "On Cooking",
+  "authors": "Sarah R. Labensky, Alan M. Hause",
+  "cover_id": 92630,
+  "kind": "add-book",
+  "comment": "Added a paperback edition",
+  "editor": "sarah.r"
+ },
+ {
+  "key": "/works/OL4537111W",
+  "title": "The Italian bakery",
+  "authors": "Lee Mangione Cirillo",
+  "cover_id": 7101595,
+  "kind": "edit-book",
+  "comment": "Added LCCN",
+  "editor": "midnightcatalog"
+ },
+ {
+  "key": "/works/OL55649W",
+  "title": "Walden",
+  "authors": "Henry David Thoreau",
+  "cover_id": 11248037,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "rare_finds"
+ },
+ {
+  "key": "/works/OL15401200W",
+  "title": "The Lost Hero",
+  "authors": "Rick Riordan",
+  "cover_id": 12848687,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "LibrarianJo"
+ },
+ {
+  "key": "/works/OL98174W",
+  "title": "Jenseits von Gut und Böse",
+  "authors": "Friedrich Nietzsche",
+  "cover_id": 8245356,
+  "kind": "edit-book",
+  "comment": "Added page count",
+  "editor": "marginalia"
+ },
+ {
+  "key": "/works/OL114661W",
+  "title": "A heartbreaking work of staggering genius",
+  "authors": "Dave Eggers, Dion Graham",
+  "cover_id": 8300013,
+  "kind": "add-book",
+  "comment": "Imported from a library catalog",
+  "editor": "ink_and_index"
+ },
+ {
+  "key": "/works/OL20068530W",
+  "title": "Verity",
+  "authors": "Colleen Hoover",
+  "cover_id": 8747160,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "bibliopole"
+ },
+ {
+  "key": "/works/OL1897582W",
+  "title": "How to Cook Everything",
+  "authors": "Mark Bittman",
+  "cover_id": 307073,
+  "kind": "edit-book",
+  "comment": "Added OCLC number",
+  "editor": "ravi_m"
+ },
+ {
+  "key": "/works/OL5819456W",
+  "title": "The Book Thief",
+  "authors": "Markus Zusak",
+  "cover_id": 8153054,
+  "kind": "merge-works",
+  "comment": "Merged duplicate works",
+  "editor": "hafiz_k"
+ },
+ {
+  "key": "/works/OL81629W",
+  "title": "The Green Mile",
+  "authors": "Stephen King",
+  "cover_id": 9334567,
+  "kind": "add-book",
+  "comment": "Added a new edition",
+  "editor": "paper_trail"
+ },
+ {
+  "key": "/works/OL18147901W",
+  "title": "Salt, Fat, Acid, Heat",
+  "authors": "Samin Nosrat",
+  "cover_id": 8315567,
+  "kind": "edit-book",
+  "comment": "Fixed author name",
+  "editor": "shelfwright"
+ },
+ {
+  "key": "/works/OL9264548W",
+  "title": "Thirteen reasons why",
+  "authors": "Jay Asher, Jay Asher",
+  "cover_id": 15162168,
+  "kind": "add-book",
+  "comment": "Added a paperback edition",
+  "editor": "firstedition"
+ },
+ {
+  "key": "/works/OL16509148W",
+  "title": "The Song of Achilles",
+  "authors": "Madeline Miller",
+  "cover_id": 7098465,
+  "kind": "edit-book",
+  "comment": "Corrected title capitalization",
+  "editor": "shelfwright"
+ },
+ {
+  "key": "/works/OL15719630W",
+  "title": "Divergent",
+  "authors": "Veronica Roth",
+  "cover_id": 13274634,
+  "kind": "edit-book",
+  "comment": "Added LCCN",
+  "editor": "yuki_reads"
+ },
+ {
+  "key": "/works/OL17356252W",
+  "title": "When Breath Becomes Air",
+  "authors": "Paul Kalanithi",
+  "cover_id": 11463139,
+  "kind": "edit-book",
+  "comment": "Added publisher",
+  "editor": "sarah.r"
+ },
+ {
+  "key": "/works/OL27310398W",
+  "title": "Haunting Adeline",
+  "authors": "H. D. Carlton",
+  "cover_id": 12992962,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "the_lender"
+ },
+ {
+  "key": "/works/OL20019347W",
+  "title": "コーヒーが冷めないうちに",
+  "authors": "川口俊和, Toshikazu Kawaguchi",
+  "cover_id": 9334159,
+  "kind": "edit-book",
+  "comment": "Linked edition to work",
+  "editor": "northshelf"
+ },
+ {
+  "key": "/works/OL34774028W",
+  "title": "Powerless",
+  "authors": "Lauren Roberts",
+  "cover_id": 14567864,
+  "kind": "edit-book",
+  "comment": "Linked edition to work",
+  "editor": "oldmaps"
+ },
+ {
+  "key": "/works/OL71037W",
+  "title": "The Lion, the Witch and the Wardrobe",
+  "authors": "C. S. Lewis",
+  "cover_id": 8441376,
+  "kind": "edit-book",
+  "comment": "Corrected title capitalization",
+  "editor": "firstedition"
+ },
+ {
+  "key": "/works/OL28114312W",
+  "title": "Does It Hurt?",
+  "authors": "H. D. Carlton",
+  "cover_id": 12860070,
+  "kind": "edit-book",
+  "comment": "Added subjects",
+  "editor": "yuki_reads"
+ },
+ {
+  "key": "/works/OL66059W",
+  "title": "The book of the damned",
+  "authors": "Charles Fort",
+  "cover_id": 825884,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "ravi_m"
+ },
+ {
+  "key": "/works/OL81634W",
+  "title": "Misery",
+  "authors": "Stephen King",
+  "cover_id": 8259296,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "ink_and_index"
+ },
+ {
+  "key": "/works/OL16444438W",
+  "title": "The Fault in Our Stars",
+  "authors": "John Green",
+  "cover_id": 7418786,
+  "kind": "edit-book",
+  "comment": "Added OCLC number",
+  "editor": "catalogue_kate"
+ },
+ {
+  "key": "/works/OL38663W",
+  "title": "Heart of Darkness",
+  "authors": "Joseph Conrad",
+  "cover_id": 12307847,
+  "kind": "edit-book",
+  "comment": "Added OCLC number",
+  "editor": "sarah.r"
+ },
+ {
+  "key": "/works/OL629052W",
+  "title": "Manifest der Kommunistischen Partei",
+  "authors": "Karl Marx, Friedrich Engels",
+  "cover_id": 11048623,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "quietstacks"
+ },
+ {
+  "key": "/works/OL102749W",
+  "title": "Moby Dick",
+  "authors": "Herman Melville",
+  "cover_id": 10544254,
+  "kind": "add-book",
+  "comment": "Added an audiobook edition",
+  "editor": "midnightcatalog"
+ },
+ {
+  "key": "/works/OL82586W",
+  "title": "Harry Potter and the Deathly Hallows",
+  "authors": "J. K. Rowling",
+  "cover_id": 15158660,
+  "kind": "edit-book",
+  "comment": "Corrected title capitalization",
+  "editor": "hafiz_k"
+ },
+ {
+  "key": "/works/OL20577143W",
+  "title": "Ugly Love",
+  "authors": "Colleen Hoover",
+  "cover_id": 12856728,
+  "kind": "edit-book",
+  "comment": "Added OCLC number",
+  "editor": "LibrarianJo"
+ },
+ {
+  "key": "/works/OL53019W",
+  "title": "Walter the baker",
+  "authors": "Eric Carle",
+  "cover_id": 433801,
+  "kind": "edit-book",
+  "comment": "Added description",
+  "editor": "rare_finds"
+ },
+ {
+  "key": "/works/OL16239762W",
+  "title": "Gone Girl",
+  "authors": "Gillian Flynn",
+  "cover_id": 8368314,
+  "kind": "edit-book",
+  "comment": "Corrected title capitalization",
+  "editor": "hafiz_k"
+ },
+ {
+  "key": "/works/OL2776167W",
+  "title": "Cooking Basics for Dummies",
+  "authors": "Bryan Miller, Marie Rama",
+  "cover_id": 522576,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "midnightcatalog"
+ },
+ {
+  "key": "/works/OL81627W",
+  "title": "Skeleton crew",
+  "authors": "Stephen King",
+  "cover_id": 14657166,
+  "kind": "edit-book",
+  "comment": "Added subjects",
+  "editor": "ravi_m"
+ },
+ {
+  "key": "/works/OL5735360W",
+  "title": "Catching Fire",
+  "authors": "Suzanne Collins",
+  "cover_id": 12646539,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "shelfwright"
+ },
+ {
+  "key": "/works/OL20768475W",
+  "title": "Self Heal by Design",
+  "authors": "Barbara O'Neill, Shane Winfield",
+  "cover_id": 13271436,
+  "kind": "edit-book",
+  "comment": "Added series",
+  "editor": "lccn_lou"
+ },
+ {
+  "key": "/works/OL7916417W",
+  "title": "White Heat",
+  "authors": "Marco Pierre White",
+  "cover_id": 3007915,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "mekBot"
+ },
+ {
+  "key": "/works/OL5727686W",
+  "title": "The Power of Now",
+  "authors": "Eckhart Tolle",
+  "cover_id": 551262,
+  "kind": "edit-book",
+  "comment": "Corrected title capitalization",
+  "editor": "coverfix"
+ },
+ {
+  "key": "/works/OL628450W",
+  "title": "Das Kapital",
+  "authors": "Karl Marx",
+  "cover_id": 10995820,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "deweyfan"
+ },
+ {
+  "key": "/works/OL34224558W",
+  "title": "Never Lie",
+  "authors": "Freida McFadden",
+  "cover_id": 13198561,
+  "kind": "edit-book",
+  "comment": "Added ISBN-13",
+  "editor": "deweyfan"
+ },
+ {
+  "key": "/works/OL16247898W",
+  "title": "Πολιτικά (Politiká)",
+  "authors": "Aristotle",
+  "cover_id": 1277085,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "catalogue_kate"
+ },
+ {
+  "key": "/works/OL24178205W",
+  "title": "The Love Hypothesis",
+  "authors": "Ali Hazelwood",
+  "cover_id": 10601402,
+  "kind": "edit-book",
+  "comment": "Added page count",
+  "editor": "mekBot"
+ },
+ {
+  "key": "/works/OL3296482W",
+  "title": "In Defense of Food",
+  "authors": "Michael Pollan",
+  "cover_id": 2960867,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "pagecounter"
+ },
+ {
+  "key": "/works/OL7698912W",
+  "title": "22 cells in Nuremberg",
+  "authors": "Douglas McGlashan Kelley",
+  "cover_id": 15127591,
+  "kind": "add-book",
+  "comment": "Added a paperback edition",
+  "editor": "shelfwright"
+ },
+ {
+  "key": "/works/OL82548W",
+  "title": "Harry Potter and the Order of the Phoenix",
+  "authors": "J. K. Rowling",
+  "cover_id": 15158666,
+  "kind": "add-book",
+  "comment": "Added an audiobook edition",
+  "editor": "tomes_and_tea"
+ },
+ {
+  "key": "/works/OL5801795W",
+  "title": "Fast Food Nation",
+  "authors": "Eric Schlosser, Eric Schlosser",
+  "cover_id": 8392930,
+  "kind": "edit-book",
+  "comment": "Added publisher",
+  "editor": "readsbylamp"
+ },
+ {
+  "key": "/works/OL273184W",
+  "title": "The Intelligent Investor",
+  "authors": "Benjamin Graham",
+  "cover_id": 36434,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "mekBot"
+ },
+ {
+  "key": "/works/OL21025633W",
+  "title": "Записки изъ подполья",
+  "authors": "Fiódor Dostoievski",
+  "cover_id": 10445973,
+  "kind": "edit-book",
+  "comment": "Added publisher",
+  "editor": "coverfix"
+ },
+ {
+  "key": "/works/OL810991W",
+  "title": "Paradise Lost",
+  "authors": "John Milton",
+  "cover_id": 5992814,
+  "kind": "edit-book",
+  "comment": "Added OCLC number",
+  "editor": "ink_and_index"
+ },
+ {
+  "key": "/works/OL1966485W",
+  "title": "The God Delusion",
+  "authors": "Richard Dawkins",
+  "cover_id": 386467,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "ink_and_index"
+ },
+ {
+  "key": "/works/OL16336633W",
+  "title": "Fifty Shades of Grey",
+  "authors": "E. L. James",
+  "cover_id": 12648183,
+  "kind": "edit-book",
+  "comment": "Added LCCN",
+  "editor": "the_lender"
+ },
+ {
+  "key": "/works/OL151515W",
+  "title": "La Poetica",
+  "authors": "Aristotle",
+  "cover_id": 129771,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "firstedition"
+ },
+ {
+  "key": "/works/OL1067314W",
+  "title": "Mein Kampf",
+  "authors": "Adolf Hitler",
+  "cover_id": 12724015,
+  "kind": "merge-works",
+  "comment": "Merged duplicate works",
+  "editor": "catalogue_kate"
+ },
+ {
+  "key": "/works/OL8756330W",
+  "title": "Smile",
+  "authors": "Raina Telgemeier",
+  "cover_id": 9147132,
+  "kind": "edit-book",
+  "comment": "Linked edition to work",
+  "editor": "ravi_m"
+ },
+ {
+  "key": "/works/OL7095112W",
+  "title": "The Book of Tea",
+  "authors": "Okakura Kakuzō",
+  "cover_id": 8245415,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "firstedition"
+ },
+ {
+  "key": "/works/OL20965973W",
+  "title": "The Midnight Library",
+  "authors": "Matt Haig",
+  "cover_id": 10313767,
+  "kind": "edit-book",
+  "comment": "Added OCLC number",
+  "editor": "paper_trail"
+ },
+ {
+  "key": "/works/OL145191W",
+  "title": "Picasso",
+  "authors": "Pablo Picasso, Jean-Louis Andral",
+  "cover_id": 2238306,
+  "kind": "edit-book",
+  "comment": "Added LCCN",
+  "editor": "readsbylamp"
+ },
+ {
+  "key": "/works/OL362702W",
+  "title": "Julius Caesar",
+  "authors": "William Shakespeare",
+  "cover_id": 7901303,
+  "kind": "edit-book",
+  "comment": "Added publisher",
+  "editor": "bookworm_84"
+ },
+ {
+  "key": "/works/OL8127897W",
+  "title": "The flavor bible",
+  "authors": "Karen Page",
+  "cover_id": 6421086,
+  "kind": "edit-book",
+  "comment": "Fixed publish date",
+  "editor": "the_lender"
+ },
+ {
+  "key": "/works/OL76837W",
+  "title": "The Da Vinci Code",
+  "authors": "Dan Brown",
+  "cover_id": 9255229,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "nilsvalley"
+ },
+ {
+  "key": "/works/OL5720023W",
+  "title": "Twilight",
+  "authors": "Stephenie Meyer",
+  "cover_id": 12641977,
+  "kind": "edit-book",
+  "comment": "Added publisher",
+  "editor": "marginalia"
+ },
+ {
+  "key": "/works/OL239940W",
+  "title": "कामसूत्र",
+  "authors": "Vatsyāyana",
+  "cover_id": 8003766,
+  "kind": "edit-book",
+  "comment": "Added description",
+  "editor": "firstedition"
+ },
+ {
+  "key": "/works/OL25344431W",
+  "title": "Lessons in Chemistry",
+  "authors": "Bonnie Garmus",
+  "cover_id": 12725772,
+  "kind": "add-book",
+  "comment": "Imported from a library catalog",
+  "editor": "firstedition"
+ },
+ {
+  "key": "/works/OL1317211W",
+  "title": "Meditations",
+  "authors": "Marcus Aurelius",
+  "cover_id": 211529,
+  "kind": "edit-book",
+  "comment": "Linked edition to work",
+  "editor": "LibrarianJo"
+ },
+ {
+  "key": "/works/OL63073W",
+  "title": "The Old Man and the Sea",
+  "authors": "Ernest Hemingway",
+  "cover_id": 463307,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "northshelf"
+ },
+ {
+  "key": "/works/OL893414W",
+  "title": "Dune",
+  "authors": "Frank Herbert",
+  "cover_id": 11481354,
+  "kind": "edit-book",
+  "comment": "Added page count",
+  "editor": "mariposa_reads"
+ },
+ {
+  "key": "/works/OL483391W",
+  "title": "Charlotte's Web",
+  "authors": "E. B. White",
+  "cover_id": 8461797,
+  "kind": "edit-book",
+  "comment": "Added series",
+  "editor": "LibrarianJo"
+ },
+ {
+  "key": "/works/OL695408W",
+  "title": "Leonardo",
+  "authors": "Leonardo da Vinci, Kunster",
+  "cover_id": 919361,
+  "kind": "edit-book",
+  "comment": "Added subjects",
+  "editor": "bibliopole"
+ },
+ {
+  "key": "/works/OL18766691W",
+  "title": "Where the Crawdads Sing",
+  "authors": "Delia Owens",
+  "cover_id": 8362947,
+  "kind": "add-book",
+  "comment": "Added a new edition",
+  "editor": "oldmaps"
+ },
+ {
+  "key": "/works/OL81601W",
+  "title": "On Writing",
+  "authors": "Stephen King",
+  "cover_id": 9255939,
+  "kind": "edit-book",
+  "comment": "Added ISBN-13",
+  "editor": "coverfix"
+ },
+ {
+  "key": "/works/OL81626W",
+  "title": "Carrie",
+  "authors": "Stephen King",
+  "cover_id": 9256043,
+  "kind": "edit-book",
+  "comment": "Linked edition to work",
+  "editor": "midnightcatalog"
+ },
+ {
+  "key": "/works/OL1646026W",
+  "title": "The art of cookery, made plain and easy",
+  "authors": "Hannah Glasse",
+  "cover_id": 7916175,
+  "kind": "merge-authors",
+  "comment": "Merged author records",
+  "editor": "stacks_annie"
+ },
+ {
+  "key": "/works/OL471509W",
+  "title": "The A.B.C. Murders",
+  "authors": "Agatha Christie",
+  "cover_id": 14573514,
+  "kind": "edit-book",
+  "comment": "Added page count",
+  "editor": "catalogue_kate"
+ },
+ {
+  "key": "/works/OL38382569W",
+  "title": "I Don't Love You Anymore",
+  "authors": "Rithvik Singh",
+  "cover_id": 15116470,
+  "kind": "edit-book",
+  "comment": "Added OCLC number",
+  "editor": "paper_trail"
+ },
+ {
+  "key": "/works/OL19744000W",
+  "title": "嫌われる勇気",
+  "authors": "Ichirō Kishimi, Fumitake Koga",
+  "cover_id": 10873626,
+  "kind": "add-cover",
+  "comment": "Added a cover",
+  "editor": "hafiz_k"
+ },
+ {
+  "key": "/works/OL19791590W",
+  "title": "Maybe You Should Talk to Someone",
+  "authors": "Lori Gottlieb",
+  "cover_id": 8596019,
+  "kind": "edit-book",
+  "comment": "Fixed author name",
+  "editor": "the_lender"
+ },
+ {
+  "key": "/works/OL362427W",
+  "title": "Romeo and Juliet",
+  "authors": "William Shakespeare",
+  "cover_id": 8257991,
+  "kind": "merge-authors",
+  "comment": "Merged author records",
+  "editor": "catalogue_kate"
+ },
+ {
+  "key": "/works/OL20417377W",
+  "title": "The Art of Being Alone",
+  "authors": "Shuntarō Tanikawa, Takako U. Lento",
+  "cover_id": 9084881,
+  "kind": "edit-book",
+  "comment": "Added subjects",
+  "editor": "readsbylamp"
+ },
+ {
+  "key": "/works/OL23535656W",
+  "title": "Culpa mía",
+  "authors": "Mercedes Ron",
+  "cover_id": 10512957,
+  "kind": "edit-book",
+  "comment": "Added subjects",
+  "editor": "readsbylamp"
+ },
+ {
+  "key": "/works/OL17356883W",
+  "title": "Red Queen",
+  "authors": "Victoria Aveyard",
+  "cover_id": 7434883,
+  "kind": "edit-book",
+  "comment": "Added series",
+  "editor": "lccn_lou"
+ },
+ {
+  "key": "/works/OL20234863W",
+  "title": "Girl in Pieces",
+  "authors": "Kathleen Glasgow",
+  "cover_id": 8888850,
+  "kind": "edit-book",
+  "comment": "Added LCCN",
+  "editor": "ink_and_index"
+ },
+ {
+  "key": "/works/OL3348011W",
+  "title": "Kitchen Confidential",
+  "authors": "Anthony Bourdain",
+  "cover_id": 843879,
+  "kind": "merge-authors",
+  "comment": "Merged author records",
+  "editor": "pagecounter"
+ },
+ {
+  "key": "/works/OL1898309W",
+  "title": "The Cat in the Hat",
+  "authors": "Dr. Seuss, Simon Mugford",
+  "cover_id": 11342,
+  "kind": "edit-book",
+  "comment": "Added subjects",
+  "editor": "bookworm_84"
+ },
+ {
+  "key": "/works/OL157040W",
+  "title": "Forbidden knowledge",
+  "authors": "Roger Shattuck",
+  "cover_id": 8295312,
+  "kind": "merge-authors",
+  "comment": "Merged duplicate authors",
+  "editor": "sarah.r"
+ },
+ {
+  "key": "/works/OL45846W",
+  "title": "Matilda",
+  "authors": "Roald Dahl",
+  "cover_id": 12889769,
+  "kind": "edit-book",
+  "comment": "Filled in Language",
+  "editor": "yuki_reads"
+ },
+ {
+  "key": "/works/OL32195W",
+  "title": "House of Leaves",
+  "authors": "Mark Z. Danielewski",
+  "cover_id": 6450442,
+  "kind": "edit-book",
+  "comment": "Added OCLC number",
+  "editor": "pagecounter"
+ }
+]
