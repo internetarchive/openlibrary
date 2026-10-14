@@ -18,6 +18,8 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import TYPE_CHECKING
 
+import web
+
 from infogami.utils import stats
 
 if TYPE_CHECKING:
@@ -31,7 +33,7 @@ class RequestTimings:
         self.start = time.perf_counter()
         self._lock = threading.Lock()
         self._metrics: dict[str, list[float]] = {}
-        self._open: dict[int, list[tuple[str, float]]] = {}  # infogami stats.begin() calls, per thread
+        self._open: dict[int, list[tuple[str | None, float]]] = {}  # infogami stats.begin() calls, per thread
 
     def record(self, name: str, seconds: float, failed: bool = False) -> None:
         with self._lock:
@@ -44,16 +46,17 @@ class RequestTimings:
         with self._lock:
             return {name: (int(count), seconds, int(failures)) for name, (count, seconds, failures) in self._metrics.items()}
 
-    def _begin(self, name: str) -> None:
+    def _begin(self, name: str | None) -> None:
         with self._lock:
             self._open.setdefault(threading.get_ident(), []).append((name, time.perf_counter()))
 
-    def _end(self, failed: bool = False) -> None:
+    def _end(self) -> None:
         with self._lock:
             if not (stack := self._open.get(threading.get_ident())):
                 return
             name, started = stack.pop()
-        self.record(name, time.perf_counter() - started, failed)
+        if name is not None:
+            self.record(name, time.perf_counter() - started)
 
 
 _current: ContextVar[RequestTimings | None] = ContextVar("server_timing", default=None)
@@ -115,22 +118,25 @@ def format_header(timings: RequestTimings) -> str:
     return ", ".join(parts)
 
 
-def _infogami_metric_name(name: str) -> str:
-    if name == "archive.org":  # ia.get_api_response: item metadata and manifests
-        return "ia-metadata"
+def _infogami_metric_name(name: str) -> str | None:
+    if name in ("db", "archive.org"):  # timed directly instead
+        return None
     return name.split(".", maxsplit=1)[0]  # "memcache.get" -> "memcache"
 
 
 _bridge_installed = False
 
 
-def install_infogami_bridge() -> None:
-    """Record infogami's ``stats.begin()/end()`` (infobase, memcache, db, archive.org)
-    during FastAPI requests, instead of piling them up in thread-local ``web.ctx``."""
+def install_legacy_bridge() -> None:
+    """Time legacy code during FastAPI requests: infogami's ``stats.begin()/end()``
+    (infobase, memcache), which would otherwise pile up in thread-local ``web.ctx``,
+    and every web.py DB query as ``db``. infogami's ``end(error=True)`` is ignored:
+    in-process infobase reports ordinary not-founds that way."""
     global _bridge_installed
     if _bridge_installed:
         return
     original_begin, original_end = stats.begin, stats.end
+    original_db_execute = web.db.DB._db_execute
 
     def begin(name, **kw):
         if (timings := _current.get()) is None:
@@ -140,7 +146,12 @@ def install_infogami_bridge() -> None:
     def end(**kw):
         if (timings := _current.get()) is None:
             return original_end(**kw)
-        timings._end(failed=bool(kw.get("error")))
+        timings._end()
+
+    def _db_execute(self, cur, sql_query):
+        with timed("db"):
+            return original_db_execute(self, cur, sql_query)
 
     stats.begin, stats.end = begin, end
+    web.db.DB._db_execute = _db_execute
     _bridge_installed = True

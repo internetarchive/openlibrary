@@ -81,17 +81,23 @@ def test_records_from_threads_and_async_bridge(timings):
 class TestInfogamiBridge:
     @pytest.fixture(autouse=True)
     def bridge(self):
-        server_timing.install_infogami_bridge()
+        server_timing.install_legacy_bridge()
         web.ctx.pop("stats", None)
 
     def test_records_during_request_without_touching_web_ctx(self, timings):
         stats.begin("memcache.get", key="k")
         stats.end(hit=True)
-        stats.begin("archive.org", url="https://archive.org/metadata/x")
-        stats.end(error=True)
+        stats.begin("infobase")
+        stats.end(error=True)  # e.g. a not-found; not a failure
         stats.end()  # unbalanced; ignored
-        assert {name: (count, failures) for name, (count, _, failures) in timings.snapshot().items()} == {"memcache": (1, 0), "ia-metadata": (1, 1)}
+        assert {name: (count, failures) for name, (count, _, failures) in timings.snapshot().items()} == {"memcache": (1, 0), "infobase": (1, 0)}
         assert "stats" not in web.ctx
+
+    def test_db_is_timed_per_query(self, timings):
+        stats.begin("db")  # core/db.py's coarser stat; its queries are counted below
+        web.database(dbn="sqlite", db=":memory:").query("SELECT 1")
+        stats.end()
+        assert timings.snapshot()["db"][0] == 1
 
     def test_unchanged_outside_request(self):
         stats.begin("infobase")
@@ -103,7 +109,7 @@ class TestInfogamiBridge:
 def test_all_metric_names_are_valid():
     root = pathlib.Path(__file__).parents[2]
     names = {name for path in root.rglob("*.py") if "tests" not in path.parts for name in re.findall(r'server_timing\.timed\("([^"]*)"', path.read_text())}
-    names |= {"render"} | {server_timing._infogami_metric_name(n) for n in ["infobase", "db", "memcache.get", "archive.org"]}
+    names |= {"render"} | {server_timing._infogami_metric_name(n) for n in ["infobase", "memcache.get"]}
     assert {"solr", "db", "webpy-proxy", "memcache", "ia-loans", "ia-fts", "ia-metadata"} <= names
     for name in names:
         assert re.fullmatch(TOKEN, name), name

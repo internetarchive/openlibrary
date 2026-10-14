@@ -11,6 +11,7 @@ import web
 from infogami import config
 from infogami.utils import stats
 from openlibrary.core import cache
+from openlibrary.utils import server_timing
 from openlibrary.utils.async_utils import cache_per_event_loop
 
 logger = logging.getLogger("openlibrary.ia")
@@ -36,19 +37,18 @@ def get_api_response(url: str, params: dict | None = None) -> dict:
     :param dict params: url parameters
     """
     api_response = {}
-    error = False
     stats.begin("archive.org", url=url)
     try:
-        r = session.get(url, params=params, timeout=3)
+        with server_timing.timed("ia-metadata") as call:
+            r = session.get(url, params=params, timeout=3)
+            call.failed = r.is_server_error
         if r.status_code == httpx.codes.OK:
             api_response = r.json()
         else:
-            error = r.status_code >= 500
             logger.info(f"{r.status_code} response received from {url}")
     except Exception:
-        error = True
         logger.exception(f"Exception occurred accessing {url}.")
-    stats.end(error=error)
+    stats.end()
     return api_response
 
 

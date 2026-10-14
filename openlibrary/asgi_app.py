@@ -266,7 +266,7 @@ def create_app() -> FastAPI | None:
 
     # Outermost, so `total` covers the other middleware. Off with `server_timing: false`.
     if infogami.config.get("server_timing", True):
-        server_timing.install_infogami_bridge()
+        server_timing.install_legacy_bridge()
         app.add_middleware(ServerTimingMiddleware)
 
     # Serve static assets directly from the project static directory.

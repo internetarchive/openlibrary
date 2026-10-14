@@ -16,7 +16,7 @@ from openlibrary.utils.tests.test_server_timing import parse
 
 @pytest.fixture(scope="module")
 def app():
-    server_timing.install_infogami_bridge()
+    server_timing.install_legacy_bridge()
     app = FastAPI()
     both_inside = asyncio.Barrier(2)
 
