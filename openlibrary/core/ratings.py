@@ -73,6 +73,10 @@ class Ratings(db.CommonExtras):
         return await fetch_all(query, {"limit": limit, "since": since} if since else {"limit": limit})
 
     @classmethod
+    def most_rated_books_sync(cls, limit=10, since=False) -> list:
+        return async_bridge.run(cls.most_rated_books(limit, since))
+
+    @classmethod
     async def get_users_ratings(cls, username) -> list:
         query = "select * from ratings where username=%(username)s"
         return await fetch_all(query, {"username": username})
@@ -170,9 +174,9 @@ class Ratings(db.CommonExtras):
         """Map work_id -> rating for the subset of `work_ids` this user has rated."""
         if not work_ids:
             return {}
-        query = "SELECT work_id, rating FROM ratings WHERE username=%(username)s AND work_id IN %(work_ids)s"
+        query = "SELECT work_id, rating FROM ratings WHERE username=%(username)s AND work_id = ANY(%(work_ids)s)"
         rows = await fetch_all(query, {"username": username, "work_ids": work_ids})
-        return {row.work_id: row.rating for row in rows}
+        return {row["work_id"]: row["rating"] for row in rows}
 
     @classmethod
     def get_users_ratings_of_works_sync(cls, username: str, work_ids: list[int]) -> dict[int, int]:
@@ -249,3 +253,7 @@ class Ratings(db.CommonExtras):
         distinct_star_ratings = distinct_totals or 0
 
         return {"star_ratings": star_ratings, "distinct_star_ratings": distinct_star_ratings}
+
+    @classmethod
+    def calc_star_rating_counts_sync(cls) -> dict[str, int]:
+        return async_bridge.run(cls.calc_star_rating_counts())

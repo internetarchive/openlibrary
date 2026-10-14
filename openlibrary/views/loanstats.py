@@ -149,7 +149,7 @@ def reading_log_leaderboard(limit: int):
             "most_read": most_read,
             "most_wanted_all": most_wanted_all,
             "most_wanted_month": most_wanted_month,
-            "most_rated_all": Ratings.most_rated_books(),
+            "most_rated_all": Ratings.most_rated_books_sync(),
         }
     }
 
