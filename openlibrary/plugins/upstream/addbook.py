@@ -748,7 +748,7 @@ class SaveBookHelper:
     def _prevent_ocaid_deletion(self, edition) -> None:
         # Allow admins to modify ocaid
         user = accounts.get_current_user()
-        if user and user.is_super_librarian_or_higher():
+        if user and user.is_admin():
             return
 
         # read ocaid from form data
@@ -757,8 +757,9 @@ class SaveBookHelper:
             None,
         )
 
-        # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata
-        if self.edition and self.edition.get("ocaid") and self.edition.get("ocaid") != ocaid:
+        # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata.
+        # Adding an ocaid to an edition that has none counts as a change too.
+        if self.edition and (self.edition.get("ocaid") or None) != (ocaid or None):
             logger.warning(
                 "Attempt to change ocaid of %s from %r to %r.",
                 self.edition.key,

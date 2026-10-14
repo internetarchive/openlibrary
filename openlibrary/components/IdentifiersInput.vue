@@ -14,7 +14,7 @@
                     :key="idConfig.name"
                     :value="idConfig.name"
                     :disabled="!isAdmin && idConfig.name === 'ocaid'"
-                    :title="!isAdmin && idConfig.name === 'ocaid' ? 'Only librarians can edit this identifier' : ''"
+                    :title="!isAdmin && idConfig.name === 'ocaid' ? 'Only admins can edit this identifier' : ''"
                 >
                     {{ idConfig.label }}
                 </option>
@@ -39,7 +39,7 @@
                     <button
                         class="form-control"
                         :disabled="!isAdmin && name === 'ocaid'"
-                        :title="!isAdmin && name === 'ocaid' ? 'Only librarians can edit this identifier' : ''"
+                        :title="!isAdmin && name === 'ocaid' ? 'Only admins can edit this identifier' : ''"
                         @click="removeIdentifier(name, idx)"
                     >
                         Remove
