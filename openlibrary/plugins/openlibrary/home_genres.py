@@ -6,6 +6,7 @@ genres yet (#13151), so each node approximates its genre with a `subject_key` cl
 
 import functools
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import NotRequired, TypedDict, cast
 
@@ -34,6 +35,7 @@ class GenreNode(TypedDict):
     work_count: int
     readable_count: int
     readable_by_language: NotRequired[dict[str, int]]  # MARC code -> count; subgenres only
+    sort: NotRequired[str]  # Trending rows only; a subgenre follows its shelf's sort
 
 
 class Genre(GenreNode):
@@ -42,7 +44,8 @@ class Genre(GenreNode):
     subgenres: list[GenreNode]
 
 
-# Pinned first and open by default. Its query is a whole Solr clause, not a subject_key value.
+# Pinned first and open by default. Its queries are whole Solr clauses, not subject_key values.
+# Each row is a different signal (happening now, just published, revived, long wanted) so they share few books.
 TRENDING: Genre = {
     "name": "Trending",
     "slug": "trending",
@@ -50,7 +53,27 @@ TRENDING: Genre = {
     "query": "trending_score_hourly_sum:[1 TO *] AND readinglog_count:[4 TO *]",
     "work_count": 0,
     "readable_count": 0,
-    "subgenres": [],
+    "subgenres": [
+        # {year} is filled in by solr_query: last year onward.
+        {
+            "name": "What's new",
+            "slug": "whats-new",
+            "query": "first_publish_year:[{year} TO *] AND readinglog_count:[2 TO *]",
+            "sort": "new",
+            "work_count": 0,
+            "readable_count": 0,
+        },
+        # The home page's Classic Books query: pre-1950 literature with a public scan, by what's trending.
+        {
+            "name": "Classics",
+            "slug": "classics",
+            "query": "ddc:8* AND first_publish_year:[* TO 1950] AND publish_year:[2000 TO *] AND NOT public_scan_b:false",
+            "sort": "trending",
+            "work_count": 0,
+            "readable_count": 0,
+        },
+        {"name": "Most wanted", "slug": "most-wanted", "query": "want_to_read_count:[10 TO *]", "sort": "want_to_read", "work_count": 0, "readable_count": 0},
+    ],
 }
 
 
@@ -122,8 +145,17 @@ def subgenre_labels() -> dict[str, str]:
     }
 
 
+def trending_row_labels() -> dict[str, str]:
+    return {
+        "whats-new": _("What's new"),
+        "classics": _("Classics"),
+        "most-wanted": _("Most wanted"),
+    }
+
+
 def subgenre_name(subgenre: GenreNode) -> str:
-    return subgenre_labels().get(subgenre["slug"], subgenre["name"])
+    labels = trending_row_labels() if "sort" in subgenre else subgenre_labels()
+    return labels.get(subgenre["slug"], subgenre["name"])
 
 
 def display_name(genre: Genre) -> str:
@@ -146,6 +178,8 @@ def solr_query(node: GenreNode, parent: GenreNode | None = None) -> str:
     """A subgenre is searched within its parent: Psychological under Horror is psychological horror."""
     if node.get("kind") == "trending":
         return node["query"]
+    if parent and parent.get("kind") == "trending":
+        return node["query"].format(year=datetime.now().year - 1)
     query = f"subject_key:{node['query']}"
     return f"subject_key:{parent['query']} AND {query}" if parent else query
 
@@ -166,7 +200,7 @@ def user_language_clause(lang: str | None) -> str:
 
 def subgenres_for(genre: Genre, marc: str | None) -> list[GenreNode]:
     """The subgenre rows worth showing when the shelf is filtered to `marc`: a row of 3 books isn't a shelf."""
-    if not marc:
+    if not marc or genre["kind"] == "trending":
         return genre["subgenres"]
     minimum = MIN_SUBGENRE_READABLE if marc == "eng" else MIN_SUBGENRE_READABLE_IN_LANGUAGE
     return [s for s in genre["subgenres"] if s.get("readable_by_language", {}).get(marc, s["readable_count"]) >= minimum]

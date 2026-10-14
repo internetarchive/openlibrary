@@ -8958,6 +8958,18 @@ msgstr ""
 msgid "Presidents"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "What's new"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Classics"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Most wanted"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 subject"
 msgstr ""

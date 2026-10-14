@@ -1148,7 +1148,7 @@ class HomeGenrePartial:
         """`narrow` fills in the query when the row is fetched."""
         return LazyCarouselParams(
             title=home_genres.subgenre_name(subgenre) if subgenre else cls.genre_row_title(genre, "trending"),
-            sort="trending",
+            sort=subgenre.get("sort", "trending") if subgenre else "trending",
             key=cls.row_key(genre, subgenre),
             limit=20,
             has_fulltext_only=True,

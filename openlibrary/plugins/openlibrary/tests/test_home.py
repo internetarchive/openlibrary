@@ -314,6 +314,25 @@ class TestTrendingStack:
         with patch.object(home.home_genres, "_", side_effect=lambda text: f"<{text}>"):
             assert home.home_genres.display_name(TRENDING) == "<Trending>"
 
+    def test_rows_are_distinct_signals_with_their_own_sort(self):
+        """Each row is a whole clause with its own order, not a subject within Trending; What's new starts last year."""
+        rows = {s["slug"]: s for s in TRENDING["subgenres"]}
+        assert list(rows) == ["whats-new", "classics", "most-wanted"]
+        assert [s["sort"] for s in rows.values()] == ["new", "trending", "want_to_read"]
+        with patch.object(home.home_genres, "datetime") as now:
+            now.now.return_value.year = 2026
+            assert home.home_genres.solr_query(rows["whats-new"], TRENDING) == "first_publish_year:[2025 TO *] AND readinglog_count:[2 TO *]"
+        assert home.home_genres.solr_query(rows["most-wanted"], TRENDING) == "want_to_read_count:[10 TO *]"
+        assert "subject_key" not in home.home_genres.search_url(rows["most-wanted"], parent=TRENDING)
+
+    def test_rows_show_in_every_language(self):
+        """The rows have no per-language counts; the thin-row rule is for vocabulary subgenres."""
+        assert home.home_genres.subgenres_for(TRENDING, "spa") == TRENDING["subgenres"]
+
+    def test_row_names_are_translated(self):
+        with patch.object(home.home_genres, "_", side_effect=lambda text: f"<{text}>"):
+            assert [home.home_genres.subgenre_name(s) for s in TRENDING["subgenres"]] == ["<What's new>", "<Classics>", "<Most wanted>"]
+
 
 class Test_format_book_data:
     def test_all(self, mock_site, mock_ia):

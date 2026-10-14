@@ -20,7 +20,7 @@
                         data-genre="{{ genre.slug }}"
                         {% if genre.kind == "trending" %}data-pinned{% endif %}
                         data-shelf="{{ shelf | tojson | forceescape }}"
-                        aria-expanded="false"
+                        aria-pressed="false"
                         aria-controls="browse-stacks-shelf">
                     <span class="browse-stacks__fan" aria-hidden="true">
                         {% for cover in genre.covers %}

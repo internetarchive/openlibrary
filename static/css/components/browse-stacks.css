@@ -57,15 +57,18 @@
   transform: scale(var(--press-scale));
 }
 
-.browse-stacks__tile[aria-expanded="true"] {
+.browse-stacks__tile[aria-pressed="true"] {
   background: var(--color-control-selected-bg);
   border-color: var(--color-control-selected-border);
 }
 
 /* Three covers fanned like books pulled off a shelf. */
-/* --fan-spread goes 0 → 1 on hover; each cover leans and slides a little further out. */
+/* --fan-spread goes 0 → 1 on hover or when open; each cover leans and slides a little further out. */
 .browse-stacks__fan {
   --fan-spread: 0;
+  /* Settle back plainly; springing out is set where --fan-spread goes to 1. */
+  --fan-ease: var(--ease-move);
+  --fan-duration: var(--duration-base);
 
   position: relative;
   height: 72px;
@@ -85,11 +88,18 @@
     0 1px 2px color-mix(in srgb, var(--ink-overlay) 30%, transparent),
     0 2px 8px color-mix(in srgb, var(--ink-overlay) 28%, transparent);
   background: var(--color-surface-sunken);
-  transition: transform var(--duration-base) var(--ease-move);
+  transition: transform var(--fan-duration) var(--fan-ease);
 }
 
 .browse-stacks__blank {
   border: 1px solid var(--color-border-subtle);
+}
+
+/* The open tile holds its hover spread until another tile is picked. */
+.browse-stacks__tile[aria-pressed="true"] .browse-stacks__fan {
+  --fan-spread: 1;
+  --fan-ease: var(--ease-spring);
+  --fan-duration: var(--duration-slow);
 }
 
 .browse-stacks__fan > :nth-child(1) {
@@ -125,13 +135,15 @@
 
 @media (hover: hover) and (pointer: fine) {
   /* The open tile keeps its selected blue under the pointer. */
-  .browse-stacks__tile:not([aria-expanded="true"]):hover {
+  .browse-stacks__tile:not([aria-pressed="true"]):hover {
     background: var(--color-control-hover);
     border-color: var(--color-border-muted);
   }
 
   .browse-stacks__tile:hover .browse-stacks__fan {
     --fan-spread: 1;
+    --fan-ease: var(--ease-spring);
+    --fan-duration: var(--duration-slow);
   }
 }
 
@@ -191,7 +203,7 @@
     timeline-scope: --browse-stacks-open-tile;
   }
 
-  .browse-stacks__tile[aria-expanded="true"] {
+  .browse-stacks__tile[aria-pressed="true"] {
     view-timeline: --browse-stacks-open-tile inline;
     /* auto would inset by the rail's scroll-padding peek, skewing the ends. */
     view-timeline-inset: 0;

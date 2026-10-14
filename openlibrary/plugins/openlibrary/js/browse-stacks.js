@@ -39,8 +39,8 @@ export function initBrowseStacks(root) {
         if (url.href !== location.href) history.replaceState(history.state, '', url);
     }
 
-    function markExpanded(slug) {
-        tiles.forEach(tile => tile.setAttribute('aria-expanded', String(tile.dataset.genre === slug)));
+    function markPressed(slug) {
+        tiles.forEach(tile => tile.setAttribute('aria-pressed', String(tile.dataset.genre === slug)));
     }
 
     /**
@@ -85,19 +85,6 @@ export function initBrowseStacks(root) {
     function settle() {
         shelf.classList.remove('browse-stacks__shelf--tracking');
         anchor();
-    }
-
-    function close({ returnFocus = true } = {}) {
-        controller?.abort();
-        trackEvent('BrowseStacks', 'Close', current);
-        const tile = tileFor(current);
-        current = null;
-        markExpanded(null);
-        remember(null);
-        shelf.hidden = true;
-        shelf.innerHTML = '';
-        anchor();
-        if (returnFocus) tile?.focus();
     }
 
     /**
@@ -182,12 +169,10 @@ export function initBrowseStacks(root) {
      * @param {boolean} [options.initial] - opened on load, not by the reader: don't focus or track it
      */
     async function open(slug, { initial = false } = {}) {
-        if (current === slug) {
-            close();
-            return;
-        }
+        // One stack is always open; picking it again is a no-op.
+        if (current === slug) return;
         current = slug;
-        markExpanded(slug);
+        markPressed(slug);
         if (!initial) {
             remember(slug);
             trackEvent('BrowseStacks', 'Open', slug);
@@ -220,12 +205,4 @@ export function initBrowseStacks(root) {
         if (e.detail.page > e.detail.previousPage) trackEvent('BrowseStacks', 'RailNext', String(e.detail.page + 1));
     });
     window.addEventListener('resize', anchor);
-
-    // Escape only from inside the stacks, and not from a popover, which handles its own.
-    document.addEventListener('keydown', e => {
-        if (e.key !== 'Escape' || !current || e.defaultPrevented) return;
-        if (!e.composedPath().includes(root)) return;
-        if (e.target.closest?.('ol-menu-popover, ol-popover, ol-select-popover, ol-options-popover')) return;
-        close();
-    });
 }
