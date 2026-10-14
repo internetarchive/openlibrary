@@ -19,8 +19,8 @@ logger = logging.getLogger("openlibrary.ia")
 IA_BASE_URL = "https://archive.org"
 VALID_READY_REPUB_STATES = ["4", "19", "20", "22"]
 EXEMPT_COLLECTIONS = ["collection:thoth-archiving-network"]
-session = httpx.Client()
-get_async_session = cache_per_event_loop(httpx.AsyncClient)
+session = httpx.Client(transport=server_timing.TimedSyncTransport("ia"))
+get_async_session = cache_per_event_loop(lambda: httpx.AsyncClient(transport=server_timing.TimedTransport("ia")))
 
 
 def setup(config):
@@ -39,9 +39,7 @@ def get_api_response(url: str, params: dict | None = None) -> dict:
     api_response = {}
     stats.begin("archive.org", url=url)
     try:
-        with server_timing.timed("ia-metadata") as call:
-            r = session.get(url, params=params, timeout=3)
-            call.failed = r.is_server_error
+        r = session.get(url, params=params, timeout=3, extensions={"server_timing": "ia-metadata"})
         if r.status_code == httpx.codes.OK:
             api_response = r.json()
         else:

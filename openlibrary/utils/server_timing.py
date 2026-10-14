@@ -18,12 +18,13 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import TYPE_CHECKING
 
+import httpx
 import web
 
 from infogami.utils import stats
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import AsyncIterator, Iterator
 
 
 class RequestTimings:
@@ -93,6 +94,134 @@ def timed(name: str) -> Iterator[Call]:
         raise
     finally:
         timings.record(name, time.perf_counter() - started, call.failed)
+
+
+class _HttpCall:
+    """One request's timing, recorded once: when its response body is closed, or on error."""
+
+    def __init__(self, timings: RequestTimings, name: str) -> None:
+        self.timings = timings
+        self.name = name
+        self.started = time.perf_counter()
+        self.failed = False
+        self._recorded = False
+
+    @classmethod
+    def start(cls, request: httpx.Request, default_name: str) -> _HttpCall | None:
+        if (timings := _current.get()) is None:
+            return None
+        return cls(timings, request.extensions.get("server_timing", default_name))
+
+    def finish(self, failed: bool = False) -> None:
+        self.failed |= failed
+        if not self._recorded:
+            self._recorded = True
+            self.timings.record(self.name, time.perf_counter() - self.started, self.failed)
+
+    def got_response(self, response: httpx.Response) -> bool:
+        """Note the response; True if its body is still to be read, so needs wrapping."""
+        self.failed = response.is_server_error
+        if response.is_closed:  # body was already in memory, e.g. from httpx.MockTransport
+            self.finish()
+            return False
+        return True
+
+
+class TimedTransport(httpx.AsyncBaseTransport):
+    """Times every request an ``httpx.AsyncClient`` sends, e.g.
+    ``httpx.AsyncClient(transport=TimedTransport("solr"))``.
+
+    Requests are timed as ``name`` unless they name themselves, e.g.
+    ``client.get(url, extensions={"server_timing": "ia-loans"})``.
+
+    Each timing runs until the response body is closed, so it includes the download;
+    httpx reads the body only after the transport returns. A response streamed with
+    ``stream=True`` and never closed isn't recorded. 5xx responses and transport
+    errors (timeouts, refused connections) count as failed; each redirect is its own call.
+    """
+
+    def __init__(self, name: str, transport: httpx.AsyncBaseTransport | None = None) -> None:
+        self.name = name
+        self._transport = transport or httpx.AsyncHTTPTransport()
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        if (call := _HttpCall.start(request, self.name)) is None:
+            return await self._transport.handle_async_request(request)
+        try:
+            response = await self._transport.handle_async_request(request)
+        except Exception:
+            call.finish(failed=True)
+            raise
+        if call.got_response(response):
+            assert isinstance(response.stream, httpx.AsyncByteStream)
+            response.stream = _TimedAsyncStream(response.stream, call)
+        return response
+
+    async def aclose(self) -> None:
+        await self._transport.aclose()
+
+
+class TimedSyncTransport(httpx.BaseTransport):
+    """``TimedTransport`` for a sync ``httpx.Client``."""
+
+    def __init__(self, name: str, transport: httpx.BaseTransport | None = None) -> None:
+        self.name = name
+        self._transport = transport or httpx.HTTPTransport()
+
+    def handle_request(self, request: httpx.Request) -> httpx.Response:
+        if (call := _HttpCall.start(request, self.name)) is None:
+            return self._transport.handle_request(request)
+        try:
+            response = self._transport.handle_request(request)
+        except Exception:
+            call.finish(failed=True)
+            raise
+        if call.got_response(response):
+            assert isinstance(response.stream, httpx.SyncByteStream)
+            response.stream = _TimedSyncStream(response.stream, call)
+        return response
+
+    def close(self) -> None:
+        self._transport.close()
+
+
+class _TimedAsyncStream(httpx.AsyncByteStream):
+    def __init__(self, stream: httpx.AsyncByteStream, call: _HttpCall) -> None:
+        self._stream = stream
+        self._call = call
+
+    async def __aiter__(self) -> AsyncIterator[bytes]:
+        try:
+            async for chunk in self._stream:
+                yield chunk
+        except Exception:
+            self._call.failed = True
+            raise
+
+    async def aclose(self) -> None:
+        try:
+            await self._stream.aclose()
+        finally:
+            self._call.finish()
+
+
+class _TimedSyncStream(httpx.SyncByteStream):
+    def __init__(self, stream: httpx.SyncByteStream, call: _HttpCall) -> None:
+        self._stream = stream
+        self._call = call
+
+    def __iter__(self) -> Iterator[bytes]:
+        try:
+            yield from self._stream
+        except Exception:
+            self._call.failed = True
+            raise
+
+    def close(self) -> None:
+        try:
+            self._stream.close()
+        finally:
+            self._call.finish()
 
 
 @contextmanager

@@ -65,13 +65,7 @@ class Solr:
         """
         self.base_url = base_url
         self.host = urlsplit(self.base_url)[1]
-        self.get_async_session = cache_per_event_loop(httpx.AsyncClient)
-
-    async def _request(self, method: str, url: str, **kwargs) -> httpx.Response:
-        with server_timing.timed("solr") as call:
-            response = await self.get_async_session().request(method, url, **kwargs)
-            call.failed = response.is_server_error
-        return response
+        self.get_async_session = cache_per_event_loop(lambda: httpx.AsyncClient(transport=server_timing.TimedTransport("solr")))
 
     @staticmethod
     def escape(query):
@@ -94,8 +88,7 @@ class Solr:
         """Get a specific item from solr"""
         logger.debug(f"solr /get: {key}, {fields}")
         resp = (
-            await self._request(
-                "GET",
+            await self.get_async_session().get(
                 f"{self.base_url}/get",
                 # It's unclear how field=None is getting in here; a better fix would be at the source.
                 params={
@@ -121,8 +114,7 @@ class Solr:
             return []
         logger.debug(f"solr /get: {ids}, {fields}")
         resp = (
-            await self._request(
-                "POST",
+            await self.get_async_session().post(
                 f"{self.base_url}/get",
                 data={
                     "ids": ",".join(ids),
@@ -140,8 +132,7 @@ class Solr:
         _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
     ):
         resp = (
-            await self._request(
-                "POST",
+            await self.get_async_session().post(
                 f"{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}",
                 json=request,
                 timeout=_timeout,
@@ -245,11 +236,11 @@ class Solr:
             sep = "&" if "?" in url else "?"
             url = url + sep + payload
             logger.debug("solr request: %s", url)
-            return await self._request("GET", url, timeout=_timeout)
+            return await self.get_async_session().get(url, timeout=_timeout)
         else:
             logger.debug("solr request: %s ...", url)
             headers = {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}
-            return await self._request("POST", url, data=payload, headers=headers, timeout=_timeout)
+            return await self.get_async_session().post(url, data=payload, headers=headers, timeout=_timeout)
 
     def _parse_solr_result(self, result, doc_wrapper, facet_wrapper):
         response = result["response"]

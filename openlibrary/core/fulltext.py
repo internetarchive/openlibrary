@@ -11,9 +11,9 @@ import httpx
 import web
 
 from infogami import config
+from openlibrary.core import ia
 from openlibrary.core.carousels import format_book_data
 from openlibrary.core.lending import get_availability_async
-from openlibrary.utils import server_timing
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import req_context, site
 
@@ -249,12 +249,9 @@ async def fulltext_search_api(params):
 
     logger.debug("URL: " + search_select)
     try:
-        async with httpx.AsyncClient() as client:
-            with server_timing.timed("ia-fts") as call:
-                response = await client.get(search_select, headers=headers, timeout=30)
-                call.failed = response.is_server_error
-            response.raise_for_status()
-            return response.json()
+        response = await ia.get_async_session().get(search_select, headers=headers, timeout=30, extensions={"server_timing": "ia-fts"})
+        response.raise_for_status()
+        return response.json()
     except httpx.HTTPStatusError:
         return {"error": "Unable to query search engine"}
     except json.decoder.JSONDecodeError:

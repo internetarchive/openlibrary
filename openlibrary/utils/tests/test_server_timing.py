@@ -2,6 +2,7 @@ import asyncio
 import pathlib
 import re
 
+import httpx
 import pytest
 import web
 
@@ -53,6 +54,57 @@ async def test_solr_5xx_counts_as_failed(timings, httpx_mock):
     assert timings.snapshot()["solr"][::2] == (1, 1)
 
 
+class SlowBody(httpx.AsyncByteStream):
+    async def __aiter__(self):
+        await asyncio.sleep(0.05)
+        yield b"body"
+
+
+class SyncBody(httpx.SyncByteStream):
+    def __iter__(self):
+        yield b"body"
+
+
+def timed_client(handler) -> httpx.AsyncClient:
+    return httpx.AsyncClient(transport=server_timing.TimedTransport("svc", httpx.MockTransport(handler)))
+
+
+@pytest.mark.asyncio
+async def test_timed_transport_counts_5xx_and_errors_as_failed(timings):
+    def handler(request):
+        if request.url.path == "/down":
+            raise httpx.ConnectError("refused")
+        return httpx.Response(503 if request.url.path == "/5xx" else 200)
+
+    async with timed_client(handler) as client:
+        await client.get("http://svc/ok")
+        await client.get("http://svc/5xx")
+        with pytest.raises(httpx.ConnectError):
+            await client.get("http://svc/down")
+    assert timings.snapshot()["svc"][::2] == (3, 2)
+
+
+@pytest.mark.asyncio
+async def test_timed_transport_includes_body_download(timings):
+    async with timed_client(lambda request: httpx.Response(200, stream=SlowBody())) as client:
+        await client.get("http://svc/")
+    count, seconds, _ = timings.snapshot()["svc"]
+    assert count == 1
+    assert seconds >= 0.05
+
+
+def test_timed_sync_transport_with_per_call_names(timings):
+    def handler(request):
+        return httpx.Response(503 if request.url.path == "/5xx" else 200, stream=SyncBody())
+
+    with httpx.Client(transport=server_timing.TimedSyncTransport("svc", httpx.MockTransport(handler))) as client:
+        with client.stream("GET", "http://svc/ok") as response:
+            assert timings.snapshot() == {}  # still timing until the body is closed
+            response.read()
+        client.get("http://svc/5xx", extensions={"server_timing": "svc-other"})
+    assert {name: (count, failures) for name, (count, _, failures) in timings.snapshot().items()} == {"svc": (1, 0), "svc-other": (1, 1)}
+
+
 def test_nested_renders_count_once(timings):
     with server_timing.timed_render(), server_timing.timed_render():
         pass
@@ -98,9 +150,10 @@ class TestInfogamiBridge:
 
 def test_all_metric_names_are_valid():
     root = pathlib.Path(__file__).parents[2]
-    names = {name for path in root.rglob("*.py") if "tests" not in path.parts for name in re.findall(r'server_timing\.timed\("([^"]*)"', path.read_text())}
+    named = re.compile(r'server_timing\.(?:timed|Timed\w*Transport)\("([^"]*)"|"server_timing": "([^"]*)"')
+    names = {a or b for path in root.rglob("*.py") if "tests" not in path.parts for a, b in named.findall(path.read_text())}
     names |= {"render"} | {server_timing._infogami_metric_name(n) for n in ["infobase", "memcache.get"]}
-    assert {"solr", "db", "webpy-proxy", "memcache", "ia-loans", "ia-fts", "ia-metadata"} <= names
+    assert {"solr", "db", "webpy-proxy", "memcache", "ia", "ia-loans", "ia-fts", "ia-metadata"} <= names
     for name in names:
         assert re.fullmatch(TOKEN, name), name
         assert name not in {"total", "sentry-trace", "baggage"}, name
