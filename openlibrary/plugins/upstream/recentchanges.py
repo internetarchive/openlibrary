@@ -76,11 +76,13 @@ class index(delegate.page):
 
         # begin and end narrow the window below a day and replace the path's range
         try:
-            if i.begin:
-                query["begin_date"] = dt.datetime.fromisoformat(i.begin).isoformat()
-            if i.end:
-                query["end_date"] = dt.datetime.fromisoformat(i.end).isoformat()
-        except ValueError:
+            for parameter, query_key in ((i.begin, "begin_date"), (i.end, "end_date")):
+                if parameter:
+                    timestamp = dt.datetime.fromisoformat(parameter)
+                    if timestamp.tzinfo is not None:
+                        timestamp = timestamp.astimezone(dt.UTC).replace(tzinfo=None)
+                    query[query_key] = timestamp.isoformat()
+        except (ValueError, OverflowError):
             return web.badrequest("begin and end must be ISO 8601 timestamps.")
 
         # and limit and offset business too
@@ -97,6 +99,8 @@ class index(delegate.page):
 
         # constrain limit and offset for performance reasons
         limit = constrain(limit, 0, 1000)
+        if offset > 10000:
+            return web.badrequest("offset must not exceed 10000; use the end parameter to page further back.")
         offset = constrain(offset, 0, 10000)
 
         query["limit"] = limit

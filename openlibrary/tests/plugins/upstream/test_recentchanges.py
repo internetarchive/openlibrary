@@ -31,6 +31,20 @@ def test_begin_and_end_are_passed_to_the_query(monkeypatch, site):
     assert query["end_date"] == "2026-08-28T01:00:00"
 
 
+@pytest.mark.parametrize(
+    ("param", "expected"),
+    [
+        ("begin", "2026-08-27T18:30:00"),
+        ("end", "2026-08-27T18:30:00"),
+    ],
+)
+def test_timezone_offset_is_normalized_to_naive_utc(monkeypatch, site, param, expected):
+    get_feed(monkeypatch, **{param: "2026-08-28T00:00:00+05:30"})
+    query = site.recentchanges.call_args[0][0]
+    query_key = "begin_date" if param == "begin" else "end_date"
+    assert query[query_key] == expected
+
+
 def test_feed_without_begin_and_end_is_unchanged(monkeypatch, site):
     get_feed(monkeypatch)
     query = site.recentchanges.call_args[0][0]
@@ -39,7 +53,17 @@ def test_feed_without_begin_and_end_is_unchanged(monkeypatch, site):
 
 
 @pytest.mark.parametrize("param", ["begin", "end"])
-def test_invalid_timestamp_is_a_bad_request(monkeypatch, site, param):
-    get_feed(monkeypatch, **{param: "yesterday"})
+@pytest.mark.parametrize("value", ["yesterday", "0001-01-01T00:00:00+05:00"])
+def test_invalid_timestamp_is_a_bad_request(monkeypatch, site, param, value):
+    get_feed(monkeypatch, **{param: value})
     assert web.ctx.status.startswith("400")
+    site.recentchanges.assert_not_called()
+
+
+def test_offset_over_10000_is_a_bad_request(monkeypatch, site):
+    with mock.patch("openlibrary.plugins.upstream.recentchanges.web.badrequest", wraps=web.badrequest) as badrequest:
+        get_feed(monkeypatch, offset="10001")
+
+    assert web.ctx.status.startswith("400")
+    badrequest.assert_called_once_with("offset must not exceed 10000; use the end parameter to page further back.")
     site.recentchanges.assert_not_called()
