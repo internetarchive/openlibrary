@@ -5,12 +5,11 @@ from __future__ import annotations  # Needed for 'Loan' return types early on
 import logging
 import time
 from collections.abc import Iterable
+from json import JSONDecodeError
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 import httpx
-import requests
 import web
-from simplejson.errors import JSONDecodeError
 
 from infogami.utils import delegate
 from infogami.utils.view import public
@@ -18,7 +17,7 @@ from openlibrary.accounts.model import OpenLibraryAccount, parse_s3_cookie
 from openlibrary.core import cache, stats
 from openlibrary.core.env import get_ol_env
 from openlibrary.plugins.upstream.utils import urlencode
-from openlibrary.utils import dateutil, server_timing, uniq
+from openlibrary.utils import dateutil, uniq
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import (
     req_context,
@@ -792,13 +791,12 @@ class IA_Lending_API:
         payload["token"] = config_ia_ol_shared_key
 
         try:
-            with server_timing.timed("ia-loans") as call:
-                resp = requests.post(
-                    config_ia_loan_api_url,
-                    data=payload,
-                    timeout=config_http_request_timeout,
-                )
-                call.failed = resp.status_code >= 500
+            resp = ia.session.post(
+                config_ia_loan_api_url,
+                data=payload,
+                timeout=config_http_request_timeout,
+                extensions={"server_timing": "ia-loans"},
+            )
             jsontext = resp.json()
             logger.info("POST response: %s", jsontext)
             return jsontext
