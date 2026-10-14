@@ -225,7 +225,7 @@ def icon_sprite_url() -> str:
     """Return the content-hashed URL of the icon sprite asset.
 
     Used by the ``$:macros.icon()`` macro; client JS reads the same URL off the
-    ``<meta name="ol-icon-sprite">`` tag in site/head instead. ``static_url``
+    ``<meta name="ol-icon-sprite">`` tag in shell/head.html.jinja instead. ``static_url``
     hashes once per process, so a rebuild needs a web restart.
 
     The sprite is generated, so a checkout that never ran ``make icons`` has no

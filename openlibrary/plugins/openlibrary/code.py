@@ -24,7 +24,7 @@ from openlibrary.core.batch_imports import (
 )
 from openlibrary.core.env import get_deployment_name, get_ol_env
 from openlibrary.core.jinja import render_jinja_template
-from openlibrary.core.layout import SiteLayoutTemplate
+from openlibrary.core.shell import SiteLayoutTemplate
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
 from openlibrary.utils.request_context import (
@@ -54,7 +54,6 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
-from openlibrary.plugins.openlibrary.nav import BROWSE_FEATURED_COUNT, browse_links
 from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10
 from openlibrary.utils.sentry import get_sentry
@@ -1127,8 +1126,6 @@ def setup_template_globals():
             "get_sentry": get_sentry,
             "get_ol_env": get_ol_env,
             "get_deployment_name": get_deployment_name,
-            "browse_links": browse_links,
-            "BROWSE_FEATURED_COUNT": BROWSE_FEATURED_COUNT,
             # bad use of globals
             "is_bot": is_bot,
             "time": time,
@@ -1153,6 +1150,7 @@ def setup():
     from openlibrary.plugins.importapi import import_ui
     from openlibrary.plugins.openlibrary import (
         authors,
+        contribute,
         design,
         events,
         home,
@@ -1173,6 +1171,7 @@ def setup():
     sentry.setup()
     home.setup()
     design.setup()
+    contribute.setup()
     stats.setup()
     events.setup()
     status.setup()

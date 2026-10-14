@@ -50,7 +50,7 @@ describe('getNextKeyboardFocusIndex', () => {
     });
 
     describe('disabled items', () => {
-        const isDisabled = (i) => i === 2; // index 2 is disabled
+        const isDisabled = i => i === 2; // index 2 is disabled
 
         test('skips a disabled item when stepping forward', () => {
             expect(getNextKeyboardFocusIndex('ArrowRight', opts({ current: 1, isDisabled }))).toBe(3);
@@ -61,7 +61,7 @@ describe('getNextKeyboardFocusIndex', () => {
         });
 
         test('Home / End land on the first/last ENABLED item', () => {
-            const allButEnds = (i) => i === 0 || i === 3; // ends disabled
+            const allButEnds = i => i === 0 || i === 3; // ends disabled
             expect(getNextKeyboardFocusIndex('Home', opts({ isDisabled: allButEnds }))).toBe(1);
             expect(getNextKeyboardFocusIndex('End', opts({ isDisabled: allButEnds }))).toBe(2);
         });

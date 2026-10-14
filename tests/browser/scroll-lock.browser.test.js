@@ -14,7 +14,7 @@ afterEach(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
 });
 
-test('restores the scroll offset instantly despite html { scroll-behavior: smooth }', async() => {
+test('restores the scroll offset instantly despite html { scroll-behavior: smooth }', async () => {
     // Mirrors static/css/base/common.css, which sets smooth scrolling site-wide.
     document.documentElement.style.scrollBehavior = 'smooth';
     spacer = document.createElement('div');
