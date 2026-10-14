@@ -3,11 +3,15 @@ Hook to show MARC or other source record details in Open Library.
 """
 
 import re
+from base64 import b64decode, b64encode
+from contextlib import suppress
 
 import requests
 import web
 
 from .. import app
+from ..core import cache
+from ..utils import dateutil
 
 
 class old_show_marc(app.view):
@@ -106,6 +110,46 @@ class show_google_books(app.view):
 
 re_bad_meta_mrc = re.compile(r"^([^/]+)_meta\.mrc$")
 
+# MARC dumps are static: a fetched record stays valid for weeks. Caching
+# turns repeat views (and retries after a timeout) into cache hits instead
+# of another 4-8s round trip to archive.org (#13874).
+MARC_CACHE_TTL = 30 * dateutil.DAY_SECS
+
+
+def _marc_cache_key(filename, offset, length):
+    return "marc:%s:%d:%d" % (filename, offset, length)
+
+
+def _fetch_marc_range(filename, offset, length):
+    """Fetch record bytes from archive.org. Raises on timeout/HTTP error."""
+    r0, r1 = offset, offset + 100000
+    url = "https://archive.org/download/%s" % filename
+    headers = {"Range": "bytes=%d-%d" % (r0, r1)}
+    response = requests.get(url, headers=headers, timeout=3)
+    response.raise_for_status()
+    return response.content[:100000]
+
+
+def _cached_marc_record(filename, offset, length):
+    """Record bytes, from memcache when present (base64: memcache is JSON).
+
+    Returns None only when there is no cached copy and the live fetch
+    fails; callers keep the previous timeout/HTTP error behavior then.
+    Raises requests.Timeout / requests.HTTPError on a live-fetch failure
+    with an empty cache, exactly as before.
+    """
+    key = _marc_cache_key(filename, offset, length)
+    try:
+        cached = cache.get_memcache().get(key)
+    except Exception:  # noqa: BLE001 — cache must never break the view
+        cached = None
+    if cached is not None:
+        return b64decode(cached)
+    result = _fetch_marc_range(filename, offset, length)
+    with suppress(Exception):
+        cache.get_memcache().set(key, b64encode(result).decode("ascii"), expires=MARC_CACHE_TTL)
+    return result
+
 
 class show_marc(app.view):
     path = r"/show-records/(.*):(\d+):(\d+)"
@@ -126,14 +170,8 @@ class show_marc(app.view):
         offset = int(offset)
         length = int(length)
 
-        r0, r1 = offset, offset + 100000
-        url = "https://archive.org/download/%s" % filename
-        headers = {"Range": "bytes=%d-%d" % (r0, r1)}
-
         try:
-            response = requests.get(url, headers=headers, timeout=3)
-            response.raise_for_status()
-            result = response.content[:100000]
+            result = _cached_marc_record(filename, offset, length)
         except requests.Timeout:
             return "ERROR: archive.org timed out"
         except requests.HTTPError as e:
