@@ -571,6 +571,6 @@ class MonthlyLoginsResponse(BaseModel):
 
 
 @router.get("/api/monthly_logins.json", response_model=MonthlyLoginsResponse)
-def monthly_logins() -> MonthlyLoginsResponse:
+async def monthly_logins() -> MonthlyLoginsResponse:
     """Return the cached unique monthly login count for the admin stats UI."""
-    return MonthlyLoginsResponse(loginCount=get_unique_logins_since())
+    return MonthlyLoginsResponse(loginCount=await get_unique_logins_since())
