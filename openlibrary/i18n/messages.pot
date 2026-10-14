@@ -4099,7 +4099,7 @@ msgid "Open Library serves %(readers)s readers every month across %(books)s cata
 msgstr ""
 
 #: contribute/landing.html.jinja
-msgid "Thousands of books on Open Library are still missing a detail: a cover, a language, a publisher. You can help fill them in."
+msgid "Many books on Open Library are still missing a detail: a cover, a language, a publisher. You can help fill them in."
 msgstr ""
 
 #: contribute/landing.html.jinja
