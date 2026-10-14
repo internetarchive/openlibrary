@@ -22,6 +22,10 @@ from openlibrary.i18n import gettext as _
 LIST_SIZE = 50
 # Rows the public page renders before the feed script takes over.
 FEED_SIZE = 12
+# The "Volunteering @ Open Library" form; applying is how a reader becomes an Open Librarian.
+APPLY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeU5Y4x6LNl2SW4NktRnZhFUDwhV6l9Xzr-IsqBow1KqNfdYw/viewform"
+# The form's "What is your Open Library username?" field, prefilled for signed-in visitors.
+APPLY_FORM_USERNAME_FIELD = "entry.629295430"
 
 
 def setup():
@@ -234,18 +238,21 @@ def landing_figures() -> dict[str, str]:
 
 
 def build_cta(user) -> dict:
-    """The sign-up call: the Librarians page either way, with the extra step a visitor without an account has."""
+    """The sign-up call: the volunteering form either way, with the extra step a visitor without an account has.
+
+    The form asks for an Open Library username, so a signed-in visitor's is prefilled and a signed-out one is sent to make an account first.
+    """
     if user:
         return {
-            "label": _("Become a Librarian"),
-            "href": "/librarians",
-            "note": _("You're signed in as %(name)s. Tasks open up once you're a librarian; the Librarians page explains how to apply.", name=user.get_name()),
+            "label": _("Become an Open Librarian"),
+            "href": f"{APPLY_FORM_URL}?{urlencode({'usp': 'pp_url', APPLY_FORM_USERNAME_FIELD: user.get_username()})}",
+            "note": _("Tasks are for Open Librarians. Applying takes a few minutes."),
             "secondary": [],
         }
     return {
-        "label": _("Become a Librarian"),
-        "href": "/librarians",
-        "note": _("You'll need a free account first, then ask to join on the Librarians page."),
+        "label": _("Become an Open Librarian"),
+        "href": APPLY_FORM_URL,
+        "note": _("Applying takes a few minutes and asks for your Open Library username, so create a free account first."),
         "secondary": [
             {"label": _("Create an account"), "href": f"/account/create?{urlencode({'redirect': '/tasks'})}"},
             {"label": _("Log in"), "href": f"/account/login?{urlencode({'redirect': '/tasks'})}"},

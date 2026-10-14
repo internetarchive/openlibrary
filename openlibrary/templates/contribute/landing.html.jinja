@@ -2,7 +2,7 @@
     Librarians get contribute/dashboard.html.jinja instead; contribute.py decides which. -#}
 {% import "contribute/parts.html.jinja" as parts %}
 {% macro figure(value) %}<b>{{ value }}</b>{% endmacro %}
-{#- "librarians", underlined twice by hand; the strokes close the span so translators only place the start and end.
+{#- "Open Librarians", underlined twice by hand; the strokes close the span so translators only place the start and end.
     djlint:off keeps the formatter from adding whitespace inside the span. -#}
 {# djlint:off #}
 {% macro mark_start() %}<span class="contrib-land__mark">{% endmacro %}
@@ -13,7 +13,7 @@
         <hgroup class="contrib-land__heading">
             <h1 class="contrib-land__title">{{ _("Open Library Tasks") }}</h1>
             <p class="contrib-land__figures">
-                {{ _("Open Library serves %(readers)s readers every month across %(books)s catalogued books, and its %(mark_start)slibrarians%(mark_end)s make thousands of edits every week.", readers=figure(data.figures.readers), books=figure(data.figures.books), mark_start=mark_start(), mark_end=mark_end()) }}
+                {{ _("Open Library serves %(readers)s readers every month across %(books)s catalogued books, and its %(mark_start)sOpen Librarians%(mark_end)s make thousands of edits every week.", readers=figure(data.figures.readers), books=figure(data.figures.books), mark_start=mark_start(), mark_end=mark_end()) }}
             </p>
         </hgroup>
         <div class="contrib-land__hero">
@@ -22,7 +22,7 @@
             </p>
             <div class="contrib-land__cta">
                 <div class="contrib-hero__actions">
-                    <ol-button variant="primary" href="{{ data.cta.href }}">
+                    <ol-button variant="primary" href="{{ data.cta.href }}" target="_blank" rel="noopener">
                         {{ data.cta.label }}
                     </ol-button>
                     {% if data.cta.secondary %}
@@ -70,7 +70,7 @@
             <section class="contrib-land__side contrib-land__join">
                 <h2 class="contrib-land__h2 contrib-land__h2--ruled">{{ _("Join in") }}</h2>
                 <p class="contrib-muted">{{ data.cta.note }}</p>
-                <ol-button variant="secondary" href="{{ data.cta.href }}">
+                <ol-button variant="secondary" href="{{ data.cta.href }}" target="_blank" rel="noopener">
                     {{ data.cta.label }}
                 </ol-button>
             </section>

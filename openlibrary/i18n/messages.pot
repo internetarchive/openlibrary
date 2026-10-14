@@ -4095,7 +4095,7 @@ msgstr ""
 
 #: contribute/landing.html.jinja
 #, python-format
-msgid "Open Library serves %(readers)s readers every month across %(books)s catalogued books, and its %(mark_start)slibrarians%(mark_end)s make thousands of edits every week."
+msgid "Open Library serves %(readers)s readers every month across %(books)s catalogued books, and its %(mark_start)sOpen Librarians%(mark_end)s make thousands of edits every week."
 msgstr ""
 
 #: contribute/landing.html.jinja
@@ -8814,16 +8814,15 @@ msgid "All open tasks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Become a Librarian"
+msgid "Become an Open Librarian"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-#, python-format
-msgid "You're signed in as %(name)s. Tasks open up once you're a librarian; the Librarians page explains how to apply."
+msgid "Tasks are for Open Librarians. Applying takes a few minutes."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "You'll need a free account first, then ask to join on the Librarians page."
+msgid "Applying takes a few minutes and asks for your Open Library username, so create a free account first."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
