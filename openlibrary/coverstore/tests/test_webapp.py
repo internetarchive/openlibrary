@@ -178,6 +178,39 @@ class TestUploadedCoverRedirect:
         assert r.status_code == 304
 
 
+class TestTarFilenameWithNullSizedFilename:
+    """A row with a tar-style filename and a NULL filename_<size> must 404, not 500.
+
+    read_image() falls back to "<filename>-<SIZE>.jpg" when the size-specific
+    column is NULL. On a tar-style filename that produces
+    "covers_0003_38.tar:512:3-L.jpg", and read_file() takes the last
+    colon-separated segment as the byte count -- so int("3-L.jpg") raises
+    ValueError. That is not an OSError, so it used to escape the handler and
+    surface as a 500 on a cover that simply isn't there.
+    """
+
+    @pytest.fixture
+    def client(self, monkeypatch, tmpdir, image_dir):
+        # The tar has to exist: read_file() opens it before parsing the size, so
+        # without it the failure would be an ordinary OSError and already a 404.
+        tar_dir = tmpdir.join("items").mkdir("covers_0003")
+        tar_dir.join("covers_0003_38.tar").write_binary(b"\0" * 1024)
+
+        details = web.storage(
+            id=3_385_000,
+            uploaded=False,
+            created=datetime.datetime(2021, 9, 26, 0, 45, 9),
+            filename="covers_0003_38.tar:512:3",
+            filename_l=None,
+        )
+        monkeypatch.setattr(code, "get_details", lambda coverid, size="": details)
+        monkeypatch.setattr(code, "is_cover_in_cluster", lambda coverid: False)
+        return TestClient(make_app())
+
+    def test_unparseable_size_is_a_404(self, client):
+        assert client.get("/b/id/3385000-L.jpg").status_code == 404
+
+
 class TestProxyScheme:
     """nginx terminates TLS and proxies to us over plain http. The archive.org
     redirects are built from request.url.scheme, so if the scheme doesn't survive the
