@@ -100,6 +100,26 @@ def test_build_pool_falls_back_to_username_and_visitor():
     assert [r["editor"] for r in rows] == ["kate", "a visitor"]
 
 
+def test_interleave_by_editor_spreads_one_editors_run():
+    def row(id, editor_key):
+        return {"id": id, "editor_key": editor_key}
+
+    rows = [row("9", "/people/kate"), row("8", "/people/kate"), row("7", "/people/kate"), row("6", "/people/ravi"), row("5", ""), row("4", "/people/kate")]
+    assert [r["id"] for r in feed.interleave_by_editor(rows)] == ["9", "6", "5", "8", "7", "4"]
+    assert feed.interleave_by_editor([]) == []
+
+
+def test_build_pool_interleaves_editors():
+    site = make_site()
+    site._changes = [
+        make_change(9, "edit-book", ["/books/OL1M"]),
+        make_change(8, "edit-book", ["/books/OL3M"]),
+        make_change(7, "edit-book", ["/books/OL4M"], author="/people/ravi"),
+    ]
+    site._things["/books/OL4M"] = FakeThing("/books/OL4M", title="Persuasion")
+    assert [r["id"] for r in feed.build_pool(site)] == ["9", "7", "8"]
+
+
 def test_get_pool_serves_the_cache_and_rebuilds_when_stale(monkeypatch):
     mc = MemoryCache()
     monkeypatch.setattr(feed.olcache, "get_memcache", lambda: mc)

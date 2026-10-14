@@ -1100,6 +1100,8 @@ a.contrib-recent__title {
   display: inline-flex;
   flex-wrap: wrap;
   gap: var(--spacing-inline-lg);
+  /* Adds to the row gap so the links sit apart from the button as their own group. */
+  margin-inline-start: var(--spacing-inline-md);
   font-size: var(--font-size-label-large);
 }
 

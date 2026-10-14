@@ -9,6 +9,7 @@ import random
 import time
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
+from itertools import zip_longest
 
 from openlibrary.core import cache as olcache
 from openlibrary.i18n import gettext as _
@@ -155,7 +156,7 @@ def fetch_things(site, keys) -> dict:
 
 
 def build_pool(site) -> list[dict]:
-    """Recent human edits to catalog records, newest first, one row per title, with titles, covers and names filled in."""
+    """Recent human edits to catalog records, one row per title, interleaved across editors, with titles, covers and names filled in."""
     changes = [c for kind in POOL_KINDS for c in site.recentchanges({"kind": kind, "bot": False, "limit": POOL_PER_KIND})]
     changes = sorted((c for c in changes if record_key(c)), key=lambda c: int(c.id), reverse=True)
     records = fetch_things(site, [record_key(c) for c in changes])
@@ -188,4 +189,16 @@ def build_pool(site) -> list[dict]:
         )
         if len(rows) >= POOL_SIZE:
             break
-    return rows
+    return interleave_by_editor(rows)
+
+
+def interleave_by_editor(rows: list[dict]) -> list[dict]:
+    """Round-robin the rows across editors so one busy librarian's run is spread through the pool instead of stacked.
+
+    Editors keep their first-seen order and their own rows stay newest first; timestamps are restamped on the way out, so pool order is only about variety.
+    """
+    by_editor: dict[str, list[dict]] = {}
+    for row in rows:
+        by_editor.setdefault(row["editor_key"], []).append(row)
+    queues = list(by_editor.values())
+    return [row for turn in zip_longest(*queues) for row in turn if row is not None]
