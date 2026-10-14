@@ -690,11 +690,11 @@
   gap: var(--spacing-stack-sm);
 }
 
-/* Tablet and up */
+/* Tablet and up. Same gutter as .contrib-land below, so the two /tasks pages line up. */
 @media (min-width: 768px) {
   .contrib-page,
   .contrib-dash {
-    padding-inline: var(--spacing-page-gutter-desktop);
+    padding-inline: var(--spacing-inset-xl);
   }
 
   .contrib-answer__actions {

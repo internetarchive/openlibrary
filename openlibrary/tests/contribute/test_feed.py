@@ -10,8 +10,14 @@ class FakeThing(dict):
         super().__init__(fields)
         self.key = key
 
-    def get_authors(self):
-        return [SimpleNamespace(name=n) for n in self.get("author_names", [])]
+
+class Ref:
+    """A reference as infogami hands it back: a keyed Thing, or a keyless one wrapping an ``author``."""
+
+    def __init__(self, key=None, author=None):
+        self.key = key
+        if author:
+            self.author = author
 
 
 class FakeSite:
@@ -50,12 +56,12 @@ def make_site():
             make_change(2, "edit-book", ["/books/OL5M"]),
         ],
         [
-            FakeThing("/books/OL1M", title="Dune", covers=[-1, 42], authors=[{"key": "/authors/OL1A"}]),
+            FakeThing("/books/OL1M", title="Dune", covers=[-1, 42], authors=[Ref("/authors/OL1A")]),
             # No authors of its own: they come from the work.
-            FakeThing("/books/OL3M", title="Emma", covers=[7], works=[{"key": "/works/OL2W"}]),
+            FakeThing("/books/OL3M", title="Emma", covers=[7], works=[Ref("/works/OL2W")]),
             # Another edition of Dune: one row per title.
             FakeThing("/books/OL4M", title="dune"),
-            FakeThing("/works/OL2W", title="Emma", authors=[{"author": {"key": "/authors/OL2A"}}]),
+            FakeThing("/works/OL2W", title="Emma", authors=[Ref(author=Ref("/authors/OL2A"))]),
             # No title (a deleted or broken record): skipped.
             FakeThing("/books/OL5M"),
             FakeThing("/authors/OL1A", name="Frank Herbert"),
@@ -63,16 +69,6 @@ def make_site():
             FakeThing("/people/kate", displayname="Kate"),
         ],
     )
-
-
-def test_sample_rows_wrap_around_and_count_back_from_now():
-    now = datetime(2026, 10, 14, 12, 0, tzinfo=UTC)
-    total = len(feed.load_sample())
-    rows = feed.sample_rows(3, offset=total - 1, now=now)
-    assert [r["id"] for r in rows] == [f"sample-{total - 1}", "sample-0", "sample-1"]
-    assert rows[0]["cover_url"].endswith("-M.jpg")
-    assert all(datetime.fromisoformat(r["timestamp"]) <= now for r in rows)
-    assert datetime.fromisoformat(rows[0]["timestamp"]) > datetime.fromisoformat(rows[2]["timestamp"])
 
 
 def test_build_pool_asks_for_each_kind_and_keeps_one_row_per_title():
@@ -87,11 +83,9 @@ def test_build_pool_asks_for_each_kind_and_keeps_one_row_per_title():
         "authors": "Frank Herbert",
         "cover_url": feed.cover_url(42),
         "kind": "edit-book",
-        "action": "Edited this book",
         "editor": "Kate",
         "editor_key": "/people/kate",
         "comment": "Added page count",
-        "timestamp": "2026-10-14T12:00:00+00:00",
     }
     assert rows[1]["authors"] == "Jane Austen"
     # Cover and new-book comments are system defaults, not the editor's words.
@@ -133,7 +127,7 @@ def test_get_pool_keeps_the_old_pool_when_a_rebuild_fails_or_is_in_flight(monkey
     assert feed.get_pool(None) == [{"id": "1"}]
 
 
-def test_recent_rows_rotate_the_pool_or_fall_back_to_the_sample(monkeypatch):
+def test_recent_rows_rotate_the_pool_or_return_nothing(monkeypatch):
     now = datetime(2026, 10, 14, 12, 0, tzinfo=UTC)
     pool = feed.build_pool(make_site())
     monkeypatch.setattr(feed, "get_pool", lambda site: pool)
@@ -141,7 +135,7 @@ def test_recent_rows_rotate_the_pool_or_fall_back_to_the_sample(monkeypatch):
     assert [r["id"] for r in rows] == ["5", "6", "5"]
     assert all(datetime.fromisoformat(r["timestamp"]) <= now for r in rows)
     monkeypatch.setattr(feed, "get_pool", lambda site: [])
-    assert feed.recent_rows(None, 2)[0]["id"] == "sample-0"
+    assert feed.recent_rows(None, 2) == []
 
 
 def test_clean_comment_drops_urls_keys_and_essays():
@@ -153,16 +147,8 @@ def test_clean_comment_drops_urls_keys_and_essays():
 
 
 def test_ref_key_reads_edition_refs_and_embedded_work_authors_without_loading():
-    class Ref:
-        def __init__(self, key=None, author=None):
-            self.key = key
-            if author:
-                self.author = author
-
     assert feed.ref_key(Ref("/authors/OL1A")) == "/authors/OL1A"
     assert feed.ref_key(Ref(author=Ref("/authors/OL2A"))) == "/authors/OL2A"
-    assert feed.ref_key({"author": {"key": "/authors/OL3A"}}) == "/authors/OL3A"
-    assert feed.ref_key({"key": "/works/OL1W"}) == "/works/OL1W"
     assert feed.ref_key(Ref()) == ""
 
 

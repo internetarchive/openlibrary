@@ -302,7 +302,7 @@
 {% endmacro %}
 {% macro feed_row(row) %}
     {#- One recent edit on the public /tasks page. contribute.js builds the same markup for rows that arrive later. -#}
-    <li class="contrib-feed__row" data-feed-row data-feed-id="{{ row.id }}">
+    <li class="contrib-feed__row" data-feed-row>
         <div class="contrib-feed__inner">
             <time class="contrib-feed__when"
                   datetime="{{ row.timestamp }}"

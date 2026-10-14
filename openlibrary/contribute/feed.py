@@ -1,19 +1,14 @@
 """The public /tasks page's "happening now" feed: recent edits as rows.
 
-Two sources behind one row shape, both rotated through and restamped back from now. ``recent_rows``
-reads a pool of real recent edits, rebuilt from recentchanges at most every ``POOL_TTL`` and shared
-via memcache; ``sample_rows`` reads ``feed_sample.json`` (real books, invented editors) for demos,
-dev, and whenever the pool is empty.
+``recent_rows`` rotates through a pool of real recent edits, restamped back from now. The pool is
+rebuilt from recentchanges at most every ``POOL_TTL`` and shared via memcache; while it's empty the feed is too.
 """
 
-import json
 import logging
 import random
 import time
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
-from functools import cache
-from pathlib import Path
 
 from openlibrary.core import cache as olcache
 from openlibrary.i18n import gettext as _
@@ -21,12 +16,10 @@ from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 
 logger = logging.getLogger("openlibrary.contribute.feed")
 
-SAMPLE_PATH = Path(__file__).with_name("feed_sample.json")
 # Only edits to catalog records make the feed; accounts, lists and store writes don't.
 RECORD_PREFIXES = ("/books/", "/works/", "/authors/")
-MODES = ("recent", "static")
 # Seconds between rows when restamping, so a rotation reads like a quiet afternoon of edits.
-SAMPLE_SPACING = 47
+ROW_SPACING = 47
 
 # recentchanges filters one kind per query, and these are the kinds worth showing. Most non-bot
 # changes are account signups, so asking for these directly is far cheaper than filtering a firehose.
@@ -65,9 +58,8 @@ def cover_url(cover_id: int | None, size: str = "M") -> str:
     return f"{get_coverstore_public_url()}/b/id/{cover_id}-{size}.jpg" if cover_id and cover_id > 0 else ""
 
 
-def build_row(
-    *, id: str, key: str, title: str, authors: str, cover_id: int | None, kind: str, editor: str, editor_key: str, comment: str, timestamp: datetime
-) -> dict:
+def build_row(*, id: str, key: str, title: str, authors: str, cover_id: int | None, kind: str, editor: str, editor_key: str, comment: str) -> dict:
+    """A pool item; ``rotate`` adds the translated action and the timestamp when the row is served."""
     return {
         "id": id,
         "key": key,
@@ -75,11 +67,9 @@ def build_row(
         "authors": authors,
         "cover_url": cover_url(cover_id),
         "kind": kind,
-        "action": kind_labels().get(kind, _("Updated this record")),
         "editor": editor,
         "editor_key": editor_key,
         "comment": comment,
-        "timestamp": timestamp.isoformat(timespec="seconds"),
     }
 
 
@@ -90,43 +80,17 @@ def rotate(items: list[dict], limit: int, offset: int, now: datetime | None, mak
     rows = []
     for i in range(limit):
         index = (offset + i) % len(items)
-        stamp = now - timedelta(seconds=SAMPLE_SPACING * i + random.randint(0, 20))
+        stamp = now - timedelta(seconds=ROW_SPACING * i + random.randint(0, 20))
         # The label is translated per request; the pool is shared across languages.
         item = items[index]
         rows.append(item | {"id": make_id(index), "action": labels.get(item["kind"], _("Updated this record")), "timestamp": stamp.isoformat(timespec="seconds")})
     return rows
 
 
-@cache
-def load_sample() -> list[dict]:
-    with SAMPLE_PATH.open(encoding="utf-8") as f:
-        return json.load(f)
-
-
-def sample_rows(limit: int, offset: int = 0, now: datetime | None = None) -> list[dict]:
-    epoch = datetime(2000, 1, 1, tzinfo=UTC)
-    items = [
-        build_row(
-            id="",
-            key=item["key"],
-            title=item["title"],
-            authors=item["authors"],
-            cover_id=item["cover_id"],
-            kind=item["kind"],
-            editor=item["editor"],
-            editor_key="",
-            comment=item["comment"],
-            timestamp=epoch,
-        )
-        for item in load_sample()
-    ]
-    return rotate(items, limit, offset, now, lambda i: f"sample-{i}")
-
-
 def recent_rows(site, limit: int, offset: int = 0, now: datetime | None = None) -> list[dict]:
-    """Real recent edits from the shared pool, rotated like the sample; the sample stands in while the pool is empty."""
+    """Real recent edits from the shared pool, rotated and restamped; none while the pool is empty."""
     if not (pool := get_pool(site)):
-        return sample_rows(limit, offset, now)
+        return []
     return rotate(pool, limit, offset, now, lambda i: pool[i]["id"])
 
 
@@ -167,10 +131,7 @@ def record_cover_id(thing) -> int | None:
 
 
 def ref_key(ref) -> str:
-    """The key of an edition's author or work reference, or of a work's embedded ``{"author": ...}`` entry, without loading it."""
-    if isinstance(ref, dict):
-        ref = ref.get("author", ref)
-        return ref.get("key", "") if isinstance(ref, dict) else getattr(ref, "key", None) or ""
+    """The key of an author or work reference, or of a work's embedded ``{"author": ...}`` entry (a keyless Thing), without loading it."""
     return getattr(ref, "key", None) or getattr(getattr(ref, "author", None), "key", None) or ""
 
 
@@ -223,7 +184,6 @@ def build_pool(site) -> list[dict]:
                 editor=((editor or {}).get("displayname") or c.author.key.split("/")[-1]) if c.author else _("a visitor"),
                 editor_key=c.author.key if c.author else "",
                 comment="" if c.kind in DEFAULT_COMMENT_KINDS else clean_comment(c.comment),
-                timestamp=c.timestamp if c.timestamp.tzinfo else c.timestamp.replace(tzinfo=UTC),
             )
         )
         if len(rows) >= POOL_SIZE:

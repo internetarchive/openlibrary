@@ -228,10 +228,6 @@ def build_filter_rail(task: str) -> dict:
     return {"all": {"label": _("All open tasks"), "url": build_dashboard_url(), "on": not task}, "filters": filters}
 
 
-def normalize_feed_mode(raw: str) -> str:
-    return raw if raw in feed.MODES else "recent"
-
-
 def landing_figures() -> dict[str, str]:
     """Social proof on the public page, set as one sentence there. Hand-set round figures for now; revisit when a stats source exists."""
     return {"readers": "2M+", "books": "55M"}
@@ -263,13 +259,12 @@ def format_when(timestamp: str) -> str:
     return helpers.datestr(then, now=datetime.now(UTC).replace(tzinfo=None))
 
 
-def build_feed(mode: str) -> dict:
+def build_feed() -> dict:
     """The feed's first rows plus what the script needs to keep it moving."""
-    rows = feed.sample_rows(FEED_SIZE) if mode == "static" else feed.recent_rows(web.ctx.site, FEED_SIZE)
+    rows = feed.recent_rows(web.ctx.site, FEED_SIZE)
     for row in rows:
         row["when"] = format_when(row["timestamp"])
     return {
-        "mode": mode,
         "rows": rows,
         "url": "/tasks/feed.json",
         "cursor": str(FEED_SIZE),
@@ -284,7 +279,7 @@ def render_landing(user):
         signed_in=bool(user),
         cta=build_cta(user),
         figures=landing_figures(),
-        feed=build_feed(normalize_feed_mode(query_param("feed", ""))),
+        feed=build_feed(),
         # A few appealing examples, not the full list. Book cover isn't a task yet.
         fields=[get_field_guides()[f].label for f in ("languages", "publishers", "oclc_numbers")] + [_("Book cover")],
     )

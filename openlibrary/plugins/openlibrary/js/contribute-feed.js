@@ -2,13 +2,14 @@
  * The public /tasks page's "happening now" feed.
  *
  * Rows arrive at the top one at a time, each stamped with the current time.
- * Both modes walk a rotation from /tasks/feed.json: "recent" a cached pool
- * of real edits, "static" the fixture. Markup mirrors the ``feed_row`` macro
- * in macros/contribute/parts.html.jinja.
+ * They walk a rotation from /tasks/feed.json, a cached pool of real edits.
+ * Markup mirrors the ``feed_row`` macro in macros/contribute/parts.html.jinja.
  */
 
 const MAX_ROWS = 25;
 const GAP_MS = [3500, 7000];
+// How long to wait before asking again when there are no edits to show.
+const EMPTY_RETRY_MS = 60000;
 const RELATIVE_REFRESH_MS = 30000;
 
 // Short units ("12 min. ago") so the time fits the ledger's margin column.
@@ -43,7 +44,6 @@ function buildRow(row, byTemplate) {
 
     const li = el('li', 'contrib-feed__row');
     li.dataset.feedRow = '';
-    li.dataset.feedId = row.id;
     const inner = el('div', 'contrib-feed__inner');
 
     const when = el('time', 'contrib-feed__when', formatWhen(row.timestamp));
@@ -121,21 +121,19 @@ function refreshTimes(list) {
 }
 
 /**
- * Wire the feed list: rotate through ``data-feed-mode``'s source and keep rows coming while the tab is visible.
+ * Wire the feed list: rotate through recent edits and keep rows coming while the tab is visible.
  * @param {HTMLOListElement} list - the ``[data-feed]`` element
  * @returns {void}
  */
 export function initFeed(list) {
-    const mode = list.dataset.feedMode;
     const url = list.dataset.feedUrl;
     let cursor = list.dataset.feedCursor || '';
     const queue = [];
-    const seen = new Set([...list.querySelectorAll('[data-feed-row]')].map(el => el.dataset.feedId));
     let revealTimer = null;
 
     const fetchRows = async params => {
         try {
-            const res = await fetch(`${url}?${new URLSearchParams({ mode, limit: '20', ...params })}`);
+            const res = await fetch(`${url}?${new URLSearchParams({ limit: '20', ...params })}`);
             if (!res.ok) return [];
             return (await res.json()).rows || [];
         } catch (e) {
@@ -145,10 +143,7 @@ export function initFeed(list) {
 
     const showNext = () => {
         const row = queue.shift();
-        if (row && !seen.has(row.id)) {
-            seen.add(row.id);
-            insertRow(list, row);
-        }
+        if (row) insertRow(list, row);
     };
 
     // Walk the rotation forever, one row every few seconds, each stamped "now".
@@ -156,9 +151,13 @@ export function initFeed(list) {
         if (queue.length < 5) {
             const rows = await fetchRows({ offset: cursor });
             cursor = String(Number(cursor) + rows.length);
-            rows.reverse().forEach(r => queue.push({ ...r, id: `${r.id}-${cursor}`, timestamp: new Date().toISOString() }));
+            rows.reverse().forEach(r => queue.push({ ...r, timestamp: new Date().toISOString() }));
         }
         if (document.hidden) return;
+        if (!queue.length) {
+            revealTimer = setTimeout(tick, EMPTY_RETRY_MS);
+            return;
+        }
         showNext();
         revealTimer = setTimeout(tick, GAP_MS[0] + Math.random() * (GAP_MS[1] - GAP_MS[0]));
     };
