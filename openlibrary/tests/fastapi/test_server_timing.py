@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 
 import infogami
 from infogami.utils import stats
-from openlibrary.fastapi.middleware.server_timing import ServerTimingMiddleware
+from openlibrary.fastapi.middleware.server_timing import add_server_timing
 from openlibrary.utils import server_timing
 from openlibrary.utils.tests.test_server_timing import parse
 
@@ -46,7 +46,12 @@ def app():
     def stream():
         return StreamingResponse(iter([b"a", b"b"]))
 
-    app.add_middleware(ServerTimingMiddleware)
+    @app.get("/crash")
+    def crash():
+        with server_timing.timed("solr"):
+            raise TimeoutError
+
+    add_server_timing(app)
     return app
 
 
@@ -101,3 +106,10 @@ def test_real_app_on_by_default_and_can_be_turned_off(fastapi_client):
     with patch.object(infogami.config, "server_timing", False, create=True), patch("openlibrary.asgi_app.set_context_from_fastapi", lambda request: None):
         resp = TestClient(create_app()).get("/health")
     assert "Server-Timing" not in resp.headers
+
+
+def test_unhandled_exception_500_has_the_header(app):
+    with TestClient(app, raise_server_exceptions=False) as client:
+        response = client.get("/crash")
+    assert response.status_code == 500
+    assert parse(response.headers["Server-Timing"])["solr"]["desc"] == '"1 call (1 failed)"'

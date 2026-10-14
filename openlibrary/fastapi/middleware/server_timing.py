@@ -8,6 +8,7 @@ from starlette.datastructures import MutableHeaders
 from openlibrary.utils import server_timing
 
 if TYPE_CHECKING:
+    from starlette.applications import Starlette
     from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 logger = logging.getLogger("openlibrary.server_timing")
@@ -47,3 +48,11 @@ class ServerTimingMiddleware:
                     server_timing.send_to_statsd(timings)
                 except Exception:
                     logger.exception("Failed to send Server-Timing stats")
+
+
+def add_server_timing(app: Starlette) -> None:
+    """Wrap the whole app in ``ServerTimingMiddleware``, outside Starlette's
+    ``ServerErrorMiddleware``, so 500 pages for unhandled exceptions get the header
+    too. ``app.add_middleware()`` can only add middleware inside that one."""
+    build = app.build_middleware_stack
+    app.build_middleware_stack = lambda: ServerTimingMiddleware(build())  # type: ignore[method-assign]

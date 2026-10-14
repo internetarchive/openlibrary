@@ -19,7 +19,7 @@ import infogami
 from openlibrary.core.env import get_deployment_name, get_ol_env
 from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
-from openlibrary.fastapi.middleware.server_timing import ServerTimingMiddleware
+from openlibrary.fastapi.middleware.server_timing import add_server_timing
 from openlibrary.utils import server_timing
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
@@ -264,10 +264,10 @@ def create_app() -> FastAPI | None:
     # because the handlers are called in reverse order
     setup_i18n(app)
 
-    # Outermost, so `total` covers the other middleware. Off with `server_timing: false`.
+    # Outermost, so `total` covers the other middleware and crashes' 500 pages get the header. Off with `server_timing: false`.
     if infogami.config.get("server_timing", True):
         server_timing.install_legacy_bridge()
-        app.add_middleware(ServerTimingMiddleware)
+        add_server_timing(app)
 
     # Serve static assets directly from the project static directory.
     # This mirrors legacy /static/* behavior while we migrate endpoints to FastAPI.
