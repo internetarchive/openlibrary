@@ -12,6 +12,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("openlibrary.server_timing")
 
+# Not app endpoints; they'd only dilute the Graphite timings.
+_NO_STATSD = ("/static/", "/health", "/metrics")
+
 
 class ServerTimingMiddleware:
     """Adds a ``Server-Timing`` header. Pure ASGI so streamed responses aren't buffered;
@@ -39,7 +42,8 @@ class ServerTimingMiddleware:
             await self.app(scope, receive, send_with_timing)
         finally:
             server_timing.end_request(token)
-            try:
-                server_timing.send_to_statsd(timings)
-            except Exception:
-                logger.exception("Failed to send Server-Timing stats")
+            if not scope["path"].startswith(_NO_STATSD):
+                try:
+                    server_timing.send_to_statsd(timings)
+                except Exception:
+                    logger.exception("Failed to send Server-Timing stats")

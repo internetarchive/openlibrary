@@ -193,9 +193,8 @@ async def connection() -> AsyncIterator[AsyncConnection[dict[str, Any]]]:
     pool = await _pool_for_loop()
     if pool is None:
         raise RuntimeError("No async database pool available; ensure web.config.db_parameters has a 'db' key configured (or call init_pool() during app startup)")
-    with server_timing.timed("db"):
-        async with pool.connection() as conn:
-            yield conn
+    async with pool.connection() as conn:
+        yield conn
 
 
 async def _run(
@@ -205,17 +204,18 @@ async def _run(
     row_factory: BaseRowFactory[Any] | None,
 ) -> AsyncCursor[Any]:
     """Run ``query`` on ``conn`` and return the cursor."""
-    if row_factory is None:
-        return await conn.execute(query, params)
-    cursor = conn.cursor(row_factory=row_factory)
-    await cursor.execute(query, params)
-    return cursor
+    with server_timing.timed("db"):
+        if row_factory is None:
+            return await conn.execute(query, params)
+        cursor = conn.cursor(row_factory=row_factory)
+        await cursor.execute(query, params)
+        return cursor
 
 
 async def execute(query: str, params: dict[str, Any] | None = None) -> None:
     """Run one statement on its own pooled connection."""
     async with connection() as conn:
-        await conn.execute(query, params)
+        await _run(conn, query, params, None)
 
 
 async def fetch_all(

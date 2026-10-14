@@ -9,6 +9,7 @@ from infogami.utils import stats
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.utils import server_timing
 from openlibrary.utils.async_utils import async_bridge
+from openlibrary.utils.solr import Solr
 
 # https://www.w3.org/TR/server-timing/#the-server-timing-header-field
 TOKEN = r"[A-Za-z0-9!#$%&'*+\-.^_`|~]+"
@@ -39,8 +40,17 @@ def test_timed_counts_calls_and_failures(timings):
         call.failed = True
     with pytest.raises(TimeoutError), server_timing.timed("solr"):
         raise TimeoutError
-    assert timings.snapshot()["solr"][::2] == (3, 2)
-    assert parse(server_timing.format_header(timings))["solr"]["desc"] == '"3 calls (2 failed)"'
+    with pytest.raises(asyncio.CancelledError), server_timing.timed("solr"):
+        raise asyncio.CancelledError  # client went away; not a backend failure
+    assert timings.snapshot()["solr"][::2] == (4, 2)
+    assert parse(server_timing.format_header(timings))["solr"]["desc"] == '"4 calls (2 failed)"'
+
+
+@pytest.mark.asyncio
+async def test_solr_5xx_counts_as_failed(timings, httpx_mock):
+    httpx_mock.add_response(status_code=503)
+    await Solr("http://solr:8983/solr/openlibrary").raw_request("select", "q=*:*")
+    assert timings.snapshot()["solr"][::2] == (1, 1)
 
 
 def test_nested_renders_count_once(timings):

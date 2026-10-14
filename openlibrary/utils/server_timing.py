@@ -88,7 +88,7 @@ def timed(name: str) -> Iterator[Call]:
     started = time.perf_counter()
     try:
         yield call
-    except BaseException:
+    except Exception:  # not BaseException: a cancelled request isn't a backend failure
         call.failed = True
         raise
     finally:
@@ -97,7 +97,10 @@ def timed(name: str) -> Iterator[Call]:
 
 @contextmanager
 def timed_render() -> Iterator[None]:
-    """Time template rendering as ``render``. Nested renders count once, in the outermost."""
+    """Time template rendering as ``render``. Nested renders count once, in the outermost.
+
+    Includes any Solr/DB/etc. calls the templates make, which also show under their own names.
+    """
     if _current.get() is None or _rendering.get():
         yield
         return

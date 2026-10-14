@@ -75,7 +75,7 @@ async def proxy_to_webpy(request: Request) -> Response:
 
     client = get_async_session()
     # Time until web.py's response headers arrive; the body streams afterwards.
-    with server_timing.timed("webpy-proxy"):
+    with server_timing.timed("webpy-proxy") as call:
         resp = await client.send(
             client.build_request(
                 method=request.method,
@@ -85,6 +85,7 @@ async def proxy_to_webpy(request: Request) -> Response:
             ),
             stream=True,
         )
+        call.failed = resp.status_code >= 500
     excluded = {"content-encoding", "transfer-encoding", "content-length", "x-served-by", "set-cookie"}
     filtered_headers = {k: v for k, v in resp.headers.items() if k.lower() not in excluded}
     filtered_headers["X-Proxied-By"] = "FastAPI"
