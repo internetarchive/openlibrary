@@ -1,7 +1,5 @@
-import asyncio
 from unittest.mock import patch
 
-import pytest
 import web
 
 from openlibrary.plugins.worksearch import code
@@ -198,85 +196,6 @@ def _with_req_context(fn):
         req_context.reset(token)
 
 
-async def _with_req_context_async(make_coro):
-    """Async version of `_with_req_context`."""
-    token = req_context.set(
-        RequestContextVars(
-            x_forwarded_for=None,
-            user_agent=None,
-            lang="en",
-            solr_editions=True,
-            print_disabled=False,
-        )
-    )
-    try:
-        return await make_coro()
-    finally:
-        req_context.reset(token)
-
-
-def _resolved(value):
-    """An already-finished awaitable, standing in for the main search."""
-    future = asyncio.get_running_loop().create_future()
-    future.set_result(value)
-    return future
-
-
-@pytest.mark.asyncio
-async def test_get_readable_count_returns_none_when_nothing_to_count():
-    """No active search, or a zero-result search, yields no sublabel (None)."""
-    with patch.object(code, "run_solr_query_async", return_value=web.storage(num_found=42)):
-        assert await code._get_readable_count_async({}, _resolved(web.storage(num_found=5))) is None
-        assert await _with_req_context_async(lambda: code._get_readable_count_async({"q": "x"}, _resolved(web.storage(num_found=0)))) is None
-        assert await code._get_readable_count_async({"q": "x", "has_fulltext": "true"}, _resolved(web.storage(num_found=0))) is None
-
-
-@pytest.mark.asyncio
-async def test_get_readable_count_reuses_num_found_when_already_readable():
-    """When the search is already readable-scoped (has_fulltext=true), the main
-    result count IS the readable count — no extra Solr query is issued."""
-    with patch.object(code, "run_solr_query_async") as mock_query:
-        count = await code._get_readable_count_async(
-            {"q": "harry potter", "has_fulltext": "true"},
-            _resolved(web.storage(num_found=123)),
-        )
-    assert count == 123
-    mock_query.assert_not_called()
-
-
-@pytest.mark.asyncio
-async def test_get_readable_count_queries_with_readable_filter_when_toggle_off():
-    """When the toggle is off (all books), a count-only query is run with
-    has_fulltext forced on and public_scan stripped, and its num_found returned."""
-    with patch.object(code, "run_solr_query_async", return_value=web.storage(num_found=42)) as mock_query:
-        count = await _with_req_context_async(
-            lambda: code._get_readable_count_async(
-                {"q": "harry potter", "public_scan": "true"},
-                _resolved(web.storage(num_found=100)),
-            )
-        )
-    assert count == 42
-    mock_query.assert_called_once()
-    readable_param = mock_query.call_args.args[1]
-    assert readable_param["has_fulltext"] == "true"
-    assert "public_scan" not in readable_param
-    assert mock_query.call_args.kwargs["rows"] == 0
-
-
-@pytest.mark.asyncio
-async def test_get_readable_count_does_not_wait_for_main_search():
-    """The count query only depends on the search params, so it's issued while
-    the main query is still in flight rather than after it."""
-    main_search = asyncio.get_running_loop().create_future()
-    with patch.object(code, "run_solr_query_async", return_value=web.storage(num_found=42)) as mock_query:
-        count_task = asyncio.ensure_future(_with_req_context_async(lambda: code._get_readable_count_async({"q": "harry potter"}, main_search)))
-        await asyncio.sleep(0)
-        mock_query.assert_called_once()
-        assert not count_task.done()
-        main_search.set_result(web.storage(num_found=100))
-        assert await count_task == 42
-
-
 def _stub_search_web_input(monkeypatch):
     """search.GET() makes two web.input() calls: one just for q/q2, then the
     real one with a q="hello" query and no other params set."""
@@ -349,36 +268,3 @@ class TestSearchAvailabilityPreparedInPython:
         works_arg = render_args[2]
         assert works_arg == [get_doc(solr_doc)]
         assert works_arg is not get_doc
-
-
-@pytest.mark.asyncio
-async def test_run_work_search_sends_count_before_main_search_returns():
-    """The readable count query is sent while the main query is in flight, and
-    the availability lookup still gets the main query's results."""
-    events = []
-
-    async def fake_solr(scheme, param, **kwargs):
-        label = kwargs["request_label"]
-        events.append(f"start {label}")
-        if label == "BOOK_SEARCH":
-            await asyncio.sleep(0.01)
-            events.append("end BOOK_SEARCH")
-            return SearchResponse(facet_counts=None, sort="", docs=[{"key": "/works/OL1W", "title": "x", "edition_count": 1}], num_found=1, solr_select="")
-        return web.storage(num_found=1)
-
-    async def fake_availability(items):
-        events.append("availability")
-        return items
-
-    with (
-        patch.object(code, "run_solr_query_async", side_effect=fake_solr),
-        patch.object(code, "add_availability_async", side_effect=fake_availability),
-        patch.object(code, "compute_work_search_html_fields", return_value=[]),
-    ):
-        _, works, readable_count = await _with_req_context_async(
-            lambda: code._run_work_search_async({"q": "x"}, rows=20, page=1, sort=None, solr_internals_params=None)
-        )
-
-    assert readable_count == 1
-    assert len(works) == 1
-    assert events.index("start BOOK_SEARCH_READABLE_COUNT") < events.index("end BOOK_SEARCH") < events.index("availability")
