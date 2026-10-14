@@ -562,14 +562,14 @@ class Work(Thing):
             return None
         work_id = extract_numeric_id_from_olid(self.key)
         edition_id = extract_numeric_id_from_olid(edition_olid) if edition_olid else -1
-        return Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)
+        return Booknotes.get_patron_booknote_sync(username, work_id, edition_id=edition_id)
 
     def has_book_note(self, username, edition_olid):
         if not username:
             return False
         work_id = extract_numeric_id_from_olid(self.key)
         edition_id = extract_numeric_id_from_olid(edition_olid)
-        return len(Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)) > 0
+        return Booknotes.get_patron_booknote_sync(username, work_id, edition_id=edition_id) is not None
 
     def get_users_observations(self, username):
         if not username:
@@ -743,7 +743,7 @@ class Work(Thing):
             # count reading log entries
             r["occurrences"]["readinglog"] = len(Bookshelves.get_works_shelves(olid))
             r["occurrences"]["ratings"] = len(Ratings.get_all_works_ratings_sync(olid))
-            r["occurrences"]["booknotes"] = len(Booknotes.get_booknotes_for_work(olid))
+            r["occurrences"]["booknotes"] = len(Booknotes.get_booknotes_for_work_sync(olid))
             r["occurrences"]["bestbooks"] = Bestbook.get_count(work_id=olid)
             r["occurrences"]["observations"] = len(Observations.get_observations_for_work(olid))
 

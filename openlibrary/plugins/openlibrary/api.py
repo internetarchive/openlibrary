@@ -78,10 +78,10 @@ class booknotes(delegate.page):
             return delegate.RawText(json.dumps({status: msg}), content_type="application/json")
 
         if i.notes is None:
-            Booknotes.remove(username, work_id, edition_id=edition_id)
+            Booknotes.remove_sync(username, work_id, edition_id=edition_id)
             return response("removed note")
 
-        Booknotes.add(username=username, work_id=work_id, notes=i.notes, edition_id=edition_id)
+        Booknotes.add_sync(username=username, work_id=work_id, notes=i.notes, edition_id=edition_id)
 
         if i.redir:
             raise web.seeother("/works/%s" % work_id)

@@ -299,3 +299,12 @@ class TestGetNotes:
         with patch.object(Booknotes, "get_notes_grouped_by_work", return_value=[]):
             result = _make_patron_booknotes(mock_site).get_notes()
         assert result == []
+
+
+def test_patron_booknotes_counts_use_sync_booknotes_bridge():
+    with (
+        patch.object(Booknotes, "count_works_with_notes_by_user_sync", return_value=2) as notes_count,
+        patch("openlibrary.plugins.upstream.mybooks.Observations.count_distinct_observations", return_value=3),
+    ):
+        assert PatronBooknotes.get_counts("alice") == {"notes": 2, "observations": 3}
+        notes_count.assert_called_once_with("alice")
