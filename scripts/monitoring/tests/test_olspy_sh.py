@@ -176,3 +176,8 @@ def test_classify_async_bridge_call():
         capture_output=True,
     )
     assert result.stdout.strip() == "async.run_solr_query"
+
+
+def test_classify_ignores_other_libraries_async_utils():
+    """jinja2 ships its own async_utils.py with a `wrapper` function; it is not an AsyncBridge call."""
+    assert _classify_lines("    wrapper (jinja2/async_utils.py:45)\n") == "other.other"
