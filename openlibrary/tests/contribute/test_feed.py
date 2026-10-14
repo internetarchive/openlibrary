@@ -1,3 +1,4 @@
+import threading
 from datetime import UTC, datetime
 from types import SimpleNamespace
 
@@ -97,7 +98,9 @@ def test_build_pool_falls_back_to_username_and_visitor():
     site._things.pop("/people/kate")
     site._changes = [make_change(9, "edit-book", ["/books/OL1M"]), make_change(8, "add-book", ["/books/OL3M"], author=None)]
     rows = feed.build_pool(site)
-    assert [r["editor"] for r in rows] == ["kate", "a visitor"]
+    # Anonymous editors are left blank in the shared pool and named per request.
+    assert [r["editor"] for r in rows] == ["kate", ""]
+    assert [r["editor"] for r in feed.rotate(rows, 2, 0, None, str)] == ["kate", "a visitor"]
 
 
 def test_interleave_by_editor_spreads_one_editors_run():
@@ -120,31 +123,60 @@ def test_build_pool_interleaves_editors():
     assert [r["id"] for r in feed.build_pool(site)] == ["9", "7", "8"]
 
 
-def test_get_pool_serves_the_cache_and_rebuilds_when_stale(monkeypatch):
+def join_refreshes():
+    for t in threading.enumerate():
+        if t.name == feed.REFRESH_THREAD_NAME:
+            t.join()
+
+
+def use_memory_cache(monkeypatch, site=None):
     mc = MemoryCache()
     monkeypatch.setattr(feed.olcache, "get_memcache", lambda: mc)
+    monkeypatch.setattr(feed, "create_site", lambda: site)
+    return mc
+
+
+def test_get_pool_builds_a_cold_cache_in_the_request(monkeypatch):
+    mc = use_memory_cache(monkeypatch)
+    assert [r["id"] for r in feed.get_pool(make_site())] == ["6", "5"]
+    assert mc.get(feed.POOL_KEY)["rows"]
+    assert mc.get(feed.POOL_LOCK_KEY) is None
+
+
+def test_get_pool_serves_a_stale_pool_while_a_thread_rebuilds_it(monkeypatch):
     site = make_site()
-    assert [r["id"] for r in feed.get_pool(site)] == ["6", "5"]
-    site._changes = []
+    mc = use_memory_cache(monkeypatch, site)
+    mc.set(feed.POOL_KEY, {"at": 0, "rows": [{"id": "1"}]})
+    assert feed.get_pool(None) == [{"id": "1"}]
+    join_refreshes()
+    assert [r["id"] for r in mc.get(feed.POOL_KEY)["rows"]] == ["6", "5"]
+    assert mc.get(feed.POOL_LOCK_KEY) is None
     # Fresh: served from the cache, no queries.
     queries = len(site.queries)
-    assert len(feed.get_pool(site)) == 2
+    assert len(feed.get_pool(None)) == 2
     assert len(site.queries) == queries
-    # Stale, and the rebuild comes back empty: the old pool is kept.
-    mc.d[feed.POOL_KEY]["at"] -= feed.POOL_TTL + 1
-    assert len(feed.get_pool(site)) == 2
-    assert len(site.queries) > queries
 
 
-def test_get_pool_keeps_the_old_pool_when_a_rebuild_fails_or_is_in_flight(monkeypatch):
-    mc = MemoryCache()
-    monkeypatch.setattr(feed.olcache, "get_memcache", lambda: mc)
+def test_get_pool_keeps_the_old_pool_when_a_rebuild_fails_comes_back_empty_or_is_in_flight(monkeypatch):
+    mc = use_memory_cache(monkeypatch)
     mc.set(feed.POOL_KEY, {"at": 0, "rows": [{"id": "1"}]})
+    for build in (lambda site: 1 / 0, lambda site: []):
+        monkeypatch.setattr(feed, "build_pool", build)
+        assert feed.get_pool(None) == [{"id": "1"}]
+        join_refreshes()
+        assert mc.get(feed.POOL_KEY)["rows"] == [{"id": "1"}]
+        assert mc.get(feed.POOL_LOCK_KEY) is None
+    mc.add(feed.POOL_LOCK_KEY, 1)
+    monkeypatch.setattr(feed, "build_pool", lambda site: [{"id": "2"}])
+    assert feed.get_pool(None) == [{"id": "1"}]
+    assert not any(t.name == feed.REFRESH_THREAD_NAME for t in threading.enumerate())
+
+
+def test_get_pool_on_a_cold_cache_returns_nothing_when_the_rebuild_fails(monkeypatch):
+    mc = use_memory_cache(monkeypatch)
     monkeypatch.setattr(feed, "build_pool", lambda site: 1 / 0)
-    assert feed.get_pool(None) == [{"id": "1"}]
-    assert mc.get(f"{feed.POOL_KEY}.lock") is None
-    mc.add(f"{feed.POOL_KEY}.lock", 1)
-    assert feed.get_pool(None) == [{"id": "1"}]
+    assert feed.get_pool(None) == []
+    assert mc.get(feed.POOL_LOCK_KEY) is None
 
 
 def test_recent_rows_rotate_the_pool_or_return_nothing(monkeypatch):

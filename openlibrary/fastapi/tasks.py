@@ -31,8 +31,9 @@ class FeedResponse(BaseModel):
     rows: list[FeedRow]
 
 
+# Plain def: a cold-cache pool rebuild is blocking infobase I/O, so it runs in the threadpool rather than on the event loop.
 @router.get("/tasks/feed.json", response_model=FeedResponse)
-async def tasks_feed(
+def tasks_feed(
     limit: Annotated[int, Query(gt=0, le=50)] = 20,
     offset: Annotated[int, Query(ge=0, description="Where in the rotation to start.")] = 0,
 ) -> FeedResponse:

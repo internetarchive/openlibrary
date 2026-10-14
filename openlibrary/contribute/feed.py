@@ -2,15 +2,18 @@
 
 ``recent_rows`` rotates through a pool of real recent edits, restamped back from now. The pool is
 rebuilt from recentchanges at most every ``POOL_TTL`` and shared via memcache; while it's empty the feed is too.
+A stale pool keeps serving while a background thread rebuilds it, so only a cold cache makes a request wait.
 """
 
 import logging
 import random
+import threading
 import time
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from itertools import zip_longest
 
+from infogami.utils.delegate import create_site
 from openlibrary.core import cache as olcache
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
@@ -29,6 +32,8 @@ POOL_PER_KIND = 100
 POOL_SIZE = 200
 POOL_KEY = "contribute.feed_pool"
 POOL_TTL = 20 * 60
+POOL_LOCK_KEY = f"{POOL_KEY}.lock"
+REFRESH_THREAD_NAME = "contribute-feed-refresh"
 # Kinds whose comment is a system default (a cover URL, "Added new book.") rather than the editor's words.
 DEFAULT_COMMENT_KINDS = ("add-book", "add-cover")
 
@@ -82,9 +87,17 @@ def rotate(items: list[dict], limit: int, offset: int, now: datetime | None, mak
     for i in range(limit):
         index = (offset + i) % len(items)
         stamp = now - timedelta(seconds=ROW_SPACING * i + random.randint(0, 20))
-        # The label is translated per request; the pool is shared across languages.
+        # The label and anonymous editor are translated per request; the pool is shared across languages.
         item = items[index]
-        rows.append(item | {"id": make_id(index), "action": labels.get(item["kind"], _("Updated this record")), "timestamp": stamp.isoformat(timespec="seconds")})
+        rows.append(
+            item
+            | {
+                "id": make_id(index),
+                "editor": item["editor"] or _("a visitor"),
+                "action": labels.get(item["kind"], _("Updated this record")),
+                "timestamp": stamp.isoformat(timespec="seconds"),
+            }
+        )
     return rows
 
 
@@ -96,23 +109,32 @@ def recent_rows(site, limit: int, offset: int = 0, now: datetime | None = None) 
 
 
 def get_pool(site) -> list[dict]:
-    """The cached pool. One request rebuilds it when stale while the rest keep the old one; a failed rebuild keeps it too."""
-    mc = olcache.get_memcache()
-    entry = mc.get(POOL_KEY) or {}
+    """The cached pool. Only a cold cache makes this request rebuild it; a stale one is served while a background thread rebuilds it."""
+    entry = olcache.get_memcache().get(POOL_KEY) or {}
     if entry and time.time() - entry["at"] < POOL_TTL:
         return entry["rows"]
-    if not mc.add(f"{POOL_KEY}.lock", 1, expires=120):
+    if not olcache.get_memcache().add(POOL_LOCK_KEY, 1, expires=120):
         return entry.get("rows", [])
+    if entry:
+        # A fresh anonymous site: the request's carries the visitor's auth token and its own cache.
+        threading.Thread(target=refresh_pool, args=(create_site,), name=REFRESH_THREAD_NAME, daemon=True).start()
+        return entry["rows"]
+    return refresh_pool(lambda: site)
+
+
+def refresh_pool(make_site: Callable) -> list[dict]:
+    """Rebuild and cache the pool, then release the lock. A failed or empty rebuild leaves the old pool in place."""
+    mc = olcache.get_memcache()
     try:
-        if rows := build_pool(site):
+        if rows := build_pool(make_site()):
             # Outlives the TTL so a later failed rebuild still has something to serve.
             mc.set(POOL_KEY, {"at": time.time(), "rows": rows}, expires=POOL_TTL * 6)
             return rows
     except Exception:
         logger.exception("Could not rebuild the Tasks feed pool")
     finally:
-        mc.delete(f"{POOL_KEY}.lock")
-    return entry.get("rows", [])
+        mc.delete(POOL_LOCK_KEY)
+    return []
 
 
 def record_key(change) -> str:
@@ -182,7 +204,8 @@ def build_pool(site) -> list[dict]:
                 authors=", ".join(list(dict.fromkeys(authors))[:2]),
                 cover_id=record_cover_id(thing),
                 kind=c.kind,
-                editor=((editor or {}).get("displayname") or c.author.key.split("/")[-1]) if c.author else _("a visitor"),
+                # Anonymous edits get "a visitor" when served, in the reader's language.
+                editor=((editor or {}).get("displayname") or c.author.key.split("/")[-1]) if c.author else "",
                 editor_key=c.author.key if c.author else "",
                 comment="" if c.kind in DEFAULT_COMMENT_KINDS else clean_comment(c.comment),
             )
