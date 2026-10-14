@@ -72,7 +72,7 @@ olspy_head() {
         dump=$(echo "$dump" | head -n $count)
 
         # Exclude if first line matches the exclude pattern
-        if [[ "$only_other" == "true" && $(echo "$dump" | head -n1 | classify_workers_cur_fn | grep -vE '^other\.other$') ]]; then
+        if [[ "$only_other" == "true" && $(echo "$dump" | head -n1 | classify_workers_cur_fn | grep -vE '^other\.') ]]; then
             continue
         fi
 
@@ -126,7 +126,18 @@ classify_workers_cur_fn() {
         else if ($1 == "render_list_preview_image") print "ol.render_list_preview_image";
         else if ($2 ~ /openlibrary\/utils\/async_utils\.py/) { sub(/_async$/, "", $1); print "async." $1; }
         else if ($2 ~ /infogami\/infobase\//) print "infobase.other";
-        else print "other.other";
+        else if (NF == 0) print "pyspy.no_stack";
+        else {
+            # Name anything unrecognised after its file and function, so other.* says where the
+            # time went, eg "get_ebook (openlibrary/plugins/upstream/borrow.py:120)"
+            # -> "other.upstream_borrow__get_ebook"
+            path = $2;
+            sub(/^\(/, "", path); sub(/:[0-9]+\)$/, "", path); sub(/\.py$/, "", path);
+            sub(/^openlibrary\//, "", path); sub(/^plugins\//, "", path);
+            label = path "__" $1;
+            gsub(/[^A-Za-z0-9_-]/, "_", label);
+            print "other." label;
+        }
     }'
 }
 export -f classify_workers_cur_fn

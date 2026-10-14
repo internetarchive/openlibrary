@@ -154,8 +154,27 @@ something_else (totally/custom.py:1)
         )
         == """memcache._recv_value
 ol.render_list_preview_image
-other.other"""
+other.totally_custom__something_else"""
     )
+
+
+def test_classify_workers_cur_fn_names_unrecognised_frames():
+    assert (
+        _classify_lines(
+            """    get_ebook (openlibrary/plugins/upstream/borrow.py:120)
+    <lambda> (openlibrary/core/models.py:88)
+    root (openlibrary/templates/books/show.html.jinja:12)
+"""
+        )
+        == """other.upstream_borrow__get_ebook
+other.core_models___lambda_
+other.templates_books_show_html_jinja__root"""
+    )
+
+
+def test_classify_workers_cur_fn_empty_dump():
+    """py-spy failing to read a worker (eg it was exiting) leaves an empty line."""
+    assert _classify_lines("\n") == "pyspy.no_stack"
 
 
 def test_classify_async_bridge_call():
@@ -180,4 +199,40 @@ def test_classify_async_bridge_call():
 
 def test_classify_ignores_other_libraries_async_utils():
     """jinja2 ships its own async_utils.py with a `wrapper` function; it is not an AsyncBridge call."""
-    assert _classify_lines("    wrapper (jinja2/async_utils.py:45)\n") == "other.other"
+    assert _classify_lines("    wrapper (jinja2/async_utils.py:45)\n") == "other.jinja2_async_utils__wrapper"
+
+
+def _log_webpy_workers(pyspy_dump_path: str) -> str:
+    with (
+        tempfile.NamedTemporaryFile(mode="w", delete=False) as aliases_fp,
+        tempfile.NamedTemporaryFile(mode="w", delete=False) as nc_fp,
+    ):
+        aliases_fp.write(_make_aliases(nc_fp.name, pyspy_dump_path))
+
+    bash_run(
+        "log_workers_cur_fn webpy stats.ol-web0.workers.webpy.cur_fn",
+        sources=[aliases_fp.name, "olspy.sh"],
+    )
+    with open(nc_fp.name) as f:
+        return f.read().strip()
+
+
+def test_log_workers_cur_fn_names_unrecognised_worker():
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as dump_fp:
+        dump_fp.write(
+            """Process 1: python /openlibrary/scripts/openlibrary-server
+Python v3.14.5 (/usr/local/bin/python3.14)
+
+Thread 1 (active): "MainThread"
+    read (ssl.py:1138)
+    recv_into (socket.py:720)
+    get_ebook (openlibrary/plugins/upstream/borrow.py:120)
+    GET (openlibrary/plugins/upstream/borrow.py:80)
+"""
+        )
+
+    assert _log_webpy_workers(dump_fp.name) == "stats.ol-web0.workers.webpy.cur_fn.other.upstream_borrow__get_ebook 1 1741054377"
+
+
+def test_log_workers_cur_fn_counts_unreadable_workers():
+    assert _log_webpy_workers("/nonexistent/py_spy_dump.txt") == "stats.ol-web0.workers.webpy.cur_fn.pyspy.no_stack 1 1741054377"
