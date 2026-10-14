@@ -39,3 +39,7 @@ class ServerTimingMiddleware:
             await self.app(scope, receive, send_with_timing)
         finally:
             server_timing.end_request(token)
+            try:
+                server_timing.send_to_statsd(timings)
+            except Exception:
+                logger.exception("Failed to send Server-Timing stats")

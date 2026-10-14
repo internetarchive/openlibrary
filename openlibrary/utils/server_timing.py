@@ -118,6 +118,17 @@ def format_header(timings: RequestTimings) -> str:
     return ", ".join(parts)
 
 
+def send_to_statsd(timings: RequestTimings) -> None:
+    """Send the request's timings to Graphite, like web.py's X-OL-Stats hook does."""
+    from openlibrary.core import stats as statsd  # noqa: PLC0415
+
+    statsd.put("ol.fastapi.total", (time.perf_counter() - timings.start) * 1000)
+    for name, (_, seconds, failures) in timings.snapshot().items():
+        statsd.put(f"ol.fastapi.{name}", seconds * 1000)
+        if failures:
+            statsd.increment(f"ol.fastapi.{name}.failed", n=failures)
+
+
 def _infogami_metric_name(name: str) -> str | None:
     if name in ("db", "archive.org"):  # timed directly instead
         return None

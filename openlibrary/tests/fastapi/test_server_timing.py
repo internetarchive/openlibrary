@@ -86,6 +86,12 @@ def test_header_failure_does_not_break_response(client):
     assert "Server-Timing" not in resp.headers
 
 
+def test_sends_timings_to_statsd(client):
+    with patch("openlibrary.core.stats.put") as put:
+        client.get("/async")
+    assert {c.args[0] for c in put.call_args_list} == {"ol.fastapi.total", "ol.fastapi.solr"}
+
+
 def test_real_app_on_by_default_and_can_be_turned_off(fastapi_client):
     from openlibrary.asgi_app import create_app  # noqa: PLC0415
 
