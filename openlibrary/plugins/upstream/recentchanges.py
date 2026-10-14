@@ -82,7 +82,7 @@ class index(delegate.page):
                     if timestamp.tzinfo is not None:
                         timestamp = timestamp.astimezone(dt.UTC).replace(tzinfo=None)
                     query[query_key] = timestamp.isoformat()
-        except (ValueError, OverflowError):
+        except ValueError, OverflowError:
             return web.badrequest("begin and end must be ISO 8601 timestamps.")
 
         # and limit and offset business too
