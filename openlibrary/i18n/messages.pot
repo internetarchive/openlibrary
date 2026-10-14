@@ -8814,7 +8814,7 @@ msgid "All open tasks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Become a librarian"
+msgid "Become a Librarian"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

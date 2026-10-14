@@ -237,13 +237,13 @@ def build_cta(user) -> dict:
     """The sign-up call: the Librarians page either way, with the extra step a visitor without an account has."""
     if user:
         return {
-            "label": _("Become a librarian"),
+            "label": _("Become a Librarian"),
             "href": "/librarians",
             "note": _("You're signed in as %(name)s. Tasks open up once you're a librarian; the Librarians page explains how to apply.", name=user.get_name()),
             "secondary": [],
         }
     return {
-        "label": _("Become a librarian"),
+        "label": _("Become a Librarian"),
         "href": "/librarians",
         "note": _("You'll need a free account first, then ask to join on the Librarians page."),
         "secondary": [

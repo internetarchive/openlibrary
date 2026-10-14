@@ -1101,8 +1101,16 @@ a.contrib-recent__title {
   flex-wrap: wrap;
   gap: var(--spacing-inline-lg);
   /* Adds to the row gap so the links sit apart from the button as their own group. */
-  margin-inline-start: var(--spacing-inline-md);
+  margin-inline-start: var(--spacing-inline-lg);
   font-size: var(--font-size-label-large);
+}
+
+/* --width-breakpoint-tablet: links drop to their own row, flush with the button. */
+@media (max-width: 767px) {
+  .contrib-land__secondary {
+    flex-basis: 100%;
+    margin-inline-start: 0;
+  }
 }
 
 .contrib-land__note {
