@@ -1,3 +1,4 @@
+import asyncio
 import copy
 import functools
 import itertools
@@ -5,13 +6,14 @@ import logging
 import re
 import time
 import urllib
-from collections.abc import Iterable
+from collections.abc import Awaitable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 from unicodedata import normalize
 
 import httpx
+import sentry_sdk
 import web
 
 from infogami import config
@@ -179,17 +181,112 @@ def get_availability_label(value: str) -> str:
     }.get(value, value)
 
 
-def _get_readable_count(param: dict, search_response) -> int | None:
+async def _get_readable_count_async(param: dict, main_search: Awaitable[SearchResponse]) -> int | None:
     """Count of the current search's results that are readable in-browser, for
     the "Readable Only" toggle sublabel on work_search.html. Mirrors the
     'readable' availability filter (has_fulltext=true). Reuses the main result
-    count when the search is already readable-scoped; otherwise runs one cheap
+    count when the search is already readable-scoped; otherwise runs one
     rows=0 count query. Returns None when there's nothing to count.
+
+    The count query only depends on `param`, so it runs concurrently with
+    `main_search` rather than waiting for it; the main result count is only
+    awaited at the end, to drop the sublabel for zero-result searches.
 
     Note we can't use the has_fulltext facet count here: has_fulltext is indexed
     as ebook_access > UNCLASSIFIED (includes printdisabled), but the toggle's
     filter is ebook_access:[borrowable TO *], so the facet would over-count.
     """
+    if not param:
+        return None
+    if get_active_availability(param) == "readable":
+        return (await main_search).num_found or None  # the main query already counted it
+    readable_param = {k: v for k, v in param.items() if k != "public_scan"}
+    readable_param["has_fulltext"] = "true"
+    resp = await run_solr_query_async(
+        WorkSearchScheme(solr_editions=req_context.get().solr_editions),
+        readable_param,
+        rows=0,
+        spellcheck_count=0,
+        fields=["key", "editions"],  # opt into the same edition block-join as /search
+        facet=False,
+        request_label="BOOK_SEARCH_READABLE_COUNT",
+    )
+    return resp.num_found if (await main_search).num_found else None
+
+
+async def _run_work_search_async(
+    param: dict,
+    rows: int,
+    page: int,
+    sort: str | None,
+    solr_internals_params: SolrInternalsParams | None,
+) -> tuple[SearchResponse, list[web.storage], int | None]:
+    """Run the /search page's backend calls with as much overlap as possible.
+    The availability lookup needs the main query's results, but the readable
+    count only needs `param`, so it runs alongside both:
+
+        main Solr query -> availability lookup
+        readable count Solr query
+    """
+    main_search = asyncio.ensure_future(
+        run_solr_query_async(
+            WorkSearchScheme(solr_editions=req_context.get().solr_editions),
+            param,
+            rows=rows,
+            page=page,
+            sort=sort,
+            spellcheck_count=3,
+            fields=compute_work_search_html_fields(sort, req_context.get().sfw),
+            facet=False,
+            highlight=True,
+            request_label="BOOK_SEARCH",
+            solr_internals_params=solr_internals_params,
+        )
+    )
+
+    async def get_works_with_availability() -> list[web.storage]:
+        works = [get_doc(doc) for doc in (await main_search).docs]
+        await add_availability_async([(w.get("editions") or [None])[0] or w for w in works])
+        return works
+
+    works, readable_count = await asyncio.gather(get_works_with_availability(), _get_readable_count_async(param, main_search))
+    return main_search.result(), works, readable_count
+
+
+# TEMPORARY: the /search backend calls exactly as they ran before
+# _run_work_search_async, kept only as the ?search_calls=sequential baseline for
+# comparing the two on testing. Each sync call below is its own async_bridge
+# round trip, as before. Delete this and _get_readable_count_sequential once
+# that comparison is done.
+def _run_work_search_sequential(
+    param: dict,
+    rows: int,
+    page: int,
+    sort: str | None,
+    solr_internals_params: SolrInternalsParams | None,
+) -> tuple[SearchResponse, list[web.storage], int | None]:
+    search_response = run_solr_query(
+        WorkSearchScheme(solr_editions=req_context.get().solr_editions),
+        param,
+        rows=rows,
+        page=page,
+        sort=sort,
+        spellcheck_count=3,
+        fields=compute_work_search_html_fields(sort, req_context.get().sfw),
+        facet=False,
+        highlight=True,
+        request_label="BOOK_SEARCH",
+        solr_internals_params=solr_internals_params,
+    )
+    readable_count = _get_readable_count_sequential(param, search_response)
+    works = [get_doc(doc) for doc in search_response.docs]
+    add_availability([(w.get("editions") or [None])[0] or w for w in works])
+    return search_response, works, readable_count
+
+
+def _get_readable_count_sequential(param: dict, search_response) -> int | None:
+    """TEMPORARY: the pre-_get_readable_count_async version, for
+    _run_work_search_sequential."""
     if not param or not search_response.num_found:
         return None
     if get_active_availability(param) == "readable":
@@ -874,32 +971,25 @@ class search(delegate.page):
             solr_internals_params = None
 
         if param:
-            search_response = run_solr_query(
-                WorkSearchScheme(solr_editions=req_context.get().solr_editions),
-                param,
-                rows=rows,
-                page=page,
-                sort=sort,
-                spellcheck_count=3,
-                fields=compute_work_search_html_fields(sort, req_context.get().sfw),
-                facet=False,
-                highlight=True,
-                request_label="BOOK_SEARCH",
-                solr_internals_params=solr_internals_params,
-            )
+            # TEMPORARY A/B switch: ?search_calls=sequential runs the old
+            # one-at-a-time code instead. The Sentry tag lets the two be compared.
+            sequential = web_input.get("search_calls") == "sequential"
+            if span := sentry_sdk.get_current_span():
+                span.set_tag("search_calls", "sequential" if sequential else "parallel")
+            search_kwargs = {"rows": rows, "page": page, "sort": sort, "solr_internals_params": solr_internals_params}
+            if sequential:
+                search_response, works, readable_count = _run_work_search_sequential(param, **search_kwargs)
+            else:
+                search_response, works, readable_count = async_bridge.run(_run_work_search_async(param, **search_kwargs))
         else:
             search_response = SearchResponse(facet_counts=None, sort="", docs=[], num_found=0, solr_select="")
-
-        readable_count = _get_readable_count(param, search_response)
+            works, readable_count = [], None
 
         # Surface an author row above the results when the query names the author
         # of one of the top works (see author_suggestion.derive_authors). No extra
         # Solr round-trip: it reuses the docs this same search already returned.
         q_joined = " ".join(q_list)
         author_suggestions = derive_authors(search_response.docs, q_joined)
-
-        works = [get_doc(doc) for doc in search_response.docs]
-        add_availability([(w.get("editions") or [None])[0] or w for w in works])
 
         return render.work_search(
             q_joined,
