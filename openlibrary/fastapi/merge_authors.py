@@ -5,7 +5,6 @@ Migrated from openlibrary.plugins.upstream.merge_authors.merge_authors_json.
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
@@ -42,7 +41,7 @@ def merge_authors_json(_: LibrarianDep, client_ip: ClientIpDep, data: MergeAutho
         except ClientException as e:
             raise HTTPException(
                 status_code=400,
-                detail=json.loads(e.json),
+                detail=e.get_data() or str(e),
             )
 
         try:

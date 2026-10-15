@@ -1,6 +1,8 @@
 """Which books need a hand: the most-read works with an edition missing a field, from Solr's edition child docs."""
 
 import logging
+import random
+from collections.abc import Iterator
 from dataclasses import dataclass
 
 import httpx
@@ -11,6 +13,9 @@ from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.dateutil import HOUR_SECS
 
 logger = logging.getLogger("openlibrary.contribute")
+
+# How many of the most-read works the list draws from; each load shows a random handful of them.
+POOL_SIZE = 500
 
 # The Solr edition field behind each record field. Page count is not indexed on editions, so it has no list of its own.
 SOLR_FIELDS = {
@@ -67,14 +72,20 @@ def _solr_picks(fields: list[str], limit: int) -> list[list]:
 _cached_picks = cache.memcache_memoize(_solr_picks, key_prefix="contribute.solr_picks", timeout=HOUR_SECS)
 
 
-def solr_candidates(fields: tuple[str, ...], limit: int = 200) -> list[Candidate]:
-    """The most-read works with an edition missing one of ``fields``, one edition per work."""
+def solr_candidates(fields: tuple[str, ...], limit: int = POOL_SIZE, batch: int = 50) -> Iterator[Candidate]:
+    """The most-read works with an edition missing one of ``fields``, one edition per work, in random order.
+
+    Editions load a batch at a time, so a caller that stops early never fetches the whole pool.
+    """
     if not any(f in SOLR_FIELDS for f in fields):
-        return []
+        return
     try:
         picks = _cached_picks(sorted(fields), limit)
     except PartialResults, httpx.HTTPError:
         logger.exception("contribute: Solr candidates failed for %s", fields)
-        return []
-    editions = {e.key: e for e in web.ctx.site.get_many([key for key, _readers in picks])}
-    return [Candidate(editions[key], readers) for key, readers in picks if key in editions]
+        return
+    picks = random.sample(picks, len(picks))
+    for i in range(0, len(picks), batch):
+        chunk = picks[i : i + batch]
+        editions = {e.key: e for e in web.ctx.site.get_many([key for key, _readers in chunk])}
+        yield from (Candidate(editions[key], readers) for key, readers in chunk if key in editions)

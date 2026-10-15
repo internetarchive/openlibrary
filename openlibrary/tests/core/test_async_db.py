@@ -189,6 +189,7 @@ async def test_init_pool_creates_and_reuses_the_pool():
         "user": "openlibrary",
         "password": "",
         "row_factory": async_db.dict_row,
+        "cursor_factory": async_db.TimedCursor,
     }
     assert first_pool.name.startswith("async-db-")
     assert first_pool.check is FakePool.check_connection

@@ -410,6 +410,9 @@ class TestIntegratedBookPageRendering:
 
         monkeypatch.setattr(site, "versions", fake_versions)
 
+        # Mock Ratings.get_rating_stats_sync to avoid async DB calls
+        monkeypatch.setattr("openlibrary.core.ratings.Ratings.get_rating_stats_sync", lambda work_id: {"avg_rating": 4.0, "num_ratings": 10})
+
     def test_work_page_renders_open_lending_state_after_groundtruth_fallback(self, monkeypatch, mock_site, render_template, request_context_fixture):
         request_context_fixture(lang="en")
         mock_site.quicksave("/works/OL1W", "/type/work", title="Integration Test Work", edition_count=1)
