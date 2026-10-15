@@ -191,11 +191,11 @@ class TestLibraryStats:
             "12M",
         ]
 
-    def test_sparkline_scale_spans_at_least_30_percent_of_the_peak(self):
+    def test_sparkline_scale_spans_at_least_12_percent_of_the_peak(self):
         # A doubling fills the box.
         assert home.sparkline_points([5, 10], width=120, height=28) == "2.0,26.0 118.0,2.0"
-        # A 10% rise moves a third of the way up a 30% span.
-        assert home.sparkline_points([90, 100], width=120, height=28) == "2.0,10.0 118.0,2.0"
+        # A 10% rise climbs most of a 12% span.
+        assert home.sparkline_points([90, 100], width=120, height=28) == "2.0,22.0 118.0,2.0"
         assert home.sparkline_points([3, 3], width=120, height=28) == "2.0,2.0 118.0,2.0"
 
     def test_sparkline_skips_days_with_no_count(self):

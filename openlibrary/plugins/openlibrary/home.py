@@ -81,9 +81,9 @@ def rolling_average(values: list[int], window: int = 7) -> list[float]:
     return averages
 
 
-def sparkline_points(values: list[float], width: int = SPARKLINE_WIDTH, height: int = SPARKLINE_HEIGHT, pad: int = 2, min_span: float = 0.3) -> str:
+def sparkline_points(values: list[float], width: int = SPARKLINE_WIDTH, height: int = SPARKLINE_HEIGHT, pad: int = 2, min_span: float = 0.12) -> str:
     """SVG polyline points for the daily values, oldest first. The scale tops out at the peak and
-    spans at least `min_span` of it, so a doubling fills the box and a few percent stays a ripple.
+    spans at least `min_span` of it, so a rise of 12% or more fills the box and a percent or two stays a ripple.
     Zeros are days with no count and are skipped, not drawn."""
     present = [v for v in values if v]
     if not present:
