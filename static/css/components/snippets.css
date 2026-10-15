@@ -1,0 +1,57 @@
+/**
+ * Snippets feed grid.
+ * See openlibrary/templates/snippets.html and js/snippets.js (/snippets).
+ */
+.snippets-intro {
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-stack-lg);
+}
+
+.snippets-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-gap: var(--spacing-stack-xl) var(--spacing-inline-xl);
+}
+
+.snippets-grid__status {
+  grid-column: 1 / -1;
+  color: var(--color-text-secondary);
+}
+
+.snippets-grid__item {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.snippet-card {
+  display: block;
+}
+
+.snippet-card__title {
+  margin-top: var(--spacing-stack-xs);
+  font-size: 0.9em;
+  color: var(--color-text);
+}
+
+.snippet-card__actions {
+  margin-top: var(--spacing-stack-xs);
+}
+
+.snippet-card__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background-color: var(--color-surface-sunken);
+  border: 1px solid var(--color-control-border);
+  border-radius: 4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .snippet-card:hover .snippet-card__img {
+    border-color: var(--color-link);
+  }
+}

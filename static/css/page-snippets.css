@@ -1,0 +1,19 @@
+/**
+ * Stylesheet entry point for /snippets
+ * See
+ * - openlibrary/templates/snippets.html
+ */
+/* base styles */
+@import "base/helpers-common.css";
+@import "base/common.css";
+
+/* layout rules */
+@import "layout/index.css";
+
+/* Components (modules) in order of appearance on page */
+@import "components/header-bar.css";
+@import "components/skip-link.css";
+@import "components/header.css";
+@import "components/footer.css";
+@import "components/language.css";
+@import "components/snippets.css";
