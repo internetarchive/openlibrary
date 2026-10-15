@@ -1,0 +1,16 @@
+$def with ()
+$# Translated strings for profile picture / avatar upload UI (avatar.js):
+$# status messages and error alerts. Rendered into the avatar container's
+$# `data-i18n` attribute and read client-side by avatar.js
+$# (avatarStringsFromElement). The keys and English source strings here must
+$# match DEFAULT_AVATAR_STRINGS in that same file.
+$ avatar_i18n = {
+$     "chooseImagePrompt": _("Please choose an image file first."),
+$     "uploading":         _("Uploading..."),
+$     "uploadSuccess":     _("Uploaded successfully!"),
+$     "uploadFailed":      _("Upload failed."),
+$     "removing":          _("Removing..."),
+$     "removeSuccess":     _("Photo removed successfully!"),
+$     "removeFailed":      _("Failed to remove photo."),
+$ }
+$json_encode(avatar_i18n)

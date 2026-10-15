@@ -168,6 +168,13 @@ $(function () {
         import('./type_changer.js').then(module => module.initTypeChanger(typeChanger));
     }
 
+    // conditionally load for avatar / profile picture upload on user edit page
+    const avatarContainer = document.querySelector('.formElement.avatar');
+    if (avatarContainer) {
+        import('./avatar')
+            .then(module => module.initAvatarUpload(avatarContainer));
+    }
+
     // conditionally load validation and submission js for registration form
     if (document.querySelector('form[name=signup]')) {
         import('./signup.js').then(module => module.initSignupForm());
