@@ -27,38 +27,26 @@ class Ratings(db.CommonExtras):
 
     @classmethod
     async def summary(cls) -> dict:
+        query = """
+            SELECT
+                count(*) AS books_total,
+                count(*) FILTER (WHERE created >= %(month_ago)s) AS books_month,
+                count(*) FILTER (WHERE created >= %(week_ago)s) AS books_week,
+                count(DISTINCT username) AS raters_total,
+                count(DISTINCT username) FILTER (WHERE created >= %(month_ago)s) AS raters_month,
+                count(DISTINCT username) FILTER (WHERE created >= %(week_ago)s) AS raters_week
+            FROM ratings
+        """
+        row = await fetch_one(query, {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO})
+        assert row is not None
         return {
-            "total_books_starred": {
-                "total": await cls.total_num_books_rated(),
-                "month": await cls.total_num_books_rated(since=DATE_ONE_MONTH_AGO),
-                "week": await cls.total_num_books_rated(since=DATE_ONE_WEEK_AGO),
-            },
-            "total_star_raters": {
-                "total": await cls.total_num_unique_raters(),
-                "month": await cls.total_num_unique_raters(since=DATE_ONE_MONTH_AGO),
-                "week": await cls.total_num_unique_raters(since=DATE_ONE_WEEK_AGO),
-            },
+            "total_books_starred": {"total": row["books_total"], "month": row["books_month"], "week": row["books_week"]},
+            "total_star_raters": {"total": row["raters_total"], "month": row["raters_month"], "week": row["raters_week"]},
         }
 
     @classmethod
     def summary_sync(cls) -> dict:
         return async_bridge.run(cls.summary())
-
-    @classmethod
-    async def total_num_books_rated(cls, since=None, distinct=False) -> int:
-        query = "SELECT count(%s) from ratings" % ("DISTINCT work_id" if distinct else "work_id")
-        if since:
-            query += " WHERE created >= %(since)s"
-        count = await fetch_val(query, {"since": since} if since else None)
-        return count or 0
-
-    @classmethod
-    async def total_num_unique_raters(cls, since=None) -> int:
-        query = "select count(DISTINCT username) from ratings"
-        if since:
-            query += " WHERE created >= %(since)s"
-        count = await fetch_val(query, {"since": since} if since else None)
-        return count or 0
 
     @classmethod
     async def most_rated_books(cls, limit=10, since=False) -> list:

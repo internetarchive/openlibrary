@@ -14,7 +14,7 @@ import pytest
 
 from openlibrary.core import async_db
 from openlibrary.core.ratings import Ratings
-from openlibrary.utils.dateutil import DATE_ONE_WEEK_AGO
+from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 
 @pytest.fixture
@@ -125,31 +125,22 @@ async def test_add_rating_invalid_rating(helpers, bookshelves, rating):
     bookshelves.add.assert_not_called()
 
 
-@pytest.mark.asyncio
-async def test_total_num_books_rated(helpers):
-    helpers.fetch_val.return_value = 100
-
-    assert await Ratings.total_num_books_rated() == 100
-    helpers.fetch_val.assert_awaited_once_with("SELECT count(work_id) from ratings", None)
-
-
-@pytest.mark.asyncio
-async def test_total_num_books_rated_distinct_since(helpers):
-    helpers.fetch_val.return_value = None
-
-    assert await Ratings.total_num_books_rated(since=DATE_ONE_WEEK_AGO, distinct=True) == 0
-    helpers.fetch_val.assert_awaited_once_with(
-        "SELECT count(DISTINCT work_id) from ratings WHERE created >= %(since)s",
-        {"since": DATE_ONE_WEEK_AGO},
-    )
+SUMMARY_ROW = {"books_total": 30, "books_month": 20, "books_week": 10, "raters_total": 3, "raters_month": 2, "raters_week": 1}
+EXPECTED_SUMMARY = {
+    "total_books_starred": {"total": 30, "month": 20, "week": 10},
+    "total_star_raters": {"total": 3, "month": 2, "week": 1},
+}
 
 
 @pytest.mark.asyncio
-async def test_total_num_unique_raters(helpers):
-    helpers.fetch_val.return_value = 50
+async def test_summary_is_one_query(helpers):
+    helpers.fetch_one.return_value = SUMMARY_ROW
 
-    assert await Ratings.total_num_unique_raters() == 50
-    helpers.fetch_val.assert_awaited_once_with("select count(DISTINCT username) from ratings", None)
+    assert await Ratings.summary() == EXPECTED_SUMMARY
+    helpers.fetch_one.assert_awaited_once()
+    (query, params), _kwargs = helpers.fetch_one.await_args
+    assert "count(DISTINCT username) FILTER (WHERE created >= %(week_ago)s)" in query
+    assert params == {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO}
 
 
 # --- Sync bridge tests -----------------------------------------------------------
@@ -166,13 +157,9 @@ def test_get_work_ratings_summary_sync_bridge(helpers):
 
 
 def test_summary_sync_bridge(helpers):
-    helpers.fetch_val.side_effect = [30, 20, 10, 3, 2, 1]
+    helpers.fetch_one.return_value = SUMMARY_ROW
 
-    assert Ratings.summary_sync() == {
-        "total_books_starred": {"total": 30, "month": 20, "week": 10},
-        "total_star_raters": {"total": 3, "month": 2, "week": 1},
-    }
-    assert helpers.fetch_val.await_count == 6
+    assert Ratings.summary_sync() == EXPECTED_SUMMARY
 
 
 # --- Integration tests (real postgres, marked `integration`) -------------------
@@ -251,20 +238,22 @@ class TestRatingsIntegration:
         assert await Ratings.get_users_ratings_of_works("alice", [1, 2, 3]) == {1: 5, 2: 3}
 
     @pytest.mark.asyncio
-    async def test_counts_and_most_rated(self, pg_db):
+    async def test_summary_and_most_rated(self, pg_db):
         await Ratings.add("alice", 1, 5)
         await Ratings.add("bob", 1, 4)
         await Ratings.add("alice", 2, 3)
-        # Backdate one rating so the `since` filters have something to exclude.
-        old = datetime.now() - timedelta(days=30)
-        await async_db.execute("UPDATE ratings SET created = %(old)s WHERE username = 'alice' AND work_id = 2", {"old": old})
+        await Ratings.add("carol", 3, 2)
+        # Backdate so each window excludes something: bob's and alice's work 2
+        # ratings fall in the month but not the week; carol's in neither.
+        for username, work_id, days in [("bob", 1, 10), ("alice", 2, 10), ("carol", 3, 60)]:
+            await async_db.execute(
+                "UPDATE ratings SET created = %(created)s WHERE username = %(username)s AND work_id = %(work_id)s",
+                {"created": datetime.now() - timedelta(days=days), "username": username, "work_id": work_id},
+            )
 
-        assert await Ratings.total_num_books_rated() == 3
-        assert await Ratings.total_num_books_rated(distinct=True) == 2
-        assert await Ratings.total_num_books_rated(since=DATE_ONE_WEEK_AGO) == 2
-        assert await Ratings.total_num_unique_raters() == 2
-        assert await Ratings.total_num_unique_raters(since=DATE_ONE_WEEK_AGO) == 2
-
-        most_rated = await Ratings.most_rated_books(limit=1)
-        assert most_rated == [{"work_id": 1, "cnt": 2}]
-        assert await Ratings.most_rated_books(since=DATE_ONE_WEEK_AGO) == [{"work_id": 1, "cnt": 2}]
+        assert await Ratings.summary() == {
+            "total_books_starred": {"total": 4, "month": 3, "week": 1},
+            "total_star_raters": {"total": 3, "month": 2, "week": 1},
+        }
+        assert await Ratings.most_rated_books(limit=1) == [{"work_id": 1, "cnt": 2}]
+        assert await Ratings.most_rated_books(since=DATE_ONE_WEEK_AGO) == [{"work_id": 1, "cnt": 1}]
