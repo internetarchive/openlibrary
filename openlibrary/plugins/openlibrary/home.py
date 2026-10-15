@@ -89,7 +89,7 @@ def sparkline_points(values: list[float], width: int = SPARKLINE_WIDTH, height: 
     if not present:
         return ""
     high = max(present)
-    low = min(min(present), high * (1 - min_span))
+    low = min(*present, high * (1 - min_span))
     step = (width - 2 * pad) / max(len(values) - 1, 1)
     return " ".join(f"{pad + i * step:.1f},{pad + (height - 2 * pad) * (high - value) / (high - low):.1f}" for i, value in enumerate(values) if value)
 
@@ -113,7 +113,7 @@ def get_library_stats(stats) -> list[dict]:
         ("visitors", _("Unique Visitors"), "//archive.org/stats"),
         ("members", _("New Members"), "/stats"),
         ("human_edits", _("Catalog Edits"), "/recentchanges"),
-        ("loans", _("eBooks Borrowed"), "/subjects/in_library#ebooks=true"),
+        ("loans", _("Books Read"), "/subjects/in_library#ebooks=true"),
     ]
     metrics = []
     for key, label, href in series:

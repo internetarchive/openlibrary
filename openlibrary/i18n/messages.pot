@@ -8840,7 +8840,7 @@ msgid "Catalog Edits"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
-msgid "eBooks Borrowed"
+msgid "Books Read"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
