@@ -1,6 +1,6 @@
 {#
   The row under the home page carousels: the librarian call-out, which pitches the catalog as a
-  commons and sends readers to /librarians, and beside it the stats card ("In the last month"), four
+  commons and sends readers to /tasks, and beside it the stats card ("In the last month"), four
   28-day counts with sparklines and, when it rose, the change from the line's first point to its last. `stats` is home.get_library_stats(); it's empty when admin
   stats are unavailable, and then the call-out takes the whole row.
 #}
@@ -9,7 +9,7 @@
         <div class="librarian-card__main">
             <h2 class="librarian-card__title" id="librarian-card-title">{{ _("A library made by the people who use it.") }}</h2>
             <p class="librarian-card__body">{{ _("A catalog for every book ever published, maintained by readers like you.") }}</p>
-            <ol-button class="librarian-card__cta" variant="primary" href="/librarians" data-ol-link-track="HomeLibrarianCard|Librarians">
+            <ol-button class="librarian-card__cta" variant="primary" href="/tasks" data-ol-link-track="HomeLibrarianCard|Tasks">
                 {{ _("Become an Open Librarian") }}
                 {{ icon("arrow-right", size="sm", slot="icon-end") }}
             </ol-button>
