@@ -112,8 +112,8 @@ def get_library_stats(stats) -> list[dict]:
     series = [
         ("visitors", _("Unique Visitors"), "//archive.org/stats"),
         ("members", _("New Members"), "/stats"),
-        ("human_edits", _("Catalog Edits"), "/recentchanges"),
         ("loans", _("Books Read"), "/subjects/in_library#ebooks=true"),
+        ("human_edits", _("Catalog Edits"), "/recentchanges"),
     ]
     metrics = []
     for key, label, href in series:

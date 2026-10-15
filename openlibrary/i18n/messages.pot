@@ -8836,11 +8836,11 @@ msgid "Open the record and confirm it matches this edition first."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
-msgid "Catalog Edits"
+msgid "Books Read"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
-msgid "Books Read"
+msgid "Catalog Edits"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py

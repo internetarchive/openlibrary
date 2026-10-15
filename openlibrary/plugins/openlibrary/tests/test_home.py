@@ -230,8 +230,8 @@ class TestLibraryStats:
         metrics = home.get_library_stats(stats)
         assert [(m["label"], m["value"], m["href"]) for m in metrics] == [
             ("New Members", "600", "/stats"),
-            ("Catalog Edits", "3.1K", "/recentchanges"),
             ("Books Read", "7", "/subjects/in_library#ebooks=true"),
+            ("Catalog Edits", "3.1K", "/recentchanges"),
         ]
         assert metrics[0]["points"] == home.sparkline_points([100, 150, 200])
         assert home.get_library_stats(None) == []
