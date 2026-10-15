@@ -7,7 +7,7 @@ import web
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
-from infogami.utils.view import public, render_template
+from infogami.utils.view import render_template
 from openlibrary.core import admin, cache, env
 from openlibrary.core.helpers import commify
 from openlibrary.i18n import gettext as _
@@ -26,21 +26,9 @@ from openlibrary.utils.request_context import caching_prethread, get_request_lan
 logger = logging.getLogger("openlibrary.home")
 
 
-@public
-def get_home_stats_charts(stats) -> dict | None:
-    """Data for the homepage "Around the Library" charts, keyed by stat: the 28-day total and one bar per day."""
-    if not stats:
-        return None
-    charts = {}
-    for key in ("visitors", "members", "human_edits", "lists", "loans"):
-        total = stats[key].get_summary(28)
-        charts[key] = {**stats[key].get_bar_chart(28, width=150, height=60), "total": total, "total_label": commify(total)}
-    return charts
-
-
 def get_homepage(devmode):
     try:
-        stats = admin.get_stats(use_mock_data=devmode)
+        stats = admin.get_stats(ndays=LIBRARY_STATS_WINDOW, use_mock_data=devmode)
     except Exception:
         logger.error("Error in getting stats", exc_info=True)
         stats = None
@@ -65,12 +53,103 @@ def get_homepage(devmode):
     # during subsequent called
     page = render_template(
         "home/index",
-        stats=stats,
         blog_posts=blog_posts,
         featured_genres=featured_genres,
+        library_stats=get_library_stats(stats),
     )
     # Convert to a dict so it can be cached
     return dict(page)
+
+
+# The stats card (home/library_row.html.jinja): four of admin.get_stats's series,
+# each summed over the last 28 days, with a sparkline of the 7-day average drawn in a 120x28 box
+# and the change from its first point to its last.
+LIBRARY_STATS_DAYS = 28
+SMOOTHING_DAYS = 7
+# The card's 28 days, plus the six before them so its first day has a full 7-day average.
+LIBRARY_STATS_WINDOW = LIBRARY_STATS_DAYS + SMOOTHING_DAYS - 1
+SPARKLINE_WIDTH = 120
+SPARKLINE_HEIGHT = 28
+
+
+def compact_number(n: int) -> str:
+    """1234 -> "1.2K", 96400 -> "96K", 1200000 -> "1.2M"; under a thousand, the number itself."""
+    for threshold, suffix in ((1_000_000, "M"), (1_000, "K")):
+        if n >= threshold:
+            value = n / threshold
+            text = f"{value:.1f}" if value < 10 else f"{value:.0f}"
+            if "." in text:
+                text = text.rstrip("0").rstrip(".")
+            return text + suffix
+    return commify(n)
+
+
+def rolling_average(values: list[int], window: int = 7) -> list[float]:
+    """Trailing average of each day and the `window - 1` before it, which irons out the weekend
+    dip so the line shows the trend. Zeros are days with no count: left out of each average,
+    and a day whose whole window is empty stays 0."""
+    averages = []
+    for i in range(len(values)):
+        days = [v for v in values[max(0, i - window + 1) : i + 1] if v]
+        averages.append(sum(days) / len(days) if days else 0)
+    return averages
+
+
+def sparkline_points(values: list[float], width: int = SPARKLINE_WIDTH, height: int = SPARKLINE_HEIGHT, pad: int = 2, min_span: float = 0.12) -> str:
+    """SVG polyline points for the daily values, oldest first. The scale tops out at the peak and
+    spans at least `min_span` of it, so a rise of 12% or more fills the box and a percent or two stays a ripple.
+    Zeros are days with no count and are skipped, not drawn."""
+    present = [v for v in values if v]
+    if not present:
+        return ""
+    high = max(present)
+    low = min(*present, high * (1 - min_span))
+    step = (width - 2 * pad) / max(len(values) - 1, 1)
+    return " ".join(f"{pad + i * step:.1f},{pad + (height - 2 * pad) * (high - value) / (high - low):.1f}" for i, value in enumerate(values) if value)
+
+
+def percent_change(line: list[float]) -> int | None:
+    """Change from the first point of the sparkline to its last: the 7-day average at the start of
+    the window against the one ending today, so the figure always agrees with the line."""
+    present = [v for v in line if v]
+    if len(present) < 2:
+        return None
+    return round((present[-1] - present[0]) / present[0] * 100)
+
+
+def get_library_stats(stats) -> list[dict]:
+    """The card's metrics, in reading order. A series with nothing in the window is left off
+    rather than shown as zero."""
+    if not stats:
+        return []
+
+    def metric(key, label, href):
+        # A count the stats script began writing part-way through the window would add up to a fraction of a month.
+        if not (stat := stats.get(key)) or not stat.has_counts(LIBRARY_STATS_WINDOW):
+            return None
+        # Graphite reports days it has no data for (often today) as None or 0.
+        counts = [int(count or 0) for _day, count in stat.get_counts(LIBRARY_STATS_WINDOW)]
+        line = rolling_average(counts, SMOOTHING_DAYS)[-LIBRARY_STATS_DAYS:]
+        if total := sum(counts[-LIBRARY_STATS_DAYS:]):
+            return {
+                "label": label,
+                "value": compact_number(total),
+                "href": href,
+                "points": sparkline_points(line),
+                "change": percent_change(line),
+            }
+        return None
+
+    series = [
+        metric("members", _("New Members"), "/stats"),
+        metric("loans", _("Books Read"), "/subjects/in_library#ebooks=true"),
+        # Catalog edits (human edits minus signups) and list edits are newer daily counts. Until the
+        # docs carry a full window of them, the older series stand in, so the card never sums or
+        # compares across the change.
+        metric("catalog_edits", _("Catalog Edits"), "/recentchanges") or metric("human_edits", _("Catalog Edits"), "/recentchanges"),
+        metric("list_edits", _("Lists Updated"), "/lists") or metric("lists", _("Lists Created"), "/lists"),
+    ]
+    return [m for m in series if m]
 
 
 def get_cached_homepage():

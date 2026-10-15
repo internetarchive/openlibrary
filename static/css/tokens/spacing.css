@@ -93,6 +93,9 @@
   --spacing-inset-lg: var(--spacing-2xl);    /* 24px – panels, sections (e.g. book overview card) */
   --spacing-inset-xl: var(--spacing-3xl);    /* 32px – hero areas, modals (e.g. welcome banner) */
 
+  /* Pairs with --border-card and --border-radius-card, so cards side by side share one padding. */
+  --spacing-inset-card: var(--spacing-inset-lg); /* 24px – content cards (e.g. home library row) */
+
   /* ---- Layout: page-level spacing ----
    *
    *   │←gutter→┌──────────┐←gutter→│

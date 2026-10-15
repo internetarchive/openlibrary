@@ -1,6 +1,7 @@
 """Admin functionality."""
 
 import calendar
+import random
 from datetime import UTC, date, datetime, timedelta
 
 import requests
@@ -31,6 +32,13 @@ class Stats:
             self.total = next(x for x in reversed(docs) if total_key in x)[total_key]
         except KeyError, StopIteration:
             self.total = ""
+
+    def has_counts(self, ndays=28) -> bool:
+        """True when every doc of the last `ndays` carries this key. A key only some of them
+        have is one the stats script started writing recently, and a series read from it would
+        cover part of the window while claiming all of it."""
+        docs = self.docs[-ndays:]
+        return bool(docs) and all(self.key in doc for doc in docs)
 
     def get_counts(self, ndays=28, times=False):
         """Returns the stats for last n days as an array useful for
@@ -117,6 +125,11 @@ class LoanStats(Stats):
     loans, so the fallback (e.g. local dev) reports zero.
     """
 
+    def has_counts(self, ndays=28) -> bool:
+        if get_ol_env().LOCAL_DEV or not _get_loan_counts_from_graphite(ndays):
+            return Stats.has_counts(self, ndays)
+        return True
+
     def get_counts(self, ndays=28, times=False):
         # Let dev.openlibrary.org show the true state of things
         if get_ol_env().LOCAL_DEV:
@@ -155,6 +168,9 @@ def _get_visitor_counts_from_graphite(ndays: int = 28) -> list[list[int]]:
 
 
 class VisitorStats(Stats):
+    def has_counts(self, ndays: int = 28) -> bool:
+        return bool(_get_visitor_counts_from_graphite(ndays))
+
     def get_counts(self, ndays: int = 28, times: bool = False) -> list[tuple[int, int]]:
         visitors = _get_visitor_counts_from_graphite(ndays)
         # Flip the order, convert timestamp to msec, and convert count==None to zero
@@ -180,12 +196,14 @@ def _get_count_docs(ndays):
 def get_stats(ndays=30, use_mock_data=False):
     """Returns the stats for the past `ndays`"""
     if use_mock_data:
-        return mock_get_stats()
+        return mock_get_stats(ndays)
     docs = _get_count_docs(ndays)
     return {
         "human_edits": Stats(docs, "human_edits", "human_edits"),
         "bot_edits": Stats(docs, "bot_edits", "bot_edits"),
+        "catalog_edits": Stats(docs, "catalog_edits", "catalog_edits"),
         "lists": Stats(docs, "lists", "total_lists"),
+        "list_edits": Stats(docs, "list_edits", "list_edits"),
         "visitors": VisitorStats(docs, "visitors", "visitors"),
         "loans": LoanStats(docs, "loans", "loans"),
         "members": Stats(docs, "members", "total_members"),
@@ -214,38 +232,32 @@ async def get_unique_logins_since(since_days=30):
     return count or 0
 
 
-def mock_get_stats():
-    keyNames = [
-        "human_edits",
-        "bot_edits",
-        "lists",
-        "visitors",
-        "loans",
-        "members",
-        "works",
-        "editions",
-        "ebooks",
-        "covers",
-        "authors",
-        "subjects",
-    ]
-    mockKeyValues = [[(1 + x) * y for x in range(len(keyNames))] for y in range(28)][::-1]
-
-    docs = [dict(zip(keyNames, mockKeyValues[x])) for x in range(len(mockKeyValues))]
-    today = date.today()
-    for x in range(28):
-        docs[x]["_key"] = (today - timedelta(days=x + 1)).strftime("counts-%Y-%m-%d")
-    return {
-        "human_edits": Stats(docs, "human_edits", "human_edits"),
-        "bot_edits": Stats(docs, "bot_edits", "bot_edits"),
-        "lists": Stats(docs, "lists", "total_lists"),
-        "visitors": Stats(docs, "visitors", "visitors"),
-        "loans": Stats(docs, "loans", "loans"),
-        "members": Stats(docs, "members", "total_members"),
-        "works": Stats(docs, "works", "total_works"),
-        "editions": Stats(docs, "editions", "total_editions"),
-        "ebooks": Stats(docs, "ebooks", "total_ebooks"),
-        "covers": Stats(docs, "covers", "total_covers"),
-        "authors": Stats(docs, "authors", "total_authors"),
-        "subjects": Stats(docs, "subjects", "total_subjects"),
+def mock_get_stats(ndays=30):
+    """Daily counts shaped like production's for local dev: a weekend dip, some noise and a
+    gentle climb, at roughly production's scale. Seeded per key so a reload doesn't redraw."""
+    daily_scale = {
+        "human_edits": 12_000,
+        "bot_edits": 20_000,
+        "catalog_edits": 3_000,
+        "lists": 150,
+        "list_edits": 1_200,
+        "visitors": 5_800_000,
+        "loans": 10_000,
+        "members": 7_000,
+        "works": 3_000,
+        "editions": 5_000,
+        "ebooks": 100,
+        "covers": 2_000,
+        "authors": 1_500,
+        "subjects": 500,
     }
+    today = date.today()
+    days = [today - timedelta(days=n) for n in range(ndays, 0, -1)]
+    docs = [{"_key": day.strftime("counts-%Y-%m-%d")} for day in days]
+    for key, scale in daily_scale.items():
+        rng = random.Random(key)
+        for i, (day, doc) in enumerate(zip(days, docs, strict=True)):
+            weekend = 0.85 if day.weekday() >= 5 else 1.0
+            climb = 0.85 + 0.3 * i / max(ndays - 1, 1)
+            doc[key] = round(scale * weekend * climb * rng.uniform(0.92, 1.08))
+    return {key: Stats(docs, key, f"total_{key}") for key in daily_scale}

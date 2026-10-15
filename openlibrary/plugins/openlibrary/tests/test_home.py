@@ -1,14 +1,15 @@
 import datetime
 import json
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 import web
 from bs4 import BeautifulSoup
 
+from openlibrary.core import admin
 from openlibrary.core.admin import Stats
 from openlibrary.core.carousels import format_book_data
-from openlibrary.core.jinja import render_jinja_template
+from openlibrary.core.jinja import get_jinja_env
 from openlibrary.mocks.mock_infobase import MockSite
 from openlibrary.plugins.openlibrary import home
 
@@ -22,6 +23,14 @@ class MockDoc(dict):
     def __repr__(self):
         o = super().__repr__()
         return f"<{self.id} - {o}>"
+
+
+def series(*values, complete=True):
+    """A stat whose daily counts are `values`; `complete` is whether every doc in the window has it."""
+    stat = MagicMock()
+    stat.get_counts.return_value = list(enumerate(values))
+    stat.has_counts.return_value = complete
+    return stat
 
 
 class TestHomeTemplates:
@@ -75,10 +84,6 @@ class TestHomeTemplates:
         assert blog is not None
         assert len(blog.find_all("li")) == 1
 
-    def test_stats_template(self):
-        # Make sure that it works fine without any input (skipping section)
-        assert render_jinja_template("home/stats.html.jinja", charts=None).strip() == ""
-
     def test_home_template(self, render_template, monkeypatch, mock_site):
         self.setup_monkeypatch(monkeypatch)
         docs = [
@@ -86,7 +91,9 @@ class TestHomeTemplates:
                 _id=datetime.datetime.now().strftime("counts-%Y-%m-%d"),
                 human_edits=1,
                 bot_edits=1,
+                catalog_edits=1,
                 lists=1,
+                list_edits=1,
                 visitors=1,
                 loans=1,
                 members=1,
@@ -101,7 +108,9 @@ class TestHomeTemplates:
         stats = {
             "human_edits": Stats(docs, "human_edits", "human_edits"),
             "bot_edits": Stats(docs, "bot_edits", "bot_edits"),
+            "catalog_edits": Stats(docs, "catalog_edits", "catalog_edits"),
             "lists": Stats(docs, "lists", "total_lists"),
+            "list_edits": Stats(docs, "list_edits", "list_edits"),
             "visitors": Stats(docs, "visitors", "visitors"),
             "loans": Stats(docs, "loans", "loans"),
             "members": Stats(docs, "members", "total_members"),
@@ -119,11 +128,121 @@ class TestHomeTemplates:
         macros.BookPreview = lambda *args, **kwargs: '<div id="bookPreview"></div>'
         macros.BookPreviewFloater = lambda *args, **kwargs: '<div id="bookPreview"></div>'
         macros.LoadingIndicator = lambda *args, **kwargs: '<div class="loadingIndicator"></div>'
-        html = str(render_template("home/index", stats=stats, test=True))
+        # The Jinja row draws its button arrow through the icon global, which reads the sprite macro.
+        monkeypatch.setitem(get_jinja_env().globals, "icon", lambda *args, **kwargs: '<svg class="ol-icon"></svg>')
+        html = str(render_template("home/index", test=True, library_stats=home.get_library_stats(stats)))
 
         assert "bookPreview" in html
-        assert "Around the Library" in html
+        assert "In the last month" in html
+        assert "A library made by the people who use it." in html
+        assert 'href="/tasks"' in html
         assert "About the Project" in html
+
+    def test_library_row_without_stats(self, render_template, monkeypatch, mock_site):
+        """No admin stats: the call-out still renders, alone on its row."""
+        self.setup_monkeypatch(monkeypatch)
+        macros = web.template.Template.globals.setdefault("macros", web.storage())
+        macros.BookPreviewFloater = lambda *args, **kwargs: '<div id="bookPreview"></div>'
+        macros.LoadingIndicator = lambda *args, **kwargs: '<div class="loadingIndicator"></div>'
+        # The Jinja row draws its button arrow through the icon global, which reads the sprite macro.
+        monkeypatch.setitem(get_jinja_env().globals, "icon", lambda *args, **kwargs: '<svg class="ol-icon"></svg>')
+        html = str(render_template("home/index", test=True))
+        assert "A library made by the people who use it." in html
+        assert "Around the Library" not in html
+        assert "library-row--solo" in html
+
+
+class TestLibraryStats:
+    """The compact stats card: a 28-day total and a sparkline per series."""
+
+    def test_compact_number(self):
+        assert [home.compact_number(n) for n in (0, 999, 1000, 1234, 9960, 18400, 96400, 412000, 1_200_000, 12_000_000)] == [
+            "0",
+            "999",
+            "1K",
+            "1.2K",
+            "10K",
+            "18K",
+            "96K",
+            "412K",
+            "1.2M",
+            "12M",
+        ]
+
+    def test_sparkline_scale_spans_at_least_12_percent_of_the_peak(self):
+        # A doubling fills the box.
+        assert home.sparkline_points([5, 10], width=120, height=28) == "2.0,26.0 118.0,2.0"
+        # A 10% rise climbs most of a 12% span.
+        assert home.sparkline_points([90, 100], width=120, height=28) == "2.0,22.0 118.0,2.0"
+        assert home.sparkline_points([3, 3], width=120, height=28) == "2.0,2.0 118.0,2.0"
+
+    def test_sparkline_skips_days_with_no_count(self):
+        assert home.sparkline_points([10, 0, 10], width=120, height=28) == "2.0,2.0 118.0,2.0"
+        assert home.sparkline_points([]) == ""
+        assert home.sparkline_points([0, 0]) == ""
+
+    def test_rolling_average_skips_days_with_no_count(self):
+        assert home.rolling_average([2, 4, 0, 6], window=2) == [2, 3, 4, 6]
+        assert home.rolling_average([0, 0, 5], window=2) == [0, 0, 5]
+
+    def test_percent_change_runs_from_the_first_point_to_the_last(self):
+        assert home.percent_change([100, 300, 150]) == 50
+        assert home.percent_change([100, 50, 90]) == -10
+        # Days with no count at either end don't anchor the change.
+        assert home.percent_change([0, 100, 120, 0]) == 20
+        assert home.percent_change([100]) is None
+
+    def test_metrics_in_order_and_empty_series_dropped(self):
+        stats = {
+            "members": series(100, 200, 300),
+            "catalog_edits": series(1500, 1600),
+            "loans": series(None, 7),
+            "list_edits": series(40, 50),
+            "lists": series(0, 0, 0),
+        }
+        metrics = home.get_library_stats(stats)
+        assert [(m["label"], m["value"], m["href"]) for m in metrics] == [
+            ("New Members", "600", "/stats"),
+            ("Books Read", "7", "/subjects/in_library#ebooks=true"),
+            ("Catalog Edits", "3.1K", "/recentchanges"),
+            ("Lists Updated", "90", "/lists"),
+        ]
+        assert metrics[0]["points"] == home.sparkline_points([100, 150, 200])
+        assert home.get_library_stats(None) == []
+
+    def test_older_series_stand_in_until_the_newer_ones_cover_the_window(self):
+        # The newer keys have a few days of data; summing those as a month would be wrong.
+        stats = {
+            "catalog_edits": series(300, complete=False),
+            "human_edits": series(1500, 1600),
+            "list_edits": series(40, complete=False),
+            "lists": series(3, 4),
+        }
+        assert [(m["label"], m["value"]) for m in home.get_library_stats(stats)] == [("Catalog Edits", "3.1K"), ("Lists Created", "7")]
+        assert stats["catalog_edits"].has_counts.call_args.args == (34,)
+
+    def test_has_counts_needs_the_key_in_every_doc_of_the_window(self):
+        docs = [{"_key": f"counts-2026-10-{day:02d}", "members": 1} for day in range(1, 6)]
+        docs[-1]["list_edits"] = 1
+        assert Stats(docs, "members", "total_members").has_counts(5)
+        assert not Stats(docs, "list_edits", "list_edits").has_counts(5)
+        assert Stats(docs, "list_edits", "list_edits").has_counts(1)
+        assert not Stats([], "members", "total_members").has_counts(5)
+
+    def test_change_follows_the_line_not_the_monthly_average(self):
+        # Busy early, quiet late: the 28-day total is high but the line, and so the change, falls.
+        stat = MagicMock()
+        stat.get_counts.return_value = list(enumerate([100] * 20 + [80] * 14))
+        metric = home.get_library_stats({"members": stat})[0]
+        assert metric["change"] == -20
+        assert stat.get_counts.call_args.args == (34,)
+
+    def test_mock_stats_cover_the_window_oldest_first(self):
+        stats = admin.mock_get_stats(56)
+        counts = stats["members"].get_counts(56, times=True)
+        assert len(counts) == 56
+        assert [day for day, _count in counts] == sorted(day for day, _count in counts)
+        assert all(count > 0 for _day, count in counts)
 
 
 TILE_GENRES = [

@@ -2062,7 +2062,7 @@ msgstr ""
 msgid "Covers Added"
 msgstr ""
 
-#: admin/index.html home/stats.html.jinja
+#: admin/index.html openlibrary/plugins/openlibrary/home.py
 msgid "New Members"
 msgstr ""
 
@@ -2114,7 +2114,7 @@ msgstr ""
 msgid "Star Rating Patrons"
 msgstr ""
 
-#: admin/index.html home/stats.html.jinja
+#: admin/index.html
 msgid "Unique Visitors"
 msgstr ""
 
@@ -4431,64 +4431,53 @@ msgstr ""
 msgid "Couldn't load this shelf. Try again?"
 msgstr ""
 
-#: home/stats.html.jinja
-msgid "Around the Library"
+#: home/library_row.html.jinja
+msgid "A library made by the people who use it."
 msgstr ""
 
-#: home/stats.html.jinja
-msgid "Here's what's happened over the last 28 days. More <a href=\"/recentchanges\">recent changes</a>"
+#: home/library_row.html.jinja
+msgid "A catalog for every book ever published, maintained by readers like you."
 msgstr ""
 
-#: home/stats.html.jinja
-msgid "See all visitors to OpenLibrary.org"
+#: home/library_row.html.jinja openlibrary/plugins/openlibrary/contribute.py
+msgid "Become an Open Librarian"
 msgstr ""
 
-#: home/stats.html.jinja
-msgid "Area graph of recent unique visitors"
+#: home/library_row.html.jinja
+msgid "Editable"
 msgstr ""
 
-#: home/stats.html.jinja
-msgid "How many new Open Library members have we welcomed?"
+#: home/library_row.html.jinja
+msgid "By anyone, like Wikipedia"
 msgstr ""
 
-#: home/stats.html.jinja
-msgid "Area graph of new members"
+#: home/library_row.html.jinja
+msgid "Public"
 msgstr ""
 
-#: home/stats.html.jinja
-msgid "People are constantly updating the catalog"
+#: home/library_row.html.jinja
+msgid "Every record, free to download"
 msgstr ""
 
-#: home/stats.html.jinja
-msgid "Area graph of recent catalog edits"
+#: home/library_row.html.jinja
+msgid "Nonprofit"
 msgstr ""
 
-#: home/stats.html.jinja
-msgid "Catalog Edits"
+#: home/library_row.html.jinja
+msgid "Run by the Internet Archive"
 msgstr ""
 
-#: home/stats.html.jinja
-msgid "Members can create Lists"
+#: home/library_row.html.jinja
+msgid "In the last month"
 msgstr ""
 
-#: home/stats.html.jinja
-msgid "Area graph of lists created recently"
+#: home/library_row.html.jinja
+msgid "Change over the month, by 7-day average"
 msgstr ""
 
-#: home/stats.html.jinja
-msgid "Lists Created"
-msgstr ""
-
-#: home/stats.html.jinja
-msgid "We're a library, so we lend books, too"
-msgstr ""
-
-#: home/stats.html.jinja
-msgid "Area graph of ebooks borrowed recently"
-msgstr ""
-
-#: home/stats.html.jinja
-msgid "eBooks Borrowed"
+#: home/library_row.html.jinja
+#, python-format
+msgid "Up %(percent)d%% over the month"
 msgstr ""
 
 #: home/welcome.html
@@ -4529,14 +4518,6 @@ msgstr ""
 
 #: home/welcome.html
 msgid "Find matching results within the text of millions of books"
-msgstr ""
-
-#: home/welcome.html
-msgid "Be an Open Librarian"
-msgstr ""
-
-#: home/welcome.html
-msgid "Dozens of ways you can help improve the library"
 msgstr ""
 
 #: home/welcome.html
@@ -8848,10 +8829,6 @@ msgid "All open tasks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Become an Open Librarian"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Tasks are for Open Librarians. Applying takes a few minutes."
 msgstr ""
 
@@ -8890,6 +8867,22 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "Open the record and confirm it matches this edition first."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Books Read"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Catalog Edits"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Lists Updated"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Lists Created"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
