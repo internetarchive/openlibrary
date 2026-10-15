@@ -13,7 +13,7 @@
     {% endcall %}
     <div class="ds-notes">
         <p>
-            <b>Seed keys.</b> A list can hold the work or one of its editions, so the book page passes both. A list holding either shows one row, and removing it takes out every key it holds.
+            <b>Seed keys.</b> A list can hold the work or one of its editions, so the book page passes both. A list holding either shows one row. If it holds both, removing it on an edition page takes out that edition and leaves the work. Lists holding a different edition of the book don't show here; the popover finds those when it opens.
         </p>
         <p>
             <b>No byline, no cover.</b> The store only holds the signed-in reader's own lists, so there is no one else's name to show. Only render it for signed-in readers: <code>lists/widget.html</code> is the one caller.
