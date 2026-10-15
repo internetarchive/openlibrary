@@ -2062,7 +2062,7 @@ msgstr ""
 msgid "Covers Added"
 msgstr ""
 
-#: admin/index.html
+#: admin/index.html openlibrary/plugins/openlibrary/home.py
 msgid "New Members"
 msgstr ""
 
@@ -2114,7 +2114,7 @@ msgstr ""
 msgid "Star Rating Patrons"
 msgstr ""
 
-#: admin/index.html
+#: admin/index.html openlibrary/plugins/openlibrary/home.py
 msgid "Unique Visitors"
 msgstr ""
 
@@ -4450,21 +4450,8 @@ msgid "Compared with the previous 28 days"
 msgstr ""
 
 #: home/library_row.html.jinja
-msgid "Flat"
-msgstr ""
-
-#: home/library_row.html.jinja
 #, python-format
 msgid "Up %(percent)d%% on the previous 28 days"
-msgstr ""
-
-#: home/library_row.html.jinja
-#, python-format
-msgid "Down %(percent)d%% on the previous 28 days"
-msgstr ""
-
-#: home/library_row.html.jinja
-msgid "Level with the previous 28 days"
 msgstr ""
 
 #: home/welcome.html
@@ -8849,19 +8836,11 @@ msgid "Open the record and confirm it matches this edition first."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
-msgid "unique visitors"
+msgid "Catalog Edits"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
-msgid "new members"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "catalog edits"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "ebooks borrowed"
+msgid "eBooks Borrowed"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py

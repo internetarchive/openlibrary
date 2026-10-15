@@ -1,7 +1,7 @@
 {#
   The row under the home page carousels: the librarian call-out, which pitches the catalog as a
   commons and sends readers to /librarians, and beside it the "Around the Library" card, four
-  28-day counts with sparklines and the change from the 28 days before. `stats` is home.get_library_stats(); it's empty when admin
+  28-day counts with sparklines and, when it rose, the change from the 28 days before. `stats` is home.get_library_stats(); it's empty when admin
   stats are unavailable, and then the call-out takes the whole row.
 #}
 <div class="library-row{% if not stats %} library-row--solo{% endif %}">
@@ -50,26 +50,18 @@
                         <a class="library-stat" href="{{ stat.href }}">
                             <span class="library-stat__figures">
                                 <span class="library-stat__value">{{ stat.value }}</span>
-                                {% if stat.change is not none %}
-                                    {# The arrow and figure are for sighted readers; the sparkline's label says the same in words. #}
-                                    <span class="library-stat__change" title="{{ _("Compared with the previous 28 days") }}" aria-hidden="true">
-                                        {%- if stat.change > 0 -%}
-                                            ↑ {{ stat.change }}%
-                                        {%- elif stat.change < 0 -%}
-                                            ↓ {{ -stat.change }}%
-                                        {%- else -%}
-                                            {{ _("Flat") }}
-                                        {%- endif -%}
-                                    </span>
+                                {# Only a rise is called out; the sparkline's label says the same in words. #}
+                                {% if stat.change and stat.change > 0 %}
+                                    <span class="library-stat__change" title="{{ _("Compared with the previous 28 days") }}" aria-hidden="true">↑ {{ stat.change }}%</span>
                                 {% endif %}
                             </span>
                             <span class="library-stat__label">{{ stat.label }}</span>
                             <svg class="library-stat__spark"
                                  viewBox="0 0 120 28"
                                  preserveAspectRatio="none"
-                                 {% if stat.change is not none %}
+                                 {% if stat.change and stat.change > 0 %}
                                  role="img"
-                                 aria-label="{% if stat.change > 0 %}{{ _('Up %(percent)d%% on the previous 28 days', percent=stat.change) }}{% elif stat.change < 0 %}{{ _('Down %(percent)d%% on the previous 28 days', percent=-stat.change) }}{% else %}{{ _('Level with the previous 28 days') }}{% endif %}"
+                                 aria-label="{{ _('Up %(percent)d%% on the previous 28 days', percent=stat.change) }}"
                                  {% else %}
                                  aria-hidden="true"
                                  {% endif %}
