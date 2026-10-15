@@ -118,7 +118,6 @@
 }
 
 .contrib-book__title {
-  font-family: var(--font-family-title);
   font-size: var(--font-size-title-large);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-title);
@@ -691,11 +690,11 @@
   gap: var(--spacing-stack-sm);
 }
 
-/* Tablet and up */
+/* Tablet and up. Same gutter as .contrib-land below, so the two /tasks pages line up. */
 @media (min-width: 768px) {
   .contrib-page,
   .contrib-dash {
-    padding-inline: var(--spacing-page-gutter-desktop);
+    padding-inline: var(--spacing-inset-xl);
   }
 
   .contrib-answer__actions {
@@ -1022,5 +1021,400 @@ a.contrib-recent__title {
     justify-items: stretch;
     margin-inline-start: 0;
     text-align: center;
+  }
+}
+
+/* --- Public page (/tasks for visitors and non-librarians) --------------------
+   A sheet on the paper background: a serif title, the figures set as one
+   sentence, then a ruled ledger of recent edits with the time in the margin. */
+.contrib-land {
+  --contrib-ledger-margin: 88px;
+  --contrib-ledger-cover: 32px;
+  /* Ambient timing with no motion token: how long a new row keeps its tint. */
+  --contrib-settle: 9s;
+
+  margin: 0 auto;
+  max-width: 1180px;
+  padding-inline: var(--spacing-page-gutter);
+  padding-block: var(--spacing-stack-xl) var(--spacing-stack-2xl);
+  background: var(--color-surface);
+  /* The page shell's inner curve, so the sheet's corners don't poke past its border. */
+  border-radius: calc(var(--border-radius-card) - var(--border-width));
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-body);
+  color: var(--color-text);
+}
+
+/* --width-breakpoint-tablet */
+@media (min-width: 768px) {
+  .contrib-land {
+    padding-inline: var(--spacing-inset-xl);
+  }
+}
+
+.contrib-land :is(h1, h2, p, ol, ul, hgroup) {
+  margin: 0;
+}
+
+/* Top: the title with the figures as its deck, then the hero. */
+.contrib-land__top {
+  display: grid;
+  gap: var(--spacing-stack-lg);
+  padding-block-end: var(--spacing-stack-xl);
+}
+
+.contrib-land__heading {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+/* Hero */
+.contrib-land__hero {
+  display: grid;
+  gap: var(--spacing-stack-lg);
+  max-width: 66ch;
+}
+
+/* The note sits close under the buttons, as their caption. */
+.contrib-land__cta {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.contrib-land__title {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-display-medium);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-display);
+  text-wrap: balance;
+}
+
+.contrib-land__lead {
+  font-size: var(--font-size-body-large);
+  line-height: var(--line-height-relaxed);
+  text-wrap: pretty;
+}
+
+.contrib-land__secondary {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-lg);
+  /* Adds to the row gap so the links sit apart from the button as their own group. */
+  margin-inline-start: var(--spacing-inline-lg);
+  font-size: var(--font-size-label-large);
+}
+
+/* --width-breakpoint-tablet: links drop to their own row, flush with the button. */
+@media (max-width: 767px) {
+  .contrib-land__secondary {
+    flex-basis: 100%;
+    margin-inline-start: 0;
+  }
+}
+
+.contrib-land__note {
+  max-width: 56ch;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-small);
+}
+
+/* The figures, as one sentence: a quiet serif deck under the title, only the numbers in full ink.
+   Tabular so a live number later won't reflow the line. */
+.contrib-land__figures {
+  max-width: 48ch;
+  font-family: var(--font-family-subtitle);
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
+  text-wrap: pretty;
+}
+
+.contrib-land__figures b {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* "librarians" underlined twice by hand, so the people doing the work stand out. The strokes draw in once on load. */
+.contrib-land__mark {
+  position: relative;
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.contrib-land__mark svg {
+  position: absolute;
+  inset-inline-start: -3%;
+  bottom: -0.42em;
+  width: 106%;
+  height: 0.55em;
+  overflow: visible;
+  color: var(--color-link);
+  pointer-events: none;
+}
+
+.contrib-land__mark path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  animation: contrib-land-underline 900ms 300ms var(--ease-move) backwards;
+}
+
+.contrib-land__mark path + path {
+  animation-duration: 600ms;
+  animation-delay: 850ms;
+}
+
+@keyframes contrib-land-underline {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+/* Register: the ledger, with the side column beside it from desktop width. */
+.contrib-land__register {
+  display: grid;
+  gap: var(--spacing-section-gap);
+  align-items: start;
+  padding-block-start: var(--spacing-stack-xl);
+}
+
+/* --width-breakpoint-desktop */
+@media (min-width: 960px) {
+  .contrib-land__register {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    column-gap: var(--spacing-4xl);
+  }
+}
+
+/* Section headings over a divider, one size across both columns so the rules line up. */
+.contrib-land__h2 {
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+  text-wrap: balance;
+}
+
+.contrib-land__h2--ruled {
+  padding-block-end: var(--spacing-stack-sm);
+  border-block-end: var(--border-divider);
+}
+
+/* Ledger rows. A new row grows open from zero height while it fades in, so the
+   list slides down to make room rather than jumping. */
+.contrib-feed {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contrib-feed__row {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows var(--duration-slower) var(--ease-enter),
+    opacity var(--duration-slower) var(--ease-enter);
+}
+
+.contrib-feed__row.is-entering {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.contrib-feed__row.is-leaving {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--ease-exit);
+}
+
+/* Time in the margin, then the cover, then the entry. */
+.contrib-feed__inner {
+  display: grid;
+  grid-template-columns: var(--contrib-ledger-margin) var(
+      --contrib-ledger-cover
+    ) minmax(0, 1fr);
+  column-gap: var(--spacing-inline-md);
+  align-items: center;
+  min-height: 0;
+  overflow: hidden;
+  /* The inline-start inset is the ledger margin; the newest row's rail sits in it. */
+  padding-block: var(--spacing-inset-sm);
+  padding-inline-start: var(--spacing-inline-md);
+  border-block-end: var(--border-width-divider) solid
+    var(--color-border-extra-subtle);
+}
+
+/* The newest row carries a thin rail and a tint that settles over a few seconds. */
+.contrib-feed__row.is-new .contrib-feed__inner {
+  box-shadow: inset var(--border-width-heavy) 0 0 var(--color-primary);
+  animation: contrib-settle var(--contrib-settle) var(--ease-exit) forwards;
+}
+
+@keyframes contrib-settle {
+  0%,
+  55% {
+    background: var(--color-primary-subtle);
+  }
+
+  100% {
+    background: transparent;
+  }
+}
+
+.contrib-feed__when {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+  line-height: var(--line-height-meta);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.contrib-feed__cover {
+  width: var(--contrib-ledger-cover);
+  height: calc(var(--contrib-ledger-cover) * 1.5);
+  border-radius: var(--border-radius-thumbnail);
+  overflow: hidden;
+  background: var(--color-surface-sunken);
+  box-shadow: inset 0 0 0 1px var(--color-border-extra-subtle);
+}
+
+.contrib-feed__cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contrib-feed__cover--empty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--color-icon-muted);
+}
+
+.contrib-feed__meta {
+  display: grid;
+  gap: var(--spacing-3xs);
+  min-width: 0;
+}
+
+.contrib-feed__title {
+  font-size: var(--font-size-title-medium);
+  line-height: var(--line-height-title);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Scoped under the meta block so it outranks the base a:link rule. */
+.contrib-feed__meta .contrib-feed__link {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contrib-feed__meta .contrib-feed__link:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+.contrib-feed__by {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.contrib-feed__line {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-small);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.contrib-feed__editor {
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Phones: no margin column; the time drops under the entry. --width-breakpoint-mobile */
+@media (max-width: 449px) {
+  .contrib-feed__inner {
+    grid-template-columns: var(--contrib-ledger-cover) minmax(0, 1fr);
+    grid-template-areas:
+      "cover meta"
+      "cover when";
+    row-gap: var(--spacing-3xs);
+  }
+
+  .contrib-feed__cover {
+    grid-area: cover;
+  }
+
+  .contrib-feed__meta {
+    grid-area: meta;
+  }
+
+  .contrib-feed__when {
+    grid-area: when;
+  }
+}
+
+.contrib-feed__empty {
+  padding-block: var(--spacing-stack-md);
+}
+
+/* Side column */
+.contrib-land__aside {
+  display: grid;
+  gap: var(--spacing-stack-xl);
+  align-content: start;
+}
+
+.contrib-land__side {
+  display: grid;
+  gap: var(--spacing-stack-md);
+}
+
+.contrib-fields {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contrib-fields__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  padding-block: var(--spacing-xs);
+  border-block-end: var(--border-width-divider) solid
+    var(--color-border-extra-subtle);
+}
+
+.contrib-fields__plus {
+  display: inline-flex;
+  color: var(--color-link);
+}
+
+.contrib-land__join ol-button {
+  justify-self: start;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contrib-feed__row,
+  .contrib-feed__row.is-leaving {
+    transition: none;
+  }
+
+  .contrib-feed__row.is-new .contrib-feed__inner,
+  .contrib-land__mark path {
+    animation: none;
   }
 }
