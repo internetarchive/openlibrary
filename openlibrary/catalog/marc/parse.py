@@ -1,5 +1,6 @@
 import logging
 import re
+from collections import defaultdict
 from collections.abc import Callable
 from typing import Any
 
@@ -21,7 +22,9 @@ from openlibrary.catalog.utils import (
 # National Bibliographic Agencies mapped to OL identfiers:
 AGENCY_MAPPING = {
     "DE-101": "dnb",
+    "FCC": "melinda",
     "FI-H": "fikka",
+    "FI-MELINDA": "melinda",
     "FR-751131015": "bnf",
     "FrPBN": "bnf",
     "GyFmDB": "dnb",
@@ -29,7 +32,7 @@ AGENCY_MAPPING = {
 }
 LEGACY_BNF_PREFIX = "FRBNF"  # bnf identifier expects the modern ark: id form (see url: in identifiers.yml)
 logger = logging.getLogger("openlibrary.catalog.marc")
-max_number_of_pages = 50000  # no monograph should be longer than 50,000 pages
+max_number_of_pages = 50_000  # no monograph should be longer than 50,000 pages
 re_bad_char = re.compile("\ufffd")
 re_date = re.compile(r"^[0-9]+u*$")
 re_question = re.compile(r"^\?+$")
@@ -40,6 +43,7 @@ re_isni = re.compile(r"\(isni\)(\d{16})$")
 re_oclc = re.compile(r"^\(OCoLC\).*?0*(\d+)")
 re_ocolc = re.compile("^ocolc *$", re.IGNORECASE)
 re_ocn_or_ocm = re.compile(r"^oc[nm]0*(\d+) *$")
+re_source = re.compile(r"^(\(.+\)|[A-Za-z]+)(.*)")
 re_int = re.compile(r"\d{2,}")
 re_bracket_field = re.compile(r"^\s*(\[.*\])\.?\s*$")
 
@@ -119,6 +123,15 @@ FIELDS_WANTED = (
 )
 
 
+def read_control_number(rec: MarcBase) -> dict[str, list[str]] | None:
+    # 001 + 003 Control Number and Identifier
+    number = rec.get_control("001")
+    source = rec.get_control("003")
+    if number and source in AGENCY_MAPPING:
+        return {AGENCY_MAPPING[source]: [number]}
+    return None
+
+
 def read_agency_control_number(rec: MarcBase) -> dict[str, list[str]] | None:
     # 016: National Bibliographic Agency Control Number
     fields = rec.get_fields("016")
@@ -129,6 +142,23 @@ def read_agency_control_number(rec: MarcBase) -> dict[str, list[str]] | None:
         if identifier and control_number and not control_number.startswith(LEGACY_BNF_PREFIX):
             return {identifier: [control_number]}
     return None
+
+
+def read_system_control_numbers(rec: MarcBase) -> dict[str, list[str]]:
+    # 035: System Control Number (R)
+    identifiers = defaultdict(list)
+    fields = rec.get_fields("035")
+    for f in fields:
+        subfield, *_ = f.get_subfield_values("a") or [""]
+        m = re_source.match(subfield)
+        if not m:
+            continue
+        source, control_number = m.groups()
+        source = source.strip("()")
+        identifier = AGENCY_MAPPING.get(source)
+        if identifier and control_number:
+            identifiers[identifier].append(control_number)
+    return dict(identifiers)
 
 
 def read_doi(rec: MarcBase) -> dict[str, list[str]] | None:
@@ -677,6 +707,9 @@ def update_edition(rec: MarcBase, edition: dict[str, Any], func: Callable, field
     if v := func(rec):
         if field in edition and isinstance(edition[field], list):
             edition[field] += v
+        elif field in edition and isinstance(edition[field], dict):
+            for key, values in v.items():
+                edition[field].setdefault(key, []).extend(values)
         else:
             edition[field] = v
 
@@ -730,7 +763,9 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
             raise
 
     update_edition(rec, edition, read_lccn, "lccn")
+    update_edition(rec, edition, read_control_number, "identifiers")
     update_edition(rec, edition, read_agency_control_number, "identifiers")
+    update_edition(rec, edition, read_system_control_numbers, "identifiers")
     update_edition(rec, edition, read_doi, "identifiers")
     update_edition(rec, edition, read_issn, "identifiers")
     update_edition(rec, edition, read_authors, "authors")
