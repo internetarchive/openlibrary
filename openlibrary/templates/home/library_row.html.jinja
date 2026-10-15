@@ -52,19 +52,16 @@
                                 <span class="library-stat__value">{{ stat.value }}</span>
                                 {# Only a rise is called out; the sparkline's label says the same in words. #}
                                 {% if stat.change and stat.change > 0 %}
-                                    <span class="library-stat__change" title="{{ _("Compared with the previous 28 days") }}" aria-hidden="true">↑ {{ stat.change }}%</span>
+                                    <span class="library-stat__change"
+                                          title="{{ _('Compared with the previous 28 days') }}"
+                                          aria-hidden="true">↑ {{ stat.change }}%</span>
                                 {% endif %}
                             </span>
                             <span class="library-stat__label">{{ stat.label }}</span>
                             <svg class="library-stat__spark"
                                  viewBox="0 0 120 28"
                                  preserveAspectRatio="none"
-                                 {% if stat.change and stat.change > 0 %}
-                                 role="img"
-                                 aria-label="{{ _('Up %(percent)d%% on the previous 28 days', percent=stat.change) }}"
-                                 {% else %}
-                                 aria-hidden="true"
-                                 {% endif %}
+                                 {% if stat.change and stat.change > 0 %} role="img" aria-label="{{ _('Up %(percent)d%% on the previous 28 days', percent=stat.change) }}" {% else %} aria-hidden="true" {% endif %}
                                  focusable="false">
                                 <polyline points="{{ stat.points }}" vector-effect="non-scaling-stroke"></polyline>
                             </svg>
