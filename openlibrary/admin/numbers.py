@@ -158,6 +158,24 @@ def admin_range__bot_edits(**kargs):
     return count
 
 
+# Someone making or changing a list; `edit-list-seeds` is a save of what's on it.
+LIST_EDIT_ACTIONS = ("create-list", "edit-list-seeds")
+
+
+def admin_range__list_edits(**kargs):
+    "Counts lists created or edited between `start` and `end`."
+    try:
+        start = kargs["start"].strftime("%Y-%m-%d")
+        end = kargs["end"].strftime("%Y-%m-%d %H:%M:%S")
+        db = kargs["thingdb"]
+    except KeyError as k:
+        raise TypeError(f"{k} is a required argument for admin_range__list_edits")
+    q1 = "SELECT count(t.id) AS count FROM transaction t WHERE t.created >= $start and t.created < $end AND t.action IN $list_edit_actions"
+    result = db.query(q1, vars={"start": start, "end": end, "list_edit_actions": LIST_EDIT_ACTIONS})
+    count = result[0].count
+    return count
+
+
 def admin_range__covers(**kargs):
     "Queries the number of covers added between `start` and `end`"
     try:

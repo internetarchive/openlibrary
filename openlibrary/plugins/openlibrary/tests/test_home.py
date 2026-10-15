@@ -83,6 +83,7 @@ class TestHomeTemplates:
                 human_edits=1,
                 bot_edits=1,
                 lists=1,
+                list_edits=1,
                 visitors=1,
                 loans=1,
                 members=1,
@@ -98,6 +99,7 @@ class TestHomeTemplates:
             "human_edits": Stats(docs, "human_edits", "human_edits"),
             "bot_edits": Stats(docs, "bot_edits", "bot_edits"),
             "lists": Stats(docs, "lists", "total_lists"),
+            "list_edits": Stats(docs, "list_edits", "list_edits"),
             "visitors": Stats(docs, "visitors", "visitors"),
             "loans": Stats(docs, "loans", "loans"),
             "members": Stats(docs, "members", "total_members"),
@@ -221,25 +223,42 @@ class TestLibraryStats:
             return stat
 
         stats = {
-            "visitors": series(0, 0, 0),
             "members": series(100, 200, 300),
             "human_edits": series(1500, 1600),
             "loans": series(None, 7),
+            "list_edits": series(40, 50),
+            "lists": series(0, 0, 0),
         }
         metrics = home.get_library_stats(stats)
         assert [(m["label"], m["value"], m["href"]) for m in metrics] == [
             ("New Members", "600", "/stats"),
             ("Books Read", "7", "/subjects/in_library#ebooks=true"),
             ("Catalog Edits", "3.1K", "/recentchanges"),
+            ("Lists Updated", "90", "/lists"),
         ]
         assert metrics[0]["points"] == home.sparkline_points([100, 150, 200])
         assert home.get_library_stats(None) == []
+
+    def test_lists_created_stands_in_until_list_edits_are_counted(self):
+        def series(*values):
+            stat = MagicMock()
+            stat.get_counts.return_value = list(enumerate(values))
+            return stat
+
+        stats = {
+            "members": series(0),
+            "human_edits": series(0),
+            "loans": series(0),
+            "list_edits": series(0, 0),
+            "lists": series(3, 4),
+        }
+        assert [(m["label"], m["value"]) for m in home.get_library_stats(stats)] == [("Lists Created", "7")]
 
     def test_change_follows_the_line_not_the_monthly_average(self):
         # Busy early, quiet late: the 28-day total is high but the line, and so the change, falls.
         stat = MagicMock()
         stat.get_counts.return_value = list(enumerate([100] * 20 + [80] * 14))
-        metric = home.get_library_stats({"visitors": stat, "members": stat, "human_edits": stat, "loans": stat})[0]
+        metric = home.get_library_stats({"members": stat, "human_edits": stat, "loans": stat, "list_edits": stat})[0]
         assert metric["change"] == -20
         assert stat.get_counts.call_args.args == (34,)
 

@@ -2114,7 +2114,7 @@ msgstr ""
 msgid "Star Rating Patrons"
 msgstr ""
 
-#: admin/index.html openlibrary/plugins/openlibrary/home.py
+#: admin/index.html
 msgid "Unique Visitors"
 msgstr ""
 
@@ -8841,6 +8841,14 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Catalog Edits"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Lists Updated"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Lists Created"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py

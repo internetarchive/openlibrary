@@ -148,6 +148,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-stack-xs);
+  /* Padded out past the text and pulled back, so the hover fill frames the tile without moving it. */
+  margin: calc(-1 * var(--spacing-stack-sm)) calc(-1 * var(--spacing-inline-md));
+  padding: var(--spacing-stack-sm) var(--spacing-inline-md);
+  border-radius: var(--border-radius-menu-row);
   color: var(--color-text);
   text-decoration: none;
 }
@@ -215,9 +219,8 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .library-stat:hover .library-stat__label {
-    color: var(--color-link-hover);
-    text-decoration: underline;
+  .library-stat:hover {
+    background: var(--color-hover-overlay);
   }
 }
 

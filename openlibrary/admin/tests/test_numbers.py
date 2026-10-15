@@ -38,3 +38,14 @@ def test_edit_counts_skip_account_creation():
         assert "'new-account'" in sql
         assert author_clause in sql
         assert "t.created >= '2026-10-15' and t.created < '2026-10-15 21:00:00'" in sql
+
+
+def test_list_edits_count_list_creation_and_seed_edits():
+    db = FakeDB()
+    assert run(numbers.admin_range__list_edits, db) == 7
+    [(q, vars)] = db.queries
+    sql = str(web.db.reparam(q, vars))
+    assert "t.action IN ('" in sql
+    assert "'create-list'" in sql
+    assert "'edit-list-seeds'" in sql
+    assert "t.created >= '2026-10-15' and t.created < '2026-10-15 21:00:00'" in sql

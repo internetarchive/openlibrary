@@ -105,32 +105,33 @@ def percent_change(line: list[float]) -> int | None:
 
 
 def get_library_stats(stats) -> list[dict]:
-    """The card's metrics, in reading order. A series with nothing in the window (visitors, when
-    graphite can't be reached) is left off rather than shown as zero."""
+    """The card's metrics, in reading order. A series with nothing in the window is left off
+    rather than shown as zero."""
     if not stats:
         return []
-    series = [
-        ("visitors", _("Unique Visitors"), "/stats"),
-        ("members", _("New Members"), "/stats"),
-        ("loans", _("Books Read"), "/subjects/in_library#ebooks=true"),
-        ("human_edits", _("Catalog Edits"), "/recentchanges"),
-    ]
-    metrics = []
-    for key, label, href in series:
+
+    def metric(key, label, href):
         # Graphite reports days it has no data for (often today) as None or 0.
         counts = [int(count or 0) for _day, count in stats[key].get_counts(LIBRARY_STATS_DAYS + SMOOTHING_DAYS - 1)]
         line = rolling_average(counts, SMOOTHING_DAYS)[-LIBRARY_STATS_DAYS:]
         if total := sum(counts[-LIBRARY_STATS_DAYS:]):
-            metrics.append(
-                {
-                    "label": label,
-                    "value": compact_number(total),
-                    "href": href,
-                    "points": sparkline_points(line),
-                    "change": percent_change(line),
-                }
-            )
-    return metrics
+            return {
+                "label": label,
+                "value": compact_number(total),
+                "href": href,
+                "points": sparkline_points(line),
+                "change": percent_change(line),
+            }
+        return None
+
+    series = [
+        metric("members", _("New Members"), "/stats"),
+        metric("loans", _("Books Read"), "/subjects/in_library#ebooks=true"),
+        metric("human_edits", _("Catalog Edits"), "/recentchanges"),
+        # List edits are a newer daily count; until the docs carry it, show lists created.
+        metric("list_edits", _("Lists Updated"), "/lists") or metric("lists", _("Lists Created"), "/lists"),
+    ]
+    return [m for m in series if m]
 
 
 def get_cached_homepage():
