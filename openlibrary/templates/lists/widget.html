@@ -13,11 +13,8 @@ $if ctx.user:
   $ seed_keys = [key for key in [work and work.key, edition and edition.key] if key] or [page.key]
   $ book_lists_labels = {
   $   "onYourLists": _("On your lists"),
-  $   "anyEdition": _("Any edition"),
   $   "removeFromList": _("Remove from %(name)s"),
-  $   "removeThisEdition": _("Remove this edition from %(name)s"),
   $   "removedFromList": _("Removed from %(name)s"),
-  $   "removedThisEdition": _("Removed this edition from %(name)s. The book is still on it."),
   $   "errorGeneric": _("Something went wrong. Please try again."),
   $ }
   <ol-book-lists seed-keys="$json_encode(seed_keys)" labels="$json_encode(book_lists_labels)"></ol-book-lists>

@@ -34,10 +34,10 @@ async function mount(listData, seedKeys = [WORK, EDITION]) {
 }
 
 const names = el => [...el.shadowRoot.querySelectorAll('li a')].map(a => a.textContent);
-const notes = el => [...el.shadowRoot.querySelectorAll('li')].map(li => li.querySelector('.note')?.textContent ?? null);
 const removeLabel = el => el.shadowRoot.querySelector('.remove').getAttribute('aria-label');
 const status = el => el.shadowRoot.querySelector('[role="status"]').textContent;
-const removed = () => global.fetch.mock.calls.filter(([url]) => String(url).endsWith('/seeds.json')).map(([, init]) => JSON.parse(init.body).remove[0].key);
+const removed = () =>
+    global.fetch.mock.calls.filter(([url]) => String(url).endsWith('/seeds.json')).map(([, init]) => JSON.parse(init.body).remove.map(seed => seed.key));
 
 describe('ol-book-lists', () => {
     beforeEach(() => {
@@ -78,38 +78,33 @@ describe('ol-book-lists', () => {
         expect(global.fetch).toHaveBeenCalledTimes(1);
     });
 
-    test('on an edition page, a list holding the work too keeps the work', async () => {
-        const el = await mount({ [LIST]: { listName: 'Mine', members: [WORK, EDITION] } });
-        expect(notes(el)).toEqual(['Any edition']);
-        expect(removeLabel(el)).toBe('Remove this edition from Mine');
-
-        el.shadowRoot.querySelector('.remove').click();
-        await vi.waitFor(() => expect(status(el)).toBe('Removed this edition from Mine. The book is still on it.'));
-        expect(removed()).toEqual([EDITION]);
-        expect(names(el)).toEqual(['Mine']);
-        expect(notes(el)).toEqual(['Any edition']);
-        expect(removeLabel(el)).toBe('Remove from Mine');
-        expect(el.shadowRoot.activeElement).toBe(el.shadowRoot.querySelector('.remove'));
-    });
-
-    test('removing the only key takes the row out', async () => {
-        const el = await mount({ [LIST]: { listName: 'Mine', members: [EDITION, OTHER] } });
-        expect(notes(el)).toEqual([null]);
+    test('a row has no note, and remove takes out every key of the book in one request', async () => {
+        const el = await mount({ [LIST]: { listName: 'Mine', members: [WORK, EDITION, OTHER] } });
+        expect(el.shadowRoot.querySelector('li .note')).toBeNull();
         expect(removeLabel(el)).toBe('Remove from Mine');
 
         el.shadowRoot.querySelector('.remove').click();
         await vi.waitFor(() => expect(names(el)).toEqual([]));
-        expect(removed()).toEqual([EDITION]);
+        expect(removed()).toEqual([[WORK, EDITION]]);
         expect(status(el)).toBe('Removed from Mine');
     });
 
-    test('a row keeps its place after a partial remove', async () => {
+    test('a failed remove puts the row back', async () => {
+        const el = await mount({ [LIST]: { listName: 'Mine', members: [WORK, EDITION] } });
+        global.fetch.mockImplementationOnce(async () => ({ ok: false, status: 500, json: async () => ({}) }));
+        el.shadowRoot.querySelector('.remove').click();
+        await vi.waitFor(() => expect(removed()).toHaveLength(1));
+        await vi.waitFor(() => expect(names(el)).toEqual(['Mine']));
+    });
+
+    test("focus moves to the row that took the removed one's place", async () => {
         const el = await mount({
-            '/people/openlibrary/lists/OL2L': { listName: 'First', members: [EDITION] },
-            [LIST]: { listName: 'Second', members: [WORK, EDITION] }
+            [LIST]: { listName: 'First', members: [EDITION] },
+            '/people/openlibrary/lists/OL2L': { listName: 'Second', members: [WORK] }
         });
-        el.shadowRoot.querySelectorAll('.remove')[1].click();
-        await vi.waitFor(() => expect(status(el)).toContain('Second'));
-        expect(names(el)).toEqual(['First', 'Second']);
+        el.shadowRoot.querySelectorAll('.remove')[0].click();
+        await vi.waitFor(() => expect(names(el)).toEqual(['Second']));
+        await el.updateComplete;
+        expect(el.shadowRoot.activeElement).toBe(el.shadowRoot.querySelector('.remove'));
     });
 });

@@ -2,7 +2,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
 import './OLButton.js';
-import { getLists, subscribeToLists, loadLists, toggleListSeed } from './utils/lists-store.js';
+import { getLists, subscribeToLists, loadLists, removeListSeeds } from './utils/lists-store.js';
 import { redirectToLogin } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
@@ -10,11 +10,8 @@ import { translate } from './utils/labels.js';
 
 export const DEFAULT_LABELS = {
     onYourLists: 'On your lists',
-    anyEdition: 'Any edition',
     removeFromList: 'Remove from %(name)s',
-    removeThisEdition: 'Remove this edition from %(name)s',
     removedFromList: 'Removed from %(name)s',
-    removedThisEdition: 'Removed this edition from %(name)s. The book is still on it.',
     errorGeneric: 'Something went wrong. Please try again.'
 };
 
@@ -28,8 +25,8 @@ export const DEFAULT_LABELS = {
  *
  * A list counts if it holds one of the page's own keys: the work, or the
  * edition on screen. Other editions of the book are left to the popover, which
- * fetches them on open. On an edition page, a list holding the work too keeps
- * it when this edition is removed.
+ * fetches them on open. Remove takes every one of those keys out of the list,
+ * so a row always stands for the book, not a form of it.
  *
  * @element ol-book-lists
  *
@@ -38,7 +35,7 @@ export const DEFAULT_LABELS = {
  * @prop {Object} labels - Translated overrides for DEFAULT_LABELS (JSON).
  *
  * @fires ol-list-change - After the book is taken out of a list here.
- *     detail: { key, name, seedKey, member: false }
+ *     detail: { key, name, seedKeys, member: false }
  *
  * @example
  * <ol-book-lists seed-keys='["/works/OL1W", "/books/OL1M"]'></ol-book-lists>
@@ -78,16 +75,10 @@ export class OlBookLists extends LitElement {
             color: var(--color-icon-muted);
         }
 
-        /* The name, and under it any note, share the row's free width. */
-        .text {
-            display: flex;
-            flex: 1;
-            flex-direction: column;
-            min-width: 0;
-        }
-
         /* One line: a long name ends in an ellipsis, and its title shows it whole. */
         a {
+            flex: 1;
+            min-width: 0;
             overflow: hidden;
             color: var(--color-text);
             font-size: var(--font-size-body-small);
@@ -99,16 +90,6 @@ export class OlBookLists extends LitElement {
         a:focus-visible {
             outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: var(--spacing-3xs);
-        }
-
-        /* A small line under the name, as in the popover, so the name keeps the width. */
-        .note {
-            overflow: hidden;
-            line-height: var(--line-height-meta);
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-small);
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
 
         .remove {
@@ -162,6 +143,7 @@ export class OlBookLists extends LitElement {
         this._lists = getLists();
         this._announcement = '';
         this._order = [];
+        this._removing = new Set();
     }
 
     connectedCallback() {
@@ -186,15 +168,6 @@ export class OlBookLists extends LitElement {
         this._lists = lists;
     }
 
-    get _workKey() {
-        return this.seedKeys.find(key => key.startsWith('/works/'));
-    }
-
-    /** The edition this page is for; none on a work or author page. */
-    get _editionKey() {
-        return this.seedKeys.find(key => key.startsWith('/books/'));
-    }
-
     disconnectedCallback() {
         super.disconnectedCallback();
         this._unsubscribe?.();
@@ -211,49 +184,36 @@ export class OlBookLists extends LitElement {
         return this._order
             .map(key => [key, this._lists[key]])
             .map(([key, list]) => ({ key, name: list.listName, seeds: list.members.filter(m => seeds.has(m)) }))
-            .filter(row => row.seeds.length)
-            .map(row => ({ ...row, ...this._removal(row) }));
-    }
-
-    /**
-     * What remove takes out of a row, and the label that says so. A row holds
-     * one key, or on an edition page both the work and this edition; then
-     * remove takes this edition only and the row stays, noted "Any edition".
-     */
-    _removal(row) {
-        const vars = { name: row.name };
-        if (row.seeds.length > 1) {
-            return { target: this._editionKey, partial: true, anyEdition: true, label: this.t('removeThisEdition', vars) };
-        }
-        const [target] = row.seeds;
-        const anyEdition = Boolean(this._editionKey) && target === this._workKey;
-        return { target, partial: false, anyEdition, label: this.t('removeFromList', vars) };
+            .filter(row => row.seeds.length);
     }
 
     async _remove(row, index) {
+        if (this._removing.has(row.key)) return;
+        this._removing.add(row.key);
         try {
-            await toggleListSeed(row.key, row.target, false);
+            await removeListSeeds(row.key, row.seeds);
         } catch (error) {
             if (error?.status === 401) return redirectToLogin();
             showToast(this.t('errorGeneric'), { type: 'error' });
             return;
+        } finally {
+            this._removing.delete(row.key);
         }
         this.dispatchEvent(
             new CustomEvent('ol-list-change', {
                 bubbles: true,
                 composed: true,
-                detail: { key: row.key, name: row.name, seedKey: row.target, member: false }
+                detail: { key: row.key, name: row.name, seedKeys: row.seeds, member: false }
             })
         );
         trackEvent('Lists', 'RemoveSeed');
-        // No toast: the row going, or its note changing, says it happened.
-        // Screen readers hear it from the live region instead.
-        this._announcement = this.t(row.partial ? 'removedThisEdition' : 'removedFromList', { name: row.name });
-        // Keep keyboard focus in the strip: on the row if it stayed, else the next one.
+        // No toast: the row going says it happened. Screen readers hear it
+        // from the live region instead.
+        this._announcement = this.t('removedFromList', { name: row.name });
+        // Keep keyboard focus in the strip, on the row that took its place.
         await this.updateComplete;
-        const same = this.renderRoot.querySelector(`li[data-key="${CSS.escape(row.key)}"] .remove`);
         const buttons = this.renderRoot.querySelectorAll('.remove');
-        (same || buttons[Math.min(index, buttons.length - 1)])?.focus();
+        buttons[Math.min(index, buttons.length - 1)]?.focus();
     }
 
     render() {
@@ -269,17 +229,14 @@ export class OlBookLists extends LitElement {
                               (row, index) =>
                                   html`<li data-key=${row.key}>
                                       <ol-icon class="icon" name="list" size="sm"></ol-icon>
-                                      <span class="text">
-                                          <a href=${row.key} title=${row.name}>${row.name}</a>
-                                          ${row.anyEdition ? html`<span class="note">${this.t('anyEdition')}</span>` : nothing}
-                                      </span>
+                                      <a href=${row.key} title=${row.name}>${row.name}</a>
                                       <ol-button
                                           class="remove"
                                           shape="icon"
                                           variant="ghost"
                                           size="small"
-                                          title=${row.label}
-                                          aria-label=${row.label}
+                                          title=${this.t('removeFromList', { name: row.name })}
+                                          aria-label=${this.t('removeFromList', { name: row.name })}
                                           @click=${() => this._remove(row, index)}
                                           ><ol-icon name="x" size="sm"></ol-icon
                                       ></ol-button>

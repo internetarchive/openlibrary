@@ -176,8 +176,9 @@ export function addToList(listKey, seedKey) {
     return request(`${listKey}/seeds.json`, json({ add: [{ key: seedKey }] }));
 }
 
-export function removeFromList(listKey, seedKey) {
-    return request(`${listKey}/seeds.json`, json({ remove: [{ key: seedKey }] }));
+/** Takes one or more keys out of the list in a single request. */
+export function removeFromList(listKey, seedKeys) {
+    return request(`${listKey}/seeds.json`, json({ remove: seedKeys.map(key => ({ key })) }));
 }
 
 /** Resolves to `{ key, ... }` of the new list. */

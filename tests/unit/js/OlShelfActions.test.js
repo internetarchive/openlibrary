@@ -269,7 +269,7 @@ describe('ol-shelf-actions lists pane', () => {
         // Neither row is ticked: OL2L holds the book with no edition named, so
         // it carries the label instead of the tick.
         expect(rows.map(r => r.querySelector('input').checked)).toEqual([false, false]);
-        expect(rows.map(r => r.querySelector('.other-form')?.textContent ?? null)).toEqual([null, 'Any edition']);
+        expect(rows.map(r => r.querySelector('.other-form')?.textContent ?? null)).toEqual([null, 'Already on this list']);
         expect(rows.map(r => r.querySelector('.count').textContent)).toEqual(['1', '1']);
     });
 
@@ -426,7 +426,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(q(el, '.loading')).toBeNull();
         // OL2L holds the work, which this button names itself, so that much is
         // still known without the fetch — only sibling editions go unseen.
-        expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('Any edition');
+        expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('Already on this list');
     });
 
     test('a list holding the book with no edition named says so', async () => {
@@ -438,9 +438,21 @@ describe('ol-shelf-actions lists pane', () => {
         // writes an edition, so the row is unticked and labelled.
         const [, second] = qa(el, '.list-row');
         expect(second.querySelector('input').checked).toBe(false);
-        expect(second.querySelector('.other-form').textContent).toBe('Any edition');
+        expect(second.querySelector('.other-form').textContent).toBe('Already on this list');
         // It still counts as the book being on a list.
         expect(el._listCount).toBe(1);
+    });
+
+    test('ticking a list that already holds the book drops the note', async () => {
+        stubFetch();
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        const input = qa(el, '.list-row')[1].querySelector('input');
+        input.checked = true;
+        input.dispatchEvent(new Event('change'));
+        await tick(el);
+        expect(qa(el, '.list-row')[1].querySelector('.other-form')).toBeNull();
     });
 
     test('a list with neither the book nor any edition of it is bare', async () => {
