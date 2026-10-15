@@ -1,7 +1,7 @@
 {#
   The row under the home page carousels: the librarian call-out, which pitches the catalog as a
   commons and sends readers to /librarians, and beside it the stats card ("In the last month"), four
-  28-day counts with sparklines and, when it rose, the change from the 28 days before. `stats` is home.get_library_stats(); it's empty when admin
+  28-day counts with sparklines and, when it rose, the change from the line's first point to its last. `stats` is home.get_library_stats(); it's empty when admin
   stats are unavailable, and then the call-out takes the whole row.
 #}
 <div class="library-row{% if not stats %} library-row--solo{% endif %}">
@@ -50,7 +50,7 @@
                                 {# Only a rise is called out; the sparkline's label says the same in words. #}
                                 {% if stat.change and stat.change > 0 %}
                                     <span class="library-stat__change"
-                                          title="{{ _('Compared with the month before') }}"
+                                          title="{{ _('Change over the month, by 7-day average') }}"
                                           aria-hidden="true">↑ {{ stat.change }}%</span>
                                 {% endif %}
                             </span>
@@ -58,7 +58,7 @@
                             <svg class="library-stat__spark"
                                  viewBox="0 0 120 28"
                                  preserveAspectRatio="none"
-                                 {% if stat.change and stat.change > 0 %} role="img" aria-label="{{ _('Up %(percent)d%% on the month before', percent=stat.change) }}" {% else %} aria-hidden="true" {% endif %}
+                                 {% if stat.change and stat.change > 0 %} role="img" aria-label="{{ _('Up %(percent)d%% over the month', percent=stat.change) }}" {% else %} aria-hidden="true" {% endif %}
                                  focusable="false">
                                 <polyline points="{{ stat.points }}" vector-effect="non-scaling-stroke"></polyline>
                             </svg>

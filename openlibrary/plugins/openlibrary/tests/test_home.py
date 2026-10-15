@@ -207,13 +207,12 @@ class TestLibraryStats:
         assert home.rolling_average([2, 4, 0, 6], window=2) == [2, 3, 4, 6]
         assert home.rolling_average([0, 0, 5], window=2) == [0, 0, 5]
 
-    def test_percent_change_compares_daily_averages(self):
-        assert home.percent_change([150] * 7, [100] * 7) == 50
-        assert home.percent_change([90] * 7, [100] * 7) == -10
-        # Missing days don't count against a window's average.
-        assert home.percent_change([100] * 7 + [0] * 21, [100] * 28) == 0
-        assert home.percent_change([100] * 7, [100] * 6) is None
-        assert home.percent_change([100] * 7, []) is None
+    def test_percent_change_runs_from_the_first_point_to_the_last(self):
+        assert home.percent_change([100, 300, 150]) == 50
+        assert home.percent_change([100, 50, 90]) == -10
+        # Days with no count at either end don't anchor the change.
+        assert home.percent_change([0, 100, 120, 0]) == 20
+        assert home.percent_change([100]) is None
 
     def test_metrics_in_order_and_empty_series_dropped(self):
         def series(*values):
@@ -236,12 +235,13 @@ class TestLibraryStats:
         assert metrics[0]["points"] == home.sparkline_points([100, 150, 200])
         assert home.get_library_stats(None) == []
 
-    def test_change_against_the_previous_28_days(self):
+    def test_change_follows_the_line_not_the_monthly_average(self):
+        # Busy early, quiet late: the 28-day total is high but the line, and so the change, falls.
         stat = MagicMock()
-        stat.get_counts.return_value = list(enumerate([100] * 28 + [125] * 28))
+        stat.get_counts.return_value = list(enumerate([100] * 20 + [80] * 14))
         metric = home.get_library_stats({"visitors": stat, "members": stat, "human_edits": stat, "loans": stat})[0]
-        assert metric["value"] == "3.5K"
-        assert metric["change"] == 25
+        assert metric["change"] == -20
+        assert stat.get_counts.call_args.args == (34,)
 
     def test_mock_stats_cover_the_window_oldest_first(self):
         stats = admin.mock_get_stats(56)

@@ -4446,12 +4446,12 @@ msgid "In the last month"
 msgstr ""
 
 #: home/library_row.html.jinja
-msgid "Compared with the month before"
+msgid "Change over the month, by 7-day average"
 msgstr ""
 
 #: home/library_row.html.jinja
 #, python-format
-msgid "Up %(percent)d%% on the month before"
+msgid "Up %(percent)d%% over the month"
 msgstr ""
 
 #: home/welcome.html

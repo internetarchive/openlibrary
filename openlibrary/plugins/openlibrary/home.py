@@ -26,8 +26,8 @@ logger = logging.getLogger("openlibrary.home")
 
 def get_homepage(devmode):
     try:
-        # Two windows: the card's 28 days and the 28 before, for the change figure.
-        stats = admin.get_stats(ndays=2 * LIBRARY_STATS_DAYS, use_mock_data=devmode)
+        # The card's 28 days, plus the six before them so its first day has a full 7-day average.
+        stats = admin.get_stats(ndays=LIBRARY_STATS_DAYS + SMOOTHING_DAYS - 1, use_mock_data=devmode)
     except Exception:
         logger.error("Error in getting stats", exc_info=True)
         stats = None
@@ -50,10 +50,11 @@ def get_homepage(devmode):
     return dict(page)
 
 
-# The "Around the library" card (home/library_row.html.jinja): four of admin.get_stats's series,
+# The stats card (home/library_row.html.jinja): four of admin.get_stats's series,
 # each summed over the last 28 days, with a sparkline of the 7-day average drawn in a 120x28 box
-# and the change in the daily average from the 28 days before.
+# and the change from its first point to its last.
 LIBRARY_STATS_DAYS = 28
+SMOOTHING_DAYS = 7
 SPARKLINE_WIDTH = 120
 SPARKLINE_HEIGHT = 28
 
@@ -94,14 +95,13 @@ def sparkline_points(values: list[float], width: int = SPARKLINE_WIDTH, height: 
     return " ".join(f"{pad + i * step:.1f},{pad + (height - 2 * pad) * (high - value) / (high - low):.1f}" for i, value in enumerate(values) if value)
 
 
-def percent_change(current: list[int], previous: list[int], min_days: int = 7) -> int | None:
-    """Change in the daily average between two windows, counting only days with a count.
-    None when either window has fewer than `min_days` of them to go on."""
-    current, previous = [v for v in current if v], [v for v in previous if v]
-    if len(current) < min_days or len(previous) < min_days:
+def percent_change(line: list[float]) -> int | None:
+    """Change from the first point of the sparkline to its last: the 7-day average at the start of
+    the window against the one ending today, so the figure always agrees with the line."""
+    present = [v for v in line if v]
+    if len(present) < 2:
         return None
-    before = sum(previous) / len(previous)
-    return round((sum(current) / len(current) - before) / before * 100)
+    return round((present[-1] - present[0]) / present[0] * 100)
 
 
 def get_library_stats(stats) -> list[dict]:
@@ -118,16 +118,16 @@ def get_library_stats(stats) -> list[dict]:
     metrics = []
     for key, label, href in series:
         # Graphite reports days it has no data for (often today) as None or 0.
-        counts = [int(count or 0) for _day, count in stats[key].get_counts(2 * LIBRARY_STATS_DAYS)]
-        current, previous = counts[-LIBRARY_STATS_DAYS:], counts[:-LIBRARY_STATS_DAYS]
-        if total := sum(current):
+        counts = [int(count or 0) for _day, count in stats[key].get_counts(LIBRARY_STATS_DAYS + SMOOTHING_DAYS - 1)]
+        line = rolling_average(counts, SMOOTHING_DAYS)[-LIBRARY_STATS_DAYS:]
+        if total := sum(counts[-LIBRARY_STATS_DAYS:]):
             metrics.append(
                 {
                     "label": label,
                     "value": compact_number(total),
                     "href": href,
-                    "points": sparkline_points(rolling_average(counts)[-LIBRARY_STATS_DAYS:]),
-                    "change": percent_change(current, previous),
+                    "points": sparkline_points(line),
+                    "change": percent_change(line),
                 }
             )
     return metrics
