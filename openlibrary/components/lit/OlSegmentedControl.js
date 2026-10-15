@@ -56,7 +56,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         disabled: { type: Boolean, reflect: true },
         fullWidth: { type: Boolean, reflect: true, attribute: 'full-width' },
         accessibleLabel: { type: String, attribute: 'accessible-label' },
-        _options: { state: true },
+        _options: { state: true }
     };
 
     static styles = css`
@@ -253,7 +253,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .segment:not([aria-checked="true"]):not(:disabled):hover {
+            .segment:not([aria-checked='true']):not(:disabled):hover {
                 color: var(--color-text);
             }
         }
@@ -278,32 +278,32 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         }
 
         /* Sizes — mirror ol-button so same-size controls line up. */
-        :host([size="small"]) .track {
+        :host([size='small']) .track {
             height: var(--control-height-small);
         }
 
-        :host([size="small"]) .segment {
+        :host([size='small']) .segment {
             padding: 0 var(--spacing-sm);
             font-size: var(--font-size-label-medium);
         }
 
-        :host([size="small"]) .segment ol-icon,
-        :host([size="small"]) .segment svg {
+        :host([size='small']) .segment ol-icon,
+        :host([size='small']) .segment svg {
             width: 16px;
             height: 16px;
         }
 
-        :host([size="large"]) .track {
+        :host([size='large']) .track {
             height: var(--control-height-large);
         }
 
-        :host([size="large"]) .segment {
+        :host([size='large']) .segment {
             padding: 0 var(--spacing-lg);
             font-size: var(--font-size-body-large);
         }
 
-        :host([size="large"]) .segment ol-icon,
-        :host([size="large"]) .segment svg {
+        :host([size='large']) .segment ol-icon,
+        :host([size='large']) .segment svg {
             width: 20px;
             height: 20px;
         }
@@ -368,7 +368,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
     // The light-DOM children stay in the DOM (hidden via ol-components.css) but
     // are never slotted — the shadow root renders the interactive radios.
     _harvestOptions() {
-        this._options = Array.from(this.querySelectorAll('ol-segment')).map((el) => {
+        this._options = Array.from(this.querySelectorAll('ol-segment')).map(el => {
             const text = el.textContent.trim();
             // A segment with element children carries markup (e.g. an icon);
             // render that verbatim. A text-only segment renders its plain text.
@@ -380,15 +380,15 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
                 // Accessible name: the `label` attribute, else the text. Icon-only
                 // segments have no text, so they rely on `label`.
                 accessibleLabel: el.getAttribute('label') ?? text,
-                disabled: el.hasAttribute('disabled'),
+                disabled: el.hasAttribute('disabled')
             };
         });
 
         // A segmented control always has a selection. If value is unset or
         // doesn't match an option, fall back to the first enabled option.
-        const hasValid = this._options.some((o) => o.value === this.value && !o.disabled);
+        const hasValid = this._options.some(o => o.value === this.value && !o.disabled);
         if (!hasValid) {
-            const firstEnabled = this._options.find((o) => !o.disabled);
+            const firstEnabled = this._options.find(o => !o.disabled);
             this.value = firstEnabled ? firstEnabled.value : null;
         }
     }
@@ -399,7 +399,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         // <slot> a microtask later; until it does, those buttons have no box and
         // would measure as zero-width. Wait for them before sizing the pill.
         const tooltips = Array.from(this.renderRoot.querySelectorAll('ol-tooltip'));
-        await Promise.all(tooltips.map((t) => t.updateComplete));
+        await Promise.all(tooltips.map(t => t.updateComplete));
         // Place the pill/active layer, reveal them, then enable transitions one
         // frame later so the first placement doesn't animate from the origin.
         this._measure();
@@ -452,19 +452,21 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
 
     // Index of the option that owns the roving tabindex / arrow-key focus.
     get _activeIndex() {
-        const i = this._options.findIndex((o) => o.value === this.value);
+        const i = this._options.findIndex(o => o.value === this.value);
         if (i !== -1) return i;
-        return this._options.findIndex((o) => !o.disabled);
+        return this._options.findIndex(o => !o.disabled);
     }
 
     _select(value, { focus = false } = {}) {
         if (value === this.value) return;
         this.value = value;
-        this.dispatchEvent(new CustomEvent('ol-segmented-control-change', {
-            bubbles: true,
-            composed: true,
-            detail: { value },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-segmented-control-change', {
+                bubbles: true,
+                composed: true,
+                detail: { value }
+            })
+        );
         if (focus) {
             this.updateComplete.then(() => {
                 const btn = this.renderRoot.querySelector('.segment[aria-checked="true"]');
@@ -479,9 +481,9 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         const target = getNextKeyboardFocusIndex(e.key, {
             count: this._options.length,
             current: this._activeIndex,
-            isDisabled: (i) => this._options[i].disabled,
+            isDisabled: i => this._options[i].disabled,
             orientation: 'both',
-            wrap: true,
+            wrap: true
         });
         if (target === -1) return;
         e.preventDefault();
@@ -493,19 +495,10 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         // The active layer mirrors the base layer one-for-one so the two stay
         // pixel-aligned — the clip can then split a label's colour mid-glyph.
         return html`
-            <div
-                class="track"
-                role="radiogroup"
-                aria-label=${this.accessibleLabel || nothing}
-                @keydown=${this._onKeydown}
-            >
+            <div class="track" role="radiogroup" aria-label=${this.accessibleLabel || nothing} @keydown=${this._onKeydown}>
                 <div class="pill" aria-hidden="true"></div>
-                <div class="layer layer--base">
-                    ${this._options.map((option, i) => this._renderSegment(option, i, activeIndex))}
-                </div>
-                <div class="layer layer--active" aria-hidden="true">
-                    ${this._options.map((option) => this._renderGhost(option))}
-                </div>
+                <div class="layer layer--base">${this._options.map((option, i) => this._renderSegment(option, i, activeIndex))}</div>
+                <div class="layer layer--active" aria-hidden="true">${this._options.map(option => this._renderGhost(option))}</div>
             </div>
         `;
     }
@@ -513,10 +506,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
     // The active-layer twin of a segment: same box (so widths match the real
     // button exactly) but a plain, non-interactive span in the active colour.
     _renderGhost(option) {
-        return html`
-            <span class="segment segment--ghost" aria-hidden="true"
-            >${option.isMarkup ? unsafeHTML(option.content) : option.content}</span>
-        `;
+        return html` <span class="segment segment--ghost" aria-hidden="true">${option.isMarkup ? unsafeHTML(option.content) : option.content}</span> `;
     }
 
     _renderSegment(option, i, activeIndex) {
@@ -533,16 +523,15 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
                 tabindex=${i === activeIndex ? '0' : '-1'}
                 ?disabled=${this.isDisabled || option.disabled}
                 @click=${() => this._select(option.value)}
-            >${option.isMarkup ? unsafeHTML(option.content) : option.content}</button>
+            >
+                ${option.isMarkup ? unsafeHTML(option.content) : option.content}
+            </button>
         `;
         // An icon alone doesn't say what it does, so repeat its name in a
         // tooltip. Below the control: these sit in toolbars where the space
         // above usually belongs to another row.
         if (!option.isMarkup || !option.accessibleLabel) return button;
-        return html`
-            <ol-tooltip content=${option.accessibleLabel} placement="bottom"
-            >${button}</ol-tooltip>
-        `;
+        return html` <ol-tooltip content=${option.accessibleLabel} placement="bottom">${button}</ol-tooltip> `;
     }
 }
 

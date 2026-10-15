@@ -28,6 +28,7 @@ from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.openlibrary.pd import get_pd_org
+from openlibrary.utils import server_timing
 from openlibrary.utils.request_context import site
 
 try:
@@ -104,6 +105,26 @@ def decrypt_s3_keys(token: str) -> tuple[str, str]:
     plaintext = _get_fernet().decrypt(token.encode()).decode()
     access, secret = plaintext.split(":", 1)
     return access, secret
+
+
+def encrypt_token(token: str) -> str:
+    """Encrypt a single OAuth token for storage.
+
+    Same Fernet key and pattern as :func:`encrypt_s3_keys` above -- one secret,
+    one scheme. Deliberately *not* a digest: Open Library presents these tokens
+    to a provider, so they have to come back out. Hashing is correct on the
+    node, which verifies; wrong here, which sends.
+    """
+    return _get_fernet().encrypt(token.encode()).decode()
+
+
+def decrypt_token(ciphertext: str) -> str:
+    """Decrypt a token written by :func:`encrypt_token`.
+
+    Raises ``cryptography.fernet.InvalidToken`` on tampered input or input
+    encrypted under a rotated secret, like :func:`decrypt_s3_keys`.
+    """
+    return _get_fernet().decrypt(ciphertext.encode()).decode()
 
 
 def parse_s3_cookie(s3_cookie: str | None) -> dict | None:
@@ -857,7 +878,9 @@ class InternetArchiveAccount(web.storage):
         if test:
             params["developer"] = test
 
-        response = requests.post(url, params=params, json=data, headers=headers or {})
+        with server_timing.timed("ia-xauthn") as call:
+            response = requests.post(url, params=params, json=data, headers=headers or {})
+            call.failed = response.status_code >= 500
         if response.status_code == 403:
             raise OLAuthenticationError("security_error")
         if response.status_code == 504 and op == "create":
@@ -881,13 +904,15 @@ class InternetArchiveAccount(web.storage):
             raise TypeError(f"Expected 'url' to be a string, got {type(url).__name__} instead")
 
         try:
-            response = requests.get(
-                url,
-                headers={
-                    "Content-Type": "application/json",
-                    "authorization": f"LOW {access_key}:{secret_key}",
-                },
-            )
+            with server_timing.timed("ia-s3auth") as call:
+                response = requests.get(
+                    url,
+                    headers={
+                        "Content-Type": "application/json",
+                        "authorization": f"LOW {access_key}:{secret_key}",
+                    },
+                )
+                call.failed = response.status_code >= 500
             response.raise_for_status()
             return response.json()
         except requests.HTTPError as e:

@@ -19,8 +19,8 @@ export default {
         'openlibrary/components/lit/index.js',
         'openlibrary/components/lit/icons.generated.js',
         'openlibrary/components/lit/editor-core.js',
-        'openlibrary/components/lit/html-block.js',
+        'openlibrary/components/lit/html-block.js'
     ],
     outdir: 'openlibrary/components/lit',
-    litelement: true,
+    litelement: true
 };

@@ -1,15 +1,15 @@
 """Admin functionality."""
 
 import calendar
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 import requests
 import web
 
 from openlibrary.core import cache
+from openlibrary.core.async_db import fetch_val
 from openlibrary.core.env import get_ol_env
-
-from . import db
+from openlibrary.core.helpers import commify, format_date
 
 
 class Stats:
@@ -51,6 +51,34 @@ class Stats:
             return [[_convert_to_milli_timestamp(x["_key"]), x.get(self.key, 0)] for x in self.docs[-ndays:]]
         else:
             return zip(range(0, ndays * 5, 5), (x.get(self.key, 0) for x in self.docs[-ndays:]))  # The *5 and 5 are for the bar widths
+
+    def get_bar_chart(self, ndays: int, width: int, height: int) -> dict:
+        """Data for a daily bar chart of the last `ndays`, drawn by StatsBarChart.html.jinja.
+
+        Bars are oldest first and scaled so the busiest day fills `height`.
+        """
+        counts = sorted(self.get_counts(ndays, True))
+        peak = max((count for _, count in counts), default=0) or 1
+        step = width / max(len(counts), 1)
+        bars = []
+        for i, (timestamp, count) in enumerate(counts):
+            bar_height = count / peak * height
+            day = datetime.fromtimestamp(timestamp / 1000, tz=UTC)
+            bars.append(
+                {
+                    "x": round(i * step, 2),
+                    "y": round(height - bar_height, 2),
+                    "height": round(bar_height, 2),
+                    "title": f"{format_date(day)}: {commify(count)}",
+                }
+            )
+        return {
+            "width": width,
+            "height": height,
+            "bar_step": round(step, 2),
+            "bar_width": round(step - min(1, step / 4), 2),
+            "bars": bars,
+        }
 
     def get_summary(self, ndays=28):
         """Returns the summary of counts for past n days.
@@ -95,8 +123,8 @@ class LoanStats(Stats):
             return Stats.get_counts(self, ndays, times)
 
         if graphite_data := _get_loan_counts_from_graphite(ndays):
-            # convert timestamp seconds to ms (as required by API)
-            return [[timestamp * 1000, count] for [count, timestamp] in graphite_data]
+            # Convert timestamp seconds to ms (as required by API); Graphite reports None for days with no data yet (e.g. today)
+            return [[timestamp * 1000, count or 0] for [count, timestamp] in graphite_data]
         else:
             return Stats.get_counts(self, ndays, times)
 
@@ -171,23 +199,19 @@ def get_stats(ndays=30, use_mock_data=False):
 
 
 @cache.memoize(engine="memcache", key="logins_since", expires=12 * 60 * 60)
-def get_unique_logins_since(since_days=30):
+async def get_unique_logins_since(since_days=30):
     since_date = datetime.now() - timedelta(days=since_days)
     date_str = since_date.strftime("%Y-%m-%d")
 
     query = """
-        SELECT COUNT(id) FROM store_index
+        SELECT COUNT(*) FROM store_index
             WHERE type = 'account'
             AND name = 'last_login'
-            AND value > $date
+            AND value > %(date)s
     """
 
-    oldb = db.get_db()
-    results = list(oldb.query(query, vars={"date": date_str}))
-
-    if not results:
-        return 0
-    return results[0].get("count", 0)
+    count = await fetch_val(query, {"date": date_str})
+    return count or 0
 
 
 def mock_get_stats():

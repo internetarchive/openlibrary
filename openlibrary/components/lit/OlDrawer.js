@@ -69,7 +69,7 @@ export class OlDrawer extends LitElement {
         placement: { type: String, reflect: true },
         label: { type: String },
         closeOnScrimClick: { type: Boolean, attribute: 'close-on-scrim-click' },
-        closeOnEscape: { type: Boolean, attribute: 'close-on-escape' },
+        closeOnEscape: { type: Boolean, attribute: 'close-on-escape' }
     };
 
     static styles = css`
@@ -180,13 +180,13 @@ export class OlDrawer extends LitElement {
             transition-duration: var(--ol-drawer-enter-duration);
         }
 
-        :host(:not([placement="start"])) .panel {
+        :host(:not([placement='start'])) .panel {
             --_ol-drawer-closed-x: 100%;
             right: 0;
             box-shadow: var(--box-shadow-overlay);
         }
 
-        :host([placement="start"]) .panel {
+        :host([placement='start']) .panel {
             --_ol-drawer-closed-x: -100%;
             left: 0;
             box-shadow: var(--box-shadow-overlay);
@@ -250,12 +250,7 @@ export class OlDrawer extends LitElement {
 
     render() {
         return html`
-            <dialog
-                role="dialog"
-                aria-modal="true"
-                aria-label=${ifDefined(this.label || undefined)}
-                @cancel=${this._handleCancel}
-            >
+            <dialog role="dialog" aria-modal="true" aria-label=${ifDefined(this.label || undefined)} @cancel=${this._handleCancel}>
                 <div class="scrim" @click=${this._handleScrimClick}></div>
                 <!-- tabindex so an empty drawer still has somewhere to put focus. -->
                 <div class="panel" tabindex="-1">
@@ -308,9 +303,12 @@ export class OlDrawer extends LitElement {
         }
         const cycle = ++this._cycle;
 
-        this.dispatchEvent(new CustomEvent('ol-drawer-show', {
-            bubbles: true, composed: true,
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-drawer-show', {
+                bubbles: true,
+                composed: true
+            })
+        );
 
         // Calling showModal() on an open dialog throws.
         if (!reopening) dialog.showModal();
@@ -348,9 +346,12 @@ export class OlDrawer extends LitElement {
 
         this._afterTransition(panel, () => {
             if (cycle !== this._cycle) return;
-            this.dispatchEvent(new CustomEvent('ol-drawer-after-show', {
-                bubbles: true, composed: true,
-            }));
+            this.dispatchEvent(
+                new CustomEvent('ol-drawer-after-show', {
+                    bubbles: true,
+                    composed: true
+                })
+            );
         });
     }
 
@@ -387,8 +388,10 @@ export class OlDrawer extends LitElement {
         this._closeReason = 'programmatic';
 
         const hideEvent = new CustomEvent('ol-drawer-hide', {
-            bubbles: true, composed: true, cancelable: true,
-            detail: { reason },
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+            detail: { reason }
         });
         this.dispatchEvent(hideEvent);
 
@@ -413,9 +416,12 @@ export class OlDrawer extends LitElement {
             dialog.close();
             this._releaseScrollLock();
             this._restoreFocus();
-            this.dispatchEvent(new CustomEvent('ol-drawer-after-hide', {
-                bubbles: true, composed: true,
-            }));
+            this.dispatchEvent(
+                new CustomEvent('ol-drawer-after-hide', {
+                    bubbles: true,
+                    composed: true
+                })
+            );
         });
     }
 
@@ -448,7 +454,7 @@ export class OlDrawer extends LitElement {
             el.removeEventListener('transitionend', onEnd);
             done();
         };
-        const onEnd = (event) => {
+        const onEnd = event => {
             // Slotted content sits inside the panel and its own transitions
             // bubble through — only the panel's transform marks the slide's end.
             if (event.target !== el || event.propertyName !== 'transform') return;
@@ -564,9 +570,7 @@ export class OlDrawer extends LitElement {
                 return true;
             }
             const parent = cur.parentNode;
-            cur = (parent?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent.host)
-                ? parent.host
-                : cur.parentElement;
+            cur = parent?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent.host ? parent.host : cur.parentElement;
         }
         return false;
     }

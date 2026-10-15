@@ -3,15 +3,13 @@
 from __future__ import annotations  # Needed for 'Loan' return types early on
 
 import logging
-import os
 import time
 from collections.abc import Iterable
+from json import JSONDecodeError
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 import httpx
-import requests
 import web
-from simplejson.errors import JSONDecodeError
 
 from infogami.utils import delegate
 from infogami.utils.view import public
@@ -190,12 +188,12 @@ async def get_groundtruth_availability_async(ocaid, s3_keys=None):
     including 1-hour borrows"""
     params = "?action=availability&identifier=" + ocaid
     url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
-    timeout = 2 if os.getenv("LOCAL_DEV") else config_http_request_timeout
+    timeout = 2 if get_ol_env().LOCAL_DEV else config_http_request_timeout
     try:
-        response = await ia.get_async_session().post(url + params, data=s3_keys, timeout=timeout)
+        response = await ia.get_async_session().post(url + params, data=s3_keys, timeout=timeout, extensions={"server_timing": "ia-loans"})
         response.raise_for_status()
     except httpx.TimeoutException:
-        if os.getenv("LOCAL_DEV"):
+        if get_ol_env().LOCAL_DEV:
             logger.warning("Availability request timed out in LOCAL_DEV environment. Returning empty dictionary.")
             return {}
         else:
@@ -230,7 +228,7 @@ async def s3_loan_api_async(s3_keys, ocaid=None, action="browse", **kwargs):
 
     data = s3_keys | kwargs
 
-    response = await ia.get_async_session().post(url + params, data=data, timeout=config_http_request_timeout)
+    response = await ia.get_async_session().post(url + params, data=data, timeout=config_http_request_timeout, extensions={"server_timing": "ia-loans"})
     # We want this to be just `409` but first
     # `www/common/Lending.inc#L111-114` needs to
     # be updated on petabox
@@ -292,7 +290,7 @@ async def get_available_async(
             "x-preferred-client-id": client_ip,
             "x-application-id": "openlibrary",
         }
-        response = await ia.get_async_session().get(url, headers=headers, timeout=config_http_request_timeout)
+        response = await ia.get_async_session().get(url, headers=headers, timeout=config_http_request_timeout, extensions={"server_timing": "ia-search"})
         items = response.json().get("response", {}).get("docs", [])
         results = {}
         for item in items:
@@ -437,6 +435,7 @@ async def get_availability_async(
             },
             headers=headers,
             timeout=config_http_request_timeout,
+            extensions={"server_timing": "ia-availability"},
         )
 
         # This API should always return 200
@@ -605,7 +604,8 @@ def is_loaned_out_on_ia(identifier: str) -> bool | None:
     """Returns True if the item is checked out on Internet Archive."""
     url = f"https://archive.org/services/borrow/{identifier}?action=status"
     try:
-        response = ia.session.get(url, timeout=config_http_request_timeout).json()
+        r = ia.session.get(url, timeout=config_http_request_timeout, extensions={"server_timing": "ia-borrow"})
+        response = r.json()
         return response and response.get("checkedout")
     except Exception:  # TODO: Narrow exception scope
         logger.exception(f"is_loaned_out_on_ia({identifier})")
@@ -791,11 +791,13 @@ class IA_Lending_API:
         payload["token"] = config_ia_ol_shared_key
 
         try:
-            jsontext = requests.post(
+            resp = ia.session.post(
                 config_ia_loan_api_url,
                 data=payload,
                 timeout=config_http_request_timeout,
-            ).json()
+                extensions={"server_timing": "ia-loans"},
+            )
+            jsontext = resp.json()
             logger.info("POST response: %s", jsontext)
             return jsontext
         except JSONDecodeError:

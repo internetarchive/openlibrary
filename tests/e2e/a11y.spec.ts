@@ -24,7 +24,7 @@ async function gotoSettled(page: Page, path: string): Promise<void> {
     // frames under Playwright, so an unblocked scan could flip between runs
     // with no Open Library change. These scans should only ever see markup
     // we author.
-    await page.route('https://archive.org/**', (route) => route.abort());
+    await page.route('https://archive.org/**', route => route.abort());
     await page.goto(path);
     await expect(page.locator('#header-bar').first()).toBeVisible();
 }
@@ -55,7 +55,7 @@ test.describe('Accessibility @a11y', () => {
         // `violations`, which is a real regression for the tests above to
         // report — this one should keep confirming axe ran, not fail alongside
         // them with a misleading "axe is broken" message.
-        const evaluated = [...results.passes, ...results.violations, ...results.incomplete].map((rule) => rule.id);
+        const evaluated = [...results.passes, ...results.violations, ...results.incomplete].map(rule => rule.id);
 
         expect(results.testEngine.name).toBe('axe-core');
         expect(evaluated.length).toBeGreaterThan(20);

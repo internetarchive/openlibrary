@@ -104,7 +104,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         noMatchesLabel: { type: String, attribute: 'no-matches-label' },
         loadingLabel: { type: String, attribute: 'loading-label' },
         _query: { state: true },
-        loading: { type: Boolean, reflect: true },
+        loading: { type: Boolean, reflect: true }
     };
 
     static styles = css`
@@ -169,7 +169,9 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         /* iOS zooms in on focus when the input font is < 16px; bump it up on
            mobile to suppress that. */
         @media (max-width: 767px) {
-            .filter-input { font-size: var(--font-size-body-large); }
+            .filter-input {
+                font-size: var(--font-size-body-large);
+            }
         }
 
         .filter-icon {
@@ -334,7 +336,9 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         /* ── Host-driven loading state ───────────────────────────────────────── */
 
         @keyframes ol-sp-spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .loading-row {
@@ -357,7 +361,10 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         }
 
         @media (prefers-reduced-motion: reduce) {
-                .loading-spinner { animation: none; opacity: 0.5; }
+            .loading-spinner {
+                animation: none;
+                opacity: 0.5;
+            }
         }
     `;
 
@@ -431,11 +438,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
             >
-                <slot
-                    name="trigger"
-                    slot="trigger"
-                    @keydown=${this._onTriggerKeydown}
-                ></slot>
+                <slot name="trigger" slot="trigger" @keydown=${this._onTriggerKeydown}></slot>
                 ${this._renderPanel()}
             </ol-popover>
         `;
@@ -451,9 +454,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         // own trigger handler — the only point where the open can still be
         // intercepted (see _requestOpen).
         this.addEventListener('click', this._onTriggerClickCapture, true);
-        const hasConsumerTrigger = Array.from(this.children).some(
-            el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
-        );
+        const hasConsumerTrigger = Array.from(this.children).some(el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger');
         if (!hasConsumerTrigger && !this._defaultTrigger) {
             this._createDefaultTrigger();
         }
@@ -524,7 +525,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         if (!btn || !this._defaultTriggerText) return;
         const selected = this.selected || [];
         const count = selected.length;
-        const labelFor = (value) => (this.items || []).find(it => it.value === value)?.label ?? value;
+        const labelFor = value => (this.items || []).find(it => it.value === value)?.label ?? value;
 
         if (count === 0) {
             this._defaultTriggerText.textContent = this.label;
@@ -555,71 +556,76 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         const suggestionItems = items.filter(it => !selectedSet.has(it.value));
 
         const query = this._query.trim().toLowerCase();
-        const filteredSuggestions = query
-            ? suggestionItems.filter(it => (it.label || '').toLowerCase().includes(query))
-            : suggestionItems;
+        const filteredSuggestions = query ? suggestionItems.filter(it => (it.label || '').toLowerCase().includes(query)) : suggestionItems;
 
         const hasSelected = selectedItems.length > 0;
-        const suggestionsHeading = hasSelected
-            ? this.suggestionsHeading
-            : (this.unselectedHeading || this.suggestionsHeading);
+        const suggestionsHeading = hasSelected ? this.suggestionsHeading : this.unselectedHeading || this.suggestionsHeading;
 
         return html`
             <div class="panel">
-                ${showSearch ? html`
-                    <div class="filter">
-                        ${OlSelectPopover._searchIcon}
-                        <input
-                            type="search"
-                            class="filter-input"
-                            role="searchbox"
-                            aria-controls=${this._panelId}
-                            placeholder=${this.placeholder}
-                            .value=${this._query}
-                            @input=${this._onQueryInput}
-                            @keydown=${this._onListKeydown}
-                        />
-                    </div>
-                ` : nothing}
-                ${hasSelected ? html`
-                    <ul
-                        class="group group--selected"
-                        role="group"
-                        aria-label=${this.selectedHeading}
-                        @keydown=${this._onListKeydown}
-                    >
-                        <li class="group-heading" aria-hidden="true">${this.selectedHeading}</li>
-                        ${repeat(selectedItems, it => it.value, it => this._renderItem(it))}
-                    </ul>
-                ` : nothing}
+                ${
+                    showSearch
+                        ? html`
+                              <div class="filter">
+                                  ${OlSelectPopover._searchIcon}
+                                  <input
+                                      type="search"
+                                      class="filter-input"
+                                      role="searchbox"
+                                      aria-controls=${this._panelId}
+                                      placeholder=${this.placeholder}
+                                      .value=${this._query}
+                                      @input=${this._onQueryInput}
+                                      @keydown=${this._onListKeydown}
+                                  />
+                              </div>
+                          `
+                        : nothing
+                }
+                ${
+                    hasSelected
+                        ? html`
+                              <ul class="group group--selected" role="group" aria-label=${this.selectedHeading} @keydown=${this._onListKeydown}>
+                                  <li class="group-heading" aria-hidden="true">${this.selectedHeading}</li>
+                                  ${repeat(
+                                      selectedItems,
+                                      it => it.value,
+                                      it => this._renderItem(it)
+                                  )}
+                              </ul>
+                          `
+                        : nothing
+                }
                 <div class="list-area" id=${this._panelId} @keydown=${this._onListKeydown}>
-                    ${this.loading
-        ? html`
-                        <div class="loading-row" role="status" aria-live="polite">
-                            <span class="loading-spinner" aria-hidden="true"></span>
-                            <span>${this.loadingLabel}</span>
-                        </div>`
-        : html`
-                    <ul
-                        class="group group--suggestions"
-                        role="group"
-                        aria-label=${suggestionsHeading}
-                    >
-                        <li class="group-heading" aria-hidden="true">${suggestionsHeading}</li>
-                        ${filteredSuggestions.length === 0 && query
-        ? html`<li class="empty-state">${this.noMatchesLabel}</li>`
-        : repeat(filteredSuggestions, it => it.value, it => this._renderItem(it))}
-                    </ul>`}
+                    ${
+                        this.loading
+                            ? html` <div class="loading-row" role="status" aria-live="polite">
+                                  <span class="loading-spinner" aria-hidden="true"></span>
+                                  <span>${this.loadingLabel}</span>
+                              </div>`
+                            : html` <ul class="group group--suggestions" role="group" aria-label=${suggestionsHeading}>
+                                  <li class="group-heading" aria-hidden="true">${suggestionsHeading}</li>
+                                  ${
+                                      filteredSuggestions.length === 0 && query
+                                          ? html`<li class="empty-state">${this.noMatchesLabel}</li>`
+                                          : repeat(
+                                                filteredSuggestions,
+                                                it => it.value,
+                                                it => this._renderItem(it)
+                                            )
+                                  }
+                              </ul>`
+                    }
                 </div>
-                ${hasSelected ? html`
-                    <div class="footer">
-                        <button
-                            type="button"
-                            class="clear-button"
-                            @click=${this._onClear}
-                        >${this.clearLabel}</button>
-                    </div>
-                ` : nothing}
+                ${
+                    hasSelected
+                        ? html`
+                              <div class="footer">
+                                  <button type="button" class="clear-button" @click=${this._onClear}>${this.clearLabel}</button>
+                              </div>
+                          `
+                        : nothing
+                }
             </div>
         `;
     }
@@ -629,17 +635,13 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         return html`
             <li class="item">
                 <label class="item-row">
-                    <input
-                        type="checkbox"
-                        class="item-checkbox"
-                        .checked=${isSelected}
-                        .value=${item.value}
-                        @change=${this._onItemToggle}
-                    />
+                    <input type="checkbox" class="item-checkbox" .checked=${isSelected} .value=${item.value} @change=${this._onItemToggle} />
                     <span class="item-label">${item.label}</span>
-                    ${item.count !== null && item.count !== undefined
-        ? html`<span class="item-count" aria-hidden="true">${item.count.toLocaleString()}</span>`
-        : nothing}
+                    ${
+                        item.count !== null && item.count !== undefined
+                            ? html`<span class="item-count" aria-hidden="true">${item.count.toLocaleString()}</span>`
+                            : nothing
+                    }
                 </label>
             </li>
         `;
@@ -697,7 +699,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             bubbles: true,
             composed: true,
             cancelable: true,
-            detail: { focusFirst },
+            detail: { focusFirst }
         });
         this.dispatchEvent(evt);
         if (!evt.defaultPrevented) return true;
@@ -754,10 +756,9 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         const value = e.target.value;
         const checked = e.target.checked;
         const current = new Set(this.selected || []);
-        if (checked) current.add(value); else current.delete(value);
-        const nextSelected = (this.items || [])
-            .map(it => it.value)
-            .filter(v => current.has(v));
+        if (checked) current.add(value);
+        else current.delete(value);
+        const nextSelected = (this.items || []).map(it => it.value).filter(v => current.has(v));
 
         // The toggled item is about to move between the "selected" and
         // "suggestions" groups, which destroys its checkbox DOM node — focus
@@ -774,9 +775,12 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     _onClear() {
         if ((this.selected || []).length === 0) return;
         this._emitChange([], null, null);
-        this.dispatchEvent(new CustomEvent('ol-select-popover-clear', {
-            bubbles: true, composed: true,
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-select-popover-clear', {
+                bubbles: true,
+                composed: true
+            })
+        );
     }
 
     _onListKeydown(e) {
@@ -825,10 +829,13 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     _emitChange(nextSelected, added, removed) {
         this.selected = nextSelected;
         this._syncFormValue();
-        this.dispatchEvent(new CustomEvent('ol-select-popover-change', {
-            bubbles: true, composed: true,
-            detail: { selected: nextSelected, added, removed },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-select-popover-change', {
+                bubbles: true,
+                composed: true,
+                detail: { selected: nextSelected, added, removed }
+            })
+        );
     }
 }
 

@@ -6,10 +6,8 @@ It is in a is a separate file to avoid this error when writing tests:
     > 1 | import { ExpirationPlugin } from 'workbox-expiration';
 */
 
-
 export function matchMiscFiles({ url }) {
-    const miscFiles = ['/favicon.ico', '/static/manifest.json', '/cdn/archive.org/athena.js',
-        '/cdn/archive.org/donate.js'];
+    const miscFiles = ['/favicon.ico', '/static/manifest.json', '/cdn/archive.org/athena.js', '/cdn/archive.org/donate.js'];
     return miscFiles.includes(url.pathname);
 }
 
