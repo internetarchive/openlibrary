@@ -202,6 +202,12 @@ $(function () {
         import('./lists/ListViewBody.js');
     }
 
+    // Snippets feed page (/snippets)
+    const snippetsGrid = document.querySelector('.js-snippets');
+    if (snippetsGrid) {
+        import('./snippets').then(module => module.initSnippets(snippetsGrid));
+    }
+
     // Enable any carousels in the page
     const carouselElements = document.querySelectorAll('.carousel--progressively-enhanced');
     if (carouselElements.length) {
