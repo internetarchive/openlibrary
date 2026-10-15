@@ -4413,7 +4413,7 @@ msgstr ""
 msgid "A catalog for every book ever published, maintained by readers like you."
 msgstr ""
 
-#: home/library_row.html.jinja
+#: home/library_row.html.jinja openlibrary/plugins/openlibrary/contribute.py
 msgid "Become an Open Librarian"
 msgstr ""
 
@@ -8783,10 +8783,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "All open tasks"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Become an Open Librarian"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
