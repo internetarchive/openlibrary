@@ -104,6 +104,19 @@ def _get_cached_bot_accounts(thingdb=None) -> list[int]:
     return cached_bot_accounts
 
 
+# Transactions that aren't edits to the catalog. Every signup writes a `new-account`
+# transaction, and at ~10k signups a day they outnumber real edits several times over.
+NON_EDIT_ACTIONS = (
+    "new-account",
+    "register",
+    "create-stats",
+    "edit-blocked-ips",
+    "edit-usergroup-add-member",
+    "edit-usergroup-delete-member",
+    "bulk-edit-permissions",
+)
+
+
 # Public functions that are used by stats.py
 def admin_range__human_edits(**kargs):
     """Calculates the number of edit actions performed by humans
@@ -116,8 +129,11 @@ def admin_range__human_edits(**kargs):
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_range__human_edits")
     bot_ids = _get_cached_bot_accounts(thingdb=kargs["thingdb"])
-    q1 = "SELECT count(t.id) AS count FROM transaction t WHERE t.created >= $start and t.created < $end AND t.author_id NOT IN $bot_ids"
-    result = db.query(q1, vars={"bot_ids": bot_ids, "start": start, "end": end})
+    q1 = (
+        "SELECT count(t.id) AS count FROM transaction t"
+        " WHERE t.created >= $start and t.created < $end AND t.action NOT IN $non_edit_actions AND t.author_id NOT IN $bot_ids"
+    )
+    result = db.query(q1, vars={"bot_ids": bot_ids, "start": start, "end": end, "non_edit_actions": NON_EDIT_ACTIONS})
     count = result[0].count
     return count
 
@@ -133,8 +149,11 @@ def admin_range__bot_edits(**kargs):
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_range__bot_edits")
     bot_ids = _get_cached_bot_accounts(thingdb=kargs["thingdb"])
-    q1 = "SELECT count(t.id) AS count FROM transaction t WHERE t.created >= $start and t.created < $end AND t.author_id IN $bot_ids"
-    result = db.query(q1, vars={"bot_ids": bot_ids, "start": start, "end": end})
+    q1 = (
+        "SELECT count(t.id) AS count FROM transaction t"
+        " WHERE t.created >= $start and t.created < $end AND t.action NOT IN $non_edit_actions AND t.author_id IN $bot_ids"
+    )
+    result = db.query(q1, vars={"bot_ids": bot_ids, "start": start, "end": end, "non_edit_actions": NON_EDIT_ACTIONS})
     count = result[0].count
     return count
 
