@@ -1338,10 +1338,9 @@ class LoggedBooksData:
         The intent of this is so that there is no need to query ratings from the
         template, as the docs and ratings are together when needed.
         """
-        for doc in self.docs:
-            work_id = extract_numeric_id_from_olid(doc.key)
-            rating = Ratings.get_users_rating_for_work_sync(self.username, work_id)
-            self.ratings.append(rating or 0)
+        work_ids = [int(extract_numeric_id_from_olid(doc.key)) for doc in self.docs]
+        ratings = Ratings.get_users_ratings_of_works_sync(self.username, work_ids)
+        self.ratings.extend(ratings.get(work_id, 0) for work_id in work_ids)
 
 
 def register_models():

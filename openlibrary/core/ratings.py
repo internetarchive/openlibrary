@@ -73,11 +73,6 @@ class Ratings(db.CommonExtras):
         return async_bridge.run(cls.most_rated_books(limit, since))
 
     @classmethod
-    async def get_users_ratings(cls, username) -> list:
-        query = "select * from ratings where username=%(username)s"
-        return await fetch_all(query, {"username": username})
-
-    @classmethod
     async def get_rating_stats(cls, work_id) -> dict:
         query = "SELECT AVG(rating) as avg_rating, COUNT(DISTINCT username) as num_ratings FROM ratings WHERE work_id = %(work_id)s"
         row = await fetch_one(query, {"work_id": int(work_id)})
