@@ -49,42 +49,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ratings:
-    @staticmethod
-    def get_ratings_summary(work_id):
-        from openlibrary.core.ratings import Ratings
-
-        if stats := Ratings.get_work_ratings_summary(work_id):
-            return {
-                "summary": {
-                    "average": stats["ratings_average"],
-                    "count": stats["ratings_count"],
-                    "sortable": stats["ratings_sortable"],
-                },
-                "counts": {
-                    "1": stats["ratings_count_1"],
-                    "2": stats["ratings_count_2"],
-                    "3": stats["ratings_count_3"],
-                    "4": stats["ratings_count_4"],
-                    "5": stats["ratings_count_5"],
-                },
-            }
-        else:
-            return {
-                "summary": {
-                    "average": None,
-                    "count": 0,
-                },
-                "counts": {
-                    "1": 0,
-                    "2": 0,
-                    "3": 0,
-                    "4": 0,
-                    "5": 0,
-                },
-            }
-
-
 @deprecated("migrated to fastapi")
 class booknotes(delegate.page):
     path = r"/works/OL(\d+)W/notes"
