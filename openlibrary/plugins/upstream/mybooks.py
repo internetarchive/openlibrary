@@ -741,7 +741,7 @@ class PatronBooknotes:
         self.username = user.key.split("/")[-1]
 
     def get_notes(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
-        notes = Booknotes.get_notes_grouped_by_work_sync(self.username, limit=limit, page=page)
+        notes = [web.storage(entry) for entry in Booknotes.get_notes_grouped_by_work_sync(self.username, limit=limit, page=page)]
 
         work_keys = [f"/works/OL{entry['work_id']}W" for entry in notes]
         works = {w.key: w for w in site.get().get_many(work_keys)} if work_keys else {}
