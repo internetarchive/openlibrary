@@ -1163,9 +1163,9 @@ class lenny_return(delegate.page):
     @staticmethod
     def _returned(redirect_to: str):
         """The success ending: tell the patron the book is returned. The cache
-        invalidation is the caller's, deliberately not done here -- it happens
-        once, before the call is attempted, on every path except the no-token
-        one, so it must not be welded to this success message.
+        invalidation is the caller's, deliberately not done here -- it runs once,
+        in a `finally` after the call is attempted, on every path except the
+        no-token one, so it must not be welded to this success message.
         """
         add_flash_message("success", _("This book has been returned."))
         raise web.seeother(redirect_to)
