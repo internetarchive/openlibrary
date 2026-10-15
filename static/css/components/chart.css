@@ -23,8 +23,9 @@
   background-position: 340px 60px;
   box-sizing: border-box;
 }
-/* The chart canvas is transparent, so drop the spinner background once it's drawn */
-.chart:has(canvas) {
+/* The chart canvas is transparent, so drop the spinner background once it's drawn (or there's nothing to draw) */
+.chart:has(canvas),
+.chart.chart-empty {
   background-image: none;
 }
 /* Only show the spinner background while its loading indicator is visible --

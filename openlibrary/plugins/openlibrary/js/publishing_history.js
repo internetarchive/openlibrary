@@ -12,7 +12,11 @@ export function init() {
     if (!container) return;
     /** @type {Map<number, number>} editions per year */
     const counts = new Map(JSON.parse(document.getElementById('graph-json-chartPubHistory').textContent));
-    if (!counts.size) return;
+    if (!counts.size) {
+        // Nothing to draw, so clear the loading spinner (chart.css)
+        container.closest('.chart')?.classList.add('chart-empty');
+        return;
+    }
 
     // Every year in the range, so years with no editions still get a slot on the axis
     const first = Math.min(...counts.keys());
