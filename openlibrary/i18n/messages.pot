@@ -738,7 +738,7 @@ msgstr ""
 msgid "All Time"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
+#: openlibrary/plugins/openlibrary/api.py trending.html
 msgid "Trending Books"
 msgstr ""
 
@@ -1341,10 +1341,10 @@ msgid "<a href=\"/search\">Search for a book</a> to borrow."
 msgstr ""
 
 #: account/loans.html
-msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
+msgid "Looking for a book to borrow? Check out our staff picks:"
 msgstr ""
 
-#: account/loans.html home/index.html
+#: account/loans.html
 msgid "Books We Love"
 msgstr ""
 
@@ -3166,6 +3166,37 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
+#: books/custom_carousel.html.jinja
+#, python-format
+msgid "See all %(title)s"
+msgstr ""
+
+#: CarouselSkeleton.html.jinja books/custom_carousel.html.jinja lists/carousel.html.jinja lists/home.html lists/showcase.html
+msgid "See all"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Previous page"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Next page"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Carousel pages"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-brace-format
+msgid "Go to page {page} of {total}"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-brace-format
+msgid "Page {page} of {total}"
+msgstr ""
+
 #: books/custom_carousel_card.html.jinja
 #, python-format
 msgid "1 person waiting"
@@ -4358,51 +4389,46 @@ msgstr ""
 msgid "Latest Blog Posts"
 msgstr ""
 
-#: home/categories.html
-msgid "Browse by Subject"
+#: home/browse_stacks.html.jinja
+msgid "Browse the stacks"
 msgstr ""
 
-#: home/categories.html
+#: home/browse_stacks.html.jinja home/genre_shelf.html.jinja openlibrary/core/shell/nav.py openlibrary/plugins/openlibrary/partials.py search/sort_options.html
+msgid "Trending"
+msgstr ""
+
+#: home/browse_stacks.html.jinja openlibrary/plugins/openlibrary/partials.py
 #, python-format
-msgid "%(count)s Book"
-msgid_plural "%(count)s Books"
-msgstr[0] ""
-msgstr[1] ""
+msgid "Trending in %(genre)s"
+msgstr ""
+
+#: home/browse_stacks.html.jinja home/genre_shelf.html.jinja
+msgid "Jump to"
+msgstr ""
+
+#: home/genre_shelf.html.jinja
+#, python-format
+msgid "%(genre)s subgenres"
+msgstr ""
+
+#: home/genre_shelf.html.jinja merge_request_table/table_header.html
+msgid "Newest"
+msgstr ""
+
+#: home/genre_shelf.html.jinja
+msgid "Top rated"
+msgstr ""
+
+#: home/genre_shelf.html.jinja search/sort_options.html
+msgid "Sort by"
+msgstr ""
 
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-msgid "Classic Books"
-msgstr ""
-
 #: home/index.html
-msgid "Recently Returned"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
-msgid "Romance"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-msgid "Kids"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-msgid "Thrillers"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
-msgid "Textbooks"
-msgstr ""
-
-#: home/index.html
-msgid "Authors Alliance & MIT Press"
-msgstr ""
-
-#: home/index.html
-msgid "Books in Local Environment"
+msgid "Couldn't load this shelf. Try again?"
 msgstr ""
 
 #: home/stats.html.jinja
@@ -4595,7 +4621,7 @@ msgstr ""
 msgid "Copy Wikipedia citation"
 msgstr ""
 
-#: databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py
+#: databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "History"
 msgstr ""
 
@@ -4643,10 +4669,6 @@ msgstr ""
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Quality Criteria"
-msgstr ""
-
-#: lists/carousel.html.jinja lists/home.html lists/showcase.html
-msgid "See all"
 msgstr ""
 
 #: lists/export_as_html.html
@@ -5065,10 +5087,6 @@ msgstr ""
 
 #: merge_request_table/table_header.html
 msgid "Sort"
-msgstr ""
-
-#: merge_request_table/table_header.html
-msgid "Newest"
 msgstr ""
 
 #: merge_request_table/table_header.html
@@ -5780,16 +5798,8 @@ msgstr ""
 msgid "Any"
 msgstr ""
 
-#: openlibrary/core/shell/nav.py search/sort_options.html
-msgid "Trending"
-msgstr ""
-
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Sort by"
 msgstr ""
 
 #: search/sort_options.html
@@ -6859,7 +6869,7 @@ msgstr ""
 msgid "Readers"
 msgstr ""
 
-#: type/permission/view.html
+#: openlibrary/plugins/openlibrary/home_genres.py type/permission/view.html
 msgid "Writers"
 msgstr ""
 
@@ -7222,6 +7232,10 @@ msgstr ""
 
 #: BookPreviewFloater.html
 msgid "See more about this book on Archive.org"
+msgstr ""
+
+#: CarouselSkeleton.html.jinja
+msgid "Loading carousel"
 msgstr ""
 
 #: CheckWorldcat.html ReadingOptionsMenu.html
@@ -8725,6 +8739,26 @@ msgstr ""
 msgid "Search Results"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/api.py
+msgid "Classic Books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
+msgid "Romance"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home_genres.py
+msgid "Kids"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py
+msgid "Thrillers"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
+msgid "Textbooks"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"
 msgstr ""
@@ -8858,7 +8892,7 @@ msgstr ""
 msgid "Open the record and confirm it matches this edition first."
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Art"
 msgstr ""
 
@@ -8866,7 +8900,7 @@ msgstr ""
 msgid "Science Fiction"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Fantasy"
 msgstr ""
 
@@ -8886,7 +8920,7 @@ msgstr ""
 msgid "Medicine"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Religion"
 msgstr ""
 
@@ -8902,8 +8936,144 @@ msgstr ""
 msgid "Music"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Science"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Biography"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Philosophy"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Psychology"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Poetry"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Travel"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Cooking"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Friendship"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Adventure"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Mystery"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "School"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Picture books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Humor"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "United States"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Great Britain"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "World War II"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Military"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Ancient"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Middle Ages"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Historical"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Western"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Regency"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Paranormal"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Contemporary"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Suspense"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Women"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Memoir"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Royalty"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Artists"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Presidents"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "What's new"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Books we love"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Classics"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Most wanted"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Featured"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
@@ -8959,7 +9129,13 @@ msgid "This work does not appear on any lists."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
-msgid "Loading carousel"
+#, python-format
+msgid "Newest in %(genre)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+#, python-format
+msgid "Top rated in %(genre)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py

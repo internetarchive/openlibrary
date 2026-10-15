@@ -1,4 +1,6 @@
 import datetime
+import json
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 import web
@@ -8,6 +10,7 @@ from openlibrary.core.admin import Stats
 from openlibrary.core.carousels import format_book_data
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.mocks.mock_infobase import MockSite
+from openlibrary.plugins.openlibrary import home
 
 
 class MockDoc(dict):
@@ -112,42 +115,223 @@ class TestHomeTemplates:
 
         mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
 
-        carousel_data = {
-            "staff_picks": {
-                "books": [],
-                "url": "/search?q=staff_picks",
-                "load_more": {
-                    "queryType": "BROWSE",
-                    "q": "test_query",
-                    "subject": "test_subject",
-                    "sorts": "test_sort",
-                    "mode": "page",
-                    "limit": 18,
-                },
-            },
-            "recently_returned": {
-                "books": [],
-                "url": "/search?q=recently_returned",
-                "load_more": {
-                    "queryType": "BROWSE",
-                    "q": "test_query",
-                    "subject": "",
-                    "sorts": "test_sort",
-                    "mode": "page",
-                    "limit": 18,
-                },
-            },
-        }
-
         macros = web.template.Template.globals.setdefault("macros", web.storage())
         macros.BookPreview = lambda *args, **kwargs: '<div id="bookPreview"></div>'
         macros.BookPreviewFloater = lambda *args, **kwargs: '<div id="bookPreview"></div>'
-        html = str(render_template("home/index", stats=stats, test=True, featured_subjects=[], carousel_data=carousel_data))
+        macros.LoadingIndicator = lambda *args, **kwargs: '<div class="loadingIndicator"></div>'
+        html = str(render_template("home/index", stats=stats, test=True))
 
-        assert "Recently Returned" in html
         assert "bookPreview" in html
         assert "Around the Library" in html
         assert "About the Project" in html
+
+
+TILE_GENRES = [
+    {"name": "Horror", "slug": "horror", "query": "horror*", "kind": "genre", "subgenres": []},
+    {
+        "name": "History",
+        "slug": "history",
+        "query": "history*",
+        "kind": "subject",
+        "subgenres": [
+            {
+                "name": "World War II",
+                "slug": "world-war-ii",
+                "query": "world_war_1939-1945*",
+                "work_count": 1146,
+                "readable_count": 1146,
+                "readable_by_language": {"eng": 5210, "fre": 324, "jpn": 3},
+            }
+        ],
+    },
+    {"name": "Absurd", "slug": "absurd", "query": "absurd*", "kind": "genre", "subgenres": []},
+]
+
+
+PICKED_COVERS = {"horror": [10, 11, 12, 13], "history": [20, 21, 22], "absurd": [30, 31, 32]}
+
+FEATURED = home.home_genres.FEATURED
+TRENDING_QUERY = home.home_genres.solr_query(FEATURED)
+
+
+class TestFeaturedGenres:
+    """The stacks' tiles: the vocabulary's genres with hand-picked covers, led by Featured."""
+
+    def featured(self, picked=PICKED_COVERS, trending_covers=(1, 2, 3)):
+        with (
+            patch.object(home.home_genres, "load_home_genres", return_value=TILE_GENRES),
+            patch.object(home.home_genres, "load_tile_covers", return_value=picked),
+            patch.object(home, "get_featured_tile_covers", return_value=list(trending_covers)),
+        ):
+            web.ctx.env = {}
+            return home.get_featured_genres()
+
+    def test_tiles_fan_three_picked_covers(self):
+        genres = self.featured()
+        assert [g["slug"] for g in genres] == ["featured", "horror", "history", "absurd"]
+        assert genres[1]["covers"] == [10, 11, 12]
+
+    def test_featured_leads_with_live_covers(self):
+        """Featured leads, with live covers rather than hand-picked ones."""
+        genres = self.featured(trending_covers=[7, 8, 9])
+        assert genres[0]["slug"] == "featured"
+        assert genres[0]["kind"] == "featured"
+        assert genres[0]["covers"] == [7, 8, 9]
+
+    def test_live_trending_covers_beat_the_picked_fallback(self):
+        genres = self.featured(picked={**PICKED_COVERS, "featured": [40, 41, 42]}, trending_covers=[7, 8, 9])
+        assert genres[0]["covers"] == [7, 8, 9]
+
+    def test_empty_featured_falls_back_to_picked_covers(self):
+        """A Solr error or a dev index without trending data mustn't leave (and cache) a blank tile."""
+        genres = self.featured(picked={**PICKED_COVERS, "featured": [40, 41, 42]}, trending_covers=[])
+        assert (genres[0]["slug"], genres[0]["covers"]) == ("featured", [40, 41, 42])
+
+    def test_featured_without_any_covers_still_gets_a_tile(self):
+        genres = self.featured(trending_covers=[])
+        assert (genres[0]["slug"], genres[0]["covers"]) == ("featured", [])
+
+    def test_featured_tile_covers_come_from_its_row_query(self):
+        docs = [{"cover_i": 5}, {}, {"cover_i": 6}, {"cover_i": 7}, {"cover_i": 8}]
+        with patch.object(home, "work_search_async", new=AsyncMock(return_value={"docs": docs})) as search:
+            assert home.get_featured_tile_covers() == [5, 6, 7]
+        query, kwargs = search.call_args.args[0], search.call_args.kwargs
+        assert (query["q"], query["has_fulltext"], kwargs["sort"]) == (TRENDING_QUERY, "true", "trending")
+
+    def test_no_picked_covers_no_tile(self):
+        genres = self.featured(picked={"horror": [10, 11, 12]})
+        assert [g["slug"] for g in genres] == ["featured", "horror"]
+
+    def test_names_are_localized_per_page_not_in_the_cache(self):
+        genres = self.featured()
+        assert [g["name"] for g in genres] == ["Featured", "Horror", "History", "Absurd"]
+        with (
+            patch.object(home, "get_cached_featured_genres", return_value=genres),
+            patch.object(home.home_genres, "subject_tile_labels", return_value={"history": "Histoire"}),
+            patch.object(home.home_genres, "subgenre_labels", return_value={"world-war-ii": "Seconde Guerre mondiale"}),
+            patch.object(home.home_genres, "language_marc", return_value="fre"),
+            patch.object(home.admin, "get_stats", return_value=None),
+            patch.object(home, "get_blog_feeds", return_value=[]),
+            patch.object(home, "render_template", return_value={}) as render,
+        ):
+            home.get_homepage(devmode=False)
+        featured = render.call_args.kwargs["featured_genres"]
+        assert [g["name"] for g in featured] == ["Featured", "Horror", "Histoire", "Absurd"]
+        assert [s["name"] for s in featured[2]["subgenres"]] == ["Seconde Guerre mondiale"]
+
+    def test_thin_subgenre_rows_are_dropped_per_page_language(self):
+        genres = self.featured()
+        with (
+            patch.object(home, "get_cached_featured_genres", return_value=genres),
+            patch.object(home.home_genres, "language_marc", return_value="jpn"),
+            patch.object(home.admin, "get_stats", return_value=None),
+            patch.object(home, "get_blog_feeds", return_value=[]),
+            patch.object(home, "render_template", return_value={}) as render,
+        ):
+            home.get_homepage(devmode=False)
+        assert render.call_args.kwargs["featured_genres"][2]["subgenres"] == []
+
+    def test_solr_failure_costs_the_rail_not_the_page(self):
+        with (
+            patch.object(home, "get_cached_featured_genres", side_effect=RuntimeError("solr down")),
+            patch.object(home.admin, "get_stats", return_value=None),
+            patch.object(home, "get_blog_feeds", return_value=[]),
+            patch.object(home, "render_template", return_value={}) as render,
+        ):
+            home.get_homepage(devmode=False)
+        assert render.call_args.kwargs["featured_genres"] == []
+
+    def test_picked_covers_file_covers_the_tiles(self):
+        """Every tile has picked covers; the file may also hold covers for genres waiting on subgenres."""
+        picked = home.home_genres.load_tile_covers()
+        slugs = {g["slug"] for g in home.home_genres.load_home_genres()} | {FEATURED["slug"]}
+        assert slugs <= set(picked)
+        assert all(len(covers) == home.GENRE_TILE_COVERS for covers in picked.values())
+
+    def test_a_genre_without_subgenres_gets_no_tile(self):
+        def node(slug, readable_count, *subgenres):
+            return {"name": slug.title(), "slug": slug, "query": f"{slug}*", "readable_count": readable_count, "subgenres": list(subgenres)}
+
+        data = {
+            "genres": [
+                node("horror", 5000, node("gothic", 249)),
+                node("western", 6873),
+                node("drama", 13079, node("melodrama", 7)),
+            ],
+            "subjects": [],
+        }
+        with patch.object(home.home_genres, "GENRES_JSON_PATH", Mock(read_text=Mock(return_value=json.dumps(data)))):
+            home.home_genres.load_home_genres.cache_clear()
+            try:
+                assert [g["slug"] for g in home.home_genres.load_home_genres()] == ["horror"]
+            finally:
+                home.home_genres.load_home_genres.cache_clear()
+
+
+class TestShelfLanguage:
+    """Shelves filter to the UI language when it's populated; subgenre rows must still be worth a row in it."""
+
+    def marc(self, lang):
+        with (
+            patch("openlibrary.plugins.upstream.utils.convert_iso_to_marc", side_effect={"en": "eng", "es": "spa", "la": "lat", "pt": "por"}.get),
+            patch("openlibrary.plugins.upstream.utils.get_populated_languages", return_value={"eng", "spa", "lat"}),
+        ):
+            return home.home_genres.language_marc(lang)
+
+    def test_populated_languages_filter_except_latin(self):
+        assert (self.marc("en"), self.marc("es"), self.marc("la"), self.marc("pt"), self.marc(None)) == ("eng", "spa", None, None, "eng")
+
+    def test_subgenre_rows_need_books_in_the_language(self):
+        def sub(slug, **by_language):
+            return {"name": slug, "slug": slug, "query": slug, "work_count": 99, "readable_count": 99, "readable_by_language": by_language}
+
+        genre = {**TILE_GENRES[0], "subgenres": [sub("a", eng=25, spa=10), sub("b", eng=19, spa=7), sub("c", eng=500, spa=0)]}
+        rows = lambda marc: [s["slug"] for s in home.home_genres.subgenres_for(genre, marc)]  # noqa: E731
+        assert rows(None) == ["a", "b", "c"]
+        assert rows("eng") == ["a", "c"]  # English keeps the 20 bar
+        assert rows("spa") == ["a"]  # other languages: 8
+
+    def test_rows_without_language_counts_fall_back_to_the_overall_count(self):
+        genre = {**TILE_GENRES[0], "subgenres": [{"name": "x", "slug": "x", "query": "x", "work_count": 30, "readable_count": 30}]}
+        assert [s["slug"] for s in home.home_genres.subgenres_for(genre, "spa")] == ["x"]
+
+
+class TestFeaturedStack:
+    """The Featured stack isn't in the vocabulary: its rows are whole clauses across every genre."""
+
+    def test_is_found_by_slug_but_not_a_vocabulary_genre(self):
+        assert home.home_genres.find_genre("featured") is FEATURED
+        assert "featured" not in {g["slug"] for g in home.home_genres.load_home_genres()}
+
+    def test_query_is_the_clause_itself(self):
+        assert home.home_genres.solr_query(FEATURED) == "trending_score_hourly_sum:[1 TO *] AND readinglog_count:[4 TO *]"
+        assert (
+            home.home_genres.search_url(FEATURED)
+            == "/search?q=trending_score_hourly_sum%3A%5B1+TO+%2A%5D+AND+readinglog_count%3A%5B4+TO+%2A%5D&sort=trending&has_fulltext=true"
+        )
+
+    def test_name_is_translated(self):
+        with patch.object(home.home_genres, "_", side_effect=lambda text: f"<{text}>"):
+            assert home.home_genres.display_name(FEATURED) == "<Featured>"
+
+    def test_rows_are_distinct_signals_with_their_own_sort(self):
+        """Each row is a whole clause with its own order, not a subject within Featured; What's new starts last year."""
+        rows = {s["slug"]: s for s in FEATURED["subgenres"]}
+        assert list(rows) == ["whats-new", "books-we-love", "classics", "most-wanted"]
+        assert [s["sort"] for s in rows.values()] == ["new", "random.daily", "trending", "want_to_read"]
+        with patch.object(home.home_genres, "datetime") as now:
+            now.now.return_value.year = 2026
+            assert home.home_genres.solr_query(rows["whats-new"], FEATURED) == "first_publish_year:[2025 TO *] AND readinglog_count:[2 TO *]"
+        assert home.home_genres.solr_query(rows["most-wanted"], FEATURED) == "want_to_read_count:[10 TO *]"
+        assert "subject_key" not in home.home_genres.search_url(rows["most-wanted"], parent=FEATURED)
+
+    def test_rows_show_in_every_language(self):
+        """The rows have no per-language counts; the thin-row rule is for vocabulary subgenres."""
+        assert home.home_genres.subgenres_for(FEATURED, "spa") == FEATURED["subgenres"]
+
+    def test_row_names_are_translated(self):
+        with patch.object(home.home_genres, "_", side_effect=lambda text: f"<{text}>"):
+            assert [home.home_genres.subgenre_name(s) for s in FEATURED["subgenres"]] == ["<What's new>", "<Books we love>", "<Classics>", "<Most wanted>"]
 
 
 class Test_format_book_data:

@@ -106,8 +106,14 @@
    *   Use for: page edge margins, gaps between top-level
    *   page sections (e.g. header → carousel → lists)
    */
-  --spacing-page-gutter: var(--spacing-lg);          /* 16px – mobile page edge */
-  --spacing-page-gutter-desktop: var(--spacing-2xl); /* 24px – desktop page edge */
+  --spacing-page-gutter: var(--spacing-xl);           /* 20px – page edge (#contentBody); 12px on phones, below */
   --spacing-section-gap: var(--spacing-3xl);          /* 32px – between page sections */
   --spacing-section-gap-desktop: var(--spacing-5xl);  /* 48px – between page sections on desktop */
+}
+
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  :root {
+    --spacing-page-gutter: var(--spacing-md); /* 12px */
+  }
 }

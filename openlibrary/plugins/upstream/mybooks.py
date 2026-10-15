@@ -685,7 +685,12 @@ def shelf_ids() -> dict[str, int]:
 
 @public
 def shelf_button_for(
-    doc, variant: str = "split", reading_states: dict[str, ReadingState] | None = None, async_load: bool = False, size: str | None = None
+    doc,
+    variant: str = "split",
+    reading_states: dict[str, ReadingState] | None = None,
+    async_load: bool = False,
+    size: str | None = None,
+    slot: str | None = None,
 ) -> str:
     """The `<ol-shelf-button>` for a doc, Solr or Infogami: a work or an edition to shelve, or an
     author or orphaned edition that can only join a list (`lists-only`). Empty for anything else.
@@ -694,6 +699,7 @@ def shelf_button_for(
     `async_load` renders the button without the reader's key and state, for HTML that is not
     per-reader (carousel cards, which are cached or fetched lazily); book-state.js fills both in.
     `size="large"` is the `icon` badge for a book page's big cover.
+    `slot` places the button in a host's named slot, e.g. `<ol-book-cover>`'s "overlay".
     """
     work_key = work_key_of(doc)
     seed_key = work_key or list_seed_of(doc)
@@ -716,6 +722,7 @@ def shelf_button_for(
         state=state,
         hydrated=not async_load,
         lists_only=not work_key,
+        slot=slot,
     )
 
 

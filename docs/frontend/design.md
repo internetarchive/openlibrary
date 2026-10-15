@@ -484,6 +484,7 @@ Every duration and easing comes from `tokens/motion.css`. Choose by what the ele
 | That surface leaves | `--ease-exit` — same curve, shorter | `--duration-fast` or `--duration-base`; `--duration-slow` (300ms) for large surfaces. Exit ≤ enter, always |
 | Something already on screen moves (segmented pill, a reorder) | `--ease-move` | `--duration-base` |
 | A control changes state (checked, selected, loading, focused) | `--ease-state` | `--duration-fast` (150ms), `--duration-base` for a crossfade |
+| A small object springs into a pose (the browse-stacks cover fan) — overshoots a little | `--ease-spring`; settle back with `--ease-move` | `--duration-slow` (300ms) out, `--duration-base` back. Never on a surface |
 | Press | none needed | `--duration-press` (80ms), `transform` only |
 | A spinner | `linear` | `--duration-spin` (700ms) per revolution |
 
