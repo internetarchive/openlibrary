@@ -156,7 +156,7 @@ class TestHomeTemplates:
 
         assert "Recently Returned" in html
         assert "bookPreview" in html
-        assert "Around the Library" in html
+        assert "In the last month" in html
         assert "A library made by the people who use it." in html
         assert 'href="/librarians"' in html
         assert "About the Project" in html

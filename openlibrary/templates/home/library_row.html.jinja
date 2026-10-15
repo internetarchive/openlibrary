@@ -1,6 +1,6 @@
 {#
   The row under the home page carousels: the librarian call-out, which pitches the catalog as a
-  commons and sends readers to /librarians, and beside it the "Around the Library" card, four
+  commons and sends readers to /librarians, and beside it the stats card ("In the last month"), four
   28-day counts with sparklines and, when it rose, the change from the 28 days before. `stats` is home.get_library_stats(); it's empty when admin
   stats are unavailable, and then the call-out takes the whole row.
 #}
@@ -40,10 +40,7 @@
     </section>
     {% if stats %}
         <section class="library-stats" aria-labelledby="library-stats-title">
-            <h2 class="library-stats__title" id="library-stats-title">
-                {{ _("Around the Library") }}
-                <span class="library-stats__range">{{ _("Last 28 days") }}</span>
-            </h2>
+            <h2 class="library-stats__title" id="library-stats-title">{{ _("In the last month") }}</h2>
             <ul class="library-stats__grid">
                 {% for stat in stats %}
                     <li>
@@ -53,7 +50,7 @@
                                 {# Only a rise is called out; the sparkline's label says the same in words. #}
                                 {% if stat.change and stat.change > 0 %}
                                     <span class="library-stat__change"
-                                          title="{{ _('Compared with the previous 28 days') }}"
+                                          title="{{ _('Compared with the month before') }}"
                                           aria-hidden="true">↑ {{ stat.change }}%</span>
                                 {% endif %}
                             </span>
@@ -61,7 +58,7 @@
                             <svg class="library-stat__spark"
                                  viewBox="0 0 120 28"
                                  preserveAspectRatio="none"
-                                 {% if stat.change and stat.change > 0 %} role="img" aria-label="{{ _('Up %(percent)d%% on the previous 28 days', percent=stat.change) }}" {% else %} aria-hidden="true" {% endif %}
+                                 {% if stat.change and stat.change > 0 %} role="img" aria-label="{{ _('Up %(percent)d%% on the month before', percent=stat.change) }}" {% else %} aria-hidden="true" {% endif %}
                                  focusable="false">
                                 <polyline points="{{ stat.points }}" vector-effect="non-scaling-stroke"></polyline>
                             </svg>

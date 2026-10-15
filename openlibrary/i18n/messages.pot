@@ -2018,7 +2018,7 @@ msgstr ""
 msgid "Last 7 days"
 msgstr ""
 
-#: admin/index.html home/library_row.html.jinja
+#: admin/index.html
 msgid "Last 28 days"
 msgstr ""
 
@@ -4442,16 +4442,16 @@ msgid "Run by the Internet Archive"
 msgstr ""
 
 #: home/library_row.html.jinja
-msgid "Around the Library"
+msgid "In the last month"
 msgstr ""
 
 #: home/library_row.html.jinja
-msgid "Compared with the previous 28 days"
+msgid "Compared with the month before"
 msgstr ""
 
 #: home/library_row.html.jinja
 #, python-format
-msgid "Up %(percent)d%% on the previous 28 days"
+msgid "Up %(percent)d%% on the month before"
 msgstr ""
 
 #: home/welcome.html
