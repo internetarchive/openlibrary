@@ -142,6 +142,21 @@ classify_workers_cur_fn() {
 }
 export -f classify_workers_cur_fn
 
+cap_other_buckets() {
+    # Each new bucket name is a new directory in graphite, so only ever send a fixed number of
+    # distinct other.* names; once that many have been seen, fold any new ones into other.other.
+    local seen_file="${OLSPY_OTHER_BUCKETS_FILE:-/tmp/olspy_other_buckets.txt}"
+    local max="${OLSPY_MAX_OTHER_BUCKETS:-20}"
+    touch "$seen_file"
+    awk -v seen_file="$seen_file" -v max="$max" '
+        BEGIN { while ((getline line < seen_file) > 0) { seen[line] = 1; n++ } close(seen_file) }
+        !/^other\./ || $0 == "other.other" || ($0 in seen) { print; next }
+        n < max { seen[$0] = 1; n++; print $0 >> seen_file; print; next }
+        { print "other.other" }
+    '
+}
+export -f cap_other_buckets
+
 log_workers_cur_fn() {
     local src="$1"
     local bucket="$2"
@@ -160,6 +175,7 @@ log_workers_cur_fn() {
 
     COUNT=1 EXCLUDE_INTERNAL=true olspy_head $src \
         | classify_workers_cur_fn \
+        | cap_other_buckets \
         | sort \
         | uniq -c \
         | awk -v date=$(date +%s) -v bucket="$bucket" '{print bucket "." $2 " " $1 " " date}' \

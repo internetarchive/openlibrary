@@ -5,6 +5,8 @@ from scripts.monitoring.utils import bash_run
 
 def _make_aliases(nc_path: str, pyspy_dump_path: str) -> str:
     return f"""
+export OLSPY_OTHER_BUCKETS_FILE=$(mktemp)
+
 ps() {{
     cat scripts/monitoring/tests/sample_ps_aux.txt
 }}
@@ -236,3 +238,15 @@ Thread 1 (active): "MainThread"
 
 def test_log_workers_cur_fn_counts_unreadable_workers():
     assert _log_webpy_workers("/nonexistent/py_spy_dump.txt") == "stats.ol-web0.workers.webpy.cur_fn.pyspy.no_stack 1 1741054377"
+
+
+def test_cap_other_buckets():
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as seen_fp:
+        seen_fp.write("other.a\n")
+
+    result = bash_run(
+        f"printf 'other.a\\nother.b\\nother.c\\ndb.query\\nother.a\\n' | OLSPY_OTHER_BUCKETS_FILE={seen_fp.name} OLSPY_MAX_OTHER_BUCKETS=2 cap_other_buckets",
+        sources=["olspy.sh"],
+        capture_output=True,
+    )
+    assert result.stdout.split() == ["other.a", "other.b", "other.other", "db.query", "other.a"]
