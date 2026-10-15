@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 
 from openlibrary.core.admin import Stats
 from openlibrary.core.carousels import format_book_data
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.mocks.mock_infobase import MockSite
 
 
@@ -71,10 +72,9 @@ class TestHomeTemplates:
         assert blog is not None
         assert len(blog.find_all("li")) == 1
 
-    def test_stats_template(self, render_template):
+    def test_stats_template(self):
         # Make sure that it works fine without any input (skipping section)
-        html = str(render_template("home/stats"))
-        assert html == ""
+        assert render_jinja_template("home/stats.html.jinja", charts=None).strip() == ""
 
     def test_home_template(self, render_template, monkeypatch, mock_site):
         self.setup_monkeypatch(monkeypatch)

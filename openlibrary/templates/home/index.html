@@ -41,7 +41,7 @@ $add_metatag(property="og:site_name", content="Open Library")
 
   $:render_template("home/categories", featured_subjects=featured_subjects if not test else [])
 
-  $:render_template("home/stats", stats)
+  $:render_jinja_template("home/stats.html.jinja", charts=get_home_stats_charts(stats))
 
   $:render_template("home/about", blog_posts)
  </div>
