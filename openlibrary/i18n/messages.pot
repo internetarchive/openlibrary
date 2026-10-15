@@ -4089,6 +4089,49 @@ msgstr ""
 msgid "Pick a different book"
 msgstr ""
 
+#: contribute/landing.html.jinja
+msgid "Open Library Tasks"
+msgstr ""
+
+#: contribute/landing.html.jinja
+#, python-format
+msgid "Open Library serves %(readers)s readers every month across %(books)s catalogued books, and its %(mark_start)sOpen Librarians%(mark_end)s make thousands of edits every week."
+msgstr ""
+
+#: contribute/landing.html.jinja
+msgid "Many books on Open Library are still missing a detail: a cover, a language, a publisher. You can help fill them in."
+msgstr ""
+
+#: contribute/landing.html.jinja
+msgid "Recent edits"
+msgstr ""
+
+#: FulltextResultIA.html.jinja contribute/landing.html.jinja contribute/parts.html.jinja
+#, python-format
+msgid "by %(authors)s"
+msgstr ""
+
+#: contribute/landing.html.jinja
+msgid "Quiet for the moment. Edits show up here as they happen."
+msgstr ""
+
+#: contribute/landing.html.jinja
+msgid "What a task looks like"
+msgstr ""
+
+#: contribute/landing.html.jinja
+msgid "Each task is one book and one empty field. Here are just a few examples."
+msgstr ""
+
+#: contribute/landing.html.jinja
+#, python-format
+msgid "Add %(field)s"
+msgstr ""
+
+#: contribute/landing.html.jinja
+msgid "Join in"
+msgstr ""
+
 #: contribute/nothing.html.jinja
 #, python-format
 msgid "%(field)s is already filled in on this edition"
@@ -6075,6 +6118,10 @@ msgid "Contribute"
 msgstr ""
 
 #: shell/header.html.jinja
+msgid "Improve the Catalog"
+msgstr ""
+
+#: shell/header.html.jinja
 msgid "Recent Community Edits"
 msgstr ""
 
@@ -7224,11 +7271,6 @@ msgstr ""
 msgid "Expires"
 msgstr ""
 
-#: FulltextResultIA.html.jinja
-#, python-format
-msgid "by %(authors)s"
-msgstr ""
-
 #: FulltextSearchSuggestion.html.jinja openlibrary/core/shell/search_modal.py
 msgid "Search inside books"
 msgstr ""
@@ -7991,6 +8033,42 @@ msgstr ""
 msgid "Next: a random task from all open tasks"
 msgstr ""
 
+#: openlibrary/contribute/feed.py
+msgid "Edited this book"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "Added this book"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "Added a cover"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "Merged duplicate authors"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "Merged duplicate works"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "Updated this record"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "Edited this author"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "Reverted an edit"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "a visitor"
+msgstr ""
+
 #: openlibrary/contribute/field_guides.py
 msgid "WorldCat"
 msgstr ""
@@ -8736,6 +8814,30 @@ msgid "All open tasks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
+msgid "Become an Open Librarian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Tasks are for Open Librarians. Applying takes a few minutes."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Applying takes a few minutes and asks for your Open Library username, so create a free account first."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Create an account"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Log in"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Book cover"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
 msgid "Missing: %(field)s"
 msgstr ""
@@ -9033,6 +9135,22 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Choose a password"
+msgstr ""
+
+#: openlibrary/plugins/upstream/lenny.py
+msgid "Open Library could not reach that library to return this book. Please try again later."
+msgstr ""
+
+#: openlibrary/plugins/upstream/lenny.py
+msgid "Open Library is no longer connected to that library. Please borrow again to reconnect, then return."
+msgstr ""
+
+#: openlibrary/plugins/upstream/lenny.py
+msgid "That library could not return this book right now. Please try again later."
+msgstr ""
+
+#: openlibrary/plugins/upstream/lenny.py
+msgid "This book has been returned."
 msgstr ""
 
 #: openlibrary/plugins/upstream/lenny.py

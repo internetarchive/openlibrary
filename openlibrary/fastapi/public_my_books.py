@@ -71,7 +71,6 @@ async def get_public_my_books_json(
 
     Otherwise returns an error.
     """
-    key = key.lower()  # type: ignore[assignment]
 
     if len(q) < 3:
         q = ""

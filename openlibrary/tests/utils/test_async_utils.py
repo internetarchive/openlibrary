@@ -100,3 +100,16 @@ def test_bridge_rejects_nested_run_from_its_own_loop():
 
 async def _call(get_client):
     return get_client()
+
+
+def test_wrap_names_the_code_object_after_the_wrapped_function():
+    """py-spy reports co_name, so the monitoring stack sampler needs it to name the bridged call."""
+    bridge = AsyncBridge()
+
+    async def run_solr_query_async(x):
+        return x * 2
+
+    wrapped = bridge.wrap(run_solr_query_async, "run_solr_query")
+    assert wrapped.__code__.co_name == "run_solr_query_async"
+    assert wrapped.__name__ == "run_solr_query"
+    assert wrapped(21) == 42
