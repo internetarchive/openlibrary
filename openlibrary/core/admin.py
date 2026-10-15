@@ -58,8 +58,7 @@ class Stats:
 
         Bars are oldest first and scaled so the busiest day fills `height`.
         """
-        # Graphite reports None for days it has no data for yet (e.g. today)
-        counts = sorted((timestamp, count or 0) for timestamp, count in self.get_counts(ndays, True))
+        counts = sorted(self.get_counts(ndays, True))
         peak = max((count for _, count in counts), default=0) or 1
         step = width / max(len(counts), 1)
         bars = []
@@ -125,8 +124,8 @@ class LoanStats(Stats):
             return Stats.get_counts(self, ndays, times)
 
         if graphite_data := _get_loan_counts_from_graphite(ndays):
-            # convert timestamp seconds to ms (as required by API)
-            return [[timestamp * 1000, count] for [count, timestamp] in graphite_data]
+            # Convert timestamp seconds to ms (as required by API); Graphite reports None for days with no data yet (e.g. today)
+            return [[timestamp * 1000, count or 0] for [count, timestamp] in graphite_data]
         else:
             return Stats.get_counts(self, ndays, times)
 
