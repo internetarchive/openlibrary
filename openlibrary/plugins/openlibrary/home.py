@@ -7,8 +7,9 @@ import web
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import public, render_template
 from openlibrary.core import admin, cache, env
+from openlibrary.core.helpers import commify
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary import home_genres
 from openlibrary.plugins.upstream.utils import (
@@ -23,6 +24,18 @@ from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import caching_prethread, get_request_lang, req_context
 
 logger = logging.getLogger("openlibrary.home")
+
+
+@public
+def get_home_stats_charts(stats) -> dict | None:
+    """Data for the homepage "Around the Library" charts, keyed by stat: the 28-day total and one bar per day."""
+    if not stats:
+        return None
+    charts = {}
+    for key in ("visitors", "members", "human_edits", "lists", "loans"):
+        total = stats[key].get_summary(28)
+        charts[key] = {**stats[key].get_bar_chart(28, width=150, height=60), "total": total, "total_label": commify(total)}
+    return charts
 
 
 def get_homepage(devmode):

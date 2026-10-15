@@ -209,8 +209,13 @@ $(function () {
             module.initialzeCarousels(carouselElements);
         });
     }
-    if ($('script[type="text/json+graph"]').length > 0) {
-        import('./graphs').then(module => module.init());
+    if (document.getElementById('chartPubHistory')) {
+        import('./publishing_history').then(module => module.init());
+    }
+
+    const importsChart = document.getElementById('books-added-per-day');
+    if (importsChart) {
+        import('./imports_chart').then(module => module.init(importsChart));
     }
 
     const readingLogCharts = document.querySelector('.readinglog-charts');

@@ -11,6 +11,7 @@
 @import "components/admin-table.css";
 /* Import all common components */
 @import "legacy.css";
+@import "components/stats-bar-chart.css";
 /* Import styles specific to the BorrowTable for user pages */
 @import "legacy-borrowTable-adminUser.css";
 @import "components/pd-dashboard.css";
@@ -129,10 +130,10 @@ div#contentHead {
 }
 /* stylelint-enable selector-max-specificity */
 
-/* openlibrary/templates/admin/index.html */
+/* openlibrary/templates/admin/index.html: fills .chartDisplay */
 .canvas-graph {
   width: 100%;
-  height: 50px;
+  height: 100%;
 }
 
 /* openlibrary/templates/admin/index.html */
@@ -165,15 +166,5 @@ div.sparkDisplay {
     width: 439px;
     min-height: 100px;
     padding-left: 20px;
-  }
-}
-
-/* @width-breakpoint-desktop: 960px */
-@media all and (min-width: 960px) {
-  /* Graph shown on /stats */
-  /* openlibrary/templates/admin/index.html */
-  .canvas-graph {
-    width: 430px;
-    height: 50px;
   }
 }
