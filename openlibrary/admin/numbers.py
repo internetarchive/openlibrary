@@ -104,6 +104,34 @@ def _get_cached_bot_accounts(thingdb=None) -> list[int]:
     return cached_bot_accounts
 
 
+# Public functions that are used by stats.py
+def _count_transactions(db, start, end, where="", **vars):
+    "Transactions between `start` and `end`, narrowed by `where` (an SQL fragment using `vars`)."
+    sql = f"SELECT count(t.id) AS count FROM transaction t WHERE t.created >= $start and t.created < $end{where}"
+    return db.query(sql, vars={"start": start, "end": end, **vars})[0].count
+
+
+def _range_args(fn_name, kargs):
+    try:
+        return kargs["thingdb"], kargs["start"].strftime("%Y-%m-%d"), kargs["end"].strftime("%Y-%m-%d %H:%M:%S")
+    except KeyError as k:
+        raise TypeError(f"{k} is a required argument for {fn_name}")
+
+
+def admin_range__human_edits(**kargs):
+    "Transactions by non-bot accounts between `start` and `end`, signups and all. See `admin_range__catalog_edits`."
+    db, start, end = _range_args("admin_range__human_edits", kargs)
+    bot_ids = _get_cached_bot_accounts(thingdb=db)
+    return _count_transactions(db, start, end, " AND t.author_id NOT IN $bot_ids", bot_ids=bot_ids)
+
+
+def admin_range__bot_edits(**kargs):
+    "Transactions by bot accounts between `start` and `end`."
+    db, start, end = _range_args("admin_range__bot_edits", kargs)
+    bot_ids = _get_cached_bot_accounts(thingdb=db)
+    return _count_transactions(db, start, end, " AND t.author_id IN $bot_ids", bot_ids=bot_ids)
+
+
 # Transactions that aren't edits to the catalog. Every signup writes a `new-account`
 # transaction, and at ~10k signups a day they outnumber real edits several times over.
 NON_EDIT_ACTIONS = (
@@ -117,45 +145,14 @@ NON_EDIT_ACTIONS = (
 )
 
 
-# Public functions that are used by stats.py
-def admin_range__human_edits(**kargs):
-    """Calculates the number of edit actions performed by humans
-    between the given `start` and `end` dates. `thingdb` is the database.
-    """
-    try:
-        start = kargs["start"].strftime("%Y-%m-%d")
-        end = kargs["end"].strftime("%Y-%m-%d %H:%M:%S")
-        db = kargs["thingdb"]
-    except KeyError as k:
-        raise TypeError(f"{k} is a required argument for admin_range__human_edits")
-    bot_ids = _get_cached_bot_accounts(thingdb=kargs["thingdb"])
-    q1 = (
-        "SELECT count(t.id) AS count FROM transaction t"
-        " WHERE t.created >= $start and t.created < $end AND t.action NOT IN $non_edit_actions AND t.author_id NOT IN $bot_ids"
+def admin_range__catalog_edits(**kargs):
+    """Human edits that change the catalog: `admin_range__human_edits` without signups and admin
+    housekeeping. A separate key so the daily docs written before it existed keep their meaning."""
+    db, start, end = _range_args("admin_range__catalog_edits", kargs)
+    bot_ids = _get_cached_bot_accounts(thingdb=db)
+    return _count_transactions(
+        db, start, end, " AND t.action NOT IN $non_edit_actions AND t.author_id NOT IN $bot_ids", bot_ids=bot_ids, non_edit_actions=NON_EDIT_ACTIONS
     )
-    result = db.query(q1, vars={"bot_ids": bot_ids, "start": start, "end": end, "non_edit_actions": NON_EDIT_ACTIONS})
-    count = result[0].count
-    return count
-
-
-def admin_range__bot_edits(**kargs):
-    """Calculates the number of edit actions performed by bots between
-    the `start` and `end` dates. `thingdb` is the database.
-    """
-    try:
-        start = kargs["start"].strftime("%Y-%m-%d")
-        end = kargs["end"].strftime("%Y-%m-%d %H:%M:%S")
-        db = kargs["thingdb"]
-    except KeyError as k:
-        raise TypeError(f"{k} is a required argument for admin_range__bot_edits")
-    bot_ids = _get_cached_bot_accounts(thingdb=kargs["thingdb"])
-    q1 = (
-        "SELECT count(t.id) AS count FROM transaction t"
-        " WHERE t.created >= $start and t.created < $end AND t.action NOT IN $non_edit_actions AND t.author_id IN $bot_ids"
-    )
-    result = db.query(q1, vars={"bot_ids": bot_ids, "start": start, "end": end, "non_edit_actions": NON_EDIT_ACTIONS})
-    count = result[0].count
-    return count
 
 
 # Someone making or changing a list; `edit-list-seeds` is a save of what's on it.
@@ -164,16 +161,8 @@ LIST_EDIT_ACTIONS = ("create-list", "edit-list-seeds")
 
 def admin_range__list_edits(**kargs):
     "Counts lists created or edited between `start` and `end`."
-    try:
-        start = kargs["start"].strftime("%Y-%m-%d")
-        end = kargs["end"].strftime("%Y-%m-%d %H:%M:%S")
-        db = kargs["thingdb"]
-    except KeyError as k:
-        raise TypeError(f"{k} is a required argument for admin_range__list_edits")
-    q1 = "SELECT count(t.id) AS count FROM transaction t WHERE t.created >= $start and t.created < $end AND t.action IN $list_edit_actions"
-    result = db.query(q1, vars={"start": start, "end": end, "list_edit_actions": LIST_EDIT_ACTIONS})
-    count = result[0].count
-    return count
+    db, start, end = _range_args("admin_range__list_edits", kargs)
+    return _count_transactions(db, start, end, " AND t.action IN $list_edit_actions", list_edit_actions=LIST_EDIT_ACTIONS)
 
 
 def admin_range__covers(**kargs):

@@ -28,8 +28,7 @@ logger = logging.getLogger("openlibrary.home")
 
 def get_homepage(devmode):
     try:
-        # The card's 28 days, plus the six before them so its first day has a full 7-day average.
-        stats = admin.get_stats(ndays=LIBRARY_STATS_DAYS + SMOOTHING_DAYS - 1, use_mock_data=devmode)
+        stats = admin.get_stats(ndays=LIBRARY_STATS_WINDOW, use_mock_data=devmode)
     except Exception:
         logger.error("Error in getting stats", exc_info=True)
         stats = None
@@ -54,7 +53,6 @@ def get_homepage(devmode):
     # during subsequent called
     page = render_template(
         "home/index",
-        stats=stats,
         blog_posts=blog_posts,
         featured_genres=featured_genres,
         library_stats=get_library_stats(stats),
@@ -68,6 +66,8 @@ def get_homepage(devmode):
 # and the change from its first point to its last.
 LIBRARY_STATS_DAYS = 28
 SMOOTHING_DAYS = 7
+# The card's 28 days, plus the six before them so its first day has a full 7-day average.
+LIBRARY_STATS_WINDOW = LIBRARY_STATS_DAYS + SMOOTHING_DAYS - 1
 SPARKLINE_WIDTH = 120
 SPARKLINE_HEIGHT = 28
 
@@ -124,8 +124,11 @@ def get_library_stats(stats) -> list[dict]:
         return []
 
     def metric(key, label, href):
+        # A count the stats script began writing part-way through the window would add up to a fraction of a month.
+        if not (stat := stats.get(key)) or not stat.has_counts(LIBRARY_STATS_WINDOW):
+            return None
         # Graphite reports days it has no data for (often today) as None or 0.
-        counts = [int(count or 0) for _day, count in stats[key].get_counts(LIBRARY_STATS_DAYS + SMOOTHING_DAYS - 1)]
+        counts = [int(count or 0) for _day, count in stat.get_counts(LIBRARY_STATS_WINDOW)]
         line = rolling_average(counts, SMOOTHING_DAYS)[-LIBRARY_STATS_DAYS:]
         if total := sum(counts[-LIBRARY_STATS_DAYS:]):
             return {
@@ -140,8 +143,10 @@ def get_library_stats(stats) -> list[dict]:
     series = [
         metric("members", _("New Members"), "/stats"),
         metric("loans", _("Books Read"), "/subjects/in_library#ebooks=true"),
-        metric("human_edits", _("Catalog Edits"), "/recentchanges"),
-        # List edits are a newer daily count; until the docs carry it, show lists created.
+        # Catalog edits (human edits minus signups) and list edits are newer daily counts. Until the
+        # docs carry a full window of them, the older series stand in, so the card never sums or
+        # compares across the change.
+        metric("catalog_edits", _("Catalog Edits"), "/recentchanges") or metric("human_edits", _("Catalog Edits"), "/recentchanges"),
         metric("list_edits", _("Lists Updated"), "/lists") or metric("lists", _("Lists Created"), "/lists"),
     ]
     return [m for m in series if m]

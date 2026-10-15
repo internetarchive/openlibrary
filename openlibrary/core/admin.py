@@ -33,6 +33,13 @@ class Stats:
         except KeyError, StopIteration:
             self.total = ""
 
+    def has_counts(self, ndays=28) -> bool:
+        """True when every doc of the last `ndays` carries this key. A key only some of them
+        have is one the stats script started writing recently, and a series read from it would
+        cover part of the window while claiming all of it."""
+        docs = self.docs[-ndays:]
+        return bool(docs) and all(self.key in doc for doc in docs)
+
     def get_counts(self, ndays=28, times=False):
         """Returns the stats for last n days as an array useful for
         plotting. i.e. an array of [x, y] tuples where y is the value
@@ -118,6 +125,11 @@ class LoanStats(Stats):
     loans, so the fallback (e.g. local dev) reports zero.
     """
 
+    def has_counts(self, ndays=28) -> bool:
+        if get_ol_env().LOCAL_DEV or not _get_loan_counts_from_graphite(ndays):
+            return Stats.has_counts(self, ndays)
+        return True
+
     def get_counts(self, ndays=28, times=False):
         # Let dev.openlibrary.org show the true state of things
         if get_ol_env().LOCAL_DEV:
@@ -156,6 +168,9 @@ def _get_visitor_counts_from_graphite(ndays: int = 28) -> list[list[int]]:
 
 
 class VisitorStats(Stats):
+    def has_counts(self, ndays: int = 28) -> bool:
+        return bool(_get_visitor_counts_from_graphite(ndays))
+
     def get_counts(self, ndays: int = 28, times: bool = False) -> list[tuple[int, int]]:
         visitors = _get_visitor_counts_from_graphite(ndays)
         # Flip the order, convert timestamp to msec, and convert count==None to zero
@@ -186,6 +201,7 @@ def get_stats(ndays=30, use_mock_data=False):
     return {
         "human_edits": Stats(docs, "human_edits", "human_edits"),
         "bot_edits": Stats(docs, "bot_edits", "bot_edits"),
+        "catalog_edits": Stats(docs, "catalog_edits", "catalog_edits"),
         "lists": Stats(docs, "lists", "total_lists"),
         "list_edits": Stats(docs, "list_edits", "list_edits"),
         "visitors": VisitorStats(docs, "visitors", "visitors"),
@@ -220,8 +236,9 @@ def mock_get_stats(ndays=30):
     """Daily counts shaped like production's for local dev: a weekend dip, some noise and a
     gentle climb, at roughly production's scale. Seeded per key so a reload doesn't redraw."""
     daily_scale = {
-        "human_edits": 10_000,
+        "human_edits": 12_000,
         "bot_edits": 20_000,
+        "catalog_edits": 3_000,
         "lists": 150,
         "list_edits": 1_200,
         "visitors": 5_800_000,

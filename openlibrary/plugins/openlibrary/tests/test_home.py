@@ -25,6 +25,14 @@ class MockDoc(dict):
         return f"<{self.id} - {o}>"
 
 
+def series(*values, complete=True):
+    """A stat whose daily counts are `values`; `complete` is whether every doc in the window has it."""
+    stat = MagicMock()
+    stat.get_counts.return_value = list(enumerate(values))
+    stat.has_counts.return_value = complete
+    return stat
+
+
 class TestHomeTemplates:
     @pytest.fixture(autouse=True)
     def setup_context(self, request_context_fixture):
@@ -83,6 +91,7 @@ class TestHomeTemplates:
                 _id=datetime.datetime.now().strftime("counts-%Y-%m-%d"),
                 human_edits=1,
                 bot_edits=1,
+                catalog_edits=1,
                 lists=1,
                 list_edits=1,
                 visitors=1,
@@ -99,6 +108,7 @@ class TestHomeTemplates:
         stats = {
             "human_edits": Stats(docs, "human_edits", "human_edits"),
             "bot_edits": Stats(docs, "bot_edits", "bot_edits"),
+            "catalog_edits": Stats(docs, "catalog_edits", "catalog_edits"),
             "lists": Stats(docs, "lists", "total_lists"),
             "list_edits": Stats(docs, "list_edits", "list_edits"),
             "visitors": Stats(docs, "visitors", "visitors"),
@@ -120,7 +130,7 @@ class TestHomeTemplates:
         macros.LoadingIndicator = lambda *args, **kwargs: '<div class="loadingIndicator"></div>'
         # The Jinja row draws its button arrow through the icon global, which reads the sprite macro.
         monkeypatch.setitem(get_jinja_env().globals, "icon", lambda *args, **kwargs: '<svg class="ol-icon"></svg>')
-        html = str(render_template("home/index", stats=stats, test=True, library_stats=home.get_library_stats(stats)))
+        html = str(render_template("home/index", test=True, library_stats=home.get_library_stats(stats)))
 
         assert "bookPreview" in html
         assert "In the last month" in html
@@ -136,7 +146,7 @@ class TestHomeTemplates:
         macros.LoadingIndicator = lambda *args, **kwargs: '<div class="loadingIndicator"></div>'
         # The Jinja row draws its button arrow through the icon global, which reads the sprite macro.
         monkeypatch.setitem(get_jinja_env().globals, "icon", lambda *args, **kwargs: '<svg class="ol-icon"></svg>')
-        html = str(render_template("home/index", stats=None, test=True))
+        html = str(render_template("home/index", test=True))
         assert "A library made by the people who use it." in html
         assert "Around the Library" not in html
         assert "library-row--solo" in html
@@ -183,14 +193,9 @@ class TestLibraryStats:
         assert home.percent_change([100]) is None
 
     def test_metrics_in_order_and_empty_series_dropped(self):
-        def series(*values):
-            stat = MagicMock()
-            stat.get_counts.return_value = list(enumerate(values))
-            return stat
-
         stats = {
             "members": series(100, 200, 300),
-            "human_edits": series(1500, 1600),
+            "catalog_edits": series(1500, 1600),
             "loans": series(None, 7),
             "list_edits": series(40, 50),
             "lists": series(0, 0, 0),
@@ -205,26 +210,30 @@ class TestLibraryStats:
         assert metrics[0]["points"] == home.sparkline_points([100, 150, 200])
         assert home.get_library_stats(None) == []
 
-    def test_lists_created_stands_in_until_list_edits_are_counted(self):
-        def series(*values):
-            stat = MagicMock()
-            stat.get_counts.return_value = list(enumerate(values))
-            return stat
-
+    def test_older_series_stand_in_until_the_newer_ones_cover_the_window(self):
+        # The newer keys have a few days of data; summing those as a month would be wrong.
         stats = {
-            "members": series(0),
-            "human_edits": series(0),
-            "loans": series(0),
-            "list_edits": series(0, 0),
+            "catalog_edits": series(300, complete=False),
+            "human_edits": series(1500, 1600),
+            "list_edits": series(40, complete=False),
             "lists": series(3, 4),
         }
-        assert [(m["label"], m["value"]) for m in home.get_library_stats(stats)] == [("Lists Created", "7")]
+        assert [(m["label"], m["value"]) for m in home.get_library_stats(stats)] == [("Catalog Edits", "3.1K"), ("Lists Created", "7")]
+        assert stats["catalog_edits"].has_counts.call_args.args == (34,)
+
+    def test_has_counts_needs_the_key_in_every_doc_of_the_window(self):
+        docs = [{"_key": f"counts-2026-10-{day:02d}", "members": 1} for day in range(1, 6)]
+        docs[-1]["list_edits"] = 1
+        assert Stats(docs, "members", "total_members").has_counts(5)
+        assert not Stats(docs, "list_edits", "list_edits").has_counts(5)
+        assert Stats(docs, "list_edits", "list_edits").has_counts(1)
+        assert not Stats([], "members", "total_members").has_counts(5)
 
     def test_change_follows_the_line_not_the_monthly_average(self):
         # Busy early, quiet late: the 28-day total is high but the line, and so the change, falls.
         stat = MagicMock()
         stat.get_counts.return_value = list(enumerate([100] * 20 + [80] * 14))
-        metric = home.get_library_stats({"members": stat, "human_edits": stat, "loans": stat, "list_edits": stat})[0]
+        metric = home.get_library_stats({"members": stat})[0]
         assert metric["change"] == -20
         assert stat.get_counts.call_args.args == (34,)
 
