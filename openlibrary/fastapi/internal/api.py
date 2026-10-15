@@ -26,7 +26,7 @@ from openlibrary.core.env import get_ol_env
 from openlibrary.core.follows import PubSub
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
-from openlibrary.core.ratings import Ratings
+from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
@@ -210,38 +210,30 @@ async def browse(
     return {"query": url, "works": [work.dict() for work in works]}
 
 
+class RatingsSummary(BaseModel):
+    average: float | None = Field(default=None, description="Mean star rating, or null if the work is unrated")
+    count: int = Field(default=0, description="Number of ratings")
+    sortable: float | None = Field(default=None, exclude_if=lambda v: v is None, description="Bayesian lower bound used to sort by rating; omitted if unrated")
+
+
+class RatingsResponse(BaseModel):
+    summary: RatingsSummary
+    counts: dict[str, int] = Field(..., description="Number of ratings per star value, keyed '1' to '5'")
+
+    @classmethod
+    def from_work_summary(cls, stats: WorkRatingsSummary | None) -> RatingsResponse:
+        if not stats:
+            return cls(summary=RatingsSummary(), counts={str(star): 0 for star in range(1, 6)})
+        return cls(
+            summary=RatingsSummary(average=stats["ratings_average"], count=stats["ratings_count"], sortable=stats["ratings_sortable"]),
+            counts={str(star): stats[f"ratings_count_{star}"] for star in range(1, 6)},  # type: ignore[literal-required]
+        )
+
+
 @router.get("/works/OL{work_id}W/ratings.json")
-async def get_ratings(work_id: Annotated[int, Path()]) -> dict:
+async def get_ratings(work_id: Annotated[int, Path()]) -> RatingsResponse:
     """Get ratings summary for a work."""
-    if stats := await Ratings.get_work_ratings_summary(work_id):
-        return {
-            "summary": {
-                "average": stats["ratings_average"],
-                "count": stats["ratings_count"],
-                "sortable": stats["ratings_sortable"],
-            },
-            "counts": {
-                "1": stats["ratings_count_1"],
-                "2": stats["ratings_count_2"],
-                "3": stats["ratings_count_3"],
-                "4": stats["ratings_count_4"],
-                "5": stats["ratings_count_5"],
-            },
-        }
-    else:
-        return {
-            "summary": {
-                "average": None,
-                "count": 0,
-            },
-            "counts": {
-                "1": 0,
-                "2": 0,
-                "3": 0,
-                "4": 0,
-                "5": 0,
-            },
-        }
+    return RatingsResponse.from_work_summary(await Ratings.get_work_ratings_summary(work_id))
 
 
 @router.post("/works/OL{work_id}W/ratings.json")

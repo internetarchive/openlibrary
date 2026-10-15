@@ -42,7 +42,7 @@ def reading_log_summary():
 
     stats = Bookshelves.summary()
     stats.update(YearlyReadingGoals.summary_sync())
-    stats.update(Ratings.summary())
+    stats.update(Ratings.summary_sync())
     stats.update(Observations.summary())
     stats.update(Booknotes.summary())
     stats.update(PubSub.summary())

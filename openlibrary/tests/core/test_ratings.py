@@ -34,11 +34,9 @@ class TestAddAutoShelve:
     @pytest.mark.asyncio
     async def test_add_only_auto_shelves_unshelved_and_want_to_read(self, read_status, should_auto_shelve):
         with (
-            patch("openlibrary.core.ratings.db.get_db"),
             patch("openlibrary.core.bookshelves.Bookshelves.get_users_read_status_of_work", return_value=read_status),
             patch("openlibrary.core.bookshelves.Bookshelves.add") as bookshelves_add,
-            patch.object(Ratings, "get_users_rating_for_work", return_value=None),
-            patch("openlibrary.core.ratings.execute", new_callable=AsyncMock),
+            patch("openlibrary.core.ratings.execute", new_callable=AsyncMock) as execute,
         ):
             await Ratings.add("testuser", 123, rating=4)
 
@@ -46,6 +44,8 @@ class TestAddAutoShelve:
             bookshelves_add.assert_called_once_with("testuser", self.ALREADY_READ, 123, edition_id=None)
         else:
             bookshelves_add.assert_not_called()
+        # The rating is saved whatever the shelf.
+        execute.assert_awaited_once()
 
 
 class TestComputeSortableRating:

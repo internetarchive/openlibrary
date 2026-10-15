@@ -26,31 +26,31 @@ class Ratings(db.CommonExtras):
     ALLOW_DELETE_ON_CONFLICT = True
 
     @classmethod
-    def summary(cls) -> dict:
+    async def summary(cls) -> dict:
         return {
             "total_books_starred": {
-                "total": Ratings.total_num_books_rated_sync(),
-                "month": Ratings.total_num_books_rated_sync(since=DATE_ONE_MONTH_AGO),
-                "week": Ratings.total_num_books_rated_sync(since=DATE_ONE_WEEK_AGO),
+                "total": await cls.total_num_books_rated(),
+                "month": await cls.total_num_books_rated(since=DATE_ONE_MONTH_AGO),
+                "week": await cls.total_num_books_rated(since=DATE_ONE_WEEK_AGO),
             },
             "total_star_raters": {
-                "total": Ratings.total_num_unique_raters_sync(),
-                "month": Ratings.total_num_unique_raters_sync(since=DATE_ONE_MONTH_AGO),
-                "week": Ratings.total_num_unique_raters_sync(since=DATE_ONE_WEEK_AGO),
+                "total": await cls.total_num_unique_raters(),
+                "month": await cls.total_num_unique_raters(since=DATE_ONE_MONTH_AGO),
+                "week": await cls.total_num_unique_raters(since=DATE_ONE_WEEK_AGO),
             },
         }
 
     @classmethod
-    async def total_num_books_rated(cls, since=None, distinct=False) -> int | None:
+    def summary_sync(cls) -> dict:
+        return async_bridge.run(cls.summary())
+
+    @classmethod
+    async def total_num_books_rated(cls, since=None, distinct=False) -> int:
         query = "SELECT count(%s) from ratings" % ("DISTINCT work_id" if distinct else "work_id")
         if since:
             query += " WHERE created >= %(since)s"
         count = await fetch_val(query, {"since": since} if since else None)
         return count or 0
-
-    @classmethod
-    def total_num_books_rated_sync(cls, since=None, distinct=False) -> int | None:
-        return async_bridge.run(cls.total_num_books_rated(since, distinct))
 
     @classmethod
     async def total_num_unique_raters(cls, since=None) -> int:
@@ -59,10 +59,6 @@ class Ratings(db.CommonExtras):
             query += " WHERE created >= %(since)s"
         count = await fetch_val(query, {"since": since} if since else None)
         return count or 0
-
-    @classmethod
-    def total_num_unique_raters_sync(cls, since=None) -> int:
-        return async_bridge.run(cls.total_num_unique_raters(since))
 
     @classmethod
     async def most_rated_books(cls, limit=10, since=False) -> list:
@@ -191,10 +187,6 @@ class Ratings(db.CommonExtras):
         )
 
     @classmethod
-    def remove_sync(cls, username, work_id):
-        return async_bridge.run(cls.remove(username, work_id))
-
-    @classmethod
     async def add(cls, username, work_id, rating, edition_id=None):
         from openlibrary.core.bookshelves import Bookshelves
 
@@ -218,21 +210,16 @@ class Ratings(db.CommonExtras):
                 edition_id=edition_id,
             )
 
-        users_rating_for_work = await cls.get_users_rating_for_work(username, work_id)
-        if not users_rating_for_work:
-            await execute(
-                "INSERT INTO ratings (username, work_id, rating, edition_id) VALUES (%(username)s, %(work_id)s, %(rating)s, %(edition_id)s)",
-                {"username": username, "work_id": work_id, "rating": rating, "edition_id": edition_id},
-            )
-        else:
-            await execute(
-                "UPDATE ratings SET rating = %(rating)s WHERE work_id = %(work_id)s AND username = %(username)s",
-                {"username": username, "work_id": work_id, "rating": rating},
-            )
-
-    @classmethod
-    def add_sync(cls, username, work_id, rating, edition_id=None):
-        return async_bridge.run(cls.add(username, work_id, rating, edition_id))
+        # A single upsert, so concurrent first ratings of the same work can't
+        # both insert and trip the (username, work_id) primary key.
+        await execute(
+            """
+            INSERT INTO ratings (username, work_id, rating, edition_id)
+            VALUES (%(username)s, %(work_id)s, %(rating)s, %(edition_id)s)
+            ON CONFLICT (username, work_id) DO UPDATE SET rating = EXCLUDED.rating
+            """,
+            {"username": username, "work_id": work_id, "rating": rating, "edition_id": edition_id},
+        )
 
     @classmethod
     async def calc_star_rating_counts(cls) -> dict[str, int]:

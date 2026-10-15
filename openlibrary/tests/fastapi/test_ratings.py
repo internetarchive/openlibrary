@@ -16,7 +16,7 @@ def mock_ratings_model():
 
 
 class TestRatingsEndpoints:
-    def test_get_ratings_returns_legacy_summary(self, fastapi_client):
+    def test_get_ratings_returns_summary(self, fastapi_client):
         expected = {
             "summary": {
                 "average": 4.5,
