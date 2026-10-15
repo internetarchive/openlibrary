@@ -104,56 +104,6 @@ $def with (books=None, books_wo_isbns=None)
       </div>
     </div>
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        // Check existing interests on page load
-        fetch('/account/feature-interest.json', { credentials: 'same-origin' })
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            if (data.features && data.features.length) {
-              data.features.forEach(function(feature) {
-                disableInterestButton(feature);
-              });
-            }
-          })
-          .catch(function() { /* ignore errors */ });
-
-        // Handle clicks on "Express interest" buttons
-        document.querySelectorAll('.express-interest-btn').forEach(function(btn) {
-          btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            var feature = btn.dataset.service;
-            if (!feature) return;
-
-            fetch('/account/feature-interest.json', {
-              method: 'POST',
-              credentials: 'same-origin',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: 'feature=' + encodeURIComponent(feature)
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-              if (data.status === 'ok') {
-                disableInterestButton(feature);
-              }
-            })
-            .catch(function() { /* ignore errors */ });
-          });
-        });
-
-        function disableInterestButton(feature) {
-          document.querySelectorAll('.express-interest-btn[data-service="' + feature + '"]').forEach(function(btn) {
-            btn.disabled = true;
-            var recordedText = btn.dataset.interestRecordedText || 'Interest recorded';
-            btn.textContent = recordedText;
-            btn.classList.remove('cta-btn--available');
-            btn.classList.add('cta-btn--unavailable');
-            btn.onclick = null;
-          });
-        }
-      });
-    </script>
-
 
   $else:
     <div class="import-buttons">
