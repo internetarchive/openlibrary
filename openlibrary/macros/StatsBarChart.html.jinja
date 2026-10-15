@@ -1,0 +1,15 @@
+{# Daily bar chart as inline SVG. `chart` comes from Stats.get_bar_chart(); `label` names it for screen readers. #}
+<svg class="stats-bar-chart {{ css_class }}"
+     viewBox="0 0 {{ chart.width }} {{ chart.height }}"
+     preserveAspectRatio="none"
+     role="img"
+     aria-label="{{ label }}">
+    {% for bar in chart.bars %}
+        <g class="stats-bar-chart__day">
+        <title>{{ bar.title }}</title>
+        {# A full-height hit area, so short bars are easy to hover #}
+        <rect class="stats-bar-chart__hit" x="{{ bar.x }}" y="0" width="{{ chart.bar_step }}" height="{{ chart.height }}"></rect>
+        <rect class="stats-bar-chart__bar" x="{{ bar.x }}" y="{{ bar.y }}" width="{{ chart.bar_width }}" height="{{ bar.height }}"></rect>
+        </g>
+    {% endfor %}
+</svg>

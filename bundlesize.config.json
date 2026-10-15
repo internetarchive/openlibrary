@@ -5,10 +5,6 @@
       "maxSize": "35KB"
     },
     {
-      "path": "static/build/js/graphs.*.js",
-      "maxSize": "23KB"
-    },
-    {
       "path": "static/build/js/carousel.*.js",
       "maxSize": "13KB"
     },
