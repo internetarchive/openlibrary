@@ -5,6 +5,7 @@ import pytest
 import web
 from bs4 import BeautifulSoup
 
+from openlibrary.core import admin
 from openlibrary.core.admin import Stats
 from openlibrary.core.carousels import format_book_data
 from openlibrary.core.jinja import get_jinja_env
@@ -190,13 +191,29 @@ class TestLibraryStats:
             "12M",
         ]
 
-    def test_sparkline_fills_the_box_oldest_first(self):
-        points = home.sparkline_points([0, 5, 10], width=120, height=28)
-        assert points == "2.0,26.0 60.0,14.0 118.0,2.0"
+    def test_sparkline_scale_spans_at_least_30_percent_of_the_peak(self):
+        # A doubling fills the box.
+        assert home.sparkline_points([5, 10], width=120, height=28) == "2.0,26.0 118.0,2.0"
+        # A 10% rise moves a third of the way up a 30% span.
+        assert home.sparkline_points([90, 100], width=120, height=28) == "2.0,10.0 118.0,2.0"
+        assert home.sparkline_points([3, 3], width=120, height=28) == "2.0,2.0 118.0,2.0"
 
-    def test_sparkline_flat_series_is_a_midline(self):
-        assert home.sparkline_points([3, 3], width=120, height=28) == "2.0,14.0 118.0,14.0"
+    def test_sparkline_skips_days_with_no_count(self):
+        assert home.sparkline_points([10, 0, 10], width=120, height=28) == "2.0,2.0 118.0,2.0"
         assert home.sparkline_points([]) == ""
+        assert home.sparkline_points([0, 0]) == ""
+
+    def test_rolling_average_skips_days_with_no_count(self):
+        assert home.rolling_average([2, 4, 0, 6], window=2) == [2, 3, 4, 6]
+        assert home.rolling_average([0, 0, 5], window=2) == [0, 0, 5]
+
+    def test_percent_change_compares_daily_averages(self):
+        assert home.percent_change([150] * 7, [100] * 7) == 50
+        assert home.percent_change([90] * 7, [100] * 7) == -10
+        # Missing days don't count against a window's average.
+        assert home.percent_change([100] * 7 + [0] * 21, [100] * 28) == 0
+        assert home.percent_change([100] * 7, [100] * 6) is None
+        assert home.percent_change([100] * 7, []) is None
 
     def test_metrics_in_order_and_empty_series_dropped(self):
         def series(*values):
@@ -208,7 +225,7 @@ class TestLibraryStats:
             "visitors": series(0, 0, 0),
             "members": series(100, 200, 300),
             "human_edits": series(1500, 1600),
-            "loans": series(7),
+            "loans": series(None, 7),
         }
         metrics = home.get_library_stats(stats)
         assert [(m["label"], m["value"], m["href"]) for m in metrics] == [
@@ -216,8 +233,22 @@ class TestLibraryStats:
             ("catalog edits", "3.1K", "/recentchanges"),
             ("ebooks borrowed", "7", "/subjects/in_library#ebooks=true"),
         ]
-        assert metrics[0]["points"] == home.sparkline_points([100, 200, 300])
+        assert metrics[0]["points"] == home.sparkline_points([100, 150, 200])
         assert home.get_library_stats(None) == []
+
+    def test_change_against_the_previous_28_days(self):
+        stat = MagicMock()
+        stat.get_counts.return_value = list(enumerate([100] * 28 + [125] * 28))
+        metric = home.get_library_stats({"visitors": stat, "members": stat, "human_edits": stat, "loans": stat})[0]
+        assert metric["value"] == "3.5K"
+        assert metric["change"] == 25
+
+    def test_mock_stats_cover_the_window_oldest_first(self):
+        stats = admin.mock_get_stats(56)
+        counts = stats["members"].get_counts(56, times=True)
+        assert len(counts) == 56
+        assert [day for day, _count in counts] == sorted(day for day, _count in counts)
+        assert all(count > 0 for _day, count in counts)
 
 
 class Test_format_book_data:

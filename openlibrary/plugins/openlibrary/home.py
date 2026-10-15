@@ -26,7 +26,8 @@ logger = logging.getLogger("openlibrary.home")
 
 def get_homepage(devmode):
     try:
-        stats = admin.get_stats(use_mock_data=devmode)
+        # Two windows: the card's 28 days and the 28 before, for the change figure.
+        stats = admin.get_stats(ndays=2 * LIBRARY_STATS_DAYS, use_mock_data=devmode)
     except Exception:
         logger.error("Error in getting stats", exc_info=True)
         stats = None
@@ -50,7 +51,8 @@ def get_homepage(devmode):
 
 
 # The "Around the library" card (home/library_row.html.jinja): four of admin.get_stats's series,
-# each summed over the last 28 days, with a sparkline of the daily counts drawn in a 120x28 box.
+# each summed over the last 28 days, with a sparkline of the 7-day average drawn in a 120x28 box
+# and the change in the daily average from the 28 days before.
 LIBRARY_STATS_DAYS = 28
 SPARKLINE_WIDTH = 120
 SPARKLINE_HEIGHT = 28
@@ -68,19 +70,38 @@ def compact_number(n: int) -> str:
     return commify(n)
 
 
-def sparkline_points(values: list[int], width: int = SPARKLINE_WIDTH, height: int = SPARKLINE_HEIGHT, pad: int = 2) -> str:
-    """SVG polyline points for the daily values, oldest first, scaled to fill the box.
-    A flat series draws a midline rather than hugging the floor."""
-    if not values:
+def rolling_average(values: list[int], window: int = 7) -> list[float]:
+    """Trailing average of each day and the `window - 1` before it, which irons out the weekend
+    dip so the line shows the trend. Zeros are days with no count: left out of each average,
+    and a day whose whole window is empty stays 0."""
+    averages = []
+    for i in range(len(values)):
+        days = [v for v in values[max(0, i - window + 1) : i + 1] if v]
+        averages.append(sum(days) / len(days) if days else 0)
+    return averages
+
+
+def sparkline_points(values: list[float], width: int = SPARKLINE_WIDTH, height: int = SPARKLINE_HEIGHT, pad: int = 2, min_span: float = 0.3) -> str:
+    """SVG polyline points for the daily values, oldest first. The scale tops out at the peak and
+    spans at least `min_span` of it, so a doubling fills the box and a few percent stays a ripple.
+    Zeros are days with no count and are skipped, not drawn."""
+    present = [v for v in values if v]
+    if not present:
         return ""
-    low, high = min(values), max(values)
-    span = high - low
+    high = max(present)
+    low = min(min(present), high * (1 - min_span))
     step = (width - 2 * pad) / max(len(values) - 1, 1)
+    return " ".join(f"{pad + i * step:.1f},{pad + (height - 2 * pad) * (high - value) / (high - low):.1f}" for i, value in enumerate(values) if value)
 
-    def y(value: int) -> float:
-        return height / 2 if not span else pad + (height - 2 * pad) * (1 - (value - low) / span)
 
-    return " ".join(f"{pad + i * step:.1f},{y(value):.1f}" for i, value in enumerate(values))
+def percent_change(current: list[int], previous: list[int], min_days: int = 7) -> int | None:
+    """Change in the daily average between two windows, counting only days with a count.
+    None when either window has fewer than `min_days` of them to go on."""
+    current, previous = [v for v in current if v], [v for v in previous if v]
+    if len(current) < min_days or len(previous) < min_days:
+        return None
+    before = sum(previous) / len(previous)
+    return round((sum(current) / len(current) - before) / before * 100)
 
 
 def get_library_stats(stats) -> list[dict]:
@@ -96,9 +117,19 @@ def get_library_stats(stats) -> list[dict]:
     ]
     metrics = []
     for key, label, href in series:
-        values = [count for _day, count in stats[key].get_counts(LIBRARY_STATS_DAYS)]
-        if total := sum(values):
-            metrics.append({"label": label, "value": compact_number(total), "href": href, "points": sparkline_points(values)})
+        # Graphite reports days it has no data for (often today) as None or 0.
+        counts = [int(count or 0) for _day, count in stats[key].get_counts(2 * LIBRARY_STATS_DAYS)]
+        current, previous = counts[-LIBRARY_STATS_DAYS:], counts[:-LIBRARY_STATS_DAYS]
+        if total := sum(current):
+            metrics.append(
+                {
+                    "label": label,
+                    "value": compact_number(total),
+                    "href": href,
+                    "points": sparkline_points(rolling_average(counts)[-LIBRARY_STATS_DAYS:]),
+                    "change": percent_change(current, previous),
+                }
+            )
     return metrics
 
 

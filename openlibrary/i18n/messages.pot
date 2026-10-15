@@ -4445,6 +4445,28 @@ msgstr ""
 msgid "Around the Library"
 msgstr ""
 
+#: home/library_row.html.jinja
+msgid "Compared with the previous 28 days"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Flat"
+msgstr ""
+
+#: home/library_row.html.jinja
+#, python-format
+msgid "Up %(percent)d%% on the previous 28 days"
+msgstr ""
+
+#: home/library_row.html.jinja
+#, python-format
+msgid "Down %(percent)d%% on the previous 28 days"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Level with the previous 28 days"
+msgstr ""
+
 #: home/welcome.html
 msgid "Read Free Library Books Online"
 msgstr ""

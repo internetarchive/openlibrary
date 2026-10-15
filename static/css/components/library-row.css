@@ -160,6 +160,21 @@
   text-decoration: none;
 }
 
+/* The total, with its change from the previous 28 days trailing it on the same baseline. */
+.library-stat__figures {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--spacing-inline-md);
+}
+
+.library-stat__change {
+  font-size: var(--font-size-label-medium);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
 .library-stat__value {
   font-family: var(--font-family-title);
   font-size: var(--font-size-headline-small);
