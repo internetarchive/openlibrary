@@ -1,3 +1,5 @@
+@import "skeleton.css";
+
 :root {
   --height-blank-cover: 200px;
   --height-cover-compact: 125px;
@@ -17,15 +19,70 @@
   margin-top: 1.75em;
 }
 
+/* The page's lead heading (home/welcome.html). */
+.home-h2--lead {
+  font-size: var(--font-size-headline-small);
+  font-weight: var(--font-weight-heading);
+  margin-top: var(--spacing-stack-lg);
+}
+
+/* "See all" sits at the end of the heading's line, wrapping under it when tight. */
+.carousel-section-header--inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-stack-xs) var(--spacing-inline-md);
+  margin: 1.75em 0 0.5em;
+}
+
+.carousel-section-header--inline > .home-h2 {
+  margin: 0;
+}
+
+/* The row's link, at the end of its heading line. */
+.carousel-see-all {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-xs);
+  margin-inline-start: auto;
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-body);
+  white-space: nowrap;
+}
+
+.carousel-see-all:link,
+.carousel-see-all:visited {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.carousel-see-all:hover {
+  text-decoration: underline;
+}
+
 /* Only headings that link somewhere read as links. */
 .home-h2 a {
   color: var(--color-link);
 }
 
-.carousel-container,
-.lazy-carousel {
-  margin: 0 -20px;
+/* Bleeds to the edge of #contentBody. */
+.carousel-container {
+  margin: 0 calc(-1 * var(--spacing-page-gutter));
   padding: var(--spacing-inset-xs) var(--spacing-inset-md);
+}
+
+/* A carousel being re-fetched keeps its cards on screen, dimmed, until the new ones land. */
+.lazy-carousel-loaded--refreshing .carousel-container {
+  opacity: 0.4;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-state);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lazy-carousel-loaded--refreshing .carousel-container {
+    transition: none;
+  }
 }
 
 .carousel {
@@ -33,6 +90,14 @@
   margin-bottom: var(--spacing-stack-md);
   overflow-x: scroll;
   padding: var(--spacing-inset-sm) var(--spacing-inset-lg);
+}
+
+/* Native rows run edge to edge on phones; slick's overhanging arrows would widen the page. */
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .carousel-container:has(> .carousel--native) {
+    padding-inline: 0;
+  }
 }
 
 .carousel.carousel--grid {
@@ -58,6 +123,72 @@
   min-height: 1px;
   overflow: hidden;
   box-sizing: border-box;
+}
+
+/* <ol-carousel> sizes and spaces the cards itself. */
+.carousel--native {
+  --ol-carousel-viewport-padding: var(--spacing-inset-xs);
+}
+
+/* Room for the cover rings (OlBookCover.js). */
+.carousel--native > .carousel__item {
+  float: none;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  text-align: center;
+}
+
+/* Every cover is the same 2:3 box, as wide as its card. */
+.carousel--native .book .book-cover {
+  display: block;
+  height: auto;
+}
+
+.carousel--native ol-book-cover {
+  width: 100%;
+}
+
+/* Touch has no hover card, so the caption shows under the cover. */
+.carousel-caption {
+  display: none;
+  margin-top: var(--spacing-stack-xs);
+  text-align: start;
+}
+
+.carousel-caption:link,
+.carousel-caption:visited {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .carousel-caption {
+    display: block;
+  }
+}
+
+.carousel-caption__title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-label-large);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+}
+
+/* The author line is held when missing, so the buttons still line up. */
+.carousel-caption__meta {
+  display: block;
+  overflow: hidden;
+  min-height: calc(1em * var(--line-height-tight));
+  margin-top: var(--spacing-3xs);
+  font-size: var(--font-size-label-medium);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .carousel.carousel--grid .carousel__item {
@@ -169,6 +300,15 @@
   font-style: oblique;
 }
 
+/* Carousel covers sit flat and share a baseline, so a row of mixed sizes reads as a shelf. */
+.book.carousel__item .book-cover {
+  align-items: flex-end;
+}
+
+.book.carousel__item .bookcover {
+  box-shadow: none;
+}
+
 .carousel--compact .book .book-cover {
   height: var(--height-cover-compact);
   position: relative;
@@ -186,29 +326,18 @@
   box-sizing: border-box;
 }
 
-/* Styles for lazy-loading carousel placeholder element */
-.lazy-carousel {
-  /* Same height as the loaded carousel to avoid layout shift */
-  height: 278.6px;
-  background: var(--book-cover-carousel-background);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.lazy-carousel .loadingIndicator {
-  border: 1px var(--grey) solid;
-  background: var(--lightest-grey);
+/* A blank cover is a fixed 130px for slick; in the native row it follows the card. */
+.carousel--native .carousel__item__blankcover {
+  width: 100%;
+  max-width: 130px;
   margin: 0 auto;
-  padding: var(--spacing-inset-lg);
 }
 
 .lazy-carousel-retry,
 .lazy-carousel-fallback {
-  border: 1px var(--grey) solid;
-  background: var(--lightest-grey);
-  margin: 0 auto;
+  margin: var(--spacing-stack-md) auto;
   padding: var(--spacing-inset-lg);
+  text-align: center;
 }
 
 .loan-overlay-badge {
@@ -257,6 +386,18 @@
   .book-cover-wrapper:hover > ol-shelf-button,
   .book-cover-wrapper > ol-shelf-button:focus-within,
   .book-cover-wrapper > ol-shelf-button[open] {
+    opacity: 1;
+  }
+
+  /* The same, for the native row's <ol-book-cover> (its overlay slot). */
+  .carousel__item ol-book-cover > ol-shelf-button:not([shelf]) {
+    opacity: 0;
+  }
+
+  .carousel__item ol-book-cover:hover > ol-shelf-button,
+  .carousel__item ol-book-cover[link-focus] > ol-shelf-button,
+  .carousel__item ol-book-cover > ol-shelf-button:focus-within,
+  .carousel__item ol-book-cover > ol-shelf-button[open] {
     opacity: 1;
   }
 }
@@ -342,4 +483,140 @@
   justify-content: center;
   margin-bottom: 0;
   padding: 0;
+}
+
+/* Loading rows reuse the loaded row's classes, so nothing shifts (macros/CarouselSkeleton.html.jinja). */
+.carousel-skeleton__title--link {
+  color: var(--color-link);
+}
+
+/* A heading not known yet: a bar one line tall. */
+.carousel-skeleton__line {
+  display: inline-block;
+  width: 8em;
+  height: 1em;
+  vertical-align: middle;
+}
+
+/* The link's text is known before the row loads, so it shows in place, muted. */
+.carousel-skeleton__see-all {
+  color: var(--color-text-muted);
+}
+
+.carousel-skeleton__row {
+  display: flex;
+  overflow: hidden;
+}
+
+/* Slick's 6/5/4/3/2 cards per width (carousel/Carousel.js). */
+.carousel-skeleton__row:not(.carousel--native) {
+  padding: var(--spacing-inset-sm) var(--spacing-inset-lg);
+  --skeleton-columns: 6;
+}
+
+/* Most slick rows have a Preview button, 5px taller than the others. */
+.carousel-skeleton__row:not(.carousel--native) .ol-action-row {
+  padding-bottom: 5px;
+}
+
+.carousel-skeleton__row:not(.carousel--native) > .carousel__item {
+  flex: 0 0 auto;
+  float: none;
+  width: calc(100% / var(--skeleton-columns) - 2 * var(--spacing-inline-md));
+}
+
+@media (max-width: 1200px) {
+  .carousel-skeleton__row:not(.carousel--native) {
+    --skeleton-columns: 5;
+  }
+}
+
+@media (max-width: 1024px) {
+  .carousel-skeleton__row:not(.carousel--native) {
+    --skeleton-columns: 4;
+  }
+}
+
+@media (max-width: 600px) {
+  .carousel-skeleton__row:not(.carousel--native) {
+    --skeleton-columns: 3;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-skeleton__row:not(.carousel--native) {
+    --skeleton-columns: 2;
+  }
+}
+
+/* Mirrors ol-carousel's track, columns and peek (OlCarousel.js). */
+.carousel-skeleton .carousel-container {
+  container-type: inline-size;
+}
+
+.carousel-skeleton__row.carousel--native {
+  gap: 12px;
+  padding-block: var(--ol-carousel-viewport-padding);
+  padding-inline: var(--ol-carousel-inset, 0);
+  /* The book row's own breakpoints (books/custom_carousel.html.jinja), not the component defaults. */
+  --skeleton-columns: 7;
+}
+
+.carousel-skeleton__row.carousel--native > .carousel__item {
+  flex: 0 0 auto;
+  width: calc(
+    (100cqi - 2 * var(--ol-carousel-inset, 0px)) * 0.94 /
+      var(--skeleton-columns) - 12px + 12px / var(--skeleton-columns)
+  );
+}
+
+@container (max-width: 1024px) {
+  .carousel-skeleton__row.carousel--native {
+    --skeleton-columns: 6;
+  }
+}
+
+@container (max-width: 768px) {
+  .carousel-skeleton__row.carousel--native {
+    --skeleton-columns: 4;
+  }
+}
+
+@container (max-width: 600px) {
+  .carousel-skeleton__row.carousel--native {
+    --skeleton-columns: 3;
+  }
+}
+
+@container (max-width: 480px) {
+  .carousel-skeleton__row.carousel--native {
+    --skeleton-columns: 2;
+  }
+}
+
+/* A line of caption text: a 1em bar centred in its line box. */
+.carousel-skeleton__text {
+  width: 90%;
+  height: 1em;
+  margin-block: calc((var(--line-height-tight) - 1) * 0.5em);
+}
+
+.carousel-skeleton__text--short {
+  width: 60%;
+}
+
+/* A 2:3 cover, centred in the cover's box as a loaded card's is. */
+.carousel-skeleton__cover {
+  width: 100%;
+  max-height: 100%;
+  aspect-ratio: 2 / 3;
+  margin-inline: auto;
+  border-radius: var(--border-radius-thumbnail);
+}
+
+.carousel-skeleton__button {
+  flex: 1;
+  height: var(--control-height-medium);
+  margin-top: var(--spacing-stack-sm);
+  border-radius: var(--border-radius-button);
 }

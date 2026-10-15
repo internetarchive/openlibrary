@@ -26,6 +26,7 @@
   --border-width-table: 1px;
   --border-width-divider: 1px;
   --focus-width: 2px;
+  --pointed-ring-width: 4px; /* ring hugging the item under the pointer, e.g. a hovered book cover */
 
   /* Complete border styles. Every hairline is --color-border-subtle, so cards,
      tables, and inputs share one warm line. */

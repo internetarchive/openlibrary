@@ -47,6 +47,18 @@ ol-chip[size="small"]:not(:defined) {
   height: 24px;
 }
 
+/* Hold the cover's 2:3 box before Lit draws it; the slotted overlay waits too. */
+ol-book-cover:not(:defined) {
+  display: block;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--border-radius-thumbnail);
+  background: var(--color-surface-sunken);
+}
+
+ol-book-cover:not(:defined) > * {
+  display: none;
+}
+
 /* <ol-segment> elements are pure declarative data for <ol-segmented-control>:
    the control reads their value/label on connect and renders its own radios in
    the shadow root, so the light-DOM children should never be visible. */
@@ -112,6 +124,7 @@ ol-carousel:not(:defined) {
   display: flex;
   gap: 8px;
   overflow: hidden;
+  padding-block: var(--ol-carousel-viewport-padding, 0);
 }
 
 ol-carousel:not(:defined) > * {
