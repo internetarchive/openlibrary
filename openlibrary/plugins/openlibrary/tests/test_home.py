@@ -158,7 +158,7 @@ class TestHomeTemplates:
         assert "bookPreview" in html
         assert "In the last month" in html
         assert "A library made by the people who use it." in html
-        assert 'href="/librarians"' in html
+        assert 'href="/tasks"' in html
         assert "About the Project" in html
 
     def test_library_row_without_stats(self, render_template, monkeypatch, mock_site):
