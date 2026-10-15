@@ -4,38 +4,21 @@
 #
 #   IANNOTATE_SRC=/opt/iannotate docker compose -f docker/iannotate/compose.yaml up -d --build
 #
-# ol-www0's nginx reaches the web service cross-host at
-# http://ol-home0.us.archive.org:8000 (same model as the affiliate-server).
+# Single SQLite-backed container — no database server. ol-www0's nginx reaches it
+# cross-host at http://ol-home0.us.archive.org:8000 (same model as the affiliate-server).
 name: iannotate
 
 services:
-  iannotate-db:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: iannotate
-      POSTGRES_PASSWORD: iannotate   # POC-only; internal, no host port. Rotate before any real use.
-      POSTGRES_DB: iannotate
-    volumes:
-      - iannotate_pg:/var/lib/postgresql/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U iannotate"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    logging:
-      options:
-        max-size: "128m"
-        max-file: "4"
-
   iannotate:
     # Clone ArchiveLabs/iannotate to $IANNOTATE_SRC (default /opt/iannotate) on ol-home0.
+    # Needs SQLite support — ArchiveLabs/iannotate#3.
     build: ${IANNOTATE_SRC:-/opt/iannotate}
     environment:
-      DATABASE_URL: postgresql://iannotate:iannotate@iannotate-db:5432/iannotate
-    depends_on:
-      iannotate-db:
-        condition: service_healthy
+      # Single SQLite file; swap to Postgres later by changing only this URL.
+      DATABASE_URL: sqlite:////data/iannotate.db
+    volumes:
+      # Holds iannotate.db; persists across restarts, image rebuilds, and redeploys.
+      - iannotate_data:/data
     restart: unless-stopped
     # Published so ol-www0's nginx can reach it cross-host. Verify 8000 is free on
     # ol-home0 (the affiliate-server uses 31337).
@@ -47,4 +30,4 @@ services:
         max-file: "4"
 
 volumes:
-  iannotate_pg:
+  iannotate_data:
