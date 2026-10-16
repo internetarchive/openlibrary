@@ -75,23 +75,17 @@ async def test_select_by_username_and_year_without_goal(helpers):
 
 
 @pytest.mark.asyncio
-async def test_create(helpers):
+async def test_create_upserts(helpers):
     await YearlyReadingGoals.create("testuser", 2026, 25)
 
     (query, params), _kwargs = helpers.execute.await_args
-    assert query == "INSERT INTO yearly_reading_goals (username, year, target) VALUES (%(username)s, %(year)s, %(target)s)"
-    assert params == {"username": "testuser", "year": 2026, "target": 25}
-
-
-@pytest.mark.asyncio
-async def test_update_target(helpers):
-    await YearlyReadingGoals.update_target("testuser", 2026, 30)
-
-    (query, params), _kwargs = helpers.execute.await_args
-    assert query.startswith("UPDATE yearly_reading_goals SET target = %(target)s")
+    assert query.startswith("INSERT INTO yearly_reading_goals (username, year, target, updated)")
+    assert "ON CONFLICT (username, year) DO UPDATE" in query
+    assert "target = EXCLUDED.target" in query
+    assert "updated = EXCLUDED.updated" in query
     assert params["username"] == "testuser"
     assert params["year"] == 2026
-    assert params["target"] == 30
+    assert params["target"] == 25
     assert isinstance(params["updated"], datetime)
 
 
@@ -157,15 +151,16 @@ class TestYearlyReadingGoalsIntegration:
             await YearlyReadingGoals.select_by_username("alice", order="target ASC; --")
 
     @pytest.mark.asyncio
-    async def test_update_target(self, pg_db):
+    async def test_create_updates_existing_goal(self, pg_db):
         await YearlyReadingGoals.create("alice", 2026, 25)
 
-        await YearlyReadingGoals.update_target("alice", 2026, 50)
+        # Saving again for the same year updates the row instead of erroring.
+        await YearlyReadingGoals.create("alice", 2026, 50)
 
-        row = await YearlyReadingGoals.select_by_username_and_year("alice", 2026)
-        assert row is not None
-        assert row.target == 50
-        assert row.updated is not None
+        rows = await YearlyReadingGoals.select_by_username("alice")
+        assert len(rows) == 1
+        assert rows[0].target == 50
+        assert rows[0].updated is not None
 
     @pytest.mark.asyncio
     async def test_delete_by_username_and_year(self, pg_db):
