@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
+import { getTabbableElements } from './utils/focus-utils.js';
 
 /**
  * OlTabs - Switches between panels of server-rendered content.
@@ -19,7 +20,11 @@ import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
  * The initially selected tab is the one named by the URL hash, else the
  * `selected` attribute, else the first. A hash can also point inside a panel as
  * `#panel-id/anything`, which selects that panel and leaves the rest to the
- * page.
+ * page. Later hash changes (an in-page link to a panel, Back/Forward) switch
+ * tabs the same way, and an emptied hash restores the default tab.
+ *
+ * The tab row scrolls sideways rather than wrapping when it overflows, with the
+ * selected tab kept in view.
  *
  * @element ol-tabs
  *
@@ -27,7 +32,7 @@ import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
  * @prop {Boolean} syncHash        - Write the selected panel's id to the URL hash when the user switches tabs (replaces the history entry, no scroll).
  * @prop {String}  accessibleLabel - aria-label for the tab list. Default: none.
  *
- * @fires ol-tabs-change - Fired when the user switches tabs. detail: { selected: String }
+ * @fires ol-tabs-change - Fired when the user switches tabs, by click, keyboard or a hash change. detail: { selected: String }
  *
  * @slot tab - One `<a href="#panel-id">` per panel, in display order.
  * @slot - The panels: elements whose id matches a tab's href.
@@ -56,25 +61,43 @@ export class OlTabs extends LitElement {
             display: block;
         }
 
+        /* Scrolls rather than wraps. The underline spans each label, so the
+           row's rhythm is the gap. The track line is an inset shadow so each
+           tab's own underline paints over it. */
         [part='tablist'] {
             display: flex;
-            flex-wrap: wrap;
-            gap: var(--spacing-3xs);
+            gap: var(--spacing-lg);
+            overflow-x: auto;
+            scrollbar-width: none;
+            box-shadow: inset 0 calc(-1 * var(--border-width-divider)) 0 var(--color-border-muted);
+        }
+
+        [part='tablist']::-webkit-scrollbar {
+            display: none;
         }
     `;
 
     constructor() {
         super();
         this.syncHash = false;
+        this._onHashChange = this._onHashChange.bind(this);
     }
 
     connectedCallback() {
         super.connectedCallback();
-        const fromHash = window.location.hash.slice(1).split('/')[0];
-        if (fromHash && this._panelFor(fromHash)) this.selected = fromHash;
+        // What Back returns to once the hash no longer names a panel.
+        this._defaultSelected = this.selected;
+        const fromHash = this._panelIdFromHash();
+        if (fromHash) this.selected = fromHash;
+        window.addEventListener('hashchange', this._onHashChange);
         // Flush the first render within the upgrade task, so the pre-upgrade
         // layout (ol-tabs.css, `:not(:defined)`) hands off with no frame between.
         this.performUpdate();
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener('hashchange', this._onHashChange);
     }
 
     /** @returns {HTMLAnchorElement[]} */
@@ -91,14 +114,21 @@ export class OlTabs extends LitElement {
         return (tab.getAttribute('href') || '').replace(/^#/, '');
     }
 
+    /** The panel id named by the URL hash (`#id` or `#id/anything`), if it's one of ours. */
+    _panelIdFromHash() {
+        const id = window.location.hash.slice(1).split('/')[0];
+        return id && this._panelFor(id) ? id : null;
+    }
+
     get _selectedIndex() {
         const tabs = this._tabs;
         const i = this._panelFor(this.selected) ? tabs.findIndex(tab => this._panelIdOf(tab) === this.selected) : -1;
         return i === -1 && tabs.length ? 0 : i;
     }
 
-    updated() {
+    updated(changed) {
         this._sync();
+        if (changed.has('selected')) this._revealSelectedTab();
     }
 
     // Apply roles, ids, selection and visibility to the light-DOM tabs and panels.
@@ -117,7 +147,24 @@ export class OlTabs extends LitElement {
             panel.setAttribute('role', 'tabpanel');
             panel.setAttribute('aria-labelledby', tab.id);
             panel.hidden = !isSelected;
+            // A panel with nothing focusable inside joins the tab sequence
+            // itself, so keyboard users can still reach its content (APG).
+            if (isSelected) {
+                if (getTabbableElements(panel).length) panel.removeAttribute('tabindex');
+                else panel.tabIndex = 0;
+            }
         });
+    }
+
+    // Scroll the tab row (never the page) so the selected tab is in view.
+    _revealSelectedTab() {
+        const tab = this._tabs[this._selectedIndex];
+        const tablist = this.shadowRoot?.querySelector('[part="tablist"]');
+        if (!tab || !tablist) return;
+        const t = tab.getBoundingClientRect();
+        const row = tablist.getBoundingClientRect();
+        if (t.left < row.left) tablist.scrollLeft += t.left - row.left;
+        else if (t.right > row.right) tablist.scrollLeft += t.right - row.right;
     }
 
     _select(index, { focus = false } = {}) {
@@ -128,7 +175,24 @@ export class OlTabs extends LitElement {
         const id = this._panelIdOf(tab);
         this.selected = id;
         if (this.syncHash) history.replaceState(history.state, '', `#${id}`);
+        this._emitChange(id);
+    }
+
+    _emitChange(id) {
         this.dispatchEvent(new CustomEvent('ol-tabs-change', { bubbles: true, composed: true, detail: { selected: id } }));
+    }
+
+    _onHashChange() {
+        // A hash naming one of our panels selects it; an empty hash (Back past
+        // the first tab switch) restores the default. Other hashes aren't ours.
+        const tabs = this._tabs;
+        const hash = window.location.hash;
+        const fallback = this._defaultSelected || (tabs[0] && this._panelIdOf(tabs[0]));
+        const id = hash && hash !== '#' ? this._panelIdFromHash() : fallback;
+        const current = tabs[this._selectedIndex] && this._panelIdOf(tabs[this._selectedIndex]);
+        if (!id || id === current) return;
+        this.selected = id;
+        this._emitChange(id);
     }
 
     _onClick(e) {

@@ -143,6 +143,48 @@ describe('ol-tabs', () => {
         });
     });
 
+    it('follows a later hash change to one of its panels and reports it', async () => {
+        const el = await mount();
+        const onChange = vi.fn();
+        el.addEventListener('ol-tabs-change', onChange);
+
+        history.replaceState(null, '', '#three/field');
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+        await el.updateComplete;
+        expect(visiblePanels(el)).toEqual(['three']);
+        expect(onChange.mock.calls.map(([e]) => e.detail)).toEqual([{ selected: 'three' }]);
+
+        // A hash that isn't one of our panels, or the one already shown, changes nothing.
+        history.replaceState(null, '', '#elsewhere');
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+        await el.updateComplete;
+        expect(visiblePanels(el)).toEqual(['three']);
+        expect(onChange).toHaveBeenCalledTimes(1);
+
+        // An emptied hash (Back past the first switch) restores the default tab.
+        history.replaceState(null, '', window.location.pathname);
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+        await el.updateComplete;
+        expect(visiblePanels(el)).toEqual(['one']);
+        expect(onChange.mock.calls.map(([e]) => e.detail)).toEqual([{ selected: 'three' }, { selected: 'one' }]);
+    });
+
+    it('makes a panel with nothing focusable inside a tab stop', async () => {
+        const el = await mount({
+            markup: `
+                <a slot="tab" href="#plain">Plain</a>
+                <a slot="tab" href="#linked">Linked</a>
+                <div id="plain">Just text.</div>
+                <div id="linked"><a href="/x">A link</a></div>
+            `
+        });
+        expect(el.querySelector('#plain').tabIndex).toBe(0);
+
+        click(tabs(el)[1]);
+        await el.updateComplete;
+        expect(el.querySelector('#linked').hasAttribute('tabindex')).toBe(false);
+    });
+
     it('with sync-hash, replaces the URL hash on switch but not on first render', async () => {
         const replaceState = vi.spyOn(history, 'replaceState');
         const el = await mount({ attrs: 'sync-hash' });

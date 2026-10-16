@@ -8,17 +8,27 @@
             <a slot="tab" href="#demo-tabs-humans">By Humans</a>
             <a slot="tab" href="#demo-tabs-bots">By Bots</a>
             <a slot="tab" href="#demo-tabs-all">Everything</a>
-            <div id="demo-tabs-humans">Edits made by people.</div>
-            <div id="demo-tabs-bots">Edits made by bots.</div>
-            <div id="demo-tabs-all">Every edit.</div>
+            <div id="demo-tabs-humans">
+                <p>Edits made by people.</p>
+            </div>
+            <div id="demo-tabs-bots">
+                <p>Edits made by bots.</p>
+            </div>
+            <div id="demo-tabs-all">
+                <p>Every edit.</p>
+            </div>
         </ol-tabs>
     {% endcall %}
     {% call ex.example("Initially selected", "selected names the panel to show first. A hash of the form #panel-id or #panel-id/anything overrides it, so a link can open a specific tab.", output_style="max-width: 560px;") %}
         <ol-tabs selected="demo-tabs-edition">
             <a slot="tab" href="#demo-tabs-work">Work Details</a>
             <a slot="tab" href="#demo-tabs-edition">Penguin edition, 2004</a>
-            <div id="demo-tabs-work">Fields shared by every edition.</div>
-            <div id="demo-tabs-edition">Fields for this edition only.</div>
+            <div id="demo-tabs-work">
+                <p>Fields shared by every edition.</p>
+            </div>
+            <div id="demo-tabs-edition">
+                <p>Fields for this edition only.</p>
+            </div>
         </ol-tabs>
     {% endcall %}
     {% call ex.example("Change event", "Switching fires ol-tabs-change with the panel id in event.detail.selected. Click, or focus a tab and use the arrow / Home / End keys.", output_style="max-width: 560px;") %}
@@ -26,9 +36,15 @@
             <a slot="tab" href="#demo-tabs-day">Today</a>
             <a slot="tab" href="#demo-tabs-week">This Week</a>
             <a slot="tab" href="#demo-tabs-month">This Month</a>
-            <div id="demo-tabs-day">Today's numbers.</div>
-            <div id="demo-tabs-week">This week's numbers.</div>
-            <div id="demo-tabs-month">This month's numbers.</div>
+            <div id="demo-tabs-day">
+                <p>Today's numbers.</p>
+            </div>
+            <div id="demo-tabs-week">
+                <p>This week's numbers.</p>
+            </div>
+            <div id="demo-tabs-month">
+                <p>This month's numbers.</p>
+            </div>
         </ol-tabs>
         <p>Selected panel: <strong id="demo-tabs-output">demo-tabs-day</strong></p>
         <script>
@@ -39,10 +55,10 @@
     {% endcall %}
     <div class="ds-notes">
         <p>
-            <b>Keyboard &amp; accessibility.</b> Follows the ARIA tabs pattern: a <code>tablist</code> of <code>tab</code>s, each controlling a <code>tabpanel</code>, with ids and labels wired up automatically. Tab moves into the selected tab; arrow keys and Home / End switch tabs, wrapping at the ends. Modified clicks (Ctrl / Cmd / Shift) behave like the links they are.
+            <b>Keyboard &amp; accessibility.</b> Follows the ARIA tabs pattern: a <code>tablist</code> of <code>tab</code>s, each controlling a <code>tabpanel</code>, with ids and labels wired up automatically. Tab moves into the selected tab; arrow keys and Home / End switch tabs, wrapping at the ends. Modified clicks (Ctrl / Cmd / Shift) behave like the links they are. A panel with nothing focusable inside is itself a tab stop, so its content stays reachable. When the row overflows it scrolls sideways, keeping the selected tab in view.
         </p>
         <p>
-            <b>URL hash.</b> Add <code>sync-hash</code> to write the selected panel's id to the URL as the user switches, so a reload or a shared link reopens the same tab. It replaces the current history entry rather than adding one, and never scrolls.
+            <b>URL hash.</b> Add <code>sync-hash</code> to write the selected panel's id to the URL as the user switches, so a reload or a shared link reopens the same tab. It replaces the current history entry rather than adding one, and never scrolls. A later hash change, from an in-page link to a panel or Back / Forward, switches tabs too, with or without <code>sync-hash</code>.
         </p>
     </div>
 {% endmacro %}

@@ -517,11 +517,6 @@ html:has(.ds) {
   display: block;
 }
 
-/* Real tab panels bring their own content; the demo panels are bare text. */
-.ds-example__output ol-tabs > :not([slot]) {
-  padding: var(--spacing-md);
-}
-
 /* The carousel picks columns, pages and peek off its container width, so a
    shrink-wrapped host would demo it at the wrong breakpoint. The markdown
    editor likewise demos as a full-width block. */
