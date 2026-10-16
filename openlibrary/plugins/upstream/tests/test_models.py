@@ -2,7 +2,7 @@
 Capture some of the unintuitive aspects of Storage, Things, and Works
 """
 
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import web
 
@@ -207,3 +207,41 @@ class TestEdition:
             meta = ed.get_ia_meta_fields()
         assert "external-identifier" not in meta
         assert "collection" in meta
+
+
+class TestGetSortedEditionsAvailability:
+    """When IA doesn't answer, availability falls back to Solr's ebook_access (#13956)."""
+
+    def setup_method(self, method):
+        web.ctx.site = MockSite()
+        for olid, ocaid in [("OL1M", "ia-open"), ("OL2M", "ia-borrowable"), ("OL3M", "ia-answered")]:
+            web.ctx.site.save({"key": f"/books/{olid}", "type": {"key": "/type/edition"}, "title": olid, "ocaid": ocaid, "works": [{"key": "/works/OL1W"}]})
+
+    def sorted_editions(self, availability, solr_get_many):
+        work = models.Work(web.ctx.site, "/works/OL1W")
+        work.__dict__["_solr_data"] = None  # skip the Solr work lookup; editions come from `keys`
+        with (
+            patch.object(models.lending, "get_availability", return_value=availability),
+            patch.object(models, "get_solr", return_value=Mock(get_many=solr_get_many)),
+        ):
+            return {ed.key: ed.availability for ed in work.get_sorted_editions(keys=["/books/OL1M", "/books/OL2M", "/books/OL3M"])}
+
+    def test_uses_ebook_access_only_for_editions_ia_did_not_answer(self):
+        solr_get_many = Mock(return_value=[{"key": "/books/OL1M", "ebook_access": "public"}, {"key": "/books/OL2M", "ebook_access": "borrowable"}])
+        availability = self.sorted_editions(
+            {"ia-open": {"status": "error"}, "ia-answered": {"status": "borrow_unavailable"}},  # ia-borrowable missing entirely
+            solr_get_many,
+        )
+        assert sorted(solr_get_many.call_args.args[0]) == ["/books/OL1M", "/books/OL2M"]
+        assert availability["/books/OL1M"]["status"] == "open"
+        assert availability["/books/OL2M"]["status"] == "borrow_available"
+        assert availability["/books/OL3M"] == {"status": "borrow_unavailable"}  # IA's answer wins
+
+    def test_does_not_query_solr_when_ia_answered(self):
+        solr_get_many = Mock()
+        self.sorted_editions({ocaid: {"status": "open"} for ocaid in ["ia-open", "ia-borrowable", "ia-answered"]}, solr_get_many)
+        solr_get_many.assert_not_called()
+
+    def test_keeps_the_error_when_solr_fails_too(self):
+        availability = self.sorted_editions({}, Mock(side_effect=OSError))
+        assert {a["status"] for a in availability.values()} == {"error"}
