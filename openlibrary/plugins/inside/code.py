@@ -1,5 +1,3 @@
-from urllib.parse import urlencode
-
 import web
 
 from infogami.utils import delegate
@@ -13,16 +11,6 @@ from openlibrary.core.fulltext import (
 from openlibrary.utils.async_utils import async_bridge
 
 RESULTS_PER_PAGE = 20
-
-
-def unphrased_query_url(query: str, language: tuple[str, str] | None, readable: bool) -> str:
-    """Search URL that preserves filters but opts out of automatic phrasing."""
-    params = [("q", query), ("phrase", "false")]
-    if language:
-        params.append(("language", language[0]))
-    if readable:
-        params.append(("readable", "true"))
-    return f"/search/inside?{urlencode(params)}"
 
 
 def empty_reason(query: str, rows: list, total: int, filtered: bool) -> str | None:
@@ -47,31 +35,6 @@ def empty_reason(query: str, rows: list, total: int, filtered: bool) -> str | No
     return "filtered_out" if filtered else "past_end"
 
 
-async def search_with_auto_phrase_fallback(
-    query: str,
-    *,
-    page: int,
-    readable: bool,
-    language: str | None,
-    phrase: bool,
-) -> tuple[dict, bool, int]:
-    """Search inside, retrying an automatic phrase query as all words once."""
-    search_kwargs = {
-        "limit": RESULTS_PER_PAGE,
-        "facets": False,
-        "readable": readable,
-        "language": language,
-    }
-    results = await fulltext_search_async(query, page=page, phrase=phrase, **search_kwargs)
-    if results.get("error") or not phrase or not is_auto_phrased_query(query) or results.get("hits", {}).get("total"):
-        return results, False, page
-
-    # The original query has no results, so start the all-words retry at its first page.
-    results = await fulltext_search_async(query, page=1, phrase=False, **search_kwargs)
-    used_fallback = bool(results.get("hits", {}).get("total"))
-    return results, used_fallback, 1 if used_fallback else page
-
-
 class search_inside(delegate.page):
     path = "/search/inside"
 
@@ -85,21 +48,23 @@ class search_inside(delegate.page):
         language = resolve_language(i.language)
 
         # Readable filters fetched hits, not `q` (see the `lang` note in fulltext_search_async).
-        results, used_fallback, page = (
+        results = (
             async_bridge.run(
-                search_with_auto_phrase_fallback(
+                fulltext_search_async(
                     query,
                     page=page,
+                    limit=RESULTS_PER_PAGE,
+                    facets=False,
                     readable=readable,
                     language=language[1] if language else None,
                     phrase=phrase,
                 )
             )
             if query
-            else ({}, False, page)
+            else {}
         )
-        phrase = phrase and not used_fallback
         rows, total = fulltext_page(results)
+        used_fallback = bool(results.get("all_words_fallback"))
 
         return render_template(
             "search/inside.tmpl",
@@ -110,10 +75,10 @@ class search_inside(delegate.page):
             results_per_page=RESULTS_PER_PAGE,
             language=language,
             readable=readable,
-            phrase=phrase,
-            was_auto_phrased=phrase and is_auto_phrased_query(query),
+            phrase=phrase and not used_fallback,
+            was_auto_phrased=phrase and not used_fallback and is_auto_phrased_query(query),
             used_fallback=used_fallback,
-            unphrased_url=unphrased_query_url(query, language, readable),
+            opted_out=not phrase and is_auto_phrased_query(query),
             error=results.get("error"),
             empty_reason=empty_reason(query, rows, total, filtered=readable or bool(language)),
         )

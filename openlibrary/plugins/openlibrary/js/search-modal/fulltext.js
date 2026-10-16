@@ -6,8 +6,6 @@ export const PASSAGE_WORD_COUNT = 5;
 /** Top Solr docs checked by solrLooksWeak. */
 export const WEAK_SCAN_LIMIT = 3;
 
-const DOUBLE_QUOTES = /["\u201c\u201d\u201e\u201f]/;
-
 // Too common to count as title/author overlap. Interrogatives are included so
 // "how do birds navigate?" isn't "answered" by a "How to..." title.
 const OVERLAP_STOPWORDS = new Set([
@@ -35,29 +33,59 @@ const OVERLAP_STOPWORDS = new Set([
     'how'
 ]);
 
+/** Mirror of _normalize_quotes in core/fulltext.py: straight quotes, single spaces, a stray quote closed or dropped. */
+function normalizeQuotes(query) {
+    let q = (query || '')
+        .replace(/[\u201c\u201d\u201e\u201f]/g, '"')
+        .split(/\s+/)
+        .filter(Boolean)
+        .join(' ');
+    if (q.split('"').length % 2 === 0) {
+        const last = q.lastIndexOf('"');
+        q = q.slice(last + 1).trim() ? `${q}"` : q.slice(0, last).trimEnd();
+    }
+    return q;
+}
+
+const hasTerms = q => Boolean(q.replace(/"/g, '').trim());
+
+/** Mirror of _literal_fields: a `field:` clause outside quotes would switch FTS to its Lucene parser. */
+function literalFields(q) {
+    return q
+        .split('"')
+        .map((part, i) => (i % 2 ? part : part.replace(/\s*:+\s*/g, ' ')))
+        .join('"')
+        .trim();
+}
+
 /**
  * Mirror of phrase_query in core/fulltext.py: one straight-quoted phrase so
- * BookReader finds the passage, not each word. Double-quoted queries are
- * preserved after curly quote normalization.
+ * BookReader finds the passage, not each word. Typed quotes are kept.
  *
  * @param {string} query
  * @returns {string} '' when nothing is left
  */
 export function phraseQuery(query) {
-    const normalizedQuery = (query || '').replace(/[\u201c\u201d\u201e\u201f]/g, '"');
-    if (/"/.test(normalizedQuery)) return normalizedQuery;
-    const words = normalizedQuery.split(/\s+/).filter(Boolean);
-    return words.length ? `"${words.join(' ')}"` : '';
+    const q = normalizeQuotes(query);
+    if (!hasTerms(q)) return '';
+    return q.includes('"') ? literalFields(q) : `"${q}"`;
 }
 
-/** Whether a query contains a straight or curly double quote. Mirrors has_double_quotes in core/fulltext.py. */
-export function hasDoubleQuotes(query) {
-    return DOUBLE_QUOTES.test(query || '');
+/**
+ * Mirror of all_words_query: the query as loose words, after an all-words fallback or opt-out.
+ *
+ * @param {string} query
+ * @returns {string} '' when nothing is left
+ */
+export function allWordsQuery(query) {
+    const q = normalizeQuotes(query);
+    return hasTerms(q) ? literalFields(q) : '';
 }
 
-/** Whether a two-or-more-word query will be automatically turned into a phrase. */
+/** Mirror of is_auto_phrased_query: phraseQuery quotes this 2+ word query as one phrase. */
 export function isAutoPhrasedQuery(query) {
-    return !hasDoubleQuotes(query) && (query || '').trim().split(/\s+/).filter(Boolean).length >= 2;
+    const q = normalizeQuotes(query);
+    return !q.includes('"') && q.split(' ').filter(Boolean).length >= 2;
 }
 
 /** Lowercase and strip diacritics so "garcia" matches "García". */

@@ -8,8 +8,7 @@ from openlibrary.core.fulltext import (
     parse_snippet,
     resolve_language,
 )
-from openlibrary.plugins.inside import code as inside
-from openlibrary.plugins.inside.code import empty_reason, search_with_auto_phrase_fallback, unphrased_query_url
+from openlibrary.plugins.inside.code import empty_reason
 
 
 def hit(ocaid: str) -> dict:
@@ -148,69 +147,6 @@ def test_empty_reason_distinguishes_filtered_from_past_the_end():
     assert empty_reason("dune", ["row"], 4312, filtered=True) is None
 
 
-def test_unphrased_query_url_preserves_filters_and_resets_pagination():
-    assert (
-        unphrased_query_url("argentina brazil", ("ger", "German"), readable=True) == "/search/inside?q=argentina+brazil&phrase=false&language=ger&readable=true"
-    )
-
-
-# ── Automatic phrase fallback ──────────────────────────────────────────────
-
-
-@pytest.mark.asyncio
-async def test_auto_phrase_fallback_retries_all_words_on_first_page(monkeypatch):
-    calls = []
-    responses = iter(({"hits": {"hits": [], "total": 0}}, {"hits": {"hits": [{}], "total": 1}}))
-
-    async def fake_search(query, **kwargs):
-        calls.append((query, kwargs))
-        return next(responses)
-
-    monkeypatch.setattr(inside, "fulltext_search_async", fake_search)
-
-    results, used_fallback, page = await search_with_auto_phrase_fallback("argentina brazil", page=3, readable=True, language="German", phrase=True)
-
-    assert results["hits"]["total"] == 1
-    assert used_fallback is True
-    assert page == 1
-    assert calls == [
-        ("argentina brazil", {"page": 3, "phrase": True, "limit": 20, "facets": False, "readable": True, "language": "German"}),
-        ("argentina brazil", {"page": 1, "phrase": False, "limit": 20, "facets": False, "readable": True, "language": "German"}),
-    ]
-
-
-@pytest.mark.asyncio
-async def test_auto_phrase_fallback_keeps_no_results_state_when_retry_is_empty(monkeypatch):
-    responses = iter(({"hits": {"hits": [], "total": 0}}, {"hits": {"hits": [], "total": 0}}))
-
-    async def fake_search(query, **kwargs):
-        return next(responses)
-
-    monkeypatch.setattr(inside, "fulltext_search_async", fake_search)
-
-    results, used_fallback, page = await search_with_auto_phrase_fallback("argentina brazil", page=3, readable=False, language=None, phrase=True)
-
-    assert results["hits"]["total"] == 0
-    assert used_fallback is False
-    assert page == 3
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(("query", "phrase"), [("whale", True), ('"argentina brazil"', True), ("argentina brazil", False)])
-async def test_auto_phrase_fallback_skips_non_automatic_queries(monkeypatch, query, phrase):
-    calls = []
-
-    async def fake_search(query, **kwargs):
-        calls.append((query, kwargs))
-        return {"hits": {"hits": [], "total": 0}}
-
-    monkeypatch.setattr(inside, "fulltext_search_async", fake_search)
-
-    await search_with_auto_phrase_fallback(query, page=1, readable=False, language=None, phrase=phrase)
-
-    assert len(calls) == 1
-
-
 # ── Outgoing search params ─────────────────────────────────────────────────
 
 
@@ -222,7 +158,8 @@ class FakeSearchAPI:
 
     async def __call__(self, params):
         self.params = params
-        return {"hits": {"hits": [], "total": 0}}
+        # A nonzero total, so no all-words retry replaces these params.
+        return {"hits": {"hits": [], "total": 1}}
 
 
 async def search_params(monkeypatch, **kwargs) -> dict:

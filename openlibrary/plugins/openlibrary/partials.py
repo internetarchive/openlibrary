@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 from infogami.utils.view import public
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
-from openlibrary.core.fulltext import FulltextRow, exclude_ocaids, fulltext_page, fulltext_search_async, phrase_query
+from openlibrary.core.fulltext import FulltextRow, all_words_query, exclude_ocaids, fulltext_page, fulltext_search_async, phrase_query
 from openlibrary.core.helpers import affiliate_id, commify, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.core.lending import add_availability_async, compose_ia_url, get_available_async
@@ -661,9 +661,9 @@ class FullTextSuggestionsPartialResult:
     has_error: bool = False
 
 
-def render_fulltext_suggestion_row(query: str, row: FulltextRow, seq_index: int) -> Markup:
+def render_fulltext_suggestion_row(query: str, row: FulltextRow, seq_index: int, all_words: bool = False) -> Markup:
     """One band row. SearchResultsWork remains Templetor (8 other callers), so it renders here as a bridge."""
-    phrase = phrase_query(query)
+    phrase = all_words_query(query) if all_words else phrase_query(query)
     if not row.edition:
         return Markup(render_jinja_template("FulltextResultIA.html.jinja", row=row, phrase=phrase))
     macro = render_macro(
@@ -694,7 +694,7 @@ class FullTextSuggestionsPartial:
             macro = render_jinja_template(
                 "FulltextSearchSuggestion.html.jinja",
                 num_found=commify(total),
-                results=[render_fulltext_suggestion_row(query, row, i) for i, row in enumerate(rows[:3])],
+                results=[render_fulltext_suggestion_row(query, row, i, all_words=bool(data.get("all_words_fallback"))) for i, row in enumerate(rows[:3])],
                 see_all_url="/search/inside?" + urlencode({"q": query}),
                 total=total,
             )

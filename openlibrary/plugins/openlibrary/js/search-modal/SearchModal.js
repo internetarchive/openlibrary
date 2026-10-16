@@ -35,7 +35,7 @@ import {
 import { fetchLanguageOptions } from './languages.js';
 import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './searchFacets.js';
 import { deriveAuthors } from './authorSuggestion.js';
-import { dedupeFulltextHits, isPassageQuery, parseSnippet, phraseQuery } from './fulltext.js';
+import { allWordsQuery, dedupeFulltextHits, isAutoPhrasedQuery, isPassageQuery, parseSnippet, phraseQuery } from './fulltext.js';
 import { FulltextBand, FULLTEXT_LIMIT, fulltextSearchParams } from './fulltextBand.js';
 
 // 'books' searches the catalogue (with the Search Inside band as a teaser);
@@ -139,6 +139,8 @@ export class SearchModal extends LitElement {
         _ftQuery: { state: true },
         _ftLoading: { state: true },
         _ftError: { state: true },
+        _ftFellBack: { state: true },
+        _ftAllWordsQuery: { state: true },
         _resultsKey: { state: true },
         _markStale: { state: true }
     };
@@ -663,6 +665,37 @@ export class SearchModal extends LitElement {
             text-align: center;
         }
 
+        /* How the Inside tab read the query: a caption on the list, sized like the band's "View all". */
+        .ft-note {
+            margin: 0;
+            padding: var(--spacing-xs) var(--spacing-lg);
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-label-medium);
+        }
+
+        .ft-note__action {
+            padding: 0;
+            background: none;
+            border: none;
+            color: var(--color-link);
+            font: inherit;
+            text-align: start;
+            cursor: pointer;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .ft-note__action:hover {
+                color: var(--color-link-hover);
+                text-decoration: underline;
+            }
+        }
+
+        .ft-note__action:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: 2px;
+            border-radius: var(--border-radius-sm);
+        }
+
         /* ── "Search inside books" band ────────────────────────────── */
 
         /* Inset card: sets matches from inside the scans apart from catalog rows. */
@@ -1145,15 +1178,19 @@ export class SearchModal extends LitElement {
         this._ftQuery = '';
         this._ftLoading = false;
         this._ftError = false;
+        this._ftFellBack = false;
+        // The query the patron asked to search as all words; editing it reverts to the phrase.
+        this._ftAllWordsQuery = null;
         this._ftBand = new FulltextBand({
             getFilters: () => this._fulltextFilters(),
-            onChange: ({ hits, total, searchKey, query, loading, error }) => {
+            onChange: ({ hits, total, searchKey, query, fellBack, loading, error }) => {
                 this._ftHits = hits;
                 this._ftTotal = total;
                 this._ftSearchKey = searchKey;
                 this._ftQuery = query;
                 this._ftLoading = loading;
                 this._ftError = error;
+                this._ftFellBack = fellBack;
             },
             onAttempt: status => this._scheduleBandOutcome(status)
         });
@@ -1278,6 +1315,8 @@ export class SearchModal extends LitElement {
     // and drops _activeFetchKey so an in-flight fetch can't repopulate results.
     _clearInput() {
         this._query = '';
+        // The all-words choice belonged to the cleared query.
+        this._ftAllWordsQuery = null;
         this._navigatingKey = null;
         this._seeAllLoading = false;
         this._ftSeeAllLoading = false;
@@ -1666,11 +1705,43 @@ export class SearchModal extends LitElement {
         }
         return html`
             <div class=${this._resultsClass(this._bandIsStale())} @keydown=${this._onResultsKeydown}>
+                ${this._renderInterpretation()}
                 <ul class="results-list">
                     ${this._ftHits.map((hit, i) => this._renderFulltextHit(hit, this._ftQuery, i))}
                 </ul>
             </div>
         `;
+    }
+
+    // How the Inside tab read the query, with a way out of the automatic exact phrase.
+    _renderInterpretation() {
+        const q = this._ftQuery;
+        if (this._ftFellBack) {
+            return html`<p class="ft-note">${sprintf(this._i18n.insideNoExactMatches, q)}</p>`;
+        }
+        if (!isAutoPhrasedQuery(q)) return nothing;
+        if (this._fulltextFilters().allWords) {
+            return html`<p class="ft-note">
+                ${this._i18n.insideAllWords}
+                <button type="button" class="ft-note__action" @click=${this._searchExactPhrase}>${this._i18n.insideSearchExactPhrase}</button>
+            </p>`;
+        }
+        return html`<p class="ft-note">
+            ${sprintf(this._i18n.insideExactMatches, q)}
+            <button type="button" class="ft-note__action" @click=${this._searchAllWords}>${this._i18n.insideSearchAllWords}</button>
+        </p>`;
+    }
+
+    _searchAllWords() {
+        this._track('FulltextAllWords', 'tab');
+        this._ftAllWordsQuery = this._query.trim();
+        this._ftBand.refresh(this._ftAllWordsQuery);
+    }
+
+    _searchExactPhrase() {
+        this._track('FulltextExactPhrase', 'tab');
+        this._ftAllWordsQuery = null;
+        this._ftBand.refresh(this._query.trim());
     }
 
     // Strip any trailing ellipsis/period(s) from the (translated) label so the
@@ -1751,9 +1822,10 @@ export class SearchModal extends LitElement {
         return sprintf(label, this._ftTotal.toLocaleString());
     }
 
-    // Opens BookReader searching for the phrase. `q` is the query the hit answers, not the input.
+    // Opens BookReader searching for what FTS was sent. `q` is the query the hit answers, not the input.
     _renderFulltextHit(hit, q, index = 0) {
-        const href = `https://archive.org/details/${hit.ia}?ref=ol&q=${encodeURIComponent(phraseQuery(q))}`;
+        const sent = this._ftFellBack || this._ftAllWordsQuery === q ? allWordsQuery(q) : phraseQuery(q);
+        const href = `https://archive.org/details/${hit.ia}?ref=ol&q=${encodeURIComponent(sent)}`;
         const segments = parseSnippet(hit.snippet);
         return html`<li>
             <a
@@ -2657,7 +2729,8 @@ export class SearchModal extends LitElement {
     _fulltextFilters() {
         return {
             readable: this._availability !== DEFAULT_AVAILABILITY,
-            languages: this._languages
+            languages: this._languages,
+            allWords: this._ftAllWordsQuery !== null && this._ftAllWordsQuery === this._query.trim()
         };
     }
 

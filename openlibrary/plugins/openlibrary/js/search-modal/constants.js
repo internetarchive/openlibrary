@@ -135,6 +135,16 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     // Replaces the empty state when the fulltext backend failed, so an outage
     // doesn't read as a verdict on the query.
     insideError: 'Search inside books is temporarily unavailable. Please try again later.',
+    // Above Inside tab hits when the query was searched as one exact phrase. %s = the query.
+    insideExactMatches: 'Showing exact matches for "%s".',
+    // Follows insideExactMatches; reruns the query as loose words.
+    insideSearchAllWords: 'Search for all of these words instead.',
+    // Above Inside tab hits after the patron chose all words.
+    insideAllWords: 'Showing all of these words, in any order.',
+    // Follows insideAllWords; goes back to the exact phrase.
+    insideSearchExactPhrase: 'Search for the exact phrase instead.',
+    // The exact phrase found nothing, so the hits match all the words. %s = the query.
+    insideNoExactMatches: 'No exact matches for "%s". Showing books containing all of these words.',
     // %s = snippet rows shown (1–3), not the backend total.
     insideAnnounceOne: '%s match found inside books',
     insideAnnounceMany: '%s matches found inside books'

@@ -110,13 +110,16 @@ class Test_phrase_query:
             ("„it was the best of times‟", '"it was the best of times"'),
             ("he said “hello there” softly", 'he said "hello there" softly'),
             ('"United Nations" "world hunger"', '"United Nations" "world hunger"'),
-            # Any double quote, including an unbalanced one, preserves the query.
-            ('"it was the best of times', '"it was the best of times'),
-            ('it was the best of times"', 'it was the best of times"'),
-            ('hello there" softly', 'hello there" softly'),
-            ('"he said "hello there" softly"', '"he said "hello there" softly"'),
-            ('12"record', '12"record'),
+            # A stray quote opening trailing text is closed; a trailing one is dropped.
+            ('"it was the best of times', '"it was the best of times"'),
+            ('"United Nations" "world hunger', '"United Nations" "world hunger"'),
+            ('it was the best of times"', '"it was the best of times"'),
+            ('hello there" softly', 'hello there" softly"'),
+            ('12"record', '12"record"'),
             ('a""b', 'a""b'),
+            # Field syntax outside typed quotes is broken up; inside them it is literal.
+            ('title:"the sea"', 'title "the sea"'),
+            ('Star Wars: "A New Hope: Part IV"', 'Star Wars "A New Hope: Part IV"'),
         ],
     )
     def test_wraps_in_straight_quotes(self, raw, expected):
@@ -145,24 +148,15 @@ class Test_phrase_query:
     @pytest.mark.parametrize(
         ("raw", "expected"),
         [
-            ('"United Nations" "world hunger"', True),
-            ("“United Nations”", True),
-            ("\u2018United Nations\u2019", False),
-            ("'United Nations'", False),
-        ],
-    )
-    def test_has_double_quotes(self, raw, expected):
-        assert fulltext.has_double_quotes(raw) is expected
-
-    @pytest.mark.parametrize(
-        ("raw", "expected"),
-        [
             ("argentina brazil", True),
             ("  argentina\n brazil  ", True),
             ('"argentina brazil"', False),
             ("“argentina brazil”", False),
             ("argentina", False),
             ("", False),
+            # The stray quote is dropped, so this is still auto-phrased.
+            ('argentina brazil"', True),
+            ('"argentina brazil', False),
         ],
     )
     def test_is_auto_phrased_query(self, raw, expected):
@@ -171,15 +165,32 @@ class Test_phrase_query:
     @pytest.mark.parametrize(
         ("raw", "expected"),
         [
+            ("argentina brazil", "argentina brazil"),
+            ("  argentina\n brazil  ", "argentina brazil"),
+            ("“white whale”", '"white whale"'),
+            ("languageSorter:English whale", "languageSorter English whale"),
+            ("whale: harpoon", "whale harpoon"),
+            ("golum AND smeagol", "golum AND smeagol"),
+            ('  "  "  ', ""),
+            ("   ", ""),
+        ],
+    )
+    def test_all_words_query(self, raw, expected):
+        assert fulltext.all_words_query(raw) == expected
+
+    @pytest.mark.parametrize(
+        ("raw", "expected"),
+        [
             ("  it was  the best ", '"it was the best"'),
             ("it was\nthe best\tof\r\ntimes", '"it was the best of times"'),
             ('" it was the best of times "', '" it was the best of times "'),
+            ('  "it  was"   the best ', '"it was" the best'),
         ],
     )
     def test_collapses_whitespace(self, raw, expected):
         assert fulltext.phrase_query(raw) == expected
 
-    @pytest.mark.parametrize("raw", [None, "", "   ", " \n\t "])
+    @pytest.mark.parametrize("raw", [None, "", "   ", '"', '""', '"  "', "“”", " \n\t "])
     def test_nothing_to_search_is_empty(self, raw):
         assert fulltext.phrase_query(raw) == ""
 
@@ -245,7 +256,8 @@ class Test_fulltext_search_async_phrasing:
     )
     async def test_backend_receives_phrase(self, httpx_mock, monkeypatch, raw, sent):
         monkeypatch.setattr(config, "plugin_inside", {"search_endpoint": "http://mock"}, raising=False)
-        httpx_mock.add_response(json={"hits": {"hits": [], "total": 0}})
+        # A nonzero total, so no all-words retry.
+        httpx_mock.add_response(json={"hits": {"hits": [], "total": 1}})
 
         await fulltext.fulltext_search_async(raw)
 
@@ -265,13 +277,47 @@ class Test_fulltext_search_async_phrasing:
         assert fulltext.fulltext_page(results) == ([], 0)
 
     @pytest.mark.asyncio
-    async def test_backend_receives_unphrased_query_when_requested(self, httpx_mock, monkeypatch):
+    async def test_backend_receives_all_words_when_requested(self, httpx_mock, monkeypatch):
         monkeypatch.setattr(config, "plugin_inside", {"search_endpoint": "http://mock"}, raising=False)
         httpx_mock.add_response(json={"hits": {"hits": [], "total": 0}})
 
-        await fulltext.fulltext_search_async("argentina brazil", phrase=False)
+        results = await fulltext.fulltext_search_async("languageSorter:English whale", phrase=False)
 
-        assert httpx_mock.get_request().url.params["q"] == "argentina brazil"
+        assert httpx_mock.get_request().url.params["q"] == "languageSorter English whale"
+        assert "all_words_fallback" not in results
+
+    @pytest.mark.asyncio
+    async def test_zero_hit_phrase_retries_all_words_on_the_same_page(self, httpx_mock, monkeypatch):
+        monkeypatch.setattr(config, "plugin_inside", {"search_endpoint": "http://mock"}, raising=False)
+        httpx_mock.add_response(json={"hits": {"hits": [], "total": 0}})
+        httpx_mock.add_response(json={"hits": {"hits": [], "total": 42}})
+
+        results = await fulltext.fulltext_search_async("argentina brazil", page=3, limit=20)
+
+        first, retry = httpx_mock.get_requests()
+        assert first.url.params["q"] == '"argentina brazil"'
+        assert retry.url.params["q"] == "argentina brazil"
+        assert retry.url.params["from"] == first.url.params["from"] == "40"
+        assert results["all_words_fallback"] is True
+        assert results["hits"]["total"] == 42
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("raw", "kwargs"),
+        [
+            ("whale", {}),
+            ('"argentina brazil"', {}),
+            ("argentina brazil", {"phrase": False}),
+        ],
+    )
+    async def test_no_retry_unless_auto_phrased(self, httpx_mock, monkeypatch, raw, kwargs):
+        monkeypatch.setattr(config, "plugin_inside", {"search_endpoint": "http://mock"}, raising=False)
+        httpx_mock.add_response(json={"hits": {"hits": [], "total": 0}})
+
+        results = await fulltext.fulltext_search_async(raw, **kwargs)
+
+        assert len(httpx_mock.get_requests()) == 1
+        assert "all_words_fallback" not in results
 
 
 def test_exclude_ocaids_drops_scans_already_on_the_page():

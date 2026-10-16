@@ -1,8 +1,10 @@
+import { nothing } from 'lit';
+
 import {
+    allWordsQuery,
     creatorsFromMeta,
     dedupeFulltextHits,
     fulltextHitDisplay,
-    hasDoubleQuotes,
     isAutoPhrasedQuery,
     isPassageQuery,
     parseSnippet,
@@ -252,15 +254,30 @@ describe('phraseQuery', () => {
         expect(phraseQuery('he said \u201chello there\u201d softly')).toBe('he said "hello there" softly');
     });
 
-    test('preserves unbalanced double quotes', () => {
-        expect(phraseQuery('"it was the best of times')).toBe('"it was the best of times');
-        expect(phraseQuery('hello there" softly')).toBe('hello there" softly');
+    test('closes a stray quote before trailing text and drops a trailing one', () => {
+        expect(phraseQuery('"it was the best of times')).toBe('"it was the best of times"');
+        expect(phraseQuery('"United Nations" "world hunger')).toBe('"United Nations" "world hunger"');
+        expect(phraseQuery('it was the best of times"')).toBe('"it was the best of times"');
+    });
+
+    test('breaks up field syntax outside typed quotes only', () => {
+        expect(phraseQuery('Star Wars: "A New Hope: Part IV"')).toBe('Star Wars "A New Hope: Part IV"');
+        expect(phraseQuery('title: the sea')).toBe('"title: the sea"');
     });
 
     test('whitespace collapses and an emptied query yields nothing', () => {
         expect(phraseQuery('  a\n  b  ')).toBe('"a b"');
-        expect(phraseQuery('  "  "  ')).toBe('  "  "  ');
+        expect(phraseQuery('  "  "  ')).toBe('');
         expect(phraseQuery('')).toBe('');
+    });
+});
+
+describe('allWordsQuery', () => {
+    test('sends the words loose, with field syntax broken up', () => {
+        expect(allWordsQuery('  argentina\n brazil ')).toBe('argentina brazil');
+        expect(allWordsQuery('languageSorter:English whale')).toBe('languageSorter English whale');
+        expect(allWordsQuery('\u201cwhite whale\u201d')).toBe('"white whale"');
+        expect(allWordsQuery('  "  "  ')).toBe('');
     });
 });
 
@@ -272,8 +289,8 @@ describe('isAutoPhrasedQuery', () => {
     });
 
     test('does not identify queries with straight or curly double quotes', () => {
-        expect(hasDoubleQuotes('“argentina brazil”')).toBe(true);
         expect(isAutoPhrasedQuery('"argentina brazil"')).toBe(false);
+        expect(isAutoPhrasedQuery('argentina brazil"')).toBe(true);
         expect(isAutoPhrasedQuery('“argentina brazil”')).toBe(false);
     });
 });
@@ -287,6 +304,11 @@ describe('fulltextSearchParams', () => {
     test('maps a non-default availability onto readable=true', () => {
         const params = fulltextSearchParams('white whale', { readable: true, languages: [] });
         expect(params.get('readable')).toBe('true');
+    });
+
+    test('opts out of the exact phrase for an all-words search', () => {
+        const params = fulltextSearchParams('white whale', { readable: false, languages: [], allWords: true });
+        expect(params.get('phrase')).toBe('false');
     });
 
     // The FTS `lang` param takes one language.
@@ -660,5 +682,71 @@ describe('fulltext request economy', () => {
         } finally {
             vi.useRealTimers();
         }
+    });
+});
+
+describe('how the Inside tab read the query', () => {
+    const HIT = {
+        fields: { identifier: ['argbraz00'], meta_title: ['Argentina and Brazil'] },
+        highlight: { text: ['{{{argentina}}} and {{{brazil}}}'] }
+    };
+
+    const answer = data => {
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(data) });
+    };
+
+    test('the band reports an all-words fallback', async () => {
+        const band = new FulltextBand({ getFilters: () => ({ readable: false, languages: [] }), onChange: vi.fn() });
+        answer({ hits: { hits: [HIT], total: 7 }, all_words_fallback: true });
+        band._fetch('argentina brazil');
+        await vi.waitFor(() => expect(band.hits.length).toBe(1));
+        expect(band.fellBack).toBe(true);
+    });
+
+    test('offers all words only for an auto-phrased query', () => {
+        const modal = new SearchModal();
+        modal._query = 'argentina brazil';
+        modal._ftQuery = 'argentina brazil';
+        expect(modal._renderInterpretation().strings.join('')).toContain('ft-note__action');
+
+        modal._ftQuery = modal._query = '"argentina brazil"';
+        expect(modal._renderInterpretation()).toBe(nothing);
+    });
+
+    test('searching all words refetches with phrase=false until the query is edited', () => {
+        const modal = new SearchModal();
+        modal._query = 'argentina brazil';
+        global.fetch = vi.fn(() => new Promise(() => {}));
+        modal._ftBand.explicit = true;
+
+        modal._searchAllWords();
+
+        expect(global.fetch.mock.calls[0][0]).toContain('phrase=false');
+        expect(modal._fulltextFilters().allWords).toBe(true);
+        modal._query = 'argentina brazil chile';
+        expect(modal._fulltextFilters().allWords).toBe(false);
+    });
+
+    test('after choosing all words, offers the exact phrase back', () => {
+        const modal = new SearchModal();
+        modal._ftQuery = modal._query = 'argentina brazil';
+        global.fetch = vi.fn(() => new Promise(() => {}));
+        modal._ftBand.explicit = true;
+        modal._searchAllWords();
+        expect(modal._renderInterpretation().values).toContain(modal._searchExactPhrase);
+
+        modal._searchExactPhrase();
+
+        expect(global.fetch.mock.calls[1][0]).not.toContain('phrase=false');
+        expect(modal._fulltextFilters().allWords).toBe(false);
+    });
+
+    test('BookReader links search what FTS was sent', () => {
+        const modal = new SearchModal();
+        const href = () =>
+            modal._renderFulltextHit({ ia: 'argbraz00', snippet: '' }, 'argentina brazil').values.find(v => typeof v === 'string' && v.startsWith('https://'));
+        expect(href()).toContain(encodeURIComponent('"argentina brazil"'));
+        modal._ftFellBack = true;
+        expect(href()).toContain('q=argentina%20brazil');
     });
 });

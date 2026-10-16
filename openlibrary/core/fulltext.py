@@ -202,25 +202,31 @@ def filter_readable(hits: list[dict], availability: dict) -> list[dict]:
 
 # FTS treats curly quotes as ordinary characters, not phrase delimiters.
 _CURLY_DOUBLE_QUOTES = str.maketrans({"“": '"', "”": '"', "„": '"', "‟": '"'})
-_DOUBLE_QUOTE_PATTERN = re.compile(r'"')
 
 
-def has_double_quotes(q: str | None) -> bool:
-    """Whether `q` contains a straight or curly double quote.
+def _normalize_quotes(q: str | None) -> str:
+    """Straighten curly double quotes, collapse whitespace, and close or drop a stray quote.
 
-    Curly double quotes are normalized before matching. Single quotes, including
-    curly single quotes, are not treated as phrase delimiters.
+    A stray quote opening trailing text is closed; one with nothing after it is dropped.
 
-    >>> has_double_quotes('"United Nations" "world hunger"')
-    True
-    >>> has_double_quotes("\u2018United Nations\u2019")
-    False
+    >>> _normalize_quotes('"United Nations" "world hunger')
+    '"United Nations" "world hunger"'
+    >>> _normalize_quotes('it was the best of times"')
+    'it was the best of times'
     """
-    return bool(_DOUBLE_QUOTE_PATTERN.search((q or "").translate(_CURLY_DOUBLE_QUOTES)))
+    q = " ".join((q or "").translate(_CURLY_DOUBLE_QUOTES).split())
+    if q.count('"') % 2:
+        last = q.rindex('"')
+        q = q + '"' if q[last + 1 :].strip() else q[:last].rstrip()
+    return q
+
+
+def _has_terms(q: str) -> bool:
+    return bool(q.replace('"', "").strip())
 
 
 def is_auto_phrased_query(q: str | None) -> bool:
-    """Whether an unquoted query with two or more words will be auto-phrased.
+    """Whether phrase_query will quote this 2+ word query as one phrase (it has no typed quotes).
 
     >>> is_auto_phrased_query("argentina brazil")
     True
@@ -229,37 +235,57 @@ def is_auto_phrased_query(q: str | None) -> bool:
     >>> is_auto_phrased_query("argentina")
     False
     """
-    return not has_double_quotes(q) and len((q or "").split()) >= 2
+    q = _normalize_quotes(q)
+    return '"' not in q and len(q.split()) >= 2
 
 
 def phrase_query(q: str | None) -> str:
     """Quote an unquoted query as one phrase: bare words match anywhere (1.5M hits vs 14K).
-    Queries with double quotes are left intact after curly quotes are normalized.
+    Typed quotes are kept, so "United Nations" "world hunger" stays two phrases.
 
     >>> phrase_query("it was the best of times")
-    '"it was the best of times"'
-    >>> phrase_query('"it was the best of times"')
     '"it was the best of times"'
     >>> phrase_query("“it was the best of times”")
     '"it was the best of times"'
     >>> phrase_query('he said "hello there" softly')
     'he said "hello there" softly'
     >>> phrase_query('"it was the best of times')
-    '"it was the best of times'
+    '"it was the best of times"'
     >>> phrase_query('"United Nations" "world hunger"')
     '"United Nations" "world hunger"'
     >>> print(phrase_query("it's a truth\\n  universally acknowledged"))
     "it's a truth universally acknowledged"
-    >>> phrase_query("\u2018United Nations\u2019")
-    '"\u2018United Nations\u2019"'
+    >>> phrase_query('  "  "  ')
+    ''
     """
-    normalized_q = (q or "").translate(_CURLY_DOUBLE_QUOTES)
-    if not normalized_q.replace('"', "").strip():
+    q = _normalize_quotes(q)
+    if not _has_terms(q):
         return ""
-    if has_double_quotes(normalized_q):
-        return normalized_q
-    words = normalized_q.split()
-    return f'"{" ".join(words)}"' if words else ""
+    return _literal_fields(q) if '"' in q else f'"{q}"'
+
+
+def all_words_query(q: str | None) -> str:
+    """The query as loose words, for the all-words opt-out and the zero-hit fallback.
+
+    >>> all_words_query("argentina brazil")
+    'argentina brazil'
+    >>> all_words_query("languageSorter:English whale")
+    'languageSorter English whale'
+    """
+    q = _normalize_quotes(q)
+    return _literal_fields(q) if _has_terms(q) else ""
+
+
+def _literal_fields(q: str) -> str:
+    """Break `field:value` outside quotes: a field clause flips FTS to its Lucene parser,
+    which ignores olonly and searches all of archive.org. A stray colon matches as a space.
+
+    >>> _literal_fields('Star Wars: "A New Hope: Part IV"')
+    'Star Wars "A New Hope: Part IV"'
+    """
+    parts = q.split('"')
+    parts[::2] = [re.sub(r"\s*:+\s*", " ", part) for part in parts[::2]]
+    return '"'.join(parts).strip()
 
 
 async def fulltext_search_api(params):
@@ -293,16 +319,16 @@ async def fulltext_search_api(params):
         return {"error": "Error converting search engine data to JSON"}
 
 
-async def fulltext_search_async(
-    q, page=1, offset=None, limit=100, js=False, facets=False, readable=False, language: str | None = None, phrase=True, used_fallback=False
-):
+async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False, readable=False, language: str | None = None, phrase=True):
+    """`phrase=False` searches all the words. An auto-phrased query with no hits retries
+    that way and sets `all_words_fallback` on the result."""
     if offset is None:
         offset = (page - 1) * limit
-    # Skip an empty query after optional phrase normalization.
-    if not (q := phrase_query(q) if phrase else q):
+    # Empty once quotes are stripped: skip the upstream call.
+    if not (sent_q := phrase_query(q) if phrase else all_words_query(q)):
         return {"hits": {"hits": [], "total": 0}}
     params = {
-        "q": q,
+        "q": sent_q,
         "from": offset,
         "size": limit,
         **({"nofacets": "true"} if not facets else {}),
@@ -313,17 +339,16 @@ async def fulltext_search_async(
     if language:
         params["lang"] = language
     ia_results = await fulltext_search_api(params)
+    if phrase and is_auto_phrased_query(q) and "error" not in ia_results and not ia_results.get("hits", {}).get("total"):
+        ia_results = await fulltext_search_api({**params, "q": all_words_query(q)})
+        if "error" not in ia_results:
+            ia_results["all_words_fallback"] = True
 
     if "error" not in ia_results and (hits := ia_results.get("hits", {}).get("hits", [])):
         ocaids = [hit_ocaid(hit) for hit in hits]
         availability = await get_availability_async("identifier", ocaids)
         if "error" in availability:
             availability = {}
-
-        if ia_results["hits"]["hits"] == 0 and is_auto_phrased_query(q) and not used_fallback:
-            params["phrase"] = False
-            params["use_fallback"] = True
-            ia_results = await fulltext_search_api(params)
 
         if readable:
             # Filter before hydrating so dropped hits cost no Infobase lookup.

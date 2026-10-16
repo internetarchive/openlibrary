@@ -1,6 +1,6 @@
 $def with(query, rows, total, page=1, results_per_page=20, phrase=True)
 
-$ phrase = phrase_query(query) if phrase else query
+$ phrase = phrase_query(query) if phrase else all_words_query(query)
 
 $# One round of queries for the whole page. Rows whose scan has no OL record
 $# carry no edition, so they get no shelf button and nothing to look up.
