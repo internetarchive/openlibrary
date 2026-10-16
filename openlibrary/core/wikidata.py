@@ -234,18 +234,16 @@ def _get_from_cache(id: str) -> WikidataEntity | None:
 
 
 def _add_to_cache(entity: WikidataEntity) -> None:
-    # TODO: after we upgrade to postgres 9.5+ we should use upsert here
     oldb = db.get_db()
     json_data = entity.to_wikidata_api_json_format()
 
-    if _get_from_cache(entity.id):
-        return oldb.update(
-            "wikidata",
-            where="id=$id",
-            vars={"id": entity.id},
-            data=json_data,
-            updated=entity._updated,
-        )
-    else:
-        # We don't provide the updated column on insert because postgres defaults to the current time
-        return oldb.insert("wikidata", id=entity.id, data=json_data)
+    oldb.query(
+        """
+        INSERT INTO wikidata (id, data, updated)
+        VALUES ($id, $data, $updated)
+        ON CONFLICT (id) DO UPDATE SET
+            data = EXCLUDED.data,
+            updated = EXCLUDED.updated
+        """,
+        vars={"id": entity.id, "data": json_data, "updated": entity._updated},
+    )

@@ -3,8 +3,12 @@ import { initDialogTriggers, initDialogs } from '../../../openlibrary/plugins/op
 /** jsdom implements neither <dialog>'s modal methods nor showModal. */
 function installDialogStubs() {
     const dialogProto = window.HTMLDialogElement.prototype;
-    dialogProto.showModal = function() { this.open = true; };
-    dialogProto.close = function() { this.open = false; };
+    dialogProto.showModal = function () {
+        this.open = true;
+    };
+    dialogProto.close = function () {
+        this.open = false;
+    };
     return () => {
         delete dialogProto.showModal;
         delete dialogProto.close;

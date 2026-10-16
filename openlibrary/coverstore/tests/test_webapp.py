@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import json
 import urllib
 from os import system
@@ -158,7 +158,7 @@ class TestUploadedCoverRedirect:
         details = web.storage(
             id=12_000_000,
             uploaded=True,
-            created=datetime.datetime(2021, 9, 26, 0, 45, 9),
+            created=dt.datetime(2021, 9, 26, 0, 45, 9),
             filename="x.jpg",
         )
         monkeypatch.setattr(code, "get_details", lambda coverid, size="": details)

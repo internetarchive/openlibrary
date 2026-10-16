@@ -4,9 +4,19 @@ from pathlib import Path
 from typing import Any
 
 import web
-from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from jinja2 import Environment, FileSystemLoader, StrictUndefined, Template
 from markupsafe import Markup
 from markupsafe import escape as _markupsafe_escape
+
+from openlibrary.utils import server_timing
+
+
+class _TimedTemplate(Template):
+    """Times every render for the Server-Timing header, however it's called."""
+
+    def render(self, *args: Any, **kwargs: Any) -> str:
+        with server_timing.timed_render("render-jinja"):
+            return super().render(*args, **kwargs)
 
 
 def render_jinja_template(template_name: str, **kwargs: Any) -> str:
@@ -20,7 +30,7 @@ def render_jinja_template(template_name: str, **kwargs: Any) -> str:
         $:render_template("MyTemplate.html.jinja", foo="bar")
 
     Usage in Python (e.g. serving the site layout):
-        render_jinja_template("site.html.jinja", page=page)
+        render_jinja_template("shell/base.html.jinja", page=page)
     """
     env = get_jinja_env()
     template = env.get_template(template_name)
@@ -74,6 +84,7 @@ def get_jinja_env() -> Environment:
         lstrip_blocks=True,
         extensions=["jinja2.ext.i18n"],
     )
+    env.template_class = _TimedTemplate
     env.install_gettext_callables(
         _jinja_gettext,
         _jinja_ngettext,

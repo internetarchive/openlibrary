@@ -3,7 +3,7 @@
  */
 
 // Availability values and their display labels. The labels are the English
-// source/fallback for the localized strings in search/availability_i18n.html;
+// source/fallback for the localized strings in openlibrary/core/shell/search_modal.py;
 // keep the two in sync. The header modal and the search-page filter row both
 // surface availability as a binary "Readable Only" toggle, so only the
 // `readable` label is rendered today; the full set mirrors the taxonomy in
@@ -12,7 +12,7 @@ export const AVAILABILITY_OPTIONS = [
     { value: 'all', label: 'All books' },
     { value: 'readable', label: 'Readable Only' },
     { value: 'open', label: 'Free to read now' },
-    { value: 'borrowable', label: 'Borrow online' },
+    { value: 'borrowable', label: 'Borrow online' }
 ];
 
 export const DEFAULT_AVAILABILITY = 'all';
@@ -24,15 +24,16 @@ export const DEFAULT_AVAILABILITY = 'all';
  * omit keeps its built-in text, so a missing or partial translation never
  * blanks out an option.
  *
- * The translated strings are rendered server-side via search/availability_i18n
- * (Templetor `$_()`), since the JS-side `ugettext` is only a pass-through.
+ * The translated strings are built server-side in openlibrary/core/shell/search_modal.py
+ * and serialized into the `data-i18n` attribute; the JS-side `ugettext` is only
+ * a pass-through.
  *
  * @param {Object<string, {label?: string}>|null} i18nStrings
  * @returns {typeof AVAILABILITY_OPTIONS}
  */
 export function localizeAvailabilityOptions(i18nStrings) {
     if (!i18nStrings) return AVAILABILITY_OPTIONS;
-    return AVAILABILITY_OPTIONS.map((opt) => {
+    return AVAILABILITY_OPTIONS.map(opt => {
         const t = i18nStrings[opt.value];
         if (!t) return opt;
         return { ...opt, label: t.label || opt.label };
@@ -41,7 +42,7 @@ export function localizeAvailabilityOptions(i18nStrings) {
 
 /**
  * Reads translated availability strings from an element's `data-i18n` JSON
- * attribute (rendered by search/availability_i18n.html) and returns the
+ * attribute (built in openlibrary/core/shell/search_modal.py) and returns the
  * localized option list. Falls back to the English defaults when the attribute
  * is absent or malformed.
  *
@@ -53,15 +54,17 @@ export function availabilityOptionsFromElement(el) {
     try {
         const raw = el && el.dataset ? el.dataset.i18n : null;
         if (raw) i18nStrings = JSON.parse(raw);
-    } catch { /* fall back to the English defaults below */ }
+    } catch {
+        /* fall back to the English defaults below */
+    }
     return localizeAvailabilityOptions(i18nStrings);
 }
 
 /**
  * English source/fallback for the header search modal's chrome strings (labels,
- * placeholders, aria-labels, status messages). Rendered server-side by
- * search/search_modal_i18n.html via `$_()`; this object is what ships when no
- * translation is present.
+ * placeholders, aria-labels, status messages). Built server-side in
+ * openlibrary/core/shell/search_modal.py and serialized into the `data-i18n-ui` attribute;
+ * this object is what ships when no translation is present.
  */
 export const DEFAULT_SEARCH_MODAL_STRINGS = {
     dialogAria: 'Search Open Library',
@@ -132,14 +135,24 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     // Replaces the empty state when the fulltext backend failed, so an outage
     // doesn't read as a verdict on the query.
     insideError: 'Search inside books is temporarily unavailable. Please try again later.',
+    // Above Inside tab hits when the query was searched as one exact phrase. %s = the query.
+    insideExactMatches: 'Showing exact matches for "%s".',
+    // Follows insideExactMatches; reruns the query as loose words.
+    insideSearchAllWords: 'Search for all of these words instead.',
+    // Above Inside tab hits after the patron chose all words.
+    insideAllWords: 'Showing all of these words, in any order.',
+    // Follows insideAllWords; goes back to the exact phrase.
+    insideSearchExactPhrase: 'Search for the exact phrase instead.',
+    // The exact phrase found nothing, so the hits match all the words. %s = the query.
+    insideNoExactMatches: 'No exact matches for "%s". Showing books containing all of these words.',
     // %s = snippet rows shown (1–3), not the backend total.
     insideAnnounceOne: '%s match found inside books',
-    insideAnnounceMany: '%s matches found inside books',
+    insideAnnounceMany: '%s matches found inside books'
 };
 
 /**
  * Reads translated modal chrome strings from an element's `data-i18n-ui` JSON
- * attribute (rendered by search/search_modal_i18n.html) and merges them over
+ * attribute (built in openlibrary/core/shell/search_modal.py) and merges them over
  * DEFAULT_SEARCH_MODAL_STRINGS, so any key the translations omit keeps its
  * English text. Falls back to the full English set when the attribute is absent
  * or malformed.
@@ -152,10 +165,10 @@ export function searchModalStringsFromElement(el) {
     try {
         const raw = el && el.dataset ? el.dataset.i18nUi : null;
         if (raw) overrides = JSON.parse(raw);
-    } catch { /* fall back to the English defaults below */ }
-    return overrides
-        ? { ...DEFAULT_SEARCH_MODAL_STRINGS, ...overrides }
-        : DEFAULT_SEARCH_MODAL_STRINGS;
+    } catch {
+        /* fall back to the English defaults below */
+    }
+    return overrides ? { ...DEFAULT_SEARCH_MODAL_STRINGS, ...overrides } : DEFAULT_SEARCH_MODAL_STRINGS;
 }
 
 /**
@@ -172,7 +185,7 @@ export const AVAILABILITY_TO_PARAMS = {
     // "Borrow online" — readable but not public: borrowable scans only.
     borrowable: { has_fulltext: 'true', public_scan: 'false' },
     // "Free to read now" — public-domain / open-access scans (ebook_access:public).
-    open: { public_scan: 'true' },
+    open: { public_scan: 'true' }
 };
 
 /**
@@ -184,8 +197,7 @@ export const AVAILABILITY_TO_PARAMS = {
  * @returns {string}
  */
 export function availabilityFromParams(get) {
-    const matches = (params) =>
-        Object.entries(params).every(([k, v]) => String(get(k) ?? '') === v);
+    const matches = params => Object.entries(params).every(([k, v]) => String(get(k) ?? '') === v);
     // Check specific (multi-param) values before less specific ones; skip `all`
     // (the empty default) so it only wins when nothing else matches.
     for (const value of ['borrowable', 'readable', 'open']) {
@@ -227,7 +239,7 @@ export const DEFAULT_LANGUAGE_OPTIONS = [
     { value: 'lat', label: 'Latin' },
     { value: 'per', label: 'Persian' },
     { value: 'heb', label: 'Hebrew' },
-    { value: 'ben', label: 'Bengali' },
+    { value: 'ben', label: 'Bengali' }
 ];
 
 /**
@@ -256,7 +268,7 @@ export const UI_LANG_TO_MARC = {
     te: 'tel',
     uk: 'ukr',
     zh: 'chi',
-    tl: 'tgl',
+    tl: 'tgl'
 };
 
 /**
@@ -283,7 +295,7 @@ export function siteLanguageToMarc(iso) {
  */
 export function languageNameFromOptions(options, code) {
     const opts = options && options.length ? options : DEFAULT_LANGUAGE_OPTIONS;
-    return opts.find((o) => o.value === code)?.label || null;
+    return opts.find(o => o.value === code)?.label || null;
 }
 
 // Most languages to name in the "In <language>" hint before truncating to a
@@ -304,9 +316,7 @@ const HINT_LANG_LIMIT = 2;
  */
 function listEditionLanguages(langs, options) {
     if (!Array.isArray(langs) || langs.length === 0) return null;
-    const names = langs
-        .map((code) => languageNameFromOptions(options, code))
-        .filter(Boolean);                                // drop codes with no display name
+    const names = langs.map(code => languageNameFromOptions(options, code)).filter(Boolean); // drop codes with no display name
     if (names.length === 0) return null;
     const shown = names.slice(0, HINT_LANG_LIMIT).join(', ');
     return names.length > HINT_LANG_LIMIT ? `${shown}, …` : shown;
@@ -343,12 +353,12 @@ function listEditionLanguages(langs, options) {
  * @returns {string|null}
  */
 export function readableLanguageMismatch({ edition, languages, siteLanguage, options }) {
-    if (!edition) return null;                            // only promoted readable editions
-    if (languages.length) return null;                   // patron already chose language(s)
-    if (!siteLanguage) return null;                      // unknown site lang → don't guess
+    if (!edition) return null; // only promoted readable editions
+    if (languages.length) return null; // patron already chose language(s)
+    if (!siteLanguage) return null; // unknown site lang → don't guess
     const langs = edition.language;
     if (!Array.isArray(langs) || langs.length === 0) return null;
-    if (langs.includes(siteLanguage)) return null;       // readable in their language → fine
+    if (langs.includes(siteLanguage)) return null; // readable in their language → fine
     return listEditionLanguages(langs, options);
 }
 
@@ -372,7 +382,7 @@ export function readableLanguageMismatch({ edition, languages, siteLanguage, opt
  * @returns {string|null}
  */
 export function readableEditionLanguages({ edition, languages, options }) {
-    if (!edition) return null;                            // only promoted readable editions
+    if (!edition) return null; // only promoted readable editions
     if (!languages || languages.length < 2) return null; // only when juggling several filters
     return listEditionLanguages(edition.language, options);
 }
@@ -381,7 +391,7 @@ export function readableEditionLanguages({ edition, languages, options }) {
  * sessionStorage keys for per-session filter persistence.
  */
 export const SS_AVAILABILITY_KEY = 'ol-header-search-availability';
-export const SS_LANGUAGES_KEY    = 'ol-header-search-languages';
+export const SS_LANGUAGES_KEY = 'ol-header-search-languages';
 
 /**
  * sessionStorage read/write that swallow access errors (private browsing, quota,
@@ -393,7 +403,11 @@ export const SS_LANGUAGES_KEY    = 'ol-header-search-languages';
  * @returns {string|null}
  */
 export function ssGet(key) {
-    try { return sessionStorage.getItem(key); } catch { return null; }
+    try {
+        return sessionStorage.getItem(key);
+    } catch {
+        return null;
+    }
 }
 
 /**
@@ -401,60 +415,92 @@ export function ssGet(key) {
  * @param {string} value
  */
 export function ssSet(key, value) {
-    try { sessionStorage.setItem(key, value); } catch { /* ignore */ }
+    try {
+        sessionStorage.setItem(key, value);
+    } catch {
+        /* ignore */
+    }
 }
 
 /**
  * localStorage key and cap for per-device recent searches.
  */
 export const LS_RECENT_SEARCHES_KEY = 'ol-recent-searches';
-export const RECENT_SEARCHES_MAX    = 8;
+export const RECENT_SEARCHES_MAX = 8;
 
-/**
- * Read the recent-search list from localStorage. Returns [] on any failure.
- * Non-string entries (from a corrupt or hand-edited value) are dropped so
- * callers only ever see strings to render and dedup against.
- * @returns {string[]}
- */
-export function readRecentSearches() {
+/** Every stored entry as {q, mode, allWords?}. Entries saved before modes were recorded are Books searches. */
+function readRecentEntries() {
     try {
         const raw = localStorage.getItem(LS_RECENT_SEARCHES_KEY);
         if (!raw) return [];
         const parsed = JSON.parse(raw);
         if (!Array.isArray(parsed)) return [];
-        return parsed.filter(s => typeof s === 'string').slice(0, RECENT_SEARCHES_MAX);
-    } catch { return []; }
+        return parsed
+            .map(entry => (typeof entry === 'string' ? { q: entry, mode: 'books' } : entry))
+            .filter(entry => entry && typeof entry.q === 'string' && typeof entry.mode === 'string');
+    } catch {
+        return [];
+    }
 }
 
 /**
- * Prepend `query` to the recent-search list, dedup, and cap at
- * RECENT_SEARCHES_MAX. Silently ignores localStorage errors (private browsing).
- * @param {string} query
+ * The recent searches made on one tab, newest first. Returns [] on any failure.
+ * Non-string entries (from a corrupt or hand-edited value) are dropped so
+ * callers only ever see strings to render and dedup against.
+ * @param {string} mode - 'books' or 'inside'
+ * @returns {string[]}
  */
-export function saveRecentSearch(query) {
+export function readRecentSearches(mode = 'books') {
+    return readRecentEntries()
+        .filter(entry => entry.mode === mode)
+        .map(entry => entry.q)
+        .slice(0, RECENT_SEARCHES_MAX);
+}
+
+/**
+ * Prepend `query` to the tab's recent searches, dedup, and cap that tab's list
+ * at RECENT_SEARCHES_MAX. Silently ignores localStorage errors (private browsing).
+ * @param {string} query
+ * @param {string} mode
+ * @param {{allWords?: boolean}} [options] - allWords: the patron chose all words over the exact phrase
+ */
+export function saveRecentSearch(query, mode = 'books', { allWords = false } = {}) {
     const trimmed = query.trim();
     if (!trimmed) return;
     try {
-        const searches = readRecentSearches().filter(s => s !== trimmed);
-        searches.unshift(trimmed);
-        localStorage.setItem(
-            LS_RECENT_SEARCHES_KEY,
-            JSON.stringify(searches.slice(0, RECENT_SEARCHES_MAX))
-        );
-    } catch { /* ignore */ }
+        const others = readRecentEntries().filter(entry => entry.mode !== mode);
+        const own = readRecentEntries().filter(entry => entry.mode === mode && entry.q !== trimmed);
+        own.unshift({ q: trimmed, mode, ...(allWords ? { allWords: true } : {}) });
+        localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify([...own.slice(0, RECENT_SEARCHES_MAX), ...others]));
+    } catch {
+        /* ignore */
+    }
 }
 
 /**
- * Remove a single entry from the recent-search list.
+ * Whether a recent search was last run as all words rather than the exact phrase.
  * @param {string} query
- * @returns {string[]} updated list
+ * @param {string} mode
+ * @returns {boolean}
  */
-export function removeRecentSearch(query) {
+export function recentSearchUsedAllWords(query, mode = 'books') {
+    return readRecentEntries().some(entry => entry.mode === mode && entry.q === query && entry.allWords === true);
+}
+
+/**
+ * Remove a single entry from one tab's recent searches.
+ * @param {string} query
+ * @param {string} mode
+ * @returns {string[]} that tab's updated list
+ */
+export function removeRecentSearch(query, mode = 'books') {
     try {
-        const searches = readRecentSearches().filter(s => s !== query);
-        localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify(searches));
-        return searches;
-    } catch { return readRecentSearches(); }
+        const entries = readRecentEntries().filter(entry => !(entry.mode === mode && entry.q === query));
+        localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify(entries));
+    } catch {
+        /* ignore */
+    }
+    return readRecentSearches(mode);
 }
 
 /**
@@ -472,5 +518,7 @@ export function readStoredLanguages() {
     try {
         const parsed = JSON.parse(raw);
         return Array.isArray(parsed) ? parsed.filter(s => typeof s === 'string') : [];
-    } catch { return []; }
+    } catch {
+        return [];
+    }
 }

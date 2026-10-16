@@ -27,7 +27,7 @@ Single-statement helpers. Each takes a connection from the pool, runs one query,
 from openlibrary.core.async_db import class_row, execute, fetch_all, fetch_one, fetch_val
 
 rows = await fetch_all("SELECT ... WHERE x = %(x)s", {"x": 1}, row_factory=class_row(MyRow))
-row = await fetch_one("SELECT ...")             # first row, or None
+row = await fetch_one("SELECT ...")  # first row, or None
 count = await fetch_val("SELECT count(*) ...")  # first column of the first row
 await execute("INSERT ...", params)
 ```
@@ -55,6 +55,7 @@ web.py code can't `await`, so sync callers run async model methods on a persiste
 
 ```python
 from openlibrary.utils.async_utils import async_bridge
+
 
 @classmethod
 def summary_sync(cls) -> dict[str, dict[str, int]]:
@@ -95,6 +96,7 @@ async def test_select_by_username(helpers):
     assert rows == [goal]
     (query, params), _ = helpers.fetch_all.await_args
     assert "username = %(username)s" in query
+
 
 # Integration test — runs the SQL against a real postgres
 @pytest.mark.integration

@@ -11,6 +11,7 @@
 @import "base/helpers-common.css";
 @import "layout/index.css";
 @import "components/header-bar.css";
+@import "components/skip-link.css";
 @import "components/iaBar.css";
 @import "components/buttonGhost.css";
 @import "components/buttonBtn.css";

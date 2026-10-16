@@ -17,7 +17,7 @@ The imports can be monitored for their statuses and rolled up / counted using th
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import json
 import logging
 from typing import Any
@@ -107,7 +107,7 @@ def stage_incomplete_records_for_import(olbooks: list[dict[str, Any]]) -> None:
     """
     total_records = len(olbooks)
     incomplete_records = 0
-    timestamp = datetime.datetime.now(datetime.UTC)
+    timestamp = dt.datetime.now(dt.UTC)
 
     required_fields = ["title", "authors", "publish_date"]
     for book in olbooks:

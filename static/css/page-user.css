@@ -29,6 +29,7 @@
  * - /merges
  * - /people/admin
  * - /people/openlibrary9157/lists
+ * - /people/openlibrary9157/books/already-read/stats
  * - /read
  * - /recentchanges
  * - /search/authors
@@ -62,6 +63,8 @@
 /* Import styles for sort options */
 @import "components/sort-dropper.css";
 @import "components/pagination.css";
+/* Import styles for the reading log stats charts */
+@import "components/readinglog-charts.css";
 
 body {
   background-color: var(--color-background);
@@ -97,7 +100,7 @@ div.siteSearch.darker {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-stack-sm);
-  margin-bottom: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-md);
 }
 
 /* The chips container renders empty (whitespace, then an empty async wrapper) */
@@ -119,6 +122,19 @@ div.siteSearch.darker {
 .search-controls .search-results-stats {
   padding-bottom: 0;
   padding-left: var(--spacing-inset-sm);
+}
+
+/* Search Inside: the count and how the query was read share one row. The note
+   drops under the count on narrow screens instead of scrolling sideways. */
+.search-controls .search-results-stats--wrap {
+  flex-wrap: wrap;
+  gap: var(--spacing-stack-xs) var(--spacing-inline-xl);
+  overflow: visible;
+}
+
+.search-results-stats__note {
+  white-space: normal;
+  color: var(--color-text-secondary);
 }
 
 /* Exception to the gap-owns-spacing rule above: the filters are the last

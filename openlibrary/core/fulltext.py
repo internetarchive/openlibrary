@@ -11,6 +11,7 @@ import httpx
 import web
 
 from infogami import config
+from openlibrary.core import ia
 from openlibrary.core.carousels import format_book_data
 from openlibrary.core.lending import get_availability_async
 from openlibrary.utils.async_utils import async_bridge
@@ -204,27 +205,88 @@ def filter_readable(hits: list[dict], availability: dict) -> list[dict]:
 _CURLY_DOUBLE_QUOTES = str.maketrans({"“": '"', "”": '"', "„": '"', "‟": '"'})
 
 
+def _normalize_quotes(q: str | None) -> str:
+    """Straighten curly double quotes, collapse whitespace, and close or drop a stray quote.
+
+    A stray quote opening trailing text is closed; one with nothing after it is dropped.
+
+    >>> _normalize_quotes('"United Nations" "world hunger')
+    '"United Nations" "world hunger"'
+    >>> _normalize_quotes('it was the best of times"')
+    'it was the best of times'
+    """
+    q = " ".join((q or "").translate(_CURLY_DOUBLE_QUOTES).split())
+    if q.count('"') % 2:
+        last = q.rindex('"')
+        q = q + '"' if q[last + 1 :].strip() else q[:last].rstrip()
+    return q
+
+
+def _has_terms(q: str) -> bool:
+    return bool(q.replace('"', "").strip())
+
+
+def is_auto_phrased_query(q: str | None) -> bool:
+    """Whether phrase_query will quote this 2+ word query as one phrase (it has no typed quotes).
+
+    >>> is_auto_phrased_query("argentina brazil")
+    True
+    >>> is_auto_phrased_query('"argentina brazil"')
+    False
+    >>> is_auto_phrased_query("argentina")
+    False
+    """
+    q = _normalize_quotes(q)
+    return '"' not in q and len(q.split()) >= 2
+
+
 def phrase_query(q: str | None) -> str:
-    """Quote the whole query as one phrase: bare words match anywhere (1.5M hits vs 14K).
-    FTS can't escape quotes and stray ones break the phrase, so typed quotes are dropped.
+    """Quote an unquoted query as one phrase: bare words match anywhere (1.5M hits vs 14K).
+    Typed quotes are kept, so "United Nations" "world hunger" stays two phrases.
 
     >>> phrase_query("it was the best of times")
-    '"it was the best of times"'
-    >>> phrase_query('"it was the best of times"')
     '"it was the best of times"'
     >>> phrase_query("“it was the best of times”")
     '"it was the best of times"'
     >>> phrase_query('he said "hello there" softly')
-    '"he said hello there softly"'
+    'he said "hello there" softly'
     >>> phrase_query('"it was the best of times')
     '"it was the best of times"'
+    >>> phrase_query('"United Nations" "world hunger"')
+    '"United Nations" "world hunger"'
     >>> print(phrase_query("it's a truth\\n  universally acknowledged"))
     "it's a truth universally acknowledged"
     >>> phrase_query('  "  "  ')
     ''
     """
-    words = (q or "").translate(_CURLY_DOUBLE_QUOTES).replace('"', " ").split()
-    return f'"{" ".join(words)}"' if words else ""
+    q = _normalize_quotes(q)
+    if not _has_terms(q):
+        return ""
+    return _literal_fields(q) if '"' in q else f'"{q}"'
+
+
+def all_words_query(q: str | None) -> str:
+    """The query as loose words, for the all-words opt-out and the zero-hit fallback.
+
+    >>> all_words_query("argentina brazil")
+    'argentina brazil'
+    >>> all_words_query("languageSorter:English whale")
+    'languageSorter English whale'
+    """
+    q = _normalize_quotes(q)
+    return _literal_fields(q) if _has_terms(q) else ""
+
+
+def _literal_fields(q: str) -> str:
+    """Break `field:value` outside quotes: a field clause flips FTS to its Lucene parser,
+    which ignores olonly and searches all of archive.org. A stray colon matches as a space.
+
+    >>> _literal_fields('Star Wars: "A New Hope: Part IV"')
+    'Star Wars "A New Hope: Part IV"'
+    """
+    parts = q.split('"')
+    parts[::2] = [re.sub(r"\s*:+\s*", " ", part) for part in parts[::2]]
+    return '"'.join(parts).strip()
 
 
 async def fulltext_search_api(params):
@@ -248,24 +310,25 @@ async def fulltext_search_api(params):
 
     logger.debug("URL: " + search_select)
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(search_select, headers=headers, timeout=30)
-            response.raise_for_status()
-            return response.json()
+        response = await ia.get_async_session().get(search_select, headers=headers, timeout=30, extensions={"server_timing": "ia-fts"})
+        response.raise_for_status()
+        return response.json()
     except httpx.HTTPStatusError:
         return {"error": "Unable to query search engine"}
     except json.decoder.JSONDecodeError:
         return {"error": "Error converting search engine data to JSON"}
 
 
-async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False, readable=False, language: str | None = None):
+async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False, readable=False, language: str | None = None, phrase=True):
+    """`phrase=False` searches all the words. An auto-phrased query with no hits retries
+    that way and sets `all_words_fallback` on the result."""
     if offset is None:
         offset = (page - 1) * limit
     # Empty once quotes are stripped: skip the upstream call.
-    if not (q := phrase_query(q)):
+    if not (sent_q := phrase_query(q) if phrase else all_words_query(q)):
         return {"hits": {"hits": [], "total": 0}}
     params = {
-        "q": q,
+        "q": sent_q,
         "from": offset,
         "size": limit,
         **({"nofacets": "true"} if not facets else {}),
@@ -276,6 +339,10 @@ async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, fac
     if language:
         params["lang"] = language
     ia_results = await fulltext_search_api(params)
+    if phrase and is_auto_phrased_query(q) and "error" not in ia_results and not ia_results.get("hits", {}).get("total"):
+        ia_results = await fulltext_search_api({**params, "q": all_words_query(q)})
+        if "error" not in ia_results:
+            ia_results["all_words_fallback"] = True
 
     if "error" not in ia_results and (hits := ia_results.get("hits", {}).get("hits", [])):
         ocaids = [hit_ocaid(hit) for hit in hits]

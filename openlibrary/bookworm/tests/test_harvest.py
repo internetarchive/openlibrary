@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import json
 import logging
 from pathlib import Path
@@ -14,7 +14,7 @@ from openlibrary.core.acquisitions import Acquisition
 from openlibrary.core.db import get_db
 
 SAMPLES = Path(__file__).parent / "samples"
-NOW: Final = datetime.datetime(2026, 7, 30, tzinfo=datetime.UTC)
+NOW: Final = dt.datetime(2026, 7, 30, tzinfo=dt.UTC)
 
 FEED_REGISTRY_DDL: Final = """
 CREATE TABLE feed_registry (
@@ -117,10 +117,10 @@ def test_harvest_bwb_submits_import_items_carrying_acquisitions(bookworm_db):
 def test_harvest_gutenberg_injects_modified_since_and_open_access(bookworm_db):
     FeedRegistry.register("project_gutenberg", "https://g/opds/search?sort=fil", id_strategy="gutenberg", cursor_style=CURSOR_MODIFIED_SINCE)
     feed = FeedRegistry.find("project_gutenberg", "https://g/opds/search?sort=fil")
-    FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2026, 7, 20))
+    FeedRegistry.advance(feed.id, last_updated=dt.datetime(2026, 7, 20))
     feed = FeedRegistry.get_by_id(feed.id)
 
-    fetch_url = feed.request_url(datetime.datetime(2026, 7, 20, tzinfo=datetime.UTC))
+    fetch_url = feed.request_url(dt.datetime(2026, 7, 20, tzinfo=dt.UTC))
     assert "modified_since=2026-07-20" in fetch_url
     session = FakeSession({fetch_url: feed_page("gutenberg")})
 
@@ -193,9 +193,9 @@ def test_dry_run_on_a_modified_since_feed_leaves_the_cursor_alone(bookworm_db):
     """The native path advances to run time, so it needs its own guard."""
     FeedRegistry.register("project_gutenberg", "https://g/opds/search?sort=fil", id_strategy="gutenberg", cursor_style=CURSOR_MODIFIED_SINCE)
     feed = FeedRegistry.find("project_gutenberg", "https://g/opds/search?sort=fil")
-    FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2026, 7, 20))
+    FeedRegistry.advance(feed.id, last_updated=dt.datetime(2026, 7, 20))
     feed = FeedRegistry.get_by_id(feed.id)
-    session = FakeSession({feed.request_url(datetime.datetime(2026, 7, 20, tzinfo=datetime.UTC)): feed_page("gutenberg")})
+    session = FakeSession({feed.request_url(dt.datetime(2026, 7, 20, tzinfo=dt.UTC)): feed_page("gutenberg")})
 
     result = harvest.harvest_feed(feed, session=session, now=NOW, dry_run=True)
 
@@ -425,7 +425,7 @@ def test_a_changed_price_is_restaged_for_the_catalog(bookworm_db):
         pub["metadata"]["modified"] = "2126-01-01T00:00:00Z".replace("2126", "2026")
     # Only terminal rows are refreshable, so simulate ImportBot completing it.
     bookworm_db.query("UPDATE import_item SET status='created'")
-    FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2020, 1, 1))
+    FeedRegistry.advance(feed.id, last_updated=dt.datetime(2020, 1, 1))
     feed = FeedRegistry.get_by_id(feed.id)
 
     harvest.harvest_feed(feed, session=FakeSession({"https://bwb/opds": changed}), now=NOW)
@@ -448,7 +448,7 @@ def test_an_unchanged_republish_does_not_requeue(bookworm_db):
 
     bookworm_db.query("UPDATE import_item SET status='created'")
 
-    FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2020, 1, 1))
+    FeedRegistry.advance(feed.id, last_updated=dt.datetime(2020, 1, 1))
     result = harvest.harvest_feed(FeedRegistry.get_by_id(feed.id), session=FakeSession({"https://bwb/opds": feed_page("bwb")}), now=NOW)
 
     assert result.get("refreshed", 0) == 0
@@ -513,7 +513,7 @@ def test_gate_two_drops_an_unchanged_multi_link_publication(bookworm_db):
     )
     bookworm_db.query("UPDATE import_item SET status='created', data=NULL")
 
-    FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2020, 1, 1))
+    FeedRegistry.advance(feed.id, last_updated=dt.datetime(2020, 1, 1))
     result = harvest.harvest_feed(
         FeedRegistry.get_by_id(feed.id),
         session=FakeSession({"https://g/opds": {"publications": [pub], "links": []}}),
@@ -563,7 +563,7 @@ def test_the_cursor_does_not_advance_past_a_rejected_publication(bookworm_db):
 
     assert result["records"] == 0
     cursor = _as_utc(FeedRegistry.get_by_id(feed.id).last_updated)
-    assert cursor > _as_utc(datetime.datetime(2026, 8, 15, tzinfo=datetime.UTC)) or cursor == _as_utc(NOW), (
+    assert cursor > _as_utc(dt.datetime(2026, 8, 15, tzinfo=dt.UTC)) or cursor == _as_utc(NOW), (
         "an empty run advances to now, but must not adopt the rejected record's own timestamp"
     )
 

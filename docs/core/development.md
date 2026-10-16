@@ -97,7 +97,7 @@ docker compose run --rm home python ./scripts/i18n-messages extract
 - **7 test files fail to load until you run `make icons`.** They fail with `Failed to resolve import "./icons.generated.js"`. The file is gitignored build output from `scripts/build_icon_sprite.mjs`, which CI builds via `make components`. Those files hold ~300 tests, so a suite without the icons reports **"900 passed"** and looks complete. With them it's 61/61 files and 1200 tests. Run `make icons` before trusting a count.
 - **`$TMPDIR` may be unset in an agent shell.** Then `"$TMPDIR/x"` becomes `/x`, which fails on the read-only root. In a `cp … && sed …` mutation check, that silently skips the mutation, and the "mutated" run is green against unmodified source. Use `W=$(mktemp -d "$SCRATCH/agent-XXXXXXXX")`, and print a count proving the mutation applied before you read the result.
 
-**`scripts/gh_scripts/*.mjs` run by `pull_request_target` workflows cannot be tested by the PR that changes them.** With a no-`ref:` checkout, the workflow and the script both run from the default branch. `new_pr_labeler.mjs` also can't be imported in vitest: it runs `main()` on load and needs `@octokit/action`, which isn't in `package.json`. `tests/unit/js/new_pr_labeler.test.js` shows the workaround: parse the source with `@babel/core` and assert structural properties.
+**`scripts/gh_scripts/*.mjs` run by `pull_request_target` workflows cannot be tested by the PR that changes them.** With a no-`ref:` checkout, the workflow and the script both run from the default branch. `new_pr_labeler.mjs` also can't be imported in vitest: it runs `main()` on load and needs `@octokit/action`, which isn't in `package.json`. To test one, parse its source with a JS parser and assert structural properties.
 
 **pre-commit (runs outside Docker, hooks into git):**
 ```bash
@@ -112,11 +112,11 @@ pre-commit runs: `mypy`, `black`, `ruff`, JS lint, Stylelint. Python version mus
 
 ```python
 import web
-from openlibrary.config import load_config   # NOT infogami.config.load — that has no .load()
+from openlibrary.config import load_config  # NOT infogami.config.load — that has no .load()
 from infogami.utils import delegate
 
-load_config('/openlibrary/conf/openlibrary.yml')
-delegate.fakeload()   # connects web.ctx.site to the REAL infobase over its client, disables permission checks
+load_config("/openlibrary/conf/openlibrary.yml")
+delegate.fakeload()  # connects web.ctx.site to the REAL infobase over its client, disables permission checks
 
 site = web.ctx.site
 # Now real reads/writes work, e.g.:
@@ -124,7 +124,7 @@ prefs_key = "/people/AccountBot/preferences"
 prefs = site.store.get(prefs_key) or {"update": "no", "public_readlog": "no", "type": "preferences"}
 prefs["public_readlog"] = "yes"
 prefs["_rev"] = None
-site.store[prefs_key] = prefs   # writes for real — same DB the `web` container reads from
+site.store[prefs_key] = prefs  # writes for real — same DB the `web` container reads from
 ```
 
 If you also need `get_current_user()`/`accounts.get_current_user()` or anything gated on the `site` ContextVar specifically (as opposed to `web.ctx.site`) to resolve inside a *pytest* test (as opposed to a standalone script, where `fakeload()` above is enough on its own), additionally pull in `site as site_context` from `openlibrary.utils.request_context` and set it explicitly — `fakeload()` alone does not populate that ContextVar:
@@ -133,9 +133,10 @@ If you also need `get_current_user()`/`accounts.get_current_user()` or anything 
 import web
 from openlibrary.utils.request_context import site as site_context
 
+
 def test_something(render_template, request_context_fixture, mock_site):
     request_context_fixture(lang="en")
-    site_context.set(web.ctx.site)   # mock_site fixture already set web.ctx.site = MockSite()
+    site_context.set(web.ctx.site)  # mock_site fixture already set web.ctx.site = MockSite()
     html = str(render_template("follow/follow", "somepublisher", following=True, link_track=PAYLOAD))
 ```
 

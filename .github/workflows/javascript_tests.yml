@@ -46,7 +46,7 @@ jobs:
         run: npm install --no-audit
       - name: Ensure node_modules timestamp is up to date
         run: touch node_modules
-      - run: npm run lint
+      # No `npm run lint` step: pre-commit.ci already runs every check it covers.
       - run: make git
       - run: npx concurrently --group 'make js' 'make css' 'make components'
       - run: npm run test

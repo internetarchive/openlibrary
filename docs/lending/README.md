@@ -226,7 +226,7 @@ try:
 except Exception:
     logger.exception(f"get_loan({identifier}) 1 of 2")
 try:
-    _loan = _get_ia_loan(identifier, account and account.itemname)   # clobbers the first
+    _loan = _get_ia_loan(identifier, account and account.itemname)  # clobbers the first
 except Exception:
     logger.exception(f"get_loan({identifier}) 2 of 2")
 return _loan
@@ -264,9 +264,9 @@ round-trips to archive.org, three of them redundant.
 
 ```python
 def update_loan_status(self):
-    loans = lending.get_loans_of_user(self.key)   # uncached
+    loans = lending.get_loans_of_user(self.key)  # uncached
     for loan in loans:
-        lending.sync_loan(loan["ocaid"])          # <-- has the Loan, passes only the ocaid
+        lending.sync_loan(loan["ocaid"])  # <-- has the Loan, passes only the ocaid
 ```
 
 Three compounding costs, all avoidable:

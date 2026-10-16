@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
 
@@ -18,6 +17,7 @@ from pydantic import (
     model_validator,
 )
 
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import fulltext_search_async, resolve_language
 from openlibrary.fastapi.models import (
     Pagination,
@@ -60,7 +60,7 @@ _FACET_INTERNAL_RENAME = {"author_key": "author_facet"}
 
 # Whether to expose internal-only endpoints in the OpenAPI schema.
 # Only shown when running with LOCAL_DEV set (e.g. docker compose).
-SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+SHOW_INTERNAL_IN_SCHEMA = get_ol_env().LOCAL_DEV
 
 
 class PublicQueryOptions(BaseModel):
@@ -249,6 +249,10 @@ async def search_inside_json(
     q: Annotated[str, Query(title="Search query")],
     facets: Annotated[bool, Query(description="Include facet aggregations in the response.")] = True,
     readable: Annotated[bool, Query(description="Drop matches that aren't readable (public or borrowable) scans. hits.total still counts them.")] = False,
+    phrase: Annotated[
+        bool,
+        Query(description="Search an unquoted query as one exact phrase, falling back to all the words when it has no hits. false searches all the words."),
+    ] = True,
     language: Annotated[
         list[str] | None,
         Query(description="Filter by language — a MARC code (e.g. fre) or language name. The FTS backend takes one language; extra values are ignored."),
@@ -263,6 +267,7 @@ async def search_inside_json(
         js=True,
         facets=facets,
         readable=readable,
+        phrase=phrase,
         # FTS takes the language name, not the MARC code.
         language=resolved[1] if resolved else None,
     )
