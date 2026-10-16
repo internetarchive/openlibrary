@@ -237,14 +237,13 @@ def _add_to_cache(entity: WikidataEntity) -> None:
     oldb = db.get_db()
     json_data = entity.to_wikidata_api_json_format()
 
-    # New rows use the database's timestamp default; refreshes use the fetch time.
     oldb.query(
         """
-        INSERT INTO wikidata (id, data)
-        VALUES ($id, $data)
+        INSERT INTO wikidata (id, data, updated)
+        VALUES ($id, $data, $updated)
         ON CONFLICT (id) DO UPDATE SET
             data = EXCLUDED.data,
-            updated = $updated
+            updated = EXCLUDED.updated
         """,
         vars={"id": entity.id, "data": json_data, "updated": entity._updated},
     )

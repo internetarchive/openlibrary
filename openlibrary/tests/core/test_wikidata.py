@@ -1,9 +1,11 @@
+import json
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
+import web
 
-from openlibrary.core import wikidata
+from openlibrary.core import db, wikidata
 
 EXAMPLE_WIKIDATA_DICT = {
     "id": "Q42",
@@ -230,3 +232,47 @@ def test_get_image_urls() -> None:
     # Test with P18 but malformed statement
     entity.statements = {"P18": [{"invalid_key": "test"}]}
     assert entity.get_image_urls() == []
+
+
+WIKIDATA_DDL = """
+CREATE TABLE wikidata (
+    id text not null primary key,
+    data json,
+    updated timestamp without time zone default CURRENT_TIMESTAMP
+);
+"""
+
+
+class TestAddToCache:
+    @classmethod
+    def setup_class(cls):
+        web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
+        db.get_db().query(WIKIDATA_DDL)
+
+    def teardown_method(self):
+        db.get_db().query("delete from wikidata")
+
+    def test_add_twice_keeps_one_row_with_latest_values(self):
+        first = createWikidataEntity("Q42")
+        first._updated = datetime(2030, 1, 1)
+        wikidata._add_to_cache(first)
+
+        rows = list(db.get_db().select("wikidata"))
+        assert len(rows) == 1
+        assert str(rows[0].updated).startswith("2030-01-01")
+
+        second = createWikidataEntity("Q42")
+        second.labels = {"en": "Douglas Adams"}
+        second._updated = datetime(2030, 2, 2)
+        wikidata._add_to_cache(second)
+
+        rows = list(db.get_db().select("wikidata"))
+        assert len(rows) == 1
+        assert json.loads(rows[0].data)["labels"] == {"en": "Douglas Adams"}
+        assert str(rows[0].updated).startswith("2030-02-02")
+
+    def test_other_ids_untouched(self):
+        wikidata._add_to_cache(createWikidataEntity("Q1"))
+        wikidata._add_to_cache(createWikidataEntity("Q2"))
+        wikidata._add_to_cache(createWikidataEntity("Q1"))
+        assert sorted(r.id for r in db.get_db().select("wikidata")) == ["Q1", "Q2"]

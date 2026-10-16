@@ -196,13 +196,13 @@ class Acquisition(web.storage, CommonExtras):
             result = list(
                 db.query(
                     """
-                    INSERT INTO acquisitions (work_id, edition_id, provider_name, local_id, data)
-                    VALUES ($work_id, $edition_id, $provider_name, $local_id, $data)
+                    INSERT INTO acquisitions (work_id, edition_id, provider_name, local_id, data, updated)
+                    VALUES ($work_id, $edition_id, $provider_name, $local_id, $data, $updated)
                     ON CONFLICT (local_id, provider_name) DO UPDATE SET
                         work_id = EXCLUDED.work_id,
                         edition_id = EXCLUDED.edition_id,
                         data = EXCLUDED.data,
-                        updated = $updated
+                        updated = EXCLUDED.updated
                     RETURNING *
                     """,
                     vars={
