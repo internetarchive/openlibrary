@@ -1,7 +1,5 @@
 import logging
 
-import web
-
 from . import db
 
 logger = logging.getLogger(__name__)
@@ -27,21 +25,16 @@ class Likes:
         if value not in (1, -1):
             raise ValueError("value must be 1 (like) or -1 (dislike)")
         oldb = db.get_db()
-        if not cls.patron_liked(username, key):
-            oldb.insert(
-                cls.TABLENAME,
-                username=username,
-                key=key,
-                value=value,
-            )
-        else:
-            oldb.update(
-                cls.TABLENAME,
-                where="username=$username AND key=$key",
-                vars={"username": username, "key": key},
-                value=value,
-                modified=web.db.SQLLiteral("CURRENT_TIMESTAMP"),
-            )
+        oldb.query(
+            f"""
+            INSERT INTO {cls.TABLENAME} (username, key, value, modified)
+            VALUES ($username, $key, $value, CURRENT_TIMESTAMP)
+            ON CONFLICT (username, key) DO UPDATE SET
+                value = EXCLUDED.value,
+                modified = EXCLUDED.modified
+            """,
+            vars={"username": username, "key": key, "value": value},
+        )
 
     @classmethod
     def unlike(cls, username: str, key: str) -> None:

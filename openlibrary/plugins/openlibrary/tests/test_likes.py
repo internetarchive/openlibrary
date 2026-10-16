@@ -1,5 +1,6 @@
 import json
 import re
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,6 +13,26 @@ from openlibrary.plugins.upstream.likes import get_likes_record, get_patron_like
 class FakeUser:
     def __init__(self, key):
         self.key = f"/people/{key}"
+
+
+@pytest.fixture
+def likes_db(monkeypatch):
+    oldb = web.database(dbn="sqlite", db=":memory:")
+    oldb.query(
+        """
+        CREATE TABLE likes (
+            username TEXT NOT NULL,
+            key TEXT NOT NULL,
+            value SMALLINT NOT NULL DEFAULT 1 CHECK (value IN (1, -1)),
+            created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (username, key)
+        )
+        """
+    )
+    monkeypatch.setattr("openlibrary.core.likes.db.get_db", lambda: oldb)
+    yield oldb
+    oldb.ctx.db.close()
 
 
 def test_like():
@@ -38,24 +59,78 @@ def test_unlike():
         mock_unlike.assert_called_once_with("test_user", "/works/OL1W")
 
 
-def test_double_like():
+@pytest.mark.parametrize(("first_value", "second_value"), [(1, 1), (1, -1), (-1, 1), (-1, -1)])
+def test_double_like(likes_db, first_value, second_value):
+    key = "/people/user1/lists/OL1L"
+    assert Likes.like("user1", key, first_value) is None
+    first = next(iter(likes_db.select("likes")))
+    assert first.value == first_value
+    assert first.created == first.modified
+
+    original_time = datetime(2000, 1, 1)
+    likes_db.update("likes", where="username=$username AND key=$key", vars={"username": "user1", "key": key}, created=original_time, modified=original_time)
+
+    assert Likes.like("user1", key, second_value) is None
+
+    rows = list(likes_db.select("likes"))
+    assert len(rows) == 1
+    assert rows[0].username == "user1"
+    assert rows[0].key == key
+    assert rows[0].value == second_value
+    assert rows[0].created == original_time
+    assert rows[0].modified > original_time
+
+
+def test_like_writes_once_without_lookup():
     with (
         patch("openlibrary.core.likes.db.get_db") as mock_get_db,
-        patch.object(Likes, "patron_liked", side_effect=[False, True]),
+        patch.object(Likes, "patron_liked") as lookup,
     ):
-        oldb = MagicMock()
-        mock_get_db.return_value = oldb
+        Likes.like("user1", "/people/user1/lists/OL1L")
 
-        Likes.like("user1", "/works/OL1W", 1)
-        Likes.like("user1", "/works/OL1W", 1)
-
-        assert oldb.insert.call_count == 1
-        assert oldb.update.call_count == 1
+        lookup.assert_not_called()
+        mock_get_db.return_value.query.assert_called_once()
+        mock_get_db.return_value.insert.assert_not_called()
+        mock_get_db.return_value.update.assert_not_called()
 
 
-def test_like_invalid_value():
-    with pytest.raises(ValueError, match=re.escape("value must be 1 (like) or -1 (dislike)")):
-        Likes.like("user1", "/works/OL1W", 99)
+@pytest.mark.parametrize("value", [0, 2, -2, 99])
+def test_like_invalid_value(value):
+    with (
+        patch("openlibrary.core.likes.db.get_db") as mock_get_db,
+        pytest.raises(ValueError, match=re.escape("value must be 1 (like) or -1 (dislike)")),
+    ):
+        Likes.like("user1", "/works/OL1W", value)
+    mock_get_db.assert_not_called()
+
+
+def test_like_leaves_other_users_and_keys_untouched(likes_db):
+    key = "/people/user1/lists/OL1L"
+    other_key = "/people/user1/lists/OL2L"
+    Likes.like("user1", key)
+    Likes.like("user2", key)
+    Likes.like("user1", other_key)
+    before = {(row.username, row.key): dict(row) for row in likes_db.select("likes")}
+
+    Likes.dislike("user1", key)
+
+    after = {(row.username, row.key): dict(row) for row in likes_db.select("likes")}
+    assert len(after) == 3
+    assert after["user1", key]["value"] == -1
+    assert after["user2", key] == before["user2", key]
+    assert after["user1", other_key] == before["user1", other_key]
+
+
+def test_like_endpoint_saves_latest_value(likes_db):
+    key = "/people/user1/lists/OL1L"
+    with patch("web.ctx") as mock_ctx:
+        mock_ctx.site.get_user.return_value = FakeUser("user1")
+        for value in [1, 1, -1, 1]:
+            with patch("web.data", return_value=json.dumps({"key": key, "value": value}).encode()):
+                assert json.loads(likes_control().POST().rawtext) == {"key": key, "value": value}
+            rows = list(likes_db.select("likes"))
+            assert len(rows) == 1
+            assert (rows[0].username, rows[0].key, rows[0].value) == ("user1", key, value)
 
 
 def test_like_unauthenticated():
