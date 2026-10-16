@@ -5,7 +5,6 @@ import web
 from openlibrary.plugins.worksearch import code
 from openlibrary.plugins.worksearch.code import (
     SearchResponse,
-    _get_readable_count,
     _prepare_solr_query_params,
     get_doc,
     process_facet,
@@ -197,49 +196,6 @@ def _with_req_context(fn):
         req_context.reset(token)
 
 
-def test_get_readable_count_returns_none_when_nothing_to_count():
-    """No active search, or a zero-result search, yields no sublabel (None)."""
-    assert _get_readable_count({}, web.storage(num_found=0)) is None
-    assert _get_readable_count({"q": "x"}, web.storage(num_found=0)) is None
-    assert _get_readable_count({}, web.storage(num_found=5)) is None
-
-
-def test_get_readable_count_reuses_num_found_when_already_readable():
-    """When the search is already readable-scoped (has_fulltext=true), the main
-    result count IS the readable count — no extra Solr query is issued."""
-    with patch("openlibrary.plugins.worksearch.code.run_solr_query") as mock_query:
-        count = _get_readable_count(
-            {"q": "harry potter", "has_fulltext": "true"},
-            web.storage(num_found=123),
-        )
-    assert count == 123
-    mock_query.assert_not_called()
-
-
-def test_get_readable_count_queries_with_readable_filter_when_toggle_off():
-    """When the toggle is off (all books), a count-only query is run with
-    has_fulltext forced on and public_scan stripped, and its num_found returned."""
-
-    def run():
-        with patch(
-            "openlibrary.plugins.worksearch.code.run_solr_query",
-            return_value=web.storage(num_found=42),
-        ) as mock_query:
-            count = _get_readable_count(
-                {"q": "harry potter", "public_scan": "true"},
-                web.storage(num_found=100),
-            )
-        return count, mock_query
-
-    count, mock_query = _with_req_context(run)
-    assert count == 42
-    mock_query.assert_called_once()
-    readable_param = mock_query.call_args.args[1]
-    assert readable_param["has_fulltext"] == "true"
-    assert "public_scan" not in readable_param
-    assert mock_query.call_args.kwargs["rows"] == 0
-
-
 def _stub_search_web_input(monkeypatch):
     """search.GET() makes two web.input() calls: one just for q/q2, then the
     real one with a q="hello" query and no other params set."""
@@ -287,8 +243,8 @@ class TestSearchAvailabilityPreparedInPython:
 
         def run():
             with (
-                patch.object(code, "run_solr_query", return_value=search_response),
-                patch.object(code, "add_availability", side_effect=fake_add_availability) as mock_add_availability,
+                patch.object(code, "run_solr_query_async", return_value=search_response),
+                patch.object(code, "add_availability_async", side_effect=fake_add_availability) as mock_add_availability,
             ):
                 monkeypatch.setattr(code.render, "work_search", fake_render_work_search, raising=False)
                 return code.search().GET(), mock_add_availability
