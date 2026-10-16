@@ -36,7 +36,7 @@
    account — and it does nothing until the drawer's JS loads. Only Sign Up shows
    here; .hide-me keeps Log In for >=768px, as before. Sign Up alone is ~77px and
    stays on the header's first row, where showing both wraps the hamburger onto
-   a second one. */
+   a second one. Phone spacing below keeps the row on one line down to 360px. */
 .header-bar .auth-component {
   display: block;
   margin-right: var(--spacing-inline-sm);
@@ -348,7 +348,7 @@
 
 @media only screen and (max-width: 25em) {
   .search-component {
-    margin-right: 15px;
+    margin-inline-end: var(--spacing-inline-sm);
   }
 }
 
@@ -440,6 +440,13 @@
   /* <ol-button> declares no weight, so it renders at the page's; a native
      <button> would otherwise take the UA's. */
   font-weight: normal;
+}
+
+/* --width-breakpoint-mobile */
+@media (max-width: 449px) {
+  .header-bar .auth-component .ol-button-static {
+    padding-inline: var(--spacing-md);
+  }
 }
 
 /* Leading glyphs only echo the label beside them, so they sit on the
@@ -631,7 +638,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
+  /* Square, like the barcode button beside it. */
+  min-width: var(--header-control-height);
   min-height: var(--header-control-height);
   padding: 0 var(--spacing-inset-sm);
   background: transparent;

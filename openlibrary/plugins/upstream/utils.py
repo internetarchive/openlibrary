@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import functools
 import itertools
 import json
@@ -1361,7 +1361,7 @@ def _get_blog_feeds():
         stats.end()
 
     def parse_item(item):
-        pubdate = datetime.datetime.strptime(item.find("pubDate").text, "%a, %d %b %Y %H:%M:%S +0000").isoformat()
+        pubdate = dt.datetime.strptime(item.find("pubDate").text, "%a, %d %b %Y %H:%M:%S +0000").isoformat()
         return {
             "title": item.find("title").text,
             "link": item.find("link").text,
@@ -1473,7 +1473,7 @@ def render_once(key: str) -> bool:
 
 @public
 def today():
-    return datetime.datetime.today()
+    return dt.datetime.today()
 
 
 class HTMLTagRemover(HTMLParser):

@@ -53,8 +53,10 @@ This **bypasses** the normal `site.get().login()` call (which requires OL creden
 return {
     "authenticated": True,
     "special_access": has_special_access,  # Print Disability
-    "ia_email": ..., "ol_email": ...,
-    "ia_username": ..., "ol_username": ...,
+    "ia_email": ...,
+    "ol_email": ...,
+    "ia_username": ...,
+    "ol_username": ...,
     "link": ol_account.itemname,
     "s3_keys": {"access": ..., "secret": ...},
 }

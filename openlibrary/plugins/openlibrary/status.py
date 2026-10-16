@@ -1,6 +1,6 @@
 import asyncio
 import contextlib
-import datetime
+import datetime as dt
 import json
 import re
 import socket
@@ -177,7 +177,7 @@ async def deploy_testing_status() -> dict[str, bool | str]:
     if outcome == "failed":
         return {"ok": False, "error": "deploy_failed"}
     user = get_current_user()
-    state.last_deploy_at = datetime.datetime.now(datetime.UTC).isoformat()
+    state.last_deploy_at = dt.datetime.now(dt.UTC).isoformat()
     state.deployed_by = user.key.split("/")[-1] if user else ""
     # Record only active PRs, matching the list sent to Jenkins. This lets a
     # later removal tell which PRs actually reached the testing environment.
@@ -201,10 +201,10 @@ def _is_deploying(state: TestingState) -> bool:
     if not state.deploy_started_at:
         return False
     with contextlib.suppress(ValueError):
-        started = datetime.datetime.fromisoformat(state.deploy_started_at)
+        started = dt.datetime.fromisoformat(state.deploy_started_at)
         if started.tzinfo is None:
-            started = started.replace(tzinfo=datetime.UTC)
-        return (datetime.datetime.now(datetime.UTC) - started).total_seconds() < _DEPLOY_WINDOW
+            started = started.replace(tzinfo=dt.UTC)
+        return (dt.datetime.now(dt.UTC) - started).total_seconds() < _DEPLOY_WINDOW
     return False
 
 
@@ -385,7 +385,7 @@ class TestingPR(BaseModel):
             pr=info.pr,
             commit=info.head_sha,
             title=info.title,
-            added_at=datetime.datetime.now(datetime.UTC).isoformat(),
+            added_at=dt.datetime.now(dt.UTC).isoformat(),
             added_by=username,
             author=info.author,
             author_avatar=info.author_avatar,
@@ -796,7 +796,7 @@ def setup():
         "Software version": get_software_version(),
         "Python version": sys.version.split()[0],
         "Host": host,
-        "Start time": datetime.datetime.now(datetime.UTC),
+        "Start time": dt.datetime.now(dt.UTC),
     }
 
     # Host is e.g. ol-web4.blah.archive.org ; we just want the first subdomain

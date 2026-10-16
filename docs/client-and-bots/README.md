@@ -56,7 +56,9 @@ Define two classes in `openlibrary-bots/sources/<slug>/`:
 class MyRecord(DataProviderRecord):
     title: str
     authors: list[dict]
+
     def to_ol_import(self) -> OLImportRecord | None: ...
+
 
 # sources/<slug>/provider.py
 class MyProvider(JSONLProvider):

@@ -5,6 +5,7 @@
  * the browser session so they drop out of the list too.
  */
 
+import { initFeed } from './contribute-feed';
 import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
 
 const SKIPPED_KEY = 'ol-contribute-skipped';
@@ -158,6 +159,7 @@ export function init() {
     document.querySelectorAll('[data-contribute-list]').forEach(root => {
         initTaskList(root);
     });
+    document.querySelectorAll('[data-feed]').forEach(initFeed);
     document.querySelectorAll('form[data-task-form]').forEach(form => {
         initSkipButton(form);
         initSiblingSuggestions(form);
