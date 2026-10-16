@@ -543,7 +543,7 @@ class Work(Thing):
         if not username:
             return None
         work_id = extract_numeric_id_from_olid(self.key)
-        rating = Ratings.get_users_rating_for_work(username, work_id)
+        rating = Ratings.get_users_rating_for_work_sync(username, work_id)
         return rating
 
     def get_patrons_who_also_read(self):
@@ -562,14 +562,14 @@ class Work(Thing):
             return None
         work_id = extract_numeric_id_from_olid(self.key)
         edition_id = extract_numeric_id_from_olid(edition_olid) if edition_olid else -1
-        return Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)
+        return Booknotes.get_patron_booknote_sync(username, work_id, edition_id=edition_id)
 
     def has_book_note(self, username, edition_olid):
         if not username:
             return False
         work_id = extract_numeric_id_from_olid(self.key)
         edition_id = extract_numeric_id_from_olid(edition_olid)
-        return len(Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)) > 0
+        return Booknotes.get_patron_booknote_sync(username, work_id, edition_id=edition_id) is not None
 
     def get_users_observations(self, username):
         if not username:
@@ -605,7 +605,7 @@ class Work(Thing):
         if not self.key:  # a dummy work
             return {"avg_rating": 0, "num_ratings": 0}
         work_id = extract_numeric_id_from_olid(self.key)
-        rating_stats = Ratings.get_rating_stats(work_id)
+        rating_stats = Ratings.get_rating_stats_sync(work_id)
         if rating_stats and rating_stats["num_ratings"] > 0:
             return {
                 "avg_rating": round(rating_stats["avg_rating"], 2),
@@ -742,8 +742,8 @@ class Work(Thing):
 
             # count reading log entries
             r["occurrences"]["readinglog"] = len(Bookshelves.get_works_shelves(olid))
-            r["occurrences"]["ratings"] = len(Ratings.get_all_works_ratings(olid))
-            r["occurrences"]["booknotes"] = len(Booknotes.get_booknotes_for_work(olid))
+            r["occurrences"]["ratings"] = len(Ratings.get_all_works_ratings_sync(olid))
+            r["occurrences"]["booknotes"] = len(Booknotes.get_booknotes_for_work_sync(olid))
             r["occurrences"]["bestbooks"] = Bestbook.get_count(work_id=olid)
             r["occurrences"]["observations"] = len(Observations.get_observations_for_work(olid))
 
@@ -1338,10 +1338,9 @@ class LoggedBooksData:
         The intent of this is so that there is no need to query ratings from the
         template, as the docs and ratings are together when needed.
         """
-        for doc in self.docs:
-            work_id = extract_numeric_id_from_olid(doc.key)
-            rating = Ratings.get_users_rating_for_work(self.username, work_id)
-            self.ratings.append(rating or 0)
+        work_ids = [int(extract_numeric_id_from_olid(doc.key)) for doc in self.docs]
+        ratings = Ratings.get_users_ratings_of_works_sync(self.username, work_ids)
+        self.ratings.extend(ratings.get(work_id, 0) for work_id in work_ids)
 
 
 def register_models():

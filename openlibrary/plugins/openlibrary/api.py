@@ -49,42 +49,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ratings:
-    @staticmethod
-    def get_ratings_summary(work_id):
-        from openlibrary.core.ratings import Ratings
-
-        if stats := Ratings.get_work_ratings_summary(work_id):
-            return {
-                "summary": {
-                    "average": stats["ratings_average"],
-                    "count": stats["ratings_count"],
-                    "sortable": stats["ratings_sortable"],
-                },
-                "counts": {
-                    "1": stats["ratings_count_1"],
-                    "2": stats["ratings_count_2"],
-                    "3": stats["ratings_count_3"],
-                    "4": stats["ratings_count_4"],
-                    "5": stats["ratings_count_5"],
-                },
-            }
-        else:
-            return {
-                "summary": {
-                    "average": None,
-                    "count": 0,
-                },
-                "counts": {
-                    "1": 0,
-                    "2": 0,
-                    "3": 0,
-                    "4": 0,
-                    "5": 0,
-                },
-            }
-
-
 @deprecated("migrated to fastapi")
 class booknotes(delegate.page):
     path = r"/works/OL(\d+)W/notes"
@@ -114,10 +78,10 @@ class booknotes(delegate.page):
             return delegate.RawText(json.dumps({status: msg}), content_type="application/json")
 
         if i.notes is None:
-            Booknotes.remove(username, work_id, edition_id=edition_id)
+            Booknotes.remove_sync(username, work_id, edition_id=edition_id)
             return response("removed note")
 
-        Booknotes.add(username=username, work_id=work_id, notes=i.notes, edition_id=edition_id)
+        Booknotes.add_sync(username=username, work_id=work_id, notes=i.notes, edition_id=edition_id)
 
         if i.redir:
             raise web.seeother("/works/%s" % work_id)

@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import itertools
 import logging
 import re
@@ -255,9 +255,9 @@ def datetimestr_to_int(datestr):
         try:
             t = h.parse_datetime(datestr)
         except TypeError, ValueError:
-            t = datetime.datetime.now()
+            t = dt.datetime.now()
     else:
-        t = datetime.datetime.now()
+        t = dt.datetime.now()
 
     return int(time.mktime(t.timetuple()))
 

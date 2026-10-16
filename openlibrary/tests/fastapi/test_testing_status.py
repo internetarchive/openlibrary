@@ -1,7 +1,7 @@
 """Tests for the testing-environment status API and its underlying helper."""
 
 import asyncio
-import datetime
+import datetime as dt
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -605,7 +605,7 @@ def test_payload_includes_dropped_prs_as_readonly_rows():
     [(60, True), (status_module._DEPLOY_WINDOW + 60, False)],
 )
 def test_is_deploying_is_a_window_not_a_result(age_seconds, expected):
-    started = datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=age_seconds)
+    started = dt.datetime.now(dt.UTC) - dt.timedelta(seconds=age_seconds)
     state = _make_state()
     state.deploy_started_at = started.isoformat()
 

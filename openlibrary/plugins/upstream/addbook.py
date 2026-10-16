@@ -1,7 +1,7 @@
 """Handlers for adding and editing books."""
 
 import csv
-import datetime
+import datetime as dt
 import io
 import logging
 import re
@@ -47,7 +47,7 @@ def get_recaptcha():
             return True
 
         create_dt = account.creation_time()
-        now_dt = datetime.datetime.utcnow()
+        now_dt = dt.datetime.utcnow()
         delta = now_dt - create_dt
         return delta.days > 30
 
