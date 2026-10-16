@@ -153,3 +153,32 @@ class TestBookshelvesEventsReadingGoalIntegration:
     async def test_count_distinct_work_ids_zero_when_no_events(self, pg_db):
         count = await BookshelvesEvents.count_distinct_work_ids_by_user_type_and_year("nobody", BookshelfEvent.FINISH, 2026)
         assert count == 0
+
+
+@pytest.mark.integration
+class TestBookshelvesEventsLatestEventDatesIntegration:
+    @pytest.mark.asyncio
+    async def test_latest_event_date_per_work_only_matching_rows(self, pg_db):
+        """``DISTINCT ON`` + ``= ANY`` against real postgres: latest FINISH per work, filtered by user and type."""
+
+        async def add_event(username: str, work_id: int, event_type: int, event_date: str) -> int:
+            row = await async_db.fetch_one(
+                f"INSERT INTO {BookshelvesEvents.TABLENAME} (username, work_id, edition_id, event_type, event_date) "
+                "VALUES (%(username)s, %(work_id)s, 1, %(event_type)s, %(event_date)s) RETURNING id",
+                {"username": username, "work_id": work_id, "event_type": event_type, "event_date": event_date},
+            )
+            return row["id"]
+
+        old_finish = await add_event("alice", 1, BookshelfEvent.FINISH, "2025-01-01")
+        latest_finish = await add_event("alice", 1, BookshelfEvent.FINISH, "2026-08-22")
+        work3_finish = await add_event("alice", 3, BookshelfEvent.FINISH, "2025")
+        # Right user but wrong event type; right type but wrong user. Neither may appear.
+        await add_event("alice", 2, BookshelfEvent.START, "2026-12-31")
+        await add_event("bob", 1, BookshelfEvent.FINISH, "2027-01-01")
+
+        result = await BookshelvesEvents.get_latest_event_dates("alice", [1, 2, 3], BookshelfEvent.FINISH)
+
+        assert set(result) == {1, 3}
+        assert result[1] == {"id": latest_finish, "event_date": "2026-08-22"}
+        assert result[1]["id"] != old_finish
+        assert result[3] == {"id": work3_finish, "event_date": "2025"}
