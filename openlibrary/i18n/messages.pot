@@ -654,6 +654,30 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
+#: snippets.html
+msgid "Snippets"
+msgstr ""
+
+#: snippets.html
+msgid "Recently shared highlights from books on the Internet Archive."
+msgstr ""
+
+#: snippets.html
+msgid "No snippets have been shared recently."
+msgstr ""
+
+#: snippets.html
+msgid "Sorry, snippets could not be loaded right now."
+msgstr ""
+
+#: snippets.html
+msgid "A highlighted snippet from a book"
+msgstr ""
+
+#: snippets.html
+msgid "Loading snippets…"
+msgstr ""
+
 #: status.html
 msgid "Open Library server status"
 msgstr ""
