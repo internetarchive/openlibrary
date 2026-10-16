@@ -128,15 +128,6 @@ div.editionAbout p.featured-count {
 }
 /* stylelint-enable selector-max-specificity */
 
-.workFooter ul.listLists {
-  display: flex;
-}
-
-.workFooter ul.listLists li {
-  width: 33%;
-  border: 0;
-}
-
 .edition-notes,
 .book-description {
   font-size: var(--font-size-label-medium);

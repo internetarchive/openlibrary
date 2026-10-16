@@ -32,4 +32,5 @@ export { OlDrawer } from './OlDrawer.js';
 export { OlBookCover } from './OlBookCover.js';
 export { OlShelfActions } from './OlShelfActions.js';
 export { OlShelfButton } from './OlShelfButton.js';
+export { OlBookLists } from './OlBookLists.js';
 export { OlTabs } from './OlTabs.js';
