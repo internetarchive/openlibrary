@@ -24,7 +24,7 @@ def get_reading_state(username: str, work_ids: list[int]) -> dict[int, ReadingSt
     if not work_ids:
         return {}
     shelves = {row.work_id: row.bookshelf_id for row in Bookshelves.get_users_read_status_of_works(username, work_ids)}
-    ratings = Ratings.get_users_ratings_of_works(username, work_ids)
+    ratings = Ratings.get_users_ratings_of_works_sync(username, work_ids)
     finishes = BookshelvesEvents.get_latest_event_dates(username, work_ids, BookshelfEvent.FINISH)
     return {
         work_id: {

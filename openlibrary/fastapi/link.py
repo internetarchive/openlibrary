@@ -47,7 +47,7 @@ def verify_ia_sync_msg(
 
 IaSyncMsgDep = Annotated[str, Depends(verify_ia_sync_msg)]
 
-DEFAULT_UNLINK_COMMENT = "Unlink OCAID: Item no longer available"
+DEFAULT_UNLINK_COMMENT = "Unlinked OCAID"
 
 
 @router.post("/api/link")

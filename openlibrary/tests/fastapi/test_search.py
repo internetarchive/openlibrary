@@ -511,18 +511,31 @@ class TestSearchInsideEndpoint:
     def test_defaults(self, fastapi_client, mock_fulltext_search_async, languages):
         response = fastapi_client.get("/search/inside.json?q=hello")
         assert response.status_code == 200
-        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=20, js=True, facets=True, readable=False, language=None)
+        mock_fulltext_search_async.assert_called_once_with(
+            "hello", page=1, offset=None, limit=20, js=True, facets=True, readable=False, phrase=True, language=None
+        )
 
     def test_facets_can_be_disabled(self, fastapi_client, mock_fulltext_search_async, languages):
         response = fastapi_client.get("/search/inside.json?q=hello&facets=false&limit=3")
         assert response.status_code == 200
-        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=3, js=True, facets=False, readable=False, language=None)
+        mock_fulltext_search_async.assert_called_once_with(
+            "hello", page=1, offset=None, limit=3, js=True, facets=False, readable=False, phrase=True, language=None
+        )
 
     def test_filters_reach_the_search_not_the_query(self, fastapi_client, mock_fulltext_search_async, languages):
         """Language goes out as the FTS name ("German"), not the URL's MARC code."""
         response = fastapi_client.get("/search/inside.json?q=hello&readable=true&language=ger")
         assert response.status_code == 200
-        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=20, js=True, facets=True, readable=True, language="German")
+        mock_fulltext_search_async.assert_called_once_with(
+            "hello", page=1, offset=None, limit=20, js=True, facets=True, readable=True, phrase=True, language="German"
+        )
+
+    def test_unphrased_query_reaches_the_search(self, fastapi_client, mock_fulltext_search_async, languages):
+        response = fastapi_client.get("/search/inside.json?q=argentina+brazil&phrase=false")
+        assert response.status_code == 200
+        mock_fulltext_search_async.assert_called_once_with(
+            "argentina brazil", page=1, offset=None, limit=20, js=True, facets=True, readable=False, phrase=False, language=None
+        )
 
 
 class TestEditionSearchEndpoint:

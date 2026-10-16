@@ -1,7 +1,7 @@
 """Loan Stats"""
 
 import contextlib
-import datetime
+import datetime as dt
 from collections.abc import Iterable
 
 import web
@@ -42,9 +42,9 @@ def reading_log_summary():
 
     stats = Bookshelves.summary()
     stats.update(YearlyReadingGoals.summary_sync())
-    stats.update(Ratings.summary())
+    stats.update(Ratings.summary_sync())
     stats.update(Observations.summary())
-    stats.update(Booknotes.summary())
+    stats.update(Booknotes.summary_sync())
     stats.update(PubSub.summary())
     return stats
 
@@ -68,9 +68,9 @@ def _cached_get_trending_now(limit: int = TRENDING_NOW_LIMIT, page: int = 1) -> 
     result = []
     for row in rows:
         d = dict(row)
-        if isinstance(d.get("created"), datetime.date):
+        if isinstance(d.get("created"), dt.date):
             d["created"] = d["created"].isoformat()
-        if isinstance(d.get("updated"), datetime.date):
+        if isinstance(d.get("updated"), dt.date):
             d["updated"] = d["updated"].isoformat()
         result.append(d)
     return result
@@ -83,10 +83,10 @@ def cached_get_trending_now(limit: int = TRENDING_NOW_LIMIT, page: int = 1) -> l
         d = web.storage(item)
         if isinstance(d.get("created"), str):
             with contextlib.suppress(ValueError):
-                d["created"] = datetime.datetime.fromisoformat(d["created"])
+                d["created"] = dt.datetime.fromisoformat(d["created"])
         if isinstance(d.get("updated"), str):
             with contextlib.suppress(ValueError):
-                d["updated"] = datetime.datetime.fromisoformat(d["updated"])
+                d["updated"] = dt.datetime.fromisoformat(d["updated"])
         result.append(d)
     return result
 
@@ -149,7 +149,7 @@ def reading_log_leaderboard(limit: int):
             "most_read": most_read,
             "most_wanted_all": most_wanted_all,
             "most_wanted_month": most_wanted_month,
-            "most_rated_all": Ratings.most_rated_books(),
+            "most_rated_all": Ratings.most_rated_books_sync(),
         }
     }
 

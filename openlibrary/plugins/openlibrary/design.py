@@ -374,6 +374,14 @@ COMPONENTS = (
         avoid="Only for prose. Don't hide controls or lists behind it.",
     ),
     Component(
+        "tabs",
+        "Tabs",
+        "design/components/tabs.html.jinja",
+        group="Content",
+        tag="ol-tabs",
+        avoid="To pick a value or filter in place, use Segmented Control; tabs switch between sections of content.",
+    ),
+    Component(
         "markdown-editor",
         "Markdown Editor",
         "design/components/markdown-editor.html.jinja",

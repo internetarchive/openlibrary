@@ -68,8 +68,8 @@
 .nav-bar-wrapper.sticky {
   position: sticky;
   top: 50px;
-  margin-left: -20px;
-  margin-right: -20px;
+  /* Bleeds to the edge of #contentBody. */
+  margin-inline: calc(-1 * var(--spacing-page-gutter));
 }
 
 .nav-bar-wrapper .nav-arrow-right {

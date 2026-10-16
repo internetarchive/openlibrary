@@ -4,7 +4,7 @@ Covers the batch-fetch of works missed by Solr (internetarchive/openlibrary#1243
 which replaced per-work web.ctx.site.get() calls with a single get_many() lookup.
 """
 
-import datetime
+import datetime as dt
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -128,7 +128,7 @@ class TestReadinglogStats:
 
 class TestTrendingNowCaching:
     def test_cached_get_trending_now_hits_cache(self, monkeypatch):
-        now = datetime.datetime.now()
+        now = dt.datetime.now()
         fake_books = [
             web.storage(work_id=101, bookshelf_id=1, created=now, updated=now),
             web.storage(work_id=102, bookshelf_id=2, created=now, updated=now),
@@ -140,14 +140,14 @@ class TestTrendingNowCaching:
         res1 = loanstats.cached_get_trending_now(limit=99, page=99)
         assert len(res1) == 2
         assert res1[0]["work_id"] == 101
-        assert isinstance(res1[0]["created"], datetime.datetime)
+        assert isinstance(res1[0]["created"], dt.datetime)
         assert mock_get_recent.call_count == 1
 
         # Second call with the same parameters must be served from cache
         res2 = loanstats.cached_get_trending_now(limit=99, page=99)
         assert len(res2) == 2
         assert res2[0]["work_id"] == 101
-        assert isinstance(res2[0]["created"], datetime.datetime)
+        assert isinstance(res2[0]["created"], dt.datetime)
         assert mock_get_recent.call_count == 1
 
         # In-place mutations on returned items must not poison the cache
