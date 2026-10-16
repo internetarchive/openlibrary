@@ -29,11 +29,13 @@ table.services th {
   text-transform: uppercase;
   color: var(--color-text);
 }
+
 table.services td {
   padding: var(--spacing-inset-xs);
   border-right: 1px solid var(--white);
   border-bottom: 1px solid var(--white);
 }
+
 table.services td.node {
   vertical-align: top;
 }
@@ -45,6 +47,7 @@ table.services td.node {
   font-family: var(--font-family-body);
   margin: 0 0 20px;
 }
+
 #adminHistory th {
   background-color: var(--lightest-grey);
   border-bottom: 1px solid var(--admin-table-border);
@@ -53,11 +56,13 @@ table.services td.node {
   font-weight: 700;
   padding: var(--spacing-inset-sm);
 }
+
 #adminHistory td {
   border-bottom: 1px solid var(--admin-table-border);
   padding: var(--spacing-inset-sm);
   font-size: 0.75em;
 }
+
 #adminHistory td.number {
   text-align: right;
 }
@@ -92,42 +97,36 @@ div#prolific span {
 div.measurements .caption {
   padding-top: 20px;
 }
+
 div.measurements .measure {
   font-size: 0.875em;
 }
+
 div.measurements .large {
   font-size: 1.125em !important;
 }
 
-body {
-  /* desaturate(@admin-table-border, 100): hsl(48, 26%, 73%) fully desaturated */
-  background-color: hsl(0, 0%, 73%);
-}
-/* stylelint-disable selector-max-specificity */
-div#background {
-  width: 100%;
-  /* desaturate(@beige, 100): hsl(48, 33%, 83%) fully desaturated */
-  background-color: hsl(0, 0%, 83%);
-  padding-bottom: var(--spacing-inset-md);
-}
-/* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
 div#content {
   font-family: var(--font-family-body);
 }
+
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
 div#bottom {
   background-color: transparent;
 }
+
 /* stylelint-enable selector-max-specificity */
 div.siteSearch.darker {
   background-color: var(--mid-grey);
 }
+
 /* stylelint-disable selector-max-specificity */
 div#contentHead {
   padding-bottom: 30px;
 }
+
 /* stylelint-enable selector-max-specificity */
 
 /* openlibrary/templates/admin/index.html: fills .chartDisplay */
@@ -144,6 +143,7 @@ div.sparkDisplay {
 
 /* @width-breakpoint-tablet: 768px */
 @media only screen and (min-width: 768px) {
+
   /* openlibrary/admin/templates/admin/index.html */
   div.measurements,
   div.measurements div {
@@ -160,6 +160,7 @@ div.sparkDisplay {
     min-height: 100px;
     padding-right: 20px;
   }
+
   div.contentRight {
     float: left;
     clear: right;

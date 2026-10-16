@@ -69,11 +69,7 @@
 body {
   background-color: var(--color-background);
 }
-/* stylelint-disable selector-max-specificity */
-div#background {
-  width: 100%;
-  background-color: var(--color-background);
-}
+
 /* stylelint-enable selector-max-specificity */
 div.message {
   float: left;
@@ -82,18 +78,22 @@ div.message {
   margin-bottom: var(--spacing-stack-md);
   background: var(--light-yellow);
 }
+
 div.message p {
   font-family: var(--font-family-body);
 }
+
 div.siteSearch {
   -webkit-box-ordinal-group: 4;
   -ms-flex-order: 3;
   order: 3;
 }
+
 div.siteSearch.darker {
   background-color: var(--grey-f3f3f3);
   padding-right: 22px;
 }
+
 /* Stack the search box, filter row, selected-facet chips, and results stats */
 /* with a single gap; the rows carry no vertical margins of their own. */
 .search-controls {
@@ -105,13 +105,12 @@ div.siteSearch.darker {
 
 /* The chips container renders empty (whitespace, then an empty async wrapper) */
 /* when no facets are selected; drop it so it doesn't claim a gap slot. */
-.search-controls
-  .selected-search-facets-container:not(:has(.selected-search-facets)) {
+.search-controls .selected-search-facets-container:not(:has(.selected-search-facets)) {
   display: none;
 }
 
 /* Spacing between the rows is owned by the parent's gap. */
-.search-controls > form {
+.search-controls>form {
   margin-bottom: 0;
 }
 
@@ -159,7 +158,9 @@ div.siteSearch.darker {
 
 /* From tablet up, share the filters' row. margin-left rather than
    space-between so the filters stay packed together. */
-@media only screen and (min-width: 768px) /* @width-breakpoint-tablet */ {
+@media only screen and (min-width: 768px)
+/* @width-breakpoint-tablet */
+  {
   .search-filter-row__tools {
     flex-basis: auto;
     margin-left: auto;
@@ -168,7 +169,9 @@ div.siteSearch.darker {
 
 /* Where the sidebar moves beside the results, reserve its width so the
    right-aligned tools land on the results column's edge, not the page's. */
-@media only screen and (min-width: 960px) /* @width-breakpoint-desktop */ {
+@media only screen and (min-width: 960px)
+/* @width-breakpoint-desktop */
+  {
   .search-filter-row {
     padding-right: var(--search-facets-width);
   }
@@ -181,11 +184,13 @@ div.siteSearch.darker {
   border-radius: 6px;
   padding-left: var(--spacing-inset-md);
 }
+
 /* stylelint-disable selector-max-specificity */
 div#revertLink,
 div#editHistory {
   display: none;
 }
+
 /* stylelint-enable selector-max-specificity */
 
 /* ── Data Transfer Pages (Import/Export) ──────────────────────────── */
@@ -210,7 +215,7 @@ div#editHistory {
   justify-content: space-between;
 }
 
-.data-transfer-card--flex > div:first-child {
+.data-transfer-card--flex>div:first-child {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -351,30 +356,38 @@ th.toggle-all {
 .import-table {
   border: 2px;
 }
+
 .import-table th {
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
 }
+
 .import-table td {
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
 }
+
 .import-table thead th {
   position: sticky;
   top: 0;
   background-color: var(--white);
 }
+
 .import-table tbody {
   width: 100%;
 }
+
 .import-table tbody tr {
   background-color: var(--white);
 }
+
 .my-imports {
   width: 100%;
 }
+
 .import-export {
   display: flex;
   flex-direction: column;
 }
+
 .import-export__section {
   padding: 0 10px;
 }
@@ -435,6 +448,7 @@ textarea.toc-editor {
 }
 
 @media only screen and (max-width: 768px) {
+
   /* --width-breakpoint-tablet */
   table.classifications.identifiers tr {
     display: flex;
