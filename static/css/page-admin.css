@@ -143,7 +143,6 @@ div.sparkDisplay {
 
 /* @width-breakpoint-tablet: 768px */
 @media only screen and (min-width: 768px) {
-
   /* openlibrary/admin/templates/admin/index.html */
   div.measurements,
   div.measurements div {

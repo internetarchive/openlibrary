@@ -105,12 +105,13 @@ div.siteSearch.darker {
 
 /* The chips container renders empty (whitespace, then an empty async wrapper) */
 /* when no facets are selected; drop it so it doesn't claim a gap slot. */
-.search-controls .selected-search-facets-container:not(:has(.selected-search-facets)) {
+.search-controls
+  .selected-search-facets-container:not(:has(.selected-search-facets)) {
   display: none;
 }
 
 /* Spacing between the rows is owned by the parent's gap. */
-.search-controls>form {
+.search-controls > form {
   margin-bottom: 0;
 }
 
@@ -158,9 +159,7 @@ div.siteSearch.darker {
 
 /* From tablet up, share the filters' row. margin-left rather than
    space-between so the filters stay packed together. */
-@media only screen and (min-width: 768px)
-/* @width-breakpoint-tablet */
-  {
+@media only screen and (min-width: 768px) /* @width-breakpoint-tablet */ {
   .search-filter-row__tools {
     flex-basis: auto;
     margin-left: auto;
@@ -169,9 +168,7 @@ div.siteSearch.darker {
 
 /* Where the sidebar moves beside the results, reserve its width so the
    right-aligned tools land on the results column's edge, not the page's. */
-@media only screen and (min-width: 960px)
-/* @width-breakpoint-desktop */
-  {
+@media only screen and (min-width: 960px) /* @width-breakpoint-desktop */ {
   .search-filter-row {
     padding-right: var(--search-facets-width);
   }
@@ -215,7 +212,7 @@ div#editHistory {
   justify-content: space-between;
 }
 
-.data-transfer-card--flex>div:first-child {
+.data-transfer-card--flex > div:first-child {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -448,7 +445,6 @@ textarea.toc-editor {
 }
 
 @media only screen and (max-width: 768px) {
-
   /* --width-breakpoint-tablet */
   table.classifications.identifiers tr {
     display: flex;
