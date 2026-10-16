@@ -18,7 +18,7 @@ Run ``<command> --help`` for each one's options. The harvest logic itself is in
 ``harvest.py``; this module is only the interface to it.
 """
 
-import datetime
+import datetime as dt
 import logging
 import sys
 import time
@@ -285,7 +285,7 @@ def register_command(
     cursor = None
     if since:
         try:
-            cursor = datetime.datetime.strptime(since, "%Y-%m-%d")
+            cursor = dt.datetime.strptime(since, "%Y-%m-%d")
         except ValueError:
             logger.error("--since must be YYYY-MM-DD, got %r", since)
             raise SystemExit(1) from None

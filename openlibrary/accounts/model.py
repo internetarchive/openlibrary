@@ -1,7 +1,7 @@
 """ """
 
 import base64
-import datetime
+import datetime as dt
 import hashlib
 import hmac
 import logging
@@ -236,7 +236,7 @@ def generate_login_code_for_user(username: str) -> str:
         that can be used as a session cookie value
     """
     user_key = "/people/" + username
-    t = datetime.datetime(*time.gmtime()[:6]).isoformat()
+    t = dt.datetime(*time.gmtime()[:6]).isoformat()
     text = f"{user_key},{t}"
     return text + "," + generate_hash(get_secret_key(), text)
 
@@ -252,8 +252,8 @@ def create_link_doc(key: str, username: str, email: str) -> dict:
     """
     code = generate_uuid()
 
-    now = datetime.datetime.now()
-    expires = now + datetime.timedelta(days=14)
+    now = dt.datetime.now()
+    expires = now + dt.timedelta(days=14)
 
     return {
         "_key": key,
@@ -274,13 +274,13 @@ def clear_cookies() -> None:
 
 
 class Link(web.storage):
-    def get_expiration_time(self) -> datetime.datetime:
+    def get_expiration_time(self) -> dt.datetime:
         d = self["expires_on"].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        return dt.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
-    def get_creation_time(self) -> datetime.datetime:
+    def get_creation_time(self) -> dt.datetime:
         d = self["created_on"].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        return dt.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
     def delete(self) -> None:
         del site.get().store[self["_key"]]
@@ -296,7 +296,7 @@ class Account(web.storage):
         return (user and user.get_edit_count()) or 0
 
     @property
-    def registered_on(self) -> datetime.datetime | None:
+    def registered_on(self) -> dt.datetime | None:
         """Returns the registration time."""
         t = self.get("created_on")
         return t and helpers.parse_datetime(t)
@@ -315,9 +315,9 @@ class Account(web.storage):
         else:
             return self.username
 
-    def creation_time(self) -> datetime.datetime:
+    def creation_time(self) -> dt.datetime:
         d = self["created_on"].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        return dt.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
     def get_recentchanges(self, limit: int = 100, offset: int = 0):
         q = {"author": self.get_user().key, "limit": limit, "offset": offset}
@@ -368,7 +368,7 @@ class Account(web.storage):
             code = e.get_data().get("code")
             return code
         else:
-            self["last_login"] = datetime.datetime.utcnow().isoformat()
+            self["last_login"] = dt.datetime.utcnow().isoformat()
             self._save()
             return "ok"
 
@@ -385,7 +385,7 @@ class Account(web.storage):
         site.get().store[self._key] = self
 
     @property
-    def last_login(self) -> datetime.datetime:
+    def last_login(self) -> dt.datetime:
         """Returns the last_login time of the user, if available.
 
         The `last_login` will not be available for accounts, who haven't
@@ -701,7 +701,7 @@ class OpenLibraryAccount(Account):
 
     def update_last_login(self):
         _ol_account = site.get().store.get(self._key)
-        last_login = datetime.datetime.utcnow().isoformat()
+        last_login = dt.datetime.utcnow().isoformat()
         _ol_account["last_login"] = last_login
         site.get().store[self._key] = _ol_account
         self.last_login = last_login

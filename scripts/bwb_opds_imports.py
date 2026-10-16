@@ -36,7 +36,7 @@ Usage (on ``ol-home0`` cron container)::
 from __future__ import annotations
 
 import contextlib
-import datetime
+import datetime as dt
 import io
 import json
 import logging
@@ -67,12 +67,12 @@ ACQUISITION_REL = "http://opds-spec.org/acquisition/buy"
 ISBN_URN_PREFIX = "urn:isbn:"
 DEFAULT_STATE_FILE = "/openlibrary/data/bwb_opds_last_run.txt"
 DEFAULT_PRICES_OUT = "/openlibrary/data/bwb_prices.jsonl"
-EPOCH = datetime.datetime(1970, 1, 1, tzinfo=datetime.UTC)
+EPOCH = dt.datetime(1970, 1, 1, tzinfo=dt.UTC)
 REQUEST_TIMEOUT = 60
 PAGE_SLEEP_SECONDS = 1.0
 
 
-def read_state(path: str) -> datetime.datetime:
+def read_state(path: str) -> dt.datetime:
     """Return the last-run timestamp from ``path`` (UTC). Returns epoch if missing."""
     try:
         with open(path) as fh:
@@ -84,7 +84,7 @@ def read_state(path: str) -> datetime.datetime:
     return _parse_iso(raw)
 
 
-def write_state(path: str, ts: datetime.datetime) -> None:
+def write_state(path: str, ts: dt.datetime) -> None:
     """Atomically write ``ts`` (ISO 8601) to ``path``."""
     if parent := os.path.dirname(path):
         os.makedirs(parent, exist_ok=True)
@@ -94,16 +94,16 @@ def write_state(path: str, ts: datetime.datetime) -> None:
     os.replace(tmp, path)
 
 
-def _parse_iso(value: str) -> datetime.datetime:
+def _parse_iso(value: str) -> dt.datetime:
     """Parse an ISO 8601 timestamp, normalising to a tz-aware UTC datetime.
 
     BWB emits high-precision offsets like ``2026-05-19T14:47:58.5476301-04:00``
     which ``datetime.fromisoformat`` accepts on Python 3.11+.
     """
-    dt = datetime.datetime.fromisoformat(value)
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=datetime.UTC)
-    return dt.astimezone(datetime.UTC)
+    parsed = dt.datetime.fromisoformat(value)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=dt.UTC)
+    return parsed.astimezone(dt.UTC)
 
 
 def extract_isbn(metadata: dict[str, Any]) -> str | None:
@@ -208,11 +208,11 @@ def iter_pages(start_url: str, session: requests.Session, max_pages: int | None 
 
 def process_feed(
     feed_url: str,
-    since: datetime.datetime,
+    since: dt.datetime,
     prices_out_fh,
     max_pages: int | None = None,
     early_stop: bool = False,
-) -> tuple[list[dict[str, Any]], datetime.datetime]:
+) -> tuple[list[dict[str, Any]], dt.datetime]:
     """Crawl the OPDS feed and return (olbooks, max_modified_seen).
 
     Records are filtered to those with ``metadata.modified > since``. Price
@@ -342,12 +342,12 @@ class _LazyWriter:
 
 def _run_feed(
     feed_url: str,
-    cutoff: datetime.datetime,
+    cutoff: dt.datetime,
     prices_out: str,
     max_pages: int | None,
     dry_run: bool,
     early_stop: bool = False,
-) -> tuple[list[dict[str, Any]], datetime.datetime]:
+) -> tuple[list[dict[str, Any]], dt.datetime]:
     """Process the OPDS feed, routing price rows to disk or to a discard buffer."""
     if dry_run:
         with contextlib.nullcontext(io.StringIO()) as prices_fh:
@@ -391,7 +391,7 @@ def main(
         BWB's feed order is empirically confirmed.
     """
     cutoff = _parse_iso(since) if since else read_state(state_file)
-    batch_name = f"bwb-opds-{datetime.datetime.now(datetime.UTC):%Y-%m-%d}"
+    batch_name = f"bwb-opds-{dt.datetime.now(dt.UTC):%Y-%m-%d}"
     logger.info("Starting BWB OPDS import: cutoff=%s batch=%s", cutoff.isoformat(), batch_name)
 
     if not dry_run:

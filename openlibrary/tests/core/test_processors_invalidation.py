@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 
 import web
 
@@ -33,7 +33,7 @@ class TestInvalidationProcessor:
         self._monkeypatch_web(monkeypatch)
 
         doc = {"key": "/templates/site.tmpl", "type": "/type/template"}
-        web.ctx.site.save(doc, timestamp=datetime.datetime(2010, 1, 1))
+        web.ctx.site.save(doc, timestamp=dt.datetime(2010, 1, 1))
 
         hook = invalidation._InvalidationHook("/templates/site.tmpl", cookie_name="invalidation-cookie", expire_time=120)
         hook.on_new_version(web.ctx.site.get(doc["key"]))
@@ -67,8 +67,8 @@ class TestInvalidationProcessor:
 
     def test_reload_on_timeout(self, monkeypatch):
         # create the processor at 60 seconds past in time
-        mock_now = datetime.datetime.now() - datetime.timedelta(seconds=60)
-        monkeypatch.setattr(datetime, "datetime", MockDatetime(mock_now))
+        mock_now = dt.datetime.now() - dt.timedelta(seconds=60)
+        monkeypatch.setattr(dt, "datetime", MockDatetime(mock_now))
 
         p = invalidation.InvalidationProcessor(prefixes=["/templates"], timeout=60)
 
@@ -90,8 +90,8 @@ class TestInvalidationProcessor:
 
     def test_is_timeout(self, monkeypatch):
         # create the processor at 60 seconds past in time
-        mock_now = datetime.datetime.now() - datetime.timedelta(seconds=60)
-        monkeypatch.setattr(datetime, "datetime", MockDatetime(mock_now))
+        mock_now = dt.datetime.now() - dt.timedelta(seconds=60)
+        monkeypatch.setattr(dt, "datetime", MockDatetime(mock_now))
 
         p = invalidation.InvalidationProcessor(prefixes=["/templates"], timeout=60)
 
@@ -123,7 +123,7 @@ class TestInvalidationProcessor:
         # no cookie, no hook call
         assert self.hook.call_count == 0
 
-        web.ctx.env["HTTP_COOKIE"] = "invalidation_cookie=" + datetime.datetime.now().isoformat()
+        web.ctx.env["HTTP_COOKIE"] = "invalidation_cookie=" + dt.datetime.now().isoformat()
         # Clear parsed cookie cache to force our new value to be parsed
         if "_parsed_cookies" in web.ctx:
             del web.ctx._parsed_cookies
