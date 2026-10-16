@@ -39,12 +39,11 @@ class Likes:
     @classmethod
     def unlike(cls, username: str, key: str) -> None:
         oldb = db.get_db()
-        if cls.patron_liked(username, key):
-            oldb.delete(
-                cls.TABLENAME,
-                where="username=$username AND key=$key",
-                vars={"username": username, "key": key},
-            )
+        oldb.delete(
+            cls.TABLENAME,
+            where="username=$username AND key=$key",
+            vars={"username": username, "key": key},
+        )
 
     @classmethod
     def dislike(cls, username: str, key: str) -> None:

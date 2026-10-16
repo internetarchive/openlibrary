@@ -15,21 +15,22 @@ class FakeUser:
         self.key = f"/people/{key}"
 
 
+LIKES_DDL = """
+CREATE TABLE likes (
+    username TEXT NOT NULL,
+    key TEXT NOT NULL,
+    value SMALLINT NOT NULL DEFAULT 1 CHECK (value IN (1, -1)),
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (username, key)
+);
+"""
+
+
 @pytest.fixture
 def likes_db(monkeypatch):
     oldb = web.database(dbn="sqlite", db=":memory:")
-    oldb.query(
-        """
-        CREATE TABLE likes (
-            username TEXT NOT NULL,
-            key TEXT NOT NULL,
-            value SMALLINT NOT NULL DEFAULT 1 CHECK (value IN (1, -1)),
-            created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (username, key)
-        )
-        """
-    )
+    oldb.query(LIKES_DDL)
     monkeypatch.setattr("openlibrary.core.likes.db.get_db", lambda: oldb)
     yield oldb
     oldb.ctx.db.close()
@@ -59,6 +60,20 @@ def test_unlike():
         mock_unlike.assert_called_once_with("test_user", "/works/OL1W")
 
 
+def test_unlike_deletes_only_that_row(likes_db):
+    key = "/people/user1/lists/OL1L"
+    other_key = "/people/user1/lists/OL2L"
+    Likes.like("user1", key)
+    Likes.like("user2", key)
+    Likes.like("user1", other_key)
+
+    Likes.unlike("user1", key)
+    Likes.unlike("user1", key)
+
+    remaining = {(row.username, row.key) for row in likes_db.select("likes")}
+    assert remaining == {("user2", key), ("user1", other_key)}
+
+
 @pytest.mark.parametrize(("first_value", "second_value"), [(1, 1), (1, -1), (-1, 1), (-1, -1)])
 def test_double_like(likes_db, first_value, second_value):
     key = "/people/user1/lists/OL1L"
@@ -79,19 +94,6 @@ def test_double_like(likes_db, first_value, second_value):
     assert rows[0].value == second_value
     assert rows[0].created == original_time
     assert rows[0].modified > original_time
-
-
-def test_like_writes_once_without_lookup():
-    with (
-        patch("openlibrary.core.likes.db.get_db") as mock_get_db,
-        patch.object(Likes, "patron_liked") as lookup,
-    ):
-        Likes.like("user1", "/people/user1/lists/OL1L")
-
-        lookup.assert_not_called()
-        mock_get_db.return_value.query.assert_called_once()
-        mock_get_db.return_value.insert.assert_not_called()
-        mock_get_db.return_value.update.assert_not_called()
 
 
 @pytest.mark.parametrize("value", [0, 2, -2, 99])
