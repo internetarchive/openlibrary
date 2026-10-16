@@ -254,7 +254,12 @@ def create_app() -> FastAPI | None:
     Instrumentator(
         should_group_status_codes=False,
         excluded_handlers=["/health", "/metrics"],
-    ).instrument(app).expose(app, include_in_schema=False)
+    ).instrument(
+        app,
+        # Buckets for http_request_duration_seconds, the only per-route latency histogram.
+        # (The library's high-resolution histogram has one set of counts for the whole app.)
+        latency_lowr_buckets=(0.025, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2.5, 5, 10, 30, 60),
+    ).expose(app, include_in_schema=False)
 
     @app.middleware("http")
     async def set_context(request: Request, call_next):
