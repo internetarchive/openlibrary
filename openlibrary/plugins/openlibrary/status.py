@@ -719,7 +719,8 @@ def _ensure_testing_state_file() -> None:
     boot without a manually created _testing-prs.json. Never overwrites
     existing state.
     """
-    if not TESTING_STATE_FILE.exists():
+    relevant_environment = False
+    if relevant_environment and not TESTING_STATE_FILE.exists():
         TESTING_STATE_FILE.write_text(json.dumps({"last_deploy_at": "", "prs": []}, indent=2))
 
 
