@@ -332,3 +332,31 @@ describe('SearchModal band outcome on the Inside tab', () => {
         expect(schedule).toHaveBeenCalledWith('FulltextBand', modal._activeFetchKey, expect.any(Function));
     });
 });
+
+describe('recent searches per tab', () => {
+    const markup = modal => modal._renderResults().strings.join('');
+
+    test('the Inside tab shows its own recent searches in place of the prompt', () => {
+        const modal = modalSetup({ query: '' });
+        modal._mode = 'inside';
+        modal._recentSearches = ['it was the best of times'];
+        // The rows render inside a nested repeat(), so check the list chrome.
+        expect(markup(modal)).toContain('results-heading');
+        expect(markup(modal)).not.toContain('empty');
+
+        modal._recentSearches = [];
+        expect(markup(modal)).toContain('empty');
+    });
+
+    test("switching tabs swaps in that tab's list", () => {
+        localStorage.clear();
+        localStorage.setItem('ol-recent-searches', JSON.stringify(['anni albers', { q: 'white whale', mode: 'inside' }]));
+        const modal = modalSetup({ query: '' });
+        // Starts on Books, so the plain-string entry is already there.
+        expect(modal._recentSearches).toEqual(['anni albers']);
+        modal._selectMode('inside');
+        expect(modal._recentSearches).toEqual(['white whale']);
+        modal._selectMode('books');
+        expect(modal._recentSearches).toEqual(['anni albers']);
+    });
+});

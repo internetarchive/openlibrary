@@ -1161,7 +1161,7 @@ export class SearchModal extends LitElement {
         this._availability = _storedAvailability === 'readable' ? 'readable' : DEFAULT_AVAILABILITY;
         this._languages = readStoredLanguages();
 
-        this._recentSearches = readRecentSearches();
+        this._recentSearches = readRecentSearches(this._mode);
 
         this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
@@ -1573,6 +1573,8 @@ export class SearchModal extends LitElement {
     _selectMode(mode) {
         if (this._mode === mode) return;
         this._mode = mode;
+        // Each tab remembers its own searches.
+        this._recentSearches = readRecentSearches(mode);
         this._track('Tab', mode);
         this._navigatingKey = null;
         this._ftSeeAllLoading = false;
@@ -1689,8 +1691,11 @@ export class SearchModal extends LitElement {
 
     // The Inside tab: passages only, no dedupe, author or shelf rows.
     _renderInsideResults() {
+        // The prompt explains the tab on a first visit; recent Inside searches replace it.
         if (!this._shouldAutocomplete()) {
-            return html`<div class="results"><div class="empty">${this._i18n.insidePrompt}</div></div>`;
+            return this._recentSearches.length > 0
+                ? this._renderRecentSearches()
+                : html`<div class="results"><div class="empty">${this._i18n.insidePrompt}</div></div>`;
         }
         if (this._ftLoading && this._ftHits.length === 0) {
             return html`<div class="results">${this._renderSearching(this._i18n.searchingInside)}</div>`;
@@ -1885,7 +1890,7 @@ export class SearchModal extends LitElement {
                                         aria-label=${sprintf(this._i18n.removeRecent, s)}
                                         @click=${e => {
                                             e.stopPropagation();
-                                            this._recentSearches = removeRecentSearch(s);
+                                            this._recentSearches = removeRecentSearch(s, this._mode);
                                         }}
                                     >
                                         ${SearchModal._closeIcon}
@@ -1921,8 +1926,8 @@ export class SearchModal extends LitElement {
     _saveCurrentSearch() {
         const trimmed = this._query.trim();
         if (trimmed.length < MIN_QUERY_LENGTH) return;
-        saveRecentSearch(trimmed);
-        this._recentSearches = readRecentSearches();
+        saveRecentSearch(trimmed, this._mode);
+        this._recentSearches = readRecentSearches(this._mode);
     }
 
     // A "go to the author page" row shown above the works for each top-result

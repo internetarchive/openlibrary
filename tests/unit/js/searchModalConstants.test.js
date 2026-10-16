@@ -302,6 +302,35 @@ describe('recent searches (localStorage)', () => {
             expect(removeRecentSearch('absent')).toEqual(['only']);
         });
     });
+
+    describe('per-tab lists', () => {
+        test('each tab reads only its own searches', () => {
+            saveRecentSearch('anni albers', 'books');
+            saveRecentSearch('it was the best of times', 'inside');
+            expect(readRecentSearches('books')).toEqual(['anni albers']);
+            expect(readRecentSearches('inside')).toEqual(['it was the best of times']);
+        });
+
+        test('entries saved before tabs were recorded read as Books searches', () => {
+            localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify(['dogs', { q: 'whale', mode: 'inside' }]));
+            expect(readRecentSearches('books')).toEqual(['dogs']);
+            expect(readRecentSearches('inside')).toEqual(['whale']);
+        });
+
+        test('the cap applies per tab, so one tab cannot push out the other', () => {
+            saveRecentSearch('kept', 'inside');
+            for (let i = 0; i < RECENT_SEARCHES_MAX + 2; i++) saveRecentSearch(`q${i}`, 'books');
+            expect(readRecentSearches('books')).toHaveLength(RECENT_SEARCHES_MAX);
+            expect(readRecentSearches('inside')).toEqual(['kept']);
+        });
+
+        test('removing from one tab leaves the same text on the other', () => {
+            saveRecentSearch('whale', 'books');
+            saveRecentSearch('whale', 'inside');
+            expect(removeRecentSearch('whale', 'inside')).toEqual([]);
+            expect(readRecentSearches('books')).toEqual(['whale']);
+        });
+    });
 });
 
 describe('readStoredLanguages (sessionStorage)', () => {

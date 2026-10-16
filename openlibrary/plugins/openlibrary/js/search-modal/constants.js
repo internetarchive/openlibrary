@@ -428,54 +428,68 @@ export function ssSet(key, value) {
 export const LS_RECENT_SEARCHES_KEY = 'ol-recent-searches';
 export const RECENT_SEARCHES_MAX = 8;
 
-/**
- * Read the recent-search list from localStorage. Returns [] on any failure.
- * Non-string entries (from a corrupt or hand-edited value) are dropped so
- * callers only ever see strings to render and dedup against.
- * @returns {string[]}
- */
-export function readRecentSearches() {
+/** Every stored entry as {q, mode}. Entries saved before modes were recorded are Books searches. */
+function readRecentEntries() {
     try {
         const raw = localStorage.getItem(LS_RECENT_SEARCHES_KEY);
         if (!raw) return [];
         const parsed = JSON.parse(raw);
         if (!Array.isArray(parsed)) return [];
-        return parsed.filter(s => typeof s === 'string').slice(0, RECENT_SEARCHES_MAX);
+        return parsed
+            .map(entry => (typeof entry === 'string' ? { q: entry, mode: 'books' } : entry))
+            .filter(entry => entry && typeof entry.q === 'string' && typeof entry.mode === 'string');
     } catch {
         return [];
     }
 }
 
 /**
- * Prepend `query` to the recent-search list, dedup, and cap at
- * RECENT_SEARCHES_MAX. Silently ignores localStorage errors (private browsing).
- * @param {string} query
+ * The recent searches made on one tab, newest first. Returns [] on any failure.
+ * Non-string entries (from a corrupt or hand-edited value) are dropped so
+ * callers only ever see strings to render and dedup against.
+ * @param {string} mode - 'books' or 'inside'
+ * @returns {string[]}
  */
-export function saveRecentSearch(query) {
+export function readRecentSearches(mode = 'books') {
+    return readRecentEntries()
+        .filter(entry => entry.mode === mode)
+        .map(entry => entry.q)
+        .slice(0, RECENT_SEARCHES_MAX);
+}
+
+/**
+ * Prepend `query` to the tab's recent searches, dedup, and cap that tab's list
+ * at RECENT_SEARCHES_MAX. Silently ignores localStorage errors (private browsing).
+ * @param {string} query
+ * @param {string} mode
+ */
+export function saveRecentSearch(query, mode = 'books') {
     const trimmed = query.trim();
     if (!trimmed) return;
     try {
-        const searches = readRecentSearches().filter(s => s !== trimmed);
-        searches.unshift(trimmed);
-        localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify(searches.slice(0, RECENT_SEARCHES_MAX)));
+        const others = readRecentEntries().filter(entry => entry.mode !== mode);
+        const own = readRecentEntries().filter(entry => entry.mode === mode && entry.q !== trimmed);
+        own.unshift({ q: trimmed, mode });
+        localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify([...own.slice(0, RECENT_SEARCHES_MAX), ...others]));
     } catch {
         /* ignore */
     }
 }
 
 /**
- * Remove a single entry from the recent-search list.
+ * Remove a single entry from one tab's recent searches.
  * @param {string} query
- * @returns {string[]} updated list
+ * @param {string} mode
+ * @returns {string[]} that tab's updated list
  */
-export function removeRecentSearch(query) {
+export function removeRecentSearch(query, mode = 'books') {
     try {
-        const searches = readRecentSearches().filter(s => s !== query);
-        localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify(searches));
-        return searches;
+        const entries = readRecentEntries().filter(entry => !(entry.mode === mode && entry.q === query));
+        localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify(entries));
     } catch {
-        return readRecentSearches();
+        /* ignore */
     }
+    return readRecentSearches(mode);
 }
 
 /**
