@@ -20,10 +20,10 @@ import { hasTabbableElement } from './utils/focus-utils.js';
  * The initially selected tab is the one named by the URL hash, else the
  * `selected` attribute, else the panel marked `data-selected`, else the first.
  * Prefer `data-selected` in server-rendered markup: ol-tabs.css can see it, so
- * the right panel shows before upgrade too. A hash can also point inside a panel as
- * `#panel-id/anything`, which selects that panel and leaves the rest to the
- * page. Later hash changes (an in-page link to a panel, Back/Forward) switch
- * tabs the same way, and an emptied hash restores the default tab.
+ * the right panel shows before upgrade too. A hash can also point inside a
+ * panel as `#panel-id/anything`, which selects that panel and leaves the rest
+ * to the page. Later hash changes (an in-page link to a panel, Back/Forward)
+ * switch tabs the same way, and an emptied hash restores the default tab.
  *
  * The tab row scrolls sideways rather than wrapping when it overflows, with the
  * selected tab kept in view.
@@ -112,7 +112,7 @@ export class OlTabs extends LitElement {
     }
 
     _panelIdOf(tab) {
-        return (tab.getAttribute('href') || '').replace(/^#/, '');
+        return (tab?.getAttribute('href') || '').replace(/^#/, '');
     }
 
     /** The panel id named by the URL hash (`#id` or `#id/anything`), if it's one of ours. */
@@ -186,12 +186,10 @@ export class OlTabs extends LitElement {
     _onHashChange() {
         // A hash naming one of our panels selects it; an empty hash (Back past
         // the first tab switch) restores the default. Other hashes aren't ours.
-        const tabs = this._tabs;
         const hash = window.location.hash;
-        const fallback = this._defaultSelected || (tabs[0] && this._panelIdOf(tabs[0]));
-        const id = hash && hash !== '#' ? this._panelIdFromHash() : fallback;
-        const current = tabs[this._selectedIndex] && this._panelIdOf(tabs[this._selectedIndex]);
-        if (!id || id === current) return;
+        const tabs = this._tabs;
+        const id = hash && hash !== '#' ? this._panelIdFromHash() : this._defaultSelected || this._panelIdOf(tabs[0]);
+        if (!id || id === this._panelIdOf(tabs[this._selectedIndex])) return;
         this.selected = id;
         this._emitChange(id);
     }

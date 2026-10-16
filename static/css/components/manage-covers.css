@@ -20,7 +20,8 @@
 
 /* @width-breakpoint-tablet: 768px */
 @media only screen and (min-width: 768px) {
-  ol-dialog ol-tabs > :not([slot]) {
+  .imagesAdd,
+  .imagesManage {
     padding: var(--spacing-lg) var(--spacing-3xl);
   }
 }
