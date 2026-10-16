@@ -170,7 +170,7 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
       $else:
         $ edit_url = page.key + "?m=edit"
 
-      $:render_template("type/edition/compact_title", book_title, edit_url)
+      $:render_template("type/edition/compact_title", book_title, edit_url, title_lang=get_lang_tag(edition.languages, book_title) if edition else None)
 
       $if work and work.description or edition and edition.description:
         $if edition and edition.description:
