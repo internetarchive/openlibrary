@@ -16,6 +16,7 @@ from openlibrary.catalog.add_book import (
     check_cover_url_host,
     editions_matched,
     find_match,
+    find_matching_work,
     isbns_from_record,
     load,
     load_data,
@@ -121,6 +122,43 @@ def test_editions_matched(mock_site, add_languages, ia_writeback):
     # searching on key isbn_ will return a matching record on either isbn_10 or isbn_13 metadata fields
     result = editions_matched(rec, "isbn_", isbns)
     assert result == ["/books/OL1M"]
+
+
+def test_find_matching_work_outside_the_default_query_limit(mock_site):
+    """
+    Matching has to consider every work by an author, not just the page the
+    backend returns by default.
+
+    `things()` returns a limited page when no limit is passed -- 20 results in
+    Infobase -- so a work outside that page was invisible to matching, and the
+    import created a duplicate work for a book that was already here.
+    """
+    author_key = "/authors/OL100A"
+    mock_site.save({"key": author_key, "type": {"key": "/type/author"}, "name": "Prolific Author"})
+
+    # Deliberately far more works than any default `things()` page. Fixed-width
+    # OLIDs keep the sort order the mock applies the same as the numeric order, so
+    # the match is placed at a known position: the very end.
+    work_keys = [f"/works/OL{1000 + i}W" for i in range(150)]
+    matching_key = max(work_keys)
+    for i, key in enumerate(work_keys):
+        mock_site.save(
+            {
+                "key": key,
+                "type": {"key": "/type/work"},
+                "title": "Tom Sawyer" if key == matching_key else f"Another Book {i}",
+                "authors": [{"author": {"key": author_key}}],
+            }
+        )
+
+    # Assert the premise rather than trusting it: if the match were inside the
+    # default window this test would pass with or without the paging fix.
+    default_page = mock_site.things({"type": "/type/work", "authors": {"author": {"key": author_key}}})
+    assert len(default_page) < len(work_keys)
+    assert matching_key not in default_page
+
+    edition = {"title": "Tom Sawyer", "authors": [{"key": author_key}]}
+    assert find_matching_work(edition) == matching_key
 
 
 def test_force_new_wikisource_edition(mock_site, add_languages, ia_writeback):

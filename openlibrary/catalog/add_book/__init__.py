@@ -28,7 +28,7 @@ import logging
 import re
 import uuid
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from copy import copy
 from html import unescape as html_unescape
 from time import sleep
@@ -73,6 +73,8 @@ logger = logging.getLogger("add_book")
 re_normalize = re.compile("[^[:alphanum:] ]", re.UNICODE)
 re_lang = re.compile("^/languages/([a-z]{3})$")
 ISBD_UNIT_PUNCT = " : "  # ISBD cataloging title-unit separator punctuation
+# Infobase caps a `things()` limit at 1000; see `author_work_keys`.
+WORKS_QUERY_PAGE_SIZE: Final = 1000
 SUSPECT_PUBLICATION_DATES: Final = [
     "1900",
     "January 1, 1900",
@@ -214,6 +216,40 @@ def split_subtitle(full_title: str):
     return (title, subtitle)
 
 
+def author_work_keys(author_key: str) -> Iterator[list[str]]:
+    """
+    Yields pages of work keys for the given author.
+
+    The `limit` has to be passed explicitly: Infobase defaults a `things()` query
+    that doesn't carry one to 20 results, and caps an explicit one at
+    WORKS_QUERY_PAGE_SIZE (both in `infobase/readquery.py`). Authors with more
+    works than that are paged through with `offset`.
+
+    Infobase defines no order for an unsorted `things()` query, so which works land
+    on which page is unspecified, and paging is best-effort for the rare author with
+    more than one page of works. Every work is still seen in the single-page case.
+
+    :param str author_key: an author key, "/authors/OL..A"
+    """
+    offset = 0
+    while True:
+        page = list(
+            site.get().things(
+                {
+                    "type": "/type/work",
+                    "authors": {"author": {"key": author_key}},
+                    "limit": WORKS_QUERY_PAGE_SIZE,
+                    "offset": offset,
+                }
+            )
+        )
+        if page:
+            yield page
+        if len(page) < WORKS_QUERY_PAGE_SIZE:
+            return
+        offset += WORKS_QUERY_PAGE_SIZE
+
+
 def find_matching_work(e):
     """
     Looks for an existing Work representing the new import edition by
@@ -227,19 +263,18 @@ def find_matching_work(e):
     """
     seen = set()
     for a in e["authors"]:
-        q = {"type": "/type/work", "authors": {"author": {"key": a["key"]}}}
-        work_keys = list(site.get().things(q))
-        works = {w.key: w for w in site.get().get_many(work_keys)}
-        for wkey in work_keys:
-            w = works.get(wkey)
-            if w is None or wkey in seen:
-                continue
-            seen.add(wkey)
-            if not w.get("title"):
-                continue
-            if mk_norm(w["title"]) == mk_norm(e["title"]):
-                assert w.type.key == "/type/work"
-                return wkey
+        for work_keys in author_work_keys(a["key"]):
+            works = {w.key: w for w in site.get().get_many(work_keys)}
+            for wkey in work_keys:
+                w = works.get(wkey)
+                if w is None or wkey in seen:
+                    continue
+                seen.add(wkey)
+                if not w.get("title"):
+                    continue
+                if mk_norm(w["title"]) == mk_norm(e["title"]):
+                    assert w.type.key == "/type/work"
+                    return wkey
 
 
 def load_author_import_records(authors_in, edits, source, save: bool = True):
