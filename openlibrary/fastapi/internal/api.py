@@ -23,7 +23,7 @@ from openlibrary.core import lending
 from openlibrary.core.admin import get_unique_logins_since
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.env import get_ol_env
-from openlibrary.core.follows import PubSub
+from openlibrary.core.follows import Follow, PubSub
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
@@ -458,10 +458,10 @@ async def get_patron_follows(
     username: Annotated[str, Path(pattern=r"^[^/]+$")],
     user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
     redir_url: Annotated[str, Query()] = "",
-) -> list[FollowEntry] | RedirectResponse:
+) -> list[Follow] | RedirectResponse:
     if not user or user.username != username:
         return RedirectResponse(url=f"/account/login?{urlencode({'redir_url': redir_url})}", status_code=303)
-    return PubSub.get_following(username)
+    return await PubSub.get_following(username)
 
 
 @router.post("/people/{username}/follows.json")
@@ -476,8 +476,10 @@ async def post_patron_follows(
         return RedirectResponse(url=f"/account/login?{urlencode({'redir_url': redir_url})}", status_code=303)
     if not accounts.find(username=publisher):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    action = PubSub.subscribe if state == "0" else PubSub.unsubscribe
-    action(user.username, publisher)
+    if state == "0":
+        await PubSub.subscribe(user.username, publisher)
+    else:
+        await PubSub.unsubscribe(user.username, publisher)
     return RedirectResponse(url=redir_url, status_code=303)
 
 
