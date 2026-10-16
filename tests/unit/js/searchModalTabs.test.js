@@ -348,6 +348,26 @@ describe('recent searches per tab', () => {
         expect(markup(modal)).toContain('empty');
     });
 
+    test('tapping a recent all-words search restores that choice', () => {
+        localStorage.clear();
+        localStorage.setItem(
+            'ol-recent-searches',
+            JSON.stringify([
+                { q: 'argentina brazil', mode: 'inside', allWords: true },
+                { q: 'white whale', mode: 'inside' }
+            ])
+        );
+        const modal = modalSetup({ query: '' });
+        modal._selectMode('inside');
+        modal.renderRoot = { querySelector: () => null };
+
+        modal._onRecentSearchClick('argentina brazil');
+        expect(modal._fulltextFilters().allWords).toBe(true);
+
+        modal._onRecentSearchClick('white whale');
+        expect(modal._fulltextFilters().allWords).toBe(false);
+    });
+
     test("switching tabs swaps in that tab's list", () => {
         localStorage.clear();
         localStorage.setItem('ol-recent-searches', JSON.stringify(['anni albers', { q: 'white whale', mode: 'inside' }]));

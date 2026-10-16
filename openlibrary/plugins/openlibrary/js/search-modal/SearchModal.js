@@ -15,22 +15,23 @@ import { readLabels } from '../book-state.js';
 import {
     AVAILABILITY_OPTIONS,
     AVAILABILITY_TO_PARAMS,
+    availabilityOptionsFromElement,
     DEFAULT_AVAILABILITY,
     DEFAULT_LANGUAGE_OPTIONS,
     DEFAULT_SEARCH_MODAL_STRINGS,
+    readableEditionLanguages,
+    readableLanguageMismatch,
+    readRecentSearches,
+    readStoredLanguages,
+    recentSearchUsedAllWords,
+    removeRecentSearch,
+    saveRecentSearch,
+    searchModalStringsFromElement,
+    siteLanguageToMarc,
     SS_AVAILABILITY_KEY,
     SS_LANGUAGES_KEY,
     ssGet,
-    ssSet,
-    availabilityOptionsFromElement,
-    readableLanguageMismatch,
-    readableEditionLanguages,
-    readStoredLanguages,
-    searchModalStringsFromElement,
-    siteLanguageToMarc,
-    readRecentSearches,
-    saveRecentSearch,
-    removeRecentSearch
+    ssSet
 } from './constants.js';
 import { fetchLanguageOptions } from './languages.js';
 import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './searchFacets.js';
@@ -1908,6 +1909,8 @@ export class SearchModal extends LitElement {
     // rather than hard-navigating, so the patron sees inline results first.
     _onRecentSearchClick(query) {
         this._query = query;
+        // Return to how it was last run; the interpretation line shows the choice and offers the way back.
+        this._ftAllWordsQuery = recentSearchUsedAllWords(query, this._mode) ? query : null;
         const input = this.renderRoot.querySelector('.search-input');
         if (input) input.value = query;
         this._scheduleSearch();
@@ -1926,7 +1929,7 @@ export class SearchModal extends LitElement {
     _saveCurrentSearch() {
         const trimmed = this._query.trim();
         if (trimmed.length < MIN_QUERY_LENGTH) return;
-        saveRecentSearch(trimmed, this._mode);
+        saveRecentSearch(trimmed, this._mode, { allWords: this._fulltextFilters().allWords });
         this._recentSearches = readRecentSearches(this._mode);
     }
 

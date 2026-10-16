@@ -9,6 +9,7 @@ import {
     languageNameFromOptions,
     localizeAvailabilityOptions,
     readRecentSearches,
+    recentSearchUsedAllWords,
     readStoredLanguages,
     readableEditionLanguages,
     readableLanguageMismatch,
@@ -322,6 +323,15 @@ describe('recent searches (localStorage)', () => {
             for (let i = 0; i < RECENT_SEARCHES_MAX + 2; i++) saveRecentSearch(`q${i}`, 'books');
             expect(readRecentSearches('books')).toHaveLength(RECENT_SEARCHES_MAX);
             expect(readRecentSearches('inside')).toEqual(['kept']);
+        });
+
+        test('remembers an all-words choice until the same text is run again', () => {
+            saveRecentSearch('argentina brazil', 'inside', { allWords: true });
+            expect(recentSearchUsedAllWords('argentina brazil', 'inside')).toBe(true);
+            expect(recentSearchUsedAllWords('argentina brazil', 'books')).toBe(false);
+
+            saveRecentSearch('argentina brazil', 'inside');
+            expect(recentSearchUsedAllWords('argentina brazil', 'inside')).toBe(false);
         });
 
         test('removing from one tab leaves the same text on the other', () => {

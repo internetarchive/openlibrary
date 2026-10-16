@@ -428,7 +428,7 @@ export function ssSet(key, value) {
 export const LS_RECENT_SEARCHES_KEY = 'ol-recent-searches';
 export const RECENT_SEARCHES_MAX = 8;
 
-/** Every stored entry as {q, mode}. Entries saved before modes were recorded are Books searches. */
+/** Every stored entry as {q, mode, allWords?}. Entries saved before modes were recorded are Books searches. */
 function readRecentEntries() {
     try {
         const raw = localStorage.getItem(LS_RECENT_SEARCHES_KEY);
@@ -462,18 +462,29 @@ export function readRecentSearches(mode = 'books') {
  * at RECENT_SEARCHES_MAX. Silently ignores localStorage errors (private browsing).
  * @param {string} query
  * @param {string} mode
+ * @param {{allWords?: boolean}} [options] - allWords: the patron chose all words over the exact phrase
  */
-export function saveRecentSearch(query, mode = 'books') {
+export function saveRecentSearch(query, mode = 'books', { allWords = false } = {}) {
     const trimmed = query.trim();
     if (!trimmed) return;
     try {
         const others = readRecentEntries().filter(entry => entry.mode !== mode);
         const own = readRecentEntries().filter(entry => entry.mode === mode && entry.q !== trimmed);
-        own.unshift({ q: trimmed, mode });
+        own.unshift({ q: trimmed, mode, ...(allWords ? { allWords: true } : {}) });
         localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify([...own.slice(0, RECENT_SEARCHES_MAX), ...others]));
     } catch {
         /* ignore */
     }
+}
+
+/**
+ * Whether a recent search was last run as all words rather than the exact phrase.
+ * @param {string} query
+ * @param {string} mode
+ * @returns {boolean}
+ */
+export function recentSearchUsedAllWords(query, mode = 'books') {
+    return readRecentEntries().some(entry => entry.mode === mode && entry.q === query && entry.allWords === true);
 }
 
 /**
