@@ -965,7 +965,7 @@ class User(Thing):
 
     def is_subscribed_user(self, username: str) -> int:
         my_username = self.get_username()
-        return PubSub.is_subscribed(my_username, username) if my_username != username else -1
+        return PubSub.is_subscribed_sync(my_username, username) if my_username != username else -1
 
     def has_cookie(self, name):
         return web.cookies().get(name, False)

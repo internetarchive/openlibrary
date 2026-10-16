@@ -718,13 +718,12 @@ class BookPageListsPartial:
     RENDER_FALLBACK = "Unable to render this page."
 
     @classmethod
-    def get_list_card(cls, lst: Any, user: AuthenticatedUser | None) -> BookPageListCard:
+    async def get_list_card(cls, lst: Any, user: AuthenticatedUser | None) -> BookPageListCard:
         """Build data for one card. Keep DB calls out of the template.
 
         ``lst`` is a web.storage from get_lists_async. Reload the full List
         for get_url and get_patron_showcase. The public_readlog check matches
-        the old Templetor code. is_subscribed uses the same PubSub check as
-        User.is_subscribed_user.
+        the old Templetor code. is_subscribed uses the async PubSub query.
         """
         own_list = bool(user and lst.owner and lst.owner.key == user.user_key)
         converted = convert_list(lst.key)
@@ -741,7 +740,7 @@ class BookPageListsPartial:
             owner_account = get_user_object(owner_username)
             settings = owner_account.get_users_settings()
             card["is_public"] = bool(settings and settings.get("public_readlog", "no") == "yes")
-            card["is_subscribed"] = 1 if (user and PubSub.is_subscribed(user.username, owner_username)) else 0
+            card["is_subscribed"] = 1 if (user and await PubSub.is_subscribed(user.username, owner_username)) else 0
         return card
 
     @classmethod
@@ -761,7 +760,7 @@ class BookPageListsPartial:
             cards: list[BookPageListCard] = []
             for lst in lists[: cls.LIMIT]:
                 try:
-                    cards.append(cls.get_list_card(lst, user))
+                    cards.append(await cls.get_list_card(lst, user))
                 except Exception:  # noqa: BLE001  # one bad list shouldn't break the whole section
                     continue
             try:
