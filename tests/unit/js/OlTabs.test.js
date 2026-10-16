@@ -59,6 +59,17 @@ describe('ol-tabs', () => {
         expect(visiblePanels(el)).toEqual(['two']);
     });
 
+    it('starts on the panel marked data-selected', async () => {
+        const el = await mount({ markup: MARKUP.replace('<div id="three">', '<div id="three" data-selected>') });
+        expect(visiblePanels(el)).toEqual(['three']);
+        expect(el.selected).toBe('three');
+    });
+
+    it('prefers the selected attribute over a data-selected panel', async () => {
+        const el = await mount({ attrs: 'selected="two"', markup: MARKUP.replace('<div id="three">', '<div id="three" data-selected>') });
+        expect(visiblePanels(el)).toEqual(['two']);
+    });
+
     it('starts on the panel named by the URL hash, ignoring anything after a slash', async () => {
         history.replaceState(null, '', '#three/some-field');
         const el = await mount({ attrs: 'selected="two"' });

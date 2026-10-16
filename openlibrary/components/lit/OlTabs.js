@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
-import { getTabbableElements } from './utils/focus-utils.js';
+import { hasTabbableElement } from './utils/focus-utils.js';
 
 /**
  * OlTabs - Switches between panels of server-rendered content.
@@ -18,7 +18,9 @@ import { getTabbableElements } from './utils/focus-utils.js';
  * covers the moment before upgrade.
  *
  * The initially selected tab is the one named by the URL hash, else the
- * `selected` attribute, else the first. A hash can also point inside a panel as
+ * `selected` attribute, else the panel marked `data-selected`, else the first.
+ * Prefer `data-selected` in server-rendered markup: ol-tabs.css can see it, so
+ * the right panel shows before upgrade too. A hash can also point inside a panel as
  * `#panel-id/anything`, which selects that panel and leaves the rest to the
  * page. Later hash changes (an in-page link to a panel, Back/Forward) switch
  * tabs the same way, and an emptied hash restores the default tab.
@@ -35,7 +37,7 @@ import { getTabbableElements } from './utils/focus-utils.js';
  * @fires ol-tabs-change - Fired when the user switches tabs, by click, keyboard or a hash change. detail: { selected: String }
  *
  * @slot tab - One `<a href="#panel-id">` per panel, in display order.
- * @slot - The panels: elements whose id matches a tab's href.
+ * @slot - The panels: elements whose id matches a tab's href. Mark the initial one `data-selected`.
  *
  * @csspart tablist - The row of tabs.
  *
@@ -86,9 +88,8 @@ export class OlTabs extends LitElement {
     connectedCallback() {
         super.connectedCallback();
         // What Back returns to once the hash no longer names a panel.
-        this._defaultSelected = this.selected;
-        const fromHash = this._panelIdFromHash();
-        if (fromHash) this.selected = fromHash;
+        this._defaultSelected = this.selected || this.querySelector(':scope > [data-selected]:not([slot])')?.id;
+        this.selected = this._panelIdFromHash() || this._defaultSelected;
         window.addEventListener('hashchange', this._onHashChange);
         // Flush the first render within the upgrade task, so the pre-upgrade
         // layout (ol-tabs.css, `:not(:defined)`) hands off with no frame between.
@@ -150,7 +151,7 @@ export class OlTabs extends LitElement {
             // A panel with nothing focusable inside joins the tab sequence
             // itself, so keyboard users can still reach its content (APG).
             if (isSelected) {
-                if (getTabbableElements(panel).length) panel.removeAttribute('tabindex');
+                if (hasTabbableElement(panel)) panel.removeAttribute('tabindex');
                 else panel.tabIndex = 0;
             }
         });

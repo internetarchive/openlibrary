@@ -3,7 +3,7 @@
     <p class="ds-lead">
         Tabs are <code>&lt;a slot="tab" href="#panel-id"&gt;</code> links; panels are the other children, matched by id. Everything stays server-rendered light DOM, so without JavaScript the tabs are in-page links to sections that are all visible, and form fields in a hidden panel still submit.
     </p>
-    {% call ex.example("Default", "The first tab is selected unless the URL hash or the selected attribute names another panel.", output_style="max-width: 560px;") %}
+    {% call ex.example("Default", "The first tab is selected unless the URL hash or a data-selected panel names another.", output_style="max-width: 560px;") %}
         <ol-tabs>
             <a slot="tab" href="#demo-tabs-humans">By Humans</a>
             <a slot="tab" href="#demo-tabs-bots">By Bots</a>
@@ -19,14 +19,14 @@
             </div>
         </ol-tabs>
     {% endcall %}
-    {% call ex.example("Initially selected", "selected names the panel to show first. A hash of the form #panel-id or #panel-id/anything overrides it, so a link can open a specific tab.", output_style="max-width: 560px;") %}
-        <ol-tabs selected="demo-tabs-edition">
+    {% call ex.example("Initially selected", "Mark the panel to show first with data-selected; the page CSS shows it before the component loads, too. A hash of the form #panel-id or #panel-id/anything overrides it, so a link can open a specific tab. To switch tabs from script, set the selected property.", output_style="max-width: 560px;") %}
+        <ol-tabs>
             <a slot="tab" href="#demo-tabs-work">Work Details</a>
             <a slot="tab" href="#demo-tabs-edition">Penguin edition, 2004</a>
             <div id="demo-tabs-work">
                 <p>Fields shared by every edition.</p>
             </div>
-            <div id="demo-tabs-edition">
+            <div id="demo-tabs-edition" data-selected>
                 <p>Fields for this edition only.</p>
             </div>
         </ol-tabs>

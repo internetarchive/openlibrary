@@ -13,10 +13,11 @@
  * nothing.
  *
  * The same rules cover the moment before the component upgrades, so the markup
- * already reads as a row of tabs over one panel and the upgrade doesn't shift
- * the page. Panels are only collapsed early when JS is expected
- * (`body.client-js`): without JS every panel stays visible and the tabs work as
- * in-page links.
+ * already reads as a row of tabs over the panel the component will select: the
+ * hash's (`:target`), else the one marked `data-selected`, else the first.
+ * Panels are only collapsed early when JS is expected (`body.client-js`):
+ * without JS every panel stays visible and the tabs work as in-page links. If
+ * the component fails to load, the tabs still switch panels through `:target`.
  */
 
 ol-tabs {
@@ -43,8 +44,16 @@ ol-tabs > a[slot="tab"] {
   white-space: nowrap;
 }
 
-/* Before upgrade, mark the tab that will be selected. */
-:where(.client-js ol-tabs:not(:defined, [selected]))
+/* Before upgrade, mark the first tab when it's the one that will be selected.
+   CSS can't match a tab to a marked or targeted panel, so those go unmarked. */
+:where(
+    .client-js
+      ol-tabs:not(
+        :defined,
+        :has(> :not([slot]):target),
+        :has(> [data-selected])
+      )
+  )
   > a[slot="tab"]:first-child {
   border-bottom-color: var(--color-text);
   color: var(--color-text);
@@ -86,8 +95,24 @@ ol-tabs > [hidden] {
   display: none !important;
 }
 
-/* Before upgrade only the first panel shows. Never hide them all: if the
-   component fails to load, the first panel must still be usable. */
-:where(.client-js ol-tabs:not(:defined)) > :not([slot]) ~ :not([slot]) {
+/* Before upgrade only one panel shows, chosen as in the header. Each rule
+   hides the others and never all of them, so a panel is always usable. */
+:where(.client-js ol-tabs:not(:defined):has(> :not([slot]):target))
+  > :not([slot], :target),
+:where(
+    .client-js
+      ol-tabs:not(:defined, :has(> :not([slot]):target)):has(> [data-selected])
+  )
+  > :not([slot], [data-selected]),
+:where(
+    .client-js
+      ol-tabs:not(
+        :defined,
+        :has(> :not([slot]):target),
+        :has(> [data-selected])
+      )
+  )
+  > :not([slot])
+  ~ :not([slot]) {
   display: none;
 }
