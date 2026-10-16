@@ -144,6 +144,20 @@ describe('ol-tabs', () => {
             expect(visiblePanels(el)).toEqual(['one']);
         });
 
+        it('follows the mirrored row under RTL', async () => {
+            const el = await mount({ attrs: 'style="direction: rtl"' });
+            const [one, two] = tabs(el);
+
+            press(one, 'ArrowLeft');
+            await el.updateComplete;
+            expect(document.activeElement).toBe(two);
+            expect(visiblePanels(el)).toEqual(['two']);
+
+            press(two, 'ArrowRight');
+            await el.updateComplete;
+            expect(document.activeElement).toBe(one);
+        });
+
         it('leaves browser shortcuts like Alt+ArrowLeft alone', async () => {
             const el = await mount();
             const event = press(tabs(el)[0], 'ArrowLeft', { altKey: true });
@@ -194,6 +208,21 @@ describe('ol-tabs', () => {
         click(tabs(el)[1]);
         await el.updateComplete;
         expect(el.querySelector('#linked').hasAttribute('tabindex')).toBe(false);
+    });
+
+    it('rechecks the panel tab stop when content arrives later', async () => {
+        const el = await mount({ markup: '<a slot="tab" href="#late">Late</a><div id="late"></div>' });
+        const panel = el.querySelector('#late');
+        expect(panel.tabIndex).toBe(0);
+
+        panel.append(Object.assign(document.createElement('button'), { textContent: 'Go' }));
+        await new Promise(resolve => setTimeout(resolve));
+        expect(panel.hasAttribute('tabindex')).toBe(false);
+    });
+
+    it('counts an iframe as focusable content', async () => {
+        const el = await mount({ markup: '<a slot="tab" href="#framed">Framed</a><div id="framed"><iframe></iframe></div>' });
+        expect(el.querySelector('#framed').hasAttribute('tabindex')).toBe(false);
     });
 
     it('with sync-hash, replaces the URL hash on switch but not on first render', async () => {

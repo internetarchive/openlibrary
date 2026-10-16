@@ -7,10 +7,10 @@
  * ::slotted() and would turn the tabs back into underlined links.
  *
  * The look is the site's one tab row: quiet labels on a divider, the selected
- * one in ink with an underline. Panels get no frame of their own; the page
- * styles its content. Every tab always carries its underline (transparent
- * when unselected) and keeps one weight, so selecting re-paints and shifts
- * nothing.
+ * one in ink with an underline. Panels get no frame of their own, only a gap
+ * below the row; the page styles their content. Every tab always carries its
+ * underline (transparent when unselected) and keeps one weight, so selecting
+ * re-paints and shifts nothing.
  *
  * The same rules cover the moment before the component upgrades, so the markup
  * already reads as a row of tabs over the panel the component will select: the
@@ -83,6 +83,11 @@ ol-tabs > [role="tabpanel"]:focus-visible {
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--spacing-2xs);
   border-radius: var(--border-radius-sm);
+}
+
+/* Panels sit a stack gap below the tab row. */
+ol-tabs > :not([slot]) {
+  margin-block-start: var(--spacing-stack-md);
 }
 
 /* Before upgrade the panels share the host's flex row; each takes a full line. */

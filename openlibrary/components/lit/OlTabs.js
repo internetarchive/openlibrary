@@ -83,6 +83,11 @@ export class OlTabs extends LitElement {
         super();
         this.syncHash = false;
         this._onHashChange = this._onHashChange.bind(this);
+        // Whether the selected panel needs its own tab stop can change after a
+        // sync: content arrives later, or the tabs start out in a closed dialog
+        // where nothing is visible yet. Recheck when the content or size changes.
+        this._contentObserver = new MutationObserver(() => this._syncPanelTabStop());
+        this._resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(() => this._syncPanelTabStop()) : null;
     }
 
     connectedCallback() {
@@ -91,6 +96,8 @@ export class OlTabs extends LitElement {
         this._defaultSelected = this.selected || this.querySelector(':scope > [data-selected]:not([slot])')?.id;
         this.selected = this._panelIdFromHash() || this._defaultSelected;
         window.addEventListener('hashchange', this._onHashChange);
+        this._contentObserver.observe(this, { childList: true, subtree: true });
+        this._resizeObserver?.observe(this);
         // Flush the first render within the upgrade task, so the pre-upgrade
         // layout (ol-tabs.css, `:not(:defined)`) hands off with no frame between.
         this.performUpdate();
@@ -99,6 +106,8 @@ export class OlTabs extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         window.removeEventListener('hashchange', this._onHashChange);
+        this._contentObserver.disconnect();
+        this._resizeObserver?.disconnect();
     }
 
     /** @returns {HTMLAnchorElement[]} */
@@ -148,13 +157,18 @@ export class OlTabs extends LitElement {
             panel.setAttribute('role', 'tabpanel');
             panel.setAttribute('aria-labelledby', tab.id);
             panel.hidden = !isSelected;
-            // A panel with nothing focusable inside joins the tab sequence
-            // itself, so keyboard users can still reach its content (APG).
-            if (isSelected) {
-                if (hasTabbableElement(panel)) panel.removeAttribute('tabindex');
-                else panel.tabIndex = 0;
-            }
         });
+        this._syncPanelTabStop();
+    }
+
+    // A selected panel with nothing focusable inside joins the tab sequence
+    // itself, so keyboard users can still reach its content (APG). A frame
+    // counts too: Tab enters it, though focus traps don't treat it as a stop.
+    _syncPanelTabStop() {
+        const panel = this._panelFor(this._panelIdOf(this._tabs[this._selectedIndex]));
+        if (!panel) return;
+        if (hasTabbableElement(panel) || panel.querySelector('iframe')) panel.removeAttribute('tabindex');
+        else panel.tabIndex = 0;
     }
 
     // Scroll the tab row (never the page) so the selected tab is in view.
@@ -206,7 +220,10 @@ export class OlTabs extends LitElement {
     _onKeydown(e) {
         // Leave browser shortcuts alone (Alt+Arrow is Back/Forward).
         if (e.altKey || e.ctrlKey || e.metaKey) return;
-        const target = getNextKeyboardFocusIndex(e.key, {
+        // The row mirrors under RTL, so the arrows follow what's on screen.
+        const rtl = getComputedStyle(this).direction === 'rtl';
+        const key = rtl ? { ArrowLeft: 'ArrowRight', ArrowRight: 'ArrowLeft' }[e.key] || e.key : e.key;
+        const target = getNextKeyboardFocusIndex(key, {
             count: this._tabs.length,
             current: this._selectedIndex,
             orientation: 'horizontal',
