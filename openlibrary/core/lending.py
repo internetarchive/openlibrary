@@ -26,7 +26,7 @@ from openlibrary.utils.request_context import (
 )
 
 from . import helpers as h
-from . import ia
+from . import ia, ia_bulkhead
 
 if TYPE_CHECKING:
     from openlibrary.book_providers import EbookAccess
@@ -178,9 +178,19 @@ def compose_ia_url(
     return base_url + "?" + urlencode(params)
 
 
-@cache.memoize(engine="memcache", key="gt-availability", expires=5 * dateutil.MINUTE_SECS)
+@cache.memoize(
+    engine="memcache",
+    key="gt-availability",
+    expires=5 * dateutil.MINUTE_SECS,
+    # An empty result means we didn't get an answer from IA; don't cache that for 5 minutes
+    cacheable=lambda key, value: bool(value),
+)
 def get_cached_groundtruth_availability(ocaid):
-    return get_groundtruth_availability(ocaid)
+    try:
+        with ia_bulkhead.ia_request_slot("groundtruth"):
+            return get_groundtruth_availability(ocaid)
+    except ia_bulkhead.IABulkheadFull:
+        return {}
 
 
 async def get_groundtruth_availability_async(ocaid, s3_keys=None):
@@ -418,6 +428,15 @@ async def get_availability_async(
     if not ids_to_fetch:
         return availabilities
 
+    def error_availabilities() -> dict[str, AvailabilityStatusV2]:
+        return {
+            _id: update_availability_schema_to_v2(
+                cast(AvailabilityStatus, {"status": "error"}),
+                ocaid=_id if id_type == "identifier" else None,
+            )
+            for _id in ids_to_fetch
+        }
+
     try:
         headers = {
             "x-preferred-client-id": req_context.get().x_forwarded_for or "ol-internal",
@@ -427,16 +446,17 @@ async def get_availability_async(
         }
         if config_ia_ol_metadata_write_s3:
             headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
-        resp = await ia.get_async_session().get(
-            config_ia_availability_api_v2_url,
-            params={
-                id_type: ",".join(ids_to_fetch),
-                "scope": "printdisabled",
-            },
-            headers=headers,
-            timeout=config_http_request_timeout,
-            extensions={"server_timing": "ia-availability"},
-        )
+        with ia_bulkhead.ia_request_slot("availability"):
+            resp = await ia.get_async_session().get(
+                config_ia_availability_api_v2_url,
+                params={
+                    id_type: ",".join(ids_to_fetch),
+                    "scope": "printdisabled",
+                },
+                headers=headers,
+                timeout=config_http_request_timeout,
+                extensions={"server_timing": "ia-availability"},
+            )
 
         # This API should always return 200
         resp.raise_for_status()
@@ -461,17 +481,11 @@ async def get_availability_async(
             expires=5 * dateutil.MINUTE_SECS,
         )
         return availabilities
+    except ia_bulkhead.IABulkheadFull:
+        return availabilities | error_availabilities()
     except Exception as e:  # TODO: Narrow exception scope
         logger.exception("lending.get_availability", extra={"ids": ids})
-        availabilities.update(
-            {
-                _id: update_availability_schema_to_v2(
-                    cast(AvailabilityStatus, {"status": "error"}),
-                    ocaid=_id if id_type == "identifier" else None,
-                )
-                for _id in ids_to_fetch
-            }
-        )
+        availabilities.update(error_availabilities())
         return availabilities | {
             "error": "request_timeout",
             "details": str(e),
