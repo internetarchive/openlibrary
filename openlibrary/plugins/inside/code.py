@@ -5,6 +5,7 @@ from infogami.utils.view import render_template
 from openlibrary.core.fulltext import (
     fulltext_page,
     fulltext_search_async,
+    is_auto_phrased_query,
     resolve_language,
 )
 from openlibrary.utils.async_utils import async_bridge
@@ -38,10 +39,11 @@ class search_inside(delegate.page):
     path = "/search/inside"
 
     def GET(self):
-        i = web.input(q="", page=1, language=[], readable="")
+        i = web.input(q="", page=1, language=[], readable="", phrase="true")
         query = i.q
         page = int(i.page)
         readable = i.readable == "true"
+        phrase = i.phrase != "false"
         # (code, name): FTS takes the name; generated URLs keep the code.
         language = resolve_language(i.language)
 
@@ -55,12 +57,14 @@ class search_inside(delegate.page):
                     facets=False,
                     readable=readable,
                     language=language[1] if language else None,
+                    phrase=phrase,
                 )
             )
             if query
             else {}
         )
         rows, total = fulltext_page(results)
+        used_fallback = bool(results.get("all_words_fallback"))
 
         return render_template(
             "search/inside.tmpl",
@@ -71,6 +75,10 @@ class search_inside(delegate.page):
             results_per_page=RESULTS_PER_PAGE,
             language=language,
             readable=readable,
+            phrase=phrase and not used_fallback,
+            was_auto_phrased=phrase and not used_fallback and is_auto_phrased_query(query),
+            used_fallback=used_fallback,
+            opted_out=not phrase and is_auto_phrased_query(query),
             error=results.get("error"),
             empty_reason=empty_reason(query, rows, total, filtered=readable or bool(language)),
         )
