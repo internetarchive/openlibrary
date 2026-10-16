@@ -143,8 +143,8 @@ class TestWaitingLoanDict:
 
     def test_dict_converts_datetime_to_iso_string(self):
         """Test that datetime objects are converted to ISO format strings."""
-        dt = dt.datetime(2023, 5, 15, 14, 30, 45)
-        w = WaitingLoan({"since": dt, "status": "waiting"})
+        since = dt.datetime(2023, 5, 15, 14, 30, 45)
+        w = WaitingLoan({"since": since, "status": "waiting"})
 
         result = w.dict()
         assert isinstance(result["since"], str)
@@ -152,13 +152,13 @@ class TestWaitingLoanDict:
 
     def test_dict_is_json_serializable(self):
         """Test that the dict output can be serialized to JSON."""
-        dt = dt.datetime.utcnow()
+        since = dt.datetime.utcnow()
         w = WaitingLoan(
             {
                 "status": "waiting",
                 "identifier": "book123",
                 "userid": "@ol_user1",
-                "since": dt,
+                "since": since,
             }
         )
 

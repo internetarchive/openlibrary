@@ -235,7 +235,7 @@ class OpenLibrary:
 def marshal(data):
     """Serializes the specified data in the format required by OL.::
 
-    >>> marshal(datetime.datetime(2009, 1, 2, 3, 4, 5, 6789))
+    >>> marshal(dt.datetime(2009, 1, 2, 3, 4, 5, 6789))
     {'type': '/type/datetime', 'value': '2009-01-02T03:04:05.006789'}
     """
     if isinstance(data, list):

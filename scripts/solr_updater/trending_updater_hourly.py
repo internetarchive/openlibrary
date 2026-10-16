@@ -52,8 +52,8 @@ class NoLogsFoundError(subprocess.CalledProcessError):
     pass
 
 
-def get_logs_for_hour(dt: dt.datetime, extra_grep: str | None = None):
-    start_ts = int(dt.replace(minute=0, second=0, microsecond=0).timestamp() * 1000)
+def get_logs_for_hour(hour: dt.datetime, extra_grep: str | None = None):
+    start_ts = int(hour.replace(minute=0, second=0, microsecond=0).timestamp() * 1000)
     end_ts = start_ts + 3600 * 1000 - 1
 
     if extra_grep:
@@ -115,13 +115,13 @@ def get_logs_for_hour(dt: dt.datetime, extra_grep: str | None = None):
                 raise subprocess.CalledProcessError(proc.returncode, proc.args)
 
 
-def fetch_work_hour_pageviews(dt: dt.datetime) -> Counter[str]:
+def fetch_work_hour_pageviews(hour: dt.datetime) -> Counter[str]:
     """
     Iterate over the nginx logs of the given hour and count the number of pageviews
     """
 
     # We will need to fetch the work keys for these
-    book_keys = {line.strip().split(" ")[1] for line in get_logs_for_hour(dt, 'grep -oE "GET /books/OL[0-9]+M"')}
+    book_keys = {line.strip().split(" ")[1] for line in get_logs_for_hour(hour, 'grep -oE "GET /books/OL[0-9]+M"')}
     print(f"Found {len(book_keys)} /book pageviews in the hour")
 
     book_key_to_work_key: dict[str, str] = {}
@@ -162,7 +162,7 @@ def fetch_work_hour_pageviews(dt: dt.datetime) -> Counter[str]:
     # Each tuple is (ip, work_key).
     req_set: set[tuple[str, str]] = set()
 
-    for line in get_logs_for_hour(dt):
+    for line in get_logs_for_hour(hour):
         line = LogLine.from_line(line)
         page_key = line.page_key
         if page_key.startswith("/books/"):
@@ -178,8 +178,8 @@ def fetch_work_hour_pageviews(dt: dt.datetime) -> Counter[str]:
     return Counter(work_key for _, work_key in req_set)
 
 
-def fetch_work_hour_book_events(dt: dt.datetime) -> dict[str, int]:
-    start = dt.replace(minute=0, second=0, microsecond=0)
+def fetch_work_hour_book_events(hour: dt.datetime) -> dict[str, int]:
+    start = hour.replace(minute=0, second=0, microsecond=0)
     end_ts = start + dt.timedelta(hours=1)
 
     ol_db = db.get_db()

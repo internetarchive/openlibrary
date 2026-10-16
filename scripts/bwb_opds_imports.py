@@ -100,10 +100,10 @@ def _parse_iso(value: str) -> dt.datetime:
     BWB emits high-precision offsets like ``2026-05-19T14:47:58.5476301-04:00``
     which ``datetime.fromisoformat`` accepts on Python 3.11+.
     """
-    dt = dt.datetime.fromisoformat(value)
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=dt.UTC)
-    return dt.astimezone(dt.UTC)
+    parsed = dt.datetime.fromisoformat(value)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=dt.UTC)
+    return parsed.astimezone(dt.UTC)
 
 
 def extract_isbn(metadata: dict[str, Any]) -> str | None:

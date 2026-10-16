@@ -30,7 +30,7 @@ class TestTrendingUpdaterInit:
                 side_effect=fake_hourly,
             ),
             patch(
-                "scripts.solr_updater.trending_updater_init.datetime.datetime",
+                "scripts.solr_updater.trending_updater_init.dt.datetime",
                 PatchedDateTime,
             ),
         ):

@@ -128,8 +128,8 @@ def build_session() -> requests.Session:
 def _as_utc(value: dt.datetime | str | None) -> dt.datetime | None:
     if not value:
         return None
-    dt = dt.datetime.fromisoformat(value) if isinstance(value, str) else value
-    return dt.replace(tzinfo=dt.UTC) if dt.tzinfo is None else dt.astimezone(dt.UTC)
+    parsed = dt.datetime.fromisoformat(value) if isinstance(value, str) else value
+    return parsed.replace(tzinfo=dt.UTC) if parsed.tzinfo is None else parsed.astimezone(dt.UTC)
 
 
 def iter_pages(start_url: str, session: requests.Session, max_pages: int | None = None, state: dict | None = None):

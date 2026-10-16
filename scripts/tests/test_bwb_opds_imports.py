@@ -134,9 +134,9 @@ def test_map_publication_drops_unmappable_language():
 
 
 def test_parse_iso_handles_offset_and_naive():
-    dt = _parse_iso("2026-05-19T14:47:58.547630-04:00")
-    assert dt.tzinfo is dt.UTC
-    assert dt == dt.datetime(2026, 5, 19, 18, 47, 58, 547630, tzinfo=dt.UTC)
+    parsed = _parse_iso("2026-05-19T14:47:58.547630-04:00")
+    assert parsed.tzinfo is dt.UTC
+    assert parsed == dt.datetime(2026, 5, 19, 18, 47, 58, 547630, tzinfo=dt.UTC)
 
     naive = _parse_iso("2026-05-19T14:47:58")
     assert naive.tzinfo is dt.UTC

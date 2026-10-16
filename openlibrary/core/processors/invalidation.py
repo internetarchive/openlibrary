@@ -104,8 +104,8 @@ class InvalidationProcessor:
 
     def is_timeout(self):
         t = dt.datetime.now()
-        dt = t - self.last_poll_time
-        return dt > self.timeout
+        elapsed = t - self.last_poll_time
+        return elapsed > self.timeout
 
     def get_cookie_time(self):
         cookies = web.cookies()
