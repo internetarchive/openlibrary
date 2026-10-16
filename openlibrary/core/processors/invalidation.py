@@ -1,5 +1,5 @@
 import contextlib
-import datetime
+import datetime as dt
 
 import web
 
@@ -72,10 +72,10 @@ class InvalidationProcessor:
 
     def __init__(self, prefixes, timeout=60, cookie_name="lastupdate"):
         self.prefixes = prefixes
-        self.timeout = datetime.timedelta(0, timeout)
+        self.timeout = dt.timedelta(0, timeout)
 
         self.cookie_name = cookie_name
-        self.last_poll_time = datetime.datetime.now()
+        self.last_poll_time = dt.datetime.now()
         self.last_update_time = self.last_poll_time
 
         # set expire_time slightly more than timeout
@@ -103,7 +103,7 @@ class InvalidationProcessor:
         return handler()
 
     def is_timeout(self):
-        t = datetime.datetime.now()
+        t = dt.datetime.now()
         dt = t - self.last_poll_time
         return dt > self.timeout
 
@@ -121,7 +121,7 @@ class InvalidationProcessor:
 
     def reload(self):
         """Triggers on_new_version event for all the documents modified since last_poll_time."""
-        t = datetime.datetime.now()
+        t = dt.datetime.now()
         reloaded = False
 
         keys = []

@@ -16,7 +16,7 @@ __version__ = "0.1"
 __author__ = "Anand Chitipothu <anandology@gmail.com>"
 
 
-import datetime
+import datetime as dt
 import json
 import logging
 import os
@@ -242,7 +242,7 @@ def marshal(data):
         return [marshal(d) for d in data]
     elif isinstance(data, dict):
         return {k: marshal(v) for k, v in data.items()}
-    elif isinstance(data, datetime.datetime):
+    elif isinstance(data, dt.datetime):
         return {"type": "/type/datetime", "value": data.isoformat()}
     elif isinstance(data, Text):
         return {"type": "/type/text", "value": str(data)}
@@ -285,11 +285,11 @@ def parse_datetime(value):
     >>> parse_datetime("2009-01-02T03:04:05.006789")
     datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
     """
-    if isinstance(value, datetime.datetime):
+    if isinstance(value, dt.datetime):
         return value
     else:
         tokens = re.split(r"-|T|:|\.| ", value)
-        return datetime.datetime(*map(int, tokens))
+        return dt.datetime(*map(int, tokens))
 
 
 class Text(str):

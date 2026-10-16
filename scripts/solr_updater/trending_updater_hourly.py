@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import itertools
 import json
 import subprocess
@@ -52,7 +52,7 @@ class NoLogsFoundError(subprocess.CalledProcessError):
     pass
 
 
-def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
+def get_logs_for_hour(dt: dt.datetime, extra_grep: str | None = None):
     start_ts = int(dt.replace(minute=0, second=0, microsecond=0).timestamp() * 1000)
     end_ts = start_ts + 3600 * 1000 - 1
 
@@ -115,7 +115,7 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
                 raise subprocess.CalledProcessError(proc.returncode, proc.args)
 
 
-def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
+def fetch_work_hour_pageviews(dt: dt.datetime) -> Counter[str]:
     """
     Iterate over the nginx logs of the given hour and count the number of pageviews
     """
@@ -178,9 +178,9 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
     return Counter(work_key for _, work_key in req_set)
 
 
-def fetch_work_hour_book_events(dt: datetime.datetime) -> dict[str, int]:
+def fetch_work_hour_book_events(dt: dt.datetime) -> dict[str, int]:
     start = dt.replace(minute=0, second=0, microsecond=0)
-    end_ts = start + datetime.timedelta(hours=1)
+    end_ts = start + dt.timedelta(hours=1)
 
     ol_db = db.get_db()
     query = f"""
@@ -290,10 +290,10 @@ def form_inplace_trending_update(
 
 def run_hourly_update(timestamp: str | None = None, dry_run: bool = False):
     if timestamp:
-        ts = datetime.datetime.fromisoformat(timestamp)
+        ts = dt.datetime.fromisoformat(timestamp)
     else:
         # Use previous hour if no timestamp is provided
-        ts = datetime.datetime.now() - datetime.timedelta(hours=1)
+        ts = dt.datetime.now() - dt.timedelta(hours=1)
 
     # The slot in solr that corresponds to the given hour
     hour_slot = ts.hour

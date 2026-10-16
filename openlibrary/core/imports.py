@@ -1,7 +1,7 @@
 """Interface to import queue."""
 
 import contextlib
-import datetime
+import datetime as dt
 import json
 import logging
 import time
@@ -391,7 +391,7 @@ class ImportItem(web.storage):
             "status": status,
             "error": error,
             "ol_key": ol_key,
-            "import_time": datetime.datetime.utcnow(),
+            "import_time": dt.datetime.utcnow(),
         }
         if status != "failed":
             d = dict(**d, data=None)

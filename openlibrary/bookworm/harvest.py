@@ -18,7 +18,7 @@ then loads them, and the catalog writes the acquisitions.
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import logging
 import time
 from typing import Any
@@ -69,7 +69,7 @@ re-submits, where ``Batch.add_items`` drops what is already present.
 """
 
 REQUEST_TIMEOUT = 60
-EPOCH = datetime.datetime(1970, 1, 1, tzinfo=datetime.UTC)
+EPOCH = dt.datetime(1970, 1, 1, tzinfo=dt.UTC)
 
 USER_AGENT = "OpenLibraryBot/1.0 (+https://openlibrary.org; openlibrary@archive.org)"
 """Identify ourselves to providers.
@@ -125,11 +125,11 @@ def build_session() -> requests.Session:
     return session
 
 
-def _as_utc(value: datetime.datetime | str | None) -> datetime.datetime | None:
+def _as_utc(value: dt.datetime | str | None) -> dt.datetime | None:
     if not value:
         return None
-    dt = datetime.datetime.fromisoformat(value) if isinstance(value, str) else value
-    return dt.replace(tzinfo=datetime.UTC) if dt.tzinfo is None else dt.astimezone(datetime.UTC)
+    dt = dt.datetime.fromisoformat(value) if isinstance(value, str) else value
+    return dt.replace(tzinfo=dt.UTC) if dt.tzinfo is None else dt.astimezone(dt.UTC)
 
 
 def iter_pages(start_url: str, session: requests.Session, max_pages: int | None = None, state: dict | None = None):
@@ -219,7 +219,7 @@ def _check_page_is_credible(page: dict, url: str) -> None:
         raise SuspectFeedPage(f"{url}: 0 publications but metadata.numberOfItems={claimed}; treating as a failed fetch")
 
 
-def _parse_publication(raw: dict, feed: opds.Feed, provider_name: str) -> tuple[dict[str, Any] | None, datetime.datetime | None]:
+def _parse_publication(raw: dict, feed: opds.Feed, provider_name: str) -> tuple[dict[str, Any] | None, dt.datetime | None]:
     """Parse one OPDS publication into (import record | None, modified timestamp).
 
     Isolated so a single malformed publication (bad timestamp, link missing
@@ -373,7 +373,7 @@ def harvest_feed(
     feed: FeedRegistry,
     session: requests.Session | None = None,
     max_pages: int | None = None,
-    now: datetime.datetime | None = None,
+    now: dt.datetime | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
     """Harvest one feed, using the native ``modified_since`` path when supported.
@@ -391,12 +391,12 @@ def _harvest_native(
     feed: FeedRegistry,
     session: requests.Session | None = None,
     max_pages: int | None = None,
-    now: datetime.datetime | None = None,
+    now: dt.datetime | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
     """Harvest a feed that filters server-side via ``?modified_since=<cursor>``."""
     session = session or build_session()
-    now = now or datetime.datetime.now(datetime.UTC)
+    now = now or dt.datetime.now(dt.UTC)
     since = _as_utc(feed.last_updated) or EPOCH
     parser_feed = feed.to_feed()
 
@@ -431,7 +431,7 @@ def _harvest_by_full_crawl(
     feed: FeedRegistry,
     session: requests.Session | None = None,
     max_pages: int | None = None,
-    now: datetime.datetime | None = None,
+    now: dt.datetime | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
     """Fallback for feeds WITHOUT a ``modified_since`` filter (currently only BWB).
@@ -442,7 +442,7 @@ def _harvest_by_full_crawl(
     feed supports ``modified_since``.
     """
     session = session or build_session()
-    now = now or datetime.datetime.now(datetime.UTC)
+    now = now or dt.datetime.now(dt.UTC)
     since = _as_utc(feed.last_updated) or EPOCH
     parser_feed = feed.to_feed()
 

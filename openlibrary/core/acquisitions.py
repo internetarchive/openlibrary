@@ -13,7 +13,7 @@ https://github.com/internetarchive/openlibrary/pull/12793.
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import functools
 import json
 import logging
@@ -30,9 +30,9 @@ if TYPE_CHECKING:
     from web.db import ResultSet
 
 
-def _utcnow() -> datetime.datetime:
+def _utcnow() -> dt.datetime:
     """Timezone-naive UTC now, matching the table's ``timestamp`` columns."""
-    return datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+    return dt.datetime.now(dt.UTC).replace(tzinfo=None)
 
 
 class Acquisition(web.storage, CommonExtras):
@@ -44,8 +44,8 @@ class Acquisition(web.storage, CommonExtras):
     provider_name: str
     local_id: str
     data: dict
-    created: datetime.datetime
-    updated: datetime.datetime
+    created: dt.datetime
+    updated: dt.datetime
 
     # Configuration for CommonExtras mixin:
     TABLENAME = "acquisitions"

@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import io
 import json
 from pathlib import Path
@@ -135,11 +135,11 @@ def test_map_publication_drops_unmappable_language():
 
 def test_parse_iso_handles_offset_and_naive():
     dt = _parse_iso("2026-05-19T14:47:58.547630-04:00")
-    assert dt.tzinfo is datetime.UTC
-    assert dt == datetime.datetime(2026, 5, 19, 18, 47, 58, 547630, tzinfo=datetime.UTC)
+    assert dt.tzinfo is dt.UTC
+    assert dt == dt.datetime(2026, 5, 19, 18, 47, 58, 547630, tzinfo=dt.UTC)
 
     naive = _parse_iso("2026-05-19T14:47:58")
-    assert naive.tzinfo is datetime.UTC
+    assert naive.tzinfo is dt.UTC
 
 
 def test_find_next_url_present_and_absent():
@@ -153,7 +153,7 @@ def test_state_roundtrip(tmp_path: Path):
     state_file = tmp_path / "state.txt"
     assert read_state(str(state_file)) == EPOCH
 
-    ts = datetime.datetime(2026, 5, 22, 12, 0, 0, tzinfo=datetime.UTC)
+    ts = dt.datetime(2026, 5, 22, 12, 0, 0, tzinfo=dt.UTC)
     write_state(str(state_file), ts)
     assert read_state(str(state_file)) == ts
 
@@ -236,7 +236,7 @@ def test_process_feed_filters_by_modified(monkeypatch):
     session = FakeSession(pages)
     monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
 
-    cutoff = datetime.datetime(2026, 3, 1, tzinfo=datetime.UTC)
+    cutoff = dt.datetime(2026, 3, 1, tzinfo=dt.UTC)
     prices_fh = io.StringIO()
     olbooks, max_modified = process_feed(
         feed_url="https://x/p1",
@@ -307,7 +307,7 @@ def test_process_feed_early_stops_on_first_all_stale_page(monkeypatch):
     session = FakeSession(pages)
     monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
 
-    cutoff = datetime.datetime(2026, 3, 1, tzinfo=datetime.UTC)
+    cutoff = dt.datetime(2026, 3, 1, tzinfo=dt.UTC)
     olbooks, _ = process_feed(
         feed_url="https://x/p1",
         since=cutoff,
@@ -338,7 +338,7 @@ def test_process_feed_full_traversal_is_the_default(monkeypatch):
 
     process_feed(
         feed_url="https://x/p1",
-        since=datetime.datetime(2026, 3, 1, tzinfo=datetime.UTC),
+        since=dt.datetime(2026, 3, 1, tzinfo=dt.UTC),
         prices_out_fh=io.StringIO(),
     )
     # Default early_stop=False — both pages fetched even when first is all-stale.

@@ -61,7 +61,7 @@ should not require an Open Library deploy.
 
 import asyncio
 import base64
-import datetime
+import datetime as dt
 import hashlib
 import logging
 import secrets
@@ -391,7 +391,7 @@ def _grant_from_payload(payload: dict[str, Any]) -> Grant:
         raise ValueError("token endpoint returned no access_token")
     expires = None
     if (expires_in := payload.get("expires_in")) is not None:
-        expires = datetime.datetime.now(datetime.UTC).replace(tzinfo=None) + datetime.timedelta(seconds=int(expires_in))
+        expires = dt.datetime.now(dt.UTC).replace(tzinfo=None) + dt.timedelta(seconds=int(expires_in))
     return Grant(
         access_token=token,
         refresh_token=payload.get("refresh_token") or None,
@@ -505,7 +505,7 @@ async def fetch_node_loans(issuer: str, token: str, timeout_seconds: float) -> l
     return (_node_json(resp) or {}).get("loans") or []
 
 
-def _parse_iso(value: Any) -> datetime.datetime | None:
+def _parse_iso(value: Any) -> dt.datetime | None:
     """One of the node's ISO 8601 instants, as an aware datetime, or None.
 
     Both of the node's timestamps are **offset-bearing**: `created_at` and
@@ -521,11 +521,11 @@ def _parse_iso(value: Any) -> datetime.datetime | None:
     if not value:
         return None
     try:
-        parsed = datetime.datetime.fromisoformat(str(value))
+        parsed = dt.datetime.fromisoformat(str(value))
     except ValueError:
         logger.info("lenny loan carried an unparsable timestamp: %r", value)
         return None
-    return parsed.replace(tzinfo=datetime.UTC) if parsed.tzinfo is None else parsed
+    return parsed.replace(tzinfo=dt.UTC) if parsed.tzinfo is None else parsed
 
 
 def _epoch(value: Any) -> float:
@@ -570,7 +570,7 @@ def _expiry(value: Any) -> str | None:
     parsed = _parse_iso(value)
     if parsed is None:
         return None
-    return parsed.astimezone(datetime.UTC).replace(tzinfo=None).isoformat()
+    return parsed.astimezone(dt.UTC).replace(tzinfo=None).isoformat()
 
 
 def loan_from_node(provider_name: str, issuer: str, username: str, payload: dict[str, Any]) -> dict[str, Any] | None:
