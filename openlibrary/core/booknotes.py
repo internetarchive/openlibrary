@@ -28,16 +28,16 @@ class Booknotes(db.CommonExtras):
 
     @classmethod
     async def summary(cls) -> dict:
-        query = (
-            f"SELECT "
-            f"  count(*) AS total_notes, "
-            f"  count(*) FILTER (WHERE created >= %(month_ago)s) AS month_notes, "
-            f"  count(*) FILTER (WHERE created >= %(week_ago)s) AS week_notes, "
-            f"  count(DISTINCT username) AS total_users, "
-            f"  count(DISTINCT username) FILTER (WHERE created >= %(month_ago)s) AS month_users, "
-            f"  count(DISTINCT username) FILTER (WHERE created >= %(week_ago)s) AS week_users "
-            f"FROM {cls.TABLENAME}"
-        )
+        query = f"""
+            SELECT
+                count(*) AS total_notes,
+                count(*) FILTER (WHERE created >= %(month_ago)s) AS month_notes,
+                count(*) FILTER (WHERE created >= %(week_ago)s) AS week_notes,
+                count(DISTINCT username) AS total_users,
+                count(DISTINCT username) FILTER (WHERE created >= %(month_ago)s) AS month_users,
+                count(DISTINCT username) FILTER (WHERE created >= %(week_ago)s) AS week_users
+            FROM {cls.TABLENAME}
+        """
         row = await fetch_one(
             query,
             {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO},

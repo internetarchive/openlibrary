@@ -25,7 +25,7 @@ $def with (notes, user, num_found, page=1, results_per_page=25)
             <ul class="notes-list">
               $for k in sorted(i['notes']):
                 <li class="notes-list-item">
-                  $if k == -1:
+                  $if k not in i['editions']:
                     <div class="book-info">
                       <div class="title">$_('My notes for this work')</div>
                     </div>
@@ -57,6 +57,7 @@ $def with (notes, user, num_found, page=1, results_per_page=25)
                             $edition.edition_name
                         </div>
                       </div>
+                    </div>
                   <div class="book-note">
                     $ textarea_id = str(k) + "-notes-textarea"
                     $ button_div_id = str(k) + "-note-form-buttons"
