@@ -37,7 +37,7 @@ from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from openlibrary.plugins.upstream.utils import get_identifier_config
 from openlibrary.utils import extract_numeric_id_from_olid, normalize_subject_name
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import get_print_disabled, site
 
 from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
 from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_url
@@ -971,7 +971,7 @@ class User(Thing):
         return web.cookies().get(name, False)
 
     def is_printdisabled(self):
-        return web.cookies().get("pd")
+        return get_print_disabled()
 
     def is_admin(self) -> bool:
         return self.is_usergroup_member("/usergroup/admin")
