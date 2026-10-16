@@ -1399,6 +1399,10 @@ msgid "Unknown author"
 msgstr ""
 
 #: account/notes.html
+msgid "My notes for this work"
+msgstr ""
+
+#: account/notes.html
 msgid "My notes for an edition of "
 msgstr ""
 
