@@ -6,6 +6,10 @@ every worker and the whole site goes down with it (#13956). This caps how many
 availability requests can be in flight at once, across every worker on every
 host, with a counter in memcache. A request over the cap isn't made: callers get
 the same "error" availability they already show when archive.org fails.
+
+Only web.py uses it: scripts/openlibrary-server calls enable_concurrency_limit().
+FastAPI's async workers keep serving other requests while one waits on
+archive.org, so they aren't limited and don't use up web.py's slots.
 """
 
 import functools
@@ -31,6 +35,14 @@ DEFAULT_MAX_CONCURRENT = 15
 WINDOW_SECONDS = 30
 
 
+_enabled = False
+
+
+def enable_concurrency_limit() -> None:
+    global _enabled
+    _enabled = True
+
+
 class IABulkheadFull(Exception):
     """Raised instead of making an IA request when the concurrency cap is reached."""
 
@@ -52,9 +64,10 @@ def ia_request_slot(name: Literal["availability", "groundtruth"]) -> Iterator[No
     """Hold one of the global IA request slots for the duration of the block.
 
     Raises IABulkheadFull, without running the block, when every slot is taken.
-    Fails open (runs the block) when memcache is unavailable.
+    Fails open (runs the block) when memcache is unavailable, and does nothing
+    unless enable_concurrency_limit() was called.
     """
-    if (mc := _memcache()) is None:
+    if not _enabled or (mc := _memcache()) is None:
         yield
         return
 

@@ -15,6 +15,7 @@ NOW = 1_800_000_000.0  # the start of a window
 def mc(mock_memcache, monkeypatch):
     """A real memcache.Client whose network calls go to the mock_memcache dict."""
     client = memcache.Client(["mock:11211"])
+    monkeypatch.setattr(ia_bulkhead, "_enabled", True)
     monkeypatch.setattr(ia_bulkhead, "_memcache", lambda: client)
     monkeypatch.setattr(ia_bulkhead, "time", SimpleNamespace(time=lambda: NOW))
     return mock_memcache
@@ -70,6 +71,17 @@ class TestIARequestSlot:
             pass
         assert skipped == ["ol.ia_bulkhead.skipped.availability"]
 
+    def test_does_nothing_unless_enabled(self, mc, skipped, monkeypatch):
+        """FastAPI never calls enable_concurrency_limit(), so its requests aren't limited or counted."""
+        monkeypatch.setattr(ia_bulkhead, "_enabled", False)
+        set_limit(monkeypatch, 0)
+        ran = False
+        with ia_bulkhead.ia_request_slot("availability"):
+            ran = True
+            assert in_flight(mc) == 0
+        assert ran
+        assert skipped == []
+
     @pytest.mark.parametrize(
         "broken_client",
         [
@@ -80,6 +92,7 @@ class TestIARequestSlot:
     )
     def test_fails_open_without_memcache(self, broken_client, skipped, monkeypatch):
         set_limit(monkeypatch, 0)
+        monkeypatch.setattr(ia_bulkhead, "_enabled", True)
         monkeypatch.setattr(ia_bulkhead, "_memcache", lambda: broken_client)
         ran = False
         with ia_bulkhead.ia_request_slot("availability"):

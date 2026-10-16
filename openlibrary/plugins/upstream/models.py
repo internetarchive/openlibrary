@@ -731,6 +731,21 @@ class Work(models.Work):
         for ed in editions:
             ed.availability = availability.get(ed.ocaid) or {"status": "error"}
 
+        # If IA didn't answer (it's down, or the IA request cap was reached), use Solr's
+        # ebook_access instead so open and borrowable editions still show as readable
+        if failed := [ed for ed in editions if ed.ocaid and ed.availability.get("status") == "error"]:
+            from openlibrary.book_providers import EbookAccess
+
+            try:
+                docs = get_solr().get_many([ed.key for ed in failed], fields=["key", "ebook_access"])
+            except Exception:
+                logging.getLogger("openlibrary").exception("Solr ebook_access fallback for availability failed")
+                docs = []
+            ebook_access = {doc["key"]: doc.get("ebook_access") for doc in docs}
+            for ed in failed:
+                if ebook_access.get(ed.key):
+                    ed.availability = lending.get_ebook_access_availability(ed.ocaid, EbookAccess.from_solr_str(ebook_access[ed.key]))
+
         return editions
 
     def has_ebook(self):
