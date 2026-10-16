@@ -220,7 +220,7 @@ class ReadingStateResponse(BaseModel):
 
 
 @router.get("/partials/ReadingState.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
-def reading_state_partial(
+async def reading_state_partial(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     work_ids: Annotated[
         list[str],
@@ -234,7 +234,7 @@ def reading_state_partial(
     Every requested work is present, with nulls where the reader has no state.
     book-state.js hydrates carousel shelf buttons from this.
     """
-    states = ReadingStatePartial.generate(user.username, work_ids)
+    states = await ReadingStatePartial.generate_async(user.username, work_ids)
     return ReadingStateResponse(user_key=user.user_key, works={olid: ReadingStateEntry(**state) for olid, state in states.items()})
 
 
