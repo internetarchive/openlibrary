@@ -50,11 +50,6 @@ initAnalytics();
 
 // Initialise some things
 $(function () {
-    const $tabs = $('.ol-tabs');
-    if ($tabs.length) {
-        import('./tabs').then(module => module.initTabs($tabs));
-    }
-
     const $autocomplete = $('.multi-input-autocomplete');
     if ($autocomplete.length) {
         import('./autocomplete').then(module => module.init($));
