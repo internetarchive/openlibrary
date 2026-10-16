@@ -4,18 +4,40 @@ Playwright specs that drive a real browser against a running Open Library.
 
 ## Running them
 
-Start the stack, install the browser once, then run:
+```bash
+make e2e-up      # stack, assets, Solr index, browser — once per session
+make test-e2e    # the suite
+```
+
+`make e2e-up` starts the Docker services, rebuilds `static/build` from your
+working tree, indexes the seed data into Solr if the index is empty, and
+installs Chromium. Re-running it is cheap: each step skips when it can.
+
+Narrow a run with `PLAYWRIGHT_ARGS`, which is passed straight to Playwright:
 
 ```bash
-OL_MOUNT_DIR="$(pwd)" docker compose up -d web infobase db memcached home covers
-npx playwright install chromium chromium-headless-shell
-npm run test:e2e
+make test-e2e PLAYWRIGHT_ARGS="search --headed"
 ```
 
 Tests hit `http://localhost:8080` by default. Point them elsewhere with `OL_BASE_URL`.
 
 Two projects are configured so nothing runs twice: `desktop` runs everything
 except `@mobile`, and `mobile` runs only `@mobile`.
+
+### Why the asset rebuild matters
+
+`static/build` is a named volume seeded from the `oldev` image, which is built
+on `openlibrary/olbase` — rebuilt weekly, with `make` run at image build time
+against **master**. Skip the rebuild and the browser loads last week's bundles,
+so a spec covering your own JS or Lit component passes without ever running
+your code. `make e2e-assets` is that rebuild; `make e2e-up` includes it.
+
+### Where these run
+
+Nowhere automatic, yet. There is no CI job and no pre-commit hook — run them
+locally when you touch templates, JS, or a Lit component. `visual.spec.ts` is
+opt-in behind `OL_VISUAL=1` and stays out of CI permanently: full-page
+screenshots differ with platform font rendering.
 
 ## Logged-in tests
 

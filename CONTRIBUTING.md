@@ -54,6 +54,19 @@ When requesting assignment:
 - Ask in Slack — request an invite on our [volunteers page](https://openlibrary.org/volunteer)
 - Attend the weekly community call to hear about current priorities
 
+## Running the tests
+
+```bash
+make test-py-uv       # Python
+npm run test:js       # JavaScript
+make e2e-up           # end-to-end: stack + assets + browser, once per session
+make test-e2e         # end-to-end: the Playwright specs
+```
+
+The end-to-end suite drives a real browser against your local stack. Nothing
+runs it automatically yet, so run it yourself when you change templates, JS, or
+a Lit component. See [`tests/e2e/README.md`](tests/e2e/README.md).
+
 ## Opening a pull request
 
 - Test your changes before opening a PR so reviewers can focus on the code rather than basic setup issues
