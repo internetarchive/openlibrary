@@ -70,7 +70,6 @@ body {
   background-color: var(--color-background);
 }
 
-/* stylelint-enable selector-max-specificity */
 div.message {
   float: left;
   clear: both;
