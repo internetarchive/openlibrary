@@ -3,18 +3,25 @@ import pytest
 import web
 
 from openlibrary.core.lists.model import List, Series
+from openlibrary.mocks.mock_infobase import MockSite
 from openlibrary.utils.request_context import site
 
 
-@pytest.fixture(params=["webpy", "worker"])
+@pytest.fixture(params=["webpy", "worker", "stale_worker"])
 def run_list_helper(request, mock_site):
     async def run(helper):
         def call():
             assert site.get() is mock_site
             assert hasattr(web.ctx, "site") == (request.param == "webpy")
+            if request.param == "stale_worker":
+                web.ctx.site = MockSite()
+                try:
+                    return helper()
+                finally:
+                    del web.ctx.site
             return helper()
 
-        if request.param == "worker":
+        if request.param != "webpy":
             return await anyio.to_thread.run_sync(call)
         return call()
 
