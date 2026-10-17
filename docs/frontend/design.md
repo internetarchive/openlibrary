@@ -184,6 +184,8 @@ The playground's *Menus and panels* check (`/developers/design/playground#menus`
 }
 ```
 
+Inside a Lit component, compose `menuRow` from `openlibrary/components/lit/control-styles.js` rather than restating these — the menu, options and select popovers all do, and keep only their row-specific rules (a `<button>`'s UA reset, the `gap` for a radio or checkbox) locally.
+
 ## Icons
 
 One set — sources in `static/icons/src/`, built into `static/icons/sprite.svg` — and two ways to draw from it. Pick by who renders the markup:
@@ -474,7 +476,7 @@ Scale a control on `:active` only if it is **self-contained**: it has its own vi
 
 A split control — `ol-shelf-button`'s split, the CTA dropper — is one fused shape, so the wrapper carries the press and `:active` reaches it from either half; a half that squeezes on its own reads as the control breaking. The wrapper stretches to its column, so it takes the wide tier, the same as `ol-button[full-width]` and the Buy trigger it sits beside on the book page.
 
-Tokens live in `static/css/tokens/press.css`. The press transition is the one place a hover-adjacent transition is allowed — `transform` only, never color (see [Hover state changes are instant](#hover-state-changes-are-instant)).
+Tokens live in `static/css/tokens/press.css`; Lit controls take the rule from `pressable` in `openlibrary/components/lit/control-styles.js` and set `--_press-scale` to pick the tier. The press transition is the one place a hover-adjacent transition is allowed — `transform` only, never color (see [Hover state changes are instant](#hover-state-changes-are-instant)).
 
 ### Motion: pick the token for what is happening, not a curve
 
