@@ -9,9 +9,9 @@ from collections.abc import Iterable
 from collections.abc import Set as AbstractSet
 
 import web
+
 from infogami.utils import stats
 from infogami.utils.delegate import register_exception
-
 from openlibrary.core import helpers, ia, lending
 from openlibrary.plugins.books import dynlinks
 
