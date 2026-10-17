@@ -1,7 +1,17 @@
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate, mybooks_home
 from openlibrary.utils.request_context import RequestContextVars, req_context
+
+
+@pytest.fixture(autouse=True)
+def _s3_cookie():
+    """render_template is a web.py handler and reads the patron's `s3` cookie
+    with web.cookies(), which needs a web.py request these tests don't build."""
+    with patch("openlibrary.plugins.upstream.mybooks.web.cookies", return_value={"s3": "test-s3"}):
+        yield
 
 
 def test_unified_loans_carousel_merges_active_and_history():
@@ -237,5 +247,5 @@ def test_loan_history_still_fetched_on_own_profile():
     mb.username = "viewer"
     _run_render(mb, mock_history_data)
 
-    mock_history_data.assert_called_once()
+    mock_history_data.assert_called_once_with("viewer", page=1, s3_cookie="test-s3")
     assert mock_history_data.call_args.args[0] == "viewer"
