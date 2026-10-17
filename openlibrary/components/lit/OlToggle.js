@@ -2,7 +2,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
 import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
 import { slotHasContent } from './utils/slot-utils.js';
-import { focusRingLayered, pressable, raised } from './control-styles.js';
+import { focusRingLayered, raised } from './control-styles.js';
 
 /**
  * OlToggle - A switch/toggle web component.
@@ -25,7 +25,9 @@ import { focusRingLayered, pressable, raised } from './control-styles.js';
  * @property {"button"} variant - Omit for the default (plain) toggle, or
  *   "button" for a bordered, raised container styled like
  *   ol-button[variant="secondary"] (subtle drop shadow, inset specular edge on
- *   hover) that fills with a soft blue tint when checked.
+ *   hover) that fills with a soft blue tint when checked. Neither variant
+ *   scales on press: the knob is the press feedback (see "Knob motion" in
+ *   the styles), so the wide button container never lurches.
  * @property {String} label - Primary label text.
  * @property {String} sublabel - Secondary greyed text shown after the label.
  * @property {String} accessibleLabel - Override aria-label on the switch.
@@ -65,7 +67,6 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
     static styles = [
         raised,
-        pressable,
         focusRingLayered,
         css`
             :host {
@@ -74,10 +75,20 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 --toggle-knob-size: 16px;
                 --toggle-knob-inset: 2px;
                 --toggle-gap: 10px;
+                /* Knob shape change on press: stretched along the track and
+               squashed. Pixels, not percentages, so the deformation stays
+               visible on a 16px knob. Hover deliberately leaves the knob alone. */
+                --toggle-knob-press-extend: 4px;
+                --toggle-knob-press-shrink: 4px;
 
-                /* The knob rests at the inline start and travels toward the inline
-               end, so the sign flips under RTL. */
+                /* Current deformation, set by the press rule below. */
+                --_toggle-knob-extend: 0px;
+                --_toggle-knob-shrink: 0px;
+
+                /* Unsigned travel from the inline start to the inline end; the
+               direction multiplier flips it under RTL. */
                 --_toggle-knob-travel: calc(var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset));
+                --_toggle-dir: 1;
 
                 /* Color slots. Default = plain, unchecked toggle; overridden below
                by [checked] and by the [variant="button"] container states. */
@@ -134,34 +145,46 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 transition: background-color var(--duration-fast) var(--ease-state);
             }
 
+            /* ── Knob motion ────────────────────────────────────────────────── */
+            /* The knob is anchored at the inline start and placed by translateX.
+           Its extra width grows toward the middle of the track: anchored, the
+           unchecked knob grows that way on its own, and the checked knob backs
+           off its travel by the same amount so its outer edge stays pinned at
+           the inset. Release springs everything (slide and un-squash) together
+           with a little overshoot. */
             .toggle__knob {
                 position: absolute;
-                top: var(--toggle-knob-inset);
+                top: calc(var(--toggle-knob-inset) + var(--_toggle-knob-shrink) / 2);
                 inset-inline-start: var(--toggle-knob-inset);
-                width: var(--toggle-knob-size);
-                height: var(--toggle-knob-size);
-                border-radius: var(--border-radius-circle);
+                width: calc(var(--toggle-knob-size) + var(--_toggle-knob-extend));
+                height: calc(var(--toggle-knob-size) - var(--_toggle-knob-shrink));
+                border-radius: var(--border-radius-pill);
                 background: var(--_toggle-knob);
                 box-shadow: var(--box-shadow-floating);
-                transition: transform var(--duration-fast) var(--ease-state);
-            }
-
-            /* The knob rests at the inline start and travels toward the inline end,
-           so the sign flips under RTL. */
-            :host {
-                --_toggle-knob-travel: calc(var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset));
+                transition-property: transform, width, height, top;
+                transition-duration: var(--duration-fast);
+                transition-timing-function: var(--ease-spring);
             }
 
             :host(:dir(rtl)) {
-                --_toggle-knob-travel: calc(-1 * (var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset)));
-            }
-
-            :host(:dir(rtl)) {
-                --_toggle-knob-travel: calc(-1 * (var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset)));
+                --_toggle-dir: -1;
             }
 
             :host([checked]) .toggle__knob {
-                transform: translateX(var(--_toggle-knob-travel));
+                transform: translateX(calc(var(--_toggle-dir) * (var(--_toggle-knob-travel) - var(--_toggle-knob-extend))));
+            }
+
+            /* The whole row is the button, so a held Space squashes the knob too.
+           Pressing in is immediate, at the press duration; letting go takes
+           the spring above. */
+            .toggle:not(:disabled):active {
+                --_toggle-knob-extend: var(--toggle-knob-press-extend);
+                --_toggle-knob-shrink: var(--toggle-knob-press-shrink);
+            }
+
+            .toggle:active .toggle__knob {
+                transition-duration: var(--duration-press);
+                transition-timing-function: var(--ease-state);
             }
 
             @media (prefers-reduced-motion: reduce) {
@@ -216,8 +239,6 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                on. A transparent surface keeps the 0% mix fully transparent. */
                 --control-surface: transparent;
                 --control-highlight-strength: 0%;
-                /* Hover colors snap in; only the press-scale animates. */
-                transition: transform var(--duration-press);
             }
 
             /* Button + checked: soft blue tint fill (matching the selected row in
@@ -326,7 +347,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
     render() {
         return html`
             <button
-                class="toggle ${this.variant === 'button' ? 'raised pressable focus-ring-layered' : ''}"
+                class="toggle ${this.variant === 'button' ? 'raised focus-ring-layered' : ''}"
                 type="button"
                 role="switch"
                 aria-checked=${this.checked ? 'true' : 'false'}

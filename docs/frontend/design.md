@@ -479,6 +479,8 @@ Scale a control on `:active` only if it is **self-contained**: it has its own vi
 
 A split control — `ol-shelf-button`'s split, the CTA dropper — is one fused shape, so the wrapper carries the press and `:active` reaches it from either half; a half that squeezes on its own reads as the control breaking. The wrapper stretches to its column, so it takes the wide tier, the same as `ol-button[full-width]` and the Buy trigger it sits beside on the book page.
 
+`ol-toggle` is the one self-contained control that does not scale: the knob is its press feedback, in both variants. Press stretches the knob 4px along the track and squashes it 4px (growing toward the middle, so the outer edge stays pinned), and release springs it across on `--ease-spring`. Hover leaves the knob alone: a thumb that swells on hover was judged too playful for this UI. The knob already tells the story, and the button variant is wide enough that a container scale read as a lurch beside it.
+
 Tokens live in `static/css/tokens/press.css`; Lit controls take the rule from `pressable` in `openlibrary/components/lit/control-styles.js` and set `--_press-scale` to pick the tier. The press transition is the one place a hover-adjacent transition is allowed — `transform` only, never color (see [Hover state changes are instant](#hover-state-changes-are-instant)).
 
 ### Motion: pick the token for what is happening, not a curve
@@ -491,7 +493,7 @@ Every duration and easing comes from `tokens/motion.css`. Choose by what the ele
 | That surface leaves | `--ease-exit` — same curve, shorter | `--duration-fast` or `--duration-base`; `--duration-slow` (300ms) for large surfaces. Exit ≤ enter, always |
 | Something already on screen moves (segmented pill, a reorder) | `--ease-move` | `--duration-base` |
 | A control changes state (checked, selected, loading, focused) | `--ease-state` | `--duration-fast` (150ms), `--duration-base` for a crossfade |
-| A small object springs into a pose (the browse-stacks cover fan) — overshoots a little | `--ease-spring`; settle back with `--ease-move` | `--duration-slow` (300ms) out, `--duration-base` back. Never on a surface |
+| A small object springs into a pose (the browse-stacks cover fan, the toggle knob on release) — overshoots a little | `--ease-spring`; settle back with `--ease-move` | `--duration-slow` (300ms) out, `--duration-base` back; `--duration-fast` (150ms) for the toggle knob's short travel. Never on a surface |
 | Press | none needed | `--duration-press` (80ms), `transform` only |
 | A spinner | `linear` | `--duration-spin` (700ms) per revolution |
 
