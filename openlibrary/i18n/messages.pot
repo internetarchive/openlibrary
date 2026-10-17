@@ -718,7 +718,7 @@ msgstr ""
 msgid "Now"
 msgstr ""
 
-#: admin/graphs.html admin/index.html my_books/shelf_button_i18n.html trending.html
+#: admin/graphs.html admin/index.html openlibrary/core/shell/shelf_labels.py trending.html
 msgid "Today"
 msgstr ""
 
@@ -750,12 +750,12 @@ msgstr ""
 msgid "Earliest trending data is from October 2017"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html my_books/shelf_button_i18n.html search/sort_options.html trending.html
+#: account/mybooks.html account/sidebar.html openlibrary/core/shell/shelf_labels.py search/sort_options.html trending.html
 msgid "Want to Read"
 msgstr ""
 
 #. Display name for the "currently-reading" reading log shelf used in page headings and breadcrumbs.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/shelf_button_i18n.html search/sort_options.html trending.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html openlibrary/core/shell/shelf_labels.py search/sort_options.html trending.html
 msgid "Currently Reading"
 msgstr ""
 
@@ -764,7 +764,7 @@ msgid "Read"
 msgstr ""
 
 #. Display name for the "stopped-reading" reading log shelf used in page headings and breadcrumbs.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/shelf_button_i18n.html search/sort_options.html trending.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html openlibrary/core/shell/shelf_labels.py search/sort_options.html trending.html
 msgid "Stopped Reading"
 msgstr ""
 
@@ -927,11 +927,11 @@ msgstr ""
 msgid "Add a new book"
 msgstr ""
 
-#: SearchNavigation.html authors/index.html.jinja merge/authors.html openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/authors.py publishers/view.html shell/footer.html.jinja work_search.html
+#: SearchNavigation.html.jinja authors/index.html.jinja merge/authors.html openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/authors.py publishers/view.html shell/footer.html.jinja work_search.html
 msgid "Authors"
 msgstr ""
 
-#: SearchNavigation.html books/mybooks_breadcrumb_select.html openlibrary/core/shell/search_modal.py openlibrary/plugins/upstream/mybooks.py shell/footer.html.jinja work_search.html
+#: SearchNavigation.html.jinja books/mybooks_breadcrumb_select.html openlibrary/core/shell/search_modal.py openlibrary/plugins/upstream/mybooks.py shell/footer.html.jinja work_search.html
 msgid "Books"
 msgstr ""
 
@@ -1361,7 +1361,7 @@ msgid "Loans & History"
 msgstr ""
 
 #. Display name for the "already-read" reading log shelf used in page headings and breadcrumbs.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/shelf_button_i18n.html openlibrary/plugins/upstream/mybooks.py search/sort_options.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html openlibrary/core/shell/shelf_labels.py openlibrary/plugins/upstream/mybooks.py search/sort_options.html
 msgid "Already Read"
 msgstr ""
 
@@ -1459,7 +1459,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/parts.html.jinja covers/manage.html my_books/shelf_button_i18n.html
+#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/parts.html.jinja covers/manage.html openlibrary/core/shell/shelf_labels.py
 msgid "Save"
 msgstr ""
 
@@ -1708,7 +1708,7 @@ msgstr ""
 msgid "My lists"
 msgstr ""
 
-#: EditionNavBar.html SearchNavigation.html account/sidebar.html lists/home.html openlibrary/core/shell/nav.py recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
+#: EditionNavBar.html SearchNavigation.html.jinja account/sidebar.html lists/home.html openlibrary/core/shell/nav.py recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
 msgid "Lists"
 msgstr ""
 
@@ -1716,7 +1716,7 @@ msgstr ""
 msgid "See All"
 msgstr ""
 
-#: account/sidebar.html my_books/shelf_button_i18n.html type/list/edit.html type/series/edit.html
+#: account/sidebar.html openlibrary/core/shell/shelf_labels.py type/list/edit.html type/series/edit.html
 msgid "Create a list"
 msgstr ""
 
@@ -2715,7 +2715,7 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
-#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/searchbox.html shell/header.html.jinja type/local_id/view.html
+#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html.jinja search/publishers.html search/searchbox.html shell/header.html.jinja type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -3016,7 +3016,7 @@ msgstr ""
 msgid "We require a minimum set of fields to create a new record. These are those fields."
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html search/advancedsearch.html type/about/edit.html type/page/edit.html type/template/edit.html
+#: books/add.html books/edit.html books/edit/edition.html search/advancedsearch.html.jinja type/about/edit.html type/page/edit.html type/template/edit.html
 msgid "Title"
 msgstr ""
 
@@ -3028,7 +3028,7 @@ msgstr ""
 msgid "Required field"
 msgstr ""
 
-#: SearchAuthorSuggestion.html TestingEnvironment.html.jinja books/add.html books/edit.html books/edit/edition.html openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py search/advancedsearch.html
+#: SearchAuthorSuggestion.html TestingEnvironment.html.jinja books/add.html books/edit.html books/edit/edition.html openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py search/advancedsearch.html.jinja
 msgid "Author"
 msgstr ""
 
@@ -3220,7 +3220,7 @@ msgstr ""
 msgid "Return book"
 msgstr ""
 
-#: books/daisy.html my_books/shelf_button_i18n.html
+#: books/daisy.html openlibrary/core/shell/shelf_labels.py
 msgid "Back"
 msgstr ""
 
@@ -4042,7 +4042,7 @@ msgstr ""
 msgid "Back to Open Library"
 msgstr ""
 
-#: bulk_search/bulk_search.html search/advancedsearch.html
+#: bulk_search/bulk_search.html search/advancedsearch.html.jinja
 msgid "Bulk Search (beta)"
 msgstr ""
 
@@ -5123,209 +5123,6 @@ msgstr ""
 msgid "comments"
 msgstr ""
 
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Save %(title)s to your reading log"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "%(title)s is on your reading log"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "%(shelf)s: %(title)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "More options for %(title)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Add %(title)s to a list"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Actions for %(title)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Reading log"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Added to %(shelf)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Removed from shelf"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Rated %(rating)s of 5"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Rating cleared"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Finished %(date)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Date removed"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Rate this book"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Rate %(rating)s of 5"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Clear rating"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Add to list"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "List name"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Create"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Filter lists…"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Create your first list"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "No lists match."
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Loading lists…"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "%(count)s item"
-msgid_plural "%(count)s items"
-msgstr[0] ""
-msgstr[1] ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "%(count)s other edition"
-msgid_plural "%(count)s other editions"
-msgstr[0] ""
-msgstr[1] ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Any edition"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "On %(count)s list"
-msgid_plural "On %(count)s lists"
-msgstr[0] ""
-msgstr[1] ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Recently used"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "On this book and recently used"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Other lists"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Added to %(name)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Removed from %(name)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Manage lists"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Something went wrong. Please try again."
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Add date"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "When did you finish this book?"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Skip"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "In %(year)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Other date"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Year"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Month"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Day"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Remove date"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Moved to %(shelf)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Undo"
-msgstr ""
-
 #: observations/review_component.html
 msgid "Community Reviews"
 msgstr ""
@@ -5368,7 +5165,7 @@ msgstr ""
 msgid "Publisher: %(name)s"
 msgstr ""
 
-#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html type/edition/view.html type/work/view.html
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html.jinja type/edition/view.html type/work/view.html
 msgid "Publisher"
 msgstr ""
 
@@ -5599,35 +5396,35 @@ msgstr ""
 msgid "%(count)d records modified."
 msgstr ""
 
-#: SearchNavigation.html openlibrary/core/shell/nav.py search/advancedsearch.html shell/footer.html.jinja
-msgid "Advanced Search"
-msgstr ""
-
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "All fields"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/contribute.py search/advancedsearch.html
+#: openlibrary/plugins/openlibrary/contribute.py search/advancedsearch.html.jinja
 msgid "ISBN"
 msgstr ""
 
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "Subject"
 msgstr ""
 
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "Place"
 msgstr ""
 
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "Person"
 msgstr ""
 
-#: search/advancedsearch.html
+#: SearchNavigation.html.jinja openlibrary/core/shell/nav.py search/advancedsearch.html.jinja shell/footer.html.jinja
+msgid "Advanced Search"
+msgstr ""
+
+#: search/advancedsearch.html.jinja
 msgid "How to search?"
 msgstr ""
 
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "Full Text Search?"
 msgstr ""
 
@@ -5657,7 +5454,7 @@ msgstr ""
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: SearchNavigation.html openlibrary/core/shell/search_modal.py search/inside.html
+#: SearchNavigation.html.jinja openlibrary/core/shell/search_modal.py search/inside.html
 msgid "Search Inside"
 msgstr ""
 
@@ -5962,7 +5759,7 @@ msgstr ""
 msgid "Explore subjects"
 msgstr ""
 
-#: RelatedSubjects.html.jinja SearchNavigation.html SubjectTags.html openlibrary/core/shell/nav.py openlibrary/plugins/worksearch/code.py shell/footer.html.jinja subjects/notfound.html type/author/view.html type/list/view_body.html
+#: RelatedSubjects.html.jinja SearchNavigation.html.jinja SubjectTags.html openlibrary/core/shell/nav.py openlibrary/plugins/worksearch/code.py shell/footer.html.jinja subjects/notfound.html type/author/view.html type/list/view_body.html
 msgid "Subjects"
 msgstr ""
 
@@ -8447,6 +8244,209 @@ msgstr ""
 #: openlibrary/core/shell/search_modal.py
 #, python-format
 msgid "%s matches found inside books"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Save %(title)s to your reading log"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "%(title)s is on your reading log"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "%(shelf)s: %(title)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "More options for %(title)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Add %(title)s to a list"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Actions for %(title)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Reading log"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Added to %(shelf)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Removed from shelf"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Rated %(rating)s of 5"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Rating cleared"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Finished %(date)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Date removed"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Rate this book"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Rate %(rating)s of 5"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Clear rating"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Add to list"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "List name"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Create"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Filter lists…"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Create your first list"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "No lists match."
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Loading lists…"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "%(count)s item"
+msgid_plural "%(count)s items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "%(count)s other edition"
+msgid_plural "%(count)s other editions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Any edition"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "On %(count)s list"
+msgid_plural "On %(count)s lists"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Recently used"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "On this book and recently used"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Other lists"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Added to %(name)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Removed from %(name)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Manage lists"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Something went wrong. Please try again."
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Add date"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "When did you finish this book?"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Skip"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "In %(year)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Other date"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Year"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Month"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Day"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Remove date"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Moved to %(shelf)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Undo"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py

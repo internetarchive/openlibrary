@@ -1,0 +1,20 @@
+{# Search tabs. Takes the current `path`, the urlencoded `q_query` and the `advanced_href`. #}
+{% set tabs = [
+    ("/search", _("Books"), "SearchBooks"),
+    ("/search/authors", _("Authors"), "SearchAuthors"),
+    ("/search/inside", _("Search Inside"), "SearchFulltext"),
+    ("/search/subjects", _("Subjects"), "SearchSubjects"),
+    ("/search/lists", _("Lists"), "SearchLists"),
+] %}
+<ul class="nav-bar search-nav">
+    {% for href, label, track in tabs %}
+        <li class="{{ 'selected' if path == href else '' }}">
+            <a data-ol-link-track="SearchNav|{{ track }}"
+               href="{{ href }}?{{ q_query }}">{{ label }}</a>
+        </li>
+    {% endfor %}
+    <li class="{{ 'selected' if path == '/advancedsearch' else '' }}">
+        <a data-ol-link-track="SearchNav|SearchAdvanced"
+           href="{{ advanced_href }}">{{ _("Advanced Search") }}</a>
+    </li>
+</ul>

@@ -5,23 +5,32 @@ import re
 
 import pytest
 
-import infogami.utils.flash as flash_module
 from infogami.utils.context import context as infogami_ctx
 from openlibrary.core.shell import (
     AnnouncementBanner,
     HeadContext,
     HeaderContext,
     LayoutContext,
+    PageMeta,
     SearchModalContext,
     SentryContext,
+    ShellRequest,
     can_show_librarian_tools,
 )
 
 
 @pytest.fixture(autouse=True)
 def _patch_get_current_user(monkeypatch):
-    """Default get_current_user to None for layout tests so LayoutContext.build() is safe."""
+    """Default get_current_user to None for layout tests so _build() is safe."""
     monkeypatch.setattr("openlibrary.core.shell.context.get_current_user", lambda: None)
+
+
+def _req(**overrides) -> ShellRequest:
+    return ShellRequest(**({"path": "/", "readable_path": "/", "query_string": "", "host": "localhost"} | overrides))
+
+
+def _build(req: ShellRequest | None = None, **page_values) -> LayoutContext:
+    return LayoutContext.build(req=req or _req(), page=PageMeta(**page_values))
 
 
 TEMPLATES_DIR = pathlib.Path(__file__).resolve().parents[3] / "openlibrary" / "templates"
@@ -40,9 +49,9 @@ LAYOUT_TEMPLATES = [
 
 
 def test_layout_context_contains_no_callables(request_context_fixture):
-    """LayoutContext.build() must be pure data — no functions that could hide I/O."""
+    """_build() must be pure data — no functions that could hide I/O."""
     request_context_fixture(lang="en")
-    layout = LayoutContext.build()
+    layout = _build()
     # Double-check via to_dict; the frozen dataclass is deliberate
     for key, val in layout.to_dict().items():
         assert not callable(val), f"{key} is callable"
@@ -123,6 +132,7 @@ def test_layout_context_is_frozen():
             days_registered_json='"visitor"',
             sentry=None,
         ),
+        shelf_button_labels_json="{}",
         announcement_banner=None,
     )
     with pytest.raises((AttributeError, TypeError)):
@@ -160,49 +170,34 @@ def test_layout_build_body_classes_and_librarian_tools(monkeypatch, request_cont
             return True
 
     mock_user = MockUser()
-    infogami_ctx["bodyclass"] = ["custom-class"]
-    infogami_ctx["bodyattrs"] = ["itemscope"]
-    infogami_ctx["show_ol_shell"] = True
-    infogami_ctx["path"] = "/works/OL12345W"
-    infogami_ctx["user"] = mock_user
     monkeypatch.setattr("openlibrary.core.shell.context.get_current_user", lambda: mock_user)
 
-    layout = LayoutContext.build()
-    assert "custom-class" in layout.body_classes
-    assert "show-librarian-tools" in layout.body_classes
-    assert "custom-class" in layout.body_class
-    assert "show-librarian-tools" in layout.body_class
-    assert "itemscope" in layout.body_attrs
-    assert 'data-user-key="/people/librarian_bob"' in layout.body_attrs
-
-    # Reset
-    infogami_ctx.clear()
+    layout = _build(_req(path="/works/OL12345W"), bodyclass=("custom-class",), bodyattrs=("itemscope",))
+    assert layout.body_classes == ["custom-class", "show-librarian-tools"]
+    assert layout.body_class == "custom-class show-librarian-tools"
+    assert layout.body_attrs == ["itemscope", 'data-user-key="/people/librarian_bob"']
 
 
 def test_layout_build_active_ui_lang(request_context_fixture):
     """LayoutContext should resolve active_ui_lang property from request language."""
     request_context_fixture(lang="es")
-    layout = LayoutContext.build()
+    layout = _build()
     assert layout.active_ui_lang["code"] == "es"
     assert layout.active_ui_lang["native"] == "Español"
 
 
-def test_layout_build_donate_script_url(monkeypatch, request_context_fixture):
-    """LayoutContext should set donate_script_url."""
+def test_layout_build_donate_script_url(request_context_fixture):
+    """donate.js comes from the CDN, or from a valid ``?dev_host=`` IA host."""
     request_context_fixture(lang="en")
-    layout = LayoutContext.build()
-    assert layout.donate_script_url == "/cdn/archive.org/donate.js"
+    assert _build().donate_script_url == "/cdn/archive.org/donate.js"
+    assert _build(_req(query_string="dev_host=www-foo")).donate_script_url == "https://www-foo.archive.org/includes/donate.js"
+    assert _build(_req(query_string="dev_host=x/y")).donate_script_url == "/cdn/archive.org/donate.js"
 
 
-def test_layout_build_flash_messages(monkeypatch, request_context_fixture):
-    """LayoutContext should extract and format flash messages into pure dicts."""
+def test_layout_build_flash_messages(request_context_fixture):
+    """Flash messages come from the request, as plain dicts."""
     request_context_fixture(lang="en")
-    monkeypatch.setattr(
-        flash_module,
-        "get_flash_messages",
-        lambda: [{"type": "error", "message": "Invalid password"}],
-    )
-    layout = LayoutContext.build()
+    layout = _build(_req(flash_messages=({"type": "error", "message": "Invalid password"},)))
     assert layout.flash_messages == [{"type": "error", "message": "Invalid password"}]
 
 
@@ -219,7 +214,7 @@ def test_announcement_banner_structure():
 def test_layout_build_header_user_logged_out(request_context_fixture):
     """LayoutContext should have user=None when no user is logged in."""
     request_context_fixture(lang="en")
-    layout = LayoutContext.build()
+    layout = _build()
     assert layout.header.user is None
 
 
@@ -241,7 +236,7 @@ def test_layout_build_header_user_logged_in(monkeypatch, request_context_fixture
     monkeypatch.setattr("openlibrary.core.shell.header.get_internet_archive_id", lambda key: "ia_bob")
     monkeypatch.setattr("openlibrary.core.shell.header.cached_get_counts_by_mode", lambda mode="open": 42)
 
-    layout = LayoutContext.build()
+    layout = _build()
     assert layout.header.user is not None
     assert layout.header.user.key == "/people/super_librarian"
     assert layout.header.user.username == "super_librarian"
@@ -255,7 +250,7 @@ def test_layout_build_header_user_logged_in(monkeypatch, request_context_fixture
 def test_layout_build_header_navigation(request_context_fixture):
     """LayoutContext should build header navigation props and browse links."""
     request_context_fixture(lang="en")
-    layout = LayoutContext.build()
+    layout = _build()
     assert layout.header.my_books_props["name"] == "mybooks"
     assert layout.header.my_books_props["label"] == "My Books"
     assert len(layout.header.my_books_props["links"]) == 1
@@ -272,7 +267,7 @@ def test_layout_build_search_modal_preserves_client_fill_placeholders(request_co
     formatting ``_`` away from placeholders it cannot fill.
     """
     request_context_fixture(lang="en")
-    modal = LayoutContext.build().header.search_modal
+    modal = _build().header.search_modal
     assert modal.availability["all"]["label"] == "All books"
     assert modal.strings["seeOne"] == "See %s book"
     assert modal.strings["resultsAnnounce"] == "Showing %s of %s results"
@@ -282,7 +277,7 @@ def test_layout_build_search_modal_preserves_client_fill_placeholders(request_co
 def test_layout_build_head_defaults(request_context_fixture):
     """Head fields should have safe defaults on a bare request context."""
     request_context_fixture(lang="en")
-    layout = LayoutContext.build()
+    layout = _build()
     head = layout.head
     assert head.title == ""
     assert head.disable_analytics is False
@@ -301,33 +296,46 @@ def test_layout_build_head_defaults(request_context_fixture):
 
 
 def test_layout_build_head_title_passthrough(request_context_fixture):
-    """``build(title=...)`` should surface the page title for the <head>."""
+    """The page title should surface in the <head>."""
     request_context_fixture(lang="en")
-    layout = LayoutContext.build(title="The Hobbit")
-    assert layout.head.title == "The Hobbit"
+    assert _build(title="The Hobbit").head.title == "The Hobbit"
 
 
-def test_layout_build_head_reads_page_context(request_context_fixture):
-    """Head fields should be sourced from the per-page infogami context."""
+def test_layout_build_head_reads_page_and_request(request_context_fixture):
+    """Head fields come from the page meta and the request, nothing else."""
     request_context_fixture(lang="en")
-    infogami_ctx["disable_analytics"] = True
+    head = _build(
+        _req(host="openlibrary.org", path="/search", readable_path="/search", query_string="q=x&sort=new&debug=1", experiments={"foo": "bar"}),
+        disable_analytics=True,
+        cssfile="work",
+        robots="noindex",
+        description="A description",
+        links=('<link rel="alternate" href="/x">',),
+        metatags=('<meta name="custom" content="v">',),
+    ).head
+    assert head.domain == "openlibrary.org"
+    assert head.canonical_url == "https://openlibrary.org/search?q=x"
+    assert head.disable_analytics is True
+    assert head.page_css_path == "build/css/page-work.css"
+    assert head.experiments_json == '{"foo": "bar"}'
+    assert head.robots == "noindex"
+    assert head.description == "A description"
+    assert head.links == ['<link rel="alternate" href="/x">']
+    assert head.metatags == ['<meta name="custom" content="v">']
+
+
+def test_page_meta_from_infogami_ctx():
+    """web.py pages still set head/body values via ``$putctx``; PageMeta reads them."""
+    infogami_ctx.clear()  # earlier tests leave page values behind on this thread
     infogami_ctx["cssfile"] = "work"
-    infogami_ctx["experiments"] = {"foo": "bar"}
-    infogami_ctx["robots"] = "noindex"
-    infogami_ctx["description"] = "A description"
-    infogami_ctx["links"] = ['<link rel="alternate" href="/x">']
-    infogami_ctx["metatags"] = ['<meta name="custom" content="v">']
+    infogami_ctx["bodyclass"] = ["a"]
+    infogami_ctx["metatags"] = ["<meta>"]
+    infogami_ctx["show_ol_shell"] = False
     try:
-        head = LayoutContext.build().head
-        assert head.disable_analytics is True
-        assert head.page_css_path == "build/css/page-work.css"
-        assert head.experiments_json == '{"foo": "bar"}'
-        assert head.robots == "noindex"
-        assert head.description == "A description"
-        assert head.links == ['<link rel="alternate" href="/x">']
-        assert head.metatags == ['<meta name="custom" content="v">']
+        page = PageMeta.from_infogami_ctx(title="T")
     finally:
         infogami_ctx.clear()
+    assert page == PageMeta(title="T", cssfile="work", bodyclass=("a",), metatags=("<meta>",), show_ol_shell=False)
 
 
 def test_sentry_context_build_disabled_returns_none(monkeypatch):

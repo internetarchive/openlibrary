@@ -6,6 +6,7 @@ from typing import Annotated, Any, Literal, Self
 
 import web
 from fastapi import APIRouter, Depends, Query, Request
+from fastapi.responses import HTMLResponse
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -19,14 +20,17 @@ from pydantic import (
 
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import fulltext_search_async, resolve_language
+from openlibrary.core.shell.request import ShellRequest
 from openlibrary.fastapi.models import (
     Pagination,
     PaginationLimit20,
     SolrInternalsParams,
     parse_comma_separated_list,
 )
+from openlibrary.fastapi.shared.utils import render_site_page
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
+    render_advancedsearch,
     run_solr_query_async,
     validate_search_json_query,
     work_search_async,
@@ -517,3 +521,9 @@ async def search_facets_json(
             result[output_key] = [FacetValue(value=value, label=label, count=count) for value, label, count in values if count > 0]
 
     return result
+
+
+@router.get("/advancedsearch", response_class=HTMLResponse, include_in_schema=False)
+async def advancedsearch(request: Request) -> HTMLResponse:
+    req = ShellRequest.from_starlette(request)
+    return render_site_page(req, render_advancedsearch(req))
