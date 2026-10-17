@@ -102,6 +102,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
                 border-radius: var(--border-radius-chip);
                 font-family: var(--font-family-button);
                 font-size: var(--font-size-body-medium);
+                font-weight: var(--font-weight-button);
                 line-height: var(--line-height-chip);
                 background: var(--_chip-bg);
                 color: var(--_chip-fg);

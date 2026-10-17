@@ -229,9 +229,12 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
                 background: var(--color-hover-overlay);
             }
 
-            /* No selected-row styling: the radio is the state. A tint plus a blue
-           label on top of a checked radio says the same thing three times, and
-           it makes the selected row look hovered. */
+            /* The selected row's look is the shared .menu-row rule (tint + link
+           text, keyed on the checked radio). Keyboard focus on it deepens the
+           tint like hover does, rather than greying it. */
+            .item-row:has(> :checked):focus-within {
+                background: var(--color-control-selected-bg-hover);
+            }
 
             .item-radio {
                 flex-shrink: 0;
@@ -253,9 +256,10 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
                 min-width: 0;
             }
 
+            /* The label takes the row's control weight; the description and
+           count describe the option, not the answer, so they stay regular. */
             .item-label {
                 display: block;
-                font-weight: 400;
             }
 
             .item-description {
@@ -263,6 +267,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
                 margin-top: 2px;
                 color: var(--color-text-muted);
                 font-size: 12px;
+                font-weight: var(--font-weight-regular);
                 line-height: 1.35;
             }
 
@@ -270,6 +275,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
                 flex-shrink: 0;
                 margin-left: var(--spacing-inline-md);
                 color: var(--color-text-muted);
+                font-weight: var(--font-weight-regular);
                 font-size: 13px;
                 font-variant-numeric: tabular-nums;
             }

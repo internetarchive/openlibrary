@@ -229,6 +229,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
                 color: var(--color-text-muted);
                 font-family: var(--font-family-button);
                 font-size: var(--font-size-body-medium);
+                font-weight: var(--font-weight-button);
                 line-height: var(--line-height-control);
                 white-space: nowrap;
                 cursor: pointer;

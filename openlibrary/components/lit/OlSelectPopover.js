@@ -239,9 +239,12 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
                 background: var(--color-hover-overlay);
             }
 
-            /* No selected-row styling: the checkbox is the state, and the selected
-           group pins the chosen items to the top of the panel. A tint on top of
-           both only makes the row look hovered. */
+            /* The selected row's look is the shared .menu-row rule (tint + link
+           text, keyed on the checked box). Keyboard focus on it deepens the
+           tint like hover does, rather than greying it. */
+            .item-row:has(> :checked):focus-within {
+                background: var(--color-control-selected-bg-hover);
+            }
 
             .item-checkbox {
                 flex-shrink: 0;
@@ -311,11 +314,14 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
 
             /* ── Item count ──────────────────────────────────────────────── */
 
+            /* Describes the option, not the answer: regular beside the row's
+           control-weight label. */
             .item-count {
                 margin-left: auto;
                 flex-shrink: 0;
                 color: var(--color-text-muted);
                 font-size: var(--font-size-label-medium);
+                font-weight: var(--font-weight-regular);
                 font-variant-numeric: tabular-nums;
             }
 

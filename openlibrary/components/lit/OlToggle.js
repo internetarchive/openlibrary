@@ -103,6 +103,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 color: var(--_toggle-fg);
                 font-family: var(--font-family-button);
                 font-size: var(--font-size-body-medium);
+                font-weight: var(--font-weight-button);
                 line-height: var(--line-height-control);
                 text-align: start;
                 cursor: pointer;
@@ -178,9 +179,11 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 gap: var(--spacing-xs);
             }
 
+            /* The count describes the option, not the control: regular beside
+           the control-weight label. */
             .toggle__sublabel {
                 color: var(--_toggle-sublabel-fg);
-                font-weight: 400;
+                font-weight: var(--font-weight-regular);
             }
 
             /* ── Checked (plain): just the track turns blue ─────────────────── */

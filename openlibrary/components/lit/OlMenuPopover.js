@@ -107,7 +107,6 @@ export class OlMenuPopover extends LitElement {
                 color: inherit;
                 font-family: inherit;
                 font-size: 14px;
-                font-weight: 400;
                 text-align: left;
                 /* The shared .focus-ring, pulled inside the row: an outer ring would
                be clipped by the panel. */
@@ -121,12 +120,8 @@ export class OlMenuPopover extends LitElement {
                 padding-left: calc(var(--spacing-inset-xl) - var(--menu-row-inset));
             }
 
-            /* No radio on the row, so the label carries the state — colour only,
-           since a weight change would re-measure the label and shift the row.
-           The fill stays reserved for hover. */
-            .item[aria-checked='true'] {
-                color: var(--color-link);
-            }
+            /* No radio on the row, so the shared .menu-row selected look
+           (tint + link text, keyed on aria-checked) is the whole indicator. */
         `
     ];
 

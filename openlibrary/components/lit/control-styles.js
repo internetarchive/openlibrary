@@ -69,6 +69,8 @@ export const menuRow = css`
         padding-block: var(--spacing-inset-xs);
         padding-inline: var(--menu-row-padding-inline);
         border-radius: var(--border-radius-menu-row);
+        /* The control label weight: a menu is a stack of medium controls. */
+        font-weight: var(--font-weight-button);
         line-height: var(--line-height-control);
         cursor: pointer;
     }
@@ -76,6 +78,25 @@ export const menuRow = css`
     @media (hover: hover) and (pointer: fine) {
         .menu-row:hover {
             background: var(--color-hover-overlay);
+        }
+    }
+
+    /* The selected row takes the control-selected look on its pill: the same
+       tint and link text as ol-button[selected], pagination's current page and
+       the toggle's button variant. The radio, checkbox or aria-checked still
+       carries the state; this only paints it. Colour and fill only, never
+       weight, so nothing re-measures. Hover deepens the tint, as the button
+       does, rather than greying it. */
+    .menu-row[aria-checked='true'],
+    .menu-row:has(> :checked) {
+        background: var(--color-control-selected-bg);
+        color: var(--color-link);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .menu-row[aria-checked='true']:hover,
+        .menu-row:has(> :checked):hover {
+            background: var(--color-control-selected-bg-hover);
         }
     }
 `;

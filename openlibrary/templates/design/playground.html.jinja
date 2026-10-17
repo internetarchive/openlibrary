@@ -561,9 +561,9 @@
             The rule says selected has one look: <code>--color-control-selected-bg</code> with
             <code>--color-link</code> text. This row puts every component's selected or current state next to
             that reference, grouped by the mechanism it actually uses. Four show up today: the tinted fill,
-            a solid primary fill, a raised ink pill, and an underline — plus a fifth inside menus, where the
-            radio or checkbox carries the state and the row stays untinted. Decide which of these are
-            deliberate and which are drift.
+            a solid primary fill, a raised ink pill, and an underline. Menu rows take the tinted fill too,
+            on their pill, with the radio, checkbox or icon still carrying the state (pin them open in
+            <em>Menus and panels</em> below). Decide which of these are deliberate and which are drift.
         </p>
         <h3 class="ds-group__title">Tint and blue text</h3>
         <div class="ds-example__output">
@@ -683,13 +683,13 @@
     <section class="ds-section" id="menus">
         <h2 class="ds-section__title">Menus and panels</h2>
         <p class="ds-section__blurb">
-            The four panel-shaped components side by side. Pin them open to compare the rows directly: the
+            The five panel-shaped components side by side. Pin them open to compare the rows directly: the
             row height (<code>--menu-row-height</code>, which is the medium control height on a fine
-            pointer), the inset pill and its hover, where the state indicator sits and what it is (link-blue
-            text in the menu, a radio in options, a checkbox in select, nothing in the bare popover), the
-            section headings, and the search field's height and focus ring against the input in the
-            alignment row above. Pinning turns off outside-click dismissal; Escape still closes the
-            frontmost one.
+            pointer), the inset pill and its hover, the selected row's tint and what sits in it (nothing but
+            the tint in the menu, a radio in options, a checkbox in select, a filled icon in shelf actions,
+            no selection in the bare popover), the section headings, and the search field's height and
+            focus ring against the input in the alignment row above. Pinning turns off outside-click
+            dismissal; Escape still closes the frontmost one.
         </p>
         <div class="ds-check-controls">
             <ol-toggle id="menus-pin" label="Pin open" data-ds-pin-menus>
@@ -701,6 +701,8 @@
                     Tooltip
                 </ol-button>
             </ol-tooltip>
+            <ol-shelf-button variant="icon" user-key="{{ user_key }}" work-key="/works/OL27448W" book-title="Pride and Prejudice" shelf="3" data-ds-pinnable>
+            </ol-shelf-button>
             <ol-popover aria-label="Playground popover" data-ds-pinnable>
                 <ol-button slot="trigger">
                     Popover
