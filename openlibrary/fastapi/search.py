@@ -161,6 +161,7 @@ def create_sort_option_type(sorts_map: Mapping):
         ),
     ]
 
+
 EditionSortOption = create_sort_option_type(EditionSearchScheme.sorts)
 
 
