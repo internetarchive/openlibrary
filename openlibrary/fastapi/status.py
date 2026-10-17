@@ -12,7 +12,7 @@ the result within ~1s.
 
 import asyncio
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator, AsyncIterator
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -78,7 +78,7 @@ async def testing_status() -> dict[str, Any]:
     return result
 
 
-async def _stream_events() -> AsyncIterator[ServerSentEvent]:
+async def _stream_events() -> AsyncGenerator[ServerSentEvent]:
     """The stream body: the current snapshot first, then each change.
 
     Split from the endpoint so tests can bound the stream. Frames only

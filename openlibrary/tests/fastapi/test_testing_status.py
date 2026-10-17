@@ -326,6 +326,7 @@ def test_load_testing_status_wires_merge_conflicts():
         patch("openlibrary.plugins.openlibrary.status.get_dev_merged_status", return_value=dms),
     ):
         result = asyncio.run(status_module.load_testing_status())
+        assert result is not None
 
     assert result.prs[0].merge_conflict is True
 
@@ -345,6 +346,7 @@ async def test_load_testing_status_composes_state_and_drift():
         patch("openlibrary.plugins.openlibrary.status._fetch_drift_infos", new_callable=AsyncMock, return_value=infos),
     ):
         result = await status_module.load_testing_status()
+        assert result is not None
 
     assert result.prs[0].drift == 2
 
@@ -1284,6 +1286,7 @@ async def test_jenkins_deploy_status_parses_latest_run():
 
     with patch("openlibrary.plugins.openlibrary.jenkins.httpx.AsyncClient", return_value=mock_client):
         result = await jenkins_module.jenkins_deploy_status()
+        assert result is not None
 
     assert result["status"] == "SUCCESS"
     assert result["start_time"].startswith("2026-08-18T")
@@ -1316,6 +1319,7 @@ async def test_jenkins_deploy_status_reports_current_stage():
 
     with patch("openlibrary.plugins.openlibrary.jenkins.httpx.AsyncClient", return_value=mock_client):
         result = await jenkins_module.jenkins_deploy_status()
+        assert result is not None
 
     assert result["status"] == "IN_PROGRESS"
     assert result["current_stage"] == "components"

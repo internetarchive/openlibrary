@@ -1,6 +1,7 @@
 """Tests for the FastAPI account loan endpoints."""
 
 import json
+from collections.abc import Mapping
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -18,7 +19,7 @@ class FakeLegacyUser(dict):
 
 
 class FakeEdition:
-    def dict(self) -> dict:
+    def dict(self) -> Mapping[str, str]:
         return {"key": "/books/OL1M", "title": "Serialized Edition"}
 
 
@@ -120,7 +121,7 @@ class TestAccountLoansJson:
             patch("openlibrary.plugins.upstream.account.get_account_loans_json", return_value=expected),
             pytest.deprecated_call(match="migrated to fastapi"),
         ):
-            legacy_response = legacy_account.account_loans_json().GET()
+            legacy_response = legacy_account.account_loans_json().GET()  # ty: ignore[deprecated]
 
         with (
             patch("openlibrary.fastapi.account.accounts.get_current_user", return_value=legacy_user),

@@ -561,7 +561,7 @@ def load_stopwords(lang: str = "en") -> set[str]:
 
 @dataclass
 class SearchResponse:
-    facet_counts: dict[str, list[tuple[str, str, int]]]
+    facet_counts: dict[str, list[tuple[str, str, int]]] | None
     sort: str
     docs: list
     num_found: int
