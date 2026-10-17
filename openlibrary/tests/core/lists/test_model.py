@@ -69,7 +69,7 @@ class TestSeries:
         ]
 
         mock_site = MockSeriesSite(works)
-        monkeypatch.setattr(web, "ctx", web.storage(site=mock_site))
+        monkeypatch.setattr(web, "ctx", web.storage())
 
         series = list_model.Series(mock_site, "/series/OL1L")
         token = site.set(mock_site)
