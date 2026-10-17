@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import json
 from typing import get_args
+from unittest.mock import MagicMock, patch
 from urllib.parse import urlencode
 
 import pytest
 
 from openlibrary.fastapi.search import FacetField, PublicQueryOptions
-from openlibrary.plugins.worksearch.code import WorkSearchScheme
+from openlibrary.plugins.worksearch.code import SearchResponse, WorkSearchScheme
 from openlibrary.utils.request_context import create_context_for_script, req_context
 
 
@@ -603,3 +604,58 @@ class TestEditionSearchEndpoint:
         assert response.status_code == 200
         call_kwargs = mock_edition_solr_query.call_args[1]
         assert call_kwargs.get("fields") == ["key", "title", "isbn"]
+
+
+class TestSearchListsEndpoint:
+    """Tests for /search/lists.json.
+
+    The legacy response shape resolves list documents through the request-scoped
+    site. These cover that path, which had no test coverage before.
+    """
+
+    @staticmethod
+    def _solr_response(*keys):
+        return SearchResponse(
+            facet_counts={},
+            sort="",
+            docs=[{"key": key} for key in keys],
+            num_found=len(keys),
+            solr_select="",
+            raw_resp={"response": {"start": 0}},
+        )
+
+    def test_legacy_shape_resolves_lists_via_request_scoped_site(self, fastapi_client):
+        """The old shape must read the request's own site, not a module-level one."""
+        preview = {"url": "/people/jane/lists/OL1L", "full_url": "https://openlibrary.org/people/jane/lists/OL1L"}
+        current_site = MagicMock()
+        current_site.get_many.return_value = [MagicMock(preview=lambda: preview)]
+
+        with (
+            patch("openlibrary.fastapi.search.run_solr_query_async", autospec=True) as mock_solr,
+            patch("openlibrary.fastapi.search.site") as mock_site_context,
+        ):
+            mock_solr.return_value = self._solr_response("/people/jane/lists/OL1L")
+            mock_site_context.get.return_value = current_site
+
+            response = fastapi_client.get("/search/lists.json?q=dogs")
+
+        assert response.status_code == 200
+        assert response.json() == {"start": 0, "docs": [preview]}
+        mock_site_context.get.assert_called_once_with()
+        current_site.get_many.assert_called_once_with(["/people/jane/lists/OL1L"])
+
+    def test_next_api_shape_does_not_resolve_lists(self, fastapi_client):
+        """`api=next` returns raw solr docs and must not touch the site at all."""
+        with (
+            patch("openlibrary.fastapi.search.run_solr_query_async", autospec=True) as mock_solr,
+            patch("openlibrary.fastapi.search.site") as mock_site_context,
+        ):
+            mock_solr.return_value = self._solr_response("/people/jane/lists/OL1L")
+
+            response = fastapi_client.get("/search/lists.json?q=dogs&api=next")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["docs"] == [{"key": "/people/jane/lists/OL1L"}]
+        assert data["num_found"] == 1
+        mock_site_context.get.assert_not_called()
