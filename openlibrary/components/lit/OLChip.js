@@ -93,6 +93,10 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             .chip {
                 display: inline-flex;
                 align-items: center;
+                box-sizing: border-box;
+                /* Single-line chips line up with same-size buttons; a wrapped chip
+               grows past the floor (see tokens/control-heights.css). */
+                min-height: var(--control-height-medium);
                 padding: var(--chip-padding-block) var(--chip-padding-inline);
                 border: var(--border-width) solid var(--_chip-border);
                 border-radius: var(--border-radius-chip);
@@ -196,6 +200,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
 
             /* Small size */
             :host([size='small']) .chip {
+                min-height: var(--control-height-small);
                 font-size: var(--font-size-label-medium);
             }
 
