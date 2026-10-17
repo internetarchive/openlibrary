@@ -35,7 +35,10 @@ def sentry_events():
     transport = RecordingTransport()
     global_scope = sentry_sdk.get_global_scope()
     previous_client = global_scope.client
-    with sentry_sdk.isolation_scope() as scope, sentry_sdk.new_scope():
+    with sentry_sdk.isolation_scope() as scope, sentry_sdk.new_scope() as current_scope:
+        # Forked scopes inherit state, including tags left by earlier proxy tests.
+        scope.clear()
+        current_scope.clear()
         sentry_sdk.init(
             # A dummy DSN enables capture; RecordingTransport never sends to it.
             dsn="http://test@localhost/1",
