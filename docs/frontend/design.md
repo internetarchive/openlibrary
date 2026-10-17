@@ -59,6 +59,8 @@ The principles these rules serve — and the tensions between them — are on `/
 
 Headings share the body ink (`--color-text-heading` is `--color-text`); size and weight carry the hierarchy, not color.
 
+Control labels are a role of their own: `--font-family-button` with `--font-weight-button` (`--font-weight-book`, 450), on buttons, chips, segments, pagination, the toggle's button variant and the rows inside a menu panel. The sans is a light 400 at 14px and sat under the 20px icons beside it, while its 500 reads as emphasis, so controls sit half a step up from body copy. The sans is a variable font, so 450 is a real cut; a static fallback face snaps it to whichever weight it has nearest. Annotations inside a control (a toggle's count, a row's description or count) go back to `--font-weight-regular`.
+
 ### Actions wrap; passive text truncates
 
 A button label never ellipsizes. "Присоедин…" in a 140px carousel card hides the one thing the button does, so action labels wrap instead: give the control a `min-height` (not `height`), `text-wrap: balance`, and `hyphens: auto` with `overflow-wrap: anywhere` for single long words. In a flex row, the label or the button's half of a split control needs `min-width: 0`, or a long label sets its minimum width and pushes its neighbour out of the column. Ellipsis stays for passive text — titles, author names, subject chips — where the full value is one click away.
@@ -170,10 +172,11 @@ Rows inside a panel — the menu, options, and select popovers, the browse popov
 
 - **Height** is `--menu-row-height`, applied as `min-height` so a row with a description can grow. Keep the row's own vertical padding under it, or the padding sets the height and rows drift apart again. On hover-capable pointers the token drops to `--control-height-medium`, so a menu reads as a stack of medium controls.
 - **Inset as a pill.** A row sits `--menu-row-inset` in from the panel edge and takes `--border-radius-menu-row`, so its hover fill reads as a pill inside the panel rather than a band running to the edges. It gives that inset back as `--menu-row-padding-inline`, which keeps the label at 16px from the panel. A light-DOM panel that can't put a margin on its rows (the browse popover, the drawer) puts the inset on the panel's padding instead — on all four sides, not just the sides, or the corner rows stop being concentric (see [Nested radii are computed](#nested-radii-are-computed-not-chosen)). The row padding is the same either way.
+- **Rows are control labels**: `--font-weight-button` (book, 450), the same weight as the button that opened the panel. Headings keep the overline role; counts and descriptions go regular.
 - **Hover is `--color-hover-overlay`**, so it darkens whatever the panel is painted on. No press-scale — see [Press feedback](#press-feedback-self-contained-controls-squeeze-rows-and-surfaces-dont).
-- **Selected rows get no tint and no weight change.** The radio or checkbox already carries the state, and a tinted row looks hovered. Where there is no control (`ol-menu-popover`, the design nav) the label goes `--color-link` — color only, so nothing re-measures.
+- **The selected row takes the control-selected look on its pill:** `--color-control-selected-bg` with `--color-link` on the label and glyph, the same pair as `ol-button[selected]` and the current pagination page. Hover and press on a selected row go to `--color-control-selected-bg-hover`, deepening the tint the way the button does, never the grey overlay. The radio, checkbox, filled icon or `aria-checked` still carries the state for assistive tech; the tint only paints it, so a row never gains a second glyph, a border or a weight change for being selected. Colour and fill only — the row is already at the control weight, and a heavier label re-measures.
 
-The playground's *Menus and panels* check (`/developers/design/playground#menus`) pins the menu, options, select and bare popovers open side by side, which is where a row height, inset or indicator that has drifted shows up.
+The playground's *Menus and panels* check (`/developers/design/playground#menus`) pins the menu, options, select, shelf-actions and bare popovers open side by side, which is where a row height, inset, selected tint or indicator that has drifted shows up.
 
 ```css
 .item {
@@ -183,6 +186,8 @@ The playground's *Menus and panels* check (`/developers/design/playground#menus`
   border-radius: var(--border-radius-menu-row);
 }
 ```
+
+Inside a Lit component, compose `menuRow` from `openlibrary/components/lit/control-styles.js` rather than restating these — the menu, options and select popovers all do, and keep only their row-specific rules (a `<button>`'s UA reset, the `gap` for a radio or checkbox) locally.
 
 ## Icons
 
@@ -245,7 +250,7 @@ The three border weights are a scale, not three names for the same job. `--color
 
 You will find existing control borders on `--color-border-muted`. They were migrated at their original weight so the token rollout stayed a no-op; that they sit below 3:1 is a pre-existing gap to fix deliberately, not a precedent to copy.
 
-Selected has one look: `--color-control-selected-bg` with `--color-link` text, shared by `ol-button[selected]`, the toggle's button variant, the current pagination page, the Scorecard's active tab, and the editor's pressed toolbar buttons. A grey fill for "selected" is legacy, not a second option. The exception is a row inside a menu panel, where the radio or checkbox carries the state and the row itself stays untinted — see [Menu rows](#menu-rows). Every component's selected state stands beside the reference on the playground's *Selected look* check (`/developers/design/playground#selected-look`), grouped by the mechanism it actually uses; the *Surfaces and text* check beside it (`#surfaces`) paints each text token on each surface with its measured contrast.
+Selected has one look: `--color-control-selected-bg` with `--color-link` text, shared by `ol-button[selected]`, the toggle's button variant, the current pagination page, the Scorecard's active tab, the editor's pressed toolbar buttons, and the selected row in every menu panel (see [Menu rows](#menu-rows)). A grey fill for "selected" is legacy, not a second option. Every component's selected state stands beside the reference on the playground's *Selected look* check (`/developers/design/playground#selected-look`), grouped by the mechanism it actually uses; the *Surfaces and text* check beside it (`#surfaces`) paints each text token on each surface with its measured contrast.
 
 Hover has two tokens, split by mechanism rather than by surface. `--color-hover-overlay` is a translucent overlay for flat interactive rows (popover items, menu items, list rows) — it composes over whatever surface it lands on, so a row on `--color-surface-sunken` or `-header` still darkens instead of matching its own background. `--color-control-hover` is an opaque fill for raised controls, and must stay opaque: alpha fed to `--control-surface` inverts the specular highlight.
 
@@ -474,7 +479,9 @@ Scale a control on `:active` only if it is **self-contained**: it has its own vi
 
 A split control — `ol-shelf-button`'s split, the CTA dropper — is one fused shape, so the wrapper carries the press and `:active` reaches it from either half; a half that squeezes on its own reads as the control breaking. The wrapper stretches to its column, so it takes the wide tier, the same as `ol-button[full-width]` and the Buy trigger it sits beside on the book page.
 
-Tokens live in `static/css/tokens/press.css`. The press transition is the one place a hover-adjacent transition is allowed — `transform` only, never color (see [Hover state changes are instant](#hover-state-changes-are-instant)).
+`ol-toggle` is the one self-contained control that does not scale: the knob is its press feedback, in both variants. Press stretches the knob 4px along the track and squashes it 4px (growing toward the middle, so the outer edge stays pinned), and release springs it across on `--ease-spring`. Hover leaves the knob alone: a thumb that swells on hover was judged too playful for this UI. The knob already tells the story, and the button variant is wide enough that a container scale read as a lurch beside it.
+
+Tokens live in `static/css/tokens/press.css`; Lit controls take the rule from `pressable` in `openlibrary/components/lit/control-styles.js` and set `--_press-scale` to pick the tier. The press transition is the one place a hover-adjacent transition is allowed — `transform` only, never color (see [Hover state changes are instant](#hover-state-changes-are-instant)).
 
 ### Motion: pick the token for what is happening, not a curve
 
@@ -486,7 +493,7 @@ Every duration and easing comes from `tokens/motion.css`. Choose by what the ele
 | That surface leaves | `--ease-exit` — same curve, shorter | `--duration-fast` or `--duration-base`; `--duration-slow` (300ms) for large surfaces. Exit ≤ enter, always |
 | Something already on screen moves (segmented pill, a reorder) | `--ease-move` | `--duration-base` |
 | A control changes state (checked, selected, loading, focused) | `--ease-state` | `--duration-fast` (150ms), `--duration-base` for a crossfade |
-| A small object springs into a pose (the browse-stacks cover fan) — overshoots a little | `--ease-spring`; settle back with `--ease-move` | `--duration-slow` (300ms) out, `--duration-base` back. Never on a surface |
+| A small object springs into a pose (the browse-stacks cover fan, the toggle knob on release) — overshoots a little | `--ease-spring`; settle back with `--ease-move` | `--duration-slow` (300ms) out, `--duration-base` back; `--duration-fast` (150ms) for the toggle knob's short travel. Never on a surface |
 | Press | none needed | `--duration-press` (80ms), `transform` only |
 | A spinner | `linear` | `--duration-spin` (700ms) per revolution |
 
@@ -601,7 +608,7 @@ What checks each rule today. "Review" means only a human or the Copilot UI check
 | 16px text-entry controls | Review |
 | Fullscreen dialogs only for scrolling content, not forms | Review |
 | Hover gated to hover-capable pointers | Review |
-| Menu rows on the shared height/inset tokens; selected rows untinted | Review |
+| Menu rows on the shared height/inset tokens at the control weight; selected rows on the control-selected tint, no weight change | Review |
 | Overline via the typography role tokens, applied together | Review |
 | Logical properties; directional glyphs flipped under `:dir(rtl)` | Review |
 | Floating surfaces on the shared overlay border/radius/shadow | Review |

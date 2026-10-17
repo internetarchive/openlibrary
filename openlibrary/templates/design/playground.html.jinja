@@ -40,12 +40,13 @@
     </figure>
 {% endmacro %}
 {#
-  One row of every height-locked control at a given size, plus the controls
-  that *should* line up with them and currently size themselves some other
-  way. The dashed guides in .control-row sit at exactly the target token
-  height, so a control that over- or undershoots reads as misaligned at a
-  glance. A row with a chevron (the menu triggers) checks that the disclosure
-  affordance doesn't grow the button.
+  One row of every height-locked control at a given size, plus the chip,
+  which sizes from its content and *should* still land on the line. The
+  dashed guides in .control-row sit at exactly the target token height, so a
+  control that over- or undershoots reads as misaligned at a glance. A row
+  with a chevron (the menu triggers) checks that the disclosure affordance
+  doesn't grow the button. The medium row also carries the controls that only
+  come in one size: the toggle button, both shelf buttons, and tabs.
 #}
 {% macro control_row(size) %}
     {% set size_attr = ('size="' ~ size ~ '"') | safe if size != "medium" else "" %}
@@ -106,6 +107,28 @@
                 </ol-chip>
             </span>
         {% endif %}
+        {% if size == "medium" %}
+            <span class="control-row__cell">
+                <ol-toggle variant="button" label="Readable Only" sublabel="4.6M">
+                </ol-toggle>
+            </span>
+            <span class="control-row__cell">
+                <ol-shelf-button user-key="{{ user_key }}" work-key="/works/OL69612W" book-title="The Secret Garden">
+                </ol-shelf-button>
+            </span>
+            <span class="control-row__cell">
+                <ol-shelf-button variant="outline" user-key="{{ user_key }}" work-key="/works/OL69612W" book-title="The Secret Garden">
+                </ol-shelf-button>
+            </span>
+            <span class="control-row__cell">
+                <ol-tabs accessible-label="Alignment tabs">
+                    <a slot="tab" href="#align-tab-a">Tab</a>
+                    <a slot="tab" href="#align-tab-b">Tab</a>
+                    <div id="align-tab-a"></div>
+                    <div id="align-tab-b"></div>
+                </ol-tabs>
+            </span>
+        {% endif %}
         <span class="control-row__cell">
             <input class="control-row__field"
                    type="text"
@@ -122,39 +145,19 @@
     </div>
 {% endmacro %}
 {#
-  The controls that sit beside the medium row in real toolbars and size
-  themselves some other way. Same guides, so each one's miss is measurable.
+  The two controls that sit beside the medium row in real toolbars and are
+  deliberately not locked to it. Same guides, so each one's offset is visible.
 #}
 {% macro neighbour_row() %}
     <div class="ds-example__output control-row control-row--medium">
-        <span class="control-row__cell">
-            <ol-toggle variant="button" label="Readable Only" sublabel="4.6M">
-            </ol-toggle>
-        </span>
         <span class="control-row__cell">
             <ol-toggle label="Switch">
             </ol-toggle>
         </span>
         <span class="control-row__cell">
-            <ol-shelf-button user-key="{{ user_key }}" work-key="/works/OL69612W" book-title="The Secret Garden">
-            </ol-shelf-button>
-        </span>
-        <span class="control-row__cell">
-            <ol-shelf-button variant="outline" user-key="{{ user_key }}" work-key="/works/OL69612W" book-title="The Secret Garden">
-            </ol-shelf-button>
-        </span>
-        <span class="control-row__cell">
             <nav class="ds-demo-menu control-row__menu" aria-label="Menu row sample">
                 <a class="ds-demo-menu__link" href="#control-alignment">Menu row</a>
             </nav>
-        </span>
-        <span class="control-row__cell">
-            <ol-tabs accessible-label="Alignment tabs">
-                <a slot="tab" href="#align-tab-a">Tab</a>
-                <a slot="tab" href="#align-tab-b">Tab</a>
-                <div id="align-tab-a"></div>
-                <div id="align-tab-b"></div>
-            </ol-tabs>
         </span>
     </div>
 {% endmacro %}
@@ -242,11 +245,11 @@
             Each height-locked control sets <code>height</code> (not vertical padding) from the same token with
             <code>box-sizing: border-box</code>, so they line up regardless of differing font sizes, borders,
             or content. The menu and select triggers are <code>ol-button</code>s, so they inherit the button's
-            height for free; the chevron must not grow them. Everything else in the row is here because it
-            sits <em>next to</em> these controls in real toolbars and sizes itself some other way: chips and
-            tabs are padding-driven, the switch has no height of its own, the split shelf button runs 2px
-            under medium by design, and a menu row drops to <code>--control-height-medium</code> only on
-            hover-capable pointers. Toggle the guides and read each row against them.
+            height for free; the chevron must not grow them. The chip is padding-driven and still has to
+            land on the line. The medium row also carries the controls that come in one size only: the
+            toggle button, the split shelf button (whose halves set <code>min-height</code> so a long shelf
+            name can wrap — the host's border brings it to the token), the outline shelf square, and tabs.
+            Toggle the guides and read each row against them.
         </p>
         <div class="control-alignment__guides-toggle">
             <ol-toggle id="control-alignment-guides" accessible-label="Show guide lines" label="Guide lines">
@@ -260,10 +263,10 @@
         {{ control_row("large") }}
         <h3 class="ds-group__title">Medium neighbours — not height-locked</h3>
         <p class="ds-group__blurb">
-            What sits beside a medium control in practice. The toggle button is locked; the rest are
-            not: the switch and chips size from their content, the split shelf button is 2px short on
-            purpose, the outline shelf is a 32px square, the menu row only matches on a fine pointer,
-            and tabs are padding-driven with a rule below.
+            The two medium neighbours that are deliberately off the token. The switch is a
+            checkbox-class control: it centres on its label's text line, not on a button box, so
+            locking it would only wrap it in an invisible frame. The menu row is sized to be tapped,
+            and drops to <code>--control-height-medium</code> only on hover-capable pointers.
         </p>
         {{ neighbour_row() }}
         <script>
@@ -558,9 +561,9 @@
             The rule says selected has one look: <code>--color-control-selected-bg</code> with
             <code>--color-link</code> text. This row puts every component's selected or current state next to
             that reference, grouped by the mechanism it actually uses. Four show up today: the tinted fill,
-            a solid primary fill, a raised ink pill, and an underline — plus a fifth inside menus, where the
-            radio or checkbox carries the state and the row stays untinted. Decide which of these are
-            deliberate and which are drift.
+            a solid primary fill, a raised ink pill, and an underline. Menu rows take the tinted fill too,
+            on their pill, with the radio, checkbox or icon still carrying the state (pin them open in
+            <em>Menus and panels</em> below). Decide which of these are deliberate and which are drift.
         </p>
         <h3 class="ds-group__title">Tint and blue text</h3>
         <div class="ds-example__output">
@@ -680,13 +683,13 @@
     <section class="ds-section" id="menus">
         <h2 class="ds-section__title">Menus and panels</h2>
         <p class="ds-section__blurb">
-            The four panel-shaped components side by side. Pin them open to compare the rows directly: the
+            The five panel-shaped components side by side. Pin them open to compare the rows directly: the
             row height (<code>--menu-row-height</code>, which is the medium control height on a fine
-            pointer), the inset pill and its hover, where the state indicator sits and what it is (link-blue
-            text in the menu, a radio in options, a checkbox in select, nothing in the bare popover), the
-            section headings, and the search field's height and focus ring against the input in the
-            alignment row above. Pinning turns off outside-click dismissal; Escape still closes the
-            frontmost one.
+            pointer), the inset pill and its hover, the selected row's tint and what sits in it (nothing but
+            the tint in the menu, a radio in options, a checkbox in select, a filled icon in shelf actions,
+            no selection in the bare popover), the section headings, and the search field's height and
+            focus ring against the input in the alignment row above. Pinning turns off outside-click
+            dismissal; Escape still closes the frontmost one.
         </p>
         <div class="ds-check-controls">
             <ol-toggle id="menus-pin" label="Pin open" data-ds-pin-menus>
@@ -698,6 +701,8 @@
                     Tooltip
                 </ol-button>
             </ol-tooltip>
+            <ol-shelf-button variant="icon" user-key="{{ user_key }}" work-key="/works/OL27448W" book-title="Pride and Prejudice" shelf="3" data-ds-pinnable>
+            </ol-shelf-button>
             <ol-popover aria-label="Playground popover" data-ds-pinnable>
                 <ol-button slot="trigger">
                     Popover

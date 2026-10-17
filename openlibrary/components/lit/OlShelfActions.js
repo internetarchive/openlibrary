@@ -346,6 +346,7 @@ export class OlShelfActions extends LitElement {
             background: none;
             color: inherit;
             font: inherit;
+            font-weight: var(--font-weight-button);
             text-align: left;
             cursor: pointer;
             text-decoration: none;
@@ -398,14 +399,28 @@ export class OlShelfActions extends LitElement {
         }
 
         /* The shelf a book is on, and the date it was finished on, are the same
-           kind of answer — both mark their row the same way. */
+           kind of answer — both mark their row the same way: the shared
+           control-selected look (menuRow in control-styles.js), tint and link
+           text, never weight. */
         .row[aria-pressed='true'] {
+            background: var(--color-control-selected-bg);
             color: var(--color-link);
-            font-weight: 600;
         }
 
         .row[aria-pressed='true'] .obd-icon {
             color: var(--color-link);
+        }
+
+        /* Hover and press deepen the tint, as ol-button[selected] does, rather
+           than greying it. */
+        .row[aria-pressed='true']:active {
+            background: var(--color-control-selected-bg-hover);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .row[aria-pressed='true']:hover {
+                background: var(--color-control-selected-bg-hover);
+            }
         }
 
         /* Already Read on the shelf: the label toggles like the other rows,
@@ -439,6 +454,30 @@ export class OlShelfActions extends LitElement {
             flex: 0 0 auto;
             gap: var(--spacing-inline-xs);
             padding-inline: var(--spacing-inset-sm);
+        }
+
+        /* When Already Read is the shelf, the date half joins the shelf half's
+           tinted pill: the inner corners square off so the halves read as one
+           selected row, and each half still deepens on its own hover. */
+        .row-split:has(> [aria-pressed='true']) > .row:first-child {
+            border-start-end-radius: 0;
+            border-end-end-radius: 0;
+        }
+
+        .row-split:has(> [aria-pressed='true']) > .date-link {
+            background: var(--color-control-selected-bg);
+            border-start-start-radius: 0;
+            border-end-start-radius: 0;
+        }
+
+        .row-split:has(> [aria-pressed='true']) > .date-link:active {
+            background: var(--color-control-selected-bg-hover);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .row-split:has(> [aria-pressed='true']) > .date-link:hover {
+                background: var(--color-control-selected-bg-hover);
+            }
         }
 
         .date-link .count {
@@ -737,6 +776,7 @@ export class OlShelfActions extends LitElement {
             padding-block: var(--spacing-inset-sm);
             padding-inline: var(--menu-row-padding-inline);
             border-radius: var(--border-radius-menu-row);
+            font-weight: var(--font-weight-button);
             cursor: pointer;
         }
 
@@ -756,18 +796,27 @@ export class OlShelfActions extends LitElement {
         }
 
         .list-row.checked {
+            background: var(--color-control-selected-bg);
             color: var(--color-link);
-            font-weight: 600;
         }
 
         .list-row.checked .obd-icon {
             color: var(--color-link);
         }
 
-        /* The annotations describe the list, not the answer. */
-        .list-row .count,
+        /* The date fields describe the answer, they are not the row's label. */
         .list-row .other-form {
-            font-weight: normal;
+            font-weight: var(--font-weight-regular);
+        }
+
+        .list-row.checked:active {
+            background: var(--color-control-selected-bg-hover);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .list-row.checked:hover {
+                background: var(--color-control-selected-bg-hover);
+            }
         }
 
         /* The checkbox is hidden, so the row wears its focus. */
@@ -798,14 +847,12 @@ export class OlShelfActions extends LitElement {
             white-space: nowrap;
         }
 
+        /* Counts, dates and prompts describe the row, they are not its label:
+           regular beside the control-weight label. */
         .count {
             color: var(--color-text-secondary);
             font-size: var(--font-size-label-medium);
-        }
-
-        /* A prompt, not an answer: it must not take the pressed row's weight. */
-        .count.hint {
-            font-weight: normal;
+            font-weight: var(--font-weight-regular);
         }
 
         .shortcuts {
@@ -1079,7 +1126,7 @@ export class OlShelfActions extends LitElement {
             <!-- Toggle buttons, not a menu: the panel is a dialog holding
                  several kinds of control, and menuitem roles promise arrow-key
                  navigation the rows don't have. aria-pressed marks the shelf
-                 the book is on, which is what the checkmark shows. -->
+                 the book is on; the row's selected look and filled icon show it. -->
             <div class="group shelves" role="group" aria-label=${this.t('readingLog')} aria-busy=${this._held}>
                 ${SHELF_ROWS.map(row => {
                     const toggle = html`
@@ -1092,8 +1139,6 @@ export class OlShelfActions extends LitElement {
                         >
                             <ol-icon class="obd-icon" name=${this.shelf === row.id ? row.iconOn : row.icon}></ol-icon>
                             <span class="label">${this.t(row.label)}</span>
-                            <!-- Already Read's date half sits where the check would; the pressed color marks it. -->
-                            ${this.shelf === row.id && row.id !== SHELF.ALREADY_READ ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
                         </button>
                     `;
                     // Wrapped whether or not the date shows, so toggling the
@@ -1291,14 +1336,12 @@ export class OlShelfActions extends LitElement {
                 <button type="button" class="row today" aria-pressed=${answered === 'today' ? 'true' : 'false'} @click=${this._onToday}>
                     <ol-icon class="obd-icon" name="calendar-check"></ol-icon>
                     <span class="label">${this.t('today')}</span>
-                    ${answered === 'today' ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
                 </button>
                 ${quickYears().map(
                     year => html`
                         <button type="button" class="row year" aria-pressed=${answered === String(year) ? 'true' : 'false'} @click=${() => this._onYear(year)}>
                             <ol-icon class="obd-icon" name="calendar"></ol-icon>
                             <span class="label">${this.t('inYear', { year })}</span>
-                            ${answered === String(year) ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
                         </button>
                     `
                 )}
