@@ -25,7 +25,7 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.solr.utils import get_solr_base_url
-from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils import extract_numeric_id_from_olid, request_context
 
 if typing.TYPE_CHECKING:
     from infogami.infobase.client import Site
@@ -349,11 +349,13 @@ class DatabaseDataProvider(DataProvider):
         from infogami.utils import delegate
 
         # web.ctx might not be defined at this time -_-
-        self.get_site = lambda: site or web.ctx.site
+        self.get_site = lambda: site or request_context.site.get()
 
         if not db:
             infogami._setup()
             delegate.fakeload()
+            request_context.site.set(web.ctx.site)
+            request_context.req_context.set(request_context.create_context_for_script())
 
             from openlibrary.core.db import get_db
 

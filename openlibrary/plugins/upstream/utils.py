@@ -384,6 +384,7 @@ def _get_changes_v1_raw(query: dict[str, str | int], revision: int | None = None
     """
     if "env" not in web.ctx:
         delegate.fakeload()
+        request_context.set_context_from_legacy_web_py()
 
     versions = web.ctx.site.versions(query)
 
@@ -417,6 +418,7 @@ def _get_changes_v2_raw(query: dict[str, str | int], revision: int | None = None
     """
     if "env" not in web.ctx:
         delegate.fakeload()
+        request_context.set_context_from_legacy_web_py()
 
     changes = web.ctx.site.recentchanges(query)
     return [c.dict() for c in changes]
@@ -1322,6 +1324,7 @@ def _get_recent_changes2():
     """
     if "env" not in web.ctx:
         delegate.fakeload()
+        request_context.set_context_from_legacy_web_py()
 
     q = {"bot": False, "limit": 100}
     changes = web.ctx.site.recentchanges(q)

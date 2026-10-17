@@ -43,7 +43,7 @@ from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.query_utils import fully_escape_query
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
-from openlibrary.utils.request_context import get_request_lang, req_context
+from openlibrary.utils.request_context import get_request_lang, req_context, set_context_from_legacy_web_py
 from openlibrary.utils.solr import (
     DEFAULT_PASS_TIME_ALLOWED,
     DEFAULT_SOLR_TIMEOUT_SECONDS,
@@ -1172,6 +1172,7 @@ def rewrite_list_query(q: str, page, offset, limit, params: dict):
         # make cacheable
         if "env" not in web.ctx:
             delegate.fakeload()
+            set_context_from_legacy_web_py()
         lst = cast(List, web.ctx.site.get(key))
         return list(itertools.islice(lst.get_work_keys(), offset, offset + limit))
 
