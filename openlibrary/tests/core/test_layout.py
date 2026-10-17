@@ -4,6 +4,7 @@ import pathlib
 import re
 
 import pytest
+import web
 
 import infogami.utils.flash as flash_module
 from infogami.utils.context import context as infogami_ctx
@@ -16,6 +17,7 @@ from openlibrary.core.shell import (
     SentryContext,
     can_show_librarian_tools,
 )
+from openlibrary.core.shell.login_dialog import _third_party_src
 
 
 @pytest.fixture(autouse=True)
@@ -221,6 +223,40 @@ def test_layout_build_header_user_logged_out(request_context_fixture):
     request_context_fixture(lang="en")
     layout = LayoutContext.build()
     assert layout.header.user is None
+
+
+def test_layout_build_login_dialog_for_visitors_only(monkeypatch, request_context_fixture):
+    """Signed out, the shell carries the login dialog's labels with their
+    client-side placeholders intact; signed in there is nothing to render."""
+    request_context_fixture(lang="en")
+    layout = LayoutContext.build()
+    dialog = layout.header.login_dialog
+    assert dialog is not None
+    assert dialog.labels["heading"] == "Log in or sign up"
+    assert dialog.labels["codeSent"] == "We sent a 6-digit code to %(email)s."
+    # No request here, so the frame URL falls back to empty rather than raising.
+    assert dialog.third_party_src == ""
+
+    class MockUser:
+        key = "/people/reader"
+        created = None
+
+        def is_librarian_or_higher(self):
+            return False
+
+        def is_super_librarian_or_higher(self):
+            return False
+
+    monkeypatch.setattr("openlibrary.core.shell.context.get_current_user", MockUser)
+    monkeypatch.setattr("openlibrary.core.shell.header.get_internet_archive_id", lambda key: None)
+    assert LayoutContext.build().header.login_dialog is None
+
+
+def test_login_dialog_third_party_frame_posts_back_to_this_origin(monkeypatch):
+    """The archive.org frame is told where to post the keys: this site, over https."""
+    monkeypatch.setattr("openlibrary.plugins.upstream.utils.get_ia_host", lambda allow_dev=False: "archive.org")
+    monkeypatch.setattr(web.ctx, "home", "http://openlibrary.org", raising=False)
+    assert _third_party_src() == "https://archive.org/account/login.thirdparty.php?origin=https%3A%2F%2Fopenlibrary.org"
 
 
 def test_layout_build_header_user_logged_in(monkeypatch, request_context_fixture):

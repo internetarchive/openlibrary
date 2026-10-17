@@ -19,6 +19,7 @@
         {% if layout.show_ol_shell %}
             {% include "shell/alert.html.jinja" %}
             {% include "shell/header.html.jinja" %}
+            {% include "shell/login_dialog.html.jinja" %}
             {{ render_templetor_template("my_books/shelf_button_i18n") }}
         {% endif %}
         <main {% if layout.show_ol_shell %} id="test-body-mobile" tabindex="-1"{% endif %}>

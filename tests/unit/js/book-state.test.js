@@ -138,6 +138,33 @@ describe('hydrate', () => {
         expect(all()[0].pending).toBe(false);
     });
 
+    test('a login through the login dialog hands every button the key and fetches their state', async () => {
+        stubFetch({
+            OL1W: { shelf: 1, rating: null, read_date: null, event_id: null },
+            OL2W: { shelf: null, rating: null, read_date: null, event_id: null }
+        });
+        page({ userKey: '', buttons: button('/works/OL1W') + button('/works/OL2W') });
+        initBookState();
+        await settle();
+        expect(calls).toHaveLength(0);
+        expect(all().map(el => el.userKey)).toEqual(['', '']);
+
+        document.dispatchEvent(new CustomEvent('ol-login-success', { detail: { userKey: '/people/tester', method: 'password' } }));
+        // Held while the fetch is out, as for a button that just arrived.
+        expect(all().every(el => el.pending)).toBe(true);
+        await tick();
+        await tick();
+
+        expect(document.body.dataset.userKey).toBe('/people/tester');
+        expect(all().map(el => el.userKey)).toEqual(['/people/tester', '/people/tester']);
+        expect(calls).toHaveLength(1);
+        expect(calls[0].searchParams.get('work_ids')).toBe('OL1W,OL2W');
+        const [a, b] = all();
+        expect(a.shelf).toBe(1);
+        expect(b.shelf).toBeNull();
+        expect(all().every(el => !el.pending)).toBe(true);
+    });
+
     test('signed out, applies labels and never asks for state', async () => {
         stubFetch();
         page({ userKey: '', buttons: button('/works/OL1W') });
