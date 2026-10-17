@@ -280,6 +280,29 @@ tab_space_size = 4
 dev = [
     "ty==0.0.89",
 ]
+typecheck = [
+    "aiofiles==25.1.0",
+    "fastapi==0.143.0",
+    "httpx==0.28.1",
+    "Jinja2==3.1.6",
+    "Pillow==12.3.0",
+    "prometheus-fastapi-instrumentator==8.1.0",
+    "psycopg[binary,pool]==3.3.5",
+    "pydantic==2.13.4",
+    "pydantic-settings==2.9.1",
+    "pytest==9.0.3",
+    "pytest-asyncio==1.4.0",
+    "pytest-httpx==0.36.2",
+    "PyYAML==6.0.3",
+    "qrcode==7.4.2",
+    "requests==2.34.2",
+    "sentry-sdk[fastapi]==2.72.0",
+    "simplejson==3.20.2",
+    "python-dateutil==2.9.0.post0",
+    "python-multipart==0.0.32",
+    "uvicorn[standard]==0.54.0",
+    "web.py @ git+https://github.com/webpy/webpy.git@2598dfe693ff931a9c67196f0b904b13637ec19f",
+]
 
 [tool.ty.environment]
 extra-paths = ["typings"]
