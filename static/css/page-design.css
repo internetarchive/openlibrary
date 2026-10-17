@@ -517,6 +517,12 @@ html:has(.ds) {
   display: block;
 }
 
+/* An output used bare under a group title has no .ds-example to space it.
+   Skipped when only an inline script follows, so the section end stays tight. */
+.ds-section > .ds-example__output:has(~ :not(script)) {
+  margin-bottom: var(--spacing-stack-xl);
+}
+
 /* The carousel picks columns, pages and peek off its container width, so a
    shrink-wrapped host would demo it at the wrong breakpoint. The markdown
    editor likewise demos as a full-width block. */
