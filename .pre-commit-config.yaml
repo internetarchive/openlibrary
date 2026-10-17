@@ -95,6 +95,7 @@ repos:
     rev: v2.3.0
     hooks:
       - id: mypy  # See pyproject.toml for args
+        exclude: ^openlibrary/(fastapi/|tests/fastapi/)|^openlibrary/asgi_app\.py$
         additional_dependencies:
           - types-PyYAML
           - types-aiofiles
@@ -103,6 +104,12 @@ repos:
           - types-simplejson
           - fastapi
           - psycopg[binary,pool]==3.3.5
+
+  - repo: https://github.com/astral-sh/ty-pre-commit
+    rev: v0.0.89
+    hooks:
+      - id: ty
+        files: ^openlibrary/(fastapi/|tests/fastapi/)|^openlibrary/asgi_app\.py$
 
   - repo: https://github.com/oxc-project/mirrors-oxfmt
     # Mirror tag lags npm; pin the same version as package.json.

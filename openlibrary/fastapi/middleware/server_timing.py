@@ -55,4 +55,4 @@ def add_server_timing(app: Starlette) -> None:
     ``ServerErrorMiddleware``, so 500 pages for unhandled exceptions get the header
     too. ``app.add_middleware()`` can only add middleware inside that one."""
     build = app.build_middleware_stack
-    app.build_middleware_stack = lambda: ServerTimingMiddleware(build())  # type: ignore[method-assign]
+    app.build_middleware_stack = lambda: ServerTimingMiddleware(build())  # ty: ignore[invalid-assignment]

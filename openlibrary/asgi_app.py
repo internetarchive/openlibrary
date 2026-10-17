@@ -5,6 +5,7 @@ import os
 import re
 import sys
 from contextlib import asynccontextmanager
+from importlib import import_module
 from pathlib import Path
 
 import yaml
@@ -50,8 +51,8 @@ def _load_legacy_wsgi():
 
     This function does not return a WSGI callable; it is called for its side effects only.
     """
-    import infogami  # type: ignore
-    from infogami import config  # type: ignore
+    import infogami
+    from infogami import config
 
     # match scripts/openlibrary-server behavior
     from infogami.utils import delegate as _delegate  # noqa: F401 - side-effects
@@ -120,10 +121,10 @@ def setup_i18n(app: FastAPI):
 
 
 def setup_debugpy():
-    import debugpy  # noqa: T100
+    debugpy = import_module("debugpy")
 
     # Start listening for debugger connections
-    debugpy.listen(("0.0.0.0", 3000))  # noqa: T100
+    debugpy.listen(("0.0.0.0", 3000))
     logger.info("🐛 Debugger ready to attach from VS Code! Select 'OL: Attach to FastAPI Container'.")
 
 
@@ -189,7 +190,7 @@ async def lifespan(app: FastAPI):
         await close_pool()
 
 
-def create_app() -> FastAPI | None:
+def create_app() -> FastAPI:
     if "pytest" not in sys.modules:
         _setup_env()
 
@@ -203,10 +204,9 @@ def create_app() -> FastAPI | None:
             _load_legacy_wsgi()
 
             global sentry
-            if sentry is not None:
-                return None
-            sentry = init_sentry(getattr(infogami.config, "sentry", {}))
-            set_tag("fastapi", True)
+            if sentry is None:
+                sentry = init_sentry(getattr(infogami.config, "sentry", {}))
+                set_tag("fastapi", True)
 
         except Exception:
             logger.exception("Failed to initialize legacy WSGI app")

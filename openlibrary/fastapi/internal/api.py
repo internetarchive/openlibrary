@@ -126,7 +126,7 @@ async def post_book_availability(
 
 
 class TrendingRequestParams(Pagination):
-    limit: int | None = Field(None, ge=0, le=1000, description="Maximum number of results per page.")  # type: ignore[assignment]
+    limit: int | None = Field(None, ge=0, le=1000, description="Maximum number of results per page.")  # ty: ignore[invalid-attribute-override]
     hours: int = Field(0, ge=0, description="Custom number of hours to look back.")
     days: int = Field(0, ge=0, description="Custom number of days to look back.")
     sort_by_count: bool = Field(True, description="Sort results by total log count (most-logged first).")
@@ -224,9 +224,16 @@ class RatingsResponse(BaseModel):
     def from_work_summary(cls, stats: WorkRatingsSummary | None) -> RatingsResponse:
         if not stats:
             return cls(summary=RatingsSummary(), counts={str(star): 0 for star in range(1, 6)})
+        rating_counts = (
+            stats["ratings_count_1"],
+            stats["ratings_count_2"],
+            stats["ratings_count_3"],
+            stats["ratings_count_4"],
+            stats["ratings_count_5"],
+        )
         return cls(
             summary=RatingsSummary(average=stats["ratings_average"], count=stats["ratings_count"], sortable=stats["ratings_sortable"]),
-            counts={str(star): stats[f"ratings_count_{star}"] for star in range(1, 6)},  # type: ignore[literal-required]
+            counts={str(star): count for star, count in enumerate(rating_counts, 1)},
         )
 
 

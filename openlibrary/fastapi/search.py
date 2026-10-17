@@ -152,6 +152,7 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
             raise ValueError(f"Invalid JSON in 'query' parameter: {e}")
 
     @computed_field
+    @property
     def selected_query(self) -> dict[str, Any]:
         if isinstance(self.query, dict):
             return self.query
@@ -222,7 +223,7 @@ async def search_json(
     """
 
     raw_response = await work_search_async(
-        params.selected_query,  # type: ignore[arg-type]
+        params.selected_query,
         sort=params.sort,
         page=params.page,
         offset=params.offset,

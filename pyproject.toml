@@ -76,7 +76,6 @@ lint.ignore = [
     # scripts/tests/test_affiliate_server.py - probably needed for side effects
     # scripts/tests/test_solr_updater.p - probably needed for side effects
 ]
-line-length = 162
 lint.select = [
   "ASYNC",   # flake8-async
   "B",       # flake8-bugbear
@@ -138,6 +137,7 @@ lint.select = [
   # "TID",   # flake8-tidy-imports
   # "TRY",   # tryceratops
 ]
+line-length = 162
 
 [tool.ruff.lint.mccabe]
 max-complexity = 28
@@ -275,3 +275,18 @@ exclude_rules = "LT01,LT02,LT05,CP01,CP02,CP03,CP04,CP05,AL01,AL02,AL03,AL09,RF0
 
 [tool.sqlfluff.indentation]
 tab_space_size = 4
+
+[dependency-groups]
+dev = [
+    "ty==0.0.89",
+]
+
+[tool.ty.environment]
+extra-paths = ["typings"]
+
+[tool.ty.src]
+include = [
+  "openlibrary/fastapi/",
+  "openlibrary/tests/fastapi/",
+  "openlibrary/asgi_app.py",
+]

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import cast
 from unittest.mock import MagicMock, patch
 from urllib.parse import unquote
 
@@ -57,7 +58,7 @@ def _anonymize_post(
         get_by_link_return = get_by_link_result
 
     if anonymize_side_effect is not None:
-        mock_account.anonymize.side_effect = anonymize_side_effect
+        cast(MagicMock, mock_account).anonymize.side_effect = anonymize_side_effect
 
     _site_token = site.set(MagicMock())
     _req_token = req_context.set(
@@ -71,7 +72,7 @@ def _anonymize_post(
     )
     try:
         with (
-            patch("openlibrary.fastapi.account.HMACToken.verify", **hmac_kw),
+            patch("openlibrary.fastapi.account.HMACToken.verify", **hmac_kw),  # ty: ignore[no-matching-overload]
             patch("openlibrary.fastapi.account.InternetArchiveAccount.s3auth", return_value=s3auth_result),
             patch("openlibrary.fastapi.account.OpenLibraryAccount.get_by_link", return_value=get_by_link_return),
             patch("openlibrary.fastapi.account.RunAs"),
