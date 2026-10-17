@@ -19,7 +19,9 @@
         {% if layout.show_ol_shell %}
             {% include "shell/alert.html.jinja" %}
             {% include "shell/header.html.jinja" %}
-            {{ render_templetor_template("my_books/shelf_button_i18n") }}
+            <input type="hidden"
+                   name="shelf-button-i18n-strings"
+                   value="{{ layout.shelf_button_labels_json }}">
         {% endif %}
         <main {% if layout.show_ol_shell %} id="test-body-mobile" tabindex="-1"{% endif %}>
             {% if layout.show_ol_shell %}
