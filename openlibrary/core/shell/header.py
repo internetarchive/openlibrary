@@ -14,6 +14,7 @@ from openlibrary.accounts.model import get_internet_archive_id
 from openlibrary.core.edits import cached_get_counts_by_mode
 from openlibrary.core.helpers import datestr
 from openlibrary.core.shell._util import _safe
+from openlibrary.core.shell.login_dialog import LoginDialogContext, build_login_dialog_context
 from openlibrary.core.shell.nav import BROWSE_FEATURED_COUNT, NavLink, browse_links
 from openlibrary.core.shell.search_modal import SearchModalContext, build_search_modal_i18n
 
@@ -114,6 +115,8 @@ class HeaderContext:
     browse_links: list[NavLink]
     browse_featured_count: int
     search_modal: SearchModalContext
+    # For shell/login_dialog.html.jinja; None when signed in, so nothing renders.
+    login_dialog: LoginDialogContext | None = None
 
     @classmethod
     def build(cls, *, user: User | None) -> HeaderContext:
@@ -133,4 +136,5 @@ class HeaderContext:
             browse_links=links,
             browse_featured_count=BROWSE_FEATURED_COUNT,
             search_modal=build_search_modal_i18n(),
+            login_dialog=None if user else build_login_dialog_context(),
         )

@@ -13,6 +13,9 @@
  * buttons that arrive later. They stay pending until that lands, so nobody can
  * act on a shelf we have not read yet.
  *
+ * A login through the login dialog (`ol-login-success`) is the same job again:
+ * every button gets the reader's key and its state, with no reload.
+ *
  * On a page that lists one shelf (`[data-shelf]` on the list), a row whose
  * book has left that shelf stays where it is and says so, with a way back;
  * the next load drops it. Every `[data-shelf-count-for]` on the page moves with
@@ -243,6 +246,20 @@ function onCheckIn(e) {
 }
 
 /**
+ * The reader logged in through the login dialog without leaving the page.
+ * Every button gets the key, and the state the signed-out render could not
+ * know is fetched as for a button that just arrived.
+ * @param {CustomEvent<{userKey: string}>} e
+ */
+function onLogin(e) {
+    const key = e.detail?.userKey || userKey();
+    if (!key) return;
+    document.body.dataset.userKey = key;
+    for (const button of document.querySelectorAll('ol-shelf-button')) button.userKey = key;
+    hydrate();
+}
+
+/**
  * Fetch ReadingState for these buttons in batches, and apply it.
  * @param {HTMLElement[]} buttons
  * @returns {Promise<void>}
@@ -306,6 +323,7 @@ export function initBookState() {
     listening = true;
     document.addEventListener('ol-book-state-change', onStateChange);
     document.addEventListener('ol-book-check-in', onCheckIn);
+    document.addEventListener('ol-login-success', onLogin);
     hydrate();
     new MutationObserver(scheduleHydrate).observe(document.body, { childList: true, subtree: true });
 }
@@ -316,4 +334,5 @@ export function resetBookState() {
     listening = false;
     document.removeEventListener('ol-book-state-change', onStateChange);
     document.removeEventListener('ol-book-check-in', onCheckIn);
+    document.removeEventListener('ol-login-success', onLogin);
 }

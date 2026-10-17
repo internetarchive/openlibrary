@@ -539,6 +539,47 @@ def test_login_forwards_s3_headers_to_audit(fastapi_client):
         assert kwargs["s3_secret_key"] == "sk"
 
 
+def test_login_form_asking_for_json_answers_in_json(fastapi_client):
+    """The login dialog posts the form with Accept: application/json and stays
+    on its page, so it gets the reader's key and cookies rather than a 303."""
+    with (
+        patch("openlibrary.fastapi.account.audit_accounts") as mock_audit,
+        patch("openlibrary.fastapi.account.generate_login_code_for_user") as mock_gen_code,
+        patch("openlibrary.fastapi.account.OpenLibraryAccount.get_by_email", return_value=None),
+    ):
+        mock_audit.return_value = {"ol_username": "testuser"}
+        mock_gen_code.return_value = "token"
+
+        response = fastapi_client.post(
+            "/account/login",
+            data={"username": "testuser", "password": "password", "redirect": "/books"},
+            headers={"Accept": "application/json"},
+            follow_redirects=False,
+        )
+        assert response.status_code == 200
+        assert response.json() == {"success": True, "user_key": "/people/testuser", "redirect": "/books"}
+        set_cookies = [val for key, val in response.headers.multi_items() if key.lower() == "set-cookie"]
+        assert any(header.startswith(f"{config.login_cookie_name}=") for header in set_cookies)
+        # The intent queued before the dialog opened is cleared, as on a redirect.
+        assert any("pending_action=" in header for header in set_cookies)
+
+
+def test_login_form_asking_for_json_reports_the_error_in_json(fastapi_client):
+    with patch("openlibrary.fastapi.account.audit_accounts") as mock_audit:
+        mock_audit.return_value = {"error": "account_bad_password"}
+
+        response = fastapi_client.post(
+            "/account/login",
+            data={"username": "testuser", "password": "wrong"},
+            headers={"Accept": "application/json"},
+            follow_redirects=False,
+        )
+        assert response.status_code == 400
+        body = response.json()
+        assert body["error"] == "account_bad_password"
+        assert body["errorDisplayString"]
+
+
 class TestAnonymizeAccount:
     def test_success(self, fastapi_client):
         resp, mock_account = _anonymize_post(fastapi_client)
