@@ -2,6 +2,7 @@ import web
 
 import openlibrary.core.lists.model as list_model
 from openlibrary.mocks.mock_infobase import MockSite
+from openlibrary.utils.request_context import site
 
 
 class TestList:
@@ -71,7 +72,11 @@ class TestSeries:
         monkeypatch.setattr(web, "ctx", web.storage(site=mock_site))
 
         series = list_model.Series(mock_site, "/series/OL1L")
-        seeds = series.get_seeds()
+        token = site.set(mock_site)
+        try:
+            seeds = series.get_seeds()
+        finally:
+            site.reset(token)
 
         result_keys = [seed.key for seed in seeds]
         expected_keys = [
