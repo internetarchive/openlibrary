@@ -42,7 +42,7 @@ from openlibrary.plugins.upstream.addbook import safe_seeother
 from openlibrary.plugins.worksearch import subjects
 from openlibrary.plugins.worksearch.code import get_solr_works
 from openlibrary.utils import olid_to_key
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import set_context_from_legacy_web_py, site
 
 # One pattern for every seed type: delegate keys its `pages` registry by the raw
 # regex text, so both handlers below must register the identical string.
@@ -1029,6 +1029,7 @@ def _get_recently_modified_lists(limit, offset=0):
     # web.ctx must be initialized as it won't be available to the background thread.
     if "env" not in web.ctx:
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
     keys = web.ctx.site.things(
         {
@@ -1076,6 +1077,7 @@ def _preload_lists(lists):
 def _get_active_lists_in_random(limit=20, preload=True):
     if "env" not in web.ctx:
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
     lists = []
     offset = 0

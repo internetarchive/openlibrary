@@ -45,9 +45,7 @@ from typing import Any, Final
 import requests
 import web
 
-import infogami
 from infogami import config
-from openlibrary.config import load_config as openlibrary_load_config
 from openlibrary.core import cache, stats
 from openlibrary.core.imports import Batch, ImportItem
 from openlibrary.core.vendors import (
@@ -55,11 +53,14 @@ from openlibrary.core.vendors import (
     clean_amazon_metadata_for_load,
 )
 from openlibrary.plugins.upstream.utils import setup_requests
+from openlibrary.setup import setup_for_script
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
     isbn_10_to_isbn_13,
     normalize_identifier,
 )
+from openlibrary.utils.request_context import create_context_for_script, req_context
+from openlibrary.utils.request_context import site as site_context
 
 logger = logging.getLogger("affiliate-server")
 
@@ -470,6 +471,8 @@ def amazon_lookup(site, stats_client, logger) -> None:
     """
     stats.client = stats_client
     web.ctx.site = site
+    site_context.set(site)
+    req_context.set(create_context_for_script())
 
     while True:
         start_time = time.time()
@@ -629,7 +632,7 @@ class Submit:
 
 def load_config(configfile):
     # This loads openlibrary.yml + infobase.yml
-    openlibrary_load_config(configfile)
+    setup_for_script(configfile)
 
     http_proxy_url = config.get("http_proxy", "")
 
@@ -676,9 +679,6 @@ def start_server():
 
     load_config(web.ol_configfile)
     setup_requests()
-
-    # sentry loaded by infogami
-    infogami._setup()
 
     if "pytest" not in sys.modules:
         web.amazon_lookup_thread = make_amazon_lookup_thread()

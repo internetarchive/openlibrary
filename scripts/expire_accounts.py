@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+import os
 import sys
 from datetime import UTC, datetime
 
 import web
+
+from openlibrary.setup import setup_for_script
 
 
 def delete_old_links():
@@ -20,6 +23,7 @@ def delete_old_links():
 
 
 def main():
+    setup_for_script(os.environ["OL_CONFIG"])
     delete_old_links()
     return 0
 
