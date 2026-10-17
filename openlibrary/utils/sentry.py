@@ -164,6 +164,8 @@ class InfogamiRoute:
 
 
 class WebPySentryProcessor:
+    server_tag: str | None = None
+
     def __init__(self, app: web.application):
         self.app = app
 
@@ -179,6 +181,8 @@ class WebPySentryProcessor:
             with hub.configure_scope() as scope:
                 scope.clear_breadcrumbs()
                 scope.add_event_processor(add_web_ctx_to_event)
+                if self.server_tag:
+                    scope.set_tag("server", self.server_tag)
 
             environ = dict(web.ctx.env)
             # Don't forward cookies to Sentry
@@ -203,6 +207,8 @@ class InfogamiSentryProcessor(WebPySentryProcessor):
     """
     Processor to profile the webpage and send a transaction to Sentry.
     """
+
+    server_tag = "webpy"
 
     def find_route_name(self) -> str:
         def find_type() -> tuple[str, str] | None:
