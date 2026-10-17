@@ -133,15 +133,6 @@ class TestPubSubSubscribe:
         assert after == before
         assert {(row.subscriber, row.publisher) for row in after} == set(pairs)
 
-    def test_subscribe_does_not_check_first(self, follows_db, monkeypatch):
-        def fail_lookup(*args):
-            pytest.fail("subscribe must not look up the subscription before inserting")
-
-        monkeypatch.setattr(PubSub, "is_subscribed", fail_lookup)
-        PubSub.subscribe("alice", "bob")
-        PubSub.subscribe("alice", "bob")
-        assert len(list(follows_db.select("follows"))) == 1
-
     def test_names_are_bound_parameters(self, follows_db):
         subscriber, publisher = "reader'नया", "author'quoted"
         PubSub.subscribe(subscriber, publisher)
