@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from urllib.parse import urlsplit, urlunsplit
 
 import httpx
+import sentry_sdk
 from fastapi.responses import StreamingResponse
 
 from openlibrary.utils import server_timing
@@ -66,6 +67,8 @@ def _get_set_cookies(headers) -> list[str]:
 
 async def proxy_to_webpy(request: Request) -> Response:
     """Forward request to web.py on http://web:8080."""
+    # The FastAPI transaction measures the proxy; web.py records the page itself.
+    sentry_sdk.set_tag("proxied", True)
     url = f"http://{WEBPY_NETLOC}{request.url.path}"
     if request.url.query:
         url += f"?{request.url.query}"

@@ -207,6 +207,7 @@ def create_app() -> FastAPI | None:
                 return None
             sentry = init_sentry(getattr(infogami.config, "sentry", {}))
             set_tag("fastapi", True)
+            set_tag("server", "fastapi")
 
         except Exception:
             logger.exception("Failed to initialize legacy WSGI app")
