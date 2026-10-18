@@ -342,18 +342,19 @@ def _resolve_edition_request(page, query_params):
     return None, None, None
 
 
-def _fetch_editions(work, requested, provider, selected_id, mode):
+def _fetch_editions(work, requested, provider, selected_id, mode, ebooks=None):
     """Fetch a work's editions, applying the ebooks-only / edition-limit rules.
 
     Book availability of the fetched editions is injected by the bulk
     get_availability API inside get_sorted_editions().
     """
     edition_count = work.edition_count if work and work.edition_count else 1
-    ebooks_only = (mode == "ebooks") or (mode != "all" and edition_count > 10)
+    ebooks_flag = str(ebooks).lower() in ("true", "1") if ebooks is not None else False
+    ebooks_only = (mode == "ebooks") or ebooks_flag or (mode != "all" and edition_count > 10)
 
     # For performance reasons, limit to 10 ebooks.
     # Tradeoff: limits our ability to select best edition.
-    editions_limit = None if mode in ("all", "ebooks") else 10
+    editions_limit = None if (mode in ("all", "ebooks") or ebooks_flag) else 10
     # keys ensures the current edition we're on or requested edition are fetched by get_sorted_editions
     if requested:
         keys = [requested.key]
@@ -429,7 +430,7 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
         work["title"] = "↪ " + redir.key
 
     requested, provider, selected_id = _resolve_edition_request(page, query_params)
-    editions, editions_limit = _fetch_editions(work, requested, provider, selected_id, query_params.get("mode"))
+    editions, editions_limit = _fetch_editions(work, requested, provider, selected_id, query_params.get("mode"), query_params.get("ebooks"))
     availabilities = {e.availability.get("identifier"): e.availability for e in editions}
 
     previews = [e for e in editions if e.get("ocaid")]

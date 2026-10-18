@@ -3,6 +3,7 @@ import functools
 import itertools
 import logging
 import re
+import sys
 import time
 import urllib
 from collections.abc import Iterable
@@ -27,6 +28,7 @@ from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
+    get_coverstore_public_url,
     get_language_name,
     safeget,
     urlencode,
@@ -66,10 +68,10 @@ re_olid = re.compile(r"^OL\d+([AMW])$")
 
 plurals = {f + "s": f for f in ("publisher", "author")}
 
+solr_select_url = "http://localhost:8983/solr/openlibrary/select"
 default_spellcheck_count = 10
 if hasattr(config, "plugin_worksearch"):
     solr_select_url = config.plugin_worksearch.get("solr_base_url", "localhost") + "/select"
-
     default_spellcheck_count = config.plugin_worksearch.get("spellcheck_count", 10)
 
 
@@ -1289,6 +1291,309 @@ def validate_search_json_query(q: str | None) -> str | None:
         return (f"Invalid query; the following queries are not allowed: {', '.join(sorted(BLOCKED_QUERIES))}",)
 
     return None
+
+
+def _first_or_str(val: Any) -> str:
+    if isinstance(val, list) and val:
+        return str(val[0])
+    return str(val) if val else ""
+
+
+def _to_str_list(val: Any) -> list[str]:
+    if isinstance(val, list):
+        return [str(item) for item in val if item]
+    return [str(val)] if val else []
+
+
+class SolrEditionWrapper(web.Storage):
+    """Lightweight dict/Storage wrapper around a Solr edition document
+
+    mimicking an Infogami Edition model for book page and editions table views.
+    """
+
+    @classmethod
+    def from_solr_doc(cls, doc: dict[str, Any]) -> SolrEditionWrapper:
+        key = doc.get("key", "")
+        title = doc.get("title", "")
+        subtitle = doc.get("subtitle", "")
+        edition_name = _first_or_str(doc.get("edition_name"))
+        publishers = _to_str_list(doc.get("publisher"))
+        publish_date = _first_or_str(doc.get("publish_date"))
+        publish_year = doc.get("publish_year")
+        physical_format = _first_or_str(doc.get("format") or doc.get("physical_format"))
+
+        cover_i = doc.get("cover_i")
+        covers = [cover_i] if cover_i else []
+        isbn = _to_str_list(doc.get("isbn"))
+        oclc = _to_str_list(doc.get("oclc"))
+        ia = _to_str_list(doc.get("ia"))
+        ocaid = ia[0] if ia else (doc.get("ocaid") or "")
+
+        raw_lang = doc.get("language") or []
+        if not isinstance(raw_lang, list):
+            raw_lang = [raw_lang]
+        languages = [
+            web.Storage(
+                key=lang if str(lang).startswith("/languages/") else f"/languages/{lang}",
+                name=str(lang).replace("/languages/", ""),
+                type=web.Storage(key="/type/language"),
+            )
+            for lang in raw_lang
+            if lang
+        ]
+
+        if availability := doc.get("availability"):
+            avail = dict(availability)
+        else:
+            ebook_access = doc.get("ebook_access")
+            if ebook_access == "public":
+                status = "open"
+            elif ebook_access in ("borrowable", "printdisabled"):
+                status = "borrow_available"
+            elif ocaid:
+                status = "borrow_unavailable"
+            else:
+                status = "none"
+            avail = {"status": status}
+            if ocaid:
+                avail["identifier"] = ocaid
+
+        raw_work = doc.get("work_key") or []
+        if not isinstance(raw_work, list):
+            raw_work = [raw_work]
+        works = [web.Storage(key=wk if str(wk).startswith("/works/") else f"/works/{wk}") for wk in raw_work if wk]
+
+        return cls(
+            key=key,
+            type=web.Storage(key="/type/edition"),
+            title=title,
+            subtitle=subtitle,
+            edition_name=edition_name,
+            publishers=publishers,
+            publisher=publishers,
+            publish_date=publish_date,
+            publish_year=publish_year,
+            physical_format=physical_format,
+            format=physical_format,
+            cover_i=cover_i,
+            cover_id=cover_i,
+            covers=covers,
+            isbn=isbn,
+            oclc=oclc,
+            oclc_numbers=oclc,
+            ia=ia,
+            ocaid=ocaid,
+            contributors=[],
+            languages=languages,
+            language=raw_lang,
+            has_fulltext=bool(doc.get("has_fulltext", False)),
+            ebook_access=doc.get("ebook_access", "no_ebook"),
+            availability=avail,
+            works=works,
+            volumes=[],
+        )
+
+    def __getattr__(self, key: str) -> Any:
+        try:
+            return self[key]
+        except KeyError:
+            return None
+
+    def get_authors(self) -> list[Any]:
+        return []
+
+    def is_fake_record(self) -> bool:
+        return False
+
+    def get_cover_aspect_ratio(self) -> float | None:
+        return None
+
+    def url(self, suffix: str = "", **params: Any) -> str:
+        if title := self.get("title"):
+            u = f"{self.key}/{urlsafe(title)}{suffix}"
+        else:
+            u = f"{self.key}{suffix}"
+        if params:
+            u += f"?{urlencode(params)}"
+        return u
+
+    def get_publish_year(self) -> int | None:
+        py = self.get("publish_year")
+        if isinstance(py, list) and py:
+            return py[0]
+        if isinstance(py, int):
+            return py
+        if (pd := self.get("publish_date")) and (m := re.search(r"(\d{4})", str(pd))):
+            return int(m.group(1))
+        return None
+
+    def get_isbn10(self) -> str | None:
+        for raw in self.get("isbn") or []:
+            clean = str(raw).replace("-", "").strip()
+            if len(clean) == 10:
+                return clean
+        return None
+
+    def get_isbn13(self) -> str | None:
+        for raw in self.get("isbn") or []:
+            clean = str(raw).replace("-", "").strip()
+            if len(clean) == 13:
+                return clean
+        return None
+
+    def get_cover_url(self, size: str = "M") -> str:
+        if cover_i := self.get("cover_i"):
+            return f"{get_coverstore_public_url()}/b/id/{cover_i}-{size.upper()}.jpg"
+        if ocaid := self.get("ocaid"):
+            image_sizes = {"S": (116, 58), "M": (180, 360), "L": (500, 500)}
+            w, h = image_sizes.get(size.upper(), (180, 360))
+            return f"https://archive.org/download/{ocaid}/page/cover_w{w}_h{h}.jpg"
+        return "/static/images/icons/avatar_book-sm.png"
+
+    def get_cover(self):
+        if self.get("cover_i") and "site" in web.ctx:
+            from openlibrary.core.models import Image
+
+            return Image(web.ctx.site, "b", self["cover_i"])
+        return None
+
+    def is_access_restricted(self) -> bool:
+        return self.get("ebook_access") == "printdisabled"
+
+    def get_ia_download_link(self) -> str:
+        return f"https://archive.org/download/{self.ocaid}" if self.get("ocaid") else ""
+
+
+EDITION_TABLE_FIELDS = [
+    "key",
+    "work_key",
+    "title",
+    "subtitle",
+    "cover_i",
+    "ebook_access",
+    "publish_date",
+    "publish_year",
+    "language",
+    "publisher",
+    "isbn",
+    "format",
+    "edition_name",
+    "oclc",
+    "ia",
+    "has_fulltext",
+]
+
+
+def _fetch_work_editions_solr_raw(
+    work_olid: str,
+    ebooks_only: bool = False,
+    limit: int | None = 10,
+    sort: str = "new",
+) -> list[dict[str, Any]]:
+    """Fetch raw edition documents from Solr for a work.
+
+    Arguments and return values are strictly JSON-serializable primitives/dicts
+    for compatibility with cache.memcache_memoize.
+    """
+    clean_work_key = work_olid.strip().rstrip("/").split("/")[-1]
+    safe_key = clean_work_key.replace("\\", "\\\\").replace('"', '\\"')
+
+    extra_params: list[tuple[str, Any]] = [("fq", f'work_key:"{safe_key}"')]
+    if ebooks_only:
+        extra_params.append(("fq", "(has_fulltext:true OR ebook_access:(public OR borrowable OR printdisabled))"))
+
+    rows = limit if limit is not None else 10000
+
+    response = run_solr_query(
+        EditionSearchScheme(),
+        {"q": "*:*"},
+        offset=0,
+        rows=rows,
+        fields=EDITION_TABLE_FIELDS,
+        sort=sort,
+        facet=False,
+        extra_params=extra_params,
+        request_label="WORK_EDITIONS_TABLE",
+    )
+    return [dict(doc) for doc in (response.docs or [])]
+
+
+get_cached_work_editions_raw = cache.memcache_memoize(
+    _fetch_work_editions_solr_raw,
+    key_prefix="work_editions.solr",
+    timeout=5 * cache.MINUTE_SECS,
+    hash_args=True,
+)
+
+
+def get_solr_editions_for_work(
+    work_key: str,
+    ebooks_only: bool = False,
+    limit: int | None = None,
+    sort: str = "new",
+    keys: list[str] | None = None,
+) -> list[SolrEditionWrapper]:
+    """Fetch and return Solr-backed editions for a work.
+
+    Uses the 5-minute memcached layer for default/bounded page queries,
+    and ensures any explicitly requested keys are present in the result.
+    """
+    clean_work_key = work_key.strip().rstrip("/").split("/")[-1]
+
+    # Use memcached layer for default bounded queries (e.g. limit=10)
+    if limit is not None and limit <= 100:
+        raw_docs = get_cached_work_editions_raw(clean_work_key, ebooks_only, limit, sort)
+    else:
+        raw_docs = _fetch_work_editions_solr_raw(clean_work_key, ebooks_only, limit, sort)
+
+    editions = [SolrEditionWrapper.from_solr_doc(doc) for doc in raw_docs]
+
+    # Ensure explicitly requested keys are present
+    if keys:
+        present_keys = {ed.key for ed in editions}
+        missing_keys = [k for k in keys if k not in present_keys]
+        if missing_keys:
+            for missing_key in missing_keys:
+                clean_ed_key = missing_key.strip().rstrip("/").split("/")[-1]
+                safe_ed_key = clean_ed_key.replace("\\", "\\\\").replace('"', '\\"')
+                try:
+                    solr_res = run_solr_query(
+                        EditionSearchScheme(),
+                        {"q": "*:*"},
+                        offset=0,
+                        rows=1,
+                        fields=EDITION_TABLE_FIELDS,
+                        facet=False,
+                        extra_params=[("fq", f'key:"/books/{safe_ed_key}"')],
+                        request_label="WORK_EDITIONS_TABLE",
+                    )
+                    if solr_res.docs:
+                        editions.append(SolrEditionWrapper.from_solr_doc(dict(solr_res.docs[0])))
+                    elif "site" in web.ctx and (doc := web.ctx.site.get(missing_key)):
+                        editions.append(doc)
+                except Exception:  # noqa: BLE001
+                    logger.debug("Failed to fetch requested edition key %s from Solr", missing_key)
+                    if "site" in web.ctx and (doc := web.ctx.site.get(missing_key)):
+                        editions.append(doc)
+
+            editions.sort(
+                key=lambda ed: ed.get_publish_year() if hasattr(ed, "get_publish_year") and ed.get_publish_year() is not None else -sys.maxsize,
+                reverse=True,
+            )
+
+    ocaids = [ed.ocaid for ed in editions if getattr(ed, "ocaid", None)]
+    if ocaids:
+        try:
+            from openlibrary.core import lending
+
+            availabilities = lending.get_availability("identifier", ocaids)
+            for ed in editions:
+                if getattr(ed, "ocaid", None):
+                    ed.availability = availabilities.get(ed.ocaid) or {"status": "error"}
+        except Exception:
+            logger.debug("Failed to fetch lending availability for editions", exc_info=True)
+
+    return editions
 
 
 def setup():

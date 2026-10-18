@@ -53,6 +53,7 @@ SolrRequestLabel = Literal[
     "AUTHOR_SEARCH_API",
     "EDITION_SEARCH",
     "EDITION_SEARCH_API",
+    "WORK_EDITIONS_TABLE",
     # Librarian Tasks dashboard candidate query
     "CONTRIBUTE_TASKS",
 ]

@@ -17,7 +17,14 @@ from openlibrary.core.models import Image
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
 from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
-from openlibrary.plugins.worksearch.code import works_by_author, works_by_author_async
+from openlibrary.plugins.worksearch.code import (
+    SolrEditionWrapper,
+    get_solr_editions_for_work,
+    works_by_author,
+    works_by_author_async,
+)
+
+logger = logging.getLogger("openlibrary.upstream")
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.solr_types import SolrDocument
@@ -688,11 +695,40 @@ class Work(models.Work):
         ebooks_only: bool = False,
         limit: int | None = None,
         keys: list[str] | None = None,
+    ) -> list[Edition | SolrEditionWrapper]:
+        """Get this work's editions sorted by publication year.
+
+        Uses fast Solr editions search backed by a 5-minute Memcached layer,
+        falling back gracefully to the Infogami DB if Solr returns no results
+        or is unavailable.
+
+        :param bool ebooks_only: filter to editions with readable/borrowable ebooks
+        :param int | None limit: max editions to return (None returns all up to 10,000)
+        :param list[str] keys: ensure specific edition keys are included
+        """
+        try:
+            solr_editions: list[Edition | SolrEditionWrapper] = list(
+                get_solr_editions_for_work(
+                    work_key=self.key,
+                    ebooks_only=ebooks_only,
+                    limit=limit,
+                    keys=keys,
+                )
+            )
+            if solr_editions:
+                return solr_editions
+        except Exception:
+            logger.exception("Failed to fetch Solr editions for work %s, falling back to DB", self.key)
+
+        return self._get_sorted_editions_db(ebooks_only=ebooks_only, limit=limit, keys=keys)
+
+    def _get_sorted_editions_db(
+        self,
+        ebooks_only: bool = False,
+        limit: int | None = None,
+        keys: list[str] | None = None,
     ) -> list[Edition]:
-        """
-        Get this work's editions sorted by publication year
-        :param list[str] keys: ensure keys included in fetched editions
-        """
+        """Legacy Infogami DB fallback for fetching a work's sorted editions."""
         db_query = {"type": "/type/edition", "works": self.key}
         db_query["limit"] = limit or 10000  # type: ignore[assignment]
 
