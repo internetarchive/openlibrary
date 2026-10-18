@@ -99,7 +99,6 @@ def test_pick_first_date():
     assert pick_first_date(["4th/5th cent."]) == {"date": "4th/5th cent."}
 
 
-
 def test_parse_date_non_hyphenated_repeated():
     """Regression test for one-shot map iterator bug in re_date.
 
@@ -107,11 +106,13 @@ def test_parse_date_non_hyphenated_repeated():
     on every call, not only the first.
     """
     from openlibrary.catalog.utils import parse_date
+
     assert parse_date("b. 1900") == {"birth_date": "1900"}
     assert parse_date("Mrs.") == {}
     assert parse_date("b. 1900") == {"birth_date": "1900"}
     assert parse_date("d. 1950") == {"death_date": "1950"}
     assert parse_date("d. 1899") == {"death_date": "1899"}
+
 
 def test_pick_best_name():
     names = [
