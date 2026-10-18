@@ -1151,10 +1151,12 @@ def get_populated_languages() -> set[str]:
 
 
 @public
-@functools.cache
+@functools.lru_cache(maxsize=256)
 def convert_iso_to_marc(iso_639_1: str) -> str | None:
     """
     e.g. 'en' -> 'eng'
+
+    Bound the cache because language values can come from request input.
     """
     for lang in get_languages().values():
         code = safeget(lambda: lang["identifiers"]["iso_639_1"][0])
