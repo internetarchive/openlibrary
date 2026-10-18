@@ -1,16 +1,20 @@
 import asyncio
 from unittest.mock import patch
 
+import anyio
 import httpx
 import pytest
+import web
 from fastapi import FastAPI, Response
 from fastapi.responses import StreamingResponse
 from fastapi.testclient import TestClient
 
 import infogami
 from infogami.utils import stats
+from openlibrary.asgi_app import create_app
 from openlibrary.fastapi.middleware.server_timing import add_server_timing
 from openlibrary.utils import server_timing
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.tests.test_server_timing import parse
 
 
@@ -100,12 +104,59 @@ def test_sends_timings_to_statsd(client):
 
 
 def test_real_app_on_by_default_and_can_be_turned_off(fastapi_client):
-    from openlibrary.asgi_app import create_app  # noqa: PLC0415
-
     assert "total" in parse(fastapi_client.get("/health").headers["Server-Timing"])
     with patch.object(infogami.config, "server_timing", False, create=True), patch("openlibrary.asgi_app.set_context_from_fastapi", lambda request: None):
         resp = TestClient(create_app()).get("/health")
     assert "Server-Timing" not in resp.headers
+
+
+@pytest.mark.parametrize("timing_enabled", [False, True])
+@pytest.mark.parametrize("execution", ["async", "sync", "threadpool", "async-bridge"])
+def test_real_app_does_not_retain_legacy_statistics(monkeypatch, timing_enabled, execution):
+    monkeypatch.setattr(infogami.config, "server_timing", timing_enabled, raising=False)
+    monkeypatch.setattr("openlibrary.asgi_app.set_context_from_fastapi", lambda request: None)
+    app = create_app()
+
+    def record_stats():
+        before = len(web.ctx.get("stats", []))
+        for _ in range(3):
+            stats.begin("infobase")
+            stats.end()
+        return {"before": before, "after": len(web.ctx.get("stats", []))}
+
+    async def async_record_stats():
+        return record_stats()
+
+    if execution == "sync":
+        app.get("/legacy-stats")(record_stats)
+    elif execution == "async-bridge":
+
+        @app.get("/legacy-stats")
+        def bridged_endpoint():
+            return async_bridge.run(async_record_stats())
+
+    else:
+
+        @app.get("/legacy-stats")
+        async def async_endpoint():
+            if execution == "threadpool":
+                return await anyio.to_thread.run_sync(record_stats)
+            return record_stats()
+
+    with patch("openlibrary.core.stats.put") as put, TestClient(app) as client:
+        for _ in range(10):
+            response = client.get("/legacy-stats")
+            assert response.status_code == 200
+            history = response.json()
+            assert history["after"] == history["before"]
+            if timing_enabled:
+                assert parse(response.headers["Server-Timing"])["infobase"]["desc"] == '"3 calls"'
+            else:
+                assert "Server-Timing" not in response.headers
+        if timing_enabled:
+            assert {call.args[0] for call in put.call_args_list} == {"ol.fastapi.total", "ol.fastapi.infobase"}
+        else:
+            put.assert_not_called()
 
 
 def test_unhandled_exception_500_has_the_header(app):

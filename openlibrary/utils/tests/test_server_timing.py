@@ -144,6 +144,8 @@ class TestInfogamiBridge:
     def bridge(self):
         server_timing.install_legacy_bridge()
         web.ctx.pop("stats", None)
+        yield
+        web.ctx.pop("stats", None)
 
     def test_records_during_request_without_touching_web_ctx(self, timings):
         stats.begin("memcache.get", key="k")
@@ -171,6 +173,43 @@ class TestInfogamiBridge:
         stats.end()
         assert stats.stats_summary()["infobase"].count == 1
         web.ctx.pop("stats")
+
+    def test_discard_stats_restores_legacy_behavior_after_exception(self):
+        def fail_request():
+            with server_timing.discard_legacy_stats():
+                stats.begin("discarded")
+                stats.end()
+                raise ValueError("request failed")
+
+        stats.begin("infobase")
+        stats.end()
+        with pytest.raises(ValueError, match="request failed"):
+            fail_request()
+
+        assert len(web.ctx.stats) == 1
+        stats.begin("infobase")
+        stats.end()
+        assert stats.stats_summary()["infobase"].count == 2
+
+    def test_discard_stats_preserves_enabled_timings(self, timings):
+        with server_timing.discard_legacy_stats():
+            stats.begin("infobase")
+            stats.end()
+
+        assert timings.snapshot()["infobase"][::2] == (1, 0)
+        assert "stats" not in web.ctx
+
+    def test_nested_discard_stats_keeps_outer_scope_active(self):
+        with server_timing.discard_legacy_stats():
+            with server_timing.discard_legacy_stats():
+                stats.begin("discarded")
+                stats.end()
+            stats.begin("also-discarded")
+            stats.end()
+        assert "stats" not in web.ctx
+        stats.begin("infobase")
+        stats.end()
+        assert stats.stats_summary()["infobase"].count == 1
 
 
 def test_all_metric_names_are_valid():
