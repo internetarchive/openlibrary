@@ -1982,6 +1982,12 @@ class TestMintSessionTicket:
         monkeypatch.setattr(lenny.requests, "post", lambda *a, **k: self._Resp(200, _NO_JSON))
         assert lenny.mint_session_ticket(self.ISSUER, "AT") is None
 
+    def test_a_blank_ticket_returns_none(self, monkeypatch):
+        """A whitespace-only ticket is no ticket: honouring it would redirect the
+        patron to a redeem the node rejects, instead of the direct fallback."""
+        monkeypatch.setattr(lenny.requests, "post", lambda *a, **k: self._Resp(200, {"ticket": "   "}))
+        assert lenny.mint_session_ticket(self.ISSUER, "AT") is None
+
 
 class TestSessionRedeemUrl:
     def test_carries_the_ticket_and_the_redir(self):

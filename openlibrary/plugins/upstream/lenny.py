@@ -1398,7 +1398,9 @@ def mint_session_ticket(issuer: str, token: str, timeout: int = READ_SESSION_TIM
         return None
     body = _node_json(resp)
     ticket = body.get("ticket") if body else None
-    return ticket if isinstance(ticket, str) and ticket else None
+    # A blank or whitespace-only ticket is no ticket: honouring it would redirect
+    # the patron to a redeem the node rejects instead of the direct fallback.
+    return ticket if isinstance(ticket, str) and ticket.strip() else None
 
 
 def session_redeem_url(issuer: str, ticket: str, redir: str) -> str:
