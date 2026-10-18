@@ -33,8 +33,8 @@ its own login -- would save them that sign-in, but it would not make the book
 open, and it needs a pairwise pseudonymous subject and a published signing key
 that do not exist. This does not attempt it. It does send ``login_hint``, which
 is a suggestion the node is free to ignore and not an assertion of anything;
-see :func:`authorize_url` for what it costs and for why no node in service
-reads it yet.
+see :func:`authorize_url` for what it costs and what a node now does with it
+(ArchiveLabs/lenny#239).
 
 **The grant is stored server-side**, one row per ``(patron, node)``, by
 :mod:`openlibrary.core.provider_tokens` (#13685). A cookie cannot do this job,
@@ -573,7 +573,7 @@ def _expiry(value: Any) -> str | None:
     return parsed.astimezone(dt.UTC).replace(tzinfo=None).isoformat()
 
 
-def loan_from_node(provider_name: str, issuer: str, username: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+def loan_from_node(provider_name: str, username: str, payload: dict[str, Any]) -> dict[str, Any] | None:
     """One node loan in the shape ``templates/account/loans.html`` consumes.
 
     Returns None when ``edition_id`` is missing or not an integer: there is
@@ -601,11 +601,13 @@ def loan_from_node(provider_name: str, issuer: str, username: str, payload: dict
         "userid": f"ol:{username}",
         "provider": provider_name,
         "resource_type": PROVIDER_RESOURCE_TYPE,
-        "read_url": item_read_url(issuer, edition_id),
-        # Unlike `read_url`, an Open Library path: the return is submitted back
-        # here, because the node accepts a return only from the token holder
-        # (ArchiveLabs/lenny#240) and Open Library is what holds it. Carried on
-        # the loan so the generic read-button template needs no Lenny knowledge.
+        # Both links are Open Library routes, carried on the loan so the generic
+        # read-button template needs no Lenny knowledge. `read_url` runs the
+        # reader hop through the session handoff (#14020) rather than linking at
+        # the node's cookie-gated `/read`; `return_url` is an Open Library route
+        # because the node accepts a return only from the token holder
+        # (ArchiveLabs/lenny#240) and Open Library is what holds it.
+        "read_url": read_url(f"OL{edition_id}M"),
         "return_url": return_path(f"OL{edition_id}M"),
     }
 
@@ -771,7 +773,7 @@ def provider_loans(username: str) -> ProviderLoans:
             if not isinstance(payload, dict):
                 logger.info("lenny loans from %s contained a %s where an object was promised", provider_name, type(payload).__name__)
                 continue
-            if loan := loan_from_node(provider_name, issuers[provider_name], username, payload):
+            if loan := loan_from_node(provider_name, username, payload):
                 loans.append(loan)
 
     return ProviderLoans(loans, unreachable, unauthorized)
@@ -928,24 +930,20 @@ def authorize_url(
         # signed in as, so a node need not ask for one they just proved on
         # Open Library.
         #
-        # **A node running ArchiveLabs/lenny origin/main ignores this**, which
-        # as of 75b0906 is every node in service. Three places drop it:
-        # ``authorize`` does not declare the parameter
-        # (``lenny/routes/oauth2.py:203-212``); ``_echo``'s allow-list excludes
-        # it, so it never reaches the login page (``oauth2.py:294-299``); and
-        # the OTP form's email box is filled only from a POST body
-        # (``lenny/routes/oauth.py:110-117``, ``post_email``). Sending it is
-        # safe regardless: unknown parameters are ignored rather than refused,
-        # verified live -- ``/v1/api/oauth2/authorize?client_id=nope`` answers
-        # identically with and without it.
+        # **A node running ArchiveLabs/lenny origin/main reads this**, as of
+        # ArchiveLabs/lenny#239: ``authorize`` declares the parameter, parses it
+        # through ``_login_hint``, lists it in ``_echo``'s allow-list, and treats
+        # the hinted address as binding. A node on an older build ignores it --
+        # unknown parameters are ignored rather than refused -- so sending it is
+        # safe either way.
         #
-        # Node-side support is written and not yet released, so this is
-        # unshipped rather than unsupported. Do not describe it as pre-filling
-        # anything until a node in service reads it; and even then it pre-fills
-        # only. It deliberately does not let the patron skip the email step,
-        # because ``/oauth2/authorize`` is an unauthenticated GET and mailing a
-        # one-time code on arrival would let a link or a prefetch send one to
-        # any address a caller chose.
+        # It pre-fills the sign-in only; it deliberately does not let the patron
+        # skip the email step, because ``/oauth2/authorize`` is an
+        # unauthenticated GET and mailing a one-time code on arrival would let a
+        # link or a prefetch send one to any address a caller chose. And it is a
+        # hint for the login screen, not an identity assertion: the authoritative
+        # patron identity is the hash carried inside the access token, never
+        # recomputed from this address (see #14020).
         #
         # **The cost, which is the part worth a human decision:** this hands
         # the node the patron's email before they consent, including when they
@@ -996,17 +994,16 @@ def borrow_with_stored_grant(
 def borrowed_page(
     username: str,
     provider_name: str,
-    issuer: str,
     edition_key: str,
     loan: dict[str, Any],
 ) -> delegate.RawText:
     """The ending both borrow paths share: tell the book page, then render."""
-    if cached := loan_from_node(provider_name, issuer, username, loan):
+    if cached := loan_from_node(provider_name, username, loan):
         prime_provider_loans(username, cached)
     # The node's config, not the flow's snapshot: an operator may have
     # corrected the display name since.
     library = node_display_name(provider_name, nodes().get(provider_name, {}))
-    return render_borrowed(edition_key, loan, read_url(issuer, edition_key, loan), library)
+    return render_borrowed(edition_key, loan, read_url(edition_key.rsplit("/", maxsplit=1)[-1]), library)
 
 
 class lenny_borrow(delegate.page):
@@ -1032,7 +1029,7 @@ class lenny_borrow(delegate.page):
         try:
             if loan := borrow_with_stored_grant(username, provider_name, node, edition_key):
                 logger.info("lenny loan created on %s for %s with a stored grant", provider_name, edition_key)
-                return borrowed_page(username, provider_name, node["issuer"], edition_key, loan)
+                return borrowed_page(username, provider_name, edition_key, loan)
         except LennyBorrowError as e:
             logger.info("lenny borrow refused (%s/%s)", e.status, e.error)
             return render_error(e.message, edition_key)
@@ -1192,6 +1189,63 @@ class lenny_return(delegate.page):
         raise web.seeother(redirect_to)
 
 
+class lenny_read(delegate.page):
+    path = r"/borrow/lenny/(OL\d+M)/read"
+
+    def GET(self, edition_olid: str):
+        """Open the reader, establishing a node session first (#14020).
+
+        The node's ``/read`` authenticates on the node's session cookie, not on
+        a bearer token, and a browser holding only Open Library's grant may have
+        no such cookie. So rather than linking the patron straight at the node,
+        this mints a single-use session ticket from the stored grant on the back
+        channel and redirects the browser to the node's redeem URL, which sets
+        the cookie and forwards to the reader. The access token never reaches
+        the browser.
+
+        Minting happens here, at click time, not when the loan is rendered: the
+        ticket is single-use and lives about a minute, and
+        :func:`loan_from_node` bakes the reader link into a cached loan, so a
+        ticket minted at render would be dead by the time anyone clicked.
+
+        Every failure degrades to the direct node link rather than erroring. The
+        loan already exists, so a dead handoff must not strand the patron on an
+        error page; with ArchiveLabs/lenny#253 that direct link is a sign-in
+        page, not a raw OPDS document.
+        """
+        edition_key = f"/books/{edition_olid}"
+        if not (user := get_current_user()):
+            raise web.seeother(f"/account/login?redirect={read_path(edition_olid)}")
+        if not (found := node_for_edition(edition_key)):
+            raise web.notfound()
+        provider_name, node = found
+        issuer = node["issuer"]
+        # The bare username, as everywhere else that keys the grant store.
+        username = user.get_username()
+        edition_id = int(extract_numeric_id_from_olid(edition_key))
+        direct = item_read_url(issuer, edition_id)
+
+        try:
+            token = access_token_for(username, provider_name)
+        except Exception:
+            # An unreadable store (commonly: no `provider_tokens` table) must not
+            # 500 the Read click, the same way the borrow and return legs guard
+            # their own reads.
+            logger.exception("lenny could not read a stored grant to read for %s at %s", username, provider_name)
+            token = None
+        if not token:
+            raise web.seeother(direct)
+
+        if not (ticket := mint_session_ticket(issuer, token)):
+            raise web.seeother(direct)
+
+        # `redir` is built here from the edition in the path, never read from the
+        # request: a caller-supplied redirect would make this an open redirector
+        # laundering through the node, and the node's own path-only guard is not
+        # a reason to offer the parameter.
+        raise web.seeother(session_redeem_url(issuer, ticket, f"/v1/api/items/{edition_id}/read"))
+
+
 class lenny_callback(delegate.page):
     path = REDIRECT_PATH
 
@@ -1247,25 +1301,112 @@ class lenny_callback(delegate.page):
         return borrowed_page(
             pending["username"],
             pending["provider_name"],
-            pending["issuer"],
             pending["edition_key"],
             loan,
         )
 
 
-def read_url(issuer: str, edition_key: str, loan: dict[str, Any]) -> str:
-    """Where the patron reads what they just borrowed.
+SESSION_PATH = "/v1/api/oauth2/session"
+"""The node's session-handoff endpoint (ArchiveLabs/lenny#254). Built from the
+issuer like :data:`LOANS_PATH`: discovery registers no field for it, and it is
+Lenny's own API surface, carrying its version in the path."""
 
-    The node's reader wants the node's own browser session, not a token, so a
-    patron borrowing with a reused grant may be asked to sign in there first.
+READ_SESSION_TIMEOUT_SECONDS = 5
+"""The bound on the back-channel mint a read click waits for. One request; a
+node that does not answer in time degrades to the direct link rather than
+hanging the click."""
+
+
+def _ol_origin() -> str:
+    """The scheme and host Open Library serves from.
+
+    Taken from the configured OAuth redirect URI rather than hardcoded, so a
+    deploy that overrides ``lenny_redirect_uri`` keeps its own origin on the
+    reader route too.
     """
-    edition_id = loan.get("edition_id") or extract_numeric_id_from_olid(edition_key)
-    return item_read_url(issuer, edition_id)
+    parts = urlsplit(_redirect_uri())
+    return f"{parts.scheme}://{parts.netloc}"
+
+
+def read_path(edition_olid: str) -> str:
+    """Where a patron reads this edition, as one Open Library definition.
+
+    Mirrors :func:`borrow_path` and :func:`return_path`; :class:`lenny_read`
+    serves it.
+    """
+    return f"/borrow/lenny/{edition_olid}/read"
+
+
+def read_url(edition_olid: str) -> str:
+    """The absolute Open Library reader route for this edition.
+
+    Absolute, not a bare path, for two independent reasons: a provider loan's
+    ``read_url`` is cached and must pass
+    :func:`~openlibrary.core.provider_loans._has_usable_read_url`, which requires
+    an ``http(s)`` scheme; and the book page renders it as an external "Read"
+    link. The origin is Open Library's own, from the configured redirect URI so
+    a non-production deploy stays self-consistent.
+
+    This points at :class:`lenny_read`, not at the node's ``/read``: the node's
+    reader authenticates on the node's session cookie, which a browser holding
+    only Open Library's OAuth grant may not have -- the node cookie lives 7 days
+    while the grant is long-lived and refreshable, so the two drift apart as a
+    matter of course rather than exceptionally. The mediator mints that session
+    from the stored grant at click time; :func:`item_read_url` is the direct
+    node link it falls back to.
+    """
+    return f"{_ol_origin()}{read_path(edition_olid)}"
 
 
 def item_read_url(issuer: str, edition_id: Any) -> str:
-    """A node's reader URL for one item."""
+    """A node's reader URL for one item -- the direct link.
+
+    The fallback target for :class:`lenny_read` when the session handoff is
+    unavailable: a node without the endpoint, or a mint that fails or times out.
+    A browser sent here carries no node session unless it already holds one, so
+    with ArchiveLabs/lenny#253 deployed this is a sign-in page rather than a raw
+    OPDS authentication document -- acceptable, just not seamless.
+    """
     return f"{issuer.rstrip('/')}/v1/api/items/{edition_id}/read"
+
+
+def mint_session_ticket(issuer: str, token: str, timeout: int = READ_SESSION_TIMEOUT_SECONDS) -> str | None:
+    """A single-use browser-session ticket for the token's patron, or None.
+
+    The back-channel half of the handoff (ArchiveLabs/lenny#254): POST the
+    stored grant to the node's session endpoint and get a short-lived ticket
+    that can safely ride a browser redirect. The access token is sent only as
+    the ``Authorization`` header; it is never placed in a URL or logged.
+
+    Returns None -- never raises -- for every failure a caller must degrade on:
+    a node without the endpoint (``404``/``405``), a network error or timeout,
+    or a response without a usable ``ticket``. The caller falls back to the
+    direct link (:func:`item_read_url`), which is why a mint failure cannot turn
+    a created loan into an error page.
+    """
+    try:
+        resp = requests.post(
+            issuer.rstrip("/") + SESSION_PATH,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=timeout,
+        )
+    except requests.RequestException:
+        logger.info("lenny session mint could not reach %s", issuer)
+        return None
+    if resp.status_code != 200:
+        logger.info("lenny session mint at %s returned %s", issuer, resp.status_code)
+        return None
+    body = _node_json(resp)
+    ticket = body.get("ticket") if body else None
+    return ticket if isinstance(ticket, str) and ticket else None
+
+
+def session_redeem_url(issuer: str, ticket: str, redir: str) -> str:
+    """The browser URL that redeems a ticket: it burns the single-use ticket,
+    sets the node's ``session`` cookie, and 303s to ``redir`` -- a same-origin
+    node path the node validates before the ticket is burned."""
+    query = urlencode({"ticket": ticket, "redir": redir})
+    return f"{issuer.rstrip('/')}{SESSION_PATH}?{query}"
 
 
 POPUP_MESSAGE_TYPE = "ol-provider-borrow"

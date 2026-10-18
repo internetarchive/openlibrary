@@ -37,6 +37,9 @@ NODE = {
 }
 OTHER_NODE_ISS = "https://lenny.example.org"
 
+_NO_JSON = object()
+"""Sentinel for a response whose `.json()` raises (a non-JSON body)."""
+
 DISCOVERY = {
     "issuer": NODE["issuer"],
     "authorization_endpoint": "https://lennyforlibraries.org/v1/api/oauth2/authorize",
@@ -685,7 +688,7 @@ class TestCallback:
         self._call(monkeypatch)
         assert [username for username, _loan in flow["primed"]] == ["patron"]
         assert flow["primed"][0][1]["book"] == "/books/OL51008637M"
-        assert flow["primed"][0][1]["read_url"] == "https://lennyforlibraries.org/v1/api/items/51008637/read"
+        assert flow["primed"][0][1]["read_url"] == "https://openlibrary.org/borrow/lenny/OL51008637M/read"
 
     def test_a_refused_loan_tells_the_book_page_nothing(self, flow, monkeypatch):
         """A Read button for a loan that does not exist leads nowhere."""
@@ -884,7 +887,7 @@ class TestPopupEndings:
         web.ctx.flash = []
 
     LOAN: ClassVar[dict] = {"edition_id": 51008637, "due_at": "2026-10-04"}
-    READ = "https://lennyforlibraries.org/v1/api/items/51008637/read"
+    READ = "https://openlibrary.org/borrow/lenny/OL51008637M/read"
 
     def _flash(self):
         return [(m.type, m.message) for m in web.ctx.flash]
@@ -1008,38 +1011,41 @@ class TestLoanFromNode:
     """The node speaks in bare edition integers; the page needs OL keys."""
 
     def test_the_bare_integer_becomes_an_edition_key(self):
-        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 37044497})
+        loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 37044497})
         assert loan is not None
         assert loan["book"] == "/books/OL37044497M"
 
     def test_a_string_edition_id_is_accepted(self):
         """Nothing in the contract promises JSON numbers rather than strings,
         and a loan dropped over that is a book the patron cannot find."""
-        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": "37044497"})
+        loan = lenny.loan_from_node("lenny", "patron", {"edition_id": "37044497"})
         assert loan is not None
         assert loan["book"] == "/books/OL37044497M"
 
     def test_a_missing_edition_id_is_dropped_not_raised(self):
-        assert lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"due_at": None}) is None
+        assert lenny.loan_from_node("lenny", "patron", {"due_at": None}) is None
 
     def test_a_nonsense_edition_id_is_dropped_not_raised(self):
-        assert lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": "OL5M"}) is None
+        assert lenny.loan_from_node("lenny", "patron", {"edition_id": "OL5M"}) is None
 
-    def test_the_read_url_points_at_the_node(self):
-        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 46539165})
+    def test_the_read_url_points_at_the_ol_mediator_not_the_node(self):
+        """The reader hop runs through Open Library's session handoff (#14020),
+        so the loan offers the mediator route, not the node's cookie-gated
+        `/read` -- a lapsed node cookie would otherwise 401 the patron."""
+        loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 46539165})
         assert loan is not None
-        assert loan["read_url"] == "https://lennyforlibraries.org/v1/api/items/46539165/read"
+        assert loan["read_url"] == "https://openlibrary.org/borrow/lenny/OL46539165M/read"
 
     def test_the_return_url_is_the_open_library_route_not_the_node(self):
         """Unlike `read_url`, the return is submitted to Open Library, which
         holds the token -- the node has no cookie-free return. It must be an
         OL path, not a node URL."""
-        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 46539165})
+        loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 46539165})
         assert loan is not None
         assert loan["return_url"] == "/borrow/lenny/OL46539165M/return"
 
     def test_borrowed_at_becomes_a_posix_timestamp(self):
-        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "borrowed_at": "2026-09-20T12:00:00Z"})
+        loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 1, "borrowed_at": "2026-09-20T12:00:00Z"})
         assert loan is not None
         assert loan["loaned_at"] == dt.datetime(2026, 9, 20, 12, 0, tzinfo=dt.UTC).timestamp()
 
@@ -1057,7 +1063,7 @@ class TestLoanFromNode:
         monkeypatch.setenv("TZ", "America/Los_Angeles")
         time.tzset()
         try:
-            loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "borrowed_at": "2026-09-20T12:00:00"})
+            loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 1, "borrowed_at": "2026-09-20T12:00:00"})
         finally:
             monkeypatch.undo()
             time.tzset()
@@ -1068,12 +1074,12 @@ class TestLoanFromNode:
         """`borrowed_at` is documented nullable. The loans template feeds
         `loaned_at` to `datetime_from_utc_timestamp`, which has no answer for
         None."""
-        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "borrowed_at": None})
+        loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 1, "borrowed_at": None})
         assert loan is not None
         assert loan["loaned_at"] == 0.0
 
     def test_an_unparsable_borrowed_at_is_zero_not_a_crash(self):
-        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "borrowed_at": "last tuesday"})
+        loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 1, "borrowed_at": "last tuesday"})
         assert loan is not None
         assert loan["loaned_at"] == 0.0
 
@@ -1081,12 +1087,12 @@ class TestLoanFromNode:
         """The node always sends an offset, and Open Library's expiry parser
         cannot read one -- see `_expiry`. Handing it through took the whole
         loans page down, the patron's Internet Archive loans included."""
-        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "due_at": "2026-10-01T00:00:00+00:00"})
+        loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 1, "due_at": "2026-10-01T00:00:00+00:00"})
         assert loan is not None
         assert loan["expiry"] == "2026-10-01T00:00:00"
 
     def test_a_z_suffixed_due_at_is_normalised(self):
-        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "due_at": "2026-10-01T00:00:00Z"})
+        loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 1, "due_at": "2026-10-01T00:00:00Z"})
         assert loan is not None
         assert loan["expiry"] == "2026-10-01T00:00:00"
 
@@ -1094,12 +1100,12 @@ class TestLoanFromNode:
         """A node west of UTC. This offset is the one that raises `TypeError`
         rather than `ValueError` downstream, so it would survive a guard that
         caught only the obvious exception."""
-        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "due_at": "2026-09-30T17:00:00-07:00"})
+        loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 1, "due_at": "2026-09-30T17:00:00-07:00"})
         assert loan is not None
         assert loan["expiry"] == "2026-10-01T00:00:00"
 
     def test_an_unparsable_due_at_becomes_none_not_a_crash(self):
-        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "due_at": "whenever"})
+        loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 1, "due_at": "whenever"})
         assert loan is not None
         assert loan["expiry"] is None
 
@@ -1117,7 +1123,7 @@ class TestLoanFromNode:
             "2026-10-01T00:00:00",
             None,
         ):
-            loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "due_at": due_at})
+            loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 1, "due_at": due_at})
             assert loan is not None
             datetime_from_isoformat(loan["expiry"])
 
@@ -1125,7 +1131,7 @@ class TestLoanFromNode:
         """`templates/account/loans.html` branches on this. Without it the loan
         reaches the Internet Archive branches, which read `ocaid` and
         `loan_link`."""
-        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1})
+        loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 1})
         assert loan is not None
         assert loan["provider"] == "lenny"
         assert loan["resource_type"] != "bookreader"
@@ -1402,7 +1408,7 @@ class TestTheStoredGrantIsReused:
         assert reuse["memcache"].store == {}
 
     def test_a_reused_borrow_offers_the_book_it_just_borrowed(self, reuse):
-        assert "https://lennyforlibraries.org/v1/api/items/51008637/read" in self._go().rawtext
+        assert "https://openlibrary.org/borrow/lenny/OL51008637M/read" in self._go().rawtext
 
     def test_a_reused_borrow_tells_the_book_page_about_the_new_loan(self, reuse):
         self._go()
@@ -1893,3 +1899,246 @@ class TestLennyReturnRoute:
         query and fragment of a submitted redirect survive."""
         ret["redirect_field"] = "https://evil.example.com/phish"
         assert self._go() == "/phish"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# The reader hop: OL mediator -> node session handoff (#14020)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class TestReadUrl:
+    """`read_url`/`read_path` hand the browser the Open Library mediator route,
+    not the node's `/read` -- the node's reader wants a session cookie the browser
+    may not hold, so the hop runs through the handoff instead (#14020)."""
+
+    def test_read_path_is_the_ol_mediator_route(self):
+        assert lenny.read_path("OL51008637M") == "/borrow/lenny/OL51008637M/read"
+
+    def test_read_url_is_absolute_and_points_at_the_mediator(self):
+        assert lenny.read_url("OL51008637M") == "https://openlibrary.org/borrow/lenny/OL51008637M/read"
+
+    def test_read_url_passes_the_provider_loans_scheme_guard(self):
+        """A relative path would be dropped by `_has_usable_read_url`, which
+        requires an http(s) scheme, and the Read button would silently vanish."""
+        from openlibrary.core.provider_loans import _has_usable_read_url
+
+        assert _has_usable_read_url({"read_url": lenny.read_url("OL51008637M")})
+
+
+class TestMintSessionTicket:
+    """The back-channel half: POST the grant, get a single-use ticket, never
+    raise -- any failure returns None so the caller degrades to the direct link."""
+
+    ISSUER = "https://lennyforlibraries.org"
+
+    class _Resp:
+        def __init__(self, status, body):
+            self.status_code = status
+            self._body = body
+
+        def json(self):
+            if self._body is _NO_JSON:
+                raise ValueError("no json")
+            return self._body
+
+    def test_returns_the_ticket_and_sends_the_bearer_token(self, monkeypatch):
+        captured = {}
+
+        def fake_post(url, headers=None, timeout=None):
+            captured.update(url=url, headers=headers, timeout=timeout)
+            return self._Resp(200, {"ticket": "tkt-1", "expires_in": 60})
+
+        monkeypatch.setattr(lenny.requests, "post", fake_post)
+        assert lenny.mint_session_ticket(self.ISSUER, "AT") == "tkt-1"
+        assert captured["url"] == "https://lennyforlibraries.org/v1/api/oauth2/session"
+        assert captured["headers"]["Authorization"] == "Bearer AT"
+
+    def test_the_token_is_never_put_in_the_url(self, monkeypatch):
+        captured = {}
+        monkeypatch.setattr(lenny.requests, "post", lambda url, headers=None, timeout=None: captured.update(url=url) or self._Resp(200, {"ticket": "t"}))
+        lenny.mint_session_ticket(self.ISSUER, "SECRET")
+        assert "SECRET" not in captured["url"]
+
+    def test_a_node_without_the_endpoint_returns_none(self, monkeypatch):
+        monkeypatch.setattr(lenny.requests, "post", lambda *a, **k: self._Resp(404, {"detail": "not found"}))
+        assert lenny.mint_session_ticket(self.ISSUER, "AT") is None
+
+    def test_a_server_error_returns_none(self, monkeypatch):
+        monkeypatch.setattr(lenny.requests, "post", lambda *a, **k: self._Resp(500, {}))
+        assert lenny.mint_session_ticket(self.ISSUER, "AT") is None
+
+    def test_a_timeout_returns_none(self, monkeypatch):
+        def boom(*a, **k):
+            raise lenny.requests.Timeout("slow node")
+
+        monkeypatch.setattr(lenny.requests, "post", boom)
+        assert lenny.mint_session_ticket(self.ISSUER, "AT") is None
+
+    def test_a_body_without_a_ticket_returns_none(self, monkeypatch):
+        monkeypatch.setattr(lenny.requests, "post", lambda *a, **k: self._Resp(200, {"expires_in": 60}))
+        assert lenny.mint_session_ticket(self.ISSUER, "AT") is None
+
+    def test_a_non_object_body_returns_none(self, monkeypatch):
+        monkeypatch.setattr(lenny.requests, "post", lambda *a, **k: self._Resp(200, _NO_JSON))
+        assert lenny.mint_session_ticket(self.ISSUER, "AT") is None
+
+
+class TestSessionRedeemUrl:
+    def test_carries_the_ticket_and_the_redir(self):
+        url = lenny.session_redeem_url("https://lennyforlibraries.org", "tkt-1", "/v1/api/items/51008637/read")
+        parts = urllib.parse.urlsplit(url)
+        assert f"{parts.scheme}://{parts.netloc}{parts.path}" == "https://lennyforlibraries.org/v1/api/oauth2/session"
+        params = dict(urllib.parse.parse_qsl(parts.query))
+        assert params["ticket"] == "tkt-1"
+        assert params["redir"] == "/v1/api/items/51008637/read"
+
+
+class TestReadLeg:
+    """The mediator handler `/borrow/lenny/<OLID>/read`: mint for the signed-in
+    patron's own grant, then 303 to the node's redeem URL; degrade to the direct
+    node link on any failure so a lapsed cookie never strands the patron."""
+
+    DIRECT = "https://lennyforlibraries.org/v1/api/items/51008637/read"
+
+    @pytest.fixture
+    def leg(self, memcache, monkeypatch):
+        class FakeUser:
+            def get_username(self):
+                return "patron"
+
+            def get_email(self):
+                return "patron@example.org"
+
+        def seeother(url):
+            raise Redirected(url)
+
+        monkeypatch.setattr(lenny, "get_current_user", FakeUser)
+        monkeypatch.setattr(lenny, "node_for_edition", lambda key: ("lenny", NODE))
+        monkeypatch.setattr(lenny, "nodes", lambda: {"lenny": NODE})
+        monkeypatch.setattr(lenny, "access_token_for", lambda username, provider_name: "AT")
+        monkeypatch.setattr(lenny.web, "seeother", seeother)
+        return monkeypatch
+
+    def _go(self, edition="OL51008637M"):
+        with pytest.raises(Redirected) as excinfo:
+            lenny.lenny_read().GET(edition)
+        return excinfo.value.url
+
+    def test_happy_path_redirects_to_the_redeem_url(self, leg):
+        leg.setattr(lenny, "mint_session_ticket", lambda issuer, token: "tkt-1")
+        url = self._go()
+        parts = urllib.parse.urlsplit(url)
+        assert f"{parts.scheme}://{parts.netloc}{parts.path}" == "https://lennyforlibraries.org/v1/api/oauth2/session"
+        params = dict(urllib.parse.parse_qsl(parts.query))
+        assert params["ticket"] == "tkt-1"
+        assert params["redir"] == "/v1/api/items/51008637/read"
+
+    def test_the_redir_is_built_server_side_and_a_caller_cannot_choose_it(self, leg):
+        """Open-redirect guard: the reader path comes from the edition in the
+        URL path, never from a query parameter. A `?redir=` must be ignored."""
+        leg.setattr(lenny, "mint_session_ticket", lambda issuer, token: "tkt-1")
+        leg.setattr(lenny.web, "input", lambda **kw: web.storage(redir="https://evil.example.com/phish"))
+        url = self._go()
+        params = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(url).query))
+        assert params["redir"] == "/v1/api/items/51008637/read"
+        assert "evil.example.com" not in url
+
+    def test_it_mints_for_the_signed_in_patrons_own_grant(self, leg):
+        """No patron identifier is read from the request: the grant is the one
+        stored for `get_current_user()`, so a third party driving a victim's
+        browser here can at worst mint that victim a ticket to their own loan."""
+        seen = {}
+
+        def record_grant(username, provider_name):
+            seen["user"] = username
+            return "AT"
+
+        def record_mint(issuer, token):
+            seen["token"] = token
+            return "tkt-1"
+
+        leg.setattr(lenny, "access_token_for", record_grant)
+        leg.setattr(lenny, "mint_session_ticket", record_mint)
+        self._go()
+        assert seen["user"] == "patron"
+        assert seen["token"] == "AT"
+
+    def test_a_node_without_the_endpoint_falls_back_to_the_direct_link(self, leg):
+        leg.setattr(lenny, "mint_session_ticket", lambda issuer, token: None)
+        assert self._go() == self.DIRECT
+
+    def test_no_stored_grant_falls_back_to_the_direct_link(self, leg):
+        leg.setattr(lenny, "access_token_for", lambda u, p: None)
+        assert self._go() == self.DIRECT
+
+    def test_an_unreadable_store_falls_back_rather_than_erroring(self, leg):
+        def boom(u, p):
+            raise RuntimeError("no provider_tokens table")
+
+        leg.setattr(lenny, "access_token_for", boom)
+        assert self._go() == self.DIRECT
+
+    def test_a_signed_out_patron_is_sent_to_login_then_back_to_read(self, leg):
+        leg.setattr(lenny, "get_current_user", lambda: None)
+        assert self._go() == "/account/login?redirect=/borrow/lenny/OL51008637M/read"
+
+    def test_an_edition_no_configured_node_lends_is_not_found(self, leg):
+        leg.setattr(lenny, "node_for_edition", lambda key: None)
+        # `web.notfound()` builds an HTTPError off `web.ctx`; seed the minimum so
+        # the test does not depend on a prior test having populated it.
+        web.ctx.env = {}
+        web.ctx.status = "200 OK"
+        web.ctx.headers = []
+        web.ctx.output = ""
+        with pytest.raises(web.HTTPError):
+            lenny.lenny_read().GET("OL51008637M")
+
+    def test_the_token_appears_in_no_redirect_url(self, leg):
+        leg.setattr(lenny, "access_token_for", lambda u, p: "SECRET-TOKEN")
+        leg.setattr(lenny, "mint_session_ticket", lambda issuer, token: "tkt-1")
+        assert "SECRET-TOKEN" not in self._go()
+
+    def test_the_token_appears_in_no_log_line(self, leg, caplog):
+        import logging as _logging
+
+        caplog.set_level(_logging.DEBUG, logger="openlibrary.lenny")
+        leg.setattr(lenny, "access_token_for", lambda u, p: "SECRET-TOKEN")
+        leg.setattr(lenny, "mint_session_ticket", lambda issuer, token: "tkt-1")
+        self._go()
+        assert "SECRET-TOKEN" not in caplog.text
+
+
+class TestReadRouteIsNotRewritten:
+    """Regression for the `ReadableUrlProcessor` collision (#14020 review): a
+    path whose OLID is the last segment (`/books/OL1M/read`) is rewritten to
+    `/books/OL1M`; the mediator survives only because its OLID is followed by a
+    literal `/read` at the third segment. Verified by running the shipping
+    matcher, with a control that proves the matcher bites."""
+
+    def test_the_mediator_route_is_left_alone(self):
+        from openlibrary.core.processors.readableurls import (
+            ReadableUrlProcessor,
+            get_readable_path,
+        )
+
+        class DummySite:
+            def get(self, key):
+                return None
+
+        path = "/borrow/lenny/OL51008637M/read"
+        _real, readable = get_readable_path(DummySite(), path, ReadableUrlProcessor.patterns, encoding=None)
+        assert readable == path
+
+    def test_the_control_is_rewritten_so_the_matcher_is_live(self):
+        from openlibrary.core.processors.readableurls import (
+            ReadableUrlProcessor,
+            get_readable_path,
+        )
+
+        class DummySite:
+            def get(self, key):
+                return None
+
+        control = "/books/OL51008637M/read"
+        _real, readable = get_readable_path(DummySite(), control, ReadableUrlProcessor.patterns, encoding=None)
+        assert readable != control
