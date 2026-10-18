@@ -70,13 +70,13 @@ def prepare_route_timer(monkeypatch, put, route=None):
     monkeypatch.setattr(stats.graphite_stats, "increment", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(stats.graphite_stats, "put", put)
     monkeypatch.setattr(stats.web, "ctx", web.storage(stats=[]))
-    stats.start_route_timer()
 
 
 def test_route_timer_does_not_depend_on_component_stats(monkeypatch):
     put = Mock()
     prepare_route_timer(monkeypatch, put)
 
+    stats.start_route_timer()
     stats.stats_hook()
 
     put.assert_called_once_with("ol.webpy.routes.works_X.html-history", 250.0)
@@ -86,6 +86,7 @@ def test_route_timer_uses_request_format(monkeypatch):
     put = Mock()
     prepare_route_timer(monkeypatch, put, InfogamiRoute("^/authors/[^/]*$", encoding="json"))
 
+    stats.start_route_timer()
     stats.stats_hook()
 
     put.assert_called_once_with("ol.webpy.routes.authors_X.json", 250.0)
@@ -95,9 +96,42 @@ def test_route_timer_failure_does_not_break_response(monkeypatch):
     put = Mock(side_effect=OSError("statsd is unavailable"))
     prepare_route_timer(monkeypatch, put)
 
+    stats.start_route_timer()
     stats.stats_hook()
 
     put.assert_called_once_with("ol.webpy.routes.works_X.html-history", 250.0)
+
+
+@pytest.mark.parametrize(
+    ("request_path", "created_path", "record_route"),
+    [
+        ("/addauthor", "/authors/OL1A", "^/authors/[^/]*$"),
+        ("/addbook", "/books/OL1M", "^/books/[^/]*$"),
+    ],
+)
+def test_route_timer_preserves_route_when_handler_changes_path(monkeypatch, request_path, created_path, record_route):
+    put = Mock()
+    prepare_route_timer(monkeypatch, put)
+    routes = {request_path: InfogamiRoute(request_path), created_path: InfogamiRoute(record_route)}
+    monkeypatch.setattr(stats, "find_infogami_route", lambda: routes[web.ctx.path])
+    web.ctx.path = request_path
+
+    stats.start_route_timer()
+    web.ctx.path = created_path
+    stats.stats_hook()
+
+    put.assert_called_once_with(f"ol.webpy.routes.{request_path[1:]}.html", 250.0)
+
+
+def test_route_lookup_failure_does_not_break_response(monkeypatch):
+    put = Mock()
+    prepare_route_timer(monkeypatch, put)
+    monkeypatch.setattr(stats, "find_infogami_route", Mock(side_effect=ValueError("route lookup failed")))
+
+    stats.start_route_timer()
+    stats.stats_hook()
+
+    put.assert_not_called()
 
 
 def test_stats_container():
