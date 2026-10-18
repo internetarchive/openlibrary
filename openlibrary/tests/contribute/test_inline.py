@@ -15,7 +15,12 @@ def fake_languages(monkeypatch):
     """Three languages, keyed by code, as ``get_languages`` returns them (web.storage behaves like a Thing)."""
     langs = {
         f"/languages/{code}": web.storage(key=f"/languages/{code}", name=name, code=code)
-        for code, name in [("eng", "English"), ("fre", "French"), ("spa", "Spanish")]
+        for code, name in [
+            ("eng", "English"),
+            ("fre", "French"),
+            ("spa", "Spanish"),
+            ("enm", "English, Middle (1100-1500)"),  # a real MARC language name that contains a comma
+        ]
     }
     monkeypatch.setattr(save, "get_languages", lambda: langs)
     return langs
@@ -34,6 +39,12 @@ def test_multiple_languages_keep_their_order(fake_languages):
         {"key": "/languages/eng"},
         {"key": "/languages/fre"},
     ]
+
+
+def test_a_language_name_containing_a_comma_resolves_whole(fake_languages):
+    # Split-on-comma-first would break the 14 real language names that contain a comma; a single
+    # name must resolve as one language, not as fragments.
+    assert save.answer_value({}, "languages", "English, Middle (1100-1500)") == [{"key": "/languages/enm"}]
 
 
 def test_duplicate_languages_are_dropped(fake_languages):

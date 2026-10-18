@@ -54,10 +54,18 @@ def _language(raw: str) -> dict:
 
 
 def _languages(raw: str) -> list[dict]:
-    """One or more languages, comma-separated. The picker submits codes (comma-free), so a comma
-    always separates two languages. Order is kept and duplicates dropped."""
+    """One or more languages. A single language — by code or name — is resolved whole first, so a
+    name that itself contains a comma (e.g. "English, Middle (1100-1500)") still works; only when
+    that fails is the value treated as a comma-separated list of codes (what the picker submits,
+    always comma-free). Order is kept and duplicates dropped."""
+    stripped = raw.strip()
+    if stripped:
+        try:
+            return [_language(stripped)]
+        except InvalidAnswer:
+            pass
     out: list[dict] = []
-    for part in (p.strip() for p in raw.split(",")):
+    for part in (p.strip() for p in stripped.split(",")):
         if part and (lang := _language(part)) not in out:
             out.append(lang)
     if not out:
