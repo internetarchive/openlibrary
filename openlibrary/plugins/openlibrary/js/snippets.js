@@ -6,13 +6,26 @@
  * and links to the full "details" page (opened in a new tab). Usernames are
  * intentionally not shown.
  *
- * Each card is then progressively enriched: a search.json lookup (by edition,
- * falling back to work) supplies the work title and work key, which lets us drop
- * in the standard <ol-shelf-button> so a reader can shelve / add the book to a
- * list. book-state.js hydrates those buttons (user key + reading state).
+ * The cards are then enriched with ONE bulk search.json request for the whole
+ * page: every snippet's archive.org id (the "ocaid", the path segment after
+ * /details/) is collected and resolved to its Open Library work in a single
+ * `ia:(…)` query. Each matched card gains the work title (as a caption) and the
+ * standard <ol-shelf-button>, so a reader can shelve / add the book to a list.
+ * book-state.js hydrates those buttons (user key + reading state).
+ *
+ * Note: /api/snippets returns openlibrary_work / openlibrary_edition as null,
+ * so the work is resolved client-side from the ocaid rather than read off the
+ * annotation. The work doc's edition_key is a flat list of ALL the work's
+ * editions and does not identify the edition for a given ocaid, so the shelf
+ * button carries the work key only (edition is left unset, not guessed).
  */
 
 const LIMIT = 25;
+
+/** The ocaid is the /details/<id>/ path segment; archive.org ids are limited
+ * to this charset, so the pattern both extracts the id and rejects anything
+ * that could inject solr query syntax into the `ia:(…)` lookup below. */
+const OCAID_RE = /\/details\/([A-Za-z0-9._-]+)/;
 
 /**
  * @param {HTMLElement} container - the <ul class="js-snippets"> element
@@ -47,8 +60,8 @@ export async function initSnippets(container) {
     // reader's key + reading state (it watches the DOM for new buttons).
     import('./book-state').then(module => module.initBookState()).catch(() => {});
 
-    // Progressively enrich each card with a title + shelf button.
-    items.forEach((item, index) => decorateCard(container, index, item));
+    // Enrich the whole page with a single bulk solr lookup.
+    await enrichCards(container, items);
 }
 
 /**
@@ -68,15 +81,71 @@ function cardHtml(item, index, alt) {
 }
 
 /**
- * Look up the work (title + key) for a snippet and, if found, add a title
- * caption and an <ol-shelf-button> to its card.
+ * Resolve every snippet's work in ONE search.json request and decorate each
+ * card whose ocaid matched. Snippets with no ocaid, or whose ocaid has no solr
+ * match, keep their plain image + link (no caption, no shelf button).
  */
-async function decorateCard(container, index, item) {
+async function enrichCards(container, items) {
+    const ocaidByIndex = items.map(ocaidFromItem);
+    const ocaids = [...new Set(ocaidByIndex.filter(Boolean))];
+    if (!ocaids.length) return;
+
+    const byOcaid = await lookupWorksByOcaid(ocaids);
+    if (!byOcaid || !byOcaid.size) return;
+
+    ocaidByIndex.forEach((ocaid, index) => {
+        const doc = ocaid && byOcaid.get(ocaid);
+        if (doc) decorateCard(container, index, doc);
+    });
+}
+
+/** The archive.org id for a snippet, from its details URL, or '' if none. */
+function ocaidFromItem(item) {
+    const detailsUrl = item.annotation || item.uri;
+    if (!detailsUrl) return '';
+    const match = OCAID_RE.exec(detailsUrl);
+    return match ? match[1] : '';
+}
+
+/**
+ * One bulk `ia:(id OR id …)` lookup for the page. Returns a Map from ocaid to
+ * { key, title }. Each result doc's `ia` field lists the ocaids of that work's
+ * scans, so a single work can back several snippets; we map every page ocaid
+ * the doc covers back to it.
+ * @param {string[]} ocaids - unique, already validated by OCAID_RE
+ * @returns {Promise<Map<string, {key: string, title: string}>|null>}
+ */
+async function lookupWorksByOcaid(ocaids) {
+    const q = `ia:(${ocaids.join(' OR ')})`;
+    try {
+        const url = `/search.json?q=${encodeURIComponent(q)}&fields=key,title,edition_key,ia&limit=${ocaids.length}`;
+        const response = await fetch(url);
+        if (!response.ok) return null;
+        const data = await response.json();
+        const docs = (data && data.docs) || [];
+
+        const wanted = new Set(ocaids);
+        const byOcaid = new Map();
+        for (const doc of docs) {
+            if (!doc || !doc.key) continue;
+            const entry = { key: doc.key, title: doc.title || '' };
+            for (const ia of doc.ia || []) {
+                if (wanted.has(ia) && !byOcaid.has(ia)) byOcaid.set(ia, entry);
+            }
+        }
+        return byOcaid;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Add a title caption and an <ol-shelf-button> to a card from its resolved work.
+ * @param {{key: string, title: string}} doc - the work this snippet resolved to
+ */
+function decorateCard(container, index, doc) {
     const li = container.querySelector(`.snippets-grid__item[data-index="${index}"]`);
     if (!li) return;
-
-    const doc = await lookupWork(item);
-    if (!doc || !doc.key) return;
 
     if (doc.title) {
         const img = li.querySelector('.snippet-card__img');
@@ -92,47 +161,15 @@ async function decorateCard(container, index, item) {
     actions.className = 'snippet-card__actions';
 
     // Standard shelf / add-to-list control. No user-key: book-state.js fills in
-    // the reader's key and reading state once it's in the DOM.
+    // the reader's key and reading state once it's in the DOM. No edition-key:
+    // the ocaid's specific edition is not derivable from the bulk query.
     const button = document.createElement('ol-shelf-button');
     button.setAttribute('variant', 'icon');
     button.setAttribute('work-key', doc.key);
-    if (item.openlibrary_edition) {
-        button.setAttribute('edition-key', olid(item.openlibrary_edition));
-    }
     button.setAttribute('book-title', doc.title || '');
 
     actions.appendChild(button);
     li.appendChild(actions);
-}
-
-/**
- * Resolve a snippet's work via search.json, preferring the edition.
- * @returns {Promise<{key: string, title: string}|null>}
- */
-async function lookupWork(item) {
-    const edition = item.openlibrary_edition ? olid(item.openlibrary_edition) : '';
-    const work = item.openlibrary_work ? olid(item.openlibrary_work) : '';
-
-    let q;
-    if (edition) q = `edition_key:${edition}`;
-    else if (work) q = `key:/works/${work}`;
-    else return null;
-
-    try {
-        const url = `/search.json?q=${encodeURIComponent(q)}&fields=key,title&limit=1`;
-        const response = await fetch(url);
-        if (!response.ok) return null;
-        const data = await response.json();
-        const doc = data && data.docs && data.docs[0];
-        return doc && doc.key ? { key: doc.key, title: doc.title || '' } : null;
-    } catch {
-        return null;
-    }
-}
-
-/** Reduce "/works/OL1W", "/books/OL1M", or "OL1M" to the bare OLID. */
-function olid(value) {
-    return String(value).trim().split('/').pop();
 }
 
 function statusHtml(message) {
