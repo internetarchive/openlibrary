@@ -436,13 +436,6 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
     previews = [e for e in editions if e.get("ocaid")]
 
     edition, provider = _select_edition(editions, requested, provider, selected_id, page)
-    if (
-        not isinstance(edition, models.Edition)
-        and "site" in web.ctx
-        and getattr(edition, "key", "").startswith("/books/")
-        and (db_edition := web.ctx.site.get(edition.key))
-    ):
-        edition = db_edition
     _attach_availability(edition, availabilities)
 
     lending_state = lending.get_lending_state(
