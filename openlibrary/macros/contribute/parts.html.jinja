@@ -1,5 +1,82 @@
 {#- Shared pieces of the /tasks pages. Data arrives precomputed from
     openlibrary/plugins/openlibrary/contribute.py; nothing here calls functions on it. -#}
+{% macro inline_card(row, field) %}
+    {#- One needs-review record on the inline page: the book on the left, the answer control on the right.
+        The card is edited in place; contribute.js posts the answer and moves the card to the Done tab. -#}
+    <li class="contrib-card" data-card data-olid="{{ row.olid }}">
+        <div class="contrib-card__book">
+            {% if row.cover_url %}
+                <img class="contrib-card__cover"
+                     src="{{ row.cover_url }}"
+                     alt=""
+                     width="60"
+                     height="90"
+                     loading="lazy" />
+            {% else %}
+                <div class="contrib-card__cover contrib-book__cover--empty"
+                     aria-hidden="true">{{ icon("book-open", size="md") }}</div>
+            {% endif %}
+            <div class="contrib-card__meta">
+                <a class="contrib-card__title" href="{{ row.key }}">{{ row.title }}</a>
+                {% if row.authors %}<div class="contrib-book__authors">{{ row.authors }}</div>{% endif %}
+                <div class="contrib-book__line">
+                    {% if row.edition_line %}<span>{{ row.edition_line }}</span>{% endif %}
+                    {% if row.isbn13 %}<span>ISBN {{ row.isbn13 }}</span>{% endif %}
+                </div>
+                {% if row.link_outs %}
+                    <div class="contrib-card__lookup">
+                        <span class="contrib-muted">{{ _("Look it up:") }}</span>
+                        {% for link in row.link_outs %}
+                            <a class="contrib-card__lookup-link"
+                               href="{{ link.url }}"
+                               target="_blank"
+                               rel="noopener noreferrer">{{ link.label }}{{ icon("external-link", size="sm") }}</a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <ol-tooltip class="contrib-card__edit" content="{{ _('Go to edit page') }}">
+                <ol-button variant="ghost" shape="icon" size="small" href="{{ row.edit_url }}" aria-label="{{ _('Go to edit page') }}">
+                    {{ icon("pencil", size="sm") }}
+                </ol-button>
+            </ol-tooltip>
+        </div>
+        <div class="contrib-card__editor" data-editor>
+            {% if field == "languages" %}
+                {#- The chosen languages. A record can be in more than one; the picker adds one at a time. -#}
+                <ul class="contrib-chips"
+                    data-chips
+                    aria-label="{{ _('Chosen languages') }}">
+                </ul>
+                <div class="contrib-card__pickrow">
+                    {#- items are set from the page-level [data-inline-items] by contribute.js, so the long
+                        language list is not repeated in the HTML of every card. -#}
+                    <ol-options-popover class="contrib-picker" data-lang-picker label="{{ _('Add a language') }}" heading="{{ _('Languages') | upper }}" placeholder="{{ _('Filter languages') }}" no-matches-label="{{ _('No matching language') }}">
+                    </ol-options-popover>
+                    <ol-button variant="primary" size="small" data-save>
+                        {{ _("Save") }}
+                    </ol-button>
+                </div>
+            {% endif %}
+            <p class="ol-message ol-message--error contrib-card__error"
+               data-error
+               data-msg-empty="{{ _('Choose at least one language.') }}"
+               data-msg-failed="{{ _('Could not save. Please try again.') }}"
+               role="alert"
+               hidden></p>
+        </div>
+    </li>
+{% endmacro %}
+{% macro inline_done_card(d) %}
+    <li class="contrib-card contrib-card--done" data-done-olid="{{ d.olid }}">
+        <span class="contrib-card__check" aria-hidden="true">{{ icon("circle-check", size="sm") }}</span>
+        <div class="contrib-card__meta">
+            <a class="contrib-card__title" href="/books/{{ d.olid }}">{{ d.title }}</a>
+            <div class="contrib-done__value">{{ d.value }}</div>
+        </div>
+        <a class="contrib-done__history" href="{{ d.history_url }}">{{ _("History") }}</a>
+    </li>
+{% endmacro %}
 {% macro book_header(book, compact=False, linked=True) %}
     {#- linked=False (dashboard cards): cover and title aren't links, so a stray click can't be mistaken
         for starting a task; view/edit buttons in the corner reach the book instead. -#}

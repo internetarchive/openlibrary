@@ -1,0 +1,93 @@
+{#- /tasks/<field> — one task type, edited inline. Each record is fixed in place on its card; on save the
+    card moves to the Done tab. The data (which books, in what order) is built in contribute.py; this page
+    only lays it out. Language is the first task type wired to this pattern. -#}
+{% import "contribute/parts.html.jinja" as parts %}
+<div class="contrib-inline"
+     data-inline-tasks
+     data-field="{{ data.field }}"
+     data-msg-history="{{ _('History') }}">
+    {#- Rendered once and shared by every picker on the page, so the full language list isn't repeated per card. -#}
+    <script type="application/json" data-inline-items>{{ data.languages | tojson }}</script>
+    <header class="contrib-inline__head">
+        <a class="contrib-inline__back" href="{{ data.dashboard_url }}">{{ icon("arrow-left", size="sm") }} {{ _("All tasks") }}</a>
+        <h1 class="contrib-title">{{ data.field_guide.label }}</h1>
+        <p class="contrib-muted">{{ data.field_guide.question }}</p>
+    </header>
+    <div class="contrib-inline__body">
+        <main class="contrib-inline__main">
+            <div class="contrib-tabs"
+                 role="tablist"
+                 aria-label="{{ _('Task state') }}">
+                <button type="button"
+                        class="contrib-tab is-on"
+                        role="tab"
+                        id="contrib-tab-todo"
+                        aria-selected="true"
+                        aria-controls="contrib-panel-todo"
+                        data-tab="todo">
+                    {{ _("Needs review") }}
+                    <span class="contrib-tab__count" data-count-todo>{{ data.rows | length }}</span>
+                </button>
+                <button type="button"
+                        class="contrib-tab"
+                        role="tab"
+                        id="contrib-tab-done"
+                        aria-selected="false"
+                        aria-controls="contrib-panel-done"
+                        tabindex="-1"
+                        data-tab="done">
+                    {{ _("Done") }}
+                    <span class="contrib-tab__count" data-count-done>{{ data.done | length }}</span>
+                </button>
+            </div>
+            <section class="contrib-panel"
+                     role="tabpanel"
+                     id="contrib-panel-todo"
+                     aria-labelledby="contrib-tab-todo"
+                     data-panel="todo">
+                <ul class="contrib-cards" data-todo-list>
+                    {% for row in data.rows %}
+                        {{ parts.inline_card(row, data.field) }}
+                    {% endfor %}
+                </ul>
+                <div class="contrib-empty"
+                     data-todo-empty
+                     {% if data.rows %}hidden{% endif %}>
+                    <p>{{ _("Nothing here needs a hand right now. Thank you!") }}</p>
+                </div>
+            </section>
+            <section class="contrib-panel"
+                     role="tabpanel"
+                     id="contrib-panel-done"
+                     aria-labelledby="contrib-tab-done"
+                     data-panel="done"
+                     hidden>
+                <ul class="contrib-cards contrib-cards--done" data-done-list>
+                    {% for d in data.done %}
+                        {{ parts.inline_done_card(d) }}
+                    {% endfor %}
+                </ul>
+                <div class="contrib-empty"
+                     data-done-empty
+                     {% if data.done %}hidden{% endif %}>
+                    <p>{{ _("Records you fix on this page collect here.") }}</p>
+                </div>
+            </section>
+        </main>
+        <aside class="contrib-inline__aside">
+            <div class="contrib-sticky">
+                <section class="contrib-help">
+                    <h2 class="contrib-h">{{ _("How to answer") }}</h2>
+                    <p>{{ data.field_guide.how }}</p>
+                    {% for note in data.field_guide.notes %}
+                        <p class="contrib-muted contrib-note">
+                            {{ note.text }}
+                            {% if note.href %}<a href="{{ note.href }}" target="_blank" rel="noopener noreferrer">{{ _("Guideline") }}</a>{% endif %}
+                        </p>
+                    {% endfor %}
+                </section>
+                {% if data.field_guide.traps %}{{ parts.traps(data.field_guide.traps) }}{% endif %}
+            </div>
+        </aside>
+    </div>
+</div>

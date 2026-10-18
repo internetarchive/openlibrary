@@ -1418,3 +1418,265 @@ a.contrib-recent__title {
     animation: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Inline task page (/tasks/<field>): a list of records edited in place, with a
+   Needs review / Done tab split and a sticky instructions rail.
+   --------------------------------------------------------------------------- */
+.contrib-inline__head {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  margin-block-end: var(--spacing-stack-lg);
+}
+
+.contrib-inline__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-xs);
+  color: var(--color-link);
+  font-size: var(--font-size-label-large);
+  text-decoration: none;
+  justify-self: start;
+}
+
+.contrib-inline__back:hover {
+  text-decoration: underline;
+}
+
+.contrib-inline__body {
+  display: grid;
+  gap: var(--spacing-section-gap);
+}
+
+/* Tabs: Needs review / Done. */
+.contrib-tabs {
+  display: flex;
+  gap: var(--spacing-inline-sm);
+  border-block-end: 1px solid var(--color-border);
+  margin-block-end: var(--spacing-stack-md);
+}
+
+.contrib-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: none;
+  border-block-end: 2px solid transparent;
+  margin-block-end: -1px;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label-large);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.contrib-tab.is-on {
+  border-block-end-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.contrib-tab:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.contrib-tab__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5em;
+  padding: 0 var(--spacing-3xs);
+  border-radius: var(--border-radius-pill);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label-small);
+}
+
+/* Record cards. */
+.contrib-cards {
+  display: grid;
+  gap: var(--spacing-stack-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contrib-card {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-card, 8px);
+  background: var(--color-surface);
+}
+
+.contrib-card__book {
+  display: flex;
+  gap: var(--spacing-inline-lg);
+  align-items: flex-start;
+}
+
+.contrib-card__cover {
+  flex: none;
+  width: 60px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: var(--border-radius-thumbnail);
+  background: var(--color-surface-sunken);
+  box-shadow: var(--shadow-card, 0 1px 2px rgb(0 0 0 / 12%));
+}
+
+.contrib-card__meta {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+a.contrib-card__title {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+  color: inherit;
+  text-decoration: none;
+}
+
+a.contrib-card__title:hover {
+  text-decoration: underline;
+}
+
+.contrib-card__lookup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  font-size: var(--font-size-body-small);
+}
+
+.contrib-card__lookup-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.contrib-card__edit {
+  flex: none;
+}
+
+/* The answer control. */
+.contrib-card__editor {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  padding-block-start: var(--spacing-stack-sm);
+  border-block-start: 1px solid var(--color-border-subtle);
+}
+
+.contrib-card__pickrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+}
+
+.contrib-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contrib-chips:empty {
+  display: none;
+}
+
+.contrib-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-xs);
+  padding: var(--spacing-3xs) var(--spacing-xs);
+  border: 1px solid var(--color-control-selected-border);
+  border-radius: var(--border-radius-pill);
+  background: var(--color-control-selected-bg);
+  color: var(--color-link);
+  font-size: var(--font-size-label-medium);
+}
+
+.contrib-chip__remove {
+  display: inline-grid;
+  place-items: center;
+  width: 1.25em;
+  height: 1.25em;
+  padding: 0;
+  border: none;
+  border-radius: var(--border-radius-pill);
+  background: none;
+  color: inherit;
+  font-size: 1em;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.contrib-chip__remove:hover {
+  background: var(--color-hover-overlay);
+}
+
+.contrib-chip__remove:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.contrib-card__error {
+  margin: 0;
+}
+
+/* Done receipts. */
+.contrib-card--done {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+}
+
+.contrib-card__check {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  color: var(--color-success, var(--color-primary));
+}
+
+.contrib-done__value {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.contrib-done__history {
+  flex: none;
+  margin-inline-start: auto;
+  font-size: var(--font-size-label-medium);
+}
+
+/* Sticky instructions rail on the right. */
+.contrib-sticky {
+  display: grid;
+  gap: var(--spacing-section-gap);
+  align-content: start;
+}
+
+.contrib-note {
+  font-size: var(--font-size-body-small);
+}
+
+/* Desktop: a wide record list with the instructions beside it. */
+@media (min-width: 960px) {
+  .contrib-inline__body {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    column-gap: var(--spacing-section-gap);
+  }
+
+  .contrib-sticky {
+    position: sticky;
+    top: var(--spacing-stack-lg);
+  }
+}

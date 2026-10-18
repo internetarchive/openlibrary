@@ -53,6 +53,18 @@ def _language(raw: str) -> dict:
     raise InvalidAnswer(_("Pick a language from the list."))
 
 
+def _languages(raw: str) -> list[dict]:
+    """One or more languages, comma-separated. The picker submits codes (comma-free), so a comma
+    always separates two languages. Order is kept and duplicates dropped."""
+    out: list[dict] = []
+    for part in (p.strip() for p in raw.split(",")):
+        if part and (lang := _language(part)) not in out:
+            out.append(lang)
+    if not out:
+        raise InvalidAnswer(_("Pick a language from the list."))
+    return out
+
+
 def _pages(raw: str) -> int:
     try:
         pages = int(raw.strip())
@@ -76,7 +88,7 @@ def answer_value(edition, fld: str, raw: str):
     if not raw.strip():
         raise InvalidAnswer(_("Fill in an answer, or choose “I couldn't find it”."))
     if fld == "languages":
-        return [_language(raw)]
+        return _languages(raw)
     if fld == "number_of_pages":
         return _pages(raw)
     if fld == "publishers":
