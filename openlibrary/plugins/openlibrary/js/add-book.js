@@ -10,6 +10,7 @@ import {
     isValidOclc
 } from './idValidation.js';
 import { trimInputValues } from './utils.js';
+import { isValidURL } from './edit.js';
 
 let invalidChecksum;
 let invalidIsbn10;
@@ -54,6 +55,9 @@ export function initAddBookImport() {
         document.getElementById('id_name').addEventListener('change', clearErrors);
 
         document.getElementById('publish_date').addEventListener('blur', validatePublishDate);
+
+        document.getElementById('web_book_url').addEventListener('blur', validateWebBookUrl);
+        addBookForm.addEventListener('submit', validateWebBookUrl);
 
         trimInputValues('input');
 
@@ -199,6 +203,27 @@ function validatePublishDate() {
     if (!isValidDate) {
         errorDiv.classList.remove('hidden');
         errorDiv.textContent = i18nStrings['invalid_publish_date'];
+    } else {
+        errorDiv.classList.add('hidden');
+    }
+}
+
+function validateWebBookUrl(event) {
+    const input = document.getElementById('web_book_url');
+    const errorDiv = document.getElementById('web-book-url-errors');
+    const value = input.value.trim();
+
+    if (!value) {
+        errorDiv.classList.add('hidden');
+        return;
+    }
+
+    const hasValidScheme = isValidURL(value) && ['http:', 'https:'].includes(new URL(value).protocol);
+
+    if (!hasValidScheme) {
+        errorDiv.classList.remove('hidden');
+        errorDiv.textContent = i18nStrings['invalid_web_book_url'];
+        event?.preventDefault();
     } else {
         errorDiv.classList.add('hidden');
     }
