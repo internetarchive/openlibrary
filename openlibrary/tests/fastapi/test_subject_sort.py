@@ -38,6 +38,7 @@ def test_invalid_sort_returns_422(client, url):
     [
         ("openlibrary.fastapi.subjects", "/subjects/love.json?sort=new"),
         ("openlibrary.fastapi.subjects", "/subjects/love.json?sort=editions"),
+        ("openlibrary.fastapi.subjects", "/subjects/love.json?sort=editions,"),  # empty component dropped, not 500
         ("openlibrary.fastapi.publishers", "/publishers/Penguin.json?sort=new"),
     ],
 )

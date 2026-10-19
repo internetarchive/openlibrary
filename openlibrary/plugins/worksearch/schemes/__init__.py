@@ -77,6 +77,11 @@ class SearchScheme:
         """
         for part in user_sort.split(","):
             sort = part.strip()
+            # Empty components (a trailing/doubled comma, or whitespace-only input)
+            # carry no sort and are skipped here — process_user_sort skips them too,
+            # so they resolve to "no sort" rather than a 500. The two MUST agree on
+            # empties: if one skips and the other does not, `self.sorts[""]` raises
+            # KeyError. Non-empty unknown keys are rejected.
             if not sort or sort in cls.sorts or sort.startswith(cls.RANDOM_SORT_PREFIXES):
                 continue
             valid = ", ".join((*cls.sorts.keys(), *cls.RANDOM_SORT_PREFIXES))
@@ -105,7 +110,7 @@ class SearchScheme:
         # Reject unknown sorts with a clear ValueError naming the valid options,
         # rather than letting the ``self.sorts[...]`` lookups below raise a bare
         # KeyError (which surfaces to the user as an opaque 500). After this call
-        # every lookup below is guaranteed to succeed.
+        # every non-empty component below is guaranteed to be a valid key.
         self.validate_user_sort(user_sort)
 
         def process_individual_sort(sort: str) -> str:
@@ -126,7 +131,9 @@ class SearchScheme:
                 solr_sort = self.sorts[sort]
                 return solr_sort() if callable(solr_sort) else solr_sort
 
-        return ",".join(process_individual_sort(s.strip()) for s in user_sort.split(","))
+        # Skip empty components (trailing/doubled commas, whitespace-only) so
+        # ``self.sorts[""]`` is never reached — consistent with validate_user_sort.
+        return ",".join(process_individual_sort(s.strip()) for s in user_sort.split(",") if s.strip())
 
     def process_user_query(self, q_param: str) -> str:
         if q_param == "*:*":

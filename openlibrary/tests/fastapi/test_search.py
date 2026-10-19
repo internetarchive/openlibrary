@@ -327,6 +327,8 @@ class TestSearchEndpoint:
             ("random", 200),  # random
             ("random_customSeed", 200),  # random with a custom seed
             ("trending,trending_score_hourly_sum", 200),  # carousel compound sort
+            ("editions,", 200),  # trailing comma -> empty component dropped, not 500
+            (" ", 200),  # whitespace-only -> no sort, not 500
             ("bogus", 422),  # unknown key
             ("title desc", 422),  # 'title' is a key but 'title desc' is not
             ("ranking", 422),  # documented for subjects but never a real key

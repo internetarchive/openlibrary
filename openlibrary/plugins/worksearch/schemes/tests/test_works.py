@@ -240,3 +240,32 @@ def test_validate_user_sort_accepts_valid(user_sort):
 def test_validate_user_sort_rejects_invalid(user_sort):
     with pytest.raises(ValueError, match="Invalid sort option"):
         WorkSearchScheme.validate_user_sort(user_sort)
+
+
+# --- Empty/whitespace components (trailing/doubled commas, bare spaces) must
+# resolve to "no sort" rather than 500 (`self.sorts[""]` KeyError). This asserts
+# on process_user_sort directly — unmocked — because the FastAPI endpoint tests
+# stub the Solr call and never reach process_user_sort. Regression for #13988. ---
+
+
+@pytest.mark.parametrize(
+    ("user_sort", "expected"),
+    [
+        ("editions,", "edition_count desc"),  # trailing comma
+        (",new", "first_publish_year desc"),  # leading comma
+        ("new,", "first_publish_year desc"),
+        ("editions,,new", "edition_count desc,first_publish_year desc"),  # doubled comma
+        ("editions, ,new", "edition_count desc,first_publish_year desc"),  # whitespace component
+        (" ", ""),  # whitespace-only -> no sort
+        ("", ""),  # empty -> no sort
+    ],
+)
+def test_process_user_sort_skips_empty_components(user_sort, expected):
+    # Must NOT raise KeyError; empty components are dropped.
+    assert WorkSearchScheme().process_user_sort(user_sort) == expected
+
+
+@pytest.mark.parametrize("user_sort", ["editions,", ",new", "editions,,new", " ", ""])
+def test_validate_user_sort_allows_empty_components(user_sort):
+    # validate_user_sort and process_user_sort MUST agree on empty components.
+    assert WorkSearchScheme.validate_user_sort(user_sort) == user_sort
