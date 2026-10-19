@@ -96,22 +96,27 @@ test:
 # `make e2e-up` once per session, then `make test-e2e` as often as you like.
 # See tests/e2e/README.md.
 
-# Follows FAST_WEB_PORT, so a stack moved off 8080 is the one that gets tested.
-E2E_PORT ?= $(or $(FAST_WEB_PORT),8080)
+# The host port compose published for this checkout's fast_web, which picks up
+# FAST_WEB_PORT from .env as well as the shell. Empty when fast_web isn't up.
+E2E_PORT = $$(docker compose port fast_web 8080 2>/dev/null | cut -d: -f2)
 E2E_SERVICES = db memcached mockservices infobase covers solr web fast_web
-E2E_URL = http://localhost:$(E2E_PORT)
 
 # Playwright runs on the host, so it needs the host's node_modules. Installing
 # through the local package keeps the browser matched to the pinned version.
-e2e-up: e2e-stack e2e-assets e2e-index
+# The steps are sequential recipe lines, not prerequisites, so `make -j` can't
+# index before the stack is up.
+e2e-up:
+	$(MAKE) e2e-stack
+	$(MAKE) e2e-assets
+	$(MAKE) e2e-index
 	@test -d node_modules/@playwright/test || npm ci
 	npm exec -- playwright install chromium chromium-headless-shell
 
 e2e-stack:
 	docker compose up -d $(E2E_SERVICES)
-	@echo "Waiting for $(E2E_URL) ..."
-	@for i in $$(seq 1 90); do \
-		curl -sf -o /dev/null $(E2E_URL)/ && exit 0; \
+	@url=http://localhost:$(E2E_PORT); echo "Waiting for $$url ..."; \
+	for i in $$(seq 1 90); do \
+		curl -sf -o /dev/null $$url/ && exit 0; \
 		sleep 2; \
 	done; \
 	echo "Timed out. Try: docker compose logs web fast_web" >&2; \
@@ -124,18 +129,23 @@ e2e-assets:
 	docker compose run --rm home npm run build-assets
 
 # Solr starts empty, and the search, subject and author specs skip themselves
-# when it has no documents -- a skipped test reads exactly like a pass. Query
-# through the web container: a Solr that answers on localhost can still be
-# unreachable from the app, which fails as a dozen confusing test failures.
+# when it has no documents -- a skipped test reads exactly like a pass. Probe
+# for the works the search spec queries, not any document: a few edits or an
+# interrupted reindex leave a partial index. Query through the web container:
+# a Solr that answers on localhost can still be unreachable from the app.
+E2E_SOLR_PROBE = docker compose exec -T web curl -sf "http://solr:8983/solr/openlibrary/select?q=type:work%20AND%20author_name:tolkien&rows=0" \
+	| grep -o '"numFound":[0-9]*' | cut -d: -f2
 e2e-index:
-	@count=$$(docker compose exec -T web curl -sf "http://solr:8983/solr/openlibrary/select?q=*:*&rows=0" | grep -o '"numFound":[0-9]*' | cut -d: -f2); \
+	@count=$$($(E2E_SOLR_PROBE)); \
 	if [ -z "$$count" ]; then \
 		echo "The web container can't reach Solr. Try: docker compose up -d --force-recreate solr" >&2; \
 		exit 1; \
 	elif [ "$$count" = "0" ]; then \
-		docker compose run --rm home make reindex-solr; \
+		docker compose run --rm home make reindex-solr || exit 1; \
+		[ "$$($(E2E_SOLR_PROBE))" -gt 0 ] 2>/dev/null || \
+			{ echo "Reindexed, but Solr still has no Tolkien works. Try: docker compose logs solr" >&2; exit 1; }; \
 	else \
-		echo "Solr has $$count documents; skipping reindex (make e2e-reindex to force)."; \
+		echo "Solr has the seed works; skipping reindex (make e2e-reindex to force)."; \
 	fi
 
 e2e-reindex:
@@ -143,11 +153,12 @@ e2e-reindex:
 
 # A thin wrapper over the npm script, the way `test` wraps `npm run test`, so
 # Playwright is invoked in exactly one place. Not folded into `test`: that runs
-# on any checkout, and these need the stack up and Solr populated. The fast_web
-# check stops a second checkout from silently testing another one's stack;
-# setting OL_BASE_URL skips it and points the suite elsewhere.
+# on any checkout, and these need the stack up and Solr populated. Reading the
+# port from this checkout's fast_web stops it silently testing another
+# checkout's stack; setting OL_BASE_URL skips that and points the suite elsewhere.
 PLAYWRIGHT_ARGS ?=
 test-e2e:
-	@[ -n "$$OL_BASE_URL" ] || [ -n "$$(docker compose ps -q fast_web 2>/dev/null)" ] || \
-		{ echo "fast_web isn't running for this checkout. Run: make e2e-up" >&2; exit 1; }
-	OL_BASE_URL=$${OL_BASE_URL:-$(E2E_URL)} npm run test:e2e -- $(PLAYWRIGHT_ARGS)
+	@port=$(E2E_PORT); base=$${OL_BASE_URL:-$${port:+http://localhost:$$port}}; \
+	[ -n "$$base" ] || { echo "fast_web isn't running for this checkout. Run: make e2e-up" >&2; exit 1; }; \
+	echo "Testing $$base"; \
+	OL_BASE_URL=$$base npm run test:e2e -- $(PLAYWRIGHT_ARGS)

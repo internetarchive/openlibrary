@@ -11,7 +11,8 @@ make test-e2e    # the suite
 
 `make e2e-up` starts the Docker services, rebuilds `static/build` from your
 working tree, indexes the seed data into Solr if the index is empty, and
-installs Chromium. Re-running it is cheap: each step skips when it can.
+installs Chromium. Re-running it skips the reindex when the index already has
+the seed works, but always rebuilds the assets, which takes a few minutes.
 
 Narrow a run with `PLAYWRIGHT_ARGS`, which is passed straight to Playwright:
 
@@ -20,9 +21,9 @@ make test-e2e PLAYWRIGHT_ARGS="search --headed"
 ```
 
 Tests hit `http://localhost:8080` by default. Point them elsewhere with `OL_BASE_URL`.
-If you moved the stack with `FAST_WEB_PORT`, set it in the shell rather than only in
-`.env`: `make` doesn't read `.env`, so it would test port 8080. `make test-e2e` refuses
-to run when this checkout's `fast_web` isn't up, so it can't test another checkout's stack.
+`make test-e2e` asks Docker which port this checkout's `fast_web` is published on, so
+a stack moved with `FAST_WEB_PORT` is followed whether you set it in the shell or `.env`.
+It refuses to run when that `fast_web` isn't up, so it can't test another checkout's stack.
 
 Two projects are configured so nothing runs twice: `desktop` runs everything
 except `@mobile`, and `mobile` runs only `@mobile`.

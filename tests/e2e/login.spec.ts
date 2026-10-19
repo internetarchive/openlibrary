@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { collectConsoleErrors, login, E2E_EMAIL, E2E_PASSWORD } from './helpers';
+import { ACCOUNT_AVATAR, collectConsoleErrors, login, E2E_EMAIL, E2E_PASSWORD } from './helpers';
 
 test.describe('Login page @smoke', () => {
     test('loads with Log In heading', async ({ page }) => {
@@ -51,7 +51,8 @@ test.describe('Login page @smoke', () => {
         await page.waitForURL(/\/(account|people\/[^/]+)\/books/, { timeout: 10_000 });
         const header = page.locator('#header-bar').first();
         await expect(header).toBeVisible();
-        await expect(header.locator('a[href="/account/books"]').first()).toBeAttached();
+        await expect(header.locator(ACCOUNT_AVATAR).first()).toBeAttached();
+        await expect(header.locator('a[href="/account/login"]')).toHaveCount(0);
         expect(errors()).toHaveLength(0);
     });
 
