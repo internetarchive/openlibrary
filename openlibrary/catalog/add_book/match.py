@@ -1,6 +1,8 @@
 import re
 import unicodedata
 
+from openlibrary.catalog.utils import strip_c1_controls
+
 # fields needed for matching:
 # title, subtitle, isbn, publish_country, lccn, publishers, publish_date, number_of_pages, authors
 
@@ -61,9 +63,11 @@ def normalize(s: str) -> str:
     """
     Normalizes a title for matching purposes, not display,
     by lowercasing, unicode -> NFC,
+    stripping C1 control characters (non-printing),
     stripping extra whitespace and punctuation, and replacing ampersands.
     """
     s = unicodedata.normalize("NFC", s)
+    s = strip_c1_controls(s)
     s = s.replace(" & ", " and ")
     s = re_whitespace_and_punct.sub(" ", s.lower()).strip()
     return s
