@@ -96,12 +96,16 @@ test:
 # `make e2e-up` once per session, then `make test-e2e` as often as you like.
 # See tests/e2e/README.md.
 
-E2E_PORT ?= 8080
+# Follows FAST_WEB_PORT, so a stack moved off 8080 is the one that gets tested.
+E2E_PORT ?= $(or $(FAST_WEB_PORT),8080)
 E2E_SERVICES = db memcached mockservices infobase covers solr web fast_web
 E2E_URL = http://localhost:$(E2E_PORT)
 
+# Playwright runs on the host, so it needs the host's node_modules. Installing
+# through the local package keeps the browser matched to the pinned version.
 e2e-up: e2e-stack e2e-assets e2e-index
-	npx playwright install chromium chromium-headless-shell
+	@test -d node_modules/@playwright/test || npm ci
+	npm exec -- playwright install chromium chromium-headless-shell
 
 e2e-stack:
 	docker compose up -d $(E2E_SERVICES)
@@ -139,7 +143,11 @@ e2e-reindex:
 
 # A thin wrapper over the npm script, the way `test` wraps `npm run test`, so
 # Playwright is invoked in exactly one place. Not folded into `test`: that runs
-# on any checkout, and these need the stack up and Solr populated.
+# on any checkout, and these need the stack up and Solr populated. The fast_web
+# check stops a second checkout from silently testing another one's stack;
+# setting OL_BASE_URL skips it and points the suite elsewhere.
 PLAYWRIGHT_ARGS ?=
 test-e2e:
-	npm run test:e2e -- $(PLAYWRIGHT_ARGS)
+	@[ -n "$$OL_BASE_URL" ] || [ -n "$$(docker compose ps -q fast_web 2>/dev/null)" ] || \
+		{ echo "fast_web isn't running for this checkout. Run: make e2e-up" >&2; exit 1; }
+	OL_BASE_URL=$${OL_BASE_URL:-$(E2E_URL)} npm run test:e2e -- $(PLAYWRIGHT_ARGS)

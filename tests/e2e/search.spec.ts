@@ -35,8 +35,10 @@ test.describe('Search page @smoke', () => {
     test('every result links to a work', async ({ page }) => {
         const count = await gotoResults(page);
         test.skip(count === 0, 'No Solr data indexed in this environment');
-        const links = await page.locator(`${RESULT_ITEM} a[href^="/works/"]`).count();
-        expect(links).toBeGreaterThan(0);
+        // Scoped to the book list: the author suggestions above it reuse the item class.
+        const works = page.locator(`ul.list-books > ${RESULT_ITEM}`);
+        await expect(works.first()).toBeVisible();
+        await expect(works.filter({ hasNot: page.locator('a[href^="/works/"]') })).toHaveCount(0);
     });
 
     test('empty query shows no error page', async ({ page }) => {

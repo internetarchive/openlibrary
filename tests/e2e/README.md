@@ -20,6 +20,9 @@ make test-e2e PLAYWRIGHT_ARGS="search --headed"
 ```
 
 Tests hit `http://localhost:8080` by default. Point them elsewhere with `OL_BASE_URL`.
+If you moved the stack with `FAST_WEB_PORT`, set it in the shell rather than only in
+`.env`: `make` doesn't read `.env`, so it would test port 8080. `make test-e2e` refuses
+to run when this checkout's `fast_web` isn't up, so it can't test another checkout's stack.
 
 Two projects are configured so nothing runs twice: `desktop` runs everything
 except `@mobile`, and `mobile` runs only `@mobile`.
