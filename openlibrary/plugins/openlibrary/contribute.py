@@ -3,6 +3,7 @@
 Answers save straight to the record as normal edits, so they show in its history and revert like any other.
 """
 
+import json
 import random
 from collections import Counter
 from datetime import UTC, datetime
@@ -458,4 +459,132 @@ class contribute_done(delegate.page):
             same_book=same_book,
             next_url=build_next_url(back, tasks.Task(olid, fld), saved=False),
             list_url=build_dashboard_url(back),
+        )
+
+
+# ---------------------------------------------------------------------------
+# Inline editing: one page per task type, each record fixed in place.
+#
+# The drill-in above (``/tasks/task/<OLID>/<field>``) is one record per page. The inline page below is
+# the same task, the same supply/save/field-guide model, laid out as a list the librarian edits without
+# leaving: pick the answer on the card, save, and the card moves to the Done tab. Built field-generic so a
+# second task type is a one-line addition to ``INLINE_FIELDS``; only ``languages`` is wired on for now.
+#
+# No OLID appears in any inline route — a save POSTs to ``/tasks/<field>`` with the olid in a JSON body —
+# so ReadableUrlProcessor's ``^/\w+/OL\d+M`` -> /books redirect (which the drill-in dodged with its extra
+# path segment) cannot catch it. Verified by running the request, not by reading the route table.
+# ---------------------------------------------------------------------------
+
+INLINE_FIELDS = ("languages",)
+
+
+def build_inline_record(edition, field_guide, readers: int | None = None) -> dict:
+    """A needs-review card: enough of the record to recognise the book, plus the link-outs to look the value up."""
+    book = build_book_header(edition, readers)
+    return {
+        "olid": book["olid"],
+        "key": book["key"],
+        "title": book["title"],
+        "authors": book["authors"],
+        "cover_url": book["cover_url"],
+        "edition_line": book["edition_line"],
+        "isbn13": book["isbn13"],
+        "edit_url": book["edit_url"],
+        "readers": readers,
+        "link_outs": build_link_outs(field_guide, book["isbn13"]),
+    }
+
+
+def build_inline_rows(field: str) -> list[dict]:
+    """Books missing ``field``, most-read first, as inline-editable cards."""
+    field_guide = get_field_guides()[field]
+    rows: list[dict] = []
+    for cand in supply.solr_candidates((field,)):
+        if len(rows) == LIST_SIZE:
+            break
+        # Solr can lag the database; a field filled since the last reindex is no longer a task.
+        if any(t.field == field for t in tasks.tasks_for_edition(cand.edition)):
+            rows.append(build_inline_record(cand.edition, field_guide, cand.readers))
+    return rows
+
+
+def build_done_rows(user, field: str) -> list[dict]:
+    """The librarian's own recent fixes for ``field``, newest first — the Done tab's starting contents."""
+    changes = save.recent_saves(user.key)
+    keys = [c.changes[0]["key"] for c in changes if c.changes]
+    editions = {e.key: e for e in web.ctx.site.get_many(keys)} if keys else {}
+    out = []
+    for c in changes:
+        if (c.data or {}).get("field") != field:
+            continue
+        key = c.changes[0]["key"] if c.changes else ""
+        if edition := editions.get(key):
+            out.append(
+                {
+                    "olid": key.split("/")[-1],
+                    "title": edition.get_title(),
+                    "value": format_field_value(edition, field),
+                    "history_url": f"{key}?m=history",
+                }
+            )
+    return out
+
+
+def inline_json(payload: dict, status: str = "200 OK") -> delegate.RawText:
+    # delegate.RawText returns the body as-is; a bare string return gets wrapped in the site chrome.
+    web.ctx.status = status
+    return delegate.RawText(json.dumps(payload), content_type="application/json")
+
+
+class contribute_field(delegate.page):
+    """One task type, edited inline: ``/tasks/languages``. GET lists the records; POST (JSON) saves one and
+    returns the stored value so the card can move to Done without a reload."""
+
+    path = rf"/tasks/({'|'.join(INLINE_FIELDS)})"
+
+    def GET(self, field):
+        if denied := require_librarian_access(f"/tasks/{field}"):
+            return denied
+        user = accounts.get_current_user()
+        field_guide = get_field_guides()[field]
+        return render_contribute(
+            "contribute/inline.html.jinja",
+            field_guide.label,
+            field=field,
+            field_guide=field_guide,
+            rows=build_inline_rows(field),
+            done=build_done_rows(user, field),
+            languages=save.language_options() if field == "languages" else [],
+            dashboard_url=build_dashboard_url(),
+        )
+
+    def POST(self, field):
+        user = accounts.get_current_user()
+        if not user or not user.is_librarian_or_higher():
+            return inline_json({"ok": False, "error": _("Librarian access is required.")}, status="403 Forbidden")
+        try:
+            payload = json.loads(web.data() or b"{}")
+        except ValueError:
+            return inline_json({"ok": False, "error": _("Could not read the request.")}, status="400 Bad Request")
+        olid = str(payload.get("olid") or "").strip()
+        value = str(payload.get("value") or "")
+        note = str(payload.get("note") or "")
+        edition = web.ctx.site.get(f"/books/{olid}") if olid else None
+        if not edition or edition.type.key != "/type/edition":
+            return inline_json({"ok": False, "error": _("That book could not be found.")}, status="404 Not Found")
+        field_guide = get_field_guides()[field]
+        try:
+            save.save_answer(edition, field, value, field_guide.label, note)
+        except save.InvalidAnswer as e:
+            return inline_json({"ok": False, "error": str(e)})
+        # Re-read so the receipt shows the stored form (names, normalised identifiers), not the raw input.
+        saved = web.ctx.site.get(f"/books/{olid}")
+        return inline_json(
+            {
+                "ok": True,
+                "olid": olid,
+                "title": edition.get_title(),
+                "value": format_field_value(saved, field),
+                "history_url": f"{edition.key}?m=history",
+            }
         )

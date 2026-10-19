@@ -4124,6 +4124,42 @@ msgstr ""
 msgid "Pick a different book"
 msgstr ""
 
+#: contribute/inline.html.jinja contribute/parts.html.jinja databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
+msgid "History"
+msgstr ""
+
+#: contribute/inline.html.jinja
+msgid "All tasks"
+msgstr ""
+
+#: contribute/inline.html.jinja
+msgid "Task state"
+msgstr ""
+
+#: contribute/inline.html.jinja
+msgid "Needs review"
+msgstr ""
+
+#: contribute/inline.html.jinja
+msgid "Done"
+msgstr ""
+
+#: contribute/inline.html.jinja
+msgid "Nothing here needs a hand right now. Thank you!"
+msgstr ""
+
+#: contribute/inline.html.jinja
+msgid "Records you fix on this page collect here."
+msgstr ""
+
+#: contribute/inline.html.jinja contribute/parts.html.jinja
+msgid "How to answer"
+msgstr ""
+
+#: contribute/inline.html.jinja contribute/parts.html.jinja
+msgid "Guideline"
+msgstr ""
+
 #: contribute/landing.html.jinja
 msgid "Open Library Tasks"
 msgstr ""
@@ -4604,10 +4640,6 @@ msgstr ""
 
 #: lib/exports.html
 msgid "Copy Wikipedia citation"
-msgstr ""
-
-#: databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
-msgid "History"
 msgstr ""
 
 #: lib/history.html
@@ -7914,6 +7946,38 @@ msgid "Buy this book"
 msgstr ""
 
 #: contribute/parts.html.jinja
+msgid "Look it up:"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Go to edit page"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Chosen languages"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Add a language"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Filter languages"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "No matching language"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Choose at least one language."
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Could not save. Please try again."
+msgstr ""
+
+#: contribute/parts.html.jinja
 #, python-format
 msgid "one of %(count)s editions of this work"
 msgstr ""
@@ -7928,19 +7992,7 @@ msgid "Go to book page"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Go to edit page"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "How to answer"
-msgstr ""
-
-#: contribute/parts.html.jinja
 msgid "This edition has no ISBN to search by, so look it up by title and author."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Guideline"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -7993,14 +8045,6 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 msgid "Choose a language"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Filter languages"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "No matching language"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8908,6 +8952,18 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "Open the record and confirm it matches this edition first."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Librarian access is required."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Could not read the request."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "That book could not be found."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py

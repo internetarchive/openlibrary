@@ -56,7 +56,7 @@ $(function () {
     }
 
     // Open Library Tasks pages (/tasks)
-    if (document.querySelector('[data-contribute-list], [data-contribute-landing], [data-contribute-task], [data-contribute-done]')) {
+    if (document.querySelector('[data-contribute-list], [data-contribute-landing], [data-contribute-task], [data-contribute-done], [data-inline-tasks]')) {
         import('./contribute').then(module => module.init());
     }
 
