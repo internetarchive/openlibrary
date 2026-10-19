@@ -208,23 +208,23 @@ function validatePublishDate() {
     }
 }
 
+export function isValidWebBookUrl(value) {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return true;
+    }
+    return isValidURL(trimmed) && ['http:', 'https:'].includes(new URL(trimmed).protocol);
+}
+
 function validateWebBookUrl(event) {
     const input = document.getElementById('web_book_url');
     const errorDiv = document.getElementById('web-book-url-errors');
-    const value = input.value.trim();
 
-    if (!value) {
+    if (isValidWebBookUrl(input.value)) {
         errorDiv.classList.add('hidden');
-        return;
-    }
-
-    const hasValidScheme = isValidURL(value) && ['http:', 'https:'].includes(new URL(value).protocol);
-
-    if (!hasValidScheme) {
+    } else {
         errorDiv.classList.remove('hidden');
         errorDiv.textContent = i18nStrings['invalid_web_book_url'];
         event?.preventDefault();
-    } else {
-        errorDiv.classList.add('hidden');
     }
 }
