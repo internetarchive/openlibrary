@@ -25,7 +25,15 @@
             >
                 <template #pre>
                     <td v-if="['/type/edition', '/type/work'].includes(record.type.key)" class="col-controls">
-                        <input v-model="master_key" type="radio" name="master_key" title="Primary Record" :value="record.key" />
+                        <!-- Only works can be merge targets; editions are included, never primary -->
+                        <input
+                            v-if="record.type.key === '/type/work'"
+                            v-model="master_key"
+                            type="radio"
+                            name="master_key"
+                            title="Primary Record"
+                            :value="record.key"
+                        />
                         <input v-model="selected[record.key]" type="checkbox" title="Include in Merge" />
                     </td>
                     <td v-else />
@@ -111,10 +119,16 @@ export default {
                     olidNumber(a) - olidNumber(b)
             );
 
-            let masterIndex = 0;
+            let masterIndex;
             if (this.primary) {
                 const primaryKey = `/works/${this.primary}`;
                 masterIndex = records.findIndex(elem => elem.key === primaryKey);
+            } else {
+                // Default to the first work: editions can be included, but never the primary
+                masterIndex = Math.max(
+                    0,
+                    records.findIndex(record => record.type.key === '/type/work')
+                );
             }
 
             this.master_key = records[masterIndex].key;
