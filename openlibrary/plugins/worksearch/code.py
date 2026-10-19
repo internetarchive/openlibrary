@@ -866,6 +866,15 @@ class search(delegate.page):
 
         page = int(param.get("page", 1))
         sort = param.get("sort")
+        # An unknown sort would 500 the whole HTML page (via process_user_sort).
+        # A 422 JSON body is not appropriate for a browser page, so fall back to
+        # the default relevance order instead, keeping the results page working.
+        if sort:
+            try:
+                WorkSearchScheme.validate_user_sort(sort)
+            except ValueError:
+                sort = None
+                param.pop("sort", None)
         rows = 20
 
         if get_ol_env().OL_EXPOSE_SOLR_INTERNALS_PARAMS:

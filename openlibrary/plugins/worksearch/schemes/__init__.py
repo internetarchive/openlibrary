@@ -47,6 +47,42 @@ class SearchScheme:
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map
 
+    # Sort keys with these prefixes accept an arbitrary custom seed suffix
+    # (e.g. ``random_mySeed``), so they are validated by prefix rather than by
+    # exact membership in ``sorts``.
+    RANDOM_SORT_PREFIXES = ("random_", "random.hourly_", "random.daily_")
+
+    @classmethod
+    def validate_user_sort(cls, user_sort: str) -> str:
+        """Validate a user-provided sort string without resolving it to a solr sort.
+
+        ``user_sort`` may be a single key, a comma-separated list of keys
+        (carousels pass e.g. ``trending,trending_score_hourly_sum``) or a
+        ``random_*`` form. Returns ``user_sort`` unchanged when every component
+        is valid; raises ``ValueError`` naming the valid options otherwise.
+
+        This backs both the FastAPI request validators and ``process_user_sort``
+        so there is a single definition of "valid sort". It mirrors
+        ``openlibrary.fastapi.search.create_sort_option_type`` (used for
+        author/list/edition search) but additionally accepts the comma-separated
+        and ``random_*`` forms that ``process_user_sort`` supports.
+
+        >>> from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+        >>> WorkSearchScheme.validate_user_sort('new,editions')
+        'new,editions'
+        >>> WorkSearchScheme.validate_user_sort('bogus')  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+            ...
+        ValueError: Invalid sort option: 'bogus'. Valid options are: editions, ...
+        """
+        for part in user_sort.split(","):
+            sort = part.strip()
+            if not sort or sort in cls.sorts or sort.startswith(cls.RANDOM_SORT_PREFIXES):
+                continue
+            valid = ", ".join((*cls.sorts.keys(), *cls.RANDOM_SORT_PREFIXES))
+            raise ValueError(f"Invalid sort option: '{sort}'. Valid options are: {valid}")
+        return user_sort
+
     def process_user_sort(self, user_sort: str) -> str:
         """
         Convert a user-provided sort to a solr sort
@@ -66,6 +102,11 @@ class SearchScheme:
         >>> scheme.process_user_sort('random_custom_seed asc')
         'random_1_custom_seed asc'
         """
+        # Reject unknown sorts with a clear ValueError naming the valid options,
+        # rather than letting the ``self.sorts[...]`` lookups below raise a bare
+        # KeyError (which surfaces to the user as an opaque 500). After this call
+        # every lookup below is guaranteed to succeed.
+        self.validate_user_sort(user_sort)
 
         def process_individual_sort(sort: str) -> str:
             if sort.startswith(("random_", "random.hourly_", "random.daily_")):

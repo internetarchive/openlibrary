@@ -130,6 +130,21 @@ class PublicQueryOptions(BaseModel):
         return v
 
 
+# Validating sort type for work search (used by /search.json and, via
+# subject_service, by /subjects/*.json and /publishers/*.json). A type-based
+# BeforeValidator is what turns an unknown sort into a 422 under FastAPI's
+# `Depends()`/`Query()` param handling — the same mechanism create_sort_option_type
+# uses for authors/lists/editions. The validity check delegates to
+# WorkSearchScheme.validate_user_sort so there is a single definition of a valid
+# sort shared with process_user_sort (which also accepts comma-separated and
+# random_* forms that create_sort_option_type does not).
+WorkSortOption = Annotated[
+    str,
+    BeforeValidator(WorkSearchScheme.validate_user_sort),
+    WithJsonSchema({"type": "string", "enum": list(WorkSearchScheme.sorts.keys()) + [""]}),
+]
+
+
 class SearchRequestParams(PublicQueryOptions, Pagination):
     fields: Annotated[list[str], BeforeValidator(parse_comma_separated_list)] = Field(
         sorted(WorkSearchScheme.default_fetched_fields),
@@ -138,7 +153,7 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
     query: Annotated[dict[str, Any] | None, BeforeValidator(parse_query_json)] = Field(
         None, description="A full JSON encoded solr query.", examples=['{"q": "mark"}']
     )
-    sort: str | None = Field(None, description="The sort order of results.")
+    sort: WorkSortOption | None = Field(None, description="The sort order of results.")  # type: ignore[valid-type]
     spellcheck_count: int | None = Field(
         default_spellcheck_count,
         description="The number of spellcheck suggestions.",

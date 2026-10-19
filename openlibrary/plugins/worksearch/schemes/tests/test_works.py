@@ -186,3 +186,57 @@ def test_q_to_solr_params_local_params_fq_not_rewritten_for_editions():
         )
     editions_fq_values = [v for k, v in params if k == "editions.fq"]
     assert not any("OL192489W" in v for v in editions_fq_values)
+
+
+# --- Sort validation (issue #13988): an unknown sort must raise a clear
+# ValueError naming the valid options, NOT a bare KeyError (which surfaces to
+# the user as an opaque 500). ---
+
+
+@pytest.mark.parametrize(
+    ("user_sort", "expected"),
+    [
+        ("editions", "edition_count desc"),
+        ("new", "first_publish_year desc"),
+        ("editions,new", "edition_count desc,first_publish_year desc"),
+        ("editions, new", "edition_count desc,first_publish_year desc"),
+        ("random", "random_1 asc"),
+        ("random_custom_seed", "random_1_custom_seed asc"),
+        # Carousels pass comma-separated compound sorts
+        (
+            "trending,trending_score_hourly_sum",
+            "def(trending_z_score, 0) desc,def(trending_score_hourly_sum, 0) desc",
+        ),
+    ],
+)
+def test_process_user_sort_valid(user_sort, expected):
+    assert WorkSearchScheme().process_user_sort(user_sort) == expected
+
+
+@pytest.mark.parametrize(
+    "user_sort",
+    [
+        "bogus",
+        "title desc",  # 'title' is valid but 'title desc' is not a key
+        "ranking",  # documented for subjects but never a real key
+        "new,bogus",  # one good key, one bad -> still invalid
+    ],
+)
+def test_process_user_sort_invalid_raises_value_error(user_sort):
+    # Must be a ValueError (not the pre-fix KeyError), and must name the bad key.
+    with pytest.raises(ValueError, match="Invalid sort option"):
+        WorkSearchScheme().process_user_sort(user_sort)
+
+
+@pytest.mark.parametrize(
+    "user_sort",
+    ["", "new", "editions,new", "random", "random_seed", "random.hourly", "random.daily_x"],
+)
+def test_validate_user_sort_accepts_valid(user_sort):
+    assert WorkSearchScheme.validate_user_sort(user_sort) == user_sort
+
+
+@pytest.mark.parametrize("user_sort", ["bogus", "title desc", "ranking", "new,bogus"])
+def test_validate_user_sort_rejects_invalid(user_sort):
+    with pytest.raises(ValueError, match="Invalid sort option"):
+        WorkSearchScheme.validate_user_sort(user_sort)

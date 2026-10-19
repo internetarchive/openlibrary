@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, Literal
 from pydantic import Field
 
 from openlibrary.fastapi.models import Pagination
+from openlibrary.fastapi.search import WorkSortOption  # noqa: TC001  (runtime-needed pydantic annotation)
 from openlibrary.plugins.worksearch.subjects import (
     DEFAULT_RESULTS,
     MAX_RESULTS,
@@ -31,7 +32,7 @@ class BaseSubjectRequestParams(Pagination):
 
     details: bool = Field(False, description="Include facets and detailed metadata")
     has_fulltext: bool = Field(False, description="Filter to works with fulltext")
-    sort: str = Field("editions", description="Sort order: editions, old, new, ranking, etc.")
+    sort: WorkSortOption = Field("editions", description="Sort order: editions, old, new, rating, title, etc.")  # type: ignore[valid-type]
     published_in: str | None = Field(None, description="Date range filter: YYYY or YYYY-YYYY")
     limit: int = Field(
         DEFAULT_RESULTS,
