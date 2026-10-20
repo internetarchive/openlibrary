@@ -469,8 +469,12 @@ def _prepare_solr_query_params(  # noqa: PLR0912
             solr_internals_params=solr_internals_params,
         )
 
-    if sort:
-        params.append(("sort", scheme.process_user_sort(sort)))
+    if sort and (processed_sort := scheme.process_user_sort(sort)):
+        # A sort made up only of empty components (e.g. "%20" or a bare ",")
+        # reduces to an empty string; omit the Solr `sort` param entirely so it
+        # behaves identically to no sort, rather than sending Solr an empty
+        # `sort=` value.
+        params.append(("sort", processed_sort))
 
     return params, fields
 
