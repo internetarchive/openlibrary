@@ -225,9 +225,9 @@ def author_work_keys(author_key: str) -> Iterator[list[str]]:
     WORKS_QUERY_PAGE_SIZE (both in `infobase/readquery.py`). Authors with more
     works than that are paged through with `offset`.
 
-    Infobase defines no order for an unsorted `things()` query, so which works land
-    on which page is unspecified, and paging is best-effort for the rare author with
-    more than one page of works. Every work is still seen in the single-page case.
+    The query is sorted by key so the pages are stable: without a sort, Infobase
+    runs the select with no ORDER BY, and paging with `offset` could skip or repeat
+    works for an author with more than one page of them.
 
     :param str author_key: an author key, "/authors/OL..A"
     """
@@ -238,6 +238,7 @@ def author_work_keys(author_key: str) -> Iterator[list[str]]:
                 {
                     "type": "/type/work",
                     "authors": {"author": {"key": author_key}},
+                    "sort": "key",
                     "limit": WORKS_QUERY_PAGE_SIZE,
                     "offset": offset,
                 }

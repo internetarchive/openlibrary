@@ -205,6 +205,9 @@ class MockSite:
         # where matching silently only saw an author's first 20 works.
         limit = query.pop("limit", 20)
         offset = query.pop("offset", 0)
+        # Results are always returned sorted by key below, so accept a sort rather
+        # than treating it as a filter on a field called "sort".
+        query.pop("sort", None)
 
         keys = set(self.docs)
 
