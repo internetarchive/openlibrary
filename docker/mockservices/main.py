@@ -349,6 +349,9 @@ async def loans(request: Request) -> JSONResponse:
     identifier = params.get("identifier")
     userid = _normalize_userid(params.get("userid"))
 
+    if action == "availability" and identifier:
+        await _ia_delay()  # outside the lock, so slow requests overlap like real ones do
+
     async with _loans_lock:
         # 0. S3 groundtruth availability query
         if action == "availability" and identifier:
@@ -538,6 +541,30 @@ async def loan_changes(action: str, after_uid: int = 0, limit: int = 1000) -> JS
 
 
 # ---------------------------------------------------------------------------
+# Simulated IA slowness
+# POST /mock/ia/delay?seconds=5   (seconds=0 turns it off)
+#
+# Makes the availability API and the S3 ground-truth availability query sleep
+# before answering, to reproduce archive.org being slow (e.g. to exercise
+# openlibrary/core/ia_bulkhead.py). Resets when the container restarts.
+# ---------------------------------------------------------------------------
+
+_ia_delay_seconds = 0.0
+
+
+@app.post("/mock/ia/delay")
+async def set_ia_delay(seconds: float) -> JSONResponse:
+    global _ia_delay_seconds
+    _ia_delay_seconds = max(seconds, 0.0)
+    return JSONResponse({"ia_delay_seconds": _ia_delay_seconds})
+
+
+async def _ia_delay() -> None:
+    if _ia_delay_seconds:
+        await asyncio.sleep(_ia_delay_seconds)
+
+
+# ---------------------------------------------------------------------------
 # IA Availability API v2
 # GET/POST /services/availability/
 # ---------------------------------------------------------------------------
@@ -564,6 +591,7 @@ async def availability(
     else:
         ids = [i.strip() for i in str(raw_ids).split(",") if i.strip()]
 
+    await _ia_delay()
     responses = {item_id: _deterministic_availability(item_id) for item_id in ids}
     return JSONResponse({"success": True, "responses": responses})
 

@@ -67,6 +67,12 @@ class OLWSGIServer(Application):
         import infogami
 
         infogami._setup()
+
+        # Cap concurrent archive.org requests so they can't tie up every sync worker
+        from openlibrary.core import ia_bulkhead
+
+        ia_bulkhead.enable_concurrency_limit()
+
         wsgi_app = self.get_wsgi_app()
         # setup middleware for handling /static
         wsgi_app = web.httpserver.StaticMiddleware(wsgi_app)

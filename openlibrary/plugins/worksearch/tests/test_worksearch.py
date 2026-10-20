@@ -1,5 +1,6 @@
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
+import pytest
 import web
 
 from openlibrary.plugins.worksearch import code
@@ -54,6 +55,7 @@ def test_get_doc():
             "collections": [],
             "has_fulltext": True,
             "public_scan": False,
+            "ebook_access": None,
             "lending_edition": "OL1111795M",
             "lending_identifier": None,
             "authors": [
@@ -312,3 +314,24 @@ class TestSearchAvailabilityPreparedInPython:
         works_arg = render_args[2]
         assert works_arg == [get_doc(solr_doc)]
         assert works_arg is not get_doc
+
+
+@pytest.mark.asyncio
+async def test_works_by_author_falls_back_to_ebook_access_when_ia_does_not_answer():
+    def work(key, ia, ebook_access):
+        return {"key": key, "title": key, "edition_count": 1, "ia": [ia], "lending_identifier_s": ia, "ebook_access": ebook_access}
+
+    docs = [work("/works/OL1W", "ia-open", "public"), work("/works/OL2W", "ia-borrowable", "borrowable"), work("/works/OL3W", "ia-answered", "borrowable")]
+
+    async def add_availability(items):
+        for item in items:
+            item["availability"] = {"status": "borrow_unavailable"} if item["key"] == "/works/OL3W" else {"status": "error"}
+
+    with (
+        patch.object(code, "run_solr_query_async", AsyncMock(return_value=SearchResponse(facet_counts=None, sort="", docs=docs, num_found=3, solr_select=""))),
+        patch.object(code, "add_availability_async", add_availability),
+    ):
+        result = await code.works_by_author_async("OL1A")
+
+    statuses = {w["key"]: w["availability"]["status"] for w in result.docs}
+    assert statuses == {"/works/OL1W": "open", "/works/OL2W": "borrow_available", "/works/OL3W": "borrow_unavailable"}
