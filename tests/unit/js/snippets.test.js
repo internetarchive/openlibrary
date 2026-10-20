@@ -14,17 +14,24 @@ vi.mock('../../../openlibrary/plugins/openlibrary/js/book-state.js', () => ({
 
 let apiCalls;
 let searchCalls;
+let deleteCalls;
 
 /**
- * Route fetch by URL: /api/snippets returns `items`; /search.json returns the
- * `docs` (or an error when `searchOk` is false). Records every call so the test
- * can assert exactly one search request fired.
+ * Route fetch by URL/method: /api/snippets returns `items`; /search.json returns
+ * the `docs` (or an error when `searchOk` is false); a DELETE is recorded and
+ * answered per `deleteOk`. Records every call so the test can assert exactly one
+ * search request fired, and which deletes ran.
  */
-function stubFetch(items, docs, { searchOk = true } = {}) {
+function stubFetch(items, docs, { searchOk = true, deleteOk = true } = {}) {
     apiCalls = [];
     searchCalls = [];
-    global.fetch = vi.fn(async url => {
+    deleteCalls = [];
+    global.fetch = vi.fn(async (url, init = {}) => {
         const u = String(url);
+        if (init.method === 'DELETE') {
+            deleteCalls.push(u);
+            return { ok: deleteOk, status: deleteOk ? 200 : 403, json: async () => ({ deleted: deleteOk }) };
+        }
         if (u.includes('/api/snippets')) {
             apiCalls.push(u);
             return { ok: true, status: 200, json: async () => items };
@@ -39,21 +46,27 @@ function stubFetch(items, docs, { searchOk = true } = {}) {
 }
 
 const HOST = 'https://www-drini.archive.org';
-const snippet = (ocaid, page = 1) =>
+const snippet = (ocaid, page = 1, id = null) =>
     ocaid === null
-        ? { annotation: 'https://example.org/no-details/here', uri: null }
-        : { annotation: `${HOST}/details/${ocaid}/page/${page}/mode/2up?ref=ol`, uri: null };
+        ? { annotation: 'https://example.org/no-details/here', uri: null, id }
+        : { annotation: `${HOST}/details/${ocaid}/page/${page}/mode/2up?ref=ol`, uri: null, id };
 
 const workDoc = (key, title, ia) => ({ key, title, edition_key: ['OLx1M', 'OLx2M'], ia });
 
-function container() {
-    document.body.innerHTML = '<ul class="js-snippets" data-i18n-empty="None" data-i18n-error="Oops" data-i18n-alt="Page"></ul>';
+function container({ canDelete = false } = {}) {
+    const canDeleteAttr = canDelete ? ' data-can-delete="true"' : '';
+    document.body.innerHTML =
+        `<ul class="js-snippets" data-i18n-empty="None" data-i18n-error="Oops" data-i18n-alt="Page"${canDeleteAttr}` +
+        ' data-i18n-delete="Delete snippet" data-i18n-delete-confirm="Sure?"></ul>';
     return document.querySelector('.js-snippets');
 }
 
 const cards = () => [...document.querySelectorAll('.snippets-grid__item')];
 const buttonsIn = li => li.querySelectorAll('ol-shelf-button');
 const captionIn = li => li.querySelector('.snippet-card__title');
+const deleteBtnIn = li => li.querySelector('.snippet-card__delete');
+/** Let the async click handler's fetch + DOM update settle. */
+const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
 afterEach(() => {
     vi.restoreAllMocks();
@@ -156,6 +169,17 @@ test('a card that renders but yields no ocaid fires no search (guards the empty 
     expect(list[0].querySelector('.snippet-card__img')).not.toBeNull();
 });
 
+test('rejects a non-http(s) scheme even when the URL contains /details/', async () => {
+    // A javascript: URL that would otherwise satisfy the /details/ substring check.
+    const item = { annotation: 'javascript:alert(1)//details/x', uri: null };
+    stubFetch([item], []);
+
+    await initSnippets(container());
+
+    expect(cards()).toHaveLength(0);
+    expect(searchCalls).toHaveLength(0);
+});
+
 test('a failed search.json leaves plain cards, no shelf buttons, no throw', async () => {
     const items = [snippet('macklife0000mack')];
     stubFetch(items, [], { searchOk: false });
@@ -166,4 +190,71 @@ test('a failed search.json leaves plain cards, no shelf buttons, no throw', asyn
     expect(buttonsIn(li)).toHaveLength(0);
     expect(captionIn(li)).toBeNull();
     expect(li.querySelector('.snippet-card__img')).not.toBeNull();
+});
+
+// ---- admin [x] delete control ----
+
+test('no delete control when the viewer is not an admin (data-can-delete unset)', async () => {
+    stubFetch([snippet('macklife0000mack', 1, 42)], [workDoc('/works/OL1W', 'Mack', ['macklife0000mack'])]);
+
+    await initSnippets(container());
+
+    expect(deleteBtnIn(cards()[0])).toBeNull();
+});
+
+test('an admin gets an [x] delete control on every card, matched or not', async () => {
+    const items = [snippet('macklife0000mack', 1, 42), snippet('ghostocaid00none', 1, 43)];
+    stubFetch(items, [workDoc('/works/OL1W', 'Mack', ['macklife0000mack'])]);
+
+    await initSnippets(container({ canDelete: true }));
+
+    const list = cards();
+    expect(deleteBtnIn(list[0])).not.toBeNull(); // enriched card
+    expect(deleteBtnIn(list[1])).not.toBeNull(); // unmatched card — delete is independent of solr
+});
+
+test('a card without a snippet id gets no delete control', async () => {
+    stubFetch([snippet('macklife0000mack')], [workDoc('/works/OL1W', 'Mack', ['macklife0000mack'])]);
+
+    await initSnippets(container({ canDelete: true }));
+
+    expect(deleteBtnIn(cards()[0])).toBeNull();
+});
+
+test('clicking [x] DELETEs /snippets/{id} and removes the card on success', async () => {
+    window.confirm = vi.fn(() => true);
+    stubFetch([snippet('macklife0000mack', 1, 42)], [workDoc('/works/OL1W', 'Mack', ['macklife0000mack'])]);
+
+    await initSnippets(container({ canDelete: true }));
+    deleteBtnIn(cards()[0]).click();
+    await flush();
+
+    expect(deleteCalls).toEqual(['/snippets/42']);
+    expect(cards()).toHaveLength(0);
+});
+
+test('a cancelled confirm deletes nothing and keeps the card', async () => {
+    window.confirm = vi.fn(() => false);
+    stubFetch([snippet('macklife0000mack', 1, 42)], [workDoc('/works/OL1W', 'Mack', ['macklife0000mack'])]);
+
+    await initSnippets(container({ canDelete: true }));
+    deleteBtnIn(cards()[0]).click();
+    await flush();
+
+    expect(deleteCalls).toEqual([]);
+    expect(cards()).toHaveLength(1);
+});
+
+test('a failed delete keeps the card so the librarian can retry', async () => {
+    window.confirm = vi.fn(() => true);
+    stubFetch([snippet('macklife0000mack', 1, 42)], [workDoc('/works/OL1W', 'Mack', ['macklife0000mack'])], {
+        deleteOk: false
+    });
+
+    await initSnippets(container({ canDelete: true }));
+    deleteBtnIn(cards()[0]).click();
+    await flush();
+
+    expect(deleteCalls).toEqual(['/snippets/42']);
+    expect(cards()).toHaveLength(1);
 });

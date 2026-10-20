@@ -13,6 +13,7 @@ from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     LibrarianDep,
     MaintainerDep,
+    SuperLibrarianDep,
     authenticate_user_from_cookie,
     get_authenticated_user,
     require_authenticated_user,
@@ -220,6 +221,83 @@ def test_require_librarian_returns_403_when_user_is_none():
 
         client = TestClient(app, raise_server_exceptions=False)
         response = client.get("/librarian-only")
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Insufficient permissions"
+
+    app.dependency_overrides.clear()
+
+
+# ---------------------------------------------------------------------------
+# require_super_librarian tests
+# ---------------------------------------------------------------------------
+
+
+def _build_super_librarian_app():
+    """Create a minimal FastAPI app with one route protected by require_super_librarian."""
+    app = FastAPI()
+
+    @app.delete("/super-only")
+    async def super_route(_: SuperLibrarianDep):
+        return {"message": "access granted"}
+
+    return app
+
+
+def test_require_super_librarian_returns_401_with_no_cookie():
+    """require_super_librarian must raise HTTP 401 when the user is not authenticated."""
+    app = _build_super_librarian_app()
+    client = TestClient(app, raise_server_exceptions=False)
+    response = client.delete("/super-only")
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Authentication required"
+
+
+def test_require_super_librarian_returns_403_for_regular_librarian():
+    """A plain librarian (not super) must be refused — this is narrower than require_librarian."""
+    app = _build_super_librarian_app()
+    app.dependency_overrides[require_authenticated_user] = lambda: FAKE_AUTH_USER
+
+    with patch("openlibrary.fastapi.auth.get_current_user") as mock_get_user:
+        user = MagicMock()
+        user.is_super_librarian_or_higher.return_value = False
+        mock_get_user.return_value = user
+
+        client = TestClient(app, raise_server_exceptions=False)
+        response = client.delete("/super-only")
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Insufficient permissions"
+
+    app.dependency_overrides.clear()
+
+
+def test_require_super_librarian_allows_super_librarian():
+    """require_super_librarian allows admins and super-librarians (is_super_librarian_or_higher)."""
+    app = _build_super_librarian_app()
+    app.dependency_overrides[require_authenticated_user] = lambda: FAKE_AUTH_USER
+
+    with patch("openlibrary.fastapi.auth.get_current_user") as mock_get_user:
+        user = MagicMock()
+        user.is_super_librarian_or_higher.return_value = True
+        mock_get_user.return_value = user
+
+        client = TestClient(app, raise_server_exceptions=False)
+        response = client.delete("/super-only")
+        assert response.status_code == 200
+        assert response.json() == {"message": "access granted"}
+
+    app.dependency_overrides.clear()
+
+
+def test_require_super_librarian_returns_403_when_user_is_none():
+    """require_super_librarian returns 403 when get_current_user returns None."""
+    app = _build_super_librarian_app()
+    app.dependency_overrides[require_authenticated_user] = lambda: FAKE_AUTH_USER
+
+    with patch("openlibrary.fastapi.auth.get_current_user") as mock_get_user:
+        mock_get_user.return_value = None
+
+        client = TestClient(app, raise_server_exceptions=False)
+        response = client.delete("/super-only")
         assert response.status_code == 403
         assert response.json()["detail"] == "Insufficient permissions"
 

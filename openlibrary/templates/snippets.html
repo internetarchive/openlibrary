@@ -3,19 +3,24 @@ $def with ()
 $ _x = ctx.setdefault('cssfile', 'snippets')
 $var title: $_("Snippets")
 
+$ can_delete = 'true' if (ctx.user and ctx.user.is_super_librarian_or_higher()) else 'false'
+
 <div id="contentHead">
   <h1>$_("Snippets")</h1>
 </div>
 
 <div id="contentBody">
-  <p class="snippets-intro">$_("Recently shared highlights from books on the Internet Archive.")</p>
+  <p class="snippets-intro">$_("Recently shared highlights from Internet Archive books.")</p>
 
   $# Populated client-side from /api/snippets (see js/snippets.js). Strings are
   $# passed via data-* so they stay translatable.
   <ul class="snippets-grid js-snippets" aria-live="polite" aria-busy="true"
+      data-can-delete="$can_delete"
       data-i18n-empty="$_('No snippets have been shared recently.')"
       data-i18n-error="$_('Sorry, snippets could not be loaded right now.')"
-      data-i18n-alt="$_('A highlighted snippet from a book')">
+      data-i18n-alt="$_('A highlighted snippet from a book')"
+      data-i18n-delete="$_('Delete snippet')"
+      data-i18n-delete-confirm="$_('Delete this snippet? This cannot be undone.')">
     <li class="snippets-grid__status">$_("Loading snippets…")</li>
   </ul>
 </div>
