@@ -25,6 +25,9 @@ coverstore_url: http://covers:7075
 # a client's browser
 coverstore_public_url: http://localhost:7075
 
+# iannotate annotations endpoint backing /cdn/snippets/<id>; dev reads the public prod data.
+snippets_api_url: https://openlibrary.org/api/snippets
+
 state_dir: var/run
 
 # enable http compression
