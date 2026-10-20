@@ -103,3 +103,57 @@ class TestIaJsCdn:
         fastapi_client.get("/cdn/archive.org/donate.js")
 
         mock_client.get.assert_called_once_with("https://archive.org/includes/donate.js")
+
+
+SNIPPETS = [
+    {"id": 1, "annotation": "https://archive.org/details/macklife0000mack/page/3?text=x", "uri": None},
+    {"id": 2, "annotation": None, "uri": "https://www-drini.archive.org/details/annakarnina00tols/page/7"},
+    {"id": 3, "annotation": "https://evil.example/details/x/page/1", "uri": None},
+    {"id": 4, "annotation": "https://archive.org.evil.example/details/x", "uri": None},
+    {"id": 5, "annotation": "https://archive.org/search?query=x", "uri": None},
+]
+
+
+@pytest.fixture
+def mock_snippets_upstream(mock_upstream):
+    mock_client, mock_response = mock_upstream
+    mock_response.json = MagicMock(return_value=SNIPPETS)
+    with patch("openlibrary.fastapi.cdn.cache.singleflight_cache", new=lambda key, compute, ttl: compute()):
+        yield mock_client, mock_response
+
+
+class TestSnippetImage:
+    """Tests for GET /cdn/snippets/{annotation_id}."""
+
+    def test_redirects_to_download_url(self, fastapi_client, mock_snippets_upstream):
+        response = fastapi_client.get("/cdn/snippets/1", follow_redirects=False)
+
+        assert response.status_code == 302
+        assert response.headers["location"] == "https://archive.org/download/macklife0000mack/page/3?text=x"
+        assert response.headers["cache-control"] == "public, max-age=3600"
+
+    def test_falls_back_to_uri(self, fastapi_client, mock_snippets_upstream):
+        response = fastapi_client.get("/cdn/snippets/2", follow_redirects=False)
+
+        assert response.status_code == 302
+        assert response.headers["location"] == "https://www-drini.archive.org/download/annakarnina00tols/page/7"
+
+    @pytest.mark.parametrize("annotation_id", [3, 4, 5, 999])
+    def test_unknown_or_unsafe_snippet_returns_404(self, fastapi_client, mock_snippets_upstream, annotation_id):
+        response = fastapi_client.get(f"/cdn/snippets/{annotation_id}", follow_redirects=False)
+        assert response.status_code == 404
+
+    def test_non_integer_id_is_rejected(self, fastapi_client, mock_snippets_upstream):
+        mock_client, _ = mock_snippets_upstream
+        response = fastapi_client.get("/cdn/snippets/abc", follow_redirects=False)
+
+        assert response.status_code == 422
+        mock_client.get.assert_not_called()
+
+    def test_upstream_error_returns_502(self, fastapi_client, mock_snippets_upstream):
+        mock_client, _ = mock_snippets_upstream
+        mock_client.get.side_effect = httpx.RequestError("connection refused")
+
+        response = fastapi_client.get("/cdn/snippets/1", follow_redirects=False)
+
+        assert response.status_code == 502

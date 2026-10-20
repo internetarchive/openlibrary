@@ -46,7 +46,8 @@ function stubFetch(items, docs, { searchOk = true, deleteOk = true } = {}) {
 }
 
 const HOST = 'https://www-drini.archive.org';
-const snippet = (ocaid, page = 1, id = null) =>
+let nextId = 1;
+const snippet = (ocaid, page = 1, id = nextId++) =>
     ocaid === null
         ? { annotation: 'https://example.org/no-details/here', uri: null, id }
         : { annotation: `${HOST}/details/${ocaid}/page/${page}/mode/2up?ref=ol`, uri: null, id };
@@ -157,7 +158,7 @@ test('a card that renders but yields no ocaid fires no search (guards the empty 
     // Contains /details/ (so cardHtml renders a card) but no id follows it, so
     // ocaidFromItem returns ''. This is the path that exercises the
     // `if (!ocaids.length) return` guard — without it an `ia:()` request fires.
-    const item = { annotation: 'https://archive.org/details/?ref=ol', uri: null };
+    const item = { id: 1, annotation: 'https://archive.org/details/?ref=ol', uri: null };
     stubFetch([item], []);
 
     await initSnippets(container());
@@ -213,14 +214,6 @@ test('an admin gets an [x] delete control on every card, matched or not', async 
     expect(deleteBtnIn(list[1])).not.toBeNull(); // unmatched card — delete is independent of solr
 });
 
-test('a card without a snippet id gets no delete control', async () => {
-    stubFetch([snippet('macklife0000mack')], [workDoc('/works/OL1W', 'Mack', ['macklife0000mack'])]);
-
-    await initSnippets(container({ canDelete: true }));
-
-    expect(deleteBtnIn(cards()[0])).toBeNull();
-});
-
 test('clicking [x] DELETEs /snippets/{id} and removes the card on success', async () => {
     window.confirm = vi.fn(() => true);
     stubFetch([snippet('macklife0000mack', 1, 42)], [workDoc('/works/OL1W', 'Mack', ['macklife0000mack'])]);
@@ -257,4 +250,22 @@ test('a failed delete keeps the card so the librarian can retry', async () => {
 
     expect(deleteCalls).toEqual(['/snippets/42']);
     expect(cards()).toHaveLength(1);
+});
+
+test('the image is served by the snippet image endpoint, keyed by annotation id', async () => {
+    stubFetch([{ id: 42, annotation: `${HOST}/details/macklife0000mack/page/3`, uri: null }], []);
+
+    await initSnippets(container());
+
+    const [card] = cards();
+    expect(card.querySelector('.snippet-card__img').getAttribute('src')).toBe('/cdn/snippets/42');
+    expect(card.querySelector('.snippet-card').getAttribute('href')).toBe(`${HOST}/details/macklife0000mack/page/3`);
+});
+
+test('a snippet without an id renders no card', async () => {
+    stubFetch([{ annotation: `${HOST}/details/macklife0000mack/page/3`, uri: null }], []);
+
+    await initSnippets(container());
+
+    expect(cards()).toHaveLength(0);
 });
