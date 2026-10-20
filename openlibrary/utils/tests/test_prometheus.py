@@ -19,6 +19,9 @@ from openlibrary.utils.sentry import InfogamiRoute
         (r"/borrow/ia/(.*)", "/borrow/ia/foo00bar", "/borrow/ia/{key:path}"),
         (r"/(oclc|lccn|ia|OCLC|LCCN|IA)/([^/]*)(/.*)?", "/ia/foo/bar", "/ia/{key}/{key2:path}"),
         (r"/admin(?:/.*)?", "/admin", "/admin"),
+        ("/sw.js", "/sw.js", "/sw.js"),  # an unescaped dot is not a parameter
+        (r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/preview.png", "/people/foo/lists/OL1L/preview.png", "/people/{username}/lists/{list_id}/preview.png"),
+        ("/data/ol_dump(_editions|_works)_latest.txt.gz", "/data/ol_dump_editions_latest.txt.gz", "/data/ol_dump_editions_latest.txt.gz"),
         (r"(?<=x)/lookbehind", "/lookbehind", r"(?<=x)/lookbehind"),  # unsupported: the pattern itself
     ],
 )

@@ -149,6 +149,8 @@ def _instrument(items, params: list[bool]) -> str:
                 params.append(slash)
             else:
                 out.append(f"(?:{_instrument(sub, params)}){quantifier}")
+        elif op is sre.ANY:  # an unescaped dot, as in /sw.js: one character, not a parameter
+            out.append(".")
         elif op in _VARIABLE_OPS:
             regex, slash = _variable(op, av)
             out.append(f"(?P<p{len(params)}>{regex})")
