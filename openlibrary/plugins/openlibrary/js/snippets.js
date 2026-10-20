@@ -2,9 +2,9 @@
  * Snippets feed (/snippets).
  *
  * Fetches the most recently shared snippets from /api/snippets and renders a
- * grid of images. Each image is the book page rendered via the "download" host
- * and links to the full "details" page (opened in a new tab). Usernames are
- * intentionally not shown.
+ * grid of images. Each image is the book page (via /cdn/snippets/<id>, which
+ * redirects to the "download" host) and links to the full "details" page
+ * (opened in a new tab). Usernames are intentionally not shown.
  *
  * The cards are then enriched with ONE bulk search.json request for the whole
  * page: every snippet's archive.org id (the "ocaid", the path segment after
@@ -119,18 +119,18 @@ async function deleteSnippet(li, id, strings) {
 }
 
 /**
- * Base card: the snippet image (download host) linking to the details page.
- * Returns '' for rows without a usable details URL.
+ * Base card: the snippet image (served by /cdn/snippets/<id>) linking to the
+ * details page. Returns '' for rows without an id or a usable details URL.
  */
 function cardHtml(item, index, alt) {
     const detailsUrl = item.annotation || item.uri;
     // Only render genuine http(s) links, so a non-http scheme (e.g. javascript:)
     // can never reach the card's href/src even if it contains "/details/".
+    if (item.id === null || item.id === undefined) return '';
     if (!detailsUrl || !/^https?:\/\//i.test(detailsUrl) || !detailsUrl.includes('/details/')) return '';
-    const imageUrl = detailsUrl.replace('/details/', '/download/');
-    // The snippet id lets an admin delete the card (see addDeleteControls).
-    const hasId = item.id !== null && item.id !== undefined;
-    const idAttr = hasId ? ` data-snippet-id="${escapeAttr(item.id)}"` : '';
+    const imageUrl = `/cdn/snippets/${encodeURIComponent(item.id)}`;
+    // The snippet id also lets an admin delete the card (see addDeleteControls).
+    const idAttr = ` data-snippet-id="${escapeAttr(item.id)}"`;
     return (
         `<li class="snippets-grid__item" data-index="${index}"${idAttr}>` +
         `<a class="snippet-card" href="${escapeAttr(detailsUrl)}" target="_blank" rel="noopener noreferrer">` +
