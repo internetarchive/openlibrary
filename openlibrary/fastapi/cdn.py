@@ -6,10 +6,11 @@ from urllib.parse import urlsplit
 
 import httpx
 from fastapi import APIRouter, HTTPException, Path
-from fastapi.responses import RedirectResponse, Response
+from fastapi.responses import Response, StreamingResponse
 
 from infogami import config
 from openlibrary.core import cache
+from openlibrary.utils.async_utils import cache_per_event_loop
 
 router = APIRouter()
 
@@ -106,21 +107,29 @@ async def graphite_graph(name: Annotated[str, Path()]) -> Response:
 SNIPPETS_API_URL = config.get("snippets_api_url") or "http://ol-home0.us.archive.org:8000/annotations"
 SNIPPETS_TIMEOUT = 5.0
 SNIPPETS_CACHE_SECONDS = 60
+SNIPPET_IMAGE_TIMEOUT = 10.0
+SNIPPET_IMAGE_MAX_REDIRECTS = 5
 SNIPPET_IMAGE_MAX_AGE = 3600
+# Raster only: an SVG served from our origin could run script.
+SNIPPET_IMAGE_TYPES = frozenset({"image/jpeg", "image/png", "image/gif", "image/webp"})
+
+get_snippet_image_session = cache_per_event_loop(lambda: httpx.AsyncClient(timeout=SNIPPET_IMAGE_TIMEOUT, follow_redirects=False))
+
+
+def _is_archive_org_url(url: str) -> bool:
+    parts = urlsplit(url)
+    host = (parts.hostname or "").lower()
+    return parts.scheme in ("http", "https") and (host == "archive.org" or host.endswith(".archive.org"))
 
 
 def snippet_image_url(annotation: dict) -> str | None:
     """The page image for a snippet: its /details/ URL on the /download/ path.
 
-    Annotations are user-submitted, so only archive.org URLs are accepted;
-    otherwise the image endpoint would be an open redirect.
+    Annotations are user-submitted and fetched server-side, so only
+    archive.org URLs are accepted.
     """
     details_url = annotation.get("annotation") or annotation.get("uri") or ""
-    parts = urlsplit(details_url)
-    host = (parts.hostname or "").lower()
-    if parts.scheme not in ("http", "https") or not (host == "archive.org" or host.endswith(".archive.org")):
-        return None
-    if "/details/" not in parts.path:
+    if not _is_archive_org_url(details_url) or "/details/" not in urlsplit(details_url).path:
         return None
     return details_url.replace("/details/", "/download/", 1)
 
@@ -137,9 +146,29 @@ async def _fetch_snippet_image_urls() -> dict[str, str] | None:
     return {str(a["id"]): url for a in annotations if "id" in a and (url := snippet_image_url(a))}
 
 
+async def _open_snippet_image(url: str) -> httpx.Response | None:
+    """Open a streaming GET for the image, or None if it leaves archive.org.
+
+    /download/ redirects to the item's image server, so redirects are followed
+    by hand to keep every hop on archive.org.
+    """
+    client = get_snippet_image_session()
+    for _ in range(SNIPPET_IMAGE_MAX_REDIRECTS + 1):
+        upstream = await client.send(client.build_request("GET", url), stream=True)
+        if not upstream.is_redirect:
+            return upstream
+        await upstream.aclose()
+        if upstream.next_request is None:
+            return None
+        url = str(upstream.next_request.url)
+        if not _is_archive_org_url(url):
+            return None
+    return None
+
+
 @router.get("/cdn/snippets/{annotation_id}")
 async def snippet_image(annotation_id: Annotated[int, Path()]) -> Response:
-    """Redirect to the page image of the snippet with this annotation id."""
+    """Stream the page image of the snippet with this annotation id."""
     urls = await cache.singleflight_cache(
         "cdn.snippets.image_urls",
         _fetch_snippet_image_urls,
@@ -150,10 +179,31 @@ async def snippet_image(annotation_id: Annotated[int, Path()]) -> Response:
     if (url := urls.get(str(annotation_id))) is None:
         raise HTTPException(status_code=404)
 
-    return RedirectResponse(
-        url,
-        status_code=302,
-        headers={"Cache-Control": f"public, max-age={SNIPPET_IMAGE_MAX_AGE}"},
+    try:
+        upstream = await _open_snippet_image(url)
+    except httpx.RequestError:
+        upstream = None
+    if upstream is None:
+        raise HTTPException(status_code=502, detail="Upstream fetch failed")
+    media_type = upstream.headers.get("content-type", "").split(";")[0].strip().lower()
+    if upstream.status_code != 200 or media_type not in SNIPPET_IMAGE_TYPES:
+        await upstream.aclose()
+        raise HTTPException(status_code=502, detail="Upstream fetch failed")
+
+    async def stream_body():
+        try:
+            async for chunk in upstream.aiter_bytes():
+                yield chunk
+        finally:
+            await upstream.aclose()
+
+    return StreamingResponse(
+        stream_body(),
+        media_type=media_type,
+        headers={
+            "Cache-Control": f"public, max-age={SNIPPET_IMAGE_MAX_AGE}",
+            "X-Content-Type-Options": "nosniff",
+        },
     )
 
 
