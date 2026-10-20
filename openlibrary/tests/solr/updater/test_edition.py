@@ -41,6 +41,11 @@ class TestEditionSolrUpdater:
         ("¡El misterio del ojo de esmeralda!", None, "misterio del ojo de esmeralda!, El"),
         ("...And Then There Were None", None, "And Then There Were None"),
         ("  Dune", None, "Dune"),
+        # Leading quote characters, straight and typographic
+        ('"The Raven"', None, 'Raven", The'),
+        ("'Salem's Lot", None, "Salem's Lot"),
+        ("“Gone with the Wind”", None, "Gone with the Wind”"),
+        ("«Le Petit Prince»", None, "Petit Prince», Le"),
         # A title that is nothing but punctuation is kept as is
         ("?!", None, "?!"),
     ],
