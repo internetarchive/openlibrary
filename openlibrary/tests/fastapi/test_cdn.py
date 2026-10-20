@@ -109,22 +109,28 @@ class TestIaJsCdn:
 RealAsyncClient = httpx.AsyncClient
 
 SNIPPETS = [
-    {"id": 1, "annotation": "https://archive.org/details/macklife0000mack/page/3?text=x", "uri": None},
-    {"id": 2, "annotation": None, "uri": "https://www-drini.archive.org/details/annakarnina00tols/page/7"},
+    {"id": 1, "annotation": "https://archive.org/details/macklife0000mack/page/3/mode/2up?text=a+b%2Cc", "uri": None},
+    {"id": 2, "annotation": None, "uri": "https://www-drini.archive.org/details/annakarnina00tols/page/n7"},
     {"id": 3, "annotation": "https://evil.example/details/x/page/1", "uri": None},
-    {"id": 4, "annotation": "https://archive.org.evil.example/details/x", "uri": None},
+    {"id": 4, "annotation": "https://archive.org.evil.example/details/x/page/1", "uri": None},
     {"id": 5, "annotation": "https://archive.org/search?query=x", "uri": None},
+    {"id": 6, "annotation": "https://archive.org/details/macklife0000mack", "uri": None},
 ]
-IMAGE_SERVER_URL = "https://ia800000.us.archive.org/BookReader/BookReaderImages.php?id=macklife0000mack&page=3"
+METADATA = {
+    "macklife0000mack": {"server": "ia800000.us.archive.org", "dir": "/1/items/macklife0000mack"},
+    "annakarnina00tols": {"server": "ia902807.us.archive.org", "dir": "/16/items/annakarnina00tols"},
+}
 JPEG = b"\xff\xd8\xff\xe0 mocked jpeg"
 
 
 class ImageUpstream:
-    """archive.org stand-in: /download/ redirects to an image server."""
+    """archive.org stand-in: item metadata, plus each datanode's BookReaderImages.php."""
 
     def __init__(self):
         self.requests: list[httpx.Request] = []
-        self.redirect_to = IMAGE_SERVER_URL
+        self.metadata = dict(METADATA)
+        self.metadata_status = 200
+        self.image_redirect: str | None = None
         self.content_type = "image/jpeg"
         self.status_code = 200
         self.error: Exception | None = None
@@ -133,8 +139,11 @@ class ImageUpstream:
         self.requests.append(request)
         if self.error:
             raise self.error
-        if "/download/" in request.url.path:
-            return httpx.Response(302, headers={"location": self.redirect_to})
+        if request.url.host == "archive.org" and request.url.path.startswith("/metadata/"):
+            ocaid = request.url.path.removeprefix("/metadata/")
+            return httpx.Response(self.metadata_status, json=self.metadata.get(ocaid, {}))
+        if self.image_redirect:
+            return httpx.Response(302, headers={"location": self.image_redirect})
         return httpx.Response(self.status_code, content=JPEG, headers={"content-type": self.content_type})
 
 
@@ -154,7 +163,7 @@ def snippet_image_upstream(mock_upstream):
 class TestSnippetImage:
     """Tests for GET /cdn/snippets/{annotation_id}."""
 
-    def test_streams_image_fetched_server_side(self, fastapi_client, snippet_image_upstream):
+    def test_streams_image_built_from_item_metadata(self, fastapi_client, snippet_image_upstream):
         response = fastapi_client.get("/cdn/snippets/1", follow_redirects=False)
 
         assert response.status_code == 200
@@ -163,30 +172,62 @@ class TestSnippetImage:
         assert response.headers["cache-control"] == "public, max-age=3600"
         assert response.headers["x-content-type-options"] == "nosniff"
         assert [str(r.url) for r in snippet_image_upstream.requests] == [
-            "https://archive.org/download/macklife0000mack/page/3?text=x",
-            IMAGE_SERVER_URL,
+            "https://archive.org/metadata/macklife0000mack",
+            (
+                "https://ia800000.us.archive.org/BookReader/BookReaderImages.php"
+                "?id=macklife0000mack&itemPath=%2F1%2Fitems%2Fmacklife0000mack&server=ia800000.us.archive.org"
+                "&text=a+b%2Cc&page=3"
+            ),
         ]
 
-    def test_falls_back_to_uri(self, fastapi_client, snippet_image_upstream):
+    def test_developer_host_selects_tester(self, fastapi_client, snippet_image_upstream):
         response = fastapi_client.get("/cdn/snippets/2")
 
         assert response.status_code == 200
-        assert str(snippet_image_upstream.requests[0].url) == "https://www-drini.archive.org/download/annakarnina00tols/page/7"
+        assert str(snippet_image_upstream.requests[1].url) == (
+            "https://ia902807.us.archive.org/BookReader/BookReaderImages.php"
+            "?id=annakarnina00tols&itemPath=%2F16%2Fitems%2Fannakarnina00tols&server=ia902807.us.archive.org"
+            "&tester=drini&page=n7"
+        )
 
-    @pytest.mark.parametrize("annotation_id", [3, 4, 5, 999])
-    def test_unknown_or_unsafe_snippet_returns_404(self, fastapi_client, snippet_image_upstream, annotation_id):
+    @pytest.mark.parametrize("annotation_id", [3, 4, 5, 6, 999])
+    def test_unknown_or_unusable_snippet_returns_404(self, fastapi_client, snippet_image_upstream, annotation_id):
         response = fastapi_client.get(f"/cdn/snippets/{annotation_id}")
 
         assert response.status_code == 404
         assert snippet_image_upstream.requests == []
 
-    def test_redirect_off_archive_org_is_not_followed(self, fastapi_client, snippet_image_upstream):
-        snippet_image_upstream.redirect_to = "http://169.254.169.254/latest/meta-data"
+    @pytest.mark.parametrize(
+        "metadata",
+        [
+            {},
+            {"server": "evil.example", "dir": "/1/items/macklife0000mack"},
+        ],
+    )
+    def test_unusable_metadata_returns_502(self, fastapi_client, snippet_image_upstream, metadata):
+        snippet_image_upstream.metadata["macklife0000mack"] = metadata
 
         response = fastapi_client.get("/cdn/snippets/1")
 
         assert response.status_code == 502
+        assert response.json()["detail"] == "Item metadata fetch failed"
         assert len(snippet_image_upstream.requests) == 1
+
+    def test_metadata_error_returns_502(self, fastapi_client, snippet_image_upstream):
+        snippet_image_upstream.metadata_status = 503
+
+        response = fastapi_client.get("/cdn/snippets/1")
+
+        assert response.status_code == 502
+        assert response.json()["detail"] == "Item metadata fetch failed"
+
+    def test_redirect_off_archive_org_is_not_followed(self, fastapi_client, snippet_image_upstream):
+        snippet_image_upstream.image_redirect = "http://169.254.169.254/latest/meta-data"
+
+        response = fastapi_client.get("/cdn/snippets/1")
+
+        assert response.status_code == 502
+        assert len(snippet_image_upstream.requests) == 2
 
     @pytest.mark.parametrize("content_type", ["text/html", "image/svg+xml", ""])
     def test_non_raster_response_returns_502(self, fastapi_client, snippet_image_upstream, content_type):
@@ -194,15 +235,15 @@ class TestSnippetImage:
         assert fastapi_client.get("/cdn/snippets/1").status_code == 502
 
     def test_image_server_error_returns_502(self, fastapi_client, snippet_image_upstream):
-        snippet_image_upstream.status_code = 401
+        snippet_image_upstream.status_code = 500
         snippet_image_upstream.content_type = "text/html"
 
         response = fastapi_client.get("/cdn/snippets/1")
 
         assert response.status_code == 502
-        assert response.json()["detail"] == "Image fetch failed: upstream returned 401 text/html"
+        assert response.json()["detail"] == "Image fetch failed: upstream returned 500 text/html"
 
-    def test_image_network_error_returns_502(self, fastapi_client, snippet_image_upstream):
+    def test_network_error_returns_502(self, fastapi_client, snippet_image_upstream):
         snippet_image_upstream.error = httpx.ConnectError("connection refused")
         assert fastapi_client.get("/cdn/snippets/1").status_code == 502
 
