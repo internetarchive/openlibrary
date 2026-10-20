@@ -55,6 +55,8 @@ jobs:
         run: |
           make i18n
           make test-i18n
+      - name: Run ty
+        run: uv run --with ty==0.0.89 --no-default-groups --group=typecheck ty check
       - name: Run tests
         run: |
           git fetch --no-tags --prune --depth=1 origin master

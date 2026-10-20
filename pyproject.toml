@@ -76,7 +76,6 @@ lint.ignore = [
     # scripts/tests/test_affiliate_server.py - probably needed for side effects
     # scripts/tests/test_solr_updater.p - probably needed for side effects
 ]
-line-length = 162
 lint.select = [
   "ASYNC",   # flake8-async
   "B",       # flake8-bugbear
@@ -138,6 +137,7 @@ lint.select = [
   # "TID",   # flake8-tidy-imports
   # "TRY",   # tryceratops
 ]
+line-length = 162
 
 [tool.ruff.lint.mccabe]
 max-complexity = 28
@@ -275,3 +275,41 @@ exclude_rules = "LT01,LT02,LT05,CP01,CP02,CP03,CP04,CP05,AL01,AL02,AL03,AL09,RF0
 
 [tool.sqlfluff.indentation]
 tab_space_size = 4
+
+[dependency-groups]
+dev = [
+    "ty==0.0.89",
+]
+typecheck = [
+    "aiofiles==25.1.0",
+    "fastapi==0.143.0",
+    "httpx==0.28.1",
+    "Jinja2==3.1.6",
+    "Pillow==12.3.0",
+    "prometheus-fastapi-instrumentator==8.1.0",
+    "psycopg[binary,pool]==3.3.5",
+    "pydantic==2.13.4",
+    "pydantic-settings==2.9.1",
+    "pytest==9.0.3",
+    "pytest-asyncio==1.4.0",
+    "pytest-httpx==0.36.2",
+    "PyYAML==6.0.3",
+    "qrcode==7.4.2",
+    "requests==2.34.2",
+    "sentry-sdk[fastapi]==2.72.0",
+    "simplejson==3.20.2",
+    "python-dateutil==2.9.0.post0",
+    "python-multipart==0.0.32",
+    "uvicorn[standard]==0.54.0",
+    "web.py @ git+https://github.com/webpy/webpy.git@2598dfe693ff931a9c67196f0b904b13637ec19f",
+]
+
+[tool.ty.environment]
+extra-paths = ["typings"]
+
+[tool.ty.src]
+include = [
+  "openlibrary/fastapi/",
+  "openlibrary/tests/fastapi/",
+  "openlibrary/asgi_app.py",
+]

@@ -59,7 +59,7 @@ def _link_post(
     )
     try:
         with (
-            patch("openlibrary.fastapi.link.HMACToken.verify", **hmac_kw),
+            patch("openlibrary.fastapi.link.HMACToken.verify", **hmac_kw),  # ty: ignore[no-matching-overload]
             patch("openlibrary.fastapi.link.accounts.RunAs"),
         ):
             response = client.post("/api/link", data=data)

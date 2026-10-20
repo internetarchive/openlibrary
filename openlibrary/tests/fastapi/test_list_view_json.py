@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -167,7 +169,7 @@ def test_list_subjects_json_series(client, monkeypatch):
     assert resp.status_code == 200
 
 
-FAKE_EDITIONS = {
+FAKE_EDITIONS: dict[str, Any] = {
     "size": 1,
     "start": 0,
     "end": 1,

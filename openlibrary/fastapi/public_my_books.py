@@ -4,6 +4,7 @@ FastAPI endpoints for public_my_books_json (reading log).
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -19,6 +20,10 @@ from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils.request_context import site
 
 router = APIRouter()
+
+
+def _format_logged_date(value: datetime | None) -> str | None:
+    return value.strftime("%Y/%m/%d, %H:%M:%S") if value else None
 
 
 class WorkData(BaseModel):
@@ -114,7 +119,7 @@ async def get_public_my_books_json(
                 cover_edition_key=w.get("cover_edition_key") or None,
             ),
             logged_edition=w.get("logged_edition") or None,
-            logged_date=w.get("logged_date").strftime("%Y/%m/%d, %H:%M:%S") if w.get("logged_date") else None,
+            logged_date=_format_logged_date(w.get("logged_date")),
         )
         for w in logged_book_data.docs
     ]
