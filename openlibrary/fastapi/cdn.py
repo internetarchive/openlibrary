@@ -168,7 +168,7 @@ async def snippet_image(annotation_id: Annotated[int, Path()]) -> Response:
         ttl=SNIPPETS_CACHE_SECONDS,
     )
     if urls is None:
-        raise HTTPException(status_code=502, detail="Upstream fetch failed")
+        raise HTTPException(status_code=502, detail="Snippet list fetch failed")
     if (url := urls.get(str(annotation_id))) is None:
         raise HTTPException(status_code=404)
 
@@ -177,11 +177,14 @@ async def snippet_image(annotation_id: Annotated[int, Path()]) -> Response:
     except httpx.RequestError:
         upstream = None
     if upstream is None:
-        raise HTTPException(status_code=502, detail="Upstream fetch failed")
+        raise HTTPException(status_code=502, detail="Image fetch failed")
     media_type = upstream.headers.get("content-type", "").split(";")[0].strip().lower()
     if upstream.status_code != 200 or media_type not in SNIPPET_IMAGE_TYPES:
         await upstream.aclose()
-        raise HTTPException(status_code=502, detail="Upstream fetch failed")
+        raise HTTPException(
+            status_code=502,
+            detail=f"Image fetch failed: upstream returned {upstream.status_code} {media_type or 'no content type'}",
+        )
 
     async def stream_body():
         try:

@@ -194,8 +194,13 @@ class TestSnippetImage:
         assert fastapi_client.get("/cdn/snippets/1").status_code == 502
 
     def test_image_server_error_returns_502(self, fastapi_client, snippet_image_upstream):
-        snippet_image_upstream.status_code = 404
-        assert fastapi_client.get("/cdn/snippets/1").status_code == 502
+        snippet_image_upstream.status_code = 401
+        snippet_image_upstream.content_type = "text/html"
+
+        response = fastapi_client.get("/cdn/snippets/1")
+
+        assert response.status_code == 502
+        assert response.json()["detail"] == "Image fetch failed: upstream returned 401 text/html"
 
     def test_image_network_error_returns_502(self, fastapi_client, snippet_image_upstream):
         snippet_image_upstream.error = httpx.ConnectError("connection refused")
@@ -212,4 +217,7 @@ class TestSnippetImage:
         mock_client, _ = mock_upstream
         mock_client.get.side_effect = httpx.RequestError("connection refused")
 
-        assert fastapi_client.get("/cdn/snippets/1").status_code == 502
+        response = fastapi_client.get("/cdn/snippets/1")
+
+        assert response.status_code == 502
+        assert response.json()["detail"] == "Snippet list fetch failed"
