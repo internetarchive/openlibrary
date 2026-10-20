@@ -659,7 +659,7 @@ msgid "Snippets"
 msgstr ""
 
 #: snippets.html
-msgid "Recently shared highlights from books on the Internet Archive."
+msgid "Recently shared highlights from Internet Archive books."
 msgstr ""
 
 #: snippets.html
@@ -672,6 +672,14 @@ msgstr ""
 
 #: snippets.html
 msgid "A highlighted snippet from a book"
+msgstr ""
+
+#: snippets.html
+msgid "Delete snippet"
+msgstr ""
+
+#: snippets.html
+msgid "Delete this snippet? This cannot be undone."
 msgstr ""
 
 #: snippets.html
