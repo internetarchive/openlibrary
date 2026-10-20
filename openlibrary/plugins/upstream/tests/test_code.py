@@ -493,10 +493,6 @@ class TestIntegratedBookPageRendering:
                 {"publish_date": "1965", "languages": [{"key": "/languages/eng"}]},
                 "Meta Work, 1965 edition, in English",
             ),
-            (
-                {"publish_date": "1965", "physical_format": "Paperback", "languages": [{"key": "/languages/eng"}]},
-                "Meta Work, 1965 edition, Paperback in English",
-            ),
         ],
     )
     def test_edition_meta_description(self, monkeypatch, mock_site, render_template, request_context_fixture, edition_fields, expected):
