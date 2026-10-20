@@ -411,6 +411,16 @@ check_olbase_image_up_to_date() {
     fi
 }
 
+# Start the olbase build with the gh CLI, if installed, so it builds during the rest
+# of the deploy. Sets OLBASE_RUN_ID. Returns 1 if gh is missing or the dispatch fails.
+start_olbase_build() {
+    command -v gh &> /dev/null || return 1
+    local run_url
+    run_url=$(gh workflow run olbase.yaml --repo internetarchive/openlibrary --ref "${GIT_BRANCH:-master}" | grep /actions/runs/) || return 1
+    OLBASE_RUN_ID=${run_url##*/}
+    echo "✓ Started olbase build: $run_url"
+}
+
 deploy_openlibrary() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
@@ -940,6 +950,15 @@ deploy_wizard() {
     fi
     echo ""
 
+    # Start the olbase image build before the announcement so it builds during the
+    # announcement and olsystem deploy. Without gh, it has to be started by hand.
+    if ! check_olbase_image_up_to_date; then
+        if ! start_olbase_build; then
+            read -p "Once you've clicked 'Run workflow', press Enter to continue..."
+        fi
+    fi
+    echo ""
+
     # Announce the deploy
     echo "[Now] Announce deploy to #openlibrary-g, #openlibrary, and #open-librarians-g:"
     echo ""
@@ -949,11 +968,6 @@ deploy_wizard() {
     echo "PRs going out: $RELEASE_MERGED_PRS_URL"
     echo ""
     read -p "Once announced, press Enter to continue..."
-    echo ""
-
-    if ! check_olbase_image_up_to_date; then
-        read -p "Once you've clicked 'Run workflow', press Enter to continue..."
-    fi
     echo ""
 
     # Deploy olsystem
@@ -967,8 +981,11 @@ deploy_wizard() {
     fi
     echo ""
 
+    if [ -n "$OLBASE_RUN_ID" ]; then
+        gh run watch "$OLBASE_RUN_ID" --repo internetarchive/openlibrary --exit-status --compact --interval 30 || true
+    fi
     until check_olbase_image_up_to_date; do
-        read -p "Once built, press Enter to continue..."
+        read -p "Image still out of date. Check the olbase build, then press Enter to recheck..."
     done
     echo ""
 
