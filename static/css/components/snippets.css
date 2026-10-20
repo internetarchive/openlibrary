@@ -12,8 +12,15 @@
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   grid-gap: var(--spacing-stack-xl) var(--spacing-inline-xl);
+}
+
+/* One per row on narrow screens so the page image stays readable. */
+@media (max-width: 600px) {
+  .snippets-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .snippets-grid__status {
@@ -28,11 +35,11 @@
   position: relative;
 }
 
-/* Admin-only delete control, overlaid on the card's top-right corner. */
+/* Admin-only delete control, overlaid on the card's top-left corner. */
 .snippet-card__delete {
   position: absolute;
   top: var(--spacing-stack-xs);
-  right: var(--spacing-stack-xs);
+  left: var(--spacing-stack-xs);
   width: 28px;
   height: 28px;
   padding: 0;
@@ -63,8 +70,11 @@
   color: var(--color-text);
 }
 
+/* Shelf / add-to-list control, overlaid on the card's top-right corner. */
 .snippet-card__actions {
-  margin-top: var(--spacing-stack-xs);
+  position: absolute;
+  top: var(--spacing-stack-xs);
+  right: var(--spacing-stack-xs);
 }
 
 .snippet-card__img {
