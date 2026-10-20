@@ -7,8 +7,8 @@ create are routed to it by the deployment edge, not by this app. This module
 holds only the privileged paths Open Library makes itself, cross-host, the same
 way it reaches the affiliate-server.
 
-Currently that is just the admin delete: iannotate's ``DELETE /annotations``
-takes ``?id=`` (unique row) or
+That is the image proxy's lookup (``list_snippets``) and the admin delete.
+iannotate's ``DELETE /annotations`` takes ``?id=`` (unique row) or
 ``?annotation=`` (the annotation URL); it has no ``?uri=``, and a snippet's
 ``uri`` is not unique, so deletion is by the ``id`` returned from
 ``/api/snippets``.
@@ -66,3 +66,18 @@ async def delete_snippet(snippet_id: int) -> bool:
     except httpx.HTTPError:
         logger.exception("iannotate unreachable deleting snippet id %s", snippet_id)
         return False
+
+
+async def list_snippets() -> list[dict] | None:
+    """Every snippet in the iannotate service (it has no lookup by id), or None
+    if the service could not be reached or returned something unusable."""
+    url = f"{_iannotate_url()}/annotations"
+    try:
+        async with _async_client() as client:
+            response = await client.get(url)
+        response.raise_for_status()
+        snippets = response.json()
+    except httpx.HTTPError, ValueError:
+        logger.exception("iannotate list failed")
+        return None
+    return snippets if isinstance(snippets, list) else None
