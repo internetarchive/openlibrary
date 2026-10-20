@@ -97,7 +97,11 @@ test('decorates each matched card with the work title and a work-keyed shelf but
     await initSnippets(container());
 
     const li = cards()[0];
-    expect(captionIn(li).textContent).toBe('Mack the Life');
+    const caption = captionIn(li);
+    expect(caption.textContent).toBe('Mack the Life');
+    // Clickable, links to the work, and sits above the snippet image.
+    expect(caption.getAttribute('href')).toBe('/works/OL1W');
+    expect(caption.compareDocumentPosition(li.querySelector('.snippet-card__img')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     const btn = buttonsIn(li)[0];
     expect(btn.getAttribute('work-key')).toBe('/works/OL1W');
     expect(btn.getAttribute('book-title')).toBe('Mack the Life');
