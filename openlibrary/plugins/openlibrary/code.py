@@ -1184,7 +1184,6 @@ def setup():
         librarian_dashboard,  # noqa: F401 import required
     )
 
-    delegate.app.add_processor(web.loadhook(stats.start_route_timer))
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
     delegate.app.add_processor(processors.CookieValidationProcessor())
 

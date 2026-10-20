@@ -16,63 +16,11 @@ from infogami import config
 from infogami.utils import stats
 from infogami.utils.app import find_mode, find_page, find_view
 from openlibrary.core import stats as graphite_stats
-from openlibrary.utils.sentry import find_infogami_route
 
 logger = logging.getLogger("openlibrary.stats")
 TIME_BUCKETS = [10, 100, 1000, 5000, 10000, 20000]  # in ms
 
 filters: dict[str, Any] = {}
-
-
-def route_metric_key(route: str) -> str:
-    """Return a bounded, Graphite-safe key for an Infogami route pattern.
-
-    >>> route_metric_key("^/works/[^/]*$")
-    'works_X'
-    >>> route_metric_key("(/books/.*)/borrow")
-    'books_X_borrow'
-    >>> route_metric_key("/")
-    'home'
-    >>> route_metric_key("<other>")
-    'other'
-    """
-    route = route.removeprefix("^").removesuffix("$")
-    route = re.sub(r"\[[^\]]+\](?:[+*?]|\{\d+(?:,\d*)?\})?", "_X_", route)
-    route = re.sub(r"\\[dDwWsS](?:[+*?]|\{\d+(?:,\d*)?\})?", "_X_", route)
-    route = re.sub(r"\.(?:\*|\+)", "_X_", route)
-    route = route.replace("(?:", "(").replace("(", "").replace(")", "")
-    route = re.sub(r"[^A-Za-z0-9_]+", "_", route)
-    route = re.sub(r"_+", "_", route).strip("_")
-    return route or "home"
-
-
-def start_route_timer() -> None:
-    """Store the start time and matched route before the handler runs.
-
-    The route is also read by the Prometheus request metrics (``openlibrary.utils.prometheus``).
-    """
-    try:
-        start = time.perf_counter()
-        web.ctx.infogami_route = find_infogami_route()
-        web.ctx.webpy_route_start = start
-    except Exception as e:
-        logger.warning("Unable to start web.py route timer: %s", e)
-
-
-def record_route_timer() -> None:
-    """Send the route duration to statsd, without affecting the response."""
-    if (start := web.ctx.get("webpy_route_start")) is None:
-        return
-
-    try:
-        route = web.ctx.infogami_route
-        route_key = route_metric_key(route.route)
-        encoding = route.encoding or "html"
-        mode = f"-{route.mode}" if route.mode != "view" else ""
-        metric = f"ol.webpy.routes.{route_key}.{encoding}{mode}"
-        graphite_stats.put(metric, (time.perf_counter() - start) * 1000)
-    except Exception as e:
-        logger.warning("Unable to record web.py route timer: %s", e)
 
 
 def evaluate_and_store_stat(name, stat, summary):
@@ -114,8 +62,6 @@ def stats_hook():
 
     Also, send stats to graphite using statsd
     """
-    record_route_timer()
-
     stats_summary = stats.stats_summary()
     update_all_stats(stats_summary)
     try:

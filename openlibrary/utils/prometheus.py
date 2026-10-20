@@ -255,11 +255,21 @@ def infogami_route_name(route: InfogamiRoute, requested_path: str) -> str:
     return _with_title(template, path, requested_path.removesuffix(suffix)) + suffix + mode
 
 
+def capture_infogami_route() -> None:
+    """web.py load hook finding the route just before the handler runs, as some handlers (e.g. /addbook) change the path.
+    Add it innermost, after processors like ReadableUrlProcessor that rewrite the path."""
+    try:
+        web.ctx.infogami_route = find_infogami_route()
+    except web.HTTPError:  # unknown encoding; the request fails with a 406
+        pass
+    except Exception:
+        logger.exception("Failed to find the infogami route for request metrics")
+
+
 def webpy_route_name(requested_path: str) -> str:
     if name := fastapi_route_name(web.ctx.method, requested_path):
         return name
-    # stats.start_route_timer() finds the route before the handler runs, as some (e.g. /addbook) change the path.
-    # Requests that ended before it ran, e.g. a ReadableUrlProcessor redirect, are looked up now.
+    # Requests that ended before capture_infogami_route() ran, e.g. a ReadableUrlProcessor redirect, are looked up now
     try:
         route = web.ctx.get("infogami_route") or find_infogami_route()
     except web.HTTPError:  # unknown encoding
@@ -326,6 +336,7 @@ def instrument_webpy(app: web.application, wsgi_app):
     """
     if instrumentation := request_metrics("webpy"):
         app.processors.insert(0, WebPyPrometheusProcessor(instrumentation))
+        app.add_processor(web.loadhook(capture_infogami_route))
         _fastapi_app()  # load the routes now, not in the first request
 
     registry = REGISTRY

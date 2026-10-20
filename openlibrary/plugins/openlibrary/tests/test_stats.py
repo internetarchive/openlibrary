@@ -4,13 +4,8 @@ Tests the stats gathering systems.
 
 import calendar
 import datetime as dt
-from unittest.mock import Mock
-
-import pytest
-import web
 
 from openlibrary.core.admin import Stats
-from openlibrary.utils.sentry import InfogamiRoute
 
 from .. import stats
 
@@ -44,94 +39,6 @@ def test_format_stats():
     "Tests whether the performance status are output properly in the the X-OL-Stats header"
     performance_stats = {"total": {"time": 0.2}, "infobase": {"count": 2, "time": 0.13}}
     assert stats.format_stats(performance_stats) == '"IB 2 0.130 TT 0 0.200"'
-
-
-@pytest.mark.parametrize(
-    ("route", "expected"),
-    [
-        ("^/works/[^/]*$", "works_X"),
-        (r"^/authors/(OL\d+A)$", "authors_OL_X_A"),
-        ("(/books/.*)/borrow", "books_X_borrow"),
-        ("/", "home"),
-        ("<other>", "other"),
-    ],
-)
-def test_route_metric_key(route, expected):
-    assert stats.route_metric_key(route) == expected
-
-
-def prepare_route_timer(monkeypatch, put, route=None):
-    ticks = iter((10.0, 10.25))
-    monkeypatch.setattr(stats.time, "perf_counter", lambda: next(ticks))
-    monkeypatch.setattr(stats, "find_infogami_route", lambda: route or InfogamiRoute("^/works/[^/]*$", mode="history"))
-    monkeypatch.setattr(stats.stats, "stats_summary", dict)
-    monkeypatch.setattr(stats, "update_all_stats", lambda _summary: None)
-    monkeypatch.setattr(stats.web, "header", lambda *_args: None)
-    monkeypatch.setattr(stats.graphite_stats, "increment", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr(stats.graphite_stats, "put", put)
-    monkeypatch.setattr(stats.web, "ctx", web.storage(stats=[]))
-
-
-def test_route_timer_does_not_depend_on_component_stats(monkeypatch):
-    put = Mock()
-    prepare_route_timer(monkeypatch, put)
-
-    stats.start_route_timer()
-    stats.stats_hook()
-
-    put.assert_called_once_with("ol.webpy.routes.works_X.html-history", 250.0)
-
-
-def test_route_timer_uses_request_format(monkeypatch):
-    put = Mock()
-    prepare_route_timer(monkeypatch, put, InfogamiRoute("^/authors/[^/]*$", encoding="json"))
-
-    stats.start_route_timer()
-    stats.stats_hook()
-
-    put.assert_called_once_with("ol.webpy.routes.authors_X.json", 250.0)
-
-
-def test_route_timer_failure_does_not_break_response(monkeypatch):
-    put = Mock(side_effect=OSError("statsd is unavailable"))
-    prepare_route_timer(monkeypatch, put)
-
-    stats.start_route_timer()
-    stats.stats_hook()
-
-    put.assert_called_once_with("ol.webpy.routes.works_X.html-history", 250.0)
-
-
-@pytest.mark.parametrize(
-    ("request_path", "created_path", "record_route"),
-    [
-        ("/addauthor", "/authors/OL1A", "^/authors/[^/]*$"),
-        ("/addbook", "/books/OL1M", "^/books/[^/]*$"),
-    ],
-)
-def test_route_timer_preserves_route_when_handler_changes_path(monkeypatch, request_path, created_path, record_route):
-    put = Mock()
-    prepare_route_timer(monkeypatch, put)
-    routes = {request_path: InfogamiRoute(request_path), created_path: InfogamiRoute(record_route)}
-    monkeypatch.setattr(stats, "find_infogami_route", lambda: routes[web.ctx.path])
-    web.ctx.path = request_path
-
-    stats.start_route_timer()
-    web.ctx.path = created_path
-    stats.stats_hook()
-
-    put.assert_called_once_with(f"ol.webpy.routes.{request_path[1:]}.html", 250.0)
-
-
-def test_route_lookup_failure_does_not_break_response(monkeypatch):
-    put = Mock()
-    prepare_route_timer(monkeypatch, put)
-    monkeypatch.setattr(stats, "find_infogami_route", Mock(side_effect=ValueError("route lookup failed")))
-
-    stats.start_route_timer()
-    stats.stats_hook()
-
-    put.assert_not_called()
 
 
 def test_stats_container():

@@ -86,10 +86,15 @@ def app(registry, monkeypatch):
                 raise web.notfound()
             return "hello"
 
+        def POST(self, name=""):
+            web.ctx.path = "/authors/OL1A"  # as /addauthor does
+            return "created"
+
     app = web.application(("/things/(.*)", "thing", "/works/OL1W/editions.json", "thing"), {"thing": thing})
     instrumentation = prometheus.request_metrics("webpy", registry=registry)
     assert instrumentation
     app.add_processor(prometheus.WebPyPrometheusProcessor(instrumentation))
+    app.add_processor(web.loadhook(prometheus.capture_infogami_route))
     return app
 
 
@@ -114,6 +119,14 @@ def test_webpy_records_fastapi_metrics(app, registry):
 def test_webpy_uses_the_fastapi_route_name(app, registry):
     app.request("/works/OL1W/editions.json")
     assert requests_total(registry, "/works/OL{work_id}W/editions.json") == 1
+
+
+def test_webpy_finds_the_route_before_the_handler_changes_the_path(app, registry, monkeypatch):
+    monkeypatch.setattr(prometheus, "find_infogami_route", lambda: InfogamiRoute(web.ctx.path))
+    monkeypatch.setattr(prometheus, "infogami_route_name", lambda route, requested_path: route.route)
+    app.request("/things/new", method="POST")
+    labels = {"method": "POST", "status": "200", "handler": "/things/new", "server": "webpy"}
+    assert registry.get_sample_value("http_requests_total", labels) == 1
 
 
 def test_webpy_skips_excluded_handlers(app, registry, monkeypatch):
