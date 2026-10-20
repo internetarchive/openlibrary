@@ -760,6 +760,10 @@ msgstr ""
 msgid "A highlighted snippet from a book"
 msgstr ""
 
+#: openlibrary/core/shell/search_modal.py snippets.html
+msgid "Untitled"
+msgstr ""
+
 #: snippets.html
 msgid "Delete snippet"
 msgstr ""
@@ -9475,10 +9479,6 @@ msgstr ""
 #: openlibrary/core/shell/search_modal.py
 #, python-format
 msgid "Showing %(shown)s of %(total)s results"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Untitled"
 msgstr ""
 
 #: openlibrary/core/shell/search_modal.py
