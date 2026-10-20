@@ -65,9 +65,10 @@
 }
 
 .snippet-card__title {
-  margin-top: var(--spacing-stack-xs);
+  display: block;
+  margin-bottom: var(--spacing-stack-xs);
   font-size: 0.9em;
-  color: var(--color-text);
+  color: var(--color-link);
 }
 
 /* Shelf / add-to-list control, overlaid on the card's top-right corner. */

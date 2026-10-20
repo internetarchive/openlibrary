@@ -210,10 +210,12 @@ function decorateCard(container, index, doc) {
         const img = li.querySelector('.snippet-card__img');
         if (img) img.alt = doc.title;
 
-        const caption = document.createElement('div');
+        // Clickable work title, above the snippet image.
+        const caption = document.createElement('a');
         caption.className = 'snippet-card__title';
+        caption.href = doc.key;
         caption.textContent = doc.title;
-        li.appendChild(caption);
+        li.insertBefore(caption, li.firstChild);
     }
 
     const actions = document.createElement('div');
