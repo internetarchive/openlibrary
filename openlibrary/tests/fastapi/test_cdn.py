@@ -105,6 +105,9 @@ class TestIaJsCdn:
         mock_client.get.assert_called_once_with("https://archive.org/includes/donate.js")
 
 
+# Captured before any fixture patches httpx.AsyncClient (which is module-global).
+RealAsyncClient = httpx.AsyncClient
+
 SNIPPETS = [
     {"id": 1, "annotation": "https://archive.org/details/macklife0000mack/page/3?text=x", "uri": None},
     {"id": 2, "annotation": None, "uri": "https://www-drini.archive.org/details/annakarnina00tols/page/7"},
@@ -112,48 +115,101 @@ SNIPPETS = [
     {"id": 4, "annotation": "https://archive.org.evil.example/details/x", "uri": None},
     {"id": 5, "annotation": "https://archive.org/search?query=x", "uri": None},
 ]
+IMAGE_SERVER_URL = "https://ia800000.us.archive.org/BookReader/BookReaderImages.php?id=macklife0000mack&page=3"
+JPEG = b"\xff\xd8\xff\xe0 mocked jpeg"
+
+
+class ImageUpstream:
+    """archive.org stand-in: /download/ redirects to an image server."""
+
+    def __init__(self):
+        self.requests: list[httpx.Request] = []
+        self.redirect_to = IMAGE_SERVER_URL
+        self.content_type = "image/jpeg"
+        self.status_code = 200
+        self.error: Exception | None = None
+
+    def __call__(self, request: httpx.Request) -> httpx.Response:
+        self.requests.append(request)
+        if self.error:
+            raise self.error
+        if "/download/" in request.url.path:
+            return httpx.Response(302, headers={"location": self.redirect_to})
+        return httpx.Response(self.status_code, content=JPEG, headers={"content-type": self.content_type})
 
 
 @pytest.fixture
-def mock_snippets_upstream(mock_upstream):
-    mock_client, mock_response = mock_upstream
+def snippet_image_upstream(mock_upstream):
+    _, mock_response = mock_upstream
     mock_response.json = MagicMock(return_value=SNIPPETS)
-    with patch("openlibrary.fastapi.cdn.cache.singleflight_cache", new=lambda key, compute, ttl: compute()):
-        yield mock_client, mock_response
+    upstream = ImageUpstream()
+    client = RealAsyncClient(transport=httpx.MockTransport(upstream))
+    with (
+        patch("openlibrary.fastapi.cdn.cache.singleflight_cache", new=lambda key, compute, ttl: compute()),
+        patch("openlibrary.fastapi.cdn.get_snippet_image_session", return_value=client),
+    ):
+        yield upstream
 
 
 class TestSnippetImage:
     """Tests for GET /cdn/snippets/{annotation_id}."""
 
-    def test_redirects_to_download_url(self, fastapi_client, mock_snippets_upstream):
+    def test_streams_image_fetched_server_side(self, fastapi_client, snippet_image_upstream):
         response = fastapi_client.get("/cdn/snippets/1", follow_redirects=False)
 
-        assert response.status_code == 302
-        assert response.headers["location"] == "https://archive.org/download/macklife0000mack/page/3?text=x"
+        assert response.status_code == 200
+        assert response.content == JPEG
+        assert response.headers["content-type"] == "image/jpeg"
         assert response.headers["cache-control"] == "public, max-age=3600"
+        assert response.headers["x-content-type-options"] == "nosniff"
+        assert [str(r.url) for r in snippet_image_upstream.requests] == [
+            "https://archive.org/download/macklife0000mack/page/3?text=x",
+            IMAGE_SERVER_URL,
+        ]
 
-    def test_falls_back_to_uri(self, fastapi_client, mock_snippets_upstream):
-        response = fastapi_client.get("/cdn/snippets/2", follow_redirects=False)
+    def test_falls_back_to_uri(self, fastapi_client, snippet_image_upstream):
+        response = fastapi_client.get("/cdn/snippets/2")
 
-        assert response.status_code == 302
-        assert response.headers["location"] == "https://www-drini.archive.org/download/annakarnina00tols/page/7"
+        assert response.status_code == 200
+        assert str(snippet_image_upstream.requests[0].url) == "https://www-drini.archive.org/download/annakarnina00tols/page/7"
 
     @pytest.mark.parametrize("annotation_id", [3, 4, 5, 999])
-    def test_unknown_or_unsafe_snippet_returns_404(self, fastapi_client, mock_snippets_upstream, annotation_id):
-        response = fastapi_client.get(f"/cdn/snippets/{annotation_id}", follow_redirects=False)
-        assert response.status_code == 404
+    def test_unknown_or_unsafe_snippet_returns_404(self, fastapi_client, snippet_image_upstream, annotation_id):
+        response = fastapi_client.get(f"/cdn/snippets/{annotation_id}")
 
-    def test_non_integer_id_is_rejected(self, fastapi_client, mock_snippets_upstream):
-        mock_client, _ = mock_snippets_upstream
-        response = fastapi_client.get("/cdn/snippets/abc", follow_redirects=False)
+        assert response.status_code == 404
+        assert snippet_image_upstream.requests == []
+
+    def test_redirect_off_archive_org_is_not_followed(self, fastapi_client, snippet_image_upstream):
+        snippet_image_upstream.redirect_to = "http://169.254.169.254/latest/meta-data"
+
+        response = fastapi_client.get("/cdn/snippets/1")
+
+        assert response.status_code == 502
+        assert len(snippet_image_upstream.requests) == 1
+
+    @pytest.mark.parametrize("content_type", ["text/html", "image/svg+xml", ""])
+    def test_non_raster_response_returns_502(self, fastapi_client, snippet_image_upstream, content_type):
+        snippet_image_upstream.content_type = content_type
+        assert fastapi_client.get("/cdn/snippets/1").status_code == 502
+
+    def test_image_server_error_returns_502(self, fastapi_client, snippet_image_upstream):
+        snippet_image_upstream.status_code = 404
+        assert fastapi_client.get("/cdn/snippets/1").status_code == 502
+
+    def test_image_network_error_returns_502(self, fastapi_client, snippet_image_upstream):
+        snippet_image_upstream.error = httpx.ConnectError("connection refused")
+        assert fastapi_client.get("/cdn/snippets/1").status_code == 502
+
+    def test_non_integer_id_is_rejected(self, fastapi_client, mock_upstream, snippet_image_upstream):
+        mock_client, _ = mock_upstream
+        response = fastapi_client.get("/cdn/snippets/abc")
 
         assert response.status_code == 422
         mock_client.get.assert_not_called()
 
-    def test_upstream_error_returns_502(self, fastapi_client, mock_snippets_upstream):
-        mock_client, _ = mock_snippets_upstream
+    def test_list_upstream_error_returns_502(self, fastapi_client, mock_upstream, snippet_image_upstream):
+        mock_client, _ = mock_upstream
         mock_client.get.side_effect = httpx.RequestError("connection refused")
 
-        response = fastapi_client.get("/cdn/snippets/1", follow_redirects=False)
-
-        assert response.status_code == 502
+        assert fastapi_client.get("/cdn/snippets/1").status_code == 502

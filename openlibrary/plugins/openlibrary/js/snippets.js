@@ -2,9 +2,9 @@
  * Snippets feed (/snippets).
  *
  * Fetches the most recently shared snippets from /api/snippets and renders a
- * grid of images. Each image is the book page (via /cdn/snippets/<id>, which
- * redirects to the "download" host) and links to the full "details" page
- * (opened in a new tab). Usernames are intentionally not shown.
+ * grid of images. Each image is the book page (fetched server-side by
+ * /cdn/snippets/<id> from the "download" host) and links to the full
+ * "details" page (opened in a new tab). Usernames are intentionally not shown.
  *
  * The cards are then enriched with ONE bulk search.json request for the whole
  * page: every snippet's archive.org id (the "ocaid", the path segment after
