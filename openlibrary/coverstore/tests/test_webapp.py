@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import urllib
 from os import system
 from os.path import abspath, dirname, join, pardir
@@ -209,6 +210,13 @@ class TestTarFilenameWithNullSizedFilename:
 
     def test_unparseable_size_is_a_404(self, client):
         assert client.get("/b/id/3385000-L.jpg").status_code == 404
+
+    def test_unparseable_size_is_logged(self, client, caplog):
+        # A malformed row looks like any missing cover to the client, so the log is
+        # the only way to find it.
+        with caplog.at_level(logging.WARNING, logger="coverstore"):
+            client.get("/b/id/3385000-L.jpg")
+        assert "cover 3385000: unreadable l filename 'covers_0003_38.tar:512:3'" in caplog.text
 
 
 class TestProxyScheme:
