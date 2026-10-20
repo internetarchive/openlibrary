@@ -35,6 +35,14 @@ class TestEditionSolrUpdater:
         ("Dune", None, "Dune"),
         ("The Hobbit", "There and Back Again", "Hobbit: There and Back Again, The"),
         ("L'amour", None, "amour, L'"),
+        # Leading punctuation is ignored for collation (#9274)
+        ("¡Hola, Geronimo!", None, "Hola, Geronimo!"),
+        ("¿Quién es?", None, "Quién es?"),
+        ("¡El misterio del ojo de esmeralda!", None, "misterio del ojo de esmeralda!, El"),
+        ("...And Then There Were None", None, "And Then There Were None"),
+        ("  Dune", None, "Dune"),
+        # A title that is nothing but punctuation is kept as is
+        ("?!", None, "?!"),
     ],
 )
 def test_sort_title(title, subtitle, expected):
