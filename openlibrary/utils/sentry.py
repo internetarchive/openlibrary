@@ -195,6 +195,18 @@ def find_infogami_route() -> InfogamiRoute:
     return result
 
 
+def webpy_framework_tag_processor(handler):
+    """
+    Outermost web.py processor: tag every event in the request, including errors
+    raised in processors that run before InfogamiSentryProcessor (e.g. the layout).
+    Remove with web.py, along with the `fastapi` and `framework` tags on the FastAPI side
+    (see create_app in openlibrary/asgi_app.py).
+    """
+    with sentry_sdk.isolation_scope() as scope:
+        scope.set_tag("framework", "webpy")
+        return handler()
+
+
 class WebPySentryProcessor:
     def __init__(self, app: web.application):
         self.app = app
