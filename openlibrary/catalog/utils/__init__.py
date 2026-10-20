@@ -21,17 +21,18 @@ def cmp(x, y):
     return (x > y) - (x < y)
 
 
-re_date = map(
-    re.compile,  # type: ignore[arg-type]
-    [
+# A list, not a map() iterator: parse_date() loops over it on every call.
+re_date = [
+    re.compile(pattern)
+    for pattern in (
         r"(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)",
         r"(?P<birth_date>\d+\??)-",
         r"b\.? (?P<birth_date>(?:ca\. )?\d+\??)",
         r"d\.? (?P<death_date>(?:ca\. )?\d+\??)",
         r"(?P<birth_date>.*\d+.*)-(?P<death_date>.*\d+.*)",
         r"^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$",
-    ],
-)
+    )
+]
 
 re_ad_bc = re.compile(r"\b(B\.C\.?|A\.D\.?)")
 re_date_fl = re.compile("^fl[., ]")
