@@ -18,7 +18,8 @@ let deleteCalls;
 
 /**
  * Route fetch by URL/method: /api/snippets returns `items`; /search.json returns
- * the `docs` (or an error when `searchOk` is false); a DELETE is recorded and
+ * the `docs` (flattened, so a workDoc's editions can sit beside single
+ * editionDocs; an error when `searchOk` is false); a DELETE is recorded and
  * answered per `deleteOk`. Records every call so the test can assert exactly one
  * search request fired, and which deletes ran.
  */
@@ -36,10 +37,11 @@ function stubFetch(items, docs, { searchOk = true, deleteOk = true } = {}) {
             apiCalls.push(u);
             return { ok: true, status: 200, json: async () => items };
         }
-        if (u.includes('/search.json')) {
-            searchCalls.push(new URL(u, 'https://ol.test'));
+        if (u.includes('/search/editions.json')) {
+            const parsed = new URL(u, 'https://ol.test');
+            searchCalls.push(parsed);
             if (!searchOk) return { ok: false, status: 500, json: async () => ({}) };
-            return { ok: true, status: 200, json: async () => ({ docs }) };
+            return { ok: true, status: 200, json: async () => ({ docs: docs.flat() }) };
         }
         throw new Error(`unexpected fetch ${u}`);
     });
@@ -52,12 +54,18 @@ const snippet = (ocaid, page = 1, id = nextId++) =>
         ? { annotation: 'https://example.org/no-details/here', uri: null, id }
         : { annotation: `${HOST}/details/${ocaid}/page/${page}/mode/2up?ref=ol`, uri: null, id };
 
-const workDoc = (key, title, ia) => ({ key, title, edition_key: ['OLx1M', 'OLx2M'], ia });
+/** An edition search doc, as search/editions.json returns it. */
+const editionDoc = (key, title, ia, workKey = 'OL1W') => ({ key, title, ia, work_key: workKey ? [workKey] : [] });
+/** One edition per scan of a work (`/works/OL…W`), each titled like the work. */
+const workDoc = (key, title, ia) => ia.map((ocaid, i) => editionDoc(`/books/OL${i}_${ocaid}M`, title, [ocaid], key.split('/').pop()));
 
-function container({ canDelete = false } = {}) {
+const COVERS = 'https://covers.test';
+
+function container({ canDelete = false, coversHost = COVERS } = {}) {
     const canDeleteAttr = canDelete ? ' data-can-delete="true"' : '';
+    const coversHostAttr = coversHost ? ` data-covers-host="${coversHost}"` : '';
     document.body.innerHTML =
-        `<ul class="js-snippets" data-i18n-empty="None" data-i18n-error="Oops" data-i18n-alt="Page"${canDeleteAttr}` +
+        `<ul class="js-snippets" data-i18n-empty="None" data-i18n-error="Oops" data-i18n-alt="Page" data-i18n-untitled="Untitled"${canDeleteAttr}${coversHostAttr}` +
         ' data-i18n-delete="Delete snippet" data-i18n-delete-confirm="Sure?"></ul>';
     return document.querySelector('.js-snippets');
 }
@@ -90,23 +98,23 @@ test('issues exactly ONE search.json request for a page of several snippets', as
     expect(searchCalls[0].searchParams.get('fields')).toContain('ia');
 });
 
-test('decorates each matched card with the work title and a work-keyed shelf button', async () => {
+test('decorates each matched card with the edition title and a work-keyed shelf button', async () => {
     const items = [snippet('macklife0000mack')];
-    stubFetch(items, [workDoc('/works/OL1W', 'Mack the Life', ['macklife0000mack'])]);
+    stubFetch(items, [editionDoc('/books/OL28228056M', 'Mack the Life', ['macklife0000mack'], 'OL1W')]);
 
     await initSnippets(container());
 
     const li = cards()[0];
     const caption = captionIn(li);
     expect(caption.textContent).toBe('Mack the Life');
-    // Clickable, links to the work, and sits above the snippet image.
-    expect(caption.getAttribute('href')).toBe('/works/OL1W');
-    expect(caption.compareDocumentPosition(li.querySelector('.snippet-card__img')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // Clickable, links to the edition, and sits in the bar under the snippet image.
+    expect(caption.getAttribute('href')).toBe('/books/OL28228056M/Mack_the_Life');
+    expect(caption.closest('.snippet-card__bar')).not.toBeNull();
+    expect(li.querySelector('.snippet-card__img').compareDocumentPosition(caption) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     const btn = buttonsIn(li)[0];
     expect(btn.getAttribute('work-key')).toBe('/works/OL1W');
+    expect(btn.getAttribute('edition-key')).toBe('OL28228056M');
     expect(btn.getAttribute('book-title')).toBe('Mack the Life');
-    // Edition is not derivable from the bulk query — it must not be faked.
-    expect(btn.hasAttribute('edition-key')).toBe(false);
 });
 
 test('dedupes a repeated ocaid: two snippets, one query term, both decorated', async () => {
@@ -263,7 +271,7 @@ test('the image is served by the snippet image endpoint, keyed by annotation id'
 
     const [card] = cards();
     expect(card.querySelector('.snippet-card__img').getAttribute('src')).toBe('/cdn/snippets/42');
-    expect(card.querySelector('.snippet-card').getAttribute('href')).toBe(`${HOST}/details/macklife0000mack/page/3`);
+    expect(card.querySelector('.snippet-card__image-link').getAttribute('href')).toBe(`${HOST}/details/macklife0000mack/page/3`);
 });
 
 test('a snippet without an id renders no card', async () => {
@@ -272,4 +280,106 @@ test('a snippet without an id renders no card', async () => {
     await initSnippets(container());
 
     expect(cards()).toHaveLength(0);
+});
+
+// ---- edition resolution ----
+
+test('looks up editions, linking the title to the edition and shelving its work', async () => {
+    stubFetch([snippet('annakarnina00tols')], [editionDoc('/books/OL24197483M', 'Anna Karénina', ['annakarnina00tols'], 'OL267096W')]);
+
+    await initSnippets(container());
+
+    const [li] = cards();
+    expect(captionIn(li).getAttribute('href')).toBe('/books/OL24197483M/Anna_Karénina');
+    expect(captionIn(li).textContent).toBe('Anna Karénina');
+    const button = buttonsIn(li)[0];
+    expect(button.getAttribute('work-key')).toBe('/works/OL267096W');
+    expect(button.getAttribute('edition-key')).toBe('OL24197483M');
+    expect(searchCalls[0].pathname).toBe('/search/editions.json');
+    expect(searchCalls[0].searchParams.get('fields').split(',')).toEqual(expect.arrayContaining(['key', 'title', 'work_key', 'ia']));
+});
+
+test('distinct scans of one work each link to their own edition', async () => {
+    stubFetch(
+        [snippet('annakarnina00tols'), snippet('annakarenina0000coun')],
+        [
+            editionDoc('/books/OL1M', 'Anna Karénina', ['annakarnina00tols'], 'OL2W'),
+            editionDoc('/books/OL2M', 'Anna Karenina', ['annakarenina0000coun'], 'OL2W')
+        ]
+    );
+
+    await initSnippets(container());
+
+    expect(searchCalls).toHaveLength(1);
+    const [first, second] = cards();
+    expect(captionIn(first).getAttribute('href')).toBe('/books/OL1M/Anna_Karénina');
+    expect(captionIn(second).getAttribute('href')).toBe('/books/OL2M/Anna_Karenina');
+});
+
+test('an edition without a work gets its title link but no shelf button', async () => {
+    stubFetch([snippet('macklife0000mack')], [editionDoc('/books/OL9M', 'Orphan', ['macklife0000mack'], null)]);
+
+    await initSnippets(container());
+
+    const [li] = cards();
+    expect(captionIn(li).getAttribute('href')).toBe('/books/OL9M/Orphan');
+    expect(buttonsIn(li)).toHaveLength(0);
+});
+
+test('the bar shows the edition cover from the coverstore, linked to the edition', async () => {
+    const doc = { ...editionDoc('/books/OL9M', 'Mack the life', ['macklife0000mack']), cover_i: 1234 };
+    stubFetch([snippet('macklife0000mack')], [doc]);
+
+    await initSnippets(container());
+
+    const cover = cards()[0].querySelector('.snippet-card__cover');
+    expect(cover.getAttribute('href')).toBe('/books/OL9M/Mack_the_life');
+    expect(cover.querySelector('img').getAttribute('src')).toBe(`${COVERS}/b/id/1234-M.jpg`);
+});
+
+test('no cover image without a cover id or without a coverstore host', async () => {
+    const withCover = { ...editionDoc('/books/OL9M', 'Mack', ['macklife0000mack']), cover_i: 1234 };
+    stubFetch([snippet('macklife0000mack')], [withCover]);
+    await initSnippets(container({ coversHost: '' }));
+    expect(cards()[0].querySelector('.snippet-card__cover img')).toBeNull();
+
+    stubFetch([snippet('macklife0000mack')], [editionDoc('/books/OL9M', 'Mack', ['macklife0000mack'])]);
+    await initSnippets(container());
+    expect(cards()[0].querySelector('.snippet-card__cover img')).toBeNull();
+});
+
+test('lists every author, each linked with its name slug', async () => {
+    const doc = {
+        ...editionDoc('/books/OL9M', 'Collected', ['macklife0000mack']),
+        author_key: ['OL1A', 'OL2A'],
+        author_name: ['Jane Austen', 'Leo Tolstoy']
+    };
+    stubFetch([snippet('macklife0000mack')], [doc]);
+
+    await initSnippets(container());
+
+    const authors = cards()[0].querySelector('.snippet-card__authors');
+    expect(authors.textContent).toBe('Jane Austen, Leo Tolstoy');
+    expect([...authors.querySelectorAll('a')].map(a => a.getAttribute('href'))).toEqual(['/authors/OL1A/Jane_Austen', '/authors/OL2A/Leo_Tolstoy']);
+});
+
+test('an untitled edition still gets a named title link', async () => {
+    stubFetch([snippet('macklife0000mack')], [editionDoc('/books/OL9M', '', ['macklife0000mack'])]);
+
+    await initSnippets(container());
+
+    const caption = captionIn(cards()[0]);
+    expect(caption.textContent).toBe('Untitled');
+    expect(caption.getAttribute('href')).toBe('/books/OL9M/untitled');
+});
+
+test('the edition link carries the same title slug as the server, so it needs no redirect', async () => {
+    const title = `  Who? What: Where/When & "Why" ${'x'.repeat(120)}`;
+    stubFetch([snippet('macklife0000mack')], [editionDoc('/books/OL9M', title, ['macklife0000mack'])]);
+
+    await initSnippets(container());
+
+    // core.helpers.urlsafe: runs of unsafe chars -> "_", trimmed, first 100 chars.
+    const slug = `Who_What_Where_When_Why_${'x'.repeat(120)}`.slice(0, 100);
+    expect(captionIn(cards()[0]).getAttribute('href')).toBe(`/books/OL9M/${slug}`);
 });

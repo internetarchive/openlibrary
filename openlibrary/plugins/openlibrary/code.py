@@ -271,7 +271,7 @@ class snippets(delegate.page):
 
     def GET(self):
         # Lightweight shell; the grid is populated client-side from /api/snippets.
-        return render_template("snippets.html")
+        return render_template("snippets.html", covers_host=get_coverstore_public_url())
 
 
 class addbook(delegate.page):
