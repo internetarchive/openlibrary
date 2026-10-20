@@ -158,6 +158,7 @@ class InfogamiRoute:
     route: str
     mode: str = "view"
     encoding: str | None = None
+    path: str = ""  # the path the route was matched against
 
     def to_sentry_name(self) -> str:
         return self.route + (f".{self.encoding}" if self.encoding else "") + (f"?m={self.mode}" if self.mode != "view" else "")
@@ -176,7 +177,7 @@ def find_infogami_route() -> InfogamiRoute:
             None,
         )
 
-    result = InfogamiRoute("<other>")
+    result = InfogamiRoute("<other>", path=web.ctx.path)
 
     cls, _args = find_page()
     if cls:

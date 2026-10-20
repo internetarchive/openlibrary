@@ -47,22 +47,25 @@ def route_metric_key(route: str) -> str:
 
 
 def start_route_timer() -> None:
-    """Store the start time and matched route before the handler runs."""
+    """Store the start time and matched route before the handler runs.
+
+    The route is also read by the Prometheus request metrics (``openlibrary.utils.prometheus``).
+    """
     try:
         start = time.perf_counter()
-        route = find_infogami_route()
-        web.ctx.webpy_route_timer = (start, route)
+        web.ctx.infogami_route = find_infogami_route()
+        web.ctx.webpy_route_start = start
     except Exception as e:
         logger.warning("Unable to start web.py route timer: %s", e)
 
 
 def record_route_timer() -> None:
     """Send the route duration to statsd, without affecting the response."""
-    if (timer := web.ctx.get("webpy_route_timer")) is None:
+    if (start := web.ctx.get("webpy_route_start")) is None:
         return
 
     try:
-        start, route = timer
+        route = web.ctx.infogami_route
         route_key = route_metric_key(route.route)
         encoding = route.encoding or "html"
         mode = f"-{route.mode}" if route.mode != "view" else ""

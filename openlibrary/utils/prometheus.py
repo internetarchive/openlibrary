@@ -38,6 +38,7 @@ from starlette.responses import Response
 
 from infogami.utils import app as infogami_app
 from infogami.utils import types
+from openlibrary.utils.sentry import InfogamiRoute, find_infogami_route
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -208,11 +209,6 @@ def route_template(pattern: str, path: str) -> str:
     return template + path[end:]
 
 
-@functools.cache
-def _page_patterns() -> dict[type, str]:
-    return {cls: pattern for pattern, by_encoding in infogami_app.pages.items() for cls in by_encoding.values()}
-
-
 _OLID_KEY = re.compile(r"/(\w+)/OL\d+([AMWLT])(/[^/]+)?")
 
 
@@ -240,36 +236,35 @@ def _with_title(template: str, real_path: str, requested_path: str) -> str:
     return template
 
 
-def infogami_route_name(requested_path: str) -> str | None:
-    """The infogami route serving the current request as a FastAPI template, looked up the way
-    ``infogami.utils.app.delegate`` does. ``requested_path`` is the path before processors rewrote it."""
-    path = web.ctx.path
+def infogami_route_name(route: InfogamiRoute, requested_path: str) -> str:
+    """The infogami ``route`` as a FastAPI template. ``requested_path`` is the path before processors rewrote it."""
+    path = route.path
     suffix = ""
-    if (encoding := web.ctx.get("encoding")) and path.endswith(f".{encoding}"):
-        suffix = f".{encoding}"
+    if route.encoding and path.endswith(f".{route.encoding}"):
+        suffix = f".{route.encoding}"
         path = path.removesuffix(suffix)
 
-    try:
-        cls, _ = infogami_app.find_page()
-    except web.HTTPError:  # unknown encoding
-        return None
-
-    mode = ""
-    if cls is not None:
-        template = route_template(_page_patterns()[cls], path) if cls in _page_patterns() else "none"
+    if route.route in infogami_app.pages:
+        template = route_template(route.route, path)
     elif (parts := path.rpartition("/"))[0] and parts[2] in infogami_app.views:
-        # find_view() fetches the page to find its type, so go by the path instead
+        # infogami finds a view's page type by fetching the page, so go by the path instead
         template = f"{_key_template(parts[0])}/{parts[2]}"
-    elif (m := web.input(_method="GET").get("m", "view")) in infogami_app.modes:
+    else:  # a page infogami serves by its type
         template = _key_template(path)
-        mode = "" if m == "view" else f"?m={m}"
-    else:
-        return None
+    mode = "" if route.mode == "view" else f"?m={route.mode}"
     return _with_title(template, path, requested_path.removesuffix(suffix)) + suffix + mode
 
 
 def webpy_route_name(requested_path: str) -> str:
-    return fastapi_route_name(web.ctx.method, requested_path) or infogami_route_name(requested_path) or "none"
+    if name := fastapi_route_name(web.ctx.method, requested_path):
+        return name
+    # stats.start_route_timer() finds the route before the handler runs, as some (e.g. /addbook) change the path.
+    # Requests that ended before it ran, e.g. a ReadableUrlProcessor redirect, are looked up now.
+    try:
+        route = web.ctx.get("infogami_route") or find_infogami_route()
+    except web.HTTPError:  # unknown encoding
+        return "none"
+    return infogami_route_name(route, requested_path)
 
 
 class WebPyPrometheusProcessor:

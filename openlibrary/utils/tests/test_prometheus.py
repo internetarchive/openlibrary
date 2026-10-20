@@ -3,6 +3,7 @@ import web
 from prometheus_client import CollectorRegistry
 
 from openlibrary.utils import prometheus
+from openlibrary.utils.sentry import InfogamiRoute
 
 
 @pytest.mark.parametrize(
@@ -47,6 +48,22 @@ def test_with_title_puts_back_the_readable_url_slug():
     assert prometheus._with_title("/search", "/search", "/search") == "/search"
 
 
+@pytest.mark.parametrize(
+    ("route", "requested_path", "expected"),
+    [
+        (InfogamiRoute(r"/works/OL(\d+)W/notes", encoding="json", path="/works/OL1W/notes.json"), "/works/OL1W/notes.json", "/works/OL{work_id}W/notes.json"),
+        # /addbook changes the path to the new book's; the route was found before it did
+        (InfogamiRoute("/addbook", path="/addbook"), "/addbook", "/addbook"),
+        (InfogamiRoute("^/books/[^/]*$", path="/books/OL1M"), "/books/OL1M/Some_Title", "/books/OL{edition_id}M/{title}"),
+        (InfogamiRoute("^/books/[^/]*$", mode="edit", path="/books/OL1M"), "/books/OL1M/Some_Title", "/books/OL{edition_id}M/{title}?m=edit"),
+        (InfogamiRoute("<other>", path="/people/openlibrary"), "/people/openlibrary", "/people/{username}"),
+    ],
+)
+def test_infogami_route_name(monkeypatch, route, requested_path, expected):
+    monkeypatch.setattr(prometheus.infogami_app, "pages", {r"/works/OL(\d+)W/notes": {}, "/addbook": {}})
+    assert prometheus.infogami_route_name(route, requested_path) == expected
+
+
 def test_fastapi_routes_name_webpy_requests():
     assert prometheus.fastapi_route_name("GET", "/works/OL1W/editions.json") == "/works/OL{work_id}W/editions.json"
     assert prometheus.fastapi_route_name("GET", "/people/foo/lists/OL1L.json") == "/people/{username}/lists/{list_id}.json"
@@ -60,7 +77,8 @@ def registry():
 
 @pytest.fixture
 def app(registry, monkeypatch):
-    monkeypatch.setattr(prometheus, "infogami_route_name", lambda requested_path: "/things/{key}")
+    monkeypatch.setattr(prometheus, "find_infogami_route", lambda: InfogamiRoute("<other>"))
+    monkeypatch.setattr(prometheus, "infogami_route_name", lambda route, requested_path: "/things/{key}")
 
     class thing:
         def GET(self, name=""):
@@ -99,6 +117,6 @@ def test_webpy_uses_the_fastapi_route_name(app, registry):
 
 
 def test_webpy_skips_excluded_handlers(app, registry, monkeypatch):
-    monkeypatch.setattr(prometheus, "infogami_route_name", lambda requested_path: "/metrics")
+    monkeypatch.setattr(prometheus, "infogami_route_name", lambda route, requested_path: "/metrics")
     app.request("/things/a")
     assert requests_total(registry, "/metrics") is None
