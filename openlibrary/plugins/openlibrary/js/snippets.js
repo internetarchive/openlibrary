@@ -6,18 +6,18 @@
  * /cdn/snippets/<id> from the "download" host) and links to the full
  * "details" page (opened in a new tab). Usernames are intentionally not shown.
  *
- * The cards are then enriched with ONE bulk search.json request for the whole
- * page: every snippet's archive.org id (the "ocaid", the path segment after
- * /details/) is collected and resolved to its Open Library work in a single
- * `ia:(…)` query. Each matched card gains the work title (as a caption) and the
- * standard <ol-shelf-button>, so a reader can shelve / add the book to a list.
- * book-state.js hydrates those buttons (user key + reading state).
+ * The cards are then enriched with ONE bulk search/editions.json request for
+ * the whole page: every snippet's archive.org id (the "ocaid", the path segment
+ * after /details/) is collected and resolved to the Open Library edition
+ * scanned as it in a single `ia:(…)` query. Each matched card gains a bar
+ * under its image with the edition's cover, title and authors, and the
+ * standard <ol-shelf-button> for its work, so a reader can shelve / add the
+ * book to a list. book-state.js hydrates those buttons (user key + reading
+ * state).
  *
  * Note: /api/snippets returns openlibrary_work / openlibrary_edition as null,
- * so the work is resolved client-side from the ocaid rather than read off the
- * annotation. The work doc's edition_key is a flat list of ALL the work's
- * editions and does not identify the edition for a given ocaid, so the shelf
- * button carries the work key only (edition is left unset, not guessed).
+ * so the book is resolved client-side from the ocaid rather than read off the
+ * annotation.
  */
 
 const LIMIT = 25;
@@ -35,6 +35,7 @@ export async function initSnippets(container) {
         empty: container.dataset.i18nEmpty || '',
         error: container.dataset.i18nError || '',
         alt: container.dataset.i18nAlt || '',
+        untitled: container.dataset.i18nUntitled || 'Untitled',
         delete: container.dataset.i18nDelete || 'Delete snippet',
         deleteConfirm: container.dataset.i18nDeleteConfirm || 'Delete this snippet? This cannot be undone.'
     };
@@ -70,7 +71,7 @@ export async function initSnippets(container) {
     }
 
     // Enrich the whole page with a single bulk solr lookup.
-    await enrichCards(container, items);
+    await enrichCards(container, items, strings);
 }
 
 /**
@@ -132,29 +133,31 @@ function cardHtml(item, index, alt) {
     // The snippet id also lets an admin delete the card (see addDeleteControls).
     const idAttr = ` data-snippet-id="${escapeAttr(item.id)}"`;
     return (
-        `<li class="snippets-grid__item" data-index="${index}"${idAttr}>` +
-        `<a class="snippet-card" href="${escapeAttr(detailsUrl)}" target="_blank" rel="noopener noreferrer">` +
+        `<li class="snippets-grid__item snippet-card" data-index="${index}"${idAttr}>` +
+        `<a class="snippet-card__image-link" href="${escapeAttr(detailsUrl)}" target="_blank" rel="noopener noreferrer">` +
         `<img class="snippet-card__img" src="${escapeAttr(imageUrl)}" alt="${escapeAttr(alt)}" loading="lazy">` +
         `</a></li>`
     );
 }
 
 /**
- * Resolve every snippet's work in ONE search.json request and decorate each
- * card whose ocaid matched. Snippets with no ocaid, or whose ocaid has no solr
- * match, keep their plain image + link (no caption, no shelf button).
+ * Resolve every snippet's edition in ONE search/editions.json request and
+ * decorate each card whose ocaid matched. Snippets with no ocaid, or whose
+ * ocaid has no solr match, keep their plain image + link (no caption, no shelf
+ * button).
  */
-async function enrichCards(container, items) {
+async function enrichCards(container, items, strings) {
     const ocaidByIndex = items.map(ocaidFromItem);
     const ocaids = [...new Set(ocaidByIndex.filter(Boolean))];
     if (!ocaids.length) return;
 
-    const byOcaid = await lookupWorksByOcaid(ocaids);
+    const byOcaid = await lookupEditionsByOcaid(ocaids);
     if (!byOcaid || !byOcaid.size) return;
 
+    const coversHost = container.dataset.coversHost || '';
     ocaidByIndex.forEach((ocaid, index) => {
-        const doc = ocaid && byOcaid.get(ocaid);
-        if (doc) decorateCard(container, index, doc);
+        const edition = ocaid && byOcaid.get(ocaid);
+        if (edition) decorateCard(container, index, edition, coversHost, strings);
     });
 }
 
@@ -167,17 +170,28 @@ function ocaidFromItem(item) {
 }
 
 /**
- * One bulk `ia:(id OR id …)` lookup for the page. Returns a Map from ocaid to
- * { key, title }. Each result doc's `ia` field lists the ocaids of that work's
- * scans, so a single work can back several snippets; we map every page ocaid
- * the doc covers back to it.
- * @param {string[]} ocaids - unique, already validated by OCAID_RE
- * @returns {Promise<Map<string, {key: string, title: string}>|null>}
+ * @typedef {object} SnippetEdition
+ * @property {string} key - "/books/OL…M"
+ * @property {string} title
+ * @property {string} workKey - "/works/OL…W", or '' if the edition has none
+ * @property {string[]} authorKeys
+ * @property {string[]} authorNames
+ * @property {number|null} coverId
  */
-async function lookupWorksByOcaid(ocaids) {
+
+/**
+ * One bulk `ia:(id OR id …)` edition search for the page. Returns a Map from
+ * ocaid to the edition scanned as it. An edition's `ia` lists the ocaids of
+ * its scans, so one edition can back several snippets.
+ * @param {string[]} ocaids - unique, already validated by OCAID_RE
+ * @returns {Promise<Map<string, SnippetEdition>|null>}
+ */
+async function lookupEditionsByOcaid(ocaids) {
     const q = `ia:(${ocaids.join(' OR ')})`;
+    const fields = 'key,title,work_key,ia,author_key,author_name,cover_i';
     try {
-        const url = `/search.json?q=${encodeURIComponent(q)}&fields=key,title,edition_key,ia&limit=${ocaids.length}`;
+        // Rarely, one scan is attached to several editions; leave room for them.
+        const url = `/search/editions.json?q=${encodeURIComponent(q)}&fields=${fields}&limit=${ocaids.length * 2}`;
         const response = await fetch(url);
         if (!response.ok) return null;
         const data = await response.json();
@@ -187,9 +201,17 @@ async function lookupWorksByOcaid(ocaids) {
         const byOcaid = new Map();
         for (const doc of docs) {
             if (!doc || !doc.key) continue;
-            const entry = { key: doc.key, title: doc.title || '' };
+            const workKey = (doc.work_key || [])[0];
+            const edition = {
+                key: doc.key,
+                title: doc.title || '',
+                workKey: workKey ? `/works/${workKey}` : '',
+                authorKeys: doc.author_key || [],
+                authorNames: doc.author_name || [],
+                coverId: doc.cover_i || null
+            };
             for (const ia of doc.ia || []) {
-                if (wanted.has(ia) && !byOcaid.has(ia)) byOcaid.set(ia, entry);
+                if (wanted.has(ia) && !byOcaid.has(ia)) byOcaid.set(ia, edition);
             }
         }
         return byOcaid;
@@ -199,38 +221,91 @@ async function lookupWorksByOcaid(ocaids) {
 }
 
 /**
- * Add a title caption and an <ol-shelf-button> to a card from its resolved work.
- * @param {{key: string, title: string}} doc - the work this snippet resolved to
+ * Add the bar under a card's image: the edition's cover, its title and authors,
+ * and an <ol-shelf-button> for its work on the right.
+ * @param {SnippetEdition} edition
+ * @param {string} coversHost - the coverstore's origin; covers are skipped without it
  */
-function decorateCard(container, index, doc) {
+function decorateCard(container, index, edition, coversHost, strings) {
     const li = container.querySelector(`.snippets-grid__item[data-index="${index}"]`);
     if (!li) return;
 
-    if (doc.title) {
+    const editionUrl = `${edition.key}/${urlsafe(edition.title || 'untitled')}`;
+    const displayTitle = edition.title || strings.untitled;
+    if (edition.title) {
         const img = li.querySelector('.snippet-card__img');
-        if (img) img.alt = doc.title;
-
-        // Clickable work title, above the snippet image.
-        const caption = document.createElement('a');
-        caption.className = 'snippet-card__title';
-        caption.href = doc.key;
-        caption.textContent = doc.title;
-        li.insertBefore(caption, li.firstChild);
+        if (img) img.alt = edition.title;
     }
 
-    const actions = document.createElement('div');
-    actions.className = 'snippet-card__actions';
+    const bar = document.createElement('div');
+    bar.className = 'snippet-card__bar';
 
-    // Standard shelf / add-to-list control. No user-key: book-state.js fills in
-    // the reader's key and reading state once it's in the DOM. No edition-key:
-    // the ocaid's specific edition is not derivable from the bulk query.
-    const button = document.createElement('ol-shelf-button');
-    button.setAttribute('variant', 'icon');
-    button.setAttribute('work-key', doc.key);
-    button.setAttribute('book-title', doc.title || '');
+    const coverLink = document.createElement('a');
+    coverLink.className = 'snippet-card__cover';
+    coverLink.href = editionUrl;
+    coverLink.tabIndex = -1; // the title link goes to the same place
+    coverLink.setAttribute('aria-hidden', 'true');
+    if (edition.coverId && coversHost) {
+        const cover = document.createElement('img');
+        cover.src = `${coversHost}/b/id/${edition.coverId}-M.jpg`;
+        cover.alt = '';
+        cover.loading = 'lazy';
+        coverLink.appendChild(cover);
+    }
+    bar.appendChild(coverLink);
 
-    actions.appendChild(button);
-    li.appendChild(actions);
+    const meta = document.createElement('div');
+    meta.className = 'snippet-card__meta';
+    const title = document.createElement('a');
+    title.className = 'snippet-card__title';
+    title.href = editionUrl;
+    title.textContent = displayTitle;
+    meta.appendChild(title);
+    if (edition.authorNames.length) {
+        const authors = document.createElement('div');
+        authors.className = 'snippet-card__authors';
+        edition.authorNames.forEach((name, i) => {
+            if (i) authors.appendChild(document.createTextNode(', '));
+            const key = edition.authorKeys[i];
+            const author = document.createElement(key ? 'a' : 'span');
+            if (key) author.href = `/authors/${key}/${urlsafe(name || 'unnamed')}`;
+            author.textContent = name;
+            authors.appendChild(author);
+        });
+        meta.appendChild(authors);
+    }
+    bar.appendChild(meta);
+
+    // Shelving acts on a work, so an edition without one gets no button.
+    if (edition.workKey) {
+        const actions = document.createElement('div');
+        actions.className = 'snippet-card__actions';
+
+        // Standard shelf / add-to-list control. No user-key: book-state.js fills
+        // in the reader's key and reading state once it's in the DOM.
+        const button = document.createElement('ol-shelf-button');
+        button.setAttribute('variant', 'outline');
+        button.setAttribute('work-key', edition.workKey);
+        button.setAttribute('edition-key', edition.key.split('/').pop());
+        button.setAttribute('book-title', displayTitle);
+        actions.appendChild(button);
+        bar.appendChild(actions);
+    }
+
+    li.querySelector('.snippet-card__image-link').after(bar);
+}
+
+/** Runs of the chars RFC 2396 calls unsafe in a path; see urlsafe(). */
+const UNSAFE_PATH_CHARS_RE = /[;/?:@&=+$,<>#%"{}|\\^[\]` \n\r]+/g;
+
+/**
+ * The title slug Open Library puts after a key ("/books/OL…M/<slug>"); the
+ * same as core.helpers.urlsafe, so links skip the redirect to the canonical
+ * URL.
+ */
+function urlsafe(title) {
+    const slug = title.replace(UNSAFE_PATH_CHARS_RE, '_').replace(/^_+|_+$/g, '');
+    return Array.from(slug).slice(0, 100).join('');
 }
 
 function statusHtml(message) {

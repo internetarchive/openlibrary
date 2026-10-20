@@ -30,12 +30,26 @@
 
 .snippets-grid__item {
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  position: relative;
 }
 
-/* Admin-only delete control, overlaid on the card's top-left corner. */
+/* One snippet: the page image on top, the book's bar under it. */
+.snippet-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-lg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .snippet-card:hover {
+    border-color: var(--color-border-hover);
+  }
+}
+
+/* Admin-only delete control, overlaid on the image's top-left corner. */
 .snippet-card__delete {
   position: absolute;
   top: var(--spacing-stack-xs);
@@ -60,35 +74,95 @@
   border-color: var(--color-error-border);
 }
 
-.snippet-card {
+.snippet-card__image-link {
   display: block;
-}
-
-.snippet-card__title {
-  display: block;
-  margin-bottom: var(--spacing-stack-xs);
-  font-size: 0.9em;
-  color: var(--color-link);
-}
-
-/* Shelf / add-to-list control, overlaid on the card's top-right corner. */
-.snippet-card__actions {
-  position: absolute;
-  top: var(--spacing-stack-xs);
-  right: var(--spacing-stack-xs);
 }
 
 .snippet-card__img {
   display: block;
   width: 100%;
   height: auto;
+  /* Snippet images are always 3:2; reserving the box keeps the grid from
+     reflowing as they load. */
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
   background-color: var(--color-surface-sunken);
-  border: 1px solid var(--color-control-border);
-  border-radius: 4px;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .snippet-card:hover .snippet-card__img {
-    border-color: var(--color-link);
-  }
+/* Cover | title + authors | shelf button. The bar is only as tall as its text;
+   the cover is taller and rises out of it over the bottom of the page image.
+   The drop-shadow outlines the bar and the cover as one shape. */
+.snippet-card__bar {
+  --snippet-cover-width: 56px;
+  --snippet-cover-frame: 3px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  padding: var(--spacing-stack-sm) var(--spacing-inline-md);
+  padding-left: calc(var(--spacing-inline-md) * 2 + var(--snippet-cover-width));
+  background-color: var(--color-surface-raised);
+  filter: drop-shadow(
+    0 0 1px color-mix(in srgb, var(--ink-overlay) 45%, transparent)
+  );
+}
+
+.snippet-card__cover {
+  position: absolute;
+  left: var(--spacing-inline-md);
+  bottom: var(--spacing-stack-sm);
+  width: var(--snippet-cover-width);
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background-color: var(--color-surface-sunken);
+  /* Card-coloured, so the cover reads as cut out of the bar. */
+  border: var(--snippet-cover-frame) solid var(--color-surface-raised);
+  border-radius: 7px;
+}
+
+.snippet-card__cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: calc(7px - var(--snippet-cover-frame));
+}
+
+.snippet-card__meta {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-meta);
+}
+
+.snippet-card .snippet-card__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.snippet-card__authors {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.snippet-card .snippet-card__authors a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.snippet-card .snippet-card__title:hover,
+.snippet-card__authors a:hover {
+  text-decoration: underline;
+}
+
+.snippet-card__actions {
+  flex: none;
 }

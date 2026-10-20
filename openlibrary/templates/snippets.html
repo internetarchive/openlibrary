@@ -1,4 +1,4 @@
-$def with ()
+$def with (covers_host='')
 
 $ _x = ctx.setdefault('cssfile', 'snippets')
 $var title: $_("Snippets")
@@ -16,9 +16,11 @@ $ can_delete = 'true' if (ctx.user and ctx.user.is_super_librarian_or_higher()) 
   $# passed via data-* so they stay translatable.
   <ul class="snippets-grid js-snippets" aria-live="polite" aria-busy="true"
       data-can-delete="$can_delete"
+      data-covers-host="$covers_host"
       data-i18n-empty="$_('No snippets have been shared recently.')"
       data-i18n-error="$_('Sorry, snippets could not be loaded right now.')"
       data-i18n-alt="$_('A highlighted snippet from a book')"
+      data-i18n-untitled="$_('Untitled')"
       data-i18n-delete="$_('Delete snippet')"
       data-i18n-delete-confirm="$_('Delete this snippet? This cannot be undone.')">
     <li class="snippets-grid__status">$_("Loading snippets…")</li>
