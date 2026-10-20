@@ -325,6 +325,21 @@ def get_provider_pref() -> str | None:
         return None
 
 
+def get_print_disabled() -> bool:
+    """Whether the patron has the print-disabled (``pd``) cookie.
+
+    Reads the unified request context so it works under both web.py and
+    FastAPI. FastAPI has no ``web.ctx``, so ``web.cookies()`` there returns
+    nothing; going through ``req_context`` is what keeps print-disabled
+    patrons eligible for Special Access on FastAPI-rendered partials.
+    Defaults to False outside a request (scripts, cron).
+    """
+    try:
+        return req_context.get().print_disabled
+    except LookupError:
+        return False
+
+
 def get_request_lang() -> str:
     """The request's UI language, safe to call from templates rendered on
     either the legacy web.py server or the FastAPI server. The Templetor

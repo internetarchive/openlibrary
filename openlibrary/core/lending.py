@@ -3,15 +3,13 @@
 from __future__ import annotations  # Needed for 'Loan' return types early on
 
 import logging
-import os
 import time
+from collections.abc import Iterable
+from json import JSONDecodeError
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
-import eventer
 import httpx
-import requests
 import web
-from simplejson.errors import JSONDecodeError
 
 from infogami.utils import delegate
 from infogami.utils.view import public
@@ -190,12 +188,12 @@ async def get_groundtruth_availability_async(ocaid, s3_keys=None):
     including 1-hour borrows"""
     params = "?action=availability&identifier=" + ocaid
     url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
-    timeout = 2 if os.getenv("LOCAL_DEV") else config_http_request_timeout
+    timeout = 2 if get_ol_env().LOCAL_DEV else config_http_request_timeout
     try:
-        response = await ia.get_async_session().post(url + params, data=s3_keys, timeout=timeout)
+        response = await ia.get_async_session().post(url + params, data=s3_keys, timeout=timeout, extensions={"server_timing": "ia-loans"})
         response.raise_for_status()
     except httpx.TimeoutException:
-        if os.getenv("LOCAL_DEV"):
+        if get_ol_env().LOCAL_DEV:
             logger.warning("Availability request timed out in LOCAL_DEV environment. Returning empty dictionary.")
             return {}
         else:
@@ -230,7 +228,7 @@ async def s3_loan_api_async(s3_keys, ocaid=None, action="browse", **kwargs):
 
     data = s3_keys | kwargs
 
-    response = await ia.get_async_session().post(url + params, data=data, timeout=config_http_request_timeout)
+    response = await ia.get_async_session().post(url + params, data=data, timeout=config_http_request_timeout, extensions={"server_timing": "ia-loans"})
     # We want this to be just `409` but first
     # `www/common/Lending.inc#L111-114` needs to
     # be updated on petabox
@@ -292,7 +290,7 @@ async def get_available_async(
             "x-preferred-client-id": client_ip,
             "x-application-id": "openlibrary",
         }
-        response = await ia.get_async_session().get(url, headers=headers, timeout=config_http_request_timeout)
+        response = await ia.get_async_session().get(url, headers=headers, timeout=config_http_request_timeout, extensions={"server_timing": "ia-search"})
         items = response.json().get("response", {}).get("docs", [])
         results = {}
         for item in items:
@@ -437,6 +435,7 @@ async def get_availability_async(
             },
             headers=headers,
             timeout=config_http_request_timeout,
+            extensions={"server_timing": "ia-availability"},
         )
 
         # This API should always return 200
@@ -480,6 +479,17 @@ async def get_availability_async(
 
 
 get_availability = async_bridge.wrap(get_availability_async)
+
+
+async def get_checked_out_async(ocaids: Iterable[str]) -> set[str]:
+    """Returns the subset of ocaids whose lendable copies are all currently checked out."""
+    availabilities = await get_availability_async("identifier", list(set(ocaids)))
+    return {
+        ocaid
+        for ocaid, availability in availabilities.items()
+        # the error response mixes string values in with the per-id dicts
+        if isinstance(availability, dict) and availability.get("status") == "borrow_unavailable"
+    }
 
 
 def get_ocaid(item: dict) -> str | None:
@@ -594,7 +604,8 @@ def is_loaned_out_on_ia(identifier: str) -> bool | None:
     """Returns True if the item is checked out on Internet Archive."""
     url = f"https://archive.org/services/borrow/{identifier}?action=status"
     try:
-        response = ia.session.get(url, timeout=config_http_request_timeout).json()
+        r = ia.session.get(url, timeout=config_http_request_timeout, extensions={"server_timing": "ia-borrow"})
+        response = r.json()
         return response and response.get("checkedout")
     except Exception:  # TODO: Narrow exception scope
         logger.exception(f"is_loaned_out_on_ia({identifier})")
@@ -662,90 +673,6 @@ get_cached_user_waiting_loans = cache.memcache_memoize(
     key_prefix="waitinglist.user_waiting_loans",
     timeout=10 * dateutil.MINUTE_SECS,
 )
-
-
-NOT_INITIALIZED = object()
-
-
-def sync_loan(identifier, loan=NOT_INITIALIZED):
-    """Updates the loan info stored in openlibrary.
-
-    The loan records are stored at the Internet Archive. There is no way for
-    OL to know when a loan is deleted. To handle that situation, the loan info
-    is stored in the ebook document and the deletion is detected by comparing
-    the current loan id and loan id stored in the ebook.
-
-    This function is called whenever the loan is updated.
-    """
-    logger.info("BEGIN sync_loan %s %s", identifier, loan)
-
-    if loan is NOT_INITIALIZED:
-        loan = get_loan(identifier)
-
-    # The data of the loan without the user info.
-    loan_data = loan and {
-        "uuid": loan["uuid"],
-        "loaned_at": loan["loaned_at"],
-        "resource_type": loan["resource_type"],
-        "ocaid": loan["ocaid"],
-        "book": loan["book"],
-    }
-
-    responses = get_availability("identifier", [identifier])
-    response = responses[identifier] if responses else {}
-    if response:
-        num_waiting = int(response.get("num_waitlist", 0) or 0)
-
-    ebook = EBookRecord.find(identifier)
-
-    # The loan known to us is deleted
-    is_loan_completed = ebook.get("loan") and ebook.get("loan") != loan_data
-
-    # Only remember the loan_data if we could resolve an OL user for it
-    if loan and loan["user"] is not None:
-        ebook_loan_data = loan_data
-    else:
-        ebook_loan_data = None
-
-    kwargs = {
-        "type": "ebook",
-        "identifier": identifier,
-        "loan": ebook_loan_data,
-        "borrowed": str(response["status"] not in ["open", "borrow_available"]).lower(),
-        "wl_size": num_waiting,
-    }
-    try:
-        ebook.update(**kwargs)
-    except Exception:  # TODO: Narrow exception scope
-        # updating ebook document is sometimes failing with
-        # "Document update conflict" error.
-        # Log the error in such cases, don't crash.
-        logger.exception("failed to update ebook for %s", identifier)
-
-    # fire loan-completed event
-    if is_loan_completed and ebook.get("loan"):
-        _d = dict(ebook["loan"], returned_at=time.time())
-        eventer.trigger("loan-completed", _d)
-    logger.info("END sync_loan %s", identifier)
-
-
-class EBookRecord(dict):
-    @staticmethod
-    def find(identifier: str) -> EBookRecord:
-        key = "ebooks/" + identifier
-        d = site.get().store.get(key) or {"_key": key, "type": "ebook", "_rev": 1}
-        return EBookRecord(d)
-
-    def update(self, **kwargs):
-        logger.info("updating %s %s", self["_key"], kwargs)
-        # Nothing to update if what we have is same as what is being asked to
-        # update.
-        d = {k: self.get(k) for k in kwargs}
-        if d == kwargs:
-            return
-
-        dict.update(self, **kwargs)
-        site.get().store[self["_key"]] = self
 
 
 class Loan(dict):
@@ -864,11 +791,13 @@ class IA_Lending_API:
         payload["token"] = config_ia_ol_shared_key
 
         try:
-            jsontext = requests.post(
+            resp = ia.session.post(
                 config_ia_loan_api_url,
                 data=payload,
                 timeout=config_http_request_timeout,
-            ).json()
+                extensions={"server_timing": "ia-loans"},
+            )
+            jsontext = resp.json()
             logger.info("POST response: %s", jsontext)
             return jsontext
         except JSONDecodeError:

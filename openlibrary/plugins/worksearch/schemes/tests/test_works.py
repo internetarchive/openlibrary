@@ -112,7 +112,15 @@ QUERY_PARSER_TESTS = {
         'lcc:"NC760 .B2813"',
         'lcc:"NC-0760.00000000.B2813"',
     ),
-    # TODO Add tests for DDC
+    # DDCs
+    "DDC: simple": ("ddc:65.8", "ddc:065.8"),
+    "DDC: integer, no padding needed": ("ddc:658", "ddc:658"),
+    "DDC: range": ("ddc:[61 TO 65]", "ddc:[061 TO 065]"),
+    "DDC: range, open end": ("ddc:[23.23 TO *]", "ddc:[023.23 TO *]"),
+    "DDC: wildcard": ("ddc:23.45*", "ddc:023.45*"),
+    "DDC: wildcard integer": ("ddc:2*", "ddc:2*"),
+    "DDC: ddc_sort": ("ddc_sort:65.8", "ddc_sort:065.8"),
+    "DDC: quotes preserved": ('ddc:"65.8"', 'ddc:"065.8"'),
 }
 
 

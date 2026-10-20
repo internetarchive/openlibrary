@@ -208,6 +208,19 @@ class TestGetLendingState:
             assert lending.get_lending_state(doc, user=mock_user, check_loan_status=True) == "open"
 
 
+@pytest.mark.asyncio
+async def test_get_checked_out_async(monkeypatch):
+    availabilities = {
+        "out00": {"status": "borrow_unavailable"},
+        "in00": {"status": "borrow_available"},
+        "open00": {"status": "open"},
+        "error": "request_timeout",
+    }
+    monkeypatch.setattr(lending, "get_availability_async", AsyncMock(return_value=availabilities))
+
+    assert await lending.get_checked_out_async(["out00", "in00", "open00"]) == {"out00"}
+
+
 def test_get_loan_queries_ia_once(monkeypatch):
     mock_api = Mock()
     mock_api.get_loan.return_value = {"identifier": "foo00bar"}

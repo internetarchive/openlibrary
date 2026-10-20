@@ -22,6 +22,8 @@ def help():
     print("  update   - update the existing translations by adding newly added string to it.")
     print("  status   - check completeness and warnings/error summary of translations")
     print("  validate - check message file for errors")
+    print("  install  - install <dir>/<locale>/messages.po files that are safe to ship")
+    print("             [--strict: exit 1 if any locale is rejected] [--manifest FILE: append results]")
     print("  help     - display this help message")
 
 
@@ -71,6 +73,22 @@ def main(cmd, args):
             sys.exit(1)
 
         sys.exit(0)
+    elif cmd == "install":
+        source = args[0]
+        manifest = args[args.index("--manifest") + 1] if "--manifest" in args else None
+        results = i18n.install_translations(source)
+
+        rejected = {locale: errors for locale, errors in results.items() if errors}
+        lines = [f"{locale}\t{'kept committed' if errors else 'installed'}" for locale, errors in results.items()]
+        print("\n".join(lines))
+        for locale, errors in rejected.items():
+            print(f"REJECTED {locale}: keeping the committed messages.po", file=sys.stderr)
+            for e in errors:
+                print(f"    {e}", file=sys.stderr)
+        if manifest:
+            with open(manifest, "a") as f:
+                f.write("\n".join(lines) + "\n")
+        sys.exit(1 if rejected and "--strict" in args else 0)
     elif cmd == "help":
         help()
     else:

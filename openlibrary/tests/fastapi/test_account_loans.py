@@ -15,7 +15,6 @@ class FakeLegacyUser(dict):
         key = f"/people/{username}"
         super().__init__(key=key)
         self.key = key
-        self.update_loan_status = Mock()
 
 
 class FakeEdition:
@@ -30,7 +29,7 @@ class TestAccountLoansJson:
 
         assert response.status_code == 401
 
-    def test_loans_json_updates_loan_status_and_returns_loans(self, fastapi_client, mock_authenticated_user):
+    def test_loans_json_returns_loans(self, fastapi_client, mock_authenticated_user):
         legacy_user = FakeLegacyUser()
         loans = [{"book": "/books/OL1M", "ocaid": "test_ocaid"}]
 
@@ -43,7 +42,6 @@ class TestAccountLoansJson:
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/json"
         assert response.json() == {"loans": loans}
-        legacy_user.update_loan_status.assert_called_once_with()
         get_loans_of_user.assert_called_once_with(legacy_user.key)
 
     @pytest.mark.parametrize(
@@ -96,8 +94,8 @@ class TestAccountLoansJson:
             ("/account/loan-history.json", "openlibrary.fastapi.account.legacy_account.get_account_loan_history_json"),
         ],
     )
-    def test_local_dev_returns_503_with_helpful_message(self, fastapi_client, mock_authenticated_user, endpoint, helper_path, monkeypatch):
-        monkeypatch.setenv("LOCAL_DEV", "true")
+    @pytest.mark.usefixtures("local_dev")
+    def test_local_dev_returns_503_with_helpful_message(self, fastapi_client, mock_authenticated_user, endpoint, helper_path):
         legacy_user = FakeLegacyUser()
 
         with (

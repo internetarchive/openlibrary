@@ -32,7 +32,7 @@ jobs:
        github.event.issue.user.login != 'openlibrary-bot' &&
        !contains(github.event.issue.labels.*.name, 'agentic-workflows'))
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -74,7 +74,7 @@ jobs:
             --allowedTools "Bash(git *) Bash(grep:*) Bash(cat:*) Bash(gh issue view:*)
             Bash(gh issue comment:*) Bash(gh issue edit:*) Bash(gh issue close:*)
             Bash(gh issue list:*) Bash(gh pr list:*) Bash(gh label list:*)"
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_code_oauth_token: ${{ secrets.OL_BOT_CLAUDE_OAUTH_TOKEN }}
           github_token: ${{ secrets.OL_BOT_PAT }}
           # Issues are opened by any public contributor, most of whom have only
           # read access. claude-code-action's default actor-permission check

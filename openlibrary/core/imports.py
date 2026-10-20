@@ -1,7 +1,6 @@
 """Interface to import queue."""
 
-import contextlib
-import datetime
+import datetime as dt
 import json
 import logging
 import time
@@ -10,7 +9,7 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Final
 
 import web
-from psycopg2.errors import UndefinedTable, UniqueViolation
+from psycopg2.errors import UndefinedTable
 from pydantic import ValidationError
 
 from openlibrary.catalog import add_book
@@ -213,14 +212,7 @@ class Batch(web.storage):
                 counts["skipped_in_flight"] += 1
 
         if to_insert:
-            # Mirrors add_items: bulk insert, falling back per row so one
-            # collision cannot lose the rest of the batch.
-            try:
-                db.get_db().multiple_insert("import_item", to_insert)
-            except UniqueViolation:
-                for item in to_insert:
-                    with contextlib.suppress(UniqueViolation):
-                        db.get_db().insert("import_item", **item)
+            self._insert_items(to_insert)
 
         logger.info(
             "batch %s: %d added, %d refreshed, %d unchanged, %d in flight",
@@ -249,6 +241,27 @@ class Batch(web.storage):
             for item in items
         ]
 
+    @staticmethod
+    def _insert_items(items: list[dict]) -> None:
+        """Insert normalized rows in one statement, leaving duplicate keys alone."""
+        columns = ("batch_id", "ia_id", "status", "data", "submitter")
+        values = []
+        params = {}
+        for index, item in enumerate(items):
+            values.append("(" + ", ".join(f"${column}_{index}" for column in columns) + ")")
+            # Legacy string items omit status, data, and submitter.
+            params.update({f"{column}_{index}": item.get(column, "pending" if column == "status" else None) for column in columns})
+
+        oldb = db.get_db()
+        oldb.query(
+            f"""
+            INSERT INTO import_item ({", ".join(columns)})
+            VALUES {", ".join(values)}
+            ON CONFLICT (batch_id, ia_id) DO NOTHING
+            """,
+            vars=params,
+        )
+
     def add_items(self, items: list[str] | list[dict]) -> None:
         """
         :param items: either a list of `ia_id`  (legacy) or a list of dicts
@@ -263,15 +276,7 @@ class Batch(web.storage):
 
         items = self.dedupe_items(self.normalize_items(items))
         if items:
-            try:
-                # TODO: Upgrade psql and use `INSERT OR IGNORE`
-                # otherwise it will fail on UNIQUE `data`
-                # https://stackoverflow.com/questions/1009584
-                db.get_db().multiple_insert("import_item", items)
-            except UniqueViolation:
-                for item in items:
-                    with contextlib.suppress(UniqueViolation):
-                        db.get_db().insert("import_item", **item)
+            self._insert_items(items)
 
             logger.info("batch %s: added %d items", self.name, len(items))
 
@@ -391,7 +396,7 @@ class ImportItem(web.storage):
             "status": status,
             "error": error,
             "ol_key": ol_key,
-            "import_time": datetime.datetime.utcnow(),
+            "import_time": dt.datetime.utcnow(),
         }
         if status != "failed":
             d = dict(**d, data=None)

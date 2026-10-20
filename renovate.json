@@ -40,8 +40,7 @@
     {
       "matchPackageNames": [
         "eslint",
-        "@babel/eslint-parser",
-        "eslint-plugin-no-jquery",
+        "eslint-config-prettier",
         "eslint-plugin-vue"
       ],
       "groupName": "eslint",
@@ -56,8 +55,8 @@
         "bundlesize2",
         "stylelint",
         "stylelint-declaration-strict-value",
-        "stylelint-prettier",
-        "prettier"
+        "oxfmt",
+        "oxlint"
       ],
       "automerge": false
     },

@@ -3,7 +3,7 @@
  * ======
  * Primitive ramps, the `--color-*` semantic layer built on them, and a
  * deprecated alias for every legacy name. Use the semantic layer.
- * See docs/ai/design.md.
+ * See docs/frontend/design.md.
  */
 
 /**
@@ -81,6 +81,14 @@
   --amber-500: hsl(39, 78%, 42%);
   --amber-600: hsl(36, 75%, 32%);
   --amber-700: hsl(33, 70%, 26%);
+
+  /* Pink — data-chart bars only. 400 clears 3:1 on white as a non-text shape;
+     600 is the selected bar, a clear step darker. */
+  --pink-400: hsl(348, 95%, 65%);
+  --pink-600: hsl(345, 62%, 42%);
+
+  /* Bars in the /stats daily charts. */
+  --stat-yellow: hsl(45, 83%, 59%);
 }
 
 /**
@@ -129,6 +137,10 @@
   --color-primary: var(--blue-500);
   --color-primary-hover: var(--blue-600);
   --color-primary-active: var(--blue-700);
+  /* Edge of a raised primary control: a half-step below the fill, as
+     --color-control-border is for the neutral one, so the shape reads without
+     an outline. */
+  --color-primary-border: color-mix(in srgb, var(--blue-500), var(--blue-600));
   --color-primary-subtle: var(--blue-50);
   --color-on-primary: var(--white);
   /* Destructive action fill (delete, remove). Pair with --color-on-primary. */
@@ -167,6 +179,9 @@
   --color-control-track: var(--neutral-100);
   /* Drag handle on a sheet or tray — see-through ink, like --color-hover-overlay. */
   --color-drag-handle: color-mix(in srgb, var(--ink-overlay) 20%, transparent);
+  /* Loading skeletons (components/skeleton.css); see-through, so they work on any surface. */
+  --color-skeleton: color-mix(in srgb, var(--ink-overlay) 8%, transparent);
+  --color-skeleton-highlight: color-mix(in srgb, var(--white) 40%, transparent);
 
   /* Selected look for neutral controls. Shared by ol-button[selected] and
      ol-toggle[variant="button"][checked] so the two can't drift apart. */
@@ -184,6 +199,10 @@
   --color-border: var(--neutral-500);
   --color-border-hover: var(--neutral-600);
   --color-border-focused: var(--blue-500);
+  --color-border-pointed: var(--blue-500); /* ring on the item under the pointer, e.g. a hovered book cover */
+  --filter-pointed-dim: brightness(0.88); /* artwork under the pointer dims so the ring reads as the active edge */
+  /* Edge of an image, e.g. a book cover: see-through ink, so a pale cover gets a line and a dark one keeps its own. */
+  --color-border-media: color-mix(in srgb, var(--ink-overlay) 15%, transparent);
   --color-border-error: var(--red-500);
   --color-border-muted: var(--neutral-300); /* dividers — decorative, 1.6:1 on white */
   --color-border-subtle: var(--neutral-200);
@@ -193,6 +212,7 @@
   /* Messages and notices. Info borrows the blue ramp rather than its own hue. */
   --color-info-fg: var(--blue-600);
   --color-info-bg: var(--blue-50);
+  --color-info-bg-hover: var(--blue-100); /* info chip on a --color-primary-subtle hover */
   --color-info-border: var(--blue-200);
   --color-success-fg: var(--green-600);
   --color-success-bg: var(--green-50);
@@ -211,12 +231,30 @@
   --color-error-object: var(--red-400);
   --color-warning-object: var(--amber-400);
   --color-neutral-object: var(--neutral-300);
+
+  /* Data lines — sparklines and small charts, one hue per series in this order.
+     The 500 steps: dark enough that a 2px line reads on white, not so dark they
+     turn to ink. */
+  --color-chart-1: var(--blue-500);
+  --color-chart-2: var(--green-500);
+  --color-chart-3: var(--amber-500);
+  --color-chart-4: var(--red-500);
+
+  /* Bars in data charts (reading-log stats). Counts sit past the bar end in text ink. */
+  --color-chart-bar: var(--pink-400);
+  --color-chart-bar-selected: var(--pink-600);
+
+  /* Bars in the publishing-history chart on subject and publisher pages. */
+  --color-publishing-history-bar: var(--blue-500);
+
+  /* Default bar colour for the daily stats charts on /stats. */
+  --color-stats-chart-bar: var(--stat-yellow);
 }
 
 /**
  * 3. Which token do I use?
  * ------------------------
- * Pick by purpose, not by shade — full guidance in docs/ai/design.md.
+ * Pick by purpose, not by shade — full guidance in docs/frontend/design.md.
  *
  *   1. New code uses a semantic token, never a primitive (`--neutral-500`) or a
  *      raw `hsl()`. If none fits, add one here and name it for its job.

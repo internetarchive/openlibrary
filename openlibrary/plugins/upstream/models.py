@@ -62,6 +62,8 @@ def find_references(doc):
 
 
 class Edition(models.Edition):
+    CLASSIFICATION_FIELDS = ("dewey_decimal_class", "lc_classifications")
+
     @cached_property
     def solr_work_data(self) -> SolrDocument | None:
         import openlibrary.book_providers as bp
@@ -255,11 +257,6 @@ class Edition(models.Edition):
 
         return [{"resource_id": f"bookreader:{self.ocaid}", "resource_type": "bookreader", "size": None}]
 
-    def update_loan_status(self):
-        """Update the loan status"""
-        if self.ocaid:
-            lending.sync_loan(self.ocaid)
-
     def _process_identifiers(self, config_, names, values):
         id_map = {}
         for id in config_:
@@ -335,33 +332,31 @@ class Edition(models.Edition):
             self.identifiers = None
 
     def get_classifications(self):
-        names = ["dewey_decimal_class", "lc_classifications"]
         return self._process_identifiers(
             get_identifier_config("edition").classifications,
-            names,
+            self.CLASSIFICATION_FIELDS,
             self.classifications,
         )
 
     def set_classifications(self, classifications):
-        names = ["dewey_decimal_class", "lc_classifications"]
         d = defaultdict(list)
         for c in classifications:
-            if "name" not in c or "value" not in c or not re.compile("[a-z0-9_]*").match(c["name"]):
+            if "name" not in c or "value" not in c:
                 continue
             d[c["name"]].append(c["value"])
 
-        for name in names:
+        # Clear standalone Edition.CLASSIFICATION_FIELDS
+        for name in self.CLASSIFICATION_FIELDS:
             self._getdata().pop(name, None)
-        self.classifications = {}
 
         for name, value in d.items():
-            if name in names:
+            if name in self.CLASSIFICATION_FIELDS:
                 self[name] = value
             else:
                 self.classifications[name] = value
 
         if not self.classifications.items():
-            self.classifications = None
+            self._getdata().pop("classifications", None)
 
     def get_weight(self):
         """returns weight as a storage object with value and units fields."""
@@ -857,14 +852,7 @@ class User(models.User):
         return len(lending.get_loans_of_user(self.key))
 
     def get_loans(self):
-        self.update_loan_status()
         return lending.get_loans_of_user(self.key)
-
-    def update_loan_status(self):
-        """Update the status of this user's loans."""
-        loans = lending.get_loans_of_user(self.key)
-        for loan in loans:
-            lending.sync_loan(loan["ocaid"])
 
     def get_safe_mode(self):
         return (self.get_users_settings() or {}).get("safe_mode", "").lower()

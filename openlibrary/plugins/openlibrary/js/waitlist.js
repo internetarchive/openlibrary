@@ -8,7 +8,7 @@ import { confirmFromTemplate } from './confirm-template';
 export function initLeaveWaitlist(leaveWaitlistLinks) {
     const template = document.getElementById('leave-waitinglist-dialog');
     for (const link of leaveWaitlistLinks) {
-        link.addEventListener('click', async(event) => {
+        link.addEventListener('click', async event => {
             event.preventDefault();
             const message = template.content.cloneNode(true);
             message.querySelector('strong').textContent = link.closest('tr').querySelector('.book').textContent.trim();

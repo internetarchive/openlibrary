@@ -54,11 +54,6 @@ button.larger {
   border-radius: 4px;
 }
 
-.editFormHead {
-  display: flex;
-  padding-bottom: 0;
-}
-
 .editFormTitle {
   flex: 1;
   margin: 0;
@@ -75,10 +70,6 @@ button.larger {
 
 .valid {
   padding: var(--spacing-inset-xs) 0 0 29px !important;
-}
-
-.noborder {
-  border: none;
 }
 
 .valid,
@@ -110,10 +101,6 @@ button.larger {
 .lightgreen {
   color: var(--color-success-fg) !important;
 }
-.lightgrey,
-.lightgray {
-  color: var(--light-grey) !important;
-}
 
 .blue {
   color: var(--color-link) !important;
@@ -140,11 +127,6 @@ button.larger {
 .gray,
 .grey {
   color: var(--color-text-secondary) !important;
-}
-
-.darkgray,
-.darkgrey {
-  color: var(--color-text) !important;
 }
 
 .plain {

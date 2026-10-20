@@ -13,7 +13,7 @@ a dedicated bookworm database later. Per-feed connector config lives in the
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import json
 import logging
 from typing import TYPE_CHECKING, Any, Literal
@@ -57,8 +57,8 @@ adding this cannot silently stop an already-running feed.
 """
 
 
-def _utcnow() -> datetime.datetime:
-    return datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+def _utcnow() -> dt.datetime:
+    return dt.datetime.now(dt.UTC).replace(tzinfo=None)
 
 
 class FeedRegistry(web.storage):
@@ -69,10 +69,10 @@ class FeedRegistry(web.storage):
     provider_name: str
     feed_type: str
     url: str
-    last_updated: datetime.datetime | None
+    last_updated: dt.datetime | None
     data: dict
-    created: datetime.datetime
-    updated: datetime.datetime
+    created: dt.datetime
+    updated: dt.datetime
 
     TABLENAME = "feed_registry"
 
@@ -152,7 +152,7 @@ class FeedRegistry(web.storage):
         return db.update("feed_registry", where="id=$id", vars={"id": id}, data=json.dumps(blob), updated=_utcnow())
 
     @staticmethod
-    def advance(id: int, last_updated: datetime.datetime, data: dict | None = None) -> int:
+    def advance(id: int, last_updated: dt.datetime, data: dict | None = None) -> int:
         """Move the processing cursor (``last_updated``) forward."""
         fields: dict[str, Any] = {"last_updated": last_updated, "updated": _utcnow()}
         if data is not None:
@@ -188,7 +188,7 @@ class FeedRegistry(web.storage):
         """Whether the feed filters server-side via ``?modified_since=<cursor>``."""
         return self.cursor_style == CURSOR_MODIFIED_SINCE
 
-    def request_url(self, since: datetime.datetime) -> str:
+    def request_url(self, since: dt.datetime) -> str:
         """This feed's fetch URL with the ``modified_since`` cursor injected.
 
         The cursor is truncated to a date (day granularity), so a run re-requests

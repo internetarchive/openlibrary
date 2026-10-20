@@ -1,7 +1,7 @@
 """ """
 
 import base64
-import datetime
+import datetime as dt
 import hashlib
 import hmac
 import logging
@@ -28,6 +28,7 @@ from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.openlibrary.pd import get_pd_org
+from openlibrary.utils import server_timing
 from openlibrary.utils.request_context import site
 
 try:
@@ -104,6 +105,26 @@ def decrypt_s3_keys(token: str) -> tuple[str, str]:
     plaintext = _get_fernet().decrypt(token.encode()).decode()
     access, secret = plaintext.split(":", 1)
     return access, secret
+
+
+def encrypt_token(token: str) -> str:
+    """Encrypt a single OAuth token for storage.
+
+    Same Fernet key and pattern as :func:`encrypt_s3_keys` above -- one secret,
+    one scheme. Deliberately *not* a digest: Open Library presents these tokens
+    to a provider, so they have to come back out. Hashing is correct on the
+    node, which verifies; wrong here, which sends.
+    """
+    return _get_fernet().encrypt(token.encode()).decode()
+
+
+def decrypt_token(ciphertext: str) -> str:
+    """Decrypt a token written by :func:`encrypt_token`.
+
+    Raises ``cryptography.fernet.InvalidToken`` on tampered input or input
+    encrypted under a rotated secret, like :func:`decrypt_s3_keys`.
+    """
+    return _get_fernet().decrypt(ciphertext.encode()).decode()
 
 
 def parse_s3_cookie(s3_cookie: str | None) -> dict | None:
@@ -215,7 +236,7 @@ def generate_login_code_for_user(username: str) -> str:
         that can be used as a session cookie value
     """
     user_key = "/people/" + username
-    t = datetime.datetime(*time.gmtime()[:6]).isoformat()
+    t = dt.datetime(*time.gmtime()[:6]).isoformat()
     text = f"{user_key},{t}"
     return text + "," + generate_hash(get_secret_key(), text)
 
@@ -231,8 +252,8 @@ def create_link_doc(key: str, username: str, email: str) -> dict:
     """
     code = generate_uuid()
 
-    now = datetime.datetime.now()
-    expires = now + datetime.timedelta(days=14)
+    now = dt.datetime.now()
+    expires = now + dt.timedelta(days=14)
 
     return {
         "_key": key,
@@ -253,13 +274,13 @@ def clear_cookies() -> None:
 
 
 class Link(web.storage):
-    def get_expiration_time(self) -> datetime.datetime:
+    def get_expiration_time(self) -> dt.datetime:
         d = self["expires_on"].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        return dt.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
-    def get_creation_time(self) -> datetime.datetime:
+    def get_creation_time(self) -> dt.datetime:
         d = self["created_on"].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        return dt.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
     def delete(self) -> None:
         del site.get().store[self["_key"]]
@@ -275,7 +296,7 @@ class Account(web.storage):
         return (user and user.get_edit_count()) or 0
 
     @property
-    def registered_on(self) -> datetime.datetime | None:
+    def registered_on(self) -> dt.datetime | None:
         """Returns the registration time."""
         t = self.get("created_on")
         return t and helpers.parse_datetime(t)
@@ -294,9 +315,9 @@ class Account(web.storage):
         else:
             return self.username
 
-    def creation_time(self) -> datetime.datetime:
+    def creation_time(self) -> dt.datetime:
         d = self["created_on"].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        return dt.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
     def get_recentchanges(self, limit: int = 100, offset: int = 0):
         q = {"author": self.get_user().key, "limit": limit, "offset": offset}
@@ -347,7 +368,7 @@ class Account(web.storage):
             code = e.get_data().get("code")
             return code
         else:
-            self["last_login"] = datetime.datetime.utcnow().isoformat()
+            self["last_login"] = dt.datetime.utcnow().isoformat()
             self._save()
             return "ok"
 
@@ -364,7 +385,7 @@ class Account(web.storage):
         site.get().store[self._key] = self
 
     @property
-    def last_login(self) -> datetime.datetime:
+    def last_login(self) -> dt.datetime:
         """Returns the last_login time of the user, if available.
 
         The `last_login` will not be available for accounts, who haven't
@@ -680,7 +701,7 @@ class OpenLibraryAccount(Account):
 
     def update_last_login(self):
         _ol_account = site.get().store.get(self._key)
-        last_login = datetime.datetime.utcnow().isoformat()
+        last_login = dt.datetime.utcnow().isoformat()
         _ol_account["last_login"] = last_login
         site.get().store[self._key] = _ol_account
         self.last_login = last_login
@@ -857,7 +878,9 @@ class InternetArchiveAccount(web.storage):
         if test:
             params["developer"] = test
 
-        response = requests.post(url, params=params, json=data, headers=headers or {})
+        with server_timing.timed("ia-xauthn") as call:
+            response = requests.post(url, params=params, json=data, headers=headers or {})
+            call.failed = response.status_code >= 500
         if response.status_code == 403:
             raise OLAuthenticationError("security_error")
         if response.status_code == 504 and op == "create":
@@ -881,13 +904,15 @@ class InternetArchiveAccount(web.storage):
             raise TypeError(f"Expected 'url' to be a string, got {type(url).__name__} instead")
 
         try:
-            response = requests.get(
-                url,
-                headers={
-                    "Content-Type": "application/json",
-                    "authorization": f"LOW {access_key}:{secret_key}",
-                },
-            )
+            with server_timing.timed("ia-s3auth") as call:
+                response = requests.get(
+                    url,
+                    headers={
+                        "Content-Type": "application/json",
+                        "authorization": f"LOW {access_key}:{secret_key}",
+                    },
+                )
+                call.failed = response.status_code >= 500
             response.raise_for_status()
             return response.json()
         except requests.HTTPError as e:

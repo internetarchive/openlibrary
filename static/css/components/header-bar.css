@@ -36,7 +36,7 @@
    account — and it does nothing until the drawer's JS loads. Only Sign Up shows
    here; .hide-me keeps Log In for >=768px, as before. Sign Up alone is ~77px and
    stays on the header's first row, where showing both wraps the hamburger onto
-   a second one. */
+   a second one. Phone spacing below keeps the row on one line down to 360px. */
 .header-bar .auth-component {
   display: block;
   margin-right: var(--spacing-inline-sm);
@@ -120,11 +120,6 @@
      becoming an empty flex item that picks up the summary's gap. */
   content: "" !important;
   display: none;
-}
-
-.header-bar .header-dropdown .header-dropdown__icon {
-  width: 40px;
-  height: 40px;
 }
 
 /* Avatar inside the account/menu ghost button. Circular to match the glyph it
@@ -255,9 +250,9 @@
 }
 
 /* stylelint-disable selector-max-specificity */
-/* No `display` here: the two nav items (My Books, Browse) are `.nav-ghost-btn`s
-   that need the class's own `inline-flex` centering, and this selector outranks
-   it. */
+/* No `display` here: the two nav items (My Books, Browse) are ghost
+   `.ol-button-static`s that need the class's own `inline-flex` centering, and
+   this selector outranks it. */
 .header-bar .navigation-component li button,
 .header-bar .navigation-component li a {
   color: var(--color-text);
@@ -314,7 +309,7 @@
   background: none;
   color: var(--color-text);
   cursor: pointer;
-  /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
+  /* Hover is instant (see docs/frontend/design.md); only the :active press animates. */
   transition: transform var(--duration-press);
 }
 
@@ -351,19 +346,9 @@
   text-decoration: none !important;
 }
 
-.logo-component .logo-org {
-  text-align: left;
-  font-weight: 300;
-  font-size: 0.9em;
-  color: var(--color-text-secondary);
-  margin: var(--spacing-stack-xs);
-  padding: 0;
-  line-height: 0;
-}
-
 @media only screen and (max-width: 25em) {
   .search-component {
-    margin-right: 15px;
+    margin-inline-end: var(--spacing-inline-sm);
   }
 }
 
@@ -457,6 +442,13 @@
   font-weight: normal;
 }
 
+/* --width-breakpoint-mobile */
+@media (max-width: 449px) {
+  .header-bar .auth-component .ol-button-static {
+    padding-inline: var(--spacing-md);
+  }
+}
+
 /* Leading glyphs only echo the label beside them, so they sit on the
    decorative tier like the browse popover's link icons. */
 .header-bar .ol-button-static__icon {
@@ -501,8 +493,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .header-bar .nav-ghost-btn,
-  .header-bar .nav-primary-btn,
   .navigation-component .browse-popover__trigger .down-arrow {
     transition: none;
   }
@@ -648,7 +638,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
+  /* Square, like the barcode button beside it. */
+  min-width: var(--header-control-height);
   min-height: var(--header-control-height);
   padding: 0 var(--spacing-inset-sm);
   background: transparent;

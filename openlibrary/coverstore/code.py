@@ -1,5 +1,5 @@
 import array
-import datetime
+import datetime as dt
 import functools
 import io
 import itertools
@@ -79,7 +79,7 @@ class PartialCoverDetails(web.storage):
     filename_s: str
     filename_m: str
     filename_l: str
-    created: datetime.datetime
+    created: dt.datetime
 
 
 async def get_cover_id(olkeys: list[str]) -> int | None:
@@ -117,15 +117,15 @@ ERROR_INVALID_URL = 2, "Invalid URL"
 ERROR_BAD_IMAGE = 3, "Invalid Image"
 
 
-def _httpdate(date: datetime.datetime) -> str:
-    return format_datetime(date.replace(tzinfo=datetime.UTC), usegmt=True)
+def _httpdate(date: dt.datetime) -> str:
+    return format_datetime(date.replace(tzinfo=dt.UTC), usegmt=True)
 
 
 def _expires_header(seconds: int) -> str:
-    return _httpdate(datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=seconds))
+    return _httpdate(dt.datetime.now(dt.UTC) + dt.timedelta(seconds=seconds))
 
 
-def is_cached_copy_fresh(request: Request, date: datetime.datetime, etag: str) -> bool:
+def is_cached_copy_fresh(request: Request, date: dt.datetime, etag: str) -> bool:
     """Whether the client's cached copy is still good, i.e. we can answer 304."""
     if_none_match = {x.strip('" ') for x in request.headers.get("if-none-match", "").split(",")}
     if "*" in if_none_match or etag in if_none_match:
@@ -137,9 +137,9 @@ def is_cached_copy_fresh(request: Request, date: datetime.datetime, etag: str) -
         except TypeError, ValueError:
             return False
         if since.tzinfo is not None:
-            since = since.astimezone(datetime.UTC).replace(tzinfo=None)
+            since = since.astimezone(dt.UTC).replace(tzinfo=None)
         # HTTP dates have no sub-second precision, so allow a second of slack
-        return date - datetime.timedelta(seconds=1) <= since
+        return date - dt.timedelta(seconds=1) <= since
     return False
 
 
@@ -191,7 +191,7 @@ async def upload2(
 
 def trim_microsecond(date):
     # ignore microseconds
-    return datetime.datetime(*date.timetuple()[:6])
+    return dt.datetime(*date.timetuple()[:6])
 
 
 # Number of images stored in one archive.org item
@@ -232,7 +232,7 @@ def get_details(coverid: int, size: CoverSizeLower = "") -> PartialCoverDetails 
             key = f"filename_{size}" if size else "filename"
             return cast(
                 PartialCoverDetails,
-                web.storage({"id": coverid, key: path, "created": datetime.datetime(2010, 1, 1)}),
+                web.storage({"id": coverid, key: path, "created": dt.datetime(2010, 1, 1)}),
             )
 
     return db.details(coverid)
@@ -419,7 +419,7 @@ async def cover_details(category: CoverCategory, key: str, value: str) -> Respon
         d = db.details(safeint(value))
         if not d:
             return Response(status_code=404)
-        if isinstance(d["created"], datetime.datetime):
+        if isinstance(d["created"], dt.datetime):
             d["created"] = d["created"].isoformat()
             d["last_modified"] = d["last_modified"].isoformat()
         return Response(content=json.dumps(d), media_type="application/json")

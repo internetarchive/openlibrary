@@ -24,20 +24,20 @@ function docs(start, count) {
     return Array.from({ length: count }, (_, i) => ({
         key: `/works/OL${start + i + 1}W`,
         title: `Book ${start + i + 1}`,
-        author_name: ['An Author'],
+        author_name: ['An Author']
     }));
 }
 
 /** Answer Solr pagination from a fixture, recording every request URL. */
 function stubSearchApi(pages) {
     const calls = [];
-    window.fetch = async(url) => {
+    window.fetch = async url => {
         const request = new URL(url, location.href);
         calls.push(request);
         const offset = Number(request.searchParams.get('offset')) || 0;
         return {
             ok: true,
-            json: async() => ({ numFound: NUM_FOUND, docs: pages[offset] ?? [] }),
+            json: async () => ({ numFound: NUM_FOUND, docs: pages[offset] ?? [] })
         };
     };
     return calls;
@@ -53,7 +53,7 @@ function renderCarousel(props) {
     return render(OLCarousel, { props: { node: reactive({ requests: {} }), ...props } });
 }
 
-test('a carousel below the fold fetches nothing until a real scroll brings it into view', async() => {
+test('a carousel below the fold fetches nothing until a real scroll brings it into view', async () => {
     const calls = stubSearchApi({ 0: docs(0, 20) });
 
     await renderCarousel({ query: 'crime', limit: 20 });
@@ -63,7 +63,7 @@ test('a carousel below the fold fetches nothing until a real scroll brings it in
     root.style.marginTop = '1200px';
 
     // Long enough for a wrongly-eager IntersectionObserver to have fired.
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await new Promise(resolve => setTimeout(resolve, 250));
     expect(calls).toHaveLength(0);
 
     // The scroll is what unlocks it.
@@ -72,7 +72,7 @@ test('a carousel below the fold fetches nothing until a real scroll brings it in
     expect(calls).toHaveLength(1);
 });
 
-test('Load next pages forward through the results, updating the readout and controls', async() => {
+test('Load next pages forward through the results, updating the readout and controls', async () => {
     const calls = stubSearchApi({ 0: docs(0, 20), 20: docs(20, 25) });
 
     await renderCarousel({ query: 'crime', limit: 20 });
@@ -90,10 +90,10 @@ test('Load next pages forward through the results, updating the readout and cont
     await expect.element(page.getByRole('button', { name: 'Load next' })).toBeDisabled();
 
     // One request per page, at the right offsets.
-    expect(calls.map((request) => request.searchParams.get('offset'))).toEqual(['0', '20']);
+    expect(calls.map(request => request.searchParams.get('offset'))).toEqual(['0', '20']);
 });
 
-test('the class slider walks the classification tree and stops at the last shelf', async() => {
+test('the class slider walks the classification tree and stops at the last shelf', async () => {
     await render(ClassSlider, {
         props: {
             node: {
@@ -102,10 +102,10 @@ test('the class slider walks the classification tree and stops at the last shelf
                 name: 'All subjects',
                 children: [
                     { short: '000', name: 'Computer science' },
-                    { short: '100', name: 'Philosophy' },
-                ],
-            },
-        },
+                    { short: '100', name: 'Philosophy' }
+                ]
+            }
+        }
     });
 
     // The root is not a shelf, so there is nothing to go back to — the only

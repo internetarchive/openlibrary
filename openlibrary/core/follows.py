@@ -14,10 +14,16 @@ class PubSub:
     PRIMARY_KEY = ("subscriber", "publisher")
 
     @classmethod
-    def subscribe(cls, subscriber, publisher):
+    def subscribe(cls, subscriber: str, publisher: str) -> None:
         oldb = db.get_db()
-        if not cls.is_subscribed(subscriber, publisher):
-            return oldb.insert(cls.TABLENAME, subscriber=subscriber, publisher=publisher)
+        oldb.query(
+            f"""
+            INSERT INTO {cls.TABLENAME} (subscriber, publisher)
+            VALUES ($subscriber, $publisher)
+            ON CONFLICT (subscriber, publisher) DO NOTHING
+            """,
+            vars={"subscriber": subscriber, "publisher": publisher},
+        )
 
     @classmethod
     def unsubscribe(cls, subscriber, publisher):

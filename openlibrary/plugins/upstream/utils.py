@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import functools
 import itertools
 import json
@@ -225,7 +225,7 @@ def icon_sprite_url() -> str:
     """Return the content-hashed URL of the icon sprite asset.
 
     Used by the ``$:macros.icon()`` macro; client JS reads the same URL off the
-    ``<meta name="ol-icon-sprite">`` tag in site/head instead. ``static_url``
+    ``<meta name="ol-icon-sprite">`` tag in shell/head.html.jinja instead. ``static_url``
     hashes once per process, so a rebuild needs a web restart.
 
     The sprite is generated, so a checkout that never ran ``make icons`` has no
@@ -1361,7 +1361,7 @@ def _get_blog_feeds():
         stats.end()
 
     def parse_item(item):
-        pubdate = datetime.datetime.strptime(item.find("pubDate").text, "%a, %d %b %Y %H:%M:%S +0000").isoformat()
+        pubdate = dt.datetime.strptime(item.find("pubDate").text, "%a, %d %b %Y %H:%M:%S +0000").isoformat()
         return {
             "title": item.find("title").text,
             "link": item.find("link").text,
@@ -1473,7 +1473,7 @@ def render_once(key: str) -> bool:
 
 @public
 def today():
-    return datetime.datetime.today()
+    return dt.datetime.today()
 
 
 class HTMLTagRemover(HTMLParser):
@@ -1670,11 +1670,12 @@ def setup() -> None:
     )
 
     from openlibrary.core import helpers as h
-    from openlibrary.core.fulltext import phrase_query
+    from openlibrary.core.fulltext import all_words_query, phrase_query
 
     web.template.Template.globals.update(h.helpers)
     # For the fulltext macros' BookReader links; imported here since core.fulltext imports back into plugins.
     web.template.Template.globals["phrase_query"] = phrase_query
+    web.template.Template.globals["all_words_query"] = all_words_query
 
     if config.get("use_gzip") is True:
         config.middleware.append(GZipMiddleware)

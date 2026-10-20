@@ -52,6 +52,8 @@ import { slotHasContent } from './utils/slot-utils.js';
  * @cssprop --ol-dialog-padding - Padding around body and footer regions.
  *     Set to `0` for edge-to-edge content (e.g. when slotting a search bar
  *     or filter row that owns its own padding).
+ * @cssprop [--ol-dialog-max-height=85vh] - Maximum dialog height; the body scrolls past it.
+ *     Slotted content can read it to size itself to fit (e.g. an enlarged image).
  * @cssprop --ol-dialog-border-radius - Corner radius (ignored in fullscreen mode).
  * @cssprop --ol-dialog-backdrop-color - Backdrop color.
  * @cssprop --ol-dialog-backdrop-blur - Blur radius applied to the page behind
@@ -106,7 +108,7 @@ export class OlDialog extends LitElement {
         fullscreenOnMobile: { type: Boolean, attribute: 'fullscreen-on-mobile', reflect: true },
         placement: { type: String, reflect: true },
         _hasHeaderContent: { state: true },
-        _hasFooterContent: { state: true },
+        _hasFooterContent: { state: true }
     };
 
     static styles = css`
@@ -115,6 +117,7 @@ export class OlDialog extends LitElement {
             --ol-dialog-width-medium: 550px;
             --ol-dialog-width-large: 800px;
             --ol-dialog-padding: var(--spacing-xl);
+            --ol-dialog-max-height: 85vh;
             --ol-dialog-border-radius: var(--border-radius-overlay);
             --ol-dialog-animation-duration: var(--duration-base);
             --ol-dialog-backdrop-color: var(--overlay-backdrop-color);
@@ -129,7 +132,7 @@ export class OlDialog extends LitElement {
             border-radius: var(--ol-dialog-border-radius);
             padding: 0;
             max-width: 90vw;
-            max-height: 85vh;
+            max-height: var(--ol-dialog-max-height);
             overflow: hidden;
             box-shadow: var(--box-shadow-overlay);
         }
@@ -190,13 +193,21 @@ export class OlDialog extends LitElement {
         }
 
         @keyframes backdrop-fade-in {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
         @keyframes backdrop-fade-out {
-            from { opacity: 1; }
-            to { opacity: 0; }
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -204,26 +215,29 @@ export class OlDialog extends LitElement {
             dialog.closing,
             dialog::backdrop,
             dialog.closing::backdrop,
-            :host([placement="top"]) dialog[open],
-            :host([placement="top"]) dialog.closing {
+            :host([placement='top']) dialog[open],
+            :host([placement='top']) dialog.closing {
                 animation: none;
             }
         }
 
         /* Top-anchored placement: keeps the dialog's top edge fixed as its
            own height grows or shrinks (search modal / command palette). */
-        :host([placement="top"]) dialog {
+        :host([placement='top']) {
+            --ol-dialog-max-height: calc(100dvh - var(--ol-dialog-top-offset) - var(--spacing-xl));
+        }
+
+        :host([placement='top']) dialog {
             margin-block-start: var(--ol-dialog-top-offset);
             margin-block-end: auto;
-            max-height: calc(100dvh - var(--ol-dialog-top-offset) - var(--spacing-xl));
             transform-origin: top center;
         }
 
-        :host([placement="top"]) dialog[open] {
+        :host([placement='top']) dialog[open] {
             animation: dialog-open-top var(--ol-dialog-animation-duration) var(--ease-enter);
         }
 
-        :host([placement="top"]) dialog.closing {
+        :host([placement='top']) dialog.closing {
             animation: dialog-close-top var(--ol-dialog-animation-duration) var(--ease-exit);
         }
 
@@ -250,15 +264,15 @@ export class OlDialog extends LitElement {
         }
 
         /* Width variants */
-        :host([width="small"]) dialog {
+        :host([width='small']) dialog {
             width: var(--ol-dialog-width-small);
         }
 
-        :host([width="medium"]) dialog {
+        :host([width='medium']) dialog {
             width: var(--ol-dialog-width-medium);
         }
 
-        :host([width="large"]) dialog {
+        :host([width='large']) dialog {
             width: var(--ol-dialog-width-large);
         }
 
@@ -266,6 +280,10 @@ export class OlDialog extends LitElement {
            Also neutralizes placement="top" so the dialog truly fills the
            viewport (no top offset, no leftover max-height clamp). */
         @media (max-width: 767px) {
+            :host([fullscreen-on-mobile]) {
+                --ol-dialog-max-height: 100dvh;
+            }
+
             :host([fullscreen-on-mobile]) dialog {
                 width: 100vw;
                 height: 100dvh;
@@ -275,10 +293,9 @@ export class OlDialog extends LitElement {
                 border-radius: 0;
             }
 
-            :host([fullscreen-on-mobile][placement="top"]) dialog {
+            :host([fullscreen-on-mobile][placement='top']) dialog {
                 margin-block-start: 0;
                 margin-block-end: 0;
-                max-height: 100dvh;
             }
         }
 
@@ -394,10 +411,12 @@ export class OlDialog extends LitElement {
         // document.activeElement doesn't pass into shadow DOM
         this._previouslyFocusedElement = getDeepActiveElement();
 
-        this.dispatchEvent(new CustomEvent('ol-open', {
-            bubbles: true,
-            composed: true,
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-open', {
+                bubbles: true,
+                composed: true
+            })
+        );
 
         dialog.showModal();
 
@@ -416,10 +435,12 @@ export class OlDialog extends LitElement {
         this._setInitialFocus();
 
         this._afterAnimation(dialog, () => {
-            this.dispatchEvent(new CustomEvent('ol-after-open', {
-                bubbles: true,
-                composed: true,
-            }));
+            this.dispatchEvent(
+                new CustomEvent('ol-after-open', {
+                    bubbles: true,
+                    composed: true
+                })
+            );
         });
     }
 
@@ -451,7 +472,7 @@ export class OlDialog extends LitElement {
             // would miss it and strand focus elsewhere. Skip the synthetic close
             // button so focus still prefers real content over the X; we fall back
             // to it below only when there's nothing else to focus.
-            const firstFocusable = this._getFocusableElements().find((el) => el !== closeButton);
+            const firstFocusable = this._getFocusableElements().find(el => el !== closeButton);
             if (firstFocusable) {
                 firstFocusable.focus();
                 return;
@@ -474,7 +495,7 @@ export class OlDialog extends LitElement {
             bubbles: true,
             composed: true,
             cancelable: true,
-            detail: { returnValue: this.returnValue },
+            detail: { returnValue: this.returnValue }
         });
 
         this.dispatchEvent(closeEvent);
@@ -497,11 +518,13 @@ export class OlDialog extends LitElement {
             this._releaseScrollLock();
             this._restoreFocus();
 
-            this.dispatchEvent(new CustomEvent('ol-after-close', {
-                bubbles: true,
-                composed: true,
-                detail: { returnValue: this.returnValue },
-            }));
+            this.dispatchEvent(
+                new CustomEvent('ol-after-close', {
+                    bubbles: true,
+                    composed: true,
+                    detail: { returnValue: this.returnValue }
+                })
+            );
         });
     }
 
@@ -635,9 +658,7 @@ export class OlDialog extends LitElement {
                 return true;
             }
             const parent = cur.parentNode;
-            cur = (parent?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent.host)
-                ? parent.host
-                : cur.parentElement;
+            cur = parent?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent.host ? parent.host : cur.parentElement;
         }
         return false;
     }
@@ -653,9 +674,7 @@ export class OlDialog extends LitElement {
         while (cur && cur !== this) {
             if (cur.tagName === 'OL-DIALOG' && cur.open) return true;
             const parent = cur.parentNode;
-            cur = (parent?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent.host)
-                ? parent.host
-                : cur.parentElement;
+            cur = parent?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent.host ? parent.host : cur.parentElement;
         }
         return false;
     }
@@ -799,17 +818,8 @@ export class OlDialog extends LitElement {
                 aria-describedby=${ifDefined(this.alert ? this._bodyId : undefined)}
             >
                 <header class="header ${showDefaultHeader ? '' : 'hidden'}">
-                    <h2 class="title" id=${this._titleId}>
-                        ${this.icon ? html`<ol-icon name=${this.icon}></ol-icon>` : nothing}
-                        ${this.label}
-                    </h2>
-                    <ol-button
-                        class="close-button"
-                        shape="icon"
-                        variant="ghost"
-                        aria-label=${this.labelClose}
-                        @click=${this._handleCloseClick}
-                    >
+                    <h2 class="title" id=${this._titleId}>${this.icon ? html`<ol-icon name=${this.icon}></ol-icon>` : nothing} ${this.label}</h2>
+                    <ol-button class="close-button" shape="icon" variant="ghost" aria-label=${this.labelClose} @click=${this._handleCloseClick}>
                         <ol-icon name="x"></ol-icon>
                     </ol-button>
                 </header>

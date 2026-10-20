@@ -898,7 +898,7 @@ class import_books(delegate.page):
         user = accounts.get_current_user()
         username = user["key"].split("/")[-1]
         template = render["account/import"]()
-        return MyBooksTemplate(username, "imports").render(header_title=_("Imports and Exports"), template=template)
+        return MyBooksTemplate(username, "imports").render(header_title=_("Import your data"), template=template)
 
 
 class fetch_goodreads(delegate.page):
@@ -1186,6 +1186,12 @@ class export_books(delegate.page):
     @require_login
     def GET(self):
         i = web.input(type="")
+        if not i.type:
+            # Render export selection page when no type specified
+            user = accounts.get_current_user()
+            username = user.key.split("/")[-1]
+            template = render["account/export"](user=user)
+            return MyBooksTemplate(username, "exports").render(header_title=_("Export your data"), template=template)
 
         export = self.get_export(i.type)
         data = export.make_export(export.get_data(), export.fieldnames)
@@ -1246,7 +1252,6 @@ class my_follows(delegate.page):
 
 
 def get_account_loans_json(user: User) -> dict[str, Any]:
-    user.update_loan_status()
     loans = lending.get_loans_of_user(user.key)
     return {"loans": loans}
 
@@ -1265,7 +1270,7 @@ class account_loans(delegate.page):
     @require_login
     def GET(self):
         from openlibrary.core.lending import get_loans_of_user
-        from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
+        from openlibrary.plugins.upstream import lenny
 
         i = web.input(page=1)
         try:
@@ -1273,12 +1278,22 @@ class account_loans(delegate.page):
         except ValueError:
             page = 1
         user = accounts.get_current_user()
-        user.update_loan_status()
         username = user["key"].split("/")[-1]
         mb = MyBooksTemplate(username, "loans")
         docs = get_loans_of_user(user.key)
+
+        # Provider loans are merged here rather than inside get_loans_of_user,
+        # and that placement is the point (#13687). That function is not a
+        # display lookup: User.update_loan_status() feeds every element to
+        # lending.sync_loan(loan["ocaid"]) -- called on the line above -- and
+        # borrow.py mints an Internet Archive bookreader link from loan["_key"]
+        # for whichever loan matches the edition. A loan with no ocaid reaching
+        # either of those is a 500 on this page, or an IA reader link for a loan
+        # the Internet Archive has never heard of.
+        provider = lenny.provider_loans(username)
+        docs = list(docs) + provider.loans
+
         loan_history_data = get_loan_history_data(username, page=page)
-        featured_subjects = get_cached_featured_subjects()
 
         staff_picks = get_carousel_data(carousels=("staff_picks",))["staff_picks"]
 
@@ -1289,8 +1304,9 @@ class account_loans(delegate.page):
             current_page=page,
             show_next=loan_history_data["show_next"],
             ia_base_url=CONFIG_IA_DOMAIN,
-            featured_subjects=featured_subjects,
             carousel=staff_picks,
+            provider_unreachable=provider.unreachable,
+            provider_unauthorized=provider.unauthorized,
         )
         return mb.render(header_title=_("Loans & History"), template=template)
 

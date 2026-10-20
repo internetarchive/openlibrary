@@ -89,16 +89,6 @@ table.code td {
   padding: var(--spacing-inset-xs);
 }
 /* stylelint-disable selector-max-specificity */
-div#databar {
-  padding: var(--spacing-inset-sm);
-  margin: 20px 20px 0;
-  background-color: var(--light-yellow);
-}
-div#databar a {
-  font-size: 0.75em;
-}
-/* stylelint-enable selector-max-specificity */
-/* stylelint-disable selector-max-specificity */
 #editHead {
   background: url(/static/images/logo_OL-sm.png) 20px 15px no-repeat;
   padding: var(--spacing-inset-lg) 0 45px 140px;
@@ -125,7 +115,8 @@ div#databar a {
 .formElement.pagetype {
   width: 300px;
 }
-.formElement.pagetype #type\.key {
+/* Rendered by thinginput() in openlibrary/macros/TypeChanger.html */
+.formElement.pagetype select {
   width: 100%;
 }
 div#revertNotice,
@@ -133,13 +124,6 @@ footer,
 div#bottom,
 .siteSearch {
   display: none;
-}
-
-/* Defined in openlibrary/macros/EditButtons.html */
-div.adminDelete {
-  margin-top: 8px;
-  font-size: var(--font-size-label-medium);
-  color: var(--color-text-secondary);
 }
 
 /* @width-breakpoint-desktop = 960px */

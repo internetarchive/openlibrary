@@ -381,6 +381,14 @@ def _prepare_solr_query_params(  # noqa: PLR0912
         ("wt", param.get("wt", "json")),
     ] + (extra_params or [])
 
+    # Callers (e.g. rewrite_list_query) may supply pre-built fq filters. These
+    # bypass query processing, which would mangle local-params syntax such as
+    # `{!terms f=key}`.
+    fq_params = param.get("fq") or []
+    if isinstance(fq_params, str):
+        fq_params = [fq_params]
+    params += [("fq", fq) for fq in fq_params]
+
     if spellcheck_count is None:
         spellcheck_count = default_spellcheck_count
 
@@ -967,7 +975,26 @@ class advancedsearch(delegate.page):
     path = "/advancedsearch"
 
     def GET(self):
-        return render_template("search/advancedsearch.html")
+        # facets are only a fallback
+        i = web.input(
+            q="",
+            title="",
+            author="",
+            isbn="",
+            subject="",
+            place="",
+            person="",
+            publisher="",
+            subject_facet="",
+            publisher_facet="",
+            person_facet="",
+            place_facet="",
+        )
+        i.subject = i.subject or i.subject_facet
+        i.publisher = i.publisher or i.publisher_facet
+        i.person = i.person or i.person_facet
+        i.place = i.place or i.place_facet
+        return render_template("search/advancedsearch.html", i)
 
 
 @dataclass
@@ -1121,15 +1148,20 @@ def random_author_search(limit=10) -> SearchResponse:
     )
 
 
-def rewrite_list_query(q, page, offset, limit):
+def rewrite_list_query(q: str, page, offset, limit, params: dict):
     """Takes a solr query. If it doesn't contain a /lists/ key, then
     return the query, unchanged, exactly as it entered the
     function. If it does contain a lists key, then use the pagination
     information to fetch the right block of keys from the
     lists_editions and lists_works API and then feed these editions resulting work
-    keys into solr with the form key:(OL123W, OL234W). This way, we
+    keys into solr as a `{!terms f=key}` filter. This way, we
     can use the solr API to fetch list works and render them in
     carousels in the right format.
+
+    The filter goes into `params["fq"]`, not into the query itself:
+    inside the main query the keys would be parsed by edismax as user
+    text, which is expensive for long key lists and does not support
+    `{!terms}` syntax.
     """
     from openlibrary.core.lists.model import List
 
@@ -1147,12 +1179,15 @@ def rewrite_list_query(q, page, offset, limit):
         # we're making an assumption that q is just a list key
         book_keys = cache.memcache_memoize(cached_get_list_book_keys, "search.list_books_query", timeout=5 * 60)(list_key_match.group(0), offset, limit)
 
-        # Compose a query for book_keys or fallback special query w/ no results
-        q = re.sub(
-            r"^(/people/[^/]+)?/lists/OL\d+L",
-            f"key:({' OR '.join(book_keys)})" if book_keys else "-key:*",
-            q,
-        )
+        # {!terms} avoids parsing every key as a BooleanQuery clause; an
+        # empty list must match nothing. Append rather than overwrite so any
+        # fq filters already present on the query are preserved.
+        existing_fq = params.get("fq") or []
+        if isinstance(existing_fq, str):
+            existing_fq = [existing_fq]
+        fq_filter = "{!terms f=key}" + ",".join(book_keys) if book_keys else "-key:*"
+        params["fq"] = [*existing_fq, fq_filter]
+        q = "*:*"
 
         # We've applied the offset to fetching get_list_editions to
         # produce the right set of discrete work IDs. We don't want
@@ -1202,7 +1237,7 @@ def _prepare_work_search_query(query: dict, page: int, offset: int, limit: int) 
     prepared_query_dict["wt"] = "json"
 
     # Deal with special /lists/ key queries
-    q_val, new_page, new_offset, new_limit = rewrite_list_query(prepared_query_dict.get("q", ""), page, offset, limit)
+    q_val, new_page, new_offset, new_limit = rewrite_list_query(prepared_query_dict.get("q", ""), page, offset, limit, params=prepared_query_dict)
     prepared_query_dict["q"] = q_val
 
     return PreparedQuery(

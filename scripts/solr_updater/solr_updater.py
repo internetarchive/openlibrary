@@ -8,7 +8,7 @@ Changes:
 """
 
 import asyncio
-import datetime
+import datetime as dt
 import itertools
 import json
 import logging
@@ -41,11 +41,11 @@ def read_state_file(path, initial_state: str | None = None):
         return open(path).read()
     except OSError:
         logger.error("State file %s is not found. Reading log from the beginning of today", path)
-        return initial_state or f"{datetime.date.today().isoformat()}:0"
+        return initial_state or f"{dt.date.today().isoformat()}:0"
 
 
 def get_default_offset():
-    return datetime.date.today().isoformat() + ":0"
+    return dt.date.today().isoformat() + ":0"
 
 
 class InfobaseLogRecord(TypedDict):
@@ -175,23 +175,10 @@ def parse_log(records: Iterable[InfobaseLogRecord], load_ia_scans: bool):
                     yield from before_keys - after_keys
 
         elif action == "store.put":
-            # A sample record looks like this:
-            # {
-            #   "action": "store.put",
-            #   "timestamp": "2011-12-01T00:00:44.241604",
-            #   "data": {
-            #       "data": {"borrowed": "false", "_key": "ebooks/books/OL5854888M", "_rev": "975708", "type": "ebook", "book_key": "/books/OL5854888M"},
-            #       "key": "ebooks/books/OL5854888M"
-            #   },
-            #   "site": "openlibrary.org"
-            # }
+            # Record shape: {"action": "store.put", "data": {"key": <key>, "data": <store doc>}, ...}
             data = rec.get("data", {}).get("data", {})
             key = data.get("_key", "")
-            if data.get("type") == "ebook" and key.startswith("ebooks/books/"):
-                edition_key = cast(str | None, data.get("book_key"))
-                if edition_key:
-                    yield edition_key
-            elif load_ia_scans and data.get("type") == "ia-scan" and key.startswith("ia-scan/"):
+            if load_ia_scans and data.get("type") == "ia-scan" and key.startswith("ia-scan/"):
                 identifier = cast(str | None, data.get("identifier"))
                 if identifier and is_allowed_itemid(identifier):
                     yield "/books/ia:" + identifier

@@ -287,7 +287,6 @@ class TestLoanStatusNoLongerDoesNetworkIO:
             source = f.read()
         assert "get_cached_groundtruth_availability" not in source
         assert "allow_expensive_availability_check" not in source
-        assert "macros.BookPreview(ocaid, show_only=True)" in source
 
     def test_databar_work_template_has_no_expensive_check(self):
         with open("openlibrary/macros/databarWork.html") as f:
@@ -411,6 +410,9 @@ class TestIntegratedBookPageRendering:
 
         monkeypatch.setattr(site, "versions", fake_versions)
 
+        # Mock Ratings.get_rating_stats_sync to avoid async DB calls
+        monkeypatch.setattr("openlibrary.core.ratings.Ratings.get_rating_stats_sync", lambda work_id: {"avg_rating": 4.0, "num_ratings": 10})
+
     def test_work_page_renders_open_lending_state_after_groundtruth_fallback(self, monkeypatch, mock_site, render_template, request_context_fixture):
         request_context_fixture(lang="en")
         mock_site.quicksave("/works/OL1W", "/type/work", title="Integration Test Work", edition_count=1)
@@ -449,7 +451,6 @@ class TestIntegratedBookPageRendering:
         assert len(lending_state_calls) == 1
         assert 'data-lending-state="open"' in html
         assert "waitinglist-form" not in html
-        assert "LocateButton" not in html
 
     def test_edition_page_renders_via_real_templates(self, monkeypatch, mock_site, render_template, request_context_fixture):
         request_context_fixture(lang="en")

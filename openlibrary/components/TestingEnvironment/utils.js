@@ -19,6 +19,7 @@ export const DEFAULT_STRINGS = {
     actionFailed: 'Could not complete that action.',
     addFailedNotFound: 'PR %s does not exist.',
     addFailedUnavailable: 'Could not check PR %s — GitHub is unavailable.',
+    addFailedTokenInvalid: 'Could not add PR %s — GitHub API token is invalid or expired. Check `github_api_token` in config/openlibrary.yml.',
     addFailedOther: 'Could not add PR %s.',
     title: 'Testing Environment',
     addPrs: 'Add PRs',
@@ -26,6 +27,7 @@ export const DEFAULT_STRINGS = {
     add: 'Add PRs',
     addChange: 'Add',
     pr: 'PR',
+    draft: 'Draft',
     author: 'Author',
     assignee: 'Assignee',
     drift: 'Drift',
@@ -94,7 +96,7 @@ export function parsePrNumbers(value) {
         .trim()
         .split(/[\s,]+/)
         .filter(Boolean)
-        .flatMap((token) => {
+        .flatMap(token => {
             if (token.includes('/issues/')) return [];
             const match = token.match(/\/pull\/(\d+)/);
             const number = match ? Number(match[1]) : Number(token.replace(/^#/, ''));
@@ -114,7 +116,8 @@ export function actionErrorMessage(result, strings) {
     if (result?.error === 'add_failed' && failed && Object.keys(failed).length) {
         const reasons = {
             not_found: strings.addFailedNotFound,
-            unavailable: strings.addFailedUnavailable
+            unavailable: strings.addFailedUnavailable,
+            token_invalid: strings.addFailedTokenInvalid
         };
         // Numeric order, not insertion order: JSON object keys that look like
         // integers come back re-sorted ascending by the JS engine, so relying
@@ -122,7 +125,7 @@ export function actionErrorMessage(result, strings) {
         return Object.keys(failed)
             .map(Number)
             .sort((a, b) => a - b)
-            .map((prNumber) => sprintf(reasons[failed[prNumber]] || strings.addFailedOther, prNumber))
+            .map(prNumber => sprintf(reasons[failed[prNumber]] || strings.addFailedOther, prNumber))
             .join(' ');
     }
     const key = ACTION_ERRORS[result?.error] || 'actionFailed';
@@ -155,15 +158,19 @@ export async function getTestingStatus() {
  * Send a JSON action request and resolve its JSON body.
  */
 export async function postAction(action, fields = {}, method = 'POST') {
-    const response = await fetch(action, {
+    const init = {
         method,
         headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json'
         },
-        credentials: 'same-origin',
-        body: JSON.stringify(fields)
-    });
+        credentials: 'same-origin'
+    };
+    // fetch() throws if a GET or HEAD request carries a body.
+    if (method !== 'GET' && method !== 'HEAD') {
+        init.body = JSON.stringify(fields);
+    }
+    const response = await fetch(action, init);
     if (!response.ok) {
         throw new Error(`${action} failed: ${response.status}`);
     }
@@ -207,7 +214,7 @@ const FAVICON_MAX_DURATION_MS = 20 * 60 * 1000;
  * poll that normally ends it can't run in a hidden tab.
  */
 export function applyDeployBadge(links) {
-    const frames = links.map((link) => ({
+    const frames = links.map(link => ({
         link,
         original: link.getAttribute('href'),
         image: new Image(),
@@ -269,7 +276,9 @@ export function applyDeployBadge(links) {
  * "2026-08-06T15:00:00+00:00" → "2026-08-06 15:00"
  */
 export function formatTime(value) {
-    return String(value || '').slice(0, 16).replace('T', ' ');
+    return String(value || '')
+        .slice(0, 16)
+        .replace('T', ' ');
 }
 
 /**
@@ -298,9 +307,7 @@ export function timeAgo(value, now = Date.now()) {
  * Clicking again after staging undoes the change.
  */
 export function effectiveActive(pr) {
-    return pr.pending_active === undefined || pr.pending_active === null
-        ? pr.active !== false
-        : pr.pending_active;
+    return pr.pending_active === undefined || pr.pending_active === null ? pr.active !== false : pr.pending_active;
 }
 
 /**
@@ -334,9 +341,7 @@ export function driftPill(pr, strings) {
     }
     return {
         label: `-${drift}`,
-        href: pr.head_sha
-            ? `${REPO_URL}/compare/${encodeURIComponent(pr.commit || '')}...${encodeURIComponent(pr.head_sha)}`
-            : '',
+        href: pr.head_sha ? `${REPO_URL}/compare/${encodeURIComponent(pr.commit || '')}...${encodeURIComponent(pr.head_sha)}` : '',
         title: drift === 1 ? t('behindOne', drift, pinned) : t('behindMany', drift, pinned)
     };
 }

@@ -3,7 +3,7 @@ applyTo: "static/css/**,openlibrary/components/**,openlibrary/templates/**,openl
 ---
 # UI review checklist
 
-Derived from [`docs/ai/design.md`](../../docs/ai/design.md) and [`docs/ai/web-components.md`](../../docs/ai/web-components.md), which hold the rules and their rationale. Flag any added or modified line that:
+Derived from [`docs/frontend/design.md`](../../docs/frontend/design.md) and [`docs/frontend/web-components.md`](../../docs/frontend/web-components.md), which hold the rules and their rationale. Flag any added or modified line that:
 
 - Uses a raw color (hex, `rgb()`, `hsl()`, named) instead of a semantic `--color-*` token.
 - Uses a deprecated alias such as `--grey`, `--white`, `--light-grey`, `--lightest-grey`, `--beige`, or `--primary-blue`. Point to the semantic token.

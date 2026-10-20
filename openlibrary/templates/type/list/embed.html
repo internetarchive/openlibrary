@@ -60,16 +60,10 @@ $def render_seed_count(seed_count):
                                     <span class="label">$_('Read')</span>
                                 </a>
                             $elif 'borrow_url' in ebook:
-                                $if ebook.get('borrowed'):
-                                    <a href="$ebook['borrow_url']" title="$_('This book is checked out')">
-                                        <span class="image checked-out"></span>
-                                        <span class="label">$_('Checked out')</span>
-                                    </a>
-                                $else:
-                                    <a href="$ebook['borrow_url']" title="$_('Borrow book')">
-                                        <span class="image borrow"></span>
-                                        <span class="label">$_('Borrow')</span>
-                                    </a>
+                                <a href="$ebook['borrow_url']" title="$_('Borrow book')">
+                                    <span class="image borrow"></span>
+                                    <span class="label">$_('Borrow')</span>
+                                </a>
                             $elif 'daisy_url' in ebook:
                                 <a href="$ebook['daisy_url']" title="$_('Protected DAISY')">
                                     <span class="image daisy"></span>
