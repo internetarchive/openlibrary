@@ -34,7 +34,9 @@ export async function initSnippets(container) {
     const strings = {
         empty: container.dataset.i18nEmpty || '',
         error: container.dataset.i18nError || '',
-        alt: container.dataset.i18nAlt || ''
+        alt: container.dataset.i18nAlt || '',
+        delete: container.dataset.i18nDelete || 'Delete snippet',
+        deleteConfirm: container.dataset.i18nDeleteConfirm || 'Delete this snippet? This cannot be undone.'
     };
 
     let items;
@@ -60,8 +62,60 @@ export async function initSnippets(container) {
     // reader's key + reading state (it watches the DOM for new buttons).
     import('./book-state').then(module => module.initBookState()).catch(() => {});
 
+    // Admins/super-librarians get a delete control on every card (the server
+    // sets data-can-delete only for them; the DELETE endpoint re-checks the
+    // role, so this is UI convenience, not the security boundary).
+    if (container.dataset.canDelete === 'true') {
+        addDeleteControls(container, strings);
+    }
+
     // Enrich the whole page with a single bulk solr lookup.
     await enrichCards(container, items);
+}
+
+/**
+ * Add an [x] delete control to every card that carries a snippet id. Shown only
+ * to super-librarians (gated by the caller). Deletes via the FastAPI endpoint,
+ * which re-checks the role server-side.
+ */
+function addDeleteControls(container, strings) {
+    const cards = container.querySelectorAll('.snippets-grid__item[data-snippet-id]');
+    cards.forEach(li => {
+        const id = li.dataset.snippetId;
+        if (!id) return;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'snippet-card__delete';
+        button.setAttribute('aria-label', strings.delete);
+        button.title = strings.delete;
+        button.textContent = '×'; // ×
+        button.addEventListener('click', () => deleteSnippet(li, id, strings));
+        li.appendChild(button);
+    });
+}
+
+/**
+ * Delete one snippet by id, then drop its card. On failure the card stays so the
+ * librarian can retry; the endpoint is the real authority on who may delete.
+ */
+async function deleteSnippet(li, id, strings) {
+    // eslint-disable-next-line no-alert
+    if (!window.confirm(strings.deleteConfirm)) return;
+    try {
+        const response = await fetch(`/snippets/${encodeURIComponent(id)}`, {
+            method: 'DELETE',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (response.ok) {
+            li.remove();
+        } else {
+            // eslint-disable-next-line no-console
+            console.error(`Failed to delete snippet ${id}: HTTP ${response.status}`);
+        }
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(`Failed to delete snippet ${id}:`, error);
+    }
 }
 
 /**
@@ -70,10 +124,15 @@ export async function initSnippets(container) {
  */
 function cardHtml(item, index, alt) {
     const detailsUrl = item.annotation || item.uri;
-    if (!detailsUrl || !detailsUrl.includes('/details/')) return '';
+    // Only render genuine http(s) links, so a non-http scheme (e.g. javascript:)
+    // can never reach the card's href/src even if it contains "/details/".
+    if (!detailsUrl || !/^https?:\/\//i.test(detailsUrl) || !detailsUrl.includes('/details/')) return '';
     const imageUrl = detailsUrl.replace('/details/', '/download/');
+    // The snippet id lets an admin delete the card (see addDeleteControls).
+    const hasId = item.id !== null && item.id !== undefined;
+    const idAttr = hasId ? ` data-snippet-id="${escapeAttr(item.id)}"` : '';
     return (
-        `<li class="snippets-grid__item" data-index="${index}">` +
+        `<li class="snippets-grid__item" data-index="${index}"${idAttr}>` +
         `<a class="snippet-card" href="${escapeAttr(detailsUrl)}" target="_blank" rel="noopener noreferrer">` +
         `<img class="snippet-card__img" src="${escapeAttr(imageUrl)}" alt="${escapeAttr(alt)}" loading="lazy">` +
         `</a></li>`
