@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, Path
 from fastapi.responses import Response, StreamingResponse
 
 from infogami import config
-from openlibrary.core import cache
+from openlibrary.core import cache, snippets
 from openlibrary.utils.async_utils import cache_per_event_loop
 
 router = APIRouter()
@@ -101,11 +101,8 @@ async def graphite_graph(name: Annotated[str, Path()]) -> Response:
     )
 
 
-# Snippets are stored by iannotate, which has no lookup by id, so the whole
-# list is fetched and cached briefly. This is the same backend nginx proxies
-# /api/snippets to.
-SNIPPETS_API_URL = config.get("snippets_api_url") or "http://ol-home0.us.archive.org:8000/annotations"
-SNIPPETS_TIMEOUT = 5.0
+# iannotate has no lookup by id, so the whole snippet list is fetched and
+# cached briefly.
 SNIPPETS_CACHE_SECONDS = 60
 SNIPPET_IMAGE_TIMEOUT = 10.0
 SNIPPET_IMAGE_MAX_REDIRECTS = 5
@@ -136,12 +133,8 @@ def snippet_image_url(annotation: dict) -> str | None:
 
 async def _fetch_snippet_image_urls() -> dict[str, str] | None:
     """Map each snippet's id (as a str) to its image URL, or None on failure."""
-    try:
-        async with httpx.AsyncClient(timeout=SNIPPETS_TIMEOUT) as client:
-            upstream = await client.get(SNIPPETS_API_URL)
-            upstream.raise_for_status()
-            annotations = upstream.json()
-    except httpx.HTTPStatusError, httpx.RequestError, ValueError:
+    annotations = await snippets.list_snippets()
+    if annotations is None:
         return None
     return {str(a["id"]): url for a in annotations if "id" in a and (url := snippet_image_url(a))}
 
