@@ -206,8 +206,10 @@ def create_app() -> FastAPI | None:
             if sentry is not None:
                 return None
             sentry = init_sentry(getattr(infogami.config, "sentry", {}))
+            # Temporary, to compare the frameworks during the migration. Once web.py is gone, drop the
+            # `fastapi` and `framework` tags here and webpy_framework_tag_processor in openlibrary/utils/sentry.py.
             set_tag("fastapi", True)
-            set_tag("server", "fastapi")
+            set_tag("framework", "fastapi")
 
         except Exception:
             logger.exception("Failed to initialize legacy WSGI app")
