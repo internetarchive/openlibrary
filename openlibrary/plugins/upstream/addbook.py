@@ -17,7 +17,7 @@ from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
 from openlibrary.core.helpers import uniq
-from openlibrary.i18n import gettext as _  # noqa: F401 side effects may be needed
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
@@ -559,6 +559,7 @@ class SaveBookHelper:
         delete = user and user.is_super_librarian_or_higher() and formdata.pop("_delete", "")
 
         formdata = utils.unflatten(formdata)
+        series_names = self.get_series_names(formdata) if "work" in formdata and self.use_work_edits(formdata) else []
         work_data, edition_data = self.process_input(formdata)
 
         saveutil = DocSaveHelper()
@@ -577,7 +578,7 @@ class SaveBookHelper:
             saveutil.create_authors_from_form_data(work_data.get("authors") or [], formdata.get("authors") or [])
 
             # Ditto for series
-            saveutil.create_series_from_form_data(work_data.get("series") or [], formdata.get("series") or [])
+            saveutil.create_series_from_form_data(work_data.get("series") or [], series_names)
 
             if not just_editing_work:
                 # Mypy misses that "not just_editing_work" means there is edition data.
@@ -669,6 +670,42 @@ class SaveBookHelper:
     def delete(key, comment=""):
         doc = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
         doc._save(comment=comment)
+
+    @staticmethod
+    def get_series_names(formdata: web.Storage) -> list[str]:
+        """
+        Return the typed name of each series row that will be saved, in the same
+        order as the work's series after trim_doc().
+
+        trim_doc() drops a row whose name, series and position are all empty, so the
+        names have to be filtered the same way; pairing them by position would give a
+        new series the name of another row. A row with a name or a position but no
+        series picked from the suggestions is rejected, rather than failing with a
+        KeyError or being silently dropped (#12309).
+
+        :param web.Storage formdata: unflattened form data, with the names in
+            formdata.series and the rows in formdata.work.series
+        :raises ValidationException: if a row has no series selected
+        """
+        rows = formdata.work.get("series") or []
+        names = formdata.get("series") or []
+        kept_names = []
+        for index, row in enumerate(rows):
+            name = ((names[index] if index < len(names) else None) or "").strip()
+            key = ((row.get("series") or {}).get("key") or "").strip()
+            position = (row.get("position") or "").strip()
+            if key:
+                kept_names.append(name)
+            elif name:
+                raise ValidationException(
+                    _(
+                        'Please choose a series from the suggestions for "%(name)s", or choose "Create a new record for" to add it.',
+                        name=name,
+                    )
+                )
+            elif position:
+                raise ValidationException(_("Please choose a series for the series position %(position)s.", position=position))
+        return kept_names
 
     def process_input(self, i):
         if "edition" in i:

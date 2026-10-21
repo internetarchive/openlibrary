@@ -45,7 +45,10 @@ $jsdef render_series(name_path, dict_path, readonly, i, series):
     </div>
 
 $ config = {'name_path': name_path, 'dict_path': dict_path}
-<div class="multi-input-autocomplete multi-input-autocomplete--series" data-config="$json_encode(config)">
+$ i18n_strings = {
+$     'no_series_selected': _('Please choose a series from the suggestions, or choose "Create a new record for" to add it.')
+$ }
+<div class="multi-input-autocomplete multi-input-autocomplete--series" data-config="$json_encode(config)" data-i18n="$json_encode(i18n_strings)">
     $for series in (series or [storage(name="", key="", position="")]):
         $:render_series(name_path, dict_path, readonly, loop.index0, series)
     <a href="javascript:;" class="mia__add">$_("Add another series?")</a>

@@ -358,8 +358,47 @@ export function initAuthorMultiInputAutocomplete() {
     });
 }
 
+/**
+ * Block saving while a series row has a name or position typed in but no series
+ * picked from the suggestions. The server rejects such a row too (#12309); this
+ * points at the row before the page reloads.
+ * @param {HTMLElement} container - the .multi-input-autocomplete--series element
+ */
+export function initSeriesRowValidation(container) {
+    const form = container.closest('form');
+    if (!form) {
+        return;
+    }
+    const message = JSON.parse(container.dataset.i18n || '{}').no_series_selected;
+
+    // The browser checks validity before the submit event, so a stale message would
+    // block saving even after a series is picked. Typing in the row clears it.
+    container.addEventListener('input', event => {
+        const row = event.target.closest('.ac-input');
+        if (row) {
+            row.querySelector('.ac-input__visible').setCustomValidity('');
+        }
+    });
+
+    form.addEventListener('submit', event => {
+        for (const row of container.querySelectorAll('.ac-input')) {
+            const nameInput = row.querySelector('.ac-input__visible');
+            const keyInput = row.querySelector('.ac-input__value');
+            const positionInput = row.querySelector('.mias__position input');
+            const hasText = nameInput.value.trim() || (positionInput && positionInput.value.trim());
+            if (hasText && !keyInput.value.trim()) {
+                event.preventDefault();
+                nameInput.setCustomValidity(message);
+                nameInput.reportValidity();
+                return;
+            }
+        }
+    });
+}
+
 export function initSeriesMultiInputAutocomplete() {
     initAutocomplete();
+    document.querySelectorAll('.multi-input-autocomplete--series').forEach(initSeriesRowValidation);
     getJqueryElements('.multi-input-autocomplete--series').forEach(jqueryElement => {
         /* Values in the html passed from Python code */
         const dataConfig = JSON.parse(jqueryElement[0].dataset.config);

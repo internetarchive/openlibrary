@@ -3463,6 +3463,10 @@ msgid "Remove this series"
 msgstr ""
 
 #: books/series-autocomplete.html
+msgid "Please choose a series from the suggestions, or choose \"Create a new record for\" to add it."
+msgstr ""
+
+#: books/series-autocomplete.html
 msgid "Add another series?"
 msgstr ""
 
@@ -9283,6 +9287,16 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
+#, python-format
+msgid "Please choose a series from the suggestions for \"%(name)s\", or choose \"Create a new record for\" to add it."
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
+#, python-format
+msgid "Please choose a series for the series position %(position)s."
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py

@@ -3,6 +3,7 @@
 import pytest
 import web
 
+from infogami.core.db import ValidationException
 from openlibrary import accounts
 from openlibrary.mocks.mock_infobase import MockSite
 
@@ -205,6 +206,84 @@ class TestSaveBookHelper:
 
         assert web.ctx.site.get("/works/OL1W").title == "Modified Work Title"
         assert web.ctx.site.get("/books/OL1M").title == "Original Edition Title"
+
+    def _save_work_with_series(self, monkeypatch, series_fields):
+        """Save /works/OL1W from the work edit form with the given series--/work--series-- fields."""
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        web.ctx.site.save_many(
+            [
+                {"type": {"key": "/type/work"}, "key": "/works/OL1W", "title": "Original Work Title"},
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL1W"}],
+                },
+            ]
+        )
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Original Work Title",
+                "edition--title": "Original Edition Title",
+                "edition--works--0--key": "/works/OL1W",
+                **series_fields,
+            }
+        )
+        s = addbook.SaveBookHelper(web.ctx.site.get("/works/OL1W"), web.ctx.site.get("/books/OL1M"))
+        s.save(formdata)
+        return web.ctx.site.get("/works/OL1W")
+
+    @pytest.mark.parametrize(
+        "series_fields",
+        [
+            # A name typed in, but no suggestion (or "Create a new record") picked
+            {"series--0": "Unpicked Saga", "work--series--0--series--key": "", "work--series--0--position": "3"},
+            {"series--0": "Unpicked Saga", "work--series--0--series--key": "", "work--series--0--position": ""},
+            # A position with no series at all
+            {"series--0": "", "work--series--0--series--key": "", "work--series--0--position": "3"},
+        ],
+    )
+    def test_series_row_without_a_selected_series_is_rejected(self, monkeypatch, series_fields):
+        # Used to fail with a KeyError (a 500) instead of telling the user what to fix (#12309)
+        with pytest.raises(ValidationException) as error:
+            self._save_work_with_series(monkeypatch, series_fields)
+        # The message names the row to fix: its series name, or else its position
+        assert (series_fields["series--0"] or series_fields["work--series--0--position"]) in str(error.value)
+        assert web.ctx.site.get("/works/OL1W").get("series") is None
+
+    def test_new_series_gets_the_name_of_its_own_row(self, monkeypatch):
+        # An empty first row is dropped from the work's series, so pairing the remaining
+        # rows with the names by position gave the new series the empty row's name.
+        class Seq:
+            def next_value(self, name):
+                return 100
+
+        monkeypatch.setattr(web.ctx.site, "seq", Seq(), raising=False)
+        work = self._save_work_with_series(
+            monkeypatch,
+            {
+                "series--0": "",
+                "work--series--0--series--key": "",
+                "work--series--0--position": "",
+                "series--1": "Brand New Saga",
+                "work--series--1--series--key": "__new__",
+                "work--series--1--position": "2",
+            },
+        )
+        [edge] = work.series
+        assert edge.position == "2"
+        assert web.ctx.site.get(edge.series.key).name == "Brand New Saga"
+
+    def test_series_rows_with_a_selected_series_still_save(self, monkeypatch):
+        web.ctx.site.save({"type": {"key": "/type/series"}, "key": "/series/OL1L", "name": "Existing Saga"})
+        work = self._save_work_with_series(
+            monkeypatch,
+            {"series--0": "Existing Saga", "work--series--0--series--key": "/series/OL1L", "work--series--0--position": "1"},
+        )
+        [edge] = work.series
+        assert edge.series.key == "/series/OL1L"
+        assert edge.position == "1"
 
     def test_editing_edition(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
