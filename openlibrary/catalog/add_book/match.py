@@ -298,7 +298,7 @@ def compare_author_fields(e1_authors, e2_authors) -> bool:
                 return True
             for i_name in author_name_variants(i["name"]):
                 for j_name in author_name_variants(j["name"]):
-                    if normalize(i_name).strip(".") == normalize(j_name).strip("."):
+                    if normalize(i_name) == normalize(j_name):
                         return True
     return False
 
