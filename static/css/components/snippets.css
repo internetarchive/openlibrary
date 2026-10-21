@@ -82,10 +82,10 @@
   display: block;
   width: 100%;
   height: auto;
-  /* Snippet images are always 3:2; reserving the box keeps the grid from
-     reflowing as they load. */
+  /* Snippet images are nearly always 3:2; a fixed box keeps the grid from
+     reflowing as they load, and contain shows the odd one out uncropped. */
   aspect-ratio: 3 / 2;
-  object-fit: cover;
+  object-fit: contain;
   background-color: var(--color-surface-sunken);
 }
 
