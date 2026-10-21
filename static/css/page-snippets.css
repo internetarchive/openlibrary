@@ -13,6 +13,10 @@
 /* Components (modules) in order of appearance on page */
 @import "components/header-bar.css";
 @import "components/skip-link.css";
+@import "components/buttonGhost.css";
+@import "components/iaBar.css";
+@import "components/buttonBtn.css";
+@import "components/page-banner.css";
 @import "components/header.css";
 @import "components/footer.css";
 @import "components/language.css";
