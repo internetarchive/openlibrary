@@ -1,4 +1,4 @@
-from unittest.mock import PropertyMock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 import web
@@ -121,6 +121,26 @@ class TestUserGroupMembership:
             PropertyMock(return_value=[]),
         )
         assert user.is_super_librarian_or_higher() is False
+
+
+class TestUserIsPrintDisabled:
+    """``User.is_printdisabled()`` must read the unified request context, not
+    ``web.cookies()``: FastAPI has no ``web.ctx``, so reading the ``pd``
+    cookie there always returned nothing and print-disabled patrons lost
+    Special Access on FastAPI-rendered carousels and partials.
+    """
+
+    def test_true_from_request_context(self, request_context_fixture, monkeypatch):
+        # Simulate FastAPI: no web.py request exists, so web.cookies() raises.
+        monkeypatch.setattr(web, "cookies", Mock(side_effect=RuntimeError("no web.py request")))
+        request_context_fixture(print_disabled=True)
+        user = models.User(MockSite(), "/people/test", data={})
+        assert user.is_printdisabled() is True
+
+    def test_false_from_request_context(self, request_context_fixture, monkeypatch):
+        monkeypatch.setattr(web, "cookies", Mock(side_effect=RuntimeError("no web.py request")))
+        user = models.User(MockSite(), "/people/test", data={})
+        assert user.is_printdisabled() is False
 
 
 class MockSite:

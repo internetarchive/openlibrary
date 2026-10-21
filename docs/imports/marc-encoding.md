@@ -47,6 +47,7 @@ Result: `"é"` stored as `"é"` (two characters: base e + combining acute accen
 ```python
 re_brace = re.compile(b"(\\{.+?\\})")
 
+
 def read(input: bytes) -> bytes:
     return re_brace.sub(lambda x: mapping.get(x.group(1), x.group(1)), input)
 ```
@@ -81,7 +82,7 @@ def translate(self, data: bytes) -> str:
     """NFC normalized unicode str"""
     if self.rec.marc8():
         data = mnemonics.read(data)
-        return marc8.translate(data)          # ← no explicit NFC
+        return marc8.translate(data)  # ← no explicit NFC
     return normalize("NFC", data.decode("utf8"))  # ← NFC here
 ```
 
@@ -199,6 +200,7 @@ for tag, field in rec.read_fields():
         translated = field.translate(raw_bytes)
         # Check normalization form:
         import unicodedata
+
         is_nfc = translated == unicodedata.normalize("NFC", translated)
         print(f"{tag}: NFC={is_nfc} value={translated!r}")
 ```
@@ -213,8 +215,8 @@ marc8 = MARC8ToUnicode(quiet=True)
 # A MARC8 field containing é (combining acute + e)
 marc8_bytes = b"\xe2e"  # combining acute BEFORE base e (MARC8 convention)
 result = marc8.translate(marc8_bytes)
-print(f"Result: {result!r}")                              # 'é' (U+00E9) — NFC
-print(f"Is NFC: {is_normalized('NFC', result)}")          # True (pymarc 5.3.1)
-print(f"NFC form: {normalize('NFC', result)!r}")          # same — idempotent
+print(f"Result: {result!r}")  # 'é' (U+00E9) — NFC
+print(f"Is NFC: {is_normalized('NFC', result)}")  # True (pymarc 5.3.1)
+print(f"NFC form: {normalize('NFC', result)!r}")  # same — idempotent
 print(f"Same after NFC: {result == normalize('NFC', result)}")  # True
 ```

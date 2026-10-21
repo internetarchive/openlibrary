@@ -513,29 +513,22 @@ export function initEditLinks() {
  * Initializes edit page.
  *
  * Assumes presence of elements with id:
- *    - '#link_edition'
- *    - '#tabsAddbook'
  *    - '#contentHead'
+ *
+ * A `#tab/field` hash deep-links into the form: <ol-tabs> selects the tab
+ * itself, and this focuses the field with id `tab-field`.
  */
-export function initEdit() {
-    var hash = document.location.hash || '#edition';
-    var tab = hash.split('/')[0];
-    var link = `#link_${tab.substring(1)}`;
-    var fieldname = `:input${hash.replace('/', '-')}`;
-
+export async function initEdit() {
     trimInputValues('.olform input');
 
-    $(link).trigger('click');
-
-    // input field is enabled only after the tab is selected and that takes some time after clicking the link.
-    // wait for 1 sec after clicking the link and focus the input field
-    if ($(fieldname).length !== 0) {
-        setTimeout(function () {
-            // scroll such that top of the content is visible
-            $(fieldname).trigger('focus');
-            $(window).scrollTop($('#contentHead').offset().top);
-        }, 1000);
-    }
+    const [tab, field] = document.location.hash.slice(1).split('/');
+    const input = field && document.getElementById(`${tab}-${field}`);
+    if (!input) return;
+    // The field can only take focus once <ol-tabs> has shown its panel.
+    await customElements.whenDefined('ol-tabs');
+    input.focus();
+    // scroll such that top of the content is visible
+    document.getElementById('contentHead')?.scrollIntoView();
 }
 
 /**

@@ -1,0 +1,123 @@
+/**
+ * ol-tabs — styles for the light-DOM tabs and panels of <ol-tabs>.
+ *
+ * The tabs are server-rendered <a> links and the panels are plain elements,
+ * slotted into the component's shadow root (see OlTabs.js). They're styled here
+ * rather than with ::slotted(), because page rules such as `a:link` beat
+ * ::slotted() and would turn the tabs back into underlined links.
+ *
+ * The look is the site's one tab row: quiet labels on a divider, the selected
+ * one in ink with an underline. Panels get no frame of their own, only a gap
+ * below the row; the page styles their content. Every tab always carries its
+ * underline (transparent when unselected) and keeps one weight, so selecting
+ * re-paints and shifts nothing.
+ *
+ * The same rules cover the moment before the component upgrades, so the markup
+ * already reads as a row of tabs over the panel the component will select: the
+ * hash's (`:target`), else the one marked `data-selected`, else the first.
+ * Panels are only collapsed early when JS is expected (`body.client-js`):
+ * without JS every panel stays visible and the tabs work as in-page links. If
+ * the component fails to load, the tabs still switch panels through `:target`.
+ */
+
+ol-tabs {
+  display: block;
+}
+
+/* Before upgrade the host lays out the row itself; after, its shadow tablist does. */
+ol-tabs:not(:defined) {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--spacing-lg);
+}
+
+ol-tabs > a[slot="tab"] {
+  flex-shrink: 0;
+  padding: var(--spacing-sm) 0;
+  border-bottom: var(--border-width-thick) solid transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-label-large);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-control);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* Before upgrade, mark the first tab when it's the one that will be selected.
+   CSS can't match a tab to a marked or targeted panel, so those go unmarked. */
+:where(
+    .client-js
+      ol-tabs:not(
+        :defined,
+        :has(> :not([slot]):target),
+        :has(> [data-selected])
+      )
+  )
+  > a[slot="tab"]:first-child {
+  border-bottom-color: var(--color-text);
+  color: var(--color-text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  ol-tabs > a[slot="tab"]:hover {
+    color: var(--color-text);
+  }
+}
+
+ol-tabs > a[slot="tab"][aria-selected="true"] {
+  border-bottom-color: var(--color-text);
+  color: var(--color-text);
+  cursor: default;
+}
+
+ol-tabs > a[slot="tab"]:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: calc(-1 * var(--focus-width));
+  border-radius: var(--border-radius-sm);
+}
+
+/* A panel is only focusable when it has no focusable content; ring it
+   outside its box so the ring doesn't sit on the content's own edges. */
+ol-tabs > [role="tabpanel"]:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--spacing-2xs);
+  border-radius: var(--border-radius-sm);
+}
+
+/* Panels sit a stack gap below the tab row. */
+ol-tabs > :not([slot]) {
+  margin-block-start: var(--spacing-stack-md);
+}
+
+/* Before upgrade the panels share the host's flex row; each takes a full line. */
+ol-tabs:not(:defined) > :not([slot]) {
+  flex-basis: 100%;
+}
+
+/* Page CSS that sets display on a panel must not un-hide it. */
+ol-tabs > [hidden] {
+  display: none !important;
+}
+
+/* Before upgrade only one panel shows, chosen as in the header. Each rule
+   hides the others and never all of them, so a panel is always usable. */
+:where(.client-js ol-tabs:not(:defined):has(> :not([slot]):target))
+  > :not([slot], :target),
+:where(
+    .client-js
+      ol-tabs:not(:defined, :has(> :not([slot]):target)):has(> [data-selected])
+  )
+  > :not([slot], [data-selected]),
+:where(
+    .client-js
+      ol-tabs:not(
+        :defined,
+        :has(> :not([slot]):target),
+        :has(> [data-selected])
+      )
+  )
+  > :not([slot])
+  ~ :not([slot]) {
+  display: none;
+}

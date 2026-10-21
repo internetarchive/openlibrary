@@ -199,6 +199,29 @@ class TestAuthors:
         assert threshold_match(rec1, rec2, THRESHOLD) is True
 
 
+class TestAuthorNameOrder:
+    """
+    MARC records store personal names inverted ("Link, Katharina"), while Open
+    Library stores them in natural order ("Katharina Link"). The same author
+    must match whichever order the source record happened to use.
+    """
+
+    def test_compare_authors_inverted_vs_natural(self):
+        inverted = {"authors": [{"name": "Link, Katharina"}], "title": "Test title"}
+        natural = {"authors": [{"name": "Katharina Link"}], "title": "Test title"}
+        assert compare_authors(expand_record(inverted), expand_record(natural)) == ("authors", "exact match", 125)
+
+    def test_compare_authors_natural_vs_inverted(self):
+        natural = {"authors": [{"name": "Katharina Link"}], "title": "Test title"}
+        inverted = {"authors": [{"name": "Link, Katharina"}], "title": "Test title"}
+        assert compare_authors(expand_record(natural), expand_record(inverted)) == ("authors", "exact match", 125)
+
+    def test_compare_authors_different_surnames_still_mismatch(self):
+        inverted = {"authors": [{"name": "Link, Katharina"}], "title": "Test title"}
+        natural = {"authors": [{"name": "Michael Brown"}], "title": "Test title"}
+        assert compare_authors(expand_record(inverted), expand_record(natural)) == ("authors", "mismatch", -200)
+
+
 class TestTitles:
     def test_build_titles(self):
         # Used by openlibrary.catalog.merge.merge_marc.expand_record()
@@ -420,3 +443,30 @@ class TestRecordMatching:
         }
         assert threshold_match(potential_match, existing_edition, THRESHOLD) is False
         assert threshold_match(existing_edition, potential_match, THRESHOLD) is False
+
+    def test_match_inverted_author_name(self):
+        """
+        Regression test for #13656.
+
+        A DNB MARC record stores its author inverted ("Link, Katharina") and
+        carries no ISBN, OCAID or LCCN, so both the fast and the slow matching
+        paths fall back to the title/author threshold. The stored edition uses
+        natural name order, and the inverted name scored as a mismatch, so
+        every re-import fell below the threshold and created a new edition.
+        """
+        existing_edition = {
+            "authors": [{"name": "Katharina Link"}],
+            "title": "Begleitfehlbildungen bei kongenitaler Zwerchfellhernie",
+            "publish_date": "2010",
+            "publish_country": "gw",
+            "number_of_pages": 91,
+        }
+        potential_match = {
+            "authors": [{"name": "Link, Katharina"}],
+            "title": "Begleitfehlbildungen bei kongenitaler Zwerchfellhernie",
+            "publish_date": "2010",
+            "publish_country": "gw",
+            "number_of_pages": 91,
+            "source_records": ["marc:marc_dnb_202006/dnb_all_dnbmarc_20200615-3.mrc:17091:1027"],
+        }
+        assert threshold_match(potential_match, existing_edition, THRESHOLD) is True

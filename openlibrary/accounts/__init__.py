@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 from typing import TYPE_CHECKING
 
 import web
@@ -90,7 +90,7 @@ def get_days_registered(user) -> str:
         return "visitor"
     try:
         reg_date = user.created.date()
-        days = (datetime.datetime.now(datetime.UTC).date() - reg_date).days
+        days = (dt.datetime.now(dt.UTC).date() - reg_date).days
     except AttributeError, TypeError:
         # If the date is incorrectly encoded, assume the patron
         # registered a long time ago before we had this set up.

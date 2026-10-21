@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Open Library plugin for infobase."""
 
-import datetime
+import datetime as dt
 import functools
 import json
 import logging
@@ -294,7 +294,7 @@ def save_error(dir, prefix):
     try:
         logger.error("Error", exc_info=True)
         error = web.djangoerror()
-        now = datetime.datetime.utcnow()
+        now = dt.datetime.utcnow()
         path = "%s/%04d-%02d-%02d/%s-%02d%02d%02d.%06d.html" % (
             dir,
             now.year,

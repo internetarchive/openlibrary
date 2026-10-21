@@ -66,7 +66,7 @@ See https://github.com/internetarchive/openlibrary/issues/13685 and
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import json
 import logging
 from typing import TYPE_CHECKING, Protocol
@@ -96,7 +96,7 @@ MAX_COOKIE_BYTES = 3800
 """Stay under the ~4 KiB per-cookie cap browsers enforce, with headroom for the
 cookie's own name and attributes. See :meth:`CookieTokenStore.save`."""
 
-EXPIRY_SKEW = datetime.timedelta(seconds=60)
+EXPIRY_SKEW = dt.timedelta(seconds=60)
 """Treat an access token as expired this far before its stated expiry.
 
 A token that is valid when we check it and expired when the provider sees it is
@@ -105,7 +105,7 @@ a failed borrow. Lenny's access tokens last an hour (``wiki/lenny-oauth.md``,
 """
 
 
-def _utcnow() -> datetime.datetime:
+def _utcnow() -> dt.datetime:
     """Timezone-naive UTC now, matching the table's ``timestamp`` columns.
 
     Naive throughout this module, deliberately: the node sends timezone-aware
@@ -113,7 +113,7 @@ def _utcnow() -> datetime.datetime:
     a wrong answer, so every aware value is normalised on the way in (see
     :func:`openlibrary.plugins.upstream.lenny._grant_from_payload`).
     """
-    return datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+    return dt.datetime.now(dt.UTC).replace(tzinfo=None)
 
 
 class TokenRefreshFailed(Exception):
@@ -138,7 +138,7 @@ class Grant:
         self,
         access_token: str,
         refresh_token: str | None = None,
-        expires: datetime.datetime | None = None,
+        expires: dt.datetime | None = None,
         scope: str = "",
     ) -> None:
         self.access_token = access_token
@@ -146,7 +146,7 @@ class Grant:
         self.expires = expires
         self.scope = scope
 
-    def is_expired(self, now: datetime.datetime | None = None) -> bool:
+    def is_expired(self, now: dt.datetime | None = None) -> bool:
         """Whether this access token should be treated as spent.
 
         A grant with no stated expiry is never expired: the provider did not
@@ -442,7 +442,7 @@ def _decode(raw: dict) -> Grant:
     return Grant(
         access_token=raw["a"],
         refresh_token=raw.get("r"),
-        expires=datetime.datetime.fromisoformat(expires) if expires else None,
+        expires=dt.datetime.fromisoformat(expires) if expires else None,
         scope=raw.get("s") or "",
     )
 
