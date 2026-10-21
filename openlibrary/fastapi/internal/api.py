@@ -496,7 +496,7 @@ async def public_observations(
     Public observations fetches anonymized community reviews
     for a list of works. Useful for decorating search results.
     """
-    return {"observations": {w: get_observation_metrics(w) for w in olid}}
+    return {"observations": {w: await get_observation_metrics(w) for w in olid}}
 
 
 class BestbookAwardResponse(BaseModel):

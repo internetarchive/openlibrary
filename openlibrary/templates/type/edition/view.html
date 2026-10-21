@@ -114,7 +114,7 @@ $ star_ratings_stats_mobile = macros.StarRatingsStats(work, mobile=True, microda
 $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
 
 $ component_times['get_observation_metrics'] = time()
-$ reader_observations = get_observation_metrics(work['key']) if show_observations else {}
+$ reader_observations = get_observation_metrics_sync(work['key']) if show_observations else {}
 $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
 
 $ component_times['affiliate_links component'] = time()
