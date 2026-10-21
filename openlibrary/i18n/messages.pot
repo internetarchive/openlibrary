@@ -3009,6 +3009,10 @@ msgid "Are you sure that's the published date?"
 msgstr ""
 
 #: books/add.html
+msgid "Please enter a valid URL starting with http:// or https://"
+msgstr ""
+
+#: books/add.html
 msgid "Add a book to Open Library"
 msgstr ""
 
