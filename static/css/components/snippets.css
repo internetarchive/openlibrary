@@ -1,0 +1,168 @@
+/**
+ * Snippets feed grid.
+ * See openlibrary/templates/snippets.html and js/snippets.js (/snippets).
+ */
+.snippets-intro {
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-stack-lg);
+}
+
+.snippets-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: var(--spacing-stack-xl) var(--spacing-inline-xl);
+}
+
+/* One per row on narrow screens so the page image stays readable. */
+@media (max-width: 600px) {
+  .snippets-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.snippets-grid__status {
+  grid-column: 1 / -1;
+  color: var(--color-text-secondary);
+}
+
+.snippets-grid__item {
+  margin: 0;
+}
+
+/* One snippet: the page image on top, the book's bar under it. */
+.snippet-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-lg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .snippet-card:hover {
+    border-color: var(--color-border-hover);
+  }
+}
+
+/* Admin-only delete control, overlaid on the image's top-left corner. */
+.snippet-card__delete {
+  position: absolute;
+  top: var(--spacing-stack-xs);
+  left: var(--spacing-stack-xs);
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1em;
+  line-height: 1;
+  color: var(--color-error-fg);
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-control-border);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.snippet-card__delete:hover {
+  background-color: var(--color-error-bg);
+  border-color: var(--color-error-border);
+}
+
+.snippet-card__image-link {
+  display: block;
+}
+
+.snippet-card__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* Snippet images are nearly always 3:2; a fixed box keeps the grid from
+     reflowing as they load, and contain shows the odd one out uncropped. */
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+  background-color: var(--color-surface-sunken);
+}
+
+/* Cover | title + authors | shelf button. The bar is only as tall as its text;
+   the cover is taller and rises out of it over the bottom of the page image.
+   The drop-shadow outlines the bar and the cover as one shape. */
+.snippet-card__bar {
+  --snippet-cover-width: 56px;
+  --snippet-cover-frame: 3px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  padding: var(--spacing-stack-sm) var(--spacing-inline-md);
+  padding-left: calc(var(--spacing-inline-md) * 2 + var(--snippet-cover-width));
+  background-color: var(--color-surface-raised);
+  filter: drop-shadow(
+    0 0 1px color-mix(in srgb, var(--ink-overlay) 45%, transparent)
+  );
+}
+
+.snippet-card__cover {
+  position: absolute;
+  left: var(--spacing-inline-md);
+  bottom: var(--spacing-stack-sm);
+  width: var(--snippet-cover-width);
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background-color: var(--color-surface-sunken);
+  /* Card-coloured, so the cover reads as cut out of the bar. */
+  border: var(--snippet-cover-frame) solid var(--color-surface-raised);
+  border-radius: 7px;
+}
+
+.snippet-card__cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: calc(7px - var(--snippet-cover-frame));
+}
+
+.snippet-card__meta {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-meta);
+}
+
+.snippet-card .snippet-card__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.snippet-card__authors {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.snippet-card .snippet-card__authors a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.snippet-card .snippet-card__title:hover,
+.snippet-card__authors a:hover {
+  text-decoration: underline;
+}
+
+.snippet-card__actions {
+  flex: none;
+}
