@@ -406,14 +406,18 @@ def provider_dedupe_key(name: object) -> str | None:
     return _provider_name_lookup().get(squashed, squashed)
 
 
-@functools.cache
 def _feed_display_name(provider_name: str) -> str | None:
     """A harvested provider's human-readable name, or None if we have none.
 
     ``provider_name`` on a row is a slug (``project_gutenberg``), which is not
-    a label. Open Library knows a display name only for providers that exist
-    in ``book_providers``; a feed-only provider (lenny) has none, and the key
-    is then left off rather than echoing the slug back as if it were one.
+    a label. Open Library knows a display name only for providers registered
+    in ``book_providers``; anything else has none, and the key is then left
+    off rather than echoing the slug back as if it were a label.
+
+    Deliberately not cached. ``PROVIDER_ORDER`` holds provider *instances*,
+    and ``provider_name`` is a property over attributes that are not frozen,
+    so memoizing this would pin whatever the registry happened to say the
+    first time it was asked. The lookup is a scan of about a dozen objects.
     """
     from openlibrary.book_providers import get_book_provider_by_name
 

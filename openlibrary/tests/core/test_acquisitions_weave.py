@@ -974,7 +974,7 @@ class TestSourcePublicationAndFeedName:
         store(
             36620178,
             "project_gutenberg",
-            "1",
+            "s-1",
             link,
             acquisitions=[{"access": "borrow", "url": link["href"], "source_url": "https://feed.test/opds/pub/1", "link": link}],
         )
@@ -988,21 +988,35 @@ class TestSourcePublicationAndFeedName:
 
         A feed that could set them would be choosing where Open Library says a
         book came from, and under whose name.
+
+        Asserted as "never the feed's value" rather than "absent": what a
+        provider name resolves to is the registry's business and can change,
+        while the rule being pinned here is only that the answer is ours.
         """
         link = {"rel": BORROW_REL, "href": "https://feed.test/borrow/1", "source_url": "https://evil.test/pub/1", "feed_name": "Internet Archive"}
-        store(36620178, "lenny", "1", link, acquisitions=[{"access": "borrow", "url": link["href"], "link": link}])
+        store(36620178, "a_feed_we_do_not_know", "f-1", link, acquisitions=[{"access": "borrow", "url": link["href"], "link": link}])
         (out,) = opds_links_for_edition(Acquisition.get_by_editions([36620178])[36620178])
         assert "source_url" not in out
-        # Feed-only provider: no `book_providers` entry, so no display name,
-        # and the slug is not echoed back as though it were one.
+        assert out.get("feed_name") != "Internet Archive"
+        # Unregistered, so there is no display name to publish and the slug is
+        # not echoed back as though it were one.
         assert "feed_name" not in out
+
+    def test_our_display_name_replaces_the_one_a_feed_supplied(self, acquisitions_db):
+        """Replaced, not merely dropped. Project Gutenberg is always in the
+        registry, so this pins the positive half of the rule above without
+        depending on how any other name happens to resolve."""
+        link = {"rel": BUY_REL, "href": "https://feed.test/buy/1", "feed_name": "Internet Archive"}
+        store(36620178, "project_gutenberg", "g-1", link, acquisitions=[{"access": "buy", "url": link["href"], "link": link}])
+        (out,) = opds_links_for_edition(Acquisition.get_by_editions([36620178])[36620178])
+        assert out["feed_name"] == "Project Gutenberg"
 
     def test_a_harvested_source_url_must_also_be_safe(self, acquisitions_db):
         link = {"rel": BORROW_REL, "href": "https://feed.test/borrow/1"}
         store(
             36620178,
-            "lenny",
-            "1",
+            "a_feed_we_do_not_know",
+            "u-1",
             link,
             acquisitions=[{"access": "borrow", "url": link["href"], "source_url": "javascript:alert(1)", "link": link}],
         )
