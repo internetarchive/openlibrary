@@ -32,8 +32,8 @@ plus booleans like `available_to_borrow` / `available_to_waitlist`.
 
 `POST /books/{key}/borrow` → `borrow.py` checks open-access (read directly, no
 loan) → `lending.get_availability()` → verifies login + IA S3 credentials →
-`user_can_borrow_edition()` → `lending.s3_loan_api(... action="borrow_book")`
-POSTs to archive.org → OL builds a signed BookReader auth link and redirects.
+`user_can_borrow_edition_async()` (in `borrow.py`) →
+`lending.s3_loan_api(... action="borrow_book")` POSTs to archive.org → OL builds a signed BookReader auth link and redirects.
 Loans run 14 days; an unfulfilled loan is treated as abandoned after a few
 minutes. When all copies are out, readers join the waiting list
 (`waitinglist.py`).

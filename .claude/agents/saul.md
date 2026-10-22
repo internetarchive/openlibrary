@@ -52,9 +52,12 @@ work `subject_facet` values at query time.
   numeric queries. New fields need the schema applied to production **first** —
   flag schema-first ordering in the PR.
 - A schema change requires a **full reindex**; say so in the PR.
-- `ebook_access` (a static enum: highest access tier) is a different field from
-  `ebook_availability` (a near-realtime "borrowable right now?" string) and
-  `ebook_provider`. Don't conflate them when touching availability filters.
+- The shipped ebook fields are `ebook_access` (a static enum, field type
+  `ebookAccessLevel`, for the highest access tier) and `ebook_provider` — don't
+  conflate "what access tier?" with "who provides it?". A near-realtime
+  "borrowable right now?" availability field is **not** in
+  `managed-schema.xml` today (its Solr indexing is still proposed), so confirm a
+  field exists in the schema before filtering on availability.
 - `AVAILABILITY_TO_PARAMS` in `worksearch/code.py` must stay in sync with the JS
   frontend constants.
 - The default query timeout caps latency, not CPU cost — it returns partial
