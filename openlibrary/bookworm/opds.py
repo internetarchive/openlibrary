@@ -166,8 +166,17 @@ def build_acquisitions(pub: Publication, feed: Feed, local_id: str) -> list[dict
     convenience copy of values already inside ``link``.
     """
     items = []
+    # Read once, outside the loop: `self` identifies the publication, so every
+    # acquisition link on it shares the same one. `extract_local_id` already
+    # reads this for the `self_link` id strategy and drops the URL once it has
+    # the id; keeping it is the difference between a consumer being able to
+    # follow an acquisition back to its source record and having to
+    # reverse-engineer the URL per provider.
+    source_url = pub.self_href()
     for link in pub.acquisition_links():
         data: dict[str, Any] = {"access": ACQUISITION_ACCESS[link.rel], "url": link.href}
+        if source_url:
+            data["source_url"] = source_url
         if link.type:
             data["format"] = link.type
         if link.title:
