@@ -14,6 +14,7 @@ from openlibrary.catalog.marc.parse import (
     read_author_person,
     read_description,
     read_edition,
+    read_notes,
 )
 
 collection_tag = "{http://www.loc.gov/MARC21/slim}collection"
@@ -297,10 +298,8 @@ class TestReadDescription:
             (" ", "The note."),  # Summary is the default and takes no label
             ("8", "The note."),  # 8 generates no display constant
             ("0", "Subject: The note."),
-            ("1", "Review: The note."),
             ("2", "Scope and content: The note."),
             ("3", "Abstract: The note."),
-            ("4", "Content advice: The note."),
         ],
     )
     def test_first_indicator_labels(self, ind1, expect):
@@ -319,17 +318,17 @@ class TestReadDescription:
               <subfield code="a">"A gripping tale."--</subfield>
               <subfield code="c">Back cover.</subfield>
             </datafield>
-            <datafield tag="520" ind1="1" ind2=" ">
-              <subfield code="a">"Horn is at the top of his game."--</subfield>
-              <subfield code="c">Booklist.</subfield>
+            <datafield tag="520" ind1="3" ind2=" ">
+              <subfield code="a">An unusually long account of the tale.--</subfield>
+              <subfield code="c">Publisher.</subfield>
             </datafield>"""
         )
-        assert read_description(rec) == ('"A gripping tale."--Back cover.\n\nReview: "Horn is at the top of his game."--Booklist.')
+        assert read_description(rec) == ('"A gripping tale."--Back cover.\n\nAbstract: An unusually long account of the tale.--Publisher.')
 
     def test_empty_520_contributes_nothing(self):
         rec = marc_520(
             """
-            <datafield tag="520" ind1="1" ind2=" ">
+            <datafield tag="520" ind1=" " ind2=" ">
               <subfield code="a"></subfield>
             </datafield>
             <datafield tag="520" ind1=" " ind2=" ">
@@ -337,3 +336,40 @@ class TestReadDescription:
             </datafield>"""
         )
         assert read_description(rec) == "Kept."
+
+    @pytest.mark.parametrize(
+        ("ind1", "expect"),
+        [
+            ("1", 'Review: "Horn is at the top of his game."--Booklist.'),
+            ("4", 'Content advice: "Horn is at the top of his game."--Booklist.'),
+        ],
+    )
+    def test_reviews_and_content_advice_go_to_notes(self, ind1, expect):
+        rec = marc_520(
+            f"""
+            <datafield tag="500" ind1=" " ind2=" ">
+              <subfield code="a">A general note.</subfield>
+            </datafield>
+            <datafield tag="520" ind1="{ind1}" ind2=" ">
+              <subfield code="a">"Horn is at the top of his game."--</subfield>
+              <subfield code="c">Booklist.</subfield>
+            </datafield>
+            <datafield tag="538" ind1=" " ind2=" ">
+              <subfield code="a">System requirements: a working ereader.</subfield>
+            </datafield>"""
+        )
+        assert read_description(rec) == ""
+        assert read_notes(rec) == (f"A general note.\n\n{expect}\n\nSystem requirements: a working ereader.")
+
+    def test_summaries_stay_out_of_notes(self):
+        rec = marc_520(
+            """
+            <datafield tag="520" ind1=" " ind2=" ">
+              <subfield code="a">A summary.</subfield>
+            </datafield>
+            <datafield tag="520" ind1="1" ind2=" ">
+              <subfield code="a">A review.</subfield>
+            </datafield>"""
+        )
+        assert read_description(rec) == "A summary."
+        assert read_notes(rec) == "Review: A review."
