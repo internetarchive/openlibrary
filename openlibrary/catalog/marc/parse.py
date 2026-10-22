@@ -41,6 +41,7 @@ re_ocolc = re.compile("^ocolc *$", re.IGNORECASE)
 re_ocn_or_ocm = re.compile(r"^oc[nm]0*(\d+) *$")
 re_int = re.compile(r"\d{2,}")
 re_bracket_field = re.compile(r"^\s*(\[.*\])\.?\s*$")
+re_trailing_dashes = re.compile(r"\s*--\s*$")
 
 
 ROLES = {
@@ -595,20 +596,54 @@ def read_series(rec: MarcBase) -> list[str]:
     return remove_duplicates(found)
 
 
+# The 520 first indicator selects the display constant that introduces the
+# note; see https://www.loc.gov/marc/bibliographic/bd520.html. Blank (Summary)
+# and 8 (no display constant) take no label, since a description reads as a
+# summary by default. Reviews and content advice are not descriptions of the
+# book, so they go to notes rather than description.
+DISPLAY_CONSTANTS_520 = {
+    "0": "Subject",
+    "1": "Review",
+    "2": "Scope and content",
+    "3": "Abstract",
+    "4": "Content advice",
+}
+NOTE_INDICATORS_520 = frozenset("14")  # Review, Content advice
+
+
+def read_520(f: MarcFieldBase) -> str:
+    """One 520 field as display text, labeled by its first indicator.
+
+    $a is the note and $b its expansion. $a often ends in the ISBD "--"
+    that introduces the assigning source in $c, so the join below
+    normalizes to one "--" whether or not the record carries its own:
+    $a"...a killer?"--$cProvided by publisher.
+    """
+    text = re_trailing_dashes.sub("", " ".join(f.get_subfield_values("ab")))
+    if source := " ".join(f.get_subfield_values("c")):
+        text = f"{text}--{source}" if text else source
+    if text and (label := DISPLAY_CONSTANTS_520.get(f.ind1())):
+        text = f"{label}: {text}"
+    return text
+
+
 def read_notes(rec: MarcBase) -> str:
     found = []
     for tag in range(500, 590):
-        if tag in (505, 520, 583):
+        if tag in (505, 583):
             continue
         fields = rec.get_fields(str(tag))
         for f in fields:
+            if tag == 520:
+                if f.ind1() in NOTE_INDICATORS_520 and (text := read_520(f)):
+                    found.append(text)
+                continue
             found.append(" ".join(f.get_lower_subfield_values()).strip())
     return "\n\n".join(found)
 
 
 def read_description(rec: MarcBase) -> str:
-    fields = rec.get_fields("520")
-    found = [v for f in fields for v in f.get_subfield_values("a")]
+    found = [text for f in rec.get_fields("520") if f.ind1() not in NOTE_INDICATORS_520 and (text := read_520(f))]
     return "\n\n".join(found)
 
 

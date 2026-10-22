@@ -12,7 +12,9 @@ from openlibrary.catalog.marc.parse import (
     NoTitle,
     SeeAlsoAsTitle,
     read_author_person,
+    read_description,
     read_edition,
+    read_notes,
 )
 
 collection_tag = "{http://www.loc.gov/MARC21/slim}collection"
@@ -221,3 +223,153 @@ class TestParse:
 
         assert result["name"] == "Mother Teresa"
         assert result["title"] == "Mother Teresa"
+
+
+def marc_520(datafields: str) -> MarcXml:
+    xml = f"""
+    <record xmlns="http://www.loc.gov/MARC21/slim">
+      <leader>00000cam a2200000 a 4500</leader>
+      {datafields}
+    </record>"""
+    return MarcXml(etree.fromstring(xml, parser=lxml.etree.XMLParser(resolve_entities=False)))
+
+
+class TestReadDescription:
+    @pytest.mark.parametrize(
+        ("summary", "expect"),
+        [
+            # The ISBD "--" in $a introduces the source, so it folds into the join.
+            (
+                '...which one of them is a killer?"--',
+                '...which one of them is a killer?"--Provided by publisher.',
+            ),
+            # A record without its own "--" gets the same separator.
+            (
+                "A summary with no dashes.",
+                "A summary with no dashes.--Provided by publisher.",
+            ),
+            # A "--" in the middle of the text is left alone.
+            (
+                "Volume one -- volume two.--",
+                "Volume one -- volume two.--Provided by publisher.",
+            ),
+        ],
+    )
+    def test_source_joined_with_isbd_dashes(self, summary, expect):
+        rec = marc_520(
+            f"""
+            <datafield tag="520" ind1=" " ind2=" ">
+              <subfield code="a">{summary}</subfield>
+              <subfield code="c">Provided by publisher.</subfield>
+            </datafield>"""
+        )
+        assert read_description(rec) == expect
+
+    @pytest.mark.parametrize(
+        ("summary", "expect"),
+        [
+            ('...caught in its widening gyre" --', '...caught in its widening gyre"'),
+            ("...in the author's own words'-- ", "...in the author's own words'"),
+            ("A summary with no source.", "A summary with no source."),
+        ],
+    )
+    def test_trailing_dashes_stripped_without_source(self, summary, expect):
+        rec = marc_520(
+            f"""
+            <datafield tag="520" ind1=" " ind2=" ">
+              <subfield code="a">{summary}</subfield>
+            </datafield>"""
+        )
+        assert read_description(rec) == expect
+
+    def test_expansion_follows_summary(self):
+        rec = marc_520(
+            """
+            <datafield tag="520" ind1="3" ind2=" ">
+              <subfield code="a">A short abstract.</subfield>
+              <subfield code="b">A much longer expansion of the abstract.</subfield>
+            </datafield>"""
+        )
+        assert read_description(rec) == "Abstract: A short abstract. A much longer expansion of the abstract."
+
+    @pytest.mark.parametrize(
+        ("ind1", "expect"),
+        [
+            (" ", "The note."),  # Summary is the default and takes no label
+            ("8", "The note."),  # 8 generates no display constant
+            ("0", "Subject: The note."),
+            ("2", "Scope and content: The note."),
+            ("3", "Abstract: The note."),
+        ],
+    )
+    def test_first_indicator_labels(self, ind1, expect):
+        rec = marc_520(
+            f"""
+            <datafield tag="520" ind1="{ind1}" ind2=" ">
+              <subfield code="a">The note.</subfield>
+            </datafield>"""
+        )
+        assert read_description(rec) == expect
+
+    def test_multiple_520_fields_are_paragraphs(self):
+        rec = marc_520(
+            """
+            <datafield tag="520" ind1=" " ind2=" ">
+              <subfield code="a">"A gripping tale."--</subfield>
+              <subfield code="c">Back cover.</subfield>
+            </datafield>
+            <datafield tag="520" ind1="3" ind2=" ">
+              <subfield code="a">An unusually long account of the tale.--</subfield>
+              <subfield code="c">Publisher.</subfield>
+            </datafield>"""
+        )
+        assert read_description(rec) == ('"A gripping tale."--Back cover.\n\nAbstract: An unusually long account of the tale.--Publisher.')
+
+    def test_empty_520_contributes_nothing(self):
+        rec = marc_520(
+            """
+            <datafield tag="520" ind1=" " ind2=" ">
+              <subfield code="a"></subfield>
+            </datafield>
+            <datafield tag="520" ind1=" " ind2=" ">
+              <subfield code="a">Kept.</subfield>
+            </datafield>"""
+        )
+        assert read_description(rec) == "Kept."
+
+    @pytest.mark.parametrize(
+        ("ind1", "expect"),
+        [
+            ("1", 'Review: "Horn is at the top of his game."--Booklist.'),
+            ("4", 'Content advice: "Horn is at the top of his game."--Booklist.'),
+        ],
+    )
+    def test_reviews_and_content_advice_go_to_notes(self, ind1, expect):
+        rec = marc_520(
+            f"""
+            <datafield tag="500" ind1=" " ind2=" ">
+              <subfield code="a">A general note.</subfield>
+            </datafield>
+            <datafield tag="520" ind1="{ind1}" ind2=" ">
+              <subfield code="a">"Horn is at the top of his game."--</subfield>
+              <subfield code="c">Booklist.</subfield>
+            </datafield>
+            <datafield tag="538" ind1=" " ind2=" ">
+              <subfield code="a">System requirements: a working ereader.</subfield>
+            </datafield>"""
+        )
+        assert read_description(rec) == ""
+        assert read_notes(rec) == (f"A general note.\n\n{expect}\n\nSystem requirements: a working ereader.")
+
+    def test_summaries_stay_out_of_notes(self):
+        rec = marc_520(
+            """
+            <datafield tag="520" ind1=" " ind2=" ">
+              <subfield code="a">A summary.</subfield>
+            </datafield>
+            <datafield tag="520" ind1="1" ind2=" ">
+              <subfield code="a">A review.</subfield>
+            </datafield>"""
+        )
+        assert read_description(rec) == "A summary."
+        assert read_notes(rec) == "Review: A review."
