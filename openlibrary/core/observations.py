@@ -829,10 +829,6 @@ class Observations(db.CommonExtras):
         return {i["type"]: i["total_respondents"] for i in rows}
 
     @classmethod
-    def count_unique_respondents_by_type_sync(cls, work_id):
-        return async_bridge.run(cls.count_unique_respondents_by_type(work_id))
-
-    @classmethod
     async def count_observations(cls, work_id):
         """
         For a given work, fetches the count of each observation made for the work.  Counts are returned in
@@ -865,10 +861,6 @@ class Observations(db.CommonExtras):
             ORDER BY type_id, total DESC"""
 
         return await fetch_all(query, data)
-
-    @classmethod
-    def count_observations_sync(cls, work_id):
-        return async_bridge.run(cls.count_observations(work_id))
 
     @classmethod
     def count_distinct_observations(cls, username):
