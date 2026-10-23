@@ -33,6 +33,15 @@ SERVERS=${SERVERS:-"ol-web0 ol-web2 ol-web3"}
 PROXY="http://http-proxy.us.archive.org:8080"
 APPLY_OPTIONS=${APPLY_OPTIONS:-""}
 
+# Check every host before patching any, so a missing permission can't leave the
+# servers half patched.
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+echo "Checking server access..."
+if ! check_docker_access $(printf "%s.us.archive.org " $SERVERS); then
+    exit 1
+fi
+echo
+
 echo "Applying patch ${PATCH_URL} to ${SERVERS}:"
 
 for host in $SERVERS; do
