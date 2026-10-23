@@ -8,7 +8,7 @@ from typing import Any, Literal, TypedDict, cast
 import web
 
 from infogami.infobase.utils import flatten
-from openlibrary.core.async_db import fetch_all, fetch_val
+from openlibrary.core.async_db import connection, fetch_all, fetch_val
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
@@ -587,77 +587,104 @@ class Bookshelves(db.CommonExtras):
         return list(oldb.query(query, vars=data))
 
     @classmethod
-    def get_users_read_status_of_work(cls, username: str, work_id: str) -> int | None:
-        """A user can mark a book as (1) want to read, (2) currently reading,
-        (3) already read, or (4) stopped reading. Each of these states is mutually
-        exclusive. Returns the user's read state of this work, if one
-        exists.
-        """
-        oldb = db.get_db()
-        data = {"username": username, "work_id": int(work_id)}
-        bookshelf_ids = ",".join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
-        query = "SELECT bookshelf_id from bookshelves_books WHERE bookshelf_id=ANY('{" + bookshelf_ids + "}'::int[]) AND username=$username AND work_id=$work_id"
-        result = list(oldb.query(query, vars=data))
-        return result[0].bookshelf_id if result else None
+    async def get_users_read_status_of_work(cls, username: str, work_id: str | int) -> int | None:
+        """Return a user's reading-log shelf for a work, if present."""
+        query = "SELECT bookshelf_id FROM bookshelves_books WHERE bookshelf_id = ANY(%(bookshelf_ids)s) AND username = %(username)s AND work_id = %(work_id)s"
+        return await fetch_val(
+            query,
+            {"bookshelf_ids": list(cls.PRESET_BOOKSHELVES.values()), "username": username, "work_id": int(work_id)},
+        )
+
+    @classmethod
+    def get_users_read_status_of_work_sync(cls, username: str, work_id: str | int) -> int | None:
+        return async_bridge.run(cls.get_users_read_status_of_work(username, work_id))
 
     @classmethod
     def user_has_read_work(cls, username: str, work_id: str) -> bool:
-        user_read_status = cls.get_users_read_status_of_work(username, work_id)
+        user_read_status = cls.get_users_read_status_of_work_sync(username, work_id)
         return user_read_status == cls.PRESET_BOOKSHELVES["Already Read"]
 
     @classmethod
-    async def get_users_read_status_of_works(cls, username: str, work_ids: list[int]) -> list[dict]:
-        if not work_ids:
-            return []
-        query = "SELECT work_id, bookshelf_id FROM bookshelves_books WHERE username = %(username)s AND work_id = ANY(%(work_ids)s)"
-        return await fetch_all(query, {"username": username, "work_ids": work_ids})
+    def get_users_read_status_of_works(cls, username: str, work_ids: list[str] | list[int]) -> list:
+        oldb = db.get_db()
+        data = {
+            "username": username,
+            "work_ids": work_ids,
+        }
+        query = "SELECT work_id, bookshelf_id from bookshelves_books WHERE username=$username AND work_id IN $work_ids"
+        return list(oldb.query(query, vars=data))
 
     @classmethod
-    def add(cls, username: str, bookshelf_id: str, work_id: str, edition_id=None) -> None:
+    async def add(cls, username: str, bookshelf_id: str, work_id: str, edition_id=None) -> int:
         """Adds a book with `work_id` to user's bookshelf designated by
         `bookshelf_id`"""
-        oldb = db.get_db()
         work_id = int(work_id)  # type: ignore
         bookshelf_id = int(bookshelf_id)  # type: ignore
-        data = {
-            "work_id": work_id,
-            "username": username,
-        }
+        params = {"work_id": work_id, "username": username, "bookshelf_id": bookshelf_id, "edition_id": edition_id}
+        async with connection() as conn:
+            # Serialize first-time adds too: row locks alone cannot protect a missing row.
+            await conn.execute(
+                "SELECT pg_advisory_xact_lock(hashtext(%(username)s), %(work_id)s)",
+                {"username": username, "work_id": work_id},
+            )
+            update = await conn.execute(
+                f"UPDATE {cls.TABLENAME} SET bookshelf_id = %(bookshelf_id)s, edition_id = %(edition_id)s "
+                "WHERE work_id = %(work_id)s AND username = %(username)s "
+                "AND bookshelf_id = ANY(%(preset_bookshelf_ids)s)",
+                {**params, "preset_bookshelf_ids": list(cls.PRESET_BOOKSHELVES.values())},
+            )
+            if update.rowcount:
+                return update.rowcount
 
-        users_status = cls.get_users_read_status_of_work(username, work_id)
-        if not users_status:
-            return oldb.insert(
-                cls.TABLENAME,
-                username=username,
-                bookshelf_id=bookshelf_id,
-                work_id=work_id,
-                edition_id=edition_id,
+            insert = await conn.execute(
+                f"INSERT INTO {cls.TABLENAME} (username, bookshelf_id, work_id, edition_id) "
+                "VALUES (%(username)s, %(bookshelf_id)s, %(work_id)s, %(edition_id)s) "
+                "ON CONFLICT (username, work_id, bookshelf_id) DO UPDATE SET edition_id = EXCLUDED.edition_id",
+                params,
             )
-        else:
-            where = "work_id=$work_id AND username=$username"
-            return oldb.update(
-                cls.TABLENAME,
-                where=where,
-                bookshelf_id=bookshelf_id,
-                edition_id=edition_id,
-                vars=data,
-            )
+            return insert.rowcount
 
     @classmethod
-    def remove(cls, username: str, work_id: str, bookshelf_id: str | None = None):
-        oldb = db.get_db()
-        where = {"username": username, "work_id": int(work_id)}
+    async def remove(cls, username: str, work_id: str, bookshelf_id: str | None = None) -> int | None:
+        params: dict[str, Any] = {"username": username, "work_id": int(work_id)}
+        shelf_filter = ""
         if bookshelf_id:
-            where["bookshelf_id"] = int(bookshelf_id)
-
-        try:
-            return oldb.delete(
-                cls.TABLENAME,
-                where=("work_id=$work_id AND username=$username"),
-                vars=where,
+            shelf_filter = " AND bookshelf_id = %(bookshelf_id)s"
+            params["bookshelf_id"] = int(bookshelf_id)
+        async with connection() as conn:
+            deleted = await conn.execute(
+                f"DELETE FROM {cls.TABLENAME} WHERE work_id = %(work_id)s AND username = %(username)s{shelf_filter}",
+                params,
             )
-        except Exception:  # we want to catch no entry exists
-            return None
+            await conn.execute(
+                "DELETE FROM bookshelves_events WHERE username = %(username)s AND work_id = %(work_id)s",
+                params,
+            )
+        return deleted.rowcount or None
+
+    @classmethod
+    async def get_num_users_by_bookshelf_by_work_id(cls, work_id: str) -> dict[int, int]:
+        query = f"SELECT bookshelf_id, count(*) AS user_count FROM {cls.TABLENAME} WHERE work_id = %(work_id)s GROUP BY bookshelf_id"
+        rows = await fetch_all(query, {"work_id": int(work_id)})
+        return {row["bookshelf_id"]: row["user_count"] for row in rows}
+
+    @classmethod
+    def get_num_users_by_bookshelf_by_work_id_sync(cls, work_id: str) -> dict[int, int]:
+        return async_bridge.run(cls.get_num_users_by_bookshelf_by_work_id(work_id))
+
+    @classmethod
+    async def get_work_summary(cls, work_id: str) -> WorkReadingLogSummary:
+        shelf_id_to_count = await cls.get_num_users_by_bookshelf_by_work_id(work_id)
+
+        result = {}
+        for shelf_name, shelf_id in cls.PRESET_BOOKSHELVES_JSON.items():
+            result[shelf_name] = shelf_id_to_count.get(shelf_id, 0)
+
+        return cast(WorkReadingLogSummary, result)
+
+    @classmethod
+    def get_work_summary_sync(cls, work_id: str) -> WorkReadingLogSummary:
+        return async_bridge.run(cls.get_work_summary(work_id))
 
     @classmethod
     def get_works_shelves(cls, work_id: str, lazy: bool = False):
@@ -677,7 +704,7 @@ class Bookshelves(db.CommonExtras):
         i.e. {bookshelf_id: count}.
         """
         oldb = db.get_db()
-        query = "SELECT bookshelf_id, count(DISTINCT username) as user_count from bookshelves_books where work_id=$work_id GROUP BY bookshelf_id"
+        query = "SELECT bookshelf_id, count(*) as user_count from bookshelves_books where work_id=$work_id GROUP BY bookshelf_id"
         result = oldb.query(query, vars={"work_id": int(work_id)})
         return {i["bookshelf_id"]: i["user_count"] for i in result} if result else {}
 

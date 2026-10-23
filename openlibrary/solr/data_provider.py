@@ -534,7 +534,7 @@ class DatabaseDataProvider(DataProvider):
     @typing.override
     def get_work_reading_log(self, work_key: str) -> WorkReadingLogSolrSummary:
         work_id = extract_numeric_id_from_olid(work_key)
-        counts = Bookshelves.get_work_summary(work_id)
+        counts = Bookshelves.get_work_summary_sync(work_id)
         return cast(
             WorkReadingLogSolrSummary,
             {
