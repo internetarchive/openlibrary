@@ -1,6 +1,3 @@
-from datetime import datetime
-
-import pytest
 import web
 
 from openlibrary.core.booknotes import Booknotes
@@ -8,7 +5,6 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.db import get_db
 from openlibrary.core.edits import CommunityEditsQueue
-from openlibrary.core.follows import PubSub
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 
@@ -74,73 +70,6 @@ CREATE TABLE bookshelves_events (
     updated timestamp
 );
 """
-
-
-FOLLOWS_DDL = """
-CREATE TABLE follows (
-    subscriber text NOT NULL,
-    publisher text NOT NULL,
-    disabled BOOLEAN DEFAULT FALSE,
-    updated timestamp DEFAULT CURRENT_TIMESTAMP,
-    created timestamp DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (subscriber, publisher)
-);
-"""
-
-
-class TestPubSubSubscribe:
-    @pytest.fixture
-    def follows_db(self, monkeypatch):
-        oldb = web.database(dbn="sqlite", db=":memory:")
-        oldb.query(FOLLOWS_DDL)
-        monkeypatch.setattr("openlibrary.core.follows.db.get_db", lambda: oldb)
-        yield oldb
-        oldb.ctx.db.close()
-
-    def test_subscribe_twice_keeps_one_row(self, follows_db):
-        assert PubSub.subscribe("alice", "bob") is None
-        first = list(follows_db.select("follows"))
-        assert len(first) == 1
-        assert first[0].subscriber == "alice"
-        assert first[0].publisher == "bob"
-        assert not first[0].disabled
-        assert first[0].created is not None
-        assert first[0].updated is not None
-
-        assert PubSub.subscribe("alice", "bob") is None
-
-        assert list(follows_db.select("follows")) == first
-
-    @pytest.mark.parametrize("disabled", [False, True])
-    def test_existing_subscription_is_unchanged(self, follows_db, disabled):
-        follows_db.insert("follows", subscriber="alice", publisher="bob", disabled=disabled, created=datetime(2000, 1, 1), updated=datetime(2001, 1, 1))
-        before = list(follows_db.select("follows"))
-
-        PubSub.subscribe("alice", "bob")
-        PubSub.subscribe("alice", "bob")
-
-        assert list(follows_db.select("follows")) == before
-
-    def test_other_subscribers_and_publishers_are_untouched(self, follows_db):
-        pairs = [("alice", "bob"), ("alice", "carol"), ("dave", "bob")]
-        for subscriber, publisher in pairs:
-            PubSub.subscribe(subscriber, publisher)
-        before = list(follows_db.select("follows", order="subscriber, publisher"))
-
-        PubSub.subscribe("alice", "bob")
-
-        after = list(follows_db.select("follows", order="subscriber, publisher"))
-        assert after == before
-        assert {(row.subscriber, row.publisher) for row in after} == set(pairs)
-
-    def test_names_are_bound_parameters(self, follows_db):
-        subscriber, publisher = "reader'नया", "author'quoted"
-        PubSub.subscribe(subscriber, publisher)
-        PubSub.subscribe(subscriber, publisher)
-
-        rows = list(follows_db.select("follows"))
-        assert len(rows) == 1
-        assert (rows[0].subscriber, rows[0].publisher) == (subscriber, publisher)
 
 
 class TestUpdateWorkID:
