@@ -62,6 +62,17 @@ class RequestTimings:
 
 _current: ContextVar[RequestTimings | None] = ContextVar("server_timing", default=None)
 _rendering: ContextVar[_Render | None] = ContextVar("server_timing_rendering", default=None)
+_discard_legacy_stats: ContextVar[bool] = ContextVar("discard_legacy_stats", default=False)
+
+
+@contextmanager
+def discard_legacy_stats() -> Iterator[None]:
+    """Avoid web.py's thread-local history in FastAPI, even with timing disabled."""
+    token = _discard_legacy_stats.set(True)
+    try:
+        yield
+    finally:
+        _discard_legacy_stats.reset(token)
 
 
 def start_request() -> tuple[RequestTimings, object]:
@@ -309,12 +320,16 @@ def install_legacy_bridge() -> None:
 
     def begin(name, **kw):
         if (timings := _current.get()) is None:
-            return original_begin(name, **kw)
+            if not _discard_legacy_stats.get():
+                return original_begin(name, **kw)
+            return None
         timings._begin(_infogami_metric_name(name))
 
     def end(**kw):
         if (timings := _current.get()) is None:
-            return original_end(**kw)
+            if not _discard_legacy_stats.get():
+                return original_end(**kw)
+            return None
         timings._end()
 
     def _db_execute(self, cur, sql_query):

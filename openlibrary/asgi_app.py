@@ -261,17 +261,19 @@ def create_app() -> FastAPI | None:
 
     @app.middleware("http")
     async def set_context(request: Request, call_next):
-        set_context_from_fastapi(request)
-        response = await call_next(request)
-        return response
+        with server_timing.discard_legacy_stats():
+            set_context_from_fastapi(request)
+            response = await call_next(request)
+            return response
 
     # setup_i18n is below set_context so that it can use the request.state.lang in set_context
     # because the handlers are called in reverse order
     setup_i18n(app)
 
+    # FastAPI has no legacy unload hook to clear web.ctx.stats, even when timing is off.
+    server_timing.install_legacy_bridge()
     # Outermost, so `total` covers the other middleware and crashes' 500 pages get the header. Off with `server_timing: false`.
     if infogami.config.get("server_timing", True):
-        server_timing.install_legacy_bridge()
         add_server_timing(app)
 
     # Serve static assets directly from the project static directory.

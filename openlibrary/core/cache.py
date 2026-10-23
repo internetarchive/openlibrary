@@ -134,22 +134,23 @@ class memcache_memoize[**P, T]:
         t.start()
 
     def _update_async_worker(self, *args: P.args, **kw: P.kwargs) -> None:
-        key = self.compute_key(args, kw) + "/flag"
-
-        if not self.memcache.add(key, "true"):
-            # already somebody else is computing this value.
-            return
-
         try:
-            if self.prethread:
-                self.prethread()
-            self.update(*args, **kw)
-        finally:
-            # Remove current thread from active threads
-            self.active_threads.pop(threading.current_thread().name, None)
+            key = self.compute_key(args, kw) + "/flag"
 
-            # remove the flag
-            self.memcache.delete(key)
+            if not self.memcache.add(key, "true"):
+                # already somebody else is computing this value.
+                return
+
+            try:
+                if self.prethread:
+                    self.prethread()
+                self.update(*args, **kw)
+            finally:
+                # Only the worker that acquired the flag may remove it.
+                self.memcache.delete(key)
+        finally:
+            # Include workers that returned early or failed to acquire the flag.
+            self.active_threads.pop(threading.current_thread().name, None)
 
     def update(self, *args: P.args, **kw: P.kwargs) -> tuple[T, float]:
         """Computes the value and adds it to memcache.

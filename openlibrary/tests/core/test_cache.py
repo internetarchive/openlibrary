@@ -1,5 +1,7 @@
 import inspect
+import threading
 import time
+from unittest.mock import Mock
 
 import pytest
 
@@ -62,6 +64,50 @@ class Test_memcache_memoize:
         m.join_threads()
 
         assert m.memcache_get([20], {})[0] == 400
+        assert m.active_threads == {}
+
+    def test_contended_refresh_removes_thread_without_deleting_flag(self):
+        m = self.square_memoize()
+        flag = m.compute_key((20,), {}) + "/flag"
+        m.memcache.add(flag, "another worker")
+
+        m.update_async(20)
+        m.join_threads()
+
+        assert m.active_threads == {}
+        assert m.memcache.get(flag) == "another worker"
+        assert m.memcache_get((20,), {}) is None
+
+    @pytest.mark.parametrize("failure", ["key", "acquire", "prethread", "compute", "delete"])
+    def test_failed_refresh_cleans_its_registration(self, monkeypatch, failure):
+        m = self.square_memoize()
+        client = Mock()
+        client.add.return_value = True
+        m._memcache = client
+        flag = m.compute_key((20,), {}) + "/flag"
+        thread = threading.current_thread()
+        other_thread = threading.Thread(name="other-refresh")
+        m.active_threads = {thread.name: thread, other_thread.name: other_thread}
+        error = Mock(side_effect=RuntimeError("refresh failed"))
+        if failure == "key":
+            monkeypatch.setattr(m, "compute_key", error)
+        elif failure == "acquire":
+            client.add.side_effect = error
+        elif failure == "prethread":
+            m.prethread = error
+        elif failure == "compute":
+            m.f = error
+        else:
+            client.delete.side_effect = error
+
+        with pytest.raises(RuntimeError, match="refresh failed"):
+            m._update_async_worker(20)
+
+        assert m.active_threads == {other_thread.name: other_thread}
+        if failure in {"key", "acquire"}:
+            client.delete.assert_not_called()
+        else:
+            client.delete.assert_called_once_with(flag)
 
     def test_timeout(self, monkeytime):
         m = self.square_memoize()

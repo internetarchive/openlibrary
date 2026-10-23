@@ -422,8 +422,9 @@ def generate_po(args):
         print("Add failed. Missing required locale code.")
 
 
-@functools.cache
+@functools.lru_cache(maxsize=256)
 def load_translations(lang: str):
+    """Cache translations without retaining unlimited request-provided locales."""
     mo_path = os.path.join(root, lang, "messages.mo")
 
     if os.path.exists(mo_path):
