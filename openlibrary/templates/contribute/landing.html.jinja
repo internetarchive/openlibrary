@@ -59,7 +59,7 @@
                 {% for row in data.feed.rows %}
                     {{ parts.feed_row(row) }}
                 {% endfor %}
-                {% for _i in range(data.feed.skeleton_rows) %}
+                {% for _i in range(data.feed.skeleton_rows or 0) %}
                     {{ parts.feed_skeleton_row() }}
                 {% endfor %}
             </ol>
