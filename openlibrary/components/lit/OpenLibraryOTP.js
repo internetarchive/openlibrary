@@ -284,7 +284,6 @@ export class OpenLibraryOTP extends LitElement {
                 emailInput.value = this._email;
             }
 
-
             // Error message
             let errorEl = this._contentContainer.querySelector('.ol-otp-error');
             if (this._issueError) {
@@ -346,7 +345,6 @@ export class OpenLibraryOTP extends LitElement {
         form.append(label, input, submitBtn);
         form.addEventListener('submit', this._boundHandleEmailSubmit);
 
-
         if (this._issueError) {
             const errorEl = document.createElement('p');
             errorEl.className = 'ol-otp-error';
@@ -364,7 +362,6 @@ export class OpenLibraryOTP extends LitElement {
 
             form.insertBefore(errorEl, submitBtn);
         }
-
 
         this._contentContainer.append(h2, p, form);
     }
@@ -497,7 +494,6 @@ export class OpenLibraryOTP extends LitElement {
         } finally {
             this._submitting = false;
         }
-
     }
 
     async _handleCodeSubmitted(e) {

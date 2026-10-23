@@ -647,6 +647,7 @@ class TestAccountLoginOtpIssue:
             "existing@example.com",
             originating_ip="1.2.3.4",
         )
+
     @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
     @mock.patch("openlibrary.plugins.upstream.account.web")
     def test_lookup_service_error_is_not_account_not_found(self, mock_web, mock_ia):
@@ -661,6 +662,7 @@ class TestAccountLoginOtpIssue:
 
         assert json.loads(result.rawtext) == {"error": "service unavailable"}
         mock_ia.issue_otp.assert_not_called()
+
 
 class TestParseLowAuthHeader:
     """Unit tests for the _parse_low_auth_header() module-level helper."""

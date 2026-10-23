@@ -503,18 +503,12 @@ class account_login_otp_issue(delegate.page):
             error = values.get("reason") or lookup_result.get("error")
 
             if error == "account_not_found":
-                return delegate.RawText(
-                    json.dumps({"error": "account_not_found"})
-                )
+                return delegate.RawText(json.dumps({"error": "account_not_found"}))
 
-            return delegate.RawText(
-                json.dumps({"error": error or "account_lookup_failed"})
-            )
+            return delegate.RawText(json.dumps({"error": error or "account_lookup_failed"}))
 
         originating_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR") or web.ctx.ip
-        result = InternetArchiveAccount.issue_otp(
-            i.email, originating_ip=originating_ip
-        )
+        result = InternetArchiveAccount.issue_otp(i.email, originating_ip=originating_ip)
 
         if result.get("success"):
             return delegate.RawText(json.dumps({"success": True}))
