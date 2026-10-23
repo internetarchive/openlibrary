@@ -101,6 +101,13 @@ export default {
             if (!this.$refs.mergeTable.merge) return;
             const { record: master, dupes, editions_to_move, unmergeable_works } = this.$refs.mergeTable.merge;
 
+            // A merge writes `works` pointing at the master and copies work-shaped fields
+            // onto it, so the target must be a work (see #13390).
+            if (master.type.key !== '/type/work') {
+                this.mergeOutput = 'The primary record must be a work — editions can be included in a merge, but not chosen as the primary.';
+                return;
+            }
+
             this.mergeStatus = SAVING;
             if (this.isSuperLibrarian) {
                 // Perform the merge and create new/update existing merge request
