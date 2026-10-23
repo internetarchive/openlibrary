@@ -18,11 +18,14 @@ PICKS_TTL = HOUR_SECS
 
 # The Solr edition field behind each record field. Page count is not indexed on editions, so it has no list of its own.
 SOLR_FIELDS = {
+    "covers": "cover_i",
     "languages": "language",
     "publishers": "publisher",
     "lccn": "lccn",
     "oclc_numbers": "oclc",
 }
+# Where missing means more than an empty Solr field. A scanned book shows its first page as the cover.
+MISSING_CLAUSES = {"covers": "(*:* -cover_i:* -ia:*)"}
 
 
 @dataclass(frozen=True)
@@ -33,7 +36,7 @@ class Candidate:
 
 def missing_query(fields: tuple[str, ...]) -> str:
     """Editions with an ISBN (so the link-outs work) missing any of ``fields``."""
-    missing = " OR ".join(f"(*:* -{SOLR_FIELDS[f]}:*)" for f in fields if f in SOLR_FIELDS)
+    missing = " OR ".join(MISSING_CLAUSES.get(f, f"(*:* -{SOLR_FIELDS[f]}:*)") for f in fields if f in SOLR_FIELDS)
     return f"type:edition AND isbn:* AND ({missing})"
 
 

@@ -4086,6 +4086,10 @@ msgstr ""
 msgid "Go further"
 msgstr ""
 
+#: contribute/done.html.jinja
+msgid "The cover you added"
+msgstr ""
+
 #: contribute/done.html.jinja openlibrary/plugins/openlibrary/contribute.py
 msgid "Saved"
 msgstr ""
@@ -7975,6 +7979,10 @@ msgid "And %(count)s more."
 msgstr ""
 
 #: contribute/parts.html.jinja
+msgid "JPG, GIF, PNG or WebP, up to 10 MB. You can also drop or paste an image onto the cover."
+msgstr ""
+
+#: contribute/parts.html.jinja
 msgid "That looks like a valid number."
 msgstr ""
 
@@ -8013,10 +8021,6 @@ msgid "%(value)s, on 1 edition"
 msgid_plural "%(value)s, on %(count)d editions"
 msgstr[0] ""
 msgstr[1] ""
-
-#: contribute/parts.html.jinja
-msgid "I opened the record and the year and publisher match this edition."
-msgstr ""
 
 #: contribute/parts.html.jinja
 msgid "Add a comment about your edit"
@@ -8097,6 +8101,46 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "Library of Congress"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py
+msgid "Cover"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Add a cover"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Can you find this edition's cover?"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Look the ISBN up on Google Books, Amazon or Better World Books and save the front cover image. Check that the title, author and publisher on the image match this edition, then upload it here."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/partials.py
+msgid "Better World Books"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "A cover is how readers recognize a book in search results, lists and carousels."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Upload the cover only, flat and in full: no photos of the book on a table, no 3D mockups, no store badges or watermarks."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "The cover belongs to another edition. A paperback, a reissue or a translation usually has a different cover; check the publisher."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Making a cover yourself. If you can't find the real one, leave it for someone who can."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "The title, author and publisher on this image match this edition."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8200,6 +8244,10 @@ msgid "For example 75425165"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
+msgid "I opened the record and the year and publisher match this edition."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
 msgid "OCLC/WorldCat number"
 msgstr ""
 
@@ -8254,6 +8302,14 @@ msgstr ""
 #: openlibrary/contribute/save.py
 #, python-format
 msgid "Filled in %(field)s from Open Library Tasks"
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "Choose an image of the cover."
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "That isn't an image Open Library can use. Choose a JPG, GIF, PNG or WebP under 10 MB."
 msgstr ""
 
 #: openlibrary/core/bookshelves.py
@@ -8907,10 +8963,6 @@ msgid "Doing a lot of these? Open Librarians get more editing tools and no daily
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Book cover"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
 msgid "Missing: %(field)s"
 msgstr ""
@@ -8928,7 +8980,7 @@ msgid "Nothing to fill in here"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Open the record and confirm it matches this edition first."
+msgid "Check that it matches this edition, and tick the box to say so."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
@@ -9169,10 +9221,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has number of pages"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/partials.py
-msgid "Better World Books"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py

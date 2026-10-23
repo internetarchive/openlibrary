@@ -3,6 +3,8 @@
 Saves go through the same path as the edit form: a new revision, the comment in
 the record's history, ``edit-book`` as the kind so edit stats are unchanged.
 ``data.source`` marks them as Tasks edits so the dashboard can list them.
+A cover goes through the add-cover page's upload instead, and saves as ``add-cover``
+so history shows the image.
 """
 
 import re
@@ -11,12 +13,14 @@ from datetime import UTC, datetime
 import web
 
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.upstream.utils import get_languages
+from openlibrary.plugins.upstream.covers import add_cover
+from openlibrary.plugins.upstream.utils import get_coverstore_public_url, get_languages
 from openlibrary.utils.lccn import normalize_lccn
 from openlibrary.utils.oclc import normalize_oclc
 
 SOURCE = "contribute"
 ACTION = "edit-book"
+COVER_ACTION = "add-cover"
 
 
 def normalize_lccn_value(raw: str) -> str | None:
@@ -95,14 +99,30 @@ def save_answer(edition, fld: str, raw: str, label: str, note: str = "") -> None
     web.ctx.site.save(doc, comment=comment, action=ACTION, data={"source": SOURCE, "field": fld})
 
 
+def save_cover(edition, file) -> None:
+    """Upload the image and put it first on the edition, as the add-cover page does."""
+    if not getattr(file, "filename", ""):
+        raise InvalidAnswer(_("Choose an image of the cover."))
+    data = add_cover().upload(edition.key, web.storage(file=file, url=""))
+    if not (cover_id := data.get("id")):
+        raise InvalidAnswer(_("That isn't an image Open Library can use. Choose a JPG, GIF, PNG or WebP under 10 MB."))
+    edition.covers = [cover_id] + [c.id for c in edition.get_covers()]
+    # History shows an add-cover change's comment as the image, so the comment is the thumbnail's address.
+    edition._save(f"{get_coverstore_public_url()}/b/id/{cover_id}-S.jpg", action=COVER_ACTION, data={"source": SOURCE, "field": "covers"})
+
+
+def _tasks_changes(query: dict) -> list:
+    """The changes matching ``query`` that Tasks saved, newest first. Filtered here: ``data`` filters need an index entry."""
+    changes = [c for kind in (ACTION, COVER_ACTION) for c in web.ctx.site.recentchanges(query | {"kind": kind})]
+    return sorted((c for c in changes if (c.data or {}).get("source") == SOURCE), key=lambda c: c.timestamp, reverse=True)
+
+
 def recent_saves(user_key: str, limit: int = 5) -> list:
-    """The user's latest Tasks edits, newest first. Filtered here: ``data`` filters need an index entry."""
-    changes = web.ctx.site.recentchanges({"author": user_key, "kind": ACTION, "limit": 100})
-    return [c for c in changes if (c.data or {}).get("source") == SOURCE][:limit]
+    """The user's latest Tasks edits, newest first."""
+    return _tasks_changes({"author": user_key, "limit": 100})[:limit]
 
 
 def saves_today(user_key: str) -> int:
     """The user's Tasks edits since midnight UTC, for the daily cap."""
     today = datetime.now(UTC).strftime("%Y-%m-%d")
-    changes = web.ctx.site.recentchanges({"author": user_key, "kind": ACTION, "begin_date": today, "limit": 1000})
-    return sum(1 for c in changes if (c.data or {}).get("source") == SOURCE)
+    return len(_tasks_changes({"author": user_key, "begin_date": today, "limit": 1000}))
