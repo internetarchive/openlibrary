@@ -3,6 +3,7 @@
 This should go into infogami.
 """
 
+import datetime as dt
 import json
 import logging
 import math
@@ -60,7 +61,7 @@ class index(delegate.page):
         return render_template("recentchanges/index", query)
 
     def handle_encoding(self, query, encoding):
-        i = web.input(bot="", limit=100, offset=0, text="false", author="")
+        i = web.input(bot="", limit=100, offset=0, text="false", author="", begin="", end="")
 
         # The bot stuff is handled in the template for the regular path.
         # We need to handle it here for api.
@@ -72,6 +73,17 @@ class index(delegate.page):
         # Handle author query parameter
         if i.author:
             query["author"] = i.author
+
+        # begin and end narrow the window below a day and replace the path's range
+        try:
+            for parameter, query_key in ((i.begin, "begin_date"), (i.end, "end_date")):
+                if parameter:
+                    timestamp = dt.datetime.fromisoformat(parameter)
+                    if timestamp.tzinfo is not None:
+                        timestamp = timestamp.astimezone(dt.UTC).replace(tzinfo=None)
+                    query[query_key] = timestamp.isoformat()
+        except ValueError, OverflowError:
+            return web.badrequest("begin and end must be ISO 8601 timestamps.")
 
         # and limit and offset business too
         limit = safeint(i.limit, 100)
@@ -87,6 +99,8 @@ class index(delegate.page):
 
         # constrain limit and offset for performance reasons
         limit = constrain(limit, 0, 1000)
+        if offset > 10000:
+            return web.badrequest("offset must not exceed 10000; use the end parameter to page further back.")
         offset = constrain(offset, 0, 10000)
 
         query["limit"] = limit
