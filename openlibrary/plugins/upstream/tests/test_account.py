@@ -354,6 +354,56 @@ class TestAccountLoginRedirect:
         mock_web.seeother.assert_called_with("/account/books")
 
 
+class TestAccountLoginJson:
+    """The login dialog posts the login form with Accept: application/json."""
+
+    def setup_method(self):
+        self._req_context_token = req_context.set(
+            RequestContextVars(
+                x_forwarded_for=None,
+                user_agent="pytest-agent",
+                lang="en",
+                solr_editions=True,
+                print_disabled=False,
+                sfw=False,
+                is_recognized_bot=False,
+                is_bot=False,
+            )
+        )
+
+    def teardown_method(self):
+        req_context.reset(self._req_context_token)
+
+    @mock.patch("openlibrary.plugins.upstream.account.audit_accounts")
+    @mock.patch("openlibrary.plugins.upstream.account.OpenLibraryAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    @mock.patch("openlibrary.plugins.upstream.account.stats")
+    def test_success_answers_with_the_user_key(self, mock_stats, mock_web, mock_ol_account_cls, mock_audit_accounts):
+        handler = account_login()
+        mock_audit_accounts.return_value = {"ia_email": "test@example.com", "ol_username": "tester"}
+        mock_ol_account_cls.get_by_email.return_value = mock.MagicMock()
+
+        result = handler.login(username="test", password="pwd", redirect="/books", as_json=True)
+
+        mock_web.seeother.assert_not_called()
+        assert json.loads(result.rawtext) == {"success": True, "user_key": "/people/tester", "redirect": "/books"}
+        # Cookies are set exactly as for the redirecting login.
+        mock_web.setcookie.assert_any_call("pending_action", "", expires=-1)
+
+    @mock.patch("openlibrary.plugins.upstream.account.audit_accounts")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_a_refused_login_is_a_400_with_the_message(self, mock_web, mock_audit_accounts):
+        handler = account_login()
+        mock_audit_accounts.return_value = {"error": "account_bad_password"}
+
+        result = handler.login(username="test", password="pwd", as_json=True)
+
+        assert mock_web.ctx.status == "400 Bad Request"
+        body = json.loads(result.rawtext)
+        assert body["error"] == "account_bad_password"
+        assert body["errorDisplayString"]
+
+
 class TestOtpServiceS3Auth:
     """Tests for S3 key validation on /account/otp/issue and /account/otp/redeem."""
 

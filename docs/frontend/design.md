@@ -137,6 +137,7 @@ Before writing new markup or CSS, check whether an existing component already do
 | Menu Popover | `ol-menu-popover` | Pick one action from a list | A choice that is read or submitted later is a value, not an action — use Options Popover. |
 | Dialog | `ol-dialog` | A centered modal interruption | For a task with its own scrolling content, use Drawer. For a passive message, use Toast or Banner. |
 | Drawer | `ol-drawer` | A modal panel that slides in from a viewport edge | A centered interruption is a Dialog. A panel anchored to its trigger is a Popover. |
+| Login Dialog | `ol-login-dialog` | Log in without leaving the page, when a signed-out visitor needs an account (`olLogin()` opens it with the reason) | Only for the moment a signed-out visitor needs an account, through olLogin(). A page about logging in is the login page. |
 | Toast | `ol-toast` | Transient confirmation of something that just happened (`ol-toast-region` hosts them) | Anything the reader must act on belongs in a Dialog or a Banner. |
 | Banner | `ol-banner` | A persistent page-level announcement | Page-level and persistent. For confirmation of an action the user just took, use Toast. |
 | Message | `.ol-message` | An inline notice next to the thing it describes (CSS classes, no tag) | Inline, next to the thing it describes. For page-level notices use Banner. |

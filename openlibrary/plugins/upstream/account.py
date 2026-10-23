@@ -541,7 +541,9 @@ class account_login_otp_redeem(delegate.page):
         _blacklist = ["/account/login", "/account/create"]
         if not redirect or not redirect.startswith("/") or redirect.startswith("//") or any(path in redirect for path in _blacklist):
             redirect = "/account/books"
-        return delegate.RawText(json.dumps({"success": True, "redirect": redirect}))
+        # user_key lets the login dialog hydrate the page it is on instead of navigating.
+        user_key = f"/people/{audit['ol_username']}" if audit.get("ol_username") else None
+        return delegate.RawText(json.dumps({"success": True, "redirect": redirect, "user_key": user_key}))
 
 
 class account_login(delegate.page):
@@ -612,12 +614,21 @@ class account_login(delegate.page):
             access=i.access,
             secret=i.secret,
             action=i.action,
+            # The in-page login dialog posts the same form but stays on its page.
+            as_json="application/json" in (web.ctx.env.get("HTTP_ACCEPT") or "").lower(),
         )
 
     def set_cookies(self, remember=False, **kwargs):
         expires = 3600 * 24 * 365 if remember else ""
         for k, v in kwargs.items():
             web.setcookie(k, v, expires=expires if v else 1)
+
+    @staticmethod
+    def json_error(error_key):
+        """The JSON shape account_login_json already uses for a refused login."""
+        web.ctx.status = "400 Bad Request"
+        web.header("Content-Type", "application/json")
+        return delegate.RawText(json.dumps({"error": error_key, "errorDisplayString": get_login_error(error_key)}))
 
     def login(
         self,
@@ -630,6 +641,7 @@ class account_login(delegate.page):
         access=None,
         secret=None,
         action="",
+        as_json=False,
     ):
         email = "" if (access and secret) else username
         audit = audit_accounts(
@@ -641,6 +653,8 @@ class account_login(delegate.page):
             test=test,
         )
         if error := audit.get("error"):
+            if as_json:
+                return self.json_error(error)
             return self.render_error(
                 error,
                 web.storage(
@@ -683,6 +697,12 @@ class account_login(delegate.page):
         else:
             web.setcookie("pending_action", "", expires=-1)
         stats.increment("ol.account.xauth.login")
+        if as_json:
+            # The dialog hydrates the page it is on with the reader's key
+            # rather than following a redirect.
+            web.header("Content-Type", "application/json")
+            user_key = f"/people/{audit['ol_username']}" if audit.get("ol_username") else None
+            return delegate.RawText(json.dumps({"success": True, "user_key": user_key, "redirect": redirect}))
         raise web.seeother(redirect)
 
 

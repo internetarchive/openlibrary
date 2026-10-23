@@ -1,0 +1,9 @@
+{# The in-page login for signed-out visitors. olLogin() in
+   components/lit/login-dialog.js opens it with a message saying why an
+   account is needed; it renders nothing until then. Rendered by the shell so
+   every page carries the translated labels and the archive.org third-party
+   sign-in frame, both built in openlibrary/core/shell/login_dialog.py. #}
+{% if layout.header.login_dialog %}
+    <ol-login-dialog signup-href="/account/create" third-party-src="{{ layout.header.login_dialog.third_party_src }}" labels='{{ layout.header.login_dialog.labels | tojson }}'>
+    </ol-login-dialog>
+{% endif %}

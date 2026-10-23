@@ -324,6 +324,14 @@ COMPONENTS = (
         tag="ol-drawer",
         avoid="A centered interruption is a Dialog. A panel anchored to its trigger is a Popover.",
     ),
+    Component(
+        "login-dialog",
+        "Login Dialog",
+        "design/components/login-dialog.html.jinja",
+        group="Overlays",
+        tag="ol-login-dialog",
+        avoid="Only for the moment a signed-out visitor needs an account, through olLogin(). A page about logging in is the login page.",
+    ),
     # --- Feedback --------------------------------------------------------
     Component(
         "toast",
