@@ -17,7 +17,7 @@
                        data-ol-link-track="ReadingGoalProgress|AnnualSummaryLink">{{ _('<span class="reading-goal-progress__books-read">%(books_read)d</span>/<span class="reading-goal-progress__goal">%(goal)d</span> Books', books_read=entry.books_read, goal=entry.goal) | safe }}</a>
                     <a class="edit-reading-goal-link" href="javascript:;">{{ _("Edit") }}</a>
                 </div>
-                {{ dialog(id="yearly-goal-modal-" ~ loop.index, title=_("Edit %(year)d Reading Goal", year=entry.year), content=goal_form(entry.goal, entry.year, true)) }}
+                {{ dialog(id="yearly-goal-modal-" ~ loop.index, title=_("Edit %(year)d Reading Goal", year=entry.year), content=goal_form(entry.goal, entry.year)) }}
             </div>
         </div>
     {% endfor %}
