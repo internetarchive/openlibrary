@@ -230,6 +230,55 @@ function initIdentifierForm(form) {
 }
 
 /**
+ * Cover task: show the chosen image in the record's cover slot, and take an
+ * image dropped onto the slot or pasted anywhere on the page into the file input.
+ * @param {HTMLFormElement} form - a ``[data-cover-form]`` holding ``[data-cover-input]`` and ``[data-cover-drop]``
+ * @returns {void}
+ */
+function initCoverForm(form) {
+    const input = form.querySelector('[data-cover-input]');
+    const drop = form.querySelector('[data-cover-drop]');
+    const preview = drop?.querySelector('[data-cover-preview]');
+    if (!input || !preview) return;
+    let previewUrl = '';
+
+    const showChosen = () => {
+        const file = input.files[0];
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        previewUrl = file ? URL.createObjectURL(file) : '';
+        preview.src = previewUrl;
+        preview.hidden = !file;
+        drop.classList.toggle('has-image', !!file);
+    };
+    // The server checks the extension, and a pasted image may arrive without one.
+    const take = files => {
+        const image = [...files].find(file => file.type.startsWith('image/'));
+        if (!image) return false;
+        const name = /\.\w+$/.test(image.name) ? image.name : `cover.${image.type.split('/')[1]}`;
+        const transfer = new DataTransfer();
+        transfer.items.add(new File([image], name, { type: image.type }));
+        input.files = transfer.files;
+        showChosen();
+        return true;
+    };
+
+    input.addEventListener('change', showChosen);
+    drop.addEventListener('dragover', event => {
+        event.preventDefault();
+        drop.classList.add('is-over');
+    });
+    drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
+    drop.addEventListener('drop', event => {
+        event.preventDefault();
+        drop.classList.remove('is-over');
+        take(event.dataTransfer.files);
+    });
+    document.addEventListener('paste', event => {
+        if (event.clipboardData && take(event.clipboardData.files)) event.preventDefault();
+    });
+}
+
+/**
  * A member sees the Tasks intro once: clicking through sets a cookie the way
  * banner dismissals do, and /tasks skips to the dashboard from then on. The
  * cookie has to land before the next page is requested, so a plain click waits
@@ -280,5 +329,6 @@ export function init() {
     });
     if (document.querySelector('[data-receipt]')) clearSavedReceipt();
     document.querySelectorAll('form[data-id-form]').forEach(initIdentifierForm);
+    document.querySelectorAll('form[data-cover-form]').forEach(initCoverForm);
     document.querySelectorAll('[data-contribute-done]').forEach(root => hideSkippedTasks(root, '[data-same-book]'));
 }

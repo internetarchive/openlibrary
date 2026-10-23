@@ -1,3 +1,4 @@
+import pytest
 import web
 
 from openlibrary.contribute import save
@@ -5,8 +6,9 @@ from openlibrary.plugins.openlibrary import contribute
 
 
 class FakeChange:
-    def __init__(self, source):
+    def __init__(self, source, timestamp=0):
         self.data = {"source": source} if source else None
+        self.timestamp = timestamp
 
 
 class FakeSite:
@@ -16,7 +18,7 @@ class FakeSite:
 
     def recentchanges(self, query):
         self.queries.append(query)
-        return self.changes
+        return [c for c in self.changes if getattr(c, "kind", "edit-book") == query["kind"]]
 
 
 class FakeUser:
@@ -30,13 +32,27 @@ class FakeUser:
 
 
 def test_saves_today_counts_only_tasks_edits_since_midnight(monkeypatch):
-    site = FakeSite([FakeChange("contribute"), FakeChange(None), FakeChange("contribute"), FakeChange("other")])
+    cover = FakeChange("contribute")
+    cover.kind = "add-cover"
+    site = FakeSite([FakeChange("contribute"), FakeChange(None), FakeChange("contribute"), FakeChange("other"), cover])
     monkeypatch.setattr(web.ctx, "site", site, raising=False)
-    assert save.saves_today("/people/reader") == 2
-    (query,) = site.queries
-    assert query["author"] == "/people/reader"
-    assert query["kind"] == "edit-book"
-    assert len(query["begin_date"]) == len("2026-01-01")
+    assert save.saves_today("/people/reader") == 3
+    assert [q["kind"] for q in site.queries] == ["edit-book", "add-cover"]
+    for query in site.queries:
+        assert query["author"] == "/people/reader"
+        assert len(query["begin_date"]) == len("2026-01-01")
+
+
+def test_recent_saves_interleave_covers_with_other_edits_newest_first(monkeypatch):
+    older, newer, cover = FakeChange("contribute", 1), FakeChange("contribute", 3), FakeChange("contribute", 2)
+    cover.kind = "add-cover"
+    monkeypatch.setattr(web.ctx, "site", FakeSite([older, newer, cover]), raising=False)
+    assert save.recent_saves("/people/reader") == [newer, cover, older]
+
+
+def test_a_cover_needs_an_image(monkeypatch):
+    with pytest.raises(save.InvalidAnswer):
+        save.save_cover(object(), {})
 
 
 def test_cap_blocks_a_member_at_the_limit_but_never_a_librarian(monkeypatch):
