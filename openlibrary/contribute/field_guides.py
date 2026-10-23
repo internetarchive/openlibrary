@@ -9,6 +9,8 @@ from dataclasses import field as dc_field
 from openlibrary.i18n import gettext as _
 
 HELP_BASE = "https://openlibrary.org/help/faq/editing"
+# Open Library's cover guidelines: which image belongs on an edition, and when to replace one.
+COVER_GUIDELINES = f"{HELP_BASE}#picture"
 # The Library of Congress and OCLC syntax rules Open Library's normalizers implement.
 LCCN_SPEC = "https://www.loc.gov/marc/lccn-namespace.html"
 OCLC_SPEC = "https://help.oclc.org/Librarian_Toolbox/Searching_WorldCat_Indexes/Bibliographic_records/OCLC_control_number"
@@ -18,6 +20,7 @@ WORLDCAT = "https://search.worldcat.org/search?q=bn:{isbn}"
 GOOGLE_BOOKS = "https://books.google.com/books?vid=ISBN{isbn}"
 AMAZON = "https://www.amazon.com/s?k={isbn}"
 LOC = "https://catalog.loc.gov/vwebv/search?searchArg={isbn}&searchCode=GKEY%5E*&searchType=0"
+BETTER_WORLD_BOOKS = "https://www.betterworldbooks.com/product/detail/{isbn}"
 
 
 @dataclass(frozen=True)
@@ -48,6 +51,7 @@ class FieldGuide:
     traps: list[str] = dc_field(default_factory=list)
     placeholder: str = ""
     input_type: str = "text"
+    confirm: str = ""  # a checkbox the answer can't be saved without
 
 
 def get_field_guides() -> dict[str, FieldGuide]:
@@ -56,6 +60,30 @@ def get_field_guides() -> dict[str, FieldGuide]:
     amazon = LookupSource(_("Amazon"), AMAZON)
     loc = LookupSource(_("Library of Congress"), LOC)
     return {
+        "covers": FieldGuide(
+            field="covers",
+            label=_("Cover"),
+            action=_("Add a cover"),
+            question=_("Can you find this edition's cover?"),
+            how=_(
+                "Look the ISBN up on Google Books, Amazon or Better World Books and save the front cover image. "
+                "Check that the title, author and publisher on the image match this edition, then upload it here."
+            ),
+            sources=[google, amazon, LookupSource(_("Better World Books"), BETTER_WORLD_BOOKS)],
+            why=_("A cover is how readers recognize a book in search results, lists and carousels."),
+            notes=[
+                GuidelineNote(
+                    _("Upload the cover only, flat and in full: no photos of the book on a table, no 3D mockups, no store badges or watermarks."),
+                    COVER_GUIDELINES,
+                ),
+            ],
+            traps=[
+                _("The cover belongs to another edition. A paperback, a reissue or a translation usually has a different cover; check the publisher."),
+                _("Making a cover yourself. If you can't find the real one, leave it for someone who can."),
+            ],
+            input_type="file",
+            confirm=_("The title, author and publisher on this image match this edition."),
+        ),
         "languages": FieldGuide(
             field="languages",
             label=_("Language"),
@@ -134,6 +162,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
                 _("Pasting the web address instead of the number itself."),
             ],
             placeholder=_("For example 75425165"),
+            confirm=_("I opened the record and the year and publisher match this edition."),
         ),
         "oclc_numbers": FieldGuide(
             field="oclc_numbers",
@@ -160,6 +189,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
                 _("Pasting the web address, or leaving the ocm/ocn prefix on."),
             ],
             placeholder=_("Digits only, for example 47810608"),
+            confirm=_("I opened the record and the year and publisher match this edition."),
         ),
     }
 
