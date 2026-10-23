@@ -21,8 +21,10 @@ from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import is_passage_query
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.lending import add_availability, add_availability_async
 from openlibrary.core.models import Edition
+from openlibrary.core.shell.request import ShellRequest
 from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -971,30 +973,27 @@ def top_books_from_author(akey: str, rows=5) -> SearchResponse:
     )
 
 
+def render_advancedsearch(req: ShellRequest) -> str:
+    """The /advancedsearch page body, shared by web.py and FastAPI."""
+    params = req.params
+    form = {f: params.get(f, "") for f in ("q", "title", "author", "isbn", "subject", "place", "person", "publisher")}
+    # Facet params are only a fallback.
+    for f in ("subject", "publisher", "person", "place"):
+        form[f] = form[f] or params.get(f"{f}_facet", "")
+    return render_jinja_template(
+        "search/advancedsearch.html.jinja",
+        form=form,
+        path=req.path,
+        q_query=urlencode({"q": form["q"]}),
+        advanced_href=req.changequery(_path="/advancedsearch", page=None),
+    )
+
+
 class advancedsearch(delegate.page):
     path = "/advancedsearch"
 
     def GET(self):
-        # facets are only a fallback
-        i = web.input(
-            q="",
-            title="",
-            author="",
-            isbn="",
-            subject="",
-            place="",
-            person="",
-            publisher="",
-            subject_facet="",
-            publisher_facet="",
-            person_facet="",
-            place_facet="",
-        )
-        i.subject = i.subject or i.subject_facet
-        i.publisher = i.publisher or i.publisher_facet
-        i.person = i.person or i.person_facet
-        i.place = i.place or i.place_facet
-        return render_template("search/advancedsearch.html", i)
+        return render_advancedsearch(ShellRequest.from_webpy())
 
 
 @dataclass

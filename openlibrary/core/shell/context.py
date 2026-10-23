@@ -20,14 +20,12 @@ from openlibrary.core.shell.chrome import (
     _extract_body_attrs,
     _extract_body_classes,
     _extract_donate_script_url,
-    _extract_flash_messages,
     _extract_ol_env,
-    _extract_stats_details,
-    _extract_stats_summary,
-    _extract_total_time_ms,
 )
 from openlibrary.core.shell.head import HeadContext
 from openlibrary.core.shell.header import HeaderContext
+from openlibrary.core.shell.request import PageMeta, ShellRequest
+from openlibrary.core.shell.shelf_labels import build_shelf_button_labels
 
 
 @dataclass(frozen=True)
@@ -57,6 +55,7 @@ class LayoutContext:
     is_local_dev: bool
     header: HeaderContext
     head: HeadContext
+    shelf_button_labels_json: str
     announcement_banner: AnnouncementBanner | None = None
 
     @property
@@ -76,36 +75,36 @@ class LayoutContext:
         return {"code": "en", "localized": "English", "native": "English"}
 
     @classmethod
-    def build(cls, *, title: str = "") -> LayoutContext:
-        """Assemble and compute layout context safely with fallbacks."""
-        from infogami.utils.context import context as _infogami_context
-        from infogami.utils.view import query_param
+    def build(cls, *, req: ShellRequest, page: PageMeta) -> LayoutContext:
+        """Assemble layout data from explicit request/page inputs; never from request globals."""
         from openlibrary.core.env import get_ol_env
         from openlibrary.plugins.openlibrary.code import get_supported_languages
         from openlibrary.plugins.openlibrary.status import get_git_revision_short_hash
+        from openlibrary.plugins.upstream.utils import json_encode
         from openlibrary.utils.request_context import get_request_lang, req_context
 
         user = _safe(get_current_user, None)
 
         return cls(
-            show_ol_shell=_safe(lambda: _infogami_context.get("show_ol_shell", True), True),
-            is_debug=_safe(lambda: bool(query_param("debug")), False),
+            show_ol_shell=page.show_ol_shell,
+            is_debug=bool(req.params.get("debug")),
             is_bot=_safe(lambda: req_context.get().is_bot, False),
-            total_time_ms=_safe(_extract_total_time_ms, 0.0),
+            total_time_ms=req.total_time_ms,
             supported_languages=list(get_supported_languages().values()),
             git_rev_hash=_safe(get_git_revision_short_hash, ""),
             lang=_safe(get_request_lang, "en"),
-            stats_summary=_safe(_extract_stats_summary, {}),
-            stats_details=_safe(_extract_stats_details, []),
-            body_classes=_extract_body_classes(user),
-            body_attrs=_extract_body_attrs(user),
-            donate_script_url=_safe(_extract_donate_script_url, "/cdn/archive.org/donate.js"),
-            flash_messages=_extract_flash_messages(),
+            stats_summary=req.stats_summary,
+            stats_details=req.stats_details,
+            body_classes=_extract_body_classes(page, req.path, user),
+            body_attrs=_extract_body_attrs(page, user),
+            donate_script_url=_extract_donate_script_url(req.params),
+            flash_messages=list(req.flash_messages),
             ol_env=_extract_ol_env(),
             is_local_dev=get_ol_env().LOCAL_DEV,
-            header=HeaderContext.build(user=user),
-            head=HeadContext.build(title=title, user=user),
-            announcement_banner=_extract_announcement_banner(),
+            header=HeaderContext.build(req=req, user=user),
+            head=HeadContext.build(req=req, page=page, user=user),
+            shelf_button_labels_json=json_encode(build_shelf_button_labels()),
+            announcement_banner=_extract_announcement_banner(req.banner_dismissed),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -119,7 +118,16 @@ class SiteLayoutTemplate:
     filename = "openlibrary/templates/shell/base.html.jinja"
 
     def __call__(self, page: Any) -> str:
-        from openlibrary.core.jinja import render_jinja_template
+        import web
 
-        layout = LayoutContext.build(title=getattr(page, "title", "") or "")
-        return render_jinja_template("shell/base.html.jinja", page=page, layout=layout)
+        html = render_site(page, ShellRequest.from_webpy(), PageMeta.from_infogami_ctx(title=getattr(page, "title", "") or ""))
+        # Shown now, so consume them: infogami's flash_processor then expires the cookie.
+        web.ctx.flash = []
+        return html
+
+
+def render_site(content: Any, req: ShellRequest, page: PageMeta) -> str:
+    """Render ``content`` inside the site shell. Shared by web.py and FastAPI."""
+    from openlibrary.core.jinja import render_jinja_template
+
+    return render_jinja_template("shell/base.html.jinja", page=content, layout=LayoutContext.build(req=req, page=page))

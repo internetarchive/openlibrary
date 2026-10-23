@@ -16,11 +16,11 @@ from lxml import html as lxml_html
 from lxml.etree import ParseError as LxmlParseError
 from markupsafe import escape as _markupsafe_escape
 
-from infogami.utils.context import context as infogami_context
 from openlibrary import i18n as i18n_module
 from openlibrary.core import jinja as jinja_module
 from openlibrary.core import shell as shell_module
 from openlibrary.core.jinja import get_jinja_env
+from openlibrary.core.shell import PageMeta, ShellRequest
 from openlibrary.i18n import load_translations
 from openlibrary.plugins.upstream.code import static_url as upstream_static_url
 from openlibrary.utils.request_context import req_context
@@ -142,8 +142,9 @@ def assert_valid_html(html_string: str) -> None:
         pytest.fail(f"Rendered HTML contains orphan/mismatched tags: {e}")
 
 
-def test_site_layout_template_uses_jinja_template(monkeypatch):
+def test_site_layout_template_uses_jinja_template(monkeypatch, request_context_fixture):
     """The ``site`` pile entry should delegate to the Jinja site wrapper."""
+    request_context_fixture(lang="en")
     rendered = "<html>"
 
     def mock_render(template_name, **kwargs):
@@ -211,6 +212,8 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
         return rendered
 
     monkeypatch.setattr(jinja_module, "render_jinja_template", mock_render)
+    for key, value in {"path": "/", "host": "localhost", "query": "", "env": {}}.items():
+        monkeypatch.setattr(web.ctx, key, value, raising=False)
 
     site_template = shell_module.SiteLayoutTemplate()
     assert site_template.filename == "openlibrary/templates/shell/base.html.jinja"
@@ -473,24 +476,16 @@ def test_all_jinja_templates_render_valid_html(request_context_fixture, subtests
             assert_valid_html(output)
 
 
-def _render_head(monkeypatch, **ctx_values):
-    """Render shell/head.html.jinja from a real LayoutContext plus per-page ctx.
+def _layout(title: str = "", **page_values) -> shell_module.LayoutContext:
+    req = ShellRequest(path="/", readable_path="/", query_string="", host="localhost")
+    return shell_module.LayoutContext.build(req=req, page=PageMeta(title=title, **page_values))
 
-    Reset the shared infogami context first so a stray ``cssfile``/``description``
-    etc. left by an earlier test in the same session can't flip the head's
-    defaults (e.g. page-user.css -> page-work.css).
-    """
+
+def _render_head(monkeypatch, _title: str = "", **page_values):
+    """Render shell/head.html.jinja from a real LayoutContext for the given page."""
     env = get_jinja_env()
     monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
-    infogami_context.clear()
-    try:
-        for key, value in ctx_values.items():
-            if key != "_title":
-                infogami_context[key] = value
-        layout = shell_module.LayoutContext.build(title=ctx_values.get("_title", ""))
-        return env.get_template("shell/head.html.jinja").render(layout=layout)
-    finally:
-        infogami_context.clear()
+    return env.get_template("shell/head.html.jinja").render(layout=_layout(_title, **page_values))
 
 
 def test_head_renders_shell(monkeypatch, request_context_fixture):
@@ -522,8 +517,8 @@ def test_head_escapes_description_but_keeps_title_and_snippets_raw(monkeypatch, 
         _title="<em>Raw</em>",
         description="a <b> & c",
         robots="noindex,nofollow",
-        links=['<link rel="alternate" href="/x">'],
-        metatags=['<meta name="custom" content="v">'],
+        links=('<link rel="alternate" href="/x">',),
+        metatags=('<meta name="custom" content="v">',),
     )
     assert "a &lt;b&gt; &amp; c" in html
     assert '<meta name="robots" content="noindex,nofollow" />' in html
@@ -562,8 +557,7 @@ def test_site_shell_renders_with_real_layout_context(monkeypatch, request_contex
     env = get_jinja_env()
     monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
     monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
-    monkeypatch.setitem(env.globals, "render_templetor_template", lambda name, *a, **kw: "")
-    layout = shell_module.LayoutContext.build(title="Shell Test")
+    layout = _layout("Shell Test")
     html = env.get_template("shell/base.html.jinja").render(page="<p>hi</p>", layout=layout)
     assert "<head>" in html
     assert "<title>Shell Test | Open Library</title>" in html
@@ -582,7 +576,7 @@ def test_header_search_i18n_attributes_are_json_with_raw_placeholders(monkeypatc
     env = get_jinja_env()
     monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
     monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
-    layout = shell_module.LayoutContext.build(title="x")
+    layout = _layout("x")
     html = env.get_template("shell/header.html.jinja").render(layout=layout)
     trigger = BeautifulSoup(html, "lxml").find("button", class_="search-bar-trigger")
     availability = json.loads(trigger["data-i18n"])

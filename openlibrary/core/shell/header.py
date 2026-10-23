@@ -16,9 +16,11 @@ from openlibrary.core.helpers import datestr
 from openlibrary.core.shell._util import _safe
 from openlibrary.core.shell.nav import BROWSE_FEATURED_COUNT, NavLink, browse_links
 from openlibrary.core.shell.search_modal import SearchModalContext, build_search_modal_i18n
+from openlibrary.utils.request_context import get_request_lang
 
 if TYPE_CHECKING:
     from openlibrary.core.models import User
+    from openlibrary.core.shell.request import ShellRequest
 
 
 @dataclass(frozen=True)
@@ -44,7 +46,8 @@ def _extract_header_user(user: User | None) -> HeaderUser | None:
     username = key.rsplit("/", maxsplit=1)[-1]
     ia_id = _safe(lambda: get_internet_archive_id(key), None)
     created = getattr(user, "created", None)
-    joined_date = _safe(lambda: datestr(created), "") if created else ""
+    # Pass lang: datestr() otherwise reads web.ctx.lang, which FastAPI never sets.
+    joined_date = _safe(lambda: datestr(created, lang=get_request_lang()), "") if created else ""
     from openlibrary.i18n import gettext as _
 
     account_title = f"{username}\n{_('Joined %(date)s', date=joined_date)}" if joined_date else username
@@ -63,24 +66,6 @@ def _extract_header_user(user: User | None) -> HeaderUser | None:
         shows_merge_count=shows_merges,
         open_merges_count=merge_count,
     )
-
-
-def _extract_page_status_url() -> str:
-    try:
-        import web
-
-        return web.changequery({"show_page_status": 1})
-    except Exception:  # noqa: BLE001
-        return "?show_page_status=1"
-
-
-def _extract_homepath() -> str:
-    try:
-        import web
-
-        return getattr(web.ctx, "homepath", "") or ""
-    except Exception:  # noqa: BLE001
-        return ""
 
 
 def _extract_my_books_props(homepath: str) -> dict[str, Any]:
@@ -116,20 +101,19 @@ class HeaderContext:
     search_modal: SearchModalContext
 
     @classmethod
-    def build(cls, *, user: User | None) -> HeaderContext:
+    def build(cls, *, req: ShellRequest, user: User | None) -> HeaderContext:
         """Assemble header data with safe fallbacks."""
         from openlibrary.utils.request_context import req_context
 
-        homepath = _extract_homepath()
         links: list[NavLink] = _safe(browse_links, [])
 
         return cls(
             user=_extract_header_user(user),
-            page_status_url=_extract_page_status_url(),
+            page_status_url=f"{req.path}?show_page_status=1",
             is_recognized_bot=_safe(lambda: req_context.get().is_recognized_bot, False),
             is_print_disabled=_safe(lambda: req_context.get().print_disabled, False),
-            homepath=homepath,
-            my_books_props=_extract_my_books_props(homepath),
+            homepath=req.homepath,
+            my_books_props=_extract_my_books_props(req.homepath),
             browse_links=links,
             browse_featured_count=BROWSE_FEATURED_COUNT,
             search_modal=build_search_modal_i18n(),
