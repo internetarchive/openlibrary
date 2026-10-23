@@ -18,10 +18,13 @@ from openlibrary.contribute import feed, save, supply, tasks
 from openlibrary.contribute.field_guides import build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values
 from openlibrary.core import helpers
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import spamcheck
 
 LIST_SIZE = 50
+# Placeholder cards while a cold cache builds the list in the background; the script swaps them for the rows.
+LIST_SKELETON_ROWS = 4
 # Rows the public page renders before the feed script takes over.
 FEED_SIZE = 12
 # Placeholder rows while a cold cache rebuilds the feed pool in the background; the script swaps them for rows as they arrive.
@@ -223,12 +226,17 @@ def build_task_summary(task: tasks.Task, field_guides, back: str = "") -> dict:
     }
 
 
-def build_task_rows(task: str) -> list[dict]:
-    """A random draw of the filter's books from the most-read pool, each with its open tasks weighted by ``tasks.impact`` for "Surprise me"."""
+def build_task_rows(task: str) -> list[dict] | None:
+    """A random draw of the filter's books from the most-read pool, each with its open tasks weighted by ``tasks.impact`` for "Surprise me".
+
+    None while the pool is still being built.
+    """
     fields = get_filters()[task][1] if task else tuple(tasks.POINTS)
+    if (candidates := supply.solr_candidates(fields)) is None:
+        return None
     field_guides = get_field_guides()
     rows: list[dict] = []
-    for cand in supply.solr_candidates(fields):
+    for cand in candidates:
         if len(rows) == LIST_SIZE:
             break
         # Solr can lag the database; a field filled since the last reindex is no longer a task.
@@ -337,12 +345,16 @@ class contribute_index(delegate.page):
         if not user or not has_seen_intro(user):
             return render_landing(user)
         task = normalize_filter(query_param("task", ""))
+        rows = build_task_rows(task)
         return render_contribute(
             "contribute/dashboard.html.jinja",
             _("Tasks"),
             one_task_url=build_dashboard_url(task, base="/tasks/one"),
             rail=build_filter_rail(task),
-            rows=build_task_rows(task),
+            rows=rows,
+            # While the pool builds, the script fetches the rows from here.
+            rows_url=build_dashboard_url(task, base="/tasks/rows") if rows is None else "",
+            skeleton_rows=LIST_SKELETON_ROWS if rows is None else 0,
             heading=_("Missing: %(field)s", field=get_filters()[task][0]) if task else _("Most needed"),
             empty=_("Nothing missing here right now. Thank you."),
             recent=get_recent_fixes(user),
@@ -351,8 +363,26 @@ class contribute_index(delegate.page):
         )
 
 
+class contribute_rows(delegate.page):
+    """The dashboard's list on its own, for the page that rendered placeholders: 202 while the pool is still being built."""
+
+    path = "/tasks/rows"
+
+    def GET(self):
+        if not accounts.get_current_user():
+            raise web.forbidden()
+        task = normalize_filter(query_param("task", ""))
+        if (rows := build_task_rows(task)) is None:
+            web.ctx.status = "202 Accepted"
+            return delegate.RawText("", content_type="text/html; charset=utf-8")
+        return delegate.RawText(render_jinja_template("contribute/rows.html.jinja", rows=rows), content_type="text/html; charset=utf-8")
+
+
 class contribute_one(delegate.page):
-    """Do one task: a weighted random pick from the dashboard's current filter, straight to its task page."""
+    """Do one task: a weighted random pick from the dashboard's current filter, straight to its task page.
+
+    While the pool is still being built there is nothing to pick from, so this lands on the dashboard, which shows the wait.
+    """
 
     path = "/tasks/one"
 
@@ -360,7 +390,7 @@ class contribute_one(delegate.page):
         task = normalize_filter(query_param("task", ""))
         require_login(build_dashboard_url(task, base=self.path))
         exclude = f"/books/{query_param('exclude', '')}"
-        options = [t for row in build_task_rows(task) if row["book"]["key"] != exclude for t in row["tasks"]]
+        options = [t for row in build_task_rows(task) or [] if row["book"]["key"] != exclude for t in row["tasks"]]
         if not options:
             raise web.seeother(build_dashboard_url(task))
         pick = random.choices(options, weights=[max(t["weight"], 1) for t in options])[0]

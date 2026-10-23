@@ -344,11 +344,33 @@
         aria-hidden="true">
         <div class="contrib-feed__inner">
             <span class="skeleton contrib-feed__when"></span>
-            <span class="skeleton contrib-feed__cover"></span>
+            <span class="skeleton contrib-feed__cover-skeleton"></span>
             <div class="contrib-feed__meta">
                 <span class="skeleton contrib-feed__title"></span>
                 <span class="skeleton contrib-feed__line"></span>
             </div>
         </div>
+    </li>
+{% endmacro %}
+{% macro row_skeleton(tasks=2) %}
+    {#- A dashboard card's shape while a cold cache builds the list in the background; contribute.js swaps them for the rows. -#}
+    <li class="contrib-row contrib-row--skeleton"
+        data-row-skeleton
+        aria-hidden="true">
+        <div class="contrib-book contrib-book--compact">
+            <span class="skeleton contrib-row__cover-skeleton"></span>
+            <div class="contrib-book__meta">
+                <span class="skeleton contrib-book__title"></span>
+                <span class="skeleton contrib-book__authors"></span>
+                <span class="skeleton contrib-book__line"></span>
+            </div>
+        </div>
+        <ul class="contrib-row__tasks">
+            {% for _i in range(tasks) %}
+                <li class="contrib-row__task">
+                    <span class="skeleton"></span>
+                </li>
+            {% endfor %}
+        </ul>
     </li>
 {% endmacro %}

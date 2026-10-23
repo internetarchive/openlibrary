@@ -1,21 +1,18 @@
 """The public /tasks page's "happening now" feed: recent edits as rows.
 
 ``recent_rows`` rotates through a pool of real recent edits, restamped back from now. The pool is
-rebuilt from recentchanges at most every ``POOL_TTL`` and shared via memcache; while it's empty the feed is too.
-No request ever builds it: a stale pool is served while a background thread rebuilds it, and a cold cache starts
-that thread and serves nothing, which the page shows as placeholder rows until the script finds the new pool.
+rebuilt from recentchanges at most every ``POOL_TTL`` and shared via memcache through ``pool``, so no
+request ever builds it; while it's empty the feed is too.
 """
 
 import logging
 import random
-import threading
-import time
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from itertools import zip_longest
 
 from infogami.utils.delegate import create_site
-from openlibrary.core import cache as olcache
+from openlibrary.contribute import pool
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 
@@ -36,8 +33,8 @@ POOL_DAYS = 7
 POOL_SIZE = 200
 POOL_KEY = "contribute.feed_pool"
 POOL_TTL = 20 * 60
-POOL_LOCK_KEY = f"{POOL_KEY}.lock"
-REFRESH_THREAD_NAME = "contribute-feed-refresh"
+POOL_LOCK_KEY = pool.lock_key(POOL_KEY)
+REFRESH_THREAD_NAME = pool.thread_name(POOL_KEY)
 # Kinds whose comment is a system default (a cover URL, "Added new book.") rather than the editor's words.
 DEFAULT_COMMENT_KINDS = ("add-book", "add-cover")
 
@@ -113,28 +110,9 @@ def recent_rows(limit: int, offset: int = 0, now: datetime | None = None) -> lis
 
 
 def get_pool() -> list[dict]:
-    """The cached pool, stale or not. Never built here: an expired or missing pool starts one background rebuild."""
-    entry = olcache.get_memcache().get(POOL_KEY) or {}
-    rows = entry.get("rows", [])
-    if entry and time.time() - entry["at"] < POOL_TTL:
-        return rows
-    if olcache.get_memcache().add(POOL_LOCK_KEY, 1, expires=120):
-        threading.Thread(target=refresh_pool, name=REFRESH_THREAD_NAME, daemon=True).start()
-    return rows
-
-
-def refresh_pool() -> None:
-    """Rebuild and cache the pool, then release the lock. A failed or empty rebuild leaves the old pool in place."""
-    mc = olcache.get_memcache()
-    try:
-        # A fresh anonymous site: the request's carries the visitor's auth token and its own cache.
-        if rows := build_pool(create_site()):
-            # Outlives the TTL so a later failed rebuild still has something to serve.
-            mc.set(POOL_KEY, {"at": time.time(), "rows": rows}, expires=POOL_TTL * 6)
-    except Exception:
-        logger.exception("Could not rebuild the Tasks feed pool")
-    finally:
-        mc.delete(POOL_LOCK_KEY)
+    """The cached pool, stale or not; empty while a cold cache fills in the background."""
+    # A fresh anonymous site for the thread: the request's carries the visitor's auth token and its own cache.
+    return pool.get(POOL_KEY, POOL_TTL, lambda: build_pool(create_site())) or []
 
 
 def record_key(change) -> str:

@@ -2,7 +2,7 @@ import threading
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 
-from openlibrary.contribute import feed
+from openlibrary.contribute import feed, pool
 from openlibrary.core.cache import MemoryCache
 
 
@@ -133,7 +133,7 @@ def join_refreshes():
 
 def use_memory_cache(monkeypatch, site=None):
     mc = MemoryCache()
-    monkeypatch.setattr(feed.olcache, "get_memcache", lambda: mc)
+    monkeypatch.setattr(pool.olcache, "get_memcache", lambda: mc)
     monkeypatch.setattr(feed, "create_site", lambda: site)
     return mc
 
@@ -142,7 +142,7 @@ def test_get_pool_on_a_cold_cache_serves_nothing_while_a_thread_builds_it(monkey
     mc = use_memory_cache(monkeypatch, make_site())
     assert feed.get_pool() == []
     join_refreshes()
-    assert [r["id"] for r in mc.get(feed.POOL_KEY)["rows"]] == ["6", "5"]
+    assert [r["id"] for r in mc.get(feed.POOL_KEY)["value"]] == ["6", "5"]
     assert mc.get(feed.POOL_LOCK_KEY) is None
     assert [r["id"] for r in feed.get_pool()] == ["6", "5"]
 
@@ -150,10 +150,10 @@ def test_get_pool_on_a_cold_cache_serves_nothing_while_a_thread_builds_it(monkey
 def test_get_pool_serves_a_stale_pool_while_a_thread_rebuilds_it(monkeypatch):
     site = make_site()
     mc = use_memory_cache(monkeypatch, site)
-    mc.set(feed.POOL_KEY, {"at": 0, "rows": [{"id": "1"}]})
+    mc.set(feed.POOL_KEY, {"at": 0, "value": [{"id": "1"}]})
     assert feed.get_pool() == [{"id": "1"}]
     join_refreshes()
-    assert [r["id"] for r in mc.get(feed.POOL_KEY)["rows"]] == ["6", "5"]
+    assert [r["id"] for r in mc.get(feed.POOL_KEY)["value"]] == ["6", "5"]
     assert mc.get(feed.POOL_LOCK_KEY) is None
     # Fresh: served from the cache, no queries.
     queries = len(site.queries)
@@ -163,12 +163,12 @@ def test_get_pool_serves_a_stale_pool_while_a_thread_rebuilds_it(monkeypatch):
 
 def test_get_pool_keeps_the_old_pool_when_a_rebuild_fails_comes_back_empty_or_is_in_flight(monkeypatch):
     mc = use_memory_cache(monkeypatch)
-    mc.set(feed.POOL_KEY, {"at": 0, "rows": [{"id": "1"}]})
+    mc.set(feed.POOL_KEY, {"at": 0, "value": [{"id": "1"}]})
     for build in (lambda site: 1 / 0, lambda site: []):
         monkeypatch.setattr(feed, "build_pool", build)
         assert feed.get_pool() == [{"id": "1"}]
         join_refreshes()
-        assert mc.get(feed.POOL_KEY)["rows"] == [{"id": "1"}]
+        assert mc.get(feed.POOL_KEY)["value"] == [{"id": "1"}]
         assert mc.get(feed.POOL_LOCK_KEY) is None
     mc.add(feed.POOL_LOCK_KEY, 1)
     monkeypatch.setattr(feed, "build_pool", lambda site: [{"id": "2"}])

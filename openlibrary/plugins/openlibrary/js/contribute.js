@@ -11,6 +11,10 @@ import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
 import { trackEvent } from './ol.analytics.js';
 
 const SKIPPED_KEY = 'ol-contribute-skipped';
+// While placeholder cards are up, the server is building the list in the background: ask again every few
+// seconds, for as long as its Solr query may take, then give up and show the empty state.
+const ROWS_RETRY_MS = 5000;
+const ROWS_MAX_TRIES = 36;
 
 // Same normalization the server applies, so the verdict on screen matches what is stored.
 const ID_RULES = {
@@ -66,10 +70,49 @@ function hideSkippedTasks(root, groupSelector) {
  * @param {ParentNode} root - the ``[data-contribute-list]`` container
  * @returns {void}
  */
-function initTaskList(root) {
+function settleTaskList(root) {
     hideSkippedTasks(root, '[data-book-row]');
     const empty = root.querySelector('[data-list-empty]');
     if (empty) empty.hidden = !!root.querySelector('[data-book-row]:not([hidden])');
+}
+
+/**
+ * Fetch the rows a page rendered placeholders for. The server answers 202 until the pool is built.
+ * @param {ParentNode} root - the ``[data-contribute-list]`` container
+ * @param {HTMLOListElement} list - the ``[data-rows-url]`` list of placeholders
+ * @returns {Promise<void>}
+ */
+async function loadTaskRows(root, list) {
+    for (let attempt = 0; attempt < ROWS_MAX_TRIES; attempt++) {
+        try {
+            const res = await fetch(list.dataset.rowsUrl, { headers: { Accept: 'text/html' } });
+            if (res.ok && res.status !== 202) {
+                list.innerHTML = await res.text();
+                break;
+            }
+            if (!res.ok) break;
+        } catch (e) {
+            // Offline or a dropped request: try again.
+        }
+        await new Promise(resolve => setTimeout(resolve, ROWS_RETRY_MS));
+    }
+    list.querySelectorAll('[data-row-skeleton]').forEach(li => li.remove());
+    delete list.dataset.rowsUrl;
+    settleTaskList(root);
+}
+
+/**
+ * Wire the dashboard list: load it when the page rendered placeholders, else settle what's there.
+ * @param {ParentNode} root - the ``[data-contribute-list]`` container
+ * @returns {void}
+ */
+function initTaskList(root) {
+    const pending = root.querySelector('[data-rows-url]');
+    if (pending) {
+        loadTaskRows(root, pending);
+    } else {
+        settleTaskList(root);
+    }
 }
 
 /**
