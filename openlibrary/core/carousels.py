@@ -16,7 +16,7 @@ from infogami.utils import delegate
 from openlibrary.core import cache, ia, lending
 from openlibrary.core.lending import compose_ia_url
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc, get_populated_languages
-from openlibrary.utils.request_context import caching_prethread, get_request_lang
+from openlibrary.utils.request_context import caching_prethread, get_request_lang, set_context_from_legacy_web_py
 
 CAROUSELS_PRESETS = {
     "preset:comics": (
@@ -99,6 +99,7 @@ def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None, safe
     """Query the IA advanced-search API and return formatted book data for a carousel."""
     if "env" not in web.ctx:
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
     elif query in CAROUSELS_PRESETS:
         query = CAROUSELS_PRESETS[query]

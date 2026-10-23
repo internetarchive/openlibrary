@@ -76,7 +76,9 @@ def setup_contextvars(handler):
     return handler()
 
 
-# Add processors in order - setup_contextvars must come BEFORE the handler
+# Infogami has already initialized web.ctx.site and language. Set ContextVars
+# before any OL processor can read them; leave them available for layout rendering.
+delegate.app.add_processor(setup_contextvars)
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(
@@ -89,9 +91,6 @@ delegate.app.add_processor(processors.PreferenceProcessor())
 delegate.app.add_processor(processors.ExperimentsProcessor())
 # Refer to https://github.com/internetarchive/openlibrary/pull/10005 to force patron's to login
 # delegate.app.add_processor(processors.RequireLogoutProcessor())
-# IMPORTANT: setup_contextvars must run AFTER other processors but BEFORE the handler
-# It's added here (not as a loadhook) so it runs in the same request context
-delegate.app.add_processor(setup_contextvars)
 
 try:
     from infogami.plugins.api import code as api
