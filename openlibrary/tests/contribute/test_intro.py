@@ -1,6 +1,5 @@
 import web
 
-from openlibrary.contribute import save
 from openlibrary.plugins.openlibrary import contribute
 
 
@@ -9,16 +8,14 @@ class FakeUser:
 
 
 def test_member_skips_intro_after_clicking_through_or_saving_a_task(monkeypatch):
-    monkeypatch.setattr(save, "recent_saves", lambda key, limit=5: [])
     monkeypatch.setattr(web, "cookies", dict)
-    assert not contribute.has_seen_intro(FakeUser())
+    assert not contribute.has_seen_intro([])
 
     monkeypatch.setattr(web, "cookies", lambda: {contribute.INTRO_COOKIE: "1"})
-    assert contribute.has_seen_intro(FakeUser())
+    assert contribute.has_seen_intro([])
 
     monkeypatch.setattr(web, "cookies", dict)
-    monkeypatch.setattr(save, "recent_saves", lambda key, limit=5: [object()])
-    assert contribute.has_seen_intro(FakeUser())
+    assert contribute.has_seen_intro([object()])
 
 
 def test_member_cta_goes_to_a_task_and_dismisses_the_intro():

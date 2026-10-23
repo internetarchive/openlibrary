@@ -29,7 +29,9 @@ def lock_key(key: str) -> str:
 def get(key: str, ttl: int, rebuild: Callable[[], list], lock_ttl: int = 120) -> list | None:
     """The cached list, fresh or stale, or None while a cold cache is being filled. ``lock_ttl`` must outlast a rebuild."""
     mc = olcache.get_memcache()
-    entry = mc.get(key)
+    # Anything not in this module's shape (an older format under the same key) counts as a miss.
+    if not (isinstance(entry := mc.get(key), dict) and "value" in entry):
+        entry = None
     if entry and time.time() - entry["at"] < ttl:
         return entry["value"]
     if mc.add(lock_key(key), time.time(), expires=lock_ttl):
@@ -38,12 +40,18 @@ def get(key: str, ttl: int, rebuild: Callable[[], list], lock_ttl: int = 120) ->
 
 
 def refresh(key: str, ttl: int, rebuild: Callable[[], list]) -> None:
-    """Rebuild and cache the list, then release the lock. A failed or empty rebuild leaves the old entry in place."""
+    """Rebuild and cache the list, then release the lock.
+
+    An empty result is cached too, so "nothing to show" is an answer rather than another rebuild, but it never
+    replaces a non-empty list. A failure keeps the lock until it expires, so a broken backend is retried once per ``lock_ttl``.
+    """
     mc = olcache.get_memcache()
     try:
-        if value := rebuild():
-            mc.set(key, {"at": time.time(), "value": value}, expires=ttl * KEEP)
+        value = rebuild()
     except Exception:
         logger.exception("Could not rebuild %s", key)
-    finally:
-        mc.delete(lock_key(key))
+        return
+    old = mc.get(key)
+    if value or not (isinstance(old, dict) and old.get("value")):
+        mc.set(key, {"at": time.time(), "value": value}, expires=ttl * KEEP)
+    mc.delete(lock_key(key))

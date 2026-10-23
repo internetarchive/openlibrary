@@ -31,7 +31,8 @@ POOL_PER_KIND = 100
 # a kind that humans rarely do (add-cover) has Postgres scanning back through bot traffic for a long time.
 POOL_DAYS = 7
 POOL_SIZE = 200
-POOL_KEY = "contribute.feed_pool"
+# Versioned: the unversioned key still holds entries in the old feed code's shape.
+POOL_KEY = "contribute.feed_pool.v2"
 POOL_TTL = 20 * 60
 POOL_LOCK_KEY = pool.lock_key(POOL_KEY)
 REFRESH_THREAD_NAME = pool.thread_name(POOL_KEY)

@@ -4071,6 +4071,10 @@ msgid "Missing"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
+msgid "Tasks couldn't load right now. Reload the page to try again."
+msgstr ""
+
+#: contribute/dashboard.html.jinja
 msgid "Your recent fixes"
 msgstr ""
 
@@ -8854,11 +8858,6 @@ msgid "Filipino"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-#, python-format
-msgid "You've saved %(count)d tasks today, the most an account can in a day. Come back tomorrow, or become an Open Librarian to lift the limit."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Published"
 msgstr ""
 
@@ -8903,7 +8902,7 @@ msgid "Become an Open Librarian"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Doing a lot of these? Open Librarians get more editing tools and no daily limit. Applying takes a few minutes."
+msgid "Doing a lot of these? Open Librarians get more editing tools. Applying takes a few minutes."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

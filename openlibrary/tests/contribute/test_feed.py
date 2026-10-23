@@ -161,16 +161,19 @@ def test_get_pool_serves_a_stale_pool_while_a_thread_rebuilds_it(monkeypatch):
     assert len(site.queries) == queries
 
 
-def test_get_pool_keeps_the_old_pool_when_a_rebuild_fails_comes_back_empty_or_is_in_flight(monkeypatch):
+def test_get_pool_keeps_the_old_pool_when_a_rebuild_comes_back_empty_fails_or_is_in_flight(monkeypatch):
     mc = use_memory_cache(monkeypatch)
     mc.set(feed.POOL_KEY, {"at": 0, "value": [{"id": "1"}]})
-    for build in (lambda site: 1 / 0, lambda site: []):
-        monkeypatch.setattr(feed, "build_pool", build)
-        assert feed.get_pool() == [{"id": "1"}]
-        join_refreshes()
-        assert mc.get(feed.POOL_KEY)["value"] == [{"id": "1"}]
-        assert mc.get(feed.POOL_LOCK_KEY) is None
-    mc.add(feed.POOL_LOCK_KEY, 1)
+    monkeypatch.setattr(feed, "build_pool", lambda site: [])
+    assert feed.get_pool() == [{"id": "1"}]
+    join_refreshes()
+    assert mc.get(feed.POOL_KEY)["value"] == [{"id": "1"}]
+    assert mc.get(feed.POOL_LOCK_KEY) is None
+    # A failure holds the lock, so the next request doesn't start another rebuild.
+    monkeypatch.setattr(feed, "build_pool", lambda site: 1 / 0)
+    assert feed.get_pool() == [{"id": "1"}]
+    join_refreshes()
+    assert mc.get(feed.POOL_KEY)["value"] == [{"id": "1"}]
     monkeypatch.setattr(feed, "build_pool", lambda site: [{"id": "2"}])
     assert feed.get_pool() == [{"id": "1"}]
     assert not any(t.name == feed.REFRESH_THREAD_NAME for t in threading.enumerate())
@@ -181,7 +184,7 @@ def test_get_pool_on_a_cold_cache_returns_nothing_when_the_rebuild_fails(monkeyp
     monkeypatch.setattr(feed, "build_pool", lambda site: 1 / 0)
     assert feed.get_pool() == []
     join_refreshes()
-    assert mc.get(feed.POOL_LOCK_KEY) is None
+    assert mc.get(feed.POOL_KEY) is None
 
 
 def test_recent_rows_rotate_the_pool_or_return_nothing(monkeypatch):

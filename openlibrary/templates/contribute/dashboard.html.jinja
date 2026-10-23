@@ -54,6 +54,11 @@
                  {% if data.rows or data.rows_url %}hidden{% endif %}>
                 <p>{{ data.empty }}</p>
             </div>
+            {% if data.rows_url %}
+                <div class="contrib-empty" data-list-error hidden>
+                    <p>{{ _("Tasks couldn't load right now. Reload the page to try again.") }}</p>
+                </div>
+            {% endif %}
         </main>
         <aside class="contrib-dash__aside">
             <section class="contrib-side">

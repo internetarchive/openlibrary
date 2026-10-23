@@ -12,7 +12,7 @@ import { trackEvent } from './ol.analytics.js';
 
 const SKIPPED_KEY = 'ol-contribute-skipped';
 // While placeholder cards are up, the server is building the list in the background: ask again every few
-// seconds, for as long as its Solr query may take, then give up and show the empty state.
+// seconds, for as long as its Solr query may take, then give up and say the list couldn't load.
 const ROWS_RETRY_MS = 5000;
 const ROWS_MAX_TRIES = 36;
 
@@ -78,16 +78,19 @@ function settleTaskList(root) {
 
 /**
  * Fetch the rows a page rendered placeholders for. The server answers 202 until the pool is built.
+ * An error status, or running out of tries, shows the "couldn't load" message rather than the empty state.
  * @param {ParentNode} root - the ``[data-contribute-list]`` container
  * @param {HTMLOListElement} list - the ``[data-rows-url]`` list of placeholders
  * @returns {Promise<void>}
  */
 async function loadTaskRows(root, list) {
+    let loaded = false;
     for (let attempt = 0; attempt < ROWS_MAX_TRIES; attempt++) {
         try {
             const res = await fetch(list.dataset.rowsUrl, { headers: { Accept: 'text/html' } });
             if (res.ok && res.status !== 202) {
                 list.innerHTML = await res.text();
+                loaded = true;
                 break;
             }
             if (!res.ok) break;
@@ -98,7 +101,12 @@ async function loadTaskRows(root, list) {
     }
     list.querySelectorAll('[data-row-skeleton]').forEach(li => li.remove());
     delete list.dataset.rowsUrl;
-    settleTaskList(root);
+    if (loaded) {
+        settleTaskList(root);
+        return;
+    }
+    const error = root.querySelector('[data-list-error]');
+    if (error) error.hidden = false;
 }
 
 /**

@@ -36,14 +36,38 @@ def test_stale_entry_is_served_while_a_thread_rebuilds_it(monkeypatch):
     assert mc.get(pool.lock_key(KEY)) is None
 
 
-def test_a_failed_or_empty_rebuild_keeps_the_old_entry_and_releases_the_lock(monkeypatch):
+def test_an_empty_rebuild_keeps_the_old_entry_and_releases_the_lock(monkeypatch):
     mc = use_memory_cache(monkeypatch)
-    for rebuild in (lambda: 1 / 0, list):
-        mc.set(KEY, {"at": 0, "value": [1]})
-        assert pool.get(KEY, 60, rebuild) == [1]
-        join_refreshes()
-        assert mc.get(KEY)["value"] == [1]
-        assert mc.get(pool.lock_key(KEY)) is None
+    mc.set(KEY, {"at": 0, "value": [1]})
+    assert pool.get(KEY, 60, list) == [1]
+    join_refreshes()
+    assert mc.get(KEY)["value"] == [1]
+    assert mc.get(pool.lock_key(KEY)) is None
+
+
+def test_an_empty_rebuild_on_a_cold_cache_is_cached(monkeypatch):
+    mc = use_memory_cache(monkeypatch)
+    assert pool.get(KEY, 60, list) is None
+    join_refreshes()
+    assert pool.get(KEY, 60, lambda: 1 / 0) == []
+    assert mc.get(pool.lock_key(KEY)) is None
+
+
+def test_a_failed_rebuild_keeps_the_old_entry_and_holds_the_lock(monkeypatch):
+    mc = use_memory_cache(monkeypatch)
+    mc.set(KEY, {"at": 0, "value": [1]})
+    assert pool.get(KEY, 60, lambda: 1 / 0) == [1]
+    join_refreshes()
+    assert mc.get(KEY)["value"] == [1]
+    assert mc.get(pool.lock_key(KEY)) is not None
+
+
+def test_an_entry_in_another_shape_is_a_miss(monkeypatch):
+    mc = use_memory_cache(monkeypatch)
+    mc.set(KEY, {"at": 0, "rows": [1]})
+    assert pool.get(KEY, 60, lambda: [2]) is None
+    join_refreshes()
+    assert mc.get(KEY)["value"] == [2]
 
 
 def test_only_one_rebuild_runs_at_a_time(monkeypatch):

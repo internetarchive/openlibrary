@@ -6,7 +6,6 @@ the record's history, ``edit-book`` as the kind so edit stats are unchanged.
 """
 
 import re
-from datetime import UTC, datetime
 
 import web
 
@@ -99,10 +98,3 @@ def recent_saves(user_key: str, limit: int = 5) -> list:
     """The user's latest Tasks edits, newest first. Filtered here: ``data`` filters need an index entry."""
     changes = web.ctx.site.recentchanges({"author": user_key, "kind": ACTION, "limit": 100})
     return [c for c in changes if (c.data or {}).get("source") == SOURCE][:limit]
-
-
-def saves_today(user_key: str) -> int:
-    """The user's Tasks edits since midnight UTC, for the daily cap."""
-    today = datetime.now(UTC).strftime("%Y-%m-%d")
-    changes = web.ctx.site.recentchanges({"author": user_key, "kind": ACTION, "begin_date": today, "limit": 1000})
-    return sum(1 for c in changes if (c.data or {}).get("source") == SOURCE)

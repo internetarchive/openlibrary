@@ -4,11 +4,10 @@ import random
 from collections.abc import Iterator
 from dataclasses import dataclass
 
-import web
-
 from openlibrary.contribute import pool
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.dateutil import HOUR_SECS
+from openlibrary.utils.request_context import site
 
 # How many of the most-read works the list draws from; each load shows a random handful of them.
 POOL_SIZE = 500
@@ -91,5 +90,5 @@ def _load(picks: list[list], batch: int) -> Iterator[Candidate]:
     picks = random.sample(picks, len(picks))
     for i in range(0, len(picks), batch):
         chunk = picks[i : i + batch]
-        editions = {e.key: e for e in web.ctx.site.get_many([key for key, _readers in chunk])}
+        editions = {e.key: e for e in site.get().get_many([key for key, _readers in chunk])}
         yield from (Candidate(editions[key], readers) for key, readers in chunk if key in editions)

@@ -10,7 +10,6 @@ from urllib.parse import urlencode
 
 import web
 
-from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
@@ -18,7 +17,6 @@ from openlibrary.contribute import feed, save, supply, tasks
 from openlibrary.contribute.field_guides import build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values
 from openlibrary.core import helpers
-from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import spamcheck
 
@@ -36,9 +34,6 @@ APPLY_FORM_USERNAME_FIELD = "entry.629295430"
 # Signed-in members see the /tasks intro once. Clicking through sets this cookie, the way banner dismissals do.
 INTRO_COOKIE = "tasks_intro"
 INTRO_COOKIE_DAYS = 365
-# Tasks edits a non-librarian may save per UTC day when the config sets no `contribute_daily_cap`.
-# The loop makes fast runs easy, and every one lands on a well-read book; this keeps a bad run short.
-DEFAULT_DAILY_CAP = 50
 
 
 def setup():
@@ -67,21 +62,6 @@ def require_login(path: str):
     if not (user := accounts.get_current_user()):
         raise web.seeother(f"/account/login?{urlencode({'redirect': path})}")
     return user
-
-
-def daily_cap() -> int:
-    """Tasks edits a non-librarian may save per UTC day; 0 lifts the cap."""
-    return int(config.get("contribute_daily_cap", DEFAULT_DAILY_CAP))
-
-
-def cap_message(user) -> str:
-    """Why the user can't save another task today, or "" while they can. Librarians are never capped."""
-    cap = daily_cap()
-    if not cap or user.is_librarian_or_higher() or save.saves_today(user.key) < cap:
-        return ""
-    return _(
-        "You've saved %(count)d tasks today, the most an account can in a day. Come back tomorrow, or become an Open Librarian to lift the limit.", count=cap
-    )
 
 
 def build_dashboard_url(task: str = "", base: str = "/tasks") -> str:
@@ -161,9 +141,8 @@ def count_sibling_values(fld: str, others: list, limit: int = 5) -> dict:
     }
 
 
-def get_recent_fixes(user) -> list[dict]:
-    """The right column's "Your recent fixes"."""
-    changes = save.recent_saves(user.key)
+def get_recent_fixes(changes: list) -> list[dict]:
+    """The right column's "Your recent fixes", from the user's ``save.recent_saves``."""
     keys = [c.changes[0]["key"] for c in changes if c.changes]
     editions = {e.key: e for e in web.ctx.site.get_many(keys)} if keys else {}
     field_guides = get_field_guides()
@@ -268,9 +247,9 @@ def landing_figures() -> dict[str, str]:
     return {"readers": "2M+", "books": "55M"}
 
 
-def has_seen_intro(user) -> bool:
+def has_seen_intro(recent_saves: list) -> bool:
     """Whether a member skips the intro: they clicked through it before, or have already saved a task (any device)."""
-    return web.cookies().get(INTRO_COOKIE) == "1" or bool(save.recent_saves(user.key, limit=1))
+    return web.cookies().get(INTRO_COOKIE) == "1" or bool(recent_saves)
 
 
 def build_cta(user=None) -> dict:
@@ -301,7 +280,7 @@ def build_apply(user) -> dict | None:
     return {
         "label": _("Become an Open Librarian"),
         "href": f"{APPLY_FORM_URL}?{urlencode({'usp': 'pp_url', APPLY_FORM_USERNAME_FIELD: user.get_username()})}",
-        "note": _("Doing a lot of these? Open Librarians get more editing tools and no daily limit. Applying takes a few minutes."),
+        "note": _("Doing a lot of these? Open Librarians get more editing tools. Applying takes a few minutes."),
     }
 
 
@@ -341,8 +320,11 @@ class contribute_index(delegate.page):
     path = "/tasks"
 
     def GET(self):
-        user = accounts.get_current_user()
-        if not user or not has_seen_intro(user):
+        if not (user := accounts.get_current_user()):
+            return render_landing()
+        # One query for both the intro check and the "recent fixes" column.
+        recent_saves = save.recent_saves(user.key)
+        if not has_seen_intro(recent_saves):
             return render_landing(user)
         task = normalize_filter(query_param("task", ""))
         rows = build_task_rows(task)
@@ -357,25 +339,10 @@ class contribute_index(delegate.page):
             skeleton_rows=LIST_SKELETON_ROWS if rows is None else 0,
             heading=_("Missing: %(field)s", field=get_filters()[task][0]) if task else _("Most needed"),
             empty=_("Nothing missing here right now. Thank you."),
-            recent=get_recent_fixes(user),
+            recent=get_recent_fixes(recent_saves),
             history_url=user.key,
             apply=build_apply(user),
         )
-
-
-class contribute_rows(delegate.page):
-    """The dashboard's list on its own, for the page that rendered placeholders: 202 while the pool is still being built."""
-
-    path = "/tasks/rows"
-
-    def GET(self):
-        if not accounts.get_current_user():
-            raise web.forbidden()
-        task = normalize_filter(query_param("task", ""))
-        if (rows := build_task_rows(task)) is None:
-            web.ctx.status = "202 Accepted"
-            return delegate.RawText("", content_type="text/html; charset=utf-8")
-        return delegate.RawText(render_jinja_template("contribute/rows.html.jinja", rows=rows), content_type="text/html; charset=utf-8")
 
 
 class contribute_one(delegate.page):
@@ -474,16 +441,16 @@ class contribute_task(delegate.page):
     path = TASK_PATH
 
     def GET(self, olid, fld):
-        user = require_login(f"/tasks/task/{olid}/{fld}")
+        require_login(f"/tasks/task/{olid}/{fld}")
         back = get_back_filter()
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return render_nothing_page(edition, fld, back)
-        context = build_task_context(edition, task, back, error=cap_message(user)) | {"receipt": build_receipt(query_param("saved", ""))}
+        context = build_task_context(edition, task, back) | {"receipt": build_receipt(query_param("saved", ""))}
         return render_contribute("contribute/task.html.jinja", get_field_guides()[fld].question, **context)
 
     def POST(self, olid, fld):
-        user = require_login(f"/tasks/task/{olid}/{fld}")
+        require_login(f"/tasks/task/{olid}/{fld}")
         i = web.input(value="", note="", back="", confirmed="", then="")
         # Same check as the edit form; it also stops read-only and blocked accounts.
         if spamcheck.is_spam(i, allow_privileged_edits=True):
@@ -495,8 +462,6 @@ class contribute_task(delegate.page):
         done = f"/tasks/task/{olid}/{fld}/done"
         field_guide = get_field_guides()[fld]
         try:
-            if blocked := cap_message(user):
-                raise save.InvalidAnswer(blocked)
             if fld in save.NORMALIZERS and not i.confirmed:
                 raise save.InvalidAnswer(_("Open the record and confirm it matches this edition first."))
             save.save_answer(edition, fld, i.value, field_guide.label, i.note)
