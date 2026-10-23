@@ -554,7 +554,7 @@ class Work(Thing):
         if not username:
             return None
         work_id = extract_numeric_id_from_olid(self.key)
-        status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
+        status_id = Bookshelves.get_users_read_status_of_work_sync(username, work_id)
         return status_id
 
     def get_users_notes(self, username, edition_olid=None):
@@ -593,7 +593,7 @@ class Work(Thing):
                 "stopped-reading": 0,
             }
         work_id = extract_numeric_id_from_olid(self.key)
-        num_users_by_bookshelf = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
+        num_users_by_bookshelf = Bookshelves.get_num_users_by_bookshelf_by_work_id_sync(work_id)
         return {
             "want-to-read": num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES["Want to Read"], 0),
             "currently-reading": num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES["Currently Reading"], 0),

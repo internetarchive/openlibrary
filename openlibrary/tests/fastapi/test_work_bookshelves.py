@@ -1,6 +1,6 @@
 """Tests for the FastAPI work bookshelves endpoints."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -8,10 +8,10 @@ import pytest
 @pytest.fixture
 def mock_bookshelves_model():
     with (
-        patch("openlibrary.core.models.Bookshelves.get_users_read_status_of_work") as read_status_mock,
-        patch("openlibrary.core.models.Bookshelves.add") as add_mock,
-        patch("openlibrary.core.models.Bookshelves.remove") as remove_mock,
-        patch("openlibrary.core.bookshelves_events.BookshelvesEvents.delete_by_username_and_work") as delete_events_mock,
+        patch("openlibrary.core.models.Bookshelves.get_users_read_status_of_work", new_callable=AsyncMock) as read_status_mock,
+        patch("openlibrary.core.models.Bookshelves.add", new_callable=AsyncMock) as add_mock,
+        patch("openlibrary.core.models.Bookshelves.remove", new_callable=AsyncMock) as remove_mock,
+        patch("openlibrary.core.bookshelves_events.BookshelvesEvents.delete_by_username_and_work", new_callable=AsyncMock) as delete_events_mock,
     ):
         read_status_mock.return_value = None
         yield read_status_mock, add_mock, remove_mock, delete_events_mock
@@ -26,12 +26,12 @@ class TestWorkBookshelvesGet:
             "stopped_reading": 1,
         }
 
-        with patch("openlibrary.core.models.Bookshelves.get_work_summary", return_value=counts) as summary_mock:
+        with patch("openlibrary.core.models.Bookshelves.get_work_summary", new_callable=AsyncMock, return_value=counts) as summary_mock:
             response = fastapi_client.get("/works/OL123W/bookshelves.json")
 
         assert response.status_code == 200
         assert response.json() == {"counts": counts}
-        summary_mock.assert_called_once_with("123")
+        summary_mock.assert_awaited_once_with("123")
 
 
 class TestWorkBookshelvesPost:
@@ -47,7 +47,7 @@ class TestWorkBookshelvesPost:
         assert response.status_code == 200
         assert response.json() == {"bookshelves_affected": 1}
         read_status_mock.assert_called_once_with("testuser", "123")
-        add_mock.assert_called_once_with(username="testuser", bookshelf_id="1", work_id="123", edition_id=42)
+        add_mock.assert_awaited_once_with(username="testuser", bookshelf_id="1", work_id="123", edition_id=42)
         remove_mock.assert_not_called()
         delete_events_mock.assert_not_called()
 
@@ -62,7 +62,7 @@ class TestWorkBookshelvesPost:
 
         assert response.status_code == 200
         assert response.json() == {"bookshelves_affected": 1}
-        add_mock.assert_called_once_with(username="testuser", bookshelf_id="2", work_id="123", edition_id=42)
+        add_mock.assert_awaited_once_with(username="testuser", bookshelf_id="2", work_id="123", edition_id=42)
 
     def test_post_removes_work_from_bookshelf(self, fastapi_client, mock_authenticated_user, mock_bookshelves_model):
         read_status_mock, add_mock, remove_mock, delete_events_mock = mock_bookshelves_model
@@ -73,8 +73,8 @@ class TestWorkBookshelvesPost:
 
         assert response.status_code == 200
         assert response.json() == {"bookshelves_affected": 1}
-        remove_mock.assert_called_once_with(username="testuser", work_id="123", bookshelf_id="2")
-        delete_events_mock.assert_called_once_with("testuser", "123")
+        remove_mock.assert_awaited_once_with(username="testuser", work_id="123", bookshelf_id="2")
+        delete_events_mock.assert_awaited_once_with("testuser", "123")
         add_mock.assert_not_called()
 
     def test_post_toggles_current_bookshelf_off(self, fastapi_client, mock_authenticated_user, mock_bookshelves_model):
@@ -86,8 +86,8 @@ class TestWorkBookshelvesPost:
 
         assert response.status_code == 200
         assert response.json() == {"bookshelves_affected": 1}
-        remove_mock.assert_called_once_with(username="testuser", work_id="123", bookshelf_id="2")
-        delete_events_mock.assert_called_once_with("testuser", "123")
+        remove_mock.assert_awaited_once_with(username="testuser", work_id="123", bookshelf_id="2")
+        delete_events_mock.assert_awaited_once_with("testuser", "123")
         add_mock.assert_not_called()
 
     def test_dont_remove_prevents_toggle_removal(self, fastapi_client, mock_authenticated_user, mock_bookshelves_model):
@@ -99,7 +99,7 @@ class TestWorkBookshelvesPost:
 
         assert response.status_code == 200
         assert response.json() == {"bookshelves_affected": 1}
-        add_mock.assert_called_once_with(username="testuser", bookshelf_id="2", work_id="123", edition_id=None)
+        add_mock.assert_awaited_once_with(username="testuser", bookshelf_id="2", work_id="123", edition_id=None)
         remove_mock.assert_not_called()
         delete_events_mock.assert_not_called()
 

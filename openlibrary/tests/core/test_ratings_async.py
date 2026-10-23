@@ -30,10 +30,10 @@ def helpers():
 
 @pytest.fixture
 def bookshelves():
-    """Patch the Bookshelves calls ``Ratings.add`` makes. They're still sync (web.py db)."""
+    """Patch the async Bookshelves calls made by ``Ratings.add``."""
     with (
-        patch("openlibrary.core.bookshelves.Bookshelves.get_users_read_status_of_work", return_value=None) as read_status,
-        patch("openlibrary.core.bookshelves.Bookshelves.add") as add,
+        patch("openlibrary.core.bookshelves.Bookshelves.get_users_read_status_of_work", new_callable=AsyncMock, return_value=None) as read_status,
+        patch("openlibrary.core.bookshelves.Bookshelves.add", new_callable=AsyncMock) as add,
     ):
         yield SimpleNamespace(read_status=read_status, add=add)
 

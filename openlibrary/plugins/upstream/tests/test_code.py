@@ -412,6 +412,9 @@ class TestIntegratedBookPageRendering:
 
         # Mock Ratings.get_rating_stats_sync to avoid async DB calls
         monkeypatch.setattr("openlibrary.core.ratings.Ratings.get_rating_stats_sync", lambda work_id: {"avg_rating": 4.0, "num_ratings": 10})
+        # Mock bookshelf summaries too: this template test uses a fake sync DB,
+        # while migrated bookshelf reads go through the async DB pool.
+        monkeypatch.setattr("openlibrary.core.bookshelves.Bookshelves.get_num_users_by_bookshelf_by_work_id_sync", lambda work_id: {})
 
     def test_work_page_renders_open_lending_state_after_groundtruth_fallback(self, monkeypatch, mock_site, render_template, request_context_fixture):
         request_context_fixture(lang="en")
