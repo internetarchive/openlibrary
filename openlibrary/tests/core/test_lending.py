@@ -248,12 +248,11 @@ class TestGetLoanHistoryData:
         response.json.return_value = {"history": {"items": []}}
         with (
             patch.object(lending.OpenLibraryAccount, "get_by_username", return_value=Mock()),
-            patch("openlibrary.core.lending.web.cookies", return_value={"s3": "irrelevant"}),
             patch("openlibrary.core.lending.parse_s3_cookie", return_value=None),
             patch("openlibrary.core.lending.s3_loan_api", return_value=response) as mock_api,
             patch("openlibrary.core.lending.get_items_and_add_availability", return_value={}),
         ):
-            result = lending.get_loan_history_data("someuser", page=1)
+            result = lending.get_loan_history_data("someuser", page=1, s3_cookie="irrelevant")
 
         # Must short-circuit: calling the real s3_loan_api with None keys raises
         # TypeError on `s3_keys | kwargs`, which 500s /account/loans.
@@ -273,12 +272,38 @@ class TestGetLoanHistoryData:
         response.json.return_value = {"history": {"items": []}}
         with (
             patch.object(lending.OpenLibraryAccount, "get_by_username", return_value=Mock()),
-            patch("openlibrary.core.lending.web.cookies", return_value={"s3": "irrelevant"}),
             patch("openlibrary.core.lending.parse_s3_cookie", return_value={"access": "a", "secret": "s"}),
             patch("openlibrary.core.lending.s3_loan_api", return_value=response) as mock_api,
             patch("openlibrary.core.lending.get_items_and_add_availability", return_value={}),
         ):
-            result = lending.get_loan_history_data("someuser", page=1)
+            result = lending.get_loan_history_data("someuser", page=1, s3_cookie="irrelevant")
 
         mock_api.assert_called_once()
         assert result["docs"] == []
+
+    def test_reads_s3_keys_from_the_cookie_it_is_given(self):
+        """It must not reach for web.cookies(): a FastAPI worker thread has no
+        web.py request, so that raised AttributeError and 500'd
+        /account/loan-history.json (#13959)."""
+        response = Mock()
+        response.json.return_value = {"history": {"items": []}}
+        with (
+            patch.object(lending.OpenLibraryAccount, "get_by_username", return_value=Mock()),
+            patch("openlibrary.core.lending.web.cookies", side_effect=AssertionError("web.cookies() must not be called")),
+            patch("openlibrary.core.lending.parse_s3_cookie", return_value={"access": "a", "secret": "s"}) as mock_parse,
+            patch("openlibrary.core.lending.s3_loan_api", return_value=response),
+            patch("openlibrary.core.lending.get_items_and_add_availability", return_value={}),
+        ):
+            lending.get_loan_history_data("someuser", page=1, s3_cookie="a%3As")
+
+        mock_parse.assert_called_once_with("a%3As")
+
+    def test_unknown_account_raises_account_not_found(self):
+        with (
+            patch.object(lending.OpenLibraryAccount, "get_by_username", return_value=None),
+            patch("openlibrary.core.lending.s3_loan_api") as mock_api,
+            pytest.raises(lending.AccountNotFoundError),
+        ):
+            lending.get_loan_history_data("nobody", page=1, s3_cookie="irrelevant")
+
+        mock_api.assert_not_called()

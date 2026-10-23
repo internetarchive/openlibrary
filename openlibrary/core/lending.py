@@ -895,7 +895,11 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
 RESULTS_PER_PAGE: int = 25
 
 
-def get_loan_history_data(username: str, page: int) -> dict:
+class AccountNotFoundError(LookupError):
+    """No Open Library account exists for the requested username."""
+
+
+def get_loan_history_data(username: str, page: int, s3_cookie: str | None) -> dict:
     """Fetch loan history data for a user.
 
     This will use a patron's S3 keys to query the IA loan history API,
@@ -906,13 +910,17 @@ def get_loan_history_data(username: str, page: int) -> dict:
     includes items that are not in Open Library, and displaying only IA
     items creates pagination and navigation issues. For further discussion,
     see https://github.com/internetarchive/openlibrary/pull/8375.
+
+    `s3_cookie` is the raw value of the patron's `s3` cookie. Callers pass it
+    in (web.py: `web.cookies().get("s3")`, FastAPI: `request.cookies.get("s3")`)
+    because a FastAPI worker thread has no web.py request to read it from.
+
+    Raises AccountNotFoundError when `username` has no Open Library account.
     """
-    from infogami.utils.view import render
-
     if not OpenLibraryAccount.get_by_username(username):
-        raise render.notfound("Account not found for %s" % username, create=False)
+        raise AccountNotFoundError(f"Account not found for {username}")
 
-    s3_keys = parse_s3_cookie(web.cookies().get("s3"))
+    s3_keys = parse_s3_cookie(s3_cookie)
     limit = RESULTS_PER_PAGE
     offset = page * limit - limit
 
