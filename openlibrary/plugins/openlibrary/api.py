@@ -89,20 +89,20 @@ class booknotes(delegate.page):
         return response("note added")
 
 
-def get_bookshelves_summary(work_id):
+async def get_bookshelves_summary(work_id):
     from openlibrary.core.models import Bookshelves
 
-    return {"counts": Bookshelves.get_work_summary(str(work_id))}
+    return {"counts": await Bookshelves.get_work_summary(str(work_id))}
 
 
-def process_work_bookshelves(username, work_id, bookshelf_id, edition_id=None, dont_remove=False):
+async def process_work_bookshelves(username, work_id, bookshelf_id, edition_id=None, dont_remove=False):
     from openlibrary.core.models import Bookshelves
 
     if bookshelf_id is None:
         return {"error": "Invalid bookshelf"}
 
     work_id_str = str(work_id)
-    current_status = Bookshelves.get_users_read_status_of_work(username, work_id_str)
+    current_status = await Bookshelves.get_users_read_status_of_work(username, work_id_str)
 
     try:
         bookshelf_id_val = int(bookshelf_id)
@@ -115,17 +115,17 @@ def process_work_bookshelves(username, work_id, bookshelf_id, edition_id=None, d
     if ((not dont_remove) and bookshelf_id_val == current_status) or bookshelf_id_val == -1:
         from openlibrary.core.bookshelves_events import BookshelvesEvents
 
-        work_bookshelf = Bookshelves.remove(
+        work_bookshelf = await Bookshelves.remove(
             username=username,
             work_id=work_id_str,
             bookshelf_id=str(current_status) if current_status else None,
         )
-        BookshelvesEvents.delete_by_username_and_work(username, work_id_str)
+        await BookshelvesEvents.delete_by_username_and_work(username, work_id_str)
     else:
         from openlibrary.utils import extract_numeric_id_from_olid
 
         resolved_edition_id = int(extract_numeric_id_from_olid(edition_id)) if edition_id else None
-        work_bookshelf = Bookshelves.add(
+        work_bookshelf = await Bookshelves.add(
             username=username,
             bookshelf_id=str(bookshelf_id_val),
             work_id=work_id_str,
