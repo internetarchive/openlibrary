@@ -5,11 +5,12 @@ import web
 from infogami.core.db import ValidationException
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
-from infogami.utils.view import add_flash_message, public, safeint
+from infogami.utils.view import add_flash_message, public
 from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.addbook import safe_seeother, trim_doc
 from openlibrary.plugins.upstream.models import Tag
+from openlibrary.plugins.upstream.tag_dashboard import build_tag_dashboard
 from openlibrary.plugins.upstream.utils import render_template
 
 
@@ -242,30 +243,28 @@ class tag_search(delegate.page):
         return render_template("notfound", f"/tags/-/{type}:{name}", create=False)
 
 
+# The whole vocabulary fits in one request today, and the dashboard needs
+# every type's count anyway. This caps the query so a runaway Tag table can't
+# take the page down; when it is hit, GET reports the list as truncated.
+TAG_DASHBOARD_LIMIT = 1000
+
+
 class tags_index(delegate.page):
     path = "/tags"
 
     def GET(self):
-        i = web.input(page=1, type=None)
-        page_num = max(1, safeint(i.page, 1))
-        limit = 20
-        offset = (page_num - 1) * limit
-        tag_type = i.type if i.type in TAG_TYPES else None
+        i = web.input(type=None)
 
-        q = {"type": "/type/tag", "limit": limit + 1, "offset": offset}
-        if tag_type:
-            q["tag_type"] = tag_type
+        tag_keys = web.ctx.site.things({"type": "/type/tag", "limit": TAG_DASHBOARD_LIMIT})
+        tags = web.ctx.site.get_many(tag_keys) if tag_keys else []
 
-        tag_keys = web.ctx.site.things(q)
-        has_next = len(tag_keys) > limit
-        tags = web.ctx.site.get_many(tag_keys[:limit]) if tag_keys else []
-
+        # The filter is applied in Python rather than in the query: the page
+        # needs every type's count regardless, and the data carries types the
+        # editor's TAG_TYPES list doesn't know about (e.g. the plural `genres`).
         return render_template(
             "type/tag/index",
-            tags=tags,
-            page=page_num,
-            has_next=has_next,
-            tag_type=tag_type,
+            dashboard=build_tag_dashboard(tags, truncated=len(tag_keys) == TAG_DASHBOARD_LIMIT),
+            tag_type=i.type or None,
         )
 
 

@@ -1,0 +1,160 @@
+/**
+ * Tags dashboard
+ * The read-only tag explorer at /tags (#13928): one section per tag type,
+ * with a data-quality panel for the tags a curator may want to fix.
+ */
+
+.tags-dashboard__summary {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-medium);
+}
+
+.tags-dashboard__notice {
+  background: var(--color-warning-bg);
+  border: var(--border-width) solid var(--color-warning-border);
+  border-radius: var(--border-radius-card);
+  color: var(--color-text);
+  margin-bottom: var(--spacing-stack-md);
+  padding: var(--spacing-inset-md);
+}
+
+/* Type filter: one pill per tag_type, each showing its count. */
+.tags-dashboard__filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-md);
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+.tags-dashboard__filter-link {
+  align-items: center;
+  background: var(--color-control-bg);
+  border: var(--border-width) solid var(--color-control-border);
+  border-radius: var(--border-radius-chip);
+  color: var(--color-text);
+  display: inline-flex;
+  font-family: var(--font-family-button);
+  font-size: var(--font-size-label-medium);
+  gap: var(--spacing-inline-sm);
+  line-height: var(--line-height-chip);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  text-decoration: none;
+}
+
+/* Selected has one look across the design system: the selected fill with link
+   ink. No weight change -- it would re-measure the pill. */
+.tags-dashboard__filter-link.is-active {
+  background: var(--color-control-selected-bg);
+  color: var(--color-link);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tags-dashboard__filter-link:hover {
+    background: var(--color-control-hover);
+  }
+
+  .tags-dashboard__filter-link.is-active:hover {
+    background: var(--color-control-selected-bg-hover);
+  }
+}
+
+.tags-dashboard__filter-count {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tags-dashboard__filter-link.is-active .tags-dashboard__filter-count {
+  color: inherit;
+}
+
+/* Data-quality panel. It leads the page because it is the part a curator acts
+   on; the grouped vocabulary below is the reference. */
+.tags-dashboard__flags {
+  background: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  margin-bottom: var(--spacing-stack-lg);
+  padding: var(--spacing-inset-md);
+}
+
+.tags-dashboard__flags h2 {
+  font-size: var(--font-size-title-small);
+  margin: 0 0 var(--spacing-stack-xs);
+}
+
+.tags-dashboard__flags p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-medium);
+  margin: 0;
+}
+
+.tags-dashboard__flag-heading {
+  font-size: var(--font-size-label-large);
+  margin: var(--spacing-stack-md) 0 var(--spacing-stack-xs);
+}
+
+.tags-dashboard__flag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-md);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tags-dashboard__flag-hint {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-small);
+}
+
+/* One section per tag type. */
+.tags-dashboard__group {
+  border-top: var(--border-width) solid var(--color-border-subtle);
+  padding-top: var(--spacing-stack-sm);
+}
+
+.tags-dashboard__group-heading {
+  align-items: baseline;
+  display: flex;
+  font-size: var(--font-size-title-small);
+  gap: var(--spacing-inline-md);
+  margin: 0 0 var(--spacing-stack-sm);
+}
+
+.tags-dashboard__group-count {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.tags-dashboard__tags {
+  list-style: none;
+  margin: 0 0 var(--spacing-stack-lg);
+  padding: 0;
+}
+
+.tags-dashboard__tag {
+  margin-bottom: var(--spacing-stack-md);
+}
+
+.tags-dashboard__tag-name {
+  font-size: var(--font-size-body-large);
+}
+
+.tags-dashboard__tag-key {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-body-small);
+  margin-inline-start: var(--spacing-inline-md);
+}
+
+.tags-dashboard__tag-subject {
+  font-size: var(--font-size-body-small);
+  margin-inline-start: var(--spacing-inline-md);
+}
+
+.tags-dashboard__tag-description {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-medium);
+  margin: var(--spacing-stack-xs) 0 0;
+}
