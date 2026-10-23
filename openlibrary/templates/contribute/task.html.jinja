@@ -1,7 +1,9 @@
 {#- /tasks/task/OL…M/<field> — one book, one missing field, answered in place on the record. -#}
 {% import "contribute/parts.html.jinja" as parts %}
 <div class="contrib-page contrib-page--task" data-contribute-task>
-    <a class="contrib-back" href="{{ data.list_url }}">{{ icon("chevron-left", size="sm") }}{{ _("Back to the list") }}</a>
+    <a class="contrib-back"
+       href="{{ data.list_url }}"
+       data-ol-link-track="TaskForm|Back">{{ icon("chevron-left", size="sm") }}{{ _("Back to the list") }}</a>
     <div class="contrib-task__main">
         <div class="contrib-question">
             <h1 class="contrib-question__text">{{ data.field_guide.question }}</h1>
