@@ -74,7 +74,7 @@ ENV UV_SYSTEM_PYTHON=1
 # Util to make scripts like copydocs work without needing to manually specify PYTHONPATH
 ENV PYTHONPATH=/openlibrary
 USER root
-RUN uv pip install --upgrade wheel
+RUN uv pip install --upgrade wheel "pip>=26.2.2"
 RUN uv pip install -r requirements.txt
 
 USER openlibrary
