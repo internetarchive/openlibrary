@@ -4447,10 +4447,6 @@ msgstr ""
 msgid "Start contributing"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Become an Open Librarian"
-msgstr ""
-
 #: home/library_row.html.jinja
 msgid "Editable"
 msgstr ""
@@ -8900,6 +8896,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "Already have one? Log in"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Become an Open Librarian"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
