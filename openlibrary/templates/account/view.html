@@ -8,12 +8,12 @@ $var title: $header_title
 
 <div class="mybooks">
   $if mb.is_my_page:
-    $:render_jinja_template("reading_goals/yearly_goal_dialog.html.jinja", year=current_year())
+    $ goal_target = mb.current_goal.goal if mb.current_goal else None
+    $:render_jinja_template("reading_goals/yearly_goal_dialog.html.jinja", year=current_year(), goal=goal_target)
+
   $:mb.render_sidebar()
 
-  $ css = 'no-padding' if mb.key == 'mybooks' else ''
-  <div class="mybooks-details $css">
-
+  <div class="mybooks-details">
     $if ctx.user:
       $ pending_action_msg = mb.get_pending_action_banner()
       $if pending_action_msg:
@@ -40,52 +40,29 @@ $var title: $header_title
 
     $ mb.component_times['Details header'] = time()
     <header>
-      <div class="breadcrumb-wrapper">
-        $# Only show breadcrumbs when we're not on mybooks
-        <div class="account-breadcrumb">
-          <a href="$mb.user.key" class="username-avatar"><img src="$(mb.user.key)/avatar" class="account-avatar" alt="$mb.username"></a>
-          <h2 class="account-username"><a href="$mb.user.key">$mb.username</a> &rsaquo;</h2>
+      <!-- Todo: figure out what the year_breadcrumb-select does -->
+      <!-- <div class="breadcrumb-wrapper">
+        <div class="sansserif grey account-settings-menu navigation-breadcrumbs">
+
+          $if mb.key == 'already-read' and mb.yearly_reads:
+            $ url_prefix = "/people/%s/books/already-read" % mb.username
+            $:render_template("books/year_breadcrumb_select", mb.yearly_reads, url_prefix, url_prefix + "/year/%d", selected=mb.selected_year)
+
         </div>
-        $if mb.key == 'list':
-          <h1 class="details-title">$header_title</h1>
-        $else:
-          <div class="sansserif grey account-settings-menu navigation-breadcrumbs">
-            $:render_template("books/mybooks_breadcrumb_select", mb, selected=header_title)
-
-            $if mb.key == 'already-read' and mb.yearly_reads:
-              $ url_prefix = "/people/%s/books/already-read" % mb.username
-              $:render_template("books/year_breadcrumb_select", mb.yearly_reads, url_prefix, url_prefix + "/year/%d", selected=mb.selected_year)
-
-          </div>
       </div>
-
+ -->
       $if not mb.is_my_page and mb.is_subscribed != -1:
         $:render_template('follow/follow', mb.username, following=mb.is_subscribed, link_track='MyBooksPageHeader|Follow')
+    </header>
 
-      $if 'followers' in mb.counts:
-        <div class="social-wrapper">
-          <a class="ol-button-static ol-button-static--ghost" href="$(mb.user.key)/following"><strong>$mb.counts['following']</strong> $_("Following")</a>
-          <a class="ol-button-static ol-button-static--ghost" href="$(mb.user.key)/followers"><strong>$mb.counts['followers']</strong> $_("Followers")</a>
-          $if mb.is_public and mb.key in mb.PUBLIC_KEYS:
-            $set_share_links(url=request.canonical_url, title=header_title, view_context=ctx)
-            $if ctx.get('share_links'):
-              $ share_str = _('Share')
-              $ share_glyph = macros.icon("share-2", size="sm", extra_class="ol-button-static__icon")
-              $ share_content = '<button type="button" slot="trigger" class="ol-button-static ol-button-static--ghost share-modal-link" data-ol-link-track="MyBooksModalLinkClick|ShareIcon">%s %s</button>' % (share_glyph, share_str)
-              $ page_url = request.home
-              $ share_links = ctx.get('share_links')
-              $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper", show_embed=False)
-        </div>
+    <div class="details-databar">
       $if page and mb.is_my_page:
         $:macros.databarView(page)
-    </header>
+    </div>
 
     $ mb.component_times['Details header'] = time() - mb.component_times['Details header']
     $ mb.component_times['Details content'] = time()
     <div class="details-content">
-      $if mb.is_my_page:
-        $:render_template("account/topmenu", mb)
-
       $if mb.is_my_page and mb.key in ['notes', 'observations']:
         <p>
           $if mb.key == 'notes':
