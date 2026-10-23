@@ -78,6 +78,14 @@
 #ile-drag-actions a:hover {
   background: rgba(0, 0, 0, 0.15);
 }
+/* An action that can't be used with the current selection, e.g. too many works to merge */
+#ile-toolbar .ile-action--disabled {
+  padding: 4px 16px;
+  display: inline-block;
+  border-left: 2px dotted var(--ile-toolbar-text-color);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 a.ile-selectable[href^="/authors/OL"] {
   padding-right: 4px;

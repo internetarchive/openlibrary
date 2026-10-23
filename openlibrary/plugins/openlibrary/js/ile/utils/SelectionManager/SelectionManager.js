@@ -206,7 +206,13 @@ export default class SelectionManager {
             if (action.requires_type.every(type => this.selectedItems[type].length > 0)) {
                 action.applies_to_type.forEach(type => items.push(...this.selectedItems[type]));
                 if (action.multiple_only ? items.length > 1 : items.length > 0)
-                    if (action.href) {
+                    if (action.href && action.max_items && items.length > action.max_items) {
+                        this.ile.$actions.append(
+                            $('<span class="ile-action--disabled" aria-disabled="true"></span>')
+                                .attr('title', action.over_max_message(action.max_items, items.length))
+                                .text(`${action.name} (max ${action.max_items})`)
+                        );
+                    } else if (action.href) {
                         this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
                     } else if (action.onclick && action.name === 'Tag Works') {
                         this.ile.$actions.append(
@@ -518,7 +524,11 @@ SelectionManager.ACTIONS = [
         requires_type: ['work'],
         multiple_only: true,
         name: 'Merge Works...',
-        href: olids => `/works/merge?records=${olids.join(',')}`
+        href: olids => `/works/merge?records=${olids.join(',')}`,
+        // The merge page loads all the records in a single query.json request, whose URL
+        // gets too long past about 50 works (#10010), so don't link to a page that fails.
+        max_items: 50,
+        over_max_message: (max, count) => `Merging is limited to ${max} works at a time, and ${count} are selected. Deselect some works first.`
     },
     /* Uncomment this when edition merging is available.
     {
