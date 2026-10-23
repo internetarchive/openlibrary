@@ -4082,6 +4082,10 @@ msgstr ""
 msgid "Fixes you save here show up in this list."
 msgstr ""
 
+#: contribute/dashboard.html.jinja
+msgid "Go further"
+msgstr ""
+
 #: contribute/done.html.jinja openlibrary/plugins/openlibrary/contribute.py
 msgid "Saved"
 msgstr ""
@@ -4130,7 +4134,7 @@ msgstr ""
 
 #: contribute/landing.html.jinja
 #, python-format
-msgid "Open Library serves %(readers)s readers every month across %(books)s catalogued books, and its %(mark_start)sOpen Librarians%(mark_end)s make thousands of edits every week."
+msgid "Open Library serves %(readers)s readers every month across %(books)s catalogued books, and its %(mark_start)sreaders like you%(mark_end)s make thousands of edits every week."
 msgstr ""
 
 #: contribute/landing.html.jinja
@@ -4161,10 +4165,6 @@ msgstr ""
 #: contribute/landing.html.jinja
 #, python-format
 msgid "Add %(field)s"
-msgstr ""
-
-#: contribute/landing.html.jinja
-msgid "Join in"
 msgstr ""
 
 #: contribute/nothing.html.jinja
@@ -4443,7 +4443,11 @@ msgstr ""
 msgid "A catalog for every book ever published, maintained by readers like you."
 msgstr ""
 
-#: home/library_row.html.jinja openlibrary/plugins/openlibrary/contribute.py
+#: home/library_row.html.jinja
+msgid "Start contributing"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Become an Open Librarian"
 msgstr ""
 
@@ -8854,7 +8858,8 @@ msgid "Filipino"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Tasks are open to librarians only, for now"
+#, python-format
+msgid "You've saved %(count)d tasks today, the most an account can in a day. Come back tomorrow, or become an Open Librarian to lift the limit."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -8870,11 +8875,19 @@ msgid "All open tasks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Tasks are for Open Librarians. Applying takes a few minutes."
+msgid "Ready when you are"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Applying takes a few minutes and asks for your Open Library username, so create a free account first."
+msgid "Try a task"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Browse all tasks"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Join in"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -8882,7 +8895,15 @@ msgid "Create an account"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Log in"
+msgid "Tasks are open to anyone with a free Open Library account."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Already have one? Log in"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Doing a lot of these? Open Librarians get more editing tools and no daily limit. Applying takes a few minutes."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

@@ -5,6 +5,7 @@
  * the browser session so they drop out of the list too.
  */
 
+import { setBannerCookie } from './banner';
 import { initFeed } from './contribute-feed';
 import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
 
@@ -141,6 +142,29 @@ function initIdentifierForm(form) {
 }
 
 /**
+ * A member sees the Tasks intro once: clicking through sets a cookie the way
+ * banner dismissals do, and /tasks skips to the dashboard from then on. The
+ * cookie has to land before the next page is requested, so a plain click waits
+ * on the POST; a modified click (new tab) is left to the browser.
+ * @param {HTMLElement} link - an ``[data-intro-cookie]`` link, with ``data-intro-days`` for the cookie's life
+ * @returns {void}
+ */
+function initIntroDismiss(link) {
+    link.addEventListener('click', event => {
+        if (event.defaultPrevented) return;
+        const dismiss = setBannerCookie(link.dataset.introCookie, Number(link.dataset.introDays) || 365);
+        const modified = event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+        if (modified) {
+            dismiss.catch(() => {});
+            return;
+        }
+        event.preventDefault();
+        const go = () => window.location.assign(link.href);
+        dismiss.then(go, go);
+    });
+}
+
+/**
  * Drop the "Save and next" receipt from the URL, so a reload doesn't show its toast again.
  * @returns {void}
  */
@@ -160,6 +184,7 @@ export function init() {
         initTaskList(root);
     });
     document.querySelectorAll('[data-feed]').forEach(initFeed);
+    document.querySelectorAll('[data-intro-cookie]').forEach(initIntroDismiss);
     document.querySelectorAll('form[data-task-form]').forEach(form => {
         initSkipButton(form);
         initSiblingSuggestions(form);

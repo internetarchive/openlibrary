@@ -1,19 +1,38 @@
-{#- /tasks for visitors and non-librarians: what Tasks is, the edits happening right now, and how to join.
-    Librarians get contribute/dashboard.html.jinja instead; contribute.py decides which. -#}
+{#- /tasks intro: what Tasks is, the edits happening right now, and how to join.
+    Visitors always land here. Members see it once: contribute.py sends them to contribute/dashboard.html.jinja
+    after they click through (data-intro-cookie, set by contribute.js) or save their first task. -#}
 {% import "contribute/parts.html.jinja" as parts %}
 {% macro figure(value) %}<b>{{ value }}</b>{% endmacro %}
-{#- "Open Librarians", underlined twice by hand; the strokes close the span so translators only place the start and end.
+{#- "readers like you", underlined twice by hand; the strokes close the span so translators only place the start and end.
     djlint:off keeps the formatter from adding whitespace inside the span. -#}
 {# djlint:off #}
 {% macro mark_start() %}<span class="contrib-land__mark">{% endmacro %}
 {% macro mark_end() %}<svg viewBox="0 0 120 14" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path pathLength="1" d="M1 4.5 C 30 2.5, 62 4.8, 90 3.4 S 112 2.6, 119 3.6"/><path pathLength="1" d="M10 11 C 36 8.6, 64 10.2, 88 8.4 S 106 7.2, 113 7.8"/></svg></span>{% endmacro %}
 {# djlint:on #}
+{#- A member's click must set the intro cookie before the next page loads; contribute.js watches for these attributes. -#}
+{% macro intro_attrs() %}{% if data.cta.intro %} data-intro-cookie="{{ data.cta.intro.cookie }}" data-intro-days="{{ data.cta.intro.days }}"{% endif %}{% endmacro %}
+{% macro actions(variant) %}
+    <div class="contrib-hero__actions">
+        <ol-button variant="{{ variant }}" href="{{ data.cta.href }}"{{ intro_attrs() }}>
+            {% if data.cta.intro %}{{ icon("dices", slot="icon-start") }}{% endif %}
+            {{ data.cta.label }}
+        </ol-button>
+        {% if data.cta.secondary %}
+            {#- djlint:off keeps the links on one line, with no whitespace nodes between them. -#}
+            {# djlint:off #}
+            <span class="contrib-land__secondary">
+                {% for link in data.cta.secondary %}<a href="{{ link.href }}"{{ intro_attrs() }}>{{ link.label }}</a>{% endfor %}
+            </span>
+            {# djlint:on #}
+        {% endif %}
+    </div>
+{% endmacro %}
 <div class="contrib-land" data-contribute-landing>
     <header class="contrib-land__top">
         <hgroup class="contrib-land__heading">
             <h1 class="contrib-land__title">{{ _("Open Library Tasks") }}</h1>
             <p class="contrib-land__figures">
-                {{ _("Open Library serves %(readers)s readers every month across %(books)s catalogued books, and its %(mark_start)sOpen Librarians%(mark_end)s make thousands of edits every week.", readers=figure(data.figures.readers), books=figure(data.figures.books), mark_start=mark_start(), mark_end=mark_end()) }}
+                {{ _("Open Library serves %(readers)s readers every month across %(books)s catalogued books, and its %(mark_start)sreaders like you%(mark_end)s make thousands of edits every week.", readers=figure(data.figures.readers), books=figure(data.figures.books), mark_start=mark_start(), mark_end=mark_end()) }}
             </p>
         </hgroup>
         <div class="contrib-land__hero">
@@ -21,17 +40,8 @@
                 {{ _("Many books on Open Library are still missing a detail: a cover, a language, a publisher. You can help fill them in.") }}
             </p>
             <div class="contrib-land__cta">
-                <div class="contrib-hero__actions">
-                    <ol-button variant="primary" href="{{ data.cta.href }}" target="_blank" rel="noopener">
-                        {{ data.cta.label }}
-                    </ol-button>
-                    {% if data.cta.secondary %}
-                        <span class="contrib-land__secondary">
-                            {% for link in data.cta.secondary %}<a href="{{ link.href }}">{{ link.label }}</a>{% endfor %}
-                        </span>
-                    {% endif %}
-                </div>
-                <p class="contrib-land__note">{{ data.cta.note }}</p>
+                {{ actions("primary") }}
+                {% if data.cta.note %}<p class="contrib-land__note">{{ data.cta.note }}</p>{% endif %}
             </div>
         </div>
     </header>
@@ -68,11 +78,9 @@
                 </ul>
             </section>
             <section class="contrib-land__side contrib-land__join">
-                <h2 class="contrib-land__h2 contrib-land__h2--ruled">{{ _("Join in") }}</h2>
-                <p class="contrib-muted">{{ data.cta.note }}</p>
-                <ol-button variant="secondary" href="{{ data.cta.href }}" target="_blank" rel="noopener">
-                    {{ data.cta.label }}
-                </ol-button>
+                <h2 class="contrib-land__h2 contrib-land__h2--ruled">{{ data.cta.heading }}</h2>
+                {% if data.cta.note %}<p class="contrib-muted">{{ data.cta.note }}</p>{% endif %}
+                {{ actions("secondary") }}
             </section>
         </aside>
     </div>

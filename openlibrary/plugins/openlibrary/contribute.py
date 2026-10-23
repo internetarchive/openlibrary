@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 
 import web
 
+from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
@@ -18,6 +19,7 @@ from openlibrary.contribute.field_guides import build_link_outs, get_field_guide
 from openlibrary.contribute.tasks import field_values
 from openlibrary.core import helpers
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.upstream import spamcheck
 
 LIST_SIZE = 50
 # Rows the public page renders before the feed script takes over.
@@ -26,6 +28,12 @@ FEED_SIZE = 12
 APPLY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeU5Y4x6LNl2SW4NktRnZhFUDwhV6l9Xzr-IsqBow1KqNfdYw/viewform"
 # The form's "What is your Open Library username?" field, prefilled for signed-in visitors.
 APPLY_FORM_USERNAME_FIELD = "entry.629295430"
+# Signed-in members see the /tasks intro once. Clicking through sets this cookie, the way banner dismissals do.
+INTRO_COOKIE = "tasks_intro"
+INTRO_COOKIE_DAYS = 365
+# Tasks edits a non-librarian may save per UTC day when the config sets no `contribute_daily_cap`.
+# The loop makes fast runs easy, and every one lands on a well-read book; this keeps a bad run short.
+DEFAULT_DAILY_CAP = 50
 
 
 def setup():
@@ -49,14 +57,26 @@ def render_contribute(template: str, title: str, **params):
     return render_template("contribute", web.storage(template=template, title=title, params=params))
 
 
-def require_librarian_access(path: str):
-    """Login for visitors, permission denied for anyone below librarian. None when the user may continue."""
-    user = accounts.get_current_user()
-    if not user:
+def require_login(path: str):
+    """The signed-in user; visitors are sent to log in and brought back to ``path``."""
+    if not (user := accounts.get_current_user()):
         raise web.seeother(f"/account/login?{urlencode({'redirect': path})}")
-    if not user.is_librarian_or_higher():
-        return render_template("permission_denied", path, _("Tasks are open to librarians only, for now"))
-    return None
+    return user
+
+
+def daily_cap() -> int:
+    """Tasks edits a non-librarian may save per UTC day; 0 lifts the cap."""
+    return int(config.get("contribute_daily_cap", DEFAULT_DAILY_CAP))
+
+
+def cap_message(user) -> str:
+    """Why the user can't save another task today, or "" while they can. Librarians are never capped."""
+    cap = daily_cap()
+    if not cap or user.is_librarian_or_higher() or save.saves_today(user.key) < cap:
+        return ""
+    return _(
+        "You've saved %(count)d tasks today, the most an account can in a day. Come back tomorrow, or become an Open Librarian to lift the limit.", count=cap
+    )
 
 
 def build_dashboard_url(task: str = "", base: str = "/tasks") -> str:
@@ -237,26 +257,40 @@ def landing_figures() -> dict[str, str]:
     return {"readers": "2M+", "books": "55M"}
 
 
-def build_cta(user) -> dict:
-    """The sign-up call: the volunteering form either way, with the extra step a visitor without an account has.
+def has_seen_intro(user) -> bool:
+    """Whether a member skips the intro: they clicked through it before, or have already saved a task (any device)."""
+    return web.cookies().get(INTRO_COOKIE) == "1" or bool(save.recent_saves(user.key, limit=1))
 
-    The form asks for an Open Library username, so a signed-in visitor's is prefilled and a signed-out one is sent to make an account first.
-    """
+
+def build_cta(user=None) -> dict:
+    """The way in. A visitor needs a free account; a member goes straight to a task, and either click dismisses the intro."""
     if user:
         return {
-            "label": _("Become an Open Librarian"),
-            "href": f"{APPLY_FORM_URL}?{urlencode({'usp': 'pp_url', APPLY_FORM_USERNAME_FIELD: user.get_username()})}",
-            "note": _("Tasks are for Open Librarians. Applying takes a few minutes."),
-            "secondary": [],
+            "heading": _("Ready when you are"),
+            "label": _("Try a task"),
+            "href": build_dashboard_url(base="/tasks/one"),
+            "note": "",
+            "secondary": [{"label": _("Browse all tasks"), "href": build_dashboard_url()}],
+            "intro": {"cookie": INTRO_COOKIE, "days": INTRO_COOKIE_DAYS},
         }
     return {
+        "heading": _("Join in"),
+        "label": _("Create an account"),
+        "href": f"/account/create?{urlencode({'redirect': '/tasks'})}",
+        "note": _("Tasks are open to anyone with a free Open Library account."),
+        "secondary": [{"label": _("Already have one? Log in"), "href": f"/account/login?{urlencode({'redirect': '/tasks'})}"}],
+        "intro": None,
+    }
+
+
+def build_apply(user) -> dict | None:
+    """The librarian pitch for members who aren't one yet. The form asks for a username, so it's prefilled."""
+    if user.is_librarian_or_higher():
+        return None
+    return {
         "label": _("Become an Open Librarian"),
-        "href": APPLY_FORM_URL,
-        "note": _("Applying takes a few minutes and asks for your Open Library username, so create a free account first."),
-        "secondary": [
-            {"label": _("Create an account"), "href": f"/account/create?{urlencode({'redirect': '/tasks'})}"},
-            {"label": _("Log in"), "href": f"/account/login?{urlencode({'redirect': '/tasks'})}"},
-        ],
+        "href": f"{APPLY_FORM_URL}?{urlencode({'usp': 'pp_url', APPLY_FORM_USERNAME_FIELD: user.get_username()})}",
+        "note": _("Doing a lot of these? Open Librarians get more editing tools and no daily limit. Applying takes a few minutes."),
     }
 
 
@@ -278,12 +312,11 @@ def build_feed() -> dict:
     }
 
 
-def render_landing(user):
-    """The public /tasks page for visitors and non-librarians: what tasks are, who is doing them, how to join."""
+def render_landing(user=None):
+    """The /tasks intro: what tasks are, who is doing them, how to join. Visitors always; members until they click through."""
     return render_contribute(
         "contribute/landing.html.jinja",
         _("Tasks"),
-        signed_in=bool(user),
         cta=build_cta(user),
         figures=landing_figures(),
         feed=build_feed(),
@@ -297,7 +330,7 @@ class contribute_index(delegate.page):
 
     def GET(self):
         user = accounts.get_current_user()
-        if not user or not user.is_librarian_or_higher():
+        if not user or not has_seen_intro(user):
             return render_landing(user)
         task = normalize_filter(query_param("task", ""))
         return render_contribute(
@@ -310,6 +343,7 @@ class contribute_index(delegate.page):
             empty=_("Nothing missing here right now. Thank you."),
             recent=get_recent_fixes(user),
             history_url=user.key,
+            apply=build_apply(user),
         )
 
 
@@ -320,8 +354,7 @@ class contribute_one(delegate.page):
 
     def GET(self):
         task = normalize_filter(query_param("task", ""))
-        if denied := require_librarian_access(build_dashboard_url(task, base=self.path)):
-            return denied
+        require_login(build_dashboard_url(task, base=self.path))
         exclude = f"/books/{query_param('exclude', '')}"
         options = [t for row in build_task_rows(task) if row["book"]["key"] != exclude for t in row["tasks"]]
         if not options:
@@ -368,6 +401,8 @@ def build_task_context(edition, task: tasks.Task, back: str, error: str = "", va
         "error": error,
         "value": value,
         "note": note,
+        # Only "Save and next" brings a receipt; the error re-render never does.
+        "receipt": None,
     }
 
 
@@ -405,19 +440,20 @@ class contribute_task(delegate.page):
     path = TASK_PATH
 
     def GET(self, olid, fld):
-        if denied := require_librarian_access(f"/tasks/task/{olid}/{fld}"):
-            return denied
+        user = require_login(f"/tasks/task/{olid}/{fld}")
         back = get_back_filter()
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return render_nothing_page(edition, fld, back)
-        context = build_task_context(edition, task, back) | {"receipt": build_receipt(query_param("saved", ""))}
+        context = build_task_context(edition, task, back, error=cap_message(user)) | {"receipt": build_receipt(query_param("saved", ""))}
         return render_contribute("contribute/task.html.jinja", get_field_guides()[fld].question, **context)
 
     def POST(self, olid, fld):
-        if denied := require_librarian_access(f"/tasks/task/{olid}/{fld}"):
-            return denied
+        user = require_login(f"/tasks/task/{olid}/{fld}")
         i = web.input(value="", note="", back="", confirmed="", then="")
+        # Same check as the edit form; it also stops read-only and blocked accounts.
+        if spamcheck.is_spam(i, allow_privileged_edits=True):
+            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         back = normalize_filter(i.back)
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
@@ -425,6 +461,8 @@ class contribute_task(delegate.page):
         done = f"/tasks/task/{olid}/{fld}/done"
         field_guide = get_field_guides()[fld]
         try:
+            if blocked := cap_message(user):
+                raise save.InvalidAnswer(blocked)
             if fld in save.NORMALIZERS and not i.confirmed:
                 raise save.InvalidAnswer(_("Open the record and confirm it matches this edition first."))
             save.save_answer(edition, fld, i.value, field_guide.label, i.note)
@@ -440,8 +478,7 @@ class contribute_done(delegate.page):
     path = TASK_PATH + "/done"
 
     def GET(self, olid, fld):
-        if denied := require_librarian_access(f"/tasks/task/{olid}/{fld}/done"):
-            return denied
+        require_login(f"/tasks/task/{olid}/{fld}/done")
         back = get_back_filter()
         edition = get_edition_or_404(olid)
         field_guides = get_field_guides()

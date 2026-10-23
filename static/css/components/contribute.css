@@ -1137,7 +1137,7 @@ a.contrib-recent__title {
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-/* "librarians" underlined twice by hand, so the people doing the work stand out. The strokes draw in once on load. */
+/* "readers like you" underlined twice by hand, so the people doing the work stand out. The strokes draw in once on load. */
 .contrib-land__mark {
   position: relative;
   color: var(--color-text);
