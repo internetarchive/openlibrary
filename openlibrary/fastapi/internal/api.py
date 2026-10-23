@@ -286,10 +286,10 @@ async def booknotes_post(
         resolved_edition_id = int(extract_numeric_id_from_olid(edition_id))
 
     if not notes:
-        Booknotes.remove(user.username, work_id, edition_id=resolved_edition_id)
+        await Booknotes.remove(user.username, work_id, edition_id=resolved_edition_id)
         return BooknoteResponse(success="removed note")
 
-    Booknotes.add(
+    await Booknotes.add(
         username=user.username,
         work_id=work_id,
         notes=notes,

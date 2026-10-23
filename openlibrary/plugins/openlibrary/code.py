@@ -2,7 +2,7 @@
 Open Library Plugin.
 """
 
-import datetime
+import datetime as dt
 import gzip
 import json
 import logging
@@ -990,7 +990,7 @@ class invalidate(delegate.page):
 
 
 def save_error():
-    t = datetime.datetime.utcnow()
+    t = dt.datetime.utcnow()
     name = "%04d-%02d-%02d/%02d%02d%02d%06d" % (
         t.year,
         t.month,

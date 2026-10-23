@@ -37,7 +37,7 @@ from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from openlibrary.plugins.upstream.utils import get_identifier_config
 from openlibrary.utils import extract_numeric_id_from_olid, normalize_subject_name
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import get_print_disabled, site
 
 from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
 from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_url
@@ -562,14 +562,14 @@ class Work(Thing):
             return None
         work_id = extract_numeric_id_from_olid(self.key)
         edition_id = extract_numeric_id_from_olid(edition_olid) if edition_olid else -1
-        return Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)
+        return Booknotes.get_patron_booknote_sync(username, work_id, edition_id=edition_id)
 
     def has_book_note(self, username, edition_olid):
         if not username:
             return False
         work_id = extract_numeric_id_from_olid(self.key)
         edition_id = extract_numeric_id_from_olid(edition_olid)
-        return len(Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)) > 0
+        return Booknotes.get_patron_booknote_sync(username, work_id, edition_id=edition_id) is not None
 
     def get_users_observations(self, username):
         if not username:
@@ -743,7 +743,7 @@ class Work(Thing):
             # count reading log entries
             r["occurrences"]["readinglog"] = len(Bookshelves.get_works_shelves(olid))
             r["occurrences"]["ratings"] = len(Ratings.get_all_works_ratings_sync(olid))
-            r["occurrences"]["booknotes"] = len(Booknotes.get_booknotes_for_work(olid))
+            r["occurrences"]["booknotes"] = len(Booknotes.get_booknotes_for_work_sync(olid))
             r["occurrences"]["bestbooks"] = Bestbook.get_count(work_id=olid)
             r["occurrences"]["observations"] = len(Observations.get_observations_for_work(olid))
 
@@ -971,7 +971,7 @@ class User(Thing):
         return web.cookies().get(name, False)
 
     def is_printdisabled(self):
-        return web.cookies().get("pd")
+        return get_print_disabled()
 
     def is_admin(self) -> bool:
         return self.is_usergroup_member("/usergroup/admin")

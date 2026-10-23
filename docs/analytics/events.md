@@ -209,9 +209,9 @@ path.** In `plugins/upstream/account.py` (~617–625):
 
 ```python
 if not is_safe_redirect(redirect) or any(path in redirect for path in blacklist):
-    redirect = "/account/books"                        # cookie KEPT  → banner renders
+    redirect = "/account/books"  # cookie KEPT  → banner renders
 else:
-    web.setcookie("pending_action", "", expires=-1)    # cookie CLEARED → straight to the action
+    web.setcookie("pending_action", "", expires=-1)  # cookie CLEARED → straight to the action
 ```
 
 - Safe redirect (the normal case — `js/index.js` sends `/account/login?redirect=<targetUrl>`):

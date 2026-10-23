@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 from pathlib import Path
 
 from openlibrary.config import load_config
@@ -35,12 +35,12 @@ def main(
     """
     load_config(openlibrary_yml)
 
-    min_start = datetime.datetime.now() - datetime.timedelta(days=7)
+    min_start = dt.datetime.now() - dt.timedelta(days=7)
     # Ensure we start at the beginning of the day
     min_start = min_start.replace(hour=0, minute=5, second=0, microsecond=0)
 
     if timestamp:
-        start = datetime.datetime.fromisoformat(timestamp)
+        start = dt.datetime.fromisoformat(timestamp)
         start = start.replace(minute=5, second=0, microsecond=0)
         if not allow_old_timestamp and start < min_start:
             print(f"Timestamp {start.isoformat()} older than 7 days ago, using {min_start.isoformat()} instead.")
@@ -49,7 +49,7 @@ def main(
         start = min_start
 
     cur_dt = start
-    while cur_dt < datetime.datetime.now():
+    while cur_dt < dt.datetime.now():
         # After 24 hours, run daily trending for this day
         if cur_dt.hour == 0:
             day_dt = cur_dt.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -63,7 +63,7 @@ def main(
         if not dry_run and trending_offset_file:
             trending_offset_file.write_text(cur_dt.isoformat() + "\n")
 
-        cur_dt += datetime.timedelta(hours=1)
+        cur_dt += dt.timedelta(hours=1)
 
     print("Caught up to current time, stopping.")
 

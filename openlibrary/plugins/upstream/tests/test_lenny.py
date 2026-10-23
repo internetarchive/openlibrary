@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import datetime
+import datetime as dt
 import hashlib
 import pathlib
 import re
@@ -473,11 +473,11 @@ class TestAuthorizeLeg:
 
 class TestGrantFromPayload:
     def test_expires_is_derived_from_expires_in(self):
-        before = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+        before = dt.datetime.now(dt.UTC).replace(tzinfo=None)
         grant = lenny._grant_from_payload({"access_token": "at", "expires_in": 3600})
         assert grant.expires is not None
         delta = grant.expires - before
-        assert datetime.timedelta(seconds=3599) <= delta <= datetime.timedelta(seconds=3601)
+        assert dt.timedelta(seconds=3599) <= delta <= dt.timedelta(seconds=3601)
 
     def test_expires_is_naive_utc_to_match_the_table(self):
         """`provider_tokens` compares against a naive UTC now; an aware value
@@ -1041,7 +1041,7 @@ class TestLoanFromNode:
     def test_borrowed_at_becomes_a_posix_timestamp(self):
         loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "borrowed_at": "2026-09-20T12:00:00Z"})
         assert loan is not None
-        assert loan["loaned_at"] == datetime.datetime(2026, 9, 20, 12, 0, tzinfo=datetime.UTC).timestamp()
+        assert loan["loaned_at"] == dt.datetime(2026, 9, 20, 12, 0, tzinfo=dt.UTC).timestamp()
 
     def test_a_naive_timestamp_is_read_as_utc(self, monkeypatch):
         """The node's rows are UTC. Reading them as the web server's local time
@@ -1062,7 +1062,7 @@ class TestLoanFromNode:
             monkeypatch.undo()
             time.tzset()
         assert loan is not None
-        assert loan["loaned_at"] == datetime.datetime(2026, 9, 20, 12, 0, tzinfo=datetime.UTC).timestamp()
+        assert loan["loaned_at"] == dt.datetime(2026, 9, 20, 12, 0, tzinfo=dt.UTC).timestamp()
 
     def test_a_null_borrowed_at_is_zero_not_none(self):
         """`borrowed_at` is documented nullable. The loans template feeds

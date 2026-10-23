@@ -1,6 +1,6 @@
 """Library for interacting with archive.org."""
 
-import datetime
+import datetime as dt
 import logging
 from collections.abc import Callable, Generator
 from urllib.parse import urlencode
@@ -331,10 +331,10 @@ class ItemEdition(dict):
 
 
 def get_candidates_url(
-    day: datetime.date,
+    day: dt.date,
     marcs: bool = True,
 ) -> str:
-    DAY = datetime.timedelta(days=1)
+    DAY = dt.timedelta(days=1)
     hard_requirements = " AND ".join(
         [
             "mediatype:texts",
@@ -375,7 +375,7 @@ def get_candidates_url(
 
 
 def get_candidate_ocaids(
-    day: datetime.date,
+    day: dt.date,
     marcs: bool = True,
 ) -> Generator[str]:
     """

@@ -69,12 +69,7 @@
 body {
   background-color: var(--color-background);
 }
-/* stylelint-disable selector-max-specificity */
-div#background {
-  width: 100%;
-  background-color: var(--color-background);
-}
-/* stylelint-enable selector-max-specificity */
+
 div.message {
   float: left;
   clear: both;
@@ -82,25 +77,29 @@ div.message {
   margin-bottom: var(--spacing-stack-md);
   background: var(--light-yellow);
 }
+
 div.message p {
   font-family: var(--font-family-body);
 }
+
 div.siteSearch {
   -webkit-box-ordinal-group: 4;
   -ms-flex-order: 3;
   order: 3;
 }
+
 div.siteSearch.darker {
   background-color: var(--grey-f3f3f3);
   padding-right: 22px;
 }
+
 /* Stack the search box, filter row, selected-facet chips, and results stats */
 /* with a single gap; the rows carry no vertical margins of their own. */
 .search-controls {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-stack-sm);
-  margin-bottom: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-md);
 }
 
 /* The chips container renders empty (whitespace, then an empty async wrapper) */
@@ -122,6 +121,19 @@ div.siteSearch.darker {
 .search-controls .search-results-stats {
   padding-bottom: 0;
   padding-left: var(--spacing-inset-sm);
+}
+
+/* Search Inside: the count and how the query was read share one row. The note
+   drops under the count on narrow screens instead of scrolling sideways. */
+.search-controls .search-results-stats--wrap {
+  flex-wrap: wrap;
+  gap: var(--spacing-stack-xs) var(--spacing-inline-xl);
+  overflow: visible;
+}
+
+.search-results-stats__note {
+  white-space: normal;
+  color: var(--color-text-secondary);
 }
 
 /* Exception to the gap-owns-spacing rule above: the filters are the last
@@ -168,11 +180,13 @@ div.siteSearch.darker {
   border-radius: 6px;
   padding-left: var(--spacing-inset-md);
 }
+
 /* stylelint-disable selector-max-specificity */
 div#revertLink,
 div#editHistory {
   display: none;
 }
+
 /* stylelint-enable selector-max-specificity */
 
 /* ── Data Transfer Pages (Import/Export) ──────────────────────────── */
@@ -338,30 +352,38 @@ th.toggle-all {
 .import-table {
   border: 2px;
 }
+
 .import-table th {
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
 }
+
 .import-table td {
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
 }
+
 .import-table thead th {
   position: sticky;
   top: 0;
   background-color: var(--white);
 }
+
 .import-table tbody {
   width: 100%;
 }
+
 .import-table tbody tr {
   background-color: var(--white);
 }
+
 .my-imports {
   width: 100%;
 }
+
 .import-export {
   display: flex;
   flex-direction: column;
 }
+
 .import-export__section {
   padding: 0 10px;
 }
