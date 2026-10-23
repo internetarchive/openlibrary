@@ -283,6 +283,7 @@ export class OpenLibraryOTP extends LitElement {
             if (emailInput && emailInput !== document.activeElement) {
                 emailInput.value = this._email;
             }
+
             // Error message
             let errorEl = this._contentContainer.querySelector('.ol-otp-error');
             if (this._issueError) {
@@ -292,13 +293,24 @@ export class OpenLibraryOTP extends LitElement {
                     const submitBtn = this._contentContainer.querySelector('button[type="submit"]');
                     this._contentContainer.querySelector('.ol-otp-email-form').insertBefore(errorEl, submitBtn);
                 }
-                errorEl.textContent = this._issueError;
+
+                errorEl.replaceChildren();
+
+                if (this._issueError === 'No account found with this email.') {
+                    errorEl.append('No account found with this email. ');
+
+                    const registerLink = document.createElement('a');
+                    registerLink.href = '/account/create';
+                    registerLink.textContent = 'Create an account';
+                    errorEl.append(registerLink);
+                } else {
+                    errorEl.textContent = this._issueError;
+                }
             } else if (errorEl) {
                 errorEl.remove();
             }
             return;
         }
-
         // Full rebuild of email step
         this._teardownCodeStep();
         this._contentContainer.dataset.step = 'email';
@@ -336,7 +348,18 @@ export class OpenLibraryOTP extends LitElement {
         if (this._issueError) {
             const errorEl = document.createElement('p');
             errorEl.className = 'ol-otp-error';
-            errorEl.textContent = this._issueError;
+
+            if (this._issueError === 'No account found with this email.') {
+                errorEl.append('No account found with this email. ');
+
+                const registerLink = document.createElement('a');
+                registerLink.href = '/account/create';
+                registerLink.textContent = 'Create an account';
+                errorEl.append(registerLink);
+            } else {
+                errorEl.textContent = this._issueError;
+            }
+
             form.insertBefore(errorEl, submitBtn);
         }
 
@@ -455,11 +478,14 @@ export class OpenLibraryOTP extends LitElement {
                 body: new URLSearchParams({ email: this._email })
             });
             const data = await resp.json();
+
             if (data.success) {
                 this._step = 'code';
                 this._validationStatus = 'ready';
             } else if (resp.status === 429) {
                 this._issueError = 'Too many attempts. Please wait a moment and try again.';
+            } else if (data.error === 'account_not_found') {
+                this._issueError = 'No account found with this email.';
             } else {
                 this._issueError = 'Unable to send code. Please try again.';
             }
