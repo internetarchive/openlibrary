@@ -146,10 +146,10 @@ class Booknotes(db.CommonExtras):
     async def add(cls, username: str, work_id: int, notes: str, edition_id: int = NULL_EDITION_VALUE) -> Booknote:
         row = await fetch_one(
             f"""
-            INSERT INTO {cls.TABLENAME} (username, work_id, notes, edition_id)
-            VALUES (%(username)s, %(work_id)s, %(notes)s, %(edition_id)s)
+            INSERT INTO {cls.TABLENAME} (username, work_id, notes, edition_id, updated)
+            VALUES (%(username)s, %(work_id)s, %(notes)s, %(edition_id)s, DEFAULT)
             ON CONFLICT (username, work_id, edition_id)
-            DO UPDATE SET notes = EXCLUDED.notes, updated = DEFAULT
+            DO UPDATE SET notes = EXCLUDED.notes, updated = EXCLUDED.updated
             RETURNING username, work_id, edition_id, notes, created, updated
             """,
             {
