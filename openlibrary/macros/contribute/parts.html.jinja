@@ -337,3 +337,18 @@
         </div>
     </li>
 {% endmacro %}
+{% macro feed_skeleton_row() %}
+    {#- A row's shape while a cold cache builds the feed in the background; contribute-feed.js swaps each one for a real row. -#}
+    <li class="contrib-feed__row contrib-feed__row--skeleton"
+        data-feed-skeleton
+        aria-hidden="true">
+        <div class="contrib-feed__inner">
+            <span class="skeleton contrib-feed__when"></span>
+            <span class="skeleton contrib-feed__cover"></span>
+            <div class="contrib-feed__meta">
+                <span class="skeleton contrib-feed__title"></span>
+                <span class="skeleton contrib-feed__line"></span>
+            </div>
+        </div>
+    </li>
+{% endmacro %}

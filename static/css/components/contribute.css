@@ -1370,6 +1370,37 @@ a.contrib-recent__title {
   padding-block: var(--spacing-stack-md);
 }
 
+/* Placeholder rows while the feed builds: each block the size of the text it stands in for,
+   so the real row drops in without a shift. */
+.contrib-feed__row--skeleton .contrib-feed__when {
+  width: 4.5em;
+  height: calc(1em * var(--line-height-meta));
+}
+
+.contrib-feed__row--skeleton .contrib-feed__cover {
+  background: var(--color-skeleton);
+  box-shadow: none;
+}
+
+.contrib-feed__row--skeleton .contrib-feed__title {
+  width: 55%;
+  height: calc(1em * var(--line-height-title));
+}
+
+.contrib-feed__row--skeleton .contrib-feed__line {
+  width: 70%;
+  height: calc(1em * var(--line-height-meta));
+}
+
+/* Vary the widths so the column reads as a list, not a pattern. */
+.contrib-feed__row--skeleton:nth-child(2n) .contrib-feed__title {
+  width: 40%;
+}
+
+.contrib-feed__row--skeleton:nth-child(3n) .contrib-feed__line {
+  width: 50%;
+}
+
 /* Side column */
 .contrib-land__aside {
   display: grid;

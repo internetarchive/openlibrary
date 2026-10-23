@@ -24,6 +24,8 @@ from openlibrary.plugins.upstream import spamcheck
 LIST_SIZE = 50
 # Rows the public page renders before the feed script takes over.
 FEED_SIZE = 12
+# Placeholder rows while a cold cache rebuilds the feed pool in the background; the script swaps them for rows as they arrive.
+FEED_SKELETON_ROWS = 6
 # The "Volunteering @ Open Library" form; applying is how a reader becomes an Open Librarian.
 APPLY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeU5Y4x6LNl2SW4NktRnZhFUDwhV6l9Xzr-IsqBow1KqNfdYw/viewform"
 # The form's "What is your Open Library username?" field, prefilled for signed-in visitors.
@@ -303,13 +305,14 @@ def format_when(timestamp: str) -> str:
 
 def build_feed() -> dict:
     """The feed's first rows plus what the script needs to keep it moving."""
-    rows = feed.recent_rows(web.ctx.site, FEED_SIZE)
+    rows = feed.recent_rows(FEED_SIZE)
     for row in rows:
         row["when"] = format_when(row["timestamp"])
     return {
         "rows": rows,
         "url": "/tasks/feed.json",
-        "cursor": str(FEED_SIZE),
+        "cursor": str(len(rows)),
+        "skeleton_rows": 0 if rows else FEED_SKELETON_ROWS,
     }
 
 

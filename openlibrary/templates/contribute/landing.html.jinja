@@ -59,10 +59,12 @@
                 {% for row in data.feed.rows %}
                     {{ parts.feed_row(row) }}
                 {% endfor %}
+                {% for _i in range(data.feed.skeleton_rows) %}
+                    {{ parts.feed_skeleton_row() }}
+                {% endfor %}
             </ol>
-            <p class="contrib-muted contrib-feed__empty"
-               data-feed-empty
-               {% if data.feed.rows %}hidden{% endif %}>{{ _("Quiet for the moment. Edits show up here as they happen.") }}</p>
+            {#- Hidden until the script gives up waiting on an empty feed; it starts behind rows or placeholders either way. -#}
+            <p class="contrib-muted contrib-feed__empty" data-feed-empty hidden>{{ _("Quiet for the moment. Edits show up here as they happen.") }}</p>
         </section>
         <aside class="contrib-land__aside">
             <section class="contrib-land__side">

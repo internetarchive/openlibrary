@@ -1,5 +1,5 @@
 import threading
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 
 from openlibrary.contribute import feed
@@ -29,6 +29,8 @@ class FakeSite:
 
     def recentchanges(self, query):
         assert query["bot"] is False
+        # The date bounds the scan; a week back, as a day.
+        assert datetime.strptime(query["begin_date"], "%Y-%m-%d").date() == (datetime.now(UTC) - timedelta(days=feed.POOL_DAYS)).date()
         self.queries.append(query)
         return [c for c in self._changes if c.kind == query["kind"]]
 
@@ -136,24 +138,26 @@ def use_memory_cache(monkeypatch, site=None):
     return mc
 
 
-def test_get_pool_builds_a_cold_cache_in_the_request(monkeypatch):
-    mc = use_memory_cache(monkeypatch)
-    assert [r["id"] for r in feed.get_pool(make_site())] == ["6", "5"]
-    assert mc.get(feed.POOL_KEY)["rows"]
+def test_get_pool_on_a_cold_cache_serves_nothing_while_a_thread_builds_it(monkeypatch):
+    mc = use_memory_cache(monkeypatch, make_site())
+    assert feed.get_pool() == []
+    join_refreshes()
+    assert [r["id"] for r in mc.get(feed.POOL_KEY)["rows"]] == ["6", "5"]
     assert mc.get(feed.POOL_LOCK_KEY) is None
+    assert [r["id"] for r in feed.get_pool()] == ["6", "5"]
 
 
 def test_get_pool_serves_a_stale_pool_while_a_thread_rebuilds_it(monkeypatch):
     site = make_site()
     mc = use_memory_cache(monkeypatch, site)
     mc.set(feed.POOL_KEY, {"at": 0, "rows": [{"id": "1"}]})
-    assert feed.get_pool(None) == [{"id": "1"}]
+    assert feed.get_pool() == [{"id": "1"}]
     join_refreshes()
     assert [r["id"] for r in mc.get(feed.POOL_KEY)["rows"]] == ["6", "5"]
     assert mc.get(feed.POOL_LOCK_KEY) is None
     # Fresh: served from the cache, no queries.
     queries = len(site.queries)
-    assert len(feed.get_pool(None)) == 2
+    assert len(feed.get_pool()) == 2
     assert len(site.queries) == queries
 
 
@@ -162,32 +166,33 @@ def test_get_pool_keeps_the_old_pool_when_a_rebuild_fails_comes_back_empty_or_is
     mc.set(feed.POOL_KEY, {"at": 0, "rows": [{"id": "1"}]})
     for build in (lambda site: 1 / 0, lambda site: []):
         monkeypatch.setattr(feed, "build_pool", build)
-        assert feed.get_pool(None) == [{"id": "1"}]
+        assert feed.get_pool() == [{"id": "1"}]
         join_refreshes()
         assert mc.get(feed.POOL_KEY)["rows"] == [{"id": "1"}]
         assert mc.get(feed.POOL_LOCK_KEY) is None
     mc.add(feed.POOL_LOCK_KEY, 1)
     monkeypatch.setattr(feed, "build_pool", lambda site: [{"id": "2"}])
-    assert feed.get_pool(None) == [{"id": "1"}]
+    assert feed.get_pool() == [{"id": "1"}]
     assert not any(t.name == feed.REFRESH_THREAD_NAME for t in threading.enumerate())
 
 
 def test_get_pool_on_a_cold_cache_returns_nothing_when_the_rebuild_fails(monkeypatch):
     mc = use_memory_cache(monkeypatch)
     monkeypatch.setattr(feed, "build_pool", lambda site: 1 / 0)
-    assert feed.get_pool(None) == []
+    assert feed.get_pool() == []
+    join_refreshes()
     assert mc.get(feed.POOL_LOCK_KEY) is None
 
 
 def test_recent_rows_rotate_the_pool_or_return_nothing(monkeypatch):
     now = datetime(2026, 10, 14, 12, 0, tzinfo=UTC)
     pool = feed.build_pool(make_site())
-    monkeypatch.setattr(feed, "get_pool", lambda site: pool)
-    rows = feed.recent_rows(None, 3, offset=1, now=now)
+    monkeypatch.setattr(feed, "get_pool", lambda: pool)
+    rows = feed.recent_rows(3, offset=1, now=now)
     assert [r["id"] for r in rows] == ["5", "6", "5"]
     assert all(datetime.fromisoformat(r["timestamp"]) <= now for r in rows)
-    monkeypatch.setattr(feed, "get_pool", lambda site: [])
-    assert feed.recent_rows(None, 2) == []
+    monkeypatch.setattr(feed, "get_pool", list)
+    assert feed.recent_rows(2) == []
 
 
 def test_clean_comment_drops_urls_keys_and_essays():
