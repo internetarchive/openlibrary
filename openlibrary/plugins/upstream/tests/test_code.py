@@ -482,3 +482,33 @@ class TestIntegratedBookPageRendering:
 
         assert groundtruth_calls == []
         assert 'data-lending-state="open"' in html
+
+    @pytest.mark.parametrize(
+        ("edition_fields", "expected"),
+        [
+            # No format details: used to end in "edition, " with a dangling comma.
+            ({"publish_date": "1965"}, "Meta Work, 1965 edition"),
+            # Languages but no physical format: used to read "edition,  in English".
+            (
+                {"publish_date": "1965", "languages": [{"key": "/languages/eng"}]},
+                "Meta Work, 1965 edition, in English",
+            ),
+        ],
+    )
+    def test_edition_meta_description(self, monkeypatch, mock_site, render_template, request_context_fixture, edition_fields, expected):
+        """The share/meta description has no dangling separators, and no " by " without an author."""
+        from infogami.utils.context import context
+
+        request_context_fixture(lang="en")
+        mock_site.quicksave("/languages/eng", "/type/language", name="English", code="eng")
+        mock_site.quicksave("/works/OL3W", "/type/work", title="Meta Work", edition_count=1)
+        mock_site.quicksave("/books/OL3M", "/type/edition", title="Meta Edition", works=[{"key": "/works/OL3W"}], **edition_fields)
+        monkeypatch.setattr(lending, "get_availability", lambda kind, ids: {})
+        monkeypatch.setattr(lending, "get_cached_groundtruth_availability", lambda ocaid: {})
+
+        self._load_fake_request("/books/OL3M", mock_site, monkeypatch)
+        monkeypatch.setattr(code.context, "user", None, raising=False)
+
+        code.view().GET("/books/OL3M")
+
+        assert context.description == expected

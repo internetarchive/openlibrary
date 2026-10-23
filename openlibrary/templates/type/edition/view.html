@@ -52,7 +52,7 @@ $code:
 
         title = cond(work, work.title, book.title)
         authors = cond(work, work and work.get_authors(), book.get_authors())
-        author_info = " by " + ", ".join(a.name or "Unknown author" for a in authors)
+        author_info = " by " + ", ".join(a.name or "Unknown author" for a in authors) if authors else ""
 
         format = ""
         if book.physical_format:
@@ -63,7 +63,9 @@ $code:
         if book.edition_name:
             format += " - " + book.edition_name
 
-        meta = title + author_info + ", " + ed_info + " edition, " + format
+        meta = title + author_info + ", " + ed_info + " edition"
+        if format:
+            meta += ", " + format.strip()
         return meta
     description = get_description(page)
     putctx("description", description)
