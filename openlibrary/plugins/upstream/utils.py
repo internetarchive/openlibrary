@@ -1140,6 +1140,85 @@ def get_language_name(lang_or_key: Nothing | str | Thing, user_lang: str) -> Not
     return safeget(lambda: lang["name_translated"][user_lang][0]) or lang.name  # type: ignore[index]
 
 
+# MARC codes whose language is normally written in a non-Latin script. A Latin-only
+# title tagged with one of these is a romanization, so it keeps the page language.
+NON_LATIN_SCRIPT_LANGUAGES = frozenset(
+    [
+        "amh",
+        "ara",
+        "arm",
+        "bel",
+        "ben",
+        "bul",
+        "bur",
+        "chi",
+        "geo",
+        "gre",
+        "grc",
+        "guj",
+        "heb",
+        "hin",
+        "jpn",
+        "kan",
+        "khm",
+        "kor",
+        "lao",
+        "mac",
+        "mal",
+        "mar",
+        "mon",
+        "per",
+        "pan",
+        "rus",
+        "san",
+        "tam",
+        "tel",
+        "tha",
+        "tib",
+        "ukr",
+        "urd",
+        "yid",
+    ]
+)
+
+# Codes that say nothing about the text's language.
+_NO_LANGUAGE_CODES = frozenset({"mul", "und", "zxx"})
+
+
+def _is_latin_script(text: str) -> bool:
+    return all(unicodedata.name(c, "LATIN").startswith("LATIN") for c in text if c.isalpha())
+
+
+@public
+def get_lang_tag(languages: Any, text: str | None = None) -> str | None:
+    """
+    BCP 47 tag for an HTML ``lang`` attribute, or None when the text's language isn't certain.
+
+    ``languages`` is an edition's languages (Things, dicts, keys, or MARC codes). Only a single
+    declared language qualifies; multiple, "und"/"mul", or a romanized non-Latin title return None.
+
+    >>> get_lang_tag(["eng"])  # doctest: +SKIP
+    'en'
+    >>> get_lang_tag(["eng", "fre"]) is None
+    True
+    """
+    if not languages or len(languages) != 1:
+        return None
+    lang = languages[0]
+    key = lang if isinstance(lang, str) else lang.get("key") or lang.get("code")
+    if not key:
+        return None
+    if not key.startswith("/languages/"):
+        key = f"/languages/{key}"
+    code = key.removeprefix("/languages/")
+    if code in _NO_LANGUAGE_CODES:
+        return None
+    if text and code in NON_LATIN_SCRIPT_LANGUAGES and _is_latin_script(text):
+        return None
+    thing = get_language(key)
+    return (thing and safeget(lambda: thing["identifiers"]["iso_639_1"][0])) or code
+
+
 @public
 def get_populated_languages() -> set[str]:
     """

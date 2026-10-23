@@ -40,7 +40,8 @@ $ url = book.get_cover_url("S") or "/static/images/icons/avatar_book-sm.png"
 
       <div class="title">
         $if book.title:
-          <a href="$book.url()">
+          $ title_lang = get_lang_tag(book.languages, book.title)
+          <a href="$book.url()" $:cond(title_lang, 'lang="%s"' % title_lang)>
             $if book.subtitle:
               $_('%(title)s: %(subtitle)s', title=book.title, subtitle=book.subtitle)
             $else:
