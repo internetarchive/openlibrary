@@ -13,7 +13,7 @@
 {% macro intro_attrs() %}{% if data.cta.intro %} data-intro-cookie="{{ data.cta.intro.cookie }}" data-intro-days="{{ data.cta.intro.days }}"{% endif %}{% endmacro %}
 {% macro actions(variant) %}
     <div class="contrib-hero__actions">
-        <ol-button variant="{{ variant }}" href="{{ data.cta.href }}"{{ intro_attrs() }}>
+        <ol-button variant="{{ variant }}" href="{{ data.cta.href }}"{{ intro_attrs() }} data-ol-link-track="TasksLanding|Start|{{ 'top' if variant == 'primary' else 'bottom' }}">
             {% if data.cta.intro %}{{ icon("dices", slot="icon-start") }}{% endif %}
             {{ data.cta.label }}
         </ol-button>
@@ -21,7 +21,7 @@
             {#- djlint:off keeps the links on one line, with no whitespace nodes between them. -#}
             {# djlint:off #}
             <span class="contrib-land__secondary">
-                {% for link in data.cta.secondary %}<a href="{{ link.href }}"{{ intro_attrs() }}>{{ link.label }}</a>{% endfor %}
+                {% for link in data.cta.secondary %}<a href="{{ link.href }}"{{ intro_attrs() }} data-ol-link-track="TasksLanding|{{ link.track }}">{{ link.label }}</a>{% endfor %}
             </span>
             {# djlint:on #}
         {% endif %}

@@ -246,10 +246,11 @@ def build_filter_rail(task: str) -> dict:
             "label": label,
             "url": build_dashboard_url("" if task == fid else fid),
             "on": task == fid,
+            "track": fid,
         }
         for fid, (label, _fields) in get_filters().items()
     ]
-    return {"all": {"label": _("All open tasks"), "url": build_dashboard_url(), "on": not task}, "filters": filters}
+    return {"all": {"label": _("All open tasks"), "url": build_dashboard_url(), "on": not task, "track": "all"}, "filters": filters}
 
 
 def landing_figures() -> dict[str, str]:
@@ -270,7 +271,7 @@ def build_cta(user=None) -> dict:
             "label": _("Try a task"),
             "href": build_dashboard_url(base="/tasks/one"),
             "note": "",
-            "secondary": [{"label": _("Browse all tasks"), "href": build_dashboard_url()}],
+            "secondary": [{"label": _("Browse all tasks"), "href": build_dashboard_url(), "track": "Browse"}],
             "intro": {"cookie": INTRO_COOKIE, "days": INTRO_COOKIE_DAYS},
         }
     return {
@@ -278,7 +279,7 @@ def build_cta(user=None) -> dict:
         "label": _("Create an account"),
         "href": f"/account/create?{urlencode({'redirect': '/tasks'})}",
         "note": _("Tasks are open to anyone with a free Open Library account."),
-        "secondary": [{"label": _("Already have one? Log in"), "href": f"/account/login?{urlencode({'redirect': '/tasks'})}"}],
+        "secondary": [{"label": _("Already have one? Log in"), "href": f"/account/login?{urlencode({'redirect': '/tasks'})}", "track": "LogIn"}],
         "intro": None,
     }
 

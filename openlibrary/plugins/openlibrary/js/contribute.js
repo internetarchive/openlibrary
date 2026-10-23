@@ -8,6 +8,7 @@
 import { setBannerCookie } from './banner';
 import { initFeed } from './contribute-feed';
 import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
+import { trackEvent } from './ol.analytics.js';
 
 const SKIPPED_KEY = 'ol-contribute-skipped';
 
@@ -81,6 +82,46 @@ function initSkipButton(form) {
 }
 
 /**
+ * The answer control's current value, whichever control the field uses.
+ * @param {HTMLFormElement} form - the task form
+ * @returns {string} the trimmed answer, or '' with no control
+ */
+function currentAnswer(form) {
+    const control = form.querySelector('#contrib-other-value');
+    if (!control) return '';
+    return control.tagName === 'OL-OPTIONS-POPOVER' ? control.selected : control.value.trim();
+}
+
+/**
+ * Where the answer came from, for the Save event's label: a sibling chip or
+ * the keyboard. Fields without suggestions report neither.
+ * @param {HTMLFormElement} form - the task form
+ * @returns {'chip'|'typed'|''} the source, or '' when the form has no chips
+ */
+function answerSource(form) {
+    const chips = [...form.querySelectorAll('[data-suggest] ol-chip')];
+    if (!chips.length) return '';
+    const answer = currentAnswer(form);
+    return chips.some(chip => chip.dataset.value === answer) ? 'chip' : 'typed';
+}
+
+/**
+ * Report a save as ``TaskForm|Save`` or ``TaskForm|SaveNext`` with the field as
+ * label, plus ``:chip``/``:typed`` when the field offered suggestions. On the
+ * ``submit`` event rather than the buttons' clicks so Enter in the answer field
+ * counts too; the submitter is the button's in-form proxy.
+ * @param {HTMLFormElement} form - a ``[data-task-form]`` with ``data-task-field``
+ * @returns {void}
+ */
+function initSaveTracking(form) {
+    form.addEventListener('submit', event => {
+        const then = event.submitter?.closest('ol-button')?.value || event.submitter?.value;
+        const source = answerSource(form);
+        trackEvent('TaskForm', then === 'next' ? 'SaveNext' : 'Save', source ? `${form.dataset.taskField}:${source}` : form.dataset.taskField);
+    });
+}
+
+/**
  * Wire the "Other editions say" chips to the answer control. The chip matching
  * the current answer shows selected; clicking it again clears it.
  * @param {HTMLFormElement} form - the task form holding the chips and answer control
@@ -91,11 +132,10 @@ function initSiblingSuggestions(form) {
     const control = form.querySelector('#contrib-other-value');
     if (!group || !control) return;
     const isPicker = control.tagName === 'OL-OPTIONS-POPOVER';
-    const currentAnswer = () => (isPicker ? control.selected : control.value.trim());
     const chips = [...group.querySelectorAll('ol-chip')];
     const syncChipSelection = () =>
         chips.forEach(chip => {
-            chip.selected = chip.dataset.value === currentAnswer();
+            chip.selected = chip.dataset.value === currentAnswer(form);
         });
 
     group.addEventListener('ol-chip-select', event => {
@@ -104,6 +144,7 @@ function initSiblingSuggestions(form) {
         if (isPicker) control.selected = value;
         else control.value = value;
         syncChipSelection();
+        if (event.detail.selected) trackEvent('TaskForm', 'PickSuggestion', form.dataset.taskField);
     });
     control.addEventListener(isPicker ? 'ol-options-popover-change' : 'input', syncChipSelection);
     syncChipSelection();
@@ -121,6 +162,8 @@ function initIdentifierForm(form) {
     if (!input || !verdict) return;
     const rule = ID_RULES[input.dataset.idField];
     if (!rule) return;
+    // One rejection event per form, not one per keystroke.
+    let rejected = false;
 
     input.addEventListener('input', () => {
         const raw = input.value.trim();
@@ -137,6 +180,8 @@ function initIdentifierForm(form) {
         } else {
             verdict.dataset.state = 'bad';
             verdict.textContent = /https?:|\//.test(raw) ? msg.msgUrl : msg.msgBad;
+            if (!rejected) trackEvent('TaskForm', 'IdentifierRejected', input.dataset.idField);
+            rejected = true;
         }
     });
 }
@@ -188,6 +233,7 @@ export function init() {
     document.querySelectorAll('form[data-task-form]').forEach(form => {
         initSkipButton(form);
         initSiblingSuggestions(form);
+        initSaveTracking(form);
     });
     if (document.querySelector('[data-receipt]')) clearSavedReceipt();
     document.querySelectorAll('form[data-id-form]').forEach(initIdentifierForm);
