@@ -175,7 +175,7 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
         assert isinstance(layout.header.is_recognized_bot, bool)
         assert isinstance(layout.header.is_print_disabled, bool)
         assert isinstance(layout.header.homepath, str)
-        assert isinstance(layout.header.my_books_props, dict)
+        assert isinstance(layout.header.mybooks_links, list)
         assert isinstance(layout.header.browse_links, list)
         assert isinstance(layout.header.search_modal, shell_module.SearchModalContext)
         assert isinstance(layout.header, shell_module.HeaderContext)
@@ -202,7 +202,7 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
             "is_recognized_bot",
             "is_print_disabled",
             "homepath",
-            "my_books_props",
+            "mybooks_links",
             "browse_links",
             "header",
             "head",

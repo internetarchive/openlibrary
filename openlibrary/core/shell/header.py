@@ -8,13 +8,13 @@ consumes them too.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from openlibrary.accounts.model import get_internet_archive_id
 from openlibrary.core.edits import cached_get_counts_by_mode
 from openlibrary.core.helpers import datestr
 from openlibrary.core.shell._util import _safe
-from openlibrary.core.shell.nav import BROWSE_FEATURED_COUNT, NavLink, browse_links
+from openlibrary.core.shell.nav import BROWSE_FEATURED_COUNT, NavLink, browse_links, mybooks_links
 from openlibrary.core.shell.search_modal import SearchModalContext, build_search_modal_i18n
 
 if TYPE_CHECKING:
@@ -83,24 +83,6 @@ def _extract_homepath() -> str:
         return ""
 
 
-def _extract_my_books_props(homepath: str) -> dict[str, Any]:
-    from openlibrary.i18n import gettext as _
-
-    return {
-        "name": "mybooks",
-        "label": _("My Books"),
-        "icon": "bookmark",
-        "links": [
-            {
-                "href": f"{homepath}/account/books",
-                "text": _("My Books"),
-                "track": "MyBooks",
-            }
-        ],
-        "link-class": "ol-button-static ol-button-static--ghost",
-    }
-
-
 @dataclass(frozen=True)
 class HeaderContext:
     """Precomputed data for the site header (``templates/shell/header.html.jinja``)."""
@@ -110,7 +92,7 @@ class HeaderContext:
     is_recognized_bot: bool
     is_print_disabled: bool
     homepath: str
-    my_books_props: dict[str, Any]
+    mybooks_links: list[list[NavLink]]
     browse_links: list[NavLink]
     browse_featured_count: int
     search_modal: SearchModalContext
@@ -129,7 +111,7 @@ class HeaderContext:
             is_recognized_bot=_safe(lambda: req_context.get().is_recognized_bot, False),
             is_print_disabled=_safe(lambda: req_context.get().print_disabled, False),
             homepath=homepath,
-            my_books_props=_extract_my_books_props(homepath),
+            mybooks_links=_safe(mybooks_links, [[]]),
             browse_links=links,
             browse_featured_count=BROWSE_FEATURED_COUNT,
             search_modal=build_search_modal_i18n(),
