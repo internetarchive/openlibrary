@@ -4,7 +4,6 @@ import json
 from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
 
-import web
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import (
     BaseModel,
@@ -36,7 +35,7 @@ from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
-from openlibrary.utils.request_context import req_context
+from openlibrary.utils.request_context import req_context, site
 
 router = APIRouter()
 
@@ -377,7 +376,7 @@ async def search_lists_json(
         }
     else:
         # Default to the old API shape for a while, then we'll flip
-        lists = web.ctx.site.get_many([doc["key"] for doc in response.docs])
+        lists = site.get().get_many([doc["key"] for doc in response.docs])
         return {
             "start": response.raw_resp["response"].get("start", params.offset or 0),
             "docs": [lst.preview() for lst in lists],
