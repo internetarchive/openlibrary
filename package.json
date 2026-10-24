@@ -40,7 +40,7 @@
     "@custom-elements-manifest/analyzer": "^0.11.0",
     "@ericblade/quagga2": "^1.7.4",
     "@eslint/js": "^10.0.1",
-    "@internetarchive/elements": "^0.2.5",
+    "@internetarchive/elements": "^0.4.0",
     "@playwright/test": "^1.60.0",
     "@sentry/browser": "^10.60.0",
     "@tiptap/core": "^3.20.4",
@@ -70,11 +70,11 @@
     "jsdom": "^30.0.1",
     "lit": "^3.2.1",
     "lucene-query-parser": "1.2.0",
-    "oxfmt": "^0.72.0",
+    "oxfmt": "^0.73.0",
     "oxlint": "^1.87.0",
     "postcss-lit": "^1.4.1",
     "prismjs": "^1.30.0",
-    "slick-carousel": "1.6.0",
+    "slick-carousel": "1.8.1",
     "stylelint": "^16.26.1",
     "stylelint-declaration-strict-value": "^1.11.1",
     "svgo": "^4.1.0",
@@ -99,8 +99,8 @@
   },
   "overrides": {
     "@ericblade/quagga2": {
-      "form-data": "4.0.5",
-      "qs": "6.15.2"
+      "form-data": "4.0.6",
+      "qs": "6.16.1"
     }
   },
   "browserslist": [
