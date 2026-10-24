@@ -7,7 +7,7 @@
 import { expect, test } from 'vitest';
 import { initSearchModal } from '../../openlibrary/plugins/openlibrary/js/search-modal/SearchModal.js';
 
-test('initSearchModal waits for ol-dialog to be defined before mounting the modal', async() => {
+test('initSearchModal waits for ol-dialog to be defined before mounting the modal', async () => {
     expect(customElements.get('ol-dialog'), 'test must run before OlDialog.js is imported').toBeUndefined();
 
     const trigger = document.createElement('button');

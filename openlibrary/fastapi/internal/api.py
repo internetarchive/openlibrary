@@ -9,7 +9,6 @@ its experience. This does not include public facing APIs with LTS
 from __future__ import annotations
 
 import io
-import os
 from datetime import datetime
 from typing import Annotated, Any, Literal
 from urllib.parse import urlencode
@@ -20,12 +19,14 @@ from pydantic import BaseModel, BeforeValidator, Field
 from starlette.responses import RedirectResponse
 
 from openlibrary import accounts
-from openlibrary.core import lending, models
+from openlibrary.core import lending
 from openlibrary.core.admin import get_unique_logins_since
 from openlibrary.core.bestbook import Bestbook
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.follows import PubSub
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
+from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
@@ -43,11 +44,10 @@ from openlibrary.plugins.openlibrary.api import (
     get_works_data_async,
     process_work_bookshelves,
 )
-from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
+from openlibrary.views.loanstats import SINCE_DAYS, TRENDING_NOW_LIMIT, get_trending_books
 
-SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+SHOW_INTERNAL_IN_SCHEMA = get_ol_env().LOCAL_DEV
 router = APIRouter(tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 DAY_SECONDS = 60 * 60 * 24
 
@@ -126,7 +126,7 @@ async def post_book_availability(
 
 
 class TrendingRequestParams(Pagination):
-    limit: int = Field(100, ge=0, le=1000, description="Maximum number of results per page.")
+    limit: int | None = Field(None, ge=0, le=1000, description="Maximum number of results per page.")  # type: ignore[assignment]
     hours: int = Field(0, ge=0, description="Custom number of hours to look back.")
     days: int = Field(0, ge=0, description="Custom number of days to look back.")
     sort_by_count: bool = Field(True, description="Sort results by total log count (most-logged first).")
@@ -165,11 +165,12 @@ async def trending_books_api(
     """Fetch trending books for the given period."""
     # ``period`` is always a key in SINCE_DAYS — guaranteed by the Literal type above.
     since_days: int | None = SINCE_DAYS.get(period, params.days)
+    limit = params.limit if params.limit is not None else (TRENDING_NOW_LIMIT if period == "now" else 100)
 
     works = await get_trending_books(
         since_days=since_days,
         since_hours=params.hours,
-        limit=params.limit,
+        limit=limit,
         page=params.page,
         sort_by_count=params.sort_by_count,
         minimum=params.minimum,
@@ -209,10 +210,30 @@ async def browse(
     return {"query": url, "works": [work.dict() for work in works]}
 
 
+class RatingsSummary(BaseModel):
+    average: float | None = Field(default=None, description="Mean star rating, or null if the work is unrated")
+    count: int = Field(default=0, description="Number of ratings")
+    sortable: float | None = Field(default=None, exclude_if=lambda v: v is None, description="Bayesian lower bound used to sort by rating; omitted if unrated")
+
+
+class RatingsResponse(BaseModel):
+    summary: RatingsSummary
+    counts: dict[str, int] = Field(..., description="Number of ratings per star value, keyed '1' to '5'")
+
+    @classmethod
+    def from_work_summary(cls, stats: WorkRatingsSummary | None) -> RatingsResponse:
+        if not stats:
+            return cls(summary=RatingsSummary(), counts={str(star): 0 for star in range(1, 6)})
+        return cls(
+            summary=RatingsSummary(average=stats["ratings_average"], count=stats["ratings_count"], sortable=stats["ratings_sortable"]),
+            counts={str(star): stats[f"ratings_count_{star}"] for star in range(1, 6)},  # type: ignore[literal-required]
+        )
+
+
 @router.get("/works/OL{work_id}W/ratings.json")
-async def get_ratings(work_id: Annotated[int, Path()]) -> dict:
+async def get_ratings(work_id: Annotated[int, Path()]) -> RatingsResponse:
     """Get ratings summary for a work."""
-    return legacy_ratings.get_ratings_summary(work_id)
+    return RatingsResponse.from_work_summary(await Ratings.get_work_ratings_summary(work_id))
 
 
 @router.post("/works/OL{work_id}W/ratings.json")
@@ -230,10 +251,10 @@ async def post_ratings(
     resolved_edition_id = int(extract_numeric_id_from_olid(edition_id)) if edition_id else None
 
     if rating is None:
-        models.Ratings.remove(user.username, work_id)
+        await Ratings.remove(user.username, work_id)
         return {"success": "removed rating"}
 
-    models.Ratings.add(
+    await Ratings.add(
         username=user.username,
         work_id=work_id,
         rating=rating,
@@ -265,10 +286,10 @@ async def booknotes_post(
         resolved_edition_id = int(extract_numeric_id_from_olid(edition_id))
 
     if not notes:
-        Booknotes.remove(user.username, work_id, edition_id=resolved_edition_id)
+        await Booknotes.remove(user.username, work_id, edition_id=resolved_edition_id)
         return BooknoteResponse(success="removed note")
 
-    Booknotes.add(
+    await Booknotes.add(
         username=user.username,
         work_id=work_id,
         notes=notes,
@@ -542,6 +563,6 @@ class MonthlyLoginsResponse(BaseModel):
 
 
 @router.get("/api/monthly_logins.json", response_model=MonthlyLoginsResponse)
-def monthly_logins() -> MonthlyLoginsResponse:
+async def monthly_logins() -> MonthlyLoginsResponse:
     """Return the cached unique monthly login count for the admin stats UI."""
-    return MonthlyLoginsResponse(loginCount=get_unique_logins_since())
+    return MonthlyLoginsResponse(loginCount=await get_unique_logins_since())

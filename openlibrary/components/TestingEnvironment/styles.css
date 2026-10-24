@@ -2,9 +2,26 @@
   display: block;
 }
 
+/* The page-level `.shift` helper cannot cross the shadow boundary, so the
+   component carries its own. Mirrors `.sr-only` in the Lit components. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* One card in two bands: the staged set on top, the apply step below. */
 .testing-env {
+  position: relative;
   margin-bottom: var(--spacing-xl);
+  /* One blink speed for the panel: the deploying status dot and the panel
+     border share it, so they pulse in step. */
+  --testing-env-pulse: 1.6s;
 }
 
 /* Top band: square bottom corners, where the deploy section joins. */
@@ -25,7 +42,7 @@
   align-items: center;
   justify-content: space-between;
   /* Padding matches the table cells', so the title lines up with column one. */
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-inset-sm);
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
@@ -184,18 +201,22 @@
 
 /* ── Add-PR form ────────────────────────────────────────────── */
 
-/* Right of the header bar; grows into the space the title leaves. */
+/* Its own row at the foot of the list band, directly beneath the table: the
+   input grows to fill the width, so a long URL paste has room. Editing the
+   list lives here, apart from the deploy controls in the band below. */
 .testing-env__add {
   display: flex;
-  flex: 1 1 20rem;
   gap: var(--spacing-sm);
   align-items: center;
-  justify-content: flex-end;
-  max-width: 32rem;
   margin: 0;
+  padding: var(--spacing-sm) var(--spacing-inset-sm);
 }
 
 .testing-env__input {
+  /* The page's `* { box-sizing: border-box }` reset cannot cross the shadow
+     boundary, so it is declared here: without it the input's height is its
+     content box plus the border, leaving it 2px taller than the buttons. */
+  box-sizing: border-box;
   flex: 1;
   min-width: 0;
   height: var(--control-height-medium);
@@ -222,8 +243,11 @@
   font-size: 0.85rem;
 }
 
+/* Column labels. They wrap, so a two-word header ("Next deploy") sizes the
+   column to its longest word rather than its whole width — the labels, not
+   the cells, were what set these columns' widths. */
 .testing-env__table th {
-  padding: var(--spacing-xs) var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-inset-sm);
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
   color: var(--color-text-muted);
   font-size: 0.7rem;
@@ -231,11 +255,11 @@
   letter-spacing: 0.06em;
   text-align: left;
   text-transform: uppercase;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .testing-env__table td {
-  padding: var(--spacing-xs) var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-inset-sm);
   border: 0;
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
   vertical-align: middle;
@@ -267,20 +291,27 @@
 }
 
 /* Fixed rail so titles line up regardless of PR-number width; the number and
-   dot centre against a title that wraps. */
+   dot centre against a title that wraps. Wide enough for the draft mark too. */
 .testing-env__pr-line {
   display: grid;
-  grid-template-columns: 4.25em minmax(0, 1fr);
+  grid-template-columns: 5.5em minmax(0, 1fr);
   gap: var(--spacing-sm);
   align-items: center;
 }
 
-/* Number and live dot share the fixed rail, so the dot never shifts the title. */
+/* Number, live dot and draft mark share the fixed rail, so neither the dot nor
+   the draft mark shifts the title. */
 .testing-env__pr-ref {
   display: inline-flex;
   gap: var(--spacing-2xs);
   align-items: center;
   min-width: 0;
+}
+
+/* A draft's pull-request glyph; its title attribute spells out "Draft" on
+   hover, replacing the old "[Draft]" text prefix. */
+.testing-env__draft {
+  color: var(--color-text-muted);
 }
 
 /* The plain class covers :link and :visited — author rules outrank the UA's,
@@ -377,15 +408,15 @@
    the cell out of the table layout; grid the wrapper inside instead. */
 .testing-env__cell-stack {
   display: grid;
-  grid-template-columns: 3.25em 28px 1.1em;
-  gap: var(--spacing-xs);
+  grid-template-columns: 2.5em 28px 1em;
+  gap: var(--spacing-2xs);
   align-items: center;
 }
 
 /* Plain-text verdict — no chip. min-width keeps "?" aligned with "-12". */
 .testing-env__pill {
   display: inline-block;
-  min-width: 3.25em;
+  min-width: 2.5em;
   font-size: 0.78rem;
   text-align: center;
   white-space: nowrap;
@@ -460,6 +491,13 @@ a.testing-env__pill:focus-visible {
   color: var(--color-success-fg);
 }
 
+/* A row added in the last few seconds, so a new entry stands out in a long
+   table. Client-side only — a refresh clears it. */
+.testing-env__row--recent > td {
+  background: var(--color-success-bg);
+  transition: background var(--duration-base) var(--ease-state);
+}
+
 /* Last of the row backgrounds: pointer feedback beats every state tint. */
 .testing-env__row:hover td {
   background: var(--color-control-hover);
@@ -468,7 +506,7 @@ a.testing-env__pill:focus-visible {
 /* ── Empty state ────────────────────────────────────────────── */
 
 .testing-env__blank {
-  padding: var(--spacing-lg) var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-inset-sm);
   color: var(--color-text-muted);
 }
 
@@ -482,7 +520,7 @@ a.testing-env__pill:focus-visible {
   gap: var(--spacing-md);
   align-items: flex-start;
   margin: 0;
-  padding: var(--spacing-lg) var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-inset-sm);
   border: var(--border-width-thin) solid var(--color-border-subtle);
   border-radius: 0 0 var(--border-radius-card) var(--border-radius-card);
   background: var(--color-surface);
@@ -499,9 +537,11 @@ a.testing-env__pill:focus-visible {
   border-top: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
-/* Deploy and Refresh side by side, as one action row. */
+/* Deploy and Refresh: the execution step, in their own row below the list
+   controls. */
 .testing-env__deploy-action {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--spacing-sm);
   align-items: center;
   margin: 0;
@@ -518,22 +558,54 @@ a.testing-env__pill:focus-visible {
 }
 
 .testing-env__status--deploying .testing-env__dot {
-  animation: testing-env-pulse 1.6s ease-in-out infinite;
+  animation: testing-env-pulse var(--testing-env-pulse) ease-in-out infinite;
+}
+
+/* While a deploy runs, the panel's outer border pulses amber — the colour of
+   the deploying status dot — with a soft glow. Drawn as an overlay on the
+   panel root rather than on the two bands' own borders, so only the card's
+   outside edge animates: the rule between the bands stays put. The glow takes
+   the brighter -object ramp, since -fg is tuned for text ink and reads muddy
+   spread over an area. */
+.testing-env::after {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--border-radius-card);
+  pointer-events: none;
+  content: "";
+}
+
+.testing-env--deploying::after {
+  animation: testing-env-border-pulse var(--testing-env-pulse) ease-in-out
+    infinite;
+}
+
+@keyframes testing-env-border-pulse {
+  50% {
+    border-color: var(--color-warning-fg);
+    box-shadow: 0 0 12px
+      color-mix(in srgb, var(--color-warning-object) 55%, transparent);
+  }
 }
 
 @keyframes testing-env-pulse {
-  50% {
+  0%,
+  100% {
     opacity: 0.25;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .testing-env__switch-knob {
+  .testing-env__switch-knob,
+  .testing-env__row--recent > td {
     transition: none;
   }
 
   .testing-env__status--deploying .testing-env__dot,
-  .testing-env__spinner {
+  .testing-env__spinner,
+  .testing-env--deploying::after {
     animation: none;
   }
 }

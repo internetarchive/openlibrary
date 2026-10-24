@@ -27,6 +27,9 @@ class AsyncBridge:
         self._thread.start()
 
     def run[T](self, coro: Coroutine[Any, Any, T]) -> T:
+        if threading.current_thread() is self._thread:
+            coro.close()
+            raise RuntimeError("AsyncBridge.run() cannot be called from its own event loop")
         ctx = contextvars.copy_context()
 
         async def _in_ctx() -> T:
@@ -52,6 +55,10 @@ class AsyncBridge:
 
         wrapper.__name__ = name if name is not None else func.__name__
         wrapper.__doc__ = func.__doc__
+        # Stack samplers (py-spy, used by scripts/monitoring/olspy.sh) read the code object's
+        # name, not __name__. Without this every bridged call shows up as `wrapper`, so a worker
+        # blocked on e.g. a Solr query is indistinguishable from one blocked on anything else.
+        wrapper.__code__ = wrapper.__code__.replace(co_name=func.__name__, co_qualname=func.__qualname__)
         return wrapper
 
 

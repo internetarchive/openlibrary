@@ -1,4 +1,4 @@
-from unittest.mock import PropertyMock
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 import web
@@ -121,6 +121,26 @@ class TestUserGroupMembership:
             PropertyMock(return_value=[]),
         )
         assert user.is_super_librarian_or_higher() is False
+
+
+class TestUserIsPrintDisabled:
+    """``User.is_printdisabled()`` must read the unified request context, not
+    ``web.cookies()``: FastAPI has no ``web.ctx``, so reading the ``pd``
+    cookie there always returned nothing and print-disabled patrons lost
+    Special Access on FastAPI-rendered carousels and partials.
+    """
+
+    def test_true_from_request_context(self, request_context_fixture, monkeypatch):
+        # Simulate FastAPI: no web.py request exists, so web.cookies() raises.
+        monkeypatch.setattr(web, "cookies", Mock(side_effect=RuntimeError("no web.py request")))
+        request_context_fixture(print_disabled=True)
+        user = models.User(MockSite(), "/people/test", data={})
+        assert user.is_printdisabled() is True
+
+    def test_false_from_request_context(self, request_context_fixture, monkeypatch):
+        monkeypatch.setattr(web, "cookies", Mock(side_effect=RuntimeError("no web.py request")))
+        user = models.User(MockSite(), "/people/test", data={})
+        assert user.is_printdisabled() is False
 
 
 class MockSite:
@@ -288,3 +308,15 @@ class TestWork:
             assert resolved_work.key == work4_key, f"Should be work4.key: {resolved_work}"
         finally:
             site_var.reset(token)
+
+
+class TestLoggedBooksDataLoadRatings:
+    def test_load_ratings_batches_and_keeps_doc_order(self):
+        docs = [web.storage(key=key) for key in ("/works/OL3W", "/works/OL1W", "/works/OL2W")]
+        data = models.LoggedBooksData(username="alice", page_size=25, total_results=3, shelf_totals={}, docs=docs)
+
+        with patch.object(models.Ratings, "get_users_ratings_of_works_sync", return_value={1: 5, 3: 2}) as get_ratings:
+            data.load_ratings()
+
+        get_ratings.assert_called_once_with("alice", [3, 1, 2])
+        assert data.ratings == [2, 5, 0]

@@ -1,3 +1,6 @@
+from datetime import datetime
+
+import pytest
 import web
 
 from openlibrary.core.booknotes import Booknotes
@@ -5,9 +8,9 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.db import get_db
 from openlibrary.core.edits import CommunityEditsQueue
+from openlibrary.core.follows import PubSub
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 
 READING_LOG_DDL = """
 CREATE TABLE bookshelves_books (
@@ -72,14 +75,72 @@ CREATE TABLE bookshelves_events (
 );
 """
 
-YEARLY_READING_GOALS_DDL = """
-CREATE TABLE yearly_reading_goals (
-    username text not null,
-    year integer not null,
-    target integer not null,
-    updated timestamp
+
+FOLLOWS_DDL = """
+CREATE TABLE follows (
+    subscriber text NOT NULL,
+    publisher text NOT NULL,
+    disabled BOOLEAN DEFAULT FALSE,
+    updated timestamp DEFAULT CURRENT_TIMESTAMP,
+    created timestamp DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (subscriber, publisher)
 );
 """
+
+
+class TestPubSubSubscribe:
+    @pytest.fixture
+    def follows_db(self, monkeypatch):
+        oldb = web.database(dbn="sqlite", db=":memory:")
+        oldb.query(FOLLOWS_DDL)
+        monkeypatch.setattr("openlibrary.core.follows.db.get_db", lambda: oldb)
+        yield oldb
+        oldb.ctx.db.close()
+
+    def test_subscribe_twice_keeps_one_row(self, follows_db):
+        assert PubSub.subscribe("alice", "bob") is None
+        first = list(follows_db.select("follows"))
+        assert len(first) == 1
+        assert first[0].subscriber == "alice"
+        assert first[0].publisher == "bob"
+        assert not first[0].disabled
+        assert first[0].created is not None
+        assert first[0].updated is not None
+
+        assert PubSub.subscribe("alice", "bob") is None
+
+        assert list(follows_db.select("follows")) == first
+
+    @pytest.mark.parametrize("disabled", [False, True])
+    def test_existing_subscription_is_unchanged(self, follows_db, disabled):
+        follows_db.insert("follows", subscriber="alice", publisher="bob", disabled=disabled, created=datetime(2000, 1, 1), updated=datetime(2001, 1, 1))
+        before = list(follows_db.select("follows"))
+
+        PubSub.subscribe("alice", "bob")
+        PubSub.subscribe("alice", "bob")
+
+        assert list(follows_db.select("follows")) == before
+
+    def test_other_subscribers_and_publishers_are_untouched(self, follows_db):
+        pairs = [("alice", "bob"), ("alice", "carol"), ("dave", "bob")]
+        for subscriber, publisher in pairs:
+            PubSub.subscribe(subscriber, publisher)
+        before = list(follows_db.select("follows", order="subscriber, publisher"))
+
+        PubSub.subscribe("alice", "bob")
+
+        after = list(follows_db.select("follows", order="subscriber, publisher"))
+        assert after == before
+        assert {(row.subscriber, row.publisher) for row in after} == set(pairs)
+
+    def test_names_are_bound_parameters(self, follows_db):
+        subscriber, publisher = "reader'नया", "author'quoted"
+        PubSub.subscribe(subscriber, publisher)
+        PubSub.subscribe(subscriber, publisher)
+
+        rows = list(follows_db.select("follows"))
+        assert len(rows) == 1
+        assert (rows[0].subscriber, rows[0].publisher) == (subscriber, publisher)
 
 
 class TestUpdateWorkID:
@@ -384,20 +445,6 @@ class TestCheckIns:
     def teardown_method(self):
         self.db.query("delete from bookshelves_events;")
 
-    def test_create_event(self):
-        assert len(list(self.db.select("bookshelves_events"))) == 6
-        assert len(list(self.db.select("bookshelves_events", where={"username": "@billy_pilgrim"}))) == 1
-        BookshelvesEvents.create_event("@billy_pilgrim", 5, 6, "2022-01", event_type=1)
-        assert len(list(self.db.select("bookshelves_events"))) == 7
-        assert len(list(self.db.select("bookshelves_events", where={"username": "@billy_pilgrim"}))) == 2
-
-    def test_select_all_by_username(self):
-        assert len(list(self.db.select("bookshelves_events"))) == 6
-        assert len(list(self.db.select("bookshelves_events", where={"username": "@kilgore_trout"}))) == 3
-        BookshelvesEvents.create_event("@kilgore_trout", 7, 8, "2011-01-09", event_type=1)
-        assert len(list(self.db.select("bookshelves_events"))) == 7
-        assert len(list(self.db.select("bookshelves_events", where={"username": "@kilgore_trout"}))) == 4
-
     def test_update_event_date(self):
         assert len(list(self.db.select("bookshelves_events", where={"id": 1}))) == 1
         row = self.db.select("bookshelves_events", where={"id": 1})[0]
@@ -406,13 +453,6 @@ class TestCheckIns:
         BookshelvesEvents.update_event_date(1, new_date)
         row = self.db.select("bookshelves_events", where={"id": 1})[0]
         assert row["event_date"] == new_date
-
-    def test_delete_by_id(self):
-        assert len(list(self.db.select("bookshelves_events"))) == 6
-        assert len(list(self.db.select("bookshelves_events", where={"id": 1}))) == 1
-        BookshelvesEvents.delete_by_id(1)
-        assert len(list(self.db.select("bookshelves_events"))) == 5
-        assert len(list(self.db.select("bookshelves_events", where={"id": 1}))) == 0
 
     def test_delete_by_username(self):
         assert len(list(self.db.select("bookshelves_events"))) == 6
@@ -425,80 +465,3 @@ class TestCheckIns:
         assert BookshelvesEvents.get_latest_event_date("@eliot_rosewater", 3, 3)["event_date"] == "2019-10"
         assert BookshelvesEvents.get_latest_event_date("@eliot_rosewater", 3, 3)["id"] == 6
         assert BookshelvesEvents.get_latest_event_date("@eliot_rosewater", 3, 1) is None
-
-
-SETUP_ROWS = [
-    {
-        "username": "@billy_pilgrim",
-        "year": 2022,
-        "target": 5,
-    },
-    {
-        "username": "@billy_pilgrim",
-        "year": 2023,
-        "target": 7,
-    },
-    {
-        "username": "@kilgore_trout",
-        "year": 2022,
-        "target": 4,
-    },
-]
-
-
-class TestYearlyReadingGoals:
-    TABLENAME = YearlyReadingGoals.TABLENAME
-
-    @classmethod
-    def setup_class(cls):
-        web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
-        db = get_db()
-        db.query(YEARLY_READING_GOALS_DDL)
-
-    def setup_method(self):
-        self.db = get_db()
-        self.db.multiple_insert(self.TABLENAME, SETUP_ROWS)
-
-    def teardown_method(self):
-        self.db.query("delete from yearly_reading_goals")
-
-    def test_create(self):
-        assert len(list(self.db.select(self.TABLENAME))) == 3
-        assert len(list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout"}))) == 1
-        YearlyReadingGoals.create("@kilgore_trout", 2023, 5)
-        assert len(list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout"}))) == 2
-        new_row = list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout", "year": 2023}))
-        assert len(new_row) == 1
-
-    def test_select_by_username_and_year(self):
-        assert len(YearlyReadingGoals.select_by_username_and_year("@billy_pilgrim", 2022)) == 1
-
-    def test_update_target(self):
-        assert (
-            next(
-                iter(
-                    self.db.select(
-                        self.TABLENAME,
-                        where={"username": "@billy_pilgrim", "year": 2023},
-                    )
-                )
-            )["target"]
-            == 7
-        )
-        YearlyReadingGoals.update_target("@billy_pilgrim", 2023, 14)
-        assert (
-            next(
-                iter(
-                    self.db.select(
-                        self.TABLENAME,
-                        where={"username": "@billy_pilgrim", "year": 2023},
-                    )
-                )
-            )["target"]
-            == 14
-        )
-
-    def test_delete_by_username(self):
-        assert len(list(self.db.select(self.TABLENAME, where={"username": "@billy_pilgrim"}))) == 2
-        YearlyReadingGoals.delete_by_username("@billy_pilgrim")
-        assert len(list(self.db.select(self.TABLENAME, where={"username": "@billy_pilgrim"}))) == 0

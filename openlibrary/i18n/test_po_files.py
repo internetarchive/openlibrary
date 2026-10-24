@@ -64,63 +64,52 @@ def trees_equal(el1: ET.Element, el2: ET.Element, error=True, ordered=True):
     return True
 
 
-def gen_po_file_keys():
+def _read_catalog(locale: str) -> Catalog:
+    po_path = os.path.join(root, locale, "messages.po")
+    with open(po_path, "rb") as fil:
+        return read_po(fil)
+
+
+def test_html_format():
+    errors: list[str] = []
     for locale in get_locales():
-        po_path = os.path.join(root, locale, "messages.po")
+        catalog = _read_catalog(locale)
+        for message in catalog:
+            # Same expansion gen_po_msg_pairs() did: plural messages carry a
+            # tuple of msgids/msgstrs; untranslated (empty) msgstrs are skipped.
+            if not isinstance(message.id, str):
+                msgids, msgstrs = (message.id, message.string)
+            else:
+                msgids, msgstrs = ([message.id], [message.string])
 
-        with open(po_path, "rb") as fil:
-            catalog = read_po(fil)
-        for key in catalog:
-            yield locale, key
-
-
-def gen_po_msg_pairs():
-    for locale, key in gen_po_file_keys():
-        if not isinstance(key.id, str):
-            msgids, msgstrs = (key.id, key.string)
-        else:
-            msgids, msgstrs = ([key.id], [key.string])
-
-        for msgid, msgstr in zip(msgids, msgstrs):
-            if msgstr == "":
-                continue
-            yield locale, msgid, msgstr
-
-
-def gen_html_entries():
-    for locale, msgid, msgstr in gen_po_msg_pairs():
-        if "</" not in msgid:
-            continue
-        yield pytest.param(locale, msgid, msgstr, id=f"{locale}-{msgid}")
-
-
-@pytest.mark.parametrize(("locale", "msgid", "msgstr"), gen_html_entries())
-def test_html_format(locale: str, msgid: str, msgstr: str):
-    # Need this to support &nbsp;, since ET only parses XML.
-    # Find a better solution?
-    entities = '<!DOCTYPE text [ <!ENTITY nbsp "&#160;"> ]>'
-    id_tree = ET.fromstring(f"{entities}<root>{msgid}</root>")
-    str_tree = ET.fromstring(f"{entities}<root>{msgstr}</root>")
-    if msgstr.startswith("<!-- i18n-lint no-tree-equal -->"):
-        return
-    # For translations that correctly reorder elements to fit the target language's word order
-    ordered = not msgstr.startswith("<!-- i18n-lint no-tree-order -->")
-    assert trees_equal(id_tree, str_tree, ordered=ordered)
+            for msgid, msgstr in zip(msgids, msgstrs):
+                if msgstr == "" or "</" not in msgid:
+                    continue
+                if msgstr.startswith("<!-- i18n-lint no-tree-equal -->"):
+                    continue
+                # Need this to support &nbsp;, since ET only parses XML.
+                # Find a better solution?
+                entities = '<!DOCTYPE text [ <!ENTITY nbsp "&#160;"> ]>'
+                # For translations that correctly reorder elements to fit the target language's word order
+                ordered = not msgstr.startswith("<!-- i18n-lint no-tree-order -->")
+                try:
+                    id_tree = ET.fromstring(f"{entities}<root>{msgid}</root>")
+                    str_tree = ET.fromstring(f"{entities}<root>{msgstr}</root>")
+                    trees_equal(id_tree, str_tree, ordered=ordered)
+                except (AssertionError, ET.ParseError) as e:
+                    errors.append(f"{locale}:{message.lineno}: {e}\nmsgid:  {msgid}\nmsgstr: {msgstr}")
+    assert not errors, "\n\n".join(errors)
 
 
-def gen_po_messages():
+def test_validate():
+    errors: list[str] = []
     for locale in get_locales():
-        with open(os.path.join(root, locale, "messages.po"), "rb") as fil:
-            catalog = read_po(fil)
+        catalog = _read_catalog(locale)
         for message in catalog:
             # The same selection as `make test-i18n`, so the two cannot disagree
-            if message.lineno:
-                yield pytest.param(message, catalog, id=f"{locale}:{message.lineno}")
-
-
-@pytest.mark.parametrize(("message", "catalog"), gen_po_messages())
-def test_validate(message: Message, catalog: Catalog):
-    assert validate(message, catalog) == []
+            if message.lineno and (errs := validate(message, catalog)):
+                errors.extend(f"{locale}:{message.lineno}: {err}" for err in errs)
+    assert not errors, "\n\n".join(errors)
 
 
 @pytest.mark.parametrize(

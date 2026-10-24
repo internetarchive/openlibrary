@@ -19,6 +19,8 @@ import infogami
 from openlibrary.core.env import get_deployment_name, get_ol_env
 from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
+from openlibrary.fastapi.middleware.server_timing import add_server_timing
+from openlibrary.utils import prometheus, server_timing
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
@@ -147,6 +149,7 @@ def _include_routers(app: FastAPI) -> None:
     from openlibrary.fastapi.search import router as search_router
     from openlibrary.fastapi.status import router as status_router
     from openlibrary.fastapi.subjects import router as subjects_router
+    from openlibrary.fastapi.tasks import router as tasks_router
     from openlibrary.fastapi.yearly_reading_goals import (
         router as yearly_reading_goals_router,
     )
@@ -168,17 +171,22 @@ def _include_routers(app: FastAPI) -> None:
     app.include_router(search_router)
     app.include_router(status_router)
     app.include_router(subjects_router)
+    app.include_router(tasks_router)
     app.include_router(yearly_reading_goals_router)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
-    # Startup
-    if os.environ.get("LOCAL_DEV", "false").lower() == "true":
+    if get_ol_env().LOCAL_DEV:
         setup_debugpy()
-    yield
-    # Shutdown (if needed in the future)
+    from openlibrary.core.async_db import close_pool, init_pool
+
+    await init_pool()
+    try:
+        yield
+    finally:
+        await close_pool()
 
 
 def create_app() -> FastAPI | None:
@@ -198,7 +206,10 @@ def create_app() -> FastAPI | None:
             if sentry is not None:
                 return None
             sentry = init_sentry(getattr(infogami.config, "sentry", {}))
+            # Temporary, to compare the frameworks during the migration. Once web.py is gone, drop the
+            # `fastapi` and `framework` tags here and webpy_framework_tag_processor in openlibrary/utils/sentry.py.
             set_tag("fastapi", True)
+            set_tag("framework", "fastapi")
 
         except Exception:
             logger.exception("Failed to initialize legacy WSGI app")
@@ -214,7 +225,7 @@ def create_app() -> FastAPI | None:
         version="1.0.0",
         contact={"name": "Open Library Team", "url": "https://openlibrary.org", "email": "openlibrary@archive.org"},
         license_info={"name": "AGPL-3.0", "url": "https://github.com/internetarchive/openlibrary/blob/master/LICENSE"},
-        debug=os.environ.get("LOCAL_DEV", "false").lower() == "true",
+        debug=get_ol_env().LOCAL_DEV,
         lifespan=lifespan,
         strict_content_type=False,  # A breaking change and not applicable to our app. See: https://fastapi.tiangolo.com/advanced/strict-content-type/
     )
@@ -242,11 +253,11 @@ def create_app() -> FastAPI | None:
             response.headers["X-Served-By"] = "FastAPI"
         return response
 
-    # Add prometheus metrics
+    # Add prometheus metrics. web.py records the same ones; see openlibrary/utils/prometheus.py
     Instrumentator(
         should_group_status_codes=False,
-        excluded_handlers=["/health", "/metrics"],
-    ).instrument(app).expose(app, include_in_schema=False)
+        excluded_handlers=list(prometheus.EXCLUDED_HANDLERS),
+    ).add(prometheus.request_metrics("fastapi")).instrument(app).expose(app, include_in_schema=False)
 
     @app.middleware("http")
     async def set_context(request: Request, call_next):
@@ -257,6 +268,11 @@ def create_app() -> FastAPI | None:
     # setup_i18n is below set_context so that it can use the request.state.lang in set_context
     # because the handlers are called in reverse order
     setup_i18n(app)
+
+    # Outermost, so `total` covers the other middleware and crashes' 500 pages get the header. Off with `server_timing: false`.
+    if infogami.config.get("server_timing", True):
+        server_timing.install_legacy_bridge()
+        add_server_timing(app)
 
     # Serve static assets directly from the project static directory.
     # This mirrors legacy /static/* behavior while we migrate endpoints to FastAPI.

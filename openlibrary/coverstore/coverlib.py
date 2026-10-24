@@ -1,6 +1,6 @@
 """Cover management."""
 
-import datetime
+import datetime as dt
 import os
 from io import BytesIO
 from logging import getLogger
@@ -53,7 +53,7 @@ def save_image(data, category, olid, author=None, ip=None, source_url=None):
 
 def make_path_prefix(olid, date=None):
     """Makes a file prefix for storing an image."""
-    date = date or datetime.date.today()
+    date = date or dt.date.today()
     return "%04d/%02d/%02d/%s-%s" % (
         date.year,
         date.month,

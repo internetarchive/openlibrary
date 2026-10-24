@@ -1,4 +1,3 @@
-
 /** @typedef {import('./classes.js').ExtractedBook} ExtractedBook */
 /** @typedef {import('./classes.js').MatchOptions} MatchOptions */
 /** @typedef {import('./classes.js').BookMatch} BookMatch */
@@ -10,7 +9,7 @@ const OL_SEARCH_BASE = 'openlibrary.org';
  * @param {MatchOptions} matchOptions
  */
 export function buildSearchUrl(extractedBook, matchOptions, json = true) {
-    let title = extractedBook.title?.split(/[:(?]/)[0].replace(/’/g, '\'');
+    let title = extractedBook.title?.split(/[:(?]/)[0].replace(/’/g, "'");
     const author = extractedBook.author;
     // Remove leading articles from title; these can sometimes be missing from OL records,
     // and will hence cause a failed match.
@@ -21,8 +20,11 @@ export function buildSearchUrl(extractedBook, matchOptions, json = true) {
     if (title) {
         query.push(`title:"${title}"`);
     }
-    if (matchOptions.includeAuthor && author  && author.toLowerCase() !== 'null' && author.toLowerCase() !== 'unknown') {
-        const authorParts = author.replace(/^\S+\./, '').trim().split(/\s/);
+    if (matchOptions.includeAuthor && author && author.toLowerCase() !== 'null' && author.toLowerCase() !== 'unknown') {
+        const authorParts = author
+            .replace(/^\S+\./, '')
+            .trim()
+            .split(/\s/);
         const authorLastName = author.includes(',') ? author.replace(/,.*/, '') : authorParts[authorParts.length - 1];
         query.push(`author:${authorLastName}`);
     }
@@ -36,7 +38,7 @@ export function buildSearchUrl(extractedBook, matchOptions, json = true) {
     const url = `${path}?${new URLSearchParams({
         q: query.join(' '),
         mode: 'everything',
-        fields: 'key,title,author_name,cover_i,first_publish_year,edition_count,ebook_access',
+        fields: 'key,title,author_name,cover_i,first_publish_year,edition_count,ebook_access'
     })}`;
     return url;
 }

@@ -9,7 +9,7 @@
  * It also fills in what the server could not. Carousel buttons arrive without
  * state (their HTML is cached, or fetched lazily): they get the
  * reader's key from <body data-user-key>, labels from the hidden input in
- * site.html.jinja, and their state from one batched request, repeated for
+ * shell/base.html.jinja, and their state from one batched request, repeated for
  * buttons that arrive later. They stay pending until that lands, so nobody can
  * act on a shelf we have not read yet.
  *
@@ -40,7 +40,7 @@ const NOTICE_LABELS = {
     movedTo: 'Moved to %(shelf)s',
     removedFromShelf: 'Removed from shelf',
     undo: 'Undo',
-    errorGeneric: 'Something went wrong. Please try again.',
+    errorGeneric: 'Something went wrong. Please try again.'
 };
 
 /** @type {Object<string, string|Object<string, string>>|null} */
@@ -53,7 +53,7 @@ const requested = new WeakSet();
 let listening = false;
 
 /**
- * The labels site.html.jinja rendered.
+ * The labels shell/base.html.jinja rendered.
  * @returns {Object<string, string|Object<string, string>>|null}
  */
 export function readLabels() {
@@ -186,9 +186,7 @@ function markRowLeftShelf(button, workKey, next) {
         return;
     }
     const notice = existing ?? createLeftShelfNotice(row, workKey, pageShelf);
-    notice.querySelector('.left-shelf-notice__text').textContent = next === null
-        ? t('removedFromShelf')
-        : t('movedTo', { shelf: t(SHELF_LABEL[next]) });
+    notice.querySelector('.left-shelf-notice__text').textContent = next === null ? t('removedFromShelf') : t('movedTo', { shelf: t(SHELF_LABEL[next]) });
     notice.dataset.from = next ?? '';
 }
 

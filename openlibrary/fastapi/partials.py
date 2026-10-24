@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 from datetime import datetime
 from typing import Annotated
@@ -9,6 +8,7 @@ from typing import Annotated
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, BeforeValidator
 
+from openlibrary.core.env import get_ol_env
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
@@ -24,8 +24,12 @@ from openlibrary.plugins.openlibrary.partials import (
     CarouselLoadMoreParams,
     CarouselPartial,
     FullTextSuggestionsPartial,
+    HomeGenreParams,
+    HomeGenrePartial,
     LazyCarouselParams,
     MyBooksDropperListsPartial,
+    NearbyBooksParams,
+    NearbyBooksPartial,
     ReadingGoalProgressPartial,
     ReadingStatePartial,
     SearchFacetsPartial,
@@ -37,7 +41,7 @@ from openlibrary.plugins.openlibrary.partials import (
 router = APIRouter()
 
 # Only show partials endpoints in OpenAPI schema in local dev
-SHOW_PARTIALS_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+SHOW_PARTIALS_IN_SCHEMA = get_ol_env().LOCAL_DEV
 
 
 @router.get("/partials/SearchFacets.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -144,8 +148,10 @@ async def reading_goal_progress_partial(
 
     The year parameter is optional; defaults to the current year.
     """
-    # Despite the face we are not yet using the user, it gives us faster auth checking and api documentation.
-    return ReadingGoalProgressPartial.generate(year=year or datetime.now().year)
+    return await ReadingGoalProgressPartial.generate_async(
+        username=user.username,
+        year=year or datetime.now().year,
+    )
 
 
 @router.get("/partials/MyBooksDropperLists.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -242,6 +248,23 @@ async def lazy_carousel_partial(
     TODO: Drop the lazy naming. Partials always load later.
     """
     return await CarouselPartial.generate_async(params=params, full_path=full_path)
+
+
+@router.get("/partials/HomeGenre.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+async def home_genre_partial(params: Annotated[HomeGenreParams, Query()]) -> dict:
+    """Get the shelf HTML for one genre in the home page's "Browse the stacks"."""
+    return await HomeGenrePartial.generate_async(params=params)
+
+
+@router.get("/partials/NearbyBooks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+async def nearby_books_partial(
+    params: Annotated[NearbyBooksParams, Query()],
+    full_path: Annotated[str, Depends(get_fullpath)],
+) -> dict:
+    """
+    Get the book page's "Nearby Books" (DDC shelf-adjacency) carousel HTML.
+    """
+    return await NearbyBooksPartial.generate_async(params=params, full_path=full_path)
 
 
 @router.get("/partials/CarouselLoadMore.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

@@ -1,4 +1,4 @@
-$def with (status = {}, features_table = [], dev_merged_status=None, is_maintainer=False, has_testing_state=False, show_testing=False, jenkins_job_url='')
+$def with (status = {}, dev_merged_status=None, is_maintainer=False, has_testing_state=False, show_testing=False, jenkins_job_url='')
 $# Template entry point for /status page
 $var title: $_("Open Library server status")
 
@@ -96,6 +96,4 @@ $var title: $_("Open Library server status")
        </tr>
   </table>
 
-  <h2> $_("Features enabled") </h2>
-$:render_jinja_template("FeaturesTable.html.jinja", features_table=features_table)
 </div>

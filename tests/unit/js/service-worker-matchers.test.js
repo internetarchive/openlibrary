@@ -1,5 +1,11 @@
-import { matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild, matchArchiveOrgImage } from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
-
+import {
+    matchMiscFiles,
+    matchSmallMediumCovers,
+    matchLargeCovers,
+    matchStaticImages,
+    matchStaticBuild,
+    matchArchiveOrgImage
+} from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
 
 // Helper function to create a URL object
 function _u(url) {
@@ -46,7 +52,7 @@ describe('URL Matchers', () => {
     describe('matchStaticImages', () => {
         test('matches static images', () => {
             expect(matchStaticImages(_u('https://openlibrary.org/static/images/down-arrow.png'))).toBe(true);
-            expect(matchStaticImages(_u('https://testing.openlibrary.org/static/images/icons/open-book.svg'))).toBe(true);
+            expect(matchStaticImages(_u('https://testing.openlibrary.org/static/images/icons/avatar_book-sm.png'))).toBe(true);
         });
 
         test('does not match other URLs', () => {

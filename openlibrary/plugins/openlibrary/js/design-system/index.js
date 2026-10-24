@@ -52,7 +52,7 @@ function renderContrastBadges(root) {
 
     // Write: one probe per token, appended in a single insertion.
     const fragment = document.createDocumentFragment();
-    const probes = targets.map((target) => {
+    const probes = targets.map(target => {
         const probe = document.createElement('span');
         probe.style.cssText = `position:absolute;visibility:hidden;pointer-events:none;color:var(${target.dataset.dsContrastFor})`;
         fragment.appendChild(probe);
@@ -63,8 +63,8 @@ function renderContrastBadges(root) {
     // Read: only the first getComputedStyle costs a recalc, since nothing
     // dirties the tree in between.
     const canvas = parseCssColor(getComputedStyle(document.body).backgroundColor);
-    const measured = probes.map((probe) => parseCssColor(getComputedStyle(probe).color));
-    probes.forEach((probe) => probe.remove());
+    const measured = probes.map(probe => parseCssColor(getComputedStyle(probe).color));
+    probes.forEach(probe => probe.remove());
 
     // Write: build every badge, touching no computed style. Each ratio is
     // measured against its own backdrop, so a translucent token (the
@@ -101,7 +101,7 @@ function renderContrastBadges(root) {
  */
 function initRampLabels(root) {
     const steps = [...root.querySelectorAll('.ds-ramp__step')];
-    const luminances = steps.map((step) => luminanceFromCssColor(getComputedStyle(step).backgroundColor));
+    const luminances = steps.map(step => luminanceFromCssColor(getComputedStyle(step).backgroundColor));
     steps.forEach((step, index) => {
         if (luminances[index] !== null && luminances[index] < 0.4) step.classList.add('ds-ramp__step--dark');
     });
@@ -121,7 +121,7 @@ function initCodeToggle(root) {
         highlightCode(root);
     }
 
-    toggle.addEventListener('ol-toggle-change', (event) => {
+    toggle.addEventListener('ol-toggle-change', event => {
         root.classList.toggle('ds--code-visible', event.detail.checked);
         writeStored(CODE_VISIBLE_KEY, String(event.detail.checked));
         if (event.detail.checked) highlightCode(root);
@@ -130,7 +130,7 @@ function initCodeToggle(root) {
 
 /** Click-to-copy. `data-ds-copy-text`, else the nearest code block. */
 function initCopy(root) {
-    root.addEventListener('click', (event) => {
+    root.addEventListener('click', event => {
         const trigger = event.target.closest('[data-ds-copy]');
         if (!trigger) return;
 
@@ -149,25 +149,25 @@ function initScrollSpy(root) {
     const links = [...root.querySelectorAll('.ds__sidebar .ds__nav-list a[href^="#"]')];
     if (!links.length || !('IntersectionObserver' in window)) return;
 
-    const linkById = new Map(links.map((link) => [decodeURIComponent(link.hash.slice(1)), link]));
-    const targets = [...linkById.keys()].map((id) => document.getElementById(id)).filter(Boolean);
+    const linkById = new Map(links.map(link => [decodeURIComponent(link.hash.slice(1)), link]));
+    const targets = [...linkById.keys()].map(id => document.getElementById(id)).filter(Boolean);
     if (!targets.length) return;
 
     const visible = new Set();
     const observer = new IntersectionObserver(
-        (entries) => {
-            entries.forEach((entry) => {
+        entries => {
+            entries.forEach(entry => {
                 if (entry.isIntersecting) visible.add(entry.target.id);
                 else visible.delete(entry.target.id);
             });
             // The topmost visible target wins, so scrolling up and down agree.
-            const current = targets.find((target) => visible.has(target.id));
-            links.forEach((link) => link.classList.remove('is-current'));
+            const current = targets.find(target => visible.has(target.id));
+            links.forEach(link => link.classList.remove('is-current'));
             if (current) linkById.get(current.id).classList.add('is-current');
         },
         { rootMargin: '-80px 0px -70% 0px' }
     );
-    targets.forEach((target) => observer.observe(target));
+    targets.forEach(target => observer.observe(target));
 }
 
 /**
@@ -200,7 +200,7 @@ function initNavPopover(root) {
     mobile.addEventListener('change', apply);
 
     // Following a link leaves the tray sitting over what it jumped to.
-    nav.addEventListener('click', (event) => {
+    nav.addEventListener('click', event => {
         const link = event.target.closest('a[href^="#"]');
         if (!link || !popover.open) return;
         popover.open = false;
@@ -232,7 +232,7 @@ function iconSnippets(name) {
     return {
         templetor: `$:macros.icon("${name}")`,
         jinja: `{{ icon("${name}") }}`,
-        html: `<ol-icon name="${name}"></ol-icon>`,
+        html: `<ol-icon name="${name}"></ol-icon>`
     };
 }
 
@@ -270,12 +270,12 @@ function initIconPopover(root) {
     // here and swallow the click that follows.
     let anchor = null;
     let suppressed = null;
-    grid.addEventListener('pointerdown', (event) => {
+    grid.addEventListener('pointerdown', event => {
         const cell = event.target.closest('.ds-icon-gallery__cell');
         suppressed = popover.matches(':popover-open') && cell === anchor ? cell : null;
     });
 
-    grid.addEventListener('click', (event) => {
+    grid.addEventListener('click', event => {
         const item = event.target.closest('[data-ds-icon-name]');
         if (!item) return;
         const cell = item.querySelector('.ds-icon-gallery__cell');
@@ -291,7 +291,7 @@ function initIconPopover(root) {
         }
 
         const snippets = iconSnippets(name);
-        codeEls.forEach((code) => {
+        codeEls.forEach(code => {
             code.textContent = snippets[code.dataset.dsSnippet];
         });
         nameEl.textContent = name;
@@ -321,7 +321,7 @@ function initIconFilter(root) {
     const items = [...root.querySelectorAll('[data-ds-icon-name]')];
     filter.addEventListener('input', () => {
         const query = filter.value.trim().toLowerCase();
-        items.forEach((item) => {
+        items.forEach(item => {
             item.hidden = Boolean(query) && !item.dataset.dsIconName.includes(query);
         });
     });
@@ -330,8 +330,8 @@ function initIconFilter(root) {
 /** The Dialog helper demos call the real olConfirm()/olAlert(), which inline page scripts can't import. */
 function initDialogHelperDemos(root) {
     const helpers = { confirm: olConfirm, alert: olAlert };
-    root.querySelectorAll('[data-ds-dialog-helper]').forEach((trigger) => {
-        trigger.addEventListener('click', async() => {
+    root.querySelectorAll('[data-ds-dialog-helper]').forEach(trigger => {
+        trigger.addEventListener('click', async () => {
             const { dsDialogHelper, dsDialogOptions, dsDialogTemplate, dsDialogOut } = trigger.dataset;
             const options = JSON.parse(dsDialogOptions);
             if (dsDialogTemplate) options.message = root.querySelector(dsDialogTemplate);

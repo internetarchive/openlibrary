@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from openlibrary.fastapi.internal.api import TrendingPeriod
-from openlibrary.views.loanstats import SINCE_DAYS
+from openlibrary.views.loanstats import SINCE_DAYS, TRENDING_NOW_LIMIT
 
 MOCK_WORKS = [
     {"key": "/works/OL1W", "title": "Popular Book 1", "author_name": ["Author A"]},
@@ -111,6 +111,16 @@ class TestTrendingBooksEndpoint:
         response = fastapi_client.get("/trending/daily.json")
         response.raise_for_status()
         assert mock_get_trending_books.call_args.kwargs["limit"] == 100
+
+    def test_limit_defaults_to_20_for_now(self, fastapi_client, mock_get_trending_books):
+        response = fastapi_client.get("/trending/now.json")
+        response.raise_for_status()
+        assert mock_get_trending_books.call_args.kwargs["limit"] == TRENDING_NOW_LIMIT
+
+    def test_explicit_limit_for_now(self, fastapi_client, mock_get_trending_books):
+        response = fastapi_client.get("/trending/now.json?limit=50")
+        response.raise_for_status()
+        assert mock_get_trending_books.call_args.kwargs["limit"] == 50
 
     def test_trending_period_literal_matches_since_days(self):
         literal_keys = set(get_args(TrendingPeriod))

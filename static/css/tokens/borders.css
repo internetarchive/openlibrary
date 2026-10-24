@@ -26,6 +26,7 @@
   --border-width-table: 1px;
   --border-width-divider: 1px;
   --focus-width: 2px;
+  --pointed-ring-width: 4px; /* ring hugging the item under the pointer, e.g. a hovered book cover */
 
   /* Complete border styles. Every hairline is --color-border-subtle, so cards,
      tables, and inputs share one warm line. */
@@ -43,6 +44,11 @@
   /* Surface a raised control sits on. Components override it alongside their own
      background-color so the specular highlight tones to that fill, not white. */
   --control-surface: var(--white);
+
+  /* Specular edge strength on a saturated fill (primary, danger, a selected
+     chip). White reads much louder on a dark fill than on the neutral one's 35%,
+     so this is tuned to land as quietly as the neutral edge does. */
+  --control-highlight-strength-filled: 8%;
 
   /* Raised-control drop shadow — the surface-independent half of the lift. The
      matching inset highlight is deliberately not in this token: a :root custom
@@ -70,7 +76,7 @@
      scrim, the popover's mobile tray, which should all read as the same
      gesture. The blur is what pushes the page back; the dim is what makes it
      inert. Blur follows modality, never a breakpoint; a non-modal overlay gets
-     neither. See docs/ai/design.md#blur-follows-modality-not-viewport-width. */
+     neither. See docs/frontend/design.md#blur-follows-modality-not-viewport-width. */
   --overlay-backdrop-color: hsla(0, 0%, 0%, 0.32);
   --overlay-backdrop-blur: 3px;
 }

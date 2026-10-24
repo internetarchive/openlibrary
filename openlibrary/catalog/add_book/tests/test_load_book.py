@@ -23,6 +23,8 @@ natural_names = [
     {"name": "Surname, Forename", "personal_name": "Surname, Forename"},
     {"name": "Surname, Forename"},
     {"name": "Surname, Forename", "entity_type": "person"},
+    # A MARC author carrying a $c title, e.g. "Surname, Forename" + "pseud." (#13853)
+    {"name": "Surname, Forename", "title": "pseud.", "entity_type": "person"},
 ]
 
 

@@ -4,10 +4,12 @@ They must be available in the global JS namespace
 See: https://github.com/internetarchive/openlibrary/pull/9180#issuecomment-2107911798
 */
 
-// closes active popup
+// Closes the <ol-dialog> that contains the calling iframe.
 export function closePopup() {
-    // Note we don't import colorbox here, since it's on the parent
-    parent.jQuery.fn.colorbox.close();
+    const dialog = window.frameElement?.closest('ol-dialog');
+    if (dialog) {
+        dialog.open = false;
+    }
 }
 
 // used in templates/admin/imports.html
@@ -23,8 +25,7 @@ export function truncate(text, limit) {
 export function cond(predicate, true_value, false_value) {
     if (predicate) {
         return true_value;
-    }
-    else {
+    } else {
         return false_value;
     }
 }
@@ -67,7 +68,7 @@ export function updateURLParameters(params) {
 export function trimInputValues(param) {
     const inputs = document.querySelectorAll(param);
     inputs.forEach(input => {
-        input.addEventListener('blur', function() {
+        input.addEventListener('blur', function () {
             this.value = this.value.trim();
         });
     });
@@ -111,7 +112,7 @@ export function createElementFromMarkup(markup) {
  * @returns {Promise<void>}
  */
 export async function whenVisible(elem, options = {}) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         const intersectionObserver = new IntersectionObserver(
             (entries, observer) => {
                 entries.forEach(entry => {
@@ -125,11 +126,14 @@ export async function whenVisible(elem, options = {}) {
                     resolve();
                 });
             },
-            Object.assign({
-                root: null,
-                rootMargin: '200px',
-                threshold: 0
-            }, options)
+            Object.assign(
+                {
+                    root: null,
+                    rootMargin: '200px',
+                    threshold: 0
+                },
+                options
+            )
         );
 
         intersectionObserver.observe(elem);
@@ -172,7 +176,7 @@ export async function fetchAndSwap(elem, component, onSwap) {
  */
 async function attemptFetchAndSwap(elem, component, key, onSwap) {
     try {
-        const resp = await fetch(buildPartialsUrl(component, {key}));
+        const resp = await fetch(buildPartialsUrl(component, { key }));
         if (!resp.ok) {
             throw new Error(`Failed to fetch ${component} partial. Status code: ${resp.status}`);
         }
