@@ -476,7 +476,11 @@ def read_author_person(field: MarcFieldBase, tag: str = "100") -> dict[str, Any]
         return author
     if "d" in contents:
         author = pick_first_date(strip_foc(d).strip(",[]") for d in contents["d"])
-    author["name"] = name_from_list(field.get_subfield_values("abc"))
+    # $c holds titles associated with a name ("pseud.", "Sir", "marquis de") and is
+    # stored as `title` below. Appending it here also left `name` differing from
+    # `personal_name`, which makes do_flip() skip the comma flip. Fall back to $c only
+    # when the field has no $a or $b, which the check above still admits.
+    author["name"] = name_from_list(field.get_subfield_values("ab") or field.get_subfield_values("c"))
     author["entity_type"] = "person"
     subfields = [
         ("a", "personal_name"),
