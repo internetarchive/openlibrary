@@ -73,6 +73,9 @@ pending → processing (atomic claim by import_first_staged)
          → created   (new edition created)
          → modified  (existing edition updated)
          → failed    (error_code set)
+
+An administrator can retry failed items from their batch status page. Retrying
+requeues only failed rows that still contain their original import data.
 ```
 
 `processing` is the race guard — atomic `UPDATE ... RETURNING *` prevents two ImportBot workers from claiming the same item.
@@ -118,6 +121,8 @@ For paginated APIs or OPDS feeds, subclass `PaginatedAPIProvider` or `OPDSProvid
 
 ### Submitting a batch
 
+For a step-by-step example using the Arabooks request, see the [batch-import walkthrough](batch-import-walkthrough.md).
+
 ```bash
 # POST a JSONL file to the batch queue (logged in required)
 curl -X POST "http://localhost:8080/import/batch/new" \
@@ -136,6 +141,17 @@ curl -X POST "http://localhost:8080/api/import?preview=true" \
 **Trust levels:**
 - Non-admin users: batch lands at `status=needs_review`, waits for manual admin approval
 - Admin accounts: `status=pending`, processed immediately by ImportBot
+
+### Retrying failed items
+
+Open the batch status page (`/import/batch/<batch-id>`). An administrator sees
+**Retry Failed Imports** when the batch has failed rows with saved import data.
+Submitting the form sends a POST and requeues those rows in that batch, clearing
+the previous error, import time, and Open Library key while preserving the
+original data. Other batches and non-failed rows are untouched.
+
+The retry uses the same payload. It is useful for transient failures, but it
+does not repair invalid or otherwise permanently failing records.
 
 ### Running ImportBot locally
 
