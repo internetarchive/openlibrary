@@ -84,6 +84,15 @@ class Acquisition:
     price: str | None
     url: str
     provider_name: str | None = None
+    # The OPDS `rel="self"` link: this publication on the provider's own feed.
+    # Distinct from `url`, which is the acquisition link -- what a reader
+    # follows to buy, borrow or read. A consumer that wants the source record
+    # needs this one, and today reverse-engineers it per provider.
+    source_url: str | None = None
+    # The provider's human-readable name ("Project Gutenberg"), where
+    # `provider_name` is a slug ("gutenberg"). Filled from the provider's
+    # `long_name` by `get_acquisitions`.
+    feed_name: str | None = None
 
     @property
     def ebook_access(self) -> EbookAccess:
@@ -113,6 +122,8 @@ class Acquisition:
                 price=json.get("price"),
                 url=json["url"],
                 provider_name=json.get("provider_name"),
+                source_url=json.get("source_url"),
+                feed_name=json.get("feed_name"),
             )
         else:
             raise ValueError(f"Unknown ebook acquisition format: {json}")
@@ -1039,9 +1050,18 @@ def get_acquisitions(solr_edition: dict, edition: Edition) -> list[Acquisition]:
     acquisitions: list[Acquisition] = []
     for provider in get_book_providers(edition):
         if isinstance(provider, InternetArchiveProvider):
-            acquisitions.extend(provider.get_acquisitions(solr_edition, db_edition=edition))
+            provider_acquisitions = provider.get_acquisitions(solr_edition, db_edition=edition)
         else:
-            acquisitions.extend(provider.get_acquisitions(edition))
+            provider_acquisitions = provider.get_acquisitions(edition)
+        # Stamped here rather than inside each provider's `get_acquisitions`:
+        # the name belongs to the provider, not to one acquisition, and this
+        # is the only place that holds both. An acquisition that already
+        # carries a name keeps it -- `DirectProvider` reads `Edition.providers`,
+        # where the name came from the record rather than from a provider class.
+        for acquisition in provider_acquisitions:
+            if acquisition.feed_name is None:
+                acquisition.feed_name = provider.long_name
+        acquisitions.extend(provider_acquisitions)
     return acquisitions
 
 

@@ -17,6 +17,7 @@ import web
 
 from openlibrary.book_providers import PROVIDER_ORDER, AbstractBookProvider
 from openlibrary.book_providers import Acquisition as ProviderAcquisition
+from openlibrary.book_providers import get_acquisitions as provider_get_acquisitions
 from openlibrary.core import acquisitions as acquisitions_module
 from openlibrary.core.acquisitions import (
     MAX_ACQUISITIONS_PER_DOC,
@@ -902,3 +903,122 @@ def test_one_greedy_edition_does_not_consume_another_edition_s_budget(acquisitio
     grouped = Acquisition.get_by_editions([1, 2])
     assert len(grouped[1]) == MAX_ROWS_PER_EDITION
     assert len(grouped[2]) == 1, "the modest edition is unaffected by the greedy one"
+
+
+# ---------------------------------------------------------------------------
+# The source publication, and the feed's display name (#14052)
+#
+# An acquisition carried only the acquisition link and a provider slug, so a
+# consumer that wanted to load a book from its source reverse-engineered that
+# URL per provider -- done for Better World Books, and not something that
+# scales as feeds are onboarded.
+# ---------------------------------------------------------------------------
+
+
+class TestSourcePublicationAndFeedName:
+    def test_a_synthesized_acquisition_carries_the_provider_display_name(self):
+        edition = {"key": "/books/OL1M", "identifiers": {"project_gutenberg": ["12345"]}}
+        acquisitions = provider_get_acquisitions(edition, edition)
+        assert acquisitions, "the provider must synthesize at least one acquisition"
+        assert {acq.feed_name for acq in acquisitions} == {"Project Gutenberg"}
+        # The slug is untouched: this adds a label, it does not replace the
+        # identifier the dedupe above matches on.
+        assert {acq.provider_name for acq in acquisitions} == {"gutenberg"}
+
+    def test_a_patron_typed_acquisition_gets_no_display_name(self):
+        """``DirectProvider.long_name`` is None, and must stay that way.
+
+        The edit-book form names a URL, not a registered feed, so there is no
+        feed to name -- and publishing the patron's string as a feed name
+        would dress it up as one.
+        """
+        edition = {"key": "/books/OL1M", "providers": [{"url": "https://example.test/x.epub", "access": "open-access", "provider_name": "Someone's site"}]}
+        (acquisition,) = provider_get_acquisitions(edition, edition)
+        assert acquisition.feed_name is None
+
+    def test_both_fields_round_trip_through_from_json(self):
+        """``Edition.providers`` is stored JSON, so a value that cannot be read
+        back is a value that does not survive a save."""
+        acquisition = ProviderAcquisition.from_json(
+            {
+                "url": "https://example.test/buy/1",
+                "access": "buy",
+                "provider_name": "betterworldbooks",
+                "source_url": "https://feed.test/opds/publications?id=1342",
+                "feed_name": "Better World Books",
+            }
+        )
+        assert acquisition.source_url == "https://feed.test/opds/publications?id=1342"
+        assert acquisition.feed_name == "Better World Books"
+
+    def test_an_acquisition_stored_before_these_fields_still_parses(self):
+        acquisition = ProviderAcquisition.from_json({"url": "https://example.test/x", "access": "open-access"})
+        assert (acquisition.source_url, acquisition.feed_name) == (None, None)
+
+    def test_a_coerced_link_omits_them_when_unset(self):
+        """Absent, not null. ``"source_url": None`` states that the provider has
+        no source publication, which is not the same as our not having one."""
+        link = provider_acquisition_as_opds(provider_acquisition())
+        assert "source_url" not in link
+        assert "feed_name" not in link
+
+    def test_a_coerced_link_drops_an_unsafe_source_url(self):
+        """Published for a consumer to render as an href, so it is checked the
+        same way the acquisition URL is -- on the way out as well as in."""
+        acquisition = provider_acquisition()
+        acquisition.source_url = "javascript:alert(1)"
+        assert "source_url" not in provider_acquisition_as_opds(acquisition)
+
+    def test_a_harvested_row_publishes_its_source_publication(self, acquisitions_db):
+        link = {"rel": BORROW_REL, "href": "https://feed.test/borrow/1"}
+        store(
+            36620178,
+            "project_gutenberg",
+            "s-1",
+            link,
+            acquisitions=[{"access": "borrow", "url": link["href"], "source_url": "https://feed.test/opds/pub/1", "link": link}],
+        )
+        (out,) = opds_links_for_edition(Acquisition.get_by_editions([36620178])[36620178])
+        assert out["source_url"] == "https://feed.test/opds/pub/1"
+        assert out["feed_name"] == "Project Gutenberg"
+
+    def test_a_feed_cannot_publish_either_value_from_inside_its_own_link(self, acquisitions_db):
+        """``**link`` copies every key the feed authored, so both have to be
+        REMOVED and not merely left unassigned.
+
+        A feed that could set them would be choosing where Open Library says a
+        book came from, and under whose name.
+
+        Asserted as "never the feed's value" rather than "absent": what a
+        provider name resolves to is the registry's business and can change,
+        while the rule being pinned here is only that the answer is ours.
+        """
+        link = {"rel": BORROW_REL, "href": "https://feed.test/borrow/1", "source_url": "https://evil.test/pub/1", "feed_name": "Internet Archive"}
+        store(36620178, "a_feed_we_do_not_know", "f-1", link, acquisitions=[{"access": "borrow", "url": link["href"], "link": link}])
+        (out,) = opds_links_for_edition(Acquisition.get_by_editions([36620178])[36620178])
+        assert "source_url" not in out
+        assert out.get("feed_name") != "Internet Archive"
+        # Unregistered, so there is no display name to publish and the slug is
+        # not echoed back as though it were one.
+        assert "feed_name" not in out
+
+    def test_our_display_name_replaces_the_one_a_feed_supplied(self, acquisitions_db):
+        """Replaced, not merely dropped. Project Gutenberg is always in the
+        registry, so this pins the positive half of the rule above without
+        depending on how any other name happens to resolve."""
+        link = {"rel": BUY_REL, "href": "https://feed.test/buy/1", "feed_name": "Internet Archive"}
+        store(36620178, "project_gutenberg", "g-1", link, acquisitions=[{"access": "buy", "url": link["href"], "link": link}])
+        (out,) = opds_links_for_edition(Acquisition.get_by_editions([36620178])[36620178])
+        assert out["feed_name"] == "Project Gutenberg"
+
+    def test_a_harvested_source_url_must_also_be_safe(self, acquisitions_db):
+        link = {"rel": BORROW_REL, "href": "https://feed.test/borrow/1"}
+        store(
+            36620178,
+            "a_feed_we_do_not_know",
+            "u-1",
+            link,
+            acquisitions=[{"access": "borrow", "url": link["href"], "source_url": "javascript:alert(1)", "link": link}],
+        )
+        (out,) = opds_links_for_edition(Acquisition.get_by_editions([36620178])[36620178])
+        assert "source_url" not in out
