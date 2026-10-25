@@ -7,6 +7,7 @@ Multiple data providers are supported, each is good for different use case.
 """
 
 import asyncio
+import functools
 import itertools
 import logging
 import re
@@ -348,8 +349,7 @@ class DatabaseDataProvider(DataProvider):
         import infogami
         from infogami.utils import delegate
 
-        # web.ctx might not be defined at this time -_-
-        self.get_site = lambda: site or web.ctx.site
+        self.get_site = lambda: site or self._uncached_site
 
         if not db:
             infogami._setup()
@@ -362,6 +362,14 @@ class DatabaseDataProvider(DataProvider):
             self.covers_db = web.database(**covers_db_parameters)
         else:
             self.db = db
+
+    @functools.cached_property
+    def _uncached_site(self) -> Site:
+        from infogami import config
+        from infogami.infobase import client
+        from openlibrary.plugins.openlibrary.connection import OLConnection
+
+        return client.Site(OLConnection(use_memcache=False), config.site)
 
     async def get_document(self, key):
         # logger.info("get_document %s", key)
