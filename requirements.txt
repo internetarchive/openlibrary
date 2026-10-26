@@ -3,7 +3,7 @@ amightygirl.paapi5-python-sdk==1.0.0
 APScheduler==3.11.2
 Babel==2.18.0
 beautifulsoup4==4.14.3
-certifi==2026.10.23
+certifi>=2026.10.23
 cryptography==44.0.2
 eventer==0.1.1
 fastapi==0.143.0
