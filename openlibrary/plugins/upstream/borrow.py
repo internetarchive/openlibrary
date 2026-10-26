@@ -181,12 +181,13 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         and provider.short_name != "ia"
         and (acquisitions := provider.get_acquisitions(edition))
         # `borrow` as well as `open-access`: a provider that lends its own
-        # copies sends the patron to its own sign-in. Falling through reaches
-        # `get_bookreader_stream_url(edition.ocaid)`, and on a non-IA edition
-        # `ocaid` is infogami's `Nothing`, whose `__radd__` returns the left
-        # operand -- so that path yields a bare `archive.org/stream/` instead
-        # of raising.
-        and acquisitions[0].access in ("open-access", "borrow")
+        # copies sends the patron to its own sign-in. `sample` too: a "Preview"
+        # web link is read on the provider's site (#12345). Falling through
+        # reaches `get_bookreader_stream_url(edition.ocaid)`, and on a non-IA
+        # edition `ocaid` is infogami's `Nothing`, whose `__radd__` returns the
+        # left operand -- so that path yields a bare `archive.org/stream/`
+        # instead of raising.
+        and acquisitions[0].access in ("open-access", "borrow", "sample")
     ):
         stats.increment("ol.loans.webbook")
         url = acquisitions[0].url
