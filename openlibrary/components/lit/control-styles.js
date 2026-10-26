@@ -32,7 +32,7 @@ export const raised = css`
    tokens/press.css): set --_press-scale to the compact or wide token where
    the default 3% is wrong. */
 export const pressable = css`
-    .pressable:active {
+    .pressable:not(:disabled):active {
         transform: scale(var(--_press-scale, var(--press-scale)));
     }
 `;
@@ -81,20 +81,43 @@ export const menuRow = css`
         }
     }
 
+    /* Press paints the fill too: on touch, where :hover never runs, it is the
+       only feedback a row gets. No scale — a shrinking row reads as the panel
+       moving. */
+    .menu-row:active {
+        background: var(--color-hover-overlay);
+    }
+
     /* The selected row takes the control-selected look on its pill: the same
        tint and link text as ol-button[selected], pagination's current page and
-       the toggle's button variant. The radio, checkbox or aria-checked still
-       carries the state; this only paints it. Colour and fill only, never
-       weight, so nothing re-measures. Hover deepens the tint, as the button
-       does, rather than greying it. */
-    .menu-row[aria-checked='true'],
+       the toggle's button variant. The radio, checkbox, aria-checked or
+       aria-pressed still carries the state; this only paints it. Colour and
+       fill only, never weight, so nothing re-measures. Hover and press deepen
+       the tint, as the button does, rather than greying it. The :has() forms
+       are separate rules so an engine without :has() keeps the others. */
+    .menu-row:is([aria-checked='true'], [aria-pressed='true']) {
+        background: var(--color-control-selected-bg);
+        color: var(--color-link);
+    }
+
     .menu-row:has(> :checked) {
         background: var(--color-control-selected-bg);
         color: var(--color-link);
     }
 
+    .menu-row:is([aria-checked='true'], [aria-pressed='true']):active {
+        background: var(--color-control-selected-bg-hover);
+    }
+
+    .menu-row:has(> :checked):active {
+        background: var(--color-control-selected-bg-hover);
+    }
+
     @media (hover: hover) and (pointer: fine) {
-        .menu-row[aria-checked='true']:hover,
+        .menu-row:is([aria-checked='true'], [aria-pressed='true']):hover {
+            background: var(--color-control-selected-bg-hover);
+        }
+
         .menu-row:has(> :checked):hover {
             background: var(--color-control-selected-bg-hover);
         }

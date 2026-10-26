@@ -18,6 +18,7 @@ import {
     fetchWorkEditions,
     trackError
 } from './utils/books-api.js';
+import { menuRow } from './control-styles.js';
 import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
 import { getRecentLists, noteListUsed } from './utils/recent-lists.js';
 import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
@@ -203,227 +204,195 @@ export class OlShelfActions extends LitElement {
         _date: { state: true }
     };
 
-    static styles = css`
-        :host {
-            display: inline-flex;
-            font-family: var(--font-family-body);
-        }
-
-        .panel {
-            /* A fixed measure: the popover shrink-wraps its content, and the
-               title would otherwise size the panel per book. */
-            width: 320px;
-            /* Keeps the first and last rows off the rounded corners. */
-            padding-block: var(--spacing-inset-xs);
-            color: var(--color-text);
-            font-size: var(--font-size-body-medium);
-            /* text-align inherits through the shadow boundary; don't pick up
-               a centered host context (e.g. carousel captions). */
-            text-align: start;
-            /* clip, not hidden: focusing the off-screen pane must not scroll
-               the panel (that would double up with the track's translate). */
-            overflow: clip;
-            border-radius: var(--border-radius-overlay);
-        }
-
-        /* ol-popover becomes a full-bleed bottom tray here (keep in sync with
-           its 767px breakpoint), so fill it instead of leaving a dead strip. */
-        @media (max-width: 767px) {
-            .panel {
-                width: 100%;
+    static styles = [
+        menuRow,
+        css`
+            :host {
+                display: inline-flex;
+                font-family: var(--font-family-body);
             }
-        }
 
-        /* Metadata, not a title bar: quiet enough that the rows below it read
+            .panel {
+                /* A fixed measure: the popover shrink-wraps its content, and the
+               title would otherwise size the panel per book. */
+                width: 320px;
+                /* Keeps the first and last rows off the rounded corners. */
+                padding-block: var(--spacing-inset-xs);
+                color: var(--color-text);
+                font-size: var(--font-size-body-medium);
+                /* text-align inherits through the shadow boundary; don't pick up
+               a centered host context (e.g. carousel captions). */
+                text-align: start;
+                /* clip, not hidden: focusing the off-screen pane must not scroll
+               the panel (that would double up with the track's translate). */
+                overflow: clip;
+                border-radius: var(--border-radius-overlay);
+            }
+
+            /* ol-popover becomes a full-bleed bottom tray here (keep in sync with
+           its 767px breakpoint), so fill it instead of leaving a dead strip. */
+            @media (max-width: 767px) {
+                .panel {
+                    width: 100%;
+                }
+            }
+
+            /* Metadata, not a title bar: quiet enough that the rows below it read
            as the actionable part of the panel. */
-        .header {
-            position: relative;
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-medium);
-        }
+            .header {
+                position: relative;
+                padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-medium);
+            }
 
-        /* Clamped as one block so the year wraps with the title. */
-        .header .heading {
-            display: -webkit-box;
-            -webkit-box-orient: vertical;
-            -webkit-line-clamp: 2;
-            overflow: hidden;
-        }
+            /* Clamped as one block so the year wraps with the title. */
+            .header .heading {
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                overflow: hidden;
+            }
 
-        /* Inset rules read as separators inside the surface; a full-bleed one
+            /* Inset rules read as separators inside the surface; a full-bleed one
            reads as a panel edge. */
-        .header::after,
-        .lists-header::after,
-        .pane-header::after,
-        .group.rating::before,
-        .group.lists-entry::before,
-        .group.retract::before {
-            content: '';
-            position: absolute;
-            inset-inline: var(--spacing-inset-md);
-            height: 1px;
-            background: var(--color-border-subtle);
-        }
+            .header::after,
+            .lists-header::after,
+            .pane-header::after,
+            .group.rating::before,
+            .group.lists-entry::before,
+            .group.retract::before {
+                content: '';
+                position: absolute;
+                inset-inline: var(--spacing-inset-md);
+                height: 1px;
+                background: var(--color-border-subtle);
+            }
 
-        .header::after,
-        .lists-header::after,
-        .pane-header::after {
-            bottom: 0;
-        }
+            .header::after,
+            .lists-header::after,
+            .pane-header::after {
+                bottom: 0;
+            }
 
-        /* Panes side by side in a track --pane-count panels wide; the track
+            /* Panes side by side in a track --pane-count panels wide; the track
            slides to bring one into view. Its height is set inline to the active
            pane's height (measured), so the panel doesn't stretch to the tallest
            one. Both the width and the slide come from --pane-count, so adding a
            pane to PANES is the whole change. */
-        .track {
-            display: flex;
-            align-items: flex-start;
-            width: calc(100% * var(--pane-count));
-            transition:
-                transform 220ms cubic-bezier(0.165, 0.84, 0.44, 1),
-                height 220ms cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-
-        /* Reset to the main pane on close without a visible slide. */
-        .track.snap {
-            transition: none;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
             .track {
+                display: flex;
+                align-items: flex-start;
+                width: calc(100% * var(--pane-count));
+                transition:
+                    transform 220ms cubic-bezier(0.165, 0.84, 0.44, 1),
+                    height 220ms cubic-bezier(0.165, 0.84, 0.44, 1);
+            }
+
+            /* Reset to the main pane on close without a visible slide. */
+            .track.snap {
                 transition: none;
             }
-        }
 
-        .pane {
-            width: calc(100% / var(--pane-count));
-            flex: 0 0 calc(100% / var(--pane-count));
-            box-sizing: border-box;
-        }
+            @media (prefers-reduced-motion: reduce) {
+                .track {
+                    transition: none;
+                }
+            }
 
-        /* Off-screen pane must not be reachable */
-        .pane[inert] {
-            visibility: hidden;
-        }
+            .pane {
+                width: calc(100% / var(--pane-count));
+                flex: 0 0 calc(100% / var(--pane-count));
+                box-sizing: border-box;
+            }
 
-        .group {
-            display: flex;
-            flex-direction: column;
-            padding: var(--spacing-inset-xs) 0;
-        }
+            /* Off-screen pane must not be reachable */
+            .pane[inert] {
+                visibility: hidden;
+            }
 
-        .group.rating,
-        .group.lists-entry,
-        .group.retract {
-            position: relative;
-        }
+            .group {
+                display: flex;
+                flex-direction: column;
+                padding: var(--spacing-inset-xs) 0;
+            }
 
-        .group.rating::before,
-        .group.lists-entry::before,
-        .group.retract::before {
-            top: 0;
-        }
+            .group.rating,
+            .group.lists-entry,
+            .group.retract {
+                position: relative;
+            }
 
-        /* Inset so the hover fill reads as a pill inside the panel rather
+            .group.rating::before,
+            .group.lists-entry::before,
+            .group.retract::before {
+                top: 0;
+            }
+
+            /* Inset so the hover fill reads as a pill inside the panel rather
            than a band running to its edges; the padding gives back what the
            margin takes, so the icon column stays put. */
-        .row {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-icon-gap);
-            box-sizing: border-box;
-            /* One height for every row, so the panel never shifts as rows
+            .row {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-icon-gap);
+                box-sizing: border-box;
+                /* One height for every row, so the panel never shifts as rows
                re-render (the rating caption swaps between a span and a button). */
-            min-height: var(--menu-row-height);
-            margin: 0;
-            margin-inline: var(--menu-row-inset);
-            padding-block: var(--spacing-inset-sm);
-            padding-inline: var(--menu-row-padding-inline);
-            border-radius: var(--border-radius-menu-row);
-            border: 0;
-            background: none;
-            color: inherit;
-            font: inherit;
-            font-weight: var(--font-weight-button);
-            text-align: left;
-            cursor: pointer;
-            text-decoration: none;
-        }
+                min-height: var(--menu-row-height);
+                margin: 0;
+                margin-inline: var(--menu-row-inset);
+                padding-block: var(--spacing-inset-sm);
+                padding-inline: var(--menu-row-padding-inline);
+                border-radius: var(--border-radius-menu-row);
+                border: 0;
+                background: none;
+                color: inherit;
+                font: inherit;
+                font-weight: var(--font-weight-button);
+                text-align: left;
+                cursor: pointer;
+                text-decoration: none;
+            }
 
-        .row .obd-icon {
-            width: 20px;
-            height: 20px;
-            flex: 0 0 20px;
-            color: var(--color-icon-muted);
-        }
+            .row .obd-icon {
+                width: 20px;
+                height: 20px;
+                flex: 0 0 20px;
+                color: var(--color-icon-muted);
+            }
 
-        .row .label {
-            flex: 1;
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+            .row .label {
+                flex: 1;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
 
-        /* The basis too, not just the width: WebKit sizes the row from the
+            /* The basis too, not just the width: WebKit sizes the row from the
            width but lays it out at .obd-icon's 20px basis, and the 4px
            difference comes out of the label beside it ("Add d…"). */
-        .row .trail {
-            flex-basis: 16px;
-            width: 16px;
-            height: 16px;
-            color: var(--color-icon-muted);
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .row:hover {
-                background: var(--color-hover-overlay);
+            .row .trail {
+                flex-basis: 16px;
+                width: 16px;
+                height: 16px;
+                color: var(--color-icon-muted);
             }
-        }
 
-        /* Press feedback — the fill, not the squeeze <ol-button> gives. A row
-           has no resting fill, so the press paints one; on touch, where :hover
-           never runs, there would otherwise be nothing at all. The scale stays
-           with real buttons: a menu row that shrinks reads as the panel
-           moving rather than the row being pressed. */
-        .row:active,
-        .list-row:active {
-            background: var(--color-hover-overlay);
-        }
-
-        .row:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: -2px;
-        }
-
-        /* The shelf a book is on, and the date it was finished on, are the same
-           kind of answer — both mark their row the same way: the shared
-           control-selected look (menuRow in control-styles.js), tint and link
-           text, never weight. */
-        .row[aria-pressed='true'] {
-            background: var(--color-control-selected-bg);
-            color: var(--color-link);
-        }
-
-        .row[aria-pressed='true'] .obd-icon {
-            color: var(--color-link);
-        }
-
-        /* Hover and press deepen the tint, as ol-button[selected] does, rather
-           than greying it. */
-        .row[aria-pressed='true']:active {
-            background: var(--color-control-selected-bg-hover);
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .row[aria-pressed='true']:hover {
-                background: var(--color-control-selected-bg-hover);
+            .row:focus-visible {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: -2px;
             }
-        }
 
-        /* Already Read on the shelf: the label toggles like the other rows,
+            /* Hover, press and the selected tint (the shelf a book is on, the
+           date it was finished on, a list it's in) are the shared .menu-row
+           rules; the icon follows the text. */
+            .row[aria-pressed='true'] .obd-icon {
+                color: var(--color-link);
+            }
+
+            /* Already Read on the shelf: the label toggles like the other rows,
            the date is a second target into the date pane. Each half keeps its
            own hover pill; the pair takes the inset a single row would.
            Neither half is sized for English: the shelf label never shrinks
@@ -431,488 +400,468 @@ export class OlShelfActions extends LitElement {
            the date wraps under the label instead of truncating — the indent
            lines it up with the label text, and the shelf half's negative
            margin keeps the indent out of the one-line layout. */
-        .row-split {
-            --split-indent: calc(var(--menu-row-padding-inline) + 20px + var(--spacing-inline-md) - var(--spacing-inset-sm));
-            display: flex;
-            flex-wrap: wrap;
-            margin-inline: var(--menu-row-inset);
-            padding-inline-start: var(--split-indent);
-        }
+            .row-split {
+                --split-indent: calc(var(--menu-row-padding-inline) + 20px + var(--spacing-inline-md) - var(--spacing-inset-sm));
+                display: flex;
+                flex-wrap: wrap;
+                margin-inline: var(--menu-row-inset);
+                padding-inline-start: var(--split-indent);
+            }
 
-        .row-split > .row {
-            margin-inline: 0;
-            max-width: 100%;
-        }
+            .row-split > .row {
+                margin-inline: 0;
+                max-width: 100%;
+            }
 
-        .row-split > .row:first-child {
-            flex: 1 0 auto;
-            margin-inline-start: calc(-1 * var(--split-indent));
-            max-width: calc(100% + var(--split-indent));
-        }
+            .row-split > .row:first-child {
+                flex: 1 0 auto;
+                margin-inline-start: calc(-1 * var(--split-indent));
+                max-width: calc(100% + var(--split-indent));
+            }
 
-        .date-link {
-            flex: 0 0 auto;
-            gap: var(--spacing-inline-xs);
-            padding-inline: var(--spacing-inset-sm);
-        }
+            .date-link {
+                flex: 0 0 auto;
+                gap: var(--spacing-inline-xs);
+                padding-inline: var(--spacing-inset-sm);
+            }
 
-        /* When Already Read is the shelf, the date half joins the shelf half's
+            /* When Already Read is the shelf, the date half joins the shelf half's
            tinted pill: the inner corners square off so the halves read as one
            selected row, and each half still deepens on its own hover. */
-        .row-split:has(> [aria-pressed='true']) > .row:first-child {
-            border-start-end-radius: 0;
-            border-end-end-radius: 0;
-        }
+            .row-split:has(> [aria-pressed='true']) > .row:first-child {
+                border-start-end-radius: 0;
+                border-end-end-radius: 0;
+            }
 
-        .row-split:has(> [aria-pressed='true']) > .date-link {
-            background: var(--color-control-selected-bg);
-            border-start-start-radius: 0;
-            border-end-start-radius: 0;
-        }
+            .row-split:has(> [aria-pressed='true']) > .date-link {
+                background: var(--color-control-selected-bg);
+                border-start-start-radius: 0;
+                border-end-start-radius: 0;
+            }
 
-        .row-split:has(> [aria-pressed='true']) > .date-link:active {
-            background: var(--color-control-selected-bg-hover);
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .row-split:has(> [aria-pressed='true']) > .date-link:hover {
+            .row-split:has(> [aria-pressed='true']) > .date-link:active {
                 background: var(--color-control-selected-bg-hover);
             }
-        }
 
-        .date-link .count {
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+            @media (hover: hover) and (pointer: fine) {
+                .row-split:has(> [aria-pressed='true']) > .date-link:hover {
+                    background: var(--color-control-selected-bg-hover);
+                }
+            }
 
-        /* A request in flight dims the group rather than disabling its rows:
+            .date-link .count {
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            /* A request in flight dims the group rather than disabling its rows:
            disabling the focused row would drop focus to the document. The
            handlers ignore clicks while busy, so this is feedback only. */
-        [aria-busy='true'] .row,
-        [aria-busy='true'] .star,
-        [aria-busy='true'] .clear {
-            cursor: default;
-            opacity: 0.6;
-        }
+            [aria-busy='true'] .row,
+            [aria-busy='true'] .star,
+            [aria-busy='true'] .clear {
+                cursor: default;
+                opacity: 0.6;
+            }
 
-        /* Stars */
-        .stars {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-inline-md);
-            box-sizing: border-box;
-            /* min-height, not height: the 24px star targets and the caption
+            /* Stars */
+            .stars {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-inline-md);
+                box-sizing: border-box;
+                /* min-height, not height: the 24px star targets and the caption
                have to fit whatever the row height is, and the row has to stay
                level with the shelf rows above it. */
-            min-height: var(--menu-row-height);
-            padding: 0 var(--spacing-inset-md);
-        }
+                min-height: var(--menu-row-height);
+                padding: 0 var(--spacing-inset-md);
+            }
 
-        .star-buttons,
-        .stars .caption {
-            line-height: 1;
-        }
+            .star-buttons,
+            .stars .caption {
+                line-height: 1;
+            }
 
-        .star-buttons {
-            display: inline-flex;
-        }
+            .star-buttons {
+                display: inline-flex;
+            }
 
-        /* 24px hit target (WCAG 2.5.8) around a 20px glyph. */
-        .star {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-            padding: 0;
-            border: 0;
-            background: none;
-            cursor: pointer;
-            line-height: 0;
-        }
+            /* 24px hit target (WCAG 2.5.8) around a 20px glyph. */
+            .star {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 24px;
+                height: 24px;
+                padding: 0;
+                border: 0;
+                background: none;
+                cursor: pointer;
+                line-height: 0;
+            }
 
-        /* Sized to the row icons, and only the filled stars carry the gold —
+            /* Sized to the row icons, and only the filled stars carry the gold —
            an all-gold band outweighs the shelves above it. Filled vs. empty is
            the whole rating to a sighted reader, so both sit at 3:1 on white
            (--amber-400 and --color-icon-muted are decorative-tier). */
-        .star .obd-icon {
-            width: 20px;
-            height: 20px;
-            color: var(--color-text-muted);
-            --ol-icon-stroke-width: 1.5;
-        }
-
-        .star .obd-icon[filled] {
-            color: var(--amber-500);
-        }
-
-        .star:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            border-radius: var(--border-radius-sm);
-        }
-
-        .stars .caption {
-            /* The check-in pane's .caption padding would push this 16px
-               further from the stars than the Clear-rating button sits. */
-            padding: 0;
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-medium);
-        }
-
-        /* Clear rating: a quiet text link, so it never competes with the stars
-           it undoes. Padding comes from .caption, which the stars row zeroes. */
-        .clear {
-            border: 0;
-            background: none;
-            color: var(--color-text-secondary);
-            font: inherit;
-            font-size: var(--font-size-label-medium);
-            cursor: pointer;
-        }
-
-        .clear:hover {
-            color: var(--color-text);
-            text-decoration: underline;
-        }
-
-        .clear:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            border-radius: var(--border-radius-sm);
-        }
-
-        /* Check-in pane */
-
-        /* Muted like the question above it: these rows undo an answer rather
-           than giving one, so they must not read as more dates to pick. */
-        .retract .row {
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-medium);
-        }
-
-        /* The question, not a heading: the rows under it are the answer. */
-        .caption {
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-medium);
-        }
-
-        /* A disclosure, not a link onwards: the chevron points down at the
-           fields the row opens and flips once they are showing. */
-        .date-toggle .trail {
-            transition: transform 180ms cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-
-        .date-toggle[aria-expanded='true'] .trail {
-            transform: rotate(180deg);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .date-toggle .trail {
-                transition: none;
+            .star .obd-icon {
+                width: 20px;
+                height: 20px;
+                color: var(--color-text-muted);
+                --ol-icon-stroke-width: 1.5;
             }
-        }
 
-        /* Sits directly under the row that opened it, so the gap reads as a
+            .star .obd-icon[filled] {
+                color: var(--amber-500);
+            }
+
+            .star:focus-visible {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                border-radius: var(--border-radius-sm);
+            }
+
+            .stars .caption {
+                /* The check-in pane's .caption padding would push this 16px
+               further from the stars than the Clear-rating button sits. */
+                padding: 0;
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-medium);
+            }
+
+            /* Clear rating: a quiet text link, so it never competes with the stars
+           it undoes. Padding comes from .caption, which the stars row zeroes. */
+            .clear {
+                border: 0;
+                background: none;
+                color: var(--color-text-secondary);
+                font: inherit;
+                font-size: var(--font-size-label-medium);
+                cursor: pointer;
+            }
+
+            .clear:hover {
+                color: var(--color-text);
+                text-decoration: underline;
+            }
+
+            .clear:focus-visible {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                border-radius: var(--border-radius-sm);
+            }
+
+            /* Check-in pane */
+
+            /* Muted like the question above it: these rows undo an answer rather
+           than giving one, so they must not read as more dates to pick. */
+            .retract .row {
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-medium);
+            }
+
+            /* The question, not a heading: the rows under it are the answer. */
+            .caption {
+                padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-medium);
+            }
+
+            /* A disclosure, not a link onwards: the chevron points down at the
+           fields the row opens and flips once they are showing. */
+            .date-toggle .trail {
+                transition: transform 180ms cubic-bezier(0.165, 0.84, 0.44, 1);
+            }
+
+            .date-toggle[aria-expanded='true'] .trail {
+                transform: rotate(180deg);
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .date-toggle .trail {
+                    transition: none;
+                }
+            }
+
+            /* Sits directly under the row that opened it, so the gap reads as a
            seam between row and fields rather than a new section. */
-        .date-form {
-            padding-top: var(--spacing-inset-xs);
-        }
+            .date-form {
+                padding-top: var(--spacing-inset-xs);
+            }
 
-        /* Three selects on one line only fit at small size — the same height
+            /* Three selects on one line only fit at small size — the same height
            and radius the small web-component controls use. */
-        .date-fields {
-            display: flex;
-            gap: var(--spacing-inline-sm);
-            padding: 0 var(--spacing-inset-md) var(--spacing-inset-sm);
-        }
+            .date-fields {
+                display: flex;
+                gap: var(--spacing-inline-sm);
+                padding: 0 var(--spacing-inset-md) var(--spacing-inset-sm);
+            }
 
-        .select {
-            flex: 1;
-            min-width: 0;
-            height: var(--control-height-small);
-            box-sizing: border-box;
-            padding: 0 var(--spacing-inset-xs);
-            border: var(--border-input);
-            border-radius: var(--border-radius-input);
-            background: var(--color-surface);
-            color: inherit;
-            font: inherit;
-            font-size: var(--font-size-label-medium);
-        }
+            .select {
+                flex: 1;
+                min-width: 0;
+                height: var(--control-height-small);
+                box-sizing: border-box;
+                padding: 0 var(--spacing-inset-xs);
+                border: var(--border-input);
+                border-radius: var(--border-radius-input);
+                background: var(--color-surface);
+                color: inherit;
+                font: inherit;
+                font-size: var(--font-size-label-medium);
+            }
 
-        /* Year is the only one that is always meaningful, so it gets the room. */
-        .select.year {
-            flex: 0 0 84px;
-        }
+            /* Year is the only one that is always meaningful, so it gets the room. */
+            .select.year {
+                flex: 0 0 84px;
+            }
 
-        .select:focus {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: -1px;
-        }
+            .select:focus {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: -1px;
+            }
 
-        .select:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+            .select:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
 
-        .date-actions {
-            display: flex;
-            justify-content: flex-end;
-            padding: 0 var(--spacing-inset-md) var(--spacing-inset-sm);
-        }
+            .date-actions {
+                display: flex;
+                justify-content: flex-end;
+                padding: 0 var(--spacing-inset-md) var(--spacing-inset-sm);
+            }
 
-        /* Lists pane */
+            /* Lists pane */
 
-        /* Header and field each hold a small control at most, and swap what
+            /* Header and field each hold a small control at most, and swap what
            they show when creating a list; a fixed height keeps the list below
            from jumping when they do. */
-        .lists-header,
-        .pane-header,
-        .field {
-            box-sizing: border-box;
-            height: calc(var(--control-height-small) + 2 * var(--spacing-inset-sm));
-        }
+            .lists-header,
+            .pane-header,
+            .field {
+                box-sizing: border-box;
+                height: calc(var(--control-height-small) + 2 * var(--spacing-inset-sm));
+            }
 
-        /* Lists-only in a split frame: the slotted trigger is the whole
+            /* Lists-only in a split frame: the slotted trigger is the whole
            button, so the popover (its flex parent) must fill the host. */
-        :host([lists-only]) ol-popover {
-            flex: 1;
-            min-width: 0;
-        }
+            :host([lists-only]) ol-popover {
+                flex: 1;
+                min-width: 0;
+            }
 
-        /* Lists-only: the seed's title stands where Back would be. */
-        .lists-title {
-            min-width: 0;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-medium);
-        }
+            /* Lists-only: the seed's title stands where Back would be. */
+            .lists-title {
+                min-width: 0;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-medium);
+            }
 
-        .lists-header,
-        .pane-header {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: var(--spacing-inline-sm);
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-        }
+            .lists-header,
+            .pane-header {
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: var(--spacing-inline-sm);
+                padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            }
 
-        /* Small ghost <ol-button>s. The negative margin pulls the button's own
+            /* Small ghost <ol-button>s. The negative margin pulls the button's own
            padding back so the chevron / label sits flush with the content below. */
-        .back,
-        .lists-link {
-            margin-left: calc(-1 * var(--spacing-sm));
-        }
+            .back,
+            .lists-link {
+                margin-left: calc(-1 * var(--spacing-sm));
+            }
 
-        /* The way out to the lists themselves, below the rows so it is never
+            /* The way out to the lists themselves, below the rows so it is never
            in reach of a tick. Same ghost button as Back, mirrored. */
-        .lists-footer {
-            position: relative;
-            padding: var(--spacing-inset-xs) var(--spacing-inset-md);
-        }
+            .lists-footer {
+                position: relative;
+                padding: var(--spacing-inset-xs) var(--spacing-inset-md);
+            }
 
-        .lists-footer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            inset-inline: var(--spacing-inset-md);
-            height: 1px;
-            background: var(--color-border-subtle);
-        }
+            .lists-footer::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                inset-inline: var(--spacing-inset-md);
+                height: 1px;
+                background: var(--color-border-subtle);
+            }
 
-        .field {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-inline-sm);
-            padding: 0 var(--spacing-inset-md);
-            margin-bottom: var(--spacing-stack-xs);
-        }
+            .field {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-inline-sm);
+                padding: 0 var(--spacing-inset-md);
+                margin-bottom: var(--spacing-stack-xs);
+            }
 
-        .input {
-            flex: 1;
-            min-width: 0;
-            height: var(--control-height-small);
-            box-sizing: border-box;
-            padding: 0 var(--spacing-inset-sm);
-            border: var(--border-input);
-            border-radius: var(--border-radius-input);
-            background: var(--color-surface);
-            color: inherit;
-            font: inherit;
-        }
+            .input {
+                flex: 1;
+                min-width: 0;
+                height: var(--control-height-small);
+                box-sizing: border-box;
+                padding: 0 var(--spacing-inset-sm);
+                border: var(--border-input);
+                border-radius: var(--border-radius-input);
+                background: var(--color-surface);
+                color: inherit;
+                font: inherit;
+            }
 
-        .input:focus {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: -1px;
-        }
+            .input:focus {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: -1px;
+            }
 
-        /* iOS zooms in on focus when the field's font is < 16px; bump the
+            /* iOS zooms in on focus when the field's font is < 16px; bump the
            text field and the date selects up on mobile to suppress that. */
-        @media (max-width: 767px) {
-            .input,
-            .select {
-                font-size: var(--font-size-body-large);
+            @media (max-width: 767px) {
+                .input,
+                .select {
+                    font-size: var(--font-size-body-large);
+                }
             }
-        }
 
-        /* Same breathing room off the header rule as the main pane's groups. */
-        .list-items {
-            max-height: 240px;
-            overflow-y: auto;
-            padding-block: var(--spacing-inset-xs);
-        }
-
-        .list-row {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-icon-gap);
-            margin-inline: var(--menu-row-inset);
-            padding-block: var(--spacing-inset-sm);
-            padding-inline: var(--menu-row-padding-inline);
-            border-radius: var(--border-radius-menu-row);
-            font-weight: var(--font-weight-button);
-            cursor: pointer;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .list-row:hover {
-                background: var(--color-hover-overlay);
+            /* Same breathing room off the header rule as the main pane's groups. */
+            .list-items {
+                max-height: 240px;
+                overflow-y: auto;
+                padding-block: var(--spacing-inset-xs);
             }
-        }
 
-        /* Plus or check, marked like the main pane's recent-list shortcuts, so
+            .list-row {
+                position: relative;
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-icon-gap);
+                margin-inline: var(--menu-row-inset);
+                padding-block: var(--spacing-inset-sm);
+                padding-inline: var(--menu-row-padding-inline);
+                border-radius: var(--border-radius-menu-row);
+                font-weight: var(--font-weight-button);
+                cursor: pointer;
+            }
+
+            /* Plus or check, marked like the main pane's recent-list shortcuts, so
            a list the book is on looks the same in both panes. */
-        .list-row .obd-icon {
-            width: 20px;
-            height: 20px;
-            flex: 0 0 20px;
-            color: var(--color-icon-muted);
-        }
-
-        .list-row.checked {
-            background: var(--color-control-selected-bg);
-            color: var(--color-link);
-        }
-
-        .list-row.checked .obd-icon {
-            color: var(--color-link);
-        }
-
-        /* The date fields describe the answer, they are not the row's label. */
-        .list-row .other-form {
-            font-weight: var(--font-weight-regular);
-        }
-
-        .list-row.checked:active {
-            background: var(--color-control-selected-bg-hover);
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .list-row.checked:hover {
-                background: var(--color-control-selected-bg-hover);
+            .list-row .obd-icon {
+                width: 20px;
+                height: 20px;
+                flex: 0 0 20px;
+                color: var(--color-icon-muted);
             }
-        }
 
-        /* The checkbox is hidden, so the row wears its focus. */
-        .list-row:has(input:focus-visible) {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: -2px;
-        }
+            .list-row.checked .obd-icon {
+                color: var(--color-link);
+            }
 
-        /* What Enter commits to, marked so the key is never a guess. */
-        .list-row.target {
-            box-shadow: inset 0 0 0 1px var(--color-border-subtle);
-        }
+            /* The date fields describe the answer, they are not the row's label. */
+            .list-row .other-form {
+                font-weight: var(--font-weight-regular);
+            }
 
-        /* Name over label. The name is what the reader is looking for, so it
+            /* The checkbox is hidden, so the row wears its focus. */
+            .list-row:has(input:focus-visible) {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: -2px;
+            }
+
+            /* What Enter commits to, marked so the key is never a guess. */
+            .list-row.target {
+                box-shadow: inset 0 0 0 1px var(--color-border-subtle);
+            }
+
+            /* Name over label. The name is what the reader is looking for, so it
            keeps the full width and the annotation goes under it rather than
            taking room from it. */
-        .list-row .text {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-        }
+            .list-row .text {
+                flex: 1;
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+            }
 
-        .list-row .name {
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+            .list-row .name {
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
 
-        /* Counts, dates and prompts describe the row, they are not its label:
+            /* Counts, dates and prompts describe the row, they are not its label:
            regular beside the control-weight label. */
-        .count {
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-medium);
-            font-weight: var(--font-weight-regular);
-        }
+            .count {
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-medium);
+                font-weight: var(--font-weight-regular);
+            }
 
-        .shortcuts {
-            display: flex;
-            flex-direction: column;
-        }
+            .shortcuts {
+                display: flex;
+                flex-direction: column;
+            }
 
-        /* Says the book is on this list already, as another edition or with no
+            /* Says the book is on this list already, as another edition or with no
            edition named. Tight leading, so a labelled row grows by one small
            line rather than by a whole row. */
-        .list-row .other-form {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            line-height: 1.3;
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-small);
-        }
-
-        /* Live region and the list rows' checkboxes: read out, never laid out. */
-        .sr-only,
-        .list-row input {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip-path: inset(50%);
-            white-space: nowrap;
-        }
-
-        .empty,
-        .loading {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-inline-sm);
-            padding: var(--spacing-inset-md);
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-medium);
-        }
-
-        .spinner {
-            width: 18px;
-            height: 18px;
-            animation: spin 0.9s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
+            .list-row .other-form {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                line-height: 1.3;
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-small);
             }
-        }
 
-        @media (prefers-reduced-motion: reduce) {
+            /* Live region and the list rows' checkboxes: read out, never laid out. */
+            .sr-only,
+            .list-row input {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip-path: inset(50%);
+                white-space: nowrap;
+            }
+
+            .empty,
+            .loading {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-inline-sm);
+                padding: var(--spacing-inset-md);
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-medium);
+            }
+
             .spinner {
-                animation-duration: 3s;
+                width: 18px;
+                height: 18px;
+                animation: spin 0.9s linear infinite;
             }
-        }
-    `;
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .spinner {
+                    animation-duration: 3s;
+                }
+            }
+        `
+    ];
 
     constructor() {
         super();
@@ -1132,7 +1081,7 @@ export class OlShelfActions extends LitElement {
                     const toggle = html`
                         <button
                             type="button"
-                            class="row"
+                            class="row menu-row"
                             data-shelf=${row.id}
                             aria-pressed=${this.shelf === row.id ? 'true' : 'false'}
                             @click=${() => this._onShelfClick(row.id)}
@@ -1148,7 +1097,7 @@ export class OlShelfActions extends LitElement {
             </div>
             ${this.hideRating || this._starsElsewhere ? nothing : html` <div class="group rating" aria-busy=${this._held}>${this._renderStars()}</div> `}
             <div class="group lists-entry">
-                <button type="button" class="row" @click=${this._openLists}>
+                <button type="button" class="row menu-row" @click=${this._openLists}>
                     <ol-icon class="obd-icon" name="list-plus"></ol-icon>
                     <span class="label">${this.t('addToList')}</span>
                     ${this._listCount && !this._matchPending ? html`<span class="count">${this.t('onLists', { count: this._listCount })}</span>` : nothing}
@@ -1186,7 +1135,12 @@ export class OlShelfActions extends LitElement {
     _renderRecentShortcut(recent, list) {
         const inList = this._holdsSeed(list);
         return html`
-            <button type="button" class="row shortcut" aria-pressed=${inList ? 'true' : 'false'} @click=${() => this._onListToggle(recent.key, !inList)}>
+            <button
+                type="button"
+                class="row menu-row shortcut"
+                aria-pressed=${inList ? 'true' : 'false'}
+                @click=${() => this._onListToggle(recent.key, !inList)}
+            >
                 <ol-icon class="obd-icon" name=${inList ? 'check' : 'plus'}></ol-icon>
                 <span class="label">${list?.listName || recent.name}</span>
             </button>
@@ -1210,7 +1164,7 @@ export class OlShelfActions extends LitElement {
         return html`
             <button
                 type="button"
-                class="row date-link"
+                class="row menu-row date-link"
                 aria-label=${date ? this.t('dateSaved', { date }) : nothing}
                 @click=${() => this._openCheckIn({ amending: true })}
             >
@@ -1327,19 +1281,24 @@ export class OlShelfActions extends LitElement {
                     this.readDate
                         ? nothing
                         : html`
-                              <button type="button" class="row skip" @click=${this._onSkipDate}>
+                              <button type="button" class="row menu-row skip" @click=${this._onSkipDate}>
                                   <ol-icon class="obd-icon" name="arrow-right"></ol-icon>
                                   <span class="label">${this.t('skipDate')}</span>
                               </button>
                           `
                 }
-                <button type="button" class="row today" aria-pressed=${answered === 'today' ? 'true' : 'false'} @click=${this._onToday}>
+                <button type="button" class="row menu-row today" aria-pressed=${answered === 'today' ? 'true' : 'false'} @click=${this._onToday}>
                     <ol-icon class="obd-icon" name="calendar-check"></ol-icon>
                     <span class="label">${this.t('today')}</span>
                 </button>
                 ${quickYears().map(
                     year => html`
-                        <button type="button" class="row year" aria-pressed=${answered === String(year) ? 'true' : 'false'} @click=${() => this._onYear(year)}>
+                        <button
+                            type="button"
+                            class="row menu-row year"
+                            aria-pressed=${answered === String(year) ? 'true' : 'false'}
+                            @click=${() => this._onYear(year)}
+                        >
                             <ol-icon class="obd-icon" name="calendar"></ol-icon>
                             <span class="label">${this.t('inYear', { year })}</span>
                         </button>
@@ -1347,7 +1306,7 @@ export class OlShelfActions extends LitElement {
                 )}
                 <button
                     type="button"
-                    class="row date-toggle"
+                    class="row menu-row date-toggle"
                     aria-pressed=${answered === 'other' ? 'true' : 'false'}
                     aria-expanded=${this._pickingDate}
                     aria-controls=${ifDefined(this._pickingDate ? 'date-fields' : undefined)}
@@ -1367,7 +1326,7 @@ export class OlShelfActions extends LitElement {
             ${
                 this._amending && this.eventId
                     ? html`<div class="group retract">
-                          <button type="button" class="row remove-date" @click=${this._onRemoveDate}>
+                          <button type="button" class="row menu-row remove-date" @click=${this._onRemoveDate}>
                               <ol-icon class="obd-icon" name="x"></ol-icon>
                               <span class="label">${this.t('removeDate')}</span>
                           </button>
@@ -1534,7 +1493,7 @@ export class OlShelfActions extends LitElement {
                 const checked = this._holdsSeed(list);
                 const other = this._otherForm(list);
                 return html`
-                    <label class="list-row ${classMap({ target: key === target, checked })}">
+                    <label class="list-row menu-row ${classMap({ target: key === target, checked })}">
                         <!-- Still a checkbox to assistive tech and the keyboard; the icon is what shows. -->
                         <input type="checkbox" .checked=${checked} @change=${e => this._onListToggle(key, e.target.checked)} />
                         <ol-icon class="obd-icon" name=${checked ? 'check' : 'plus'}></ol-icon>

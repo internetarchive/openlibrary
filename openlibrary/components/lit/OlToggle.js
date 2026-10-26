@@ -78,8 +78,8 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 /* Knob shape change on press: stretched along the track and
                squashed. Pixels, not percentages, so the deformation stays
                visible on a 16px knob. Hover deliberately leaves the knob alone. */
-                --toggle-knob-press-extend: 4px;
-                --toggle-knob-press-shrink: 4px;
+                --toggle-knob-press-extend: 2px;
+                --toggle-knob-press-shrink: 2px;
 
                 /* Current deformation, set by the press rule below. */
                 --_toggle-knob-extend: 0px;
