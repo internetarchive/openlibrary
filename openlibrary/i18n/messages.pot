@@ -6469,6 +6469,21 @@ msgid "Book %s"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
+#, python-format
+msgid "Edition published in %(year)s by %(publishers)s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+#, python-format
+msgid "Edition published in %(year)s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+#, python-format
+msgid "Edition published by %(publishers)s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
 msgid "Read More"
 msgstr ""
 

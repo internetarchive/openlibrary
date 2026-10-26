@@ -482,3 +482,48 @@ class TestIntegratedBookPageRendering:
 
         assert groundtruth_calls == []
         assert 'data-lending-state="open"' in html
+
+    @pytest.mark.parametrize(
+        ("work_fields", "edition_fields", "expected_title", "expected_description"),
+        [
+            # Blurb wins, markdown flattened; author falls back to the edition's own
+            (
+                {"description": "A *desert* planet, and a boy."},
+                {"publish_date": "1965", "authors": [{"key": "/authors/OL1A"}]},
+                "Meta Edition (1965) by Frank Herbert",
+                "A desert planet, and a boy.",
+            ),
+            # No blurb: when and by whom, plus a non-English language
+            (
+                {},
+                {"publish_date": "May 1965", "publishers": ["Chilton"], "languages": [{"key": "/languages/spa"}]},
+                "Meta Edition (1965)",
+                "Edition published in 1965 by Chilton · Spanish",
+            ),
+            # English is left out; no year means no parens
+            ({}, {"publishers": ["Chilton"], "languages": [{"key": "/languages/eng"}]}, "Meta Edition", "Edition published by Chilton"),
+        ],
+    )
+    def test_share_title_and_description(
+        self, monkeypatch, mock_site, render_template, request_context_fixture, work_fields, edition_fields, expected_title, expected_description
+    ):
+        from infogami.utils.context import context
+
+        request_context_fixture(lang="en")
+        mock_site.quicksave("/authors/OL1A", "/type/author", name="Frank Herbert")
+        mock_site.quicksave("/languages/eng", "/type/language", name="English", code="eng")
+        mock_site.quicksave("/languages/spa", "/type/language", name="Spanish", code="spa")
+        mock_site.quicksave("/works/OL3W", "/type/work", title="Meta Work", edition_count=1, **work_fields)
+        mock_site.quicksave("/books/OL3M", "/type/edition", title="Meta Edition", works=[{"key": "/works/OL3W"}], **edition_fields)
+        monkeypatch.setattr(lending, "get_availability", lambda kind, ids: {})
+        monkeypatch.setattr(lending, "get_cached_groundtruth_availability", lambda ocaid: {})
+
+        self._load_fake_request("/books/OL3M", mock_site, monkeypatch)
+        monkeypatch.setattr(code.context, "user", None, raising=False)
+
+        page = code.view().GET("/books/OL3M")
+        og = {m.attrs["property"]: m.attrs["content"] for m in context.metatags if "property" in m.attrs}
+
+        assert page.title == expected_title
+        assert og["og:title"] == f"{expected_title} | Open Library"
+        assert context.description == og["og:description"] == expected_description
