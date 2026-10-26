@@ -592,6 +592,63 @@ class TestOtpFailuresAreVisible:
         assert emitted <= set(account.OTP_ERROR_STATUS)
 
 
+class TestAccountLoginOtpIssue:
+    """Tests for the /account/login/otp/issue endpoint."""
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_unknown_email_returns_account_not_found(self, mock_web, mock_ia):
+        mock_web.input.return_value = web.storage(email="new@example.com")
+        mock_web.ctx.env = {"HTTP_X_FORWARDED_FOR": "1.2.3.4"}
+        mock_ia.xauth.return_value = {
+            "success": False,
+            "values": {"reason": "account_not_found"},
+        }
+
+        result = account.account_login_otp_issue().POST()
+
+        assert json.loads(result.rawtext) == {"error": "account_not_found"}
+        mock_ia.xauth.assert_called_once_with(
+            op="info",
+            email="new@example.com",
+        )
+        mock_ia.issue_otp.assert_not_called()
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_existing_email_can_request_otp(self, mock_web, mock_ia):
+        mock_web.input.return_value = web.storage(email="existing@example.com")
+        mock_web.ctx.env = {"HTTP_X_FORWARDED_FOR": "1.2.3.4"}
+        mock_ia.xauth.return_value = {
+            "success": True,
+            "values": {"email": "existing@example.com"},
+        }
+        mock_ia.issue_otp.return_value = {"success": True}
+
+        result = account.account_login_otp_issue().POST()
+
+        assert json.loads(result.rawtext) == {"success": True}
+        mock_ia.issue_otp.assert_called_once_with(
+            "existing@example.com",
+            originating_ip="1.2.3.4",
+        )
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_lookup_service_error_is_not_account_not_found(self, mock_web, mock_ia):
+        mock_web.input.return_value = web.storage(email="patron@example.com")
+        mock_web.ctx.env = {"HTTP_X_FORWARDED_FOR": "1.2.3.4"}
+        mock_ia.xauth.return_value = {
+            "error": "service unavailable",
+            "code": 503,
+        }
+
+        result = account.account_login_otp_issue().POST()
+
+        assert json.loads(result.rawtext) == {"error": "service unavailable"}
+        mock_ia.issue_otp.assert_not_called()
+
+
 class TestParseLowAuthHeader:
     """Unit tests for the _parse_low_auth_header() module-level helper."""
 

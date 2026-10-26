@@ -492,15 +492,33 @@ class account_login_otp_issue(delegate.page):
         i = web.input(email="")
         if not i.email:
             return delegate.RawText(json.dumps({"error": "missing_email"}))
+
+        lookup_result = InternetArchiveAccount.xauth(
+            op="info",
+            email=i.email.strip().lower(),
+        )
+
+        if not lookup_result.get("success"):
+            values = lookup_result.get("values") or {}
+            error = values.get("reason") or lookup_result.get("error")
+
+            if error == "account_not_found":
+                return delegate.RawText(json.dumps({"error": "account_not_found"}))
+
+            return delegate.RawText(json.dumps({"error": error or "account_lookup_failed"}))
+
         originating_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR") or web.ctx.ip
         result = InternetArchiveAccount.issue_otp(i.email, originating_ip=originating_ip)
+
         if result.get("success"):
             return delegate.RawText(json.dumps({"success": True}))
         code = result.get("code", 200)
         if code == 429:
             web.ctx.status = "429 Too Many Requests"
             return delegate.RawText(json.dumps({"error": "rate_limited"}))
-        return delegate.RawText(json.dumps({"error": result.get("error", "otp_issue_failed")}))
+        values = result.get("values") or {}
+        error = result.get("error") or values.get("reason") or "otp_issue_failed"
+        return delegate.RawText(json.dumps({"error": error}))
 
 
 class account_login_otp_redeem(delegate.page):
