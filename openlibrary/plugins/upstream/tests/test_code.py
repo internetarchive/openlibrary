@@ -484,24 +484,36 @@ class TestIntegratedBookPageRendering:
         assert 'data-lending-state="open"' in html
 
     @pytest.mark.parametrize(
-        ("edition_fields", "expected"),
+        ("work_fields", "edition_fields", "expected_title", "expected_description"),
         [
-            # No format details: used to end in "edition, " with a dangling comma.
-            ({"publish_date": "1965"}, "Meta Work, 1965 edition"),
-            # Languages but no physical format: used to read "edition,  in English".
+            # Blurb wins, markdown flattened; author falls back to the edition's own
             (
-                {"publish_date": "1965", "languages": [{"key": "/languages/eng"}]},
-                "Meta Work, 1965 edition, in English",
+                {"description": "A *desert* planet, and a boy."},
+                {"publish_date": "1965", "authors": [{"key": "/authors/OL1A"}]},
+                "Meta Edition (1965) by Frank Herbert",
+                "A desert planet, and a boy.",
             ),
+            # No blurb: when and by whom, plus a non-English language
+            (
+                {},
+                {"publish_date": "May 1965", "publishers": ["Chilton"], "languages": [{"key": "/languages/spa"}]},
+                "Meta Edition (1965)",
+                "Edition published in 1965 by Chilton · Spanish",
+            ),
+            # English is left out; no year means no parens
+            ({}, {"publishers": ["Chilton"], "languages": [{"key": "/languages/eng"}]}, "Meta Edition", "Edition published by Chilton"),
         ],
     )
-    def test_edition_meta_description(self, monkeypatch, mock_site, render_template, request_context_fixture, edition_fields, expected):
-        """The share/meta description has no dangling separators, and no " by " without an author."""
+    def test_share_title_and_description(
+        self, monkeypatch, mock_site, render_template, request_context_fixture, work_fields, edition_fields, expected_title, expected_description
+    ):
         from infogami.utils.context import context
 
         request_context_fixture(lang="en")
+        mock_site.quicksave("/authors/OL1A", "/type/author", name="Frank Herbert")
         mock_site.quicksave("/languages/eng", "/type/language", name="English", code="eng")
-        mock_site.quicksave("/works/OL3W", "/type/work", title="Meta Work", edition_count=1)
+        mock_site.quicksave("/languages/spa", "/type/language", name="Spanish", code="spa")
+        mock_site.quicksave("/works/OL3W", "/type/work", title="Meta Work", edition_count=1, **work_fields)
         mock_site.quicksave("/books/OL3M", "/type/edition", title="Meta Edition", works=[{"key": "/works/OL3W"}], **edition_fields)
         monkeypatch.setattr(lending, "get_availability", lambda kind, ids: {})
         monkeypatch.setattr(lending, "get_cached_groundtruth_availability", lambda ocaid: {})
@@ -509,6 +521,9 @@ class TestIntegratedBookPageRendering:
         self._load_fake_request("/books/OL3M", mock_site, monkeypatch)
         monkeypatch.setattr(code.context, "user", None, raising=False)
 
-        code.view().GET("/books/OL3M")
+        page = code.view().GET("/books/OL3M")
+        og = {m.attrs["property"]: m.attrs["content"] for m in context.metatags if "property" in m.attrs}
 
-        assert context.description == expected
+        assert page.title == expected_title
+        assert og["og:title"] == f"{expected_title} | Open Library"
+        assert context.description == og["og:description"] == expected_description
