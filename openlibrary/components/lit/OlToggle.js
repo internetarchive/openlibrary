@@ -76,14 +76,15 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 --toggle-knob-inset: 2px;
                 --toggle-gap: 10px;
                 /* Knob shape change on press: stretched along the track and
-               squashed. Pixels, not percentages, so the deformation stays
-               visible on a 16px knob. Hover deliberately leaves the knob alone. */
-                --toggle-knob-press-extend: 2px;
-                --toggle-knob-press-shrink: 2px;
+               squashed, as scale factors (18×14px on the 16px knob), large
+               enough that the deformation stays visible. Hover deliberately
+               leaves the knob alone. */
+                --toggle-knob-press-scale-x: 1.125;
+                --toggle-knob-press-scale-y: 0.875;
 
                 /* Current deformation, set by the press rule below. */
-                --_toggle-knob-extend: 0px;
-                --_toggle-knob-shrink: 0px;
+                --_toggle-knob-scale-x: 1;
+                --_toggle-knob-scale-y: 1;
 
                 /* Unsigned travel from the inline start to the inline end; the
                direction multiplier flips it under RTL. */
@@ -146,22 +147,28 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             }
 
             /* ── Knob motion ────────────────────────────────────────────────── */
-            /* The knob is anchored at the inline start and placed by translateX.
-           Its extra width grows toward the middle of the track: anchored, the
-           unchecked knob grows that way on its own, and the checked knob backs
-           off its travel by the same amount so its outer edge stays pinned at
-           the inset. Release springs everything (slide and un-squash) together
-           with a little overshoot. */
+            /* Transform only, so press and release stay on the compositor. The
+           knob scales about its center, and translateX pushes it half its
+           extra width back toward the middle of the track, so the outer edge
+           stays pinned at the inset: forward for the unchecked knob, off the
+           travel for the checked one. Release springs everything (slide and
+           un-squash) together with a little overshoot. The grow and offset
+           are declared here, not on :host, so they resolve against the scale
+           the press rule sets on .toggle. */
             .toggle__knob {
+                --_toggle-knob-grow: calc(var(--toggle-knob-size) * (var(--_toggle-knob-scale-x) - 1));
+                --_toggle-knob-offset: calc(var(--_toggle-knob-grow) / 2);
+
                 position: absolute;
-                top: calc(var(--toggle-knob-inset) + var(--_toggle-knob-shrink) / 2);
+                top: var(--toggle-knob-inset);
                 inset-inline-start: var(--toggle-knob-inset);
-                width: calc(var(--toggle-knob-size) + var(--_toggle-knob-extend));
-                height: calc(var(--toggle-knob-size) - var(--_toggle-knob-shrink));
+                width: var(--toggle-knob-size);
+                height: var(--toggle-knob-size);
                 border-radius: var(--border-radius-pill);
                 background: var(--_toggle-knob);
                 box-shadow: var(--box-shadow-floating);
-                transition-property: transform, width, height, top;
+                transform: translateX(calc(var(--_toggle-dir) * var(--_toggle-knob-offset))) scale(var(--_toggle-knob-scale-x), var(--_toggle-knob-scale-y));
+                transition-property: transform;
                 transition-duration: var(--duration-fast);
                 transition-timing-function: var(--ease-spring);
             }
@@ -171,15 +178,15 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             }
 
             :host([checked]) .toggle__knob {
-                transform: translateX(calc(var(--_toggle-dir) * (var(--_toggle-knob-travel) - var(--_toggle-knob-extend))));
+                --_toggle-knob-offset: calc(var(--_toggle-knob-travel) - var(--_toggle-knob-grow) / 2);
             }
 
             /* The whole row is the button, so a held Space squashes the knob too.
            Pressing in is immediate, at the press duration; letting go takes
            the spring above. */
             .toggle:not(:disabled):active {
-                --_toggle-knob-extend: var(--toggle-knob-press-extend);
-                --_toggle-knob-shrink: var(--toggle-knob-press-shrink);
+                --_toggle-knob-scale-x: var(--toggle-knob-press-scale-x);
+                --_toggle-knob-scale-y: var(--toggle-knob-press-scale-y);
             }
 
             .toggle:active .toggle__knob {
