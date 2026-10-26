@@ -188,6 +188,9 @@
      selected menu row (menuRow in control-styles.js) so they can't drift apart. */
   --color-control-selected-bg: color-mix(in srgb, var(--blue-500) 8%, transparent);
   --color-control-selected-bg-hover: color-mix(in srgb, var(--blue-500) 12%, transparent);
+  /* The step from -bg to -bg-hover, for part of a selected control painted over a tint that is
+     already there (a half of a split row): 4% over 8% lands on ~12%. */
+  --color-control-selected-overlay: color-mix(in srgb, var(--blue-500) 4%, transparent);
   --color-control-selected-border: color-mix(in srgb, var(--blue-500) 35%, transparent);
   --color-control-selected-border-hover: color-mix(in srgb, var(--blue-500) 50%, transparent);
 

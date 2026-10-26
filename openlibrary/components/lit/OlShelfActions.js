@@ -425,27 +425,26 @@ export class OlShelfActions extends LitElement {
                 padding-inline: var(--spacing-inset-sm);
             }
 
-            /* When Already Read is the shelf, the date half joins the shelf half's
-           tinted pill: the inner corners square off so the halves read as one
-           selected row, and each half still deepens on its own hover. */
-            .row-split:has(> [aria-pressed='true']) > .row:first-child {
-                border-start-end-radius: 0;
-                border-end-end-radius: 0;
-            }
-
-            .row-split:has(> [aria-pressed='true']) > .date-link {
+            /* When Already Read is the shelf, the split row as a whole wears the
+           selected tint, so it reads as one row whether the date sits beside
+           the label, wraps under it, or isn't drawn yet. The halves stay
+           clear and each tops the tint up on its own hover and press. */
+            .row-split:has(> [aria-pressed='true']) {
                 background: var(--color-control-selected-bg);
-                border-start-start-radius: 0;
-                border-end-start-radius: 0;
+                border-radius: var(--border-radius-menu-row);
             }
 
-            .row-split:has(> [aria-pressed='true']) > .date-link:active {
-                background: var(--color-control-selected-bg-hover);
+            .row-split:has(> [aria-pressed='true']) > .row {
+                background: none;
+            }
+
+            .row-split:has(> [aria-pressed='true']) > .row:active {
+                background: var(--color-control-selected-overlay);
             }
 
             @media (hover: hover) and (pointer: fine) {
-                .row-split:has(> [aria-pressed='true']) > .date-link:hover {
-                    background: var(--color-control-selected-bg-hover);
+                .row-split:has(> [aria-pressed='true']) > .row:hover {
+                    background: var(--color-control-selected-overlay);
                 }
             }
 
