@@ -550,7 +550,7 @@ async def post_bestbook_award(
 
 @router.get("/awards/count.json", response_model=BestbookCountResponse)
 async def get_bestbook_count(
-    work_id: Annotated[str | None, Query()] = None,
+    work_id: Annotated[str | None, Query(pattern=r"^(?:/works/)?(?:OL)?[0-9]+W?$", description="Numeric work ID or work OLID, e.g. 123 or OL123W")] = None,
     username: Annotated[str | None, Query()] = None,
     topic: Annotated[str | None, Query()] = None,
 ) -> BestbookCountResponse:

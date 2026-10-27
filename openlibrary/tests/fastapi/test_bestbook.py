@@ -262,3 +262,11 @@ class TestBestbookCountEndpoint:
         assert response.status_code == 200
         assert response.json() == {"count": 0}
         get_count_mock.assert_awaited_once_with(work_id=None, username=None, topic=None)
+
+    @pytest.mark.parametrize("work_id", ["abc", "OLxyzW", "", "OL123M"])
+    def test_count_rejects_invalid_work_id(self, fastapi_client, work_id):
+        with patch("openlibrary.fastapi.internal.api.Bestbook.get_count", new_callable=AsyncMock) as get_count_mock:
+            response = fastapi_client.get("/awards/count.json", params={"work_id": work_id})
+
+        assert response.status_code == 422
+        get_count_mock.assert_not_awaited()
