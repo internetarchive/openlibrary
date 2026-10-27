@@ -24,6 +24,7 @@ import contextlib
 import fcntl
 import glob
 import os
+import shutil
 from typing import TYPE_CHECKING
 
 from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, CollectorRegistry, generate_latest
@@ -68,13 +69,25 @@ def merge_dead_worker(metrics_dir: str, pid: int) -> bool:
             if metric_type not in _ADDITIVE_TYPES:
                 continue
 
-            archive = MmapedDict(os.path.join(metrics_dir, f"{metric_type}_archive.db"))
-            try:
-                for key, value, *_ in MmapedDict.read_all_values_from_file(dead_file):
-                    archive.write_value(key, archive.read_value(key)[0] + value, 0)
-            finally:
-                archive.close()
+            # Failing halfway must change neither file, or scrapes would count the values already merged again from
+            # the dead file. So read the dead file before writing anything (it may be corrupt), merge into a copy of
+            # the archive (writing may fail, e.g. on a full disk), and replace the archive with it.
+            dead_values = list(MmapedDict.read_all_values_from_file(dead_file))
+            archive_path = os.path.join(metrics_dir, f"{metric_type}_archive.db")
+            new_archive_path = f"{archive_path}.new"  # not a .db, so the collector doesn't read it
+            with contextlib.suppress(FileNotFoundError):
+                os.remove(new_archive_path)  # left by a merge that failed
+            if os.path.exists(archive_path):
+                shutil.copyfile(archive_path, new_archive_path)
 
+            new_archive = MmapedDict(new_archive_path)
+            try:
+                for key, value, *_ in dead_values:
+                    new_archive.write_value(key, new_archive.read_value(key)[0] + value, 0)
+            finally:
+                new_archive.close()
+
+            os.replace(new_archive_path, archive_path)
             os.remove(dead_file)
     return True
 
@@ -92,20 +105,22 @@ def worker_exited(pid: int) -> None:
     _dead_workers.append(pid)
 
 
-def merge_dead_workers(metrics_dir: str, live_pids: Container[int] = ()) -> None:
+def merge_dead_workers(metrics_dir: str, live_pids: Container[int] = ()) -> int:
     """Merge the queued exited workers, stopping if a scrape is reading the files. For gunicorn's ``pre_fork`` hook.
 
     ``live_pids`` are the running workers: if one reused a queued worker's pid, those files are its now.
+    Returns how many are still queued, to be tried again before the next fork.
     """
     while _dead_workers:
         pid = _dead_workers[0]
         try:
             if pid not in live_pids and not merge_dead_worker(metrics_dir, pid):
-                return  # tried again before the next fork
+                return len(_dead_workers)
         except Exception:
             _dead_workers.pop(0)  # don't fail on the same files before every fork
             raise
         _dead_workers.pop(0)
+    return 0
 
 
 class LockedMultiProcessCollector(MultiProcessCollector):
@@ -117,7 +132,10 @@ class LockedMultiProcessCollector(MultiProcessCollector):
 
     def collect(self):
         with _locked(self._metrics_dir, fcntl.LOCK_SH):
-            return super().collect()
+            # A new worker creates its files empty and then sizes them, and reading one in between fails. It has no
+            # values yet, and a file never goes back to empty, so skip it.
+            files = [path for path in glob.glob(os.path.join(self._metrics_dir, "*.db")) if os.path.getsize(path)]
+            return self.merge(files, accumulate=True)
 
 
 def metrics_registry() -> CollectorRegistry:

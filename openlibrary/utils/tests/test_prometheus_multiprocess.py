@@ -37,6 +37,12 @@ def totals(metrics_dir):
     return registry.get_sample_value("hits_total"), registry.get_sample_value("latency_count")
 
 
+def latency_sum(metrics_dir):
+    registry = CollectorRegistry()
+    LockedMultiProcessCollector(registry, str(metrics_dir))
+    return registry.get_sample_value("latency_sum")
+
+
 def test_merge_dead_worker_keeps_totals(metrics_dir, monkeypatch):
     record_worker(monkeypatch, pid=1, requests=2)
     record_worker(monkeypatch, pid=2, requests=3)
@@ -63,6 +69,42 @@ def test_merge_dead_worker_leaves_gauges(metrics_dir, monkeypatch):
     merge_dead_worker(str(metrics_dir), 1)
     assert (metrics_dir / "gauge_all_1.db").exists()
     assert not (metrics_dir / "gauge_archive.db").exists()
+
+
+def test_failed_merge_changes_nothing(metrics_dir, monkeypatch):
+    record_worker(monkeypatch, pid=1, requests=2)
+    assert merge_dead_worker(str(metrics_dir), 1)
+    record_worker(monkeypatch, pid=2, requests=3)
+
+    # e.g. the disk filling up while the archive grows. The writes go hits_total, then latency_sum and latency's
+    # buckets, so this fails with latency_sum merged but not the buckets.
+    write_value = MmapedDict.write_value
+    writes = []
+
+    def fail_third_write(self, key, value, timestamp):
+        writes.append(key)
+        if len(writes) == 3:
+            raise OSError(28, "No space left on device")
+        write_value(self, key, value, timestamp)
+
+    monkeypatch.setattr(MmapedDict, "write_value", fail_third_write)
+    with pytest.raises(OSError, match="No space left"):
+        merge_dead_worker(str(metrics_dir), 2)
+    assert (metrics_dir / "histogram_2.db").exists()
+    assert totals(metrics_dir) == (5, 5)
+    assert latency_sum(metrics_dir) == 2.5  # not counting worker 2's merged latency_sum twice
+
+    monkeypatch.setattr(MmapedDict, "write_value", write_value)
+    assert merge_dead_worker(str(metrics_dir), 2)
+    assert totals(metrics_dir) == (5, 5)
+    assert latency_sum(metrics_dir) == 2.5
+    assert sorted(path.name for path in metrics_dir.iterdir() if not path.name.startswith(".")) == ["counter_archive.db", "histogram_archive.db"]
+
+
+def test_scrape_skips_new_empty_file(metrics_dir, monkeypatch):
+    record_worker(monkeypatch, pid=1, requests=2)
+    (metrics_dir / "counter_2.db").touch()  # a new worker's, before it sizes it
+    assert totals(metrics_dir) == (2, 2)
 
 
 def test_merge_during_scrape_waits(metrics_dir, monkeypatch):
@@ -159,3 +201,18 @@ def test_gunicorn_pre_fork_logs_errors(metrics_dir, monkeypatch):
 
     conf.pre_fork(server, None)
     server.log.exception.assert_called_once()
+
+
+def test_gunicorn_pre_fork_warns_of_long_queue(metrics_dir, monkeypatch):
+    conf = load_gunicorn_conf()
+    server = SimpleNamespace(WORKERS={}, log=Mock())
+    for pid in range(1, conf.QUEUED_WORKERS_WARNING + 1):
+        conf.child_exit(server, SimpleNamespace(pid=pid))
+
+    with prometheus_multiprocess._locked(str(metrics_dir), fcntl.LOCK_SH):  # a scrape
+        conf.pre_fork(server, None)
+    server.log.warning.assert_called_once()
+
+    server.log.reset_mock()
+    conf.pre_fork(server, None)
+    server.log.warning.assert_not_called()
