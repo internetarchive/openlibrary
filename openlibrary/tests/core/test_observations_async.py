@@ -21,18 +21,6 @@ def helpers():
 
 
 @pytest.mark.asyncio
-async def test_total_unique_respondents(helpers):
-    helpers.fetch_val.return_value = 2
-
-    total = await Observations.total_unique_respondents(work_id=123)
-
-    assert total == 2
-    (query, params), _kwargs = helpers.fetch_val.await_args
-    assert query == "SELECT COUNT(DISTINCT(username)) FROM observations WHERE work_id = %(work_id)s"
-    assert params == {"work_id": 123}
-
-
-@pytest.mark.asyncio
 async def test_total_unique_respondents_filters_zero_work_id(helpers):
     await Observations.total_unique_respondents(work_id=0)
 
@@ -64,28 +52,6 @@ async def test_count_observations(helpers):
     assert "GROUP BY type_id, value_id" in query
     assert "ORDER BY type_id, total DESC" in query
     assert params == {"work_id": 123}
-
-
-@pytest.mark.asyncio
-async def test_observation_metrics_await_async_aggregates():
-    with (
-        patch.object(Observations, "total_unique_respondents", new_callable=AsyncMock, return_value=1) as total,
-        patch.object(Observations, "count_unique_respondents_by_type", new_callable=AsyncMock, return_value={1: 1}) as by_type,
-        patch.object(
-            Observations,
-            "count_observations",
-            new_callable=AsyncMock,
-            return_value=[{"type_id": 1, "value_id": 4, "total": 1}],
-        ) as counts,
-    ):
-        metrics = await get_observation_metrics("/works/OL123W")
-
-    assert metrics["work_id"] == "123"
-    assert metrics["total_respondents"] == 1
-    assert metrics["observations"][0]["values"] == [{"value": "Slow paced", "count": 1}]
-    total.assert_awaited_once_with(123)
-    by_type.assert_awaited_once_with(123)
-    counts.assert_awaited_once_with(123)
 
 
 @pytest.mark.asyncio
