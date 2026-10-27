@@ -69,9 +69,14 @@ def merge_dead_worker(metrics_dir: str, pid: int) -> bool:
             if metric_type not in _ADDITIVE_TYPES:
                 continue
 
+            if not os.path.getsize(dead_file):  # the worker exited before sizing it, so it has no values
+                os.remove(dead_file)
+                continue
+
             # Failing halfway must change neither file, or scrapes would count the values already merged again from
             # the dead file. So read the dead file before writing anything (it may be corrupt), merge into a copy of
-            # the archive (writing may fail, e.g. on a full disk), and replace the archive with it.
+            # the archive (writing may fail, e.g. on a full disk), and replace the archive with it. Only failing to
+            # remove the dead file after that would count it twice, until the start scripts clear the directory.
             dead_values = list(MmapedDict.read_all_values_from_file(dead_file))
             archive_path = os.path.join(metrics_dir, f"{metric_type}_archive.db")
             new_archive_path = f"{archive_path}.new"  # not a .db, so the collector doesn't read it
@@ -134,8 +139,15 @@ class LockedMultiProcessCollector(MultiProcessCollector):
         with _locked(self._metrics_dir, fcntl.LOCK_SH):
             # A new worker creates its files empty and then sizes them, and reading one in between fails. It has no
             # values yet, and a file never goes back to empty, so skip it.
-            files = [path for path in glob.glob(os.path.join(self._metrics_dir, "*.db")) if os.path.getsize(path)]
+            files = [path for path in glob.glob(os.path.join(self._metrics_dir, "*.db")) if _has_values(path)]
             return self.merge(files, accumulate=True)
+
+
+def _has_values(path: str) -> bool:
+    try:
+        return os.path.getsize(path) > 0
+    except FileNotFoundError:  # as the upstream collector allows, e.g. for live gauges' files of exited workers
+        return False
 
 
 def metrics_registry() -> CollectorRegistry:

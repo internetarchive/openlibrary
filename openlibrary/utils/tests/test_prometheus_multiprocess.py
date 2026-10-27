@@ -107,6 +107,14 @@ def test_scrape_skips_new_empty_file(metrics_dir, monkeypatch):
     assert totals(metrics_dir) == (2, 2)
 
 
+def test_merge_dead_worker_deletes_empty_file(metrics_dir, monkeypatch):
+    record_worker(monkeypatch, pid=1, requests=2)
+    (metrics_dir / "counter_1.db").write_bytes(b"")  # as if it exited before sizing it
+    assert merge_dead_worker(str(metrics_dir), 1)
+    assert not list(metrics_dir.glob("*_1.db"))
+    assert totals(metrics_dir) == (None, 2)
+
+
 def test_merge_during_scrape_waits(metrics_dir, monkeypatch):
     record_worker(monkeypatch, pid=1, requests=2)
     record_worker(monkeypatch, pid=2, requests=3)
