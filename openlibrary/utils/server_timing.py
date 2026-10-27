@@ -38,6 +38,24 @@ class RequestTimings:
         self._metrics: dict[str, list[float]] = {}
         self._open: dict[int, list[tuple[str | None, float]]] = {}  # infogami stats.begin() calls, per thread
         self._blocking: dict[str, list[float]] = {}  # source -> [count, seconds]
+        # Sync calls in progress, per thread: (source, started, counts toward blocking).
+        # Per request, so a begin() whose end() never ran can't leak into later requests.
+        self._sync: dict[int, list[tuple[str | None, float, bool]]] = {}
+
+    def _sync_start(self, source: str | None) -> None:
+        with self._lock:
+            stack = self._sync.setdefault(threading.get_ident(), [])
+            # Only the outermost named call counts, so an infobase read's own SQL isn't counted twice.
+            counts = source is not None and not any(s[0] for s in stack) and _on_event_loop()
+            stack.append((source, time.perf_counter(), counts))
+
+    def _sync_end(self) -> None:
+        with self._lock:
+            if not (stack := self._sync.get(threading.get_ident())):
+                return
+            source, started, counts = stack.pop()
+        if counts and source is not None:
+            self.record_blocking(source, time.perf_counter() - started)
 
     def record_blocking(self, source: str, seconds: float) -> None:
         """Sync I/O that held the event loop: counts toward ``blocking``, broken down by source."""
@@ -326,33 +344,17 @@ def _on_event_loop() -> bool:
     return threading.current_thread() is not async_bridge._thread
 
 
-# Sync calls in progress on this thread: (source, started, counts toward blocking).
-_sync_calls = threading.local()
-
-
-def _blocking_start(source: str | None) -> None:
-    stack = _sync_calls.__dict__.setdefault("stack", [])
-    # Only the outermost named call counts, so an infobase read's own SQL isn't counted twice.
-    counts = source is not None and _current.get() is not None and not any(s[0] for s in stack) and _on_event_loop()
-    stack.append((source, time.perf_counter(), counts))
-
-
-def _blocking_end() -> None:
-    if not (stack := getattr(_sync_calls, "stack", None)):
-        return
-    source, started, counts = stack.pop()
-    if counts and (timings := _current.get()) is not None:
-        timings.record_blocking(source, time.perf_counter() - started)
-
-
 @contextmanager
 def _blocking(source: str) -> Iterator[None]:
     """Count sync I/O that runs on the event loop toward ``blocking``."""
-    _blocking_start(source)
+    if (timings := _current.get()) is None:
+        yield
+        return
+    timings._sync_start(source)
     try:
         yield
     finally:
-        _blocking_end()
+        timings._sync_end()
 
 
 def install_legacy_bridge() -> None:
@@ -383,13 +385,13 @@ def install_legacy_bridge() -> None:
             return original_begin(name, **kw)
         metric = _infogami_metric_name(name)
         timings._begin(metric)
-        _blocking_start(metric)
+        timings._sync_start(metric)
 
     def end(**kw):
         if (timings := _current.get()) is None:
             return original_end(**kw)
         timings._end()
-        _blocking_end()
+        timings._sync_end()
 
     def _db_execute(self, cur, sql_query):
         timings = _current.get()
