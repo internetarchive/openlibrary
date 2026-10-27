@@ -600,8 +600,8 @@ class Bookshelves(db.CommonExtras):
         return async_bridge.run(cls.get_users_read_status_of_work(username, work_id))
 
     @classmethod
-    def user_has_read_work(cls, username: str, work_id: str) -> bool:
-        user_read_status = cls.get_users_read_status_of_work_sync(username, work_id)
+    async def user_has_read_work(cls, username: str, work_id: str) -> bool:
+        user_read_status = await cls.get_users_read_status_of_work(username, work_id)
         return user_read_status == cls.PRESET_BOOKSHELVES["Already Read"]
 
     @classmethod

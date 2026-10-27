@@ -1,4 +1,7 @@
+from openlibrary.core.async_db import fetch_all, fetch_one, fetch_val
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.async_utils import async_bridge
 
 from . import db
 
@@ -40,28 +43,39 @@ class Bestbook(db.CommonExtras):
 
         for key, value in filters.items():
             if value is not None:
-                conditions.append(f"{key}=${key}")
-                vars[key] = value
+                param_value: str | int = value
+                if key == "work_id":
+                    param_value = int(extract_numeric_id_from_olid(str(value)))
+                conditions.append(f"{key} = %({key})s")
+                vars[key] = param_value
         query = f"SELECT {select} FROM {cls.TABLENAME}"
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
         return query, vars
 
     @classmethod
-    def get_count(
+    async def get_count(
         cls,
         work_id: str | None = None,
         username: str | None = None,
         topic: str | None = None,
     ) -> int:
-        """Used to get count of awards with different filters"""
-        oldb = db.get_db()
+        """Get the count of awards matching the provided filters."""
         query, vars = cls.prepare_query(select="count(*)", work_id=work_id, username=username, topic=topic)
-        result = oldb.query(query, vars=vars)
-        return result[0]["count"] if result else 0
+        return await fetch_val(query, vars) or 0
 
     @classmethod
-    def get_awards(
+    def get_count_sync(
+        cls,
+        work_id: str | None = None,
+        username: str | None = None,
+        topic: str | None = None,
+    ) -> int:
+        """Synchronous bridge for legacy web.py callers."""
+        return async_bridge.run(cls.get_count(work_id=work_id, username=username, topic=topic))
+
+    @classmethod
+    async def get_awards(
         cls,
         work_id: str | None = None,
         username: str | None = None,
@@ -72,13 +86,11 @@ class Bestbook(db.CommonExtras):
         This method queries the database to retrieve awards associated with a
         specific work, submitted by a particular user, or related to a given topic.
         """
-        oldb = db.get_db()
         query, vars = cls.prepare_query(select="*", work_id=work_id, username=username, topic=topic)
-        result = oldb.query(query, vars=vars)
-        return list(result) if result else []
+        return await fetch_all(query, vars)
 
     @classmethod
-    def add(
+    async def add(
         cls,
         username: str,
         work_id: str,
@@ -90,49 +102,50 @@ class Bestbook(db.CommonExtras):
         or raises Bestbook.AwardConditionsError
         """
         # Raise cls.AwardConditionsError if any failing conditions
-        cls._check_award_conditions(username, work_id, topic)
+        await cls._check_award_conditions(username, work_id, topic)
 
-        oldb = db.get_db()
-
-        return oldb.insert(
-            cls.TABLENAME,
-            username=username,
-            work_id=work_id,
-            edition_id=edition_id,
-            topic=topic,
-            comment=comment,
+        row = await fetch_one(
+            f"""
+            INSERT INTO {cls.TABLENAME} (username, work_id, edition_id, topic, comment)
+            VALUES (%(username)s, %(work_id)s, %(edition_id)s, %(topic)s, %(comment)s)
+            ON CONFLICT DO NOTHING
+            RETURNING award_id
+            """,
+            {
+                "username": username,
+                "work_id": work_id,
+                "edition_id": edition_id,
+                "topic": topic,
+                "comment": comment,
+            },
         )
+        if row is not None:
+            return row["award_id"]
+
+        # A concurrent request may have inserted the same work or topic after
+        # validation passed. Recheck to return the domain validation error.
+        await cls._check_award_conditions(username, work_id, topic)
+        raise cls.AwardConditionsError("A work or topic has already been nominated")
 
     @classmethod
-    def remove(cls, username: str, work_id: str | None = None, topic: str | None = None) -> int:
+    async def remove(cls, username: str, work_id: str | None = None, topic: str | None = None) -> int:
         """Remove any award for this username where either work_id or topic matches."""
         if not work_id and not topic:
             raise ValueError("Either work_id or topic must be specified.")
 
-        oldb = db.get_db()
-
         # Build WHERE clause dynamically
         conditions = []
+        params = {"username": username}
         if work_id:
-            conditions.append("work_id = $work_id")
+            conditions.append("work_id = %(work_id)s")
+            params["work_id"] = work_id
         if topic:
-            conditions.append("topic = $topic")
+            conditions.append("topic = %(topic)s")
+            params["topic"] = topic
 
         # Combine with AND for username and OR for other conditions
-        where_clause = f"username = $username AND ({' OR '.join(conditions)})"
-
-        try:
-            return oldb.delete(
-                cls.TABLENAME,
-                where=where_clause,
-                vars={
-                    "username": username,
-                    "work_id": work_id,
-                    "topic": topic,
-                },
-            )
-        except LookupError:  # No matching rows found
-            return 0
+        query = f"DELETE FROM {cls.TABLENAME} WHERE username = %(username)s AND ({' OR '.join(conditions)}) RETURNING award_id"
+        return len(await fetch_all(query, params))
 
     @classmethod
     def get_leaderboard(cls) -> list[dict]:
@@ -149,7 +162,7 @@ class Bestbook(db.CommonExtras):
         return list(result) if result else []
 
     @classmethod
-    def _check_award_conditions(cls, username: str, work_id: str, topic: str) -> bool:
+    async def _check_award_conditions(cls, username: str, work_id: str, topic: str) -> bool:
         """
         Validates the conditions for adding a bestbook award.
 
@@ -169,9 +182,9 @@ class Bestbook(db.CommonExtras):
             errors.append("A work ID and a topic are both required for best book awards")
 
         else:
-            has_read_book = Bookshelves.user_has_read_work(username=username, work_id=work_id)
-            awarded_book = cls.get_awards(username=username, work_id=work_id)
-            awarded_topic = cls.get_awards(username=username, topic=topic)
+            has_read_book = await Bookshelves.user_has_read_work(username=username, work_id=work_id)
+            awarded_book = await cls.get_awards(username=username, work_id=work_id)
+            awarded_topic = await cls.get_awards(username=username, topic=topic)
 
             if not has_read_book:
                 errors.append("Only books which have been marked as read may be given awards")
@@ -180,8 +193,8 @@ class Bestbook(db.CommonExtras):
             if awarded_topic:
                 errors.append(
                     f"A topic may only be nominated one time for a best book award: "
-                    f"The work {awarded_topic[0].work_id} has already been nominated "
-                    f"for topic {awarded_topic[0].topic}"
+                    f"The work {awarded_topic[0]['work_id']} has already been nominated "
+                    f"for topic {awarded_topic[0]['topic']}"
                 )
 
         if errors:
