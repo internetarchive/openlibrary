@@ -370,7 +370,7 @@ async def _serve_cover(request: Request, category: CoverCategory, key: str, valu
     try:
         from openlibrary.coverstore import archive
 
-        if d.id >= 8_000_000 and d.uploaded:
+        if d.id >= archive.MIN_ARCHIVABLE_ID and d.uploaded:
             url = archive.Cover.get_cover_url(d.id, size=size, protocol=request.url.scheme)
             # A 302 isn't cacheable unless it says so, and this one never changes.
             return RedirectResponse(url, status_code=302, headers=headers)
