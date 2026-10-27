@@ -46,21 +46,14 @@ class YearlyReadingGoals:
     @classmethod
     async def create(cls, username: str, year: int, target: int) -> None:
         """Set ``username``'s goal for ``year``, creating the row or updating it in place."""
+        # created and updated come from the column defaults (UTC).
         query = (
-            f"INSERT INTO {cls.TABLENAME} (username, year, target, updated)"
-            f" VALUES (%(username)s, %(year)s, %(target)s, %(updated)s)"
+            f"INSERT INTO {cls.TABLENAME} (username, year, target)"
+            f" VALUES (%(username)s, %(year)s, %(target)s)"
             f" ON CONFLICT (username, year) DO UPDATE SET"
-            f" target = EXCLUDED.target, updated = EXCLUDED.updated"
+            f" target = EXCLUDED.target, updated = DEFAULT"
         )
-        await execute(
-            query,
-            {
-                "username": username,
-                "year": year,
-                "target": target,
-                "updated": datetime.now(),
-            },
-        )
+        await execute(query, {"username": username, "year": year, "target": target})
 
     # Read methods:
     # web.db's `order=` is raw SQL, only `vars=` is parameterized. Limit
