@@ -7,27 +7,38 @@ import pytest
 
 from openlibrary.core import async_db
 from openlibrary.core.observations import Observations, get_observation_metrics
+from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 
 @pytest.fixture
 def helpers():
     with (
         patch("openlibrary.core.observations.fetch_all", new_callable=AsyncMock) as fetch_all,
+        patch("openlibrary.core.observations.fetch_one", new_callable=AsyncMock) as fetch_one,
         patch("openlibrary.core.observations.fetch_val", new_callable=AsyncMock) as fetch_val,
     ):
-        yield SimpleNamespace(fetch_all=fetch_all, fetch_val=fetch_val)
+        yield SimpleNamespace(fetch_all=fetch_all, fetch_one=fetch_one, fetch_val=fetch_val)
 
 
 @pytest.mark.asyncio
 async def test_total_unique_respondents(helpers):
     helpers.fetch_val.return_value = 2
 
-    total = await Observations.total_unique_respondents(work_id=123, since=None)
+    total = await Observations.total_unique_respondents(work_id=123)
 
     assert total == 2
     (query, params), _kwargs = helpers.fetch_val.await_args
     assert query == "SELECT COUNT(DISTINCT(username)) FROM observations WHERE work_id = %(work_id)s"
-    assert params == {"work_id": 123, "since": None}
+    assert params == {"work_id": 123}
+
+
+@pytest.mark.asyncio
+async def test_total_unique_respondents_filters_zero_work_id(helpers):
+    await Observations.total_unique_respondents(work_id=0)
+
+    (query, params), _kwargs = helpers.fetch_val.await_args
+    assert "WHERE work_id = %(work_id)s" in query
+    assert params == {"work_id": 0}
 
 
 @pytest.mark.asyncio
@@ -92,14 +103,34 @@ async def test_observation_metrics_skip_aggregate_queries_without_respondents():
     counts.assert_not_awaited()
 
 
-def test_sync_bridges_call_async_methods():
-    def run_coroutine(coro):
-        coro.close()
-        return 3
+SUMMARY_ROW = {
+    "reviews_total": 30,
+    "reviews_month": 20,
+    "reviews_week": 10,
+    "books_total": 12,
+    "books_month": 8,
+    "books_week": 4,
+    "reviewers_total": 7,
+    "reviewers_month": 5,
+    "reviewers_week": 3,
+}
 
-    with patch("openlibrary.core.observations.async_bridge.run", side_effect=run_coroutine) as run:
-        assert Observations.total_unique_respondents_sync(123, None) == 3
-        run.assert_called_once()
+
+@pytest.mark.asyncio
+async def test_summary_uses_one_aggregate_query(helpers):
+    helpers.fetch_one.return_value = SUMMARY_ROW
+
+    assert await Observations.summary() == {
+        "total_reviews": {"total": 30, "month": 20, "week": 10},
+        "total_books_reviewed": {"total": 12, "month": 8, "week": 4},
+        "total_reviewers": {"total": 7, "month": 5, "week": 3},
+    }
+    helpers.fetch_one.assert_awaited_once()
+    (query, params), _kwargs = helpers.fetch_one.await_args
+    assert "count(*) FILTER (WHERE created >= %(month_ago)s)" in query
+    assert "count(DISTINCT work_id) FILTER (WHERE created >= %(week_ago)s)" in query
+    assert "count(DISTINCT username) FILTER (WHERE created >= %(week_ago)s)" in query
+    assert params == {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO}
 
 
 @pytest.mark.integration
@@ -119,3 +150,18 @@ class TestObservationMetricsIntegration:
         assert metrics["observations"][0]["total_respondents_for_type"] == 2
         assert metrics["observations"][0]["values"] == [{"value": "Slow paced", "count": 2}]
         assert metrics["observations"][1]["values"] == [{"value": "Engaging", "count": 1}]
+
+    @pytest.mark.asyncio
+    async def test_summary_aggregate_rows(self, pg_db):
+        async with async_db.connection() as conn:
+            await conn.execute(
+                "INSERT INTO observations (work_id, username, observation_type, observation_value, created) "
+                "VALUES (123, 'alice', 1, 4, now()), (123, 'bob', 1, 4, now()), "
+                "(456, 'bob', 2, 7, now()), (789, 'carol', 1, 5, now() - interval '2 months')"
+            )
+
+        summary = await Observations.summary()
+
+        assert summary["total_reviews"] == {"total": 4, "month": 3, "week": 3}
+        assert summary["total_books_reviewed"] == {"total": 3, "month": 2, "week": 2}
+        assert summary["total_reviewers"] == {"total": 3, "month": 2, "week": 2}

@@ -5,7 +5,7 @@ from typing import Literal
 
 from infogami import config
 from infogami.utils.view import public
-from openlibrary.core.async_db import fetch_all, fetch_val
+from openlibrary.core.async_db import fetch_all, fetch_one, fetch_val
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
@@ -735,67 +735,44 @@ class Observations(db.CommonExtras):
     ALLOW_DELETE_ON_CONFLICT = True
 
     @classmethod
-    def summary(cls):
+    async def summary(cls) -> dict:
+        query = """
+            SELECT
+                count(*) AS reviews_total,
+                count(*) FILTER (WHERE created >= %(month_ago)s) AS reviews_month,
+                count(*) FILTER (WHERE created >= %(week_ago)s) AS reviews_week,
+                count(DISTINCT work_id) AS books_total,
+                count(DISTINCT work_id) FILTER (WHERE created >= %(month_ago)s) AS books_month,
+                count(DISTINCT work_id) FILTER (WHERE created >= %(week_ago)s) AS books_week,
+                count(DISTINCT username) AS reviewers_total,
+                count(DISTINCT username) FILTER (WHERE created >= %(month_ago)s) AS reviewers_month,
+                count(DISTINCT username) FILTER (WHERE created >= %(week_ago)s) AS reviewers_week
+            FROM observations
+        """
+        row = await fetch_one(query, {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO})
+        assert row is not None
         return {
-            "total_reviews": {
-                "total": Observations.total_reviews(),
-                "month": Observations.total_reviews(since=DATE_ONE_MONTH_AGO),
-                "week": Observations.total_reviews(since=DATE_ONE_WEEK_AGO),
-            },
-            "total_books_reviewed": {
-                "total": Observations.total_books_reviewed(),
-                "month": Observations.total_books_reviewed(since=DATE_ONE_MONTH_AGO),
-                "week": Observations.total_books_reviewed(since=DATE_ONE_WEEK_AGO),
-            },
-            "total_reviewers": {
-                "total": Observations.total_unique_respondents_sync(),
-                "month": Observations.total_unique_respondents_sync(since=DATE_ONE_MONTH_AGO),
-                "week": Observations.total_unique_respondents_sync(since=DATE_ONE_WEEK_AGO),
-            },
+            "total_reviews": {"total": row["reviews_total"], "month": row["reviews_month"], "week": row["reviews_week"]},
+            "total_books_reviewed": {"total": row["books_total"], "month": row["books_month"], "week": row["books_week"]},
+            "total_reviewers": {"total": row["reviewers_total"], "month": row["reviewers_month"], "week": row["reviewers_week"]},
         }
 
     @classmethod
-    def total_reviews(cls, since=None):
-        oldb = db.get_db()
-        query = "SELECT COUNT(*) from observations"
-        if since:
-            query += " WHERE created >= $since"
-        return oldb.query(query, vars={"since": since})[0]["count"]
+    def summary_sync(cls) -> dict:
+        return async_bridge.run(cls.summary())
 
     @classmethod
-    def total_books_reviewed(cls, since=None):
-        oldb = db.get_db()
-        query = "SELECT COUNT(DISTINCT(work_id)) from observations"
-        if since:
-            query += " WHERE created >= $since"
-        return oldb.query(query, vars={"since": since})[0]["count"]
-
-    @classmethod
-    async def total_unique_respondents(cls, work_id=None, since=None):
+    async def total_unique_respondents(cls, work_id: int):
         """
         Returns total number of patrons who have submitted observations for the given work ID.
-        If no work ID is passed, returns total number of patrons who have submitted observations
-        for any work.
 
         return: Total number of patrons who have made an observation.
         """
         data = {
             "work_id": work_id,
-            "since": since,
         }
-        query = "SELECT COUNT(DISTINCT(username)) FROM observations"
-
-        if work_id:
-            query += " WHERE work_id = %(work_id)s"
-            if since:
-                query += " AND created >= %(since)s"
-        elif since:
-            query += " WHERE created >= %(since)s"
+        query = "SELECT COUNT(DISTINCT(username)) FROM observations WHERE work_id = %(work_id)s"
         return await fetch_val(query, data)
-
-    @classmethod
-    def total_unique_respondents_sync(cls, work_id=None, since=None):
-        return async_bridge.run(cls.total_unique_respondents(work_id, since))
 
     @classmethod
     async def count_unique_respondents_by_type(cls, work_id):
