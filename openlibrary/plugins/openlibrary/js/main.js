@@ -188,6 +188,12 @@ $(function () {
         import('./file-dropzone.js').then(module => module.initFileDropzone());
     }
 
+    // conditionally load "Express interest" buttons on the import page
+    const importInterestButtons = document.querySelectorAll('.express-interest-btn');
+    if (importInterestButtons.length) {
+        import('./import-interest.js').then(module => module.initImportInterest(importInterestButtons));
+    }
+
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
         import('./goodreads_import.js').then(module => module.initGoodreadsImport());
