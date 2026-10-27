@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import { olConfirm } from '../../../../components/lit/alert-dialog.js';
-import { showToast } from '../show-toast.js';
+import { showToast } from '../../../../components/lit/toast.js';
 import '../../../../../static/css/components/metadata-form.css';
 
 /**

@@ -1,4 +1,4 @@
-import { showToast } from './show-toast';
+import { showToast } from '../../../components/lit/toast.js';
 
 export function initPrivateButtons(buttons) {
     buttons.forEach(button => {

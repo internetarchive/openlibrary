@@ -1,5 +1,5 @@
 import { SHELF } from '../../../../components/lit/utils/books-api.js';
-import { showToast } from '../show-toast.js';
+import { showToast } from '../../../../components/lit/toast.js';
 import { queueAction } from '../utils.js';
 
 export function initRatingHandlers(ratingForms) {

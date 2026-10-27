@@ -7,7 +7,7 @@ import { debounce } from '../nonjquery_utils.js';
 import { MenuOption, MenuOptionState } from './BulkTagger/MenuOption';
 import { SortedMenuOptionContainer } from './BulkTagger/SortedMenuOptionContainer';
 import { Tag } from './models/Tag';
-import { showToast } from '../show-toast';
+import { showToast } from '../../../../components/lit/toast.js';
 
 /**
  * Maximum amount of search result to be returned by subject

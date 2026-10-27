@@ -5,7 +5,7 @@
  */
 
 import { claimRequest, commentOnRequest, declineRequest, unassignRequest } from '../MergeRequestService';
-import { showToast } from '../../show-toast';
+import { showToast } from '../../../../../components/lit/toast.js';
 
 let i18nStrings;
 

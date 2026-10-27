@@ -1,4 +1,4 @@
-import { showToast } from './show-toast';
+import { showToast } from '../../../components/lit/toast.js';
 
 export async function initAsyncFollowing(followForms) {
     followForms.forEach(form => {
