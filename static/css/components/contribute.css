@@ -942,6 +942,31 @@
   }
 }
 
+/* A trailing spinner on the pressed filter while its page loads; toggled by js/contribute.js. */
+.contrib-rail__item.is-target::after {
+  content: "";
+  flex: none;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--border-radius-circle);
+  animation: contrib-rail-spin var(--duration-spin) linear infinite;
+}
+
+@keyframes contrib-rail-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contrib-rail__item.is-target::after {
+    animation-duration: 2s;
+  }
+}
+
 .contrib-dash__main {
   min-width: 0;
 }

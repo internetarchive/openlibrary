@@ -76,3 +76,12 @@ def test_only_one_rebuild_runs_at_a_time(monkeypatch):
     assert pool.get(KEY, 60, lambda: [1]) is None
     assert not any(t.name == pool.thread_name(KEY) for t in threading.enumerate())
     assert mc.get(KEY) is None
+
+
+def test_keep_sets_how_long_an_entry_is_served(monkeypatch):
+    mc = use_memory_cache(monkeypatch)
+    seen = []
+    monkeypatch.setattr(mc, "set", lambda key, value, expires=0: seen.append(expires))
+    pool.refresh(KEY, 60, lambda: [1])
+    pool.refresh(KEY, 60, lambda: [1], keep=7 * 86400)
+    assert seen == [60 * pool.KEEP, 7 * 86400]

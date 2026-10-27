@@ -11,9 +11,9 @@ import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
 import { trackEvent } from './ol.analytics.js';
 
 const SKIPPED_KEY = 'ol-contribute-skipped';
-// While placeholder cards are up, the server is building the list in the background: ask again every few
-// seconds, for as long as its Solr query may take, then give up and say the list couldn't load.
-const ROWS_RETRY_MS = 5000;
+// While placeholder cards are up, the server is building the list in the background: ask again soon, then
+// every few seconds, for as long as its Solr query may take, then give up and say the list couldn't load.
+const ROWS_RETRY_MS = [1000, 1000, 2000, 3000, 5000];
 const ROWS_MAX_TRIES = 36;
 
 // Same normalization the server applies, so the verdict on screen matches what is stored.
@@ -97,7 +97,8 @@ async function loadTaskRows(root, list) {
         } catch (e) {
             // Offline or a dropped request: try again.
         }
-        await new Promise(resolve => setTimeout(resolve, ROWS_RETRY_MS));
+        const delay = ROWS_RETRY_MS[Math.min(attempt, ROWS_RETRY_MS.length - 1)];
+        await new Promise(resolve => setTimeout(resolve, delay));
     }
     list.querySelectorAll('[data-row-skeleton]').forEach(li => li.remove());
     delete list.dataset.rowsUrl;
@@ -275,10 +276,31 @@ function clearSavedReceipt() {
  * Entry point for the Tasks pages; wires the list, task forms, and done page.
  * @returns {void}
  */
+/**
+ * Show a spinner on the pressed rail filter while the next page loads.
+ * @param {HTMLElement} rail - the ``[data-rail]`` nav
+ * @returns {void}
+ */
+function initRailLoading(rail) {
+    rail.addEventListener('click', e => {
+        const link = e.target.closest('a[href]');
+        if (!link || link.classList.contains('is-on')) return;
+        // New-tab / modified / non-left clicks don't navigate this window.
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        link.classList.add('is-target');
+    });
+    // Back/forward restores this DOM from bfcache with the spinner still showing.
+    window.addEventListener('pageshow', e => {
+        if (!e.persisted) return;
+        rail.querySelectorAll('.is-target').forEach(link => link.classList.remove('is-target'));
+    });
+}
+
 export function init() {
     document.querySelectorAll('[data-contribute-list]').forEach(root => {
         initTaskList(root);
     });
+    document.querySelectorAll('[data-rail]').forEach(initRailLoading);
     document.querySelectorAll('[data-feed]').forEach(initFeed);
     document.querySelectorAll('[data-intro-cookie]').forEach(initIntroDismiss);
     document.querySelectorAll('form[data-task-form]').forEach(form => {

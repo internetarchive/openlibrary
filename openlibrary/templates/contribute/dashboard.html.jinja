@@ -16,7 +16,7 @@
         </div>
     </header>
     <div class="contrib-dash__body">
-        <nav class="contrib-rail" aria-label="{{ _('Filter tasks') }}">
+        <nav class="contrib-rail" data-rail aria-label="{{ _('Filter tasks') }}">
             <div class="contrib-rail__group">
                 <a class="contrib-rail__item{{ ' is-on' if data.rail.all.on else '' }}"
                    href="{{ data.rail.all.url }}"

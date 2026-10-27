@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from openlibrary.contribute import pool
 from openlibrary.plugins.worksearch.search import get_solr
-from openlibrary.utils.dateutil import HOUR_SECS
+from openlibrary.utils.dateutil import DAY_SECS, HOUR_SECS
 from openlibrary.utils.request_context import site
 
 # How many of the most-read works the list draws from; each load shows a random handful of them.
@@ -14,6 +14,8 @@ POOL_SIZE = 500
 # The query scans every edition, so its picks are shared for an hour and only ever run on a background thread.
 PICKS_KEY = "contribute.solr_picks"
 PICKS_TTL = HOUR_SECS
+# Stale picks are served for a week, so a quiet filter never makes a visitor wait on that query; rows are re-checked against the database anyway.
+PICKS_KEEP = 7 * DAY_SECS
 
 # The Solr edition field behind each record field. Page count is not indexed on editions, so it has no list of its own.
 SOLR_FIELDS = {
@@ -71,7 +73,7 @@ def _solr_picks(fields: list[str], limit: int) -> list[list]:
 def cached_picks(fields: tuple[str, ...], limit: int) -> list[list] | None:
     """The shared picks for ``fields``, or None while a cold cache fills in the background."""
     wanted = sorted(f for f in fields if f in SOLR_FIELDS)
-    return pool.get(f"{PICKS_KEY}:{','.join(wanted)}:{limit}", PICKS_TTL, lambda: _solr_picks(wanted, limit), lock_ttl=PICKS_LOCK_TTL)
+    return pool.get(f"{PICKS_KEY}:{','.join(wanted)}:{limit}", PICKS_TTL, lambda: _solr_picks(wanted, limit), lock_ttl=PICKS_LOCK_TTL, keep=PICKS_KEEP)
 
 
 def solr_candidates(fields: tuple[str, ...], limit: int = POOL_SIZE, batch: int = 50) -> Iterator[Candidate] | None:
