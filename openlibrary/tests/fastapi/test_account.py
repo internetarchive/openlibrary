@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import unquote
 
 from infogami import config
@@ -499,7 +499,7 @@ def test_login_follow_action_subscribes_and_flashes(fastapi_client):
             "openlibrary.fastapi.account.OpenLibraryAccount.get_by_username",
             return_value={"data": {"displayname": "Some Publisher"}},
         ),
-        patch("openlibrary.fastapi.account.PubSub.subscribe") as mock_subscribe,
+        patch("openlibrary.fastapi.account.PubSub.subscribe", new_callable=AsyncMock) as mock_subscribe,
     ):
         mock_audit.return_value = {"ol_username": "testuser"}
         mock_gen_code.return_value = "token"

@@ -225,7 +225,7 @@ class mybooks_feed(delegate.page):
     def GET(self, username):
         mb = MyBooksTemplate(username, key="feed")
         if mb.is_my_page:
-            docs = PubSub.get_feed(username)
+            docs = PubSub.get_feed_sync(username)
             doc_count = len(docs)
             meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(mb.me.key)
             template = render["account/reading_log"](
@@ -450,8 +450,8 @@ class MyBooksTemplate:
         self.selected_year = None
 
         if (self.me and self.is_my_page) or self.is_public:
-            self.counts["followers"] = PubSub.count_followers(self.username)
-            self.counts["following"] = PubSub.count_following(self.username)
+            self.counts["followers"] = PubSub.count_followers_sync(self.username)
+            self.counts["following"] = PubSub.count_following_sync(self.username)
 
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
@@ -552,7 +552,7 @@ class ReadingLog:
 
     @property
     def reading_log_counts(self) -> dict[str, int]:
-        counts = Bookshelves.count_total_books_logged_by_user_per_shelf(self.user.get_username()) if self.user.get_username() else {}
+        counts = Bookshelves.count_total_books_logged_by_user_per_shelf_sync(self.user.get_username()) if self.user.get_username() else {}
         return {
             "want-to-read": counts.get(Bookshelves.PRESET_BOOKSHELVES["Want to Read"], 0),
             "currently-reading": counts.get(Bookshelves.PRESET_BOOKSHELVES["Currently Reading"], 0),
@@ -560,11 +560,11 @@ class ReadingLog:
             "stopped-reading": counts.get(Bookshelves.PRESET_BOOKSHELVES["Stopped Reading"], 0),
         }
 
-    def count_shelf(self, key: READING_LOG_KEYS) -> int:
+    async def count_shelf(self, key: READING_LOG_KEYS) -> int:
         username = self.user.get_username()
         assert username
         shelf_id = Bookshelves.PRESET_BOOKSHELVES[self.READING_LOG_KEY_TO_SHELF[key]]
-        return Bookshelves.count_user_books_on_shelf(username, shelf_id)
+        return await Bookshelves.count_user_books_on_shelf(username, shelf_id)
 
     async def get_works_async(
         self,
@@ -800,7 +800,7 @@ class ActivityFeed:
         logged books.  Otherwise, the feed will contain events from the patron's
         `PubSub.get_feed` results.
         """
-        following = PubSub.is_following(username)
+        following = PubSub.is_following_sync(username)
         if following:
             feed = cls.get_cached_pub_sub_feed(username)
         else:
@@ -810,7 +810,7 @@ class ActivityFeed:
 
     @classmethod
     def get_pub_sub_feed(cls, username):
-        feed = PubSub.get_feed(username, limit=3)
+        feed = PubSub.get_feed_sync(username, limit=3)
         return feed
 
     @classmethod

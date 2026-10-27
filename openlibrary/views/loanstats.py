@@ -45,7 +45,7 @@ def reading_log_summary():
     stats.update(Ratings.summary_sync())
     stats.update(Observations.summary())
     stats.update(Booknotes.summary_sync())
-    stats.update(PubSub.summary())
+    stats.update(PubSub.summary_sync())
     return stats
 
 
