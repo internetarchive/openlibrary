@@ -328,16 +328,6 @@ async def test_work_summary_includes_all_preset_shelves(helpers):
     assert summary == {"want_to_read": 0, "currently_reading": 3, "already_read": 0, "stopped_reading": 0}
 
 
-@pytest.mark.asyncio
-async def test_delete_events_by_username_and_work():
-    with patch("openlibrary.core.bookshelves_events.execute", new_callable=AsyncMock) as execute:
-        await BookshelvesEvents.delete_by_username_and_work("alice", "42")
-
-    (query, params), _kwargs = execute.await_args
-    assert query == "DELETE FROM bookshelves_events WHERE username = %(username)s AND work_id = %(work_id)s"
-    assert params == {"username": "alice", "work_id": 42}
-
-
 @pytest.mark.integration
 class TestBookshelvesIntegration:
     @pytest.mark.asyncio
@@ -357,16 +347,6 @@ class TestBookshelvesIntegration:
         assert await Bookshelves.get_users_read_status_of_work("alice", 42) is None
         assert await async_db.fetch_val("SELECT count(*) FROM bookshelves_events WHERE username = 'alice' AND work_id = 42") == 0
         assert await Bookshelves.remove("alice", "42", "3") is None
-
-    @pytest.mark.asyncio
-    async def test_delete_events_by_username_and_work(self, pg_db):
-        await BookshelvesEvents.create_event("alice", 42, None, "2026-10-22", event_type=BookshelfEvent.START)
-        await BookshelvesEvents.create_event("alice", 43, None, "2026-10-22", event_type=BookshelfEvent.START)
-        await BookshelvesEvents.create_event("bob", 42, None, "2026-10-22", event_type=BookshelfEvent.START)
-
-        await BookshelvesEvents.delete_by_username_and_work("alice", 42)
-        assert await async_db.fetch_val("SELECT count(*) FROM bookshelves_events WHERE username = 'alice' AND work_id = 42") == 0
-        assert await async_db.fetch_val("SELECT count(*) FROM bookshelves_events") == 2
 
     @pytest.mark.asyncio
     async def test_concurrent_adds_do_not_conflict(self, pg_db):

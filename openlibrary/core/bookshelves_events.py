@@ -218,10 +218,3 @@ class BookshelvesEvents(db.CommonExtras):
         where_vars = {"username": username}
 
         return oldb.delete(cls.TABLENAME, where=where_clause, vars=where_vars)
-
-    @classmethod
-    async def delete_by_username_and_work(cls, username: str, work_id: str | int) -> None:
-        await execute(
-            f"DELETE FROM {cls.TABLENAME} WHERE username = %(username)s AND work_id = %(work_id)s",
-            {"username": username, "work_id": int(work_id)},
-        )
