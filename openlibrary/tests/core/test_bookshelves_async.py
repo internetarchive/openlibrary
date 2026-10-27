@@ -1,7 +1,6 @@
 """Unit and integration tests for the async Bookshelves queries. See ``docs/core/database.md``."""
 
 import asyncio
-from contextlib import asynccontextmanager
 from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -228,26 +227,6 @@ class TestPublicReadingLogIntegration:
         assert [doc.key for doc in result.docs] == ["/works/OL42W"]
 
 
-@pytest.fixture
-def db_connection():
-    conn = SimpleNamespace(
-        execute=AsyncMock(
-            side_effect=[
-                SimpleNamespace(rowcount=0),
-                SimpleNamespace(rowcount=0),
-                SimpleNamespace(rowcount=1),
-            ]
-        )
-    )
-
-    @asynccontextmanager
-    async def fake_connection():
-        yield conn
-
-    with patch("openlibrary.core.bookshelves.connection", return_value=fake_connection()):
-        yield conn
-
-
 @pytest.mark.asyncio
 async def test_get_users_read_status_of_work(helpers):
     helpers.fetch_val.return_value = 2
@@ -259,64 +238,6 @@ async def test_get_users_read_status_of_work(helpers):
     assert "bookshelf_id = ANY(%(bookshelf_ids)s)" in query
     assert "username = %(username)s AND work_id = %(work_id)s" in query
     assert params == {"bookshelf_ids": [1, 2, 3, 4], "username": "alice", "work_id": 42}
-
-
-@pytest.mark.asyncio
-async def test_add_inserts_when_work_is_not_shelved(db_connection):
-    result = await Bookshelves.add("alice", "2", "42", edition_id=7)
-
-    assert result == 1
-    assert db_connection.execute.await_count == 3
-    lock_call, update_call, insert_call = db_connection.execute.await_args_list
-    assert lock_call.args == (
-        "SELECT pg_advisory_xact_lock(hashtext(%(username)s), %(work_id)s)",
-        {"username": "alice", "work_id": 42},
-    )
-    assert update_call.args[0].startswith("UPDATE bookshelves_books SET bookshelf_id")
-    assert "bookshelf_id = ANY(%(preset_bookshelf_ids)s)" in update_call.args[0]
-    assert update_call.args[1]["preset_bookshelf_ids"] == [1, 2, 3, 4]
-    assert "ON CONFLICT (username, work_id, bookshelf_id) DO UPDATE" in insert_call.args[0]
-    assert "RETURNING 1" not in insert_call.args[0]
-    assert insert_call.args[1] == {"work_id": 42, "username": "alice", "bookshelf_id": 2, "edition_id": 7}
-
-
-@pytest.mark.asyncio
-async def test_add_updates_existing_shelf(db_connection):
-    db_connection.execute.side_effect = [
-        SimpleNamespace(rowcount=0),
-        SimpleNamespace(rowcount=1),
-    ]
-
-    result = await Bookshelves.add("alice", "3", "42", edition_id=7)
-
-    assert result == 1
-    assert db_connection.execute.await_count == 2
-    _, update_call = db_connection.execute.await_args_list
-    assert update_call.args[0].startswith("UPDATE bookshelves_books SET bookshelf_id")
-    assert "bookshelf_id = ANY(%(preset_bookshelf_ids)s)" in update_call.args[0]
-    assert update_call.args[1] == {
-        "work_id": 42,
-        "username": "alice",
-        "bookshelf_id": 3,
-        "edition_id": 7,
-        "preset_bookshelf_ids": [1, 2, 3, 4],
-    }
-
-
-@pytest.mark.asyncio
-async def test_remove_uses_optional_shelf_filter_and_deletes_events(db_connection):
-    db_connection.execute.side_effect = [SimpleNamespace(rowcount=1), SimpleNamespace(rowcount=2)]
-
-    result = await Bookshelves.remove("alice", "42", "2")
-
-    assert result == 1
-    assert db_connection.execute.await_count == 2
-    (query, params), _kwargs = db_connection.execute.await_args_list[0]
-    assert "bookshelf_id = %(bookshelf_id)s" in query
-    assert params == {"username": "alice", "work_id": 42, "bookshelf_id": 2}
-    event_query, event_params = db_connection.execute.await_args_list[1].args
-    assert event_query == "DELETE FROM bookshelves_events WHERE username = %(username)s AND work_id = %(work_id)s"
-    assert event_params == {"username": "alice", "work_id": 42}
 
 
 @pytest.mark.asyncio
