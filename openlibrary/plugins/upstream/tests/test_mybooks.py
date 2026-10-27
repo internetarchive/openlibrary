@@ -1,13 +1,15 @@
 """Tests for the template helpers in openlibrary.plugins.upstream.mybooks."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 import web
 
 from infogami.infobase.client import LazyObject
 from infogami.utils import macro
 from openlibrary.core.booknotes import Booknotes
-from openlibrary.plugins.upstream.mybooks import PatronBooknotes, edition_key_of, get_reading_states, shelf_button_for, work_key_of
+from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.plugins.upstream.mybooks import PatronBooknotes, ReadingLog, edition_key_of, get_reading_states, shelf_button_for, work_key_of
 
 
 class Thing:
@@ -336,3 +338,23 @@ def test_patron_booknotes_counts_use_sync_booknotes_bridge():
     ):
         assert PatronBooknotes.get_counts("alice") == {"notes": 2, "observations": 3}
         notes_count.assert_called_once_with("alice")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("sort_order", "expected"),
+    [
+        ("desc", "created desc"),
+        ("asc", "created asc"),
+        ("title", "title"),
+        ("old", "old"),
+        ("rating", "rating"),
+        ("want_to_read", "want_to_read"),
+        ("not-a-sort", "created desc"),
+    ],
+)
+async def test_reading_log_passes_sort_to_shelf_query(sort_order, expected):
+    with patch.object(Bookshelves, "get_users_logged_books", new_callable=AsyncMock) as get_users_logged_books:
+        await ReadingLog(user=MagicMock()).get_works_async("want-to-read", sort_order=sort_order)
+
+    assert get_users_logged_books.await_args.kwargs["sort"] == expected

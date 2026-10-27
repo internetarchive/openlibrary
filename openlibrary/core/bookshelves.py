@@ -20,6 +20,8 @@ from . import db
 
 logger = logging.getLogger(__name__)
 
+ReadingLogSort = Literal["created asc", "created desc", "title", "old", "rating", "want_to_read"]
+
 
 class WorkReadingLogSummary(TypedDict):
     want_to_read: int
@@ -35,6 +37,10 @@ class Bookshelves(db.CommonExtras):
     ALLOW_DELETE_ON_CONFLICT = True
 
     PRESET_BOOKSHELVES_JSON: MappingProxyType[str, int] = MappingProxyType({"want_to_read": 1, "currently_reading": 2, "already_read": 3, "stopped_reading": 4})
+
+    SOLR_SORT_FIELDS: MappingProxyType[str, str | None] = MappingProxyType(
+        {"title": None, "old": "first_publish_year", "rating": "ratings_sortable", "want_to_read": "want_to_read_count"}
+    )
 
     @classmethod
     def summary(cls):
@@ -344,7 +350,7 @@ class Bookshelves(db.CommonExtras):
         bookshelf_id: int = 0,
         limit: int = 100,
         page: int = 1,  # Not zero-based counting!
-        sort: Literal["created asc", "created desc"] = "created desc",
+        sort: ReadingLogSort = "created desc",
         checkin_year: int | None = None,
         q: str = "",
         fq: list[str] | None = None,
@@ -468,9 +474,35 @@ class Bookshelves(db.CommonExtras):
                 docs=solr_docs,
             )
 
+        async def sort_reading_log_books_with_solr(reading_log_books: list[dict], sort: ReadingLogSort) -> list[dict]:
+            """
+            Sort all the books on a shelf by a Solr field. Books without a value for
+            that field, or not in Solr, go after the rest, newest added first.
+            """
+            if not reading_log_books:
+                return []
+
+            books_by_key = {f"/works/OL{book['work_id']}W": book for book in reading_log_books}
+            filter_queries = ["{!terms f=key}" + ",".join(books_by_key)]
+            if field := cls.SOLR_SORT_FIELDS[sort]:
+                filter_queries.append(f"{field}:[* TO *]")
+
+            solr_resp = await run_solr_query_async(
+                scheme=WorkSearchScheme(),
+                param={"q": "*:*"},
+                rows=len(books_by_key),
+                sort=sort,
+                fields=["key"],
+                facet=False,
+                extra_params=[("fq", f) for f in filter_queries],
+            )
+            sorted_keys = [doc["key"] for doc in solr_resp.docs if doc["key"] in books_by_key]
+            unsorted_keys = books_by_key.keys() - set(sorted_keys)
+            return [books_by_key[key] for key in sorted_keys] + [book for key, book in books_by_key.items() if key in unsorted_keys]
+
         async def get_sorted_reading_log_books(
             query_params: dict[str, str | int | None],
-            sort: Literal["created asc", "created desc"],
+            sort: ReadingLogSort,
             checkin_year: int | None,
         ):
             """
@@ -492,6 +524,12 @@ class Bookshelves(db.CommonExtras):
                 AND e.event_date LIKE %(checkin_year)s
                 ORDER BY b.created DESC
                 """
+            elif sort in cls.SOLR_SORT_FIELDS:
+                query = (
+                    "SELECT work_id, created, edition_id FROM bookshelves_books WHERE "
+                    "bookshelf_id = %(bookshelf_id)s AND username = %(username)s "
+                    "ORDER BY created DESC"
+                )
             else:
                 query = (
                     "SELECT work_id, created, edition_id FROM bookshelves_books WHERE "
@@ -508,6 +546,10 @@ class Bookshelves(db.CommonExtras):
             elif checkin_year:
                 query_params["checkin_year"] = f"{checkin_year}%"
             reading_log_books = await fetch_all(query, query_params)
+
+            if bookshelf_id and not checkin_year and sort in cls.SOLR_SORT_FIELDS:
+                offset = int(query_params["offset"] or 0)
+                reading_log_books = (await sort_reading_log_books_with_solr(reading_log_books, sort))[offset : offset + limit]
 
             reading_log_keys = [
                 (["/works/OL%sW" % i["work_id"], "/books/OL%sM" % i["edition_id"]] if i["edition_id"] else ["/works/OL%sW" % i["work_id"], ""])

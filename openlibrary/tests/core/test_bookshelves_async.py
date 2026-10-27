@@ -160,6 +160,52 @@ async def test_get_users_logged_books_uses_async_query_when_filtering(mock_readi
     run_solr_query.assert_awaited_once()
 
 
+@pytest.mark.asyncio
+async def test_get_users_logged_books_sorts_with_solr(mock_reading_log_dependencies):
+    fetch_all, solr = mock_reading_log_dependencies
+    fetch_all.return_value = [{"work_id": i, "created": datetime(2025, 1, i), "edition_id": None} for i in (4, 3, 2, 1)]
+    solr.get_many_async = AsyncMock(side_effect=lambda keys, fields: [_solr_doc(int(key[len("/works/OL") : -1])) for key in keys])
+    solr_response = MagicMock(docs=[{"key": "/works/OL2W"}, {"key": "/works/OL4W"}])
+    with patch("openlibrary.plugins.worksearch.code.run_solr_query_async", new_callable=AsyncMock, return_value=solr_response) as run_solr_query:
+        first_page = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, limit=2, page=1, sort="old")
+        second_page = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, limit=2, page=2, sort="old")
+
+    assert [doc.key for doc in first_page.docs] == ["/works/OL2W", "/works/OL4W"]
+    assert [doc.key for doc in second_page.docs] == ["/works/OL3W", "/works/OL1W"]
+    query, _ = fetch_all.await_args.args
+    assert "ORDER BY created DESC" in query
+    assert "LIMIT" not in query
+    kwargs = run_solr_query.await_args.kwargs
+    assert kwargs["sort"] == "old"
+    assert kwargs["rows"] == 4
+    assert kwargs["extra_params"] == [
+        ("fq", "{!terms f=key}/works/OL4W,/works/OL3W,/works/OL2W,/works/OL1W"),
+        ("fq", "first_publish_year:[* TO *]"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_get_users_logged_books_title_sort_keeps_every_book(mock_reading_log_dependencies):
+    solr_response = MagicMock(docs=[{"key": "/works/OL42W"}])
+    with patch("openlibrary.plugins.worksearch.code.run_solr_query_async", new_callable=AsyncMock, return_value=solr_response) as run_solr_query:
+        result = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, sort="title")
+
+    assert [doc.key for doc in result.docs] == ["/works/OL42W"]
+    assert run_solr_query.await_args.kwargs["extra_params"] == [("fq", "{!terms f=key}/works/OL42W")]
+
+
+@pytest.mark.asyncio
+async def test_get_users_logged_books_solr_sort_on_empty_shelf(mock_reading_log_dependencies):
+    fetch_all, solr = mock_reading_log_dependencies
+    fetch_all.return_value = []
+    solr.get_many_async.return_value = []
+    with patch("openlibrary.plugins.worksearch.code.run_solr_query_async", new_callable=AsyncMock) as run_solr_query:
+        result = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, sort="rating")
+
+    assert result.docs == []
+    run_solr_query.assert_not_awaited()
+
+
 class TestPublicReadingLogIntegration:
     @pytest.mark.integration
     @pytest.mark.asyncio
