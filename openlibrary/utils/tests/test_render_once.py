@@ -13,7 +13,6 @@ from openlibrary.utils import request_context
 @pytest.fixture
 def start_request(mock_site, monkeypatch):
     old_ctx = dict(web.ctx)
-    web.ctx.pop("render_once", None)
     monkeypatch.setattr(request_context, "create_site", lambda: mock_site)
     monkeypatch.setattr(web, "input", lambda **kwargs: web.storage(kwargs))
     monkeypatch.setattr(web, "cookies", web.storage)
@@ -24,8 +23,6 @@ def start_request(mock_site, monkeypatch):
             request.state.lang = "en"
             request_context.set_context_from_fastapi(request)
         else:
-            # web.py clears thread-local request state before its processors.
-            web.ctx.pop("render_once", None)
             web.ctx.site = mock_site
             web.ctx.env = web.storage()
             request_context.set_context_from_legacy_web_py()
@@ -71,13 +68,7 @@ async def test_render_once_shares_request_state_with_worker(start_request):
     assert render_once("parent") is True
 
     def worker():
-        old_ctx = dict(web.ctx)
-        web.ctx.pop("render_once", None)
-        try:
-            return render_once("parent"), render_once("worker")
-        finally:
-            web.ctx.clear()
-            web.ctx.update(old_ctx)
+        return render_once("parent"), render_once("worker")
 
     assert await anyio.to_thread.run_sync(worker) == (False, True)
     assert render_once("worker") is False
