@@ -29,6 +29,7 @@ CORS_HEADERS = {
 
 def create_app(configfile: str | None = None) -> FastAPI:
     from openlibrary.coverstore import code, server
+    from openlibrary.utils import prometheus_multiprocess
 
     if configfile := configfile or os.getenv("COVERSTORE_CONFIG"):
         server.setup(configfile)
@@ -78,7 +79,8 @@ def create_app(configfile: str | None = None) -> FastAPI:
     Instrumentator(
         should_group_status_codes=False,
         excluded_handlers=["/health", "/metrics"],
-    ).instrument(app).expose(app, include_in_schema=False)
+    ).instrument(app)
+    prometheus_multiprocess.expose(app)
 
     @app.api_route("/health", methods=["GET", "HEAD"], include_in_schema=False)
     def health() -> dict[str, str]:

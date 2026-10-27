@@ -299,13 +299,13 @@ async def booknotes_post(
 
 
 @router.get("/works/OL{work_id}W/bookshelves.json")
-def get_work_bookshelves(work_id: Annotated[int, Path(gt=0)]) -> dict:
+async def get_work_bookshelves(work_id: Annotated[int, Path(gt=0)]) -> dict:
     """Get reading-log shelf counts for a work."""
-    return get_bookshelves_summary(work_id)
+    return await get_bookshelves_summary(work_id)
 
 
 @router.post("/works/OL{work_id}W/bookshelves.json")
-def post_work_bookshelves(
+async def post_work_bookshelves(
     work_id: Annotated[int, Path(gt=0)],
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     bookshelf_id: Annotated[str | None, Form()] = None,
@@ -313,7 +313,7 @@ def post_work_bookshelves(
     dont_remove: Annotated[bool | None, Form()] = None,
 ) -> dict:
     """Add a work to, move a work between, or remove a work from a reading-log shelf."""
-    return process_work_bookshelves(
+    return await process_work_bookshelves(
         username=user.username,
         work_id=work_id,
         bookshelf_id=bookshelf_id,
@@ -498,7 +498,7 @@ async def public_observations(
     Public observations fetches anonymized community reviews
     for a list of works. Useful for decorating search results.
     """
-    return {"observations": {w: get_observation_metrics(w) for w in olid}}
+    return {"observations": {w: await get_observation_metrics(w) for w in olid}}
 
 
 class BestbookAwardResponse(BaseModel):
