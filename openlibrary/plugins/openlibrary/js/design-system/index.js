@@ -3,6 +3,7 @@
  * All progressive: the page is fully readable with this bundle absent.
  */
 import { olAlert, olConfirm } from '../../../../components/lit/alert-dialog.js';
+import { showToast } from '../../../../components/lit/toast.js';
 import { copyText } from '../copy-text.js';
 import { WHITE, compositeOver, contrastOn, luminanceFromCssColor, parseCssColor } from './contrast.js';
 
@@ -387,6 +388,16 @@ function initDialogHelperDemos(root) {
     });
 }
 
+/** The Toast demos call the real showToast(), which inline page scripts can't import. */
+function initToastDemos(root) {
+    root.querySelectorAll('[data-ds-toast], [data-ds-toast-template]').forEach(trigger => {
+        trigger.addEventListener('click', () => {
+            const { dsToast, dsToastTemplate, dsToastOptions } = trigger.dataset;
+            showToast(dsToastTemplate ? root.querySelector(dsToastTemplate) : dsToast, JSON.parse(dsToastOptions || '{}'));
+        });
+    });
+}
+
 export function initDesignSystem(root) {
     initCodeToggle(root);
     initCopy(root);
@@ -397,5 +408,6 @@ export function initDesignSystem(root) {
     initIconFilter(root);
     initIconPopover(root);
     initDialogHelperDemos(root);
+    initToastDemos(root);
     initPinnedMenus(root);
 }
