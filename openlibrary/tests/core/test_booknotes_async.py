@@ -1,7 +1,8 @@
 """Unit and integration tests for the async booknotes model."""
 
 import asyncio
-from datetime import datetime, timedelta
+import time
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
@@ -147,6 +148,25 @@ class TestBooknotesIntegration:
         assert updated.notes == "Updated 'note' — नया"
         assert updated.created == original_time
         assert updated.updated >= before
+
+    @pytest.mark.asyncio
+    async def test_add_stamps_utc_timestamps(self, pg_db, monkeypatch):
+        # Run the app and the DB session far from UTC so a local-time value would stand out.
+        monkeypatch.setenv("TZ", "Pacific/Kiritimati")  # UTC+14
+        monkeypatch.setenv("PGTZ", "Pacific/Kiritimati")  # libpq sets the session TimeZone from this
+        time.tzset()
+        try:
+            first = await Booknotes.add("alice", 1, "First note")
+            second = await Booknotes.add("alice", 1, "Second note")
+        finally:
+            monkeypatch.undo()
+            time.tzset()
+
+        utc_now = datetime.now(UTC).replace(tzinfo=None)
+        assert abs(first.created - utc_now) < timedelta(minutes=5)
+        assert abs(second.updated - utc_now) < timedelta(minutes=5)
+        assert second.created == first.created
+        assert second.updated >= first.updated
 
     @pytest.mark.asyncio
     async def test_add_leaves_other_users_works_and_editions_untouched(self, pg_db):
