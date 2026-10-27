@@ -601,9 +601,9 @@ class Bookshelves(db.CommonExtras):
         return result[0].bookshelf_id if result else None
 
     @classmethod
-    def user_has_read_work(cls, username: str, work_id: str) -> bool:
-        user_read_status = cls.get_users_read_status_of_work(username, work_id)
-        return user_read_status == cls.PRESET_BOOKSHELVES["Already Read"]
+    async def user_has_read_work(cls, username: str, work_id: str) -> bool:
+        user_read_statuses = await cls.get_users_read_status_of_works(username, [int(work_id)])
+        return any(status["bookshelf_id"] == cls.PRESET_BOOKSHELVES["Already Read"] for status in user_read_statuses)
 
     @classmethod
     async def get_users_read_status_of_works(cls, username: str, work_ids: list[int]) -> list[dict]:

@@ -617,19 +617,19 @@ class Work(Thing):
             return []
 
         work_id = extract_numeric_id_from_olid(self.key)
-        return Bestbook.get_awards(work_id)
+        return Bestbook.get_awards_sync(work_id)
 
     def check_if_user_awarded(self, username) -> bool:
         if not self.key:
             return False
         work_id = extract_numeric_id_from_olid(self.key)
-        return bool(Bestbook.get_awards(username=username, work_id=work_id))
+        return bool(Bestbook.get_awards_sync(username=username, work_id=work_id))
 
     def get_award_by_username(self, username):
         if not self.key:
             return None
         work_id = extract_numeric_id_from_olid(self.key)
-        awards = Bestbook.get_awards(username=username, work_id=work_id)
+        awards = Bestbook.get_awards_sync(username=username, work_id=work_id)
         return awards[0] if awards else None
 
     def _get_d(self):
@@ -744,7 +744,7 @@ class Work(Thing):
             r["occurrences"]["readinglog"] = len(Bookshelves.get_works_shelves(olid))
             r["occurrences"]["ratings"] = len(Ratings.get_all_works_ratings_sync(olid))
             r["occurrences"]["booknotes"] = len(Booknotes.get_booknotes_for_work_sync(olid))
-            r["occurrences"]["bestbooks"] = Bestbook.get_count(work_id=olid)
+            r["occurrences"]["bestbooks"] = Bestbook.get_count_sync(work_id=olid)
             r["occurrences"]["observations"] = len(Observations.get_observations_for_work(olid))
 
             if new_olid != olid:

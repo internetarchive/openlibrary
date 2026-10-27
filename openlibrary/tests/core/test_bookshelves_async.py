@@ -38,6 +38,22 @@ async def test_get_users_read_status_of_works_empty_skips_query(helpers):
     helpers.fetch_all.assert_not_awaited()
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("rows", "expected"),
+    [
+        ([{"work_id": 123, "bookshelf_id": 3}], True),
+        ([{"work_id": 123, "bookshelf_id": 1}], False),
+        ([], False),
+    ],
+)
+async def test_user_has_read_work_uses_async_read_status(rows, expected):
+    with patch.object(Bookshelves, "get_users_read_status_of_works", new_callable=AsyncMock, return_value=rows) as read_status:
+        assert await Bookshelves.user_has_read_work("alice", "123") is expected
+
+    read_status.assert_awaited_once_with("alice", [123])
+
+
 # --- Integration tests (real postgres, marked `integration`) -------------------
 
 

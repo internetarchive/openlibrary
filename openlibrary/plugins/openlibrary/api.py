@@ -363,7 +363,7 @@ class bestbook_award:
     """
 
     @staticmethod
-    def process_bestbook_award(work_id, op, edition_key, topic, comment, username):
+    async def process_bestbook_award(work_id, op, edition_key, topic, comment, username):
         OPS = ["add", "remove", "update"]
         edition_id = edition_key and int(extract_numeric_id_from_olid(edition_key))
         errors = []
@@ -373,11 +373,11 @@ class bestbook_award:
                 if op in ["add", "update"]:
                     # Make sure the topic is free
                     if op == "update":
-                        Bestbook.remove(username, topic=topic)
-                        Bestbook.remove(username, work_id=work_id)
+                        await Bestbook.remove(username, topic=topic)
+                        await Bestbook.remove(username, work_id=work_id)
                     return {
                         "success": True,
-                        "award": Bestbook.add(
+                        "award": await Bestbook.add(
                             username=username,
                             work_id=work_id,
                             edition_id=edition_id or None,
@@ -389,7 +389,7 @@ class bestbook_award:
                     # Remove any award this patron has given this work_id
                     return {
                         "success": True,
-                        "rows": Bestbook.remove(username, work_id=work_id),
+                        "rows": await Bestbook.remove(username, work_id=work_id),
                     }
                 else:
                     errors.append(f"Invalid op {op}: valid ops are {OPS}")
