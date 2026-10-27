@@ -173,6 +173,8 @@ Rows inside a panel — the menu, options, and select popovers, the browse popov
 - **Hover is `--color-hover-overlay`**, so it darkens whatever the panel is painted on. No press-scale — see [Press feedback](#press-feedback-self-contained-controls-squeeze-rows-and-surfaces-dont).
 - **Selected rows get no tint and no weight change.** The radio or checkbox already carries the state, and a tinted row looks hovered. Where there is no control (`ol-menu-popover`, the design nav) the label goes `--color-link` — color only, so nothing re-measures.
 
+The playground's *Menus and panels* check (`/developers/design/playground#menus`) pins the menu, options, select and bare popovers open side by side, which is where a row height, inset or indicator that has drifted shows up.
+
 ```css
 .item {
   min-height: var(--menu-row-height);
@@ -243,7 +245,7 @@ The three border weights are a scale, not three names for the same job. `--color
 
 You will find existing control borders on `--color-border-muted`. They were migrated at their original weight so the token rollout stayed a no-op; that they sit below 3:1 is a pre-existing gap to fix deliberately, not a precedent to copy.
 
-Selected has one look: `--color-control-selected-bg` with `--color-link` text, shared by `ol-button[selected]`, the toggle's button variant, the current pagination page, the Scorecard's active tab, and the editor's pressed toolbar buttons. A grey fill for "selected" is legacy, not a second option. The exception is a row inside a menu panel, where the radio or checkbox carries the state and the row itself stays untinted — see [Menu rows](#menu-rows).
+Selected has one look: `--color-control-selected-bg` with `--color-link` text, shared by `ol-button[selected]`, the toggle's button variant, the current pagination page, the Scorecard's active tab, and the editor's pressed toolbar buttons. A grey fill for "selected" is legacy, not a second option. The exception is a row inside a menu panel, where the radio or checkbox carries the state and the row itself stays untinted — see [Menu rows](#menu-rows). Every component's selected state stands beside the reference on the playground's *Selected look* check (`/developers/design/playground#selected-look`), grouped by the mechanism it actually uses; the *Surfaces and text* check beside it (`#surfaces`) paints each text token on each surface with its measured contrast.
 
 Hover has two tokens, split by mechanism rather than by surface. `--color-hover-overlay` is a translucent overlay for flat interactive rows (popover items, menu items, list rows) — it composes over whatever surface it lands on, so a row on `--color-surface-sunken` or `-header` still darkens instead of matching its own background. `--color-control-hover` is an opaque fill for raised controls, and must stay opaque: alpha fed to `--control-surface` inverts the specular highlight.
 
