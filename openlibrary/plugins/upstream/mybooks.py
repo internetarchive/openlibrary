@@ -225,7 +225,7 @@ class mybooks_feed(delegate.page):
     def GET(self, username):
         mb = MyBooksTemplate(username, key="feed")
         if mb.is_my_page:
-            docs = PubSub.get_feed(username)
+            docs = PubSub.get_feed_sync(username)
             doc_count = len(docs)
             meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(mb.me.key)
             template = render["account/reading_log"](
@@ -450,8 +450,8 @@ class MyBooksTemplate:
         self.selected_year = None
 
         if (self.me and self.is_my_page) or self.is_public:
-            self.counts["followers"] = PubSub.count_followers(self.username)
-            self.counts["following"] = PubSub.count_following(self.username)
+            self.counts["followers"] = PubSub.count_followers_sync(self.username)
+            self.counts["following"] = PubSub.count_following_sync(self.username)
 
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
@@ -813,7 +813,7 @@ class ActivityFeed:
         logged books.  Otherwise, the feed will contain events from the patron's
         `PubSub.get_feed` results.
         """
-        following = PubSub.is_following(username)
+        following = PubSub.is_following_sync(username)
         if following:
             feed = cls.get_cached_pub_sub_feed(username)
         else:
@@ -823,7 +823,7 @@ class ActivityFeed:
 
     @classmethod
     def get_pub_sub_feed(cls, username):
-        feed = PubSub.get_feed(username, limit=3)
+        feed = PubSub.get_feed_sync(username, limit=3)
         return feed
 
     @classmethod
