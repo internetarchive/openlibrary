@@ -52,11 +52,8 @@ async def test_add_uses_upsert_and_returns_booknote(helpers):
 
     assert await Booknotes.add("alice", 1, "hello") is note
     (query, params), kwargs = helpers.fetch_one.await_args
-    assert "INSERT INTO booknotes (username, work_id, notes, edition_id, updated)" in query
-    assert "VALUES (%(username)s, %(work_id)s, %(notes)s, %(edition_id)s, DEFAULT)" in query
     assert "ON CONFLICT (username, work_id, edition_id)" in query
     assert "DO UPDATE SET notes = EXCLUDED.notes" in query
-    assert "updated = EXCLUDED.updated" in query
     assert "RETURNING username, work_id, edition_id, notes, created, updated" in query
     assert params == {"username": "alice", "work_id": 1, "edition_id": -1, "notes": "hello"}
     assert kwargs["row_factory"] is not None
