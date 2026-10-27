@@ -605,14 +605,11 @@ class Bookshelves(db.CommonExtras):
         return user_read_status == cls.PRESET_BOOKSHELVES["Already Read"]
 
     @classmethod
-    def get_users_read_status_of_works(cls, username: str, work_ids: list[str] | list[int]) -> list:
-        oldb = db.get_db()
-        data = {
-            "username": username,
-            "work_ids": work_ids,
-        }
-        query = "SELECT work_id, bookshelf_id from bookshelves_books WHERE username=$username AND work_id IN $work_ids"
-        return list(oldb.query(query, vars=data))
+    async def get_users_read_status_of_works(cls, username: str, work_ids: list[int]) -> list[dict]:
+        if not work_ids:
+            return []
+        query = "SELECT work_id, bookshelf_id FROM bookshelves_books WHERE username = %(username)s AND work_id = ANY(%(work_ids)s)"
+        return await fetch_all(query, {"username": username, "work_ids": work_ids})
 
     @classmethod
     async def add(cls, username: str, bookshelf_id: str, work_id: str, edition_id=None) -> int:
@@ -658,7 +655,7 @@ class Bookshelves(db.CommonExtras):
             )
             await conn.execute(
                 "DELETE FROM bookshelves_events WHERE username = %(username)s AND work_id = %(work_id)s",
-                params,
+                {"username": username, "work_id": int(work_id)},
             )
         return deleted.rowcount or None
 
@@ -696,28 +693,6 @@ class Bookshelves(db.CommonExtras):
             return result if lazy else list(result)
         except Exception:
             return None
-
-    @classmethod
-    def get_num_users_by_bookshelf_by_work_id(cls, work_id: str) -> dict[int, int]:
-        """Returns a dict mapping a work_id to the
-        number of number of users who have placed that work_id in each shelf,
-        i.e. {bookshelf_id: count}.
-        """
-        oldb = db.get_db()
-        query = "SELECT bookshelf_id, count(*) as user_count from bookshelves_books where work_id=$work_id GROUP BY bookshelf_id"
-        result = oldb.query(query, vars={"work_id": int(work_id)})
-        return {i["bookshelf_id"]: i["user_count"] for i in result} if result else {}
-
-    @classmethod
-    def get_work_summary(cls, work_id: str) -> WorkReadingLogSummary:
-        shelf_id_to_count = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
-
-        result = {}
-        # Make sure all the fields are present
-        for shelf_name, shelf_id in Bookshelves.PRESET_BOOKSHELVES_JSON.items():
-            result[shelf_name] = shelf_id_to_count.get(shelf_id, 0)
-
-        return cast(WorkReadingLogSummary, result)
 
     @classmethod
     def user_with_most_books(cls) -> list:

@@ -74,7 +74,7 @@ class TestWorkBookshelvesPost:
         assert response.status_code == 200
         assert response.json() == {"bookshelves_affected": 1}
         remove_mock.assert_awaited_once_with(username="testuser", work_id="123", bookshelf_id="2")
-        delete_events_mock.assert_not_awaited()
+        delete_events_mock.assert_not_called()
         add_mock.assert_not_called()
 
     def test_post_toggles_current_bookshelf_off(self, fastapi_client, mock_authenticated_user, mock_bookshelves_model):
@@ -87,7 +87,7 @@ class TestWorkBookshelvesPost:
         assert response.status_code == 200
         assert response.json() == {"bookshelves_affected": 1}
         remove_mock.assert_awaited_once_with(username="testuser", work_id="123", bookshelf_id="2")
-        delete_events_mock.assert_not_awaited()
+        delete_events_mock.assert_not_called()
         add_mock.assert_not_called()
 
     def test_dont_remove_prevents_toggle_removal(self, fastapi_client, mock_authenticated_user, mock_bookshelves_model):

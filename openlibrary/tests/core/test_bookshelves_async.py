@@ -227,6 +227,7 @@ class TestPublicReadingLogIntegration:
         assert result.total_results == 1
         assert [doc.key for doc in result.docs] == ["/works/OL42W"]
 
+
 @pytest.fixture
 def db_connection():
     conn = SimpleNamespace(
@@ -315,7 +316,7 @@ async def test_remove_uses_optional_shelf_filter_and_deletes_events(db_connectio
     assert params == {"username": "alice", "work_id": 42, "bookshelf_id": 2}
     event_query, event_params = db_connection.execute.await_args_list[1].args
     assert event_query == "DELETE FROM bookshelves_events WHERE username = %(username)s AND work_id = %(work_id)s"
-    assert event_params == params
+    assert event_params == {"username": "alice", "work_id": 42}
 
 
 @pytest.mark.asyncio
