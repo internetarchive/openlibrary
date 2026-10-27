@@ -412,6 +412,9 @@ class TestIntegratedBookPageRendering:
 
         # Mock Ratings.get_rating_stats_sync to avoid async DB calls
         monkeypatch.setattr("openlibrary.core.ratings.Ratings.get_rating_stats_sync", lambda work_id: {"avg_rating": 4.0, "num_ratings": 10})
+        # Mock bookshelf summaries too: this template test uses a fake sync DB,
+        # while migrated bookshelf reads go through the async DB pool.
+        monkeypatch.setattr("openlibrary.core.bookshelves.Bookshelves.get_num_users_by_bookshelf_by_work_id_sync", lambda work_id: {})
 
         # The real book template now reads observation metrics through the async pool.
         # Keep this rendering test independent of async database configuration.
