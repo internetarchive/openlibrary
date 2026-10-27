@@ -25,7 +25,7 @@ from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.lending import add_availability, get_loan_history_data, get_loans_of_user
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
-from openlibrary.core.reading_state import ReadingState, get_reading_state
+from openlibrary.core.reading_state import ReadingState, get_reading_state_sync
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
@@ -609,19 +609,6 @@ class ReadingLog:
     get_works = async_bridge.wrap(get_works_async)
 
 
-@public
-def add_read_statuses(username, works):
-    work_ids = [extract_numeric_id_from_olid(work.key.split("/")[-1]) for work in works]
-    results = Bookshelves.get_users_read_status_of_works(username, work_ids)
-    results_map = {}
-    for result in results:
-        results_map[f"OL{result['work_id']}W"] = result["bookshelf_id"]
-    for work in works:
-        work_olid = work.key.split("/")[-1]
-        work["readinglog"] = results_map.get(work_olid)
-    return works
-
-
 def work_key_of(doc) -> str | None:
     """The work behind a doc: a work, an edition with its work, or an edition a carousel handed a `work_key`; None for anything else (an author, a subject)."""
     if not hasattr(doc, "get"):
@@ -736,7 +723,7 @@ def get_reading_states(user: User | None, docs) -> dict[str, ReadingState]:
         return {}
     keys = {key for doc in docs if (key := work_key_of(doc))}
     by_id = {int(extract_numeric_id_from_olid(key)): key for key in keys}
-    states = get_reading_state(user.key.split("/")[-1], list(by_id))
+    states = get_reading_state_sync(user.key.split("/")[-1], list(by_id))
     return {by_id[work_id]: state for work_id, state in states.items()}
 
 

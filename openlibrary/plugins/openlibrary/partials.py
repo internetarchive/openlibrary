@@ -138,9 +138,9 @@ class ReadingStatePartial:
     """The opening state for `<ol-shelf-button>`s the server rendered without it (carousels); book-state.js asks here."""
 
     @classmethod
-    def generate(cls, username: str, work_olids: list[str]) -> dict[str, ReadingState]:
+    async def generate_async(cls, username: str, work_olids: list[str]) -> dict[str, ReadingState]:
         work_ids = [int(extract_numeric_id_from_olid(olid)) for olid in work_olids]
-        return {f"OL{work_id}W": state for work_id, state in get_reading_state(username, work_ids).items()}
+        return {f"OL{work_id}W": state for work_id, state in (await get_reading_state(username, work_ids)).items()}
 
 
 class CarouselLoadMoreParams(BaseModel):
