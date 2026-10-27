@@ -8,7 +8,7 @@ import pytest
 from fastapi import FastAPI, Request, Response
 from fastapi.testclient import TestClient
 
-from openlibrary.fastapi.proxy import StatelessCookieJar, _rebase_redirect, proxy_to_webpy
+from openlibrary.fastapi.proxy import PROXY_TIMEOUT, StatelessCookieJar, _rebase_redirect, proxy_to_webpy
 
 
 def _make_app():
@@ -275,3 +275,57 @@ def test_cookie_header_is_forwarded_without_cookies_param():
     assert "cookies" not in fake_client.build_kwargs
     sent_headers = {k.lower(): v for k, v in fake_client.build_kwargs["headers"].items()}
     assert sent_headers["cookie"] == "session=abc; s3=xyz"
+
+
+# --- Production hardening tests (#13986) ---
+
+
+def test_timeout_returns_504():
+    """A timeout from web.py must return 504 Gateway Timeout, not 500."""
+
+    class TimingOutClient(FakeClient):
+        async def send(self, request, *, stream=False):
+            raise httpx.ReadTimeout("timed out")
+
+    fake_client = TimingOutClient(FakeResponse([b""]))
+
+    with _proxy_client(fake_client, raise_server_exceptions=False) as client:
+        response = client.get("/slow-page")
+
+    assert response.status_code == 504
+    assert fake_client.closed is False
+
+
+def test_connect_timeout_returns_504():
+    """A connect timeout must also return 504."""
+
+    class ConnectTimingOutClient(FakeClient):
+        async def send(self, request, *, stream=False):
+            raise httpx.ConnectTimeout("connection timed out")
+
+    fake_client = ConnectTimingOutClient(FakeResponse([b""]))
+
+    with _proxy_client(fake_client, raise_server_exceptions=False) as client:
+        response = client.get("/unreachable")
+
+    assert response.status_code == 504
+
+
+def test_proxy_timeout_is_finite():
+    """The proxy must use a finite timeout, not None (#13986)."""
+    assert PROXY_TIMEOUT.connect is not None
+    assert PROXY_TIMEOUT.read is not None
+    assert PROXY_TIMEOUT.write is not None
+    # Sanity: connect should be tighter than read
+    assert PROXY_TIMEOUT.connect < PROXY_TIMEOUT.read
+
+
+def test_sentry_tag_is_set_for_proxied_requests():
+    """Proxied requests must set the Sentry 'proxied' tag (#13986)."""
+    fake_client = FakeClient(FakeResponse([b"ok"]))
+
+    with patch("openlibrary.fastapi.proxy.sentry_sdk") as mock_sentry, _proxy_client(fake_client) as client:
+        response = client.get("/some/page")
+
+    assert response.status_code == 200
+    mock_sentry.set_tag.assert_called_with("proxied", True)

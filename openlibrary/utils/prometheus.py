@@ -51,7 +51,7 @@ logger = logging.getLogger("openlibrary.prometheus")
 # (The library's high-resolution histogram has one set of counts for the whole server.)
 LATENCY_BUCKETS = (0.025, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2.5, 5, 10, 30, 60)
 # Regexes, searched for in the handler name, as the instrumentator does
-EXCLUDED_HANDLERS = ("/health", "/metrics")
+EXCLUDED_HANDLERS = ("/health", "/metrics", r"/\{path")
 
 
 def request_metrics(server: Literal["fastapi", "webpy"], registry: CollectorRegistry = REGISTRY) -> Callable[[metrics.Info], None] | None:

@@ -1,7 +1,13 @@
-"""Proxy module for forwarding requests from FastAPI to web.py during local development."""
+"""Proxy module for forwarding requests from FastAPI to web.py.
+
+In local dev and testing this has been the front door since #13423 / #13516.
+Production uses the same proxy so that new FastAPI endpoints are reachable
+without touching the nginx path list in olsystem (#13986).
+"""
 
 from __future__ import annotations
 
+import logging
 from http.cookiejar import CookieJar
 from typing import TYPE_CHECKING
 from urllib.parse import urlsplit, urlunsplit
@@ -15,8 +21,16 @@ from openlibrary.utils.async_utils import cache_per_event_loop
 if TYPE_CHECKING:
     from fastapi import Request, Response
 
+logger = logging.getLogger("openlibrary.fastapi.proxy")
+
 # web.py's host as the proxy addresses it (see the upstream URL below).
 WEBPY_NETLOC = "web:8080"
+
+# A generous but finite timeout so a hung web.py response does not block a
+# FastAPI worker forever.  The connect timeout is tight (5 s) because web.py
+# is on the same host / Docker network; the read timeout is wide (300 s) to
+# match gunicorn's --timeout.  See #13986.
+PROXY_TIMEOUT = httpx.Timeout(connect=5.0, read=300.0, write=300.0, pool=None)
 
 
 class StatelessCookieJar(CookieJar):
@@ -29,11 +43,10 @@ class StatelessCookieJar(CookieJar):
         pass
 
 
-# This timeout would set a global OpenLibrary timeout for all requests, which this code shouldn't handle.
 get_async_session = cache_per_event_loop(
     lambda: httpx.AsyncClient(
         follow_redirects=False,
-        timeout=None,
+        timeout=PROXY_TIMEOUT,
         cookies=StatelessCookieJar(),
     )
 )
@@ -65,7 +78,15 @@ def _get_set_cookies(headers) -> list[str]:
 
 
 async def proxy_to_webpy(request: Request) -> Response:
-    """Forward request to web.py on http://web:8080."""
+    """Forward request to web.py on http://web:8080.
+
+    This is the production fallback: any request that no FastAPI route
+    handles is proxied here.  See #13986 for context.
+    """
+    import sentry_sdk  # noqa: PLC0415
+
+    sentry_sdk.set_tag("proxied", True)
+
     url = f"http://{WEBPY_NETLOC}{request.url.path}"
     if request.url.query:
         url += f"?{request.url.query}"
@@ -75,17 +96,22 @@ async def proxy_to_webpy(request: Request) -> Response:
 
     client = get_async_session()
     # Time until web.py's response headers arrive; the body streams afterwards.
-    with server_timing.timed("webpy-proxy") as call:
-        resp = await client.send(
-            client.build_request(
-                method=request.method,
-                url=url,
-                headers=headers,
-                content=request.stream(),
-            ),
-            stream=True,
-        )
-        call.failed = resp.status_code >= 500
+    try:
+        with server_timing.timed("webpy-proxy") as call:
+            resp = await client.send(
+                client.build_request(
+                    method=request.method,
+                    url=url,
+                    headers=headers,
+                    content=request.stream(),
+                ),
+                stream=True,
+            )
+            call.failed = resp.status_code >= 500
+    except httpx.TimeoutException:
+        logger.warning("Proxy timeout for %s %s", request.method, request.url.path)
+        return Response("Gateway Timeout", status_code=504)
+
     excluded = {"content-encoding", "transfer-encoding", "content-length", "x-served-by", "set-cookie"}
     filtered_headers = {k: v for k, v in resp.headers.items() if k.lower() not in excluded}
     filtered_headers["X-Proxied-By"] = "FastAPI"
@@ -111,7 +137,7 @@ async def proxy_to_webpy(request: Request) -> Response:
 
     response = StreamingResponse(stream_body(), status_code=resp.status_code, headers=filtered_headers)
 
-    # 2. Append all cookies cleanly so none are dropped
+    # Append all cookies cleanly so none are dropped.
     for cookie in _get_set_cookies(resp.headers):
         response.headers.append("set-cookie", cookie)
 
