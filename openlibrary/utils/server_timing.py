@@ -52,6 +52,10 @@ class RequestTimings:
         with self._lock:
             self._open.setdefault(threading.get_ident(), []).append((name, time.perf_counter()))
 
+    def _inside(self, name: str) -> bool:
+        with self._lock:
+            return any(open_name == name for open_name, _ in self._open.get(threading.get_ident(), ()))
+
     def _end(self) -> None:
         with self._lock:
             if not (stack := self._open.get(threading.get_ident())):
@@ -306,7 +310,8 @@ def install_legacy_bridge() -> None:
     """Time legacy code during FastAPI requests: infogami's ``stats.begin()/end()``
     (infobase, memcache), which would otherwise pile up in thread-local ``web.ctx``;
     every web.py DB query as ``db-legacy`` (``db-legacy-blocking`` when it runs on the
-    event loop, i.e. from an async route; the async pool reports ``db``); and every
+    event loop, i.e. from an async route, outside an infobase call; the async pool
+    reports ``db``); and every
     Templetor template or macro render as ``render-templetor``, whichever helper called it.
     infogami's ``end(error=True)`` is ignored: in-process infobase reports ordinary
     not-founds that way."""
@@ -329,7 +334,10 @@ def install_legacy_bridge() -> None:
 
     def _db_execute(self, cur, sql_query):
         # On the event loop (an async route), a sync query blocks every other request.
-        with timed("db-legacy-blocking" if _on_event_loop() else "db-legacy"):
+        # Infobase's in-process reads (hybrid connection) stay db-legacy: they're timed as infobase.
+        timings = _current.get()
+        blocking = _on_event_loop() and not (timings and timings._inside("infobase"))
+        with timed("db-legacy-blocking" if blocking else "db-legacy"):
             return original_db_execute(self, cur, sql_query)
 
     def template_call(self, *a, **kw):
