@@ -8,6 +8,7 @@ from typing import Any, Literal, TypedDict, cast
 import web
 
 from infogami.infobase.utils import flatten
+from openlibrary.core.async_db import fetch_all, fetch_val
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
@@ -178,28 +179,21 @@ class Bookshelves(db.CommonExtras):
         with the option of limiting the count to specific bookshelves
         by `bookshelf_id`
         """
-        return sum(cls.count_total_books_logged_by_user_per_shelf(username, bookshelf_ids=bookshelf_ids).values())
+        return sum(cls.count_total_books_logged_by_user_per_shelf_sync(username, bookshelf_ids=bookshelf_ids).values())
 
     @classmethod
-    def count_user_books_on_shelf(
+    async def count_user_books_on_shelf(
         cls,
         username: str,
         bookshelf_id: int,
     ) -> int:
-        result = db.get_db().query(
-            """
-            SELECT count(*) from bookshelves_books
-            WHERE bookshelf_id=$bookshelf_id AND username=$username
-            """,
-            vars={
-                "bookshelf_id": bookshelf_id,
-                "username": username,
-            },
+        return await fetch_val(
+            "SELECT count(*) FROM bookshelves_books WHERE bookshelf_id = %(bookshelf_id)s AND username = %(username)s",
+            {"bookshelf_id": bookshelf_id, "username": username},
         )
-        return result[0].count if result else 0
 
     @classmethod
-    def count_total_books_logged_by_user_per_shelf(cls, username: str, bookshelf_ids: list[str] | None = None) -> dict[int, int]:
+    async def count_total_books_logged_by_user_per_shelf(cls, username: str, bookshelf_ids: list[str] | None = None) -> dict[int, int]:
         """Returns a dict mapping the specified user's bookshelves_ids to the
         number of number of books logged per each shelf, i.e. {bookshelf_id:
         count}. By default, we limit bookshelf_ids to those in PRESET_BOOKSHELVES
@@ -209,16 +203,22 @@ class Bookshelves(db.CommonExtras):
         notified of books they log. Also add to
         count_total_books_logged_by_user
         """
-        oldb = db.get_db()
-        data = {"username": username}
-        _bookshelf_ids = ",".join([str(x) for x in bookshelf_ids or cls.PRESET_BOOKSHELVES.values()])
         query = (
-            "SELECT bookshelf_id, count(*) from bookshelves_books WHERE "
-            "bookshelf_id=ANY('{" + _bookshelf_ids + "}'::int[]) "
-            "AND username=$username GROUP BY bookshelf_id"
+            "SELECT bookshelf_id, count(*) AS count FROM bookshelves_books "
+            "WHERE bookshelf_id = ANY(%(bookshelf_ids)s) AND username = %(username)s GROUP BY bookshelf_id"
         )
-        result = oldb.query(query, vars=data)
-        return {i["bookshelf_id"]: i["count"] for i in result} if result else {}
+        rows = await fetch_all(
+            query,
+            {
+                "username": username,
+                "bookshelf_ids": [int(shelf_id) for shelf_id in (bookshelf_ids or cls.PRESET_BOOKSHELVES.values())],
+            },
+        )
+        return {row["bookshelf_id"]: row["count"] for row in rows}
+
+    @classmethod
+    def count_total_books_logged_by_user_per_shelf_sync(cls, username: str, bookshelf_ids: list[str] | None = None) -> dict[int, int]:
+        return async_bridge.run(cls.count_total_books_logged_by_user_per_shelf(username, bookshelf_ids))
 
     # Iterates through a list of solr docs, and for all items with a 'logged edition'
     # it will remove an item with the matching edition key from the list, and add it to
@@ -365,8 +365,7 @@ class Bookshelves(db.CommonExtras):
         from openlibrary.core.models import LoggedBooksData
         from openlibrary.plugins.worksearch.code import run_solr_query_async
 
-        shelf_totals = cls.count_total_books_logged_by_user_per_shelf(username)
-        oldb = db.get_db()
+        shelf_totals = await cls.count_total_books_logged_by_user_per_shelf(username)
         page = int(page or 1)
         query_params: dict[str, str | int | None] = {
             "username": username,
@@ -383,16 +382,16 @@ class Bookshelves(db.CommonExtras):
             logged_date: datetime
             edition_id: str
 
-        def add_reading_log_data(reading_log_books: list[web.storage], solr_docs: list[web.storage]):
+        def add_reading_log_data(reading_log_books: list[dict], solr_docs: list[web.storage]):
             """
             Adds data from ReadingLogItem to the Solr responses so they have the logged
             date and edition ID.
             """
             # Create a mapping of work keys to ReadingLogItem from the reading log DB.
             reading_log_store: dict[str, ReadingLogItem] = {
-                f"/works/OL{book.work_id}W": ReadingLogItem(
-                    logged_date=book.created,
-                    edition_id=(f"/books/OL{book.edition_id}M" if book.edition_id is not None else ""),
+                f"/works/OL{book['work_id']}W": ReadingLogItem(
+                    logged_date=book["created"],
+                    edition_id=(f"/books/OL{book['edition_id']}M" if book["edition_id"] is not None else ""),
                 )
                 for book in reading_log_books
             }
@@ -424,9 +423,9 @@ class Bookshelves(db.CommonExtras):
             # Filtering by query needs all of a user's added works from the reading
             # log DB, not just a page of them. The logged work IDs are used to query
             # Solr, which searches for matches related to those work IDs.
-            query = "SELECT work_id, created, edition_id from bookshelves_books WHERE bookshelf_id=$bookshelf_id AND username=$username"
+            query = "SELECT work_id, created, edition_id FROM bookshelves_books WHERE bookshelf_id = %(bookshelf_id)s AND username = %(username)s"
 
-            reading_log_books: list[web.storage] = list(oldb.query(query, vars=query_params))
+            reading_log_books = await fetch_all(query, query_params)
 
             work_to_edition_keys = {"/works/OL%sW" % i["work_id"]: "/books/OL%sM" % i["edition_id"] for i in reading_log_books}
 
@@ -489,24 +488,26 @@ class Bookshelves(db.CommonExtras):
                 FROM bookshelves_books b
                 INNER JOIN bookshelves_events e
                 ON b.work_id = e.work_id AND b.username = e.username
-                WHERE b.username = $username
-                AND e.event_date LIKE $checkin_year || '%'
+                WHERE b.username = %(username)s
+                AND e.event_date LIKE %(checkin_year)s
                 ORDER BY b.created DESC
                 """
             else:
                 query = (
-                    "SELECT work_id, created, edition_id from bookshelves_books WHERE "
-                    "bookshelf_id=$bookshelf_id AND username=$username "
+                    "SELECT work_id, created, edition_id FROM bookshelves_books WHERE "
+                    "bookshelf_id = %(bookshelf_id)s AND username = %(username)s "
                     f"ORDER BY created {'DESC' if sort == 'created desc' else 'ASC'} "
-                    "LIMIT $limit OFFSET $offset"
+                    "LIMIT %(limit)s OFFSET %(offset)s"
                 )
 
             if not bookshelf_id:
-                query = "SELECT * from bookshelves_books WHERE username=$username"
+                query = "SELECT work_id, created, edition_id FROM bookshelves_books WHERE username = %(username)s"
                 # XXX Removing limit, offset, etc from data looks like a bug
                 # unrelated / not fixing in this PR.
                 query_params = {"username": username}
-            reading_log_books: list[web.storage] = list(oldb.query(query, vars=query_params))
+            elif checkin_year:
+                query_params["checkin_year"] = f"{checkin_year}%"
+            reading_log_books = await fetch_all(query, query_params)
 
             reading_log_keys = [
                 (["/works/OL%sW" % i["work_id"], "/books/OL%sM" % i["edition_id"]] if i["edition_id"] else ["/works/OL%sW" % i["work_id"], ""])
