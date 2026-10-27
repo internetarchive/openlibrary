@@ -609,19 +609,6 @@ class ReadingLog:
     get_works = async_bridge.wrap(get_works_async)
 
 
-@public
-def add_read_statuses(username, works):
-    work_ids = [extract_numeric_id_from_olid(work.key.split("/")[-1]) for work in works]
-    results = Bookshelves.get_users_read_status_of_works_sync(username, work_ids)
-    results_map = {}
-    for result in results:
-        results_map[f"OL{result['work_id']}W"] = result["bookshelf_id"]
-    for work in works:
-        work_olid = work.key.split("/")[-1]
-        work["readinglog"] = results_map.get(work_olid)
-    return works
-
-
 def work_key_of(doc) -> str | None:
     """The work behind a doc: a work, an edition with its work, or an edition a carousel handed a `work_key`; None for anything else (an author, a subject)."""
     if not hasattr(doc, "get"):

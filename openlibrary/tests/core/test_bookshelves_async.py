@@ -31,15 +31,6 @@ async def test_get_users_read_status_of_works_uses_any(helpers):
 
 
 @pytest.mark.asyncio
-async def test_get_users_read_status_of_works_coerces_string_olids(helpers):
-    helpers.fetch_all.return_value = []
-
-    assert await Bookshelves.get_users_read_status_of_works("alice", ["1", "2"]) == []
-    (_query, params), _kwargs = helpers.fetch_all.await_args
-    assert params == {"username": "alice", "work_ids": [1, 2]}
-
-
-@pytest.mark.asyncio
 async def test_get_users_read_status_of_works_empty_skips_query(helpers):
     assert await Bookshelves.get_users_read_status_of_works("alice", []) == []
     helpers.fetch_all.assert_not_awaited()
@@ -64,6 +55,4 @@ class TestBookshelvesReadStatusIntegration:
             {"work_id": 1, "bookshelf_id": 3},
             {"work_id": 2, "bookshelf_id": 1},
         ]
-        # String OLIDs from routes behave exactly like ints.
-        assert await Bookshelves.get_users_read_status_of_works("alice", ["1", "3"]) == [{"work_id": 1, "bookshelf_id": 3}]
         assert await Bookshelves.get_users_read_status_of_works("nobody", [1, 2, 3]) == []

@@ -606,15 +606,11 @@ class Bookshelves(db.CommonExtras):
         return user_read_status == cls.PRESET_BOOKSHELVES["Already Read"]
 
     @classmethod
-    async def get_users_read_status_of_works(cls, username: str, work_ids: list[str] | list[int]) -> list[dict]:
+    async def get_users_read_status_of_works(cls, username: str, work_ids: list[int]) -> list[dict]:
         if not work_ids:
             return []
         query = "SELECT work_id, bookshelf_id FROM bookshelves_books WHERE username = %(username)s AND work_id = ANY(%(work_ids)s)"
-        return await fetch_all(query, {"username": username, "work_ids": [int(work_id) for work_id in work_ids]})
-
-    @classmethod
-    def get_users_read_status_of_works_sync(cls, username: str, work_ids: list[str] | list[int]) -> list[dict]:
-        return async_bridge.run(cls.get_users_read_status_of_works(username, work_ids))
+        return await fetch_all(query, {"username": username, "work_ids": work_ids})
 
     @classmethod
     def add(cls, username: str, bookshelf_id: str, work_id: str, edition_id=None) -> None:

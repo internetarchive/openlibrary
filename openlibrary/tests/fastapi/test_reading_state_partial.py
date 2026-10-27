@@ -17,7 +17,7 @@ class TestReadingStatePartial:
             1: {"shelf": 2, "rating": None, "read_date": None, "event_id": None},
             2: {"shelf": 3, "rating": 5, "read_date": "2026-08", "event_id": 7},
         }
-        with patch("openlibrary.plugins.openlibrary.partials.get_reading_state", new_callable=AsyncMock, return_value={1: states[1], 2: states[2]}) as get_state:
+        with patch("openlibrary.plugins.openlibrary.partials.get_reading_state", new_callable=AsyncMock, return_value=states) as get_state:
             response = fastapi_client.get(URL, params={"work_ids": "OL1W,OL2W"})
 
         assert response.status_code == 200
