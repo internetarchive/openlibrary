@@ -1,7 +1,30 @@
 // @ts-check
 import { uniqBy } from './nonjquery_utils.js';
-import Chart from 'chart.js';
-import 'chartjs-plugin-datalabels';
+import { BarController, BarElement, CategoryScale, Chart, LinearScale } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+
+Chart.register(BarController, BarElement, CategoryScale, LinearScale);
+
+const ROW_HEIGHT = 28;
+// Room past the longest bar for its count
+const COUNT_GUTTER = 32;
+
+/**
+ * Shorten a label with an ellipsis until it fits, so Chart.js doesn't clip it at the canvas edge
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {string} label
+ * @param {number} maxWidth
+ */
+function truncateToWidth(ctx, label, maxWidth) {
+    ctx.save();
+    ctx.font = `${Chart.defaults.font.size}px ${Chart.defaults.font.family}`;
+    let text = label;
+    while (text.length > 1 && ctx.measureText(text.length < label.length ? `${text}…` : text).width > maxWidth) {
+        text = text.slice(0, -1);
+    }
+    ctx.restore();
+    return text.length < label.length ? `${text.trimEnd()}…` : label;
+}
 
 /**
  * @typedef {object} Work
@@ -36,7 +59,49 @@ import 'chartjs-plugin-datalabels';
  * @param {Config} config
  */
 export function init(config) {
-    Chart.scaleService.updateScaleDefaults('linear', { ticks: { beginAtZero: true, stepSize: 1 } });
+    const tokens = getComputedStyle(document.documentElement);
+    const token = name => tokens.getPropertyValue(name).trim();
+    const barColor = token('--color-chart-bar');
+    const selectedBarColor = token('--color-chart-bar-selected');
+    Chart.defaults.font.family = token('--font-family-body');
+    Chart.defaults.font.size = parseInt(token('--font-size-body-small'));
+    Chart.defaults.color = token('--color-text-secondary');
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) Chart.defaults.animation = false;
+    /** @type {Chart[]} */
+    const charts = [];
+    const selectedWorks = /** @type {HTMLDetailsElement} */ (document.querySelector('.selected-works'));
+    const selectedWorksList = selectedWorks.querySelector('.selected-works__list');
+    const selectedWorksHint = /** @type {HTMLElement} */ (selectedWorks.querySelector('.selected-works__hint'));
+    const selectedWorksHeading = /** @type {HTMLElement} */ (selectedWorks.querySelector('.selected-works__heading'));
+    const selectedWorksSelection = selectedWorks.querySelector('.selected-works__selection');
+    // With nothing selected the panel has nothing to show, so its header shouldn't open it
+    selectedWorks.querySelector('summary').addEventListener('click', event => {
+        if (!selected) event.preventDefault();
+    });
+    /** @type {{chart: Chart, index: number} | null} */
+    let selected = null;
+
+    /**
+     * Select one bar (or none) across every chart, since the works list shows a single selection
+     * @param {Chart} [selectedChart]
+     * @param {number} [selectedIndex]
+     * @param {[string, Work[]]} [bar] the selected bar's label and works
+     */
+    function selectBar(selectedChart, selectedIndex, bar) {
+        selected = selectedChart ? { chart: selectedChart, index: selectedIndex } : null;
+        for (const chart of charts) {
+            const dataset = chart.data.datasets[0];
+            dataset.backgroundColor = dataset.data.map((_, i) => (chart === selectedChart && i === selectedIndex ? selectedBarColor : barColor));
+            chart.update('none');
+        }
+        // The full label, since the chart axis may show it shortened
+        selectedWorksSelection.textContent = bar ? `${bar[0]} (${bar[1].length})` : '';
+        selectedWorksHint.hidden = Boolean(bar);
+        selectedWorksHeading.hidden = !bar;
+        selectedWorksList.innerHTML = bar ? window.render_works_list(bar[1]) : '';
+        // Open the panel to show a new selection, and collapse it when the selection is cleared
+        selectedWorks.open = Boolean(bar);
+    }
     const authors_by_id = Object.fromEntries(config.authors.map(a => [a.key, a]));
 
     /**
@@ -69,46 +134,74 @@ export function init(config) {
         const bars = Object.entries(grouped)
             .sort((a, b) => b[1].length - a[1].length)
             .slice(0, 20);
-        canvas.height = bars.length * 20 + 5;
-        canvas.width = 400;
-        new Chart(canvas.getContext('2d'), {
-            type: 'horizontalBar',
+        // Let Chart.js size the canvas to the wrapper so its click hit-testing matches what is drawn
+        /** @type {HTMLElement} */ (canvas.parentElement).style.height = `${bars.length * ROW_HEIGHT + 8}px`;
+        canvas.setAttribute('role', 'img');
+        canvas.setAttribute('aria-label', `${chartConfig.title}: ${bars.map(([label, works]) => `${label} (${works.length})`).join(', ')}`);
+        const chart = new Chart(canvas, {
+            type: 'bar',
+            plugins: [ChartDataLabels],
             data: {
                 labels: bars.map(b => b[0]),
                 datasets: [
                     {
-                        backgroundColor: 'rgb(255, 99, 132)',
-                        borderColor: 'rgb(255, 99, 132)',
-                        borderWidth: 0,
+                        backgroundColor: barColor,
+                        hoverBackgroundColor: selectedBarColor,
+                        borderRadius: 4,
+                        maxBarThickness: 20,
+                        categoryPercentage: 0.7,
+                        barPercentage: 1,
                         data: bars.map(b => b[1].length)
                     }
                 ]
             },
             options: {
-                responsive: false,
-                legend: { display: false },
+                indexAxis: 'y',
+                maintainAspectRatio: false,
+                layout: { padding: { right: COUNT_GUTTER } },
                 scales: {
-                    xAxes: [{ display: false }],
-                    yAxes: [{ barPercentage: 1, gridLines: { display: false }, stacked: true }]
+                    x: { display: false },
+                    y: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            // Chart.js caps the label column at half the width left after layout padding;
+                            // leave room for the tick padding inside it
+                            callback(value) {
+                                return truncateToWidth(this.ctx, this.getLabelForValue(Number(value)), (this.chart.width - COUNT_GUTTER) / 2 - 12);
+                            }
+                        }
+                    }
+                },
+                // Pick the nearest bar by height, so a tap anywhere across a row counts, not just on the bar
+                interaction: { axis: 'y', intersect: false },
+                // Leave out Chart.js's default touchstart/touchmove: they hover-highlight whatever bar a scroll
+                // starts on, and touch never sends the mouseout that would clear it. Taps still arrive as clicks.
+                events: ['mousemove', 'mouseout', 'click'],
+                onHover: (e, elements) => {
+                    canvas.style.cursor = elements.length ? 'pointer' : 'default';
                 },
                 onClick: (e, [chartEl]) => {
-                    if (chartEl) {
-                        const bar = bars[chartEl._index];
-                        document.querySelector('.selected-works--list').innerHTML = window.render_works_list(bar[1]);
+                    // Tapping the selected bar again clears the selection
+                    if (!chartEl || (selected?.chart === chart && selected.index === chartEl.index)) {
+                        selectBar();
                     } else {
-                        document.querySelector('.selected-works--list').innerHTML = '';
+                        selectBar(chart, chartEl.index, bars[chartEl.index]);
                     }
                 },
                 plugins: {
+                    tooltip: { enabled: false },
                     datalabels: {
-                        color: '#FFF',
+                        color: token('--color-text'),
+                        font: { weight: 600 },
                         anchor: 'end',
-                        align: 'left',
-                        offset: 0
+                        align: 'end',
+                        offset: 4
                     }
                 }
             }
         });
+        charts.push(chart);
 
         container.insertAdjacentHTML('beforeend', window.render_excluded_works_list(excluded, config.works.length));
     }
@@ -206,13 +299,17 @@ export function init(config) {
 
     for (const container of document.querySelectorAll(config.charts_selector)) {
         const chartConfig = JSON.parse(container.dataset['config']);
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'relative';
         const canvas = document.createElement('canvas');
-        container.append(canvas);
+        wrapper.append(canvas);
+        container.append(wrapper);
 
+        // Wait for the web font so canvas text isn't drawn in the fallback face
         if (chartConfig.type === 'work-chart') {
-            createWorkChart(config, chartConfig, container, canvas);
+            document.fonts.ready.then(() => createWorkChart(config, chartConfig, container, canvas));
         } else if (chartConfig.type === 'wd-chart') {
-            wdPromise.then(() => createWorkChart(config, chartConfig, container, canvas));
+            Promise.all([wdPromise, document.fonts.ready]).then(() => createWorkChart(config, chartConfig, container, canvas));
         }
     }
 }

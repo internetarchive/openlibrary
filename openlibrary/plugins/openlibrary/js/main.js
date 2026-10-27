@@ -50,18 +50,13 @@ initAnalytics();
 
 // Initialise some things
 $(function () {
-    const $tabs = $('.ol-tabs');
-    if ($tabs.length) {
-        import('./tabs').then(module => module.initTabs($tabs));
-    }
-
     const $autocomplete = $('.multi-input-autocomplete');
     if ($autocomplete.length) {
         import('./autocomplete').then(module => module.init($));
     }
 
     // Open Library Tasks pages (/tasks)
-    if (document.querySelector('[data-contribute-list], [data-contribute-task], [data-contribute-done]')) {
+    if (document.querySelector('[data-contribute-list], [data-contribute-landing], [data-contribute-task], [data-contribute-done]')) {
         import('./contribute').then(module => module.init());
     }
 
@@ -209,8 +204,13 @@ $(function () {
             module.initialzeCarousels(carouselElements);
         });
     }
-    if ($('script[type="text/json+graph"]').length > 0) {
-        import('./graphs').then(module => module.init());
+    if (document.getElementById('chartPubHistory')) {
+        import('./publishing_history').then(module => module.init());
+    }
+
+    const importsChart = document.getElementById('books-added-per-day');
+    if (importsChart) {
+        import('./imports_chart').then(module => module.init(importsChart));
     }
 
     const readingLogCharts = document.querySelector('.readinglog-charts');
@@ -381,7 +381,7 @@ $(function () {
     }
 
     // Shelf buttons: hydrate the ones the server rendered without state and keep every copy of a book in step.
-    if (document.querySelector('ol-shelf-button, .lazy-carousel')) {
+    if (document.querySelector('ol-shelf-button, .lazy-carousel, .browse-stacks')) {
         import('./book-state').then(module => module.initBookState());
     }
 
@@ -600,6 +600,12 @@ $(function () {
     const followForms = document.querySelectorAll('.follow-form');
     if (followForms.length) {
         import('./following').then(module => module.initAsyncFollowing(followForms));
+    }
+
+    // Home page "Browse the stacks" genre tiles
+    const browseStacks = document.querySelector('.browse-stacks');
+    if (browseStacks) {
+        import('./browse-stacks').then(module => module.initBrowseStacks(browseStacks));
     }
 
     // Generalized carousel lazy-loading

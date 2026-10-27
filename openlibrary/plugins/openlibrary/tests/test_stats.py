@@ -3,7 +3,7 @@ Tests the stats gathering systems.
 """
 
 import calendar
-import datetime
+import datetime as dt
 
 from openlibrary.core.admin import Stats
 
@@ -68,13 +68,13 @@ def test_status_total():
 
 def test_status_timerange():
     "Tests the stats container with a time X-axis"
-    d = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    d = dt.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     ipdata = []
     expected_op = []
     for i in range(10):
         doc = MockDoc(_id=d.strftime("counts-%Y-%m-%d"), foo=1)
         ipdata.append(doc)
         expected_op.append([calendar.timegm(d.timetuple()) * 1000, 1])
-        d += datetime.timedelta(days=1)
+        d += dt.timedelta(days=1)
     s = Stats(ipdata, "foo", "nothing")
     assert s.get_counts(10, True) == expected_op[:10]

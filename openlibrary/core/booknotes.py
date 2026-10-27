@@ -1,6 +1,23 @@
+from dataclasses import dataclass
+from datetime import datetime
+
+from openlibrary.core.async_db import class_row, execute, fetch_all, fetch_one, fetch_val
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
+
+
+@dataclass(frozen=True, slots=True)
+class Booknote:
+    """A row from the ``booknotes`` table."""
+
+    username: str
+    work_id: int
+    edition_id: int
+    notes: str
+    created: datetime | None
+    updated: datetime | None
 
 
 class Booknotes(db.CommonExtras):
@@ -10,205 +27,161 @@ class Booknotes(db.CommonExtras):
     ALLOW_DELETE_ON_CONFLICT = False
 
     @classmethod
-    def summary(cls) -> dict:
+    async def summary(cls) -> dict:
+        query = f"""
+            SELECT
+                count(*) AS total_notes,
+                count(*) FILTER (WHERE created >= %(month_ago)s) AS month_notes,
+                count(*) FILTER (WHERE created >= %(week_ago)s) AS week_notes,
+                count(DISTINCT username) AS total_users,
+                count(DISTINCT username) FILTER (WHERE created >= %(month_ago)s) AS month_users,
+                count(DISTINCT username) FILTER (WHERE created >= %(week_ago)s) AS week_users
+            FROM {cls.TABLENAME}
+        """
+        row = await fetch_one(
+            query,
+            {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO},
+        )
+        assert row is not None
         return {
             "total_notes_created": {
-                "total": cls.total_booknotes(),
-                "month": cls.total_booknotes(since=DATE_ONE_MONTH_AGO),
-                "week": cls.total_booknotes(since=DATE_ONE_WEEK_AGO),
+                "total": row["total_notes"],
+                "month": row["month_notes"],
+                "week": row["week_notes"],
             },
             "total_note_takers": {
-                "total": cls.total_unique_users(),
-                "month": cls.total_unique_users(since=DATE_ONE_MONTH_AGO),
-                "week": cls.total_unique_users(since=DATE_ONE_WEEK_AGO),
+                "total": row["total_users"],
+                "month": row["month_users"],
+                "week": row["week_users"],
             },
         }
 
     @classmethod
-    def total_booknotes(cls, since=None) -> int:
-        oldb = db.get_db()
-        query = f"SELECT count(*) from {cls.TABLENAME}"
-        if since:
-            query += " WHERE created >= $since"
-        results = oldb.query(query, vars={"since": since})
-        return results[0]["count"] if results else 0
+    def summary_sync(cls) -> dict:
+        """Sync version for legacy callers and tests."""
+        return async_bridge.run(cls.summary())
 
     @classmethod
-    def total_unique_users(cls, since=None) -> int:
-        """Returns the total number of unique patrons who have made
-        booknotes. `since` may be provided to only return the number of users after
-        a certain datetime.date.
-
-        XXX: This function is identical in all but docstring and db
-        tablename from Bookshelves. This makes @mek think both classes
-        could inherit a common BookDBModel class. Will try to keep
-        this in mind and design accordingly
-        """
-        oldb = db.get_db()
-        query = "select count(DISTINCT username) from booknotes"
-        if since:
-            query += " WHERE created >= $since"
-        results = oldb.query(query, vars={"since": since})
-        return results[0]["count"] if results else 0
+    async def get_booknotes_for_work(cls, work_id: int) -> list[Booknote]:
+        query = f"SELECT username, work_id, edition_id, notes, created, updated FROM {cls.TABLENAME} WHERE work_id = %(work_id)s"
+        return await fetch_all(query, {"work_id": work_id}, row_factory=class_row(Booknote))
 
     @classmethod
-    def most_notable_books(cls, limit=10, since=False):
-        """Across all patrons"""
-        oldb = db.get_db()
-        query = "select work_id, count(*) as cnt from booknotes"
-        if since:
-            query += " AND created >= $since"
-        query += " group by work_id order by cnt desc limit $limit"
-        return list(oldb.query(query, vars={"limit": limit, "since": since}))
+    def get_booknotes_for_work_sync(cls, work_id: int) -> list[Booknote]:
+        """Sync version for legacy callers and tests."""
+        return async_bridge.run(cls.get_booknotes_for_work(work_id))
 
     @classmethod
-    def get_booknotes_for_work(cls, work_id):
-        oldb = db.get_db()
-        query = "SELECT * from booknotes where work_id=$work_id"
-        return list(oldb.query(query, vars={"work_id": work_id}))
+    async def count_works_with_notes_by_user(cls, username: str) -> int:
+        count = await fetch_val(
+            f"SELECT COUNT(DISTINCT work_id) FROM {cls.TABLENAME} WHERE username = %(username)s",
+            {"username": username},
+        )
+        return count or 0
 
     @classmethod
-    def count_total_booksnotes_by_user(cls, username):
-        """Counts the (int) total number of books logged by this `username`"""
-        oldb = db.get_db()
-        data = {"username": username}
-        query = "SELECT count(*) from booknotes WHERE username=$username"
-        return oldb.query(query, vars=data)[0]["count"]
+    def count_works_with_notes_by_user_sync(cls, username: str) -> int:
+        """Sync version for legacy callers and tests."""
+        return async_bridge.run(cls.count_works_with_notes_by_user(username))
 
     @classmethod
-    def count_works_with_notes_by_user(cls, username):
-        """
-        Counts the total number of works logged by this 'username'
-        """
-        oldb = db.get_db()
-        data = {"username": username}
-        query = """
-            SELECT
-                COUNT(DISTINCT(work_id))
-            FROM booknotes
-            WHERE username=$username
-        """
-        return oldb.query(query, vars=data)[0]["count"]
+    async def get_patron_booknote(cls, username: str, work_id: int, edition_id: int = NULL_EDITION_VALUE) -> Booknote | None:
+        notes = await cls.get_patron_booknotes(username, work_id=work_id, edition_id=edition_id, limit=1)
+        return notes[0] if notes else None
 
     @classmethod
-    def get_patron_booknote(cls, username, work_id, edition_id=NULL_EDITION_VALUE):
-        note = cls.get_patron_booknotes(username, work_id=work_id, edition_id=edition_id)
-        return note and note[0]
+    def get_patron_booknote_sync(cls, username: str, work_id: int, edition_id: int = NULL_EDITION_VALUE) -> Booknote | None:
+        """Sync version for legacy callers and tests."""
+        return async_bridge.run(cls.get_patron_booknote(username, work_id, edition_id))
 
     @classmethod
-    def get_patron_booknotes(
+    async def get_patron_booknotes(
         cls,
-        username,
-        work_id=None,
-        edition_id=NULL_EDITION_VALUE,
-        search=None,
-        limit=100,
-        page=1,
-    ):
-        """By default, get all a patron's booknotes. if work_id, get book
-        note for that work_id and edition_id.
-        """
-        oldb = db.get_db()
+        username: str,
+        work_id: int | None = None,
+        edition_id: int = NULL_EDITION_VALUE,
+        search: str | None = None,
+        limit: int = 100,
+        page: int = 1,
+    ) -> list[Booknote]:
         page = int(page) if page else 1
-        data = {
+        params = {
             "username": username,
             "work_id": work_id,
             "edition_id": edition_id,
             "limit": limit,
             "offset": limit * (page - 1),
-            "search": search,
+            "search_pattern": f"%{search}%" if search else None,
         }
-        query = "SELECT * from booknotes WHERE username=$username "
+        query = f"SELECT username, work_id, edition_id, notes, created, updated FROM {cls.TABLENAME} WHERE username = %(username)s "
         if work_id:
-            query += "AND work_id=$work_id AND edition_id=$edition_id "
+            query += "AND work_id = %(work_id)s AND edition_id = %(edition_id)s "
         if search:
-            data["search_pattern"] = f"%{search}%"
-            query += "AND notes LIKE $search_pattern "
-        query += "LIMIT $limit OFFSET $offset"
-        return list(oldb.query(query, vars=data))
+            query += "AND notes LIKE %(search_pattern)s "
+        query += "LIMIT %(limit)s OFFSET %(offset)s"
+        return await fetch_all(query, params, row_factory=class_row(Booknote))
 
     @classmethod
-    def get_notes_grouped_by_work(cls, username, limit=25, page=1):
-        """
-        Returns a list of book notes records, which are grouped by work_id.
-        The 'notes' field contains a JSON string consisting of 'edition_id'/
-        book note key-value pairs.
-
-        return: List of records grouped by works.
-        """
-        oldb = db.get_db()
-        data = {"username": username, "limit": limit, "offset": limit * (page - 1)}
-        query = """
+    async def get_notes_grouped_by_work(cls, username: str, limit: int = 25, page: int = 1) -> list[dict]:
+        params = {"username": username, "limit": limit, "offset": limit * (page - 1)}
+        query = f"""
             SELECT
                 work_id,
                 json_agg(row_to_json(
                     (SELECT r FROM (SELECT edition_id, notes) r)
-                    )
-                ) AS notes
-            FROM booknotes
-            WHERE username=$username
+                )) AS notes
+            FROM {cls.TABLENAME}
+            WHERE username = %(username)s
             GROUP BY work_id
-            LIMIT $limit OFFSET $offset
+            LIMIT %(limit)s OFFSET %(offset)s
         """
-
-        return list(oldb.query(query, vars=data))
+        return await fetch_all(query, params)
 
     @classmethod
-    def add(cls, username, work_id, notes, edition_id=NULL_EDITION_VALUE):
-        """Insert or update booknote. Create a new booknote if one doesn't
-        exist, or gracefully update the record otherwise.
+    def get_notes_grouped_by_work_sync(cls, username: str, limit: int = 25, page: int = 1) -> list[dict]:
+        """Sync version for legacy callers and tests."""
+        return async_bridge.run(cls.get_notes_grouped_by_work(username, limit, page))
 
-        return: the updates booknote record from the db.
-        """
-        oldb = db.get_db()
-        data = {
-            "work_id": work_id,
-            "username": username,
-            "notes": notes,
-            "edition_id": edition_id,
-        }
-        records = cls.get_patron_booknotes(username, work_id=work_id, edition_id=edition_id)
-        if not records:
-            return oldb.insert(
-                "booknotes",
-                username=username,
-                work_id=work_id,
-                notes=notes,
-                edition_id=edition_id,
-            )
-        return oldb.update(
-            "booknotes",
-            where="work_id=$work_id AND username=$username AND edition_id=$edition_id",
-            notes=notes,
-            edition_id=edition_id,
-            vars=data,
+    @classmethod
+    async def add(cls, username: str, work_id: int, notes: str, edition_id: int = NULL_EDITION_VALUE) -> Booknote:
+        row = await fetch_one(
+            f"""
+            INSERT INTO {cls.TABLENAME} (username, work_id, notes, edition_id)
+            VALUES (%(username)s, %(work_id)s, %(notes)s, %(edition_id)s)
+            ON CONFLICT (username, work_id, edition_id)
+            DO UPDATE SET notes = EXCLUDED.notes, updated = DEFAULT
+            RETURNING username, work_id, edition_id, notes, created, updated
+            """,
+            {
+                "username": username,
+                "work_id": work_id,
+                "edition_id": edition_id,
+                "notes": notes,
+            },
+            row_factory=class_row(Booknote),
+        )
+        assert row is not None
+        return row
+
+    @classmethod
+    def add_sync(cls, username: str, work_id: int, notes: str, edition_id: int = NULL_EDITION_VALUE) -> Booknote:
+        """Sync version for legacy callers and tests."""
+        return async_bridge.run(cls.add(username, work_id, notes, edition_id))
+
+    @classmethod
+    async def remove(cls, username: str, work_id: int, edition_id: int = NULL_EDITION_VALUE) -> None:
+        if work_id is None:
+            return None
+        await execute(
+            f"DELETE FROM {cls.TABLENAME} WHERE username = %(username)s AND work_id = %(work_id)s AND edition_id = %(edition_id)s",
+            {
+                "username": username,
+                "work_id": int(work_id),
+                "edition_id": edition_id,
+            },
         )
 
     @classmethod
-    def remove(cls, username, work_id, edition_id=NULL_EDITION_VALUE):
-        """Remove a patron's specific booknote by work_id.
-
-        Technical note: work_id is not an optional argument and
-        intentionally does not default to None (to reduce
-        accidents/risk), however if one passes None as a value to
-        work_id, this method will remove all booknotes for a patron
-        (useful for a patron who may decide to close their account.
-
-        Q: Is there a way to add a dryrun=False param to make this safer?
-
-        return: a list of the IDs affected
-        """
-        oldb = db.get_db()
-        where = {
-            "username": username,
-            "work_id": int(work_id),
-            "edition_id": edition_id,
-        }
-        try:
-            return oldb.delete(
-                "booknotes",
-                where=("work_id=$work_id AND username=$username AND edition_id=$edition_id"),
-                vars=where,
-            )
-        except:  # we want to catch no entry exists
-            return None
+    def remove_sync(cls, username: str, work_id: int, edition_id: int = NULL_EDITION_VALUE) -> None:
+        """Sync version for legacy callers and tests."""
+        return async_bridge.run(cls.remove(username, work_id, edition_id))

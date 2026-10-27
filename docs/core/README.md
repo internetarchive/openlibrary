@@ -35,10 +35,10 @@ Routes are classes in a plugin's `code.py` extending `delegate.page`:
 
 ```python
 class my_feature(delegate.page):
-    path = r'/my-feature(/.*)?'   # regex
+    path = r"/my-feature(/.*)?"  # regex
 
     def GET(self, subpath=None):
-        return render_template('my_feature/index', subpath)
+        return render_template("my_feature/index", subpath)
 ```
 
 `render_template("path/name", args)` maps to `templates/path/name.html`.
@@ -49,11 +49,12 @@ New endpoints go in `openlibrary/fastapi/`. Each file contains an `APIRouter` re
 
 ```python
 from fastapi import APIRouter
+
 router = APIRouter()
 
-@router.get('/api/my-feature')
-async def my_feature():
-    ...
+
+@router.get("/api/my-feature")
+async def my_feature(): ...
 ```
 
 **Rule of thumb:** New public API, async, Pydantic models → FastAPI. Full HTML page using Infogami templates or touching Infogami object types directly → web.py for now.

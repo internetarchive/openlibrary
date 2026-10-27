@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import functools
 import itertools
 import json
@@ -1361,7 +1361,7 @@ def _get_blog_feeds():
         stats.end()
 
     def parse_item(item):
-        pubdate = datetime.datetime.strptime(item.find("pubDate").text, "%a, %d %b %Y %H:%M:%S +0000").isoformat()
+        pubdate = dt.datetime.strptime(item.find("pubDate").text, "%a, %d %b %Y %H:%M:%S +0000").isoformat()
         return {
             "title": item.find("title").text,
             "link": item.find("link").text,
@@ -1473,7 +1473,7 @@ def render_once(key: str) -> bool:
 
 @public
 def today():
-    return datetime.datetime.today()
+    return dt.datetime.today()
 
 
 class HTMLTagRemover(HTMLParser):
@@ -1512,6 +1512,21 @@ def reformat_html(html_str: str, max_length: int | None = None) -> str:
         return truncate("".join(content), max_length).strip().replace("\n", "<br>")
     else:
         return "".join(content).strip().replace("\n", "<br>")
+
+
+@public
+def markdown_excerpt(text: str, max_length: int = 200) -> str:
+    """Plain-text excerpt of a markdown field (e.g. a book description) for meta tags.
+
+    Cuts at a word boundary and adds an ellipsis when the text is longer than max_length.
+    """
+    html = get_markdown(str(text or "")).convert()
+    html = re.sub(r"<(script|style)\b.*?</\1>", " ", html, flags=re.DOTALL | re.IGNORECASE)
+    plain = " ".join(unescape(re.sub(r"<[^>]+>", " ", html)).split())
+    plain = re.sub(r" ([,.;:!?)])", r"\1", plain)
+    if len(plain) <= max_length:
+        return plain
+    return plain[:max_length].rsplit(" ", 1)[0].rstrip(",;:—-") + "…"
 
 
 def get_colon_only_loc_pub(pair: str) -> tuple[str, str]:
@@ -1670,11 +1685,12 @@ def setup() -> None:
     )
 
     from openlibrary.core import helpers as h
-    from openlibrary.core.fulltext import phrase_query
+    from openlibrary.core.fulltext import all_words_query, phrase_query
 
     web.template.Template.globals.update(h.helpers)
     # For the fulltext macros' BookReader links; imported here since core.fulltext imports back into plugins.
     web.template.Template.globals["phrase_query"] = phrase_query
+    web.template.Template.globals["all_words_query"] = all_words_query
 
     if config.get("use_gzip") is True:
         config.middleware.append(GZipMiddleware)

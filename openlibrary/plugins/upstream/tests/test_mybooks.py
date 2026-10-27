@@ -5,6 +5,7 @@ from unittest.mock import patch
 import web
 
 from infogami.infobase.client import LazyObject
+from infogami.utils import macro
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.plugins.upstream.mybooks import PatronBooknotes, edition_key_of, get_reading_states, shelf_button_for, work_key_of
 
@@ -67,7 +68,7 @@ class TestShelfButtonFor:
     def render(self, doc, **kwargs):
         with (
             patch("openlibrary.plugins.upstream.mybooks.accounts.get_current_user", return_value=web.storage(key="/people/tester")),
-            patch("openlibrary.plugins.upstream.mybooks.get_reading_state", return_value={1: FINISHED}) as get_state,
+            patch("openlibrary.plugins.upstream.mybooks.get_reading_state_sync", return_value={1: FINISHED}) as get_state,
         ):
             html = shelf_button_for(doc, **kwargs)
         return html, get_state
@@ -134,7 +135,7 @@ class TestShelfButtonFor:
 
 class TestGetReadingStates:
     def test_signed_out_is_empty_without_querying(self):
-        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state") as get_state:
+        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state_sync") as get_state:
             assert get_reading_states(None, [{"key": "/works/OL1W"}]) == {}
         get_state.assert_not_called()
 
@@ -149,7 +150,7 @@ class TestGetReadingStates:
             1: {"shelf": 1, "rating": None, "read_date": None, "event_id": None},
             2: {"shelf": None, "rating": 3, "read_date": None, "event_id": None},
         }
-        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state", return_value=states) as get_state:
+        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state_sync", return_value=states) as get_state:
             result = get_reading_states(web.storage(key="/people/tester"), docs)
 
         assert result == {"/works/OL1W": states[1], "/works/OL2W": states[2]}
@@ -191,11 +192,13 @@ class TestGetNotes:
                 ],
             ),
         )
-        with patch.object(Booknotes, "get_notes_grouped_by_work", return_value=notes):
+        with patch.object(Booknotes, "get_notes_grouped_by_work_sync", return_value=notes):
             result = _make_patron_booknotes(mock_site).get_notes()
 
         entry = result[0]
         assert entry["notes"] == {123: "note A", 456: "note B"}
+        assert entry.work_id == 1
+        assert entry.work_key == "/works/OL1W"
 
     def test_work_and_editions_attached(self, mock_site):
         """Each entry carries the matching work and edition objects from the store."""
@@ -209,7 +212,7 @@ class TestGetNotes:
                 ],
             ),
         )
-        with patch.object(Booknotes, "get_notes_grouped_by_work", return_value=notes):
+        with patch.object(Booknotes, "get_notes_grouped_by_work_sync", return_value=notes):
             result = _make_patron_booknotes(mock_site).get_notes()
 
         entry = result[0]
@@ -232,13 +235,38 @@ class TestGetNotes:
                 ],
             ),
         )
-        with patch.object(Booknotes, "get_notes_grouped_by_work", return_value=notes):
+        with patch.object(Booknotes, "get_notes_grouped_by_work_sync", return_value=notes):
             result = _make_patron_booknotes(mock_site).get_notes()
 
         entry = result[0]
         assert Booknotes.NULL_EDITION_VALUE in entry["notes"]
         assert entry["notes"][Booknotes.NULL_EDITION_VALUE] == "work-level note"
         assert Booknotes.NULL_EDITION_VALUE not in entry["editions"]
+
+    def test_work_level_note_does_not_require_an_edition(self, mock_site):
+        """Work-level notes can render without an edition entry."""
+        _save_fixtures(mock_site)
+        notes = _make_notes_data((1, [{"edition_id": Booknotes.NULL_EDITION_VALUE, "notes": "work-level note"}]))
+        with patch.object(Booknotes, "get_notes_grouped_by_work_sync", return_value=notes):
+            result = _make_patron_booknotes(mock_site).get_notes()
+
+        entry = result[0]
+        assert entry.notes[Booknotes.NULL_EDITION_VALUE] == "work-level note"
+        assert Booknotes.NULL_EDITION_VALUE not in entry.editions
+
+    def test_work_level_note_page_renders(self, mock_site, render_template, request_context_fixture):
+        """The Notes page renders a work-level note without looking up an edition."""
+        request_context_fixture(lang="en")
+        macro.load_macros("openlibrary", lazy=True)
+        _save_fixtures(mock_site)
+        notes = _make_notes_data((1, [{"edition_id": Booknotes.NULL_EDITION_VALUE, "notes": "work-level note"}]))
+        with patch.object(Booknotes, "get_notes_grouped_by_work_sync", return_value=notes):
+            entries = _make_patron_booknotes(mock_site).get_notes()
+
+        html = render_template("account/notes", entries, _make_user(mock_site), 1)
+
+        assert "My notes for this work" in html
+        assert "work-level note" in html
 
     def test_edition_not_in_store_is_none(self, mock_site):
         """An edition referenced in notes but absent from the store is represented as None."""
@@ -251,7 +279,7 @@ class TestGetNotes:
                 ],
             ),
         )
-        with patch.object(Booknotes, "get_notes_grouped_by_work", return_value=notes):
+        with patch.object(Booknotes, "get_notes_grouped_by_work_sync", return_value=notes):
             result = _make_patron_booknotes(mock_site).get_notes()
 
         entry = result[0]
@@ -267,7 +295,7 @@ class TestGetNotes:
             return original_get_many(keys)
 
         monkeypatch.setattr(mock_site, "get_many", tracking_get_many)
-        with patch.object(Booknotes, "get_notes_grouped_by_work", return_value=[]):
+        with patch.object(Booknotes, "get_notes_grouped_by_work_sync", return_value=[]):
             result = _make_patron_booknotes(mock_site).get_notes()
 
         assert result == []
@@ -283,7 +311,7 @@ class TestGetNotes:
             (1, [{"edition_id": 10, "notes": "note on work 1"}]),
             (2, [{"edition_id": 20, "notes": "note on work 2"}]),
         )
-        with patch.object(Booknotes, "get_notes_grouped_by_work", return_value=notes):
+        with patch.object(Booknotes, "get_notes_grouped_by_work_sync", return_value=notes):
             result = _make_patron_booknotes(mock_site).get_notes()
 
         assert len(result) == 2
@@ -296,6 +324,15 @@ class TestGetNotes:
 
     def test_empty_notes(self, mock_site):
         """When the patron has no notes, an empty list is returned."""
-        with patch.object(Booknotes, "get_notes_grouped_by_work", return_value=[]):
+        with patch.object(Booknotes, "get_notes_grouped_by_work_sync", return_value=[]):
             result = _make_patron_booknotes(mock_site).get_notes()
         assert result == []
+
+
+def test_patron_booknotes_counts_use_sync_booknotes_bridge():
+    with (
+        patch.object(Booknotes, "count_works_with_notes_by_user_sync", return_value=2) as notes_count,
+        patch("openlibrary.plugins.upstream.mybooks.Observations.count_distinct_observations", return_value=3),
+    ):
+        assert PatronBooknotes.get_counts("alice") == {"notes": 2, "observations": 3}
+        notes_count.assert_called_once_with("alice")

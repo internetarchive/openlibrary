@@ -1,15 +1,7 @@
 <template>
     <div class="value-card">
         <CardHeader :description="description" />
-        <CardBody
-            ref="card-body"
-            :values="values"
-            :multi-select="multiSelect"
-            :type="type"
-            :all-selected-values="allSelectedValues"
-            :work-key="workKey"
-            :username="username"
-        />
+        <CardBody :values="values" :multi-select="multiSelect" :type="type" :all-selected-values="allSelectedValues" :work-key="workKey" :username="username" />
     </div>
 </template>
 

@@ -12,6 +12,7 @@
 {# djlint:off #}
 <ol-shelf-button
   variant="{{ variant }}"
+  {%- if slot %} slot="{{ slot }}"{% endif %}
   {%- if size %} size="{{ size }}"{% endif %}
   work-key="{{ work_key }}"
   book-title="{{ title }}"

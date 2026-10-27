@@ -26,11 +26,13 @@ const EXPLICIT_DEBOUNCE_MS = 400;
  * "see all" link so they can't drift.
  *
  * @param {string} query
- * @param {{readable: boolean, languages: string[]}} filters
+ * @param {{readable: boolean, languages: string[], allWords?: boolean}} filters
  * @returns {URLSearchParams}
  */
 export function fulltextSearchParams(query, filters) {
     const params = new URLSearchParams({ q: query });
+    // The patron opted out of the automatic exact-phrase search.
+    if (filters.allWords) params.set('phrase', 'false');
     // FTS can't split open vs borrowable, so any availability filter maps here.
     if (filters.readable) params.set('readable', 'true');
     // The FTS backend takes one language; sending more would misreport the filter.
@@ -41,8 +43,8 @@ export function fulltextSearchParams(query, filters) {
 export class FulltextBand {
     /**
      * @param {object} options
-     * @param {() => {readable: boolean, languages: string[]}} options.getFilters
-     * @param {(state: {hits: object[], total: number|null, searchKey: string|null}) => void} options.onChange
+     * @param {() => {readable: boolean, languages: string[], allWords?: boolean}} options.getFilters
+     * @param {(state: {hits: object[], total: number|null, searchKey: string|null, fellBack: boolean}) => void} options.onChange
      * @param {(status: 'resolved'|'failed') => void} [options.onAttempt] - once per
      *   non-superseded fetch, so the modal can measure the band's hit rate.
      */
@@ -64,6 +66,8 @@ export class FulltextBand {
         this.searchKey = null;
         // The query the hits on screen answer; BookReader links quote this, not the input.
         this.query = '';
+        // The exact phrase found nothing, so these hits match all the words.
+        this.fellBack = false;
         // Inside tab showing: every query fetches, bypassing the gates.
         this.explicit = false;
         // A fetch is outstanding. Only the Inside tab shows it.
@@ -116,6 +120,12 @@ export class FulltextBand {
         }
     }
 
+    /** Refetch now, without the debounce, after a filter the band can't see changed. */
+    refresh(query) {
+        this._pendingQuery = query;
+        this._fetch(query, this.explicit ? INSIDE_LIMIT : undefined);
+    }
+
     /** A weak Solr answer fetches as a rescue; a strong one clears the band.
      *  Passage queries already fetch on their own timer. */
     solrSettled(query, docs) {
@@ -148,6 +158,7 @@ export class FulltextBand {
             total: this.total,
             searchKey: this.searchKey,
             query: this.query,
+            fellBack: this.fellBack,
             loading: this.loading,
             error: this.error
         });
@@ -163,12 +174,13 @@ export class FulltextBand {
     }
 
     /** Skips no-op notifies; clear() runs on most keystrokes. */
-    _set(hits, total, searchKey, query, error = false) {
+    _set(hits, total, searchKey, query, error = false, fellBack = false) {
         const unchanged = this.hits.length === 0 && hits.length === 0 && this.total === total && !this.loading && this.error === error;
         this.hits = hits;
         this.total = total;
         this.searchKey = searchKey;
         this.query = query;
+        this.fellBack = fellBack;
         this.loading = false;
         this.error = error;
         if (!unchanged) this._notify();
@@ -206,7 +218,8 @@ export class FulltextBand {
                 if (this._inFlightUrl === url) this._inFlightUrl = null;
                 if (this._fetchKey !== url) return;
                 const hits = data?.hits?.hits || [];
-                this._set(hits.map(fulltextHitDisplay).filter(Boolean), typeof data?.hits?.total === 'number' ? data.hits.total : null, searchKey, trimmed);
+                const total = typeof data?.hits?.total === 'number' ? data.hits.total : null;
+                this._set(hits.map(fulltextHitDisplay).filter(Boolean), total, searchKey, trimmed, false, Boolean(data?.all_words_fallback));
                 this._onAttempt('resolved');
             })
             // The band renders nothing on failure; only the Inside tab says so.

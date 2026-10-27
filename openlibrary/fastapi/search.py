@@ -4,7 +4,6 @@ import json
 from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
 
-import web
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import (
     BaseModel,
@@ -36,7 +35,7 @@ from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
-from openlibrary.utils.request_context import req_context
+from openlibrary.utils.request_context import req_context, site
 
 router = APIRouter()
 
@@ -249,6 +248,10 @@ async def search_inside_json(
     q: Annotated[str, Query(title="Search query")],
     facets: Annotated[bool, Query(description="Include facet aggregations in the response.")] = True,
     readable: Annotated[bool, Query(description="Drop matches that aren't readable (public or borrowable) scans. hits.total still counts them.")] = False,
+    phrase: Annotated[
+        bool,
+        Query(description="Search an unquoted query as one exact phrase, falling back to all the words when it has no hits. false searches all the words."),
+    ] = True,
     language: Annotated[
         list[str] | None,
         Query(description="Filter by language — a MARC code (e.g. fre) or language name. The FTS backend takes one language; extra values are ignored."),
@@ -263,6 +266,7 @@ async def search_inside_json(
         js=True,
         facets=facets,
         readable=readable,
+        phrase=phrase,
         # FTS takes the language name, not the MARC code.
         language=resolved[1] if resolved else None,
     )
@@ -372,7 +376,7 @@ async def search_lists_json(
         }
     else:
         # Default to the old API shape for a while, then we'll flip
-        lists = web.ctx.site.get_many([doc["key"] for doc in response.docs])
+        lists = site.get().get_many([doc["key"] for doc in response.docs])
         return {
             "start": response.raw_resp["response"].get("start", params.offset or 0),
             "docs": [lst.preview() for lst in lists],

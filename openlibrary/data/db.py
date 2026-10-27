@@ -20,7 +20,7 @@ How to use:
 Each doc is a storage object with "id", "key", "revision" and "data".
 """
 
-import datetime
+import datetime as dt
 import functools
 import json
 import sys
@@ -153,7 +153,7 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
 
     This doesn't update the index tables. Avoid this function if you have any change that requires updating the index tables.
     """
-    now = datetime.datetime.utcnow()
+    now = dt.datetime.utcnow()
     author_id = get_thing_id(author)
     t = db.transaction()
     try:

@@ -221,6 +221,13 @@ export function initNotesModal(modalLinks) {
     });
 }
 
+function appendEditionId(formData, editionId) {
+    // Work-level notes (edition -1) are saved without an edition_id
+    if (editionId !== '-1') {
+        formData.append('edition_id', `OL${editionId}M`);
+    }
+}
+
 /**
  * Add listeners to update and delete buttons on the notes page.
  *
@@ -231,12 +238,12 @@ export function addNotesPageButtonListeners() {
     $('.update-note-link-button').on('click', function (event) {
         event.preventDefault();
         const workId = $(this).parent().siblings('input')[0].value;
-        const editionId = $(this).parent().attr('id').split('-')[0];
+        const editionId = $(this).parent().attr('id').replace('-note-form-buttons', '');
         const note = $(this).parent().siblings('textarea')[0].value;
 
         const formData = new FormData();
         formData.append('notes', note);
-        formData.append('edition_id', `OL${editionId}M`);
+        appendEditionId(formData, editionId);
 
         $.ajax({
             url: `/works/OL${workId}W/notes.json`,
@@ -255,10 +262,10 @@ export function addNotesPageButtonListeners() {
             const $parent = $(this).parent();
 
             const workId = $(this).parent().siblings('input')[0].value;
-            const editionId = $(this).parent().attr('id').split('-')[0];
+            const editionId = $(this).parent().attr('id').replace('-note-form-buttons', '');
 
             const formData = new FormData();
-            formData.append('edition_id', `OL${editionId}M`);
+            appendEditionId(formData, editionId);
 
             $.ajax({
                 url: `/works/OL${workId}W/notes.json`,

@@ -1,0 +1,25 @@
+/**
+ * StatsBarChart
+ * Daily bar charts drawn as inline SVG by openlibrary/macros/StatsBarChart.html.jinja,
+ * on the homepage and /stats. A page sets the bar colour with `color`.
+ */
+.stats-bar-chart {
+  display: block;
+  color: var(--color-stats-chart-bar);
+}
+
+.stats-bar-chart__hit {
+  fill: transparent;
+}
+
+.stats-bar-chart__bar {
+  fill: currentcolor;
+  /* Snap bars to whole pixels; thin bars at fractional positions anti-alias to paler shades */
+  shape-rendering: crispedges;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .stats-bar-chart__day:hover .stats-bar-chart__bar {
+    opacity: 0.7;
+  }
+}

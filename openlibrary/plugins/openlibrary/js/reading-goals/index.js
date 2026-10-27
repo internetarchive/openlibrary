@@ -86,7 +86,8 @@ export function initGoalSubmitButtons(submitButtons) {
  * Adds click listener to given reading goal form submission button.
  *
  * On click, POSTs form to server.  Updates view depending on whether
- * the action set a new goal, or updated an existing goal.
+ * the form edits an existing goal (it is rendered inside a
+ * `.reading-goal-progress` component), or sets a new one.
  * @param {HTMLELement} submitButton Reading goal form submit button
  */
 function addGoalSubmissionListener(submitButton) {
@@ -100,6 +101,7 @@ function addGoalSubmissionListener(submitButton) {
             throw new Error('Form invalid');
         }
         const formData = new FormData(form);
+        const progressComponent = form.closest('.reading-goal-progress');
 
         fetch(form.action, {
             method: 'POST',
@@ -117,7 +119,7 @@ function addGoalSubmissionListener(submitButton) {
             }
 
             const yearlyGoalSections = document.querySelectorAll('.yearly-goal-section');
-            if (formData.get('is_update')) {
+            if (progressComponent) {
                 // Progress component exists on page
                 yearlyGoalSections.forEach(yearlyGoalSection => {
                     const goalInput = form.querySelector('input[name=goal]');
@@ -138,7 +140,6 @@ function addGoalSubmissionListener(submitButton) {
                             setGoalLink.classList.remove('hidden');
                         }
                     } else {
-                        const progressComponent = modal.closest('.reading-goal-progress');
                         updateProgressComponent(progressComponent, Number(formData.get('goal')));
                     }
                 });

@@ -286,6 +286,45 @@ def test_process_doc_for_view_api(monkeypatch):
     assert dynlinks.process_doc_for_viewapi(bib_key, doc) == expected_result
 
 
+def test_get_url_respects_base_url(monkeypatch):
+    monkeypatch_ol(monkeypatch)
+
+    doc = {"key": "/books/OL1M", "title": "foo"}
+    assert dynlinks.get_url(doc, base_url="http://example.com") == "http://example.com/books/OL1M/foo"
+
+
+def test_process_doc_for_view_api_with_base_url(monkeypatch):
+    monkeypatch_ol(monkeypatch)
+
+    bib_key = "isbn:1234567890"
+    doc: dynlinks.OpenLibraryEditionWithPreview = {
+        "key": "/books/OL1M",
+        "title": "foo",
+        "preview": "noview",
+    }
+    assert dynlinks.process_doc_for_viewapi(bib_key, doc, base_url="http://example.com") == {
+        "bib_key": "isbn:1234567890",
+        "info_url": "http://example.com/books/OL1M/foo",
+        "preview": "noview",
+        "preview_url": "http://example.com/books/OL1M/foo",
+    }
+
+
+def test_process_result_for_details_with_base_url(monkeypatch):
+    assert dynlinks.process_result_for_details(
+        {"isbn:1234567890": {"key": "/books/OL1M", "title": "foo", "preview": "noview"}},
+        base_url="http://example.com",
+    ) == {
+        "isbn:1234567890": {
+            "bib_key": "isbn:1234567890",
+            "info_url": "http://example.com/books/OL1M/foo",
+            "preview": "noview",
+            "preview_url": "http://example.com/books/OL1M/foo",
+            "details": {"key": "/books/OL1M", "title": "foo"},
+        }
+    }
+
+
 def test_process_result_for_details(monkeypatch):
     assert dynlinks.process_result_for_details({"isbn:1234567890": {"key": "/books/OL1M", "title": "foo", "preview": "noview"}}) == {
         "isbn:1234567890": {
@@ -357,6 +396,14 @@ async def test_dynlinks(monkeypatch):
 
     js = await dynlinks.dynlinks(["isbn:1234567890"], {"format": "json"})
     assert json.loads(js) == expected_result
+
+
+@pytest.mark.asyncio
+async def test_dynlinks_with_base_url(monkeypatch):
+    monkeypatch_ol(monkeypatch)
+
+    js = await dynlinks.dynlinks(["isbn:1234567890"], {"format": "json"}, base_url="http://example.com")
+    assert json.loads(js)["isbn:1234567890"]["info_url"] == "http://example.com/books/OL1M/foo"
 
 
 @pytest.mark.asyncio

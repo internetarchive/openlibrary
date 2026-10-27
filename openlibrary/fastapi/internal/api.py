@@ -19,13 +19,14 @@ from pydantic import BaseModel, BeforeValidator, Field
 from starlette.responses import RedirectResponse
 
 from openlibrary import accounts
-from openlibrary.core import lending, models
+from openlibrary.core import lending
 from openlibrary.core.admin import get_unique_logins_since
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.env import get_ol_env
-from openlibrary.core.follows import PubSub
+from openlibrary.core.follows import Follow, PubSub
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
+from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
@@ -43,7 +44,6 @@ from openlibrary.plugins.openlibrary.api import (
     get_works_data_async,
     process_work_bookshelves,
 )
-from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import SINCE_DAYS, TRENDING_NOW_LIMIT, get_trending_books
 
@@ -210,10 +210,30 @@ async def browse(
     return {"query": url, "works": [work.dict() for work in works]}
 
 
+class RatingsSummary(BaseModel):
+    average: float | None = Field(default=None, description="Mean star rating, or null if the work is unrated")
+    count: int = Field(default=0, description="Number of ratings")
+    sortable: float | None = Field(default=None, exclude_if=lambda v: v is None, description="Bayesian lower bound used to sort by rating; omitted if unrated")
+
+
+class RatingsResponse(BaseModel):
+    summary: RatingsSummary
+    counts: dict[str, int] = Field(..., description="Number of ratings per star value, keyed '1' to '5'")
+
+    @classmethod
+    def from_work_summary(cls, stats: WorkRatingsSummary | None) -> RatingsResponse:
+        if not stats:
+            return cls(summary=RatingsSummary(), counts={str(star): 0 for star in range(1, 6)})
+        return cls(
+            summary=RatingsSummary(average=stats["ratings_average"], count=stats["ratings_count"], sortable=stats["ratings_sortable"]),
+            counts={str(star): stats[f"ratings_count_{star}"] for star in range(1, 6)},  # type: ignore[literal-required]
+        )
+
+
 @router.get("/works/OL{work_id}W/ratings.json")
-async def get_ratings(work_id: Annotated[int, Path()]) -> dict:
+async def get_ratings(work_id: Annotated[int, Path()]) -> RatingsResponse:
     """Get ratings summary for a work."""
-    return legacy_ratings.get_ratings_summary(work_id)
+    return RatingsResponse.from_work_summary(await Ratings.get_work_ratings_summary(work_id))
 
 
 @router.post("/works/OL{work_id}W/ratings.json")
@@ -231,10 +251,10 @@ async def post_ratings(
     resolved_edition_id = int(extract_numeric_id_from_olid(edition_id)) if edition_id else None
 
     if rating is None:
-        models.Ratings.remove(user.username, work_id)
+        await Ratings.remove(user.username, work_id)
         return {"success": "removed rating"}
 
-    models.Ratings.add(
+    await Ratings.add(
         username=user.username,
         work_id=work_id,
         rating=rating,
@@ -266,10 +286,10 @@ async def booknotes_post(
         resolved_edition_id = int(extract_numeric_id_from_olid(edition_id))
 
     if not notes:
-        Booknotes.remove(user.username, work_id, edition_id=resolved_edition_id)
+        await Booknotes.remove(user.username, work_id, edition_id=resolved_edition_id)
         return BooknoteResponse(success="removed note")
 
-    Booknotes.add(
+    await Booknotes.add(
         username=user.username,
         work_id=work_id,
         notes=notes,
@@ -438,10 +458,10 @@ async def get_patron_follows(
     username: Annotated[str, Path(pattern=r"^[^/]+$")],
     user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
     redir_url: Annotated[str, Query()] = "",
-) -> list[FollowEntry] | RedirectResponse:
+) -> list[Follow] | RedirectResponse:
     if not user or user.username != username:
         return RedirectResponse(url=f"/account/login?{urlencode({'redir_url': redir_url})}", status_code=303)
-    return PubSub.get_following(username)
+    return await PubSub.get_following(username)
 
 
 @router.post("/people/{username}/follows.json")
@@ -456,8 +476,10 @@ async def post_patron_follows(
         return RedirectResponse(url=f"/account/login?{urlencode({'redir_url': redir_url})}", status_code=303)
     if not accounts.find(username=publisher):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    action = PubSub.subscribe if state == "0" else PubSub.unsubscribe
-    action(user.username, publisher)
+    if state == "0":
+        await PubSub.subscribe(user.username, publisher)
+    else:
+        await PubSub.unsubscribe(user.username, publisher)
     return RedirectResponse(url=redir_url, status_code=303)
 
 
@@ -543,6 +565,6 @@ class MonthlyLoginsResponse(BaseModel):
 
 
 @router.get("/api/monthly_logins.json", response_model=MonthlyLoginsResponse)
-def monthly_logins() -> MonthlyLoginsResponse:
+async def monthly_logins() -> MonthlyLoginsResponse:
     """Return the cached unique monthly login count for the admin stats UI."""
-    return MonthlyLoginsResponse(loginCount=get_unique_logins_since())
+    return MonthlyLoginsResponse(loginCount=await get_unique_logins_since())
