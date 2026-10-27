@@ -1,4 +1,4 @@
-"""Unit and integration tests for async bestbook queries."""
+"""Unit and integration tests for the Bestbook model. See ``docs/core/database.md``."""
 
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
