@@ -11,11 +11,18 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import pytest
+
 _REAL_SLEEP = time.sleep
 
 
 def run_reproduction(mode, workdir, successful_requests):
-    """Run the issue's Gunicorn/Instrumentator reproduction in bug or fixed mode."""
+    """Run the issue's Gunicorn/Instrumentator reproduction in bug or fixed mode.
+
+    Slow, and it starts real servers, so it's an integration test, skipped by default. Run it when changing
+    docker/gunicorn_prometheus_conf.py or openlibrary/utils/prometheus_multiprocess.py, with
+    ``pytest -m integration openlibrary/tests/fastapi/test_prometheus_multiprocess.py``.
+    """
     if mode not in {"bug", "fixed"}:
         raise ValueError("mode must be 'bug' or 'fixed'")
 
@@ -24,6 +31,8 @@ def run_reproduction(mode, workdir, successful_requests):
     app_path.write_text(
         """from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
+
+from openlibrary.utils import prometheus_multiprocess
 
 app = FastAPI()
 
@@ -34,7 +43,8 @@ def hit():
 Instrumentator(
     should_group_status_codes=False,
     excluded_handlers=['/health', '/metrics'],
-).instrument(app).expose(app, include_in_schema=False)
+).instrument(app)
+prometheus_multiprocess.expose(app)
 """
     )
 
@@ -42,6 +52,10 @@ Instrumentator(
     metrics_dir.mkdir()
     environment = os.environ.copy()
     environment.pop("PROMETHEUS_MULTIPROC_DIR", None)
+    repo_root = Path.cwd()
+    if not (repo_root / "docker" / "gunicorn_prometheus_conf.py").is_file():
+        repo_root = Path(__file__).resolve().parents[3]
+    environment["PYTHONPATH"] = str(repo_root)  # for app.py and the gunicorn config to import openlibrary
     command = [
         sys.executable,
         "-m",
@@ -56,9 +70,6 @@ Instrumentator(
         "0",
     ]
     if mode == "fixed":
-        repo_root = Path.cwd()
-        if not (repo_root / "docker" / "gunicorn_prometheus_conf.py").is_file():
-            repo_root = Path(__file__).resolve().parents[3]
         gunicorn_config = repo_root / "docker" / "gunicorn_prometheus_conf.py"
         if not gunicorn_config.is_file():
             raise RuntimeError(f"fixed mode requires {gunicorn_config}")
@@ -81,8 +92,23 @@ Instrumentator(
     base_url = f"http://127.0.0.1:{port}"
 
     def request(path):
-        with urllib.request.urlopen(base_url + path, timeout=10) as response:
-            return response.read().decode()
+        for attempt in range(30):
+            try:
+                with urllib.request.urlopen(base_url + path, timeout=10) as response:
+                    return response.read().decode()
+            except urllib.error.HTTPError:
+                raise
+            except urllib.error.URLError, ConnectionError, TimeoutError:
+                # A recycled Uvicorn worker closes the connections it accepted but hadn't read a request from yet
+                if attempt == 29:
+                    raise
+                time.sleep(0.05)
+
+    def hits_total():
+        metrics = request("/metrics")
+        return sum(
+            float(line.rsplit(" ", maxsplit=1)[1]) for line in metrics.splitlines() if line.startswith("http_requests_total{") and 'handler="/hit"' in line
+        )
 
     try:
         for _ in range(120):
@@ -96,26 +122,14 @@ Instrumentator(
         else:
             raise RuntimeError("Gunicorn did not become ready")
 
-        def hit(_):
-            for attempt in range(30):
-                try:
-                    request("/hit")
-                    return
-                except urllib.error.URLError, ConnectionError, TimeoutError:
-                    if attempt == 29:
-                        raise
-                    time.sleep(0.05)
-
         with ThreadPoolExecutor(max_workers=10) as executor:
-            list(executor.map(hit, range(successful_requests)))
+            list(executor.map(lambda _: request("/hit"), range(successful_requests)))
 
-        samples = []
-        for _ in range(5):
-            metrics = request("/metrics")
-            values = [
-                float(line.rsplit(" ", maxsplit=1)[1]) for line in metrics.splitlines() if line.startswith("http_requests_total{") and 'handler="/hit"' in line
-            ]
-            samples.append(sum(values))
+        # The instrumentator counts a request just after sending its response, so the last ones can lag a little
+        deadline = time.monotonic() + 10
+        while hits_total() < successful_requests and time.monotonic() < deadline:
+            time.sleep(0.1)
+        samples = [hits_total() for _ in range(5)]
         return samples, metrics_dir
     finally:
         if process.poll() is None:
@@ -127,6 +141,7 @@ Instrumentator(
                 process.wait()
 
 
+@pytest.mark.integration
 def test_gunicorn_worker_recycling_preserves_prometheus_totals(tmp_path, monkeypatch):
     # The repository's autouse no_sleep fixture blocks sleeps, but this test
     # needs real timing while polling a separate Gunicorn process.
