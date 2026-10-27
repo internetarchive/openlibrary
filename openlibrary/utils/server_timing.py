@@ -23,6 +23,7 @@ import httpx
 import web
 
 from infogami.utils import stats
+from openlibrary.utils.async_utils import AsyncBridge, async_bridge
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterator
@@ -36,6 +37,19 @@ class RequestTimings:
         self._lock = threading.Lock()
         self._metrics: dict[str, list[float]] = {}
         self._open: dict[int, list[tuple[str | None, float]]] = {}  # infogami stats.begin() calls, per thread
+        self._blocking: dict[str, list[float]] = {}  # source -> [count, seconds]
+
+    def record_blocking(self, source: str, seconds: float) -> None:
+        """Sync I/O that held the event loop: counts toward ``blocking``, broken down by source."""
+        self.record("blocking", seconds)
+        with self._lock:
+            entry = self._blocking.setdefault(source, [0, 0.0])
+            entry[0] += 1
+            entry[1] += seconds
+
+    def blocking_breakdown(self) -> list[tuple[str, int, float]]:
+        with self._lock:
+            return sorted(((source, int(count), seconds) for source, (count, seconds) in self._blocking.items()), key=lambda b: -b[2])
 
     def record(self, name: str, seconds: float, failed: bool = False, count: int = 1) -> None:
         with self._lock:
@@ -177,7 +191,8 @@ class TimedSyncTransport(httpx.BaseTransport):
         if (call := _HttpCall.start(request, self.name)) is None:
             return self._transport.handle_request(request)
         try:
-            response = self._transport.handle_request(request)
+            with _blocking(self.name):
+                response = self._transport.handle_request(request)
         except Exception:
             call.finish(failed=True)
             raise
@@ -274,6 +289,8 @@ def format_header(timings: RequestTimings) -> str:
     parts = [f"total;dur={(time.perf_counter() - timings.start) * 1000:.1f}"]
     for name, (count, seconds, failures) in sorted(timings.snapshot().items()):
         desc = f"{count} {'call' if count == 1 else 'calls'}" + (f" ({failures} failed)" if failures else "")
+        if name == "blocking":
+            desc = ", ".join(f"{source} {secs * 1000:.0f}ms ({n})" for source, n, secs in timings.blocking_breakdown())
         parts.append(f'{name};dur={seconds * 1000:.1f};desc="{desc}"')
     return ", ".join(parts)
 
@@ -287,6 +304,8 @@ def send_to_statsd(timings: RequestTimings) -> None:
         statsd.put(f"ol.fastapi.{name}", seconds * 1000)
         if failures:
             statsd.increment(f"ol.fastapi.{name}.failed", n=failures)
+    for source, _, seconds in timings.blocking_breakdown():
+        statsd.put(f"ol.fastapi.blocking.{source}", seconds * 1000)
 
 
 def _infogami_metric_name(name: str) -> str | None:
@@ -299,20 +318,55 @@ _bridge_installed = False
 
 
 def _on_event_loop() -> bool:
+    """On a request's event loop (an async route), not in the threadpool or the bridge thread."""
     try:
         asyncio.get_running_loop()
     except RuntimeError:
         return False
-    return True
+    return threading.current_thread() is not async_bridge._thread
+
+
+# Sync calls in progress on this thread: (source, started, counts toward blocking).
+_sync_calls = threading.local()
+
+
+def _blocking_start(source: str | None) -> None:
+    stack = _sync_calls.__dict__.setdefault("stack", [])
+    # Only the outermost named call counts, so an infobase read's own SQL isn't counted twice.
+    counts = source is not None and _current.get() is not None and not any(s[0] for s in stack) and _on_event_loop()
+    stack.append((source, time.perf_counter(), counts))
+
+
+def _blocking_end() -> None:
+    if not (stack := getattr(_sync_calls, "stack", None)):
+        return
+    source, started, counts = stack.pop()
+    if counts and (timings := _current.get()) is not None:
+        timings.record_blocking(source, time.perf_counter() - started)
+
+
+@contextmanager
+def _blocking(source: str) -> Iterator[None]:
+    """Count sync I/O that runs on the event loop toward ``blocking``."""
+    _blocking_start(source)
+    try:
+        yield
+    finally:
+        _blocking_end()
 
 
 def install_legacy_bridge() -> None:
     """Time legacy code during FastAPI requests: infogami's ``stats.begin()/end()``
     (infobase, memcache), which would otherwise pile up in thread-local ``web.ctx``;
-    every web.py DB query as ``db-legacy`` (``db-legacy-blocking`` when it runs on the
-    event loop, i.e. from an async route, outside an infobase call; the async pool
-    reports ``db``); and every
-    Templetor template or macro render as ``render-templetor``, whichever helper called it.
+    every web.py DB query as ``db-legacy`` (except infobase's own in-process reads, which
+    are part of ``infobase``; the async pool reports ``db``); and every Templetor template
+    or macro render as ``render-templetor``, whichever helper called it.
+
+    Sync I/O that runs on the event loop (an async route) also counts toward ``blocking``,
+    broken down by source in its description: legacy DB, infobase, memcache, sync HTTP,
+    and ``async_bridge.run()`` waits. Only the outermost call counts, so nothing is
+    counted twice; awaited I/O never counts.
+
     infogami's ``end(error=True)`` is ignored: in-process infobase reports ordinary
     not-founds that way."""
     global _bridge_installed
@@ -322,23 +376,33 @@ def install_legacy_bridge() -> None:
     original_db_execute = web.db.DB._db_execute
     original_template_call = web.template.Template.__call__
 
+    original_bridge_run = AsyncBridge.run
+
     def begin(name, **kw):
         if (timings := _current.get()) is None:
             return original_begin(name, **kw)
-        timings._begin(_infogami_metric_name(name))
+        metric = _infogami_metric_name(name)
+        timings._begin(metric)
+        _blocking_start(metric)
 
     def end(**kw):
         if (timings := _current.get()) is None:
             return original_end(**kw)
         timings._end()
+        _blocking_end()
 
     def _db_execute(self, cur, sql_query):
-        # On the event loop (an async route), a sync query blocks every other request.
-        # Infobase's in-process reads (hybrid connection) stay db-legacy: they're timed as infobase.
         timings = _current.get()
-        blocking = _on_event_loop() and not (timings and timings._inside("infobase"))
-        with timed("db-legacy-blocking" if blocking else "db-legacy"):
+        if timings is not None and timings._inside("infobase"):
+            # Infobase's in-process reads (hybrid connection): already timed as infobase.
             return original_db_execute(self, cur, sql_query)
+        with _blocking("db-legacy"), timed("db-legacy"):
+            return original_db_execute(self, cur, sql_query)
+
+    def bridge_run(self, coro):
+        # Sync code on the event loop waiting for async_bridge (e.g. a bridged Solr query).
+        with _blocking("bridge"):
+            return original_bridge_run(self, coro)
 
     def template_call(self, *a, **kw):
         with timed_render("render-templetor"):
@@ -346,5 +410,6 @@ def install_legacy_bridge() -> None:
 
     stats.begin, stats.end = begin, end
     web.db.DB._db_execute = _db_execute
+    AsyncBridge.run = bridge_run  # type: ignore[method-assign]
     web.template.Template.__call__ = template_call
     _bridge_installed = True
