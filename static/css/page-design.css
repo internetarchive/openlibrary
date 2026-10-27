@@ -1162,6 +1162,7 @@ html:has(.ds) {
   border-radius: var(--border-radius-menu-row);
   color: var(--color-text);
   font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-button);
   text-decoration: none;
   cursor: pointer;
 }
@@ -1624,14 +1625,16 @@ fieldset.ds-demo-row {
 }
 
 /* The triggers are spaced by the width of the panel each one opens, so the
-   pinned panels fan out side by side instead of stacking. Narrower than
-   768px the panels are trays, so the row simply wraps there. */
+   pinned panels fan out side by side instead of stacking. Six panels are
+   wider than the column, so the shelf button sits second, where its panel
+   borrows the room under the tooltip trigger, which opens no panel. Narrower
+   than 768px the panels are trays, so the row simply wraps there. */
 .ds-menu-row {
   display: grid;
-  grid-template-columns: minmax(0, 0.6fr) minmax(0, 1fr) minmax(0, 1fr) minmax(
+  grid-template-columns: auto minmax(0, 2.4fr) minmax(0, 1fr) minmax(
       0,
-      1.2fr
-    ) minmax(0, 1.4fr);
+      1fr
+    ) minmax(0, 1.2fr) minmax(0, 1.4fr);
   gap: var(--spacing-inline-md);
 }
 
@@ -2156,7 +2159,7 @@ fieldset.ds-demo-row {
   border-radius: 3.2cqw;
   font-family: var(--font-family-button);
   font-size: 5.6cqw;
-  font-weight: 500;
+  font-weight: var(--font-weight-button);
   line-height: 1;
   color: var(--color-text);
 }
@@ -2385,7 +2388,7 @@ fieldset.ds-demo-row {
   border-radius: 1.6cqw;
   font-family: var(--font-family-button);
   font-size: 3cqw;
-  font-weight: 500;
+  font-weight: var(--font-weight-button);
   color: var(--color-link);
 }
 
