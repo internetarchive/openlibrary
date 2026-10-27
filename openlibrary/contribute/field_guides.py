@@ -175,7 +175,8 @@ def get_field_guides() -> dict[str, FieldGuide]:
             action=_("Fill in OCLC number"),
             question=_("What is this edition's WorldCat (OCLC) number?"),
             how=_(
-                "Search WorldCat for this ISBN. Open the record whose year, publisher and format match this edition, and copy the number shown as OCLC Number."
+                "Search WorldCat for this ISBN. Open the print record whose publisher and edition match this one, and copy the number shown as OCLC Number. "
+                "A paperback or later printing can show a different year and still be the same record."
             ),
             sources=[worldcat],
             why=_(
@@ -187,14 +188,18 @@ def get_field_guides() -> dict[str, FieldGuide]:
                     _("The prefixes ocm, ocn, on and (OCoLC) are padding added by library systems, not part of the number. ocm00047810608 is 47810608."),
                     OCLC_SPEC,
                 ),
+                GuidelineNote(_("WorldCat sometimes lists one edition more than once. Any of those numbers is right; OCLC merges them over time.")),
             ],
             traps=[
-                _("The number belongs to a different printing, a book club edition, or the ebook rather than the print copy."),
-                _("The number is already on another edition of this work, which means one of the two records is wrong."),
+                _("The number belongs to a different record: the ebook, another publisher's edition, a revised edition, large print or a translation."),
+                _(
+                    "The number is already on another edition of this work. That's right when it's the hardcover, paperback or a later printing "
+                    "from the same publisher; a different publisher or a revised edition means one of the two records is wrong."
+                ),
                 _("Pasting the web address, or leaving the ocm/ocn prefix on."),
             ],
             placeholder=_("Digits only, for example 47810608"),
-            confirm=_("I opened the record and the year and publisher match this edition."),
+            confirm=_("I opened a print record and its publisher and edition match this one."),
         ),
     }
 

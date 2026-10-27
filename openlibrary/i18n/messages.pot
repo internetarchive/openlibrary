@@ -8300,7 +8300,7 @@ msgid "What is this edition's WorldCat (OCLC) number?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "Search WorldCat for this ISBN. Open the record whose year, publisher and format match this edition, and copy the number shown as OCLC Number."
+msgid "Search WorldCat for this ISBN. Open the print record whose publisher and edition match this one, and copy the number shown as OCLC Number. A paperback or later printing can show a different year and still be the same record."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8312,11 +8312,11 @@ msgid "The prefixes ocm, ocn, on and (OCoLC) are padding added by library system
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The number belongs to a different printing, a book club edition, or the ebook rather than the print copy."
+msgid "WorldCat sometimes lists one edition more than once. Any of those numbers is right; OCLC merges them over time."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The number is already on another edition of this work, which means one of the two records is wrong."
+msgid "The number belongs to a different record: the ebook, another publisher's edition, a revised edition, large print or a translation."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8328,7 +8328,7 @@ msgid "Digits only, for example 47810608"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "I opened the record and the year and publisher match this edition."
+msgid "I opened a print record and its publisher and edition match this one."
 msgstr ""
 
 #: openlibrary/contribute/save.py
