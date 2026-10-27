@@ -3,7 +3,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { translate } from './utils/labels.js';
 import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin, trackError } from './utils/books-api.js';
-import { showToast } from './OlToastRegion.js';
+import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { DEFAULT_LABELS as ACTION_LABELS } from './OlShelfActions.js';
 import './OlShelfActions.js';

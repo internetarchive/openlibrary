@@ -177,6 +177,18 @@ def test_reformat_html():
     assert f("&lt;script&gt;") == "&lt;script&gt;"
 
 
+def test_markdown_excerpt():
+    f = utils.markdown_excerpt
+
+    assert f("") == ""
+    assert f(None) == ""
+    assert f("A *desert* planet, and [a boy](https://example.com).\n\nSecond paragraph.") == "A desert planet, and a boy. Second paragraph."
+    assert f("Tom &amp; Jerry<br><i>Vol. 1</i> <script>alert(1)</script>") == "Tom & Jerry Vol. 1"
+    # Cuts at a word boundary, never mid-word, and drops a trailing comma
+    assert f("one two, three four", max_length=12) == "one two…"
+    assert f("one two three", max_length=13) == "one two three"
+
+
 def test_strip_accents():
     f = utils.strip_accents
     assert f("Plain ASCII text") == "Plain ASCII text"

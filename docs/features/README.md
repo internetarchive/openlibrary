@@ -76,7 +76,7 @@ Free-text private notes. One note per (user, work, edition). Notes are not publi
 Only the target is stored — the progress is computed at read time by counting `bookshelves_books` entries with `bookshelf_id=3` (Already Read) and `created` within the target year. No separate progress counter is maintained.
 
 `YearlyReadingGoals.select_by_username_and_year(username, year)` returns the goal record.
-Goal update: `update_target(username, year, new_target)`.
+Create or update: `create(username, year, target)` — upserts on `(username, year)`. Delete: `delete_by_username_and_year(username, year)`.
 
 ---
 

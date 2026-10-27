@@ -25,10 +25,13 @@ $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
 $ work_title = work.title if work else edition.get('title', '')
 $ book_subtitle = edition.get('subtitle', '')
-$ authors = work.get_authors() if work else edition.get_authors()
+$# Fall back to the edition's authors when the work has none linked
+$ authors = (work and work.get_authors()) or edition.get_authors()
 $# Only display the first / primary author
 $ title_suffix = "by " + authors[0].name if authors else ""
-$ title = book_title + " " + title_suffix
+$# Same year the page heading shows: first published, else this edition's
+$ pub_year = (work and work.first_publish_year) or extract_year(edition.publish_date or "")
+$ title = " ".join(s for s in [book_title, "(%s)" % pub_year if pub_year else "", title_suffix] if s)
 $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
 $ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/static/images/icons/avatar_book-sm.png")
 $ _x = ctx.setdefault('cssfile', 'book')
@@ -41,31 +44,24 @@ $code:
 
 $code:
     def get_description(book):
-        if book.publishers and book.publish_date:
-            ed_info = book.publish_date + ', ' + ', '.join(book.publishers)
-        elif book.publish_date:
-            ed_info = book.publish_date
-        elif book.publishers:
-            ed_info = ', '.join(book.publishers)
+        """Share/meta description: the book's blurb, else when and by whom this edition was published."""
+        blurb = book.description or (work and work.description)
+        if blurb:
+            return markdown_excerpt(blurb)
+        year = extract_year(book.publish_date or "")
+        publishers = ", ".join(book.publishers or [])
+        if year and publishers:
+            published = _("Edition published in %(year)s by %(publishers)s", year=year, publishers=publishers)
+        elif year:
+            published = _("Edition published in %(year)s", year=year)
+        elif publishers:
+            published = _("Edition published by %(publishers)s", publishers=publishers)
         else:
-            ed_info = 'unknown'
-
-        title = cond(work, work.title, book.title)
-        authors = cond(work, work and work.get_authors(), book.get_authors())
-        author_info = " by " + ", ".join(a.name or "Unknown author" for a in authors)
-
-        format = ""
-        if book.physical_format:
-            format += book.physical_format.replace('[', '').replace(']', '')
-
-        if book.languages:
-            format += ' in ' + ', '.join(lang.name for lang in book.languages)
-        if book.edition_name:
-            format += " - " + book.edition_name
-
-        meta = title + author_info + ", " + ed_info + " edition, " + format
-        return meta
-    description = get_description(page)
+            published = ""
+        # Language only matters to a reader when it isn't English
+        languages = ", ".join(lang.name for lang in book.languages or [] if lang.name and lang.key != "/languages/eng")
+        return " · ".join(s for s in [published, languages] if s)
+    description = get_description(edition)
     putctx("description", description)
 
 $def display_value(label, value, itemprop=None):

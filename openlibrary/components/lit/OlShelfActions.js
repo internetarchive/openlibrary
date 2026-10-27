@@ -22,7 +22,7 @@ import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList }
 import { getRecentLists, noteListUsed } from './utils/recent-lists.js';
 import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
 import { MONTHS, formatReadDate, quickYears, partialDate } from './utils/dates.js';
-import { showToast } from './OlToastRegion.js';
+import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { translate } from './utils/labels.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
