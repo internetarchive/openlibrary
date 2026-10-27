@@ -4,7 +4,7 @@ from typing import TypedDict
 
 import web
 
-from openlibrary.core.async_db import execute, fetch_all, fetch_one
+from openlibrary.core.async_db import execute, fetch_all, fetch_one, fetch_val
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -72,7 +72,7 @@ class PubSub:
             where += " OFFSET %(offset)s"
             params["offset"] = offset
         query = f"SELECT subscriber, publisher, disabled, created, updated FROM {cls.TABLENAME} WHERE {where}"
-        return [web.storage(row) for row in await fetch_all(query, params)]
+        return await fetch_all(query, params)
 
     @classmethod
     def get_followers_sync(cls, publisher: str, limit: int | None = None, offset: int = 0) -> list[Follow]:
@@ -141,10 +141,7 @@ class PubSub:
 
     @classmethod
     async def count_following(cls, subscriber: str) -> int:
-        query = f"SELECT count(*) as count FROM {cls.TABLENAME} WHERE subscriber = %(subscriber)s"
-        row = await fetch_one(query, {"subscriber": subscriber})
-        assert row is not None
-        return row["count"]
+        return await fetch_val(f"SELECT count(*) FROM {cls.TABLENAME} WHERE subscriber = %(subscriber)s", {"subscriber": subscriber})
 
     @classmethod
     def count_following_sync(cls, subscriber: str) -> int:
@@ -152,10 +149,7 @@ class PubSub:
 
     @classmethod
     async def count_followers(cls, publisher: str) -> int:
-        query = f"SELECT count(*) as count FROM {cls.TABLENAME} WHERE publisher = %(publisher)s"
-        row = await fetch_one(query, {"publisher": publisher})
-        assert row is not None
-        return row["count"]
+        return await fetch_val(f"SELECT count(*) FROM {cls.TABLENAME} WHERE publisher = %(publisher)s", {"publisher": publisher})
 
     @classmethod
     def count_followers_sync(cls, publisher: str) -> int:
@@ -186,10 +180,7 @@ class PubSub:
 
     @classmethod
     async def is_following(cls, username: str) -> bool:
-        query = f"SELECT EXISTS(SELECT 1 FROM {cls.TABLENAME} WHERE subscriber = %(subscriber)s)"
-        row = await fetch_one(query, {"subscriber": username})
-        assert row is not None
-        return row["exists"]
+        return await fetch_val(f"SELECT EXISTS(SELECT 1 FROM {cls.TABLENAME} WHERE subscriber = %(subscriber)s)", {"subscriber": username})
 
     @classmethod
     def is_following_sync(cls, username: str) -> bool:

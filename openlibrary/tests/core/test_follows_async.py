@@ -41,15 +41,6 @@ async def test_toggle_privacy_only_updates_disabled():
 
 
 @pytest.mark.asyncio
-async def test_get_followers_returns_attribute_accessible_rows():
-    row = {"subscriber": "alice", "publisher": "bob", "disabled": False}
-    with patch("openlibrary.core.follows.fetch_all", new_callable=AsyncMock, return_value=[row]):
-        followers = await PubSub.get_followers("bob")
-
-    assert followers[0].subscriber == "alice"
-
-
-@pytest.mark.asyncio
 async def test_feed_uses_async_solr_enrichment():
     feed_row = {"username": "bob", "work_id": 42, "bookshelf_id": 1}
     with (
@@ -147,3 +138,38 @@ class TestPubSubIntegration:
         assert await PubSub.is_following("alice") is True
         assert await PubSub.is_following("nobody") is False
         assert (await PubSub.summary())["total_following_count"] == {"total": 2, "month": 2, "week": 2}
+
+    @pytest.mark.asyncio
+    async def test_following_and_followers_paginate(self, pg_db):
+        for publisher in ("bob", "carol", "dave"):
+            await PubSub.subscribe("alice", publisher)
+        for subscriber in ("erin", "frank", "grace"):
+            await PubSub.subscribe(subscriber, "zed")
+
+        assert len(await PubSub.get_following("alice", limit=2)) == 2
+        assert len(await PubSub.get_following("alice", limit=2, offset=2)) == 1
+        assert len(await PubSub.get_followers("zed", limit=2)) == 2
+        assert len(await PubSub.get_followers("zed", limit=2, offset=2)) == 1
+
+    @pytest.mark.asyncio
+    async def test_feed_reads_books_of_enabled_publishers(self, pg_db):
+        await PubSub.subscribe("alice", "bob")
+        await PubSub.subscribe("alice", "carol")
+        await PubSub.subscribe("alice", "dave")
+        await PubSub.toggle_privacy("dave", private=True)
+        for username, work_id, created in [
+            ("bob", 1, datetime(2020, 1, 1)),
+            ("carol", 2, datetime(2021, 1, 1)),
+            ("dave", 3, datetime(2022, 1, 1)),
+            ("erin", 4, datetime(2023, 1, 1)),
+        ]:
+            await async_db.execute(
+                "INSERT INTO bookshelves_books (username, work_id, bookshelf_id, created) VALUES (%(username)s, %(work_id)s, 1, %(created)s)",
+                {"username": username, "work_id": work_id, "created": created},
+            )
+
+        with patch.object(Bookshelves, "add_solr_works_async", new_callable=AsyncMock):
+            feed = await PubSub.get_feed("alice")
+            assert [(row.username, row.key) for row in feed] == [("carol", "/works/OL2W"), ("bob", "/works/OL1W")]
+            assert [row.username for row in await PubSub.get_feed("alice", limit=1, offset=1)] == ["bob"]
+            assert await PubSub.get_feed("nobody") == []
