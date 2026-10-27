@@ -1,5 +1,3 @@
-import web
-
 from openlibrary.core.async_db import fetch_all, fetch_one, fetch_val
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.utils import extract_numeric_id_from_olid
@@ -90,17 +88,6 @@ class Bestbook(db.CommonExtras):
         """
         query, vars = cls.prepare_query(select="*", work_id=work_id, username=username, topic=topic)
         return await fetch_all(query, vars)
-
-    @classmethod
-    def get_awards_sync(
-        cls,
-        work_id: str | None = None,
-        username: str | None = None,
-        topic: str | None = None,
-    ) -> list:
-        """Synchronous bridge preserving web.py storage rows for legacy callers."""
-        rows = async_bridge.run(cls.get_awards(work_id=work_id, username=username, topic=topic))
-        return [web.storage(row) for row in rows]
 
     @classmethod
     async def add(
