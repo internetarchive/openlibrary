@@ -3008,7 +3008,7 @@ msgstr ""
 msgid "Are you sure that's the published date?"
 msgstr ""
 
-#: books/add.html
+#: books/add.html openlibrary/plugins/upstream/addbook.py
 msgid "Please enter a valid URL starting with http:// or https://"
 msgstr ""
 
@@ -9287,6 +9287,10 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
+msgid "Invalid Book URL"
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py
