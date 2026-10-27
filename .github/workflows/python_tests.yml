@@ -18,6 +18,7 @@ permissions:
 jobs:
   python_tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -60,6 +61,7 @@ jobs:
           git fetch --no-tags --prune --depth=1 origin master
           make test-py
       - name: Run integration tests
+        timeout-minutes: 5
         # ubuntu-latest has PostgreSQL pre-installed; pg_ctl is at
         # /usr/lib/postgresql/*/bin/ (pytest-postgresql finds it via pg_config).
         run: |
@@ -69,6 +71,7 @@ jobs:
   # (via the same script docker/Dockerfile.olbase runs), not the ones committed here.
   i18n_upstream:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
