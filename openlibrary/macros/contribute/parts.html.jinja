@@ -159,17 +159,63 @@
         </details>
     </section>
 {% endmacro %}
-{% macro answer_control(task, field_guide, is_identifier, value, languages) %}
+{% macro answer_control(task, field_guide, is_identifier, value, languages, cover_suggestion=None) %}
     {% if field_guide.input_type == "file" %}
-        {#- contribute.js previews the chosen image in the record's cover slot, and takes one dropped or pasted there too. -#}
-        <input id="contrib-other-value"
-               type="file"
-               name="file"
-               class="contrib-input contrib-input--file"
-               accept=".jpg, .jpeg, .gif, .png, .webp"
-               required
-               data-cover-input />
-        <p class="contrib-muted contrib-field__hint">{{ _("JPG, GIF, PNG or WebP, up to 10 MB. You can also drop or paste an image onto the cover.") }}</p>
+        {#- The choices for the new cover, as rows. Each fills the one file input, so saving is the same for all of them.
+            contribute.js reveals the Amazon row once its image loads, and previews the choice in the record's cover slot. -#}
+        <fieldset class="contrib-cover-options">
+            <legend class="contrib-visually-hidden">{{ _("Choose the new cover") }}</legend>
+            {% if cover_suggestion %}
+                <label class="contrib-cover-option"
+                       data-cover-option="suggested"
+                       data-cover-suggestion="{{ cover_suggestion.url }}"
+                       hidden>
+                    <input type="radio"
+                           name="cover_choice"
+                           value="suggested"
+                           class="contrib-visually-hidden" />
+                    <img class="contrib-cover-option__thumb"
+                         data-cover-suggested-thumb
+                         alt=""
+                         width="160"
+                         height="240" />
+                    <span class="contrib-cover-option__text">
+                        <span class="contrib-cover-option__title">{{ _("Cover from Amazon") }}</span>
+                        <span class="contrib-cover-option__meta">{{ _("Found by ISBN %(isbn)s", isbn=cover_suggestion.isbn10) }}</span>
+                    </span>
+                </label>
+            {% endif %}
+            <div class="contrib-cover-option contrib-cover-option--upload"
+                 data-cover-option="upload"
+                 data-cover-drop>
+                <label class="contrib-cover-option__pick">
+                    <input type="radio"
+                           name="cover_choice"
+                           value="upload"
+                           class="contrib-visually-hidden" />
+                    <span class="contrib-cover-option__thumb contrib-cover-option__thumb--empty">
+                        {{ icon("upload", size="lg") }}
+                        <img data-cover-upload-thumb alt="" hidden />
+                    </span>
+                    <span class="contrib-cover-option__text">
+                        <span class="contrib-cover-option__title">{{ _("Upload a new image") }}</span>
+                        <span class="contrib-cover-option__meta" data-cover-upload-name>{{ _("Drop a file here, paste, or browse") }}</span>
+                    </span>
+                </label>
+                <ol-button class="contrib-cover-option__browse" variant="secondary" size="small" type="button" data-cover-browse>
+                    {{ _("Browse") }}
+                </ol-button>
+                <input id="contrib-other-value"
+                       type="file"
+                       name="file"
+                       class="contrib-visually-hidden"
+                       accept=".jpg, .jpeg, .gif, .png, .webp"
+                       required
+                       tabindex="-1"
+                       data-cover-input />
+            </div>
+        </fieldset>
+        <p class="contrib-muted contrib-field__hint">{{ _("JPG, GIF, PNG or WebP, up to 10 MB.") }}</p>
     {% elif is_identifier %}
         <input id="contrib-other-value"
                type="text"
@@ -201,8 +247,7 @@
 {% endmacro %}
 {% macro record_form(data) %}
     {#- The edition's record with the missing field as the live input, so the answer has an obvious place.
-        Identifiers and covers are gated behind a confirm box: a wrong number silently corrupts record matching,
-        and a wrong cover misleads every reader who sees it. -#}
+        Identifiers are gated behind a confirm box: a wrong number silently corrupts record matching. -#}
     {% set task = data.task %}
     {% set book = data.book %}
     <form method="post"
@@ -259,7 +304,7 @@
                                 <label for="contrib-other-value">{{ row.label }}</label>
                             </dt>
                             <dd>
-                                {{ answer_control(task, data.field_guide, data.is_identifier, data.value, data.languages) }}
+                                {{ answer_control(task, data.field_guide, data.is_identifier, data.value, data.languages, data.cover_suggestion) }}
                                 {% if data.is_identifier %}<p class="contrib-field__verdict" data-id-verdict role="status"></p>{% endif %}
                                 {% if data.suggestions %}
                                     <div class="contrib-suggest" data-suggest>
@@ -271,6 +316,7 @@
                                         {% endfor %}
                                     </div>
                                 {% endif %}
+                                {% if data.field_guide.check %}<p class="contrib-field__hint">{{ data.field_guide.check }}</p>{% endif %}
                                 {% if data.field_guide.confirm %}
                                     <label class="contrib-confirm">
                                         <input type="checkbox" name="confirmed" value="1" required />

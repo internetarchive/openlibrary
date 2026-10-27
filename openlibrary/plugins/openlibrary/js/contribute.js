@@ -239,52 +239,96 @@ function initIdentifierForm(form) {
 }
 
 /**
- * Cover task: show the chosen image in the record's cover slot, and take an
- * image dropped onto the slot or pasted anywhere on the page into the file input.
- * @param {HTMLFormElement} form - a ``[data-cover-form]`` holding ``[data-cover-input]`` and ``[data-cover-drop]``
+ * Cover task: the new cover is one of a few rows, Amazon's image for the ISBN once it loads or an
+ * upload (picked, dropped, or pasted anywhere on the page). The chosen row's image goes into the
+ * one file input the form submits, and shows in the record's cover slot.
+ * @param {HTMLFormElement} form - a ``[data-cover-form]`` holding ``[data-cover-input]`` and the ``[data-cover-option]`` rows
  * @returns {void}
  */
 function initCoverForm(form) {
     const input = form.querySelector('[data-cover-input]');
-    const drop = form.querySelector('[data-cover-drop]');
-    const preview = drop?.querySelector('[data-cover-preview]');
-    if (!input || !preview) return;
-    let previewUrl = '';
+    const preview = form.querySelector('[data-cover-preview]');
+    const slot = preview?.closest('[data-cover-drop]');
+    const suggestedRow = form.querySelector('[data-cover-option="suggested"]');
+    const uploadRow = form.querySelector('[data-cover-option="upload"]');
+    if (!input || !slot || !uploadRow) return;
+    const uploadThumb = uploadRow.querySelector('[data-cover-upload-thumb]');
+    const uploadName = uploadRow.querySelector('[data-cover-upload-name]');
+    const files = {};
+    const urls = {};
 
-    const showChosen = () => {
-        const file = input.files[0];
-        if (previewUrl) URL.revokeObjectURL(previewUrl);
-        previewUrl = file ? URL.createObjectURL(file) : '';
-        preview.src = previewUrl;
-        preview.hidden = !file;
-        drop.classList.toggle('has-image', !!file);
+    const setFile = (choice, file) => {
+        if (urls[choice]) URL.revokeObjectURL(urls[choice]);
+        files[choice] = file;
+        urls[choice] = file ? URL.createObjectURL(file) : '';
     };
-    // The server checks the extension, and a pasted image may arrive without one.
-    const take = files => {
-        const image = [...files].find(file => file.type.startsWith('image/'));
-        if (!image) return false;
-        const name = /\.\w+$/.test(image.name) ? image.name : `cover.${image.type.split('/')[1]}`;
+    const select = choice => {
         const transfer = new DataTransfer();
-        transfer.items.add(new File([image], name, { type: image.type }));
+        if (files[choice]) transfer.items.add(files[choice]);
         input.files = transfer.files;
-        showChosen();
-        return true;
+        form.querySelector(`input[name="cover_choice"][value="${choice}"]`).checked = true;
+        preview.src = urls[choice] || '';
+        preview.hidden = !files[choice];
+        slot.classList.toggle('has-image', !!files[choice]);
+    };
+    const checkedChoice = () => form.querySelector('input[name="cover_choice"]:checked')?.value;
+    // The server checks the extension, and a pasted image may arrive without one.
+    const upload = file => {
+        const name = /\.\w+$/.test(file.name) ? file.name : `cover.${file.type.split('/')[1]}`;
+        setFile('upload', new File([file], name, { type: file.type }));
+        uploadThumb.src = urls.upload;
+        uploadThumb.hidden = false;
+        uploadRow.classList.add('has-image');
+        uploadName.textContent = name;
+        select('upload');
+    };
+    const take = fileList => {
+        const image = [...fileList].find(file => file.type.startsWith('image/'));
+        if (image) upload(image);
+        return !!image;
     };
 
-    input.addEventListener('change', showChosen);
-    drop.addEventListener('dragover', event => {
-        event.preventDefault();
-        drop.classList.add('is-over');
+    form.addEventListener('change', event => {
+        if (event.target.name !== 'cover_choice') return;
+        // Picking the upload row with nothing uploaded yet opens the file picker.
+        if (event.target.value === 'upload' && !files.upload) input.click();
+        select(event.target.value);
     });
-    drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
-    drop.addEventListener('drop', event => {
-        event.preventDefault();
-        drop.classList.remove('is-over');
-        take(event.dataTransfer.files);
+    uploadRow.querySelector('[data-cover-browse]')?.addEventListener('click', () => input.click());
+    // A cancelled picker empties the input, so put back whichever row is chosen.
+    input.addEventListener('change', () => {
+        if (input.files[0]) upload(input.files[0]);
+        else if (checkedChoice()) select(checkedChoice());
+    });
+    form.querySelectorAll('[data-cover-drop]').forEach(target => {
+        target.addEventListener('dragover', event => {
+            event.preventDefault();
+            target.classList.add('is-over');
+        });
+        target.addEventListener('dragleave', () => target.classList.remove('is-over'));
+        target.addEventListener('drop', event => {
+            event.preventDefault();
+            target.classList.remove('is-over');
+            take(event.dataTransfer.files);
+        });
     });
     document.addEventListener('paste', event => {
         if (event.clipboardData && take(event.clipboardData.files)) event.preventDefault();
     });
+
+    // Amazon sends a tiny GIF when it has no cover for the ISBN; the row stays hidden then.
+    const suggestion = suggestedRow?.dataset.coverSuggestion;
+    if (suggestion) {
+        fetch(suggestion)
+            .then(response => (response.ok ? response.blob() : null))
+            .then(blob => {
+                if (!blob || blob.type !== 'image/jpeg' || blob.size < 1000) return;
+                setFile('suggested', new File([blob], 'amazon-cover.jpg', { type: blob.type }));
+                suggestedRow.querySelector('[data-cover-suggested-thumb]').src = urls.suggested;
+                suggestedRow.hidden = false;
+            })
+            .catch(() => {});
+    }
 }
 
 /**

@@ -21,6 +21,8 @@ GOOGLE_BOOKS = "https://books.google.com/books?vid=ISBN{isbn}"
 AMAZON = "https://www.amazon.com/s?k={isbn}"
 LOC = "https://catalog.loc.gov/vwebv/search?searchArg={isbn}&searchCode=GKEY%5E*&searchType=0"
 BETTER_WORLD_BOOKS = "https://www.betterworldbooks.com/product/detail/{isbn}"
+# A book's Amazon product id is its ISBN-10; _SCRM_ is the full-size image. A 1x1 GIF when Amazon has none.
+AMAZON_COVER = "https://m.media-amazon.com/images/P/{isbn10}.01._SCRM_.jpg"
 
 
 @dataclass(frozen=True)
@@ -51,6 +53,7 @@ class FieldGuide:
     traps: list[str] = dc_field(default_factory=list)
     placeholder: str = ""
     input_type: str = "text"
+    check: str = ""  # what to look at before saving, shown under the answer
     confirm: str = ""  # a checkbox the answer can't be saved without
 
 
@@ -82,7 +85,10 @@ def get_field_guides() -> dict[str, FieldGuide]:
                 _("Making a cover yourself. If you can't find the real one, leave it for someone who can."),
             ],
             input_type="file",
-            confirm=_("The title, author and publisher on this image match this edition."),
+            check=_(
+                "Check that the title and author match, and look for anything that doesn't fit this edition, "
+                "such as “Graphic Novel”, “Movie tie-in” or a title in another language."
+            ),
         ),
         "languages": FieldGuide(
             field="languages",

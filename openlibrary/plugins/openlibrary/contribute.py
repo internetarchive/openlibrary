@@ -14,7 +14,7 @@ from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
 from openlibrary.contribute import feed, save, supply, tasks
-from openlibrary.contribute.field_guides import build_link_outs, get_field_guides
+from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values
 from openlibrary.core import helpers
 from openlibrary.i18n import gettext as _
@@ -113,7 +113,6 @@ def format_field_value(edition, fld: str) -> str:
 def build_edition_field_rows(edition, fld: str) -> list[dict]:
     """The edition's record as the task page shows it: the fields it has, plus the one being asked about, in place."""
     rows = [
-        ("covers", _("Cover")),
         ("publishers", _("Publisher")),
         ("publish_date", _("Published")),
         ("physical_format", _("Format")),
@@ -122,6 +121,8 @@ def build_edition_field_rows(edition, fld: str) -> list[dict]:
         ("isbn", _("ISBN")),
         ("lccn", _("LCCN")),
         ("oclc_numbers", _("OCLC")),
+        # Last, so the publisher, year and ISBN to check the images against are read first.
+        ("covers", _("Cover")),
     ]
     out = []
     for f, label in rows:
@@ -392,6 +393,10 @@ def build_task_context(edition, task: tasks.Task, back: str, error: str = "", va
         },
         "is_identifier": task.field in save.NORMALIZERS,
         "is_cover": task.field == "covers",
+        # Offered as one of the cover choices; the volunteer picks it and ticks the confirm box.
+        "cover_suggestion": {"url": AMAZON_COVER.format(isbn10=isbn10), "isbn10": isbn10}
+        if task.field == "covers" and (isbn10 := edition.get_isbn10())
+        else None,
         "field_guide": field_guide,
         "link_outs": build_link_outs(field_guide, book["isbn13"]),
         # Nothing to compare against when no other edition has a value.

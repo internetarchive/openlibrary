@@ -5918,7 +5918,7 @@ msgstr ""
 msgid "Reader-curated collections"
 msgstr ""
 
-#: databarWork.html shell/browse_popover.html.jinja shell/header.html.jinja
+#: contribute/parts.html.jinja databarWork.html shell/browse_popover.html.jinja shell/header.html.jinja
 msgid "Browse"
 msgstr ""
 
@@ -8002,7 +8002,28 @@ msgid "And %(count)s more."
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "JPG, GIF, PNG or WebP, up to 10 MB. You can also drop or paste an image onto the cover."
+msgid "Choose the new cover"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Cover from Amazon"
+msgstr ""
+
+#: contribute/parts.html.jinja
+#, python-format
+msgid "Found by ISBN %(isbn)s"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Upload a new image"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Drop a file here, paste, or browse"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "JPG, GIF, PNG or WebP, up to 10 MB."
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8163,7 +8184,7 @@ msgid "Making a cover yourself. If you can't find the real one, leave it for som
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The title, author and publisher on this image match this edition."
+msgid "Check that the title and author match, and look for anything that doesn't fit this edition, such as “Graphic Novel”, “Movie tie-in” or a title in another language."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
