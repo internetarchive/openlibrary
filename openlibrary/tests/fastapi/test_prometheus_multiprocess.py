@@ -11,18 +11,11 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-import pytest
-
 _REAL_SLEEP = time.sleep
 
 
 def run_reproduction(mode, workdir, successful_requests):
-    """Run the issue's Gunicorn/Instrumentator reproduction in bug or fixed mode.
-
-    Slow, and it starts real servers, so it's an integration test, skipped by default. Run it when changing
-    docker/gunicorn_prometheus_conf.py or openlibrary/utils/prometheus_multiprocess.py, with
-    ``pytest -m integration openlibrary/tests/fastapi/test_prometheus_multiprocess.py``.
-    """
+    """Run the issue's Gunicorn/Instrumentator reproduction in bug or fixed mode."""
     if mode not in {"bug", "fixed"}:
         raise ValueError("mode must be 'bug' or 'fixed'")
 
@@ -141,7 +134,6 @@ prometheus_multiprocess.expose(app)
                 process.wait()
 
 
-@pytest.mark.integration
 def test_gunicorn_worker_recycling_preserves_prometheus_totals(tmp_path, monkeypatch):
     # The repository's autouse no_sleep fixture blocks sleeps, but this test
     # needs real timing while polling a separate Gunicorn process.

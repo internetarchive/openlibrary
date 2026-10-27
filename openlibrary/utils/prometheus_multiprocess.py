@@ -10,6 +10,11 @@ file already deleted (a 500), or count a worker both in its file and in the arch
 total that then drops, which Prometheus takes for a counter reset). So scrapes share a
 lock that merges take exclusively.
 
+The merges run in gunicorn's master, which mustn't wait on scrapes: they can take seconds,
+and a steady stream of them would hold the lock indefinitely. So the master only merges when
+no scrape is running, and otherwise tries again before it next starts a worker. Until then,
+scrapes still read the dead worker's files, so the totals stay right.
+
 Imported by gunicorn's master process (``docker/gunicorn_prometheus_conf.py``), so keep it light.
 """
 
@@ -27,7 +32,7 @@ from prometheus_client.multiprocess import MultiProcessCollector
 from starlette.responses import Response
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Container, Iterator
 
     from fastapi import FastAPI
 
@@ -37,15 +42,25 @@ _ADDITIVE_TYPES = ("counter", "histogram", "summary")
 
 
 @contextlib.contextmanager
-def _locked(metrics_dir: str, operation: int) -> Iterator[None]:
+def _locked(metrics_dir: str, operation: int) -> Iterator[bool]:
+    """Hold the lock for the block. With ``LOCK_NB``, yields False instead of waiting for it."""
     with open(os.path.join(metrics_dir, LOCK_FILE), "a") as lock_file:
-        fcntl.flock(lock_file, operation)
-        yield  # closing the file releases the lock
+        try:
+            fcntl.flock(lock_file, operation)
+        except BlockingIOError:
+            yield False
+            return
+        yield True  # closing the file releases the lock
 
 
-def merge_dead_worker(metrics_dir: str, pid: int) -> None:
-    """Merge the additive metric files of the exited worker ``pid`` into the archives, and delete them."""
-    with _locked(metrics_dir, fcntl.LOCK_EX):
+def merge_dead_worker(metrics_dir: str, pid: int) -> bool:
+    """Merge the additive metric files of the exited worker ``pid`` into the archives, and delete them.
+
+    Returns False, merging nothing, if a scrape is reading the files.
+    """
+    with _locked(metrics_dir, fcntl.LOCK_EX | fcntl.LOCK_NB) as locked:
+        if not locked:
+            return False
         # prometheus_client doesn't expose a public merge API, so this relies on its file names and MmapedDict.
         # The tests in openlibrary/utils/tests/test_prometheus_multiprocess.py check both.
         for dead_file in glob.glob(os.path.join(metrics_dir, f"*_{pid}.db")):
@@ -61,30 +76,36 @@ def merge_dead_worker(metrics_dir: str, pid: int) -> None:
                 archive.close()
 
             os.remove(dead_file)
+    return True
 
 
-_waiting: list[tuple[str, int]] = []
-_merging = False
+# Exited workers, oldest first, not yet merged
+_dead_workers: list[int] = []
 
 
-def on_worker_exit(metrics_dir: str, pid: int) -> None:
-    """Gunicorn's ``child_exit`` hook: merge the exited worker ``pid``.
+def worker_exited(pid: int) -> None:
+    """Queue the exited worker ``pid`` for ``merge_dead_workers``.
 
-    Gunicorn calls it from its SIGCHLD handler, so another worker exiting can interrupt a merge with another call.
-    That call only queues its worker, which the interrupted call merges next: merging right away would wait forever
-    for the lock the interrupted merge holds. A worker queued just as the loop ends waits for the next worker to
-    exit; until then scrapes still read its files.
+    For gunicorn's ``child_exit`` hook, which it calls from its SIGCHLD handler, so this only appends: anything more
+    could be interrupted by another worker exiting, or block the master.
     """
-    global _merging
-    _waiting.append((metrics_dir, pid))
-    if _merging:
-        return
-    _merging = True
-    try:
-        while _waiting:
-            merge_dead_worker(*_waiting.pop(0))
-    finally:
-        _merging = False
+    _dead_workers.append(pid)
+
+
+def merge_dead_workers(metrics_dir: str, live_pids: Container[int] = ()) -> None:
+    """Merge the queued exited workers, stopping if a scrape is reading the files. For gunicorn's ``pre_fork`` hook.
+
+    ``live_pids`` are the running workers: if one reused a queued worker's pid, those files are its now.
+    """
+    while _dead_workers:
+        pid = _dead_workers[0]
+        try:
+            if pid not in live_pids and not merge_dead_worker(metrics_dir, pid):
+                return  # tried again before the next fork
+        except Exception:
+            _dead_workers.pop(0)  # don't fail on the same files before every fork
+            raise
+        _dead_workers.pop(0)
 
 
 class LockedMultiProcessCollector(MultiProcessCollector):
