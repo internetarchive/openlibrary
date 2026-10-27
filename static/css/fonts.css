@@ -1,0 +1,8 @@
+/**
+ * Site webfonts, loaded on every page by shell/head.html.jinja.
+ * Kept out of the render-blocking bundles: the head loads this sheet
+ * non-blocking, so first paint uses the system fallbacks and the faces
+ * swap in once they arrive.
+ */
+@import "fonts/literata.css";
+@import "fonts/schibsted-grotesk.css";
