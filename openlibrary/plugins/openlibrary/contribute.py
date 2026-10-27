@@ -393,7 +393,7 @@ def build_task_context(edition, task: tasks.Task, back: str, error: str = "", va
         },
         "is_identifier": task.field in save.NORMALIZERS,
         "is_cover": task.field == "covers",
-        # Offered as one of the cover choices; the volunteer picks it and ticks the confirm box.
+        # Offered as one of the cover choices, next to uploading one.
         "cover_suggestion": {"url": AMAZON_COVER.format(isbn10=isbn10), "isbn10": isbn10}
         if task.field == "covers" and (isbn10 := edition.get_isbn10())
         else None,
@@ -477,7 +477,7 @@ class contribute_task(delegate.page):
             if field_guide.confirm and not i.confirmed:
                 raise save.InvalidAnswer(_("Check that it matches this edition, and tick the box to say so."))
             if fld == "covers":
-                save.save_cover(edition, i.file)
+                save.save_cover(edition, i.file, from_amazon=i.get("cover_choice") == "suggested")
             else:
                 save.save_answer(edition, fld, i.value, field_guide.label, i.note)
         except save.InvalidAnswer as e:

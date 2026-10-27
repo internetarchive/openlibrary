@@ -21,8 +21,8 @@ GOOGLE_BOOKS = "https://books.google.com/books?vid=ISBN{isbn}"
 AMAZON = "https://www.amazon.com/s?k={isbn}"
 LOC = "https://catalog.loc.gov/vwebv/search?searchArg={isbn}&searchCode=GKEY%5E*&searchType=0"
 BETTER_WORLD_BOOKS = "https://www.betterworldbooks.com/product/detail/{isbn}"
-# A book's Amazon product id is its ISBN-10; _SCRM_ is the full-size image. A 1x1 GIF when Amazon has none.
-AMAZON_COVER = "https://m.media-amazon.com/images/P/{isbn10}.01._SCRM_.jpg"
+# A book's Amazon product id is its ISBN-10; L is the large image. A 1x1 GIF when Amazon has none.
+AMAZON_COVER = "https://m.media-amazon.com/images/P/{isbn10}.01.L.jpg"
 
 
 @dataclass(frozen=True)
@@ -73,7 +73,6 @@ def get_field_guides() -> dict[str, FieldGuide]:
                 "Check that the title, author and publisher on the image match this edition, then upload it here."
             ),
             sources=[google, amazon, LookupSource(_("Better World Books"), BETTER_WORLD_BOOKS)],
-            why=_("A cover is how readers recognize a book in search results, lists and carousels."),
             notes=[
                 GuidelineNote(
                     _("Upload the cover only, flat and in full: no photos of the book on a table, no 3D mockups, no store badges or watermarks."),
@@ -85,10 +84,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
                 _("Making a cover yourself. If you can't find the real one, leave it for someone who can."),
             ],
             input_type="file",
-            check=_(
-                "Check that the title and author match, and look for anything that doesn't fit this edition, "
-                "such as “Graphic Novel”, “Movie tie-in” or a title in another language."
-            ),
+            check=_("Look for anything that doesn't fit this edition, such as “Graphic Novel”, “Movie tie-in” or a title in another language."),
         ),
         "languages": FieldGuide(
             field="languages",
@@ -152,8 +148,8 @@ def get_field_guides() -> dict[str, FieldGuide]:
             action=_("Fill in LCCN"),
             question=_("What is this edition's Library of Congress number?"),
             how=_(
-                "Search the Library of Congress catalog for this ISBN. Open the record whose year and publisher match this edition, "
-                "and copy the number shown as LCCN."
+                "Search the Library of Congress catalog for this ISBN. Open the record whose publisher and edition match this one, "
+                "and copy the number shown as LCCN. A paperback or later printing can show a different year and still be the same record."
             ),
             sources=[loc],
             notes=[
@@ -163,12 +159,15 @@ def get_field_guides() -> dict[str, FieldGuide]:
                 ),
             ],
             traps=[
-                _("The number belongs to a different printing. Search results lead with the best-known one, not with yours."),
-                _("The number is already on another edition of this work, which means one of the two records is wrong."),
+                _("The number belongs to a different edition: another publisher's, a revised edition, a translation or the ebook. Each has its own record."),
+                _(
+                    "The number is already on another edition of this work. That's right when it's the hardcover, paperback or a later printing "
+                    "from the same publisher; a different publisher or a revised edition means one of the two records is wrong."
+                ),
                 _("Pasting the web address instead of the number itself."),
             ],
             placeholder=_("For example 75425165"),
-            confirm=_("I opened the record and the year and publisher match this edition."),
+            confirm=_("I opened the record and its publisher and edition match this one."),
         ),
         "oclc_numbers": FieldGuide(
             field="oclc_numbers",

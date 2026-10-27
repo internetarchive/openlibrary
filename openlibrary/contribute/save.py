@@ -11,6 +11,7 @@ import re
 
 import web
 
+from openlibrary.contribute.field_guides import AMAZON_COVER
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.covers import add_cover
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, get_languages
@@ -98,16 +99,22 @@ def save_answer(edition, fld: str, raw: str, label: str, note: str = "") -> None
     web.ctx.site.save(doc, comment=comment, action=ACTION, data={"source": SOURCE, "field": fld})
 
 
-def save_cover(edition, file) -> None:
+def save_cover(edition, file, from_amazon: bool = False) -> None:
     """Upload the image and put it first on the edition, as the add-cover page does."""
     if not getattr(file, "filename", ""):
         raise InvalidAnswer(_("Choose an image of the cover."))
     data = add_cover().upload(edition.key, web.storage(file=file, url=""))
+    if data.get("unavailable"):
+        raise InvalidAnswer(_("We couldn't save the cover just now. Please try again in a minute."))
     if not (cover_id := data.get("id")):
         raise InvalidAnswer(_("That isn't an image Open Library can use. Choose a JPG, GIF, PNG or WebP under 10 MB."))
     edition.covers = [cover_id] + [c.id for c in edition.get_covers()]
+    change = {"source": SOURCE, "field": "covers"}
+    # The browser uploads the Amazon image it showed; passing it to coverstore as a URL would download it again there.
+    if from_amazon and (isbn10 := edition.get_isbn10()):
+        change["url"] = AMAZON_COVER.format(isbn10=isbn10)
     # History shows an add-cover change's comment as the image, so the comment is the thumbnail's address.
-    edition._save(f"{get_coverstore_public_url()}/b/id/{cover_id}-S.jpg", action=COVER_ACTION, data={"source": SOURCE, "field": "covers"})
+    edition._save(f"{get_coverstore_public_url()}/b/id/{cover_id}-S.jpg", action=COVER_ACTION, data=change)
 
 
 def _tasks_changes(query: dict) -> list:
