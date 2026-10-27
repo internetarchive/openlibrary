@@ -12,6 +12,7 @@ Metric names are used as given, so keep them HTTP tokens and avoid ``total``,
 
 from __future__ import annotations
 
+import asyncio
 import threading
 import time
 from contextlib import contextmanager
@@ -293,10 +294,19 @@ def _infogami_metric_name(name: str) -> str | None:
 _bridge_installed = False
 
 
+def _on_event_loop() -> bool:
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return False
+    return True
+
+
 def install_legacy_bridge() -> None:
     """Time legacy code during FastAPI requests: infogami's ``stats.begin()/end()``
     (infobase, memcache), which would otherwise pile up in thread-local ``web.ctx``;
-    every web.py DB query as ``db-legacy`` (the async pool reports ``db``); and every
+    every web.py DB query as ``db-legacy`` (``db-legacy-blocking`` when it runs on the
+    event loop, i.e. from an async route; the async pool reports ``db``); and every
     Templetor template or macro render as ``render-templetor``, whichever helper called it.
     infogami's ``end(error=True)`` is ignored: in-process infobase reports ordinary
     not-founds that way."""
@@ -318,7 +328,8 @@ def install_legacy_bridge() -> None:
         timings._end()
 
     def _db_execute(self, cur, sql_query):
-        with timed("db-legacy"):
+        # On the event loop (an async route), a sync query blocks every other request.
+        with timed("db-legacy-blocking" if _on_event_loop() else "db-legacy"):
             return original_db_execute(self, cur, sql_query)
 
     def template_call(self, *a, **kw):
