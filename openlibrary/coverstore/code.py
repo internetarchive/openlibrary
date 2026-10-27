@@ -377,6 +377,17 @@ async def _serve_cover(request: Request, category: CoverCategory, key: str, valu
         return Response(content=read_image(d, size), media_type="image/jpeg", headers=headers)
     except OSError:
         return Response(status_code=404)
+    except ValueError:
+        # When a row's filename_<size> is NULL, read_image() falls back to
+        # "<filename>-<SIZE>.jpg". On a tar-style filename that yields
+        # "covers_NNNN_NN.tar:offset:size-L.jpg", and read_file() parses the last
+        # colon-separated segment as the byte count -- int("3-L.jpg") raises
+        # ValueError. The cover simply isn't there, so it is a 404 like any other
+        # missing file, not a 500. Unlike a missing file, though, the row itself is
+        # malformed, so log it: otherwise the only way to find these rows is to
+        # scan the table.
+        logger.warning("cover %s: unreadable %s filename %r", d.id, SIZE_LOWER[size] or "original", d.filename)
+        return Response(status_code=404)
 
 
 @router.api_route("/{category}/{key}/{value}-{size:cover_size}.jpg", methods=["GET", "HEAD"], include_in_schema=False)
