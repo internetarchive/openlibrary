@@ -319,6 +319,37 @@ class TestSearchEndpoint:
         assert isinstance(call_kwargs["fields"], list)
         assert call_kwargs["fields"] == expected_fields
 
+    @pytest.mark.parametrize(
+        ("sort", "expected_status"),
+        [
+            (None, 200),  # sort is optional
+            ("new", 200),  # valid single key
+            ("editions,new", 200),  # comma-separated list
+            ("random", 200),  # random
+            ("random_customSeed", 200),  # random with a custom seed
+            ("trending,trending_score_hourly_sum", 200),  # carousel compound sort
+            ("editions,", 200),  # trailing comma -> empty component dropped, not 500
+            (" ", 200),  # whitespace-only -> no sort, not 500
+            ("bogus", 422),  # unknown key
+            ("title desc", 422),  # 'title' is a key but 'title desc' is not
+            ("ranking", 422),  # documented for subjects but never a real key
+            ("new,bogus", 422),  # one valid key, one unknown -> still rejected
+        ],
+    )
+    def test_sort_validation(self, client, mock_work_search, sort, expected_status):
+        """An unknown sort returns a 422 listing valid options (issue #13988),
+        matching /search/authors.json, instead of a 500. Valid single, comma-
+        separated and random_* sorts still work."""
+        params = {"q": "tolkien"} if sort is None else {"q": "tolkien", "sort": sort}
+        response = search(client, **params)
+
+        assert response.status_code == expected_status
+        if expected_status == 422:
+            assert "Invalid sort option" in response.text
+            mock_work_search.assert_not_called()
+        else:
+            mock_work_search.assert_called_once()
+
 
 def test_public_api_params():
     """
