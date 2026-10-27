@@ -324,10 +324,8 @@ def test_sentry_tag_is_set_for_proxied_requests():
     """Proxied requests must set the Sentry 'proxied' tag (#13986)."""
     fake_client = FakeClient(FakeResponse([b"ok"]))
 
-    with patch("openlibrary.fastapi.proxy.sentry_sdk") as mock_sentry:
-        with _proxy_client(fake_client) as client:
-            response = client.get("/some/page")
+    with patch("openlibrary.fastapi.proxy.sentry_sdk") as mock_sentry, _proxy_client(fake_client) as client:
+        response = client.get("/some/page")
 
     assert response.status_code == 200
     mock_sentry.set_tag.assert_called_with("proxied", True)
-
