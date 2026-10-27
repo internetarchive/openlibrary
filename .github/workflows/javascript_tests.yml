@@ -56,7 +56,3 @@ jobs:
       # only the revision-locked browser binaries need fetching.
       - run: npx playwright install chromium
       - run: npm run test:js:browser
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

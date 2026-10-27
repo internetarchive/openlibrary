@@ -64,10 +64,6 @@ jobs:
         # /usr/lib/postgresql/*/bin/ (pytest-postgresql finds it via pg_config).
         run: |
           pytest -m integration openlibrary/tests/core/
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   # Runs the i18n checks against the .po files olbase will bake from openlibrary-i18n
   # (via the same script docker/Dockerfile.olbase runs), not the ones committed here.
