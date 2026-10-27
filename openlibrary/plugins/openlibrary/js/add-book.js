@@ -56,8 +56,12 @@ export function initAddBookImport() {
 
         document.getElementById('publish_date').addEventListener('blur', validatePublishDate);
 
-        document.getElementById('web_book_url').addEventListener('blur', validateWebBookUrl);
-        addBookForm.addEventListener('submit', validateWebBookUrl);
+        // The Book URL field is only rendered for librarians
+        const webBookUrl = document.getElementById('web_book_url');
+        if (webBookUrl) {
+            webBookUrl.addEventListener('blur', validateWebBookUrl);
+            addBookForm.addEventListener('submit', validateWebBookUrl);
+        }
 
         trimInputValues('input');
 
