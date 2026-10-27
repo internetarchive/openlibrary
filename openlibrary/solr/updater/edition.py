@@ -1,5 +1,6 @@
 import logging
 import re
+import unicodedata
 from functools import cached_property
 from typing import TYPE_CHECKING, cast
 
@@ -102,10 +103,25 @@ ARTICLE_PATTERN = re.compile(
 )
 
 
+def _strip_leading_punctuation(title: str) -> str:
+    """Drop leading punctuation and whitespace, e.g. Spanish "¡" and "¿" or opening quotes."""
+    for i, char in enumerate(title):
+        if not (char.isspace() or unicodedata.category(char).startswith("P")):
+            return title[i:]
+    return ""
+
+
 def sort_title(title: str, subtitle: str | None) -> str:
-    """Move leading articles to the end of the title for sorting purposes."""
+    """
+    Move leading articles to the end of the title for sorting purposes.
+
+    Leading punctuation is ignored, so "¡Hola!" sorts under H and the article in
+    "¿El ...?" is still recognised. title_sort is an ICUCollationField, which
+    allows no analyzers, so this is the only place to do it.
+    """
     if subtitle:
         title = title + ": " + subtitle
+    title = _strip_leading_punctuation(title) or title
     if match := ARTICLE_PATTERN.match(title):
         return f"{match.group(2)}, {match.group(1).strip()}"
     return title
