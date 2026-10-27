@@ -1,4 +1,4 @@
-"""Unit and integration tests for the async Bookshelves queries. See ``docs/core/database.md``."""
+"""Unit and integration tests for the Bookshelves model. See ``docs/core/database.md``."""
 
 import asyncio
 from datetime import datetime
