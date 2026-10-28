@@ -21,6 +21,7 @@ from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.fastapi.middleware.server_timing import add_server_timing
 from openlibrary.utils import prometheus, prometheus_multiprocess, server_timing
+from openlibrary.utils.legacy_db import install_connection_recovery
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
@@ -190,6 +191,7 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI | None:
+    install_connection_recovery()
     if "pytest" not in sys.modules:
         _setup_env()
 
