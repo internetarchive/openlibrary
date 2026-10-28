@@ -2139,6 +2139,7 @@ def test_load_author_import_records_without_web_ctx_site(mock_site, monkeypatch,
     assert author_reply[0]["status"] == expected_status
     assert bool(edits) is (expected_status == "modified")
 
+
 def test_import_with_honorific_author_variants_creates_single_author(mock_site):
     """
     Importing a book containing honorific variants of the same author
@@ -2152,10 +2153,6 @@ def test_import_with_honorific_author_variants_creates_single_author(mock_site):
         }
     )
     assert reply["success"]
-    authors = [
-        mock_site.get(k).dict()
-        for k in mock_site.things({"type": "/type/author"})
-    ]
+    authors = [mock_site.get(k).dict() for k in mock_site.things({"type": "/type/author"})]
     assert len(authors) == 1
     assert authors[0]["name"] == "John Smith"
-
