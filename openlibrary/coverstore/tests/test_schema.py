@@ -16,7 +16,5 @@ def test_get_schema_sqlite():
     sql = get_schema("sqlite")
     con = sqlite3.connect(":memory:")
     con.executescript(sql)
-    cursor = con.execute(
-        "SELECT id, failed, uploaded, source, archived, deleted FROM cover WHERE failed=0 AND uploaded=0;"
-    )
+    cursor = con.execute("SELECT id, failed, uploaded, source, archived, deleted FROM cover WHERE failed=0 AND uploaded=0;")
     assert cursor.fetchall() == []
