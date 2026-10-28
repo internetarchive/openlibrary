@@ -214,7 +214,7 @@ class ReadProcessor:
         # filter out 'id:foo' before passing to dynlinks
         bib_keys = [k for k in bib_keys if k[:3].lower() != "id:"]
 
-        self.docs = await dynlinks.add_availability(dynlinks.query_docs(bib_keys))
+        self.docs = await dynlinks.add_availability(await dynlinks.query_docs(bib_keys))
         if not self.options.get("no_details"):
             self.detailss = dynlinks.process_result_for_details(self.docs, self.base_url)
         else:
