@@ -5,12 +5,14 @@ Nothing builds it by hand: the first request after a deploy starts the pick on a
 """
 
 import logging
+from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from infogami.utils.delegate import create_site
 from openlibrary.contribute import pool, tasks
+from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.dateutil import DAY_SECS, MINUTE_SECS
 
@@ -31,15 +33,47 @@ OPEN_LOCK_TTL = 5 * MINUTE_SECS
 class Initiative:
     slug: str
     size: int
-    # ``size`` -> ``[[edition key, readers], ...]``, most-read first.
-    pick: Callable[[int], list[list]]
+    # ``(size, site)`` -> ``[[edition key, readers], ...]``, most-read first.
+    pick: Callable[[int, object], list[list]]
 
     @property
     def store_key(self) -> str:
         return f"contribute-initiative-{self.slug}"
 
 
-def pick_most_read(size: int) -> list[list]:
+# Most shelvings name the edition (61% of all, 73% for the most-read books, 2026-10), so the reading log can pick the copy people read.
+# A book's editions often take more than one of the top spots; this many per work keeps the list from filling with near-duplicates.
+EDITIONS_PER_WORK = 2
+# Ask for more than needed: some top editions have no ISBN, and the per-work cap drops others.
+OVERFETCH = 3
+
+
+def pick_most_shelved(size: int, site) -> list[list]:
+    """The editions people name most when they shelve a book: ISBN editions only, at most ``EDITIONS_PER_WORK`` per work.
+
+    Tops up from ``pick_most_read`` when the reading log names too few editions, as on a dev database.
+    """
+    rows = Bookshelves.most_logged_editions_sync(size * OVERFETCH)
+    picks: list[list] = []
+    per_work: Counter[int] = Counter()
+    for i in range(0, len(rows), 100):
+        chunk = rows[i : i + 100]
+        editions = {e.key: e for e in site.get_many([f"/books/OL{r['edition_id']}M" for r in chunk])}
+        for r in chunk:
+            edition = editions.get(f"/books/OL{r['edition_id']}M")
+            if not edition or edition.type.key != "/type/edition" or not (edition.get("isbn_13") or edition.get("isbn_10")):
+                continue
+            if per_work[r["work_id"]] >= EDITIONS_PER_WORK:
+                continue
+            per_work[r["work_id"]] += 1
+            picks.append([edition.key, r["readers"]])
+            if len(picks) == size:
+                return picks
+    taken = {p[0] for p in picks}
+    return picks + [p for p in pick_most_read(size, site) if p[0] not in taken][: size - len(picks)]
+
+
+def pick_most_read(size: int, site=None) -> list[list]:
     """The most-read works with an ISBN edition, one edition each: the one search would show first, without its cover boost.
 
     Search ranks a work's editions by language, ebook access and cover; a cover boost here would favour editions with fewer gaps.
@@ -66,14 +100,14 @@ def pick_most_read(size: int) -> list[list]:
 
 
 # The one Tasks works through. A new initiative is a new slug: the old list stays in the store for comparison.
-ACTIVE = Initiative("most-read-2026-11", 2000, pick_most_read)
+ACTIVE = Initiative("most-read-2026-11", 2000, pick_most_shelved)
 
 
 def load_or_freeze(initiative: Initiative, site) -> list[list]:
     """The frozen list from the store; the first call picks it and stores it."""
     if doc := site.store.get(initiative.store_key):
         return doc["editions"]
-    editions = initiative.pick(initiative.size)
+    editions = initiative.pick(initiative.size, site)
     if editions:
         site.store[initiative.store_key] = {
             "type": "contribute-initiative",

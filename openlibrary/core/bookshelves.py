@@ -660,6 +660,19 @@ class Bookshelves(db.CommonExtras):
         return deleted.rowcount or None
 
     @classmethod
+    async def most_logged_editions(cls, limit: int) -> list[dict]:
+        """The editions most often named when a book is shelved, as ``edition_id``, ``work_id`` and ``readers``. Scans the whole table."""
+        query = (
+            f"SELECT edition_id, work_id, count(*) AS readers FROM {cls.TABLENAME} "
+            "WHERE edition_id IS NOT NULL GROUP BY edition_id, work_id ORDER BY readers DESC LIMIT %(limit)s"
+        )
+        return await fetch_all(query, {"limit": limit})
+
+    @classmethod
+    def most_logged_editions_sync(cls, limit: int) -> list[dict]:
+        return async_bridge.run(cls.most_logged_editions(limit))
+
+    @classmethod
     async def get_num_users_by_bookshelf_by_work_id(cls, work_id: str) -> dict[int, int]:
         query = f"SELECT bookshelf_id, count(*) AS user_count FROM {cls.TABLENAME} WHERE work_id = %(work_id)s GROUP BY bookshelf_id"
         rows = await fetch_all(query, {"work_id": int(work_id)})
