@@ -67,7 +67,8 @@ def test_gaps_list_open_fields_and_set_aside_ones_nobody_could_find():
     )
     gaps = initiatives.build_gaps(make_initiative([]), site)
     assert gaps == [["/books/OL1M", 9, ["publishers"], ["lccn"]], ["/books/OL2M", 8, [], []]]
-    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 1}
+    # 2 editions x 6 fields = 12 details, 1 still open: 11/12 filled, rounded down.
+    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 1, "percent": 91}
 
 
 def test_not_found_counts_each_person_once():
