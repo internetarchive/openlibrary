@@ -286,8 +286,12 @@ class WorkSearchScheme(SearchScheme):
         for node, parents in luqum_traverse(q_tree):
             if isinstance(node, luqum.tree.SearchField):
                 has_search_fields = True
-                if node.name.lower() in self.field_name_map:
-                    node.name = self.field_name_map[node.name.lower()]
+                if (lowered_name := node.name.lower()) in self.field_name_map:
+                    node.name = self.field_name_map[lowered_name]
+                elif lowered_name in self.all_fields:
+                    # Normalize cased variants (e.g. ISBN:/LCC:) so they get
+                    # the same field-specific transformations as lowercase.
+                    node.name = lowered_name
                 if node.name == "isbn":
                     isbn_transform(node)
                 if node.name in ("lcc", "lcc_sort"):
