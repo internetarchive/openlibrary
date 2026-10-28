@@ -288,13 +288,13 @@ def create_app() -> FastAPI | None:
 
     # FastAPI is the front door for local dev and testing; proxy the rest to
     # web.py (production keeps web.py on :8080, so the proxy stays off). Outside
-    # local dev, serve only the real testing host.
+    # local dev, serve only the real testing and staging hosts.
     if get_ol_env().LOCAL_DEV or get_deployment_name() == "testing":
 
         @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
         async def fallback(request: Request, path: str) -> Response:
             host = request.headers.get("host", "").split(":")[0]
-            if not get_ol_env().LOCAL_DEV and host != "testing.openlibrary.org":
+            if not get_ol_env().LOCAL_DEV and host not in ("testing.openlibrary.org", "staging.openlibrary.org"):
                 raise HTTPException(status_code=404)
             if request.headers.get("X-Proxied-By") == "FastAPI":
                 raise HTTPException(status_code=404)
