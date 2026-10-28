@@ -6,9 +6,9 @@ from datetime import datetime
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, cast
 
+import infogami
 import luqum.tree
 
-import infogami
 from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
@@ -446,6 +446,18 @@ class WorkSearchScheme(SearchScheme):
                 Convert a work query to an edition query. Mainly involves removing
                 invalid fields, or renaming fields as necessary.
                 """
+
+                def quote_edition_paths(m: re.Match) -> str:
+                    prefix = m.group(1)
+                    rest = m.group(2)
+                    norm_rest = re.sub(r'(?<!["\\])/books/([A-Za-z0-9]+)', r'"/books/\1"', rest)
+                    return f"{prefix}{norm_rest}"
+
+                work_query = re.sub(
+                    r"(\b(?:edition_key|edition\.key|key):)(\([^)]+\)|[^\s)]+)",
+                    quote_edition_paths,
+                    work_query,
+                )
                 q_tree = luqum_parser(work_query)
                 for node, parents in luqum_traverse(q_tree):
                     if isinstance(node, luqum.tree.SearchField) and node.name != "*":

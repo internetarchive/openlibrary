@@ -138,6 +138,10 @@ EDITION_KEY_TESTS = {
     "edition_key:OL123M": '+key:"/books/OL123M"',
     'edition_key:"OL123M"': '+key:"/books/OL123M"',
     'edition_key:"/books/OL123M"': '+key:"/books/OL123M"',
+    "edition_key:/books/OL123M": '+key:"/books/OL123M"',
+    "edition_key:(/books/OL123M)": '+key:("/books/OL123M")',
+    "edition_key:(/books/OL123M OR /books/OL456M)": '+key:("/books/OL123M" OR "/books/OL456M")',
+    "edition_key:(OL123M OR /books/OL456M)": '+key:("/books/OL123M" OR "/books/OL456M")',
     "edition_key:(OL123M)": '+key:("/books/OL123M")',
     "edition_key:(OL123M OR OL456M)": '+key:("/books/OL123M" OR "/books/OL456M")',
 }
