@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+import requests
 
 from openlibrary.catalog import get_ia
 from openlibrary.catalog.marc.marc_binary import BadLength, BadMARC, MarcBinary
@@ -116,3 +117,80 @@ class TestGetIA:
     def test_bad_binary_data(self):
         with pytest.raises(BadMARC):
             MarcBinary("nonMARCdata")
+
+
+class MockRequestsResponse:
+    """A minimal fake requests.Response used to exercise urlopen_keep_trying()'s own retry logic."""
+
+    def __init__(self, status_code: int = 200, content: bytes = b"OK"):
+        self.status_code = status_code
+        self.content = content
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise requests.HTTPError(f"{self.status_code} Client Error", response=self)
+
+
+def make_fake_get(responses):
+    """Returns a fake requests.get that replays `responses` (responses or exceptions) and a calls list."""
+    calls = []
+
+    def fake_get(url, headers=None, **kwargs):
+        calls.append(url)
+        result = responses[len(calls) - 1]
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    return fake_get, calls
+
+
+class TestUrlopenKeepTrying:
+    @pytest.fixture(autouse=True)
+    def no_sleep(self, monkeypatch):
+        """Keep the retry loop fast by disabling the sleep between attempts."""
+        monkeypatch.setattr(get_ia, "sleep", lambda _: None)
+
+    def test_retries_transient_connection_error(self, monkeypatch):
+        """A transient ConnectionError is retried and a later attempt's response is returned."""
+        response = MockRequestsResponse(200, b"OK")
+        fake_get, calls = make_fake_get(
+            [requests.ConnectionError("connection closed"), requests.ConnectionError("connection closed"), response]
+        )
+        monkeypatch.setattr(requests, "get", fake_get)
+        result = get_ia.urlopen_keep_trying("https://archive.org/download/x_meta.mrc")
+        assert result is response
+        assert len(calls) == 3
+
+    def test_retries_transient_timeout(self, monkeypatch):
+        """A transient Timeout is retried and a later attempt's response is returned."""
+        response = MockRequestsResponse(200, b"OK")
+        fake_get, calls = make_fake_get([requests.Timeout("timed out"), response])
+        monkeypatch.setattr(requests, "get", fake_get)
+        result = get_ia.urlopen_keep_trying("https://archive.org/download/x_meta.mrc")
+        assert result is response
+        assert len(calls) == 2
+
+    def test_raises_after_exhausting_retries_on_connection_error(self, monkeypatch):
+        """If every attempt fails with ConnectionError, the last exception is raised."""
+        fake_get, calls = make_fake_get([requests.ConnectionError("still down")] * 3)
+        monkeypatch.setattr(requests, "get", fake_get)
+        with pytest.raises(requests.ConnectionError):
+            get_ia.urlopen_keep_trying("https://archive.org/download/x_meta.mrc")
+        assert len(calls) == 3
+
+    def test_raises_immediately_on_non_retryable_http_error(self, monkeypatch):
+        """403/404/416 responses raise HTTPError immediately without retrying."""
+        fake_get, calls = make_fake_get([MockRequestsResponse(404)])
+        monkeypatch.setattr(requests, "get", fake_get)
+        with pytest.raises(requests.HTTPError):
+            get_ia.urlopen_keep_trying("https://archive.org/download/x_meta.mrc")
+        assert len(calls) == 1
+
+    def test_raises_after_exhausting_retries_on_http_error(self, monkeypatch):
+        """Retryable HTTP errors (e.g. 500) are retried, then the last HTTPError is raised."""
+        fake_get, calls = make_fake_get([MockRequestsResponse(500)] * 3)
+        monkeypatch.setattr(requests, "get", fake_get)
+        with pytest.raises(requests.HTTPError):
+            get_ia.urlopen_keep_trying("https://archive.org/download/x_meta.mrc")
+        assert len(calls) == 3

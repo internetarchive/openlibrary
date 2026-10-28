@@ -15,8 +15,14 @@ MAX_MARC_LENGTH = 100000
 
 
 def urlopen_keep_trying(url: str, headers=None, **kwargs):
-    """Tries to request the url three times, raises HTTPError if 403, 404, or 416.  Returns a requests.Response"""
-    for i in range(3):
+    """Tries to request the url three times, raises HTTPError if 403, 404, or 416.  Returns a requests.Response
+
+    Transient transport-level failures (``requests.ConnectionError``,
+    ``requests.Timeout``) are retried along with retryable HTTP errors.  If all
+    three attempts fail, the last exception is raised instead of returning None.
+    """
+    last_error: requests.RequestException | None = None
+    for _ in range(3):
         try:
             resp = requests.get(url, headers=headers, **kwargs)
             resp.raise_for_status()
@@ -24,7 +30,12 @@ def urlopen_keep_trying(url: str, headers=None, **kwargs):
         except requests.HTTPError as error:
             if error.response and error.response.status_code in (403, 404, 416):
                 raise
+            last_error = error
+        except (requests.ConnectionError, requests.Timeout) as error:
+            last_error = error
         sleep(2)
+    assert last_error is not None
+    raise last_error
 
 
 def get_marc_record_from_ia(identifier: str, ia_metadata: dict | None = None) -> MarcBinary | MarcXml | None:
