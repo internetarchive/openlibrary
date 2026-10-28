@@ -12,6 +12,7 @@ from openlibrary.catalog.marc.parse import (
     NoTitle,
     SeeAlsoAsTitle,
     read_author_person,
+    read_authors,
     read_edition,
 )
 
@@ -222,3 +223,34 @@ class TestParse:
 
         assert result["name"] == "Mother Teresa"
         assert result["title"] == "Mother Teresa"
+
+    @staticmethod
+    def _record_with_meetings(*fields: tuple[str, str]) -> MarcXml:
+        datafields = "".join(f'<datafield tag="{tag}" ind1="2" ind2=" "><subfield code="a">{name}</subfield></datafield>' for tag, name in fields)
+        xml = (
+            '<record xmlns="http://www.loc.gov/MARC21/slim"><leader>00000nam a2200000 a 4500</leader>'
+            '<datafield tag="245" ind1="0" ind2="0"><subfield code="a">Proceedings</subfield></datafield>'
+            f"{datafields}</record>"
+        )
+        return MarcXml(etree.fromstring(xml, parser=lxml.etree.XMLParser(resolve_entities=False)))
+
+    def test_read_authors_meeting_main_entry(self):
+        rec = self._record_with_meetings(("111", "Example Conference."))
+        assert read_authors(rec) == [{"entity_type": "event", "name": "Example Conference"}]
+
+    def test_read_authors_meeting_added_entry(self):
+        """A meeting name in 711 is an author, as 710 already is for an organization (#14135)."""
+        rec = self._record_with_meetings(("711", "Example Conference."))
+        assert read_authors(rec) == [{"entity_type": "event", "name": "Example Conference"}]
+
+    def test_read_authors_meeting_main_and_added_entries(self):
+        rec = self._record_with_meetings(("111", "First Conference."), ("711", "Second Conference."))
+        assert read_authors(rec) == [
+            {"entity_type": "event", "name": "First Conference"},
+            {"entity_type": "event", "name": "Second Conference"},
+        ]
+
+    def test_read_authors_meeting_repeated_in_added_entry(self):
+        """The same meeting as both main and added entry is one author, as it is for persons."""
+        rec = self._record_with_meetings(("111", "Example Conference."), ("711", "Example Conference."))
+        assert read_authors(rec) == [{"entity_type": "event", "name": "Example Conference"}]

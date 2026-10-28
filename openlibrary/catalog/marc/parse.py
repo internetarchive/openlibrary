@@ -561,7 +561,7 @@ def last_name_in_245c(rec: MarcBase, person: MarcFieldBase) -> bool:
 def read_authors(rec: MarcBase) -> list[dict]:
     fields_person = rec.read_fields(["100", "700"])
     fields_org = rec.read_fields(["110", "710"])
-    fields_event = rec.get_fields("111")
+    fields_event = rec.read_fields(["111", "711"])
     if not any([fields_person, fields_org, fields_event]):
         return []
     seen_names: set[str] = set()
@@ -582,10 +582,13 @@ def read_authors(rec: MarcBase) -> list[dict]:
         if alt_name:
             author["alternate_names"] = [alt_name]
         found.append(author)
-    for f in fields_event:
+    for _tag, f in fields_event:
         assert isinstance(f, MarcFieldBase)
         name = name_from_list(f.get_subfield_values("acdn"))
-        found.append({"entity_type": "event", "name": name})
+        # A record can carry the same meeting as both main (111) and added (711) entry.
+        if name and name not in seen_names:
+            seen_names.add(name)
+            found.append({"entity_type": "event", "name": name})
     return found
 
 
