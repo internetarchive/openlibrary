@@ -247,12 +247,18 @@ class CoverDB:
     def get_unarchived_covers(self, limit, **kwargs):
         return self.get_covers(limit=limit, failed=False, archived=False, **kwargs)
 
-    def _get_current_batch_start_id(self, **kwargs):
-        c = self.get_covers(limit=1, **kwargs)[0]
+    def _get_current_batch_start_id(self, **kwargs) -> int | None:
+        covers = self.get_covers(limit=1, **kwargs)
+        if not covers:
+            return None
+        c = covers[0]
         return c.id - (c.id % BATCH_SIZE)
 
     def _get_batch(self, start_id=None, **kwargs):
-        start_id = start_id or self._get_current_batch_start_id(**kwargs)
+        if start_id is None:
+            start_id = self._get_current_batch_start_id(**kwargs)
+        if start_id is None:
+            return []
         return self.get_covers(start_id=start_id, **kwargs)
 
     def get_batch_unarchived(self, start_id=None, end_id=None):

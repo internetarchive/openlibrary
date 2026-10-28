@@ -23,3 +23,26 @@ def test_get_batch_end_id():
 
 def test_id_to_item_and_batch_id():
     assert archive.Cover.id_to_item_and_batch_id(987_654_321) == ("0987", "65")
+
+
+def test_get_current_batch_start_id_empty():
+    cdb = archive.CoverDB.__new__(archive.CoverDB)
+    cdb.get_covers = lambda **kwargs: []
+    assert cdb._get_current_batch_start_id() is None
+    assert cdb._get_batch() == []
+    assert cdb.get_batch_unarchived() == []
+    assert cdb.get_batch_archived() == []
+    assert cdb.get_batch_failures() == []
+
+
+def test_get_current_batch_start_id_present():
+    from collections import namedtuple
+
+    CoverMock = namedtuple('CoverMock', ['id'])
+    cdb = archive.CoverDB.__new__(archive.CoverDB)
+    cdb.get_covers = lambda limit=None, **kwargs: (
+        [CoverMock(id=12345)] if limit == 1 else [CoverMock(id=12345)]
+    )
+    assert cdb._get_current_batch_start_id() == 10000
+    assert len(cdb._get_batch()) == 1
+
