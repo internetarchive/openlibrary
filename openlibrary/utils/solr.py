@@ -55,6 +55,7 @@ SolrRequestLabel = Literal[
     "EDITION_SEARCH_API",
     # Picking the editions of a Tasks initiative, once per initiative
     "CONTRIBUTE_INITIATIVE",
+    "READING_LOG_SORT",
 ]
 
 
