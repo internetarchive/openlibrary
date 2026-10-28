@@ -12,6 +12,7 @@ from openlibrary.catalog.marc.parse import (
     NoTitle,
     SeeAlsoAsTitle,
     read_author_person,
+    read_authors,
     read_edition,
 )
 
@@ -221,3 +222,34 @@ class TestParse:
 
         assert result["name"] == "Mother Teresa"
         assert result["title"] == "Mother Teresa"
+
+    def test_read_authors_720(self):
+        """MARC 720 added entry uncontrolled personal names should be extracted as authors."""
+        xml = """
+        <record xmlns="http://www.loc.gov/MARC21/slim">
+          <leader>00000nam a2200000 a 4500</leader>
+          <datafield tag="720" ind1="2" ind2=" ">
+            <subfield code="a">Example Author</subfield>
+          </datafield>
+        </record>"""
+        rec = MarcXml(etree.fromstring(xml.encode()))
+        authors = read_authors(rec)
+        assert authors == [{"name": "Example Author", "entity_type": "person"}]
+
+    def test_read_authors_720_linked_alternate_script(self):
+        """MARC 720 alternate script linkage via 880 is preserved."""
+        xml = """
+        <record xmlns="http://www.loc.gov/MARC21/slim">
+          <leader>00000nam a2200000 a 4500</leader>
+          <datafield tag="720" ind1="2" ind2=" ">
+            <subfield code="a">Example Author</subfield>
+            <subfield code="6">880-01</subfield>
+          </datafield>
+          <datafield tag="880" ind1="2" ind2=" ">
+            <subfield code="6">720-01</subfield>
+            <subfield code="a">Author Alternate Name</subfield>
+          </datafield>
+        </record>"""
+        rec = MarcXml(etree.fromstring(xml.encode()))
+        authors = read_authors(rec)
+        assert authors == [{"name": "Author Alternate Name", "entity_type": "person", "alternate_names": ["Example Author"]}]

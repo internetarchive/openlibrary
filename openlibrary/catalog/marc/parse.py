@@ -529,7 +529,7 @@ def last_name_in_245c(rec: MarcBase, person: MarcFieldBase) -> bool:
 
 
 def read_authors(rec: MarcBase) -> list[dict]:
-    fields_person = rec.read_fields(["100", "700"])
+    fields_person = rec.read_fields(["100", "700", "720"])
     fields_org = rec.read_fields(["110", "710"])
     fields_event = rec.get_fields("111")
     if not any([fields_person, fields_org, fields_event]):
