@@ -430,3 +430,58 @@ describe('ol-cover-manager saving', () => {
         expect(status(el)).toBe('');
     });
 });
+
+describe('ol-cover-manager analytics', () => {
+    const events = () => window._paq.filter(e => e[1] === 'CoverManager').map(e => e.slice(2).join('|'));
+
+    beforeEach(() => {
+        window._paq = [];
+    });
+
+    afterEach(() => {
+        delete window._paq;
+    });
+
+    test('reports opening, then the saved cover’s source and the reason', async () => {
+        stubFetch({ 'POST /books/OL1M/covers.json': { body: { cover_id: 77 } } });
+        const el = await mount();
+        el._select(STATE.items[1]);
+        await el.updateComplete;
+        await chooseReason(el, 'not_front');
+        await el._save();
+        expect(events()).toEqual(['Open|change', 'Save|archive_title', 'Reason|not_front']);
+    });
+
+    test('a fresh upload saves as upload, with no reason when adding a first cover', async () => {
+        stubFetch({
+            'GET /books/OL1M/covers.json': { body: NO_COVER },
+            'POST /books/OL1M/covers/upload.json': { body: UPLOADED },
+            'POST /books/OL1M/covers.json': { body: { cover_id: 99 } }
+        });
+        const el = await mount();
+        el._addFiles([file('c.jpg', 'image/jpeg')]);
+        await vi.waitFor(() => expect(el._selected).toBe('img:99'));
+        await el._save();
+        expect(events()).toEqual(['Open|add', 'Save|upload']);
+    });
+
+    test('closing unsaved says where it stopped', async () => {
+        stubFetch();
+        const el = await mount();
+        el._trackClose();
+        el._select(STATE.items[0]);
+        await el.updateComplete;
+        el._trackClose();
+        await chooseReason(el, 'wrong');
+        el._trackClose();
+        expect(events()).toEqual(['Open|change', 'Close|untouched', 'Close|reason-pending', 'Close|unsaved']);
+    });
+
+    test('a failed save is counted', async () => {
+        stubFetch({ 'POST /books/OL1M/covers.json': { ok: false, body: {} } });
+        const el = await mount();
+        el._remove(STATE.items[3]);
+        await el._save();
+        expect(events()).toEqual(['Open|change', 'SaveError']);
+    });
+});

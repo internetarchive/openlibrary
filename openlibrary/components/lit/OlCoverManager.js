@@ -4,6 +4,7 @@ import { repeat } from 'lit/directives/repeat.js';
 import './OLButton.js';
 import './OlIcon.js';
 import { focusRingLayered, pressable, raised } from './control-styles.js';
+import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { showToast } from './toast.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 import { translate } from './utils/labels.js';
@@ -79,6 +80,9 @@ const REASONS = [
     { value: 'not_front', label: 'reasonNotFront', hint: 'reasonNotFrontHint' },
     { value: 'other', label: 'reasonOther' }
 ];
+
+/** Matomo category for the dialog's funnel: Open, then Save (with its source and reason) or Close unsaved. */
+const ANALYTICS = 'CoverManager';
 
 const ACCEPT = '.jpg,.jpeg,.gif,.png,.webp,image/jpeg,image/gif,image/png,image/webp';
 const IMAGE_TYPES = ['image/jpeg', 'image/gif', 'image/png', 'image/webp'];
@@ -863,7 +867,10 @@ export class OlCoverManager extends LitElement {
         this._bandObserver = null;
         this._observedBand = null;
         this._onOpen = () => this.load();
-        this._onClosed = () => this._reset();
+        this._onClosed = e => {
+            if (e.detail?.returnValue !== 'saved') this._trackClose();
+            this._reset();
+        };
         this._onPaste = e => this._handlePaste(e);
     }
 
@@ -921,9 +928,33 @@ export class OlCoverManager extends LitElement {
             this._selected = this._data.current;
             if (this._dialog) this._dialog.label = this._t(this._hasOwnImage ? 'titleChange' : 'titleAdd');
             this._loadState = 'ready';
+            trackEvent(ANALYTICS, 'Open', this._openKind);
         } catch {
             this._loadState = 'error';
         }
+    }
+
+    /** What the dialog opened on: a photo, a cover to change, a scan shown in place of a cover, or nothing. */
+    get _openKind() {
+        if (this.docKey.startsWith('/authors/')) return 'photo';
+        if (this._hasOwnImage) return 'change';
+        return this._isFallback ? 'fallback' : 'add';
+    }
+
+    /** Where the saved cover came from: a suggestion's kind, a fresh upload, another attached image, or no change of cover. */
+    _saveSource(selected) {
+        if (selected.kind !== 'upload') return selected.kind;
+        if (selected.session) return 'upload';
+        return selected.id === this._data.current ? 'unchanged' : 'existing';
+    }
+
+    /** Closed without saving: untouched, stopped at the question, or left other changes unsaved. */
+    _trackClose() {
+        if (this._loadState !== 'ready') return;
+        let label = 'unsaved';
+        if (!this._isDirty) label = 'untouched';
+        else if (this._needsReason && !this._reasonComplete) label = 'reason-pending';
+        trackEvent(ANALYTICS, 'Close', label);
     }
 
     _reset() {
@@ -1183,6 +1214,8 @@ export class OlCoverManager extends LitElement {
             });
             if (!response.ok) throw new Error(response.statusText);
             const { cover_id: coverId } = await response.json();
+            trackEvent(ANALYTICS, 'Save', this._saveSource(selected));
+            if (reason.reason) trackEvent(ANALYTICS, 'Reason', reason.reason);
             this.dispatchEvent(
                 new CustomEvent('ol-cover-manager-save', {
                     detail: { coverId },
@@ -1193,6 +1226,7 @@ export class OlCoverManager extends LitElement {
             this._dialog?.close('saved');
             showToast(this._t('saved'), { type: 'success' });
         } catch {
+            trackEvent(ANALYTICS, 'SaveError');
             this._error = this._t('errorSave');
         } finally {
             this._saving = false;
