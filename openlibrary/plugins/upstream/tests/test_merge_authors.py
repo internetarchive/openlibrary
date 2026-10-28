@@ -1,6 +1,6 @@
 import web
-from infogami.infobase import client, common
 
+from infogami.infobase import client, common
 from openlibrary.plugins.upstream import models
 from openlibrary.plugins.upstream.merge_authors import (
     AuthorMergeEngine,
@@ -358,9 +358,7 @@ class TestFixTableOfContents:
         ]
 
     def test_coerces_core_fields(self):
-        assert fix_table_of_contents([{"level": "2", "title": "Chapter One"}]) == [
-            web.storage(level=2, label="", title="Chapter One", pagenum="")
-        ]
+        assert fix_table_of_contents([{"level": "2", "title": "Chapter One"}]) == [web.storage(level=2, label="", title="Chapter One", pagenum="")]
 
     def test_preserves_extra_fields(self):
         toc = [
