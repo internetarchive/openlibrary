@@ -1690,3 +1690,29 @@ a.contrib-recent__title {
     animation: none;
   }
 }
+
+/* The active initiative's progress, at the top of the dashboard's aside. */
+.contrib-progress__meter {
+  width: 100%;
+  height: 8px;
+  border: 0;
+  border-radius: var(--border-radius-lg);
+  background: var(--color-control-track);
+  appearance: none;
+}
+
+.contrib-progress__meter::-webkit-meter-bar {
+  border: 0;
+  border-radius: var(--border-radius-lg);
+  background: var(--color-control-track);
+}
+
+.contrib-progress__meter::-webkit-meter-optimum-value {
+  border-radius: var(--border-radius-lg);
+  background: var(--color-primary);
+}
+
+.contrib-progress__meter::-moz-meter-bar {
+  border-radius: var(--border-radius-lg);
+  background: var(--color-primary);
+}

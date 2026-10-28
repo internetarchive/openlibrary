@@ -168,6 +168,8 @@ function answerSource(form) {
 function initSaveTracking(form) {
     form.addEventListener('submit', event => {
         const then = event.submitter?.closest('ol-button')?.value || event.submitter?.value;
+        // "I couldn't find it" also submits; its click is already tracked as a skip.
+        if (then === 'notfound') return;
         const source = answerSource(form);
         trackEvent('TaskForm', then === 'next' ? 'SaveNext' : 'Save', source ? `${form.dataset.taskField}:${source}` : form.dataset.taskField);
     });
