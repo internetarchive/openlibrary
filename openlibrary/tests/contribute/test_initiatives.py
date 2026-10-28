@@ -28,7 +28,7 @@ COMPLETE = {"covers": [1], "lccn": ["1"], "oclc_numbers": ["1"], "languages": ["
 
 
 def make_initiative(picks, calls=None):
-    def pick(size):
+    def pick(size, site):
         if calls is not None:
             calls.append(size)
         return picks[:size]
@@ -75,3 +75,27 @@ def test_not_found_counts_each_person_once():
     for user in ["/people/a", "/people/a", "/people/b"]:
         initiatives.record_not_found(site, "/books/OL1M", "lccn", user)
     assert site.store["contribute-notfound-OL1M-lccn"]["people"] == ["/people/a", "/people/b"]
+
+
+def test_most_shelved_keeps_isbn_editions_two_per_work_and_tops_up_from_search(monkeypatch):
+    rows = [
+        {"edition_id": 1, "work_id": 10, "readers": 900},
+        {"edition_id": 2, "work_id": 10, "readers": 800},
+        {"edition_id": 3, "work_id": 10, "readers": 700},  # a third edition of work 10
+        {"edition_id": 4, "work_id": 20, "readers": 600},  # no ISBN
+        {"edition_id": 5, "work_id": 30, "readers": 500},  # merged away
+    ]
+    site = FakeSite(
+        editions=[
+            FakeEdition("/books/OL1M", isbn_13=["1"]),
+            FakeEdition("/books/OL2M", isbn_10=["2"]),
+            FakeEdition("/books/OL3M", isbn_13=["3"]),
+            FakeEdition("/books/OL4M"),
+            FakeEdition("/books/OL5M", type_key="/type/redirect", isbn_13=["5"]),
+        ]
+    )
+    monkeypatch.setattr(initiatives.Bookshelves, "most_logged_editions_sync", lambda limit: rows)
+    monkeypatch.setattr(initiatives, "pick_most_read", lambda size, site=None: [["/books/OL1M", 9], ["/books/OL9M", 8], ["/books/OL8M", 7]])
+
+    assert initiatives.pick_most_shelved(3, site) == [["/books/OL1M", 900], ["/books/OL2M", 800], ["/books/OL9M", 8]]
+    assert initiatives.pick_most_shelved(2, site) == [["/books/OL1M", 900], ["/books/OL2M", 800]]
