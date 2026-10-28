@@ -3,7 +3,7 @@ import { repeat } from 'lit/directives/repeat.js';
 
 import './OLButton.js';
 import './OlIcon.js';
-import { showToast } from './OlToastRegion.js';
+import { showToast } from './toast.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 import { translate } from './utils/labels.js';
 

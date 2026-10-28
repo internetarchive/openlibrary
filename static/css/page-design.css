@@ -517,6 +517,12 @@ html:has(.ds) {
   display: block;
 }
 
+/* An output used bare under a group title has no .ds-example to space it.
+   Skipped when only an inline script follows, so the section end stays tight. */
+.ds-section > .ds-example__output:has(~ :not(script)) {
+  margin-bottom: var(--spacing-stack-xl);
+}
+
 /* The carousel picks columns, pages and peek off its container width, so a
    shrink-wrapped host would demo it at the wrong breakpoint. The markdown
    editor likewise demos as a full-width block. */
@@ -1156,6 +1162,7 @@ html:has(.ds) {
   border-radius: var(--border-radius-menu-row);
   color: var(--color-text);
   font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-button);
   text-decoration: none;
   cursor: pointer;
 }
@@ -1427,7 +1434,7 @@ fieldset.ds-demo-row {
   box-sizing: border-box;
   width: 12ch;
   /* The row publishes the size, so the field inherits rather than re-derives. */
-  height: var(--control-target-height);
+  height: var(--control-target-height, var(--control-height-medium));
   padding: 0 var(--spacing-inset-sm);
   font-family: var(--font-family-body);
   font-size: var(--font-size-body-medium);
@@ -1435,6 +1442,329 @@ fieldset.ds-demo-row {
   background: var(--color-surface);
   border: var(--border-input);
   border-radius: var(--border-radius-button);
+}
+
+/* A menu row standing in the alignment row: no panel padding, so the row's own
+   top edge sits on the guide. */
+.control-row__menu {
+  min-width: 0;
+  padding: 0;
+}
+
+/* The demo menu laid out as a short horizontal run of pills, for the strips
+   where one row stands beside the other controls. */
+.ds-demo-menu--inline {
+  flex-direction: row;
+  min-width: 0;
+  padding: 0;
+}
+
+/* The demo menu dressed as the panel it would sit in, for the row-anatomy
+   check: the same edge every floating surface takes. */
+.ds-demo-menu--panel {
+  min-width: 240px;
+  background: var(--color-surface);
+  border: var(--border-overlay);
+  border-radius: var(--border-radius-overlay);
+  box-shadow: var(--box-shadow-overlay);
+}
+
+/* Mirrors the section heading inside ol-menu-popover / ol-options-popover. */
+.ds-demo-menu__heading {
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md)
+    var(--spacing-inset-xs);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+}
+
+/* The current row the way ol-menu-popover marks it: colour only. */
+.ds-demo-menu > .ds-demo-menu__link.is-current {
+  color: var(--color-link);
+}
+
+.ds-demo-menu__link > ol-icon {
+  margin-inline-end: var(--spacing-inline-sm);
+  color: var(--color-icon-muted);
+}
+
+/* The sidebar nav list stays a row when it stands as a specimen, whatever the
+   viewport does with the real sidebar. */
+.ds-specimen .ds__nav-list {
+  display: flex;
+}
+
+/* A check's own controls — surface switcher, magnify, pin — sit in one row
+   above what they drive. */
+.ds-check-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-lg);
+  align-items: center;
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+/* Strips: a wrapping row of specimens, each a control over a caption. */
+.ds-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-stack-lg) var(--spacing-inline-xl);
+  align-items: flex-start;
+  width: 100%;
+}
+
+.ds-specimen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-xs);
+  align-items: flex-start;
+  margin: 0;
+}
+
+.ds-specimen__stage {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-height-large);
+}
+
+.ds-specimen__caption {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label-small);
+  line-height: var(--line-height-snug);
+}
+
+.ds-specimen__note {
+  display: block;
+  color: var(--color-text-muted);
+}
+
+/* The state grid and the hover strip can be repainted onto the other surfaces
+   a control lands on. The attribute is set by the switcher's script. */
+.ds-state-grid[data-surface="background"],
+.ds-example__output--surface[data-surface="background"] {
+  background: var(--color-background);
+}
+
+.ds-state-grid[data-surface="sunken"],
+.ds-example__output--surface[data-surface="sunken"] {
+  background: var(--color-surface-sunken);
+}
+
+.ds-state-grid[data-surface="header"],
+.ds-example__output--surface[data-surface="header"] {
+  background: var(--color-surface-header);
+}
+
+/* Four columns: the Busy state joins Default / Selected / Disabled. */
+.ds-state-grid--wide {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* Doubles the grid so 1px details — the inset highlight, a hairline border,
+   the selected border — can be read without a screenshot. */
+.ds-state-grid--magnified {
+  zoom: 2;
+  width: max-content;
+  grid-template-columns: repeat(4, max-content);
+}
+
+/* Lets the doubled grid scroll sideways instead of overlapping its cells. */
+.ds-state-grid-scroll {
+  overflow-x: auto;
+}
+
+/* Selected-blue tiles: the tint is painted over white so a translucent token
+   reads the way it does on a card, with link-blue text on top to measure. */
+.ds-swatch-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--spacing-inline-lg);
+}
+
+.ds-swatch-tile__chip {
+  margin-bottom: var(--spacing-stack-xs);
+  background: var(--color-surface);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  overflow: hidden;
+}
+
+.ds-swatch-tile__fill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+}
+
+.ds-swatch-tile__sample {
+  color: var(--color-link);
+  font-size: var(--font-size-title-medium);
+}
+
+.ds-swatch-tile__title {
+  font-size: var(--font-size-label-medium);
+  font-weight: var(--font-weight-medium);
+}
+
+.ds-swatch-tile__token {
+  display: block;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-small);
+  cursor: copy;
+  overflow-wrap: anywhere;
+}
+
+.ds-swatch-tile__note {
+  margin-top: var(--spacing-stack-xs);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-small);
+  line-height: var(--line-height-snug);
+}
+
+/* The triggers are spaced by the width of the panel each one opens, so the
+   pinned panels fan out side by side instead of stacking. Six panels are
+   wider than the column, so the shelf button sits second, where its panel
+   borrows the room under the tooltip trigger, which opens no panel. Narrower
+   than 768px the panels are trays, so the row simply wraps there. */
+.ds-menu-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 2.4fr) minmax(0, 1fr) minmax(
+      0,
+      1fr
+    ) minmax(0, 1.2fr) minmax(0, 1.4fr);
+  gap: var(--spacing-inline-md);
+}
+
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .ds-menu-row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
+
+/* Pinned menus are fixed-position panels hanging under their triggers, so
+   while they are pinned the section reserves the room they cover. */
+.ds-menu-row__stage {
+  display: none;
+}
+
+.ds--menus-pinned .ds-menu-row__stage {
+  display: block;
+  height: 520px;
+}
+
+/* Surfaces × text: one card per surface token, painted inline. */
+.ds-surface-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-inline-lg);
+}
+
+.ds-surface {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-sm);
+  padding: var(--spacing-inset-lg);
+  color: var(--color-text);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+}
+
+.ds-surface--inverse {
+  color: var(--color-text-inverse);
+  background: var(--color-surface-inverse);
+}
+
+.ds-surface__header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-sm) var(--spacing-inline-md);
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.ds-surface__title {
+  margin: 0;
+  color: inherit;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-title-small);
+}
+
+.ds-surface__token {
+  color: inherit;
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-small);
+  cursor: copy;
+}
+
+.ds-surface__text {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ds-surface__text-row {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-stack-xs);
+  font-size: var(--font-size-body-medium);
+}
+
+.ds-surface__sample {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ds-surface__contrast {
+  flex-shrink: 0;
+}
+
+.ds-surface__rules {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+}
+
+.ds-surface__rule {
+  display: block;
+  border-top: var(--border-width-divider) solid var(--color-border);
+}
+
+.ds-surface__rule--extra-subtle {
+  border-color: var(--color-border-extra-subtle);
+}
+
+.ds-surface__rule--subtle {
+  border-color: var(--color-border-subtle);
+}
+
+.ds-surface__rule--muted {
+  border-color: var(--color-border-muted);
+}
+
+.ds-surface__sample--inverse {
+  color: var(--color-text-inverse);
+}
+
+.ds-surface__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-sm);
+  align-items: center;
+}
+
+.ds-surface__note {
+  margin: 0;
+  color: inherit;
+  font-size: var(--font-size-label-small);
+  line-height: var(--line-height-snug);
 }
 
 /* Right-to-left check (see design/playground.html.jinja). The demos below
@@ -1829,7 +2159,7 @@ fieldset.ds-demo-row {
   border-radius: 3.2cqw;
   font-family: var(--font-family-button);
   font-size: 5.6cqw;
-  font-weight: 500;
+  font-weight: var(--font-weight-button);
   line-height: 1;
   color: var(--color-text);
 }
@@ -2058,7 +2388,7 @@ fieldset.ds-demo-row {
   border-radius: 1.6cqw;
   font-family: var(--font-family-button);
   font-size: 3cqw;
-  font-weight: 500;
+  font-weight: var(--font-weight-button);
   color: var(--color-link);
 }
 
@@ -2558,5 +2888,9 @@ fieldset.ds-demo-row {
 
   .ds-state-grid {
     grid-template-columns: repeat(3, minmax(0, 220px));
+  }
+
+  .ds-state-grid--wide {
+    grid-template-columns: repeat(4, minmax(0, 220px));
   }
 }
