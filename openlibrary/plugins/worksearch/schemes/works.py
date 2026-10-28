@@ -397,12 +397,8 @@ class WorkSearchScheme(SearchScheme):
                 "alternative_title": "alternative_title",
                 "alternative_subtitle": "subtitle",
                 "cover_i": "cover_i",
-                # Duplicate author fields
-                # Disabled until the next full reindex
-                # 'author_name': 'author_name',
-                # 'author_key': 'author_key',
-                # 'author_alternative_name': 'author_alternative_name',
-                # 'author_facet': 'author_facet',
+                # Author fields are duplicated onto editions only so unprefixed queries match via the
+                # edition qf; every edition has its work's authors, so forwarding them would be redundant.
                 # Misc useful data
                 "format": "format",
                 "language": "language",

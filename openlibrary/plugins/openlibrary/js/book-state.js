@@ -26,7 +26,7 @@
 import { SHELF_LABEL, setShelf } from '../../../components/lit/utils/books-api.js';
 import { translate } from '../../../components/lit/utils/labels.js';
 import { debounce } from './nonjquery_utils.js';
-import { FadingToast } from './Toast.js';
+import { showToast } from '../../../components/lit/toast.js';
 import { buildPartialsUrl } from './utils';
 
 /** The server's cap on one ReadingState.json request. */
@@ -232,7 +232,7 @@ async function undoShelfChange(workKey, pageShelf, notice) {
         await setShelf(workKey, pageShelf, { editionKey: button?.editionKey });
     } catch {
         emit(workKey, from, rating);
-        new FadingToast(t('errorGeneric')).show();
+        showToast(t('errorGeneric'), { type: 'error' });
     }
 }
 

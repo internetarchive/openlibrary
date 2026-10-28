@@ -99,6 +99,14 @@ def test_pick_first_date():
     assert pick_first_date(["4th/5th cent."]) == {"date": "4th/5th cent."}
 
 
+def test_pick_first_date_repeated_calls():
+    # Every call must try every date pattern, not only the first call in the process.
+    for _ in range(3):
+        assert pick_first_date(["b. 1900"]) == {"birth_date": "1900"}
+        assert pick_first_date(["d. 1950"]) == {"death_date": "1950"}
+        assert pick_first_date(["fl. 1650"]) == {"date": "fl. 1650"}
+
+
 def test_pick_best_name():
     names = [
         "Andre\u0301 Joa\u0303o Antonil",

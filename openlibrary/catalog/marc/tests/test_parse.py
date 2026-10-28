@@ -43,6 +43,7 @@ bin_samples = [
     "memoirsofjosephf00fouc_meta.mrc",  # MARC8 encoded with e-acute
     "equalsign_title.mrc",  # Title ending in '='
     "bpl_0486266893.mrc",
+    "FCC016606374.mrc",  # Finnish Fennica example
     "flatlandromanceo00abbouoft_meta.mrc",
     "histoirereligieu05cr_meta.mrc",
     "ithaca_college_75002321.mrc",
@@ -184,3 +185,40 @@ class TestParse:
         assert result["death_date"] == "1865"
         assert result["entity_type"] == "person"
         assert result["remote_ids"] == {"lc_naf": "no2003007242"}
+
+    def test_read_author_person_title_subfield_not_in_name(self):
+        """$c is kept out of `name` so the name can still be flipped and matched (#13853)."""
+        xml_author = """
+        <datafield xmlns="http://www.loc.gov/MARC21/slim" tag="700" ind1="1" ind2=" ">
+          <subfield code="a">France, Anatole,</subfield>
+          <subfield code="c">pseud.</subfield>
+          <subfield code="d">1844-1924.</subfield>
+        </datafield>"""
+        test_field = DataField(
+            None,
+            etree.fromstring(xml_author, parser=lxml.etree.XMLParser(resolve_entities=False)),
+        )
+        result = read_author_person(test_field, tag="700")
+
+        assert result["name"] == "France, Anatole"
+        assert result["title"] == "pseud"
+        # `name` now equals $a, so the DRY check drops personal_name. Keeping it
+        # would make do_flip() bail out and leave the name in MARC order.
+        assert "personal_name" not in result
+        assert result["birth_date"] == "1844"
+        assert result["death_date"] == "1924"
+
+    def test_read_author_person_title_subfield_only(self):
+        """A field with $c and no $a still gets a name from $c."""
+        xml_author = """
+        <datafield xmlns="http://www.loc.gov/MARC21/slim" tag="700" ind1="0" ind2=" ">
+          <subfield code="c">Mother Teresa.</subfield>
+        </datafield>"""
+        test_field = DataField(
+            None,
+            etree.fromstring(xml_author, parser=lxml.etree.XMLParser(resolve_entities=False)),
+        )
+        result = read_author_person(test_field, tag="700")
+
+        assert result["name"] == "Mother Teresa"
+        assert result["title"] == "Mother Teresa"

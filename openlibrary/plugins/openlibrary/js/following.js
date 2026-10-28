@@ -1,4 +1,4 @@
-import { PersistentToast } from './Toast';
+import { showToast } from '../../../components/lit/toast.js';
 
 export async function initAsyncFollowing(followForms) {
     followForms.forEach(form => {
@@ -30,7 +30,7 @@ export async function initAsyncFollowing(followForms) {
                     stateInput.value = isFollowRequest ? '1' : '0';
                 })
                 .catch(() => {
-                    new PersistentToast(i18nStrings.errorMsg).show();
+                    showToast(i18nStrings.errorMsg, { type: 'error', persistent: true });
                 })
                 .finally(() => {
                     submitButton.disabled = false;

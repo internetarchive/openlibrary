@@ -219,12 +219,6 @@ $(function () {
         import('./readinglog_stats').then(module => module.init(readingLogConfig));
     }
 
-    if (document.getElementsByClassName('toast').length) {
-        import('./Toast').then(module => {
-            Array.from(document.getElementsByClassName('toast')).forEach(el => new module.Toast($(el)));
-        });
-    }
-
     if ($('.lazy-thing-preview').length) {
         import('./lazy-thing-preview').then(module => new module.LazyThingPreview().init());
     }

@@ -570,7 +570,7 @@ class account_login(delegate.page):
             if op == "follow" and args:
                 publisher = args
                 if publisher_account := OpenLibraryAccount.get_by_username(publisher):
-                    PubSub.subscribe(subscriber=ol_account.username, publisher=publisher)
+                    PubSub.subscribe_sync(subscriber=ol_account.username, publisher=publisher)
 
                     publisher_name = publisher_account["data"]["displayname"]
                     flash_message = f"You are now following {publisher_name}!"
@@ -856,7 +856,7 @@ class account_privacy(delegate.page):
 
         user.save_preferences(i)
         username = user.key.split("/")[-1]
-        PubSub.toggle_privacy(username, private=i.public_readlog == "no")
+        PubSub.toggle_privacy_sync(username, private=i.public_readlog == "no")
         web.setcookie("sfw", i.safe_mode, expires="" if i.safe_mode.lower() == "yes" else -1)
         add_flash_message("note", _("Notification preferences have been updated successfully."))
         web.seeother("/account")
@@ -1258,12 +1258,12 @@ class my_follows(delegate.page):
         i = web.input(page=1)
 
         # Validate page ID, force between 1 and max allowed by size and total count
-        follow_count = PubSub.count_followers(username) if key == "followers" else PubSub.count_following(username)
+        follow_count = PubSub.count_followers_sync(username) if key == "followers" else PubSub.count_following_sync(username)
         page = _validate_follows_page(i.page, page_size, follow_count)
 
         # Get slice of follows belonging to this page
         offset = max(0, (page - 1) * page_size)
-        follows = PubSub.get_followers(username, page_size, offset) if key == "followers" else PubSub.get_following(username, page_size, offset)
+        follows = PubSub.get_followers_sync(username, page_size, offset) if key == "followers" else PubSub.get_following_sync(username, page_size, offset)
 
         mb = MyBooksTemplate(username, "following")
         manage = key == "following" and mb.is_my_page

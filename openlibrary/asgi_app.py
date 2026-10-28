@@ -20,7 +20,7 @@ from openlibrary.core.env import get_deployment_name, get_ol_env
 from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.fastapi.middleware.server_timing import add_server_timing
-from openlibrary.utils import server_timing
+from openlibrary.utils import prometheus, prometheus_multiprocess, server_timing
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
@@ -206,7 +206,10 @@ def create_app() -> FastAPI | None:
             if sentry is not None:
                 return None
             sentry = init_sentry(getattr(infogami.config, "sentry", {}))
+            # Temporary, to compare the frameworks during the migration. Once web.py is gone, drop the
+            # `fastapi` and `framework` tags here and webpy_framework_tag_processor in openlibrary/utils/sentry.py.
             set_tag("fastapi", True)
+            set_tag("framework", "fastapi")
 
         except Exception:
             logger.exception("Failed to initialize legacy WSGI app")
@@ -250,16 +253,12 @@ def create_app() -> FastAPI | None:
             response.headers["X-Served-By"] = "FastAPI"
         return response
 
-    # Add prometheus metrics
+    # Add prometheus metrics. web.py records the same ones; see openlibrary/utils/prometheus.py
     Instrumentator(
         should_group_status_codes=False,
-        excluded_handlers=["/health", "/metrics"],
-    ).instrument(
-        app,
-        # Buckets for http_request_duration_seconds, the only per-route latency histogram.
-        # (The library's high-resolution histogram has one set of counts for the whole app.)
-        latency_lowr_buckets=(0.025, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2.5, 5, 10, 30, 60),
-    ).expose(app, include_in_schema=False)
+        excluded_handlers=list(prometheus.EXCLUDED_HANDLERS),
+    ).add(prometheus.request_metrics("fastapi")).instrument(app)
+    prometheus_multiprocess.expose(app)
 
     @app.middleware("http")
     async def set_context(request: Request, call_next):
@@ -289,13 +288,13 @@ def create_app() -> FastAPI | None:
 
     # FastAPI is the front door for local dev and testing; proxy the rest to
     # web.py (production keeps web.py on :8080, so the proxy stays off). Outside
-    # local dev, serve only the real testing host.
+    # local dev, serve only the real testing and staging hosts.
     if get_ol_env().LOCAL_DEV or get_deployment_name() == "testing":
 
         @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
         async def fallback(request: Request, path: str) -> Response:
             host = request.headers.get("host", "").split(":")[0]
-            if not get_ol_env().LOCAL_DEV and host != "testing.openlibrary.org":
+            if not get_ol_env().LOCAL_DEV and host not in ("testing.openlibrary.org", "staging.openlibrary.org"):
                 raise HTTPException(status_code=404)
             if request.headers.get("X-Proxied-By") == "FastAPI":
                 raise HTTPException(status_code=404)
