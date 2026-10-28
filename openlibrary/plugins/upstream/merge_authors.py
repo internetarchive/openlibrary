@@ -4,9 +4,9 @@ import re
 from typing import Any
 
 import web
-
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+
 from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream.edits import process_merge_request
 from openlibrary.plugins.worksearch.code import top_books_from_author
@@ -163,12 +163,16 @@ def name_eq(n1, n2):
     return space_squash_and_strip(n1) == space_squash_and_strip(n2)
 
 
+core_fields = ("level", "label", "title", "pagenum")
+
+
 def fix_table_of_contents(table_of_contents: list[str | dict]) -> list:
     """
     Some books have bad table_of_contents--convert them in to correct format.
     """
 
     def row(r):
+        extra_fields = {}
         if isinstance(r, str):
             level = 0
             label = ""
@@ -179,16 +183,21 @@ def fix_table_of_contents(table_of_contents: list[str | dict]) -> list:
             label = ""
             title = str(r["value"])
             pagenum = ""
-        else:
+        elif isinstance(r, dict):
             level = safeint(r.get("level", "0"), 0)
             label = r.get("label", "")
             title = r.get("title", "")
             pagenum = r.get("pagenum", "")
+            # Only the core fields need coercing; anything else a toc_item
+            # carries (authors, subtitle, description, ...) passes through.
+            extra_fields = {k: v for k, v in r.items() if k not in core_fields}
+        else:
+            return web.storage()
 
-        r = web.storage(level=level, label=label, title=title, pagenum=pagenum)
-        return r
+        return web.storage(level=level, label=label, title=title, pagenum=pagenum, **extra_fields)
 
-    return [row for row in map(row, table_of_contents) if any(row.values())]
+    d = [row(r) for r in table_of_contents]
+    return [row for row in d if any(row.get(k) for k in core_fields)]
 
 
 def get_many(keys: list[str]) -> list[dict]:

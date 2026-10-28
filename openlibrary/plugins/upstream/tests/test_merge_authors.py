@@ -1,12 +1,13 @@
 import web
-
 from infogami.infobase import client, common
+
 from openlibrary.plugins.upstream import models
 from openlibrary.plugins.upstream.merge_authors import (
     AuthorMergeEngine,
     AuthorRedirectEngine,
     BasicMergeEngine,
     BasicRedirectEngine,
+    fix_table_of_contents,
     get_many,
     make_redirect_doc,
     space_squash_and_strip,
@@ -347,3 +348,74 @@ def test_space_squash_and_strip():
     assert f("Hello") != f("hello")
     assert f("") == f("")
     assert f("hello world") == f("hello    world  ")
+
+
+class TestFixTableOfContents:
+    def test_legacy_shapes(self):
+        assert fix_table_of_contents(["Preface", {"value": "Chapter One"}]) == [
+            web.storage(level=0, label="", title="Preface", pagenum=""),
+            web.storage(level=0, label="", title="Chapter One", pagenum=""),
+        ]
+
+    def test_coerces_core_fields(self):
+        assert fix_table_of_contents([{"level": "2", "title": "Chapter One"}]) == [
+            web.storage(level=2, label="", title="Chapter One", pagenum="")
+        ]
+
+    def test_preserves_extra_fields(self):
+        toc = [
+            {
+                "level": 1,
+                "title": "Chapter",
+                "subtitle": "Sub",
+                "description": "Desc",
+                "authors": [{"name": "A"}],
+            }
+        ]
+        result = fix_table_of_contents(toc)
+        assert len(result) == 1
+        assert result[0] == web.storage(
+            level=1,
+            label="",
+            title="Chapter",
+            pagenum="",
+            subtitle="Sub",
+            description="Desc",
+            authors=[{"name": "A"}],
+        )
+        assert result[0].subtitle == "Sub"
+        assert result[0].description == "Desc"
+        assert result[0].authors == [{"name": "A"}]
+
+    def test_drops_empty_rows(self):
+        assert fix_table_of_contents(["", {}, {"type": {"key": "/type/toc_item"}}]) == []
+
+    def test_get_many_preserves_toc_extended_fields(self):
+        mock_site = MockSite()
+        mock_site.add(
+            [
+                {
+                    "key": "/books/OL1M",
+                    "type": {"key": "/type/edition"},
+                    "title": "Test Book",
+                    "table_of_contents": [
+                        {
+                            "level": 1,
+                            "title": "Chapter 1",
+                            "subtitle": "An Introduction",
+                            "authors": [{"name": "Author 1"}],
+                        }
+                    ],
+                }
+            ]
+        )
+        site.set(mock_site)
+        try:
+            docs = get_many(["/books/OL1M"])
+            assert len(docs) == 1
+            toc = docs[0]["table_of_contents"]
+            assert len(toc) == 1
+            assert toc[0].subtitle == "An Introduction"
+            assert toc[0].authors == [{"name": "Author 1"}]
+        finally:
+            site.set(None)
