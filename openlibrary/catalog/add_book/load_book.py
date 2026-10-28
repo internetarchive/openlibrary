@@ -10,7 +10,7 @@ from openlibrary.catalog.utils import (
     key_int,
 )
 from openlibrary.core.helpers import extract_year
-from openlibrary.utils import extract_numeric_id_from_olid, uniq
+from openlibrary.utils import dicthash, extract_numeric_id_from_olid, uniq
 from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
@@ -362,6 +362,8 @@ def import_record_to_edition(rec: dict[str, Any]) -> dict[str, Any]:
                     author["name"] = remove_author_honorifics(author["name"])
                     east = east_in_by_statement(rec, author)
                     book["authors"].append(author_import_record_to_author(author, eastern=east))
+                book["authors"] = uniq(book["authors"], dicthash)
+                rec["authors"] = uniq(rec["authors"], dicthash)
             continue
 
         if k in ("languages", "translated_from"):

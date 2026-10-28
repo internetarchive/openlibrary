@@ -468,3 +468,18 @@ class TestImportAuthor:
         }
         found = author_import_record_to_author(searched_author)
         assert found.key == author["key"]
+
+    def test_import_record_to_edition_deduplicates_normalized_authors(self, mock_site):
+        """
+        When two author entries normalize to the same name after removing honorifics,
+        they should be deduplicated to prevent creating duplicate author records (#14133).
+        """
+        rec = {
+            "title": "Example title",
+            "authors": [{"name": "Dr. John Smith"}, {"name": "John Smith"}],
+        }
+        edition = import_record_to_edition(rec)
+        assert len(edition["authors"]) == 1
+        assert edition["authors"][0]["name"] == "John Smith"
+        assert len(rec["authors"]) == 1
+        assert rec["authors"][0]["name"] == "John Smith"
