@@ -9020,13 +9020,7 @@ msgid "%(percent)s%%"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-#, python-format
-msgid "of details filled in, across %(total)s books"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-#, python-format
-msgid "%(done)s of %(total)s books complete"
+msgid "Fill in what's missing on the books people shelve most."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
