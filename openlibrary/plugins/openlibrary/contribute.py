@@ -18,7 +18,6 @@ from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, g
 from openlibrary.contribute.tasks import field_values
 from openlibrary.core import helpers
 from openlibrary.i18n import gettext as _
-from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream import spamcheck
 
 LIST_SIZE = 50
@@ -243,10 +242,10 @@ def build_progress() -> dict | None:
     p = initiatives.progress(gaps)
     return {
         "title": _("The %(count)s most-read books", count=helpers.commify(p["total"])),
-        "done": p["done"],
-        "total": p["total"],
-        "summary": _("%(done)s of %(total)s complete", done=helpers.commify(p["done"]), total=helpers.commify(p["total"])),
-        "open": ungettext("%(count)s detail still missing", "%(count)s details still missing", p["open"], count=helpers.commify(p["open"])),
+        "percent": p["percent"],
+        "figure": _("%(percent)s%%", percent=p["percent"]),
+        "summary": _("of details filled in, across %(total)s books", total=helpers.commify(p["total"])),
+        "books": _("%(done)s of %(total)s books complete", done=helpers.commify(p["done"]), total=helpers.commify(p["total"])),
     }
 
 

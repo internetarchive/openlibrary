@@ -152,12 +152,17 @@ def get_gaps(initiative: Initiative = ACTIVE) -> list[list] | None:
 
 
 def progress(gaps: list[list]) -> dict[str, int]:
-    """How far the initiative has come: editions with nothing left to fill, out of all of them, and the gaps still open."""
+    """How far the initiative has come: editions with nothing left to fill, out of all of them, the gaps still open, and the
+    share of details filled. A detail nobody could find counts as filled, so every save or "couldn't find it" moves it."""
+    open_count = sum(len(open_fields) for _key, _readers, open_fields, _skipped in gaps)
+    slots = len(gaps) * len(tasks.POINTS)
     return {
         "done": sum(1 for _key, _readers, open_fields, _skipped in gaps if not open_fields),
         "total": len(gaps),
-        "open": sum(len(open_fields) for _key, _readers, open_fields, _skipped in gaps),
+        "open": open_count,
         "not_found": sum(len(skipped) for _key, _readers, _open, skipped in gaps),
+        # Rounded down, so it only reads 100 when nothing is left.
+        "percent": (slots - open_count) * 100 // slots if slots else 0,
     }
 
 

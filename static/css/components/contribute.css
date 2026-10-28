@@ -1692,6 +1692,21 @@ a.contrib-recent__title {
 }
 
 /* The active initiative's progress, at the top of the dashboard's aside. */
+.contrib-progress__figure {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+/* The headline number: it climbs with every save, so it is what volunteers watch. */
+.contrib-progress__percent {
+  display: block;
+  color: var(--color-text-heading);
+  font-size: var(--font-size-display-medium);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-display);
+  font-variant-numeric: tabular-nums;
+}
+
 .contrib-progress__meter {
   width: 100%;
   height: 8px;

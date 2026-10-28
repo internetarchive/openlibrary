@@ -65,17 +65,17 @@
                 <section class="contrib-side contrib-progress">
                     <span class="contrib-overline">{{ _("Current initiative") }}</span>
                     <h2 class="contrib-dash__h2">{{ data.progress.title }}</h2>
+                    <p class="contrib-progress__figure">
+                        <span class="contrib-progress__percent">{{ data.progress.figure }}</span>
+                        {{ data.progress.summary }}
+                    </p>
                     <meter class="contrib-progress__meter"
                            min="0"
-                           max="{{ data.progress.total }}"
-                           value="{{ data.progress.done }}">
-                        {{ data.progress.summary }}
+                           max="100"
+                           value="{{ data.progress.percent }}">
+                        {{ data.progress.figure }}
                     </meter>
-                    <p>
-                        <strong>{{ data.progress.summary }}</strong>
-                        <br>
-                        <span class="contrib-muted">{{ data.progress.open }}</span>
-                    </p>
+                    <p class="contrib-muted">{{ data.progress.books }}</p>
                 </section>
             {% endif %}
             <section class="contrib-side">

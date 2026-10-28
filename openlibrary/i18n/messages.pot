@@ -8980,15 +8980,18 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "%(done)s of %(total)s complete"
+msgid "%(percent)s%%"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "%(count)s detail still missing"
-msgid_plural "%(count)s details still missing"
-msgstr[0] ""
-msgstr[1] ""
+msgid "of details filled in, across %(total)s books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(done)s of %(total)s books complete"
+msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "All open tasks"
