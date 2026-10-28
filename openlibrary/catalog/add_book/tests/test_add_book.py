@@ -1362,6 +1362,60 @@ def test_add_description_to_work(mock_site) -> None:
     assert e.works[0]["description"] == "An added description from an existing edition"
 
 
+def test_add_authors_to_work_with_honorifics(mock_site) -> None:
+    """
+    Ensure that when an existing work has no authors, importing a record whose
+    authors contain honorifics strips the honorifics and links the existing author.
+    (#14129)
+    """
+    author = {
+        "type": {"key": "/type/author"},
+        "name": "John Smith",
+        "key": "/authors/OL20A",
+    }
+
+    existing_work = {
+        "key": "/works/OL16W",
+        "title": "Finding Existing Works",
+        "type": {"key": "/type/work"},
+    }
+
+    existing_edition = {
+        "key": "/books/OL16M",
+        "title": "Finding Existing Works",
+        "publishers": ["Black Spot"],
+        "type": {"key": "/type/edition"},
+        "source_records": ["non-marc:test"],
+        "publish_date": "Jan 09, 2011",
+        "isbn_10": ["1250144051"],
+        "works": [{"key": "/works/OL16W"}],
+    }
+
+    mock_site.save(author)
+    mock_site.save(existing_work)
+    mock_site.save(existing_edition)
+
+    rec = {
+        "source_records": "non-marc:test",
+        "title": "Finding Existing Works",
+        "authors": [{"name": "Dr. John Smith"}],
+        "publishers": ["Black Spot"],
+        "publish_date": "Jan 09, 2011",
+        "isbn_10": ["1250144051"],
+    }
+
+    reply = load(rec)
+    assert reply["success"] is True
+    assert reply["edition"]["status"] == "matched"
+    assert reply["work"]["status"] == "modified"
+    assert reply["work"]["key"] == "/works/OL16W"
+    e = mock_site.get(reply["edition"]["key"])
+    assert e.works[0]["key"] == "/works/OL16W"
+    assert len(e.works[0]["authors"]) == 1
+    assert e.works[0]["authors"][0]["author"] == "/authors/OL20A"
+    assert e.works[0]["authors"][0]["type"]["key"] == "/type/author_role"
+
+
 def test_add_subjects_to_work_deduplicates(mock_site) -> None:
     """
     Ensure a rec's subjects, after a case insensitive check, are added to an
