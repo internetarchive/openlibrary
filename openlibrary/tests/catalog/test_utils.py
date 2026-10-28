@@ -452,6 +452,9 @@ def test_format_languages(
 
 
 @pytest.mark.parametrize(("languages"), [(["wtf"]), (["eng", "wtf"])])
-def test_format_language_rasise_for_invalid_language(languages: list[str]) -> None:
+def test_format_language_rasise_for_invalid_language(
+    languages: list[str],
+    add_languages,  # noqa F811
+) -> None:
     with pytest.raises(InvalidLanguage):
         format_languages(languages)
