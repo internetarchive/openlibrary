@@ -1367,6 +1367,7 @@ def test_repeated_import_with_author_honorific_matches_existing_edition(mock_sit
     Ensure importing a book whose author contains an honorific matches the existing
     edition rather than creating a duplicate. (#14130)
     """
+
     def record(name: str, source: str) -> dict:
         return {
             "title": "Example title",
