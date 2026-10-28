@@ -74,7 +74,7 @@ function seedAuthorPage() {
     document.body.innerHTML = infobox('mobile') + infobox('desktop');
 }
 
-/** Open the manager's dialog and wait for its listing to load. */
+/** Open the manager's dialog, wait for it to load, and answer the reason step if a cover is being replaced. */
 async function openManager(dialogId) {
     const dialog = document.getElementById(dialogId);
     dialog.open = true;
@@ -82,6 +82,11 @@ async function openManager(dialogId) {
     const manager = dialog.querySelector('ol-cover-manager');
     await vi.waitFor(() => expect(manager._loadState).toBe('ready'));
     await manager.updateComplete;
+    if (manager._step === 'reason') {
+        await userEvent.click(manager.renderRoot.querySelector('.reason[data-value="wrong"]'));
+        await vi.waitFor(() => expect(manager._step).toBe('pick'));
+        await manager.updateComplete;
+    }
     return manager;
 }
 
@@ -121,14 +126,14 @@ test('choosing a real file uploads it, and Save puts it on the page at full reso
 
     await vi.waitFor(() => expect(document.querySelector('.bookCover img').getAttribute('src')).toBe(`${COVERSTORE}/b/id/77-M.jpg`));
     const save = calls.find(c => c.route === 'POST /books/OL1M/covers.json');
-    expect(JSON.parse(save.init.body)).toEqual({ image_id: 77, added: [77], removed: [] });
+    expect(JSON.parse(save.init.body)).toEqual({ image_id: 77, added: [77], removed: [], reason: 'wrong' });
     expect(document.querySelector('.bookCover img').getAttribute('srcset')).toBe(`${COVERSTORE}/b/id/77-L.jpg 2x`);
     expect(document.querySelector('#seeImage img').getAttribute('src')).toBe(`${COVERSTORE}/b/id/77-L.jpg`);
     expect(document.querySelector('.coverLook').getAttribute('href')).toBe(`${COVERSTORE}/b/id/77-L.jpg`);
     await vi.waitFor(() => expect(document.getElementById('addImage-0').open).toBe(false));
 });
 
-test('dragging a file over the grid shows the drop target, and dropping it uploads', async () => {
+test('dragging a file over the list shows the drop target, and dropping it uploads', async () => {
     seedEditionPage();
     stubFetch({
         'GET /books/OL1M/covers.json': EDITION_STATE,
@@ -136,7 +141,7 @@ test('dragging a file over the grid shows the drop target, and dropping it uploa
     });
     const manager = await openManager('addImage-0');
 
-    const zone = q(manager, '.grid-wrap');
+    const zone = q(manager, '.list-wrap');
     const transfer = new DataTransfer();
     transfer.items.add(new File(['x'], 'drop.jpg', { type: 'image/jpeg' }));
 
@@ -171,7 +176,7 @@ test('saving an author photo updates both infobox copies and both preview dialog
     // Save from the desktop copy; the mobile copy must follow.
     const manager = await openManager('addImage-desktop');
 
-    await userEvent.click(manager.renderRoot.querySelectorAll('.pick')[1]);
+    await userEvent.click(manager.renderRoot.querySelectorAll('.row:not(.upload) .option')[1]);
     await manager.updateComplete;
     await userEvent.click(saveButton(manager));
 
@@ -198,7 +203,7 @@ test('the Paste button uploads an image read from the clipboard', async () => {
     const manager = await openManager('addImage-0');
 
     // Shown only to touch pointers; the click works the same either way.
-    q(manager, '.paste ol-button').click();
+    q(manager, 'ol-button.paste').click();
 
     await vi.waitFor(() => expect(manager._selected).toBe('img:77'));
     const upload = calls.find(c => c.route === 'POST /books/OL1M/covers/upload.json');
@@ -211,7 +216,7 @@ test('the Paste button explains when the clipboard has no image', async () => {
     vi.spyOn(navigator.clipboard, 'read').mockResolvedValue([{ types: ['text/plain'], getType: async () => new Blob(['hi']) }]);
     const manager = await openManager('addImage-0');
 
-    q(manager, '.paste ol-button').click();
+    q(manager, 'ol-button.paste').click();
 
     await vi.waitFor(() => expect(q(manager, '.error')?.textContent).toContain('No image found on your clipboard.'));
     expect(calls.some(c => c.route.startsWith('POST'))).toBe(false);

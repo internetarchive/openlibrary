@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, File, HTTPException, Path, UploadFile, status
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 from openlibrary.accounts import get_current_user
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
@@ -42,10 +42,13 @@ class CoverItem(BaseModel):
     """One image in the dialog; `id` is "img:<cover id>", or "suggestion:<name>" for an image not stored yet."""
 
     id: str
-    kind: Literal["upload", "archive_cover", "archive_title", "wikidata"]
+    kind: Literal["upload", "archive_cover", "archive_title", "amazon", "wikidata"]
     image_id: int | None = None
     suggestion: str | None = None
+    isbn: str | None = None
     thumb: str
+    # A larger copy for the dialog's cover column; suggestions use `thumb`.
+    preview: str | None = None
     added_by: CoverAddedBy | None = None
     created: str | None = None
 
@@ -63,6 +66,9 @@ class SaveCoversBody(BaseModel):
     suggestion: str | None = None
     added: list[int] = []
     removed: list[int] = []
+    # Why the old cover is being replaced; kept on the edit.
+    reason: Literal["wrong", "better", "not_front", "other"] | None = None
+    reason_note: str = Field("", max_length=200)
 
     @model_validator(mode="after")
     def _one_selection(self) -> SaveCoversBody:
@@ -118,7 +124,15 @@ def _save(key: str, body: SaveCoversBody, client_ip: str) -> SaveCoversResponse:
     try:
         with web_ctx_ip(client_ip):
             cover_id = apply_cover_changes(
-                doc, image_id=body.image_id, suggestion=body.suggestion, added=body.added, removed=body.removed, user=user, ip=client_ip
+                doc,
+                image_id=body.image_id,
+                suggestion=body.suggestion,
+                added=body.added,
+                removed=body.removed,
+                user=user,
+                ip=client_ip,
+                reason=body.reason,
+                reason_note=body.reason_note,
             )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

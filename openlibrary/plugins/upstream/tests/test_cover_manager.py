@@ -12,17 +12,21 @@ SCAN = "https://archive.org/download/foo00bar/page"
 
 
 class FakeEdition:
-    def __init__(self, cover_ids, ocaid="foo00bar"):
+    def __init__(self, cover_ids, ocaid="foo00bar", isbn10=None):
         self.key = "/books/OL1M"
         self.type = web.storage(key="/type/edition")
         self.covers = cover_ids
         self.ocaid = ocaid
+        self.isbn10 = isbn10
         self._site = MagicMock()
         self._site.get_many.return_value = []
         self.saves = []
 
     def get_covers(self):
         return [Image(self._site, "b", i) for i in self.covers]
+
+    def get_isbn10(self):
+        return self.isbn10
 
     def _save(self, comment=None, action=None, data=None):
         self.saves.append((comment, action, data))
@@ -85,6 +89,17 @@ class TestCoverManagerState:
     def test_no_scan_no_cover(self, infos):
         assert covers.cover_manager_state(FakeEdition([], ocaid=None)) == {"key": "/books/OL1M", "current": None, "items": []}
 
+    def test_an_isbn_10_offers_amazons_cover_first(self, infos):
+        items = covers.cover_manager_state(FakeEdition([], isbn10="0140449132"))["items"]
+        assert [i["id"] for i in items] == ["suggestion:amazon", "suggestion:archive-cover", "suggestion:archive-title"]
+        assert items[0]["thumb"] == "https://m.media-amazon.com/images/P/0140449132.01.L.jpg"
+        assert items[0]["isbn"] == "0140449132"
+
+    def test_a_copied_amazon_cover_keeps_its_isbn(self, infos):
+        infos[20] = info(source_url="https://m.media-amazon.com/images/P/0140449132.01.L.jpg")
+        items = covers.cover_manager_state(FakeEdition([20], ocaid=None, isbn10="0140449132"))["items"]
+        assert [(i["id"], i["kind"], i["isbn"]) for i in items] == [("img:20", "amazon", "0140449132")]
+
 
 def apply(doc, *, added=(), removed=(), user=None, **selection):
     return covers.apply_cover_changes(doc, added=list(added), removed=list(removed), user=user, ip="1.2.3.4", **selection)
@@ -140,6 +155,27 @@ class TestApplyCoverChanges:
         doc = FakeEdition([10, 11])
         apply(doc, image_id=11, removed=[11])
         assert doc.covers == [11, 10]
+
+    def test_a_replacement_keeps_its_reason(self, infos, uploads):
+        doc = FakeEdition([10, 11])
+        apply(doc, image_id=11, reason="other", reason_note="  Movie tie-in  ")
+        assert doc.saves == [("Update covers", "update-book-covers", {"reason": "other", "reason_note": "Movie tie-in"})]
+
+    def test_a_copied_replacement_keeps_its_reason_beside_the_url(self, infos, uploads):
+        doc = FakeEdition([10])
+        apply(doc, suggestion="archive-cover", reason="wrong")
+        assert doc.saves[0][2] == {"url": f"{SCAN}/cover", "reason": "wrong"}
+
+    def test_a_reason_without_a_new_cover_is_dropped(self, infos, uploads):
+        infos[30] = info()
+        doc = FakeEdition([10])
+        apply(doc, image_id=10, added=[30], reason="wrong")
+        assert doc.saves[0][2] == {"url": None}
+
+    def test_rejects_an_unknown_reason_before_copying(self, infos, uploads):
+        with pytest.raises(ValueError, match="Unknown reason"):
+            apply(FakeEdition([10]), suggestion="archive-cover", reason="bored")
+        assert uploads == []
 
     def test_no_change_saves_nothing(self, infos, uploads):
         doc = FakeEdition([10, 11])

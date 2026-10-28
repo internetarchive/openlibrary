@@ -6,51 +6,107 @@ $if not ctx.user:
 
 
 $if doc.type.key == '/type/author':
-    $ title = _('Author Photos')
     $if doc.get_photo():
+        $ title = _('Change the photo')
         $ change = _('Manage Author Photos')
         $ size = "smaller"
     $else:
+        $ title = _('Add a photo')
         $ change = _('Add Author Photo')
         $ size = "smallest"
 $else:
-    $ title = _('Book Covers')
-
     $if doc.get_cover():
+        $ title = _('Change the cover')
         $ change = _('Manage Covers')
         $ size = "smaller"
     $else:
+        $ title = _('Add a cover')
         $ change = _('Add Cover Image')
         $ size = "smallest"
 
 $ is_author = doc.type.key == '/type/author'
+$ is_work = doc.type.key == '/type/work'
 $code:
     # Keys and English strings must match DEFAULT_LABELS in OlCoverManager.js.
+    if is_author:
+        noun_labels = {
+            "titleAdd": _("Add a photo"),
+            "titleChange": _("Change the photo"),
+            "coverHeading": _("Photo"),
+            "currentHeading": _("Current photo"),
+            "newHeading": _("New photo"),
+            "emptyTitle": _("No photo yet"),
+            "emptyHint": _("Readers see a plain placeholder on the author page and in search."),
+            "noCoverTitle": _("This author has no photo"),
+            "noCoverIntro": _("Add one and it shows on the author page and in search."),
+            "chooseHeading": _("Choose the new photo"),
+            "replaces": _("Replaces the current photo"),
+            "pickLabelCurrent": _("%(name)s (current photo)"),
+            "guidelines": _("Image guidelines"),
+            "saved": _("Photo updated"),
+        }
+    else:
+        noun_labels = {
+            "titleAdd": _("Add a cover"),
+            "titleChange": _("Change the cover"),
+            "coverHeading": _("Cover"),
+            "currentHeading": _("Current cover"),
+            "newHeading": _("New cover"),
+            "emptyTitle": _("No cover yet"),
+            "emptyHint": _("Readers see a plain placeholder on the book page, in search, and in lists."),
+            "noCoverTitle": _("This work has no cover") if is_work else _("This edition has no cover"),
+            "noCoverIntro": _("Add one and it shows everywhere the book appears."),
+            "chooseHeading": _("Choose the new cover"),
+            "replaces": _("Replaces the current cover"),
+            "pickLabelCurrent": _("%(name)s (current cover)"),
+            "guidelines": _("Cover guidelines"),
+            "saved": _("Cover updated"),
+        }
     labels = {
-        "intro": _("Choose the photo to show for this author, or add a new one.") if is_author else _("Choose the image to show as this book's cover, or add a new one."),
+        "keepCurrent": _("Keep current"),
+        "reasonHeading": _("Why are you changing this cover?"),
+        "reasonWrong": _("It’s the wrong cover"),
+        "reasonWrongHint": _("The image belongs to another edition or another book."),
+        "reasonWrongShort": _("Wrong cover"),
+        "reasonBetter": _("Right cover, better image"),
+        "reasonBetterHint": _("You have a sharper, cleaner, or more complete version of the same cover."),
+        "reasonBetterShort": _("Better image"),
+        "reasonNotFront": _("It isn’t the front cover"),
+        "reasonNotFrontHint": _("A title page, back cover, spine, or a “no image” placeholder."),
+        "reasonNotFrontShort": _("Not the front cover"),
+        "reasonOther": _("Something else"),
+        "reasonOtherHint": _("Tell us in a few words."),
+        "reasonOtherShort": _("Something else"),
+        "reasonNoteLabel": _("What’s wrong with this cover?"),
+        "reasonLabel": _("Reason"),
+        "reasonChange": _("Change"),
+        "reasonChangeLabel": _("Change the reason"),
+        "continue": _("Continue"),
         "images": _("Images"),
-        "addImage": _("Add image"),
-        "addHint": _("Drop a file, paste, or browse"),
+        "uploadTitle": _("Upload a new image"),
+        "addHint": _("Drop a file here, paste, or browse"),
         "addHintTouch": _("Take a photo or choose a file"),
+        "fileTypes": _("JPG, GIF, PNG or WebP, up to 10 MB."),
         "paste": _("Paste image"),
         "errorClipboard": _("No image found on your clipboard."),
         "dropHere": _("Drop the image to upload it"),
         "current": _("Current"),
         "sourceArchive": _("Internet Archive"),
         "sourceWikidata": _("Wikidata"),
-        "sourceUpload": _("Uploaded"),
-        "detailScanCover": _("Scan · cover page"),
-        "detailScanTitle": _("Scan · title page"),
-        "detailWikidata": _("Wikimedia Commons"),
-        "detailUploadBy": _("%(name)s · %(date)s"),
-        "detailYou": _("You · just now"),
-        "pickLabelCurrent": _("%(name)s (current cover)"),
+        "titleScanCover": _("Scan of the cover"),
+        "titleScanTitle": _("Scan of the title page"),
+        "titleAmazon": _("Cover from Amazon"),
+        "titleWikidata": _("Photo on Wikimedia Commons"),
+        "titleUploadBy": _("Uploaded by %(name)s"),
+        "titleUpload": _("Uploaded image"),
+        "titleYou": _("Your upload"),
+        "detailIsbn": _("Found by ISBN %(isbn)s"),
+        "detailJustNow": _("Just now"),
         "remove": _("Remove"),
         "removeLabel": _("Remove %(name)s"),
         "undo": _("Undo"),
         "undoLabel": _("Keep %(name)s"),
         "uploading": _("Uploading…"),
-        "statusSelect": _("When you save, the selected image becomes the cover."),
         "statusAdd": {
             "one": ungettext("%(count)s new image will be added.", "%(count)s new images will be added.", 1),
             "two": ungettext("%(count)s new image will be added.", "%(count)s new images will be added.", 2),
@@ -65,10 +121,8 @@ $code:
             "many": ungettext("%(count)s image will be removed.", "%(count)s images will be removed.", 11),
             "other": ungettext("%(count)s image will be removed.", "%(count)s images will be removed.", 100),
         },
-        "guidelines": _("Image Guidelines") if is_author else _("Cover Guidelines"),
         "cancel": _("Cancel"),
         "save": _("Save"),
-        "saved": _("Photo updated") if is_author else _("Cover updated"),
         "loading": _("Loading images…"),
         "errorLoad": _("The images couldn’t be loaded."),
         "retry": _("Try again"),
@@ -77,6 +131,7 @@ $code:
         "errorUpload": _("That image couldn’t be uploaded."),
         "errorSave": _("Your changes couldn’t be saved. Try again."),
     }
+    labels.update(noun_labels)
 
 <!-- The below style is inlined to avoid repaints -->
 <div class="$size manageCoversContainer" style="position: absolute; bottom: 15px">

@@ -1198,7 +1198,7 @@ msgstr ""
 msgid "Importing..."
 msgstr ""
 
-#: account/import.html
+#: account/import.html covers/change.html
 msgid "Reason"
 msgstr ""
 
@@ -2626,7 +2626,7 @@ msgstr ""
 msgid "view profile"
 msgstr ""
 
-#: admin/people/view.html
+#: admin/people/view.html covers/change.html
 msgid "Change"
 msgstr ""
 
@@ -3166,7 +3166,7 @@ msgstr ""
 msgid "None of these match the book I want to add."
 msgstr ""
 
-#: books/check.html
+#: books/check.html covers/change.html
 msgid "Continue"
 msgstr ""
 
@@ -4224,7 +4224,7 @@ msgid "We need a book cover for: %(title)s"
 msgstr ""
 
 #: covers/change.html
-msgid "Author Photos"
+msgid "Change the photo"
 msgstr ""
 
 #: covers/change.html
@@ -4232,11 +4232,15 @@ msgid "Manage Author Photos"
 msgstr ""
 
 #: covers/change.html
+msgid "Add a photo"
+msgstr ""
+
+#: covers/change.html
 msgid "Add Author Photo"
 msgstr ""
 
 #: covers/change.html
-msgid "Book Covers"
+msgid "Change the cover"
 msgstr ""
 
 #: covers/change.html
@@ -4244,15 +4248,173 @@ msgid "Manage Covers"
 msgstr ""
 
 #: covers/change.html
+msgid "Add a cover"
+msgstr ""
+
+#: covers/change.html
 msgid "Add Cover Image"
 msgstr ""
 
 #: covers/change.html
-msgid "Choose the photo to show for this author, or add a new one."
+msgid "Photo"
 msgstr ""
 
 #: covers/change.html
-msgid "Choose the image to show as this book's cover, or add a new one."
+msgid "Current photo"
+msgstr ""
+
+#: covers/change.html
+msgid "New photo"
+msgstr ""
+
+#: covers/change.html
+msgid "No photo yet"
+msgstr ""
+
+#: covers/change.html
+msgid "Readers see a plain placeholder on the author page and in search."
+msgstr ""
+
+#: covers/change.html
+msgid "This author has no photo"
+msgstr ""
+
+#: covers/change.html
+msgid "Add one and it shows on the author page and in search."
+msgstr ""
+
+#: covers/change.html
+msgid "Choose the new photo"
+msgstr ""
+
+#: covers/change.html
+msgid "Replaces the current photo"
+msgstr ""
+
+#: covers/change.html
+#, python-format
+msgid "%(name)s (current photo)"
+msgstr ""
+
+#: covers/change.html
+msgid "Image guidelines"
+msgstr ""
+
+#: covers/change.html
+msgid "Photo updated"
+msgstr ""
+
+#: covers/change.html
+msgid "Cover"
+msgstr ""
+
+#: covers/change.html
+msgid "Current cover"
+msgstr ""
+
+#: covers/change.html
+msgid "New cover"
+msgstr ""
+
+#: covers/change.html
+msgid "No cover yet"
+msgstr ""
+
+#: covers/change.html
+msgid "Readers see a plain placeholder on the book page, in search, and in lists."
+msgstr ""
+
+#: covers/change.html
+msgid "This work has no cover"
+msgstr ""
+
+#: covers/change.html
+msgid "This edition has no cover"
+msgstr ""
+
+#: covers/change.html
+msgid "Add one and it shows everywhere the book appears."
+msgstr ""
+
+#: covers/change.html
+msgid "Choose the new cover"
+msgstr ""
+
+#: covers/change.html
+msgid "Replaces the current cover"
+msgstr ""
+
+#: covers/change.html
+#, python-format
+msgid "%(name)s (current cover)"
+msgstr ""
+
+#: covers/change.html
+msgid "Cover guidelines"
+msgstr ""
+
+#: covers/change.html
+msgid "Cover updated"
+msgstr ""
+
+#: covers/change.html
+msgid "Keep current"
+msgstr ""
+
+#: covers/change.html
+msgid "Why are you changing this cover?"
+msgstr ""
+
+#: covers/change.html
+msgid "It’s the wrong cover"
+msgstr ""
+
+#: covers/change.html
+msgid "The image belongs to another edition or another book."
+msgstr ""
+
+#: covers/change.html
+msgid "Wrong cover"
+msgstr ""
+
+#: covers/change.html
+msgid "Right cover, better image"
+msgstr ""
+
+#: covers/change.html
+msgid "You have a sharper, cleaner, or more complete version of the same cover."
+msgstr ""
+
+#: covers/change.html
+msgid "Better image"
+msgstr ""
+
+#: covers/change.html
+msgid "It isn’t the front cover"
+msgstr ""
+
+#: covers/change.html
+msgid "A title page, back cover, spine, or a “no image” placeholder."
+msgstr ""
+
+#: covers/change.html
+msgid "Not the front cover"
+msgstr ""
+
+#: covers/change.html
+msgid "Something else"
+msgstr ""
+
+#: covers/change.html
+msgid "Tell us in a few words."
+msgstr ""
+
+#: covers/change.html
+msgid "What’s wrong with this cover?"
+msgstr ""
+
+#: covers/change.html
+msgid "Change the reason"
 msgstr ""
 
 #: covers/change.html
@@ -4260,15 +4422,19 @@ msgid "Images"
 msgstr ""
 
 #: covers/change.html
-msgid "Add image"
+msgid "Upload a new image"
 msgstr ""
 
 #: covers/change.html
-msgid "Drop a file, paste, or browse"
+msgid "Drop a file here, paste, or browse"
 msgstr ""
 
 #: covers/change.html
 msgid "Take a photo or choose a file"
+msgstr ""
+
+#: covers/change.html
+msgid "JPG, GIF, PNG or WebP, up to 10 MB."
 msgstr ""
 
 #: covers/change.html
@@ -4292,33 +4458,41 @@ msgid "Wikidata"
 msgstr ""
 
 #: covers/change.html
-msgid "Uploaded"
+msgid "Scan of the cover"
 msgstr ""
 
 #: covers/change.html
-msgid "Scan · cover page"
+msgid "Scan of the title page"
 msgstr ""
 
 #: covers/change.html
-msgid "Scan · title page"
+msgid "Cover from Amazon"
 msgstr ""
 
 #: covers/change.html
-msgid "Wikimedia Commons"
-msgstr ""
-
-#: covers/change.html
-#, python-format
-msgid "%(name)s · %(date)s"
-msgstr ""
-
-#: covers/change.html
-msgid "You · just now"
+msgid "Photo on Wikimedia Commons"
 msgstr ""
 
 #: covers/change.html
 #, python-format
-msgid "%(name)s (current cover)"
+msgid "Uploaded by %(name)s"
+msgstr ""
+
+#: covers/change.html
+msgid "Uploaded image"
+msgstr ""
+
+#: covers/change.html
+msgid "Your upload"
+msgstr ""
+
+#: covers/change.html
+#, python-format
+msgid "Found by ISBN %(isbn)s"
+msgstr ""
+
+#: covers/change.html
+msgid "Just now"
 msgstr ""
 
 #: TestingEnvironment.html.jinja covers/change.html lists/lists.html type/list/edit.html type/list/view_body.html type/series/edit.html
@@ -4344,10 +4518,6 @@ msgid "Uploading…"
 msgstr ""
 
 #: covers/change.html
-msgid "When you save, the selected image becomes the cover."
-msgstr ""
-
-#: covers/change.html
 #, python-format
 msgid "%(count)s new image will be added."
 msgid_plural "%(count)s new images will be added."
@@ -4360,22 +4530,6 @@ msgid "%(count)s image will be removed."
 msgid_plural "%(count)s images will be removed."
 msgstr[0] ""
 msgstr[1] ""
-
-#: covers/change.html
-msgid "Image Guidelines"
-msgstr ""
-
-#: covers/change.html
-msgid "Cover Guidelines"
-msgstr ""
-
-#: covers/change.html
-msgid "Photo updated"
-msgstr ""
-
-#: covers/change.html
-msgid "Cover updated"
-msgstr ""
 
 #: covers/change.html
 msgid "Loading images…"

@@ -66,8 +66,14 @@ def upload_to_coverstore(category: str, olid: str, *, data=None, source_url: str
 
 
 # The cover manager dialog: every image attached to a book or author, plus
-# suggestions (Internet Archive scans, Wikidata) that stay listed whether or
-# not they've been used.
+# suggestions (Internet Archive scans, Amazon, Wikidata) that stay listed
+# whether or not they've been used.
+
+# Amazon's product id for a book is its ISBN-10; it answers with a 1x1 GIF when it has no cover.
+AMAZON_COVER = "https://m.media-amazon.com/images/P/{isbn10}.01.L.jpg"
+
+# Why a member replaced a cover, stored on the edit so the same problem can be found on other books.
+REPLACE_REASONS = ("wrong", "better", "not_front", "other")
 
 
 @dataclass(frozen=True)
@@ -78,6 +84,7 @@ class Suggestion:
     kind: str
     source_url: str
     thumb: str
+    isbn: str | None = None
 
 
 class RecordImages:
@@ -93,7 +100,7 @@ class RecordImages:
     def suggestions(self, doc) -> list[Suggestion]:
         return []
 
-    def save(self, doc, ids: list[int], *, new_id: int | None = None, url: str | None = None) -> None:
+    def save(self, doc, ids: list[int], *, new_id: int | None = None, url: str | None = None, reason: dict | None = None) -> None:
         """Store `ids` as the record's images; `new_id` is an image this edit added, `url` where it was copied from."""
         raise NotImplementedError
 
@@ -102,13 +109,13 @@ class BookImages(RecordImages):
     def images(self, doc) -> list[Image]:
         return doc.get_covers()
 
-    def save(self, doc, ids, *, new_id=None, url=None):
+    def save(self, doc, ids, *, new_id=None, url=None, reason=None):
         doc.covers = ids
         if new_id:
             # Recent changes renders an add-cover comment as the cover's thumbnail.
-            doc._save(f"{get_coverstore_public_url()}/{self.category}/id/{new_id}-S.jpg", action="add-cover", data={"url": url})
+            doc._save(f"{get_coverstore_public_url()}/{self.category}/id/{new_id}-S.jpg", action="add-cover", data={"url": url} | (reason or {}))
         else:
-            doc._save("Update covers", action="update-book-covers")
+            doc._save("Update covers", action="update-book-covers", data=reason)
 
 
 class EditionImages(BookImages):
@@ -116,10 +123,14 @@ class EditionImages(BookImages):
     fallback = "archive-cover"
 
     def suggestions(self, doc):
-        if not doc.ocaid:
-            return []
-        base = f"https://archive.org/download/{doc.ocaid}/page"
-        return [Suggestion(f"archive-{page}", f"archive_{page}", f"{base}/{page}", f"{base}/{page}_w360.jpg") for page in ("cover", "title")]
+        found = []
+        if isbn10 := doc.get_isbn10():
+            url = AMAZON_COVER.format(isbn10=isbn10)
+            found.append(Suggestion("amazon", "amazon", url, url, isbn=isbn10))
+        if doc.ocaid:
+            base = f"https://archive.org/download/{doc.ocaid}/page"
+            found += [Suggestion(f"archive-{page}", f"archive_{page}", f"{base}/{page}", f"{base}/{page}_w360.jpg") for page in ("cover", "title")]
+        return found
 
 
 class WorkImages(BookImages):
@@ -140,12 +151,12 @@ class AuthorImages(RecordImages):
         urls = wikidata.get_image_urls() if wikidata else []
         return [Suggestion("wikidata", "wikidata", urls[0], f"{urls[0]}?width=360")] if urls else []
 
-    def save(self, doc, ids, *, new_id=None, url=None):
+    def save(self, doc, ids, *, new_id=None, url=None, reason=None):
         doc.photos = ids
         if new_id:
-            doc._save("Added new photo", action="add-photo", data={"url": url})
+            doc._save("Added new photo", action="add-photo", data={"url": url} | (reason or {}))
         else:
-            doc._save("Update photos", action="update-author-photos")
+            doc._save("Update photos", action="update-author-photos", data=reason)
 
 
 IMAGE_KINDS: dict[str, RecordImages] = {"/type/edition": EditionImages(), "/type/work": WorkImages(), "/type/author": AuthorImages()}
@@ -172,6 +183,7 @@ def image_item(img: Image, *, info: web.storage | None = None, added_by=None, ki
         "kind": kind,
         "image_id": img.id,
         "thumb": img.url("M"),
+        "preview": img.url("L"),
         "added_by": {"key": added_by.key, "name": added_by.displayname or added_by.key.split("/")[-1]} if added_by else None,
         "created": info.created.isoformat() if info else None,
     }
@@ -191,11 +203,12 @@ def cover_manager_state(doc) -> dict:
     imported = _imported(images, infos)
     items, merged = [], set()
     for s in kind.suggestions(doc):
+        extra = {"isbn": s.isbn} if s.isbn else {}
         if img := imported.get(s.source_url):
             merged.add(img.id)
-            items.append(item(img, kind=s.kind))
+            items.append(item(img, kind=s.kind) | extra)
         else:
-            items.append({"id": f"suggestion:{s.name}", "kind": s.kind, "suggestion": s.name, "thumb": s.thumb})
+            items.append({"id": f"suggestion:{s.name}", "kind": s.kind, "suggestion": s.name, "thumb": s.thumb} | extra)
     items += [item(img) for img in images if img.id not in merged]
 
     current: str | None = None
@@ -208,12 +221,26 @@ def cover_manager_state(doc) -> dict:
     return {"key": doc.key, "current": current, "items": items}
 
 
-def apply_cover_changes(doc, *, image_id: int | None = None, suggestion: str | None = None, added: list[int], removed: list[int], user, ip: str) -> int:
+def apply_cover_changes(
+    doc,
+    *,
+    image_id: int | None = None,
+    suggestion: str | None = None,
+    added: list[int],
+    removed: list[int],
+    user,
+    ip: str,
+    reason: str | None = None,
+    reason_note: str = "",
+) -> int:
     """Make `image_id` (or a copy of `suggestion`) the cover, attach `added` uploads and detach `removed`; returns the cover id.
+
+    `reason` says why the old cover was replaced, and is kept on the edit only when the cover changes.
 
     Raises ValueError for an image that isn't this record's to pick, and RuntimeError when the coverstore fails.
     """
     kind = IMAGE_KINDS[doc.type.key]
+    reason_data = _reason_data(reason, reason_note) if reason is not None else None
     olid = doc.key.split("/")[-1]
     images = kind.images(doc)
     current_ids = [img.id for img in images]
@@ -245,8 +272,15 @@ def apply_cover_changes(doc, *, image_id: int | None = None, suggestion: str | N
     new_ids = [i for i in dict.fromkeys([selected_id, *current_ids, *added]) if i not in removed_ids]
     if new_ids != current_ids:
         new_id = selected_id if imported_from or selected_id in added else next((i for i in added if i not in removed_ids), None)
-        kind.save(doc, new_ids, new_id=new_id, url=imported_from)
+        replaced = current_ids[:1] != new_ids[:1]
+        kind.save(doc, new_ids, new_id=new_id, url=imported_from, reason=reason_data if replaced else None)
     return selected_id
+
+
+def _reason_data(reason: str, note: str) -> dict:
+    if reason not in REPLACE_REASONS:
+        raise ValueError(f"Unknown reason {reason}")
+    return {"reason": reason, "reason_note": note.strip()} if note.strip() else {"reason": reason}
 
 
 class add_cover(delegate.page):

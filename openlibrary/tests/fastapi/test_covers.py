@@ -63,6 +63,19 @@ def test_save(fastapi_client, mock_authenticated_user, doc, monkeypatch):
     }
 
 
+def test_save_passes_the_reason_on(fastapi_client, mock_authenticated_user, doc, monkeypatch):
+    calls = []
+    monkeypatch.setattr("openlibrary.fastapi.covers.apply_cover_changes", lambda doc, **kwargs: calls.append(kwargs) or 7)
+    response = fastapi_client.post("/books/OL1M/covers.json", json={"image_id": 7, "reason": "other", "reason_note": "Movie tie-in"})
+    assert response.status_code == 200
+    assert (calls[0]["reason"], calls[0]["reason_note"]) == ("other", "Movie tie-in")
+
+
+@pytest.mark.parametrize("body", [{"image_id": 7, "reason": "bored"}, {"image_id": 7, "reason": "other", "reason_note": "x" * 201}])
+def test_save_rejects_bad_reasons(fastapi_client, mock_authenticated_user, doc, body):
+    assert fastapi_client.post("/books/OL1M/covers.json", json=body).status_code == 422
+
+
 @pytest.mark.parametrize("body", [{}, {"image_id": 7, "suggestion": "archive-cover"}])
 def test_save_needs_exactly_one_selection(fastapi_client, mock_authenticated_user, doc, body):
     assert fastapi_client.post("/books/OL1M/covers.json", json=body).status_code == 422
