@@ -1,0 +1,49 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    <p class="ds-lead">
+        Click a cover and it grows out of its own rect into a centred, viewport-filling view. Clicking anywhere, Escape, the close button, or a downward swipe sends it back. The same blur and close control as every other modal surface, with a deeper dim (--overlay-backdrop-color-image) because the image replaces the page rather than sitting on it; the morph is a spring so a swipe's release velocity carries into the exit.
+    </p>
+    {% call ex.example("Enlarge a cover", "Wrap the link to the full-size image. The thumbnail inside is where the morph starts and returns to; the link keeps working without JavaScript and for modifier-clicks. Covers are small, so upscale (default 2) caps how far past its natural size the image is drawn.",
+        code='<ol-lightbox src="…/12622062-L.jpg" alt="Cover of The Secret Garden" label-close="Close">\n  <a href="…/12622062-L.jpg">\n    <img src="…/12622062-M.jpg" alt="Cover of The Secret Garden">\n  </a>\n</ol-lightbox>',
+        output_style="display: flex; gap: 16px; align-items: flex-start;") %}
+        <ol-lightbox src="https://covers.openlibrary.org/b/id/12622062-L.jpg" alt="Cover of The Secret Garden by Frances Hodgson Burnett" label-close="Close">
+            <a href="https://covers.openlibrary.org/b/id/12622062-L.jpg"
+               class="ds-demo-lightbox-thumb">
+                <img src="https://covers.openlibrary.org/b/id/12622062-M.jpg"
+                     alt="Cover of The Secret Garden by Frances Hodgson Burnett">
+            </a>
+        </ol-lightbox>
+    {% endcall %}
+    {% call ex.example("From a cropped thumbnail", "An object-fit: cover thumbnail shows a window onto the image. The morph starts from the uncropped rect and clips to the window, so the visible pixels stay put as it grows and the rest of the picture is revealed.",
+        code='<ol-lightbox src="…/12622062-L.jpg" alt="…">\n  <a href="…/12622062-L.jpg">\n    <img src="…/12622062-M.jpg" class="square-crop" alt="…">\n  </a>\n</ol-lightbox>\n\n<style>\n  .square-crop { width: 128px; height: 128px; object-fit: cover; }\n</style>',
+        output_style="display: flex; gap: 16px; align-items: flex-start;") %}
+        <ol-lightbox src="https://covers.openlibrary.org/b/id/12622062-L.jpg" alt="Cover of The Secret Garden by Frances Hodgson Burnett" label-close="Close">
+            <a href="https://covers.openlibrary.org/b/id/12622062-L.jpg"
+               class="ds-demo-lightbox-thumb ds-demo-lightbox-thumb--cropped">
+                <img src="https://covers.openlibrary.org/b/id/12622062-M.jpg"
+                     alt="Cover of The Secret Garden by Frances Hodgson Burnett">
+            </a>
+        </ol-lightbox>
+    {% endcall %}
+    {% call ex.example("Events", "Listen for the show and hide events to coordinate with the page; ol-lightbox-hide is cancelable and says why it is closing.",
+        code="lightbox.addEventListener('ol-lightbox-hide', (e) => {\n    console.log(e.detail.reason); // 'escape' | 'scrim' | 'image' | 'close' | 'swipe' | 'programmatic'\n});",
+        language="js",
+        output_style="display: flex; gap: 16px; align-items: center;") %}
+        <ol-lightbox id="demo-lightbox-events" src="https://covers.openlibrary.org/b/id/12622062-L.jpg" alt="Cover of The Secret Garden by Frances Hodgson Burnett" label-close="Close">
+            <a href="https://covers.openlibrary.org/b/id/12622062-L.jpg"
+               class="ds-demo-lightbox-thumb ds-demo-lightbox-thumb--small">
+                <img src="https://covers.openlibrary.org/b/id/12622062-M.jpg"
+                     alt="Cover of The Secret Garden by Frances Hodgson Burnett">
+            </a>
+        </ol-lightbox>
+        <p>Last closed by: <strong id="demo-lightbox-events-out">(none)</strong></p>
+        <script>
+            (function () {
+                const out = document.getElementById('demo-lightbox-events-out');
+                document.getElementById('demo-lightbox-events').addEventListener('ol-lightbox-hide', (e) => {
+                    out.textContent = e.detail.reason;
+                });
+            })();
+        </script>
+    {% endcall %}
+{% endmacro %}

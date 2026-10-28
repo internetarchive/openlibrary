@@ -324,6 +324,14 @@ COMPONENTS = (
         tag="ol-drawer",
         avoid="A centered interruption is a Dialog. A panel anchored to its trigger is a Popover.",
     ),
+    Component(
+        "lightbox",
+        "Lightbox",
+        "design/components/lightbox.html.jinja",
+        group="Overlays",
+        tag="ol-lightbox",
+        avoid="Only for looking closer at one image. Anything with text or controls is a Dialog.",
+    ),
     # --- Feedback --------------------------------------------------------
     Component(
         "toast",
