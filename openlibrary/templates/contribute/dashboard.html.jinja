@@ -62,20 +62,24 @@
         </main>
         <aside class="contrib-dash__aside">
             {% if data.progress %}
-                <section class="contrib-side contrib-progress">
-                    <span class="contrib-overline">{{ _("Current initiative") }}</span>
-                    <h2 class="contrib-dash__h2">{{ data.progress.title }}</h2>
-                    <p class="contrib-progress__figure">
-                        <span class="contrib-progress__percent">{{ data.progress.figure }}</span>
-                        {{ data.progress.summary }}
-                    </p>
-                    <meter class="contrib-progress__meter"
-                           min="0"
-                           max="100"
-                           value="{{ data.progress.percent }}">
-                        {{ data.progress.figure }}
-                    </meter>
-                    <p class="contrib-muted">{{ data.progress.books }}</p>
+                <section class="contrib-progress">
+                    <div class="contrib-progress__intro">
+                        <span class="contrib-overline">{{ _("Current initiative") }}</span>
+                        <h2 class="contrib-progress__title" id="contrib-progress-title">{{ data.progress.title }}</h2>
+                        <p class="contrib-progress__description">{{ data.progress.description }}</p>
+                    </div>
+                    <div class="contrib-progress__bar">
+                        <div class="contrib-progress__track"
+                             role="progressbar"
+                             aria-valuemin="0"
+                             aria-valuemax="100"
+                             aria-valuenow="{{ data.progress.percent }}"
+                             aria-labelledby="contrib-progress-title">
+                            <span class="contrib-progress__fill"
+                                  style="width: {{ data.progress.percent }}%"></span>
+                        </div>
+                        <span class="contrib-progress__percent" aria-hidden="true">{{ data.progress.figure }}</span>
+                    </div>
                 </section>
             {% endif %}
             <section class="contrib-side">

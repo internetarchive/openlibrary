@@ -1691,43 +1691,60 @@ a.contrib-recent__title {
   }
 }
 
-/* The active initiative's progress, at the top of the dashboard's aside. */
-.contrib-progress__figure {
-  margin: 0;
-  color: var(--color-text-secondary);
+/* The active initiative's progress, a sunken tile at the top of the dashboard's aside. */
+.contrib-progress {
+  display: grid;
+  gap: var(--spacing-stack-md);
+  padding: var(--spacing-inset-md);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface-sunken);
 }
 
-/* The headline number: it climbs with every save, so it is what volunteers watch. */
+.contrib-progress__intro {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+}
+
+.contrib-progress__title {
+  margin: 0;
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+}
+
+.contrib-progress__description {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-medium);
+}
+
+/* The bar and the headline number sit together; the number climbs with every save. */
+.contrib-progress__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-lg);
+}
+
 .contrib-progress__percent {
-  display: block;
   color: var(--color-text-heading);
-  font-size: var(--font-size-display-medium);
+  font-size: var(--font-size-headline-large);
   font-weight: var(--font-weight-heading);
-  line-height: var(--line-height-display);
+  line-height: var(--line-height-single);
   font-variant-numeric: tabular-nums;
 }
 
-.contrib-progress__meter {
-  width: 100%;
-  height: 8px;
-  border: 0;
+.contrib-progress__track {
+  flex: 1 1 auto;
+  height: 10px;
+  overflow: hidden;
   border-radius: var(--border-radius-lg);
-  background: var(--color-control-track);
-  appearance: none;
+  background: var(--color-control-track-sunken);
 }
 
-.contrib-progress__meter::-webkit-meter-bar {
-  border: 0;
-  border-radius: var(--border-radius-lg);
-  background: var(--color-control-track);
-}
-
-.contrib-progress__meter::-webkit-meter-optimum-value {
-  border-radius: var(--border-radius-lg);
-  background: var(--color-primary);
-}
-
-.contrib-progress__meter::-moz-meter-bar {
-  border-radius: var(--border-radius-lg);
+.contrib-progress__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
   background: var(--color-primary);
 }

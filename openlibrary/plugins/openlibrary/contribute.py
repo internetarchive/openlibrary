@@ -244,8 +244,7 @@ def build_progress() -> dict | None:
         "title": _("The %(count)s most-read books", count=helpers.commify(p["total"])),
         "percent": p["percent"],
         "figure": _("%(percent)s%%", percent=p["percent"]),
-        "summary": _("of details filled in, across %(total)s books", total=helpers.commify(p["total"])),
-        "books": _("%(done)s of %(total)s books complete", done=helpers.commify(p["done"]), total=helpers.commify(p["total"])),
+        "description": _("Fill in what's missing on the books people shelve most."),
     }
 
 
