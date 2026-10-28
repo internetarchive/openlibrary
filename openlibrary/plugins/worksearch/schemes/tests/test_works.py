@@ -156,6 +156,29 @@ def test_q_to_solr_params_edition_key(query, edQuery):
     assert params_d["userEdQuery"] == edQuery
 
 
+EDITION_FILTER_TESTS = {
+    # Unfielded terms already have to match the work, possibly on work-only fields like subject
+    "Unfielded only": ("fantasy", None),
+    "Work-only field": ("subject:fantasy", None),
+    "Edition field": ("fantasy publisher:harper", "+publisher:harper"),
+    "OR with unfielded": ("fantasy OR publisher:harper", None),
+}
+
+
+@pytest.mark.parametrize(("query", "ed_filter_q"), EDITION_FILTER_TESTS.values(), ids=EDITION_FILTER_TESTS.keys())
+def test_q_to_solr_params_edition_filter(query, ed_filter_q):
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params(query, {"editions:[subquery]"}, [])
+    params_d = dict(params)
+    assert params_d.get("userEdFilterQuery") == ed_filter_q
+    # Only fielded edition clauses may stop a work from matching
+    assert ("{!parent" in params_d["q"]) == (ed_filter_q is not None)
+
+
 def test_cover_dimensions_fetched_for_works_and_editions():
     """Cover dimensions must reach both the work `fl` and the editions subquery,
     since the search result macro reads them off the selected edition."""
