@@ -15,7 +15,8 @@
             {% if data.saved %}
                 <p>
                     {{ _("The record is updated.") }}
-                    <a href="{{ data.history_url }}">{{ _("See it in the record's history") }}</a>
+                    <a href="{{ data.history_url }}"
+                       data-ol-link-track="TaskDone|ViewHistory">{{ _("See it in the record's history") }}</a>
                 </p>
             {% else %}
                 <p>{{ _("Nothing on the record changed.") }}</p>
@@ -28,16 +29,16 @@
             {{ parts.book_header(data.book, compact=True) }}
             <ul class="contrib-row__tasks">
                 {% for task in data.same_book %}
-                    {{ parts.task_row(task) }}
+                    {{ parts.task_row(task, "TaskDone|SameBookTask") }}
                 {% endfor %}
             </ul>
         </section>
     {% endif %}
     <div class="contrib-hero__actions">
-        <ol-button variant="primary" href="{{ data.next_url }}">
+        <ol-button variant="primary" href="{{ data.next_url }}" data-ol-link-track="TaskDone|NextTask|{{ 'saved' if data.saved else 'skipped' }}">
             {{ _("Next task") }}
         </ol-button>
-        <ol-button href="{{ data.list_url }}">
+        <ol-button href="{{ data.list_url }}" data-ol-link-track="TaskDone|PickDifferent">
             {{ _("Pick a different book") }}
         </ol-button>
     </div>

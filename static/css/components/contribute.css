@@ -650,6 +650,51 @@
   }
 }
 
+/* Placeholder cards while the list builds: each block the size of the text it stands in for,
+   so the real card drops in without a shift. */
+.contrib-row__cover-skeleton {
+  flex: none;
+  width: 40px;
+  height: 60px;
+  border-radius: var(--border-radius-thumbnail);
+}
+
+/* The text column has no text to size it, so it takes the card's width and the bars' percentages resolve. */
+.contrib-row--skeleton .contrib-book__meta {
+  flex: 1;
+}
+
+.contrib-row--skeleton .contrib-book__title {
+  width: 55%;
+  height: calc(1em * var(--line-height-title));
+}
+
+.contrib-row--skeleton .contrib-book__authors {
+  width: 35%;
+  height: calc(1em * var(--line-height-meta));
+}
+
+.contrib-row--skeleton .contrib-book__line {
+  width: 70%;
+  height: calc(1em * var(--line-height-meta));
+}
+
+/* The task rows keep their menu-row height, with a bar where the label goes. */
+.contrib-row--skeleton .contrib-row__task {
+  display: flex;
+  align-items: center;
+  min-height: var(--menu-row-height);
+}
+
+.contrib-row--skeleton .contrib-row__task .skeleton {
+  width: 9em;
+  height: var(--font-size-body-medium);
+}
+
+.contrib-row--skeleton:nth-child(2n) .contrib-book__title {
+  width: 40%;
+}
+
 .contrib-empty {
   border: 1px dashed var(--color-border-muted);
   border-radius: var(--border-radius-card);
@@ -897,6 +942,31 @@
   }
 }
 
+/* A trailing spinner on the pressed filter while its page loads; toggled by js/contribute.js. */
+.contrib-rail__item.is-target::after {
+  content: "";
+  flex: none;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--border-radius-circle);
+  animation: contrib-rail-spin var(--duration-spin) linear infinite;
+}
+
+@keyframes contrib-rail-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contrib-rail__item.is-target::after {
+    animation-duration: 2s;
+  }
+}
+
 .contrib-dash__main {
   min-width: 0;
 }
@@ -1137,7 +1207,7 @@ a.contrib-recent__title {
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-/* "librarians" underlined twice by hand, so the people doing the work stand out. The strokes draw in once on load. */
+/* "readers like you" underlined twice by hand, so the people doing the work stand out. The strokes draw in once on load. */
 .contrib-land__mark {
   position: relative;
   color: var(--color-text);
@@ -1353,7 +1423,8 @@ a.contrib-recent__title {
     row-gap: var(--spacing-3xs);
   }
 
-  .contrib-feed__cover {
+  .contrib-feed__cover,
+  .contrib-feed__cover-skeleton {
     grid-area: cover;
   }
 
@@ -1368,6 +1439,38 @@ a.contrib-recent__title {
 
 .contrib-feed__empty {
   padding-block: var(--spacing-stack-md);
+}
+
+/* Placeholder rows while the feed builds: each block the size of the text it stands in for,
+   so the real row drops in without a shift. */
+.contrib-feed__row--skeleton .contrib-feed__when {
+  width: 4.5em;
+  height: calc(1em * var(--line-height-meta));
+}
+
+.contrib-feed__cover-skeleton {
+  width: var(--contrib-ledger-cover);
+  height: calc(var(--contrib-ledger-cover) * 1.5);
+  border-radius: var(--border-radius-thumbnail);
+}
+
+.contrib-feed__row--skeleton .contrib-feed__title {
+  width: 55%;
+  height: calc(1em * var(--line-height-title));
+}
+
+.contrib-feed__row--skeleton .contrib-feed__line {
+  width: 70%;
+  height: calc(1em * var(--line-height-meta));
+}
+
+/* Vary the widths so the column reads as a list, not a pattern. */
+.contrib-feed__row--skeleton:nth-child(2n) .contrib-feed__title {
+  width: 40%;
+}
+
+.contrib-feed__row--skeleton:nth-child(3n) .contrib-feed__line {
+  width: 50%;
 }
 
 /* Side column */

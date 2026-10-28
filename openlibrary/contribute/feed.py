@@ -1,20 +1,18 @@
 """The public /tasks page's "happening now" feed: recent edits as rows.
 
 ``recent_rows`` rotates through a pool of real recent edits, restamped back from now. The pool is
-rebuilt from recentchanges at most every ``POOL_TTL`` and shared via memcache; while it's empty the feed is too.
-A stale pool keeps serving while a background thread rebuilds it, so only a cold cache makes a request wait.
+rebuilt from recentchanges at most every ``POOL_TTL`` and shared via memcache through ``pool``, so no
+request ever builds it; while it's empty the feed is too.
 """
 
 import logging
 import random
-import threading
-import time
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from itertools import zip_longest
 
 from infogami.utils.delegate import create_site
-from openlibrary.core import cache as olcache
+from openlibrary.contribute import pool
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 
@@ -29,11 +27,15 @@ ROW_SPACING = 47
 # changes are account signups, so asking for these directly is far cheaper than filtering a firehose.
 POOL_KINDS = ("edit-book", "add-cover", "add-book")
 POOL_PER_KIND = 100
+# Only this many days back. The date bounds the query's walk down the transaction table; without it,
+# a kind that humans rarely do (add-cover) has Postgres scanning back through bot traffic for a long time.
+POOL_DAYS = 7
 POOL_SIZE = 200
-POOL_KEY = "contribute.feed_pool"
+# Versioned: the unversioned key still holds entries in the old feed code's shape.
+POOL_KEY = "contribute.feed_pool.v2"
 POOL_TTL = 20 * 60
-POOL_LOCK_KEY = f"{POOL_KEY}.lock"
-REFRESH_THREAD_NAME = "contribute-feed-refresh"
+POOL_LOCK_KEY = pool.lock_key(POOL_KEY)
+REFRESH_THREAD_NAME = pool.thread_name(POOL_KEY)
 # Kinds whose comment is a system default (a cover URL, "Added new book.") rather than the editor's words.
 DEFAULT_COMMENT_KINDS = ("add-book", "add-cover")
 
@@ -101,40 +103,17 @@ def rotate(items: list[dict], limit: int, offset: int, now: datetime | None, mak
     return rows
 
 
-def recent_rows(site, limit: int, offset: int = 0, now: datetime | None = None) -> list[dict]:
+def recent_rows(limit: int, offset: int = 0, now: datetime | None = None) -> list[dict]:
     """Real recent edits from the shared pool, rotated and restamped; none while the pool is empty."""
-    if not (pool := get_pool(site)):
+    if not (pool := get_pool()):
         return []
     return rotate(pool, limit, offset, now, lambda i: pool[i]["id"])
 
 
-def get_pool(site) -> list[dict]:
-    """The cached pool. Only a cold cache makes this request rebuild it; a stale one is served while a background thread rebuilds it."""
-    entry = olcache.get_memcache().get(POOL_KEY) or {}
-    if entry and time.time() - entry["at"] < POOL_TTL:
-        return entry["rows"]
-    if not olcache.get_memcache().add(POOL_LOCK_KEY, 1, expires=120):
-        return entry.get("rows", [])
-    if entry:
-        # A fresh anonymous site: the request's carries the visitor's auth token and its own cache.
-        threading.Thread(target=refresh_pool, args=(create_site,), name=REFRESH_THREAD_NAME, daemon=True).start()
-        return entry["rows"]
-    return refresh_pool(lambda: site)
-
-
-def refresh_pool(make_site: Callable) -> list[dict]:
-    """Rebuild and cache the pool, then release the lock. A failed or empty rebuild leaves the old pool in place."""
-    mc = olcache.get_memcache()
-    try:
-        if rows := build_pool(make_site()):
-            # Outlives the TTL so a later failed rebuild still has something to serve.
-            mc.set(POOL_KEY, {"at": time.time(), "rows": rows}, expires=POOL_TTL * 6)
-            return rows
-    except Exception:
-        logger.exception("Could not rebuild the Tasks feed pool")
-    finally:
-        mc.delete(POOL_LOCK_KEY)
-    return []
+def get_pool() -> list[dict]:
+    """The cached pool, stale or not; empty while a cold cache fills in the background."""
+    # A fresh anonymous site for the thread: the request's carries the visitor's auth token and its own cache.
+    return pool.get(POOL_KEY, POOL_TTL, lambda: build_pool(create_site())) or []
 
 
 def record_key(change) -> str:
@@ -179,7 +158,8 @@ def fetch_things(site, keys) -> dict:
 
 def build_pool(site) -> list[dict]:
     """Recent human edits to catalog records, one row per title, interleaved across editors, with titles, covers and names filled in."""
-    changes = [c for kind in POOL_KINDS for c in site.recentchanges({"kind": kind, "bot": False, "limit": POOL_PER_KIND})]
+    since = (datetime.now(UTC) - timedelta(days=POOL_DAYS)).strftime("%Y-%m-%d")
+    changes = [c for kind in POOL_KINDS for c in site.recentchanges({"kind": kind, "bot": False, "begin_date": since, "limit": POOL_PER_KIND})]
     changes = sorted((c for c in changes if record_key(c)), key=lambda c: int(c.id), reverse=True)
     records = fetch_things(site, [record_key(c) for c in changes])
     works = fetch_things(site, [ref_key(w) for t in records.values() for w in as_list(t.get("works"))[:1]])

@@ -20,3 +20,14 @@ def test_impact_is_readers_times_points():
     assert tasks.impact(100, Task("OL1M", "publishers")) == 200
     assert tasks.impact(None, Task("OL1M", "languages")) == 15
     assert tasks.impact(5, Task("OL1M", "subtitle")) == 0
+
+
+def test_solr_candidates_are_none_while_the_picks_build_and_empty_for_unlisted_fields(monkeypatch):
+    monkeypatch.setattr(supply.pool, "get", lambda *a, **kw: None)
+    assert supply.solr_candidates(("languages",)) is None
+    assert list(supply.solr_candidates(("number_of_pages",))) == []
+
+
+def test_solr_candidates_are_empty_not_pending_when_the_picks_came_back_empty(monkeypatch):
+    monkeypatch.setattr(supply.pool, "get", lambda *a, **kw: [])
+    assert list(supply.solr_candidates(("languages",))) == []
