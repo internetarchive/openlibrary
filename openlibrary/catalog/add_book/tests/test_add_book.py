@@ -216,6 +216,32 @@ def test_load_deduplicates_authors(mock_site, add_languages, ia_writeback):
     assert len(reply["authors"]) == 1
 
 
+@pytest.mark.parametrize("second_name", ["Mr. Blobby", "Blobby"])
+def test_repeat_import_with_author_honorific_matches_edition(mock_site, ia_writeback, second_name):
+    """
+    Honorifics are removed before matching, so importing the same book again
+    with "Mr. Blobby" matches the edition saved under "Blobby". See #14130.
+    """
+
+    def make_rec(name: str, source_record: str) -> dict:
+        return {
+            "title": "Example title",
+            "authors": [{"name": name}],
+            "publish_date": "2000",
+            "publishers": ["Example Press"],
+            "source_records": [source_record],
+        }
+
+    first = load(make_rec("Mr. Blobby", "ia:example_first"))
+    second = load(make_rec(second_name, "ia:example_second"))
+
+    assert first["edition"]["status"] == "created"
+    # "modified" because the second source record is added to the matched edition.
+    assert second["edition"]["status"] == "modified"
+    assert second["edition"]["key"] == first["edition"]["key"]
+    assert mock_site.things({"type": "/type/edition"}) == [first["edition"]["key"]]
+
+
 def test_load_with_subjects(mock_site, ia_writeback):
     rec = {
         "ocaid": "test_item",

@@ -44,6 +44,7 @@ from openlibrary.catalog.add_book.load_book import (
     author_import_record_to_author,
     east_in_by_statement,
     import_record_to_edition,
+    remove_author_honorifics,
 )
 from openlibrary.catalog.add_book.match import editions_match, mk_norm
 from openlibrary.catalog.utils import (
@@ -824,6 +825,7 @@ def normalize_import_record(rec: dict) -> None:
         - Ensuring source_records is a list;
         - Splitting subtitles out of the title field;
         - Cleaning all ISBN and LCCN fields ('bibids');
+        - Removing honorifics from author names;
         - Deduplicate authors; and
         - Remove throw-away data used for validation.
         - Remove publication years of 1900 for AMZ/BWB/Promise.
@@ -871,6 +873,10 @@ def normalize_import_record(rec: dict) -> None:
         for field in ("name", "personal_name", "bio", "title", "death_date"):
             if isinstance(author.get(field), str):
                 author[field] = _unescape_html_entities(author[field])
+        # Remove honorifics before matching, so the name compared against
+        # existing editions is the same name import_record_to_edition() saves.
+        if isinstance(author.get("name"), str):
+            author["name"] = remove_author_honorifics(author["name"])
 
     # Split subtitle if required and not already present
     if ":" in rec.get("title", "") and not rec.get("subtitle"):
