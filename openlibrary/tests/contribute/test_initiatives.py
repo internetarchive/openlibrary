@@ -71,6 +71,23 @@ def test_gaps_list_open_fields_and_set_aside_ones_nobody_could_find():
     assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 1, "percent": 91}
 
 
+def test_every_task_field_has_a_not_found_threshold():
+    assert set(initiatives.NOT_FOUND_PEOPLE) == set(initiatives.tasks.POINTS)
+
+
+def test_fields_books_nearly_always_have_need_more_people_to_set_aside():
+    people = ["/people/a", "/people/b", "/people/c", "/people/d"]
+    site = FakeSite(
+        store={
+            "a": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL1M", "field": "covers", "people": people[:2]},
+            "b": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL1M", "field": "publishers", "people": people[:3]},
+            "c": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL1M", "field": "languages", "people": people[:3]},
+            "d": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL2M", "field": "languages", "people": people},
+        },
+    )
+    assert initiatives.not_found_fields(site) == {"/books/OL1M": {"publishers"}, "/books/OL2M": {"languages"}}
+
+
 def test_not_found_counts_each_person_once():
     site = FakeSite()
     for user in ["/people/a", "/people/a", "/people/b"]:
