@@ -4263,7 +4263,7 @@ msgstr ""
 msgid "Manage Covers"
 msgstr ""
 
-#: covers/change.html
+#: covers/change.html openlibrary/contribute/field_guides.py
 msgid "Add a cover"
 msgstr ""
 
@@ -4336,7 +4336,7 @@ msgstr ""
 msgid "Readers see this scan because the edition has no cover of its own."
 msgstr ""
 
-#: covers/change.html
+#: contribute/parts.html.jinja covers/change.html
 msgid "Choose the new cover"
 msgstr ""
 
@@ -4405,11 +4405,11 @@ msgstr ""
 msgid "Images"
 msgstr ""
 
-#: covers/change.html
+#: contribute/parts.html.jinja covers/change.html
 msgid "Upload a new image"
 msgstr ""
 
-#: covers/change.html
+#: contribute/parts.html.jinja covers/change.html
 msgid "Drop a file here, paste, or browse"
 msgstr ""
 
@@ -4417,7 +4417,7 @@ msgstr ""
 msgid "Take a photo or choose a file"
 msgstr ""
 
-#: covers/change.html
+#: contribute/parts.html.jinja covers/change.html
 msgid "JPG, GIF, PNG or WebP, up to 10 MB."
 msgstr ""
 
@@ -4453,7 +4453,7 @@ msgstr ""
 msgid "Scan of the title page"
 msgstr ""
 
-#: covers/change.html
+#: contribute/parts.html.jinja covers/change.html
 msgid "Cover from Amazon"
 msgstr ""
 
@@ -8199,28 +8199,8 @@ msgid "And %(count)s more."
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Choose the new cover"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Cover from Amazon"
-msgstr ""
-
-#: contribute/parts.html.jinja
 #, python-format
 msgid "Found by ISBN %(isbn)s"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Upload a new image"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Drop a file here, paste, or browse"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "JPG, GIF, PNG or WebP, up to 10 MB."
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8342,10 +8322,6 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py
 msgid "Cover"
-msgstr ""
-
-#: openlibrary/contribute/field_guides.py
-msgid "Add a cover"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
