@@ -243,7 +243,7 @@
   align-items: start;
   border: var(--border-width) solid var(--color-border-subtle);
   border-radius: var(--border-radius-card);
-  background: var(--color-surface);
+  background: var(--color-surface-sunken);
   padding: var(--spacing-inset-md);
 }
 
@@ -318,14 +318,14 @@
   overflow-wrap: anywhere;
 }
 
-/* The blank being filled: tinted like a selected control, bleeding past the row edges. */
+/* The blank being filled: a white panel on the sunken record, bleeding past the row edges. */
 .contrib-record__row--ask {
   align-items: start;
   margin-inline: calc(-1 * var(--spacing-md));
   padding: var(--spacing-md);
-  border: var(--border-width) solid var(--color-control-selected-border);
+  border: var(--border-width) solid var(--color-border-subtle);
   border-radius: var(--border-radius-card);
-  background: var(--color-control-selected-bg);
+  background: var(--color-surface);
 }
 
 /* No divider on the row after the blank; the tint already separates it. */
@@ -334,10 +334,14 @@
 }
 
 .contrib-record__row--ask dt {
-  color: var(--color-link);
-  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
   /* Centered on the 36px control beside it. */
   line-height: var(--control-height-large);
+}
+
+/* On the label, not the dt: base/headings.css forces every dt to normal weight with !important. */
+.contrib-record__row--ask dt label {
+  font-weight: var(--font-weight-semibold);
 }
 
 .contrib-record__row--ask dd {
@@ -832,6 +836,171 @@
 
 .contrib-field__verdict[data-state="bad"] {
   color: var(--color-error-fg);
+}
+
+/* Cover task: the record's cover slot takes a dropped or pasted image and previews the chosen one. */
+.contrib-cover-drop {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  outline: 2px dashed var(--color-border);
+  outline-offset: -2px;
+  box-shadow: none;
+  color: var(--color-icon-muted);
+}
+
+.contrib-cover-drop.is-over {
+  outline-color: var(--color-focus-ring);
+  background: var(--color-primary-subtle);
+}
+
+.contrib-cover-drop.has-image {
+  outline: none;
+}
+
+/* Out of flow, so a large image can't size the slot. */
+.contrib-cover-drop__preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contrib-cover-drop.has-image .contrib-cover-drop__empty {
+  display: none;
+}
+
+/* The choices for the new cover, side by side as tall cards so the images can be judged.
+   The radio carries the state; the card's border and fill show it. */
+.contrib-cover-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-inline-sm);
+  justify-self: stretch;
+  min-width: 0;
+  max-width: 24rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Image on top, text below; the upload card's Browse button sits over the foot of its drop area. */
+.contrib-cover-option {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: var(--spacing-stack-sm);
+  min-width: 0;
+  padding: var(--spacing-inset-sm);
+  border: var(--border-width) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-state),
+    background-color var(--duration-fast) var(--ease-state);
+}
+
+.contrib-cover-option[hidden] {
+  display: none;
+}
+
+.contrib-cover-option__pick {
+  display: contents;
+}
+
+.contrib-cover-option__title {
+  font-weight: var(--font-weight-semibold);
+}
+
+.contrib-cover-option:has(:checked),
+.contrib-cover-option.is-over {
+  border-color: var(--color-control-selected-border);
+  /* The selected tint is translucent, so lay it over the card's surface rather than the sunken row behind. */
+  background:
+    linear-gradient(
+      var(--color-control-selected-bg),
+      var(--color-control-selected-bg)
+    ),
+    var(--color-surface);
+}
+
+.contrib-cover-option:has(:checked) .contrib-cover-option__title {
+  color: var(--color-link);
+}
+
+.contrib-cover-option:not(:has(:checked)):hover {
+  border-color: var(--color-border);
+}
+
+.contrib-cover-option:has(.contrib-visually-hidden:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.contrib-cover-option__thumb {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--border-radius-thumbnail);
+  background: var(--color-surface-sunken);
+}
+
+.contrib-cover-option__thumb--empty {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  outline: 1px dashed var(--color-border);
+  outline-offset: -1px;
+  color: var(--color-icon-muted);
+}
+
+.contrib-cover-option__thumb--empty img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contrib-cover-option.has-image .contrib-cover-option__thumb--empty {
+  outline: none;
+}
+
+.contrib-cover-option__browse {
+  grid-area: 1 / 1;
+  place-self: end center;
+  margin-block-end: var(--spacing-inset-md);
+}
+
+.contrib-cover-option__text {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+}
+
+.contrib-cover-option__meta {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.contrib-field__hint {
+  margin: 0;
+  font-size: var(--font-size-body-small);
+}
+
+.contrib-receipt__cover {
+  flex: none;
+  width: 64px;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--border-radius-thumbnail);
 }
 
 /* Dashboard (/tasks): a rail of filters beside the list.

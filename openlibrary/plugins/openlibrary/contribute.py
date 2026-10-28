@@ -14,7 +14,7 @@ from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
 from openlibrary.contribute import feed, save, supply, tasks
-from openlibrary.contribute.field_guides import build_link_outs, get_field_guides
+from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values
 from openlibrary.core import helpers
 from openlibrary.i18n import gettext as _
@@ -43,6 +43,7 @@ def setup():
 def get_filters() -> dict[str, tuple[str, tuple[str, ...]]]:
     """The rail's filters by ``task`` query value: a label and the fields it covers. Each must be filterable in Solr."""
     return {
+        "covers": (_("Cover"), ("covers",)),
         "languages": (_("Language"), ("languages",)),
         "publishers": (_("Publisher"), ("publishers",)),
         "identifiers": (_("Identifiers"), ("lccn", "oclc_numbers")),
@@ -99,7 +100,9 @@ def build_sibling_rows(fld: str, others: list, limit: int = 10) -> list[dict]:
 
 
 def format_field_value(edition, fld: str) -> str:
-    """The field's current value as the receipt shows it."""
+    """The field's current value as the receipt shows it. A cover is shown as the image instead."""
+    if fld == "covers":
+        return ""
     values = field_values(edition, fld)
     if fld == "languages":
         names = get_language_names({str(v) for v in values})
@@ -118,6 +121,8 @@ def build_edition_field_rows(edition, fld: str) -> list[dict]:
         ("isbn", _("ISBN")),
         ("lccn", _("LCCN")),
         ("oclc_numbers", _("OCLC")),
+        # Last, so the publisher, year and ISBN to check the images against are read first.
+        ("covers", _("Cover")),
     ]
     out = []
     for f, label in rows:
@@ -311,8 +316,8 @@ def render_landing(user=None):
         cta=build_cta(user),
         figures=landing_figures(),
         feed=build_feed(),
-        # A few appealing examples, not the full list. Book cover isn't a task yet.
-        fields=[get_field_guides()[f].label for f in ("languages", "publishers", "oclc_numbers")] + [_("Book cover")],
+        # A few appealing examples, not the full list.
+        fields=[get_field_guides()[f].label for f in ("covers", "languages", "publishers", "oclc_numbers")],
     )
 
 
@@ -387,6 +392,11 @@ def build_task_context(edition, task: tasks.Task, back: str, error: str = "", va
             "skip_url": build_next_url(back, task, saved=False),
         },
         "is_identifier": task.field in save.NORMALIZERS,
+        "is_cover": task.field == "covers",
+        # Offered as one of the cover choices, next to uploading one.
+        "cover_suggestion": {"url": AMAZON_COVER.format(isbn10=isbn10), "isbn10": isbn10}
+        if task.field == "covers" and (isbn10 := edition.get_isbn10())
+        else None,
         "field_guide": field_guide,
         "link_outs": build_link_outs(field_guide, book["isbn13"]),
         # Nothing to compare against when no other edition has a value.
@@ -451,9 +461,11 @@ class contribute_task(delegate.page):
 
     def POST(self, olid, fld):
         require_login(f"/tasks/task/{olid}/{fld}")
-        i = web.input(value="", note="", back="", confirmed="", then="")
-        # Same check as the edit form; it also stops read-only and blocked accounts.
-        if spamcheck.is_spam(i, allow_privileged_edits=True):
+        i = web.input(value="", note="", back="", confirmed="", then="", file={})
+        # Drop the upload's field storage, as the add-cover page does.
+        web.ctx.pop("_fieldstorage", None)
+        # Same check as the edit form; it also stops read-only and blocked accounts. The image is not text to check.
+        if spamcheck.is_spam(web.storage((k, v) for k, v in i.items() if k != "file"), allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         back = normalize_filter(i.back)
         edition = get_edition_or_404(olid)
@@ -462,9 +474,12 @@ class contribute_task(delegate.page):
         done = f"/tasks/task/{olid}/{fld}/done"
         field_guide = get_field_guides()[fld]
         try:
-            if fld in save.NORMALIZERS and not i.confirmed:
-                raise save.InvalidAnswer(_("Open the record and confirm it matches this edition first."))
-            save.save_answer(edition, fld, i.value, field_guide.label, i.note)
+            if field_guide.confirm and not i.confirmed:
+                raise save.InvalidAnswer(_("Check that it matches this edition, and tick the box to say so."))
+            if fld == "covers":
+                save.save_cover(edition, i.file, from_amazon=i.get("cover_choice") == "suggested")
+            else:
+                save.save_answer(edition, fld, i.value, field_guide.label, i.note)
         except save.InvalidAnswer as e:
             context = build_task_context(edition, task, back, error=str(e), value=i.value, note=i.note)
             return render_contribute("contribute/task.html.jinja", field_guide.question, **context)
@@ -490,6 +505,7 @@ class contribute_done(delegate.page):
             field_label=field_guides[fld].label,
             saved=saved,
             value=format_field_value(edition, fld) if saved else "",
+            cover_url=edition.get_cover_url("M") if saved and fld == "covers" else "",
             history_url=f"{edition.key}?m=history",
             same_book=same_book,
             next_url=build_next_url(back, tasks.Task(olid, fld), saved=False),

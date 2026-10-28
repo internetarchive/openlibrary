@@ -2,7 +2,15 @@
 {% import "contribute/parts.html.jinja" as parts %}
 <div class="contrib-page" data-contribute-done>
     <section class="contrib-receipt">
-        <span class="contrib-receipt__icon">{{ icon("circle-check" if data.saved else "arrow-right", size="lg") }}</span>
+        {% if data.cover_url %}
+            <img class="contrib-receipt__cover"
+                 src="{{ data.cover_url }}"
+                 alt="{{ _('The cover you added') }}"
+                 width="96"
+                 height="144" />
+        {% else %}
+            <span class="contrib-receipt__icon">{{ icon("circle-check" if data.saved else "arrow-right", size="lg") }}</span>
+        {% endif %}
         <div>
             <p class="contrib-overline">{% if data.saved %}{{ _("Saved") }}{% else %}{{ _("Skipped") }}{% endif %}</p>
             <h1 class="contrib-receipt__title">
