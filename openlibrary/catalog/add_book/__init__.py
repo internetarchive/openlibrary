@@ -1050,9 +1050,7 @@ def update_work_with_rec_data(rec: dict, edition: Edition, work: dict[str, Any],
     # Add authors to work, if needed
     if not work.get("authors"):
         authors_in = [
-            dict(a, name=remove_author_honorifics(a["name"]))
-            if isinstance(a, dict) and "name" in a and isinstance(a["name"], str)
-            else a
+            dict(a, name=remove_author_honorifics(a["name"])) if isinstance(a, dict) and "name" in a and isinstance(a["name"], str) else a
             for a in rec.get("authors", [])
         ]
         authors = [author_import_record_to_author(a) for a in authors_in]
