@@ -4366,10 +4366,6 @@ msgid "Cover updated"
 msgstr ""
 
 #: covers/change.html
-msgid "Keep current"
-msgstr ""
-
-#: covers/change.html
 msgid "Why are you replacing it?"
 msgstr ""
 
@@ -4403,6 +4399,10 @@ msgstr ""
 
 #: covers/change.html
 msgid "What’s wrong with the current cover?"
+msgstr ""
+
+#: covers/change.html
+msgid "Choose why you’re replacing it"
 msgstr ""
 
 #: covers/change.html
@@ -4480,6 +4480,16 @@ msgstr ""
 
 #: covers/change.html
 msgid "Just now"
+msgstr ""
+
+#: covers/change.html
+#, python-format
+msgid "%(width)s × %(height)s px"
+msgstr ""
+
+#: covers/change.html
+#, python-format
+msgid "Image %(id)s"
 msgstr ""
 
 #: TestingEnvironment.html.jinja covers/change.html lists/lists.html type/list/edit.html type/list/view_body.html type/series/edit.html

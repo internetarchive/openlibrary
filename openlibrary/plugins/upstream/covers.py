@@ -187,6 +187,8 @@ def image_item(img: Image, *, info: web.storage | None = None, added_by=None, ki
         "preview": img.url("L"),
         "added_by": {"key": added_by.key, "name": added_by.displayname or added_by.key.split("/")[-1]} if added_by else None,
         "created": info.created.isoformat() if info else None,
+        "width": info.get("width") if info else None,
+        "height": info.get("height") if info else None,
     }
 
 

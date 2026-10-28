@@ -51,6 +51,9 @@ class CoverItem(BaseModel):
     preview: str | None = None
     added_by: CoverAddedBy | None = None
     created: str | None = None
+    # The original image's size, from the coverstore.
+    width: int | None = None
+    height: int | None = None
 
 
 class CoverManagerState(BaseModel):

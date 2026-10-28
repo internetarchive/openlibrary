@@ -19,7 +19,6 @@ export const DEFAULT_LABELS = {
     chooseHeading: 'Choose the new cover',
     chooseHeadingAdd: 'Choose a cover',
     replaces: 'Replaces the current cover',
-    keepCurrent: 'Keep current',
     reasonHeading: 'Why are you replacing it?',
     reasonWrong: 'Wrong cover',
     reasonWrongHint: 'The image belongs to another edition or another book.',
@@ -29,6 +28,7 @@ export const DEFAULT_LABELS = {
     reasonNotFrontHint: 'A title page, back cover, spine, or a “no image” placeholder.',
     reasonOther: 'Something else',
     reasonNoteLabel: 'What’s wrong with the current cover?',
+    reasonPrompt: 'Choose why you’re replacing it',
     images: 'Images',
     uploadTitle: 'Upload a new image',
     addHint: 'Drop a file here, paste, or browse',
@@ -49,6 +49,8 @@ export const DEFAULT_LABELS = {
     titleUpload: 'Uploaded image',
     titleYou: 'Your upload',
     detailJustNow: 'Just now',
+    detailSize: '%(width)s × %(height)s px',
+    detailId: 'Image %(id)s',
     pickLabelCurrent: '%(name)s (current cover)',
     remove: 'Remove',
     removeLabel: 'Remove %(name)s',
@@ -123,7 +125,9 @@ export class OlCoverManager extends LitElement {
         _hidden: { state: true },
         _saving: { state: true },
         _dragging: { state: true },
-        _error: { state: true }
+        _error: { state: true },
+        _wide: { state: true },
+        _bandInView: { state: true }
     };
 
     static styles = [
@@ -138,8 +142,10 @@ export class OlCoverManager extends LitElement {
                 text-align: start;
             }
 
+            /* minmax(0, …): a long caption must not widen the column past the dialog. */
             .layout {
                 display: grid;
+                grid-template-columns: minmax(0, 1fr);
                 gap: var(--spacing-xl);
             }
 
@@ -203,10 +209,16 @@ export class OlCoverManager extends LitElement {
             @media (max-width: 767px) {
                 .cover-body {
                     display: grid;
-                    grid-template-columns: 96px 1fr;
+                    grid-template-columns: 96px minmax(0, 1fr);
                     gap: var(--spacing-md);
                     align-items: start;
                 }
+            }
+
+            /* With the band under it, the preview shrinks with the viewport so the sticky column,
+               card included, still fits above the footer (about 624px of the height is everything else). */
+            .cover.has-band .cover-frame img {
+                max-height: clamp(120px, 100vh - 624px, 260px);
             }
 
             .cover-caption {
@@ -230,16 +242,16 @@ export class OlCoverManager extends LitElement {
                 line-height: var(--line-height-body);
             }
 
-            /* The band under both columns once a replacement is picked: the swap, then the question.
-               The scroll margin keeps it clear of the sticky footer when it is scrolled into view. */
+            /* The band, once a replacement is picked: the swap, then the question. Under the preview
+               on wide screens, under the list on phones. The scroll margin keeps it clear of the sticky footer. */
             .band {
                 display: grid;
-                grid-template-columns: auto minmax(0, 1fr);
-                align-items: center;
-                gap: var(--spacing-sm) var(--spacing-xl);
-                margin-top: var(--spacing-xl);
-                padding-top: var(--spacing-lg);
-                border-top: var(--border-divider);
+                gap: var(--spacing-sm);
+                margin-top: var(--spacing-lg);
+                padding: var(--spacing-lg);
+                border: var(--border-width-thin) solid var(--color-border-subtle);
+                border-radius: var(--border-radius-card);
+                background: var(--color-surface-sunken);
                 scroll-margin-bottom: calc(var(--control-height-medium) + 2 * var(--spacing-lg) + var(--spacing-md));
             }
 
@@ -250,22 +262,15 @@ export class OlCoverManager extends LitElement {
                 line-height: var(--line-height-meta);
             }
 
-            .swap-heading {
-                grid-column: 1;
-                grid-row: 1;
-            }
-
             .swap {
-                grid-column: 1;
-                grid-row: 2;
                 display: flex;
                 align-items: center;
-                gap: var(--spacing-sm);
+                gap: var(--spacing-md);
             }
 
             .swap img {
-                width: 32px;
-                height: 48px;
+                width: 48px;
+                height: 72px;
                 object-fit: cover;
                 border-radius: var(--border-radius-sm);
                 box-shadow: var(--box-shadow-raised);
@@ -279,42 +284,16 @@ export class OlCoverManager extends LitElement {
                 transform: scaleX(-1);
             }
 
-            .swap .keep {
-                margin-inline-start: var(--spacing-xs);
-                font-size: var(--font-size-body-small);
-            }
-
             .reason-heading {
-                grid-column: 2;
-                grid-row: 1;
+                margin-top: var(--spacing-sm);
             }
 
             .why {
-                grid-column: 2;
-                grid-row: 2;
                 display: flex;
                 flex-wrap: wrap;
                 align-items: center;
                 gap: var(--spacing-sm) var(--spacing-md);
                 min-width: 0;
-            }
-
-            /* Stacked on a phone: the swap, then the question. */
-            @media (max-width: 767px) {
-                .band {
-                    grid-template-columns: minmax(0, 1fr);
-                }
-
-                .reason-heading {
-                    grid-column: 1;
-                    grid-row: 3;
-                    margin-top: var(--spacing-sm);
-                }
-
-                .why {
-                    grid-column: 1;
-                    grid-row: 4;
-                }
             }
 
             .reason-chips {
@@ -373,6 +352,7 @@ export class OlCoverManager extends LitElement {
 
             /* 16px so iOS doesn't zoom on focus. */
             .note input {
+                scroll-margin-bottom: calc(var(--control-height-medium) + 2 * var(--spacing-lg) + var(--spacing-md));
                 min-height: var(--control-height-medium);
                 padding: 0 var(--spacing-sm);
                 border: var(--border-width-thin) solid var(--color-border);
@@ -575,6 +555,11 @@ export class OlCoverManager extends LitElement {
                 line-height: var(--line-height-meta);
             }
 
+            /* A date or a size wraps as a whole, never "434 × 685" on one line and "px" on the next. */
+            .meta .detail {
+                white-space: nowrap;
+            }
+
             .source,
             .tag {
                 padding: var(--spacing-3xs) var(--spacing-xs);
@@ -594,7 +579,7 @@ export class OlCoverManager extends LitElement {
                 color: var(--color-text-inverse);
             }
 
-            /* Remove / Undo and Keep current: quiet text links. */
+            /* Remove / Undo and the footer's reason link: quiet text links. */
             .text-action {
                 padding: 0;
                 border: 0;
@@ -686,6 +671,21 @@ export class OlCoverManager extends LitElement {
                 .row .text-action:not(.danger):hover {
                     color: var(--color-text);
                 }
+
+                /* One quiet Remove on the row under the pointer, not a red link on every row. */
+                .row .text-action.danger {
+                    opacity: 0;
+                    color: var(--color-text-secondary);
+                }
+
+                .row:hover .text-action.danger,
+                .row:focus-within .text-action.danger {
+                    opacity: 1;
+                }
+
+                .row .text-action.danger:hover {
+                    color: var(--color-error-fg);
+                }
             }
 
             .drop-target {
@@ -737,6 +737,18 @@ export class OlCoverManager extends LitElement {
                 line-height: var(--line-height-body);
             }
 
+            .status.error {
+                margin: 0;
+                padding: 0;
+                border: 0;
+                background: none;
+                color: var(--color-error-fg);
+            }
+
+            .status .text-action {
+                font-size: inherit;
+            }
+
             .actions {
                 display: flex;
                 flex-wrap: wrap;
@@ -757,13 +769,48 @@ export class OlCoverManager extends LitElement {
             }
 
             .skeleton {
-                background: var(--color-surface-sunken);
+                background: var(--color-skeleton);
                 animation: pulse var(--duration-slower) var(--ease-in-out-cubic) infinite alternate;
             }
 
+            .loading .cover-frame {
+                width: min(100%, 240px);
+                aspect-ratio: 2 / 3;
+            }
+
+            .skeleton-line {
+                width: 40%;
+                height: 12px;
+                margin-bottom: var(--spacing-sm);
+                border-radius: var(--border-radius-sm);
+            }
+
             .skeleton-row {
-                height: 84px;
+                height: 102px;
                 border-radius: var(--border-radius-card);
+            }
+
+            @media (max-width: 767px) {
+                .loading .cover-frame {
+                    width: 96px;
+                }
+            }
+
+            .load-error {
+                display: grid;
+                justify-items: center;
+                gap: var(--spacing-md);
+                padding: var(--spacing-3xl) var(--spacing-lg);
+                text-align: center;
+            }
+
+            .load-error ol-icon {
+                color: var(--color-error-fg);
+            }
+
+            .load-error p {
+                margin: 0;
+                font-size: var(--font-size-body-medium);
             }
 
             @keyframes pulse {
@@ -809,6 +856,12 @@ export class OlCoverManager extends LitElement {
         this._dragDepth = 0;
         this._pendingCount = 0;
         this._dialog = null;
+        this._wideQuery = typeof matchMedia === 'function' ? matchMedia('(min-width: 768px)') : null;
+        this._wide = Boolean(this._wideQuery?.matches);
+        this._onWideChange = e => (this._wide = e.matches);
+        this._bandInView = true;
+        this._bandObserver = null;
+        this._observedBand = null;
         this._onOpen = () => this.load();
         this._onClosed = () => this._reset();
         this._onPaste = e => this._handlePaste(e);
@@ -825,10 +878,23 @@ export class OlCoverManager extends LitElement {
             this.load();
         }
         document.addEventListener('paste', this._onPaste);
+        this._wideQuery?.addEventListener('change', this._onWideChange);
+        // The whole dialog body takes drops, not just the list: people aim at the cover.
+        this.addEventListener('dragenter', this._onDragEnter);
+        this.addEventListener('dragover', this._onDragOver);
+        this.addEventListener('dragleave', this._onDragLeave);
+        this.addEventListener('drop', this._onDrop);
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        this._wideQuery?.removeEventListener('change', this._onWideChange);
+        this.removeEventListener('dragenter', this._onDragEnter);
+        this.removeEventListener('dragover', this._onDragOver);
+        this.removeEventListener('dragleave', this._onDragLeave);
+        this.removeEventListener('drop', this._onDrop);
+        this._bandObserver?.disconnect();
+        this._observedBand = null;
         this._dialog?.removeEventListener('ol-open', this._onOpen);
         this._dialog?.removeEventListener('ol-after-close', this._onClosed);
         document.removeEventListener('paste', this._onPaste);
@@ -926,8 +992,27 @@ export class OlCoverManager extends LitElement {
     async _setReason(value) {
         this._reason = value;
         await this.updateComplete;
-        if (value === 'other') this.shadowRoot.querySelector('.note input')?.focus({ preventScroll: true });
-        this._revealReason();
+        if (value === 'other') this.shadowRoot.querySelector('.note input')?.focus();
+    }
+
+    /** Tracks whether the band is on screen, so the footer can point to the question when it isn't. */
+    updated() {
+        const band = this.shadowRoot.querySelector('.band');
+        if (band === this._observedBand) return;
+        this._bandObserver?.disconnect();
+        this._observedBand = band;
+        this._bandInView = true;
+        if (!band || typeof IntersectionObserver !== 'function') return;
+        // The bottom margin leaves out the strip the sticky footer covers.
+        this._bandObserver = new IntersectionObserver(([entry]) => (this._bandInView = entry.intersectionRatio > 0.5), {
+            rootMargin: '0px 0px -96px 0px',
+            threshold: [0, 0.5, 1]
+        });
+        this._bandObserver.observe(band);
+    }
+
+    _scrollToBand() {
+        this.shadowRoot.querySelector('.band')?.scrollIntoView({ block: 'end', behavior: 'smooth' });
     }
 
     // Adding images
@@ -1028,7 +1113,6 @@ export class OlCoverManager extends LitElement {
             const item = { ...result, thumb: objectUrl, preview: objectUrl, objectUrl, session: true };
             this._added = this._added.map(added => (added.id === placeholder.id ? item : added));
             this._selected = item.id;
-            this._revealReason();
         } catch {
             URL.revokeObjectURL(objectUrl);
             this._added = this._added.filter(added => added.id !== placeholder.id);
@@ -1041,13 +1125,6 @@ export class OlCoverManager extends LitElement {
     _select(item) {
         if (item.pending || this._removed.has(item.image_id)) return;
         this._selected = item.id;
-        this._revealReason();
-    }
-
-    /** The question appears under the replacement; bring it into view if the column runs past the dialog. */
-    async _revealReason() {
-        await this.updateComplete;
-        if (this._needsReason) this.shadowRoot.querySelector('.band')?.scrollIntoView?.({ block: 'end' });
     }
 
     _remove(item) {
@@ -1143,24 +1220,29 @@ export class OlCoverManager extends LitElement {
             default: {
                 if (item.session || item.pending) return { title: this._t('titleYou'), detail: this._t('detailJustNow') };
                 const uploader = item.added_by?.name;
-                const date = item.created
-                    ? new Intl.DateTimeFormat(document.documentElement.lang || 'en', { month: 'long', year: 'numeric' }).format(new Date(item.created))
-                    : '';
-                return { title: uploader ? this._t('titleUploadBy', { name: uploader }) : this._t('titleUpload'), detail: date };
+                const lang = document.documentElement.lang || 'en';
+                const date = item.created ? new Intl.DateTimeFormat(lang, { month: 'long', year: 'numeric' }).format(new Date(item.created)) : '';
+                const number = new Intl.NumberFormat(lang);
+                const size = item.width && item.height ? this._t('detailSize', { width: number.format(item.width), height: number.format(item.height) }) : '';
+                // With no uploader, date or size on file, the id still tells two images apart.
+                const details = [date, size].filter(Boolean);
+                const detail = details.length || uploader ? details : [this._t('detailId', { id: item.image_id })];
+                return { title: uploader ? this._t('titleUploadBy', { name: uploader }) : this._t('titleUpload'), detail };
             }
         }
     }
 
     _name({ title, source, detail }) {
-        return [title, source, detail].filter(Boolean).join(', ');
+        return [title, source, ...[detail].flat()].filter(Boolean).join(', ');
     }
 
     _renderMeta({ source, detail }, tag) {
-        if (!source && !detail && !tag) return nothing;
+        if (!source && ![detail].flat().some(Boolean) && !tag) return nothing;
         return html`<span class="meta"
-            >${tag ? html`<span class="tag">${tag}</span>` : nothing}${source ? html`<span class="source">${source}</span>` : nothing}${
-                detail ? html`<span>${detail}</span>` : nothing
-            }</span
+            >${tag ? html`<span class="tag">${tag}</span>` : nothing}${source ? html`<span class="source">${source}</span>` : nothing}${[detail]
+                .flat()
+                .filter(Boolean)
+                .map(d => html`<span class="detail">${d}</span>`)}</span
         >`;
     }
 
@@ -1170,12 +1252,12 @@ export class OlCoverManager extends LitElement {
         return items.find(item => item.id === this._selected) ?? items.find(item => item.id === this._data?.current);
     }
 
-    _renderCover(selected) {
+    _renderCover(selected, band) {
         const current = this._items.find(item => item.id === this._data.current);
         const heading = selected === current ? 'currentHeading' : 'newHeading';
         const description = this._describe(selected);
 
-        return html`<section class="cover" aria-labelledby="cover-heading">
+        return html`<section class="cover ${band ? 'has-band' : ''}" aria-labelledby="cover-heading">
             <h3 class="overline" id="cover-heading">${this._t(heading)}</h3>
             <div class="cover-body">
                 <div class="cover-frame"><img src=${selected.preview ?? selected.thumb} alt="" /></div>
@@ -1184,21 +1266,22 @@ export class OlCoverManager extends LitElement {
                     ${this._isFallback && selected === current ? html`<p class="note-text">${this._t('fallbackNote')}</p>` : nothing}
                 </div>
             </div>
+            ${band ?? nothing}
         </section>`;
     }
 
-    /** Under both columns once a replacement is picked: current → new with a way back, then the question if one is due. */
+    /** Once a replacement is picked: current → new, then the question if one is due.
+        Under the preview on wide screens, so it stays in view beside the list; under the list on phones. */
     _renderBand(current, selected) {
         const asks = this._needsReason;
         return html`<div class="band">
-            <strong class="band-heading swap-heading">${this._t('replaces')}</strong>
-            ${asks ? html`<h4 class="band-heading reason-heading" id="reason-heading">${this._t('reasonHeading')}</h4>` : nothing}
+            <strong class="band-heading">${this._t('replaces')}</strong>
             <div class="swap">
                 <img src=${current.thumb} alt="" />
-                <ol-icon name="chevron-right" size="sm"></ol-icon>
+                <ol-icon name="arrow-right"></ol-icon>
                 <img src=${selected.thumb} alt="" />
-                <button type="button" class="text-action keep" @click=${() => this._select(current)}>${this._t('keepCurrent')}</button>
             </div>
+            ${asks ? html`<h4 class="band-heading reason-heading" id="reason-heading">${this._t('reasonHeading')}</h4>` : nothing}
             ${asks ? this._renderReason() : nothing}
         </div>`;
     }
@@ -1283,13 +1366,13 @@ export class OlCoverManager extends LitElement {
     _renderList() {
         let heading;
         if (this._hasOwnImage) heading = html`<h3 class="overline">${this._t('chooseHeading')}</h3>`;
-        else if (this._isFallback) heading = html`<h3 class="overline">${this._t('chooseHeadingAdd')}</h3>`;
+        else if (this._isFallback || this._shown) heading = html`<h3 class="overline">${this._t('chooseHeadingAdd')}</h3>`;
         else
             heading = html`<h3 class="step-title">${this._t('noCoverTitle')}</h3>
                 <p class="step-intro">${this._t('noCoverIntro')}</p>`;
         return html`<div class="panel">
             ${heading}
-            <div class="list-wrap" @dragenter=${this._onDragEnter} @dragover=${this._onDragOver} @dragleave=${this._onDragLeave} @drop=${this._onDrop}>
+            <div class="list-wrap">
                 <ul class="options" aria-label=${this._t('images')} @keydown=${this._onListKeydown}>
                     <li class="row upload">
                         <button class="option" type="button" @click=${this._openPicker}>
@@ -1333,9 +1416,15 @@ export class OlCoverManager extends LitElement {
         return parts.join(' ');
     }
 
+    /** Errors sit in the footer, beside the button that caused them, where the sticky footer can't cover them. */
     _renderFooter() {
+        let status;
+        if (this._error) status = html`<p class="status error" role="alert"><ol-icon name="circle-alert" size="sm"></ol-icon>${this._error}</p>`;
+        else if (this._needsReason && !this._reasonComplete && !this._bandInView)
+            status = html`<p class="status"><button type="button" class="text-action" @click=${this._scrollToBand}>${this._t('reasonPrompt')}</button></p>`;
+        else status = html`<p class="status" aria-live="polite">${this._renderStatus()}</p>`;
         return html`<div class="footer">
-            <p class="status" aria-live="polite">${this._renderStatus()}</p>
+            ${status}
             <div class="actions">
                 <a href=${this.guidelinesUrl} target="_blank" rel="noopener">${this._t('guidelines')}</a>
                 <div class="buttons">
@@ -1348,28 +1437,37 @@ export class OlCoverManager extends LitElement {
 
     render() {
         if (this._loadState === 'error') {
-            return html`<div class="error" role="alert">
-                <ol-icon name="circle-alert" size="sm"></ol-icon>
-                <span>${this._t('errorLoad')}</span>
-                <ol-button variant="secondary" size="small" @click=${() => this.load()}>${this._t('retry')}</ol-button>
+            return html`<div class="load-error" role="alert">
+                <ol-icon name="circle-alert"></ol-icon>
+                <p>${this._t('errorLoad')}</p>
+                <div class="buttons">
+                    <ol-button variant="secondary" @click=${this._cancel}>${this._t('cancel')}</ol-button>
+                    <ol-button variant="primary" @click=${() => this.load()}>${this._t('retry')}</ol-button>
+                </div>
             </div>`;
         }
 
+        // Shaped like the loaded dialog (preview, then the upload row and three images), so nothing jumps when it arrives.
         if (this._loadState !== 'ready') {
-            return html`<div class="layout" aria-busy="true" aria-label=${this._t('loading')}>
-                <div class="cover"><div class="cover-frame skeleton"></div></div>
-                <div class="options">${[0, 1, 2].map(() => html`<div class="skeleton skeleton-row"></div>`)}</div>
+            return html`<div class="layout loading" aria-busy="true" aria-label=${this._t('loading')}>
+                <div class="cover">
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="cover-body"><div class="cover-frame skeleton"></div></div>
+                </div>
+                <div class="panel">
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="options">${[0, 1, 2, 3].map(() => html`<div class="skeleton skeleton-row"></div>`)}</div>
+                </div>
             </div>`;
         }
 
         // With nothing to show yet, the list is the whole dialog; the cover column appears with the first pick.
         const shown = this._shown;
         const current = this._items.find(item => item.id === this._data.current);
+        const band = current && shown && shown !== current ? this._renderBand(current, shown) : null;
         return html`
-            <div class="layout ${shown ? '' : 'single'}">${shown ? this._renderCover(shown) : nothing} ${this._renderList()}</div>
-            ${current && shown && shown !== current ? this._renderBand(current, shown) : nothing}
-            ${this._error ? html`<p class="error" role="alert"><ol-icon name="circle-alert" size="sm"></ol-icon>${this._error}</p>` : nothing}
-            ${this._renderFooter()}
+            <div class="layout ${shown ? '' : 'single'}">${shown ? this._renderCover(shown, this._wide ? band : null) : nothing} ${this._renderList()}</div>
+            ${this._wide ? nothing : (band ?? nothing)} ${this._renderFooter()}
         `;
     }
 }

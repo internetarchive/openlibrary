@@ -143,12 +143,12 @@ test('dragging a file over the list shows the drop target, and dropping it uploa
     const transfer = new DataTransfer();
     transfer.items.add(new File(['x'], 'drop.jpg', { type: 'image/jpeg' }));
 
-    zone.dispatchEvent(new DragEvent('dragenter', { bubbles: true, cancelable: true, dataTransfer: transfer }));
-    zone.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: transfer }));
+    zone.dispatchEvent(new DragEvent('dragenter', { bubbles: true, composed: true, cancelable: true, dataTransfer: transfer }));
+    zone.dispatchEvent(new DragEvent('dragover', { bubbles: true, composed: true, cancelable: true, dataTransfer: transfer }));
     await manager.updateComplete;
     expect(q(manager, '.drop-target')).not.toBeNull();
 
-    zone.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }));
+    zone.dispatchEvent(new DragEvent('drop', { bubbles: true, composed: true, cancelable: true, dataTransfer: transfer }));
     await manager.updateComplete;
     expect(q(manager, '.drop-target')).toBeNull();
 

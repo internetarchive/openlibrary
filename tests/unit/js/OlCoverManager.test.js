@@ -11,7 +11,16 @@ const STATE = {
     items: [
         { id: 'suggestion:archive-cover', kind: 'archive_cover', suggestion: 'archive-cover', image_id: null, thumb: 'scan-cover.jpg' },
         { id: 'suggestion:archive-title', kind: 'archive_title', suggestion: 'archive-title', image_id: null, thumb: 'scan-title.jpg' },
-        { id: 'img:10', kind: 'upload', image_id: 10, thumb: '10-M.jpg', added_by: { key: '/people/ada', name: 'Ada' }, created: '2024-03-02T00:00:00' },
+        {
+            id: 'img:10',
+            kind: 'upload',
+            image_id: 10,
+            thumb: '10-M.jpg',
+            added_by: { key: '/people/ada', name: 'Ada' },
+            created: '2024-03-02T00:00:00',
+            width: 1200,
+            height: 1800
+        },
         { id: 'img:11', kind: 'upload', image_id: 11, thumb: '11-M.jpg', added_by: null, created: null }
     ]
 };
@@ -53,6 +62,7 @@ const status = el => q(el, '.status').textContent.trim();
 const saveButton = el => q(el, 'ol-button[variant="primary"]');
 const picks = el => qa(el, '.row:not(.upload) .option');
 const rows = el => qa(el, '.row:not(.upload)');
+const currentPick = el => picks(el).find(b => b.getAttribute('aria-label').endsWith('(current cover)'));
 const file = (name, type, size = 10) => new File([new Uint8Array(size)], name, { type });
 
 async function chooseReason(el, value, note) {
@@ -90,8 +100,8 @@ describe('ol-cover-manager listing', () => {
         expect(labels).toEqual([
             'Scan of the cover, Internet Archive',
             'Scan of the title page, Internet Archive',
-            'Uploaded by Ada, March 2024 (current cover)',
-            'Uploaded image'
+            'Uploaded by Ada, March 2024, 1,200 × 1,800 px (current cover)',
+            'Uploaded image, Image 11'
         ]);
     });
 
@@ -137,6 +147,8 @@ describe('ol-cover-manager listing', () => {
         await el.updateComplete;
         expect(q(el, '.layout').classList.contains('single')).toBe(false);
         expect(q(el, '#cover-heading').textContent).toBe('New cover');
+        // Something is picked now, so the list stops saying the edition has no cover.
+        expect(q(el, '.panel > h3').textContent).toBe('Choose a cover');
         expect(q(el, '.why')).toBeNull();
         expect(saveButton(el).disabled).toBe(false);
     });
@@ -161,14 +173,14 @@ describe('ol-cover-manager listing', () => {
 });
 
 describe('ol-cover-manager choosing and removing', () => {
-    test('picking another image previews it as the new cover, and Keep current undoes it', async () => {
+    test('picking another image previews it as the new cover, and picking the current row undoes it', async () => {
         stubFetch();
         const el = await mount();
         picks(el)[0].click();
         await el.updateComplete;
         expect(q(el, '#cover-heading').textContent).toBe('New cover');
         expect(q(el, '.cover-frame img').getAttribute('src')).toBe('scan-cover.jpg');
-        q(el, '.band .keep').click();
+        currentPick(el).click();
         await el.updateComplete;
         expect(el._selected).toBe('img:10');
         expect(q(el, '#cover-heading').textContent).toBe('Current cover');
@@ -179,7 +191,7 @@ describe('ol-cover-manager choosing and removing', () => {
         stubFetch();
         const el = await mount();
         const removable = rows(el).filter(row => row.querySelector('.text-action.danger'));
-        expect(removable.map(row => row.querySelector('.option').getAttribute('aria-label'))).toEqual(['Uploaded image']);
+        expect(removable.map(row => row.querySelector('.option').getAttribute('aria-label'))).toEqual(['Uploaded image, Image 11']);
     });
 
     test('the current cover can be removed once something else is picked', async () => {
@@ -208,7 +220,7 @@ describe('ol-cover-manager choosing and removing', () => {
 });
 
 describe('ol-cover-manager asking why', () => {
-    test('replacing a book’s own cover asks why in the band under the columns, and Save waits for an answer', async () => {
+    test('replacing a book’s own cover asks why in the band, and Save waits for an answer', async () => {
         stubFetch();
         const el = await mount();
         picks(el)[1].click();
@@ -243,9 +255,9 @@ describe('ol-cover-manager asking why', () => {
         el._addFiles([file('c.jpg', 'image/jpeg')]);
         await vi.waitFor(() => expect(el._selected).toBe('img:99'));
         await el.updateComplete;
-        // The upload is picked as the new cover, so the question appears; keeping the current cover withdraws it.
+        // The upload is picked as the new cover, so the question appears; picking the current cover again withdraws it.
         expect(q(el, '.why')).not.toBeNull();
-        q(el, '.band .keep').click();
+        currentPick(el).click();
         await el.updateComplete;
         expect(q(el, '.why')).toBeNull();
         expect(status(el)).toBe('1 new image will be added.');
@@ -260,7 +272,7 @@ describe('ol-cover-manager asking why', () => {
         expect(q(el, '.panel .overline').textContent).toBe('Choose a cover');
         picks(el)[1].click();
         await el.updateComplete;
-        expect(q(el, '.band .keep')).not.toBeNull();
+        expect(q(el, '.band .swap')).not.toBeNull();
         expect(q(el, '.why')).toBeNull();
         expect(saveButton(el).disabled).toBe(false);
     });
@@ -400,8 +412,21 @@ describe('ol-cover-manager saving', () => {
         await chooseReason(el, 'better');
         await el._save();
         await el.updateComplete;
-        expect(q(el, '.error').textContent).toContain('couldn’t be saved');
+        // In the footer, where the sticky footer can't cover it.
+        expect(q(el, '.footer .error').textContent).toContain('couldn’t be saved');
         expect(el._selected).toBe('suggestion:archive-title');
         expect(el._reason).toBe('better');
+    });
+
+    test('when the question is scrolled out of view, the footer points to it', async () => {
+        stubFetch();
+        const el = await mount();
+        picks(el)[1].click();
+        await el.updateComplete;
+        el._bandInView = false;
+        await el.updateComplete;
+        expect(status(el)).toBe('Choose why you’re replacing it');
+        await chooseReason(el, 'wrong');
+        expect(status(el)).toBe('');
     });
 });
