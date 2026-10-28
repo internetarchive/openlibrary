@@ -5787,7 +5787,7 @@ msgid "First Published"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Top Rated"
+msgid "Your Top Rated"
 msgstr ""
 
 #: search/sort_options.html
@@ -5800,6 +5800,10 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Most Recent"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Top Rated"
 msgstr ""
 
 #: search/sort_options.html

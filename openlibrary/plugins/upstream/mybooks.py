@@ -370,15 +370,21 @@ class mybooks_readinglog(delegate.page):
         if i.mode == "ebooks":
             fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
 
+        sort_order = i.sort
+        if sort_order == "rating" and not mb.is_my_page:
+            sort_order = "desc"
+
         logged_book_data: LoggedBooksData = mb.readlog.get_works(
             key=mb.key,  # type: ignore
             page=i.page,
             sort="created",
-            sort_order=i.sort,
+            sort_order=sort_order,
             q=i.q,
             year=year,
             fq=fq,
         )
+        if logged_book_data.sort != READING_LOG_SORTS.get(sort_order):
+            sort_order = "desc"
         docs = add_availability(logged_book_data.docs, mode="openlibrary_work")
         doc_count = logged_book_data.total_results
 
@@ -399,7 +405,7 @@ class mybooks_readinglog(delegate.page):
             doc_count,
             mb.is_my_page,
             i.page,
-            sort_order=i.sort,
+            sort_order=sort_order,
             user=mb.user,
             include_ratings=include_ratings,
             q=i.q,

@@ -69,7 +69,7 @@ $add_metatag(property="og:image", content=meta_photo_url)
       $# at the far end of the row — same split as the search page.
       <div class="search-results-stats__tools">
         $if not is_filtered:
-          $:render_template("search/sort_options.html", sort_order, default_sort='desc', search_scheme='reading_log')
+          $:render_template("search/sort_options.html", sort_order, exclude=None if owners_page else ['rating'], default_sort='desc', search_scheme='reading_log')
 
         $ layout = get_remembered_layout()
         $:render_template("search/layout_options.html", selected_layout=layout)

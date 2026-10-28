@@ -9,6 +9,7 @@ from infogami.infobase.client import LazyObject
 from infogami.utils import macro
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.plugins.upstream import mybooks
 from openlibrary.plugins.upstream.mybooks import PatronBooknotes, ReadingLog, edition_key_of, get_reading_states, shelf_button_for, work_key_of
 
 
@@ -358,3 +359,26 @@ async def test_reading_log_passes_sort_to_shelf_query(sort_order, expected):
         await ReadingLog(user=MagicMock()).get_works_async("want-to-read", sort_order=sort_order)
 
     assert get_users_logged_books.await_args.kwargs["sort"] == expected
+
+
+@pytest.mark.parametrize(
+    ("requested", "owners_page", "used", "asked_for", "shown"),
+    [
+        ("rating", True, "rating", "rating", "rating"),
+        ("rating", False, "created desc", "desc", "desc"),
+        ("title", False, "title", "title", "title"),
+        ("title", True, "created desc", "title", "desc"),
+    ],
+)
+def test_reading_log_menu_shows_the_sort_actually_used(monkeypatch, requested, owners_page, used, asked_for, shown):
+    monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, sort=requested))
+    monkeypatch.setattr(mybooks, "add_availability", lambda docs, mode: docs)
+    monkeypatch.setattr(mybooks, "get_internet_archive_id", lambda key: "")
+    monkeypatch.setattr(mybooks, "render", MagicMock())
+    mb = MagicMock(key="want-to-read", is_my_page=owners_page, counts={"want-to-read": 0})
+    mb.readlog.get_works.return_value = MagicMock(docs=[], total_results=0, ratings=[], sort=used)
+
+    mybooks.mybooks_readinglog().render_template(mb)
+
+    assert mb.readlog.get_works.call_args.kwargs["sort_order"] == asked_for
+    assert mybooks.render["account/reading_log"].call_args.kwargs["sort_order"] == shown
