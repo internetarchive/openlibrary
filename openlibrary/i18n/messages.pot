@@ -5308,7 +5308,7 @@ msgstr ""
 msgid "When did you finish this book?"
 msgstr ""
 
-#: my_books/shelf_button_i18n.html
+#: contribute/parts.html.jinja my_books/shelf_button_i18n.html
 msgid "Skip"
 msgstr ""
 
@@ -8124,15 +8124,6 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 msgid "I couldn't find it"
-msgstr ""
-
-#: contribute/parts.html.jinja
-#, python-format
-msgid "Next: a random task from %(filter)s"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Next: a random task from all open tasks"
 msgstr ""
 
 #: openlibrary/contribute/feed.py

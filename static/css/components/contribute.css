@@ -569,14 +569,12 @@
   gap: var(--spacing-inline-md);
 }
 
-/* Skipping sits apart from saving, at the far end. */
-.contrib-answer__actions > [data-skip] {
+/* Moving on without saving sits apart from saving, at the far end. */
+.contrib-answer__move {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-md);
   margin-inline-start: auto;
-}
-
-.contrib-answer__next {
-  flex-basis: 100%;
-  margin: 0;
 }
 
 /* List */

@@ -421,7 +421,8 @@ def build_task_context(edition, task: tasks.Task, back: str, error: str = "", va
         "suggestions": tally["values"][:3] if field_guide.suggest_from_siblings else [],
         "record_fields": build_edition_field_rows(edition, task.field),
         "list_url": build_dashboard_url(back),
-        "next_scope": get_filters()[back][0] if back else "",
+        # Moving on without an answer records nothing; "I couldn't find it" is the one that counts.
+        "skip_url": build_next_url(back, task, saved=False),
         "languages": save.language_options() if task.field == "languages" else [],
         "error": error,
         "value": value,
