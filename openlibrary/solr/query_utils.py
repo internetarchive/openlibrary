@@ -180,6 +180,8 @@ def luqum_parser(query: str) -> Item:
                     last_sf = child
                 elif last_sf and (next_word := find_next_word(child)):
                     word, parent_op = next_word
+                    if node.op and not word.head:
+                        word.head = " "
                     # Add it over
                     if not isinstance(last_sf.expr, Group):
                         last_sf.expr = Group(type(node)(last_sf.expr, word))

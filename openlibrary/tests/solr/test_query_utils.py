@@ -120,3 +120,10 @@ def test_luqum_remove_field():
     assert fn("(edition.title:Bob OR work.title:OL5M)") == "( work.title:OL5M)"
     assert fn("edition.title:Bob OR (work.title:OL5M)") == "(work.title:OL5M)"
     assert fn("edition.title: foo bar bar author: blah") == "author:blah"
+
+
+def test_luqum_parser_or_separator():
+    """Preserve whitespace separator between Boolean operator and operand in greedy field bindings (#14146)."""
+    query = "title:foo OR bar AND author:blah"
+    parsed = str(luqum_parser(query))
+    assert parsed == "title:(foo OR bar) AND author:blah"
