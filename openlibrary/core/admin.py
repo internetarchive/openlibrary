@@ -216,6 +216,24 @@ def get_stats(ndays=30, use_mock_data=False):
     }
 
 
+def get_rolling_counts(keys: list[str], ndays: int, lookback: int = 28) -> dict[str, dict | None]:
+    """Rolling counts from the daily docs, by key: the latest value, the value `lookback` days before it, and a bar chart
+    of the last `ndays`. None for a key the stats script hasn't written yet."""
+    all_docs = _get_count_docs(ndays + lookback)
+    counts: dict[str, dict | None] = {}
+    for key in keys:
+        if not (docs := [d for d in all_docs if key in d]):
+            counts[key] = None
+            continue
+        before = (datetime.strptime(docs[-1]["_key"], "counts-%Y-%m-%d") - timedelta(days=lookback)).strftime("counts-%Y-%m-%d")
+        counts[key] = {
+            "latest": docs[-1][key],
+            "earlier": next((d[key] for d in docs if d["_key"] == before), None),
+            "chart": Stats(docs, key, key).get_bar_chart(min(ndays, len(docs)), width=250, height=35),
+        }
+    return counts
+
+
 @cache.memoize(engine="memcache", key="logins_since", expires=12 * 60 * 60)
 async def get_unique_logins_since(since_days=30):
     since_date = datetime.now() - timedelta(days=since_days)

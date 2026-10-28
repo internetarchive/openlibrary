@@ -1,0 +1,39 @@
+{#- /stats/tasks: who is editing the catalog, and how edits from the Tasks page hold up. Every number is a rolling count, gathered hourly by scripts/store_counts.py. -#}
+<div id="contentHead">
+    <h1>{{ _("Tasks Stats") }}</h1>
+    <p>{{ _("Each number covers the days up to the latest count, so it moves a little every day.") }} <a href="/stats">{{ _("All stats") }}</a></p>
+</div>
+<div id="contentBody">
+    {% for section in sections %}
+        <h2>{{ section.heading }}</h2>
+        <p>{{ section.note }}</p>
+        <table class="measurements stripeEven">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>{{ _("Latest") }}</th>
+                    <th>{{ _("4 weeks earlier") }}</th>
+                    <th>{{ _("Last 90 days") }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in section.rows %}
+                    <tr class="major">
+                        <td class="type">{{ row.label }}</td>
+                        <td class="amount">{{ row.latest }}</td>
+                        <td class="amount">{{ row.earlier }}</td>
+                        <td>
+                            {% if row.chart %}
+                                <div class="sparkDisplay">
+                                    {% with chart=row.chart, css_class="stats-spacer", label=row.label %}
+                                        {% include "StatsBarChart.html.jinja" %}
+                                    {% endwith %}
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+</div>

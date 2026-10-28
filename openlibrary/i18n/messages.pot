@@ -2007,6 +2007,10 @@ msgid "Stats"
 msgstr ""
 
 #: admin/index.html
+msgid "Tasks stats: who is editing, and how Tasks edits hold up"
+msgstr ""
+
+#: admin/index.html
 msgid "Edits Per Day"
 msgstr ""
 
@@ -6242,6 +6246,30 @@ msgstr ""
 msgid "Most Rated Books (All Time)"
 msgstr ""
 
+#: stats/tasks.html stats/tasks.html.jinja
+msgid "Tasks Stats"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Each number covers the days up to the latest count, so it moves a little every day."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "All stats"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Latest"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "4 weeks earlier"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Last 90 days"
+msgstr ""
+
 #: subjects/notfound.html
 msgid "We couldn't find any books about"
 msgstr ""
@@ -9552,5 +9580,61 @@ msgstr ""
 #: openlibrary/plugins/worksearch/facets.py
 #, python-format
 msgid "%(title)s - search"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks saves undone, last 28 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Editors, last 28 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Editors, last 7 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "First-time editors, last 28 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "First-time editors, last 7 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks saves, last 28 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks editors, last 28 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks editors, last 7 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Editors"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Signed-in accounts that changed a book, work or author record. Bots are not counted."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks page"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Edits saved from the Tasks page."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Guardrail"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks saves whose value is no longer on the record: undone, reverted or changed by a later edit."
 msgstr ""
 
