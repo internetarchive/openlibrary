@@ -4,13 +4,15 @@ import functools
 import sqlite3
 from datetime import datetime
 from sqlite3 import IntegrityError
-from typing import cast
+from typing import ClassVar, cast
 
 import web
+from psycopg.errors import UniqueViolation as AsyncUniqueViolation
 from psycopg2.errors import UniqueViolation
 from web.db import PostgresDB
 
 from infogami.utils import stats
+from openlibrary.core.async_db import connection
 
 
 @functools.cache
@@ -30,6 +32,8 @@ class CommonExtras:
     """
     A set of methods used by bookshelves, booknotes, ratings, and observations tables
     """
+
+    TABLENAME: ClassVar[str]
 
     @classmethod
     def update_work_id(cls, current_work_id, new_work_id, _test=False):
@@ -124,36 +128,35 @@ class CommonExtras:
         return list(oldb.select(cls.TABLENAME, where="username=$username", vars={"username": username}))
 
     @classmethod
-    def update_username(cls, username, new_username, _test=False):
-        oldb = get_db()
-        t = oldb.transaction()
-
-        try:
-            rows_changed = oldb.update(
-                cls.TABLENAME,
-                where="username=$username",
-                username=new_username,
-                vars={"username": username},
-            )
-        except UniqueViolation, IntegrityError:
-            # if any of the records would conflict with an exiting
-            # record associated with new_username
-            pass  # assuming impossible for now, not a great assumption
-
-        t.rollback() if _test else t.commit()
+    async def update_username(cls, username: str, new_username: str, _test: bool = False) -> int:
+        """Update a patron's username, optionally rolling back for dry-run counts."""
+        rows_changed = 0
+        async with connection() as conn:
+            try:
+                cursor = await conn.execute(
+                    f"UPDATE {cls.TABLENAME} SET username = %(new_username)s WHERE username = %(username)s",
+                    {"username": username, "new_username": new_username},
+                )
+                rows_changed = cursor.rowcount
+            except AsyncUniqueViolation:
+                await conn.rollback()
+                return 0
+            if _test:
+                await conn.rollback()
         return rows_changed
 
     @classmethod
-    def delete_all_by_username(cls, username, _test=False):
-        oldb = get_db()
-        t = oldb.transaction()
-
-        try:
-            rows_deleted = oldb.delete(cls.TABLENAME, where="username=$username", vars={"username": username})
-        except UniqueViolation, IntegrityError:
-            pass
-
-        t.rollback() if _test else t.commit()
+    async def delete_all_by_username(cls, username: str, _test: bool = False) -> int:
+        """Delete a patron's rows, optionally rolling back for dry-run counts."""
+        rows_deleted = 0
+        async with connection() as conn:
+            cursor = await conn.execute(
+                f"DELETE FROM {cls.TABLENAME} WHERE username = %(username)s",
+                {"username": username},
+            )
+            rows_deleted = cursor.rowcount
+            if _test:
+                await conn.rollback()
         return rows_deleted
 
 

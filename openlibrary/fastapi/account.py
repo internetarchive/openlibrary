@@ -569,7 +569,7 @@ async def anonymize_account(
         # This endpoint authenticates via HMAC+S3, not a user session, so
         # there is no auth token on the connection without RunAs.
         with RunAs(ol_account.username):
-            result = ol_account.anonymize(test=test_mode)
+            result = await ol_account.anonymize(test=test_mode)
     except Exception as e:  # noqa: BLE001
         logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")

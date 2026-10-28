@@ -1,13 +1,13 @@
 import datetime as dt
 import json
-from sqlite3 import IntegrityError
 from types import MappingProxyType
 from typing import Literal
 
-from psycopg2.errors import UniqueViolation
+from psycopg.errors import UniqueViolation
 
 from infogami.utils.view import public
 from openlibrary.core import cache
+from openlibrary.core.async_db import connection
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
 
@@ -148,21 +148,21 @@ class CommunityEditsQueue:
         return where_clause
 
     @classmethod
-    def update_submitter_name(cls, submitter: str, new_username: str, _test=False):
-        oldb = db.get_db()
-        t = oldb.transaction()
-
-        try:
-            rows_changed = oldb.update(
-                cls.TABLENAME,
-                where="submitter=$submitter",
-                submitter=new_username,
-                vars={"submitter": submitter},
-            )
-        except UniqueViolation, IntegrityError:
-            rows_changed = 0
-
-        t.rollback() if _test else t.commit()
+    async def update_submitter_name(cls, submitter: str, new_username: str, _test: bool = False) -> int:
+        """Update request submitters, optionally rolling back for dry-run counts."""
+        rows_changed = 0
+        async with connection() as conn:
+            try:
+                cursor = await conn.execute(
+                    f"UPDATE {cls.TABLENAME} SET submitter = %(new_username)s WHERE submitter = %(submitter)s",
+                    {"submitter": submitter, "new_username": new_username},
+                )
+                rows_changed = cursor.rowcount
+            except UniqueViolation:
+                await conn.rollback()
+                return 0
+            if _test:
+                await conn.rollback()
         return rows_changed
 
     @classmethod
