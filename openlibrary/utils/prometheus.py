@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import functools
 import logging
-import os
 import re
 from re import _constants as sre  # type: ignore[attr-defined]
 from re import _parser as sre_parse  # type: ignore[attr-defined]
@@ -31,13 +30,14 @@ from timeit import default_timer
 from typing import TYPE_CHECKING, Literal
 
 import web
-from prometheus_client import REGISTRY, CollectorRegistry, make_wsgi_app, multiprocess
+from prometheus_client import REGISTRY, CollectorRegistry, make_wsgi_app
 from prometheus_fastapi_instrumentator import metrics, routing
 from starlette.requests import Request
 from starlette.responses import Response
 
 from infogami.utils import app as infogami_app
 from infogami.utils import types
+from openlibrary.utils.prometheus_multiprocess import metrics_registry
 from openlibrary.utils.sentry import InfogamiRoute, find_infogami_route
 
 if TYPE_CHECKING:
@@ -341,11 +341,7 @@ def instrument_webpy(app: web.application, wsgi_app):
         app.add_processor(web.loadhook(capture_infogami_route))
         _fastapi_app()  # load the routes now, not in the first request
 
-    registry = REGISTRY
-    if "PROMETHEUS_MULTIPROC_DIR" in os.environ:  # one set of metrics for all the gunicorn workers
-        registry = CollectorRegistry()
-        multiprocess.MultiProcessCollector(registry)
-    metrics_app = make_wsgi_app(registry)
+    metrics_app = make_wsgi_app(metrics_registry())
 
     def wrapper(environ, start_response):
         if environ.get("PATH_INFO") == "/metrics":

@@ -299,13 +299,13 @@ async def booknotes_post(
 
 
 @router.get("/works/OL{work_id}W/bookshelves.json")
-def get_work_bookshelves(work_id: Annotated[int, Path(gt=0)]) -> dict:
+async def get_work_bookshelves(work_id: Annotated[int, Path(gt=0)]) -> dict:
     """Get reading-log shelf counts for a work."""
-    return get_bookshelves_summary(work_id)
+    return await get_bookshelves_summary(work_id)
 
 
 @router.post("/works/OL{work_id}W/bookshelves.json")
-def post_work_bookshelves(
+async def post_work_bookshelves(
     work_id: Annotated[int, Path(gt=0)],
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     bookshelf_id: Annotated[str | None, Form()] = None,
@@ -313,7 +313,7 @@ def post_work_bookshelves(
     dont_remove: Annotated[bool | None, Form()] = None,
 ) -> dict:
     """Add a work to, move a work between, or remove a work from a reading-log shelf."""
-    return process_work_bookshelves(
+    return await process_work_bookshelves(
         username=user.username,
         work_id=work_id,
         bookshelf_id=bookshelf_id,
@@ -498,7 +498,7 @@ async def public_observations(
     Public observations fetches anonymized community reviews
     for a list of works. Useful for decorating search results.
     """
-    return {"observations": {w: get_observation_metrics(w) for w in olid}}
+    return {"observations": {w: await get_observation_metrics(w) for w in olid}}
 
 
 class BestbookAwardResponse(BaseModel):
@@ -538,7 +538,7 @@ async def post_bestbook_award(
     This is not the preferred API design; new endpoints should use standard HTTP methods instead.
     This structure is maintained only for backward compatibility with the legacy endpoint. Do not copy this pattern for new code.
     """
-    return bestbook_award.process_bestbook_award(
+    return await bestbook_award.process_bestbook_award(
         work_id=work_id,
         op=form_op if form_op is not None else query_op or "add",
         edition_key=form_edition_key if form_edition_key is not None else query_edition_key,
@@ -550,12 +550,12 @@ async def post_bestbook_award(
 
 @router.get("/awards/count.json", response_model=BestbookCountResponse)
 async def get_bestbook_count(
-    work_id: Annotated[str | None, Query()] = None,
+    work_id: Annotated[str | None, Query(pattern=r"^(?:/works/)?(?:OL)?[0-9]+W?$", description="Numeric work ID or work OLID, e.g. 123 or OL123W")] = None,
     username: Annotated[str | None, Query()] = None,
     topic: Annotated[str | None, Query()] = None,
 ) -> BestbookCountResponse:
     """Get a count of bestbook awards matching the optional filters."""
-    return BestbookCountResponse(count=Bestbook.get_count(work_id=work_id, username=username, topic=topic))
+    return BestbookCountResponse(count=await Bestbook.get_count(work_id=work_id, username=username, topic=topic))
 
 
 class MonthlyLoginsResponse(BaseModel):

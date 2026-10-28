@@ -1463,11 +1463,15 @@ class Request:
 
 @public
 def render_once(key: str) -> bool:
-    rendered = web.ctx.setdefault("render_once", {})
+    rendered = request_context.rendered_keys.get()
+    if rendered is None:
+        # Preserve standalone template rendering without a shared mutable default.
+        rendered = set()
+        request_context.rendered_keys.set(rendered)
     if key in rendered:
         return False
     else:
-        rendered[key] = True
+        rendered.add(key)
         return True
 
 

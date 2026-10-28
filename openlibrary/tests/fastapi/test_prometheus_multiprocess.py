@@ -5,13 +5,50 @@ import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 from pathlib import Path
 
 _REAL_SLEEP = time.sleep
+WORKERS = 4
+MAX_REQUESTS = 60
+
+
+def _request(base_url, path):
+    for attempt in range(30):
+        try:
+            with urllib.request.urlopen(base_url + path, timeout=2) as response:
+                return response.read().decode()
+        except urllib.error.HTTPError:
+            raise
+        except urllib.error.URLError, ConnectionError, TimeoutError:
+            # A recycled Uvicorn worker closes the connections it accepted but hadn't read a request from yet
+            if attempt == 29:
+                raise
+            time.sleep(0.05)
+
+
+def _hits_total(base_url):
+    lines = _request(base_url, "/metrics").splitlines()
+    return sum(float(line.rsplit(" ", maxsplit=1)[1]) for line in lines if line.startswith("http_requests_total{") and 'handler="/hit"' in line)
+
+
+def _scrape_until(stop, base_url, scrapes):
+    """Scrape until ``stop`` is set, recording in ``scrapes`` the problem with each, or None."""
+    last = 0.0
+    while not stop.is_set():
+        try:
+            total = _hits_total(base_url)
+        except Exception as error:  # noqa: BLE001 - any failure is the test's to report, not the thread's
+            scrapes.append(repr(error))
+        else:
+            scrapes.append(f"total went from {last} to {total}" if total < last else None)
+            last = max(last, total)
+        time.sleep(0.01)
 
 
 def run_reproduction(mode, workdir, successful_requests):
@@ -25,6 +62,8 @@ def run_reproduction(mode, workdir, successful_requests):
         """from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
+from openlibrary.utils import prometheus_multiprocess
+
 app = FastAPI()
 
 @app.get('/hit')
@@ -34,7 +73,8 @@ def hit():
 Instrumentator(
     should_group_status_codes=False,
     excluded_handlers=['/health', '/metrics'],
-).instrument(app).expose(app, include_in_schema=False)
+).instrument(app)
+prometheus_multiprocess.expose(app)
 """
     )
 
@@ -42,6 +82,10 @@ Instrumentator(
     metrics_dir.mkdir()
     environment = os.environ.copy()
     environment.pop("PROMETHEUS_MULTIPROC_DIR", None)
+    repo_root = Path.cwd()
+    if not (repo_root / "docker" / "gunicorn_prometheus_conf.py").is_file():
+        repo_root = Path(__file__).resolve().parents[3]
+    environment["PYTHONPATH"] = str(repo_root)  # for app.py and the gunicorn config to import openlibrary
     command = [
         sys.executable,
         "-m",
@@ -49,16 +93,13 @@ Instrumentator(
         "-k",
         "uvicorn.workers.UvicornWorker",
         "--workers",
-        "4",
+        str(WORKERS),
         "--max-requests",
-        "60",
+        str(MAX_REQUESTS),
         "--max-requests-jitter",
         "0",
     ]
     if mode == "fixed":
-        repo_root = Path.cwd()
-        if not (repo_root / "docker" / "gunicorn_prometheus_conf.py").is_file():
-            repo_root = Path(__file__).resolve().parents[3]
         gunicorn_config = repo_root / "docker" / "gunicorn_prometheus_conf.py"
         if not gunicorn_config.is_file():
             raise RuntimeError(f"fixed mode requires {gunicorn_config}")
@@ -80,9 +121,8 @@ Instrumentator(
     )
     base_url = f"http://127.0.0.1:{port}"
 
-    def request(path):
-        with urllib.request.urlopen(base_url + path, timeout=10) as response:
-            return response.read().decode()
+    request = partial(_request, base_url)
+    hits_total = partial(_hits_total, base_url)
 
     try:
         for _ in range(120):
@@ -96,27 +136,36 @@ Instrumentator(
         else:
             raise RuntimeError("Gunicorn did not become ready")
 
-        def hit(_):
-            for attempt in range(30):
-                try:
-                    request("/hit")
-                    return
-                except urllib.error.URLError, ConnectionError, TimeoutError:
-                    if attempt == 29:
-                        raise
-                    time.sleep(0.05)
-
+        # Scrape while workers recycle for the first half of the requests. Then stop, so the workers that exit in
+        # the second half (more requests than --max-requests times the workers) merge those that waited for a scrape.
+        scrapes = []
+        stop_scraping = threading.Event()
+        scraper = threading.Thread(target=_scrape_until, args=(stop_scraping, base_url, scrapes))
+        scraped_requests = successful_requests // 2
         with ThreadPoolExecutor(max_workers=10) as executor:
-            list(executor.map(hit, range(successful_requests)))
+            scraper.start()
+            try:
+                list(executor.map(lambda _: request("/hit"), range(scraped_requests)))
+            finally:
+                stop_scraping.set()
+                scraper.join()
+            list(executor.map(lambda _: request("/hit"), range(successful_requests - scraped_requests)))
 
-        samples = []
-        for _ in range(5):
-            metrics = request("/metrics")
-            values = [
-                float(line.rsplit(" ", maxsplit=1)[1]) for line in metrics.splitlines() if line.startswith("http_requests_total{") and 'handler="/hit"' in line
-            ]
-            samples.append(sum(values))
-        return samples, metrics_dir
+        # The instrumentator counts a request just after sending its response, so the last ones can lag a little
+        deadline = time.monotonic() + 10
+        while hits_total() < successful_requests and time.monotonic() < deadline:
+            time.sleep(0.1)
+        samples = [hits_total() for _ in range(5)]
+
+        # The master merges an exited worker as it starts the replacement, unless a scrape holds the lock (as the
+        # ones above may have), when it waits for the next. So recycle a worker without scraping, which merges any
+        # still waiting, and give the master a moment to replace the workers that exit.
+        for _ in range(WORKERS * MAX_REQUESTS + 1):
+            request("/hit")
+        deadline = time.monotonic() + 5
+        while len(list(metrics_dir.glob("counter_[0-9]*.db"))) > WORKERS and time.monotonic() < deadline:
+            time.sleep(0.1)
+        return samples, metrics_dir, scrapes
     finally:
         if process.poll() is None:
             process.terminate()
@@ -131,19 +180,23 @@ def test_gunicorn_worker_recycling_preserves_prometheus_totals(tmp_path, monkeyp
     # The repository's autouse no_sleep fixture blocks sleeps, but this test
     # needs real timing while polling a separate Gunicorn process.
     monkeypatch.setattr(time, "sleep", _REAL_SLEEP)
-    samples, metrics_dir = run_reproduction("fixed", tmp_path, successful_requests=1000)
+    samples, metrics_dir, scrapes = run_reproduction("fixed", tmp_path, successful_requests=1000)
 
+    assert scrapes  # while workers recycled
+    assert [problem for problem in scrapes if problem] == []
     assert samples == [1000.0] * 5
     for metric_type in ("counter", "histogram", "summary"):
         assert (metrics_dir / f"{metric_type}_archive.db").exists()
-        assert len(list(metrics_dir.glob(f"{metric_type}_[0-9]*.db"))) <= 4
+        assert len(list(metrics_dir.glob(f"{metric_type}_[0-9]*.db"))) <= WORKERS
 
 
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "bug"
     with tempfile.TemporaryDirectory(prefix="metrics-repro-") as workdir:
         successful_requests = 300
-        samples, _ = run_reproduction(mode, workdir, successful_requests)
+        samples, _, scrapes = run_reproduction(mode, workdir, successful_requests)
         version = importlib.metadata.version("prometheus-fastapi-instrumentator")
         print(f"mode={mode}, instrumentator={version}, successful_requests={successful_requests}")
         print(f"http_requests_total samples: {samples}")
+        problems = [problem for problem in scrapes if problem]
+        print(f"scrapes while workers recycled: {len(scrapes)}, with problems: {len(problems)} {problems[:5]}")

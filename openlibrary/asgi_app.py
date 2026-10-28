@@ -20,7 +20,7 @@ from openlibrary.core.env import get_deployment_name, get_ol_env
 from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.fastapi.middleware.server_timing import add_server_timing
-from openlibrary.utils import prometheus, server_timing
+from openlibrary.utils import prometheus, prometheus_multiprocess, server_timing
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
@@ -257,7 +257,8 @@ def create_app() -> FastAPI | None:
     Instrumentator(
         should_group_status_codes=False,
         excluded_handlers=list(prometheus.EXCLUDED_HANDLERS),
-    ).add(prometheus.request_metrics("fastapi")).instrument(app).expose(app, include_in_schema=False)
+    ).add(prometheus.request_metrics("fastapi")).instrument(app)
+    prometheus_multiprocess.expose(app)
 
     @app.middleware("http")
     async def set_context(request: Request, call_next):
@@ -287,13 +288,13 @@ def create_app() -> FastAPI | None:
 
     # FastAPI is the front door for local dev and testing; proxy the rest to
     # web.py (production keeps web.py on :8080, so the proxy stays off). Outside
-    # local dev, serve only the real testing host.
+    # local dev, serve only the real testing and staging hosts.
     if get_ol_env().LOCAL_DEV or get_deployment_name() == "testing":
 
         @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
         async def fallback(request: Request, path: str) -> Response:
             host = request.headers.get("host", "").split(":")[0]
-            if not get_ol_env().LOCAL_DEV and host != "testing.openlibrary.org":
+            if not get_ol_env().LOCAL_DEV and host not in ("testing.openlibrary.org", "staging.openlibrary.org"):
                 raise HTTPException(status_code=404)
             if request.headers.get("X-Proxied-By") == "FastAPI":
                 raise HTTPException(status_code=404)
