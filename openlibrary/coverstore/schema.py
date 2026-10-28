@@ -24,10 +24,13 @@ def get_schema(engine="postgres"):
         s.column("author", "string"),
         s.column("ip", "string"),
         s.column("source_url", "string"),
+        s.column("source", "string"),
         s.column("isbn", "string"),
         s.column("width", "integer"),
         s.column("height", "integer"),
-        s.column("archived", "boolean"),
+        s.column("failed", "boolean", default=False),
+        s.column("archived", "boolean", default=False),
+        s.column("uploaded", "boolean", default=False),
         s.column("deleted", "boolean", default=False),
         s.column("created", "timestamp", default=s.CURRENT_UTC_TIMESTAMP),
         s.column("last_modified", "timestamp", default=s.CURRENT_UTC_TIMESTAMP),
@@ -37,6 +40,8 @@ def get_schema(engine="postgres"):
     s.add_index("cover", "last_modified")
     s.add_index("cover", "created")
     s.add_index("cover", "deleted")
+    s.add_index("cover", "uploaded")
+    s.add_index("cover", "failed")
     s.add_index("cover", "archived")
 
     s.add_table(

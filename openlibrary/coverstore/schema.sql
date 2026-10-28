@@ -18,9 +18,9 @@ create table cover (
     isbn text,
     width int,
     height int,
-    failed boolean,
-    archived boolean,
-    uploaded boolean,
+    failed boolean default false,
+    archived boolean default false,
+    uploaded boolean default false,
     deleted boolean default false,
     created timestamp default(current_timestamp at time zone 'utc'),
     last_modified timestamp default(current_timestamp at time zone 'utc')
