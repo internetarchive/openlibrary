@@ -161,6 +161,9 @@ def luqum_parser(query: str) -> Item:
     """
     tree = parser.parse(query)
 
+    def has_search_field(item: Item) -> bool:
+        return any(isinstance(n, SearchField) for n, _ in luqum_traverse(item))
+
     def find_next_word(item: Item) -> tuple[Word, BaseOperation | None] | None:
         if isinstance(item, Word):
             return item, None
@@ -169,47 +172,68 @@ def luqum_parser(query: str) -> Item:
         else:
             return None
 
-    for node, parents in luqum_traverse(tree):
-        if isinstance(node, BaseOperation):
-            # if any of the children are SearchField followed by one or more words,
-            # we bundle them together
-            last_sf: SearchField = None
-            to_rem = []
-            for child in node.children:
-                if isinstance(child, SearchField) and isinstance(child.expr, Word):
-                    last_sf = child
-                elif last_sf and (next_word := find_next_word(child)):
-                    word, parent_op = next_word
-                    # Add it over
-                    if not isinstance(last_sf.expr, Group):
-                        last_sf.expr = Group(type(node)(last_sf.expr, word))
-                        last_sf.expr.tail = word.tail
-                        word.tail = ""
+    changed = True
+    while changed:
+        changed = False
+        for node, parents in luqum_traverse(tree):
+            if isinstance(node, BaseOperation):
+                # if any of the children are SearchField followed by one or more words,
+                # we bundle them together
+                last_sf: SearchField = None
+                to_rem = []
+                for child in node.children:
+                    if isinstance(child, SearchField) and isinstance(child.expr, Word):
+                        last_sf = child
+                    elif last_sf and not has_search_field(child):
+                        if getattr(node, "op", None) and not child.head:
+                            child.head = " "
+                        if not isinstance(last_sf.expr, Group):
+                            last_sf.expr = Group(type(node)(last_sf.expr, child))
+                            last_sf.expr.tail = child.tail
+                            child.tail = ""
+                        else:
+                            last_sf.expr.expr.children[-1].tail = last_sf.expr.tail
+                            last_sf.expr.expr.children += (child,)
+                            last_sf.expr.tail = child.tail
+                            child.tail = ""
+                        to_rem.append(child)
+                    elif last_sf and (next_word := find_next_word(child)):
+                        word, parent_op = next_word
+                        if getattr(node, "op", None) and not word.head:
+                            word.head = " "
+                        # Add it over
+                        if not isinstance(last_sf.expr, Group):
+                            last_sf.expr = Group(type(node)(last_sf.expr, word))
+                            last_sf.expr.tail = word.tail
+                            word.tail = ""
+                        else:
+                            last_sf.expr.expr.children[-1].tail = last_sf.expr.tail
+                            last_sf.expr.expr.children += (word,)
+                            last_sf.expr.tail = word.tail
+                            word.tail = ""
+                        if parent_op:
+                            # A query like: 'title:foo blah OR author:bar
+                            # Lucene parses as: (title:foo) ? (blah OR author:bar)
+                            # We want         : (title:foo ? blah) OR (author:bar)
+                            node.op = parent_op.op
+                            node.children += (*parent_op.children[1:],)
+                        to_rem.append(child)
+                    elif isinstance(child, BaseOperation) and isinstance(child.children[-1], SearchField):
+                        last_sf = child.children[-1]
                     else:
-                        last_sf.expr.expr.children[-1].tail = last_sf.expr.tail
-                        last_sf.expr.expr.children += (word,)
-                        last_sf.expr.tail = word.tail
-                        word.tail = ""
-                    if parent_op:
-                        # A query like: 'title:foo blah OR author:bar
-                        # Lucene parses as: (title:foo) ? (blah OR author:bar)
-                        # We want         : (title:foo ? blah) OR (author:bar)
-                        node.op = parent_op.op
-                        node.children += (*parent_op.children[1:],)
-                    to_rem.append(child)
-                else:
-                    last_sf = None
-            if len(to_rem) == len(node.children) - 1:
-                # We only have the searchfield left!
-                if parents:
-                    # Move the head to the next element
-                    last_sf.head = node.head
-                    parents[-1].children = tuple(child if child is not node else last_sf for child in parents[-1].children)
-                else:
-                    tree = last_sf
+                        last_sf = None
+                if to_rem:
+                    changed = True
+                    if len(to_rem) == len(node.children) - 1:
+                        survivor = next(c for c in node.children if c not in to_rem)
+                        if parents:
+                            survivor.head = node.head
+                            parents[-1].children = tuple(child if child is not node else survivor for child in parents[-1].children)
+                        else:
+                            tree = survivor
+                    else:
+                        node.children = tuple(child for child in node.children if child not in to_rem)
                     break
-            else:
-                node.children = tuple(child for child in node.children if child not in to_rem)
 
     # Remove spaces before field names
     for node, parents in luqum_traverse(tree):

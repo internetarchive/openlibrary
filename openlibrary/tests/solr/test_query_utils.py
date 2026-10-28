@@ -1,4 +1,5 @@
 import pytest
+from luqum.tree import SearchField, Word
 
 from openlibrary.solr.query_utils import (
     EmptyTreeError,
@@ -81,6 +82,24 @@ def test_luqum_parser():
     assert fn("no fields here!") == "no fields here!"
     # This is non-ideal
     assert fn("NOT title:foo bar") == "NOT title:foo bar"
+    assert fn("title:foo bar OR baz qux") == "title:(foo bar OR baz qux)"
+    assert fn("title:foo OR bar AND author:blah") == "title:(foo OR bar) AND author:blah"
+
+    def word_fields(node, field=None):
+        if isinstance(node, SearchField):
+            field = node.name
+        if isinstance(node, Word):
+            yield {"word": node.value, "field": field}
+        for child in node.children:
+            yield from word_fields(child, field)
+
+    tree = luqum_parser("title:foo bar OR baz qux")
+    assert list(word_fields(tree)) == [
+        {"word": "foo", "field": "title"},
+        {"word": "bar", "field": "title"},
+        {"word": "baz", "field": "title"},
+        {"word": "qux", "field": "title"},
+    ]
 
 
 def test_luqum_replace_field():
