@@ -358,7 +358,8 @@
                     {{ _("Save") }}
                 </ol-button>
             </div>
-            <ol-button variant="ghost" href="{{ task.skip_url }}" data-skip data-ol-link-track="TaskForm|Skip|{{ task.field }}">
+            {#- Submits without the answer's checks: the handler notes it and moves on to the next task. -#}
+            <ol-button variant="ghost" type="submit" name="then" value="notfound" formnovalidate data-skip data-ol-link-track="TaskForm|Skip|{{ task.field }}">
                 {{ _("I couldn't find it") }}
                 {{ icon("arrow-right", slot="icon-end") }}
             </ol-button>

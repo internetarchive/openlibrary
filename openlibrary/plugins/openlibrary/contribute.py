@@ -13,11 +13,12 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
-from openlibrary.contribute import feed, save, supply, tasks
+from openlibrary.contribute import feed, initiatives, save, supply, tasks
 from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values
 from openlibrary.core import helpers
 from openlibrary.i18n import gettext as _
+from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream import spamcheck
 
 LIST_SIZE = 50
@@ -41,10 +42,11 @@ def setup():
 
 
 def get_filters() -> dict[str, tuple[str, tuple[str, ...]]]:
-    """The rail's filters by ``task`` query value: a label and the fields it covers. Each must be filterable in Solr."""
+    """The rail's filters by ``task`` query value: a label and the fields it covers."""
     return {
         "covers": (_("Cover"), ("covers",)),
         "languages": (_("Language"), ("languages",)),
+        "number_of_pages": (_("Page count"), ("number_of_pages",)),
         "publishers": (_("Publisher"), ("publishers",)),
         "identifiers": (_("Identifiers"), ("lccn", "oclc_numbers")),
     }
@@ -211,20 +213,20 @@ def build_task_summary(task: tasks.Task, field_guides, back: str = "") -> dict:
 
 
 def build_task_rows(task: str) -> list[dict] | None:
-    """A random draw of the filter's books from the most-read pool, each with its open tasks weighted by ``tasks.impact`` for "Surprise me".
+    """A random draw of the filter's books from the active initiative, each with its open tasks weighted by ``tasks.impact`` for "Surprise me".
 
-    None while the pool is still being built.
+    None while the initiative's gaps are still being built.
     """
     fields = get_filters()[task][1] if task else tuple(tasks.POINTS)
-    if (candidates := supply.solr_candidates(fields)) is None:
+    if (candidates := supply.candidates(fields)) is None:
         return None
     field_guides = get_field_guides()
     rows: list[dict] = []
     for cand in candidates:
         if len(rows) == LIST_SIZE:
             break
-        # Solr can lag the database; a field filled since the last reindex is no longer a task.
-        if ts := [t for t in tasks.tasks_for_edition(cand.edition) if t.field in fields]:
+        # The shared gaps can lag the database; a field filled since the last rebuild is no longer a task.
+        if ts := [t for t in tasks.tasks_for_edition(cand.edition) if t.field in fields and t.field not in cand.not_found]:
             rows.append(
                 {
                     "book": build_book_header(cand.edition, cand.readers),
@@ -232,6 +234,20 @@ def build_task_rows(task: str) -> list[dict] | None:
                 }
             )
     return rows
+
+
+def build_progress() -> dict | None:
+    """The active initiative's progress for the dashboard, or None while its gaps are still being built."""
+    if not (gaps := initiatives.get_gaps()):
+        return None
+    p = initiatives.progress(gaps)
+    return {
+        "title": _("The %(count)s most-read books", count=helpers.commify(p["total"])),
+        "done": p["done"],
+        "total": p["total"],
+        "summary": _("%(done)s of %(total)s complete", done=helpers.commify(p["done"]), total=helpers.commify(p["total"])),
+        "open": ungettext("%(count)s detail still missing", "%(count)s details still missing", p["open"], count=helpers.commify(p["open"])),
+    }
 
 
 def build_filter_rail(task: str) -> dict:
@@ -347,6 +363,7 @@ class contribute_index(delegate.page):
             recent=get_recent_fixes(recent_saves),
             history_url=user.key,
             apply=build_apply(user),
+            progress=build_progress(),
         )
 
 
@@ -389,7 +406,6 @@ def build_task_context(edition, task: tasks.Task, back: str, error: str = "", va
             "key": task.key,
             "field": task.field,
             "url": build_task_url(task, back),
-            "skip_url": build_next_url(back, task, saved=False),
         },
         "is_identifier": task.field in save.NORMALIZERS,
         "is_cover": task.field == "covers",
@@ -460,7 +476,7 @@ class contribute_task(delegate.page):
         return render_contribute("contribute/task.html.jinja", get_field_guides()[fld].question, **context)
 
     def POST(self, olid, fld):
-        require_login(f"/tasks/task/{olid}/{fld}")
+        user = require_login(f"/tasks/task/{olid}/{fld}")
         i = web.input(value="", note="", back="", confirmed="", then="", file={})
         # Drop the upload's field storage, as the add-cover page does.
         web.ctx.pop("_fieldstorage", None)
@@ -471,6 +487,9 @@ class contribute_task(delegate.page):
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return render_nothing_page(edition, fld, back)
+        if i.then == "notfound":
+            initiatives.record_not_found(web.ctx.site, edition.key, fld, user.key)
+            raise web.seeother(build_next_url(back, task, saved=False))
         done = f"/tasks/task/{olid}/{fld}/done"
         field_guide = get_field_guides()[fld]
         try:

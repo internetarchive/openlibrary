@@ -4083,6 +4083,10 @@ msgid "Tasks couldn't load right now. Reload the page to try again."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
+msgid "Current initiative"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
 msgid "Your recent fixes"
 msgstr ""
 
@@ -8239,7 +8243,7 @@ msgstr ""
 msgid "For example English"
 msgstr ""
 
-#: openlibrary/contribute/field_guides.py
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py
 msgid "Page count"
 msgstr ""
 
@@ -9004,6 +9008,23 @@ msgstr ""
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "OCLC"
 msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "The %(count)s most-read books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(done)s of %(total)s complete"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(count)s detail still missing"
+msgid_plural "%(count)s details still missing"
+msgstr[0] ""
+msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "All open tasks"
