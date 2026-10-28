@@ -2007,6 +2007,10 @@ msgid "Stats"
 msgstr ""
 
 #: admin/index.html
+msgid "Tasks stats: who is editing, and how Tasks edits hold up"
+msgstr ""
+
+#: admin/index.html
 msgid "Edits Per Day"
 msgstr ""
 
@@ -3020,7 +3024,7 @@ msgstr ""
 msgid "We require a minimum set of fields to create a new record. These are those fields."
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html search/advancedsearch.html type/about/edit.html type/page/edit.html type/template/edit.html
+#: books/add.html books/edit.html books/edit/edition.html search/advancedsearch.html search/sort_options.html type/about/edit.html type/page/edit.html type/template/edit.html
 msgid "Title"
 msgstr ""
 
@@ -4075,6 +4079,10 @@ msgid "Missing"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
+msgid "Tasks couldn't load right now. Reload the page to try again."
+msgstr ""
+
+#: contribute/dashboard.html.jinja
 msgid "Your recent fixes"
 msgstr ""
 
@@ -4084,6 +4092,14 @@ msgstr ""
 
 #: contribute/dashboard.html.jinja
 msgid "Fixes you save here show up in this list."
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Go further"
+msgstr ""
+
+#: contribute/done.html.jinja
+msgid "The cover you added"
 msgstr ""
 
 #: contribute/done.html.jinja openlibrary/plugins/openlibrary/contribute.py
@@ -4134,7 +4150,7 @@ msgstr ""
 
 #: contribute/landing.html.jinja
 #, python-format
-msgid "Open Library serves %(readers)s readers every month across %(books)s catalogued books, and its %(mark_start)sOpen Librarians%(mark_end)s make thousands of edits every week."
+msgid "Open Library serves %(readers)s readers every month across %(books)s catalogued books, and its %(mark_start)sreaders like you%(mark_end)s make thousands of edits every week."
 msgstr ""
 
 #: contribute/landing.html.jinja
@@ -4165,10 +4181,6 @@ msgstr ""
 #: contribute/landing.html.jinja
 #, python-format
 msgid "Add %(field)s"
-msgstr ""
-
-#: contribute/landing.html.jinja
-msgid "Join in"
 msgstr ""
 
 #: contribute/nothing.html.jinja
@@ -4624,8 +4636,8 @@ msgstr ""
 msgid "A catalog for every book ever published, maintained by readers like you."
 msgstr ""
 
-#: home/library_row.html.jinja openlibrary/plugins/openlibrary/contribute.py
-msgid "Become an Open Librarian"
+#: home/library_row.html.jinja
+msgid "Start contributing"
 msgstr ""
 
 #: home/library_row.html.jinja
@@ -5952,11 +5964,19 @@ msgid "Date Added (oldest)"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Most Editions"
+msgid "First Published"
 msgstr ""
 
 #: search/sort_options.html
-msgid "First Published"
+msgid "Your Top Rated"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Most Wanted"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Most Editions"
 msgstr ""
 
 #: search/sort_options.html
@@ -6079,7 +6099,7 @@ msgstr ""
 msgid "Reader-curated collections"
 msgstr ""
 
-#: databarWork.html shell/browse_popover.html.jinja shell/header.html.jinja
+#: contribute/parts.html.jinja databarWork.html shell/browse_popover.html.jinja shell/header.html.jinja
 msgid "Browse"
 msgstr ""
 
@@ -6393,6 +6413,30 @@ msgstr ""
 
 #: stats/readinglog.html
 msgid "Most Rated Books (All Time)"
+msgstr ""
+
+#: stats/tasks.html stats/tasks.html.jinja
+msgid "Tasks Stats"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Each number covers the days up to the latest count, so it moves a little every day."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "All stats"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Latest"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "4 weeks earlier"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Last 90 days"
 msgstr ""
 
 #: subjects/notfound.html
@@ -8155,6 +8199,31 @@ msgid "And %(count)s more."
 msgstr ""
 
 #: contribute/parts.html.jinja
+msgid "Choose the new cover"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Cover from Amazon"
+msgstr ""
+
+#: contribute/parts.html.jinja
+#, python-format
+msgid "Found by ISBN %(isbn)s"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Upload a new image"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Drop a file here, paste, or browse"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "JPG, GIF, PNG or WebP, up to 10 MB."
+msgstr ""
+
+#: contribute/parts.html.jinja
 msgid "That looks like a valid number."
 msgstr ""
 
@@ -8193,10 +8262,6 @@ msgid "%(value)s, on 1 edition"
 msgid_plural "%(value)s, on %(count)d editions"
 msgstr[0] ""
 msgstr[1] ""
-
-#: contribute/parts.html.jinja
-msgid "I opened the record and the year and publisher match this edition."
-msgstr ""
 
 #: contribute/parts.html.jinja
 msgid "Add a comment about your edit"
@@ -8273,6 +8338,42 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "Library of Congress"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py
+msgid "Cover"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Add a cover"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Can you find this edition's cover?"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Look the ISBN up on Google Books, Amazon or Better World Books and save the front cover image. Check that the title, author and publisher on the image match this edition, then upload it here."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/partials.py
+msgid "Better World Books"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Upload the cover only, flat and in full: no photos of the book on a table, no 3D mockups, no store badges or watermarks."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "The cover belongs to another edition. A paperback, a reissue or a translation usually has a different cover; check the publisher."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Making a cover yourself. If you can't find the real one, leave it for someone who can."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Look for anything that doesn't fit this edition, such as “Graphic Novel”, “Movie tie-in” or a title in another language."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8352,7 +8453,7 @@ msgid "What is this edition's Library of Congress number?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "Search the Library of Congress catalog for this ISBN. Open the record whose year and publisher match this edition, and copy the number shown as LCCN."
+msgid "Search the Library of Congress catalog for this ISBN. Open the record whose publisher and edition match this one, and copy the number shown as LCCN. A paperback or later printing can show a different year and still be the same record."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8360,11 +8461,11 @@ msgid "Hyphenated and padded forms are the same number: 75-425165 and 75425165. 
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The number belongs to a different printing. Search results lead with the best-known one, not with yours."
+msgid "The number belongs to a different edition: another publisher's, a revised edition, a translation or the ebook. Each has its own record."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The number is already on another edition of this work, which means one of the two records is wrong."
+msgid "The number is already on another edition of this work. That's right when it's the hardcover, paperback or a later printing from the same publisher; a different publisher or a revised edition means one of the two records is wrong."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8373,6 +8474,10 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "For example 75425165"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "I opened the record and its publisher and edition match this one."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8388,7 +8493,7 @@ msgid "What is this edition's WorldCat (OCLC) number?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "Search WorldCat for this ISBN. Open the record whose year, publisher and format match this edition, and copy the number shown as OCLC Number."
+msgid "Search WorldCat for this ISBN. Open the print record whose publisher and edition match this one, and copy the number shown as OCLC Number. A paperback or later printing can show a different year and still be the same record."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8400,7 +8505,11 @@ msgid "The prefixes ocm, ocn, on and (OCoLC) are padding added by library system
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The number belongs to a different printing, a book club edition, or the ebook rather than the print copy."
+msgid "WorldCat sometimes lists one edition more than once. Any of those numbers is right; OCLC merges them over time."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "The number belongs to a different record: the ebook, another publisher's edition, a revised edition, large print or a translation."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8409,6 +8518,10 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "Digits only, for example 47810608"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "I opened a print record and its publisher and edition match this one."
 msgstr ""
 
 #: openlibrary/contribute/save.py
@@ -8430,6 +8543,18 @@ msgstr ""
 #: openlibrary/contribute/save.py
 #, python-format
 msgid "Filled in %(field)s from Open Library Tasks"
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "Choose an image of the cover."
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "We couldn't save the cover just now. Please try again in a minute."
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "That isn't an image Open Library can use. Choose a JPG, GIF, PNG or WebP under 10 MB."
 msgstr ""
 
 #: openlibrary/core/bookshelves.py
@@ -9030,10 +9155,6 @@ msgid "Filipino"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Tasks are open to librarians only, for now"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Published"
 msgstr ""
 
@@ -9046,11 +9167,19 @@ msgid "All open tasks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Tasks are for Open Librarians. Applying takes a few minutes."
+msgid "Ready when you are"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Applying takes a few minutes and asks for your Open Library username, so create a free account first."
+msgid "Try a task"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Browse all tasks"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Join in"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -9058,11 +9187,19 @@ msgid "Create an account"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Log in"
+msgid "Tasks are open to anyone with a free Open Library account."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Book cover"
+msgid "Already have one? Log in"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Become an Open Librarian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Doing a lot of these? Open Librarians get more editing tools. Applying takes a few minutes."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -9083,7 +9220,7 @@ msgid "Nothing to fill in here"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Open the record and confirm it matches this edition first."
+msgid "Check that it matches this edition, and tick the box to say so."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
@@ -9324,10 +9461,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has number of pages"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/partials.py
-msgid "Better World Books"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
@@ -9604,5 +9737,61 @@ msgstr ""
 #: openlibrary/plugins/worksearch/facets.py
 #, python-format
 msgid "%(title)s - search"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks saves undone, last 28 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Editors, last 28 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Editors, last 7 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "First-time editors, last 28 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "First-time editors, last 7 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks saves, last 28 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks editors, last 28 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks editors, last 7 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Editors"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Signed-in accounts that changed a book, work or author record. Bots are not counted."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks page"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Edits saved from the Tasks page."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Guardrail"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks saves whose value is no longer on the record: undone, reverted or changed by a later edit."
 msgstr ""
 

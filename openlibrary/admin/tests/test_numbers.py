@@ -1,8 +1,10 @@
+import re
 from datetime import datetime
 
 import web
 
 from openlibrary.admin import numbers
+from openlibrary.contribute import save
 
 
 class FakeDB:
@@ -59,3 +61,60 @@ def test_list_edits_count_list_creation_and_seed_edits():
     assert "'create-list'" in sql
     assert "'edit-list-seeds'" in sql
     assert "t.created >= '2026-10-15' and t.created < '2026-10-15 21:00:00'" in sql
+
+
+def test_editor_counts_use_a_rolling_window_ending_at_end():
+    for fn, since in [
+        (numbers.admin_range__catalog_editors_7d, "2026-10-08 21:00:00"),
+        (numbers.admin_range__catalog_editors_28d, "2026-09-17 21:00:00"),
+    ]:
+        db = FakeDB()
+        assert run(fn, db) == 7
+        [(q, vars)] = db.queries
+        sql = str(web.db.reparam(q, vars))
+        assert f"t.created >= '{since}' AND t.created < '2026-10-15 21:00:00'" in sql
+        assert "t.author_id NOT IN (11, 12)" in sql
+        assert "NOT EXISTS" not in sql
+
+
+def test_editor_counts_without_bots_skip_the_bot_clause():
+    db = FakeDB()
+    numbers.cached_bot_accounts = []
+    try:
+        numbers.admin_range__catalog_editors_28d(thingdb=db, start=datetime(2026, 10, 15), end=datetime(2026, 10, 15, 21, 0, 0))
+    finally:
+        numbers.cached_bot_accounts = None
+    [(q, vars)] = db.queries
+    assert "NOT IN" not in str(web.db.reparam(q, vars))
+
+
+def test_new_editors_have_no_catalog_change_before_the_window():
+    db = FakeDB()
+    assert run(numbers.admin_range__new_catalog_editors_28d, db) == 7
+    [(q, vars)] = db.queries
+    sql = str(web.db.reparam(q, vars))
+    assert "NOT EXISTS (SELECT 1 FROM transaction p WHERE p.author_id = e.author_id AND p.created < '2026-09-17 21:00:00'" in sql
+
+
+def test_tasks_counts_read_the_source_tag():
+    for fn in [
+        numbers.admin_range__tasks_saves_28d,
+        numbers.admin_range__tasks_saves_undone_28d,
+        numbers.admin_range__tasks_editors_7d,
+        numbers.admin_range__tasks_editors_28d,
+    ]:
+        db = FakeDB()
+        assert run(fn, db) == 7
+        [(q, vars)] = db.queries
+        assert "key = 'source' AND value = 'contribute'" in str(web.db.reparam(q, vars))
+
+
+def test_tasks_source_matches_what_tasks_saves_write():
+    assert numbers.TASKS_SOURCE == save.SOURCE
+
+
+def test_catalog_change_matches_record_keys_only():
+    pattern = re.compile(numbers.CATALOG_CHANGE)
+    assert pattern.search('[{"key": "/books/OL1M", "revision": 2}]')
+    assert pattern.search('[{"key": "/authors/OL1A", "revision": 2}]')
+    assert not pattern.search('[{"key": "/people/x/lists/OL1L", "revision": 2}]')

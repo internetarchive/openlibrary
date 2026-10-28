@@ -21,7 +21,7 @@ from openlibrary.catalog import add_book  # noqa: F401 side effects may be neede
 from openlibrary.core import lending
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.booknotes import Booknotes
-from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.bookshelves import Bookshelves, ReadingLogSort
 from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import (
     parse_datetime,
@@ -1299,6 +1299,8 @@ class LoggedBooksData:
         for filtering the reading log.
     param ratings holds a list of ratings such that the index of each rating corresponds
         to the index of each doc/work in self.docs.
+    param sort holds the sort the shelf was actually sorted by, which can differ from
+        the one asked for (e.g. if Solr fails). None when filtering.
     """
 
     username: str
@@ -1308,6 +1310,7 @@ class LoggedBooksData:
     docs: list[web.storage]
     q: str = ""
     ratings: list[int] = field(default_factory=list)
+    sort: ReadingLogSort | None = None
 
     def load_ratings(self) -> None:
         """

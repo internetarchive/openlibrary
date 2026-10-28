@@ -2,8 +2,8 @@
 
 from dataclasses import dataclass
 
-# The fields on offer, most valuable first. Three weights match a same-named Edition Scorecard
-# check exactly: languages == ``language`` (15), publishers == ``publisher`` (2),
+# The fields on offer, most valuable first. Four weights match a same-named Edition Scorecard
+# check exactly: covers == ``cover`` (35), languages == ``language`` (15), publishers == ``publisher`` (2),
 # number_of_pages == ``page_count`` (10). The scorecard has no check specific to lccn or oclc,
 # though an OCLC number (like an ISBN) satisfies its ``library_options`` check (score 25, which is
 # why oclc_numbers is weighted 25 here); lccn has no scorecard counterpart at all. Kept local
@@ -11,6 +11,7 @@ from dataclasses import dataclass
 # attributes spread across section classes, under their own names.
 
 POINTS = {
+    "covers": 35,
     "lccn": 25,
     "oclc_numbers": 25,
     "languages": 15,
@@ -30,6 +31,9 @@ class Task:
 
 
 def is_missing(edition, fld: str) -> bool:
+    if fld == "covers":
+        # -1 marks a deleted cover. A scanned book shows its first page as the cover, so it isn't missing one.
+        return not edition.get("ocaid") and not any(c and c != -1 for c in edition.get("covers") or [])
     return edition.get(fld) in (None, "", [])
 
 

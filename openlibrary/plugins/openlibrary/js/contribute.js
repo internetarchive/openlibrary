@@ -5,10 +5,16 @@
  * the browser session so they drop out of the list too.
  */
 
+import { setBannerCookie } from './banner';
 import { initFeed } from './contribute-feed';
 import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
+import { trackEvent } from './ol.analytics.js';
 
 const SKIPPED_KEY = 'ol-contribute-skipped';
+// While placeholder cards are up, the server is building the list in the background: ask again soon, then
+// every few seconds, for as long as its Solr query may take, then give up and say the list couldn't load.
+const ROWS_RETRY_MS = [1000, 1000, 2000, 3000, 5000];
+const ROWS_MAX_TRIES = 36;
 
 // Same normalization the server applies, so the verdict on screen matches what is stored.
 const ID_RULES = {
@@ -64,10 +70,58 @@ function hideSkippedTasks(root, groupSelector) {
  * @param {ParentNode} root - the ``[data-contribute-list]`` container
  * @returns {void}
  */
-function initTaskList(root) {
+function settleTaskList(root) {
     hideSkippedTasks(root, '[data-book-row]');
     const empty = root.querySelector('[data-list-empty]');
     if (empty) empty.hidden = !!root.querySelector('[data-book-row]:not([hidden])');
+}
+
+/**
+ * Fetch the rows a page rendered placeholders for. The server answers 202 until the pool is built.
+ * An error status, or running out of tries, shows the "couldn't load" message rather than the empty state.
+ * @param {ParentNode} root - the ``[data-contribute-list]`` container
+ * @param {HTMLOListElement} list - the ``[data-rows-url]`` list of placeholders
+ * @returns {Promise<void>}
+ */
+async function loadTaskRows(root, list) {
+    let loaded = false;
+    for (let attempt = 0; attempt < ROWS_MAX_TRIES; attempt++) {
+        try {
+            const res = await fetch(list.dataset.rowsUrl, { headers: { Accept: 'text/html' } });
+            if (res.ok && res.status !== 202) {
+                list.innerHTML = await res.text();
+                loaded = true;
+                break;
+            }
+            if (!res.ok) break;
+        } catch (e) {
+            // Offline or a dropped request: try again.
+        }
+        const delay = ROWS_RETRY_MS[Math.min(attempt, ROWS_RETRY_MS.length - 1)];
+        await new Promise(resolve => setTimeout(resolve, delay));
+    }
+    list.querySelectorAll('[data-row-skeleton]').forEach(li => li.remove());
+    delete list.dataset.rowsUrl;
+    if (loaded) {
+        settleTaskList(root);
+        return;
+    }
+    const error = root.querySelector('[data-list-error]');
+    if (error) error.hidden = false;
+}
+
+/**
+ * Wire the dashboard list: load it when the page rendered placeholders, else settle what's there.
+ * @param {ParentNode} root - the ``[data-contribute-list]`` container
+ * @returns {void}
+ */
+function initTaskList(root) {
+    const pending = root.querySelector('[data-rows-url]');
+    if (pending) {
+        loadTaskRows(root, pending);
+    } else {
+        settleTaskList(root);
+    }
 }
 
 /**
@@ -77,6 +131,46 @@ function initTaskList(root) {
  */
 function initSkipButton(form) {
     form.querySelector('[data-skip]')?.addEventListener('click', () => markTaskSkipped(form.dataset.taskKey));
+}
+
+/**
+ * The answer control's current value, whichever control the field uses.
+ * @param {HTMLFormElement} form - the task form
+ * @returns {string} the trimmed answer, or '' with no control
+ */
+function currentAnswer(form) {
+    const control = form.querySelector('#contrib-other-value');
+    if (!control) return '';
+    return control.tagName === 'OL-OPTIONS-POPOVER' ? control.selected : control.value.trim();
+}
+
+/**
+ * Where the answer came from, for the Save event's label: a sibling chip or
+ * the keyboard. Fields without suggestions report neither.
+ * @param {HTMLFormElement} form - the task form
+ * @returns {'chip'|'typed'|''} the source, or '' when the form has no chips
+ */
+function answerSource(form) {
+    const chips = [...form.querySelectorAll('[data-suggest] ol-chip')];
+    if (!chips.length) return '';
+    const answer = currentAnswer(form);
+    return chips.some(chip => chip.dataset.value === answer) ? 'chip' : 'typed';
+}
+
+/**
+ * Report a save as ``TaskForm|Save`` or ``TaskForm|SaveNext`` with the field as
+ * label, plus ``:chip``/``:typed`` when the field offered suggestions. On the
+ * ``submit`` event rather than the buttons' clicks so Enter in the answer field
+ * counts too; the submitter is the button's in-form proxy.
+ * @param {HTMLFormElement} form - a ``[data-task-form]`` with ``data-task-field``
+ * @returns {void}
+ */
+function initSaveTracking(form) {
+    form.addEventListener('submit', event => {
+        const then = event.submitter?.closest('ol-button')?.value || event.submitter?.value;
+        const source = answerSource(form);
+        trackEvent('TaskForm', then === 'next' ? 'SaveNext' : 'Save', source ? `${form.dataset.taskField}:${source}` : form.dataset.taskField);
+    });
 }
 
 /**
@@ -90,11 +184,10 @@ function initSiblingSuggestions(form) {
     const control = form.querySelector('#contrib-other-value');
     if (!group || !control) return;
     const isPicker = control.tagName === 'OL-OPTIONS-POPOVER';
-    const currentAnswer = () => (isPicker ? control.selected : control.value.trim());
     const chips = [...group.querySelectorAll('ol-chip')];
     const syncChipSelection = () =>
         chips.forEach(chip => {
-            chip.selected = chip.dataset.value === currentAnswer();
+            chip.selected = chip.dataset.value === currentAnswer(form);
         });
 
     group.addEventListener('ol-chip-select', event => {
@@ -103,6 +196,7 @@ function initSiblingSuggestions(form) {
         if (isPicker) control.selected = value;
         else control.value = value;
         syncChipSelection();
+        if (event.detail.selected) trackEvent('TaskForm', 'PickSuggestion', form.dataset.taskField);
     });
     control.addEventListener(isPicker ? 'ol-options-popover-change' : 'input', syncChipSelection);
     syncChipSelection();
@@ -120,6 +214,8 @@ function initIdentifierForm(form) {
     if (!input || !verdict) return;
     const rule = ID_RULES[input.dataset.idField];
     if (!rule) return;
+    // One rejection event per form, not one per keystroke.
+    let rejected = false;
 
     input.addEventListener('input', () => {
         const raw = input.value.trim();
@@ -136,7 +232,125 @@ function initIdentifierForm(form) {
         } else {
             verdict.dataset.state = 'bad';
             verdict.textContent = /https?:|\//.test(raw) ? msg.msgUrl : msg.msgBad;
+            if (!rejected) trackEvent('TaskForm', 'IdentifierRejected', input.dataset.idField);
+            rejected = true;
         }
+    });
+}
+
+/**
+ * Cover task: the new cover is one of a few rows, Amazon's image for the ISBN once it loads or an
+ * upload (picked, dropped, or pasted anywhere on the page). The chosen row's image goes into the
+ * one file input the form submits, and shows in the record's cover slot.
+ * @param {HTMLFormElement} form - a ``[data-cover-form]`` holding ``[data-cover-input]`` and the ``[data-cover-option]`` rows
+ * @returns {void}
+ */
+function initCoverForm(form) {
+    const input = form.querySelector('[data-cover-input]');
+    const preview = form.querySelector('[data-cover-preview]');
+    const slot = preview?.closest('[data-cover-drop]');
+    const suggestedRow = form.querySelector('[data-cover-option="suggested"]');
+    const uploadRow = form.querySelector('[data-cover-option="upload"]');
+    if (!input || !slot || !uploadRow) return;
+    const uploadThumb = uploadRow.querySelector('[data-cover-upload-thumb]');
+    const uploadName = uploadRow.querySelector('[data-cover-upload-name]');
+    const files = {};
+    const urls = {};
+
+    const setFile = (choice, file) => {
+        if (urls[choice]) URL.revokeObjectURL(urls[choice]);
+        files[choice] = file;
+        urls[choice] = file ? URL.createObjectURL(file) : '';
+    };
+    const select = choice => {
+        const transfer = new DataTransfer();
+        if (files[choice]) transfer.items.add(files[choice]);
+        input.files = transfer.files;
+        form.querySelector(`input[name="cover_choice"][value="${choice}"]`).checked = true;
+        preview.src = urls[choice] || '';
+        preview.hidden = !files[choice];
+        slot.classList.toggle('has-image', !!files[choice]);
+    };
+    const checkedChoice = () => form.querySelector('input[name="cover_choice"]:checked')?.value;
+    // The server checks the extension, and a pasted image may arrive without one.
+    const upload = file => {
+        const name = /\.\w+$/.test(file.name) ? file.name : `cover.${file.type.split('/')[1]}`;
+        setFile('upload', new File([file], name, { type: file.type }));
+        uploadThumb.src = urls.upload;
+        uploadThumb.hidden = false;
+        uploadRow.classList.add('has-image');
+        uploadName.textContent = name;
+        select('upload');
+    };
+    const take = fileList => {
+        const image = [...fileList].find(file => file.type.startsWith('image/'));
+        if (image) upload(image);
+        return !!image;
+    };
+
+    form.addEventListener('change', event => {
+        if (event.target.name !== 'cover_choice') return;
+        // Picking the upload row with nothing uploaded yet opens the file picker.
+        if (event.target.value === 'upload' && !files.upload) input.click();
+        select(event.target.value);
+    });
+    uploadRow.querySelector('[data-cover-browse]')?.addEventListener('click', () => input.click());
+    // A cancelled picker empties the input, so put back whichever row is chosen.
+    input.addEventListener('change', () => {
+        if (input.files[0]) upload(input.files[0]);
+        else if (checkedChoice()) select(checkedChoice());
+    });
+    form.querySelectorAll('[data-cover-drop]').forEach(target => {
+        target.addEventListener('dragover', event => {
+            event.preventDefault();
+            target.classList.add('is-over');
+        });
+        target.addEventListener('dragleave', () => target.classList.remove('is-over'));
+        target.addEventListener('drop', event => {
+            event.preventDefault();
+            target.classList.remove('is-over');
+            take(event.dataTransfer.files);
+        });
+    });
+    document.addEventListener('paste', event => {
+        if (event.clipboardData && take(event.clipboardData.files)) event.preventDefault();
+    });
+
+    // Amazon sends a tiny GIF when it has no cover for the ISBN; the row stays hidden then.
+    const suggestion = suggestedRow?.dataset.coverSuggestion;
+    if (suggestion) {
+        fetch(suggestion)
+            .then(response => (response.ok ? response.blob() : null))
+            .then(blob => {
+                if (!blob || blob.type !== 'image/jpeg' || blob.size < 1000) return;
+                setFile('suggested', new File([blob], 'amazon-cover.jpg', { type: blob.type }));
+                suggestedRow.querySelector('[data-cover-suggested-thumb]').src = urls.suggested;
+                suggestedRow.hidden = false;
+            })
+            .catch(() => {});
+    }
+}
+
+/**
+ * A member sees the Tasks intro once: clicking through sets a cookie the way
+ * banner dismissals do, and /tasks skips to the dashboard from then on. The
+ * cookie has to land before the next page is requested, so a plain click waits
+ * on the POST; a modified click (new tab) is left to the browser.
+ * @param {HTMLElement} link - an ``[data-intro-cookie]`` link, with ``data-intro-days`` for the cookie's life
+ * @returns {void}
+ */
+function initIntroDismiss(link) {
+    link.addEventListener('click', event => {
+        if (event.defaultPrevented) return;
+        const dismiss = setBannerCookie(link.dataset.introCookie, Number(link.dataset.introDays) || 365);
+        const modified = event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+        if (modified) {
+            dismiss.catch(() => {});
+            return;
+        }
+        event.preventDefault();
+        const go = () => window.location.assign(link.href);
+        dismiss.then(go, go);
     });
 }
 
@@ -155,16 +369,40 @@ function clearSavedReceipt() {
  * Entry point for the Tasks pages; wires the list, task forms, and done page.
  * @returns {void}
  */
+/**
+ * Show a spinner on the pressed rail filter while the next page loads.
+ * @param {HTMLElement} rail - the ``[data-rail]`` nav
+ * @returns {void}
+ */
+function initRailLoading(rail) {
+    rail.addEventListener('click', e => {
+        const link = e.target.closest('a[href]');
+        if (!link || link.classList.contains('is-on')) return;
+        // New-tab / modified / non-left clicks don't navigate this window.
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        link.classList.add('is-target');
+    });
+    // Back/forward restores this DOM from bfcache with the spinner still showing.
+    window.addEventListener('pageshow', e => {
+        if (!e.persisted) return;
+        rail.querySelectorAll('.is-target').forEach(link => link.classList.remove('is-target'));
+    });
+}
+
 export function init() {
     document.querySelectorAll('[data-contribute-list]').forEach(root => {
         initTaskList(root);
     });
+    document.querySelectorAll('[data-rail]').forEach(initRailLoading);
     document.querySelectorAll('[data-feed]').forEach(initFeed);
+    document.querySelectorAll('[data-intro-cookie]').forEach(initIntroDismiss);
     document.querySelectorAll('form[data-task-form]').forEach(form => {
         initSkipButton(form);
         initSiblingSuggestions(form);
+        initSaveTracking(form);
     });
     if (document.querySelector('[data-receipt]')) clearSavedReceipt();
     document.querySelectorAll('form[data-id-form]').forEach(initIdentifierForm);
+    document.querySelectorAll('form[data-cover-form]').forEach(initCoverForm);
     document.querySelectorAll('[data-contribute-done]').forEach(root => hideSkippedTasks(root, '[data-same-book]'));
 }

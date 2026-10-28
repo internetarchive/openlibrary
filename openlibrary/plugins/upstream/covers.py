@@ -58,11 +58,12 @@ def upload_to_coverstore(category: str, olid: str, *, data=None, source_url: str
     if upload_url.startswith("//"):
         upload_url = "http:" + upload_url
     try:
-        response = requests.post(upload_url, data=params, files={"data": data})
+        response = requests.post(upload_url, data=params, files={"data": data}, timeout=30)
         return web.storage(response.json())
+    # Coverstore down, slow, or answering with an HTML error page.
     except (requests.RequestException, ValueError) as e:
         logger.exception("Covers upload failed")
-        return web.storage({"error": str(e)})
+        return web.storage({"error": str(e), "unavailable": True})
 
 
 # The cover manager dialog: every image attached to a book or author, plus

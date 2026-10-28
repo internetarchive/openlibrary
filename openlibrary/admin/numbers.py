@@ -17,6 +17,7 @@ main harness. They can be utility functions.
 
 import functools
 import logging
+from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -163,6 +164,93 @@ def admin_range__list_edits(**kargs):
     "Counts lists created or edited between `start` and `end`."
     db, start, end = _range_args("admin_range__list_edits", kargs)
     return _count_transactions(db, start, end, " AND t.action IN $list_edit_actions", list_edit_actions=LIST_EDIT_ACTIONS)
+
+
+# A changeset that touches a book, work or author record, whatever its action name.
+CATALOG_CHANGE = '"/(books|works|authors)/OL'
+# `data.source` on Tasks saves; matches `openlibrary.contribute.save.SOURCE`. Infogami indexes it in `transaction_index`.
+TASKS_SOURCE = "contribute"
+
+
+def _window_args(fn_name, kargs, days):
+    "The `days` before `end`: rolling windows, since distinct editors don't add up across days."
+    try:
+        db, end = kargs["thingdb"], kargs["end"]
+    except KeyError as k:
+        raise TypeError(f"{k} is a required argument for {fn_name}")
+    return db, (end - timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S"), end.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _count_editors(db, since, end, where="", **vars):
+    "Signed-in, non-bot accounts with a catalog change between `since` and `end`, narrowed by `where`."
+    # `NOT IN ()` is a syntax error, and a dev database may have no bots.
+    bot_ids = _get_cached_bot_accounts(thingdb=db)
+    not_bot = " AND t.author_id NOT IN $bot_ids" if bot_ids else ""
+    sql = f"""
+        WITH editors AS (
+            SELECT DISTINCT t.author_id FROM transaction t
+            WHERE t.created >= $since AND t.created < $end AND t.author_id IS NOT NULL{not_bot} AND t.changes ~ $catalog_change
+        )
+        SELECT count(*) AS count FROM editors e WHERE true{where}
+    """
+    vars = {"since": since, "end": end, "bot_ids": bot_ids, "catalog_change": CATALOG_CHANGE, **vars}
+    return db.query(sql, vars=vars)[0].count
+
+
+def catalog_editors(days, **kargs):
+    "Accounts that changed a catalog record in the `days` before `end`."
+    db, since, end = _window_args(f"admin_range__catalog_editors_{days}d", kargs, days)
+    return _count_editors(db, since, end)
+
+
+def new_catalog_editors(days, **kargs):
+    "Of `catalog_editors`, those whose first catalog change ever falls in the window."
+    db, since, end = _window_args(f"admin_range__new_catalog_editors_{days}d", kargs, days)
+    earlier = " AND NOT EXISTS (SELECT 1 FROM transaction p WHERE p.author_id = e.author_id AND p.created < $since AND p.changes ~ $catalog_change)"
+    return _count_editors(db, since, end, earlier)
+
+
+TASKS_SAVES = "SELECT tx_id FROM transaction_index WHERE key = 'source' AND value = $tasks_source"
+
+
+def tasks_editors(days, **kargs):
+    "Accounts that saved from the Tasks page in the `days` before `end`."
+    db, since, end = _window_args(f"admin_range__tasks_editors_{days}d", kargs, days)
+    sql = f"SELECT count(DISTINCT t.author_id) AS count FROM transaction t WHERE t.created >= $since AND t.created < $end AND t.id IN ({TASKS_SAVES})"
+    return db.query(sql, vars={"since": since, "end": end, "tasks_source": TASKS_SOURCE})[0].count
+
+
+admin_range__catalog_editors_7d = functools.partial(catalog_editors, 7)
+admin_range__catalog_editors_28d = functools.partial(catalog_editors, 28)
+admin_range__new_catalog_editors_7d = functools.partial(new_catalog_editors, 7)
+admin_range__new_catalog_editors_28d = functools.partial(new_catalog_editors, 28)
+admin_range__tasks_editors_7d = functools.partial(tasks_editors, 7)
+admin_range__tasks_editors_28d = functools.partial(tasks_editors, 28)
+
+
+def admin_range__tasks_saves_28d(**kargs):
+    "Saves made from the Tasks page in the 28 days before `end`."
+    db, since, end = _window_args("admin_range__tasks_saves_28d", kargs, 28)
+    return _count_transactions(db, since, end, f" AND t.id IN ({TASKS_SAVES})", tasks_source=TASKS_SOURCE)
+
+
+def admin_range__tasks_saves_undone_28d(**kargs):
+    """Tasks saves in the 28 days before `end` whose value the record no longer holds, by undo, revert or a later edit.
+
+    Checked against the record as it is when this runs. Merged or deleted records are left out.
+    """
+    db, since, end = _window_args("admin_range__tasks_saves_undone_28d", kargs, 28)
+    sql = f"""
+        SELECT count(*) AS count
+        FROM transaction t
+        JOIN thing th ON th.key = t.changes::json->0->>'key'
+        JOIN data saved ON saved.thing_id = th.id AND saved.revision = (t.changes::json->0->>'revision')::int
+        JOIN data latest ON latest.thing_id = th.id AND latest.revision = th.latest_revision
+        WHERE t.created >= $since AND t.created < $end AND t.id IN ({TASKS_SAVES})
+          AND latest.data::jsonb->'type' = saved.data::jsonb->'type'
+          AND NOT COALESCE((latest.data::jsonb -> (t.data::json->>'field')) @> (saved.data::jsonb -> (t.data::json->>'field')), false)
+    """
+    return db.query(sql, vars={"since": since, "end": end, "tasks_source": TASKS_SOURCE})[0].count
 
 
 def admin_range__covers(**kargs):
