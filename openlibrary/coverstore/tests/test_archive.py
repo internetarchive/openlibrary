@@ -38,11 +38,8 @@ def test_get_current_batch_start_id_empty():
 def test_get_current_batch_start_id_present():
     from collections import namedtuple
 
-    CoverMock = namedtuple('CoverMock', ['id'])
+    CoverMock = namedtuple("CoverMock", ["id"])
     cdb = archive.CoverDB.__new__(archive.CoverDB)
-    cdb.get_covers = lambda limit=None, **kwargs: (
-        [CoverMock(id=12345)] if limit == 1 else [CoverMock(id=12345)]
-    )
+    cdb.get_covers = lambda limit=None, **kwargs: [CoverMock(id=12345)] if limit == 1 else [CoverMock(id=12345)]
     assert cdb._get_current_batch_start_id() == 10000
     assert len(cdb._get_batch()) == 1
-
