@@ -221,6 +221,16 @@ class TestAuthorNameOrder:
         natural = {"authors": [{"name": "Michael Brown"}], "title": "Test title"}
         assert compare_authors(expand_record(inverted), expand_record(natural)) == ("authors", "mismatch", -200)
 
+    def test_compare_authors_honorific_vs_plain(self):
+        honorific = {"authors": [{"name": "Mr. Blobby"}], "title": "Test title"}
+        plain = {"authors": [{"name": "Blobby"}], "title": "Test title"}
+        assert compare_authors(expand_record(honorific), expand_record(plain)) == ("authors", "exact match", 125)
+
+    def test_compare_authors_plain_vs_honorific(self):
+        plain = {"authors": [{"name": "Blobby"}], "title": "Test title"}
+        honorific = {"authors": [{"name": "Mr. Blobby"}], "title": "Test title"}
+        assert compare_authors(expand_record(plain), expand_record(honorific)) == ("authors", "exact match", 125)
+
 
 class TestTitles:
     def test_build_titles(self):

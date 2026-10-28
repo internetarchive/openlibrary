@@ -1362,6 +1362,27 @@ def test_add_description_to_work(mock_site) -> None:
     assert e.works[0]["description"] == "An added description from an existing edition"
 
 
+def test_repeated_import_with_author_honorific_matches_existing_edition(mock_site, ia_writeback) -> None:
+    """
+    Ensure importing a book whose author contains an honorific matches the existing
+    edition rather than creating a duplicate. (#14130)
+    """
+    def record(name: str, source: str) -> dict:
+        return {
+            "title": "Example title",
+            "authors": [{"name": name}],
+            "publish_date": "2000",
+            "publishers": ["Example Press"],
+            "source_records": [source],
+        }
+
+    first = load(record("Mr. Blobby", "ia:example_first"))
+    second = load(record("Mr. Blobby", "ia:example_second"))
+    assert first["success"] and second["success"]
+    assert first["edition"]["key"] == second["edition"]["key"]
+    assert len(mock_site.things({"type": "/type/edition"})) == 1
+
+
 def test_add_subjects_to_work_deduplicates(mock_site) -> None:
     """
     Ensure a rec's subjects, after a case insensitive check, are added to an

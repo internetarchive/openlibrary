@@ -1,6 +1,7 @@
 import re
 import unicodedata
 
+from openlibrary.catalog.add_book.load_book import remove_author_honorifics
 from openlibrary.catalog.utils import flip_name
 
 # fields needed for matching:
@@ -278,16 +279,19 @@ def level2_match(e1: dict, e2: dict) -> list[ThresholdResult]:
 
 def author_name_variants(name: str) -> list[str]:
     """
-    Return the name in the form given and, if it is an inverted
-    "Last, First" form, in natural name order ("First Last").
-
-    MARC records store personal names inverted, while Open Library
-    stores them in natural order (do_flip in load_book). Both forms
-    denote the same author, so matching must accept either.
+    Return the name in the form given and its normalized variants:
+    - without honorifics (e.g. "Mr. Blobby" -> "Blobby")
+    - in natural name order if inverted ("Last, First" -> "First Last")
+    and combinations thereof.
     """
     variants = [name]
-    if (flipped := flip_name(name)) and flipped != name:
-        variants.append(flipped)
+    if (unhonorific := remove_author_honorifics(name)) and unhonorific != name:
+        variants.append(unhonorific)
+    for n in list(variants):
+        if (flipped := flip_name(n)) and flipped not in variants:
+            variants.append(flipped)
+            if (unh := remove_author_honorifics(flipped)) and unh not in variants:
+                variants.append(unh)
     return variants
 
 
