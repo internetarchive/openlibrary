@@ -18,8 +18,16 @@ from openlibrary.utils.dateutil import DAY_SECS, MINUTE_SECS
 
 logger = logging.getLogger("openlibrary.contribute.initiatives")
 
-# This many people saying "I couldn't find it" takes a gap off the list: one could just be in a hurry.
-NOT_FOUND_PEOPLE = 2
+# How many people must say "I couldn't find it" before a gap leaves the list. Many books really have no LCCN or OCLC
+# number, but nearly every book has a cover, page count, publisher and language, so a miss there is weaker evidence.
+NOT_FOUND_PEOPLE = {
+    "lccn": 2,
+    "oclc_numbers": 2,
+    "number_of_pages": 3,
+    "publishers": 3,
+    "covers": 3,
+    "languages": 4,
+}
 NOT_FOUND_TYPE = "contribute-notfound"
 
 # Picking scans Solr for the whole list, so it gets the same room as the old Tasks query.
@@ -122,7 +130,7 @@ def not_found_fields(site) -> dict[str, set[str]]:
     """Fields enough people couldn't find, by edition key."""
     found: dict[str, set[str]] = {}
     for doc in site.store.values(type=NOT_FOUND_TYPE, limit=100_000):
-        if len(doc.get("people", [])) >= NOT_FOUND_PEOPLE:
+        if len(doc.get("people", [])) >= NOT_FOUND_PEOPLE[doc["field"]]:
             found.setdefault(doc["edition"], set()).add(doc["field"])
     return found
 
