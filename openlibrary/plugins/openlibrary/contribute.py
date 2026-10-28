@@ -20,7 +20,7 @@ from openlibrary.core import helpers
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import spamcheck
 
-LIST_SIZE = 50
+LIST_SIZE = 25
 # Placeholder cards while a cold cache builds the list in the background; the script swaps them for the rows.
 LIST_SKELETON_ROWS = 4
 # Rows the public page renders before the feed script takes over.
