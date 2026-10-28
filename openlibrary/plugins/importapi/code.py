@@ -453,12 +453,16 @@ class ia_importapi(importapi):
             d["subjects"] = subject
         if oclc:
             d["oclc"] = oclc
-        # Ensure no negative page number counts.
+        # Ensure no negative or zero page number counts.
         if imagecount:
-            if int(imagecount) - 4 >= 1:
-                d["number_of_pages"] = int(imagecount) - 4
-            else:
-                d["number_of_pages"] = int(imagecount)
+            try:
+                count = int(imagecount)
+                if count - 4 >= 1:
+                    d["number_of_pages"] = count - 4
+                elif count >= 1:
+                    d["number_of_pages"] = count
+            except ValueError:
+                pass
 
         if unparsed_publishers:
             publish_places, publishers = get_location_and_publisher(unparsed_publishers)
