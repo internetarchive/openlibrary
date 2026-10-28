@@ -4079,6 +4079,10 @@ msgid "Tasks couldn't load right now. Reload the page to try again."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
+msgid "Current initiative"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
 msgid "Your recent fixes"
 msgstr ""
 
@@ -5300,7 +5304,7 @@ msgstr ""
 msgid "When did you finish this book?"
 msgstr ""
 
-#: my_books/shelf_button_i18n.html
+#: contribute/parts.html.jinja my_books/shelf_button_i18n.html
 msgid "Skip"
 msgstr ""
 
@@ -8094,15 +8098,6 @@ msgstr ""
 msgid "I couldn't find it"
 msgstr ""
 
-#: contribute/parts.html.jinja
-#, python-format
-msgid "Next: a random task from %(filter)s"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Next: a random task from all open tasks"
-msgstr ""
-
 #: openlibrary/contribute/feed.py
 msgid "Edited this book"
 msgstr ""
@@ -8211,7 +8206,7 @@ msgstr ""
 msgid "For example English"
 msgstr ""
 
-#: openlibrary/contribute/field_guides.py
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py
 msgid "Page count"
 msgstr ""
 
@@ -8975,6 +8970,20 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "OCLC"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "The %(count)s most-read books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(percent)s%%"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Fill in what's missing on the books people shelve most."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

@@ -125,12 +125,14 @@ function initTaskList(root) {
 }
 
 /**
- * Remember this task as skipped when its "I couldn't find it" control is clicked.
+ * Remember this task as skipped when "Skip" or "I couldn't find it" is clicked.
  * @param {HTMLFormElement} form - a ``[data-task-form]`` whose ``data-task-key`` identifies the task
  * @returns {void}
  */
 function initSkipButton(form) {
-    form.querySelector('[data-skip]')?.addEventListener('click', () => markTaskSkipped(form.dataset.taskKey));
+    for (const control of form.querySelectorAll('[data-skip]')) {
+        control.addEventListener('click', () => markTaskSkipped(form.dataset.taskKey));
+    }
 }
 
 /**
@@ -168,6 +170,8 @@ function answerSource(form) {
 function initSaveTracking(form) {
     form.addEventListener('submit', event => {
         const then = event.submitter?.closest('ol-button')?.value || event.submitter?.value;
+        // "I couldn't find it" also submits; its click is already tracked as NotFound.
+        if (then === 'notfound') return;
         const source = answerSource(form);
         trackEvent('TaskForm', then === 'next' ? 'SaveNext' : 'Save', source ? `${form.dataset.taskField}:${source}` : form.dataset.taskField);
     });
