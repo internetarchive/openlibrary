@@ -569,14 +569,12 @@
   gap: var(--spacing-inline-md);
 }
 
-/* Skipping sits apart from saving, at the far end. */
-.contrib-answer__actions > [data-skip] {
+/* Moving on without saving sits apart from saving, at the far end. */
+.contrib-answer__move {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-md);
   margin-inline-start: auto;
-}
-
-.contrib-answer__next {
-  flex-basis: 100%;
-  margin: 0;
 }
 
 /* List */
@@ -1689,4 +1687,62 @@ a.contrib-recent__title {
   .contrib-land__mark path {
     animation: none;
   }
+}
+
+/* The active initiative's progress, a sunken tile at the top of the dashboard's aside. */
+.contrib-progress {
+  display: grid;
+  gap: var(--spacing-stack-md);
+  padding: var(--spacing-inset-md);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface-sunken);
+}
+
+.contrib-progress__intro {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+}
+
+.contrib-progress__title {
+  margin: 0;
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+}
+
+.contrib-progress__description {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-medium);
+}
+
+/* The bar and the headline number sit together; the number climbs with every save. */
+.contrib-progress__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-lg);
+}
+
+.contrib-progress__percent {
+  color: var(--color-text-heading);
+  font-size: var(--font-size-headline-large);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-single);
+  font-variant-numeric: tabular-nums;
+}
+
+.contrib-progress__track {
+  flex: 1 1 auto;
+  height: 10px;
+  overflow: hidden;
+  border-radius: var(--border-radius-lg);
+  background: var(--color-control-track-sunken);
+}
+
+.contrib-progress__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
 }
