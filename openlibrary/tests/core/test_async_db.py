@@ -193,8 +193,8 @@ async def test_init_pool_creates_and_reuses_the_pool():
     }
     assert first_pool.name.startswith("async-db-")
     assert first_pool.check is FakePool.check_connection
-    assert first_pool.min_size == 4
-    assert first_pool.max_size == 20
+    assert first_pool.min_size == 1
+    assert first_pool.max_size == 2
 
 
 @pytest.mark.asyncio
