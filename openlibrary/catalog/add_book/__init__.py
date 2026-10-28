@@ -37,8 +37,8 @@ from urllib.parse import urlparse
 
 import requests
 import web
-from infogami import config
 
+from infogami import config
 from openlibrary import accounts
 from openlibrary.catalog.add_book.load_book import (
     author_import_record_to_author,
@@ -303,11 +303,7 @@ def new_work(edition: dict, rec: dict, cover_id: int | None = None, save: bool =
         rec_authors = rec.get("authors") or []
         for i, akey in enumerate(edition.get("authors") or []):
             author = {"type": {"key": "/type/author_role"}, "author": akey}
-            if (
-                i < len(rec_authors)
-                and isinstance(rec_authors[i], dict)
-                and (role := rec_authors[i].get("role"))
-            ):
+            if i < len(rec_authors) and isinstance(rec_authors[i], dict) and (role := rec_authors[i].get("role")):
                 author["role"] = role
             w["authors"].append(author)
 
