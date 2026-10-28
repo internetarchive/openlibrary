@@ -1,7 +1,7 @@
 /**
- * Unit tests for <ol-cover-manager>: the reason step, what it lists, how picking
- * and removing read in the footer, and the exact payload Save sends. Network is
- * stubbed at `fetch`.
+ * Unit tests for <ol-cover-manager>: what it lists, when replacing a cover asks
+ * why, how picking and removing read in the footer, and the exact payload Save
+ * sends. Network is stubbed at `fetch`.
  */
 import '../../../openlibrary/components/lit/OlCoverManager.js';
 
@@ -16,11 +16,20 @@ const STATE = {
     ]
 };
 
+/** An edition with no cover of its own: the page shows its Internet Archive scan. */
+const FALLBACK = {
+    key: '/books/OL1M',
+    current: 'suggestion:archive-cover',
+    items: STATE.items.slice(0, 2)
+};
+
 const NO_COVER = {
     key: '/books/OL1M',
     current: null,
     items: [{ id: 'suggestion:amazon', kind: 'amazon', suggestion: 'amazon', image_id: null, thumb: 'amazon.jpg', isbn: '0140449132' }]
 };
+
+const UPLOADED = { id: 'img:99', kind: 'upload', image_id: 99, thumb: '99-M.jpg', added_by: { key: '/people/me', name: 'Me' } };
 
 let calls;
 
@@ -41,12 +50,13 @@ beforeAll(() => {
 const q = (el, selector) => el.renderRoot.querySelector(selector);
 const qa = (el, selector) => [...el.renderRoot.querySelectorAll(selector)];
 const status = el => q(el, '.status').textContent.trim();
-const primaryButton = el => q(el, 'ol-button[variant="primary"]');
+const saveButton = el => q(el, 'ol-button[variant="primary"]');
 const picks = el => qa(el, '.row:not(.upload) .option');
 const rows = el => qa(el, '.row:not(.upload)');
+const file = (name, type, size = 10) => new File([new Uint8Array(size)], name, { type });
 
 async function chooseReason(el, value, note) {
-    q(el, `.reason[data-value="${value}"]`).click();
+    q(el, `.chip[data-value="${value}"]`).click();
     await el.updateComplete;
     await el.updateComplete;
     if (note !== undefined) {
@@ -57,80 +67,17 @@ async function chooseReason(el, value, note) {
     }
 }
 
-/** Mounts and, for a record with a cover, answers the reason step so the list shows. */
-async function mount({ reason = 'wrong' } = {}) {
+async function mount(docKey = '/books/OL1M') {
     const el = document.createElement('ol-cover-manager');
-    el.docKey = '/books/OL1M';
+    el.docKey = docKey;
     document.body.appendChild(el);
     await vi.waitFor(() => expect(el._loadState).toBe('ready'));
     await el.updateComplete;
-    if (el._step === 'reason' && reason) {
-        await chooseReason(el, reason);
-        await vi.waitFor(() => expect(el._step).toBe('pick'));
-        await el.updateComplete;
-    }
     return el;
 }
 
 afterEach(() => {
     document.body.innerHTML = '';
-});
-
-describe('ol-cover-manager reason step', () => {
-    test('a book with a cover asks why before showing the images', async () => {
-        stubFetch();
-        const el = await mount({ reason: null });
-        expect(el._step).toBe('reason');
-        expect(q(el, '.options')).toBeNull();
-        expect(qa(el, '.reason')).toHaveLength(4);
-        expect(q(el, '#cover-heading').textContent).toBe('Current cover');
-        expect(status(el)).toBe('');
-        expect(primaryButton(el)).toBeNull();
-    });
-
-    test('picking a reason moves on, and the list then shows it with a way back', async () => {
-        stubFetch();
-        const el = await mount({ reason: null });
-        await chooseReason(el, 'not_front');
-        await vi.waitFor(() => expect(el._step).toBe('pick'));
-        await el.updateComplete;
-        expect(q(el, '.options')).not.toBeNull();
-        expect(q(el, '.reason-summary strong').textContent).toBe('Not the front cover');
-        q(el, '.reason-summary .text-action').click();
-        await el.updateComplete;
-        expect(el._step).toBe('reason');
-        expect(q(el, '.reason[aria-pressed="true"]').dataset.value).toBe('not_front');
-    });
-
-    test('“Something else” opens a note, and its Continue needs a few words', async () => {
-        stubFetch();
-        const el = await mount({ reason: null });
-        await chooseReason(el, 'other');
-        expect(el._step).toBe('reason');
-        expect(el.renderRoot.activeElement).toBe(q(el, '.note input'));
-        expect(q(el, '.note-continue').disabled).toBe(true);
-        await chooseReason(el, 'other', 'Movie tie-in');
-        expect(q(el, '.note-continue').disabled).toBe(false);
-        q(el, '.note-continue').click();
-        await vi.waitFor(() => expect(el._step).toBe('pick'));
-    });
-
-    test('a book without a cover goes straight to the images', async () => {
-        stubFetch({ 'GET /books/OL1M/covers.json': { body: NO_COVER } });
-        const el = await mount({ reason: null });
-        expect(el._step).toBe('pick');
-        expect(q(el, '.panel > h3').textContent).toBe('This edition has no cover');
-        expect(q(el, '.cover-frame.empty')).not.toBeNull();
-    });
-
-    test('an author photo skips the reason', async () => {
-        stubFetch();
-        const el = document.createElement('ol-cover-manager');
-        el.docKey = '/authors/OL1A';
-        document.body.appendChild(el);
-        await vi.waitFor(() => expect(el._loadState).toBe('ready'));
-        expect(el._step).toBe('pick');
-    });
 });
 
 describe('ol-cover-manager listing', () => {
@@ -148,10 +95,10 @@ describe('ol-cover-manager listing', () => {
         ]);
     });
 
-    test('Amazon’s cover names the ISBN, and is dropped when Amazon has none', async () => {
+    test('Amazon’s cover is tagged by source, and is dropped when Amazon has none', async () => {
         stubFetch({ 'GET /books/OL1M/covers.json': { body: NO_COVER } });
         const el = await mount();
-        expect(picks(el).map(b => b.getAttribute('aria-label'))).toEqual(['Cover from Amazon, Found by ISBN 0140449132']);
+        expect(picks(el).map(b => b.getAttribute('aria-label'))).toEqual(['Cover from Amazon, Amazon']);
         const img = q(el, '.row:not(.upload) img');
         Object.defineProperty(img, 'naturalWidth', { value: 1 });
         img.dispatchEvent(new Event('load'));
@@ -167,13 +114,31 @@ describe('ol-cover-manager listing', () => {
         await vi.waitFor(() => expect(calls[0]?.url).toBe('/authors/OL1A/photos.json'));
     });
 
-    test('the current cover starts selected, and Save starts disabled', async () => {
+    test('opens on the list with the current cover selected, shown large, and nothing asked', async () => {
         stubFetch();
         const el = await mount();
         const pressed = picks(el).filter(b => b.getAttribute('aria-pressed') === 'true');
         expect(pressed).toHaveLength(1);
         expect(pressed[0].getAttribute('aria-label')).toContain('current cover');
-        expect(primaryButton(el).disabled).toBe(true);
+        expect(q(el, '#cover-heading').textContent).toBe('Current cover');
+        expect(q(el, '.panel .overline').textContent).toBe('Choose the new cover');
+        expect(q(el, '.why')).toBeNull();
+        expect(status(el)).toBe('');
+        expect(saveButton(el).disabled).toBe(true);
+    });
+
+    test('a book without a cover is one column until something is picked', async () => {
+        stubFetch({ 'GET /books/OL1M/covers.json': { body: NO_COVER } });
+        const el = await mount();
+        expect(q(el, '.layout').classList.contains('single')).toBe(true);
+        expect(q(el, '.cover')).toBeNull();
+        expect(q(el, '.panel > h3').textContent).toBe('This edition has no cover');
+        picks(el)[0].click();
+        await el.updateComplete;
+        expect(q(el, '.layout').classList.contains('single')).toBe(false);
+        expect(q(el, '#cover-heading').textContent).toBe('New cover');
+        expect(q(el, '.why')).toBeNull();
+        expect(saveButton(el).disabled).toBe(false);
     });
 
     test('a scan page that fails to load is dropped', async () => {
@@ -201,14 +166,13 @@ describe('ol-cover-manager choosing and removing', () => {
         const el = await mount();
         picks(el)[0].click();
         await el.updateComplete;
-        expect(status(el)).toBe('');
-        expect(primaryButton(el).disabled).toBe(false);
         expect(q(el, '#cover-heading').textContent).toBe('New cover');
         expect(q(el, '.cover-frame img').getAttribute('src')).toBe('scan-cover.jpg');
-        qa(el, '.aside')[0].querySelector('.text-action').click();
+        q(el, '.band .keep').click();
         await el.updateComplete;
         expect(el._selected).toBe('img:10');
         expect(q(el, '#cover-heading').textContent).toBe('Current cover');
+        expect(q(el, '.why')).toBeNull();
     });
 
     test('suggestions have no Remove; the selected image has none either', async () => {
@@ -226,7 +190,7 @@ describe('ol-cover-manager choosing and removing', () => {
         expect(rows(el)[2].querySelector('.text-action.danger')).not.toBeNull();
     });
 
-    test('remove disables the tile and Undo restores it', async () => {
+    test('remove disables the tile and Undo restores it, with no reason asked', async () => {
         stubFetch();
         const el = await mount();
         const row = () => rows(el)[3];
@@ -234,16 +198,108 @@ describe('ol-cover-manager choosing and removing', () => {
         await el.updateComplete;
         expect(row().querySelector('.option').disabled).toBe(true);
         expect(status(el)).toBe('1 image will be removed.');
+        expect(q(el, '.why')).toBeNull();
+        expect(saveButton(el).disabled).toBe(false);
         row().querySelector('.text-action:not(.danger)').click();
         await el.updateComplete;
         expect(row().querySelector('.option').disabled).toBe(false);
-        expect(primaryButton(el).disabled).toBe(true);
+        expect(saveButton(el).disabled).toBe(true);
+    });
+});
+
+describe('ol-cover-manager asking why', () => {
+    test('replacing a book’s own cover asks why in the band under the columns, and Save waits for an answer', async () => {
+        stubFetch();
+        const el = await mount();
+        picks(el)[1].click();
+        await el.updateComplete;
+        expect(q(el, '.band .why')).not.toBeNull();
+        expect(qa(el, '.chip').map(c => c.textContent.trim())).toEqual(['Wrong cover', 'Better image', 'Not the front cover', 'Something else']);
+        expect(status(el)).toBe('');
+        expect(saveButton(el).disabled).toBe(true);
+        await chooseReason(el, 'not_front');
+        expect(q(el, '.chip[aria-pressed="true"]').dataset.value).toBe('not_front');
+        expect(q(el, '.reason-hint').textContent).toContain('title page');
+        expect(status(el)).toBe('');
+        expect(saveButton(el).disabled).toBe(false);
+    });
+
+    test('“Something else” opens a note and needs a few words', async () => {
+        stubFetch();
+        const el = await mount();
+        picks(el)[0].click();
+        await el.updateComplete;
+        await chooseReason(el, 'other');
+        expect(el.renderRoot.activeElement).toBe(q(el, '.note input'));
+        expect(q(el, '.reason-hint')).toBeNull();
+        expect(saveButton(el).disabled).toBe(true);
+        await chooseReason(el, 'other', 'Movie tie-in');
+        expect(saveButton(el).disabled).toBe(false);
+    });
+
+    test('adding a spare image beside the current cover never asks', async () => {
+        stubFetch({ 'POST /books/OL1M/covers/upload.json': { body: UPLOADED } });
+        const el = await mount();
+        el._addFiles([file('c.jpg', 'image/jpeg')]);
+        await vi.waitFor(() => expect(el._selected).toBe('img:99'));
+        await el.updateComplete;
+        // The upload is picked as the new cover, so the question appears; keeping the current cover withdraws it.
+        expect(q(el, '.why')).not.toBeNull();
+        q(el, '.band .keep').click();
+        await el.updateComplete;
+        expect(q(el, '.why')).toBeNull();
+        expect(status(el)).toBe('1 new image will be added.');
+        expect(saveButton(el).disabled).toBe(false);
+    });
+
+    test('a record showing a borrowed scan is adding a cover, not changing one', async () => {
+        stubFetch({ 'GET /books/OL1M/covers.json': { body: FALLBACK } });
+        const el = await mount();
+        expect(q(el, '#cover-heading').textContent).toBe('Current cover');
+        expect(q(el, '.note-text').textContent).toContain('no cover of its own');
+        expect(q(el, '.panel .overline').textContent).toBe('Choose a cover');
+        picks(el)[1].click();
+        await el.updateComplete;
+        expect(q(el, '.band .keep')).not.toBeNull();
+        expect(q(el, '.why')).toBeNull();
+        expect(saveButton(el).disabled).toBe(false);
+    });
+
+    test('an author photo never asks', async () => {
+        stubFetch({
+            'GET /authors/OL1A/photos.json': {
+                body: {
+                    key: '/authors/OL1A',
+                    current: 'img:5',
+                    items: [
+                        { id: 'img:5', kind: 'upload', image_id: 5, thumb: '5.jpg' },
+                        { id: 'img:6', kind: 'upload', image_id: 6, thumb: '6.jpg' }
+                    ]
+                }
+            }
+        });
+        const el = await mount('/authors/OL1A');
+        picks(el)[1].click();
+        await el.updateComplete;
+        expect(q(el, '.why')).toBeNull();
+        expect(saveButton(el).disabled).toBe(false);
+    });
+
+    test('titles the dialog for adding when the record has no image of its own', async () => {
+        stubFetch({ 'GET /books/OL1M/covers.json': { body: FALLBACK } });
+        // ol-dialog isn't registered here; an open stand-in is enough for the manager to load and title it.
+        const dialog = document.createElement('ol-dialog');
+        dialog.open = true;
+        const el = document.createElement('ol-cover-manager');
+        el.docKey = '/books/OL1M';
+        dialog.appendChild(el);
+        document.body.appendChild(dialog);
+        await vi.waitFor(() => expect(el._loadState).toBe('ready'));
+        expect(dialog.label).toBe('Add a cover');
     });
 });
 
 describe('ol-cover-manager adding', () => {
-    const file = (name, type, size = 10) => new File([new Uint8Array(size)], name, { type });
-
     test('rejects files that are not JPG, GIF, PNG or WebP', async () => {
         stubFetch();
         const el = await mount();
@@ -254,11 +310,7 @@ describe('ol-cover-manager adding', () => {
     });
 
     test('a pasted image uploads and becomes the selection', async () => {
-        stubFetch({
-            'POST /books/OL1M/covers/upload.json': {
-                body: { id: 'img:99', kind: 'upload', image_id: 99, thumb: '99-M.jpg', added_by: { key: '/people/me', name: 'Me' } }
-            }
-        });
+        stubFetch({ 'POST /books/OL1M/covers/upload.json': { body: UPLOADED } });
         const el = await mount();
         const paste = new Event('paste', { cancelable: true });
         paste.clipboardData = { files: [file('image.png', 'image/png')] };
@@ -267,7 +319,7 @@ describe('ol-cover-manager adding', () => {
         await el.updateComplete;
         expect(paste.defaultPrevented).toBe(true);
         expect(picks(el)[2].getAttribute('aria-label')).toBe('Your upload, Just now');
-        expect(status(el)).toBe('');
+        expect(q(el, '#cover-heading').textContent).toBe('New cover');
     });
 
     test('uploads under a neutral filename with the type’s extension', async () => {
@@ -285,16 +337,6 @@ describe('ol-cover-manager adding', () => {
         await vi.waitFor(() => expect(el._error).toBe('That image couldn’t be uploaded.'));
         expect(el._added).toHaveLength(0);
     });
-
-    test('a paste during the reason step is left alone', async () => {
-        stubFetch();
-        await mount({ reason: null });
-        const paste = new Event('paste', { cancelable: true });
-        paste.clipboardData = { files: [file('image.png', 'image/png')] };
-        document.dispatchEvent(paste);
-        expect(paste.defaultPrevented).toBe(false);
-        expect(calls).toHaveLength(1);
-    });
 });
 
 describe('ol-cover-manager saving', () => {
@@ -304,11 +346,12 @@ describe('ol-cover-manager saving', () => {
             'POST /books/OL1M/covers.json': { body: { cover_id: 77 } }
         });
         const el = await mount();
-        el._addFiles([new File([new Uint8Array(4)], 'c.jpg', { type: 'image/jpeg' })]);
+        el._addFiles([file('c.jpg', 'image/jpeg')]);
         await vi.waitFor(() => expect(el._selected).toBe('img:99'));
         el._select(STATE.items[0]);
         el._remove(STATE.items[3]);
         await el.updateComplete;
+        await chooseReason(el, 'wrong');
         expect(status(el)).toBe('1 new image will be added. 1 image will be removed.');
 
         const saved = vi.fn();
@@ -321,22 +364,44 @@ describe('ol-cover-manager saving', () => {
 
     test('“Something else” sends its note', async () => {
         stubFetch({ 'POST /books/OL1M/covers.json': { body: { cover_id: 10 } } });
-        const el = await mount({ reason: null });
-        await chooseReason(el, 'other', '  Movie tie-in ');
-        await el._continue();
+        const el = await mount();
         el._select(STATE.items[1]);
+        await el.updateComplete;
+        await chooseReason(el, 'other', '  Movie tie-in ');
         await el._save();
         const post = calls.find(c => c.init.method === 'POST');
         expect(JSON.parse(post.init.body)).toMatchObject({ suggestion: 'archive-title', reason: 'other', reason_note: 'Movie tie-in' });
+    });
+
+    test('Save does nothing until the reason is given', async () => {
+        stubFetch({ 'POST /books/OL1M/covers.json': { body: { cover_id: 10 } } });
+        const el = await mount();
+        el._select(STATE.items[1]);
+        await el.updateComplete;
+        await el._save();
+        expect(calls.some(c => c.init.method === 'POST')).toBe(false);
+    });
+
+    test('a change that keeps the cover sends no reason', async () => {
+        stubFetch({ 'POST /books/OL1M/covers.json': { body: { cover_id: 10 } } });
+        const el = await mount();
+        el._remove(STATE.items[3]);
+        await el.updateComplete;
+        await el._save();
+        const post = calls.find(c => c.init.method === 'POST');
+        expect(JSON.parse(post.init.body)).toEqual({ image_id: 10, added: [], removed: [11] });
     });
 
     test('a failed save keeps the dialog state and shows an error', async () => {
         stubFetch({ 'POST /books/OL1M/covers.json': { ok: false, body: {} } });
         const el = await mount();
         el._select(STATE.items[1]);
+        await el.updateComplete;
+        await chooseReason(el, 'better');
         await el._save();
         await el.updateComplete;
         expect(q(el, '.error').textContent).toContain('couldn’t be saved');
         expect(el._selected).toBe('suggestion:archive-title');
+        expect(el._reason).toBe('better');
     });
 });

@@ -1198,7 +1198,7 @@ msgstr ""
 msgid "Importing..."
 msgstr ""
 
-#: account/import.html covers/change.html
+#: account/import.html
 msgid "Reason"
 msgstr ""
 
@@ -2626,7 +2626,7 @@ msgstr ""
 msgid "view profile"
 msgstr ""
 
-#: admin/people/view.html covers/change.html
+#: admin/people/view.html
 msgid "Change"
 msgstr ""
 
@@ -3170,7 +3170,7 @@ msgstr ""
 msgid "None of these match the book I want to add."
 msgstr ""
 
-#: books/check.html covers/change.html
+#: books/check.html
 msgid "Continue"
 msgstr ""
 
@@ -4260,23 +4260,11 @@ msgid "Add Cover Image"
 msgstr ""
 
 #: covers/change.html
-msgid "Photo"
-msgstr ""
-
-#: covers/change.html
 msgid "Current photo"
 msgstr ""
 
 #: covers/change.html
 msgid "New photo"
-msgstr ""
-
-#: covers/change.html
-msgid "No photo yet"
-msgstr ""
-
-#: covers/change.html
-msgid "Readers see a plain placeholder on the author page and in search."
 msgstr ""
 
 #: covers/change.html
@@ -4289,6 +4277,10 @@ msgstr ""
 
 #: covers/change.html
 msgid "Choose the new photo"
+msgstr ""
+
+#: covers/change.html
+msgid "Choose a photo"
 msgstr ""
 
 #: covers/change.html
@@ -4309,23 +4301,11 @@ msgid "Photo updated"
 msgstr ""
 
 #: covers/change.html
-msgid "Cover"
-msgstr ""
-
-#: covers/change.html
 msgid "Current cover"
 msgstr ""
 
 #: covers/change.html
 msgid "New cover"
-msgstr ""
-
-#: covers/change.html
-msgid "No cover yet"
-msgstr ""
-
-#: covers/change.html
-msgid "Readers see a plain placeholder on the book page, in search, and in lists."
 msgstr ""
 
 #: covers/change.html
@@ -4341,7 +4321,15 @@ msgid "Add one and it shows everywhere the book appears."
 msgstr ""
 
 #: covers/change.html
+msgid "Readers see this scan because the edition has no cover of its own."
+msgstr ""
+
+#: covers/change.html
 msgid "Choose the new cover"
+msgstr ""
+
+#: covers/change.html
+msgid "Choose a cover"
 msgstr ""
 
 #: covers/change.html
@@ -4366,15 +4354,7 @@ msgid "Keep current"
 msgstr ""
 
 #: covers/change.html
-msgid "Why are you changing this cover?"
-msgstr ""
-
-#: covers/change.html
-msgid "It’s the wrong cover"
-msgstr ""
-
-#: covers/change.html
-msgid "The image belongs to another edition or another book."
+msgid "Why are you replacing it?"
 msgstr ""
 
 #: covers/change.html
@@ -4382,11 +4362,7 @@ msgid "Wrong cover"
 msgstr ""
 
 #: covers/change.html
-msgid "Right cover, better image"
-msgstr ""
-
-#: covers/change.html
-msgid "You have a sharper, cleaner, or more complete version of the same cover."
+msgid "The image belongs to another edition or another book."
 msgstr ""
 
 #: covers/change.html
@@ -4394,11 +4370,7 @@ msgid "Better image"
 msgstr ""
 
 #: covers/change.html
-msgid "It isn’t the front cover"
-msgstr ""
-
-#: covers/change.html
-msgid "A title page, back cover, spine, or a “no image” placeholder."
+msgid "A sharper, cleaner, or more complete version of the same cover."
 msgstr ""
 
 #: covers/change.html
@@ -4406,19 +4378,15 @@ msgid "Not the front cover"
 msgstr ""
 
 #: covers/change.html
+msgid "A title page, back cover, spine, or a “no image” placeholder."
+msgstr ""
+
+#: covers/change.html
 msgid "Something else"
 msgstr ""
 
 #: covers/change.html
-msgid "Tell us in a few words."
-msgstr ""
-
-#: covers/change.html
-msgid "What’s wrong with this cover?"
-msgstr ""
-
-#: covers/change.html
-msgid "Change the reason"
+msgid "What’s wrong with the current cover?"
 msgstr ""
 
 #: covers/change.html
@@ -4461,6 +4429,10 @@ msgstr ""
 msgid "Wikidata"
 msgstr ""
 
+#: covers/change.html openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/partials.py
+msgid "Amazon"
+msgstr ""
+
 #: covers/change.html
 msgid "Scan of the cover"
 msgstr ""
@@ -4488,11 +4460,6 @@ msgstr ""
 
 #: covers/change.html
 msgid "Your upload"
-msgstr ""
-
-#: covers/change.html
-#, python-format
-msgid "Found by ISBN %(isbn)s"
 msgstr ""
 
 #: covers/change.html
@@ -8302,10 +8269,6 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "Google Books"
-msgstr ""
-
-#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/partials.py
-msgid "Amazon"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py

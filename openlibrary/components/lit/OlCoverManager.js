@@ -3,6 +3,7 @@ import { repeat } from 'lit/directives/repeat.js';
 
 import './OLButton.js';
 import './OlIcon.js';
+import { focusRingLayered, pressable, raised } from './control-styles.js';
 import { showToast } from './toast.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 import { translate } from './utils/labels.js';
@@ -10,34 +11,24 @@ import { translate } from './utils/labels.js';
 export const DEFAULT_LABELS = {
     titleAdd: 'Add a cover',
     titleChange: 'Change the cover',
-    coverHeading: 'Cover',
     currentHeading: 'Current cover',
     newHeading: 'New cover',
-    emptyTitle: 'No cover yet',
-    emptyHint: 'Readers see a plain placeholder on the book page, in search, and in lists.',
     noCoverTitle: 'This edition has no cover',
     noCoverIntro: 'Add one and it shows everywhere the book appears.',
+    fallbackNote: 'Readers see this scan because the edition has no cover of its own.',
     chooseHeading: 'Choose the new cover',
+    chooseHeadingAdd: 'Choose a cover',
     replaces: 'Replaces the current cover',
     keepCurrent: 'Keep current',
-    reasonHeading: 'Why are you changing this cover?',
-    reasonWrong: 'It’s the wrong cover',
+    reasonHeading: 'Why are you replacing it?',
+    reasonWrong: 'Wrong cover',
     reasonWrongHint: 'The image belongs to another edition or another book.',
-    reasonWrongShort: 'Wrong cover',
-    reasonBetter: 'Right cover, better image',
-    reasonBetterHint: 'You have a sharper, cleaner, or more complete version of the same cover.',
-    reasonBetterShort: 'Better image',
-    reasonNotFront: 'It isn’t the front cover',
+    reasonBetter: 'Better image',
+    reasonBetterHint: 'A sharper, cleaner, or more complete version of the same cover.',
+    reasonNotFront: 'Not the front cover',
     reasonNotFrontHint: 'A title page, back cover, spine, or a “no image” placeholder.',
-    reasonNotFrontShort: 'Not the front cover',
     reasonOther: 'Something else',
-    reasonOtherHint: 'Tell us in a few words.',
-    reasonOtherShort: 'Something else',
-    reasonNoteLabel: 'What’s wrong with this cover?',
-    reasonLabel: 'Reason',
-    reasonChange: 'Change',
-    reasonChangeLabel: 'Change the reason',
-    continue: 'Continue',
+    reasonNoteLabel: 'What’s wrong with the current cover?',
     images: 'Images',
     uploadTitle: 'Upload a new image',
     addHint: 'Drop a file here, paste, or browse',
@@ -49,6 +40,7 @@ export const DEFAULT_LABELS = {
     current: 'Current',
     sourceArchive: 'Internet Archive',
     sourceWikidata: 'Wikidata',
+    sourceAmazon: 'Amazon',
     titleScanCover: 'Scan of the cover',
     titleScanTitle: 'Scan of the title page',
     titleAmazon: 'Cover from Amazon',
@@ -56,7 +48,6 @@ export const DEFAULT_LABELS = {
     titleUploadBy: 'Uploaded by %(name)s',
     titleUpload: 'Uploaded image',
     titleYou: 'Your upload',
-    detailIsbn: 'Found by ISBN %(isbn)s',
     detailJustNow: 'Just now',
     pickLabelCurrent: '%(name)s (current cover)',
     remove: 'Remove',
@@ -81,9 +72,9 @@ export const DEFAULT_LABELS = {
 
 /** Why a cover is being replaced; the values match REPLACE_REASONS in plugins/upstream/covers.py. */
 const REASONS = [
-    { value: 'wrong', label: 'reasonWrong' },
-    { value: 'better', label: 'reasonBetter' },
-    { value: 'not_front', label: 'reasonNotFront' },
+    { value: 'wrong', label: 'reasonWrong', hint: 'reasonWrongHint' },
+    { value: 'better', label: 'reasonBetter', hint: 'reasonBetterHint' },
+    { value: 'not_front', label: 'reasonNotFront', hint: 'reasonNotFrontHint' },
     { value: 'other', label: 'reasonOther' }
 ];
 
@@ -96,9 +87,11 @@ const CAN_READ_CLIPBOARD = typeof navigator !== 'undefined' && typeof navigator.
 /**
  * Picks and manages the images for a book, work, or author: every image
  * attached to it, plus suggestions that are always listed (Internet Archive
- * scans, Amazon's cover for the ISBN, a Wikidata photo). The cover column on
- * the start side shows the current image, or the one that will replace it.
- * Replacing a book's cover asks why first. New images are added by drop,
+ * scans, Amazon's cover for the ISBN, a Wikidata photo). The cover column
+ * shows the current image, or the one that will replace it. Once a
+ * replacement is picked, a band under both columns shows the swap with a way
+ * back and, when a book's own cover is being replaced, asks why. Adding a
+ * spare image or removing an old one never asks. New images are added by drop,
  * paste, or file picker; uploaded images can be removed from the record.
  * Nothing is saved until Save.
  *
@@ -122,7 +115,6 @@ export class OlCoverManager extends LitElement {
         labels: { type: Object },
         _data: { state: true },
         _loadState: { state: true },
-        _step: { state: true },
         _reason: { state: true },
         _reasonNote: { state: true },
         _selected: { state: true },
@@ -134,674 +126,669 @@ export class OlCoverManager extends LitElement {
         _error: { state: true }
     };
 
-    static styles = css`
-        :host {
-            display: block;
-            font-family: var(--font-family-body);
-            color: var(--color-text);
-            text-align: start;
-        }
-
-        .layout {
-            display: grid;
-            gap: var(--spacing-xl);
-        }
-
-        /* --width-breakpoint-tablet */
-        @media (min-width: 768px) {
-            .layout {
-                grid-template-columns: minmax(180px, 2fr) 3fr;
-                align-items: start;
-            }
-        }
-
-        .overline {
-            margin: 0 0 var(--spacing-sm);
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-overline);
-            font-weight: var(--font-weight-overline);
-            letter-spacing: var(--letter-spacing-overline);
-            text-transform: var(--text-transform-overline);
-        }
-
-        /* The cover column: the current cover, or the one Save will put in its place. */
-        .cover {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-sm);
-        }
-
-        .cover-frame {
-            display: grid;
-            place-items: center;
-            aspect-ratio: 2 / 3;
-            overflow: hidden;
-            border-radius: var(--border-radius-thumbnail);
-        }
-
-        /* A cover that isn't 2:3 keeps its own shape, so its caption sits right under it. */
-        .cover-frame:has(img) {
-            aspect-ratio: auto;
-        }
-
-        .cover-frame img {
-            display: block;
-            max-width: 100%;
-            max-height: 420px;
-            object-fit: contain;
-            box-shadow: var(--box-shadow-raised);
-        }
-
-        .cover-frame.empty {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: var(--spacing-xs);
-            padding: var(--spacing-lg);
-            border: var(--border-width-thick) dashed var(--color-border);
-            background: var(--color-surface-sunken);
-            color: var(--color-text-secondary);
-            text-align: center;
-            font-size: var(--font-size-body-small);
-            line-height: var(--line-height-body);
-            box-sizing: border-box;
-        }
-
-        .cover-frame.empty strong {
-            color: var(--color-text);
-            font-size: var(--font-size-title-small);
-            font-weight: var(--font-weight-subheading);
-        }
-
-        .cover-frame.empty ol-icon {
-            color: var(--color-text-secondary);
-        }
-
-        /* On a phone the cover sits beside its caption, so the steps stay in view. */
-        @media (max-width: 767px) {
-            .cover-body {
-                display: grid;
-                grid-template-columns: 96px 1fr;
-                gap: var(--spacing-md);
-                align-items: start;
-            }
-
-            .cover-frame.empty {
-                padding: var(--spacing-xs);
-            }
-
-            .cover-frame.empty span {
-                display: none;
-            }
-        }
-
-        .cover-caption {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-sm);
-            min-width: 0;
-            margin-top: var(--spacing-sm);
-        }
-
-        @media (max-width: 767px) {
-            .cover-caption {
-                margin-top: 0;
-            }
-        }
-
-        .aside {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: var(--spacing-xs) var(--spacing-sm);
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border-radius: var(--border-radius-card);
-            background: var(--color-surface-sunken);
-            font-size: var(--font-size-body-small);
-            line-height: var(--line-height-meta);
-        }
-
-        .aside img {
-            width: 24px;
-            height: 36px;
-            object-fit: cover;
-            border-radius: var(--border-radius-sm);
-        }
-
-        .aside .label {
-            color: var(--color-text-secondary);
-        }
-
-        .aside strong {
-            font-weight: var(--font-weight-semibold);
-        }
-
-        /* The heading over the list, with the reason given on the reason step at its end. */
-        .pick-head {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            gap: var(--spacing-xs) var(--spacing-md);
-            margin-bottom: var(--spacing-sm);
-        }
-
-        .pick-head .overline {
-            flex: none;
-            margin: 0;
-        }
-
-        .reason-summary {
-            display: flex;
-            align-items: baseline;
-            gap: var(--spacing-xs);
-            min-width: 0;
-            margin: 0;
-            font-size: var(--font-size-body-small);
-            line-height: var(--line-height-meta);
-        }
-
-        .reason-summary .label {
-            flex: none;
-            color: var(--color-text-secondary);
-        }
-
-        .reason-summary strong {
-            overflow: hidden;
-            font-weight: var(--font-weight-semibold);
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }
-
-        .reason-summary .text-action {
-            flex: none;
-        }
-
-        /* The steps */
-        .step-title {
-            margin: 0 0 var(--spacing-xs);
-            font-family: var(--font-family-heading);
-            font-size: var(--font-size-title-medium);
-            font-weight: var(--font-weight-heading);
-            line-height: var(--line-height-heading);
-            text-wrap: balance;
-        }
-
-        .panel > h3:focus {
-            outline: none;
-        }
-
-        .step-intro {
-            margin: 0 0 var(--spacing-lg);
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-body-medium);
-            line-height: var(--line-height-body);
-        }
-
-        .reasons {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-sm);
-            margin: var(--spacing-md) 0 0;
-            padding: 0;
-            list-style: none;
-        }
-
-        /* A reason moves straight on; "Something else" opens its note instead. */
-        .reason {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-md);
-            width: 100%;
-            padding: var(--spacing-md);
-            border: var(--border-width-thin) solid var(--color-border-subtle);
-            border-radius: var(--border-radius-card);
-            background: var(--color-surface);
-            color: var(--color-text-secondary);
-            font: inherit;
-            font-size: var(--font-size-body-small);
-            line-height: var(--line-height-body);
-            text-align: start;
-            cursor: pointer;
-            box-sizing: border-box;
-        }
-
-        .reason:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: 2px;
-        }
-
-        .reason[aria-pressed='true'] {
-            border-color: var(--color-primary);
-            background: var(--color-control-selected-bg);
-            box-shadow: 0 0 0 var(--border-width-thin) var(--color-primary);
-        }
-
-        .reason > span {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .reason ol-icon {
-            flex: none;
-            color: var(--color-text-secondary);
-        }
-
-        :host(:dir(rtl)) .reason .forward {
-            transform: scaleX(-1);
-        }
-
-        .reason strong {
-            display: block;
-            color: var(--color-text);
-            font-size: var(--font-size-body-medium);
-            font-weight: var(--font-weight-semibold);
-        }
-
-        .note-actions {
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .note {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-xs);
-            margin: var(--spacing-md) 0;
-            font-size: var(--font-size-label-large);
-            font-weight: var(--font-weight-medium);
-        }
-
-        /* 16px so iOS doesn't zoom on focus. */
-        .note input {
-            min-height: var(--control-height-medium);
-            padding: 0 var(--spacing-sm);
-            border: var(--border-width-thin) solid var(--color-border);
-            border-radius: var(--border-radius-input);
-            background: var(--color-surface);
-            color: var(--color-text);
-            font: inherit;
-            font-size: 16px;
-            font-weight: var(--font-weight-regular);
-            box-sizing: border-box;
-        }
-
-        .note input:focus-visible {
-            border-color: var(--color-border-focused);
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: 0;
-        }
-
-        /* The options: one row per image, the upload row first. */
-        .list-wrap {
-            position: relative;
-        }
-
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-sm);
-            margin: 0;
-            padding: 0;
-            list-style: none;
-        }
-
-        .row {
-            position: relative;
-        }
-
-        .option {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-md);
-            width: 100%;
-            min-height: 84px;
-            padding: var(--spacing-sm);
-            padding-inline-end: var(--spacing-md);
-            border: var(--border-width-thin) solid var(--color-border-subtle);
-            border-radius: var(--border-radius-card);
-            background: var(--color-surface);
-            color: inherit;
-            font: inherit;
-            text-align: start;
-            cursor: pointer;
-            box-sizing: border-box;
-        }
-
-        .option:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: 2px;
-        }
-
-        .option[aria-pressed='true'] {
-            border-color: var(--color-primary);
-            background: var(--color-control-selected-bg);
-            box-shadow: 0 0 0 var(--border-width-thin) var(--color-primary);
-        }
-
-        .option:disabled {
-            cursor: default;
-        }
-
-        /* Room for Remove / Undo, which sits over the row's end. */
-        .row.removable .option {
-            padding-inline-end: calc(var(--spacing-md) + 64px);
-        }
-
-        .thumb {
-            position: relative;
-            flex: none;
-            display: grid;
-            place-items: center;
-            width: 56px;
-            height: 84px;
-            overflow: hidden;
-            border-radius: var(--border-radius-sm);
-        }
-
-        .thumb img {
-            display: block;
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            box-shadow: var(--box-shadow-raised);
-        }
-
-        .removed .thumb img {
-            opacity: 0.3;
-        }
-
-        .upload .thumb {
-            border: var(--border-width-thick) dashed var(--color-border);
-            background: var(--color-surface-sunken);
-            color: var(--color-text-secondary);
-            box-sizing: border-box;
-        }
-
-        .upload .option {
-            background: var(--color-surface-raised);
-        }
-
-        /* Drawn like the reason step's native radios; the upload row keeps the space so thumbnails line up. */
-        .radio {
-            flex: none;
-            display: grid;
-            place-items: center;
-            width: 18px;
-            height: 18px;
-            border: var(--border-width-thin) solid var(--color-border);
-            border-radius: var(--border-radius-circle);
-            background: var(--color-surface);
-            box-sizing: border-box;
-        }
-
-        .upload .radio {
-            visibility: hidden;
-        }
-
-        .option[aria-pressed='true'] .radio {
-            border-color: var(--color-primary);
-            background: var(--color-primary);
-        }
-
-        .option[aria-pressed='true'] .radio::after {
-            content: '';
-            width: 6px;
-            height: 6px;
-            border-radius: var(--border-radius-circle);
-            background: var(--color-on-primary);
-        }
-
-        .option:disabled .radio {
-            opacity: 0.4;
-        }
-
-        .busy {
-            position: absolute;
-            inset: 0;
-            display: grid;
-            place-items: center;
-            background: color-mix(in srgb, var(--color-surface) 70%, transparent);
-        }
-
-        .busy ol-icon {
-            animation: spin var(--duration-spin) linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .text {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-3xs);
-            min-width: 0;
-        }
-
-        .title {
-            overflow: hidden;
-            font-size: var(--font-size-body-medium);
-            font-weight: var(--font-weight-semibold);
-            line-height: var(--line-height-meta);
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }
-
-        .meta {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: var(--spacing-xs);
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-body-small);
-            line-height: var(--line-height-meta);
-        }
-
-        .source,
-        .tag {
-            padding: var(--spacing-3xs) var(--spacing-xs);
-            border-radius: var(--border-radius-badge);
-            font-size: var(--font-size-label-small);
-            font-weight: var(--font-weight-semibold);
-            line-height: var(--line-height-single);
-        }
-
-        .source {
-            background: var(--color-info-bg);
-            color: var(--color-info-fg);
-        }
-
-        .tag {
-            background: var(--color-surface-inverse);
-            color: var(--color-text-inverse);
-        }
-
-        /* Remove / Undo and the reason's Change: quiet text links. */
-        .text-action {
-            padding: 0;
-            border: 0;
-            background: none;
-            color: var(--color-link);
-            font: inherit;
-            text-decoration: underline;
-            text-underline-offset: 2px;
-            cursor: pointer;
-        }
-
-        .row .text-action {
-            position: absolute;
-            top: 50%;
-            inset-inline-end: var(--spacing-md);
-            transform: translateY(-50%);
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-body-small);
-        }
-
-        .row .text-action.danger {
-            color: var(--color-error-fg);
-        }
-
-        .text-action:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: 2px;
-            border-radius: var(--border-radius-sm);
-        }
-
-        .list-note {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: var(--spacing-sm);
-            margin: var(--spacing-sm) 0 0;
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-body-small);
-            line-height: var(--line-height-body);
-        }
-
-        /* Touch gets a Paste button and its own hint; a mouse has Cmd/Ctrl+V and drag and drop. */
-        .hint-pointer {
-            display: none;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .hint-touch,
-            .paste {
-                display: none;
-            }
-
-            .hint-pointer {
-                display: inline;
-            }
-
-            .option:hover:not(:disabled):not([aria-pressed='true']),
-            .reason:hover:not([aria-pressed='true']) {
-                background: var(--color-hover-overlay);
-                border-color: var(--color-border-muted);
-            }
-
-            .upload .option:hover {
-                border-color: var(--color-primary);
-                background: var(--color-primary-subtle);
-            }
-
-            .upload .option:hover .thumb {
-                border-color: var(--color-primary);
-                color: var(--color-primary);
-            }
-
-            .text-action:hover {
-                text-decoration-thickness: 2px;
-            }
-
-            .row .text-action:not(.danger):hover {
+    static styles = [
+        raised,
+        pressable,
+        focusRingLayered,
+        css`
+            :host {
+                display: block;
+                font-family: var(--font-family-body);
                 color: var(--color-text);
+                text-align: start;
             }
-        }
 
-        .drop-target {
-            position: absolute;
-            inset: calc(-1 * var(--spacing-sm));
-            display: grid;
-            place-items: center;
-            border: var(--border-width-thick) dashed var(--color-primary);
-            border-radius: var(--border-radius-card);
-            background: color-mix(in srgb, var(--color-primary-subtle) 92%, transparent);
-            color: var(--color-primary);
-            font-size: var(--font-size-title-small);
-            font-weight: var(--font-weight-semibold);
-            pointer-events: none;
-        }
-
-        .error {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-            margin: var(--spacing-lg) 0 0;
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: var(--border-width-thin) solid var(--color-error-border);
-            border-radius: var(--border-radius-notification);
-            background: var(--color-error-bg);
-            color: var(--color-error-fg);
-            font-size: var(--font-size-body-small);
-        }
-
-        .footer {
-            position: sticky;
-            bottom: calc(-1 * var(--ol-dialog-padding, 0px));
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: var(--spacing-md);
-            margin: var(--spacing-xl) calc(-1 * var(--ol-dialog-padding, 0px)) calc(-1 * var(--ol-dialog-padding, 0px));
-            padding: var(--spacing-lg) var(--ol-dialog-padding, 0px);
-            border-top: var(--border-divider);
-            background: var(--color-surface);
-        }
-
-        .status {
-            flex: 1 1 220px;
-            margin: 0;
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-body-small);
-            line-height: var(--line-height-body);
-        }
-
-        .actions {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: flex-end;
-            gap: var(--spacing-sm) var(--spacing-lg);
-            margin-inline-start: auto;
-        }
-
-        .actions a {
-            color: var(--color-link);
-            font-size: var(--font-size-body-small);
-        }
-
-        .buttons {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-
-        .skeleton {
-            background: var(--color-surface-sunken);
-            animation: pulse var(--duration-slower) var(--ease-in-out-cubic) infinite alternate;
-        }
-
-        .skeleton-row {
-            height: 84px;
-            border-radius: var(--border-radius-card);
-        }
-
-        @keyframes pulse {
-            to {
-                opacity: 0.5;
+            .layout {
+                display: grid;
+                gap: var(--spacing-xl);
             }
-        }
 
-        @media (prefers-reduced-motion: reduce) {
-            .skeleton,
+            /* --width-breakpoint-tablet */
+            @media (min-width: 768px) {
+                .layout {
+                    grid-template-columns: minmax(180px, 2fr) minmax(0, 3fr);
+                    align-items: start;
+                }
+
+                /* The preview stays put while a long list scrolls past it. */
+                .cover {
+                    position: sticky;
+                    top: 0;
+                }
+
+                /* A record with nothing to show yet: the list is the whole dialog. */
+                .layout.single {
+                    grid-template-columns: minmax(0, 1fr);
+                }
+            }
+
+            .overline {
+                margin: 0 0 var(--spacing-sm);
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-overline);
+                font-weight: var(--font-weight-overline);
+                letter-spacing: var(--letter-spacing-overline);
+                text-transform: var(--text-transform-overline);
+            }
+
+            /* The cover column: the current cover, or the one Save will put in its place. */
+            .cover {
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-sm);
+            }
+
+            /* No fixed ratio: a cover keeps its own shape, so its caption sits right under it. */
+            .cover-frame {
+                display: grid;
+                justify-items: start;
+                overflow: hidden;
+                border-radius: var(--border-radius-thumbnail);
+            }
+
+            .cover-frame.skeleton {
+                aspect-ratio: 2 / 3;
+            }
+
+            /* Short enough that the preview and its caption fit a laptop viewport without scrolling. */
+            .cover-frame img {
+                display: block;
+                max-width: 100%;
+                max-height: min(420px, 44vh);
+                object-fit: contain;
+                box-shadow: var(--box-shadow-raised);
+            }
+
+            /* On a phone the cover sits beside its caption, so the list stays in view. */
+            @media (max-width: 767px) {
+                .cover-body {
+                    display: grid;
+                    grid-template-columns: 96px 1fr;
+                    gap: var(--spacing-md);
+                    align-items: start;
+                }
+            }
+
+            .cover-caption {
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-sm);
+                min-width: 0;
+                margin-top: var(--spacing-sm);
+            }
+
+            @media (max-width: 767px) {
+                .cover-caption {
+                    margin-top: 0;
+                }
+            }
+
+            .note-text {
+                margin: 0;
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-body-small);
+                line-height: var(--line-height-body);
+            }
+
+            /* The band under both columns once a replacement is picked: the swap, then the question.
+               The scroll margin keeps it clear of the sticky footer when it is scrolled into view. */
+            .band {
+                display: grid;
+                grid-template-columns: auto minmax(0, 1fr);
+                align-items: center;
+                gap: var(--spacing-sm) var(--spacing-xl);
+                margin-top: var(--spacing-xl);
+                padding-top: var(--spacing-lg);
+                border-top: var(--border-divider);
+                scroll-margin-bottom: calc(var(--control-height-medium) + 2 * var(--spacing-lg) + var(--spacing-md));
+            }
+
+            .band-heading {
+                margin: 0;
+                font-size: var(--font-size-body-medium);
+                font-weight: var(--font-weight-semibold);
+                line-height: var(--line-height-meta);
+            }
+
+            .swap-heading {
+                grid-column: 1;
+                grid-row: 1;
+            }
+
+            .swap {
+                grid-column: 1;
+                grid-row: 2;
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-sm);
+            }
+
+            .swap img {
+                width: 32px;
+                height: 48px;
+                object-fit: cover;
+                border-radius: var(--border-radius-sm);
+                box-shadow: var(--box-shadow-raised);
+            }
+
+            .swap ol-icon {
+                color: var(--color-text-secondary);
+            }
+
+            :host(:dir(rtl)) .swap ol-icon {
+                transform: scaleX(-1);
+            }
+
+            .swap .keep {
+                margin-inline-start: var(--spacing-xs);
+                font-size: var(--font-size-body-small);
+            }
+
+            .reason-heading {
+                grid-column: 2;
+                grid-row: 1;
+            }
+
+            .why {
+                grid-column: 2;
+                grid-row: 2;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: var(--spacing-sm) var(--spacing-md);
+                min-width: 0;
+            }
+
+            /* Stacked on a phone: the swap, then the question. */
+            @media (max-width: 767px) {
+                .band {
+                    grid-template-columns: minmax(0, 1fr);
+                }
+
+                .reason-heading {
+                    grid-column: 1;
+                    grid-row: 3;
+                    margin-top: var(--spacing-sm);
+                }
+
+                .why {
+                    grid-column: 1;
+                    grid-row: 4;
+                }
+            }
+
+            .reason-chips {
+                display: flex;
+                flex-wrap: wrap;
+                gap: var(--spacing-xs);
+                margin: 0;
+                padding: 0;
+                list-style: none;
+            }
+
+            /* A pressable pill, one per reason; the pressed one takes the control-selected look. */
+            .chip {
+                --control-surface: var(--color-control-bg);
+                --control-highlight-strength: 60%;
+                display: inline-flex;
+                align-items: center;
+                min-height: var(--control-height-small);
+                padding: 0 var(--spacing-md);
+                border: var(--border-width-thin) solid var(--color-control-border);
+                border-radius: var(--border-radius-pill);
+                background: var(--color-control-bg);
+                color: var(--color-text);
+                font-family: var(--font-family-button);
+                font-size: var(--font-size-label-medium);
+                font-weight: var(--font-weight-button);
+                line-height: var(--line-height-control);
+                cursor: pointer;
+                box-sizing: border-box;
+            }
+
+            .chip[aria-pressed='true'] {
+                --control-surface: var(--color-control-selected-surface);
+                border-color: var(--color-control-selected-border);
+                background: var(--color-control-selected-bg);
+                color: var(--color-link);
+            }
+
+            .reason-hint {
+                flex-basis: 100%;
+                margin: 0;
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-body-small);
+                line-height: var(--line-height-body);
+            }
+
+            .note {
+                flex-basis: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-xs);
+                margin: 0;
+                font-size: var(--font-size-label-large);
+                font-weight: var(--font-weight-medium);
+            }
+
+            /* 16px so iOS doesn't zoom on focus. */
+            .note input {
+                min-height: var(--control-height-medium);
+                padding: 0 var(--spacing-sm);
+                border: var(--border-width-thin) solid var(--color-border);
+                border-radius: var(--border-radius-input);
+                background: var(--color-surface);
+                color: var(--color-text);
+                font: inherit;
+                font-size: 16px;
+                font-weight: var(--font-weight-regular);
+                box-sizing: border-box;
+            }
+
+            .note input:focus-visible {
+                border-color: var(--color-border-focused);
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: 0;
+            }
+
+            /* The list side: a heading, then one row per image, the upload row first. */
+            .step-title {
+                margin: 0 0 var(--spacing-xs);
+                font-family: var(--font-family-heading);
+                font-size: var(--font-size-title-medium);
+                font-weight: var(--font-weight-heading);
+                line-height: var(--line-height-heading);
+                text-wrap: balance;
+            }
+
+            .step-intro {
+                margin: 0 0 var(--spacing-lg);
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-body-medium);
+                line-height: var(--line-height-body);
+            }
+
+            .list-wrap {
+                position: relative;
+            }
+
+            .options {
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-sm);
+                margin: 0;
+                padding: 0;
+                list-style: none;
+            }
+
+            .row {
+                position: relative;
+            }
+
+            .option {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-md);
+                width: 100%;
+                min-height: 84px;
+                padding: var(--spacing-sm);
+                padding-inline-end: var(--spacing-md);
+                border: var(--border-width-thin) solid var(--color-border-subtle);
+                border-radius: var(--border-radius-card);
+                background: var(--color-surface);
+                color: inherit;
+                font: inherit;
+                text-align: start;
+                cursor: pointer;
+                box-sizing: border-box;
+            }
+
+            .option:focus-visible {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: 2px;
+            }
+
+            .option[aria-pressed='true'] {
+                border-color: var(--color-primary);
+                background: var(--color-control-selected-bg);
+                box-shadow: 0 0 0 var(--border-width-thin) var(--color-primary);
+            }
+
+            .option:disabled {
+                cursor: default;
+            }
+
+            /* Room for Remove / Undo, which sits over the row's end. */
+            .row.removable .option {
+                padding-inline-end: calc(var(--spacing-md) + 64px);
+            }
+
+            .thumb {
+                position: relative;
+                flex: none;
+                display: grid;
+                place-items: center;
+                width: 56px;
+                height: 84px;
+                overflow: hidden;
+                border-radius: var(--border-radius-sm);
+            }
+
+            .thumb img {
+                display: block;
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                box-shadow: var(--box-shadow-raised);
+            }
+
+            .removed .thumb img {
+                opacity: 0.3;
+            }
+
+            /* The whole upload row is the drop target, so the whole row wears the dashed edge. */
+            .upload .option {
+                border: var(--border-width-thick) dashed var(--color-border);
+                background: var(--color-surface-raised);
+            }
+
+            .upload .thumb {
+                background: var(--color-surface-sunken);
+                color: var(--color-text-secondary);
+            }
+
+            /* Drawn like a native radio; the upload row keeps the space so thumbnails line up. */
+            .radio {
+                flex: none;
+                display: grid;
+                place-items: center;
+                width: 18px;
+                height: 18px;
+                border: var(--border-width-thin) solid var(--color-border);
+                border-radius: var(--border-radius-circle);
+                background: var(--color-surface);
+                box-sizing: border-box;
+            }
+
+            .upload .radio {
+                visibility: hidden;
+            }
+
+            .option[aria-pressed='true'] .radio {
+                border-color: var(--color-primary);
+                background: var(--color-primary);
+            }
+
+            .option[aria-pressed='true'] .radio::after {
+                content: '';
+                width: 6px;
+                height: 6px;
+                border-radius: var(--border-radius-circle);
+                background: var(--color-on-primary);
+            }
+
+            .option:disabled .radio {
+                opacity: 0.4;
+            }
+
+            .busy {
+                position: absolute;
+                inset: 0;
+                display: grid;
+                place-items: center;
+                background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+            }
+
             .busy ol-icon {
-                animation: none;
+                animation: spin var(--duration-spin) linear infinite;
             }
-        }
 
-        .visually-hidden {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
-            clip-path: inset(50%);
-            white-space: nowrap;
-        }
-    `;
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .text {
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-3xs);
+                min-width: 0;
+            }
+
+            .title {
+                overflow: hidden;
+                font-size: var(--font-size-body-medium);
+                font-weight: var(--font-weight-semibold);
+                line-height: var(--line-height-meta);
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+
+            .meta {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: var(--spacing-xs);
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-body-small);
+                line-height: var(--line-height-meta);
+            }
+
+            .source,
+            .tag {
+                padding: var(--spacing-3xs) var(--spacing-xs);
+                border-radius: var(--border-radius-badge);
+                font-size: var(--font-size-label-small);
+                font-weight: var(--font-weight-semibold);
+                line-height: var(--line-height-single);
+            }
+
+            .source {
+                background: var(--color-info-bg);
+                color: var(--color-info-fg);
+            }
+
+            .tag {
+                background: var(--color-surface-inverse);
+                color: var(--color-text-inverse);
+            }
+
+            /* Remove / Undo and Keep current: quiet text links. */
+            .text-action {
+                padding: 0;
+                border: 0;
+                background: none;
+                color: var(--color-link);
+                font: inherit;
+                text-decoration: underline;
+                text-underline-offset: 2px;
+                cursor: pointer;
+            }
+
+            .row .text-action {
+                position: absolute;
+                top: 50%;
+                inset-inline-end: var(--spacing-md);
+                transform: translateY(-50%);
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-body-small);
+            }
+
+            .row .text-action.danger {
+                color: var(--color-error-fg);
+            }
+
+            .text-action:focus-visible {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: 2px;
+                border-radius: var(--border-radius-sm);
+            }
+
+            .list-note {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
+                gap: var(--spacing-sm);
+                margin: var(--spacing-sm) 0 0;
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-body-small);
+                line-height: var(--line-height-body);
+            }
+
+            /* Touch gets a Paste button and its own hint; a mouse has Cmd/Ctrl+V and drag and drop. */
+            .hint-pointer {
+                display: none;
+            }
+
+            @media (hover: hover) and (pointer: fine) {
+                .hint-touch,
+                .paste {
+                    display: none;
+                }
+
+                .hint-pointer {
+                    display: inline;
+                }
+
+                .option:hover:not(:disabled):not([aria-pressed='true']) {
+                    background: var(--color-hover-overlay);
+                    border-color: var(--color-border-muted);
+                }
+
+                .upload .option:hover {
+                    border-color: var(--color-primary);
+                    background: var(--color-primary-subtle);
+                }
+
+                .upload .option:hover .thumb {
+                    color: var(--color-primary);
+                }
+
+                /* Border tracks the fill, as ol-button does; the pressed chip deepens its tint. */
+                .chip:hover:not([aria-pressed='true']) {
+                    --control-surface: var(--color-control-hover);
+                    background: var(--color-control-hover);
+                    border-color: var(--color-border-muted);
+                }
+
+                .chip[aria-pressed='true']:hover {
+                    --control-surface: var(--color-control-selected-surface-hover);
+                    background: var(--color-control-selected-bg-hover);
+                    border-color: var(--color-control-selected-border-hover);
+                }
+
+                .text-action:hover {
+                    text-decoration-thickness: 2px;
+                }
+
+                .row .text-action:not(.danger):hover {
+                    color: var(--color-text);
+                }
+            }
+
+            .drop-target {
+                position: absolute;
+                inset: calc(-1 * var(--spacing-sm));
+                display: grid;
+                place-items: center;
+                border: var(--border-width-thick) dashed var(--color-primary);
+                border-radius: var(--border-radius-card);
+                background: color-mix(in srgb, var(--color-primary-subtle) 92%, transparent);
+                color: var(--color-primary);
+                font-size: var(--font-size-title-small);
+                font-weight: var(--font-weight-semibold);
+                pointer-events: none;
+            }
+
+            .error {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-xs);
+                margin: var(--spacing-lg) 0 0;
+                padding: var(--spacing-sm) var(--spacing-md);
+                border: var(--border-width-thin) solid var(--color-error-border);
+                border-radius: var(--border-radius-notification);
+                background: var(--color-error-bg);
+                color: var(--color-error-fg);
+                font-size: var(--font-size-body-small);
+            }
+
+            .footer {
+                position: sticky;
+                bottom: calc(-1 * var(--ol-dialog-padding, 0px));
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
+                gap: var(--spacing-md);
+                margin: var(--spacing-xl) calc(-1 * var(--ol-dialog-padding, 0px)) calc(-1 * var(--ol-dialog-padding, 0px));
+                padding: var(--spacing-lg) var(--ol-dialog-padding, 0px);
+                border-top: var(--border-divider);
+                background: var(--color-surface);
+            }
+
+            .status {
+                flex: 1 1 220px;
+                margin: 0;
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-body-small);
+                line-height: var(--line-height-body);
+            }
+
+            .actions {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: flex-end;
+                gap: var(--spacing-sm) var(--spacing-lg);
+                margin-inline-start: auto;
+            }
+
+            .actions a {
+                color: var(--color-link);
+                font-size: var(--font-size-body-small);
+            }
+
+            .buttons {
+                display: flex;
+                gap: var(--spacing-sm);
+            }
+
+            .skeleton {
+                background: var(--color-surface-sunken);
+                animation: pulse var(--duration-slower) var(--ease-in-out-cubic) infinite alternate;
+            }
+
+            .skeleton-row {
+                height: 84px;
+                border-radius: var(--border-radius-card);
+            }
+
+            @keyframes pulse {
+                to {
+                    opacity: 0.5;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .skeleton,
+                .busy ol-icon {
+                    animation: none;
+                }
+            }
+
+            .visually-hidden {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                overflow: hidden;
+                clip-path: inset(50%);
+                white-space: nowrap;
+            }
+        `
+    ];
 
     constructor() {
         super();
@@ -810,7 +797,6 @@ export class OlCoverManager extends LitElement {
         this.labels = {};
         this._data = null;
         this._loadState = 'idle';
-        this._step = 'pick';
         this._reason = null;
         this._reasonNote = '';
         this._selected = null;
@@ -867,8 +853,7 @@ export class OlCoverManager extends LitElement {
             if (!response.ok) throw new Error(response.statusText);
             this._data = await response.json();
             this._selected = this._data.current;
-            this._step = this._asksReason ? 'reason' : 'pick';
-            if (this._dialog) this._dialog.label = this._t(this._data.current ? 'titleChange' : 'titleAdd');
+            if (this._dialog) this._dialog.label = this._t(this._hasOwnImage ? 'titleChange' : 'titleAdd');
             this._loadState = 'ready';
         } catch {
             this._loadState = 'error';
@@ -890,9 +875,22 @@ export class OlCoverManager extends LitElement {
         this._dragDepth = 0;
     }
 
-    /** Replacing a book's cover asks why first; an author photo doesn't. */
-    get _asksReason() {
-        return Boolean(this._data?.current) && !this.docKey.startsWith('/authors/');
+    /** The record has an image of its own; a scan shown in its place is a suggestion, not a cover. */
+    get _hasOwnImage() {
+        return Boolean(this._data?.current?.startsWith('img:'));
+    }
+
+    get _isFallback() {
+        return Boolean(this._data?.current?.startsWith('suggestion:'));
+    }
+
+    /** Replacing a book's own cover asks why; adding a first cover or changing an author photo doesn't. */
+    get _needsReason() {
+        return this._hasOwnImage && !this.docKey.startsWith('/authors/') && this._selected !== this._data.current;
+    }
+
+    get _reasonComplete() {
+        return Boolean(this._reason) && (this._reason !== 'other' || this._reasonNote.trim() !== '');
     }
 
     /** Session uploads first, after the suggestions; then what the record already has. */
@@ -911,8 +909,8 @@ export class OlCoverManager extends LitElement {
         return Boolean(this._data) && (this._selected !== this._data.current || this._removed.size > 0 || this._uploadedIds.length > 0);
     }
 
-    get _reasonComplete() {
-        return Boolean(this._reason) && (this._reason !== 'other' || this._reasonNote.trim() !== '');
+    get _canSave() {
+        return this._isDirty && !this._added.some(item => item.pending) && (!this._needsReason || this._reasonComplete);
     }
 
     _isOpen() {
@@ -920,32 +918,16 @@ export class OlCoverManager extends LitElement {
     }
 
     _accepting() {
-        return this._loadState === 'ready' && this._step === 'pick';
+        return this._loadState === 'ready';
     }
 
-    // The reason step
+    // The reason
 
-    async _chooseReason(value) {
+    async _setReason(value) {
         this._reason = value;
-        if (value !== 'other') {
-            this._continue();
-            return;
-        }
         await this.updateComplete;
-        this.shadowRoot.querySelector('.note input')?.focus();
-    }
-
-    async _continue() {
-        if (!this._reasonComplete) return;
-        this._step = 'pick';
-        await this.updateComplete;
-        this.shadowRoot.querySelector('.panel > h3')?.focus();
-    }
-
-    async _changeReason() {
-        this._step = 'reason';
-        await this.updateComplete;
-        (this.shadowRoot.querySelector('.reason[aria-pressed="true"]') ?? this.shadowRoot.querySelector('.reason'))?.focus();
+        if (value === 'other') this.shadowRoot.querySelector('.note input')?.focus({ preventScroll: true });
+        this._revealReason();
     }
 
     // Adding images
@@ -1046,6 +1028,7 @@ export class OlCoverManager extends LitElement {
             const item = { ...result, thumb: objectUrl, preview: objectUrl, objectUrl, session: true };
             this._added = this._added.map(added => (added.id === placeholder.id ? item : added));
             this._selected = item.id;
+            this._revealReason();
         } catch {
             URL.revokeObjectURL(objectUrl);
             this._added = this._added.filter(added => added.id !== placeholder.id);
@@ -1058,6 +1041,13 @@ export class OlCoverManager extends LitElement {
     _select(item) {
         if (item.pending || this._removed.has(item.image_id)) return;
         this._selected = item.id;
+        this._revealReason();
+    }
+
+    /** The question appears under the replacement; bring it into view if the column runs past the dialog. */
+    async _revealReason() {
+        await this.updateComplete;
+        if (this._needsReason) this.shadowRoot.querySelector('.band')?.scrollIntoView?.({ block: 'end' });
     }
 
     _remove(item) {
@@ -1100,13 +1090,13 @@ export class OlCoverManager extends LitElement {
     // Saving
 
     async _save() {
-        if (!this._isDirty || this._saving) return;
+        if (!this._canSave || this._saving) return;
         this._saving = true;
         this._error = '';
         // An image the record has is picked by id; a suggestion not copied in yet, by name.
         const selected = this._items.find(item => item.id === this._selected);
         const selection = selected.image_id ? { image_id: selected.image_id } : { suggestion: selected.suggestion };
-        const reason = this._reason ? { reason: this._reason, ...(this._reason === 'other' ? { reason_note: this._reasonNote.trim() } : {}) } : {};
+        const reason = this._needsReason ? { reason: this._reason, ...(this._reason === 'other' ? { reason_note: this._reasonNote.trim() } : {}) } : {};
         try {
             const response = await fetch(`${this._endpoint}.json`, {
                 method: 'POST',
@@ -1147,7 +1137,7 @@ export class OlCoverManager extends LitElement {
             case 'archive_title':
                 return { title: this._t('titleScanTitle'), source: this._t('sourceArchive') };
             case 'amazon':
-                return { title: this._t('titleAmazon'), detail: item.isbn ? this._t('detailIsbn', { isbn: item.isbn }) : '' };
+                return { title: this._t('titleAmazon'), source: this._t('sourceAmazon') };
             case 'wikidata':
                 return { title: this._t('titleWikidata'), source: this._t('sourceWikidata') };
             default: {
@@ -1174,90 +1164,77 @@ export class OlCoverManager extends LitElement {
         >`;
     }
 
-    _renderCover() {
+    /** The image shown large: the selection, or the current cover while a selection is settling. */
+    get _shown() {
         const items = this._items;
-        const selected = items.find(item => item.id === this._selected);
-        const current = items.find(item => item.id === this._data.current);
-        const heading = !selected ? 'coverHeading' : selected === current ? 'currentHeading' : 'newHeading';
-        const description = selected && this._describe(selected);
+        return items.find(item => item.id === this._selected) ?? items.find(item => item.id === this._data?.current);
+    }
+
+    _renderCover(selected) {
+        const current = this._items.find(item => item.id === this._data.current);
+        const heading = selected === current ? 'currentHeading' : 'newHeading';
+        const description = this._describe(selected);
 
         return html`<section class="cover" aria-labelledby="cover-heading">
             <h3 class="overline" id="cover-heading">${this._t(heading)}</h3>
             <div class="cover-body">
-                ${
-                    selected
-                        ? html`<div class="cover-frame"><img src=${selected.preview ?? selected.thumb} alt="" /></div>`
-                        : html`<div class="cover-frame empty">
-                              <ol-icon name="image" size="lg"></ol-icon>
-                              <strong>${this._t('emptyTitle')}</strong>
-                              <span>${this._t('emptyHint')}</span>
-                          </div>`
-                }
+                <div class="cover-frame"><img src=${selected.preview ?? selected.thumb} alt="" /></div>
                 <div class="cover-caption">
-                    ${description ? html`<div class="text"><span class="title">${description.title}</span>${this._renderMeta(description)}</div>` : nothing}
-                    ${
-                        current && selected !== current
-                            ? html`<div class="aside">
-                                  <img src=${current.thumb} alt="" />
-                                  <span class="label">${this._t('replaces')}</span>
-                                  <button type="button" class="text-action" @click=${() => this._select(current)}>${this._t('keepCurrent')}</button>
-                              </div>`
-                            : nothing
-                    }
+                    <div class="text"><span class="title">${description.title}</span>${this._renderMeta(description)}</div>
+                    ${this._isFallback && selected === current ? html`<p class="note-text">${this._t('fallbackNote')}</p>` : nothing}
                 </div>
             </div>
         </section>`;
     }
 
-    _renderReasonSummary() {
-        if (!this._reason) return nothing;
-        const reason = this._reason === 'other' ? this._reasonNote.trim() : this._t(`${REASONS.find(r => r.value === this._reason).label}Short`);
-        return html`<p class="reason-summary">
-            <span class="label">${this._t('reasonLabel')}</span>
-            <strong title=${reason}>${reason}</strong>
-            <button type="button" class="text-action" aria-label=${this._t('reasonChangeLabel')} @click=${this._changeReason}>
-                ${this._t('reasonChange')}
-            </button>
-        </p>`;
+    /** Under both columns once a replacement is picked: current → new with a way back, then the question if one is due. */
+    _renderBand(current, selected) {
+        const asks = this._needsReason;
+        return html`<div class="band">
+            <strong class="band-heading swap-heading">${this._t('replaces')}</strong>
+            ${asks ? html`<h4 class="band-heading reason-heading" id="reason-heading">${this._t('reasonHeading')}</h4>` : nothing}
+            <div class="swap">
+                <img src=${current.thumb} alt="" />
+                <ol-icon name="chevron-right" size="sm"></ol-icon>
+                <img src=${selected.thumb} alt="" />
+                <button type="button" class="text-action keep" @click=${() => this._select(current)}>${this._t('keepCurrent')}</button>
+            </div>
+            ${asks ? this._renderReason() : nothing}
+        </div>`;
     }
 
-    _renderReasonStep() {
-        return html`<div class="panel">
-            <h3 class="step-title" id="reason-heading" tabindex="-1">${this._t('reasonHeading')}</h3>
-            <ul class="reasons" aria-labelledby="reason-heading">
+    _renderReason() {
+        const chosen = REASONS.find(r => r.value === this._reason);
+        return html`<div class="why" role="group" aria-labelledby="reason-heading">
+            <ul class="reason-chips">
                 ${REASONS.map(
                     ({ value, label }) =>
                         html`<li>
                             <button
-                                class="reason"
+                                class="chip raised pressable focus-ring-layered"
                                 type="button"
                                 data-value=${value}
                                 aria-pressed=${this._reason === value ? 'true' : 'false'}
-                                @click=${() => this._chooseReason(value)}
+                                @click=${() => this._setReason(value)}
                             >
-                                <span><strong>${this._t(label)}</strong>${this._t(`${label}Hint`)}</span>
-                                ${value === 'other' ? html`<ol-icon name="chevron-down"></ol-icon>` : html`<ol-icon class="forward" name="chevron-right"></ol-icon>`}
+                                ${this._t(label)}
                             </button>
                         </li>`
                 )}
             </ul>
+            ${chosen?.hint ? html`<p class="reason-hint">${this._t(chosen.hint)}</p>` : nothing}
             ${
                 this._reason === 'other'
                     ? html`<label class="note">
-                              ${this._t('reasonNoteLabel')}
-                              <input
-                                  type="text"
-                                  maxlength=${NOTE_MAX}
-                                  .value=${this._reasonNote}
-                                  @input=${e => (this._reasonNote = e.target.value)}
-                                  @keydown=${e => e.key === 'Enter' && this._continue()}
-                              />
-                          </label>
-                          <div class="note-actions">
-                              <ol-button class="note-continue" variant="primary" ?disabled=${!this._reasonComplete} @click=${this._continue}
-                                  >${this._t('continue')}</ol-button
-                              >
-                          </div>`
+                          ${this._t('reasonNoteLabel')}
+                          <input
+                              type="text"
+                              maxlength=${NOTE_MAX}
+                              .value=${this._reasonNote}
+                              @input=${e => (this._reasonNote = e.target.value)}
+                              @keydown=${e => e.key === 'Enter' && this._save()}
+                          />
+                      </label>`
                     : nothing
             }
         </div>`;
@@ -1303,18 +1280,15 @@ export class OlCoverManager extends LitElement {
         </li>`;
     }
 
-    _renderPickStep() {
-        const hasCover = Boolean(this._data.current);
+    _renderList() {
+        let heading;
+        if (this._hasOwnImage) heading = html`<h3 class="overline">${this._t('chooseHeading')}</h3>`;
+        else if (this._isFallback) heading = html`<h3 class="overline">${this._t('chooseHeadingAdd')}</h3>`;
+        else
+            heading = html`<h3 class="step-title">${this._t('noCoverTitle')}</h3>
+                <p class="step-intro">${this._t('noCoverIntro')}</p>`;
         return html`<div class="panel">
-            ${
-                hasCover
-                    ? html`<div class="pick-head">
-                          <h3 class="overline" tabindex="-1">${this._t('chooseHeading')}</h3>
-                          ${this._renderReasonSummary()}
-                      </div>`
-                    : html`<h3 class="step-title" tabindex="-1">${this._t('noCoverTitle')}</h3>
-                          <p class="step-intro">${this._t('noCoverIntro')}</p>`
-            }
+            ${heading}
             <div class="list-wrap" @dragenter=${this._onDragEnter} @dragover=${this._onDragOver} @dragleave=${this._onDragLeave} @drop=${this._onDrop}>
                 <ul class="options" aria-label=${this._t('images')} @keydown=${this._onListKeydown}>
                     <li class="row upload">
@@ -1350,7 +1324,6 @@ export class OlCoverManager extends LitElement {
     }
 
     _renderStatus() {
-        if (this._step === 'reason') return nothing;
         if (this._added.some(item => item.pending)) return this._t('uploading');
         if (!this._isDirty) return nothing;
         const parts = [];
@@ -1361,20 +1334,13 @@ export class OlCoverManager extends LitElement {
     }
 
     _renderFooter() {
-        const pending = this._added.some(item => item.pending);
-        const primary =
-            this._step === 'reason'
-                ? nothing
-                : html`<ol-button variant="primary" ?disabled=${!this._isDirty || pending} ?loading=${this._saving} @click=${this._save}
-                      >${this._t('save')}</ol-button
-                  >`;
         return html`<div class="footer">
             <p class="status" aria-live="polite">${this._renderStatus()}</p>
             <div class="actions">
                 <a href=${this.guidelinesUrl} target="_blank" rel="noopener">${this._t('guidelines')}</a>
                 <div class="buttons">
                     <ol-button variant="secondary" @click=${this._cancel}>${this._t('cancel')}</ol-button>
-                    ${primary}
+                    <ol-button variant="primary" ?disabled=${!this._canSave} ?loading=${this._saving} @click=${this._save}>${this._t('save')}</ol-button>
                 </div>
             </div>
         </div>`;
@@ -1396,8 +1362,12 @@ export class OlCoverManager extends LitElement {
             </div>`;
         }
 
+        // With nothing to show yet, the list is the whole dialog; the cover column appears with the first pick.
+        const shown = this._shown;
+        const current = this._items.find(item => item.id === this._data.current);
         return html`
-            <div class="layout">${this._renderCover()} ${this._step === 'reason' ? this._renderReasonStep() : this._renderPickStep()}</div>
+            <div class="layout ${shown ? '' : 'single'}">${shown ? this._renderCover(shown) : nothing} ${this._renderList()}</div>
+            ${current && shown && shown !== current ? this._renderBand(current, shown) : nothing}
             ${this._error ? html`<p class="error" role="alert"><ol-icon name="circle-alert" size="sm"></ol-icon>${this._error}</p>` : nothing}
             ${this._renderFooter()}
         `;

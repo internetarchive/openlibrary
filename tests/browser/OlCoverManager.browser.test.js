@@ -74,7 +74,7 @@ function seedAuthorPage() {
     document.body.innerHTML = infobox('mobile') + infobox('desktop');
 }
 
-/** Open the manager's dialog, wait for it to load, and answer the reason step if a cover is being replaced. */
+/** Open the manager's dialog and wait for it to load. */
 async function openManager(dialogId) {
     const dialog = document.getElementById(dialogId);
     dialog.open = true;
@@ -82,11 +82,6 @@ async function openManager(dialogId) {
     const manager = dialog.querySelector('ol-cover-manager');
     await vi.waitFor(() => expect(manager._loadState).toBe('ready'));
     await manager.updateComplete;
-    if (manager._step === 'reason') {
-        await userEvent.click(manager.renderRoot.querySelector('.reason[data-value="wrong"]'));
-        await vi.waitFor(() => expect(manager._step).toBe('pick'));
-        await manager.updateComplete;
-    }
     return manager;
 }
 
@@ -121,7 +116,10 @@ test('choosing a real file uploads it, and Save puts it on the page at full reso
     expect(upload.init.body.get('file').name).toBe('image.png');
 
     await manager.updateComplete;
-    expect(saveButton(manager).disabled).toBe(false);
+    // The upload replaces the edition's own cover, so Save waits for a reason.
+    expect(saveButton(manager).disabled).toBe(true);
+    await userEvent.click(q(manager, '.chip[data-value="wrong"]'));
+    await vi.waitFor(() => expect(saveButton(manager).disabled).toBe(false));
     await userEvent.click(saveButton(manager));
 
     await vi.waitFor(() => expect(document.querySelector('.bookCover img').getAttribute('src')).toBe(`${COVERSTORE}/b/id/77-M.jpg`));

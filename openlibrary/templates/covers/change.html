@@ -5,8 +5,13 @@ $if not ctx.user:
     $return
 
 
-$if doc.type.key == '/type/author':
-    $if doc.get_photo():
+$ is_author = doc.type.key == '/type/author'
+$ is_work = doc.type.key == '/type/work'
+$# An image of the record's own; a scan shown in its place (get_cover's fallback) is still "add".
+$ has_own_image = any(i and i > 0 for i in (doc.get('photos' if is_author else 'covers') or []))
+
+$if is_author:
+    $if has_own_image:
         $ title = _('Change the photo')
         $ change = _('Manage Author Photos')
         $ size = "smaller"
@@ -15,7 +20,7 @@ $if doc.type.key == '/type/author':
         $ change = _('Add Author Photo')
         $ size = "smallest"
 $else:
-    $if doc.get_cover():
+    $if has_own_image:
         $ title = _('Change the cover')
         $ change = _('Manage Covers')
         $ size = "smaller"
@@ -24,22 +29,18 @@ $else:
         $ change = _('Add Cover Image')
         $ size = "smallest"
 
-$ is_author = doc.type.key == '/type/author'
-$ is_work = doc.type.key == '/type/work'
 $code:
     # Keys and English strings must match DEFAULT_LABELS in OlCoverManager.js.
     if is_author:
         noun_labels = {
             "titleAdd": _("Add a photo"),
             "titleChange": _("Change the photo"),
-            "coverHeading": _("Photo"),
             "currentHeading": _("Current photo"),
             "newHeading": _("New photo"),
-            "emptyTitle": _("No photo yet"),
-            "emptyHint": _("Readers see a plain placeholder on the author page and in search."),
             "noCoverTitle": _("This author has no photo"),
             "noCoverIntro": _("Add one and it shows on the author page and in search."),
             "chooseHeading": _("Choose the new photo"),
+            "chooseHeadingAdd": _("Choose a photo"),
             "replaces": _("Replaces the current photo"),
             "pickLabelCurrent": _("%(name)s (current photo)"),
             "guidelines": _("Image guidelines"),
@@ -49,14 +50,13 @@ $code:
         noun_labels = {
             "titleAdd": _("Add a cover"),
             "titleChange": _("Change the cover"),
-            "coverHeading": _("Cover"),
             "currentHeading": _("Current cover"),
             "newHeading": _("New cover"),
-            "emptyTitle": _("No cover yet"),
-            "emptyHint": _("Readers see a plain placeholder on the book page, in search, and in lists."),
             "noCoverTitle": _("This work has no cover") if is_work else _("This edition has no cover"),
             "noCoverIntro": _("Add one and it shows everywhere the book appears."),
+            "fallbackNote": _("Readers see this scan because the edition has no cover of its own."),
             "chooseHeading": _("Choose the new cover"),
+            "chooseHeadingAdd": _("Choose a cover"),
             "replaces": _("Replaces the current cover"),
             "pickLabelCurrent": _("%(name)s (current cover)"),
             "guidelines": _("Cover guidelines"),
@@ -64,24 +64,15 @@ $code:
         }
     labels = {
         "keepCurrent": _("Keep current"),
-        "reasonHeading": _("Why are you changing this cover?"),
-        "reasonWrong": _("It’s the wrong cover"),
+        "reasonHeading": _("Why are you replacing it?"),
+        "reasonWrong": _("Wrong cover"),
         "reasonWrongHint": _("The image belongs to another edition or another book."),
-        "reasonWrongShort": _("Wrong cover"),
-        "reasonBetter": _("Right cover, better image"),
-        "reasonBetterHint": _("You have a sharper, cleaner, or more complete version of the same cover."),
-        "reasonBetterShort": _("Better image"),
-        "reasonNotFront": _("It isn’t the front cover"),
+        "reasonBetter": _("Better image"),
+        "reasonBetterHint": _("A sharper, cleaner, or more complete version of the same cover."),
+        "reasonNotFront": _("Not the front cover"),
         "reasonNotFrontHint": _("A title page, back cover, spine, or a “no image” placeholder."),
-        "reasonNotFrontShort": _("Not the front cover"),
         "reasonOther": _("Something else"),
-        "reasonOtherHint": _("Tell us in a few words."),
-        "reasonOtherShort": _("Something else"),
-        "reasonNoteLabel": _("What’s wrong with this cover?"),
-        "reasonLabel": _("Reason"),
-        "reasonChange": _("Change"),
-        "reasonChangeLabel": _("Change the reason"),
-        "continue": _("Continue"),
+        "reasonNoteLabel": _("What’s wrong with the current cover?"),
         "images": _("Images"),
         "uploadTitle": _("Upload a new image"),
         "addHint": _("Drop a file here, paste, or browse"),
@@ -93,6 +84,7 @@ $code:
         "current": _("Current"),
         "sourceArchive": _("Internet Archive"),
         "sourceWikidata": _("Wikidata"),
+        "sourceAmazon": _("Amazon"),
         "titleScanCover": _("Scan of the cover"),
         "titleScanTitle": _("Scan of the title page"),
         "titleAmazon": _("Cover from Amazon"),
@@ -100,7 +92,6 @@ $code:
         "titleUploadBy": _("Uploaded by %(name)s"),
         "titleUpload": _("Uploaded image"),
         "titleYou": _("Your upload"),
-        "detailIsbn": _("Found by ISBN %(isbn)s"),
         "detailJustNow": _("Just now"),
         "remove": _("Remove"),
         "removeLabel": _("Remove %(name)s"),
@@ -138,6 +129,7 @@ $code:
   <ol-button size="small" elevation="floating" aria-controls="addImage-$imagesId" class="manageCovers dialog--open" data-config="$json_encode({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector})">$change</ol-button>
 </div>
 
-<ol-dialog id="addImage-$imagesId" label="$title" width="large" fullscreen-on-mobile>
+$# Top-anchored so the dialog grows downward as a replacement is picked, instead of re-centering under the pointer.
+<ol-dialog id="addImage-$imagesId" label="$title" width="large" placement="top" fullscreen-on-mobile>
     <ol-cover-manager doc-key="$doc.key" guidelines-url="/help/faq/editing#picture" labels="$json_encode(labels)"></ol-cover-manager>
 </ol-dialog>
