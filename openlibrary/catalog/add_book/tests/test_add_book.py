@@ -3,9 +3,9 @@ from datetime import datetime
 
 import pytest
 import web
-
 from infogami.infobase.client import Nothing
 from infogami.infobase.core import Text
+
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
     IndependentlyPublished,
@@ -2138,3 +2138,62 @@ def test_load_author_import_records_without_web_ctx_site(mock_site, monkeypatch,
     assert authors == [{"key": "/authors/OL1A"}]
     assert author_reply[0]["status"] == expected_status
     assert bool(edits) is (expected_status == "modified")
+
+
+class TestNewWork:
+    def test_new_work_with_fewer_rec_authors(self):
+        """Issue #14143: existing edition has authors, but incoming rec has no authors."""
+        edition = {"authors": [{"key": "/authors/OL1A"}, {"key": "/authors/OL2A"}]}
+        rec = {"title": "Test Title", "authors": []}
+        work = add_book.new_work(edition, rec, save=False)
+
+        assert work["title"] == "Test Title"
+        assert len(work["authors"]) == 2
+        assert work["authors"][0]["author"] == {"key": "/authors/OL1A"}
+        assert "role" not in work["authors"][0]
+        assert work["authors"][1]["author"] == {"key": "/authors/OL2A"}
+        assert "role" not in work["authors"][1]
+
+    def test_new_work_missing_authors_key_in_rec(self):
+        """rec has no 'authors' key at all."""
+        edition = {"authors": [{"key": "/authors/OL1A"}]}
+        rec = {"title": "Test Title"}
+        work = add_book.new_work(edition, rec, save=False)
+
+        assert work["title"] == "Test Title"
+        assert len(work["authors"]) == 1
+        assert work["authors"][0]["author"] == {"key": "/authors/OL1A"}
+
+    def test_new_work_preserves_roles_when_available(self):
+        """Author roles from rec are matched by index when present."""
+        edition = {"authors": [{"key": "/authors/OL1A"}, {"key": "/authors/OL2A"}]}
+        rec = {
+            "title": "Illustrated Work",
+            "authors": [
+                {"name": "Author 1", "role": "illustrator"},
+                {"name": "Author 2"},
+            ],
+        }
+        work = add_book.new_work(edition, rec, save=False)
+
+        assert len(work["authors"]) == 2
+        assert work["authors"][0]["author"] == {"key": "/authors/OL1A"}
+        assert work["authors"][0]["role"] == "illustrator"
+        assert work["authors"][1]["author"] == {"key": "/authors/OL2A"}
+        assert "role" not in work["authors"][1]
+
+    def test_new_work_handles_more_rec_authors_than_edition(self):
+        """rec has more authors than edition without crashing."""
+        edition = {"authors": [{"key": "/authors/OL1A"}]}
+        rec = {
+            "title": "Work",
+            "authors": [
+                {"name": "Author 1", "role": "editor"},
+                {"name": "Author 2", "role": "translator"},
+            ],
+        }
+        work = add_book.new_work(edition, rec, save=False)
+
+        assert len(work["authors"]) == 1
+        assert work["authors"][0]["author"] == {"key": "/authors/OL1A"}
+        assert work["authors"][0]["role"] == "editor"
