@@ -6,7 +6,7 @@ import web
 from openlibrary import accounts
 from openlibrary.mocks.mock_infobase import MockSite
 
-from .. import addbook
+from .. import addbook, models
 
 
 def strip_nones(d):
@@ -205,6 +205,63 @@ class TestSaveBookHelper:
 
         assert web.ctx.site.get("/works/OL1W").title == "Modified Work Title"
         assert web.ctx.site.get("/books/OL1M").title == "Original Edition Title"
+
+    def test_editing_edition_with_bisac_classification(self, monkeypatch):
+        """Ensure adding and removing BISAC classification saves without error (#14172)."""
+        models.setup()
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL1W",
+                    "title": "Test Work",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Test Edition",
+                    "works": [{"key": "/works/OL1W"}],
+                },
+            ]
+        )
+
+        work = web.ctx.site.get("/works/OL1W")
+        edition = web.ctx.site.get("/books/OL1M")
+
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Test Work",
+                "edition--key": "/books/OL1M",
+                "edition--title": "Test Edition",
+                "edition--works--0--key": "/works/OL1W",
+                "edition--classifications--0--name": "bisac",
+                "edition--classifications--0--value": "TEC052000",
+            }
+        )
+
+        s = addbook.SaveBookHelper(work, edition)
+        s.save(formdata)
+
+        saved_edition = web.ctx.site.get("/books/OL1M")
+        assert saved_edition.classifications.bisac == ["TEC052000"]
+
+        # Removing classification
+        formdata_clear = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Test Work",
+                "edition--key": "/books/OL1M",
+                "edition--title": "Test Edition",
+                "edition--works--0--key": "/works/OL1W",
+            }
+        )
+        s = addbook.SaveBookHelper(work, saved_edition)
+        s.save(formdata_clear)
+        cleared_edition = web.ctx.site.get("/books/OL1M")
+        assert "classifications" not in cleared_edition._getdata()
 
     def test_editing_edition(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)

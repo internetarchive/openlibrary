@@ -349,13 +349,16 @@ class Edition(models.Edition):
         for name in self.CLASSIFICATION_FIELDS:
             self._getdata().pop(name, None)
 
+        self.classifications = {}
+
         for name, value in d.items():
             if name in self.CLASSIFICATION_FIELDS:
                 self[name] = value
             else:
                 self.classifications[name] = value
 
-        if not self.classifications.items():
+        if not self.classifications:
+            self.classifications = None
             self._getdata().pop("classifications", None)
 
     def get_weight(self):
