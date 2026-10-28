@@ -1,8 +1,11 @@
 """Tests for POST /works/OL{work_id}W/notes (FastAPI)."""
 
+from datetime import datetime
 from unittest.mock import patch
 
 import pytest
+
+from openlibrary.core.booknotes import Booknote
 
 
 @pytest.fixture
@@ -12,7 +15,14 @@ def mock_booknotes():
         patch("openlibrary.core.models.Booknotes.add", autospec=True) as add_mock,
         patch("openlibrary.core.models.Booknotes.remove", autospec=True) as remove_mock,
     ):
-        add_mock.return_value = 1
+        add_mock.return_value = Booknote(
+            username="testuser",
+            work_id=123,
+            edition_id=-1,
+            notes="Great book!",
+            created=datetime.now(),
+            updated=datetime.now(),
+        )
         remove_mock.return_value = 1
         yield add_mock, remove_mock
 

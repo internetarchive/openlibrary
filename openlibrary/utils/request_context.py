@@ -48,6 +48,9 @@ req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
 # TODO: Create an async and stateless version of site so we don't have to do this
 site: ContextVar[Site] = ContextVar("site")
 
+# Each request owns a fresh set; copied worker/task contexts share that set.
+rendered_keys: ContextVar[set[str] | None] = ContextVar("rendered_keys", default=None)
+
 
 # Keep in sync with scripts/obfi.sh (obfi_grep_bots) and docker/web_nginx.conf ($is_sus_user_agent).
 # cdrini to DRY obfi.sh side.
@@ -194,6 +197,7 @@ def set_context_from_legacy_web_py() -> None:
     )
 
     site.set(web.ctx.site)
+    rendered_keys.set(set())
     req_context.set(
         RequestContextVars(
             x_forwarded_for=web.ctx.env.get("HTTP_X_FORWARDED_FOR"),
@@ -260,6 +264,7 @@ def set_context_from_fastapi(request: Request) -> None:
         s._conn.set_auth_token(unquote(cookie_value))
 
     site.set(s)
+    rendered_keys.set(set())
     req_context.set(
         RequestContextVars(
             x_forwarded_for=request.headers.get("X-Forwarded-For"),
@@ -323,6 +328,21 @@ def get_provider_pref() -> str | None:
         return req_context.get().provider_pref
     except LookupError:
         return None
+
+
+def get_print_disabled() -> bool:
+    """Whether the patron has the print-disabled (``pd``) cookie.
+
+    Reads the unified request context so it works under both web.py and
+    FastAPI. FastAPI has no ``web.ctx``, so ``web.cookies()`` there returns
+    nothing; going through ``req_context`` is what keeps print-disabled
+    patrons eligible for Special Access on FastAPI-rendered partials.
+    Defaults to False outside a request (scripts, cron).
+    """
+    try:
+        return req_context.get().print_disabled
+    except LookupError:
+        return False
 
 
 def get_request_lang() -> str:

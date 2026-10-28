@@ -51,6 +51,8 @@ export class IntegratedLibrarianEnvironment {
     setStatusText(text) {
         this.$statusText.text(text);
         this.$toolbar.toggle(text.length > 0);
+        // Lets the bottom-center toast stack lift itself clear of the toolbar.
+        document.body.classList.toggle('ile-toolbar-open', text.length > 0);
     }
 
     /**

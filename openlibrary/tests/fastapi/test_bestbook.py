@@ -1,6 +1,6 @@
 """Tests for the FastAPI bestbook endpoints."""
 
-from unittest.mock import call, patch
+from unittest.mock import AsyncMock, call, patch
 
 import pytest
 
@@ -11,8 +11,8 @@ from openlibrary.core.bestbook import Bestbook
 def mock_bestbook_model():
     """Prevent real DB calls for Bestbook mutation methods."""
     with (
-        patch("openlibrary.plugins.openlibrary.api.Bestbook.add") as add_mock,
-        patch("openlibrary.plugins.openlibrary.api.Bestbook.remove") as remove_mock,
+        patch("openlibrary.plugins.openlibrary.api.Bestbook.add", new_callable=AsyncMock) as add_mock,
+        patch("openlibrary.plugins.openlibrary.api.Bestbook.remove", new_callable=AsyncMock) as remove_mock,
     ):
         yield add_mock, remove_mock
 
@@ -34,14 +34,14 @@ class TestBestbookAwardEndpoint:
 
         assert response.status_code == 200
         assert response.json() == {"success": True, "award": 123}
-        add_mock.assert_called_once_with(
+        add_mock.assert_awaited_once_with(
             username="testuser",
             work_id=123,
             edition_id=42,
             comment="Great book!",
             topic="Fiction",
         )
-        remove_mock.assert_not_called()
+        remove_mock.assert_not_awaited()
 
     def test_post_award_adds_award_from_query_params(self, fastapi_client, mock_authenticated_user, mock_bestbook_model):
         add_mock, remove_mock = mock_bestbook_model
@@ -59,14 +59,14 @@ class TestBestbookAwardEndpoint:
 
         assert response.status_code == 200
         assert response.json() == {"success": True, "award": 123}
-        add_mock.assert_called_once_with(
+        add_mock.assert_awaited_once_with(
             username="testuser",
             work_id=123,
             edition_id=42,
             comment="Great book!",
             topic="Fiction",
         )
-        remove_mock.assert_not_called()
+        remove_mock.assert_not_awaited()
 
     def test_post_award_defaults_to_add(self, fastapi_client, mock_authenticated_user, mock_bestbook_model):
         add_mock, remove_mock = mock_bestbook_model
@@ -76,14 +76,14 @@ class TestBestbookAwardEndpoint:
 
         assert response.status_code == 200
         assert response.json() == {"success": True, "award": 789}
-        add_mock.assert_called_once_with(
+        add_mock.assert_awaited_once_with(
             username="testuser",
             work_id=123,
             edition_id=None,
             comment="",
             topic=None,
         )
-        remove_mock.assert_not_called()
+        remove_mock.assert_not_awaited()
 
     def test_post_award_form_values_override_query_values(self, fastapi_client, mock_authenticated_user, mock_bestbook_model):
         add_mock, remove_mock = mock_bestbook_model
@@ -107,14 +107,14 @@ class TestBestbookAwardEndpoint:
 
         assert response.status_code == 200
         assert response.json() == {"success": True, "award": 321}
-        add_mock.assert_called_once_with(
+        add_mock.assert_awaited_once_with(
             username="testuser",
             work_id=123,
             edition_id=42,
             comment="form comment",
             topic="Form Topic",
         )
-        remove_mock.assert_not_called()
+        remove_mock.assert_not_awaited()
 
     def test_post_award_removes_award(self, fastapi_client, mock_authenticated_user, mock_bestbook_model):
         add_mock, remove_mock = mock_bestbook_model
@@ -127,8 +127,8 @@ class TestBestbookAwardEndpoint:
 
         assert response.status_code == 200
         assert response.json() == {"success": True, "rows": 1}
-        remove_mock.assert_called_once_with("testuser", work_id=123)
-        add_mock.assert_not_called()
+        remove_mock.assert_awaited_once_with("testuser", work_id=123)
+        add_mock.assert_not_awaited()
 
     def test_post_award_updates_award(self, fastapi_client, mock_authenticated_user, mock_bestbook_model):
         add_mock, remove_mock = mock_bestbook_model
@@ -145,11 +145,11 @@ class TestBestbookAwardEndpoint:
 
         assert response.status_code == 200
         assert response.json() == {"success": True, "award": 456}
-        assert remove_mock.call_args_list == [
+        assert remove_mock.await_args_list == [
             call("testuser", topic="Science Fiction"),
             call("testuser", work_id=123),
         ]
-        add_mock.assert_called_once_with(
+        add_mock.assert_awaited_once_with(
             username="testuser",
             work_id=123,
             edition_id=None,
@@ -172,11 +172,11 @@ class TestBestbookAwardEndpoint:
 
         assert response.status_code == 200
         assert response.json() == {"success": True, "award": 456}
-        assert remove_mock.call_args_list == [
+        assert remove_mock.await_args_list == [
             call("testuser", topic="Science Fiction"),
             call("testuser", work_id=123),
         ]
-        add_mock.assert_called_once_with(
+        add_mock.assert_awaited_once_with(
             username="testuser",
             work_id=123,
             edition_id=None,
@@ -241,7 +241,7 @@ class TestBestbookAwardEndpoint:
 
 class TestBestbookCountEndpoint:
     def test_count_forwards_filters(self, fastapi_client):
-        with patch("openlibrary.fastapi.internal.api.Bestbook.get_count", return_value=5) as get_count_mock:
+        with patch("openlibrary.fastapi.internal.api.Bestbook.get_count", new_callable=AsyncMock, return_value=5) as get_count_mock:
             response = fastapi_client.get(
                 "/awards/count.json",
                 params={
@@ -253,12 +253,20 @@ class TestBestbookCountEndpoint:
 
         assert response.status_code == 200
         assert response.json() == {"count": 5}
-        get_count_mock.assert_called_once_with(work_id="OL123W", username="testuser", topic="Fiction")
+        get_count_mock.assert_awaited_once_with(work_id="OL123W", username="testuser", topic="Fiction")
 
     def test_count_works_without_filters(self, fastapi_client):
-        with patch("openlibrary.fastapi.internal.api.Bestbook.get_count", return_value=0) as get_count_mock:
+        with patch("openlibrary.fastapi.internal.api.Bestbook.get_count", new_callable=AsyncMock, return_value=0) as get_count_mock:
             response = fastapi_client.get("/awards/count.json")
 
         assert response.status_code == 200
         assert response.json() == {"count": 0}
-        get_count_mock.assert_called_once_with(work_id=None, username=None, topic=None)
+        get_count_mock.assert_awaited_once_with(work_id=None, username=None, topic=None)
+
+    @pytest.mark.parametrize("work_id", ["abc", "OLxyzW", "", "OL123M"])
+    def test_count_rejects_invalid_work_id(self, fastapi_client, work_id):
+        with patch("openlibrary.fastapi.internal.api.Bestbook.get_count", new_callable=AsyncMock) as get_count_mock:
+            response = fastapi_client.get("/awards/count.json", params={"work_id": work_id})
+
+        assert response.status_code == 422
+        get_count_mock.assert_not_awaited()

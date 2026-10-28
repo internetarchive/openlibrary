@@ -1,5 +1,5 @@
 import asyncio
-import datetime
+import datetime as dt
 import logging
 from pathlib import Path
 
@@ -48,7 +48,7 @@ async def main(
         # If an offset file is specified, add an event listener to the scheduler
         # to update the offset file whenever a job is run.
         def update_offset(event):
-            new_offset = datetime.datetime.now().isoformat()
+            new_offset = dt.datetime.now().isoformat()
             print(f"Updating {trending_offset_file} to {new_offset}")
             trending_offset_file.write_text(new_offset + "\n")
 
@@ -62,7 +62,7 @@ async def main(
         if trending_offset_file.exists() and (  # noqa: ASYNC240
             contents := trending_offset_file.read_text().strip()  # noqa: ASYNC240
         ):
-            offset = datetime.datetime.fromisoformat(contents)
+            offset = dt.datetime.fromisoformat(contents)
 
         logger.info(
             "Starting trending updater init with offset %s",

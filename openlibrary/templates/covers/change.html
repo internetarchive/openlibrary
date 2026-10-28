@@ -33,11 +33,9 @@ $else:
 </div>
 
 <ol-dialog id="addImage-$imagesId" label="$title" width="large">
-    <div id="tabsImages" class="ol-tabs tabsPop">
-        <ul>
-            <li><a href="#imagesAdd-$imagesId">$_('Add')</a></li>
-            <li><a href="#imagesManage-$imagesId">$_('Manage')</a></li>
-        </ul>
+    <ol-tabs>
+        <a slot="tab" href="#imagesAdd-$imagesId">$_('Add')</a>
+        <a slot="tab" href="#imagesManage-$imagesId">$_('Manage')</a>
 
         <div class="imagesAdd" id="imagesAdd-$imagesId">
             $# add image iframe is added here when the popup is loaded
@@ -46,5 +44,5 @@ $else:
         <div class="imagesManage" id="imagesManage-$imagesId">
             $# manage images iframe is added here when the popup is loaded
         </div>
-    </div>
+    </ol-tabs>
 </ol-dialog>

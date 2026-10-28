@@ -96,15 +96,17 @@ Define two classes in `openlibrary-bots/sources/<slug>/`:
 class MyRecord(DataProviderRecord):
     title: str
     authors: list[dict]
+
     # ...
     def to_ol_import(self) -> OLImportRecord | None:
         # Map source fields → OLImportRecord; return None to skip this record
         ...
 
+
 # sources/<slug>/provider.py
 class MyProvider(JSONLProvider):
-    SOURCE_SLUG = "myslug"          # prefix for source_records: "myslug:ID123"
-    SOURCE_URL = "https://..."      # JSONL feed URL
+    SOURCE_SLUG = "myslug"  # prefix for source_records: "myslug:ID123"
+    SOURCE_URL = "https://..."  # JSONL feed URL
     RECORD_CLASS = MyRecord
 ```
 
@@ -232,10 +234,7 @@ Both fail → `BookImportError("not-differentiable")`. Common for pre-ISBN publi
 
 Cover URL allowlist (hardcoded in `catalog/add_book/__init__.py`):
 ```python
-ALLOWED_COVER_HOSTS = (
-    "archive.org", "books.google.com", "commons.wikimedia.org",
-    "covers.openlibrary.org", "m.media-amazon.com"
-)
+ALLOWED_COVER_HOSTS = ("archive.org", "books.google.com", "commons.wikimedia.org", "covers.openlibrary.org", "m.media-amazon.com")
 ```
 Covers from other hosts are silently set to `None` with no error or warning —
 **but only on the fresh-create path** (`load_data()`, via `check_cover_url_host()`).

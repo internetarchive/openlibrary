@@ -8,14 +8,19 @@ import web
 from pydantic import ValidationError
 
 from openlibrary.core.vendors import betterworldbooks_fmt
-from openlibrary.plugins.openlibrary import code  # noqa: F401  # code.setup() imports partials; import it first
+from openlibrary.plugins.openlibrary import code, home_genres  # noqa: F401  # code.setup() imports partials; import it first
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateOffer,
     AffiliateStoreBuildContext,
     BookPageListsPartial,
+    CarouselPartial,
+    HomeGenreParams,
+    HomeGenrePartial,
+    LazyCarouselParams,
     NearbyBooksParams,
     NearbyBooksPartial,
     ReadingGoalProgressPartial,
+    _carousel_card_book,
     _solr_query_to_subject_key,
     build_nearby_books_placeholder_config,
     build_stores,
@@ -23,6 +28,208 @@ from openlibrary.plugins.openlibrary.partials import (
 )
 from openlibrary.plugins.upstream.yearly_reading_goals import YearlyGoal
 from openlibrary.utils.solr import Solr
+
+HORROR = {
+    "name": "Horror",
+    "slug": "horror",
+    "query": "(horror* OR fiction_horror*)",
+    "kind": "genre",
+    "work_count": 1,
+    "readable_count": 1,
+    "subgenres": [
+        {
+            "name": "Gothic",
+            "slug": "gothic",
+            "query": "gothic_fiction*",
+            "work_count": 543,
+            "readable_count": 249,
+            "readable_by_language": {"eng": 222, "fre": 23, "jpn": 3},
+        },
+        {
+            "name": "Psychological",
+            "slug": "psychological",
+            "query": "psychological_fiction*",
+            "work_count": 62,
+            "readable_count": 36,
+            "readable_by_language": {"eng": 37, "fre": 20, "jpn": 4},
+        },
+    ],
+}
+
+
+class TestHomeGenreNarrow:
+    """A subgenre row is books in both the genre and the subgenre."""
+
+    def narrow(self, subgenre=None, sort="trending"):
+        params = LazyCarouselParams(query="stale", genre="horror", subgenre=subgenre, sort=sort, safe_mode=False)
+        with (
+            patch("openlibrary.plugins.openlibrary.partials.get_request_lang", return_value=None),
+            patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=""),
+        ):
+            return HomeGenrePartial.narrow(params, HORROR)
+
+    def test_genre_row_is_titled_for_its_sort(self):
+        params = self.narrow()
+        assert params.query == "subject_key:(horror* OR fiction_horror*)"
+        assert params.subgenre is None
+        assert params.title == "Trending in Horror"
+        assert self.narrow(sort="new").title == "Newest in Horror"
+        assert self.narrow(sort="rating").title == "Top rated in Horror"
+
+    def test_subgenre_row_is_scoped_to_its_genre(self):
+        params = self.narrow("gothic")
+        assert params.query == "subject_key:(horror* OR fiction_horror*) AND subject_key:gothic_fiction*"
+        assert "gothic_fiction" in params.url
+        assert "horror" in params.url
+        assert params.title == "Gothic"
+        assert self.narrow("gothic", sort="new").title == "Gothic"
+
+    def test_every_row_links_with_the_shelf_sort(self):
+        """A subgenre row's link follows the shelf's sort."""
+        for subgenre in (None, "gothic"):
+            params = self.narrow(subgenre, sort="rating")
+            assert "sort=rating" in params.url
+            assert "sort=trending" not in params.url
+
+    def test_featured_stack_rows_say_only_their_order(self):
+        """The Featured shelf's main row is Trending, not "Trending in Featured"."""
+        featured = home_genres.FEATURED
+        with patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=" language:eng"):
+            params = HomeGenrePartial.narrow(LazyCarouselParams(query="stale", genre="trending", sort="trending", safe_mode=False), featured)
+        assert params.query == f"{featured['query']} language:eng"
+        assert "language%3Aeng" in params.url
+        assert params.title == "Trending"
+        assert [link["href"] for link in HomeGenrePartial.jump_links(featured, featured["subgenres"])] == [
+            "#genre-featured-whats-new",
+            "#genre-featured-books-we-love",
+            "#genre-featured-classics",
+            "#genre-featured-most-wanted",
+        ]
+
+    def test_featured_rows_keep_their_own_sort(self):
+        """Most wanted is ordered by want-to-read counts, in its row and in its "See all" link."""
+        featured = home_genres.FEATURED
+        row = HomeGenrePartial.row(featured, featured["subgenres"][3])
+        assert (row.key, row.sort, row.title) == ("genre-featured-most-wanted", "want_to_read", "Most wanted")
+        with patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=""):
+            params = HomeGenrePartial.narrow(row.model_copy(update={"safe_mode": False}), featured)
+        assert params.query == "want_to_read_count:[10 TO *]"
+        assert params.url == "/search?q=want_to_read_count%3A%5B10+TO+%2A%5D&has_fulltext=true&sort=want_to_read"
+
+    def test_unknown_subgenre_falls_back_to_the_genre(self):
+        params = self.narrow("romance")
+        assert params.query == "subject_key:(horror* OR fiction_horror*)"
+        assert params.subgenre is None
+
+    def test_jump_links_go_to_the_subgenre_rows(self):
+        assert HomeGenrePartial.jump_links(HORROR, HORROR["subgenres"]) == [
+            {"name": "Gothic", "href": "#genre-horror-gothic"},
+            {"name": "Psychological", "href": "#genre-horror-psychological"},
+        ]
+
+    def test_curated_subgenre_names_are_translated(self):
+        """Vocabulary names pass through; curated ones (scripts/generate_home_genres.py) are localized."""
+        with patch.object(home_genres, "subgenre_labels", return_value={"gothic": "Gothique"}):
+            assert [link["name"] for link in HomeGenrePartial.jump_links(HORROR, HORROR["subgenres"])] == ["Gothique", "Psychological"]
+            assert self.narrow("gothic").title == "Gothique"
+            assert HomeGenrePartial.row(HORROR, HORROR["subgenres"][0]).title == "Gothique"
+
+
+class TestHomeGenreShelf:
+    """One request renders the header, the loaded genre row and a lazy placeholder per subgenre."""
+
+    @pytest.fixture(autouse=True)
+    def setup_context(self, request_context_fixture):
+        request_context_fixture(lang="en")
+
+    async def shelf(self, genre=HORROR, marc=None):
+        render = AsyncMock(return_value={"partials": "<ol-carousel></ol-carousel>"})
+        with (
+            patch("openlibrary.plugins.openlibrary.home_genres.find_genre", return_value=genre),
+            patch("openlibrary.plugins.openlibrary.home_genres.language_marc", return_value=marc),
+            patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=""),
+            patch.object(CarouselPartial, "generate_async", render),
+            # Stub the macro, not the Jinja global: imported macros snapshot globals on first import.
+            patch.dict(web.template.Template.globals, {"macros": {"icon": lambda *a, **kw: ""}}),
+        ):
+            html = (await HomeGenrePartial.generate_async(HomeGenreParams(genre=genre["slug"])))["partials"]
+        return html, render.call_args.args[0]
+
+    @pytest.mark.asyncio
+    async def test_genre_row_is_rendered_and_subgenre_rows_are_lazy(self):
+        html, row = await self.shelf()
+        assert (row.genre, row.subgenre, row.key, row.layout, row.sort, row.see_all) == (
+            "horror",
+            None,
+            "genre-horror",
+            "ol-carousel",
+            "trending",
+            True,
+        )
+        assert "<ol-carousel></ol-carousel>" in html
+        assert 'class="lazy-carousel-loaded"' in html
+        assert html.count('class="lazy-carousel"') == 2
+
+    @pytest.mark.asyncio
+    async def test_thin_subgenre_rows_are_dropped_for_the_users_language(self):
+        """Filtered to Japanese, Horror's subgenres have 3 and 4 books: no lazy rows, no jump links."""
+        html, _row = await self.shelf(marc="jpn")
+        assert html.count('class="lazy-carousel"') == 0
+        assert "genre-shelf__jump-link" not in html
+        html, _row = await self.shelf(marc="fre")
+        assert html.count('class="lazy-carousel"') == 2
+        assert 'data-sort="trending"' in html
+        assert html.count("genre-shelf__sort") == 1
+        assert 'class="genre-shelf__sort" label="Sort by" heading="Sort by" value="trending"' in html
+        assert "carousel-sort" not in html
+        assert html.count("carousel-skeleton__see-all") == 2
+        assert 'id="genre-horror-gothic"' in html
+        assert 'id="genre-horror-psychological"' in html
+        assert "subgenre&#34;: &#34;gothic" in html or "subgenre&quot;: &quot;gothic" in html
+
+    @pytest.mark.asyncio
+    async def test_header_names_the_genre_and_links_to_its_rows(self):
+        html, _row = await self.shelf()
+        assert '<h2 class="genre-shelf__title">Horror</h2>' in html
+        assert 'href="#genre-horror-gothic"\n                               data-ol-link-track="BrowseStacks|JumpTo|genre-horror-gothic">Gothic</a>' in html
+        assert 'data-ol-link-track="BrowseStacks|JumpTo|genre-horror-psychological">Psychological</a>' in html
+        assert "Browse all" not in html
+        assert html.index("genre-shelf__header") < html.index("genre-shelf__sort") < html.index("lazy-carousel-loaded")
+
+    @pytest.mark.asyncio
+    async def test_featured_shelf_has_no_sort_but_has_rows(self):
+        html, _row = await self.shelf(home_genres.FEATURED)
+        assert 'data-genre="featured"' in html
+        assert "genre-shelf__sort" not in html
+        assert 'data-ol-link-track="BrowseStacks|JumpTo|genre-featured-whats-new">What&#39;s new</a>' in html
+        assert html.count('id="genre-featured-') == 4
+
+    @pytest.mark.asyncio
+    async def test_unknown_genre_is_empty(self):
+        with patch("openlibrary.plugins.openlibrary.home_genres.find_genre", return_value=None):
+            assert await HomeGenrePartial.generate_async(HomeGenreParams(genre="nope")) == {"partials": ""}
+
+
+class TestCarouselCardBook:
+    def test_edition_takes_the_works_byline_and_year(self):
+        work = {
+            "key": "/works/OL1W",
+            "author_name": ["Robert A. Heinlein"],
+            "first_publish_year": 1959,
+            "editions": {"docs": [{"key": "/books/OL1M", "title": "Starship Troopers"}]},
+        }
+        card = _carousel_card_book(work)
+        assert card.key == "/books/OL1M"
+        assert card.work_key == "/works/OL1W"
+        assert card.author_name == ["Robert A. Heinlein"]
+        assert card.first_publish_year == 1959
+
+    def test_work_without_editions_is_its_own_card(self):
+        work = {"key": "/works/OL1W", "author_name": ["A"], "first_publish_year": 2000}
+        card = _carousel_card_book(work)
+        assert card.key == "/works/OL1W"
+        assert card.author_name == ["A"]
+        assert "work_key" not in card
 
 
 class TestSolrQueryToSubjectKey:
@@ -199,10 +406,11 @@ class TestNearbyBooksPartial:
 
 
 def test_build_nearby_books_placeholder_config_targets_the_nearby_books_partial():
-    with patch("openlibrary.plugins.openlibrary.partials.render_macro", return_value={"__body__": "<div>loading</div>"}):
-        config = build_nearby_books_placeholder_config("/works/OL1W", "eng")
+    config = build_nearby_books_placeholder_config("/works/OL1W", "eng")
     assert json.loads(config["lazy_config_json"]) == {"partial": "NearbyBooks", "work_key": "/works/OL1W", "language": "eng"}
     assert config["fallback"] is None
+    # The skeleton stands in for NearbyBooksPartial's slick row and its unlinked heading.
+    assert (config["layout"], config["title_link"]) == ("carousel", False)
 
 
 def _community_card(title: str) -> dict:
@@ -275,6 +483,7 @@ class TestBookPageListsPartial:
             patch.object(
                 BookPageListsPartial,
                 "get_list_card",
+                new_callable=AsyncMock,
                 side_effect=[good, AttributeError("'Thing' object has no attribute 'get_users_settings'"), good],
             ),
         ):
@@ -289,7 +498,7 @@ class TestBookPageListsPartial:
     async def test_render_failure_keeps_old_fallback(self):
         with (
             patch("openlibrary.plugins.openlibrary.partials.get_lists_async", AsyncMock(return_value=LISTS)),
-            patch.object(BookPageListsPartial, "get_list_card", return_value=_community_card("Fine list")),
+            patch.object(BookPageListsPartial, "get_list_card", new_callable=AsyncMock, return_value=_community_card("Fine list")),
             patch(
                 "openlibrary.plugins.openlibrary.partials.render_jinja_template",
                 side_effect=RuntimeError("boom"),

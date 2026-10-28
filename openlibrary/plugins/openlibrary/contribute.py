@@ -5,6 +5,7 @@ Answers save straight to the record as normal edits, so they show in its history
 
 import random
 from collections import Counter
+from datetime import UTC, datetime
 from urllib.parse import urlencode
 
 import web
@@ -12,13 +13,27 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
-from openlibrary.contribute import save, supply, tasks
+from openlibrary.contribute import feed, save, supply, tasks
 from openlibrary.contribute.field_guides import build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values
 from openlibrary.core import helpers
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.upstream import spamcheck
 
 LIST_SIZE = 50
+# Placeholder cards while a cold cache builds the list in the background; the script swaps them for the rows.
+LIST_SKELETON_ROWS = 4
+# Rows the public page renders before the feed script takes over.
+FEED_SIZE = 12
+# Placeholder rows while a cold cache rebuilds the feed pool in the background; the script swaps them for rows as they arrive.
+FEED_SKELETON_ROWS = 6
+# The "Volunteering @ Open Library" form; applying is how a reader becomes an Open Librarian.
+APPLY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeU5Y4x6LNl2SW4NktRnZhFUDwhV6l9Xzr-IsqBow1KqNfdYw/viewform"
+# The form's "What is your Open Library username?" field, prefilled for signed-in visitors.
+APPLY_FORM_USERNAME_FIELD = "entry.629295430"
+# Signed-in members see the /tasks intro once. Clicking through sets this cookie, the way banner dismissals do.
+INTRO_COOKIE = "tasks_intro"
+INTRO_COOKIE_DAYS = 365
 
 
 def setup():
@@ -42,14 +57,11 @@ def render_contribute(template: str, title: str, **params):
     return render_template("contribute", web.storage(template=template, title=title, params=params))
 
 
-def require_librarian_access(path: str):
-    """Login for visitors, permission denied for anyone below librarian. None when the user may continue."""
-    user = accounts.get_current_user()
-    if not user:
+def require_login(path: str):
+    """The signed-in user; visitors are sent to log in and brought back to ``path``."""
+    if not (user := accounts.get_current_user()):
         raise web.seeother(f"/account/login?{urlencode({'redirect': path})}")
-    if not user.is_librarian_or_higher():
-        return render_template("permission_denied", path, _("Tasks are open to librarians only, for now"))
-    return None
+    return user
 
 
 def build_dashboard_url(task: str = "", base: str = "/tasks") -> str:
@@ -129,9 +141,8 @@ def count_sibling_values(fld: str, others: list, limit: int = 5) -> dict:
     }
 
 
-def get_recent_fixes(user) -> list[dict]:
-    """The right column's "Your recent fixes"."""
-    changes = save.recent_saves(user.key)
+def get_recent_fixes(changes: list) -> list[dict]:
+    """The right column's "Your recent fixes", from the user's ``save.recent_saves``."""
     keys = [c.changes[0]["key"] for c in changes if c.changes]
     editions = {e.key: e for e in web.ctx.site.get_many(keys)} if keys else {}
     field_guides = get_field_guides()
@@ -194,12 +205,17 @@ def build_task_summary(task: tasks.Task, field_guides, back: str = "") -> dict:
     }
 
 
-def build_task_rows(task: str) -> list[dict]:
-    """The filter's books, most-read first, each with its open tasks weighted by ``tasks.impact`` for "Surprise me"."""
+def build_task_rows(task: str) -> list[dict] | None:
+    """A random draw of the filter's books from the most-read pool, each with its open tasks weighted by ``tasks.impact`` for "Surprise me".
+
+    None while the pool is still being built.
+    """
     fields = get_filters()[task][1] if task else tuple(tasks.POINTS)
+    if (candidates := supply.solr_candidates(fields)) is None:
+        return None
     field_guides = get_field_guides()
     rows: list[dict] = []
-    for cand in supply.solr_candidates(fields):
+    for cand in candidates:
         if len(rows) == LIST_SIZE:
             break
         # Solr can lag the database; a field filled since the last reindex is no longer a task.
@@ -219,44 +235,129 @@ def build_filter_rail(task: str) -> dict:
             "label": label,
             "url": build_dashboard_url("" if task == fid else fid),
             "on": task == fid,
+            "track": fid,
         }
         for fid, (label, _fields) in get_filters().items()
     ]
-    return {"all": {"label": _("All open tasks"), "url": build_dashboard_url(), "on": not task}, "filters": filters}
+    return {"all": {"label": _("All open tasks"), "url": build_dashboard_url(), "on": not task, "track": "all"}, "filters": filters}
+
+
+def landing_figures() -> dict[str, str]:
+    """Social proof on the public page, set as one sentence there. Hand-set round figures for now; revisit when a stats source exists."""
+    return {"readers": "2M+", "books": "55M"}
+
+
+def has_seen_intro(recent_saves: list) -> bool:
+    """Whether a member skips the intro: they clicked through it before, or have already saved a task (any device)."""
+    return web.cookies().get(INTRO_COOKIE) == "1" or bool(recent_saves)
+
+
+def build_cta(user=None) -> dict:
+    """The way in. A visitor needs a free account; a member goes straight to a task, and either click dismisses the intro."""
+    if user:
+        return {
+            "heading": _("Ready when you are"),
+            "label": _("Try a task"),
+            "href": build_dashboard_url(base="/tasks/one"),
+            "note": "",
+            "secondary": [{"label": _("Browse all tasks"), "href": build_dashboard_url(), "track": "Browse"}],
+            "intro": {"cookie": INTRO_COOKIE, "days": INTRO_COOKIE_DAYS},
+        }
+    return {
+        "heading": _("Join in"),
+        "label": _("Create an account"),
+        "href": f"/account/create?{urlencode({'redirect': '/tasks'})}",
+        "note": _("Tasks are open to anyone with a free Open Library account."),
+        "secondary": [{"label": _("Already have one? Log in"), "href": f"/account/login?{urlencode({'redirect': '/tasks'})}", "track": "LogIn"}],
+        "intro": None,
+    }
+
+
+def build_apply(user) -> dict | None:
+    """The librarian pitch for members who aren't one yet. The form asks for a username, so it's prefilled."""
+    if user.is_librarian_or_higher():
+        return None
+    return {
+        "label": _("Become an Open Librarian"),
+        "href": f"{APPLY_FORM_URL}?{urlencode({'usp': 'pp_url', APPLY_FORM_USERNAME_FIELD: user.get_username()})}",
+        "note": _("Doing a lot of these? Open Librarians get more editing tools. Applying takes a few minutes."),
+    }
+
+
+def format_when(timestamp: str) -> str:
+    """Relative time for a feed row's ISO timestamp; datestr compares naive datetimes."""
+    then = datetime.fromisoformat(timestamp).astimezone(UTC).replace(tzinfo=None)
+    return helpers.datestr(then, now=datetime.now(UTC).replace(tzinfo=None))
+
+
+def build_feed() -> dict:
+    """The feed's first rows plus what the script needs to keep it moving."""
+    rows = feed.recent_rows(FEED_SIZE)
+    for row in rows:
+        row["when"] = format_when(row["timestamp"])
+    return {
+        "rows": rows,
+        "url": "/tasks/feed.json",
+        "cursor": str(len(rows)),
+        "skeleton_rows": 0 if rows else FEED_SKELETON_ROWS,
+    }
+
+
+def render_landing(user=None):
+    """The /tasks intro: what tasks are, who is doing them, how to join. Visitors always; members until they click through."""
+    return render_contribute(
+        "contribute/landing.html.jinja",
+        _("Tasks"),
+        cta=build_cta(user),
+        figures=landing_figures(),
+        feed=build_feed(),
+        # A few appealing examples, not the full list. Book cover isn't a task yet.
+        fields=[get_field_guides()[f].label for f in ("languages", "publishers", "oclc_numbers")] + [_("Book cover")],
+    )
 
 
 class contribute_index(delegate.page):
     path = "/tasks"
 
     def GET(self):
+        if not (user := accounts.get_current_user()):
+            return render_landing()
+        # One query for both the intro check and the "recent fixes" column.
+        recent_saves = save.recent_saves(user.key)
+        if not has_seen_intro(recent_saves):
+            return render_landing(user)
         task = normalize_filter(query_param("task", ""))
-        if denied := require_librarian_access(build_dashboard_url(task)):
-            return denied
-        user = accounts.get_current_user()
+        rows = build_task_rows(task)
         return render_contribute(
             "contribute/dashboard.html.jinja",
             _("Tasks"),
             one_task_url=build_dashboard_url(task, base="/tasks/one"),
             rail=build_filter_rail(task),
-            rows=build_task_rows(task),
+            rows=rows,
+            # While the pool builds, the script fetches the rows from here.
+            rows_url=build_dashboard_url(task, base="/tasks/rows") if rows is None else "",
+            skeleton_rows=LIST_SKELETON_ROWS if rows is None else 0,
             heading=_("Missing: %(field)s", field=get_filters()[task][0]) if task else _("Most needed"),
             empty=_("Nothing missing here right now. Thank you."),
-            recent=get_recent_fixes(user),
+            recent=get_recent_fixes(recent_saves),
             history_url=user.key,
+            apply=build_apply(user),
         )
 
 
 class contribute_one(delegate.page):
-    """Do one task: a weighted random pick from the dashboard's current filter, straight to its task page."""
+    """Do one task: a weighted random pick from the dashboard's current filter, straight to its task page.
+
+    While the pool is still being built there is nothing to pick from, so this lands on the dashboard, which shows the wait.
+    """
 
     path = "/tasks/one"
 
     def GET(self):
         task = normalize_filter(query_param("task", ""))
-        if denied := require_librarian_access(build_dashboard_url(task, base=self.path)):
-            return denied
+        require_login(build_dashboard_url(task, base=self.path))
         exclude = f"/books/{query_param('exclude', '')}"
-        options = [t for row in build_task_rows(task) if row["book"]["key"] != exclude for t in row["tasks"]]
+        options = [t for row in build_task_rows(task) or [] if row["book"]["key"] != exclude for t in row["tasks"]]
         if not options:
             raise web.seeother(build_dashboard_url(task))
         pick = random.choices(options, weights=[max(t["weight"], 1) for t in options])[0]
@@ -301,6 +402,8 @@ def build_task_context(edition, task: tasks.Task, back: str, error: str = "", va
         "error": error,
         "value": value,
         "note": note,
+        # Only "Save and next" brings a receipt; the error re-render never does.
+        "receipt": None,
     }
 
 
@@ -338,8 +441,7 @@ class contribute_task(delegate.page):
     path = TASK_PATH
 
     def GET(self, olid, fld):
-        if denied := require_librarian_access(f"/tasks/task/{olid}/{fld}"):
-            return denied
+        require_login(f"/tasks/task/{olid}/{fld}")
         back = get_back_filter()
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
@@ -348,9 +450,11 @@ class contribute_task(delegate.page):
         return render_contribute("contribute/task.html.jinja", get_field_guides()[fld].question, **context)
 
     def POST(self, olid, fld):
-        if denied := require_librarian_access(f"/tasks/task/{olid}/{fld}"):
-            return denied
+        require_login(f"/tasks/task/{olid}/{fld}")
         i = web.input(value="", note="", back="", confirmed="", then="")
+        # Same check as the edit form; it also stops read-only and blocked accounts.
+        if spamcheck.is_spam(i, allow_privileged_edits=True):
+            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         back = normalize_filter(i.back)
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
@@ -373,8 +477,7 @@ class contribute_done(delegate.page):
     path = TASK_PATH + "/done"
 
     def GET(self, olid, fld):
-        if denied := require_librarian_access(f"/tasks/task/{olid}/{fld}/done"):
-            return denied
+        require_login(f"/tasks/task/{olid}/{fld}/done")
         back = get_back_filter()
         edition = get_edition_or_404(olid)
         field_guides = get_field_guides()

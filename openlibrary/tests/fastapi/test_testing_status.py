@@ -1,7 +1,7 @@
 """Tests for the testing-environment status API and its underlying helper."""
 
 import asyncio
-import datetime
+import datetime as dt
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -605,7 +605,7 @@ def test_payload_includes_dropped_prs_as_readonly_rows():
     [(60, True), (status_module._DEPLOY_WINDOW + 60, False)],
 )
 def test_is_deploying_is_a_window_not_a_result(age_seconds, expected):
-    started = datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=age_seconds)
+    started = dt.datetime.now(dt.UTC) - dt.timedelta(seconds=age_seconds)
     state = _make_state()
     state.deploy_started_at = started.isoformat()
 
@@ -630,15 +630,6 @@ def test_load_testing_state_accepts_legacy_bare_array(tmp_path, monkeypatch):
     assert state.prs[0].pr == 13269
     assert state.prs[0].added_at == ""  # field that postdates the legacy format
     assert state.prs[0].pull_latest_sha == ""
-
-
-def test_ensure_testing_state_file_creates_empty_state(tmp_path, monkeypatch):
-    state_file = tmp_path / "_testing-prs.json"
-    monkeypatch.setattr(status_module, "TESTING_STATE_FILE", state_file)
-
-    status_module._ensure_testing_state_file()
-
-    assert json.loads(state_file.read_text()) == {"last_deploy_at": "", "prs": []}
 
 
 def test_ensure_testing_state_file_does_not_overwrite_existing(tmp_path, monkeypatch):

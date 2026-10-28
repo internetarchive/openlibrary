@@ -62,10 +62,12 @@
         {% endif %}
     </div>
 {% endmacro %}
-{% macro task_row(task) %}
-    {#- One to-do per field, styled as a menu item: an icon and the action it leads to. -#}
+{% macro task_row(task, track) %}
+    {#- One to-do per field, styled as a menu item: an icon and the action it leads to.
+        ``track`` is the analytics "Category|Action"; the field becomes the label. -#}
     <li class="contrib-row__task" data-task-key="{{ task.key }}">
-        <a href="{{ task.url }}">
+        <a href="{{ task.url }}"
+           data-ol-link-track="{{ track }}|{{ task.field }}">
             <span class="contrib-row__badge">{{ icon("plus", size="sm") }}</span>
             <span>{{ task.action_label }}</span>
         </a>
@@ -197,7 +199,8 @@
           class="contrib-answer"
           data-task-form
           {% if data.is_identifier %}data-id-form{% endif %}
-          data-task-key="{{ task.key }}">
+          data-task-key="{{ task.key }}"
+          data-task-field="{{ task.field }}">
         {% if data.error %}<p class="ol-message ol-message--error" role="alert">{{ data.error }}</p>{% endif %}
         <div class="contrib-record">
             {#- A second way to the title's link, so keep it out of the tab order and the accessibility tree. -#}
@@ -286,7 +289,7 @@
                     {{ _("Save") }}
                 </ol-button>
             </div>
-            <ol-button variant="ghost" href="{{ task.skip_url }}" data-skip>
+            <ol-button variant="ghost" href="{{ task.skip_url }}" data-skip data-ol-link-track="TaskForm|Skip|{{ task.field }}">
                 {{ _("I couldn't find it") }}
                 {{ icon("arrow-right", slot="icon-end") }}
             </ol-button>
@@ -299,4 +302,75 @@
             </p>
         </div>
     </form>
+{% endmacro %}
+{% macro feed_row(row) %}
+    {#- One recent edit on the public /tasks page. contribute.js builds the same markup for rows that arrive later. -#}
+    <li class="contrib-feed__row" data-feed-row>
+        <div class="contrib-feed__inner">
+            <time class="contrib-feed__when"
+                  datetime="{{ row.timestamp }}"
+                  data-feed-when>{{ row.when }}</time>
+            <a class="contrib-feed__cover"
+               href="{{ row.key }}"
+               tabindex="-1"
+               aria-hidden="true">
+                {% if row.cover_url %}
+                    <img src="{{ row.cover_url }}"
+                         alt=""
+                         width="32"
+                         height="48"
+                         loading="lazy" />
+                {% else %}
+                    <span class="contrib-feed__cover--empty">{{ icon("book-open", size="sm") }}</span>
+                {% endif %}
+            </a>
+            <div class="contrib-feed__meta">
+                <div class="contrib-feed__title">
+                    <a class="contrib-feed__link" href="{{ row.key }}">{{ row.title }}</a>
+                    {% if row.authors %}<span class="contrib-feed__by">{{ _("by %(authors)s", authors=row.authors) }}</span>{% endif %}
+                </div>
+                <div class="contrib-feed__line">
+                    <span class="contrib-feed__editor">{{ row.editor }}</span>
+                    <span>{{ row.comment or row.action }}</span>
+                </div>
+            </div>
+        </div>
+    </li>
+{% endmacro %}
+{% macro feed_skeleton_row() %}
+    {#- A row's shape while a cold cache builds the feed in the background; contribute-feed.js swaps each one for a real row. -#}
+    <li class="contrib-feed__row contrib-feed__row--skeleton"
+        data-feed-skeleton
+        aria-hidden="true">
+        <div class="contrib-feed__inner">
+            <span class="skeleton contrib-feed__when"></span>
+            <span class="skeleton contrib-feed__cover-skeleton"></span>
+            <div class="contrib-feed__meta">
+                <span class="skeleton contrib-feed__title"></span>
+                <span class="skeleton contrib-feed__line"></span>
+            </div>
+        </div>
+    </li>
+{% endmacro %}
+{% macro row_skeleton(tasks=2) %}
+    {#- A dashboard card's shape while a cold cache builds the list in the background; contribute.js swaps them for the rows. -#}
+    <li class="contrib-row contrib-row--skeleton"
+        data-row-skeleton
+        aria-hidden="true">
+        <div class="contrib-book contrib-book--compact">
+            <span class="skeleton contrib-row__cover-skeleton"></span>
+            <div class="contrib-book__meta">
+                <span class="skeleton contrib-book__title"></span>
+                <span class="skeleton contrib-book__authors"></span>
+                <span class="skeleton contrib-book__line"></span>
+            </div>
+        </div>
+        <ul class="contrib-row__tasks">
+            {% for _i in range(tasks) %}
+                <li class="contrib-row__task">
+                    <span class="skeleton"></span>
+                </li>
+            {% endfor %}
+        </ul>
+    </li>
 {% endmacro %}

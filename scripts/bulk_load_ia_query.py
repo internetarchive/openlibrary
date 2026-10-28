@@ -6,7 +6,7 @@ https://colab.research.google.com/drive/1HETHnP9bCS7zgli6YU32z5dWzlq0F1sY?authus
 PYTHONPATH=. python ./scripts/bulk_load_ia_query.py /olsystem/etc/openlibrary.yml --idfile "ids.json" --no-test
 """
 
-import datetime
+import datetime as dt
 import importlib.util
 import json
 import os
@@ -189,7 +189,7 @@ def get_candidate_ocaids(s3_keys, rows=10_000, idfile=None):
 
 def import_ocaids(ocaids: list[str], batch_size=5_000):
     # get the month for yesterday
-    date = datetime.date.today() - datetime.timedelta(days=1)
+    date = dt.date.today() - dt.timedelta(days=1)
     batch_name = f"new-scans-{date.year:04}{date.month:02}"
     batch = importer.Batch.find(batch_name) or importer.Batch.new(batch_name)
 

@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import re
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
@@ -21,17 +21,18 @@ def cmp(x, y):
     return (x > y) - (x < y)
 
 
-re_date = map(
-    re.compile,  # type: ignore[arg-type]
-    [
+# A list, not a map() iterator: parse_date() loops over it on every call.
+re_date = [
+    re.compile(pattern)
+    for pattern in (
         r"(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)",
         r"(?P<birth_date>\d+\??)-",
         r"b\.? (?P<birth_date>(?:ca\. )?\d+\??)",
         r"d\.? (?P<death_date>(?:ca\. )?\d+\??)",
         r"(?P<birth_date>.*\d+.*)-(?P<death_date>.*\d+.*)",
         r"^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$",
-    ],
-)
+    )
+]
 
 re_ad_bc = re.compile(r"\b(B\.C\.?|A\.D\.?)")
 re_date_fl = re.compile("^fl[., ]")
@@ -346,7 +347,7 @@ def published_in_future_year(publish_year: int) -> bool:
     Some import sources have publication dates in a future year, and the
     likelihood is high that this is bad data. So we don't want to import these.
     """
-    return publish_year > datetime.datetime.now().year
+    return publish_year > dt.datetime.now().year
 
 
 def publication_too_old_and_not_exempt(rec: dict) -> bool:

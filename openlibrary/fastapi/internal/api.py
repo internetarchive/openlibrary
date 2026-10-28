@@ -19,13 +19,14 @@ from pydantic import BaseModel, BeforeValidator, Field
 from starlette.responses import RedirectResponse
 
 from openlibrary import accounts
-from openlibrary.core import lending, models
+from openlibrary.core import lending
 from openlibrary.core.admin import get_unique_logins_since
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.env import get_ol_env
-from openlibrary.core.follows import PubSub
+from openlibrary.core.follows import Follow, PubSub
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
+from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
@@ -43,7 +44,6 @@ from openlibrary.plugins.openlibrary.api import (
     get_works_data_async,
     process_work_bookshelves,
 )
-from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import SINCE_DAYS, TRENDING_NOW_LIMIT, get_trending_books
 
@@ -210,10 +210,30 @@ async def browse(
     return {"query": url, "works": [work.dict() for work in works]}
 
 
+class RatingsSummary(BaseModel):
+    average: float | None = Field(default=None, description="Mean star rating, or null if the work is unrated")
+    count: int = Field(default=0, description="Number of ratings")
+    sortable: float | None = Field(default=None, exclude_if=lambda v: v is None, description="Bayesian lower bound used to sort by rating; omitted if unrated")
+
+
+class RatingsResponse(BaseModel):
+    summary: RatingsSummary
+    counts: dict[str, int] = Field(..., description="Number of ratings per star value, keyed '1' to '5'")
+
+    @classmethod
+    def from_work_summary(cls, stats: WorkRatingsSummary | None) -> RatingsResponse:
+        if not stats:
+            return cls(summary=RatingsSummary(), counts={str(star): 0 for star in range(1, 6)})
+        return cls(
+            summary=RatingsSummary(average=stats["ratings_average"], count=stats["ratings_count"], sortable=stats["ratings_sortable"]),
+            counts={str(star): stats[f"ratings_count_{star}"] for star in range(1, 6)},  # type: ignore[literal-required]
+        )
+
+
 @router.get("/works/OL{work_id}W/ratings.json")
-async def get_ratings(work_id: Annotated[int, Path()]) -> dict:
+async def get_ratings(work_id: Annotated[int, Path()]) -> RatingsResponse:
     """Get ratings summary for a work."""
-    return legacy_ratings.get_ratings_summary(work_id)
+    return RatingsResponse.from_work_summary(await Ratings.get_work_ratings_summary(work_id))
 
 
 @router.post("/works/OL{work_id}W/ratings.json")
@@ -231,10 +251,10 @@ async def post_ratings(
     resolved_edition_id = int(extract_numeric_id_from_olid(edition_id)) if edition_id else None
 
     if rating is None:
-        models.Ratings.remove(user.username, work_id)
+        await Ratings.remove(user.username, work_id)
         return {"success": "removed rating"}
 
-    models.Ratings.add(
+    await Ratings.add(
         username=user.username,
         work_id=work_id,
         rating=rating,
@@ -266,10 +286,10 @@ async def booknotes_post(
         resolved_edition_id = int(extract_numeric_id_from_olid(edition_id))
 
     if not notes:
-        Booknotes.remove(user.username, work_id, edition_id=resolved_edition_id)
+        await Booknotes.remove(user.username, work_id, edition_id=resolved_edition_id)
         return BooknoteResponse(success="removed note")
 
-    Booknotes.add(
+    await Booknotes.add(
         username=user.username,
         work_id=work_id,
         notes=notes,
@@ -279,13 +299,13 @@ async def booknotes_post(
 
 
 @router.get("/works/OL{work_id}W/bookshelves.json")
-def get_work_bookshelves(work_id: Annotated[int, Path(gt=0)]) -> dict:
+async def get_work_bookshelves(work_id: Annotated[int, Path(gt=0)]) -> dict:
     """Get reading-log shelf counts for a work."""
-    return get_bookshelves_summary(work_id)
+    return await get_bookshelves_summary(work_id)
 
 
 @router.post("/works/OL{work_id}W/bookshelves.json")
-def post_work_bookshelves(
+async def post_work_bookshelves(
     work_id: Annotated[int, Path(gt=0)],
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     bookshelf_id: Annotated[str | None, Form()] = None,
@@ -293,7 +313,7 @@ def post_work_bookshelves(
     dont_remove: Annotated[bool | None, Form()] = None,
 ) -> dict:
     """Add a work to, move a work between, or remove a work from a reading-log shelf."""
-    return process_work_bookshelves(
+    return await process_work_bookshelves(
         username=user.username,
         work_id=work_id,
         bookshelf_id=bookshelf_id,
@@ -438,10 +458,10 @@ async def get_patron_follows(
     username: Annotated[str, Path(pattern=r"^[^/]+$")],
     user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
     redir_url: Annotated[str, Query()] = "",
-) -> list[FollowEntry] | RedirectResponse:
+) -> list[Follow] | RedirectResponse:
     if not user or user.username != username:
         return RedirectResponse(url=f"/account/login?{urlencode({'redir_url': redir_url})}", status_code=303)
-    return PubSub.get_following(username)
+    return await PubSub.get_following(username)
 
 
 @router.post("/people/{username}/follows.json")
@@ -456,8 +476,10 @@ async def post_patron_follows(
         return RedirectResponse(url=f"/account/login?{urlencode({'redir_url': redir_url})}", status_code=303)
     if not accounts.find(username=publisher):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    action = PubSub.subscribe if state == "0" else PubSub.unsubscribe
-    action(user.username, publisher)
+    if state == "0":
+        await PubSub.subscribe(user.username, publisher)
+    else:
+        await PubSub.unsubscribe(user.username, publisher)
     return RedirectResponse(url=redir_url, status_code=303)
 
 
@@ -476,7 +498,7 @@ async def public_observations(
     Public observations fetches anonymized community reviews
     for a list of works. Useful for decorating search results.
     """
-    return {"observations": {w: get_observation_metrics(w) for w in olid}}
+    return {"observations": {w: await get_observation_metrics(w) for w in olid}}
 
 
 class BestbookAwardResponse(BaseModel):
@@ -516,7 +538,7 @@ async def post_bestbook_award(
     This is not the preferred API design; new endpoints should use standard HTTP methods instead.
     This structure is maintained only for backward compatibility with the legacy endpoint. Do not copy this pattern for new code.
     """
-    return bestbook_award.process_bestbook_award(
+    return await bestbook_award.process_bestbook_award(
         work_id=work_id,
         op=form_op if form_op is not None else query_op or "add",
         edition_key=form_edition_key if form_edition_key is not None else query_edition_key,
@@ -528,12 +550,12 @@ async def post_bestbook_award(
 
 @router.get("/awards/count.json", response_model=BestbookCountResponse)
 async def get_bestbook_count(
-    work_id: Annotated[str | None, Query()] = None,
+    work_id: Annotated[str | None, Query(pattern=r"^(?:/works/)?(?:OL)?[0-9]+W?$", description="Numeric work ID or work OLID, e.g. 123 or OL123W")] = None,
     username: Annotated[str | None, Query()] = None,
     topic: Annotated[str | None, Query()] = None,
 ) -> BestbookCountResponse:
     """Get a count of bestbook awards matching the optional filters."""
-    return BestbookCountResponse(count=Bestbook.get_count(work_id=work_id, username=username, topic=topic))
+    return BestbookCountResponse(count=await Bestbook.get_count(work_id=work_id, username=username, topic=topic))
 
 
 class MonthlyLoginsResponse(BaseModel):

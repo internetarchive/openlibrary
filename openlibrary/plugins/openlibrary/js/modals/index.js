@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import { olConfirm } from '../../../../components/lit/alert-dialog.js';
-import { FadingToast } from '../Toast.js';
+import { showToast } from '../../../../components/lit/toast.js';
 import '../../../../../static/css/components/metadata-form.css';
 
 /**
@@ -21,7 +21,7 @@ function addShareModalButtonListeners() {
         try {
             await navigator.clipboard.writeText(window.location.href);
             const msg = this.dataset.copyToast || 'URL copied to clipboard';
-            showComponentToast(msg, 'success');
+            showToast(msg, { type: 'success' });
         } catch {
             // Fallback for non-secure contexts or permission denied
         }
@@ -80,26 +80,6 @@ export function notesModalStrings(el) {
         // Malformed attribute: fall through to the English defaults.
     }
     return DEFAULT_NOTES_MODAL_STRINGS;
-}
-
-/**
- * Shows an <ol-toast>. Built by hand rather than through showToast(), whose
- * import would re-run customElements.define() from a second bundle and pull Lit
- * in — same workaround as templates/design/components/toast.html.jinja.
- *
- * @param {String} message Already-translated message text.
- * @param {String} type 'success' or 'error'.
- */
-function showComponentToast(message, type) {
-    let region = document.querySelector('ol-toast-region');
-    if (!region) {
-        region = document.createElement('ol-toast-region');
-        document.body.appendChild(region);
-    }
-    const toast = document.createElement('ol-toast');
-    toast.setAttribute('message', message);
-    toast.setAttribute('type', type);
-    region.appendChild(toast);
 }
 
 /**
@@ -181,7 +161,7 @@ export function initNotesModal(modalLinks) {
             setNoteIndicator(true);
         } catch {
             // Leave the dialog open so the patron does not lose the note.
-            showComponentToast(strings.saveError, 'error');
+            showToast(strings.saveError, { type: 'error' });
         } finally {
             pending = null;
             syncButtons();
@@ -206,7 +186,7 @@ export function initNotesModal(modalLinks) {
             deleteButton.classList.add('hidden');
             setNoteIndicator(false);
         } catch {
-            showComponentToast(strings.deleteError, 'error');
+            showToast(strings.deleteError, { type: 'error' });
         } finally {
             pending = null;
             syncButtons();
@@ -241,6 +221,13 @@ export function initNotesModal(modalLinks) {
     });
 }
 
+function appendEditionId(formData, editionId) {
+    // Work-level notes (edition -1) are saved without an edition_id
+    if (editionId !== '-1') {
+        formData.append('edition_id', `OL${editionId}M`);
+    }
+}
+
 /**
  * Add listeners to update and delete buttons on the notes page.
  *
@@ -251,12 +238,12 @@ export function addNotesPageButtonListeners() {
     $('.update-note-link-button').on('click', function (event) {
         event.preventDefault();
         const workId = $(this).parent().siblings('input')[0].value;
-        const editionId = $(this).parent().attr('id').split('-')[0];
+        const editionId = $(this).parent().attr('id').replace('-note-form-buttons', '');
         const note = $(this).parent().siblings('textarea')[0].value;
 
         const formData = new FormData();
         formData.append('notes', note);
-        formData.append('edition_id', `OL${editionId}M`);
+        appendEditionId(formData, editionId);
 
         $.ajax({
             url: `/works/OL${workId}W/notes.json`,
@@ -265,7 +252,7 @@ export function addNotesPageButtonListeners() {
             contentType: false,
             processData: false,
             success: function () {
-                showToast('Update successful!');
+                showToast('Update successful!', { type: 'success' });
             }
         });
     });
@@ -275,10 +262,10 @@ export function addNotesPageButtonListeners() {
             const $parent = $(this).parent();
 
             const workId = $(this).parent().siblings('input')[0].value;
-            const editionId = $(this).parent().attr('id').split('-')[0];
+            const editionId = $(this).parent().attr('id').replace('-note-form-buttons', '');
 
             const formData = new FormData();
-            formData.append('edition_id', `OL${editionId}M`);
+            appendEditionId(formData, editionId);
 
             $.ajax({
                 url: `/works/OL${workId}W/notes.json`,
@@ -287,7 +274,7 @@ export function addNotesPageButtonListeners() {
                 contentType: false,
                 processData: false,
                 success: function () {
-                    showToast('Note deleted.');
+                    showToast('Note deleted.', { type: 'success' });
 
                     // Remove list element from UI:
                     if ($parent.closest('.notes-list').children().length === 1) {
@@ -307,15 +294,6 @@ export function addNotesPageButtonListeners() {
             });
         }
     });
-}
-
-/**
- * Creates and displays a toast component.
- *
- * @param {String} message Message displayed in toast component
- */
-function showToast(message) {
-    new FadingToast(message).show();
 }
 
 /**
