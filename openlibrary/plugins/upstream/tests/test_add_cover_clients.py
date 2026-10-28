@@ -5,7 +5,7 @@ openlibrary-bots' BWBCoverBot post these exact forms, and BWBCoverBot treats an 
 as successful only when the reply contains "Saved!". Change this contract on purpose.
 """
 
-import datetime
+import datetime as dt
 import io
 from unittest.mock import MagicMock
 
@@ -67,7 +67,7 @@ def setup(monkeypatch, render_template, request_context_fixture):
     web.ctx.ip = "127.0.0.1"
     user = MagicMock(key="/people/bwbimportbot", is_read_only=lambda: False)
     monkeypatch.setattr(covers.accounts, "get_current_user", lambda: user)
-    monkeypatch.setattr(Image, "info", lambda self, fetch_author=True: web.storage(author=None, created=datetime.datetime(2026, 1, 1), source_url=None))
+    monkeypatch.setattr(Image, "info", lambda self, fetch_author=True: web.storage(author=None, created=dt.datetime(2026, 1, 1), source_url=None))
 
     uploads = []
 
