@@ -26,7 +26,7 @@ export const DEFAULT_LABELS = {
     reasonBetter: 'Better image',
     reasonBetterHint: 'A sharper, cleaner, or more complete version of the same cover.',
     reasonNotFront: 'Not the front cover',
-    reasonNotFrontHint: 'A title page, back cover, spine, or a “no image” placeholder.',
+    reasonNotFrontHint: 'A back cover, spine, or a “no image” placeholder.',
     reasonOther: 'Something else',
     reasonNoteLabel: 'What’s wrong with the current cover?',
     reasonPrompt: 'Choose why you’re replacing it',
@@ -44,6 +44,7 @@ export const DEFAULT_LABELS = {
     sourceAmazon: 'Amazon',
     titleScanCover: 'Scan of the cover',
     titleScanTitle: 'Scan of the title page',
+    titleScanTitleHint: 'For scans without their original cover',
     titleAmazon: 'Cover from Amazon',
     titleWikidata: 'Photo on Wikimedia Commons',
     titleUploadBy: 'Uploaded by %(name)s',
@@ -1246,7 +1247,7 @@ export class OlCoverManager extends LitElement {
             case 'archive_cover':
                 return { title: this._t('titleScanCover'), source: this._t('sourceArchive') };
             case 'archive_title':
-                return { title: this._t('titleScanTitle'), source: this._t('sourceArchive') };
+                return { title: this._t('titleScanTitle'), source: this._t('sourceArchive'), detail: this._t('titleScanTitleHint') };
             case 'amazon':
                 return { title: this._t('titleAmazon'), source: this._t('sourceAmazon') };
             case 'wikidata':

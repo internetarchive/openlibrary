@@ -99,7 +99,7 @@ describe('ol-cover-manager listing', () => {
         const labels = picks(el).map(b => b.getAttribute('aria-label'));
         expect(labels).toEqual([
             'Scan of the cover, Internet Archive',
-            'Scan of the title page, Internet Archive',
+            'Scan of the title page, Internet Archive, For scans without their original cover',
             'Uploaded by Ada, March 2024, 1,200 × 1,800 px (current cover)',
             'Uploaded image, Image 11'
         ]);
@@ -231,7 +231,7 @@ describe('ol-cover-manager asking why', () => {
         expect(saveButton(el).disabled).toBe(true);
         await chooseReason(el, 'not_front');
         expect(q(el, '.chip[aria-pressed="true"]').dataset.value).toBe('not_front');
-        expect(q(el, '.reason-hint').textContent).toContain('title page');
+        expect(q(el, '.reason-hint').textContent).toContain('spine');
         expect(status(el)).toBe('');
         expect(saveButton(el).disabled).toBe(false);
     });

@@ -4390,7 +4390,7 @@ msgid "Not the front cover"
 msgstr ""
 
 #: covers/change.html
-msgid "A title page, back cover, spine, or a “no image” placeholder."
+msgid "A back cover, spine, or a “no image” placeholder."
 msgstr ""
 
 #: covers/change.html
@@ -4455,6 +4455,10 @@ msgstr ""
 
 #: covers/change.html
 msgid "Scan of the title page"
+msgstr ""
+
+#: covers/change.html
+msgid "For scans without their original cover"
 msgstr ""
 
 #: contribute/parts.html.jinja covers/change.html
