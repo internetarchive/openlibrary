@@ -6,6 +6,7 @@ import pytest
 
 from infogami.infobase.client import ClientException
 from openlibrary.utils.request_context import RequestContextVars, req_context, site
+from openlibrary.utils.retry import MaxRetriesExceeded
 
 
 @pytest.fixture(autouse=True)
@@ -62,10 +63,10 @@ def mock_merge_engine():
 
 
 @pytest.fixture
-def mock_process_merge_request():
-    """Mock process_merge_request to avoid actual merge request creation."""
+def mock_merge_queue_update():
+    """Mock the async SQL-backed merge queue update."""
     with patch(
-        "openlibrary.plugins.upstream.edits.process_merge_request",
+        "openlibrary.fastapi.merge_authors.perform_merge_update",
         autospec=True,
     ) as mock:
         yield mock
@@ -78,7 +79,7 @@ class TestMergeAuthorsJson:
         mock_authenticated_user,
         mock_user_factory,
         mock_merge_engine,
-        mock_process_merge_request,
+        mock_merge_queue_update,
     ):
         """Admin user can merge authors successfully."""
         mock_user_factory(is_admin=True)
@@ -99,7 +100,7 @@ class TestMergeAuthorsJson:
             "/authors/OL1A",
             ["/authors/OL2A", "/authors/OL3A"],
         )
-        mock_process_merge_request.assert_called_once()
+        mock_merge_queue_update.assert_called_once()
 
     def test_merge_success_with_mrid(
         self,
@@ -107,7 +108,7 @@ class TestMergeAuthorsJson:
         mock_authenticated_user,
         mock_user_factory,
         mock_merge_engine,
-        mock_process_merge_request,
+        mock_merge_queue_update,
     ):
         """Admin user can merge authors with an existing merge request ID."""
         mock_user_factory(is_admin=True)
@@ -122,10 +123,7 @@ class TestMergeAuthorsJson:
             },
         )
         assert response.status_code == 200
-        mock_process_merge_request.assert_called_once_with(
-            "update-request",
-            {"action": "approve", "mrid": "123", "comment": "approving merge request"},
-        )
+        mock_merge_queue_update.assert_awaited_once_with(mrid="123", olids="", comment="approving merge request")
 
     def test_merge_success_without_mrid_creates_request(
         self,
@@ -133,7 +131,7 @@ class TestMergeAuthorsJson:
         mock_authenticated_user,
         mock_user_factory,
         mock_merge_engine,
-        mock_process_merge_request,
+        mock_merge_queue_update,
     ):
         """When no mrid is provided, a new merge request record is created."""
         mock_user_factory(is_admin=True)
@@ -147,14 +145,7 @@ class TestMergeAuthorsJson:
             },
         )
         assert response.status_code == 200
-        mock_process_merge_request.assert_called_once_with(
-            "create-request",
-            {
-                "mr_type": 2,
-                "olids": "/authors/OL1A,/authors/OL2A",
-                "action": "create-merged",
-            },
-        )
+        mock_merge_queue_update.assert_awaited_once_with(mrid=None, olids="/authors/OL1A,/authors/OL2A", comment=None)
 
     def test_merge_unauthenticated(self, fastapi_client):
         """Unauthenticated request returns 401 (from require_authenticated_user)."""
@@ -195,7 +186,7 @@ class TestMergeAuthorsJson:
         mock_authenticated_user,
         mock_user_factory,
         mock_merge_engine,
-        mock_process_merge_request,
+        mock_merge_queue_update,
     ):
         """Librarian (not admin) can merge authors."""
         mock_user_factory(
@@ -219,7 +210,7 @@ class TestMergeAuthorsJson:
         mock_authenticated_user,
         mock_user_factory,
         mock_merge_engine,
-        mock_process_merge_request,
+        mock_merge_queue_update,
     ):
         """Super librarian can merge authors."""
         mock_user_factory(
@@ -243,7 +234,7 @@ class TestMergeAuthorsJson:
         mock_authenticated_user,
         mock_user_factory,
         mock_merge_engine,
-        mock_process_merge_request,
+        mock_merge_queue_update,
     ):
         """ClientException from AuthorMergeEngine returns 400 with parsed error body."""
         mock_user_factory(is_admin=True)
@@ -265,12 +256,12 @@ class TestMergeAuthorsJson:
         mock_authenticated_user,
         mock_user_factory,
         mock_merge_engine,
-        mock_process_merge_request,
+        mock_merge_queue_update,
         monkeytime,
     ):
-        """When process_merge_request keeps failing, retries are exhausted and 400 is returned."""
+        """When the merge queue update exhausts retries, the endpoint returns 400."""
         mock_user_factory(is_admin=True)
-        mock_process_merge_request.side_effect = ClientException("400 Bad Request", "retry error")
+        mock_merge_queue_update.side_effect = MaxRetriesExceeded(ClientException("400 Bad Request", "retry error"))
         response = fastapi_client.post(
             "/authors/merge.json",
             json={"master": "/authors/OL1A", "duplicates": ["/authors/OL2A"]},

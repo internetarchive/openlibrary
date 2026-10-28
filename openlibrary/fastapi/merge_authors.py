@@ -33,7 +33,7 @@ class MergeAuthorsBody(BaseModel):
 
 
 @router.post("/authors/merge.json")
-def merge_authors_json(_: LibrarianDep, client_ip: ClientIpDep, data: MergeAuthorsBody) -> Any:
+async def merge_authors_json(_: LibrarianDep, client_ip: ClientIpDep, data: MergeAuthorsBody) -> Any:
     with web_ctx_ip(client_ip):
         try:
             engine = AuthorMergeEngine(AuthorRedirectEngine())
@@ -45,7 +45,7 @@ def merge_authors_json(_: LibrarianDep, client_ip: ClientIpDep, data: MergeAutho
             )
 
         try:
-            perform_merge_update(mrid=data.mrid, olids=data.olids, comment=data.comment)
+            await perform_merge_update(mrid=data.mrid, olids=data.olids, comment=data.comment)
         except MaxRetriesExceeded as e:
             raise HTTPException(
                 status_code=400,

@@ -1,15 +1,18 @@
 import datetime as dt
 import json
-from sqlite3 import IntegrityError
+import sqlite3
 from types import MappingProxyType
-from typing import Literal
+from typing import Any, Literal
 
+from psycopg.types.json import Json
 from psycopg2.errors import UniqueViolation
 
 from infogami.utils.view import public
 from openlibrary.core import cache
+from openlibrary.core.async_db import connection, fetch_one
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
+from openlibrary.utils.async_utils import async_bridge
 
 from . import db
 
@@ -159,14 +162,14 @@ class CommunityEditsQueue:
                 submitter=new_username,
                 vars={"submitter": submitter},
             )
-        except UniqueViolation, IntegrityError:
+        except UniqueViolation, sqlite3.IntegrityError:
             rows_changed = 0
 
         t.rollback() if _test else t.commit()
         return rows_changed
 
     @classmethod
-    def submit_request(
+    async def submit_request(
         cls,
         url: str,
         submitter: str,
@@ -181,21 +184,74 @@ class CommunityEditsQueue:
 
         Preconditions: All data validations should be completed before calling this method.
         """
-        oldb = db.get_db()
-
         comments = [cls.create_comment(submitter, comment)] if comment else []
-        json_comment = json.dumps({"comments": comments})
-
-        return oldb.insert(
-            cls.TABLENAME,
-            submitter=submitter,
-            reviewer=reviewer,
-            url=url,
-            status=status,
-            comments=json_comment,
-            title=title,
-            mr_type=mr_type,
+        query = (
+            f"INSERT INTO {cls.TABLENAME} "
+            "(submitter, reviewer, url, status, comments, title, mr_type) "
+            "VALUES (%(submitter)s, %(reviewer)s, %(url)s, %(status)s, %(comments)s, %(title)s, %(mr_type)s) "
+            "RETURNING id"
         )
+        row = await fetch_one(
+            query,
+            {
+                "submitter": submitter,
+                "reviewer": reviewer,
+                "url": url,
+                "status": status,
+                "comments": Json({"comments": comments}),
+                "title": title,
+                "mr_type": mr_type,
+            },
+        )
+        return row["id"] if row else None
+
+    @classmethod
+    def submit_request_sync(
+        cls,
+        url: str,
+        submitter: str,
+        reviewer: str | None = None,
+        status: int = STATUS["PENDING"],
+        comment: str | None = None,
+        title: str | None = None,
+        mr_type: int | None = None,
+    ) -> int | None:
+        return async_bridge.run(cls.submit_request(url, submitter, reviewer, status, comment, title, mr_type))
+
+    @classmethod
+    async def exists(cls, url: str) -> bool:
+        """Return whether a request with this URL already exists."""
+        query = f"SELECT EXISTS (SELECT 1 FROM {cls.TABLENAME} WHERE url = %(url)s) AS request_exists"
+        row = await fetch_one(query, {"url": url})
+        return bool(row and row["request_exists"])
+
+    @classmethod
+    def exists_sync(cls, url: str) -> bool:
+        return async_bridge.run(cls.exists(url))
+
+    @classmethod
+    async def update_request_status(cls, rid: int, status: int, reviewer: str, comment: str | None = None) -> int:
+        """Update a request and append a comment atomically when supplied."""
+        async with connection() as conn:
+            update_kwargs: dict[str, Any] = {"rid": rid, "status": status, "reviewer": reviewer, "updated": dt.datetime.utcnow()}
+            comments_update = ""
+            if comment:
+                row = await (await conn.execute(f"SELECT comments FROM {cls.TABLENAME} WHERE id = %(rid)s FOR UPDATE", {"rid": rid})).fetchone()
+                comments = (row["comments"] if row else None) or {"comments": []}
+                if isinstance(comments, str):
+                    comments = json.loads(comments)
+                comments["comments"].append(cls.create_comment(reviewer, comment))
+                update_kwargs["comments"] = Json(comments)
+                comments_update = ", comments = %(comments)s"
+            cursor = await conn.execute(
+                f"UPDATE {cls.TABLENAME} SET status = %(status)s, reviewer = %(reviewer)s, updated = %(updated)s{comments_update} WHERE id = %(rid)s",
+                update_kwargs,
+            )
+            return cursor.rowcount
+
+    @classmethod
+    def update_request_status_sync(cls, rid: int, status: int, reviewer: str, comment: str | None = None) -> int:
+        return async_bridge.run(cls.update_request_status(rid, status, reviewer, comment))
 
     @classmethod
     def assign_request(cls, rid: int, reviewer: str | None) -> dict[str, str | None]:
@@ -246,34 +302,6 @@ class CommunityEditsQueue:
         )
 
     @classmethod
-    def update_request_status(cls, rid: int, status: int, reviewer: str, comment: str | None = None) -> int:
-        """
-        Changes the status of the request with the given rid.
-
-        If a comment is included, existing comments list for this request are fetched and
-        the new comment is appended.
-        """
-        oldb = db.get_db()
-
-        update_kwargs = {}
-
-        # XXX Trim whitespace from comment first
-        if comment:
-            comments = cls.get_comments(rid)
-            comments["comments"].append(cls.create_comment(reviewer, comment))
-            update_kwargs["comments"] = json.dumps(comments)
-
-        return oldb.update(
-            cls.TABLENAME,
-            where="id=$rid",
-            status=status,
-            reviewer=reviewer,
-            updated=dt.datetime.utcnow(),
-            vars={"rid": rid},
-            **update_kwargs,
-        )
-
-    @classmethod
     def comment_request(cls, rid: int, username: str, comment: str) -> int:
         oldb = db.get_db()
 
@@ -292,11 +320,6 @@ class CommunityEditsQueue:
     def find_by_id(cls, rid: int):
         """Returns the record with the given ID."""
         return cls.get_requests(id=rid)[0] or None
-
-    @classmethod
-    def exists(cls, url: str) -> bool:
-        """Returns True if a request with the given URL exists in the table."""
-        return len(cls.get_requests(limit=1, url=url)) > 0
 
     @classmethod
     def get_comments(cls, rid: int):
