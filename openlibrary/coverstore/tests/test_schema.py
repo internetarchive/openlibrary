@@ -1,5 +1,5 @@
-from pathlib import Path
 import sqlite3
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from openlibrary.coverstore import db
