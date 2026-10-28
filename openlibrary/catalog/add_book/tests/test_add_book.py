@@ -1362,6 +1362,50 @@ def test_add_description_to_work(mock_site) -> None:
     assert e.works[0]["description"] == "An added description from an existing edition"
 
 
+@pytest.mark.parametrize("incoming_name", ["John Smith", "Dr. John Smith"])
+def test_add_existing_author_to_work_without_authors(mock_site, incoming_name) -> None:
+    """
+    When a matched edition's work has no authors, the incoming authors are added
+    to it. Honorifics are removed first, the same as for new editions, so
+    "Dr. John Smith" still finds the existing "John Smith".
+    """
+    mock_site.save({"type": {"key": "/type/author"}, "name": "John Smith", "key": "/authors/OL20A"})
+    mock_site.save(
+        {
+            "key": "/works/OL16W",
+            "title": "Finding Existing Works",
+            "type": {"key": "/type/work"},
+        }
+    )
+    mock_site.save(
+        {
+            "key": "/books/OL16M",
+            "title": "Finding Existing Works",
+            "publishers": ["Black Spot"],
+            "type": {"key": "/type/edition"},
+            "source_records": ["non-marc:test"],
+            "publish_date": "Jan 09, 2011",
+            "isbn_10": ["1250144051"],
+            "works": [{"key": "/works/OL16W"}],
+        }
+    )
+
+    rec = {
+        "source_records": "non-marc:test",
+        "title": "Finding Existing Works",
+        "authors": [{"name": incoming_name}],
+        "publishers": ["Black Spot"],
+        "publish_date": "Jan 09, 2011",
+        "isbn_10": ["1250144051"],
+    }
+
+    reply = load(rec)
+    assert reply["edition"]["status"] == "matched"
+    assert reply["work"]["status"] == "modified"
+    assert mock_site.get("/works/OL16W").dict()["authors"] == [{"type": {"key": "/type/author_role"}, "author": "/authors/OL20A"}]
+    assert mock_site.things({"type": "/type/author"}) == ["/authors/OL20A"]
+
+
 def test_add_subjects_to_work_deduplicates(mock_site) -> None:
     """
     Ensure a rec's subjects, after a case insensitive check, are added to an

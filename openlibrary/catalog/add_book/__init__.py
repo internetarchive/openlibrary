@@ -44,6 +44,7 @@ from openlibrary.catalog.add_book.load_book import (
     author_import_record_to_author,
     east_in_by_statement,
     import_record_to_edition,
+    remove_author_honorifics,
 )
 from openlibrary.catalog.add_book.match import editions_match, mk_norm
 from openlibrary.catalog.utils import (
@@ -1048,7 +1049,10 @@ def update_work_with_rec_data(rec: dict, edition: Edition, work: dict[str, Any],
 
     # Add authors to work, if needed
     if not work.get("authors"):
-        authors = [author_import_record_to_author(a) for a in rec.get("authors", [])]
+        authors = []
+        for author in rec.get("authors", []):
+            author["name"] = remove_author_honorifics(author["name"])
+            authors.append(author_import_record_to_author(author, eastern=east_in_by_statement(rec, author)))
         work["authors"] = [{"type": {"key": "/type/author_role"}, "author": a.get("key")} for a in authors if a.get("key")]
         if work.get("authors"):
             need_work_save = True
