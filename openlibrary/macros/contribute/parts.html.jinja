@@ -358,18 +358,16 @@
                     {{ _("Save") }}
                 </ol-button>
             </div>
-            {#- Submits without the answer's checks: the handler notes it and moves on to the next task. -#}
-            <ol-button variant="ghost" type="submit" name="then" value="notfound" formnovalidate data-skip data-ol-link-track="TaskForm|Skip|{{ task.field }}">
-                {{ _("I couldn't find it") }}
-                {{ icon("arrow-right", slot="icon-end") }}
-            </ol-button>
-            <p class="contrib-muted contrib-answer__next">
-                {% if data.next_scope %}
-                    {{ _("Next: a random task from %(filter)s", filter=data.next_scope) }}
-                {% else %}
-                    {{ _("Next: a random task from all open tasks") }}
-                {% endif %}
-            </p>
+            <div class="contrib-answer__move">
+                {#- Submits without the answer's checks: the handler notes it and moves on to the next task. -#}
+                <ol-button variant="ghost" type="submit" name="then" value="notfound" formnovalidate data-skip data-ol-link-track="TaskForm|NotFound|{{ task.field }}">
+                    {{ _("I couldn't find it") }}
+                </ol-button>
+                <ol-button variant="ghost" href="{{ data.skip_url }}" data-skip data-ol-link-track="TaskForm|Skip|{{ task.field }}">
+                    {{ _("Skip") }}
+                    {{ icon("arrow-right", slot="icon-end") }}
+                </ol-button>
+            </div>
         </div>
     </form>
 {% endmacro %}
