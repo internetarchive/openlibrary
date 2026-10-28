@@ -99,6 +99,8 @@ export class OlPagination extends LitElement {
         .pagination {
             display: flex;
             font-size: var(--pagination-font-size);
+            /* Page numbers are control labels, like the buttons beside them. */
+            font-weight: var(--font-weight-button);
             gap: var(--spacing-inline-xs);
         }
 
