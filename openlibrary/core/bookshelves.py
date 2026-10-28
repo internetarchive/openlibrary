@@ -372,6 +372,10 @@ class Bookshelves(db.CommonExtras):
             if solr_resp.error or solr_resp.num_found is None:
                 logger.error(f"Reading log sort {sort!r} failed, falling back to date added: {solr_resp.error or 'no response from Solr'}")
                 return None
+            # A timeAllowed cutoff returns a normal-looking response with only some docs.
+            if solr_resp.raw_resp.get("responseHeader", {}).get("partialResults"):
+                logger.error(f"Reading log sort {sort!r} got partial results from Solr, falling back to date added")
+                return None
             return [doc["key"] for doc in solr_resp.docs], solr_resp.num_found
 
         if (sorted_page := await get_solr_keys(rows=limit, offset=offset, sort=f"{sort},key")) is None:

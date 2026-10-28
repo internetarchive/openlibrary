@@ -166,12 +166,17 @@ async def test_get_users_logged_books_uses_async_query_when_filtering(mock_readi
     run_solr_query.assert_awaited_once()
 
 
-def _fake_solr_sort(sorted_keys: list[str]) -> AsyncMock:
+def _fake_solr_sort(sorted_keys: list[str], partial: bool = False) -> AsyncMock:
     """Stands in for run_solr_query_async: Solr has a sort value for `sorted_keys`, in that order."""
 
     async def run_solr_query_async(*, rows, offset=None, **kwargs):
         start = offset or 0
-        return MagicMock(error=None, num_found=len(sorted_keys), docs=[{"key": key} for key in sorted_keys[start : start + rows]])
+        return MagicMock(
+            error=None,
+            num_found=len(sorted_keys),
+            docs=[{"key": key} for key in sorted_keys[start : start + rows]],
+            raw_resp={"responseHeader": {"partialResults": True} if partial else {}},
+        )
 
     return AsyncMock(side_effect=run_solr_query_async)
 
@@ -233,6 +238,19 @@ async def test_get_users_logged_books_falls_back_to_date_added_when_solr_fails(m
     assert [doc.key for doc in result.docs] == ["/works/OL3W", "/works/OL2W"]
     assert result.sort == "created desc"
     assert "falling back to date added" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_users_logged_books_falls_back_to_date_added_on_partial_solr_results(mock_reading_log_dependencies, caplog):
+    fetch_all, solr = mock_reading_log_dependencies
+    fetch_all.return_value = [{"work_id": i, "created": datetime(2025, 1, i), "edition_id": None} for i in (3, 2, 1)]
+    solr.get_many_async = AsyncMock(side_effect=lambda keys, fields: [_solr_doc(int(key[len("/works/OL") : -1])) for key in keys])
+    with patch("openlibrary.plugins.worksearch.code.run_solr_query_async", _fake_solr_sort(["/works/OL1W"], partial=True)):
+        result = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, limit=2, page=1, sort="title")
+
+    assert [doc.key for doc in result.docs] == ["/works/OL3W", "/works/OL2W"]
+    assert result.sort == "created desc"
+    assert "partial results" in caplog.text
 
 
 @pytest.mark.asyncio

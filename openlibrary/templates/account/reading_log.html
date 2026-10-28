@@ -68,7 +68,8 @@ $add_metatag(property="og:image", content=meta_photo_url)
       $# Sort and layout shape the results rather than filter them, so they sit
       $# at the far end of the row — same split as the search page.
       <div class="search-results-stats__tools">
-        $if not is_filtered:
+        $# Year pages always list by check-in date, so sorting would do nothing.
+        $if not is_filtered and not checkin_year:
           $:render_template("search/sort_options.html", sort_order, exclude=None if owners_page else ['rating'], default_sort='desc', search_scheme='reading_log')
 
         $ layout = get_remembered_layout()
