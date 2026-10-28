@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import IntEnum
 
-from openlibrary.core.async_db import class_row, execute, fetch_one, fetch_val
+from openlibrary.core.async_db import class_row, execute, fetch_all, fetch_one, fetch_val
 
 from . import db
 
@@ -85,23 +85,18 @@ class BookshelvesEvents(db.CommonExtras):
         return results[0] if results else None
 
     @classmethod
-    def get_latest_event_dates(cls, username: str, work_ids: list[int], event_type: int) -> dict[int, dict]:
+    async def get_latest_event_dates(cls, username: str, work_ids: list[int], event_type: int) -> dict[int, dict]:
         """`get_latest_event_date` for a batch: work_id -> {id, event_date}, only for works with an event."""
         if not work_ids:
             return {}
-        oldb = db.get_db()
-        data = {
-            "username": username,
-            "work_ids": work_ids,
-            "event_type": event_type,
-        }
         query = (
             f"SELECT DISTINCT ON (work_id) id, work_id, event_date FROM {cls.TABLENAME}"
-            " WHERE username=$username AND work_id IN $work_ids"
-            " AND event_type=$event_type"
+            " WHERE username=%(username)s AND work_id = ANY(%(work_ids)s)"
+            " AND event_type=%(event_type)s"
             " ORDER BY work_id, event_date DESC"
         )
-        return {row.work_id: {"id": row.id, "event_date": row.event_date} for row in oldb.query(query, vars=data)}
+        rows = await fetch_all(query, {"username": username, "work_ids": work_ids, "event_type": event_type})
+        return {row["work_id"]: {"id": row["id"], "event_date": row["event_date"]} for row in rows}
 
     @classmethod
     def get_user_yearly_read_counts(cls, username: str) -> list[tuple[int, int]]:
@@ -223,15 +218,3 @@ class BookshelvesEvents(db.CommonExtras):
         where_vars = {"username": username}
 
         return oldb.delete(cls.TABLENAME, where=where_clause, vars=where_vars)
-
-    @classmethod
-    def delete_by_username_and_work(cls, username, work_id):
-        oldb = db.get_db()
-
-        where_clause = "username=$username AND work_id=$work_id"
-        data = {
-            "username": username,
-            "work_id": work_id,
-        }
-
-        return oldb.delete(cls.TABLENAME, where=where_clause, vars=data)

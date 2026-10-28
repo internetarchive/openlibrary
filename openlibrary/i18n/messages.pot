@@ -3008,6 +3008,10 @@ msgstr ""
 msgid "Are you sure that's the published date?"
 msgstr ""
 
+#: books/add.html openlibrary/plugins/upstream/addbook.py
+msgid "Please enter a valid URL starting with http:// or https://"
+msgstr ""
+
 #: books/add.html
 msgid "Add a book to Open Library"
 msgstr ""
@@ -6469,6 +6473,21 @@ msgid "Book %s"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
+#, python-format
+msgid "Edition published in %(year)s by %(publishers)s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+#, python-format
+msgid "Edition published in %(year)s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+#, python-format
+msgid "Edition published by %(publishers)s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
 msgid "Read More"
 msgstr ""
 
@@ -9283,6 +9302,10 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
+msgid "Invalid Book URL"
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py

@@ -5,7 +5,9 @@ from typing import Literal
 
 from infogami import config
 from infogami.utils.view import public
+from openlibrary.core.async_db import fetch_all, fetch_one, fetch_val
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import cache, db
@@ -617,8 +619,7 @@ def _get_all_types_and_values():
     return types_and_values
 
 
-@public
-def get_observation_metrics(work_olid):
+async def get_observation_metrics(work_olid):
     """
     Returns a dictionary of observation statistics for the given work.  Statistics
     will be used to populate a book's "Reader Observations" component.
@@ -656,7 +657,8 @@ def get_observation_metrics(work_olid):
     return: A dictionary of observation statistics for a work.
     """
     work_id = extract_numeric_id_from_olid(work_olid)
-    total_respondents = Observations.total_unique_respondents(work_id)
+    numeric_work_id = int(work_id)
+    total_respondents = await Observations.total_unique_respondents(numeric_work_id)
 
     metrics = {}
     metrics["work_id"] = work_id
@@ -664,8 +666,8 @@ def get_observation_metrics(work_olid):
     metrics["observations"] = []
 
     if total_respondents > 0:
-        respondents_per_type_dict = Observations.count_unique_respondents_by_type(work_id)
-        observation_totals = Observations.count_observations(work_id)
+        respondents_per_type_dict = await Observations.count_unique_respondents_by_type(numeric_work_id)
+        observation_totals = await Observations.count_observations(numeric_work_id)
 
         if not observation_totals:
             # It is possible to have a non-zero number of respondents and no
@@ -714,6 +716,12 @@ def get_observation_metrics(work_olid):
     return metrics
 
 
+@public
+def get_observation_metrics_sync(work_olid):
+    """Synchronous bridge for legacy Templetor templates."""
+    return async_bridge.run(get_observation_metrics(work_olid))
+
+
 class Observations(db.CommonExtras):
     TABLENAME = "observations"
     NULL_EDITION_VALUE = -1
@@ -727,83 +735,60 @@ class Observations(db.CommonExtras):
     ALLOW_DELETE_ON_CONFLICT = True
 
     @classmethod
-    def summary(cls):
+    async def summary(cls) -> dict:
+        query = """
+            SELECT
+                count(*) AS reviews_total,
+                count(*) FILTER (WHERE created >= %(month_ago)s) AS reviews_month,
+                count(*) FILTER (WHERE created >= %(week_ago)s) AS reviews_week,
+                count(DISTINCT work_id) AS books_total,
+                count(DISTINCT work_id) FILTER (WHERE created >= %(month_ago)s) AS books_month,
+                count(DISTINCT work_id) FILTER (WHERE created >= %(week_ago)s) AS books_week,
+                count(DISTINCT username) AS reviewers_total,
+                count(DISTINCT username) FILTER (WHERE created >= %(month_ago)s) AS reviewers_month,
+                count(DISTINCT username) FILTER (WHERE created >= %(week_ago)s) AS reviewers_week
+            FROM observations
+        """
+        row = await fetch_one(query, {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO})
+        assert row is not None
         return {
-            "total_reviews": {
-                "total": Observations.total_reviews(),
-                "month": Observations.total_reviews(since=DATE_ONE_MONTH_AGO),
-                "week": Observations.total_reviews(since=DATE_ONE_WEEK_AGO),
-            },
-            "total_books_reviewed": {
-                "total": Observations.total_books_reviewed(),
-                "month": Observations.total_books_reviewed(since=DATE_ONE_MONTH_AGO),
-                "week": Observations.total_books_reviewed(since=DATE_ONE_WEEK_AGO),
-            },
-            "total_reviewers": {
-                "total": Observations.total_unique_respondents(),
-                "month": Observations.total_unique_respondents(since=DATE_ONE_MONTH_AGO),
-                "week": Observations.total_unique_respondents(since=DATE_ONE_WEEK_AGO),
-            },
+            "total_reviews": {"total": row["reviews_total"], "month": row["reviews_month"], "week": row["reviews_week"]},
+            "total_books_reviewed": {"total": row["books_total"], "month": row["books_month"], "week": row["books_week"]},
+            "total_reviewers": {"total": row["reviewers_total"], "month": row["reviewers_month"], "week": row["reviewers_week"]},
         }
 
     @classmethod
-    def total_reviews(cls, since=None):
-        oldb = db.get_db()
-        query = "SELECT COUNT(*) from observations"
-        if since:
-            query += " WHERE created >= $since"
-        return oldb.query(query, vars={"since": since})[0]["count"]
+    def summary_sync(cls) -> dict:
+        return async_bridge.run(cls.summary())
 
     @classmethod
-    def total_books_reviewed(cls, since=None):
-        oldb = db.get_db()
-        query = "SELECT COUNT(DISTINCT(work_id)) from observations"
-        if since:
-            query += " WHERE created >= $since"
-        return oldb.query(query, vars={"since": since})[0]["count"]
-
-    @classmethod
-    def total_unique_respondents(cls, work_id=None, since=None):
+    async def total_unique_respondents(cls, work_id: int):
         """
         Returns total number of patrons who have submitted observations for the given work ID.
-        If no work ID is passed, returns total number of patrons who have submitted observations
-        for any work.
 
         return: Total number of patrons who have made an observation.
         """
-        oldb = db.get_db()
         data = {
             "work_id": work_id,
-            "since": since,
         }
-        query = "SELECT COUNT(DISTINCT(username)) FROM observations"
-
-        if work_id:
-            query += " WHERE work_id = $work_id"
-            if since:
-                query += " AND created >= $since"
-        elif since:
-            query += " WHERE created >= $since"
-        return oldb.query(query, vars=data)[0]["count"]
+        query = "SELECT COUNT(DISTINCT(username)) FROM observations WHERE work_id = %(work_id)s"
+        return await fetch_val(query, data)
 
     @classmethod
-    def count_unique_respondents_by_type(cls, work_id):
+    async def count_unique_respondents_by_type(cls, work_id):
         """
         Returns the total number of respondents who have made an observation per each type of a work
         ID.
 
         return: Dictionary of total patron respondents per type id for the given work ID.
         """
-        oldb = db.get_db()
-        data = {
-            "work_id": work_id,
-        }
+        data = {"work_id": work_id}
         query = """
             SELECT
               observation_type AS type,
               count(distinct(username)) AS total_respondents
             FROM observations
-            WHERE work_id = $work_id """
+            WHERE work_id = %(work_id)s """
         deleted_observations = _get_deleted_types_and_values()
 
         if len(deleted_observations["types"]):
@@ -817,17 +802,17 @@ class Observations(db.CommonExtras):
 
         query += "GROUP BY type"
 
-        return {i["type"]: i["total_respondents"] for i in list(oldb.query(query, vars=data))}
+        rows = await fetch_all(query, data)
+        return {i["type"]: i["total_respondents"] for i in rows}
 
     @classmethod
-    def count_observations(cls, work_id):
+    async def count_observations(cls, work_id):
         """
         For a given work, fetches the count of each observation made for the work.  Counts are returned in
         a list, grouped by observation type and ordered from highest count to lowest.
 
         return: A list of value counts for the given work.
         """
-        oldb = db.get_db()
         data = {"work_id": work_id}
         query = """
             SELECT
@@ -835,7 +820,7 @@ class Observations(db.CommonExtras):
               observation_value as value_id,
               COUNT(observation_value) AS total
             FROM observations
-            WHERE observations.work_id = $work_id """
+            WHERE observations.work_id = %(work_id)s """
 
         deleted_observations = _get_deleted_types_and_values()
 
@@ -852,7 +837,7 @@ class Observations(db.CommonExtras):
             GROUP BY type_id, value_id
             ORDER BY type_id, total DESC"""
 
-        return list(oldb.query(query, vars=data))
+        return await fetch_all(query, data)
 
     @classmethod
     def count_distinct_observations(cls, username):

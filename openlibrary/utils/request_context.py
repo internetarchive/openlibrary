@@ -48,6 +48,9 @@ req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
 # TODO: Create an async and stateless version of site so we don't have to do this
 site: ContextVar[Site] = ContextVar("site")
 
+# Each request owns a fresh set; copied worker/task contexts share that set.
+rendered_keys: ContextVar[set[str] | None] = ContextVar("rendered_keys", default=None)
+
 
 # Keep in sync with scripts/obfi.sh (obfi_grep_bots) and docker/web_nginx.conf ($is_sus_user_agent).
 # cdrini to DRY obfi.sh side.
@@ -194,6 +197,7 @@ def set_context_from_legacy_web_py() -> None:
     )
 
     site.set(web.ctx.site)
+    rendered_keys.set(set())
     req_context.set(
         RequestContextVars(
             x_forwarded_for=web.ctx.env.get("HTTP_X_FORWARDED_FOR"),
@@ -260,6 +264,7 @@ def set_context_from_fastapi(request: Request) -> None:
         s._conn.set_auth_token(unquote(cookie_value))
 
     site.set(s)
+    rendered_keys.set(set())
     req_context.set(
         RequestContextVars(
             x_forwarded_for=request.headers.get("X-Forwarded-For"),

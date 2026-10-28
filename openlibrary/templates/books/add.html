@@ -9,7 +9,8 @@ $ i18n_strings = {
     $ "invalid_lccn": _("Invalid LC Control Number format"),
     $ "invalid_oclc": _("Invalid OCLC/WorldCat Control Number format"),
     $ "empty_id": _("Please enter a value for the selected identifier"),
-    $ "invalid_publish_date": _("Are you sure that's the published date?")
+    $ "invalid_publish_date": _("Are you sure that's the published date?"),
+    $ "invalid_web_book_url": _("Please enter a valid URL starting with http:// or https://")
     $ }
 
 <div id="contentHead">
@@ -87,6 +88,7 @@ $ i18n_strings = {
                 <div class="input">
                     <input type="text" name="web_book_url" class="" id="web_book_url"/>
                 </div>
+                <div id="web-book-url-errors" class="note hidden"></div>
             </div>
 
         $if recaptcha and not ctx.user:

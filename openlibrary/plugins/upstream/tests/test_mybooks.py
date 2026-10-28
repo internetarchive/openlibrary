@@ -68,7 +68,7 @@ class TestShelfButtonFor:
     def render(self, doc, **kwargs):
         with (
             patch("openlibrary.plugins.upstream.mybooks.accounts.get_current_user", return_value=web.storage(key="/people/tester")),
-            patch("openlibrary.plugins.upstream.mybooks.get_reading_state", return_value={1: FINISHED}) as get_state,
+            patch("openlibrary.plugins.upstream.mybooks.get_reading_state_sync", return_value={1: FINISHED}) as get_state,
         ):
             html = shelf_button_for(doc, **kwargs)
         return html, get_state
@@ -135,7 +135,7 @@ class TestShelfButtonFor:
 
 class TestGetReadingStates:
     def test_signed_out_is_empty_without_querying(self):
-        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state") as get_state:
+        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state_sync") as get_state:
             assert get_reading_states(None, [{"key": "/works/OL1W"}]) == {}
         get_state.assert_not_called()
 
@@ -150,7 +150,7 @@ class TestGetReadingStates:
             1: {"shelf": 1, "rating": None, "read_date": None, "event_id": None},
             2: {"shelf": None, "rating": 3, "read_date": None, "event_id": None},
         }
-        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state", return_value=states) as get_state:
+        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state_sync", return_value=states) as get_state:
             result = get_reading_states(web.storage(key="/people/tester"), docs)
 
         assert result == {"/works/OL1W": states[1], "/works/OL2W": states[2]}

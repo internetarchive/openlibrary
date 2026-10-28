@@ -41,6 +41,8 @@ filterwarnings = [
     'ignore:The default timestamp converter is deprecated:DeprecationWarning:web',
 ]
 addopts = "-m 'not integration' --ignore=infogami --ignore=vendor --ignore=node_modules"
+# So --doctest-modules can import docker/gunicorn_prometheus_conf.py, which imports openlibrary
+pythonpath = ["."]
 markers = [
     "integration: marks tests as integration tests that require external services (deselect with '-m \"not integration\"')"
 ]
