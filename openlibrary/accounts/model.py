@@ -467,27 +467,42 @@ class Account(web.storage):
 
     async def anonymize(self, test: bool = False) -> AccountAnonymizationResult:
         if not test:
-            patron = self.get_user()
-            email = self.email
-            username = self.username
+            self._delete_infobase_data()
+        return await self._anonymize_tables(test)
 
-            # Remove patron from all usergroups:
-            for grp in patron.usergroups:
-                grp.remove_user(patron.key)
+    def anonymize_sync(self, test: bool = False) -> AccountAnonymizationResult:
+        """Synchronous bridge for the legacy web.py account and admin routes.
 
-            # Clear patron's profile page:
-            data = {"key": patron.key, "type": "/type/delete"}
-            patron.set_data(data, "delete-profile")
+        The Infobase cleanup runs on the calling thread, outside the bridge:
+        Infobase saves read the request's ``web.ctx.ip``, which is thread-local.
+        """
+        if not test:
+            self._delete_infobase_data()
+        return async_bridge.run(self._anonymize_tables(test))
 
-            # Remove account information from store:
-            del site.get().store[f"account/{username}"]
-            del site.get().store[f"account/{username}/verify"]
-            del site.get().store[f"account/{username}/password"]
-            del site.get().store[f"account-email/{email}"]
-            del site.get().store[f"account-email/{email.lower()}"]
-            # Delete preferences:
-            del site.get().store[f"/people/{username}/preferences"]
+    def _delete_infobase_data(self) -> None:
+        patron = self.get_user()
+        email = self.email
+        username = self.username
 
+        # Remove patron from all usergroups:
+        for grp in patron.usergroups:
+            grp.remove_user(patron.key)
+
+        # Clear patron's profile page:
+        data = {"key": patron.key, "type": "/type/delete"}
+        patron.set_data(data, "delete-profile")
+
+        # Remove account information from store:
+        del site.get().store[f"account/{username}"]
+        del site.get().store[f"account/{username}/verify"]
+        del site.get().store[f"account/{username}/password"]
+        del site.get().store[f"account-email/{email}"]
+        del site.get().store[f"account-email/{email.lower()}"]
+        # Delete preferences:
+        del site.get().store[f"/people/{username}/preferences"]
+
+    async def _anonymize_tables(self, test: bool) -> AccountAnonymizationResult:
         # Generate new unique username for patron:
         # Note: Cannot test get_activation_link() locally
         activation_link = self.get_activation_link()
@@ -513,10 +528,6 @@ class Account(web.storage):
             "merge_request_count": merge_request_count,
             "bestbooks_count": bestbooks_count,
         }
-
-    def anonymize_sync(self, test: bool = False) -> AccountAnonymizationResult:
-        """Synchronous bridge for the legacy web.py account and admin routes."""
-        return async_bridge.run(self.anonymize(test=test))
 
     @property
     def itemname(self) -> str | None:

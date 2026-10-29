@@ -1,3 +1,4 @@
+import threading
 from unittest import mock
 from unittest.mock import AsyncMock
 
@@ -87,6 +88,17 @@ async def test_anonymize_test_mode_awaits_all_sql_models(monkeypatch):
     mocks["booknotes"].assert_awaited_once_with("testuser", _test=True)
     for key in ("ratings", "observations", "bookshelves", "edits", "bestbooks"):
         mocks[key].assert_awaited_once_with("testuser", "anonymous-abc123", _test=True)
+
+
+def test_anonymize_sync_deletes_infobase_data_on_calling_thread(monkeypatch):
+    # Infobase saves read the request's thread-local web.ctx.ip, which the async bridge thread lacks.
+    account = OpenLibraryAccount(_key="/people/testuser")
+    threads = []
+    monkeypatch.setattr(OpenLibraryAccount, "_delete_infobase_data", lambda self: threads.append(threading.current_thread()))
+    monkeypatch.setattr(OpenLibraryAccount, "_anonymize_tables", AsyncMock(return_value={"new_username": "anonymous-abc123"}))
+
+    assert account.anonymize_sync() == {"new_username": "anonymous-abc123"}
+    assert threads == [threading.current_thread()]
 
 
 @mock.patch("openlibrary.accounts.model.site")
