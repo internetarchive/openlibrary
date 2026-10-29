@@ -19,6 +19,8 @@ The handle is two calls. `site.get()` returns the current site; it's the `site` 
 
 The sync handle isn't going away overnight. Plenty of legacy web.py code still runs through it, and you don't need to migrate a model just to fix something adjacent to it. But don't add new sync queries. When FastAPI work touches a model, migrate it; the pattern below is a few lines per method.
 
+Ruff enforces this: rule `TID251` flags any import of `openlibrary.core.db`, `psycopg2`, `web.db`, or use of `web.database`. Tests, `scripts/`, and the coverstore service are exempt, and files that used the legacy driver before the ban are allowlisted under `[tool.ruff.lint.per-file-ignores]` in `pyproject.toml`. When you migrate a file off the legacy driver, remove its `TID251` entry there. Never add a new one.
+
 ## The async pool: `openlibrary/core/async_db.py`
 
 Single-statement helpers. Each takes a connection from the pool, runs one query, commits, and returns the connection:
