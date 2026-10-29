@@ -42,7 +42,6 @@ from infogami import config
 from openlibrary import accounts
 from openlibrary.catalog.add_book.load_book import (
     author_import_record_to_author,
-    east_in_by_statement,
     import_record_to_edition,
 )
 from openlibrary.catalog.add_book.match import editions_match, mk_norm
@@ -756,11 +755,8 @@ def load_data(  # noqa: PLR0912, PLR0915
         reply["preview"] = True
         reply["edits"] = edits
 
-    # edition.authors have passed through `author_import_record_to_author()` in `import_record_to_edition()` above
-    # author_in = [(author_import_record_to_author(a, eastern=east_in_by_statement(rec, a)) if isinstance(a, dict) else a) for a in edition.get("authors", [])]
-    author_in = edition.get("authors", [])
-    # build_author_reply() adds authors to edits
-    authors, author_reply = load_author_import_records(author_in, edits, rec["source_records"][0], save=save)
+    authors_in = edition.get("authors", [])
+    authors, author_reply = load_author_import_records(authors_in, edits, rec["source_records"][0], save=save)
 
     if authors:
         edition["authors"] = authors
