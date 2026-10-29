@@ -38,7 +38,7 @@ from collections.abc import AsyncIterator
 from contextlib import AbstractContextManager, AsyncExitStack, asynccontextmanager, nullcontext, suppress
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Self, cast
+from typing import TYPE_CHECKING, Any, Self, cast, overload
 
 import web
 from psycopg import AsyncCursor
@@ -241,6 +241,10 @@ async def execute(query: str, params: dict[str, Any] | None = None) -> None:
         await _run(conn, query, params, None)
 
 
+@overload
+async def fetch_all(query: str, params: dict[str, Any] | None = None) -> list[dict[str, Any]]: ...
+@overload
+async def fetch_all[T](query: str, params: dict[str, Any] | None = None, *, row_factory: BaseRowFactory[T]) -> list[T]: ...
 async def fetch_all(
     query: str,
     params: dict[str, Any] | None = None,
@@ -253,6 +257,10 @@ async def fetch_all(
         return await cursor.fetchall()
 
 
+@overload
+async def fetch_one(query: str, params: dict[str, Any] | None = None) -> dict[str, Any] | None: ...
+@overload
+async def fetch_one[T](query: str, params: dict[str, Any] | None = None, *, row_factory: BaseRowFactory[T]) -> T | None: ...
 async def fetch_one(
     query: str,
     params: dict[str, Any] | None = None,
