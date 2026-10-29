@@ -41,7 +41,7 @@ from openlibrary.core.auth import TimedOneTimePassword as OTP
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.carousels import get_carousel_data
-from openlibrary.core.db import get_db
+from openlibrary.core.db import get_db  # noqa: TID251
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import get_loan_history_data
 from openlibrary.core.observations import Observations

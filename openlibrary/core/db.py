@@ -8,8 +8,8 @@ from typing import ClassVar, cast
 
 import web
 from psycopg.errors import UniqueViolation as AsyncUniqueViolation
-from psycopg2.errors import UniqueViolation
-from web.db import PostgresDB
+from psycopg2.errors import UniqueViolation  # noqa: TID251
+from web.db import PostgresDB  # noqa: TID251
 
 from infogami.utils import stats
 from openlibrary.core.async_db import connection
@@ -17,7 +17,7 @@ from openlibrary.core.async_db import connection
 
 @functools.cache
 def _get_db():
-    return cast(PostgresDB, web.database(**web.config.db_parameters))
+    return cast(PostgresDB, web.database(**web.config.db_parameters))  # noqa: TID251
 
 
 def get_db():

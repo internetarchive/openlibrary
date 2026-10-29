@@ -1,4 +1,4 @@
-from . import db
+from . import db  # noqa: TID251
 
 
 def make_pd_request_query():

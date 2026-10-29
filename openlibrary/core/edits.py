@@ -13,7 +13,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import async_bridge
 
-from . import db
+from . import db  # noqa: TID251
 
 
 def get_status_for_view(status_code: int) -> str:
