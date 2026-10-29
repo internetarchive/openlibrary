@@ -100,12 +100,17 @@ class BookshelvesEvents(db.CommonExtras):
 
     @classmethod
     def get_user_yearly_read_counts(cls, username: str) -> list[tuple[int, int]]:
-        """Returns books read by year for a given user."""
+        """Returns books read by year for a given user.
+
+        Counts distinct works, like count_distinct_work_ids_by_user_type_and_year()
+        does for the yearly reading goal, so a book finished twice in a year (or in
+        two editions) is counted once in both places.
+        """
         results = db.get_db().query(
             """
                 SELECT
                     substring(event_date from 1 for 4) as year,
-                    count(*) as count
+                    count(DISTINCT work_id) as count
                 FROM bookshelves_events
                 WHERE username=$username AND event_type=$event_type
                 GROUP BY year
@@ -190,6 +195,7 @@ class BookshelvesEvents(db.CommonExtras):
             event_date=event_date,
         )
 
+    @classmethod
     def update_event_data(cls, pid, data):
         oldb = db.get_db()
 

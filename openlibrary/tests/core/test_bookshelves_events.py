@@ -1,6 +1,6 @@
 """Tests for the batch read on openlibrary.core.bookshelves_events."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -32,3 +32,34 @@ async def test_get_latest_event_dates_skips_the_db_for_no_works():
     with patch("openlibrary.core.bookshelves_events.fetch_all", new_callable=AsyncMock) as fetch_all:
         assert await BookshelvesEvents.get_latest_event_dates("tester", [], BookshelfEvent.FINISH) == {}
     fetch_all.assert_not_awaited()
+
+
+def test_update_event_data_is_callable_on_the_class():
+    """update_event_data was missing @classmethod, so calling it on the class
+    raised TypeError: missing 1 required positional argument: 'data' (#14200)."""
+    oldb = MagicMock()
+    with patch("openlibrary.core.bookshelves_events.db.get_db", return_value=oldb):
+        BookshelvesEvents.update_event_data(7, '{"note": "test"}')
+
+    oldb.update.assert_called_once_with(
+        BookshelvesEvents.TABLENAME,
+        where="id=$id",
+        vars={"id": 7},
+        updated=ANY,
+        data='{"note": "test"}',
+    )
+
+
+def test_yearly_read_counts_count_distinct_works():
+    """The yearly stats count each work once per year, like the yearly reading goal
+    (count_distinct_work_ids_by_user_type_and_year), instead of every finish event."""
+    oldb = MagicMock()
+    oldb.query.return_value = [MagicMock(year="2026", count=3), MagicMock(year="2025", count=1)]
+    with patch("openlibrary.core.bookshelves_events.db.get_db", return_value=oldb):
+        result = BookshelvesEvents.get_user_yearly_read_counts("tester")
+
+    assert result == [(2026, 3), (2025, 1)]
+    query = oldb.query.call_args.args[0]
+    assert "count(DISTINCT work_id)" in query
+    assert "count(*)" not in query
+    assert oldb.query.call_args.kwargs["vars"] == {"username": "tester", "event_type": BookshelfEvent.FINISH}
