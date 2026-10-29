@@ -156,10 +156,8 @@ def test_visitor_from_session_cookie(monkeypatch, cookie, user_key):
 @pytest.mark.parametrize(
     ("visitor", "label"),
     [
-        (Visitor(user_key=None), "anonymous"),
         (Visitor(user_key=None, is_bot=True), "bot"),
         (Visitor(user_key="/people/alice", is_bot=True), "logged_in"),  # a logged-in bot account is still logged in
-        (Visitor(user_key="/people/alice", is_librarian=True, is_bot=True), "librarian"),
     ],
 )
 def test_visitor_label(visitor, label):

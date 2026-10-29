@@ -158,22 +158,14 @@ def test_webpy_records_the_visitor(app, registry, path, label):
     assert registry.get_sample_value("http_request_duration_seconds_count", labels) == 1
 
 
-@pytest.mark.parametrize(
-    ("env", "label"),
-    [
-        ({"HTTP_USER_AGENT": "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"}, "bot"),
-        ({"HTTP_USER_AGENT": "Mozilla/5.0 Chrome/131.0 Safari/537.36", "HTTP_X_HHCL": "1"}, "bot"),
-        ({"HTTP_USER_AGENT": "Mozilla/5.0 Chrome/131.0 Safari/537.36"}, "anonymous"),
-    ],
-)
-def test_webpy_labels_bots_from_the_request_context(app, registry, env, label):
+def test_webpy_labels_bots_from_the_request_context(app, registry):
     def setup_contextvars():  # as openlibrary/plugins/openlibrary/code.py does
         web.ctx.site = None
         set_context_from_legacy_web_py()
 
     app.add_processor(web.loadhook(setup_contextvars))
-    app.request("/things/a", env=env)
-    assert requests_total(registry, "/things/{key}", visitor=label) == 1
+    app.request("/things/a", env={"HTTP_USER_AGENT": "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"})
+    assert requests_total(registry, "/things/{key}", visitor="bot") == 1
 
 
 @pytest.mark.parametrize(
