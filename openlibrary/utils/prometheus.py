@@ -3,7 +3,7 @@
 Both servers record the same series (``http_requests_total``,
 ``http_request_duration_seconds``, ...) as prometheus-fastapi-instrumentator's
 ``metrics.default``, told apart by a ``server`` label. The request count and per-route
-latency are also labelled ``visitor``. web.py copies FastAPI's
+latency are also labelled ``visitor`` and ``response_type``. web.py copies FastAPI's
 ``handler`` label, the route's path template, so an endpoint keeps its series when
 it moves to FastAPI, or while both serve it; only ``server`` changes.
 
@@ -61,15 +61,16 @@ EXCLUDED_HANDLERS = ("/health", "/metrics")
 def request_metrics(server: Literal["fastapi", "webpy"], registry: CollectorRegistry = REGISTRY) -> Callable[[metrics.Info], None] | None:
     """The request metrics, labelled ``server``. None if already registered in ``registry``.
 
-    The same metrics as the instrumentator's ``metrics.default``, plus a ``visitor`` label (see ``Visitor``) on the
-    request count and per-route latency. ``metrics.default``'s labels can only have fixed values, and per-request ones
-    aren't planned: https://github.com/trallnag/prometheus-fastapi-instrumentator/discussions/256
+    The same metrics as the instrumentator's ``metrics.default``, plus ``visitor`` (see ``Visitor``) and
+    ``response_type`` (see ``response_type``) labels on the request count and per-route latency.
+    ``metrics.default``'s labels can only have fixed values, and per-request ones aren't planned:
+    https://github.com/trallnag/prometheus-fastapi-instrumentator/discussions/256
     """
     try:
         total = Counter(
             "http_requests_total",
             "Total number of requests by method, status and handler.",
-            ("method", "status", "handler", "server", "visitor"),
+            ("method", "status", "handler", "server", "visitor", "response_type"),
             registry=registry,
         )
         in_size = Summary("http_request_size_bytes", "Content length of incoming requests by handler.", ("handler", "server"), registry=registry)
@@ -80,7 +81,7 @@ def request_metrics(server: Literal["fastapi", "webpy"], registry: CollectorRegi
         latency = Histogram(
             "http_request_duration_seconds",
             "Latency by handler.",
-            ("method", "handler", "server", "visitor"),
+            ("method", "handler", "server", "visitor", "response_type"),
             buckets=LATENCY_BUCKETS,
             registry=registry,
         )
@@ -92,13 +93,30 @@ def request_metrics(server: Literal["fastapi", "webpy"], registry: CollectorRegi
     def instrumentation(info: metrics.Info) -> None:
         handler = info.modified_handler
         label = v.label if (v := visitor.get()) else "anonymous"
-        total.labels(info.method, info.modified_status, handler, server, label).inc()
+        kind = response_type(info.modified_status, info.response.headers.get("content-type", "") if info.response else "")
+        total.labels(info.method, info.modified_status, handler, server, label, kind).inc()
         in_size.labels(handler, server).observe(int(info.request.headers.get("Content-Length", 0)))
         out_size.labels(handler, server).observe(int(info.response.headers.get("Content-Length", 0)) if info.response else 0)
         latency_highr.observe(info.modified_duration)
-        latency.labels(info.method, handler, server, label).observe(info.modified_duration)
+        latency.labels(info.method, handler, server, label, kind).observe(info.modified_duration)
 
     return instrumentation
+
+
+REDIRECT_STATUSES = {"301", "302", "303", "307", "308"}
+
+
+def response_type(status: str, content_type: str) -> Literal["redirect", "html", "json", "other"]:
+    """What the response was, by its status and ``Content-Type``: ``redirect``, ``html``, ``json`` or ``other``.
+    Redirects go by status, since web.py's carry ``text/html`` too."""
+    if status in REDIRECT_STATUSES:
+        return "redirect"
+    content_type = content_type.lower()
+    if content_type.startswith("text/html"):
+        return "html"
+    if "json" in content_type:
+        return "json"
+    return "other"
 
 
 @functools.cache
@@ -351,6 +369,8 @@ class WebPyPrometheusProcessor:
         request_headers = [(b"content-length", web.ctx.env["CONTENT_LENGTH"].encode())] if web.ctx.env.get("CONTENT_LENGTH") else []
         response = Response(status_code=int(status))
         response.headers["content-length"] = str(_response_size(body))
+        if content_type := _response_header("Content-Type"):
+            response.headers["content-type"] = content_type
         self.instrumentation(
             metrics.Info(
                 request=Request({"type": "http", "method": web.ctx.method, "path": web.ctx.path, "headers": request_headers}),
@@ -364,8 +384,12 @@ class WebPyPrometheusProcessor:
         )
 
 
+def _response_header(name: str) -> str | None:
+    return next((value for key, value in web.ctx.get("headers", []) if key.lower() == name.lower()), None)
+
+
 def _response_size(body) -> int:
-    if (length := dict(web.ctx.get("headers", [])).get("Content-Length")) is not None:
+    if (length := _response_header("Content-Length")) is not None:
         return int(length)
     if isinstance(body, str):
         return len(body.encode())
