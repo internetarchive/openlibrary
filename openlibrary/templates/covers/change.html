@@ -7,8 +7,9 @@ $if not ctx.user:
 
 $ is_author = doc.type.key == '/type/author'
 $ is_work = doc.type.key == '/type/work'
-$# An image of the record's own; a scan shown in its place (get_cover's fallback) is still "add".
+$# An image of the record's own, or an edition's scan shown in its place (get_cover's fallback): either reads as its cover.
 $ has_own_image = any(i and i > 0 for i in (doc.get('photos' if is_author else 'covers') or []))
+$ shows_cover = has_own_image or (doc.type.key == '/type/edition' and doc.get('ocaid'))
 
 $if is_author:
     $if has_own_image:
@@ -20,7 +21,7 @@ $if is_author:
         $ change = _('Add Author Photo')
         $ size = "smallest"
 $else:
-    $if has_own_image:
+    $if shows_cover:
         $ title = _('Change the cover')
         $ change = _('Manage Covers')
         $ size = "smaller"
@@ -43,6 +44,7 @@ $code:
             "chooseHeadingAdd": _("Choose a photo"),
             "replaces": _("Replaces the current photo"),
             "pickLabelCurrent": _("%(name)s (current photo)"),
+            "titleUpload": _("Uploaded photo"),
             "guidelines": _("Image guidelines"),
             "saved": _("Photo updated"),
         }
@@ -54,11 +56,11 @@ $code:
             "newHeading": _("New cover"),
             "noCoverTitle": _("This work has no cover") if is_work else _("This edition has no cover"),
             "noCoverIntro": _("Add one and it shows everywhere the book appears."),
-            "fallbackNote": _("Readers see this scan because the edition has no cover of its own."),
             "chooseHeading": _("Choose the new cover"),
             "chooseHeadingAdd": _("Choose a cover"),
             "replaces": _("Replaces the current cover"),
             "pickLabelCurrent": _("%(name)s (current cover)"),
+            "titleUpload": _("Uploaded cover"),
             "guidelines": _("Cover guidelines"),
             "saved": _("Cover updated"),
         }
@@ -82,16 +84,12 @@ $code:
         "errorClipboard": _("No image found on your clipboard."),
         "dropHere": _("Drop the image to upload it"),
         "current": _("Current"),
-        "sourceArchive": _("Internet Archive"),
-        "sourceWikidata": _("Wikidata"),
-        "sourceAmazon": _("Amazon"),
-        "titleScanCover": _("Scan of the cover"),
-        "titleScanTitle": _("Scan of the title page"),
-        "titleScanTitleHint": _("For scans without their original cover"),
-        "titleAmazon": _("Cover from Amazon"),
-        "titleWikidata": _("Photo on Wikimedia Commons"),
-        "titleUploadBy": _("Uploaded by %(name)s"),
-        "titleUpload": _("Uploaded image"),
+        "sourceArchive": _("Scanned by Internet Archive"),
+        "sourceWikidata": _("From Wikimedia Commons"),
+        "sourceAmazon": _("From Amazon"),
+        "titleCover": _("Cover"),
+        "titleTitlePage": _("Title page"),
+        "titlePhoto": _("Photo"),
         "titleYou": _("Your upload"),
         "detailJustNow": _("Just now"),
         "detailSize": _("%(width)s × %(height)s px"),

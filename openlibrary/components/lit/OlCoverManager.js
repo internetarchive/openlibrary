@@ -16,7 +16,6 @@ export const DEFAULT_LABELS = {
     newHeading: 'New cover',
     noCoverTitle: 'This edition has no cover',
     noCoverIntro: 'Add one and it shows everywhere the book appears.',
-    fallbackNote: 'Readers see this scan because the edition has no cover of its own.',
     chooseHeading: 'Choose the new cover',
     chooseHeadingAdd: 'Choose a cover',
     replaces: 'Replaces the current cover',
@@ -39,16 +38,13 @@ export const DEFAULT_LABELS = {
     errorClipboard: 'No image found on your clipboard.',
     dropHere: 'Drop the image to upload it',
     current: 'Current',
-    sourceArchive: 'Internet Archive',
-    sourceWikidata: 'Wikidata',
-    sourceAmazon: 'Amazon',
-    titleScanCover: 'Scan of the cover',
-    titleScanTitle: 'Scan of the title page',
-    titleScanTitleHint: 'For scans without their original cover',
-    titleAmazon: 'Cover from Amazon',
-    titleWikidata: 'Photo on Wikimedia Commons',
-    titleUploadBy: 'Uploaded by %(name)s',
-    titleUpload: 'Uploaded image',
+    sourceArchive: 'Scanned by Internet Archive',
+    sourceWikidata: 'From Wikimedia Commons',
+    sourceAmazon: 'From Amazon',
+    titleCover: 'Cover',
+    titleTitlePage: 'Title page',
+    titlePhoto: 'Photo',
+    titleUpload: 'Uploaded cover',
     titleYou: 'Your upload',
     detailJustNow: 'Just now',
     detailSize: '%(width)s × %(height)s px',
@@ -238,13 +234,6 @@ export class OlCoverManager extends LitElement {
                 .cover-caption {
                     margin-top: 0;
                 }
-            }
-
-            .note-text {
-                margin: 0;
-                color: var(--color-text-secondary);
-                font-size: var(--font-size-body-small);
-                line-height: var(--line-height-body);
             }
 
             /* The band, once a replacement is picked: the swap, then the question. Under the preview
@@ -560,28 +549,18 @@ export class OlCoverManager extends LitElement {
                 line-height: var(--line-height-meta);
             }
 
+            .meta > :is(.tag, .source, .detail) + :is(.source, .detail)::before {
+                content: '·' / '';
+                margin-inline-end: var(--spacing-xs);
+            }
+
             /* A date or a size wraps as a whole, never "434 × 685" on one line and "px" on the next. */
             .meta .detail {
                 white-space: nowrap;
             }
 
-            .source,
             .tag {
-                padding: var(--spacing-3xs) var(--spacing-xs);
-                border-radius: var(--border-radius-badge);
-                font-size: var(--font-size-label-small);
                 font-weight: var(--font-weight-semibold);
-                line-height: var(--line-height-single);
-            }
-
-            .source {
-                background: var(--color-info-bg);
-                color: var(--color-info-fg);
-            }
-
-            .tag {
-                background: var(--color-surface-inverse);
-                color: var(--color-text-inverse);
             }
 
             /* Remove / Undo and the footer's reason link: quiet text links. */
@@ -927,7 +906,7 @@ export class OlCoverManager extends LitElement {
             if (!response.ok) throw new Error(response.statusText);
             this._data = await response.json();
             this._selected = this._data.current;
-            if (this._dialog) this._dialog.label = this._t(this._hasOwnImage ? 'titleChange' : 'titleAdd');
+            if (this._dialog) this._dialog.label = this._t(this._data.current ? 'titleChange' : 'titleAdd');
             this._loadState = 'ready';
             trackEvent(ANALYTICS, 'Open', this._openKind);
         } catch {
@@ -1241,17 +1220,17 @@ export class OlCoverManager extends LitElement {
 
     // Rendering
 
-    /** A row's title line and its meta line: a source tag for suggestions, a date for uploads. */
+    /** A row's title says what the image is; its meta line says where it came from. */
     _describe(item) {
         switch (item.kind) {
             case 'archive_cover':
-                return { title: this._t('titleScanCover'), source: this._t('sourceArchive') };
+                return { title: this._t('titleCover'), source: this._t('sourceArchive') };
             case 'archive_title':
-                return { title: this._t('titleScanTitle'), source: this._t('sourceArchive'), detail: this._t('titleScanTitleHint') };
+                return { title: this._t('titleTitlePage'), source: this._t('sourceArchive') };
             case 'amazon':
-                return { title: this._t('titleAmazon'), source: this._t('sourceAmazon') };
+                return { title: this._t('titleCover'), source: this._t('sourceAmazon') };
             case 'wikidata':
-                return { title: this._t('titleWikidata'), source: this._t('sourceWikidata') };
+                return { title: this._t('titlePhoto'), source: this._t('sourceWikidata') };
             default: {
                 if (item.session || item.pending) return { title: this._t('titleYou'), detail: this._t('detailJustNow') };
                 const uploader = item.added_by?.name;
@@ -1262,7 +1241,7 @@ export class OlCoverManager extends LitElement {
                 // With no uploader, date or size on file, the id still tells two images apart.
                 const details = [date, size].filter(Boolean);
                 const detail = details.length || uploader ? details : [this._t('detailId', { id: item.image_id })];
-                return { title: uploader ? this._t('titleUploadBy', { name: uploader }) : this._t('titleUpload'), detail };
+                return { title: this._t('titleUpload'), source: uploader, detail };
             }
         }
     }
@@ -1298,7 +1277,6 @@ export class OlCoverManager extends LitElement {
                 <div class="cover-frame"><img src=${selected.preview ?? selected.thumb} alt="" /></div>
                 <div class="cover-caption">
                     <div class="text"><span class="title">${description.title}</span>${this._renderMeta(description)}</div>
-                    ${this._isFallback && selected === current ? html`<p class="note-text">${this._t('fallbackNote')}</p>` : nothing}
                 </div>
             </div>
             ${band ?? nothing}
@@ -1400,8 +1378,8 @@ export class OlCoverManager extends LitElement {
 
     _renderList() {
         let heading;
-        if (this._hasOwnImage) heading = html`<h3 class="overline">${this._t('chooseHeading')}</h3>`;
-        else if (this._isFallback || this._shown) heading = html`<h3 class="overline">${this._t('chooseHeadingAdd')}</h3>`;
+        if (this._data.current) heading = html`<h3 class="overline">${this._t('chooseHeading')}</h3>`;
+        else if (this._shown) heading = html`<h3 class="overline">${this._t('chooseHeadingAdd')}</h3>`;
         else
             heading = html`<h3 class="step-title">${this._t('noCoverTitle')}</h3>
                 <p class="step-intro">${this._t('noCoverIntro')}</p>`;

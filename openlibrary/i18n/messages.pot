@@ -626,7 +626,7 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
-#: books/add.html covers/change.html showia.html type/edition/view.html type/work/view.html
+#: books/add.html showia.html type/edition/view.html type/work/view.html
 msgid "Internet Archive"
 msgstr ""
 
@@ -4309,6 +4309,10 @@ msgid "%(name)s (current photo)"
 msgstr ""
 
 #: covers/change.html
+msgid "Uploaded photo"
+msgstr ""
+
+#: covers/change.html
 msgid "Image guidelines"
 msgstr ""
 
@@ -4336,10 +4340,6 @@ msgstr ""
 msgid "Add one and it shows everywhere the book appears."
 msgstr ""
 
-#: covers/change.html
-msgid "Readers see this scan because the edition has no cover of its own."
-msgstr ""
-
 #: contribute/parts.html.jinja covers/change.html
 msgid "Choose the new cover"
 msgstr ""
@@ -4355,6 +4355,10 @@ msgstr ""
 #: covers/change.html
 #, python-format
 msgid "%(name)s (current cover)"
+msgstr ""
+
+#: covers/change.html
+msgid "Uploaded cover"
 msgstr ""
 
 #: covers/change.html
@@ -4442,40 +4446,27 @@ msgid "Current"
 msgstr ""
 
 #: covers/change.html
-msgid "Wikidata"
-msgstr ""
-
-#: covers/change.html openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/partials.py
-msgid "Amazon"
+msgid "Scanned by Internet Archive"
 msgstr ""
 
 #: covers/change.html
-msgid "Scan of the cover"
+msgid "From Wikimedia Commons"
 msgstr ""
 
 #: covers/change.html
-msgid "Scan of the title page"
+msgid "From Amazon"
+msgstr ""
+
+#: covers/change.html openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py
+msgid "Cover"
 msgstr ""
 
 #: covers/change.html
-msgid "For scans without their original cover"
-msgstr ""
-
-#: contribute/parts.html.jinja covers/change.html
-msgid "Cover from Amazon"
+msgid "Title page"
 msgstr ""
 
 #: covers/change.html
-msgid "Photo on Wikimedia Commons"
-msgstr ""
-
-#: covers/change.html
-#, python-format
-msgid "Uploaded by %(name)s"
-msgstr ""
-
-#: covers/change.html
-msgid "Uploaded image"
+msgid "Photo"
 msgstr ""
 
 #: covers/change.html
@@ -8217,6 +8208,10 @@ msgid "And %(count)s more."
 msgstr ""
 
 #: contribute/parts.html.jinja
+msgid "Cover from Amazon"
+msgstr ""
+
+#: contribute/parts.html.jinja
 #, python-format
 msgid "Found by ISBN %(isbn)s"
 msgstr ""
@@ -8325,12 +8320,12 @@ msgstr ""
 msgid "Google Books"
 msgstr ""
 
-#: openlibrary/contribute/field_guides.py
-msgid "Library of Congress"
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/partials.py
+msgid "Amazon"
 msgstr ""
 
-#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py
-msgid "Cover"
+#: openlibrary/contribute/field_guides.py
+msgid "Library of Congress"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py

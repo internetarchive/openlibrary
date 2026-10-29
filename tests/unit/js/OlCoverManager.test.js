@@ -98,17 +98,17 @@ describe('ol-cover-manager listing', () => {
         expect(q(el, '.options > li').classList.contains('upload')).toBe(true);
         const labels = picks(el).map(b => b.getAttribute('aria-label'));
         expect(labels).toEqual([
-            'Scan of the cover, Internet Archive',
-            'Scan of the title page, Internet Archive, For scans without their original cover',
-            'Uploaded by Ada, March 2024, 1,200 × 1,800 px (current cover)',
-            'Uploaded image, Image 11'
+            'Cover, Scanned by Internet Archive',
+            'Title page, Scanned by Internet Archive',
+            'Uploaded cover, Ada, March 2024, 1,200 × 1,800 px (current cover)',
+            'Uploaded cover, Image 11'
         ]);
     });
 
     test('Amazon’s cover is tagged by source, and is dropped when Amazon has none', async () => {
         stubFetch({ 'GET /books/OL1M/covers.json': { body: NO_COVER } });
         const el = await mount();
-        expect(picks(el).map(b => b.getAttribute('aria-label'))).toEqual(['Cover from Amazon, Amazon']);
+        expect(picks(el).map(b => b.getAttribute('aria-label'))).toEqual(['Cover, From Amazon']);
         const img = q(el, '.row:not(.upload) img');
         Object.defineProperty(img, 'naturalWidth', { value: 1 });
         img.dispatchEvent(new Event('load'));
@@ -191,7 +191,7 @@ describe('ol-cover-manager choosing and removing', () => {
         stubFetch();
         const el = await mount();
         const removable = rows(el).filter(row => row.querySelector('.text-action.danger'));
-        expect(removable.map(row => row.querySelector('.option').getAttribute('aria-label'))).toEqual(['Uploaded image, Image 11']);
+        expect(removable.map(row => row.querySelector('.option').getAttribute('aria-label'))).toEqual(['Uploaded cover, Image 11']);
     });
 
     test('the current cover can be removed once something else is picked', async () => {
@@ -264,12 +264,12 @@ describe('ol-cover-manager asking why', () => {
         expect(saveButton(el).disabled).toBe(false);
     });
 
-    test('a record showing a borrowed scan is adding a cover, not changing one', async () => {
+    test('a scan shown in place of a cover is the current cover, and replacing it asks nothing', async () => {
         stubFetch({ 'GET /books/OL1M/covers.json': { body: FALLBACK } });
         const el = await mount();
         expect(q(el, '#cover-heading').textContent).toBe('Current cover');
-        expect(q(el, '.note-text').textContent).toContain('no cover of its own');
-        expect(q(el, '.panel .overline').textContent).toBe('Choose a cover');
+        expect(currentPick(el).getAttribute('aria-pressed')).toBe('true');
+        expect(q(el, '.panel .overline').textContent).toBe('Choose the new cover');
         picks(el)[1].click();
         await el.updateComplete;
         expect(q(el, '.band .swap')).not.toBeNull();
@@ -297,7 +297,7 @@ describe('ol-cover-manager asking why', () => {
         expect(saveButton(el).disabled).toBe(false);
     });
 
-    test('titles the dialog for adding when the record has no image of its own', async () => {
+    test('titles the dialog for changing when a scan stands in for the cover', async () => {
         stubFetch({ 'GET /books/OL1M/covers.json': { body: FALLBACK } });
         // ol-dialog isn't registered here; an open stand-in is enough for the manager to load and title it.
         const dialog = document.createElement('ol-dialog');
@@ -307,7 +307,7 @@ describe('ol-cover-manager asking why', () => {
         dialog.appendChild(el);
         document.body.appendChild(dialog);
         await vi.waitFor(() => expect(el._loadState).toBe('ready'));
-        expect(dialog.label).toBe('Add a cover');
+        expect(dialog.label).toBe('Change the cover');
     });
 });
 
