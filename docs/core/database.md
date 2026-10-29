@@ -79,7 +79,7 @@ The reading-goals model was the first to move end-to-end. Copy this set:
 - `openlibrary/fastapi/yearly_reading_goals.py` — FastAPI endpoint calling the async model directly
 - `openlibrary/plugins/upstream/yearly_reading_goals.py` — the web.py adapter; it resolves the current user, then bridges with `async_bridge.run`
 - `openlibrary/plugins/openlibrary/partials.py` — `ReadingGoalProgressPartial.generate_async`, an async partial feeding Jinja
-- Tests: `openlibrary/tests/core/test_yearly_reading_goals_async.py` patches the helpers and asserts the query and params; `openlibrary/tests/core/async_db_fakes.py` holds the connection/cursor fakes for helper-level tests
+- Tests: `openlibrary/tests/core/test_yearly_reading_goals.py` patches the helpers and asserts the query and params; `openlibrary/tests/core/async_db_fakes.py` holds the connection/cursor fakes for helper-level tests
 
 ## Testing DB code
 
