@@ -239,7 +239,7 @@ class CommunityEditsQueue:
     async def update_request_status(cls, rid: int, status: int, reviewer: str, comment: str | None = None) -> int:
         """Update a request and append a comment atomically when supplied."""
         async with connection() as conn:
-            update_kwargs: dict[str, Any] = {"rid": rid, "status": status, "reviewer": reviewer, "updated": dt.datetime.utcnow()}
+            update_kwargs: dict[str, Any] = {"rid": rid, "status": status, "reviewer": reviewer}
             comments_update = ""
             if comment:
                 row = await (await conn.execute(f"SELECT comments FROM {cls.TABLENAME} WHERE id = %(rid)s FOR UPDATE", {"rid": rid})).fetchone()
@@ -248,7 +248,7 @@ class CommunityEditsQueue:
                 update_kwargs["comments"] = Json(comments)
                 comments_update = ", comments = %(comments)s"
             cursor = await conn.execute(
-                f"UPDATE {cls.TABLENAME} SET status = %(status)s, reviewer = %(reviewer)s, updated = %(updated)s{comments_update} WHERE id = %(rid)s",
+                f"UPDATE {cls.TABLENAME} SET status = %(status)s, reviewer = %(reviewer)s, updated = DEFAULT{comments_update} WHERE id = %(rid)s",
                 update_kwargs,
             )
             return cursor.rowcount

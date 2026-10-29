@@ -6,7 +6,6 @@ import pytest
 
 from infogami.infobase.client import ClientException
 from openlibrary.utils.request_context import RequestContextVars, req_context, site
-from openlibrary.utils.retry import MaxRetriesExceeded
 
 
 @pytest.fixture(autouse=True)
@@ -123,7 +122,7 @@ class TestMergeAuthorsJson:
             },
         )
         assert response.status_code == 200
-        mock_merge_queue_update.assert_awaited_once_with(mrid=123, olids="", comment="approving merge request")
+        mock_merge_queue_update.assert_awaited_once_with(username="testuser", mrid=123, olids="", comment="approving merge request")
 
     def test_merge_invalid_mrid_returns_422_before_merging(
         self,
@@ -164,7 +163,7 @@ class TestMergeAuthorsJson:
             },
         )
         assert response.status_code == 200
-        mock_merge_queue_update.assert_awaited_once_with(mrid=None, olids="/authors/OL1A,/authors/OL2A", comment=None)
+        mock_merge_queue_update.assert_awaited_once_with(username="testuser", mrid=None, olids="/authors/OL1A,/authors/OL2A", comment=None)
 
     def test_merge_unauthenticated(self, fastapi_client):
         """Unauthenticated request returns 401 (from require_authenticated_user)."""
@@ -268,22 +267,3 @@ class TestMergeAuthorsJson:
         )
         assert response.status_code == 400
         assert response.json() == {"detail": {"error": "not_found", "message": "internal error"}}
-
-    def test_merge_raises_400_when_retries_exhausted(
-        self,
-        fastapi_client,
-        mock_authenticated_user,
-        mock_user_factory,
-        mock_merge_engine,
-        mock_merge_queue_update,
-        monkeytime,
-    ):
-        """When the merge queue update exhausts retries, the endpoint returns 400."""
-        mock_user_factory(is_admin=True)
-        mock_merge_queue_update.side_effect = MaxRetriesExceeded(ClientException("400 Bad Request", "retry error"))
-        response = fastapi_client.post(
-            "/authors/merge.json",
-            json={"master": "/authors/OL1A", "duplicates": ["/authors/OL2A"]},
-        )
-        assert response.status_code == 400
-        assert "retry error" in response.json()["detail"]

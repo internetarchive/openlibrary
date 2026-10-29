@@ -1,6 +1,8 @@
 """Tests for the CommunityEditsQueue model."""
 
 import asyncio
+import time
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -11,7 +13,7 @@ from openlibrary.core.edits import CommunityEditsQueue
 @pytest.mark.integration
 class TestCommunityEditsQueueIntegration:
     @pytest.mark.asyncio
-    async def test_merge_request_create_and_approve(self, pg_db):
+    async def test_merge_request_create_and_approve(self, pg_db, monkeypatch):
         url = "/authors/merge?records=OL1A,OL2A"
         assert not await CommunityEditsQueue.exists(url)
 
@@ -27,24 +29,25 @@ class TestCommunityEditsQueueIntegration:
 
         assert request_id is not None
         assert await CommunityEditsQueue.exists(url)
-        assert (
-            await CommunityEditsQueue.update_request_status(
-                request_id,
-                CommunityEditsQueue.STATUS["MERGED"],
-                "bob",
-                comment="approved",
-            )
-            == 1
-        )
+        # Approve in a far-from-UTC zone so a local-time `updated` would stand out.
+        monkeypatch.setenv("TZ", "Pacific/Kiritimati")  # UTC+14
+        time.tzset()
+        try:
+            assert await CommunityEditsQueue.update_request_status(request_id, CommunityEditsQueue.STATUS["MERGED"], "bob", comment="approved") == 1
+        finally:
+            monkeypatch.undo()
+            time.tzset()
 
         row = await fetch_one(
-            f"SELECT reviewer, status, comments FROM {CommunityEditsQueue.TABLENAME} WHERE id = %(id)s",
+            f"SELECT reviewer, status, comments, created, updated FROM {CommunityEditsQueue.TABLENAME} WHERE id = %(id)s",
             {"id": request_id},
         )
         assert row["reviewer"] == "bob"
         assert row["status"] == CommunityEditsQueue.STATUS["MERGED"]
         comments = row["comments"]
         assert [comment["message"] for comment in comments["comments"]] == ["created", "approved"]
+        assert abs(row["updated"] - datetime.now(UTC).replace(tzinfo=None)) < timedelta(minutes=5)
+        assert row["updated"] >= row["created"]
 
     @pytest.mark.asyncio
     async def test_concurrent_unique_url_submits_insert_once(self, pg_db):

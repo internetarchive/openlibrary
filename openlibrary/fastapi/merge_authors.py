@@ -20,7 +20,6 @@ from openlibrary.plugins.upstream.merge_authors import (
     AuthorRedirectEngine,
 )
 from openlibrary.utils.request_context import web_ctx_ip
-from openlibrary.utils.retry import MaxRetriesExceeded
 
 router = APIRouter(tags=["merge-authors"])
 
@@ -39,7 +38,7 @@ def _merge(master: str, duplicates: list[str], client_ip: str) -> Any:
 
 
 @router.post("/authors/merge.json")
-async def merge_authors_json(_: LibrarianDep, client_ip: ClientIpDep, data: MergeAuthorsBody) -> Any:
+async def merge_authors_json(user: LibrarianDep, client_ip: ClientIpDep, data: MergeAuthorsBody) -> Any:
     try:
         # The Infobase merge is sync I/O, so keep it off the event loop.
         merge_result = await run_in_threadpool(_merge, data.master, data.duplicates, client_ip)
@@ -49,12 +48,6 @@ async def merge_authors_json(_: LibrarianDep, client_ip: ClientIpDep, data: Merg
             detail=e.get_data() or str(e),
         )
 
-    try:
-        await perform_merge_update(mrid=data.mrid, olids=data.olids, comment=data.comment)
-    except MaxRetriesExceeded as e:
-        raise HTTPException(
-            status_code=400,
-            detail=str(e.last_exception),
-        )
+    await perform_merge_update(username=user.username, mrid=data.mrid, olids=data.olids, comment=data.comment)
 
     return merge_result
