@@ -608,6 +608,16 @@ $(function () {
         import('./browse-stacks').then(module => module.initBrowseStacks(browseStacks));
     }
 
+    // Home page librarian call-out: /tasks can be slow to start painting.
+    const librarianCta = document.querySelector('.librarian-card__cta');
+    if (librarianCta) {
+        librarianCta.addEventListener('click', e => {
+            if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            librarianCta.loading = true;
+        });
+        window.addEventListener('pageshow', () => (librarianCta.loading = false));
+    }
+
     // Generalized carousel lazy-loading
     const lazyCarousels = document.querySelectorAll('.lazy-carousel');
     if (lazyCarousels.length) {
