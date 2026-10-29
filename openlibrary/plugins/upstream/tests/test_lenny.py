@@ -1131,6 +1131,61 @@ class TestLoanFromNode:
         assert loan["resource_type"] != "bookreader"
 
 
+class TestFetchNodeLoans:
+    """What one node's body is allowed to mean.
+
+    #13921 stopped a non-object body raising `AttributeError` here, which was
+    right, but routed it to `[]`. `provider_loans` classifies a node by whether
+    the call raised, so `[]` reads as "up, and the patron holds nothing" -- a
+    claim about the patron rather than about the node.
+    """
+
+    @staticmethod
+    def _client(content, content_type="application/json", status=200):
+        """Stand in for the pooled AsyncClient with one canned response."""
+        url = NODE["issuer"] + lenny.LOANS_PATH
+
+        class Client:
+            async def get(self, _url, **_kwargs):
+                return httpx.Response(
+                    status,
+                    content=content,
+                    headers={"content-type": content_type},
+                    request=httpx.Request("GET", url),
+                )
+
+        return Client
+
+    def _fetch(self, monkeypatch, content, **kwargs):
+        monkeypatch.setattr(lenny, "_loans_client", self._client(content, **kwargs))
+        return asyncio.run(lenny.fetch_node_loans(NODE["issuer"], "at-lenny", 1.0))
+
+    def test_an_object_body_returns_its_loans(self, monkeypatch):
+        loans = self._fetch(monkeypatch, b'{"loans": [{"edition_id": 1}]}')
+        assert loans == [{"edition_id": 1}]
+
+    def test_an_object_without_loans_is_an_empty_list(self, monkeypatch):
+        """The node answered and the patron holds nothing. This is the only
+        way an empty list may be produced."""
+        assert self._fetch(monkeypatch, b"{}") == []
+
+    def test_a_json_array_body_raises(self, monkeypatch):
+        """The body #13921 was written for. It must not crash, and it must not
+        become an empty loan list either."""
+        with pytest.raises(ValueError, match="not a JSON object"):
+            self._fetch(monkeypatch, b"[]")
+
+    def test_an_unparsable_body_raises(self, monkeypatch):
+        """A proxy's HTML interstitial on a 200, which is what a node behind a
+        captive portal or an error page actually sends."""
+        with pytest.raises(ValueError, match="not a JSON object"):
+            self._fetch(monkeypatch, b"<!DOCTYPE html><html></html>", content_type="text/html")
+
+    def test_an_empty_body_raises(self, monkeypatch):
+        with pytest.raises(ValueError, match="not a JSON object"):
+            self._fetch(monkeypatch, b"")
+
+
 class TestProviderLoansMerge:
     @staticmethod
     def _fetch(responses):
@@ -1254,6 +1309,33 @@ class TestProviderLoansMerge:
         result = lenny.provider_loans("patron")
         assert result.unreachable == ["lenny"]
         assert result.unauthorized == []
+
+    def test_a_garbled_node_body_is_unreachable_not_zero_loans(self, two_nodes, monkeypatch):
+        """The whole point of #13940, through the real `fetch_node_loans`.
+
+        `account.py` passes `provider_unreachable` to the loans page, so the
+        difference between these two buckets is the difference between telling
+        the patron "we could not reach that library" and telling them they have
+        no loans at it.
+        """
+        bad = NODE["issuer"] + lenny.LOANS_PATH
+
+        class Client:
+            async def get(self, url, **_kwargs):
+                body = b"[]" if url == bad else b'{"loans": [{"edition_id": 2}]}'
+                return httpx.Response(
+                    200,
+                    content=body,
+                    headers={"content-type": "application/json"},
+                    request=httpx.Request("GET", url),
+                )
+
+        monkeypatch.setattr(lenny, "_loans_client", Client)
+        result = lenny.provider_loans("patron")
+        assert result.unreachable == ["lenny"]
+        assert result.unauthorized == []
+        # The healthy node still pays its loans out.
+        assert [loan["book"] for loan in result.loans] == ["/books/OL2M"]
 
     def test_no_configured_nodes_never_touches_the_token_store(self, monkeypatch):
         """/account/loans loads this on every view, Lenny patron or not, and
