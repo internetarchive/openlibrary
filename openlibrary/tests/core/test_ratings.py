@@ -325,6 +325,7 @@ class TestRatingsIntegration:
 
         await Ratings.add("alice", 100, 4)
         summary = await Ratings.get_work_ratings_summary(100)
+        assert summary is not None
         assert summary["ratings_count"] == 1
         assert summary["ratings_count_4"] == 1
         assert summary["ratings_count_5"] == 0
@@ -337,6 +338,7 @@ class TestRatingsIntegration:
     async def test_update_keeps_edition_and_created(self, pg_db):
         await Ratings.add("alice", 100, 5, edition_id=1)
         before = await async_db.fetch_one("SELECT edition_id, created FROM ratings WHERE username = 'alice'")
+        assert before is not None
 
         await Ratings.add("alice", 100, 3, edition_id=2)
 

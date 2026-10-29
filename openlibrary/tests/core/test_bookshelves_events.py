@@ -192,6 +192,7 @@ class TestBookshelvesEventsLatestEventDatesIntegration:
                 "VALUES (%(username)s, %(work_id)s, 1, %(event_type)s, %(event_date)s) RETURNING id",
                 {"username": username, "work_id": work_id, "event_type": event_type, "event_date": event_date},
             )
+            assert row is not None
             return row["id"]
 
         old_finish = await add_event("alice", 1, BookshelfEvent.FINISH, "2025-01-01")
