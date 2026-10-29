@@ -42,6 +42,7 @@ class TestCommunityEditsQueueIntegration:
             f"SELECT reviewer, status, comments, created, updated FROM {CommunityEditsQueue.TABLENAME} WHERE id = %(id)s",
             {"id": request_id},
         )
+        assert row is not None
         assert row["reviewer"] == "bob"
         assert row["status"] == CommunityEditsQueue.STATUS["MERGED"]
         comments = row["comments"]
