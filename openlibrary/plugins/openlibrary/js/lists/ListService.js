@@ -3,8 +3,6 @@
  * @module lists/ListService
  */
 
-import { buildPartialsUrl } from '../utils';
-
 /**
  * Submits request to create new list.  Returns Promise.
  *
@@ -17,9 +15,9 @@ export async function createList(userKey, data) {
         method: 'post',
         headers: {
             'Content-Type': 'application/json',
-            Accept: 'application/json',
+            Accept: 'application/json'
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(data)
     });
 }
 
@@ -36,9 +34,9 @@ export async function addItem(listKey, seed) {
         method: 'post',
         headers: {
             'Content-Type': 'application/json',
-            Accept: 'application/json',
+            Accept: 'application/json'
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(body)
     });
 }
 
@@ -55,18 +53,8 @@ export async function removeItem(listKey, seed) {
         method: 'post',
         headers: {
             'Content-Type': 'application/json',
-            Accept: 'application/json',
+            Accept: 'application/json'
         },
-        body: JSON.stringify(body),
-    });
-}
-
-// XXX : jsdoc
-export async function getListPartials() {
-    return await fetch(buildPartialsUrl('MyBooksDropperLists'), {
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-        },
+        body: JSON.stringify(body)
     });
 }

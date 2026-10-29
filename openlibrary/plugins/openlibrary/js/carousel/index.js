@@ -1,4 +1,5 @@
-import {Carousel} from './Carousel';
+import $ from 'jquery';
+import { Carousel } from './Carousel';
 
 export function initialzeCarousels(elems) {
     elems.forEach(elem => {

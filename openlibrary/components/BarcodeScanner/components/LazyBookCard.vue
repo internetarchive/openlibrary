@@ -1,18 +1,14 @@
 <template>
-  <a
-    class="lazy-book-card"
-    :href="link"
-    :class="{ 'loading' : loading, 'errored' : errored}"
-  >
-    <div class="cover">
-      <img :src="coverSrc">
-    </div>
-    <div class="info">
-      <div class="title">{{ title }}</div>
-      <div class="byline">{{ byline }}</div>
-      <div class="identifier">{{ identifier }}</div>
-    </div>
-  </a>
+    <a class="lazy-book-card" :href="link" :class="{ loading: loading, errored: errored }">
+        <div class="cover">
+            <img :src="coverSrc" />
+        </div>
+        <div class="info">
+            <div class="title">{{ title }}</div>
+            <div class="byline">{{ byline }}</div>
+            <div class="identifier">{{ identifier }}</div>
+        </div>
+    </a>
 </template>
 
 <script>
@@ -21,11 +17,12 @@ export default {
     props: {
         isbn: {
             type: String,
+            required: true
         },
         tentativeCover: {
             type: String,
-            default: null,
-        },
+            default: null
+        }
     },
     data() {
         return {
@@ -35,7 +32,7 @@ export default {
             byline: null,
             identifier: null,
             errored: false,
-            loading: true,
+            loading: true
         };
     },
     mounted() {
@@ -43,7 +40,8 @@ export default {
     },
     methods: {
         async fromISBN(isbn) {
-            fetch(`https://${CONFIGS.OL_BASE_PUBLIC}/isbn/${isbn}.json`).then(r => r.json())
+            fetch(`https://${CONFIGS.OL_BASE_PUBLIC}/isbn/${isbn}.json`)
+                .then(r => r.json())
                 .then(editionRecord => {
                     this.title = editionRecord.title;
                     this.identifier = isbn;
@@ -56,32 +54,35 @@ export default {
                         }
                     }
                     return fetch(`https://${CONFIGS.OL_BASE_PUBLIC}${editionRecord.works[0].key}.json`).then(r => r.json());
-                }).then(workRecord => {
-                    return Promise.all(
-                        workRecord.authors
-                            .map(a => fetch(`https://${CONFIGS.OL_BASE_PUBLIC}${a.author.key}.json`).then(r => r.json()))
-                    );
-                }).then(authorRecords => {
+                })
+                .then(workRecord => {
+                    return Promise.all(workRecord.authors.map(a => fetch(`https://${CONFIGS.OL_BASE_PUBLIC}${a.author.key}.json`).then(r => r.json())));
+                })
+                .then(authorRecords => {
                     this.loading = false;
                     this.byline = authorRecords.map(a => a.name).join(', ');
                 })
                 // eslint-disable-next-line no-unused-vars
-                .catch((err) => {
+                .catch(err => {
                     this.loading = false;
                     this.errored = true;
                 });
-        },
-    },
+        }
+    }
 };
 </script>
 
 <style>
-  @keyframes pulse {
-    0% { opacity: 0; }
-    100% { opacity: .95; }
-  }
+@keyframes pulse {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0.95;
+    }
+}
 
-  a.lazy-book-card {
+a.lazy-book-card {
     background: hsl(0, 0%, 100%);
     flex-shrink: 0;
     margin-right: 6px;
@@ -96,53 +97,67 @@ export default {
     text-decoration: none;
     position: relative;
     transition-property: background-color border-color;
-    transition-duration: .2s;
-  }
-  a.lazy-book-card:first-child { animation: slideUp .8s; }
-  a.lazy-book-card:nth-child(2) { animation: shiftRight .8s; }
-  a.lazy-book-card:hover {
+    transition-duration: 0.2s;
+}
+a.lazy-book-card:first-child {
+    animation: slideUp 0.8s;
+}
+a.lazy-book-card:nth-child(2) {
+    animation: shiftRight 0.8s;
+}
+a.lazy-book-card:hover {
     background: hsl(240, 100%, 95%);
     border-color: hsl(240, 100%, 65%);
     color: hsl(240, 100%, 60%);
-  }
-  a.lazy-book-card::before {
+}
+a.lazy-book-card::before {
     display: none;
-    content: "";
+    content: '';
     position: absolute;
     width: 6px;
     height: 6px;
     border-radius: 100px;
     margin: 10px;
     right: 0;
-  }
-  a.lazy-book-card.loading::before {
+}
+a.lazy-book-card.loading::before {
     display: block;
     background: hsl(240, 100%, 50%);
     opacity: 0;
-    animation: pulse .5s infinite alternate;
+    animation: pulse 0.5s infinite alternate;
     /* Only show loading animation if it takes longer than this */
-    animation-delay: .5s;
-  }
-  a.lazy-book-card.errored::before {
+    animation-delay: 0.5s;
+}
+a.lazy-book-card.errored::before {
     display: block;
     background: hsl(8, 78%, 49%);
-  }
-  a.lazy-book-card .title { font-weight: bold; line-height: 1.1em; }
-  a.lazy-book-card .byline { font-size: .9em; margin-top: .1em; }
-  a.lazy-book-card .cover {
+}
+a.lazy-book-card .title {
+    font-weight: bold;
+    line-height: 1.1em;
+}
+a.lazy-book-card .byline {
+    font-size: 0.9em;
+    margin-top: 0.1em;
+}
+a.lazy-book-card .cover {
     width: 25%;
-  }
-  a.lazy-book-card .cover img { width: 100%; height: 100%; object-fit: cover; }
-  a.lazy-book-card .identifier {
+}
+a.lazy-book-card .cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+a.lazy-book-card .identifier {
     margin-top: 4px;
     padding-top: 4px;
     color: hsl(0, 0%, 33%);
     border-top: 1px dotted;
     font-family: monospace;
     font-size: 1.2em;
-  }
-  a.lazy-book-card .info {
+}
+a.lazy-book-card .info {
     flex: 1;
     padding: 8px;
-  }
+}
 </style>

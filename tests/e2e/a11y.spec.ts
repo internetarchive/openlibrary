@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { a11yCheck, expectNoViolations, THIRD_PARTY_FRAMES } from './a11y';
+import { login } from './helpers';
+
+// OL286811W is present in the dev DB seed data; OL45883W is the production fallback
+const WORK_URL = process.env.OL_BASE_URL?.startsWith('https') ? '/works/OL45883W' : '/works/OL286811W';
 
 /**
  * Navigate, then wait for the global header before scanning.
@@ -20,7 +24,7 @@ async function gotoSettled(page: Page, path: string): Promise<void> {
     // frames under Playwright, so an unblocked scan could flip between runs
     // with no Open Library change. These scans should only ever see markup
     // we author.
-    await page.route('https://archive.org/**', (route) => route.abort());
+    await page.route('https://archive.org/**', route => route.abort());
     await page.goto(path);
     await expect(page.locator('#header-bar').first()).toBeVisible();
 }
@@ -51,10 +55,26 @@ test.describe('Accessibility @a11y', () => {
         // `violations`, which is a real regression for the tests above to
         // report — this one should keep confirming axe ran, not fail alongside
         // them with a misleading "axe is broken" message.
-        const evaluated = [...results.passes, ...results.violations, ...results.incomplete].map((rule) => rule.id);
+        const evaluated = [...results.passes, ...results.violations, ...results.incomplete].map(rule => rule.id);
 
         expect(results.testEngine.name).toBe('axe-core');
         expect(evaluated.length).toBeGreaterThan(20);
         expect(evaluated).toContain('color-contrast');
+    });
+
+    test.describe('when logged in', () => {
+        // Logged-in pages render markup anonymous scans never see: the
+        // account menu, reading-log dropper, ratings and check-in widgets.
+        test.beforeEach(({ page }) => login(page));
+
+        test('home page has no WCAG 2.1 AA violations', async ({ page }) => {
+            await gotoSettled(page, '/');
+            expectNoViolations(await a11yCheck(page, { exclude: THIRD_PARTY_FRAMES }));
+        });
+
+        test('work page has no WCAG 2.1 AA violations', async ({ page }) => {
+            await gotoSettled(page, WORK_URL);
+            expectNoViolations(await a11yCheck(page, { exclude: THIRD_PARTY_FRAMES }));
+        });
     });
 });

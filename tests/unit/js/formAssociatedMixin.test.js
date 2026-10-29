@@ -11,9 +11,9 @@ class MockBase extends HTMLElement {
     constructor() {
         super();
         this._fakeInternals = {
-            setFormValue: jest.fn(),
+            setFormValue: vi.fn(),
             form: { id: 'f' },
-            labels: ['label-el'],
+            labels: ['label-el']
         };
     }
 

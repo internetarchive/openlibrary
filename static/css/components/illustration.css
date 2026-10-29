@@ -8,7 +8,7 @@
   text-align: center;
   margin-bottom: var(--spacing-stack-sm);
   position: relative;
-  z-index: var(--z-index-level-1);
+  z-index: var(--z-index-base);
   /* Contain the cover's behind-parent animation layer (.cover-animation,
      z-index: behind) explicitly, so it stays contained even if the z-index
      above is ever removed. */
@@ -18,6 +18,19 @@
   width: 180px;
   border-radius: var(--border-radius-thumbnail);
   box-shadow: 1px 1px 2px 0 var(--book-cover-shadow-color);
+}
+/* Enlarged cover in the preview <ol-dialog>, inside .illustration. Shown at
+   intrinsic size, capped to the dialog's max height minus body
+   padding and the ~3rem title row, so it never scrolls. */
+ol-dialog img.cover-preview {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: calc(
+    var(--ol-dialog-max-height) - 2 * var(--ol-dialog-padding) - 3.5rem
+  );
+  margin-inline: auto;
 }
 .illustration .SRPCoverBlank {
   position: relative;

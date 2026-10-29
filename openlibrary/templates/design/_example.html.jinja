@@ -35,8 +35,8 @@
     </div>
 {% endmacro %}
 {#
-  Wraps one component's write-up. Handles the heading, the "use when" /
-  "avoid" lines, and the API table, so partials only contain examples.
+  Wraps one component's write-up. Handles the heading, the "avoid" line, and
+  the API table, so partials only contain examples.
 #}
 {% macro component_article(component, api) %}
     <article class="ds-component" id="{{ component.id }}">
@@ -45,7 +45,6 @@
                 {{ component.title }}
                 {% if component.tag %}<code class="ds-component__tag">&lt;{{ component.tag }}&gt;</code>{% endif %}
             </h3>
-            <p class="ds-component__use-when"><b>Use when:</b> {{ component.use_when }}</p>
             {% if component.avoid %}<p class="ds-component__avoid"><b>Avoid:</b> {{ component.avoid }}</p>{% endif %}
         </header>
         {{ caller() }}

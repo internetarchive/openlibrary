@@ -1,29 +1,26 @@
 <template>
-  <div>
-    <h3>Add your reviews:</h3>
-    <p class="subtitle">
-      Reviews listed above have been saved.
-    </p>
-    <div class="chip-group">
-      <OLChip
-        v-for="o in observationsArray"
-        :key="o.id"
-        :ref="'chip' + o.id"
-        :text="o.label"
-        selectable
-        :selected="isSelected(o.id)"
-        class="category-chip"
-        @update-selected="updateSelected"
-      >
-        <template #before>
-          <span
-            class="symbol"
-            v-html="displaySymbol(o.label)"
-          />
-        </template>
-      </OLChip>
+    <div>
+        <h3>Add your reviews:</h3>
+        <p class="subtitle">Reviews listed above have been saved.</p>
+        <div class="chip-group">
+            <OLChip
+                v-for="o in observationsArray"
+                :key="o.id"
+                :ref="'chip' + o.id"
+                :text="o.label"
+                selectable
+                :selected="isSelected(o.id)"
+                class="category-chip"
+                @update-selected="updateSelected"
+            >
+                <template #before>
+                    <span class="symbol">
+                        {{ displaySymbol(o.label) }}
+                    </span>
+                </template>
+            </OLChip>
+        </div>
     </div>
-  </div>
 </template>
 
 <script>
@@ -74,14 +71,15 @@ export default {
             default: 0
         }
     },
-    data: function() {
+    emits: ['update-selected'],
+    data: function () {
         return {
             /**
              * The ID of the selected book tag type.
              *
              * @type {number | null}
              */
-            selectedId: this.initialSelectedId,
+            selectedId: this.initialSelectedId
         };
     },
     methods: {
@@ -91,7 +89,7 @@ export default {
          * @param {boolean} isSelected Whether or not a chip is currently selected.
          * @param {String} text The text displayed by a chip.
          */
-        updateSelected: function(isSelected, text) {
+        updateSelected: function (isSelected, text) {
             if (isSelected) {
                 // TODO: This for loop shouldn't be necessary
                 for (let i = 0; i < this.observationsArray.length; ++i) {
@@ -112,23 +110,23 @@ export default {
          *
          * @param {number} id A chip's id.
          */
-        isSelected: function(id) {
+        isSelected: function (id) {
             return this.selectedId === id;
         },
         /**
-         * Returns an HTML code denoting what symbol to display in a book tag type chip.
+         * Returns the Unicode symbol to display in a book tag type chip.
          *
          * Will return a bullet symbol if no book tags of a chip's type have been selected,
          * and a heavy checkmark otherwise.
          *
-         * @returns {String} An HTML code representing selections of a type.
+         * @returns {String} A Unicode symbol representing selections of a type.
          */
-        displaySymbol: function(type) {
+        displaySymbol: function (type) {
             if (this.allSelectedValues[type] && this.allSelectedValues[type].length) {
-                // &#10004; - Heavy checkmark
-                return '&#10004;';
+                // ✔ - Heavy checkmark
+                return '✔';
             }
-            return '&bull;';
+            return '•';
         }
     }
 };
@@ -136,21 +134,20 @@ export default {
 
 <style scoped>
 h3 {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 .subtitle {
-  margin-top: 5px;
-  color: #505050;
+    margin-top: 5px;
+    color: #505050;
 }
 
 .chip-group {
-  display: flex;
-  flex-wrap: wrap;
+    display: flex;
+    flex-wrap: wrap;
 }
 .category-chip {
-  margin-right: 1em;
-  margin-bottom: .5em;
+    margin-right: 1em;
+    margin-bottom: 0.5em;
 }
-
 </style>

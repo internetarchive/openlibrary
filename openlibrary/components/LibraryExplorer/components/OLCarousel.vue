@@ -1,86 +1,42 @@
 <template>
-  <div class="ol-carousel">
-    <BooksCarousel
-      v-if="status === 'Loaded' || results.length"
-      :books="results"
-    >
-      <template #cover-label="{book}">
-        <slot
-          name="cover-label"
-          :book="book"
-        />
-      </template>
+    <div class="ol-carousel">
+        <BooksCarousel v-if="status === 'Loaded' || results.length" :books="results">
+            <template #cover-label="{ book }">
+                <slot name="cover-label" :book="book" />
+            </template>
 
-      <template #cover="{book}">
-        <slot
-          name="cover"
-          :book="book"
-        />
-      </template>
+            <template #cover="{ book }">
+                <slot name="cover" :book="book" />
+            </template>
 
-      <template #book-end-start>
-        <slot name="book-end-start" />
-        <div
-          v-if="offset > 0"
-          class="book-end"
-        >
-          <small>{{ offset }}-{{ offset + results.length }} of {{ numFound }}</small>
-          <button
-            class="load-more"
-            :disabled="offset === 0"
-            @click="loadPrevPage"
-          >
-            Load previous
-          </button>
-          <a
-            class="view-all"
-            :href="olUrl"
-            target="_blank"
-          >View all</a>
-        </div>
-      </template>
-      <template #book-end>
-        <div class="book-end">
-          <small>{{ offset }}-{{ offset + results.length }} of {{ numFound }}</small>
-          <button
-            class="load-more"
-            :disabled="offset + results.length === numFound"
-            @click="loadNextPage"
-          >
-            Load next
-          </button>
-          <a
-            class="view-all"
-            :href="olUrl"
-            target="_blank"
-          >View all</a>
-        </div>
-      </template>
-    </BooksCarousel>
-    <transition>
-      <div
-        v-if="status === 'Errored'"
-        class="status-text"
-      >
-        Something went wrong... <button @click="reloadResults('reload')">
-          Retry
-        </button>
-      </div>
-    </transition>
-    <transition>
-      <div
-        v-if="status === 'Loading'"
-        class="status-text"
-      >
-        Loading...
-      </div>
-    </transition>
-  </div>
+            <template #book-end-start>
+                <slot name="book-end-start" />
+                <div v-if="offset > 0" class="book-end">
+                    <small>{{ offset }}-{{ offset + results.length }} of {{ numFound }}</small>
+                    <button class="load-more" :disabled="offset === 0" @click="loadPrevPage">Load previous</button>
+                    <a class="view-all" :href="olUrl" target="_blank">View all</a>
+                </div>
+            </template>
+            <template #book-end>
+                <div class="book-end">
+                    <small>{{ offset }}-{{ offset + results.length }} of {{ numFound }}</small>
+                    <button class="load-more" :disabled="offset + results.length === numFound" @click="loadNextPage">Load next</button>
+                    <a class="view-all" :href="olUrl" target="_blank">View all</a>
+                </div>
+            </template>
+        </BooksCarousel>
+        <transition>
+            <div v-if="status === 'Errored'" class="status-text">Something went wrong... <button @click="reloadResults('reload')">Retry</button></div>
+        </transition>
+        <transition>
+            <div v-if="status === 'Loading'" class="status-text">Loading...</div>
+        </transition>
+    </div>
 </template>
 
 <script>
 import BooksCarousel from './BooksCarousel.vue';
-import debounce from 'lodash/debounce';
+import { debounce } from '../../../plugins/openlibrary/js/nonjquery_utils.js';
 
 import CONFIGS from '../../configs';
 // import * as Vibrant from "node-vibrant";
@@ -127,15 +83,27 @@ async function waitUntil(predicate, sleep = 100, maxSleep = 2000) {
 export default {
     components: { BooksCarousel },
     props: {
-        query: String,
-        node: Object,
-        fetchCoordinator: Object,
+        query: {
+            type: String,
+            required: true
+        },
+        node: {
+            type: Object,
+            default: () => ({
+                requests: {}
+            })
+        },
+        fetchCoordinator: {
+            type: Object,
+            default: null
+        },
         sort: {
-            default: 'editions',
+            type: String,
+            default: 'editions'
         },
         limit: {
             type: Number,
-            default: screen.width > 450 ? 20 : 8,
+            default: screen.width > 450 ? 20 : 8
         }
     },
     data() {
@@ -152,7 +120,7 @@ export default {
             intersectionRatio: 0,
 
             /** @type {AbortController} */
-            lastFetchAbortController: null,
+            lastFetchAbortController: null
         };
     },
     computed: {
@@ -161,18 +129,20 @@ export default {
                 q: this.query,
                 offset: this.offset,
                 sort: this.sort,
-                limit: this.limit,
+                limit: this.limit
             })}`;
         },
 
         offset: {
-            get() { return this.node.requests[this.query]?.offset ?? 0; },
+            get() {
+                return this.node.requests[this.query]?.offset ?? 0;
+            },
             set(newVal) {
                 if (!this.node.requests[this.query]) {
                     this.node.requests[this.query] = { offset: 0 };
                 }
-                return this.node.requests[this.query].offset = newVal;
-            },
+                return (this.node.requests[this.query].offset = newVal);
+            }
         }
     },
     watch: {
@@ -198,9 +168,12 @@ export default {
 
     created() {
         this.debouncedReloadResults = debounce(this.reloadResults, 1000);
-        this.intersectionObserver = ('IntersectionObserver' in window) ? new IntersectionObserver(this.handleIntersectionChange, {
-            rootMargin: '100px'
-        }) : null;
+        this.intersectionObserver =
+            'IntersectionObserver' in window
+                ? new IntersectionObserver(this.handleIntersectionChange, {
+                      rootMargin: '100px'
+                  })
+                : null;
     },
 
     async mounted() {
@@ -235,11 +208,11 @@ export default {
             this.error = null;
         },
 
-        async reloadResults(cache='force-cache') {
+        async reloadResults(cache = 'force-cache') {
             return await this.loadResults(this.offset, cache);
         },
 
-        async loadResults(offset, cache='force-cache') {
+        async loadResults(offset, cache = 'force-cache') {
             // Don't re-fetch if already there
             if (offset === this.offset && this.results.length) return;
 
@@ -251,19 +224,21 @@ export default {
                 offset,
                 limit: this.limit,
                 sort: this.sort,
-                fields: 'key,title,author_name,cover_i,ddc,lcc,lending_edition_s,first_publish_year,edition_count,number_of_pages_median',
+                fields: 'key,title,author_name,cover_i,ddc,lcc,lending_edition_s,first_publish_year,edition_count,number_of_pages_median'
             });
 
             const url = `${CONFIGS.OL_BASE_SEARCH}/search.json?${params.toString()}`;
 
             this.status = 'Loading';
-            const fetch = this.fetchCoordinator ?
-                this.fetchCoordinator.fetch.bind(this.fetchCoordinator, { priority: () => 10 + this.intersectionRatio, name: this.query }) :
-                fetch;
+            // Shadowing `fetch` with a const of the same name would put the
+            // fallback on the right in the temporal dead zone — name it.
+            const doFetch = this.fetchCoordinator
+                ? this.fetchCoordinator.fetch.bind(this.fetchCoordinator, { priority: () => 10 + this.intersectionRatio, name: this.query })
+                : fetch;
             try {
-                const r = await fetch(url, {
+                const r = await doFetch(url, {
                     cache,
-                    signal: this.lastFetchAbortController?.signal,
+                    signal: this.lastFetchAbortController?.signal
                 }).then(r => r.json());
                 this.status = 'Loaded';
                 this.results.splice(0, this.results.length, ...r.docs);
@@ -297,72 +272,71 @@ export default {
 };
 </script>
 
-
 <style scoped>
 .load-books {
-  width: 100%;
-  height: 50px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-  margin-bottom: 4px;
+    width: 100%;
+    height: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 4px;
 }
 
 @keyframes slide-down {
-  from {
-    transform: translate(-50%, -20px);
-    opacity: 0;
-  }
-  to {
-    transform: translate(-50%, 0);
-    opacity: 1;
-  }
+    from {
+        transform: translate(-50%, -20px);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
 }
 
 .status-text {
-  position: absolute;
-  top: 0;
-  text-align: center;
-  background: black;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 0 0 4px 4px;
-  left: 50%;
-  transform: translateX(-50%);
+    position: absolute;
+    top: 0;
+    text-align: center;
+    background: black;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 0 0 4px 4px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .status-text.v-enter-active {
-  animation: slide-down .2s;
+    animation: slide-down 0.2s;
 }
 .status-text.v-leave-active {
-  animation: slide-down .2s reverse;
+    animation: slide-down 0.2s reverse;
 }
 .book-end {
-  padding: 20px;
-  margin: 10px;
-  display: flex;
-  flex-direction: column;
+    padding: 20px;
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
 }
 .book-end small {
-  white-space: nowrap;
+    white-space: nowrap;
 }
 .book-end .load-more {
-  align-self: center;
-  white-space: nowrap;
-  line-height: 2em;
+    align-self: center;
+    white-space: nowrap;
+    line-height: 2em;
 }
 .book-end .view-all {
-  padding: 5px;
-  text-align: center;
-  color: inherit;
+    padding: 5px;
+    text-align: center;
+    color: inherit;
 }
 
 .ol-carousel {
-  min-height: 100px;
-  text-align: center;
-  overflow: hidden;
-  overflow: clip;
-  position: relative;
+    min-height: 100px;
+    text-align: center;
+    overflow: hidden;
+    overflow: clip;
+    position: relative;
 }
 </style>

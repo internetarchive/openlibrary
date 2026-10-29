@@ -1,10 +1,8 @@
+import $ from 'jquery';
 import { validateIdentifiers } from '../../../openlibrary/plugins/openlibrary/js/edit.js';
-import sinon from 'sinon';
 import * as testData from './html-test-data';
 import { htmlquote } from '../../../openlibrary/plugins/openlibrary/js/jsdef';
 import { init } from '../../../openlibrary/plugins/openlibrary/js/jquery.repeat';
-
-let sandbox;
 
 /**
  * Test various patterns with the editions identifier parsing function,
@@ -26,17 +24,17 @@ let sandbox;
 
 beforeEach(() => {
     // Clear session storage
-    sandbox = sinon.createSandbox();
-    global.htmlquote = htmlquote;
     // htmlquote is used inside an eval expression (yuck) so is an implied dependency
-    sandbox.stub(global, 'htmlquote').callsFake(htmlquote);
+    global.htmlquote = htmlquote;
     // setup Query repeat
     init();
     // setup the HTML
     $(document.body).html(testData.editionIdentifiersSample);
     $('#identifiers').repeat({
-        vars: {prefix: 'edition--'},
-        validate: function(data) {return validateIdentifiers(data);},
+        vars: { prefix: 'edition--' },
+        validate: function (data) {
+            return validateIdentifiers(data);
+        }
     });
 });
 

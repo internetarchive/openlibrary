@@ -19,7 +19,9 @@ export class ListBooks {
      */
     updateLayout(event) {
         const layout = event.detail.value;
-        this.listBooks.classList.toggle('list-books--grid', layout === 'grid');
+        const grid = layout === 'grid';
+        this.listBooks.classList.toggle('list-books--grid', grid);
+        this.moveShelfButtons(grid);
         document.cookie = `LBL=${layout}; path=/; max-age=31536000`;
         const url = new URL(window.location.href);
         url.searchParams.set('layout', layout);
@@ -27,6 +29,23 @@ export class ListBooks {
         // Shadow root, so data-ol-link-track can't see it. Same keys as before,
         // but this reports to Matomo rather than Athena.
         trackEvent('SearchLayout', layout === 'grid' ? 'Grid' : 'Details');
+    }
+
+    /**
+     * The grid shows the shelf button as a badge on the cover, the list as a
+     * labelled split in the CTA column. Both slots are always rendered, so a
+     * flip is a move plus a variant change; book-state.js already knows the
+     * button, so nothing is refetched.
+     * @param {boolean} grid
+     */
+    moveShelfButtons(grid) {
+        for (const button of this.listBooks.querySelectorAll('ol-shelf-button')) {
+            const item = button.closest('.searchResultItem');
+            const slot = item?.querySelector(grid ? '.book-cover-wrapper' : '.searchResultItemCTA__shelf');
+            if (!slot) continue;
+            button.setAttribute('variant', grid ? 'icon' : 'split');
+            slot.append(button);
+        }
     }
 
     static init() {

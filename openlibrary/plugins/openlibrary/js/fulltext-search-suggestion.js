@@ -3,8 +3,8 @@ import { buildPartialsUrl } from './utils';
 export function initFulltextSearchSuggestion(fulltextSearchSuggestion) {
     const isLoading = showLoadingIndicators(fulltextSearchSuggestion);
     if (isLoading) {
-        const query = fulltextSearchSuggestion.dataset.query;
-        getPartials(fulltextSearchSuggestion, query);
+        const { query, exclude } = fulltextSearchSuggestion.dataset;
+        getPartials(fulltextSearchSuggestion, query, exclude);
     }
 }
 
@@ -17,15 +17,21 @@ function showLoadingIndicators(fulltextSearchSuggestion) {
     }
     return isLoading;
 }
-async function getPartials(fulltextSearchSuggestion, query) {
-    return fetch(buildPartialsUrl('FulltextSearchSuggestion', {data: query}))
-        .then((resp) => {
+async function getPartials(fulltextSearchSuggestion, query, exclude = '') {
+    const params = { data: query };
+    if (exclude) params.exclude = exclude;
+    const providerPref = new URLSearchParams(window.location.search).get('providerPref');
+    if (providerPref) {
+        params.providerPref = providerPref;
+    }
+    return fetch(buildPartialsUrl('FulltextSearchSuggestion', params))
+        .then(resp => {
             if (resp.status !== 200) {
                 throw new Error(`Failed to fetch partials. Status code: ${resp.status}`);
             }
             return resp.json();
         })
-        .then((data) => {
+        .then(data => {
             fulltextSearchSuggestion.innerHTML += data['partials'];
             const loadingIndicator = fulltextSearchSuggestion.querySelector('.loadingIndicator');
             if (loadingIndicator) {
@@ -45,10 +51,9 @@ async function getPartials(fulltextSearchSuggestion, query) {
                 const retryAffordance = fulltextSearchSuggestion.querySelector('.fulltext-suggestions__retry');
                 retryAffordance.addEventListener('click', () => {
                     retryAffordance.classList.add('hidden');
-                    getPartials(fulltextSearchSuggestion, query);
+                    getPartials(fulltextSearchSuggestion, query, exclude);
                 });
             }
-
         });
 }
 

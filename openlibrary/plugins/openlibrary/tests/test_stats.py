@@ -3,8 +3,11 @@ Tests the stats gathering systems.
 """
 
 import calendar
-import datetime
+import datetime as dt
 
+import web
+
+from openlibrary.core import admin
 from openlibrary.core.admin import Stats
 
 from .. import stats
@@ -68,13 +71,29 @@ def test_status_total():
 
 def test_status_timerange():
     "Tests the stats container with a time X-axis"
-    d = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    d = dt.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     ipdata = []
     expected_op = []
     for i in range(10):
         doc = MockDoc(_id=d.strftime("counts-%Y-%m-%d"), foo=1)
         ipdata.append(doc)
         expected_op.append([calendar.timegm(d.timetuple()) * 1000, 1])
-        d += datetime.timedelta(days=1)
+        d += dt.timedelta(days=1)
     s = Stats(ipdata, "foo", "nothing")
     assert s.get_counts(10, True) == expected_op[:10]
+
+
+def test_rolling_counts_compare_with_four_weeks_earlier(monkeypatch):
+    start = dt.date(2026, 10, 1)
+    days = [start + dt.timedelta(days=i) for i in range(40)]
+    # The stats script started writing `editors` on the fifth day.
+    docs = [MockDoc(d.strftime("counts-%Y-%m-%d"), **({"editors": i} if i >= 4 else {})) for i, d in enumerate(days)]
+    monkeypatch.setattr(admin, "_get_count_docs", lambda ndays: docs)
+    monkeypatch.setattr(web.ctx, "lang", "en", raising=False)
+
+    counts = admin.get_rolling_counts(["editors", "unwritten"], ndays=90)
+
+    assert counts["unwritten"] is None
+    assert counts["editors"]["latest"] == 39
+    assert counts["editors"]["earlier"] == 11
+    assert len(counts["editors"]["chart"]["bars"]) == 36

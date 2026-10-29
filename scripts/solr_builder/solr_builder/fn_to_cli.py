@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import types
 import typing
 from argparse import (
@@ -83,7 +84,7 @@ class FnToCLI:
 
     def run(self):
         args_dicts = self.args_dict()
-        if asyncio.iscoroutinefunction(self.fn):
+        if inspect.iscoroutinefunction(self.fn):
             return asyncio.run(self.fn(**args_dicts))
         else:
             return self.fn(**args_dicts)

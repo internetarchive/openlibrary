@@ -1,9 +1,12 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
+import './OlIcon.js';
 import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
+import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
 import './OlPopover.js';
 import './OLButton.js';
+import { menuRow } from './control-styles.js';
 
 let _idCounter = 0;
 
@@ -38,6 +41,8 @@ let _idCounter = 0;
  *     ≥1 item is selected (default "SUGGESTIONS").
  * @prop {String} clearLabel - Label for the clear-selections button (default
  *     "Clear selections").
+ * @prop {String} loadingLabel - Text shown beside the spinner while `loading`
+ *   is set (default "Loading…").
  * @prop {String} noMatchesLabel - Empty-state text when the filter has no
  *     matches (default "No matches").
  *
@@ -48,6 +53,13 @@ let _idCounter = 0;
  *     detail: { selected: String[], added: String|null, removed: String|null }
  * @fires ol-select-popover-clear - Fires when the clear-selections button is
  *     clicked. A change event also fires with the cleared selection.
+ * @fires ol-select-popover-request-open - Cancelable; fires when the patron
+ *     activates the trigger on a closed panel. detail: { focusFirst: Boolean }.
+ *     Calling preventDefault() defers the open: the panel stays shut until the
+ *     listener calls show(). For hosts that load items on demand — the panel
+ *     then opens once, at its final size, instead of resizing and re-sorting
+ *     under the pointer. A host that defers owns any busy affordance, and
+ *     should keep the wait short enough not to need one.
  *
  * @slot trigger - Optional custom trigger element. When omitted, a default
  *     `<ol-button>` is injected, labelled by the current selection: `label`
@@ -91,230 +103,280 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         suggestionsHeading: { type: String, attribute: 'suggestions-heading' },
         clearLabel: { type: String, attribute: 'clear-label' },
         noMatchesLabel: { type: String, attribute: 'no-matches-label' },
+        loadingLabel: { type: String, attribute: 'loading-label' },
         _query: { state: true },
+        loading: { type: Boolean, reflect: true }
     };
 
-    static styles = css`
-        :host {
-            display: inline-block;
-            font-family: var(--font-family-body);
-        }
+    static styles = [
+        menuRow,
+        css`
+            :host {
+                display: inline-block;
+                font-family: var(--font-family-body);
 
-        /* The default trigger is an <ol-button> injected as a light-DOM child
+                /* Declared here rather than on .panel: the panel is slotted into
+               <ol-popover>, whose tray clears these, and an override only
+               reaches it by inheriting past the tray. */
+                --ol-popover-content-max-width: 360px;
+                --ol-popover-content-max-height: min(70vh, 480px);
+            }
+
+            /* The default trigger is an <ol-button> injected as a light-DOM child
            (see _createDefaultTrigger); it paints itself, including the automatic
            disclosure chevron. No trigger styles live here. A consumer-supplied
            trigger is likewise their own light-DOM element. */
 
-        /* ── Panel layout ────────────────────────────────────────── */
+            /* ── Panel layout ────────────────────────────────────────── */
 
-        .panel {
-            display: flex;
-            flex-direction: column;
-            min-width: 240px;
-            max-width: min(90vw, 360px);
-            max-height: min(70vh, 480px);
-        }
+            .panel {
+                display: flex;
+                flex-direction: column;
+                min-width: 240px;
+                max-width: var(--ol-popover-content-max-width);
+                max-height: var(--ol-popover-content-max-height);
+            }
 
-        /* ── Filter input ────────────────────────────────────────── */
+            /* ── Filter input ────────────────────────────────────────── */
 
-        .filter {
-            position: relative;
-            padding: var(--spacing-inset-sm);
-            border-bottom: var(--border-divider);
-        }
+            /* Uniform padding; at 8px inside the 16px panel the field's 8px
+           radius sits concentric with the panel corners. */
+            .filter {
+                position: relative;
+                padding: var(--spacing-inset-sm);
+                border-bottom: var(--border-divider);
+            }
 
-        .filter-input {
-            box-sizing: border-box;
-            width: 100%;
-            padding: var(--spacing-inset-sm) var(--spacing-inset-sm) var(--spacing-inset-sm) 32px;
-            background: var(--white);
-            border: 1px solid var(--color-border-subtle);
-            border-radius: var(--border-radius-input);
-            font: inherit;
-            font-size: var(--font-size-body-medium);
-            color: inherit;
-        }
+            .filter-input {
+                box-sizing: border-box;
+                width: 100%;
+                padding: var(--spacing-inset-sm) var(--spacing-inset-sm) var(--spacing-inset-sm) 32px;
+                background: var(--white);
+                border: 1px solid var(--color-border-subtle);
+                border-radius: var(--border-radius-input);
+                font: inherit;
+                font-size: var(--font-size-body-medium);
+                color: inherit;
+            }
 
-        .filter-input::placeholder {
-            color: var(--color-text-muted);
-        }
+            .filter-input::placeholder {
+                color: var(--color-text-muted);
+            }
 
-        .filter-input:focus {
-            outline: none;
-            border-color: var(--color-border-focused);
-            box-shadow: 0 0 0 1px var(--color-border-focused);
-        }
+            .filter-input:focus {
+                outline: none;
+                border-color: var(--color-border-focused);
+                box-shadow: 0 0 0 1px var(--color-border-focused);
+            }
 
-        /* iOS zooms in on focus when the input font is < 16px; bump it up on
+            /* iOS zooms in on focus when the input font is < 16px; bump it up on
            mobile to suppress that. */
-        @media (max-width: 767px) {
-            .filter-input { font-size: var(--font-size-body-large); }
-        }
+            @media (max-width: 767px) {
+                .filter-input {
+                    font-size: var(--font-size-body-large);
+                }
+            }
 
-        .filter-icon {
-            position: absolute;
-            top: 50%;
-            left: calc(var(--spacing-inset-sm) + 10px);
-            width: 14px;
-            height: 14px;
-            color: var(--color-text-muted);
-            pointer-events: none;
-            transform: translateY(-50%);
-        }
+            .filter-icon {
+                position: absolute;
+                top: 50%;
+                left: calc(var(--spacing-inset-sm) + 10px);
+                width: 14px;
+                height: 14px;
+                color: var(--color-text-muted);
+                pointer-events: none;
+                transform: translateY(-50%);
+            }
 
-        /* ── Lists ───────────────────────────────────────────────── */
+            /* ── Lists ───────────────────────────────────────────────── */
 
-        .list-area {
-            flex: 1;
-            overflow-y: auto;
-            min-height: 0;
-        }
+            .list-area {
+                flex: 1;
+                overflow-y: auto;
+                min-height: 0;
+            }
 
-        .group {
-            list-style: none;
-            margin: 0;
-            padding: var(--spacing-inset-xs) 0;
-        }
+            .group {
+                list-style: none;
+                margin: 0;
+                padding: var(--menu-row-inset) 0;
+            }
 
-        /* Pinned above the suggestions scroll region, like the filter input.
+            /* Pinned above the suggestions scroll region, like the filter input.
            Caps at ~5 items so a long selection doesn't dominate the panel;
            items scroll within when over the cap. flex-shrink: 0 prevents the
            flex layout from collapsing it below content size — needed because
            overflow-y: auto sets implied min-height to 0. */
-        .group--selected {
-            flex-shrink: 0;
-            max-height: 200px;
-            overflow-y: auto;
-            border-bottom: var(--border-divider);
-        }
+            .group--selected {
+                flex-shrink: 0;
+                max-height: 200px;
+                overflow-y: auto;
+                border-bottom: var(--border-divider);
+            }
 
-        .group-heading {
-            margin: 0;
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
-            color: var(--color-text-muted);
-            font-size: var(--font-size-label-medium);
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
+            .group-heading {
+                margin: 0;
+                padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
+                color: var(--color-text-muted);
+                font-size: var(--font-size-overline);
+                font-weight: var(--font-weight-overline);
+                letter-spacing: var(--letter-spacing-overline);
+                text-transform: var(--text-transform-overline);
+            }
 
-        .item {
-            font-size: var(--font-size-body-medium);
-        }
+            .item {
+                font-size: var(--font-size-body-medium);
+            }
 
-        .item-row {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-inline-md);
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-            cursor: pointer;
-            user-select: none;
-        }
+            /* Geometry and hover are the shared .menu-row (control-styles.js). */
+            .item-row {
+                gap: var(--spacing-inline-md);
+                user-select: none;
+            }
 
-        @media (hover: hover) and (pointer: fine) {
-            .item-row:hover {
+            .item-row:focus-within {
+                outline: none;
                 background: var(--color-hover-overlay);
             }
-        }
 
-        .item-row:focus-within {
-            outline: none;
-            background: var(--color-hover-overlay);
-        }
-
-        .item--selected .item-row {
-            background: var(--color-control-selected-bg);
-            color: var(--color-link);
-            font-weight: 600;
-        }
-
-        .item--selected .item-row:focus-within,
-        .item--selected .item-row:hover {
-            background: var(--color-control-selected-bg-hover);
-        }
-
-        .item-checkbox {
-            flex-shrink: 0;
-            width: 16px;
-            height: 16px;
-            margin: 0;
-            accent-color: var(--primary-blue);
-            cursor: pointer;
-        }
-
-        .item-checkbox:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: 2px;
-            border-radius: 2px;
-        }
-
-        .item-label {
-            flex: 1;
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .empty-state {
-            padding: var(--spacing-inset-md);
-            text-align: center;
-            color: var(--color-text-muted);
-            font-size: var(--font-size-body-medium);
-        }
-
-        /* ── Footer ──────────────────────────────────────────────── */
-
-        .footer {
-            display: flex;
-            justify-content: center;
-            padding: var(--spacing-inset-sm);
-            border-top: var(--border-divider);
-        }
-
-        .clear-button {
-            padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: var(--border-radius-button);
-            color: var(--color-text-muted);
-            font: inherit;
-            font-size: var(--font-size-label-large);
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .clear-button:hover {
-                background: var(--color-hover-overlay);
+            /* The selected row's look is the shared .menu-row rule (tint + link
+           text, keyed on the checked box). Keyboard focus on it deepens the
+           tint like hover does, rather than greying it. */
+            .item-row:has(> :checked):focus-within {
+                background: var(--color-control-selected-bg-hover);
             }
-        }
 
-        .clear-button:focus {
-            outline: none;
-        }
+            .item-checkbox {
+                flex-shrink: 0;
+                width: 16px;
+                height: 16px;
+                margin: 0;
+                accent-color: var(--color-primary);
+                cursor: pointer;
+            }
 
-        .clear-button:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: 2px;
-        }
-    `;
+            .item-checkbox:focus-visible {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: 2px;
+                border-radius: 2px;
+            }
+
+            .item-label {
+                flex: 1;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .empty-state {
+                padding: var(--spacing-inset-md);
+                text-align: center;
+                color: var(--color-text-muted);
+                font-size: var(--font-size-body-medium);
+            }
+
+            /* ── Footer ──────────────────────────────────────────────── */
+
+            .footer {
+                display: flex;
+                justify-content: center;
+                padding: var(--spacing-inset-sm);
+                border-top: var(--border-divider);
+            }
+
+            .clear-button {
+                padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+                background: transparent;
+                border: 1px solid transparent;
+                border-radius: var(--border-radius-button);
+                color: var(--color-text-muted);
+                font: inherit;
+                font-size: var(--font-size-label-large);
+                font-weight: 500;
+                cursor: pointer;
+            }
+
+            @media (hover: hover) and (pointer: fine) {
+                .clear-button:hover {
+                    background: var(--color-hover-overlay);
+                }
+            }
+
+            .clear-button:focus {
+                outline: none;
+            }
+
+            .clear-button:focus-visible {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: 2px;
+            }
+
+            /* ── Item count ──────────────────────────────────────────────── */
+
+            /* Describes the option, not the answer: regular beside the row's
+           control-weight label. */
+            .item-count {
+                margin-left: auto;
+                flex-shrink: 0;
+                color: var(--color-text-muted);
+                font-size: var(--font-size-label-medium);
+                font-weight: var(--font-weight-regular);
+                font-variant-numeric: tabular-nums;
+            }
+
+            /* ── Host-driven loading state ───────────────────────────────────────── */
+
+            @keyframes ol-sp-spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .loading-row {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: var(--spacing-inline-sm);
+                padding: var(--spacing-inset-md);
+                color: var(--color-text-muted);
+                font-size: var(--font-size-body-medium);
+            }
+            .loading-spinner {
+                width: 14px;
+                height: 14px;
+                border: 2px solid var(--color-border-subtle);
+                border-top-color: var(--color-text-muted);
+                border-radius: 50%;
+                flex-shrink: 0;
+                animation: ol-sp-spin var(--duration-spin) linear infinite;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .loading-spinner {
+                    animation: none;
+                    opacity: 0.5;
+                }
+            }
+        `
+    ];
 
     /** Search icon for the filter input */
-    static _searchIcon = html`<svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
+    static _searchIcon = html`<ol-icon class="filter-icon" name="search"></ol-icon>`;
 
     constructor() {
         super();
         this.items = [];
         this.selected = [];
         this.label = '';
-        this.searchThreshold = 8;
+        this.searchThreshold = FILTER_THRESHOLD;
         this.placeholder = 'Filter…';
         this.unselectedHeading = '';
         this.selectedHeading = 'SELECTED';
         this.suggestionsHeading = 'SUGGESTIONS';
         this.clearLabel = 'Clear selections';
         this.noMatchesLabel = 'No matches';
+        this.loadingLabel = 'Loading…';
         this._query = '';
         this._panelId = `ol-select-popover-${++_idCounter}`;
         // Mirrors the inner ol-popover's open state via its open/close events.
@@ -326,6 +388,12 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         // re-homes the item between the selected/suggestions groups (which
         // destroys its DOM node, so its focus is lost).
         this._restoreFocusToValue = null;
+        this.loading = false;
+        // True between a host cancelling ol-select-popover-request-open and the
+        // show() that follows, so repeat clicks don't stack up new requests.
+        this._openDeferred = false;
+        // Bound once so the capture listener dedupes across reconnects.
+        this._onTriggerClickCapture = this._onTriggerClickCapture.bind(this);
     }
 
     updated(changedProperties) {
@@ -359,16 +427,11 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     render() {
         return html`
             <ol-popover
-                placement="bottom-start"
                 aria-label="${ifDefined(this.getAttribute('aria-label') || this.label || undefined)}"
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
             >
-                <slot
-                    name="trigger"
-                    slot="trigger"
-                    @keydown=${this._onTriggerKeydown}
-                ></slot>
+                <slot name="trigger" slot="trigger" @keydown=${this._onTriggerKeydown}></slot>
                 ${this._renderPanel()}
             </ol-popover>
         `;
@@ -380,9 +443,11 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         if (!this.getAttribute('role')) {
             this.setAttribute('role', 'group');
         }
-        const hasConsumerTrigger = Array.from(this.children).some(
-            el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
-        );
+        // Capture on the host so this runs before the click reaches ol-popover's
+        // own trigger handler — the only point where the open can still be
+        // intercepted (see _requestOpen).
+        this.addEventListener('click', this._onTriggerClickCapture, true);
+        const hasConsumerTrigger = Array.from(this.children).some(el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger');
         if (!hasConsumerTrigger && !this._defaultTrigger) {
             this._createDefaultTrigger();
         }
@@ -453,7 +518,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         if (!btn || !this._defaultTriggerText) return;
         const selected = this.selected || [];
         const count = selected.length;
-        const labelFor = (value) => (this.items || []).find(it => it.value === value)?.label ?? value;
+        const labelFor = value => (this.items || []).find(it => it.value === value)?.label ?? value;
 
         if (count === 0) {
             this._defaultTriggerText.textContent = this.label;
@@ -484,64 +549,76 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         const suggestionItems = items.filter(it => !selectedSet.has(it.value));
 
         const query = this._query.trim().toLowerCase();
-        const filteredSuggestions = query
-            ? suggestionItems.filter(it => (it.label || '').toLowerCase().includes(query))
-            : suggestionItems;
+        const filteredSuggestions = query ? suggestionItems.filter(it => (it.label || '').toLowerCase().includes(query)) : suggestionItems;
 
         const hasSelected = selectedItems.length > 0;
-        const suggestionsHeading = hasSelected
-            ? this.suggestionsHeading
-            : (this.unselectedHeading || this.suggestionsHeading);
+        const suggestionsHeading = hasSelected ? this.suggestionsHeading : this.unselectedHeading || this.suggestionsHeading;
 
         return html`
             <div class="panel">
-                ${showSearch ? html`
-                    <div class="filter">
-                        ${OlSelectPopover._searchIcon}
-                        <input
-                            type="search"
-                            class="filter-input"
-                            role="searchbox"
-                            aria-controls=${this._panelId}
-                            placeholder=${this.placeholder}
-                            .value=${this._query}
-                            @input=${this._onQueryInput}
-                            @keydown=${this._onListKeydown}
-                        />
-                    </div>
-                ` : nothing}
-                ${hasSelected ? html`
-                    <ul
-                        class="group group--selected"
-                        role="group"
-                        aria-label=${this.selectedHeading}
-                        @keydown=${this._onListKeydown}
-                    >
-                        <li class="group-heading" aria-hidden="true">${this.selectedHeading}</li>
-                        ${repeat(selectedItems, it => it.value, it => this._renderItem(it))}
-                    </ul>
-                ` : nothing}
+                ${
+                    showSearch
+                        ? html`
+                              <div class="filter">
+                                  ${OlSelectPopover._searchIcon}
+                                  <input
+                                      type="search"
+                                      class="filter-input"
+                                      role="searchbox"
+                                      aria-controls=${this._panelId}
+                                      placeholder=${this.placeholder}
+                                      .value=${this._query}
+                                      @input=${this._onQueryInput}
+                                      @keydown=${this._onListKeydown}
+                                  />
+                              </div>
+                          `
+                        : nothing
+                }
+                ${
+                    hasSelected
+                        ? html`
+                              <ul class="group group--selected" role="group" aria-label=${this.selectedHeading} @keydown=${this._onListKeydown}>
+                                  <li class="group-heading" aria-hidden="true">${this.selectedHeading}</li>
+                                  ${repeat(
+                                      selectedItems,
+                                      it => it.value,
+                                      it => this._renderItem(it)
+                                  )}
+                              </ul>
+                          `
+                        : nothing
+                }
                 <div class="list-area" id=${this._panelId} @keydown=${this._onListKeydown}>
-                    <ul
-                        class="group group--suggestions"
-                        role="group"
-                        aria-label=${suggestionsHeading}
-                    >
-                        <li class="group-heading" aria-hidden="true">${suggestionsHeading}</li>
-                        ${filteredSuggestions.length === 0 && query
-        ? html`<li class="empty-state">${this.noMatchesLabel}</li>`
-        : repeat(filteredSuggestions, it => it.value, it => this._renderItem(it))}
-                    </ul>
+                    ${
+                        this.loading
+                            ? html` <div class="loading-row" role="status" aria-live="polite">
+                                  <span class="loading-spinner" aria-hidden="true"></span>
+                                  <span>${this.loadingLabel}</span>
+                              </div>`
+                            : html` <ul class="group group--suggestions" role="group" aria-label=${suggestionsHeading}>
+                                  <li class="group-heading" aria-hidden="true">${suggestionsHeading}</li>
+                                  ${
+                                      filteredSuggestions.length === 0 && query
+                                          ? html`<li class="empty-state">${this.noMatchesLabel}</li>`
+                                          : repeat(
+                                                filteredSuggestions,
+                                                it => it.value,
+                                                it => this._renderItem(it)
+                                            )
+                                  }
+                              </ul>`
+                    }
                 </div>
-                ${hasSelected ? html`
-                    <div class="footer">
-                        <button
-                            type="button"
-                            class="clear-button"
-                            @click=${this._onClear}
-                        >${this.clearLabel}</button>
-                    </div>
-                ` : nothing}
+                ${
+                    hasSelected
+                        ? html`
+                              <div class="footer">
+                                  <button type="button" class="clear-button" @click=${this._onClear}>${this.clearLabel}</button>
+                              </div>
+                          `
+                        : nothing
+                }
             </div>
         `;
     }
@@ -549,16 +626,15 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     _renderItem(item) {
         const isSelected = (this.selected || []).includes(item.value);
         return html`
-            <li class="item ${isSelected ? 'item--selected' : ''}">
-                <label class="item-row">
-                    <input
-                        type="checkbox"
-                        class="item-checkbox"
-                        .checked=${isSelected}
-                        .value=${item.value}
-                        @change=${this._onItemToggle}
-                    />
+            <li class="item">
+                <label class="item-row menu-row">
+                    <input type="checkbox" class="item-checkbox" .checked=${isSelected} .value=${item.value} @change=${this._onItemToggle} />
                     <span class="item-label">${item.label}</span>
+                    ${
+                        item.count !== null && item.count !== undefined
+                            ? html`<span class="item-count" aria-hidden="true">${item.count.toLocaleString()}</span>`
+                            : nothing
+                    }
                 </label>
             </li>
         `;
@@ -576,18 +652,77 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         // Native button click handles Enter/Space — let it bubble to ol-popover's
         // own click toggle. We only handle ArrowDown, which opens the popover and
         // moves focus into the list (vs. plain click, which focuses the filter).
-        if (e.key === 'ArrowDown' && !this._isOpen) {
+        if (e.key === 'ArrowDown' && !this._panelOpen) {
             e.preventDefault();
-            const popover = this.shadowRoot?.querySelector('ol-popover');
-            if (!popover) return;
-            this._pendingFocusFirst = true;
-            popover.open = true;
+            if (!this._requestOpen({ focusFirst: true })) return;
+            this.show({ focusFirst: true });
         }
+    }
+
+    // Whether the panel is actually open. `_isOpen` only tracks ol-popover's
+    // open/close events, and a programmatic `open = false` emits no close event
+    // — so anything gating an *open* has to read the panel itself.
+    get _panelOpen() {
+        return !!this.shadowRoot?.querySelector('ol-popover')?.open;
+    }
+
+    // Gate the trigger click on _requestOpen. Runs in the capture phase on the
+    // host, so stopping it here keeps ol-popover from opening the panel.
+    _onTriggerClickCapture(e) {
+        if (this._panelOpen || this._openDeferred) return;
+        if (!e.target.closest?.('[slot="trigger"]')) return;
+        if (this._requestOpen()) return;
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    /**
+     * Ask permission to open. A listener that calls preventDefault() on
+     * `ol-select-popover-request-open` takes ownership: the panel stays shut,
+     * and it's the listener's job to call show() once its items are ready.
+     * Lets a host that loads items on demand open the panel once, at its final
+     * size, instead of resizing and re-sorting under the pointer.
+     *
+     * @param {Object} [opts]
+     * @param {boolean} [opts.focusFirst] - Focus the list rather than the filter.
+     * @returns {boolean} True when the caller may open the panel itself.
+     */
+    _requestOpen({ focusFirst = false } = {}) {
+        const evt = new CustomEvent('ol-select-popover-request-open', {
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+            detail: { focusFirst }
+        });
+        this.dispatchEvent(evt);
+        if (!evt.defaultPrevented) return true;
+
+        this._openDeferred = true;
+        this._pendingFocusFirst = focusFirst;
+        return false;
+    }
+
+    /**
+     * Open the panel. Public counterpart to a deferred
+     * `ol-select-popover-request-open` — safe to call unconditionally.
+     *
+     * @param {Object} [opts]
+     * @param {boolean} [opts.focusFirst] - Focus the list rather than the filter.
+     * @returns {void}
+     */
+    show({ focusFirst = false } = {}) {
+        this._openDeferred = false;
+        if (focusFirst) this._pendingFocusFirst = true;
+        const popover = this.shadowRoot?.querySelector('ol-popover');
+        if (popover) popover.open = true;
     }
 
     _onPopoverOpen() {
         this._isOpen = true;
         this._query = '';
+        // However it ended up open — show(), or a second click falling through
+        // while a deferred open was still pending — the deferral is over.
+        this._openDeferred = false;
 
         if (this._pendingFocusFirst) {
             this._pendingFocusFirst = false;
@@ -614,10 +749,9 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         const value = e.target.value;
         const checked = e.target.checked;
         const current = new Set(this.selected || []);
-        if (checked) current.add(value); else current.delete(value);
-        const nextSelected = (this.items || [])
-            .map(it => it.value)
-            .filter(v => current.has(v));
+        if (checked) current.add(value);
+        else current.delete(value);
+        const nextSelected = (this.items || []).map(it => it.value).filter(v => current.has(v));
 
         // The toggled item is about to move between the "selected" and
         // "suggestions" groups, which destroys its checkbox DOM node — focus
@@ -634,9 +768,12 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     _onClear() {
         if ((this.selected || []).length === 0) return;
         this._emitChange([], null, null);
-        this.dispatchEvent(new CustomEvent('ol-select-popover-clear', {
-            bubbles: true, composed: true,
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-select-popover-clear', {
+                bubbles: true,
+                composed: true
+            })
+        );
     }
 
     _onListKeydown(e) {
@@ -685,10 +822,13 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     _emitChange(nextSelected, added, removed) {
         this.selected = nextSelected;
         this._syncFormValue();
-        this.dispatchEvent(new CustomEvent('ol-select-popover-change', {
-            bubbles: true, composed: true,
-            detail: { selected: nextSelected, added, removed },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-select-popover-change', {
+                bubbles: true,
+                composed: true,
+                detail: { selected: nextSelected, added, removed }
+            })
+        );
     }
 }
 

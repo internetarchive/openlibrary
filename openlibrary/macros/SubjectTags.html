@@ -8,7 +8,10 @@ $def render_subjects(label, subjects, track_value, prefix="", edit_mode=False):
         $if edit_mode:
           <button class="edit-subject-btn"
                   data-work-olid="$work.key.split('/')[-1]"
-                  title="$_('Manage Subjects')">✏️</button>
+                  title="$_('Manage Subjects')"
+                  aria-label="$_('Manage Subjects')">
+            $:macros.icon("pencil", size="sm")
+          </button>
         $for subject in subjects:
           <ol-chip size="small" href="$subject_name_to_key(subject, prefix=prefix)" data-ol-link-track="$track_value">$subject</ol-chip>
       </span>

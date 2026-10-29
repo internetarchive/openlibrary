@@ -156,6 +156,35 @@ class TestParseFile:
         category = _parse_file(write(tmp_path, "c.css", "/**\n * 2. Semantic tokens\n * ---\n */\n:root { }\n/* Text */\n:root { --color-text: red; }\n"))
         assert [(group.title, len(group.tokens)) for group in category.groups] == [("2. Semantic tokens", 0), ("Text", 1)]
 
+    def test_a_responsive_override_does_not_redeclare_its_token(self, tmp_path):
+        """One token, one row: the phone value is the same token, not a second one.
+
+        Its introducing comment goes with it, or it would head a group of nothing.
+        """
+        body = ":root { --size: 57px; }\n/* Steps down on phones. */\n@media (max-width: 768px) {\n  :root { --size: 45px; }\n}\n"
+        category = _parse_file(write(tmp_path, "c.css", body))
+        assert [(group.title, [token.name for token in group.tokens]) for group in category.groups] == [("", ["--size"])]
+
+    def test_a_brace_inside_a_comment_does_not_end_the_masked_block(self, tmp_path):
+        """Braces are counted off a comment-stripped copy, so prose can't close the block early.
+
+        breakpoints.css documents `@media (min-width: 768px) { ... }` in a comment;
+        counting that brace would swallow the real :root below and empty the category.
+        """
+        body = "@media (max-width: 768px) {\n  /* --color-{a,b} */\n  :root { --hidden: 1px; }\n}\n:root { --kept: 2px; }\n"
+        category = _parse_file(write(tmp_path, "c.css", body))
+        assert [token.name for group in category.groups for token in group.tokens] == ["--kept"]
+
+    def test_a_stray_comment_close_above_a_block_does_not_raise(self, tmp_path):
+        """A `*/` closing no comment stops the walk-back instead of killing the page.
+
+        load_token_categories() only catches OSError, so a KeyError here would 500
+        /developers/design rather than cost one lead-in comment.
+        """
+        body = "/* a */ */\n@media (max-width: 768px) {\n  :root { --hidden: 1px; }\n}\n:root { --kept: 2px; }\n"
+        category = _parse_file(write(tmp_path, "c.css", body))
+        assert [token.name for group in category.groups for token in group.tokens] == ["--kept"]
+
 
 class TestRamps:
     def test_a_numeric_color_run_is_a_ramp_and_a_stray_sibling_stays_loose(self, tmp_path):
@@ -247,6 +276,20 @@ class TestTokenProperties:
         tokens = _parse_file(write(tmp_path, "c.css", body)).groups[0].tokens
         assert [token.reference for token in tokens] == ["--blue-500", "", ""]
 
+    @pytest.mark.parametrize(
+        ("name", "css_property"),
+        [
+            ("--font-weight-heading", "font-weight"),
+            ("--font-size-label-medium", "font-size"),
+            ("--letter-spacing-overline", "letter-spacing"),
+            ("--line-height-snug", "line-height"),
+            ("--color-text", ""),
+        ],
+    )
+    def test_css_property_is_read_off_the_name(self, tmp_path, name, css_property):
+        category = _parse_file(write(tmp_path, "c.css", f":root {{ {name}: 1; }}"))
+        assert category.groups[0].tokens[0].css_property == css_property
+
 
 class TestDropInternal:
     body = """
@@ -287,7 +330,7 @@ class TestRealTokenFiles:
 
     def test_every_category_parses_and_carries_tokens(self):
         categories = load_token_categories()
-        assert {category.id for category in categories} >= {"colors", "spacing", "font-families", "z-index"}
+        assert {category.id for category in categories} >= {"colors", "spacing", "typography", "z-index"}
         for category in categories:
             assert any(group.tokens for group in category.groups), f"{category.id} parsed no tokens"
 
@@ -335,22 +378,3 @@ class TestRealTokenFiles:
                         duplicates.add(token.name)
                     seen.add(token.name)
         assert not duplicates, f"declared more than once: {sorted(duplicates)}"
-
-
-class TestCoverageExclusions:
-    """Both sets are hand-maintained filenames, the one un-derived thing on a
-    page built to be derived, so a rename leaves a dead entry excluding nothing."""
-
-    def test_every_excluded_css_file_still_exists(self):
-        from openlibrary.plugins.openlibrary.design import CSS_COMPONENTS_DIR, LEGACY_CSS, NOT_COMPONENTS
-
-        on_disk = {path.stem for path in CSS_COMPONENTS_DIR.glob("*.css")}
-        stale = (NOT_COMPONENTS | LEGACY_CSS) - on_disk
-        assert not stale, f"excluded from the coverage report but no longer on disk: {sorted(stale)}"
-
-    def test_every_documented_css_file_still_exists(self):
-        from openlibrary.plugins.openlibrary.design import COMPONENTS, CSS_COMPONENTS_DIR
-
-        on_disk = {path.stem for path in CSS_COMPONENTS_DIR.glob("*.css")}
-        documented = {name for component in COMPONENTS for name in component.css_files}
-        assert not (missing := documented - on_disk), f"registry documents missing stylesheets: {sorted(missing)}"

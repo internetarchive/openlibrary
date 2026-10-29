@@ -1,4 +1,5 @@
 import json
+import logging
 import urllib.parse
 from datetime import datetime
 from types import MappingProxyType
@@ -13,26 +14,26 @@ from infogami.utils.view import public, render
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,
+    get_internet_archive_id,
 )
 from openlibrary.core.booknotes import Booknotes
-from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.bookshelves import Bookshelves, ReadingLogSort
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.cache import memcache_memoize
 from openlibrary.core.follows import PubSub
-from openlibrary.core.lending import (
-    add_availability,
-    get_loans_of_user,
-)
+from openlibrary.core.jinja import render_jinja_template
+from openlibrary.core.lending import add_availability, get_loan_history_data, get_loans_of_user
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
+from openlibrary.core.reading_state import ReadingState, get_reading_state_sync
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary.home import caching_prethread
 from openlibrary.plugins.upstream.utils import is_safe_redirect
+from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import current_year
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import caching_prethread, site
 
 if TYPE_CHECKING:
     from web.template import TemplateResult
@@ -40,7 +41,20 @@ if TYPE_CHECKING:
     from openlibrary.core.lists.model import List
     from openlibrary.plugins.upstream.models import Work
 
+logger = logging.getLogger("openlibrary.mybooks")
+
 RESULTS_PER_PAGE: Final = 25
+
+READING_LOG_SORTS: MappingProxyType[str, ReadingLogSort] = MappingProxyType(
+    {
+        "desc": "created desc",
+        "asc": "created asc",
+        "title": "title",
+        "old": "old",
+        "rating": "rating",
+        "want_to_read": "want_to_read",
+    }
+)
 
 
 class avatar(delegate.page):
@@ -73,14 +87,89 @@ class mybooks_home(delegate.page):
 
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
-            loans = web.Storage({"docs": [], "total_results": len(myloans)})
-            # TODO: should do in one web.ctx.get_many fetch
+
+            # Dictionary mapping dedup_key -> (book, timestamp, is_active)
+            merged_books: dict[str, tuple[Any, float, bool]] = {}
+
+            # Resolve books independently of loans: batch-fetch the unique loan
+            # book keys, then keep fetching /type/redirect targets in batches
+            # (up to 5 hops). Nothing is fetched inside the loan loop below.
+            book_keys = list(dict.fromkeys(loan["book"] for loan in myloans if loan.get("book")))
+            fetched_keys = set(book_keys)
+            book_map: dict[str, Any] = {}
+            if book_keys:
+                book_map.update({b.key: b for b in site.get().get_many(book_keys)})
+
+            for _ in range(5):
+                redirect_locations = {
+                    book.location
+                    for book in book_map.values()
+                    if getattr(getattr(book, "type", None), "key", None) == "/type/redirect" and book.location not in fetched_keys
+                }
+                if not redirect_locations:
+                    break
+                fetched_keys.update(redirect_locations)
+                book_map.update({b.key: b for b in site.get().get_many(list(redirect_locations))})
+
+            # Process loans in one loop, following redirect chains through book_map.
             for loan in myloans:
-                # Book will be None if no OL edition exists for the book
-                if book := site.get().get(loan["book"]):
+                book_key = loan.get("book")
+                if not book_key:
+                    continue
+                book = book_map.get(book_key)
+                if not book:
+                    continue
+                for _ in range(5):
+                    if book and getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
+                        book = book_map.get(book.location)
+                    else:
+                        break
+                if book:
                     book.loan = loan
-                    loans.docs.append(book)
-            docs["loans"] = loans
+                    works = getattr(book, "works", None)
+                    work_key = works[0].key if works and len(works) > 0 else book.key
+                    loaned_at = loan.get("loaned_at") or 0.0
+                    merged_books[work_key] = (book, float(loaned_at), True)
+
+            # Ownership gate, not just "is logged in": mb.username comes from the
+            # URL, while mb.me is the session. get_loan_history_data() resolves S3
+            # credentials for whichever username it is handed, so this must run
+            # only on the patron's own page. The carousel is already rendered for
+            # owners only, but that guard lives in the template -- keep the fetch
+            # itself gated too rather than relying on the view layer.
+            history_books = []
+            if mb.is_my_page:
+                try:
+                    history_data = get_loan_history_data(mb.username, page=1)
+                    history_books = [doc for doc in history_data.get("docs", []) if not doc.get("ia_only")]
+                except Exception:
+                    # Deliberately non-fatal: My Books must still render its
+                    # active loans and every other shelf if IA is unreachable.
+                    # But log it -- swallowing this silently makes a missing
+                    # history section indistinguishable from an empty one, with
+                    # nothing in the logs to tell them apart.
+                    logger.exception("Failed to fetch loan history for %s; rendering without it", mb.username)
+
+            for book in history_books:
+                works = getattr(book, "works", None)
+                work_key = works[0].key if works and len(works) > 0 else book.key
+                updatedate = book.get("last_loan_date") or ""
+                try:
+                    timestamp = datetime.fromisoformat(updatedate.replace(" ", "T")).timestamp()
+                except ValueError:
+                    timestamp = 0.0
+
+                # Add history record only if no active loan exists for this book
+                if work_key not in merged_books:
+                    merged_books[work_key] = (book, timestamp, False)
+
+            # Sort: active loans first (is_active=True > False), then by timestamp desc.
+            # This ensures a currently-borrowed book always ranks above a recently-returned one.
+            total_results = len(merged_books)
+            sorted_entries = sorted(merged_books.values(), key=lambda x: (x[2], x[1]), reverse=True)
+            final_books = [entry[0] for entry in sorted_entries[:18]]
+
+            docs["loans"] = web.Storage({"docs": final_books, "total_results": total_results})
 
         if mb.me or mb.is_public:
             want_to_read = mb.readlog.get_works("want-to-read", limit=6)
@@ -111,6 +200,7 @@ class mybooks_home(delegate.page):
             counts=mb.counts,
             lists=mb.lists,
             component_times=mb.component_times,
+            current_goal=mb.current_goal,
         )
 
 
@@ -146,8 +236,9 @@ class mybooks_feed(delegate.page):
     def GET(self, username):
         mb = MyBooksTemplate(username, key="feed")
         if mb.is_my_page:
-            docs = PubSub.get_feed(username)
+            docs = PubSub.get_feed_sync(username)
             doc_count = len(docs)
+            meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(mb.me.key)
             template = render["account/reading_log"](
                 docs,
                 mb.key,
@@ -156,6 +247,7 @@ class mybooks_feed(delegate.page):
                 mb.is_my_page,
                 current_page=1,
                 user=mb.me,
+                meta_photo_url=meta_photo_url,
             )
             return mb.render(header_title=_("My Feed"), template=template)
         raise web.seeother(mb.user.key)
@@ -278,15 +370,21 @@ class mybooks_readinglog(delegate.page):
         if i.mode == "ebooks":
             fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
 
+        sort_order = i.sort
+        if sort_order == "rating" and not mb.is_my_page:
+            sort_order = "desc"
+
         logged_book_data: LoggedBooksData = mb.readlog.get_works(
             key=mb.key,  # type: ignore
             page=i.page,
             sort="created",
-            sort_order=i.sort,
+            sort_order=sort_order,
             q=i.q,
             year=year,
             fq=fq,
         )
+        if logged_book_data.sort != READING_LOG_SORTS.get(sort_order):
+            sort_order = "desc"
         docs = add_availability(logged_book_data.docs, mode="openlibrary_work")
         doc_count = logged_book_data.total_results
 
@@ -299,6 +397,7 @@ class mybooks_readinglog(delegate.page):
             mb.yearly_reads = BookshelvesEvents.get_user_yearly_read_counts(mb.username)
 
         ratings = logged_book_data.ratings
+        meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(mb.user.key)
         return render["account/reading_log"](
             docs,
             mb.key,
@@ -306,7 +405,7 @@ class mybooks_readinglog(delegate.page):
             doc_count,
             mb.is_my_page,
             i.page,
-            sort_order=i.sort,
+            sort_order=sort_order,
             user=mb.user,
             include_ratings=include_ratings,
             q=i.q,
@@ -314,16 +413,8 @@ class mybooks_readinglog(delegate.page):
             results_per_page=i.results_per_page,
             ratings=ratings,
             checkin_year=year,
+            meta_photo_url=meta_photo_url,
         )
-
-
-@public
-def get_patrons_work_read_status(username: str, work_key: str) -> int | None:
-    if not username:
-        return None
-    work_id = extract_numeric_id_from_olid(work_key)
-    status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
-    return status_id
 
 
 @public
@@ -376,13 +467,17 @@ class MyBooksTemplate:
         self.selected_year = None
 
         if (self.me and self.is_my_page) or self.is_public:
-            self.counts["followers"] = PubSub.count_followers(self.username)
-            self.counts["following"] = PubSub.count_following(self.username)
+            self.counts["followers"] = PubSub.count_followers_sync(self.username)
+            self.counts["following"] = PubSub.count_following_sync(self.username)
 
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
 
         self.component_times: dict = {}
+
+        # Precompute reading goal once so both mybooks.html (mobile) and sidebar.html (desktop)
+        # can render without blocking I/O in templates; avoids duplicate DB queries per request.
+        self.current_goal = get_reading_goals(year=current_year()) if self.is_my_page else None
 
     def render_sidebar(self) -> TemplateResult:
         return render["account/sidebar"](
@@ -393,6 +488,7 @@ class MyBooksTemplate:
             self.counts,
             self.lists,
             self.component_times,
+            self.current_goal,
         )
 
     def render(self, template: TemplateResult, header_title: str, page: List | None = None) -> TemplateResult:
@@ -473,7 +569,7 @@ class ReadingLog:
 
     @property
     def reading_log_counts(self) -> dict[str, int]:
-        counts = Bookshelves.count_total_books_logged_by_user_per_shelf(self.user.get_username()) if self.user.get_username() else {}
+        counts = Bookshelves.count_total_books_logged_by_user_per_shelf_sync(self.user.get_username()) if self.user.get_username() else {}
         return {
             "want-to-read": counts.get(Bookshelves.PRESET_BOOKSHELVES["Want to Read"], 0),
             "currently-reading": counts.get(Bookshelves.PRESET_BOOKSHELVES["Currently Reading"], 0),
@@ -481,11 +577,11 @@ class ReadingLog:
             "stopped-reading": counts.get(Bookshelves.PRESET_BOOKSHELVES["Stopped Reading"], 0),
         }
 
-    def count_shelf(self, key: READING_LOG_KEYS) -> int:
+    async def count_shelf(self, key: READING_LOG_KEYS) -> int:
         username = self.user.get_username()
         assert username
         shelf_id = Bookshelves.PRESET_BOOKSHELVES[self.READING_LOG_KEY_TO_SHELF[key]]
-        return Bookshelves.count_user_books_on_shelf(username, shelf_id)
+        return await Bookshelves.count_user_books_on_shelf(username, shelf_id)
 
     async def get_works_async(
         self,
@@ -506,20 +602,12 @@ class ReadingLog:
         """
         shelf = self.READING_LOG_KEY_TO_SHELF[key]
 
-        # Mypy is unhappy about the sort argument not being a literal string.
-        # Although this doesn't satisfy Mypy, at least make sure sort is either
-        # "created asc" or "created desc"
-        if sort + " " + sort_order == "created asc":
-            sort_literal = "created_asc"
-        else:
-            sort_literal = "created desc"
-
         logged_books: LoggedBooksData = await Bookshelves.get_users_logged_books(
             self.user.get_username(),
             bookshelf_id=Bookshelves.PRESET_BOOKSHELVES[shelf],
             page=page,
             limit=limit,
-            sort=sort_literal,  # type: ignore[arg-type]
+            sort=READING_LOG_SORTS.get(sort_order, "created desc"),
             checkin_year=year,
             q=q,
             fq=fq,
@@ -530,17 +618,122 @@ class ReadingLog:
     get_works = async_bridge.wrap(get_works_async)
 
 
+def work_key_of(doc) -> str | None:
+    """The work behind a doc: a work, an edition with its work, or an edition a carousel handed a `work_key`; None for anything else (an author, a subject)."""
+    if not hasattr(doc, "get"):
+        return getattr(doc, "key", None) if str(getattr(doc, "key", "")).startswith("/works/") else None
+    if work_key := doc.get("work_key"):
+        return work_key
+    key = doc.get("key")
+    if not key:
+        return None
+    if key.startswith("/works/"):
+        return key
+    if key.startswith("/books/") and (works := doc.get("works")):
+        work = works[0]
+        return work.key if hasattr(work, "key") else work.get("key")
+    return None
+
+
+def edition_key_of(doc) -> str | None:
+    """The edition a shelf change records: the doc itself when it is one, the edition a Solr result selected, or the one the reader logged."""
+    if not hasattr(doc, "get"):
+        return None
+    key = doc.get("key") or ""
+    if key.startswith("/books/"):
+        return key
+    # Solr hands editions as a list, or as a dict holding `docs`. On a work
+    # Thing it is a lazy backreference query, which is skipped.
+    editions = doc.get("editions") or []
+    if isinstance(editions, dict):
+        editions = editions.get("docs") or []
+    if isinstance(editions, list | tuple) and editions:
+        return editions[0].get("key")
+    if logged := doc.get("logged_edition"):
+        return logged
+    if olids := doc.get("edition_key"):
+        return f"/books/{olids[0]}"
+    return None
+
+
+def list_seed_of(doc) -> str | None:
+    """A seed with no work to shelve but a list to join: an author, or an edition on its own."""
+    key = doc.get("key") if hasattr(doc, "get") else None
+    return key if key and key.startswith(("/authors/", "/books/")) else None
+
+
+def _shelf_title_of(doc) -> str:
+    """The work's title when an edition carries its work, else the doc's own title or name."""
+    key = doc.get("key") or ""
+    # An author's `title` is an honorific ("OBE"), and their `works` a lazy query.
+    if key.startswith("/authors/"):
+        return doc.get("name") or ""
+    if key.startswith("/books/") and (works := doc.get("works")) and (title := works[0].get("title")):
+        return title
+    return doc.get("title") or ""
+
+
 @public
-def add_read_statuses(username, works):
-    work_ids = [extract_numeric_id_from_olid(work.key.split("/")[-1]) for work in works]
-    results = Bookshelves.get_users_read_status_of_works(username, work_ids)
-    results_map = {}
-    for result in results:
-        results_map[f"OL{result['work_id']}W"] = result["bookshelf_id"]
-    for work in works:
-        work_olid = work.key.split("/")[-1]
-        work["readinglog"] = results_map.get(work_olid)
-    return works
+def shelf_ids() -> dict[str, int]:
+    """The preset shelves' ids keyed by URL slug: `{"want-to-read": 1, "currently-reading": 2, ...}`."""
+    return {name.replace("_", "-"): shelf_id for name, shelf_id in Bookshelves.PRESET_BOOKSHELVES_JSON.items()}
+
+
+@public
+def shelf_button_for(
+    doc,
+    variant: str = "split",
+    reading_states: dict[str, ReadingState] | None = None,
+    async_load: bool = False,
+    size: str | None = None,
+    slot: str | None = None,
+) -> str:
+    """The `<ol-shelf-button>` for a doc, Solr or Infogami: a work or an edition to shelve, or an
+    author or orphaned edition that can only join a list (`lists-only`). Empty for anything else.
+
+    `reading_states` is the page's `get_reading_states()`; left out, the button looks its own up.
+    `async_load` renders the button without the reader's key and state, for HTML that is not
+    per-reader (carousel cards, which are cached or fetched lazily); book-state.js fills both in.
+    `size="large"` is the `icon` badge for a book page's big cover.
+    `slot` places the button in a host's named slot, e.g. `<ol-book-cover>`'s "overlay".
+    """
+    work_key = work_key_of(doc)
+    seed_key = work_key or list_seed_of(doc)
+    if not seed_key:
+        return ""
+    user = None if async_load else accounts.get_current_user()
+    user_key = user.key if user else ""
+    state: ReadingState | dict[str, Any] = {}
+    if work_key and not async_load:
+        states = reading_states if reading_states is not None else get_reading_states(user, [doc])
+        state = states.get(work_key) or {}
+    return render_jinja_template(
+        "my_books/shelf_button.html.jinja",
+        variant=variant,
+        size=size,
+        work_key=seed_key,
+        title=_shelf_title_of(doc),
+        edition_key=edition_key_of(doc) if work_key else None,
+        user_key=user_key,
+        state=state,
+        hydrated=not async_load,
+        lists_only=not work_key,
+        slot=slot,
+    )
+
+
+@public
+def get_reading_states(user: User | None, docs) -> dict[str, ReadingState]:
+    """`user`'s shelf, rating and last finish date for the works in `docs`, keyed by work key.
+
+    Empty when `user` is None (signed out). Call once per page of rows and pass the result down.
+    """
+    if not user:
+        return {}
+    keys = {key for doc in docs if (key := work_key_of(doc))}
+    by_id = {int(extract_numeric_id_from_olid(key)): key for key in keys}
+    states = get_reading_state_sync(user.key.split("/")[-1], list(by_id))
+    return {by_id[work_id]: state for work_id, state in states.items()}
 
 
 class PatronBooknotes:
@@ -551,14 +744,27 @@ class PatronBooknotes:
         self.username = user.key.split("/")[-1]
 
     def get_notes(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
-        notes = Booknotes.get_notes_grouped_by_work(self.username, limit=limit, page=page)
+        notes = [web.storage(entry) for entry in Booknotes.get_notes_grouped_by_work_sync(self.username, limit=limit, page=page)]
+
+        work_keys = [f"/works/OL{entry['work_id']}W" for entry in notes]
+        works = {w.key: w for w in site.get().get_many(work_keys)} if work_keys else {}
 
         for entry in notes:
-            entry["work_key"] = f"/works/OL{entry['work_id']}W"
-            entry["work"] = self._get_work(entry["work_key"])
-            entry["work_details"] = self._get_work_details(entry["work"])
             entry["notes"] = {i["edition_id"]: i["notes"] for i in entry["notes"]}
-            entry["editions"] = {k: site.get().get(f"/books/OL{k}M") for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
+
+        all_edition_keys = {
+            f"/books/OL{edition_id}M": edition_id for entry in notes for edition_id in entry["notes"] if edition_id != Booknotes.NULL_EDITION_VALUE
+        }
+        edition_keys = list(all_edition_keys)
+        editions = {edition.key: edition for edition in site.get().get_many(edition_keys)} if edition_keys else {}
+
+        for work_key, entry in zip(work_keys, notes):
+            entry["work_key"] = work_key
+            entry["work"] = works.get(work_key)
+            entry["work_details"] = self._get_work_details(entry["work"])
+            entry["editions"] = {
+                edition_id: editions.get(f"/books/OL{edition_id}M") for edition_id in entry["notes"] if edition_id != Booknotes.NULL_EDITION_VALUE
+            }
         return notes
 
     def get_observations(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
@@ -590,7 +796,7 @@ class PatronBooknotes:
     @classmethod
     def get_counts(cls, username: str) -> dict[str, int]:
         return {
-            "notes": Booknotes.count_works_with_notes_by_user(username),
+            "notes": Booknotes.count_works_with_notes_by_user_sync(username),
             "observations": Observations.count_distinct_observations(username),
         }
 
@@ -603,7 +809,7 @@ class ActivityFeed:
         logged books.  Otherwise, the feed will contain events from the patron's
         `PubSub.get_feed` results.
         """
-        following = PubSub.is_following(username)
+        following = PubSub.is_following_sync(username)
         if following:
             feed = cls.get_cached_pub_sub_feed(username)
         else:
@@ -613,7 +819,7 @@ class ActivityFeed:
 
     @classmethod
     def get_pub_sub_feed(cls, username):
-        feed = PubSub.get_feed(username, limit=3)
+        feed = PubSub.get_feed_sync(username, limit=3)
         return feed
 
     @classmethod

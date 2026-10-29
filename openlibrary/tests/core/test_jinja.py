@@ -1,18 +1,28 @@
 """Tests for openlibrary.core.jinja — Jinja2 environment setup."""
 
+import builtins
+import io
+import json
 import pathlib
 import textwrap
+from typing import Any
 
 import jinja2
 import jinja2.exceptions
 import pytest
+import web
+from bs4 import BeautifulSoup
 from lxml import html as lxml_html
 from lxml.etree import ParseError as LxmlParseError
 from markupsafe import escape as _markupsafe_escape
 
+from infogami.utils.context import context as infogami_context
 from openlibrary import i18n as i18n_module
+from openlibrary.core import jinja as jinja_module
+from openlibrary.core import shell as shell_module
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.i18n import load_translations
+from openlibrary.plugins.upstream.code import static_url as upstream_static_url
 from openlibrary.utils.request_context import req_context
 
 MACROS_DIR = pathlib.Path(__file__).resolve().parents[3] / "openlibrary" / "macros"
@@ -33,6 +43,17 @@ class RenderableUndefined(jinja2.Undefined):
     """
 
     __eq__ = __ne__ = __lt__ = __gt__ = __le__ = __ge__ = lambda s, o: s
+
+    def __getattr__(self, name: str) -> RenderableUndefined:
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError(name)
+        return RenderableUndefined()
+
+    def __getitem__(self, key: object) -> RenderableUndefined:
+        return RenderableUndefined()
+
+    def __call__(self, *args: Any, **kwargs: Any) -> RenderableUndefined:
+        return RenderableUndefined()
 
 
 def _create_validation_env() -> jinja2.Environment:
@@ -65,16 +86,20 @@ def _create_validation_env() -> jinja2.Environment:
     env.install_gettext_callables(_gettext, _ngettext, newstyle=True)
     env.policies["ext.i18n.trimmed"] = True
 
-    try:
-        from infogami.utils.view import render_template as _render_templetor  # noqa: PLC0415
+    # Structural validation renders with ``RenderableUndefined`` data, so
+    # ``tojson`` (used for the search trigger's ``data-i18n`` payloads) must
+    # coerce unknown values instead of raising. ``str(undefined)`` is ``""``.
+    env.policies["json.dumps_function"] = lambda obj, **kwargs: json.dumps(obj, default=str, **kwargs)
 
-        env.globals["render_templetor_template"] = _render_templetor
-    except ImportError:
+    # Stubbed: this env only validates template structure, without infogami's
+    # runtime template disk-loading or template globals.
+    # The site shell's remaining Templetor subtemplates are stubbed out here.
+    def _stub_render_templetor(name, *a, **kw):
+        return ""
 
-        def _stub(*a, **kw):
-            return ""
+    env.globals["render_templetor_template"] = _stub_render_templetor
 
-        env.globals["render_templetor_template"] = _stub
+    env.globals["icon"] = lambda *a, **kw: ""
 
     # The TestingEnvironment macro renders a Vue component via
     # render_component(); this env has no component build output, so stub it
@@ -83,6 +108,10 @@ def _create_validation_env() -> jinja2.Environment:
         return ""
 
     env.globals["render_component"] = _stub_render_component
+
+    # static_url is a true Jinja global (like icon) — used by many templates.
+    # For validation, stub it so it does not require built files on disk.
+    env.globals["static_url"] = lambda path: f"/static/{path}"
 
     env.filters["force_escape"] = lambda s: _markupsafe_escape(str(s).strip())
 
@@ -105,16 +134,97 @@ def assert_valid_html(html_string: str) -> None:
     try:
         lxml_html.fromstring(html_string, parser=parser)
     except LxmlParseError as e:
+        # libxml2's HTML parser is HTML4-based and flags HTML5 semantic elements
+        # (header, footer, nav, aside, main, section, details, summary) as invalid tags.
+        msg = str(e)
+        if "Tag " in msg and " invalid" in msg:
+            return
         pytest.fail(f"Rendered HTML contains orphan/mismatched tags: {e}")
+
+
+def test_site_layout_template_uses_jinja_template(monkeypatch):
+    """The ``site`` pile entry should delegate to the Jinja site wrapper."""
+    rendered = "<html>"
+
+    def mock_render(template_name, **kwargs):
+        assert template_name == "shell/base.html.jinja"
+        assert kwargs["page"] == "page"
+        # Layout context is namespaced under `layout` to avoid collisions with page body
+        assert "layout" in kwargs
+        layout = kwargs["layout"]
+        assert isinstance(layout, shell_module.LayoutContext)
+        assert layout.show_ol_shell in (True, False)
+        assert isinstance(layout.is_debug, bool)
+        assert isinstance(layout.is_bot, bool)
+        assert isinstance(layout.total_time_ms, float)
+        assert isinstance(layout.supported_languages, list)
+        assert isinstance(layout.git_rev_hash, str)
+        assert isinstance(layout.lang, str)
+        assert isinstance(layout.stats_summary, dict)
+        assert isinstance(layout.stats_details, list)
+        assert isinstance(layout.body_classes, list)
+        assert isinstance(layout.body_attrs, list)
+        assert isinstance(layout.body_class, str)
+        assert isinstance(layout.active_ui_lang, dict)
+        assert isinstance(layout.donate_script_url, str)
+        assert layout.flash_messages == [] or isinstance(layout.flash_messages, list)
+        assert layout.announcement_banner is None or hasattr(layout.announcement_banner, "content")
+        assert layout.header.user is None or hasattr(layout.header.user, "key")
+        assert isinstance(layout.ol_env, str)
+        assert isinstance(layout.header.page_status_url, str)
+        assert isinstance(layout.header.is_recognized_bot, bool)
+        assert isinstance(layout.header.is_print_disabled, bool)
+        assert isinstance(layout.header.homepath, str)
+        assert isinstance(layout.header.my_books_props, dict)
+        assert isinstance(layout.header.browse_links, list)
+        assert isinstance(layout.header.search_modal, shell_module.SearchModalContext)
+        assert isinstance(layout.header, shell_module.HeaderContext)
+        assert isinstance(layout.head, shell_module.HeadContext)
+        # No flat layout keys should leak into root context
+        for key in (
+            "show_ol_shell",
+            "is_debug",
+            "is_bot",
+            "total_time_ms",
+            "supported_languages",
+            "git_rev_hash",
+            "lang",
+            "stats_summary",
+            "stats_details",
+            "body_classes",
+            "body_attrs",
+            "donate_script_url",
+            "flash_messages",
+            "announcement_banner",
+            "user",
+            "ol_env",
+            "page_status_url",
+            "is_recognized_bot",
+            "is_print_disabled",
+            "homepath",
+            "my_books_props",
+            "browse_links",
+            "header",
+            "head",
+        ):
+            assert key not in kwargs
+        return rendered
+
+    monkeypatch.setattr(jinja_module, "render_jinja_template", mock_render)
+
+    site_template = shell_module.SiteLayoutTemplate()
+    assert site_template.filename == "openlibrary/templates/shell/base.html.jinja"
+    assert site_template("page") == rendered
 
 
 class TestGetJinjaEnv:
     """Tests for get_jinja_env()."""
 
-    def test_returns_jinja2_environment(self):
-        """Should return a Jinja2 Environment instance."""
+    def test_returns_configured_environment(self):
+        """Should return a Jinja2 Environment with loaders for macros and templates."""
         env = get_jinja_env()
         assert isinstance(env, jinja2.Environment)
+        assert isinstance(env.loader, jinja2.FileSystemLoader)
 
     def test_is_cached(self):
         """Should return the same object on repeated calls (functools.cache)."""
@@ -132,11 +242,60 @@ class TestGetJinjaEnv:
         with pytest.raises(jinja2.exceptions.UndefinedError):
             tpl.render()
 
-    def test_has_gettext_global(self):
+    def test_has_gettext_globals(self):
         """Should have the _ (gettext) function in globals."""
         env = get_jinja_env()
         assert "_" in env.globals
         assert callable(env.globals["_"])
+
+    def test_has_icon_global(self):
+        """Should expose the icon macro as a global, since Jinja has no
+        ``macros`` namespace."""
+        env = get_jinja_env()
+        assert "icon" in env.globals
+        assert callable(env.globals["icon"])
+
+    def test_has_render_templetor_template_global(self):
+        """Should expose render_templetor_template in globals."""
+        env = get_jinja_env()
+        assert "render_templetor_template" in env.globals
+        assert callable(env.globals["render_templetor_template"])
+
+    def test_has_template_helpers_in_globals(self):
+        """Should expose shared Jinja globals: static_url (true global, like icon)."""
+        env = get_jinja_env()
+        assert "static_url" in env.globals
+        assert callable(env.globals["static_url"])
+        # ctx is no longer exposed to Jinja — layout uses `layout` instead
+        assert "ctx" not in env.globals
+
+    def test_static_url_is_true_global(self, monkeypatch):
+        """static_url is a true Jinja global (like icon), not a Template.globals fallback.
+
+        It should remain available even when Template.globals is empty, and
+        should still compute a hash when the file exists.
+        """
+        monkeypatch.setattr(web.template.Template, "globals", {})
+        # Mock open so the test does not require built assets on disk.
+        real_open = builtins.open
+
+        def mock_open(path, *args, **kwargs):
+            if "static/build/js/all.js" in str(path):
+                return io.BytesIO(b"dummy")
+            return real_open(path, *args, **kwargs)
+
+        monkeypatch.setattr("builtins.open", mock_open)
+
+        upstream_static_url.cache_clear()
+        get_jinja_env.cache_clear()
+        env = get_jinja_env()
+        assert "static_url" in env.globals
+        assert callable(env.globals["static_url"])
+        result = env.globals["static_url"]("build/js/all.js")
+        assert result.startswith("/static/build/js/all.js")
+        assert "?v=" in result
+        upstream_static_url.cache_clear()
+        get_jinja_env.cache_clear()
 
     def test_has_autoescape_enabled(self):
         """Should have autoescaping enabled."""
@@ -153,31 +312,57 @@ class TestGetJinjaEnv:
         env = get_jinja_env()
         assert env.lstrip_blocks is True
 
-    def test_can_load_and_render_affiliate_links_template(self, request_context_fixture):
+    def test_can_load_and_render_affiliate_links_template(self, request_context_fixture, monkeypatch):
         """Should be able to load the AffiliateLinks.html.jinja template
         from the macros/ directory and render it with store data."""
+        from openlibrary.plugins.openlibrary.partials import AffiliateStore  # noqa: PLC0415 partials imports code.py, which runs setup()
+
         request_context_fixture(lang="en")
         env = get_jinja_env()
+        # The icon global calls a Templetor macro, which isn't loaded in tests.
+        monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
         tpl = env.get_template("AffiliateLinks.html.jinja")
         output = tpl.render(
-            primary_stores=[
-                {
-                    "key": "teststore",
-                    "analytics_key": "TestStore",
-                    "name": "Test Store",
-                    "link": "https://example.com/book",
-                    "price": None,  # StrictUndefined - must include all accessed attrs
-                    "price_note": "",
-                }
-            ],
-            more_stores=[],
+            stores=[AffiliateStore(key="teststore", analytics_key="TestStore", name="Test Store", link="https://example.com/book")],
+            price_lookup=None,
         )
         # Should contain the store link
         assert "https://example.com/book" in output
         assert "Test Store" in output
         assert "affiliate-links-section" in output
+        # No offers, so no price or detail line
+        assert "buy-option__price" not in output
+        assert "buy-option__details" not in output
         # Should not have HTML injection from store name
         assert "&gt;" not in output  # no encoded angle brackets from simple names
+
+    def test_affiliate_links_template_renders_offer_details(self, request_context_fixture, monkeypatch):
+        """Prices, per-condition counts, and the store's own notes all render."""
+        from openlibrary.plugins.openlibrary.partials import AffiliateOffer, AffiliateStore  # noqa: PLC0415
+
+        request_context_fixture(lang="en")
+        env = get_jinja_env()
+        monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
+        store = AffiliateStore(
+            key="betterworldbooks",
+            analytics_key="BetterWorldBooks",
+            name="Better World Books",
+            link="https://example.com/book",
+            offers=(
+                AffiliateOffer(price="$9.99", amount=9.99, condition="new", quantity=3),
+                AffiliateOffer(price="$4.28", amount=4.28, condition="used", quantity=12),
+            ),
+            availability="In Stock",
+            seller="Example <Seller>",
+        )
+        output = env.get_template("AffiliateLinks.html.jinja").render(stores=[store], price_lookup=None)
+        text = " ".join(lxml_html.fromstring(output).text_content().split())
+        # Header shows the lowest price; details list cheapest first
+        assert "Better World Books $4.28" in text
+        assert text.index("12 used from $4.28") < text.index("3 new from $9.99")
+        assert "In Stock" in text
+        assert "Sold by Example <Seller>" in text
+        assert "Example &lt;Seller&gt;" in output
 
     def test_translations_via_gettext_callables(self, monkeypatch, request_context_fixture):
         """Should translate ``{% trans %}`` blocks and ``{{ gettext() }}`` / ``{{ ngettext() }}``
@@ -244,6 +429,21 @@ class TestGetJinjaEnv:
         assert tpl.render() == "Hello"
 
 
+def test_ngettext_formats_named_placeholders(request_context_fixture):
+    """Standard Jinja newstyle ngettext formats ``%(num)s`` placeholders.
+
+    Client-fill strings — which must reach the browser with their ``%s``
+    placeholders intact — are built in Python and serialized to JSON rather
+    than rendered through ``_`` (see ``SearchModalContext`` in
+    ``openlibrary/core/shell/search_modal.py``).
+    """
+    request_context_fixture(lang="en")
+    env = get_jinja_env()
+    assert env.from_string("{{ ngettext('%(num)d book', '%(num)d books', 3) }}").render() == "3 books"
+    assert env.from_string("{{ ngettext('%(num)d book', '%(num)d books', 1) }}").render() == "1 book"
+    assert env.from_string("{{ ngettext('%(num)d book', '%(num)d books', 3, num=7) }}").render() == "7 books"
+
+
 def test_all_jinja_templates_render_valid_html(request_context_fixture, subtests):
     """Every ``.jinja`` template should render structurally valid HTML.
 
@@ -267,7 +467,126 @@ def test_all_jinja_templates_render_valid_html(request_context_fixture, subtests
 
     for path in sorted(templates):
         rel = path.relative_to(TEMPLATES_DIR)
-        with subtests.test(template=str(rel)):
-            tpl = env.get_template(str(rel))
+        with subtests.test(template=rel.as_posix()):
+            tpl = env.get_template(rel.as_posix())
             output = tpl.render()
             assert_valid_html(output)
+
+
+def _render_head(monkeypatch, **ctx_values):
+    """Render shell/head.html.jinja from a real LayoutContext plus per-page ctx.
+
+    Reset the shared infogami context first so a stray ``cssfile``/``description``
+    etc. left by an earlier test in the same session can't flip the head's
+    defaults (e.g. page-user.css -> page-work.css).
+    """
+    env = get_jinja_env()
+    monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
+    infogami_context.clear()
+    try:
+        for key, value in ctx_values.items():
+            if key != "_title":
+                infogami_context[key] = value
+        layout = shell_module.LayoutContext.build(title=ctx_values.get("_title", ""))
+        return env.get_template("shell/head.html.jinja").render(layout=layout)
+    finally:
+        infogami_context.clear()
+
+
+def test_head_renders_shell(monkeypatch, request_context_fixture):
+    """The Jinja head should render canonical URL, title, description and scripts."""
+    request_context_fixture(lang="en")
+    html = _render_head(monkeypatch, _title="My <em>Page</em>")
+    assert 'rel="canonical"' in html
+    assert "My <em>Page</em> | Open Library" in html
+    assert "Open Library is an open, editable library catalog" in html
+    assert "window.OL_EXPERIMENTS = {};" in html
+    assert "@licstart" in html
+    assert "/static/build/css/page-user.css" in html
+
+
+def test_head_omits_analytics_for_bots(monkeypatch, request_context_fixture):
+    """Bots must not get the Matomo/analytics bootstrap, but keep the license notice."""
+    request_context_fixture(lang="en", is_bot=True)
+    html = _render_head(monkeypatch)
+    assert "_paq" not in html
+    assert "_mtm" not in html
+    assert "@licstart" in html
+
+
+def test_head_escapes_description_but_keeps_title_and_snippets_raw(monkeypatch, request_context_fixture):
+    """``description``/``robots`` are escaped; title, links and metatags stay raw HTML."""
+    request_context_fixture(lang="en")
+    html = _render_head(
+        monkeypatch,
+        _title="<em>Raw</em>",
+        description="a <b> & c",
+        robots="noindex,nofollow",
+        links=['<link rel="alternate" href="/x">'],
+        metatags=['<meta name="custom" content="v">'],
+    )
+    assert "a &lt;b&gt; &amp; c" in html
+    assert '<meta name="robots" content="noindex,nofollow" />' in html
+    assert "<em>Raw</em> | Open Library" in html
+    assert '<link rel="alternate" href="/x">' in html
+    assert '<meta name="custom" content="v">' in html
+
+
+def test_head_embeds_sentry_config_when_enabled(monkeypatch, request_context_fixture):
+    """An enabled Sentry client should emit trace/baggage metas and the frontend config."""
+    request_context_fixture(lang="en")
+    sentry = type(
+        "Sentry",
+        (),
+        {
+            "enabled": True,
+            "get_traceparent": lambda self: "TRACE",
+            "get_baggage": lambda self: "BAGGAGE",
+            "get_frontend_config": lambda self: {"dsn": "https://x"},
+        },
+    )()
+    monkeypatch.setattr("openlibrary.utils.sentry.get_sentry", lambda: sentry)
+    html = _render_head(monkeypatch)
+    assert '<meta name="sentry-trace" content="TRACE">' in html
+    assert '<meta name="baggage" content="BAGGAGE">' in html
+    assert 'window.OL_SENTRY = {"dsn": "https://x"};' in html
+
+
+def test_site_shell_renders_with_real_layout_context(monkeypatch, request_context_fixture):
+    """shell/base.html.jinja must render end-to-end with a real LayoutContext.
+
+    Uses StrictUndefined (the real env), so a missing head field or an
+    unwired include fails loudly here rather than in production.
+    """
+    request_context_fixture(lang="en")
+    env = get_jinja_env()
+    monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
+    monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
+    monkeypatch.setitem(env.globals, "render_templetor_template", lambda name, *a, **kw: "")
+    layout = shell_module.LayoutContext.build(title="Shell Test")
+    html = env.get_template("shell/base.html.jinja").render(page="<p>hi</p>", layout=layout)
+    assert "<head>" in html
+    assert "<title>Shell Test | Open Library</title>" in html
+    assert '<meta name="ol-icon-sprite"' in html
+    assert "<p>hi</p>" in html
+
+
+def test_header_search_i18n_attributes_are_json_with_raw_placeholders(monkeypatch, request_context_fixture):
+    """The search trigger ships client-fill strings as JSON with ``%s`` intact.
+
+    These strings are interpolated in the browser (``sprintf``), so they are
+    built in Python and serialized — never rendered through Jinja's formatting
+    ``_``, which would turn ``"See %s book"`` into ``"See {} book"``.
+    """
+    request_context_fixture(lang="en")
+    env = get_jinja_env()
+    monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
+    monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
+    layout = shell_module.LayoutContext.build(title="x")
+    html = env.get_template("shell/header.html.jinja").render(layout=layout)
+    trigger = BeautifulSoup(html, "lxml").find("button", class_="search-bar-trigger")
+    availability = json.loads(trigger["data-i18n"])
+    strings = json.loads(trigger["data-i18n-ui"])
+    assert availability["all"]["label"] == "All books"
+    assert strings["seeOne"] == "See %s book"
+    assert strings["resultsAnnounce"] == "Showing %s of %s results"

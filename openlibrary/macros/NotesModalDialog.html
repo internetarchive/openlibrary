@@ -1,0 +1,50 @@
+$def with (work, edition, id, notes=None)
+$# :param Work work: The work these notes belong to
+$# :param Edition edition: The edition these notes belong to
+$# :param str id: Id for the dialog
+$# :param notes: The patron's saved note for this edition, or None. Looked up by
+$#     databarWork so the sidebar link and this dialog share one query.
+$#
+$# The sidebar is rendered twice (desktop + mobile), so this dialog is rendered
+$# once per page and shared by every trigger link.
+
+$if notes and len(notes.notes) > 0:
+  $ display_delete_button = True
+$else:
+  $ display_delete_button = False
+
+$# The label names the book the note is attached to, since notes are stored per
+$# edition and the dialog can be opened from anywhere on the page.
+$code:
+    book_title = edition.get('title') or (work and work.title) or ''
+    edition_parts = [
+        edition.get('edition_name'),
+        edition.get('publish_date'),
+        edition.publishers and edition.publishers[0],
+    ]
+    edition_info = ', '.join(p for p in edition_parts if p)
+
+$if render_once('notes-modal'):
+  <ol-dialog id="$id" class="js-notes-modal" label="$_('Notes')" icon="sticky-note" width="medium"
+             data-i18n="$:render_template('type/edition/notes_modal_i18n')">
+    <form class="book-notes-form" action="$(work.key)/notes.json" method="POST">
+      <label class="book-notes-form__label" for="notes-modal-textarea">
+        <span class="book-notes-form__title">$book_title</span>
+        $if edition_info:
+          <span class="book-notes-form__edition">$edition_info</span>
+      </label>
+      <textarea id="notes-modal-textarea" class="notes-modal-textarea" name="notes" rows="6" autofocus>$(notes.notes if notes else "")</textarea>
+      $# Sits under the field, where the reassurance lands as the patron starts
+      $# typing. The icon is decorative: the sentence already says it.
+      <p class="book-notes-form__privacy">
+        $:macros.icon('eye-off', size='sm', extra_class='book-notes-form__privacy-icon')
+        $_("Only you can see this")
+      </p>
+      <input type="hidden" name="work_id" value="$work.key.split('/')[-1]" />
+      <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
+    </form>
+    <div slot="footer" class="notes-modal__actions">
+      <ol-button class="js-notes-modal-delete $('' if display_delete_button else 'hidden')" variant="ghost" tone="danger">$_("Delete Note")</ol-button>
+      <ol-button class="js-notes-modal-save" variant="primary">$_("Save Note")</ol-button>
+    </div>
+  </ol-dialog>

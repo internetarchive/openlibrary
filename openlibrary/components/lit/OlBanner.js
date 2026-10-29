@@ -1,4 +1,5 @@
 import { LitElement, html } from 'lit';
+import './OlIcon.js';
 
 /**
  * A callout-style announcement banner.
@@ -30,14 +31,14 @@ import { LitElement, html } from 'lit';
  *
  * @element ol-banner
  *
- * @prop {String}  variant     - "neutral" (default) | "success" | "warning" | "danger"
- * @prop {String}  appearance  - "outlined" (default) shows a border and rounded
- *                               corners; "plain" removes both, for banners that
- *                               abut the edges of other UI.
- * @prop {String}  dismissId   - Opaque identifier passed in the dismiss event's
- *                               detail, for the host app's persistence layer.
+ * @prop {"neutral" | "success" | "warning" | "danger"} variant - Default: "neutral"
+ * @prop {"outlined" | "plain"} appearance - "outlined" (default) shows a border and
+ *     rounded corners; "plain" removes both, for banners that abut the edges of
+ *     other UI.
+ * @prop {String} dismissId - Opaque identifier passed in the dismiss event's
+ *     detail, for the host app's persistence layer.
  * @prop {Boolean} dismissible - Show a close button.
- * @prop {String}  labelClose  - Aria label for the close button (default: "Close")
+ * @prop {String} labelClose - Aria label for the close button (default: "Close")
  *
  * @slot - The (already translated, server-rendered) announcement content.
  * @slot icon - Optional custom icon (a child with slot="icon"), replacing the
@@ -64,7 +65,7 @@ export class OlBanner extends LitElement {
         appearance: { type: String, reflect: true },
         dismissId: { type: String, attribute: 'dismiss-id' },
         dismissible: { type: Boolean, reflect: true },
-        labelClose: { type: String, attribute: 'label-close' },
+        labelClose: { type: String, attribute: 'label-close' }
     };
 
     // Render into the light DOM so the global stylesheet
@@ -75,29 +76,71 @@ export class OlBanner extends LitElement {
     }
 
     /** "i" glyph shown on neutral banners (the circle is drawn in CSS) */
-    static _neutralIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="4.5" x2="12.01" y2="4.5"/><line x1="12" y1="11" x2="12" y2="18"/></svg>`;
+    static _neutralIcon = html`<svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+    >
+        <line x1="12" y1="4.5" x2="12.01" y2="4.5" />
+        <line x1="12" y1="11" x2="12" y2="18" />
+    </svg>`;
 
     /** Check glyph shown on success banners (the circle is drawn in CSS) */
-    static _successIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`;
+    static _successIcon = html`<svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+    >
+        <polyline points="20 6 9 17 4 12" />
+    </svg>`;
 
     /** Caution-triangle (yield) shown on warning banners: a filled, rounded
      *  triangle in the variant accent with a white exclamation. Self-contained
      *  (its own filled shape, not the CSS circle badge), so the warning icon
      *  reads as a distinct shape from the round danger badge. */
-    static _warningIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path style="fill: var(--banner-accent)" d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M12 9v4"/><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01"/></svg>`;
+    static _warningIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+        <path style="fill: var(--banner-accent)" d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+        <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M12 9v4" />
+        <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01" />
+    </svg>`;
 
     /** Exclamation glyph shown on danger banners (the circle is drawn in CSS) */
-    static _dangerIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="6" x2="12" y2="13"/><line x1="12" y1="19.5" x2="12.01" y2="19.5"/></svg>`;
+    static _dangerIcon = html`<svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+    >
+        <line x1="12" y1="6" x2="12" y2="13" />
+        <line x1="12" y1="19.5" x2="12.01" y2="19.5" />
+    </svg>`;
 
     static _icons = {
         neutral: OlBanner._neutralIcon,
         success: OlBanner._successIcon,
         warning: OlBanner._warningIcon,
-        danger: OlBanner._dangerIcon,
+        danger: OlBanner._dangerIcon
     };
-
-    /** Close (X) icon — the stroke-based glyph shared with ol-dialog / ol-toast */
-    static _closeIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 
     constructor() {
         super();
@@ -142,17 +185,19 @@ export class OlBanner extends LitElement {
     dismiss() {
         if (this._closing) return;
         this._closing = true;
-        this.dispatchEvent(new CustomEvent('ol-banner-dismiss', {
-            detail: { dismissId: this.dismissId },
-            bubbles: true,
-            composed: true,
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-banner-dismiss', {
+                detail: { dismissId: this.dismissId },
+                bubbles: true,
+                composed: true
+            })
+        );
 
         // data-closing triggers the exit transition on the host
         this.setAttribute('data-closing', '');
 
         const finalize = () => this.remove();
-        this.addEventListener('transitionend', (e) => {
+        this.addEventListener('transitionend', e => {
             if (e.target === this && e.propertyName === 'opacity') finalize();
         });
         // Fallback in case no transition runs (e.g. prefers-reduced-motion)
@@ -164,13 +209,13 @@ export class OlBanner extends LitElement {
         return html`
             <span class="ol-banner__icon">${this._customIcon ?? icon}</span>
             ${this._content}
-            ${this.dismissible ? html`
-                <button
-                    class="ol-banner__close"
-                    aria-label=${this.labelClose}
-                    @click=${() => this.dismiss()}
-                >${OlBanner._closeIcon}</button>
-            ` : ''}
+            ${
+                this.dismissible
+                    ? html`
+                          <button class="ol-banner__close" aria-label=${this.labelClose} @click=${() => this.dismiss()}><ol-icon name="x"></ol-icon></button>
+                      `
+                    : ''
+            }
         `;
     }
 }

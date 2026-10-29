@@ -15,7 +15,6 @@ from infogami.utils.view import safeint  # noqa: F401 side effects may be needed
 from openlibrary.core import ia, lending, models
 from openlibrary.core.models import Image
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
 from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
 from openlibrary.plugins.worksearch.code import works_by_author, works_by_author_async
@@ -63,6 +62,8 @@ def find_references(doc):
 
 
 class Edition(models.Edition):
+    CLASSIFICATION_FIELDS = ("dewey_decimal_class", "lc_classifications")
+
     @cached_property
     def solr_work_data(self) -> SolrDocument | None:
         import openlibrary.book_providers as bp
@@ -234,17 +235,6 @@ class Edition(models.Edition):
         self._ia_meta_fields = meta
         return self._ia_meta_fields
 
-    def get_current_and_available_loans(self):
-        current_loans = borrow.get_edition_loans(self)
-        current_and_available_loans = (
-            current_loans,
-            self._get_available_loans(current_loans),
-        )
-        return current_and_available_loans
-
-    def get_current_loans(self):
-        return borrow.get_edition_loans(self)
-
     def get_available_loans(self):
         """
         Get the resource types currently available to be loaned out for this edition.  Does NOT
@@ -262,26 +252,10 @@ class Edition(models.Edition):
         if lending.is_loaned_out(self.ocaid):
             return []
 
-        # find available loans. there are no current loans
-        return self._get_available_loans([])
-
-    def _get_available_loans(self, current_loans):
-        if current_loans:
+        if lending.is_loaned_out_on_ia(self.ocaid):
             return []
 
-        if not self.ocaid:
-            return []
-
-        resource_id = f"bookreader:{self.ocaid}"
-        if borrow.is_loaned_out(resource_id):
-            return []
-
-        return [{"resource_id": resource_id, "resource_type": "bookreader", "size": None}]
-
-    def update_loan_status(self):
-        """Update the loan status"""
-        if self.ocaid:
-            lending.sync_loan(self.ocaid)
+        return [{"resource_id": f"bookreader:{self.ocaid}", "resource_type": "bookreader", "size": None}]
 
     def _process_identifiers(self, config_, names, values):
         id_map = {}
@@ -358,33 +332,32 @@ class Edition(models.Edition):
             self.identifiers = None
 
     def get_classifications(self):
-        names = ["dewey_decimal_class", "lc_classifications"]
         return self._process_identifiers(
             get_identifier_config("edition").classifications,
-            names,
+            self.CLASSIFICATION_FIELDS,
             self.classifications,
         )
 
     def set_classifications(self, classifications):
-        names = ["dewey_decimal_class", "lc_classifications"]
         d = defaultdict(list)
         for c in classifications:
-            if "name" not in c or "value" not in c or not re.compile("[a-z0-9_]*").match(c["name"]):
+            if "name" not in c or "value" not in c:
                 continue
             d[c["name"]].append(c["value"])
 
-        for name in names:
+        # Clear standalone Edition.CLASSIFICATION_FIELDS
+        for name in self.CLASSIFICATION_FIELDS:
             self._getdata().pop(name, None)
         self.classifications = {}
 
         for name, value in d.items():
-            if name in names:
+            if name in self.CLASSIFICATION_FIELDS:
                 self[name] = value
             else:
                 self.classifications[name] = value
 
         if not self.classifications.items():
-            self.classifications = None
+            self._getdata().pop("classifications", None)
 
     def get_weight(self):
         """returns weight as a storage object with value and units fields."""
@@ -503,19 +476,18 @@ class Author(models.Author):
     def get_olid(self):
         return self.key.split("/")[-1]
 
-    def get_books(self, q=""):
-        i = web.input(sort="editions", page=1, rows=20, mode="")
+    def get_books(self, q="", sort="editions", page=1, rows=20, mode=""):
         try:
             # safeguard from passing zero/negative offsets to solr
-            page = max(1, int(i.page))
-        except ValueError:
+            page = max(1, int(page))
+        except ValueError, TypeError:
             page = 1
         return works_by_author(
             self.get_olid(),
-            sort=i.sort,
+            sort=sort,
             page=page,
-            rows=i.rows,
-            has_fulltext=i.mode == "ebooks",
+            rows=rows,
+            has_fulltext=mode == "ebooks",
             query=q,
             facet=True,
             request_label="AUTHOR_BOOKS_PAGE",
@@ -878,17 +850,10 @@ class User(models.User):
             return 0
 
     def get_loan_count(self) -> int:
-        return len(borrow.get_loans(self))
+        return len(lending.get_loans_of_user(self.key))
 
     def get_loans(self):
-        self.update_loan_status()
         return lending.get_loans_of_user(self.key)
-
-    def update_loan_status(self):
-        """Update the status of this user's loans."""
-        loans = lending.get_loans_of_user(self.key)
-        for loan in loans:
-            lending.sync_loan(loan["ocaid"])
 
     def get_safe_mode(self):
         return (self.get_users_settings() or {}).get("safe_mode", "").lower()

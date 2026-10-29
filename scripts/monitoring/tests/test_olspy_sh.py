@@ -27,6 +27,18 @@ export -f py-spy
 """
 
 
+def _make_aliases_with_ps(nc_path: str, pyspy_dump_path: str, ps_output: str) -> str:
+    return _make_aliases(nc_path, pyspy_dump_path).replace("cat scripts/monitoring/tests/sample_ps_aux.txt", f"printf '%s' {ps_output!r}")
+
+
+# How the coverstore actually appears in ps: it builds gunicorn programmatically, so
+# unlike the main FastAPI app its command line never mentions uvicorn.
+COVERSTORE_PS = """USER  PID %CPU %MEM VSZ RSS TTY STAT START TIME COMMAND
+root  101  0.0  0.1 100 100 ?   Ss   10:00 0:01 python /openlibrary/scripts/coverstore-server /olsystem/etc/coverstore.yml --gunicorn --workers 10 --bind :7075
+root  102  0.0  0.1 100 100 ?   Sl   10:00 0:01 python /openlibrary/scripts/coverstore-server /olsystem/etc/coverstore.yml --gunicorn --workers 10 --bind :7075
+"""
+
+
 def _classify_lines(lines: str) -> str:
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as input_fp:
         input_fp.write(lines)
@@ -71,6 +83,39 @@ def test_log_workers_cur_fn_fastapi():
         assert f.read().strip() == "stats.ol-web0.workers.fastapi.cur_fn.ia.get_api_response 2 1741054377"
 
 
+def test_coverstore_workers_are_found_under_fastapi():
+    """The coverstore runs uvicorn workers, so it must be inspected as fastapi. Before
+    the FastAPI migration it was matched by the webpy pattern instead."""
+    with (
+        tempfile.NamedTemporaryFile(mode="w", delete=False) as aliases_fp,
+        tempfile.NamedTemporaryFile(mode="w", delete=False) as nc_fp,
+    ):
+        aliases_fp.write(_make_aliases_with_ps(nc_fp.name, "scripts/monitoring/tests/sample_py_spy_fastapi_dump.txt", COVERSTORE_PS))
+
+    bash_run(
+        "log_workers_cur_fn fastapi stats.ol-covers0.workers.fastapi.cur_fn",
+        sources=[aliases_fp.name, "olspy.sh"],
+    )
+    with open(nc_fp.name) as f:
+        # one worker (the Ss master is excluded)
+        assert f.read().strip() == "stats.ol-covers0.workers.fastapi.cur_fn.ia.get_api_response 1 1741054377"
+
+
+def test_coverstore_workers_are_not_found_under_webpy():
+    with (
+        tempfile.NamedTemporaryFile(mode="w", delete=False) as aliases_fp,
+        tempfile.NamedTemporaryFile(mode="w", delete=False) as nc_fp,
+    ):
+        aliases_fp.write(_make_aliases_with_ps(nc_fp.name, "scripts/monitoring/tests/sample_py_spy_webpy_dump.txt", COVERSTORE_PS))
+
+    bash_run(
+        "log_workers_cur_fn webpy stats.ol-covers0.workers.webpy.cur_fn",
+        sources=[aliases_fp.name, "olspy.sh"],
+    )
+    with open(nc_fp.name) as f:
+        assert f.read().strip() == ""
+
+
 def test_classify_workers_cur_fn_direct_matches():
     assert (
         _classify_lines(
@@ -111,3 +156,28 @@ something_else (totally/custom.py:1)
 ol.render_list_preview_image
 other.other"""
     )
+
+
+def test_classify_async_bridge_call():
+    """A worker waiting on AsyncBridge is named after the wrapped coroutine, not its caller."""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as input_fp:
+        input_fp.write(
+            """    wait (threading.py:369)
+    result (concurrent/futures/_base.py:445)
+    run (openlibrary/utils/async_utils.py:38)
+    run_solr_query_async (openlibrary/utils/async_utils.py:54)
+    GET (openlibrary/plugins/worksearch/code.py:600)
+"""
+        )
+
+    result = bash_run(
+        f"cat {input_fp.name} | exclude_internal_methods | head -n1 | classify_workers_cur_fn",
+        sources=["olspy.sh"],
+        capture_output=True,
+    )
+    assert result.stdout.strip() == "async.run_solr_query"
+
+
+def test_classify_ignores_other_libraries_async_utils():
+    """jinja2 ships its own async_utils.py with a `wrapper` function; it is not an AsyncBridge call."""
+    assert _classify_lines("    wrapper (jinja2/async_utils.py:45)\n") == "other.other"

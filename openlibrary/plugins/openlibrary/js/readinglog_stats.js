@@ -1,14 +1,30 @@
 // @ts-check
-import fromPairs from 'lodash/fromPairs';
-import isUndefined from 'lodash/isUndefined';
-import includes from 'lodash/includes';
-import orderBy from 'lodash/orderBy';
-import entries from 'lodash/entries';
-import groupBy from 'lodash/groupBy';
-import uniq from 'lodash/uniq';
-import uniqBy from 'lodash/uniqBy';
-import Chart from 'chart.js';
-import 'chartjs-plugin-datalabels';
+import { uniqBy } from './nonjquery_utils.js';
+import { BarController, BarElement, CategoryScale, Chart, LinearScale } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+
+Chart.register(BarController, BarElement, CategoryScale, LinearScale);
+
+const ROW_HEIGHT = 28;
+// Room past the longest bar for its count
+const COUNT_GUTTER = 32;
+
+/**
+ * Shorten a label with an ellipsis until it fits, so Chart.js doesn't clip it at the canvas edge
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {string} label
+ * @param {number} maxWidth
+ */
+function truncateToWidth(ctx, label, maxWidth) {
+    ctx.save();
+    ctx.font = `${Chart.defaults.font.size}px ${Chart.defaults.font.family}`;
+    let text = label;
+    while (text.length > 1 && ctx.measureText(text.length < label.length ? `${text}…` : text).width > maxWidth) {
+        text = text.slice(0, -1);
+    }
+    ctx.restore();
+    return text.length < label.length ? `${text.trimEnd()}…` : label;
+}
 
 /**
  * @typedef {object} Work
@@ -43,8 +59,50 @@ import 'chartjs-plugin-datalabels';
  * @param {Config} config
  */
 export function init(config) {
-    Chart.scaleService.updateScaleDefaults('linear', { ticks: { beginAtZero: true, stepSize: 1 } });
-    const authors_by_id = fromPairs(config.authors.map(a => [a.key, a]));
+    const tokens = getComputedStyle(document.documentElement);
+    const token = name => tokens.getPropertyValue(name).trim();
+    const barColor = token('--color-chart-bar');
+    const selectedBarColor = token('--color-chart-bar-selected');
+    Chart.defaults.font.family = token('--font-family-body');
+    Chart.defaults.font.size = parseInt(token('--font-size-body-small'));
+    Chart.defaults.color = token('--color-text-secondary');
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) Chart.defaults.animation = false;
+    /** @type {Chart[]} */
+    const charts = [];
+    const selectedWorks = /** @type {HTMLDetailsElement} */ (document.querySelector('.selected-works'));
+    const selectedWorksList = selectedWorks.querySelector('.selected-works__list');
+    const selectedWorksHint = /** @type {HTMLElement} */ (selectedWorks.querySelector('.selected-works__hint'));
+    const selectedWorksHeading = /** @type {HTMLElement} */ (selectedWorks.querySelector('.selected-works__heading'));
+    const selectedWorksSelection = selectedWorks.querySelector('.selected-works__selection');
+    // With nothing selected the panel has nothing to show, so its header shouldn't open it
+    selectedWorks.querySelector('summary').addEventListener('click', event => {
+        if (!selected) event.preventDefault();
+    });
+    /** @type {{chart: Chart, index: number} | null} */
+    let selected = null;
+
+    /**
+     * Select one bar (or none) across every chart, since the works list shows a single selection
+     * @param {Chart} [selectedChart]
+     * @param {number} [selectedIndex]
+     * @param {[string, Work[]]} [bar] the selected bar's label and works
+     */
+    function selectBar(selectedChart, selectedIndex, bar) {
+        selected = selectedChart ? { chart: selectedChart, index: selectedIndex } : null;
+        for (const chart of charts) {
+            const dataset = chart.data.datasets[0];
+            dataset.backgroundColor = dataset.data.map((_, i) => (chart === selectedChart && i === selectedIndex ? selectedBarColor : barColor));
+            chart.update('none');
+        }
+        // The full label, since the chart axis may show it shortened
+        selectedWorksSelection.textContent = bar ? `${bar[0]} (${bar[1].length})` : '';
+        selectedWorksHint.hidden = Boolean(bar);
+        selectedWorksHeading.hidden = !bar;
+        selectedWorksList.innerHTML = bar ? window.render_works_list(bar[1]) : '';
+        // Open the panel to show a new selection, and collapse it when the selection is cleared
+        selectedWorks.open = Boolean(bar);
+    }
+    const authors_by_id = Object.fromEntries(config.authors.map(a => [a.key, a]));
 
     /**
      *
@@ -61,10 +119,8 @@ export function init(config) {
 
         for (const work of config.works) {
             const result = getPath(work, chartConfig.key);
-            const allKeys = Array.isArray(result) ? result : (result ? [result] : []);
-            const validKeys = uniq(
-                allKeys.filter(key => !isUndefined(key) && !includes(chartConfig.exclude, key))
-            );
+            const allKeys = Array.isArray(result) ? result : result ? [result] : [];
+            const validKeys = [...new Set(allKeys.filter(key => key !== undefined && !chartConfig.exclude?.includes(key)))];
             if (!validKeys.length) {
                 excluded.push(work);
                 continue;
@@ -75,47 +131,79 @@ export function init(config) {
             }
         }
 
-        const bars = orderBy(entries(grouped), x => x[1].length, 'desc').slice(0, 20);
-        canvas.height = bars.length * 20 + 5;
-        canvas.width= 400;
-        new Chart(canvas.getContext('2d'), {
-            type: 'horizontalBar',
+        const bars = Object.entries(grouped)
+            .sort((a, b) => b[1].length - a[1].length)
+            .slice(0, 20);
+        // Let Chart.js size the canvas to the wrapper so its click hit-testing matches what is drawn
+        /** @type {HTMLElement} */ (canvas.parentElement).style.height = `${bars.length * ROW_HEIGHT + 8}px`;
+        canvas.setAttribute('role', 'img');
+        canvas.setAttribute('aria-label', `${chartConfig.title}: ${bars.map(([label, works]) => `${label} (${works.length})`).join(', ')}`);
+        const chart = new Chart(canvas, {
+            type: 'bar',
+            plugins: [ChartDataLabels],
             data: {
                 labels: bars.map(b => b[0]),
-                datasets: [{
-                    backgroundColor: 'rgb(255, 99, 132)',
-                    borderColor: 'rgb(255, 99, 132)',
-                    borderWidth: 0,
-                    data: bars.map(b => b[1].length)
-                }]
+                datasets: [
+                    {
+                        backgroundColor: barColor,
+                        hoverBackgroundColor: selectedBarColor,
+                        borderRadius: 4,
+                        maxBarThickness: 20,
+                        categoryPercentage: 0.7,
+                        barPercentage: 1,
+                        data: bars.map(b => b[1].length)
+                    }
+                ]
             },
             options: {
-                responsive: false,
-                legend: { display: false },
+                indexAxis: 'y',
+                maintainAspectRatio: false,
+                layout: { padding: { right: COUNT_GUTTER } },
                 scales: {
-                    xAxes: [{ display: false }],
-                    yAxes: [{ barPercentage: 1, gridLines: { display: false }, stacked: true }],
+                    x: { display: false },
+                    y: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            // Chart.js caps the label column at half the width left after layout padding;
+                            // leave room for the tick padding inside it
+                            callback(value) {
+                                return truncateToWidth(this.ctx, this.getLabelForValue(Number(value)), (this.chart.width - COUNT_GUTTER) / 2 - 12);
+                            }
+                        }
+                    }
+                },
+                // Pick the nearest bar by height, so a tap anywhere across a row counts, not just on the bar
+                interaction: { axis: 'y', intersect: false },
+                // Leave out Chart.js's default touchstart/touchmove: they hover-highlight whatever bar a scroll
+                // starts on, and touch never sends the mouseout that would clear it. Taps still arrive as clicks.
+                events: ['mousemove', 'mouseout', 'click'],
+                onHover: (e, elements) => {
+                    canvas.style.cursor = elements.length ? 'pointer' : 'default';
                 },
                 onClick: (e, [chartEl]) => {
-                    if (chartEl) {
-                        const bar = bars[chartEl._index];
-                        document.querySelector('.selected-works--list').innerHTML = window.render_works_list(bar[1]);
+                    // Tapping the selected bar again clears the selection
+                    if (!chartEl || (selected?.chart === chart && selected.index === chartEl.index)) {
+                        selectBar();
                     } else {
-                        document.querySelector('.selected-works--list').innerHTML = '';
+                        selectBar(chart, chartEl.index, bars[chartEl.index]);
                     }
                 },
                 plugins: {
+                    tooltip: { enabled: false },
                     datalabels: {
-                        color: '#FFF',
+                        color: token('--color-text'),
+                        font: { weight: 600 },
                         anchor: 'end',
-                        align: 'left',
-                        offset: 0
+                        align: 'end',
+                        offset: 4
                     }
                 }
             }
         });
+        charts.push(chart);
 
-        $(window.render_excluded_works_list(excluded, config.works.length)).appendTo(container);
+        container.insertAdjacentHTML('beforeend', window.render_excluded_works_list(excluded, config.works.length));
     }
 
     const defaultFieldRender = field => `OPTIONAL { ?x ${field.relation} ?${field.name}. }`;
@@ -138,24 +226,19 @@ export function init(config) {
                 # of the author's birth
                 FILTER(!BOUND(?country_dissolution) || !BOUND(?dob) || (?dob >= ?country_inception && ?dob <= ?country_dissolution) ).
             `
-        },
+        }
     ];
 
     function buildSparql(authors) {
         return `
             SELECT DISTINCT ?x ?xLabel ?olid
-                ${
-    SPARQL_FIELDS.map(f => `?${f.name} ${f.type === 'uri' ? `?${f.name}Label ` : ''}`).join('')
-}
+                ${SPARQL_FIELDS.map(f => `?${f.name} ${f.type === 'uri' ? `?${f.name}Label ` : ''}`).join('')}
             WHERE {
               VALUES ?olids { ${authors.map(a => `"${a.key.split('/')[2]}"`).join(' ')} }
               ?x wdt:P648 ?olids;
                  wdt:P648 ?olid.
 
-              ${
-    SPARQL_FIELDS.map(f => (f.render || defaultFieldRender)(f))
-        .join('\n')
-}
+              ${SPARQL_FIELDS.map(f => (f.render || defaultFieldRender)(f)).join('\n')}
 
               SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],${config.lang},en". }
             }
@@ -166,27 +249,33 @@ export function init(config) {
 
     const wdPromise = fetch('https://query.wikidata.org/sparql?format=json', {
         method: 'POST',
-        body: new URLSearchParams({query: buildSparql(config.authors)})
+        body: new URLSearchParams({ query: buildSparql(config.authors) })
     })
         .then(r => r.json())
         .then(resp => {
             const bindings = resp.results.bindings;
-            const grouped = groupBy(bindings, o => o.x.value.split('/')[4]);
-            const records = entries(grouped).map(([qid, bindings]) => {
-                const record = { qid, olids: uniq(bindings.map(x => x.olid.value)) };
+            const grouped = {};
+            for (const binding of bindings) {
+                const qid = binding.x.value.split('/')[4];
+                (grouped[qid] = grouped[qid] || []).push(binding);
+            }
+            const records = Object.entries(grouped).map(([qid, bindings]) => {
+                const record = { qid, olids: [...new Set(bindings.map(x => x.olid.value))] };
                 // { qid: Q123, olids: [ { value: }, {value: }], blah: [ {value:}, {value:} ], blahLabel: [{value:}, {value:},
-                for (const {name, type} of SPARQL_FIELDS) {
+                for (const { name, type } of SPARQL_FIELDS) {
                     if (type === 'uri') {
-                    // need to dedupe whilst keeping labels in mind
+                        // need to dedupe whilst keeping labels in mind
                         const deduped = uniqBy(
-                            bindings
-                                .filter(x => x[name])
-                                .map(x => ({ [name]: x[name], [`${name}Label`]: x[`${name}Label`] })),
-                            x => x[name].value);
+                            bindings.filter(x => x[name]).map(x => ({ [name]: x[name], [`${name}Label`]: x[`${name}Label`] })),
+                            x => x[name].value
+                        );
                         record[name] = deduped.map(x => x[name]);
                         record[`${name}Label`] = deduped.map(x => x[`${name}Label`]);
                     } else {
-                        record[name] = uniqBy(bindings.map(x => x[name]), 'value');
+                        record[name] = uniqBy(
+                            bindings.map(x => x[name]),
+                            x => x?.value
+                        );
                     }
                 }
                 return record;
@@ -210,13 +299,17 @@ export function init(config) {
 
     for (const container of document.querySelectorAll(config.charts_selector)) {
         const chartConfig = JSON.parse(container.dataset['config']);
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'relative';
         const canvas = document.createElement('canvas');
-        container.append(canvas);
+        wrapper.append(canvas);
+        container.append(wrapper);
 
+        // Wait for the web font so canvas text isn't drawn in the fallback face
         if (chartConfig.type === 'work-chart') {
-            createWorkChart(config, chartConfig, container, canvas);
+            document.fonts.ready.then(() => createWorkChart(config, chartConfig, container, canvas));
         } else if (chartConfig.type === 'wd-chart') {
-            wdPromise.then(() => createWorkChart(config, chartConfig, container, canvas));
+            Promise.all([wdPromise, document.fonts.ready]).then(() => createWorkChart(config, chartConfig, container, canvas));
         }
     }
 }
@@ -233,7 +326,7 @@ function getPath(obj, key) {
      * @return {any}
      */
     function main(obj, [head, ...rest]) {
-        if (typeof(obj) === 'undefined') return undefined;
+        if (typeof obj === 'undefined') return undefined;
         if (!head) return obj;
         if (head.endsWith('[]')) return obj[head.slice(0, -2)].flatMap(x => main(x, rest));
         else return main(obj[head], rest);

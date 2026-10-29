@@ -5,7 +5,7 @@
  */
 
 import { claimRequest, commentOnRequest, declineRequest, unassignRequest } from '../MergeRequestService';
-import { FadingToast } from '../../Toast';
+import { showToast } from '../../../../../components/lit/toast.js';
 
 let i18nStrings;
 
@@ -167,7 +167,8 @@ export class TableRow {
      */
     async closeRequest() {
         const comment = prompt(i18nStrings['close_request_comment_prompt']);
-        if (comment !== null) {  // Comment will be `null` if "Cancel" button pressed
+        if (comment !== null) {
+            // Comment will be `null` if "Cancel" button pressed
             await declineRequest(this.mrid, comment)
                 .then(result => result.json())
                 .then(data => {
@@ -197,7 +198,7 @@ export class TableRow {
                         this.updateCommentViews(comment);
                         this.commentReplyInput.value = '';
                     } else {
-                        new FadingToast(i18nStrings['comment_submission_failure_message']).show();
+                        showToast(i18nStrings['comment_submission_failure_message'], { type: 'error' });
                     }
                 })
                 .catch(e => {

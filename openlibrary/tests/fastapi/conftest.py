@@ -102,17 +102,6 @@ def mock_fulltext_search_async():
 
 
 @pytest.fixture
-def mock_fulltext_search():
-    """Mock the fulltext_search (sync) function to avoid actual Solr calls.
-
-    Used by webpy search_inside endpoint tests.
-    """
-    with patch("openlibrary.plugins.inside.code.fulltext_search", autospec=True) as mock:
-        mock.return_value = {"docs": [], "numFound": 0}
-        yield mock
-
-
-@pytest.fixture
 def mock_async_run_solr_query():
     """Mock async_run_solr_query function to avoid actual Solr calls.
 
@@ -213,6 +202,41 @@ def _default_subjects_response():
                         "work_count": 10,
                     }
                 ]
+            }
+        },
+        solr_select="mock",
+    )
+
+
+@pytest.fixture
+def mock_edition_solr_query():
+    """Mock run_solr_query_async for edition search tests."""
+    with patch("openlibrary.fastapi.search.run_solr_query_async", autospec=True) as mock:
+        mock.return_value = _default_edition_solr_response()
+        yield mock
+
+
+def _default_edition_solr_response():
+    """Default mock SearchResponse for edition search tests."""
+    docs = [
+        {
+            "key": "/books/OL1M",
+            "title": "Test Edition 1",
+            "work_key": ["OL1W"],
+            "publish_date": ["2023"],
+        }
+    ]
+    return SearchResponse(
+        facet_counts=None,
+        sort="publish_year desc",
+        docs=docs,
+        num_found=1,
+        raw_resp={
+            "response": {
+                "numFound": 1,
+                "numFoundExact": True,
+                "start": 0,
+                "docs": docs,
             }
         },
         solr_select="mock",

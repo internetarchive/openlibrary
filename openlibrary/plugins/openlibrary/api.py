@@ -49,42 +49,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ratings:
-    @staticmethod
-    def get_ratings_summary(work_id):
-        from openlibrary.core.ratings import Ratings
-
-        if stats := Ratings.get_work_ratings_summary(work_id):
-            return {
-                "summary": {
-                    "average": stats["ratings_average"],
-                    "count": stats["ratings_count"],
-                    "sortable": stats["ratings_sortable"],
-                },
-                "counts": {
-                    "1": stats["ratings_count_1"],
-                    "2": stats["ratings_count_2"],
-                    "3": stats["ratings_count_3"],
-                    "4": stats["ratings_count_4"],
-                    "5": stats["ratings_count_5"],
-                },
-            }
-        else:
-            return {
-                "summary": {
-                    "average": None,
-                    "count": 0,
-                },
-                "counts": {
-                    "1": 0,
-                    "2": 0,
-                    "3": 0,
-                    "4": 0,
-                    "5": 0,
-                },
-            }
-
-
 @deprecated("migrated to fastapi")
 class booknotes(delegate.page):
     path = r"/works/OL(\d+)W/notes"
@@ -114,10 +78,10 @@ class booknotes(delegate.page):
             return delegate.RawText(json.dumps({status: msg}), content_type="application/json")
 
         if i.notes is None:
-            Booknotes.remove(username, work_id, edition_id=edition_id)
+            Booknotes.remove_sync(username, work_id, edition_id=edition_id)
             return response("removed note")
 
-        Booknotes.add(username=username, work_id=work_id, notes=i.notes, edition_id=edition_id)
+        Booknotes.add_sync(username=username, work_id=work_id, notes=i.notes, edition_id=edition_id)
 
         if i.redir:
             raise web.seeother("/works/%s" % work_id)
@@ -125,20 +89,20 @@ class booknotes(delegate.page):
         return response("note added")
 
 
-def get_bookshelves_summary(work_id):
+async def get_bookshelves_summary(work_id):
     from openlibrary.core.models import Bookshelves
 
-    return {"counts": Bookshelves.get_work_summary(str(work_id))}
+    return {"counts": await Bookshelves.get_work_summary(str(work_id))}
 
 
-def process_work_bookshelves(username, work_id, bookshelf_id, edition_id=None, dont_remove=False):
+async def process_work_bookshelves(username, work_id, bookshelf_id, edition_id=None, dont_remove=False):
     from openlibrary.core.models import Bookshelves
 
     if bookshelf_id is None:
         return {"error": "Invalid bookshelf"}
 
     work_id_str = str(work_id)
-    current_status = Bookshelves.get_users_read_status_of_work(username, work_id_str)
+    current_status = await Bookshelves.get_users_read_status_of_work(username, work_id_str)
 
     try:
         bookshelf_id_val = int(bookshelf_id)
@@ -149,19 +113,16 @@ def process_work_bookshelves(username, work_id, bookshelf_id, edition_id=None, d
         return {"error": "Invalid bookshelf"}
 
     if ((not dont_remove) and bookshelf_id_val == current_status) or bookshelf_id_val == -1:
-        from openlibrary.core.bookshelves_events import BookshelvesEvents
-
-        work_bookshelf = Bookshelves.remove(
+        work_bookshelf = await Bookshelves.remove(
             username=username,
             work_id=work_id_str,
             bookshelf_id=str(current_status) if current_status else None,
         )
-        BookshelvesEvents.delete_by_username_and_work(username, work_id_str)
     else:
         from openlibrary.utils import extract_numeric_id_from_olid
 
         resolved_edition_id = int(extract_numeric_id_from_olid(edition_id)) if edition_id else None
-        work_bookshelf = Bookshelves.add(
+        work_bookshelf = await Bookshelves.add(
             username=username,
             bookshelf_id=str(bookshelf_id_val),
             work_id=work_id_str,
@@ -305,7 +266,7 @@ class patrons_observations(delegate.page):
 
         data = json.loads(web.data())
 
-        Observations.persist_observation(data["username"], work_id, data["observation"], data["action"])
+        Observations.persist_observation(user.key.split("/")[-1], work_id, data["observation"], data["action"])
 
         def response(msg, status="success"):
             return delegate.RawText(json.dumps({status: msg}), content_type="application/json")
@@ -314,11 +275,11 @@ class patrons_observations(delegate.page):
 
     def DELETE(self, work_id):
         user = accounts.get_current_user()
-        username = user.key.split("/")[2]
 
         if not user:
             raise web.seeother("/account/login")
 
+        username = user.key.split("/")[2]
         Observations.remove_observations(username, work_id)
 
         def response(msg, status="success"):
@@ -399,7 +360,7 @@ class bestbook_award:
     """
 
     @staticmethod
-    def process_bestbook_award(work_id, op, edition_key, topic, comment, username):
+    async def process_bestbook_award(work_id, op, edition_key, topic, comment, username):
         OPS = ["add", "remove", "update"]
         edition_id = edition_key and int(extract_numeric_id_from_olid(edition_key))
         errors = []
@@ -409,11 +370,11 @@ class bestbook_award:
                 if op in ["add", "update"]:
                     # Make sure the topic is free
                     if op == "update":
-                        Bestbook.remove(username, topic=topic)
-                        Bestbook.remove(username, work_id=work_id)
+                        await Bestbook.remove(username, topic=topic)
+                        await Bestbook.remove(username, work_id=work_id)
                     return {
                         "success": True,
-                        "award": Bestbook.add(
+                        "award": await Bestbook.add(
                             username=username,
                             work_id=work_id,
                             edition_id=edition_id or None,
@@ -425,7 +386,7 @@ class bestbook_award:
                     # Remove any award this patron has given this work_id
                     return {
                         "success": True,
-                        "rows": Bestbook.remove(username, work_id=work_id),
+                        "rows": await Bestbook.remove(username, work_id=work_id),
                     }
                 else:
                     errors.append(f"Invalid op {op}: valid ops are {OPS}")
@@ -619,8 +580,8 @@ class opds_home(delegate.page):
 
         def get_cached_homepage():
             from openlibrary.plugins.openlibrary.code import is_bot
-            from openlibrary.plugins.openlibrary.home import caching_prethread
             from openlibrary.utils import dateutil
+            from openlibrary.utils.request_context import caching_prethread
 
             five_minutes = 5 * dateutil.MINUTE_SECS
             lang = web.ctx.lang
@@ -649,6 +610,7 @@ class opds_home(delegate.page):
 DEFAULT_UNLINK_COMMENT = "Unlink OCAID: Item no longer available"
 
 
+@deprecated("migrated to fastapi")
 class unlink_ia_ol(delegate.page):
     path = "/api/unlink"
     encoding = "json"
@@ -681,7 +643,7 @@ class unlink_ia_ol(delegate.page):
         if not edition_keys:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
-        editions = [web.ctx.site.get(key) for key in edition_keys]
+        editions = web.ctx.site.get_many(edition_keys)
         logger.info(f"Disassociating {ocaid} from the following editions: {', '.join(edition_keys)}")
 
         # Update records

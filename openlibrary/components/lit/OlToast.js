@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 // Registers <ol-button> for the close control.
 import './OLButton.js';
+import './OlIcon.js';
 import { slotHasContent } from './utils/slot-utils.js';
 
 /**
@@ -23,9 +24,8 @@ import { slotHasContent } from './utils/slot-utils.js';
  *
  * Placed declaratively, the toast renders in-flow where the parent puts it.
  * For the common imperative case (show a toast in the fixed bottom-center
- * stack after a fetch resolves), use the `showToast` helper exported from
- * `OlToastRegion.js` — the region arranges the toasts into a bottom-anchored
- * vertical list by setting the `data-stacked` attribute and an
+ * stack after a fetch resolves), use `showToast()` from `toast.js` — the
+ * region arranges the toasts into a bottom-anchored vertical list by setting the `data-stacked` attribute and an
  * `--ol-toast-offset` custom property on each toast.
  *
  * All motion is transition-driven (transform/opacity only): a `data-mounted`
@@ -34,8 +34,8 @@ import { slotHasContent } from './utils/slot-utils.js';
  *
  * @element ol-toast
  *
- * @prop {String}  type       - "info" (default) | "success" | "error".
- *                              Errors use role="alert" / assertive announcements.
+ * @prop {"info" | "success" | "error"} type - Default: "info". Errors use
+ *                              role="alert" / assertive announcements.
  * @prop {String}  message     - The (already translated) message text.
  * @prop {String}  description - Optional secondary line, rendered smaller and muted.
  * @prop {Boolean} persistent - Toast stays until explicitly closed (no timer).
@@ -49,7 +49,7 @@ import { slotHasContent } from './utils/slot-utils.js';
  *
  * @example
  * // Imperative, fixed bottom-center stack (message already translated)
- * import { showToast } from './OlToastRegion.js';
+ * import { showToast } from './toast.js';
  * showToast(i18nStrings.updateSuccess, { type: 'success' });
  * showToast(i18nStrings.relaunchToUpdate, { description: version, persistent: true });
  *
@@ -73,15 +73,14 @@ export class OlToast extends LitElement {
         _announce: { state: true },
         // Internal: whether the default slot holds real content — see
         // slotHasContent() for why native <slot> fallback can't be used.
-        _hasSlottedContent: { state: true },
+        _hasSlottedContent: { state: true }
     };
 
     static styles = css`
         :host {
-            /* Sonner's curve — a strong ease-out with a hint of overshoot.
-               Shared by enter, exit, and stack re-shuffles so the toasts
+            /* One curve for enter, exit, and stack re-shuffles so the toasts
                move as one system (paired-elements rule). */
-            --ol-toast-ease: cubic-bezier(0.21, 1.02, 0.73, 1);
+            --ol-toast-ease: var(--ease-enter);
 
             display: block;
             width: max-content;
@@ -89,8 +88,8 @@ export class OlToast extends LitElement {
             font-family: var(--font-family-body);
             pointer-events: auto;
             transition:
-                transform 400ms var(--ol-toast-ease),
-                opacity 400ms var(--ol-toast-ease);
+                transform var(--duration-slower) var(--ol-toast-ease),
+                opacity var(--duration-slower) var(--ol-toast-ease);
 
             /* Enter starting point: hidden, sitting below its final spot.
                The component flips data-mounted one frame after connecting,
@@ -171,16 +170,13 @@ export class OlToast extends LitElement {
             max-width: 100%;
             padding: var(--spacing-inset-md);
             background-color: var(--white);
-            color: var(--darker-grey);
+            color: var(--color-text);
             font-size: var(--font-size-body-medium);
             line-height: 1.4;
-            /* Borderless surface: a hairline ring plus two soft layers,
-               in place of a hard border */
-            border-radius: var(--border-radius-notification);
-            box-shadow:
-                0 0 0 1px var(--icon-link-grey),
-                0 1px 2px -1px var(--icon-link-grey),
-                0 2px 4px 0 var(--icon-link-grey);
+            /* Same edge as ol-popover and ol-dialog: one overlay surface */
+            border: var(--border-overlay);
+            border-radius: var(--border-radius-overlay);
+            box-shadow: var(--box-shadow-overlay);
         }
 
         .toast__progress {
@@ -220,11 +216,11 @@ export class OlToast extends LitElement {
         }
 
         .toast--success .toast__icon {
-            background-color: var(--green);
+            background-color: var(--color-success-object);
         }
 
         .toast--error .toast__icon {
-            background-color: var(--red);
+            background-color: var(--color-error-object);
         }
 
         .toast__body {
@@ -255,28 +251,61 @@ export class OlToast extends LitElement {
         }
 
         /* The close control is an <ol-button shape="icon" variant="ghost" size="small">,
-           which paints itself; only the glyph size lives here. */
+           which paints itself and sizes its glyph. */
         .toast__close {
             flex-shrink: 0;
-        }
-
-        .toast__close svg {
-            width: 16px;
-            height: 16px;
         }
     `;
 
     /** "i" glyph shown on info toasts (the circle is drawn in CSS) */
-    static _infoIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="4.5" x2="12.01" y2="4.5"/><line x1="12" y1="11" x2="12" y2="18"/></svg>`;
+    static _infoIcon = html`<svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+    >
+        <line x1="12" y1="4.5" x2="12.01" y2="4.5" />
+        <line x1="12" y1="11" x2="12" y2="18" />
+    </svg>`;
 
     /** Check glyph shown on success toasts (the circle is drawn in CSS) */
-    static _successIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`;
+    static _successIcon = html`<svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+    >
+        <polyline points="20 6 9 17 4 12" />
+    </svg>`;
 
     /** Exclamation glyph shown on error toasts (the circle is drawn in CSS) */
-    static _errorIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="6" x2="12" y2="13"/><line x1="12" y1="19.5" x2="12.01" y2="19.5"/></svg>`;
-
-    /** Close (X) icon — the stroke-based glyph shared with ol-dialog */
-    static _closeIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    static _errorIcon = html`<svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+    >
+        <line x1="12" y1="6" x2="12" y2="13" />
+        <line x1="12" y1="19.5" x2="12.01" y2="19.5" />
+    </svg>`;
 
     constructor() {
         super();
@@ -394,17 +423,19 @@ export class OlToast extends LitElement {
         if (this._closing) return;
         this._closing = true;
         this._clearTimer();
-        this.dispatchEvent(new CustomEvent('ol-toast-close', {
-            detail: { reason },
-            bubbles: true,
-            composed: true,
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-toast-close', {
+                detail: { reason },
+                bubbles: true,
+                composed: true
+            })
+        );
 
         // data-closing triggers the exit transition on the host
         this.setAttribute('data-closing', '');
 
         const finalize = () => this.remove();
-        this.addEventListener('transitionend', (e) => {
+        this.addEventListener('transitionend', e => {
             if (e.target === this && e.propertyName === 'opacity') finalize();
         });
         // Fallback in case no transition runs (e.g. prefers-reduced-motion)
@@ -413,9 +444,7 @@ export class OlToast extends LitElement {
 
     render() {
         const isError = this.type === 'error';
-        const icon = this.type === 'success'
-            ? OlToast._successIcon
-            : isError ? OlToast._errorIcon : OlToast._infoIcon;
+        const icon = this.type === 'success' ? OlToast._successIcon : isError ? OlToast._errorIcon : OlToast._infoIcon;
         return html`
             <div
                 class="toast toast--${this.type}"
@@ -428,13 +457,21 @@ export class OlToast extends LitElement {
             >
                 <span class="toast__icon">${icon}</span>
                 <span class="toast__body">
-                    ${this._announce ? html`
-                        <slot @slotchange=${this._handleSlotChange}></slot>
-                        ${this._hasSlottedContent ? nothing : html`
-                            <span class="toast__message">${this.message}</span>
-                            ${this.description ? html`<span class="toast__description">${this.description}</span>` : ''}
-                        `}
-                    ` : ''}
+                    ${
+                        this._announce
+                            ? html`
+                                  <slot @slotchange=${this._handleSlotChange}></slot>
+                                  ${
+                                      this._hasSlottedContent
+                                          ? nothing
+                                          : html`
+                                                <span class="toast__message">${this.message}</span>
+                                                ${this.description ? html`<span class="toast__description">${this.description}</span>` : ''}
+                                            `
+                                  }
+                              `
+                            : ''
+                    }
                 </span>
                 <ol-button
                     class="toast__close"
@@ -443,7 +480,8 @@ export class OlToast extends LitElement {
                     size="small"
                     aria-label=${this.labelClose}
                     @click=${() => this.close('close-button')}
-                >${OlToast._closeIcon}</ol-button>
+                    ><ol-icon name="x" size="sm"></ol-icon
+                ></ol-button>
                 ${!this.persistent ? html`<div class="toast__progress"></div>` : ''}
             </div>
         `;

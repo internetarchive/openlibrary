@@ -60,6 +60,11 @@
   width: 280px;
   display: flex;
   align-items: flex-end;
+  scroll-margin-top: 120px;
+}
+.teamCard__container--highlighted .teamCard {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
 }
 .teamCard__photoContainer {
   position: absolute;
@@ -96,16 +101,6 @@
   padding-top: 68px;
   margin-bottom: 0;
 }
-.description__role {
-  padding-top: 5px;
-  padding-bottom: 5px;
-  height: 28px;
-}
-.description__department {
-  font-weight: 400;
-  height: 40px;
-  font-size: 18px;
-}
 .description__title {
   font-weight: 400;
   height: 40px;
@@ -113,20 +108,27 @@
   margin-top: 10px;
   text-align: center;
 }
+.description__project {
+  font-weight: 400;
+  font-size: 15px;
+  margin: 2px 0 0;
+  padding-left: 15px;
+  padding-right: 15px;
+  text-align: center;
+  color: var(--mid-grey);
+}
+.description__tenure {
+  font-size: 13px;
+  margin: 2px 0 0;
+  text-align: center;
+  color: var(--mid-grey);
+}
 .description__links {
   display: flex;
   height: 60px;
   width: 100%;
   justify-content: space-evenly;
   align-items: center;
-}
-.description__role,
-.description__name,
-.description__department {
-  margin: 0;
-  padding-left: 15px;
-  padding-right: 15px;
-  text-align: center;
 }
 .links__site,
 .links__book {

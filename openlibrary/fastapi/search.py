@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import json
-import os
 from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
 
-import web
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import (
     BaseModel,
@@ -18,7 +16,8 @@ from pydantic import (
     model_validator,
 )
 
-from openlibrary.core.fulltext import fulltext_search_async
+from openlibrary.core.env import get_ol_env
+from openlibrary.core.fulltext import fulltext_search_async, resolve_language
 from openlibrary.fastapi.models import (
     Pagination,
     PaginationLimit20,
@@ -32,9 +31,11 @@ from openlibrary.plugins.worksearch.code import (
     work_search_async,
 )
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
+from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.utils.request_context import req_context, site
 
 router = APIRouter()
 
@@ -58,7 +59,7 @@ _FACET_INTERNAL_RENAME = {"author_key": "author_facet"}
 
 # Whether to expose internal-only endpoints in the OpenAPI schema.
 # Only shown when running with LOCAL_DEV set (e.g. docker compose).
-SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+SHOW_INTERNAL_IN_SCHEMA = get_ol_env().LOCAL_DEV
 
 
 class PublicQueryOptions(BaseModel):
@@ -164,6 +165,24 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
             return q
 
 
+class FacetRequestParams(PublicQueryOptions):
+    """
+    Query params for /search/facets.json — the search context plus the field(s) to count.
+
+    `field` is a model field rather than a sibling parameter because FastAPI only expands a
+    Pydantic query model when nothing else in the signature is a list-typed `Query`. Declared
+    separately, the model binds as one scalar named "params" and every request 422s; under
+    `Depends()` it binds but the inherited list filters (language, subject_facet, ...) silently
+    arrive empty, so the counts ignore them.
+    """
+
+    field: list[FacetField] = Field(
+        ...,
+        min_length=1,
+        description="Facet field(s) to return. Repeat for multiple.",
+    )
+
+
 class FacetValue(BaseModel):
     """A single facet option returned by /search/facets.json."""
 
@@ -227,14 +246,29 @@ async def search_json(
 async def search_inside_json(
     pagination: Annotated[PaginationLimit20, Depends()],
     q: Annotated[str, Query(title="Search query")],
+    facets: Annotated[bool, Query(description="Include facet aggregations in the response.")] = True,
+    readable: Annotated[bool, Query(description="Drop matches that aren't readable (public or borrowable) scans. hits.total still counts them.")] = False,
+    phrase: Annotated[
+        bool,
+        Query(description="Search an unquoted query as one exact phrase, falling back to all the words when it has no hits. false searches all the words."),
+    ] = True,
+    language: Annotated[
+        list[str] | None,
+        Query(description="Filter by language — a MARC code (e.g. fre) or language name. The FTS backend takes one language; extra values are ignored."),
+    ] = None,
 ):
+    resolved = resolve_language(language)
     return await fulltext_search_async(
         q,
         page=pagination.page,
         offset=pagination.offset,
         limit=pagination.limit,
         js=True,
-        facets=True,
+        facets=facets,
+        readable=readable,
+        phrase=phrase,
+        # FTS takes the language name, not the MARC code.
+        language=resolved[1] if resolved else None,
     )
 
 
@@ -342,7 +376,7 @@ async def search_lists_json(
         }
     else:
         # Default to the old API shape for a while, then we'll flip
-        lists = web.ctx.site.get_many([doc["key"] for doc in response.docs])
+        lists = site.get().get_many([doc["key"] for doc in response.docs])
         return {
             "start": response.raw_resp["response"].get("start", params.offset or 0),
             "docs": [lst.preview() for lst in lists],
@@ -381,6 +415,64 @@ async def search_authors_json(
     return raw_resp
 
 
+EditionSortOption = create_sort_option_type(EditionSearchScheme.sorts)
+
+
+class EditionSearchRequestParams(Pagination):
+    q: str = Field("", description="The search query")
+    work_key: str | None = Field(
+        None,
+        description="Filter results to editions of a specific work.",
+        examples=["/works/OL82536W"],
+    )
+    fields: Annotated[list[str], BeforeValidator(parse_comma_separated_list)] = Field(
+        sorted(EditionSearchScheme.default_fetched_fields),
+        description="The fields to return.",
+    )
+    sort: EditionSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
+
+
+@router.get("/search/editions.json", tags=["search"])
+async def search_editions_json(
+    params: Annotated[EditionSearchRequestParams, Query()],
+) -> Any:
+    """
+    Search for edition documents in the Solr index.
+
+    Supports full-text search across edition fields (title, ISBN, publisher, etc.)
+    and optional filtering by work key.
+    """
+    extra_params: list[tuple[str, Any]] = []
+    if params.work_key:
+        work_key = params.work_key.strip().rstrip("/").split("/")[-1]
+        safe_key = work_key.replace("\\", "\\\\").replace('"', '\\"')
+        extra_params.append(("fq", f'work_key:"{safe_key}"'))
+
+    response = await run_solr_query_async(
+        EditionSearchScheme(),
+        {"q": params.q or "*:*"},
+        offset=params.offset,
+        page=params.page,
+        rows=params.limit,
+        fields=params.fields,
+        sort=params.sort,
+        facet=False,
+        extra_params=extra_params or None,
+        request_label="EDITION_SEARCH_API",
+    )
+
+    raw_resp = response.raw_resp.get("response", {}) if response.raw_resp else {}
+    return {
+        "numFound": raw_resp.get("numFound", response.num_found or 0),
+        "start": raw_resp.get("start", params.offset or 0),
+        "numFoundExact": raw_resp.get("numFoundExact", response.num_found_exact),
+        "num_found": raw_resp.get("numFound", response.num_found or 0),
+        "q": params.q,
+        "offset": params.offset,
+        "docs": raw_resp.get("docs", response.docs or []),
+    }
+
+
 @router.get(
     "/search/facets.json",
     tags=["internal"],
@@ -389,11 +481,7 @@ async def search_authors_json(
 )
 async def search_facets_json(
     request: Request,
-    params: Annotated[PublicQueryOptions, Depends()],
-    field: Annotated[
-        list[FacetField],
-        Query(min_length=1, description="Facet field(s) to return. Repeat for multiple."),
-    ],
+    params: Annotated[FacetRequestParams, Query()],
     solr_internals_params: Annotated[SolrInternalsParams | None, Depends(SolrInternalsParams.from_request)] = None,
 ) -> dict[str, list[FacetValue]]:
     """
@@ -406,17 +494,18 @@ async def search_facets_json(
     Example: GET /search/facets.json?field=language&field=subject_facet&q=lord+of+the+rings
     """
     search_response = await run_solr_query_async(
-        WorkSearchScheme(lang=request.state.lang),
-        params.model_dump(exclude_none=True),
+        WorkSearchScheme(lang=request.state.lang, solr_editions=req_context.get().solr_editions),
+        params.model_dump(exclude={"field"}, exclude_none=True),
         rows=0,
         page=1,
-        facet=list(field),
+        fields=["key", "editions"],  # opt into the same edition block-join as /search
+        facet=list(params.field),
         highlight=False,
         request_label="BOOK_SEARCH_FACETS",
         solr_internals_params=solr_internals_params,
     )
 
-    result: dict[str, list[FacetValue]] = {f: [] for f in field}
+    result: dict[str, list[FacetValue]] = {f: [] for f in params.field}
     if search_response.facet_counts:
         for facet_field, values in search_response.facet_counts.items():
             output_key = _FACET_INTERNAL_RENAME.get(facet_field, facet_field)

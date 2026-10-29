@@ -1,3 +1,5 @@
+/* Legacy page-level overlay: keep its z-index band as is and add no new consumers.
+   New overlays use ol-popover / ol-dialog, which live in the top layer (#12363). */
 .nav-bar {
   margin-bottom: 20px;
   font-weight: bold;
@@ -34,6 +36,18 @@
 .nav-bar:not(.work-menu) li:hover a {
   border-bottom: 2px solid var(--link-blue);
 }
+
+.nav-bar.search-nav {
+  font-weight: 500;
+}
+
+.nav-bar.search-nav li {
+  font-size: var(--font-size-label-large);
+}
+
+.nav-bar.search-nav li.selected a {
+  font-weight: 650;
+}
 /* stylelint-enable selector-max-specificity */
 
 .nav-bar-wrapper {
@@ -43,7 +57,8 @@
   clip-path: inset(0 0 -15px 0);
   margin-bottom: 20px;
   background: var(--white);
-  z-index: var(--z-index-level-5);
+  /* Legacy value: sticky chrome that has to clear page-level dropdowns. */
+  z-index: var(--z-index-dropdown);
 }
 
 .nav-bar-wrapper .nav-bar {
@@ -53,8 +68,8 @@
 .nav-bar-wrapper.sticky {
   position: sticky;
   top: 50px;
-  margin-left: -20px;
-  margin-right: -20px;
+  /* Bleeds to the edge of #contentBody. */
+  margin-inline: calc(-1 * var(--spacing-page-gutter));
 }
 
 .nav-bar-wrapper .nav-arrow-right {
@@ -64,17 +79,10 @@
   right: 0;
   top: 0;
   bottom: 0;
+  /* stylelint-disable-next-line declaration-property-value-disallowed-list -- 10000 has no semantic band; legacy, see #12363 */
   z-index: var(--z-index-level-14);
   width: 44px;
   background: linear-gradient(to right, transparent, var(--white) 10px);
-}
-
-.nav-bar-wrapper .nav-arrow-right img {
-  max-width: unset !important;
-}
-
-.nav-bar-wrapper .nav-arrow-right--left img {
-  transform: rotate(180deg);
 }
 
 .nav-bar-wrapper .nav-arrow-left {
@@ -84,19 +92,17 @@
   left: 0;
   top: 0;
   bottom: 0;
+  /* stylelint-disable-next-line declaration-property-value-disallowed-list -- 10000 has no semantic band; legacy, see #12363 */
   z-index: var(--z-index-level-14);
   width: 44px;
   background: linear-gradient(to left, transparent, var(--white) 10px);
 }
 
-.nav-bar-wrapper .nav-arrow-left img {
-  transform: rotate(180deg);
-}
-
 .nav-bar-wrapper .nav-bar.work-menu {
   padding: 8px 20px 0;
   background: var(--white);
-  z-index: var(--z-index-level-5);
+  /* Legacy value, same reason as .nav-bar above. */
+  z-index: var(--z-index-dropdown);
   gap: 4px;
   scrollbar-width: thin;
 }

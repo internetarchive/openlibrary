@@ -139,6 +139,34 @@ async def require_authenticated_user(
     return user
 
 
+def _is_librarian_from_authenticated_user(user: AuthenticatedUser | None) -> bool:
+    """Return True if the authenticated user is a librarian.
+
+    AuthenticatedUser has no groups, so load the full User via site.
+    Return False for anon or on error.
+    """
+    if not user:
+        return False
+    from openlibrary.utils.request_context import site  # noqa: PLC0415
+
+    try:
+        user_obj = site.get().get(f"/people/{user.username}")
+    except Exception:  # noqa: BLE001
+        return False
+    return bool(user_obj and user_obj.is_librarian_or_higher())
+
+
+def is_librarian(
+    user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)] = None,
+) -> bool:
+    """Check if user is librarian, without requiring login.
+
+    Returns True for librarian/admin/super-librarian, False otherwise.
+    Use for flags like show_merge_authors.
+    """
+    return _is_librarian_from_authenticated_user(user)
+
+
 async def require_librarian(
     _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> AuthenticatedUser:

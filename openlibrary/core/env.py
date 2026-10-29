@@ -1,5 +1,6 @@
 import os
 from functools import cached_property
+from typing import Literal
 
 import web
 
@@ -14,13 +15,33 @@ class OLEnv:
         return os.environ.get("LOCAL_DEV") == "true"
 
 
-def get_deployment_name() -> str:
-    """Which deployment this request is served from, based on the host.
+DeploymentName = Literal["development", "testing", "production"]
+
+
+def get_deployment_name() -> DeploymentName:
+    """Which deployment serves this process.
+
+    Returns the OL_DEPLOYMENT_NAME environment variable (set per deployment
+    in the compose files) when present, otherwise falls back to the request
+    host, and finally to "development" when there is no request context
+    (e.g. at application startup).
 
     Drives dev-facing UI cues (favicon, logo badge) so localhost,
     testing.openlibrary.org, and production tabs are distinguishable.
     """
-    match web.ctx.host:
+    if deployment_name := os.environ.get("OL_DEPLOYMENT_NAME"):
+        match deployment_name:
+            case "development" | "testing" | "production":
+                return deployment_name
+            case _:
+                raise ValueError(f'Invalid OL_DEPLOYMENT_NAME {deployment_name!r}; expected "development", "testing", or "production"')
+
+    try:
+        host = web.ctx.host
+    except AttributeError, KeyError:
+        host = ""
+
+    match host:
         case "openlibrary.org" | "www.openlibrary.org":
             return "production"
         case "testing.openlibrary.org":

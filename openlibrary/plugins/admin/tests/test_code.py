@@ -1,10 +1,13 @@
 from typing import cast
+from urllib.parse import parse_qsl
 
+import pytest
 import web
 
 from openlibrary.accounts.model import (
     OpenLibraryAccount,
 )
+from openlibrary.plugins.admin import code as admin_code
 from openlibrary.plugins.admin.code import revert_all_user_edits
 
 
@@ -219,3 +222,68 @@ class TestRevertAllUserEdits:
         assert web.ctx.site.get("/works/OL1W").type.key == "/type/delete"
         assert web.ctx.site.get("/works/OL2W").revision == 4
         assert web.ctx.site.get("/works/OL2W").type.key == "/type/delete"
+
+
+class TestPeopleEditsPost:
+    def test_revert_redirects_back_to_the_same_page(self, monkeypatch):
+        reverted = []
+        monkeypatch.setattr(admin_code, "revert_changesets", lambda ids, comment: reverted.append(ids))
+        monkeypatch.setattr(
+            web,
+            "input",
+            lambda **defaults: web.storage(defaults, changesets=["123"], action="revert"),
+        )
+        for name, value in {
+            "home": "http://localhost",
+            "path": "/admin/people/spammer/edits",
+            "fullpath": "/admin/people/spammer/edits?page=3",
+            "headers": [],
+            "status": None,
+        }.items():
+            monkeypatch.setattr(web.ctx, name, value, raising=False)
+
+        with pytest.raises(web.SeeOther):
+            admin_code.people_edits().POST("spammer")
+
+        assert reverted == [["123"]]
+        assert web.ctx.status == "303 See Other"
+        assert (
+            "Location",
+            "http://localhost/admin/people/spammer/edits?page=3",
+        ) in web.ctx.headers
+
+
+class TestPeopleEditsTemplate:
+    @pytest.fixture
+    def render_edits(self, monkeypatch, render_template):
+        account = web.storage(
+            username="spammer",
+            displayname="Spammer",
+            get_user=lambda: web.storage(key="/people/spammer"),
+            get_edit_count=lambda: 250,
+        )
+        monkeypatch.setitem(web.template.Template.globals, "recentchanges", lambda query: [])
+        monkeypatch.setitem(web.template.Template.globals, "request", web.storage(path="/admin/people/spammer/edits"))
+        monkeypatch.setitem(web.template.Template.globals, "macros", web.storage(OlPagination=lambda page, total_pages: f"pager:{page}/{total_pages}"))
+
+        def render(query_string):
+            monkeypatch.setattr(web, "input", lambda _m=None, **defaults: web.storage(defaults, **dict(parse_qsl(query_string))))
+            return render_template("admin/people/edits", account)
+
+        return render
+
+    @pytest.mark.parametrize(
+        ("query_string", "pager"),
+        [
+            ("", "pager:1/3"),
+            ("page=2&limit=50", "pager:2/5"),
+            ("page=0", "pager:1/3"),
+            ("page=-2", "pager:1/3"),
+            ("page=abc", "pager:1/3"),
+            ("limit=0", "pager:1/3"),
+            ("limit=-5", "pager:1/3"),
+            ("limit=abc", "pager:1/3"),
+        ],
+    )
+    def test_bad_page_and_limit_fall_back_to_defaults(self, render_edits, query_string, pager):
+        assert pager in render_edits(query_string)

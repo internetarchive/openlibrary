@@ -1,0 +1,12 @@
+{# "Selected facets" chips shown above the search results.
+   `chips` are pre-computed SelectedFacetChip objects from
+   render_selected_search_facets() in openlibrary/plugins/worksearch/facets.py. #}
+{% if chips %}
+    <div class="selected-search-facets">
+        {% for chip in chips %}
+            <ol-chip selected size="small"{% if chip.accessible_label %} accessible-label="{{ chip.accessible_label }}"{% endif %} href="{{ chip.del_url }}">
+                {{ chip.label }}
+            </ol-chip>
+        {% endfor %}
+    </div>
+{% endif %}

@@ -6,52 +6,150 @@ import random
 import web
 
 from infogami import config  # noqa: F401 side effects may be needed
-from infogami.infobase.client import storify
 from infogami.utils import delegate
-from infogami.utils.view import public, render_template
-from openlibrary.core import admin, cache, env, ia, lending
+from infogami.utils.view import render_template
+from openlibrary.core import admin, cache, env
+from openlibrary.core.helpers import commify
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary import home_genres
 from openlibrary.plugins.upstream.utils import (
     convert_iso_to_marc,
     get_blog_feeds,
     get_populated_languages,
 )
 from openlibrary.plugins.worksearch import search, subjects
+from openlibrary.plugins.worksearch.code import work_search_async
 from openlibrary.utils import dateutil
-from openlibrary.utils.request_context import (
-    req_context,
-    set_context_from_legacy_web_py,
-)
+from openlibrary.utils.async_utils import async_bridge
+from openlibrary.utils.request_context import caching_prethread, get_request_lang, req_context
 
 logger = logging.getLogger("openlibrary.home")
-
-CAROUSELS_PRESETS = {
-    "preset:comics": (
-        '(subject:"comics" OR creator:("Gary Larson") OR creator:("Larson, Gary") '
-        'OR creator:("Charles M Schulz") OR creator:("Schulz, Charles M") OR '
-        'creator:("Jim Davis") OR creator:("Davis, Jim") OR creator:("Bill Watterson")'
-        'OR creator:("Watterson, Bill") OR creator:("Lee, Stan"))'
-    ),
-    "preset:authorsalliance_mitpress": (
-        "(openlibrary_subject:(authorsalliance) OR collection:(mitpress) OR publisher:(MIT Press) OR openlibrary_subject:(mitpress))"
-    ),
-}
 
 
 def get_homepage(devmode):
     try:
-        stats = admin.get_stats(use_mock_data=devmode)
+        stats = admin.get_stats(ndays=LIBRARY_STATS_WINDOW, use_mock_data=devmode)
     except Exception:
         logger.error("Error in getting stats", exc_info=True)
         stats = None
     blog_posts = get_blog_feeds()
+    # The genre cache is shared across languages, so names are translated and thin rows dropped per page.
+    try:
+        marc = home_genres.language_marc(get_request_lang())
+        featured_genres = [
+            {
+                **genre,
+                "name": home_genres.display_name(genre),
+                "subgenres": [{**s, "name": home_genres.subgenre_name(s)} for s in home_genres.subgenres_for(genre, marc)],
+            }
+            for genre in get_cached_featured_genres()
+        ]
+    except Exception:
+        logger.error("Error in getting featured genres", exc_info=True)
+        featured_genres = []
 
     # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
     # during subsequent called
-    page = render_template("home/index", stats=stats, blog_posts=blog_posts)
+    page = render_template(
+        "home/index",
+        blog_posts=blog_posts,
+        featured_genres=featured_genres,
+        library_stats=get_library_stats(stats),
+    )
     # Convert to a dict so it can be cached
     return dict(page)
+
+
+# The stats card (home/library_row.html.jinja): four of admin.get_stats's series,
+# each summed over the last 28 days, with a sparkline of the 7-day average drawn in a 120x28 box
+# and the change from its first point to its last.
+LIBRARY_STATS_DAYS = 28
+SMOOTHING_DAYS = 7
+# The card's 28 days, plus the six before them so its first day has a full 7-day average.
+LIBRARY_STATS_WINDOW = LIBRARY_STATS_DAYS + SMOOTHING_DAYS - 1
+SPARKLINE_WIDTH = 120
+SPARKLINE_HEIGHT = 28
+
+
+def compact_number(n: int) -> str:
+    """1234 -> "1.2K", 96400 -> "96K", 1200000 -> "1.2M"; under a thousand, the number itself."""
+    for threshold, suffix in ((1_000_000, "M"), (1_000, "K")):
+        if n >= threshold:
+            value = n / threshold
+            text = f"{value:.1f}" if value < 10 else f"{value:.0f}"
+            if "." in text:
+                text = text.rstrip("0").rstrip(".")
+            return text + suffix
+    return commify(n)
+
+
+def rolling_average(values: list[int], window: int = 7) -> list[float]:
+    """Trailing average of each day and the `window - 1` before it, which irons out the weekend
+    dip so the line shows the trend. Zeros are days with no count: left out of each average,
+    and a day whose whole window is empty stays 0."""
+    averages = []
+    for i in range(len(values)):
+        days = [v for v in values[max(0, i - window + 1) : i + 1] if v]
+        averages.append(sum(days) / len(days) if days else 0)
+    return averages
+
+
+def sparkline_points(values: list[float], width: int = SPARKLINE_WIDTH, height: int = SPARKLINE_HEIGHT, pad: int = 2, min_span: float = 0.12) -> str:
+    """SVG polyline points for the daily values, oldest first. The scale tops out at the peak and
+    spans at least `min_span` of it, so a rise of 12% or more fills the box and a percent or two stays a ripple.
+    Zeros are days with no count and are skipped, not drawn."""
+    present = [v for v in values if v]
+    if not present:
+        return ""
+    high = max(present)
+    low = min(*present, high * (1 - min_span))
+    step = (width - 2 * pad) / max(len(values) - 1, 1)
+    return " ".join(f"{pad + i * step:.1f},{pad + (height - 2 * pad) * (high - value) / (high - low):.1f}" for i, value in enumerate(values) if value)
+
+
+def percent_change(line: list[float]) -> int | None:
+    """Change from the first point of the sparkline to its last: the 7-day average at the start of
+    the window against the one ending today, so the figure always agrees with the line."""
+    present = [v for v in line if v]
+    if len(present) < 2:
+        return None
+    return round((present[-1] - present[0]) / present[0] * 100)
+
+
+def get_library_stats(stats) -> list[dict]:
+    """The card's metrics, in reading order. A series with nothing in the window is left off
+    rather than shown as zero."""
+    if not stats:
+        return []
+
+    def metric(key, label, href):
+        # A count the stats script began writing part-way through the window would add up to a fraction of a month.
+        if not (stat := stats.get(key)) or not stat.has_counts(LIBRARY_STATS_WINDOW):
+            return None
+        # Graphite reports days it has no data for (often today) as None or 0.
+        counts = [int(count or 0) for _day, count in stat.get_counts(LIBRARY_STATS_WINDOW)]
+        line = rolling_average(counts, SMOOTHING_DAYS)[-LIBRARY_STATS_DAYS:]
+        if total := sum(counts[-LIBRARY_STATS_DAYS:]):
+            return {
+                "label": label,
+                "value": compact_number(total),
+                "href": href,
+                "points": sparkline_points(line),
+                "change": percent_change(line),
+            }
+        return None
+
+    series = [
+        metric("members", _("New Members"), "/stats"),
+        metric("loans", _("Books Read"), "/subjects/in_library#ebooks=true"),
+        # Catalog edits (human edits minus signups) and list edits are newer daily counts. Until the
+        # docs carry a full window of them, the older series stand in, so the card never sums or
+        # compares across the change.
+        metric("catalog_edits", _("Catalog Edits"), "/recentchanges") or metric("human_edits", _("Catalog Edits"), "/recentchanges"),
+        metric("list_edits", _("Lists Updated"), "/lists") or metric("lists", _("Lists Created"), "/lists"),
+    ]
+    return [m for m in series if m]
 
 
 def get_cached_homepage():
@@ -77,32 +175,6 @@ def get_cached_homepage():
         mc(devmode)
 
     return page
-
-
-# Because of caching, memcache will call `get_homepage` on another thread! So we
-# need a way to carry some information to that computation on the other thread.
-# We do that by using a python closure. The outer function is executed on the main
-# thread, so all the web.* stuff is correct. The inner function is executed on the
-# other thread, so all the web.* stuff will be dummy.
-def caching_prethread():
-    from openlibrary.plugins.openlibrary.code import is_bot
-
-    # web.ctx.lang is undefined on the new thread, so need to transfer it over
-    lang = req_context.get().lang
-    host = web.ctx.host
-    _is_bot = is_bot()
-
-    def main():
-        # Leaving this in since this is a bit strange, but you can see it clearly
-        # in action with this debug line:
-        # web.debug(f'XXXXXXXXXXX web.ctx.lang={web.ctx.get("lang")}; {lang=}')
-        delegate.fakeload()
-        web.ctx.lang = lang
-        web.ctx.is_bot = _is_bot
-        web.ctx.host = host
-        set_context_from_legacy_web_py()
-
-    return main
 
 
 class home(delegate.page):
@@ -156,26 +228,8 @@ class random_book(delegate.page):
         raise web.seeother(random.choice(keys))
 
 
-def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None, safe_mode=True):
-    if "env" not in web.ctx:
-        delegate.fakeload()
-
-    elif query in CAROUSELS_PRESETS:
-        query = CAROUSELS_PRESETS[query]
-
-    limit = limit or lending.DEFAULT_IA_RESULTS
-    books = lending.get_available(
-        limit=limit,
-        subject=subject,
-        sorts=sorts,
-        query=query,
-        safe_mode=safe_mode,
-    )
-    formatted_books = [format_book_data(book, False) for book in books if book != "error"]
-    return formatted_books
-
-
 def get_featured_subjects():
+    """The subject list behind the OPDS catalog's navigation (api.py)."""
     # web.ctx must be initialized as it won't be available to the background thread.
     if "env" not in web.ctx:
         delegate.fakeload()
@@ -260,7 +314,6 @@ def get_featured_subjects():
     return [{**subject, **(subjects.get_subject(subject["key"], limit=0) or {})} for subject in FEATURED_SUBJECTS]
 
 
-@public
 def get_cached_featured_subjects():
     return cache.memcache_memoize(
         get_featured_subjects,
@@ -270,69 +323,42 @@ def get_cached_featured_subjects():
     )()
 
 
-@public
-def generic_carousel(
-    query=None,
-    subject=None,
-    sorts=None,
-    limit=None,
-    timeout=None,
-    safe_mode=True,
-):
-    memcache_key = "home.ia_carousel_books"
-    cached_ia_carousel_books = cache.memcache_memoize(
-        get_ia_carousel_books,
-        memcache_key,
-        timeout=timeout or cache.DEFAULT_CACHE_LIFETIME,
+GENRE_TILE_COVERS = 3
+
+
+def get_featured_tile_covers() -> list[int]:
+    """Covers for the Featured tile: its Trending row, live, unlike the other tiles' hand-picked ones."""
+    results = async_bridge.run(
+        work_search_async(
+            {"q": home_genres.solr_query(home_genres.FEATURED), "has_fulltext": "true"},
+            sort="trending",
+            fields="cover_i",
+            limit=GENRE_TILE_COVERS * 2,
+            facet=False,
+            request_label="BOOK_CAROUSEL",
+        )
+    )
+    return [doc["cover_i"] for doc in results.get("docs", []) if doc.get("cover_i")][:GENRE_TILE_COVERS]
+
+
+def get_featured_genres():
+    """Tiles for home/browse_stacks.html.jinja, Featured first. A genre without picked covers gets no tile."""
+    if "env" not in web.ctx:
+        delegate.fakeload()
+    picked = home_genres.load_tile_covers()
+    # Fall back to the picked Featured covers when the live query is empty (Solr error, or a dev index with no trending data).
+    picked = {**picked, home_genres.FEATURED["slug"]: get_featured_tile_covers() or picked.get(home_genres.FEATURED["slug"], [])}
+    nodes = [home_genres.FEATURED, *(genre for genre in home_genres.load_home_genres() if picked.get(genre["slug"]))]
+    return [{**genre, "covers": picked[genre["slug"]][:GENRE_TILE_COVERS]} for genre in nodes]
+
+
+def get_cached_featured_genres():
+    return cache.memcache_memoize(
+        get_featured_genres,
+        "home.featured_genres",
+        timeout=dateutil.DAY_SECS,
         prethread=caching_prethread(),
-    )
-    books = cached_ia_carousel_books(
-        query=query,
-        subject=subject,
-        sorts=sorts,
-        limit=limit,
-        safe_mode=safe_mode,
-    )
-    if not books:
-        books = cached_ia_carousel_books.update(
-            query=query,
-            subject=subject,
-            sorts=sorts,
-            limit=limit,
-            safe_mode=safe_mode,
-        )[0]
-    return storify(books) if books else books
-
-
-def format_book_data(book, fetch_availability=True):
-    d = web.storage()
-    d.key = book.get("key")
-    d.url = book.url()
-    d.title = book.title or None
-    d.ocaid = book.get("ocaid")
-    d.eligibility = book.get("eligibility", {})
-    d.availability = book.get("availability", {})
-
-    def get_authors(doc):
-        return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]
-
-    work = book.works and book.works[0]
-    d.authors = get_authors(work or book)
-    d.work_key = work.key if work else book.key
-
-    if cover := book.get_cover():
-        d.cover_url = cover.url("M")
-    elif d.ocaid:
-        d.cover_url = "https://archive.org/services/img/%s" % d.ocaid
-
-    if fetch_availability and d.ocaid:
-        collections = ia.get_metadata(d.ocaid).get("collection", [])
-
-        if "inlibrary" in collections:
-            d.borrow_url = book.url("/borrow")
-        else:
-            d.read_url = book.url("/borrow")
-    return d
+    )()
 
 
 def setup():

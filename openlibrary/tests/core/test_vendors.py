@@ -1,5 +1,6 @@
 import importlib
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -247,6 +248,8 @@ def test_betterworldbooks_fmt():
     assert bad_data.get("price") is None
     assert bad_data.get("price_amt") is None
     assert bad_data.get("qlt") is None
+    assert bad_data.get("new_qty") is None
+    assert bad_data.get("used_price") is None
 
 
 # Test cases to add:
@@ -310,7 +313,10 @@ def test_get_amazon_metadata() -> None:
         return MockResponse()
 
     with (
-        patch("openlibrary.core.vendors.async_session.get", new=mock_async_get),
+        patch(
+            "openlibrary.core.vendors.get_async_session",
+            new=lambda: SimpleNamespace(get=mock_async_get),
+        ),
         patch("openlibrary.core.vendors.affiliate_server_url", new=True),
     ):
         got = get_amazon_metadata(id_=isbn, id_type="isbn")
@@ -362,7 +368,10 @@ async def test_get_amazon_metadata_async() -> None:
     # Use the ISBN-13 form of the same book for a distinct cache key.
     isbn = "9780590353427"
     with (
-        patch("openlibrary.core.vendors.async_session.get", new=mock_async_get),
+        patch(
+            "openlibrary.core.vendors.get_async_session",
+            new=lambda: SimpleNamespace(get=mock_async_get),
+        ),
         patch("openlibrary.core.vendors.affiliate_server_url", new=True),
     ):
         got = await get_amazon_metadata_async(id_=isbn, id_type="isbn", timeout=5.0)
@@ -672,12 +681,32 @@ class CPrice:
 @dataclass
 class CAvailability:
     type: str = ""
+    message: str | None = None
+
+
+@dataclass
+class CCondition:
+    value: str | None = None
+    sub_condition: str | None = None
+
+
+@dataclass
+class CMerchantInfo:
+    name: str | None = None
+
+
+@dataclass
+class CDealDetails:
+    badge: str | None = None
 
 
 @dataclass
 class CListing:
     price: object = None
     availability: object = None
+    condition: object = None
+    merchant_info: object = None
+    deal_details: object = None
 
 
 @dataclass
@@ -749,7 +778,10 @@ def _make_creators_item() -> CItem:
                         savings=CSavings(10.0),
                         saving_basis=CSavingBasis(money=CMoney("$10.56", 10.56)),
                     ),
-                    availability=CAvailability("IN_STOCK"),
+                    availability=CAvailability("IN_STOCK", "In Stock"),
+                    condition=CCondition("New", "New"),
+                    merchant_info=CMerchantInfo("Amazon.com"),
+                    deal_details=CDealDetails("Limited time deal"),
                 )
             ]
         ),
@@ -812,6 +844,11 @@ def test_creators_serialize_full_book() -> None:
     # Creators API additions absent from the legacy PA-API output
     assert result["categories"] == ["Science & Math", "Oceans & Seas"]
     assert result["availability"] == "IN_STOCK"
+    assert result["availability_message"] == "In Stock"
+    assert result["condition"] == "New"
+    assert result["sub_condition"] == "New"
+    assert result["merchant"] == "Amazon.com"
+    assert result["deal_badge"] == "Limited time deal"
     assert result["price_savings_pct"] == 10.0
     assert result["list_price"] == "$10.56"
     assert result["image_variants"] == ["https://m.media-amazon.com/images/I/variant1.jpg"]
@@ -913,3 +950,20 @@ def test_amazon_affiliate_url_explicit_asin_overrides_isbn_conversion() -> None:
 def test_amazon_affiliate_url_no_identifiers_returns_none() -> None:
     """Without isbn or asin, function returns None."""
     assert amazon_affiliate_url(None, None, "test-tag") is None
+
+
+def test_amazon_affiliate_url_falls_back_to_keyword_search() -> None:
+    """Without isbn or asin, a query searches Amazon's books for those keywords."""
+    url = amazon_affiliate_url(None, None, "test-tag", query="Dune Frank Herbert")
+    assert url == "https://www.amazon.com/s?k=Dune%20Frank%20Herbert&i=stripbooks&tag=test-tag"
+
+
+def test_amazon_affiliate_url_prefers_identifiers_over_query() -> None:
+    """An isbn or asin identifies the book exactly, so it wins over keywords."""
+    isbn_10_url = amazon_affiliate_url("9780590353427", None, "test-tag", query="Holes Louis Sachar")
+    assert isbn_10_url is not None
+    assert "/dp/059035342X/" in isbn_10_url
+
+    isbn_979_url = amazon_affiliate_url("9798776159572", None, "test-tag", query="Pickleball Soap Opera")
+    assert isbn_979_url is not None
+    assert "/s?k=9798776159572" in isbn_979_url

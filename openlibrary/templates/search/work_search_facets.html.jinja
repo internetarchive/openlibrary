@@ -1,0 +1,48 @@
+{# Search sidebar facets ("Zoom In").
+   `facets` are pre-computed FacetGroup objects from render_search_facets() in
+   openlibrary/plugins/worksearch/facets.py. #}
+<div id="searchFacets"
+     data-config="{{ config_json }}"
+     data-param="{{ param_json }}"
+     data-async-load="{{ async_load_json }}">
+    <h3 class="collapse">{{ _("Zoom In") }}</h3>
+    {# djlint:off H021 #}
+    <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">
+        {{ _("Focus your results using these <a href=\"/search/howto\">filters</a>") | safe }}
+    </div>
+    {# djlint:on #}
+    <p class="search-facets-error ui-helper-hidden" role="status">{{ _("Search filters are temporarily unavailable. Please try again later.") }}</p>
+    {% for f in facets %}
+        <div class="facet {{ f.header }}">
+            <h4 class="facetHead">
+                {{ f.label }}
+                {% if f.merge_url %}
+                    <span class="merge"><a href="{{ f.merge_url }}"
+   title="{{ _('Merge duplicate authors from this search') }}">{{ _("Merge duplicates") }}</a></span>
+                {% endif %}
+            </h4>
+            {% if async_load %}
+                <div class="facetEntry"><span class="small">{{ _("Loading...") }}</span></div>
+            {% else %}
+                {% for e in f.entries %}
+                    <div class="facetEntry{% if e.hidden %} ui-helper-hidden{% endif %}">
+                        <ol-chip size="small" href="{{ e.url }}" title="{{ e.title }}" data-ol-link-track="{{ e.track }}" count="{{ e.count_html }}">
+                            {{ e.label }}
+                        </ol-chip>
+                    </div>
+                {% endfor %}
+                {% if f.more_less %}
+                    <div class="facetMoreLess">
+                        <span class="header_more small" data-header="{{ f.header }}">
+                            <a href="javascript:;" id="{{ f.header }}_more">{{ _("More") }}</a>
+                        </span>
+                        <span id="{{ f.header }}_bull" class="header_bull small gray">•</span>
+                        <span class="header_less small" data-header="{{ f.header }}">
+                            <a href="javascript:;" id="{{ f.header }}_less" class="ui-helper-hidden">{{ _("Less") }}</a>
+                        </span>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>

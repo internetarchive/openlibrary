@@ -35,16 +35,18 @@ olspy_head() {
 
     local process_pattern=""
     if [[ "$1" == "webpy" ]]; then
-        process_pattern='openlibrary-server|coverstore-server'
+        process_pattern='openlibrary-server'
     elif [[ "$1" == "fastapi" ]]; then
-        process_pattern='uvicorn'
+        # coverstore-server runs uvicorn workers, but builds gunicorn programmatically,
+        # so unlike the main app its command line never mentions uvicorn.
+        process_pattern='uvicorn|coverstore-server'
     elif [[ -z "$1" || "$1" == "--help" ]]; then
         echo "Usage: $0 <webpy|fastapi>"
         echo "Print the top stack frame(s) for each worker process using py-spy."
         echo ""
         echo "Arguments:"
-        echo "  webpy    Inspect web.py worker processes (openlibrary-server, coverstore-server)"
-        echo "  fastapi  Inspect FastAPI worker processes (uvicorn workers)"
+        echo "  webpy    Inspect web.py worker processes (openlibrary-server)"
+        echo "  fastapi  Inspect FastAPI worker processes (uvicorn workers, coverstore-server)"
         echo ""
         echo "Environment variables:"
         echo "  COUNT=<n>               Number of stack frames to print per worker (default: 5)"
@@ -86,7 +88,7 @@ olspy_head() {
 export -f olspy_head
 
 exclude_internal_methods() {
-    grep -vE 'ssl\.py|urllib3|httpcore|httpx/|http/client\.py|sentry_sdk|requests/|urllib/|wait \(threading.py|result \(concurrent/futures|async_utils\.py|socket\.py|_call_with_frames_removed|get_solr_keys|storify \(web\/utils.py|_write_raw \(gzip\.py|\(json\/|urlopen_keep_trying|PIL\/|importlib._bootstrap_external|_db_cursor|anyio\/|contextlib\.py'
+    grep -vE 'ssl\.py|urllib3|httpcore|httpx/|http/client\.py|sentry_sdk|requests/|urllib/|wait \(threading.py|result \(concurrent/futures|run \(openlibrary/utils/async_utils\.py|socket\.py|_call_with_frames_removed|get_solr_keys|storify \(web\/utils.py|_write_raw \(gzip\.py|\(json\/|urlopen_keep_trying|PIL\/|importlib._bootstrap_external|_db_cursor|anyio\/|contextlib\.py'
 }
 export -f exclude_internal_methods
 
@@ -122,6 +124,7 @@ classify_workers_cur_fn() {
         else if ($0 ~ /GET \(openlibrary\/plugins\/worksearch\/code\.py/) print "ol.worksearch_GET";
         else if ($0 ~ /GET \(openlibrary\/views\/showmarc\.py/) print "ol.showmarc_GET";
         else if ($1 == "render_list_preview_image") print "ol.render_list_preview_image";
+        else if ($2 ~ /openlibrary\/utils\/async_utils\.py/) { sub(/_async$/, "", $1); print "async." $1; }
         else if ($2 ~ /infogami\/infobase\//) print "infobase.other";
         else print "other.other";
     }'

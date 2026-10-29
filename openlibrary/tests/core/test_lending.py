@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -55,7 +56,11 @@ class TestGetAvailability:
         req_context.reset(token)
 
     def test_cache(self):
-        with patch("openlibrary.core.ia.async_session.get") as mock_get:
+        mock_get = AsyncMock()
+        with patch(
+            "openlibrary.core.ia.get_async_session",
+            return_value=SimpleNamespace(get=mock_get),
+        ):
             mock_response = AsyncMock()
             mock_response.json = Mock(
                 return_value={
@@ -201,3 +206,79 @@ class TestGetLendingState:
         with patch("openlibrary.book_providers.get_book_provider_by_name", return_value=mock_ia_provider):
             doc = {"key": "/books/OL1M", "ocaid": "foo", "availability": {"is_readable": True, "is_lendable": True}}
             assert lending.get_lending_state(doc, user=mock_user, check_loan_status=True) == "open"
+
+
+@pytest.mark.asyncio
+async def test_get_checked_out_async(monkeypatch):
+    availabilities = {
+        "out00": {"status": "borrow_unavailable"},
+        "in00": {"status": "borrow_available"},
+        "open00": {"status": "open"},
+        "error": "request_timeout",
+    }
+    monkeypatch.setattr(lending, "get_availability_async", AsyncMock(return_value=availabilities))
+
+    assert await lending.get_checked_out_async(["out00", "in00", "open00"]) == {"out00"}
+
+
+def test_get_loan_queries_ia_once(monkeypatch):
+    mock_api = Mock()
+    mock_api.get_loan.return_value = {"identifier": "foo00bar"}
+    monkeypatch.setattr(lending, "ia_lending_api", mock_api)
+    monkeypatch.setattr(lending.Loan, "from_ia_loan", staticmethod(lambda d: ("loan", d)))
+
+    assert lending.get_loan("foo00bar") == ("loan", {"identifier": "foo00bar"})
+    mock_api.get_loan.assert_called_once_with("foo00bar")
+
+
+@pytest.mark.usefixtures("request_context_fixture")
+class TestGetLoanHistoryData:
+    """parse_s3_cookie() is annotated `dict | None` and legitimately returns
+    None for a patron with no `s3` cookie. s3_loan_api() then does
+    `s3_keys | kwargs`, which raises
+    TypeError: unsupported operand type(s) for |: 'NoneType' and 'dict'.
+
+    This matters because /account/loans calls get_loan_history_data() directly
+    and is not wrapped in a try/except, so the whole page 500s -- a page that
+    rendered fine before loan history was folded into it.
+    """
+
+    def test_returns_empty_history_when_patron_has_no_s3_keys(self):
+        response = Mock()
+        response.json.return_value = {"history": {"items": []}}
+        with (
+            patch.object(lending.OpenLibraryAccount, "get_by_username", return_value=Mock()),
+            patch("openlibrary.core.lending.web.cookies", return_value={"s3": "irrelevant"}),
+            patch("openlibrary.core.lending.parse_s3_cookie", return_value=None),
+            patch("openlibrary.core.lending.s3_loan_api", return_value=response) as mock_api,
+            patch("openlibrary.core.lending.get_items_and_add_availability", return_value={}),
+        ):
+            result = lending.get_loan_history_data("someuser", page=1)
+
+        # Must short-circuit: calling the real s3_loan_api with None keys raises
+        # TypeError on `s3_keys | kwargs`, which 500s /account/loans.
+        mock_api.assert_not_called()
+        assert result["docs"] == []
+        assert result["show_next"] is False
+        assert result["page"] == 1
+
+    def test_real_s3_loan_api_cannot_take_none_keys(self):
+        """Documents why the guard above is needed, at the boundary itself."""
+        with pytest.raises(TypeError):
+            lending.s3_loan_api(s3_keys=None, action="user_borrow_history", limit=1)
+
+    def test_still_queries_ia_when_s3_keys_are_present(self):
+        """Guard against 'fixing' the above by disabling history for everyone."""
+        response = Mock()
+        response.json.return_value = {"history": {"items": []}}
+        with (
+            patch.object(lending.OpenLibraryAccount, "get_by_username", return_value=Mock()),
+            patch("openlibrary.core.lending.web.cookies", return_value={"s3": "irrelevant"}),
+            patch("openlibrary.core.lending.parse_s3_cookie", return_value={"access": "a", "secret": "s"}),
+            patch("openlibrary.core.lending.s3_loan_api", return_value=response) as mock_api,
+            patch("openlibrary.core.lending.get_items_and_add_availability", return_value={}),
+        ):
+            result = lending.get_loan_history_data("someuser", page=1)
+
+        mock_api.assert_called_once()
+        assert result["docs"] == []

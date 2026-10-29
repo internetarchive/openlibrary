@@ -2,6 +2,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 import './OlPopover.js';
+import { focusRing, menuRow } from './control-styles.js';
 
 let _idCounter = 0;
 
@@ -50,90 +51,79 @@ export class OlMenuPopover extends LitElement {
         value: { type: String, reflect: true },
         label: { type: String },
         heading: { type: String },
-        _focusIndex: { state: true },
+        _focusIndex: { state: true }
     };
 
-    static styles = css`
-        :host {
-            display: inline-block;
-            font-family: var(--font-family-body);
-        }
+    static styles = [
+        menuRow,
+        focusRing,
+        css`
+            :host {
+                display: inline-block;
+                font-family: var(--font-family-body);
 
-        /* No trigger styles here: the default trigger is an <ol-button>,
+                /* Declared here rather than on .panel: the panel is slotted into
+               <ol-popover>, whose tray clears these, and an override only
+               reaches it by inheriting past the tray. */
+                --ol-popover-content-max-width: 360px;
+                --ol-popover-content-max-height: min(70vh, 480px);
+            }
+
+            /* No trigger styles here: the default trigger is an <ol-button>,
            which paints itself. */
 
-        .panel {
-            display: flex;
-            flex-direction: column;
-            min-width: 200px;
-            max-width: min(90vw, 360px);
-            max-height: min(70vh, 480px);
-        }
-
-        .menu {
-            display: flex;
-            flex-direction: column;
-            padding: var(--spacing-inset-xs) 0;
-            overflow-y: auto;
-        }
-
-        .menu-heading {
-            margin: 0;
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
-            color: var(--color-text-muted);
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        /* Real <button>s so Enter/Space activate natively; the keydown handler
-           only moves focus. UA button box reset so they read as menu rows. */
-        .item {
-            display: block;
-            width: 100%;
-            box-sizing: border-box;
-            margin: 0;
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-            border: 0;
-            background: none;
-            color: var(--darker-grey);
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 1.4;
-            text-align: left;
-            cursor: pointer;
-        }
-
-        /* Nested items are a subset of the item above them. */
-        .item--nested {
-            padding-left: var(--spacing-inset-xl);
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .item:hover {
-                background: var(--color-hover-overlay);
+            .panel {
+                display: flex;
+                flex-direction: column;
+                min-width: 200px;
+                max-width: var(--ol-popover-content-max-width);
+                max-height: var(--ol-popover-content-max-height);
             }
-        }
 
-        /* No radio to carry the state, so the row shows it — same tint and
-           weight ol-options-popover uses. */
-        .item[aria-checked="true"] {
-            background: var(--color-control-selected-bg);
-            color: var(--color-link);
-            font-weight: 600;
-        }
+            .menu {
+                display: flex;
+                flex-direction: column;
+                padding: var(--menu-row-inset) 0;
+                overflow-y: auto;
+            }
 
-        .item[aria-checked="true"]:hover {
-            background: var(--color-control-selected-bg-hover);
-        }
+            .menu-heading {
+                margin: 0;
+                padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
+                color: var(--color-text-muted);
+                font-size: var(--font-size-overline);
+                font-weight: var(--font-weight-overline);
+                letter-spacing: var(--letter-spacing-overline);
+                text-transform: var(--text-transform-overline);
+            }
 
-        .item:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
-            outline-offset: -2px;
-        }
-    `;
+            /* Real <button>s so Enter/Space activate natively; the keydown handler
+           only moves focus. The row geometry and hover are the shared .menu-row
+           (control-styles.js); this is the UA button reset on top of it. */
+            .item {
+                border: 0;
+                background: none;
+                /* A real <button>, so the page ink has to be inherited explicitly. */
+                color: inherit;
+                font-family: inherit;
+                font-size: 14px;
+                text-align: left;
+                /* The shared .focus-ring, pulled inside the row: an outer ring would
+               be clipped by the panel. */
+                --_focus-offset: -2px;
+            }
+
+            /* Nested items are a subset of the item above them. Less the row's own
+           inset, so the indent is measured from the panel like every other
+           label offset. */
+            .item--nested {
+                padding-left: calc(var(--spacing-inset-xl) - var(--menu-row-inset));
+            }
+
+            /* No radio on the row, so the shared .menu-row selected look
+           (tint + link text, keyed on aria-checked) is the whole indicator. */
+        `
+    ];
 
     constructor() {
         super();
@@ -149,9 +139,7 @@ export class OlMenuPopover extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
-        const hasConsumerTrigger = Array.from(this.children).some(
-            el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
-        );
+        const hasConsumerTrigger = Array.from(this.children).some(el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger');
         if (!hasConsumerTrigger && !this._defaultTrigger) {
             this._createDefaultTrigger();
         }
@@ -166,16 +154,8 @@ export class OlMenuPopover extends LitElement {
 
     render() {
         return html`
-            <ol-popover
-                placement="bottom-start"
-                aria-label=${ifDefined(this.getAttribute('aria-label') || this.label || undefined)}
-                @ol-popover-open=${this._onPopoverOpen}
-            >
-                <slot
-                    name="trigger"
-                    slot="trigger"
-                    @keydown=${this._onTriggerKeydown}
-                ></slot>
+            <ol-popover aria-label=${ifDefined(this.getAttribute('aria-label') || this.label || undefined)} @ol-popover-open=${this._onPopoverOpen}>
+                <slot name="trigger" slot="trigger" @keydown=${this._onTriggerKeydown}></slot>
                 ${this._renderPanel()}
             </ol-popover>
         `;
@@ -255,13 +235,15 @@ export class OlMenuPopover extends LitElement {
         const isCurrent = item.value === this.value;
         return html`
             <button
-                class="item ${item.nested ? 'item--nested' : ''}"
+                class="item menu-row focus-ring ${item.nested ? 'item--nested' : ''}"
                 type="button"
                 role="menuitemradio"
                 aria-checked=${isCurrent ? 'true' : 'false'}
                 tabindex=${i === this._focusIndex ? '0' : '-1'}
                 @click=${() => this._activate(item.value)}
-            >${item.label}</button>
+            >
+                ${item.label}
+            </button>
         `;
     }
 
@@ -297,7 +279,7 @@ export class OlMenuPopover extends LitElement {
             count: items.length,
             current: this._focusIndex,
             orientation: 'vertical',
-            wrap: true,
+            wrap: true
         });
         if (target === -1) return;
         e.preventDefault();
@@ -312,10 +294,13 @@ export class OlMenuPopover extends LitElement {
 
     _activate(value) {
         this.value = value;
-        this.dispatchEvent(new CustomEvent('ol-menu-popover-select', {
-            bubbles: true, composed: true,
-            detail: { value },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-menu-popover-select', {
+                bubbles: true,
+                composed: true,
+                detail: { value }
+            })
+        );
         const popover = this.renderRoot?.querySelector('ol-popover');
         if (popover) popover.open = false;
     }

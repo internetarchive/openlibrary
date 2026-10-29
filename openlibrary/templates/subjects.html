@@ -61,7 +61,7 @@ $ q = query_param('q')
     $:macros.PublishingHistory(async_load=True, key=page.key)
 
     <div class="clearfix"></div>
-    $:macros.RelatedSubjects(async_load=True, key=page.key)
+    $:render_jinja_template("RelatedSubjects.html.jinja", async_load=True, key=page.key)
 
     <div class="clearfix"></div>
     $:macros.SubjectAuthors(page.get('notable_authors', []))

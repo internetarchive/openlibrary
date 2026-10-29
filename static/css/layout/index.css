@@ -1,5 +1,6 @@
 :root {
-  --contentBody-padding: 20px;
+  /* Legacy name; the value is the page gutter token (tokens/spacing.css). */
+  --contentBody-padding: var(--spacing-page-gutter);
 }
 
 /* === v2 layout === */
@@ -10,9 +11,9 @@
   width: 100%;
   margin: 0 auto;
   background-color: var(--white);
-  border-radius: 5px;
+  border-radius: var(--border-radius-card);
   border: 1px solid var(--color-border-muted);
-  z-index: var(--z-index-level-1);
+  z-index: var(--z-index-base);
   position: relative;
 }
 
@@ -51,6 +52,7 @@ body.full-width #test-body-mobile {
 div.contentBody,
 div#contentBody {
   padding: 0 var(--contentBody-padding) var(--contentBody-padding);
+  overflow-wrap: break-word;
 }
 div.contentBody img,
 div#contentBody img {
@@ -59,10 +61,6 @@ div#contentBody img {
 div.contentBody pre,
 div#contentBody pre {
   overflow-x: auto;
-}
-div.contentBody p a,
-div#contentBody p a {
-  word-wrap: break-word;
 }
 .section,
 section {

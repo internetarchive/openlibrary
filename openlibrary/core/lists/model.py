@@ -12,7 +12,10 @@ import web
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client, common  # noqa: F401 side effects may be needed
-from infogami.utils import stats  # noqa: F401 side effects may be needed
+from infogami.utils import (
+    stats,  # noqa: F401 side effects may be needed
+    types,
+)
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
 from openlibrary.core.models import (
@@ -35,6 +38,7 @@ from openlibrary.plugins.upstream.models import (
 )
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.subjects import get_subject
+from openlibrary.utils.request_context import site
 from openlibrary.utils.solr import Solr
 
 logger = logging.getLogger("openlibrary.lists.model")
@@ -200,7 +204,7 @@ class List(Thing):
         # as you access their attributes.
         things = cast(
             list[Thing],
-            web.ctx.site.get_many([seed.key for seed in self.get_seeds() if seed._type != "subject"]),
+            site.get().get_many([seed.key for seed in self.get_seeds() if seed._type != "subject"]),
         )
 
         # Create the return dictionary
@@ -306,7 +310,7 @@ class List(Thing):
             seed = Seed.from_db(self, s)
             max_checks = 10
             while resolve_redirects and seed.type == "redirect" and max_checks:
-                resolved_document = web.ctx.site.get(seed.document.location)
+                resolved_document = site.get().get(seed.document.location)
                 seed = seed.copy_with(thing=resolved_document)
                 max_checks -= 1
             seeds.append(seed)
@@ -330,8 +334,6 @@ class List(Thing):
                 return cover.id
 
     def get_default_cover(self):
-        from openlibrary.core.models import Image
-
         cover_id = self._get_default_cover_id()
         return Image(self._site, "b", cover_id)
 
@@ -665,14 +667,14 @@ class Series(List):
     @typing.override
     def get_seeds(self, sort=False, resolve_redirects=False) -> list[Seed]:
         # Need to query for a series' seeds
-        work_keys = web.ctx.site.things(
+        work_keys = site.get().things(
             {
                 "type": "/type/work",
                 "series": {"series": {"key": self.key}},
                 "limit": self.SEED_LIMIT,
             },
         )
-        works = cast(list[Work], web.ctx.site.get_many(work_keys))
+        works = cast(list[Work], site.get().get_many(work_keys))
         series_edges = [(work, edge) for work in works if (edge := work.find_series_edge(self.key))]
 
         sorted_edges = sorted(series_edges, key=get_work_sort_key)
@@ -693,7 +695,5 @@ def register_models():
 
 
 def register_types():
-    from infogami.utils import types
-
     types.register_type(r"^(/people/[^/]+)?/lists/OL\d+L$", "/type/list")
     types.register_type(r"^/series/OL\d+L$", "/type/series")

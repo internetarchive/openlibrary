@@ -12,8 +12,48 @@
 .searchResultItem > .searchResultItemCTA {
   padding: 0;
 }
-.searchResultItemCTA .generic-dropper-wrapper {
+.searchResultItemCTA ol-shelf-button {
   margin-top: 5px;
+}
+/* A status line ("Not in Library", "Checked Out") takes the button's slot. The
+   control height holds two lines, so it wraps, clamps at two, and rows and
+   grid cards stay aligned. Mirrored in carousel.css. */
+.searchResultItemCTA .cta-button-group > .waitinglist-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--control-height-medium);
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label-medium);
+  line-height: var(--line-height-control);
+  text-align: center;
+  text-wrap: balance;
+  hyphens: auto;
+}
+.searchResultItemCTA .waitinglist-message > span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+/* A row whose book has left the shelf this page lists stays, and says so. */
+.left-shelf-notice {
+  margin: var(--spacing-stack-xs) 0 0;
+  font-size: var(--font-size-body-small);
+  line-height: 1.3;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+.left-shelf-notice__undo {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--color-primary);
+  text-decoration: underline;
+  cursor: pointer;
 }
 /* @width-breakpoint-tablet */
 @media only screen and (min-width: 768px) {

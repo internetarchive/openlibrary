@@ -4,29 +4,30 @@
 
 export function initAdmin() {
     // admin/people/view
-    $('a.tag').on('click', function() {
-        var action;
-        var tag;
-
-        $(this).toggleClass('active');
-        action = $(this).hasClass('active') ? 'add_tag': 'remove_tag';
-        tag = $(this).text();
-        $.post(window.location.href, {
-            action: action,
-            tag: tag
+    for (const link of document.querySelectorAll('a.tag')) {
+        link.addEventListener('click', function () {
+            this.classList.toggle('active');
+            const action = this.classList.contains('active') ? 'add_tag' : 'remove_tag';
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ action, tag: this.textContent })
+            });
         });
-    });
+    }
 
     // admin/people/edits
-    $('#checkall').on('click', function() {
-        $('form.olform').find(':checkbox').prop('checked', this.checked);
+    document.getElementById('checkall')?.addEventListener('click', function () {
+        for (const box of document.querySelectorAll('form.olform input[type=checkbox]')) {
+            box.checked = this.checked;
+        }
     });
 }
 
 export function initAnonymizationButton(button) {
     const displayName = button.dataset.displayName;
     const confirmMessage = `Really anonymize ${displayName}'s account? This will delete ${displayName}'s profile page and booknotes, and anonymize ${displayName}'s reading log, reviews, star ratings, and merge request submissions.`;
-    button.addEventListener('click', function(event) {
+    button.addEventListener('click', function (event) {
         if (!confirm(confirmMessage)) {
             event.preventDefault();
         }
@@ -42,7 +43,7 @@ export function initAnonymizationButton(button) {
 export function initConfirmationButtons(buttons) {
     const confirmMessage = 'Are you sure?';
     for (const button of buttons) {
-        button.addEventListener('click', function(event) {
+        button.addEventListener('click', function (event) {
             if (!confirm(confirmMessage)) {
                 event.preventDefault();
             }

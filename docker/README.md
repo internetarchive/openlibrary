@@ -52,6 +52,15 @@ docker compose up    # Ctrl-C to stop
 docker compose up -d # or, start in detached (silent) mode
 ```
 
+If the frontend watch command reports missing icon assets, generate them from the project root and then start the watcher again:
+
+```sh
+docker compose run --rm home make icons
+docker compose run --rm home npm run watch
+```
+
+This is especially likely on a first checkout or when setting up on a new machine.
+
 You will know the environment is done loading when the text stops furiously scrolling by and you see the following repeating every few seconds on the console:
 
 ```log
@@ -203,6 +212,32 @@ docker container inspect --format '{{.NetworkSettings.Networks}}' openlibrary-we
 No restart is required. If `webnet` no longer exists, recreating it _should_ fix things: `docker network create openlibrary_webnet`.
 
 To understand a bit more about what's going on here, there are docker networks configured in `compose.yaml`. The containers should be able to resolve one another based on the container names (e.g. `web` and `solr`), assuming `compose.yaml` has them on the same netork. For more, see [Networking in Compose](https://docs.docker.com/compose/networking/).
+
+### npm fails with `ENOTEMPTY: directory not empty, rmdir ...` (Docker Desktop on macOS)
+
+Commands that run npm inside a container (e.g. `make css`/`js`, `npm run build-assets`, or `npm install`) fail consistently with an error such as:
+
+```log
+npm error code ENOTEMPTY
+npm error syscall rmdir
+npm error path /openlibrary/node_modules/vite/dist
+npm error ENOTEMPTY: directory not empty, rmdir '/openlibrary/node_modules/vite/dist'
+make: *** [Makefile:20: node_modules] Error 217
+```
+
+Sometimes accompanied by `npm ls` reporting packages as `UNMET DEPENDENCY` even though the directories visibly exist. On macOS, one known cause is Docker Desktop's **Docker VMM (beta)** virtual machine backend corrupting writes to named volumes (such as `ol-nodemodules`, the volume backing `/openlibrary/node_modules`).
+
+To resolve:
+
+1. In Docker Desktop, go to Settings → General → **Virtual machine options** and switch from "Docker VMM" to the **Apple Virtualization framework** (it's fine to keep VirtioFS selected for file sharing), then Apply & restart.
+2. Recreate the corrupted volume so it's repopulated from a healthy state:
+
+   ```sh
+   docker rm openlibrary-web-1 openlibrary-home-1  # only if these exited containers still reference the volume
+   docker volume rm openlibrary_ol-nodemodules
+   ```
+
+3. Re-run your npm command, e.g. `docker compose run --rm web make css`. (If other `*_ol-nodemodules` volumes were populated while Docker VMM was active — e.g. volumes for other clones/worktrees — recreate them the same way.)
 
 ### Permission denied errors on SELinux
 

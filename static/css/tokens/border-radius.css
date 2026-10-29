@@ -4,11 +4,11 @@
  * Rarely used directly in components - use semantic tokens instead
  */
 :root {
-  --border-radius-sm: 3px;
-  --border-radius-md: 6px;
-  --border-radius-lg: 9px;
-  --border-radius-xl: 12px;
-  --border-radius-xxl: 24px;
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --border-radius-xxl: 32px;
   --border-radius-pill: 9999px;
   --border-radius-circle: 50%;
   --border-radius-square: 0;
@@ -17,18 +17,37 @@
 /**
  * Border-Radius Semantic Tokens
  * ====================
- * Reference these throughout the app for consistent border-radius styling
+ * Reference these throughout the app for consistent border-radius styling.
+ *
+ * The step carries the meaning, so a card and a dialog don't end up the same
+ * shape:
+ *
+ *   lg  12px  floating   — it sits above the page: dialog, popover, toast, tray
+ *   md   8px  in-page    — it sits in the page: card, banner, button, input, row
+ *   sm   4px  object     — it is a small thing in its own right: badge, tag
+ *
+ * A bigger box reads squarer at the same radius, which is why one step covers
+ * both a 32px button and an 800px card without either looking wrong.
  */
 :root {
   --border-radius-button: var(--border-radius-md); /* buttons, tabs */
   --border-radius-input: var(--border-radius-md); /* inputs, textareas */
-  --border-radius-thumbnail: var(--border-radius-md); /* small images */
-  --border-radius-media: var(--border-radius-lg); /* large images, videos */
-  --border-radius-card: var(--border-radius-lg); /* cards */
-  --border-radius-overlay: var(--border-radius-xl); /* dialogs, modals */
+  /* Book covers, author portraits, illustrations. A printed object has a
+     near-square corner — a cover rounded like a control reads as an app tile
+     rather than a book — and covers are the most-repeated shape on the site. */
+  --border-radius-thumbnail: var(--border-radius-sm); /* covers, small images */
+  --border-radius-card: var(--border-radius-md); /* cards, page shell */
+  --border-radius-notification: var(--border-radius-md); /* notifications, alerts, banners */
+  --border-radius-overlay: var(--border-radius-lg); /* dialogs, modals, popovers, toasts */
+  /* Rows inside an overlay. Derived, not chosen: a row inset `--menu-row-inset`
+     (4px) from a 12px panel is concentric at 12 - 4 = 8px. Change one and the
+     other has to move, or the two corners stop sharing a centre. */
+  --border-radius-menu-row: var(--border-radius-md); /* menu rows, option rows */
   --border-radius-tooltip: var(--border-radius-md); /* tooltips */
+  /* Not `--border-radius-pill`: a chip that wraps to two lines under a 9999px
+     radius reads as a lozenge with a dent, so this is a fixed step that holds
+     up at either height. */
   --border-radius-chip: var(--border-radius-xl); /* chips, pills that may wrap */
   --border-radius-badge: var(--border-radius-sm); /* badges, tags */
-  --border-radius-notification: var(--border-radius-lg); /* notifications, alerts */
   --border-radius-avatar: var(--border-radius-circle); /* avatars, profile pictures */
 }

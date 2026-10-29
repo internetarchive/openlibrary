@@ -1,6 +1,8 @@
 import re
 import unicodedata
 
+from openlibrary.catalog.utils import flip_name, strip_c1_controls
+
 # fields needed for matching:
 # title, subtitle, isbn, publish_country, lccn, publishers, publish_date, number_of_pages, authors
 
@@ -61,9 +63,11 @@ def normalize(s: str) -> str:
     """
     Normalizes a title for matching purposes, not display,
     by lowercasing, unicode -> NFC,
+    stripping C1 control characters (non-printing),
     stripping extra whitespace and punctuation, and replacing ampersands.
     """
     s = unicodedata.normalize("NFC", s)
+    s = strip_c1_controls(s)
     s = s.replace(" & ", " and ")
     s = re_whitespace_and_punct.sub(" ", s.lower()).strip()
     return s
@@ -274,13 +278,30 @@ def level2_match(e1: dict, e2: dict) -> list[ThresholdResult]:
     return score
 
 
+def author_name_variants(name: str) -> list[str]:
+    """
+    Return the name in the form given and, if it is an inverted
+    "Last, First" form, in natural name order ("First Last").
+
+    MARC records store personal names inverted, while Open Library
+    stores them in natural order (do_flip in load_book). Both forms
+    denote the same author, so matching must accept either.
+    """
+    variants = [name]
+    if (flipped := flip_name(name)) and flipped != name:
+        variants.append(flipped)
+    return variants
+
+
 def compare_author_fields(e1_authors, e2_authors) -> bool:
     for i in e1_authors:
         for j in e2_authors:
             if normalize(i["db_name"]) == normalize(j["db_name"]):
                 return True
-            if normalize(i["name"]).strip(".") == normalize(j["name"]).strip("."):
-                return True
+            for i_name in author_name_variants(i["name"]):
+                for j_name in author_name_variants(j["name"]):
+                    if normalize(i_name) == normalize(j_name):
+                        return True
     return False
 
 

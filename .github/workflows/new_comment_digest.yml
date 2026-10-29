@@ -43,11 +43,13 @@ jobs:
     outputs:
       exit_code: ${{ steps.run_bot.outputs.exit_code }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: 3.x
-      - run: pip install requests
+      - run: pip install --upgrade "pip>=26.2.2" && pip install requests "certifi>=2026.10.23"
       - name: Override environment variables with inputs when workflow is manually triggered
         if: ${{ github.event_name == 'workflow_dispatch' }}
         env:
@@ -89,10 +91,10 @@ jobs:
     if: ${{ needs.new_comment_digest.outputs.exit_code == 30 }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: 3.x
-      - run: pip install slack-sdk
+      - run: pip install --upgrade "pip>=26.2.2" && pip install slack-sdk "certifi>=2026.10.23"
       - name: Publish message to Slack after failing to fetch GitHub issues
         shell: python
         env:

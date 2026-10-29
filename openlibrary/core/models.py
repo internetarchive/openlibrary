@@ -13,6 +13,7 @@ import requests
 import web
 
 from infogami.infobase import client
+from infogami.utils import types
 
 # TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
@@ -20,7 +21,7 @@ from openlibrary.catalog import add_book  # noqa: F401 side effects may be neede
 from openlibrary.core import lending
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.booknotes import Booknotes
-from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.bookshelves import Bookshelves, ReadingLogSort
 from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import (
     parse_datetime,
@@ -36,7 +37,7 @@ from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from openlibrary.plugins.upstream.utils import get_identifier_config
 from openlibrary.utils import extract_numeric_id_from_olid, normalize_subject_name
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import get_print_disabled, site, visitor
 
 from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
 from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_url
@@ -276,7 +277,6 @@ class Edition(Thing):
 
         * read_url - url to read the book
         * borrow_url - url to borrow the book
-        * borrowed - True if the book is already borrowed
         * daisy_url - url to access the daisy format of the book
         * daisy_only - a boolean indicating whether book avail
                        exclusively as daisy
@@ -290,8 +290,7 @@ class Edition(Thing):
 
             {
                 "daisy_url": "/books/OL1M/foo/daisy",
-                "borrow_url": "/books/OL1M/foo/borrow",
-                "borrowed": False
+                "borrow_url": "/books/OL1M/foo/borrow"
             }
 
         """
@@ -306,10 +305,6 @@ class Edition(Thing):
 
             if borrowable:
                 d["borrow_url"] = self.url("/borrow")
-                key = "ebooks" + self.key
-                doc = self._site.store.get(key) or {}
-                # caution, solr borrow status may be stale!
-                d["borrowed"] = doc.get("borrowed") == "true"
                 d["daisy_only"] = False
             elif "printdisabled" not in collections:
                 d["read_url"] = f"https://archive.org/stream/{self.ocaid}"
@@ -347,9 +342,10 @@ class Edition(Thing):
         return waitinglist.get_waitinglist_size(self.key)
 
     def get_loans(self):
-        from ..plugins.upstream import borrow
-
-        return borrow.get_edition_loans(self)
+        if not self.ocaid:
+            return []
+        loan = lending.get_loan(self.ocaid)
+        return [loan] if loan else []
 
     def get_ia_download_link(self, suffix):
         """Returns IA download link for given suffix.
@@ -547,7 +543,7 @@ class Work(Thing):
         if not username:
             return None
         work_id = extract_numeric_id_from_olid(self.key)
-        rating = Ratings.get_users_rating_for_work(username, work_id)
+        rating = Ratings.get_users_rating_for_work_sync(username, work_id)
         return rating
 
     def get_patrons_who_also_read(self):
@@ -558,7 +554,7 @@ class Work(Thing):
         if not username:
             return None
         work_id = extract_numeric_id_from_olid(self.key)
-        status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
+        status_id = Bookshelves.get_users_read_status_of_work_sync(username, work_id)
         return status_id
 
     def get_users_notes(self, username, edition_olid=None):
@@ -566,14 +562,14 @@ class Work(Thing):
             return None
         work_id = extract_numeric_id_from_olid(self.key)
         edition_id = extract_numeric_id_from_olid(edition_olid) if edition_olid else -1
-        return Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)
+        return Booknotes.get_patron_booknote_sync(username, work_id, edition_id=edition_id)
 
     def has_book_note(self, username, edition_olid):
         if not username:
             return False
         work_id = extract_numeric_id_from_olid(self.key)
         edition_id = extract_numeric_id_from_olid(edition_olid)
-        return len(Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)) > 0
+        return Booknotes.get_patron_booknote_sync(username, work_id, edition_id=edition_id) is not None
 
     def get_users_observations(self, username):
         if not username:
@@ -597,7 +593,7 @@ class Work(Thing):
                 "stopped-reading": 0,
             }
         work_id = extract_numeric_id_from_olid(self.key)
-        num_users_by_bookshelf = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
+        num_users_by_bookshelf = Bookshelves.get_num_users_by_bookshelf_by_work_id_sync(work_id)
         return {
             "want-to-read": num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES["Want to Read"], 0),
             "currently-reading": num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES["Currently Reading"], 0),
@@ -609,32 +605,12 @@ class Work(Thing):
         if not self.key:  # a dummy work
             return {"avg_rating": 0, "num_ratings": 0}
         work_id = extract_numeric_id_from_olid(self.key)
-        rating_stats = Ratings.get_rating_stats(work_id)
+        rating_stats = Ratings.get_rating_stats_sync(work_id)
         if rating_stats and rating_stats["num_ratings"] > 0:
             return {
                 "avg_rating": round(rating_stats["avg_rating"], 2),
                 "num_ratings": rating_stats["num_ratings"],
             }
-
-    def get_awards(self) -> list:
-        if not self.key:
-            return []
-
-        work_id = extract_numeric_id_from_olid(self.key)
-        return Bestbook.get_awards(work_id)
-
-    def check_if_user_awarded(self, username) -> bool:
-        if not self.key:
-            return False
-        work_id = extract_numeric_id_from_olid(self.key)
-        return bool(Bestbook.get_awards(username=username, work_id=work_id))
-
-    def get_award_by_username(self, username):
-        if not self.key:
-            return None
-        work_id = extract_numeric_id_from_olid(self.key)
-        awards = Bestbook.get_awards(username=username, work_id=work_id)
-        return awards[0] if awards else None
 
     def _get_d(self):
         """Returns the data that goes into memcache as d/$self.key.
@@ -688,7 +664,6 @@ class Work(Thing):
 
         * read_url - url to read the book
         * borrow_url - url to borrow the book
-        * borrowed - True if the book is already borrowed
         * daisy_url - url to access the daisy format of the book
 
         Sample return values:
@@ -700,8 +675,7 @@ class Work(Thing):
 
             {
                 "daisy_url": "/books/OL1M/foo/daisy",
-                "borrow_url": "/books/OL1M/foo/borrow",
-                "borrowed": False
+                "borrow_url": "/books/OL1M/foo/borrow"
             }
         """
         solrdata = web.storage(self._solr_data or {})
@@ -748,9 +722,9 @@ class Work(Thing):
 
             # count reading log entries
             r["occurrences"]["readinglog"] = len(Bookshelves.get_works_shelves(olid))
-            r["occurrences"]["ratings"] = len(Ratings.get_all_works_ratings(olid))
-            r["occurrences"]["booknotes"] = len(Booknotes.get_booknotes_for_work(olid))
-            r["occurrences"]["bestbooks"] = Bestbook.get_count(work_id=olid)
+            r["occurrences"]["ratings"] = len(Ratings.get_all_works_ratings_sync(olid))
+            r["occurrences"]["booknotes"] = len(Booknotes.get_booknotes_for_work_sync(olid))
+            r["occurrences"]["bestbooks"] = Bestbook.get_count_sync(work_id=olid)
             r["occurrences"]["observations"] = len(Observations.get_observations_for_work(olid))
 
             if new_olid != olid:
@@ -896,10 +870,27 @@ class Author(Thing):
                     raise AuthorRemoteIdConflictError(f"Conflicting remote IDs for author {self.key}: {output[identifier]} vs {incoming_ids[identifier]}")
                 else:
                     matches = matches + 1
+            elif identifier in incoming_ids:  # Do the merge
+                output[identifier] = incoming_ids[identifier]
         return output, matches
 
 
 class User(Thing):
+    #: Preference keys that may be written via :meth:`save_preferences`.
+    #: ``type`` is managed internally and always forced to ``preferences``.
+    PREFERENCE_KEYS = frozenset(
+        {
+            "notify",
+            "pda",
+            "public_readlog",
+            "rpd",
+            "safe_mode",
+            "update",
+            "updates",
+            "yrg_banner_pref",
+        }
+    )
+
     def get_default_preferences(self) -> dict[str, str]:
         return {"update": "no", "public_readlog": "no", "type": "preferences"}
         # New users are now public by default for new patrons
@@ -936,7 +927,7 @@ class User(Thing):
     def save_preferences(self, new_prefs) -> None:
         key = f"{self.key}/preferences"
         prefs = self.preferences()
-        prefs.update(new_prefs)
+        prefs.update({k: v for k, v in new_prefs.items() if k in self.PREFERENCE_KEYS})
         prefs["_rev"] = None
         prefs["type"] = "preferences"
         site.get().store[key] = prefs
@@ -954,13 +945,13 @@ class User(Thing):
 
     def is_subscribed_user(self, username: str) -> int:
         my_username = self.get_username()
-        return PubSub.is_subscribed(my_username, username) if my_username != username else -1
+        return PubSub.is_subscribed_sync(my_username, username) if my_username != username else -1
 
     def has_cookie(self, name):
         return web.cookies().get(name, False)
 
     def is_printdisabled(self):
-        return web.cookies().get("pd")
+        return get_print_disabled()
 
     def is_admin(self) -> bool:
         return self.is_usergroup_member("/usergroup/admin")
@@ -976,13 +967,16 @@ class User(Thing):
         return self.is_usergroup_member("/usergroup/super-librarians")
 
     def is_librarian_or_higher(self) -> bool:
-        return self.is_member_of_any(
+        is_librarian = self.is_member_of_any(
             [
                 "/usergroup/librarians",
                 "/usergroup/super-librarians",
                 "/usergroup/admin",
             ]
         )
+        if (v := visitor.get()) and v.user_key == self.key:
+            v.is_librarian = is_librarian  # for the request metrics' visitor label (openlibrary/utils/prometheus.py)
+        return is_librarian
 
     def is_super_librarian_or_higher(self) -> bool:
         return self.is_member_of_any(
@@ -1287,9 +1281,7 @@ class Tag(Thing):
         key = site.get().new_key("/type/tag")
         tag["key"] = key
 
-        from openlibrary.accounts import RunAs
-
-        with RunAs(patron):
+        with accounts.RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
             t = site.get().save(tag, comment=comment, action="create-tag")
             return t
@@ -1310,6 +1302,8 @@ class LoggedBooksData:
         for filtering the reading log.
     param ratings holds a list of ratings such that the index of each rating corresponds
         to the index of each doc/work in self.docs.
+    param sort holds the sort the shelf was actually sorted by, which can differ from
+        the one asked for (e.g. if Solr fails). None when filtering.
     """
 
     username: str
@@ -1319,6 +1313,7 @@ class LoggedBooksData:
     docs: list[web.storage]
     q: str = ""
     ratings: list[int] = field(default_factory=list)
+    sort: ReadingLogSort | None = None
 
     def load_ratings(self) -> None:
         """
@@ -1329,10 +1324,9 @@ class LoggedBooksData:
         The intent of this is so that there is no need to query ratings from the
         template, as the docs and ratings are together when needed.
         """
-        for doc in self.docs:
-            work_id = extract_numeric_id_from_olid(doc.key)
-            rating = Ratings.get_users_rating_for_work(self.username, work_id)
-            self.ratings.append(rating or 0)
+        work_ids = [int(extract_numeric_id_from_olid(doc.key)) for doc in self.docs]
+        ratings = Ratings.get_users_ratings_of_works_sync(self.username, work_ids)
+        self.ratings.extend(ratings.get(work_id, 0) for work_id in work_ids)
 
 
 def register_models():
@@ -1347,8 +1341,6 @@ def register_models():
 
 def register_types():
     """Register default types for various path patterns used in OL."""
-    from infogami.utils import types
-
     types.register_type("^/authors/[^/]*$", "/type/author")
     types.register_type("^/books/[^/]*$", "/type/edition")
     types.register_type("^/works/[^/]*$", "/type/work")

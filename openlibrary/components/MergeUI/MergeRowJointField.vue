@@ -1,15 +1,15 @@
 <template>
-  <div>
-    <MergeRowField
-      v-for="field in presentFields"
-      :key="field"
-      :field="field"
-      :value="record[field]"
-      :merged="merged"
-      :class="{ selected: cellSelected && cellSelected(record, field) }"
-      :show_diffs="show_diffs"
-    />
-  </div>
+    <div>
+        <MergeRowField
+            v-for="field in presentFields"
+            :key="field"
+            :field="field"
+            :value="record[field]"
+            :merged="merged"
+            :class="{ selected: cellSelected && cellSelected(record, field) }"
+            :show-diffs="showDiffs"
+        />
+    </div>
 </template>
 
 <script>
@@ -29,13 +29,14 @@ export default {
             required: true
         },
         cellSelected: {
-            type: Function
+            type: Function,
+            default: null
         },
         merged: {
             type: Object,
-            required: false
+            default: null
         },
-        show_diffs: {
+        showDiffs: {
             type: Boolean
         }
     },

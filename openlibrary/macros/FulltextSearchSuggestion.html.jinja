@@ -1,0 +1,33 @@
+{# Search Inside preview band at the foot of /search. #}
+{% macro header() %}
+    <h2 id="fulltext-suggestions-heading"
+        class="search-results-section-label fulltext-suggestions__header">
+        {# Decorative: flags these as matches from inside the scans, not catalogue records. #}
+        {{ icon("text-search", size="sm") }}
+        <span>{{ _("Search inside books") }}</span>
+    </h2>
+{% endmacro %}
+{% macro see_all_button() %}
+    {# No aria-label: the visible text is the accessible name, so voice-control users can say it. #}
+    <ol-button variant="primary" href="{{ see_all_url }}" data-ol-link-track="SearchInsideSuggestion|SeeAllClick">
+        {{ ngettext("Search Inside %(count)s book", "Search Inside %(count)s books", total, count=num_found) }}
+        {{ icon("arrow-right", size="sm", slot="icon-end") }}
+    </ol-button>
+{% endmacro %}
+{% if results %}
+    <section class="fulltext-suggestions"
+             aria-labelledby="fulltext-suggestions-heading">
+        {{ header() }}
+        <ul class="list-books list-books--fulltext">
+            {% for result in results %}{{ result }}{% endfor %}
+        </ul>
+        <div class="fulltext-suggestions__footer">{{ see_all_button() }}</div>
+    </section>
+{% elif total %}
+    {# Every hit is already listed on the page (see `exclude`), so just link through. #}
+    <section class="fulltext-suggestions fulltext-suggestions--compact"
+             aria-labelledby="fulltext-suggestions-heading">
+        {{ header() }}
+        {{ see_all_button() }}
+    </section>
+{% endif %}

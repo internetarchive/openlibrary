@@ -2,7 +2,10 @@ import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
+import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
+import './OlIcon.js';
 import './OlPopover.js';
+import { menuRow } from './control-styles.js';
 
 let _idCounter = 0;
 
@@ -15,12 +18,15 @@ let _idCounter = 0;
  *
  * Composes `<ol-popover>` for animation, focus trap, mobile tray, and
  * Escape/outside-click dismissal. Use `<ol-select-popover>` instead when
- * the user can pick multiple values or filter a long list.
+ * the user can pick multiple values. A long list (past `searchThreshold`)
+ * grows a filter input, so it also works as a searchable single-select field.
  *
  * Keyboard follows the WAI-ARIA radiogroup pattern: Arrow/Home/End move focus
  * between options and select the focused one (selection follows focus, staying
  * open); Enter/Space/click commit the choice and close. Native same-name radios
- * provide the roving tab stop, so Tab treats the group as one stop.
+ * provide the roving tab stop, so Tab treats the group as one stop. Once the
+ * filter shows, arrows only move focus: stepping through hundreds of options
+ * shouldn't change the value at every step.
  *
  * @element ol-options-popover
  *
@@ -34,6 +40,16 @@ let _idCounter = 0;
  * @prop {String} label - Default trigger button text (e.g. "Availability").
  * @prop {String} heading - Heading shown above the options list (default:
  *     uppercased `label`).
+ * @prop {Number} searchThreshold - Show the filter input when `items.length`
+ *     exceeds this value. Default `FILTER_THRESHOLD`. Attribute:
+ *     `search-threshold`.
+ * @prop {String} placeholder - Filter input placeholder.
+ * @prop {String} noMatchesLabel - Empty-state text when the filter has no
+ *     matches (default "No matches"). Attribute: `no-matches-label`.
+ * @prop {Boolean} showSelection - The default trigger shows the selected
+ *     option's label, falling back to `label` when nothing is picked. For use
+ *     as a form field; filters leave it off and show the choice elsewhere.
+ *     Attribute: `show-selection`.
  *
  * @attr aria-label - Accessible name for the popover dialog. Falls back to
  *     `label` if unset.
@@ -62,139 +78,209 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         selected: { type: String, reflect: true },
         label: { type: String },
         heading: { type: String },
+        searchThreshold: { type: Number, attribute: 'search-threshold' },
+        placeholder: { type: String },
+        noMatchesLabel: { type: String, attribute: 'no-matches-label' },
+        showSelection: { type: Boolean, attribute: 'show-selection' },
+        _query: { state: true }
     };
 
-    static styles = css`
-        :host {
-            display: inline-block;
-            font-family: var(--font-family-body);
-        }
+    static styles = [
+        menuRow,
+        css`
+            :host {
+                display: inline-block;
+                font-family: var(--font-family-body);
 
-        /* The default trigger is a light-DOM <ol-button> (see
+                /* Declared here rather than on .panel: the panel is slotted into
+               <ol-popover>, whose tray clears these, and an override only
+               reaches it by inheriting past the tray. */
+                --ol-popover-content-max-width: 400px;
+                --ol-popover-content-max-height: min(70vh, 480px);
+            }
+
+            /* The default trigger is a light-DOM <ol-button> (see
            _createDefaultTrigger), which paints itself — there are no trigger
            styles here. That keeps this trigger on the shared control-height
            tokens and gives it ol-button's automatic disclosure chevron, so it
            lines up with <ol-select-popover> beside it. */
 
-        /* ── Panel layout ────────────────────────────────────────── */
+            /* ── Panel layout ────────────────────────────────────────── */
 
-        .panel {
-            display: flex;
-            flex-direction: column;
-            min-width: 280px;
-            max-width: min(90vw, 400px);
-            max-height: min(70vh, 480px);
-        }
+            .panel {
+                display: flex;
+                flex-direction: column;
+                min-width: 280px;
+                max-width: var(--ol-popover-content-max-width);
+                max-height: var(--ol-popover-content-max-height);
+            }
 
-        .group {
-            list-style: none;
-            margin: 0;
-            padding: var(--spacing-inset-xs) 0;
-            overflow-y: auto;
-        }
+            .list-area {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                min-height: 0;
+            }
 
-        .group-heading {
-            margin: 0;
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
-            color: var(--color-text-muted);
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
+            .group {
+                list-style: none;
+                margin: 0;
+                padding: var(--menu-row-inset) 0;
+                overflow-y: auto;
+            }
 
-        /* ── Items ───────────────────────────────────────────────── */
+            /* ── Filter input (mirrors OlSelectPopover) ──────────────── */
 
-        .item {
-            font-size: 14px;
-        }
+            .filter {
+                position: relative;
+                padding: var(--spacing-inset-sm);
+                border-bottom: var(--border-divider);
+            }
 
-        .item-row {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--spacing-inline-md);
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-            cursor: pointer;
-            user-select: none;
-        }
+            .filter-input {
+                box-sizing: border-box;
+                width: 100%;
+                padding: var(--spacing-inset-sm) var(--spacing-inset-sm) var(--spacing-inset-sm) 32px;
+                background: var(--white);
+                border: 1px solid var(--color-border-subtle);
+                border-radius: var(--border-radius-input);
+                font: inherit;
+                font-size: var(--font-size-body-medium);
+                color: inherit;
+            }
 
-        /* Nested options are a subset of the option above them; indent the
-           whole row so the hierarchy reads at a glance. */
-        .item--nested .item-row {
-            padding-left: var(--spacing-inset-xl);
-        }
+            .filter-input::placeholder {
+                color: var(--color-text-muted);
+            }
 
-        @media (hover: hover) and (pointer: fine) {
-            .item-row:hover {
+            .filter-input:focus {
+                outline: none;
+                border-color: var(--color-border-focused);
+                box-shadow: 0 0 0 1px var(--color-border-focused);
+            }
+
+            /* iOS zooms in on focus when the input font is < 16px. */
+            @media (max-width: 767px) {
+                .filter-input {
+                    font-size: var(--font-size-body-large);
+                }
+            }
+
+            .filter-icon {
+                position: absolute;
+                top: 50%;
+                left: calc(var(--spacing-inset-sm) + 10px);
+                width: 14px;
+                height: 14px;
+                color: var(--color-text-muted);
+                pointer-events: none;
+                transform: translateY(-50%);
+            }
+
+            .empty-state {
+                padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+                color: var(--color-text-muted);
+                font-size: 14px;
+            }
+
+            .group-heading {
+                margin: 0;
+                padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
+                color: var(--color-text-muted);
+                font-size: var(--font-size-overline);
+                font-weight: var(--font-weight-overline);
+                letter-spacing: var(--letter-spacing-overline);
+                text-transform: var(--text-transform-overline);
+            }
+
+            /* ── Items ───────────────────────────────────────────────── */
+
+            .item {
+                font-size: 14px;
+            }
+
+            /* Geometry and hover are the shared .menu-row (control-styles.js). */
+            .item-row {
+                gap: var(--spacing-inline-md);
+                user-select: none;
+            }
+
+            /* A description makes the row multi-line, so the radio rides the label
+           rather than the whole box. */
+            .item-row:has(.item-description) {
+                align-items: flex-start;
+            }
+
+            /* Nudged onto the label's optical centre, which centring can't do
+           once the row is top-aligned. */
+            .item-row:has(.item-description) .item-radio {
+                margin-top: 2px;
+            }
+
+            /* Nested options are a subset of the option above them; indent the
+           whole row so the hierarchy reads at a glance. Less the row's own
+           inset, so the indent is measured from the panel. */
+            .item--nested .item-row {
+                padding-left: calc(var(--spacing-inset-xl) - var(--menu-row-inset));
+            }
+
+            .item-row:focus-within {
+                outline: none;
                 background: var(--color-hover-overlay);
             }
-        }
 
-        .item-row:focus-within {
-            outline: none;
-            background: var(--color-hover-overlay);
-        }
+            /* The selected row's look is the shared .menu-row rule (tint + link
+           text, keyed on the checked radio). Keyboard focus on it deepens the
+           tint like hover does, rather than greying it. */
+            .item-row:has(> :checked):focus-within {
+                background: var(--color-control-selected-bg-hover);
+            }
 
-        .item--selected .item-row {
-            background: var(--color-control-selected-bg);
-        }
+            .item-radio {
+                flex-shrink: 0;
+                width: 16px;
+                height: 16px;
+                margin: 0;
+                accent-color: var(--color-primary);
+                cursor: pointer;
+            }
 
-        .item--selected .item-row:focus-within,
-        .item--selected .item-row:hover {
-            background: var(--color-control-selected-bg-hover);
-        }
+            .item-radio:focus-visible {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: 2px;
+                border-radius: 50%;
+            }
 
-        .item-radio {
-            flex-shrink: 0;
-            width: 16px;
-            height: 16px;
-            margin: 2px 0 0;
-            accent-color: var(--primary-blue);
-            cursor: pointer;
-        }
+            .item-content {
+                flex: 1;
+                min-width: 0;
+            }
 
-        .item-radio:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
-            outline-offset: 2px;
-            border-radius: 50%;
-        }
+            /* The label takes the row's control weight; the description and
+           count describe the option, not the answer, so they stay regular. */
+            .item-label {
+                display: block;
+            }
 
-        .item-content {
-            flex: 1;
-            min-width: 0;
-        }
+            .item-description {
+                display: block;
+                margin-top: 2px;
+                color: var(--color-text-muted);
+                font-size: 12px;
+                font-weight: var(--font-weight-regular);
+                line-height: 1.35;
+            }
 
-        .item-label {
-            display: block;
-            color: var(--darker-grey);
-            font-weight: 500;
-        }
-
-        .item--selected .item-label {
-            color: var(--color-link);
-            font-weight: 600;
-        }
-
-        .item-description {
-            display: block;
-            margin-top: 2px;
-            color: var(--color-text-muted);
-            font-size: 12px;
-            line-height: 1.35;
-        }
-
-        .item--selected .item-description {
-            color: var(--color-link);
-        }
-
-        .item-count {
-            flex-shrink: 0;
-            margin-left: var(--spacing-inline-md);
-            color: var(--color-text-muted);
-            font-size: 13px;
-            font-variant-numeric: tabular-nums;
-        }
-    `;
+            .item-count {
+                flex-shrink: 0;
+                margin-left: var(--spacing-inline-md);
+                color: var(--color-text-muted);
+                font-weight: var(--font-weight-regular);
+                font-size: 13px;
+                font-variant-numeric: tabular-nums;
+            }
+        `
+    ];
 
     constructor() {
         super();
@@ -202,6 +288,11 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         this.selected = '';
         this.label = '';
         this.heading = '';
+        this.searchThreshold = FILTER_THRESHOLD;
+        this.placeholder = 'Filter…';
+        this.noMatchesLabel = 'No matches';
+        this.showSelection = false;
+        this._query = '';
         this._panelId = `ol-options-popover-${++_idCounter}`;
         this._radioName = `ol-options-popover-radio-${_idCounter}`;
         this._isOpen = false;
@@ -210,9 +301,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
 
     connectedCallback() {
         super.connectedCallback();
-        const hasConsumerTrigger = Array.from(this.children).some(
-            el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
-        );
+        const hasConsumerTrigger = Array.from(this.children).some(el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger');
         if (!hasConsumerTrigger && !this._defaultTrigger) {
             this._createDefaultTrigger();
         }
@@ -228,7 +317,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         super.updated?.(changedProperties);
         // The default trigger lives in light DOM, outside Lit's template, so it
         // has to be refreshed by hand when anything it displays changes.
-        if (changedProperties.has('label') || changedProperties.has('selected') || changedProperties.has('items')) {
+        if (['label', 'selected', 'items', 'showSelection'].some(p => changedProperties.has(p))) {
             this._updateDefaultTriggerLabel();
         }
         // Keep the form value in step with a programmatic `selected` change
@@ -260,16 +349,11 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
     render() {
         return html`
             <ol-popover
-                placement="bottom-start"
                 aria-label="${ifDefined(this.getAttribute('aria-label') || this.label || undefined)}"
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
             >
-                <slot
-                    name="trigger"
-                    slot="trigger"
-                    @keydown=${this._onTriggerKeydown}
-                ></slot>
+                <slot name="trigger" slot="trigger" @keydown=${this._onTriggerKeydown}></slot>
                 ${this._renderPanel()}
             </ol-popover>
         `;
@@ -301,16 +385,19 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
     /**
      * Label the trigger with the filter category (e.g. "Availability"). The
      * selection is surfaced by the consumer (e.g. a chip row), so the trigger
-     * takes no `selected` tint; override via the `trigger` slot to change that.
+     * takes no `selected` tint; `show-selection` labels it with the choice
+     * instead, and the `trigger` slot replaces it outright.
      *
      * @returns {void}
      */
     _updateDefaultTriggerLabel() {
         const btn = this._defaultTrigger;
         if (!btn || !this._defaultTriggerText) return;
-        this._defaultTriggerText.textContent = this.label;
-        // Visible text names only the category, so name the choice for AT.
         const selectedItem = (this.items || []).find(it => it.value === this.selected);
+        this._defaultTriggerText.textContent = (this.showSelection && selectedItem?.label) || this.label;
+        // A form field has room for its value; a filter button clamps.
+        this._defaultTriggerText.style.maxWidth = this.showSelection ? 'none' : '18ch';
+        // Visible text may name only the category, so name the choice for AT.
         if (selectedItem) {
             btn.setAttribute('aria-label', `${this.label}, ${selectedItem.label}`);
         } else {
@@ -319,8 +406,17 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
     }
 
     _renderPanel() {
-        const items = this.items || [];
+        const items = this._visibleItems;
         const heading = this.heading || (this.label || '').toUpperCase();
+        const showSearch = this._showSearch;
+        const rows =
+            items.length === 0 && this._query.trim()
+                ? html`<li class="empty-state">${this.noMatchesLabel}</li>`
+                : repeat(
+                      items,
+                      it => it.value,
+                      it => this._renderItem(it)
+                  );
 
         // FIX (WCAG 1.3.1): role="radiogroup" must NOT be on the <ul> because
         // that strips list semantics and makes <li> children invalid in the
@@ -328,13 +424,30 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         // keyboard handler, the <ul> stays a pure list.
         return html`
             <div class="panel">
-                <div
-                    role="radiogroup"
-                    aria-label=${this.label}
-                    @keydown=${this._onListKeydown}
-                >
+                ${
+                    showSearch
+                        ? html`
+                              <div class="filter">
+                                  <ol-icon class="filter-icon" name="search"></ol-icon>
+                                  <input
+                                      type="search"
+                                      class="filter-input"
+                                      aria-label=${this.placeholder}
+                                      aria-controls=${this._panelId}
+                                      placeholder=${this.placeholder}
+                                      .value=${this._query}
+                                      @input=${this._onQueryInput}
+                                      @keydown=${this._onFilterKeydown}
+                                  />
+                              </div>
+                          `
+                        : nothing
+                }
+                <div class="list-area" role="radiogroup" aria-label=${this.label} @keydown=${this._onListKeydown}>
                     ${heading ? html`<div class="group-heading" aria-hidden="true">${heading}</div>` : nothing}
-                    <ul class="group" id=${this._panelId}>${repeat(items, it => it.value, it => this._renderItem(it))}</ul>
+                    <ul class="group" id=${this._panelId}>
+                        ${rows}
+                    </ul>
                 </div>
             </div>
         `;
@@ -345,23 +458,29 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         // FIX (WCAG 1.3.1): no leading whitespace/newline before <li> — Lit
         // template literal whitespace creates real text nodes that accesslint
         // flags as direct text content inside <ul>.
-        return html`<li class="item ${isSelected ? 'item--selected' : ''} ${item.nested ? 'item--nested' : ''}">
-                <label class="item-row">
-                    <input
-                        type="radio"
-                        class="item-radio"
-                        name=${this._radioName}
-                        .checked=${isSelected}
-                        .value=${item.value}
-                        @change=${this._onItemChange}
-                    />
-                    <span class="item-content">
-                        <span class="item-label">${item.label}</span>
-                        ${item.description ? html`<span class="item-description">${item.description}</span>` : nothing}
-                    </span>
-                    ${item.count ? html`<span class="item-count">${item.count}</span>` : nothing}
-                </label>
-            </li>`;
+        return html`<li class="item ${item.nested ? 'item--nested' : ''}">
+            <label class="item-row menu-row">
+                <input type="radio" class="item-radio" name=${this._radioName} .checked=${isSelected} .value=${item.value} @change=${this._onItemChange} />
+                <span class="item-content">
+                    <span class="item-label">${item.label}</span>
+                    ${item.description ? html`<span class="item-description">${item.description}</span>` : nothing}
+                </span>
+                ${item.count ? html`<span class="item-count">${item.count}</span>` : nothing}
+            </label>
+        </li>`;
+    }
+
+    // ── State helpers ────────────────────────────────────────────
+
+    get _showSearch() {
+        return (this.items?.length ?? 0) > this.searchThreshold;
+    }
+
+    get _visibleItems() {
+        const items = this.items || [];
+        const query = this._query.trim().toLowerCase();
+        if (!query) return items;
+        return items.filter(it => (it.label || '').toLowerCase().includes(query));
     }
 
     // ── Event handlers ───────────────────────────────────────────
@@ -376,18 +495,53 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         }
     }
 
-    _onPopoverOpen() {
+    async _onPopoverOpen() {
         this._isOpen = true;
         this.setAttribute('data-open', '');
+        this._query = '';
+        await this.updateComplete;
+        // In a long list the current choice may be far below the fold.
+        this._radio(this.selected)?.scrollIntoView?.({ block: 'nearest' });
 
         if (this._pendingFocusFirst) {
             this._pendingFocusFirst = false;
             this._focusSelectedOrFirst();
+        } else if (this._showSearch && !window.matchMedia('(max-width: 767px)').matches) {
+            // Desktop: focus the filter so typing starts filtering. Skipped on
+            // mobile (ol-popover's tray breakpoint) so the keyboard doesn't
+            // cover the list.
+            this.shadowRoot.querySelector('.filter-input')?.focus();
         }
+    }
+
+    _onQueryInput(e) {
+        this._query = e.target.value;
+    }
+
+    /**
+     * ArrowDown moves into the list; Enter commits when the query names one
+     * option: the only match left, or an exact label match.
+     */
+    _onFilterKeydown(e) {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            this.shadowRoot.querySelector('.item-radio')?.focus();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const items = this._visibleItems;
+            const query = this._query.trim().toLowerCase();
+            const pick = items.length === 1 ? items[0] : items.find(it => (it.label || '').toLowerCase() === query);
+            if (query && pick) this._commitSelection(pick.value);
+        }
+    }
+
+    _radio(value) {
+        return Array.from(this.shadowRoot?.querySelectorAll('.item-radio') || []).find(r => r.value === value);
     }
 
     _onPopoverClose() {
         this._isOpen = false;
+        this._query = '';
         this._pendingFocusFirst = false;
         this.removeAttribute('data-open');
     }
@@ -408,10 +562,13 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         if (value === this.selected) return false;
         this.selected = value;
         this._syncFormValue();
-        this.dispatchEvent(new CustomEvent('ol-options-popover-change', {
-            bubbles: true, composed: true,
-            detail: { selected: value },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-options-popover-change', {
+                bubbles: true,
+                composed: true,
+                detail: { selected: value }
+            })
+        );
         return true;
     }
 
@@ -449,10 +606,17 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         }
         const idx = radios.indexOf(active);
 
+        const filter = this.shadowRoot.querySelector('.filter-input');
         let next;
         if (e.key === 'ArrowDown') {
             next = idx === -1 ? 0 : (idx + 1) % radios.length;
         } else if (e.key === 'ArrowUp') {
+            // With a filter, the top of the list leads back up to it.
+            if (filter && idx === 0) {
+                e.preventDefault();
+                filter.focus();
+                return;
+            }
             next = idx === -1 ? radios.length - 1 : (idx - 1 + radios.length) % radios.length;
         } else if (e.key === 'Home') {
             next = 0;
@@ -464,14 +628,12 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         // open. The keyed `repeat` reuses the radio nodes across re-render, so
         // focus is preserved when `_selectValue` flips `.checked`.
         radios[next].focus();
-        this._selectValue(radios[next].value);
+        if (!filter) this._selectValue(radios[next].value);
     }
 
     _focusSelectedOrFirst() {
-        const radios = Array.from(this.shadowRoot.querySelectorAll('.item-radio'));
-        if (radios.length === 0) return;
-        const selectedRadio = radios.find(r => r.value === this.selected);
-        (selectedRadio || radios[0]).focus();
+        const radio = this._radio(this.selected) || this.shadowRoot.querySelector('.item-radio');
+        radio?.focus();
     }
 }
 

@@ -1,0 +1,2 @@
+{% macro truncate_string(s, n) %}{% if s %}{{ s[:n] }}{{ '...' if s[n:] else '' }}{% endif %}{% endmacro %}
+{% if s is defined and n is defined %}{{ truncate_string(s, n) }}{% endif %}

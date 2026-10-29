@@ -1,15 +1,16 @@
 """Admin functionality."""
 
 import calendar
-from datetime import date, datetime, timedelta
+import random
+from datetime import UTC, date, datetime, timedelta
 
 import requests
 import web
 
 from openlibrary.core import cache
+from openlibrary.core.async_db import fetch_val
 from openlibrary.core.env import get_ol_env
-
-from . import db
+from openlibrary.core.helpers import commify, format_date
 
 
 class Stats:
@@ -32,6 +33,13 @@ class Stats:
         except KeyError, StopIteration:
             self.total = ""
 
+    def has_counts(self, ndays=28) -> bool:
+        """True when every doc of the last `ndays` carries this key. A key only some of them
+        have is one the stats script started writing recently, and a series read from it would
+        cover part of the window while claiming all of it."""
+        docs = self.docs[-ndays:]
+        return bool(docs) and all(self.key in doc for doc in docs)
+
     def get_counts(self, ndays=28, times=False):
         """Returns the stats for last n days as an array useful for
         plotting. i.e. an array of [x, y] tuples where y is the value
@@ -52,6 +60,34 @@ class Stats:
         else:
             return zip(range(0, ndays * 5, 5), (x.get(self.key, 0) for x in self.docs[-ndays:]))  # The *5 and 5 are for the bar widths
 
+    def get_bar_chart(self, ndays: int, width: int, height: int) -> dict:
+        """Data for a daily bar chart of the last `ndays`, drawn by StatsBarChart.html.jinja.
+
+        Bars are oldest first and scaled so the busiest day fills `height`.
+        """
+        counts = sorted(self.get_counts(ndays, True))
+        peak = max((count for _, count in counts), default=0) or 1
+        step = width / max(len(counts), 1)
+        bars = []
+        for i, (timestamp, count) in enumerate(counts):
+            bar_height = count / peak * height
+            day = datetime.fromtimestamp(timestamp / 1000, tz=UTC)
+            bars.append(
+                {
+                    "x": round(i * step, 2),
+                    "y": round(height - bar_height, 2),
+                    "height": round(bar_height, 2),
+                    "title": f"{format_date(day)}: {commify(count)}",
+                }
+            )
+        return {
+            "width": width,
+            "height": height,
+            "bar_step": round(step, 2),
+            "bar_width": round(step - min(1, step / 4), 2),
+            "bars": bars,
+        }
+
     def get_summary(self, ndays=28):
         """Returns the summary of counts for past n days.
 
@@ -62,7 +98,7 @@ class Stats:
 
 
 @cache.memoize(engine="memcache", key="admin._get_loan_counts_from_graphite", expires=5 * 60)
-def _get_loan_counts_from_graphite(ndays: int) -> list[list[int]] | None:
+def _get_loan_counts_from_graphite(ndays: int) -> list[list[int]]:
     try:
         r = requests.get(
             "http://graphite.us.archive.org/render",
@@ -72,19 +108,27 @@ def _get_loan_counts_from_graphite(ndays: int) -> list[list[int]] | None:
                 "tz": "UTC",
                 "format": "json",
             },
+            timeout=5,
         )
+        r.raise_for_status()
         return r.json()[0]["datapoints"]
     except requests.exceptions.RequestException, ValueError, AttributeError:
-        return None
+        # Return [] rather than None: cache.memoize treats None as a cache miss,
+        # so caching a failure would otherwise re-hit the 5s timeout on every
+        # request while Graphite is down. Callers test truthiness.
+        return []
 
 
 class LoanStats(Stats):
     """
-    Temporary (2020-03-19) override of Stats for loans, due to bug
-    which caused 1mo of loans stats to be missing from regular
-    stats db. This implementation uses graphite, but only on prod,
-    so that we don't forget.
+    Loan counts come from graphite; the daily counts docs don't track
+    loans, so the fallback (e.g. local dev) reports zero.
     """
+
+    def has_counts(self, ndays=28) -> bool:
+        if get_ol_env().LOCAL_DEV or not _get_loan_counts_from_graphite(ndays):
+            return Stats.has_counts(self, ndays)
+        return True
 
     def get_counts(self, ndays=28, times=False):
         # Let dev.openlibrary.org show the true state of things
@@ -92,8 +136,8 @@ class LoanStats(Stats):
             return Stats.get_counts(self, ndays, times)
 
         if graphite_data := _get_loan_counts_from_graphite(ndays):
-            # convert timestamp seconds to ms (as required by API)
-            return [[timestamp * 1000, count] for [count, timestamp] in graphite_data]
+            # Convert timestamp seconds to ms (as required by API); Graphite reports None for days with no data yet (e.g. today)
+            return [[timestamp * 1000, count or 0] for [count, timestamp] in graphite_data]
         else:
             return Stats.get_counts(self, ndays, times)
 
@@ -124,6 +168,9 @@ def _get_visitor_counts_from_graphite(ndays: int = 28) -> list[list[int]]:
 
 
 class VisitorStats(Stats):
+    def has_counts(self, ndays: int = 28) -> bool:
+        return bool(_get_visitor_counts_from_graphite(ndays))
+
     def get_counts(self, ndays: int = 28, times: bool = False) -> list[tuple[int, int]]:
         visitors = _get_visitor_counts_from_graphite(ndays)
         # Flip the order, convert timestamp to msec, and convert count==None to zero
@@ -149,12 +196,14 @@ def _get_count_docs(ndays):
 def get_stats(ndays=30, use_mock_data=False):
     """Returns the stats for the past `ndays`"""
     if use_mock_data:
-        return mock_get_stats()
+        return mock_get_stats(ndays)
     docs = _get_count_docs(ndays)
     return {
         "human_edits": Stats(docs, "human_edits", "human_edits"),
         "bot_edits": Stats(docs, "bot_edits", "bot_edits"),
+        "catalog_edits": Stats(docs, "catalog_edits", "catalog_edits"),
         "lists": Stats(docs, "lists", "total_lists"),
+        "list_edits": Stats(docs, "list_edits", "list_edits"),
         "visitors": VisitorStats(docs, "visitors", "visitors"),
         "loans": LoanStats(docs, "loans", "loans"),
         "members": Stats(docs, "members", "total_members"),
@@ -167,58 +216,66 @@ def get_stats(ndays=30, use_mock_data=False):
     }
 
 
+def get_rolling_counts(keys: list[str], ndays: int, lookback: int = 28) -> dict[str, dict | None]:
+    """Rolling counts from the daily docs, by key: the latest value, the value `lookback` days before it, and a bar chart
+    of the last `ndays`. None for a key the stats script hasn't written yet."""
+    all_docs = _get_count_docs(ndays + lookback)
+    counts: dict[str, dict | None] = {}
+    for key in keys:
+        if not (docs := [d for d in all_docs if key in d]):
+            counts[key] = None
+            continue
+        before = (datetime.strptime(docs[-1]["_key"], "counts-%Y-%m-%d") - timedelta(days=lookback)).strftime("counts-%Y-%m-%d")
+        counts[key] = {
+            "latest": docs[-1][key],
+            "earlier": next((d[key] for d in docs if d["_key"] == before), None),
+            "chart": Stats(docs, key, key).get_bar_chart(min(ndays, len(docs)), width=250, height=35),
+        }
+    return counts
+
+
 @cache.memoize(engine="memcache", key="logins_since", expires=12 * 60 * 60)
-def get_unique_logins_since(since_days=30):
+async def get_unique_logins_since(since_days=30):
     since_date = datetime.now() - timedelta(days=since_days)
     date_str = since_date.strftime("%Y-%m-%d")
 
     query = """
-        SELECT COUNT(id) FROM store_index
+        SELECT COUNT(*) FROM store_index
             WHERE type = 'account'
             AND name = 'last_login'
-            AND value > $date
+            AND value > %(date)s
     """
 
-    oldb = db.get_db()
-    results = list(oldb.query(query, vars={"date": date_str}))
-
-    if not results:
-        return 0
-    return results[0].get("count", 0)
+    count = await fetch_val(query, {"date": date_str})
+    return count or 0
 
 
-def mock_get_stats():
-    keyNames = [
-        "human_edits",
-        "bot_edits",
-        "lists",
-        "visitors",
-        "loans",
-        "members",
-        "works",
-        "editions",
-        "ebooks",
-        "covers",
-        "authors",
-        "subjects",
-    ]
-    mockKeyValues = [[(1 + x) * y for x in range(len(keyNames))] for y in range(28)][::-1]
-
-    docs = [dict(zip(keyNames, mockKeyValues[x])) for x in range(len(mockKeyValues))]
-    today = date.today()
-    for x in range(28):
-        docs[x]["_key"] = (today - timedelta(days=x + 1)).strftime("counts-%Y-%m-%d")
-    return {
-        "human_edits": Stats(docs, "human_edits", "human_edits"),
-        "bot_edits": Stats(docs, "bot_edits", "bot_edits"),
-        "lists": Stats(docs, "lists", "total_lists"),
-        "visitors": Stats(docs, "visitors", "visitors"),
-        "loans": Stats(docs, "loans", "loans"),
-        "members": Stats(docs, "members", "total_members"),
-        "works": Stats(docs, "works", "total_works"),
-        "editions": Stats(docs, "editions", "total_editions"),
-        "ebooks": Stats(docs, "ebooks", "total_ebooks"),
-        "covers": Stats(docs, "covers", "total_covers"),
-        "authors": Stats(docs, "authors", "total_authors"),
-        "subjects": Stats(docs, "subjects", "total_subjects"),
+def mock_get_stats(ndays=30):
+    """Daily counts shaped like production's for local dev: a weekend dip, some noise and a
+    gentle climb, at roughly production's scale. Seeded per key so a reload doesn't redraw."""
+    daily_scale = {
+        "human_edits": 12_000,
+        "bot_edits": 20_000,
+        "catalog_edits": 3_000,
+        "lists": 150,
+        "list_edits": 1_200,
+        "visitors": 5_800_000,
+        "loans": 10_000,
+        "members": 7_000,
+        "works": 3_000,
+        "editions": 5_000,
+        "ebooks": 100,
+        "covers": 2_000,
+        "authors": 1_500,
+        "subjects": 500,
     }
+    today = date.today()
+    days = [today - timedelta(days=n) for n in range(ndays, 0, -1)]
+    docs = [{"_key": day.strftime("counts-%Y-%m-%d")} for day in days]
+    for key, scale in daily_scale.items():
+        rng = random.Random(key)
+        for i, (day, doc) in enumerate(zip(days, docs, strict=True)):
+            weekend = 0.85 if day.weekday() >= 5 else 1.0
+            climb = 0.85 + 0.3 * i / max(ndays - 1, 1)
+            doc[key] = round(scale * weekend * climb * rng.uniform(0.92, 1.08))
+    return {key: Stats(docs, key, f"total_{key}") for key in daily_scale}

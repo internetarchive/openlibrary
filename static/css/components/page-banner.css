@@ -9,7 +9,7 @@
   background: var(--dark-grey);
   padding: 15px;
   border-bottom: 1px solid var(--color-border-subtle);
-  z-index: var(--z-index-level-2);
+  z-index: var(--z-index-raised);
 }
 .page-banner-mybooks {
   color: var(--black);
@@ -49,13 +49,6 @@
   color: var(--white);
 }
 /* stylelint-enable selector-max-specificity */
-.page-banner .btn {
-  display: block;
-  max-width: 200px;
-  margin: auto;
-  border: 1px solid var(--button-hover-blue);
-  font-weight: bold;
-}
 .page-banner-body {
   font-size: 0.9em;
   padding: 10px;

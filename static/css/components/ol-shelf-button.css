@@ -1,0 +1,21 @@
+/**
+ * ol-shelf-button.css — pre-upgrade box for <ol-shelf-button>, so a row's CTA
+ * column and a cover's corner don't shift when Lit upgrades it.
+ */
+
+ol-shelf-button:not(:defined) {
+  display: block;
+  height: var(--control-height-medium);
+}
+
+ol-shelf-button[variant="icon"]:not(:defined) {
+  width: 32px;
+  height: 32px;
+}
+
+/* The big-cover badge: `size` only exists on the icon variant (see
+   :host([size='large']) .save in OlShelfButton.js). */
+ol-shelf-button[size="large"]:not(:defined) {
+  width: 40px;
+  height: 40px;
+}

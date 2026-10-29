@@ -2,6 +2,9 @@
  * Page behaviour for the design system docs at /developers/design.
  * All progressive: the page is fully readable with this bundle absent.
  */
+import { olAlert, olConfirm } from '../../../../components/lit/alert-dialog.js';
+import { showToast } from '../../../../components/lit/toast.js';
+import { copyText } from '../copy-text.js';
 import { WHITE, compositeOver, contrastOn, luminanceFromCssColor, parseCssColor } from './contrast.js';
 
 const CODE_VISIBLE_KEY = 'ol-design-show-code';
@@ -35,7 +38,7 @@ async function highlightCode(root) {
     highlighted = true;
     // The default build already carries markup, css, clike and javascript —
     // the only languages the snippets use — so no component imports are needed.
-    const { default: Prism } = await import(/* webpackChunkName: "prism" */ 'prismjs');
+    const { default: Prism } = await import('prismjs');
     Prism.highlightAllUnder(root);
 }
 
@@ -43,47 +46,67 @@ async function highlightCode(root) {
  * Badge every color token with its contrast, measured off what the browser
  * paints so `color-mix()` and deep `var()` chains stay honest. Reads and writes
  * stay in separate passes: interleaved, each token forces a style recalc.
+ *
+ * A badge scores its token against white and the page canvas by default. With
+ * `data-ds-contrast-on="--some-surface"` it scores against that surface
+ * instead, so the playground can ask "is muted text still AA on the header
+ * grey" rather than only "on white".
  */
 function renderContrastBadges(root) {
     const targets = [...root.querySelectorAll('[data-ds-contrast-for]')];
     if (!targets.length) return;
 
-    // Write: one probe per token, appended in a single insertion.
+    // Write: one probe per token, appended in a single insertion. A target with
+    // a surface gets a second probe carrying that surface as its background.
     const fragment = document.createDocumentFragment();
-    const probes = targets.map((target) => {
-        const probe = document.createElement('span');
-        probe.style.cssText = `position:absolute;visibility:hidden;pointer-events:none;color:var(${target.dataset.dsContrastFor})`;
-        fragment.appendChild(probe);
-        return probe;
-    });
+    const probe = cssText => {
+        const el = document.createElement('span');
+        el.style.cssText = `position:absolute;visibility:hidden;pointer-events:none;${cssText}`;
+        fragment.appendChild(el);
+        return el;
+    };
+    const probes = targets.map(target => ({
+        color: probe(`color:var(${target.dataset.dsContrastFor})`),
+        surface: target.dataset.dsContrastOn ? probe(`background-color:var(${target.dataset.dsContrastOn})`) : null
+    }));
     root.appendChild(fragment);
 
     // Read: only the first getComputedStyle costs a recalc, since nothing
     // dirties the tree in between.
     const canvas = parseCssColor(getComputedStyle(document.body).backgroundColor);
-    const measured = probes.map((probe) => parseCssColor(getComputedStyle(probe).color));
-    probes.forEach((probe) => probe.remove());
+    const measured = probes.map(({ color, surface }) => ({
+        color: parseCssColor(getComputedStyle(color).color),
+        surface: surface && parseCssColor(getComputedStyle(surface).backgroundColor)
+    }));
+    probes.forEach(({ color, surface }) => {
+        color.remove();
+        surface?.remove();
+    });
 
     // Write: build every badge, touching no computed style. Each ratio is
     // measured against its own backdrop, so a translucent token (the
     // color-mix() control tints) is composited rather than scored as if the
-    // color it was mixed from were painted solid.
+    // color it was mixed from were painted solid. A translucent surface is
+    // itself composited over white first, which is where these surfaces sit.
     const canvasRgb = canvas && compositeOver(canvas);
     targets.forEach((target, index) => {
-        const color = measured[index];
+        const { color, surface } = measured[index];
         if (color === null) return;
+        const onSurface = surface ? contrastOn(color, compositeOver(surface)) : null;
         const onWhite = contrastOn(color, WHITE);
         const onCanvas = canvasRgb === null ? null : contrastOn(color, canvasRgb);
+        const scored = onSurface ?? onWhite;
 
-        const level = onWhite >= 7 ? 'AAA' : onWhite >= 4.5 ? 'AA' : onWhite >= 3 ? 'AA·lg' : '—';
+        const level = scored >= 7 ? 'AAA' : scored >= 4.5 ? 'AA' : scored >= 3 ? 'AA·lg' : '—';
         target.innerHTML = '';
 
         const ratio = document.createElement('span');
         ratio.className = 'ds-contrast__ratio';
-        ratio.textContent = `${onWhite.toFixed(1)}:1`;
-        ratio.title =
-            `${onWhite.toFixed(2)}:1 on white, ${onCanvas === null ? '—' : `${onCanvas.toFixed(2)}:1`} on the page canvas. ` +
-            'Text needs 4.5:1 (AA) or 3:1 at 18pt+; non-text needs 3:1.';
+        ratio.textContent = `${scored.toFixed(1)}:1`;
+        ratio.title = onSurface
+            ? `${onSurface.toFixed(2)}:1 on ${target.dataset.dsContrastOn}. Text needs 4.5:1 (AA) or 3:1 at 18pt+; non-text needs 3:1.`
+            : `${onWhite.toFixed(2)}:1 on white, ${onCanvas === null ? '—' : `${onCanvas.toFixed(2)}:1`} on the page canvas. ` +
+              'Text needs 4.5:1 (AA) or 3:1 at 18pt+; non-text needs 3:1.';
 
         const badge = document.createElement('span');
         badge.className = `ds-contrast__level ds-contrast__level--${level === '—' ? 'fail' : 'pass'}`;
@@ -99,7 +122,7 @@ function renderContrastBadges(root) {
  */
 function initRampLabels(root) {
     const steps = [...root.querySelectorAll('.ds-ramp__step')];
-    const luminances = steps.map((step) => luminanceFromCssColor(getComputedStyle(step).backgroundColor));
+    const luminances = steps.map(step => luminanceFromCssColor(getComputedStyle(step).backgroundColor));
     steps.forEach((step, index) => {
         if (luminances[index] !== null && luminances[index] < 0.4) step.classList.add('ds-ramp__step--dark');
     });
@@ -119,7 +142,7 @@ function initCodeToggle(root) {
         highlightCode(root);
     }
 
-    toggle.addEventListener('ol-toggle-change', (event) => {
+    toggle.addEventListener('ol-toggle-change', event => {
         root.classList.toggle('ds--code-visible', event.detail.checked);
         writeStored(CODE_VISIBLE_KEY, String(event.detail.checked));
         if (event.detail.checked) highlightCode(root);
@@ -128,22 +151,13 @@ function initCodeToggle(root) {
 
 /** Click-to-copy. `data-ds-copy-text`, else the nearest code block. */
 function initCopy(root) {
-    root.addEventListener('click', async(event) => {
+    root.addEventListener('click', event => {
         const trigger = event.target.closest('[data-ds-copy]');
         if (!trigger) return;
 
         const block = trigger.closest('[data-ds-code]');
         const text = trigger.dataset.dsCopyText || (block && block.querySelector('code').textContent);
-        if (!text) return;
-
-        try {
-            await navigator.clipboard.writeText(text);
-        } catch {
-            return; // No clipboard permission — silently leave the page as it was.
-        }
-
-        trigger.classList.add('is-copied');
-        setTimeout(() => trigger.classList.remove('is-copied'), 1200);
+        if (text) copyText(trigger, text);
     });
 }
 
@@ -151,34 +165,267 @@ function initCopy(root) {
  * Mark the sidebar link for whichever section is currently on screen.
  */
 function initScrollSpy(root) {
-    const links = [...root.querySelectorAll('.ds__sidebar a[href^="#"]')];
+    // Group titles are jumps, not positions: a section spans the whole viewport
+    // for most of a scroll, so observing it would starve the links beneath it.
+    const links = [...root.querySelectorAll('.ds__sidebar .ds__nav-list a[href^="#"]')];
     if (!links.length || !('IntersectionObserver' in window)) return;
 
-    const linkById = new Map(links.map((link) => [decodeURIComponent(link.hash.slice(1)), link]));
-    const targets = [...linkById.keys()].map((id) => document.getElementById(id)).filter(Boolean);
+    const linkById = new Map(links.map(link => [decodeURIComponent(link.hash.slice(1)), link]));
+    const targets = [...linkById.keys()].map(id => document.getElementById(id)).filter(Boolean);
     if (!targets.length) return;
 
     const visible = new Set();
     const observer = new IntersectionObserver(
-        (entries) => {
-            entries.forEach((entry) => {
+        entries => {
+            entries.forEach(entry => {
                 if (entry.isIntersecting) visible.add(entry.target.id);
                 else visible.delete(entry.target.id);
             });
             // The topmost visible target wins, so scrolling up and down agree.
-            const current = targets.find((target) => visible.has(target.id));
-            links.forEach((link) => link.classList.remove('is-current'));
+            const current = targets.find(target => visible.has(target.id));
+            links.forEach(link => link.classList.remove('is-current'));
             if (current) linkById.get(current.id).classList.add('is-current');
         },
         { rootMargin: '-80px 0px -70% 0px' }
     );
-    targets.forEach((target) => observer.observe(target));
+    targets.forEach(target => observer.observe(target));
+}
+
+/**
+ * Below 768px the contents list moves into a popover, which renders as a tray.
+ * The nav is moved, not duplicated, so the scroll spy keeps marking the same
+ * links and there is only ever one `#component` anchor per component.
+ */
+function initNavPopover(root) {
+    const sidebar = root.querySelector('.ds__sidebar');
+    const popover = root.querySelector('[data-ds-nav-popover]');
+    const nav = root.querySelector('[data-ds-nav]');
+    if (!sidebar || !popover || !nav) return;
+
+    // Matches the popover's own tray breakpoint, so the trigger and the tray
+    // appear together.
+    const mobile = window.matchMedia('(max-width: 767px)');
+
+    function apply() {
+        if (mobile.matches) {
+            popover.appendChild(nav);
+            sidebar.dataset.dsNavMode = 'popover';
+        } else {
+            popover.open = false;
+            sidebar.appendChild(nav);
+            delete sidebar.dataset.dsNavMode;
+        }
+    }
+
+    apply();
+    mobile.addEventListener('change', apply);
+
+    // Following a link leaves the tray sitting over what it jumped to.
+    nav.addEventListener('click', event => {
+        const link = event.target.closest('a[href^="#"]');
+        if (!link || !popover.open) return;
+        popover.open = false;
+        const target = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+        if (target) jumpOnceUnpinned(target);
+    });
+}
+
+/**
+ * Scroll to `target` once the tray has unpinned <body>. The tray locks body
+ * scroll while open and restores the offset it captured on the way in, which
+ * lands after the browser's own jump to the anchor and undoes it — so the jump
+ * has to wait out the close. The URL still gets the hash from the click.
+ */
+function jumpOnceUnpinned(target) {
+    if (document.body.style.position !== 'fixed') {
+        target.scrollIntoView();
+        return;
+    }
+    const observer = new MutationObserver(() => {
+        if (document.body.style.position === 'fixed') return;
+        observer.disconnect();
+        target.scrollIntoView();
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['style'] });
+}
+
+function iconSnippets(name) {
+    return {
+        templetor: `$:macros.icon("${name}")`,
+        jinja: `{{ icon("${name}") }}`,
+        html: `<ol-icon name="${name}"></ol-icon>`
+    };
+}
+
+/**
+ * Icon gallery popover: clicking a glyph opens one shared panel with the four
+ * usage forms, each row copyable. Browsers without the Popover API keep the
+ * old behaviour — the click copies the Templetor macro call.
+ */
+function initIconPopover(root) {
+    const popover = root.querySelector('[data-ds-icon-popover]');
+    const grid = root.querySelector('#ds-icon-grid');
+    if (!popover || !grid) return;
+
+    const supported = typeof popover.showPopover === 'function';
+    if (supported) popover.hidden = false;
+
+    const nameEl = popover.querySelector('[data-ds-icon-popover-name]');
+    const previewEl = popover.querySelector('[data-ds-icon-popover-preview]');
+    const codeEls = [...popover.querySelectorAll('[data-ds-snippet]')];
+
+    function position(cell) {
+        const rect = cell.getBoundingClientRect();
+        const panel = popover.getBoundingClientRect();
+        const margin = 8;
+        let left = rect.left + rect.width / 2 - panel.width / 2;
+        left = Math.min(Math.max(margin, left), window.innerWidth - panel.width - margin);
+        let top = rect.bottom + margin;
+        if (top + panel.height > window.innerHeight - margin) top = rect.top - panel.height - margin;
+        popover.style.left = `${Math.round(left)}px`;
+        popover.style.top = `${Math.round(Math.max(margin, top))}px`;
+    }
+
+    // Clicking the anchor cell while its panel is open should just close it.
+    // Light dismiss runs on pointerdown, before the click, so note the anchor
+    // here and swallow the click that follows.
+    let anchor = null;
+    let suppressed = null;
+    grid.addEventListener('pointerdown', event => {
+        const cell = event.target.closest('.ds-icon-gallery__cell');
+        suppressed = popover.matches(':popover-open') && cell === anchor ? cell : null;
+    });
+
+    grid.addEventListener('click', event => {
+        const item = event.target.closest('[data-ds-icon-name]');
+        if (!item) return;
+        const cell = item.querySelector('.ds-icon-gallery__cell');
+        const name = item.dataset.dsIconName;
+
+        if (!supported) {
+            copyText(cell, `$:macros.icon("${name}")`);
+            return;
+        }
+        if (cell === suppressed) {
+            suppressed = null;
+            return;
+        }
+
+        const snippets = iconSnippets(name);
+        codeEls.forEach(code => {
+            code.textContent = snippets[code.dataset.dsSnippet];
+        });
+        nameEl.textContent = name;
+        previewEl.innerHTML = '';
+        const glyph = item.querySelector('svg');
+        if (glyph) previewEl.appendChild(glyph.cloneNode(true));
+
+        anchor = cell;
+        popover.showPopover();
+        position(cell); // Measurable only once shown.
+        if (event.detail === 0) popover.focus(); // Keyboard open: put Tab inside.
+    });
+
+    const reposition = () => {
+        if (anchor && popover.matches(':popover-open')) position(anchor);
+    };
+    window.addEventListener('scroll', reposition, { passive: true });
+    window.addEventListener('resize', reposition);
+}
+
+/** Substring filter over the icon gallery. Hides cells rather than rebuilding
+ *  the grid, so the copy handler keeps working on whatever stays visible. */
+function initIconFilter(root) {
+    const filter = root.querySelector('[data-ds-icon-filter]');
+    if (!filter) return;
+
+    const items = [...root.querySelectorAll('[data-ds-icon-name]')];
+    filter.addEventListener('input', () => {
+        const query = filter.value.trim().toLowerCase();
+        items.forEach(item => {
+            item.hidden = Boolean(query) && !item.dataset.dsIconName.includes(query);
+        });
+    });
+}
+
+/**
+ * The ol-popover a pinnable host opens: the host itself, or the first one
+ * found through its shadow roots (ol-shelf-button keeps its popover two
+ * levels down, inside ol-shelf-actions).
+ */
+function findPopover(host, depth = 0) {
+    if (host.tagName === 'OL-POPOVER') return host;
+    const shadow = host.shadowRoot;
+    if (!shadow || depth > 3) return null;
+    const direct = shadow.querySelector('ol-popover');
+    if (direct) return direct;
+    for (const child of shadow.querySelectorAll('*')) {
+        const found = child.shadowRoot && findPopover(child, depth + 1);
+        if (found) return found;
+    }
+    return null;
+}
+
+/**
+ * Playground "Pin open": hold every panel in the menus check open at once so
+ * their rows can be compared side by side. The composed popovers (menu,
+ * options, select, shelf actions) keep their ol-popover in their shadow root
+ * and expose no open/auto-close of their own, so this QA surface reaches in
+ * for it — a playground-only liberty, not a pattern for product code.
+ */
+function initPinnedMenus(root) {
+    const toggle = root.querySelector('[data-ds-pin-menus]');
+    if (!toggle) return;
+    const section = toggle.closest('.ds-section');
+    const panels = [...root.querySelectorAll('[data-ds-pinnable]')];
+
+    toggle.addEventListener('ol-toggle-change', event => {
+        const pinned = event.detail.checked;
+        section?.classList.toggle('ds--menus-pinned', pinned);
+        panels.forEach(host => {
+            const popover = findPopover(host);
+            if (!popover) return;
+            popover.autoClose = !pinned;
+            popover.open = pinned;
+        });
+    });
+}
+
+/** The Dialog helper demos call the real olConfirm()/olAlert(), which inline page scripts can't import. */
+function initDialogHelperDemos(root) {
+    const helpers = { confirm: olConfirm, alert: olAlert };
+    root.querySelectorAll('[data-ds-dialog-helper]').forEach(trigger => {
+        trigger.addEventListener('click', async () => {
+            const { dsDialogHelper, dsDialogOptions, dsDialogTemplate, dsDialogOut } = trigger.dataset;
+            const options = JSON.parse(dsDialogOptions);
+            if (dsDialogTemplate) options.message = root.querySelector(dsDialogTemplate);
+            const result = await helpers[dsDialogHelper](options);
+            const out = dsDialogOut && root.querySelector(dsDialogOut);
+            if (out) out.textContent = String(result);
+        });
+    });
+}
+
+/** The Toast demos call the real showToast(), which inline page scripts can't import. */
+function initToastDemos(root) {
+    root.querySelectorAll('[data-ds-toast], [data-ds-toast-template]').forEach(trigger => {
+        trigger.addEventListener('click', () => {
+            const { dsToast, dsToastTemplate, dsToastOptions } = trigger.dataset;
+            showToast(dsToastTemplate ? root.querySelector(dsToastTemplate) : dsToast, JSON.parse(dsToastOptions || '{}'));
+        });
+    });
 }
 
 export function initDesignSystem(root) {
     initCodeToggle(root);
     initCopy(root);
+    initNavPopover(root);
     initScrollSpy(root);
     initRampLabels(root);
     renderContrastBadges(root);
+    initIconFilter(root);
+    initIconPopover(root);
+    initDialogHelperDemos(root);
+    initToastDemos(root);
+    initPinnedMenus(root);
 }

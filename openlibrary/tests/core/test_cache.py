@@ -1,4 +1,4 @@
-import asyncio
+import inspect
 import time
 
 import pytest
@@ -152,7 +152,7 @@ class Test_memoize:
         msquare = cache.memoize(engine="memory", key="asquare")(asquare)
 
         # Check that it is still a coroutine function
-        assert asyncio.iscoroutinefunction(msquare)
+        assert inspect.iscoroutinefunction(msquare)
         assert msquare.__name__ == asquare.__name__
         assert msquare.__doc__ == asquare.__doc__
 

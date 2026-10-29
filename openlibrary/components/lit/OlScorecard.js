@@ -1,4 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
+import './OlIcon.js';
 
 let _idCounter = 0;
 
@@ -11,7 +12,7 @@ class OlScoreGauge extends LitElement {
     static properties = {
         percentage: { type: Number },
         size: { type: String, reflect: true },
-        showPercent: { type: Boolean, attribute: 'show-percent' },
+        showPercent: { type: Boolean, attribute: 'show-percent' }
     };
 
     static styles = css`
@@ -40,7 +41,13 @@ class OlScoreGauge extends LitElement {
             fill: none;
             stroke: currentColor;
             stroke-linecap: round;
-            transition: stroke-dashoffset 0.3s;
+            transition: stroke-dashoffset var(--duration-slow) var(--ease-enter);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .arc {
+                transition: none;
+            }
         }
 
         .value {
@@ -53,7 +60,7 @@ class OlScoreGauge extends LitElement {
             font-weight: normal;
         }
 
-        :host([size="small"]) .value {
+        :host([size='small']) .value {
             font-size: var(--font-size-label-medium, 12px);
             font-weight: bold;
         }
@@ -67,17 +74,19 @@ class OlScoreGauge extends LitElement {
     }
 
     /**
-     * Threshold color for the current percentage, as a CSS custom-property
-     * reference with a literal fallback (never a hardcoded default), so a
-     * consumer can still override e.g. --scorecard-excellent from outside.
+     * Threshold color for the current percentage, as a CSS color expression
+     * built from the status object-tier tokens.
      * @returns {String}
      */
     _colorVar() {
-        if (this.percentage >= 80) return 'var(--scorecard-excellent, #4caf50)';
-        if (this.percentage >= 60) return 'var(--scorecard-good, #8bc34a)';
-        if (this.percentage >= 40) return 'var(--scorecard-moderate, #ffc107)';
-        if (this.percentage >= 20) return 'var(--scorecard-needs-work, #ff9800)';
-        return 'var(--scorecard-poor, #f44336)';
+        // Object-tier status colors: saturated shapes, not text tones. The two
+        // in-between steps are mixed from their neighbours so the scale stays
+        // on the palette without extra tokens.
+        if (this.percentage >= 80) return 'var(--color-success-object)';
+        if (this.percentage >= 60) return 'color-mix(in oklch, var(--color-success-object) 70%, var(--color-warning-object))';
+        if (this.percentage >= 40) return 'var(--color-warning-object)';
+        if (this.percentage >= 20) return 'color-mix(in oklch, var(--color-warning-object) 55%, var(--color-error-object))';
+        return 'var(--color-error-object)';
     }
 
     /** @returns {import('lit').TemplateResult} */
@@ -92,10 +101,7 @@ class OlScoreGauge extends LitElement {
         const color = this._colorVar();
 
         return html`
-            <div
-                class="gauge"
-                style="width: ${diameter}px; height: ${diameter}px; color: ${color}"
-            >
+            <div class="gauge" style="width: ${diameter}px; height: ${diameter}px; color: ${color}">
                 <svg viewBox="0 0 ${diameter} ${diameter}" width=${diameter} height=${diameter} aria-hidden="true">
                     <circle class="track" cx=${center} cy=${center} r=${radius} stroke-width=${strokeWidth}></circle>
                     <circle
@@ -158,14 +164,8 @@ export class OlScorecard extends LitElement {
         labelCollapse: { type: String, attribute: 'label-collapse' },
         outdated: { type: Boolean },
         labelOutdated: { type: String, attribute: 'label-outdated' },
-        _activeSection: { type: Number, state: true },
+        _activeSection: { type: Number, state: true }
     };
-
-    /** Chevron icon; rotated by callers to indicate open/closed state. */
-    static _chevronIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
-
-    /** Clock icon; shown in the outdated-data warning banner. */
-    static _clockIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
 
     static styles = css`
         :host {
@@ -197,7 +197,7 @@ export class OlScorecard extends LitElement {
         }
 
         .collapsed-toggle:focus-visible {
-            outline: var(--focus-width, 2px) solid var(--color-focus-ring, #1a73e8);
+            outline: var(--focus-width, 2px) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -209,6 +209,7 @@ export class OlScorecard extends LitElement {
             width: 1em;
             height: 1em;
             flex-shrink: 0;
+            --ol-icon-stroke-width: 2.5;
         }
 
         .header {
@@ -226,7 +227,7 @@ export class OlScorecard extends LitElement {
         }
 
         .header:focus-visible {
-            outline: var(--focus-width, 2px) solid var(--color-focus-ring, #1a73e8);
+            outline: var(--focus-width, 2px) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -235,6 +236,7 @@ export class OlScorecard extends LitElement {
             height: 1.1em;
             flex-shrink: 0;
             transform: rotate(180deg);
+            --ol-icon-stroke-width: 2.5;
         }
 
         .tabs {
@@ -249,7 +251,7 @@ export class OlScorecard extends LitElement {
         .tab-separator {
             align-self: stretch;
             width: var(--border-width-divider, 1px);
-            background: var(--color-border-subtle, #ddd);
+            background: var(--color-border-subtle);
         }
 
         .tab {
@@ -272,25 +274,25 @@ export class OlScorecard extends LitElement {
         }
 
         ol-score-gauge {
-            background: var(--white, white);
+            background: var(--white);
             border-radius: 100px;
-            box-shadow: 0 0 4px 2px var(--white, white);
+            box-shadow: 0 0 4px 2px var(--white);
         }
 
         button.tab:hover ol-score-gauge {
             transform: scale(1.05);
         }
 
-        button.tab[aria-selected="true"] {
-            background: var(--lightest-grey, #ededed);
+        button.tab[aria-selected='true'] {
+            background: var(--color-control-selected-bg);
         }
 
-        button.tab[aria-selected="true"] .tab-label {
+        button.tab[aria-selected='true'] .tab-label {
             font-weight: bold;
         }
 
         button.tab:focus-visible {
-            outline: var(--focus-width, 2px) solid var(--color-focus-ring, #1a73e8);
+            outline: var(--focus-width, 2px) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -317,11 +319,11 @@ export class OlScorecard extends LitElement {
         .checks-heading {
             margin: 0;
             padding: var(--spacing-inset-sm, 8px) var(--spacing-inset-md, 16px) var(--spacing-inset-xs, 4px);
-            color: var(--accessible-grey, #767676);
-            font-size: var(--font-size-label-medium, 12px);
-            font-weight: normal;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            color: var(--color-text-muted);
+            font-size: var(--font-size-overline);
+            font-weight: var(--font-weight-overline);
+            letter-spacing: var(--letter-spacing-overline);
+            text-transform: var(--text-transform-overline);
             list-style: none;
         }
 
@@ -375,6 +377,7 @@ export class OlScorecard extends LitElement {
             width: 1em;
             height: 1em;
             flex-shrink: 0;
+            --ol-icon-stroke-width: 2.5;
         }
 
         .check[open] .check-chevron {
@@ -395,14 +398,15 @@ export class OlScorecard extends LitElement {
             padding: var(--spacing-inset-sm, 8px);
             border-radius: var(--border-radius-md, 6px);
             font-size: var(--font-size-label-medium, 12px);
-            background-color: var(--scorecard-warning-bg, hsl(32deg 100% 90%));
-            color: var(--scorecard-warning-text, hsl(32deg 100% 35%));
+            background-color: var(--color-warning-bg);
+            color: var(--color-warning-fg);
         }
 
         .outdated-banner-icon {
             width: 1.2em;
             height: 1.2em;
             flex-shrink: 0;
+            --ol-icon-stroke-width: 2.5;
         }
     `;
 
@@ -478,11 +482,13 @@ export class OlScorecard extends LitElement {
                 class="collapsed-toggle"
                 aria-expanded="false"
                 aria-label=${ariaLabel}
-                @click=${() => { this.expanded = true; }}
+                @click=${() => {
+                    this.expanded = true;
+                }}
             >
                 <ol-score-gauge percentage=${percentage} size="small"></ol-score-gauge>
                 <span class="collapsed-label" aria-hidden="true">${name}</span>
-                <span class="collapsed-chevron" aria-hidden="true">${OlScorecard._chevronIcon}</span>
+                <ol-icon class="collapsed-chevron" name="chevron-down"></ol-icon>
             </button>
         `;
     }
@@ -497,10 +503,12 @@ export class OlScorecard extends LitElement {
                 type="button"
                 class="header"
                 aria-expanded="true"
-                @click=${() => { this.expanded = false; }}
+                @click=${() => {
+                    this.expanded = false;
+                }}
             >
                 <span style="flex: 1">${name}</span>
-                <span class="header-chevron" aria-label=${this.labelCollapse}>${OlScorecard._chevronIcon}</span>
+                <ol-icon class="header-chevron" name="chevron-down" label=${this.labelCollapse}></ol-icon>
             </button>
 
             ${this._renderOutdatedBanner()}
@@ -515,11 +523,11 @@ export class OlScorecard extends LitElement {
                 <div class="tab-separator" role="presentation"></div>
 
                 ${sections.map((section, i) => {
-        const sectionPct = this._percentage(section.score, section.maxScore);
-        const isActive = i === this._activeSection;
-        const panelId = `${this._panelIdPrefix}-panel-${i}`;
-        const tabId = `${this._panelIdPrefix}-tab-${i}`;
-        return html`
+                    const sectionPct = this._percentage(section.score, section.maxScore);
+                    const isActive = i === this._activeSection;
+                    const panelId = `${this._panelIdPrefix}-panel-${i}`;
+                    const tabId = `${this._panelIdPrefix}-tab-${i}`;
+                    return html`
                         <button
                             type="button"
                             class="tab"
@@ -528,15 +536,17 @@ export class OlScorecard extends LitElement {
                             aria-selected=${isActive}
                             aria-controls=${panelId}
                             tabindex=${isActive ? '0' : '-1'}
-                            @click=${() => { this._activeSection = i; }}
-                            @keydown=${(e) => this._onTabKeydown(e, i)}
+                            @click=${() => {
+                                this._activeSection = i;
+                            }}
+                            @keydown=${e => this._onTabKeydown(e, i)}
                         >
                             <ol-score-gauge percentage=${sectionPct} show-percent></ol-score-gauge>
                             <span class="tab-label">${section.name}</span>
                             <span class="tab-points">${section.score}/${section.maxScore}</span>
                         </button>
                     `;
-    })}
+                })}
             </div>
 
             ${sections.map((section, i) => this._renderSectionPanel(section, i))}
@@ -549,7 +559,7 @@ export class OlScorecard extends LitElement {
 
         return html`
             <div class="outdated-banner">
-                <span class="outdated-banner-icon">${OlScorecard._clockIcon}</span>
+                <ol-icon class="outdated-banner-icon" name="clock"></ol-icon>
                 <span>${this.labelOutdated}</span>
             </div>
         `;
@@ -569,13 +579,7 @@ export class OlScorecard extends LitElement {
         const passingChecks = section.checks.filter(c => c.passing).sort((a, b) => b.score - a.score);
 
         return html`
-            <div
-                class="section"
-                id=${panelId}
-                role="tabpanel"
-                aria-labelledby=${tabId}
-                ?hidden=${!isActive}
-            >
+            <div class="section" id=${panelId} role="tabpanel" aria-labelledby=${tabId} ?hidden=${!isActive}>
                 <div class="checks-group">
                     <div class="checks-heading">${this._interpolateLabel(this.labelFailingChecks, { count: failingChecks.length })}</div>
                     ${failingChecks.map(check => this._renderCheck(check))}
@@ -600,7 +604,7 @@ export class OlScorecard extends LitElement {
                 <summary>
                     <span style="flex: 1">${emoji} ${check.description}</span>
                     <span class="check-points">${this._interpolateLabel(this.labelPoints, { score: check.score })}</span>
-                    <span class="check-chevron" aria-hidden="true">${OlScorecard._chevronIcon}</span>
+                    <ol-icon class="check-chevron" name="chevron-down"></ol-icon>
                 </summary>
                 <div class="check-details">${check.details}</div>
             </details>

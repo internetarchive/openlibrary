@@ -481,7 +481,7 @@
         <!-- Work search -->
         <lst>
           <str name="userWorkQuery">harry potter</str>
-          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
+          <str name="q">({!edismax q.op="AND" qf="alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
           <str name="fq">type:work</str>
           <str name="rows">20</str>
           <str name="facet">true</str>
@@ -498,7 +498,7 @@
         <!-- Author works search -->
         <lst>
           <str name="userWorkQuery">*:*</str>
-          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
+          <str name="q">({!edismax q.op="AND" qf="alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
           <str name="fq">type:work</str>
           <str name="fq">author_key:OL2162284A</str>
           <str name="sort">edition_count desc</str>
@@ -513,7 +513,7 @@
         <!-- Ebook only search for carousel -->
         <lst>
           <str name="userWorkQuery">subject:"Reading Level-Grade 6"</str>
-          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
+          <str name="q">({!edismax q.op="AND" qf="alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
           <str name="fq">type:work</str>
           <str name="fq">ebook_access:[printdisabled TO *]</str>
           <str name="rows">20</str>
@@ -651,8 +651,10 @@
     <lst name="defaults">
       <str name="echoParams">explicit</str>
       <int name="rows">10</int>
-      <!-- Default search field -->
-      <str name="df">text</str>
+      <!-- Default search field for bare/unqualified terms. App code always
+           passes an explicit qf, so this only matters for ad-hoc/debug
+           queries against /select without one. -->
+      <str name="df">title</str>
     </lst>
   </requestHandler>
 
@@ -682,7 +684,7 @@
   <!-- Shared parameters for multiple Request Handlers -->
   <initParams path="/update/**,/query,/select,/spell">
     <lst name="defaults">
-      <str name="df">text</str>
+      <str name="df">title</str>
     </lst>
   </initParams>
 
@@ -704,7 +706,7 @@
     <!-- a spellchecker built from a field of the main index -->
     <lst name="spellchecker">
       <str name="name">default</str>
-      <str name="field">text</str>
+      <str name="field">title</str>
       <str name="classname">solr.DirectSolrSpellChecker</str>
       <!-- the spellcheck distance measure used, the default is the internal levenshtein -->
       <str name="distanceMeasure">internal</str>

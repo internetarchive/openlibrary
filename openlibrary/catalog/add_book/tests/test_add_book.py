@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 import pytest
+import web
 
 from infogami.infobase.client import Nothing
 from infogami.infobase.core import Text
@@ -623,6 +624,35 @@ class Test_From_MARC:
         work = mock_site.get(reply["work"]["key"])
         assert isinstance(work["description"], Text)
         assert work["description"] == desc
+
+    def test_matched_author_gets_modified(self, mock_site, add_languages, ia_writeback):
+        mock_site.save(
+            {
+                "key": "/authors/OL1A",
+                "type": {"key": "/type/author"},
+                "name": "John Smith",
+                "birth_date": "1900",
+            }
+        )
+        isni = "000000000000000X"
+        rec = {
+            "title": "Some New Book",
+            "source_records": ["ia:new_book"],
+            "authors": [
+                {
+                    "name": "John Smith",
+                    "birth_date": "1900",
+                    "death_date": "1970",
+                    "remote_ids": {"isni": isni},
+                }
+            ],
+        }
+        reply = load(rec)
+        assert reply["authors"][0]["status"] == "modified"
+        assert reply["authors"][0]["key"] == "/authors/OL1A"
+        existing = mock_site.get("/authors/OL1A")
+        assert existing.death_date == "1970"
+        assert existing.remote_ids.get("isni") == isni
 
 
 def test_build_pool(mock_site):
@@ -2085,3 +2115,26 @@ def test_check_cover_url_host(cover_url: str, is_valid: bool) -> None:
     Only cover URLs available via the HTTP Proxy are allowed.
     """
     assert check_cover_url_host(cover_url) == is_valid
+
+
+@pytest.mark.parametrize(
+    ("incoming_name", "expected_status"),
+    [("John Doe", "matched"), ("John Q. Doe", "modified")],
+)
+def test_load_author_import_records_without_web_ctx_site(mock_site, monkeypatch, incoming_name, expected_status):
+    """Existing authors are read from the request-scoped site, not ``web.ctx.site``.
+
+    Sync FastAPI routes (e.g. the import preview) run in a worker thread where
+    ``web.ctx`` is empty, so ``web.ctx.site`` is unavailable. See #13960.
+    """
+    mock_site.save({"type": {"key": "/type/author"}, "key": "/authors/OL1A", "name": "John Doe"})
+    monkeypatch.delattr(web.ctx, "site")
+
+    author = mock_site.get("/authors/OL1A")
+    author.name = incoming_name
+    edits = []
+    authors, author_reply = add_book.load_author_import_records([author], edits, "ia:test_item", save=False)
+
+    assert authors == [{"key": "/authors/OL1A"}]
+    assert author_reply[0]["status"] == expected_status
+    assert bool(edits) is (expected_status == "modified")

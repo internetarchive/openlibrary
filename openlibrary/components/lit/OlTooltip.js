@@ -6,8 +6,8 @@ import { topLayerAttr, promoteToTopLayer, demoteFromTopLayer } from './utils/top
  * A tooltip component that displays contextual information on hover/focus.
  *
  * Wraps a trigger element and shows a tooltip panel with configurable placement
- * and arrow. The tooltip appears after a short delay and is shown/hidden
- * instantly with no animation. Each tooltip is independent — moving from one
+ * and arrow. The tooltip appears after a short delay and fades in and out
+ * (instant under prefers-reduced-motion). Each tooltip is independent — moving from one
  * trigger to another hides the old tooltip and shows the new one.
  *
  * The panel is promoted to the top layer via the Popover API so it escapes
@@ -59,7 +59,7 @@ export class OlTooltip extends LitElement {
         _visible: { state: true },
         _position: { state: true },
         _actualSide: { state: true },
-        _arrowOffset: { state: true },
+        _arrowOffset: { state: true }
     };
 
     static styles = css`
@@ -74,14 +74,20 @@ export class OlTooltip extends LitElement {
             display: none;
             max-width: var(--ol-tooltip-max-width, 280px);
             padding: 6px 10px;
-            background: var(--dark-grey);
-            color: var(--white);
+            background: var(--color-surface-inverse);
+            color: var(--color-text-inverse);
             font-size: 13px;
             line-height: var(--line-height-snug);
             border-radius: var(--border-radius-tooltip);
             pointer-events: none;
             user-select: none;
             width: max-content;
+            opacity: 0;
+            /* Keep it displayed and in the top layer until the fade-out ends. */
+            transition:
+                opacity var(--duration-fast) var(--ease-exit),
+                display var(--duration-fast) allow-discrete,
+                overlay var(--duration-fast) allow-discrete;
         }
 
         /* Undo the UA [popover] defaults this rule does not already override.
@@ -97,6 +103,22 @@ export class OlTooltip extends LitElement {
 
         .tooltip[data-visible] {
             display: block;
+            opacity: 1;
+            /* Not --ease-enter: a quint curve makes an opacity fade read as a pop. */
+            transition-duration: var(--duration-base);
+            transition-timing-function: ease-out;
+        }
+
+        @starting-style {
+            .tooltip[data-visible] {
+                opacity: 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tooltip {
+                transition: none;
+            }
         }
 
         /* ── Arrow ── */
@@ -109,16 +131,16 @@ export class OlTooltip extends LitElement {
             transform: rotate(45deg);
         }
 
-        :host([data-side="top"]) .arrow {
+        :host([data-side='top']) .arrow {
             bottom: -4px;
         }
-        :host([data-side="bottom"]) .arrow {
+        :host([data-side='bottom']) .arrow {
             top: -4px;
         }
-        :host([data-side="left"]) .arrow {
+        :host([data-side='left']) .arrow {
             right: -4px;
         }
-        :host([data-side="right"]) .arrow {
+        :host([data-side='right']) .arrow {
             left: -4px;
         }
     `;
@@ -194,13 +216,7 @@ export class OlTooltip extends LitElement {
                 style="top: ${this._position.top}px; left: ${this._position.left}px;"
             >
                 <slot name="content">${this.content}</slot>
-                ${this.arrow ? html`
-                    <div
-                        class="arrow"
-                        aria-hidden="true"
-                        style="${this._arrowStyle}"
-                    ></div>
-                ` : nothing}
+                ${this.arrow ? html` <div class="arrow" aria-hidden="true" style="${this._arrowStyle}"></div> ` : nothing}
             </div>
         `;
     }
@@ -266,12 +282,17 @@ export class OlTooltip extends LitElement {
 
     // ── Show / Hide ──
 
+    hide() {
+        this._clearTimers();
+        this._hide();
+    }
+
     _show() {
         if (this._visible) return;
 
         // Render off-screen first so we can measure the panel, then position it.
-        // The off-screen frame is never seen on-screen, so the tooltip simply
-        // pops into place once positioned — no flash at the wrong spot.
+        // The off-screen frame is never seen on-screen, so the tooltip fades
+        // in at its final position — no flash at the wrong spot.
         this._position = { top: -9999, left: -9999 };
         this._visible = true;
 
@@ -289,9 +310,12 @@ export class OlTooltip extends LitElement {
             promoteToTopLayer(tooltip);
 
             this._computePosition(tooltip.offsetWidth, tooltip.offsetHeight);
-            this.dispatchEvent(new CustomEvent('ol-tooltip-show', {
-                bubbles: true, composed: true
-            }));
+            this.dispatchEvent(
+                new CustomEvent('ol-tooltip-show', {
+                    bubbles: true,
+                    composed: true
+                })
+            );
         });
     }
 
@@ -301,9 +325,12 @@ export class OlTooltip extends LitElement {
         window.removeEventListener('scroll', this._onScroll, true);
         demoteFromTopLayer(this.shadowRoot?.querySelector('.tooltip'));
         this._visible = false;
-        this.dispatchEvent(new CustomEvent('ol-tooltip-hide', {
-            bubbles: true, composed: true
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-tooltip-hide', {
+                bubbles: true,
+                composed: true
+            })
+        );
     }
 
     // ── Positioning ──
@@ -323,13 +350,13 @@ export class OlTooltip extends LitElement {
 
         // Determine side with flip
         let side = reqSide;
-        if (side === 'top' && anchor.top - gap - panelH < pad && (viewH - anchor.bottom - gap) > (anchor.top - gap)) {
+        if (side === 'top' && anchor.top - gap - panelH < pad && viewH - anchor.bottom - gap > anchor.top - gap) {
             side = 'bottom';
-        } else if (side === 'bottom' && anchor.bottom + gap + panelH > viewH - pad && (anchor.top - gap) > (viewH - anchor.bottom - gap)) {
+        } else if (side === 'bottom' && anchor.bottom + gap + panelH > viewH - pad && anchor.top - gap > viewH - anchor.bottom - gap) {
             side = 'top';
-        } else if (side === 'left' && anchor.left - gap - panelW < pad && (viewW - anchor.right - gap) > (anchor.left - gap)) {
+        } else if (side === 'left' && anchor.left - gap - panelW < pad && viewW - anchor.right - gap > anchor.left - gap) {
             side = 'right';
-        } else if (side === 'right' && anchor.right + gap + panelW > viewW - pad && (anchor.left - gap) > (viewW - anchor.right - gap)) {
+        } else if (side === 'right' && anchor.right + gap + panelW > viewW - pad && anchor.left - gap > viewW - anchor.right - gap) {
             side = 'left';
         }
 
@@ -338,18 +365,18 @@ export class OlTooltip extends LitElement {
 
         // Primary axis
         switch (side) {
-        case 'top':
-            top = anchor.top - totalGap - panelH;
-            break;
-        case 'bottom':
-            top = anchor.bottom + totalGap;
-            break;
-        case 'left':
-            left = anchor.left - totalGap - panelW;
-            break;
-        case 'right':
-            left = anchor.right + totalGap;
-            break;
+            case 'top':
+                top = anchor.top - totalGap - panelH;
+                break;
+            case 'bottom':
+                top = anchor.bottom + totalGap;
+                break;
+            case 'left':
+                left = anchor.left - totalGap - panelW;
+                break;
+            case 'right':
+                left = anchor.right + totalGap;
+                break;
         }
 
         // Cross axis
@@ -358,32 +385,32 @@ export class OlTooltip extends LitElement {
 
         if (side === 'top' || side === 'bottom') {
             switch (reqAlign) {
-            case 'start':
-                left = anchor.left;
-                break;
-            case 'end':
-                left = anchor.right - panelW;
-                break;
-            case 'center':
-            default:
-                left = anchorCenterX - panelW / 2;
-                break;
+                case 'start':
+                    left = anchor.left;
+                    break;
+                case 'end':
+                    left = anchor.right - panelW;
+                    break;
+                case 'center':
+                default:
+                    left = anchorCenterX - panelW / 2;
+                    break;
             }
             // Clamp horizontal
             if (left + panelW > viewW - pad) left = viewW - pad - panelW;
             if (left < pad) left = pad;
         } else {
             switch (reqAlign) {
-            case 'start':
-                top = anchor.top;
-                break;
-            case 'end':
-                top = anchor.bottom - panelH;
-                break;
-            case 'center':
-            default:
-                top = anchorCenterY - panelH / 2;
-                break;
+                case 'start':
+                    top = anchor.top;
+                    break;
+                case 'end':
+                    top = anchor.bottom - panelH;
+                    break;
+                case 'center':
+                default:
+                    top = anchorCenterY - panelH / 2;
+                    break;
             }
             // Clamp vertical
             if (top + panelH > viewH - pad) top = viewH - pad - panelH;
@@ -406,14 +433,14 @@ export class OlTooltip extends LitElement {
     get _arrowStyle() {
         const pos = this._arrowOffset;
         switch (this._actualSide) {
-        case 'top':
-        case 'bottom':
-            return `left: ${pos}px; transform: translateX(-50%) rotate(45deg);`;
-        case 'left':
-        case 'right':
-            return `top: ${pos}px; transform: translateY(-50%) rotate(45deg);`;
-        default:
-            return '';
+            case 'top':
+            case 'bottom':
+                return `left: ${pos}px; transform: translateX(-50%) rotate(45deg);`;
+            case 'left':
+            case 'right':
+                return `top: ${pos}px; transform: translateY(-50%) rotate(45deg);`;
+            default:
+                return '';
         }
     }
 

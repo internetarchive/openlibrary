@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import functools
 import itertools
 import json
@@ -220,43 +220,29 @@ def render_component(
     return html
 
 
-def render_macro(name, args, **kwargs):
-    return dict(web.template.Template.globals["macros"][name](*args, **kwargs))
-
-
 @public
-def render_cached_macro(name: str, args: tuple, **kwargs):
-    from openlibrary.plugins.openlibrary.home import caching_prethread
+def icon_sprite_url() -> str:
+    """Return the content-hashed URL of the icon sprite asset.
 
-    def get_key_prefix():
-        req_context = request_context.req_context.get()
-        lang = req_context.lang
-        key_prefix = f"{name}.{lang}"
-        if req_context.print_disabled:
-            key_prefix += ".pd"
-        if req_context.sfw:
-            key_prefix += ".sfw"
-        if req_context.is_bot:
-            key_prefix += ".bot"
-        return key_prefix
+    Used by the ``$:macros.icon()`` macro; client JS reads the same URL off the
+    ``<meta name="ol-icon-sprite">`` tag in shell/head.html.jinja instead. ``static_url``
+    hashes once per process, so a rebuild needs a web restart.
 
-    five_minutes = 5 * 60
-    key_prefix = get_key_prefix()
-    mc = cache.memcache_memoize(
-        render_macro,
-        key_prefix=key_prefix,
-        timeout=five_minutes,
-        prethread=caching_prethread(),
-        hash_args=True,  # this avoids cache key length overflow
-    )
+    The sprite is generated, so a checkout that never ran ``make icons`` has no
+    file to hash. Fall back to the unhashed path: every icon draws blank, which
+    is obvious and cheap to fix, rather than 500ing every page that has one.
+    """
+    from openlibrary.plugins.upstream.code import static_url
 
     try:
-        page = mc(name, args, **kwargs)
-        if page.get("do_not_cache") == "True":
-            mc.memcache_delete_by_args(name, args, **kwargs)
-        return web.template.TemplateResult(page)
-    except ValueError, TypeError:
-        return "<span>Failed to render macro</span>"
+        return static_url("icons/sprite.svg")
+    except OSError:
+        logger.warning("Icon sprite not found at static/icons/sprite.svg; run `make icons`")
+        return "/static/icons/sprite.svg"
+
+
+def render_macro(name, args, **kwargs):
+    return dict(web.template.Template.globals["macros"][name](*args, **kwargs))
 
 
 def get_message(name: str, *args) -> str:
@@ -580,7 +566,6 @@ def add_metatag(tag: str = "meta", **attrs) -> None:
     context.metatags.append(Metatag(tag, **attrs))
 
 
-@public
 def url_quote(text: str | bytes) -> str:
     if isinstance(text, str):
         text = text.encode("utf8")
@@ -617,18 +602,25 @@ def set_share_links(url: str = "#", title: str = "", view_context: InfogamiConte
     """
     encoded_url = url_quote(url)
     text = url_quote("Check this out: " + entity_decode(title))
+    # `track` stays stable across renames so the Share|<track> analytics series doesn't split.
     links = [
         {
             "text": "Facebook",
             "url": "https://www.facebook.com/sharer/sharer.php?u=" + encoded_url,
+            "icon": "brand-facebook",
+            "track": "Facebook",
         },
         {
-            "text": "Twitter",
-            "url": f"https://twitter.com/intent/tweet?url={encoded_url}&via=openlibrary&text={text}",
+            "text": "X (Twitter)",
+            "url": f"https://x.com/intent/post?url={encoded_url}&via=openlibrary&text={text}",
+            "icon": "brand-x",
+            "track": "Twitter",
         },
         {
             "text": "Pinterest",
             "url": f"https://pinterest.com/pin/create/link/?url={encoded_url}&description={text}",
+            "icon": "brand-pinterest",
+            "track": "Pinterest",
         },
     ]
     if view_context is not None:
@@ -1369,7 +1361,7 @@ def _get_blog_feeds():
         stats.end()
 
     def parse_item(item):
-        pubdate = datetime.datetime.strptime(item.find("pubDate").text, "%a, %d %b %Y %H:%M:%S +0000").isoformat()
+        pubdate = dt.datetime.strptime(item.find("pubDate").text, "%a, %d %b %Y %H:%M:%S +0000").isoformat()
         return {
             "title": item.find("title").text,
             "link": item.find("link").text,
@@ -1471,17 +1463,21 @@ class Request:
 
 @public
 def render_once(key: str) -> bool:
-    rendered = web.ctx.setdefault("render_once", {})
+    rendered = request_context.rendered_keys.get()
+    if rendered is None:
+        # Preserve standalone template rendering without a shared mutable default.
+        rendered = set()
+        request_context.rendered_keys.set(rendered)
     if key in rendered:
         return False
     else:
-        rendered[key] = True
+        rendered.add(key)
         return True
 
 
 @public
 def today():
-    return datetime.datetime.today()
+    return dt.datetime.today()
 
 
 class HTMLTagRemover(HTMLParser):
@@ -1520,6 +1516,21 @@ def reformat_html(html_str: str, max_length: int | None = None) -> str:
         return truncate("".join(content), max_length).strip().replace("\n", "<br>")
     else:
         return "".join(content).strip().replace("\n", "<br>")
+
+
+@public
+def markdown_excerpt(text: str, max_length: int = 200) -> str:
+    """Plain-text excerpt of a markdown field (e.g. a book description) for meta tags.
+
+    Cuts at a word boundary and adds an ellipsis when the text is longer than max_length.
+    """
+    html = get_markdown(str(text or "")).convert()
+    html = re.sub(r"<(script|style)\b.*?</\1>", " ", html, flags=re.DOTALL | re.IGNORECASE)
+    plain = " ".join(unescape(re.sub(r"<[^>]+>", " ", html)).split())
+    plain = re.sub(r" ([,.;:!?)])", r"\1", plain)
+    if len(plain) <= max_length:
+        return plain
+    return plain[:max_length].rsplit(" ", 1)[0].rstrip(",;:—-") + "…"
 
 
 def get_colon_only_loc_pub(pair: str) -> tuple[str, str]:
@@ -1614,6 +1625,26 @@ def subject_name_to_key(subject: str, prefix="") -> str:
     return f"/subjects/{prefix}{normalize_subject_name(subject)}"
 
 
+# The unused-template test reads this literal as ListCarousel's only static
+# reference; renaming or deleting it flips the macro to "unused".
+LIST_CAROUSEL_RE = re.compile(r"""\{\{ListCarousel\(\s*["']([^"']+)["']""")
+
+
+@public
+def get_collection_book_count(page) -> int:
+    """Number of books a /collections/* page holds, summed over the lists its
+    ListCarousel macros point at. Zero when it has no such macro (e.g. it only
+    embeds search-query carousels), so callers can drop the count.
+    """
+    body = page.get("body") or ""
+    # Each key arrives with a display slug appended: /people/x/lists/OL1L/Name.
+    keys = {"/".join(m.split("/")[:5]) for m in LIST_CAROUSEL_RE.findall(str(body))}
+    # A deleted list still resolves to a Thing, and a non-list key to one with no
+    # seed_count, so both would otherwise count as a list holding zero books.
+    lists = web.ctx.site.get_many(sorted(keys))
+    return sum(lst.seed_count for lst in lists if lst.type.key == "/type/list")
+
+
 def setup_requests(config=config) -> None:
     logger.info("Setting up requests")
 
@@ -1652,15 +1683,18 @@ def setup() -> None:
         {
             "HTML": HTML,
             "request": Request(),
-            "logger": logging.getLogger("openlibrary.template"),
             "sum": sum,
             "websafe": web.websafe,
         }
     )
 
     from openlibrary.core import helpers as h
+    from openlibrary.core.fulltext import all_words_query, phrase_query
 
     web.template.Template.globals.update(h.helpers)
+    # For the fulltext macros' BookReader links; imported here since core.fulltext imports back into plugins.
+    web.template.Template.globals["phrase_query"] = phrase_query
+    web.template.Template.globals["all_words_query"] = all_words_query
 
     if config.get("use_gzip") is True:
         config.middleware.append(GZipMiddleware)

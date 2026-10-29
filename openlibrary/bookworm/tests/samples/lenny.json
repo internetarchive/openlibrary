@@ -1,0 +1,137 @@
+[
+  {
+    "metadata": {
+      "title": "Flatland",
+      "type": "http://schema.org/Book",
+      "language": [
+        "en"
+      ],
+      "description": "<p><i>Flatland</i> is uniquely both a social critique and a primer on multi-dimensional geometry. Written in two parts in 1884 by <a href=\"https://standardebooks.org/ebooks/edwin-a-abbott\">Edwin <abbr>A.</abbr> Abbott</a>, an English mathematician and theologian, it tells the story of a square living in Flatland: a two-dimensional realm. After a dream of a restrictive one-dimensional existence and the difficulties this poses, he is visited by a sphere from a three-dimensional space who wishes to enlighten him into the ways of \u201cUpward, yet not Northward.\u201d</p>\n\t\t\t<p>Edwin <abbr>A.</abbr> Abbott wrote other theological fiction and non-fiction (including several biographies), but he is best remembered for <i>Flatland</i>. While it was mostly forgotten after publication, it received a revived interest from the 1960s onwards, and has more recently had several sequels and film adaptations. This edition of is based on the second published edition and includes its preface, which in part attempts to address some of the contemporary accusations of misogyny.</p>",
+      "author": [
+        {
+          "name": "Edwin Abbott Abbott",
+          "links": [
+            {
+              "href": "https://openlibrary.org/authors/OL20585A",
+              "type": "text/html",
+              "rel": "author"
+            }
+          ]
+        }
+      ],
+      "numberOfPages": 110
+    },
+    "links": [
+      {
+        "href": "https://lennyforlibraries.org/v1/api/opds/37044775",
+        "type": "application/opds-publication+json",
+        "rel": "self",
+        "templated": false
+      },
+      {
+        "href": "https://lennyforlibraries.org/v1/api/items/37044775/read",
+        "type": "text/html",
+        "rel": "http://opds-spec.org/acquisition/open-access",
+        "title": "Lenny",
+        "templated": false
+      }
+    ],
+    "images": [
+      {
+        "href": "https://covers.openlibrary.org/b/id/12622094-L.jpg",
+        "type": "image/jpeg",
+        "rel": "cover"
+      }
+    ]
+  },
+  {
+    "metadata": {
+      "title": "Candide",
+      "type": "http://schema.org/Book",
+      "language": [
+        "en"
+      ],
+      "description": "<p><i>Candide</i> is the picaresque tale of the titular character\u2019s fantastical journey from an insular, idealized life in a picturesque castle through the difficulties and evils of the real world. Satirical, comical, witty, and cutting, <i>Candide</i> was widely banned in its day for containing blasphemous and seditious concepts. Despite that, it survived controversy to become an important book in the Western literary heritage. Today <i>Candide</i> remains a breezy and darkly funny read.</p>",
+      "author": [
+        {
+          "name": "Voltaire",
+          "links": [
+            {
+              "href": "https://openlibrary.org/authors/OL32293A",
+              "type": "text/html",
+              "rel": "author"
+            }
+          ]
+        }
+      ],
+      "numberOfPages": 152
+    },
+    "links": [
+      {
+        "href": "https://lennyforlibraries.org/v1/api/opds/37044428",
+        "type": "application/opds-publication+json",
+        "rel": "self",
+        "templated": false
+      },
+      {
+        "href": "https://lennyforlibraries.org/v1/api/items/37044428/read",
+        "type": "text/html",
+        "rel": "http://opds-spec.org/acquisition/open-access",
+        "title": "Lenny",
+        "templated": false
+      }
+    ],
+    "images": [
+      {
+        "href": "https://covers.openlibrary.org/b/id/12621659-L.jpg",
+        "type": "image/jpeg",
+        "rel": "cover"
+      }
+    ]
+  },
+  {
+    "metadata": {
+      "title": "The Awakening",
+      "type": "http://schema.org/Book",
+      "language": [
+        "en"
+      ],
+      "description": "<p><i>The Awakening</i> charts Edna Pontellier\u2019s journey of self-discovery. The time spent with a younger friend on a summer holiday on Grand Isle in Lousiana unlocks a feeling in her that she can\u2019t close away again. On returning to her family home in New Orleans, she starts to transition from unthinking housewife and mother into something freer and more confident, although this doesn\u2019t meet with the full approval of the society she\u2019s a part of.</p>\n\t\t\t<p><a href=\"https://standardebooks.org/ebooks/kate-chopin\">Kate Chopin</a> had written a novel previously, but she was mostly known as a writer of <a href=\"https://standardebooks.org/ebooks/kate-chopin/short-fiction\">Louisiana-set short stories</a>. <i>The Awakening</i>, while keeping the setting, charted new territory with its themes of marital infidelity and less-than-perfect devotion of a mother to her children. The consequent critical reception was less than enthusiastic\u2014hardly surprising given the prevailing moral atmosphere of the time\u2014and her next novel was cancelled. <i>The Awakening</i> was rediscovered in the 1960s and is now regarded as an important early example of American feminist literature.</p>",
+      "author": [
+        {
+          "name": "Kate Chopin",
+          "links": [
+            {
+              "href": "https://openlibrary.org/authors/OL35183A",
+              "type": "text/html",
+              "rel": "author"
+            }
+          ]
+        }
+      ],
+      "numberOfPages": 216
+    },
+    "links": [
+      {
+        "href": "https://lennyforlibraries.org/v1/api/opds/37044641",
+        "type": "application/opds-publication+json",
+        "rel": "self",
+        "templated": false
+      },
+      {
+        "href": "https://lennyforlibraries.org/v1/api/items/37044641/read",
+        "type": "text/html",
+        "rel": "http://opds-spec.org/acquisition/open-access",
+        "title": "Lenny",
+        "templated": false
+      }
+    ],
+    "images": [
+      {
+        "href": "https://covers.openlibrary.org/b/id/12621922-L.jpg",
+        "type": "image/jpeg",
+        "rel": "cover"
+      }
+    ]
+  }
+]

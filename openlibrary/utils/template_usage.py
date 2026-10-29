@@ -10,7 +10,7 @@ Two template systems coexist:
 Every git-tracked source file is scanned; anything unreferenced is reported.
 The analysis errs conservative (a missed unused template beats a false
 positive).  Runtime name construction is covered by DYNAMIC_DISPATCH_RULES;
-database-only usage by the exclusion lists in the test file.
+database-only usage by the exclusion lists in scripts/check_unused_templates.py.
 """
 
 from __future__ import annotations
@@ -31,18 +31,20 @@ KIND_TEMPLETOR_TEMPLATE = "templetor template"
 KIND_TEMPLETOR_MACRO = "templetor macro"
 KIND_JINJA_TEMPLATE = "jinja template"
 KIND_JINJA_MACRO = "jinja macro"
+ALL_KINDS = frozenset({KIND_TEMPLETOR_TEMPLATE, KIND_TEMPLETOR_MACRO, KIND_JINJA_TEMPLATE, KIND_JINJA_MACRO})
 
 # Source files that may contain references.  Docs (*.md) are excluded (a
 # template mentioned in docs is not used by it); test files are included (a
 # template rendered only from a test is still alive).
 CORPUS_SUFFIXES = frozenset({".py", ".js", ".ts", ".tsx", ".vue", ".html", ".jinja", ".yml", ".yaml", ".json"})
 
-# Never scanned: this module and its test mention template names verbatim, and
-# package-lock.json dependency names could rescue a template by coincidence.
+# Never scanned: this module and the hook script that wraps it mention
+# template names verbatim, and package-lock.json dependency names could
+# rescue a template by coincidence.
 CORPUS_SKIP_FILES = frozenset(
     {
         "openlibrary/utils/template_usage.py",
-        "openlibrary/tests/test_unused_templates.py",
+        "scripts/check_unused_templates.py",
         "package-lock.json",
     }
 )
@@ -79,7 +81,7 @@ class Template:
 
 @dataclass
 class Analysis:
-    """Result of the unused-template scan, plus the exclusion audit."""
+    """Result of the unused-template scan, plus the exclusion and discovery audits."""
 
     templates: list[Template]
     unused: list[Template]
@@ -88,6 +90,13 @@ class Analysis:
     used_exclusions: dict[str, str]
     # Exclusion entries matching no template/macro on disk.
     missing_exclusions: set[str]
+    # Kinds in ALL_KINDS matched by no template on disk -- a non-empty result
+    # means discovery is silently broken (moved roots, renamed globs), which
+    # would make the unused-template scan vacuously pass.
+    missing_kinds: frozenset[str]
+    # DYNAMIC_DISPATCH_RULES entries matching no template on disk (stale
+    # rule -- update or remove it).
+    stale_dynamic_dispatch_rules: list[str]
 
 
 def build_inventory() -> list[Template]:
@@ -112,12 +121,8 @@ def build_inventory() -> list[Template]:
     return sorted(set(templates), key=lambda t: (t.kind, t.relpath, t.name))
 
 
-def build_corpus() -> dict[str, str]:
-    """Read every git-tracked source file (hermetic: untracked scratch files
-    can't change the verdict).  ``--recurse-submodules`` is load-bearing --
-    references like ``render.viewpage`` live in vendor/infogami (make git).
-    """
-    files = (
+def _git_tracked_files() -> list[str]:
+    return (
         subprocess.run(
             ["git", "ls-files", "--recurse-submodules", "-z"],
             cwd=REPO_ROOT,
@@ -127,11 +132,38 @@ def build_corpus() -> dict[str, str]:
         .stdout.decode()
         .split("\0")
     )
+
+
+def _infogami_disk_files() -> list[str]:
+    """List infogami files from disk when git can't see them."""
+    root = REPO_ROOT / "vendor" / "infogami"
+    if not root.is_dir():
+        return []
+    files: list[str] = []
+    for path in root.rglob("*"):
+        if not path.is_file() or path.suffix not in CORPUS_SUFFIXES:
+            continue
+        rel = path.relative_to(REPO_ROOT).as_posix()
+        if rel not in CORPUS_SKIP_FILES:
+            files.append(rel)
+    return sorted(files)
+
+
+def build_corpus() -> dict[str, str]:
+    """Scan every git-tracked source file. Untracked files don't count.
+
+    Refs like ``render.viewpage`` live in vendor/infogami, so run ``make git``.
+    In worktrees without submodule metadata, read those files from disk.
+    """
+    files = _git_tracked_files()
+    if not any(rel.startswith("vendor/infogami/") for rel in files):
+        files.extend(_infogami_disk_files())
     if not any(rel.startswith("vendor/infogami/") for rel in files):
         raise RuntimeError(
-            "git ls-files returned no vendor/infogami files -- the submodule "
-            "is not initialized. Run `make git` (git submodule update --init) "
-            "so the scan can see infogami's template references."
+            "git ls-files returned no vendor/infogami files and no usable "
+            "infogami checkout exists on disk. Run `make git` "
+            "(git submodule update --init) so the scan can see infogami's "
+            "template references."
         )
     corpus: dict[str, str] = {}
     for rel in files:
@@ -156,7 +188,7 @@ class FileIndex:
     # extensions at resolve time ("site/head.tmpl" references site/head).
     quoted: frozenset[str]
     # Word tokens: Templetor macros are referenced by bare name everywhere
-    # ($:macros.X, render_macro("X"), CacheableMacro("X"), JS components).
+    # ($:macros.X, render_macro("X"), JS components).
     words: frozenset[str]
     # Attributes accessed on render (render.notfound(...)): root-level
     # Templetor templates.
@@ -283,9 +315,14 @@ def analyze(exclusions: Iterable[str] = ()) -> Analysis:
             if evidence := find_usage(t, index):
                 used_exclusions[name] = evidence
 
+    missing_kinds = ALL_KINDS - {t.kind for t in inventory}
+    stale_dynamic_dispatch_rules = [rule_dir for rule_dir in DYNAMIC_DISPATCH_RULES if not any(t.rel_to_root.startswith(rule_dir) for t in inventory)]
+
     return Analysis(
         templates=inventory,
         unused=unused,
         used_exclusions=used_exclusions,
         missing_exclusions=missing_exclusions,
+        missing_kinds=missing_kinds,
+        stale_dynamic_dispatch_rules=stale_dynamic_dispatch_rules,
     )

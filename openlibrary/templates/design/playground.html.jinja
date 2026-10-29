@@ -1,35 +1,79 @@
 {#
   Playground — cross-component checks that are easier to eyeball than to
   unit-test. These are QA surfaces: they exist to make drift visible, not to
-  document any single component.
+  document any single component. Each check puts one of everything side by
+  side so a height, a hover, a selected fill, or a focus ring that disagrees
+  with its neighbours reads as wrong at a glance.
 #}
-{% import "design/_example.html.jinja" as ex %}
-{% set CHECKS = [('control-alignment', 'Control alignment'), ('control-states', 'Control states'), ('density', 'Density'), ('long-content', 'Long content')] %}
+{% import "design/components/popover.html.jinja" as pop with context %}
+{% set CHECKS = [('control-alignment', 'Control alignment'), ('control-states', 'Control states'), ('selected-look', 'Selected look'), ('menus', 'Menus and panels'), ('surfaces', 'Surfaces and text'), ('focus', 'Focus rings'), ('density', 'Density'), ('long-content', 'Long content'), ('rtl', 'Right-to-left')] %}
 {% set SELECT_ITEMS = "[{\"value\":\"en\",\"label\":\"English\"},{\"value\":\"es\",\"label\":\"Spanish\"},{\"value\":\"fr\",\"label\":\"French\"}]" %}
+{% set MENU_ITEMS = "[{\"value\":\"relevance\",\"label\":\"Relevance\"},{\"value\":\"new\",\"label\":\"Most Recent\"},{\"value\":\"rating\",\"label\":\"Top Rated\"}]" %}
+{% set OPTIONS_ITEMS = "[{\"value\":\"fiction\",\"label\":\"Fiction\",\"description\":\"Novels and short stories\",\"count\":\"1,024\"},{\"value\":\"nonfiction\",\"label\":\"Nonfiction\",\"description\":\"Fact-based works and essays\",\"count\":\"892\"},{\"value\":\"poetry\",\"label\":\"Poetry\",\"count\":\"213\"}]" %}
+{% set MANY_LANGUAGES = "[{\"value\":\"en\",\"label\":\"English\"},{\"value\":\"es\",\"label\":\"Spanish\"},{\"value\":\"fr\",\"label\":\"French\"},{\"value\":\"de\",\"label\":\"German\"},{\"value\":\"it\",\"label\":\"Italian\"},{\"value\":\"pt\",\"label\":\"Portuguese\"},{\"value\":\"zh\",\"label\":\"Chinese\"},{\"value\":\"ja\",\"label\":\"Japanese\"},{\"value\":\"ru\",\"label\":\"Russian\"},{\"value\":\"ar\",\"label\":\"Arabic\"}]" %}
+{% set RTL_SELECT_ITEMS = "[{\"value\":\"ar\",\"label\":\"العربية\"},{\"value\":\"he\",\"label\":\"עברית\"},{\"value\":\"fa\",\"label\":\"فارسی\"},{\"value\":\"ur\",\"label\":\"اردو\"}]" %}
+{#
+  The surfaces a control can land on, for the Surfaces check and the state
+  grid's surface switcher. `inverse` is text-only: no control is specified for
+  a dark surface yet, which is itself one of the things the check shows.
+#}
+{% set SURFACES = [('--color-surface', 'Surface', 'Cards, inputs, dropdowns. Where almost every control is designed.'), ('--color-background', 'Background', 'The page canvas. Controls land here on the home page and search results.'), ('--color-surface-sunken', 'Sunken', 'Recessed panels and image wells.'), ('--color-surface-header', 'Header', 'The site header, the drawer panel, table heads.'), ('--color-control-bg', 'Control fill', 'The resting fill of a raised neutral control. A card that uses it as a background makes the button on it disappear.'), ('--color-primary-subtle', 'Primary subtle', 'Soft blue wash — info banners, the selected-tint family.'), ('--color-control-selected-surface', 'Selected surface', 'The opaque twin of the selected tint.'), ('--color-info-bg', 'Info', 'Status wash — messages and banners.'), ('--color-success-bg', 'Success', 'Status wash.'), ('--color-warning-bg', 'Warning', 'Status wash.'), ('--color-error-bg', 'Error', 'Status wash.')] %}
+{% set TEXT_TOKENS = [('--color-text', 'Text'), ('--color-text-secondary', 'Secondary'), ('--color-text-muted', 'Muted'), ('--color-link', 'Link'), ('--color-icon-muted', 'Icon muted')] %}
+{% set SELECTED_TOKENS = [('--color-control-selected-bg', 'Selected tint', 'Button, toggle button, pagination, editor toolbar', '--color-link'), ('--color-control-selected-border', 'Selected border', 'Button and toggle button; pagination omits it', '--color-link'), ('--color-primary-subtle', 'Primary subtle', 'Info banner wash', '--color-link'), ('--color-info-bg', 'Info bg', 'Message wash; one step off primary-subtle', '--color-link'), ('--color-control-track', 'Segmented track', 'The pill sits proud of it in ink, not blue', '--color-text'), ('--color-primary', 'Primary', 'Primary button, selected chip, switch track, radio accent', '--color-on-primary'), ('--color-link', 'Link', 'Selected label text; menu current row', '--color-on-primary'), ('--color-focus-ring', 'Focus ring', 'Every focus ring', '--color-on-primary')] %}
 {% macro nav() %}
     <ul class="ds__nav-list">
         {% for id, title in CHECKS %}<li><a href="#{{ id }}">{{ title }}</a></li>{% endfor %}
     </ul>
 {% endmacro %}
 {#
-  One row of every height-locked control at a given size. The dashed guides in
-  .control-row sit at exactly the target token height, so a control that over-
-  or undershoots reads as misaligned at a glance.
+  A labelled specimen: one control on a stage with a caption naming what to
+  look at. The strips below are rows of these, so a row reads as "one of
+  everything" with the differences spelled out underneath.
+#}
+{% macro specimen(caption, note="") %}
+    <figure class="ds-specimen">
+        <div class="ds-specimen__stage">{{ caller() }}</div>
+        <figcaption class="ds-specimen__caption">
+            {{ caption }}
+            {% if note %}<span class="ds-specimen__note">{{ note }}</span>{% endif %}
+        </figcaption>
+    </figure>
+{% endmacro %}
+{#
+  One row of every height-locked control at a given size, plus the chip,
+  which sizes from its content and *should* still land on the line. The
+  dashed guides in .control-row sit at exactly the target token height, so a
+  control that over- or undershoots reads as misaligned at a glance. A row
+  with a chevron (the menu triggers) checks that the disclosure affordance
+  doesn't grow the button. The medium row also carries the controls that only
+  come in one size: the toggle button, both shelf buttons, and tabs.
 #}
 {% macro control_row(size) %}
+    {% set size_attr = ('size="' ~ size ~ '"') | safe if size != "medium" else "" %}
     <div class="ds-example__output control-row control-row--{{ size }}">
         <span class="control-row__cell">
-            <ol-button {% if size != "medium" %}size="{{ size }}"{% endif %} variant="secondary">
+            <ol-button {{ size_attr }} variant="secondary">
                 Button
             </ol-button>
         </span>
         <span class="control-row__cell">
-            <ol-button {% if size != "medium" %}size="{{ size }}"{% endif %} variant="primary">
+            <ol-button {{ size_attr }} variant="primary">
                 Primary
             </ol-button>
         </span>
         <span class="control-row__cell">
-            <ol-segmented-control {% if size != "medium" %}size="{{ size }}"{% endif %} accessible-label="Alignment, {{ size }}">
+            <ol-button {{ size_attr }} variant="ghost">
+                Ghost
+            </ol-button>
+        </span>
+        <span class="control-row__cell">
+            <ol-button {{ size_attr }} shape="icon" aria-label="Search, {{ size }}">
+                <ol-icon name="search" size="sm">
+                </ol-icon>
+            </ol-button>
+        </span>
+        <span class="control-row__cell">
+            <ol-segmented-control {{ size_attr }} accessible-label="Alignment, {{ size }}">
                 <ol-segment value="grid">
                     Grid
                 </ol-segment>
@@ -39,22 +83,28 @@
             </ol-segmented-control>
         </span>
         <span class="control-row__cell">
+            <ol-menu-popover label="Sort by" value="relevance" aria-label="Alignment menu, {{ size }}" items='{{ MENU_ITEMS }}'>
+                <ol-button slot="trigger" {{ size_attr }}>
+                    Sort by
+                </ol-button>
+            </ol-menu-popover>
+        </span>
+        <span class="control-row__cell">
             <ol-select-popover label="Language" search-threshold="999" aria-label="Alignment select, {{ size }}" items='{{ SELECT_ITEMS }}'>
-                <ol-button slot="trigger" {% if size != "medium" %}size="{{ size }}"{% endif %} variant="secondary">
+                <ol-button slot="trigger" {{ size_attr }} variant="secondary">
                     Language
                 </ol-button>
             </ol-select-popover>
         </span>
-        <span class="control-row__cell">
-            <input class="control-row__field"
-                   type="text"
-                   value="Input"
-                   aria-label="Alignment input, {{ size }}">
-        </span>
         {% if size in ("small", "medium") %}
             <span class="control-row__cell">
-                <ol-pagination {% if size != "medium" %}size="{{ size }}"{% endif %} total-pages="5" current-page="3" label-pagination="Alignment pagination, {{ size }}">
+                <ol-pagination {{ size_attr }} total-pages="5" current-page="3" label-pagination="Alignment pagination, {{ size }}">
                 </ol-pagination>
+            </span>
+            <span class="control-row__cell">
+                <ol-chip {{ size_attr }}>
+                    Chip
+                </ol-chip>
             </span>
         {% endif %}
         {% if size == "medium" %}
@@ -62,23 +112,147 @@
                 <ol-toggle variant="button" label="Readable Only" sublabel="4.6M">
                 </ol-toggle>
             </span>
+            <span class="control-row__cell">
+                <ol-shelf-button user-key="{{ user_key }}" work-key="/works/OL69612W" book-title="The Secret Garden">
+                </ol-shelf-button>
+            </span>
+            <span class="control-row__cell">
+                <ol-shelf-button variant="outline" user-key="{{ user_key }}" work-key="/works/OL69612W" book-title="The Secret Garden">
+                </ol-shelf-button>
+            </span>
+            <span class="control-row__cell">
+                <ol-tabs accessible-label="Alignment tabs">
+                    <a slot="tab" href="#align-tab-a">Tab</a>
+                    <a slot="tab" href="#align-tab-b">Tab</a>
+                    <div id="align-tab-a"></div>
+                    <div id="align-tab-b"></div>
+                </ol-tabs>
+            </span>
         {% endif %}
+        <span class="control-row__cell">
+            <input class="control-row__field"
+                   type="text"
+                   value="Input"
+                   aria-label="Alignment input, {{ size }}">
+        </span>
+        <span class="control-row__cell">
+            <select class="control-row__field"
+                    aria-label="Alignment native select, {{ size }}">
+                <option>Select</option>
+                <option>Other</option>
+            </select>
+        </span>
+    </div>
+{% endmacro %}
+{#
+  The two controls that sit beside the medium row in real toolbars and are
+  deliberately not locked to it. Same guides, so each one's offset is visible.
+#}
+{% macro neighbour_row() %}
+    <div class="ds-example__output control-row control-row--medium">
+        <span class="control-row__cell">
+            <ol-toggle label="Switch">
+            </ol-toggle>
+        </span>
+        <span class="control-row__cell">
+            <nav class="ds-demo-menu control-row__menu" aria-label="Menu row sample">
+                <a class="ds-demo-menu__link" href="#control-alignment">Menu row</a>
+            </nav>
+        </span>
+    </div>
+{% endmacro %}
+{#
+  The one-of-everything strip the state grid, hover check and focus check all
+  start from. Each specimen names the mechanism its hover uses, so a sweep
+  along the row compares them with the words right there.
+#}
+{% macro hover_strip() %}
+    <div class="ds-strip">
+        {% call specimen("Secondary", "fill + border step") %}
+            <ol-button>
+                Secondary
+            </ol-button>
+        {% endcall %}
+        {% call specimen("Ghost", "fill only") %}
+            <ol-button variant="ghost">
+                Ghost
+            </ol-button>
+        {% endcall %}
+        {% call specimen("Primary", "brightness 1.1") %}
+            <ol-button variant="primary">
+                Primary
+            </ol-button>
+        {% endcall %}
+        {% call specimen("Icon button", "fill + border step") %}
+            <ol-button shape="icon" aria-label="Search">
+                <ol-icon name="search" size="sm">
+                </ol-icon>
+            </ol-button>
+        {% endcall %}
+        {% call specimen("Toggle button", "fill + border, highlight appears") %}
+            <ol-toggle variant="button" label="Readable" sublabel="4.6M">
+            </ol-toggle>
+        {% endcall %}
+        {% call specimen("Chip", "fill + mixed border") %}
+            <ol-chip>
+                Fiction
+            </ol-chip>
+        {% endcall %}
+        {% call specimen("Chip, subject", "own -bg-hover") %}
+            <ol-chip variant="subject">
+                Science
+            </ol-chip>
+        {% endcall %}
+        {% call specimen("Segmented", "text colour only") %}
+            <ol-segmented-control accessible-label="Hover segmented">
+                <ol-segment value="a">
+                    One
+                </ol-segment>
+                <ol-segment value="b">
+                    Two
+                </ol-segment>
+            </ol-segmented-control>
+        {% endcall %}
+        {% call specimen("Pagination", "hover overlay, no border") %}
+            <ol-pagination total-pages="3" current-page="1" label-pagination="Hover pagination">
+            </ol-pagination>
+        {% endcall %}
+        {% call specimen("Tabs", "text colour only") %}
+            <ol-tabs accessible-label="Hover tabs">
+                <a slot="tab" href="#hover-tab-a">One</a>
+                <a slot="tab" href="#hover-tab-b">Two</a>
+                <div id="hover-tab-a"></div>
+                <div id="hover-tab-b"></div>
+            </ol-tabs>
+        {% endcall %}
+        {% call specimen("Shelf button", "hover overlay, border static") %}
+            <ol-shelf-button user-key="{{ user_key }}" work-key="/works/OL27448W" book-title="Pride and Prejudice">
+            </ol-shelf-button>
+        {% endcall %}
+        {% call specimen("Menu row", "hover overlay pill") %}
+            <nav class="ds-demo-menu ds-demo-menu--inline" aria-label="Hover menu row">
+                <a class="ds-demo-menu__link" href="#control-states">Edit</a>
+                <a class="ds-demo-menu__link" href="#control-states">History</a>
+            </nav>
+        {% endcall %}
     </div>
 {% endmacro %}
 {% macro body() %}
-    <article class="ds-section" id="control-alignment">
+    <article class="ds-section control-alignment--guides-hidden"
+             id="control-alignment">
         <h2 class="ds-section__title">Control alignment</h2>
         <p class="ds-section__blurb">
-            Each control sets <code>height</code> (not vertical padding) from the same token with
+            Each height-locked control sets <code>height</code> (not vertical padding) from the same token with
             <code>box-sizing: border-box</code>, so they line up regardless of differing font sizes, borders,
-            or content. The select popover uses an <code>ol-button</code> as its trigger, so it inherits the
-            button's height tokens for free. Chips sit on a different, pill-shaped scale and are excluded.
-            Pagination ships small and medium only — there is no large row for it. The button-variant
-            toggle is shown in the medium row as-is; it is not height-locked to the tokens, so this is
-            the check for whether it still reads as aligned.
+            or content. The menu and select triggers are <code>ol-button</code>s, so they inherit the button's
+            height for free; the chevron must not grow them. The chip is padding-driven and still has to
+            land on the line. The medium row also carries the controls that come in one size only: the
+            toggle button, the split shelf button (whose halves set <code>min-height</code> so a long shelf
+            name can wrap — the host's border brings it to the token), the outline shelf square, and tabs.
+            Toggle the guides and read each row against them.
         </p>
         <div class="control-alignment__guides-toggle">
-            <ol-toggle id="control-alignment-guides" checked accessible-label="Show guide lines" label="Guide lines">
+            <ol-toggle id="control-alignment-guides" accessible-label="Show guide lines" label="Guide lines">
             </ol-toggle>
         </div>
         <h3 class="ds-group__title">Small — <code>--control-height-small</code></h3>
@@ -87,6 +261,14 @@
         {{ control_row("medium") }}
         <h3 class="ds-group__title">Large — <code>--control-height-large</code></h3>
         {{ control_row("large") }}
+        <h3 class="ds-group__title">Medium neighbours — not height-locked</h3>
+        <p class="ds-group__blurb">
+            The two medium neighbours that are deliberately off the token. The switch is a
+            checkbox-class control: it centres on its label's text line, not on a button box, so
+            locking it would only wrap it in an invisible frame. The menu row is sized to be tapped,
+            and drops to <code>--control-height-medium</code> only on hover-capable pointers.
+        </p>
+        {{ neighbour_row() }}
         <script>
             (function () {
                 const article = document.getElementById('control-alignment');
@@ -99,96 +281,624 @@
     <section class="ds-section" id="control-states">
         <h2 class="ds-section__title">Control states</h2>
         <p class="ds-section__blurb">
-            Every interactive control in each of its states, side by side. Focus states only show under
-            keyboard focus — tab through the grid rather than clicking.
+            Every interactive control in each of its states, side by side. Switch the surface to see the same
+            grid on the page canvas, a sunken panel, or the header grey — a raised control is tuned for white,
+            and this is where its fill, border and specular highlight either hold up or vanish. Magnify to
+            check the 1px details: the inset highlight along a control's top edge, the hairline border, and
+            whether a selected state carries a border at all. Focus states only show under keyboard focus —
+            see <a href="#focus">Focus rings</a>.
         </p>
-        <div class="ds-state-grid">
-            <div class="ds-state-grid__head">Default</div>
-            <div class="ds-state-grid__head">Selected / checked</div>
-            <div class="ds-state-grid__head">Disabled</div>
-            <div>
-                <ol-button variant="secondary">
-                    Secondary
+        <div class="ds-check-controls">
+            <ol-segmented-control id="control-states-surface" value="surface" size="small" accessible-label="Grid surface">
+                <ol-segment value="surface">
+                    Surface
+                </ol-segment>
+                <ol-segment value="background">
+                    Canvas
+                </ol-segment>
+                <ol-segment value="sunken">
+                    Sunken
+                </ol-segment>
+                <ol-segment value="header">
+                    Header
+                </ol-segment>
+            </ol-segmented-control>
+            <ol-toggle id="control-states-magnify" label="Magnify 2×">
+            </ol-toggle>
+        </div>
+        <div class="ds-state-grid-scroll">
+            <div class="ds-state-grid ds-state-grid--wide"
+                 id="control-states-grid"
+                 data-surface="surface">
+                <div class="ds-state-grid__head">Default</div>
+                <div class="ds-state-grid__head">Selected / checked</div>
+                <div class="ds-state-grid__head">Disabled</div>
+                <div class="ds-state-grid__head">Busy</div>
+                <div>
+                    <ol-button variant="secondary">
+                        Secondary
+                    </ol-button>
+                </div>
+                <div>
+                    <ol-button variant="secondary" selected>
+                        Secondary
+                    </ol-button>
+                </div>
+                <div>
+                    <ol-button variant="secondary" disabled>
+                        Secondary
+                    </ol-button>
+                </div>
+                <div>
+                    <ol-button variant="secondary" loading>
+                        Secondary
+                    </ol-button>
+                </div>
+                <div>
+                    <ol-button variant="primary">
+                        Primary
+                    </ol-button>
+                </div>
+                <div class="ds-state-grid__none">No selected state</div>
+                <div>
+                    <ol-button variant="primary" disabled>
+                        Primary
+                    </ol-button>
+                </div>
+                <div>
+                    <ol-button variant="primary" loading>
+                        Primary
+                    </ol-button>
+                </div>
+                <div>
+                    <ol-button variant="ghost">
+                        Ghost
+                    </ol-button>
+                </div>
+                <div>
+                    <ol-button variant="ghost" selected>
+                        Ghost
+                    </ol-button>
+                </div>
+                <div>
+                    <ol-button variant="ghost" disabled>
+                        Ghost
+                    </ol-button>
+                </div>
+                <div class="ds-state-grid__none">—</div>
+                <div>
+                    <ol-button aria-haspopup="menu">
+                        Menu trigger
+                    </ol-button>
+                </div>
+                <div>
+                    <ol-button aria-haspopup="menu" aria-expanded="true">
+                        Menu open
+                    </ol-button>
+                </div>
+                <div>
+                    <ol-button aria-haspopup="menu" disabled>
+                        Menu trigger
+                    </ol-button>
+                </div>
+                <div class="ds-state-grid__none">—</div>
+                <div>
+                    <ol-button shape="icon" aria-label="Search">
+                        <ol-icon name="search" size="sm">
+                        </ol-icon>
+                    </ol-button>
+                </div>
+                <div>
+                    <ol-button shape="icon" selected aria-label="Search, selected">
+                        <ol-icon name="search" size="sm">
+                        </ol-icon>
+                    </ol-button>
+                </div>
+                <div>
+                    <ol-button shape="icon" disabled aria-label="Search, disabled">
+                        <ol-icon name="search" size="sm">
+                        </ol-icon>
+                    </ol-button>
+                </div>
+                <div class="ds-state-grid__none">—</div>
+                <div>
+                    <ol-toggle accessible-label="State default">
+                    </ol-toggle>
+                </div>
+                <div>
+                    <ol-toggle accessible-label="State checked" checked>
+                    </ol-toggle>
+                </div>
+                <div>
+                    <ol-toggle accessible-label="State disabled" disabled>
+                    </ol-toggle>
+                </div>
+                <div class="ds-state-grid__none">—</div>
+                <div>
+                    <ol-toggle variant="button" label="Readable" sublabel="4.6M">
+                    </ol-toggle>
+                </div>
+                <div>
+                    <ol-toggle variant="button" label="Readable" sublabel="4.6M" checked>
+                    </ol-toggle>
+                </div>
+                <div>
+                    <ol-toggle variant="button" label="Readable" sublabel="4.6M" disabled>
+                    </ol-toggle>
+                </div>
+                <div class="ds-state-grid__none">—</div>
+                <div>
+                    <ol-chip>
+                        Fiction
+                    </ol-chip>
+                </div>
+                <div>
+                    <ol-chip selected>
+                        Fiction
+                    </ol-chip>
+                </div>
+                <div class="ds-state-grid__none">No disabled state</div>
+                <div class="ds-state-grid__none">—</div>
+                <div>
+                    <ol-chip variant="subject" count="1,204">
+                        Science
+                    </ol-chip>
+                </div>
+                <div>
+                    <ol-chip variant="subject" count="1,204" selected>
+                        Science
+                    </ol-chip>
+                </div>
+                <div class="ds-state-grid__none">No disabled state</div>
+                <div class="ds-state-grid__none">—</div>
+                <div>
+                    <ol-segmented-control accessible-label="State default">
+                        <ol-segment value="a">
+                            One
+                        </ol-segment>
+                        <ol-segment value="b">
+                            Two
+                        </ol-segment>
+                    </ol-segmented-control>
+                </div>
+                <div>
+                    <ol-segmented-control value="b" accessible-label="State selected">
+                        <ol-segment value="a">
+                            One
+                        </ol-segment>
+                        <ol-segment value="b">
+                            Two
+                        </ol-segment>
+                    </ol-segmented-control>
+                </div>
+                <div>
+                    <ol-segmented-control disabled accessible-label="State disabled">
+                        <ol-segment value="a">
+                            One
+                        </ol-segment>
+                        <ol-segment value="b">
+                            Two
+                        </ol-segment>
+                    </ol-segmented-control>
+                </div>
+                <div class="ds-state-grid__none">—</div>
+                <div>
+                    <ol-pagination total-pages="3" current-page="2" label-pagination="State pagination">
+                    </ol-pagination>
+                </div>
+                <div class="ds-state-grid__none">Current page is the middle item</div>
+                <div>
+                    <ol-pagination total-pages="1" current-page="1" label-pagination="State pagination, disabled arrows">
+                    </ol-pagination>
+                </div>
+                <div class="ds-state-grid__none">—</div>
+                <div>
+                    <ol-tabs accessible-label="State tabs">
+                        <a slot="tab" href="#state-tab-a">Selected</a>
+                        <a slot="tab" href="#state-tab-b">Default</a>
+                        <div id="state-tab-a"></div>
+                        <div id="state-tab-b"></div>
+                    </ol-tabs>
+                </div>
+                <div class="ds-state-grid__none">Selected tab is the first</div>
+                <div class="ds-state-grid__none">No disabled state</div>
+                <div class="ds-state-grid__none">—</div>
+                <div>
+                    <ol-shelf-button user-key="{{ user_key }}" work-key="/works/OL27448W" book-title="Pride and Prejudice">
+                    </ol-shelf-button>
+                </div>
+                <div>
+                    <ol-shelf-button user-key="{{ user_key }}" work-key="/works/OL27448W" book-title="Pride and Prejudice" shelf="1">
+                    </ol-shelf-button>
+                </div>
+                <div class="ds-state-grid__none">No disabled state</div>
+                <div>
+                    <ol-shelf-button user-key="{{ user_key }}" work-key="/works/OL27448W" book-title="Pride and Prejudice" pending>
+                    </ol-shelf-button>
+                </div>
+                <div>
+                    <ol-shelf-button variant="outline" user-key="{{ user_key }}" work-key="/works/OL27448W" book-title="Pride and Prejudice">
+                    </ol-shelf-button>
+                </div>
+                <div>
+                    <ol-shelf-button variant="outline" user-key="{{ user_key }}" work-key="/works/OL27448W" book-title="Pride and Prejudice" shelf="1">
+                    </ol-shelf-button>
+                </div>
+                <div class="ds-state-grid__none">No disabled state</div>
+                <div>
+                    <ol-shelf-button variant="outline" user-key="{{ user_key }}" work-key="/works/OL27448W" book-title="Pride and Prejudice" pending>
+                    </ol-shelf-button>
+                </div>
+            </div>
+        </div>
+        <h3 class="ds-group__title">Hover</h3>
+        <p class="ds-group__blurb">
+            Sweep the pointer along the row. Each caption names the mechanism the control uses, so a hover that
+            looks different from its neighbour's can be matched to why. The rule is one mechanism per family:
+            raised controls step fill and border together, flat rows take the translucent overlay, saturated
+            fills brighten, and nothing fades in. Shelf button and pagination hover with the row overlay
+            although they are controls; the segmented control and tabs move only their text.
+        </p>
+        <div class="ds-example__output ds-example__output--surface"
+             data-surface-follows="control-states-grid">{{ hover_strip() }}</div>
+        <script>
+            (function () {
+                const grid = document.getElementById('control-states-grid');
+                const followers = document.querySelectorAll('[data-surface-follows="control-states-grid"]');
+                document.getElementById('control-states-surface').addEventListener('ol-segmented-control-change', (e) => {
+                    grid.dataset.surface = e.detail.value;
+                    followers.forEach((el) => { el.dataset.surface = e.detail.value; });
+                });
+                document.getElementById('control-states-magnify').addEventListener('ol-toggle-change', (e) => {
+                    grid.classList.toggle('ds-state-grid--magnified', e.detail.checked);
+                });
+            })();
+        </script>
+    </section>
+    <section class="ds-section" id="selected-look">
+        <h2 class="ds-section__title">Selected look</h2>
+        <p class="ds-section__blurb">
+            The rule says selected has one look: <code>--color-control-selected-bg</code> with
+            <code>--color-link</code> text. This row puts every component's selected or current state next to
+            that reference, grouped by the mechanism it actually uses. Four show up today: the tinted fill,
+            a solid primary fill, a raised ink pill, and an underline. Menu rows take the tinted fill too,
+            on their pill, with the radio, checkbox or icon still carrying the state (pin them open in
+            <em>Menus and panels</em> below). Decide which of these are deliberate and which are drift.
+        </p>
+        <h3 class="ds-group__title">Tint and blue text</h3>
+        <div class="ds-example__output">
+            <div class="ds-strip">
+                {% call specimen("Button", "tint, border, link text") %}
+                    <ol-button selected>
+                        Selected
+                    </ol-button>
+                {% endcall %}
+                {% call specimen("Ghost button", "same tint; border appears") %}
+                    <ol-button variant="ghost" selected>
+                        Selected
+                    </ol-button>
+                {% endcall %}
+                {% call specimen("Toggle button", "tint, border, link text, blue track") %}
+                    <ol-toggle variant="button" label="Readable" sublabel="4.6M" checked>
+                    </ol-toggle>
+                {% endcall %}
+                {% call specimen("Pagination", "tint and link text, no border") %}
+                    <ol-pagination total-pages="3" current-page="2" label-pagination="Selected pagination">
+                    </ol-pagination>
+                {% endcall %}
+                {% call specimen("Shelf button", "tint, border, link text, filled glyph") %}
+                    <ol-shelf-button user-key="{{ user_key }}" work-key="/works/OL27448W" book-title="Pride and Prejudice" shelf="1">
+                    </ol-shelf-button>
+                {% endcall %}
+                {% call specimen("Outline shelf", "tint and border; glyph is --primary-blue") %}
+                    <ol-shelf-button variant="outline" user-key="{{ user_key }}" work-key="/works/OL27448W" book-title="Pride and Prejudice" shelf="1">
+                    </ol-shelf-button>
+                {% endcall %}
+            </div>
+        </div>
+        <h3 class="ds-group__title">Solid fill</h3>
+        <div class="ds-example__output">
+            <div class="ds-strip">
+                {% call specimen("Chip", "solid primary, white text, check glyph") %}
+                    <ol-chip selected>
+                        Fiction
+                    </ol-chip>
+                {% endcall %}
+                {% call specimen("Chip, subject", "tint unchanged; only the close glyph") %}
+                    <ol-chip variant="subject" selected>
+                        Science
+                    </ol-chip>
+                {% endcall %}
+                {% call specimen("Switch", "primary track") %}
+                    <ol-toggle accessible-label="Selected switch" checked>
+                    </ol-toggle>
+                {% endcall %}
+                {% call specimen("Primary button", "the reference saturated fill") %}
+                    <ol-button variant="primary">
+                        Primary
+                    </ol-button>
+                {% endcall %}
+            </div>
+        </div>
+        <h3 class="ds-group__title">Pill and underline</h3>
+        <div class="ds-example__output">
+            <div class="ds-strip">
+                {% call specimen("Segmented", "raised ink pill, no blue") %}
+                    <ol-segmented-control value="b" accessible-label="Selected segmented">
+                        <ol-segment value="a">
+                            Grid
+                        </ol-segment>
+                        <ol-segment value="b">
+                            List
+                        </ol-segment>
+                    </ol-segmented-control>
+                {% endcall %}
+                {% call specimen("Tabs", "ink underline, no blue") %}
+                    <ol-tabs accessible-label="Selected tabs">
+                        <a slot="tab" href="#sel-tab-a">Selected</a>
+                        <a slot="tab" href="#sel-tab-b">Default</a>
+                        <div id="sel-tab-a"></div>
+                        <div id="sel-tab-b"></div>
+                    </ol-tabs>
+                {% endcall %}
+                {% call specimen("Design nav", "ink and weight 600 — reflows") %}
+                    <ul class="ds__nav-list" aria-label="Selected nav row">
+                        <li>
+                            <a class="is-current" href="#selected-look">Current</a>
+                        </li>
+                        <li>
+                            <a href="#selected-look">Other</a>
+                        </li>
+                    </ul>
+                {% endcall %}
+            </div>
+        </div>
+        <h3 class="ds-group__title">The blues</h3>
+        <p class="ds-group__blurb">
+            Every blue a selected or active state reaches for, as it paints over white, with the text that
+            sits on it measured: link blue on the tints, white on the solids. If two of these are a hair
+            apart they are a candidate to merge.
+        </p>
+        <div class="ds-swatch-strip">
+            {% for token, title, used_by, on_token in SELECTED_TOKENS %}
+                <div class="ds-swatch-tile">
+                    <div class="ds-swatch-tile__chip">
+                        <span class="ds-swatch-tile__fill" style="background: var({{ token }});">
+                            <span class="ds-swatch-tile__sample" style="color: var({{ on_token }})">Aa</span>
+                        </span>
+                    </div>
+                    <div class="ds-swatch-tile__title">{{ title }}</div>
+                    <code class="ds-swatch-tile__token"
+                          data-ds-copy
+                          data-ds-copy-text="var({{ token }})"
+                          title="Copy var({{ token }})">{{ token }}</code>
+                    <span class="ds-swatch-tile__contrast"
+                          data-ds-contrast-for="{{ on_token }}"
+                          data-ds-contrast-on="{{ token }}"></span>
+                    <div class="ds-swatch-tile__note">{{ used_by }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    <section class="ds-section" id="menus">
+        <h2 class="ds-section__title">Menus and panels</h2>
+        <p class="ds-section__blurb">
+            The five panel-shaped components side by side. Pin them open to compare the rows directly: the
+            row height (<code>--menu-row-height</code>, which is the medium control height on a fine
+            pointer), the inset pill and its hover, the selected row's tint and what sits in it (nothing but
+            the tint in the menu, a radio in options, a checkbox in select, a filled icon in shelf actions,
+            no selection in the bare popover), the section headings, and the search field's height and
+            focus ring against the input in the alignment row above. Pinning turns off outside-click
+            dismissal; Escape still closes the frontmost one.
+        </p>
+        <div class="ds-check-controls">
+            <ol-toggle id="menus-pin" label="Pin open" data-ds-pin-menus>
+            </ol-toggle>
+        </div>
+        <div class="ds-example__output ds-menu-row">
+            <ol-tooltip content="A tooltip — the one surface without a border or shadow">
+                <ol-button variant="ghost">
+                    Tooltip
                 </ol-button>
-            </div>
-            <div>
-                <ol-button variant="primary">
-                    Primary
+            </ol-tooltip>
+            <ol-shelf-button variant="icon" user-key="{{ user_key }}" work-key="/works/OL27448W" book-title="Pride and Prejudice" shelf="3" data-ds-pinnable>
+            </ol-shelf-button>
+            <ol-popover aria-label="Playground popover" data-ds-pinnable>
+                <ol-button slot="trigger">
+                    Popover
                 </ol-button>
-            </div>
-            <div>
-                <ol-button variant="secondary" disabled>
-                    Secondary
+                {{ pop.menu("200px") }}
+            </ol-popover>
+            <ol-menu-popover label="Sort by" value="new" aria-label="Playground menu" items='{{ MENU_ITEMS }}' data-ds-pinnable>
+            </ol-menu-popover>
+            <ol-select-popover label="Language" placeholder="Filter languages…" unselected-heading="LANGUAGES" selected='["en"]' aria-label="Playground select" items='{{ MANY_LANGUAGES }}' data-ds-pinnable>
+                <ol-button slot="trigger">
+                    Language
                 </ol-button>
-            </div>
-            <div>
-                <ol-toggle accessible-label="State default">
-                </ol-toggle>
-            </div>
-            <div>
-                <ol-toggle accessible-label="State checked" checked>
-                </ol-toggle>
-            </div>
-            <div>
-                <ol-toggle accessible-label="State disabled" disabled>
-                </ol-toggle>
-            </div>
-            <div>
-                <ol-toggle variant="button" label="Readable" sublabel="4.6M">
-                </ol-toggle>
-            </div>
-            <div>
-                <ol-toggle variant="button" label="Readable" sublabel="4.6M" checked>
-                </ol-toggle>
-            </div>
-            <div>
-                <ol-toggle variant="button" label="Readable" sublabel="4.6M" disabled>
-                </ol-toggle>
-            </div>
-            <div>
-                <ol-chip>
-                    Fiction
-                </ol-chip>
-            </div>
-            <div>
-                <ol-chip selected>
-                    Fiction
-                </ol-chip>
-            </div>
-            <div>
-                <ol-chip variant="neutral">
-                    Fiction
-                </ol-chip>
-            </div>
-            <div>
-                <ol-segmented-control accessible-label="State default">
-                    <ol-segment value="a">
-                        One
-                    </ol-segment>
-                    <ol-segment value="b">
-                        Two
-                    </ol-segment>
-                </ol-segmented-control>
-            </div>
-            <div>
-                <ol-segmented-control value="b" accessible-label="State selected">
-                    <ol-segment value="a">
-                        One
-                    </ol-segment>
-                    <ol-segment value="b">
-                        Two
-                    </ol-segment>
-                </ol-segmented-control>
-            </div>
-            <div>
-                <ol-segmented-control disabled accessible-label="State disabled">
-                    <ol-segment value="a">
-                        One
-                    </ol-segment>
-                    <ol-segment value="b">
-                        Two
-                    </ol-segment>
-                </ol-segmented-control>
+            </ol-select-popover>
+            <ol-options-popover label="Genre" selected="fiction" aria-label="Playground options" items='{{ OPTIONS_ITEMS }}' data-ds-pinnable>
+            </ol-options-popover>
+        </div>
+        <div class="ds-menu-row__stage" aria-hidden="true"></div>
+        <h3 class="ds-group__title">Row anatomy</h3>
+        <p class="ds-group__blurb">
+            The light-DOM row the design docs use as the reference, next to the pieces a Lit row adds. A
+            heading, a plain row, a hovered-looking row, the current row in the menu's style, and a divider.
+            Compare against the pinned panels above.
+        </p>
+        <div class="ds-example__output">
+            <nav class="ds-demo-menu ds-demo-menu--panel" aria-label="Row anatomy">
+                <div class="ds-demo-menu__heading">Sort order</div>
+                <a class="ds-demo-menu__link" href="#menus">Relevance</a>
+                <a class="ds-demo-menu__link is-current" href="#menus">Most Recent</a>
+                <a class="ds-demo-menu__link" href="#menus">Top Rated</a>
+                <hr class="ds-demo-menu__divider">
+                <a class="ds-demo-menu__link" href="#menus">
+                    <ol-icon name="pencil" size="sm">
+                    </ol-icon>
+                    With an icon
+                </a>
+            </nav>
+        </div>
+    </section>
+    <section class="ds-section" id="surfaces">
+        <h2 class="ds-section__title">Surfaces and text</h2>
+        <p class="ds-section__blurb">
+            Every surface a control or a line of text can land on, with the text tokens painted on it and
+            their measured contrast, the border weights as rules, and a small set of raised controls. Read it
+            for three things: which text tokens are safe on which surface (muted ink is AA on white and
+            the lightest raised surface only), whether a raised control still reads as raised when its
+            surface is already off-white, and whether the status washes and the selected tint sit in the
+            same family or fight.
+        </p>
+        <div class="ds-surface-grid">
+            {% for token, title, note in SURFACES %}
+                <section class="ds-surface" style="background: var({{ token }});">
+                    <header class="ds-surface__header">
+                        <h3 class="ds-surface__title">{{ title }}</h3>
+                        <code class="ds-surface__token"
+                              data-ds-copy
+                              data-ds-copy-text="var({{ token }})"
+                              title="Copy var({{ token }})">{{ token }}</code>
+                    </header>
+                    <ul class="ds-surface__text">
+                        {% for text_token, text_title in TEXT_TOKENS %}
+                            <li class="ds-surface__text-row">
+                                <span class="ds-surface__sample" style="color: var({{ text_token }});">{{ text_title }} — the quick brown fox</span>
+                                <span class="ds-surface__contrast"
+                                      data-ds-contrast-for="{{ text_token }}"
+                                      data-ds-contrast-on="{{ token }}"></span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="ds-surface__rules">
+                        <span class="ds-surface__rule ds-surface__rule--extra-subtle"
+                              title="--color-border-extra-subtle"></span>
+                        <span class="ds-surface__rule ds-surface__rule--subtle"
+                              title="--color-border-subtle"></span>
+                        <span class="ds-surface__rule ds-surface__rule--muted"
+                              title="--color-border-muted"></span>
+                        <span class="ds-surface__rule ds-surface__rule--default"
+                              title="--color-border"></span>
+                    </div>
+                    <div class="ds-surface__controls">
+                        <ol-button size="small">
+                            Button
+                        </ol-button>
+                        <ol-button size="small" variant="ghost">
+                            Ghost
+                        </ol-button>
+                        <ol-button size="small" selected>
+                            Selected
+                        </ol-button>
+                        <ol-chip size="small">
+                            Chip
+                        </ol-chip>
+                    </div>
+                    <p class="ds-surface__note">{{ note }}</p>
+                </section>
+            {% endfor %}
+            <section class="ds-surface ds-surface--inverse">
+                <header class="ds-surface__header">
+                    <h3 class="ds-surface__title">Inverse</h3>
+                    <code class="ds-surface__token"
+                          data-ds-copy
+                          data-ds-copy-text="var(--color-surface-inverse)"
+                          title="Copy var(--color-surface-inverse)">--color-surface-inverse</code>
+                </header>
+                <ul class="ds-surface__text">
+                    <li class="ds-surface__text-row">
+                        <span class="ds-surface__sample ds-surface__sample--inverse">Inverse — the quick brown fox</span>
+                        <span class="ds-surface__contrast"
+                              data-ds-contrast-for="--color-text-inverse"
+                              data-ds-contrast-on="--color-surface-inverse"></span>
+                    </li>
+                </ul>
+                <p class="ds-surface__note">Tooltips and dark chips. No control is specified for this surface; a secondary button dropped here would paint its own white fill.</p>
+            </section>
+        </div>
+    </section>
+    <section class="ds-section" id="focus">
+        <h2 class="ds-section__title">Focus rings</h2>
+        <p class="ds-section__blurb">
+            Click into the first field, then Tab along the row. Every ring should be the same 2px of
+            <code>--color-focus-ring</code> at the same distance from the control's edge. Two mechanisms are
+            in use today — an <code>outline</code> that sits outside the rounded box, and a
+            <code>box-shadow</code> that hugs it — and the offsets range from 2px outside to 2px inside, so
+            a ring that looks tighter or looser than its neighbour is the thing to note. Inside the pinned
+            menus above, rows show focus as a fill rather than a ring.
+        </p>
+        <div class="ds-example__output">
+            <div class="ds-strip ds-strip--focus">
+                {% call specimen("Input", "box-shadow? outline?") %}
+                    <input class="control-row__field ds-focus-start"
+                           type="text"
+                           value="Start here"
+                           aria-label="Focus start">
+                {% endcall %}
+                {% call specimen("Button", "outline, 2px out") %}
+                    <ol-button>
+                        Button
+                    </ol-button>
+                {% endcall %}
+                {% call specimen("Primary", "outline, 2px out") %}
+                    <ol-button variant="primary">
+                        Primary
+                    </ol-button>
+                {% endcall %}
+                {% call specimen("Icon button", "outline, 2px out") %}
+                    <ol-button shape="icon" aria-label="Search">
+                        <ol-icon name="search" size="sm">
+                        </ol-icon>
+                    </ol-button>
+                {% endcall %}
+                {% call specimen("Switch", "box-shadow, flush") %}
+                    <ol-toggle label="Switch">
+                    </ol-toggle>
+                {% endcall %}
+                {% call specimen("Toggle button", "box-shadow, flush") %}
+                    <ol-toggle variant="button" label="Readable" sublabel="4.6M">
+                    </ol-toggle>
+                {% endcall %}
+                {% call specimen("Chip", "box-shadow, flush") %}
+                    <ol-chip>
+                        Fiction
+                    </ol-chip>
+                {% endcall %}
+                {% call specimen("Segmented", "outline, 2px in") %}
+                    <ol-segmented-control accessible-label="Focus segmented">
+                        <ol-segment value="a">
+                            One
+                        </ol-segment>
+                        <ol-segment value="b">
+                            Two
+                        </ol-segment>
+                    </ol-segmented-control>
+                {% endcall %}
+                {% call specimen("Pagination", "outline, 2px out") %}
+                    <ol-pagination total-pages="2" current-page="1" label-pagination="Focus pagination">
+                    </ol-pagination>
+                {% endcall %}
+                {% call specimen("Tabs", "outline, 2px in") %}
+                    <ol-tabs accessible-label="Focus tabs">
+                        <a slot="tab" href="#focus-tab-a">One</a>
+                        <a slot="tab" href="#focus-tab-b">Two</a>
+                        <div id="focus-tab-a"></div>
+                        <div id="focus-tab-b"></div>
+                    </ol-tabs>
+                {% endcall %}
+                {% call specimen("Shelf button", "outline, 2px in") %}
+                    <ol-shelf-button user-key="{{ user_key }}" work-key="/works/OL27448W" book-title="Pride and Prejudice">
+                    </ol-shelf-button>
+                {% endcall %}
+                {% call specimen("Menu row", "outline, 2px in") %}
+                    <nav class="ds-demo-menu ds-demo-menu--inline" aria-label="Focus menu row">
+                        <a class="ds-demo-menu__link" href="#focus">Edit</a>
+                    </nav>
+                {% endcall %}
+                {% call specimen("Link", "browser default") %}
+                    <a href="#focus">Plain link</a>
+                {% endcall %}
             </div>
         </div>
     </section>
@@ -217,6 +927,11 @@
                         Language
                     </ol-button>
                 </ol-select-popover>
+                <ol-menu-popover label="Sort by" value="relevance" aria-label="Density sort, {{ size }}" items='{{ MENU_ITEMS }}'>
+                    <ol-button slot="trigger" {% if size != "medium" %}size="{{ size }}"{% endif %}>
+                        Sort by
+                    </ol-button>
+                </ol-menu-popover>
                 <span class="ds-pattern-bar__spacer"></span>
                 <ol-button {% if size != "medium" %}size="{{ size }}"{% endif %} variant="primary">
                     Apply
@@ -263,4 +978,189 @@
             </ol-toggle>
         </div>
     </section>
+    <article class="ds-section" id="rtl">
+        <h2 class="ds-section__title">Right-to-left</h2>
+        <p class="ds-section__blurb">
+            The same components under <code>dir="rtl"</code>, carrying Arabic and Hebrew. Anything laid out
+            with logical properties (<code>margin-inline-start</code>, <code>padding-inline</code>,
+            <code>inset-inline-end</code>) mirrors on its own; anything set with <code>left</code> or
+            <code>right</code> does not. Flip the direction and compare: an icon, chevron, or close button
+            stuck on the wrong side, text that still aligns left, a popover that opens away from its
+            trigger, or a Latin title and number that scramble inside an Arabic sentence is a bug.
+        </p>
+        <div class="rtl-check__controls">
+            <ol-segmented-control id="rtl-check-direction" value="rtl" accessible-label="Text direction">
+                <ol-segment value="rtl">
+                    RTL
+                </ol-segment>
+                <ol-segment value="ltr">
+                    LTR
+                </ol-segment>
+            </ol-segmented-control>
+        </div>
+        <div class="rtl-check" id="rtl-check" dir="rtl" lang="ar">
+            <h3 class="ds-group__title" dir="ltr" lang="en">Book page</h3>
+            <div class="ds-example__output rtl-check__book">
+                <div class="rtl-check__cover" aria-hidden="true"></div>
+                <div class="rtl-check__record">
+                    <h4 class="rtl-check__title">ألف ليلة وليلة</h4>
+                    <p class="rtl-check__subtitle">حكايات شهرزاد كاملة في ثلاثة مجلدات</p>
+                    <p class="rtl-check__byline">
+                        <a href="#rtl">مؤلف مجهول</a>، ترجمة <a href="#rtl">أنطوان غالان</a> · الطبعة الثالثة، 1835
+                    </p>
+                    <ol-chip-group>
+                        <ol-chip variant="subject" size="small">
+                            أدب عربي
+                        </ol-chip>
+                        <ol-chip variant="genre" size="small">
+                            حكايات شعبية
+                        </ol-chip>
+                        <ol-chip variant="place" size="small">
+                            بغداد
+                        </ol-chip>
+                        <ol-chip variant="language" size="small" selected>
+                            العربية
+                        </ol-chip>
+                        <ol-chip variant="neutral" size="small" count="1,204">
+                            إصدارات
+                        </ol-chip>
+                    </ol-chip-group>
+                    <div class="ds-demo-row">
+                        <ol-button variant="primary">
+                            اقرأ الآن
+                        </ol-button>
+                        <ol-button variant="secondary">
+                            أريد أن أقرأ
+                        </ol-button>
+                        <ol-toggle variant="button" label="المتاح للقراءة فقط" sublabel="٤٫٦ مليون">
+                        </ol-toggle>
+                    </div>
+                    <ol-read-more more-text="اقرأ المزيد" less-text="اقرأ أقل">
+                        <p>
+                            مجموعة من الحكايات الشعبية التي جُمعت على مدى قرون، تروي فيها شهرزاد قصة كل ليلة
+                            لتؤجل حكم الإعدام. تتضمن الطبعة الإنجليزية الأولى <bdi lang="en">The Arabian Nights' Entertainments</bdi>
+                            التي صدرت عام 1706، ثم ترجمة <bdi lang="en">Richard Burton</bdi> الكاملة في 16 مجلدًا بين
+                            عامي 1885 و1888. ضمّت الترجمات اللاحقة حكايات لم ترد في المخطوطات العربية الأصلية،
+                            مثل علاء الدين وعلي بابا والأربعين لصًا. تُعد هذه الحكايات من أكثر النصوص تأثيرًا في
+                            الأدب العالمي، وقد أُعيدت صياغتها في المسرح والسينما والموسيقى مرات لا تُحصى، وما زالت
+                            تُقرأ اليوم بلغات كثيرة وفي طبعات متنوعة تناسب القراء من كل الأعمار.
+                            وتختلف الطبعات اختلافًا كبيرًا في عدد الحكايات وترتيبها، إذ لا توجد نسخة واحدة معتمدة؛
+                            فبعضها يقتصر على مئتي ليلة، وبعضها يبلغ الألف بإضافة حكايات من مصادر أخرى. وقد اعتمدت
+                            طبعة بولاق الصادرة في القاهرة عام 1835 مرجعًا لكثير من الترجمات الحديثة، وهي الطبعة
+                            التي يستند إليها هذا السجل.
+                            أما المخطوطة السورية المحفوظة في المكتبة الوطنية الفرنسية، وهي أقدم ما وصلنا من النص،
+                            فلا تتجاوز مئتين وثمانين ليلة، وقد اعتمدها محسن مهدي في طبعته النقدية عام 1984، فكانت
+                            أساسًا لترجمة <bdi lang="en">Husain Haddawy</bdi> الإنجليزية التي صدرت بعدها بست سنوات.
+                            ولا يزال الجدل قائمًا حول أصل الحكايات: أهي هندية أم فارسية أم عربية خالصة؟ والأرجح أنها
+                            نشأت في الهند، وانتقلت إلى فارس باسم «هزار أفسانه»، ثم عُرّبت في بغداد في العصر العباسي،
+                            وأضيفت إليها طبقات من الحكايات المصرية في القاهرة المملوكية، فجاءت على صورتها التي
+                            نعرفها اليوم مزيجًا من ثقافات عدة وقرون متعاقبة.
+                        </p>
+                    </ol-read-more>
+                    <ol-banner variant="warning">
+                        <span>هذه الطبعة تحتوي على 3 أخطاء استيراد لم تُحل بعد. <a href="#rtl">راجع السجل</a></span>
+                    </ol-banner>
+                </div>
+            </div>
+            <h3 class="ds-group__title" dir="ltr" lang="en">Toolbar</h3>
+            <div class="ds-example__output ds-pattern-bar">
+                <ol-button size="small" variant="secondary">
+                    تصفية
+                </ol-button>
+                <ol-segmented-control size="small" accessible-label="طريقة العرض">
+                    <ol-segment value="grid">
+                        شبكة
+                    </ol-segment>
+                    <ol-segment value="list">
+                        قائمة
+                    </ol-segment>
+                </ol-segmented-control>
+                <ol-select-popover label="اللغة" search-threshold="999" aria-label="تصفية حسب اللغة" items='{{ RTL_SELECT_ITEMS }}'>
+                    <ol-button slot="trigger" size="small" variant="secondary">
+                        اللغة
+                    </ol-button>
+                </ol-select-popover>
+                <ol-pagination size="small" total-pages="12" current-page="3" label-pagination="ترقيم الصفحات">
+                </ol-pagination>
+                <span class="ds-pattern-bar__spacer"></span>
+                <ol-button size="small" variant="primary">
+                    تطبيق
+                </ol-button>
+            </div>
+            <h3 class="ds-group__title" dir="ltr" lang="en">Form</h3>
+            <form class="ds-example__output rtl-check__form"
+                  onsubmit="event.preventDefault();">
+                <div class="rtl-check__field">
+                    <label class="ds-demo-label" for="rtl-check-title">العنوان</label>
+                    <input id="rtl-check-title"
+                           class="rtl-check__input"
+                           type="text"
+                           value="ألف ليلة وليلة">
+                </div>
+                <div class="rtl-check__field">
+                    <label class="ds-demo-label" for="rtl-check-isbn">الرقم الدولي الموحد للكتاب <span class="rtl-check__hint">(ISBN)</span></label>
+                    <input id="rtl-check-isbn"
+                           class="rtl-check__input"
+                           type="text"
+                           dir="ltr"
+                           value="978-0-14-044938-1">
+                </div>
+                <div class="rtl-check__field">
+                    <label class="ds-demo-label" for="rtl-check-lang">لغة الطبعة</label>
+                    <select id="rtl-check-lang" class="rtl-check__input">
+                        <option>العربية</option>
+                        <option lang="he">עברית</option>
+                        <option lang="fa">فارسی</option>
+                        <option lang="en">English</option>
+                    </select>
+                </div>
+                <div class="rtl-check__field">
+                    <label class="ds-demo-label" for="rtl-check-notes">ملاحظات</label>
+                    <textarea id="rtl-check-notes" class="ds-demo-textarea" rows="3">نسخة مترجمة عن الطبعة الفرنسية، مع مقدمة للمترجم.</textarea>
+                </div>
+                <div class="rtl-check__field">
+                    <ol-toggle label="إشعاري عند تعديل هذا السجل" sublabel="بريد إلكتروني أسبوعي" checked>
+                    </ol-toggle>
+                </div>
+                <div class="rtl-check__actions">
+                    <ol-button variant="primary" type="submit">
+                        حفظ
+                    </ol-button>
+                    <ol-button variant="secondary">
+                        إلغاء
+                    </ol-button>
+                </div>
+            </form>
+            <h3 class="ds-group__title" dir="ltr" lang="en">Hebrew</h3>
+            <div class="ds-example__output rtl-check__book" lang="he">
+                <div class="rtl-check__cover" aria-hidden="true"></div>
+                <div class="rtl-check__record">
+                    <h4 class="rtl-check__title">סיפור על אהבה וחושך</h4>
+                    <p class="rtl-check__byline">
+                        מאת <a href="#rtl">עמוס עוז</a> · כתר, 2002 · 593 עמודים
+                    </p>
+                    <ol-chip-group>
+                        <ol-chip variant="author" size="small">
+                            עמוס עוז
+                        </ol-chip>
+                        <ol-chip variant="place" size="small">
+                            ירושלים
+                        </ol-chip>
+                        <ol-chip variant="language" size="small">
+                            עברית
+                        </ol-chip>
+                    </ol-chip-group>
+                    <div class="ol-message ol-message--success">השינויים נשמרו. <bdi lang="en">Solr</bdi> יתעדכן תוך כמה דקות.</div>
+                </div>
+            </div>
+        </div>
+        <script>
+            (function () {
+                const root = document.getElementById('rtl-check');
+                document.getElementById('rtl-check-direction').addEventListener('ol-segmented-control-change', (e) => {
+                    root.setAttribute('dir', e.detail.value);
+                });
+            })();
+        </script>
+    </article>
 {% endmacro %}

@@ -6,12 +6,13 @@ editions of the same work that might be available.
 import re
 import sys
 from collections.abc import Iterable
+from collections.abc import Set as AbstractSet
 
 import web
 
 from infogami.utils import stats
 from infogami.utils.delegate import register_exception
-from openlibrary.core import helpers, ia
+from openlibrary.core import helpers, ia, lending
 from openlibrary.plugins.books import dynlinks
 
 
@@ -31,8 +32,10 @@ async def get_solr_fields_for_works(
 
 
 class ReadProcessor:
-    def __init__(self, options):
+    def __init__(self, options, base_url: str | None = None):
         self.options = options
+        self.base_url = base_url
+        self.checked_out_ocaids: AbstractSet[str] = frozenset()
 
     def get_item_status(self, ekey, iaid, collections) -> str:
         if "inlibrary" in collections:
@@ -40,10 +43,8 @@ class ReadProcessor:
         else:
             status = "restricted" if "printdisabled" in collections else "full access"
 
-        if status == "lendable":
-            loanstatus = web.ctx.site.store.get(f"ebooks/{iaid}", {"borrowed": "false"})
-            if loanstatus["borrowed"] == "true":
-                status = "checked out"
+        if status == "lendable" and iaid in self.checked_out_ocaids:
+            status = "checked out"
 
         return status
 
@@ -215,10 +216,10 @@ class ReadProcessor:
 
         self.docs = await dynlinks.add_availability(dynlinks.query_docs(bib_keys))
         if not self.options.get("no_details"):
-            self.detailss = dynlinks.process_result_for_details(self.docs)
+            self.detailss = dynlinks.process_result_for_details(self.docs, self.base_url)
         else:
             self.detailss = {}
-        dp = dynlinks.DataProcessor()
+        dp = dynlinks.DataProcessor(await dynlinks.get_checked_out_ocaids(self.docs.values()), self.base_url)
         self.datas = dp.process(self.docs)
         self.works = dp.works
 
@@ -228,6 +229,8 @@ class ReadProcessor:
         self.wkey_to_iaids = await get_solr_fields_for_works("ia", self.works, 500)
         iaids = [value for sublist in self.wkey_to_iaids.values() for value in sublist]
         self.iaid_to_meta = {iaid: ia.get_metadata(iaid) for iaid in iaids}
+        lendable_iaids = [iaid for iaid, meta in self.iaid_to_meta.items() if meta and "inlibrary" in meta.get("collection", [])]
+        self.checked_out_ocaids = await lending.get_checked_out_async(lendable_iaids)
 
         def lookup_iaids(iaids):
             step = 10
@@ -274,7 +277,7 @@ class ReadProcessor:
         return result
 
 
-async def readlinks(req: str, options: dict):
+async def readlinks(req: str, options: dict, base_url: str | None = None):
     try:
         dbstr = "debug|"
         if req.startswith(dbstr):
@@ -286,7 +289,7 @@ async def readlinks(req: str, options: dict):
                 "show_all_items": True,
             }
             req = req[len(dbstr) :]
-        rp = ReadProcessor(options)
+        rp = ReadProcessor(options, base_url)
 
         if options.get("listofworks"):
             """For load-testing, handle a special syntax"""

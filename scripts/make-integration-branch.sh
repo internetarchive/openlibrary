@@ -68,9 +68,15 @@ if [[ -f "$TESTING_STATE_FILE" ]]; then
     # State file exists: merge pinned commits for all active PRs
     while IFS=' ' read -r pr_num pinned_sha; do
         echo -e "---\norigin pull/$pr_num/head  # pinned at $pinned_sha"
-        git fetch origin "pull/$pr_num/head"
-        # Ensure the pinned SHA is locally available
+        # Only fetch if the pinned commit isn't already available locally
         if ! git cat-file -e "$pinned_sha^{commit}" 2>/dev/null; then
+            echo "Pinned commit $pinned_sha not found locally, fetching pull/$pr_num/head"
+            git fetch origin "pull/$pr_num/head"
+        else
+            echo "Pinned commit $pinned_sha already available locally, skipping fetch"
+        fi
+        if ! git cat-file -e "$pinned_sha^{commit}" 2>/dev/null; then
+            echo "Still missing $pinned_sha after head fetch, trying direct fetch"
             git fetch origin "$pinned_sha" 2>/dev/null || true
         fi
         if ! git cat-file -e "$pinned_sha^{commit}" 2>/dev/null; then

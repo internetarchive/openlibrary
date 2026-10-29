@@ -31,14 +31,44 @@ $if formdata:
     </li>
 </ol>
 
-<div id="noMaster" title="$_('No primary record')" style="text-align:left;">
-    <p>$_('You must select a primary record to point the duplicates toward.')</p>
-</div>
+$# Dialog strings for merge.js; see confirm-template.js
+<template id="noMaster"
+          data-i18n="$json_encode({'title': _('No primary record'), 'ok': _('OK'), 'close': _('Close')})">
+    $_('You must select a primary record to point the duplicates toward.')
+</template>
 
+$# Only librarians who merge directly see the confirmation, so only they need
+$# its strings. Zero selections are rejected server-side too (see the notices
+$# above); noDuplicates just says so before the round-trip.
 $if can_merge:
-    <div id="confirmMerge" title="$_('Please Be Careful...')" style="text-align:left;">
-        <p class="merge">$:_('<b>Are you sure</b> you want to merge these records?')</p>
-    </div>
+    <template id="noDuplicates"
+              data-i18n="$json_encode({'title': _('No authors selected.'), 'ok': _('OK'), 'close': _('Close')})">
+        $_('Please select some authors to merge.')
+    </template>
+
+    $# Plural sets carry one form per CLDR category; merge.js picks by count and
+    $# fills %(count)s and %(name)s. The body is built from the table rows.
+    $ merge_i18n = {
+    $     "titleForCount": {
+    $         "one": ungettext("Merge %(count)s author into %(name)s?", "Merge %(count)s authors into %(name)s?", 1),
+    $         "two": ungettext("Merge %(count)s author into %(name)s?", "Merge %(count)s authors into %(name)s?", 2),
+    $         "few": ungettext("Merge %(count)s author into %(name)s?", "Merge %(count)s authors into %(name)s?", 3),
+    $         "many": ungettext("Merge %(count)s author into %(name)s?", "Merge %(count)s authors into %(name)s?", 11),
+    $         "other": ungettext("Merge %(count)s author into %(name)s?", "Merge %(count)s authors into %(name)s?", 100),
+    $     },
+    $     "confirmForCount": {
+    $         "one": ungettext("Merge %(count)s author", "Merge %(count)s authors", 1),
+    $         "two": ungettext("Merge %(count)s author", "Merge %(count)s authors", 2),
+    $         "few": ungettext("Merge %(count)s author", "Merge %(count)s authors", 3),
+    $         "many": ungettext("Merge %(count)s author", "Merge %(count)s authors", 11),
+    $         "other": ungettext("Merge %(count)s author", "Merge %(count)s authors", 100),
+    $     },
+    $     "keep": _("Keep"),
+    $     "redirect": _("Merge in and redirect"),
+    $     "cancel": _("Cancel"),
+    $     "close": _("Close"),
+    $ }
+    <template id="confirmMerge" data-i18n="$json_encode(merge_i18n)"></template>
 
 <form method="POST" id="mergeForm" name="mergeForm" action="/authors/merge" method="POST">
     <input type="hidden" name="merge" value="true"/>

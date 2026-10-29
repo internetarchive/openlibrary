@@ -1,5 +1,7 @@
 """Loan Stats"""
 
+import contextlib
+import datetime as dt
 from collections.abc import Iterable
 
 import web
@@ -8,13 +10,16 @@ from infogami.utils import delegate
 
 from .. import app
 from ..core import cache
+from ..core.admin import get_rolling_counts
 from ..core.booknotes import Booknotes
 from ..core.bookshelves import Bookshelves
 from ..core.follows import PubSub
+from ..core.helpers import commify
 from ..core.lending import get_availabilities
 from ..core.observations import Observations
 from ..core.ratings import Ratings
 from ..core.yearly_reading_goals import YearlyReadingGoals
+from ..i18n import gettext as _
 from ..plugins.admin.code import get_counts
 from ..plugins.worksearch.code import get_solr_works
 from ..utils import dateutil
@@ -39,12 +44,54 @@ def reading_log_summary():
         delegate.fakeload()
 
     stats = Bookshelves.summary()
-    stats.update(YearlyReadingGoals.summary())
-    stats.update(Ratings.summary())
-    stats.update(Observations.summary())
-    stats.update(Booknotes.summary())
-    stats.update(PubSub.summary())
+    stats.update(YearlyReadingGoals.summary_sync())
+    stats.update(Ratings.summary_sync())
+    stats.update(Observations.summary_sync())
+    stats.update(Booknotes.summary_sync())
+    stats.update(PubSub.summary_sync())
     return stats
+
+
+DEFAULT_TRENDING_SHELF_IDS = [
+    Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+    Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
+    Bookshelves.PRESET_BOOKSHELVES["Already Read"],
+]
+TRENDING_NOW_LIMIT = 20
+TRENDING_NOW_CACHE_SECS = 10
+
+
+@cache.memoize(
+    "memcache",
+    key=lambda limit=TRENDING_NOW_LIMIT, page=1: cache.build_memcache_key("stats.trending_now", limit=int(limit), page=int(page)),
+    expires=TRENDING_NOW_CACHE_SECS,
+)
+def _cached_get_trending_now(limit: int = TRENDING_NOW_LIMIT, page: int = 1) -> list[dict]:
+    rows = Bookshelves.get_recently_logged_books(shelf_ids=DEFAULT_TRENDING_SHELF_IDS, limit=limit, page=page)
+    result = []
+    for row in rows:
+        d = dict(row)
+        if isinstance(d.get("created"), dt.date):
+            d["created"] = d["created"].isoformat()
+        if isinstance(d.get("updated"), dt.date):
+            d["updated"] = d["updated"].isoformat()
+        result.append(d)
+    return result
+
+
+def cached_get_trending_now(limit: int = TRENDING_NOW_LIMIT, page: int = 1) -> list[web.storage]:
+    items = _cached_get_trending_now(limit=limit, page=page)
+    result = []
+    for item in items:
+        d = web.storage(item)
+        if isinstance(d.get("created"), str):
+            with contextlib.suppress(ValueError):
+                d["created"] = dt.datetime.fromisoformat(d["created"])
+        if isinstance(d.get("updated"), str):
+            with contextlib.suppress(ValueError):
+                d["updated"] = dt.datetime.fromisoformat(d["updated"])
+        result.append(d)
+    return result
 
 
 async def get_trending_books(
@@ -57,22 +104,10 @@ async def get_trending_books(
     fields: Iterable[str] | None = None,
 ):
     logged_books = (
-        Bookshelves.get_recently_logged_books(
-            shelf_ids=[
-                Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
-                Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
-                Bookshelves.PRESET_BOOKSHELVES["Already Read"],
-            ],
-            limit=limit,
-            page=page,
-        )
+        cached_get_trending_now(limit=limit, page=page)
         if (since_days == 0 and since_hours == 0)
         else Bookshelves.most_logged_books(
-            shelf_ids=[
-                Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
-                Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
-                Bookshelves.PRESET_BOOKSHELVES["Already Read"],
-            ],
+            shelf_ids=DEFAULT_TRENDING_SHELF_IDS,
             since=dateutil.todays_date_minus(days=since_days, hours=since_hours),
             limit=limit,
             page=page,
@@ -117,7 +152,7 @@ def reading_log_leaderboard(limit: int):
             "most_read": most_read,
             "most_wanted_all": most_wanted_all,
             "most_wanted_month": most_wanted_month,
-            "most_rated_all": Ratings.most_rated_books(),
+            "most_rated_all": Ratings.most_rated_books_sync(),
         }
     }
 
@@ -153,28 +188,16 @@ class activity_stream(app.view):
 
     def GET(self, mode=""):
         i = web.input(page=1)
-        page = i.page
+        page = int(i.page or 1)
         if not mode:
             raise web.seeother("/trending/now")
         mode = mode[1:]  # remove slash
-        limit = 20
+        limit = TRENDING_NOW_LIMIT
         if mode == "now":
-            logged_books = Bookshelves.get_recently_logged_books(
-                shelf_ids=[
-                    Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
-                    Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
-                    Bookshelves.PRESET_BOOKSHELVES["Already Read"],
-                ],
-                limit=limit,
-                page=page,
-            )
+            logged_books = cached_get_trending_now(limit=limit, page=page)
         else:
             logged_books = cached_get_most_logged_books(
-                shelf_ids=[
-                    Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
-                    Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
-                    Bookshelves.PRESET_BOOKSHELVES["Already Read"],
-                ],
+                shelf_ids=DEFAULT_TRENDING_SHELF_IDS,
                 since_days=SINCE_DAYS[mode],
                 limit=limit,
                 page=page,
@@ -193,7 +216,13 @@ class readinglog_stats(app.view):
 
         stats = get_cached_reading_log_stats(limit)
 
-        solr_docs = get_solr_works({f"/works/OL{item['work_id']}W" for leaderboard in stats["leaderboard"].values() for item in leaderboard})
+        all_keys = {f"/works/OL{item['work_id']}W" for leaderboard in stats["leaderboard"].values() for item in leaderboard}
+        solr_docs = get_solr_works(all_keys)
+
+        # Batch-fetch any works Solr missed in a single call instead of
+        # one web.ctx.site.get() per work (N+1).
+        miss_keys = [key for key in all_keys if key not in solr_docs]
+        db_works = {w.key: w for w in web.ctx.site.get_many(miss_keys)} if miss_keys else {}
 
         # Fetch works from solr and inject into leaderboard
         for leaderboard in stats["leaderboard"].values():
@@ -202,7 +231,7 @@ class readinglog_stats(app.view):
                 if key in solr_docs:
                     item["work"] = solr_docs[key]
                 else:
-                    item["work"] = web.ctx.site.get(key)
+                    item["work"] = db_works.get(key)
 
         works = [item["work"] for leaderboard in stats["leaderboard"].values() for item in leaderboard]
 
@@ -213,3 +242,71 @@ class readinglog_stats(app.view):
                     item["availability"] = availabilities.get(item["work"]["key"])
 
         return app.render_template("stats/readinglog", stats=stats)
+
+
+# Days of history behind each trend chart on /stats/tasks.
+TASKS_STATS_DAYS = 90
+
+
+def format_count(value: int | None) -> str:
+    return "—" if value is None else commify(value)
+
+
+def build_tasks_stats_row(counts: dict, key: str, label: str) -> dict:
+    count = counts.get(key) or {}
+    return {
+        "label": label,
+        "latest": format_count(count.get("latest")),
+        "earlier": format_count(count.get("earlier")),
+        "chart": count.get("chart"),
+    }
+
+
+def build_undone_row(counts: dict) -> dict:
+    """Undone saves, with their share of all Tasks saves over the same 28 days."""
+    row = build_tasks_stats_row(counts, "tasks_saves_undone_28d", _("Tasks saves undone, last 28 days"))
+    undone, saves = (counts.get("tasks_saves_undone_28d") or {}).get("latest"), (counts.get("tasks_saves_28d") or {}).get("latest")
+    if undone is not None and saves:
+        row["latest"] = f"{commify(undone)} ({undone / saves:.1%})"
+    return row
+
+
+def build_tasks_stats_sections() -> list[dict]:
+    keys = {
+        "catalog_editors_28d": _("Editors, last 28 days"),
+        "catalog_editors_7d": _("Editors, last 7 days"),
+        "new_catalog_editors_28d": _("First-time editors, last 28 days"),
+        "new_catalog_editors_7d": _("First-time editors, last 7 days"),
+        "tasks_saves_28d": _("Tasks saves, last 28 days"),
+        "tasks_editors_28d": _("Tasks editors, last 28 days"),
+        "tasks_editors_7d": _("Tasks editors, last 7 days"),
+    }
+    counts = get_rolling_counts([*keys, "tasks_saves_undone_28d"], TASKS_STATS_DAYS)
+
+    def rows(*names: str) -> list[dict]:
+        return [build_tasks_stats_row(counts, name, keys[name]) for name in names]
+
+    return [
+        {
+            "heading": _("Editors"),
+            "note": _("Signed-in accounts that changed a book, work or author record. Bots are not counted."),
+            "rows": rows("catalog_editors_28d", "catalog_editors_7d", "new_catalog_editors_28d", "new_catalog_editors_7d"),
+        },
+        {
+            "heading": _("Tasks page"),
+            "note": _("Edits saved from the Tasks page."),
+            "rows": rows("tasks_saves_28d", "tasks_editors_28d", "tasks_editors_7d"),
+        },
+        {
+            "heading": _("Guardrail"),
+            "note": _("Tasks saves whose value is no longer on the record: undone, reverted or changed by a later edit."),
+            "rows": [build_undone_row(counts)],
+        },
+    ]
+
+
+class tasks_stats(app.view):
+    path = "/stats/tasks"
+
+    def GET(self):
+        return app.render_template("stats/tasks", sections=build_tasks_stats_sections())

@@ -17,14 +17,25 @@
  * fills. Hover, press, focus, loading and the disclosure chevron are omitted —
  * the element isn't interactive before upgrade, and keeping this sheet small
  * keeps it easy to hold in step with the recipe in OLButton.js.
+ *
+ * The exception is `.ol-button-static` at the foot of the file: the same look on
+ * markup that can't be an <ol-button> — chiefly an <a href> that must navigate
+ * with JS blocked, where <ol-button href> renders no anchor until it upgrades.
+ * It and its `--ghost` / `--primary` modifiers join the selector lists above, so
+ * they can't drift, and carry their own interactive states.
  */
 
-ol-button:not(:defined) {
+ol-button:not(:defined),
+.ol-button-static {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-inline-md);
+  /* The shared icon-to-label gap, mirroring the component's .label. The icon,
+     text and any chevron are flattened into one flex box here, so a trailing
+     chevron that wants the component's tighter 4px pulls itself in with a
+     negative margin (see .down-arrow in header-bar.css). */
+  gap: var(--spacing-icon-gap);
   box-sizing: border-box;
   vertical-align: middle;
   --ol-button-height: var(--control-height-medium);
@@ -32,13 +43,15 @@ ol-button:not(:defined) {
   padding: 0 var(--spacing-md);
   font-family: var(--font-family-button);
   font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-button);
   line-height: var(--line-height-control);
   text-align: center;
   white-space: nowrap;
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--color-control-border);
   border-radius: var(--border-radius-button);
-  background-color: var(--white);
+  background-color: var(--color-control-bg);
   color: var(--color-text);
+  --control-surface: var(--color-control-bg);
   --control-highlight-strength: 35%;
   box-shadow:
     var(--box-shadow-raised),
@@ -63,7 +76,8 @@ ol-button[disabled]:not(:defined) {
 }
 
 /* Sizes */
-ol-button[size="small"]:not(:defined) {
+ol-button[size="small"]:not(:defined),
+.ol-button-static--small {
   --ol-button-height: var(--control-height-small);
   padding: 0 var(--spacing-sm);
   font-size: var(--font-size-label-medium);
@@ -98,27 +112,49 @@ ol-button[elevation="floating"]:not(:defined) {
 }
 
 /* Variants */
-ol-button[variant="primary"]:not(:defined) {
+ol-button[variant="primary"]:not(:defined),
+.ol-button-static--primary {
   background-color: var(--color-primary);
-  border-color: var(--color-primary);
+  border-color: var(--color-primary-border);
   color: var(--white);
   --control-surface: var(--color-primary);
-  --control-highlight-strength: 18%;
+  --control-highlight-strength: var(--control-highlight-strength-filled);
 }
 
-ol-button[variant="destructive"]:not(:defined) {
-  background-color: var(--red);
-  border-color: var(--color-border-error);
-  color: var(--white);
-  --control-surface: var(--red);
-  --control-highlight-strength: 18%;
-}
-
-ol-button[variant="ghost"]:not(:defined) {
+ol-button[variant="ghost"]:not(:defined),
+.ol-button-static--ghost {
   background-color: transparent;
   border-color: transparent;
   box-shadow: none;
 }
+
+/* Danger tone, resting paint only — hover lives in the shadow DOM. `variant`
+   reflects a default of "secondary", so before upgrade the attribute is absent
+   and bare `tone="danger"` needs a selector of its own. Pairing the two axes
+   puts these one step over the directory's 0,3,0 cap; collapsing them would
+   only make the sheet harder to read than the component it mirrors. */
+/* stylelint-disable selector-max-specificity -- two-axis API; see above */
+ol-button[tone="danger"]:not([variant]):not(:defined),
+ol-button[variant="secondary"][tone="danger"]:not(:defined) {
+  border-color: var(--color-error-border);
+  color: var(--color-error-fg);
+}
+
+ol-button[variant="ghost"][tone="danger"]:not(:defined) {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--color-error-fg);
+  box-shadow: none;
+}
+
+ol-button[variant="primary"][tone="danger"]:not(:defined) {
+  background-color: var(--color-destructive);
+  border-color: var(--color-border-error);
+  color: var(--white);
+  --control-surface: var(--color-destructive);
+  --control-highlight-strength: var(--control-highlight-strength-filled);
+}
+/* stylelint-enable selector-max-specificity */
 
 /* Must stay after the variant fills, which it ties on specificity. */
 ol-button[selected]:not(:defined) {
@@ -126,4 +162,66 @@ ol-button[selected]:not(:defined) {
   border-color: var(--color-control-selected-border);
   color: var(--color-link);
   --control-surface: var(--color-control-selected-surface);
+}
+
+/* Static twin — the secondary button's look on an element that can't be an
+   <ol-button>: chiefly a real <a href> that must navigate without JS, such as
+   the Edit link in the page databar. It borrows the resting look from the
+   selector lists above; the interactive states below are its own, because for
+   <ol-button> those live in shadow DOM (see OLButton.js) and never reach it. */
+a.ol-button-static:link,
+a.ol-button-static:visited {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+/* The one filled static variant keeps its own ink: the link rule above ties it
+   on specificity, so without this an <a> Sign Up would take the page's text
+   color on a blue fill. */
+a.ol-button-static--primary:link,
+a.ol-button-static--primary:visited {
+  color: var(--white);
+}
+
+.ol-button-static {
+  transition: transform var(--duration-press);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* The secondary look only, mirroring OLButton.js's per-variant hover; the
+     modifiers below carry their own. --control-surface moves with the fill, and
+     the border drops in step with it, so the button reads as one shape. */
+  .ol-button-static:not(
+      .ol-button-static--ghost,
+      .ol-button-static--primary
+    ):hover {
+    background-color: var(--color-control-hover);
+    border-color: var(--color-border-muted);
+    --control-surface: var(--color-control-hover);
+  }
+}
+
+/* Ghost and primary carry their own hover, mirroring OLButton.js. brightness()
+   moves the primary's fill, border and specular edge together. Both must stay
+   after the secondary hover above, which they tie on specificity. */
+@media (hover: hover) and (pointer: fine) {
+  .ol-button-static--ghost:hover {
+    background-color: var(--color-control-hover);
+    border-color: transparent;
+  }
+
+  .ol-button-static--primary:hover {
+    filter: brightness(1.1);
+  }
+}
+
+/* Press feedback — tactile scale on activation. The raised shadow and
+   specular highlight stay put through the press. */
+.ol-button-static:active {
+  transform: scale(var(--press-scale));
+}
+
+.ol-button-static:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: var(--spacing-3xs);
 }

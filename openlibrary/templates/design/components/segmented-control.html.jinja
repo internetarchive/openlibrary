@@ -1,31 +1,13 @@
 {% import "design/_example.html.jinja" as ex %}
-{% set GRID_ICON %}
-    <svg viewBox="0 0 24 24"
-         fill="none"
-         stroke="currentColor"
-         stroke-width="2"
-         stroke-linejoin="round"
-         aria-hidden="true">
-        <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" />
-    </svg>
-{% endset %}
-{% set LIST_ICON %}
-    <svg viewBox="0 0 24 24"
-         fill="none"
-         stroke="currentColor"
-         stroke-width="2"
-         stroke-linecap="round"
-         aria-hidden="true">
-        <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" />
-    </svg>
-{% endset %}
 {% macro icon_pair(size, label) %}
     <ol-segmented-control {% if size %}size="{{ size }}"{% endif %} value="grid" accessible-label="{{ label }}">
         <ol-segment value="grid" label="Grid">
-            {{ GRID_ICON }}
+            <ol-icon name="layout-grid">
+            </ol-icon>
         </ol-segment>
         <ol-segment value="list" label="List">
-            {{ LIST_ICON }}
+            <ol-icon name="list">
+            </ol-icon>
         </ol-segment>
     </ol-segmented-control>
 {% endmacro %}
@@ -72,8 +54,8 @@
             </ol-segment>
         </ol-segmented-control>
     {% endcall %}
-    {% call ex.example("Icons", "A segment's content can be markup instead of text. Give icon-only segments a label attribute so the radio is named. Icons inherit the segment's color, so they track selected and hover states for free.",
-        code='<ol-segmented-control value="grid" accessible-label="View">\n  <ol-segment value="grid" label="Grid">\n    <svg viewBox="0 0 24 24" ...>...</svg>\n  </ol-segment>\n  <ol-segment value="list" label="List">\n    <svg viewBox="0 0 24 24" ...>...</svg>\n  </ol-segment>\n</ol-segmented-control>',
+    {% call ex.example("Icons", "A segment's content can be markup instead of text — use <ol-icon>, not the icon macro, since the control re-renders each segment inside its shadow root. Give icon-only segments a label attribute so the radio is named. Icons inherit the segment's color, so they track selected and hover states for free.",
+        code='<ol-segmented-control value="grid" accessible-label="View">\n  <ol-segment value="grid" label="Grid">\n    <ol-icon name="layout-grid"></ol-icon>\n  </ol-segment>\n  <ol-segment value="list" label="List">\n    <ol-icon name="list"></ol-icon>\n  </ol-segment>\n</ol-segmented-control>',
         output_style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;") %}
         {{ icon_pair('small', 'View (small)') }}
         {{ icon_pair('', 'View (medium)') }}

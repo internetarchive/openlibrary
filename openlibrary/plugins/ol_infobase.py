@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Open Library plugin for infobase."""
 
-import datetime
+import datetime as dt
 import functools
 import json
 import logging
@@ -294,7 +294,7 @@ def save_error(dir, prefix):
     try:
         logger.error("Error", exc_info=True)
         error = web.djangoerror()
-        now = datetime.datetime.utcnow()
+        now = dt.datetime.utcnow()
         path = "%s/%04d-%02d-%02d/%s-%02d%02d%02d.%06d.html" % (
             dir,
             now.year,
@@ -490,7 +490,10 @@ def safeint(value, default=0):
 def fix_table_of_contents(table_of_contents):
     """Some books have bad table_of_contents. This function converts them in to correct format."""
 
+    core_fields = ("level", "label", "title", "pagenum")
+
     def row(r):
+        extra_fields = {}
         if isinstance(r, str):
             level = 0
             label = ""
@@ -506,13 +509,22 @@ def fix_table_of_contents(table_of_contents):
             label = r.get("label", "")
             title = r.get("title", "")
             pagenum = r.get("pagenum", "")
+            # Only the core fields need coercing; anything else a toc_item
+            # carries (authors, subtitle, description, ...) passes through.
+            extra_fields = {k: v for k, v in r.items() if k not in core_fields}
         else:
             return {}
 
-        return {"level": level, "label": label, "title": title, "pagenum": pagenum}
+        return {
+            "level": level,
+            "label": label,
+            "title": title,
+            "pagenum": pagenum,
+            **extra_fields,
+        }
 
     d = [row(r) for r in table_of_contents]
-    return [row for row in d if any(row.values())]
+    return [row for row in d if any(row.get(k) for k in core_fields)]
 
 
 def process_json(key, json_str):

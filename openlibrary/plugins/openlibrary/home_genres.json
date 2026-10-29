@@ -1,0 +1,1709 @@
+{
+  "generated": "2026-10-13",
+  "source": "https://raw.githubusercontent.com/Open-Book-Genome-Project/tags/main/tag_types/",
+  "genres": [
+    {
+      "name": "Absurd",
+      "slug": "absurd",
+      "tag_key": "/tags/OL162T",
+      "query": "absurd*",
+      "work_count": 307,
+      "readable_count": 36,
+      "subgenres": []
+    },
+    {
+      "name": "Action",
+      "slug": "action",
+      "tag_key": "/tags/OL163T",
+      "query": "(fiction_action__adventure* OR action__adventure* OR action_and_adventure* OR action)",
+      "work_count": 43292,
+      "readable_count": 3803,
+      "subgenres": []
+    },
+    {
+      "name": "Adventure",
+      "slug": "adventure",
+      "tag_key": "/tags/OL164T",
+      "query": "adventure*",
+      "work_count": 33018,
+      "readable_count": 11006,
+      "subgenres": [
+        {
+          "name": "Steampunk",
+          "slug": "steampunk",
+          "tag_key": "/tags/OL288T",
+          "query": "steampunk*",
+          "work_count": 26,
+          "readable_count": 9,
+          "readable_by_language": {
+            "eng": 7,
+            "fre": 0,
+            "ger": 0,
+            "spa": 1,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Picaresque",
+          "slug": "picaresque",
+          "tag_key": "/tags/OL284T",
+          "query": "picaresque*",
+          "work_count": 8,
+          "readable_count": 4,
+          "readable_by_language": {
+            "eng": 4,
+            "fre": 3,
+            "ger": 3,
+            "spa": 3,
+            "chi": 2,
+            "ita": 3,
+            "dut": 3,
+            "rus": 3,
+            "jpn": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "Crime",
+      "slug": "crime",
+      "tag_key": "/tags/OL166T",
+      "query": "(crime OR crime_fiction OR crime_fiction_fiction OR fiction_crime*)",
+      "work_count": 43771,
+      "readable_count": 8063,
+      "subgenres": [
+        {
+          "name": "Detective",
+          "slug": "detective",
+          "tag_key": "/tags/OL273T",
+          "query": "detective*",
+          "work_count": 2058,
+          "readable_count": 971,
+          "readable_by_language": {
+            "eng": 893,
+            "fre": 126,
+            "ger": 113,
+            "spa": 113,
+            "chi": 38,
+            "ita": 52,
+            "dut": 42,
+            "rus": 48,
+            "jpn": 28
+          }
+        },
+        {
+          "name": "True Crime",
+          "slug": "true-crime",
+          "tag_key": "/tags/OL289T",
+          "query": "true_crime*",
+          "work_count": 162,
+          "readable_count": 43,
+          "readable_by_language": {
+            "eng": 42,
+            "fre": 2,
+            "ger": 2,
+            "spa": 3,
+            "chi": 1,
+            "ita": 1,
+            "dut": 0,
+            "rus": 2,
+            "jpn": 2
+          }
+        },
+        {
+          "name": "Espionage",
+          "slug": "espionage",
+          "tag_key": "/tags/OL277T",
+          "query": "espionage*",
+          "work_count": 28,
+          "readable_count": 8,
+          "readable_by_language": {
+            "eng": 8,
+            "fre": 2,
+            "ger": 0,
+            "spa": 1,
+            "chi": 0,
+            "ita": 0,
+            "dut": 1,
+            "rus": 1,
+            "jpn": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Drama",
+      "slug": "drama",
+      "tag_key": "/tags/OL167T",
+      "query": "drama",
+      "work_count": 63297,
+      "readable_count": 13079,
+      "subgenres": [
+        {
+          "name": "Psychological",
+          "slug": "psychological",
+          "tag_key": "/tags/OL286T",
+          "query": "psychological_fiction*",
+          "work_count": 46,
+          "readable_count": 33,
+          "readable_by_language": {
+            "eng": 33,
+            "fre": 15,
+            "ger": 15,
+            "spa": 14,
+            "chi": 12,
+            "ita": 9,
+            "dut": 10,
+            "rus": 8,
+            "jpn": 6
+          }
+        },
+        {
+          "name": "Coming of Age",
+          "slug": "coming-of-age",
+          "tag_key": "/tags/OL270T",
+          "query": "coming_of_age*",
+          "work_count": 51,
+          "readable_count": 14,
+          "readable_by_language": {
+            "eng": 14,
+            "fre": 7,
+            "ger": 6,
+            "spa": 5,
+            "chi": 5,
+            "ita": 4,
+            "dut": 4,
+            "rus": 5,
+            "jpn": 3
+          }
+        },
+        {
+          "name": "Melodrama",
+          "slug": "melodrama",
+          "tag_key": "/tags/OL283T",
+          "query": "melodrama*",
+          "work_count": 23,
+          "readable_count": 7,
+          "readable_by_language": {
+            "eng": 7,
+            "fre": 0,
+            "ger": 0,
+            "spa": 0,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Epistolary",
+          "slug": "epistolary",
+          "tag_key": "/tags/OL275T",
+          "query": "epistolary*",
+          "work_count": 2,
+          "readable_count": 2,
+          "readable_by_language": {
+            "eng": 2,
+            "fre": 2,
+            "ger": 1,
+            "spa": 2,
+            "chi": 1,
+            "ita": 2,
+            "dut": 1,
+            "rus": 1,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Cli-fi",
+          "slug": "cli-fi",
+          "tag_key": "/tags/OL269T",
+          "query": "climate_fiction*",
+          "work_count": 0,
+          "readable_count": 0,
+          "readable_by_language": {
+            "eng": 0,
+            "fre": 0,
+            "ger": 0,
+            "spa": 0,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Family Saga",
+          "slug": "family-saga",
+          "tag_key": "/tags/OL278T",
+          "query": "family_saga*",
+          "work_count": 1,
+          "readable_count": 0,
+          "readable_by_language": {
+            "eng": 0,
+            "fre": 0,
+            "ger": 0,
+            "spa": 0,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fantasy",
+      "slug": "fantasy",
+      "tag_key": "/tags/OL169T",
+      "query": "(fantasy* OR fiction_fantasy*)",
+      "work_count": 99101,
+      "readable_count": 14535,
+      "subgenres": [
+        {
+          "name": "Epic",
+          "slug": "epic",
+          "tag_key": "/tags/OL276T",
+          "query": "(epic OR epic_fiction OR epic_fantasy OR epic_literature)",
+          "work_count": 276,
+          "readable_count": 66,
+          "readable_by_language": {
+            "eng": 64,
+            "fre": 26,
+            "ger": 28,
+            "spa": 34,
+            "chi": 12,
+            "ita": 15,
+            "dut": 10,
+            "rus": 13,
+            "jpn": 4
+          }
+        },
+        {
+          "name": "Steampunk",
+          "slug": "steampunk",
+          "tag_key": "/tags/OL288T",
+          "query": "steampunk*",
+          "work_count": 85,
+          "readable_count": 28,
+          "readable_by_language": {
+            "eng": 22,
+            "fre": 1,
+            "ger": 1,
+            "spa": 1,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Coming of Age",
+          "slug": "coming-of-age",
+          "tag_key": "/tags/OL270T",
+          "query": "coming_of_age*",
+          "work_count": 67,
+          "readable_count": 18,
+          "readable_by_language": {
+            "eng": 16,
+            "fre": 3,
+            "ger": 2,
+            "spa": 7,
+            "chi": 4,
+            "ita": 3,
+            "dut": 1,
+            "rus": 3,
+            "jpn": 2
+          }
+        },
+        {
+          "name": "Apocalyptic",
+          "slug": "apocalyptic",
+          "tag_key": "/tags/OL267T",
+          "query": "apocalyptic*",
+          "work_count": 35,
+          "readable_count": 11,
+          "readable_by_language": {
+            "eng": 11,
+            "fre": 4,
+            "ger": 6,
+            "spa": 7,
+            "chi": 5,
+            "ita": 5,
+            "dut": 4,
+            "rus": 3,
+            "jpn": 1
+          }
+        },
+        {
+          "name": "Dystopian",
+          "slug": "dystopian",
+          "tag_key": "/tags/OL274T",
+          "query": "dystopian*",
+          "work_count": 36,
+          "readable_count": 11,
+          "readable_by_language": {
+            "eng": 10,
+            "fre": 6,
+            "ger": 5,
+            "spa": 6,
+            "chi": 6,
+            "ita": 6,
+            "dut": 4,
+            "rus": 5,
+            "jpn": 3
+          }
+        },
+        {
+          "name": "Post-Apocalyptic",
+          "slug": "post-apocalyptic",
+          "tag_key": "/tags/OL285T",
+          "query": "post_apocalyptic*",
+          "work_count": 32,
+          "readable_count": 3,
+          "readable_by_language": {
+            "eng": 3,
+            "fre": 1,
+            "ger": 2,
+            "spa": 2,
+            "chi": 1,
+            "ita": 1,
+            "dut": 1,
+            "rus": 0,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Utopian",
+          "slug": "utopian",
+          "tag_key": "/tags/OL290T",
+          "query": "utopian*",
+          "work_count": 7,
+          "readable_count": 3,
+          "readable_by_language": {
+            "eng": 3,
+            "fre": 2,
+            "ger": 2,
+            "spa": 1,
+            "chi": 1,
+            "ita": 0,
+            "dut": 0,
+            "rus": 2,
+            "jpn": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Historical",
+      "slug": "historical",
+      "tag_key": "/tags/OL170T",
+      "query": "(historical_fiction* OR fiction_historical*)",
+      "work_count": 86148,
+      "readable_count": 15734,
+      "subgenres": [
+        {
+          "name": "Epic",
+          "slug": "epic",
+          "tag_key": "/tags/OL276T",
+          "query": "(epic OR epic_fiction OR epic_fantasy OR epic_literature)",
+          "work_count": 35,
+          "readable_count": 14,
+          "readable_by_language": {
+            "eng": 14,
+            "fre": 9,
+            "ger": 9,
+            "spa": 9,
+            "chi": 5,
+            "ita": 7,
+            "dut": 7,
+            "rus": 4,
+            "jpn": 2
+          }
+        },
+        {
+          "name": "Family Saga",
+          "slug": "family-saga",
+          "tag_key": "/tags/OL278T",
+          "query": "family_saga*",
+          "work_count": 21,
+          "readable_count": 10,
+          "readable_by_language": {
+            "eng": 9,
+            "fre": 1,
+            "ger": 2,
+            "spa": 1,
+            "chi": 0,
+            "ita": 1,
+            "dut": 1,
+            "rus": 0,
+            "jpn": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Horror",
+      "slug": "horror",
+      "tag_key": "/tags/OL171T",
+      "query": "(horror* OR fiction_horror*)",
+      "work_count": 30286,
+      "readable_count": 5664,
+      "subgenres": [
+        {
+          "name": "Gothic",
+          "slug": "gothic",
+          "tag_key": "/tags/OL281T",
+          "query": "gothic_fiction*",
+          "work_count": 544,
+          "readable_count": 249,
+          "readable_by_language": {
+            "eng": 222,
+            "fre": 23,
+            "ger": 20,
+            "spa": 28,
+            "chi": 6,
+            "ita": 11,
+            "dut": 4,
+            "rus": 7,
+            "jpn": 3
+          }
+        },
+        {
+          "name": "Psychological",
+          "slug": "psychological",
+          "tag_key": "/tags/OL286T",
+          "query": "psychological_fiction*",
+          "work_count": 64,
+          "readable_count": 37,
+          "readable_by_language": {
+            "eng": 37,
+            "fre": 20,
+            "ger": 16,
+            "spa": 18,
+            "chi": 7,
+            "ita": 12,
+            "dut": 4,
+            "rus": 11,
+            "jpn": 4
+          }
+        },
+        {
+          "name": "Apocalyptic",
+          "slug": "apocalyptic",
+          "tag_key": "/tags/OL267T",
+          "query": "apocalyptic*",
+          "work_count": 14,
+          "readable_count": 8,
+          "readable_by_language": {
+            "eng": 8,
+            "fre": 4,
+            "ger": 5,
+            "spa": 6,
+            "chi": 4,
+            "ita": 5,
+            "dut": 2,
+            "rus": 2,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Epistolary",
+          "slug": "epistolary",
+          "tag_key": "/tags/OL275T",
+          "query": "epistolary*",
+          "work_count": 9,
+          "readable_count": 6,
+          "readable_by_language": {
+            "eng": 6,
+            "fre": 4,
+            "ger": 3,
+            "spa": 3,
+            "chi": 3,
+            "ita": 4,
+            "dut": 2,
+            "rus": 3,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Post-Apocalyptic",
+          "slug": "post-apocalyptic",
+          "tag_key": "/tags/OL285T",
+          "query": "post_apocalyptic*",
+          "work_count": 10,
+          "readable_count": 3,
+          "readable_by_language": {
+            "eng": 3,
+            "fre": 1,
+            "ger": 2,
+            "spa": 2,
+            "chi": 1,
+            "ita": 1,
+            "dut": 1,
+            "rus": 0,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Cult",
+          "slug": "cult",
+          "tag_key": "/tags/OL271T",
+          "query": "cult",
+          "work_count": 3,
+          "readable_count": 1,
+          "readable_by_language": {
+            "eng": 1,
+            "fre": 1,
+            "ger": 0,
+            "spa": 0,
+            "chi": 0,
+            "ita": 1,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Humor",
+      "slug": "humor",
+      "tag_key": "/tags/OL172T",
+      "query": "(humor* OR fiction_humorous* OR comedy* OR comedies)",
+      "work_count": 72189,
+      "readable_count": 22130,
+      "subgenres": [
+        {
+          "name": "Gonzo",
+          "slug": "gonzo",
+          "tag_key": "/tags/OL280T",
+          "query": "gonzo*",
+          "work_count": 0,
+          "readable_count": 0,
+          "readable_by_language": {
+            "eng": 0,
+            "fre": 0,
+            "ger": 0,
+            "spa": 0,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "LGBTQ+",
+      "slug": "lgbtq",
+      "tag_key": "/tags/OL173T",
+      "query": "(lgbtq* OR fiction_lgbtq* OR fiction_gay* OR fiction_lesbian* OR gay_men_fiction OR lesbians_fiction OR gays_fiction)",
+      "work_count": 27261,
+      "readable_count": 3255,
+      "subgenres": []
+    },
+    {
+      "name": "Literary",
+      "slug": "literary",
+      "tag_key": "/tags/OL174T",
+      "query": "(literary_fiction* OR fiction_literary*)",
+      "work_count": 764,
+      "readable_count": 167,
+      "subgenres": [
+        {
+          "name": "Coming of Age",
+          "slug": "coming-of-age",
+          "tag_key": "/tags/OL270T",
+          "query": "coming_of_age*",
+          "work_count": 21,
+          "readable_count": 2,
+          "readable_by_language": {
+            "eng": 2,
+            "fre": 2,
+            "ger": 1,
+            "spa": 1,
+            "chi": 1,
+            "ita": 1,
+            "dut": 0,
+            "rus": 1,
+            "jpn": 1
+          }
+        },
+        {
+          "name": "Gothic",
+          "slug": "gothic",
+          "tag_key": "/tags/OL281T",
+          "query": "gothic_fiction*",
+          "work_count": 2,
+          "readable_count": 1,
+          "readable_by_language": {
+            "eng": 0,
+            "fre": 0,
+            "ger": 0,
+            "spa": 1,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Cult",
+          "slug": "cult",
+          "tag_key": "/tags/OL271T",
+          "query": "cult",
+          "work_count": 0,
+          "readable_count": 0,
+          "readable_by_language": {
+            "eng": 0,
+            "fre": 0,
+            "ger": 0,
+            "spa": 0,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Gonzo",
+          "slug": "gonzo",
+          "tag_key": "/tags/OL280T",
+          "query": "gonzo*",
+          "work_count": 0,
+          "readable_count": 0,
+          "readable_by_language": {
+            "eng": 0,
+            "fre": 0,
+            "ger": 0,
+            "spa": 0,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mystery",
+      "slug": "mystery",
+      "tag_key": "/tags/OL175T",
+      "query": "(mystery* OR fiction_mystery__detective*)",
+      "work_count": 107577,
+      "readable_count": 29176,
+      "subgenres": [
+        {
+          "name": "Detective",
+          "slug": "detective",
+          "tag_key": "/tags/OL273T",
+          "query": "detective*",
+          "work_count": 8224,
+          "readable_count": 4482,
+          "readable_by_language": {
+            "eng": 4250,
+            "fre": 526,
+            "ger": 482,
+            "spa": 459,
+            "chi": 176,
+            "ita": 198,
+            "dut": 163,
+            "rus": 190,
+            "jpn": 96
+          }
+        },
+        {
+          "name": "Locked Room",
+          "slug": "locked-room",
+          "tag_key": "/tags/OL282T",
+          "query": "locked-room*",
+          "work_count": 96,
+          "readable_count": 73,
+          "readable_by_language": {
+            "eng": 70,
+            "fre": 7,
+            "ger": 5,
+            "spa": 6,
+            "chi": 5,
+            "ita": 2,
+            "dut": 3,
+            "rus": 1,
+            "jpn": 4
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mythology",
+      "slug": "mythology",
+      "tag_key": "/tags/OL176T",
+      "query": "mythology*",
+      "work_count": 18537,
+      "readable_count": 3731,
+      "subgenres": []
+    },
+    {
+      "name": "Romance",
+      "slug": "romance",
+      "tag_key": "/tags/OL177T",
+      "query": "(romance* OR fiction_romance*)",
+      "work_count": 235755,
+      "readable_count": 28971,
+      "subgenres": [
+        {
+          "name": "Historical",
+          "slug": "historical",
+          "tag_key": null,
+          "query": "historical_romance*",
+          "work_count": 1455,
+          "readable_count": 878,
+          "readable_by_language": {
+            "eng": 818,
+            "fre": 14,
+            "ger": 12,
+            "spa": 23,
+            "chi": 24,
+            "ita": 6,
+            "dut": 3,
+            "rus": 23,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Western",
+          "slug": "western",
+          "tag_key": null,
+          "query": "western_romance*",
+          "work_count": 415,
+          "readable_count": 306,
+          "readable_by_language": {
+            "eng": 289,
+            "fre": 0,
+            "ger": 2,
+            "spa": 1,
+            "chi": 5,
+            "ita": 1,
+            "dut": 0,
+            "rus": 6,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Paranormal",
+          "slug": "paranormal",
+          "tag_key": null,
+          "query": "paranormal_romance*",
+          "work_count": 670,
+          "readable_count": 140,
+          "readable_by_language": {
+            "eng": 127,
+            "fre": 8,
+            "ger": 7,
+            "spa": 8,
+            "chi": 2,
+            "ita": 0,
+            "dut": 1,
+            "rus": 1,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Regency",
+          "slug": "regency",
+          "tag_key": null,
+          "query": "regency*",
+          "work_count": 306,
+          "readable_count": 131,
+          "readable_by_language": {
+            "eng": 126,
+            "fre": 2,
+            "ger": 3,
+            "spa": 5,
+            "chi": 6,
+            "ita": 0,
+            "dut": 2,
+            "rus": 5,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Contemporary",
+          "slug": "contemporary",
+          "tag_key": null,
+          "query": "contemporary_romance*",
+          "work_count": 1227,
+          "readable_count": 103,
+          "readable_by_language": {
+            "eng": 103,
+            "fre": 14,
+            "ger": 4,
+            "spa": 10,
+            "chi": 2,
+            "ita": 1,
+            "dut": 1,
+            "rus": 8,
+            "jpn": 1
+          }
+        },
+        {
+          "name": "Suspense",
+          "slug": "suspense",
+          "tag_key": null,
+          "query": "romantic_suspense*",
+          "work_count": 401,
+          "readable_count": 99,
+          "readable_by_language": {
+            "eng": 96,
+            "fre": 22,
+            "ger": 14,
+            "spa": 24,
+            "chi": 10,
+            "ita": 6,
+            "dut": 6,
+            "rus": 15,
+            "jpn": 2
+          }
+        },
+        {
+          "name": "Coming of Age",
+          "slug": "coming-of-age",
+          "tag_key": "/tags/OL270T",
+          "query": "coming_of_age*",
+          "work_count": 97,
+          "readable_count": 27,
+          "readable_by_language": {
+            "eng": 23,
+            "fre": 9,
+            "ger": 8,
+            "spa": 11,
+            "chi": 6,
+            "ita": 6,
+            "dut": 5,
+            "rus": 5,
+            "jpn": 1
+          }
+        },
+        {
+          "name": "Gothic",
+          "slug": "gothic",
+          "tag_key": "/tags/OL281T",
+          "query": "gothic_fiction*",
+          "work_count": 39,
+          "readable_count": 26,
+          "readable_by_language": {
+            "eng": 25,
+            "fre": 6,
+            "ger": 3,
+            "spa": 3,
+            "chi": 2,
+            "ita": 2,
+            "dut": 1,
+            "rus": 2,
+            "jpn": 2
+          }
+        },
+        {
+          "name": "Epistolary",
+          "slug": "epistolary",
+          "tag_key": "/tags/OL275T",
+          "query": "epistolary*",
+          "work_count": 12,
+          "readable_count": 5,
+          "readable_by_language": {
+            "eng": 5,
+            "fre": 3,
+            "ger": 2,
+            "spa": 3,
+            "chi": 1,
+            "ita": 3,
+            "dut": 1,
+            "rus": 1,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Melodrama",
+          "slug": "melodrama",
+          "tag_key": "/tags/OL283T",
+          "query": "melodrama*",
+          "work_count": 1,
+          "readable_count": 1,
+          "readable_by_language": {
+            "eng": 1,
+            "fre": 0,
+            "ger": 0,
+            "spa": 0,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sci-Fi",
+      "slug": "sci-fi",
+      "tag_key": "/tags/OL179T",
+      "query": "(science_fiction* OR fiction_science_fiction*)",
+      "work_count": 71108,
+      "readable_count": 14172,
+      "subgenres": [
+        {
+          "name": "Space Opera",
+          "slug": "space-opera",
+          "tag_key": "/tags/OL287T",
+          "query": "space_opera*",
+          "work_count": 186,
+          "readable_count": 37,
+          "readable_by_language": {
+            "eng": 33,
+            "fre": 11,
+            "ger": 11,
+            "spa": 3,
+            "chi": 1,
+            "ita": 1,
+            "dut": 1,
+            "rus": 4,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Dystopian",
+          "slug": "dystopian",
+          "tag_key": "/tags/OL274T",
+          "query": "dystopian*",
+          "work_count": 133,
+          "readable_count": 34,
+          "readable_by_language": {
+            "eng": 34,
+            "fre": 13,
+            "ger": 12,
+            "spa": 15,
+            "chi": 12,
+            "ita": 10,
+            "dut": 7,
+            "rus": 7,
+            "jpn": 6
+          }
+        },
+        {
+          "name": "Steampunk",
+          "slug": "steampunk",
+          "tag_key": "/tags/OL288T",
+          "query": "steampunk*",
+          "work_count": 95,
+          "readable_count": 26,
+          "readable_by_language": {
+            "eng": 21,
+            "fre": 1,
+            "ger": 1,
+            "spa": 0,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Epic",
+          "slug": "epic",
+          "tag_key": "/tags/OL276T",
+          "query": "(epic OR epic_fiction OR epic_fantasy OR epic_literature)",
+          "work_count": 95,
+          "readable_count": 20,
+          "readable_by_language": {
+            "eng": 20,
+            "fre": 13,
+            "ger": 12,
+            "spa": 16,
+            "chi": 7,
+            "ita": 9,
+            "dut": 5,
+            "rus": 7,
+            "jpn": 2
+          }
+        },
+        {
+          "name": "Apocalyptic",
+          "slug": "apocalyptic",
+          "tag_key": "/tags/OL267T",
+          "query": "apocalyptic*",
+          "work_count": 84,
+          "readable_count": 19,
+          "readable_by_language": {
+            "eng": 19,
+            "fre": 9,
+            "ger": 8,
+            "spa": 12,
+            "chi": 8,
+            "ita": 9,
+            "dut": 4,
+            "rus": 4,
+            "jpn": 1
+          }
+        },
+        {
+          "name": "Cyberpunk",
+          "slug": "cyberpunk",
+          "tag_key": "/tags/OL272T",
+          "query": "cyberpunk*",
+          "work_count": 75,
+          "readable_count": 8,
+          "readable_by_language": {
+            "eng": 8,
+            "fre": 2,
+            "ger": 2,
+            "spa": 2,
+            "chi": 0,
+            "ita": 1,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Post-Apocalyptic",
+          "slug": "post-apocalyptic",
+          "tag_key": "/tags/OL285T",
+          "query": "post_apocalyptic*",
+          "work_count": 44,
+          "readable_count": 8,
+          "readable_by_language": {
+            "eng": 8,
+            "fre": 2,
+            "ger": 2,
+            "spa": 3,
+            "chi": 2,
+            "ita": 2,
+            "dut": 1,
+            "rus": 0,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Utopian",
+          "slug": "utopian",
+          "tag_key": "/tags/OL290T",
+          "query": "utopian*",
+          "work_count": 15,
+          "readable_count": 5,
+          "readable_by_language": {
+            "eng": 5,
+            "fre": 2,
+            "ger": 2,
+            "spa": 0,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 1,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Futurism",
+          "slug": "futurism",
+          "tag_key": "/tags/OL279T",
+          "query": "futurism*",
+          "work_count": 9,
+          "readable_count": 2,
+          "readable_by_language": {
+            "eng": 1,
+            "fre": 1,
+            "ger": 0,
+            "spa": 0,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Biopunk",
+          "slug": "biopunk",
+          "tag_key": "/tags/OL268T",
+          "query": "biopunk*",
+          "work_count": 1,
+          "readable_count": 0,
+          "readable_by_language": {
+            "eng": 0,
+            "fre": 0,
+            "ger": 0,
+            "spa": 0,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        },
+        {
+          "name": "Cli-fi",
+          "slug": "cli-fi",
+          "tag_key": "/tags/OL269T",
+          "query": "climate_fiction*",
+          "work_count": 1,
+          "readable_count": 0,
+          "readable_by_language": {
+            "eng": 0,
+            "fre": 0,
+            "ger": 0,
+            "spa": 0,
+            "chi": 0,
+            "ita": 0,
+            "dut": 0,
+            "rus": 0,
+            "jpn": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Thriller",
+      "slug": "thriller",
+      "tag_key": "/tags/OL180T",
+      "query": "(thriller* OR fiction_thrillers* OR fiction_suspense* OR suspense*)",
+      "work_count": 91886,
+      "readable_count": 13878,
+      "subgenres": [
+        {
+          "name": "Psychological",
+          "slug": "psychological",
+          "tag_key": "/tags/OL286T",
+          "query": "psychological_fiction*",
+          "work_count": 262,
+          "readable_count": 119,
+          "readable_by_language": {
+            "eng": 112,
+            "fre": 53,
+            "ger": 41,
+            "spa": 44,
+            "chi": 20,
+            "ita": 18,
+            "dut": 20,
+            "rus": 25,
+            "jpn": 7
+          }
+        },
+        {
+          "name": "Espionage",
+          "slug": "espionage",
+          "tag_key": "/tags/OL277T",
+          "query": "espionage*",
+          "work_count": 297,
+          "readable_count": 106,
+          "readable_by_language": {
+            "eng": 103,
+            "fre": 29,
+            "ger": 25,
+            "spa": 31,
+            "chi": 8,
+            "ita": 9,
+            "dut": 11,
+            "rus": 10,
+            "jpn": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "Western",
+      "slug": "western",
+      "tag_key": "/tags/OL182T",
+      "query": "(western_stories OR westerns OR western_fiction OR western OR fiction_westerns*)",
+      "work_count": 20230,
+      "readable_count": 6873,
+      "subgenres": []
+    }
+  ],
+  "subjects": [
+    {
+      "name": "Kids",
+      "slug": "kids",
+      "query": "(juvenile_fiction OR juvenile_literature OR children's_fiction OR juvenile_nonfiction)",
+      "page": "/subjects/juvenile_fiction",
+      "work_count": 709066,
+      "readable_count": 304358,
+      "subgenres": [
+        {
+          "name": "Friendship",
+          "slug": "friendship",
+          "tag_key": null,
+          "query": "friendship*",
+          "work_count": 27982,
+          "readable_count": 11423,
+          "readable_by_language": {
+            "eng": 9426,
+            "fre": 662,
+            "ger": 206,
+            "spa": 716,
+            "chi": 258,
+            "ita": 98,
+            "dut": 102,
+            "rus": 76,
+            "jpn": 100
+          }
+        },
+        {
+          "name": "Adventure",
+          "slug": "adventure",
+          "tag_key": null,
+          "query": "adventure*",
+          "work_count": 23801,
+          "readable_count": 8187,
+          "readable_by_language": {
+            "eng": 6920,
+            "fre": 529,
+            "ger": 349,
+            "spa": 606,
+            "chi": 254,
+            "ita": 194,
+            "dut": 137,
+            "rus": 101,
+            "jpn": 80
+          }
+        },
+        {
+          "name": "School",
+          "slug": "school",
+          "tag_key": null,
+          "query": "school*",
+          "work_count": 20513,
+          "readable_count": 7742,
+          "readable_by_language": {
+            "eng": 6425,
+            "fre": 443,
+            "ger": 94,
+            "spa": 486,
+            "chi": 243,
+            "ita": 50,
+            "dut": 58,
+            "rus": 32,
+            "jpn": 43
+          }
+        },
+        {
+          "name": "Picture books",
+          "slug": "picture-books",
+          "tag_key": null,
+          "query": "picture_books*",
+          "work_count": 16299,
+          "readable_count": 7280,
+          "readable_by_language": {
+            "eng": 5850,
+            "fre": 687,
+            "ger": 98,
+            "spa": 484,
+            "chi": 343,
+            "ita": 57,
+            "dut": 29,
+            "rus": 29,
+            "jpn": 90
+          }
+        },
+        {
+          "name": "Fantasy",
+          "slug": "fantasy",
+          "tag_key": null,
+          "query": "fantasy*",
+          "work_count": 16114,
+          "readable_count": 5888,
+          "readable_by_language": {
+            "eng": 4901,
+            "fre": 604,
+            "ger": 348,
+            "spa": 553,
+            "chi": 240,
+            "ita": 116,
+            "dut": 113,
+            "rus": 97,
+            "jpn": 94
+          }
+        },
+        {
+          "name": "Mystery",
+          "slug": "mystery",
+          "tag_key": null,
+          "query": "mystery*",
+          "work_count": 12996,
+          "readable_count": 5545,
+          "readable_by_language": {
+            "eng": 4943,
+            "fre": 228,
+            "ger": 147,
+            "spa": 253,
+            "chi": 91,
+            "ita": 83,
+            "dut": 60,
+            "rus": 28,
+            "jpn": 21
+          }
+        },
+        {
+          "name": "Humor",
+          "slug": "humor",
+          "tag_key": null,
+          "query": "humorous_stories*",
+          "work_count": 11059,
+          "readable_count": 4184,
+          "readable_by_language": {
+            "eng": 3568,
+            "fre": 324,
+            "ger": 107,
+            "spa": 397,
+            "chi": 158,
+            "ita": 119,
+            "dut": 66,
+            "rus": 40,
+            "jpn": 44
+          }
+        }
+      ]
+    },
+    {
+      "name": "History",
+      "slug": "history",
+      "query": "history",
+      "page": "/subjects/history",
+      "work_count": 2559327,
+      "readable_count": 368191,
+      "subgenres": [
+        {
+          "name": "United States",
+          "slug": "united-states",
+          "tag_key": null,
+          "query": "united_states*",
+          "work_count": 63991,
+          "readable_count": 20132,
+          "readable_by_language": {
+            "eng": 19518,
+            "fre": 231,
+            "ger": 137,
+            "spa": 196,
+            "chi": 67,
+            "ita": 46,
+            "dut": 30,
+            "rus": 47,
+            "jpn": 26
+          }
+        },
+        {
+          "name": "Great Britain",
+          "slug": "great-britain",
+          "tag_key": null,
+          "query": "great_britain*",
+          "work_count": 34833,
+          "readable_count": 10308,
+          "readable_by_language": {
+            "eng": 9517,
+            "fre": 184,
+            "ger": 136,
+            "spa": 131,
+            "chi": 53,
+            "ita": 49,
+            "dut": 33,
+            "rus": 52,
+            "jpn": 23
+          }
+        },
+        {
+          "name": "Military",
+          "slug": "military",
+          "tag_key": null,
+          "query": "military*",
+          "work_count": 50516,
+          "readable_count": 7764,
+          "readable_by_language": {
+            "eng": 6232,
+            "fre": 753,
+            "ger": 230,
+            "spa": 207,
+            "chi": 97,
+            "ita": 73,
+            "dut": 31,
+            "rus": 122,
+            "jpn": 25
+          }
+        },
+        {
+          "name": "World War II",
+          "slug": "world-war-ii",
+          "tag_key": null,
+          "query": "world_war_1939-1945*",
+          "work_count": 56908,
+          "readable_count": 6224,
+          "readable_by_language": {
+            "eng": 5210,
+            "fre": 324,
+            "ger": 349,
+            "spa": 114,
+            "chi": 58,
+            "ita": 78,
+            "dut": 75,
+            "rus": 121,
+            "jpn": 42
+          }
+        },
+        {
+          "name": "Ancient",
+          "slug": "ancient",
+          "tag_key": null,
+          "query": "ancient*",
+          "work_count": 11702,
+          "readable_count": 2000,
+          "readable_by_language": {
+            "eng": 1381,
+            "fre": 275,
+            "ger": 368,
+            "spa": 63,
+            "chi": 20,
+            "ita": 93,
+            "dut": 16,
+            "rus": 26,
+            "jpn": 13
+          }
+        },
+        {
+          "name": "Middle Ages",
+          "slug": "middle-ages",
+          "tag_key": null,
+          "query": "middle_ages*",
+          "work_count": 6687,
+          "readable_count": 1772,
+          "readable_by_language": {
+            "eng": 1300,
+            "fre": 183,
+            "ger": 200,
+            "spa": 48,
+            "chi": 7,
+            "ita": 59,
+            "dut": 10,
+            "rus": 18,
+            "jpn": 5
+          }
+        }
+      ]
+    },
+    {
+      "name": "Biography",
+      "slug": "biography",
+      "query": "(biography OR biographies)",
+      "page": "/subjects/biography",
+      "work_count": 920012,
+      "readable_count": 161587,
+      "subgenres": [
+        {
+          "name": "Women",
+          "slug": "women",
+          "tag_key": null,
+          "query": "women*",
+          "work_count": 45660,
+          "readable_count": 12568,
+          "readable_by_language": {
+            "eng": 11043,
+            "fre": 591,
+            "ger": 315,
+            "spa": 337,
+            "chi": 152,
+            "ita": 102,
+            "dut": 50,
+            "rus": 123,
+            "jpn": 43
+          }
+        },
+        {
+          "name": "Writers",
+          "slug": "writers",
+          "tag_key": null,
+          "query": "authors*",
+          "work_count": 29515,
+          "readable_count": 7606,
+          "readable_by_language": {
+            "eng": 6310,
+            "fre": 718,
+            "ger": 509,
+            "spa": 284,
+            "chi": 104,
+            "ita": 105,
+            "dut": 58,
+            "rus": 146,
+            "jpn": 26
+          }
+        },
+        {
+          "name": "Presidents",
+          "slug": "presidents",
+          "tag_key": null,
+          "query": "presidents*",
+          "work_count": 17629,
+          "readable_count": 4961,
+          "readable_by_language": {
+            "eng": 4253,
+            "fre": 201,
+            "ger": 83,
+            "spa": 205,
+            "chi": 127,
+            "ita": 22,
+            "dut": 13,
+            "rus": 41,
+            "jpn": 11
+          }
+        },
+        {
+          "name": "Memoir",
+          "slug": "memoir",
+          "tag_key": null,
+          "query": "(autobiography* OR personal_narratives* OR memoirs*)",
+          "work_count": 19971,
+          "readable_count": 3625,
+          "readable_by_language": {
+            "eng": 3210,
+            "fre": 213,
+            "ger": 177,
+            "spa": 107,
+            "chi": 53,
+            "ita": 47,
+            "dut": 31,
+            "rus": 120,
+            "jpn": 17
+          }
+        },
+        {
+          "name": "Artists",
+          "slug": "artists",
+          "tag_key": null,
+          "query": "artists*",
+          "work_count": 16608,
+          "readable_count": 3198,
+          "readable_by_language": {
+            "eng": 2566,
+            "fre": 284,
+            "ger": 228,
+            "spa": 151,
+            "chi": 32,
+            "ita": 165,
+            "dut": 42,
+            "rus": 47,
+            "jpn": 22
+          }
+        },
+        {
+          "name": "Royalty",
+          "slug": "royalty",
+          "tag_key": null,
+          "query": "kings_and_rulers*",
+          "work_count": 17901,
+          "readable_count": 2913,
+          "readable_by_language": {
+            "eng": 2068,
+            "fre": 327,
+            "ger": 147,
+            "spa": 98,
+            "chi": 113,
+            "ita": 37,
+            "dut": 29,
+            "rus": 78,
+            "jpn": 6
+          }
+        }
+      ]
+    },
+    {
+      "name": "Philosophy",
+      "slug": "philosophy",
+      "query": "philosophy",
+      "page": "/subjects/philosophy",
+      "work_count": 204768,
+      "readable_count": 21132,
+      "subgenres": []
+    },
+    {
+      "name": "Psychology",
+      "slug": "psychology",
+      "query": "psychology",
+      "page": "/subjects/psychology",
+      "work_count": 97381,
+      "readable_count": 18683,
+      "subgenres": []
+    },
+    {
+      "name": "Poetry",
+      "slug": "poetry",
+      "query": "poetry",
+      "page": "/subjects/poetry",
+      "work_count": 113548,
+      "readable_count": 25272,
+      "subgenres": []
+    },
+    {
+      "name": "Travel",
+      "slug": "travel",
+      "query": "travel",
+      "page": "/subjects/travel",
+      "work_count": 88009,
+      "readable_count": 22463,
+      "subgenres": []
+    },
+    {
+      "name": "Science",
+      "slug": "science",
+      "query": "science",
+      "page": "/subjects/science",
+      "work_count": 105669,
+      "readable_count": 16918,
+      "subgenres": []
+    },
+    {
+      "name": "Cooking",
+      "slug": "cooking",
+      "query": "(cooking OR cookery OR recipes)",
+      "page": "/subjects/cooking",
+      "work_count": 57026,
+      "readable_count": 19969,
+      "subgenres": []
+    },
+    {
+      "name": "Religion",
+      "slug": "religion",
+      "query": "religion",
+      "page": "/subjects/religion",
+      "work_count": 170850,
+      "readable_count": 16827,
+      "subgenres": []
+    },
+    {
+      "name": "Art",
+      "slug": "art",
+      "query": "art",
+      "page": "/subjects/art",
+      "work_count": 134774,
+      "readable_count": 17618,
+      "subgenres": []
+    },
+    {
+      "name": "Textbooks",
+      "slug": "textbooks",
+      "query": "textbooks",
+      "page": "/subjects/textbooks",
+      "work_count": 40016,
+      "readable_count": 9993,
+      "subgenres": []
+    }
+  ]
+}
