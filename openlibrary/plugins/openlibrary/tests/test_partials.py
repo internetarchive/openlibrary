@@ -21,12 +21,14 @@ from openlibrary.plugins.openlibrary.partials import (
     NearbyBooksPartial,
     ReadingGoalProgressPartial,
     _carousel_card_book,
+    _resolve_carousel_card_cover_url,
     _solr_query_to_subject_key,
     build_nearby_books_placeholder_config,
     build_stores,
     gather_nearby_books_async,
 )
 from openlibrary.plugins.upstream.yearly_reading_goals import YearlyGoal
+from openlibrary.plugins.worksearch.subjects import SubjectEngine
 from openlibrary.utils.solr import Solr
 
 HORROR = {
@@ -230,6 +232,26 @@ class TestCarouselCardBook:
         assert card.key == "/works/OL1W"
         assert card.author_name == ["A"]
         assert "work_key" not in card
+
+
+class TestCarouselCardCoverUrl:
+    def test_solr_doc_uses_its_first_ia_identifier(self):
+        book = _carousel_card_book({"key": "/works/OL1W", "title": "T", "ia": ["firstscan00", "secondscan00"]})
+        assert _resolve_carousel_card_cover_url(book) == (
+            "//covers.openlibrary.org/b/ia/firstscan00-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book.png"
+        )
+
+    def test_subject_work_uses_its_whole_ia_identifier(self):
+        # Subject carousels load more books from /subjects, which gives `ia` as one string
+        work = SubjectEngine.work_wrapper({"key": "/works/OL55532W", "title": "The three sisters", "edition_count": 3, "ia": ["threesistersdram00chek"]})
+        assert work.ia == "threesistersdram00chek"
+        assert _resolve_carousel_card_cover_url(_carousel_card_book(work)) == (
+            "//covers.openlibrary.org/b/ia/threesistersdram00chek-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book.png"
+        )
+
+    def test_cover_id_is_used_before_ia(self):
+        work = SubjectEngine.work_wrapper({"key": "/works/OL1W", "title": "T", "edition_count": 1, "cover_i": 123, "ia": ["somescan00"]})
+        assert _resolve_carousel_card_cover_url(_carousel_card_book(work)) == "//covers.openlibrary.org/b/id/123-M.jpg"
 
 
 class TestSolrQueryToSubjectKey:
