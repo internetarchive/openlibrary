@@ -1405,7 +1405,7 @@ class account_anonymization_json(delegate.page):
 
         try:
             with RunAs(ol_account.username):
-                result = ol_account.anonymize(test=test)
+                result = ol_account.anonymize_sync(test=test)
         except Exception as e:
             logger.error(e)
             raise web.HTTPError("500 Internal Server Error", {"Content-Type": "application/json"})
