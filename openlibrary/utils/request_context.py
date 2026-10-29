@@ -10,6 +10,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING
 from urllib.parse import unquote
 
@@ -51,67 +52,7 @@ site: ContextVar[Site] = ContextVar("site")
 # Each request owns a fresh set; copied worker/task contexts share that set.
 rendered_keys: ContextVar[set[str] | None] = ContextVar("rendered_keys", default=None)
 
-
-# Keep in sync with scripts/obfi.sh (obfi_grep_bots) and docker/web_nginx.conf ($is_sus_user_agent).
-# cdrini to DRY obfi.sh side.
-USER_AGENT_BOTS = [
-    "360spider",
-    "ahrefsbot",
-    "amazonbot",
-    "applebot",
-    "baiduspider",
-    "behloolbot",
-    "bingbot",
-    "brightbot",
-    "bytespider",
-    "buzzbot",
-    "claudebot",
-    "coccocbot",
-    "dataforseobot",
-    "discordbot",
-    "donkeybot",
-    "dotbot",
-    "dubbotbot",
-    "equellaurlbot",
-    "femtosearchbot",
-    "focuseekbot",
-    "googlebot",
-    "gptbot",
-    "iaskbot",
-    "icc-crawler",
-    "kazbtbot",
-    "laserlikebot",
-    "linkdexbot",
-    "meta-externalagent",
-    "mj12bot",
-    "mojeekbot",
-    "monsidobot",
-    "musobot",
-    "nsrbot",
-    "paperlibot",
-    "parsijoobot",
-    "perplexitybot",
-    "petalbot",
-    "pinterestbot",
-    "qwantbot",
-    "redditbot",
-    "semanticscholarbot",
-    "semrushbot",
-    "seznambot",
-    "sputnikbot",
-    "startmebot",
-    "tiktokspider",
-    "toutiaospider",
-    "ttspider",
-    "uptimerobot",
-    "yandex.com/bots",
-    "yandexaccessibilitybot",
-    "yandexbot",
-    "yandexmobilebot",
-    "yandexrenderresourcesbot",
-    "yoozbot",
-    "yoozbotadsbot",
-]
+USER_AGENT_BOTS = [line for line in Path(__file__).with_name("bot_user_agents.txt").read_text().splitlines() if line and not line.startswith("#")]
 
 
 def _compute_is_recognized_bot(user_agent: str) -> bool:
@@ -122,19 +63,19 @@ def _compute_is_recognized_bot(user_agent: str) -> bool:
 def _compute_is_bot(user_agent: str | None, hhcl: str | None) -> bool:
     """Determine if the request is from a bot.
 
-    ``is_bot`` (broader) vs ``is_recognized_bot`` (narrower):
+        ``is_bot`` (broader) vs ``is_recognized_bot`` (narrower):
     - ``is_recognized_bot``: UA matched against the known-crawler list. Used to
-      skip the /verify_human redirect — we don't want crawlers indexing the
-      challenge page, and they can't click the button anyway.
+          skip the /verify_human redirect — we don't want crawlers indexing the
+          challenge page, and they can't click the button anyway.
     - ``is_bot``: is_recognized_bot PLUS missing UA and nginx X-HHCL=1 signal.
-      Used to skip Matomo tracking and other per-request overhead.
+          Used to skip Matomo tracking and other per-request overhead.
 
-    Args:
-        user_agent: The User-Agent header value
-        hhcl: The X-HHCL header value (set by nginx)
+        Args:
+            user_agent: The User-Agent header value
+            hhcl: The X-HHCL header value (set by nginx)
 
-    Returns:
-        True if the request appears to be from a bot, False otherwise
+        Returns:
+            True if the request appears to be from a bot, False otherwise
     """
 
     # Check hhcl header first (set by nginx)
