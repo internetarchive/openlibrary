@@ -78,16 +78,12 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 "editions": [work],
                 "authors": [{"type": "/type/author_role", "author": {"key": a["key"]}} for a in work.get("authors", [])],
             }
-            # Hack to add subjects when indexing /books/ia:xxx
             if work.get("subjects"):
                 fake_work["subjects"] = work["subjects"]
             return await self.update_key(fake_work)
         elif work["type"]["key"] == "/type/work":
             try:
-                # Anand - Oct 2013
-                # For /works/ia:xxx, editions are already supplied. Querying will empty response.
-
-                # Fetch editions
+                # Fetch editions. The fake work for an orphaned edition already has them.
                 if "editions" in work:
                     editions = work["editions"]
                 else:
@@ -141,10 +137,6 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 logger.error("failed to update work %s", work["key"], exc_info=True)
             else:
                 if solr_doc is not None:
-                    iaids = solr_doc.get("ia") or []
-                    # Delete all ia:foobar keys
-                    if iaids:
-                        update.deletes += [f"/works/ia:{iaid}" for iaid in iaids]
                     update.adds.append(solr_doc)
         else:
             logger.error("unrecognized type while updating work %s", wkey)

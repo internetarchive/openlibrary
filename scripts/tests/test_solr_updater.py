@@ -81,7 +81,7 @@ class TestParseLog:
             },
         }
 
-        assert list(parse_log([sample_record], False)) == [
+        assert list(parse_log([sample_record])) == [
             "/books/OL34239002M",
             "/authors/OL9352911A",
         ]
@@ -159,7 +159,7 @@ class TestParseLog:
             },
         }
 
-        assert list(parse_log([sample_record], False)) == [
+        assert list(parse_log([sample_record])) == [
             "/books/OL34239002M",
             "/works/OL362427W",
         ]
@@ -267,8 +267,50 @@ class TestParseLog:
             },
         }
 
-        assert list(parse_log([sample_record], False)) == [
+        assert list(parse_log([sample_record])) == [
             "/people/foobar",
             "/people/foobar/usergroup",
             "/people/foobar/permission",
         ]
+
+    def test_store_put_force_update(self):
+        sample_record = {
+            "action": "store.put",
+            "site": "openlibrary.org",
+            "timestamp": "2022-04-07T23:03:33.942746",
+            "data": {
+                "key": "solr-force-update",
+                "data": {
+                    "_key": "solr-force-update",
+                    "keys": ["/books/OL1M", "/works/OL1W"],
+                    "_rev": None,
+                },
+            },
+        }
+        assert list(parse_log([sample_record])) == ["/books/OL1M", "/works/OL1W"]
+
+    def test_store_put_ia_scan_ignored(self):
+        sample_record = {
+            "action": "store.put",
+            "site": "openlibrary.org",
+            "timestamp": "2022-04-07T23:03:33.942746",
+            "data": {
+                "key": "ia-scan/foo00bar",
+                "data": {
+                    "_key": "ia-scan/foo00bar",
+                    "type": "ia-scan",
+                    "identifier": "foo00bar",
+                    "created": "2022-04-07T23:03:33.942746",
+                },
+            },
+        }
+        assert list(parse_log([sample_record])) == []
+
+    def test_store_delete_ignored(self):
+        sample_record = {
+            "action": "store.delete",
+            "site": "openlibrary.org",
+            "timestamp": "2022-04-07T23:03:33.942746",
+            "data": {"key": "ia-scan/foo00bar"},
+        }
+        assert list(parse_log([sample_record])) == []
