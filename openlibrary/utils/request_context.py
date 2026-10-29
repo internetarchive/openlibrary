@@ -71,6 +71,7 @@ visitor: ContextVar[Visitor | None] = ContextVar("visitor", default=None)
 
 
 def _visitor(cookie_value: str | None) -> Visitor:
+    """The visitor for a session cookie. Only checks the cookie's signature; looks nothing up."""
     from openlibrary.fastapi.auth import authenticate_user_from_cookie  # noqa: PLC0415
 
     user = authenticate_user_from_cookie(cookie_value)

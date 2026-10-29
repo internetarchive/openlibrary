@@ -975,7 +975,7 @@ class User(Thing):
             ]
         )
         if (v := visitor.get()) and v.user_key == self.key:
-            v.is_librarian = is_librarian
+            v.is_librarian = is_librarian  # for the request metrics' visitor label (openlibrary/utils/prometheus.py)
         return is_librarian
 
     def is_super_librarian_or_higher(self) -> bool:

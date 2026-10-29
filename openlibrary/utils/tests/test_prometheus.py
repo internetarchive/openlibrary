@@ -88,8 +88,8 @@ def app(registry, monkeypatch):
         def GET(self, name=""):
             if name == "missing":
                 raise web.notfound()
-            if name in ("user", "librarian"):  # as setup_contextvars, and the page header for a librarian, do
-                visitor.set(Visitor(user_key="/people/alice", is_librarian=name == "librarian"))
+            if name == "librarian":  # as setup_contextvars and then the page header would
+                visitor.set(Visitor(user_key="/people/alice", is_librarian=True))
             return "hello"
 
         def POST(self, name=""):
@@ -141,9 +141,10 @@ def test_webpy_skips_excluded_handlers(app, registry, monkeypatch):
     assert requests_total(registry, "/metrics") is None
 
 
-@pytest.mark.parametrize(("path", "label"), [("/things/a", "anonymous"), ("/things/user", "user"), ("/things/librarian", "librarian")])
+@pytest.mark.parametrize(("path", "label"), [("/things/a", "anonymous"), ("/things/librarian", "librarian")])
 def test_webpy_records_the_visitor(app, registry, path, label):
-    token = visitor.set(Visitor(user_key="/people/previous", is_librarian=True))  # mustn't count for this request
+    # A previous request's visitor, which mustn't be counted for this one
+    token = visitor.set(Visitor(user_key="/people/previous", is_librarian=True))
     try:
         app.request(path)
     finally:

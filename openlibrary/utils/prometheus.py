@@ -52,7 +52,7 @@ logger = logging.getLogger("openlibrary.prometheus")
 # Buckets for http_request_duration_seconds, the only per-route latency histogram.
 # (The library's high-resolution histogram has one set of counts for the whole server.)
 LATENCY_BUCKETS = (0.025, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2.5, 5, 10, 30, 60)
-# metrics.default's, for http_request_duration_highr_seconds
+# metrics.default's buckets for http_request_duration_highr_seconds, kept so its series don't change
 LATENCY_HIGHR_BUCKETS = (0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 7.5, 10, 30, 60)
 # Regexes, searched for in the handler name, as the instrumentator does
 EXCLUDED_HANDLERS = ("/health", "/metrics")
@@ -329,7 +329,7 @@ class WebPyPrometheusProcessor:
 
     def __call__(self, handler):
         requested_path = web.ctx.path  # before e.g. ReadableUrlProcessor rewrites it
-        visitor.set(None)  # not the previous request's, if this one ends before setup_contextvars sets it
+        visitor.set(None)  # so a request that ends before setup_contextvars, like a redirect, doesn't reuse the previous request's
         start = default_timer()
         body = None
         try:

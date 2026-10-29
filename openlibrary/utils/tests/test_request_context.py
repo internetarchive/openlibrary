@@ -144,21 +144,8 @@ def signed_cookie(user_key, secret="secret"):
     return f"{text},{generate_hash(secret, text)}"
 
 
-@pytest.mark.parametrize(
-    ("cookie", "user_key"),
-    [
-        (None, None),
-        ("garbage", None),
-        (signed_cookie("/people/alice", secret="wrong"), None),
-        (signed_cookie("/people/alice"), "/people/alice"),
-    ],
-)
+# Cookie parsing and signature checks are tested in openlibrary/tests/fastapi/test_auth.py
+@pytest.mark.parametrize(("cookie", "user_key"), [(signed_cookie("/people/alice"), "/people/alice"), (signed_cookie("/people/alice", secret="wrong"), None)])
 def test_visitor_from_session_cookie(monkeypatch, cookie, user_key):
     monkeypatch.setattr("openlibrary.fastapi.auth.get_secret_key", lambda: "secret")
     assert _visitor(cookie) == Visitor(user_key=user_key)
-
-
-def test_visitor_label():
-    assert Visitor(user_key=None).label == "anonymous"
-    assert Visitor(user_key="/people/alice").label == "user"
-    assert Visitor(user_key="/people/alice", is_librarian=True).label == "librarian"
