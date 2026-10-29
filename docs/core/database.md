@@ -19,7 +19,11 @@ The handle is two calls. `site.get()` returns the current site; it's the `site` 
 
 The sync handle isn't going away overnight. Plenty of legacy web.py code still runs through it, and you don't need to migrate a model just to fix something adjacent to it. But don't add new sync queries. When FastAPI work touches a model, migrate it; the pattern below is a few lines per method.
 
-Ruff enforces this: rule `TID251` flags any import of `openlibrary.core.db`, `psycopg2`, `web.db`, or use of `web.database`. Tests, `scripts/`, and the coverstore service are exempt. Files that used the legacy driver before the ban carry a `# noqa: TID251` on the import; never add a new one. The rule only sees imports, so a file that already imports `db` can still grow new sync queries. Don't: new queries go async, with a `_sync` bridge if web.py needs them. When the last legacy use leaves a file, Ruff's `RUF100` flags the leftover `noqa` for removal.
+Ruff enforces this with rule `TID251`, which flags imports of `openlibrary.core.db`, `psycopg2`, `web.db` and uses of `web.database`. Tests, `scripts/` and the coverstore service are exempt.
+
+- Files that used the legacy driver before the ban carry `# noqa: TID251` on that line. Never add one.
+- The rule only sees imports, so it can't stop new sync queries in those files. Write them async anyway, with a `_sync` bridge if web.py needs them.
+- When a file's last legacy use goes, Ruff's `RUF100` flags the leftover `noqa`; delete it.
 
 ## The async pool: `openlibrary/core/async_db.py`
 
