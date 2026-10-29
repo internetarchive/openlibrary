@@ -112,7 +112,6 @@ class Test_MemcacheCache:
         assert type(result) is type(value)
 
     def test_get_empty_raw_value(self, mc):
-        # set() never stores an empty string, but get() should still only give back json or None
         mc.memcache.set("key", "")
         assert mc.get("key") is None
 
