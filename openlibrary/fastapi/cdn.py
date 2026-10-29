@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import re
 from typing import Annotated
-from urllib.parse import parse_qs, unquote, urlencode, urlsplit
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 import httpx
 from fastapi import APIRouter, HTTPException, Path
@@ -105,19 +105,13 @@ async def graphite_graph(name: Annotated[str, Path()]) -> Response:
 # iannotate has no lookup by id, so the whole snippet list is fetched and
 # cached briefly.
 SNIPPETS_CACHE_SECONDS = 60
-# An item's datanode rarely changes; this only bounds staleness if it moves.
-ITEM_LOCATION_CACHE_SECONDS = 3600
-IA_METADATA_URL = "https://archive.org/metadata/{ocaid}"
+IA_DOWNLOAD_PAGE_URL = "https://archive.org/download/{ocaid}/page/{page}"
 SNIPPET_IMAGE_TIMEOUT = 10.0
 SNIPPET_IMAGE_MAX_REDIRECTS = 5
 SNIPPET_IMAGE_MAX_AGE = 3600
 # Raster only: an SVG served from our origin could run script.
 SNIPPET_IMAGE_TYPES = frozenset({"image/jpeg", "image/png", "image/gif", "image/webp"})
-# archive.org ids are limited to this charset, so it is also safe in a cache key.
 _DETAILS_PAGE_RE = re.compile(r"^/details/([A-Za-z0-9._-]+)/page/([^/]+)")
-# www-<name>.archive.org is a developer's environment; its BookReader code is
-# selected on the datanode with tester=<name>.
-_TESTER_HOST_RE = re.compile(r"^www-([a-z0-9]+)\.archive\.org$")
 
 get_snippet_image_session = cache_per_event_loop(lambda: httpx.AsyncClient(timeout=SNIPPET_IMAGE_TIMEOUT, follow_redirects=False))
 
@@ -128,11 +122,13 @@ def _is_archive_org_url(url: str) -> bool:
     return parts.scheme in ("http", "https") and (host == "archive.org" or host.endswith(".archive.org"))
 
 
-def snippet_image_ref(annotation: dict) -> dict[str, str] | None:
-    """The item, page and highlighted text a snippet's /details/ URL points at.
+def snippet_image_url(annotation: dict) -> str | None:
+    """The archive.org page image for a snippet's /details/ URL, highlighted
+    with its text.
 
     Annotations are user-submitted and drive server-side fetches, so only
-    archive.org URLs are accepted.
+    archive.org URLs are accepted, and the image is always fetched from
+    archive.org itself whichever host the snippet was made on.
     """
     details_url = annotation.get("annotation") or annotation.get("uri") or ""
     if not _is_archive_org_url(details_url):
@@ -140,45 +136,18 @@ def snippet_image_ref(annotation: dict) -> dict[str, str] | None:
     parts = urlsplit(details_url)
     if not (match := _DETAILS_PAGE_RE.match(parts.path)):
         return None
-    ref = {"id": match[1], "page": unquote(match[2])}
+    url = IA_DOWNLOAD_PAGE_URL.format(ocaid=match[1], page=match[2])
     if text := parse_qs(parts.query).get("text"):
-        ref["text"] = text[0]
-    if tester := _TESTER_HOST_RE.match((parts.hostname or "").lower()):
-        ref["tester"] = tester[1]
-    return ref
+        url += "?" + urlencode({"text": text[0]})
+    return url
 
 
-def bookreader_image_url(ref: dict[str, str], location: dict[str, str]) -> str:
-    """The datanode's BookReaderImages.php URL for a snippet's page."""
-    params = {"id": ref["id"], "itemPath": location["dir"], "server": location["server"]}
-    for key in ("tester", "text"):
-        if key in ref:
-            params[key] = ref[key]
-    params["page"] = ref["page"]
-    return f"https://{location['server']}/BookReader/BookReaderImages.php?{urlencode(params)}"
-
-
-async def _fetch_snippet_image_refs() -> dict[str, dict[str, str]] | None:
-    """Map each snippet's id (as a str) to its image ref, or None on failure."""
+async def _fetch_snippet_image_urls() -> dict[str, str] | None:
+    """Map each snippet's id (as a str) to its image URL, or None on failure."""
     annotations = await snippets.list_snippets()
     if annotations is None:
         return None
-    return {str(a["id"]): ref for a in annotations if "id" in a and (ref := snippet_image_ref(a))}
-
-
-async def _fetch_item_location(ocaid: str) -> dict[str, str]:
-    """The datanode and directory serving an item, from its archive.org metadata.
-
-    Raises (rather than returning None) on failure so ``singleflight_cache``
-    doesn't cache a transient error for the whole TTL.
-    """
-    response = await get_snippet_image_session().get(IA_METADATA_URL.format(ocaid=ocaid))
-    response.raise_for_status()
-    metadata = response.json()
-    server, item_dir = metadata.get("server"), metadata.get("dir")
-    if not (isinstance(server, str) and isinstance(item_dir, str)):
-        raise ValueError(f"no server/dir in metadata for {ocaid}")
-    return {"server": server, "dir": item_dir}
+    return {str(a["id"]): url for a in annotations if "id" in a and (url := snippet_image_url(a))}
 
 
 async def _open_snippet_image(url: str) -> httpx.Response | None:
@@ -203,27 +172,15 @@ async def _open_snippet_image(url: str) -> httpx.Response | None:
 @router.get("/cdn/snippets/{annotation_id}")
 async def snippet_image(annotation_id: Annotated[int, Path()]) -> Response:
     """Stream the page image of the snippet with this annotation id."""
-    refs = await cache.singleflight_cache(
-        "cdn.snippets.image_refs",
-        _fetch_snippet_image_refs,
+    urls = await cache.singleflight_cache(
+        "cdn.snippets.image_urls",
+        _fetch_snippet_image_urls,
         ttl=SNIPPETS_CACHE_SECONDS,
     )
-    if refs is None:
+    if urls is None:
         raise HTTPException(status_code=502, detail="Snippet list fetch failed")
-    if (ref := refs.get(str(annotation_id))) is None:
+    if (url := urls.get(str(annotation_id))) is None:
         raise HTTPException(status_code=404)
-
-    try:
-        location = await cache.singleflight_cache(
-            f"cdn.snippets.item_location.{ref['id']}",
-            lambda: _fetch_item_location(ref["id"]),
-            ttl=ITEM_LOCATION_CACHE_SECONDS,
-        )
-    except httpx.HTTPError, ValueError:
-        raise HTTPException(status_code=502, detail="Item metadata fetch failed")
-    url = bookreader_image_url(ref, location)
-    if not _is_archive_org_url(url):
-        raise HTTPException(status_code=502, detail="Item metadata fetch failed")
 
     try:
         upstream = await _open_snippet_image(url)
