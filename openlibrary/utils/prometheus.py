@@ -1,8 +1,9 @@
 """Per-route Prometheus request metrics, shared by FastAPI and web.py.
 
 Both servers record the same series (``http_requests_total``,
-``http_request_duration_seconds``, ...) from prometheus-fastapi-instrumentator's
-``metrics.default``, told apart by a ``server`` label. web.py copies FastAPI's
+``http_request_duration_seconds``, ...) as prometheus-fastapi-instrumentator's
+``metrics.default``, told apart by a ``server`` label. The request count and per-route
+latency are also labelled ``visitor``. web.py copies FastAPI's
 ``handler`` label, the route's path template, so an endpoint keeps its series when
 it moves to FastAPI, or while both serve it; only ``server`` changes.
 
@@ -30,7 +31,7 @@ from timeit import default_timer
 from typing import TYPE_CHECKING, Literal
 
 import web
-from prometheus_client import REGISTRY, CollectorRegistry, make_wsgi_app
+from prometheus_client import REGISTRY, CollectorRegistry, Counter, Histogram, Summary, make_wsgi_app
 from prometheus_fastapi_instrumentator import metrics, routing
 from starlette.requests import Request
 from starlette.responses import Response
@@ -38,6 +39,7 @@ from starlette.responses import Response
 from infogami.utils import app as infogami_app
 from infogami.utils import types
 from openlibrary.utils.prometheus_multiprocess import metrics_registry
+from openlibrary.utils.request_context import visitor
 from openlibrary.utils.sentry import InfogamiRoute, find_infogami_route
 
 if TYPE_CHECKING:
@@ -50,13 +52,53 @@ logger = logging.getLogger("openlibrary.prometheus")
 # Buckets for http_request_duration_seconds, the only per-route latency histogram.
 # (The library's high-resolution histogram has one set of counts for the whole server.)
 LATENCY_BUCKETS = (0.025, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2.5, 5, 10, 30, 60)
+# metrics.default's, for http_request_duration_highr_seconds
+LATENCY_HIGHR_BUCKETS = (0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 7.5, 10, 30, 60)
 # Regexes, searched for in the handler name, as the instrumentator does
 EXCLUDED_HANDLERS = ("/health", "/metrics")
 
 
 def request_metrics(server: Literal["fastapi", "webpy"], registry: CollectorRegistry = REGISTRY) -> Callable[[metrics.Info], None] | None:
-    """The request metrics, labelled ``server``. None if already registered in ``registry``."""
-    return metrics.default(latency_lowr_buckets=LATENCY_BUCKETS, registry=registry, custom_labels={"server": server})
+    """The request metrics, labelled ``server``. None if already registered in ``registry``.
+
+    The same metrics as the instrumentator's ``metrics.default``, plus a ``visitor`` label (see ``Visitor``) on the
+    request count and per-route latency. ``metrics.default``'s labels can only have fixed values, and per-request ones
+    aren't planned: https://github.com/trallnag/prometheus-fastapi-instrumentator/discussions/256
+    """
+    try:
+        total = Counter(
+            "http_requests_total",
+            "Total number of requests by method, status and handler.",
+            ("method", "status", "handler", "server", "visitor"),
+            registry=registry,
+        )
+        in_size = Summary("http_request_size_bytes", "Content length of incoming requests by handler.", ("handler", "server"), registry=registry)
+        out_size = Summary("http_response_size_bytes", "Content length of outgoing responses by handler.", ("handler", "server"), registry=registry)
+        latency_highr = Histogram(
+            "http_request_duration_highr_seconds", "Latency of all requests, with many buckets.", buckets=LATENCY_HIGHR_BUCKETS, registry=registry
+        )
+        latency = Histogram(
+            "http_request_duration_seconds",
+            "Latency by handler.",
+            ("method", "handler", "server", "visitor"),
+            buckets=LATENCY_BUCKETS,
+            registry=registry,
+        )
+    except ValueError as e:
+        if metrics._is_duplicated_time_series(e):
+            return None
+        raise
+
+    def instrumentation(info: metrics.Info) -> None:
+        handler = info.modified_handler
+        label = v.label if (v := visitor.get()) else "anonymous"
+        total.labels(info.method, info.modified_status, handler, server, label).inc()
+        in_size.labels(handler, server).observe(int(info.request.headers.get("Content-Length", 0)))
+        out_size.labels(handler, server).observe(int(info.response.headers.get("Content-Length", 0)) if info.response else 0)
+        latency_highr.observe(info.modified_duration)
+        latency.labels(info.method, handler, server, label).observe(info.modified_duration)
+
+    return instrumentation
 
 
 @functools.cache
@@ -287,6 +329,7 @@ class WebPyPrometheusProcessor:
 
     def __call__(self, handler):
         requested_path = web.ctx.path  # before e.g. ReadableUrlProcessor rewrites it
+        visitor.set(None)  # not the previous request's, if this one ends before setup_contextvars sets it
         start = default_timer()
         body = None
         try:

@@ -5,6 +5,7 @@ import web
 
 from openlibrary.core import models
 from openlibrary.mocks import mock_infobase
+from openlibrary.utils.request_context import Visitor, visitor
 from openlibrary.utils.request_context import site as site_var
 
 
@@ -90,6 +91,17 @@ class TestUserGroupMembership:
             PropertyMock(return_value=[]),
         )
         assert user.is_librarian_or_higher() is False
+
+    def test_is_librarian_or_higher_marks_the_visitor(self, monkeypatch):
+        monkeypatch.setattr(models.User, "usergroups", PropertyMock(return_value=[_FakeGroup("/usergroup/librarians")]))
+        token = visitor.set(me := Visitor(user_key="/people/test"))
+        try:
+            models.User(MockSite(), "/people/someone-else", data={}).is_librarian_or_higher()
+            assert me.is_librarian is False
+            models.User(MockSite(), "/people/test", data={}).is_librarian_or_higher()
+            assert me.is_librarian is True
+        finally:
+            visitor.reset(token)
 
     def test_is_super_librarian_or_higher(self, monkeypatch):
         user = models.User(MockSite(), "/people/test", data={})
