@@ -26,3 +26,5 @@ if [ -z "${PIP_INDEX_URL:-}" ] && [ -f /olsystem/bin/build_env.sh ]; then
 fi
 
 python -c "import pydantic_settings" 2>/dev/null || python -m pip install -q --user --index-url "${PIP_INDEX_URL:-https://pypi.org/simple/}" 'pydantic-settings==2.9.1'
+python -c "import icu" 2>/dev/null || python -m pip install -q --user --index-url "${PIP_INDEX_URL:-https://pypi.org/simple/}" 'icukit-pyicu==78.3.1'
+python -c "import psycopg, psycopg_pool" 2>/dev/null || python -m pip install -q --user --index-url "${PIP_INDEX_URL:-https://pypi.org/simple/}" 'psycopg[binary,pool]==3.3.5'

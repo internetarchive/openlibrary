@@ -41,30 +41,19 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Self, cast
 
 import web
+from psycopg import AsyncCursor
+from psycopg.rows import class_row, dict_row, tuple_row  # noqa: F401 class_row is re-exported for model modules
+from psycopg_pool import AsyncConnectionPool
 
 from openlibrary.utils import server_timing
 
 logger = logging.getLogger("openlibrary.async_db")
 
-# Lets modules import without psycopg installed. A configured app fails in
-# _open_pool() at startup instead of on its first request.
-try:
-    from psycopg import AsyncCursor
-    from psycopg.rows import class_row, dict_row, tuple_row
-    from psycopg_pool import AsyncConnectionPool
-except ModuleNotFoundError:
-    AsyncCursor = None  # type: ignore[assignment,misc]
-    class_row = None  # type: ignore[assignment]
-    dict_row = None  # type: ignore[assignment]
-    tuple_row = None  # type: ignore[assignment]
-    AsyncConnectionPool = None  # type: ignore
-
 if TYPE_CHECKING:
     from psycopg import AsyncConnection
     from psycopg.rows import BaseRowFactory
-    from psycopg_pool import AsyncConnectionPool as _PoolClass
 
-    Pool = _PoolClass[AsyncConnection[dict[str, Any]]]
+    Pool = AsyncConnectionPool[AsyncConnection[dict[str, Any]]]
 
 
 @dataclass
@@ -92,25 +81,23 @@ def _timed_query() -> AbstractContextManager[object]:
     return nullcontext() if _checking_out.get() else server_timing.timed("db")
 
 
-if AsyncCursor is not None:  # see the import guard above
+class TimedCursor(AsyncCursor[Any]):
+    """Times each query as ``db`` for Server-Timing, however it's run: the
+    helpers below, ``conn.execute()``, or ``conn.cursor().execute()``.
 
-    class TimedCursor(AsyncCursor[Any]):
-        """Times each query as ``db`` for Server-Timing, however it's run: the
-        helpers below, ``conn.execute()``, or ``conn.cursor().execute()``.
+    A plain cursor receives all its rows during ``execute()``, so the timing
+    includes them. Named (server-side) cursors, ``stream()`` and ``copy()``
+    aren't timed; nothing here uses them.
+    """
 
-        A plain cursor receives all its rows during ``execute()``, so the timing
-        includes them. Named (server-side) cursors, ``stream()`` and ``copy()``
-        aren't timed; nothing here uses them.
-        """
+    # Forwarded as-is: callers are typed against psycopg's own signatures, never this class.
+    async def execute(self, *args: Any, **kwargs: Any) -> Self:
+        with _timed_query():
+            return await super().execute(*args, **kwargs)
 
-        # Forwarded as-is: callers are typed against psycopg's own signatures, never this class.
-        async def execute(self, *args: Any, **kwargs: Any) -> Self:
-            with _timed_query():
-                return await super().execute(*args, **kwargs)
-
-        async def executemany(self, *args: Any, **kwargs: Any) -> None:
-            with _timed_query():
-                await super().executemany(*args, **kwargs)
+    async def executemany(self, *args: Any, **kwargs: Any) -> None:
+        with _timed_query():
+            await super().executemany(*args, **kwargs)
 
 
 def _connection_kwargs(db_parameters: dict) -> dict:
@@ -130,16 +117,13 @@ def _connection_kwargs(db_parameters: dict) -> dict:
 async def _open_pool() -> Pool | None:
     """Create and open a pool for the running loop.
 
-    Returns None if no database is configured. Raises if psycopg is missing
-    while database access is configured. Closes the pool on failure or
+    Returns None if no database is configured. Closes the pool on failure or
     cancellation before re-raising.
     """
     db_parameters = getattr(web.config, "db_parameters", None) or {}
     if not db_parameters.get("db"):
         logger.info("db_parameters not configured; skipping async pool creation")
         return None
-    if AsyncConnectionPool is None or dict_row is None:
-        raise RuntimeError("psycopg[binary,pool] is required when async database access is configured")
 
     pool = cast(
         "Pool",

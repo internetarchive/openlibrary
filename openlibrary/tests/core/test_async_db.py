@@ -164,14 +164,6 @@ async def test_no_db_config_skips_pool_and_connection_raises():
 
 
 @pytest.mark.asyncio
-async def test_init_pool_fails_when_psycopg_not_installed():
-    web.config.db_parameters = DB_PARAMETERS
-    with patch("openlibrary.core.async_db.AsyncConnectionPool", None), pytest.raises(RuntimeError, match=r"psycopg\[binary,pool\] is required"):
-        await async_db.init_pool()
-    assert _current_pool() is None
-
-
-@pytest.mark.asyncio
 async def test_init_pool_creates_and_reuses_the_pool():
     web.config.db_parameters = DB_PARAMETERS
     factory = RecordingPoolFactory()
