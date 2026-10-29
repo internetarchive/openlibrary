@@ -646,7 +646,8 @@ class SaveBookHelper:
             classifications = edition_data.pop("classifications", [])
             self.edition.set_classifications(classifications)
 
-            self.edition.set_physical_dimensions(edition_data.pop("physical_dimensions", None))
+            if "physical_dimensions" in edition_data:
+                self.edition.set_physical_dimensions(edition_data.pop("physical_dimensions"))
             self.edition.set_weight(edition_data.pop("weight", None))
             try:
                 self.edition.set_toc_text(edition_data.pop("table_of_contents", None))
@@ -702,10 +703,12 @@ class SaveBookHelper:
 
         edition = trim_doc(edition)
 
-        if list(edition.get("physical_dimensions", [])) == ["units"]:
+        physical_dimensions = edition.get("physical_dimensions", [])
+        if physical_dimensions is None or list(physical_dimensions) == ["units"]:
             edition.physical_dimensions = None
 
-        if list(edition.get("weight", [])) == ["units"]:
+        weight = edition.get("weight", [])
+        if weight is None or list(weight) == ["units"]:
             edition.weight = None
 
         for k in ["roles", "identifiers", "classifications"]:
