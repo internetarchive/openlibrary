@@ -11,7 +11,7 @@ from openlibrary.core.models import User
 from openlibrary.mocks.mock_infobase import MockSite
 from openlibrary.utils.request_context import site
 
-from .. import addbook
+from .. import addbook, models
 
 
 @pytest.fixture(autouse=True)
@@ -19,6 +19,7 @@ def initialized_site(monkeypatch):
     current = MockSite()
     monkeypatch.setattr(web.ctx, "site", current, raising=False)
     token = site.set(current)
+    models.setup()
     yield
     site.reset(token)
 
@@ -254,6 +255,59 @@ class TestSaveBookHelper:
 
         assert site.get().get("/works/OL1W").title == "Original Work Title"
         assert site.get().get("/books/OL1M").title == "Modified Edition Title"
+
+    def test_process_edition_treats_empty_weight_and_dimensions_as_cleared(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+
+        s = addbook.SaveBookHelper(None, None)
+        edition = s.process_edition(web.storage({"weight": None, "physical_dimensions": None}))
+
+        assert edition.weight is None
+        assert edition.physical_dimensions is None
+
+    def test_clearing_weight_and_dimensions_without_units(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+
+        site.get().save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL1W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL1W"}],
+                    "weight": "0.000",
+                    "physical_dimensions": "9 x 6 x 1 inches",
+                },
+            ]
+        )
+
+        work = site.get().get("/works/OL1W")
+        edition = site.get().get("/books/OL1M")
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Original Work Title",
+                "edition--title": "Modified Edition Title",
+                "edition--works--0--key": "/works/OL1W",
+                "edition--weight--value": "",
+                "edition--physical_dimensions--height": "",
+                "edition--physical_dimensions--width": "",
+                "edition--physical_dimensions--depth": "",
+            }
+        )
+
+        s = addbook.SaveBookHelper(work, edition)
+        s.save(formdata)
+
+        saved_edition = site.get().get("/books/OL1M")
+        assert saved_edition.title == "Modified Edition Title"
+        assert saved_edition.weight is None
+        assert saved_edition.physical_dimensions is None
 
     def test_editing_work_and_edition(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
