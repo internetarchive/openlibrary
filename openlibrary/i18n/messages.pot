@@ -1340,18 +1340,6 @@ msgstr ""
 msgid "<a href=\"/search\">Search for a book</a> to borrow."
 msgstr ""
 
-#: account/loans.html
-msgid "Looking for a book to borrow? Check out our staff picks:"
-msgstr ""
-
-#: account/loans.html
-msgid "Books We Love"
-msgstr ""
-
-#: account/loans.html
-msgid "Or, check out our <a href=\"/collections\">special collections</a>."
-msgstr ""
-
 #: account/mybooks.html
 msgid "No books are on this shelf"
 msgstr ""
