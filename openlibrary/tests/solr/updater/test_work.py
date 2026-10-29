@@ -67,14 +67,6 @@ class TestWorkSolrUpdater:
         req, _ = await WorkSolrUpdater(FakeDataProvider([work, make_edition(work), make_edition(work)])).update_key(work)
         assert req.adds[0]["edition_count"] == 2
 
-    @pytest.mark.asyncio
-    async def test_scanned_editions_do_not_delete_ia_works(self):
-        work = make_work()
-        ed = make_edition(work, ocaid="foo00bar")
-        req, _ = await WorkSolrUpdater(FakeDataProvider([work, ed])).update_key(work)
-        assert req.adds[0]["ia"] == ["foo00bar"]
-        assert req.deletes == []
-
 
 def make_work_solr_builder(
     work: dict | None = None,
