@@ -46,7 +46,7 @@ The module docstring documents the details. The parts that trip agents up:
 
 - Placeholders are psycopg3's `%(name)s`, not web.py's `$name`.
 - One pool per event loop. FastAPI's loop gets its pool from the app lifespan (`init_pool()` / `close_pool()` in `openlibrary/asgi_app.py`); anything else (the bridge loop, a pytest loop) gets one lazily on first use. This is why `AsyncConnectionPool` can't be a module-level singleton.
-- Rows map through psycopg row factories. `class_row(Model)` gives typed rows; import it from `async_db`, which guards the psycopg import. Migrated models keep a small dataclass or TypedDict next to them for the row type (`YearlyReadingGoal` in `yearly_reading_goals.py`).
+- Rows map through psycopg row factories. `class_row(Model)` gives typed rows; import it from `async_db`. Migrated models keep a small dataclass or TypedDict next to them for the row type (`YearlyReadingGoal` in `yearly_reading_goals.py`).
 - Missing psycopg with a configured database fails at pool startup, not on the first request.
 
 ## Calling async code from sync web.py code: the bridge
