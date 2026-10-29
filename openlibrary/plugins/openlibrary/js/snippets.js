@@ -134,10 +134,25 @@ function cardHtml(item, index, alt) {
     const idAttr = ` data-snippet-id="${escapeAttr(item.id)}"`;
     return (
         `<li class="snippets-grid__item snippet-card" data-index="${index}"${idAttr}>` +
-        `<a class="snippet-card__image-link" href="${escapeAttr(detailsUrl)}" target="_blank" rel="noopener noreferrer">` +
+        `<a class="snippet-card__image-link" href="${escapeAttr(publicDetailsUrl(detailsUrl))}" target="_blank" rel="noopener noreferrer">` +
         `<img class="snippet-card__img" src="${escapeAttr(imageUrl)}" alt="${escapeAttr(alt)}" loading="lazy">` +
         `</a></li>`
     );
+}
+
+/** www-<name>.archive.org hosts are developers' environments; readers go to archive.org. */
+const DEV_ARCHIVE_HOST_RE = /^www-[^.]+\.archive\.org$/i;
+
+/** A snippet's details URL, on archive.org itself rather than a www-* host. */
+function publicDetailsUrl(detailsUrl) {
+    let url;
+    try {
+        url = new URL(detailsUrl);
+    } catch {
+        return detailsUrl;
+    }
+    if (DEV_ARCHIVE_HOST_RE.test(url.hostname)) url.hostname = 'archive.org';
+    return url.href;
 }
 
 /**

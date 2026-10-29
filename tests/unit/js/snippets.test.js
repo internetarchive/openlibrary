@@ -271,7 +271,17 @@ test('the image is served by the snippet image endpoint, keyed by annotation id'
 
     const [card] = cards();
     expect(card.querySelector('.snippet-card__img').getAttribute('src')).toBe('/cdn/snippets/42');
-    expect(card.querySelector('.snippet-card__image-link').getAttribute('href')).toBe(`${HOST}/details/macklife0000mack/page/3`);
+    // HOST is a www-* developer host; readers are sent to archive.org itself.
+    expect(card.querySelector('.snippet-card__image-link').getAttribute('href')).toBe('https://archive.org/details/macklife0000mack/page/3');
+});
+
+test('the details link keeps hosts other than www-* developer hosts', async () => {
+    const annotation = 'https://archive.org/details/macklife0000mack/page/3?text=a+b';
+    stubFetch([{ id: 42, annotation, uri: null }], []);
+
+    await initSnippets(container());
+
+    expect(cards()[0].querySelector('.snippet-card__image-link').getAttribute('href')).toBe(annotation);
 });
 
 test('a snippet without an id renders no card', async () => {
