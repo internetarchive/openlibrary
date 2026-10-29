@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 
 from infogami.infobase.client import ClientException
@@ -27,29 +28,33 @@ router = APIRouter(tags=["merge-authors"])
 class MergeAuthorsBody(BaseModel):
     master: str
     duplicates: list[str]
-    mrid: str | None = None
+    mrid: int | None = None
     comment: str | None = None
     olids: str = ""
 
 
-@router.post("/authors/merge.json")
-def merge_authors_json(_: LibrarianDep, client_ip: ClientIpDep, data: MergeAuthorsBody) -> Any:
+def _merge(master: str, duplicates: list[str], client_ip: str) -> Any:
     with web_ctx_ip(client_ip):
-        try:
-            engine = AuthorMergeEngine(AuthorRedirectEngine())
-            merge_result = engine.merge(data.master, data.duplicates)
-        except ClientException as e:
-            raise HTTPException(
-                status_code=400,
-                detail=e.get_data() or str(e),
-            )
+        return AuthorMergeEngine(AuthorRedirectEngine()).merge(master, duplicates)
 
-        try:
-            perform_merge_update(mrid=data.mrid, olids=data.olids, comment=data.comment)
-        except MaxRetriesExceeded as e:
-            raise HTTPException(
-                status_code=400,
-                detail=str(e.last_exception),
-            )
+
+@router.post("/authors/merge.json")
+async def merge_authors_json(_: LibrarianDep, client_ip: ClientIpDep, data: MergeAuthorsBody) -> Any:
+    try:
+        # The Infobase merge is sync I/O, so keep it off the event loop.
+        merge_result = await run_in_threadpool(_merge, data.master, data.duplicates, client_ip)
+    except ClientException as e:
+        raise HTTPException(
+            status_code=400,
+            detail=e.get_data() or str(e),
+        )
+
+    try:
+        await perform_merge_update(mrid=data.mrid, olids=data.olids, comment=data.comment)
+    except MaxRetriesExceeded as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e.last_exception),
+        )
 
     return merge_result
