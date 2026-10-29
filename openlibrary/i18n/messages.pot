@@ -927,11 +927,11 @@ msgstr ""
 msgid "Add a new book"
 msgstr ""
 
-#: SearchNavigation.html authors/index.html.jinja merge/authors.html openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/authors.py publishers/view.html shell/footer.html.jinja work_search.html
+#: SearchNavigation.html.jinja authors/index.html.jinja merge/authors.html openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/authors.py publishers/view.html shell/footer.html.jinja work_search.html
 msgid "Authors"
 msgstr ""
 
-#: SearchNavigation.html books/mybooks_breadcrumb_select.html openlibrary/core/shell/search_modal.py openlibrary/plugins/upstream/mybooks.py shell/footer.html.jinja work_search.html
+#: SearchNavigation.html.jinja books/mybooks_breadcrumb_select.html openlibrary/core/shell/search_modal.py openlibrary/plugins/upstream/mybooks.py shell/footer.html.jinja work_search.html
 msgid "Books"
 msgstr ""
 
@@ -1708,7 +1708,7 @@ msgstr ""
 msgid "My lists"
 msgstr ""
 
-#: EditionNavBar.html SearchNavigation.html account/sidebar.html lists/home.html openlibrary/core/shell/nav.py recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
+#: EditionNavBar.html SearchNavigation.html.jinja account/sidebar.html lists/home.html openlibrary/core/shell/nav.py recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
 msgid "Lists"
 msgstr ""
 
@@ -2719,7 +2719,7 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
-#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/searchbox.html shell/header.html.jinja type/local_id/view.html
+#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html.jinja search/publishers.html search/searchbox.html shell/header.html.jinja type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -3024,7 +3024,7 @@ msgstr ""
 msgid "We require a minimum set of fields to create a new record. These are those fields."
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html search/advancedsearch.html search/sort_options.html type/about/edit.html type/page/edit.html type/template/edit.html
+#: books/add.html books/edit.html books/edit/edition.html search/advancedsearch.html.jinja search/sort_options.html type/about/edit.html type/page/edit.html type/template/edit.html
 msgid "Title"
 msgstr ""
 
@@ -3036,7 +3036,7 @@ msgstr ""
 msgid "Required field"
 msgstr ""
 
-#: SearchAuthorSuggestion.html TestingEnvironment.html.jinja books/add.html books/edit.html books/edit/edition.html openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py search/advancedsearch.html
+#: SearchAuthorSuggestion.html TestingEnvironment.html.jinja books/add.html books/edit.html books/edit/edition.html openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py search/advancedsearch.html.jinja
 msgid "Author"
 msgstr ""
 
@@ -4050,7 +4050,7 @@ msgstr ""
 msgid "Back to Open Library"
 msgstr ""
 
-#: bulk_search/bulk_search.html search/advancedsearch.html
+#: bulk_search/bulk_search.html search/advancedsearch.html.jinja
 msgid "Bulk Search (beta)"
 msgstr ""
 
@@ -5185,7 +5185,7 @@ msgstr ""
 msgid "Publisher: %(name)s"
 msgstr ""
 
-#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html type/edition/view.html type/work/view.html
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html.jinja type/edition/view.html type/work/view.html
 msgid "Publisher"
 msgstr ""
 
@@ -5416,35 +5416,35 @@ msgstr ""
 msgid "%(count)d records modified."
 msgstr ""
 
-#: SearchNavigation.html openlibrary/core/shell/nav.py search/advancedsearch.html shell/footer.html.jinja
-msgid "Advanced Search"
-msgstr ""
-
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "All fields"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/contribute.py search/advancedsearch.html
+#: openlibrary/plugins/openlibrary/contribute.py search/advancedsearch.html.jinja
 msgid "ISBN"
 msgstr ""
 
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "Subject"
 msgstr ""
 
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "Place"
 msgstr ""
 
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "Person"
 msgstr ""
 
-#: search/advancedsearch.html
+#: SearchNavigation.html.jinja openlibrary/core/shell/nav.py openlibrary/fastapi/search.py openlibrary/plugins/worksearch/code.py search/advancedsearch.html.jinja shell/footer.html.jinja
+msgid "Advanced Search"
+msgstr ""
+
+#: search/advancedsearch.html.jinja
 msgid "How to search?"
 msgstr ""
 
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "Full Text Search?"
 msgstr ""
 
@@ -5474,7 +5474,7 @@ msgstr ""
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: SearchNavigation.html openlibrary/core/shell/search_modal.py search/inside.html
+#: SearchNavigation.html.jinja openlibrary/core/shell/search_modal.py search/inside.html
 msgid "Search Inside"
 msgstr ""
 
@@ -5787,7 +5787,7 @@ msgstr ""
 msgid "Explore subjects"
 msgstr ""
 
-#: RelatedSubjects.html.jinja SearchNavigation.html SubjectTags.html openlibrary/core/shell/nav.py openlibrary/plugins/worksearch/code.py shell/footer.html.jinja subjects/notfound.html type/author/view.html type/list/view_body.html
+#: RelatedSubjects.html.jinja SearchNavigation.html.jinja SubjectTags.html openlibrary/core/shell/nav.py openlibrary/plugins/worksearch/code.py shell/footer.html.jinja subjects/notfound.html type/author/view.html type/list/view_body.html
 msgid "Subjects"
 msgstr ""
 
