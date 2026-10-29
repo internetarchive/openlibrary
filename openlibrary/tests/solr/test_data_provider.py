@@ -70,7 +70,7 @@ class TestDatabaseDataProvider:
                     "type": {"key": "/type/work"},
                     "genres": [{"key": "/tags/OL177T"}],
                     "subgenres": [{"key": "/tags/OL272T"}],
-                    "audience": ["/tags/OL301T"],
+                    "audiences": ["/tags/OL301T"],
                 },
             ),
             "/tags/OL177T": Thing(
@@ -110,4 +110,5 @@ class TestDatabaseDataProvider:
 
         assert dp.cache["/tags/OL177T"]["name"] == "Romance"
         assert dp.cache["/tags/OL272T"]["name"] == "Cyberpunk"
+        assert dp.cache["/tags/OL301T"]["name"] == "Adult"
         assert dp.cache["/tags/OL301T"]["name"] == "Adult"

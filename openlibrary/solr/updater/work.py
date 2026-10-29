@@ -18,7 +18,7 @@ from openlibrary.core.models import (
     WorkSeriesEdge,
 )
 from openlibrary.plugins.upstream.utils import safeget
-from openlibrary.solr.data_provider import SUPPORTED_TAG_TYPES, normalize_tag
+from openlibrary.solr.data_provider import SUPPORTED_WORK_TAG_FIELDS, normalize_tag
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrBuilder, sort_title
@@ -102,8 +102,8 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     logger.warning("Unexpected author type error: %s", work["key"])
                 authors = [a for a in authors if a["type"]["key"] == "/type/author"]
 
-                # Fetch tags (genres, subgenres, audience)
-                tag_keys = [normalize_tag(t)["key"] for field in SUPPORTED_TAG_TYPES for t in work.get(field, [])]
+                # Fetch tags (genres, subgenres, audiences)
+                tag_keys = [normalize_tag(t)["key"] for field in SUPPORTED_WORK_TAG_FIELDS for t in work.get(field, [])]
                 tags = [await self.data_provider.get_document(key) for key in tag_keys]
                 tags = [t for t in tags if t["type"]["key"] == "/type/tag"]
 

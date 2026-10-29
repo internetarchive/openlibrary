@@ -529,7 +529,7 @@ class TestWorkSolrUpdaterTags:
         work = make_work()
         work["genres"] = [{"key": "/tags/OL177T"}]
         work["subgenres"] = [{"key": "/tags/OL272T"}]
-        work["audience"] = ["/tags/OL301T"]
+        work["audiences"] = ["/tags/OL301T"]
         req, _ = await WorkSolrUpdater(FakeDataProvider([work, *tags])).update_key(work)
         assert len(req.adds) == 1
         doc = req.adds[0]

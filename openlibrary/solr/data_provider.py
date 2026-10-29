@@ -35,7 +35,7 @@ logger = logging.getLogger("openlibrary.solr.data_provider")
 
 IA_METADATA_FIELDS = ("identifier", "boxid", "collection", "access-restricted-item")
 OCAID_PATTERN = re.compile(r"^[^\s&#?/]+$")
-SUPPORTED_TAG_TYPES = ("genres", "subgenres", "audience")
+SUPPORTED_WORK_TAG_FIELDS = ("genres", "subgenres", "audiences")
 
 
 def normalize_tag(tag: str | ThingReferenceDict) -> ThingReferenceDict:
@@ -444,7 +444,7 @@ class DatabaseDataProvider(DataProvider):
         keys = []
         for doc in self.cache.values():
             if doc and doc["type"]["key"] == "/type/work":
-                for field in SUPPORTED_TAG_TYPES:
+                for field in SUPPORTED_WORK_TAG_FIELDS:
                     keys.extend(normalize_tag(t)["key"] for t in doc.get(field, []))
         self.preload_documents0(list(set(keys)))
 
