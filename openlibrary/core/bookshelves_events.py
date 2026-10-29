@@ -105,7 +105,7 @@ class BookshelvesEvents(db.CommonExtras):
             """
                 SELECT
                     substring(event_date from 1 for 4) as year,
-                    count(*) as count
+                    count(DISTINCT work_id) as count
                 FROM bookshelves_events
                 WHERE username=$username AND event_type=$event_type
                 GROUP BY year
@@ -190,6 +190,7 @@ class BookshelvesEvents(db.CommonExtras):
             event_date=event_date,
         )
 
+    @classmethod
     def update_event_data(cls, pid, data):
         oldb = db.get_db()
 
