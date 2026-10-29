@@ -31,9 +31,7 @@
 @import "components/language.css";
 @import "components/searchbox.css";
 
-/* A subject's row has no heading over it (the tag body or the template puts
-   it straight under the search box), so the band holds its cards at the same
-   distance above and below as between them. Page-scoped by this stylesheet. */
+/* No heading over the row here, so pad it evenly on all sides. */
 .carousel-container-decorated {
   --spacing-carousel-band: var(--spacing-carousel-gap);
 }

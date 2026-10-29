@@ -52,7 +52,7 @@
   --spacing-inline-lg: var(--spacing-md);    /* 12px – between cards (e.g. carousel book covers) */
   --spacing-inline-xl: var(--spacing-lg);    /* 16px – between content groups (e.g. nav sections) */
   --spacing-carousel-gap: var(--spacing-xl); /* 20px – between carousel cards, and before the first; mirrors gap="20" in books/custom_carousel.html.jinja */
-  --spacing-carousel-band: var(--spacing-md); /* 12px – above and below the cards in a banded row; a row with a heading over it sits closer to it than its cards sit to each other */
+  --spacing-carousel-band: var(--spacing-md); /* 12px – above and below the cards in a banded row */
 
   /* One gap between an icon and the label it sits beside, so a button, a
      menu row and a split button all read as the same control family. */

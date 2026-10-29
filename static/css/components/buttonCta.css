@@ -347,9 +347,7 @@ form.return-form > ol-button {
   text-align: center;
 }
 
-/* Block, not flex, so the label can ellipsize; the fixed height levels the
-   padded variants. Small, to match the card's ol-button (LoanStatus passes
-   cta_size='small'): the cover is the card, the button is its caption. */
+/* Block, not flex, so the label can ellipsize. Sized to match LoanStatus's cta_size='small'. */
 /* stylelint-disable-next-line no-descending-specificity */
 .carousel--native .ol-macro-wrapper .cta-btn {
   display: block;
@@ -361,8 +359,7 @@ form.return-form > ol-button {
   line-height: calc(var(--control-height-small) - 2px);
 }
 
-/* In block flow vertical-align: middle sits the glyph below the label's center;
-   centre it on the line box instead. */
+/* vertical-align: middle sits the icon low in block flow; centre it by hand. */
 .carousel--native :where(.ol-macro-wrapper) .cta-btn .ol-icon {
   vertical-align: top;
   margin-block-start: calc(

@@ -11,16 +11,9 @@ export const DEFAULT_LABELS = {
  * title/author panel when there isn't, and a corner for whatever the surface
  * wants to float over it.
  *
- * The slot is always 2:3, so a row of covers keeps one rhythm, but the artwork
- * inside it keeps its own proportions — as wide as the slot and as tall as the
- * book, standing on the slot's bottom edge, so a squat picture book and a tall
- * hardback read as different objects on one shelf. A cover taller than 2:3
- * shrinks to fit the slot's height instead. Until the image reports its size
- * the frame is 2:3, so a lazy cover lands where its placeholder was.
- *
- * Each cover carries a soft drop shadow and a faint spine shading along its
- * left edge, so it reads as a printed object lying on the page rather than a
- * tile. Both go on the frame, not the host — leave room for the shadow.
+ * The artwork keeps its own proportions, standing on the slot's bottom edge;
+ * it's 2:3 until the image loads. The shadow spills past the host, so leave
+ * room for it.
  *
  * Knows nothing about shelves, availability or search — give it a URL and a
  * title. `overlay` is the slot the save button goes in; the component owns the
@@ -70,9 +63,7 @@ export class OlBookCover extends LitElement {
             font-family: var(--font-family-body);
         }
 
-        /* The frame stands on the slot's bottom edge, centred; the corner box
-           sits in the same grid cell at the same size, so a slotted control
-           tracks the artwork rather than the slot. */
+        /* .corner shares the frame's grid cell so the overlay tracks the artwork, not the slot. */
         ol-tooltip {
             --_ratio: 0.6667;
             display: grid;
@@ -81,9 +72,7 @@ export class OlBookCover extends LitElement {
             height: 100%;
         }
 
-        /* Width/height of the artwork. 2:3 until the image reports its own.
-           A tall cover is capped at the slot's height: the slot is 150% as
-           tall as it is wide, so width = 150% × ratio hits that cap exactly. */
+        /* The slot is 150% as tall as wide, so 150% × ratio caps a tall cover at the slot's height. */
         .frame,
         .corner {
             grid-area: 1 / 1;
@@ -101,8 +90,7 @@ export class OlBookCover extends LitElement {
             box-shadow: var(--box-shadow-cover);
         }
 
-        /* Spine shading: a strip down the binding edge, darkest at the gutter,
-           with a highlight where the board curves over. Fades toward the foot. */
+        /* Spine shading */
         .frame--art::after {
             content: '';
             position: absolute;

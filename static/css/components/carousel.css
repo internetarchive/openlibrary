@@ -248,11 +248,7 @@
   border-top: 1px solid var(--book-cover-carousel-border-top);
 }
 
-/* The band holds its cards at the same distance it holds them apart along the
-   row (the inset before the first card is the gap) and a little closer above
-   and below, where a heading usually sits. The row's own viewport padding
-   (ring room) is inside that figure. A page can set --spacing-carousel-band on
-   the band to change the vertical figure (page-subject.css). */
+/* Subtracts the row's own viewport padding (focus-ring room) so the band reads as --spacing-carousel-band. */
 .carousel-container-decorated:has(> .carousel--native) {
   --ol-carousel-inset: var(--spacing-carousel-gap);
   padding: calc(var(--spacing-carousel-band) - var(--spacing-inset-xs)) 0;
