@@ -370,9 +370,10 @@ class mybooks_readinglog(delegate.page):
         if i.mode == "ebooks":
             fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
 
-        sort_order = i.sort
-        if sort_order == "rating" and not mb.is_my_page:
-            sort_order = "desc"
+        unavailable_sorts = [] if mb.is_my_page else ["rating"]
+        if mb.counts.get(mb.key, 0) > Bookshelves.MAX_SOLR_ORDERED_SHELF_SIZE:
+            unavailable_sorts += list(Bookshelves.SOLR_SORT_FIELDS)
+        sort_order = "desc" if i.sort in unavailable_sorts else i.sort
 
         logged_book_data: LoggedBooksData = mb.readlog.get_works(
             key=mb.key,  # type: ignore
@@ -383,7 +384,9 @@ class mybooks_readinglog(delegate.page):
             year=year,
             fq=fq,
         )
-        if logged_book_data.sort != READING_LOG_SORTS.get(sort_order):
+        if logged_book_data.sort is None:
+            sort_order = None
+        elif logged_book_data.sort != READING_LOG_SORTS.get(sort_order):
             sort_order = "desc"
         docs = add_availability(logged_book_data.docs, mode="openlibrary_work")
         doc_count = logged_book_data.total_results
@@ -406,6 +409,7 @@ class mybooks_readinglog(delegate.page):
             mb.is_my_page,
             i.page,
             sort_order=sort_order,
+            unavailable_sorts=unavailable_sorts,
             user=mb.user,
             include_ratings=include_ratings,
             q=i.q,

@@ -1,3 +1,5 @@
+import hashlib
+import json
 import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -9,11 +11,12 @@ import web
 
 from infogami.infobase.utils import flatten
 from openlibrary.core.async_db import connection, fetch_all, fetch_val
+from openlibrary.core.cache import singleflight_cache
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.async_utils import async_bridge
-from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO, MINUTE_SECS
 from openlibrary.utils.request_context import site
 
 from . import db
@@ -21,6 +24,17 @@ from . import db
 logger = logging.getLogger(__name__)
 
 ReadingLogSort = Literal["created asc", "created desc", "title", "old", "rating", "want_to_read"]
+
+RATING_SORTED_SHELF_QUERY = (
+    "SELECT b.work_id, b.created, b.edition_id FROM bookshelves_books b "
+    "LEFT JOIN ratings r ON r.username = b.username AND r.work_id = b.work_id "
+    "WHERE b.bookshelf_id = %(bookshelf_id)s AND b.username = %(username)s "
+    "ORDER BY r.rating DESC NULLS LAST, b.created DESC, b.work_id DESC"
+)
+
+
+class ShelfOrderError(Exception):
+    """Solr couldn't sort or filter a reading log shelf."""
 
 
 class WorkReadingLogSummary(TypedDict):
@@ -39,6 +53,9 @@ class Bookshelves(db.CommonExtras):
     PRESET_BOOKSHELVES_JSON: MappingProxyType[str, int] = MappingProxyType({"want_to_read": 1, "currently_reading": 2, "already_read": 3, "stopped_reading": 4})
 
     SOLR_SORT_FIELDS: MappingProxyType[str, str | None] = MappingProxyType({"title": None, "old": "first_publish_year", "want_to_read": "want_to_read_count"})
+
+    MAX_SOLR_ORDERED_SHELF_SIZE = 5000
+    SHELF_ORDER_TTL = 10 * MINUTE_SECS
 
     @classmethod
     def summary(cls):
@@ -342,57 +359,70 @@ class Bookshelves(db.CommonExtras):
                 )
 
     @classmethod
-    async def get_shelf_page_sorted_by_solr(cls, reading_log_books: list[dict], sort: ReadingLogSort, offset: int, limit: int) -> list[dict] | None:
+    async def get_shelf_order(cls, username: str, bookshelf_id: int, sort: ReadingLogSort, fq: list[str], shelf_count: int) -> list[int] | None:
         """
-        Get one page of a shelf sorted by a Solr field. Books without a value for
-        that field, or not in Solr, go after the rest, newest added first.
+        Get the work IDs of every book on a shelf in `sort` order, keeping only the
+        books that match the Solr filters `fq`. Sorting by a Solr field puts books
+        without a value for that field, or not in Solr, last, newest added first.
+
+        The order is cached for a few minutes and each page of the shelf is a slice
+        of it, so the shelf goes to Solr once rather than on every page, and pages
+        don't repeat or skip books. Adding or removing a book changes `shelf_count`,
+        which is part of the cache key, so the order is rebuilt.
         Returns None if Solr fails.
         """
         from openlibrary.plugins.worksearch.code import run_solr_query_async
 
-        books_by_key = {f"/works/OL{book['work_id']}W": book for book in reading_log_books}
-        if not books_by_key:
-            return []
-
-        filter_queries = [("fq", "{!terms f=key}" + ",".join(books_by_key))]
-        if field := cls.SOLR_SORT_FIELDS[sort]:
-            filter_queries.append(("fq", f"{field}:[* TO *]"))
-
-        async def get_solr_keys(**kwargs) -> tuple[list[str], int] | None:
+        async def get_solr_keys(work_keys: list[str], filters: list[str], solr_sort: str | None = None) -> list[str]:
+            """Get the keys of the works in `work_keys` that match `filters`, in `solr_sort` order."""
+            if not work_keys:
+                return []
             solr_resp = await run_solr_query_async(
                 scheme=WorkSearchScheme(),
                 param={"q": "*:*"},
+                rows=len(work_keys),
+                sort=solr_sort,
                 fields=["key"],
                 facet=False,
                 spellcheck_count=0,
-                extra_params=filter_queries,
+                extra_params=[("fq", "{!terms f=key}" + ",".join(work_keys)), *(("fq", f) for f in filters)],
                 request_label="READING_LOG_SORT",
-                **kwargs,
             )
             if solr_resp.error or solr_resp.num_found is None:
-                logger.error(f"Reading log sort {sort!r} failed, falling back to date added: {solr_resp.error or 'no response from Solr'}")
-                return None
+                raise ShelfOrderError(solr_resp.error or "no response from Solr")
             # A timeAllowed cutoff returns a normal-looking response with only some docs.
             if solr_resp.raw_resp.get("responseHeader", {}).get("partialResults"):
-                logger.error(f"Reading log sort {sort!r} got partial results from Solr, falling back to date added")
-                return None
-            return [doc["key"] for doc in solr_resp.docs], solr_resp.num_found
+                raise ShelfOrderError("partial results from Solr")
+            return [doc["key"] for doc in solr_resp.docs]
 
-        if (sorted_page := await get_solr_keys(rows=limit, offset=offset, sort=f"{sort},key")) is None:
+        async def build_order() -> list[int]:
+            if sort == "rating":
+                query = RATING_SORTED_SHELF_QUERY
+            else:
+                direction = "ASC" if sort == "created asc" else "DESC"
+                query = (
+                    "SELECT work_id FROM bookshelves_books WHERE bookshelf_id = %(bookshelf_id)s AND username = %(username)s "
+                    f"ORDER BY created {direction}, work_id {direction}"
+                )
+            rows = await fetch_all(query, {"username": username, "bookshelf_id": bookshelf_id})
+            work_ids = {f"/works/OL{row['work_id']}W": row["work_id"] for row in rows}
+            work_keys = list(work_ids)
+            if fq:
+                matching = set(await get_solr_keys(work_keys, fq))
+                work_keys = [key for key in work_keys if key in matching]
+            if sort in cls.SOLR_SORT_FIELDS:
+                field = cls.SOLR_SORT_FIELDS[sort]
+                sorted_keys = await get_solr_keys(work_keys, [f"{field}:[* TO *]"] if field else [], f"{sort},key")
+                in_sorted = set(sorted_keys)
+                work_keys = sorted_keys + [key for key in work_keys if key not in in_sorted]
+            return [work_ids[key] for key in work_keys]
+
+        cache_key = "bookshelves.shelf_order." + hashlib.md5(json.dumps([username, bookshelf_id, sort, fq, shelf_count]).encode()).hexdigest()
+        try:
+            return await singleflight_cache(cache_key, build_order, ttl=cls.SHELF_ORDER_TTL)
+        except ShelfOrderError as e:
+            logger.error(f"Reading log sort {sort!r} with filters {fq} failed: {e}")
             return None
-        page_keys, num_sorted = sorted_page
-        page_books = [books_by_key[key] for key in page_keys]
-        if offset + limit <= num_sorted or num_sorted == len(books_by_key):
-            return page_books
-
-        sorted_keys: set[str] = set()
-        if num_sorted:
-            if (all_sorted := await get_solr_keys(rows=num_sorted)) is None:
-                return None
-            sorted_keys = set(all_sorted[0])
-        unsorted_books = [book for key, book in books_by_key.items() if key not in sorted_keys]
-        unsorted_offset = max(offset - num_sorted, 0)
-        return page_books + unsorted_books[unsorted_offset : unsorted_offset + limit - len(page_books)]
 
     @classmethod
     async def get_users_logged_books(
@@ -409,7 +439,7 @@ class Bookshelves(db.CommonExtras):
         """
         Returns LoggedBooksData containing Reading Log database records for books that
         the user has logged. Also allows filtering/searching the reading log shelves,
-        and sorting reading log shelves (when not filtering).
+        and sorting reading log shelves (when not searching).
 
         The returned records ultimately come from Solr so that, as much as possible,
         these query results may be used by anything relying on logged book data.
@@ -423,11 +453,13 @@ class Bookshelves(db.CommonExtras):
         from openlibrary.plugins.worksearch.code import run_solr_query_async
 
         shelf_totals = await cls.count_total_books_logged_by_user_per_shelf(username)
+        can_order_with_solr = bool(bookshelf_id) and shelf_totals.get(bookshelf_id, 0) <= cls.MAX_SOLR_ORDERED_SHELF_SIZE
         page = int(page or 1)
-        query_params: dict[str, str | int | None] = {
+        offset = limit * (page - 1)
+        query_params: dict[str, str | int | list[int] | None] = {
             "username": username,
             "limit": limit,
-            "offset": limit * (page - 1),
+            "offset": offset,
             "bookshelf_id": bookshelf_id,
             "checkin_year": checkin_year,
         }
@@ -465,12 +497,12 @@ class Bookshelves(db.CommonExtras):
 
         async def get_filtered_reading_log_books(
             q: str,
-            query_params: dict[str, str | int | None],
+            query_params: dict[str, str | int | list[int] | None],
             fq: list[str] | None = None,
         ) -> LoggedBooksData:
             """
             Filter reading log books based an a query and return LoggedBooksData.
-            This does not work with sorting.
+            The results are in Solr's order (by relevance, when searching), not sorted.
 
             The reading log DB alone has access to who logged which book to their
             reading log, so we need to get work IDs and logged info from there, query
@@ -526,19 +558,35 @@ class Bookshelves(db.CommonExtras):
             )
 
         async def get_sorted_reading_log_books(
-            query_params: dict[str, str | int | None],
+            query_params: dict[str, str | int | list[int] | None],
             sort: ReadingLogSort,
             checkin_year: int | None,
+            fq: list[str] | None,
         ):
             """
-            Get a page of sorted books from the reading log. This does not work with
-            filtering/searching the reading log.
+            Get a page of sorted books from the reading log, keeping only the books
+            that match the Solr filters `fq`, if given. This does not work with
+            searching the reading log.
 
             The reading log DB alone has access to who logged which book to their
             reading log, so we need to get work IDs and logged info from there, query
             Solr for more complete book information, and then put the logged info into
             the Solr response.
             """
+            total_results = shelf_totals.get(bookshelf_id, 0)
+            page_ids: list[int] | None = None
+            if checkin_year or (sort in cls.SOLR_SORT_FIELDS and not can_order_with_solr):
+                sort = "created desc"
+            elif fq or sort in cls.SOLR_SORT_FIELDS:
+                if (order := await cls.get_shelf_order(username, bookshelf_id, sort, fq or [], total_results)) is not None:
+                    page_ids = order[offset : offset + limit]
+                    if fq:
+                        total_results = len(order)
+                elif fq:
+                    return await get_filtered_reading_log_books(q=q, query_params=query_params, fq=fq)
+                else:
+                    sort = "created desc"
+
             if checkin_year:
                 query = """
                 SELECT b.work_id, b.created, b.edition_id
@@ -549,20 +597,14 @@ class Bookshelves(db.CommonExtras):
                 AND e.event_date LIKE %(checkin_year)s
                 ORDER BY b.created DESC
                 """
-            elif sort == "rating":
-                query = (
-                    "SELECT b.work_id, b.created, b.edition_id FROM bookshelves_books b "
-                    "LEFT JOIN ratings r ON r.username = b.username AND r.work_id = b.work_id "
-                    "WHERE b.bookshelf_id = %(bookshelf_id)s AND b.username = %(username)s "
-                    "ORDER BY r.rating DESC NULLS LAST, b.created DESC, b.work_id DESC "
-                    "LIMIT %(limit)s OFFSET %(offset)s"
-                )
-            elif sort in cls.SOLR_SORT_FIELDS:
+            elif page_ids is not None:
                 query = (
                     "SELECT work_id, created, edition_id FROM bookshelves_books WHERE "
-                    "bookshelf_id = %(bookshelf_id)s AND username = %(username)s "
-                    "ORDER BY created DESC, work_id DESC"
+                    "bookshelf_id = %(bookshelf_id)s AND username = %(username)s AND work_id = ANY(%(work_ids)s)"
                 )
+                query_params["work_ids"] = page_ids
+            elif sort == "rating":
+                query = RATING_SORTED_SHELF_QUERY + " LIMIT %(limit)s OFFSET %(offset)s"
             else:
                 query = (
                     "SELECT work_id, created, edition_id FROM bookshelves_books WHERE "
@@ -580,14 +622,9 @@ class Bookshelves(db.CommonExtras):
                 query_params["checkin_year"] = f"{checkin_year}%"
             reading_log_books = await fetch_all(query, query_params)
 
-            if checkin_year:
-                sort = "created desc"
-            elif bookshelf_id and sort in cls.SOLR_SORT_FIELDS:
-                offset = int(query_params["offset"] or 0)
-                if (page_books := await cls.get_shelf_page_sorted_by_solr(reading_log_books, sort, offset, limit)) is None:
-                    sort = "created desc"
-                    page_books = reading_log_books[offset : offset + limit]
-                reading_log_books = page_books
+            if page_ids is not None:
+                books_by_id = {book["work_id"]: book for book in reading_log_books}
+                reading_log_books = [books_by_id[work_id] for work_id in page_ids if work_id in books_by_id]
 
             reading_log_keys = [
                 (["/works/OL%sW" % i["work_id"], "/books/OL%sM" % i["edition_id"]] if i["edition_id"] else ["/works/OL%sW" % i["work_id"], ""])
@@ -603,7 +640,6 @@ class Bookshelves(db.CommonExtras):
             if len(solr_docs) < len(reading_log_keys):
                 cls.add_storage_items_for_deletes(reading_log_keys, solr_docs)
 
-            total_results = shelf_totals.get(bookshelf_id, 0)
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
             solr_docs = cls.link_editions_to_works(solr_docs)
 
@@ -617,7 +653,7 @@ class Bookshelves(db.CommonExtras):
                 sort=sort,
             )
 
-        if q or fq:
+        if q or (fq and (checkin_year or not can_order_with_solr)):
             # checkin_year ignored :(
             return await get_filtered_reading_log_books(
                 q=q,
@@ -625,7 +661,7 @@ class Bookshelves(db.CommonExtras):
                 fq=fq,
             )
         else:
-            return await get_sorted_reading_log_books(query_params=query_params, sort=sort, checkin_year=checkin_year)
+            return await get_sorted_reading_log_books(query_params=query_params, sort=sort, checkin_year=checkin_year, fq=fq)
 
     @classmethod
     def iterate_users_logged_books(cls, username: str) -> Iterable[dict]:
