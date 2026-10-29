@@ -1449,7 +1449,23 @@ class Request:
             parsed_url = urlparse(url)
 
             parsed_query = parse_qs(parsed_url.query)
-            queries_to_exclude = ["sort", "mode", "v", "type", "debug"]
+            # Params that don't change what the page is about: presentation (sort, mode, layout),
+            # revision/diff selectors (v, a, b), librarian/debug toggles, tracking, and a work's
+            # selected edition (each edition has its own /books/ page).
+            queries_to_exclude = [
+                "sort",
+                "mode",
+                "v",
+                "type",
+                "debug",
+                "layout",
+                "a",
+                "b",
+                "show_page_status",
+                "edition",
+                "ref",
+                "_autoReadAloud",
+            ]
 
             canonical_query = {q: v for q, v in parsed_query.items() if q not in queries_to_exclude}
             query = parse_urlencode(canonical_query, doseq=True)

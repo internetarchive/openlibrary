@@ -147,6 +147,19 @@ def test_canonical_url():
     url = "https://www.openlibrary.org/authors/Ayn_Rand"
     assert request.canonical_url == url
 
+    web.ctx.query = "?b=8&a=3"
+    url = "https://www.openlibrary.org/authors/Ayn_Rand"
+    assert request.canonical_url == url
+
+    web.ctx.query = "?page=2&layout=grid&show_page_status=1"
+    url = "https://www.openlibrary.org/authors/Ayn_Rand?page=2"
+    assert request.canonical_url == url
+
+    web.ctx.path = "/works/OL1W/Title"
+    web.ctx.query = "?edition=key:/books/OL1M&_autoReadAloud=show&ref=ol"
+    url = "https://www.openlibrary.org/works/OL1W/Title"
+    assert request.canonical_url == url
+
 
 def test_get_coverstore_url(monkeypatch):
     monkeypatch.delattr(config, "coverstore_url", raising=False)
