@@ -2,6 +2,7 @@ import inspect
 import time
 
 import pytest
+from pymemcache.test.utils import MockMemcacheClient
 
 from openlibrary.core import cache
 from openlibrary.mocks import mock_memcache
@@ -91,6 +92,29 @@ class Test_memcache_memoize:
 
         m(10)
         assert m.stats.updates == 2
+
+
+class Test_MemcacheCache:
+    @pytest.fixture
+    def mc(self, monkeypatch):
+        mc = cache.MemcacheCache()
+        monkeypatch.setattr(mc, "memcache", MockMemcacheClient())
+        return mc
+
+    def test_get_missing_key(self, mc):
+        assert mc.get("missing") is None
+
+    @pytest.mark.parametrize("value", [0, 1, False, "", "a", [], [1], {}, {"a": 1}])
+    def test_get_returns_what_was_set(self, mc, value):
+        mc.set("key", value)
+        result = mc.get("key")
+        assert result == value
+        assert type(result) is type(value)
+
+    def test_get_empty_raw_value(self, mc):
+        # set() never stores an empty string, but get() should still only give back json or None
+        mc.memcache.set("key", "")
+        assert mc.get("key") is None
 
 
 class Test_memoize:
