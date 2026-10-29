@@ -89,41 +89,86 @@
   background-color: var(--color-surface-sunken);
 }
 
-/* Cover | title + authors | shelf button. The bar is only as tall as its text;
-   the cover is taller and rises out of it over the bottom of the page image.
-   The drop-shadow outlines the bar and the cover as one shape. */
+/* Cover | title + authors | shelf button. The bar is only about as tall as
+   its text; the cover is taller and rises out of it over the bottom of the
+   page image. The drop-shadow outlines the bar and the cover as one shape. */
 .snippet-card__bar {
-  --snippet-cover-width: 56px;
+  --snippet-cover-height: 84px;
   --snippet-cover-frame: 3px;
-  position: relative;
+  /* How far the cover rises above the bar, and the radius of the curves that
+     join its frame to the bar's top edge. */
+  --snippet-cover-rise: 34px;
+  --snippet-cover-fillet: 2px;
   display: flex;
   align-items: center;
   gap: var(--spacing-inline-md);
   padding: var(--spacing-stack-sm) var(--spacing-inline-md);
-  padding-left: calc(var(--spacing-inline-md) * 2 + var(--snippet-cover-width));
   background-color: var(--color-surface-raised);
   filter: drop-shadow(
     0 0 1px color-mix(in srgb, var(--ink-overlay) 45%, transparent)
   );
 }
 
+/* Fixed height, natural width. The negative margin lifts the cover a fixed
+   distance above the bar's top edge, so the fillets below always meet it. */
 .snippet-card__cover {
-  position: absolute;
-  left: var(--spacing-inline-md);
-  bottom: var(--spacing-stack-sm);
-  width: var(--snippet-cover-width);
-  aspect-ratio: 2 / 3;
-  overflow: hidden;
+  position: relative;
+  flex: none;
+  align-self: flex-start;
+  display: block;
+  height: var(--snippet-cover-height);
+  margin-top: calc(-1 * (var(--snippet-cover-rise) + var(--spacing-stack-sm)));
   background-color: var(--color-surface-sunken);
   /* Card-coloured, so the cover reads as cut out of the bar. */
   border: var(--snippet-cover-frame) solid var(--color-surface-raised);
   border-radius: 7px;
 }
 
+/* Concave curves joining the frame's sides to the bar's top edge. Positioned
+   from the padding box, so offsets account for the frame. Each is 1px larger
+   than the curve, overlapping the frame and the bar so no seam shows. */
+.snippet-card__cover::before,
+.snippet-card__cover::after {
+  content: "";
+  position: absolute;
+  top: calc(
+    var(--snippet-cover-rise) - var(--snippet-cover-frame) -
+      var(--snippet-cover-fillet)
+  );
+  width: calc(var(--snippet-cover-fillet) + 1px);
+  height: calc(var(--snippet-cover-fillet) + 1px);
+  pointer-events: none;
+}
+
+.snippet-card__cover::before {
+  left: calc(-1 * (var(--snippet-cover-frame) + var(--snippet-cover-fillet)));
+  background: radial-gradient(
+    circle at 0 0,
+    transparent var(--snippet-cover-fillet),
+    var(--color-surface-raised) calc(var(--snippet-cover-fillet) + 0.5px)
+  );
+}
+
+.snippet-card__cover::after {
+  right: calc(-1 * (var(--snippet-cover-frame) + var(--snippet-cover-fillet)));
+  background: radial-gradient(
+    circle at 100% 0,
+    transparent var(--snippet-cover-fillet),
+    var(--color-surface-raised) calc(var(--snippet-cover-fillet) + 0.5px)
+  );
+}
+
+/* No cover image: a placeholder of a typical cover's shape. */
+.snippet-card__cover:empty {
+  aspect-ratio: 2 / 3;
+}
+
 .snippet-card__cover img {
   display: block;
-  width: 100%;
   height: 100%;
+  width: auto;
+  /* Keeps an unusually wide cover from crowding out the title. */
+  max-width: calc(var(--snippet-cover-height) * 1.25);
   object-fit: cover;
   border-radius: calc(7px - var(--snippet-cover-frame));
 }
