@@ -650,7 +650,7 @@ msgstr ""
 msgid "Download Link"
 msgstr ""
 
-#: showmarc.html type/tag/index.html
+#: showmarc.html
 msgid "Next"
 msgstr ""
 
@@ -6969,15 +6969,61 @@ msgid "Tags"
 msgstr ""
 
 #: type/tag/index.html
+msgid "Singular tag type"
+msgstr ""
+
+#: type/tag/index.html
+msgid "Test tag"
+msgstr ""
+
+#: type/tag/index.html
+msgid "No tag type"
+msgstr ""
+
+#: type/tag/index.html
+msgid "No description"
+msgstr ""
+
+#: type/tag/index.html
+msgid "No URL slug"
+msgstr ""
+
+#: type/tag/index.html
 msgid "Tags curated by Open Library librarians."
 msgstr ""
 
 #: type/tag/index.html
-msgid "View subject page"
+#, python-format
+msgid "%(count)d tag"
+msgid_plural "%(count)d tags"
+msgstr[0] ""
+msgstr[1] ""
+
+#: type/tag/index.html
+#, python-format
+msgid "%(count)d type"
+msgid_plural "%(count)d types"
+msgstr[0] ""
+msgstr[1] ""
+
+#: type/tag/index.html
+msgid "There are more tags than this page can show at once, so the counts below are a floor."
 msgstr ""
 
 #: type/tag/index.html
-msgid "Previous"
+msgid "Filter by tag type"
+msgstr ""
+
+#: type/tag/index.html
+msgid "Data quality"
+msgstr ""
+
+#: type/tag/index.html
+msgid "Tags a curator may want to fix."
+msgstr ""
+
+#: type/tag/index.html
+msgid "View subject page"
 msgstr ""
 
 #: type/tag/index.html

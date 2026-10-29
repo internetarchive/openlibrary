@@ -1,0 +1,10 @@
+/**
+ * Stylesheet entry point for the Tag pages.
+ * Runs on pages
+ * - /tags
+ * - /tags?type=genre (the per-type filter)
+ *
+ * Same base as the default page-user bundle, plus the Tags dashboard.
+ */
+@import "page-user.css";
+@import "components/tag-dashboard.css";
