@@ -150,7 +150,20 @@ def signed_cookie(user_key, secret="secret"):
 @pytest.mark.parametrize(("cookie", "user_key"), [(signed_cookie("/people/alice"), "/people/alice"), (signed_cookie("/people/alice", secret="wrong"), None)])
 def test_visitor_from_session_cookie(monkeypatch, cookie, user_key):
     monkeypatch.setattr("openlibrary.fastapi.auth.get_secret_key", lambda: "secret")
-    assert _visitor(cookie) == Visitor(user_key=user_key)
+    assert _visitor(cookie, is_bot=True) == Visitor(user_key=user_key, is_bot=True)
+
+
+@pytest.mark.parametrize(
+    ("visitor", "label"),
+    [
+        (Visitor(user_key=None), "anonymous"),
+        (Visitor(user_key=None, is_bot=True), "bot"),
+        (Visitor(user_key="/people/alice", is_bot=True), "logged_in"),  # a logged-in bot account is still logged in
+        (Visitor(user_key="/people/alice", is_librarian=True, is_bot=True), "librarian"),
+    ],
+)
+def test_visitor_label(visitor, label):
+    assert visitor.label == label
 
 
 def test_user_agent_bots_format():
