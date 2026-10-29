@@ -36,9 +36,6 @@ async def test_get_latest_event_dates_skips_the_db_for_no_works():
     fetch_all.assert_not_awaited()
 
 
-# --- Unit test (no postgres required) ------------------------------------------
-
-
 @pytest.mark.asyncio
 async def test_count_distinct_work_ids_by_user_type_and_year():
     with patch(
