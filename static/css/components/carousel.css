@@ -139,7 +139,7 @@
   text-align: center;
 }
 
-/* Every cover is the same 2:3 box, as wide as its card. */
+/* Every cover gets the same 2:3 slot, as wide as its card; the artwork keeps its own height inside it (OlBookCover.js). */
 .carousel--native .book .book-cover {
   display: block;
   height: auto;
@@ -246,6 +246,16 @@
   background: var(--book-cover-carousel-background);
   border-bottom: 1px solid var(--book-cover-carousel-border-bottom);
   border-top: 1px solid var(--book-cover-carousel-border-top);
+}
+
+/* The band holds its cards at the same distance it holds them apart along the
+   row (the inset before the first card is the gap) and a little closer above
+   and below, where a heading usually sits. The row's own viewport padding
+   (ring room) is inside that figure. A page can set --spacing-carousel-band on
+   the band to change the vertical figure (page-subject.css). */
+.carousel-container-decorated:has(> .carousel--native) {
+  --ol-carousel-inset: var(--spacing-carousel-gap);
+  padding: calc(var(--spacing-carousel-band) - var(--spacing-inset-xs)) 0;
 }
 
 /* TODO: Document where this is used. This is unlikely to need to be so specific. */
@@ -444,7 +454,8 @@
 
 /* A status line ("Not in Library", "Checked Out") takes the button's slot. The
    control height holds two lines, so it wraps, clamps at two, and the row of
-   cards stays one height. Mirrored in searchResultItemCta.css. */
+   cards stays one height. Mirrored in searchResultItemCta.css. The native
+   row's buttons are small, so its status line is too. */
 .ol-action-row .waitinglist-message {
   display: flex;
   align-items: center;
@@ -465,6 +476,11 @@
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
+
+.carousel--native .ol-action-row .waitinglist-message {
+  min-height: var(--control-height-small);
+}
+
 .ol-return-wrapper {
   flex: 0 0 39px;
 }
@@ -555,7 +571,7 @@
 }
 
 .carousel-skeleton__row.carousel--native {
-  gap: 12px;
+  gap: var(--spacing-carousel-gap);
   padding-block: var(--ol-carousel-viewport-padding);
   padding-inline: var(--ol-carousel-inset, 0);
   /* The book row's own breakpoints (books/custom_carousel.html.jinja), not the component defaults. */
@@ -566,7 +582,8 @@
   flex: 0 0 auto;
   width: calc(
     (100cqi - 2 * var(--ol-carousel-inset, 0px)) * 0.94 /
-      var(--skeleton-columns) - 12px + 12px / var(--skeleton-columns)
+      var(--skeleton-columns) - var(--spacing-carousel-gap) +
+      var(--spacing-carousel-gap) / var(--skeleton-columns)
   );
 }
 
@@ -619,4 +636,8 @@
   height: var(--control-height-medium);
   margin-top: var(--spacing-stack-sm);
   border-radius: var(--border-radius-button);
+}
+
+.carousel--native .carousel-skeleton__button {
+  height: var(--control-height-small);
 }

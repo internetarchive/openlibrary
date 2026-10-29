@@ -7,9 +7,20 @@ export const DEFAULT_LABELS = {
 };
 
 /**
- * A book cover at a fixed 2:3 ratio: the artwork when there is one, a generated
+ * A book cover standing in a 2:3 slot: the artwork when there is one, a generated
  * title/author panel when there isn't, and a corner for whatever the surface
  * wants to float over it.
+ *
+ * The slot is always 2:3, so a row of covers keeps one rhythm, but the artwork
+ * inside it keeps its own proportions — as wide as the slot and as tall as the
+ * book, standing on the slot's bottom edge, so a squat picture book and a tall
+ * hardback read as different objects on one shelf. A cover taller than 2:3
+ * shrinks to fit the slot's height instead. Until the image reports its size
+ * the frame is 2:3, so a lazy cover lands where its placeholder was.
+ *
+ * Each cover carries a soft drop shadow and a faint spine shading along its
+ * left edge, so it reads as a printed object lying on the page rather than a
+ * tile. Both go on the frame, not the host — leave room for the shadow.
  *
  * Knows nothing about shelves, availability or search — give it a URL and a
  * title. `overlay` is the slot the save button goes in; the component owns the
@@ -47,7 +58,8 @@ export class OlBookCover extends LitElement {
         href: { type: String },
         size: { type: String, reflect: true },
         deferred: { type: Boolean, reflect: true },
-        labels: { type: Object }
+        labels: { type: Object },
+        _ratio: { state: true }
     };
 
     static styles = css`
@@ -55,21 +67,79 @@ export class OlBookCover extends LitElement {
             position: relative;
             display: block;
             aspect-ratio: 2 / 3;
-            border-radius: var(--border-radius-thumbnail);
-            overflow: hidden;
-            background: var(--color-surface-sunken);
             font-family: var(--font-family-body);
         }
 
-        .link {
-            display: block;
+        /* The frame stands on the slot's bottom edge, centred; the corner box
+           sits in the same grid cell at the same size, so a slotted control
+           tracks the artwork rather than the slot. */
+        ol-tooltip {
+            --_ratio: 0.6667;
+            display: grid;
+            place-items: end center;
+            width: 100%;
             height: 100%;
+        }
+
+        /* Width/height of the artwork. 2:3 until the image reports its own.
+           A tall cover is capped at the slot's height: the slot is 150% as
+           tall as it is wide, so width = 150% × ratio hits that cap exactly. */
+        .frame,
+        .corner {
+            grid-area: 1 / 1;
+            box-sizing: border-box;
+            width: min(100%, calc(150% * var(--_ratio)));
+            aspect-ratio: var(--_ratio);
+        }
+
+        .frame {
+            position: relative;
+            display: block;
+            border-radius: var(--border-radius-thumbnail);
+            overflow: hidden;
+            background: var(--color-surface-sunken);
+            box-shadow: var(--box-shadow-cover);
+        }
+
+        /* Spine shading: a strip down the binding edge, darkest at the gutter,
+           with a highlight where the board curves over. Fades toward the foot. */
+        .frame--art::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            inset-inline-end: auto;
+            width: 6%;
+            pointer-events: none;
+            background: linear-gradient(
+                90deg,
+                hsla(0, 0%, 0%, 0.35) 0%,
+                hsla(0, 0%, 100%, 0.1) 12%,
+                hsla(0, 0%, 100%, 0.4) 17%,
+                hsla(0, 0%, 100%, 0.1) 37%,
+                hsla(0, 0%, 0%, 0.1) 59%,
+                hsla(0, 0%, 100%, 0.07) 85%,
+                hsla(0, 0%, 100%, 0) 100%
+            );
+            mask-image: linear-gradient(hsla(0, 0%, 0%, 0.4) 0%, hsla(0, 0%, 0%, 1) 2.5%, hsla(0, 0%, 0%, 0.5) 40%, hsla(0, 0%, 0%, 0.2) 100%);
+        }
+
+        /* A book bound on the right has its spine there. */
+        :host(:dir(rtl)) .frame--art::after {
+            transform: scaleX(-1);
+        }
+
+        .corner {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .link {
             outline: none;
         }
 
         @media (hover: hover) and (pointer: fine) {
             /* Zero-width at rest so hover grows it. Tucked under the edge to hide the corner seam. */
-            :host([href]) {
+            :host([href]) .frame {
                 outline: 0 solid var(--color-border-pointed);
                 outline-offset: calc(-1 * var(--border-width-media));
                 transition: outline-width var(--duration-fast) var(--ease-exit);
@@ -80,13 +150,13 @@ export class OlBookCover extends LitElement {
             }
         }
 
-        :host([link-focus]) {
+        :host([link-focus]) .frame {
             outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
         @media (hover: hover) and (pointer: fine) {
-            :host([href]:hover) {
+            :host([href]:hover) .frame {
                 outline: calc(var(--pointed-ring-width) + var(--border-width-media)) solid var(--color-border-pointed);
                 outline-offset: calc(-1 * var(--border-width-media));
                 transition-timing-function: var(--ease-enter);
@@ -99,16 +169,10 @@ export class OlBookCover extends LitElement {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            :host([href]),
+            :host([href]) .frame,
             :host([href]) .link {
                 transition: none;
             }
-        }
-
-        /* Wraps the overlay too, so hovering the save button keeps the card up. */
-        ol-tooltip {
-            display: block;
-            height: 100%;
         }
 
         /* Inset so a pale cover still separates from a pale page. */
@@ -176,7 +240,8 @@ export class OlBookCover extends LitElement {
         slot[name='overlay']::slotted(*) {
             position: absolute;
             top: 4px;
-            right: 4px;
+            inset-inline-end: 4px;
+            pointer-events: auto;
         }
 
         /* Panel content: styled here because it is a light child of this
@@ -209,6 +274,7 @@ export class OlBookCover extends LitElement {
         this.size = 'medium';
         this.deferred = false;
         this.labels = {};
+        this._ratio = 0;
     }
 
     t(key, vars) {
@@ -220,15 +286,34 @@ export class OlBookCover extends LitElement {
     }
 
     render() {
+        const hasArt = this.src && !this.deferred;
+        const frame = `frame ${hasArt || !this.src ? 'frame--art' : ''}`;
         const art = this.href
-            ? html`<a class="link" href=${this.href} @click=${this._onClick} @focus=${this._onFocus} @blur=${this._onBlur}>${this._renderArt()}</a>`
-            : this._renderArt();
+            ? html`<a class="${frame} link" href=${this.href} @click=${this._onClick} @focus=${this._onFocus} @blur=${this._onBlur}>${this._renderArt()}</a>`
+            : html`<span class=${frame}>${this._renderArt()}</span>`;
+        const ratio = hasArt && this._ratio ? `--_ratio: ${this._ratio}` : nothing;
         return html`
-            <ol-tooltip placement="top" arrow>
-                ${art}${this._renderTip()}
-                <slot name="overlay" @pointerdown=${this._hideTip} @ol-popover-open=${this._onOverlayOpen} @ol-popover-close=${this._onOverlayClose}></slot>
+            <ol-tooltip placement="top" arrow style=${ratio}>
+                ${art}
+                <div class="corner">
+                    <slot name="overlay" @pointerdown=${this._hideTip} @ol-popover-open=${this._onOverlayOpen} @ol-popover-close=${this._onOverlayClose}></slot>
+                </div>
+                ${this._renderTip()}
             </ol-tooltip>
         `;
+    }
+
+    /** A cached image can be complete before its load event is wired up. */
+    updated(changed) {
+        if (changed.has('src')) this._ratio = 0;
+        const img = this.renderRoot.querySelector('.img');
+        if (img?.complete) this._onLoad({ target: img });
+    }
+
+    _onLoad(e) {
+        const { naturalWidth, naturalHeight } = e.target;
+        if (!naturalWidth || !naturalHeight) return;
+        this._ratio = Math.round((naturalWidth / naturalHeight) * 1000) / 1000;
     }
 
     get _tooltip() {
@@ -253,7 +338,7 @@ export class OlBookCover extends LitElement {
             return html`<span class="pending" role="img" aria-label=${this._alt}></span>`;
         }
         if (this.src) {
-            return html`<img class="img" src=${this.src} alt=${this._alt} loading="lazy" />`;
+            return html`<img class="img" src=${this.src} alt=${this._alt} loading="lazy" @load=${this._onLoad} />`;
         }
         return html`
             <span class="blank" role="img" aria-label=${this._alt}>

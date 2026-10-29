@@ -206,6 +206,7 @@ def _render_carousel_card_loan_status(book, *, work_key: str, key: str) -> Marku
         work_key=work_key,
         listen=False,
         analytics_override="BookCarousel|{action}Click|%s" % key,
+        cta_size="small",
     )
     return Markup(str(macro["__body__"]))
 

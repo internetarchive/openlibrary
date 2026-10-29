@@ -64,6 +64,11 @@
      specular highlight as above; see ol-button[elevation="floating"]. */
   --box-shadow-floating: 0 1px 4px hsla(44, 60%, 18%, 0.15);
 
+  /* A book cover lying on the page. Three tight layers so the edge reads as a
+     physical object's shadow, not a card's glow; the inset hairline is the
+     cover's own border (--border-width-media) and stays in the component. */
+  --box-shadow-cover: 0 1px 1px -0.5px hsla(44, 60%, 18%, 0.1), 0 3px 3px -1.5px hsla(44, 60%, 18%, 0.1), 0 6px 6px -3px hsla(44, 60%, 18%, 0.1);
+
   /* Overlay surface — the floating panel behind popovers, menus, dialogs, and toasts.
      The hairline border draws the edge that a soft shadow alone loses against
      a white page; because the border carries the definition, the shadow can
