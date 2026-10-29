@@ -11,6 +11,8 @@ import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
 import { trackEvent } from './ol.analytics.js';
 
 const SKIPPED_KEY = 'ol-contribute-skipped';
+// The "Not sure" row's value on a choice list; mirrors ``UNSURE`` in contribute.py.
+const UNSURE = 'unsure';
 // While placeholder cards are up, the server is building the list in the background: ask again soon, then
 // every few seconds, for as long as its Solr query may take, then give up and say the list couldn't load.
 const ROWS_RETRY_MS = [1000, 1000, 2000, 3000, 5000];
@@ -164,7 +166,8 @@ function answerSource(form) {
 
 /**
  * Report a save as ``TaskForm|Save`` or ``TaskForm|SaveNext`` with the field as
- * label, plus ``:chip``/``:typed`` when the field offered suggestions. On the
+ * label, plus ``:chip``/``:typed`` when the field offered suggestions. A "Not sure"
+ * answer reports as ``NotFound`` and is remembered as skipped, like the button. On the
  * ``submit`` event rather than the buttons' clicks so Enter in the answer field
  * counts too; the submitter is the button's in-form proxy.
  * @param {HTMLFormElement} form - a ``[data-task-form]`` with ``data-task-field``
@@ -175,6 +178,12 @@ function initSaveTracking(form) {
         const then = event.submitter?.closest('ol-button')?.value || event.submitter?.value;
         // "I couldn't find it" also submits; its click is already tracked as NotFound.
         if (then === 'notfound') return;
+        // "Not sure" on a choice list is the same honest exit: the server counts it as "couldn't find it".
+        if (currentAnswer(form) === UNSURE) {
+            markTaskSkipped(form.dataset.taskKey);
+            trackEvent('TaskForm', 'NotFound', form.dataset.taskField);
+            return;
+        }
         const source = answerSource(form);
         trackEvent('TaskForm', then === 'next' ? 'SaveNext' : 'Save', source ? `${form.dataset.taskField}:${source}` : form.dataset.taskField);
     });
