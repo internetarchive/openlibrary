@@ -2,7 +2,7 @@ import { trackEvent } from '../ol.analytics.js';
 import { buildPartialsUrl } from '../utils.js';
 
 /**
- * Adds analytics and load-more to `<ol-carousel>` book rows, as Carousel.js does for slick rows.
+ * Adds analytics, load-more, and the publishing-history year filter to `<ol-carousel>` book rows.
  *
  * @param {Iterable<HTMLElement>} elems `ol-carousel` elements
  */
@@ -26,13 +26,19 @@ export function initNativeCarousels(elems) {
         if (!loadMore?.queryType) return;
         let locked = false;
         let allDone = carousel.children.length < loadMore.limit;
+        let extraParams = {};
+        // So a slower earlier filter response can't overwrite a newer one.
+        let latestFilter = null;
+
         carousel.addEventListener('ol-carousel-near-end', async e => {
             if (locked || allDone) return;
             locked = true;
             trackEvent(category, 'LoadMore', key);
             carousel.setAttribute('aria-busy', 'true');
+            const request = latestFilter;
             try {
-                const cards = await fetchMoreCards(loadMore, e.detail.itemCount);
+                const cards = await fetchMoreCards(loadMore, e.detail.itemCount, extraParams);
+                if (request !== latestFilter) return;
                 if (!cards.length) allDone = true;
                 carousel.append(...cards);
             } catch {
@@ -42,15 +48,36 @@ export function initNativeCarousels(elems) {
                 carousel.removeAttribute('aria-busy');
             }
         });
+
+        // Sent by the publishing-history chart (publishing_history.js) when a year range is picked.
+        document.addEventListener('filter', async e => {
+            if (!carousel.isConnected) return;
+            extraParams = { published_in: `${e.detail.yearFrom}-${e.detail.yearTo}` };
+            const request = {};
+            latestFilter = request;
+            carousel.setAttribute('aria-busy', 'true');
+            try {
+                const cards = await fetchMoreCards(loadMore, 0, extraParams);
+                if (request !== latestFilter) return;
+                allDone = cards.length < loadMore.limit;
+                carousel.replaceChildren(...cards);
+                carousel.goToPage(0);
+            } catch {
+                // Keep the current cards.
+            } finally {
+                if (request === latestFilter) carousel.removeAttribute('aria-busy');
+            }
+        });
     });
 }
 
 /**
  * @param {object} loadMore the `loadMore` block of the row's config
  * @param {number} itemCount cards already in the rail
+ * @param {object} [extraParams] e.g. the year filter's `published_in`
  * @returns {Promise<Element[]>}
  */
-async function fetchMoreCards(loadMore, itemCount) {
+async function fetchMoreCards(loadMore, itemCount, extraParams = {}) {
     const url = buildPartialsUrl('CarouselLoadMore', {
         queryType: loadMore.queryType,
         q: loadMore.q,
@@ -62,7 +89,8 @@ async function fetchMoreCards(loadMore, itemCount) {
         hasFulltextOnly: loadMore.hasFulltextOnly,
         secondaryAction: loadMore.secondaryAction,
         layout: loadMore.layout,
-        key: loadMore.key
+        key: loadMore.key,
+        ...extraParams
     });
     const resp = await fetch(url);
     if (!resp.ok) throw new Error('Failed to fetch more carousel cards');

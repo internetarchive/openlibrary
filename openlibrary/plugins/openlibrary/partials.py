@@ -342,6 +342,9 @@ class CarouselCardPartial:
             "editions",
         ]
         query_params: dict = {"q": params.q}
+        # The subject page's publishing-history chart narrows rows to a year range.
+        if publish_year := date_range_to_publish_year_filter(params.published_in):
+            query_params["q"] = f"{params.q} publish_year:{publish_year}"
         if params.hasFulltextOnly:
             query_params["has_fulltext"] = "true"
 
@@ -788,7 +791,7 @@ class LazyCarouselParams(BaseModel):
     search: bool = False
     has_fulltext_only: bool = True
     url: str | None = None
-    layout: str = "carousel"
+    layout: str = "ol-carousel"
     fallback: str | None = None
     safe_mode: bool = True
     # Link `url` from a "See all" instead of the title.
@@ -1211,7 +1214,7 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         "limit": params.get("limit", 20),
         "search": params.get("search", False),
         "has_fulltext_only": params.get("has_fulltext_only", True),
-        "layout": params.get("layout", "carousel"),
+        "layout": params.get("layout", "ol-carousel"),
         "fallback": params.get("fallback"),
         **({"title": params["title"]} if params.get("title") else {}),
         **({"url": params["url"]} if params.get("url") else {}),
@@ -1270,7 +1273,7 @@ def build_nearby_books_placeholder_config(work_key: str, language: str | None = 
         fallback=None,
         title=_("On the Same Shelf"),
         title_link=False,
-        layout="carousel",
+        layout="ol-carousel",
     )
 
 
@@ -1393,6 +1396,7 @@ class NearbyBooksPartial:
             title=_("On the Same Shelf"),
             url=None,
             key="nearby-books",
+            layout="ol-carousel",
             full_path=full_path,
         )
         return {"partials": render_jinja_template("books/custom_carousel.html.jinja", **data)}

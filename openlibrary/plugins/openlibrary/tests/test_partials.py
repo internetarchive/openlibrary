@@ -13,6 +13,8 @@ from openlibrary.plugins.openlibrary.partials import (
     AffiliateOffer,
     AffiliateStoreBuildContext,
     BookPageListsPartial,
+    CarouselCardPartial,
+    CarouselLoadMoreParams,
     CarouselPartial,
     HomeGenreParams,
     HomeGenrePartial,
@@ -405,12 +407,31 @@ class TestNearbyBooksPartial:
         assert result == {"partials": "<div/>"}
 
 
+class TestCarouselCardPartialSearch:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("published_in", "expected_q"),
+        [
+            ("", 'subject_key:"history"'),
+            ("1900-1920", 'subject_key:"history" publish_year:[1900 TO 1920]'),
+            ("not-a-range", 'subject_key:"history"'),
+        ],
+    )
+    async def test_published_in_narrows_the_query(self, published_in, expected_q):
+        """The subject page's publishing-history chart filters SEARCH rows by year."""
+        params = CarouselLoadMoreParams(queryType="SEARCH", q='subject_key:"history"', published_in=published_in)
+        with patch("openlibrary.plugins.openlibrary.partials.work_search_async", AsyncMock(return_value={"docs": []})) as search:
+            await CarouselCardPartial._do_search_query(params)
+
+        assert search.await_args.args[0]["q"] == expected_q
+
+
 def test_build_nearby_books_placeholder_config_targets_the_nearby_books_partial():
     config = build_nearby_books_placeholder_config("/works/OL1W", "eng")
     assert json.loads(config["lazy_config_json"]) == {"partial": "NearbyBooks", "work_key": "/works/OL1W", "language": "eng"}
     assert config["fallback"] is None
-    # The skeleton stands in for NearbyBooksPartial's slick row and its unlinked heading.
-    assert (config["layout"], config["title_link"]) == ("carousel", False)
+    # The skeleton stands in for NearbyBooksPartial's ol-carousel row and its unlinked heading.
+    assert (config["layout"], config["title_link"]) == ("ol-carousel", False)
 
 
 def _community_card(title: str) -> dict:
