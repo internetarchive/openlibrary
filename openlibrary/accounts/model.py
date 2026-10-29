@@ -1222,7 +1222,7 @@ def audit_accounts(  # noqa: PLR0912
     # allows us to fetch the OL account linked to their IA account, bypass this
     # site.get().login method (which requires OL credentials), and directly set an
     # auth_token to enable the user's session.
-    web.ctx.conn.set_auth_token(ol_account.generate_login_code())
+    site.get()._conn.set_auth_token(ol_account.generate_login_code())
     ol_account.update_last_login()
     return {
         "authenticated": True,

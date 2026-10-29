@@ -115,18 +115,21 @@ class TestCommonExtrasAsync:
     async def test_username_updates_and_delete(self, pg_db):
         username = "@anonymize-test"
         new_username = "@anonymous-test"
+        # A second patron's rows must survive untouched.
+        bystander = "@bystander"
         async with connection() as conn:
-            await conn.execute("INSERT INTO booknotes (username, work_id, notes) VALUES (%s, 1, 'note')", (username,))
-            await conn.execute("INSERT INTO ratings (username, work_id, rating) VALUES (%s, 1, 5)", (username,))
-            await conn.execute(
-                "INSERT INTO observations (username, work_id, observation_type, observation_value) VALUES (%s, 1, 1, 1)",
-                (username,),
-            )
-            await conn.execute("INSERT INTO bookshelves_books (username, work_id, bookshelf_id) VALUES (%s, 1, 1)", (username,))
-            await conn.execute(
-                "INSERT INTO bestbooks (username, work_id, topic, comment) VALUES (%s, 1, 'test-topic', 'test')",
-                (username,),
-            )
+            for name in (username, bystander):
+                await conn.execute("INSERT INTO booknotes (username, work_id, notes) VALUES (%s, 1, 'note')", (name,))
+                await conn.execute("INSERT INTO ratings (username, work_id, rating) VALUES (%s, 1, 5)", (name,))
+                await conn.execute(
+                    "INSERT INTO observations (username, work_id, observation_type, observation_value) VALUES (%s, 1, 1, 1)",
+                    (name,),
+                )
+                await conn.execute("INSERT INTO bookshelves_books (username, work_id, bookshelf_id) VALUES (%s, 1, 1)", (name,))
+                await conn.execute(
+                    "INSERT INTO bestbooks (username, work_id, topic, comment) VALUES (%s, 1, 'test-topic', 'test')",
+                    (name,),
+                )
 
         models = (Ratings, Observations, Bookshelves, Bestbook)
         for model in models:
@@ -141,6 +144,8 @@ class TestCommonExtrasAsync:
         assert not await fetch_all("SELECT 1 FROM booknotes WHERE username = %(username)s", {"username": username})
         for table in ("ratings", "observations", "bookshelves_books", "bestbooks"):
             assert len(await fetch_all(f"SELECT 1 FROM {table} WHERE username = %(username)s", {"username": new_username})) == 1
+        for table in ("booknotes", "ratings", "observations", "bookshelves_books", "bestbooks"):
+            assert len(await fetch_all(f"SELECT 1 FROM {table} WHERE username = %(username)s", {"username": bystander})) == 1
 
 
 BOOKSHELVES_EVENTS_SETUP_ROWS = [

@@ -63,13 +63,16 @@ class TestCommunityEditsQueueIntegration:
     async def test_update_submitter_name_and_dry_run(self, pg_db):
         submitter = "@anonymize-test"
         new_submitter = "@anonymous-test"
+        bystander = "@bystander"
         async with connection() as conn:
-            await conn.execute(
-                "INSERT INTO community_edits_queue (title, submitter, url) VALUES ('test', %s, '/test')",
-                (submitter,),
-            )
+            for name in (submitter, bystander):
+                await conn.execute(
+                    "INSERT INTO community_edits_queue (title, submitter, url) VALUES ('test', %s, '/test')",
+                    (name,),
+                )
 
         assert await CommunityEditsQueue.update_submitter_name(submitter, new_submitter, _test=True) == 1
         assert await fetch_all("SELECT 1 FROM community_edits_queue WHERE submitter = %(submitter)s", {"submitter": submitter})
         assert await CommunityEditsQueue.update_submitter_name(submitter, new_submitter) == 1
-        assert await fetch_all("SELECT 1 FROM community_edits_queue WHERE submitter = %(submitter)s", {"submitter": new_submitter})
+        assert len(await fetch_all("SELECT 1 FROM community_edits_queue WHERE submitter = %(submitter)s", {"submitter": new_submitter})) == 1
+        assert len(await fetch_all("SELECT 1 FROM community_edits_queue WHERE submitter = %(submitter)s", {"submitter": bystander})) == 1
