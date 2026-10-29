@@ -41,7 +41,7 @@ def connect_to_pg(config_file):
     if user:
         conf["user"] = user
     logger.debug(" Postgres Database : %(db)s" % conf)
-    return web.database(dbn="postgres", **conf)
+    return web.database(dbn="postgres", **conf)  # noqa: TID251
 
 
 def get_config_info(infobase_config):

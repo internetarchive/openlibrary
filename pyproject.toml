@@ -108,6 +108,7 @@ lint.select = [
   "SLOT",    # flake8-slots
   "T10",     # flake8-debugger
   "TC",      # flake8-type-checking
+  "TID251",  # flake8-tidy-imports banned-api: legacy sync database access
   "UP",      # pyupgrade
   "W",       # pycodestyle
   "YTT",     # flake8-2020
@@ -151,6 +152,12 @@ max-args = 15
 max-branches = 23
 max-returns = 14
 max-statements = 70
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"openlibrary.core.db".msg = "Legacy sync database access. New SQL goes through openlibrary.core.async_db; see docs/core/database.md"
+"psycopg2".msg = "Legacy sync PostgreSQL driver. New SQL goes through openlibrary.core.async_db (psycopg3); see docs/core/database.md"
+"web.database".msg = "Legacy sync database access. New SQL goes through openlibrary.core.async_db; see docs/core/database.md"
+"web.db".msg = "Legacy sync database access. New SQL goes through openlibrary.core.async_db; see docs/core/database.md"
 
 [tool.ruff.lint.per-file-ignores]
 "openlibrary/admin/stats.py" = ["BLE001"]
@@ -228,6 +235,12 @@ max-statements = 70
 "scripts/utils/scheduler.py" = ["PLC0415"]
 "tests/test_docker_compose.py" = ["PLC0415"]
 
+# TID251: legacy sync database access (openlibrary.core.db, web.database, psycopg2) is banned in new code;
+# new SQL goes through openlibrary.core.async_db. Tests, scripts and the coverstore service are exempt.
+# Files that predate the ban carry a line-level `# noqa: TID251`; RUF100 flags it once it's no longer needed.
+"**/tests/**" = ["TID251"]
+"scripts/**" = ["TID251"]
+"openlibrary/coverstore/**" = ["TID251"]
 
 [tool.djlint]
 # J018: "Internal links should use url_for()" — Open Library doesn't use url_for() anywhere.

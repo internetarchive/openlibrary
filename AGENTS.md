@@ -16,7 +16,7 @@
 > ```
 > (Inside the Docker container the same command runs with `/openlibrary/docs/wiki` — see `docker/ol-home-start.sh`.)
 >
-> 🗄️ **Databases:** New DB code goes through the async psycopg3 pool in `openlibrary/core/async_db.py`. Single-statement helpers (`execute`, `fetch_all`, `fetch_one`, `fetch_val`) run one query each; `async with connection()` wraps multi-statement transactions. Legacy sync code keeps `openlibrary/core/db.py`; sync web.py callers reach async model methods via `async_bridge.run` (`_sync` suffix). Reference migration: `openlibrary/core/yearly_reading_goals.py` + `openlibrary/plugins/upstream/yearly_reading_goals.py`. Full guide: [`docs/core/database.md`](/docs/core/database.md).
+> 🗄️ **Databases:** New DB code goes through the async psycopg3 pool in `openlibrary/core/async_db.py`. Single-statement helpers (`execute`, `fetch_all`, `fetch_one`, `fetch_val`) run one query each; `async with connection()` wraps multi-statement transactions. Legacy sync code keeps `openlibrary/core/db.py` (Ruff `TID251` bans it; never add a `# noqa: TID251` or new sync queries); sync web.py callers reach async model methods via `async_bridge.run` (`_sync` suffix). Reference migration: `openlibrary/core/yearly_reading_goals.py` + `openlibrary/plugins/upstream/yearly_reading_goals.py`. Full guide: [`docs/core/database.md`](/docs/core/database.md).
 
 **Dev setup:** `make git && docker compose up` → http://localhost:8080
 

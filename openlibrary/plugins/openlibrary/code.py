@@ -18,7 +18,7 @@ import web
 import yaml
 
 import infogami
-from openlibrary.core import db
+from openlibrary.core import db  # noqa: TID251
 from openlibrary.core.batch_imports import (
     batch_import,
 )
