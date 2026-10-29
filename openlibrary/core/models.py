@@ -1303,7 +1303,8 @@ class LoggedBooksData:
     param ratings holds a list of ratings such that the index of each rating corresponds
         to the index of each doc/work in self.docs.
     param sort holds the sort the shelf was actually sorted by, which can differ from
-        the one asked for (e.g. if Solr fails). None when filtering.
+        the one asked for (e.g. if Solr fails). None when the shelf isn't sorted, as when
+        searching it.
     """
 
     username: str
