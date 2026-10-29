@@ -177,7 +177,6 @@ def _resolve_carousel_card_cover_url(book) -> str | Literal[False]:
     if cover_id and cover_id != -1:
         return f"{_CAROUSEL_CARD_COVER_HOST}/b/id/{cover_id}-M.jpg"
     if ia := book.get("ia"):
-        # Solr docs have a list of identifiers, but /subjects works have just one string
         ocaid = ia if isinstance(ia, str) else ia[0]
         return f"{_CAROUSEL_CARD_COVER_HOST}/b/ia/{ocaid}-M.jpg?default={_CAROUSEL_CARD_FALLBACK_COVER}"
     if book.get("ocaid"):

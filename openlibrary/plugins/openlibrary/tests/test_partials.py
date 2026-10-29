@@ -242,7 +242,6 @@ class TestCarouselCardCoverUrl:
         )
 
     def test_subject_work_uses_its_whole_ia_identifier(self):
-        # Subject carousels load more books from /subjects, which gives `ia` as one string
         work = SubjectEngine.work_wrapper({"key": "/works/OL55532W", "title": "The three sisters", "edition_count": 3, "ia": ["threesistersdram00chek"]})
         assert work.ia == "threesistersdram00chek"
         assert _resolve_carousel_card_cover_url(_carousel_card_book(work)) == (
