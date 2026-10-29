@@ -10,7 +10,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 from urllib.parse import unquote
 
 import web
@@ -50,6 +50,33 @@ site: ContextVar[Site] = ContextVar("site")
 
 # Each request owns a fresh set; copied worker/task contexts share that set.
 rendered_keys: ContextVar[set[str] | None] = ContextVar("rendered_keys", default=None)
+
+
+@dataclass
+class Visitor:
+    """Who made the request, for the ``visitor`` label of the request metrics.
+    Mutable, so a worker thread or task running the route can mark the user a librarian."""
+
+    user_key: str | None  # None without a valid session cookie
+    is_librarian: bool = False  # set by User.is_librarian_or_higher(), which every HTML page's header calls
+
+    @property
+    def label(self) -> Literal["anonymous", "logged_in", "librarian"]:
+        """``logged_in`` means logged in but not a librarian; ``librarian`` is librarian or higher."""
+        if not self.user_key:
+            return "anonymous"
+        return "librarian" if self.is_librarian else "logged_in"
+
+
+visitor: ContextVar[Visitor | None] = ContextVar("visitor", default=None)
+
+
+def _visitor(cookie_value: str | None) -> Visitor:
+    """The visitor for a session cookie. Only checks the cookie's signature; looks nothing up."""
+    from openlibrary.fastapi.auth import authenticate_user_from_cookie  # noqa: PLC0415
+
+    user = authenticate_user_from_cookie(cookie_value)
+    return Visitor(user_key=user.user_key if user else None)
 
 
 # Keep in sync with scripts/obfi.sh (obfi_grep_bots) and docker/web_nginx.conf ($is_sus_user_agent).
@@ -198,6 +225,7 @@ def set_context_from_legacy_web_py() -> None:
 
     site.set(web.ctx.site)
     rendered_keys.set(set())
+    visitor.set(_visitor(web.cookies().get(config.get("login_cookie_name", "session"))))
     req_context.set(
         RequestContextVars(
             x_forwarded_for=web.ctx.env.get("HTTP_X_FORWARDED_FOR"),
@@ -265,6 +293,7 @@ def set_context_from_fastapi(request: Request) -> None:
 
     site.set(s)
     rendered_keys.set(set())
+    visitor.set(_visitor(cookie_value))
     req_context.set(
         RequestContextVars(
             x_forwarded_for=request.headers.get("X-Forwarded-For"),
