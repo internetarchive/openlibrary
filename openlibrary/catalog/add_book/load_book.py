@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict, cast
+from typing import TYPE_CHECKING, Any, NotRequired, TypedDict, cast
 
 from pydantic import TypeAdapter, ValidationError
 
@@ -17,62 +17,6 @@ if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Author
 
 logger = logging.getLogger("openlibrary.catalog.add_book.load_book")
-
-# Sort by descending length to remove the _longest_ match.
-# E.g. remove "señorita" and not "señor", when both match.
-HONORIFICS: Final = sorted(
-    [
-        "countess",
-        "doctor",
-        "doktor",
-        "dr",
-        "dr.",
-        "frau",
-        "fräulein",
-        "herr",
-        "lady",
-        "lord",
-        "m.",
-        "madame",
-        "mademoiselle",
-        "miss",
-        "mister",
-        "mistress",
-        "mixter",
-        "mlle",
-        "mlle.",
-        "mme",
-        "mme.",
-        "monsieur",
-        "mr",
-        "mr.",
-        "mrs",
-        "mrs.",
-        "ms",
-        "ms.",
-        "mx",
-        "mx.",
-        "professor",
-        "señor",
-        "señora",
-        "señorita",
-        "sir",
-        "sr.",
-        "sra.",
-        "srta.",
-    ],
-    key=len,
-    reverse=True,
-)
-
-HONORIFC_NAME_EXECPTIONS = frozenset(
-    {
-        "dr. seuss",
-        "dr seuss",
-        "dr oetker",
-        "doctor oetker",
-    }
-)
 
 
 def east_in_by_statement(rec: dict[str, Any], author: dict[str, Any]) -> bool:
@@ -99,7 +43,8 @@ class AuthorImportDict(TypedDict):
     """
     Keys expected in the author import dict.
 
-    TODO: Make https://github.com/internetarchive/openlibrary/blob/master/openlibrary/schemata/import.schema.json#L135 consistent with this
+    TODO: Make https://github.com/internetarchive/openlibrary/blob/master/openlibrary/schemata/import.schema.json
+          #/definitions/import_author consistent with this
     """
 
     name: str
@@ -269,27 +214,6 @@ def find_entity(author: AuthorImportDict) -> Author | None:
     return things[0] if things else None
 
 
-def remove_author_honorifics(name: str) -> str:
-    """
-    Remove honorifics from an author's name field.
-
-    If the author's name is only an honorific, it will return the original name.
-    """
-    if name.casefold() in HONORIFC_NAME_EXECPTIONS:
-        return name
-
-    if honorific := next(
-        (
-            honorific
-            for honorific in HONORIFICS
-            if name.casefold().startswith(f"{honorific} ")  # Note the trailing space.
-        ),
-        None,
-    ):
-        return name[len(f"{honorific} ") :].lstrip() or name
-    return name
-
-
 def author_import_record_to_author(author_import_record_dict: dict, eastern=False) -> Author | dict[str, Any]:
     """
     Converts an import style new-author dictionary into an
@@ -359,7 +283,6 @@ def import_record_to_edition(rec: dict[str, Any]) -> dict[str, Any]:
             if v and v[0]:
                 book["authors"] = []
                 for author in v:
-                    author["name"] = remove_author_honorifics(author["name"])
                     east = east_in_by_statement(rec, author)
                     book["authors"].append(author_import_record_to_author(author, eastern=east))
             continue
