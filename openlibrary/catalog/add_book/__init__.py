@@ -756,9 +756,9 @@ def load_data(  # noqa: PLR0912, PLR0915
         reply["preview"] = True
         reply["edits"] = edits
 
-    # edition.authors may have passed through `author_import_record_to_author` in `build_query`,
-    # but not necessarily
-    author_in = [(author_import_record_to_author(a, eastern=east_in_by_statement(rec, a)) if isinstance(a, dict) else a) for a in edition.get("authors", [])]
+    # edition.authors have passed through `author_import_record_to_author()` in `import_record_to_edition()` above
+    # author_in = [(author_import_record_to_author(a, eastern=east_in_by_statement(rec, a)) if isinstance(a, dict) else a) for a in edition.get("authors", [])]
+    author_in = edition.get("authors", [])
     # build_author_reply() adds authors to edits
     authors, author_reply = load_author_import_records(author_in, edits, rec["source_records"][0], save=save)
 
