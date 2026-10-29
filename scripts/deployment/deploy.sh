@@ -375,12 +375,10 @@ tag_deploy() {
 }
 
 tag_release() {
-    local REPO_DIR="${DEPLOY_DIR}/openlibrary"
-    if [ ! -d "$REPO_DIR/.git" ]; then
-        REPO_DIR="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
-        echo "[Warning] Deploy clone not found; reading tags from local repo at $REPO_DIR"
-    fi
-    LATEST_TAG_NAME=$(git -C "$REPO_DIR" describe --tags --abbrev=0)
+    # Read from GitHub, not a local repo: the deploy clone is gone if the wizard is re-run
+    # after a deploy, and the local checkout may not have fetched the new tag.
+    LATEST_TAG_NAME=$(git ls-remote --tags --refs git@github.com:internetarchive/openlibrary.git 'deploy-*' \
+        | sed 's|.*refs/tags/||' | grep -E '^deploy-[0-9]{4}-[0-9]{2}-[0-9]{2}-at-[0-9]{2}-[0-9]{2}$' | sort | tail -1)
     echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
 }
 
