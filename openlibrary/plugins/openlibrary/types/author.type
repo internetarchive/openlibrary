@@ -44,16 +44,6 @@
         },
         {
             "expected_type": {
-                "key": "/type/boolean"
-            },
-            "unique": true,
-            "type": {
-                "key": "/type/property"
-            },
-            "name": "eastern_order"
-        },
-        {
-            "expected_type": {
                 "key": "/type/string"
             },
             "unique": true,
