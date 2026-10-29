@@ -462,6 +462,12 @@ class TestWorkSolrBuilderTags:
         assert wsb.subgenre_key == []
         assert wsb.audience_key == []
 
+    def test_ignores_singular_genre_tag_type(self):
+        tags = [make_tag(tag_type="genre", name="Cyberpunk", key="/tags/OL84T")]
+        wsb = make_work_solr_builder_with_tags(make_work(), tags)
+        assert wsb.genre_key == []
+        assert wsb.genre_name == []
+
     def test_separates_tag_types(self):
         tags = [
             make_tag(tag_type="genres", name="Horror", key="/tags/OL171T"),
