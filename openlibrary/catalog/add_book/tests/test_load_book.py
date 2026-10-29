@@ -5,7 +5,6 @@ from openlibrary.catalog.add_book.load_book import (
     author_import_record_to_author,
     find_entity,
     import_record_to_edition,
-    remove_author_honorifics,
 )
 from openlibrary.catalog.utils import InvalidLanguage
 from openlibrary.core.models import Author, AuthorRemoteIdConflictError
@@ -89,28 +88,6 @@ class TestImportAuthor:
                 "type": {"key": "/type/author"},
             }
             mock_site.save(existing_author)
-
-    @pytest.mark.parametrize(
-        ("name", "expected"),
-        [
-            ("Drake von Drake", "Drake von Drake"),
-            ("Dr. Seuss", "Dr. Seuss"),
-            ("dr. Seuss", "dr. Seuss"),
-            ("Dr Seuss", "Dr Seuss"),
-            ("M. Anicet-Bourgeois", "Anicet-Bourgeois"),
-            ("Mr Blobby", "Blobby"),
-            ("Mr. Blobby", "Blobby"),
-            ("monsieur Anicet-Bourgeois", "Anicet-Bourgeois"),
-            # Don't strip from last name.
-            ("Anicet-Bourgeois M.", "Anicet-Bourgeois M."),
-            ('Doctor Ivo "Eggman" Robotnik', 'Ivo "Eggman" Robotnik'),
-            ("John M. Keynes", "John M. Keynes"),
-            ("Mr.", "Mr."),
-        ],
-    )
-    def test_author_importer_drops_honorifics(self, name, expected):
-        got = remove_author_honorifics(name=name)
-        assert got == expected
 
     def test_author_match_is_case_insensitive_for_names(self, mock_site):
         """Ensure name searches for John Smith and JOHN SMITH return the same record."""

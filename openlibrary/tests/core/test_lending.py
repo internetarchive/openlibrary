@@ -248,12 +248,11 @@ class TestGetLoanHistoryData:
         response.json.return_value = {"history": {"items": []}}
         with (
             patch.object(lending.OpenLibraryAccount, "get_by_username", return_value=Mock()),
-            patch("openlibrary.core.lending.web.cookies", return_value={"s3": "irrelevant"}),
             patch("openlibrary.core.lending.parse_s3_cookie", return_value=None),
             patch("openlibrary.core.lending.s3_loan_api", return_value=response) as mock_api,
             patch("openlibrary.core.lending.get_items_and_add_availability", return_value={}),
         ):
-            result = lending.get_loan_history_data("someuser", page=1)
+            result = lending.get_loan_history_data("someuser", page=1, s3_cookie="irrelevant")
 
         # Must short-circuit: calling the real s3_loan_api with None keys raises
         # TypeError on `s3_keys | kwargs`, which 500s /account/loans.
@@ -273,12 +272,21 @@ class TestGetLoanHistoryData:
         response.json.return_value = {"history": {"items": []}}
         with (
             patch.object(lending.OpenLibraryAccount, "get_by_username", return_value=Mock()),
-            patch("openlibrary.core.lending.web.cookies", return_value={"s3": "irrelevant"}),
             patch("openlibrary.core.lending.parse_s3_cookie", return_value={"access": "a", "secret": "s"}),
             patch("openlibrary.core.lending.s3_loan_api", return_value=response) as mock_api,
             patch("openlibrary.core.lending.get_items_and_add_availability", return_value={}),
         ):
-            result = lending.get_loan_history_data("someuser", page=1)
+            result = lending.get_loan_history_data("someuser", page=1, s3_cookie="irrelevant")
 
         mock_api.assert_called_once()
         assert result["docs"] == []
+
+    def test_unknown_account_raises_account_not_found(self):
+        with (
+            patch.object(lending.OpenLibraryAccount, "get_by_username", return_value=None),
+            patch("openlibrary.core.lending.s3_loan_api") as mock_api,
+            pytest.raises(lending.AccountNotFoundError),
+        ):
+            lending.get_loan_history_data("nobody", page=1, s3_cookie="irrelevant")
+
+        mock_api.assert_not_called()

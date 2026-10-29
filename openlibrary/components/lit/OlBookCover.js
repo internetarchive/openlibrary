@@ -36,6 +36,8 @@ export const DEFAULT_LABELS = {
  * @prop {String} size - "medium" (default) or "small"; small drops the author
  *     from the blank cover, which has no room for it
  * @prop {Boolean} deferred - Holds the artwork back until removed (ol-carousel removes it near view)
+ * @prop {Boolean} loading - Darkens the cover under a spinner; set by a plain click on the
+ *     link while the next page loads, cleared when the page is restored from the bfcache
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
  *
  * @slot overlay - Pinned to the cover's top-right corner, over the artwork
@@ -51,6 +53,7 @@ export class OlBookCover extends LitElement {
         href: { type: String },
         size: { type: String, reflect: true },
         deferred: { type: Boolean, reflect: true },
+        loading: { type: Boolean, reflect: true },
         labels: { type: Object },
         _ratio: { state: true }
     };
@@ -74,6 +77,7 @@ export class OlBookCover extends LitElement {
 
         /* The slot is 150% as tall as wide, so 150% × ratio caps a tall cover at the slot's height. */
         .frame,
+        .spinner,
         .corner {
             grid-area: 1 / 1;
             box-sizing: border-box;
@@ -160,6 +164,53 @@ export class OlBookCover extends LitElement {
             :host([href]) .frame,
             :host([href]) .link {
                 transition: none;
+            }
+        }
+
+        /* Pressed → next page loading. Mirrors the search modal's pressed result:
+           the cover darkens under a white ring spinner. */
+        :host([href][loading]) .link {
+            filter: brightness(0.5);
+        }
+
+        /* Positioned so it paints over the (positioned) frame. */
+        .spinner {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--duration-fast) var(--ease-enter);
+        }
+
+        .spinner::before {
+            content: '';
+            box-sizing: border-box;
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--color-text-inverse);
+            border-right-color: transparent;
+            border-radius: var(--border-radius-circle);
+        }
+
+        :host([loading]) .spinner {
+            opacity: 1;
+        }
+
+        :host([loading]) .spinner::before {
+            animation: ol-book-cover-spin 0.7s linear infinite;
+        }
+
+        @keyframes ol-book-cover-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            :host([loading]) .spinner::before {
+                animation-duration: 2s;
             }
         }
 
@@ -261,8 +312,21 @@ export class OlBookCover extends LitElement {
         this.href = '';
         this.size = 'medium';
         this.deferred = false;
+        this.loading = false;
         this.labels = {};
         this._ratio = 0;
+        // The back button can restore this page from the bfcache mid-load.
+        this._onPageShow = () => (this.loading = false);
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        window.addEventListener('pageshow', this._onPageShow);
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener('pageshow', this._onPageShow);
     }
 
     t(key, vars) {
@@ -282,7 +346,7 @@ export class OlBookCover extends LitElement {
         const ratio = hasArt && this._ratio ? `--_ratio: ${this._ratio}` : nothing;
         return html`
             <ol-tooltip placement="top" arrow style=${ratio}>
-                ${art}
+                ${art}${this.href ? html`<span class="spinner" aria-hidden="true"></span>` : nothing}
                 <div class="corner">
                     <slot name="overlay" @pointerdown=${this._hideTip} @ol-popover-open=${this._onOverlayOpen} @ol-popover-close=${this._onOverlayClose}></slot>
                 </div>
@@ -357,7 +421,12 @@ export class OlBookCover extends LitElement {
         this.removeAttribute('link-focus');
     }
 
-    _onClick() {
+    _onClick(e) {
+        // Modified clicks open a new tab and leave this page where it is.
+        if (!e.defaultPrevented && e.button === 0 && !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)) {
+            this.loading = true;
+            this._hideTip();
+        }
         this.dispatchEvent(
             new CustomEvent('ol-book-cover-click', {
                 bubbles: true,

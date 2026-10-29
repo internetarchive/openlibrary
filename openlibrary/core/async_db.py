@@ -38,7 +38,7 @@ from collections.abc import AsyncIterator
 from contextlib import AbstractContextManager, AsyncExitStack, asynccontextmanager, nullcontext, suppress
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Self, cast
+from typing import TYPE_CHECKING, Any, Self, cast, overload
 
 import web
 from psycopg import AsyncCursor
@@ -130,8 +130,11 @@ async def _open_pool() -> Pool | None:
         AsyncConnectionPool(
             kwargs={**_connection_kwargs(db_parameters), "row_factory": dict_row, "cursor_factory": TimedCursor},
             open=False,
-            min_size=4,
-            max_size=20,
+            # Every worker has its own pool, and all of them share pgbouncer's 90 server
+            # connections with web.py and Infobase (olsystem etc/pgbouncer/pgbouncer.ini).
+            # At 20 per worker, a burst of Books API traffic took them all (#14124).
+            min_size=1,
+            max_size=2,
             # Re-check connections before checkout, so restarts and idle timeouts do not hand out dead ones.
             check=AsyncConnectionPool.check_connection,
             name=f"async-db-{next(_pool_names)}",
@@ -241,6 +244,10 @@ async def execute(query: str, params: dict[str, Any] | None = None) -> None:
         await _run(conn, query, params, None)
 
 
+@overload
+async def fetch_all(query: str, params: dict[str, Any] | None = None) -> list[dict[str, Any]]: ...
+@overload
+async def fetch_all[T](query: str, params: dict[str, Any] | None = None, *, row_factory: BaseRowFactory[T]) -> list[T]: ...
 async def fetch_all(
     query: str,
     params: dict[str, Any] | None = None,
@@ -253,6 +260,10 @@ async def fetch_all(
         return await cursor.fetchall()
 
 
+@overload
+async def fetch_one(query: str, params: dict[str, Any] | None = None) -> dict[str, Any] | None: ...
+@overload
+async def fetch_one[T](query: str, params: dict[str, Any] | None = None, *, row_factory: BaseRowFactory[T]) -> T | None: ...
 async def fetch_one(
     query: str,
     params: dict[str, Any] | None = None,

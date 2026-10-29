@@ -11,7 +11,7 @@ import web
 
 from infogami.utils.delegate import register_exception
 from openlibrary.core import helpers as h
-from openlibrary.core import lending
+from openlibrary.core import infobase_async, lending
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -117,15 +117,16 @@ def split_key(bib_key: str) -> tuple[str | None, str | None]:
     return key, value
 
 
-def ol_query(name: str, value: str) -> str | None:
+async def ol_query(name: str, value: str) -> str | None:
     query = {
         "type": "/type/edition",
         name: value,
     }
-    if keys := web.ctx.site.things(query):
-        return keys[0]
-    else:
-        return None
+    try:
+        keys = await infobase_async.things(query)
+    except infobase_async.UnsupportedQuery:
+        keys = web.ctx.site.things(query)
+    return keys[0] if keys else None
 
 
 # TODO: Wrong type; can be any infobase Thing
@@ -151,14 +152,14 @@ def ol_get_many(keys: Iterable[str]) -> list[OpenLibraryEdition]:
     return [doc.dict() for doc in web.ctx.site.get_many(keys)]
 
 
-def query_keys(bib_keys: Iterable[str]) -> dict[str, str]:
+async def query_keys(bib_keys: Iterable[str]) -> dict[str, str]:
     """Given a list of bibkeys, returns a mapping from bibkey to OL key.
 
     >> query(["isbn:1234567890"])
     {"isbn:1234567890": "/books/OL1M"}
     """
 
-    def query(bib_key):
+    async def query(bib_key):
         name, value = split_key(bib_key)
         if name is None:
             return None
@@ -166,15 +167,15 @@ def query_keys(bib_keys: Iterable[str]) -> dict[str, str]:
             return value
         else:
             assert value is not None
-            return ol_query(name, value)
+            return await ol_query(name, value)
 
-    d = {bib_key: query(bib_key) for bib_key in bib_keys}
+    d = {bib_key: await query(bib_key) for bib_key in bib_keys}
     return {k: v for k, v in d.items() if v is not None}
 
 
-def query_docs(bib_keys: Iterable[str]) -> dict[str, OpenLibraryEdition]:
+async def query_docs(bib_keys: Iterable[str]) -> dict[str, OpenLibraryEdition]:
     """Given a list of bib_keys, returns a mapping from bibkey to OL doc."""
-    mapping = query_keys(bib_keys)
+    mapping = await query_keys(bib_keys)
     thingdict = ol_get_many_as_dict(uniq(mapping.values()))
     return {bib_key: thingdict[key] for bib_key, key in mapping.items() if key in thingdict}
 
@@ -589,7 +590,7 @@ async def dynlinks(bib_keys: Iterable[str], options: DynlinksOptions, base_url: 
     high_priority = options.get("high_priority", False)
 
     try:
-        edition_dicts = query_docs(bib_keys)
+        edition_dicts = await query_docs(bib_keys)
 
         # For any ISBN bib_keys without hits, attempt to import+use immediately if
         # `high_priority`. Otherwise, queue them for lookup via the AMZ Products
