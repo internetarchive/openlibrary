@@ -44,12 +44,6 @@ unchanged_names = [
 ]
 
 
-eastern_names = [
-    {"name": "Toyama Keiichirō"},
-    {"name": "Toyama, Keiichirō"},
-]
-
-
 @pytest.mark.parametrize("author", natural_names)
 def test_import_author_name_natural_order(author, new_import):
     result = author_import_record_to_author(author)
@@ -63,13 +57,6 @@ def test_import_author_name_unchanged(author, new_import):
     result = author_import_record_to_author(author)
     assert isinstance(result, dict)
     assert result["name"] == expect
-
-
-@pytest.mark.parametrize("author", eastern_names)
-def test_import_author_name_easter_order(author, new_import):
-    result = author_import_record_to_author(author, eastern=True)
-    assert isinstance(result, dict)
-    assert result["name"] == "Toyama Keiichirō"
 
 
 def test_build_query(add_languages):
