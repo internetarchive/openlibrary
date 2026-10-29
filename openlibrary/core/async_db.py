@@ -130,8 +130,11 @@ async def _open_pool() -> Pool | None:
         AsyncConnectionPool(
             kwargs={**_connection_kwargs(db_parameters), "row_factory": dict_row, "cursor_factory": TimedCursor},
             open=False,
-            min_size=4,
-            max_size=20,
+            # Every worker has its own pool, and all of them share pgbouncer's 90 server
+            # connections with web.py and Infobase (olsystem etc/pgbouncer/pgbouncer.ini).
+            # At 20 per worker, a burst of Books API traffic took them all (#14124).
+            min_size=1,
+            max_size=2,
             # Re-check connections before checkout, so restarts and idle timeouts do not hand out dead ones.
             check=AsyncConnectionPool.check_connection,
             name=f"async-db-{next(_pool_names)}",
