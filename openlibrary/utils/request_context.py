@@ -61,10 +61,11 @@ class Visitor:
     is_librarian: bool = False  # set by User.is_librarian_or_higher(), which every HTML page's header calls
 
     @property
-    def label(self) -> Literal["anonymous", "user", "librarian"]:
+    def label(self) -> Literal["anonymous", "logged_in", "librarian"]:
+        """``logged_in`` means logged in but not a librarian; ``librarian`` is librarian or higher."""
         if not self.user_key:
             return "anonymous"
-        return "librarian" if self.is_librarian else "user"
+        return "librarian" if self.is_librarian else "logged_in"
 
 
 visitor: ContextVar[Visitor | None] = ContextVar("visitor", default=None)
