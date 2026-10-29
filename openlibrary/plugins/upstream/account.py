@@ -43,7 +43,7 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.carousels import get_carousel_data
 from openlibrary.core.db import get_db  # noqa: TID251
 from openlibrary.core.follows import PubSub
-from openlibrary.core.lending import get_loan_history_data
+from openlibrary.core.lending import AccountNotFoundError, get_loan_history_data
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.i18n import gettext as _
@@ -1256,9 +1256,9 @@ def get_account_loans_json(user: User) -> dict[str, Any]:
     return {"loans": loans}
 
 
-def get_account_loan_history_json(user: User, page: int) -> dict[str, Any]:
+def get_account_loan_history_json(user: User, page: int, s3_cookie: str | None) -> dict[str, Any]:
     username = user["key"].split("/")[-1]
-    loan_history_data = dict(get_loan_history_data(username, page=page))
+    loan_history_data = dict(get_loan_history_data(username, page=page, s3_cookie=s3_cookie))
     # Ensure all `docs` are `dicts`, as some are `Edition`s.
     loan_history_data["docs"] = [loan.dict() if not isinstance(loan, dict) else loan for loan in loan_history_data["docs"]]
     return {"loans_history": loan_history_data}
@@ -1293,7 +1293,10 @@ class account_loans(delegate.page):
         provider = lenny.provider_loans(username)
         docs = list(docs) + provider.loans
 
-        loan_history_data = get_loan_history_data(username, page=page)
+        try:
+            loan_history_data = get_loan_history_data(username, page=page, s3_cookie=web.cookies().get("s3"))
+        except AccountNotFoundError as e:
+            raise render.notfound(str(e), create=False)
 
         staff_picks = get_carousel_data(carousels=("staff_picks",))["staff_picks"]
 
@@ -1346,8 +1349,12 @@ class account_loan_history_json(delegate.page):
         i = web.input(page=1)
         page = int(i.page)
         user = accounts.get_current_user()
+        try:
+            data = get_account_loan_history_json(user, page, s3_cookie=web.cookies().get("s3"))
+        except AccountNotFoundError as e:
+            raise render.notfound(str(e), create=False)
         web.header("Content-Type", "application/json")
-        return delegate.RawText(json.dumps(get_account_loan_history_json(user, page)))
+        return delegate.RawText(json.dumps(data))
 
 
 class account_waitlist(delegate.page):
