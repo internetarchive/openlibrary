@@ -20,6 +20,8 @@ from . import db
 
 logger = logging.getLogger(__name__)
 
+ReadingLogSort = Literal["created asc", "created desc", "title", "old", "rating", "want_to_read"]
+
 
 class WorkReadingLogSummary(TypedDict):
     want_to_read: int
@@ -35,6 +37,8 @@ class Bookshelves(db.CommonExtras):
     ALLOW_DELETE_ON_CONFLICT = True
 
     PRESET_BOOKSHELVES_JSON: MappingProxyType[str, int] = MappingProxyType({"want_to_read": 1, "currently_reading": 2, "already_read": 3, "stopped_reading": 4})
+
+    SOLR_SORT_FIELDS: MappingProxyType[str, str | None] = MappingProxyType({"title": None, "old": "first_publish_year", "want_to_read": "want_to_read_count"})
 
     @classmethod
     def summary(cls):
@@ -338,13 +342,66 @@ class Bookshelves(db.CommonExtras):
                 )
 
     @classmethod
+    async def get_shelf_page_sorted_by_solr(cls, reading_log_books: list[dict], sort: ReadingLogSort, offset: int, limit: int) -> list[dict] | None:
+        """
+        Get one page of a shelf sorted by a Solr field. Books without a value for
+        that field, or not in Solr, go after the rest, newest added first.
+        Returns None if Solr fails.
+        """
+        from openlibrary.plugins.worksearch.code import run_solr_query_async
+
+        books_by_key = {f"/works/OL{book['work_id']}W": book for book in reading_log_books}
+        if not books_by_key:
+            return []
+
+        filter_queries = [("fq", "{!terms f=key}" + ",".join(books_by_key))]
+        if field := cls.SOLR_SORT_FIELDS[sort]:
+            filter_queries.append(("fq", f"{field}:[* TO *]"))
+
+        async def get_solr_keys(**kwargs) -> tuple[list[str], int] | None:
+            solr_resp = await run_solr_query_async(
+                scheme=WorkSearchScheme(),
+                param={"q": "*:*"},
+                fields=["key"],
+                facet=False,
+                spellcheck_count=0,
+                extra_params=filter_queries,
+                request_label="READING_LOG_SORT",
+                **kwargs,
+            )
+            if solr_resp.error or solr_resp.num_found is None:
+                logger.error(f"Reading log sort {sort!r} failed, falling back to date added: {solr_resp.error or 'no response from Solr'}")
+                return None
+            # A timeAllowed cutoff returns a normal-looking response with only some docs.
+            if solr_resp.raw_resp.get("responseHeader", {}).get("partialResults"):
+                logger.error(f"Reading log sort {sort!r} got partial results from Solr, falling back to date added")
+                return None
+            return [doc["key"] for doc in solr_resp.docs], solr_resp.num_found
+
+        if (sorted_page := await get_solr_keys(rows=limit, offset=offset, sort=f"{sort},key")) is None:
+            return None
+        page_keys, num_sorted = sorted_page
+        page_books = [books_by_key[key] for key in page_keys]
+        if offset + limit <= num_sorted or num_sorted == len(books_by_key):
+            return page_books
+
+        sorted_keys: set[str] = set()
+        if num_sorted:
+            if (all_sorted := await get_solr_keys(rows=num_sorted)) is None:
+                return None
+            sorted_keys = set(all_sorted[0])
+        unsorted_books = [book for key, book in books_by_key.items() if key not in sorted_keys]
+        unsorted_offset = max(offset - num_sorted, 0)
+        return page_books + unsorted_books[unsorted_offset : unsorted_offset + limit - len(page_books)]
+
+    @classmethod
     async def get_users_logged_books(
         cls,
         username: str,
         bookshelf_id: int = 0,
         limit: int = 100,
         page: int = 1,  # Not zero-based counting!
-        sort: Literal["created asc", "created desc"] = "created desc",
+        sort: ReadingLogSort = "created desc",
         checkin_year: int | None = None,
         q: str = "",
         fq: list[str] | None = None,
@@ -470,7 +527,7 @@ class Bookshelves(db.CommonExtras):
 
         async def get_sorted_reading_log_books(
             query_params: dict[str, str | int | None],
-            sort: Literal["created asc", "created desc"],
+            sort: ReadingLogSort,
             checkin_year: int | None,
         ):
             """
@@ -492,6 +549,20 @@ class Bookshelves(db.CommonExtras):
                 AND e.event_date LIKE %(checkin_year)s
                 ORDER BY b.created DESC
                 """
+            elif sort == "rating":
+                query = (
+                    "SELECT b.work_id, b.created, b.edition_id FROM bookshelves_books b "
+                    "LEFT JOIN ratings r ON r.username = b.username AND r.work_id = b.work_id "
+                    "WHERE b.bookshelf_id = %(bookshelf_id)s AND b.username = %(username)s "
+                    "ORDER BY r.rating DESC NULLS LAST, b.created DESC, b.work_id DESC "
+                    "LIMIT %(limit)s OFFSET %(offset)s"
+                )
+            elif sort in cls.SOLR_SORT_FIELDS:
+                query = (
+                    "SELECT work_id, created, edition_id FROM bookshelves_books WHERE "
+                    "bookshelf_id = %(bookshelf_id)s AND username = %(username)s "
+                    "ORDER BY created DESC, work_id DESC"
+                )
             else:
                 query = (
                     "SELECT work_id, created, edition_id FROM bookshelves_books WHERE "
@@ -508,6 +579,15 @@ class Bookshelves(db.CommonExtras):
             elif checkin_year:
                 query_params["checkin_year"] = f"{checkin_year}%"
             reading_log_books = await fetch_all(query, query_params)
+
+            if checkin_year:
+                sort = "created desc"
+            elif bookshelf_id and sort in cls.SOLR_SORT_FIELDS:
+                offset = int(query_params["offset"] or 0)
+                if (page_books := await cls.get_shelf_page_sorted_by_solr(reading_log_books, sort, offset, limit)) is None:
+                    sort = "created desc"
+                    page_books = reading_log_books[offset : offset + limit]
+                reading_log_books = page_books
 
             reading_log_keys = [
                 (["/works/OL%sW" % i["work_id"], "/books/OL%sM" % i["edition_id"]] if i["edition_id"] else ["/works/OL%sW" % i["work_id"], ""])
@@ -534,6 +614,7 @@ class Bookshelves(db.CommonExtras):
                 total_results=total_results,
                 shelf_totals=shelf_totals,
                 docs=solr_docs,
+                sort=sort,
             )
 
         if q or fq:
@@ -658,6 +739,19 @@ class Bookshelves(db.CommonExtras):
                 {"username": username, "work_id": int(work_id)},
             )
         return deleted.rowcount or None
+
+    @classmethod
+    async def most_logged_editions(cls, limit: int) -> list[dict]:
+        """The editions most often named when a book is shelved, as ``edition_id``, ``work_id`` and ``readers``. Scans the whole table."""
+        query = (
+            f"SELECT edition_id, work_id, count(*) AS readers FROM {cls.TABLENAME} "
+            "WHERE edition_id IS NOT NULL GROUP BY edition_id, work_id ORDER BY readers DESC LIMIT %(limit)s"
+        )
+        return await fetch_all(query, {"limit": limit})
+
+    @classmethod
+    def most_logged_editions_sync(cls, limit: int) -> list[dict]:
+        return async_bridge.run(cls.most_logged_editions(limit))
 
     @classmethod
     async def get_num_users_by_bookshelf_by_work_id(cls, work_id: str) -> dict[int, int]:

@@ -5,13 +5,11 @@ from typing import Literal
 
 import web
 
-from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import render_template, require_login
 from openlibrary import accounts
 from openlibrary.core.edits import ApiMode, CommunityEditsQueue, get_status_for_view
 from openlibrary.utils.request_context import site
-from openlibrary.utils.retry import RetryStrategy
 
 # Usergroups that may use create or update merge requests
 ALLOWED_USERGROUPS: list[str] = [
@@ -38,30 +36,25 @@ def process_merge_request(rtype, data):
     return resp
 
 
-async def perform_merge_update(mrid: int | None, olids: str, comment: str | None) -> None:
-    """Async FastAPI path for updating the merge queue without sync SQL."""
+async def perform_merge_update(username: str, mrid: int | None, olids: str, comment: str | None) -> None:
+    """Close the given merge request, or record a new already-merged author merge request."""
+    if mrid:
+        await CommunityEditsQueue.update_request_status(mrid, CommunityEditsQueue.STATUS["MERGED"], username, comment)
+        return
 
-    async def update_request() -> None:
-        username = accounts.get_current_user()["key"].split("/")[-1]
-        if mrid:
-            await CommunityEditsQueue.update_request_status(mrid, CommunityEditsQueue.STATUS["MERGED"], username, comment)
-            return
-
-        olid_list = olids.split(",")
-        title = community_edits_queue.create_title(CommunityEditsQueue.TYPE["AUTHOR_MERGE"], olid_list)
-        url = community_edits_queue.create_url(CommunityEditsQueue.TYPE["AUTHOR_MERGE"], olid_list)
-        await CommunityEditsQueue.submit_request(
-            url,
-            username,
-            reviewer=username,
-            status=CommunityEditsQueue.STATUS["MERGED"],
-            title=title,
-            comment=comment,
-            mr_type=CommunityEditsQueue.TYPE["AUTHOR_MERGE"],
-            unique_url=True,
-        )
-
-    await RetryStrategy([ClientException], max_retries=5, delay=2).async_call(update_request)
+    olid_list = olids.split(",")
+    title = community_edits_queue.create_title(CommunityEditsQueue.TYPE["AUTHOR_MERGE"], olid_list)
+    url = community_edits_queue.create_url(CommunityEditsQueue.TYPE["AUTHOR_MERGE"], olid_list)
+    await CommunityEditsQueue.submit_request(
+        url,
+        username,
+        reviewer=username,
+        status=CommunityEditsQueue.STATUS["MERGED"],
+        title=title,
+        comment=comment,
+        mr_type=CommunityEditsQueue.TYPE["AUTHOR_MERGE"],
+        unique_url=True,
+    )
 
 
 class community_edits_queue(delegate.page):

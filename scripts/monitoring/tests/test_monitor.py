@@ -63,6 +63,29 @@ def test_monitor_nginx_logs_still_submits_other_when_nothing_is_promoted(monitor
     assert [(e.path, e.value) for e in submitted] == [("stats.ol.bot_traffic.other", 3.0)]
 
 
+@pytest.mark.parametrize(
+    ("hostname", "expected"),
+    [
+        ("ol-www0.us.archive.org", ["log_recent_bot_statuses stats.ol.bot_status"]),
+        ("ol-covers0.us.archive.org", []),
+    ],
+)
+def test_monitor_nginx_logs_logs_bot_statuses_only_on_www(monitor, submitted, monkeypatch, hostname, expected):
+    monkeypatch.setenv("HOSTNAME", hostname)
+    monitor = importlib.reload(monitor)
+    commands: list[str] = []
+
+    def fake_bash_run(cmd, **_kwargs):
+        commands.append(cmd.strip())
+        return types.SimpleNamespace(stdout="")
+
+    monkeypatch.setattr(monitor, "bash_run", fake_bash_run)
+
+    monitor.monitor_nginx_logs()
+
+    assert [c for c in commands if c.startswith("log_recent_bot_statuses")] == expected
+
+
 def test_monitor_partner_useragents_promotes_a_new_partner_past_the_pinned_list(monitor, submitted, monkeypatch):
     _stub_bash(
         monkeypatch,

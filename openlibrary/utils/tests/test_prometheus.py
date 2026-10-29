@@ -3,6 +3,7 @@ import web
 from prometheus_client import CollectorRegistry
 
 from openlibrary.utils import prometheus
+from openlibrary.utils.request_context import Visitor, set_context_from_legacy_web_py, visitor
 from openlibrary.utils.sentry import InfogamiRoute
 
 
@@ -87,6 +88,11 @@ def app(registry, monkeypatch):
         def GET(self, name=""):
             if name == "missing":
                 raise web.notfound()
+            if name == "old":
+                raise web.seeother("/things/new")
+            web.header("Content-Type", "text/html; charset=utf-8")
+            if name == "librarian":  # as setup_contextvars and then the page header would
+                visitor.set(Visitor(user_key="/people/alice", is_librarian=True))
             return "hello"
 
         def POST(self, name=""):
@@ -101,8 +107,8 @@ def app(registry, monkeypatch):
     return app
 
 
-def requests_total(registry, handler, status="200"):
-    labels = {"method": "GET", "status": status, "handler": handler, "server": "webpy"}
+def requests_total(registry, handler, status="200", visitor="anonymous", response_type="html"):
+    labels = {"method": "GET", "status": status, "handler": handler, "server": "webpy", "visitor": visitor, "response_type": response_type}
     return registry.get_sample_value("http_requests_total", labels)
 
 
@@ -113,7 +119,7 @@ def test_webpy_records_fastapi_metrics(app, registry):
 
     assert requests_total(registry, "/things/{key}") == 2
     assert requests_total(registry, "/things/{key}", status="404") == 1
-    labels = {"method": "GET", "handler": "/things/{key}", "server": "webpy"}
+    labels = {"method": "GET", "handler": "/things/{key}", "server": "webpy", "visitor": "anonymous", "response_type": "html"}
     assert registry.get_sample_value("http_request_duration_seconds_count", labels) == 3
     assert registry.get_sample_value("http_request_duration_seconds_bucket", labels | {"le": "60.0"}) == 3
     assert registry.get_sample_value("http_response_size_bytes_sum", {"handler": "/things/{key}", "server": "webpy"}) >= 2 * len("hello")
@@ -128,7 +134,7 @@ def test_webpy_finds_the_route_before_the_handler_changes_the_path(app, registry
     monkeypatch.setattr(prometheus, "find_infogami_route", lambda: InfogamiRoute(web.ctx.path))
     monkeypatch.setattr(prometheus, "infogami_route_name", lambda route, requested_path: route.route)
     app.request("/things/new", method="POST")
-    labels = {"method": "POST", "status": "200", "handler": "/things/new", "server": "webpy"}
+    labels = {"method": "POST", "status": "200", "handler": "/things/new", "server": "webpy", "visitor": "anonymous", "response_type": "other"}
     assert registry.get_sample_value("http_requests_total", labels) == 1
 
 
@@ -136,3 +142,51 @@ def test_webpy_skips_excluded_handlers(app, registry, monkeypatch):
     monkeypatch.setattr(prometheus, "infogami_route_name", lambda route, requested_path: "/metrics")
     app.request("/things/a")
     assert requests_total(registry, "/metrics") is None
+
+
+@pytest.mark.parametrize(("path", "label"), [("/things/a", "anonymous"), ("/things/librarian", "librarian")])
+def test_webpy_records_the_visitor(app, registry, path, label):
+    # A previous request's visitor, which mustn't be counted for this one
+    token = visitor.set(Visitor(user_key="/people/previous", is_librarian=True))
+    try:
+        app.request(path)
+    finally:
+        visitor.reset(token)
+
+    assert requests_total(registry, "/things/{key}", visitor=label) == 1
+    labels = {"method": "GET", "handler": "/things/{key}", "server": "webpy", "visitor": label, "response_type": "html"}
+    assert registry.get_sample_value("http_request_duration_seconds_count", labels) == 1
+
+
+def test_webpy_labels_bots_from_the_request_context(app, registry):
+    def setup_contextvars():  # as openlibrary/plugins/openlibrary/code.py does
+        web.ctx.site = None
+        set_context_from_legacy_web_py()
+
+    app.add_processor(web.loadhook(setup_contextvars))
+    app.request("/things/a", env={"HTTP_USER_AGENT": "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"})
+    assert requests_total(registry, "/things/{key}", visitor="bot") == 1
+
+
+@pytest.mark.parametrize(
+    ("status", "content_type", "expected"),
+    [
+        ("303", "text/html", "redirect"),  # web.py's redirects say text/html
+        ("200", "text/html; charset=utf-8", "html"),
+        ("404", "text/html", "html"),
+        ("200", "application/json", "json"),
+        ("200", "application/ld+json", "json"),
+        ("200", "application/rss+xml", "other"),
+        ("304", "", "other"),
+    ],
+)
+def test_response_type(status, content_type, expected):
+    assert prometheus.response_type(status, content_type) == expected
+
+
+def test_webpy_records_the_response_type(app, registry):
+    app.request("/things/a")
+    app.request("/things/old")
+
+    assert requests_total(registry, "/things/{key}") == 1
+    assert requests_total(registry, "/things/{key}", status="303", response_type="redirect") == 1

@@ -13,14 +13,14 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
-from openlibrary.contribute import feed, save, supply, tasks
-from openlibrary.contribute.field_guides import build_link_outs, get_field_guides
+from openlibrary.contribute import feed, initiatives, save, supply, tasks
+from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values
 from openlibrary.core import helpers
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import spamcheck
 
-LIST_SIZE = 50
+LIST_SIZE = 25
 # Placeholder cards while a cold cache builds the list in the background; the script swaps them for the rows.
 LIST_SKELETON_ROWS = 4
 # Rows the public page renders before the feed script takes over.
@@ -41,9 +41,11 @@ def setup():
 
 
 def get_filters() -> dict[str, tuple[str, tuple[str, ...]]]:
-    """The rail's filters by ``task`` query value: a label and the fields it covers. Each must be filterable in Solr."""
+    """The rail's filters by ``task`` query value: a label and the fields it covers."""
     return {
+        "covers": (_("Cover"), ("covers",)),
         "languages": (_("Language"), ("languages",)),
+        "number_of_pages": (_("Page count"), ("number_of_pages",)),
         "publishers": (_("Publisher"), ("publishers",)),
         "identifiers": (_("Identifiers"), ("lccn", "oclc_numbers")),
     }
@@ -99,7 +101,9 @@ def build_sibling_rows(fld: str, others: list, limit: int = 10) -> list[dict]:
 
 
 def format_field_value(edition, fld: str) -> str:
-    """The field's current value as the receipt shows it."""
+    """The field's current value as the receipt shows it. A cover is shown as the image instead."""
+    if fld == "covers":
+        return ""
     values = field_values(edition, fld)
     if fld == "languages":
         names = get_language_names({str(v) for v in values})
@@ -118,6 +122,8 @@ def build_edition_field_rows(edition, fld: str) -> list[dict]:
         ("isbn", _("ISBN")),
         ("lccn", _("LCCN")),
         ("oclc_numbers", _("OCLC")),
+        # Last, so the publisher, year and ISBN to check the images against are read first.
+        ("covers", _("Cover")),
     ]
     out = []
     for f, label in rows:
@@ -206,20 +212,20 @@ def build_task_summary(task: tasks.Task, field_guides, back: str = "") -> dict:
 
 
 def build_task_rows(task: str) -> list[dict] | None:
-    """A random draw of the filter's books from the most-read pool, each with its open tasks weighted by ``tasks.impact`` for "Surprise me".
+    """A random draw of the filter's books from the active initiative, each with its open tasks weighted by ``tasks.impact`` for "Surprise me".
 
-    None while the pool is still being built.
+    None while the initiative's gaps are still being built.
     """
     fields = get_filters()[task][1] if task else tuple(tasks.POINTS)
-    if (candidates := supply.solr_candidates(fields)) is None:
+    if (candidates := supply.candidates(fields)) is None:
         return None
     field_guides = get_field_guides()
     rows: list[dict] = []
     for cand in candidates:
         if len(rows) == LIST_SIZE:
             break
-        # Solr can lag the database; a field filled since the last reindex is no longer a task.
-        if ts := [t for t in tasks.tasks_for_edition(cand.edition) if t.field in fields]:
+        # The shared gaps can lag the database; a field filled since the last rebuild is no longer a task.
+        if ts := [t for t in tasks.tasks_for_edition(cand.edition) if t.field in fields and t.field not in cand.not_found]:
             rows.append(
                 {
                     "book": build_book_header(cand.edition, cand.readers),
@@ -227,6 +233,19 @@ def build_task_rows(task: str) -> list[dict] | None:
                 }
             )
     return rows
+
+
+def build_progress() -> dict | None:
+    """The active initiative's progress for the dashboard, or None while its gaps are still being built."""
+    if not (gaps := initiatives.get_gaps()):
+        return None
+    p = initiatives.progress(gaps)
+    return {
+        "title": _("The %(count)s most-read books", count=helpers.commify(p["total"])),
+        "percent": p["percent"],
+        "figure": _("%(percent)s%%", percent=p["percent"]),
+        "description": _("Fill in what's missing on the books people shelve most."),
+    }
 
 
 def build_filter_rail(task: str) -> dict:
@@ -311,8 +330,8 @@ def render_landing(user=None):
         cta=build_cta(user),
         figures=landing_figures(),
         feed=build_feed(),
-        # A few appealing examples, not the full list. Book cover isn't a task yet.
-        fields=[get_field_guides()[f].label for f in ("languages", "publishers", "oclc_numbers")] + [_("Book cover")],
+        # A few appealing examples, not the full list.
+        fields=[get_field_guides()[f].label for f in ("covers", "languages", "publishers", "oclc_numbers")],
     )
 
 
@@ -342,6 +361,7 @@ class contribute_index(delegate.page):
             recent=get_recent_fixes(recent_saves),
             history_url=user.key,
             apply=build_apply(user),
+            progress=build_progress(),
         )
 
 
@@ -384,9 +404,13 @@ def build_task_context(edition, task: tasks.Task, back: str, error: str = "", va
             "key": task.key,
             "field": task.field,
             "url": build_task_url(task, back),
-            "skip_url": build_next_url(back, task, saved=False),
         },
         "is_identifier": task.field in save.NORMALIZERS,
+        "is_cover": task.field == "covers",
+        # Offered as one of the cover choices, next to uploading one.
+        "cover_suggestion": {"url": AMAZON_COVER.format(isbn10=isbn10), "isbn10": isbn10}
+        if task.field == "covers" and (isbn10 := edition.get_isbn10())
+        else None,
         "field_guide": field_guide,
         "link_outs": build_link_outs(field_guide, book["isbn13"]),
         # Nothing to compare against when no other edition has a value.
@@ -397,7 +421,8 @@ def build_task_context(edition, task: tasks.Task, back: str, error: str = "", va
         "suggestions": tally["values"][:3] if field_guide.suggest_from_siblings else [],
         "record_fields": build_edition_field_rows(edition, task.field),
         "list_url": build_dashboard_url(back),
-        "next_scope": get_filters()[back][0] if back else "",
+        # Moving on without an answer records nothing; "I couldn't find it" is the one that counts.
+        "skip_url": build_next_url(back, task, saved=False),
         "languages": save.language_options() if task.field == "languages" else [],
         "error": error,
         "value": value,
@@ -450,21 +475,29 @@ class contribute_task(delegate.page):
         return render_contribute("contribute/task.html.jinja", get_field_guides()[fld].question, **context)
 
     def POST(self, olid, fld):
-        require_login(f"/tasks/task/{olid}/{fld}")
-        i = web.input(value="", note="", back="", confirmed="", then="")
-        # Same check as the edit form; it also stops read-only and blocked accounts.
-        if spamcheck.is_spam(i, allow_privileged_edits=True):
+        user = require_login(f"/tasks/task/{olid}/{fld}")
+        i = web.input(value="", note="", back="", confirmed="", then="", file={})
+        # Drop the upload's field storage, as the add-cover page does.
+        web.ctx.pop("_fieldstorage", None)
+        # Same check as the edit form; it also stops read-only and blocked accounts. The image is not text to check.
+        if spamcheck.is_spam(web.storage((k, v) for k, v in i.items() if k != "file"), allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         back = normalize_filter(i.back)
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return render_nothing_page(edition, fld, back)
+        if i.then == "notfound":
+            initiatives.record_not_found(web.ctx.site, edition.key, fld, user.key)
+            raise web.seeother(build_next_url(back, task, saved=False))
         done = f"/tasks/task/{olid}/{fld}/done"
         field_guide = get_field_guides()[fld]
         try:
-            if fld in save.NORMALIZERS and not i.confirmed:
-                raise save.InvalidAnswer(_("Open the record and confirm it matches this edition first."))
-            save.save_answer(edition, fld, i.value, field_guide.label, i.note)
+            if field_guide.confirm and not i.confirmed:
+                raise save.InvalidAnswer(_("Check that it matches this edition, and tick the box to say so."))
+            if fld == "covers":
+                save.save_cover(edition, i.file, from_amazon=i.get("cover_choice") == "suggested")
+            else:
+                save.save_answer(edition, fld, i.value, field_guide.label, i.note)
         except save.InvalidAnswer as e:
             context = build_task_context(edition, task, back, error=str(e), value=i.value, note=i.note)
             return render_contribute("contribute/task.html.jinja", field_guide.question, **context)
@@ -490,6 +523,7 @@ class contribute_done(delegate.page):
             field_label=field_guides[fld].label,
             saved=saved,
             value=format_field_value(edition, fld) if saved else "",
+            cover_url=edition.get_cover_url("M") if saved and fld == "covers" else "",
             history_url=f"{edition.key}?m=history",
             same_book=same_book,
             next_url=build_next_url(back, tasks.Task(olid, fld), saved=False),

@@ -10,7 +10,8 @@ from __future__ import annotations
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import TYPE_CHECKING, Literal
 from urllib.parse import unquote
 
 import web
@@ -52,66 +53,36 @@ site: ContextVar[Site] = ContextVar("site")
 rendered_keys: ContextVar[set[str] | None] = ContextVar("rendered_keys", default=None)
 
 
-# Keep in sync with scripts/obfi.sh (obfi_grep_bots) and docker/web_nginx.conf ($is_sus_user_agent).
-# cdrini to DRY obfi.sh side.
-USER_AGENT_BOTS = [
-    "360spider",
-    "ahrefsbot",
-    "amazonbot",
-    "applebot",
-    "baiduspider",
-    "behloolbot",
-    "bingbot",
-    "brightbot",
-    "bytespider",
-    "buzzbot",
-    "claudebot",
-    "coccocbot",
-    "dataforseobot",
-    "discordbot",
-    "donkeybot",
-    "dotbot",
-    "dubbotbot",
-    "equellaurlbot",
-    "femtosearchbot",
-    "focuseekbot",
-    "googlebot",
-    "gptbot",
-    "iaskbot",
-    "icc-crawler",
-    "kazbtbot",
-    "laserlikebot",
-    "linkdexbot",
-    "meta-externalagent",
-    "mj12bot",
-    "mojeekbot",
-    "monsidobot",
-    "musobot",
-    "nsrbot",
-    "paperlibot",
-    "parsijoobot",
-    "perplexitybot",
-    "petalbot",
-    "pinterestbot",
-    "qwantbot",
-    "redditbot",
-    "semanticscholarbot",
-    "semrushbot",
-    "seznambot",
-    "sputnikbot",
-    "startmebot",
-    "tiktokspider",
-    "toutiaospider",
-    "ttspider",
-    "uptimerobot",
-    "yandex.com/bots",
-    "yandexaccessibilitybot",
-    "yandexbot",
-    "yandexmobilebot",
-    "yandexrenderresourcesbot",
-    "yoozbot",
-    "yoozbotadsbot",
-]
+@dataclass
+class Visitor:
+    """Who made the request, for the ``visitor`` label of the request metrics.
+    Mutable, so a worker thread or task running the route can mark the user a librarian."""
+
+    user_key: str | None  # None without a valid session cookie
+    is_librarian: bool = False  # set by User.is_librarian_or_higher(), which every HTML page's header calls
+    is_bot: bool = False  # RequestContextVars.is_bot
+
+    @property
+    def label(self) -> Literal["anonymous", "bot", "logged_in", "librarian"]:
+        """``bot`` is a logged-out request ``is_bot`` flags, the rule that also keeps it out of Matomo.
+        ``logged_in`` means logged in but not a librarian; ``librarian`` is librarian or higher."""
+        if not self.user_key:
+            return "bot" if self.is_bot else "anonymous"
+        return "librarian" if self.is_librarian else "logged_in"
+
+
+visitor: ContextVar[Visitor | None] = ContextVar("visitor", default=None)
+
+
+def _visitor(cookie_value: str | None, is_bot: bool) -> Visitor:
+    """The visitor for a session cookie. Only checks the cookie's signature; looks nothing up."""
+    from openlibrary.fastapi.auth import authenticate_user_from_cookie  # noqa: PLC0415
+
+    user = authenticate_user_from_cookie(cookie_value)
+    return Visitor(user_key=user.user_key if user else None, is_bot=is_bot)
+
+
+USER_AGENT_BOTS = [line for line in Path(__file__).with_name("bot_user_agents.txt").read_text().splitlines() if line and not line.startswith("#")]
 
 
 def _compute_is_recognized_bot(user_agent: str) -> bool:
@@ -198,6 +169,7 @@ def set_context_from_legacy_web_py() -> None:
 
     site.set(web.ctx.site)
     rendered_keys.set(set())
+    visitor.set(_visitor(web.cookies().get(config.get("login_cookie_name", "session")), is_bot))
     req_context.set(
         RequestContextVars(
             x_forwarded_for=web.ctx.env.get("HTTP_X_FORWARDED_FOR"),
@@ -265,6 +237,7 @@ def set_context_from_fastapi(request: Request) -> None:
 
     site.set(s)
     rendered_keys.set(set())
+    visitor.set(_visitor(cookie_value, is_bot))
     req_context.set(
         RequestContextVars(
             x_forwarded_for=request.headers.get("X-Forwarded-For"),
