@@ -98,7 +98,10 @@ async def things(query: dict[str, Any]) -> list[str]:
     """
     conditions = dict(query)
     type_key = conditions.pop("type", None)
-    limit = min(int(conditions.pop("limit", 20)), 1000)
+    try:
+        limit = min(int(conditions.pop("limit", 20)), 1000)
+    except TypeError, ValueError:
+        raise UnsupportedQuery(query) from None  # Infobase falls back to its default limit
     if not isinstance(type_key, str) or not conditions:
         raise UnsupportedQuery(query)
 
