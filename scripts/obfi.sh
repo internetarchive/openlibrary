@@ -475,9 +475,11 @@ obfi_top_bots() {
 # Filter commands
 ###############################################################
 
+# Lowercase, so it can also be used with awk's match() on a lowercased string.
+# Located from this file, not the cwd. $0 is this file when sourced from zsh.
 OBFI_BOT_PATTERN=$(
     sed -e '/^#/d' -e '/^$/d' -e 's/\./\\./g' \
-        "$(dirname "${BASH_SOURCE[0]}")/../openlibrary/utils/bot_user_agents.txt" | \
+        "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")/../openlibrary/utils/bot_user_agents.txt" | \
         paste -sd '|' -
 )
 
