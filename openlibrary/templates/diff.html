@@ -107,6 +107,11 @@ $def diff_display(name, value):
         <tbody>
 
         $code:
+            def comparable(values):
+                # Thing.__eq__ compares keys, and embedded objects such as links have
+                # none, so two different lists of links compared equal (#3414).
+                return [v.dict() if is_thing(v) and not v.key else v for v in values or []]
+
             def find_diff(a, b, p):
                 label = p
                 # quick hack to display images in diff
@@ -127,7 +132,7 @@ $def diff_display(name, value):
                     t = get_expected_type(a, p)
 
                 if isinstance(ap, list) or isinstance(bp, list):
-                    if ap == bp:
+                    if comparable(ap) == comparable(bp):
                         return ""
                     else:
                         return listdiff(label, ap, bp)
