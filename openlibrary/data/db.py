@@ -47,7 +47,7 @@ def setup_database(**db_params):
     """Setup the database. This must be called before using any other functions in this module."""
     global db, db_parameters
     db_params.setdefault("dbn", "postgres")
-    db = web.database(**db_params)
+    db = web.database(**db_params)  # noqa: TID251
     db.printing = False
     db_parameters = db_params
 
@@ -87,7 +87,7 @@ def longquery(query, vars, chunk_size=10000):
     """
     # DB cursor is valid only in the transaction
     # Create a new database to avoid this transaction interfere with the application code
-    db = web.database(**db_parameters)
+    db = web.database(**db_parameters)  # noqa: TID251
     db.printing = False
 
     tx = db.transaction()

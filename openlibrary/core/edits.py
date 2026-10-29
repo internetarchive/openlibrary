@@ -5,7 +5,7 @@ from types import MappingProxyType
 from typing import Any, Literal
 
 from psycopg.types.json import Json
-from psycopg2.errors import UniqueViolation
+from psycopg2.errors import UniqueViolation  # noqa: TID251
 
 from infogami.utils.view import public
 from openlibrary.core import cache
@@ -14,7 +14,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import async_bridge
 
-from . import db
+from . import db  # noqa: TID251
 
 
 def get_status_for_view(status_code: int) -> str:

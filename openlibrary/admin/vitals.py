@@ -1,7 +1,7 @@
 import yaml
 from statsd import StatsClient
 
-from openlibrary.core import db
+from openlibrary.core import db  # noqa: TID251
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings
 

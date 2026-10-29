@@ -19,7 +19,7 @@ The handle is two calls. `site.get()` returns the current site; it's the `site` 
 
 The sync handle isn't going away overnight. Plenty of legacy web.py code still runs through it, and you don't need to migrate a model just to fix something adjacent to it. But don't add new sync queries. When FastAPI work touches a model, migrate it; the pattern below is a few lines per method.
 
-Ruff enforces this: rule `TID251` flags any import of `openlibrary.core.db`, `psycopg2`, `web.db`, or use of `web.database`. Tests, `scripts/`, and the coverstore service are exempt, and files that used the legacy driver before the ban are allowlisted under `[tool.ruff.lint.per-file-ignores]` in `pyproject.toml`. When you migrate a file off the legacy driver, remove its `TID251` entry there. Never add a new one.
+Ruff enforces this: rule `TID251` flags any import of `openlibrary.core.db`, `psycopg2`, `web.db`, or use of `web.database`. Tests, `scripts/`, and the coverstore service are exempt. Files that used the legacy driver before the ban carry a `# noqa: TID251` on the import; never add a new one. The rule only sees imports, so a file that already imports `db` can still grow new sync queries. Don't: new queries go async, with a `_sync` bridge if web.py needs them. When the last legacy use leaves a file, Ruff's `RUF100` flags the leftover `noqa` for removal.
 
 ## The async pool: `openlibrary/core/async_db.py`
 
@@ -117,6 +117,6 @@ Run them with `make test-py-integration` (needs `pg_ctl` on `PATH` — `brew ins
 
 - **New table or new query?** Async helpers from the start.
 - **FastAPI endpoint or partial touching SQL?** Always async. A sync DB call blocks the event-loop worker.
-- **Only touching legacy web.py behavior on a `db.py` model?** Sync is fine; don't half-migrate one flow across both drivers.
+- **Fixing an existing sync query on a `db.py` model?** Edit it in place; don't half-migrate one flow across both drivers. A new query on that model is still async, bridged with `_sync`.
 - **Same model needed in both worlds?** Async method plus a thin `_sync` bridge, or a web.py adapter like `get_reading_goals`.
 - **Page data (works, editions, authors, users)?** Not SQL at all. Use `site.get()` or the API.

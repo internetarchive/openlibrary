@@ -75,10 +75,10 @@ import web
 
 from openlibrary.accounts.model import decrypt_token, encrypt_token
 
-from . import db
+from . import db  # noqa: TID251
 
 if TYPE_CHECKING:
-    from web.db import DB
+    from web.db import DB  # noqa: TID251
 
 logger = logging.getLogger("openlibrary.provider_tokens")
 

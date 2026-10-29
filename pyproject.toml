@@ -160,18 +160,18 @@ max-statements = 70
 "web.db".msg = "Legacy sync database access. New SQL goes through openlibrary.core.async_db; see docs/core/database.md"
 
 [tool.ruff.lint.per-file-ignores]
-"openlibrary/admin/stats.py" = ["BLE001", "TID251"]
+"openlibrary/admin/stats.py" = ["BLE001"]
 "openlibrary/catalog/add_book/tests/test_add_book.py" = ["PT007"]
 "openlibrary/catalog/get_ia.py" = ["BLE001", "E722"]
 "openlibrary/catalog/utils/edit.py" = ["E722"]
 "openlibrary/catalog/utils/query.py" = ["E722"]
-"openlibrary/core/booknotes.py" = ["E722", "TID251"]
-"openlibrary/core/bookshelves.py" = ["BLE001", "TID251"]
-"openlibrary/core/db.py" = ["SIM105", "TID251"]
+"openlibrary/core/booknotes.py" = ["E722"]
+"openlibrary/core/bookshelves.py" = ["BLE001"]
+"openlibrary/core/db.py" = ["SIM105"]
 "openlibrary/core/helpers.py" = ["BLE001"]
-"openlibrary/core/observations.py" = ["PYI024", "TID251"]
+"openlibrary/core/observations.py" = ["PYI024"]
 "openlibrary/core/processors/invalidation.py" = ["BLE001"]
-"openlibrary/core/ratings.py" = ["E722", "TID251"]
+"openlibrary/core/ratings.py" = ["E722"]
 "openlibrary/core/sponsorships.py" = ["E722"]
 "openlibrary/core/stats.py" = ["BLE001"]
 "openlibrary/core/vendors.py" = ["B009"]
@@ -183,10 +183,10 @@ max-statements = 70
 "openlibrary/plugins/books/readlinks.py" = ["E722", "PLC0415"]
 "openlibrary/plugins/importapi/code.py" = ["BLE001"]
 "openlibrary/plugins/ol_infobase.py" = ["BLE001", "PLC0415"]
-"openlibrary/plugins/openlibrary/code.py" = ["BLE001", "E722", "TID251"]
+"openlibrary/plugins/openlibrary/code.py" = ["BLE001", "E722"]
 "openlibrary/plugins/openlibrary/connection.py" = ["E722"]
 "openlibrary/plugins/openlibrary/stats.py" = ["BLE001"]
-"openlibrary/plugins/upstream/account.py" = ["BLE001", "TID251"]
+"openlibrary/plugins/upstream/account.py" = ["BLE001"]
 "openlibrary/plugins/upstream/borrow.py" = ["BLE001", "E722"]
 "openlibrary/plugins/upstream/models.py" = ["BLE001"]
 "openlibrary/plugins/upstream/utils.py" = ["BLE001"]
@@ -225,7 +225,7 @@ max-statements = 70
 "openlibrary/code.py" = ["PLC0415"]
 "openlibrary/core/lists/model.py" = ["PLC0415"]
 "openlibrary/mocks/mock_infobase.py" = ["PLC0415"]
-"openlibrary/solr/data_provider.py" = ["PLC0415", "TID251"]
+"openlibrary/solr/data_provider.py" = ["PLC0415"]
 "openlibrary/views/showmarc.py" = ["PLC0415"]
 "scripts/coverstore-server" = ["PLC0415"]
 "scripts/infobase-server" = ["PLC0415"]
@@ -237,24 +237,10 @@ max-statements = 70
 
 # TID251: legacy sync database access (openlibrary.core.db, web.database, psycopg2) is banned in new code;
 # new SQL goes through openlibrary.core.async_db. Tests, scripts and the coverstore service are exempt.
-# The files below (and those with TID251 in their entries above) predate the ban. Remove a file's TID251 once
-# it no longer needs the legacy driver; never add a file.
+# Files that predate the ban carry a line-level `# noqa: TID251`; RUF100 flags it once it's no longer needed.
 "**/tests/**" = ["TID251"]
 "scripts/**" = ["TID251"]
 "openlibrary/coverstore/**" = ["TID251"]
-"openlibrary/admin/vitals.py" = ["TID251"]
-"openlibrary/bookworm/registry.py" = ["TID251"]
-"openlibrary/core/acquisitions.py" = ["TID251"]
-"openlibrary/core/bestbook.py" = ["TID251"]
-"openlibrary/core/bookshelves_events.py" = ["TID251"]
-"openlibrary/core/edits.py" = ["TID251"]
-"openlibrary/core/imports.py" = ["TID251"]
-"openlibrary/core/likes.py" = ["TID251"]
-"openlibrary/core/pd.py" = ["TID251"]
-"openlibrary/core/provider_tokens.py" = ["TID251"]
-"openlibrary/core/wikidata.py" = ["TID251"]
-"openlibrary/data/db.py" = ["TID251"]
-"openlibrary/utils/server_timing.py" = ["TID251"]
 
 [tool.djlint]
 # J018: "Internal links should use url_for()" — Open Library doesn't use url_for() anywhere.

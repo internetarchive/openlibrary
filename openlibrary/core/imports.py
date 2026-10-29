@@ -9,20 +9,20 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Final
 
 import web
-from psycopg2.errors import UndefinedTable
+from psycopg2.errors import UndefinedTable  # noqa: TID251
 from pydantic import ValidationError
 
 from openlibrary.catalog import add_book
 from openlibrary.core import cache
 
-from . import db
+from . import db  # noqa: TID251
 
 logger = logging.getLogger("openlibrary.imports")
 
 STAGED_SOURCES: Final = ("amazon", "idb", "google_books")
 
 if TYPE_CHECKING:
-    from web.db import ResultSet
+    from web.db import ResultSet  # noqa: TID251
 
     from openlibrary.core.models import Edition
 

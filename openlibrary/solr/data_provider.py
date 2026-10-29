@@ -363,11 +363,11 @@ class DatabaseDataProvider(DataProvider):
             infogami._setup()
             delegate.fakeload()
 
-            from openlibrary.core.db import get_db
+            from openlibrary.core.db import get_db  # noqa: TID251
 
             self.db = get_db()
             covers_db_parameters = web.config.db_parameters | {"db": "coverstore"}
-            self.covers_db = web.database(**covers_db_parameters)
+            self.covers_db = web.database(**covers_db_parameters)  # noqa: TID251
         else:
             self.db = db
 
