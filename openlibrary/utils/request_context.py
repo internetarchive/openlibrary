@@ -225,6 +225,7 @@ def set_context_from_fastapi(request: Request) -> None:
     provider_pref = request.query_params.get("providerPref")
 
     # Compute is_bot once during request setup
+    is_recognized_bot = _compute_is_recognized_bot(user_agent=request.headers.get("User-Agent", ""))
     is_bot = _compute_is_bot(
         user_agent=request.headers.get("User-Agent"),
         hhcl=request.headers.get("X-HHCL"),
@@ -246,6 +247,7 @@ def set_context_from_fastapi(request: Request) -> None:
             solr_editions=solr_editions,
             print_disabled=bool(request.cookies.get("pd", False)),
             sfw=bool(request.cookies.get("sfw", "")),
+            is_recognized_bot=is_recognized_bot,
             is_bot=is_bot,
             provider_pref=provider_pref,
         )

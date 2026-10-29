@@ -2,17 +2,26 @@ from __future__ import annotations
 
 """Shared pytest fixtures for FastAPI and API contract tests."""
 
+import asyncio
+import datetime as dt
+from collections.abc import Callable
 from unittest.mock import patch
 
+import httpx
 import pytest
+import web
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.testclient import TestClient
 
+from infogami.utils import context as infogami_context_module
+from openlibrary.core.jinja import get_jinja_env
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
     require_authenticated_user,
 )
 from openlibrary.plugins.worksearch.code import SearchResponse
+from openlibrary.utils.request_context import RequestContextVars, req_context, site
 
 
 @pytest.fixture(scope="session")
@@ -241,3 +250,104 @@ def _default_edition_solr_response():
         },
         solr_select="mock",
     )
+
+
+# --- HTML pages (SitePageRoute) ---------------------------------------------
+
+#: In every value ``webpy_leftovers`` leaves behind. A page showing it read state that isn't its own request's.
+LEFTOVER = "LEFTOVER"
+
+
+class FakeUser:
+    created = dt.datetime(2013, 3, 20)
+
+    def __init__(self, name: str):
+        self.key = f"/people/{name}"
+
+    def is_librarian_or_higher(self):
+        return False
+
+    def is_super_librarian_or_higher(self):
+        return False
+
+
+class FakeSite:
+    """``site.get()`` for one request: logged in as ``username``, or anonymous."""
+
+    def __init__(self, username: str | None):
+        self.username = username
+
+    def get_user(self):
+        return FakeUser(self.username) if self.username else None
+
+
+@pytest.fixture
+def site_page_app(monkeypatch) -> Callable[..., FastAPI]:
+    """Build an app serving the given page routers, with no infobase or static assets.
+
+    Its middleware sets the per-request ContextVars, as ``asgi_app``'s does. The
+    request is logged in as its ``x-user`` header (``FakeUser``), if any, and is
+    from a recognized crawler if it sends ``x-recognized-bot: 1``.
+    """
+    monkeypatch.setitem(get_jinja_env().globals, "static_url", lambda p: f"/static/{p}")
+    monkeypatch.setitem(get_jinja_env().globals, "icon", lambda *a, **kw: "")
+    # A linked archive.org account, so the header shows the account title (with the joined date).
+    monkeypatch.setattr("openlibrary.core.shell.user.get_internet_archive_id", lambda key: "@ia")
+
+    def make(*routers: APIRouter) -> FastAPI:
+        app = FastAPI()
+
+        @app.middleware("http")
+        async def set_context(request: Request, call_next):
+            site.set(FakeSite(request.headers.get("x-user")))  # type: ignore[arg-type]
+            req_context.set(RequestContextVars(None, "test", "en", True, False, is_recognized_bot=request.headers.get("x-recognized-bot") == "1"))
+            await asyncio.sleep(0)  # let concurrent requests interleave between here and the page
+            return await call_next(request)
+
+        for router in routers:
+            app.include_router(router)
+        return app
+
+    return make
+
+
+@pytest.fixture
+def webpy_leftovers(monkeypatch) -> str:
+    """Leave another request's state in ``web.ctx`` and infogami's ``context``; returns ``LEFTOVER``.
+
+    FastAPI never resets these thread-locals, so on FastAPI they hold whatever the
+    last request on that thread left. Code that reads them can show one user's
+    path, flash message or language in another user's page. Every value set here
+    contains ``LEFTOVER`` (and the language is ``fr``), so a page that reads any
+    of them shows it. They're plain objects rather than thread-locals, so every
+    thread sees them, including the worker thread that loads the user.
+    """
+    leftovers = web.storage(
+        path=f"/{LEFTOVER}-path",
+        readable_path=f"/{LEFTOVER}-path",
+        host=f"{LEFTOVER}.example",
+        homepath=f"/{LEFTOVER}-home",
+        query=f"?q={LEFTOVER}-q",
+        lang="fr",
+        flash=[web.storage(type="info", message=f"{LEFTOVER}-flash")],
+        env={"HTTP_COOKIE": f"session={LEFTOVER}-session", "QUERY_STRING": f"q={LEFTOVER}-q&debug=1&dev_host={LEFTOVER}"},
+        stats=[web.storage(name=LEFTOVER, data={}, t_start=0.0, time=0.0)],
+    )
+    infogami_leftovers = web.storage(bodyclass=[LEFTOVER], cssfile=LEFTOVER, experiments={LEFTOVER: 1}, metatags=[LEFTOVER], stats=leftovers.stats)
+    monkeypatch.setattr(web, "ctx", leftovers)
+    monkeypatch.setattr(infogami_context_module, "context", infogami_leftovers)
+    return LEFTOVER
+
+
+@pytest.fixture
+def fetch_concurrently() -> Callable[[FastAPI, list[tuple[str, dict[str, str]]]], list[httpx.Response]]:
+    """GET each ``(url, headers)`` from ``app`` at once, so the requests interleave; responses in order."""
+
+    def fetch(app: FastAPI, requests: list[tuple[str, dict[str, str]]]) -> list[httpx.Response]:
+        async def main():
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://testserver") as client:
+                return await asyncio.gather(*(client.get(url, headers=headers) for url, headers in requests))
+
+        return asyncio.run(main())
+
+    return fetch

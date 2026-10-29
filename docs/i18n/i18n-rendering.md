@@ -59,7 +59,7 @@ file consumes the strings and which JS constant holds the English defaults
 ```
 
 (Templetor templates do the same with a `_i18n.html` partial that builds the
-dict and emits it with `$json_encode` — see `my_books/shelf_button_i18n.html`.)
+dict and emits it with `$json_encode` — see `type/edition/notes_modal_i18n.html`.)
 
 **2. Drop the JSON into a `data-*` attribute** on the element your JS already targets:
 
@@ -172,7 +172,8 @@ for readability, with multiple HTML elements.
 | `openlibrary/core/jinja.py` | Jinja environment setup; `install_gettext_callables` |
 | `openlibrary/i18n/` | `messages.pot` + per-locale `<lang>/` directories |
 | `openlibrary/core/shell/search_modal.py` | Builds the search modal's client-fill strings in Python (keeps `%s` for browser-side sprintf) |
-| `openlibrary/templates/my_books/shelf_button_i18n.html` | Reference `_i18n.html` partial |
+| `openlibrary/core/shell/shelf_labels.py` | Builds the shelf buttons' client-fill strings in Python, including plurals |
+| `openlibrary/templates/type/edition/notes_modal_i18n.html` | Reference Templetor `_i18n.html` partial |
 | `openlibrary/plugins/openlibrary/js/search-modal/constants.js` | Reference JS reader + English defaults |
 | `openlibrary/templates/shell/header.html.jinja` | How client-fill payloads are wired onto trigger buttons |
 | `openlibrary/macros/AffiliateLinks.html.jinja` | Reference Jinja template using all i18n patterns |
