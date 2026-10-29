@@ -440,7 +440,7 @@ class DatabaseDataProvider(DataProvider):
         self.preload_documents0(list(set(keys)))
 
     def _preload_tags(self):
-        """Preloads tags (genres, subgenres, audience) for all works in the cache."""
+        """Preloads tags (genres, etc.) for all works in the cache."""
         keys = []
         for doc in self.cache.values():
             if doc and doc["type"]["key"] == "/type/work":
