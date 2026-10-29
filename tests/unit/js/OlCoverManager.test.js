@@ -54,6 +54,16 @@ function stubFetch(routes = {}) {
 beforeAll(() => {
     global.URL.createObjectURL = () => 'blob:preview';
     global.URL.revokeObjectURL = () => {};
+    // jsdom never loads images: "missing" 404s, "blank" is Amazon's 1x1 GIF, anything else is a cover.
+    global.Image = class {
+        set src(url) {
+            setTimeout(() => {
+                if (url.includes('missing')) return this.onerror?.();
+                this.naturalWidth = url.includes('blank') ? 1 : 300;
+                this.onload?.();
+            });
+        }
+    };
 });
 
 const q = (el, selector) => el.renderRoot.querySelector(selector);
@@ -105,14 +115,31 @@ describe('ol-cover-manager listing', () => {
         ]);
     });
 
-    test('Amazon’s cover is tagged by source, and is dropped when Amazon has none', async () => {
+    test('Amazon’s cover is tagged by source', async () => {
         stubFetch({ 'GET /books/OL1M/covers.json': { body: NO_COVER } });
         const el = await mount();
         expect(picks(el).map(b => b.getAttribute('aria-label'))).toEqual(['Cover, From Amazon']);
-        const img = q(el, '.row:not(.upload) img');
-        Object.defineProperty(img, 'naturalWidth', { value: 1 });
-        img.dispatchEvent(new Event('load'));
+    });
+
+    test('a suggestion whose image doesn’t exist is never listed, not even briefly', async () => {
+        const items = [
+            { ...NO_COVER.items[0], thumb: 'amazon-blank.gif' },
+            { id: 'suggestion:archive-title', kind: 'archive_title', suggestion: 'archive-title', image_id: null, thumb: 'missing-title.jpg' }
+        ];
+        stubFetch({ 'GET /books/OL1M/covers.json': { body: { ...NO_COVER, items } } });
+        const el = document.createElement('ol-cover-manager');
+        el.docKey = '/books/OL1M';
+        const listed = [];
+        document.body.appendChild(el);
+        // Sample every render until the dialog settles: neither row may ever appear.
+        await vi.waitFor(async () => {
+            await el.updateComplete;
+            listed.push(...picks(el));
+            expect(el._loadState).toBe('ready');
+        });
+        await new Promise(resolve => setTimeout(resolve));
         await el.updateComplete;
+        expect(listed).toHaveLength(0);
         expect(picks(el)).toHaveLength(0);
     });
 

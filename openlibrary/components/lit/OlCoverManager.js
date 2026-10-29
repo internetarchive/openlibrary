@@ -85,6 +85,8 @@ const ACCEPT = '.jpg,.jpeg,.gif,.png,.webp,image/jpeg,image/gif,image/png,image/
 const IMAGE_TYPES = ['image/jpeg', 'image/gif', 'image/png', 'image/webp'];
 const MAX_BYTES = 10 * 1024 * 1024;
 const NOTE_MAX = 200;
+// How long the skeleton waits on suggestion thumbnails; one that answers later still joins the list.
+const CHECK_WAIT_MS = 1500;
 const CAN_READ_CLIPBOARD = typeof navigator !== 'undefined' && typeof navigator.clipboard?.read === 'function';
 
 /**
@@ -124,6 +126,7 @@ export class OlCoverManager extends LitElement {
         _removed: { state: true },
         _added: { state: true },
         _hidden: { state: true },
+        _checked: { state: true },
         _saving: { state: true },
         _dragging: { state: true },
         _error: { state: true },
@@ -834,6 +837,7 @@ export class OlCoverManager extends LitElement {
         this._removed = new Set();
         this._added = [];
         this._hidden = new Set();
+        this._checked = new Set();
         this._saving = false;
         this._dragging = false;
         this._error = '';
@@ -904,14 +908,41 @@ export class OlCoverManager extends LitElement {
         try {
             const response = await fetch(`${this._endpoint}.json`, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
             if (!response.ok) throw new Error(response.statusText);
-            this._data = await response.json();
-            this._selected = this._data.current;
-            if (this._dialog) this._dialog.label = this._t(this._data.current ? 'titleChange' : 'titleAdd');
+            const data = await response.json();
+            this._data = data;
+            this._selected = data.current;
+            if (this._dialog) this._dialog.label = this._t(data.current ? 'titleChange' : 'titleAdd');
+            await this._checkSuggestions(data);
+            if (this._data !== data) return;
             this._loadState = 'ready';
             trackEvent(ANALYTICS, 'Open', this._openKind);
         } catch {
             this._loadState = 'error';
         }
+    }
+
+    /** A suggestion's image may not exist (no Amazon cover, no title page), so it isn't listed until its thumbnail loads.
+        Every scan has a cover page, so that one is listed at once. */
+    _needsCheck(item) {
+        return Boolean(item.suggestion) && item.kind !== 'archive_cover' && item.id !== this._data?.current;
+    }
+
+    /** Loads suggestion thumbnails behind the skeleton, so a missing one never flashes into the list and out again. */
+    async _checkSuggestions(data) {
+        const checks = data.items
+            .filter(item => this._needsCheck(item))
+            .map(item =>
+                new Promise(resolve => {
+                    const img = new Image();
+                    // Amazon answers a 1x1 GIF when it has no cover for the ISBN.
+                    img.onload = () => resolve(img.naturalWidth >= 10);
+                    img.onerror = () => resolve(false);
+                    img.src = item.thumb;
+                }).then(ok => {
+                    if (ok && this._data === data) this._checked = new Set(this._checked).add(item.id);
+                })
+            );
+        await Promise.race([Promise.all(checks), new Promise(resolve => setTimeout(resolve, CHECK_WAIT_MS))]);
     }
 
     /** What the dialog opened on: a photo, a cover to change, a scan shown in place of a cover, or nothing. */
@@ -944,6 +975,7 @@ export class OlCoverManager extends LitElement {
         this._added = [];
         this._removed = new Set();
         this._hidden = new Set();
+        this._checked = new Set();
         this._reason = null;
         this._reasonNote = '';
         this._error = '';
@@ -975,7 +1007,7 @@ export class OlCoverManager extends LitElement {
         const items = this._data?.items ?? [];
         const suggested = items.filter(item => item.kind !== 'upload');
         const uploads = items.filter(item => item.kind === 'upload');
-        return [...suggested, ...this._added, ...uploads].filter(item => !this._hidden.has(item.id));
+        return [...suggested, ...this._added, ...uploads].filter(item => !this._hidden.has(item.id) && (!this._needsCheck(item) || this._checked.has(item.id)));
     }
 
     get _uploadedIds() {
@@ -1152,11 +1184,6 @@ export class OlCoverManager extends LitElement {
         // A scan page that doesn't exist (many items have no title page) 404s; drop its row.
         if (item.kind === 'upload' || item.id === this._selected) return;
         this._hidden = new Set(this._hidden).add(item.id);
-    }
-
-    /** Amazon answers a 1x1 GIF when it has no cover for the ISBN. */
-    _onThumbLoad(e, item) {
-        if (e.target.naturalWidth < 10) this._hide(item);
     }
 
     _onListKeydown(e) {
@@ -1357,7 +1384,7 @@ export class OlCoverManager extends LitElement {
             >
                 <span class="radio" aria-hidden="true"></span>
                 <span class="thumb">
-                    <img src=${item.thumb} alt="" loading="lazy" @load=${e => this._onThumbLoad(e, item)} @error=${() => this._hide(item)} />
+                    <img src=${item.thumb} alt="" loading="lazy" @error=${() => this._hide(item)} />
                     ${item.pending ? html`<span class="busy"><ol-icon name="loader"></ol-icon></span>` : nothing}
                 </span>
                 <span class="text" aria-hidden="true">
