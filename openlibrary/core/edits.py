@@ -1,6 +1,6 @@
 import datetime as dt
 import json
-import sqlite3
+from sqlite3 import IntegrityError
 from types import MappingProxyType
 from typing import Any, Literal
 
@@ -162,7 +162,7 @@ class CommunityEditsQueue:
                 submitter=new_username,
                 vars={"submitter": submitter},
             )
-        except UniqueViolation, sqlite3.IntegrityError:
+        except UniqueViolation, IntegrityError:
             rows_changed = 0
 
         t.rollback() if _test else t.commit()
@@ -178,31 +178,37 @@ class CommunityEditsQueue:
         comment: str | None = None,
         title: str | None = None,
         mr_type: int | None = None,
-    ):
+        unique_url: bool = False,
+    ) -> int | None:
         """
         Inserts a new record into the table.
+
+        With unique_url, nothing is inserted (and None returned) if a request with this URL already exists.
 
         Preconditions: All data validations should be completed before calling this method.
         """
         comments = [cls.create_comment(submitter, comment)] if comment else []
-        query = (
-            f"INSERT INTO {cls.TABLENAME} "
-            "(submitter, reviewer, url, status, comments, title, mr_type) "
-            "VALUES (%(submitter)s, %(reviewer)s, %(url)s, %(status)s, %(comments)s, %(title)s, %(mr_type)s) "
-            "RETURNING id"
-        )
-        row = await fetch_one(
-            query,
-            {
-                "submitter": submitter,
-                "reviewer": reviewer,
-                "url": url,
-                "status": status,
-                "comments": Json({"comments": comments}),
-                "title": title,
-                "mr_type": mr_type,
-            },
-        )
+        async with connection() as conn:
+            if unique_url:
+                # url has no unique index, so serialize inserts per URL to close the exists/insert race.
+                await conn.execute("SELECT pg_advisory_xact_lock(hashtext(%(url)s))", {"url": url})
+                if await (await conn.execute(f"SELECT 1 FROM {cls.TABLENAME} WHERE url = %(url)s LIMIT 1", {"url": url})).fetchone():
+                    return None
+            cursor = await conn.execute(
+                f"INSERT INTO {cls.TABLENAME} (submitter, reviewer, url, status, comments, title, mr_type) "
+                "VALUES (%(submitter)s, %(reviewer)s, %(url)s, %(status)s, %(comments)s, %(title)s, %(mr_type)s) "
+                "RETURNING id",
+                {
+                    "submitter": submitter,
+                    "reviewer": reviewer,
+                    "url": url,
+                    "status": status,
+                    "comments": Json({"comments": comments}),
+                    "title": title,
+                    "mr_type": mr_type,
+                },
+            )
+            row = await cursor.fetchone()
         return row["id"] if row else None
 
     @classmethod
@@ -238,8 +244,6 @@ class CommunityEditsQueue:
             if comment:
                 row = await (await conn.execute(f"SELECT comments FROM {cls.TABLENAME} WHERE id = %(rid)s FOR UPDATE", {"rid": rid})).fetchone()
                 comments = (row["comments"] if row else None) or {"comments": []}
-                if isinstance(comments, str):
-                    comments = json.loads(comments)
                 comments["comments"].append(cls.create_comment(reviewer, comment))
                 update_kwargs["comments"] = Json(comments)
                 comments_update = ", comments = %(comments)s"

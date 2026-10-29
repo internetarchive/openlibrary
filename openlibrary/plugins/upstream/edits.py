@@ -38,22 +38,18 @@ def process_merge_request(rtype, data):
     return resp
 
 
-async def perform_merge_update(mrid: str | None, olids: str, comment: str | None) -> None:
+async def perform_merge_update(mrid: int | None, olids: str, comment: str | None) -> None:
     """Async FastAPI path for updating the merge queue without sync SQL."""
 
     async def update_request() -> None:
+        username = accounts.get_current_user()["key"].split("/")[-1]
         if mrid:
-            await CommunityEditsQueue.update_request_status(
-                int(mrid), CommunityEditsQueue.STATUS["MERGED"], accounts.get_current_user()["key"].split("/")[-1], comment
-            )
+            await CommunityEditsQueue.update_request_status(mrid, CommunityEditsQueue.STATUS["MERGED"], username, comment)
             return
 
-        username = accounts.get_current_user()["key"].split("/")[-1]
         olid_list = olids.split(",")
         title = community_edits_queue.create_title(CommunityEditsQueue.TYPE["AUTHOR_MERGE"], olid_list)
         url = community_edits_queue.create_url(CommunityEditsQueue.TYPE["AUTHOR_MERGE"], olid_list)
-        if await CommunityEditsQueue.exists(url):
-            return
         await CommunityEditsQueue.submit_request(
             url,
             username,
@@ -62,6 +58,7 @@ async def perform_merge_update(mrid: str | None, olids: str, comment: str | None
             title=title,
             comment=comment,
             mr_type=CommunityEditsQueue.TYPE["AUTHOR_MERGE"],
+            unique_url=True,
         )
 
     await RetryStrategy([ClientException], max_retries=5, delay=2).async_call(update_request)

@@ -123,7 +123,26 @@ class TestMergeAuthorsJson:
             },
         )
         assert response.status_code == 200
-        mock_merge_queue_update.assert_awaited_once_with(mrid="123", olids="", comment="approving merge request")
+        mock_merge_queue_update.assert_awaited_once_with(mrid=123, olids="", comment="approving merge request")
+
+    def test_merge_invalid_mrid_returns_422_before_merging(
+        self,
+        fastapi_client,
+        mock_authenticated_user,
+        mock_user_factory,
+        mock_merge_engine,
+        mock_merge_queue_update,
+    ):
+        """A non-numeric mrid is rejected before any authors are merged."""
+        mock_user_factory(is_admin=True)
+
+        response = fastapi_client.post(
+            "/authors/merge.json",
+            json={"master": "/authors/OL1A", "duplicates": ["/authors/OL2A"], "mrid": "abc"},
+        )
+        assert response.status_code == 422
+        mock_merge_engine.merge.assert_not_called()
+        mock_merge_queue_update.assert_not_called()
 
     def test_merge_success_without_mrid_creates_request(
         self,
