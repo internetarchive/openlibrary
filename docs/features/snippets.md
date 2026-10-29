@@ -8,7 +8,7 @@ affiliate-server, and reverse-proxies it behind openlibrary.org:
 
 | Public URL                       | Backend                               | Notes |
 |----------------------------------|---------------------------------------|-------|
-| `openlibrary.org/snippets`       | — (placeholder)                       | Reserved for the future UI. |
+| `openlibrary.org/snippets`       | OL app (template + `js/snippets.js`)  | Discovery feed page; falls through nginx to the app. |
 | `openlibrary.org/api/snippets`   | iannotate `GET`/`POST /annotations`   | Data plane. |
 
 **Auth/security for now (intentionally minimal):** nginx only honors `/api/snippets`

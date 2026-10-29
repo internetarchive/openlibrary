@@ -654,6 +654,42 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
+#: snippets.html
+msgid "Snippets"
+msgstr ""
+
+#: snippets.html
+msgid "Recently shared highlights from Internet Archive books."
+msgstr ""
+
+#: snippets.html
+msgid "No snippets have been shared recently."
+msgstr ""
+
+#: snippets.html
+msgid "Sorry, snippets could not be loaded right now."
+msgstr ""
+
+#: snippets.html
+msgid "A highlighted snippet from a book"
+msgstr ""
+
+#: openlibrary/core/shell/search_modal.py snippets.html
+msgid "Untitled"
+msgstr ""
+
+#: snippets.html
+msgid "Delete snippet"
+msgstr ""
+
+#: snippets.html
+msgid "Delete this snippet? This cannot be undone."
+msgstr ""
+
+#: snippets.html
+msgid "Loading snippets…"
+msgstr ""
+
 #: status.html
 msgid "Open Library server status"
 msgstr ""
@@ -8502,10 +8538,6 @@ msgstr ""
 #: openlibrary/core/shell/search_modal.py
 #, python-format
 msgid "Showing %s of %s results"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Untitled"
 msgstr ""
 
 #: openlibrary/core/shell/search_modal.py
