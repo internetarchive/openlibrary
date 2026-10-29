@@ -340,7 +340,8 @@
 }
 
 /* On the label, not the dt: base/headings.css forces every dt to normal weight with !important. */
-.contrib-record__row--ask dt label {
+.contrib-record__row--ask dt label,
+.contrib-record__row--ask dt .contrib-record__ask-label {
   font-weight: var(--font-weight-semibold);
 }
 
@@ -404,6 +405,15 @@
   font-size: var(--font-size-body-small);
   font-weight: var(--font-weight-semibold);
   font-variant-numeric: tabular-nums;
+}
+
+.contrib-steps__text {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.contrib-steps__text > p {
+  margin: 0;
 }
 
 .contrib-linkouts {
@@ -990,6 +1000,18 @@
 .contrib-field__hint {
   margin: 0;
   font-size: var(--font-size-body-small);
+}
+
+/* A choice list fills the answer column like a text input would. */
+.contrib-record__row--ask .ol-choice-list {
+  width: 100%;
+  max-width: 28rem;
+}
+
+/* The record's own description, read in the help column in place of a catalog to open. */
+.contrib-evidence {
+  margin: 0;
+  font-size: var(--font-size-body-medium);
 }
 
 .contrib-receipt__cover {

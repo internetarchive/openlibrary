@@ -43,7 +43,7 @@ class FieldGuide:
     label: str
     action: str
     question: str
-    how: str  # where to look and what to copy
+    how: str  # where to look and what to copy; a blank line starts a new paragraph
     sources: list[LookupSource] = dc_field(default_factory=list)
     why: str = ""
     show_siblings: bool = False  # set only for fields where other editions' values help
@@ -55,6 +55,8 @@ class FieldGuide:
     input_type: str = "text"
     check: str = ""  # what to look at before saving, shown under the answer
     confirm: str = ""  # a checkbox the answer can't be saved without
+    choices: str = ""  # a tag type: the answer is one of its tags, picked rather than typed
+    not_found: str = ""  # the honest exit's label when it isn't "I couldn't find it"
 
 
 def get_field_guides() -> dict[str, FieldGuide]:
@@ -125,6 +127,21 @@ def get_field_guides() -> dict[str, FieldGuide]:
             ],
             placeholder=_("For example 320"),
             input_type="number",
+        ),
+        # A judgment about the work: answer from knowing the book, or look it up.
+        "literary_form": FieldGuide(
+            field="literary_form",
+            label=_("Literary form"),
+            action=_("Mark fiction or nonfiction"),
+            question=_("Is this book fiction or nonfiction?"),
+            how=_("If you know the book, answer from what you know. If you don't, look it up."),
+            sources=[google, worldcat],
+            notes=[
+                GuidelineNote(_("Nonfiction can read like a story. A memoir that bends the truth is still nonfiction: it is presented as fact.")),
+                GuidelineNote(_("Anthologies and collections take the form of what's inside. A book of essays about novels is nonfiction.")),
+            ],
+            choices="literary_form",
+            not_found=_("Not sure"),
         ),
         "publishers": FieldGuide(
             field="publishers",

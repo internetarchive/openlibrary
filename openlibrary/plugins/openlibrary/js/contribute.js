@@ -141,6 +141,9 @@ function initSkipButton(form) {
  * @returns {string} the trimmed answer, or '' with no control
  */
 function currentAnswer(form) {
+    // A choice list is a set of radios rather than one control.
+    const checked = form.querySelector('input[name="value"]:checked');
+    if (checked) return checked.value;
     const control = form.querySelector('#contrib-other-value');
     if (!control) return '';
     return control.tagName === 'OL-OPTIONS-POPOVER' ? control.selected : control.value.trim();

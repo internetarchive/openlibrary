@@ -744,6 +744,9 @@ class SaveBookHelper:
         work.subject_places = list(read_subject(work.get("subject_places", "")))
         work.subject_times = list(read_subject(work.get("subject_times", "")))
         work.subject_people = list(read_subject(work.get("subject_people", "")))
+        # The form posts the chosen tag's key; "" clears it (trim_doc makes that None, which the save drops).
+        if "literary_form" in work:
+            work.literary_form = {"key": work.literary_form} if work.literary_form else None
         if ": " in work.get("title", ""):
             work.title, work.subtitle = work.title.split(": ", 1)
         else:

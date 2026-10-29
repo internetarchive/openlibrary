@@ -1,0 +1,69 @@
+/**
+ * Choice list: a radio group where each option is a row with a title and, under it, what it means.
+ * Plain CSS on native radios — see openlibrary/templates/forms/choice_list.html.jinja for the markup.
+ */
+
+.ol-choice-list {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+}
+
+.ol-choice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--spacing-inline-md);
+  align-items: start;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  cursor: pointer;
+  --_choice-title-color: var(--color-text);
+  --_choice-hover-bg: var(--color-control-hover);
+  --_choice-hover-border: var(--color-border-muted);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* Hover on a selected row deepens the tint, as the selected button does; never the grey. */
+  .ol-choice:hover {
+    background: var(--_choice-hover-bg);
+    border-color: var(--_choice-hover-border);
+  }
+}
+
+/* The selected look every control shares: the tint on the row, the link colour on its title. */
+.ol-choice:has(.ol-choice__input:checked) {
+  background: var(--color-control-selected-bg);
+  border-color: var(--color-control-selected-border);
+  --_choice-title-color: var(--color-link);
+  --_choice-hover-bg: var(--color-control-selected-bg-hover);
+  --_choice-hover-border: var(--color-control-selected-border-hover);
+}
+
+.ol-choice:has(.ol-choice__input:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.ol-choice__input {
+  /* Sits on the title's first line rather than the row's middle. */
+  margin: 3px 0 0;
+  accent-color: var(--color-primary);
+}
+
+.ol-choice__text {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+}
+
+.ol-choice__title {
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-button);
+  line-height: var(--line-height-control);
+  color: var(--_choice-title-color);
+}
+
+.ol-choice__meta {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}

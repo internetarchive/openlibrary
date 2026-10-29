@@ -1,0 +1,23 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    <p class="ds-lead">
+        A plain CSS component on native radios: one answer from a few, where each option needs a line saying what it means. The markup comes from <code>forms/choice_list.html.jinja</code>, included from Jinja or rendered from Templetor with <code>render_jinja_template</code>. An honest exit ("Not sure") is a row like any other, not a button somewhere else.
+    </p>
+    {% call ex.example("Default", "Nothing is picked in advance: the reader answers rather than confirms a default.", output_style="max-width: 28rem;") %}
+        {% with name="demo-literary-form",
+            labelled_by="demo-choice-label",
+            rows=[
+                {"value": "fiction", "label": "Fiction", "description": "Novels, stories, plays and poems."},
+                {"value": "nonfiction", "label": "Nonfiction", "description": "History, biography, memoir, essays, how-to and reference."},
+                {"value": "", "label": "Not sure", "description": "Hard to call, like a book based on a true story or a collection that mixes fiction and nonfiction."},
+        ] %}
+            <span id="demo-choice-label" hidden>Literary form</span>
+            {% include "forms/choice_list.html.jinja" %}
+        {% endwith %}
+    {% endcall %}
+    <div class="ds-notes">
+        <p>
+            <b>Source.</b> <code>static/css/components/choice-list.css</code>; import it on any page that renders the partial.
+        </p>
+    </div>
+{% endmacro %}

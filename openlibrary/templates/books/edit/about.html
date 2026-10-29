@@ -29,6 +29,17 @@ $jsdef render_subject_autocomplete_item(item):
         </div>
     </div>
 
+    $if ctx.user and can_edit_tags(ctx.user):
+        $# The tags whitelist only, while the field is new. "Not sure" posts "" and clears the field.
+        <div class="formElement">
+            <div class="label">
+                <label id="label-literary-form">$_("Fiction or nonfiction?")</label>
+            </div>
+            <div class="input">
+                $:render_jinja_template("forms/choice_list.html.jinja", name="work--literary_form", rows=tag_choices("literary_form", _("Not sure")), value=tag_key(work.get('literary_form')), labelled_by="label-literary-form")
+            </div>
+        </div>
+
     <div class="formElement">
         <div class="label">
             <label for="about-subjects">$_("Subject keywords?")</label>

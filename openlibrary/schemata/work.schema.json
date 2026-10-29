@@ -41,6 +41,7 @@
     "genres":              { "$ref": "shared_definitions.json#/string_array" },
     "subgenres":           { "$ref": "shared_definitions.json#/string_array" },
     "audiences":           { "$ref": "shared_definitions.json#/string_array" },
+    "literary_form":       { "$ref": "#/definitions/tag_ref" },
 
     "first_publish_date": { "type": "string" },
 
@@ -53,6 +54,14 @@
     "last_modified":   { "$ref": "shared_definitions.json#/internal_datetime" }
   },
   "definitions": {
+    "tag_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key"],
+      "properties": {
+        "key": { "type": "string", "pattern": "^/tags/OL[0-9]+T$" }
+      }
+    },
     "author_role": {
       "type": "object",
       "additionalProperties": false,

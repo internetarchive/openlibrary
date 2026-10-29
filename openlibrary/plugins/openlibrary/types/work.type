@@ -246,6 +246,16 @@
                 "key": "/type/property"
             },
             "name": "audiences"
+        },
+        {
+            "expected_type": {
+                "key": "/type/tag"
+            },
+            "unique": true,
+            "type": {
+                "key": "/type/property"
+            },
+            "name": "literary_form"
         }
     ],
     "revision": 14
