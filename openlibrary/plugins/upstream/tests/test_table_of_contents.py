@@ -1,4 +1,7 @@
-from openlibrary.plugins.upstream.table_of_contents import TableOfContents, TocEntry
+import pytest
+
+from infogami.utils import macro
+from openlibrary.plugins.upstream.table_of_contents import TableOfContents, TocEntry, can_link_to_ia_page
 
 
 class TestTableOfContents:
@@ -241,3 +244,22 @@ class TestTocEntry:
         # Extra asterisks with label and title
         entry = TocEntry.from_markdown("**Chapter 1|Title of Chapter|5")
         assert entry == TocEntry(level=2, title="Title of Chapter", label="Chapter 1", pagenum="5")
+
+
+class TestCanLinkToIaPage:
+    @pytest.mark.parametrize("pagenum", ["1", "11", "250", "n0", "n11"])
+    def test_page_and_scan_numbers_can_link(self, pagenum):
+        assert can_link_to_ia_page(pagenum)
+
+    @pytest.mark.parametrize("pagenum", [None, "", "n", "xi", "11a", "n11a", "11-12"])
+    def test_other_values_cannot_link(self, pagenum):
+        assert not can_link_to_ia_page(pagenum)
+
+    def test_toc_macro_links_scan_numbers(self, render_template):
+        macro.load_macros("openlibrary", lazy=True)
+        toc = TableOfContents.from_markdown("| Chapter one | n11\n| Chapter two | 23\n| Preface | xi")
+        html = str(macro.macrostore["TableOfContents"](toc, ocaid="behnd_the_mask"))
+
+        assert 'href="//archive.org/details/behnd_the_mask/page/n11"' in html
+        assert 'href="//archive.org/details/behnd_the_mask/page/23"' in html
+        assert "/page/xi" not in html

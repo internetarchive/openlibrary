@@ -5,6 +5,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING, Required, TypedDict, TypeVar
 
 from infogami.infobase.client import Nothing, Thing
+from infogami.utils.view import public
 
 if TYPE_CHECKING:
     from openlibrary.core.models import ThingReferenceDict
@@ -179,3 +180,17 @@ class InfogamiThingEncoder(json.JSONEncoder):
         if isinstance(obj, Nothing):
             return None
         return super().default(obj)
+
+
+@public
+def can_link_to_ia_page(pagenum: str | None) -> bool:
+    """
+    Whether pagenum can be used in an archive.org book link, like
+    https://archive.org/details/{ocaid}/page/{pagenum}
+
+    That's a page number like "11", or "n" and a scan image number like "n11",
+    which archive.org uses to point at pages that have no printed number.
+    """
+    if not pagenum:
+        return False
+    return pagenum.isdigit() or (pagenum.startswith("n") and pagenum[1:].isdigit())
