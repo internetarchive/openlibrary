@@ -176,8 +176,9 @@ def _resolve_carousel_card_cover_url(book) -> str | Literal[False]:
     cover_id = book.get("cover_id") or book.get("cover_i") or (book.get("covers") and book["covers"][0])
     if cover_id and cover_id != -1:
         return f"{_CAROUSEL_CARD_COVER_HOST}/b/id/{cover_id}-M.jpg"
-    if book.get("ia"):
-        return f"{_CAROUSEL_CARD_COVER_HOST}/b/ia/{book.get('ia')[0]}-M.jpg?default={_CAROUSEL_CARD_FALLBACK_COVER}"
+    if ia := book.get("ia"):
+        ocaid = ia if isinstance(ia, str) else ia[0]
+        return f"{_CAROUSEL_CARD_COVER_HOST}/b/ia/{ocaid}-M.jpg?default={_CAROUSEL_CARD_FALLBACK_COVER}"
     if book.get("ocaid"):
         return f"{_CAROUSEL_CARD_COVER_HOST}/b/ia/{book.get('ocaid')}-M.jpg?default={_CAROUSEL_CARD_FALLBACK_COVER}"
     if book.get("cover_edition_key"):
