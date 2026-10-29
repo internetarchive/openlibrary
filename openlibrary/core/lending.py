@@ -911,9 +911,8 @@ def get_loan_history_data(username: str, page: int, s3_cookie: str | None) -> di
     items creates pagination and navigation issues. For further discussion,
     see https://github.com/internetarchive/openlibrary/pull/8375.
 
-    `s3_cookie` is the raw value of the patron's `s3` cookie. Callers pass it
-    in (web.py: `web.cookies().get("s3")`, FastAPI: `request.cookies.get("s3")`)
-    because a FastAPI worker thread has no web.py request to read it from.
+    `s3_cookie` is the patron's encrypted `s3` cookie. Callers pass it in
+    because FastAPI requests have no web.py context to read it from.
 
     Raises AccountNotFoundError when `username` has no Open Library account.
     """
