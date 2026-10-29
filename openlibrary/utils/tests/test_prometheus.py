@@ -3,7 +3,7 @@ import web
 from prometheus_client import CollectorRegistry
 
 from openlibrary.utils import prometheus
-from openlibrary.utils.request_context import Visitor, visitor
+from openlibrary.utils.request_context import Visitor, set_context_from_legacy_web_py, visitor
 from openlibrary.utils.sentry import InfogamiRoute
 
 
@@ -156,6 +156,16 @@ def test_webpy_records_the_visitor(app, registry, path, label):
     assert requests_total(registry, "/things/{key}", visitor=label) == 1
     labels = {"method": "GET", "handler": "/things/{key}", "server": "webpy", "visitor": label, "response_type": "html"}
     assert registry.get_sample_value("http_request_duration_seconds_count", labels) == 1
+
+
+def test_webpy_labels_bots_from_the_request_context(app, registry):
+    def setup_contextvars():  # as openlibrary/plugins/openlibrary/code.py does
+        web.ctx.site = None
+        set_context_from_legacy_web_py()
+
+    app.add_processor(web.loadhook(setup_contextvars))
+    app.request("/things/a", env={"HTTP_USER_AGENT": "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"})
+    assert requests_total(registry, "/things/{key}", visitor="bot") == 1
 
 
 @pytest.mark.parametrize(
