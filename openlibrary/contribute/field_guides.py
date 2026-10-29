@@ -133,7 +133,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
         "literary_form": FieldGuide(
             field="literary_form",
             label=_("Literary form"),
-            action=_("Mark fiction or nonfiction"),
+            action=_("Pick fiction or nonfiction"),
             question=_("Is this book fiction or nonfiction?"),
             how=_("If you know the book, answer from what you know. If you don't, look it up."),
             sources=[google, worldcat],

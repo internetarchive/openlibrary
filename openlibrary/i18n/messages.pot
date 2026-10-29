@@ -8033,14 +8033,6 @@ msgid "How this edit goes wrong"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Tip"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Press Enter, or click your answer a second time, to save and go straight to the next book."
-msgstr ""
-
-#: contribute/parts.html.jinja
 msgid "What the record says"
 msgstr ""
 
@@ -8297,7 +8289,7 @@ msgid "Literary form"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "Mark fiction or nonfiction"
+msgid "Pick fiction or nonfiction"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py

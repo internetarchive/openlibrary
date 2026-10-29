@@ -14,7 +14,6 @@
     <aside class="contrib-task__help">
         {% if data.evidence is not none %}{{ parts.evidence(data.evidence) }}{% endif %}
         {{ parts.how_to(data.field_guide, data.link_outs) }}
-        {% if data.field_guide.quick_next %}{{ parts.quick_tip() }}{% endif %}
         {% if data.field_guide.traps %}{{ parts.traps(data.field_guide.traps) }}{% endif %}
         {% if data.siblings %}
             {{ parts.sibling_tally(data.tally, data.siblings, data.sibling_total, data.field_guide.sibling_hint) }}

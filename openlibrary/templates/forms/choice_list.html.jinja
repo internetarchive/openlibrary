@@ -18,7 +18,7 @@
                     <span class="ol-choice__title">{{ row.label }}</span>
                     {% if row.description %}<span class="ol-choice__meta">{{ row.description }}</span>{% endif %}
                 </span>
-                {#- Pointer-only guidance, kept out of the radio's name; keyboard users get the Enter tip beside the form. -#}
+                {#- Pointer-only guidance, kept out of the radio's name; Enter already submits for keyboard users. -#}
                 {% if again_hint %}
                     <span class="ol-choice__again" aria-hidden="true">{{ again_hint }}{{ icon("arrow-right", size="sm") }}</span>
                 {% endif %}
