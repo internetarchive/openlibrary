@@ -1014,6 +1014,13 @@
   font-size: var(--font-size-body-medium);
 }
 
+/* The shortcut tip: quieter than the steps, it's for the second visit, not the first. */
+.contrib-tip__text {
+  margin: 0;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
 .contrib-receipt__cover {
   flex: none;
   width: 64px;

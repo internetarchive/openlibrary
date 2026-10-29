@@ -210,6 +210,43 @@ function initSiblingSuggestions(form) {
 }
 
 /**
+ * Quick next: on a form that opts in, clicking the already-picked choice row saves and moves on, so an easy
+ * call (fiction or nonfiction) takes two clicks on the answer and none on the buttons. The first click on a
+ * row only selects it; a double-click is just the two clicks in a row. Keyboard activation (Space on a
+ * checked radio also fires ``click``) is left alone: Enter already submits with "Save and next".
+ * @param {HTMLFormElement} form - a ``[data-task-form][data-quick-next]``
+ * @returns {void}
+ */
+function initQuickNext(form) {
+    if (!('quickNext' in form.dataset)) return;
+    let picked = form.querySelector('input[name="value"]:checked');
+    // A click with no pointerdown before it came from the keyboard or a script.
+    let pointer = false;
+    form.addEventListener('pointerdown', () => {
+        pointer = true;
+    });
+    form.addEventListener('keydown', () => {
+        pointer = false;
+    });
+    form.addEventListener('change', event => {
+        if (event.target.name === 'value') picked = event.target;
+    });
+    form.addEventListener('click', event => {
+        const input = event.target;
+        if (!(input instanceof HTMLInputElement) || input.name !== 'value' || input.type !== 'radio') return;
+        const viaPointer = pointer;
+        pointer = false;
+        // ``change`` for a fresh pick fires after this click, so ``picked`` still names the previous row here.
+        if (!viaPointer || input !== picked) return;
+        // ol-button keeps a native submit proxy in the form; submitting through it keeps ``then=next`` and the Save tracking.
+        const next = form.querySelector('button[name="then"][value="next"]');
+        if (!next) return;
+        trackEvent('TaskForm', 'QuickNext', form.dataset.taskField);
+        form.requestSubmit(next);
+    });
+}
+
+/**
  * Check an identifier answer as it's typed: a wrong identifier corrupts record
  * matching silently, so the verdict mirrors the server's normalization.
  * @param {HTMLFormElement} form - a ``[data-id-form]`` whose input carries ``data-id-field``
@@ -407,6 +444,7 @@ export function init() {
         initSkipButton(form);
         initSiblingSuggestions(form);
         initSaveTracking(form);
+        initQuickNext(form);
     });
     if (document.querySelector('[data-receipt]')) clearSavedReceipt();
     document.querySelectorAll('form[data-id-form]').forEach(initIdentifierForm);

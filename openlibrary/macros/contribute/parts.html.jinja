@@ -112,6 +112,13 @@
         </ul>
     </section>
 {% endmacro %}
+{% macro quick_tip() %}
+    {#- The shortcuts a quick_next field offers: both end in "Save and next", so the buttons stay for anyone who prefers them. -#}
+    <section class="contrib-help contrib-tip">
+        <h2 class="contrib-h">{{ _("Tip") }}</h2>
+        <p class="contrib-tip__text">{{ _("Press Enter, or click your answer a second time, to save and go straight to the next book.") }}</p>
+    </section>
+{% endmacro %}
 {% macro evidence(blurb) %}
     {#- For a judgment, the record's own description is a clue; with none, the how-to's lookups stand in. -#}
     {% if blurb %}
@@ -168,8 +175,10 @@
 {% macro answer_control(task, field_guide, is_identifier, value, languages, cover_suggestion=None, choices=[]) %}
     {% if choices %}
         {#- A few fixed answers with what each means, none picked in advance: a judgment the librarian makes, not a
-            default they confirm. "Not sure" is one of the rows; the handler counts it the way it counts "I couldn't find it". -#}
-        {% with name="value", rows=choices, labelled_by="contrib-other-label" %}
+            default they confirm. "Not sure" is one of the rows; the handler counts it the way it counts "I couldn't find it".
+            With quick_next, the picked row shows a hint that a second click saves and moves on (contribute.js). -#}
+        {% with name="value", rows=choices, labelled_by="contrib-other-label",
+            again_hint=(_("Click again to save and continue") if field_guide.quick_next else "") %}
             {% include "forms/choice_list.html.jinja" %}
         {% endwith %}
     {% elif field_guide.input_type == "file" %}
@@ -268,6 +277,7 @@
           {% if data.is_cover %}enctype="multipart/form-data" data-cover-form{% endif %}
           data-task-form
           {% if data.is_identifier %}data-id-form{% endif %}
+          {% if data.field_guide.quick_next %}data-quick-next{% endif %}
           data-task-key="{{ task.key }}"
           data-task-field="{{ task.field }}">
         {% if data.error %}<p class="ol-message ol-message--error" role="alert">{{ data.error }}</p>{% endif %}

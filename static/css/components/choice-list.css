@@ -18,6 +18,8 @@
   border-radius: var(--border-radius-card);
   background: var(--color-surface);
   cursor: pointer;
+  /* A row is a control: a quick second click must not select its text. */
+  user-select: none;
   --_choice-title-color: var(--color-text);
   --_choice-hover-bg: var(--color-control-hover);
   --_choice-hover-border: var(--color-border-muted);
@@ -66,4 +68,25 @@
 .ol-choice__meta {
   font-size: var(--font-size-body-small);
   color: var(--color-text-secondary);
+}
+
+/* "Click again" hint, for a form that treats a second click on the picked row as the save: a line under the
+   picked row's description, and nothing on the others. It beats a reserved column: the list is rarely wide
+   enough for the title and the hint to share a line. */
+.ol-choice--again {
+  row-gap: var(--spacing-stack-xs);
+}
+
+.ol-choice__again {
+  display: none;
+  grid-column: 2;
+  align-items: center;
+  gap: var(--spacing-inline-xs);
+  font-size: var(--font-size-body-small);
+  line-height: var(--line-height-control);
+  color: var(--color-text-secondary);
+}
+
+.ol-choice__input:checked ~ .ol-choice__again {
+  display: inline-flex;
 }

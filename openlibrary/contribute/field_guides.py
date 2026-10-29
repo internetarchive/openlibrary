@@ -57,6 +57,7 @@ class FieldGuide:
     confirm: str = ""  # a checkbox the answer can't be saved without
     choices: str = ""  # a tag type: the answer is one of its tags, picked rather than typed
     not_found: str = ""  # the honest exit's label when it isn't "I couldn't find it"
+    quick_next: bool = False  # choices only: clicking the picked row again saves and moves on
 
 
 def get_field_guides() -> dict[str, FieldGuide]:
@@ -142,6 +143,8 @@ def get_field_guides() -> dict[str, FieldGuide]:
             ],
             choices="literary_form",
             not_found=_("Not sure"),
+            # An easy call most of the time, so the answer can double as the save.
+            quick_next=True,
         ),
         "publishers": FieldGuide(
             field="publishers",

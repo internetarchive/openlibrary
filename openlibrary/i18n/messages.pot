@@ -8033,6 +8033,14 @@ msgid "How this edit goes wrong"
 msgstr ""
 
 #: contribute/parts.html.jinja
+msgid "Tip"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Press Enter, or click your answer a second time, to save and go straight to the next book."
+msgstr ""
+
+#: contribute/parts.html.jinja
 msgid "What the record says"
 msgstr ""
 
@@ -8061,6 +8069,10 @@ msgstr ""
 #: contribute/parts.html.jinja
 #, python-format
 msgid "And %(count)s more."
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Click again to save and continue"
 msgstr ""
 
 #: contribute/parts.html.jinja
