@@ -18,6 +18,7 @@ from openlibrary.plugins.worksearch import code as worksearch_code
         (21, 2, "200 OK"),
         (40, 2, "200 OK"),
         (40, 3, "404 Not Found"),
+        (None, 2, "200 OK"),
     ],
 )
 def test_author_view_returns_404_only_after_last_page(monkeypatch, num_found, page, expected_status):

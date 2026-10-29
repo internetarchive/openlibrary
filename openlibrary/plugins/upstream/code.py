@@ -111,7 +111,8 @@ class view(core.view):
                     facet=False,
                     request_label="AUTHOR_BOOKS_PAGE_COUNT",
                 ).num_found
-                if page_num > max(1, -(-num_found // 20)):
+                # num_found is None when Solr errors; render the page as before rather than 500
+                if num_found is not None and page_num > max(1, -(-num_found // 20)):
                     web.ctx.status = "404 Not Found"
 
         # Everything else goes through core.view unchanged, without the
