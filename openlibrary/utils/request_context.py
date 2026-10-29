@@ -10,6 +10,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 from urllib.parse import unquote
 
@@ -79,66 +80,7 @@ def _visitor(cookie_value: str | None) -> Visitor:
     return Visitor(user_key=user.user_key if user else None)
 
 
-# Keep in sync with scripts/obfi.sh (obfi_grep_bots) and docker/web_nginx.conf ($is_sus_user_agent).
-# cdrini to DRY obfi.sh side.
-USER_AGENT_BOTS = [
-    "360spider",
-    "ahrefsbot",
-    "amazonbot",
-    "applebot",
-    "baiduspider",
-    "behloolbot",
-    "bingbot",
-    "brightbot",
-    "bytespider",
-    "buzzbot",
-    "claudebot",
-    "coccocbot",
-    "dataforseobot",
-    "discordbot",
-    "donkeybot",
-    "dotbot",
-    "dubbotbot",
-    "equellaurlbot",
-    "femtosearchbot",
-    "focuseekbot",
-    "googlebot",
-    "gptbot",
-    "iaskbot",
-    "icc-crawler",
-    "kazbtbot",
-    "laserlikebot",
-    "linkdexbot",
-    "meta-externalagent",
-    "mj12bot",
-    "mojeekbot",
-    "monsidobot",
-    "musobot",
-    "nsrbot",
-    "paperlibot",
-    "parsijoobot",
-    "perplexitybot",
-    "petalbot",
-    "pinterestbot",
-    "qwantbot",
-    "redditbot",
-    "semanticscholarbot",
-    "semrushbot",
-    "seznambot",
-    "sputnikbot",
-    "startmebot",
-    "tiktokspider",
-    "toutiaospider",
-    "ttspider",
-    "uptimerobot",
-    "yandex.com/bots",
-    "yandexaccessibilitybot",
-    "yandexbot",
-    "yandexmobilebot",
-    "yandexrenderresourcesbot",
-    "yoozbot",
-    "yoozbotadsbot",
-]
+USER_AGENT_BOTS = [line for line in Path(__file__).with_name("bot_user_agents.txt").read_text().splitlines() if line and not line.startswith("#")]
 
 
 def _compute_is_recognized_bot(user_agent: str) -> bool:
