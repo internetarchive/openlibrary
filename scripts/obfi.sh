@@ -475,9 +475,12 @@ obfi_top_bots() {
 # Filter commands
 ###############################################################
 
+# FIXME: Should be in sync with openlibrary/utils/request_context.py (USER_AGENT_BOTS)
+# Lowercase, so it can also be used with awk's match() on a lowercased string.
+OBFI_BOT_PATTERN='ahrefsbot|amazonbot|applebot|aranet-searchbot|bingbot|bytespider|cheap-books-crawler|claudebot|dataforseobot|discordbot|dotbot|googlebot|gptbot|historichotspotsbot|iaskbot|likemindedbiobot|meta-externalagent|mj12bot|mojeekbot|perplexitybot|petalbot|pinterestbot|qwantbot|semanticscholarbot|semrushbot|seznambot|tiktokspider|ttspider|uptimerobot|yandexaccessibilitybot|yandexbot|yandexrenderresourcesbot|youbot'
+
 obfi_grep_bots() {
-    # FIXME: Should be in sync with openlibrary/utils/request_context.py (USER_AGENT_BOTS)
-    grep $1 -iE 'ahrefsbot|amazonbot|applebot|aranet-searchbot|bingbot|bytespider|cheap-books-crawler|claudebot|dataforseobot|discordbot|dotbot|googlebot|gptbot|historichotspotsbot|iaskbot|likemindedbiobot|meta-externalagent|mj12bot|mojeekbot|perplexitybot|petalbot|pinterestbot|qwantbot|semanticscholarbot|semrushbot|seznambot|tiktokspider|ttspider|uptimerobot|yandexaccessibilitybot|yandexbot|yandexrenderresourcesbot|youbot' -
+    grep $1 -iE "$OBFI_BOT_PATTERN" -
 }
 
 obfi_grep_secondary_reqs() {
