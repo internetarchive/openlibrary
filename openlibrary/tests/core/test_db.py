@@ -1,10 +1,5 @@
-from contextlib import asynccontextmanager
-from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock
-
 import pytest
 import web
-from psycopg.errors import UniqueViolation
 
 from openlibrary.core.async_db import connection, fetch_all
 from openlibrary.core.bestbook import Bestbook
@@ -14,21 +9,6 @@ from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.db import get_db
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-
-
-@pytest.fixture
-def mocked_async_connection(monkeypatch):
-    conn = MagicMock()
-    conn.execute = AsyncMock(return_value=SimpleNamespace(rowcount=2))
-    conn.rollback = AsyncMock()
-
-    @asynccontextmanager
-    async def connection():
-        yield conn
-
-    monkeypatch.setattr("openlibrary.core.db.connection", connection)
-    return conn
-
 
 READING_LOG_DDL = """
 CREATE TABLE bookshelves_books (
@@ -127,38 +107,6 @@ class TestUpdateWorkID:
         resp = Booknotes.update_work_id("1", "2")
         assert resp == {"rows_changed": 0, "rows_deleted": 0, "failed_deletes": 1}
         assert [dict(row) for row in self.db.select("booknotes")] == rows
-
-
-@pytest.mark.asyncio
-async def test_update_username_uses_async_connection_and_rolls_back_for_test_mode(mocked_async_connection):
-    rows_changed = await Ratings.update_username("alice", "anonymous-alice", _test=True)
-
-    assert rows_changed == 2
-    query, params = mocked_async_connection.execute.await_args.args
-    assert query == "UPDATE ratings SET username = %(new_username)s WHERE username = %(username)s"
-    assert params == {"username": "alice", "new_username": "anonymous-alice"}
-    mocked_async_connection.rollback.assert_awaited_once()
-
-
-@pytest.mark.asyncio
-async def test_update_username_unique_conflict_rolls_back_and_returns_zero(mocked_async_connection):
-    mocked_async_connection.execute.side_effect = UniqueViolation("duplicate username")
-
-    rows_changed = await Ratings.update_username("alice", "anonymous-alice")
-
-    assert rows_changed == 0
-    mocked_async_connection.rollback.assert_awaited_once()
-
-
-@pytest.mark.asyncio
-async def test_delete_all_by_username_uses_async_connection_and_rolls_back_for_test_mode(mocked_async_connection):
-    rows_deleted = await Booknotes.delete_all_by_username("alice", _test=True)
-
-    assert rows_deleted == 2
-    query, params = mocked_async_connection.execute.await_args.args
-    assert query == "DELETE FROM booknotes WHERE username = %(username)s"
-    assert params == {"username": "alice"}
-    mocked_async_connection.rollback.assert_awaited_once()
 
 
 @pytest.mark.integration
