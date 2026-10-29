@@ -6,9 +6,12 @@ import pytest
 import web
 from fastapi import Request
 
+from openlibrary.accounts.model import generate_hash
 from openlibrary.utils.request_context import (
+    Visitor,
     _parse_solr_editions_from_fastapi,
     _parse_solr_editions_from_web,
+    _visitor,
 )
 
 
@@ -134,3 +137,15 @@ def test_parse_solr_editions_parity(query_param, cookie_value, expected, descrip
     assert fastapi_result == expected, f"FastAPI version failed: {description}"
     assert web_result == expected, f"web.py version failed: {description}"
     assert fastapi_result == web_result, f"Mismatch between FastAPI and web.py: {description}"
+
+
+def signed_cookie(user_key, secret="secret"):
+    text = f"{user_key},2026-10-28T00:00:00"
+    return f"{text},{generate_hash(secret, text)}"
+
+
+# Cookie parsing and signature checks are tested in openlibrary/tests/fastapi/test_auth.py
+@pytest.mark.parametrize(("cookie", "user_key"), [(signed_cookie("/people/alice"), "/people/alice"), (signed_cookie("/people/alice", secret="wrong"), None)])
+def test_visitor_from_session_cookie(monkeypatch, cookie, user_key):
+    monkeypatch.setattr("openlibrary.fastapi.auth.get_secret_key", lambda: "secret")
+    assert _visitor(cookie) == Visitor(user_key=user_key)

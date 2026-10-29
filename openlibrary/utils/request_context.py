@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 from urllib.parse import unquote
 
 import web
@@ -52,6 +52,34 @@ site: ContextVar[Site] = ContextVar("site")
 # Each request owns a fresh set; copied worker/task contexts share that set.
 rendered_keys: ContextVar[set[str] | None] = ContextVar("rendered_keys", default=None)
 
+
+@dataclass
+class Visitor:
+    """Who made the request, for the ``visitor`` label of the request metrics.
+    Mutable, so a worker thread or task running the route can mark the user a librarian."""
+
+    user_key: str | None  # None without a valid session cookie
+    is_librarian: bool = False  # set by User.is_librarian_or_higher(), which every HTML page's header calls
+
+    @property
+    def label(self) -> Literal["anonymous", "logged_in", "librarian"]:
+        """``logged_in`` means logged in but not a librarian; ``librarian`` is librarian or higher."""
+        if not self.user_key:
+            return "anonymous"
+        return "librarian" if self.is_librarian else "logged_in"
+
+
+visitor: ContextVar[Visitor | None] = ContextVar("visitor", default=None)
+
+
+def _visitor(cookie_value: str | None) -> Visitor:
+    """The visitor for a session cookie. Only checks the cookie's signature; looks nothing up."""
+    from openlibrary.fastapi.auth import authenticate_user_from_cookie  # noqa: PLC0415
+
+    user = authenticate_user_from_cookie(cookie_value)
+    return Visitor(user_key=user.user_key if user else None)
+
+
 USER_AGENT_BOTS = [line for line in Path(__file__).with_name("bot_user_agents.txt").read_text().splitlines() if line and not line.startswith("#")]
 
 
@@ -63,19 +91,19 @@ def _compute_is_recognized_bot(user_agent: str) -> bool:
 def _compute_is_bot(user_agent: str | None, hhcl: str | None) -> bool:
     """Determine if the request is from a bot.
 
-        ``is_bot`` (broader) vs ``is_recognized_bot`` (narrower):
+    ``is_bot`` (broader) vs ``is_recognized_bot`` (narrower):
     - ``is_recognized_bot``: UA matched against the known-crawler list. Used to
-          skip the /verify_human redirect — we don't want crawlers indexing the
-          challenge page, and they can't click the button anyway.
+      skip the /verify_human redirect — we don't want crawlers indexing the
+      challenge page, and they can't click the button anyway.
     - ``is_bot``: is_recognized_bot PLUS missing UA and nginx X-HHCL=1 signal.
-          Used to skip Matomo tracking and other per-request overhead.
+      Used to skip Matomo tracking and other per-request overhead.
 
-        Args:
-            user_agent: The User-Agent header value
-            hhcl: The X-HHCL header value (set by nginx)
+    Args:
+        user_agent: The User-Agent header value
+        hhcl: The X-HHCL header value (set by nginx)
 
-        Returns:
-            True if the request appears to be from a bot, False otherwise
+    Returns:
+        True if the request appears to be from a bot, False otherwise
     """
 
     # Check hhcl header first (set by nginx)
@@ -139,6 +167,7 @@ def set_context_from_legacy_web_py() -> None:
 
     site.set(web.ctx.site)
     rendered_keys.set(set())
+    visitor.set(_visitor(web.cookies().get(config.get("login_cookie_name", "session"))))
     req_context.set(
         RequestContextVars(
             x_forwarded_for=web.ctx.env.get("HTTP_X_FORWARDED_FOR"),
@@ -206,6 +235,7 @@ def set_context_from_fastapi(request: Request) -> None:
 
     site.set(s)
     rendered_keys.set(set())
+    visitor.set(_visitor(cookie_value))
     req_context.set(
         RequestContextVars(
             x_forwarded_for=request.headers.get("X-Forwarded-For"),

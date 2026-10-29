@@ -50,6 +50,7 @@ bin_samples = [
     "lc_0444897283.mrc",
     "lc_1416500308.mrc",
     "lesnoirsetlesrou0000garl_meta.mrc",
+    "nonfiling_characters.mrc",
     "ocm00400866.mrc",
     "secretcodeofsucc00stjo_meta.mrc",
     "uoft_4351105_1626.mrc",
