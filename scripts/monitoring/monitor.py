@@ -123,6 +123,15 @@ def monitor_nginx_logs():
         prefix=f"stats.{bucket}.bot_traffic",
     )
 
+    if bucket == "ol":
+        # Only on www: crawl errors there are what affect indexing, and it keeps
+        # the number of series down. Last, so if it ever fails it can't stop the
+        # metrics above from being sent.
+        bash_run(
+            f"log_recent_bot_statuses stats.{bucket}.bot_status",
+            sources=["../obfi.sh", "utils.sh"],
+        )
+
 
 @limit_server(["ol-solr0", "ol-solr1", "ol-solr2"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)
