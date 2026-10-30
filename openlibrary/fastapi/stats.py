@@ -31,7 +31,6 @@ SERIES_KEYS = (
     "tasks_editors_1d",
     "tasks_editors_7d",
     "tasks_editors_28d",
-    "tasks_saves_initiative_1d",
     "initiative_open_gaps",
     "initiative_done_editions",
     "initiative_not_found",

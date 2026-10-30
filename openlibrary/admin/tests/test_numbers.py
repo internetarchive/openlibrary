@@ -214,22 +214,6 @@ def test_initiative_snapshot_refuses_past_days(fake_initiative):
     assert fake_initiative.calls == []
 
 
-def test_initiative_saves_are_limited_to_the_frozen_list(fake_initiative):
-    db = FakeDB()
-    assert run(numbers.admin_range__tasks_saves_initiative_1d, db) == 7
-    [(q, vars)] = db.queries
-    sql = str(web.db.reparam(q, vars))
-    assert "t.changes::json->0->>'key' IN ('/books/OL1M', '/books/OL2M')" in sql
-    assert "key = 'source' AND value = 'contribute'" in sql
-    assert "t.created >= '2026-10-15' and t.created < '2026-10-15 21:00:00'" in sql
-
-
-def test_initiative_saves_need_a_frozen_list(fake_initiative):
-    web.ctx.site.store.clear()
-    with pytest.raises(numbers.NoStats):
-        run(numbers.admin_range__tasks_saves_initiative_1d, FakeDB())
-
-
 def test_tasks_source_matches_what_tasks_saves_write():
     assert numbers.TASKS_SOURCE == save.SOURCE
 

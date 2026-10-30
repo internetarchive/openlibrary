@@ -319,17 +319,6 @@ def admin_range__initiative_editions(**kargs):
     return _initiative_progress(kargs)["total"]
 
 
-def admin_range__tasks_saves_initiative_1d(**kargs):
-    """The day's Tasks saves on editions in the active initiative's frozen list. The list doesn't move, so unlike the
-    snapshot keys this one backfills."""
-    db, start, end = _range_args("admin_range__tasks_saves_initiative_1d", kargs)
-    initiatives = _initiative()
-    if not (picks := initiatives.load_frozen(initiatives.ACTIVE, web.ctx.site)):
-        raise NoStats
-    keys = [key for key, _readers in picks]
-    return _count_transactions(db, start, end, f" AND t.id IN ({TASKS_SAVES}) AND t.changes::json->0->>'key' IN $keys", tasks_source=TASKS_SOURCE, keys=keys)
-
-
 def admin_range__tasks_saves_undone_28d(**kargs):
     """Tasks saves in the 28 days before `end` whose value the record no longer holds, by undo, revert or a later edit.
 
