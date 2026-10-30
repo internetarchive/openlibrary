@@ -657,6 +657,7 @@ def get_user_waiting_loans(user_key: str) -> list[WaitingLoan]:
 
     if "site" not in web.ctx:
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
     try:
         account = OpenLibraryAccount.get_by_key(user_key)

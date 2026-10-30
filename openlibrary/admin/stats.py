@@ -12,6 +12,7 @@ import yaml
 
 from openlibrary.admin import numbers
 from openlibrary.admin.vitals import gather_participation_scores, write_to_statsd
+from openlibrary.utils.request_context import create_context_for_script, req_context, site
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +116,8 @@ def setup_ol_config(openlibrary_config_file):
             config.infobase = yaml.safe_load(file)
 
     infogami._setup()
+    site.set(web.ctx.site)
+    req_context.set(create_context_for_script())
 
 
 def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):

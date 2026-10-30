@@ -23,6 +23,7 @@ from ..i18n import gettext as _
 from ..plugins.admin.code import get_counts
 from ..plugins.worksearch.code import get_solr_works
 from ..utils import dateutil
+from ..utils.request_context import set_context_from_legacy_web_py
 
 LENDING_TYPES = "(libraries|regions|countries|collections|subjects|format)"
 
@@ -42,6 +43,7 @@ def reading_log_summary():
     # enable to work w/ cached
     if "env" not in web.ctx:
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
     stats = Bookshelves.summary()
     stats.update(YearlyReadingGoals.summary_sync())
@@ -139,6 +141,7 @@ def reading_log_leaderboard(limit: int):
     # enable to work w/ cached
     if "env" not in web.ctx:
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
     most_read = Bookshelves.most_logged_books(shelf_ids=[Bookshelves.PRESET_BOOKSHELVES["Already Read"]], limit=limit)
     most_wanted_all = Bookshelves.most_logged_books(shelf_ids=[Bookshelves.PRESET_BOOKSHELVES["Want to Read"]], limit=limit)
