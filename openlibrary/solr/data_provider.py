@@ -41,6 +41,7 @@ SUPPORTED_WORK_TAG_FIELDS = (
     "audiences",
     "content_warnings",
     "content_formats",
+    "literary_forms",
 )
 
 

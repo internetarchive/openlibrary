@@ -720,6 +720,16 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         return [t.get("name", "") for t in self._tags_of_type("content_formats")]
 
     @cached_property
+    def literary_form_key(self) -> list[str]:
+        # Production Tags use the singular `literary_form` tag_type, while the
+        # work field read for them is the plural `literary_forms` (cf. audience).
+        return [t["key"].split("/")[-1] for t in self._tags_of_type("literary_form")]
+
+    @cached_property
+    def literary_form_name(self) -> list[str]:
+        return [t.get("name", "") for t in self._tags_of_type("literary_form")]
+
+    @cached_property
     def author_alternative_name(self) -> set[str]:
         return {alt_name for a in self._authors for alt_name in a.get("alternate_names", [])}
 

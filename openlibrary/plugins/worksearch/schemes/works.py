@@ -85,6 +85,8 @@ class WorkSearchScheme(SearchScheme):
             "content_warning_name",
             "content_format_key",
             "content_format_name",
+            "literary_form_key",
+            "literary_form_name",
             "subject",
             "person",
             "place",
