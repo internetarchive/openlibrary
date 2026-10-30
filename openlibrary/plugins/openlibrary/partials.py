@@ -202,7 +202,7 @@ def _resolve_carousel_card_author_names(book) -> list[str]:
     return []
 
 
-def _render_carousel_card_loan_status(book, *, work_key: str, key: str) -> Markup:
+def _render_carousel_card_loan_status(book, *, work_key: str, key: str, layout: str | None) -> Markup:
     """Bridge call into the still-Templetor LoanStatus macro (183 lines, 8
     other callers; out of scope for this conversion per issue #13570).
     TODO: Convert LoanStatus to jinja and remove this bridge.
@@ -213,7 +213,8 @@ def _render_carousel_card_loan_status(book, *, work_key: str, key: str) -> Marku
         work_key=work_key,
         listen=False,
         analytics_override="BookCarousel|{action}Click|%s" % key,
-        cta_size="small",
+        # Only ol-carousel rows shrink .cta-btn to match (buttonCta.css); Slick and grid rows stay medium.
+        cta_size="small" if layout == "ol-carousel" else "medium",
     )
     return Markup(str(macro["__body__"]))
 
@@ -287,7 +288,7 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
         "key": key,
         "lazy": lazy,
         "layout": layout,
-        "loan_status_html": _render_carousel_card_loan_status(book, work_key=url, key=key),
+        "loan_status_html": _render_carousel_card_loan_status(book, work_key=url, key=key, layout=layout),
         "return_confirm_i18n": json_encode({"confirm_return": _("Really return this book?")}),
         "request_fullpath": full_path,
         # No reader or state in the HTML: book-state.js fills both in.
