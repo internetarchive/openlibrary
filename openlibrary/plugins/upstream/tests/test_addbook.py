@@ -5,8 +5,15 @@ import web
 
 from openlibrary import accounts
 from openlibrary.mocks.mock_infobase import MockSite
+from openlibrary.utils.request_context import site as site_context
 
-from .. import addbook
+from .. import addbook, models
+
+
+def setup_mock_site():
+    web.ctx.site = MockSite()
+    site_context.set(web.ctx.site)
+    models.setup()
 
 
 def strip_nones(d):
@@ -29,7 +36,7 @@ def mock_user():
 
 class TestSaveBookHelper:
     def setup_method(self, method):
-        web.ctx.site = MockSite()
+        setup_mock_site()
 
     def test_authors(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
@@ -242,6 +249,59 @@ class TestSaveBookHelper:
 
         assert web.ctx.site.get("/works/OL1W").title == "Original Work Title"
         assert web.ctx.site.get("/books/OL1M").title == "Modified Edition Title"
+
+    def test_process_edition_treats_empty_weight_and_dimensions_as_cleared(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+
+        s = addbook.SaveBookHelper(None, None)
+        edition = s.process_edition(web.storage({"weight": None, "physical_dimensions": None}))
+
+        assert edition.weight is None
+        assert edition.physical_dimensions is None
+
+    def test_clearing_weight_and_dimensions_without_units(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL1W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL1W"}],
+                    "weight": "0.000",
+                    "physical_dimensions": "9 x 6 x 1 inches",
+                },
+            ]
+        )
+
+        work = web.ctx.site.get("/works/OL1W")
+        edition = web.ctx.site.get("/books/OL1M")
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Original Work Title",
+                "edition--title": "Modified Edition Title",
+                "edition--works--0--key": "/works/OL1W",
+                "edition--weight--value": "",
+                "edition--physical_dimensions--height": "",
+                "edition--physical_dimensions--width": "",
+                "edition--physical_dimensions--depth": "",
+            }
+        )
+
+        s = addbook.SaveBookHelper(work, edition)
+        s.save(formdata)
+
+        saved_edition = web.ctx.site.get("/books/OL1M")
+        assert saved_edition.title == "Modified Edition Title"
+        assert saved_edition.weight is None
+        assert saved_edition.physical_dimensions is None
 
     def test_editing_work_and_edition(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
@@ -493,7 +553,7 @@ class TestSaveBookHelper:
 
 class TestDaisyPage:
     def setup_method(self, method):
-        web.ctx.site = MockSite()
+        setup_mock_site()
 
     def test_redirects_to_archive_item_for_edition_with_ocaid(self, monkeypatch):
         web.ctx.site.save(
@@ -541,6 +601,9 @@ class TestDaisyPage:
 
 
 class TestMakeWork:
+    def setup_method(self, method):
+        setup_mock_site()
+
     def test_make_author_adds_the_correct_key(self):
         author_key = "OL123A"
         author_name = "Samuel Clemens"
