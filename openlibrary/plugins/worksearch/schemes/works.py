@@ -7,6 +7,7 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, cast
 
 import luqum.tree
+from luqum.parser import parser
 
 import infogami
 from openlibrary.fastapi.models import SolrInternalsParams
@@ -19,6 +20,7 @@ from openlibrary.solr.query_utils import (
     luqum_parser,
     luqum_remove_child,
     luqum_remove_field,
+    luqum_remove_unfielded,
     luqum_replace_child,
     luqum_replace_field,
     luqum_traverse,
@@ -390,6 +392,7 @@ class WorkSearchScheme(SearchScheme):
 
         full_work_query = edismax_params.to_solr_edismax_subquery()
         ed_q = None
+        ed_filter_q = None
         full_ed_query = None
         editions_fq = []
         if self.solr_editions and "editions:[subquery]" in solr_fields:
@@ -545,31 +548,38 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(("editions.userEdQuery", ed_q or "*:*"))
             new_params.append(("editions.ol.label", "EDITION_MATCH"))
 
-            full_ed_query = '({{!edismax bq="{bq}" v={v} qf="{qf}"}})'.format(
-                # See qf in work_query. Edition docs only carry a subset of
-                # the work-level fields (see EditionSolrBuilder.build()), so
-                # this only lists fields that are actually populated on them.
-                qf="title subtitle publisher isbn oclc lccn ia key author_key alternative_title^4 author_name^4 author_alternative_name^4 chapter^4",
-                # Reading from the url parameter userEdQuery. This lets us avoid
-                # having to try to escape the query in order to fit inside this
-                # other query.
-                v="$userEdQuery",
-                # bq (boost query): Boost which edition is promoted to the top
-                bq=" ".join(
-                    (
-                        f"language:{user_lang}^40",
-                        "ebook_access:public^10",
-                        "ebook_access:borrowable^8",
-                        "ebook_access:printdisabled^2",
-                        "cover_i:*^2",
-                    )
-                ),
+            # Unfielded terms already had to match the work (possibly via
+            # work-only fields like subject), so they only rank editions; the
+            # fielded parts of the edition query must hold on a single edition.
+            if ed_q and (ed_filter_tree := luqum_remove_unfielded(parser.parse(ed_q))):
+                ed_filter_q = str(ed_filter_tree).strip()
+                new_params.append(("userEdFilterQuery", ed_filter_q))
+                new_params.append(("editions.userEdFilterQuery", ed_filter_q))
+
+            # See qf in work_query. Edition docs only carry a subset of
+            # the work-level fields (see EditionSolrBuilder.build()), so
+            # this only lists fields that are actually populated on them.
+            ed_qf = "title subtitle publisher isbn oclc lccn ia key author_key alternative_title^4 author_name^4 author_alternative_name^4 chapter^4"
+            # Reading from the url parameter userEdQuery. This lets us avoid
+            # having to try to escape the query in order to fit inside this
+            # other query.
+            full_ed_query = f'({{!edismax v=$userEdQuery qf="{ed_qf}"}})'
+            ed_filter_query = f'({{!edismax v=$userEdFilterQuery qf="{ed_qf}"}})'
+            # Boost which edition is promoted to the top
+            ed_boosts = " ".join(
+                (
+                    f"language:{user_lang}^40",
+                    "ebook_access:public^10",
+                    "ebook_access:borrowable^8",
+                    "ebook_access:printdisabled^2",
+                    "cover_i:*^2",
+                )
             )
 
-        if ed_q or len(editions_fq) > 1:
+        if ed_filter_q or len(editions_fq) > 1:
             # The elements in _this_ edition query should cause works not to
             # match _at all_ if matching editions are not found
-            new_params.append(("fullEdQuery", cast(str, full_ed_query) if ed_q else "*:*"))
+            new_params.append(("fullEdFilterQuery", cast(str, ed_filter_query) if ed_filter_q else "*:*"))
             q = (
                 f"+{full_work_query} "
                 # This is using the special parent query syntax to, on top of
@@ -577,7 +587,7 @@ class WorkSearchScheme(SearchScheme):
                 # editions matching the edition query.
                 # Also include edition-less works (i.e. edition_count:0)
                 "+("
-                '_query_:"{!parent which=type:work v=$fullEdQuery filters=$editions.fq}" '
+                '_query_:"{!parent which=type:work v=$fullEdFilterQuery filters=$editions.fq}" '
                 "OR edition_count:0"
                 ")"
             )
@@ -623,9 +633,19 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(
                 (
                     "editions.q",
-                    # Here we use the special terms parser to only filter the
-                    # editions for a given, already matching work '_root_' node.
-                    f"({{!terms f=_root_ v=$row.key}}) AND {full_ed_query}",
+                    " ".join(
+                        (
+                            # Here we use the special terms parser to only filter the
+                            # editions for a given, already matching work '_root_' node.
+                            "+({!terms f=_root_ v=$row.key})",
+                            f"+{ed_filter_query}" if ed_filter_q else "",
+                            # Editions matching the full query (incl. unfielded terms)
+                            # always rank above those that don't
+                            f"{full_ed_query}^=1000",
+                            full_ed_query,
+                            ed_boosts,
+                        )
+                    ),
                 )
             )
             new_params.append(("editions.rows", "1"))
