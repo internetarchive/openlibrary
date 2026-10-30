@@ -513,6 +513,119 @@ class TestWorkSolrBuilderTags:
         assert doc.get("genre_key") == ["OL177T"]
         assert doc.get("genre_name") == ["Romance"]
 
+    def test_no_content_warnings(self):
+        wsb = make_work_solr_builder(make_work())
+        assert wsb.content_warning_key == []
+        assert wsb.content_warning_name == []
+
+    def test_content_warnings(self):
+        tags = [
+            make_tag(tag_type="content_warnings", name="Violence", key="/tags/OL401T"),
+            make_tag(tag_type="content_warnings", name="Gore", key="/tags/OL402T"),
+        ]
+        wsb = make_work_solr_builder_with_tags(make_work(), tags)
+        assert wsb.content_warning_key == ["OL401T", "OL402T"]
+        assert wsb.content_warning_name == ["Violence", "Gore"]
+
+    def test_content_warnings_separated_from_genres(self):
+        tags = [
+            make_tag(tag_type="genres", name="Horror", key="/tags/OL171T"),
+            make_tag(tag_type="content_warnings", name="Violence", key="/tags/OL401T"),
+        ]
+        wsb = make_work_solr_builder_with_tags(make_work(), tags)
+        assert wsb.genre_key == ["OL171T"]
+        assert wsb.genre_name == ["Horror"]
+        assert wsb.content_warning_key == ["OL401T"]
+        assert wsb.content_warning_name == ["Violence"]
+
+    def test_content_warnings_in_solr_doc(self):
+        wsb = make_work_solr_builder_with_tags(
+            make_work(),
+            tags=[make_tag(tag_type="content_warnings", name="Violence", key="/tags/OL401T")],
+        )
+        doc = wsb.build()
+        assert doc.get("content_warning_key") == ["OL401T"]
+        assert doc.get("content_warning_name") == ["Violence"]
+
+    def test_no_content_formats(self):
+        wsb = make_work_solr_builder(make_work())
+        assert wsb.content_format_key == []
+        assert wsb.content_format_name == []
+
+    def test_content_formats(self):
+        tags = [
+            make_tag(tag_type="content_formats", name="Graphic Novel", key="/tags/OL501T"),
+            make_tag(tag_type="content_formats", name="Poetry", key="/tags/OL502T"),
+        ]
+        wsb = make_work_solr_builder_with_tags(make_work(), tags)
+        assert wsb.content_format_key == ["OL501T", "OL502T"]
+        assert wsb.content_format_name == ["Graphic Novel", "Poetry"]
+
+    def test_content_formats_separated_from_genres(self):
+        tags = [
+            make_tag(tag_type="genres", name="Horror", key="/tags/OL171T"),
+            make_tag(tag_type="content_formats", name="Graphic Novel", key="/tags/OL501T"),
+        ]
+        wsb = make_work_solr_builder_with_tags(make_work(), tags)
+        assert wsb.genre_key == ["OL171T"]
+        assert wsb.genre_name == ["Horror"]
+        assert wsb.content_format_key == ["OL501T"]
+        assert wsb.content_format_name == ["Graphic Novel"]
+
+    def test_content_formats_in_solr_doc(self):
+        wsb = make_work_solr_builder_with_tags(
+            make_work(),
+            tags=[make_tag(tag_type="content_formats", name="Graphic Novel", key="/tags/OL501T")],
+        )
+        doc = wsb.build()
+        assert doc.get("content_format_key") == ["OL501T"]
+        assert doc.get("content_format_name") == ["Graphic Novel"]
+
+    def test_no_literary_forms(self):
+        wsb = make_work_solr_builder(make_work())
+        assert wsb.literary_form_key == []
+        assert wsb.literary_form_name == []
+
+    def test_literary_forms(self):
+        # Production Tags carry the singular tag_type `literary_form`
+        # (mirrors how #13650 matches `audience`).
+        tags = [
+            make_tag(tag_type="literary_form", name="Fiction", key="/tags/OL183T"),
+            make_tag(tag_type="literary_form", name="Nonfiction", key="/tags/OL184T"),
+        ]
+        wsb = make_work_solr_builder_with_tags(make_work(), tags)
+        assert wsb.literary_form_key == ["OL183T", "OL184T"]
+        assert wsb.literary_form_name == ["Fiction", "Nonfiction"]
+
+    def test_ignores_plural_literary_forms_tag_type(self):
+        # Only the singular `literary_form` is indexed; a plural
+        # `literary_forms` tag_type must not leak in (inverse of #13650's
+        # strict `test_ignores_singular_genre_tag_type`).
+        tags = [make_tag(tag_type="literary_forms", name="Fiction", key="/tags/OL183T")]
+        wsb = make_work_solr_builder_with_tags(make_work(), tags)
+        assert wsb.literary_form_key == []
+        assert wsb.literary_form_name == []
+
+    def test_literary_forms_separated_from_genres(self):
+        tags = [
+            make_tag(tag_type="genres", name="Horror", key="/tags/OL171T"),
+            make_tag(tag_type="literary_form", name="Fiction", key="/tags/OL183T"),
+        ]
+        wsb = make_work_solr_builder_with_tags(make_work(), tags)
+        assert wsb.genre_key == ["OL171T"]
+        assert wsb.genre_name == ["Horror"]
+        assert wsb.literary_form_key == ["OL183T"]
+        assert wsb.literary_form_name == ["Fiction"]
+
+    def test_literary_forms_in_solr_doc(self):
+        wsb = make_work_solr_builder_with_tags(
+            make_work(),
+            tags=[make_tag(tag_type="literary_form", name="Fiction", key="/tags/OL183T")],
+        )
+        doc = wsb.build()
+        assert doc.get("literary_form_key") == ["OL183T"]
+        assert doc.get("literary_form_name") == ["Fiction"]
+
 
 class TestWorkSolrUpdaterTags:
     @pytest.mark.asyncio
@@ -556,6 +669,83 @@ class TestWorkSolrUpdaterTags:
         assert len(req.adds) == 1
         assert req.adds[0].get("genre_key") is None
         assert req.adds[0].get("genre_name") is None
+
+    @pytest.mark.asyncio
+    async def test_content_warnings_loaded_from_data_provider(self):
+        tags = [
+            make_tag(tag_type="content_warnings", name="Violence", key="/tags/OL401T"),
+            make_tag(tag_type="content_warnings", name="Gore", key="/tags/OL402T"),
+        ]
+        work = make_work()
+        # Exercise both {"key": ...} refs and bare string refs
+        work["content_warnings"] = [{"key": "/tags/OL401T"}, "/tags/OL402T"]
+        req, _ = await WorkSolrUpdater(FakeDataProvider([work, *tags])).update_key(work)
+        assert len(req.adds) == 1
+        assert req.adds[0]["content_warning_key"] == ["OL401T", "OL402T"]
+        assert req.adds[0]["content_warning_name"] == ["Violence", "Gore"]
+
+    @pytest.mark.asyncio
+    async def test_content_warnings_ignores_non_tag_docs(self):
+        cw = make_tag(tag_type="content_warnings", name="Violence", key="/tags/OL401T")
+        cw["type"] = {"key": "/type/delete"}
+        work = make_work()
+        work["content_warnings"] = [{"key": "/tags/OL401T"}]
+        req, _ = await WorkSolrUpdater(FakeDataProvider([work, cw])).update_key(work)
+        assert len(req.adds) == 1
+        assert req.adds[0].get("content_warning_key") is None
+        assert req.adds[0].get("content_warning_name") is None
+
+    @pytest.mark.asyncio
+    async def test_content_formats_loaded_from_data_provider(self):
+        tags = [
+            make_tag(tag_type="content_formats", name="Graphic Novel", key="/tags/OL501T"),
+            make_tag(tag_type="content_formats", name="Poetry", key="/tags/OL502T"),
+        ]
+        work = make_work()
+        # Exercise both {"key": ...} refs and bare string refs
+        work["content_formats"] = [{"key": "/tags/OL501T"}, "/tags/OL502T"]
+        req, _ = await WorkSolrUpdater(FakeDataProvider([work, *tags])).update_key(work)
+        assert len(req.adds) == 1
+        assert req.adds[0]["content_format_key"] == ["OL501T", "OL502T"]
+        assert req.adds[0]["content_format_name"] == ["Graphic Novel", "Poetry"]
+
+    @pytest.mark.asyncio
+    async def test_content_formats_ignores_non_tag_docs(self):
+        cf = make_tag(tag_type="content_formats", name="Graphic Novel", key="/tags/OL501T")
+        cf["type"] = {"key": "/type/delete"}
+        work = make_work()
+        work["content_formats"] = [{"key": "/tags/OL501T"}]
+        req, _ = await WorkSolrUpdater(FakeDataProvider([work, cf])).update_key(work)
+        assert len(req.adds) == 1
+        assert req.adds[0].get("content_format_key") is None
+        assert req.adds[0].get("content_format_name") is None
+
+    @pytest.mark.asyncio
+    async def test_literary_forms_loaded_from_data_provider(self):
+        # The work field is the plural `literary_forms`, while the Tags it
+        # points at carry the singular `literary_form` tag_type.
+        tags = [
+            make_tag(tag_type="literary_form", name="Fiction", key="/tags/OL183T"),
+            make_tag(tag_type="literary_form", name="Nonfiction", key="/tags/OL184T"),
+        ]
+        work = make_work()
+        # Exercise both {"key": ...} refs and bare string refs
+        work["literary_forms"] = [{"key": "/tags/OL183T"}, "/tags/OL184T"]
+        req, _ = await WorkSolrUpdater(FakeDataProvider([work, *tags])).update_key(work)
+        assert len(req.adds) == 1
+        assert req.adds[0]["literary_form_key"] == ["OL183T", "OL184T"]
+        assert req.adds[0]["literary_form_name"] == ["Fiction", "Nonfiction"]
+
+    @pytest.mark.asyncio
+    async def test_literary_forms_ignores_non_tag_docs(self):
+        lf = make_tag(tag_type="literary_form", name="Fiction", key="/tags/OL183T")
+        lf["type"] = {"key": "/type/delete"}
+        work = make_work()
+        work["literary_forms"] = [{"key": "/tags/OL183T"}]
+        req, _ = await WorkSolrUpdater(FakeDataProvider([work, lf])).update_key(work)
+        assert len(req.adds) == 1
+        assert req.adds[0].get("literary_form_key") is None
+        assert req.adds[0].get("literary_form_name") is None
 
 
 class Test_number_of_pages_median:
