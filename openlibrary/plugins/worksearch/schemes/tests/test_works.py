@@ -71,6 +71,10 @@ QUERY_PARSER_TESTS = {
         "isbn:978-0-06-093546-7",
         "isbn:9780060935467",
     ),
+    "Normalizes uppercase ISBN field": (
+        "ISBN:978-0-06-093546-7",
+        "isbn:9780060935467",
+    ),
     "Does not normalize ISBN stars": (
         "isbn:979*",
         "isbn:979*",
@@ -78,6 +82,10 @@ QUERY_PARSER_TESTS = {
     # LCCs
     "LCC: quotes added if space present": (
         "lcc:NC760 .B2813 2004",
+        'lcc:"NC-0760.00000000.B2813 2004"',
+    ),
+    "LCC: uppercase field normalized": (
+        "LCC:NC760 .B2813 2004",
         'lcc:"NC-0760.00000000.B2813 2004"',
     ),
     "LCC: star added if no space": (
