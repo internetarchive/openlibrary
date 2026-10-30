@@ -6325,7 +6325,7 @@ msgstr ""
 
 #: stats/tasks.html.jinja
 #, python-format
-msgid "of %(count)s books complete"
+msgid "<b>%(done)s of %(count)s</b> books complete"
 msgstr ""
 
 #: stats/tasks.html.jinja

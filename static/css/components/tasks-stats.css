@@ -155,11 +155,11 @@
   flex-wrap: wrap;
   gap: var(--spacing-2xs) var(--spacing-lg);
   margin: 0;
+  font-size: var(--font-size-body-medium);
   color: var(--color-text-secondary);
 }
 
 .tasks-stats__figures b {
-  font-size: var(--font-size-body-large);
   color: var(--color-text);
 }
 

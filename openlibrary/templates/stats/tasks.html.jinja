@@ -81,7 +81,7 @@
             </p>
             <p class="tasks-stats__figures">
                 <span><b>{{ page.initiative.percent }}</b> {{ _("of details filled") }}</span>
-                <span><b>{{ page.initiative.done }}</b> {{ _("of %(count)s books complete", count=page.initiative.editions) }}</span>
+                <span>{{ _("<b>%(done)s of %(count)s</b> books complete", done=page.initiative.done, count=page.initiative.editions) | safe }}</span>
                 <span><b>{{ page.initiative.open }}</b> {{ _("details still open") }}</span>
                 <span><b>{{ page.initiative.not_found }}</b> {{ _("marked not found") }}</span>
             </p>
