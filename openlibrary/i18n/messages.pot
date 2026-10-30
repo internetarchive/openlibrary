@@ -6259,6 +6259,27 @@ msgid "Counts are gathered every hour, so today's figures fill in as the day goe
 msgstr ""
 
 #: stats/tasks.html.jinja
+msgid "Metrics, last 28 days. Choose one to chart it."
+msgstr ""
+
+#: stats/tasks.html.jinja
+#, python-format
+msgid "%(change)s vs previous 28 days"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "No earlier count yet"
+msgstr ""
+
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+msgid "Per day"
+msgstr ""
+
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+msgid "Previous period"
+msgstr ""
+
+#: stats/tasks.html.jinja
 msgid "Date range"
 msgstr ""
 
@@ -6288,27 +6309,6 @@ msgstr ""
 
 #: stats/tasks.html.jinja
 msgid "Compare to previous period"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Metrics, last 28 days. Choose one to chart it."
-msgstr ""
-
-#: stats/tasks.html.jinja
-#, python-format
-msgid "%(change)s vs previous 28 days"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "No earlier count yet"
-msgstr ""
-
-#: openlibrary/views/loanstats.py stats/tasks.html.jinja
-msgid "Per day"
-msgstr ""
-
-#: openlibrary/views/loanstats.py stats/tasks.html.jinja
-msgid "Previous period"
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -6349,7 +6349,7 @@ msgid "Saves on the initiative's books"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Tasks saves on the books in the initiative's list. Follows the range and grouping above."
+msgid "Tasks saves on the books in the initiative's list. Follows the chart's range and grouping."
 msgstr ""
 
 #: stats/tasks.html.jinja

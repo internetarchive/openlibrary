@@ -7,35 +7,6 @@
 <div id="contentBody"
      class="tasks-stats"
      data-i18n="{{ page.i18n | tojson | forceescape }}">
-    <div class="tasks-stats__controls">
-        <ol-segmented-control class="tasks-stats__range" size="small" value="90" accessible-label="{{ _('Date range') }}">
-            <ol-segment value="28">
-                {{ _("28 days") }}
-            </ol-segment>
-            <ol-segment value="90">
-                {{ _("90 days") }}
-            </ol-segment>
-            <ol-segment value="182">
-                {{ _("6 months") }}
-            </ol-segment>
-            <ol-segment value="365">
-                {{ _("12 months") }}
-            </ol-segment>
-        </ol-segmented-control>
-        <ol-segmented-control class="tasks-stats__granularity" size="small" value="day" accessible-label="{{ _('Group by') }}">
-            <ol-segment value="day">
-                {{ _("Day") }}
-            </ol-segment>
-            <ol-segment value="week">
-                {{ _("Week") }}
-            </ol-segment>
-            <ol-segment value="month">
-                {{ _("Month") }}
-            </ol-segment>
-        </ol-segmented-control>
-        <ol-toggle class="tasks-stats__compare" checked label="{{ _('Compare to previous period') }}">
-        </ol-toggle>
-    </div>
     <div class="tasks-stats__cards"
          role="group"
          aria-label="{{ _('Metrics, last 28 days. Choose one to chart it.') }}">
@@ -64,6 +35,35 @@
             <span class="tasks-stats__legend">
                 <span class="tasks-stats__legend-previous">{{ _("Previous period") }}</span>
             </span>
+        </div>
+        <div class="tasks-stats__controls">
+            <ol-segmented-control class="tasks-stats__range" size="small" value="90" accessible-label="{{ _('Date range') }}">
+                <ol-segment value="28">
+                    {{ _("28 days") }}
+                </ol-segment>
+                <ol-segment value="90">
+                    {{ _("90 days") }}
+                </ol-segment>
+                <ol-segment value="182">
+                    {{ _("6 months") }}
+                </ol-segment>
+                <ol-segment value="365">
+                    {{ _("12 months") }}
+                </ol-segment>
+            </ol-segmented-control>
+            <ol-segmented-control class="tasks-stats__granularity" size="small" value="day" accessible-label="{{ _('Group by') }}">
+                <ol-segment value="day">
+                    {{ _("Day") }}
+                </ol-segment>
+                <ol-segment value="week">
+                    {{ _("Week") }}
+                </ol-segment>
+                <ol-segment value="month">
+                    {{ _("Month") }}
+                </ol-segment>
+            </ol-segmented-control>
+            <ol-toggle class="tasks-stats__compare" checked label="{{ _('Compare to previous period') }}">
+            </ol-toggle>
         </div>
         <div class="tasks-stats__canvas tasks-stats__canvas--main">
             <canvas data-chart="main"
@@ -94,7 +94,7 @@
         </section>
         <section class="tasks-stats__panel">
             <h2>{{ _("Saves on the initiative's books") }}</h2>
-            <p class="tasks-stats__note">{{ _("Tasks saves on the books in the initiative's list. Follows the range and grouping above.") }}</p>
+            <p class="tasks-stats__note">{{ _("Tasks saves on the books in the initiative's list. Follows the chart's range and grouping.") }}</p>
             <div class="tasks-stats__canvas">
                 <canvas data-chart="initiative-saves"
                         role="img"
