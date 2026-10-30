@@ -90,30 +90,6 @@
             </div>
         </section>
         <section class="tasks-stats__panel">
-            <h2>{{ _("Saves on the initiative's books") }}</h2>
-            <p class="tasks-stats__note">{{ _("Tasks saves on the books in the initiative's list. Follows the chart's range and grouping.") }}</p>
-            <div class="tasks-stats__canvas">
-                <canvas data-chart="initiative-saves"
-                        role="img"
-                        aria-label="{{ _('Tasks saves on initiative books, by period') }}"></canvas>
-            </div>
-        </section>
-        <section class="tasks-stats__panel">
-            <h2>{{ _("Guardrail") }}</h2>
-            <p class="tasks-stats__note">
-                {{ _("Tasks saves whose value is no longer on the record: undone, reverted or changed by a later edit. As a share of the saves in the 28 days to each day.") }}
-            </p>
-            <p class="tasks-stats__figures">
-                <span><b>{{ page.undone.share }}</b> {{ _("undone") }}</span>
-                <span>{{ _("%(undone)s of %(saves)s saves in the last 28 days", undone=page.undone.undone, saves=page.undone.saves) }}</span>
-            </p>
-            <div class="tasks-stats__canvas">
-                <canvas data-chart="undone"
-                        role="img"
-                        aria-label="{{ _('Share of Tasks saves undone, by day') }}"></canvas>
-            </div>
-        </section>
-        <section class="tasks-stats__panel">
             <h2>{{ _("Saves by field, last 28 days") }}</h2>
             <p class="tasks-stats__note">{{ _("Which details people are filling in.") }}</p>
             {% if page.saves_by_field %}
@@ -143,6 +119,21 @@
             {% else %}
                 <p>{{ _("No Tasks saves in the last 28 days.") }}</p>
             {% endif %}
+        </section>
+        <section class="tasks-stats__panel tasks-stats__panel--wide">
+            <h2>{{ _("Guardrail") }}</h2>
+            <p class="tasks-stats__note">
+                {{ _("Tasks saves whose value is no longer on the record: undone, reverted or changed by a later edit. As a share of the saves in the 28 days to each day.") }}
+            </p>
+            <p class="tasks-stats__figures">
+                <span><b>{{ page.undone.share }}</b> {{ _("undone") }}</span>
+                <span>{{ _("%(undone)s of %(saves)s saves in the last 28 days", undone=page.undone.undone, saves=page.undone.saves) }}</span>
+            </p>
+            <div class="tasks-stats__canvas">
+                <canvas data-chart="undone"
+                        role="img"
+                        aria-label="{{ _('Share of Tasks saves undone, by day') }}"></canvas>
+            </div>
         </section>
     </div>
 </div>

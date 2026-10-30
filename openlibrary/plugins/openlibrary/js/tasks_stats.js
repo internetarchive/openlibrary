@@ -14,7 +14,6 @@ export const DEFAULT_STRINGS = {
     todaySoFar: 'Today so far, updated hourly',
     periodSoFar: 'Still in progress',
     openDetails: '%(count)s details still open',
-    initiativeSaves: '%(count)s saves on the list',
     undoneShare: '%(share)s undone: %(undone)s of %(saves)s saves in the 28 days to this day',
     noData: 'No counts for this range yet.',
     loadFailed: "The charts couldn't load. Reload the page to try again."
@@ -342,21 +341,6 @@ export async function init(root) {
         });
     }
 
-    function drawInitiativeSaves() {
-        const { current } = splitPeriods(bucketize(series('tasks_saves_initiative_1d'), BUCKET_DAYS[state.granularity]), bucketCount());
-        draw('initiative-saves', {
-            type: 'bar',
-            data: { labels: current.map(shortLabel), datasets: [barDataset(current)] },
-            options: options({
-                tooltip: {
-                    title: items => fullLabel(current[items[0].dataIndex]),
-                    label: item => fill(strings.initiativeSaves, { count: numberFormat.format(item.raw) }),
-                    footer: items => inProgressNote(current[items[0].dataIndex])
-                }
-            })
-        });
-    }
-
     const title = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-title'));
     const unit = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-unit'));
     const legend = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__legend'));
@@ -368,7 +352,6 @@ export async function init(root) {
         unit.textContent = units[state.granularity];
         legend.hidden = !state.compare;
         drawMain();
-        drawInitiativeSaves();
     }
 
     cards.forEach(card =>

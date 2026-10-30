@@ -343,7 +343,6 @@ def build_tasks_stats_i18n() -> dict[str, str]:
         "todaySoFar": _("Today so far, updated hourly"),
         "periodSoFar": _("Still in progress"),
         "openDetails": _("%(count)s details still open"),
-        "initiativeSaves": _("%(count)s saves on the list"),
         "undoneShare": _("%(share)s undone: %(undone)s of %(saves)s saves in the 28 days to this day"),
         "noData": _("No counts for this range yet."),
         "loadFailed": _("The charts couldn't load. Reload the page to try again."),
