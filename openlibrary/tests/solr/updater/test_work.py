@@ -513,6 +513,40 @@ class TestWorkSolrBuilderTags:
         assert doc.get("genre_key") == ["OL177T"]
         assert doc.get("genre_name") == ["Romance"]
 
+    def test_no_content_warnings(self):
+        wsb = make_work_solr_builder(make_work())
+        assert wsb.content_warning_key == []
+        assert wsb.content_warning_name == []
+
+    def test_content_warnings(self):
+        tags = [
+            make_tag(tag_type="content_warnings", name="Violence", key="/tags/OL401T"),
+            make_tag(tag_type="content_warnings", name="Gore", key="/tags/OL402T"),
+        ]
+        wsb = make_work_solr_builder_with_tags(make_work(), tags)
+        assert wsb.content_warning_key == ["OL401T", "OL402T"]
+        assert wsb.content_warning_name == ["Violence", "Gore"]
+
+    def test_content_warnings_separated_from_genres(self):
+        tags = [
+            make_tag(tag_type="genres", name="Horror", key="/tags/OL171T"),
+            make_tag(tag_type="content_warnings", name="Violence", key="/tags/OL401T"),
+        ]
+        wsb = make_work_solr_builder_with_tags(make_work(), tags)
+        assert wsb.genre_key == ["OL171T"]
+        assert wsb.genre_name == ["Horror"]
+        assert wsb.content_warning_key == ["OL401T"]
+        assert wsb.content_warning_name == ["Violence"]
+
+    def test_content_warnings_in_solr_doc(self):
+        wsb = make_work_solr_builder_with_tags(
+            make_work(),
+            tags=[make_tag(tag_type="content_warnings", name="Violence", key="/tags/OL401T")],
+        )
+        doc = wsb.build()
+        assert doc.get("content_warning_key") == ["OL401T"]
+        assert doc.get("content_warning_name") == ["Violence"]
+
 
 class TestWorkSolrUpdaterTags:
     @pytest.mark.asyncio
@@ -556,6 +590,31 @@ class TestWorkSolrUpdaterTags:
         assert len(req.adds) == 1
         assert req.adds[0].get("genre_key") is None
         assert req.adds[0].get("genre_name") is None
+
+    @pytest.mark.asyncio
+    async def test_content_warnings_loaded_from_data_provider(self):
+        tags = [
+            make_tag(tag_type="content_warnings", name="Violence", key="/tags/OL401T"),
+            make_tag(tag_type="content_warnings", name="Gore", key="/tags/OL402T"),
+        ]
+        work = make_work()
+        # Exercise both {"key": ...} refs and bare string refs
+        work["content_warnings"] = [{"key": "/tags/OL401T"}, "/tags/OL402T"]
+        req, _ = await WorkSolrUpdater(FakeDataProvider([work, *tags])).update_key(work)
+        assert len(req.adds) == 1
+        assert req.adds[0]["content_warning_key"] == ["OL401T", "OL402T"]
+        assert req.adds[0]["content_warning_name"] == ["Violence", "Gore"]
+
+    @pytest.mark.asyncio
+    async def test_content_warnings_ignores_non_tag_docs(self):
+        cw = make_tag(tag_type="content_warnings", name="Violence", key="/tags/OL401T")
+        cw["type"] = {"key": "/type/delete"}
+        work = make_work()
+        work["content_warnings"] = [{"key": "/tags/OL401T"}]
+        req, _ = await WorkSolrUpdater(FakeDataProvider([work, cw])).update_key(work)
+        assert len(req.adds) == 1
+        assert req.adds[0].get("content_warning_key") is None
+        assert req.adds[0].get("content_warning_name") is None
 
 
 class Test_number_of_pages_median:

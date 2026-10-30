@@ -81,6 +81,8 @@ class WorkSearchScheme(SearchScheme):
             "subgenre_name",
             "audience_key",
             "audience_name",
+            "content_warning_key",
+            "content_warning_name",
             "subject",
             "person",
             "place",
