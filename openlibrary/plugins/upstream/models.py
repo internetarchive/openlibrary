@@ -497,7 +497,7 @@ class Author(models.Author):
         """Number of this author's works readable in-browser, for the sublabel on
         the author page's "Readable Only" toggle. One rows=0 count query, scoped
         to the same `q` as the results it labels — the same approach
-        _get_readable_count takes for /search.
+        _get_readable_count_async takes for /search.
         """
         return works_by_author(
             self.get_olid(),
