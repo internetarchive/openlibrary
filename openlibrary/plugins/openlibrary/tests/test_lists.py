@@ -566,3 +566,33 @@ class TestUserListsEviction:
             legacy_lists.site.reset(token)
         fake_site.save.assert_called_once()
         delete.assert_any_call("d/people/alice")
+
+
+class TestConvertList:
+    def test_convert_list_uses_contextvar_site(self, monkeypatch):
+        """convert_list should load data via the request-scoped site ContextVar,
+        not web.ctx.site (which is a startup singleton under FastAPI with a stale cache).
+        """
+        fake_site = Mock()
+        fake_site._load.return_value = {
+            "key": "/people/alice/lists/OL1L",
+            "name": "Fresh List",
+            "seeds": [],
+        }
+        stale_web_ctx_site = Mock()
+        stale_web_ctx_site._load.return_value = {
+            "key": "/people/alice/lists/OL1L",
+            "name": "Stale List",
+            "seeds": [],
+        }
+        monkeypatch.setattr(web.ctx, "site", stale_web_ctx_site, raising=False)
+
+        token = legacy_lists.site.set(fake_site)
+        try:
+            lst = legacy_lists.convert_list("/people/alice/lists/OL1L")
+            assert lst._site is fake_site
+            assert lst.name == "Fresh List"
+            fake_site._load.assert_called_once_with("/people/alice/lists/OL1L")
+            stale_web_ctx_site._load.assert_not_called()
+        finally:
+            legacy_lists.site.reset(token)
