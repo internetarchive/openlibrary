@@ -42,22 +42,9 @@
   cursor: pointer;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .tasks-stats__card:hover {
-    background: var(--color-control-hover);
-    border-color: var(--color-border-muted);
-  }
-}
-
 .tasks-stats__card:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
-}
-
-/* The chosen card takes the chart's colour along its top edge, tying it to the bars below */
-.tasks-stats__card[aria-pressed="true"] {
-  background: var(--color-control-selected-bg);
-  box-shadow: inset 0 4px 0 var(--color-stats-chart-bar);
 }
 
 .tasks-stats__card-label,
@@ -69,6 +56,8 @@
 
 .tasks-stats__card-label {
   font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
 }
 
 .tasks-stats__card-value {
@@ -83,6 +72,29 @@
 
 .tasks-stats__card-change--down {
   color: var(--color-error-fg);
+}
+
+/* The chosen card takes the shared selected look, as on ol-button[selected] */
+.tasks-stats__card[aria-pressed="true"] {
+  background: var(--color-control-selected-bg);
+  border-color: var(--color-control-selected-border);
+}
+
+.tasks-stats__card[aria-pressed="true"] .tasks-stats__card-label,
+.tasks-stats__card[aria-pressed="true"] .tasks-stats__card-value {
+  color: var(--color-link);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tasks-stats__card:hover {
+    background: var(--color-control-hover);
+    border-color: var(--color-border-muted);
+  }
+
+  .tasks-stats__card[aria-pressed="true"]:hover {
+    background: var(--color-control-selected-bg-hover);
+    border-color: var(--color-control-selected-border-hover);
+  }
 }
 
 .tasks-stats__main,
