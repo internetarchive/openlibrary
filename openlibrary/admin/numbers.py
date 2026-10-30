@@ -19,6 +19,8 @@ import functools
 import logging
 from datetime import timedelta
 
+import web
+
 logger = logging.getLogger(__name__)
 
 
@@ -173,7 +175,13 @@ TASKS_SOURCE = "contribute"
 
 
 def _window_args(fn_name, kargs, days):
-    "The `days` before `end`: rolling windows, since distinct editors don't add up across days."
+    """The `days` before `end`: rolling windows, since distinct editors don't add up across days.
+
+    `days=1` is the calendar day the gatherer hands in as `start`..`end`, like the other daily keys. For today's hourly
+    run that is midnight to now; a window ending at `end` would be the last 24 hours instead, and a bar per day would
+    double-count the evening before."""
+    if days == 1:
+        return _range_args(fn_name, kargs)
     try:
         db, end = kargs["thingdb"], kargs["end"]
     except KeyError as k:
@@ -220,18 +228,95 @@ def tasks_editors(days, **kargs):
     return db.query(sql, vars={"since": since, "end": end, "tasks_source": TASKS_SOURCE})[0].count
 
 
+def tasks_saves(days, **kargs):
+    "Saves made from the Tasks page in the `days` before `end`."
+    db, since, end = _window_args(f"admin_range__tasks_saves_{days}d", kargs, days)
+    return _count_transactions(db, since, end, f" AND t.id IN ({TASKS_SAVES})", tasks_source=TASKS_SOURCE)
+
+
+# The `_1d` keys are what a bar-per-day chart plots; the 7d and 28d windows stay for the headline numbers, and a
+# week or month view samples them at the end of each period.
+admin_range__catalog_editors_1d = functools.partial(catalog_editors, 1)
 admin_range__catalog_editors_7d = functools.partial(catalog_editors, 7)
 admin_range__catalog_editors_28d = functools.partial(catalog_editors, 28)
+admin_range__new_catalog_editors_1d = functools.partial(new_catalog_editors, 1)
 admin_range__new_catalog_editors_7d = functools.partial(new_catalog_editors, 7)
 admin_range__new_catalog_editors_28d = functools.partial(new_catalog_editors, 28)
+admin_range__tasks_editors_1d = functools.partial(tasks_editors, 1)
 admin_range__tasks_editors_7d = functools.partial(tasks_editors, 7)
 admin_range__tasks_editors_28d = functools.partial(tasks_editors, 28)
+admin_range__tasks_saves_1d = functools.partial(tasks_saves, 1)
+admin_range__tasks_saves_28d = functools.partial(tasks_saves, 28)
 
 
-def admin_range__tasks_saves_28d(**kargs):
-    "Saves made from the Tasks page in the 28 days before `end`."
-    db, since, end = _window_args("admin_range__tasks_saves_28d", kargs, 28)
-    return _count_transactions(db, since, end, f" AND t.id IN ({TASKS_SAVES})", tasks_source=TASKS_SOURCE)
+def admin_range__tasks_saves_by_field_1d(**kargs):
+    "The day's Tasks saves by the field they filled, e.g. `{'number_of_pages': 7, 'covers': 2}`. Stored as a dict."
+    db, start, end = _range_args("admin_range__tasks_saves_by_field_1d", kargs)
+    sql = f"""
+        SELECT t.data::json->>'field' AS field, count(*) AS count FROM transaction t
+        WHERE t.created >= $start AND t.created < $end AND t.id IN ({TASKS_SAVES})
+        GROUP BY 1
+    """
+    rows = db.query(sql, vars={"start": start, "end": end, "tasks_source": TASKS_SOURCE})
+    return {row.field: row.count for row in rows if row.field}
+
+
+# Initiative counts. The frozen edition list and the not-found marks live in the store, so these read through
+# `web.ctx.site`, which `stats.setup_ol_config` provides, rather than through `thingdb`.
+_cached_initiative_progress: dict | None = None
+
+
+def _initiative():
+    from openlibrary.contribute import initiatives
+
+    return initiatives
+
+
+def _initiative_progress(kargs) -> dict:
+    """`initiatives.progress` for the active initiative, as of now. Only for today: a snapshot has no history, and the
+    backfill loop would otherwise stamp today's figure onto every past day. Read once per run, for all four keys.
+    Never picks the list: freezing it is the web app's job, so until it has, there's nothing to report."""
+    global _cached_initiative_progress
+    try:
+        start, end = kargs["start"], kargs["end"]
+    except KeyError as k:
+        raise TypeError(f"{k} is a required argument for the initiative counts")
+    # Only the run's first window, which ends at "now", is shorter than a day. Checking the clock instead would
+    # skip the snapshot when a run that started before midnight gets here after it.
+    if end - start >= timedelta(days=1):
+        raise NoStats
+    if _cached_initiative_progress is None:
+        initiatives = _initiative()
+        if not (picks := initiatives.load_frozen(initiatives.ACTIVE, web.ctx.site)):
+            raise NoStats
+        _cached_initiative_progress = initiatives.progress(initiatives.gaps_for(picks, web.ctx.site))
+    return _cached_initiative_progress
+
+
+def admin_range__initiative_slug(**kargs):
+    "Which initiative the day's `initiative_*` counts describe, so a new list doesn't continue the old one's lines."
+    _initiative_progress(kargs)
+    return _initiative().ACTIVE.slug
+
+
+def admin_range__initiative_open_gaps(**kargs):
+    "Fields still missing across the active initiative's editions, less those enough people couldn't find."
+    return _initiative_progress(kargs)["open"]
+
+
+def admin_range__initiative_done_editions(**kargs):
+    "Editions on the active initiative's list with nothing left to fill."
+    return _initiative_progress(kargs)["done"]
+
+
+def admin_range__initiative_not_found(**kargs):
+    "Fields on the active initiative's list that enough people couldn't find."
+    return _initiative_progress(kargs)["not_found"]
+
+
+def admin_range__initiative_editions(**kargs):
+    "Editions on the active initiative's list still in the catalog."
+    return _initiative_progress(kargs)["total"]
 
 
 def admin_range__tasks_saves_undone_28d(**kargs):
@@ -251,6 +336,58 @@ def admin_range__tasks_saves_undone_28d(**kargs):
           AND NOT COALESCE((latest.data::jsonb -> (t.data::json->>'field')) @> (saved.data::jsonb -> (t.data::json->>'field')), false)
     """
     return db.query(sql, vars={"since": since, "end": end, "tasks_source": TASKS_SOURCE})[0].count
+
+
+# The fields Tasks offers; matches `openlibrary.contribute.tasks.OFFERED`. Only the gatherer's own constants go into the SQL.
+TASKS_FIELDS = ("covers", "languages", "number_of_pages", "publishers")
+_cached_other_fills: dict[tuple[str, str], dict[str, int]] = {}
+
+
+def _other_fills(kargs) -> dict[str, int]:
+    """The guardrail's baseline: Tasks fields filled from empty on an edition by a person outside Tasks in the 28 days
+    before `end`, and how many of those values the record no longer holds. Checked like `tasks_saves_undone_28d`, so the
+    two rates compare. One query serves both keys."""
+    db, since, end = _window_args("admin_range__other_fills_28d", kargs, 28)
+    if (since, end) not in _cached_other_fills:
+        bot_ids = _get_cached_bot_accounts(thingdb=db)
+        not_bot = " AND t.author_id NOT IN $bot_ids" if bot_ids else ""
+        empty = "('null'::jsonb, '\"\"'::jsonb, '[]'::jsonb)"
+        fields = ", ".join(f"'{f}'" for f in TASKS_FIELDS)
+        sql = f"""
+            WITH edits AS (
+                SELECT c->>'key' AS key, (c->>'revision')::int AS revision
+                FROM transaction t, jsonb_array_elements(t.changes::jsonb) c
+                WHERE t.created >= $since AND t.created < $end AND t.author_id IS NOT NULL{not_bot}
+                  AND t.changes ~ $edition_change AND t.id NOT IN ({TASKS_SAVES}) AND c->>'key' LIKE $edition_key
+            ),
+            fills AS (
+                SELECT saved.data::jsonb -> f.field AS value, latest.data::jsonb -> f.field AS now
+                FROM edits e
+                JOIN thing th ON th.key = e.key
+                JOIN data saved ON saved.thing_id = th.id AND saved.revision = e.revision
+                JOIN data prev ON prev.thing_id = th.id AND prev.revision = e.revision - 1
+                JOIN data latest ON latest.thing_id = th.id AND latest.revision = th.latest_revision
+                CROSS JOIN unnest(ARRAY[{fields}]) AS f(field)
+                WHERE COALESCE(prev.data::jsonb -> f.field, 'null'::jsonb) IN {empty}
+                  AND COALESCE(saved.data::jsonb -> f.field, 'null'::jsonb) NOT IN {empty}
+                  AND latest.data::jsonb->'type' = saved.data::jsonb->'type'
+            )
+            SELECT count(*) AS filled, count(*) FILTER (WHERE NOT COALESCE(now @> value, false)) AS undone FROM fills
+        """
+        vars = {"since": since, "end": end, "bot_ids": bot_ids, "tasks_source": TASKS_SOURCE, "edition_change": '"/books/OL', "edition_key": "/books/OL%"}
+        row = db.query(sql, vars=vars)[0]
+        _cached_other_fills[(since, end)] = {"filled": row.filled, "undone": row.undone}
+    return _cached_other_fills[(since, end)]
+
+
+def admin_range__other_fills_28d(**kargs):
+    "Tasks fields filled from empty outside Tasks, by people, in the 28 days before `end`: the guardrail's baseline."
+    return _other_fills(kargs)["filled"]
+
+
+def admin_range__other_fills_undone_28d(**kargs):
+    "Of `other_fills_28d`, the values the record no longer holds, checked like `tasks_saves_undone_28d`."
+    return _other_fills(kargs)["undone"]
 
 
 def admin_range__covers(**kargs):
