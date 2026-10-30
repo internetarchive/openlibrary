@@ -338,8 +338,8 @@ def admin_range__tasks_saves_undone_28d(**kargs):
     return db.query(sql, vars={"since": since, "end": end, "tasks_source": TASKS_SOURCE})[0].count
 
 
-# The fields Tasks offers; matches `openlibrary.contribute.tasks.POINTS`. Only the gatherer's own constants go into the SQL.
-TASKS_FIELDS = ("covers", "lccn", "oclc_numbers", "languages", "number_of_pages", "publishers")
+# The fields Tasks offers; matches `openlibrary.contribute.tasks.OFFERED`. Only the gatherer's own constants go into the SQL.
+TASKS_FIELDS = ("covers", "languages", "number_of_pages", "publishers")
 _cached_other_fills: dict[tuple[str, str], dict[str, int]] = {}
 
 
