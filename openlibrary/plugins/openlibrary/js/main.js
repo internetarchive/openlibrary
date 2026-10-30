@@ -635,6 +635,12 @@ $(function () {
         import('./list_books').then(module => module.ListBooks.init());
     }
 
+    // Trending page period control
+    const trendingPeriods = document.querySelector('.trending-periods');
+    if (trendingPeriods) {
+        import('./trending').then(module => module.initTrendingPeriods(trendingPeriods));
+    }
+
     // Sort options popover (results toolbars)
     const sortOptions = document.querySelector('.sort-options');
     if (sortOptions) {

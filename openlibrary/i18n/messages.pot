@@ -714,10 +714,6 @@ msgstr ""
 msgid "Disambiguations"
 msgstr ""
 
-#: trending.html
-msgid "Now"
-msgstr ""
-
 #: admin/graphs.html admin/index.html my_books/shelf_button_i18n.html trending.html
 msgid "Today"
 msgstr ""
@@ -738,12 +734,99 @@ msgstr ""
 msgid "All Time"
 msgstr ""
 
+#: trending.html
+msgid "Rising"
+msgstr ""
+
+#: trending.html
+msgid "Breakouts"
+msgstr ""
+
+#: trending.html
+msgid "Most Shelved"
+msgstr ""
+
+#: trending.html
+msgid "Live"
+msgstr ""
+
+#: trending.html
+msgid "Books getting far more attention today than they usually do. Each book is measured against its own past week, so a quiet book with a sudden spike ranks above a bestseller having an ordinary day."
+msgstr ""
+
+#: trending.html
+msgid "This week's most shelved books, leaving out the 200 most shelved of all time. The same favorites top every list, so this is what's popular right now that isn't always popular."
+msgstr ""
+
+#: trending.html
+msgid "The books readers added to their shelves most in the period. Each shows its rank, its move since the previous period, and how many periods in a row it has been in the top 200."
+msgstr ""
+
+#: trending.html
+msgid "Shelvings as they happen: what readers from the community are adding to their bookshelves right now."
+msgstr ""
+
+#: trending.html
+#, python-format
+msgid "%(count)d day on the list"
+msgid_plural "%(count)d days on the list"
+msgstr[0] ""
+msgstr[1] ""
+
+#: trending.html
+#, python-format
+msgid "%(count)d week on the list"
+msgid_plural "%(count)d weeks on the list"
+msgstr[0] ""
+msgstr[1] ""
+
+#: trending.html
+#, python-format
+msgid "%(count)d month on the list"
+msgid_plural "%(count)d months on the list"
+msgstr[0] ""
+msgstr[1] ""
+
+#: trending.html
+#, python-format
+msgid "%(count)d year on the list"
+msgid_plural "%(count)d years on the list"
+msgstr[0] ""
+msgstr[1] ""
+
+#: AffiliateLinks.html.jinja trending.html
+msgid "New"
+msgstr ""
+
+#: trending.html
+msgid "Up"
+msgstr ""
+
+#: trending.html
+msgid "Down"
+msgstr ""
+
+#: trending.html
+msgid "No change"
+msgstr ""
+
+#: trending.html
+#, python-format
+msgid "Logged %(count)i time %(time_unit)s"
+msgid_plural "Logged %(count)i times %(time_unit)s"
+msgstr[0] ""
+msgstr[1] ""
+
 #: openlibrary/plugins/openlibrary/api.py trending.html
 msgid "Trending Books"
 msgstr ""
 
 #: trending.html
-msgid "See what readers from the community are adding to their bookshelves"
+msgid "Trending views"
+msgstr ""
+
+#: trending.html
+msgid "Period"
 msgstr ""
 
 #: trending.html
@@ -774,11 +857,8 @@ msgid "Someone marked as %(shelf)s %(k_hours_ago)s"
 msgstr ""
 
 #: trending.html
-#, python-format
-msgid "Logged %(count)i time %(time_unit)s"
-msgid_plural "Logged %(count)i times %(time_unit)s"
-msgstr[0] ""
-msgstr[1] ""
+msgid "Nothing to show here yet. Check back soon."
+msgstr ""
 
 #: verify_human.html
 msgid "Human Verification"
@@ -7191,10 +7271,6 @@ msgid "Add another edition?"
 msgstr ""
 
 #: AffiliateLinks.html.jinja
-msgid "New"
-msgstr ""
-
-#: AffiliateLinks.html.jinja
 msgid "Used"
 msgstr ""
 
@@ -7497,6 +7573,11 @@ msgstr ""
 
 #: SearchResultsWork.html
 msgid "added to"
+msgstr ""
+
+#: SearchResultsWork.html
+#, python-format
+msgid "#%(rank)d"
 msgstr ""
 
 #: SearchResultsWork.html

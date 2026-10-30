@@ -3,6 +3,8 @@
 import contextlib
 import datetime as dt
 from collections.abc import Iterable
+from math import ceil
+from typing import TypedDict
 
 import web
 
@@ -21,8 +23,9 @@ from ..core.ratings import Ratings
 from ..core.yearly_reading_goals import YearlyReadingGoals
 from ..i18n import gettext as _
 from ..plugins.admin.code import get_counts
-from ..plugins.worksearch.code import get_solr_works
+from ..plugins.worksearch.code import get_solr_works, work_search_async
 from ..utils import dateutil
+from ..utils.async_utils import async_bridge
 
 LENDING_TYPES = "(libraries|regions|countries|collections|subjects|format)"
 
@@ -120,19 +123,81 @@ async def get_trending_books(
     return [book["work"] for book in logged_books if book.get("work")]
 
 
-@cache.memoize("memcache", "stats.trending", expires=dateutil.HOUR_SECS)
-def cached_get_most_logged_books(
-    shelf_ids: list[int] | None = None,
-    since_days: int | None = 1,
-    limit: int = 20,
-    page: int = 1,
-):
-    return Bookshelves.most_logged_books(
-        shelf_ids=shelf_ids,
-        since=dateutil.date_n_days_ago(since_days),
-        limit=limit,
-        page=page,
-    )
+# The chart is the top 200 of a period: ten pages of twenty. A book's "weeks on list" is its streak
+# of consecutive periods in that top 200, so each period looks back `blocks` periods to count it.
+TRENDING_LIST_SIZE = 200
+CHART_PERIODS: dict[str, tuple[int | None, int]] = {
+    "daily": (dateutil.DAY_SECS, 30),
+    "weekly": (dateutil.WEEK_SECS, 52),
+    "monthly": (30 * dateutil.DAY_SECS, 24),
+    "yearly": (365 * dateutil.DAY_SECS, 10),
+    "forever": (None, 1),
+}
+# Another view of the weekly chart. The remaining tabs, rising (Solr's z-score) and now (the live
+# stream), aren't charts.
+CHART_VIEWS = ("breakouts",)
+
+
+class ChartEntry(TypedDict):
+    work_id: int
+    rank: int
+    cnt: int
+    delta: int | None
+    """Places climbed since the previous period, negative for a fall; None when new to the list."""
+    streak: int
+    """Consecutive periods on the list, counting this one."""
+
+
+def build_chart(rows: Iterable[dict]) -> list[ChartEntry]:
+    """Rank the current block of ``Bookshelves.period_rankings`` rows, with each book's move and streak."""
+    by_block: dict[int, dict[int, dict]] = {}
+    for row in rows:
+        by_block.setdefault(row["block"], {})[row["work_id"]] = row
+    previous = by_block.get(1, {})
+    chart: list[ChartEntry] = []
+    for work_id, row in sorted(by_block.get(0, {}).items(), key=lambda item: item[1]["rank"]):
+        streak = 1
+        while work_id in by_block.get(streak, {}):
+            streak += 1
+        prev = previous.get(work_id)
+        chart.append({"work_id": work_id, "rank": row["rank"], "cnt": row["cnt"], "delta": prev["rank"] - row["rank"] if prev else None, "streak": streak})
+    return chart
+
+
+@cache.memoize(
+    "memcache",
+    key=lambda period: cache.build_memcache_key("stats.trending_chart", period=period),
+    expires=dateutil.HOUR_SECS,
+)
+def cached_chart(period: str) -> list[ChartEntry]:
+    period_secs, blocks = CHART_PERIODS[period]
+    # `created` is a naive UTC timestamp.
+    now = dt.datetime.now(dt.UTC).replace(tzinfo=None)
+    rows = async_bridge.run(Bookshelves.period_rankings(DEFAULT_TRENDING_SHELF_IDS, period_secs, blocks, TRENDING_LIST_SIZE, now))
+    return build_chart(rows)
+
+
+def chart_for(mode: str) -> list[ChartEntry]:
+    if mode == "breakouts":
+        # This week without the all-time favourites, so the perennials don't own every list.
+        perennial = {entry["work_id"] for entry in cached_chart("forever")}
+        return [entry for entry in cached_chart("weekly") if entry["work_id"] not in perennial]
+    return cached_chart(mode)
+
+
+async def rising_work_ids(limit: int, page: int) -> list[dict]:
+    """Works by Solr's trending z-score: unusual attention in the last day against the book's own past week."""
+    results = await work_search_async({"q": "*:*"}, sort="trending", page=page, limit=limit, fields="key", facet=False, request_label="TRENDING_PAGE")
+    return [{"work_id": int(doc["key"].split("/OL")[1][:-1])} for doc in results.get("docs", []) if doc.get("key", "").endswith("W")]
+
+
+@cache.memoize(
+    "memcache",
+    key=lambda limit, page: cache.build_memcache_key("stats.trending_rising", limit=int(limit), page=int(page)),
+    expires=dateutil.MINUTE_SECS * 10,
+)
+def cached_rising_work_ids(limit: int, page: int) -> list[dict]:
+    return async_bridge.run(rising_work_ids(limit, page))
 
 
 def reading_log_leaderboard(limit: int):
@@ -190,20 +255,22 @@ class activity_stream(app.view):
         i = web.input(page=1)
         page = int(i.page or 1)
         if not mode:
-            raise web.seeother("/trending/now")
+            raise web.seeother("/trending/rising")
         mode = mode[1:]  # remove slash
         limit = TRENDING_NOW_LIMIT
+        total_pages = TRENDING_LIST_SIZE // limit
         if mode == "now":
             logged_books = cached_get_trending_now(limit=limit, page=page)
+        elif mode == "rising":
+            logged_books = cached_rising_work_ids(limit, page)
+        elif mode in CHART_PERIODS or mode in CHART_VIEWS:
+            chart = chart_for(mode)
+            total_pages = ceil(len(chart) / limit)
+            logged_books = chart[(page - 1) * limit : page * limit]
         else:
-            logged_books = cached_get_most_logged_books(
-                shelf_ids=DEFAULT_TRENDING_SHELF_IDS,
-                since_days=SINCE_DAYS[mode],
-                limit=limit,
-                page=page,
-            )
+            raise web.notfound()
         Bookshelves.add_solr_works(logged_books)
-        return app.render_template("trending", logged_books=logged_books, mode=mode)
+        return app.render_template("trending", logged_books=logged_books, mode=mode, page=page, total_pages=total_pages, rank_offset=(page - 1) * limit)
 
 
 class readinglog_stats(app.view):

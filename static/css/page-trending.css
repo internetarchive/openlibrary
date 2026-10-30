@@ -1,0 +1,11 @@
+/**
+ * Stylesheet entry point for the trending pages at /trending.
+ * See openlibrary/templates/trending.html
+ *
+ * Same base as the default page-user bundle, plus the Literata and Schibsted
+ * Grotesk webfonts and the trending chart styles.
+ */
+@import "page-user.css";
+@import "fonts/literata.css";
+@import "fonts/schibsted-grotesk.css";
+@import "components/trending-chart.css";
