@@ -153,12 +153,20 @@ def fake_initiative(monkeypatch):
     """A stand-in for `openlibrary.contribute.initiatives` with a two-edition list, plus a `web.ctx.site` holding its store doc."""
     calls = []
 
-    def build_gaps(initiative, site):
-        calls.append(initiative.slug)
+    def load_frozen(initiative, site):
+        return (doc := site.store.get(initiative.store_key)) and doc["editions"]
+
+    def gaps_for(picks, site):
+        calls.append(len(picks))
         return [["/books/OL1M", 9, ["lccn"], []], ["/books/OL2M", 8, [], ["covers"]]]
+
+    def build_gaps(initiative, site):
+        raise AssertionError("the stats run must not pick and freeze the list")
 
     initiatives = SimpleNamespace(
         ACTIVE=SimpleNamespace(slug="most-read-test", store_key="contribute-initiative-most-read-test"),
+        load_frozen=load_frozen,
+        gaps_for=gaps_for,
         build_gaps=build_gaps,
         progress=lambda gaps: {"open": 1, "done": 1, "not_found": 1, "total": 2, "percent": 91},
         calls=calls,
@@ -178,7 +186,16 @@ def test_initiative_snapshot_is_read_once_for_all_its_keys(fake_initiative):
     assert numbers.admin_range__initiative_not_found(**kargs) == 1
     assert numbers.admin_range__initiative_editions(**kargs) == 2
     assert numbers.admin_range__initiative_slug(**kargs) == "most-read-test"
-    assert fake_initiative.calls == ["most-read-test"]
+    assert fake_initiative.calls == [2]
+
+
+def test_initiative_snapshot_waits_for_the_web_app_to_freeze_the_list(fake_initiative):
+    web.ctx.site.store.clear()
+    now = datetime.now()
+    kargs = {"thingdb": FakeDB(), "start": now.replace(hour=0, minute=0, second=0, microsecond=0), "end": now}
+    with pytest.raises(numbers.NoStats):
+        numbers.admin_range__initiative_open_gaps(**kargs)
+    assert fake_initiative.calls == []
 
 
 def test_initiative_snapshot_refuses_past_days(fake_initiative):

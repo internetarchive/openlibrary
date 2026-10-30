@@ -274,7 +274,8 @@ def _initiative():
 
 def _initiative_progress(kargs) -> dict:
     """`initiatives.progress` for the active initiative, as of now. Only for today: a snapshot has no history, and the
-    backfill loop would otherwise stamp today's figure onto every past day. Read once per run, for all four keys."""
+    backfill loop would otherwise stamp today's figure onto every past day. Read once per run, for all four keys.
+    Never picks the list: freezing it is the web app's job, so until it has, there's nothing to report."""
     global _cached_initiative_progress
     try:
         start = kargs["start"]
@@ -284,7 +285,9 @@ def _initiative_progress(kargs) -> dict:
         raise NoStats
     if _cached_initiative_progress is None:
         initiatives = _initiative()
-        _cached_initiative_progress = initiatives.progress(initiatives.build_gaps(initiatives.ACTIVE, web.ctx.site))
+        if not (picks := initiatives.load_frozen(initiatives.ACTIVE, web.ctx.site)):
+            raise NoStats
+        _cached_initiative_progress = initiatives.progress(initiatives.gaps_for(picks, web.ctx.site))
     return _cached_initiative_progress
 
 
@@ -318,9 +321,10 @@ def admin_range__tasks_saves_initiative_1d(**kargs):
     """The day's Tasks saves on editions in the active initiative's frozen list. The list doesn't move, so unlike the
     snapshot keys this one backfills."""
     db, start, end = _range_args("admin_range__tasks_saves_initiative_1d", kargs)
-    if not (doc := web.ctx.site.store.get(_initiative().ACTIVE.store_key)):
+    initiatives = _initiative()
+    if not (picks := initiatives.load_frozen(initiatives.ACTIVE, web.ctx.site)):
         raise NoStats
-    keys = [key for key, _readers in doc["editions"]]
+    keys = [key for key, _readers in picks]
     return _count_transactions(db, start, end, f" AND t.id IN ({TASKS_SAVES}) AND t.changes::json->0->>'key' IN $keys", tasks_source=TASKS_SOURCE, keys=keys)
 
 

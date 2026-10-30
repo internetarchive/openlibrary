@@ -111,10 +111,17 @@ def pick_most_read(size: int, site=None) -> list[list]:
 ACTIVE = Initiative("most-read-2026-11", 2000, pick_most_shelved)
 
 
-def load_or_freeze(initiative: Initiative, site) -> list[list]:
-    """The frozen list from the store; the first call picks it and stores it."""
+def load_frozen(initiative: Initiative, site) -> list[list] | None:
+    """The frozen list from the store, or None if it hasn't been picked yet. Never picks."""
     if doc := site.store.get(initiative.store_key):
         return doc["editions"]
+    return None
+
+
+def load_or_freeze(initiative: Initiative, site) -> list[list]:
+    """The frozen list from the store; the first call picks it and stores it."""
+    if (editions := load_frozen(initiative, site)) is not None:
+        return editions
     editions = initiative.pick(initiative.size, site)
     if editions:
         site.store[initiative.store_key] = {
@@ -137,8 +144,12 @@ def not_found_fields(site) -> dict[str, set[str]]:
 
 
 def build_gaps(initiative: Initiative, site, batch: int = 100) -> list[list]:
-    """Every edition on the list as ``[key, readers, open fields, fields nobody could find]``, read from the database."""
-    picks = load_or_freeze(initiative, site)
+    """Every edition on the list as ``[key, readers, open fields, fields nobody could find]``, picking the list if needed."""
+    return gaps_for(load_or_freeze(initiative, site), site, batch)
+
+
+def gaps_for(picks: list[list], site, batch: int = 100) -> list[list]:
+    """Gaps for an already-loaded list of ``[key, readers]`` picks, read from the database."""
     unfindable = not_found_fields(site)
     rows = []
     for i in range(0, len(picks), batch):
