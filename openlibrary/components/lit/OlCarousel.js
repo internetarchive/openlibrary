@@ -74,6 +74,7 @@ import './OlIcon.js';
  * @cssprop [--ol-carousel-fade-color=var(--color-surface)] - Colour the edge fades blend into; match the surface behind the carousel
  * @cssprop [--ol-carousel-viewport-padding=0px] - Inner viewport padding so slotted items can show a hover lift/shadow without being clipped
  * @cssprop [--ol-carousel-inset=0px] - Space before the first item and after the last at rest; a full-bleed rail still scrolls edge to edge
+ * @cssprop [--ol-carousel-gap] - Gap between items; overrides the `gap` attribute so a token can drive it
  *
  * Browser support: scroll-snap (Safari 11) and scroll-padding (14.5) are the
  * load-bearing ones. scroll-behavior (15.4), scroll-snap-stop (15) and
@@ -1079,9 +1080,9 @@ export class OlCarousel extends LitElement {
         const gap = this.gap;
         const itemPercent = ((1 - peek * 2) / cols) * 100;
 
-        this.style.setProperty('--_item-width', `calc(${itemPercent}% - ${gap}px + ${gap / cols}px)`);
+        this.style.setProperty('--_gap', `var(--ol-carousel-gap, ${gap}px)`);
+        this.style.setProperty('--_item-width', `calc(${itemPercent}% - var(--_gap) + var(--_gap) / ${cols})`);
         this.style.setProperty('--_peek', String(peek));
-        this.style.setProperty('--_gap', `${gap}px`);
     }
 
     // ── Slot change ──

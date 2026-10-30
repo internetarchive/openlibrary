@@ -128,6 +128,7 @@
 /* <ol-carousel> sizes and spaces the cards itself. */
 .carousel--native {
   --ol-carousel-viewport-padding: var(--spacing-inset-xs);
+  --ol-carousel-gap: var(--spacing-carousel-gap);
 }
 
 /* Room for the cover rings (OlBookCover.js). */
