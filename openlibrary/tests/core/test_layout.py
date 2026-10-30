@@ -33,7 +33,7 @@ LAYOUT_TEMPLATES = [
     TEMPLATES_DIR / "shell" / "footer.html.jinja",
     TEMPLATES_DIR / "shell" / "header.html.jinja",
     TEMPLATES_DIR / "shell" / "browse_popover.html.jinja",
-    TEMPLATES_DIR / "shell" / "header_dropdown.html.jinja",
+    TEMPLATES_DIR / "shell" / "mybooks_popover.html.jinja",
     TEMPLATES_DIR / "shell" / "language_list.html.jinja",
     TEMPLATES_DIR / "shell" / "stats.html.jinja",
 ]
@@ -103,7 +103,7 @@ def test_layout_context_is_frozen():
             is_recognized_bot=False,
             is_print_disabled=False,
             homepath="",
-            my_books_props={},
+            mybooks_links=[[]],
             browse_links=[],
             browse_featured_count=4,
             search_modal=SearchModalContext(availability={}, strings={}),
@@ -256,10 +256,8 @@ def test_layout_build_header_navigation(request_context_fixture):
     """LayoutContext should build header navigation props and browse links."""
     request_context_fixture(lang="en")
     layout = LayoutContext.build()
-    assert layout.header.my_books_props["name"] == "mybooks"
-    assert layout.header.my_books_props["label"] == "My Books"
-    assert len(layout.header.my_books_props["links"]) == 1
-    assert layout.header.my_books_props["links"][0]["track"] == "MyBooks"
+    assert layout.header.mybooks_links[0][0].track == "MyBooks"
+    assert all(group for group in layout.header.mybooks_links)
     assert len(layout.header.browse_links) > 0
     assert layout.header.browse_featured_count == 4
     assert layout.ol_env in ("production", "development", "testing")
