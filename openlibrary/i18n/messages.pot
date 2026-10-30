@@ -6267,10 +6267,6 @@ msgstr ""
 msgid "%(change)s vs previous 28 days"
 msgstr ""
 
-#: stats/tasks.html.jinja
-msgid "No earlier count yet"
-msgstr ""
-
 #: openlibrary/views/loanstats.py stats/tasks.html.jinja
 msgid "Per day"
 msgstr ""

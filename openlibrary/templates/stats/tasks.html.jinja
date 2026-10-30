@@ -22,8 +22,6 @@
                     <span class="tasks-stats__card-change tasks-stats__card-change--{{ card.change.direction }}">
                         {{ _("%(change)s vs previous 28 days", change=("▲ " if card.change.direction == "up" else "▼ " if card.change.direction == "down" else "") ~ card.change.text) }}
                     </span>
-                {% else %}
-                    <span class="tasks-stats__card-change">{{ _("No earlier count yet") }}</span>
                 {% endif %}
                 <span class="tasks-stats__card-window">{{ _("Last 28 days") }}</span>
             </button>
