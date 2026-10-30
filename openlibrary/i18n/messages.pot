@@ -1755,7 +1755,7 @@ msgstr ""
 msgid "Followers"
 msgstr ""
 
-#: ShareModal.html account/view.html type/edition/modal_links.html type/edition/title_and_author.html
+#: ShareModal.html account/view.html stats/tasks.html.jinja type/edition/modal_links.html type/edition/title_and_author.html
 msgid "Share"
 msgstr ""
 
@@ -2026,7 +2026,7 @@ msgstr ""
 msgid "Last 7 days"
 msgstr ""
 
-#: admin/index.html
+#: admin/index.html stats/tasks.html.jinja
 msgid "Last 28 days"
 msgstr ""
 
@@ -5325,11 +5325,11 @@ msgstr ""
 msgid "Year"
 msgstr ""
 
-#: my_books/shelf_button_i18n.html
+#: my_books/shelf_button_i18n.html stats/tasks.html.jinja
 msgid "Month"
 msgstr ""
 
-#: my_books/shelf_button_i18n.html
+#: my_books/shelf_button_i18n.html stats/tasks.html.jinja
 msgid "Day"
 msgstr ""
 
@@ -6255,7 +6255,7 @@ msgid "Tasks Stats"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Each number covers the days up to the latest count, so it moves a little every day."
+msgid "Counts are gathered every hour, so today's figures fill in as the day goes on."
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -6263,15 +6263,142 @@ msgid "All stats"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Latest"
+msgid "Date range"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "4 weeks earlier"
+msgid "28 days"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Last 90 days"
+msgid "90 days"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "6 months"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "12 months"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Group by"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Week"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Compare to previous period"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Metrics, last 28 days. Choose one to chart it."
+msgstr ""
+
+#: stats/tasks.html.jinja
+#, python-format
+msgid "%(change)s vs previous 28 days"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "No earlier count yet"
+msgstr ""
+
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+msgid "Per day"
+msgstr ""
+
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+msgid "Previous period"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Chart of the chosen metric over the chosen range"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Week and month views add up saves and first-time editors. For editors and Tasks editors they show each period's own 7- or 28-day count, since one person can edit on many days."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Details still missing across the initiative's books, counted nightly. A detail nobody could find counts as filled."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "of details filled"
+msgstr ""
+
+#: stats/tasks.html.jinja
+#, python-format
+msgid "of %(count)s books complete"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "details still open"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "marked not found"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Details still open, by day"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Saves on the initiative's books"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Tasks saves on the books in the initiative's list. Follows the range and grouping above."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Tasks saves on initiative books, by period"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Guardrail"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Tasks saves whose value is no longer on the record: undone, reverted or changed by a later edit. As a share of the saves in the 28 days to each day."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "undone"
+msgstr ""
+
+#: stats/tasks.html.jinja
+#, python-format
+msgid "%(undone)s of %(saves)s saves in the last 28 days"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Share of Tasks saves undone, by day"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Saves by field, last 28 days"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Which details people are filling in."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Field"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Saves"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "No Tasks saves in the last 28 days."
 msgstr ""
 
 #: subjects/notfound.html
@@ -9592,58 +9719,72 @@ msgid "%(title)s - search"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "Tasks saves undone, last 28 days"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Editors, last 28 days"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Editors, last 7 days"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "First-time editors, last 28 days"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "First-time editors, last 7 days"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Tasks saves, last 28 days"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Tasks editors, last 28 days"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Tasks editors, last 7 days"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
 msgid "Editors"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "Signed-in accounts that changed a book, work or author record. Bots are not counted."
+msgid "First-time editors"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "Tasks page"
+msgid "Tasks saves"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "Edits saved from the Tasks page."
+msgid "Tasks editors"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "Guardrail"
+#, python-format
+msgid "Most-read %(count)s"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "Tasks saves whose value is no longer on the record: undone, reverted or changed by a later edit."
+msgid "Per week"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Per 4 weeks"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "Previous period: %(count)s"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(change)s vs previous period"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Today so far, updated hourly"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Still in progress"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(count)s details still open"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(count)s saves on the list"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(share)s undone: %(undone)s of %(saves)s saves in the 28 days to this day"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "No counts for this range yet."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "The charts couldn't load. Reload the page to try again."
 msgstr ""
 

@@ -1,0 +1,209 @@
+/**
+ * Tasks Stats
+ * openlibrary/templates/stats/tasks.html.jinja; charts drawn by tasks_stats.js, which reads
+ * --color-stats-chart-bar for every bar and data line so the page matches the other stats charts.
+ */
+.tasks-stats {
+  display: grid;
+  gap: var(--spacing-xl);
+  font-variant-numeric: tabular-nums;
+}
+
+.tasks-stats h2 {
+  margin: 0;
+  font-size: var(--font-size-title-medium);
+  line-height: var(--line-height-heading);
+  text-wrap: balance;
+}
+
+.tasks-stats__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm) var(--spacing-lg);
+}
+
+.tasks-stats__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.tasks-stats__card {
+  display: grid;
+  gap: var(--spacing-3xs);
+  padding: var(--spacing-inset-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tasks-stats__card:hover {
+    background: var(--color-control-hover);
+    border-color: var(--color-border-muted);
+  }
+}
+
+.tasks-stats__card:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* The chosen card takes the chart's colour along its top edge, tying it to the bars below */
+.tasks-stats__card[aria-pressed="true"] {
+  background: var(--color-control-selected-bg);
+  box-shadow: inset 0 4px 0 var(--color-stats-chart-bar);
+}
+
+.tasks-stats__card-label,
+.tasks-stats__card-change,
+.tasks-stats__card-window {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.tasks-stats__card-label {
+  font-size: var(--font-size-body-medium);
+}
+
+.tasks-stats__card-value {
+  font-size: var(--font-size-headline-small);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+}
+
+.tasks-stats__card-change--up {
+  color: var(--color-success-fg);
+}
+
+.tasks-stats__card-change--down {
+  color: var(--color-error-fg);
+}
+
+.tasks-stats__main,
+.tasks-stats__panel {
+  display: grid;
+  gap: var(--spacing-sm);
+  align-content: start;
+  min-width: 0;
+}
+
+.tasks-stats__chart-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-2xs) var(--spacing-md);
+}
+
+.tasks-stats__chart-unit {
+  color: var(--color-text-secondary);
+}
+
+.tasks-stats__legend {
+  margin-inline-start: auto;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.tasks-stats__legend-previous::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  margin-inline-end: var(--spacing-2xs);
+  vertical-align: middle;
+  border-top: 2px dashed var(--color-text-secondary);
+}
+
+.tasks-stats__legend[hidden] {
+  display: none;
+}
+
+.tasks-stats__canvas {
+  position: relative;
+  height: 200px;
+}
+
+.tasks-stats__canvas--main {
+  height: 300px;
+}
+
+.tasks-stats__note {
+  margin: 0;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.tasks-stats__figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2xs) var(--spacing-lg);
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.tasks-stats__figures b {
+  font-size: var(--font-size-body-large);
+  color: var(--color-text);
+}
+
+.tasks-stats__panels {
+  display: grid;
+  gap: var(--spacing-xl);
+}
+
+/* @width-breakpoint-tablet: 768px */
+@media only screen and (min-width: 768px) {
+  .tasks-stats__panels {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.tasks-stats__fields {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tasks-stats__fields th,
+.tasks-stats__fields td {
+  padding: var(--spacing-2xs) var(--spacing-xs);
+  border-bottom: 1px solid var(--color-border-subtle);
+  text-align: start;
+}
+
+.tasks-stats__fields th {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.tasks-stats__fields .tasks-stats__fields-count {
+  text-align: end;
+}
+
+/* The share column takes the slack, so its bar has room at phone width */
+.tasks-stats__fields td:last-child {
+  width: 50%;
+}
+
+.tasks-stats__fields-share {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-text-secondary);
+}
+
+.tasks-stats__fields-bar {
+  height: 8px;
+  max-width: 70%;
+  border-radius: var(--border-radius-sm);
+  background: var(--color-stats-chart-bar);
+}
+
+.tasks-stats__error {
+  margin: 0;
+  color: var(--color-error-fg);
+}

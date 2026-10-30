@@ -195,6 +195,11 @@ def _get_count_docs(ndays):
     return read_count_docs(web.ctx.site, ndays)
 
 
+def get_count_docs(ndays: int) -> list[dict]:
+    "The daily count docs for the last `ndays`, oldest first, from the five-minute cache."
+    return _get_count_docs(ndays)
+
+
 def get_stats(ndays=30, use_mock_data=False):
     """Returns the stats for the past `ndays`"""
     if use_mock_data:

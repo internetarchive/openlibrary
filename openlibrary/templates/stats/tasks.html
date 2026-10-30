@@ -1,7 +1,7 @@
-$def with (sections)
+$def with (page)
 
-$# /stats/tasks — a thin shim into stats/tasks.html.jinja; `sections` is built in openlibrary/views/loanstats.py.
+$# /stats/tasks — a thin shim into stats/tasks.html.jinja; `page` is built in openlibrary/views/loanstats.py.
 $var title: $_("Tasks Stats")
 $ _x = ctx.setdefault('cssfile', 'admin')
 
-$:render_jinja_template("stats/tasks.html.jinja", sections=sections)
+$:render_jinja_template("stats/tasks.html.jinja", page=page)

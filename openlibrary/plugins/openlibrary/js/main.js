@@ -213,6 +213,11 @@ $(function () {
         import('./imports_chart').then(module => module.init(importsChart));
     }
 
+    const tasksStats = document.querySelector('.tasks-stats');
+    if (tasksStats) {
+        import('./tasks_stats').then(module => module.init(tasksStats));
+    }
+
     const readingLogCharts = document.querySelector('.readinglog-charts');
     if (readingLogCharts) {
         const readingLogConfig = JSON.parse(readingLogCharts.dataset.config);

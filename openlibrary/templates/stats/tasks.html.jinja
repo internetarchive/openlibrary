@@ -1,39 +1,151 @@
-{#- /stats/tasks: who is editing the catalog, and how edits from the Tasks page hold up. Every number is a rolling count, gathered hourly by scripts/store_counts.py. -#}
+{#- /stats/tasks: who is editing the catalog, and how the Tasks page and its initiative are doing. Numbers are rendered here;
+    the charts are drawn by openlibrary/plugins/openlibrary/js/tasks_stats.js from /stats/tasks.json. -#}
 <div id="contentHead">
     <h1>{{ _("Tasks Stats") }}</h1>
-    <p>{{ _("Each number covers the days up to the latest count, so it moves a little every day.") }} <a href="/stats">{{ _("All stats") }}</a></p>
+    <p>{{ _("Counts are gathered every hour, so today's figures fill in as the day goes on.") }} <a href="/stats">{{ _("All stats") }}</a></p>
 </div>
-<div id="contentBody">
-    {% for section in sections %}
-        <h2>{{ section.heading }}</h2>
-        <p>{{ section.note }}</p>
-        <table class="measurements stripeEven">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>{{ _("Latest") }}</th>
-                    <th>{{ _("4 weeks earlier") }}</th>
-                    <th>{{ _("Last 90 days") }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in section.rows %}
-                    <tr class="major">
-                        <td class="type">{{ row.label }}</td>
-                        <td class="amount">{{ row.latest }}</td>
-                        <td class="amount">{{ row.earlier }}</td>
-                        <td>
-                            {% if row.chart %}
-                                <div class="sparkDisplay">
-                                    {% with chart=row.chart, css_class="stats-spacer", label=row.label %}
-                                        {% include "StatsBarChart.html.jinja" %}
-                                    {% endwith %}
-                                </div>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endfor %}
+<div id="contentBody"
+     class="tasks-stats"
+     data-i18n="{{ page.i18n | tojson | forceescape }}">
+    <div class="tasks-stats__controls">
+        <ol-segmented-control class="tasks-stats__range" size="small" value="90" accessible-label="{{ _('Date range') }}">
+            <ol-segment value="28">
+                {{ _("28 days") }}
+            </ol-segment>
+            <ol-segment value="90">
+                {{ _("90 days") }}
+            </ol-segment>
+            <ol-segment value="182">
+                {{ _("6 months") }}
+            </ol-segment>
+            <ol-segment value="365">
+                {{ _("12 months") }}
+            </ol-segment>
+        </ol-segmented-control>
+        <ol-segmented-control class="tasks-stats__granularity" size="small" value="day" accessible-label="{{ _('Group by') }}">
+            <ol-segment value="day">
+                {{ _("Day") }}
+            </ol-segment>
+            <ol-segment value="week">
+                {{ _("Week") }}
+            </ol-segment>
+            <ol-segment value="month">
+                {{ _("Month") }}
+            </ol-segment>
+        </ol-segmented-control>
+        <ol-toggle class="tasks-stats__compare" checked label="{{ _('Compare to previous period') }}">
+        </ol-toggle>
+    </div>
+    <div class="tasks-stats__cards"
+         role="group"
+         aria-label="{{ _('Metrics, last 28 days. Choose one to chart it.') }}">
+        {% for card in page.cards %}
+            <button type="button"
+                    class="tasks-stats__card"
+                    data-metric="{{ card.metric }}"
+                    aria-pressed="{{ 'true' if loop.first else 'false' }}">
+                <span class="tasks-stats__card-label">{{ card.label }}</span>
+                <span class="tasks-stats__card-value">{{ card.value }}</span>
+                {% if card.change %}
+                    <span class="tasks-stats__card-change tasks-stats__card-change--{{ card.change.direction }}">
+                        {{ _("%(change)s vs previous 28 days", change=("▲ " if card.change.direction == "up" else "▼ " if card.change.direction == "down" else "") ~ card.change.text) }}
+                    </span>
+                {% else %}
+                    <span class="tasks-stats__card-change">{{ _("No earlier count yet") }}</span>
+                {% endif %}
+                <span class="tasks-stats__card-window">{{ _("Last 28 days") }}</span>
+            </button>
+        {% endfor %}
+    </div>
+    <section class="tasks-stats__main">
+        <div class="tasks-stats__chart-head">
+            <h2 class="tasks-stats__chart-title">{{ page.cards[0].label if page.cards else "" }}</h2>
+            <span class="tasks-stats__chart-unit">{{ _("Per day") }}</span>
+            <span class="tasks-stats__legend">
+                <span class="tasks-stats__legend-previous">{{ _("Previous period") }}</span>
+            </span>
+        </div>
+        <div class="tasks-stats__canvas tasks-stats__canvas--main">
+            <canvas data-chart="main"
+                    role="img"
+                    aria-label="{{ _('Chart of the chosen metric over the chosen range') }}"></canvas>
+        </div>
+        <p class="tasks-stats__note">
+            {{ _("Week and month views add up saves and first-time editors. For editors and Tasks editors they show each period's own 7- or 28-day count, since one person can edit on many days.") }}
+        </p>
+    </section>
+    <div class="tasks-stats__panels">
+        <section class="tasks-stats__panel">
+            <h2>{{ page.initiative.title }}</h2>
+            <p class="tasks-stats__note">
+                {{ _("Details still missing across the initiative's books, counted nightly. A detail nobody could find counts as filled.") }}
+            </p>
+            <p class="tasks-stats__figures">
+                <span><b>{{ page.initiative.percent }}</b> {{ _("of details filled") }}</span>
+                <span><b>{{ page.initiative.done }}</b> {{ _("of %(count)s books complete", count=page.initiative.editions) }}</span>
+                <span><b>{{ page.initiative.open }}</b> {{ _("details still open") }}</span>
+                <span><b>{{ page.initiative.not_found }}</b> {{ _("marked not found") }}</span>
+            </p>
+            <div class="tasks-stats__canvas">
+                <canvas data-chart="initiative"
+                        role="img"
+                        aria-label="{{ _('Details still open, by day') }}"></canvas>
+            </div>
+        </section>
+        <section class="tasks-stats__panel">
+            <h2>{{ _("Saves on the initiative's books") }}</h2>
+            <p class="tasks-stats__note">{{ _("Tasks saves on the books in the initiative's list. Follows the range and grouping above.") }}</p>
+            <div class="tasks-stats__canvas">
+                <canvas data-chart="initiative-saves"
+                        role="img"
+                        aria-label="{{ _('Tasks saves on initiative books, by period') }}"></canvas>
+            </div>
+        </section>
+        <section class="tasks-stats__panel">
+            <h2>{{ _("Guardrail") }}</h2>
+            <p class="tasks-stats__note">
+                {{ _("Tasks saves whose value is no longer on the record: undone, reverted or changed by a later edit. As a share of the saves in the 28 days to each day.") }}
+            </p>
+            <p class="tasks-stats__figures">
+                <span><b>{{ page.undone.share }}</b> {{ _("undone") }}</span>
+                <span>{{ _("%(undone)s of %(saves)s saves in the last 28 days", undone=page.undone.undone, saves=page.undone.saves) }}</span>
+            </p>
+            <div class="tasks-stats__canvas">
+                <canvas data-chart="undone"
+                        role="img"
+                        aria-label="{{ _('Share of Tasks saves undone, by day') }}"></canvas>
+            </div>
+        </section>
+        <section class="tasks-stats__panel">
+            <h2>{{ _("Saves by field, last 28 days") }}</h2>
+            <p class="tasks-stats__note">{{ _("Which details people are filling in.") }}</p>
+            {% if page.saves_by_field %}
+                <table class="tasks-stats__fields no-table-collapse">
+                    <thead>
+                        <tr>
+                            <th scope="col">{{ _("Field") }}</th>
+                            <th scope="col" class="tasks-stats__fields-count">{{ _("Saves") }}</th>
+                            <th scope="col">{{ _("Share") }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in page.saves_by_field %}
+                            <tr>
+                                <td>{{ row.label }}</td>
+                                <td class="tasks-stats__fields-count">{{ row.count }}</td>
+                                <td>
+                                    <span class="tasks-stats__fields-share">
+                                        <span class="tasks-stats__fields-bar" style="width: {{ row.width }}%"></span>
+                                        {{ row.share }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>{{ _("No Tasks saves in the last 28 days.") }}</p>
+            {% endif %}
+        </section>
+    </div>
 </div>
