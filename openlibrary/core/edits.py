@@ -28,6 +28,29 @@ def get_status_for_view(status_code: int) -> str:
 
 
 ApiMode = Literal["all", "open", "closed"]
+StatsRole = Literal["reviewer", "submitter"]
+StatsSort = Literal["total", "merged", "declined", "rate", "username"]
+
+# Number of days covered by each date range offered on the stats page.
+# `None` means no lower bound.
+STATS_RANGES: MappingProxyType[str, int | None] = MappingProxyType(
+    {
+        "all": None,
+        "year": 365,
+        "month": 30,
+    }
+)
+
+# Column to sort by -> SQL expression. Only these are ever interpolated into a query.
+STATS_SORT_COLUMNS: MappingProxyType[str, str] = MappingProxyType(
+    {
+        "total": "total",
+        "merged": "merged",
+        "declined": "declined",
+        "rate": "merge_rate",
+        "username": "username",
+    }
+)
 
 
 class CommunityEditsQueue:
@@ -111,6 +134,83 @@ class CommunityEditsQueue:
         oldb = db.get_db()
         query = f"SELECT DISTINCT reviewer FROM {cls.TABLENAME} WHERE reviewer IS NOT NULL"
         return list(oldb.query(query))
+
+    @classmethod
+    def _stats_where(cls, role: StatsRole, since: datetime.date | None) -> str:
+        """WHERE clause for the stats queries: only closed requests are counted,
+        so that merge percentages aren't skewed by requests still waiting."""
+        closed = f"status IN ({cls.STATUS['DECLINED']}, {cls.STATUS['MERGED']})"
+        where = f"{role} IS NOT NULL AND {closed}"
+        if since:
+            where += " AND updated >= $since"
+        return where
+
+    @classmethod
+    def get_stats(
+        cls,
+        role: StatsRole,
+        since: datetime.date | None = None,
+        sort: StatsSort = "total",
+        order: Literal["asc", "desc"] = "desc",
+        limit: int = 25,
+        page: int = 1,
+    ) -> list[dict]:
+        """Per-librarian counts of closed merge requests.
+
+        `role` picks whether requests are grouped by `reviewer` or `submitter`.
+        `since` limits the counts to requests last updated on or after that date.
+        Each row has: username, total, merged, declined, author_requests,
+        work_requests and merge_rate (percentage of requests closed by merging).
+        """
+        if role not in ("reviewer", "submitter"):
+            raise ValueError(f"Unknown stats role: {role}")
+        sort_column = STATS_SORT_COLUMNS.get(sort, "total")
+        direction = "ASC" if order == "asc" else "DESC"
+        merged = cls.STATUS["MERGED"]
+        declined = cls.STATUS["DECLINED"]
+
+        query = f"""
+            SELECT {role} AS username,
+                count(*) AS total,
+                SUM(CASE WHEN status = {merged} THEN 1 ELSE 0 END) AS merged,
+                SUM(CASE WHEN status = {declined} THEN 1 ELSE 0 END) AS declined,
+                SUM(CASE WHEN mr_type = {cls.TYPE["AUTHOR_MERGE"]} THEN 1 ELSE 0 END) AS author_requests,
+                SUM(CASE WHEN mr_type = {cls.TYPE["WORK_MERGE"]} THEN 1 ELSE 0 END) AS work_requests,
+                SUM(CASE WHEN status = {merged} THEN 1.0 ELSE 0.0 END) * 100 / count(*) AS merge_rate
+            FROM {cls.TABLENAME}
+            WHERE {cls._stats_where(role, since)}
+            GROUP BY {role}
+            ORDER BY {sort_column} {direction}, username ASC
+            LIMIT $limit OFFSET $offset
+        """
+        rows = db.get_db().query(
+            query,
+            vars={
+                "since": since.isoformat() if since else None,
+                "limit": limit,
+                "offset": limit * (page - 1),
+            },
+        )
+        return [
+            {
+                "username": row["username"],
+                "total": int(row["total"]),
+                "merged": int(row["merged"]),
+                "declined": int(row["declined"]),
+                "author_requests": int(row["author_requests"]),
+                "work_requests": int(row["work_requests"]),
+                "merge_rate": float(row["merge_rate"]),
+            }
+            for row in rows
+        ]
+
+    @classmethod
+    def get_stats_count(cls, role: StatsRole, since: datetime.date | None = None) -> int:
+        """Number of librarians `get_stats` would list across all pages."""
+        if role not in ("reviewer", "submitter"):
+            raise ValueError(f"Unknown stats role: {role}")
+        query = f"SELECT count(DISTINCT {role}) AS count FROM {cls.TABLENAME} WHERE {cls._stats_where(role, since)}"
+        return db.get_db().query(query, vars={"since": since.isoformat() if since else None})[0]["count"]
 
     @classmethod
     def where_clause(cls, mode: ApiMode, **kwargs):

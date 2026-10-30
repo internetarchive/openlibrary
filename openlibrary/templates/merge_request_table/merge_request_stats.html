@@ -1,0 +1,56 @@
+$def with(rows, total, group='reviewers', page=1, page_size=25)
+
+$# rows : list[dict] : One row per librarian, as returned by CommunityEditsQueue.get_stats
+$# total : int : Number of librarians across all pages
+$# group : str : "reviewers" | "submitters"; which librarians are listed
+$# page : int : Current page number
+$# page_size : int : Number of librarians per page
+
+$ date_range = query_param('range', 'all')
+$ sort = query_param('sort', 'total')
+$ order = query_param('order', 'desc')
+$ filter_name = 'reviewer' if group == 'reviewers' else 'submitter'
+
+$ ranges = [('all', _('All time')), ('year', _('Last year')), ('month', _('Last month'))]
+$ columns = [('total', _('Requests')), ('merged', _('Merged')), ('declined', _('Declined')), ('rate', _('Merged %'))]
+
+<div class="librarian-queue-page merge-stats">
+  <h1>$_('Community Edit Request Statistics')</h1>
+  <p class="description">$_('Closed requests only. Requests still waiting for review are not counted.')</p>
+
+  <div class="table-header">
+    <a class="$('selected' if group == 'reviewers' else '')" href="$changequery(group='reviewers', page=None)">$_('Reviewers')</a>
+    <a class="$('selected' if group == 'submitters' else '')" href="$changequery(group='submitters', page=None)">$_('Submitters')</a>
+    <div class="flex-auto"></div>
+    $for value, label in ranges:
+      <a class="$('selected' if date_range == value else '')" href="$changequery(range=value, page=None)">$label</a>
+  </div>
+
+  <table class="mr-stats-table">
+    <thead>
+      <tr>
+        <th>$(_('Reviewer') if group == 'reviewers' else _('Submitter'))</th>
+        $for value, label in columns:
+          $ next_order = 'asc' if (sort == value and order == 'desc') else 'desc'
+          <th><a href="$changequery(sort=value, order=next_order, page=None)">$label$(' ▾' if sort == value and order == 'desc' else (' ▴' if sort == value else ''))</a></th>
+        <th>$_('Author requests')</th>
+        <th>$_('Work requests')</th>
+      </tr>
+    </thead>
+    <tbody>
+      $if not rows:
+        <tr><td colspan="7">$_('No entries here!')</td></tr>
+      $for row in rows:
+        <tr>
+          <td><a href="/merges?mode=closed&amp;$filter_name=$row['username']">$row['username']</a></td>
+          <td>$row['total']</td>
+          <td>$row['merged']</td>
+          <td>$row['declined']</td>
+          <td>$('%.0f' % row['merge_rate'])%</td>
+          <td>$row['author_requests']</td>
+          <td>$row['work_requests']</td>
+        </tr>
+    </tbody>
+  </table>
+  $:macros.OlPagination(page, ceil(total / page_size))
+</div>
