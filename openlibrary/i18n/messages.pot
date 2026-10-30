@@ -488,7 +488,7 @@ msgstr ""
 msgid "Please enter your <a href=\"https://archive.org\">Internet Archive</a> email and password to access your Open Library account."
 msgstr ""
 
-#: login.html openlibrary/plugins/upstream/forms.py
+#: login.html openlibrary/core/shell/login_dialog.py openlibrary/plugins/upstream/forms.py
 msgid "Email"
 msgstr ""
 
@@ -496,7 +496,7 @@ msgstr ""
 msgid "Forgot your Internet Archive email?"
 msgstr ""
 
-#: account/email/forgot-ia.html login.html openlibrary/plugins/upstream/forms.py
+#: account/email/forgot-ia.html login.html openlibrary/core/shell/login_dialog.py openlibrary/plugins/upstream/forms.py
 msgid "Password"
 msgstr ""
 
@@ -508,7 +508,7 @@ msgstr ""
 msgid "Toggle Password Visibility"
 msgstr ""
 
-#: login.html
+#: login.html openlibrary/core/shell/login_dialog.py
 msgid "Remember me"
 msgstr ""
 
@@ -1122,7 +1122,7 @@ msgstr ""
 msgid "There is nothing to see here yet."
 msgstr ""
 
-#: account/ia_thirdparty_logins.html
+#: account/ia_thirdparty_logins.html openlibrary/core/shell/login_dialog.py
 msgid "Sign in with a third-party account"
 msgstr ""
 
@@ -1617,7 +1617,7 @@ msgstr ""
 msgid "My %(shelf_name)s Stats"
 msgstr ""
 
-#: account/readinglog_stats.html openlibrary/core/shell/header.py shell/header.html.jinja
+#: account/readinglog_stats.html openlibrary/core/shell/header.py openlibrary/core/shell/login_dialog.py shell/header.html.jinja
 msgid "My Books"
 msgstr ""
 
@@ -5169,6 +5169,14 @@ msgid "Add %(title)s to a list"
 msgstr ""
 
 #: my_books/shelf_button_i18n.html
+msgid "Log in or sign up to add books to your reading log."
+msgstr ""
+
+#: my_books/shelf_button_i18n.html
+msgid "Log in or sign up to add books to a list."
+msgstr ""
+
+#: my_books/shelf_button_i18n.html
 #, python-format
 msgid "Actions for %(title)s"
 msgstr ""
@@ -5296,7 +5304,7 @@ msgstr ""
 msgid "Manage lists"
 msgstr ""
 
-#: my_books/shelf_button_i18n.html
+#: my_books/shelf_button_i18n.html openlibrary/core/shell/login_dialog.py
 msgid "Something went wrong. Please try again."
 msgstr ""
 
@@ -8401,6 +8409,87 @@ msgstr ""
 
 #: openlibrary/core/edits.py
 msgid "Unknown"
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Log in or sign up"
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "New to Open Library?"
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Create a free account"
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "or log in"
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Forgot your password?"
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Log in"
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Open Library accounts are Internet Archive accounts: log in with that email and password."
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Email me a one-time code instead"
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Use a password instead"
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Get a one-time code"
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Enter your Internet Archive email and we'll send you a login code."
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Send code"
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Enter your code"
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+#, python-format
+msgid "We sent a 6-digit code to %(email)s."
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Use a different email"
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Continue on the login page"
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "A network error occurred. Please try again."
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Too many attempts. Please wait a moment and try again."
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Unable to send code. Please try again."
+msgstr ""
+
+#: openlibrary/core/shell/login_dialog.py
+msgid "Close dialog"
 msgstr ""
 
 #: openlibrary/core/shell/nav.py

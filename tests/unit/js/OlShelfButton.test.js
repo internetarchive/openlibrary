@@ -5,7 +5,16 @@
  * source of truth. Network is stubbed at `fetch`.
  */
 import '../../../openlibrary/components/lit/OlShelfButton.js';
-import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
+import { OlShelfActions } from '../../../openlibrary/components/lit/OlShelfActions.js';
+import { SHELF, requestLogin } from '../../../openlibrary/components/lit/utils/books-api.js';
+
+// The signed-out click asks requestLogin() for a reader. With no
+// <ol-login-dialog> defined here it falls through to the login page, which is
+// what the signed-out tests below exercise; the dialog tests swap in a login.
+vi.mock('../../../openlibrary/components/lit/utils/books-api.js', async importOriginal => {
+    const actual = await importOriginal();
+    return { ...actual, requestLogin: vi.fn((...args) => actual.requestLogin(...args)) };
+});
 
 let fetchCalls;
 
@@ -397,6 +406,91 @@ describe('ol-shelf-button signed out', () => {
         q(el, '.main').click();
         await new Promise(r => setTimeout(r, 0));
         expect(fetchCalls).toHaveLength(0);
+    });
+});
+
+describe('ol-shelf-button after a login in the dialog', () => {
+    afterEach(() => {
+        delete document.body.dataset.userKey;
+    });
+    const flush = async el => {
+        for (let i = 0; i < 4; i++) await new Promise(r => setTimeout(r, 0));
+        await el.updateComplete;
+    };
+    /** What the dialog does on success: the key lands on <body> before the promise resolves. */
+    const loginAs = (key = '/people/tester') => {
+        requestLogin.mockImplementationOnce(async () => {
+            document.body.dataset.userKey = key;
+            return true;
+        });
+    };
+
+    test('the main half asks with its reason, then finishes the toggle it was asked for', async () => {
+        stubFetch();
+        loginAs();
+        const el = await mount();
+        const seen = [];
+        el.addEventListener('ol-book-state-change', e => seen.push(e.detail.shelf));
+        q(el, '.main').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        await flush(el);
+        expect(requestLogin).toHaveBeenLastCalledWith(
+            expect.objectContaining({ title: 'The Two Towers', action: 'Want to Read', message: 'Log in or sign up to add books to your reading log.' })
+        );
+        expect(el.userKey).toBe('/people/tester');
+        expect(seen).toEqual([SHELF.WANT_TO_READ]);
+        expect(fetchCalls).toHaveLength(1);
+        expect(fetchCalls[0].url).toBe('/works/OL1W/bookshelves.json');
+    });
+
+    test('waits for the state book-state.js fetches before it toggles', async () => {
+        stubFetch();
+        const el = await mount();
+        requestLogin.mockImplementationOnce(async () => {
+            document.body.dataset.userKey = '/people/tester';
+            el.pending = true;
+            return true;
+        });
+        q(el, '.main').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        await flush(el);
+        expect(fetchCalls).toHaveLength(0);
+        el.pending = false;
+        await flush(el);
+        expect(fetchCalls).toHaveLength(1);
+    });
+
+    test('the menu half opens the actions popover instead', async () => {
+        stubFetch();
+        loginAs();
+        const open = vi.spyOn(OlShelfActions.prototype, 'open').mockImplementation(() => {});
+        const el = await mount();
+        q(el, '.more').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        await flush(el);
+        expect(q(el, 'ol-shelf-actions')).not.toBeNull();
+        expect(open).toHaveBeenCalledTimes(1);
+        expect(fetchCalls).toHaveLength(0);
+        open.mockRestore();
+    });
+
+    test('a lists-only button asks for a list, and opens the lists pane', async () => {
+        loginAs();
+        const open = vi.spyOn(OlShelfActions.prototype, 'open').mockImplementation(() => {});
+        const el = await mount({ listsOnly: true, workKey: '/authors/OL1A' });
+        q(el, '.main').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        await flush(el);
+        expect(requestLogin).toHaveBeenLastCalledWith(expect.objectContaining({ action: 'Add to list', message: 'Log in or sign up to add books to a list.' }));
+        expect(open).toHaveBeenCalledTimes(1);
+        open.mockRestore();
+    });
+
+    test('a dismissed dialog changes nothing', async () => {
+        stubFetch();
+        requestLogin.mockResolvedValueOnce(false);
+        const el = await mount();
+        q(el, '.main').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        await flush(el);
+        expect(el.userKey).toBe('');
+        expect(fetchCalls).toHaveLength(0);
+        expect(q(el, 'ol-shelf-actions')).toBeNull();
     });
 });
 

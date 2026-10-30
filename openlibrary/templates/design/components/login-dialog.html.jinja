@@ -1,0 +1,39 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    <p class="ds-lead">
+        The in-page login for the moment a signed-out visitor tries something that needs an account: a shelf button, a rating, a follow. It keeps them on the page, says why an account is needed, offers sign-up as the big first step (on the existing sign-up page), and logs in three ways without navigating: password, a one-time code by email, and archive.org's third-party buttons. The shell renders one <code>&lt;ol-login-dialog&gt;</code> on every signed-out page with the translated labels, so a page script only ever calls <code>olLogin()</code>.
+    </p>
+    {% call ex.example("Imperative use", "await olLogin({ message }) opens the shell's dialog with a sentence saying why, and resolves with { userKey, method } once the visitor is logged in, or null if they dismissed it. Already logged in, it resolves at once. On success the dialog writes the reader's key to <body data-user-key> and fires ol-login-success at the document, which book-state.js and the header listen for — so the page catches up without a reload. This demo really logs in; signed in, it resolves immediately.",
+        code="import { olLogin } from '../../../components/lit/login-dialog.js';\n\n// In a click handler, when the page has no reader:\nconst login = await olLogin({ message: i18n.loginToShelve });\nif (login) finishWhatWasClicked(login.userKey);\n\n// ol-shelf-button does this through requestLogin() in utils/books-api.js,\n// which also queues the intent for a visitor who goes on to sign up.",
+        language="js",
+        output_style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px;") %}
+        <ol-login-dialog id="demo-login-dialog" signup-href="/account/create">
+        </ol-login-dialog>
+        <ol-button id="demo-login-open" variant="secondary">
+            Want to Read (signed out)
+        </ol-button>
+        <p>Resolved: <strong id="demo-login-out">(none)</strong></p>
+        <script>
+            (function () {
+                // Mirrors olLogin() from login-dialog.js, which isn't importable from a page script.
+                const dialog = document.getElementById('demo-login-dialog');
+                const out = document.getElementById('demo-login-out');
+                document.getElementById('demo-login-open').addEventListener('click', async () => {
+                    if (document.body.dataset.userKey) {
+                        out.textContent = `already logged in as ${document.body.dataset.userKey}`;
+                        return;
+                    }
+                    const login = await dialog.show({ message: 'Log in or sign up to add books to your reading log.' });
+                    out.textContent = login ? `logged in as ${login.userKey} (${login.method})` : 'dismissed';
+                });
+            })();
+        </script>
+    {% endcall %}
+    <section class="ds-example">
+        <h4 class="ds-example__title">Markup</h4>
+        <p class="ds-example__note">
+            The shell renders this once per signed-out page (shell/login_dialog.html.jinja), with the labels translated and third-party-src pointing at archive.org's sign-in frame. The element renders nothing until opened; heading and message are set per open through show(), and the sign-up stays on /account/create.
+        </p>
+        {{ ex.code_snippet('<ol-login-dialog\n  signup-href="/account/create"\n  third-party-src="https://archive.org/account/login.thirdparty.php?origin=https%3A%2F%2Fopenlibrary.org"\n  labels=\'{"heading": "Log in or sign up", …}\'>\n</ol-login-dialog>', 'html') }}
+    </section>
+{% endmacro %}

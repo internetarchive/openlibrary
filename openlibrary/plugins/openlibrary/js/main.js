@@ -385,6 +385,12 @@ $(function () {
         import('./book-state').then(module => module.initBookState());
     }
 
+    // The shell renders the login dialog for signed-out visitors; a login
+    // through it has to reach the header too.
+    if (document.querySelector('ol-login-dialog')) {
+        import('./login-session').then(module => module.initLoginSession());
+    }
+
     // The lists a book is on, under the shelf button on its page:
     const listShowcase = document.querySelector('.already-lists[data-seed-keys]');
     if (listShowcase) {
