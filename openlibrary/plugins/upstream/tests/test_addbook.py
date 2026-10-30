@@ -490,6 +490,58 @@ class TestSaveBookHelper:
         assert not new_work.authors
         assert not new_work.subjects
 
+    @pytest.mark.parametrize(
+        ("current_ocaid", "submitted_ocaid"),
+        [
+            (None, "newitem00arch"),
+            ("olditem00arch", "newitem00arch"),
+            ("olditem00arch", None),
+        ],
+    )
+    def test_ocaid_changes_need_admin(self, monkeypatch, current_ocaid, submitted_ocaid):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        s = addbook.SaveBookHelper(None, self._edition_with_ocaid(current_ocaid))
+
+        with pytest.raises(addbook.ValidationException):
+            s._prevent_ocaid_deletion(self._ocaid_form(submitted_ocaid))
+
+    @pytest.mark.parametrize("ocaid", [None, "olditem00arch"])
+    def test_unchanged_ocaid_is_allowed(self, monkeypatch, ocaid):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        s = addbook.SaveBookHelper(None, self._edition_with_ocaid(ocaid))
+
+        s._prevent_ocaid_deletion(self._ocaid_form(ocaid))
+
+    @pytest.mark.parametrize(("is_admin", "is_super_librarian", "allowed"), [(True, False, True), (False, True, False)])
+    def test_only_admins_can_add_ocaid(self, monkeypatch, is_admin, is_super_librarian, allowed):
+        def user():
+            u = mock_user()
+            u.is_admin = lambda: is_admin
+            u.is_super_librarian = lambda: is_super_librarian
+            return u
+
+        monkeypatch.setattr(accounts, "get_current_user", user)
+        s = addbook.SaveBookHelper(None, self._edition_with_ocaid(None))
+
+        if allowed:
+            s._prevent_ocaid_deletion(self._ocaid_form("newitem00arch"))
+        else:
+            with pytest.raises(addbook.ValidationException):
+                s._prevent_ocaid_deletion(self._ocaid_form("newitem00arch"))
+
+    @staticmethod
+    def _edition_with_ocaid(ocaid):
+        doc = {"type": {"key": "/type/edition"}, "key": "/books/OL1M", "title": "Edition"}
+        if ocaid:
+            doc["ocaid"] = ocaid
+        web.ctx.site.save(doc)
+        return web.ctx.site.get("/books/OL1M")
+
+    @staticmethod
+    def _ocaid_form(ocaid):
+        identifiers = [{"name": "ocaid", "value": ocaid}] if ocaid else []
+        return web.storage(identifiers=identifiers)
+
 
 class TestDaisyPage:
     def setup_method(self, method):
