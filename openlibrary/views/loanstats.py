@@ -260,17 +260,30 @@ def format_change(latest: int | None, earlier: int | None) -> dict | None:
 
 
 def build_tasks_stats_cards(counts: dict) -> list[dict]:
-    """One card per metric the main chart can show, each on the trailing 28 days. `metric` is the chart's name for it."""
+    """One card per metric the main chart can show, each on the trailing 28 days. `metric` is the chart's name for it, and
+    `note` says what one of its bars counts."""
     cards = {
-        "editors": ("catalog_editors_28d", _("Editors")),
-        "new_editors": ("new_catalog_editors_28d", _("First-time editors")),
-        "saves": ("tasks_saves_28d", _("Tasks saves")),
-        "tasks_editors": ("tasks_editors_28d", _("Tasks editors")),
+        "editors": (
+            "catalog_editors_28d",
+            _("Editors"),
+            _("People who changed a book, work or author record. In week and month views, someone who edited on several days counts once."),
+        ),
+        "new_editors": (
+            "new_catalog_editors_28d",
+            _("First-time editors"),
+            _("People who made their first edit ever on that day. Each person is counted once, on the day of their first edit."),
+        ),
+        "saves": ("tasks_saves_28d", _("Tasks saves"), _("Edits saved from the Tasks page.")),
+        "tasks_editors": (
+            "tasks_editors_28d",
+            _("Tasks editors"),
+            _("People who saved an edit from the Tasks page. In week and month views, someone who saved on several days counts once."),
+        ),
     }
     result = []
-    for metric, (key, label) in cards.items():
+    for metric, (key, label, note) in cards.items():
         latest, earlier = (counts.get(key) or {}).get("latest"), (counts.get(key) or {}).get("earlier")
-        result.append({"metric": metric, "label": label, "value": format_count(latest), "change": format_change(latest, earlier)})
+        result.append({"metric": metric, "label": label, "note": note, "value": format_count(latest), "change": format_change(latest, earlier)})
     return result
 
 

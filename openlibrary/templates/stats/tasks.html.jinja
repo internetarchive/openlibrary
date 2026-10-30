@@ -14,6 +14,7 @@
             <button type="button"
                     class="tasks-stats__card"
                     data-metric="{{ card.metric }}"
+                    data-note="{{ card.note }}"
                     aria-pressed="{{ 'true' if loop.first else 'false' }}">
                 <span class="tasks-stats__card-label">{{ card.label }}</span>
                 <span class="tasks-stats__card-value">{{ card.value }}</span>
@@ -70,9 +71,7 @@
                     role="img"
                     aria-label="{{ _('Chart of the chosen metric over the chosen range') }}"></canvas>
         </div>
-        <p class="tasks-stats__note">
-            {{ _("Week and month views add up saves and first-time editors. For editors and Tasks editors they show each period's own 7- or 28-day count, since one person can edit on many days.") }}
-        </p>
+        <p class="tasks-stats__note tasks-stats__chart-note">{{ page.cards[0].note if page.cards else "" }}</p>
     </section>
     <div class="tasks-stats__panels">
         <section class="tasks-stats__panel">

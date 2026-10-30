@@ -360,6 +360,7 @@ export async function init(root) {
     const title = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-title'));
     const unit = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-unit'));
     const legend = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__legend'));
+    const note = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-note'));
     const cards = /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.tasks-stats__card'));
     const units = { day: strings.perDay, week: strings.perWeek, month: strings.perMonth };
 
@@ -375,6 +376,7 @@ export async function init(root) {
             state.metric = card.dataset.metric || 'editors';
             cards.forEach(other => other.setAttribute('aria-pressed', String(other === card)));
             title.textContent = card.querySelector('.tasks-stats__card-label')?.textContent || '';
+            note.textContent = card.dataset.note || '';
             drawMain();
         })
     );

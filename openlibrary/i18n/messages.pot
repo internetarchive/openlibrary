@@ -6316,10 +6316,6 @@ msgid "Chart of the chosen metric over the chosen range"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Week and month views add up saves and first-time editors. For editors and Tasks editors they show each period's own 7- or 28-day count, since one person can edit on many days."
-msgstr ""
-
-#: stats/tasks.html.jinja
 msgid "Details still missing across the initiative's books, counted nightly. A detail nobody could find counts as filled."
 msgstr ""
 
@@ -9719,7 +9715,15 @@ msgid "Editors"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
+msgid "People who changed a book, work or author record. In week and month views, someone who edited on several days counts once."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
 msgid "First-time editors"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "People who made their first edit ever on that day. Each person is counted once, on the day of their first edit."
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -9727,7 +9731,15 @@ msgid "Tasks saves"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
+msgid "Edits saved from the Tasks page."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
 msgid "Tasks editors"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "People who saved an edit from the Tasks page. In week and month views, someone who saved on several days counts once."
 msgstr ""
 
 #: openlibrary/views/loanstats.py
