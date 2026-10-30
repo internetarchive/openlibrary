@@ -40,6 +40,7 @@ const METRICS = {
  * @typedef {object} TasksSeries
  * @property {string[]} dates ISO dates, oldest first, ending today
  * @property {Record<string, (number | null)[]>} series
+ * @property {(string | null)[]} initiative the initiative each day's `initiative_*` values describe
  */
 
 /**
@@ -67,7 +68,8 @@ function readStrings(root) {
 }
 
 /**
- * Group days into periods of `size` days, counting back from the last day so the latest period ends today.
+ * Group days into periods of `size` days, counting back from the last day so the latest period ends today. Days left
+ * over at the start are dropped, since a short period can't be compared with a full one.
  * @param {(number | null)[]} daily
  * @param {number} size
  * @param {(number | null)[]} [rolling] a rolling series to sample at each period's end, for counts that don't add up
@@ -75,8 +77,8 @@ function readStrings(root) {
  */
 export function bucketize(daily, size, rolling) {
     const buckets = [];
-    for (let end = daily.length - 1; end >= 0; end -= size) {
-        const start = Math.max(0, end - size + 1);
+    for (let end = daily.length - 1; end - size + 1 >= 0; end -= size) {
+        const start = end - size + 1;
         let value;
         if (size === 1) value = daily[end];
         else if (rolling) value = rolling[end];
@@ -168,7 +170,8 @@ export async function init(root) {
             : `${fullFormat.format(dates[bucket.start])} – ${fullFormat.format(dates[bucket.end])}`;
     /** @param {Bucket} bucket */
     const inProgressNote = bucket => (bucket.end !== lastDay ? '' : bucket.start === bucket.end ? strings.todaySoFar : strings.periodSoFar);
-    const bucketCount = () => Math.max(1, Math.round(state.days / BUCKET_DAYS[state.granularity]));
+    // Rounded down, so the chart never reaches back further than the chosen range.
+    const bucketCount = () => Math.max(1, Math.floor(state.days / BUCKET_DAYS[state.granularity]));
 
     /**
      * @param {string} name
@@ -266,7 +269,7 @@ export async function init(root) {
                     label: item => {
                         if (item.dataset.type === 'line') return fill(strings.previousValue, { count: numberFormat.format(item.raw) });
                         const before = previous[item.dataIndex]?.value;
-                        if (!before) return numberFormat.format(item.raw);
+                        if (!state.compare || !before) return numberFormat.format(item.raw);
                         const change = (item.raw - before) / before;
                         return `${numberFormat.format(item.raw)}  (${fill(strings.change, { change: `${change >= 0 ? '+' : ''}${percentFormat.format(change)}` })})`;
                     },
@@ -278,7 +281,10 @@ export async function init(root) {
 
     // The initiative and guardrail lines are daily snapshots, so they follow the range but not the grouping.
     function drawDailyLines() {
-        const days = bucketize(series('initiative_open_gaps'), 1).slice(-state.days);
+        // Only the current initiative's days, so a new list doesn't carry on from the old one's line.
+        const currentInitiative = data.initiative?.findLast(slug => slug !== null);
+        const openGaps = series('initiative_open_gaps').map((v, i) => (data.initiative?.[i] === currentInitiative ? v : null));
+        const days = bucketize(openGaps, 1).slice(-state.days);
         draw('initiative', {
             type: 'line',
             data: {

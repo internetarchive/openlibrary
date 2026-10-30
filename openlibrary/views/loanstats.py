@@ -12,7 +12,7 @@ from .. import app
 from ..contribute import initiatives, tasks
 from ..contribute.field_guides import get_field_guides
 from ..core import cache
-from ..core.admin import get_count_docs, get_rolling_counts
+from ..core.admin import get_count_docs, rolling_counts
 from ..core.booknotes import Booknotes
 from ..core.bookshelves import Bookshelves
 from ..core.follows import PubSub
@@ -259,6 +259,11 @@ def format_change(latest: int | None, earlier: int | None) -> dict | None:
     return {"direction": direction, "text": f"{abs(change):.1f}%"}
 
 
+def latest(counts: dict, key: str) -> int | None:
+    "A rolling count's latest value, None if the stats script hasn't written it."
+    return (counts.get(key) or {}).get("latest")
+
+
 def build_tasks_stats_cards(counts: dict) -> list[dict]:
     """One card per metric the main chart can show, each on the trailing 28 days. `metric` is the chart's name for it, and
     `note` says what one of its bars counts."""
@@ -282,8 +287,8 @@ def build_tasks_stats_cards(counts: dict) -> list[dict]:
     }
     result = []
     for metric, (key, label, note) in cards.items():
-        latest, earlier = (counts.get(key) or {}).get("latest"), (counts.get(key) or {}).get("earlier")
-        result.append({"metric": metric, "label": label, "note": note, "value": format_count(latest), "change": format_change(latest, earlier)})
+        value, earlier = latest(counts, key), (counts.get(key) or {}).get("earlier")
+        result.append({"metric": metric, "label": label, "note": note, "value": format_count(value), "change": format_change(value, earlier)})
     return result
 
 
@@ -293,9 +298,9 @@ GUARDRAIL_MIN_SAMPLE = 20
 
 def build_undone_rate(counts: dict, undone_key: str, total_key: str) -> dict:
     "An undone count over the trailing 28 days, its total and the share: None without `GUARDRAIL_MIN_SAMPLE` behind it."
-    undone, total = (counts.get(undone_key) or {}).get("latest"), (counts.get(total_key) or {}).get("latest")
-    enough = undone is not None and total is not None and total >= GUARDRAIL_MIN_SAMPLE
-    return {"undone": format_count(undone), "total": format_count(total), "share": f"{undone / total:.1%}" if enough else None}
+    undone, total = latest(counts, undone_key), latest(counts, total_key)
+    share = f"{undone / total:.1%}" if undone is not None and total is not None and total >= GUARDRAIL_MIN_SAMPLE else None
+    return {"undone": format_count(undone), "total": format_count(total), "share": share}
 
 
 def build_guardrail(counts: dict) -> dict:
@@ -310,17 +315,13 @@ def build_guardrail(counts: dict) -> dict:
 
 def build_initiative(counts: dict) -> dict:
     "The active initiative's latest snapshot. Each key is `None` until the stats script has taken one."
-
-    def latest(key: str) -> int | None:
-        return (counts.get(key) or {}).get("latest")
-
-    open_gaps, editions = latest("initiative_open_gaps"), latest("initiative_editions")
+    open_gaps, editions = latest(counts, "initiative_open_gaps"), latest(counts, "initiative_editions")
     slots = (editions or 0) * len(tasks.POINTS)
     return {
         "title": _("Most-read %(count)s", count=commify(initiatives.ACTIVE.size)),
         "open": format_count(open_gaps),
-        "done": format_count(latest("initiative_done_editions")),
-        "not_found": format_count(latest("initiative_not_found")),
+        "done": format_count(latest(counts, "initiative_done_editions")),
+        "not_found": format_count(latest(counts, "initiative_not_found")),
         "editions": format_count(editions),
         # Rounded down, like initiatives.progress, so it only reads 100% when nothing is left.
         "percent": f"{(slots - open_gaps) * 100 // slots}%" if open_gaps is not None and slots else "—",
@@ -379,12 +380,15 @@ def build_tasks_stats_page() -> dict:
         "initiative_not_found",
         "initiative_editions",
     ]
-    counts = get_rolling_counts(keys, 1)
+    # 29 days: today, and the day 28 before it to compare with. The field breakdown takes the last 28.
+    docs = get_count_docs(29)
+    counts = rolling_counts(docs, keys)
+    since = (dt.date.today() - dt.timedelta(days=27)).strftime("counts-%Y-%m-%d")
     return {
         "cards": build_tasks_stats_cards(counts),
         "guardrail": build_guardrail(counts),
         "initiative": build_initiative(counts),
-        "saves_by_field": build_saves_by_field(get_count_docs(28)),
+        "saves_by_field": build_saves_by_field([d for d in docs if d["_key"] >= since]),
         "i18n": build_tasks_stats_i18n(),
     }
 

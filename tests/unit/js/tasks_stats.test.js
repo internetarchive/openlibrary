@@ -5,12 +5,9 @@ describe('bucketize', () => {
         expect(bucketize([1, null, 3], 1).map(b => b.value)).toEqual([1, null, 3]);
     });
 
-    test('periods count back from today, so only the oldest can be short', () => {
+    test('periods count back from today, dropping a short one at the start', () => {
         const buckets = bucketize([1, 1, 1, 1, 1, 1, 1, 1, 1], 7);
-        expect(buckets.map(b => [b.start, b.end, b.value])).toEqual([
-            [0, 1, 2],
-            [2, 8, 7]
-        ]);
+        expect(buckets.map(b => [b.start, b.end, b.value])).toEqual([[2, 8, 7]]);
     });
 
     test('a period with no counts is null, not zero', () => {
