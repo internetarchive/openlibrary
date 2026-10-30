@@ -187,7 +187,7 @@ def read_count_docs(site, ndays: int) -> list[dict]:
 
 
 @cache.memoize(engine="memcache", key="admin._get_count_docs", expires=5 * 60)
-def _get_count_docs(ndays):
+def get_count_docs(ndays: int) -> list[dict]:
     """Returns the count docs from admin stats database.
 
     This function is memoized to avoid accessing the db for every request.
@@ -199,7 +199,7 @@ def get_stats(ndays=30, use_mock_data=False):
     """Returns the stats for the past `ndays`"""
     if use_mock_data:
         return mock_get_stats(ndays)
-    docs = _get_count_docs(ndays)
+    docs = get_count_docs(ndays)
     return {
         "human_edits": Stats(docs, "human_edits", "human_edits"),
         "bot_edits": Stats(docs, "bot_edits", "bot_edits"),
@@ -218,21 +218,27 @@ def get_stats(ndays=30, use_mock_data=False):
     }
 
 
-def get_rolling_counts(keys: list[str], ndays: int, lookback: int = 28) -> dict[str, dict | None]:
-    """Rolling counts from the daily docs, by key: the latest value, the value `lookback` days before it, and a bar chart
-    of the last `ndays`. None for a key the stats script hasn't written yet."""
-    all_docs = _get_count_docs(ndays + lookback)
+def rolling_counts(all_docs: list[dict], keys: list[str], lookback: int = 28) -> dict[str, dict | None]:
+    """Rolling counts from the daily docs, by key: the latest value and the value `lookback` days before it. None for a
+    key the stats script hasn't written yet."""
     counts: dict[str, dict | None] = {}
     for key in keys:
         if not (docs := [d for d in all_docs if key in d]):
             counts[key] = None
             continue
         before = (datetime.strptime(docs[-1]["_key"], "counts-%Y-%m-%d") - timedelta(days=lookback)).strftime("counts-%Y-%m-%d")
-        counts[key] = {
-            "latest": docs[-1][key],
-            "earlier": next((d[key] for d in docs if d["_key"] == before), None),
-            "chart": Stats(docs, key, key).get_bar_chart(min(ndays, len(docs)), width=250, height=35),
-        }
+        counts[key] = {"latest": docs[-1][key], "earlier": next((d[key] for d in docs if d["_key"] == before), None)}
+    return counts
+
+
+def get_rolling_counts(keys: list[str], ndays: int, lookback: int = 28) -> dict[str, dict | None]:
+    "`rolling_counts` over the cached docs, each with a bar chart of the last `ndays`."
+    all_docs = get_count_docs(ndays + lookback)
+    counts = rolling_counts(all_docs, keys, lookback)
+    for key, count in counts.items():
+        if count:
+            docs = [d for d in all_docs if key in d]
+            count["chart"] = Stats(docs, key, key).get_bar_chart(min(ndays, len(docs)), width=250, height=35)
     return counts
 
 

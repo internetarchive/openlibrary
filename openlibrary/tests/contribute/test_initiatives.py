@@ -67,8 +67,13 @@ def test_gaps_list_open_fields_and_set_aside_ones_nobody_could_find():
     )
     gaps = initiatives.build_gaps(make_initiative([]), site)
     assert gaps == [["/books/OL1M", 9, ["publishers"], ["lccn"]], ["/books/OL2M", 8, [], []]]
-    # 2 editions x 6 fields = 12 details, 1 still open: 11/12 filled, rounded down.
-    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 1, "percent": 91}
+    # 2 editions x 4 offered fields = 8 details, 1 still open: 7/8 filled, rounded down. The unfound LCCN isn't offered, so it doesn't count.
+    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
+
+
+def test_progress_counts_only_the_fields_tasks_offers():
+    gaps = [["/books/OL1M", 9, ["lccn", "oclc_numbers"], []], ["/books/OL2M", 8, ["covers"], ["oclc_numbers"]]]
+    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
 
 
 def test_every_task_field_has_a_not_found_threshold():

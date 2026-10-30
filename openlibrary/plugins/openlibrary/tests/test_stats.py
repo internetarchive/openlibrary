@@ -88,7 +88,7 @@ def test_rolling_counts_compare_with_four_weeks_earlier(monkeypatch):
     days = [start + dt.timedelta(days=i) for i in range(40)]
     # The stats script started writing `editors` on the fifth day.
     docs = [MockDoc(d.strftime("counts-%Y-%m-%d"), **({"editors": i} if i >= 4 else {})) for i, d in enumerate(days)]
-    monkeypatch.setattr(admin, "_get_count_docs", lambda ndays: docs)
+    monkeypatch.setattr(admin, "get_count_docs", lambda ndays: docs)
     monkeypatch.setattr(web.ctx, "lang", "en", raising=False)
 
     counts = admin.get_rolling_counts(["editors", "unwritten"], ndays=90)
