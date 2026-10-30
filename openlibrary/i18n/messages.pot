@@ -6259,10 +6259,6 @@ msgid "Counts are gathered every hour, so today's figures fill in as the day goe
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "All stats"
-msgstr ""
-
-#: stats/tasks.html.jinja
 msgid "Date range"
 msgstr ""
 
