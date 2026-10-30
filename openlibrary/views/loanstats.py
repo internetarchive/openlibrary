@@ -316,7 +316,7 @@ def build_guardrail(counts: dict) -> dict:
 def build_initiative(counts: dict) -> dict:
     "The active initiative's latest snapshot. Each key is `None` until the stats script has taken one."
     open_gaps, editions = latest(counts, "initiative_open_gaps"), latest(counts, "initiative_editions")
-    slots = (editions or 0) * len(tasks.POINTS)
+    slots = (editions or 0) * len(tasks.OFFERED)
     return {
         "title": _("Most-read %(count)s", count=commify(initiatives.ACTIVE.size)),
         "open": format_count(open_gaps),

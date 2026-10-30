@@ -42,11 +42,11 @@ def test_guardrail_hides_a_share_with_too_few_saves_behind_it():
     assert guardrail["other"]["share"] is None
 
 
-def test_initiative_percent_counts_every_field_on_every_book():
+def test_initiative_percent_counts_every_offered_field_on_every_book():
     counts = {key: {"latest": value} for key, value in {"initiative_open_gaps": 3, "initiative_editions": 2, "initiative_done_editions": 1}.items()}
-    # 2 books x 6 fields = 12 slots, 3 open: 75%
+    # 2 books x 4 offered fields = 8 slots, 3 open: 62%, rounded down
     initiative = loanstats.build_initiative(counts)
-    assert initiative["percent"] == "75%"
+    assert initiative["percent"] == "62%"
     assert initiative["done"] == "1"
     assert initiative["not_found"] == "—"
     assert loanstats.build_initiative({})["percent"] == "—"
