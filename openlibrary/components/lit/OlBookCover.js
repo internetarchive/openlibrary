@@ -27,7 +27,8 @@ export const DEFAULT_LABELS = {
  *
  * @element ol-book-cover
  *
- * @prop {String} src - Cover image URL; empty draws the generated blank cover
+ * @prop {String} src - Cover image URL; empty draws the generated blank cover, as does a 1×1
+ *     image (covers.openlibrary.org's answer for a missing cover)
  * @prop {String} bookTitle - The book's title. Named `book-title` because a
  *     `title` attribute would draw a native browser tooltip over the whole host
  * @prop {String} authors - Author names, already joined for display
@@ -58,7 +59,8 @@ export class OlBookCover extends LitElement {
         deferred: { type: Boolean, reflect: true },
         loading: { type: Boolean, reflect: true },
         labels: { type: Object },
-        _ratio: { state: true }
+        _ratio: { state: true },
+        _missing: { state: true }
     };
 
     static styles = css`
@@ -324,6 +326,7 @@ export class OlBookCover extends LitElement {
         this.loading = false;
         this.labels = {};
         this._ratio = 0;
+        this._missing = false;
         // The back button can restore this page from the bfcache mid-load.
         this._onPageShow = () => (this.loading = false);
     }
@@ -342,13 +345,19 @@ export class OlBookCover extends LitElement {
         return translate(this.labels, DEFAULT_LABELS, key, vars);
     }
 
+    /** The cover URL, or empty once it turns out to be the missing-cover placeholder. */
+    get _src() {
+        return this._missing ? '' : this.src;
+    }
+
     get _alt() {
         return this.authors ? `${this.bookTitle} ${this.t('by', { name: this.authors })}` : this.bookTitle;
     }
 
     render() {
-        const hasArt = this.src && !this.deferred;
-        const frame = `frame ${hasArt || !this.src ? 'frame--art' : ''}`;
+        const src = this._src;
+        const hasArt = src && !this.deferred;
+        const frame = `frame ${hasArt || !src ? 'frame--art' : ''}`;
         const art = this.href
             ? html`<a class="${frame} link" href=${this.href} @click=${this._onClick} @focus=${this._onFocus} @blur=${this._onBlur}>${this._renderArt()}</a>`
             : html`<span class=${frame}>${this._renderArt()}</span>`;
@@ -364,9 +373,16 @@ export class OlBookCover extends LitElement {
         `;
     }
 
+    willUpdate(changed) {
+        if (changed.has('src')) {
+            this._ratio = 0;
+            this._missing = false;
+        }
+    }
+
     /** A cached image can be complete before its load event is wired up. */
     updated(changed) {
-        if (changed.has('src')) this._ratio = 0;
+        if (!changed.has('src') && !changed.has('deferred')) return;
         const img = this.renderRoot.querySelector('.img');
         if (img?.complete) this._onLoad({ target: img });
     }
@@ -374,6 +390,10 @@ export class OlBookCover extends LitElement {
     _onLoad(e) {
         const { naturalWidth, naturalHeight } = e.target;
         if (!naturalWidth || !naturalHeight) return;
+        if (naturalWidth <= 1 && naturalHeight <= 1) {
+            this._missing = true;
+            return;
+        }
         this._ratio = Math.round((naturalWidth / naturalHeight) * 1000) / 1000;
     }
 
@@ -395,11 +415,12 @@ export class OlBookCover extends LitElement {
     }
 
     _renderArt() {
-        if (this.src && this.deferred) {
+        const src = this._src;
+        if (src && this.deferred) {
             return html`<span class="pending" role="img" aria-label=${this._alt}></span>`;
         }
-        if (this.src) {
-            return html`<img class="img" src=${this.src} alt=${this._alt} loading="lazy" @load=${this._onLoad} />`;
+        if (src) {
+            return html`<img class="img" src=${src} alt=${this._alt} loading="lazy" @load=${this._onLoad} />`;
         }
         return html`
             <span class="blank" role="img" aria-label=${this._alt}>
