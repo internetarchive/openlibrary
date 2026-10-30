@@ -146,3 +146,37 @@ class TestDatabaseDataProvider:
         await dp.get_document("/works/OL1W")
 
         assert dp.cache["/tags/OL401T"]["name"] == "Violence"
+
+    @pytest.mark.asyncio
+    async def test_preloads_content_format_tags(self):
+        mock_site = MagicMock()
+        dp = DatabaseDataProvider(
+            site=mock_site,
+            db=MagicMock(),
+        )
+        docs_by_key = {
+            "/works/OL1W": Thing(
+                mock_site,
+                "/works/OL1W",
+                {
+                    "key": "/works/OL1W",
+                    "type": {"key": "/type/work"},
+                    "content_formats": [{"key": "/tags/OL501T"}],
+                },
+            ),
+            "/tags/OL501T": Thing(
+                mock_site,
+                "/tags/OL501T",
+                {
+                    "key": "/tags/OL501T",
+                    "type": {"key": "/type/tag"},
+                    "name": "Graphic Novel",
+                    "tag_type": "content_formats",
+                },
+            ),
+        }
+        mock_site.get_many.side_effect = lambda keys: [docs_by_key[k] for k in keys]
+
+        await dp.get_document("/works/OL1W")
+
+        assert dp.cache["/tags/OL501T"]["name"] == "Graphic Novel"

@@ -204,6 +204,8 @@
     <field name="audience_name" type="text_en_splitting" multiValued="true"/>
     <field name="content_warning_key" type="string" multiValued="true"/>
     <field name="content_warning_name" type="text_en_splitting" multiValued="true"/>
+    <field name="content_format_key" type="string" multiValued="true"/>
+    <field name="content_format_name" type="text_en_splitting" multiValued="true"/>
     <field name="series_key" type="string" multiValued="true"/>
     <field name="series_name" type="text_en_splitting" multiValued="true"/>
     <field name="series_position" type="string" multiValued="true"/>

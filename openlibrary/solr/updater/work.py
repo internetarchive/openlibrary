@@ -712,6 +712,14 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         return [t.get("name", "") for t in self._tags_of_type("content_warnings")]
 
     @cached_property
+    def content_format_key(self) -> list[str]:
+        return [t["key"].split("/")[-1] for t in self._tags_of_type("content_formats")]
+
+    @cached_property
+    def content_format_name(self) -> list[str]:
+        return [t.get("name", "") for t in self._tags_of_type("content_formats")]
+
+    @cached_property
     def author_alternative_name(self) -> set[str]:
         return {alt_name for a in self._authors for alt_name in a.get("alternate_names", [])}
 

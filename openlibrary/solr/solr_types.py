@@ -73,6 +73,8 @@ class SolrDocument(TypedDict):
     audience_name: Optional[list[str]]
     content_warning_key: Optional[list[str]]
     content_warning_name: Optional[list[str]]
+    content_format_key: Optional[list[str]]
+    content_format_name: Optional[list[str]]
     series_key: Optional[list[str]]
     series_name: Optional[list[str]]
     series_position: Optional[list[str]]

@@ -35,7 +35,13 @@ logger = logging.getLogger("openlibrary.solr.data_provider")
 
 IA_METADATA_FIELDS = ("identifier", "boxid", "collection", "access-restricted-item")
 OCAID_PATTERN = re.compile(r"^[^\s&#?/]+$")
-SUPPORTED_WORK_TAG_FIELDS = ("genres", "subgenres", "audiences", "content_warnings")
+SUPPORTED_WORK_TAG_FIELDS = (
+    "genres",
+    "subgenres",
+    "audiences",
+    "content_warnings",
+    "content_formats",
+)
 
 
 def normalize_tag(tag: str | ThingReferenceDict) -> ThingReferenceDict:
