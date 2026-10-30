@@ -289,18 +289,14 @@ class TestSortListSeeds:
         apple = SimpleNamespace(key="/books/OL2M", type="edition", title="apple")
         duplicate = SimpleNamespace(key="/works/OL3W", type="work", title="APPLE")
 
-        assert legacy_lists.sort_list_seeds([banana, apple, duplicate], "title") == [
-            apple, duplicate, banana
-        ]
+        assert legacy_lists.sort_list_seeds([banana, apple, duplicate], "title") == [apple, duplicate, banana]
 
     def test_title_keeps_non_books_after_books_in_list_order(self):
         author = SimpleNamespace(key="/authors/OL1A", type="author", title="Author")
         book = SimpleNamespace(key="/works/OL2W", type="work", title="Book")
         subject = SimpleNamespace(key="subject:books", type="subject", title="Subject")
 
-        assert legacy_lists.sort_list_seeds([author, book, subject], "title") == [
-            book, author, subject
-        ]
+        assert legacy_lists.sort_list_seeds([author, book, subject], "title") == [book, author, subject]
 
     @pytest.mark.parametrize("sort", [None, "index", "last_modified", "bogus"])
     def test_other_sorts_preserve_list_order(self, sort):
@@ -496,15 +492,8 @@ class TestListViewGet:
     )
     def test_sort_is_applied_before_pagination(self, monkeypatch, sort, expected_keys):
         monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
-        monkeypatch.setattr(
-            web, "input", lambda **kw: web.storage(v=None, page="2", sort=sort)
-        )
-        all_seeds = [
-            SimpleNamespace(
-                key=f"/works/OL{i}W", type="work", title=f"Book {i:02d}"
-            )
-            for i in range(70)
-        ]
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, page="2", sort=sort))
+        all_seeds = [SimpleNamespace(key=f"/works/OL{i}W", type="work", title=f"Book {i:02d}") for i in range(70)]
         lst = SimpleNamespace(
             type=SimpleNamespace(key="/type/list"),
             get_seeds=Mock(return_value=all_seeds),
