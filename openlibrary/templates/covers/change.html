@@ -5,44 +5,132 @@ $if not ctx.user:
     $return
 
 
-$if doc.type.key == '/type/author':
-    $ add_url = doc.url('/add-photo')
-    $ manage_url = doc.url('/manage-photos')
-    $ title = _('Author Photos')
-    $if doc.get_photo():
+$ is_author = doc.type.key == '/type/author'
+$ is_work = doc.type.key == '/type/work'
+$# An image of the record's own, or an edition's scan shown in its place (get_cover's fallback): either reads as its cover.
+$ has_own_image = any(i and i > 0 for i in (doc.get('photos' if is_author else 'covers') or []))
+$ shows_cover = has_own_image or (doc.type.key == '/type/edition' and doc.get('ocaid'))
+
+$if is_author:
+    $if has_own_image:
+        $ title = _('Change the photo')
         $ change = _('Manage Author Photos')
         $ size = "smaller"
     $else:
+        $ title = _('Add a photo')
         $ change = _('Add Author Photo')
         $ size = "smallest"
 $else:
-    $ add_url = doc.url('/add-cover')
-    $ manage_url = doc.url('/manage-covers')
-    $ title = _('Book Covers')
-
-    $if doc.get_cover():
+    $if shows_cover:
+        $ title = _('Change the cover')
         $ change = _('Manage Covers')
         $ size = "smaller"
     $else:
+        $ title = _('Add a cover')
         $ change = _('Add Cover Image')
         $ size = "smallest"
 
+$code:
+    # Keys and English strings must match DEFAULT_LABELS in OlCoverManager.js.
+    if is_author:
+        noun_labels = {
+            "titleAdd": _("Add a photo"),
+            "titleChange": _("Change the photo"),
+            "currentHeading": _("Current photo"),
+            "newHeading": _("New photo"),
+            "noCoverTitle": _("This author has no photo"),
+            "noCoverIntro": _("Add one and it shows on the author page and in search."),
+            "chooseHeading": _("Choose the new photo"),
+            "chooseHeadingAdd": _("Choose a photo"),
+            "replaces": _("Replaces the current photo"),
+            "pickLabelCurrent": _("%(name)s (current photo)"),
+            "titleUpload": _("Uploaded photo"),
+            "guidelines": _("Image guidelines"),
+            "saved": _("Photo updated"),
+        }
+    else:
+        noun_labels = {
+            "titleAdd": _("Add a cover"),
+            "titleChange": _("Change the cover"),
+            "currentHeading": _("Current cover"),
+            "newHeading": _("New cover"),
+            "noCoverTitle": _("This work has no cover") if is_work else _("This edition has no cover"),
+            "noCoverIntro": _("Add one and it shows everywhere the book appears."),
+            "chooseHeading": _("Choose the new cover"),
+            "chooseHeadingAdd": _("Choose a cover"),
+            "replaces": _("Replaces the current cover"),
+            "pickLabelCurrent": _("%(name)s (current cover)"),
+            "titleUpload": _("Uploaded cover"),
+            "guidelines": _("Cover guidelines"),
+            "saved": _("Cover updated"),
+        }
+    labels = {
+        "reasonHeading": _("Why are you replacing it?"),
+        "reasonWrong": _("Wrong cover"),
+        "reasonWrongHint": _("The image belongs to another edition or another book."),
+        "reasonBetter": _("Better image"),
+        "reasonBetterHint": _("A sharper, cleaner, or more complete version of the same cover."),
+        "reasonNotFront": _("Not the front cover"),
+        "reasonNotFrontHint": _("A back cover, spine, or a “no image” placeholder."),
+        "reasonOther": _("Something else"),
+        "reasonNoteLabel": _("What’s wrong with the current cover?"),
+        "reasonPrompt": _("Choose why you’re replacing it"),
+        "images": _("Images"),
+        "uploadTitle": _("Upload a new image"),
+        "addHint": _("Drop a file here, paste, or browse"),
+        "addHintTouch": _("Take a photo or choose a file"),
+        "fileTypes": _("JPG, GIF, PNG or WebP, up to 10 MB."),
+        "paste": _("Paste image"),
+        "errorClipboard": _("No image found on your clipboard."),
+        "dropHere": _("Drop the image to upload it"),
+        "current": _("Current"),
+        "sourceArchive": _("Scanned by Internet Archive"),
+        "sourceWikidata": _("From Wikimedia Commons"),
+        "sourceAmazon": _("From Amazon"),
+        "titleCover": _("Cover"),
+        "titleTitlePage": _("Title page"),
+        "titlePhoto": _("Photo"),
+        "titleYou": _("Your upload"),
+        "detailJustNow": _("Just now"),
+        "detailSize": _("%(width)s × %(height)s px"),
+        "detailId": _("Image %(id)s"),
+        "remove": _("Remove"),
+        "removeLabel": _("Remove %(name)s"),
+        "undo": _("Undo"),
+        "undoLabel": _("Keep %(name)s"),
+        "uploading": _("Uploading…"),
+        "statusAdd": {
+            "one": ungettext("%(count)s new image will be added.", "%(count)s new images will be added.", 1),
+            "two": ungettext("%(count)s new image will be added.", "%(count)s new images will be added.", 2),
+            "few": ungettext("%(count)s new image will be added.", "%(count)s new images will be added.", 3),
+            "many": ungettext("%(count)s new image will be added.", "%(count)s new images will be added.", 11),
+            "other": ungettext("%(count)s new image will be added.", "%(count)s new images will be added.", 100),
+        },
+        "statusRemove": {
+            "one": ungettext("%(count)s image will be removed.", "%(count)s images will be removed.", 1),
+            "two": ungettext("%(count)s image will be removed.", "%(count)s images will be removed.", 2),
+            "few": ungettext("%(count)s image will be removed.", "%(count)s images will be removed.", 3),
+            "many": ungettext("%(count)s image will be removed.", "%(count)s images will be removed.", 11),
+            "other": ungettext("%(count)s image will be removed.", "%(count)s images will be removed.", 100),
+        },
+        "cancel": _("Cancel"),
+        "save": _("Save"),
+        "loading": _("Loading images…"),
+        "errorLoad": _("The images couldn’t be loaded."),
+        "retry": _("Try again"),
+        "errorType": _("Choose a JPG, GIF, PNG or WebP image."),
+        "errorSize": _("Images must be 10 MB or smaller."),
+        "errorUpload": _("That image couldn’t be uploaded."),
+        "errorSave": _("Your changes couldn’t be saved. Try again."),
+    }
+    labels.update(noun_labels)
+
 <!-- The below style is inlined to avoid repaints -->
 <div class="$size manageCoversContainer" style="position: absolute; bottom: 15px">
-  <ol-button size="small" elevation="floating" aria-controls="addImage-$imagesId" class="manageCovers coverPop dialog--open" href="$(manage_url if doc.get_cover() else add_url)" data-config="$json_encode({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector, 'add_url': add_url, 'manage_url': manage_url})">$change</ol-button>
+  <ol-button size="small" elevation="floating" aria-controls="addImage-$imagesId" class="manageCovers dialog--open" data-config="$json_encode({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector})">$change</ol-button>
 </div>
 
-<ol-dialog id="addImage-$imagesId" label="$title" width="large">
-    <ol-tabs>
-        <a slot="tab" href="#imagesAdd-$imagesId">$_('Add')</a>
-        <a slot="tab" href="#imagesManage-$imagesId">$_('Manage')</a>
-
-        <div class="imagesAdd" id="imagesAdd-$imagesId">
-            $# add image iframe is added here when the popup is loaded
-        </div>
-
-        <div class="imagesManage" id="imagesManage-$imagesId">
-            $# manage images iframe is added here when the popup is loaded
-        </div>
-    </ol-tabs>
+$# Top-anchored so the dialog grows downward as a replacement is picked, instead of re-centering under the pointer.
+<ol-dialog id="addImage-$imagesId" label="$title" width="large" placement="top" fullscreen-on-mobile>
+    <ol-cover-manager doc-key="$doc.key" guidelines-url="/help/faq/editing#picture" labels="$json_encode(labels)"></ol-cover-manager>
 </ol-dialog>

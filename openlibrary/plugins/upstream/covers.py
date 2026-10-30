@@ -1,6 +1,8 @@
 """Handle book cover/author photo upload."""
 
 import os
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from logging import getLogger
 
 import requests
@@ -9,7 +11,6 @@ from PIL import Image as PILImage
 from PIL import UnidentifiedImageError
 
 from infogami.utils import delegate
-from infogami.utils.view import safeint
 from openlibrary import accounts
 from openlibrary.plugins.upstream.models import Image
 from openlibrary.plugins.upstream.utils import (
@@ -50,13 +51,246 @@ class image_validator:
             raise ValueError("Not a valid image file")
 
 
-class add_cover(delegate.page):
-    path = r"(/books/OL\d+M)/add-cover"
-    cover_category = "b"
+def upload_to_coverstore(category: str, olid: str, *, data=None, source_url: str = "", author_key: str | None = None, ip: str | None = None) -> web.storage:
+    """Store an image in the coverstore, from file data or a URL it downloads; returns its JSON reply."""
+    params = {"author": author_key, "source_url": source_url, "olid": olid, "ip": ip}
+    upload_url = f"{get_coverstore_url()}/{category}/upload2"
+    if upload_url.startswith("//"):
+        upload_url = "http:" + upload_url
+    try:
+        response = requests.post(upload_url, data=params, files={"data": data}, timeout=30)
+        return web.storage(response.json())
+    # Coverstore down, slow, or answering with an HTML error page.
+    except (requests.RequestException, ValueError) as e:
+        logger.exception("Covers upload failed")
+        return web.storage({"error": str(e), "unavailable": True})
 
-    def GET(self, key):
-        book = web.ctx.site.get(key)
-        return render_template("covers/add", book)
+
+# The cover manager dialog: every image attached to a book or author, plus
+# suggestions (Internet Archive scans, Amazon, Wikidata) that stay listed
+# whether or not they've been used.
+
+# Amazon's product id for a book is its ISBN-10; it answers with a 1x1 GIF when it has no cover.
+AMAZON_COVER = "https://m.media-amazon.com/images/P/{isbn10}.01.L.jpg"
+
+# Why a member replaced a cover, stored on the edit so the same problem can be found on other books.
+REPLACE_REASONS = ("wrong", "better", "not_front", "other")
+
+
+@dataclass(frozen=True)
+class Suggestion:
+    """An image that can become the cover without an upload."""
+
+    name: str
+    kind: str
+    source_url: str
+    thumb: str
+    isbn: str | None = None
+
+
+class RecordImages:
+    """How one record type keeps its images: coverstore category, suggestions, and the edit a save writes."""
+
+    category: str
+    # The suggestion a record with no image of its own shows instead.
+    fallback: str | None = None
+
+    def images(self, doc) -> list[Image]:
+        raise NotImplementedError
+
+    def suggestions(self, doc) -> list[Suggestion]:
+        return []
+
+    def save(self, doc, ids: list[int], *, new_id: int | None = None, url: str | None = None, reason: dict | None = None) -> None:
+        """Store `ids` as the record's images; `new_id` is an image this edit added, `url` where it was copied from."""
+        raise NotImplementedError
+
+
+class BookImages(RecordImages):
+    def images(self, doc) -> list[Image]:
+        return doc.get_covers()
+
+    def save(self, doc, ids, *, new_id=None, url=None, reason=None):
+        doc.covers = ids
+        if new_id:
+            # Recent changes renders an add-cover comment as the cover's thumbnail.
+            doc._save(f"{get_coverstore_public_url()}/{self.category}/id/{new_id}-S.jpg", action="add-cover", data={"url": url} | (reason or {}))
+        else:
+            doc._save("Update covers", action="update-book-covers", data=reason)
+
+
+class EditionImages(BookImages):
+    category = "b"
+    fallback = "archive-cover"
+
+    def suggestions(self, doc):
+        found = []
+        if isbn10 := doc.get_isbn10():
+            url = AMAZON_COVER.format(isbn10=isbn10)
+            found.append(Suggestion("amazon", "amazon", url, url, isbn=isbn10))
+        if doc.ocaid:
+            base = f"https://archive.org/download/{doc.ocaid}/page"
+            found += [Suggestion(f"archive-{page}", f"archive_{page}", f"{base}/{page}", f"{base}/{page}_w360.jpg") for page in ("cover", "title")]
+        return found
+
+
+class WorkImages(BookImages):
+    category = "w"
+
+    def images(self, doc):
+        return doc.get_covers(use_solr=False)
+
+
+class AuthorImages(RecordImages):
+    category = "a"
+
+    def images(self, doc):
+        return doc.get_photos()
+
+    def suggestions(self, doc):
+        wikidata = doc.wikidata()
+        urls = wikidata.get_image_urls() if wikidata else []
+        return [Suggestion("wikidata", "wikidata", urls[0], f"{urls[0]}?width=360")] if urls else []
+
+    def save(self, doc, ids, *, new_id=None, url=None, reason=None):
+        doc.photos = ids
+        if new_id:
+            doc._save("Added new photo", action="add-photo", data={"url": url} | (reason or {}))
+        else:
+            doc._save("Update photos", action="update-author-photos", data=reason)
+
+
+IMAGE_KINDS: dict[str, RecordImages] = {"/type/edition": EditionImages(), "/type/work": WorkImages(), "/type/author": AuthorImages()}
+
+
+def _fetch_infos(images: list[Image]) -> dict[int, web.storage]:
+    """Coverstore metadata for each image, fetched in parallel; images it can't describe are left out."""
+    if not images:
+        return {}
+    with ThreadPoolExecutor(max_workers=min(len(images), 8)) as pool:
+        infos = pool.map(lambda img: img.info(fetch_author=False), images)
+    return {img.id: info for img, info in zip(images, infos) if info}
+
+
+def _imported(images: list[Image], infos: dict[int, web.storage]) -> dict[str, Image]:
+    """Attached images by the URL they were copied from, so a used suggestion shows as its copy."""
+    return {infos[img.id].source_url: img for img in images if img.id in infos and infos[img.id].source_url}
+
+
+def image_item(img: Image, *, info: web.storage | None = None, added_by=None, kind: str = "upload") -> dict:
+    """One attached (or just uploaded) image as the dialog lists it; `added_by` is a user or author record."""
+    return {
+        "id": f"img:{img.id}",
+        "kind": kind,
+        "image_id": img.id,
+        "thumb": img.url("M"),
+        "preview": img.url("L"),
+        "added_by": {"key": added_by.key, "name": added_by.displayname or added_by.key.split("/")[-1]} if added_by else None,
+        "created": info.created.isoformat() if info else None,
+        "width": info.get("width") if info else None,
+        "height": info.get("height") if info else None,
+    }
+
+
+def cover_manager_state(doc) -> dict:
+    kind = IMAGE_KINDS[doc.type.key]
+    images = kind.images(doc)
+    infos = _fetch_infos(images)
+    author_keys = {info.author for info in infos.values() if info.author and info.author != "None"}
+    authors = {a.key: a for a in doc._site.get_many(list(author_keys))} if author_keys else {}
+
+    def item(img: Image, **extra) -> dict:
+        info = infos.get(img.id)
+        return image_item(img, info=info, added_by=info and authors.get(info.author), **extra)
+
+    imported = _imported(images, infos)
+    items, merged = [], set()
+    for s in kind.suggestions(doc):
+        extra = {"isbn": s.isbn} if s.isbn else {}
+        if img := imported.get(s.source_url):
+            merged.add(img.id)
+            items.append(item(img, kind=s.kind) | extra)
+        else:
+            items.append({"id": f"suggestion:{s.name}", "kind": s.kind, "suggestion": s.name, "thumb": s.thumb} | extra)
+    items += [item(img) for img in images if img.id not in merged]
+
+    current: str | None = None
+    if images:
+        current = f"img:{images[0].id}"
+    elif kind.fallback:
+        current = f"suggestion:{kind.fallback}"
+    if current and not any(item["id"] == current for item in items):
+        current = None
+    return {"key": doc.key, "current": current, "items": items}
+
+
+def apply_cover_changes(
+    doc,
+    *,
+    image_id: int | None = None,
+    suggestion: str | None = None,
+    added: list[int],
+    removed: list[int],
+    user,
+    ip: str,
+    reason: str | None = None,
+    reason_note: str = "",
+) -> int:
+    """Make `image_id` (or a copy of `suggestion`) the cover, attach `added` uploads and detach `removed`; returns the cover id.
+
+    `reason` says why the old cover was replaced, and is kept on the edit only when the cover changes.
+
+    Raises ValueError for an image that isn't this record's to pick, and RuntimeError when the coverstore fails.
+    """
+    kind = IMAGE_KINDS[doc.type.key]
+    reason_data = _reason_data(reason, reason_note) if reason is not None else None
+    olid = doc.key.split("/")[-1]
+    images = kind.images(doc)
+    current_ids = [img.id for img in images]
+
+    added = [i for i in dict.fromkeys(added) if i not in current_ids]
+    for i in added:
+        info = Image(doc._site, kind.category, i).info(fetch_author=False)
+        if not info or info.get("olid") != olid:
+            raise ValueError(f"Image {i} was not uploaded for {doc.key}")
+
+    imported_from = None
+    if suggestion is not None:
+        if not (s := next((s for s in kind.suggestions(doc) if s.name == suggestion), None)):
+            raise ValueError(f"Unknown suggestion {suggestion}")
+        if img := _imported(images, _fetch_infos(images)).get(s.source_url):
+            selected_id = img.id
+        else:
+            result = upload_to_coverstore(kind.category, olid, source_url=s.source_url, author_key=user and user.key, ip=ip)
+            if not result.get("id"):
+                raise RuntimeError(result.get("message") or result.get("error") or "Upload failed")
+            selected_id = int(result.id)
+            imported_from = s.source_url
+    elif image_id in current_ids or image_id in added:
+        selected_id = image_id
+    else:
+        raise ValueError(f"Image {image_id} is not one of {doc.key}'s images")
+
+    removed_ids = set(removed) - {selected_id}
+    new_ids = [i for i in dict.fromkeys([selected_id, *current_ids, *added]) if i not in removed_ids]
+    if new_ids != current_ids:
+        new_id = selected_id if imported_from or selected_id in added else next((i for i in added if i not in removed_ids), None)
+        replaced = current_ids[:1] != new_ids[:1]
+        kind.save(doc, new_ids, new_id=new_id, url=imported_from, reason=reason_data if replaced else None)
+    return selected_id
+
+
+def _reason_data(reason: str, note: str) -> dict:
+    if reason not in REPLACE_REASONS:
+        raise ValueError(f"Unknown reason {reason}")
+    return {"reason": reason, "reason_note": note.strip()} if note.strip() else {"reason": reason}
+
+
+class add_cover(delegate.page):
+    """POST-only: the form that used it is gone, but openlibrary-client and BWBCoverBot still post here and look for "Saved!"."""
+
+    path = r"(/books/OL\d+M)/add-cover"
+    kind: RecordImages = IMAGE_KINDS["/type/edition"]
 
     def POST(self, key):
         book = web.ctx.site.get(key)
@@ -72,24 +306,24 @@ class add_cover(delegate.page):
         # remove references to field storage objects
         web.ctx.pop("_fieldstorage", None)
 
+        # requests sends every `files=` entry as a file part, so a plain `url` field arrives as bytes.
+        if isinstance(i.url, bytes):
+            i.url = i.url.decode("utf-8")
+
         data = self.upload(key, i)
 
-        if coverid := data.get("id"):
-            if isinstance(i.url, bytes):
-                i.url = i.url.decode("utf-8")
-            self.save(book, coverid, url=i.url)
-            cover = Image(web.ctx.site, "b", coverid)
-            image_info = cover.info()
-            return render_template("covers/saved", cover, image_info=image_info)
-        else:
-            return render_template("covers/add", book, {"url": i.url}, data)
+        if not (coverid := data.get("id")):
+            raise web.badrequest(data.get("message") or data.get("error") or "Upload failed")
+        self.save(book, coverid, url=i.url)
+        return render_template("covers/saved", Image(web.ctx.site, self.kind.category, coverid))
 
     def upload(self, key, i):
         """Uploads a cover to coverstore and returns the response."""
         olid = key.split("/")[-1]
 
-        if i.file is not None and hasattr(i.file, "file"):
-            file_data = i.file.file
+        # openlibrary-client's add_bookcover sends an empty file part alongside `url`.
+        if (file_data := getattr(i.file, "file", None)) and file_data.read(1):
+            file_data.seek(0)
             filename = i.file.filename
 
             validator = image_validator()
@@ -108,111 +342,17 @@ class add_cover(delegate.page):
             i.url = ""
 
         user = accounts.get_current_user()
-        params = {
-            "author": user and user.key,
-            "source_url": i.url,
-            "olid": olid,
-            "ip": web.ctx.ip,
-        }
+        return upload_to_coverstore(self.kind.category, olid, data=data, source_url=i.url, author_key=user and user.key, ip=web.ctx.ip)
 
-        upload_url = f"{get_coverstore_url()}/{self.cover_category}/upload2"
-
-        if upload_url.startswith("//"):
-            upload_url = "http:" + upload_url
-
-        try:
-            files = {"data": data}
-            response = requests.post(upload_url, data=params, files=files, timeout=30)
-            return web.storage(response.json())
-        # Coverstore down, slow, or answering with an HTML error page.
-        except (requests.RequestException, ValueError) as e:
-            logger.exception("Covers upload failed")
-            return web.storage({"error": str(e), "unavailable": True})
-
-    def save(self, book, coverid, url=None):
-        book.covers = [coverid] + [cover.id for cover in book.get_covers()]
-        book._save(
-            f"{get_coverstore_public_url()}/b/id/{coverid}-S.jpg",
-            action="add-cover",
-            data={"url": url},
-        )
+    def save(self, doc, coverid, url=None):
+        self.kind.save(doc, [coverid] + [image.id for image in self.kind.images(doc)], new_id=coverid, url=url)
 
 
 class add_work_cover(add_cover):
     path = r"(/works/OL\d+W)/add-cover"
-    cover_category = "w"
-
-    def upload(self, key, i):
-        if "coverid" in i and safeint(i.coverid):
-            return web.storage(id=int(i.coverid))
-        else:
-            return add_cover.upload(self, key, i)
+    kind = IMAGE_KINDS["/type/work"]
 
 
 class add_photo(add_cover):
     path = r"(/authors/OL\d+A)/add-photo"
-    cover_category = "a"
-
-    def GET(self, key):
-        author = web.ctx.site.get(key)
-        wikidata_images = author.wikidata().get_image_urls() if author and author.wikidata() else []
-        return render_template("covers/add", author, {"wikidata_images": wikidata_images})
-
-    def save(self, author, photoid, url=None):
-        author.photos = [photoid] + [photo.id for photo in author.get_photos()]
-        author._save("Added new photo", action="add-photo", data={"url": url})
-
-
-class manage_covers(delegate.page):
-    path = r"(/books/OL\d+M)/manage-covers"
-
-    def GET(self, key):
-        book = web.ctx.site.get(key)
-        if not book:
-            raise web.notfound()
-        return render_template("covers/manage", key, self.get_images(book))
-
-    def get_images(self, book):
-        return book.get_covers()
-
-    def get_image(self, book):
-        return book.get_cover()
-
-    def save_images(self, book, covers):
-        book.covers = covers
-        book._save("Update covers", action="update-book-covers")
-
-    def POST(self, key):
-        if not accounts.get_current_user():
-            raise web.unauthorized()
-        book = web.ctx.site.get(key)
-        if not book:
-            raise web.notfound()
-
-        images = web.input(image=[]).image
-        if "-" in images:
-            images = [int(id) for id in images[: images.index("-")]]
-            self.save_images(book, images)
-            cover = self.get_image(book)
-            return render_template("covers/saved", cover, image_info=None, showinfo=False)
-        else:
-            # ERROR
-            pass
-
-
-class manage_work_covers(manage_covers):
-    path = r"(/works/OL\d+W)/manage-covers"
-
-
-class manage_photos(manage_covers):
-    path = r"(/authors/OL\d+A)/manage-photos"
-
-    def get_images(self, author):
-        return author.get_photos()
-
-    def get_image(self, author):
-        return author.get_photo()
-
-    def save_images(self, author, photos):
-        author.photos = photos
-        author._save("Update photos", action="update-author-photos")
+    kind = IMAGE_KINDS["/type/author"]
