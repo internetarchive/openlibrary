@@ -248,6 +248,37 @@ class TestSearchEndpoint:
         assert "osp_count_fake" not in query_arg
         assert query_arg["q"] == "test"
 
+    @pytest.mark.parametrize("sort_option", ["old", "new", "title", "ebook_access"])
+    def test_editions_sort_is_forwarded(self, client, mock_work_search, sort_option):
+        """Documented editions.sort must reach work_search_async."""
+        response = search(client, q="test", **{"editions.sort": sort_option})
+
+        assert response.status_code == 200
+        mock_work_search.assert_called_once()
+        query_arg = mock_work_search.call_args[0][0]
+        assert query_arg["editions.sort"] == sort_option
+
+    def test_editions_sort_invalid_is_rejected(self, client, mock_work_search):
+        """An unknown editions.sort is a 422, same as sort on /search/editions.json."""
+        response = search(client, q="test", **{"editions.sort": "bogus"})
+
+        assert response.status_code == 422
+        mock_work_search.assert_not_called()
+
+    def test_editions_sort_absent_is_omitted(self, client, mock_work_search):
+        response = search(client, q="test")
+
+        assert response.status_code == 200
+        assert "editions.sort" not in mock_work_search.call_args[0][0]
+
+    def test_query_json_still_passes_editions_sort(self, client, mock_work_search):
+        """The JSON query parameter is still passed through whole."""
+        payload = {"q": "crime and punishment", "editions.sort": "old"}
+        response = search(client, query=json.dumps(payload))
+
+        assert response.status_code == 200
+        assert mock_work_search.call_args[0][0] == payload
+
     def test_multiple_author_keys(self, client, mock_work_search):
         """Test that multiple author_key parameters are parsed correctly.
         Supporting multiple keys from query params isn't the default so this is important to check.

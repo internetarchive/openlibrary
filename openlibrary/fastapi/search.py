@@ -129,6 +129,41 @@ class PublicQueryOptions(BaseModel):
         return v
 
 
+def create_sort_option_type(sorts_map: Mapping):
+    """
+    Generates a Pydantic type alias that validates against the provided
+    sorts_map and dynamically generates the OpenAPI Enum documentation.
+    """
+    # TODO: Use this for the work-search sort parameter too?
+    # I'm just not sure if it's a good idea to have the same sort options for Works and Editions
+
+    # The prefixes allowed dynamically
+    RANDOM_PREFIXES = ("random_", "random.hourly_", "random.daily_")
+
+    # The Validator
+    def validate_sort(v: str) -> str:
+        if not v or v in sorts_map or v.startswith(RANDOM_PREFIXES):
+            return v
+
+        valid_keys = ", ".join((*sorts_map.keys(), *RANDOM_PREFIXES))
+        raise ValueError(f"Invalid sort option: '{v}'. Valid options are: {valid_keys}")
+
+    # The Type Alias
+    return Annotated[
+        str,
+        BeforeValidator(validate_sort),
+        WithJsonSchema(
+            {
+                "type": "string",
+                "enum": list(sorts_map.keys()) + [""],  # Include empty string for default
+            }
+        ),
+    ]
+
+
+EditionSortOption = create_sort_option_type(EditionSearchScheme.sorts)
+
+
 class SearchRequestParams(PublicQueryOptions, Pagination):
     fields: Annotated[list[str], BeforeValidator(parse_comma_separated_list)] = Field(
         sorted(WorkSearchScheme.default_fetched_fields),
@@ -141,6 +176,12 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
     spellcheck_count: int | None = Field(
         default_spellcheck_count,
         description="The number of spellcheck suggestions.",
+    )
+
+    editions_sort: EditionSortOption | None = Field(  # type: ignore[valid-type]
+        None,
+        alias="editions.sort",
+        description="Sort the editions nested in each work. Same values as sort on /search/editions.json.",
     )
 
     @staticmethod
@@ -162,6 +203,10 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
             query_fields |= WorkSearchScheme.all_fields
             query_fields |= set(WorkSearchScheme.field_name_map.keys())
             q = self.model_dump(include=query_fields, exclude_none=True)
+            # Not a PublicQueryOptions or WorkSearchScheme field, so copy the dotted name explicitly.
+            # Skip when empty so Solr keeps its default edition ordering.
+            if self.editions_sort:
+                q["editions.sort"] = self.editions_sort
             return q
 
 
@@ -296,38 +341,6 @@ async def search_subjects_json(
     return raw_resp
 
 
-def create_sort_option_type(sorts_map: Mapping):
-    """
-    Generates a Pydantic type alias that validates against the provided
-    sorts_map and dynamically generates the OpenAPI Enum documentation.
-    """
-    # TODO: Use this for Work/Edition search above?
-    # I'm just not sure if it's a good idea to have the same sort options for Works and Editions
-
-    # The prefixes allowed dynamically
-    RANDOM_PREFIXES = ("random_", "random.hourly_", "random.daily_")
-
-    # The Validator
-    def validate_sort(v: str) -> str:
-        if not v or v in sorts_map or v.startswith(RANDOM_PREFIXES):
-            return v
-
-        valid_keys = ", ".join((*sorts_map.keys(), *RANDOM_PREFIXES))
-        raise ValueError(f"Invalid sort option: '{v}'. Valid options are: {valid_keys}")
-
-    # The Type Alias
-    return Annotated[
-        str,
-        BeforeValidator(validate_sort),
-        WithJsonSchema(
-            {
-                "type": "string",
-                "enum": list(sorts_map.keys()) + [""],  # Include empty string for default
-            }
-        ),
-    ]
-
-
 ListSortOption = create_sort_option_type(ListSearchScheme.sorts)
 
 
@@ -413,9 +426,6 @@ async def search_authors_json(
         doc["key"] = doc["key"].split("/")[-1]
 
     return raw_resp
-
-
-EditionSortOption = create_sort_option_type(EditionSearchScheme.sorts)
 
 
 class EditionSearchRequestParams(Pagination):
