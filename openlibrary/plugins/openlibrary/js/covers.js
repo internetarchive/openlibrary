@@ -107,14 +107,13 @@ export function initCoversSaved() {
     }
 }
 
-// Point the enlarged preview dialog, and its trigger's fallback link, at the newly saved image.
+// Point the enlarging lightbox, and its trigger's fallback link, at the newly saved image.
 function updateCoverPreview(largeUrl) {
-    const preview = parent.document.querySelector('#seeImage img.cover-preview');
-    if (preview) {
-        preview.src = largeUrl;
-    }
-    parent.document.querySelectorAll('.coverLook[aria-controls="seeImage"]').forEach(link => {
-        link.href = largeUrl;
+    parent.document.querySelectorAll('ol-lightbox').forEach(lightbox => {
+        lightbox.src = largeUrl;
+        lightbox.querySelectorAll('a.coverLook').forEach(link => {
+            link.href = largeUrl;
+        });
     });
 }
 

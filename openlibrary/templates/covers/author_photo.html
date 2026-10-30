@@ -8,14 +8,14 @@ $ photo_aspect_ratio_str = 'aspect-ratio: ' + str(photo_aspect_ratio) if photo_a
 $if author_thumbnail_url:
     <div class="author coverMagic">
         <div class="SRPCover bookCover">
-            <a href="$author_photo_url" aria-controls="seeImage" class="coverLook dialog--open" title="$_('Pull up a larger author photo')">
-                <img src="$author_thumbnail_url" itemprop="image" class="cover" style="$photo_aspect_ratio_str" alt="$_('Photo of %(author)s', author=author.name)"/>
-            </a>
+            $ photo_alt = _('Photo of %(author)s', author=author.name)
+            <ol-lightbox src="$author_photo_url" alt="$photo_alt" label-close="$_('Close')">
+                <a href="$author_photo_url" class="coverLook" title="$_('Pull up a larger author photo')">
+                    <img src="$author_thumbnail_url" itemprop="image" class="cover" style="$photo_aspect_ratio_str" alt="$photo_alt"/>
+                </a>
+            </ol-lightbox>
         </div>
     </div>
-    <ol-dialog id="seeImage" label="$truncate(author.name or '', 60)" width="medium">
-        <img src="$author_photo_url" loading="lazy" itemprop="image" class="cover cover-preview" alt="$_('Photo of %(author)s', author=author.name)"/>
-    </ol-dialog>
 $else:
     <div class="author coverMagic">
         <div class="SRPCover bookCover">

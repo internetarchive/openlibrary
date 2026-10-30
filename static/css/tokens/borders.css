@@ -79,4 +79,11 @@
      neither. See docs/frontend/design.md#blur-follows-modality-not-viewport-width. */
   --overlay-backdrop-color: hsla(0, 0%, 0%, 0.32);
   --overlay-backdrop-blur: 3px;
+
+  /* The scrim behind a viewed image (the lightbox). A panel sits *on* the
+     page, so its scrim stays light enough to keep the page present; an
+     enlarged image replaces the page, and a light scrim leaves it competing
+     with the picture. Same blur, deeper dim. Only for a surface that is the
+     image itself — a dialog that happens to contain one keeps the shared scrim. */
+  --overlay-backdrop-color-image: hsla(0, 0%, 0%, 0.8);
 }

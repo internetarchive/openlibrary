@@ -1261,6 +1261,29 @@ fieldset.ds-demo-row {
   justify-content: flex-end;
 }
 
+/* Lightbox demos: a thumbnail link at cover width. The cropped variant is a
+   square window onto the cover, to show the morph un-cropping it. */
+.ds-demo-lightbox-thumb {
+  display: block;
+  width: 128px;
+}
+
+.ds-demo-lightbox-thumb--small {
+  width: 72px;
+}
+
+.ds-demo-lightbox-thumb img {
+  display: block;
+  width: 100%;
+  border-radius: var(--border-radius-thumbnail);
+  box-shadow: var(--box-shadow-raised);
+}
+
+.ds-demo-lightbox-thumb--cropped img {
+  height: 128px;
+  object-fit: cover;
+}
+
 .ds-demo-output {
   width: 100%;
   max-height: 120px;

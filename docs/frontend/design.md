@@ -139,6 +139,7 @@ Before writing new markup or CSS, check whether an existing component already do
 | Menu Popover | `ol-menu-popover` | Pick one action from a list | A choice that is read or submitted later is a value, not an action — use Options Popover. |
 | Dialog | `ol-dialog` | A centered modal interruption | For a task with its own scrolling content, use Drawer. For a passive message, use Toast or Banner. |
 | Drawer | `ol-drawer` | A modal panel that slides in from a viewport edge | A centered interruption is a Dialog. A panel anchored to its trigger is a Popover. |
+| Lightbox | `ol-lightbox` | Enlarge one image out of its thumbnail, full-viewport | Only for looking closer at one image. Anything with text or controls is a Dialog. |
 | Toast | `ol-toast` | Transient confirmation of something that just happened (`ol-toast-region` hosts them) | Anything the reader must act on belongs in a Dialog or a Banner. |
 | Banner | `ol-banner` | A persistent page-level announcement | Page-level and persistent. For confirmation of an action the user just took, use Toast. |
 | Message | `.ol-message` | An inline notice next to the thing it describes (CSS classes, no tag) | Inline, next to the thing it describes. For page-level notices use Banner. |
@@ -332,6 +333,7 @@ is a lie.
 |---|---|---|
 | `ol-dialog` | yes — native `showModal()` | yes |
 | `ol-drawer` | yes — `showModal()` + focus trap | yes |
+| `ol-lightbox` | yes — `showModal()` | yes — same blur, deeper dim (`--overlay-backdrop-color-image`) |
 | `ol-popover` mobile tray | yes — `aria-modal`, scrim, scroll lock | yes |
 | `ol-popover` desktop panel | no — Tab leaves, page stays live | no |
 | `ol-tooltip` | no | no |
@@ -346,6 +348,13 @@ Every modal surface reads the same two tokens, `--overlay-backdrop-color` and
 `--overlay-backdrop-blur`. Don't hand-roll a per-component scrim value: a
 hamburger drawer that dims harder than a confirm dialog reads as the more
 serious interruption, which is backwards.
+
+The one exception is keyed to what the surface *is*, not which component:
+`ol-lightbox` dims with `--overlay-backdrop-color-image`. A panel sits on the
+page, so its scrim stays light enough to keep the page present; an enlarged
+image replaces the page, and the light scrim leaves it competing with the
+picture. It keeps the shared blur. A dialog that merely contains an image is
+still a panel and keeps the shared dim.
 
 **The blur is what lets the dim stay light.** 32% black over a page of book
 covers still leaves a legible, busy field competing with the panel — you can
