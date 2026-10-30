@@ -252,13 +252,20 @@ def format_count(value: int | None) -> str:
     return "—" if value is None else commify(value)
 
 
-def build_tasks_stats_row(counts: dict, key: str, label: str) -> dict:
+def daily_key(key: str) -> str:
+    "The per-day key behind a rolling one: `tasks_saves_28d` -> `tasks_saves_1d`."
+    return key.rsplit("_", 1)[0] + "_1d"
+
+
+def build_tasks_stats_row(counts: dict, key: str, label: str, chart_key: str | None = None) -> dict:
+    "A row's headline numbers come from `key`; its chart from `chart_key` when that series exists, else from `key`."
     count = counts.get(key) or {}
+    chart = counts.get(chart_key) if chart_key else None
     return {
         "label": label,
         "latest": format_count(count.get("latest")),
         "earlier": format_count(count.get("earlier")),
-        "chart": count.get("chart"),
+        "chart": (chart or count).get("chart"),
     }
 
 
@@ -281,10 +288,11 @@ def build_tasks_stats_sections() -> list[dict]:
         "tasks_editors_28d": _("Tasks editors, last 28 days"),
         "tasks_editors_7d": _("Tasks editors, last 7 days"),
     }
-    counts = get_rolling_counts([*keys, "tasks_saves_undone_28d"], TASKS_STATS_DAYS)
+    # Each row charts its per-day series; the rolling series stands in until the backfill has written the daily keys.
+    counts = get_rolling_counts([*keys, *{daily_key(k) for k in keys}, "tasks_saves_undone_28d"], TASKS_STATS_DAYS)
 
     def rows(*names: str) -> list[dict]:
-        return [build_tasks_stats_row(counts, name, keys[name]) for name in names]
+        return [build_tasks_stats_row(counts, name, keys[name], chart_key=daily_key(name)) for name in names]
 
     return [
         {

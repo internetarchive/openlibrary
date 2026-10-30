@@ -130,7 +130,8 @@ def not_found_fields(site) -> dict[str, set[str]]:
     """Fields enough people couldn't find, by edition key."""
     found: dict[str, set[str]] = {}
     for doc in site.store.values(type=NOT_FOUND_TYPE, limit=100_000):
-        if len(doc.get("people", [])) >= NOT_FOUND_PEOPLE[doc["field"]]:
+        # A mark for a field no longer on offer has no threshold; leave it be.
+        if (threshold := NOT_FOUND_PEOPLE.get(doc["field"])) and len(doc.get("people", [])) >= threshold:
             found.setdefault(doc["edition"], set()).add(doc["field"])
     return found
 

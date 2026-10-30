@@ -83,6 +83,8 @@ def test_fields_books_nearly_always_have_need_more_people_to_set_aside():
             "b": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL1M", "field": "publishers", "people": people[:3]},
             "c": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL1M", "field": "languages", "people": people[:3]},
             "d": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL2M", "field": "languages", "people": people},
+            # A mark left by a field that is no longer on offer.
+            "e": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL2M", "field": "literary_form", "people": people},
         },
     )
     assert initiatives.not_found_fields(site) == {"/books/OL1M": {"publishers"}, "/books/OL2M": {"languages"}}

@@ -17,7 +17,9 @@ main harness. They can be utility functions.
 
 import functools
 import logging
-from datetime import timedelta
+from datetime import date, timedelta
+
+import web
 
 logger = logging.getLogger(__name__)
 
@@ -173,7 +175,13 @@ TASKS_SOURCE = "contribute"
 
 
 def _window_args(fn_name, kargs, days):
-    "The `days` before `end`: rolling windows, since distinct editors don't add up across days."
+    """The `days` before `end`: rolling windows, since distinct editors don't add up across days.
+
+    `days=1` is the calendar day the gatherer hands in as `start`..`end`, like the other daily keys. For today's hourly
+    run that is midnight to now; a window ending at `end` would be the last 24 hours instead, and a bar per day would
+    double-count the evening before."""
+    if days == 1:
+        return _range_args(fn_name, kargs)
     try:
         db, end = kargs["thingdb"], kargs["end"]
     except KeyError as k:
@@ -220,18 +228,100 @@ def tasks_editors(days, **kargs):
     return db.query(sql, vars={"since": since, "end": end, "tasks_source": TASKS_SOURCE})[0].count
 
 
+def tasks_saves(days, **kargs):
+    "Saves made from the Tasks page in the `days` before `end`."
+    db, since, end = _window_args(f"admin_range__tasks_saves_{days}d", kargs, days)
+    return _count_transactions(db, since, end, f" AND t.id IN ({TASKS_SAVES})", tasks_source=TASKS_SOURCE)
+
+
+# The `_1d` keys are what a bar-per-day chart plots; the 7d and 28d windows stay for the headline numbers, and a
+# week or month view samples them at the end of each period.
+admin_range__catalog_editors_1d = functools.partial(catalog_editors, 1)
 admin_range__catalog_editors_7d = functools.partial(catalog_editors, 7)
 admin_range__catalog_editors_28d = functools.partial(catalog_editors, 28)
+admin_range__new_catalog_editors_1d = functools.partial(new_catalog_editors, 1)
 admin_range__new_catalog_editors_7d = functools.partial(new_catalog_editors, 7)
 admin_range__new_catalog_editors_28d = functools.partial(new_catalog_editors, 28)
+admin_range__tasks_editors_1d = functools.partial(tasks_editors, 1)
 admin_range__tasks_editors_7d = functools.partial(tasks_editors, 7)
 admin_range__tasks_editors_28d = functools.partial(tasks_editors, 28)
+admin_range__tasks_saves_1d = functools.partial(tasks_saves, 1)
+admin_range__tasks_saves_28d = functools.partial(tasks_saves, 28)
 
 
-def admin_range__tasks_saves_28d(**kargs):
-    "Saves made from the Tasks page in the 28 days before `end`."
-    db, since, end = _window_args("admin_range__tasks_saves_28d", kargs, 28)
-    return _count_transactions(db, since, end, f" AND t.id IN ({TASKS_SAVES})", tasks_source=TASKS_SOURCE)
+def admin_range__tasks_saves_by_field_1d(**kargs):
+    "The day's Tasks saves by the field they filled, e.g. `{'number_of_pages': 7, 'covers': 2}`. Stored as a dict."
+    db, start, end = _range_args("admin_range__tasks_saves_by_field_1d", kargs)
+    sql = f"""
+        SELECT t.data::json->>'field' AS field, count(*) AS count FROM transaction t
+        WHERE t.created >= $start AND t.created < $end AND t.id IN ({TASKS_SAVES})
+        GROUP BY 1
+    """
+    rows = db.query(sql, vars={"start": start, "end": end, "tasks_source": TASKS_SOURCE})
+    return {row.field: row.count for row in rows if row.field}
+
+
+# Initiative counts. The frozen edition list and the not-found marks live in the store, so these read through
+# `web.ctx.site`, which `stats.setup_ol_config` provides, rather than through `thingdb`.
+_cached_initiative_progress: dict | None = None
+
+
+def _initiative():
+    from openlibrary.contribute import initiatives
+
+    return initiatives
+
+
+def _initiative_progress(kargs) -> dict:
+    """`initiatives.progress` for the active initiative, as of now. Only for today: a snapshot has no history, and the
+    backfill loop would otherwise stamp today's figure onto every past day. Read once per run, for all four keys."""
+    global _cached_initiative_progress
+    try:
+        start = kargs["start"]
+    except KeyError as k:
+        raise TypeError(f"{k} is a required argument for the initiative counts")
+    if start.date() != date.today():
+        raise NoStats
+    if _cached_initiative_progress is None:
+        initiatives = _initiative()
+        _cached_initiative_progress = initiatives.progress(initiatives.build_gaps(initiatives.ACTIVE, web.ctx.site))
+    return _cached_initiative_progress
+
+
+def admin_range__initiative_slug(**kargs):
+    "Which initiative the day's `initiative_*` counts describe, so a new list doesn't continue the old one's lines."
+    _initiative_progress(kargs)
+    return _initiative().ACTIVE.slug
+
+
+def admin_range__initiative_open_gaps(**kargs):
+    "Fields still missing across the active initiative's editions, less those enough people couldn't find."
+    return _initiative_progress(kargs)["open"]
+
+
+def admin_range__initiative_done_editions(**kargs):
+    "Editions on the active initiative's list with nothing left to fill."
+    return _initiative_progress(kargs)["done"]
+
+
+def admin_range__initiative_not_found(**kargs):
+    "Fields on the active initiative's list that enough people couldn't find."
+    return _initiative_progress(kargs)["not_found"]
+
+
+def admin_range__initiative_editions(**kargs):
+    "Editions on the active initiative's list still in the catalog."
+    return _initiative_progress(kargs)["total"]
+
+
+def admin_range__tasks_saves_initiative_1d(**kargs):
+    """The day's Tasks saves on editions in the active initiative's frozen list. The list doesn't move, so unlike the
+    snapshot keys this one backfills."""
+    db, start, end = _range_args("admin_range__tasks_saves_initiative_1d", kargs)
+    if not (doc := web.ctx.site.store.get(_initiative().ACTIVE.store_key)):
+        raise NoStats
+    keys = [key for key, _readers in doc["editions"]]
+    return _count_transactions(db, start, end, f" AND t.id IN ({TASKS_SAVES}) AND t.changes::json->0->>'key' IN $keys", tasks_source=TASKS_SOURCE, keys=keys)
 
 
 def admin_range__tasks_saves_undone_28d(**kargs):
