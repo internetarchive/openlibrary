@@ -157,6 +157,7 @@ _CATEGORIES = {
 }
 _VARIABLE_OPS = (sre.IN, sre.ANY, sre.NOT_LITERAL)
 _OLID_PARAMS = {"W": "work_id", "M": "edition_id", "A": "author_id", "T": "tag_id"}
+_OLID = re.compile(r"OL\d+[AMWLT]")
 
 
 def _char_class(items) -> tuple[str, bool]:
@@ -252,10 +253,20 @@ def route_template(pattern: str, path: str) -> str:
     template = ""
     end = 0
     names: set[str] = set()
+    spans: list[list] = []
     for i, can_contain_slash in enumerate(instrumented[1]):
         start, stop = match.span(f"p{i}")
-        if start < end or start == stop:  # unmatched, empty, or inside a part already replaced
+        if start == stop:  # unmatched or empty
             continue
+        if spans and spans[-1][1] == start:  # adjacent, like the digits of a year: one parameter
+            spans[-1][1:] = stop, spans[-1][2] or can_contain_slash
+        else:
+            spans.append([start, stop, can_contain_slash])
+    for start, stop, can_contain_slash in spans:
+        if start < end:  # inside a part already replaced
+            continue
+        if _OLID.fullmatch(path, start, stop):  # e.g. a [^/]+ that matched OL1W: name it as if the route said OL\d+W
+            start, stop = start + 2, stop - 1
         template += path[end:start]
         name = _param_name(template, path[stop:], can_contain_slash)
         if name == "list_id":  # the whole OL1L, as the FastAPI list routes take it
