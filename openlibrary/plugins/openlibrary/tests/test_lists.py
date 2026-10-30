@@ -490,7 +490,7 @@ class TestListViewGet:
     @pytest.mark.parametrize(
         ("sort", "expected_keys"),
         [
-            ("added", [f"/works/OL{i}W" for i in range(69, 19, -1)]),
+            ("added", [f"/works/OL{i}W" for i in range(19, -1, -1)]),
             ("title", [f"/works/OL{i}W" for i in range(50, 70)]),
         ],
     )
