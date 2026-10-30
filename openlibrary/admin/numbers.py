@@ -17,7 +17,7 @@ main harness. They can be utility functions.
 
 import functools
 import logging
-from datetime import date, timedelta
+from datetime import timedelta
 
 import web
 
@@ -278,10 +278,12 @@ def _initiative_progress(kargs) -> dict:
     Never picks the list: freezing it is the web app's job, so until it has, there's nothing to report."""
     global _cached_initiative_progress
     try:
-        start = kargs["start"]
+        start, end = kargs["start"], kargs["end"]
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for the initiative counts")
-    if start.date() != date.today():
+    # Only the run's first window, which ends at "now", is shorter than a day. Checking the clock instead would
+    # skip the snapshot when a run that started before midnight gets here after it.
+    if end - start >= timedelta(days=1):
         raise NoStats
     if _cached_initiative_progress is None:
         initiatives = _initiative()

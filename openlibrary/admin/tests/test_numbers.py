@@ -189,6 +189,13 @@ def test_initiative_snapshot_is_read_once_for_all_its_keys(fake_initiative):
     assert fake_initiative.calls == [2]
 
 
+def test_initiative_snapshot_survives_a_run_that_crosses_midnight(fake_initiative):
+    "A run started at 23:5x reaches these keys after midnight; the window, not the clock, says it's today's."
+    start = datetime(2026, 10, 29)
+    kargs = {"thingdb": FakeDB(), "start": start, "end": start.replace(hour=23, minute=55)}
+    assert numbers.admin_range__initiative_open_gaps(**kargs) == 1
+
+
 def test_initiative_snapshot_waits_for_the_web_app_to_freeze_the_list(fake_initiative):
     web.ctx.site.store.clear()
     now = datetime.now()
@@ -200,9 +207,10 @@ def test_initiative_snapshot_waits_for_the_web_app_to_freeze_the_list(fake_initi
 
 def test_initiative_snapshot_refuses_past_days(fake_initiative):
     "The backfill loop calls every function for every past day; a snapshot has no past to report."
+    kargs = {"thingdb": FakeDB(), "start": datetime(2026, 10, 15), "end": datetime(2026, 10, 16)}
     for fn in [numbers.admin_range__initiative_open_gaps, numbers.admin_range__initiative_slug]:
         with pytest.raises(numbers.NoStats):
-            run(fn, FakeDB())
+            fn(**kargs)
     assert fake_initiative.calls == []
 
 
