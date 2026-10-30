@@ -406,6 +406,25 @@ def provider_dedupe_key(name: object) -> str | None:
     return _provider_name_lookup().get(squashed, squashed)
 
 
+def _feed_display_name(provider_name: str) -> str | None:
+    """A harvested provider's human-readable name, or None if we have none.
+
+    ``provider_name`` on a row is a slug (``project_gutenberg``), which is not
+    a label. Open Library knows a display name only for providers registered
+    in ``book_providers``; anything else has none, and the key is then left
+    off rather than echoing the slug back as if it were a label.
+
+    Deliberately not cached. ``PROVIDER_ORDER`` holds provider *instances*,
+    and ``provider_name`` is a property over attributes that are not frozen,
+    so memoizing this would pin whatever the registry happened to say the
+    first time it was asked. The lookup is a scan of about a dozen objects.
+    """
+    from openlibrary.book_providers import get_book_provider_by_name
+
+    provider = get_book_provider_by_name(provider_name)
+    return provider.long_name if provider else None
+
+
 def opds_links_for_edition(rows: list[Acquisition]) -> list[dict]:
     """The stored OPDS2 acquisition links for one edition.
 
@@ -443,13 +462,28 @@ def opds_links_for_edition(rows: list[Acquisition]) -> list[dict]:
             # blob, so a feed can neither relabel itself nor claim to be
             # something other than harvested.
             feed_properties = link.get("properties")
-            links.append(
-                {
-                    **link,
-                    "provider_name": row.provider_name,
-                    "properties": {**(feed_properties if isinstance(feed_properties, dict) else {}), SOURCE_KEY: SOURCE_HARVESTED},
-                }
-            )
+            out: dict[str, Any] = {
+                **link,
+                "provider_name": row.provider_name,
+                "properties": {**(feed_properties if isinstance(feed_properties, dict) else {}), SOURCE_KEY: SOURCE_HARVESTED},
+            }
+            # Read from the stored entry rather than from `link`, and applied
+            # after it, for the same reason `provider_name` is. Both are
+            # REMOVED when we have no value rather than left alone: `**link`
+            # has already copied whatever the feed put under these keys, so
+            # skipping the assignment would let a feed publish a source
+            # publication and a display name of its own choosing. Dropped
+            # unless the URL is safe -- a consumer renders this as an href,
+            # exactly like the acquisition URL above.
+            if _is_safe_url(source_url := acquisition.get("source_url")):
+                out["source_url"] = source_url
+            else:
+                out.pop("source_url", None)
+            if feed_name := _feed_display_name(row.provider_name):
+                out["feed_name"] = feed_name
+            else:
+                out.pop("feed_name", None)
+            links.append(out)
             if len(links) >= MAX_ACQUISITIONS_PER_DOC:
                 logger.info("truncating acquisitions for edition %s at %d links", row.edition_id, MAX_ACQUISITIONS_PER_DOC)
                 return links
@@ -526,4 +560,11 @@ def provider_acquisition_as_opds(acquisition: Any, trusted_provider_name: str | 
     raw_price = getattr(acquisition, "price", None)
     if isinstance(raw_price, str) and raw_price:
         link["properties"]["price_display"] = raw_price
+    # Added only when set, like `type` and `price_display` above. An explicit
+    # `None` would claim the provider has no source publication, which is a
+    # different statement from not having recorded one.
+    if _is_safe_url(source_url := getattr(acquisition, "source_url", None)):
+        link["source_url"] = source_url
+    if isinstance(feed_name := getattr(acquisition, "feed_name", None), str) and feed_name:
+        link["feed_name"] = feed_name
     return link
