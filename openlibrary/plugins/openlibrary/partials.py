@@ -14,6 +14,7 @@ from markupsafe import Markup
 from pydantic import BaseModel, Field
 
 from infogami.utils.view import public
+from openlibrary.book_providers import get_book_provider
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
 from openlibrary.core.fulltext import FulltextRow, all_words_query, exclude_ocaids, fulltext_page, fulltext_search_async, phrase_query
@@ -166,6 +167,12 @@ _CAROUSEL_CARD_FALLBACK_COVER = "https://openlibrary.org/static/images/icons/ava
 _CAROUSEL_CARD_COVER_HOST = "//covers.openlibrary.org"
 
 
+def _carousel_card_format(book) -> str:
+    """The format of what the card's read button offers ("audio" draws Listen), or "" when nothing is readable."""
+    acquisition = (provider := get_book_provider(book)) and provider.get_read_acquisition(book)
+    return acquisition.format if acquisition else ""
+
+
 def _resolve_carousel_card_cover_url(book) -> str | Literal[False]:
     """Resolve the cover image URL for a book. Serves both a Thing (with
     ``get_cover_url``) and a plain dict/Solr-doc shape."""
@@ -231,6 +238,7 @@ class CarouselCardData(TypedDict):
     request_fullpath: str
     shelf_button_html: Markup
     book_cover: bool
+    format: str
 
 
 @public
@@ -285,6 +293,7 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
         # No reader or state in the HTML: book-state.js fills both in.
         "shelf_button_html": Markup(shelf_button_for(book, variant="icon", async_load=True, slot="overlay" if book_cover else None)),
         "book_cover": book_cover,
+        "format": _carousel_card_format(book) if book_cover else "",
     }
 
 

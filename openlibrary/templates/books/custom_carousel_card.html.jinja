@@ -14,7 +14,7 @@
     {% if book_cover %}
         {# Touch has no hover card, so the caption repeats it (carousel.css). #}
         <div class="book-cover">
-            <ol-book-cover {% if lazy %}deferred{% endif %} src="{{ cover_url or '' }}" book-title="{{ title }}" authors="{{ author_names | join(', ') }}" year="{{ year }}" href="{{ url }}" data-cover-track="BookCarousel|CoverClick|{{ key }}">
+            <ol-book-cover {% if lazy %}deferred{% endif %} {% if format %}format="{{ format }}"{% endif %} src="{{ cover_url or '' }}" book-title="{{ title }}" authors="{{ author_names | join(', ') }}" year="{{ year }}" href="{{ url }}" data-cover-track="BookCarousel|CoverClick|{{ key }}">
                 {{ shelf_button_html }}
             </ol-book-cover>
         </div>

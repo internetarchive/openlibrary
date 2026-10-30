@@ -35,6 +35,8 @@ export const DEFAULT_LABELS = {
  * @prop {String} href - Link target; empty renders the cover unlinked
  * @prop {String} size - "medium" (default) or "small"; small drops the author
  *     from the blank cover, which has no room for it
+ * @prop {"web" | "pdf" | "epub" | "audio"} format - How the book is read, matching the backend's
+ *     acquisition format. "audio" keeps the edge and shadow but drops the spine shading
  * @prop {Boolean} deferred - Holds the artwork back until removed (ol-carousel removes it near view)
  * @prop {Boolean} loading - Darkens the cover under a spinner; set by a plain click on the
  *     link while the next page loads, cleared when the page is restored from the bfcache
@@ -52,6 +54,7 @@ export class OlBookCover extends LitElement {
         year: { type: String },
         href: { type: String },
         size: { type: String, reflect: true },
+        format: { type: String, reflect: true },
         deferred: { type: Boolean, reflect: true },
         loading: { type: Boolean, reflect: true },
         labels: { type: Object },
@@ -113,6 +116,11 @@ export class OlBookCover extends LitElement {
                 hsla(0, 0%, 100%, 0) 100%
             );
             mask-image: linear-gradient(hsla(0, 0%, 0%, 0.4) 0%, hsla(0, 0%, 0%, 1) 2.5%, hsla(0, 0%, 0%, 0.5) 40%, hsla(0, 0%, 0%, 0.2) 100%);
+        }
+
+        /* An audiobook's case has no spine. */
+        :host([format='audio']) .frame--art::after {
+            content: none;
         }
 
         /* A book bound on the right has its spine there. */
@@ -311,6 +319,7 @@ export class OlBookCover extends LitElement {
         this.year = '';
         this.href = '';
         this.size = 'medium';
+        this.format = '';
         this.deferred = false;
         this.loading = false;
         this.labels = {};

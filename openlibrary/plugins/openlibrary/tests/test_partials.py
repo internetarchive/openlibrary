@@ -23,6 +23,7 @@ from openlibrary.plugins.openlibrary.partials import (
     NearbyBooksPartial,
     ReadingGoalProgressPartial,
     _carousel_card_book,
+    _carousel_card_format,
     _solr_query_to_subject_key,
     build_nearby_books_placeholder_config,
     build_stores,
@@ -232,6 +233,17 @@ class TestCarouselCardBook:
         assert card.key == "/works/OL1W"
         assert card.author_name == ["A"]
         assert "work_key" not in card
+
+
+class TestCarouselCardFormat:
+    def test_librivox_book_is_audio(self):
+        assert _carousel_card_format({"key": "/books/OL1M", "id_librivox": ["123"], "ebook_access": "public"}) == "audio"
+
+    def test_ia_scan_is_read_on_the_web(self):
+        assert _carousel_card_format({"key": "/books/OL1M", "ia": ["foo"], "ebook_access": "public"}) == "web"
+
+    def test_book_without_a_provider_has_no_format(self):
+        assert _carousel_card_format({"key": "/books/OL1M"}) == ""
 
 
 class TestSolrQueryToSubjectKey:
