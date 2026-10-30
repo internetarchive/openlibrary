@@ -385,12 +385,6 @@ $(function () {
         import('./book-state').then(module => module.initBookState());
     }
 
-    // The lists a book is on, under the shelf button on its page:
-    const listShowcase = document.querySelector('.already-lists[data-seed-keys]');
-    if (listShowcase) {
-        import('./lists/list-showcase').then(module => module.initListShowcase(listShowcase));
-    }
-
     // TODO: Make these selectors a consistent interface
     if (document.querySelector('.dialog--open, #bookPreview')) {
         import('./dialog').then(module => module.initDialogs());

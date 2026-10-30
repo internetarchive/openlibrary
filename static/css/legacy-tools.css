@@ -202,15 +202,6 @@ div.tools-override .Tools .btn-notice {
   font-size: 0.9em;
 }
 
-div.tools-override .listLists {
-  margin: 0;
-  clear: both;
-}
-
-div.tools-override .listLists li {
-  padding-left: 0;
-}
-
 /* @width-breakpoint-tablet hardcoded as 768px */
 @media only screen and (min-width: 768px) {
   .Tools .btn-notice {
