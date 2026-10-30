@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
+from dataclasses import dataclass
 from typing import Annotated, Any, Literal, Self
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import (
@@ -18,12 +20,16 @@ from pydantic import (
 
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import fulltext_search_async, resolve_language
+from openlibrary.core.jinja import render_jinja_template
+from openlibrary.core.shell.request import PageMeta
 from openlibrary.fastapi.models import (
     Pagination,
     PaginationLimit20,
     SolrInternalsParams,
     parse_comma_separated_list,
 )
+from openlibrary.fastapi.shared.site_page import SitePage, SitePageRoute
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
     run_solr_query_async,
@@ -38,6 +44,8 @@ from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.utils.request_context import req_context, site
 
 router = APIRouter()
+# HTML pages, wrapped in the site shell.
+pages = APIRouter(route_class=SitePageRoute)
 
 # Facet fields exposed by /search/facets.json — mirrors WorkSearchScheme.facet_fields
 FacetField = Literal[
@@ -516,3 +524,60 @@ async def search_facets_json(
             result[output_key] = [FacetValue(value=value, label=label, count=count) for value, label, count in values if count > 0]
 
     return result
+
+
+@dataclass(frozen=True)
+class SearchNav:
+    """What the search tabs (``SearchNavigation.html.jinja``) need from the request."""
+
+    path: str
+    q_query: str  # urlencoded ``q=...``, carried over to every tab
+    advanced_href: str
+
+    @classmethod
+    def from_query(cls, path: str, params: Mapping[str, str]) -> Self:
+        """``params`` holds one value per key, the last if repeated, as ``web.input()`` does."""
+        query = {k: v for k, v in params.items() if k != "page"}
+        return cls(
+            path=path,
+            q_query=urlencode({"q": query.get("q", "")}),
+            advanced_href="/advancedsearch" + (f"?{urlencode(query)}" if query else ""),
+        )
+
+    @classmethod
+    def from_request(cls, request: Request) -> Self:
+        # Starlette's query_params.items() also keeps a repeated key's last value.
+        return cls.from_query(request.url.path, request.query_params)
+
+
+SearchNavDep = Annotated[SearchNav, Depends(SearchNav.from_request)]
+
+
+class AdvancedSearchForm(BaseModel):
+    """Pre-fill for the /advancedsearch form. A ``*_facet`` param fills its field when that is empty."""
+
+    q: str = ""
+    title: str = ""
+    author: str = ""
+    isbn: str = ""
+    subject: str = ""
+    place: str = ""
+    person: str = ""
+    publisher: str = ""
+    subject_facet: str = ""
+    place_facet: str = ""
+    person_facet: str = ""
+    publisher_facet: str = ""
+
+    @model_validator(mode="after")
+    def facets_are_fallbacks(self) -> Self:
+        self.subject = self.subject or self.subject_facet
+        self.place = self.place or self.place_facet
+        self.person = self.person or self.person_facet
+        self.publisher = self.publisher or self.publisher_facet
+        return self
+
+
+@pages.get("/advancedsearch")
+async def advancedsearch(form: Annotated[AdvancedSearchForm, Query()], nav: SearchNavDep) -> SitePage:
+    return SitePage(render_jinja_template("search/advancedsearch.html.jinja", form=form, nav=nav), page=PageMeta(title=_("Advanced Search")))

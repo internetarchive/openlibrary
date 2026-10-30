@@ -10,6 +10,8 @@ import secrets
 import string
 import time
 import uuid
+from collections.abc import Mapping
+from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Literal, TypedDict
 
@@ -225,6 +227,29 @@ def verify_session_cookie(cookie_value: str) -> bool:
     except ValueError:
         return False
     return verify_hash(get_secret_key(), data, signature)
+
+
+@dataclass(frozen=True)
+class HumanCookieCheck:
+    """What a request's cookies say about the human-verification challenge."""
+
+    verified: bool = False  # a valid ``vf`` or session cookie: let the request through
+    spoofed: str | None = None  # the name of a forged one: reject the request
+
+
+def check_human_cookies(cookies: Mapping[str, str]) -> HumanCookieCheck:
+    """Check the ``vf`` cookie, else the session cookie; the first one present decides.
+
+    nginx challenges suspicious requests only when they carry no cookies, and
+    leaves checking that cookies are genuine to the app: ``CookieValidationProcessor``
+    on web.py, ``SitePageRoute`` on FastAPI. A signature check, no database lookup.
+    """
+    if vf := cookies.get("vf"):
+        return HumanCookieCheck(verified=True) if verify_verification_cookie(vf) else HumanCookieCheck(spoofed="vf")
+    session_cookie_name = config.get("login_cookie_name", "session")
+    if session := cookies.get(session_cookie_name):
+        return HumanCookieCheck(verified=True) if verify_session_cookie(session) else HumanCookieCheck(spoofed=session_cookie_name)
+    return HumanCookieCheck()
 
 
 def generate_login_code_for_user(username: str) -> str:

@@ -1,0 +1,43 @@
+{# /advancedsearch body. Takes `form` (AdvancedSearchForm) and `nav` (SearchNav); both in openlibrary/fastapi/search.py. #}
+{% set fields = [
+    ("q", "qtop", _("All fields")),
+    ("title", "qtop-title", _("Title")),
+    ("author", "qtop-author", _("Author")),
+    ("isbn", "qtop-isbn", _("ISBN")),
+    ("subject", "qtop-subject", _("Subject")),
+    ("place", "qtop-place", _("Place")),
+    ("person", "qtop-person", _("Person")),
+    ("publisher", "qtop-publisher", _("Publisher")),
+] %}
+<div id="contentHead">
+    <h1>{{ _("Advanced Search") }}</h1>
+</div>
+<div id="contentBody">
+    {% include "SearchNavigation.html.jinja" %}
+    <form method="get"
+          action="/search"
+          class="siteSearch olform siteSearch--advanced">
+        <fieldset class="home">
+            <legend>{{ _("Advanced Search") }}</legend>
+            {% for name, input_id, label in fields %}
+                <div class="formElement">
+                    <label for="{{ input_id }}">{{ label }}</label>
+                    <br>
+                    <input type="text"
+                           class="siteSearch--advanced-input"
+                           name="{{ name }}"
+                           id="{{ input_id }}"
+                           placeholder=""
+                           size="35"
+                           value="{{ form[name] }}">
+                </div>
+            {% endfor %}
+        </fieldset>
+        <button type="submit" class="cta-btn cta-btn--search">{{ _("Search") }}</button>
+        <div class="searchPlus">
+            <a href="https://openlibrary.org/search/howto">{{ _("How to search?") }}</a>
+            <a href="/search/inside">{{ _("Full Text Search?") }}</a>
+            <a href="/search/bulk">{{ _("Bulk Search (beta)") }}</a>
+        </div>
+    </form>
+</div>

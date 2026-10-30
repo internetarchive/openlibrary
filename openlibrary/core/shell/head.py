@@ -7,12 +7,13 @@ so it is grouped separately from the rest of ``LayoutContext``.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from openlibrary.core.shell._util import _safe
 
 if TYPE_CHECKING:
-    from openlibrary.core.models import User
+    from openlibrary.core.shell.request import PageMeta, ShellRequest
+    from openlibrary.core.shell.user import ShellUser
 
 
 @dataclass(frozen=True)
@@ -57,33 +58,22 @@ class HeadContext:
     sentry: SentryContext | None
 
     @classmethod
-    def build(cls, *, title: str, user: User | None) -> HeadContext:
-        """Read the per-page infogami ctx and assemble head data with safe fallbacks."""
-        from infogami.utils.context import context as _ctx
+    def build(cls, *, req: ShellRequest, page: PageMeta, user: ShellUser | None) -> HeadContext:
         from openlibrary.accounts import get_days_registered
-        from openlibrary.plugins.upstream.utils import Request, icon_sprite_url, json_encode
-
-        def ctx(key: str, default: Any) -> Any:
-            return _safe(lambda: _ctx.get(key, default), default)
-
-        def ctx_str_list(key: str) -> list[str]:
-            raw = ctx(key, [])
-            return [str(x) for x in raw] if isinstance(raw, (list, tuple)) else []
-
-        request = Request()
-        cssfile = ctx("cssfile", "user") or "user"
+        from openlibrary.plugins.upstream.utils import canonical_url, icon_sprite_url, json_encode
 
         return cls(
-            title=title,
-            domain=_safe(lambda: request.domain or "", ""),
-            canonical_url=_safe(lambda: request.canonical_url or "", ""),
-            disable_analytics=bool(ctx("disable_analytics", False)),
-            page_css_path=f"build/css/page-{cssfile}.css",
-            experiments_json=_safe(lambda: json_encode(ctx("experiments", {}) or {}), "{}"),
-            robots=str(ctx("robots", "") or ""),
-            description=str(ctx("description", "") or ""),
-            links=ctx_str_list("links"),
-            metatags=ctx_str_list("metatags"),
+            title=page.title,
+            domain=req.host,
+            # The host comes from the client: a malformed one (``Host: [``) makes urlparse raise.
+            canonical_url=_safe(lambda: canonical_url(req.host, req.readable_path, f"?{req.query_string}" if req.query_string else ""), ""),
+            disable_analytics=page.disable_analytics,
+            page_css_path=f"build/css/page-{page.cssfile}.css",
+            experiments_json=_safe(lambda: json_encode(req.experiments), "{}"),
+            robots=page.robots,
+            description=page.description,
+            links=list(page.links),
+            metatags=list(page.metatags),
             icon_sprite_url=_safe(icon_sprite_url, "/static/icons/sprite.svg"),
             days_registered_json=_safe(lambda: json_encode(get_days_registered(user)), '"visitor"'),
             sentry=SentryContext.build(),
