@@ -30,3 +30,8 @@
 @import "components/footer.css";
 @import "components/language.css";
 @import "components/searchbox.css";
+
+/* No heading over the row here, so pad it evenly on all sides. */
+.carousel-container-decorated {
+  --spacing-carousel-band: var(--spacing-carousel-gap);
+}

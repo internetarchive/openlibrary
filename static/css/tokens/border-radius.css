@@ -4,6 +4,7 @@
  * Rarely used directly in components - use semantic tokens instead
  */
 :root {
+  --border-radius-xs: 2px;
   --border-radius-sm: 4px;
   --border-radius-md: 8px;
   --border-radius-lg: 12px;
@@ -25,6 +26,7 @@
  *   lg  12px  floating   — it sits above the page: dialog, popover, toast, tray
  *   md   8px  in-page    — it sits in the page: card, banner, button, input, row
  *   sm   4px  object     — it is a small thing in its own right: badge, tag
+ *   xs   2px  printed    — a photographed object with its own edge: a book cover
  *
  * A bigger box reads squarer at the same radius, which is why one step covers
  * both a 32px button and an 800px card without either looking wrong.
@@ -35,7 +37,7 @@
   /* Book covers, author portraits, illustrations. A printed object has a
      near-square corner — a cover rounded like a control reads as an app tile
      rather than a book — and covers are the most-repeated shape on the site. */
-  --border-radius-thumbnail: var(--border-radius-sm); /* covers, small images */
+  --border-radius-thumbnail: var(--border-radius-xs); /* covers, small images */
   --border-radius-card: var(--border-radius-md); /* cards, page shell */
   --border-radius-notification: var(--border-radius-md); /* notifications, alerts, banners */
   --border-radius-overlay: var(--border-radius-lg); /* dialogs, modals, popovers, toasts */

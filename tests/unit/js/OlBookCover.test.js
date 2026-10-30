@@ -50,6 +50,29 @@ describe('ol-book-cover artwork', () => {
         expect(q(el, '.blank__author').textContent).toBe('J.R.R. Tolkien');
     });
 
+    test('a 1×1 image (the missing-cover gif) falls back to the blank cover', async () => {
+        const el = await mount({ src: '/b/olid/OL1M-M.jpg' });
+        const img = q(el, '.img');
+        Object.defineProperties(img, { naturalWidth: { value: 1 }, naturalHeight: { value: 1 } });
+        img.dispatchEvent(new Event('load'));
+        await el.updateComplete;
+        expect(q(el, '.img')).toBeNull();
+        expect(q(el, '.blank__title').textContent).toBe('The Two Towers');
+
+        el.src = '/covers/2-M.jpg';
+        await el.updateComplete;
+        expect(q(el, '.img').getAttribute('src')).toBe('/covers/2-M.jpg');
+    });
+
+    test('a loaded image sets the slot ratio from its own proportions', async () => {
+        const el = await mount({ src: '/covers/1-M.jpg' });
+        const img = q(el, '.img');
+        Object.defineProperties(img, { naturalWidth: { value: 300 }, naturalHeight: { value: 200 } });
+        img.dispatchEvent(new Event('load'));
+        await el.updateComplete;
+        expect(q(el, 'ol-tooltip').style.getPropertyValue('--_ratio')).toBe('1.5');
+    });
+
     test('a small blank cover drops the author, which has no room', async () => {
         const el = await mount({ size: 'small' });
         expect(q(el, '.blank__title')).not.toBeNull();

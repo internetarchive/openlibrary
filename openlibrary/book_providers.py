@@ -223,6 +223,11 @@ class AbstractBookProvider[TProviderMetadata]:
     def get_template_path(self, typ: Literal["read_button", "download_options"]) -> str:
         return f"book_providers/{self.short_name}_{typ}.html"
 
+    def get_read_acquisition(self, ed_or_solr: Edition | dict) -> Acquisition | None:
+        """The acquisition the read button offers: the most open one, if any is readable."""
+        readable = [p for p in self.get_acquisitions(ed_or_solr) if p.ebook_access >= EbookAccess.PRINTDISABLED]
+        return max(readable, key=lambda p: p.ebook_access, default=None)
+
     def render_read_button(
         self,
         edition_key: str,
@@ -231,15 +236,9 @@ class AbstractBookProvider[TProviderMetadata]:
         show_locate: bool = False,
         check_loan_status: bool = False,
     ) -> TemplateResult | str:
-        acq_sorted = sorted(
-            (p for p in self.get_acquisitions(ed_or_solr) if p.ebook_access >= EbookAccess.PRINTDISABLED),
-            key=lambda p: p.ebook_access,
-            reverse=True,
-        )
-        if not acq_sorted:
+        if not (acquisition := self.get_read_acquisition(ed_or_solr)):
             return ""
 
-        acquisition = acq_sorted[0]
         # Asked here rather than in the template so the lookup needs no template
         # global, and only when the caller says this page is worth asking on --
         # see LoanStatus.html, which keeps it off carousels and search results.

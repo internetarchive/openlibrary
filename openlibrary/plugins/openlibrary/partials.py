@@ -14,6 +14,7 @@ from markupsafe import Markup
 from pydantic import BaseModel, Field
 
 from infogami.utils.view import public
+from openlibrary.book_providers import get_book_provider
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
 from openlibrary.core.fulltext import FulltextRow, all_words_query, exclude_ocaids, fulltext_page, fulltext_search_async, phrase_query
@@ -166,6 +167,12 @@ _CAROUSEL_CARD_FALLBACK_COVER = "https://openlibrary.org/static/images/icons/ava
 _CAROUSEL_CARD_COVER_HOST = "//covers.openlibrary.org"
 
 
+def _carousel_card_format(book) -> str:
+    """The format of what the card's read button offers ("audio" draws Listen), or "" when nothing is readable."""
+    acquisition = (provider := get_book_provider(book)) and provider.get_read_acquisition(book)
+    return acquisition.format if acquisition else ""
+
+
 def _resolve_carousel_card_cover_url(book) -> str | Literal[False]:
     """Resolve the cover image URL for a book. Serves both a Thing (with
     ``get_cover_url``) and a plain dict/Solr-doc shape."""
@@ -195,7 +202,7 @@ def _resolve_carousel_card_author_names(book) -> list[str]:
     return []
 
 
-def _render_carousel_card_loan_status(book, *, work_key: str, key: str) -> Markup:
+def _render_carousel_card_loan_status(book, *, work_key: str, key: str, layout: str | None) -> Markup:
     """Bridge call into the still-Templetor LoanStatus macro (183 lines, 8
     other callers; out of scope for this conversion per issue #13570).
     TODO: Convert LoanStatus to jinja and remove this bridge.
@@ -206,6 +213,8 @@ def _render_carousel_card_loan_status(book, *, work_key: str, key: str) -> Marku
         work_key=work_key,
         listen=False,
         analytics_override="BookCarousel|{action}Click|%s" % key,
+        # Only ol-carousel rows shrink .cta-btn to match (buttonCta.css); Slick and grid rows stay medium.
+        cta_size="small" if layout == "ol-carousel" else "medium",
     )
     return Markup(str(macro["__body__"]))
 
@@ -230,6 +239,7 @@ class CarouselCardData(TypedDict):
     request_fullpath: str
     shelf_button_html: Markup
     book_cover: bool
+    format: str
 
 
 @public
@@ -278,12 +288,13 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
         "key": key,
         "lazy": lazy,
         "layout": layout,
-        "loan_status_html": _render_carousel_card_loan_status(book, work_key=url, key=key),
+        "loan_status_html": _render_carousel_card_loan_status(book, work_key=url, key=key, layout=layout),
         "return_confirm_i18n": json_encode({"confirm_return": _("Really return this book?")}),
         "request_fullpath": full_path,
         # No reader or state in the HTML: book-state.js fills both in.
         "shelf_button_html": Markup(shelf_button_for(book, variant="icon", async_load=True, slot="overlay" if book_cover else None)),
         "book_cover": book_cover,
+        "format": _carousel_card_format(book) if book_cover else "",
     }
 
 
@@ -342,6 +353,10 @@ class CarouselCardPartial:
             "editions",
         ]
         query_params: dict = {"q": params.q}
+        # The subject page's publishing-history chart narrows rows to a year range. An fq, so an OR
+        # in q can't loosen it and list queries (rewritten to *:*) keep it.
+        if publish_year := date_range_to_publish_year_filter(params.published_in):
+            query_params["fq"] = [f"publish_year:{publish_year}"]
         if params.hasFulltextOnly:
             query_params["has_fulltext"] = "true"
 
@@ -788,7 +803,7 @@ class LazyCarouselParams(BaseModel):
     search: bool = False
     has_fulltext_only: bool = True
     url: str | None = None
-    layout: str = "carousel"
+    layout: str = "ol-carousel"
     fallback: str | None = None
     safe_mode: bool = True
     # Link `url` from a "See all" instead of the title.
@@ -1211,7 +1226,7 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         "limit": params.get("limit", 20),
         "search": params.get("search", False),
         "has_fulltext_only": params.get("has_fulltext_only", True),
-        "layout": params.get("layout", "carousel"),
+        "layout": params.get("layout", "ol-carousel"),
         "fallback": params.get("fallback"),
         **({"title": params["title"]} if params.get("title") else {}),
         **({"url": params["url"]} if params.get("url") else {}),
@@ -1270,7 +1285,7 @@ def build_nearby_books_placeholder_config(work_key: str, language: str | None = 
         fallback=None,
         title=_("On the Same Shelf"),
         title_link=False,
-        layout="carousel",
+        layout="ol-carousel",
     )
 
 
@@ -1393,6 +1408,7 @@ class NearbyBooksPartial:
             title=_("On the Same Shelf"),
             url=None,
             key="nearby-books",
+            layout="ol-carousel",
             full_path=full_path,
         )
         return {"partials": render_jinja_template("books/custom_carousel.html.jinja", **data)}

@@ -13,6 +13,8 @@ from openlibrary.plugins.openlibrary.partials import (
     AffiliateOffer,
     AffiliateStoreBuildContext,
     BookPageListsPartial,
+    CarouselCardPartial,
+    CarouselLoadMoreParams,
     CarouselPartial,
     HomeGenreParams,
     HomeGenrePartial,
@@ -21,6 +23,7 @@ from openlibrary.plugins.openlibrary.partials import (
     NearbyBooksPartial,
     ReadingGoalProgressPartial,
     _carousel_card_book,
+    _carousel_card_format,
     _solr_query_to_subject_key,
     build_nearby_books_placeholder_config,
     build_stores,
@@ -232,6 +235,17 @@ class TestCarouselCardBook:
         assert "work_key" not in card
 
 
+class TestCarouselCardFormat:
+    def test_librivox_book_is_audio(self):
+        assert _carousel_card_format({"key": "/books/OL1M", "id_librivox": ["123"], "ebook_access": "public"}) == "audio"
+
+    def test_ia_scan_is_read_on_the_web(self):
+        assert _carousel_card_format({"key": "/books/OL1M", "ia": ["foo"], "ebook_access": "public"}) == "web"
+
+    def test_book_without_a_provider_has_no_format(self):
+        assert _carousel_card_format({"key": "/books/OL1M"}) == ""
+
+
 class TestSolrQueryToSubjectKey:
     """Tests for _solr_query_to_subject_key conversion."""
 
@@ -405,12 +419,33 @@ class TestNearbyBooksPartial:
         assert result == {"partials": "<div/>"}
 
 
+class TestCarouselCardPartialSearch:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("published_in", "expected_fq"),
+        [
+            ("", None),
+            ("1900-1920", ["publish_year:[1900 TO 1920]"]),
+            ("not-a-range", None),
+        ],
+    )
+    async def test_published_in_narrows_the_query(self, published_in, expected_fq):
+        """The subject page's publishing-history chart filters SEARCH rows by year, as an fq beside q."""
+        params = CarouselLoadMoreParams(queryType="SEARCH", q='subject:"a" OR subject:"b"', published_in=published_in)
+        with patch("openlibrary.plugins.openlibrary.partials.work_search_async", AsyncMock(return_value={"docs": []})) as search:
+            await CarouselCardPartial._do_search_query(params)
+
+        query = search.await_args.args[0]
+        assert query["q"] == 'subject:"a" OR subject:"b"'
+        assert query.get("fq") == expected_fq
+
+
 def test_build_nearby_books_placeholder_config_targets_the_nearby_books_partial():
     config = build_nearby_books_placeholder_config("/works/OL1W", "eng")
     assert json.loads(config["lazy_config_json"]) == {"partial": "NearbyBooks", "work_key": "/works/OL1W", "language": "eng"}
     assert config["fallback"] is None
-    # The skeleton stands in for NearbyBooksPartial's slick row and its unlinked heading.
-    assert (config["layout"], config["title_link"]) == ("carousel", False)
+    # The skeleton stands in for NearbyBooksPartial's ol-carousel row and its unlinked heading.
+    assert (config["layout"], config["title_link"]) == ("ol-carousel", False)
 
 
 def _community_card(title: str) -> dict:

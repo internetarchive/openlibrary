@@ -1,12 +1,24 @@
 import { trackEvent } from '../ol.analytics.js';
 import { buildPartialsUrl } from '../utils.js';
 
+/** @type {WeakMap<HTMLElement, (detail: {yearFrom: number, yearTo: number}) => void>} */
+const filterHandlers = new WeakMap();
+let filterListening = false;
+
 /**
- * Adds analytics and load-more to `<ol-carousel>` book rows, as Carousel.js does for slick rows.
+ * Adds analytics, load-more, and the publishing-history year filter to `<ol-carousel>` book rows.
  *
  * @param {Iterable<HTMLElement>} elems `ol-carousel` elements
  */
 export function initNativeCarousels(elems) {
+    // Sent by the publishing-history chart (publishing_history.js) when a year range is picked.
+    // One shared listener, so rows replaced by a refetch can be garbage collected.
+    if (!filterListening) {
+        filterListening = true;
+        document.addEventListener('filter', e => {
+            document.querySelectorAll('ol-carousel').forEach(carousel => filterHandlers.get(carousel)?.(e.detail));
+        });
+    }
     elems.forEach(carousel => {
         const config = JSON.parse(carousel.dataset.config || '{}');
         const category = config.analyticsCategory || 'Carousel';
@@ -32,22 +44,55 @@ export function initNativeCarousels(elems) {
 
         const loadMore = config.loadMore;
         if (!loadMore?.queryType) return;
-        let locked = false;
         let allDone = carousel.children.length < loadMore.limit;
-        carousel.addEventListener('ol-carousel-near-end', async e => {
-            if (locked || allDone) return;
-            locked = true;
-            trackEvent(category, 'LoadMore', key);
+        let extraParams = {};
+        // The in-flight load-more or filter; a newer filter supersedes either.
+        let pending = null;
+
+        const start = () => {
+            const request = {};
+            pending = request;
             carousel.setAttribute('aria-busy', 'true');
+            return request;
+        };
+        const finish = request => {
+            if (request !== pending) return false;
+            pending = null;
+            carousel.removeAttribute('aria-busy');
+            return true;
+        };
+
+        carousel.addEventListener('ol-carousel-near-end', async () => {
+            if (pending || allDone) return;
+            trackEvent(category, 'LoadMore', key);
+            const request = start();
             try {
-                const cards = await fetchMoreCards(loadMore, e.detail.itemCount);
+                const cards = await fetchMoreCards(loadMore, carousel.children.length, extraParams);
+                if (request !== pending) return;
                 if (!cards.length) allDone = true;
                 carousel.append(...cards);
             } catch {
                 // The next near-end event retries.
             } finally {
-                locked = false;
-                carousel.removeAttribute('aria-busy');
+                finish(request);
+            }
+        });
+
+        filterHandlers.set(carousel, async ({ yearFrom, yearTo }) => {
+            const params = { published_in: `${yearFrom}-${yearTo}` };
+            const request = start();
+            try {
+                const cards = await fetchMoreCards(loadMore, 0, params);
+                if (request !== pending) return;
+                extraParams = params;
+                allDone = cards.length < loadMore.limit;
+                carousel.replaceChildren(...cards);
+                carousel.goToPage(0);
+            } catch {
+                // Keep the current cards.
+            } finally {
+                // A near-end swallowed while this was in flight, or a same-size swap, won't re-fire on its own.
+                if (finish(request)) carousel.resetNearEnd();
             }
         });
     });
@@ -56,9 +101,10 @@ export function initNativeCarousels(elems) {
 /**
  * @param {object} loadMore the `loadMore` block of the row's config
  * @param {number} itemCount cards already in the rail
+ * @param {object} [extraParams] e.g. the year filter's `published_in`
  * @returns {Promise<Element[]>}
  */
-async function fetchMoreCards(loadMore, itemCount) {
+async function fetchMoreCards(loadMore, itemCount, extraParams = {}) {
     const url = buildPartialsUrl('CarouselLoadMore', {
         queryType: loadMore.queryType,
         q: loadMore.q,
@@ -70,7 +116,8 @@ async function fetchMoreCards(loadMore, itemCount) {
         hasFulltextOnly: loadMore.hasFulltextOnly,
         secondaryAction: loadMore.secondaryAction,
         layout: loadMore.layout,
-        key: loadMore.key
+        key: loadMore.key,
+        ...extraParams
     });
     const resp = await fetch(url);
     if (!resp.ok) throw new Error('Failed to fetch more carousel cards');
