@@ -110,13 +110,14 @@ function outDirForJob(job, subdir = '') {
 }
 
 // -----------------------------------------------------------------
-// CSS: tokens, ol-components, page-*.css -> static/build/css
+// CSS: tokens, ol-components, fonts, page-*.css -> static/build/css
 // -----------------------------------------------------------------
 function getCssConfig() {
     const cssFiles = readdirSync(join(root, 'static/css')).filter(f => f.startsWith('page-') && f.endsWith('.css'));
     const entries = {
         tokens: resolve(root, 'static/css/tokens.css'),
-        'ol-components': resolve(root, 'static/css/ol-components.css')
+        'ol-components': resolve(root, 'static/css/ol-components.css'),
+        fonts: resolve(root, 'static/css/fonts.css')
     };
     for (const f of cssFiles) {
         entries[f.replace(/\.css$/, '')] = resolve(root, 'static/css', f);
