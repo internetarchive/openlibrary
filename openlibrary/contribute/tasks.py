@@ -19,6 +19,9 @@ POINTS = {
     "publishers": 2,
 }
 
+# The fields Tasks hands out and the initiative counts. LCCN and OCLC keep their task pages and filter, reachable by URL but not linked.
+OFFERED = ("covers", "languages", "number_of_pages", "publishers")
+
 
 @dataclass(frozen=True)
 class Task:
