@@ -29,7 +29,9 @@ $code:
      elif search_scheme == 'lists_seeds':
        sort_options = [
          { 'sort': 'index', 'name': _("List Order"), 'ga_key': 'ListOrder' },
-         { 'sort': 'last_modified', 'name': _("Last Modified"), 'ga_key': 'LastModified' },
+         { 'sort': 'added', 'name': _("Recently Added"), 'ga_key': 'RecentlyAdded' },
+         { 'sort': 'title', 'name': _("Title"), 'ga_key': 'Title' },
+         { 'sort': 'last_modified', 'name': _("Recently Edited"), 'ga_key': 'LastModified' },
        ]
      elif search_scheme == 'languages':
        sort_options = [

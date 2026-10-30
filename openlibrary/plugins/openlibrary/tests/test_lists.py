@@ -273,6 +273,41 @@ def _make_seed(key, type_, document=None):
     return SimpleNamespace(key=key, type=type_, document=document, notes=None, last_update=None)
 
 
+class TestSortListSeeds:
+    def test_recently_added_reverses_list_order(self):
+        seeds = [
+            SimpleNamespace(key="/works/OL1W", type="work", title="First"),
+            SimpleNamespace(key="/works/OL2W", type="work", title="Second"),
+            SimpleNamespace(key="/works/OL3W", type="work", title="Third"),
+        ]
+
+        assert legacy_lists.sort_list_seeds(seeds, "added") == seeds[::-1]
+        assert seeds[0].title == "First"
+
+    def test_title_sorts_books_case_insensitively_and_stably(self):
+        banana = SimpleNamespace(key="/works/OL1W", type="work", title="Banana")
+        apple = SimpleNamespace(key="/books/OL2M", type="edition", title="apple")
+        duplicate = SimpleNamespace(key="/works/OL3W", type="work", title="APPLE")
+
+        assert legacy_lists.sort_list_seeds([banana, apple, duplicate], "title") == [apple, duplicate, banana]
+
+    def test_title_keeps_non_books_after_books_in_list_order(self):
+        author = SimpleNamespace(key="/authors/OL1A", type="author", title="Author")
+        book = SimpleNamespace(key="/works/OL2W", type="work", title="Book")
+        subject = SimpleNamespace(key="subject:books", type="subject", title="Subject")
+
+        assert legacy_lists.sort_list_seeds([author, book, subject], "title") == [book, author, subject]
+
+    @pytest.mark.parametrize("sort", [None, "index", "last_modified", "bogus"])
+    def test_other_sorts_preserve_list_order(self, sort):
+        seeds = [
+            SimpleNamespace(key="/works/OL1W", type="work", title="Zebra"),
+            SimpleNamespace(key="/works/OL2W", type="work", title="Apple"),
+        ]
+
+        assert legacy_lists.sort_list_seeds(seeds, sort) == seeds
+
+
 class TestResolveListViewItems:
     """Unit tests for the seed -> Solr doc -> availability batching."""
 
@@ -447,6 +482,43 @@ class TestListViewGet:
         # seeds[50:100], i.e. exactly LIST_VIEW_PAGE_SIZE items, never the full list.
         resolve_mock.assert_called_once_with(all_seeds[50:100])
         render_mock.assert_called_once_with("type/list/view", lst, [], 1, 50, None)
+
+    @pytest.mark.parametrize(
+        ("sort", "expected_keys"),
+        [
+            ("added", [f"/works/OL{i}W" for i in range(19, -1, -1)]),
+            ("title", [f"/works/OL{i}W" for i in range(50, 70)]),
+        ],
+    )
+    def test_sort_is_applied_before_pagination(self, monkeypatch, sort, expected_keys):
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, page="2", sort=sort))
+        all_seeds = [SimpleNamespace(key=f"/works/OL{i}W", type="work", title=f"Book {i:02d}") for i in range(70)]
+        lst = SimpleNamespace(
+            type=SimpleNamespace(key="/type/list"),
+            get_seeds=Mock(return_value=all_seeds),
+        )
+        mock_site = Mock()
+        mock_site.get.return_value = lst
+
+        resolve_mock = Mock(return_value=[])
+        with (
+            patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context,
+            patch(
+                "openlibrary.plugins.openlibrary.lists._resolve_list_view_items",
+                resolve_mock,
+            ),
+            patch(
+                "openlibrary.plugins.openlibrary.lists.render_template",
+                Mock(return_value="rendered"),
+            ),
+        ):
+            mock_site_context.get.return_value = mock_site
+            legacy_lists.list_view().GET("/lists/OL1L")
+
+        resolved_keys = [seed.key for seed in resolve_mock.call_args.args[0]]
+        assert resolved_keys == expected_keys
+        lst.get_seeds.assert_called_once_with(sort=False, resolve_redirects=True)
 
     def test_page_zero_query_param_preserves_preexisting_slicing_quirk(self, monkeypatch):
         """`?page=0` -> page=-1 -> a negative-start slice that yields no items.

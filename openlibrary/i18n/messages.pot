@@ -5779,7 +5779,11 @@ msgid "List Order"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Last Modified"
+msgid "Recently Added"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Recently Edited"
 msgstr ""
 
 #: search/sort_options.html
