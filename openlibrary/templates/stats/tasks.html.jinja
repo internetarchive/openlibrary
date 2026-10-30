@@ -6,7 +6,8 @@
 </div>
 <div id="contentBody"
      class="tasks-stats"
-     data-i18n="{{ page.i18n | tojson | forceescape }}">
+     data-i18n="{{ page.i18n | tojson | forceescape }}"
+     data-min-sample="{{ page.guardrail.min_sample }}">
     <div class="tasks-stats__cards"
          role="group"
          aria-label="{{ _('Metrics, last 28 days. Choose one to chart it.') }}">
@@ -123,16 +124,31 @@
         <section class="tasks-stats__panel tasks-stats__panel--wide">
             <h2>{{ _("Guardrail") }}</h2>
             <p class="tasks-stats__note">
-                {{ _("Tasks saves whose value is no longer on the record: undone, reverted or changed by a later edit. As a share of the saves in the 28 days to each day.") }}
+                {{ _("Saves whose value is no longer on the record: undone, reverted or changed by a later edit, over the 28 days to each day. The dashed line is the same check on the same fields filled outside Tasks, by people editing a record directly.") }}
             </p>
             <p class="tasks-stats__figures">
-                <span><b>{{ page.undone.share }}</b> {{ _("undone") }}</span>
-                <span>{{ _("%(undone)s of %(saves)s saves in the last 28 days", undone=page.undone.undone, saves=page.undone.saves) }}</span>
+                <span class="tasks-stats__legend-tasks">
+                    {% if page.guardrail.tasks.share %}
+                        <b>{{ page.guardrail.tasks.share }}</b> {{ _("of Tasks saves undone") }}
+                    {% else %}
+                        {{ _("Tasks saves: too few to compare yet") }}
+                    {% endif %}
+                </span>
+                <span class="tasks-stats__legend-previous">
+                    {% if page.guardrail.other.share %}
+                        <b>{{ page.guardrail.other.share }}</b> {{ _("of fills outside Tasks undone") }}
+                    {% else %}
+                        {{ _("Fills outside Tasks: too few to compare yet") }}
+                    {% endif %}
+                </span>
+            </p>
+            <p class="tasks-stats__note">
+                {{ _("Last 28 days: %(tasks_undone)s of %(tasks)s Tasks saves and %(other_undone)s of %(other)s fills outside Tasks. A share shows once there are %(min)s.", tasks_undone=page.guardrail.tasks.undone, tasks=page.guardrail.tasks.total, other_undone=page.guardrail.other.undone, other=page.guardrail.other.total, min=page.guardrail.min_sample) }}
             </p>
             <div class="tasks-stats__canvas">
                 <canvas data-chart="undone"
                         role="img"
-                        aria-label="{{ _('Share of Tasks saves undone, by day') }}"></canvas>
+                        aria-label="{{ _('Share of Tasks saves undone, and of fills outside Tasks, by day') }}"></canvas>
             </div>
         </section>
     </div>

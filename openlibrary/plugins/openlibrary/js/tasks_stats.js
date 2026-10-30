@@ -14,7 +14,8 @@ export const DEFAULT_STRINGS = {
     todaySoFar: 'Today so far, updated hourly',
     periodSoFar: 'Still in progress',
     openDetails: '%(count)s details still open',
-    undoneShare: '%(share)s undone: %(undone)s of %(saves)s saves in the 28 days to this day',
+    tasksUndone: 'Tasks: %(share)s undone, %(undone)s of %(total)s saves',
+    otherUndone: 'Outside Tasks: %(share)s undone, %(undone)s of %(total)s fills',
     noData: 'No counts for this range yet.',
     loadFailed: "The charts couldn't load. Reload the page to try again."
 };
@@ -304,22 +305,40 @@ export async function init(root) {
             })
         });
 
-        const undone = series('tasks_saves_undone_28d');
-        const saves = series('tasks_saves_28d');
-        const shares = bucketize(undone, 1)
-            .slice(-state.days)
-            .map(b => ({ ...b, value: b.value !== null && saves[b.end] ? (b.value / /** @type {number} */ (saves[b.end])) * 100 : null }));
+        // Each line is a share of the 28 days to that day, left out where fewer than `minSample` saves stand behind it.
+        const minSample = Number(root.dataset.minSample) || 0;
+        const rates = [
+            { undone: series('tasks_saves_undone_28d'), total: series('tasks_saves_28d'), label: strings.tasksUndone },
+            { undone: series('other_fills_undone_28d'), total: series('other_fills_28d'), label: strings.otherUndone }
+        ];
+        const undoneDays = bucketize(rates[0].undone, 1).slice(-state.days);
+        const shares = rates.map(({ undone, total }) =>
+            undoneDays.map(({ end }) => {
+                const count = undone[end];
+                const of = total[end];
+                return count !== null && of !== null && of >= minSample && of > 0 ? (count / of) * 100 : null;
+            })
+        );
         draw('undone', {
             type: 'line',
             data: {
-                labels: shares.map(shortLabel),
+                labels: undoneDays.map(shortLabel),
                 datasets: [
                     {
-                        data: shares.map(b => b.value),
+                        data: shares[0],
                         borderColor: colors.bar,
                         pointBackgroundColor: colors.bar,
                         borderWidth: 2.5,
-                        pointRadius: pointRadii(shares.map(b => b.value)),
+                        pointRadius: pointRadii(shares[0]),
+                        tension: 0.25
+                    },
+                    {
+                        data: shares[1],
+                        borderColor: colors.previous,
+                        pointBackgroundColor: colors.previous,
+                        borderDash: [4, 4],
+                        borderWidth: 1.5,
+                        pointRadius: pointRadii(shares[1]),
                         tension: 0.25
                     }
                 ]
@@ -327,13 +346,14 @@ export async function init(root) {
             options: options({
                 y: { suggestedMax: 25, ticks: { callback: (/** @type {number} */ v) => percentFormat.format(v / 100) } },
                 tooltip: {
-                    title: items => fullLabel(shares[items[0].dataIndex]),
+                    title: items => fullLabel(undoneDays[items[0].dataIndex]),
                     label: item => {
-                        const day = shares[item.dataIndex].end;
-                        return fill(strings.undoneShare, {
+                        const { undone, total, label } = rates[item.datasetIndex];
+                        const day = undoneDays[item.dataIndex].end;
+                        return fill(label, {
                             share: percentFormat.format(item.raw / 100),
                             undone: numberFormat.format(/** @type {number} */ (undone[day])),
-                            saves: numberFormat.format(/** @type {number} */ (saves[day]))
+                            total: numberFormat.format(/** @type {number} */ (total[day]))
                         });
                     }
                 }

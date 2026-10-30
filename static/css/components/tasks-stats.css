@@ -123,6 +123,7 @@
   color: var(--color-text-secondary);
 }
 
+.tasks-stats__legend-tasks::before,
 .tasks-stats__legend-previous::before {
   content: "";
   display: inline-block;
@@ -130,6 +131,10 @@
   margin-inline-end: var(--spacing-2xs);
   vertical-align: middle;
   border-top: 2px dashed var(--color-text-secondary);
+}
+
+.tasks-stats__legend-tasks::before {
+  border-top: 3px solid var(--color-stats-chart-bar);
 }
 
 .tasks-stats__legend[hidden] {

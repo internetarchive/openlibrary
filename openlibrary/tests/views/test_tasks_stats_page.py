@@ -23,10 +23,23 @@ def test_cards_show_dashes_until_the_counts_exist():
     assert cards[2]["value"] == "1,200"
 
 
-def test_undone_share_is_of_saves_in_the_same_window():
-    undone = loanstats.build_undone({"tasks_saves_undone_28d": {"latest": 6}, "tasks_saves_28d": {"latest": 50}})
-    assert undone == {"undone": "6", "saves": "50", "share": "12.0%"}
-    assert loanstats.build_undone({})["share"] == "—"
+def test_guardrail_compares_tasks_with_the_same_fields_filled_elsewhere():
+    counts = {
+        "tasks_saves_undone_28d": {"latest": 6},
+        "tasks_saves_28d": {"latest": 50},
+        "other_fills_undone_28d": {"latest": 2},
+        "other_fills_28d": {"latest": 40},
+    }
+    guardrail = loanstats.build_guardrail(counts)
+    assert guardrail["tasks"] == {"undone": "6", "total": "50", "share": "12.0%"}
+    assert guardrail["other"] == {"undone": "2", "total": "40", "share": "5.0%"}
+
+
+def test_guardrail_hides_a_share_with_too_few_saves_behind_it():
+    counts = {"tasks_saves_undone_28d": {"latest": 6}, "tasks_saves_28d": {"latest": 19}}
+    guardrail = loanstats.build_guardrail(counts)
+    assert guardrail["tasks"] == {"undone": "6", "total": "19", "share": None}
+    assert guardrail["other"]["share"] is None
 
 
 def test_initiative_percent_counts_every_field_on_every_book():

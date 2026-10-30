@@ -287,10 +287,25 @@ def build_tasks_stats_cards(counts: dict) -> list[dict]:
     return result
 
 
-def build_undone(counts: dict) -> dict:
-    "Undone Tasks saves over the trailing 28 days, with their share of all Tasks saves in the same window."
-    undone, saves = (counts.get("tasks_saves_undone_28d") or {}).get("latest"), (counts.get("tasks_saves_28d") or {}).get("latest")
-    return {"undone": format_count(undone), "saves": format_count(saves), "share": f"{undone / saves:.1%}" if undone is not None and saves else "—"}
+# Below this many saves (or fills) in the window, a share is mostly noise, so the page leaves it out.
+GUARDRAIL_MIN_SAMPLE = 20
+
+
+def build_undone_rate(counts: dict, undone_key: str, total_key: str) -> dict:
+    "An undone count over the trailing 28 days, its total and the share: None without `GUARDRAIL_MIN_SAMPLE` behind it."
+    undone, total = (counts.get(undone_key) or {}).get("latest"), (counts.get(total_key) or {}).get("latest")
+    enough = undone is not None and total is not None and total >= GUARDRAIL_MIN_SAMPLE
+    return {"undone": format_count(undone), "total": format_count(total), "share": f"{undone / total:.1%}" if enough else None}
+
+
+def build_guardrail(counts: dict) -> dict:
+    """Tasks saves undone, beside the same check on the same fields filled outside Tasks, so the rate has something to
+    be compared with."""
+    return {
+        "tasks": build_undone_rate(counts, "tasks_saves_undone_28d", "tasks_saves_28d"),
+        "other": build_undone_rate(counts, "other_fills_undone_28d", "other_fills_28d"),
+        "min_sample": GUARDRAIL_MIN_SAMPLE,
+    }
 
 
 def build_initiative(counts: dict) -> dict:
@@ -343,7 +358,8 @@ def build_tasks_stats_i18n() -> dict[str, str]:
         "todaySoFar": _("Today so far, updated hourly"),
         "periodSoFar": _("Still in progress"),
         "openDetails": _("%(count)s details still open"),
-        "undoneShare": _("%(share)s undone: %(undone)s of %(saves)s saves in the 28 days to this day"),
+        "tasksUndone": _("Tasks: %(share)s undone, %(undone)s of %(total)s saves"),
+        "otherUndone": _("Outside Tasks: %(share)s undone, %(undone)s of %(total)s fills"),
         "noData": _("No counts for this range yet."),
         "loadFailed": _("The charts couldn't load. Reload the page to try again."),
     }
@@ -356,6 +372,8 @@ def build_tasks_stats_page() -> dict:
         "tasks_saves_28d",
         "tasks_editors_28d",
         "tasks_saves_undone_28d",
+        "other_fills_28d",
+        "other_fills_undone_28d",
         "initiative_open_gaps",
         "initiative_done_editions",
         "initiative_not_found",
@@ -364,7 +382,7 @@ def build_tasks_stats_page() -> dict:
     counts = get_rolling_counts(keys, 1)
     return {
         "cards": build_tasks_stats_cards(counts),
-        "undone": build_undone(counts),
+        "guardrail": build_guardrail(counts),
         "initiative": build_initiative(counts),
         "saves_by_field": build_saves_by_field(get_count_docs(28)),
         "i18n": build_tasks_stats_i18n(),
