@@ -338,6 +338,58 @@ def admin_range__tasks_saves_undone_28d(**kargs):
     return db.query(sql, vars={"since": since, "end": end, "tasks_source": TASKS_SOURCE})[0].count
 
 
+# The fields Tasks offers; matches `openlibrary.contribute.tasks.POINTS`. Only the gatherer's own constants go into the SQL.
+TASKS_FIELDS = ("covers", "lccn", "oclc_numbers", "languages", "number_of_pages", "publishers")
+_cached_other_fills: dict[tuple[str, str], dict[str, int]] = {}
+
+
+def _other_fills(kargs) -> dict[str, int]:
+    """The guardrail's baseline: Tasks fields filled from empty on an edition by a person outside Tasks in the 28 days
+    before `end`, and how many of those values the record no longer holds. Checked like `tasks_saves_undone_28d`, so the
+    two rates compare. One query serves both keys."""
+    db, since, end = _window_args("admin_range__other_fills_28d", kargs, 28)
+    if (since, end) not in _cached_other_fills:
+        bot_ids = _get_cached_bot_accounts(thingdb=db)
+        not_bot = " AND t.author_id NOT IN $bot_ids" if bot_ids else ""
+        empty = "('null'::jsonb, '\"\"'::jsonb, '[]'::jsonb)"
+        fields = ", ".join(f"'{f}'" for f in TASKS_FIELDS)
+        sql = f"""
+            WITH edits AS (
+                SELECT c->>'key' AS key, (c->>'revision')::int AS revision
+                FROM transaction t, jsonb_array_elements(t.changes::jsonb) c
+                WHERE t.created >= $since AND t.created < $end AND t.author_id IS NOT NULL{not_bot}
+                  AND t.changes ~ $edition_change AND t.id NOT IN ({TASKS_SAVES}) AND c->>'key' LIKE $edition_key
+            ),
+            fills AS (
+                SELECT saved.data::jsonb -> f.field AS value, latest.data::jsonb -> f.field AS now
+                FROM edits e
+                JOIN thing th ON th.key = e.key
+                JOIN data saved ON saved.thing_id = th.id AND saved.revision = e.revision
+                JOIN data prev ON prev.thing_id = th.id AND prev.revision = e.revision - 1
+                JOIN data latest ON latest.thing_id = th.id AND latest.revision = th.latest_revision
+                CROSS JOIN unnest(ARRAY[{fields}]) AS f(field)
+                WHERE COALESCE(prev.data::jsonb -> f.field, 'null'::jsonb) IN {empty}
+                  AND COALESCE(saved.data::jsonb -> f.field, 'null'::jsonb) NOT IN {empty}
+                  AND latest.data::jsonb->'type' = saved.data::jsonb->'type'
+            )
+            SELECT count(*) AS filled, count(*) FILTER (WHERE NOT COALESCE(now @> value, false)) AS undone FROM fills
+        """
+        vars = {"since": since, "end": end, "bot_ids": bot_ids, "tasks_source": TASKS_SOURCE, "edition_change": '"/books/OL', "edition_key": "/books/OL%"}
+        row = db.query(sql, vars=vars)[0]
+        _cached_other_fills[(since, end)] = {"filled": row.filled, "undone": row.undone}
+    return _cached_other_fills[(since, end)]
+
+
+def admin_range__other_fills_28d(**kargs):
+    "Tasks fields filled from empty outside Tasks, by people, in the 28 days before `end`: the guardrail's baseline."
+    return _other_fills(kargs)["filled"]
+
+
+def admin_range__other_fills_undone_28d(**kargs):
+    "Of `other_fills_28d`, the values the record no longer holds, checked like `tasks_saves_undone_28d`."
+    return _other_fills(kargs)["undone"]
+
+
 def admin_range__covers(**kargs):
     "Queries the number of covers added between `start` and `end`"
     try:

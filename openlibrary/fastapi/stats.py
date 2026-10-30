@@ -28,6 +28,8 @@ SERIES_KEYS = (
     "tasks_saves_1d",
     "tasks_saves_28d",
     "tasks_saves_undone_28d",
+    "other_fills_28d",
+    "other_fills_undone_28d",
     "tasks_editors_1d",
     "tasks_editors_7d",
     "tasks_editors_28d",
