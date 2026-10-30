@@ -173,14 +173,10 @@ $(function () {
         import('./signup.js').then(module => module.initLoginForm());
     }
 
-    // conditionally load clamping components
-    const clampers = document.querySelectorAll('.clamp');
-    if (clampers.length) {
-        import('./clampers.js').then(module => {
-            if (clampers.length) {
-                module.initClampers(clampers);
-            }
-        });
+    // Book page subject rows collapse to one line with a "+N" chip
+    const subjectLists = document.querySelectorAll('.subject-row__chips');
+    if (subjectLists.length) {
+        import('./subject-rows.js').then(module => module.initSubjectRows(subjectLists));
     }
 
     // conditionally load file dropzone for CSV import (Goodreads, etc.)

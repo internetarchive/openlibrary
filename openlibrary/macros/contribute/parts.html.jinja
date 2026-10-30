@@ -1,8 +1,10 @@
 {#- Shared pieces of the /tasks pages. Data arrives precomputed from
     openlibrary/plugins/openlibrary/contribute.py; nothing here calls functions on it. -#}
-{% macro book_header(book, compact=False, linked=True) %}
-    {#- linked=False (dashboard cards): cover and title aren't links, so a stray click can't be mistaken
-        for starting a task; view/edit buttons in the corner reach the book instead. -#}
+{% macro book_header(book, compact=False, href=None, track=None) %}
+    {#- ``href`` is where the cover and title lead: the book page by default, or a task on the dashboard,
+        where people click the title expecting to start one. When it isn't the book page, view/edit
+        buttons in the corner reach the book instead. ``track`` is the title link's "Category|Action|Label". -#}
+    {% set href = href or book.key %}
     {% set cover %}
         {% if book.cover_url %}
             <img class="contrib-book__cover"
@@ -17,22 +19,15 @@
         {% endif %}
     {% endset %}
     <div class="contrib-book{% if compact %} contrib-book--compact{% endif %}">
-        {% if linked %}
-            {#- A second way to the title's link, so keep it out of the tab order and the accessibility tree. -#}
-            <a class="contrib-cover-link"
-               href="{{ book.key }}"
-               tabindex="-1"
-               aria-hidden="true">{{ cover }}</a>
-        {% else %}
-            {{ cover }}
-        {% endif %}
+        {#- A second way to the title's link, so keep it out of the tab order and the accessibility tree. -#}
+        <a class="contrib-cover-link"
+           href="{{ href }}"
+           tabindex="-1"
+           aria-hidden="true">{{ cover }}</a>
         <div class="contrib-book__meta">
             <div class="contrib-book__title">
-                {% if linked %}
-                    <a href="{{ book.key }}">{{ book.title }}</a>
-                {% else %}
-                    {{ book.title }}
-                {% endif %}
+                <a href="{{ href }}"
+                   {% if track %} data-ol-link-track="{{ track }}"{% endif %}>{{ book.title }}</a>
             </div>
             {% if book.authors %}<div class="contrib-book__authors">{{ book.authors }}</div>{% endif %}
             <div class="contrib-book__line">
@@ -46,7 +41,7 @@
                 <div class="contrib-book__why">{{ _("Why this book: on about %(count)s readers' shelves.", count="{:,}".format(book.readers)) }}</div>
             {% endif %}
         </div>
-        {% if not linked %}
+        {% if href != book.key %}
             <div class="contrib-book__actions">
                 <ol-tooltip content="{{ _('Go to book page') }}">
                     <ol-button variant="ghost" shape="icon" size="small" href="{{ book.key }}" aria-label="{{ _('Go to book page') }}">
@@ -78,7 +73,9 @@
         <h2 class="contrib-h">{{ _("How to answer") }}</h2>
         <ol class="contrib-steps">
             <li>
-                <p>{{ field_guide.how }}</p>
+                <div class="contrib-steps__text">
+                    {% for para in field_guide.how.split("\n\n") %}<p>{{ para }}</p>{% endfor %}
+                </div>
                 {% if links %}
                     <ul class="contrib-linkouts">
                         {% for link in links %}
@@ -87,7 +84,7 @@
                             </li>
                         {% endfor %}
                     </ul>
-                {% else %}
+                {% elif field_guide.sources %}
                     <p class="contrib-muted">{{ _("This edition has no ISBN to search by, so look it up by title and author.") }}</p>
                 {% endif %}
             </li>
@@ -114,6 +111,15 @@
             {% endfor %}
         </ul>
     </section>
+{% endmacro %}
+{% macro evidence(blurb) %}
+    {#- For a judgment, the record's own description is a clue; with none, the how-to's lookups stand in. -#}
+    {% if blurb %}
+        <section class="contrib-help">
+            <h2 class="contrib-h">{{ _("What the record says") }}</h2>
+            <p class="contrib-evidence">{{ blurb }}</p>
+        </section>
+    {% endif %}
 {% endmacro %}
 {% macro sibling_tally(tally, siblings, total, hint) %}
     {#- What the work's other editions put in this field: a count per value, then each edition behind a disclosure. -#}
@@ -159,8 +165,16 @@
         </details>
     </section>
 {% endmacro %}
-{% macro answer_control(task, field_guide, is_identifier, value, languages, cover_suggestion=None) %}
-    {% if field_guide.input_type == "file" %}
+{% macro answer_control(task, field_guide, is_identifier, value, languages, cover_suggestion=None, choices=[]) %}
+    {% if choices %}
+        {#- A few fixed answers with what each means, none picked in advance: a judgment the librarian makes, not a
+            default they confirm. "Not sure" is one of the rows; the handler counts it the way it counts "I couldn't find it".
+            With quick_next, the picked row shows a hint that a second click saves and moves on (contribute.js). -#}
+        {% with name="value", rows=choices, labelled_by="contrib-other-label",
+            again_hint=(_("Click again to save and continue") if field_guide.quick_next else "") %}
+            {% include "forms/choice_list.html.jinja" %}
+        {% endwith %}
+    {% elif field_guide.input_type == "file" %}
         {#- The choices for the new cover, as rows. Each fills the one file input, so saving is the same for all of them.
             contribute.js reveals the Amazon row once its image loads, and previews the choice in the record's cover slot. -#}
         <fieldset class="contrib-cover-options">
@@ -256,6 +270,7 @@
           {% if data.is_cover %}enctype="multipart/form-data" data-cover-form{% endif %}
           data-task-form
           {% if data.is_identifier %}data-id-form{% endif %}
+          {% if data.field_guide.quick_next %}data-quick-next{% endif %}
           data-task-key="{{ task.key }}"
           data-task-field="{{ task.field }}">
         {% if data.error %}<p class="ol-message ol-message--error" role="alert">{{ data.error }}</p>{% endif %}
@@ -301,10 +316,15 @@
                     {% if row.ask %}
                         <div class="contrib-record__row contrib-record__row--ask">
                             <dt>
-                                <label for="contrib-other-value">{{ row.label }}</label>
+                                {#- A choice list is a group of radios, so its label names the group rather than one control. -#}
+                                {% if data.choices %}
+                                    <span class="contrib-record__ask-label" id="contrib-other-label">{{ row.label }}</span>
+                                {% else %}
+                                    <label for="contrib-other-value">{{ row.label }}</label>
+                                {% endif %}
                             </dt>
                             <dd>
-                                {{ answer_control(task, data.field_guide, data.is_identifier, data.value, data.languages, data.cover_suggestion) }}
+                                {{ answer_control(task, data.field_guide, data.is_identifier, data.value, data.languages, data.cover_suggestion, data.choices) }}
                                 {% if data.is_identifier %}<p class="contrib-field__verdict" data-id-verdict role="status"></p>{% endif %}
                                 {% if data.suggestions %}
                                     <div class="contrib-suggest" data-suggest>
@@ -359,10 +379,13 @@
                 </ol-button>
             </div>
             <div class="contrib-answer__move">
-                {#- Submits without the answer's checks: the handler notes it and moves on to the next task. -#}
-                <ol-button variant="ghost" type="submit" name="then" value="notfound" formnovalidate data-skip data-ol-link-track="TaskForm|NotFound|{{ task.field }}">
-                    {{ _("I couldn't find it") }}
-                </ol-button>
+                {#- Submits without the answer's checks: the handler notes it and moves on to the next task.
+                    A choice list carries "Not sure" as one of its rows instead. -#}
+                {% if not data.choices %}
+                    <ol-button variant="ghost" type="submit" name="then" value="notfound" formnovalidate data-skip data-ol-link-track="TaskForm|NotFound|{{ task.field }}">
+                        {{ _("I couldn't find it") }}
+                    </ol-button>
+                {% endif %}
                 <ol-button variant="ghost" href="{{ data.skip_url }}" data-skip data-ol-link-track="TaskForm|Skip|{{ task.field }}">
                     {{ _("Skip") }}
                     {{ icon("arrow-right", slot="icon-end") }}

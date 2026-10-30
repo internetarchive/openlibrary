@@ -6,11 +6,33 @@ class FakeEdition(dict):
     key = "/books/OL1M"
 
 
+class FakeWork(dict):
+    key = "/works/OL1W"
+
+
 def test_tasks_are_the_empty_fields_most_valuable_first():
     ed = FakeEdition(covers=[1], publishers=[], languages=None, lccn=["75425165"], number_of_pages=320)
     assert [t.field for t in tasks.tasks_for_edition(ed)] == ["oclc_numbers", "languages", "publishers"]
     ed["covers"] = []
     assert tasks.tasks_for_edition(ed)[0].field == "covers"
+
+
+def test_the_literary_form_is_a_task_on_the_edition_when_its_work_has_none():
+    work = FakeWork()
+    ed = FakeEdition(works=[work])
+    assert tasks.is_missing(ed, "literary_form")
+    assert tasks.is_missing(ed, "literary_form", work=FakeWork(literary_form={"key": "/tags/OL1T"})) is False
+    # A bare key, as the tags migration stored genres, counts as filled too.
+    work["literary_form"] = "/tags/OL1T"
+    assert not tasks.is_missing(ed, "literary_form")
+    # An orphan edition has no work to put the answer on.
+    assert not tasks.is_missing(FakeEdition(), "literary_form")
+
+
+def test_beta_fields_are_only_visible_to_the_tags_whitelist():
+    assert "literary_form" not in tasks.visible_fields(False)
+    assert "literary_form" in tasks.visible_fields(True)
+    assert tasks.visible_fields(True) == tuple(tasks.POINTS)
 
 
 def test_a_cover_is_missing_with_only_deleted_covers_but_not_on_a_scanned_book():

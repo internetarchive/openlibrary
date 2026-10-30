@@ -18,6 +18,7 @@ def test_rows_answer_202_while_the_pool_builds(fastapi_client, mock_authenticate
 
 def test_rows_render_the_list_for_a_normalized_filter(fastapi_client, mock_authenticated_user):
     with (
+        patch("openlibrary.fastapi.tasks.contribute.fields_for", return_value=("covers",)),
         patch("openlibrary.fastapi.tasks.contribute.build_task_rows", return_value=[]) as build,
         patch("openlibrary.fastapi.tasks.render_jinja_template", return_value="<li>row</li>") as render,
     ):
@@ -25,6 +26,6 @@ def test_rows_render_the_list_for_a_normalized_filter(fastapi_client, mock_authe
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
     assert response.text == "<li>row</li>"
-    assert build.call_args.args == ("",)
+    assert build.call_args.args == ("", ("covers",))
     assert render.call_args.args == ("contribute/rows.html.jinja",)
     assert render.call_args.kwargs == {"rows": []}

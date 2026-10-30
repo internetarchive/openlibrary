@@ -15,16 +15,26 @@ class FakeEdition(dict):
         self.type = web.storage(key=type_key)
 
 
+class FakeWork(dict):
+    def __init__(self, key, **fields):
+        super().__init__(**fields)
+        self.key = key
+        self.type = web.storage(key="/type/work")
+
+
+WORK = FakeWork("/works/OL1W", literary_form={"key": "/tags/OL1T"})
+
+
 class FakeSite:
-    def __init__(self, editions=(), store=None):
-        self.editions = {e.key: e for e in editions}
+    def __init__(self, editions=(), store=None, works=(WORK,)):
+        self.editions = {e.key: e for e in editions} | {w.key: w for w in works}
         self.store = FakeStore(store or {})
 
     def get_many(self, keys):
         return [self.editions[k] for k in keys if k in self.editions]
 
 
-COMPLETE = {"covers": [1], "lccn": ["1"], "oclc_numbers": ["1"], "languages": ["eng"], "number_of_pages": 300, "publishers": ["P"]}
+COMPLETE = {"covers": [1], "lccn": ["1"], "oclc_numbers": ["1"], "languages": ["eng"], "number_of_pages": 300, "publishers": ["P"], "works": [WORK]}
 
 
 def make_initiative(picks, calls=None):
@@ -67,8 +77,25 @@ def test_gaps_list_open_fields_and_set_aside_ones_nobody_could_find():
     )
     gaps = initiatives.build_gaps(make_initiative([]), site)
     assert gaps == [["/books/OL1M", 9, ["publishers"], ["lccn"]], ["/books/OL2M", 8, [], []]]
-    # 2 editions x 6 fields = 12 details, 1 still open: 11/12 filled, rounded down.
-    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 1, "percent": 91}
+    # 2 editions x 7 fields = 14 details, 1 still open: 13/14 filled, rounded down.
+    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 1, "percent": 92}
+
+
+def test_a_work_level_gap_is_read_from_the_edition_s_work():
+    bare = FakeWork("/works/OL2W")
+    site = FakeSite(
+        editions=[FakeEdition("/books/OL1M", **(COMPLETE | {"works": [bare]}))],
+        works=(bare,),
+        store={"contribute-initiative-test": {"editions": [["/books/OL1M", 9]]}},
+    )
+    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, ["literary_form"], []]]
+
+
+def test_progress_counts_only_the_fields_the_viewer_sees():
+    gaps = [["/books/OL1M", 9, ["literary_form"], []], ["/books/OL2M", 8, ["publishers"], ["literary_form"]]]
+    public = initiatives.progress(gaps, ("publishers", "covers"))
+    assert public == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 75}
+    assert initiatives.progress(gaps)["open"] == 2
 
 
 def test_every_task_field_has_a_not_found_threshold():

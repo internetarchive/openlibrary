@@ -1,0 +1,28 @@
+{#- A radio group of rows, each a title with what it means underneath. Styled by static/css/components/choice-list.css.
+    name: the field; rows: [{value, label, description}]; value: the checked row's value; labelled_by: the id of the group's label.
+    again_hint: optional text shown on the picked row, for forms that treat a second click on it as the save.
+    Rendered from Jinja ({% include %} inside a {% with %}) and from Templetor (render_jinja_template). -#}
+{% if name is defined and rows is defined %}
+    {% set again_hint = again_hint if again_hint is defined else "" %}
+    <div class="ol-choice-list"
+         role="radiogroup"
+         {% if labelled_by is defined and labelled_by %}aria-labelledby="{{ labelled_by }}"{% endif %}>
+        {% for row in rows %}
+            <label class="ol-choice{% if again_hint %} ol-choice--again{% endif %}">
+                <input class="ol-choice__input"
+                       type="radio"
+                       name="{{ name }}"
+                       value="{{ row.value }}"
+                       {% if value is defined and row.value == value %}checked{% endif %} />
+                <span class="ol-choice__text">
+                    <span class="ol-choice__title">{{ row.label }}</span>
+                    {% if row.description %}<span class="ol-choice__meta">{{ row.description }}</span>{% endif %}
+                </span>
+                {#- Pointer-only guidance, kept out of the radio's name; Enter already submits for keyboard users. -#}
+                {% if again_hint %}
+                    <span class="ol-choice__again" aria-hidden="true">{{ again_hint }}{{ icon("arrow-right", size="sm") }}</span>
+                {% endif %}
+            </label>
+        {% endfor %}
+    </div>
+{% endif %}

@@ -65,6 +65,7 @@
 @import "components/pagination.css";
 /* Import styles for the reading log stats charts */
 @import "components/readinglog-charts.css";
+@import "components/choice-list.css";
 
 body {
   background-color: var(--color-background);

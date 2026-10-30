@@ -12,6 +12,7 @@ import re
 import web
 
 from openlibrary.contribute.field_guides import AMAZON_COVER
+from openlibrary.core.tags import find_tag
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.covers import add_cover
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, get_languages
@@ -95,6 +96,21 @@ def save_answer(edition, fld: str, raw: str, label: str, note: str = "") -> None
     """Write the answer to the edition as a normal edit by the current user."""
     doc = edition.dict()
     doc[fld] = answer_value(edition, fld, raw)
+    comment = note.strip() or _("Filled in %(field)s from Open Library Tasks", field=label)
+    web.ctx.site.save(doc, comment=comment, action=ACTION, data={"source": SOURCE, "field": fld})
+
+
+def tag_answer(tag_type: str, raw: str) -> dict:
+    """The reference to store for a chosen tag; the choice must be one of the type's tags."""
+    if not find_tag(tag_type, raw.strip()):
+        raise InvalidAnswer(_("Choose one of the options."))
+    return {"key": raw.strip()}
+
+
+def save_work_answer(work, fld: str, raw: str, label: str, note: str = "") -> None:
+    """Write a tag answer to the work, the same way as an edition answer."""
+    doc = work.dict()
+    doc[fld] = tag_answer(fld, raw)
     comment = note.strip() or _("Filled in %(field)s from Open Library Tasks", field=label)
     web.ctx.site.save(doc, comment=comment, action=ACTION, data={"source": SOURCE, "field": fld})
 
