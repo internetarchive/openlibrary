@@ -1,12 +1,24 @@
 import { trackEvent } from '../ol.analytics.js';
 import { buildPartialsUrl } from '../utils.js';
 
+/** @type {WeakMap<HTMLElement, (detail: {yearFrom: number, yearTo: number}) => void>} */
+const filterHandlers = new WeakMap();
+let filterListening = false;
+
 /**
  * Adds analytics, load-more, and the publishing-history year filter to `<ol-carousel>` book rows.
  *
  * @param {Iterable<HTMLElement>} elems `ol-carousel` elements
  */
 export function initNativeCarousels(elems) {
+    // Sent by the publishing-history chart (publishing_history.js) when a year range is picked.
+    // One shared listener, so rows replaced by a refetch can be garbage collected.
+    if (!filterListening) {
+        filterListening = true;
+        document.addEventListener('filter', e => {
+            document.querySelectorAll('ol-carousel').forEach(carousel => filterHandlers.get(carousel)?.(e.detail));
+        });
+    }
     elems.forEach(carousel => {
         const config = JSON.parse(carousel.dataset.config || '{}');
         const category = config.analyticsCategory || 'Carousel';
@@ -32,48 +44,55 @@ export function initNativeCarousels(elems) {
 
         const loadMore = config.loadMore;
         if (!loadMore?.queryType) return;
-        let locked = false;
         let allDone = carousel.children.length < loadMore.limit;
         let extraParams = {};
-        // So a slower earlier filter response can't overwrite a newer one.
-        let latestFilter = null;
+        // The in-flight load-more or filter; a newer filter supersedes either.
+        let pending = null;
 
-        carousel.addEventListener('ol-carousel-near-end', async e => {
-            if (locked || allDone) return;
-            locked = true;
-            trackEvent(category, 'LoadMore', key);
+        const start = () => {
+            const request = {};
+            pending = request;
             carousel.setAttribute('aria-busy', 'true');
-            const request = latestFilter;
+            return request;
+        };
+        const finish = request => {
+            if (request !== pending) return false;
+            pending = null;
+            carousel.removeAttribute('aria-busy');
+            return true;
+        };
+
+        carousel.addEventListener('ol-carousel-near-end', async () => {
+            if (pending || allDone) return;
+            trackEvent(category, 'LoadMore', key);
+            const request = start();
             try {
-                const cards = await fetchMoreCards(loadMore, e.detail.itemCount, extraParams);
-                if (request !== latestFilter) return;
+                const cards = await fetchMoreCards(loadMore, carousel.children.length, extraParams);
+                if (request !== pending) return;
                 if (!cards.length) allDone = true;
                 carousel.append(...cards);
             } catch {
                 // The next near-end event retries.
             } finally {
-                locked = false;
-                carousel.removeAttribute('aria-busy');
+                finish(request);
             }
         });
 
-        // Sent by the publishing-history chart (publishing_history.js) when a year range is picked.
-        document.addEventListener('filter', async e => {
-            if (!carousel.isConnected) return;
-            extraParams = { published_in: `${e.detail.yearFrom}-${e.detail.yearTo}` };
-            const request = {};
-            latestFilter = request;
-            carousel.setAttribute('aria-busy', 'true');
+        filterHandlers.set(carousel, async ({ yearFrom, yearTo }) => {
+            const params = { published_in: `${yearFrom}-${yearTo}` };
+            const request = start();
             try {
-                const cards = await fetchMoreCards(loadMore, 0, extraParams);
-                if (request !== latestFilter) return;
+                const cards = await fetchMoreCards(loadMore, 0, params);
+                if (request !== pending) return;
+                extraParams = params;
                 allDone = cards.length < loadMore.limit;
                 carousel.replaceChildren(...cards);
                 carousel.goToPage(0);
             } catch {
                 // Keep the current cards.
             } finally {
-                if (request === latestFilter) carousel.removeAttribute('aria-busy');
+                // A near-end swallowed while this was in flight, or a same-size swap, won't re-fire on its own.
+                if (finish(request)) carousel.resetNearEnd();
             }
         });
     });

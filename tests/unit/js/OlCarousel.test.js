@@ -502,6 +502,23 @@ describe('near-end event', () => {
         expect(handler.mock.calls[1][0].detail.itemCount).toBe(22);
     });
 
+    it('resetNearEnd re-fires when replaced items leave the count unchanged', async () => {
+        const { el, scrollTo, settle } = await mountCarousel(18);
+        const handler = vi.fn();
+        el.addEventListener('ol-carousel-near-end', handler);
+
+        await scrollTo(el._pageOffsets[1]);
+        await settle();
+        expect(handler).toHaveBeenCalledTimes(1);
+
+        await settle(); // same count, so a plain settle stays quiet
+        expect(handler).toHaveBeenCalledTimes(1);
+
+        el.resetNearEnd();
+        expect(handler).toHaveBeenCalledTimes(2);
+        expect(handler.mock.calls[1][0].detail.itemCount).toBe(18);
+    });
+
     it('fires on first render when the rail is too short to fill the buffer', async () => {
         const handler = vi.fn();
         document.addEventListener('ol-carousel-near-end', handler);

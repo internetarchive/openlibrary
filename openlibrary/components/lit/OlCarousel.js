@@ -594,6 +594,13 @@ export class OlCarousel extends LitElement {
         scroller.scrollTo({ left: this._pageOffsets[clamped] ?? 0 });
     }
 
+    /** Re-arm near-end after the items are swapped out, which can leave the count unchanged. */
+    resetNearEnd() {
+        this._nearEndEmittedForCount = 0;
+        // A changed count re-checks in updated(); an unchanged one never updates.
+        if (this._items.length === this._itemCount) this._maybeEmitNearEnd();
+    }
+
     // ── Geometry ──
 
     /** @returns {HTMLElement|null} the scroll container */

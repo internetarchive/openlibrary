@@ -352,9 +352,10 @@ class CarouselCardPartial:
             "editions",
         ]
         query_params: dict = {"q": params.q}
-        # The subject page's publishing-history chart narrows rows to a year range.
+        # The subject page's publishing-history chart narrows rows to a year range. An fq, so an OR
+        # in q can't loosen it and list queries (rewritten to *:*) keep it.
         if publish_year := date_range_to_publish_year_filter(params.published_in):
-            query_params["q"] = f"{params.q} publish_year:{publish_year}"
+            query_params["fq"] = [f"publish_year:{publish_year}"]
         if params.hasFulltextOnly:
             query_params["has_fulltext"] = "true"
 

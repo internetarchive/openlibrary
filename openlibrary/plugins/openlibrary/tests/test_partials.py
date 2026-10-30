@@ -422,20 +422,22 @@ class TestNearbyBooksPartial:
 class TestCarouselCardPartialSearch:
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        ("published_in", "expected_q"),
+        ("published_in", "expected_fq"),
         [
-            ("", 'subject_key:"history"'),
-            ("1900-1920", 'subject_key:"history" publish_year:[1900 TO 1920]'),
-            ("not-a-range", 'subject_key:"history"'),
+            ("", None),
+            ("1900-1920", ["publish_year:[1900 TO 1920]"]),
+            ("not-a-range", None),
         ],
     )
-    async def test_published_in_narrows_the_query(self, published_in, expected_q):
-        """The subject page's publishing-history chart filters SEARCH rows by year."""
-        params = CarouselLoadMoreParams(queryType="SEARCH", q='subject_key:"history"', published_in=published_in)
+    async def test_published_in_narrows_the_query(self, published_in, expected_fq):
+        """The subject page's publishing-history chart filters SEARCH rows by year, as an fq beside q."""
+        params = CarouselLoadMoreParams(queryType="SEARCH", q='subject:"a" OR subject:"b"', published_in=published_in)
         with patch("openlibrary.plugins.openlibrary.partials.work_search_async", AsyncMock(return_value={"docs": []})) as search:
             await CarouselCardPartial._do_search_query(params)
 
-        assert search.await_args.args[0]["q"] == expected_q
+        query = search.await_args.args[0]
+        assert query["q"] == 'subject:"a" OR subject:"b"'
+        assert query.get("fq") == expected_fq
 
 
 def test_build_nearby_books_placeholder_config_targets_the_nearby_books_partial():
