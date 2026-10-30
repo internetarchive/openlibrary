@@ -1615,7 +1615,8 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
         return (locations, publishers)
 
     # Fall back to making the input a list returning that and an empty location.
-    return ([], [loc_pub.strip(STRIP_CHARS)])
+    publisher = loc_pub.strip(STRIP_CHARS)
+    return ([], [publisher] if publisher else [])
 
 
 @public
