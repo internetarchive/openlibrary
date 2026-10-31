@@ -43,7 +43,7 @@ Local dev runs a single Solr container at `http://localhost:8983`. The `OL_SOLR_
 | `openlibrary/plugins/worksearch/schemes/authors.py` | `AuthorSearchScheme`. |
 | `openlibrary/plugins/worksearch/schemes/editions.py` | `EditionSearchScheme` — for the edition block-join subquery. |
 | `openlibrary/fastapi/search.py` | FastAPI endpoint definitions: `/search.json`, `/search/carousels.json`, etc. |
-| `scripts/solr_updater/solr_updater.py` | The long-running daemon that tails the Infobase changelog and calls `update_keys()`. |
+| `scripts/solr_updater/solr_updater.py` | The long-running daemon that reads from the configured source (Infobase changelog by default; database queue when selected) and calls `update_keys()`. |
 | `scripts/solr_updater/trending_updater.py` | Separate daemon that writes trending scores into Solr. |
 | `scripts/solr_builder/` | Full reindex pipeline (Jenkins + Docker). |
 | `docker/ol-solr-updater-start.sh` | Entrypoint for the `solr-updater` container. Starts both daemons. |
@@ -67,11 +67,13 @@ Subjects are **not stored as documents**. They are derived at query time from wo
 
 `scripts/solr_updater/solr_updater.py` is a long-running daemon that keeps the index current:
 
-1. On startup, reads a **state file** (`/solr-updater-data/solr_state`) containing the last consumed changelog offset, formatted as `YYYY-MM-DD:N` (e.g. `2023-02-11:4217`).
-2. Polls the **Infobase changelog** at `http://{infobase_host}/openlibrary.org/log/{offset}?limit=100`, which returns up to 100 log records and the new offset.
-3. Extracts the affected OL keys from each log record and passes them to `update_keys()`.
-4. Persists the new offset to the state file after each batch.
-5. On empty response, waits and retries.
+1. By default, polls the Infobase HTTP changelog. When started with `--source database`, polls `solr_updater_queue` for pending transaction and admin force-update entries.
+2. For transaction entries, joins `transaction.changes` to versioned `data` rows to recover each saved document and its previous revision.
+3. Extracts changed document keys and references removed by the edit, then passes them to `update_keys()`.
+4. Deletes queue entries only after processing. Database triggers insert entries in the same transaction as the save, so retries are safe and transaction ID visibility order does not control the checkpoint.
+5. On an empty queue, waits and retries. The database queue is opt-in; the Infobase HTTP log remains the default source.
+
+The queue triggers' installation time is the database source's capture start. Pending edits since then survive until acknowledged, so switching from the Infobase source later may replay overlapping edits but does not require reindexing the catalog. The queue does not translate an arbitrary Infobase log offset.
 
 A second daemon, `trending_updater.py`, runs in parallel and writes trending scores from the OL DB into Solr periodically.
 
@@ -81,10 +83,12 @@ The `docker/ol-solr-updater-start.sh` entrypoint starts both. The OSP (Open Syll
 
 ```
 OL database (postgres/infobase)
-    │
-    │  solr-updater daemon
-    │  polls /log/{offset} → extract changed keys
-    ▼
+    ├─ Infobase HTTP changelog (default source)
+    └─ transaction + store triggers → solr_updater_queue (--source database)
+                    │
+                    └─ solr-updater reads selected source
+                                      │
+                                      ▼
 openlibrary/solr/update.py → update_keys()
     │  runs [EditionSolrUpdater, WorkSolrUpdater, AuthorSolrUpdater, ListSolrUpdater]
     │  order matters (Edition before Work; Work embeds edition data)

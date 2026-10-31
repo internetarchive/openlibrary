@@ -14,9 +14,10 @@ changelog = """\
 2010-08-02: 12 - Added `data` column to transaction table.
 2010-08-03: 13 - Added `changes` column to transaction table
 2010-08-13: 14 - Added `transaction_index` table to index data in the transaction table.
+2026-10-31: 15 - Added a transactional queue for Solr updates.
 """
 
-LATEST_VERSION = 14
+LATEST_VERSION = 15
 
 
 class Upgrader:
@@ -87,6 +88,44 @@ class Upgrader:
         """
         db.query(q)
 
+    def upgrade_015(self, db):
+        """Queue Infobase writes for database-backed Solr updates."""
+        query = """
+            CREATE TABLE solr_updater_queue (
+                id bigserial primary key,
+                transaction_id int references transaction,
+                keys jsonb,
+                created timestamp without time zone default (current_timestamp at time zone 'utc'),
+                CHECK ((transaction_id IS NULL) <> (keys IS NULL))
+            );
+
+            CREATE FUNCTION queue_solr_transaction() RETURNS trigger AS $$
+            BEGIN
+                INSERT INTO public.solr_updater_queue (transaction_id) VALUES (NEW.id);
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+
+            CREATE TRIGGER transaction_solr_update_queue
+                AFTER INSERT ON transaction
+                FOR EACH ROW EXECUTE FUNCTION queue_solr_transaction();
+
+            CREATE FUNCTION queue_solr_force_update() RETURNS trigger AS $$
+            BEGIN
+                IF NEW.key = 'solr-force-update' THEN
+                    INSERT INTO public.solr_updater_queue (keys)
+                    VALUES (COALESCE(NEW.json::jsonb -> 'keys', '[]'::jsonb));
+                END IF;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+
+            CREATE TRIGGER store_solr_force_update_queue
+                AFTER INSERT OR UPDATE ON store
+                FOR EACH ROW EXECUTE FUNCTION queue_solr_force_update();
+            """
+        db.query(web.SQLQuery([query]))
+
     def get_database_version(self, db):
         schema = self.read_schema(db)
 
@@ -98,6 +137,8 @@ class Upgrader:
             return 12
         elif "transaction_index" not in schema:
             return 13
+        elif "solr_updater_queue" not in schema:
+            return 14
         else:
             return LATEST_VERSION
 
