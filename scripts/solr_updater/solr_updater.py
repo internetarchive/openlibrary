@@ -16,7 +16,7 @@ import socket
 import sys
 from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import Literal, TypedDict, cast
 
 import aiofiles
 import requests
@@ -28,6 +28,7 @@ from openlibrary.solr import update
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location
 from openlibrary.utils.sentry import init_sentry
 from openlibrary.utils.shutdown import setup_graceful_shutdown
+from scripts.solr_updater.database_log import DatabaseLog
 
 logger = logging.getLogger("openlibrary.solr-updater")
 # FIXME: Some kind of hack introduced to work around DB connectivity issue
@@ -218,6 +219,7 @@ async def main(
     ol_url="http://openlibrary.org/",  # Has side effects, is read globally
     socket_timeout: int = 10,
     initial_state: str | None = None,
+    source: Literal["database", "infobase"] = "infobase",
 ):
     """
     Useful environment variables:
@@ -225,13 +227,19 @@ async def main(
     - OL_SOLR_NEXT: Set to true if running with next version of Solr/schema
 
     :param debugger: Wait for a debugger to attach before beginning
-    :param exclude_edits_containing: Don't index matching edits
+    :param exclude_edits_containing: Don't index matching edits (Infobase source only)
     :param solr_url: If wanting to override what's in the config file
     :param initial_state: State to use if state file doesn't exist. Defaults to today.
+    :param source: Change source; the Infobase log is default and the database queue is available with ``--source database``.
     """
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT)
     logger.info("BEGIN solr_updater")
+
+    if source == "database" and exclude_edits_containing:
+        raise ValueError(
+            "--exclude-edits-containing is supported only with --source infobase; the database queue does not retain the complete Infobase log record"
+        )
 
     if debugger:
         import debugpy  # noqa: T100
@@ -252,27 +260,40 @@ async def main(
     load_config(ol_config)
     init_sentry(getattr(infogami.config, "sentry", {}))
 
-    offset = read_state_file(state_file, initial_state)
+    if source == "database":
+        logger.info("using database-backed Solr update queue")
+        database_log = DatabaseLog()
+        while True:
+            keys = await database_log.read_keys()
+            had_pending_rows = database_log.has_pending_batch
+            count = await update_keys(keys)
+            await database_log.acknowledge()
 
-    logfile = InfobaseLog(config.get("infobase_server"), exclude=exclude_edits_containing)
-    logfile.seek(offset)
+            if count == 0 and not had_pending_rows:
+                logger.debug("No more database changes available, sleeping...")
+                await asyncio.sleep(5)
+    else:
+        logger.info("using Infobase HTTP changelog")
+        offset = read_state_file(state_file, initial_state)
+        logfile = InfobaseLog(config.get("infobase_server"), exclude=exclude_edits_containing)
+        logfile.seek(offset)
 
-    while True:
-        records = logfile.read_records()
-        keys = parse_log(records)
-        count = await update_keys(keys)
+        while True:
+            records = logfile.read_records()
+            keys = parse_log(records)
+            count = await update_keys(keys)
 
-        if logfile.tell() != offset:
-            offset = logfile.tell()
-            logger.info("saving offset %s", offset)
-            async with aiofiles.open(state_file, "w") as f:
-                await f.write(offset)
+            if logfile.tell() != offset:
+                offset = logfile.tell()
+                logger.info("saving offset %s", offset)
+                async with aiofiles.open(state_file, "w") as f:
+                    await f.write(offset)
 
-        # don't sleep after committing some records.
-        # While the commit was on, some more edits might have happened.
-        if count == 0:
-            logger.debug("No more log records available, sleeping...")
-            await asyncio.sleep(5)
+            # Don't sleep after committing some records. While the commit was on,
+            # some more edits might have happened.
+            if count == 0:
+                logger.debug("No more log records available, sleeping...")
+                await asyncio.sleep(5)
 
 
 if __name__ == "__main__":

@@ -477,6 +477,42 @@ create table store_index (
 create index store_index_store_id_idx ON store_index (store_id);
 create index store_idx ON store_index(type, name, value);
 
+-- Durable queue for Solr updates. Both triggers write into this table in the
+-- same transaction as the Infobase write, so consumers cannot miss an update
+-- if a process exits after the data change commits.
+create table solr_updater_queue (
+    id bigserial primary key,
+    transaction_id int references transaction,
+    keys jsonb,
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    check ((transaction_id is null) <> (keys is null))
+);
+
+create function queue_solr_transaction() returns trigger as $$
+begin
+    insert into public.solr_updater_queue (transaction_id) values (new.id);
+    return new;
+end;
+$$ language plpgsql;
+
+create trigger transaction_solr_update_queue
+    after insert on transaction
+    for each row execute function queue_solr_transaction();
+
+create function queue_solr_force_update() returns trigger as $$
+begin
+    if new.key = 'solr-force-update' then
+        insert into public.solr_updater_queue (keys)
+        values (coalesce(new.json::jsonb -> 'keys', '[]'::jsonb));
+    end if;
+    return new;
+end;
+$$ language plpgsql;
+
+create trigger store_solr_force_update_queue
+    after insert or update on store
+    for each row execute function queue_solr_force_update();
+
 create table seq (
     id serial primary key,
     name text unique,

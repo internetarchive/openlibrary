@@ -10505,6 +10505,64 @@ GRANT SELECT ON TABLE public.yearly_reading_goals TO readcreateaccess;
 
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT ON TABLES TO readcreateaccess;
 
+--
+-- Name: solr_updater_queue; Type: TABLE; Schema: public; Owner: openlibrary
+--
+
+CREATE TABLE public.solr_updater_queue (
+    id bigint NOT NULL,
+    transaction_id integer,
+    keys jsonb,
+    created timestamp without time zone DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'utc'::text),
+    CONSTRAINT solr_updater_queue_check CHECK (((transaction_id IS NULL) <> (keys IS NULL)))
+);
+
+ALTER TABLE public.solr_updater_queue OWNER TO openlibrary;
+
+CREATE SEQUENCE public.solr_updater_queue_id_seq
+    START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+
+ALTER SEQUENCE public.solr_updater_queue_id_seq OWNER TO openlibrary;
+ALTER SEQUENCE public.solr_updater_queue_id_seq OWNED BY public.solr_updater_queue.id;
+ALTER TABLE ONLY public.solr_updater_queue ALTER COLUMN id SET DEFAULT nextval('public.solr_updater_queue_id_seq'::regclass);
+
+ALTER TABLE ONLY public.solr_updater_queue
+    ADD CONSTRAINT solr_updater_queue_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.solr_updater_queue
+    ADD CONSTRAINT solr_updater_queue_transaction_id_fkey FOREIGN KEY (transaction_id) REFERENCES public.transaction(id);
+
+CREATE FUNCTION public.queue_solr_transaction() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    INSERT INTO public.solr_updater_queue (transaction_id) VALUES (NEW.id);
+    RETURN NEW;
+END;
+$$;
+
+ALTER FUNCTION public.queue_solr_transaction() OWNER TO openlibrary;
+
+CREATE FUNCTION public.queue_solr_force_update() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    IF NEW.key = 'solr-force-update' THEN
+        INSERT INTO public.solr_updater_queue (keys)
+        VALUES (COALESCE(NEW.json::jsonb -> 'keys', '[]'::jsonb));
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+ALTER FUNCTION public.queue_solr_force_update() OWNER TO openlibrary;
+
+CREATE TRIGGER transaction_solr_update_queue AFTER INSERT ON public.transaction
+    FOR EACH ROW EXECUTE FUNCTION public.queue_solr_transaction();
+
+CREATE TRIGGER store_solr_force_update_queue AFTER INSERT OR UPDATE ON public.store
+    FOR EACH ROW EXECUTE FUNCTION public.queue_solr_force_update();
+
 
 --
 -- PostgreSQL database dump complete

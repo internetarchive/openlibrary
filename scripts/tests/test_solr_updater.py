@@ -1,10 +1,13 @@
+import asyncio
 import sys
 from unittest.mock import MagicMock
+
+import pytest
 
 # TODO: Can we remove _init_path someday :(
 sys.modules["_init_path"] = MagicMock()
 
-from scripts.solr_updater.solr_updater import parse_log
+from scripts.solr_updater.solr_updater import main, parse_log
 
 
 class TestParseLog:
@@ -288,3 +291,8 @@ class TestParseLog:
             },
         }
         assert list(parse_log([sample_record])) == ["/books/OL1M", "/works/OL1W"]
+
+
+def test_database_source_rejects_unsupported_exclude_option():
+    with pytest.raises(ValueError, match="supported only with --source infobase"):
+        asyncio.run(main(ol_config="", source="database", exclude_edits_containing="test"))

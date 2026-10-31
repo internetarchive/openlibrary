@@ -20,6 +20,7 @@ python scripts/solr_updater/trending_updater.py \
 echo "Starting Solr updater"
 python scripts/solr_updater/solr_updater.py "$OL_CONFIG" \
     --state-file /solr-updater-data/$STATE_FILE \
+    --source "${SOLR_UPDATER_SOURCE:-infobase}" \
     --ol-url "$OL_URL" \
     --osp-dump "$OSP_DUMP_LOCATION" \
     --socket-timeout 1800

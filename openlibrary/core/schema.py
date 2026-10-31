@@ -104,6 +104,39 @@ def get_schema():
     CREATE INDEX import_item_import_time ON import_item(import_time);
     CREATE INDEX import_item_status ON import_item(status);
     CREATE INDEX import_item_ia_id ON import_item(ia_id);
+
+    CREATE TABLE solr_updater_queue (
+        id bigserial primary key,
+        transaction_id int references transaction,
+        keys jsonb,
+        created timestamp without time zone default (current_timestamp at time zone 'utc'),
+        CHECK ((transaction_id IS NULL) <> (keys IS NULL))
+    );
+
+    CREATE FUNCTION queue_solr_transaction() RETURNS trigger AS $$
+    BEGIN
+        INSERT INTO public.solr_updater_queue (transaction_id) VALUES (NEW.id);
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+    CREATE TRIGGER transaction_solr_update_queue
+        AFTER INSERT ON transaction
+        FOR EACH ROW EXECUTE FUNCTION queue_solr_transaction();
+
+    CREATE FUNCTION queue_solr_force_update() RETURNS trigger AS $$
+    BEGIN
+        IF NEW.key = 'solr-force-update' THEN
+            INSERT INTO public.solr_updater_queue (keys)
+            VALUES (COALESCE(NEW.json::jsonb -> 'keys', '[]'::jsonb));
+        END IF;
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+    CREATE TRIGGER store_solr_force_update_queue
+        AFTER INSERT OR UPDATE ON store
+        FOR EACH ROW EXECUTE FUNCTION queue_solr_force_update();
     """
 
     # monkey patch schema.sql to include the custom functions
