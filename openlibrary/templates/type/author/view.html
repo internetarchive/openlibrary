@@ -164,11 +164,14 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                 $:macros.OlPagination(safeint(query_param('page'), default=1), ceil(books_count / 20))
 
                 <div id="searchResults">
-                    <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
-                      $ reading_states = get_reading_states(ctx.user, books.docs)
-                      $for doc in books.docs:
-                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True, reading_states=reading_states, layout=layout, seq_index=loop.index0)
-                    </ul>
+                    $if not books.docs and safeint(query_param('page'), default=1) > 1:
+                        <p>$:_('There are no more works on this page. %(link_start)sBack to page 1%(link_end)s.', link_start='<a href="%s">' % changequery(page=1), link_end='</a>')</p>
+                    $else:
+                        <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
+                          $ reading_states = get_reading_states(ctx.user, books.docs)
+                          $for doc in books.docs:
+                             $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True, reading_states=reading_states, layout=layout, seq_index=loop.index0)
+                        </ul>
                 </div>
 
                 $:macros.OlPagination(safeint(query_param('page'), default=1), ceil(books_count / 20))

@@ -30,6 +30,7 @@ SolrRequestLabel = Literal[
     "BOOK_CAROUSEL",
     "AUTHOR_BOOKS_PAGE",
     "AUTHOR_BOOKS_READABLE_COUNT",
+    "AUTHOR_BOOKS_PAGE_COUNT",
     # /get endpoint
     "GET_WORK_SOLR_DATA",
     # Subject, publisher pages
