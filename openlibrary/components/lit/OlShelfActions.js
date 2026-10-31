@@ -1701,11 +1701,12 @@ export class OlShelfActions extends LitElement {
         // Reading are explicit choices it will not overwrite.
         const autoShelves = !this.shelf || this.shelf === SHELF.WANT_TO_READ;
         const optimistic = next && autoShelves ? { rating: next, shelf: SHELF.ALREADY_READ } : { rating: next };
+        const moved = Boolean(optimistic.shelf && optimistic.shelf !== this.shelf);
         // Say the shelf move too when there is one: a rating that quietly moved
         // the book would be a surprise on the next open.
         const announce = [
             next ? this.t('rated', { rating: next }) : this.t('ratingCleared'),
-            optimistic.shelf && optimistic.shelf !== this.shelf ? this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[optimistic.shelf]) }) : ''
+            moved ? this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[optimistic.shelf]) }) : ''
         ]
             .filter(Boolean)
             .join('. ');
@@ -1715,6 +1716,8 @@ export class OlShelfActions extends LitElement {
             async () => {
                 await setRating(this.book.key, next, { editionKey: this.book.editionKey });
                 trackEvent('StarRating', next ? 'BookRated' : 'RatingCleared');
+                // The server shelved it too; "rating" tells this apart from a shelf chosen in the menu.
+                if (moved) trackEvent('ReadingLog', SHELF_EVENT[SHELF.ALREADY_READ], 'rating');
                 this._emitState();
             },
             announce
