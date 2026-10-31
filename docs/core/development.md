@@ -198,12 +198,15 @@ All OL data lives in the `thing` table with columns: `id, key, type, latest_revi
 
 ## Non-Infobase Tables (`schema.sql`) — Fresh vs. Existing Dev DBs
 
-Tables outside the Infobase triplestore (`ratings`, `bookshelves_books`, `booknotes`, `observations`, `follows`, and newer additions like `likes`) are defined in `openlibrary/core/schema.sql`, not managed by Infobase. Provisioning is a two-step sequence in `docker/ol-db-init.sh`, mounted at `/docker-entrypoint-initdb.d/ol-db-init.sh`:
+Tables outside the Infobase triplestore (`ratings`, `bookshelves_books`, `booknotes`, `observations`, `follows`, and newer additions like `likes`) are defined in `openlibrary/core/schema.sql`, not managed by Infobase. Provisioning is a three-step sequence in `docker/ol-db-init.sh`, mounted at `/docker-entrypoint-initdb.d/ol-db-init.sh`:
 
 ```bash
 psql openlibrary < openlibrary/core/schema.sql          # 1. create all tables (incl. new ones)
 psql -U openlibrary openlibrary < scripts/dev-instance/dev_db.pg_dump   # 2. restore committed sample data
+psql -U openlibrary openlibrary < scripts/dev-instance/dev_permissions.sql  # 3. seed production-like catalog edit permissions
 ```
+
+`dev_permissions.sql` is applied separately so it is preserved when `dev_db.pg_dump` is regenerated. It only inserts the permission records when they are missing, so it does not overwrite local permission changes.
 
 **Critical: this only runs on a genuinely empty Postgres data directory** — that's the official `postgres` Docker image's own `docker-entrypoint-initdb.d` convention, not an OL-specific choice. Concretely:
 - **Fresh dev DB (new `ol-postgres` volume)** — any table added to `schema.sql` shows up automatically, empty, ready to use. Verified directly: `likes` (added in PR #12932) came up correctly across many fresh-volume test runs with zero issues.
