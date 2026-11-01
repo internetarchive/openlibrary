@@ -55,7 +55,7 @@ def get_recaptcha():
             return True
 
         create_dt = account.creation_time()
-        now_dt = dt.datetime.utcnow()
+        now_dt = dt.datetime.now(dt.UTC).replace(tzinfo=None)
         delta = now_dt - create_dt
         return delta.days > 30
 

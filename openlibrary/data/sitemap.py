@@ -77,7 +77,7 @@ def gzwrite(path, data):
 
 
 def write_sitemaps(data, outdir, prefix):
-    timestamp = dt.datetime.utcnow().isoformat() + "Z"
+    timestamp = dt.datetime.now(dt.UTC).replace(tzinfo=None).isoformat() + "Z"
 
     # maximum permitted entries in one sitemap is 50K.
     for i, rows in enumerate(web.group(data, 50000)):
