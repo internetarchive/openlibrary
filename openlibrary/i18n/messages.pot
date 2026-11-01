@@ -780,23 +780,23 @@ msgid_plural "Logged %(count)i times %(time_unit)s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: verify_human.html
+#: openlibrary/fastapi/account.py verify_human.html
 msgid "Human Verification"
 msgstr ""
 
-#: verify_human.html
+#: verify_human.html verify_human.html.jinja
 msgid "Please verify you are human to continue."
 msgstr ""
 
-#: verify_human.html
+#: verify_human.html verify_human.html.jinja
 msgid "Verify you are human"
 msgstr ""
 
-#: verify_human.html
+#: verify_human.html verify_human.html.jinja
 msgid "Verification failed. Please try again."
 msgstr ""
 
-#: verify_human.html
+#: verify_human.html verify_human.html.jinja
 msgid "Verifying..."
 msgstr ""
 
