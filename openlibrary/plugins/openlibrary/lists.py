@@ -2,6 +2,7 @@
 
 import json
 import random
+import time
 from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import Literal, cast
@@ -730,7 +731,17 @@ class list_view(delegate.page):
         sort = query_param("sort", None)
         page_size = LIST_VIEW_PAGE_SIZE
 
+        if sort == "random":
+            # Bare "random" re-rolls on every load, so redirect to a seeded
+            # URL; a shared seed URL renders the same order for everyone.
+            # changequery keeps the other query params (page, v, m, ...).
+            raise web.seeother(web.changequery(sort="random_%d" % int(time.time())))
+
         seeds = lst.get_seeds(sort=(sort == "last_modified"), resolve_redirects=True)
+        if sort and sort.startswith("random"):
+            # Deterministic shuffle: the same seed URL always yields the same
+            # order, so shuffled list links can be shared.
+            random.Random(sort).shuffle(seeds)
         page_seeds = seeds[page * page_size : page * page_size + page_size]
         items = _resolve_list_view_items(page_seeds)
 
