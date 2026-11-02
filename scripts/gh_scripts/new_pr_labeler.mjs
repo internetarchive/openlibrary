@@ -38,10 +38,10 @@ async function main() {
     const { fullRepoName, prAuthor, prNumber, prBody } = parseArgs();
 
     const plan = await planForPr(octokit, fullRepoName, prBody, prAuthor);
-    console.log(`PR #${prNumber}: ${plan.reason}`);
-    await writeJobSummary(`PR #${prNumber}: ${plan.reason}${plan.labels.length ? `; add ${plan.labels.join(', ')}` : ''}`);
-
-    await applyPlan(octokit, fullRepoName, Number(prNumber), plan);
+    const { assigned } = await applyPlan(octokit, fullRepoName, Number(prNumber), plan);
+    const reason = assigned ? plan.reason : `could not assign @${plan.assignee} (no repo access?); planned: ${plan.reason}`;
+    console.log(`PR #${prNumber}: ${reason}`);
+    await writeJobSummary(`PR #${prNumber}: ${reason}${plan.labels.length ? `; add ${plan.labels.join(', ')}` : ''}`);
 }
 
 /**

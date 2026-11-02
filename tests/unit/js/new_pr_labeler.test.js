@@ -4,6 +4,7 @@ import {
     findIssueReferences,
     getLinkedIssueMetadata,
     resolveIssueMetadata,
+    sweepLabels,
     sweepSkipReason
 } from '../../../scripts/gh_scripts/new_pr_labeler_core.mjs';
 import { planForPr } from '../../../scripts/gh_scripts/pr_lead_resolver.mjs';
@@ -170,8 +171,14 @@ describe('sweepSkipReason', () => {
 
 describe('planForPr', () => {
     // A fake Octokit whose graphql() answers from a map of number -> issueOrPullRequest node.
+    // A node value that is an Error is thrown, the way Octokit throws GraphQL errors.
     function fakeOctokit(nodes) {
-        return { graphql: async (_query, { number }) => ({ repository: { issueOrPullRequest: nodes[number] ?? null } }) };
+        return {
+            graphql: async (_query, { number }) => {
+                if (nodes[number] instanceof Error) throw nodes[number];
+                return { repository: { issueOrPullRequest: nodes[number] ?? null } };
+            }
+        };
     }
     const issueNode = (labels, parent = null) => ({ __typename: 'Issue', labels: { nodes: labels.map(name => ({ name })) }, parent });
 
@@ -210,5 +217,65 @@ describe('planForPr', () => {
         const plan = await planForPr(fakeOctokit({ 3: issueNode(['Lead: @foo']) }), REPO, 'Closes #3', 'foo');
         expect(plan.assignee).toBeNull();
         expect(plan.reason).toBe('no assignee: the PR author is the lead of #3 (closing keyword)');
+    });
+});
+
+describe('planForPr: lookups that fail, and priority with a later lead', () => {
+    function fakeOctokit(nodes) {
+        return {
+            graphql: async (_query, { number }) => {
+                if (nodes[number] instanceof Error) throw nodes[number];
+                return { repository: { issueOrPullRequest: nodes[number] ?? null } };
+            }
+        };
+    }
+    // Shaped like @octokit/graphql's GraphqlResponseError for a missing number.
+    const notFound = () => Object.assign(new Error('Could not resolve to an issue or pull request'), { errors: [{ type: 'NOT_FOUND' }] });
+    const issueNode = labels => ({ __typename: 'Issue', labels: { nodes: labels.map(name => ({ name })) }, parent: null });
+
+    test('skips a number that is not an issue or PR (e.g. a Discussion) instead of throwing', async () => {
+        const plan = await planForPr(fakeOctokit({ 13079: notFound(), 2: issueNode(['Lead: @foo']) }), REPO, 'Closes #13079. Part of #2', 'bar');
+        expect(plan.assignee).toBe('foo');
+    });
+
+    test('reports when no referenced number is an issue', async () => {
+        const plan = await planForPr(fakeOctokit({ 9: notFound() }), REPO, 'Refs #9', 'bar');
+        expect(plan).toEqual({ assignee: null, labels: [], reason: 'none of the referenced numbers is an issue' });
+    });
+
+    test('still throws other API errors', async () => {
+        await expect(planForPr(fakeOctokit({ 9: new Error('rate limited') }), REPO, 'Closes #9', 'bar')).rejects.toThrow('rate limited');
+    });
+
+    test('keeps the closing issue priority when a later "Part of" reference supplies the lead', async () => {
+        const plan = await planForPr(
+            fakeOctokit({ 1: issueNode(['Priority: 2']), 2: issueNode(['Lead: @epic', 'Priority: 0']) }),
+            REPO,
+            'Closes #1. Part of #2',
+            'bar'
+        );
+        expect(plan.assignee).toBe('epic');
+        expect(plan.labels).toEqual(['Priority: 2']);
+    });
+
+    test('ignores references inside HTML comments', async () => {
+        const plan = await planForPr(fakeOctokit({ 2: issueNode(['Lead: @foo']) }), REPO, '<!-- Part of #2 -->\nNo issue', 'bar');
+        expect(plan.reason).toBe('no issue reference in the PR body');
+    });
+});
+
+describe('findIssueReferences: HTML comments', () => {
+    test('drops references inside comments, keeps those outside', () => {
+        expect(findIssueReferences('<!-- Closes #1\nPart of #2 --> Refs #3', REPO)).toEqual([{ number: 3, kind: 'reference' }]);
+    });
+});
+
+describe('sweepLabels', () => {
+    test('adds the planned priority when the PR has none', () => {
+        expect(sweepLabels(['Priority: 1'], ['Needs: Review'])).toEqual(['Priority: 1']);
+    });
+
+    test('adds no priority when the PR already has one', () => {
+        expect(sweepLabels(['Priority: 1'], ['Priority: 3'])).toEqual([]);
     });
 });

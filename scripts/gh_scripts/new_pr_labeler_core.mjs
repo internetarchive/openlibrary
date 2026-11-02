@@ -76,20 +76,23 @@ function referenceRegex(phrases, fullRepoName) {
 /**
  * Lists the issue references in a PR body, most authoritative first: every
  * closing reference (`Closes #N`) in order, then every non-closing reference
- * (`Part of #N`, `Refs #N`, ...) in order. Duplicates are dropped.
+ * (`Part of #N`, `Refs #N`, ...) in order. Duplicates and anything inside
+ * HTML comments are dropped.
  *
  * @param {string} body The PR body.
  * @param {string} fullRepoName e.g. "internetarchive/openlibrary"
  * @returns {Array<{number: number, kind: 'closing'|'reference'}>}
  */
 export function findIssueReferences(body, fullRepoName) {
+    // References inside HTML comments (e.g. left-over template text) don't count.
+    const text = (body ?? '').replace(/<!--[\s\S]*?-->/g, ' ');
     const found = [];
     const seen = new Set();
     for (const [kind, phrases] of [
         ['closing', CLOSING_KEYWORDS],
         ['reference', REFERENCE_PHRASES]
     ]) {
-        for (const match of (body ?? '').matchAll(referenceRegex(phrases, fullRepoName))) {
+        for (const match of text.matchAll(referenceRegex(phrases, fullRepoName))) {
             const number = Number(match[1]);
             if (!seen.has(number)) {
                 seen.add(number);
@@ -141,4 +144,16 @@ export function sweepSkipReason({ isDraft, authorLogin, authorIsBot, hasAssignee
     if (hasAssignees) return 'already assigned';
     if (everAssigned) return 'previously assigned';
     return null;
+}
+
+/**
+ * The labels the sweep adds: the planned priority, unless the PR already has a
+ * `Priority:` label (set by a human or an earlier run).
+ *
+ * @param {string[]} plannedLabels
+ * @param {string[]} prLabelNames
+ * @returns {string[]}
+ */
+export function sweepLabels(plannedLabels, prLabelNames) {
+    return prLabelNames.some(name => name.startsWith('Priority:')) ? [] : plannedLabels;
 }
