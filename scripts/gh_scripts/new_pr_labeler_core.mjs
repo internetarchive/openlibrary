@@ -55,3 +55,90 @@ export function decideLabelsAndAssignee({ leadName, priority }, prAuthor) {
 
     return { assignee, labels };
 }
+
+// A closing keyword (GitHub's own set), optionally followed by a colon.
+const CLOSING_KEYWORDS = String.raw`close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved`;
+// Phrases contributors use for work that does not close the issue (e.g. one PR of an epic).
+const REFERENCE_PHRASES = String.raw`part\s+of|refs?|references|related\s+to|follow[\s-]*ups?\s+(?:to|of|on)|works?\s+on|towards?`;
+
+/**
+ * Builds a regex matching `<phrase> #N` or `<phrase> https://github.com/<repo>/issues/N`.
+ *
+ * @param {string} phrases Alternation of phrases, as a regex source string.
+ * @param {string} fullRepoName e.g. "internetarchive/openlibrary"
+ * @returns {RegExp}
+ */
+function referenceRegex(phrases, fullRepoName) {
+    const repo = fullRepoName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(String.raw`\b(?:${phrases}):?\s+(?:#|https://github\.com/${repo}/(?:issues|pull)/)(\d+)\b`, 'gi');
+}
+
+/**
+ * Lists the issue references in a PR body, most authoritative first: every
+ * closing reference (`Closes #N`) in order, then every non-closing reference
+ * (`Part of #N`, `Refs #N`, ...) in order. Duplicates are dropped.
+ *
+ * @param {string} body The PR body.
+ * @param {string} fullRepoName e.g. "internetarchive/openlibrary"
+ * @returns {Array<{number: number, kind: 'closing'|'reference'}>}
+ */
+export function findIssueReferences(body, fullRepoName) {
+    const found = [];
+    const seen = new Set();
+    for (const [kind, phrases] of [
+        ['closing', CLOSING_KEYWORDS],
+        ['reference', REFERENCE_PHRASES]
+    ]) {
+        for (const match of (body ?? '').matchAll(referenceRegex(phrases, fullRepoName))) {
+            const number = Number(match[1]);
+            if (!seen.has(number)) {
+                seen.add(number);
+                found.push({ number, kind });
+            }
+        }
+    }
+    return found;
+}
+
+/**
+ * Works out the lead and priority to take from a referenced issue.
+ *
+ * - The lead comes from the issue, or failing that from its parent issue (the
+ *   epic it is a sub-issue of).
+ * - The priority is only inherited from a closing reference, and only from the
+ *   issue itself: "Part of #N" usually points at an epic, whose priority says
+ *   little about one PR.
+ *
+ * @param {{data: {labels: Array<{name: string}>}}} issue
+ * @param {{data: {labels: Array<{name: string}>}}|null} parent
+ * @param {'closing'|'reference'} kind
+ * @returns {{leadName: string|undefined, priority: string|undefined, leadSource: 'issue'|'parent'|undefined}}
+ */
+export function resolveIssueMetadata(issue, parent, kind) {
+    const own = getLinkedIssueMetadata(issue);
+    const fromParent = getLinkedIssueMetadata(parent);
+    const leadName = own.leadName ?? fromParent.leadName;
+    return {
+        leadName,
+        priority: kind === 'closing' ? own.priority : undefined,
+        leadSource: own.leadName ? 'issue' : fromParent.leadName ? 'parent' : undefined
+    };
+}
+
+/**
+ * Decides whether the scheduled sweep should consider a PR.
+ *
+ * Only PRs nobody has ever assigned are touched, so the sweep never re-assigns
+ * someone a human deliberately removed, and never overrides a human's choice.
+ *
+ * @param {{isDraft: boolean, authorLogin: string|null, authorIsBot: boolean, hasAssignees: boolean, everAssigned: boolean}} pr
+ * @returns {string|null} The reason to skip, or null to sweep it.
+ */
+export function sweepSkipReason({ isDraft, authorLogin, authorIsBot, hasAssignees, everAssigned }) {
+    if (isDraft) return 'draft';
+    // openlibrary-bot is a regular User account, so its type alone does not mark it as a bot.
+    if (authorIsBot || !authorLogin || authorLogin === 'openlibrary-bot') return 'bot author';
+    if (hasAssignees) return 'already assigned';
+    if (everAssigned) return 'previously assigned';
+    return null;
+}

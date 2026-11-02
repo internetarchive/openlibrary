@@ -15,9 +15,19 @@ This script takes three positional arguments, followed by a vararg for the PR's 
 `pr_body...` the body of the PR
 
 ### Details:
-The script does a case-insensitive search for a `closes #` statement in the newly created PR's body.  If one is found, the corresponding issue is fetched.
-The first https://github.com/internetarchive/openlibrary/labels/Priority%3A%200, https://github.com/internetarchive/openlibrary/labels/Priority%3A%201, or https://github.com/internetarchive/openlibrary/labels/Priority%3A%202 label that is found on the issue is added to the PR.
-If a lead is assigned to the issue, and the lead is not also the PR's author, the lead will be assigned to the PR.  Similar to the priority labels, only one lead can be assigned to a PR.
+The script looks in the PR body for the issues it references, case-insensitively:
+1. Closing keywords first (`Closes #N`, `Fixes #N`, `Resolves #N`, ...), then non-closing references (`Part of #N`, `Refs #N`, `Related to #N`, `Follow-up to #N`, `Works on #N`, `Towards #N`). A same-repo issue URL works in place of `#N`.
+2. The lead comes from the first referenced issue that has a `Lead: @` label, or failing that from its parent issue (the epic it is a sub-issue of). If the lead is not also the PR's author, the lead is assigned to the PR.
+3. The first https://github.com/internetarchive/openlibrary/labels/Priority%3A%200, https://github.com/internetarchive/openlibrary/labels/Priority%3A%201, or https://github.com/internetarchive/openlibrary/labels/Priority%3A%202 label on the issue is added to the PR, but only for a closing reference: "Part of #N" usually points at an epic, whose priority says little about one PR.
+
+The decision and its reason (e.g. "#123 (closing keyword) has no Lead label") are written to the job summary. The shared logic lives in `pr_lead_resolver.mjs` and `new_pr_labeler_core.mjs`.
+
+## `pr_lead_sweep.mjs`
+Runs on a schedule (`.github/workflows/pm_pr_lead_sweep.yml`, 6 AM and 6 PM Pacific) and applies the same decision as `new_pr_labeler.mjs` to every open PR that is not a draft, was not opened by a bot, and has never had an assignee. This catches PRs whose issue got its lead after the PR opened, and PRs whose body was edited later. It never re-assigns someone a human removed, and only adds a priority label to a PR that has none.
+
+### Usage:
+<pre><b>DRY_RUN=false node pr_lead_sweep.mjs</b> repository</pre>
+Without `DRY_RUN=false` it only reports what it would do. Scheduled runs are dry runs; a maintainer can run it live from the Actions tab with the `live` input.
 
 ## `issue_comment_bot.py`
 

@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'vitest';
-import { decideLabelsAndAssignee, getLinkedIssueMetadata } from '../../../scripts/gh_scripts/new_pr_labeler_core.mjs';
+import {
+    decideLabelsAndAssignee,
+    findIssueReferences,
+    getLinkedIssueMetadata,
+    resolveIssueMetadata,
+    sweepSkipReason
+} from '../../../scripts/gh_scripts/new_pr_labeler_core.mjs';
+import { planForPr } from '../../../scripts/gh_scripts/pr_lead_resolver.mjs';
 
 // Behavioural tests for the two decisions new_pr_labeler makes about a new PR:
 // who to assign, and which labels to add. The entry script runs main() on import
@@ -81,5 +88,127 @@ describe('plan for a PR (issue -> metadata -> decision)', () => {
         expect(plan.assignee).toBeNull();
         expect(plan.labels).toEqual([]);
         expect(plan.labels).not.toContain('Needs: Lead');
+    });
+});
+
+const REPO = 'internetarchive/openlibrary';
+
+describe('findIssueReferences', () => {
+    test('finds a closing keyword, with or without a colon', () => {
+        expect(findIssueReferences('Closes #12', REPO)).toEqual([{ number: 12, kind: 'closing' }]);
+        expect(findIssueReferences('fixes: #7', REPO)).toEqual([{ number: 7, kind: 'closing' }]);
+    });
+
+    test.each(['Part of #5', 'part of: #5', 'Refs #5', 'References #5', 'Related to #5', 'Follow-up to #5', 'Follow up on #5', 'Works on #5', 'Towards #5'])(
+        'finds the non-closing reference in "%s"',
+        body => {
+            expect(findIssueReferences(body, REPO)).toEqual([{ number: 5, kind: 'reference' }]);
+        }
+    );
+
+    test('accepts a same-repo issue URL but not another repo', () => {
+        expect(findIssueReferences('Part of https://github.com/internetarchive/openlibrary/issues/9', REPO)).toEqual([{ number: 9, kind: 'reference' }]);
+        expect(findIssueReferences('Closes https://github.com/someone/else/issues/9', REPO)).toEqual([]);
+    });
+
+    test('lists closing references before non-closing ones, without duplicates', () => {
+        expect(findIssueReferences('Part of #1. Closes #2. Also closes #3. Refs #2', REPO)).toEqual([
+            { number: 2, kind: 'closing' },
+            { number: 3, kind: 'closing' },
+            { number: 1, kind: 'reference' }
+        ]);
+    });
+
+    test('ignores a bare #N and an empty body', () => {
+        expect(findIssueReferences('See #4 for context', REPO)).toEqual([]);
+        expect(findIssueReferences('', REPO)).toEqual([]);
+        expect(findIssueReferences(null, REPO)).toEqual([]);
+    });
+});
+
+describe('resolveIssueMetadata', () => {
+    test('takes the lead and priority from the issue for a closing reference', () => {
+        expect(resolveIssueMetadata(issueWithLabels('Lead: @foo', 'Priority: 1'), null, 'closing')).toEqual({
+            leadName: 'foo',
+            priority: 'Priority: 1',
+            leadSource: 'issue'
+        });
+    });
+
+    test('falls back to the parent epic lead when the issue has none', () => {
+        const metadata = resolveIssueMetadata(issueWithLabels('Priority: 2'), issueWithLabels('Lead: @epic'), 'closing');
+        expect(metadata).toEqual({ leadName: 'epic', priority: 'Priority: 2', leadSource: 'parent' });
+    });
+
+    test("prefers the issue's own lead over the parent's", () => {
+        expect(resolveIssueMetadata(issueWithLabels('Lead: @foo'), issueWithLabels('Lead: @epic'), 'reference').leadName).toBe('foo');
+    });
+
+    test('does not inherit a priority from a non-closing reference', () => {
+        expect(resolveIssueMetadata(issueWithLabels('Lead: @foo', 'Priority: 0'), null, 'reference').priority).toBeUndefined();
+    });
+});
+
+describe('sweepSkipReason', () => {
+    const pr = { isDraft: false, authorLogin: 'someone', authorIsBot: false, hasAssignees: false, everAssigned: false };
+
+    test('sweeps an open, never-assigned PR by a person', () => {
+        expect(sweepSkipReason(pr)).toBeNull();
+    });
+
+    test.each([
+        [{ isDraft: true }, 'draft'],
+        [{ authorIsBot: true }, 'bot author'],
+        [{ authorLogin: 'openlibrary-bot' }, 'bot author'],
+        [{ authorLogin: null }, 'bot author'],
+        [{ hasAssignees: true }, 'already assigned'],
+        [{ everAssigned: true }, 'previously assigned']
+    ])('skips %o as "%s"', (change, reason) => {
+        expect(sweepSkipReason({ ...pr, ...change })).toBe(reason);
+    });
+});
+
+describe('planForPr', () => {
+    // A fake Octokit whose graphql() answers from a map of number -> issueOrPullRequest node.
+    function fakeOctokit(nodes) {
+        return { graphql: async (_query, { number }) => ({ repository: { issueOrPullRequest: nodes[number] ?? null } }) };
+    }
+    const issueNode = (labels, parent = null) => ({ __typename: 'Issue', labels: { nodes: labels.map(name => ({ name })) }, parent });
+
+    test('assigns the lead of a "Part of" issue, without its priority', async () => {
+        const plan = await planForPr(fakeOctokit({ 13412: issueNode(['Lead: @RayBB', 'Priority: 1']) }), REPO, 'Part of #13412', 'contributor');
+        expect(plan.assignee).toBe('RayBB');
+        expect(plan.labels).toEqual([]);
+        expect(plan.reason).toBe('assign @RayBB from #13412 (non-closing reference)');
+    });
+
+    test("uses the parent epic's lead when the issue has none", async () => {
+        const parent = { number: 100, labels: { nodes: [{ name: 'Lead: @mekarpeles' }] } };
+        const plan = await planForPr(fakeOctokit({ 5: issueNode(['Priority: 2'], parent) }), REPO, 'Closes #5', 'contributor');
+        expect(plan.assignee).toBe('mekarpeles');
+        expect(plan.labels).toEqual(['Priority: 2']);
+        expect(plan.reason).toBe('assign @mekarpeles from #5 (closing keyword) via its parent #100');
+    });
+
+    test('skips a referenced PR and uses the next reference that is an issue', async () => {
+        const plan = await planForPr(
+            fakeOctokit({ 1: { __typename: 'PullRequest' }, 2: issueNode(['Lead: @foo']) }),
+            REPO,
+            'Follow-up to #1. Part of #2',
+            'bar'
+        );
+        expect(plan.assignee).toBe('foo');
+    });
+
+    test('reports why nobody was assigned', async () => {
+        expect((await planForPr(fakeOctokit({}), REPO, 'No issue here', 'bar')).reason).toBe('no issue reference in the PR body');
+        const plan = await planForPr(fakeOctokit({ 7: issueNode(['Priority: 1']) }), REPO, 'Closes #7', 'bar');
+        expect(plan).toEqual({ assignee: null, labels: ['Priority: 1'], reason: '#7 (closing keyword) has no Lead label' });
+    });
+
+    test('does not self-assign when the author is the lead', async () => {
+        const plan = await planForPr(fakeOctokit({ 3: issueNode(['Lead: @foo']) }), REPO, 'Closes #3', 'foo');
+        expect(plan.assignee).toBeNull();
+        expect(plan.reason).toBe('no assignee: the PR author is the lead of #3 (closing keyword)');
     });
 });
