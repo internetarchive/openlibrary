@@ -216,7 +216,7 @@ def build_task_rows(task: str) -> list[dict] | None:
 
     None while the initiative's gaps are still being built.
     """
-    fields = get_filters()[task][1] if task else tuple(tasks.POINTS)
+    fields = get_filters()[task][1] if task else tasks.OFFERED
     if (candidates := supply.candidates(fields)) is None:
         return None
     field_guides = get_field_guides()
@@ -256,7 +256,9 @@ def build_filter_rail(task: str) -> dict:
             "on": task == fid,
             "track": fid,
         }
-        for fid, (label, _fields) in get_filters().items()
+        for fid, (label, fields) in get_filters().items()
+        # A filter over fields Tasks doesn't offer still works by URL, but isn't linked.
+        if set(fields) <= set(tasks.OFFERED)
     ]
     return {"all": {"label": _("All open tasks"), "url": build_dashboard_url(), "on": not task, "track": "all"}, "filters": filters}
 
@@ -331,7 +333,7 @@ def render_landing(user=None):
         figures=landing_figures(),
         feed=build_feed(),
         # A few appealing examples, not the full list.
-        fields=[get_field_guides()[f].label for f in ("covers", "languages", "publishers", "oclc_numbers")],
+        fields=[get_field_guides()[f].label for f in ("covers", "languages", "publishers", "number_of_pages")],
     )
 
 
@@ -515,7 +517,7 @@ class contribute_done(delegate.page):
         edition = get_edition_or_404(olid)
         field_guides = get_field_guides()
         saved = query_param("choice", "") == "saved"
-        same_book = [build_task_summary(t, field_guides, back) for t in tasks.tasks_for_edition(edition) if t.field != fld]
+        same_book = [build_task_summary(t, field_guides, back) for t in tasks.tasks_for_edition(edition) if t.field != fld and t.field in tasks.OFFERED]
         return render_contribute(
             "contribute/done.html.jinja",
             _("Saved") if saved else _("Skipped"),

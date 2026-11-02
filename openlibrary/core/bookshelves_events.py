@@ -4,7 +4,7 @@ from enum import IntEnum
 
 from openlibrary.core.async_db import class_row, execute, fetch_all, fetch_one, fetch_val
 
-from . import db
+from . import db  # noqa: TID251
 
 
 class BookshelfEvent(IntEnum):
@@ -188,22 +188,6 @@ class BookshelvesEvents(db.CommonExtras):
             vars=where_vars,
             updated=update_time,
             event_date=event_date,
-        )
-
-    @classmethod
-    def update_event_data(cls, pid, data):
-        oldb = db.get_db()
-
-        where_clause = "id=$id"
-        where_vars = {"id": pid}
-        update_time = datetime.now()
-
-        return oldb.update(
-            cls.TABLENAME,
-            where=where_clause,
-            vars=where_vars,
-            updated=update_time,
-            data=data,
         )
 
     # Delete methods:
