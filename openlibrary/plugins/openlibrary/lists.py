@@ -695,7 +695,7 @@ def sort_list_seeds(seeds: list[ListSeed], sort: str | None) -> list[ListSeed]:
         books = [seed for seed in seeds if seed.type in ("work", "edition")]
         others = [seed for seed in seeds if seed.type not in ("work", "edition")]
         # str(): legacy records can hold a non-string title.
-        return sorted(books, key=lambda seed: str(seed.title).casefold()) + others
+        return sorted(books, key=lambda seed: utils.strip_accents(str(seed.title)).casefold()) + others
     if sort == "last_modified":
         return h.safesort(seeds, reverse=True, key=lambda seed: seed.last_update)
     return seeds
@@ -741,13 +741,11 @@ class list_view(delegate.page):
             web.redirect(lst.location)
 
         page = safeint(query_param("page"), 1) - 1
-        sort = query_param("sort", None)
+        # A series always stays in volume order.
+        sort = None if lst.type.key == "/type/series" else query_param("sort", None)
         page_size = LIST_VIEW_PAGE_SIZE
 
-        seeds = lst.get_seeds(resolve_redirects=True)
-        # A series always stays in volume order.
-        if lst.type.key != "/type/series":
-            seeds = sort_list_seeds(seeds, sort)
+        seeds = sort_list_seeds(lst.get_seeds(resolve_redirects=True), sort)
         page_seeds = seeds[page * page_size : page * page_size + page_size]
         items = _resolve_list_view_items(page_seeds)
 

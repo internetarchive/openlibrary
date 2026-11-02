@@ -292,6 +292,13 @@ class TestSortListSeeds:
 
         assert legacy_lists.sort_list_seeds([banana, apple, duplicate], "title") == [apple, duplicate, banana]
 
+    def test_title_sorts_accented_letters_with_their_base_letter(self):
+        zola = SimpleNamespace(key="/works/OL1W", type="work", title="Zola")
+        emile = SimpleNamespace(key="/works/OL2W", type="work", title="Émile")
+        apple = SimpleNamespace(key="/works/OL3W", type="work", title="Apple")
+
+        assert legacy_lists.sort_list_seeds([zola, emile, apple], "title") == [apple, emile, zola]
+
     def test_title_keeps_non_books_after_books_in_list_order(self):
         author = SimpleNamespace(key="/authors/OL1A", type="author", title="Author")
         book = SimpleNamespace(key="/works/OL2W", type="work", title="Book")
@@ -556,15 +563,18 @@ class TestListViewGet:
         mock_site.get.return_value = lst
 
         resolve_mock = Mock(return_value=[])
+        render_mock = Mock(return_value="rendered")
         with (
             patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context,
             patch("openlibrary.plugins.openlibrary.lists._resolve_list_view_items", resolve_mock),
-            patch("openlibrary.plugins.openlibrary.lists.render_template", Mock(return_value="rendered")),
+            patch("openlibrary.plugins.openlibrary.lists.render_template", render_mock),
         ):
             mock_site_context.get.return_value = mock_site
             legacy_lists.list_view().GET("/series/OL1L")
 
         resolve_mock.assert_called_once_with(volumes)
+        # The template must not get the sort either, or it shows per-row "Edited" dates.
+        render_mock.assert_called_once_with("type/list/view", lst, [], 0, 50, None)
 
     def test_page_zero_query_param_preserves_preexisting_slicing_quirk(self, monkeypatch):
         """`?page=0` -> page=-1 -> a negative-start slice that yields no items.
