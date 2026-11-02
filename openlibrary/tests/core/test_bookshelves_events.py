@@ -1,12 +1,13 @@
 """Tests for openlibrary.core.bookshelves_events. See ``docs/core/database.md``."""
 
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from openlibrary.core import async_db
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents, CheckInEvent
+from openlibrary.core.db import _get_db
 
 
 @pytest.mark.asyncio
@@ -54,6 +55,18 @@ async def test_count_distinct_work_ids_by_user_type_and_year():
         "event_type": BookshelfEvent.FINISH,
         "event_date": "2026%",
     }
+
+
+def test_get_user_yearly_read_counts_counts_distinct_works():
+    mock_db = MagicMock()
+    mock_db.query.return_value = [SimpleNamespace(year="2026", count=2), SimpleNamespace(year="2025", count=1)]
+    with patch("openlibrary.core.bookshelves_events.db.get_db", return_value=mock_db):
+        result = BookshelvesEvents.get_user_yearly_read_counts("testuser")
+
+    assert result == [(2026, 2), (2025, 1)]
+    (query,), kwargs = mock_db.query.call_args
+    assert "count(DISTINCT work_id)" in query
+    assert kwargs["vars"] == {"username": "testuser", "event_type": BookshelfEvent.FINISH}
 
 
 @pytest.fixture
@@ -178,6 +191,35 @@ class TestBookshelvesEventsReadingGoalIntegration:
     async def test_count_distinct_work_ids_zero_when_no_events(self, pg_db):
         count = await BookshelvesEvents.count_distinct_work_ids_by_user_type_and_year("nobody", BookshelfEvent.FINISH, 2026)
         assert count == 0
+
+    @pytest.mark.asyncio
+    async def test_yearly_read_counts_match_reading_goal_count(self, pg_db):
+        """The year dropper on the Already Read shelf and the reading goal count a re-read once."""
+        rows = [
+            ("alice", 101, BookshelfEvent.FINISH, "2026-05-01"),
+            ("alice", 101, BookshelfEvent.FINISH, "2026-09-01"),  # re-read in the same year
+            ("alice", 102, BookshelfEvent.FINISH, "2026-06"),
+            ("alice", 101, BookshelfEvent.FINISH, "2025-03-01"),  # same work, different year
+            ("alice", 103, BookshelfEvent.START, "2026-07-01"),
+            ("bob", 104, BookshelfEvent.FINISH, "2026-05-01"),
+        ]
+        async with async_db.connection() as conn:
+            for username, work_id, event_type, event_date in rows:
+                await conn.execute(
+                    f"INSERT INTO {BookshelvesEvents.TABLENAME} (username, work_id, edition_id, event_type, event_date) VALUES (%(u)s, %(w)s, 1, %(t)s, %(d)s)",
+                    {"u": username, "w": work_id, "t": event_type, "d": event_date},
+                )
+
+        # The yearly counts still use the cached legacy sync connection; point it at this test's database.
+        _get_db.cache_clear()
+        try:
+            yearly = BookshelvesEvents.get_user_yearly_read_counts("alice")
+        finally:
+            _get_db.cache_clear()
+
+        assert yearly == [(2026, 2), (2025, 1)]
+        goal_2026 = await BookshelvesEvents.count_distinct_work_ids_by_user_type_and_year("alice", BookshelfEvent.FINISH, 2026)
+        assert dict(yearly)[2026] == goal_2026
 
 
 @pytest.mark.integration
