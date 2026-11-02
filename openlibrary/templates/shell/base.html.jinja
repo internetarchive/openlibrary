@@ -46,7 +46,7 @@
             {% include "shell/stats.html.jinja" %}
         {% endif %}
         {% if not layout.is_bot %}
-            <script src="/cdn/archive.org/athena.js" type="text/javascript"></script>
+            <script src="/cdn/archive.org/athena.js"></script>
         {% endif %}
         <script src="{{ static_url('build/js/all.js') }}" type="module"></script>
         <script src="{{ static_url('build/components/production/ol-components.js') }}"

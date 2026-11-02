@@ -7,11 +7,11 @@
 #}
 {% import "design/components/popover.html.jinja" as pop with context %}
 {% set CHECKS = [('control-alignment', 'Control alignment'), ('control-states', 'Control states'), ('selected-look', 'Selected look'), ('menus', 'Menus and panels'), ('surfaces', 'Surfaces and text'), ('focus', 'Focus rings'), ('density', 'Density'), ('long-content', 'Long content'), ('rtl', 'Right-to-left')] %}
-{% set SELECT_ITEMS = "[{\"value\":\"en\",\"label\":\"English\"},{\"value\":\"es\",\"label\":\"Spanish\"},{\"value\":\"fr\",\"label\":\"French\"}]" %}
-{% set MENU_ITEMS = "[{\"value\":\"relevance\",\"label\":\"Relevance\"},{\"value\":\"new\",\"label\":\"Most Recent\"},{\"value\":\"rating\",\"label\":\"Top Rated\"}]" %}
-{% set OPTIONS_ITEMS = "[{\"value\":\"fiction\",\"label\":\"Fiction\",\"description\":\"Novels and short stories\",\"count\":\"1,024\"},{\"value\":\"nonfiction\",\"label\":\"Nonfiction\",\"description\":\"Fact-based works and essays\",\"count\":\"892\"},{\"value\":\"poetry\",\"label\":\"Poetry\",\"count\":\"213\"}]" %}
-{% set MANY_LANGUAGES = "[{\"value\":\"en\",\"label\":\"English\"},{\"value\":\"es\",\"label\":\"Spanish\"},{\"value\":\"fr\",\"label\":\"French\"},{\"value\":\"de\",\"label\":\"German\"},{\"value\":\"it\",\"label\":\"Italian\"},{\"value\":\"pt\",\"label\":\"Portuguese\"},{\"value\":\"zh\",\"label\":\"Chinese\"},{\"value\":\"ja\",\"label\":\"Japanese\"},{\"value\":\"ru\",\"label\":\"Russian\"},{\"value\":\"ar\",\"label\":\"Arabic\"}]" %}
-{% set RTL_SELECT_ITEMS = "[{\"value\":\"ar\",\"label\":\"العربية\"},{\"value\":\"he\",\"label\":\"עברית\"},{\"value\":\"fa\",\"label\":\"فارسی\"},{\"value\":\"ur\",\"label\":\"اردو\"}]" %}
+{% set SELECT_ITEMS = '[{"value":"en","label":"English"},{"value":"es","label":"Spanish"},{"value":"fr","label":"French"}]' %}
+{% set MENU_ITEMS = '[{"value":"relevance","label":"Relevance"},{"value":"new","label":"Most Recent"},{"value":"rating","label":"Top Rated"}]' %}
+{% set OPTIONS_ITEMS = '[{"value":"fiction","label":"Fiction","description":"Novels and short stories","count":"1,024"},{"value":"nonfiction","label":"Nonfiction","description":"Fact-based works and essays","count":"892"},{"value":"poetry","label":"Poetry","count":"213"}]' %}
+{% set MANY_LANGUAGES = '[{"value":"en","label":"English"},{"value":"es","label":"Spanish"},{"value":"fr","label":"French"},{"value":"de","label":"German"},{"value":"it","label":"Italian"},{"value":"pt","label":"Portuguese"},{"value":"zh","label":"Chinese"},{"value":"ja","label":"Japanese"},{"value":"ru","label":"Russian"},{"value":"ar","label":"Arabic"}]' %}
+{% set RTL_SELECT_ITEMS = '[{"value":"ar","label":"العربية"},{"value":"he","label":"עברית"},{"value":"fa","label":"فارسی"},{"value":"ur","label":"اردو"}]' %}
 {#
   The surfaces a control can land on, for the Surfaces check and the state
   grid's surface switcher. `inverse` is text-only: no control is specified for
@@ -764,7 +764,8 @@
                     <ul class="ds-surface__text">
                         {% for text_token, text_title in TEXT_TOKENS %}
                             <li class="ds-surface__text-row">
-                                <span class="ds-surface__sample" style="color: var({{ text_token }});">{{ text_title }} — the quick brown fox</span>
+                                <span class="ds-surface__sample"
+                                      style="color: var({{ text_token }})">{{ text_title }} — the quick brown fox</span>
                                 <span class="ds-surface__contrast"
                                       data-ds-contrast-for="{{ text_token }}"
                                       data-ds-contrast-on="{{ token }}"></span>
@@ -1098,7 +1099,8 @@
                            value="ألف ليلة وليلة">
                 </div>
                 <div class="rtl-check__field">
-                    <label class="ds-demo-label" for="rtl-check-isbn">الرقم الدولي الموحد للكتاب <span class="rtl-check__hint">(ISBN)</span></label>
+                    <label class="ds-demo-label"
+                           for="rtl-check-isbn">الرقم الدولي الموحد للكتاب <span class="rtl-check__hint">(ISBN)</span></label>
                     <input id="rtl-check-isbn"
                            class="rtl-check__input"
                            type="text"
@@ -1116,7 +1118,9 @@
                 </div>
                 <div class="rtl-check__field">
                     <label class="ds-demo-label" for="rtl-check-notes">ملاحظات</label>
-                    <textarea id="rtl-check-notes" class="ds-demo-textarea" rows="3">نسخة مترجمة عن الطبعة الفرنسية، مع مقدمة للمترجم.</textarea>
+                    <textarea id="rtl-check-notes"
+                              class="ds-demo-textarea"
+                              rows="3">نسخة مترجمة عن الطبعة الفرنسية، مع مقدمة للمترجم.</textarea>
                 </div>
                 <div class="rtl-check__field">
                     <ol-toggle label="إشعاري عند تعديل هذا السجل" sublabel="بريد إلكتروني أسبوعي" checked>

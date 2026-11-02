@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="format-detection" content="telephone=no">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% if layout.head.domain != 'openlibrary.org' %}
+    {% if layout.head.domain != "openlibrary.org" %}
         <meta name="robots" content="noindex">
     {% endif %}
     <meta name="theme-color" content="#e2dcc5">
@@ -29,7 +29,7 @@
     <link href="/static/images/openlibrary-180x180.png"
           rel="apple-touch-icon"
           sizes="180x180" />
-    {% if layout.ol_env == 'production' %}
+    {% if layout.ol_env == "production" %}
         <link href="/static/images/openlibrary-192x192.png"
               rel="icon"
               sizes="192x192" />
@@ -50,15 +50,10 @@
        an as=image preload isn't credited against the <use> fetch, so it double-fetches. #}
     <meta name="ol-icon-sprite" content="{{ layout.head.icon_sprite_url }}">
     {# Loaded separately from page-*.css so they cache once and serve every page from cache. #}
-    <link href="{{ static_url('build/css/tokens.css') }}"
-          rel="stylesheet"
-          type="text/css" />
+    <link href="{{ static_url('build/css/tokens.css') }}" rel="stylesheet" />
     <link href="{{ static_url('build/css/ol-components.css') }}"
-          rel="stylesheet"
-          type="text/css" />
-    <link href="{{ static_url(layout.head.page_css_path) }}"
-          rel="stylesheet"
-          type="text/css" />
+          rel="stylesheet" />
+    <link href="{{ static_url(layout.head.page_css_path) }}" rel="stylesheet" />
     <noscript>
         <style>
         /* Don't hide content with clamp if no js to show more/less */
@@ -117,9 +112,7 @@
   */
     </script>
     {% if layout.is_local_dev %}
-        <link href="{{ static_url('build/css/page-dev.css') }}"
-              rel="stylesheet"
-              type="text/css" />
+        <link href="{{ static_url('build/css/page-dev.css') }}" rel="stylesheet" />
     {% endif %}
     <meta name="google-site-verification"
           content="KrqcZD4l5BLNVyjzSi2sjZBiwgmkJ1W7n6w7ThD7A74" />
