@@ -208,7 +208,13 @@ def truncate(text: str, limit: int) -> str:
 
 def urlsafe(path: str) -> str:
     """Replaces the unsafe chars from path with underscores."""
-    return _get_safepath_re().sub("_", path).strip("_")[:100]
+    safe = _get_safepath_re().sub("_", path).strip("_")[:100]
+    # "." and ".." are dot-segments: a browser resolves "/works/OL1W/.." to
+    # "/works", so a work titled ".." could never be reached (#6856). Percent-encoding
+    # doesn't help, since "%2E%2E" is a dot-segment too.
+    if safe in (".", ".."):
+        return "_"
+    return safe
 
 
 @functools.cache
