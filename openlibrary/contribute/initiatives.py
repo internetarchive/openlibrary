@@ -161,14 +161,16 @@ def get_gaps(initiative: Initiative = ACTIVE) -> list[list] | None:
 
 def progress(gaps: list[list]) -> dict[str, int]:
     """How far the initiative has come: editions with nothing left to fill, out of all of them, the gaps still open, and the
-    share of details filled. A detail nobody could find counts as filled, so every save or "couldn't find it" moves it."""
-    open_count = sum(len(open_fields) for _key, _readers, open_fields, _skipped in gaps)
-    slots = len(gaps) * len(tasks.POINTS)
+    share of details filled. A detail nobody could find counts as filled, so every save or "couldn't find it" moves it.
+    Only the fields Tasks offers count; the gaps keep the rest for the unlinked filters."""
+    offered = [([f for f in open_fields if f in tasks.OFFERED], [f for f in skipped if f in tasks.OFFERED]) for _key, _readers, open_fields, skipped in gaps]
+    open_count = sum(len(open_fields) for open_fields, _skipped in offered)
+    slots = len(gaps) * len(tasks.OFFERED)
     return {
-        "done": sum(1 for _key, _readers, open_fields, _skipped in gaps if not open_fields),
+        "done": sum(1 for open_fields, _skipped in offered if not open_fields),
         "total": len(gaps),
         "open": open_count,
-        "not_found": sum(len(skipped) for _key, _readers, _open, skipped in gaps),
+        "not_found": sum(len(skipped) for _open, skipped in offered),
         # Rounded down, so it only reads 100 when nothing is left.
         "percent": (slots - open_count) * 100 // slots if slots else 0,
     }
