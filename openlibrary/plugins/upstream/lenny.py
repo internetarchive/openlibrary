@@ -125,6 +125,13 @@ other flight for the same patron and node -- is blocked. The worst case is two
 of these back to back, discovery then the token endpoint, so ten seconds.
 """
 
+READ_SESSION_TIMEOUT_SECONDS = 5
+"""How long a node has to mint a reader session ticket.
+
+Deliberately short: the patron is waiting for the reader to open, and a slow
+node should fall back to the direct link rather than hang them.
+"""
+
 LOANS_PATH = "/v1/api/oauth2/loans"
 """Built from the issuer rather than read from discovery, and that is not a
 shortcut taken for convenience.
@@ -135,7 +142,13 @@ advertises one: ``lennyforlibraries.org`` publishes ``authorization_endpoint``,
 2026-09-20, command below). #13687 asked for this path to come from discovery;
 there is nowhere in the document for it to come from. :func:`borrow` builds its
 own path the same way, for the same reason.
+"""
 
+SESSION_PATH = "/v1/api/oauth2/session"
+"""The node's session-establishment endpoint (#254).
+
+Open Library POSTs the stored grant here to mint a short-lived ticket; the
+patron's browser GETs it with the ticket to burn it for a node session cookie.
 Discovery still decides the *origin*, which is the part a node can move. The
 path is Lenny's own API surface and carries its version in itself.
 
@@ -288,6 +301,12 @@ def node_for_edition(edition_key: str) -> tuple[str, dict[str, str]] | None:
 
 def _redirect_uri() -> str:
     return config.get("lenny_redirect_uri") or f"https://openlibrary.org{REDIRECT_PATH}"
+
+
+def _ol_origin() -> str:
+    """Open Library's own origin, for links the patron's browser follows."""
+    parts = urlsplit(_redirect_uri())
+    return f"{parts.scheme}://{parts.netloc}"
 
 
 def node_display_name(provider_name: str, node: dict[str, str]) -> str:
@@ -573,7 +592,7 @@ def _expiry(value: Any) -> str | None:
     return parsed.astimezone(dt.UTC).replace(tzinfo=None).isoformat()
 
 
-def loan_from_node(provider_name: str, issuer: str, username: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+def loan_from_node(provider_name: str, username: str, payload: dict[str, Any]) -> dict[str, Any] | None:
     """One node loan in the shape ``templates/account/loans.html`` consumes.
 
     Returns None when ``edition_id`` is missing or not an integer: there is
@@ -601,9 +620,9 @@ def loan_from_node(provider_name: str, issuer: str, username: str, payload: dict
         "userid": f"ol:{username}",
         "provider": provider_name,
         "resource_type": PROVIDER_RESOURCE_TYPE,
-        "read_url": item_read_url(issuer, edition_id),
-        # Unlike `read_url`, an Open Library path: the return is submitted back
-        # here, because the node accepts a return only from the token holder
+        "read_url": read_url(f"/books/OL{edition_id}M"),
+        # Unlike `read_url`, an Open Library path the browser submits: the
+        # node accepts a return only from the token holder
         # (ArchiveLabs/lenny#240) and Open Library is what holds it. Carried on
         # the loan so the generic read-button template needs no Lenny knowledge.
         "return_url": return_path(f"OL{edition_id}M"),
@@ -771,7 +790,7 @@ def provider_loans(username: str) -> ProviderLoans:
             if not isinstance(payload, dict):
                 logger.info("lenny loans from %s contained a %s where an object was promised", provider_name, type(payload).__name__)
                 continue
-            if loan := loan_from_node(provider_name, issuers[provider_name], username, payload):
+            if loan := loan_from_node(provider_name, username, payload):
                 loans.append(loan)
 
     return ProviderLoans(loans, unreachable, unauthorized)
@@ -928,30 +947,36 @@ def authorize_url(
         # signed in as, so a node need not ask for one they just proved on
         # Open Library.
         #
-        # **A node running ArchiveLabs/lenny origin/main ignores this**, which
-        # as of 75b0906 is every node in service. Three places drop it:
-        # ``authorize`` does not declare the parameter
-        # (``lenny/routes/oauth2.py:203-212``); ``_echo``'s allow-list excludes
-        # it, so it never reaches the login page (``oauth2.py:294-299``); and
-        # the OTP form's email box is filled only from a POST body
-        # (``lenny/routes/oauth.py:110-117``, ``post_email``). Sending it is
-        # safe regardless: unknown parameters are ignored rather than refused,
-        # verified live -- ``/v1/api/oauth2/authorize?client_id=nope`` answers
+        # ArchiveLabs/lenny#239 shipped node-side support: on origin/main
+        # (verified at 24340d4) ``login_hint`` is a declared parameter on
+        # authorize, is parsed through ``_login_hint``, appears in ``_echo``'s
+        # allow-list, and the code states the hinted address is binding --
+        # verified with a control (``code_challenge``, a parameter known to be
+        # declared, found alongside it). Sending it is therefore safe and
+        # useful: unknown parameters are ignored rather than refused, verified
+        # live -- ``/v1/api/oauth2/authorize?client_id=nope`` answers
         # identically with and without it.
         #
-        # Node-side support is written and not yet released, so this is
-        # unshipped rather than unsupported. Do not describe it as pre-filling
-        # anything until a node in service reads it; and even then it pre-fills
-        # only. It deliberately does not let the patron skip the email step,
-        # because ``/oauth2/authorize`` is an unauthenticated GET and mailing a
-        # one-time code on arrival would let a link or a prefetch send one to
-        # any address a caller chose.
+        # Caveats that still apply: login_hint is sent only ``if email``; a
+        # forced re-authentication drops it (``hint = None if fresh else
+        # _login_hint(login_hint)``), so the patron can prove a different
+        # address on that path; a node running external OIDC may return a
+        # different address than the hint; and a grant created before #239
+        # shipped carries a hash of whatever address was proved at the time.
+        # Sending it remains the best available signal, not a guarantee.
         #
-        # **The cost, which is the part worth a human decision:** this hands
+        # The cost, which is the part worth a human decision: this hands
         # the node the patron's email before they consent, including when they
         # abandon the flow. A patron who finishes discloses it anyway, because
         # the node's read gate keys on ``sha256(lowercased email)``, so the
         # delta is the abandoned case -- small, real, and not ours to settle.
+        #
+        # The only authoritative patron identity is the hash carried inside
+        # the access token, never an address computed here: anything on this
+        # side that keys a patron at a node must obtain it from the token,
+        # never recompute it locally. A locally derived hash would match most
+        # of the time and silently fail the rest -- a patron with a live loan
+        # told they have none, with no error anywhere.
         params["login_hint"] = email
     return f"{metadata['authorization_endpoint']}?{urlencode(params)}"
 
@@ -996,17 +1021,16 @@ def borrow_with_stored_grant(
 def borrowed_page(
     username: str,
     provider_name: str,
-    issuer: str,
     edition_key: str,
     loan: dict[str, Any],
 ) -> delegate.RawText:
     """The ending both borrow paths share: tell the book page, then render."""
-    if cached := loan_from_node(provider_name, issuer, username, loan):
+    if cached := loan_from_node(provider_name, username, loan):
         prime_provider_loans(username, cached)
     # The node's config, not the flow's snapshot: an operator may have
     # corrected the display name since.
     library = node_display_name(provider_name, nodes().get(provider_name, {}))
-    return render_borrowed(edition_key, loan, read_url(issuer, edition_key, loan), library)
+    return render_borrowed(edition_key, loan, read_url(edition_key), library)
 
 
 class lenny_borrow(delegate.page):
@@ -1032,7 +1056,7 @@ class lenny_borrow(delegate.page):
         try:
             if loan := borrow_with_stored_grant(username, provider_name, node, edition_key):
                 logger.info("lenny loan created on %s for %s with a stored grant", provider_name, edition_key)
-                return borrowed_page(username, provider_name, node["issuer"], edition_key, loan)
+                return borrowed_page(username, provider_name, edition_key, loan)
         except LennyBorrowError as e:
             logger.info("lenny borrow refused (%s/%s)", e.status, e.error)
             return render_error(e.message, edition_key)
@@ -1192,6 +1216,45 @@ class lenny_return(delegate.page):
         raise web.seeother(redirect_to)
 
 
+class lenny_read(delegate.page):
+    """The mediated hop into a node's reader (#14020).
+
+    The node's reader needs the node's own session cookie, and a browser
+    cannot present a bearer token, so this route mints a short-lived ticket
+    from the stored grant and redirects the browser to the node to burn it.
+    The access token never touches the browser.
+    """
+
+    path = r"/borrow/lenny/(OL\d+M)/read"
+
+    def GET(self, edition_olid: str):
+        edition_key = f"/books/{edition_olid}"
+        if not (user := get_current_user()):
+            raise web.seeother(f"/account/login?redirect={read_path(edition_olid)}")
+        if not (found := node_for_edition(edition_key)):
+            raise web.notfound()
+        provider_name, node = found
+        username = user.get_username()
+        edition_id = int(extract_numeric_id_from_olid(edition_key))
+        try:
+            token = access_token_for(username, provider_name)
+        except Exception:
+            logger.exception(
+                "lenny could not read a stored grant to read for %s at %s",
+                username,
+                provider_name,
+            )
+            token = None
+        if not token:
+            # Nothing was presented to the node: degrade to the direct link.
+            raise web.seeother(item_read_url(node["issuer"], edition_id))
+        ticket = mint_session_ticket(node["issuer"], token)
+        if not ticket:
+            # The node could not mint a session: degrade to the direct link.
+            raise web.seeother(item_read_url(node["issuer"], edition_id))
+        raise web.seeother(session_redeem_url(node["issuer"], ticket, edition_id))
+
+
 class lenny_callback(delegate.page):
     path = REDIRECT_PATH
 
@@ -1247,24 +1310,71 @@ class lenny_callback(delegate.page):
         return borrowed_page(
             pending["username"],
             pending["provider_name"],
-            pending["issuer"],
             pending["edition_key"],
             loan,
         )
 
 
-def read_url(issuer: str, edition_key: str, loan: dict[str, Any]) -> str:
-    """Where the patron reads what they just borrowed.
+def read_path(edition_key: str) -> str:
+    """Where the patron reads a Lenny loan, as one definition.
 
-    The node's reader wants the node's own browser session, not a token, so a
-    patron borrowing with a reused grant may be asked to sign in there first.
+    Takes either a ``/books/OL...M`` edition key or a bare ``OL...M`` id and
+    returns the Open Library path that mediates the hop to the node's reader.
     """
-    edition_id = loan.get("edition_id") or extract_numeric_id_from_olid(edition_key)
-    return item_read_url(issuer, edition_id)
+    return f"/borrow/lenny/OL{extract_numeric_id_from_olid(edition_key)}M/read"
+
+
+def read_url(edition_key: str) -> str:
+    """The absolute Open Library URL that starts a mediated read.
+
+    The patron's browser carries no bearer token, and the node's reader needs
+    the node's own session cookie, so Open Library mints a short-lived ticket
+    and hands the browser to the node with it instead of linking straight at
+    the raw item URL.
+    """
+    return f"{_ol_origin()}{read_path(edition_key)}"
+
+
+def mint_session_ticket(issuer: str, token: str) -> str | None:
+    """A short-lived ticket for a node reader session, or None.
+
+    POSTs the stored grant to the node's session endpoint (#254). None means
+    the node did not offer it or the call failed: the caller then falls back
+    to the direct link, and the patron is no worse off than before.
+    """
+    try:
+        resp = requests.post(
+            issuer.rstrip("/") + SESSION_PATH,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=READ_SESSION_TIMEOUT_SECONDS,
+        )
+        resp.raise_for_status()
+    except requests.RequestException as exc:
+        logger.info("lenny could not mint a reader ticket at %s (%s)", issuer, type(exc).__name__)
+        return None
+    payload = _node_json(resp) or {}
+    ticket = payload.get("ticket")
+    if not isinstance(ticket, str) or not ticket:
+        logger.info("lenny node %s returned no reader ticket", issuer)
+        return None
+    return ticket
+
+
+def session_redeem_url(issuer: str, ticket: str, edition_id: Any) -> str:
+    """Where the browser burns a ticket for a reader session.
+
+    ``redir`` is path-only and same-origin, as the node requires.
+    """
+    params = urlencode({"ticket": ticket, "redir": f"/v1/api/items/{edition_id}/read"})
+    return f"{issuer.rstrip('/')}{SESSION_PATH}?{params}"
 
 
 def item_read_url(issuer: str, edition_id: Any) -> str:
-    """A node's reader URL for one item."""
+    """A node's reader URL for one item.
+
+    Kept as the direct fallback when a session ticket cannot be minted: the
+    node's reader then asks the patron to sign in there first.
+    """
     return f"{issuer.rstrip('/')}/v1/api/items/{edition_id}/read"
 
 

@@ -29,7 +29,7 @@ PROVIDER_LOAN = {
     "userid": "ol:patron",
     "provider": "lenny",
     "resource_type": "provider",
-    "read_url": "https://lennyforlibraries.org/v1/api/items/37044497/read",
+    "read_url": "https://openlibrary.org/borrow/lenny/OL37044497M/read",
 }
 """Note `expiry` is naive, and that is load-bearing rather than incidental.
 
@@ -72,7 +72,7 @@ def render_actions(render_template, request_context_fixture):
 class TestAProviderLoanIsNotAnInternetArchiveLoan:
     def test_it_offers_the_node_reader(self, render_actions):
         out = render_actions(PROVIDER_LOAN)
-        assert "https://lennyforlibraries.org/v1/api/items/37044497/read" in out
+        assert "https://openlibrary.org/borrow/lenny/OL37044497M/read" in out
         assert "Read" in out
 
     def test_it_does_not_reach_the_adobe_branch(self, render_actions):
@@ -101,7 +101,7 @@ class TestAProviderLoanIsNotAnInternetArchiveLoan:
     def test_a_provider_loan_with_no_due_date_still_renders(self, render_actions):
         """`due_at` is documented nullable."""
         out = render_actions({**PROVIDER_LOAN, "expiry": None})
-        assert "/v1/api/items/37044497/read" in out
+        assert "/borrow/lenny/OL37044497M/read" in out
 
     def test_the_node_reader_opens_in_its_own_window(self, render_actions):
         """`rel` as well as `target`: a named target otherwise hands another
@@ -143,11 +143,11 @@ class TestTheExpiryTheNodeActuallySends:
     )
     def test_the_page_renders_for_every_offset_a_node_can_send(self, render_actions, due_at):
         out = render_actions(self._from_node(due_at))
-        assert "/v1/api/items/37044497/read" in out
+        assert "/borrow/lenny/OL37044497M/read" in out
 
     def test_an_unparsable_due_at_drops_the_expiry_rather_than_the_page(self, render_actions):
         out = render_actions(self._from_node("whenever"))
-        assert "/v1/api/items/37044497/read" in out
+        assert "/borrow/lenny/OL37044497M/read" in out
 
 
 class TestTheInternetArchiveBranchIsUnchanged:
