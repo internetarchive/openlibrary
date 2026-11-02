@@ -5,7 +5,7 @@ from openlibrary.core.async_db import execute, fetch_all, fetch_one, fetch_val
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
-from . import db
+from . import db  # noqa: TID251
 
 
 class WorkRatingsSummary(TypedDict):

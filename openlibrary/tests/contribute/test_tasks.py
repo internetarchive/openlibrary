@@ -35,6 +35,11 @@ def test_beta_fields_are_only_visible_to_the_tags_whitelist():
     assert tasks.visible_fields(True) == tuple(tasks.POINTS)
 
 
+def test_offered_fields_add_the_beta_ones_only_for_those_who_see_them():
+    assert set(tasks.offered_fields(tasks.visible_fields(False))) == set(tasks.OFFERED)
+    assert set(tasks.offered_fields(tasks.visible_fields(True))) == {*tasks.OFFERED, "literary_form"}
+
+
 def test_a_cover_is_missing_with_only_deleted_covers_but_not_on_a_scanned_book():
     assert tasks.is_missing(FakeEdition(covers=[-1]), "covers")
     assert not tasks.is_missing(FakeEdition(covers=[-1, 8478242]), "covers")

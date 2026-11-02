@@ -30,10 +30,17 @@ POINTS = {
 WORK_FIELDS = frozenset({LITERARY_FORM})
 # Fields only the tags whitelist sees, until the feature opens up.
 BETA_FIELDS = frozenset({LITERARY_FORM})
+# The fields Tasks hands out and the initiative counts. LCCN and OCLC keep their task pages and filter, reachable by URL but not linked.
+OFFERED = ("covers", "languages", "number_of_pages", "publishers")
 
 
 def visible_fields(can_edit_tags: bool) -> tuple[str, ...]:
     return tuple(f for f in POINTS if can_edit_tags or f not in BETA_FIELDS)
+
+
+def offered_fields(visible: tuple[str, ...]) -> tuple[str, ...]:
+    """Of the fields a visitor can see, the ones Tasks hands them: the public mix, plus any beta fields."""
+    return tuple(f for f in visible if f in OFFERED or f in BETA_FIELDS)
 
 
 def work_of(edition):

@@ -285,7 +285,7 @@ def build_task_rows(task: str, visible: tuple[str, ...] = tuple(tasks.POINTS)) -
 
     ``visible`` is what this visitor may see; a filter narrows it further. None while the initiative's gaps are still being built.
     """
-    fields = get_filters()[task][1] if task else visible
+    fields = get_filters()[task][1] if task else tasks.offered_fields(visible)
     if (candidates := supply.candidates(fields)) is None:
         return None
     field_guides = get_field_guides()
@@ -308,7 +308,7 @@ def build_progress(fields: tuple[str, ...]) -> dict | None:
     """The active initiative's progress for the dashboard, or None while its gaps are still being built."""
     if not (gaps := initiatives.get_gaps()):
         return None
-    p = initiatives.progress(gaps, fields)
+    p = initiatives.progress(gaps, tasks.offered_fields(fields))
     return {
         "title": _("The %(count)s most-read books", count=helpers.commify(p["total"])),
         "percent": p["percent"],
@@ -325,7 +325,8 @@ def build_filter_rail(task: str, fields: tuple[str, ...]) -> dict:
             "on": task == fid,
             "track": fid,
         }
-        for fid, (label, _fields) in visible_filters(fields).items()
+        # A filter over fields Tasks doesn't offer still works by URL, but isn't linked.
+        for fid, (label, _fields) in visible_filters(tasks.offered_fields(fields)).items()
     ]
     return {"all": {"label": _("All open tasks"), "url": build_dashboard_url(), "on": not task, "track": "all"}, "filters": filters}
 
@@ -400,7 +401,7 @@ def render_landing(user=None):
         figures=landing_figures(),
         feed=build_feed(),
         # A few appealing examples, not the full list.
-        fields=[get_field_guides()[f].label for f in ("covers", "languages", "publishers", "oclc_numbers")],
+        fields=[get_field_guides()[f].label for f in ("covers", "languages", "publishers", "number_of_pages")],
     )
 
 
@@ -609,7 +610,8 @@ class contribute_done(delegate.page):
         edition = get_edition_or_404(olid)
         field_guides = get_field_guides()
         saved = query_param("choice", "") == "saved"
-        same_book = [build_task_summary(t, field_guides, back) for t in tasks.tasks_for_edition(edition) if t.field != fld and t.field in fields]
+        offered = tasks.offered_fields(fields)
+        same_book = [build_task_summary(t, field_guides, back) for t in tasks.tasks_for_edition(edition) if t.field != fld and t.field in offered]
         # A work answer lands in the work's history.
         edited = work_of(edition) if fld in tasks.WORK_FIELDS and work_of(edition) else edition
         return render_contribute(

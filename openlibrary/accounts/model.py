@@ -11,7 +11,7 @@ import string
 import time
 import uuid
 from enum import Enum
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 import requests
 import web
@@ -29,6 +29,7 @@ from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.openlibrary.pd import get_pd_org
 from openlibrary.utils import server_timing
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import site
 
 try:
@@ -286,6 +287,16 @@ class Link(web.storage):
         del site.get().store[self["_key"]]
 
 
+class AccountAnonymizationResult(TypedDict):
+    new_username: str
+    booknotes_count: int
+    ratings_count: int
+    observations_count: int
+    bookshelves_count: int
+    merge_request_count: int
+    bestbooks_count: int
+
+
 class Account(web.storage):
     @property
     def username(self) -> str:
@@ -454,46 +465,69 @@ class Account(web.storage):
         self.bot = flag
         self._save()
 
-    def anonymize(self, test=False):
+    async def anonymize(self, test: bool = False) -> AccountAnonymizationResult:
         if not test:
-            patron = self.get_user()
-            email = self.email
-            username = self.username
+            self._delete_infobase_data()
+        return await self._anonymize_tables(test)
 
-            # Remove patron from all usergroups:
-            for grp in patron.usergroups:
-                grp.remove_user(patron.key)
+    def anonymize_sync(self, test: bool = False) -> AccountAnonymizationResult:
+        """Synchronous bridge for the legacy web.py account and admin routes.
 
-            # Clear patron's profile page:
-            data = {"key": patron.key, "type": "/type/delete"}
-            patron.set_data(data, "delete-profile")
+        The Infobase cleanup runs on the calling thread, outside the bridge:
+        Infobase saves read the request's ``web.ctx.ip``, which is thread-local.
+        """
+        if not test:
+            self._delete_infobase_data()
+        return async_bridge.run(self._anonymize_tables(test))
 
-            # Remove account information from store:
-            del site.get().store[f"account/{username}"]
-            del site.get().store[f"account/{username}/verify"]
-            del site.get().store[f"account/{username}/password"]
-            del site.get().store[f"account-email/{email}"]
-            del site.get().store[f"account-email/{email.lower()}"]
-            # Delete preferences:
-            del site.get().store[f"/people/{username}/preferences"]
+    def _delete_infobase_data(self) -> None:
+        patron = self.get_user()
+        email = self.email
+        username = self.username
 
+        # Remove patron from all usergroups:
+        for grp in patron.usergroups:
+            grp.remove_user(patron.key)
+
+        # Clear patron's profile page:
+        data = {"key": patron.key, "type": "/type/delete"}
+        patron.set_data(data, "delete-profile")
+
+        # Remove account information from store:
+        del site.get().store[f"account/{username}"]
+        del site.get().store[f"account/{username}/verify"]
+        del site.get().store[f"account/{username}/password"]
+        del site.get().store[f"account-email/{email}"]
+        del site.get().store[f"account-email/{email.lower()}"]
+        # Delete preferences:
+        del site.get().store[f"/people/{username}/preferences"]
+
+    async def _anonymize_tables(self, test: bool) -> AccountAnonymizationResult:
         # Generate new unique username for patron:
         # Note: Cannot test get_activation_link() locally
-        uuid = self.get_activation_link()["code"] if self.get_activation_link() else generate_uuid()
+        activation_link = self.get_activation_link()
+        uuid = activation_link["code"] if isinstance(activation_link, Link) else generate_uuid()
         new_username = f"anonymous-{uuid}"
-        results = {"new_username": new_username}
 
         # Delete all of the patron's book notes:
-        results["booknotes_count"] = Booknotes.delete_all_by_username(self.username, _test=test)
+        booknotes_count = await Booknotes.delete_all_by_username(self.username, _test=test)
 
         # Anonymize patron's username in OL DB tables:
-        results["ratings_count"] = Ratings.update_username(self.username, new_username, _test=test)
-        results["observations_count"] = Observations.update_username(self.username, new_username, _test=test)
-        results["bookshelves_count"] = Bookshelves.update_username(self.username, new_username, _test=test)
-        results["merge_request_count"] = CommunityEditsQueue.update_submitter_name(self.username, new_username, _test=test)
-        results["bestbooks_count"] = Bestbook.update_username(self.username, new_username, _test=test)
+        ratings_count = await Ratings.update_username(self.username, new_username, _test=test)
+        observations_count = await Observations.update_username(self.username, new_username, _test=test)
+        bookshelves_count = await Bookshelves.update_username(self.username, new_username, _test=test)
+        merge_request_count = await CommunityEditsQueue.update_submitter_name(self.username, new_username, _test=test)
+        bestbooks_count = await Bestbook.update_username(self.username, new_username, _test=test)
 
-        return results
+        return {
+            "new_username": new_username,
+            "booknotes_count": booknotes_count,
+            "ratings_count": ratings_count,
+            "observations_count": observations_count,
+            "bookshelves_count": bookshelves_count,
+            "merge_request_count": merge_request_count,
+            "bestbooks_count": bestbooks_count,
+        }
 
     @property
     def itemname(self) -> str | None:
@@ -1188,7 +1222,7 @@ def audit_accounts(  # noqa: PLR0912
     # allows us to fetch the OL account linked to their IA account, bypass this
     # site.get().login method (which requires OL credentials), and directly set an
     # auth_token to enable the user's session.
-    web.ctx.conn.set_auth_token(ol_account.generate_login_code())
+    site.get()._conn.set_auth_token(ol_account.generate_login_code())
     ol_account.update_last_login()
     return {
         "authenticated": True,

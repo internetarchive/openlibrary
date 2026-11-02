@@ -113,10 +113,17 @@ def pick_most_read(size: int, site=None) -> list[list]:
 ACTIVE = Initiative("most-read-2026-11", 2000, pick_most_shelved)
 
 
-def load_or_freeze(initiative: Initiative, site) -> list[list]:
-    """The frozen list from the store; the first call picks it and stores it."""
+def load_frozen(initiative: Initiative, site) -> list[list] | None:
+    """The frozen list from the store, or None if it hasn't been picked yet. Never picks."""
     if doc := site.store.get(initiative.store_key):
         return doc["editions"]
+    return None
+
+
+def load_or_freeze(initiative: Initiative, site) -> list[list]:
+    """The frozen list from the store; the first call picks it and stores it."""
+    if (editions := load_frozen(initiative, site)) is not None:
+        return editions
     editions = initiative.pick(initiative.size, site)
     if editions:
         site.store[initiative.store_key] = {
@@ -132,14 +139,19 @@ def not_found_fields(site) -> dict[str, set[str]]:
     """Fields enough people couldn't find, by edition key."""
     found: dict[str, set[str]] = {}
     for doc in site.store.values(type=NOT_FOUND_TYPE, limit=100_000):
-        if len(doc.get("people", [])) >= NOT_FOUND_PEOPLE[doc["field"]]:
+        # A mark for a field no longer on offer has no threshold; leave it be.
+        if (threshold := NOT_FOUND_PEOPLE.get(doc["field"])) and len(doc.get("people", [])) >= threshold:
             found.setdefault(doc["edition"], set()).add(doc["field"])
     return found
 
 
 def build_gaps(initiative: Initiative, site, batch: int = 100) -> list[list]:
-    """Every edition on the list as ``[key, readers, open fields, fields nobody could find]``, read from the database."""
-    picks = load_or_freeze(initiative, site)
+    """Every edition on the list as ``[key, readers, open fields, fields nobody could find]``, picking the list if needed."""
+    return gaps_for(load_or_freeze(initiative, site), site, batch)
+
+
+def gaps_for(picks: list[list], site, batch: int = 100) -> list[list]:
+    """Gaps for an already-loaded list of ``[key, readers]`` picks, read from the database."""
     unfindable = not_found_fields(site)
     rows = []
     for i in range(0, len(picks), batch):
@@ -165,10 +177,10 @@ def get_gaps(initiative: Initiative = ACTIVE) -> list[list] | None:
     return pool.get(f"contribute.initiative:{initiative.slug}", OPEN_TTL, lambda: build_gaps(initiative, create_site()), lock_ttl=OPEN_LOCK_TTL, keep=DAY_SECS)
 
 
-def progress(gaps: list[list], fields: tuple[str, ...] = tuple(tasks.POINTS)) -> dict[str, int]:
+def progress(gaps: list[list], fields: tuple[str, ...] = tasks.OFFERED) -> dict[str, int]:
     """How far the initiative has come: editions with nothing left to fill, out of all of them, the gaps still open, and the
     share of details filled. A detail nobody could find counts as filled, so every save or "couldn't find it" moves it.
-    Only ``fields`` count, so a field the viewer can't see doesn't move their figure."""
+    Only ``fields`` count, so a field the viewer can't see doesn't move their figure; the gaps keep the rest for the unlinked filters."""
     wanted = set(fields)
     open_count = sum(1 for _key, _readers, open_fields, _skipped in gaps for f in open_fields if f in wanted)
     slots = len(gaps) * len(wanted)

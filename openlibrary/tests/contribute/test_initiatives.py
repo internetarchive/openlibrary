@@ -77,8 +77,8 @@ def test_gaps_list_open_fields_and_set_aside_ones_nobody_could_find():
     )
     gaps = initiatives.build_gaps(make_initiative([]), site)
     assert gaps == [["/books/OL1M", 9, ["publishers"], ["lccn"]], ["/books/OL2M", 8, [], []]]
-    # 2 editions x 7 fields = 14 details, 1 still open: 13/14 filled, rounded down.
-    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 1, "percent": 92}
+    # 2 editions x 4 offered fields = 8 details, 1 still open: 7/8 filled, rounded down. The unfound LCCN isn't offered, so it doesn't count.
+    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
 
 
 def test_a_work_level_gap_is_read_from_the_edition_s_work():
@@ -95,7 +95,12 @@ def test_progress_counts_only_the_fields_the_viewer_sees():
     gaps = [["/books/OL1M", 9, ["literary_form"], []], ["/books/OL2M", 8, ["publishers"], ["literary_form"]]]
     public = initiatives.progress(gaps, ("publishers", "covers"))
     assert public == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 75}
-    assert initiatives.progress(gaps)["open"] == 2
+    assert initiatives.progress(gaps, initiatives.tasks.visible_fields(True))["open"] == 2
+
+
+def test_progress_counts_only_the_fields_tasks_offers():
+    gaps = [["/books/OL1M", 9, ["lccn", "oclc_numbers"], []], ["/books/OL2M", 8, ["covers"], ["oclc_numbers"]]]
+    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
 
 
 def test_every_task_field_has_a_not_found_threshold():
@@ -110,6 +115,8 @@ def test_fields_books_nearly_always_have_need_more_people_to_set_aside():
             "b": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL1M", "field": "publishers", "people": people[:3]},
             "c": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL1M", "field": "languages", "people": people[:3]},
             "d": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL2M", "field": "languages", "people": people},
+            # A mark left by a field that is no longer on offer.
+            "e": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL2M", "field": "dewey_decimal_class", "people": people},
         },
     )
     assert initiatives.not_found_fields(site) == {"/books/OL1M": {"publishers"}, "/books/OL2M": {"languages"}}

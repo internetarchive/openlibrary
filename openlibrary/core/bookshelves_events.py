@@ -4,7 +4,7 @@ from enum import IntEnum
 
 from openlibrary.core.async_db import class_row, execute, fetch_all, fetch_one, fetch_val
 
-from . import db
+from . import db  # noqa: TID251
 
 
 class BookshelfEvent(IntEnum):
