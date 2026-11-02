@@ -229,7 +229,7 @@ def test_other_fills_are_one_query_for_both_keys(monkeypatch):
 
 
 def test_tasks_fields_match_what_tasks_offers():
-    assert set(numbers.TASKS_FIELDS) == set(tasks.POINTS)
+    assert set(numbers.TASKS_FIELDS) == set(tasks.OFFERED)
 
 
 def test_tasks_source_matches_what_tasks_saves_write():
