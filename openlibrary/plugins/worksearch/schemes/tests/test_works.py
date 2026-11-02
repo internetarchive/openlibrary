@@ -121,6 +121,14 @@ QUERY_PARSER_TESTS = {
     "DDC: wildcard integer": ("ddc:2*", "ddc:2*"),
     "DDC: ddc_sort": ("ddc_sort:65.8", "ddc_sort:065.8"),
     "DDC: quotes preserved": ('ddc:"65.8"', 'ddc:"065.8"'),
+    # ebook_unavailable
+    "ebook_unavailable: true": ("ebook_unavailable:true", "ebook_unavailable:1"),
+    "ebook_unavailable: case-insensitive": ("ebook_unavailable:TRUE", "ebook_unavailable:1"),
+    "ebook_unavailable: false negates, since absent is available": ("ebook_unavailable:false", "-ebook_unavailable:1"),
+    "ebook_unavailable: 0 is false": ("ebook_unavailable:0", "-ebook_unavailable:1"),
+    "ebook_unavailable: negated false is true": ("-ebook_unavailable:false", "ebook_unavailable:1"),
+    "ebook_unavailable: inside a larger query": ("harry potter ebook_unavailable:false", "harry potter -ebook_unavailable:1"),
+    "ebook_unavailable: edition prefix": ("edition.ebook_unavailable:true", "edition.ebook_unavailable:1"),
 }
 
 
@@ -154,6 +162,23 @@ def test_q_to_solr_params_edition_key(query, edQuery):
     params_d = dict(params)
     assert params_d["userWorkQuery"] == query
     assert params_d["userEdQuery"] == edQuery
+
+
+EBOOK_UNAVAILABLE_TESTS = {
+    "ebook_unavailable:true": ("*:*", "+ebook_unavailable:1"),
+    "ebook_unavailable:false": ("*:*", "-ebook_unavailable:1"),
+    "ebook_access:borrowable ebook_unavailable:false": ("ebook_access:borrowable ", "+ebook_access:borrowable -ebook_unavailable:1"),
+}
+
+
+@pytest.mark.parametrize(("query", "queries"), EBOOK_UNAVAILABLE_TESTS.items())
+def test_q_to_solr_params_ebook_unavailable_is_edition_only(query, queries):
+    """Work docs don't carry ebook_unavailable, so it only filters the editions."""
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc", return_value="eng"):
+        params = dict(s.q_to_solr_params(s.process_user_query(query), {"editions:[subquery]"}, []))
+    assert (params["userWorkQuery"], params["userEdQuery"]) == queries
 
 
 def test_cover_dimensions_fetched_for_works_and_editions():
