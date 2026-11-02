@@ -83,7 +83,9 @@
                     <ul class="contrib-linkouts">
                         {% for link in links %}
                             <li>
-                                <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label }}{{ icon("external-link", size="sm") }}</a>
+                                <a href="{{ link.url }}"
+                                   target="_blank"
+                                   rel="noopener noreferrer">{{ link.label }}{{ icon("external-link", size="sm") }}</a>
                             </li>
                         {% endfor %}
                     </ul>
@@ -95,7 +97,9 @@
                 <li>
                     <p>
                         {{ note.text }}
-                        {% if note.href %}<a href="{{ note.href }}" target="_blank" rel="noopener noreferrer">{{ _("Guideline") }}</a>{% endif %}
+                        {% if note.href %}<a href="{{ note.href }}"
+                                             target="_blank"
+                                             rel="noopener noreferrer">{{ _("Guideline") }}</a>{% endif %}
                     </p>
                 </li>
             {% endfor %}
@@ -199,7 +203,8 @@
                     </span>
                     <span class="contrib-cover-option__text">
                         <span class="contrib-cover-option__title">{{ _("Upload a new image") }}</span>
-                        <span class="contrib-cover-option__meta" data-cover-upload-name>{{ _("Drop a file here, paste, or browse") }}</span>
+                        <span class="contrib-cover-option__meta"
+                              data-cover-upload-name>{{ _("Drop a file here, paste, or browse") }}</span>
                     </span>
                 </label>
                 <ol-button class="contrib-cover-option__browse" variant="secondary" size="small" type="button" data-cover-browse>
