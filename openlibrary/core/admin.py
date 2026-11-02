@@ -177,20 +177,22 @@ class VisitorStats(Stats):
         return [(int(timestamp * 1000), int(count or 0)) for count, timestamp in visitors]
 
 
+def read_count_docs(site, ndays: int) -> list[dict]:
+    """The daily count docs `scripts/store_counts.py` writes, oldest first, for the last `ndays` up to today. Days with no
+    doc are left out. Takes the site so FastAPI (`site.get()`) and web.py (`web.ctx.site`) can both read them."""
+    today = date.today()
+    dates = [today - timedelta(days=i) for i in reversed(range(ndays))]
+    docs = [site.store.get(d.strftime("counts-%Y-%m-%d")) for d in dates]
+    return [d for d in docs if d]
+
+
 @cache.memoize(engine="memcache", key="admin._get_count_docs", expires=5 * 60)
 def _get_count_docs(ndays):
     """Returns the count docs from admin stats database.
 
     This function is memoized to avoid accessing the db for every request.
     """
-    today = date.today()
-    dates = [today - timedelta(days=i) for i in range(ndays)]
-
-    # we want the dates in reverse order
-    dates.reverse()
-
-    docs = [web.ctx.site.store.get(d.strftime("counts-%Y-%m-%d")) for d in dates]
-    return [d for d in docs if d]
+    return read_count_docs(web.ctx.site, ndays)
 
 
 def get_stats(ndays=30, use_mock_data=False):
