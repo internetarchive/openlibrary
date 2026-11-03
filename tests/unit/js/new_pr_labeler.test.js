@@ -7,7 +7,7 @@ import {
     sweepLabels,
     sweepSkipReason
 } from '../../../scripts/gh_scripts/new_pr_labeler_core.mjs';
-import { formatSweepSummary, planForPr, runSweep } from '../../../scripts/gh_scripts/pr_lead_resolver.mjs';
+import { formatSweepSummary, linkify, planForPr, runSweep } from '../../../scripts/gh_scripts/pr_lead_resolver.mjs';
 
 // Behavioural tests for how a PR's lead and labels are decided
 // (new_pr_labeler_core.mjs, pr_lead_resolver.mjs), including the scheduled
@@ -369,13 +369,49 @@ describe('formatSweepSummary', () => {
     test('keeps multi-line and pipe-containing reasons inside one table row', () => {
         const summary = formatSweepSummary(
             { rows: [{ number: 10, assignee: null, labels: [], reason: 'error: Request failed:\n - a | b' }], skipped: 0, failed: 1, listError: null },
-            true
+            true,
+            REPO
         );
-        const row = summary.split('\n').find(line => line.startsWith('| #10'));
-        expect(row).toBe('| #10 | error: Request failed: - a \\| b |  |');
+        const row = summary.split('\n').find(line => line.startsWith('| [#10]'));
+        expect(row).toBe('| [#10](https://github.com/internetarchive/openlibrary/issues/10) | error: Request failed: - a \\| b |  |');
     });
 
     test('flags an incomplete run', () => {
-        expect(formatSweepSummary({ rows: [], skipped: 0, failed: 0, listError: '502' }, false)).toContain('Listing open PRs failed partway');
+        expect(formatSweepSummary({ rows: [], skipped: 0, failed: 0, listError: '502' }, false, REPO)).toContain('Listing open PRs failed partway');
+    });
+
+    test('links the PR and the issue numbers in the decision', () => {
+        const summary = formatSweepSummary(
+            {
+                rows: [
+                    {
+                        number: 14125,
+                        assignee: 'cdrini',
+                        labels: [],
+                        reason: 'assign @cdrini (the PR author) from #12688 (closing keyword) via its parent #100'
+                    }
+                ],
+                skipped: 0,
+                failed: 0,
+                listError: null
+            },
+            false,
+            REPO
+        );
+        expect(summary).toContain(
+            '| [#14125](https://github.com/internetarchive/openlibrary/issues/14125) | assign @cdrini (the PR author) from [#12688](https://github.com/internetarchive/openlibrary/issues/12688) (closing keyword) via its parent [#100](https://github.com/internetarchive/openlibrary/issues/100) |'
+        );
+    });
+});
+
+describe('linkify', () => {
+    test('links #N and leaves @mentions for GitHub to link', () => {
+        expect(linkify('PR #5: assign @foo-bar from #6', REPO)).toBe(
+            'PR [#5](https://github.com/internetarchive/openlibrary/issues/5): assign @foo-bar from [#6](https://github.com/internetarchive/openlibrary/issues/6)'
+        );
+    });
+
+    test('leaves existing links, labels and words alone', () => {
+        expect(linkify('[#5](x) Priority: 1 abc#5 me@example.com', REPO)).toBe('[#5](x) Priority: 1 abc#5 me@example.com');
     });
 });

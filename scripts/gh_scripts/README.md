@@ -27,7 +27,7 @@ Runs on a schedule (`.github/workflows/pm_pr_lead_sweep.yml`; 14:00 and 02:00 UT
 
 ### Usage:
 <pre><b>DRY_RUN=false node pr_lead_sweep.mjs</b> repository</pre>
-Without `DRY_RUN=false` it only reports what it would do. Scheduled runs are dry runs; a maintainer can run it live from the Actions tab with the `live` input. To make scheduled runs write too, set `DRY_RUN` to `'false'` in the workflow.
+Without `DRY_RUN=false` it only reports what it would do, which is the safe default for running it locally. In Actions, scheduled runs write assignments and labels; a maintainer can also run it from the Actions tab, checking `dry_run` to only get the report.
 
 ## `issue_comment_bot.py`
 

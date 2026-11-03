@@ -25,7 +25,7 @@ if (!fullRepoName) {
 const dryRun = process.env.DRY_RUN !== 'false';
 
 const result = await runSweep(new Octokit(), fullRepoName, { dryRun });
-const summary = formatSweepSummary(result, dryRun);
+const summary = formatSweepSummary(result, dryRun, fullRepoName);
 console.log(summary);
 await writeJobSummary(summary);
 if (result.failed || result.listError) {
