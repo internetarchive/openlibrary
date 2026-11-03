@@ -328,9 +328,9 @@ services:
       - OL_URL=https://openlibrary.org/
       - OL_SOLR_BASE_URL=http://ol-solr1:8983/solr/openlibrary
       - OL_SOLR_NEXT=true
-      # The DB queue has one acknowledgment stream. Keep this independent
-      # reindex consumer on the legacy log while the primary updater uses it.
-      - SOLR_UPDATER_SOURCE=infobase
+      - SOLR_UPDATER_SOURCE=${SOLR_NEXT_UPDATER_SOURCE:-infobase}
+      # /admin/solr requests are deleted once indexed; the primary solr-updater takes them.
+      - SOLR_UPDATER_ADMIN_FORCE_UPDATES=false
       - STATE_FILE=solr-next-update.offset
       - TRENDING_OFFSET_FILE=trending-next-update.offset
       - OL_SENTRY_ENVIRONMENT=testing

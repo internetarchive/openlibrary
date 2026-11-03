@@ -14,12 +14,10 @@ Apache Solr 10 is Open Library's search index. It powers all search pages, the P
 
 ```
 OL database (postgres/infobase)
-    ├─ Infobase HTTP changelog (default source)
-    └─ transaction + store triggers → solr_updater_queue (--source database)
-                    │
-                    └─ solr-updater reads selected source → extract changed OL keys
-                                      │
-                                      ▼
+    │
+    │  solr-updater daemon (scripts/solr_updater/solr_updater.py)
+    │  reads the Infobase log (default) or the transaction table → extract changed OL keys
+    ▼
 openlibrary/solr/update.py → update_keys()
     │  runs updaters in order: EditionSolrUpdater → WorkSolrUpdater → AuthorSolrUpdater → ListSolrUpdater
     │  per key: fetch document from data_provider
@@ -32,7 +30,7 @@ openlibrary/solr/utils.py → solr_update()
 Solr (ol-solr0 / ol-solr2 via HAProxy port 8984)
 ```
 
-The Infobase source stores its changelog offset in `/solr-updater-data/solr_state`. The database-backed updater stores pending work in `solr_updater_queue`; it has no file checkpoint, and unacknowledged queue rows survive a restart. It is opt-in with `--source database`; the Infobase HTTP log remains the default source. Installing the queue triggers defines the database source's capture start: edits from then onward remain queued until acknowledged. If the Infobase updater continues through cutover, the database source may replay overlapping edits; this is safe and avoids a full reindex. The queue does not translate an arbitrary Infobase log offset. It has one acknowledgment stream, so only one updater may consume it at a time. In production, `solr-next-updater` stays on the legacy Infobase log while it runs alongside the primary updater.
+**solr-updater state files**: the Infobase source stores its log offset (`YYYY-MM-DD:N`) in `STATE_FILE`; the database source (`--source database`) stores the last transaction id next to it with a `.txid` suffix. On startup the daemon resumes from its own file, or picks up from the other source's if that ran more recently. See [the solr-updater section of index.md](index.md#the-solr-updater-daemon).
 
 **End-to-end latency**: solr-updater polls with 0–5s latency; Solr's `autoSoftCommit.maxTime` is **60000ms in production**. Combined: **~60–65 seconds** from an OL edit to appearing in search in the happy path.
 
@@ -209,7 +207,7 @@ curl "http://localhost:8983/solr/openlibrary/select?q=frankenstein&rows=3&wt=jso
 
 ### solr-updater daemon
 
-`scripts/solr_updater/solr_updater.py` — long-running daemon. By default it polls the Infobase HTTP changelog. With `--source database`, it polls the transactional database queue, calls `update_keys()`, and deletes processed queue rows after successful processing. The `docker/ol-solr-updater-start.sh` entrypoint starts both this daemon and `trending_updater.py` in parallel.
+`scripts/solr_updater/solr_updater.py` — long-running daemon. Reads edits from the Infobase `/log/{offset}` (default) or the `transaction` table (`--source database`, `scripts/solr_updater/transaction_log.py`), calls `update_keys()`, persists its position. The `docker/ol-solr-updater-start.sh` entrypoint starts both this daemon and `trending_updater.py` in parallel.
 
 **OSP data**: `osp_totals.db` (Open Syllabus Project citation counts) is downloaded from IA on startup and stored at `/solr-updater-data/osp_totals.db`. Used by `WorkSolrBuilder` to populate `osp_count`.
 
@@ -329,7 +327,7 @@ All are `indexed=false, stored=false` — not searchable or retrievable, used on
 | `openlibrary/plugins/worksearch/schemes/authors.py` | `AuthorSearchScheme` |
 | `openlibrary/plugins/worksearch/schemes/editions.py` | `EditionSearchScheme` |
 | `openlibrary/fastapi/search.py` | FastAPI endpoint definitions: `/search.json`, `/search/carousels.json`, etc. |
-| `scripts/solr_updater/solr_updater.py` | solr-updater daemon — consumes the database queue (or legacy Infobase changelog) |
+| `scripts/solr_updater/solr_updater.py` | solr-updater daemon — reads the Infobase log or the `transaction` table |
 | `scripts/solr_updater/trending_updater.py` | Writes trending scores into Solr |
 | `scripts/solr_builder/` | Full reindex pipeline (Jenkins + Docker) |
 | `docker/ol-solr-updater-start.sh` | Entrypoint for `solr-updater` container; starts both daemons |
@@ -502,7 +500,7 @@ docker compose run --rm home python -m pytest openlibrary/tests/integration/test
 ## Dependencies
 
 **Depends on:**
-- [[core-operations]] — Infobase data layer and plugin routing for worksearch
+- [[core-operations]] — Infobase changelog (the event stream solr-updater reads); plugin routing for worksearch
 - [[lending]] — `ebook_access` enum values reflect availability data from the lending system
 - [[imports]] — new editions created by imports must be indexed by solr-updater to appear in search
 - [[tags]] — Work subjects → Solr `subject_facet`, `person_facet`, etc.
