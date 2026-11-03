@@ -7,27 +7,25 @@ import {
     sweepLabels,
     sweepSkipReason
 } from '../../../scripts/gh_scripts/new_pr_labeler_core.mjs';
-import { planForPr } from '../../../scripts/gh_scripts/pr_lead_resolver.mjs';
+import { formatSweepSummary, planForPr, runSweep } from '../../../scripts/gh_scripts/pr_lead_resolver.mjs';
 
-// Behavioural tests for the two decisions new_pr_labeler makes about a new PR:
-// who to assign, and which labels to add. The entry script runs main() on import
-// and needs @octokit/action, so the logic lives in new_pr_labeler_core.mjs and is
-// exercised here directly, with no network.
+// Behavioural tests for how a PR's lead and labels are decided
+// (new_pr_labeler_core.mjs, pr_lead_resolver.mjs), including the scheduled
+// sweep. The entry scripts run at import time and need @octokit/action, so the
+// logic is exercised here directly, with a fake Octokit and no network.
 //
-// Two defects this guards against, both live on master before this change:
+// Two past defects these guard against:
 // 1. The lead was never assigned: getLinkedIssueMetadata returned a `lead` key
 //    but the caller read `leadName`, so the assignee was always undefined.
 // 2. Every PR got a "Needs: Lead" label. An unassigned PR already signals it
-//    needs a lead, so the label is redundant on PRs and is no longer added.
-// Reintroducing either defect turns the assertions below red (proven by mutating
-// the core module back to the old behaviour).
+//    needs a lead, so the label is redundant on PRs and is never added.
 
 // A fake Octokit issue response carrying the given label names.
 function issueWithLabels(...names) {
     return { data: { labels: names.map(name => ({ name })) } };
 }
 
-// Chain the two pure steps the way main() does: issue -> metadata -> decision.
+// Chain the two pure steps: issue -> metadata -> decision.
 function planFromIssue(issue, prAuthor) {
     return decideLabelsAndAssignee(getLinkedIssueMetadata(issue), prAuthor);
 }
@@ -169,37 +167,71 @@ describe('sweepSkipReason', () => {
     });
 });
 
-describe('planForPr', () => {
-    // A fake Octokit whose graphql() answers from a map of number -> issueOrPullRequest node.
-    // A node value that is an Error is thrown, the way Octokit throws GraphQL errors.
-    function fakeOctokit(nodes) {
-        return {
-            graphql: async (_query, { number }) => {
-                if (nodes[number] instanceof Error) throw nodes[number];
-                return { repository: { issueOrPullRequest: nodes[number] ?? null } };
+// A fake Octokit. graphql() answers issue lookups from `issues` (number -> node;
+// an Error value is thrown, the way Octokit throws GraphQL errors) and PR
+// listings from `prPages` (one page per call). request() records each write and
+// answers an assignees POST with `assignable` users only, like GitHub does.
+function fakeOctokit({ issues = {}, prPages = [], assignable = null } = {}) {
+    const writes = [];
+    let page = 0;
+    return {
+        writes,
+        graphql: async (_query, vars) => {
+            if ('number' in vars) {
+                if (issues[vars.number] instanceof Error) throw issues[vars.number];
+                return { repository: { issueOrPullRequest: issues[vars.number] ?? null } };
             }
-        };
-    }
-    const issueNode = (labels, parent = null) => ({ __typename: 'Issue', labels: { nodes: labels.map(name => ({ name })) }, parent });
+            const next = prPages[page++];
+            if (next instanceof Error) throw next;
+            return { repository: { pullRequests: next } };
+        },
+        request: async (route, params) => {
+            writes.push({ route, ...params });
+            const assignees = (params.assignees ?? []).filter(login => !assignable || assignable.includes(login));
+            return { data: { assignees: assignees.map(login => ({ login })) } };
+        }
+    };
+}
+const issueNode = (labels, parent = null) => ({ __typename: 'Issue', labels: { nodes: labels.map(name => ({ name })) }, parent });
+const parentNode = (number, labels, repo = REPO) => ({ number, repository: { nameWithOwner: repo }, labels: { nodes: labels.map(name => ({ name })) } });
+// Shaped like @octokit/graphql's GraphqlResponseError.
+const graphqlError = (errors, data = null) => Object.assign(new Error('Request failed due to following response errors:\n - something'), { errors, data });
+const notFound = () => graphqlError([{ type: 'NOT_FOUND', path: ['repository', 'issueOrPullRequest'] }]);
 
+describe('planForPr', () => {
     test('assigns the lead of a "Part of" issue, without its priority', async () => {
-        const plan = await planForPr(fakeOctokit({ 13412: issueNode(['Lead: @RayBB', 'Priority: 1']) }), REPO, 'Part of #13412', 'contributor');
+        const plan = await planForPr(fakeOctokit({ issues: { 13412: issueNode(['Lead: @RayBB', 'Priority: 1']) } }), REPO, 'Part of #13412', 'contributor');
         expect(plan.assignee).toBe('RayBB');
         expect(plan.labels).toEqual([]);
         expect(plan.reason).toBe('assign @RayBB from #13412 (non-closing reference)');
     });
 
     test("uses the parent epic's lead when the issue has none", async () => {
-        const parent = { number: 100, labels: { nodes: [{ name: 'Lead: @mekarpeles' }] } };
-        const plan = await planForPr(fakeOctokit({ 5: issueNode(['Priority: 2'], parent) }), REPO, 'Closes #5', 'contributor');
+        const plan = await planForPr(
+            fakeOctokit({ issues: { 5: issueNode(['Priority: 2'], parentNode(100, ['Lead: @mekarpeles'])) } }),
+            REPO,
+            'Closes #5',
+            'contributor'
+        );
         expect(plan.assignee).toBe('mekarpeles');
         expect(plan.labels).toEqual(['Priority: 2']);
         expect(plan.reason).toBe('assign @mekarpeles from #5 (closing keyword) via its parent #100');
     });
 
+    test('ignores a parent in another repo', async () => {
+        const plan = await planForPr(
+            fakeOctokit({ issues: { 5: issueNode([], parentNode(100, ['Lead: @other'], 'someone/else')) } }),
+            REPO,
+            'Closes #5',
+            'contributor'
+        );
+        expect(plan.assignee).toBeNull();
+        expect(plan.reason).toBe('#5 (closing keyword) has no Lead label');
+    });
+
     test('skips a referenced PR and uses the next reference that is an issue', async () => {
         const plan = await planForPr(
-            fakeOctokit({ 1: { __typename: 'PullRequest' }, 2: issueNode(['Lead: @foo']) }),
+            fakeOctokit({ issues: { 1: { __typename: 'PullRequest' }, 2: issueNode(['Lead: @foo']) } }),
             REPO,
             'Follow-up to #1. Part of #2',
             'bar'
@@ -208,48 +240,20 @@ describe('planForPr', () => {
     });
 
     test('reports why nobody was assigned', async () => {
-        expect((await planForPr(fakeOctokit({}), REPO, 'No issue here', 'bar')).reason).toBe('no issue reference in the PR body');
-        const plan = await planForPr(fakeOctokit({ 7: issueNode(['Priority: 1']) }), REPO, 'Closes #7', 'bar');
+        expect((await planForPr(fakeOctokit(), REPO, 'No issue here', 'bar')).reason).toBe('no issue reference in the PR body');
+        const plan = await planForPr(fakeOctokit({ issues: { 7: issueNode(['Priority: 1']) } }), REPO, 'Closes #7', 'bar');
         expect(plan).toEqual({ assignee: null, labels: ['Priority: 1'], reason: '#7 (closing keyword) has no Lead label' });
     });
 
     test('does not self-assign when the author is the lead', async () => {
-        const plan = await planForPr(fakeOctokit({ 3: issueNode(['Lead: @foo']) }), REPO, 'Closes #3', 'foo');
+        const plan = await planForPr(fakeOctokit({ issues: { 3: issueNode(['Lead: @foo']) } }), REPO, 'Closes #3', 'foo');
         expect(plan.assignee).toBeNull();
         expect(plan.reason).toBe('no assignee: the PR author is the lead of #3 (closing keyword)');
-    });
-});
-
-describe('planForPr: lookups that fail, and priority with a later lead', () => {
-    function fakeOctokit(nodes) {
-        return {
-            graphql: async (_query, { number }) => {
-                if (nodes[number] instanceof Error) throw nodes[number];
-                return { repository: { issueOrPullRequest: nodes[number] ?? null } };
-            }
-        };
-    }
-    // Shaped like @octokit/graphql's GraphqlResponseError for a missing number.
-    const notFound = () => Object.assign(new Error('Could not resolve to an issue or pull request'), { errors: [{ type: 'NOT_FOUND' }] });
-    const issueNode = labels => ({ __typename: 'Issue', labels: { nodes: labels.map(name => ({ name })) }, parent: null });
-
-    test('skips a number that is not an issue or PR (e.g. a Discussion) instead of throwing', async () => {
-        const plan = await planForPr(fakeOctokit({ 13079: notFound(), 2: issueNode(['Lead: @foo']) }), REPO, 'Closes #13079. Part of #2', 'bar');
-        expect(plan.assignee).toBe('foo');
-    });
-
-    test('reports when no referenced number is an issue', async () => {
-        const plan = await planForPr(fakeOctokit({ 9: notFound() }), REPO, 'Refs #9', 'bar');
-        expect(plan).toEqual({ assignee: null, labels: [], reason: 'none of the referenced numbers is an issue' });
-    });
-
-    test('still throws other API errors', async () => {
-        await expect(planForPr(fakeOctokit({ 9: new Error('rate limited') }), REPO, 'Closes #9', 'bar')).rejects.toThrow('rate limited');
     });
 
     test('keeps the closing issue priority when a later "Part of" reference supplies the lead', async () => {
         const plan = await planForPr(
-            fakeOctokit({ 1: issueNode(['Priority: 2']), 2: issueNode(['Lead: @epic', 'Priority: 0']) }),
+            fakeOctokit({ issues: { 1: issueNode(['Priority: 2']), 2: issueNode(['Lead: @epic', 'Priority: 0']) } }),
             REPO,
             'Closes #1. Part of #2',
             'bar'
@@ -259,14 +263,34 @@ describe('planForPr: lookups that fail, and priority with a later lead', () => {
     });
 
     test('ignores references inside HTML comments', async () => {
-        const plan = await planForPr(fakeOctokit({ 2: issueNode(['Lead: @foo']) }), REPO, '<!-- Part of #2 -->\nNo issue', 'bar');
+        const plan = await planForPr(fakeOctokit({ issues: { 2: issueNode(['Lead: @foo']) } }), REPO, '<!-- Part of #2 -->\nNo issue', 'bar');
         expect(plan.reason).toBe('no issue reference in the PR body');
     });
 });
 
-describe('findIssueReferences: HTML comments', () => {
-    test('drops references inside comments, keeps those outside', () => {
-        expect(findIssueReferences('<!-- Closes #1\nPart of #2 --> Refs #3', REPO)).toEqual([{ number: 3, kind: 'reference' }]);
+describe('planForPr: lookups that fail', () => {
+    test('skips a number that is not an issue or PR (e.g. a Discussion) instead of throwing', async () => {
+        const plan = await planForPr(fakeOctokit({ issues: { 13079: notFound(), 2: issueNode(['Lead: @foo']) } }), REPO, 'Closes #13079. Part of #2', 'bar');
+        expect(plan.assignee).toBe('foo');
+    });
+
+    test('reports when no referenced number is an issue', async () => {
+        const plan = await planForPr(fakeOctokit({ issues: { 9: notFound() } }), REPO, 'Refs #9', 'bar');
+        expect(plan).toEqual({ assignee: null, labels: [], reason: 'none of the referenced numbers is an issue' });
+    });
+
+    test("keeps the issue's own labels when only its parent can't be read", async () => {
+        const error = graphqlError([{ type: 'FORBIDDEN', path: ['repository', 'issueOrPullRequest', 'parent'] }], {
+            repository: { issueOrPullRequest: issueNode(['Lead: @foo', 'Priority: 1']) }
+        });
+        const plan = await planForPr(fakeOctokit({ issues: { 4: error } }), REPO, 'Closes #4', 'bar');
+        expect(plan).toMatchObject({ assignee: 'foo', labels: ['Priority: 1'] });
+    });
+
+    test('still throws other API errors', async () => {
+        await expect(planForPr(fakeOctokit({ issues: { 9: new Error('rate limited') } }), REPO, 'Closes #9', 'bar')).rejects.toThrow('rate limited');
+        const forbidden = graphqlError([{ type: 'FORBIDDEN', path: ['repository', 'issueOrPullRequest'] }]);
+        await expect(planForPr(fakeOctokit({ issues: { 9: forbidden } }), REPO, 'Closes #9', 'bar')).rejects.toThrow();
     });
 });
 
@@ -277,5 +301,81 @@ describe('sweepLabels', () => {
 
     test('adds no priority when the PR already has one', () => {
         expect(sweepLabels(['Priority: 1'], ['Priority: 3'])).toEqual([]);
+    });
+});
+
+describe('runSweep', () => {
+    // An open PR as OPEN_PRS_QUERY returns it.
+    const prNode = (number, body, { author = 'contributor', isDraft = false, assignees = 0, everAssigned = false, labels = [] } = {}) => ({
+        number,
+        isDraft,
+        body,
+        author: { __typename: 'User', login: author },
+        assignees: { totalCount: assignees },
+        labels: { nodes: labels.map(name => ({ name })) },
+        timelineItems: { nodes: everAssigned ? [{ __typename: 'AssignedEvent' }] : [] }
+    });
+    const page = (nodes, endCursor = null) => ({ pageInfo: { hasNextPage: Boolean(endCursor), endCursor }, nodes });
+    const issues = { 1: issueNode(['Lead: @lead', 'Priority: 1']) };
+
+    test('a dry run plans but writes nothing', async () => {
+        const octokit = fakeOctokit({ issues, prPages: [page([prNode(10, 'Closes #1')])] });
+        const result = await runSweep(octokit, REPO, { dryRun: true });
+        expect(octokit.writes).toEqual([]);
+        expect(result.rows).toEqual([{ number: 10, assignee: 'lead', labels: ['Priority: 1'], reason: 'assign @lead from #1 (closing keyword)' }]);
+    });
+
+    test('a live run assigns and labels, across pages, and skips ineligible PRs', async () => {
+        const octokit = fakeOctokit({
+            issues,
+            prPages: [
+                page([prNode(10, 'Closes #1'), prNode(11, 'Closes #1', { isDraft: true })], 'c1'),
+                page([prNode(12, 'Part of #1', { labels: ['Priority: 3'] }), prNode(13, 'Closes #1', { everAssigned: true })])
+            ]
+        });
+        const result = await runSweep(octokit, REPO, { dryRun: false });
+        expect(result.skipped).toBe(2);
+        expect(octokit.writes.map(w => [w.issue_number, w.assignees ?? w.labels])).toEqual([
+            [10, ['lead']],
+            [10, ['Priority: 1']],
+            [12, ['lead']]
+        ]);
+    });
+
+    test('reports a lead GitHub would not assign', async () => {
+        const octokit = fakeOctokit({ issues, prPages: [page([prNode(10, 'Part of #1')])], assignable: [] });
+        const { rows } = await runSweep(octokit, REPO, { dryRun: false });
+        expect(rows[0].assignee).toBeNull();
+        expect(rows[0].reason).toMatch(/^could not assign @lead/);
+    });
+
+    test('one failing PR is reported without stopping the rest', async () => {
+        const octokit = fakeOctokit({ issues: { ...issues, 2: new Error('boom') }, prPages: [page([prNode(10, 'Closes #2'), prNode(11, 'Closes #1')])] });
+        const result = await runSweep(octokit, REPO, { dryRun: true });
+        expect(result.failed).toBe(1);
+        expect(result.rows.map(r => r.number)).toEqual([10, 11]);
+        expect(result.rows[0].reason).toBe('error: boom');
+    });
+
+    test('a listing failure keeps the rows collected so far', async () => {
+        const octokit = fakeOctokit({ issues, prPages: [page([prNode(10, 'Closes #1')], 'c1'), new Error('502')] });
+        const result = await runSweep(octokit, REPO, { dryRun: true });
+        expect(result.listError).toBe('502');
+        expect(result.rows).toHaveLength(1);
+    });
+});
+
+describe('formatSweepSummary', () => {
+    test('keeps multi-line and pipe-containing reasons inside one table row', () => {
+        const summary = formatSweepSummary(
+            { rows: [{ number: 10, assignee: null, labels: [], reason: 'error: Request failed:\n - a | b' }], skipped: 0, failed: 1, listError: null },
+            true
+        );
+        const row = summary.split('\n').find(line => line.startsWith('| #10'));
+        expect(row).toBe('| #10 | error: Request failed: - a \\| b |  |');
+    });
+
+    test('flags an incomplete run', () => {
+        expect(formatSweepSummary({ rows: [], skipped: 0, failed: 0, listError: '502' }, false)).toContain('Listing open PRs failed partway');
     });
 });

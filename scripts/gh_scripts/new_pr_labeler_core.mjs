@@ -1,10 +1,10 @@
 /**
- * Pure, IO-free decision logic for new_pr_labeler.
+ * Pure, IO-free decision logic for assigning PR leads.
  *
- * It lives in its own module so it can be unit tested: the entry script
- * (new_pr_labeler.mjs) runs main() at import time and depends on
- * @octokit/action, so it cannot be imported in vitest. These functions touch
- * no network and no argv, so the test imports them directly.
+ * It lives in its own module so it can be unit tested: the entry scripts
+ * (new_pr_labeler.mjs, pr_lead_sweep.mjs) run at import time and depend on
+ * @octokit/action, so they cannot be imported in vitest. These functions touch
+ * no network and no argv, so the tests import them directly.
  */
 
 /**
@@ -36,7 +36,7 @@ export function getLinkedIssueMetadata(issue) {
  *
  * A PR is never labeled "Needs: Lead": an unassigned PR already signals that it
  * needs a lead, so the label is redundant on PRs. ("Needs: Lead" stays
- * meaningful on issues, which this script does not touch.)
+ * meaningful on issues, which this logic does not touch.)
  *
  * @param {{leadName: string|undefined, priority: string|undefined}} metadata
  * @param {string} prAuthor The PR author's username.
@@ -62,7 +62,8 @@ const CLOSING_KEYWORDS = String.raw`close|closes|closed|fix|fixes|fixed|resolve|
 const REFERENCE_PHRASES = String.raw`part\s+of|refs?|references|related\s+to|follow[\s-]*ups?\s+(?:to|of|on)|works?\s+on|towards?`;
 
 /**
- * Builds a regex matching `<phrase> #N` or `<phrase> https://github.com/<repo>/issues/N`.
+ * Builds a case-insensitive global regex matching `<phrase> #N`, or `<phrase>`
+ * followed by a same-repo issue or pull URL. Capture group 1 is N.
  *
  * @param {string} phrases Alternation of phrases, as a regex source string.
  * @param {string} fullRepoName e.g. "internetarchive/openlibrary"
@@ -76,15 +77,14 @@ function referenceRegex(phrases, fullRepoName) {
 /**
  * Lists the issue references in a PR body, most authoritative first: every
  * closing reference (`Closes #N`) in order, then every non-closing reference
- * (`Part of #N`, `Refs #N`, ...) in order. Duplicates and anything inside
- * HTML comments are dropped.
+ * (`Part of #N`, `Refs #N`, ...) in order. Duplicates are dropped.
  *
  * @param {string} body The PR body.
  * @param {string} fullRepoName e.g. "internetarchive/openlibrary"
  * @returns {Array<{number: number, kind: 'closing'|'reference'}>}
  */
 export function findIssueReferences(body, fullRepoName) {
-    // References inside HTML comments (e.g. left-over template text) don't count.
+    // References inside HTML comments (e.g. left-over PR template text) don't count.
     const text = (body ?? '').replace(/<!--[\s\S]*?-->/g, ' ');
     const found = [];
     const seen = new Set();
@@ -132,7 +132,8 @@ export function resolveIssueMetadata(issue, parent, kind) {
  * Decides whether the scheduled sweep should consider a PR.
  *
  * Only PRs nobody has ever assigned are touched, so the sweep never re-assigns
- * someone a human deliberately removed, and never overrides a human's choice.
+ * someone a human deliberately removed. Any earlier assignment counts, including
+ * a self-assignment, so such a PR never gets its lead added automatically.
  *
  * @param {{isDraft: boolean, authorLogin: string|null, authorIsBot: boolean, hasAssignees: boolean, everAssigned: boolean}} pr
  * @returns {string|null} The reason to skip, or null to sweep it.
