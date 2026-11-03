@@ -1,69 +1,14 @@
-"""Tests for the show-marc record cache (internetarchive/openlibrary#13874).
+"""Tests for the show-marc record cache (internetarchive/openlibrary#13874)."""
 
-Self-contained: stubs the infobase-only modules so the view helpers load
-without the full Open Library environment.
-"""
-
-import importlib.util
 import json
-import os
-import sys
-import types
 from base64 import b64encode
 from unittest.mock import MagicMock
 
 import pytest
 import requests
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-OPENLIBRARY_DIR = os.path.dirname(os.path.dirname(HERE))
-REPO_ROOT = os.path.dirname(OPENLIBRARY_DIR)
-VIEWS_DIR = os.path.join(OPENLIBRARY_DIR, "views")
-
-
-def _pkg(name, path):
-    module = types.ModuleType(name)
-    module.__path__ = [path]
-    sys.modules[name] = module
-    return module
-
-
-_pkg("openlibrary", OPENLIBRARY_DIR)
-_pkg("openlibrary.views", VIEWS_DIR)
-_pkg("openlibrary.core", os.path.join(OPENLIBRARY_DIR, "core"))
-_pkg("openlibrary.utils", os.path.join(OPENLIBRARY_DIR, "utils"))
-
-_web = types.ModuleType("web")
-_web.seeother = lambda url: (_ for _ in ()).throw(Exception(url))
-sys.modules["web"] = _web
-
-_app = types.ModuleType("openlibrary.app")
-
-
-class _View:
-    def __init_subclass__(cls, **kwargs):
-        pass
-
-
-_app.view = _View
-sys.modules["openlibrary.app"] = _app
-
-_dateutil = types.ModuleType("openlibrary.utils.dateutil")
-_dateutil.DAY_SECS = 86400
-sys.modules["openlibrary.utils.dateutil"] = _dateutil
-
-_cache = types.ModuleType("openlibrary.core.cache")
-_cache.get_memcache = lambda: (_ for _ in ()).throw(AssertionError("stub"))
-sys.modules["openlibrary.core.cache"] = _cache
-_spec = importlib.util.spec_from_file_location(
-    "openlibrary.views.showmarc",
-    os.path.join(VIEWS_DIR, "showmarc.py"),
-)
-assert _spec
-assert _spec.loader
-_showmarc = importlib.util.module_from_spec(_spec)
-sys.modules["openlibrary.views.showmarc"] = _showmarc
-_spec.loader.exec_module(_showmarc)
+from openlibrary.core import cache
+from openlibrary.views import showmarc as showmarc_module
 
 
 class FakeMemcache:
@@ -83,10 +28,9 @@ class FakeMemcache:
 @pytest.fixture
 def showmarc(monkeypatch):
     fake = FakeMemcache()
-    monkeypatch.setattr(_cache, "get_memcache", lambda: fake)
-    monkeypatch.setattr(_showmarc.requests, "get", MagicMock())
-    fake.store.clear()
-    return _showmarc, fake
+    monkeypatch.setattr(cache, "get_memcache", lambda: fake)
+    monkeypatch.setattr(showmarc_module.requests, "get", MagicMock())
+    return showmarc_module, fake
 
 
 RECORD = b"00010nam a2200005 a 4500" + b"x" * 500
