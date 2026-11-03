@@ -780,7 +780,7 @@ msgid_plural "Logged %(count)i times %(time_unit)s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: openlibrary/fastapi/account.py verify_human.html
+#: openlibrary/fastapi/account.py verify_human.html verify_human.html.jinja
 msgid "Human Verification"
 msgstr ""
 
