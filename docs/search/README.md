@@ -30,7 +30,7 @@ openlibrary/solr/utils.py → solr_update()
 Solr (ol-solr0 / ol-solr2 via HAProxy port 8984)
 ```
 
-**solr-updater state files**: the Infobase source stores its log offset (`YYYY-MM-DD:N`) in `STATE_FILE`; the database source (`--source database`) stores its position (last transaction id and admin force-update request) next to it with a `.txid` suffix. On startup the daemon resumes from its own file, or picks up from the other source's if that ran more recently. See [the solr-updater section of index.md](index.md#the-solr-updater-daemon).
+**solr-updater state files**: the Infobase source stores its log offset (`YYYY-MM-DD:N`) in `STATE_FILE`; the database source (`--source database`) stores its position (last transaction id and admin force-update request) next to it with a `.txid` suffix. On startup the daemon resumes from its own file, or replays from the beginning of the other source's day if that ran more recently. See [the solr-updater section of index.md](index.md#the-solr-updater-daemon).
 
 **End-to-end latency**: solr-updater polls with 0–5s latency; Solr's `autoSoftCommit.maxTime` is **60000ms in production**. Combined: **~60–65 seconds** from an OL edit to appearing in search in the happy path.
 

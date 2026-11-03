@@ -10,7 +10,7 @@ import pytest
 sys.modules["_init_path"] = MagicMock()
 
 from scripts.solr_updater import solr_updater
-from scripts.solr_updater.solr_updater import main, parse_initial_state, parse_log
+from scripts.solr_updater.solr_updater import main, parse_log
 
 
 class TestParseLog:
@@ -301,63 +301,27 @@ def test_database_source_rejects_unsupported_exclude_option():
         asyncio.run(main(ol_config="", source="database", exclude_edits_containing="test"))
 
 
-@pytest.mark.parametrize(
-    ("initial_state", "expected"),
-    [
-        ("2026-11-03", dt.datetime(2026, 11, 3)),
-        ("2026-11-03T10:30", dt.datetime(2026, 11, 3, 10, 30)),
-        ("2026-11-03:4284441", dt.datetime(2026, 11, 3)),
-    ],
-)
-def test_parse_initial_state(initial_state, expected):
-    assert parse_initial_state(initial_state) == expected
+class TestTransactionStart:
+    def write(self, tmp_path, name, content, old=False):
+        (tmp_path / name).write_text(content)
+        if old:
+            os.utime(tmp_path / name, (1, 1))
 
-
-class TestResolveTransactionPosition:
-    @pytest.fixture(autouse=True)
-    def fake_db(self, monkeypatch):
-        async def transaction_id_at(when):
-            return f"tx-before-{when.isoformat()}"
-
-        async def force_update_seq_at(when):
-            return f"force-before-{when.isoformat()}"
-
-        monkeypatch.setattr(solr_updater, "transaction_id_at", transaction_id_at)
-        monkeypatch.setattr(solr_updater, "force_update_seq_at", force_update_seq_at)
-        monkeypatch.setattr(solr_updater, "infobase_offset_time", lambda offset: dt.datetime(2026, 11, 3, 10, 0))
-
-    def resolve(self, tmp_path, initial_state=None):
-        position = asyncio.run(solr_updater.resolve_transaction_position(tmp_path / "solr.txid", tmp_path / "solr.offset", initial_state))
-        return position.transaction, position.force_update
-
-    @staticmethod
-    def at(when: str):
-        return f"tx-before-{when}", f"force-before-{when}"
+    def start(self, tmp_path, initial_state=None):
+        return solr_updater.transaction_start(tmp_path / "solr.txid", tmp_path / "solr.offset", initial_state)
 
     def test_resumes_from_its_own_position(self, tmp_path):
-        (tmp_path / "solr.offset").write_text("2026-11-01:0")
-        os.utime(tmp_path / "solr.offset", (1, 1))
-        (tmp_path / "solr.txid").write_text('{"transaction": 1234, "force_update": 7}')
-        assert self.resolve(tmp_path) == (1234, 7)
+        self.write(tmp_path, "solr.offset", "2026-11-03:0", old=True)
+        self.write(tmp_path, "solr.txid", '{"transaction": 1234, "force_update": 7}')
+        assert self.start(tmp_path) == {"transaction": 1234, "force_update": 7}
 
-    def write_offset(self, tmp_path, saved_at: dt.datetime):
-        (tmp_path / "solr.txid").write_text('{"transaction": 1234, "force_update": 7}')
-        os.utime(tmp_path / "solr.txid", (1, 1))
-        (tmp_path / "solr.offset").write_text("2026-11-03:4284441")
-        ts = saved_at.replace(tzinfo=dt.UTC).timestamp()
-        os.utime(tmp_path / "solr.offset", (ts, ts))
-
-    def test_switching_from_infobase_starts_a_minute_before_its_next_edit(self, tmp_path):
-        self.write_offset(tmp_path, saved_at=dt.datetime(2026, 11, 3, 10, 5))
-        assert self.resolve(tmp_path) == self.at("2026-11-03T09:59:00")
-
-    def test_switching_from_infobase_with_nothing_after_the_offset_starts_before_it_last_saved(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(solr_updater, "infobase_offset_time", lambda offset: None)
-        self.write_offset(tmp_path, saved_at=dt.datetime(2026, 11, 3, 8, 30))
-        assert self.resolve(tmp_path) == self.at("2026-11-03T08:29:00")
+    def test_switching_from_infobase_replays_its_day(self, tmp_path):
+        self.write(tmp_path, "solr.txid", '{"transaction": 1234, "force_update": 7}', old=True)
+        self.write(tmp_path, "solr.offset", "2026-11-03:4284441")
+        assert self.start(tmp_path) == dt.datetime(2026, 11, 3)
 
     def test_initial_state_when_nothing_saved(self, tmp_path):
-        assert self.resolve(tmp_path, "2026-11-02T08:00") == self.at("2026-11-02T08:00:00")
+        assert self.start(tmp_path, "2026-11-02T08:00") == dt.datetime(2026, 11, 2, 8)
 
     def test_defaults_to_the_beginning_of_today(self, tmp_path):
-        assert self.resolve(tmp_path) == self.at(f"{dt.datetime.now(dt.UTC).date().isoformat()}T00:00:00")
+        assert self.start(tmp_path) == dt.datetime.combine(dt.datetime.now(dt.UTC).date(), dt.time())
