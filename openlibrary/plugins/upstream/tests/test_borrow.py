@@ -122,6 +122,14 @@ class TestProviderBorrow:
         mock_render = self._handle(self._lenny("open-access", url), action="read")
         assert mock_render.call_args.kwargs["url"] == url
 
+    def test_a_sample_acquisition_is_forwarded_to_the_provider(self):
+        """A "Preview" web link (#12345): read_button.html sends it here with
+        action=read, and it used to fall through to a bare archive.org/stream/."""
+        url = "https://gallica.bnf.fr/ark:/12148/bpt6k3398372s"
+        mock_render = self._handle(self._lenny("sample", url), action="read")
+        mock_render.assert_called_once()
+        assert mock_render.call_args.kwargs["url"] == url
+
 
 class TestMediatedProviderBorrow:
     """A borrow Open Library runs itself rather than handing off (#13688).

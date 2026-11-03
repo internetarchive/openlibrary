@@ -1,32 +1,29 @@
-"""Gunicorn hooks for Prometheus multiprocess metrics."""
+"""Gunicorn hooks for Prometheus multiprocess metrics; see openlibrary/utils/prometheus_multiprocess.py.
 
-import glob
+An exception in a hook stops the gunicorn master, and with it every worker, so the hooks log errors instead.
+"""
+
 import os
 
-from prometheus_client.mmap_dict import MmapedDict
+from openlibrary.utils import prometheus_multiprocess
+
+# Every scrape reads each queued worker's files, so a long queue slows scrapes, which then hold the lock for longer
+QUEUED_WORKERS_WARNING = 20
 
 
 def child_exit(server, worker):
-    """Merge a worker's additive metric files into archives on exit."""
-    metrics_dir = os.environ.get("PROMETHEUS_MULTIPROC_DIR")
-    if not metrics_dir:
-        return
+    """Queue the exited worker's metric files to be merged into the archives."""
+    if os.environ.get("PROMETHEUS_MULTIPROC_DIR"):
+        prometheus_multiprocess.worker_exited(worker.pid)
 
-    # prometheus_client doesn't expose a public merge API. The integration test
-    # exercises these file names and MmapedDict methods across worker recycling.
-    for dead_file in glob.glob(os.path.join(metrics_dir, f"*_{worker.pid}.db")):
-        metric_type = os.path.basename(dead_file).split("_", maxsplit=1)[0]
-        # Counters, histograms, and summaries store additive values. Gauges do
-        # not, so their dead-worker values cannot be merged into an archive.
-        if metric_type not in {"counter", "histogram", "summary"}:
-            continue
 
-        archive_path = os.path.join(metrics_dir, f"{metric_type}_archive.db")
-        archive = MmapedDict(archive_path)
+def pre_fork(server, worker):
+    """Merge the exited workers' metric files, from the master's main loop, before it starts a worker."""
+    if metrics_dir := os.environ.get("PROMETHEUS_MULTIPROC_DIR"):
         try:
-            for key, value, *_ in MmapedDict.read_all_values_from_file(dead_file):
-                archive.write_value(key, archive.read_value(key)[0] + value, 0)
-        finally:
-            archive.close()
-
-        os.remove(dead_file)
+            queued = prometheus_multiprocess.merge_dead_workers(metrics_dir, live_pids=server.WORKERS)
+        except Exception:
+            server.log.exception("Failed to merge the Prometheus metrics of exited workers")
+            return
+        if queued >= QUEUED_WORKERS_WARNING:
+            server.log.warning("%d exited workers' Prometheus metrics are waiting to merge, as /metrics is being scraped", queued)

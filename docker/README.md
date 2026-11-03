@@ -52,6 +52,15 @@ docker compose up    # Ctrl-C to stop
 docker compose up -d # or, start in detached (silent) mode
 ```
 
+If the frontend watch command reports missing icon assets, generate them from the project root and then start the watcher again:
+
+```sh
+docker compose run --rm home make icons
+docker compose run --rm home npm run watch
+```
+
+This is especially likely on a first checkout or when setting up on a new machine.
+
 You will know the environment is done loading when the text stops furiously scrolling by and you see the following repeating every few seconds on the console:
 
 ```log

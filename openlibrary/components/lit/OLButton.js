@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
 import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
+import { focusRing, pressable, raised } from './control-styles.js';
 
 /** Host attributes copied verbatim onto the form proxy (see the class doc). */
 const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovalidate', 'formtarget'];
@@ -94,7 +95,7 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
  *
  * @slot - Default slot carries the button label.
  * @slot icon-start - Leading icon (an inline SVG). Sized to the button's size
- *   (14/16/18px) and separated from the label by a 4px gap only when filled.
+ *   (14/16/18px) and separated from the label by the shared icon gap (8px) only when filled.
  * @slot icon-end - Trailing icon, same treatment. Not for the disclosure
  *   chevron, which is automatic on popover triggers.
  *
@@ -142,163 +143,162 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         a11yExpanded: { type: String, attribute: 'aria-expanded' }
     };
 
-    static styles = css`
-        :host {
-            display: inline-block;
-            vertical-align: middle;
-        }
+    static styles = [
+        raised,
+        pressable,
+        focusRing,
+        css`
+            :host {
+                display: inline-block;
+                vertical-align: middle;
+            }
 
-        :host([hidden]) {
-            display: none;
-        }
+            :host([hidden]) {
+                display: none;
+            }
 
-        :host([full-width]) {
-            display: block;
-            width: 100%;
-        }
+            :host([full-width]) {
+                display: block;
+                width: 100%;
+            }
 
-        /* Disable pointer events on the host when disabled/loading so :hover
+            /* Disable pointer events on the host when disabled/loading so :hover
            rules on the inner control don't fire. :disabled (not [disabled]) so
            an ancestor <fieldset disabled> counts too. */
-        :host(:disabled),
-        :host([loading]) {
-            pointer-events: none;
-        }
+            :host(:disabled),
+            :host([loading]) {
+                pointer-events: none;
+            }
 
-        .control {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--spacing-icon-gap);
-            box-sizing: border-box;
-            /* Height is a custom property so the icon-only shapes can square up on it. */
-            --ol-button-height: var(--control-height-medium);
-            height: var(--ol-button-height);
-            padding: 0 var(--spacing-md);
-            font-family: var(--font-family-button);
-            font-size: var(--font-size-body-medium);
-            line-height: var(--line-height-control);
-            text-align: center;
-            white-space: nowrap;
-            border: 1px solid var(--color-control-border);
-            border-radius: var(--border-radius-button);
-            background-color: var(--color-control-bg);
-            color: var(--color-text);
-            /* Keep --control-surface on the fill so the specular edge tones to it. */
-            --control-surface: var(--color-control-bg);
-            /* Strength of the specular top edge. Full on light fills (secondary); the
+            .control {
+                position: relative;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: var(--spacing-icon-gap);
+                box-sizing: border-box;
+                /* Height is a custom property so the icon-only shapes can square up on it. */
+                --ol-button-height: var(--control-height-medium);
+                height: var(--ol-button-height);
+                padding: 0 var(--spacing-md);
+                font-family: var(--font-family-button);
+                font-size: var(--font-size-body-medium);
+                font-weight: var(--font-weight-button);
+                line-height: var(--line-height-control);
+                text-align: center;
+                white-space: nowrap;
+                border: 1px solid var(--color-control-border);
+                border-radius: var(--border-radius-button);
+                background-color: var(--color-control-bg);
+                color: var(--color-text);
+                /* The lift itself is the shared .raised recipe (control-styles.js); these
+               two tone it. Keep --control-surface on the fill so the specular edge
+               tones to it. */
+                --control-surface: var(--color-control-bg);
+                /* Strength of the specular top edge. Full on light fills (secondary); the
                dark fills (primary, and primary + tone="danger") dial it down — see below. */
-            --control-highlight-strength: 35%;
-            box-shadow:
-                var(--box-shadow-raised),
-                inset 0 1px 0 color-mix(in srgb, var(--white) var(--control-highlight-strength), var(--control-surface));
-            cursor: pointer;
-            user-select: none;
-            text-decoration: none;
-            /* Hover color changes are instant (see docs/frontend/design.md); only the
+                --control-highlight-strength: 35%;
+                cursor: pointer;
+                user-select: none;
+                text-decoration: none;
+                /* Hover color changes are instant (see docs/frontend/design.md); only the
                :active press-scale animates. */
-            transition: transform var(--duration-press);
-        }
+                transition: transform var(--duration-press);
+            }
 
-        /* Press feedback — tactile scale on activation. The raised shadow and
-           specular highlight stay put through the press. The scale is tiered by
-           width so the edge travels ~1.5px (see static/css/tokens/press.css). */
-        .control:active {
-            transform: scale(var(--press-scale));
-        }
-
-        /* Icon-only shapes are small enough that 3% is sub-pixel; press harder so
+            /* Press feedback is the shared .pressable rule; the scale is tiered by
+           width so the edge travels ~1.5px (see static/css/tokens/press.css).
+           Icon-only shapes are small enough that 3% is sub-pixel; press harder so
            the feedback registers. */
-        :host([shape]) .control:active {
-            transform: scale(var(--press-scale-compact));
-        }
+            :host([shape]) .control {
+                --_press-scale: var(--press-scale-compact);
+            }
 
-        /* Stretched buttons are wide enough that 3% reads as a lurch; press softer. */
-        :host([full-width]) .control:active {
-            transform: scale(var(--press-scale-wide));
-        }
+            /* Stretched buttons are wide enough that 3% reads as a lurch; press softer. */
+            :host([full-width]) .control {
+                --_press-scale: var(--press-scale-wide);
+            }
 
-        :host([full-width]) .control {
-            width: 100%;
-        }
+            :host([full-width]) .control {
+                width: 100%;
+            }
 
-        /* Sizes */
-        :host([size='small']) .control {
-            --ol-button-height: var(--control-height-small);
-            padding: 0 var(--spacing-sm);
-            font-size: var(--font-size-label-medium);
-        }
+            /* Sizes */
+            :host([size='small']) .control {
+                --ol-button-height: var(--control-height-small);
+                padding: 0 var(--spacing-sm);
+                font-size: var(--font-size-label-medium);
+            }
 
-        :host([size='large']) .control {
-            --ol-button-height: var(--control-height-large);
-            padding: 0 var(--spacing-lg);
-            font-size: var(--font-size-body-large);
-        }
+            :host([size='large']) .control {
+                --ol-button-height: var(--control-height-large);
+                padding: 0 var(--spacing-lg);
+                font-size: var(--font-size-body-large);
+            }
 
-        /* Icon-only shapes: a square whose side is the size's control height, so it
+            /* Icon-only shapes: a square whose side is the size's control height, so it
            sits flush with a same-size text button. The slot holds just the glyph;
            consumers must supply aria-label. */
-        :host([shape='icon']) .control,
-        :host([shape='circle']) .control {
-            width: var(--ol-button-height);
-            padding: 0;
-        }
+            :host([shape='icon']) .control,
+            :host([shape='circle']) .control {
+                width: var(--ol-button-height);
+                padding: 0;
+            }
 
-        :host([shape='circle']) .control {
-            border-radius: var(--border-radius-circle);
-        }
+            :host([shape='circle']) .control {
+                border-radius: var(--border-radius-circle);
+            }
 
-        /* Floating — the control sits over content (cover art, a sticky bar) rather
+            /* Floating — the control sits over content (cover art, a sticky bar) rather
            than on the page surface, so it carries a heavier drop shadow. The inset
            specular edge is unchanged. */
-        :host([elevation='floating']) .control {
-            box-shadow:
-                var(--box-shadow-floating),
-                inset 0 1px 0 color-mix(in srgb, var(--white) var(--control-highlight-strength), var(--control-surface));
-        }
+            :host([elevation='floating']) .control {
+                box-shadow:
+                    var(--box-shadow-floating),
+                    inset 0 1px 0 color-mix(in srgb, var(--white) var(--control-highlight-strength), var(--control-surface));
+            }
 
-        /* Primary — opt-in via variant="primary". */
-        :host([variant='primary']) .control {
-            background-color: var(--color-primary);
-            border-color: var(--color-primary-border);
-            color: var(--white);
-            /* Tone the specular highlight to the blue fill instead of pure white, and
+            /* Primary — opt-in via variant="primary". */
+            :host([variant='primary']) .control {
+                background-color: var(--color-primary);
+                border-color: var(--color-primary-border);
+                color: var(--white);
+                /* Tone the specular highlight to the blue fill instead of pure white, and
                soften it — the white edge reads much louder on a dark fill than on white. */
-            --control-surface: var(--color-primary);
-            --control-highlight-strength: var(--control-highlight-strength-filled);
-        }
+                --control-surface: var(--color-primary);
+                --control-highlight-strength: var(--control-highlight-strength-filled);
+            }
 
-        /* Secondary is the default (already set above). Explicit selector for clarity. */
-        :host([variant='secondary']) .control {
-            background-color: var(--color-control-bg);
-            border-color: var(--color-control-border);
-            color: var(--color-text);
-            --control-surface: var(--color-control-bg);
-        }
+            /* Secondary is the default (already set above). Explicit selector for clarity. */
+            :host([variant='secondary']) .control {
+                background-color: var(--color-control-bg);
+                border-color: var(--color-control-border);
+                color: var(--color-text);
+                --control-surface: var(--color-control-bg);
+            }
 
-        /* Primary in the danger hue — the same solid fill, swapped to red. */
-        :host([variant='primary'][tone='danger']) .control {
-            background-color: var(--color-destructive);
-            border-color: var(--color-border-error);
-            color: var(--white);
-            /* Tone the specular highlight to the red fill and soften it, matching primary. */
-            --control-surface: var(--color-destructive);
-            --control-highlight-strength: var(--control-highlight-strength-filled);
-        }
+            /* Primary in the danger hue — the same solid fill, swapped to red. */
+            :host([variant='primary'][tone='danger']) .control {
+                background-color: var(--color-destructive);
+                border-color: var(--color-border-error);
+                color: var(--white);
+                /* Tone the specular highlight to the red fill and soften it, matching primary. */
+                --control-surface: var(--color-destructive);
+                --control-highlight-strength: var(--control-highlight-strength-filled);
+            }
 
-        /* Ghost — text and icon only, no fill, border, or lift at rest; picks up the
+            /* Ghost — text and icon only, no fill, border, or lift at rest; picks up the
            neutral hover fill. For low-emphasis actions ("Show more", toolbar icons).
            The border stays (transparent) so ghost lines up pixel-for-pixel with
            secondary. */
-        :host([variant='ghost']) .control {
-            background-color: transparent;
-            border-color: transparent;
-            color: var(--color-text);
-            box-shadow: none;
-        }
+            :host([variant='ghost']) .control {
+                background-color: transparent;
+                border-color: transparent;
+                color: var(--color-text);
+                box-shadow: none;
+            }
 
-        /* Danger tone on the quiet variants. Emphasis stays with variant; tone only
+            /* Danger tone on the quiet variants. Emphasis stays with variant; tone only
            swaps the hue, so these read as a secondary or ghost button that happens
            to be dangerous, not as a separate family of delete styles. The red lives
            in the label at rest and the fill arrives on hover (below), which keeps a
@@ -308,255 +308,254 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
            wherever they sit — and, unlike those, they also outrank [selected]. That
            only matters for a selected danger button, which nothing builds: selected
            marks a popover trigger carrying a choice, not a destructive action. */
-        :host([variant='secondary'][tone='danger']) .control {
-            border-color: var(--color-error-border);
-            color: var(--color-error-fg);
-        }
+            :host([variant='secondary'][tone='danger']) .control {
+                border-color: var(--color-error-border);
+                color: var(--color-error-fg);
+            }
 
-        :host([variant='ghost'][tone='danger']) .control {
-            background-color: transparent;
-            border-color: transparent;
-            color: var(--color-error-fg);
-            box-shadow: none;
-        }
+            :host([variant='ghost'][tone='danger']) .control {
+                background-color: transparent;
+                border-color: transparent;
+                color: var(--color-error-fg);
+                box-shadow: none;
+            }
 
-        /* Selected — a neutral button carrying a selection, e.g. ol-select-popover's
+            /* Selected — a neutral button carrying a selection, e.g. ol-select-popover's
            trigger once a language is picked. Must stay after the variant fills, which
            it ties on specificity. */
-        :host([selected]) .control {
-            background-color: var(--color-control-selected-bg);
-            border-color: var(--color-control-selected-border);
-            color: var(--color-link);
-            /* Opaque twin of the tint — a translucent surface washes out the highlight. */
-            --control-surface: var(--color-control-selected-surface);
-        }
+            :host([selected]) .control {
+                background-color: var(--color-control-selected-bg);
+                border-color: var(--color-control-selected-border);
+                color: var(--color-link);
+                /* Opaque twin of the tint — a translucent surface washes out the highlight. */
+                --control-surface: var(--color-control-selected-surface);
+            }
 
-        /* Hover (never fires while disabled/loading — pointer-events is none on
+            /* Hover (never fires while disabled/loading — pointer-events is none on
            the host). Hover changes the fill, so --control-surface moves with it —
            otherwise the specular highlight stays toned to the resting color (e.g. a
            blown-out white edge once a danger button fills red). Keep
            --control-surface == background-color. */
-        @media (hover: hover) and (pointer: fine) {
-            :host([variant='secondary']) .control:hover {
-                background-color: var(--color-control-hover);
-                /* Nudge the border darker in step with the fill so the whole button
+            @media (hover: hover) and (pointer: fine) {
+                :host([variant='secondary']) .control:hover {
+                    background-color: var(--color-control-hover);
+                    /* Nudge the border darker in step with the fill so the whole button
                    reads as one shape on hover, rather than the fill darkening inside
                    a static outline. Both now move about four points of lightness:
                    --color-control-border sits between the two border tokens, so the
                    step down to muted is the same small move the fill makes. */
-                border-color: var(--color-border-muted);
-                --control-surface: var(--color-control-hover);
-            }
+                    border-color: var(--color-border-muted);
+                    --control-surface: var(--color-control-hover);
+                }
 
-            :host([variant='ghost']) .control:hover {
-                background-color: var(--color-control-hover);
-            }
+                :host([variant='ghost']) .control:hover {
+                    background-color: var(--color-control-hover);
+                }
 
-            /* Deepens its tint rather than going grey. After the secondary hover rule,
+                /* Deepens its tint rather than going grey. After the secondary hover rule,
                which it ties on specificity. */
-            :host([selected]) .control:hover {
-                background-color: var(--color-control-selected-bg-hover);
-                border-color: var(--color-control-selected-border-hover);
-                --control-surface: var(--color-control-selected-surface-hover);
-            }
+                :host([selected]) .control:hover {
+                    background-color: var(--color-control-selected-bg-hover);
+                    border-color: var(--color-control-selected-border-hover);
+                    --control-surface: var(--color-control-selected-surface-hover);
+                }
 
-            /* The two solid, saturated fills lighten on hover — the mirror image of the
+                /* The two solid, saturated fills lighten on hover — the mirror image of the
                light secondary control darkening above, and matching the selected chip.
                brightness() carries the fill, border, and inset specular edge together, so
                there's no per-property override or --control-surface retoning to keep in
                sync. The press-scale on :active still reads as the "down" step. */
-            :host([variant='primary']) .control:hover {
-                filter: brightness(1.1);
-            }
+                :host([variant='primary']) .control:hover {
+                    filter: brightness(1.1);
+                }
 
-            /* The quiet danger steps commit on hover instead of lightening: ghost
+                /* The quiet danger steps commit on hover instead of lightening: ghost
                takes the solid fill it was standing in for, secondary warms to the
                red tint. Ghost has no shadow to retone; secondary does, so its
                --control-surface moves with the fill like the neutral one above. */
-            :host([variant='ghost'][tone='danger']) .control:hover {
-                background-color: var(--color-destructive);
-                border-color: var(--color-destructive);
-                color: var(--white);
-            }
+                :host([variant='ghost'][tone='danger']) .control:hover {
+                    background-color: var(--color-destructive);
+                    border-color: var(--color-destructive);
+                    color: var(--white);
+                }
 
-            :host([variant='secondary'][tone='danger']) .control:hover {
-                background-color: var(--color-error-bg);
-                /* Border steps along the red ramp with the fill, the way the
+                :host([variant='secondary'][tone='danger']) .control:hover {
+                    background-color: var(--color-error-bg);
+                    /* Border steps along the red ramp with the fill, the way the
                    neutral secondary goes subtle -> muted, so the whole control
                    reads as one shape rather than a tint inside a static edge. */
-                border-color: var(--color-border-error);
-                --control-surface: var(--color-error-bg);
+                    border-color: var(--color-border-error);
+                    --control-surface: var(--color-error-bg);
+                }
             }
-        }
 
-        /* Focus ring — delegatesFocus lands focus on the inner control. */
-        .control:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: var(--spacing-3xs);
-        }
+            /* Focus ring: the shared .focus-ring outline — delegatesFocus lands focus on
+           the inner control. */
 
-        /* Loading: the label and spinner crossfade. Both are always in the DOM so
+            /* Loading: the label and spinner crossfade. Both are always in the DOM so
            the button width stays stable and we can animate between states. */
-        :host([loading]) .control {
-            cursor: progress;
-        }
+            :host([loading]) .control {
+                cursor: progress;
+            }
 
-        /* Disabled — scoped away from [loading] so the loading state keeps
+            /* Disabled — scoped away from [loading] so the loading state keeps
            full-strength colors while still being non-interactive. Links have no
            :disabled; the component sets aria-disabled and drops the href instead. */
-        :host(:not([loading])) button.control:disabled,
-        :host(:not([loading])) a.control[aria-disabled='true'] {
-            opacity: 0.55;
-            cursor: not-allowed;
-        }
+            :host(:not([loading])) button.control:disabled,
+            :host(:not([loading])) a.control[aria-disabled='true'] {
+                opacity: 0.55;
+                cursor: not-allowed;
+            }
 
-        /* Label: visible by default; shrinks, blurs, and fades out on loading.
+            /* Label: visible by default; shrinks, blurs, and fades out on loading.
            Flex so the icon slots sit on the box center rather than the text
            baseline. Empty named slots generate no box, so the gap only shows
            up when an icon is slotted. */
-        .label {
-            --_icon-size: 16px;
+            .label {
+                --_icon-size: 16px;
 
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--spacing-2xs);
-            transition:
-                opacity var(--duration-base) var(--ease-state),
-                transform var(--duration-base) var(--ease-state),
-                filter var(--duration-base) var(--ease-state);
-        }
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                /* The shared icon-to-label gap, as in menu rows and the shelf button. */
+                gap: var(--spacing-icon-gap);
+                transition:
+                    opacity var(--duration-base) var(--ease-state),
+                    transform var(--duration-base) var(--ease-state),
+                    filter var(--duration-base) var(--ease-state);
+            }
 
-        /* Slotted icons take the size's icon dimension regardless of the SVG's own
+            /* Slotted icons take the size's icon dimension regardless of the SVG's own
            width/height attributes, so mixed-source icons line up. */
-        ::slotted([slot='icon-start']),
-        ::slotted([slot='icon-end']) {
-            display: block;
-            flex-shrink: 0;
-            width: var(--_icon-size);
-            height: var(--_icon-size);
-        }
+            ::slotted([slot='icon-start']),
+            ::slotted([slot='icon-end']) {
+                display: block;
+                flex-shrink: 0;
+                width: var(--_icon-size);
+                height: var(--_icon-size);
+            }
 
-        :host([size='small']) .label {
-            --_icon-size: 14px;
-        }
+            :host([size='small']) .label {
+                --_icon-size: 14px;
+            }
 
-        :host([size='large']) .label {
-            --_icon-size: 18px;
-        }
+            :host([size='large']) .label {
+                --_icon-size: 18px;
+            }
 
-        :host([loading]) .label {
-            opacity: 0;
-            transform: scale(0.8);
-            filter: blur(2px);
-        }
+            :host([loading]) .label {
+                opacity: 0;
+                transform: scale(0.8);
+                filter: blur(2px);
+            }
 
-        /* Spinner wrapper: hidden by default; grows, sharpens, and fades in on
+            /* Spinner wrapper: hidden by default; grows, sharpens, and fades in on
            loading. Absolute so it doesn't affect layout. The rotation lives on
            the inner ::before so it doesn't conflict with the scale transition. */
-        .spinner {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transform: scale(0.4);
-            filter: blur(3px);
-            pointer-events: none;
-            transition:
-                opacity var(--duration-base) var(--ease-state),
-                transform var(--duration-base) var(--ease-state),
-                filter var(--duration-base) var(--ease-state);
-        }
-
-        .spinner::before {
-            content: '';
-            display: block;
-            box-sizing: border-box;
-            width: 1em;
-            height: 1em;
-            border: 2px solid currentcolor;
-            border-right-color: transparent;
-            border-radius: 50%;
-        }
-
-        :host([loading]) .spinner {
-            opacity: 1;
-            transform: scale(1);
-            filter: blur(0);
-        }
-
-        :host([loading]) .spinner::before {
-            animation: ol-button-spin var(--duration-spin) linear infinite;
-        }
-
-        @keyframes ol-button-spin {
-            to {
-                transform: rotate(360deg);
+            .spinner {
+                position: absolute;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                transform: scale(0.4);
+                filter: blur(3px);
+                pointer-events: none;
+                transition:
+                    opacity var(--duration-base) var(--ease-state),
+                    transform var(--duration-base) var(--ease-state),
+                    filter var(--duration-base) var(--ease-state);
             }
-        }
 
-        /* Disclosure chevron. Hidden by default; shown only when the button is wired
+            .spinner::before {
+                content: '';
+                display: block;
+                box-sizing: border-box;
+                width: 1em;
+                height: 1em;
+                border: 2px solid currentcolor;
+                border-right-color: transparent;
+                border-radius: 50%;
+            }
+
+            :host([loading]) .spinner {
+                opacity: 1;
+                transform: scale(1);
+                filter: blur(0);
+            }
+
+            :host([loading]) .spinner::before {
+                animation: ol-button-spin var(--duration-spin) linear infinite;
+            }
+
+            @keyframes ol-button-spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* Disclosure chevron. Hidden by default; shown only when the button is wired
            as a popover/menu trigger — ol-popover / ol-select-popover set aria-haspopup
            and aria-expanded directly on the trigger element, so the affordance is
            automatic with no consumer markup. Opt out with the \`no-chevron\` attribute.
            The glyph is a mask painted with currentcolor so it matches the label color. */
-        .chevron {
-            display: none;
-        }
-
-        :host([aria-haspopup]) .chevron {
-            /* The sprite's chevron-down, inlined: this literal never passes through
-               the CSS formatter that mangled data URIs in the global sheet, and
-               inlining spares a request inside every shadow root. */
-            --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-            /* Tuck against the label and the edge; margins rather than gap/padding so the
-               per-size paddings still apply. Nets a 4px gap, 4/8/12px inset by size. */
-            margin-left: calc(var(--spacing-2xs) * -1);
-            margin-right: calc(var(--spacing-2xs) * -1);
-            background: currentcolor;
-            transition: transform var(--duration-fast) var(--ease-enter);
-            -webkit-mask: var(--chevron) center / 16px no-repeat;
-            mask: var(--chevron) center / 16px no-repeat;
-        }
-
-        /* Opt out — stays hidden even when wired as a trigger. Comes after the show
-           rule (equal specificity) so it wins. */
-        :host([no-chevron]) .chevron {
-            display: none;
-        }
-
-        /* Rotate 180° while the popover is open. aria-expanded="true" only appears on
-           disclosure triggers, so [aria-haspopup] is redundant here. */
-        :host([aria-expanded='true']) .chevron {
-            transform: rotate(180deg);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .label,
-            .spinner,
-            :host([loading]) .label,
-            :host([loading]) .spinner {
-                transform: none;
-                filter: none;
-                transition-property: opacity;
-            }
-
-            :host([loading]) .spinner::before {
-                animation-duration: 2s;
+            .chevron {
+                display: none;
             }
 
             :host([aria-haspopup]) .chevron {
-                transition: none;
+                /* The sprite's chevron-down, inlined: this literal never passes through
+               the CSS formatter that mangled data URIs in the global sheet, and
+               inlining spares a request inside every shadow root. */
+                --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+
+                display: inline-block;
+                width: 16px;
+                height: 16px;
+                flex-shrink: 0;
+                /* Tuck against the label and the edge; margins rather than gap/padding so the
+               per-size paddings still apply. Nets a 4px gap, 4/8/12px inset by size. */
+                margin-left: calc(var(--spacing-2xs) * -1);
+                margin-right: calc(var(--spacing-2xs) * -1);
+                background: currentcolor;
+                transition: transform var(--duration-fast) var(--ease-enter);
+                -webkit-mask: var(--chevron) center / 16px no-repeat;
+                mask: var(--chevron) center / 16px no-repeat;
             }
-        }
-    `;
+
+            /* Opt out — stays hidden even when wired as a trigger. Comes after the show
+           rule (equal specificity) so it wins. */
+            :host([no-chevron]) .chevron {
+                display: none;
+            }
+
+            /* Rotate 180° while the popover is open. aria-expanded="true" only appears on
+           disclosure triggers, so [aria-haspopup] is redundant here. */
+            :host([aria-expanded='true']) .chevron {
+                transform: rotate(180deg);
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .label,
+                .spinner,
+                :host([loading]) .label,
+                :host([loading]) .spinner {
+                    transform: none;
+                    filter: none;
+                    transition-property: opacity;
+                }
+
+                :host([loading]) .spinner::before {
+                    animation-duration: 2s;
+                }
+
+                :host([aria-haspopup]) .chevron {
+                    transition: none;
+                }
+            }
+        `
+    ];
 
     constructor() {
         super();
@@ -711,7 +710,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             // re-activation; the host's pointer-events: none blocks the mouse.
             return html`
                 <a
-                    class="control"
+                    class="control raised pressable focus-ring"
                     part="control"
                     href=${this.isDisabled ? nothing : this.href}
                     target=${this.target ?? nothing}
@@ -733,7 +732,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         // submit/reset to the form through the light-DOM proxy.
         return html`
             <button
-                class="control"
+                class="control raised pressable focus-ring"
                 part="control"
                 type="button"
                 ?disabled=${inert}
