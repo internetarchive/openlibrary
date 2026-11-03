@@ -23,7 +23,7 @@
 import { SHELF_LABEL, setShelf } from '../../../components/lit/utils/books-api.js';
 import { translate } from '../../../components/lit/utils/labels.js';
 import { debounce } from './nonjquery_utils.js';
-import { FadingToast } from './Toast.js';
+import { showToast } from '../../../components/lit/toast.js';
 import { buildPartialsUrl } from './utils';
 
 /** The server's cap on one ReadingState.json request. */
@@ -31,7 +31,7 @@ export const BATCH_SIZE = 100;
 /** How long insertions are pooled before a pass. Long enough to outlast a lazy carousel's fetch. */
 export const HYDRATE_DELAY = 100;
 const LABELS_INPUT = 'input[name="shelf-button-i18n-strings"]';
-/** English fallbacks for the left-shelf notice; my_books/shelf_button_i18n.html carries the translations. */
+/** English fallbacks for the left-shelf notice; core/shell/shelf_labels.py carries the translations. */
 const NOTICE_LABELS = {
     wantToRead: 'Want to Read',
     currentlyReading: 'Currently Reading',
@@ -229,7 +229,7 @@ async function undoShelfChange(workKey, pageShelf, notice) {
         await setShelf(workKey, pageShelf, { editionKey: button?.editionKey });
     } catch {
         emit(workKey, from, rating);
-        new FadingToast(t('errorGeneric')).show();
+        showToast(t('errorGeneric'), { type: 'error' });
     }
 }
 

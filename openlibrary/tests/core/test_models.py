@@ -1,10 +1,11 @@
-from unittest.mock import PropertyMock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 import web
 
 from openlibrary.core import models
 from openlibrary.mocks import mock_infobase
+from openlibrary.utils.request_context import Visitor, visitor
 from openlibrary.utils.request_context import site as site_var
 
 
@@ -91,6 +92,17 @@ class TestUserGroupMembership:
         )
         assert user.is_librarian_or_higher() is False
 
+    def test_is_librarian_or_higher_marks_the_visitor(self, monkeypatch):
+        monkeypatch.setattr(models.User, "usergroups", PropertyMock(return_value=[_FakeGroup("/usergroup/librarians")]))
+        token = visitor.set(me := Visitor(user_key="/people/test"))
+        try:
+            models.User(MockSite(), "/people/someone-else", data={}).is_librarian_or_higher()
+            assert me.is_librarian is False
+            models.User(MockSite(), "/people/test", data={}).is_librarian_or_higher()
+            assert me.is_librarian is True
+        finally:
+            visitor.reset(token)
+
     def test_is_super_librarian_or_higher(self, monkeypatch):
         user = models.User(MockSite(), "/people/test", data={})
 
@@ -121,6 +133,26 @@ class TestUserGroupMembership:
             PropertyMock(return_value=[]),
         )
         assert user.is_super_librarian_or_higher() is False
+
+
+class TestUserIsPrintDisabled:
+    """``User.is_printdisabled()`` must read the unified request context, not
+    ``web.cookies()``: FastAPI has no ``web.ctx``, so reading the ``pd``
+    cookie there always returned nothing and print-disabled patrons lost
+    Special Access on FastAPI-rendered carousels and partials.
+    """
+
+    def test_true_from_request_context(self, request_context_fixture, monkeypatch):
+        # Simulate FastAPI: no web.py request exists, so web.cookies() raises.
+        monkeypatch.setattr(web, "cookies", Mock(side_effect=RuntimeError("no web.py request")))
+        request_context_fixture(print_disabled=True)
+        user = models.User(MockSite(), "/people/test", data={})
+        assert user.is_printdisabled() is True
+
+    def test_false_from_request_context(self, request_context_fixture, monkeypatch):
+        monkeypatch.setattr(web, "cookies", Mock(side_effect=RuntimeError("no web.py request")))
+        user = models.User(MockSite(), "/people/test", data={})
+        assert user.is_printdisabled() is False
 
 
 class MockSite:

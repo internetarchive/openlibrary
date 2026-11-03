@@ -4,7 +4,7 @@ import './OlIcon.js';
 import './OLButton.js';
 import { getLists, subscribeToLists, loadLists, removeListSeeds } from './utils/lists-store.js';
 import { redirectToLogin } from './utils/books-api.js';
-import { showToast } from './OlToastRegion.js';
+import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { translate } from './utils/labels.js';
 

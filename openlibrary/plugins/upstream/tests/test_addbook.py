@@ -606,3 +606,20 @@ class TestMakeWork:
         )
 
         assert addbook.make_work(doc) == web_doc
+
+
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        ("", True),
+        ("https://example.com/book", True),
+        ("http://example.com", True),
+        ("javascript:alert(1)", False),
+        ("ftp://example.com/book", False),
+        ("not a url", False),
+        ("https://", False),
+        ("//example.com/book", False),
+    ],
+)
+def test_is_valid_web_book_url(url, expected):
+    assert addbook.is_valid_web_book_url(url) is expected

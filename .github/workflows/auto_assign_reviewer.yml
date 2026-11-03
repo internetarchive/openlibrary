@@ -29,6 +29,7 @@ jobs:
     # trigger instead, bypassing the reviewer-request mechanism entirely.
     if: >
       !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.user.login != 'openlibrary-bot'
     steps:
       - name: Request openlibrary-bot as reviewer if not already present
