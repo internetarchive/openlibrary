@@ -351,11 +351,11 @@ def test_get_location_and_publisher(loc_pub: str, expected: tuple[list[str], lis
 
 def test_get_location_and_publisher_bad_type() -> None:
     # Bad input where Python thinks the IA metadata is a Python list
-    loc_pub = [  # type: ignore[assignment]
+    loc_pub = [
         "Charleston, SC : Monkeypaw Press, LLC",
         "Charleston, SC : [manufactured by CreateSpace]",
     ]
-    assert utils.get_location_and_publisher(loc_pub) == ([], [])
+    assert utils.get_location_and_publisher(loc_pub) == ([], [])  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
