@@ -317,11 +317,12 @@ class MemcacheCache(Cache):
         return cast(str, web.safestr(key))
 
     def get(self, key: str) -> Any:
+        """Returns the json-decoded value for key, or None if key is not in memcache."""
         key = self._encode_key(key)
         stats.begin("memcache.get", key=key)
         value = self.memcache.get(key)
         stats.end(hit=value is not None)
-        return value and json.loads(value)
+        return json.loads(value) if value else None
 
     def get_multi(self, keys: list[str]) -> dict[str, Any]:
         keys = [self._encode_key(k) for k in keys]
