@@ -81,6 +81,14 @@ msgstr ""
 msgid "Deactivate Account"
 msgstr ""
 
+#: account.html shell/footer.html.jinja
+msgid "Please write your message above this line."
+msgstr ""
+
+#: account.html shell/footer.html.jinja
+msgid "The details below help us look into your message. You can delete anything you would rather not share."
+msgstr ""
+
 #: account.html
 msgid "Please contact us if you need help with anything else."
 msgstr ""
