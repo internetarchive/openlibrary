@@ -30,6 +30,7 @@
   border-radius: var(--border-radius-button);
   color: var(--color-text);
   font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-button);
   text-decoration: none;
 }
 

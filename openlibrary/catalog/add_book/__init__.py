@@ -265,7 +265,7 @@ def load_author_import_records(authors_in, edits, source, save: bool = True):
                 a["key"] = f"/authors/__new__{uuid.uuid4()}"
             a["source_records"] = [source]
         else:
-            stored = web.ctx.site.get(a["key"])  # Fresh read to check for modifications
+            stored = site.get().get(a["key"])  # Fresh read to check for modifications
             if a.dict() != stored.dict():
                 edits.append(a.dict())
                 status = "modified"

@@ -11,9 +11,9 @@ from urllib.parse import unquote, urlencode, urlparse
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response, status
 from fastapi.responses import JSONResponse
+from infogami import config
 from pydantic import BaseModel, Field
 
-from infogami import config
 from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, RunAs
 from openlibrary.accounts.model import audit_accounts, encrypt_s3_keys, generate_login_code_for_user
@@ -21,6 +21,7 @@ from openlibrary.core import stats
 from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.follows import PubSub
+from openlibrary.core.lending import AccountNotFoundError
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
@@ -35,7 +36,7 @@ logger = logging.getLogger("openlibrary.fastapi.account")
 
 router = APIRouter()
 
-SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+SHOW_INTERNAL_IN_SCHEMA = get_ol_env().LOCAL_DEV
 
 # Allow overriding ia_sync_secret via env var (for dev/test environments).
 # Legacy production config sets this value outside the repo.
@@ -50,6 +51,7 @@ class AnonymizeResponse(BaseModel):
     ratings_count: int = Field(description="Number of ratings anonymized")
     observations_count: int = Field(description="Number of observations anonymized")
     bookshelves_count: int = Field(description="Number of bookshelf entries anonymized")
+    read_history_count: int = Field(description="Number of read history entries anonymized")
     merge_request_count: int = Field(description="Number of merge requests updated")
     bestbooks_count: int = Field(description="Number of bestbook entries anonymized")
 
@@ -210,7 +212,7 @@ def account_loans_json(
     try:
         return legacy_account.get_account_loans_json(accounts.get_current_user())
     except Exception:
-        if os.getenv("LOCAL_DEV"):
+        if get_ol_env().LOCAL_DEV:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Loan data requires credentials for the production Internet Archive server and is not available in the local development environment.",
@@ -220,13 +222,16 @@ def account_loans_json(
 
 @router.get("/account/loan-history.json", response_model=AccountLoanHistoryResponse)
 def account_loan_history_json(
+    request: Request,
     _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     page: Annotated[int, Query(ge=1)] = 1,
 ) -> dict:
     try:
-        return legacy_account.get_account_loan_history_json(accounts.get_current_user(), page)
+        return legacy_account.get_account_loan_history_json(accounts.get_current_user(), page, s3_cookie=request.cookies.get("s3"))
+    except AccountNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception:
-        if os.getenv("LOCAL_DEV"):
+        if get_ol_env().LOCAL_DEV:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Loan history requires credentials for the production Internet Archive server and is not available in the local development environment.",
@@ -363,7 +368,7 @@ async def _login_json(request: Request) -> Response:
     return response
 
 
-def _perform_post_login_action(response: Response, action: str, ol_account: OpenLibraryAccount | None) -> None:
+async def _perform_post_login_action(response: Response, action: str, ol_account: OpenLibraryAccount | None) -> None:
     """Mirror web.py's perform_post_login_action (follow subscriptions).
 
     Subscribes the user and queues the confirmation flash on the response.
@@ -375,7 +380,7 @@ def _perform_post_login_action(response: Response, action: str, ol_account: Open
     if op != "follow" or not args or not ol_account:
         return
     if publisher_account := OpenLibraryAccount.get_by_username(args):
-        PubSub.subscribe(subscriber=ol_account.username, publisher=args)
+        await PubSub.subscribe(subscriber=ol_account.username, publisher=args)
         publisher_name = publisher_account["data"]["displayname"]
         set_flash_cookie(response, "note", f"You are now following {publisher_name}!")
 
@@ -475,7 +480,7 @@ async def login(
     ol_account = _set_login_cookies_on_response(response, audit, ol_username, email=email, remember=remember)
 
     # Perform any post-login action (same as web.py's perform_post_login_action)
-    _perform_post_login_action(response, action, ol_account)
+    await _perform_post_login_action(response, action, ol_account)
 
     # Increment stats (same as web.py)
     stats.increment("ol.account.xauth.login")
@@ -569,7 +574,7 @@ async def anonymize_account(
         # This endpoint authenticates via HMAC+S3, not a user session, so
         # there is no auth token on the connection without RunAs.
         with RunAs(ol_account.username):
-            result = ol_account.anonymize(test=test_mode)
+            result = await ol_account.anonymize(test=test_mode)
     except Exception as e:  # noqa: BLE001
         logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")

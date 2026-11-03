@@ -17,13 +17,13 @@ beforeEach(() => {
 
 describe('initClassificationValidation', () => {
     test.each([
-    // format: [testName, selectValue, classificationValue, expectedDisplay]
+        // format: [testName, selectValue, classificationValue, expectedDisplay]
         ['Can have a classification and any value', 'lc_classifications', 'anything at all', 'none'],
         ['Cannot have both an empty classification and classification value', '', '', 'block'],
         ['Cannot have an empty classification', '', 'Test', 'block'],
         ['Cannot have an empty classification value', 'lc_classifications', '', 'block'],
         ['Cannot have --- as a classification WITHOUT a value', '---', 'test', 'block'],
-        ['Cannot have --- as a classification with a value', '---', '', 'block'],
+        ['Cannot have --- as a classification with a value', '---', '', 'block']
     ])('Test: %s', (testName, selectValue, classificationValue, expectedDisplay) => {
         $('#select-classification').val(selectValue);
         $('#classification-value').val(classificationValue);

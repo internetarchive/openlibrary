@@ -34,15 +34,13 @@ $def render_graph_page(days):
     $:g.render(yLimit=300, **defaults)
 
 <div id="contentBody">
-<div class="ol-tabs">
-    <ul>
-        <li><a href="#day" id="link_day">$_("Today")</a></li>
-        <li><a href="#week" id="link_week">$_("This Week")</a></li>
-        <li><a href="#month" id="link_month">$_("This Month")</a></li>
-    </ul>
+<ol-tabs>
+    <a slot="tab" href="#day">$_("Today")</a>
+    <a slot="tab" href="#week">$_("This Week")</a>
+    <a slot="tab" href="#month">$_("This Month")</a>
     <div id="day">$:render_graph_page("-1days")</div>
     <div id="week">$:render_graph_page("-7days")</div>
     <div id="month">$:render_graph_page("-30days")</div>
-</div>
+</ol-tabs>
 
 </div>

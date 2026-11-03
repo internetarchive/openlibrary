@@ -23,7 +23,9 @@ $def with (selected="", options=None, heading_attrs="")
             $if '(' in title and title[:title.index('(')-1] == selected:
                 $ breadcrumb_title = title
             $elif title == selected:
-                $ breadcrumb_title = title;
+                $ breadcrumb_title = title
+        $if not breadcrumb_title:
+            $ breadcrumb_title = selected
         <span class="crumb">
             <span class="crumbicon">
                 <div class="dropdown">

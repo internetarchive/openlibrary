@@ -179,7 +179,7 @@ class LocalPostgresDataProvider(DataProvider):
         self.query_all(q, json_cache=self.cache)
 
     def cache_work_authors(self, lo_key, hi_key):
-        # Cache upto first five authors
+        # Cache up to first five authors
         q = f"""
             SELECT authors."Key", authors."JSON"
             FROM "test" works

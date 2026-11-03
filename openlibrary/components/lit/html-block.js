@@ -17,7 +17,7 @@ export const HtmlBlock = Node.create({
         return {
             content: {
                 default: '',
-                parseHTML: (el) => {
+                parseHTML: el => {
                     const encoded = el.getAttribute('data-content');
                     if (encoded) {
                         try {
@@ -27,8 +27,8 @@ export const HtmlBlock = Node.create({
                         }
                     }
                     return '';
-                },
-            },
+                }
+            }
         };
     },
 
@@ -64,9 +64,7 @@ export const HtmlBlock = Node.create({
             source.addEventListener('blur', () => {
                 const pos = getPos();
                 if (typeof pos === 'number' && source.value !== node.attrs.content) {
-                    editor.view.dispatch(
-                        editor.view.state.tr.setNodeMarkup(pos, undefined, { content: source.value })
-                    );
+                    editor.view.dispatch(editor.view.state.tr.setNodeMarkup(pos, undefined, { content: source.value }));
                 }
             });
 
@@ -89,21 +87,27 @@ export const HtmlBlock = Node.create({
                     }
                     return true;
                 },
-                stopEvent() { return true; },
-                ignoreMutation() { return true; },
-                destroy() {},
+                stopEvent() {
+                    return true;
+                },
+                ignoreMutation() {
+                    return true;
+                },
+                destroy() {}
             };
         };
     },
 
     addCommands() {
         return {
-            insertHtmlBlock: (content = '') => ({ commands }) => {
-                return commands.insertContent({
-                    type: this.name,
-                    attrs: { content },
-                });
-            },
+            insertHtmlBlock:
+                (content = '') =>
+                ({ commands }) => {
+                    return commands.insertContent({
+                        type: this.name,
+                        attrs: { content }
+                    });
+                }
         };
     },
 
@@ -121,9 +125,9 @@ export const HtmlBlock = Node.create({
                             const encoded = btoa(unescape(encodeURIComponent(content)));
                             return `<div data-html-block data-content="${encoded}"></div>`;
                         };
-                    },
-                },
-            },
+                    }
+                }
+            }
         };
-    },
+    }
 });

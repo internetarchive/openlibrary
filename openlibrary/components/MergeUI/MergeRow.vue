@@ -1,46 +1,42 @@
 <template>
-  <tr class="work">
-    <slot name="pre" />
-    <td
-      v-for="field in fields"
-      :key="field"
-      :class="{ [`col-${field.replace(/\|/g, '--')}`]: true }"
-    >
-      <MergeRowJointField
-        v-if="field.includes('|')"
-        :fields="field.split('|')"
-        :record="record"
-        :merged="merged"
-        :cell-selected="cellSelected"
-        :class="{ [`wrap-${field.replace(/\|/g, '--')}`]: true }"
-        :show-diffs="showDiffs"
-      />
-      <MergeRowField
-        v-else-if="field in record"
-        :field="field"
-        :value="record[field]"
-        :merged="merged"
-        :class="{ selected: cellSelected && cellSelected(record, field) }"
-        :show-diffs="showDiffs"
-      />
-      <MergeRowEditionField
-        v-else-if="field == 'editions'"
-        :editions="editions"
-        :record="record"
-        :merged="merged"
-        :class="{ selected: cellSelected && cellSelected(record, field) }"
-      />
-      <MergeRowReferencesField
-        v-else-if="field == 'references'"
-        :lists="lists"
-        :bookshelves="bookshelves"
-        :ratings="ratings"
-        :record="record"
-        :merged="merged"
-        :class="{ selected: cellSelected && cellSelected(record, field) }"
-      />
-    </td>
-  </tr>
+    <tr class="work">
+        <slot name="pre" />
+        <td v-for="field in fields" :key="field" :class="{ [`col-${field.replace(/\|/g, '--')}`]: true }">
+            <MergeRowJointField
+                v-if="field.includes('|')"
+                :fields="field.split('|')"
+                :record="record"
+                :merged="merged"
+                :cell-selected="cellSelected"
+                :class="{ [`wrap-${field.replace(/\|/g, '--')}`]: true }"
+                :show-diffs="showDiffs"
+            />
+            <MergeRowField
+                v-else-if="field in record"
+                :field="field"
+                :value="record[field]"
+                :merged="merged"
+                :class="{ selected: cellSelected && cellSelected(record, field) }"
+                :show-diffs="showDiffs"
+            />
+            <MergeRowEditionField
+                v-else-if="field == 'editions'"
+                :editions="editions"
+                :record="record"
+                :merged="merged"
+                :class="{ selected: cellSelected && cellSelected(record, field) }"
+            />
+            <MergeRowReferencesField
+                v-else-if="field == 'references'"
+                :lists="lists"
+                :bookshelves="bookshelves"
+                :ratings="ratings"
+                :record="record"
+                :merged="merged"
+                :class="{ selected: cellSelected && cellSelected(record, field) }"
+            />
+        </td>
+    </tr>
 </template>
 
 <script>

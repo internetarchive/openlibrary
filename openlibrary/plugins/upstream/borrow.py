@@ -12,9 +12,6 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Literal
 
 import web
-from markupsafe import Markup, escape
-from pydantic import BaseModel, Field
-
 from infogami import config
 from infogami.infobase.utils import parse_datetime
 from infogami.utils import delegate
@@ -22,6 +19,9 @@ from infogami.utils.view import (
     add_flash_message,
     public,
 )
+from markupsafe import Markup, escape
+from pydantic import BaseModel, Field
+
 from openlibrary import accounts
 from openlibrary.accounts.model import OpenLibraryAccount, parse_s3_cookie
 from openlibrary.core import (
@@ -223,16 +223,36 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         and (provider := get_book_provider(edition))
         and provider.short_name != "ia"
         and (acquisitions := provider.get_acquisitions(edition))
-        and acquisitions[0].access == "open-access"
+        # `borrow` as well as `open-access`: a provider that lends its own
+        # copies sends the patron to its own sign-in. `sample` too: a "Preview"
+        # web link is read on the provider's site (#12345). Falling through
+        # reaches `get_bookreader_stream_url(edition.ocaid)`, and on a non-IA
+        # edition `ocaid` is infogami's `Nothing`, whose `__radd__` returns the
+        # left operand -- so that path yields a bare `archive.org/stream/`
+        # instead of raising.
+        and acquisitions[0].access in ("open-access", "borrow", "sample")
     ):
         stats.increment("ol.loans.webbook")
         if action == "read":
             _record_read_history(accounts.get_current_user(), edition)
+        url = acquisitions[0].url
         raw_name = acquisitions[0].provider_name or ""
-        book_provider = Markup("<strong>") + escape(raw_name.replace("_", " ").title()) + Markup("</strong>") if raw_name else Markup("")
+        display_name = raw_name.replace("_", " ").title()
+        if acquisitions[0].access == "borrow":
+            # Borrowed *through* Open Library, so no interstitial: that screen
+            # warns the patron they are leaving for a third party, and the next
+            # page here is an openlibrary.org route. A node with no configured
+            # credentials returns None and keeps the interstitial below, since
+            # that one really is a handoff to the node's own sign-in.
+            from openlibrary.plugins.upstream import lenny
+
+            if mediated := lenny.mediated_borrow(key):
+                return BorrowRedirect(mediated)
+
+        book_provider = Markup("<strong>") + escape(display_name) + Markup("</strong>") if raw_name else Markup("")
         return render_jinja_template(
             "interstitial.html.jinja",
-            url=acquisitions[0].url,
+            url=url,
             book_provider=book_provider,
             wait=5,
             fastapi=fastapi,

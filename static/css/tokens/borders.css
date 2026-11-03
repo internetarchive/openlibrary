@@ -26,6 +26,7 @@
   --border-width-table: 1px;
   --border-width-divider: 1px;
   --focus-width: 2px;
+  --pointed-ring-width: 4px; /* ring hugging the item under the pointer, e.g. a hovered book cover */
 
   /* Complete border styles. Every hairline is --color-border-subtle, so cards,
      tables, and inputs share one warm line. */
@@ -75,7 +76,7 @@
      scrim, the popover's mobile tray, which should all read as the same
      gesture. The blur is what pushes the page back; the dim is what makes it
      inert. Blur follows modality, never a breakpoint; a non-modal overlay gets
-     neither. See docs/ai/design.md#blur-follows-modality-not-viewport-width. */
+     neither. See docs/frontend/design.md#blur-follows-modality-not-viewport-width. */
   --overlay-backdrop-color: hsla(0, 0%, 0%, 0.32);
   --overlay-backdrop-blur: 3px;
 }

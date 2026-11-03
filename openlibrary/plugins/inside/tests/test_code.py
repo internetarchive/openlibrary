@@ -158,7 +158,8 @@ class FakeSearchAPI:
 
     async def __call__(self, params):
         self.params = params
-        return {"hits": {"hits": [], "total": 0}}
+        # A nonzero total, so no all-words retry replaces these params.
+        return {"hits": {"hits": [], "total": 1}}
 
 
 async def search_params(monkeypatch, **kwargs) -> dict:

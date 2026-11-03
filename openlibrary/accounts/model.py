@@ -1,7 +1,7 @@
 """ """
 
 import base64
-import datetime
+import datetime as dt
 import hashlib
 import hmac
 import logging
@@ -10,16 +10,18 @@ import secrets
 import string
 import time
 import uuid
+from collections.abc import Mapping
+from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 import requests
 import web
-from validate_email import validate_email
-
 from infogami import config
 from infogami.infobase.client import ClientException
 from infogami.utils.view import public, render_template
+from validate_email import validate_email
+
 from openlibrary.core import helpers, stats
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.booknotes import Booknotes
@@ -29,6 +31,8 @@ from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.core.read_history import ReadHistory
 from openlibrary.plugins.openlibrary.pd import get_pd_org
+from openlibrary.utils import server_timing
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import site
 
 try:
@@ -105,6 +109,26 @@ def decrypt_s3_keys(token: str) -> tuple[str, str]:
     plaintext = _get_fernet().decrypt(token.encode()).decode()
     access, secret = plaintext.split(":", 1)
     return access, secret
+
+
+def encrypt_token(token: str) -> str:
+    """Encrypt a single OAuth token for storage.
+
+    Same Fernet key and pattern as :func:`encrypt_s3_keys` above -- one secret,
+    one scheme. Deliberately *not* a digest: Open Library presents these tokens
+    to a provider, so they have to come back out. Hashing is correct on the
+    node, which verifies; wrong here, which sends.
+    """
+    return _get_fernet().encrypt(token.encode()).decode()
+
+
+def decrypt_token(ciphertext: str) -> str:
+    """Decrypt a token written by :func:`encrypt_token`.
+
+    Raises ``cryptography.fernet.InvalidToken`` on tampered input or input
+    encrypted under a rotated secret, like :func:`decrypt_s3_keys`.
+    """
+    return _get_fernet().decrypt(ciphertext.encode()).decode()
 
 
 def parse_s3_cookie(s3_cookie: str | None) -> dict | None:
@@ -206,6 +230,35 @@ def verify_session_cookie(cookie_value: str) -> bool:
     return verify_hash(get_secret_key(), data, signature)
 
 
+# The challenge page itself: checking cookies there would bounce a flagged visitor
+# back to it in a loop, and turn away one whose ``vf`` went stale (a rotated key)
+# instead of letting them earn a new one. Read by web.py and FastAPI alike.
+HUMAN_CHECK_EXEMPT_PATHS: frozenset[str] = frozenset({"/verify_human"})
+
+
+@dataclass(frozen=True)
+class HumanCookieCheck:
+    """What a request's cookies say about the human-verification challenge."""
+
+    verified: bool = False  # a valid ``vf`` or session cookie: let the request through
+    spoofed: str | None = None  # the name of a forged one: reject the request
+
+
+def check_human_cookies(cookies: Mapping[str, str]) -> HumanCookieCheck:
+    """Check the ``vf`` cookie, else the session cookie; the first one present decides.
+
+    nginx challenges suspicious requests only when they carry no cookies, and
+    leaves checking that cookies are genuine to the app: ``CookieValidationProcessor``
+    on web.py, ``SitePageRoute`` on FastAPI. A signature check, no database lookup.
+    """
+    if vf := cookies.get("vf"):
+        return HumanCookieCheck(verified=True) if verify_verification_cookie(vf) else HumanCookieCheck(spoofed="vf")
+    session_cookie_name = config.get("login_cookie_name", "session")
+    if session := cookies.get(session_cookie_name):
+        return HumanCookieCheck(verified=True) if verify_session_cookie(session) else HumanCookieCheck(spoofed=session_cookie_name)
+    return HumanCookieCheck()
+
+
 def generate_login_code_for_user(username: str) -> str:
     """
     Args:
@@ -216,7 +269,7 @@ def generate_login_code_for_user(username: str) -> str:
         that can be used as a session cookie value
     """
     user_key = "/people/" + username
-    t = datetime.datetime(*time.gmtime()[:6]).isoformat()
+    t = dt.datetime(*time.gmtime()[:6]).isoformat()
     text = f"{user_key},{t}"
     return text + "," + generate_hash(get_secret_key(), text)
 
@@ -232,8 +285,8 @@ def create_link_doc(key: str, username: str, email: str) -> dict:
     """
     code = generate_uuid()
 
-    now = datetime.datetime.now()
-    expires = now + datetime.timedelta(days=14)
+    now = dt.datetime.now()
+    expires = now + dt.timedelta(days=14)
 
     return {
         "_key": key,
@@ -254,16 +307,27 @@ def clear_cookies() -> None:
 
 
 class Link(web.storage):
-    def get_expiration_time(self) -> datetime.datetime:
+    def get_expiration_time(self) -> dt.datetime:
         d = self["expires_on"].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        return dt.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
-    def get_creation_time(self) -> datetime.datetime:
+    def get_creation_time(self) -> dt.datetime:
         d = self["created_on"].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        return dt.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
     def delete(self) -> None:
         del site.get().store[self["_key"]]
+
+
+class AccountAnonymizationResult(TypedDict):
+    new_username: str
+    booknotes_count: int
+    ratings_count: int
+    observations_count: int
+    bookshelves_count: int
+    read_history_count: int
+    merge_request_count: int
+    bestbooks_count: int
 
 
 class Account(web.storage):
@@ -276,7 +340,7 @@ class Account(web.storage):
         return (user and user.get_edit_count()) or 0
 
     @property
-    def registered_on(self) -> datetime.datetime | None:
+    def registered_on(self) -> dt.datetime | None:
         """Returns the registration time."""
         t = self.get("created_on")
         return t and helpers.parse_datetime(t)
@@ -295,9 +359,9 @@ class Account(web.storage):
         else:
             return self.username
 
-    def creation_time(self) -> datetime.datetime:
+    def creation_time(self) -> dt.datetime:
         d = self["created_on"].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        return dt.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
     def get_recentchanges(self, limit: int = 100, offset: int = 0):
         q = {"author": self.get_user().key, "limit": limit, "offset": offset}
@@ -348,7 +412,7 @@ class Account(web.storage):
             code = e.get_data().get("code")
             return code
         else:
-            self["last_login"] = datetime.datetime.utcnow().isoformat()
+            self["last_login"] = dt.datetime.utcnow().isoformat()
             self._save()
             return "ok"
 
@@ -365,7 +429,7 @@ class Account(web.storage):
         site.get().store[self._key] = self
 
     @property
-    def last_login(self) -> datetime.datetime:
+    def last_login(self) -> dt.datetime:
         """Returns the last_login time of the user, if available.
 
         The `last_login` will not be available for accounts, who haven't
@@ -434,47 +498,71 @@ class Account(web.storage):
         self.bot = flag
         self._save()
 
-    def anonymize(self, test=False):
+    async def anonymize(self, test: bool = False) -> AccountAnonymizationResult:
         if not test:
-            patron = self.get_user()
-            email = self.email
-            username = self.username
+            self._delete_infobase_data()
+        return await self._anonymize_tables(test)
 
-            # Remove patron from all usergroups:
-            for grp in patron.usergroups:
-                grp.remove_user(patron.key)
+    def anonymize_sync(self, test: bool = False) -> AccountAnonymizationResult:
+        """Synchronous bridge for the legacy web.py account and admin routes.
 
-            # Clear patron's profile page:
-            data = {"key": patron.key, "type": "/type/delete"}
-            patron.set_data(data, "delete-profile")
+        The Infobase cleanup runs on the calling thread, outside the bridge:
+        Infobase saves read the request's ``web.ctx.ip``, which is thread-local.
+        """
+        if not test:
+            self._delete_infobase_data()
+        return async_bridge.run(self._anonymize_tables(test))
 
-            # Remove account information from store:
-            del site.get().store[f"account/{username}"]
-            del site.get().store[f"account/{username}/verify"]
-            del site.get().store[f"account/{username}/password"]
-            del site.get().store[f"account-email/{email}"]
-            del site.get().store[f"account-email/{email.lower()}"]
-            # Delete preferences:
-            del site.get().store[f"/people/{username}/preferences"]
+    def _delete_infobase_data(self) -> None:
+        patron = self.get_user()
+        email = self.email
+        username = self.username
 
+        # Remove patron from all usergroups:
+        for grp in patron.usergroups:
+            grp.remove_user(patron.key)
+
+        # Clear patron's profile page:
+        data = {"key": patron.key, "type": "/type/delete"}
+        patron.set_data(data, "delete-profile")
+
+        # Remove account information from store:
+        del site.get().store[f"account/{username}"]
+        del site.get().store[f"account/{username}/verify"]
+        del site.get().store[f"account/{username}/password"]
+        del site.get().store[f"account-email/{email}"]
+        del site.get().store[f"account-email/{email.lower()}"]
+        # Delete preferences:
+        del site.get().store[f"/people/{username}/preferences"]
+
+    async def _anonymize_tables(self, test: bool) -> AccountAnonymizationResult:
         # Generate new unique username for patron:
         # Note: Cannot test get_activation_link() locally
-        uuid = self.get_activation_link()["code"] if self.get_activation_link() else generate_uuid()
+        activation_link = self.get_activation_link()
+        uuid = activation_link["code"] if isinstance(activation_link, Link) else generate_uuid()
         new_username = f"anonymous-{uuid}"
-        results = {"new_username": new_username}
 
         # Delete all of the patron's book notes:
-        results["booknotes_count"] = Booknotes.delete_all_by_username(self.username, _test=test)
+        booknotes_count = await Booknotes.delete_all_by_username(self.username, _test=test)
 
         # Anonymize patron's username in OL DB tables:
-        results["ratings_count"] = Ratings.update_username(self.username, new_username, _test=test)
-        results["observations_count"] = Observations.update_username(self.username, new_username, _test=test)
-        results["bookshelves_count"] = Bookshelves.update_username(self.username, new_username, _test=test)
-        results["read_history_count"] = ReadHistory.update_username(self.username, new_username, _test=test)
-        results["merge_request_count"] = CommunityEditsQueue.update_submitter_name(self.username, new_username, _test=test)
-        results["bestbooks_count"] = Bestbook.update_username(self.username, new_username, _test=test)
+        ratings_count = await Ratings.update_username(self.username, new_username, _test=test)
+        observations_count = await Observations.update_username(self.username, new_username, _test=test)
+        bookshelves_count = await Bookshelves.update_username(self.username, new_username, _test=test)
+        read_history_count = await ReadHistory.update_username(self.username, new_username, _test=test)
+        merge_request_count = await CommunityEditsQueue.update_submitter_name(self.username, new_username, _test=test)
+        bestbooks_count = await Bestbook.update_username(self.username, new_username, _test=test)
 
-        return results
+        return {
+            "new_username": new_username,
+            "booknotes_count": booknotes_count,
+            "ratings_count": ratings_count,
+            "observations_count": observations_count,
+            "bookshelves_count": bookshelves_count,
+            "read_history_count": read_history_count,
+            "merge_request_count": merge_request_count,
+            "bestbooks_count": bestbooks_count,
+        }
 
     @property
     def itemname(self) -> str | None:
@@ -682,7 +770,7 @@ class OpenLibraryAccount(Account):
 
     def update_last_login(self):
         _ol_account = site.get().store.get(self._key)
-        last_login = datetime.datetime.utcnow().isoformat()
+        last_login = dt.datetime.utcnow().isoformat()
         _ol_account["last_login"] = last_login
         site.get().store[self._key] = _ol_account
         self.last_login = last_login
@@ -859,7 +947,9 @@ class InternetArchiveAccount(web.storage):
         if test:
             params["developer"] = test
 
-        response = requests.post(url, params=params, json=data, headers=headers or {})
+        with server_timing.timed("ia-xauthn") as call:
+            response = requests.post(url, params=params, json=data, headers=headers or {})
+            call.failed = response.status_code >= 500
         if response.status_code == 403:
             raise OLAuthenticationError("security_error")
         if response.status_code == 504 and op == "create":
@@ -883,13 +973,15 @@ class InternetArchiveAccount(web.storage):
             raise TypeError(f"Expected 'url' to be a string, got {type(url).__name__} instead")
 
         try:
-            response = requests.get(
-                url,
-                headers={
-                    "Content-Type": "application/json",
-                    "authorization": f"LOW {access_key}:{secret_key}",
-                },
-            )
+            with server_timing.timed("ia-s3auth") as call:
+                response = requests.get(
+                    url,
+                    headers={
+                        "Content-Type": "application/json",
+                        "authorization": f"LOW {access_key}:{secret_key}",
+                    },
+                )
+                call.failed = response.status_code >= 500
             response.raise_for_status()
             return response.json()
         except requests.HTTPError as e:
@@ -1165,7 +1257,7 @@ def audit_accounts(  # noqa: PLR0912
     # allows us to fetch the OL account linked to their IA account, bypass this
     # site.get().login method (which requires OL credentials), and directly set an
     # auth_token to enable the user's session.
-    web.ctx.conn.set_auth_token(ol_account.generate_login_code())
+    site.get()._conn.set_auth_token(ol_account.generate_login_code())
     ol_account.update_last_login()
     return {
         "authenticated": True,

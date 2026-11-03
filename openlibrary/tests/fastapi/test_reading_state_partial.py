@@ -1,6 +1,6 @@
 """Tests for GET /partials/ReadingState.json — the batched opening state for shelf buttons."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 URL = "/partials/ReadingState.json"
 # Importing the router here would run the plugin setup before the app fixture, so the cap is restated.
@@ -17,7 +17,7 @@ class TestReadingStatePartial:
             1: {"shelf": 2, "rating": None, "read_date": None, "event_id": None},
             2: {"shelf": 3, "rating": 5, "read_date": "2026-08", "event_id": 7},
         }
-        with patch("openlibrary.plugins.openlibrary.partials.get_reading_state", return_value=states) as get_state:
+        with patch("openlibrary.plugins.openlibrary.partials.get_reading_state", new_callable=AsyncMock, return_value=states) as get_state:
             response = fastapi_client.get(URL, params={"work_ids": "OL1W,OL2W"})
 
         assert response.status_code == 200
@@ -28,7 +28,7 @@ class TestReadingStatePartial:
                 "OL2W": {"shelf": 3, "rating": 5, "read_date": "2026-08", "event_id": 7},
             },
         }
-        get_state.assert_called_once_with("testuser", [1, 2])
+        get_state.assert_awaited_once_with("testuser", [1, 2])
 
     def test_rejects_anything_that_is_not_a_work_olid(self, fastapi_client, mock_authenticated_user):
         response = fastapi_client.get(URL, params={"work_ids": "OL1W,OL2M"})
@@ -41,7 +41,7 @@ class TestReadingStatePartial:
         assert response.status_code == 422
 
     def test_tolerates_blank_entries(self, fastapi_client, mock_authenticated_user):
-        with patch("openlibrary.plugins.openlibrary.partials.get_reading_state", return_value={}) as get_state:
+        with patch("openlibrary.plugins.openlibrary.partials.get_reading_state", new_callable=AsyncMock, return_value={}) as get_state:
             response = fastapi_client.get(URL, params={"work_ids": "OL1W,,"})
         assert response.status_code == 200
-        get_state.assert_called_once_with("testuser", [1])
+        get_state.assert_awaited_once_with("testuser", [1])

@@ -4,6 +4,8 @@
  * A curated set of spacing values based on a 4px grid.
  * Rarely used directly in components — use semantic tokens instead.
  */
+/* Keep these columns aligned (lookup table). */
+/* prettier-ignore */
 :root {
   --spacing-0: 0;
   --spacing-3xs: 2px;       /*  2px – hairline gaps (px intentional) */
@@ -32,6 +34,8 @@
  *   - Inset:   internal padding of containers
  *   - Layout:  large-scale page/section spacing
  */
+/* Keep these columns aligned (lookup table). */
+/* prettier-ignore */
 :root {
   /* ---- Inline: horizontal gaps between sibling elements ----
    *
@@ -89,6 +93,9 @@
   --spacing-inset-lg: var(--spacing-2xl);    /* 24px – panels, sections (e.g. book overview card) */
   --spacing-inset-xl: var(--spacing-3xl);    /* 32px – hero areas, modals (e.g. welcome banner) */
 
+  /* Pairs with --border-card and --border-radius-card, so cards side by side share one padding. */
+  --spacing-inset-card: var(--spacing-inset-lg); /* 24px – content cards (e.g. home library row) */
+
   /* ---- Layout: page-level spacing ----
    *
    *   │←gutter→┌──────────┐←gutter→│
@@ -102,8 +109,14 @@
    *   Use for: page edge margins, gaps between top-level
    *   page sections (e.g. header → carousel → lists)
    */
-  --spacing-page-gutter: var(--spacing-lg);          /* 16px – mobile page edge */
-  --spacing-page-gutter-desktop: var(--spacing-2xl); /* 24px – desktop page edge */
+  --spacing-page-gutter: var(--spacing-xl);           /* 20px – page edge (#contentBody); 12px on phones, below */
   --spacing-section-gap: var(--spacing-3xl);          /* 32px – between page sections */
   --spacing-section-gap-desktop: var(--spacing-5xl);  /* 48px – between page sections on desktop */
+}
+
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  :root {
+    --spacing-page-gutter: var(--spacing-md); /* 12px */
+  }
 }

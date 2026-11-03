@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import functools
 import itertools
 import json
@@ -225,7 +225,7 @@ def icon_sprite_url() -> str:
     """Return the content-hashed URL of the icon sprite asset.
 
     Used by the ``$:macros.icon()`` macro; client JS reads the same URL off the
-    ``<meta name="ol-icon-sprite">`` tag in site/head instead. ``static_url``
+    ``<meta name="ol-icon-sprite">`` tag in shell/head.html.jinja instead. ``static_url``
     hashes once per process, so a rebuild needs a web restart.
 
     The sprite is generated, so a checkout that never ran ``make icons`` has no
@@ -1361,7 +1361,7 @@ def _get_blog_feeds():
         stats.end()
 
     def parse_item(item):
-        pubdate = datetime.datetime.strptime(item.find("pubDate").text, "%a, %d %b %Y %H:%M:%S +0000").isoformat()
+        pubdate = dt.datetime.strptime(item.find("pubDate").text, "%a, %d %b %Y %H:%M:%S +0000").isoformat()
         return {
             "title": item.find("title").text,
             "link": item.find("link").text,
@@ -1441,39 +1441,38 @@ class Request:
         Used for adding <meta rel="canonical" ..> tag in all web pages.
         Required to make OL retain the page rank after https migration.
         """
-        readable_path = web.ctx.get("readable_path", web.ctx.path) or ""
-        query = web.ctx.query or ""
-        host = web.ctx.host or ""
-        if url := host + readable_path + query:
-            url = "https://" + url
-            parsed_url = urlparse(url)
+        return canonical_url(web.ctx.host or "", web.ctx.get("readable_path", web.ctx.path) or "", web.ctx.query or "")
 
-            parsed_query = parse_qs(parsed_url.query)
-            queries_to_exclude = ["sort", "mode", "v", "type", "debug"]
 
-            canonical_query = {q: v for q, v in parsed_query.items() if q not in queries_to_exclude}
-            query = parse_urlencode(canonical_query, doseq=True)
-            parsed_url = parsed_url._replace(query=query)
+def canonical_url(host: str, readable_path: str, query: str) -> str:
+    """The https:// URL for ``host + readable_path + query``, minus view-only params.
 
-            url = urlunparse(parsed_url)
-
-            return url
-        return ""
+    ``query`` includes its leading "?", like ``web.ctx.query``.
+    """
+    if url := host + readable_path + query:
+        parsed_url = urlparse("https://" + url)
+        canonical_query = {q: v for q, v in parse_qs(parsed_url.query).items() if q not in ("sort", "mode", "v", "type", "debug")}
+        return urlunparse(parsed_url._replace(query=parse_urlencode(canonical_query, doseq=True)))
+    return ""
 
 
 @public
 def render_once(key: str) -> bool:
-    rendered = web.ctx.setdefault("render_once", {})
+    rendered = request_context.rendered_keys.get()
+    if rendered is None:
+        # Preserve standalone template rendering without a shared mutable default.
+        rendered = set()
+        request_context.rendered_keys.set(rendered)
     if key in rendered:
         return False
     else:
-        rendered[key] = True
+        rendered.add(key)
         return True
 
 
 @public
 def today():
-    return datetime.datetime.today()
+    return dt.datetime.today()
 
 
 class HTMLTagRemover(HTMLParser):
@@ -1512,6 +1511,21 @@ def reformat_html(html_str: str, max_length: int | None = None) -> str:
         return truncate("".join(content), max_length).strip().replace("\n", "<br>")
     else:
         return "".join(content).strip().replace("\n", "<br>")
+
+
+@public
+def markdown_excerpt(text: str, max_length: int = 200) -> str:
+    """Plain-text excerpt of a markdown field (e.g. a book description) for meta tags.
+
+    Cuts at a word boundary and adds an ellipsis when the text is longer than max_length.
+    """
+    html = get_markdown(str(text or "")).convert()
+    html = re.sub(r"<(script|style)\b.*?</\1>", " ", html, flags=re.DOTALL | re.IGNORECASE)
+    plain = " ".join(unescape(re.sub(r"<[^>]+>", " ", html)).split())
+    plain = re.sub(r" ([,.;:!?)])", r"\1", plain)
+    if len(plain) <= max_length:
+        return plain
+    return plain[:max_length].rsplit(" ", 1)[0].rstrip(",;:—-") + "…"
 
 
 def get_colon_only_loc_pub(pair: str) -> tuple[str, str]:
@@ -1562,9 +1576,9 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
     # the colon is a publisher. This can be exploited by using
     # string.split(";") because everything to the 'left' of a colon is a
     # location, and whatever is to the right is a publisher.
+    locations: list[str] = []
+    publishers: list[str] = []
     if ":" in loc_pub:
-        locations: list[str] = []
-        publishers: list[str] = []
         parts = loc_pub.split(";") if ";" in loc_pub else [loc_pub]
         # Track in indices of values placed into locations or publishers.
         last_placed_index = 0
@@ -1588,15 +1602,13 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
                     locations.append(place.strip(STRIP_CHARS))
                 locations.append(location)  # Preserve location order.
                 last_placed_index = index + 1
+    else:
+        publishers = [loc_pub.strip(STRIP_CHARS)]
 
-        # Clean up and empty list items left over from strip() string replacement.
-        locations = [item for item in locations if item]
-        publishers = [item for item in publishers if item]
-
-        return (locations, publishers)
-
-    # Fall back to making the input a list returning that and an empty location.
-    return ([], [loc_pub.strip(STRIP_CHARS)])
+    # Clean up and empty list items left over from strip() string replacement.
+    locations = [item for item in locations if item]
+    publishers = [item for item in publishers if item]
+    return (locations, publishers)
 
 
 @public
@@ -1670,11 +1682,12 @@ def setup() -> None:
     )
 
     from openlibrary.core import helpers as h
-    from openlibrary.core.fulltext import phrase_query
+    from openlibrary.core.fulltext import all_words_query, phrase_query
 
     web.template.Template.globals.update(h.helpers)
     # For the fulltext macros' BookReader links; imported here since core.fulltext imports back into plugins.
     web.template.Template.globals["phrase_query"] = phrase_query
+    web.template.Template.globals["all_words_query"] = all_words_query
 
     if config.get("use_gzip") is True:
         config.middleware.append(GZipMiddleware)

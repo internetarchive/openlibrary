@@ -3,7 +3,7 @@ Script to read out data from thingdb and put it in couch so that it
 can be queried by the /admin pages on openlibrary
 """
 
-import datetime
+import datetime as dt
 import logging
 import os
 
@@ -41,18 +41,7 @@ def connect_to_pg(config_file):
     if user:
         conf["user"] = user
     logger.debug(" Postgres Database : %(db)s" % conf)
-    return web.database(dbn="postgres", **conf)
-
-
-def get_config_info(infobase_config):
-    """Parses the config file(s) to get back all the necessary pieces of data.
-
-    Add extra parameters here and change the point of calling.
-    """
-    with open(infobase_config) as f:
-        config = yaml.safe_load(f)
-    logroot = config.get("writelog")
-    return logroot
+    return web.database(dbn="postgres", **conf)  # noqa: TID251
 
 
 def store_data(data, date):
@@ -67,7 +56,7 @@ def store_data(data, date):
     web.ctx.site.store[uid] = doc
 
 
-def run_gathering_functions(infobase_db, coverstore_db, start, end, logroot, prefix, key_prefix=None):
+def run_gathering_functions(infobase_db, coverstore_db, start, end, prefix, key_prefix=None):
     """Runs all the data gathering functions with the given prefix
     inside the numbers module"""
     funcs = [x for x in dir(numbers) if x.startswith(prefix)]
@@ -81,7 +70,6 @@ def run_gathering_functions(infobase_db, coverstore_db, start, end, logroot, pre
             ret = fn(
                 thingdb=infobase_db,
                 coverdb=coverstore_db,
-                logroot=logroot,
                 start=start,
                 end=end,
             )
@@ -126,7 +114,6 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
     try:
         infobase_db = connect_to_pg(infobase_config)
         coverstore_db = connect_to_pg(coverstore_config)
-        logroot = get_config_info(infobase_config)
     except KeyError as k:
         logger.critical("Config file section '%s' missing", k.args[0])
         return -1
@@ -136,8 +123,8 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
     # Gather delta and total counts
     # Total counts are simply computed and updated for the current day
     # Delta counts are computed by subtracting the current total from yesterday's total
-    today = datetime.datetime.now()
-    yesterday = today - datetime.timedelta(days=1)
+    today = dt.datetime.now()
+    yesterday = today - dt.timedelta(days=1)
     data = {}
 
     logger.info("Gathering total data")
@@ -147,7 +134,6 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
             coverstore_db,
             yesterday,
             today,
-            logroot,
             prefix="admin_total__",
             key_prefix="total",
         )
@@ -157,16 +143,16 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
     # Now gather data which can be queried based on date ranges
     # The queries will be from the beginning of today till right now
     # The data will be stored as the counts of the current day.
-    end = datetime.datetime.now()  # - datetime.timedelta(days = 10)# Right now
-    start = datetime.datetime(hour=0, minute=0, second=0, day=end.day, month=end.month, year=end.year)  # Beginning of the day
+    end = dt.datetime.now()  # - datetime.timedelta(days = 10)# Right now
+    start = dt.datetime(hour=0, minute=0, second=0, day=end.day, month=end.month, year=end.year)  # Beginning of the day
     logger.info("Gathering range data")
-    data = {}
     for i in range(int(ndays)):
         logger.info(" %s to %s", start, end)
-        data.update(run_gathering_functions(infobase_db, coverstore_db, start, end, logroot, prefix="admin_range__"))
+        # Fresh per day: a key that raises NoStats or fails for this day mustn't inherit the later day's value.
+        data = run_gathering_functions(infobase_db, coverstore_db, start, end, prefix="admin_range__")
         store_data(data, start.strftime("%Y-%m-%d"))
         end = start
-        start = end - datetime.timedelta(days=1)
+        start = end - dt.timedelta(days=1)
 
     # Gather participation scores for the previous hour
     if int(ndays) == 1:

@@ -1,11 +1,15 @@
+import { nothing } from 'lit';
+
 import {
+    allWordsQuery,
     creatorsFromMeta,
     dedupeFulltextHits,
     fulltextHitDisplay,
+    isAutoPhrasedQuery,
     isPassageQuery,
     parseSnippet,
     phraseQuery,
-    solrLooksWeak,
+    solrLooksWeak
 } from '../../../openlibrary/plugins/openlibrary/js/search-modal/fulltext';
 import { FulltextBand, fulltextSearchParams } from '../../../openlibrary/plugins/openlibrary/js/search-modal/fulltextBand';
 import { SearchModal } from '../../../openlibrary/plugins/openlibrary/js/search-modal/SearchModal';
@@ -15,7 +19,7 @@ describe('parseSnippet', () => {
         expect(parseSnippet('never came. But {{{Lokesh}}} had never')).toEqual([
             { text: 'never came. But ', match: false },
             { text: 'Lokesh', match: true },
-            { text: ' had never', match: false },
+            { text: ' had never', match: false }
         ]);
     });
 
@@ -24,20 +28,18 @@ describe('parseSnippet', () => {
             { text: 'red', match: true },
             { text: ' rising and ', match: false },
             { text: 'red', match: true },
-            { text: ' falling', match: false },
+            { text: ' falling', match: false }
         ]);
     });
 
     test('plain text yields one unmatched segment', () => {
-        expect(parseSnippet('no markers here')).toEqual([
-            { text: 'no markers here', match: false },
-        ]);
+        expect(parseSnippet('no markers here')).toEqual([{ text: 'no markers here', match: false }]);
     });
 
     test('unbalanced trailing marker keeps the text as a match', () => {
         expect(parseSnippet('ends with {{{truncated')).toEqual([
             { text: 'ends with ', match: false },
-            { text: 'truncated', match: true },
+            { text: 'truncated', match: true }
         ]);
     });
 
@@ -54,15 +56,15 @@ describe('fulltextHitDisplay', () => {
             identifier: ['watertouchingst00patt'],
             meta_title: ['Water touching stone'],
             meta_year: [2001],
-            page_num: [[214]],
+            page_num: [[214]]
         },
         highlight: { text: ['But {{{Lokesh}}} had never seemed'] },
         edition: {
             key: '/books/OL1M',
             title: 'Water Touching Stone',
             authors: [{ key: '/authors/OL1A', name: 'Eliot Pattison' }],
-            cover_url: 'https://covers.openlibrary.org/b/id/1-M.jpg',
-        },
+            cover_url: 'https://covers.openlibrary.org/b/id/1-M.jpg'
+        }
     };
 
     test('prefers the hydrated OL edition', () => {
@@ -73,7 +75,7 @@ describe('fulltextHitDisplay', () => {
             year: '2001',
             snippet: 'But {{{Lokesh}}} had never seemed',
             coverUrl: 'https://covers.openlibrary.org/b/id/1-M.jpg',
-            coverSrcset: '',
+            coverSrcset: ''
         });
     });
 
@@ -86,7 +88,7 @@ describe('fulltextHitDisplay', () => {
             year: '2001',
             snippet: 'But {{{Lokesh}}} had never seemed',
             coverUrl: 'https://archive.org/download/watertouchingst00patt/page/cover_w116_h58.jpg',
-            coverSrcset: 'https://archive.org/download/watertouchingst00patt/page/cover_w180_h360.jpg 2x',
+            coverSrcset: 'https://archive.org/download/watertouchingst00patt/page/cover_w180_h360.jpg 2x'
         });
     });
 
@@ -105,8 +107,7 @@ describe('creatorsFromMeta', () => {
     });
 
     test('splits a packed multi-author value on bare commas and caps at three', () => {
-        expect(creatorsFromMeta(['John Ganci,Oscar Aranda Crespo,Nevine Helmy,Mark Ho']))
-            .toBe('John Ganci, Oscar Aranda Crespo, Nevine Helmy');
+        expect(creatorsFromMeta(['John Ganci,Oscar Aranda Crespo,Nevine Helmy,Mark Ho'])).toBe('John Ganci, Oscar Aranda Crespo, Nevine Helmy');
     });
 
     test('drops a trailing MARC relator term but keeps the name', () => {
@@ -145,7 +146,7 @@ describe('isPassageQuery', () => {
 
     test('a question mark alone is not a passage — short ones are titles', () => {
         expect(isPassageQuery('who coined meritocracy?')).toBe(false);
-        expect(isPassageQuery('where\'s waldo?')).toBe(false);
+        expect(isPassageQuery("where's waldo?")).toBe(false);
     });
 
     test('long queries are passages, short ones are lookups', () => {
@@ -199,7 +200,7 @@ describe('solrLooksWeak', () => {
         const potter = {
             title: 'Harry Potter and the Chamber of Secrets',
             author_name: ['J. K. Rowling'],
-            editions: { docs: [{ title: 'Harry Potter und die Kammer des Schreckens' }] },
+            editions: { docs: [{ title: 'Harry Potter und die Kammer des Schreckens' }] }
         };
         expect(solrLooksWeak([potter], 'kammer')).toBe(false);
     });
@@ -222,7 +223,7 @@ describe('solrLooksWeak', () => {
     });
 
     test('a question-shaped title is answered, not weak', () => {
-        expect(solrLooksWeak([{ title: 'Where\'s Waldo?', author_name: ['Martin Handford'] }], 'where\'s waldo?')).toBe(false);
+        expect(solrLooksWeak([{ title: "Where's Waldo?", author_name: ['Martin Handford'] }], "where's waldo?")).toBe(false);
     });
 
     test('an interrogative overlapping a how-to title is not an answer', () => {
@@ -242,28 +243,55 @@ describe('phraseQuery', () => {
         expect(phraseQuery('whale')).toBe('"whale"');
     });
 
-    test('leaves a well-formed phrase unchanged', () => {
+    test('preserves double-quoted queries', () => {
         expect(phraseQuery('"it was the best of times"')).toBe('"it was the best of times"');
+        expect(phraseQuery('"United Nations" "world hunger"')).toBe('"United Nations" "world hunger"');
+        expect(phraseQuery('he said "hello there" softly')).toBe('he said "hello there" softly');
     });
 
-    test('normalizes curly quotes, wrapping or inner', () => {
+    test('normalizes curly double quotes before preserving the query', () => {
         expect(phraseQuery('\u201cit was the best of times\u201d')).toBe('"it was the best of times"');
-        expect(phraseQuery('he said \u201chello there\u201d softly')).toBe('"he said hello there softly"');
+        expect(phraseQuery('he said \u201chello there\u201d softly')).toBe('he said "hello there" softly');
     });
 
-    test('repairs unbalanced quotes', () => {
+    test('closes a stray quote before trailing text and drops a trailing one', () => {
         expect(phraseQuery('"it was the best of times')).toBe('"it was the best of times"');
-        expect(phraseQuery('hello there" softly')).toBe('"hello there softly"');
+        expect(phraseQuery('"United Nations" "world hunger')).toBe('"United Nations" "world hunger"');
+        expect(phraseQuery('it was the best of times"')).toBe('"it was the best of times"');
     });
 
-    test('inner quotes are removed, not escaped', () => {
-        expect(phraseQuery('he said "hello there" softly')).toBe('"he said hello there softly"');
+    test('breaks up field syntax outside typed quotes only', () => {
+        expect(phraseQuery('Star Wars: "A New Hope: Part IV"')).toBe('Star Wars "A New Hope: Part IV"');
+        expect(phraseQuery('title: the sea')).toBe('"title: the sea"');
     });
 
     test('whitespace collapses and an emptied query yields nothing', () => {
         expect(phraseQuery('  a\n  b  ')).toBe('"a b"');
         expect(phraseQuery('  "  "  ')).toBe('');
         expect(phraseQuery('')).toBe('');
+    });
+});
+
+describe('allWordsQuery', () => {
+    test('sends the words loose, with field syntax broken up', () => {
+        expect(allWordsQuery('  argentina\n brazil ')).toBe('argentina brazil');
+        expect(allWordsQuery('languageSorter:English whale')).toBe('languageSorter English whale');
+        expect(allWordsQuery('\u201cwhite whale\u201d')).toBe('"white whale"');
+        expect(allWordsQuery('  "  "  ')).toBe('');
+    });
+});
+
+describe('isAutoPhrasedQuery', () => {
+    test('identifies unquoted queries with two or more words', () => {
+        expect(isAutoPhrasedQuery('argentina brazil')).toBe(true);
+        expect(isAutoPhrasedQuery('  argentina\n brazil  ')).toBe(true);
+        expect(isAutoPhrasedQuery('argentina')).toBe(false);
+    });
+
+    test('does not identify queries with straight or curly double quotes', () => {
+        expect(isAutoPhrasedQuery('"argentina brazil"')).toBe(false);
+        expect(isAutoPhrasedQuery('argentina brazil"')).toBe(true);
+        expect(isAutoPhrasedQuery('“argentina brazil”')).toBe(false);
     });
 });
 
@@ -276,6 +304,11 @@ describe('fulltextSearchParams', () => {
     test('maps a non-default availability onto readable=true', () => {
         const params = fulltextSearchParams('white whale', { readable: true, languages: [] });
         expect(params.get('readable')).toBe('true');
+    });
+
+    test('opts out of the exact phrase for an all-words search', () => {
+        const params = fulltextSearchParams('white whale', { readable: false, languages: [], allWords: true });
+        expect(params.get('phrase')).toBe('false');
     });
 
     // The FTS `lang` param takes one language.
@@ -311,20 +344,17 @@ describe('live-region announcement', () => {
         modal._results = results;
         modal._numFound = numFound;
         modal._ftHits = ftHits;
-        modal._ftSearchKey = ftSearchKey === undefined
-            ? fulltextSearchParams(modal._query, modal._fulltextFilters()).toString()
-            : ftSearchKey;
+        modal._ftSearchKey = ftSearchKey === undefined ? fulltextSearchParams(modal._query, modal._fulltextFilters()).toString() : ftSearchKey;
         return modal;
     };
-    const hits = (n) => Array.from({ length: n }, (_, i) => ({ ia: `scan${i}` }));
+    const hits = n => Array.from({ length: n }, (_, i) => ({ ia: `scan${i}` }));
 
     test('an empty catalog with no band reads as no results', () => {
         expect(settled()._resultsAnnouncement()).toBe('No results found');
     });
 
     test('an empty catalog with a band names the catalog gap and the band rows', () => {
-        expect(settled({ ftHits: hits(3) })._resultsAnnouncement())
-            .toBe('No matching books or authors. 3 matches found inside books');
+        expect(settled({ ftHits: hits(3) })._resultsAnnouncement()).toBe('No matching books or authors. 3 matches found inside books');
     });
 
     test('a band under catalog results is appended to the count', () => {
@@ -338,8 +368,7 @@ describe('live-region announcement', () => {
     });
 
     test('the band counts the rows on screen, capped like the render', () => {
-        expect(settled({ ftHits: hits(9) })._resultsAnnouncement())
-            .toBe('No matching books or authors. 3 matches found inside books');
+        expect(settled({ ftHits: hits(9) })._resultsAnnouncement()).toBe('No matching books or authors. 3 matches found inside books');
     });
 
     test('stays quiet while the catalog is still loading', () => {
@@ -394,25 +423,25 @@ describe('fulltext see-all freshness', () => {
 describe('the query a lingering hit answers', () => {
     const HIT = {
         fields: { identifier: ['mobydick00melv'], meta_title: ['Moby Dick'] },
-        highlight: { text: ['the {{{white whale}}} sounded'] },
+        highlight: { text: ['the {{{white whale}}} sounded'] }
     };
 
-    const bandThatAnswers = async(query) => {
+    const bandThatAnswers = async query => {
         const onChange = vi.fn();
         const band = new FulltextBand({
             getFilters: () => ({ readable: false, languages: [] }),
-            onChange,
+            onChange
         });
         global.fetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: () => Promise.resolve({ hits: { hits: [HIT], total: 12 } }),
+            json: () => Promise.resolve({ hits: { hits: [HIT], total: 12 } })
         });
         band._fetch(query);
         await vi.waitFor(() => expect(band.hits.length).toBe(1));
         return { band, onChange };
     };
 
-    test('the band reports the query its hits were fetched for', async() => {
+    test('the band reports the query its hits were fetched for', async () => {
         const { band, onChange } = await bandThatAnswers('  white whale  ');
 
         expect(band.query).toBe('white whale');
@@ -431,7 +460,7 @@ describe('the query a lingering hit answers', () => {
 
     // The bug this guards: the row links into BookReader, and quoting what's in
     // the input would search a phrase the lingering scan never matched.
-    test('the row links to the phrase it shows, not the phrase being typed', async() => {
+    test('the row links to the phrase it shows, not the phrase being typed', async () => {
         const { band } = await bandThatAnswers('white whale');
         const modal = new SearchModal();
         modal._query = 'white whales of the pacific';
@@ -478,7 +507,7 @@ describe('catalog see-all labels', () => {
         const modal = new SearchModal();
         modal._hasSearched = true;
         modal._numFound = 1204;
-        modal._results = new Array(7).fill({});
+        modal._results = Array.from({ length: 7 }, () => ({}));
         expect(modal._seeAllLabels()).toEqual({ wide: 'See all 1,204 books', narrow: 'All 1.2K books' });
     });
 
@@ -502,14 +531,14 @@ describe('catalog see-all labels', () => {
 describe('dedupeFulltextHits', () => {
     const hits = [{ ia: 'scanA' }, { ia: 'scanB' }, { ia: 'scanC' }];
 
-    test('drops a hit whose scan is in a listed work\'s ia', () => {
+    test("drops a hit whose scan is in a listed work's ia", () => {
         const docs = [{ ia: ['scanB', 'other'] }];
-        expect(dedupeFulltextHits(hits, docs).map((h) => h.ia)).toEqual(['scanA', 'scanC']);
+        expect(dedupeFulltextHits(hits, docs).map(h => h.ia)).toEqual(['scanA', 'scanC']);
     });
 
     test('drops a hit listed only via a promoted edition', () => {
         const docs = [{ editions: { docs: [{ ia: ['scanC'] }] } }];
-        expect(dedupeFulltextHits(hits, docs).map((h) => h.ia)).toEqual(['scanA', 'scanB']);
+        expect(dedupeFulltextHits(hits, docs).map(h => h.ia)).toEqual(['scanA', 'scanB']);
     });
 
     test('keeps every hit when nothing overlaps, order intact', () => {
@@ -524,11 +553,11 @@ describe('dedupeFulltextHits', () => {
 });
 
 describe('a failed fulltext fetch', () => {
-    const bandThatFails = async() => {
+    const bandThatFails = async () => {
         const onChange = vi.fn();
         const band = new FulltextBand({
             getFilters: () => ({ readable: false, languages: [] }),
-            onChange,
+            onChange
         });
         global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 502 });
         band._fetch('white whale');
@@ -536,7 +565,7 @@ describe('a failed fulltext fetch', () => {
         return { band, onChange };
     };
 
-    test('is reported, not swallowed into an empty band', async() => {
+    test('is reported, not swallowed into an empty band', async () => {
         const { band, onChange } = await bandThatFails();
 
         expect(band.hits).toEqual([]);
@@ -546,20 +575,19 @@ describe('a failed fulltext fetch', () => {
 
     // The bug this guards: an outage rendered as "No matches inside books",
     // i.e. a verdict on the query rather than on the backend.
-    test('the Inside tab says the backend is down, not that nothing matched', async() => {
+    test('the Inside tab says the backend is down, not that nothing matched', async () => {
         const { band } = await bandThatFails();
         const modal = new SearchModal();
         modal._mode = 'inside';
         modal._query = 'white whale';
         modal._ftError = band.error;
 
-        expect(modal._resultsAnnouncement())
-            .toBe('Search inside books is temporarily unavailable. Please try again later.');
+        expect(modal._resultsAnnouncement()).toBe('Search inside books is temporarily unavailable. Please try again later.');
     });
 
-    test('the next attempt clears it, so the message can\'t outlive the outage', async() => {
+    test("the next attempt clears it, so the message can't outlive the outage", async () => {
         const { band } = await bandThatFails();
-        global.fetch = vi.fn(() => new Promise(() => {}));   // in flight, never settles
+        global.fetch = vi.fn(() => new Promise(() => {})); // in flight, never settles
 
         band._fetch('white whales');
 
@@ -567,7 +595,7 @@ describe('a failed fulltext fetch', () => {
         expect(band.loading).toBe(true);
     });
 
-    test('a cleared band is not an errored one', async() => {
+    test('a cleared band is not an errored one', async () => {
         const { band } = await bandThatFails();
         band.clear();
         expect(band.error).toBe(false);
@@ -578,9 +606,9 @@ describe('fulltext request economy', () => {
     const bandWithPendingFetch = () => {
         const band = new FulltextBand({
             getFilters: () => ({ readable: false, languages: [] }),
-            onChange: vi.fn(),
+            onChange: vi.fn()
         });
-        global.fetch = vi.fn(() => new Promise(() => {}));   // in flight, never settles
+        global.fetch = vi.fn(() => new Promise(() => {})); // in flight, never settles
         return band;
     };
 
@@ -654,5 +682,71 @@ describe('fulltext request economy', () => {
         } finally {
             vi.useRealTimers();
         }
+    });
+});
+
+describe('how the Inside tab read the query', () => {
+    const HIT = {
+        fields: { identifier: ['argbraz00'], meta_title: ['Argentina and Brazil'] },
+        highlight: { text: ['{{{argentina}}} and {{{brazil}}}'] }
+    };
+
+    const answer = data => {
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(data) });
+    };
+
+    test('the band reports an all-words fallback', async () => {
+        const band = new FulltextBand({ getFilters: () => ({ readable: false, languages: [] }), onChange: vi.fn() });
+        answer({ hits: { hits: [HIT], total: 7 }, all_words_fallback: true });
+        band._fetch('argentina brazil');
+        await vi.waitFor(() => expect(band.hits.length).toBe(1));
+        expect(band.fellBack).toBe(true);
+    });
+
+    test('offers all words only for an auto-phrased query', () => {
+        const modal = new SearchModal();
+        modal._query = 'argentina brazil';
+        modal._ftQuery = 'argentina brazil';
+        expect(modal._renderInterpretation().strings.join('')).toContain('ft-note__action');
+
+        modal._ftQuery = modal._query = '"argentina brazil"';
+        expect(modal._renderInterpretation()).toBe(nothing);
+    });
+
+    test('searching all words refetches with phrase=false until the query is edited', () => {
+        const modal = new SearchModal();
+        modal._query = 'argentina brazil';
+        global.fetch = vi.fn(() => new Promise(() => {}));
+        modal._ftBand.explicit = true;
+
+        modal._searchAllWords();
+
+        expect(global.fetch.mock.calls[0][0]).toContain('phrase=false');
+        expect(modal._fulltextFilters().allWords).toBe(true);
+        modal._query = 'argentina brazil chile';
+        expect(modal._fulltextFilters().allWords).toBe(false);
+    });
+
+    test('after choosing all words, offers the exact phrase back', () => {
+        const modal = new SearchModal();
+        modal._ftQuery = modal._query = 'argentina brazil';
+        global.fetch = vi.fn(() => new Promise(() => {}));
+        modal._ftBand.explicit = true;
+        modal._searchAllWords();
+        expect(modal._renderInterpretation().values).toContain(modal._searchExactPhrase);
+
+        modal._searchExactPhrase();
+
+        expect(global.fetch.mock.calls[1][0]).not.toContain('phrase=false');
+        expect(modal._fulltextFilters().allWords).toBe(false);
+    });
+
+    test('BookReader links search what FTS was sent', () => {
+        const modal = new SearchModal();
+        const href = () =>
+            modal._renderFulltextHit({ ia: 'argbraz00', snippet: '' }, 'argentina brazil').values.find(v => typeof v === 'string' && v.startsWith('https://'));
+        expect(href()).toContain(encodeURIComponent('"argentina brazil"'));
+        modal._ftFellBack = true;
+        expect(href()).toContain('q=argentina%20brazil');
     });
 });

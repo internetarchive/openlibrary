@@ -1,5 +1,5 @@
 {# The FTS index has no page numbers, so quotes open BookReader's in-book search instead. #}
-{# `phrase` is phrase_query(q), so BookReader searches for the passage, not each word. #}
+{# `phrase` is the query FTS was sent, so BookReader searches for the passage, not each word. #}
 {% set href = "https://archive.org/details/" ~ row.ocaid ~ "?" ~ ({"ref": "ol", "q": phrase} | urlencode) %}
 <div class="serp-extra">
     <ul class="fsi-quotes">

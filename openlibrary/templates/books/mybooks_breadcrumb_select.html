@@ -21,7 +21,8 @@ $if mb.is_my_page:
   $   (_("Loans & History"), "/account/loans"),
   $   (_("Notes"), url_prefix + "/books/notes"),
   $   (_("Reviews"), url_prefix + "/books/observations"),
-  $   (_("Imports and Exports"), "/account/import")
+  $   (_("Import your data"), "/account/import"),
+  $   (_("Export your data"), "/account/export")
   $ ]
 $# book-state.js keeps the count in the heading current as books move between shelves.
 $ shelf_id = shelf_ids().get(mb.key)

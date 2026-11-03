@@ -30,15 +30,15 @@ const updatePayload = {
 
 function stubStatusAndFailedDeploy() {
     const calls = [];
-    window.fetch = async(url, options = {}) => {
+    window.fetch = async (url, options = {}) => {
         calls.push({ url, options });
         if (options.method === 'POST') {
             return {
                 ok: true,
-                json: async() => ({ ok: false, error: 'deploy_failed' })
+                json: async () => ({ ok: false, error: 'deploy_failed' })
             };
         }
-        return { ok: true, json: async() => payload };
+        return { ok: true, json: async () => payload };
     };
     return calls;
 }
@@ -46,19 +46,19 @@ function stubStatusAndFailedDeploy() {
 function stubQueuedActions() {
     const calls = [];
     const pendingPosts = [];
-    window.fetch = async(url, options = {}) => {
+    window.fetch = async (url, options = {}) => {
         if (options.method === 'POST') {
             const request = { url, options };
             calls.push(request);
-            await new Promise((resolve) => pendingPosts.push({ request, resolve }));
-            return { ok: true, json: async() => ({ ok: true }) };
+            await new Promise(resolve => pendingPosts.push({ request, resolve }));
+            return { ok: true, json: async () => ({ ok: true }) };
         }
-        return { ok: true, json: async() => updatePayload };
+        return { ok: true, json: async () => updatePayload };
     };
     return { calls, pendingPosts };
 }
 
-test('renders an action failure through the shared Lit toast region', async() => {
+test('renders an action failure through the shared Lit toast region', async () => {
     const calls = stubStatusAndFailedDeploy();
 
     await render(TestingEnvironment, {
@@ -73,14 +73,13 @@ test('renders an action failure through the shared Lit toast region', async() =>
     const toast = region.querySelector('ol-toast');
     expect(toast).not.toBeNull();
 
-    await expect.poll(() => toast.shadowRoot.querySelector('[role="alert"]')?.textContent)
-        .toContain('Jenkins did not accept the build');
+    await expect.poll(() => toast.shadowRoot.querySelector('[role="alert"]')?.textContent).toContain('Jenkins did not accept the build');
     expect(toast.getAttribute('type')).toBe('error');
     expect(toast.getAttribute('timeout')).toBe('6000');
     expect(calls.filter(({ options }) => options.method === 'POST')).toHaveLength(1);
 });
 
-test('the Lit toast is removed after the Vue owner unmounts', async() => {
+test('the Lit toast is removed after the Vue owner unmounts', async () => {
     stubStatusAndFailedDeploy();
     const app = await render(TestingEnvironment, {
         props: { maintainer: 'true' }
@@ -94,8 +93,8 @@ test('the Lit toast is removed after the Vue owner unmounts', async() => {
     await expect.poll(() => document.querySelector('ol-toast')).toBeNull();
 });
 
-test('marks draft pull requests in the testing table', async() => {
-    window.fetch = async() => ({ ok: true, json: async() => updatePayload });
+test('marks draft pull requests in the testing table', async () => {
+    window.fetch = async () => ({ ok: true, json: async () => updatePayload });
 
     await render(TestingEnvironment, { props: { maintainer: 'true' } });
 
@@ -104,7 +103,7 @@ test('marks draft pull requests in the testing table', async() => {
     await expect.element(page.getByRole('link', { name: 'First PR' })).toBeInTheDocument();
 });
 
-test('queues and batches rapid updates before deploying', async() => {
+test('queues and batches rapid updates before deploying', async () => {
     const { calls, pendingPosts } = stubQueuedActions();
     await render(TestingEnvironment, { props: { maintainer: 'true' } });
 
@@ -131,7 +130,7 @@ test('queues and batches rapid updates before deploying', async() => {
     pendingPosts.shift().resolve();
 });
 
-test('shows a spinner on the row while its update is in flight', async() => {
+test('shows a spinner on the row while its update is in flight', async () => {
     const { pendingPosts } = stubQueuedActions();
     await render(TestingEnvironment, { props: { maintainer: 'true' } });
 
@@ -148,7 +147,7 @@ test('shows a spinner on the row while its update is in flight', async() => {
     expect(document.querySelector('.testing-env__row-action .testing-env__spinner')).toBeNull();
 });
 
-test('removing then restoring a never-deployed row round-trips', async() => {
+test('removing then restoring a never-deployed row round-trips', async () => {
     // Delete stages the row read-only (never outright, even when it never
     // reached the box); undo unstages it back to normal. No error toasts.
     let stagedRemove = false;
@@ -178,17 +177,17 @@ test('removing then restoring a never-deployed row round-trips', async() => {
         has_pending: false
     });
     const echo = () => [{ pr: 13269, pending_active: null, pending_remove: stagedRemove }];
-    window.fetch = async(url) => {
+    window.fetch = async url => {
         if (url === '/status/testing.json') {
-            return { ok: true, json: async() => snapshot() };
+            return { ok: true, json: async () => snapshot() };
         }
         if (url === '/status/remove') {
             stagedRemove = true;
-            return { ok: true, json: async() => ({ ok: true, staged_prs: [13269], removed_prs: [], prs: echo() }) };
+            return { ok: true, json: async () => ({ ok: true, staged_prs: [13269], removed_prs: [], prs: echo() }) };
         }
         if (url === '/status/restore') {
             stagedRemove = false;
-            return { ok: true, json: async() => ({ ok: true, prs: echo() }) };
+            return { ok: true, json: async () => ({ ok: true, prs: echo() }) };
         }
         throw new Error(`unexpected fetch: ${url}`);
     };
@@ -240,13 +239,13 @@ test('removing then restoring a never-deployed row round-trips', async() => {
     }
 });
 
-test('applies status pushed over the event stream', async() => {
+test('applies status pushed over the event stream', async () => {
     const fetchUrls = [];
-    window.fetch = async(url) => {
+    window.fetch = async url => {
         fetchUrls.push(url);
         // Only ever serves the pre-stream payload: updatePayload can only
         // arrive through the stream, so the assertion below proves it did.
-        return { ok: true, json: async() => payload };
+        return { ok: true, json: async () => payload };
     };
 
     let statusListener;
@@ -273,13 +272,13 @@ test('applies status pushed over the event stream', async() => {
         await expect.element(page.getByRole('img', { name: 'Draft' })).toBeInTheDocument();
 
         expect(fetchUrls.length).toBeGreaterThan(0);
-        expect(fetchUrls.every((url) => url === '/status/testing.json')).toBe(true);
+        expect(fetchUrls.every(url => url === '/status/testing.json')).toBe(true);
     } finally {
         window.EventSource = realEventSource;
     }
 });
 
-test('four rapid toggles converge exactly to server state', async() => {
+test('four rapid toggles converge exactly to server state', async () => {
     // Four enables in a row, with a hostile server push landing mid-queue:
     // the push reflects the server after only the first PATCH. It is
     // dropped while the queue drains, and the last queued response confirms
@@ -288,7 +287,7 @@ test('four rapid toggles converge exactly to server state', async() => {
     const staged = { 13269: null, 13270: null, 13271: null, 13272: null };
     const patchBodies = [];
     const patchResolvers = [];
-    const row = (pr) => ({
+    const row = pr => ({
         pr,
         title: `PR ${pr}`,
         author: 'one',
@@ -312,18 +311,18 @@ test('four rapid toggles converge exactly to server state', async() => {
         deployed_by: '',
         has_pending: false
     });
-    window.fetch = async(url, options = {}) => {
+    window.fetch = async (url, options = {}) => {
         if (url === '/status/testing.json') {
-            return { ok: true, json: async() => snapshot() };
+            return { ok: true, json: async () => snapshot() };
         }
         if (url === '/status/testing/prs') {
             const body = JSON.parse(options.body);
             staged[body.prs[0]] = body.active;
             patchBodies.push(body);
-            await new Promise((resolve) => patchResolvers.push(resolve));
+            await new Promise(resolve => patchResolvers.push(resolve));
             // Mirrors the endpoint: staged flags for every row.
-            const echo = prs.map((pr) => ({ pr, pending_active: staged[pr], pending_remove: false }));
-            return { ok: true, json: async() => ({ ok: true, prs: echo }) };
+            const echo = prs.map(pr => ({ pr, pending_active: staged[pr], pending_remove: false }));
+            return { ok: true, json: async () => ({ ok: true, prs: echo }) };
         }
         throw new Error(`unexpected fetch: ${url}`);
     };
@@ -362,9 +361,8 @@ test('four rapid toggles converge exactly to server state', async() => {
 
     try {
         await render(TestingEnvironment, { props: { maintainer: 'true' } });
-        const pressed = (pr) =>
-            document.querySelector(`button[aria-label="PR #${pr} on testing"]`)?.getAttribute('aria-pressed');
-        const label = (pr) => `PR #${pr} on testing`;
+        const pressed = pr => document.querySelector(`button[aria-label="PR #${pr} on testing"]`)?.getAttribute('aria-pressed');
+        const label = pr => `PR #${pr} on testing`;
 
         for (const pr of prs) {
             await expect.poll(() => pressed(pr)).toBe('false');
@@ -400,12 +398,12 @@ test('four rapid toggles converge exactly to server state', async() => {
         patchResolvers.shift()();
         await expect.poll(() => patchBodies.length).toBe(4);
         patchResolvers.shift()();
-        expect(patchBodies.map((b) => b.active)).toEqual([true, true, true, true]);
+        expect(patchBodies.map(b => b.active)).toEqual([true, true, true, true]);
 
         // Confirming push: the last queued response already applied the same
         // staged flags, so this is a no-op. Then an external change arrives
         // (row four switched off elsewhere): it must render.
-        const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+        const tick = () => new Promise(resolve => setTimeout(resolve, 0));
         statusListener({ data: JSON.stringify(snapshot()) });
         await tick();
         staged[13272] = null;
@@ -419,7 +417,7 @@ test('four rapid toggles converge exactly to server state', async() => {
     }
 });
 
-test('a push dropped mid-queue still converges via the last response', async() => {
+test('a push dropped mid-queue still converges via the last response', async () => {
     // Two toggles; someone else reverts the first mid-queue and its push is
     // dropped (busy). The last queued response was computed from state
     // including the revert, so applying it converges exactly — nothing sticks.
@@ -427,7 +425,7 @@ test('a push dropped mid-queue still converges via the last response', async() =
     const staged = { 13269: null, 13270: null };
     const patchBodies = [];
     const patchResolvers = [];
-    const row = (pr) => ({
+    const row = pr => ({
         pr,
         title: `PR ${pr}`,
         author: 'one',
@@ -453,17 +451,17 @@ test('a push dropped mid-queue still converges via the last response', async() =
     });
     // Mirrors the endpoint: staged flags for every row, read when the
     // response is built (after any interleaving writes, like the server).
-    const echo = () => prs.map((pr) => ({ pr, pending_active: staged[pr], pending_remove: false }));
-    window.fetch = async(url, options = {}) => {
+    const echo = () => prs.map(pr => ({ pr, pending_active: staged[pr], pending_remove: false }));
+    window.fetch = async (url, options = {}) => {
         if (url === '/status/testing.json') {
-            return { ok: true, json: async() => snapshot() };
+            return { ok: true, json: async () => snapshot() };
         }
         if (url === '/status/testing/prs') {
             const body = JSON.parse(options.body);
             staged[body.prs[0]] = body.active;
             patchBodies.push(body);
-            await new Promise((resolve) => patchResolvers.push(resolve));
-            return { ok: true, json: async() => ({ ok: true, prs: echo() }) };
+            await new Promise(resolve => patchResolvers.push(resolve));
+            return { ok: true, json: async () => ({ ok: true, prs: echo() }) };
         }
         throw new Error(`unexpected fetch: ${url}`);
     };
@@ -499,8 +497,7 @@ test('a push dropped mid-queue still converges via the last response', async() =
 
     try {
         await render(TestingEnvironment, { props: { maintainer: 'true' } });
-        const pressed = (pr) =>
-            document.querySelector(`button[aria-label="PR #${pr} on testing"]`)?.getAttribute('aria-pressed');
+        const pressed = pr => document.querySelector(`button[aria-label="PR #${pr} on testing"]`)?.getAttribute('aria-pressed');
 
         await expect.poll(() => pressed(13269)).toBe('false');
         await expect.poll(() => pressed(13270)).toBe('false');

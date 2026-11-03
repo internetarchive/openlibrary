@@ -31,10 +31,11 @@ ol-button:not(:defined),
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* Icon-to-label gap. 4px, mirroring the component's .label — not .control's
-     8px, which separates the label from the spinner and chevron. Here the icon
-     and text are flattened into the same flex box, so .label's value is the one. */
-  gap: var(--spacing-2xs);
+  /* The shared icon-to-label gap, mirroring the component's .label. The icon,
+     text and any chevron are flattened into one flex box here, so a trailing
+     chevron that wants the component's tighter 4px pulls itself in with a
+     negative margin (see .down-arrow in header-bar.css). */
+  gap: var(--spacing-icon-gap);
   box-sizing: border-box;
   vertical-align: middle;
   --ol-button-height: var(--control-height-medium);
@@ -42,6 +43,7 @@ ol-button:not(:defined),
   padding: 0 var(--spacing-md);
   font-family: var(--font-family-button);
   font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-button);
   line-height: var(--line-height-control);
   text-align: center;
   white-space: nowrap;

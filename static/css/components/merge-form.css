@@ -72,12 +72,6 @@ div.merge .metaDate {
   padding-left: var(--spacing-inset-sm);
 }
 
-div.merge .metaSubject {
-  color: var(--color-text-secondary);
-  font-size: 0.8125em;
-  display: block;
-}
-
 div.merge .ol-num {
   color: var(--brown);
   font-family: var(--font-family-code);

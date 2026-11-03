@@ -1,5 +1,11 @@
-import { matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild, matchArchiveOrgImage } from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
-
+import {
+    matchMiscFiles,
+    matchSmallMediumCovers,
+    matchLargeCovers,
+    matchStaticImages,
+    matchStaticBuild,
+    matchArchiveOrgImage
+} from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
 
 // Helper function to create a URL object
 function _u(url) {
