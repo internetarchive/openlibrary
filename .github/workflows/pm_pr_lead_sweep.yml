@@ -11,11 +11,6 @@ on:
     - cron: '0 14 * * *'
     - cron: '0 2 * * *'
   workflow_dispatch:
-    inputs:
-      live:
-        description: 'Write assignments and labels (otherwise a dry run that only reports)'
-        type: boolean
-        default: false
 env:
   NODE_VERSION: '24'
 concurrency:
@@ -46,10 +41,6 @@ jobs:
           key: ${{ runner.os }}-node${{ env.NODE_VERSION}}-octokit-${{ hashFiles('**/package-lock.json') }}
       - if: steps.cache-octokit.outputs.cache-hit != 'true'
         run: npm install @octokit/action  # zizmor: ignore[adhoc-packages]
-      # Scheduled runs are dry runs (report only). A manual run with `live`
-      # checked writes assignments and labels. To make scheduled runs write
-      # too, set DRY_RUN to 'false'.
       - run: node scripts/gh_scripts/pr_lead_sweep.mjs ${{ github.repository }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ inputs.live && 'false' || 'true' }}
