@@ -1,7 +1,7 @@
 """web.py application processors for Open Library."""
 
 import re
-from typing import ClassVar, cast
+from typing import cast
 from urllib.parse import quote
 
 import web
@@ -121,8 +121,6 @@ class CookieValidationProcessor:
     4. nginx sets X-OL-Verify-Human — redirect to /verify_human with next= URL.
     """
 
-    EXEMPT_PATHS: ClassVar[set[str]] = {"/verify_human"}
-
     @staticmethod
     def _reject_spoofed_cookie(name: str) -> None:
         """Purge a forged cookie and raise 403 with an abuse signal header."""
@@ -131,13 +129,12 @@ class CookieValidationProcessor:
         raise web.HTTPError("403 Forbidden")
 
     def __call__(self, handler):
-        # We don't want to bounce identified crawlers that index us
+        # Shared with FastAPI's SitePageRoute.
+        from openlibrary.accounts.model import HUMAN_CHECK_EXEMPT_PATHS, check_human_cookies
         from openlibrary.plugins.openlibrary.code import is_recognized_bot
 
-        if web.ctx.path not in self.EXEMPT_PATHS and not is_recognized_bot():
-            # Shared with FastAPI's SitePageRoute.
-            from openlibrary.accounts.model import check_human_cookies
-
+        # We don't want to bounce identified crawlers that index us
+        if web.ctx.path not in HUMAN_CHECK_EXEMPT_PATHS and not is_recognized_bot():
             check = check_human_cookies(web.cookies())
             if check.verified:
                 return handler()
