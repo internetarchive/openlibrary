@@ -342,6 +342,11 @@ def test_get_location_and_publisher() -> None:
     loc_pub = "[Place of publication not identified], BARBOUR PUB INC"
     assert utils.get_location_and_publisher(loc_pub) == ([], ["BARBOUR PUB INC"])
 
+    # Only the not-identified marker, with no publisher, should not produce
+    # a spurious empty publisher entry.
+    loc_pub = "Place of publication not identified"
+    assert utils.get_location_and_publisher(loc_pub) == ([], [])
+
 
 @pytest.mark.parametrize(
     ("name", "seq", "locale", "expected"),
