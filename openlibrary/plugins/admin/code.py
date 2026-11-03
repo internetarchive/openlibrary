@@ -11,7 +11,6 @@ import sys
 import traceback
 from collections.abc import Iterable
 from datetime import UTC, datetime, timedelta
-from uuid import uuid4
 
 import requests
 import web
@@ -19,6 +18,7 @@ from internetarchive.exceptions import ItemLocateError
 
 import openlibrary
 from infogami import config
+from infogami.infobase.client import ClientException
 from infogami.plugins.api.code import jsonapi  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from infogami.utils.context import context
@@ -674,6 +674,41 @@ class attach_debugger:
         return self.GET()
 
 
+SOLR_FORCE_UPDATE_KEY = "solr-force-update"
+# How many recent requests the solr-force-update document keeps for the solr-updater.
+SOLR_FORCE_UPDATE_HISTORY = 100
+
+
+def add_solr_force_update(store, keys: list[str]) -> None:
+    """Ask the solr-updater to reindex ``keys``.
+
+    ``keys`` is the latest request, which the solr-updater reading the Infobase
+    write log picks up from the log. ``requests`` keeps recent requests with an
+    increasing ``seq``, so the database source doesn't miss one that a later
+    request overwrote. The ``_rev`` check retries if two requests race.
+    """
+    for _ in range(5):
+        doc = store.get(SOLR_FORCE_UPDATE_KEY) or {}
+        recent = doc.get("requests", [])
+        request = {
+            "seq": recent[-1]["seq"] + 1 if recent else 1,
+            "time": datetime.now(UTC).replace(tzinfo=None).isoformat(),
+            "keys": keys,
+        }
+        try:
+            store[SOLR_FORCE_UPDATE_KEY] = {
+                "type": SOLR_FORCE_UPDATE_KEY,
+                "keys": keys,
+                "requests": [*recent, request][-SOLR_FORCE_UPDATE_HISTORY:],
+                "_rev": doc.get("_rev"),
+            }
+            return
+        except ClientException as e:
+            if not e.status.startswith("409"):
+                raise
+    raise RuntimeError("Couldn't save the Solr force-update request after 5 attempts")
+
+
 class solr:
     def GET(self):
         return render_template("admin/solr")
@@ -681,10 +716,7 @@ class solr:
     def POST(self):
         i = web.input(keys="")
         keys = i["keys"].strip().split()
-        # One document per request, so a second request before the solr-updater
-        # runs can't overwrite the first. The updater deletes it once indexed.
-        request_id = f"{datetime.now(UTC):%Y%m%dT%H%M%S}-{uuid4().hex[:8]}"
-        web.ctx.site.store[f"solr-force-update/{request_id}"] = {"type": "solr-force-update", "keys": keys}
+        add_solr_force_update(web.ctx.site.store, keys)
         add_flash_message("info", "Added the specified keys to solr update queue.!")
         return self.GET()
 

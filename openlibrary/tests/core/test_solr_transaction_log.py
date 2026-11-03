@@ -17,7 +17,7 @@ from pytest_postgresql import factories
 from pytest_postgresql.janitor import DatabaseJanitor
 
 from openlibrary.core import async_db
-from scripts.solr_updater.transaction_log import ForceUpdates, TransactionLog, transaction_id_at
+from scripts.solr_updater.transaction_log import ForceUpdates, TransactionLog, force_update_seq_at, transaction_id_at
 
 _INFOBASE_SCHEMA = Path(__file__).resolve().parents[2] / "core" / "infobase_schema.sql"
 
@@ -165,26 +165,48 @@ def test_start_from_a_point_in_time(infobase_db):
     assert asyncio.run(transaction_id_at(dt.datetime(2026, 11, 4))) == second  # nothing yet: start at the end
 
 
+def put_force_update_doc(connect, seqs: list[int]) -> None:
+    """The solr-force-update store document as /admin/solr leaves it after requests ``seqs``."""
+    requests = [{"seq": n, "time": f"2026-11-03T10:0{n}:00", "keys": [f"/works/OL{n}W"]} for n in seqs]
+    doc = json.dumps({"type": "solr-force-update", "keys": requests[-1]["keys"], "requests": requests})
+    with connect() as conn:
+        conn.execute("INSERT INTO store (key, json) VALUES ('solr-force-update', %s) ON CONFLICT (key) DO UPDATE SET json = EXCLUDED.json", (doc,))
+
+
+def read_force_updates(force: ForceUpdates) -> list[str]:
+    keys = asyncio.run(force.read())
+    force.commit()
+    return keys
+
+
 @pytest.mark.integration
-def test_every_force_update_request_is_indexed_once(infobase_db):
-    with infobase_db() as conn:
-        for n, keys in enumerate((["/works/OL1W"], ["/authors/OL1A", "/works/OL1W"])):
-            key = f"solr-force-update/2026110{n}"
-            store_id = conn.execute(
-                "INSERT INTO store (key, json) VALUES (%s, %s) RETURNING id", (key, json.dumps({"type": "solr-force-update", "keys": keys}))
-            ).fetchone()[0]
-            conn.execute("INSERT INTO store_index (store_id, type, name, value) VALUES (%s, 'solr-force-update', '_key', %s)", (store_id, key))
-        other = conn.execute("INSERT INTO store (key, json) VALUES ('account/x', '{\"type\": \"account\"}') RETURNING id").fetchone()[0]
-        conn.execute("INSERT INTO store_index (store_id, type, name, value) VALUES (%s, 'account', '_key', 'account/x')", (other,))
+def test_force_update_requests_are_read_once_each_and_never_deleted(infobase_db):
+    put_force_update_doc(infobase_db, [1, 2])
+    force = ForceUpdates(0)
 
-    async def run():
-        force = ForceUpdates()
-        keys = await force.read()
-        await force.acknowledge()
-        return keys, await force.read(), await async_db.fetch_val("SELECT count(*) FROM store")
+    assert read_force_updates(force) == ["/works/OL1W", "/works/OL2W"]
+    assert read_force_updates(force) == []
 
-    keys, keys_after_ack, remaining = asyncio.run(run())
+    # A third request overwrites the document; only it is new.
+    put_force_update_doc(infobase_db, [1, 2, 3])
+    assert read_force_updates(force) == ["/works/OL3W"]
+    assert force.last_seq == 3
+    # A second reader (solr-next-updater, a read-only check) sees everything independently.
+    assert read_force_updates(ForceUpdates(0)) == ["/works/OL1W", "/works/OL2W", "/works/OL3W"]
+    assert asyncio.run(async_db.fetch_val("SELECT count(*) FROM store")) == 1
 
-    assert keys == ["/works/OL1W", "/authors/OL1A"]
-    assert keys_after_ack == []
-    assert remaining == 1  # only the unrelated document is left
+
+@pytest.mark.integration
+def test_force_update_reports_requests_that_fell_out_of_the_history(infobase_db, caplog):
+    put_force_update_doc(infobase_db, [5, 6])
+
+    assert read_force_updates(ForceUpdates(2)) == ["/works/OL5W", "/works/OL6W"]
+    assert "Missed admin force-update requests 3-4" in caplog.text
+
+
+@pytest.mark.integration
+def test_force_update_position_at_a_point_in_time(infobase_db):
+    put_force_update_doc(infobase_db, [1, 2, 3])
+
+    assert asyncio.run(force_update_seq_at(dt.datetime(2026, 11, 3, 10, 2, 30))) == 2
+    assert asyncio.run(force_update_seq_at(dt.datetime(2026, 11, 3, 9, 0))) == 0

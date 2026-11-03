@@ -23,7 +23,7 @@ from openlibrary.core import async_db
 
 logger = logging.getLogger("openlibrary.solr-updater")
 
-FORCE_UPDATE_TYPE = "solr-force-update"
+FORCE_UPDATE_KEY = "solr-force-update"
 
 
 def find_document_keys(document: dict | list) -> Iterator[str]:
@@ -40,9 +40,16 @@ def find_document_keys(document: dict | list) -> Iterator[str]:
 
 @dataclass
 class TransactionLogBatch:
-    keys: list[str]
-    transaction_count: int
+    keys_by_transaction: dict[int, list[str]]
     last_created: dt.datetime | None
+
+    @property
+    def keys(self) -> list[str]:
+        return list(dict.fromkeys(key for keys in self.keys_by_transaction.values() for key in keys))
+
+    @property
+    def transaction_count(self) -> int:
+        return len(self.keys_by_transaction)
 
 
 @dataclass
@@ -56,6 +63,8 @@ class TransactionLog:
 
     position: int
     batch_size: int = 100
+    # Stop after this transaction id (for read-only comparisons); None reads forever.
+    until: int | None = None
     _high: int = field(init=False)
     # gap id -> txid_snapshot_xmax() when the gap was first seen
     _gaps: dict[int, int] = field(init=False, default_factory=dict)
@@ -80,7 +89,7 @@ class TransactionLog:
             tx AS (
                 SELECT id, created, changes
                 FROM transaction
-                WHERE id > %(high)s OR id = ANY(%(gaps)s)
+                WHERE (id > %(high)s OR id = ANY(%(gaps)s)) AND id <= %(until)s
                 ORDER BY id
                 LIMIT %(limit)s
             )
@@ -105,7 +114,7 @@ class TransactionLog:
                 AND previous_data.revision = changed.revision - 1
             ORDER BY tx.id
             """,
-            {"high": self._high, "gaps": list(self._gaps), "limit": self.batch_size},
+            {"high": self._high, "gaps": list(self._gaps), "limit": self.batch_size, "until": self.until if self.until is not None else 2**31 - 1},
         )
         xmin, xmax = rows[0]["xmin"], rows[0]["xmax"]
         seen = sorted({row["id"] for row in rows if row["id"] is not None})
@@ -122,11 +131,12 @@ class TransactionLog:
             del gaps[gap]
         self._next_gaps, self._next_high = gaps, high
 
-        keys: list[str] = []
+        keys_by_transaction: dict[int, list[str]] = {}
         last_created = None
         for row in rows:
             if row["id"] is None:
                 continue
+            keys = keys_by_transaction.setdefault(row["id"], [])
             last_created = max(last_created or row["created"], row["created"])
             if row["changed_key"] is None:
                 continue
@@ -141,7 +151,7 @@ class TransactionLog:
                 before = set(find_document_keys(json.loads(row["previous_data"])))
                 after = set(find_document_keys(json.loads(row["current_data"])))
                 keys.extend(before - after)
-        return TransactionLogBatch(list(dict.fromkeys(keys)), len(seen), last_created)
+        return TransactionLogBatch({tx_id: list(dict.fromkeys(keys)) for tx_id, keys in keys_by_transaction.items()}, last_created)
 
     def commit(self) -> int:
         """Advance past the last batch once it's been indexed. Returns the new position."""
@@ -177,36 +187,37 @@ async def position_status(position: int) -> tuple[dt.datetime | None, int]:
 
 
 class ForceUpdates:
-    """Admin "force Solr update" requests, one store document per request.
+    """Admin "force Solr update" requests, read from the ``solr-force-update`` store document.
 
-    ``/admin/solr`` writes ``solr-force-update/<time>-<random>`` documents with
-    ``type: solr-force-update``. Infobase indexes every store document's key by
-    type in ``store_index``, which is how they are found here. Each document is
-    deleted (store row and its index rows, as Infobase does) once its keys are
-    indexed, so a request is never lost to a later one overwriting it.
+    ``/admin/solr`` overwrites that one document, but also keeps the most recent
+    requests in its ``requests`` list, each with an increasing ``seq``. This reader
+    remembers the last ``seq`` it indexed, so it never misses a request that a later
+    one overwrote, and it changes nothing: any number of updaters (or a read-only
+    check) can follow the same document.
     """
 
-    def __init__(self):
-        self._ids: list[int] = []
+    def __init__(self, last_seq: int):
+        self.last_seq = last_seq
+        self._next_seq = last_seq
 
     async def read(self) -> list[str]:
-        rows = await async_db.fetch_all(
-            """
-            SELECT store.id, store.json
-            FROM store_index
-            JOIN store ON store.id = store_index.store_id
-            WHERE store_index.type = %(type)s AND store_index.name = '_key'
-            ORDER BY store.id
-            """,
-            {"type": FORCE_UPDATE_TYPE},
-        )
-        self._ids = [row["id"] for row in rows]
-        return list(dict.fromkeys(key for row in rows for key in json.loads(row["json"]).get("keys", [])))
+        requests = await force_update_requests()
+        new = [r for r in requests if r["seq"] > self.last_seq]
+        if new and new[0]["seq"] > self.last_seq + 1 and self.last_seq:
+            logger.error("Missed admin force-update requests %d-%d; only the last %d are kept", self.last_seq + 1, new[0]["seq"] - 1, len(requests))
+        self._next_seq = max((r["seq"] for r in new), default=self.last_seq)
+        return list(dict.fromkeys(key for r in new for key in r["keys"]))
 
-    async def acknowledge(self) -> None:
-        if not self._ids:
-            return
-        async with async_db.connection() as conn:
-            await conn.execute("DELETE FROM store_index WHERE store_id = ANY(%(ids)s)", {"ids": self._ids})
-            await conn.execute("DELETE FROM store WHERE id = ANY(%(ids)s)", {"ids": self._ids})
-        self._ids = []
+    def commit(self) -> int:
+        self.last_seq = self._next_seq
+        return self.last_seq
+
+
+async def force_update_requests() -> list[dict]:
+    doc = await async_db.fetch_val("SELECT json FROM store WHERE key = %(key)s", {"key": FORCE_UPDATE_KEY})
+    return json.loads(doc).get("requests", []) if doc else []
+
+
+async def force_update_seq_at(when: dt.datetime) -> int:
+    """The last admin force-update request made before ``when`` (UTC)."""
+    return max((r["seq"] for r in await force_update_requests() if dt.datetime.fromisoformat(r["time"]) < when), default=0)
