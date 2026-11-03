@@ -1,0 +1,11 @@
+0.66.249.1 openlibrary.org - [04/Mar/2025:02:06:05 +0000] "GET /works/OL1W HTTP/1.1" 200 5120 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" 0.120
+0.66.249.1 openlibrary.org - [04/Mar/2025:02:06:05 +0000] "GET /works/OL2W HTTP/1.1" 200 5120 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" 0.130
+0.66.249.1 openlibrary.org - [04/Mar/2025:02:06:05 +0000] "GET /books/OL1M HTTP/1.1" 301 0 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" 0.010
+0.66.249.1 openlibrary.org - [04/Mar/2025:02:06:05 +0000] "GET /works/OL3W HTTP/1.1" 429 0 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" 0.001
+0.66.249.1 openlibrary.org - [04/Mar/2025:02:06:05 +0000] "GET /works/OL4W HTTP/1.1" 429 0 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" 0.001
+0.66.249.1 openlibrary.org - [04/Mar/2025:02:06:05 +0000] "GET /search?q=x HTTP/1.1" 503 0 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" 30.000
+0.40.77.1 openlibrary.org - [04/Mar/2025:02:06:05 +0000] "GET /works/OL5W HTTP/1.1" 404 0 "-" "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)" 0.050
+0.10.10.131 openlibrary.org - [04/Mar/2025:02:06:05 +0000] "GET /works/OL6W HTTP/2.0" 500 0 "-" "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GPTBot/1.2; +https://openai.com/gptbot)" 0.047
+0.1.2.3 openlibrary.org - [04/Mar/2025:02:06:05 +0000] "GET /works/OL7W HTTP/1.1" 200 5120 "-" "Mozilla/5.0 (compatible; meta-externalagent/1.1; Googlebot-compatible)" 0.100
+0.235.157.170 openlibrary.org - [04/Mar/2025:02:06:05 +0000] "GET /search?q=googlebot HTTP/2.0" 429 0 "https://openlibrary.org/googlebot" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36" 0.005
+0.66.249.1 openlibrary.org - [04/Mar/2025:02:06:05 +0000] "GET /works/OL8W HTTP/1.1" 000 0 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" 0.000

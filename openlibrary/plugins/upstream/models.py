@@ -348,6 +348,7 @@ class Edition(models.Edition):
         # Clear standalone Edition.CLASSIFICATION_FIELDS
         for name in self.CLASSIFICATION_FIELDS:
             self._getdata().pop(name, None)
+        self.classifications = {}
 
         for name, value in d.items():
             if name in self.CLASSIFICATION_FIELDS:
