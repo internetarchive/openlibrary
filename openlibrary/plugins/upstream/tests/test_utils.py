@@ -289,7 +289,7 @@ def test_get_abbrev_from_full_lang_name(
         ("[Place of publication not identified]", ("", "[Place of publication not identified]")),
     ]
 )
-def test_get_colon_only_loc_pub(loc_pub: str, expected) -> None:
+def test_get_colon_only_loc_pub(loc_pub: str, expected: tuple[list[str], list[str]]) -> None:
     # This is a helper function, and its caller,
     # get_location_and_publisher(), replaces certain characters,
     # including "[" and "]".
@@ -354,7 +354,7 @@ def test_empty_get_location_and_publisher(loc_pub:str) -> None:
         ),
     ]
 )
-def test_get_location_and_publisher(loc_pub: str, expected) -> None:
+def test_get_location_and_publisher(loc_pub: str, expected: tuple[list[str], list[str]]) -> None:
     assert utils.get_location_and_publisher(loc_pub) == expected
 
 
