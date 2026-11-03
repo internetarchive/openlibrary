@@ -213,16 +213,15 @@ $(function () {
         import('./imports_chart').then(module => module.init(importsChart));
     }
 
+    const tasksStats = document.querySelector('.tasks-stats');
+    if (tasksStats) {
+        import('./tasks_stats').then(module => module.init(tasksStats));
+    }
+
     const readingLogCharts = document.querySelector('.readinglog-charts');
     if (readingLogCharts) {
         const readingLogConfig = JSON.parse(readingLogCharts.dataset.config);
         import('./readinglog_stats').then(module => module.init(readingLogConfig));
-    }
-
-    if (document.getElementsByClassName('toast').length) {
-        import('./Toast').then(module => {
-            Array.from(document.getElementsByClassName('toast')).forEach(el => new module.Toast($(el)));
-        });
     }
 
     if ($('.lazy-thing-preview').length) {
@@ -604,6 +603,12 @@ $(function () {
         import('./go-back-links').then(module => module.initGoBackLinks(backLinks));
     }
 
+    // "Contact Us" mailto links: pre-fill page URL and browser details
+    const contactLinks = document.querySelectorAll('a[data-contact-link]');
+    if (contactLinks.length) {
+        import('./contact-link').then(module => module.initContactLinks(contactLinks));
+    }
+
     // Lazy-load book page lists section
     const listSection = document.querySelector('.lists-section');
     if (listSection) {
@@ -620,6 +625,16 @@ $(function () {
     const browseStacks = document.querySelector('.browse-stacks');
     if (browseStacks) {
         import('./browse-stacks').then(module => module.initBrowseStacks(browseStacks));
+    }
+
+    // Home page librarian call-out: /tasks can be slow to start painting.
+    const librarianCta = document.querySelector('.librarian-card__cta');
+    if (librarianCta) {
+        librarianCta.addEventListener('click', e => {
+            if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            librarianCta.loading = true;
+        });
+        window.addEventListener('pageshow', () => (librarianCta.loading = false));
     }
 
     // Generalized carousel lazy-loading

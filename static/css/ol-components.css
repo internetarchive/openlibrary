@@ -41,11 +41,11 @@ ol-read-more[label-size="small"] {
 /* Reserve height for ol-chip before Lit hydrates to prevent layout shift. */
 ol-chip:not(:defined) {
   display: inline-block;
-  height: 30px;
+  height: var(--control-height-medium);
 }
 
 ol-chip[size="small"]:not(:defined) {
-  height: 24px;
+  height: var(--control-height-small);
 }
 
 /* Hold the cover's 2:3 box before Lit draws it; the slotted overlay waits too. */
@@ -80,6 +80,38 @@ ol-segmented-control[size="small"]:not(:defined) {
 
 ol-segmented-control[size="large"]:not(:defined) {
   height: var(--control-height-large);
+}
+
+/* The chrome of ol-pagination and ol-toggle[variant="button"] is drawn entirely
+   in the shadow root, so the host is empty (and 0px tall) until Lit defines it.
+   Reserve the control height so the toolbar row doesn't grow on upgrade. */
+ol-pagination:not(:defined) {
+  display: block;
+  height: var(--control-height-medium);
+}
+
+ol-pagination[size="small"]:not(:defined) {
+  height: var(--control-height-small);
+}
+
+ol-toggle[variant="button"]:not(:defined) {
+  display: inline-block;
+  height: var(--control-height-medium);
+}
+
+/* The popover wrappers upgrade to inline-block hosts around their ol-button
+   trigger; match that box on first paint so the trigger's baseline doesn't
+   move when they define. */
+ol-select-popover:not(:defined),
+ol-menu-popover:not(:defined),
+ol-options-popover:not(:defined) {
+  display: inline-block;
+}
+
+/* With no slotted trigger, ol-select-popover injects a medium ol-button on
+   upgrade; hold that height so the host isn't 0px until then. */
+ol-select-popover:not(:defined, :has([slot="trigger"])) {
+  min-height: var(--control-height-medium);
 }
 
 /* Before ol-popover upgrades, its default-slot content (the panel) renders

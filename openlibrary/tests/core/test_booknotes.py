@@ -1,6 +1,8 @@
 """Unit and integration tests for the async booknotes model."""
 
-from datetime import datetime, timedelta
+import asyncio
+import time
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
@@ -114,6 +116,81 @@ def test_sync_bridges_call_async_methods():
 
 @pytest.mark.integration
 class TestBooknotesIntegration:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("edition_id", [Booknotes.NULL_EDITION_VALUE, 10])
+    async def test_repeated_add_keeps_one_row_with_latest_values(self, pg_db, edition_id):
+        before = await async_db.fetch_val("SELECT CURRENT_TIMESTAMP AT TIME ZONE 'UTC'")
+        first = await Booknotes.add("alice", 1, "First note", edition_id=edition_id)
+        assert isinstance(first, Booknote)
+        assert first.created == first.updated
+        assert first.updated >= before
+
+        original_time = datetime(2000, 1, 1)
+        params = {"username": "alice", "work_id": 1, "edition_id": edition_id, "original_time": original_time}
+        await async_db.execute(
+            """
+            UPDATE booknotes SET created = %(original_time)s, updated = %(original_time)s
+            WHERE username = %(username)s AND work_id = %(work_id)s AND edition_id = %(edition_id)s
+            """,
+            params,
+        )
+
+        updated = await Booknotes.add("alice", 1, "Updated 'note' — नया", edition_id=edition_id)
+
+        rows = await Booknotes.get_booknotes_for_work(1)
+        assert rows == [updated]
+        assert updated.username == "alice"
+        assert updated.work_id == 1
+        assert updated.edition_id == edition_id
+        assert updated.notes == "Updated 'note' — नया"
+        assert updated.created == original_time
+        assert updated.updated >= before
+
+    @pytest.mark.asyncio
+    async def test_add_stamps_utc_timestamps(self, pg_db, monkeypatch):
+        # Run the app and the DB session far from UTC so a local-time value would stand out.
+        monkeypatch.setenv("TZ", "Pacific/Kiritimati")  # UTC+14
+        monkeypatch.setenv("PGTZ", "Pacific/Kiritimati")  # libpq sets the session TimeZone from this
+        time.tzset()
+        try:
+            first = await Booknotes.add("alice", 1, "First note")
+            second = await Booknotes.add("alice", 1, "Second note")
+        finally:
+            monkeypatch.undo()
+            time.tzset()
+
+        utc_now = datetime.now(UTC).replace(tzinfo=None)
+        assert abs(first.created - utc_now) < timedelta(minutes=5)
+        assert abs(second.updated - utc_now) < timedelta(minutes=5)
+        assert second.created == first.created
+        assert second.updated >= first.updated
+
+    @pytest.mark.asyncio
+    async def test_add_leaves_other_users_works_and_editions_untouched(self, pg_db):
+        await Booknotes.add("alice", 1, "Original")
+        other_notes = [
+            await Booknotes.add("bob", 1, "Other user"),
+            await Booknotes.add("alice", 2, "Other work"),
+            await Booknotes.add("alice", 1, "Other edition", edition_id=10),
+        ]
+
+        await Booknotes.add("alice", 1, "Replacement")
+
+        assert await async_db.fetch_val("SELECT count(*) FROM booknotes") == 4
+        for note in other_notes:
+            assert await Booknotes.get_patron_booknote(note.username, note.work_id, note.edition_id) == note
+
+    @pytest.mark.asyncio
+    async def test_concurrent_adds_keep_one_row_and_return_saved_notes(self, pg_db):
+        texts = ["First concurrent note", "Second concurrent note"]
+        saved = await asyncio.gather(*(Booknotes.add("alice", 1, text) for text in texts))
+
+        assert [note.notes for note in saved] == texts
+        rows = await Booknotes.get_booknotes_for_work(1)
+        assert len(rows) == 1
+        assert rows[0] in saved
+        assert all(note.created == rows[0].created for note in saved)
+
     @pytest.mark.asyncio
     async def test_add_update_search_counts_and_remove(self, pg_db):
         first = await Booknotes.add("alice", 1, "A useful note")
