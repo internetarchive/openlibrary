@@ -279,20 +279,22 @@ def test_get_abbrev_from_full_lang_name(
         utils.get_abbrev_from_full_lang_name("Missing or non-existent language")
 
 
-def test_get_colon_only_loc_pub() -> None:
-    # This is intended as a helper function, and its caller,
-    # get_location_and_publisher(), replaces certain characters,
-    # including "[" and "]".
-    test_cases = [
+@pytest.mark.parametrize(
+    ("loc_pub", "expected"),
+    (
         ("", ("", "")),
         ("New York : Random House", ("New York", "Random House")),
         ("[New York] : [Random House]", ("[New York]", "[Random House]")),
         ("Random House,", ("", "Random House")),
-    ]
-
-    for tc, expected in test_cases:
-        result = utils.get_colon_only_loc_pub(tc)
-        assert result == expected, f"For {tc}, expected {expected}, but got {result}"
+        ("[Place of publication not identified]", ("", "[Place of publication not identified]")),
+    )
+)
+def test_get_colon_only_loc_pub(loc_pub: str, expected) -> None:
+    # This is a helper function, and its caller,
+    # get_location_and_publisher(), replaces certain characters,
+    # including "[" and "]".
+    result = utils.get_colon_only_loc_pub(loc_pub)
+    assert result == expected, f"For {loc_pub}, expected {expected}, but got {result}"
 
 
 def test_get_location_and_publisher() -> None:
