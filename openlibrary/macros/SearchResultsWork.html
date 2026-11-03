@@ -190,7 +190,7 @@ $ shelf_button = shelf_button_for(doc, variant=('icon' if layout == 'grid' else 
                 $ pagenum = None
                 $if chapter_parts[2].strip():
                   $ pagenum = chapter_parts[2].strip()
-                $ is_link = pagenum and pagenum.isdigit() and selected_ed.get('ia')
+                $ is_link = can_link_to_ia_page(pagenum) and selected_ed.get('ia')
                 $ tag = 'a' if is_link else 'div'
                 <$tag class="srw__chapter" $:('href="https://archive.org/details/%s/page/%s"' % (selected_ed.get('ia')[0], pagenum) if is_link else '')>
                   <span>
