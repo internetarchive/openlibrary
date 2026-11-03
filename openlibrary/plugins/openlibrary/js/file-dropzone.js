@@ -6,11 +6,16 @@ export function initFileDropzone() {
     const dropzone = document.getElementById('csv-dropzone');
     const input = document.getElementById('csv-input');
     const browseBtn = document.getElementById('browse-btn');
+    const loadBtn = document.getElementById('load-books-btn');
     const fileNameEl = document.getElementById('dropzone-filename');
     const dropzoneText = document.querySelector('.dropzone-text');
 
-    if (!dropzone || !input || !browseBtn || !fileNameEl || !dropzoneText) {
+    if (!dropzone || !input || !browseBtn || !loadBtn || !fileNameEl || !dropzoneText) {
         return;
+    }
+
+    function updateLoadButton() {
+        loadBtn.disabled = !input.files.length;
     }
 
     function showFileName() {
@@ -36,6 +41,7 @@ export function initFileDropzone() {
 
     // File input change
     input.addEventListener('change', function () {
+        updateLoadButton();
         showFileName();
     });
 
@@ -77,6 +83,7 @@ export function initFileDropzone() {
             const files = e.dataTransfer.files;
             if (files.length) {
                 input.files = files;
+                updateLoadButton();
                 showFileName();
             }
         },
@@ -89,4 +96,7 @@ export function initFileDropzone() {
             input.click();
         }
     });
+
+    // Initial state
+    updateLoadButton();
 }
