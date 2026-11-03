@@ -287,7 +287,7 @@ def test_get_abbrev_from_full_lang_name(
         ("[New York] : [Random House]", ("[New York]", "[Random House]")),
         ("Random House,", ("", "Random House")),
         ("[Place of publication not identified]", ("", "[Place of publication not identified]")),
-    ]
+    ],
 )
 def test_get_colon_only_loc_pub(loc_pub: str, expected: tuple[list[str], list[str]]) -> None:
     # This is a helper function, and its caller,
@@ -303,9 +303,9 @@ def test_get_colon_only_loc_pub(loc_pub: str, expected: tuple[list[str], list[st
         "",  # Empty string
         "[Place of publication not identified]",
         "Place of publication not identified",
-    ]
+    ],
 )
-def test_empty_get_location_and_publisher(loc_pub:str) -> None:
+def test_empty_get_location_and_publisher(loc_pub: str) -> None:
     assert utils.get_location_and_publisher(loc_pub) == ([], [])
 
 
@@ -316,43 +316,34 @@ def test_empty_get_location_and_publisher(loc_pub:str) -> None:
             "Sŏul T'ŭkpyŏlsi : [Kimyŏngsa]",
             (
                 ["Sŏul T'ŭkpyŏlsi"],  # city
-                ["Kimyŏngsa"]         # publisher
-            )
+                ["Kimyŏngsa"],  # publisher
+            ),
         ),
         (  # No colon case: everything is captured by 'publisher'
             "Funtimes",
-            ([], ["Funtimes"])
+            ([], ["Funtimes"]),
         ),
         (  # Multiple locations and one publisher
             "Londres ; [New York] ; Paris : Berlitz Publishing",
-            (
-                ["Londres", "New York", "Paris"],
-                ["Berlitz Publishing"]
-            )
+            (["Londres", "New York", "Paris"], ["Berlitz Publishing"]),
         ),
         (  # Two locations and two corresponding publishers
             "Paris : Pearson ; San Jose (Calif.) : Adobe",
-            (
-                ["Paris", "San Jose (Calif.)"],
-                ["Pearson", "Adobe"]
-            )
+            (["Paris", "San Jose (Calif.)"], ["Pearson", "Adobe"]),
         ),
         (  # "Pattern" breaker insofar as it has two colons separators in a row
             "London : Wise Publications ; Bury St. Edmunds, Suffolk : Exclusive Distributors : Music Sales Limited",
-            (
-                ["London"],
-                ["Wise Publications"]
-            )
+            (["London"], ["Wise Publications"]),
         ),
         (  # Place of publication not identified
             "[Place of publication not identified] : Pearson",
-            ([], ["Pearson"])
+            ([], ["Pearson"]),
         ),
         (  # Separating place not identified with a comma
             "[Place of publication not identified], BARBOUR PUB INC",
-            ([], ["BARBOUR PUB INC"])
+            ([], ["BARBOUR PUB INC"]),
         ),
-    ]
+    ],
 )
 def test_get_location_and_publisher(loc_pub: str, expected: tuple[list[str], list[str]]) -> None:
     assert utils.get_location_and_publisher(loc_pub) == expected
