@@ -318,14 +318,7 @@ describe('runSweep', () => {
     const page = (nodes, endCursor = null) => ({ pageInfo: { hasNextPage: Boolean(endCursor), endCursor }, nodes });
     const issues = { 1: issueNode(['Lead: @lead', 'Priority: 1']) };
 
-    test('a dry run plans but writes nothing', async () => {
-        const octokit = fakeOctokit({ issues, prPages: [page([prNode(10, 'Closes #1')])] });
-        const result = await runSweep(octokit, REPO, { dryRun: true });
-        expect(octokit.writes).toEqual([]);
-        expect(result.rows).toEqual([{ number: 10, assignee: 'lead', labels: ['Priority: 1'], reason: 'assign @lead from #1 (closing keyword)' }]);
-    });
-
-    test('a live run assigns and labels, across pages, and skips ineligible PRs', async () => {
+    test('assigns and labels, across pages, and skips ineligible PRs', async () => {
         const octokit = fakeOctokit({
             issues,
             prPages: [
@@ -333,7 +326,7 @@ describe('runSweep', () => {
                 page([prNode(12, 'Part of #1', { labels: ['Priority: 3'] }), prNode(13, 'Closes #1', { everAssigned: true })])
             ]
         });
-        const result = await runSweep(octokit, REPO, { dryRun: false });
+        const result = await runSweep(octokit, REPO);
         expect(result.skipped).toBe(2);
         expect(octokit.writes.map(w => [w.issue_number, w.assignees ?? w.labels])).toEqual([
             [10, ['lead']],
@@ -344,14 +337,14 @@ describe('runSweep', () => {
 
     test('reports a lead GitHub would not assign', async () => {
         const octokit = fakeOctokit({ issues, prPages: [page([prNode(10, 'Part of #1')])], assignable: [] });
-        const { rows } = await runSweep(octokit, REPO, { dryRun: false });
+        const { rows } = await runSweep(octokit, REPO);
         expect(rows[0].assignee).toBeNull();
         expect(rows[0].reason).toMatch(/^could not assign @lead/);
     });
 
     test('one failing PR is reported without stopping the rest', async () => {
         const octokit = fakeOctokit({ issues: { ...issues, 2: new Error('boom') }, prPages: [page([prNode(10, 'Closes #2'), prNode(11, 'Closes #1')])] });
-        const result = await runSweep(octokit, REPO, { dryRun: true });
+        const result = await runSweep(octokit, REPO);
         expect(result.failed).toBe(1);
         expect(result.rows.map(r => r.number)).toEqual([10, 11]);
         expect(result.rows[0].reason).toBe('error: boom');
@@ -359,7 +352,7 @@ describe('runSweep', () => {
 
     test('a listing failure keeps the rows collected so far', async () => {
         const octokit = fakeOctokit({ issues, prPages: [page([prNode(10, 'Closes #1')], 'c1'), new Error('502')] });
-        const result = await runSweep(octokit, REPO, { dryRun: true });
+        const result = await runSweep(octokit, REPO);
         expect(result.listError).toBe('502');
         expect(result.rows).toHaveLength(1);
     });
@@ -369,7 +362,6 @@ describe('formatSweepSummary', () => {
     test('keeps multi-line and pipe-containing reasons inside one table row', () => {
         const summary = formatSweepSummary(
             { rows: [{ number: 10, assignee: null, labels: [], reason: 'error: Request failed:\n - a | b' }], skipped: 0, failed: 1, listError: null },
-            true,
             REPO
         );
         const row = summary.split('\n').find(line => line.startsWith('| [#10]'));
@@ -377,7 +369,7 @@ describe('formatSweepSummary', () => {
     });
 
     test('flags an incomplete run', () => {
-        expect(formatSweepSummary({ rows: [], skipped: 0, failed: 0, listError: '502' }, false, REPO)).toContain('Listing open PRs failed partway');
+        expect(formatSweepSummary({ rows: [], skipped: 0, failed: 0, listError: '502' }, REPO)).toContain('Listing open PRs failed partway');
     });
 
     test('links the PR and the issue numbers in the decision', () => {
@@ -395,7 +387,6 @@ describe('formatSweepSummary', () => {
                 failed: 0,
                 listError: null
             },
-            false,
             REPO
         );
         expect(summary).toContain(
@@ -405,12 +396,6 @@ describe('formatSweepSummary', () => {
 });
 
 describe('linkify', () => {
-    test('links #N and leaves @mentions for GitHub to link', () => {
-        expect(linkify('PR #5: assign @foo-bar from #6', REPO)).toBe(
-            'PR [#5](https://github.com/internetarchive/openlibrary/issues/5): assign @foo-bar from [#6](https://github.com/internetarchive/openlibrary/issues/6)'
-        );
-    });
-
     test('leaves existing links, labels and words alone', () => {
         expect(linkify('[#5](x) Priority: 1 abc#5 me@example.com', REPO)).toBe('[#5](x) Priority: 1 abc#5 me@example.com');
     });

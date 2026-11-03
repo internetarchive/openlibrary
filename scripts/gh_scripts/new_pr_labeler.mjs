@@ -27,7 +27,7 @@
  * scheduled sweep in ./pr_lead_sweep.mjs, which shares ./pr_lead_resolver.mjs.
  */
 import { Octokit } from '@octokit/action';
-import { applyPlan, linkify, planForPr, writeJobSummary } from './pr_lead_resolver.mjs';
+import { applyPlan, planForPr, writeJobSummary } from './pr_lead_resolver.mjs';
 
 console.log('Script starting....');
 const octokit = new Octokit();
@@ -41,7 +41,7 @@ async function main() {
     const { assigned } = await applyPlan(octokit, fullRepoName, Number(prNumber), plan);
     const reason = assigned ? plan.reason : `could not assign @${plan.assignee} (no repo access?); planned: ${plan.reason}`;
     console.log(`PR #${prNumber}: ${reason}`);
-    await writeJobSummary(linkify(`PR #${prNumber}: ${reason}${plan.labels.length ? `; add ${plan.labels.join(', ')}` : ''}`, fullRepoName));
+    await writeJobSummary(`PR #${prNumber}: ${reason}${plan.labels.length ? `; add ${plan.labels.join(', ')}` : ''}`);
 }
 
 /**
