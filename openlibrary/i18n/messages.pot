@@ -4091,7 +4091,16 @@ msgid "Tasks couldn't load right now. Reload the page to try again."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Current initiative"
+msgid "Initiatives"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Getting the list ready…"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+#, python-format
+msgid "%(percent)s done"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
@@ -6726,7 +6735,7 @@ msgstr ""
 msgid "Volume"
 msgstr ""
 
-#: type/edition/view.html type/work/view.html
+#: openlibrary/plugins/openlibrary/contribute.py type/edition/view.html type/work/view.html
 msgid "Genre"
 msgstr ""
 
@@ -8183,6 +8192,14 @@ msgid "And %(count)s more."
 msgstr ""
 
 #: contribute/parts.html.jinja
+msgid "Suggested by the subjects"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Other genres"
+msgstr ""
+
+#: contribute/parts.html.jinja
 msgid "Click again to save and continue"
 msgstr ""
 
@@ -8265,10 +8282,6 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 msgid "Save and next"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "I couldn't find it"
 msgstr ""
 
 #: openlibrary/contribute/feed.py
@@ -8428,6 +8441,45 @@ msgid "Anthologies and collections take the form of what's inside. A book of ess
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
+msgid "Genres"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Pick genres"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Which genres fit this book?"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid ""
+"Start with the record: the subjects, and the description when there is one. If you know the book, pick from what you know.\n"
+"\n"
+"Otherwise look it up. Google Books lists Categories such as Fiction / Horror, WorldCat lists Genre/Form headings such as Fantasy fiction, and Goodreads shows what readers shelve it as."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Goodreads"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Some genres are settings (fantasy, historical), some are plot shapes (mystery, romance) and some are tones (humor). A book takes at most one of each, and usually just one or two in all."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Go by what the book is sold as, not every element in it. A fantasy with a love story is fantasy; a love story in a fantasy setting is romance."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Children's and young adult are audiences, not genres, and a subject of just “Fiction” says nothing about genre. With nothing more to go on, choose Not sure."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Pick every genre that fits. Not sure of one? Leave it out."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
 msgid "Fill in publisher"
 msgstr ""
 
@@ -8550,6 +8602,10 @@ msgstr ""
 #: openlibrary/contribute/save.py
 #, python-format
 msgid "Filled in %(field)s from Open Library Tasks"
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "Pick at least one genre, or choose “Not sure”."
 msgstr ""
 
 #: openlibrary/contribute/save.py
@@ -9206,6 +9262,28 @@ msgid "Missing fiction or nonfiction"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
+msgid "Missing genre"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "Genres for the %(count)s most-read books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Say whether each book is fiction or nonfiction, and pick the genres that fit."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "The %(count)s most-read books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Fill in what's missing on the books people shelve most."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Published"
 msgstr ""
 
@@ -9223,16 +9301,12 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "The %(count)s most-read books"
+msgid "Subjects mention %(subjects)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
 msgid "%(percent)s%%"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Fill in what's missing on the books people shelve most."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -9284,7 +9358,16 @@ msgid "Nothing missing here right now. Thank you."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
+msgid "I couldn't find it"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Nothing to fill in here"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(first)s and %(second)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

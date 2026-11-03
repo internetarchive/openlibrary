@@ -351,6 +351,53 @@
   justify-items: start;
 }
 
+/* A chip group's label sits on a row of its own, the hint beside it, so the chips take the full width below. */
+.contrib-record__row--stack {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-stack-sm);
+}
+
+.contrib-record__row--stack dt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-inline-md);
+  line-height: inherit;
+}
+
+/* The chips, in two groups when the subjects suggest some: the suggested row over the rest, each under an overline. */
+.contrib-chips {
+  justify-self: stretch;
+  display: grid;
+  gap: var(--spacing-stack-md);
+}
+
+.contrib-chips__group {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.contrib-chips__group + .contrib-chips__group {
+  padding-block-start: var(--spacing-stack-md);
+  border-block-start: var(--border-width) solid var(--color-border-extra-subtle);
+}
+
+.contrib-chips .contrib-h {
+  margin: 0;
+}
+
+/* A subject behind a suggested genre, lit while its chip is hovered or focused: the chip's evidence, in the record. */
+.contrib-record__subject {
+  border-radius: var(--border-radius-sm);
+  padding-inline: 2px;
+  margin-inline: -2px;
+}
+
+.contrib-record__subject[data-lit] {
+  background: var(--color-control-selected-bg);
+  color: var(--color-link);
+}
+
 .contrib-suggest {
   display: flex;
   flex-wrap: wrap;
@@ -405,6 +452,15 @@
   font-size: var(--font-size-body-small);
   font-weight: var(--font-weight-semibold);
   font-variant-numeric: tabular-nums;
+}
+
+/* One step: no number to count. */
+.contrib-steps--one > li {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.contrib-steps--one > li::before {
+  display: none;
 }
 
 .contrib-steps__text {
@@ -1767,4 +1823,48 @@ a.contrib-recent__title {
   height: 100%;
   border-radius: inherit;
   background: var(--color-primary);
+}
+
+/* Initiatives: the open one as the full progress card, the others as a quieter card that is a link over. */
+.contrib-initiatives {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.contrib-progress--other {
+  gap: var(--spacing-stack-xs);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  color: inherit;
+  background: var(--color-surface);
+  text-decoration: none;
+}
+
+.contrib-progress--other .contrib-progress__title {
+  font-size: var(--font-size-body-medium);
+}
+
+.contrib-progress--other .contrib-progress__track {
+  height: 6px;
+}
+
+.contrib-progress__figure {
+  flex: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-small);
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contrib-progress--other:hover {
+    border-color: var(--color-border-muted);
+  }
+
+  .contrib-progress--other:hover .contrib-progress__title {
+    text-decoration: underline;
+  }
+}
+
+/* The row's display: grid outranks the UA's [hidden]; the companion row hides until the row that opens it is picked. */
+.contrib-record__row[hidden] {
+  display: none;
 }

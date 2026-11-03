@@ -289,7 +289,7 @@ def _initiative_progress(kargs) -> dict:
         initiatives = _initiative()
         if not (picks := initiatives.load_frozen(initiatives.ACTIVE, web.ctx.site)):
             raise NoStats
-        _cached_initiative_progress = initiatives.progress(initiatives.gaps_for(picks, web.ctx.site))
+        _cached_initiative_progress = initiatives.progress(initiatives.gaps_for(picks, web.ctx.site), initiatives.ACTIVE.fields)
     return _cached_initiative_progress
 
 
@@ -338,7 +338,7 @@ def admin_range__tasks_saves_undone_28d(**kargs):
     return db.query(sql, vars={"since": since, "end": end, "tasks_source": TASKS_SOURCE})[0].count
 
 
-# The fields Tasks offers; matches `openlibrary.contribute.tasks.OFFERED`. Only the gatherer's own constants go into the SQL.
+# The fields the headline initiative offers; matches `openlibrary.contribute.initiatives.ACTIVE.fields`. Only the gatherer's own constants go into the SQL.
 TASKS_FIELDS = ("covers", "languages", "number_of_pages", "publishers")
 _cached_other_fills: dict[tuple[str, str], dict[str, int]] = {}
 

@@ -1,12 +1,12 @@
 """A task is derived, never stored: one edition, one empty field.
 
-A work field (the literary form) is still keyed by the edition, so the initiative list and the task
+A work field (the literary form, the genres) is still keyed by the edition, so the initiative list and the task
 URLs stay one shape; its answer saves to the edition's work.
 """
 
 from dataclasses import dataclass
 
-from openlibrary.core.tags import LITERARY_FORM, work_tag_keys
+from openlibrary.core.tags import GENRES, LITERARY_FORM, is_nonfiction, work_tag_keys
 
 # The fields on offer, most valuable first. Four weights match a same-named Edition Scorecard
 # check exactly: covers == ``cover`` (35), languages == ``language`` (15), publishers == ``publisher`` (2),
@@ -15,7 +15,7 @@ from openlibrary.core.tags import LITERARY_FORM, work_tag_keys
 # why oclc_numbers is weighted 25 here); lccn has no scorecard counterpart at all. Kept local
 # rather than imported because the scorecard exposes no field -> weight mapping: its checks are
 # attributes spread across section classes, under their own names.
-# The literary form has no scorecard counterpart either; it sits with the page count as a quick, useful answer.
+# The work tags have no scorecard counterpart either; they sit with the page count as quick, useful answers.
 
 POINTS = {
     "covers": 35,
@@ -24,23 +24,13 @@ POINTS = {
     "languages": 15,
     "number_of_pages": 10,
     LITERARY_FORM: 10,
+    GENRES: 10,
     "publishers": 2,
 }
 # Fields that live on the work rather than the edition.
-WORK_FIELDS = frozenset({LITERARY_FORM})
-# Fields only the tags whitelist sees, until the feature opens up.
-BETA_FIELDS = frozenset({LITERARY_FORM})
-# The fields Tasks hands out and the initiative counts. LCCN and OCLC keep their task pages and filter, reachable by URL but not linked.
-OFFERED = ("covers", "languages", "number_of_pages", "publishers")
-
-
-def visible_fields(can_edit_tags: bool) -> tuple[str, ...]:
-    return tuple(f for f in POINTS if can_edit_tags or f not in BETA_FIELDS)
-
-
-def offered_fields(visible: tuple[str, ...]) -> tuple[str, ...]:
-    """Of the fields a visitor can see, the ones Tasks hands them: the public mix, plus any beta fields."""
-    return tuple(f for f in visible if f in OFFERED or f in BETA_FIELDS)
+WORK_FIELDS = frozenset({LITERARY_FORM, GENRES})
+# A field asked on another field's page when both are open: the form is the lead, the genres follow a "fiction".
+COMPANIONS = {LITERARY_FORM: GENRES}
 
 
 def work_of(edition):
@@ -67,7 +57,10 @@ def is_missing(edition, fld: str, work=None) -> bool:
     if fld in WORK_FIELDS:
         # An orphan edition has no work to put the answer on, so it has no such task.
         work = work if work is not None else work_of(edition)
-        return work is not None and not work_tag_keys(work, fld)
+        if work is None or work_tag_keys(work, fld):
+            return False
+        # The genre vocabulary describes fiction, so a nonfiction work has no genre to fill in.
+        return not (fld == GENRES and is_nonfiction(work))
     return edition.get(fld) in (None, "", [])
 
 
