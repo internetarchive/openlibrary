@@ -16,8 +16,9 @@ from openlibrary import accounts
 from openlibrary.contribute import feed, initiatives, save, supply, tasks
 from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values
-from openlibrary.core import helpers
+from openlibrary.core import admin, helpers
 from openlibrary.i18n import gettext as _
+from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream import spamcheck
 
 LIST_SIZE = 25
@@ -34,6 +35,8 @@ APPLY_FORM_USERNAME_FIELD = "entry.629295430"
 # Signed-in members see the /tasks intro once. Clicking through sets this cookie, the way banner dismissals do.
 INTRO_COOKIE = "tasks_intro"
 INTRO_COOKIE_DAYS = 365
+# Below this, a count of helpers makes the initiative look empty rather than shared, so the line stays hidden.
+MIN_PEOPLE_SHOWN = 5
 
 
 def setup():
@@ -235,16 +238,31 @@ def build_task_rows(task: str) -> list[dict] | None:
     return rows
 
 
+def get_initiative_people() -> int:
+    """How many people have saved for the active initiative, from the stats job's latest counts. Yesterday's doc covers just after midnight."""
+    for doc in reversed(admin.get_count_docs(2)):
+        if doc.get("initiative_slug") == initiatives.ACTIVE.slug and "initiative_people" in doc:
+            return doc["initiative_people"]
+    return 0
+
+
 def build_progress() -> dict | None:
     """The active initiative's progress for the dashboard, or None while its gaps are still being built."""
     if not (gaps := initiatives.get_gaps()):
         return None
     p = initiatives.progress(gaps)
+    people = get_initiative_people()
     return {
         "title": _("The %(count)s most-read books", count=helpers.commify(p["total"])),
         "percent": p["percent"],
         "figure": _("%(percent)s%%", percent=p["percent"]),
         "description": _("Fill in what's missing on the books people shelve most."),
+        "tasks_left": ungettext("<b>%(count)s</b> task left", "<b>%(count)s</b> tasks left", p["open"], count=helpers.commify(p["open"])),
+        "people": (
+            ungettext("%(count)s person has helped so far", "%(count)s people have helped so far", people, count=helpers.commify(people))
+            if people >= MIN_PEOPLE_SHOWN
+            else None
+        ),
     }
 
 

@@ -9134,6 +9134,20 @@ msgid "Fill in what's missing on the books people shelve most."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "<b>%(count)s</b> task left"
+msgid_plural "<b>%(count)s</b> tasks left"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(count)s person has helped so far"
+msgid_plural "%(count)s people have helped so far"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
 msgid "All open tasks"
 msgstr ""
 

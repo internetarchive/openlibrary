@@ -172,7 +172,7 @@ def fake_initiative(monkeypatch):
         calls=calls,
     )
     monkeypatch.setattr(numbers, "_initiative", lambda: initiatives)
-    store = FakeStore({"contribute-initiative-most-read-test": {"editions": [["/books/OL1M", 9], ["/books/OL2M", 8]]}})
+    store = FakeStore({"contribute-initiative-most-read-test": {"frozen_at": "2026-10-28T12:00:00+00:00", "editions": [["/books/OL1M", 9], ["/books/OL2M", 8]]}})
     monkeypatch.setattr(web.ctx, "site", SimpleNamespace(store=store), raising=False)
     monkeypatch.setattr(numbers, "_cached_initiative_progress", None)
     return initiatives
@@ -205,10 +205,21 @@ def test_initiative_snapshot_waits_for_the_web_app_to_freeze_the_list(fake_initi
     assert fake_initiative.calls == []
 
 
+def test_initiative_people_counts_tasks_savers_since_the_list_was_frozen(fake_initiative):
+    db = FakeDB()
+    start = datetime(2026, 11, 2)
+    assert numbers.admin_range__initiative_people(thingdb=db, start=start, end=start.replace(hour=21)) == 7
+    [(q, vars)] = db.queries
+    sql = str(web.db.reparam(q, vars))
+    assert "count(DISTINCT t.author_id)" in sql
+    assert "t.created >= '2026-10-28T12:00:00+00:00' AND t.created < '2026-11-02 21:00:00'" in sql
+    assert "key = 'source' AND value = 'contribute'" in sql
+
+
 def test_initiative_snapshot_refuses_past_days(fake_initiative):
     "The backfill loop calls every function for every past day; a snapshot has no past to report."
     kargs = {"thingdb": FakeDB(), "start": datetime(2026, 10, 15), "end": datetime(2026, 10, 16)}
-    for fn in [numbers.admin_range__initiative_open_gaps, numbers.admin_range__initiative_slug]:
+    for fn in [numbers.admin_range__initiative_open_gaps, numbers.admin_range__initiative_slug, numbers.admin_range__initiative_people]:
         with pytest.raises(numbers.NoStats):
             fn(**kargs)
     assert fake_initiative.calls == []
