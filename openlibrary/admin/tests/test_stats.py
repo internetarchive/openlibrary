@@ -6,6 +6,7 @@ def test_backfill_days_dont_inherit_a_later_days_counts(monkeypatch):
     calls = iter([{"saves": 3, "initiative_open_gaps": 40}, {"saves": 2}, {"saves": 1}])
     stored = {}
     monkeypatch.setattr(stats, "connect_to_pg", lambda config: None)
+    monkeypatch.setattr(stats, "get_config_info", lambda config: None)
     monkeypatch.setattr(stats, "setup_ol_config", lambda config: None)
     monkeypatch.setattr(stats, "run_gathering_functions", lambda *args, prefix, **kw: next(calls) if prefix == "admin_range__" else {})
     monkeypatch.setattr(stats, "store_data", lambda data, date: stored.setdefault(date, []).append(dict(data)))
