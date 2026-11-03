@@ -115,12 +115,13 @@ export async function planForPr(octokit, fullRepoName, prBody, prAuthor) {
             noLeadReason ??= `${via} has no Lead label${parent ? `, nor does its parent #${parent.number}` : ''}`;
             continue;
         }
-        const plan = decideLabelsAndAssignee({ leadName: metadata.leadName, priority }, prAuthor);
+        const plan = decideLabelsAndAssignee({ leadName: metadata.leadName, priority });
         const source = metadata.leadSource === 'parent' ? ` via its parent #${parent.number}` : '';
-        const reason = plan.assignee ? `assign @${plan.assignee} from ${via}${source}` : `no assignee: the PR author is the lead of ${via}${source}`;
+        const author = prAuthor && sameName(plan.assignee, prAuthor) ? ' (the PR author)' : '';
+        const reason = `assign @${plan.assignee}${author} from ${via}${source}`;
         return { ...plan, reason };
     }
-    const plan = decideLabelsAndAssignee({ leadName: undefined, priority }, prAuthor);
+    const plan = decideLabelsAndAssignee({ leadName: undefined, priority });
     return { ...plan, reason: noLeadReason ?? 'none of the referenced numbers is an issue' };
 }
 

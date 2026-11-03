@@ -34,19 +34,20 @@ export function getLinkedIssueMetadata(issue) {
  * Decides the assignee and labels a PR should receive from its linked issue's
  * metadata.
  *
+ * The lead is assigned even when they wrote the PR: as the owner they still have
+ * to see it through or hand it to someone else.
+ *
  * A PR is never labeled "Needs: Lead": an unassigned PR already signals that it
  * needs a lead, so the label is redundant on PRs. ("Needs: Lead" stays
  * meaningful on issues, which this logic does not touch.)
  *
  * @param {{leadName: string|undefined, priority: string|undefined}} metadata
- * @param {string} prAuthor The PR author's username.
  * @returns {{assignee: string|null, labels: string[]}} `assignee` is the lead to
  *          assign, or null when there is none to assign. `labels` are the labels
  *          to add to the PR.
  */
-export function decideLabelsAndAssignee({ leadName, priority }, prAuthor) {
-    // Don't assign the lead to the PR if the PR author is the issue lead.
-    const assignee = leadName && leadName !== prAuthor ? leadName : null;
+export function decideLabelsAndAssignee({ leadName, priority }) {
+    const assignee = leadName ?? null;
 
     const labels = [];
     if (priority) {

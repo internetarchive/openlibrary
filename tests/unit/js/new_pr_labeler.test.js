@@ -26,8 +26,8 @@ function issueWithLabels(...names) {
 }
 
 // Chain the two pure steps: issue -> metadata -> decision.
-function planFromIssue(issue, prAuthor) {
-    return decideLabelsAndAssignee(getLinkedIssueMetadata(issue), prAuthor);
+function planFromIssue(issue) {
+    return decideLabelsAndAssignee(getLinkedIssueMetadata(issue));
 }
 
 describe('getLinkedIssueMetadata', () => {
@@ -46,29 +46,29 @@ describe('getLinkedIssueMetadata', () => {
 });
 
 describe('decideLabelsAndAssignee', () => {
-    test('assigns the lead and inherits the priority when the author is not the lead', () => {
-        const plan = decideLabelsAndAssignee({ leadName: 'foo', priority: 'Priority: 1' }, 'bar');
+    test('assigns the lead and inherits the priority', () => {
+        const plan = decideLabelsAndAssignee({ leadName: 'foo', priority: 'Priority: 1' });
         expect(plan.assignee).toBe('foo');
         expect(plan.labels).toEqual(['Priority: 1']);
         expect(plan.labels).not.toContain('Needs: Lead');
     });
 
-    test('does not self-assign when the PR author is the issue lead, and adds no label', () => {
-        const plan = decideLabelsAndAssignee({ leadName: 'foo', priority: undefined }, 'foo');
-        expect(plan.assignee).toBeNull();
+    test('assigns the lead even when they are the PR author, and adds no label', () => {
+        const plan = decideLabelsAndAssignee({ leadName: 'foo', priority: undefined });
+        expect(plan.assignee).toBe('foo');
         expect(plan.labels).toEqual([]);
         expect(plan.labels).not.toContain('Needs: Lead');
     });
 
     test('inherits the priority even when there is no lead to assign', () => {
-        const plan = decideLabelsAndAssignee({ leadName: undefined, priority: 'Priority: 0' }, 'bar');
+        const plan = decideLabelsAndAssignee({ leadName: undefined, priority: 'Priority: 0' });
         expect(plan.assignee).toBeNull();
         expect(plan.labels).toEqual(['Priority: 0']);
         expect(plan.labels).not.toContain('Needs: Lead');
     });
 
     test('adds no "Needs: Lead" label when no lead is found', () => {
-        const plan = decideLabelsAndAssignee({ leadName: undefined, priority: undefined }, 'bar');
+        const plan = decideLabelsAndAssignee({ leadName: undefined, priority: undefined });
         expect(plan.assignee).toBeNull();
         expect(plan.labels).toEqual([]);
     });
@@ -76,14 +76,14 @@ describe('decideLabelsAndAssignee', () => {
 
 describe('plan for a PR (issue -> metadata -> decision)', () => {
     test('a lead-labelled issue restores assignment, with no "Needs: Lead" label', () => {
-        const plan = planFromIssue(issueWithLabels('Lead: @foo', 'Priority: 2'), 'bar');
+        const plan = planFromIssue(issueWithLabels('Lead: @foo', 'Priority: 2'));
         expect(plan.assignee).toBe('foo');
         expect(plan.labels).toEqual(['Priority: 2']);
         expect(plan.labels).not.toContain('Needs: Lead');
     });
 
     test('a PR with no linked issue gets no assignee and no "Needs: Lead" label', () => {
-        const plan = planFromIssue(null, 'bar');
+        const plan = planFromIssue(null);
         expect(plan.assignee).toBeNull();
         expect(plan.labels).toEqual([]);
         expect(plan.labels).not.toContain('Needs: Lead');
@@ -245,10 +245,10 @@ describe('planForPr', () => {
         expect(plan).toEqual({ assignee: null, labels: ['Priority: 1'], reason: '#7 (closing keyword) has no Lead label' });
     });
 
-    test('does not self-assign when the author is the lead', async () => {
+    test('assigns the lead when they are also the PR author', async () => {
         const plan = await planForPr(fakeOctokit({ issues: { 3: issueNode(['Lead: @foo']) } }), REPO, 'Closes #3', 'foo');
-        expect(plan.assignee).toBeNull();
-        expect(plan.reason).toBe('no assignee: the PR author is the lead of #3 (closing keyword)');
+        expect(plan.assignee).toBe('foo');
+        expect(plan.reason).toBe('assign @foo (the PR author) from #3 (closing keyword)');
     });
 
     test('keeps the closing issue priority when a later "Part of" reference supplies the lead', async () => {
