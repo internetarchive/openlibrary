@@ -159,3 +159,20 @@ export function sweepSkipReason({ isDraft, authorLogin, authorIsBot, hasAssignee
 export function sweepLabels(plannedLabels, prLabelNames) {
     return prLabelNames.some(name => name.startsWith('Priority:')) ? [] : plannedLabels;
 }
+
+/**
+ * Keeps an issue's `Needs: Lead` label in step with its `Lead: @` label: an
+ * issue needs it exactly when it has no lead. Templates add `Needs: Lead` on
+ * creation, but nothing removes it when a lead is added later, or adds it back
+ * when a lead is removed.
+ *
+ * @param {string[]} labelNames The issue's current labels.
+ * @returns {'add'|'remove'|null} The change to make, or null when it's already right.
+ */
+export function needsLeadChange(labelNames) {
+    const hasLead = labelNames.some(name => name.startsWith('Lead: @'));
+    const hasNeedsLead = labelNames.includes('Needs: Lead');
+    if (!hasLead && !hasNeedsLead) return 'add';
+    if (hasLead && hasNeedsLead) return 'remove';
+    return null;
+}
