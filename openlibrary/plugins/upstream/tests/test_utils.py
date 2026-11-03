@@ -355,7 +355,7 @@ def test_get_location_and_publisher_bad_type() -> None:
         "Charleston, SC : Monkeypaw Press, LLC",
         "Charleston, SC : [manufactured by CreateSpace]",
     ]
-    assert utils.get_location_and_publisher(loc_pub) == ([], [])
+    assert utils.get_location_and_publisher(loc_pub) == ([], [])  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
