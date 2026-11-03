@@ -64,6 +64,7 @@ a.cta-btn--shell {
   padding: var(--spacing-2xs) var(--spacing-md);
   font-family: var(--font-family-button);
   font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-button);
   line-height: var(--line-height-control);
   border-radius: var(--border-radius-button);
 }

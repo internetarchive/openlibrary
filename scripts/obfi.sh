@@ -30,7 +30,7 @@ obfi() {
         echo "These commands use grep, so support grep options like -i, -v, etc. See grep --help."
         echo ""
         echo "Filter commands:"
-        echo "  obfi | grep "pattern..." | ...        - grep the logs for a pattern normally"
+        echo "  obfi | grep \"pattern...\" | ...        - grep the logs for a pattern normally"
         echo "  obfi | obfi_grep_bots | ...           - requests from known bots"
         echo "  obfi | obfi_grep_bots -v | ...        - requests NOT from known bots"
         echo "  obfi | obfi_grep_secondary_reqs | ... - eg /static, /images, etc"
@@ -61,8 +61,8 @@ obfi() {
         echo "  ... | obfi_top_ips | obfi_decode_all  - decodes all obfuscated IPs in stdin"
         echo ""
         echo "Configuration variables:"
-        echo "  SEED_PATH=""                          - path to seed.txt, used for decoding IPs"
-        echo "  OBFI_LOG_DIR="/1/var/log/nginx"       - path to the nginx log directory. For "
+        echo "  SEED_PATH=\"\"                          - path to seed.txt, used for decoding IPs"
+        echo "  OBFI_LOG_DIR=\"/1/var/log/nginx\"       - path to the nginx log directory. For "
         echo "                                          containers, defaults to /var/log/nginx."
         echo ""
         return 0
@@ -475,9 +475,16 @@ obfi_top_bots() {
 # Filter commands
 ###############################################################
 
+# Lowercase, so it can also be used with awk's match() on a lowercased string.
+# Located from this file, not the cwd. $0 is this file when sourced from zsh.
+OBFI_BOT_PATTERN=$(
+    sed -e '/^#/d' -e '/^$/d' -e 's/\./\\./g' \
+        "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")/../openlibrary/utils/bot_user_agents.txt" | \
+        paste -sd '|' -
+)
+
 obfi_grep_bots() {
-    # FIXME: Should be in sync with openlibrary/utils/request_context.py (USER_AGENT_BOTS)
-    grep $1 -iE 'ahrefsbot|amazonbot|applebot|aranet-searchbot|bingbot|bytespider|cheap-books-crawler|claudebot|dataforseobot|discordbot|dotbot|googlebot|gptbot|historichotspotsbot|iaskbot|likemindedbiobot|meta-externalagent|mj12bot|mojeekbot|perplexitybot|petalbot|pinterestbot|qwantbot|semanticscholarbot|semrushbot|seznambot|tiktokspider|ttspider|uptimerobot|yandexaccessibilitybot|yandexbot|yandexrenderresourcesbot|youbot' -
+    grep $1 -iE "$OBFI_BOT_PATTERN" -
 }
 
 obfi_grep_secondary_reqs() {

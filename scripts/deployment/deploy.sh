@@ -267,8 +267,9 @@ deploy_olsystem() {
     echo -ne "Cloning $REPO repo ... "
     git clone --depth=1 "$CLONE_URL" $REPO_NEW 2> /dev/null
     echo -n "✔ (SHA: $(git -C $REPO_NEW rev-parse HEAD | cut -c -7))"
-    # compress the repo to speed up the transfer
-    tar -czf $REPO_NEW.tar.gz $REPO_NEW
+    # compress the repo to speed up the transfer. COPYFILE_DISABLE stops macOS tar
+    # from adding ._* AppleDouble entries, which extract as junk files on the servers.
+    COPYFILE_DISABLE=1 tar -czf $REPO_NEW.tar.gz $REPO_NEW
     echo " ($(du -h $REPO_NEW.tar.gz | cut -f1) compressed)"
 
     if ! copy_to_servers "$DEPLOY_DIR/$REPO_NEW.tar.gz" "/opt/$REPO_NEW" "$REPO_NEW"; then
@@ -471,7 +472,7 @@ deploy_openlibrary() {
     cp -r openlibrary/docker openlibrary_new
     cp -r openlibrary/scripts openlibrary_new
     cp -r openlibrary/conf openlibrary_new
-    tar -czf openlibrary_new.tar.gz openlibrary_new
+    COPYFILE_DISABLE=1 tar -czf openlibrary_new.tar.gz openlibrary_new
 
     if [[ "$SKIP_OL_TRANSFER_CODE" != "1" ]]; then
         if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary_new" "openlibrary_new"; then

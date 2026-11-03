@@ -43,12 +43,14 @@ bin_samples = [
     "memoirsofjosephf00fouc_meta.mrc",  # MARC8 encoded with e-acute
     "equalsign_title.mrc",  # Title ending in '='
     "bpl_0486266893.mrc",
+    "FCC016606374.mrc",  # Finnish Fennica example
     "flatlandromanceo00abbouoft_meta.mrc",
     "histoirereligieu05cr_meta.mrc",
     "ithaca_college_75002321.mrc",
     "lc_0444897283.mrc",
     "lc_1416500308.mrc",
     "lesnoirsetlesrou0000garl_meta.mrc",
+    "nonfiling_characters.mrc",
     "ocm00400866.mrc",
     "secretcodeofsucc00stjo_meta.mrc",
     "uoft_4351105_1626.mrc",

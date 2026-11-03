@@ -437,9 +437,9 @@
   --ol-button-height: var(--header-control-height);
   padding: 0 var(--spacing-inset-md);
   font-size: var(--header-control-font-size);
-  /* <ol-button> declares no weight, so it renders at the page's; a native
-     <button> would otherwise take the UA's. */
-  font-weight: normal;
+  /* The control label weight, stated here because a native <button> would
+     otherwise take the UA's. */
+  font-weight: var(--font-weight-button);
 }
 
 /* --width-breakpoint-mobile */
@@ -485,6 +485,9 @@
 .navigation-component .browse-popover__trigger .down-arrow {
   width: 16px;
   height: 16px;
+  /* Tucks against the label like ol-button's own chevron: the static button's
+     flex gap is the 8px icon gap, and the chevron nets 4px of it. */
+  margin-inline-start: calc(-1 * var(--spacing-2xs));
   transition: transform var(--duration-fast) var(--ease-enter);
 }
 
@@ -565,14 +568,18 @@
   min-width: 0;
 }
 
+/* A menu row with a description, like an options-popover row: the title takes
+   the control label weight and the description goes regular. The icon tile
+   carries the "featured" emphasis, not a heavier title. */
 .header-bar .browse-feature__title {
   font-size: var(--font-size-body-medium);
-  font-weight: 600;
+  font-weight: var(--font-weight-button);
   line-height: var(--line-height-tight);
 }
 
 .header-bar .browse-feature__desc {
   font-size: var(--font-size-label-medium);
+  font-weight: var(--font-weight-regular);
   color: var(--mid-grey);
   line-height: var(--line-height-tight);
 }
@@ -606,6 +613,7 @@
   border-radius: var(--border-radius-menu-row);
   color: var(--color-text);
   font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-button);
   text-decoration: none;
 }
 
@@ -651,7 +659,7 @@
   color: var(--color-text);
   font-family: inherit;
   font-size: var(--header-control-font-size);
-  font-weight: normal;
+  font-weight: var(--font-weight-button);
   cursor: pointer;
 }
 
@@ -804,6 +812,7 @@
   white-space: nowrap;
   font-family: var(--font-family-body);
   font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-button);
   padding: var(--spacing-2xs) var(--menu-row-padding-inline);
 }
 
