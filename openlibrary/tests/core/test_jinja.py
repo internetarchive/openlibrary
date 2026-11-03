@@ -576,6 +576,18 @@ def test_site_shell_renders_with_real_layout_context(monkeypatch, request_contex
     assert "<p>hi</p>" in html
 
 
+def test_donate_script_loads_async(monkeypatch, request_context_fixture):
+    request_context_fixture(lang="en")
+    env = get_jinja_env()
+    monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
+    monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
+    layout = _layout()
+    html = env.get_template("shell/alert.html.jinja").render(layout=layout)
+    script = BeautifulSoup(html, "lxml").find("script", src=layout.donate_script_url)
+    assert script is not None
+    assert script.has_attr("async")
+
+
 def test_header_search_i18n_attributes_are_json_with_raw_placeholders(monkeypatch, request_context_fixture):
     """The search trigger ships client-fill strings as JSON with ``%s`` intact.
 
