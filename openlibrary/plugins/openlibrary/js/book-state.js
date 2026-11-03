@@ -9,7 +9,7 @@
  * It also fills in what the server could not. Carousel buttons arrive without
  * state (their HTML is cached, or fetched lazily): they get the
  * reader's key from <body data-user-key>, labels from the hidden input in
- * site.html.jinja, and their state from one batched request, repeated for
+ * shell/base.html.jinja, and their state from one batched request, repeated for
  * buttons that arrive later. They stay pending until that lands, so nobody can
  * act on a shelf we have not read yet.
  *
@@ -23,7 +23,7 @@
 import { SHELF_LABEL, setShelf } from '../../../components/lit/utils/books-api.js';
 import { translate } from '../../../components/lit/utils/labels.js';
 import { debounce } from './nonjquery_utils.js';
-import { FadingToast } from './Toast.js';
+import { showToast } from '../../../components/lit/toast.js';
 import { buildPartialsUrl } from './utils';
 
 /** The server's cap on one ReadingState.json request. */
@@ -31,7 +31,7 @@ export const BATCH_SIZE = 100;
 /** How long insertions are pooled before a pass. Long enough to outlast a lazy carousel's fetch. */
 export const HYDRATE_DELAY = 100;
 const LABELS_INPUT = 'input[name="shelf-button-i18n-strings"]';
-/** English fallbacks for the left-shelf notice; my_books/shelf_button_i18n.html carries the translations. */
+/** English fallbacks for the left-shelf notice; core/shell/shelf_labels.py carries the translations. */
 const NOTICE_LABELS = {
     wantToRead: 'Want to Read',
     currentlyReading: 'Currently Reading',
@@ -40,7 +40,7 @@ const NOTICE_LABELS = {
     movedTo: 'Moved to %(shelf)s',
     removedFromShelf: 'Removed from shelf',
     undo: 'Undo',
-    errorGeneric: 'Something went wrong. Please try again.',
+    errorGeneric: 'Something went wrong. Please try again.'
 };
 
 /** @type {Object<string, string|Object<string, string>>|null} */
@@ -53,7 +53,7 @@ const requested = new WeakSet();
 let listening = false;
 
 /**
- * The labels site.html.jinja rendered.
+ * The labels shell/base.html.jinja rendered.
  * @returns {Object<string, string|Object<string, string>>|null}
  */
 export function readLabels() {
@@ -186,9 +186,7 @@ function markRowLeftShelf(button, workKey, next) {
         return;
     }
     const notice = existing ?? createLeftShelfNotice(row, workKey, pageShelf);
-    notice.querySelector('.left-shelf-notice__text').textContent = next === null
-        ? t('removedFromShelf')
-        : t('movedTo', { shelf: t(SHELF_LABEL[next]) });
+    notice.querySelector('.left-shelf-notice__text').textContent = next === null ? t('removedFromShelf') : t('movedTo', { shelf: t(SHELF_LABEL[next]) });
     notice.dataset.from = next ?? '';
 }
 
@@ -231,7 +229,7 @@ async function undoShelfChange(workKey, pageShelf, notice) {
         await setShelf(workKey, pageShelf, { editionKey: button?.editionKey });
     } catch {
         emit(workKey, from, rating);
-        new FadingToast(t('errorGeneric')).show();
+        showToast(t('errorGeneric'), { type: 'error' });
     }
 }
 

@@ -1,0 +1,43 @@
+# Experimental, throwaway POC — run MANUALLY on ol-home0 only.
+# See docs/iannotate-snippets-poc.md. Deliberately NOT wired into
+# compose.production.yaml: this is a bespoke, hand-deployed experiment.
+#
+#   source /opt/olsystem/bin/build_env.sh   # exports PIP_INDEX_URL (Nexus PyPI mirror)
+#   IANNOTATE_SRC=/opt/iannotate docker compose -f docker/iannotate/compose.yaml up -d --build
+#
+# Single SQLite-backed container — no database server. ol-www0's nginx reaches it
+# cross-host at http://ol-home0.us.archive.org:8000 (same model as the affiliate-server).
+name: iannotate
+
+services:
+  iannotate:
+    # Clone ArchiveLabs/iannotate to $IANNOTATE_SRC (default /opt/iannotate) on ol-home0.
+    # Needs SQLite support — ArchiveLabs/iannotate#3.
+    build:
+      context: ${IANNOTATE_SRC:-/opt/iannotate}
+      args:
+        # ol-home0 has no direct PyPI access. Source /opt/olsystem/bin/build_env.sh
+        # before building so pip uses the internal Nexus mirror; defaults to public
+        # PyPI when unset. Needs ArchiveLabs/iannotate#4. Values are NOT hardcoded
+        # here — they come from the environment (olsystem).
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple/}
+        HTTP_PROXY: ${HTTP_PROXY:-}
+        HTTPS_PROXY: ${HTTPS_PROXY:-}
+    environment:
+      # Single SQLite file; swap to Postgres later by changing only this URL.
+      DATABASE_URL: sqlite:////data/iannotate.db
+    volumes:
+      # Holds iannotate.db; persists across restarts, image rebuilds, and redeploys.
+      - iannotate_data:/data
+    restart: unless-stopped
+    # Published so ol-www0's nginx can reach it cross-host. Verify 8000 is free on
+    # ol-home0 (the affiliate-server uses 31337).
+    ports:
+      - 8000:8000
+    logging:
+      options:
+        max-size: "128m"
+        max-file: "4"
+
+volumes:
+  iannotate_data:

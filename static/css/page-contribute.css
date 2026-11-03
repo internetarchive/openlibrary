@@ -16,4 +16,7 @@
 @import "components/footer.css";
 @import "components/language.css";
 @import "components/ol-message.css";
+@import "fonts/literata.css";
+@import "fonts/schibsted-grotesk.css";
+@import "components/skeleton.css";
 @import "components/contribute.css";

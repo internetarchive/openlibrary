@@ -17,8 +17,8 @@ const GAP_PX = 14;
  * cumulative height of the newer toasts below it). The toasts' own
  * transitions animate between offset states.
  *
- * Most callers should use the exported {@link showToast} helper rather
- * than instantiating the region directly.
+ * Most callers should use showToast() from toast.js rather than
+ * instantiating the region directly.
  *
  * @element ol-toast-region
  *
@@ -29,7 +29,7 @@ const GAP_PX = 14;
  */
 export class OlToastRegion extends LitElement {
     static properties = {
-        labelRegion: { type: String, attribute: 'label-region' },
+        labelRegion: { type: String, attribute: 'label-region' }
     };
 
     static styles = css`
@@ -105,7 +105,7 @@ export class OlToastRegion extends LitElement {
         // Pass 2 — measure once (single reflow) now that every toast is
         // stacked, then assign cumulative offsets. --ol-toast-offset only feeds
         // a transform, so writing it forces no further layout.
-        const heights = toasts.map((toast) => toast.offsetHeight);
+        const heights = toasts.map(toast => toast.offsetHeight);
         let offset = 0;
         toasts.forEach((toast, i) => {
             toast.style.setProperty('--ol-toast-offset', `${offset}px`);
@@ -116,7 +116,7 @@ export class OlToastRegion extends LitElement {
     _expand() {
         if (this._expanded) return;
         this._expanded = true;
-        this._toasts().forEach((toast) => toast.pauseTimer?.());
+        this._toasts().forEach(toast => toast.pauseTimer?.());
     }
 
     _collapse(e) {
@@ -134,7 +134,7 @@ export class OlToastRegion extends LitElement {
             (e?.type !== 'mouseleave' && this.matches(':hover'));
         if (stillInteracting) return;
         this._expanded = false;
-        this._toasts().forEach((toast) => toast.resumeTimer?.());
+        this._toasts().forEach(toast => toast.resumeTimer?.());
     }
 
     render() {
@@ -143,73 +143,3 @@ export class OlToastRegion extends LitElement {
 }
 
 customElements.define('ol-toast-region', OlToastRegion);
-
-/**
- * Show a toast in the shared fixed bottom-center stack, creating the
- * <ol-toast-region> on first use.
- *
- * The common case passes a string, set as the `message` attribute — always
- * rendered as text, never HTML — so callers can safely pass user- or
- * server-derived strings. Pass already-translated strings (e.g. from the
- * page's i18nStrings payload).
- *
- * For rich content, author the markup in a page template — where $_() i18n
- * extraction works — inside an inert <template> element, and pass that
- * element; its content is cloned into the toast's slot:
- *
- *     <template id="save-error-toast">
- *       $_("Could not save.") <a href="/help">$_("Get help")</a>
- *     </template>
- *
- *     showToast(document.querySelector('#save-error-toast'), { type: 'error' });
- *
- * Nodes built in JS (or an array of Nodes and strings) also work; strings in
- * the array become text nodes. No path ever parses a runtime string as HTML.
- *
- * Plain-DOM equivalent for code outside this bundle:
- *
- *     const toast = document.createElement('ol-toast');
- *     toast.setAttribute('message', message);
- *     toast.setAttribute('type', 'error');
- *     let region = document.querySelector('ol-toast-region');
- *     if (!region) document.body.appendChild(region = document.createElement('ol-toast-region'));
- *     region.appendChild(toast);
- *
- * @param {String|HTMLTemplateElement|Node|Array<Node|String>} content -
- *     Already-translated message text, a <template> whose content is cloned
- *     in, or rich slot content as Node(s)
- * @param {Object} [options]
- * @param {String} [options.description] - Optional secondary line (smaller, muted).
- *     Only applies when content is a string; slotted content replaces it.
- * @param {String} [options.type] - "info" | "success" | "error"
- * @param {Boolean} [options.persistent] - Stay until explicitly closed
- * @param {Number} [options.timeout] - Auto-dismiss delay in ms
- * @param {String} [options.labelClose] - Translated close button label
- * @returns {import('./OlToast.js').OlToast} The toast element (call .close() to dismiss early)
- */
-export function showToast(content, options = {}) {
-    let region = document.querySelector('ol-toast-region');
-    if (!region) {
-        region = document.createElement('ol-toast-region');
-        document.body.appendChild(region);
-    }
-    const toast = document.createElement('ol-toast');
-    if (typeof content === 'string') {
-        toast.setAttribute('message', content);
-    } else if (content instanceof HTMLTemplateElement) {
-        // Author-written markup from the page template (i18n-extracted,
-        // server-escaped); cloned so the template stays reusable
-        toast.append(content.content.cloneNode(true));
-    } else {
-        // Node or Array<Node|String> — append() renders strings as text,
-        // never HTML, and slotted children override message/description
-        toast.append(...[].concat(content));
-    }
-    if (options.description) toast.setAttribute('description', options.description);
-    if (options.type) toast.setAttribute('type', options.type);
-    if (options.persistent) toast.setAttribute('persistent', '');
-    if (options.timeout !== undefined) toast.setAttribute('timeout', options.timeout);
-    if (options.labelClose) toast.setAttribute('label-close', options.labelClose);
-    region.appendChild(toast);
-    return toast;
-}

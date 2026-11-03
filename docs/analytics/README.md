@@ -1,7 +1,7 @@
 # Analytics
 
 > **Status:** `partial`
-> **Sources:** codebase investigation against `origin/master` 2026-08-05 (`templates/site/head.html`, `templates/site/footer.html`, `js/ol.analytics.js`, `core/matomo.py`, `admin/vitals.py`); live MTM container contents and production Matomo figures supplied by Mek 2026-08-05; PRs #13038, #13213, #12910, #12227; issues #13020, #13261
+> **Sources:** codebase investigation against `origin/master` 2026-08-05 (`templates/shell/head.html.jinja`, `templates/shell/footer.html.jinja`, `js/ol.analytics.js`, `core/matomo.py`, `admin/vitals.py`; head/footer were `templates/site/` at the time); live MTM container contents and production Matomo figures supplied by Mek 2026-08-05; PRs #13038, #13213, #12910, #12227; issues #13020, #13261
 > **Last ingested:** 2026-08-05
 
 Open Library runs **four independent telemetry systems**. Knowing which one is authoritative for a given question is most of the work — they disagree, and each has blind spots the others don't.
@@ -59,7 +59,7 @@ Three distinct pieces, easily conflated:
 | Tracking endpoint | `apollo.archive.org` | Receives events/pageviews |
 | Reporting API | `matomo.archive.org` | Read data back out (IP-restricted) |
 
-Bootstrapped in `templates/site/head.html`, gated on `$if not is_bot() and not ctx.get('disable_analytics')`:
+Bootstrapped in `templates/shell/head.html.jinja`, gated on `{% if not layout.is_bot and not layout.head.disable_analytics %}`:
 
 ```js
 var _paq = window._paq = window._paq || [];
@@ -101,6 +101,7 @@ The only lossless counter. Plain Python:
 
 ```python
 from openlibrary.core import stats
+
 stats.increment("ol.account.verify.success")
 ```
 

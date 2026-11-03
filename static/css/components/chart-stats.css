@@ -1,17 +1,11 @@
-/* @width-breakpoint-desktop */
-@media all and (min-width: 960px) {
-  div.chartHolder {
-    position: relative;
-    width: 439px;
-    height: 61px;
-    overflow: hidden;
-    background-color: var(--lightest-grey);
-  }
-  div.chartDisplay {
-    width: 430px;
-    height: 50px;
-    padding: var(--spacing-inset-sm) var(--spacing-inset-xs) 0;
-    border-bottom: 1px solid var(--black);
-    background-color: var(--lightest-grey);
-  }
+/* Edits and Members charts on /stats (openlibrary/templates/admin/index.html).
+   The chart fills the panel edge to edge, with the baseline along its bottom. */
+div.chartHolder {
+  padding-top: var(--spacing-inset-sm);
+  background-color: var(--color-surface-sunken);
+}
+
+div.chartDisplay {
+  height: 50px;
+  border-bottom: var(--border-width-divider) solid var(--color-text);
 }

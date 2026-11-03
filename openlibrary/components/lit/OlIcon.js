@@ -37,7 +37,7 @@ export class OlIcon extends LitElement {
         name: { type: String, reflect: true },
         size: { type: String, reflect: true },
         label: { type: String },
-        filled: { type: Boolean, reflect: true },
+        filled: { type: Boolean, reflect: true }
     };
 
     // The host box is sized here and again in ol-icon.css. The duplication is

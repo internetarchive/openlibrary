@@ -11,9 +11,13 @@ let i18nStrings;
 export function initLibrarianDashboard(rootElement) {
     i18nStrings = JSON.parse(rootElement.dataset.i18n);
     const table = rootElement.querySelector('.dq-table');
-    rootElement.addEventListener('click', () => {
-        populateTable(table);
-    }, {once: true});
+    rootElement.addEventListener(
+        'click',
+        () => {
+            populateTable(table);
+        },
+        { once: true }
+    );
 }
 
 /**
@@ -43,7 +47,7 @@ async function updateRow(row, totalCount) {
 
     // Make query
     const data = await fetch(apiUrl)
-        .then((resp) => {
+        .then(resp => {
             if (!resp.ok) {
                 throw new Error(`Data quality response status : ${resp.status}`);
             }

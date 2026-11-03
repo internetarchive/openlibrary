@@ -1,5 +1,5 @@
 /**
- * Skip link — the first focusable element on every page (site.html.jinja).
+ * Skip link — the first focusable element on every page (shell/base.html.jinja).
  * Hidden off-screen until keyboard focus brings it into view. WCAG 2.4.1.
  */
 .skip-link {

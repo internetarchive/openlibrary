@@ -5,19 +5,20 @@
  * curves; semantic tokens name what a component is doing. Reach for the
  * semantic token; add a primitive only when a semantic token references it.
  * Hover never transitions color (see docs/frontend/design.md, "Animations").
- * --ease-move and --ease-state have no callers yet — they are vocabulary.
  */
 :root {
   /* Primitives */
   --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
   --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* Semantic easing */
   --ease-enter: var(--ease-out-quint); /* a surface appearing: popover, drawer, toast, banner */
   --ease-exit: var(--ease-out-quint); /* the same surface leaving, at a shorter duration */
   --ease-move: var(--ease-in-out-cubic); /* something already on screen repositioning */
   --ease-state: ease; /* checked / selected / disabled changes — never hover */
+  --ease-spring: var(--ease-out-back); /* a small object springing into a pose, overshooting a little — never a surface */
 
   /* Durations */
   --duration-press: 80ms; /* transform on :active */
@@ -26,4 +27,5 @@
   --duration-slow: 300ms; /* exit of large surfaces */
   --duration-slower: 400ms; /* enter of large surfaces: drawer, toast */
   --duration-spin: 700ms; /* one revolution of any spinner, linear */
+  --duration-shimmer: 1600ms; /* one sweep of a loading skeleton's highlight, linear */
 }

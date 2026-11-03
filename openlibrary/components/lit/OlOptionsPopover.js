@@ -5,6 +5,7 @@ import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
 import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
 import './OlIcon.js';
 import './OlPopover.js';
+import { menuRow } from './control-styles.js';
 
 let _idCounter = 0;
 
@@ -81,212 +82,205 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         placeholder: { type: String },
         noMatchesLabel: { type: String, attribute: 'no-matches-label' },
         showSelection: { type: Boolean, attribute: 'show-selection' },
-        _query: { state: true },
+        _query: { state: true }
     };
 
-    static styles = css`
-        :host {
-            display: inline-block;
-            font-family: var(--font-family-body);
+    static styles = [
+        menuRow,
+        css`
+            :host {
+                display: inline-block;
+                font-family: var(--font-family-body);
 
-            /* Declared here rather than on .panel: the panel is slotted into
+                /* Declared here rather than on .panel: the panel is slotted into
                <ol-popover>, whose tray clears these, and an override only
                reaches it by inheriting past the tray. */
-            --ol-popover-content-max-width: 400px;
-            --ol-popover-content-max-height: min(70vh, 480px);
-        }
+                --ol-popover-content-max-width: 400px;
+                --ol-popover-content-max-height: min(70vh, 480px);
+            }
 
-        /* The default trigger is a light-DOM <ol-button> (see
+            /* The default trigger is a light-DOM <ol-button> (see
            _createDefaultTrigger), which paints itself — there are no trigger
            styles here. That keeps this trigger on the shared control-height
            tokens and gives it ol-button's automatic disclosure chevron, so it
            lines up with <ol-select-popover> beside it. */
 
-        /* ── Panel layout ────────────────────────────────────────── */
+            /* ── Panel layout ────────────────────────────────────────── */
 
-        .panel {
-            display: flex;
-            flex-direction: column;
-            min-width: 280px;
-            max-width: var(--ol-popover-content-max-width);
-            max-height: var(--ol-popover-content-max-height);
-        }
+            .panel {
+                display: flex;
+                flex-direction: column;
+                min-width: 280px;
+                max-width: var(--ol-popover-content-max-width);
+                max-height: var(--ol-popover-content-max-height);
+            }
 
-        .list-area {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            min-height: 0;
-        }
+            .list-area {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                min-height: 0;
+            }
 
-        .group {
-            list-style: none;
-            margin: 0;
-            padding: var(--menu-row-inset) 0;
-            overflow-y: auto;
-        }
+            .group {
+                list-style: none;
+                margin: 0;
+                padding: var(--menu-row-inset) 0;
+                overflow-y: auto;
+            }
 
-        /* ── Filter input (mirrors OlSelectPopover) ──────────────── */
+            /* ── Filter input (mirrors OlSelectPopover) ──────────────── */
 
-        .filter {
-            position: relative;
-            padding: var(--spacing-inset-sm);
-            border-bottom: var(--border-divider);
-        }
+            .filter {
+                position: relative;
+                padding: var(--spacing-inset-sm);
+                border-bottom: var(--border-divider);
+            }
 
-        .filter-input {
-            box-sizing: border-box;
-            width: 100%;
-            padding: var(--spacing-inset-sm) var(--spacing-inset-sm) var(--spacing-inset-sm) 32px;
-            background: var(--white);
-            border: 1px solid var(--color-border-subtle);
-            border-radius: var(--border-radius-input);
-            font: inherit;
-            font-size: var(--font-size-body-medium);
-            color: inherit;
-        }
+            .filter-input {
+                box-sizing: border-box;
+                width: 100%;
+                padding: var(--spacing-inset-sm) var(--spacing-inset-sm) var(--spacing-inset-sm) 32px;
+                background: var(--white);
+                border: 1px solid var(--color-border-subtle);
+                border-radius: var(--border-radius-input);
+                font: inherit;
+                font-size: var(--font-size-body-medium);
+                color: inherit;
+            }
 
-        .filter-input::placeholder {
-            color: var(--color-text-muted);
-        }
+            .filter-input::placeholder {
+                color: var(--color-text-muted);
+            }
 
-        .filter-input:focus {
-            outline: none;
-            border-color: var(--color-border-focused);
-            box-shadow: 0 0 0 1px var(--color-border-focused);
-        }
+            .filter-input:focus {
+                outline: none;
+                border-color: var(--color-border-focused);
+                box-shadow: 0 0 0 1px var(--color-border-focused);
+            }
 
-        /* iOS zooms in on focus when the input font is < 16px. */
-        @media (max-width: 767px) {
-            .filter-input { font-size: var(--font-size-body-large); }
-        }
+            /* iOS zooms in on focus when the input font is < 16px. */
+            @media (max-width: 767px) {
+                .filter-input {
+                    font-size: var(--font-size-body-large);
+                }
+            }
 
-        .filter-icon {
-            position: absolute;
-            top: 50%;
-            left: calc(var(--spacing-inset-sm) + 10px);
-            width: 14px;
-            height: 14px;
-            color: var(--color-text-muted);
-            pointer-events: none;
-            transform: translateY(-50%);
-        }
+            .filter-icon {
+                position: absolute;
+                top: 50%;
+                left: calc(var(--spacing-inset-sm) + 10px);
+                width: 14px;
+                height: 14px;
+                color: var(--color-text-muted);
+                pointer-events: none;
+                transform: translateY(-50%);
+            }
 
-        .empty-state {
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-            color: var(--color-text-muted);
-            font-size: 14px;
-        }
+            .empty-state {
+                padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+                color: var(--color-text-muted);
+                font-size: 14px;
+            }
 
-        .group-heading {
-            margin: 0;
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
-            color: var(--color-text-muted);
-            font-size: var(--font-size-overline);
-            font-weight: var(--font-weight-overline);
-            letter-spacing: var(--letter-spacing-overline);
-            text-transform: var(--text-transform-overline);
-        }
+            .group-heading {
+                margin: 0;
+                padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
+                color: var(--color-text-muted);
+                font-size: var(--font-size-overline);
+                font-weight: var(--font-weight-overline);
+                letter-spacing: var(--letter-spacing-overline);
+                text-transform: var(--text-transform-overline);
+            }
 
-        /* ── Items ───────────────────────────────────────────────── */
+            /* ── Items ───────────────────────────────────────────────── */
 
-        .item {
-            font-size: 14px;
-        }
+            .item {
+                font-size: 14px;
+            }
 
-        .item-row {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-inline-md);
-            box-sizing: border-box;
-            /* One height across every menu row; a described or wrapping row
-               grows past it. */
-            min-height: var(--menu-row-height);
-            /* The menu-row pill; see OlMenuPopover.js for the recipe. */
-            margin-inline: var(--menu-row-inset);
-            padding-block: var(--spacing-inset-xs);
-            padding-inline: var(--menu-row-padding-inline);
-            border-radius: var(--border-radius-menu-row);
-            line-height: var(--line-height-control);
-            cursor: pointer;
-            user-select: none;
-        }
+            /* Geometry and hover are the shared .menu-row (control-styles.js). */
+            .item-row {
+                gap: var(--spacing-inline-md);
+                user-select: none;
+            }
 
-        /* A description makes the row multi-line, so the radio rides the label
+            /* A description makes the row multi-line, so the radio rides the label
            rather than the whole box. */
-        .item-row:has(.item-description) {
-            align-items: flex-start;
-        }
+            .item-row:has(.item-description) {
+                align-items: flex-start;
+            }
 
-        /* Nudged onto the label's optical centre, which centring can't do
+            /* Nudged onto the label's optical centre, which centring can't do
            once the row is top-aligned. */
-        .item-row:has(.item-description) .item-radio {
-            margin-top: 2px;
-        }
+            .item-row:has(.item-description) .item-radio {
+                margin-top: 2px;
+            }
 
-        /* Nested options are a subset of the option above them; indent the
+            /* Nested options are a subset of the option above them; indent the
            whole row so the hierarchy reads at a glance. Less the row's own
            inset, so the indent is measured from the panel. */
-        .item--nested .item-row {
-            padding-left: calc(var(--spacing-inset-xl) - var(--menu-row-inset));
-        }
+            .item--nested .item-row {
+                padding-left: calc(var(--spacing-inset-xl) - var(--menu-row-inset));
+            }
 
-        @media (hover: hover) and (pointer: fine) {
-            .item-row:hover {
+            .item-row:focus-within {
+                outline: none;
                 background: var(--color-hover-overlay);
             }
-        }
 
-        .item-row:focus-within {
-            outline: none;
-            background: var(--color-hover-overlay);
-        }
+            /* The selected row's look is the shared .menu-row rule (tint + link
+           text, keyed on the checked radio). Keyboard focus on it deepens the
+           tint like hover does, rather than greying it. */
+            .item-row:has(> :checked):focus-within {
+                background: var(--color-control-selected-bg-hover);
+            }
 
-        /* No selected-row styling: the radio is the state. A tint plus a blue
-           label on top of a checked radio says the same thing three times, and
-           it makes the selected row look hovered. */
+            .item-radio {
+                flex-shrink: 0;
+                width: 16px;
+                height: 16px;
+                margin: 0;
+                accent-color: var(--color-primary);
+                cursor: pointer;
+            }
 
-        .item-radio {
-            flex-shrink: 0;
-            width: 16px;
-            height: 16px;
-            margin: 0;
-            accent-color: var(--color-primary);
-            cursor: pointer;
-        }
+            .item-radio:focus-visible {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: 2px;
+                border-radius: 50%;
+            }
 
-        .item-radio:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: 2px;
-            border-radius: 50%;
-        }
+            .item-content {
+                flex: 1;
+                min-width: 0;
+            }
 
-        .item-content {
-            flex: 1;
-            min-width: 0;
-        }
+            /* The label takes the row's control weight; the description and
+           count describe the option, not the answer, so they stay regular. */
+            .item-label {
+                display: block;
+            }
 
-        .item-label {
-            display: block;
-            font-weight: 400;
-        }
+            .item-description {
+                display: block;
+                margin-top: 2px;
+                color: var(--color-text-muted);
+                font-size: 12px;
+                font-weight: var(--font-weight-regular);
+                line-height: 1.35;
+            }
 
-        .item-description {
-            display: block;
-            margin-top: 2px;
-            color: var(--color-text-muted);
-            font-size: 12px;
-            line-height: 1.35;
-        }
-
-        .item-count {
-            flex-shrink: 0;
-            margin-left: var(--spacing-inline-md);
-            color: var(--color-text-muted);
-            font-size: 13px;
-            font-variant-numeric: tabular-nums;
-        }
-    `;
+            .item-count {
+                flex-shrink: 0;
+                margin-left: var(--spacing-inline-md);
+                color: var(--color-text-muted);
+                font-weight: var(--font-weight-regular);
+                font-size: 13px;
+                font-variant-numeric: tabular-nums;
+            }
+        `
+    ];
 
     constructor() {
         super();
@@ -307,9 +301,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
 
     connectedCallback() {
         super.connectedCallback();
-        const hasConsumerTrigger = Array.from(this.children).some(
-            el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
-        );
+        const hasConsumerTrigger = Array.from(this.children).some(el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger');
         if (!hasConsumerTrigger && !this._defaultTrigger) {
             this._createDefaultTrigger();
         }
@@ -361,11 +353,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
             >
-                <slot
-                    name="trigger"
-                    slot="trigger"
-                    @keydown=${this._onTriggerKeydown}
-                ></slot>
+                <slot name="trigger" slot="trigger" @keydown=${this._onTriggerKeydown}></slot>
                 ${this._renderPanel()}
             </ol-popover>
         `;
@@ -421,9 +409,14 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         const items = this._visibleItems;
         const heading = this.heading || (this.label || '').toUpperCase();
         const showSearch = this._showSearch;
-        const rows = items.length === 0 && this._query.trim()
-            ? html`<li class="empty-state">${this.noMatchesLabel}</li>`
-            : repeat(items, it => it.value, it => this._renderItem(it));
+        const rows =
+            items.length === 0 && this._query.trim()
+                ? html`<li class="empty-state">${this.noMatchesLabel}</li>`
+                : repeat(
+                      items,
+                      it => it.value,
+                      it => this._renderItem(it)
+                  );
 
         // FIX (WCAG 1.3.1): role="radiogroup" must NOT be on the <ul> because
         // that strips list semantics and makes <li> children invalid in the
@@ -431,29 +424,30 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         // keyboard handler, the <ul> stays a pure list.
         return html`
             <div class="panel">
-                ${showSearch ? html`
-                    <div class="filter">
-                        <ol-icon class="filter-icon" name="search"></ol-icon>
-                        <input
-                            type="search"
-                            class="filter-input"
-                            aria-label=${this.placeholder}
-                            aria-controls=${this._panelId}
-                            placeholder=${this.placeholder}
-                            .value=${this._query}
-                            @input=${this._onQueryInput}
-                            @keydown=${this._onFilterKeydown}
-                        />
-                    </div>
-                ` : nothing}
-                <div
-                    class="list-area"
-                    role="radiogroup"
-                    aria-label=${this.label}
-                    @keydown=${this._onListKeydown}
-                >
+                ${
+                    showSearch
+                        ? html`
+                              <div class="filter">
+                                  <ol-icon class="filter-icon" name="search"></ol-icon>
+                                  <input
+                                      type="search"
+                                      class="filter-input"
+                                      aria-label=${this.placeholder}
+                                      aria-controls=${this._panelId}
+                                      placeholder=${this.placeholder}
+                                      .value=${this._query}
+                                      @input=${this._onQueryInput}
+                                      @keydown=${this._onFilterKeydown}
+                                  />
+                              </div>
+                          `
+                        : nothing
+                }
+                <div class="list-area" role="radiogroup" aria-label=${this.label} @keydown=${this._onListKeydown}>
                     ${heading ? html`<div class="group-heading" aria-hidden="true">${heading}</div>` : nothing}
-                    <ul class="group" id=${this._panelId}>${rows}</ul>
+                    <ul class="group" id=${this._panelId}>
+                        ${rows}
+                    </ul>
                 </div>
             </div>
         `;
@@ -465,22 +459,15 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         // template literal whitespace creates real text nodes that accesslint
         // flags as direct text content inside <ul>.
         return html`<li class="item ${item.nested ? 'item--nested' : ''}">
-                <label class="item-row">
-                    <input
-                        type="radio"
-                        class="item-radio"
-                        name=${this._radioName}
-                        .checked=${isSelected}
-                        .value=${item.value}
-                        @change=${this._onItemChange}
-                    />
-                    <span class="item-content">
-                        <span class="item-label">${item.label}</span>
-                        ${item.description ? html`<span class="item-description">${item.description}</span>` : nothing}
-                    </span>
-                    ${item.count ? html`<span class="item-count">${item.count}</span>` : nothing}
-                </label>
-            </li>`;
+            <label class="item-row menu-row">
+                <input type="radio" class="item-radio" name=${this._radioName} .checked=${isSelected} .value=${item.value} @change=${this._onItemChange} />
+                <span class="item-content">
+                    <span class="item-label">${item.label}</span>
+                    ${item.description ? html`<span class="item-description">${item.description}</span>` : nothing}
+                </span>
+                ${item.count ? html`<span class="item-count">${item.count}</span>` : nothing}
+            </label>
+        </li>`;
     }
 
     // ── State helpers ────────────────────────────────────────────
@@ -543,9 +530,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             e.preventDefault();
             const items = this._visibleItems;
             const query = this._query.trim().toLowerCase();
-            const pick = items.length === 1
-                ? items[0]
-                : items.find(it => (it.label || '').toLowerCase() === query);
+            const pick = items.length === 1 ? items[0] : items.find(it => (it.label || '').toLowerCase() === query);
             if (query && pick) this._commitSelection(pick.value);
         }
     }
@@ -577,10 +562,13 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         if (value === this.selected) return false;
         this.selected = value;
         this._syncFormValue();
-        this.dispatchEvent(new CustomEvent('ol-options-popover-change', {
-            bubbles: true, composed: true,
-            detail: { selected: value },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-options-popover-change', {
+                bubbles: true,
+                composed: true,
+                detail: { selected: value }
+            })
+        );
         return true;
     }
 

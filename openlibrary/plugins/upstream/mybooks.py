@@ -17,7 +17,7 @@ from openlibrary.accounts.model import (
     get_internet_archive_id,
 )
 from openlibrary.core.booknotes import Booknotes
-from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.bookshelves import Bookshelves, ReadingLogSort
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.cache import memcache_memoize
 from openlibrary.core.follows import PubSub
@@ -25,7 +25,7 @@ from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.lending import add_availability, get_loan_history_data, get_loans_of_user
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
-from openlibrary.core.reading_state import ReadingState, get_reading_state
+from openlibrary.core.reading_state import ReadingState, get_reading_state_sync
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
@@ -44,6 +44,17 @@ if TYPE_CHECKING:
 logger = logging.getLogger("openlibrary.mybooks")
 
 RESULTS_PER_PAGE: Final = 25
+
+READING_LOG_SORTS: MappingProxyType[str, ReadingLogSort] = MappingProxyType(
+    {
+        "desc": "created desc",
+        "asc": "created asc",
+        "title": "title",
+        "old": "old",
+        "rating": "rating",
+        "want_to_read": "want_to_read",
+    }
+)
 
 
 class avatar(delegate.page):
@@ -129,7 +140,7 @@ class mybooks_home(delegate.page):
             history_books = []
             if mb.is_my_page:
                 try:
-                    history_data = get_loan_history_data(mb.username, page=1)
+                    history_data = get_loan_history_data(mb.username, page=1, s3_cookie=web.cookies().get("s3"))
                     history_books = [doc for doc in history_data.get("docs", []) if not doc.get("ia_only")]
                 except Exception:
                     # Deliberately non-fatal: My Books must still render its
@@ -225,7 +236,7 @@ class mybooks_feed(delegate.page):
     def GET(self, username):
         mb = MyBooksTemplate(username, key="feed")
         if mb.is_my_page:
-            docs = PubSub.get_feed(username)
+            docs = PubSub.get_feed_sync(username)
             doc_count = len(docs)
             meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(mb.me.key)
             template = render["account/reading_log"](
@@ -359,15 +370,21 @@ class mybooks_readinglog(delegate.page):
         if i.mode == "ebooks":
             fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
 
+        sort_order = i.sort
+        if sort_order == "rating" and not mb.is_my_page:
+            sort_order = "desc"
+
         logged_book_data: LoggedBooksData = mb.readlog.get_works(
             key=mb.key,  # type: ignore
             page=i.page,
             sort="created",
-            sort_order=i.sort,
+            sort_order=sort_order,
             q=i.q,
             year=year,
             fq=fq,
         )
+        if logged_book_data.sort != READING_LOG_SORTS.get(sort_order):
+            sort_order = "desc"
         docs = add_availability(logged_book_data.docs, mode="openlibrary_work")
         doc_count = logged_book_data.total_results
 
@@ -388,7 +405,7 @@ class mybooks_readinglog(delegate.page):
             doc_count,
             mb.is_my_page,
             i.page,
-            sort_order=i.sort,
+            sort_order=sort_order,
             user=mb.user,
             include_ratings=include_ratings,
             q=i.q,
@@ -450,8 +467,8 @@ class MyBooksTemplate:
         self.selected_year = None
 
         if (self.me and self.is_my_page) or self.is_public:
-            self.counts["followers"] = PubSub.count_followers(self.username)
-            self.counts["following"] = PubSub.count_following(self.username)
+            self.counts["followers"] = PubSub.count_followers_sync(self.username)
+            self.counts["following"] = PubSub.count_following_sync(self.username)
 
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
@@ -552,7 +569,7 @@ class ReadingLog:
 
     @property
     def reading_log_counts(self) -> dict[str, int]:
-        counts = Bookshelves.count_total_books_logged_by_user_per_shelf(self.user.get_username()) if self.user.get_username() else {}
+        counts = Bookshelves.count_total_books_logged_by_user_per_shelf_sync(self.user.get_username()) if self.user.get_username() else {}
         return {
             "want-to-read": counts.get(Bookshelves.PRESET_BOOKSHELVES["Want to Read"], 0),
             "currently-reading": counts.get(Bookshelves.PRESET_BOOKSHELVES["Currently Reading"], 0),
@@ -560,11 +577,11 @@ class ReadingLog:
             "stopped-reading": counts.get(Bookshelves.PRESET_BOOKSHELVES["Stopped Reading"], 0),
         }
 
-    def count_shelf(self, key: READING_LOG_KEYS) -> int:
+    async def count_shelf(self, key: READING_LOG_KEYS) -> int:
         username = self.user.get_username()
         assert username
         shelf_id = Bookshelves.PRESET_BOOKSHELVES[self.READING_LOG_KEY_TO_SHELF[key]]
-        return Bookshelves.count_user_books_on_shelf(username, shelf_id)
+        return await Bookshelves.count_user_books_on_shelf(username, shelf_id)
 
     async def get_works_async(
         self,
@@ -585,20 +602,12 @@ class ReadingLog:
         """
         shelf = self.READING_LOG_KEY_TO_SHELF[key]
 
-        # Mypy is unhappy about the sort argument not being a literal string.
-        # Although this doesn't satisfy Mypy, at least make sure sort is either
-        # "created asc" or "created desc"
-        if sort + " " + sort_order == "created asc":
-            sort_literal = "created_asc"
-        else:
-            sort_literal = "created desc"
-
         logged_books: LoggedBooksData = await Bookshelves.get_users_logged_books(
             self.user.get_username(),
             bookshelf_id=Bookshelves.PRESET_BOOKSHELVES[shelf],
             page=page,
             limit=limit,
-            sort=sort_literal,  # type: ignore[arg-type]
+            sort=READING_LOG_SORTS.get(sort_order, "created desc"),
             checkin_year=year,
             q=q,
             fq=fq,
@@ -607,19 +616,6 @@ class ReadingLog:
         return logged_books
 
     get_works = async_bridge.wrap(get_works_async)
-
-
-@public
-def add_read_statuses(username, works):
-    work_ids = [extract_numeric_id_from_olid(work.key.split("/")[-1]) for work in works]
-    results = Bookshelves.get_users_read_status_of_works(username, work_ids)
-    results_map = {}
-    for result in results:
-        results_map[f"OL{result['work_id']}W"] = result["bookshelf_id"]
-    for work in works:
-        work_olid = work.key.split("/")[-1]
-        work["readinglog"] = results_map.get(work_olid)
-    return works
 
 
 def work_key_of(doc) -> str | None:
@@ -685,7 +681,12 @@ def shelf_ids() -> dict[str, int]:
 
 @public
 def shelf_button_for(
-    doc, variant: str = "split", reading_states: dict[str, ReadingState] | None = None, async_load: bool = False, size: str | None = None
+    doc,
+    variant: str = "split",
+    reading_states: dict[str, ReadingState] | None = None,
+    async_load: bool = False,
+    size: str | None = None,
+    slot: str | None = None,
 ) -> str:
     """The `<ol-shelf-button>` for a doc, Solr or Infogami: a work or an edition to shelve, or an
     author or orphaned edition that can only join a list (`lists-only`). Empty for anything else.
@@ -694,6 +695,7 @@ def shelf_button_for(
     `async_load` renders the button without the reader's key and state, for HTML that is not
     per-reader (carousel cards, which are cached or fetched lazily); book-state.js fills both in.
     `size="large"` is the `icon` badge for a book page's big cover.
+    `slot` places the button in a host's named slot, e.g. `<ol-book-cover>`'s "overlay".
     """
     work_key = work_key_of(doc)
     seed_key = work_key or list_seed_of(doc)
@@ -716,6 +718,7 @@ def shelf_button_for(
         state=state,
         hydrated=not async_load,
         lists_only=not work_key,
+        slot=slot,
     )
 
 
@@ -729,7 +732,7 @@ def get_reading_states(user: User | None, docs) -> dict[str, ReadingState]:
         return {}
     keys = {key for doc in docs if (key := work_key_of(doc))}
     by_id = {int(extract_numeric_id_from_olid(key)): key for key in keys}
-    states = get_reading_state(user.key.split("/")[-1], list(by_id))
+    states = get_reading_state_sync(user.key.split("/")[-1], list(by_id))
     return {by_id[work_id]: state for work_id, state in states.items()}
 
 
@@ -741,7 +744,7 @@ class PatronBooknotes:
         self.username = user.key.split("/")[-1]
 
     def get_notes(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
-        notes = Booknotes.get_notes_grouped_by_work(self.username, limit=limit, page=page)
+        notes = [web.storage(entry) for entry in Booknotes.get_notes_grouped_by_work_sync(self.username, limit=limit, page=page)]
 
         work_keys = [f"/works/OL{entry['work_id']}W" for entry in notes]
         works = {w.key: w for w in site.get().get_many(work_keys)} if work_keys else {}
@@ -793,7 +796,7 @@ class PatronBooknotes:
     @classmethod
     def get_counts(cls, username: str) -> dict[str, int]:
         return {
-            "notes": Booknotes.count_works_with_notes_by_user(username),
+            "notes": Booknotes.count_works_with_notes_by_user_sync(username),
             "observations": Observations.count_distinct_observations(username),
         }
 
@@ -806,7 +809,7 @@ class ActivityFeed:
         logged books.  Otherwise, the feed will contain events from the patron's
         `PubSub.get_feed` results.
         """
-        following = PubSub.is_following(username)
+        following = PubSub.is_following_sync(username)
         if following:
             feed = cls.get_cached_pub_sub_feed(username)
         else:
@@ -816,7 +819,7 @@ class ActivityFeed:
 
     @classmethod
     def get_pub_sub_feed(cls, username):
-        feed = PubSub.get_feed(username, limit=3)
+        feed = PubSub.get_feed_sync(username, limit=3)
         return feed
 
     @classmethod

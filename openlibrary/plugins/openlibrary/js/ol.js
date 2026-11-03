@@ -15,8 +15,8 @@ export default function init() {
 }
 
 export function initWebsiteTranslationOptions() {
-    document.querySelectorAll('.locale-options li a').forEach((link) => {
-        link.addEventListener('click', (event) => {
+    document.querySelectorAll('.locale-options li a').forEach(link => {
+        link.addEventListener('click', event => {
             event.preventDefault();
             const locale = link.dataset.langId;
             setValueInCookie('HTTP_LANG', locale);

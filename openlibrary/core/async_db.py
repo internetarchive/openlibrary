@@ -35,31 +35,25 @@ import itertools
 import logging
 import threading
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager, suppress
+from contextlib import AbstractContextManager, AsyncExitStack, asynccontextmanager, nullcontext, suppress
+from contextvars import ContextVar
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Self, cast, overload
 
 import web
+from psycopg import AsyncCursor
+from psycopg.rows import class_row, dict_row, tuple_row  # noqa: F401 class_row is re-exported for model modules
+from psycopg_pool import AsyncConnectionPool
+
+from openlibrary.utils import server_timing
 
 logger = logging.getLogger("openlibrary.async_db")
 
-# Lets modules import without psycopg installed. A configured app fails in
-# _open_pool() at startup instead of on its first request.
-try:
-    from psycopg.rows import class_row, dict_row, tuple_row
-    from psycopg_pool import AsyncConnectionPool
-except ModuleNotFoundError:
-    class_row = None  # type: ignore[assignment]
-    dict_row = None  # type: ignore[assignment]
-    tuple_row = None  # type: ignore[assignment]
-    AsyncConnectionPool = None  # type: ignore
-
 if TYPE_CHECKING:
-    from psycopg import AsyncConnection, AsyncCursor
+    from psycopg import AsyncConnection
     from psycopg.rows import BaseRowFactory
-    from psycopg_pool import AsyncConnectionPool as _PoolClass
 
-    Pool = _PoolClass[AsyncConnection[dict[str, Any]]]
+    Pool = AsyncConnectionPool[AsyncConnection[dict[str, Any]]]
 
 
 @dataclass
@@ -76,6 +70,34 @@ _entries: dict[asyncio.AbstractEventLoop, _LoopPool] = {}
 _entries_lock = threading.Lock()
 # Counter for pool names in logs.
 _pool_names = itertools.count(1)
+
+
+# Set while connection() checks out a connection, so the pool's health-check
+# query counts toward ``db-checkout`` instead of as a ``db`` query.
+_checking_out: ContextVar[bool] = ContextVar("async_db_checking_out", default=False)
+
+
+def _timed_query() -> AbstractContextManager[object]:
+    return nullcontext() if _checking_out.get() else server_timing.timed("db")
+
+
+class TimedCursor(AsyncCursor[Any]):
+    """Times each query as ``db`` for Server-Timing, however it's run: the
+    helpers below, ``conn.execute()``, or ``conn.cursor().execute()``.
+
+    A plain cursor receives all its rows during ``execute()``, so the timing
+    includes them. Named (server-side) cursors, ``stream()`` and ``copy()``
+    aren't timed; nothing here uses them.
+    """
+
+    # Forwarded as-is: callers are typed against psycopg's own signatures, never this class.
+    async def execute(self, *args: Any, **kwargs: Any) -> Self:
+        with _timed_query():
+            return await super().execute(*args, **kwargs)
+
+    async def executemany(self, *args: Any, **kwargs: Any) -> None:
+        with _timed_query():
+            await super().executemany(*args, **kwargs)
 
 
 def _connection_kwargs(db_parameters: dict) -> dict:
@@ -95,24 +117,24 @@ def _connection_kwargs(db_parameters: dict) -> dict:
 async def _open_pool() -> Pool | None:
     """Create and open a pool for the running loop.
 
-    Returns None if no database is configured. Raises if psycopg is missing
-    while database access is configured. Closes the pool on failure or
+    Returns None if no database is configured. Closes the pool on failure or
     cancellation before re-raising.
     """
     db_parameters = getattr(web.config, "db_parameters", None) or {}
     if not db_parameters.get("db"):
         logger.info("db_parameters not configured; skipping async pool creation")
         return None
-    if AsyncConnectionPool is None or dict_row is None:
-        raise RuntimeError("psycopg[binary,pool] is required when async database access is configured")
 
     pool = cast(
         "Pool",
         AsyncConnectionPool(
-            kwargs={**_connection_kwargs(db_parameters), "row_factory": dict_row},
+            kwargs={**_connection_kwargs(db_parameters), "row_factory": dict_row, "cursor_factory": TimedCursor},
             open=False,
-            min_size=4,
-            max_size=20,
+            # Every worker has its own pool, and all of them share pgbouncer's 90 server
+            # connections with web.py and Infobase (olsystem etc/pgbouncer/pgbouncer.ini).
+            # At 20 per worker, a burst of Books API traffic took them all (#14124).
+            min_size=1,
+            max_size=2,
             # Re-check connections before checkout, so restarts and idle timeouts do not hand out dead ones.
             check=AsyncConnectionPool.check_connection,
             name=f"async-db-{next(_pool_names)}",
@@ -186,12 +208,19 @@ async def connection() -> AsyncIterator[AsyncConnection[dict[str, Any]]]:
     """Check out a connection from the running loop's pool.
 
     Commits on clean exit, rolls back on error. Raises RuntimeError if no
-    database is configured.
+    database is configured. The checkout is timed as ``db-checkout``: waiting
+    for a free connection, plus the pool's health check on it.
     """
     pool = await _pool_for_loop()
     if pool is None:
         raise RuntimeError("No async database pool available; ensure web.config.db_parameters has a 'db' key configured (or call init_pool() during app startup)")
-    async with pool.connection() as conn:
+    async with AsyncExitStack() as stack:
+        token = _checking_out.set(True)
+        try:
+            with server_timing.timed("db-checkout"):
+                conn = await stack.enter_async_context(pool.connection())
+        finally:
+            _checking_out.reset(token)
         yield conn
 
 
@@ -201,7 +230,7 @@ async def _run(
     params: dict[str, Any] | None,
     row_factory: BaseRowFactory[Any] | None,
 ) -> AsyncCursor[Any]:
-    """Run ``query`` on ``conn`` and return the cursor."""
+    """Run ``query`` on ``conn`` and return the cursor. ``TimedCursor`` times it."""
     if row_factory is None:
         return await conn.execute(query, params)
     cursor = conn.cursor(row_factory=row_factory)
@@ -212,9 +241,13 @@ async def _run(
 async def execute(query: str, params: dict[str, Any] | None = None) -> None:
     """Run one statement on its own pooled connection."""
     async with connection() as conn:
-        await conn.execute(query, params)
+        await _run(conn, query, params, None)
 
 
+@overload
+async def fetch_all(query: str, params: dict[str, Any] | None = None) -> list[dict[str, Any]]: ...
+@overload
+async def fetch_all[T](query: str, params: dict[str, Any] | None = None, *, row_factory: BaseRowFactory[T]) -> list[T]: ...
 async def fetch_all(
     query: str,
     params: dict[str, Any] | None = None,
@@ -227,6 +260,10 @@ async def fetch_all(
         return await cursor.fetchall()
 
 
+@overload
+async def fetch_one(query: str, params: dict[str, Any] | None = None) -> dict[str, Any] | None: ...
+@overload
+async def fetch_one[T](query: str, params: dict[str, Any] | None = None, *, row_factory: BaseRowFactory[T]) -> T | None: ...
 async def fetch_one(
     query: str,
     params: dict[str, Any] | None = None,

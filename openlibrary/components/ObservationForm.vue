@@ -1,29 +1,23 @@
 <template>
-  <div class="observation-form">
-    <SavedTags
-      :all-selected-values="allSelectedValues"
-      :work-key="workKey"
-      :username="username"
-    />
-    <CategorySelector
-      ref="categories"
-      :observations-array="observationsArray"
-      :all-selected-values="allSelectedValues"
-      :initial-selected-id="getSelectedId"
-      @update-selected="updateSelected"
-    />
-    <ValueCard
-      v-if="selectedObservation"
-      ref="value-card"
-      :type="selectedObservation.label"
-      :description="selectedObservation.description"
-      :multi-select="selectedObservation.multi_choice"
-      :values="selectedObservation.values"
-      :all-selected-values="allSelectedValues"
-      :work-key="workKey"
-      :username="username"
-    />
-  </div>
+    <div class="observation-form">
+        <SavedTags :all-selected-values="allSelectedValues" :work-key="workKey" :username="username" />
+        <CategorySelector
+            :observations-array="observationsArray"
+            :all-selected-values="allSelectedValues"
+            :initial-selected-id="getSelectedId"
+            @update-selected="updateSelected"
+        />
+        <ValueCard
+            v-if="selectedObservation"
+            :type="selectedObservation.label"
+            :description="selectedObservation.description"
+            :multi-select="selectedObservation.multi_choice"
+            :values="selectedObservation.values"
+            :all-selected-values="allSelectedValues"
+            :work-key="workKey"
+            :username="username"
+        />
+    </div>
 </template>
 
 <script>
@@ -81,7 +75,7 @@ export default {
             required: true
         }
     },
-    data: function() {
+    data: function () {
         return {
             /**
              * An object representing the currently selected tag type.
@@ -109,7 +103,7 @@ export default {
             /**
              * An array containing all book tag types and values.
              */
-            observationsArray: null,
+            observationsArray: null
         };
     },
     computed: {
@@ -118,14 +112,14 @@ export default {
          *
          * @returns {Number|null} The ID of the selected observation, if one exists.
          */
-        getSelectedId: function() {
+        getSelectedId: function () {
             if (this.selectedObservation) {
                 return this.selectedObservation.id;
             }
             return null;
         }
     },
-    created: function() {
+    created: function () {
         this.observationsArray = decodeAndParseJSON(this.schema)['observations'];
         this.allSelectedValues = decodeAndParseJSON(this.observations);
         this.selectRandomObservation();
@@ -136,13 +130,13 @@ export default {
          *
          * @param {Object | null} observation The new selected observation, or `null` if no type is selected.
          */
-        updateSelected: function(observation) {
+        updateSelected: function (observation) {
             this.selectedObservation = observation;
         },
         /**
          * Randomly sets a selected observation.
          */
-        selectRandomObservation: function() {
+        selectRandomObservation: function () {
             const randomNumber = Math.floor(Math.random() * 100000);
             this.selectedObservation = this.observationsArray[randomNumber % this.observationsArray.length];
         }
@@ -152,6 +146,6 @@ export default {
 
 <style scoped>
 .observation-form {
-  padding: .5em;
+    padding: 0.5em;
 }
 </style>

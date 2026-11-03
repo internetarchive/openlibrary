@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from hashlib import md5
 from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Unpack
-from urllib.parse import parse_qs, quote, quote_plus
+from urllib.parse import parse_qs, parse_qsl, quote, quote_plus, urlsplit, urlunsplit
 
 import web
 from markupsafe import Markup
@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 from infogami.utils.view import public
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
-from openlibrary.core.fulltext import FulltextRow, exclude_ocaids, fulltext_page, fulltext_search_async, phrase_query
+from openlibrary.core.fulltext import FulltextRow, all_words_query, exclude_ocaids, fulltext_page, fulltext_search_async, phrase_query
 from openlibrary.core.helpers import affiliate_id, commify, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.core.lending import add_availability_async, compose_ia_url, get_available_async
@@ -28,6 +28,7 @@ from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary import home_genres
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import (
     convert_list,
@@ -59,6 +60,7 @@ from openlibrary.plugins.worksearch.subjects import (
     get_subject_async,
 )
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.request_context import get_request_lang
 from openlibrary.views.loanstats import get_trending_books
 
 if TYPE_CHECKING:
@@ -136,9 +138,9 @@ class ReadingStatePartial:
     """The opening state for `<ol-shelf-button>`s the server rendered without it (carousels); book-state.js asks here."""
 
     @classmethod
-    def generate(cls, username: str, work_olids: list[str]) -> dict[str, ReadingState]:
+    async def generate_async(cls, username: str, work_olids: list[str]) -> dict[str, ReadingState]:
         work_ids = [int(extract_numeric_id_from_olid(olid)) for olid in work_olids]
-        return {f"OL{work_id}W": state for work_id, state in get_reading_state(username, work_ids).items()}
+        return {f"OL{work_id}W": state for work_id, state in (await get_reading_state(username, work_ids)).items()}
 
 
 class CarouselLoadMoreParams(BaseModel):
@@ -213,6 +215,7 @@ class CarouselCardData(TypedDict):
     title: str
     byline: str
     author_names: list[str]
+    year: str
     cover_url: str | Literal[False]
     loan: dict[str, Any] | None
     expiry_utc: str
@@ -226,6 +229,7 @@ class CarouselCardData(TypedDict):
     return_confirm_i18n: str
     request_fullpath: str
     shelf_button_html: Markup
+    book_cover: bool
 
 
 @public
@@ -247,6 +251,9 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
     if loan and hasattr(book, "get_waitinglist_size"):
         waitlist_size = book.get_waitinglist_size()
 
+    # Loan cards keep the legacy cover for their overlay badge.
+    book_cover = layout == "ol-carousel" and not loan
+
     expiry = loan.get("expiry") if loan else None
     if expiry:
         expiry_dt = datetime_from_isoformat(expiry)
@@ -261,6 +268,7 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
         "title": title,
         "byline": byline,
         "author_names": author_names,
+        "year": str(book.get("first_publish_year") or ""),
         "cover_url": _resolve_carousel_card_cover_url(book),
         "loan": loan,
         "expiry_utc": expiry_utc,
@@ -274,7 +282,8 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
         "return_confirm_i18n": json_encode({"confirm_return": _("Really return this book?")}),
         "request_fullpath": full_path,
         # No reader or state in the HTML: book-state.js fills both in.
-        "shelf_button_html": Markup(shelf_button_for(book, variant="icon", async_load=True)),
+        "shelf_button_html": Markup(shelf_button_for(book, variant="icon", async_load=True, slot="overlay" if book_cover else None)),
+        "book_cover": book_cover,
     }
 
 
@@ -292,19 +301,8 @@ class CarouselCardPartial:
         cards = []
         for index, work in enumerate(search_results):
             lazy = index > cls.MAX_VISIBLE_CARDS
-            editions = work.get("editions", {})
-            if not editions:
-                book = work
-            elif isinstance(editions, list):
-                book = editions[0]
-            else:
-                book = editions.get("docs", [None])[0]
-            book["authors"] = work.get("authors", [])
-            # An edition doc carries no work key; the shelf button needs it.
-            book["work_key"] = work.get("key")
-            book = web.storage(book)
-
             try:
+                book = _carousel_card_book(work)
                 data = get_carousel_card_data(book, lazy, params.layout, params.key, full_path)
                 cards.append(render_jinja_template("books/custom_carousel_card.html.jinja", **data))
             except Exception:  # noqa: BLE001  # per-card isolation: one bad card should not break whole carousel
@@ -332,6 +330,7 @@ class CarouselCardPartial:
             "title",
             "subtitle",
             "author_name",
+            "first_publish_year",
             "cover_i",
             "ia",
             "availability",
@@ -661,9 +660,9 @@ class FullTextSuggestionsPartialResult:
     has_error: bool = False
 
 
-def render_fulltext_suggestion_row(query: str, row: FulltextRow, seq_index: int) -> Markup:
+def render_fulltext_suggestion_row(query: str, row: FulltextRow, seq_index: int, all_words: bool = False) -> Markup:
     """One band row. SearchResultsWork remains Templetor (8 other callers), so it renders here as a bridge."""
-    phrase = phrase_query(query)
+    phrase = all_words_query(query) if all_words else phrase_query(query)
     if not row.edition:
         return Markup(render_jinja_template("FulltextResultIA.html.jinja", row=row, phrase=phrase))
     macro = render_macro(
@@ -694,7 +693,7 @@ class FullTextSuggestionsPartial:
             macro = render_jinja_template(
                 "FulltextSearchSuggestion.html.jinja",
                 num_found=commify(total),
-                results=[render_fulltext_suggestion_row(query, row, i) for i, row in enumerate(rows[:3])],
+                results=[render_fulltext_suggestion_row(query, row, i, all_words=bool(data.get("all_words_fallback"))) for i, row in enumerate(rows[:3])],
                 see_all_url="/search/inside?" + urlencode({"q": query}),
                 total=total,
             )
@@ -719,13 +718,12 @@ class BookPageListsPartial:
     RENDER_FALLBACK = "Unable to render this page."
 
     @classmethod
-    def get_list_card(cls, lst: Any, user: AuthenticatedUser | None) -> BookPageListCard:
+    async def get_list_card(cls, lst: Any, user: AuthenticatedUser | None) -> BookPageListCard:
         """Build data for one card. Keep DB calls out of the template.
 
         ``lst`` is a web.storage from get_lists_async. Reload the full List
         for get_url and get_patron_showcase. The public_readlog check matches
-        the old Templetor code. is_subscribed uses the same PubSub check as
-        User.is_subscribed_user.
+        the old Templetor code. is_subscribed uses the async PubSub query.
         """
         own_list = bool(user and lst.owner and lst.owner.key == user.user_key)
         converted = convert_list(lst.key)
@@ -742,7 +740,7 @@ class BookPageListsPartial:
             owner_account = get_user_object(owner_username)
             settings = owner_account.get_users_settings()
             card["is_public"] = bool(settings and settings.get("public_readlog", "no") == "yes")
-            card["is_subscribed"] = 1 if (user and PubSub.is_subscribed(user.username, owner_username)) else 0
+            card["is_subscribed"] = 1 if (user and await PubSub.is_subscribed(user.username, owner_username)) else 0
         return card
 
     @classmethod
@@ -762,7 +760,7 @@ class BookPageListsPartial:
             cards: list[BookPageListCard] = []
             for lst in lists[: cls.LIMIT]:
                 try:
-                    cards.append(cls.get_list_card(lst, user))
+                    cards.append(await cls.get_list_card(lst, user))
                 except Exception:  # noqa: BLE001  # one bad list shouldn't break the whole section
                     continue
             try:
@@ -793,6 +791,11 @@ class LazyCarouselParams(BaseModel):
     layout: str = "carousel"
     fallback: str | None = None
     safe_mode: bool = True
+    # Link `url` from a "See all" instead of the title.
+    see_all: bool = False
+    # A "Browse the stacks" row; the server builds its query (HomeGenrePartial.narrow).
+    genre: str | None = None
+    subgenre: str | None = None
 
 
 class CarouselPartial:
@@ -803,6 +806,8 @@ class CarouselPartial:
 
     @classmethod
     async def generate_async(cls, params: LazyCarouselParams, full_path: str = "/") -> dict:
+        if params.genre and (genre := home_genres.find_genre(params.genre)):
+            params = HomeGenrePartial.narrow(params, genre)
         books = await gather_lazy_carousel_data_async(
             query=params.query,
             sort=params.sort,
@@ -813,10 +818,11 @@ class CarouselPartial:
         # Build eager data here. Keep lazy logic in build_carousel_placeholder_config.
         # Apply safe_mode to the query for the book carousel as build_carousel_placeholder_config does for lazy.
         effective_query = f"{params.query} {_SAFE_MODE_FILTER}" if params.safe_mode else params.query
+        url = params.url or "/search?" + urlencode({"q": effective_query, "sort": params.sort})
         book_data = get_book_carousel_data(
             books=[web.storage(b) for b in books["docs"]],
             title=params.title,
-            url=params.url or "/search?" + urlencode({"q": effective_query, "sort": params.sort}),
+            url=url,
             key=params.key,
             load_more={
                 "queryType": "SEARCH",
@@ -832,6 +838,8 @@ class CarouselPartial:
             search=params.search,
             query=effective_query,
             has_fulltext_only=params.has_fulltext_only,
+            sort=params.sort,
+            see_all=params.see_all,
             show=book_data["show"],
             title=book_data["title"],
             url=book_data["url"],
@@ -843,6 +851,7 @@ class CarouselPartial:
             cards=book_data["cards"],
             count=book_data["count"],
             shelf=book_data["shelf"],
+            layout=book_data["layout"],
         )
         return {"partials": render_jinja_template("RawQueryCarousel.html.jinja", **data)}
 
@@ -853,6 +862,7 @@ _CAROUSEL_FIELDS = [
     "subtitle",
     "editions",
     "author_name",
+    "first_publish_year",
     "availability",
     "cover_i",
     "ia",
@@ -864,6 +874,12 @@ _CAROUSEL_FIELDS = [
 ]
 
 _SAFE_MODE_FILTER = '-subject:"content_warning:cover"'
+
+
+def _with_sort(url: str, sort: str) -> str:
+    parts = urlsplit(url)
+    query = [(k, v) for k, v in parse_qsl(parts.query) if k != "sort"] + [("sort", sort)]
+    return urlunsplit(parts._replace(query=urlencode(query)))
 
 
 class CarouselData(TypedDict):
@@ -924,9 +940,9 @@ CAROUSEL_EAGER_COVERS = 6  # cards past the first six lazy-load their cover imag
 
 def _carousel_card_book(book: Any) -> Any:
     """The record a card renders for ``book``: its first edition (Solr gives them
-    as a list, or as a dict with ``docs``) else the book itself, with the authors
-    and loan of the work. Things are kept as-is, dicts become web.storage so the
-    card can use attribute access. Verbatim from books/custom_carousel.html.
+    as a list, or as a dict with ``docs``) else the book itself, with the authors,
+    year and loan of the work. Things are kept as-is, dicts become web.storage so
+    the card can use attribute access. Shared by the eager rows and load-more.
     """
     editions = book.get("editions") or {}
     docs = editions.get("docs") if isinstance(editions, dict) else editions
@@ -936,6 +952,9 @@ def _carousel_card_book(book: Any) -> Any:
     if target is not book:
         # An edition doc carries no work key; the shelf button needs it.
         card_book["work_key"] = book.get("key")
+        for field in ("author_name", "first_publish_year"):
+            if not card_book.get(field) and (value := book.get(field)):
+                card_book[field] = value
     if loan := book.get("loan"):
         card_book["loan"] = loan
     return card_book
@@ -973,14 +992,18 @@ class BookCarouselData(CarouselCommonData):
     cards: list[str]
     count: int | None  # shown after the title; a shelf carousel's count is kept live by book-state.js
     shelf: int | None
+    layout: str  # "carousel" (slick), "grid", or "ol-carousel"
 
 
 class CarouselPlaceholderData(TypedDict):
     """Data for the lazy placeholder. Shows config JSON for lazy-carousel.js."""
 
     lazy_config_json: str
-    loading_indicator_html: str
     fallback: str | bool | None
+    # For macros/CarouselSkeleton.html.jinja.
+    title: str
+    title_link: bool
+    layout: str
 
 
 class EagerQueryCarouselData(BookCarouselData):
@@ -989,6 +1012,8 @@ class EagerQueryCarouselData(BookCarouselData):
     search: bool
     query: str
     has_fulltext_only: bool
+    sort: str
+    see_all: bool
 
 
 @public
@@ -1016,7 +1041,9 @@ def get_book_carousel_data(
     key = common.get("key", "")
     books = books or []
     if not (test or (books and len(books) >= min_books)):
-        return BookCarouselData(show=False, title=title, url=url, key=key, grid="", compact="", loadjs="", config_json="", cards=[], count=count, shelf=shelf)
+        return BookCarouselData(
+            show=False, title=title, url=url, key=key, grid="", compact="", loadjs="", config_json="", cards=[], count=count, shelf=shelf, layout=layout
+        )
 
     config = {
         "booksPerBreakpoint": [4, 4, 4, 3, 2, 1] if compact_mode else [6, 5, 4, 3, 2, 1],
@@ -1067,7 +1094,103 @@ def get_book_carousel_data(
         cards=cards,
         count=count,
         shelf=shelf,
+        layout=layout,
     )
+
+
+class HomeGenreParams(BaseModel):
+    genre: str
+
+
+class SubgenreOption(TypedDict):
+    name: str
+    href: str
+
+
+class HomeGenrePartial:
+    """The shelf under a "Browse the stacks" tile: the genre's row, loaded, then a lazy row per subgenre."""
+
+    @staticmethod
+    def row_key(genre: home_genres.Genre, subgenre: home_genres.GenreNode | None = None) -> str:
+        """Also the row's element id, for the header's jump links."""
+        return f"genre-{genre['slug']}" + (f"-{subgenre['slug']}" if subgenre else "")
+
+    @staticmethod
+    def genre_row_title(genre: home_genres.Genre, sort: str) -> str:
+        name = home_genres.display_name(genre)
+        if genre["kind"] == "featured":
+            return _("Trending")
+        if sort == "new":
+            return _("Newest in %(genre)s", genre=name)
+        if sort == "rating":
+            return _("Top rated in %(genre)s", genre=name)
+        return _("Trending in %(genre)s", genre=name)
+
+    @classmethod
+    def jump_links(cls, genre: home_genres.Genre, subgenres: list[home_genres.GenreNode]) -> list[SubgenreOption]:
+        return [SubgenreOption(name=home_genres.subgenre_name(s), href=f"#{cls.row_key(genre, s)}") for s in subgenres]
+
+    @classmethod
+    def narrow(cls, params: LazyCarouselParams, genre: home_genres.Genre) -> LazyCarouselParams:
+        subgenre = home_genres.find_subgenre(genre, params.subgenre)
+        node, parent = (subgenre, genre) if subgenre else (genre, None)
+        lang_clause = home_genres.user_language_clause(get_request_lang())
+        query = home_genres.solr_query(node, parent) + lang_clause
+        if params.safe_mode:
+            query = f"{query} {_SAFE_MODE_FILTER}"
+        url = _with_sort(home_genres.search_url(node, parent=parent, lang_clause=lang_clause), params.sort)
+        title = home_genres.subgenre_name(subgenre) if subgenre else cls.genre_row_title(genre, params.sort)
+        return params.model_copy(update={"query": query, "url": url, "title": title, "subgenre": subgenre and subgenre["slug"]})
+
+    @classmethod
+    def row(cls, genre: home_genres.Genre, subgenre: home_genres.GenreNode | None = None) -> LazyCarouselParams:
+        """`narrow` fills in the query when the row is fetched."""
+        return LazyCarouselParams(
+            title=home_genres.subgenre_name(subgenre) if subgenre else cls.genre_row_title(genre, "trending"),
+            sort=subgenre.get("sort", "trending") if subgenre else "trending",
+            key=cls.row_key(genre, subgenre),
+            limit=20,
+            has_fulltext_only=True,
+            layout="ol-carousel",
+            see_all=True,
+            genre=genre["slug"],
+            subgenre=subgenre["slug"] if subgenre else None,
+        )
+
+    @classmethod
+    async def generate_async(cls, params: HomeGenreParams) -> dict:
+        genre = home_genres.find_genre(params.genre)
+        if not genre:
+            return {"partials": ""}
+
+        subgenres = home_genres.subgenres_for(genre, home_genres.language_marc(get_request_lang()))
+        # Render the genre row eagerly so opening a shelf takes one request.
+        genre_row = cls.row(genre)
+        carousel = await CarouselPartial.generate_async(genre_row)
+        subgenre_rows = [
+            render_jinja_template(
+                "RawQueryCarouselPlaceholder.html.jinja",
+                lazy_config_json=json_encode(row.model_dump(exclude_none=True)),
+                id=row.key,
+                title=row.title,
+                see_all=True,
+                layout=row.layout,
+                fallback=None,
+            )
+            for row in (cls.row(genre, s) for s in subgenres)
+        ]
+        html = render_jinja_template(
+            "home/genre_shelf.html.jinja",
+            genre=genre,
+            name=home_genres.display_name(genre),
+            jump_links=cls.jump_links(genre, subgenres),
+            sort=genre_row.sort,
+            carousel=carousel["partials"],
+            # The sort control refetches from this (lazy-carousel.js).
+            config_json=json_encode(genre_row.model_dump(exclude_none=True)),
+            subgenre_rows=subgenre_rows,
+        )
+        return {"partials": html}
 
 
 @public
@@ -1095,10 +1218,10 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
     }
     return CarouselPlaceholderData(
         lazy_config_json=json_encode(config),
-        # LoadingIndicator stays Templetor (10 other callers), so it is bridged
-        # here and passed in, like the card's loan_status_html.
-        loading_indicator_html=str(render_macro("LoadingIndicator", (_("Loading carousel"),), hidden=False)["__body__"]),
         fallback=params.get("fallback"),
+        title=config.get("title", ""),
+        title_link=True,
+        layout=config["layout"],
     )
 
 
@@ -1144,8 +1267,10 @@ def build_nearby_books_placeholder_config(work_key: str, language: str | None = 
     config = {"partial": "NearbyBooks", "work_key": work_key, **({"language": language} if language else {})}
     return CarouselPlaceholderData(
         lazy_config_json=json_encode(config),
-        loading_indicator_html=str(render_macro("LoadingIndicator", (_("Loading carousel"),), hidden=False)["__body__"]),
         fallback=None,
+        title=_("On the Same Shelf"),
+        title_link=False,
+        layout="carousel",
     )
 
 

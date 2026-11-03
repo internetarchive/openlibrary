@@ -16,7 +16,7 @@ machine either set ``HTTPS_PROXY`` to an allowlisted forward proxy, which
     MATOMO_URL=http://mockservices:8090/matomo
 """
 
-import datetime
+import datetime as dt
 import logging
 import os
 import time
@@ -38,7 +38,7 @@ MAX_PAGES = 200
 
 # Matomo's own raw-log retention is finite, so a longer request is far more
 # likely to be a mistake than an intent.
-MAX_WINDOW = datetime.timedelta(days=7)
+MAX_WINDOW = dt.timedelta(days=7)
 
 
 class MatomoError(Exception):
@@ -143,7 +143,7 @@ class MatomoClient:
             raise MatomoError(f"Matomo API returned {type(data).__name__}, expected a list of rows ({method})")
         return data
 
-    def _window(self, since: datetime.datetime) -> tuple[int, str]:
+    def _window(self, since: dt.datetime) -> tuple[int, str]:
         """Validate the requested window; return (minTimestamp, Matomo date range).
 
         The range is padded a day either side because Matomo reads `date` in the
@@ -151,16 +151,16 @@ class MatomoClient:
         earliest hours for any site behind UTC. `minTimestamp` does the precise
         filtering, so this only has to be wide enough not to exclude anything.
         """
-        now = datetime.datetime.now(datetime.UTC)
+        now = dt.datetime.now(dt.UTC)
         if since > now:
             raise ValueError(f"`since` is in the future ({since.isoformat()})")
         if (now - since) > MAX_WINDOW:
             raise ValueError(f"Windows longer than {MAX_WINDOW.days} days are not supported; asked for {(now - since).days} days")
 
-        day = datetime.timedelta(days=1)
+        day = dt.timedelta(days=1)
         return int(since.timestamp()), f"{(since - day).date().isoformat()},{(now + day).date().isoformat()}"
 
-    def get_visits_since(self, since: datetime.datetime, page_size: int = 500, budget_seconds: int = 300) -> VisitFetch:
+    def get_visits_since(self, since: dt.datetime, page_size: int = 500, budget_seconds: int = 300) -> VisitFetch:
         """Fetch every visit active since ``since``.
 
         Each visit carries a flat top-level ``dimension1`` holding the patron's

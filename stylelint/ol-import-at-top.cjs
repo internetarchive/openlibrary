@@ -20,33 +20,32 @@ const stylelint = require('stylelint');
 const ruleName = 'ol/import-at-top';
 
 const messages = stylelint.utils.ruleMessages(ruleName, {
-    rejected:
-        'Unexpected @import after the first statement. @import must precede all other rules; Vite silently drops mid-file imports.',
+    rejected: 'Unexpected @import after the first statement. @import must precede all other rules; Vite silently drops mid-file imports.'
 });
 
 const meta = {
-    url: 'https://developer.mozilla.org/en-US/docs/Web/CSS/@import',
+    url: 'https://developer.mozilla.org/en-US/docs/Web/CSS/@import'
 };
 
-const ruleFunction = (enabled) => {
+const ruleFunction = enabled => {
     return (root, result) => {
         const validOptions = stylelint.utils.validateOptions(result, ruleName, {
             actual: enabled,
-            possible: [true, false],
+            possible: [true, false]
         });
         if (!validOptions || !enabled) return;
 
-        const report = (atRule) => {
+        const report = atRule => {
             stylelint.utils.report({
                 message: messages.rejected,
                 node: atRule,
                 result,
-                ruleName,
+                ruleName
             });
         };
 
         let seenStatement = false;
-        root.each((node) => {
+        root.each(node => {
             if (node.type === 'comment') return;
             if (node.type === 'atrule' && node.name === 'import') {
                 if (seenStatement) report(node);
@@ -59,7 +58,7 @@ const ruleFunction = (enabled) => {
         });
 
         // @import nested inside a rule or another at-rule is never valid
-        root.walkAtRules('import', (atRule) => {
+        root.walkAtRules('import', atRule => {
             if (atRule.parent !== root) report(atRule);
         });
     };

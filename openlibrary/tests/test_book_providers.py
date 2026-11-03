@@ -10,12 +10,14 @@ emitted nothing for `borrow` before this, which for Lenny is half the catalogue
 import logging
 from pathlib import Path
 from typing import Final
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 import web
+from bs4 import BeautifulSoup
 from web.template import Template
 
+from infogami.utils import macro
 from openlibrary import book_providers
 from openlibrary.book_providers import (
     PROVIDER_ORDER,
@@ -298,6 +300,91 @@ class TestReadButtonTemplate:
         html = self.render("borrow", BORROW_URL, provider_name=None)
         assert ">Borrow</a>" in html
         assert 'data-ol-provider=""' in html
+
+
+RETURN_URL: Final = "/borrow/lenny/OL46539165M/return"
+
+
+class TestReadButtonReturnControl:
+    """The Return control beside Read for a held provider loan (#13909).
+
+    Rendered through `render_template` rather than the bare `Template` the class
+    above uses, because the control is `macros.ReturnForm` and reads
+    `$request.fullpath` -- neither of which a bare template provides. Loading
+    the `request` global before the macros is load-bearing for the same reason
+    it is in `test_loan_actions.py`: a disk macro captures the globals when it
+    loads, and `ReturnForm` NameErrors on `request` otherwise."""
+
+    @pytest.fixture
+    def render(self, render_template, request_context_fixture):
+        request_context_fixture(lang="en")
+        web.ctx.path = "/books/OL46539165M"
+        web.ctx.fullpath = "/books/OL46539165M"
+        web.template.Template.globals["request"] = web.storage(fullpath="/books/OL46539165M")
+        macro.diskmacros.load_templates("openlibrary/macros")
+
+        def _render(provider_loan):
+            acquisition = Acquisition(access="borrow", format="web", price=None, url=BORROW_URL, provider_name="lenny")
+            return render_template(
+                "book_providers/read_button",
+                "OL46539165M",
+                acquisition,
+                "Lenny",
+                lambda action: f'data-ol-link-track="CTAClick|{action}"',
+                show_locate=True,
+                provider_loan=provider_loan,
+            )
+
+        return _render
+
+    def _return_form(self, html):
+        return BeautifulSoup(str(html), "lxml").find("form", class_="return-form")
+
+    def test_a_held_loan_offers_a_return_posting_to_the_open_library_route(self, render):
+        """The control exists, and it posts the return to the OL route the loan
+        carries -- not to the node (the node has no cookie-free return)."""
+        form = self._return_form(render({"read_url": READ_URL, "return_url": RETURN_URL, "expiry": "2026-10-01T00:00:00"}))
+        assert form is not None
+        assert form["action"] == RETURN_URL
+        assert form["method"] == "post"
+        assert "Return book" in str(render({"read_url": READ_URL, "return_url": RETURN_URL, "expiry": None}))
+
+    def test_read_is_still_offered_alongside_return(self, render):
+        """The Return control is added beside Read, it does not replace it."""
+        html = str(render({"read_url": READ_URL, "return_url": RETURN_URL, "expiry": None}))
+        assert f'href="{READ_URL}"' in html
+
+    def test_a_loan_cached_before_return_url_existed_shows_no_return(self, render):
+        """`return_url` is new on the loan shape; an entry cached before this
+        change lacks it. The template `.get`s it, so it degrades to Read-only
+        for one PROVIDER_LOANS_TTL rather than raising -- then self-heals."""
+        assert self._return_form(render({"read_url": READ_URL})) is None
+
+    def test_no_loan_means_no_return_control(self, render):
+        """With no provider loan the branch falls through to a borrow button,
+        which must never carry a return form."""
+        assert self._return_form(render(None)) is None
+
+    def test_the_carousel_boundary_gates_the_provider_loan_lookup(self, monkeypatch):
+        """Off the book page, LoanStatus passes check_loan_status=False, and
+        render_read_button must then not look up a provider loan at all -- which
+        is what keeps the Return control (and the Read-your-loan link) off
+        carousels, lists and search results. Pinned at the decision point
+        because no browser check can cheaply prove an absence across every
+        surface; removing the `if check_loan_status` guard turns this red."""
+        acq = [Acquisition(access="borrow", format="web", price=None, url=BORROW_URL, provider_name="lenny")]
+        monkeypatch.setattr(LennyProvider, "get_acquisitions", lambda self, ed_or_solr: acq)
+        monkeypatch.setattr(book_providers, "render_template", lambda *a, **k: "")
+        spy = Mock(return_value=None)
+        monkeypatch.setattr(book_providers, "get_provider_loan", spy)
+        provider = LennyProvider()
+        ed = {"key": "/books/OL46539165M"}
+
+        provider.render_read_button("OL46539165M", ed, lambda action: "", show_locate=True, check_loan_status=False)
+        assert spy.call_count == 0, "a carousel (check_loan_status=False) must not look up a provider loan"
+
+        provider.render_read_button("OL46539165M", ed, lambda action: "", show_locate=True, check_loan_status=True)
+        assert spy.call_count == 1, "the book page (check_loan_status=True) must look up the provider loan"
 
 
 @pytest.fixture

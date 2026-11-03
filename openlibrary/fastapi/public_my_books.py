@@ -71,7 +71,6 @@ async def get_public_my_books_json(
 
     Otherwise returns an error.
     """
-    key = key.lower()  # type: ignore[assignment]
 
     if len(q) < 3:
         q = ""
@@ -123,7 +122,7 @@ async def get_public_my_books_json(
     if page == 1 and len(records_json) < pagination.limit:
         num_found = len(records_json)
     else:
-        num_found = readlog.count_shelf(key)
+        num_found = await readlog.count_shelf(key)
 
     return ReadingLogResponse(
         page=page,

@@ -3,9 +3,7 @@ import { collectConsoleErrors, login } from './helpers';
 
 // OL286811W is present in the dev DB seed data; OL45883W is the production fallback
 // Playwright follows the 301 redirect to the slug URL automatically
-const WORK_URL = process.env.OL_BASE_URL?.startsWith('https')
-    ? '/works/OL45883W'
-    : '/works/OL286811W';
+const WORK_URL = process.env.OL_BASE_URL?.startsWith('https') ? '/works/OL45883W' : '/works/OL286811W';
 
 test.describe('Book (Work) page @smoke', () => {
     test('loads with a title in the heading', async ({ page }) => {

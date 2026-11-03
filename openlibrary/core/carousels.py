@@ -1,12 +1,9 @@
-"""Canonical data fetching for the homepage "carousel" sections.
+"""Canonical data fetching for IA-backed "carousel" sections.
 
-These carousels (staff picks, recently returned) used to fetch from the IA
-advanced-search API while rendering inside `home/custom_ia_carousel.html`.
-Fetching lives here so templates only ever render pre-fetched data, and so
-both consumers — the homepage (`openlibrary.plugins.openlibrary.home`) and the
-loans page (`openlibrary.plugins.upstream.account`) — build their carousels
-from one shared module in `openlibrary.core` instead of importing from each
-other's page controllers.
+These carousels (today just staff picks, on the loans page) fetch from the IA
+advanced-search API. Fetching lives here so templates only ever render
+pre-fetched data, and so page controllers build their carousels from one shared
+module in `openlibrary.core` instead of importing from each other.
 """
 
 from collections.abc import Iterable
@@ -33,11 +30,10 @@ CAROUSELS_PRESETS = {
     ),
 }
 
-CarouselName = Literal["staff_picks", "recently_returned"]
+CarouselName = Literal["staff_picks"]
 
 CAROUSEL_SUBJECTS: dict[CarouselName, str] = {
     "staff_picks": "openlibrary_staff_picks",
-    "recently_returned": "",
 }
 
 
@@ -64,7 +60,7 @@ def get_carousel_data(carousels: Iterable[CarouselName] | None = None) -> dict[C
     """Fetch books, IA search URLs, and load-more configs for the given carousels."""
     names: Iterable[CarouselName]
     if carousels is None:
-        names = ("staff_picks", "recently_returned")
+        names = ("staff_picks",)
     else:
         names = carousels
 

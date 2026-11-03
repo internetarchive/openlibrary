@@ -1,5 +1,13 @@
 """pytest configuration for openlibrary"""
 
+import os
+
+# Tests must behave the same in the dev container as in CI, so drop the
+# deployment flags compose sets before anything reads them (some modules do at
+# import time). A test that needs dev-mode behaviour uses the local_dev fixture.
+os.environ.pop("LOCAL_DEV", None)
+os.environ.pop("OL_DEPLOYMENT_NAME", None)
+
 import pytest
 import web
 
@@ -8,6 +16,7 @@ from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 from infogami.utils.view import render_template as infobase_render_template
 from openlibrary.core import helpers
+from openlibrary.core.env import get_ol_env
 from openlibrary.i18n import gettext
 from openlibrary.mocks.mock_ia import mock_ia  # noqa: F401 side effects may be needed
 from openlibrary.mocks.mock_infobase import (
@@ -25,6 +34,12 @@ def no_requests(monkeypatch):
         raise Warning("Network requests are blocked in the testing environment")
 
     monkeypatch.setattr("requests.sessions.Session.request", mock_request)
+
+
+@pytest.fixture
+def local_dev(monkeypatch):
+    """Run the test as if LOCAL_DEV=true."""
+    monkeypatch.setattr(get_ol_env(), "LOCAL_DEV", True)
 
 
 @pytest.fixture(autouse=True)

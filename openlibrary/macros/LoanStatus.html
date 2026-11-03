@@ -71,7 +71,7 @@ $if lending_state == 'borrowed':
     $:macros.PreviewSearchInside(ocaid)
   $:macros.ReadButton(ocaid, analytics_attr, loan=user_loan, listen=listen, edition_key=edition_key, book_title=book_title)
   $if is_book_page:
-    $:macros.ReturnForm(ocaid, user_loan['expiry'], analytics_track="LoanStatus|ReturnClick")
+    $:macros.ReturnForm(borrow_link, user_loan['expiry'], analytics_track="LoanStatus|ReturnClick")
 
 $elif lending_state == 'partner':
   $# Partner Trusted Book Provider Read Buttons

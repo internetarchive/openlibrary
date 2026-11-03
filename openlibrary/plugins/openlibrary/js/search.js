@@ -39,7 +39,7 @@ export function less(header, start_facet_count, facet_inc) {
     const shown = $(`${facetEntry}:not(:hidden)`).length;
     const total = $(facetEntry).length;
     const increment_extra = (shown - start_facet_count) % facet_inc;
-    const facet_dec = (increment_extra === 0) ? facet_inc:increment_extra;
+    const facet_dec = increment_extra === 0 ? facet_inc : increment_extra;
     const next_shown = Math.max(start_facet_count, shown - facet_dec);
     if (shown === total) {
         $(`#${header}_more`).show();
@@ -73,7 +73,7 @@ export async function initSearchFacets(facetsElem) {
         await whenVisible(facetsElem);
 
         return fetchPartials(param)
-            .then((data) => {
+            .then(data => {
                 if (!data || typeof data.sidebar !== 'string') {
                     throw new Error('Search facets partials response is missing sidebar markup.');
                 }
@@ -108,10 +108,9 @@ export async function initSearchFacets(facetsElem) {
  * @param {HTMLElement} facetsElem Root element of the search facets sidebar component
  */
 function showSearchFacetsError(facetsElem) {
-    facetsElem.querySelectorAll('.facet').forEach((facet) => facet.remove());
+    facetsElem.querySelectorAll('.facet').forEach(facet => facet.remove());
     facetsElem.querySelector('.search-facets-error').classList.remove('ui-helper-hidden');
 }
-
 
 /**
  * Adds click listeners to the "show more" and "show less" facet affordances.
@@ -122,10 +121,10 @@ function hydrateFacets() {
     const facet_inc = data_config_json['facet_inc'];
 
     $('.header_bull').hide();
-    $('.header_more').on('click', function(){
+    $('.header_more').on('click', function () {
         more($(this).data('header'), start_facet_count, facet_inc);
     });
-    $('.header_less').on('click', function(){
+    $('.header_less').on('click', function () {
         less($(this).data('header'), start_facet_count, facet_inc);
     });
 }
@@ -154,11 +153,10 @@ function fetchPartials(param) {
         query: location.search
     };
 
-    return fetch(buildPartialsUrl('SearchFacets', {data: JSON.stringify(data)}))
-        .then((resp) => {
-            if (!resp.ok) {
-                throw new Error(`Failed to fetch partials. Status code: ${resp.status}`);
-            }
-            return resp.json();
-        });
+    return fetch(buildPartialsUrl('SearchFacets', { data: JSON.stringify(data) })).then(resp => {
+        if (!resp.ok) {
+            throw new Error(`Failed to fetch partials. Status code: ${resp.status}`);
+        }
+        return resp.json();
+    });
 }

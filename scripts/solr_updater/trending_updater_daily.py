@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 
 from openlibrary.plugins.worksearch.code import execute_solr_query
 from openlibrary.plugins.worksearch.search import get_solr
@@ -27,9 +27,9 @@ def form_inplace_updates(work_id: str, current_day: int, new_value: int):
 
 def run_daily_update(timestamp: str | None = None, dry_run: bool = False):
     if timestamp:
-        ts = datetime.datetime.fromisoformat(timestamp)
+        ts = dt.datetime.fromisoformat(timestamp)
     else:
-        ts = datetime.datetime.now()
+        ts = dt.datetime.now()
     current_day = ts.weekday()
     work_data = fetch_works_trending_scores(current_day)
 

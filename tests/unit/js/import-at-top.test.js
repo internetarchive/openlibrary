@@ -15,15 +15,11 @@ function lintImportAtTop(code) {
     const file = path.join(dir, 'test.css');
     writeFileSync(file, code);
     try {
-        execFileSync(stylelintBin, [
-            file,
-            '--config', path.join(repoRoot, '.stylelintrc.json'),
-            '--allow-empty-input',
-        ], {
+        execFileSync(stylelintBin, [file, '--config', path.join(repoRoot, '.stylelintrc.json'), '--allow-empty-input'], {
             encoding: 'utf8',
             // The fixtures fail lint on purpose; capture the report for the
             // assertion below instead of letting execFileSync print it.
-            stdio: ['ignore', 'pipe', 'pipe'],
+            stdio: ['ignore', 'pipe', 'pipe']
         });
         return 0;
     } catch (error) {
@@ -37,46 +33,28 @@ function lintImportAtTop(code) {
 describe('ol/import-at-top', () => {
     test('allows imports at the top of the file', () => {
         const warnings = lintImportAtTop(
-            '@charset "utf-8";\n'
-            + '@import "a.css";\n'
-            + '@import "b.css" screen and (min-width: 1px);\n'
-            + '.foo { color: red; }\n'
+            '@charset "utf-8";\n' + '@import "a.css";\n' + '@import "b.css" screen and (min-width: 1px);\n' + '.foo { color: red; }\n'
         );
         expect(warnings).toBe(0);
     });
 
     test('allows a blockless @layer statement before imports', () => {
-        const warnings = lintImportAtTop(
-            '@layer reset;\n'
-            + '@import "a.css";\n'
-            + '.foo { color: red; }\n'
-        );
+        const warnings = lintImportAtTop('@layer reset;\n' + '@import "a.css";\n' + '.foo { color: red; }\n');
         expect(warnings).toBe(0);
     });
 
     test('flags an @import after a rule', () => {
-        const warnings = lintImportAtTop(
-            '.foo { color: red; }\n'
-            + '@import "a.css";\n'
-        );
+        const warnings = lintImportAtTop('.foo { color: red; }\n' + '@import "a.css";\n');
         expect(warnings).toBe(1);
     });
 
     test('flags an @import after a rule even with a leading @charset', () => {
-        const warnings = lintImportAtTop(
-            '@charset "utf-8";\n'
-            + '.foo { color: red; }\n'
-            + '@import "a.css";\n'
-        );
+        const warnings = lintImportAtTop('@charset "utf-8";\n' + '.foo { color: red; }\n' + '@import "a.css";\n');
         expect(warnings).toBe(1);
     });
 
     test('flags an @import nested inside an at-rule', () => {
-        const warnings = lintImportAtTop(
-            '@media (min-width: 1px) {\n'
-            + '  @import "a.css";\n'
-            + '}\n'
-        );
+        const warnings = lintImportAtTop('@media (min-width: 1px) {\n' + '  @import "a.css";\n' + '}\n');
         expect(warnings).toBe(1);
     });
 });

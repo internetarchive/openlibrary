@@ -6,13 +6,13 @@
  * @param {HTMLElement} drawer The `<ol-drawer>` holding the menu.
  */
 export function initHamburgerDrawer(trigger, drawer) {
-    trigger.addEventListener('click', function() {
+    trigger.addEventListener('click', function () {
         drawer.open = !drawer.open;
     });
-    drawer.addEventListener('ol-drawer-show', function() {
+    drawer.addEventListener('ol-drawer-show', function () {
         trigger.setAttribute('aria-expanded', 'true');
     });
-    drawer.addEventListener('ol-drawer-after-hide', function() {
+    drawer.addEventListener('ol-drawer-after-hide', function () {
         trigger.setAttribute('aria-expanded', 'false');
     });
 
@@ -20,7 +20,7 @@ export function initHamburgerDrawer(trigger, drawer) {
     // a beat to start painting. Flag the pressed row so it shows a spinner
     // and the rest dim back (mirrors the search modal's result loading
     // treatment) — the drawer stays open until the new page takes over.
-    drawer.addEventListener('click', function(e) {
+    drawer.addEventListener('click', function (e) {
         const el = e.target.closest('a[href], button[type="submit"], button:not([type])');
         if (!el) return;
         // New-tab / modified / non-left clicks don't navigate this window.
@@ -36,12 +36,12 @@ export function initHamburgerDrawer(trigger, drawer) {
 
     // Restoring from bfcache (back/forward) reuses this DOM with the spinner
     // still on the pressed row — clear it so the menu looks idle again.
-    window.addEventListener('pageshow', function(e) {
+    window.addEventListener('pageshow', function (e) {
         if (!e.persisted) return;
         const menu = drawer.querySelector('.drawer-menu');
         if (!menu) return;
         menu.classList.remove('is-navigating');
-        menu.querySelectorAll('.is-target, .is-target-row').forEach(function(t) {
+        menu.querySelectorAll('.is-target, .is-target-row').forEach(function (t) {
             t.classList.remove('is-target');
             t.classList.remove('is-target-row');
         });

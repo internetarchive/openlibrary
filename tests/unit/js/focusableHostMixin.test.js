@@ -24,9 +24,7 @@ function defineFocusableElement(tagName, { renderHTML = '', focusTargetSelector 
             if (!this.shadowRoot.innerHTML) this.shadowRoot.innerHTML = renderHTML;
         }
         get _focusTarget() {
-            return focusTargetSelector
-                ? this.shadowRoot.querySelector(focusTargetSelector)
-                : null;
+            return focusTargetSelector ? this.shadowRoot.querySelector(focusTargetSelector) : null;
         }
     };
     customElements.define(tagName, cls);
@@ -34,12 +32,12 @@ function defineFocusableElement(tagName, { renderHTML = '', focusTargetSelector 
 }
 
 defineFocusableElement('mixin-test-default', {
-    renderHTML: '<button class="trigger">trigger</button><button class="other">other</button>',
+    renderHTML: '<button class="trigger">trigger</button><button class="other">other</button>'
 });
 
 defineFocusableElement('mixin-test-with-target', {
     renderHTML: '<button class="trigger">trigger</button><button class="other">other</button>',
-    focusTargetSelector: '.trigger',
+    focusTargetSelector: '.trigger'
 });
 
 afterEach(() => {

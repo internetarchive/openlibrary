@@ -18,7 +18,7 @@ function insertDialog() {
     return host.querySelector('ol-dialog');
 }
 
-test('an un-upgraded ol-dialog is hidden, so its slotted autofocus field is not focusable', async() => {
+test('an un-upgraded ol-dialog is hidden, so its slotted autofocus field is not focusable', async () => {
     expect(customElements.get('ol-dialog'), 'test must run before OlDialog.js is imported').toBeUndefined();
 
     const dialog = insertDialog();

@@ -204,7 +204,7 @@ Three parallel threads in 2026, none complete:
 `async_bridge.wrap()`:
 
 ```python
-get_available    = async_bridge.wrap(get_available_async)
+get_available = async_bridge.wrap(get_available_async)
 get_availability = async_bridge.wrap(get_availability_async)
 add_availability = async_bridge.wrap(add_availability_async, "add_availability")
 ```

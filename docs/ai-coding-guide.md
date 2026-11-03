@@ -150,7 +150,7 @@ make lint
 
 # JavaScript + CSS
 npm run lint
-npm run lint:js              # ESLint only
+npm run lint:js              # oxlint + oxfmt (JS) and ESLint (Vue) only
 npm run lint:css             # Stylelint only
 
 # Auto-fix
@@ -167,7 +167,7 @@ The app is loaded through Infogami's plugin system. `openlibrary/code.py` is the
 
 **Routes (web.py/Infogami):** Defined as classes extending `delegate.page` in plugin `code.py` files. The class attribute `path` is a regex pattern, and `GET`/`POST` methods handle requests.
 
-**Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app. In local dev, FastAPI is the primary entry point on port 8080; requests it has no route for are proxied to web.py via `openlibrary/fastapi/proxy.py`.
+**Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app. In local dev, FastAPI is the primary entry point on port 8080; requests it has no route for are proxied to web.py via `openlibrary/fastapi/proxy.py`. To move an HTML page to FastAPI, follow [Serving HTML pages from FastAPI](core/fastapi-pages.md).
 
 **Key plugins:**
 - `plugins/openlibrary/` — Main plugin: site routes, JS source files (`js/`), processors
@@ -204,7 +204,7 @@ Route handlers render templates via `render_template("path/name", args)` which m
 - **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via `scripts/vite/build.mjs` (`--only js`) to `static/build/js/`.
 - **Vue components:** `openlibrary/components/*.vue`, built with `scripts/vite/build.mjs` (`--only components`) to `static/build/components/production/`.
 - **Lit web components:** `openlibrary/components/lit/`, built with `scripts/vite/build.mjs` (`--only components`) to `static/build/components/production/`.
-- **jQuery** is still widely used but new code should avoid it (ESLint no-jquery plugin active).
+- **jQuery** is still widely used but new code should avoid it.
 
 ### Browser Support
 
@@ -242,7 +242,7 @@ When creating PRs, use the template in `.github/pull_request_template.md` for th
 ## Code Style
 
 - **Python:** Ruff for linting and `ruff format` for formatting. Line length 162. Target Python 3.14.
-- **JavaScript:** ESLint with single quotes, `prefer-template`, `eqeqeq`. No jQuery in new code.
+- **JavaScript:** oxlint for linting and oxfmt for formatting, with single quotes, `prefer-template`, `eqeqeq`. ESLint is only used for Vue files. No jQuery in new code.
 - **CSS:** Stylelint enforces strict value rules — no hex colors, no named colors (use variables). Strict values required for `font-family`, `background-color`, `z-index`, `color`.
 - **Branch naming:** `{issue-number}/{type}/{slug}` (e.g., `123/fix/login-redirect`)
 
@@ -254,6 +254,7 @@ These companion docs cover specific areas in depth:
 - [CSS](frontend/css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
 - [Design](frontend/design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations, mobile
 - [Web Component Standards](frontend/web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM, testing in jsdom vs browser mode
+- [Serving HTML pages from FastAPI](core/fastapi-pages.md) — Porting a web.py page: typed query models, request-derived dependencies, the site shell, sync routes, tests to copy
 - [Internationalization](i18n/i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings
 
 ## Domain Knowledge Bases

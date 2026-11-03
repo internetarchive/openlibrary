@@ -8,40 +8,30 @@ import { updateURLParameters } from './utils';
 // `end: null` means the role is ongoing. Section placement is derived from these objects.
 
 // null (ongoing role) and undefined (field absent) are treated alike.
-const isNil = (value) => value === null || value === undefined;
+const isNil = value => value === null || value === undefined;
 
-export const hasKind = (person, kind) =>
-    (person.roles || []).some((role) => role.kind === kind);
+export const hasKind = (person, kind) => (person.roles || []).some(role => role.kind === kind);
 
-export const isStaff = (person) => hasKind(person, 'staff');
+export const isStaff = person => hasKind(person, 'staff');
 
 // Fellows exclude anyone who became staff; volunteers exclude anyone who became a fellow.
-export const isFellow = (person) =>
-    hasKind(person, 'fellow') && !hasKind(person, 'staff');
+export const isFellow = person => hasKind(person, 'fellow') && !hasKind(person, 'staff');
 
-export const isVolunteer = (person) =>
-    hasKind(person, 'volunteer') && !hasKind(person, 'fellow');
+export const isVolunteer = person => hasKind(person, 'volunteer') && !hasKind(person, 'fellow');
 
 // A current Lead = the person's most-recent (first) role carries the lead flag.
 // Leads surface as their own category rather than under Staff/Fellows/Volunteers.
-export const isLead = (person) => Boolean((person.roles || [])[0]?.lead);
+export const isLead = person => Boolean((person.roles || [])[0]?.lead);
 
-export const isStaffEmeritus = (person) =>
-    isStaff(person) &&
-    (person.roles || []).some(
-        (role) => role.kind === 'staff' && role.status === 'emeritus'
-    );
+export const isStaffEmeritus = person => isStaff(person) && (person.roles || []).some(role => role.kind === 'staff' && role.status === 'emeritus');
 
 export const isCurrentFellow = (person, year) =>
-    isFellow(person) &&
-    (person.roles || []).some(
-        (role) => role.kind === 'fellow' && (isNil(role.end) || role.end === year)
-    );
+    isFellow(person) && (person.roles || []).some(role => role.kind === 'fellow' && (isNil(role.end) || role.end === year));
 
 // Every calendar year a person held any role, for the Year facet.
 export const roleYears = (person, currentYear) => {
     const years = new Set();
-    (person.roles || []).forEach((role) => {
+    (person.roles || []).forEach(role => {
         if (isNil(role.start)) {
             // Undated but still-active/ongoing role (current staff, volunteers):
             // count it as the current year so the Year facet shows current members.
@@ -58,11 +48,10 @@ export const roleYears = (person, currentYear) => {
     return years;
 };
 
-export const personMatchesYear = (person, year, currentYear) =>
-    year === 'All' || roleYears(person, currentYear).has(Number(year));
+export const personMatchesYear = (person, year, currentYear) => year === 'All' || roleYears(person, currentYear).has(Number(year));
 
 // A URL-safe anchor slug for a person, e.g. "Minh Huỳnh Khánh" -> "minh-huynh-khanh".
-export const slugify = (name) =>
+export const slugify = name =>
     name
         .normalize('NFKD')
         .replace(/[̀-ͯ]/g, '')
@@ -71,9 +60,9 @@ export const slugify = (name) =>
         .replace(/^-+|-+$/g, '');
 
 // Assign each person a unique `slug` (deduping collisions) for deep-linking.
-export const assignSlugs = (people) => {
+export const assignSlugs = people => {
     const seen = new Set();
-    people.forEach((person) => {
+    people.forEach(person => {
         const base = slugify(person.name) || 'member';
         let slug = base;
         let n = 2;
@@ -89,29 +78,26 @@ export const assignSlugs = (people) => {
 // Every distinct year anyone held a role, newest first — powers the Year facet.
 export const allRoleYears = (people, currentYear) => {
     const years = new Set();
-    people.forEach((person) =>
-        roleYears(person, currentYear).forEach((y) => years.add(y))
-    );
+    people.forEach(person => roleYears(person, currentYear).forEach(y => years.add(y)));
     return [...years].sort((a, b) => b - a);
 };
 
 // Substring match preserved for departments (string list); '' matches everything.
-const matchDepartment = (person, department) =>
-    (person.departments || []).some((d) => d.includes(department));
+const matchDepartment = (person, department) => (person.departments || []).some(d => d.includes(department));
 
 export const classifyTeam = (people, year) => {
     // Leads are pulled into their own category; everyone else falls through to
     // their cohort (staff/fellow/volunteer).
     const leads = people.filter(isLead);
-    const rest = people.filter((person) => !isLead(person));
+    const rest = people.filter(person => !isLead(person));
     const staff = rest.filter(isStaff);
     return {
         leads,
-        staffCurrent: staff.filter((p) => !isStaffEmeritus(p)),
+        staffCurrent: staff.filter(p => !isStaffEmeritus(p)),
         staffEmeritus: staff.filter(isStaffEmeritus),
-        currentFellows: rest.filter((p) => isCurrentFellow(p, year)),
-        pastFellows: rest.filter((p) => isFellow(p) && !isCurrentFellow(p, year)),
-        volunteers: rest.filter(isVolunteer),
+        currentFellows: rest.filter(p => isCurrentFellow(p, year)),
+        pastFellows: rest.filter(p => isFellow(p) && !isCurrentFellow(p, year)),
+        volunteers: rest.filter(isVolunteer)
     };
 };
 
@@ -130,8 +116,7 @@ export const tenureSince = (person, currentYear) => {
 export function initTeamFilter() {
     const currentYear = new Date().getFullYear();
     // Photos
-    const default_profile_image =
-    '../../../static/images/openlibrary-180x180.png';
+    const default_profile_image = '../../../static/images/openlibrary-180x180.png';
     const bookUrlIcon = '../../../static/images/icons/icon_book-lg.png';
     const personalUrlIcon = '../../../static/images/globe-solid.svg';
     const initialSearchParams = new URL(window.location.href).searchParams;
@@ -139,7 +124,7 @@ export function initTeamFilter() {
     const initialDepartment = initialSearchParams.get('department') || 'All';
 
     // Team sorted by last name
-    const sortByLastName = (array) => {
+    const sortByLastName = array => {
         array.sort((a, b) => {
             const aName = a.name.split(' ');
             const bName = b.name.split(' ');
@@ -165,7 +150,7 @@ export function initTeamFilter() {
 
     // Populate the Year dropdown from the data (newest first); "All" stays first.
     if (yearFilter) {
-        allRoleYears(team, currentYear).forEach((year) => {
+        allRoleYears(team, currentYear).forEach(year => {
             const option = document.createElement('option');
             option.value = String(year);
             option.textContent = String(year);
@@ -197,18 +182,17 @@ export function initTeamFilter() {
     const showError = () => {
         const noResults = document.createElement('h3');
         noResults.classList = 'noResults';
-        noResults.textContent =
-      'It looks like we don\'t have anyone with those specifications.';
+        noResults.textContent = "It looks like we don't have anyone with those specifications.";
         cardsContainer.append(noResults);
     };
 
     // Deep-link helpers. A contributor card has id=<slug>; ?contributor=<slug>
     // (or #<slug>) jumps to it, revealing it past any active filter.
-    const findCard = (slug) => {
+    const findCard = slug => {
         const el = slug ? document.getElementById(slug) : null;
         return el && el.classList.contains('teamCard__container') ? el : null;
     };
-    const revealCard = (slug) => {
+    const revealCard = slug => {
         let card = findCard(slug);
         if (!card) {
             // Hidden by an active filter — show everyone, then retry.
@@ -222,24 +206,22 @@ export function initTeamFilter() {
         }
         return card;
     };
-    const highlightCard = (card) => {
-        cardsContainer
-            .querySelectorAll('.teamCard__container--highlighted')
-            .forEach((el) => el.classList.remove('teamCard__container--highlighted'));
+    const highlightCard = card => {
+        cardsContainer.querySelectorAll('.teamCard__container--highlighted').forEach(el => el.classList.remove('teamCard__container--highlighted'));
         card.classList.add('teamCard__container--highlighted');
         if (card.scrollIntoView) {
             card.scrollIntoView({ block: 'center' });
         }
     };
-    const goToContributor = (slug) => {
+    const goToContributor = slug => {
         const card = revealCard(slug);
         if (card) {
             highlightCard(card);
         }
     };
 
-    const createCards = (array) => {
-        array.map((member) => {
+    const createCards = array => {
+        array.map(member => {
             // create
             const teamCardContainer = document.createElement('div');
             const teamCard = document.createElement('div');
@@ -263,9 +245,7 @@ export function initTeamFilter() {
 
             teamCardPhotoContainer.classList = 'teamCard__photoContainer';
             teamCardPhoto.classList = 'teamCard__photo';
-            teamCardPhoto.src = `${
-                member.photo_path ? member.photo_path : default_profile_image
-            }`;
+            teamCardPhoto.src = `${member.photo_path ? member.photo_path : default_profile_image}`;
             teamCardPhoto.alt = member.name;
             // The photo links to the member's Open Library profile; the name now
             // deep-links within this page (see below).
@@ -282,15 +262,13 @@ export function initTeamFilter() {
             // Clicking the name adds ?contributor=<slug> and jumps to this card.
             if (member.slug) {
                 nameLink.href = `?contributor=${encodeURIComponent(member.slug)}`;
-                nameLink.addEventListener('click', (e) => {
+                nameLink.addEventListener('click', e => {
                     e.preventDefault();
                     updateURLParameters({ contributor: member.slug });
                     goToContributor(member.slug);
                 });
             }
-            member.name.length >= 18
-                ? (memberName.classList = 'description__name--length-long')
-                : (memberName.classList = 'description__name--length-short');
+            member.name.length >= 18 ? (memberName.classList = 'description__name--length-long') : (memberName.classList = 'description__name--length-short');
 
             memberName.textContent = `${member.name}`;
             memberTitle.classList = 'description__title';
@@ -360,7 +338,7 @@ export function initTeamFilter() {
         });
     };
 
-    const createSectionHeading = (text) => {
+    const createSectionHeading = text => {
         const sectionSeparator = document.createElement('div');
         sectionSeparator.textContent = `${text}`;
         sectionSeparator.classList = 'sectionSeparator';
@@ -378,31 +356,27 @@ export function initTeamFilter() {
     const filterTeam = (role, department, year) => {
         cardsContainer.textContent = '';
         // Year and department narrow the pool; role then chooses which sections show.
-        let people = team.filter((person) =>
-            personMatchesYear(person, year, currentYear)
-        );
+        let people = team.filter(person => personMatchesYear(person, year, currentYear));
         if (department !== 'All') {
-            people = people.filter((person) => matchDepartment(person, department));
+            people = people.filter(person => matchDepartment(person, department));
         }
         // When a specific year is chosen, "current" fellows are those current in
         // that year, not today — so the Current/Past labels read correctly.
         const classYear = year === 'All' ? currentYear : Number(year);
         const groups = classifyTeam(people, classYear);
         const anyShown =
-      groups.leads.length ||
-      groups.staffCurrent.length ||
-      groups.staffEmeritus.length ||
-      groups.currentFellows.length ||
-      groups.pastFellows.length ||
-      groups.volunteers.length;
+            groups.leads.length ||
+            groups.staffCurrent.length ||
+            groups.staffEmeritus.length ||
+            groups.currentFellows.length ||
+            groups.pastFellows.length ||
+            groups.volunteers.length;
 
         if (role === 'All') {
             if (groups.staffCurrent.length || groups.staffEmeritus.length) {
                 createSectionHeading('Staff');
-                groups.staffCurrent.length &&
-          createsubSection(groups.staffCurrent, 'Current');
-                groups.staffEmeritus.length &&
-          createsubSection(groups.staffEmeritus, 'Emeritus');
+                groups.staffCurrent.length && createsubSection(groups.staffCurrent, 'Current');
+                groups.staffEmeritus.length && createsubSection(groups.staffEmeritus, 'Emeritus');
             }
             if (groups.leads.length) {
                 createSectionHeading('Leads');
@@ -410,10 +384,8 @@ export function initTeamFilter() {
             }
             if (groups.currentFellows.length || groups.pastFellows.length) {
                 createSectionHeading('Fellows');
-                groups.currentFellows.length &&
-          createsubSection(groups.currentFellows, 'Current');
-                groups.pastFellows.length &&
-          createsubSection(groups.pastFellows, 'Past');
+                groups.currentFellows.length && createsubSection(groups.currentFellows, 'Current');
+                groups.pastFellows.length && createsubSection(groups.pastFellows, 'Past');
             }
             if (groups.volunteers.length) {
                 createSectionHeading('Volunteers');
@@ -425,30 +397,20 @@ export function initTeamFilter() {
             if (role === 'lead') {
                 groups.leads.length ? createCards(groups.leads) : showError();
             } else if (role === 'volunteer') {
-                groups.volunteers.length
-                    ? createCards(groups.volunteers)
-                    : showError();
+                groups.volunteers.length ? createCards(groups.volunteers) : showError();
             } else if (role === 'staff') {
-                groups.staffCurrent.length &&
-          createsubSection(groups.staffCurrent, 'Current');
-                groups.staffEmeritus.length &&
-          createsubSection(groups.staffEmeritus, 'Emeritus');
-                !groups.staffCurrent.length &&
-          !groups.staffEmeritus.length &&
-          showError();
+                groups.staffCurrent.length && createsubSection(groups.staffCurrent, 'Current');
+                groups.staffEmeritus.length && createsubSection(groups.staffEmeritus, 'Emeritus');
+                !groups.staffCurrent.length && !groups.staffEmeritus.length && showError();
             } else {
-                groups.currentFellows.length &&
-          createsubSection(groups.currentFellows, 'Current');
-                groups.pastFellows.length &&
-          createsubSection(groups.pastFellows, 'Past');
-                !groups.currentFellows.length &&
-          !groups.pastFellows.length &&
-          showError();
+                groups.currentFellows.length && createsubSection(groups.currentFellows, 'Current');
+                groups.pastFellows.length && createsubSection(groups.pastFellows, 'Past');
+                !groups.currentFellows.length && !groups.pastFellows.length && showError();
             }
         }
     };
 
-    const capitalize = (text) => {
+    const capitalize = text => {
         const firstLetter = text[0].toUpperCase();
         if (text === 'fellow' || text === 'volunteer' || text === 'lead') {
             return `${firstLetter + text.slice(1)}s`;
@@ -459,11 +421,7 @@ export function initTeamFilter() {
 
     // Deep-link on load from ?contributor=<slug> or #<slug>.
     const focusContributor = () => {
-        const target =
-      initialSearchParams.get('contributor') ||
-      (window.location.hash
-          ? decodeURIComponent(window.location.hash.slice(1))
-          : '');
+        const target = initialSearchParams.get('contributor') || (window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : '');
         if (target) {
             goToContributor(target);
         }
