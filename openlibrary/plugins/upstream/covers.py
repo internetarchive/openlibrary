@@ -122,11 +122,12 @@ class add_cover(delegate.page):
 
         try:
             files = {"data": data}
-            response = requests.post(upload_url, data=params, files=files)
+            response = requests.post(upload_url, data=params, files=files, timeout=30)
             return web.storage(response.json())
-        except requests.HTTPError as e:
+        # Coverstore down, slow, or answering with an HTML error page.
+        except (requests.RequestException, ValueError) as e:
             logger.exception("Covers upload failed")
-            return web.storage({"error": str(e)})
+            return web.storage({"error": str(e), "unavailable": True})
 
     def save(self, book, coverid, url=None):
         book.covers = [coverid] + [cover.id for cover in book.get_covers()]

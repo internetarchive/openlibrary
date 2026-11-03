@@ -1441,24 +1441,19 @@ class Request:
         Used for adding <meta rel="canonical" ..> tag in all web pages.
         Required to make OL retain the page rank after https migration.
         """
-        readable_path = web.ctx.get("readable_path", web.ctx.path) or ""
-        query = web.ctx.query or ""
-        host = web.ctx.host or ""
-        if url := host + readable_path + query:
-            url = "https://" + url
-            parsed_url = urlparse(url)
+        return canonical_url(web.ctx.host or "", web.ctx.get("readable_path", web.ctx.path) or "", web.ctx.query or "")
 
-            parsed_query = parse_qs(parsed_url.query)
-            queries_to_exclude = ["sort", "mode", "v", "type", "debug"]
 
-            canonical_query = {q: v for q, v in parsed_query.items() if q not in queries_to_exclude}
-            query = parse_urlencode(canonical_query, doseq=True)
-            parsed_url = parsed_url._replace(query=query)
+def canonical_url(host: str, readable_path: str, query: str) -> str:
+    """The https:// URL for ``host + readable_path + query``, minus view-only params.
 
-            url = urlunparse(parsed_url)
-
-            return url
-        return ""
+    ``query`` includes its leading "?", like ``web.ctx.query``.
+    """
+    if url := host + readable_path + query:
+        parsed_url = urlparse("https://" + url)
+        canonical_query = {q: v for q, v in parse_qs(parsed_url.query).items() if q not in ("sort", "mode", "v", "type", "debug")}
+        return urlunparse(parsed_url._replace(query=parse_urlencode(canonical_query, doseq=True)))
+    return ""
 
 
 @public
