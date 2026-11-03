@@ -159,7 +159,7 @@ export async function applyPlan(octokit, fullRepoName, prNumber, { assignee, lab
 }
 
 /**
- * Runs the sweep: plans (and unless `dryRun`, applies) a lead for every open PR
+ * Runs the sweep: plans and applies a lead for every open PR
  * that sweepSkipReason() lets through.
  *
  * Errors never stop the sweep early: a failure on one PR becomes that PR's row,
@@ -168,10 +168,9 @@ export async function applyPlan(octokit, fullRepoName, prNumber, { assignee, lab
  *
  * @param {import('@octokit/core').Octokit} octokit
  * @param {string} fullRepoName
- * @param {{dryRun: boolean}} options
  * @returns {Promise<{rows: Array<{number: number, assignee: string|null, labels: string[], reason: string}>, skipped: number, failed: number, listError: string|null}>}
  */
-export async function runSweep(octokit, fullRepoName, { dryRun }) {
+export async function runSweep(octokit, fullRepoName) {
     const [owner, name] = fullRepoName.split('/');
     const rows = [];
     let skipped = 0;
@@ -199,7 +198,7 @@ export async function runSweep(octokit, fullRepoName, { dryRun }) {
                         pr.labels.nodes.map(label => label.name)
                     );
                     let { assignee, reason } = plan;
-                    if (!dryRun && (assignee || labels.length)) {
+                    if (assignee || labels.length) {
                         const { assigned } = await applyPlan(octokit, fullRepoName, pr.number, { assignee, labels });
                         if (!assigned) {
                             reason = `could not assign @${assignee} (no repo access?); planned: ${reason}`;
@@ -227,24 +226,38 @@ const tableCell = text =>
         .replace(/\|/g, '\\|');
 
 /**
+ * Turns `#N` into a link. Job summaries don't autolink issue and PR numbers the
+ * way issues and PRs do (they do autolink `@mentions`). `/issues/N` redirects to
+ * `/pull/N` for a PR, so one URL form covers both.
+ *
+ * @param {string} text
+ * @param {string} fullRepoName e.g. "internetarchive/openlibrary"
+ * @returns {string}
+ */
+export function linkify(text, fullRepoName) {
+    return text.replace(/(^|[^\w[])#(\d+)\b/g, `$1[#$2](https://github.com/${fullRepoName}/issues/$2)`);
+}
+
+/**
  * Formats a runSweep() result as markdown for the job summary.
  *
  * @param {Awaited<ReturnType<typeof runSweep>>} result
- * @param {boolean} dryRun
+ * @param {string} fullRepoName e.g. "internetarchive/openlibrary", for links
  * @returns {string}
  */
-export function formatSweepSummary({ rows, skipped, failed, listError }, dryRun) {
+export function formatSweepSummary({ rows, skipped, failed, listError }, fullRepoName) {
     const assigned = rows.filter(row => row.assignee).length;
     const lines = [
-        `## PR lead sweep${dryRun ? ' (dry run: no assignments or labels were written)' : ''}`,
+        '## PR lead sweep',
         '',
-        `${rows.length} unassigned PRs checked, ${dryRun ? 'would assign' : 'assigned'} ${assigned}; ${skipped} skipped (draft, bot, or has or had an assignee)${failed ? `; ${failed} failed` : ''}.`
+        `${rows.length} unassigned PRs checked, assigned ${assigned}; ${skipped} skipped (draft, bot, or has or had an assignee)${failed ? `; ${failed} failed` : ''}.`
     ];
     if (listError) {
         lines.push('', `**Listing open PRs failed partway, so this is incomplete:** ${tableCell(listError)}`);
     }
     lines.push('', '| PR | Decision | Labels |', '|---|---|---|');
-    lines.push(...rows.map(row => `| #${row.number} | ${tableCell(row.reason)} | ${tableCell(row.labels.join(', '))} |`));
+    const prLink = number => `[#${number}](https://github.com/${fullRepoName}/issues/${number})`;
+    lines.push(...rows.map(row => `| ${prLink(row.number)} | ${linkify(tableCell(row.reason), fullRepoName)} | ${tableCell(row.labels.join(', '))} |`));
     return lines.join('\n');
 }
 

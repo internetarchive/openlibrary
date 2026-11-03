@@ -20,6 +20,11 @@ pages = APIRouter(route_class=SitePageRoute)
 loop_threads: list[threading.Thread] = []
 
 
+@pages.api_route("/verify_human", methods=["GET", "POST"])
+async def verify_human_stub() -> SitePage:
+    return SitePage("challenge body")
+
+
 @pages.get("/plain")
 async def plain() -> SitePage:
     loop_threads.append(threading.current_thread())
@@ -226,6 +231,23 @@ def test_requests_nginx_flags_are_sent_to_the_challenge(client, secret_key):
     # A genuine cookie means they passed it already.
     vf = accounts_model.create_verification_cookie_value()
     assert client.get("/plain", headers={"x-ol-verify-human": "1", "cookie": f"vf={quote(vf)}"}).status_code == 200
+
+
+@pytest.mark.parametrize("method", ["GET", "POST"])
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {"x-ol-verify-human": "1"},
+        {"cookie": 'vf="vf/abc,12345$forged"'},
+        {"cookie": 'vf="vf/abc,12345$forged"', "x-ol-verify-human": "1"},
+    ],
+    ids=["flagged", "forged-vf", "forged-vf-and-flagged"],
+)
+def test_the_challenge_page_skips_the_cookie_check(client, secret_key, method, headers):
+    """As on web.py: else a flagged visitor loops back to it, and a stale ``vf`` can't be replaced."""
+    response = client.request(method, "/verify_human", headers=headers, follow_redirects=False)
+    assert response.status_code == 200
+    assert "x-abuse" not in response.headers
 
 
 def test_loads_the_user_only_when_rendering_the_shell(client, loads):
