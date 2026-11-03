@@ -287,3 +287,47 @@ class TestPeopleEditsTemplate:
     )
     def test_bad_page_and_limit_fall_back_to_defaults(self, render_edits, query_string, pager):
         assert pager in render_edits(query_string)
+
+
+class FakeStore(dict):
+    """The Infobase client store: ``_rev`` must match unless it is None, like Infobase's conflict check."""
+
+    def __init__(self, conflicts: int = 0):
+        super().__init__()
+        self.conflicts = conflicts
+
+    def __setitem__(self, key, doc):
+        current = self.get(key)
+        if self.conflicts or (current and doc.get("_rev") not in (None, current["_rev"])):
+            self.conflicts = max(0, self.conflicts - 1)
+            raise admin_code.ClientException("409 Conflict", "Document update conflict")
+        super().__setitem__(key, {**doc, "_rev": str(int(current["_rev"]) + 1 if current else 1)})
+
+
+class TestAddSolrForceUpdate:
+    def test_keeps_latest_keys_and_numbered_history(self):
+        store = FakeStore()
+        admin_code.add_solr_force_update(store, ["/works/OL1W"])
+        admin_code.add_solr_force_update(store, ["/books/OL2M", "/authors/OL3A"])
+
+        doc = store["solr-force-update"]
+        # The Infobase write-log source reads "keys", as before.
+        assert doc["keys"] == ["/books/OL2M", "/authors/OL3A"]
+        assert [(r["seq"], r["keys"]) for r in doc["requests"]] == [(1, ["/works/OL1W"]), (2, ["/books/OL2M", "/authors/OL3A"])]
+
+    def test_keeps_only_recent_requests(self, monkeypatch):
+        monkeypatch.setattr(admin_code, "SOLR_FORCE_UPDATE_HISTORY", 3)
+        store = FakeStore()
+        for n in range(1, 6):
+            admin_code.add_solr_force_update(store, [f"/works/OL{n}W"])
+
+        assert [r["seq"] for r in store["solr-force-update"]["requests"]] == [3, 4, 5]
+
+    def test_retries_when_another_request_saved_first(self):
+        store = FakeStore()
+        admin_code.add_solr_force_update(store, ["/works/OL1W"])
+        store.conflicts = 2
+
+        admin_code.add_solr_force_update(store, ["/works/OL2W"])
+
+        assert [r["seq"] for r in store["solr-force-update"]["requests"]] == [1, 2]

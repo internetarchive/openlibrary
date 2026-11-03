@@ -16,6 +16,7 @@ import re
 import socket
 import sys
 from collections.abc import Iterable, Iterator
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Literal, TypedDict, cast
 
@@ -29,7 +30,7 @@ from openlibrary.solr import update
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location
 from openlibrary.utils.sentry import init_sentry
 from openlibrary.utils.shutdown import setup_graceful_shutdown
-from scripts.solr_updater.transaction_log import ForceUpdates, TransactionLog, position_status, transaction_id_at
+from scripts.solr_updater.transaction_log import ForceUpdates, TransactionLog, force_update_seq_at, position_status, transaction_id_at
 
 logger = logging.getLogger("openlibrary.solr-updater")
 # How far before the first unprocessed Infobase log edit the transaction source starts when switching over.
@@ -181,8 +182,10 @@ def parse_log(records: Iterable[InfobaseLogRecord]):
             # Record shape: {"action": "store.put", "data": {"key": <key>, "data": <store doc>}, ...}
             data = rec.get("data", {}).get("data", {})
             key = data.get("_key", "")
-            # Older admin force-update requests, written to a single store document.
-            # /admin/solr now writes one document per request; see ForceUpdates.
+            # Hack to force updating something from admin interface
+            # The admin interface writes the keys to update to a document named
+            # 'solr-force-update' in the store and whatever keys are written to that
+            # are picked by this script
             if key == "solr-force-update":
                 keys = cast(list[str], data.get("keys", []))
                 yield from keys
@@ -221,7 +224,6 @@ async def main(
     socket_timeout: int = 10,
     initial_state: str | None = None,
     source: Literal["database", "infobase"] = "infobase",
-    admin_force_updates: bool = True,
 ):
     """
     Useful environment variables:
@@ -235,8 +237,6 @@ async def main(
         or with ``--source database`` also a UTC date or datetime. Defaults to the beginning of today.
     :param source: Where edits are read from: the Infobase HTTP write log (default) or the ``transaction``
         table (``database``). Each keeps its own position; switching either way picks up where the other stopped.
-    :param admin_force_updates: Index requests from /admin/solr, deleting each once indexed. Only one updater
-        should take them; production's solr-next-updater turns this off.
     """
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT)
@@ -264,11 +264,10 @@ async def main(
     load_config(ol_config)
     init_sentry(getattr(infogami.config, "sentry", {}))
 
-    force_updates = ForceUpdates() if admin_force_updates else None
     if source == "database":
-        await run_from_transactions(state_file, initial_state, force_updates)
+        await run_from_transactions(state_file, initial_state)
     else:
-        await run_from_infobase_log(state_file, initial_state, exclude_edits_containing, force_updates)
+        await run_from_infobase_log(state_file, initial_state, exclude_edits_containing)
 
 
 async def write_state(path: str | Path, value: str) -> None:
@@ -301,8 +300,19 @@ def infobase_offset_time(offset: str) -> dt.datetime | None:
     return None
 
 
-def transaction_start(position_file: Path, offset_file: Path, initial_state: str | None) -> int | dt.datetime:
-    """Where the transaction source starts: a saved transaction id, or a point in time (UTC).
+@dataclass
+class Position:
+    """Where the transaction source has got to, saved as JSON in ``<state-file>.txid``."""
+
+    transaction: int
+    force_update: int
+
+    def dumps(self) -> str:
+        return json.dumps(asdict(self))
+
+
+def transaction_start(position_file: Path, offset_file: Path, initial_state: str | None) -> Position | dt.datetime:
+    """Where the transaction source starts: its saved position, or a point in time (UTC).
 
     1. Its own position file, unless the Infobase source ran after it.
     2. The Infobase source's offset (switching over): one minute before the first edit it hasn't
@@ -311,7 +321,7 @@ def transaction_start(position_file: Path, offset_file: Path, initial_state: str
     4. The beginning of today (UTC), like the Infobase source.
     """
     if position_file.exists() and not is_newer(offset_file, position_file):
-        return int(position_file.read_text().strip())
+        return Position(**json.loads(position_file.read_text()))
     if offset_file.exists():
         offset = offset_file.read_text().strip()
         # The offset file is rewritten whenever the Infobase source makes progress, so
@@ -326,34 +336,36 @@ def transaction_start(position_file: Path, offset_file: Path, initial_state: str
     return dt.datetime.combine(dt.datetime.now(dt.UTC).date(), dt.time())
 
 
-async def resolve_transaction_position(position_file: Path, offset_file: Path, initial_state: str | None) -> int:
+async def resolve_transaction_position(position_file: Path, offset_file: Path, initial_state: str | None) -> Position:
     start = await asyncio.to_thread(transaction_start, position_file, offset_file, initial_state)
-    return start if isinstance(start, int) else await transaction_id_at(start)
+    if isinstance(start, Position):
+        return start
+    return Position(transaction=await transaction_id_at(start), force_update=await force_update_seq_at(start))
 
 
-async def run_from_transactions(state_file: str, initial_state: str | None, force_updates: ForceUpdates | None) -> None:
+async def run_from_transactions(state_file: str, initial_state: str | None) -> None:
     """Index keys from the ``transaction`` table, forever. Its position is saved next to the Infobase offset file."""
     offset_file = Path(state_file)
     position_file = offset_file.with_suffix(".txid")
     position = await resolve_transaction_position(position_file, offset_file, initial_state)
-    created, behind = await position_status(position)
-    logger.info("Reading transactions after id %s (created %s); %s transactions to catch up", position, created, behind)
-    await write_state(position_file, str(position))
+    created, behind = await position_status(position.transaction)
+    logger.info("Reading transactions after id %s (created %s); %s transactions to catch up", position.transaction, created, behind)
+    await write_state(position_file, position.dumps())
 
-    log = TransactionLog(position)
+    log = TransactionLog(position.transaction)
+    force_updates = ForceUpdates(position.force_update)
     while True:
-        forced = await force_updates.read() if force_updates else []
+        forced = await force_updates.read()
         batch = await log.read()
         await update_keys([*forced, *batch.keys])
-        if force_updates:
-            await force_updates.acknowledge()
 
-        if log.commit() != position:
-            position = log.position
-            await write_state(position_file, str(position))
+        saved = Position(transaction=log.commit(), force_update=force_updates.commit())
+        if saved != position:
+            position = saved
+            await write_state(position_file, position.dumps())
         if batch.transaction_count:
             lag = dt.datetime.now(dt.UTC).replace(tzinfo=None) - batch.last_created if batch.last_created else None
-            logger.info("Indexed %d transactions, %s behind; position %s, waiting on %s", batch.transaction_count, lag, position, log.pending_gaps)
+            logger.info("Indexed %d transactions, %s behind; position %s, waiting on %s", batch.transaction_count, lag, position.transaction, log.pending_gaps)
 
         # Keep going while there's a backlog; otherwise wait for more edits.
         if batch.transaction_count < log.batch_size and not forced:
@@ -364,7 +376,6 @@ async def run_from_infobase_log(
     state_file: str,
     initial_state: str | None,
     exclude_edits_containing: str | None,
-    force_updates: ForceUpdates | None,
 ) -> None:
     """Index keys from the Infobase HTTP write log, forever."""
     offset_file = Path(state_file)
@@ -372,7 +383,8 @@ async def run_from_infobase_log(
     if is_newer(position_file, offset_file):
         # Switching back from the transaction source. The log can only be addressed by
         # day, so start from the beginning of the day of its last position.
-        created, _ = await position_status(int(position_file.read_text().strip()))
+        saved = Position(**json.loads(await asyncio.to_thread(position_file.read_text)))
+        created, _ = await position_status(saved.transaction)
         day = (created or dt.datetime.now(dt.UTC)).date().isoformat()
         logger.info("Switching from the transaction source; replaying the Infobase log from %s", day)
         offset = f"{day}:0"
@@ -385,11 +397,9 @@ async def run_from_infobase_log(
     logfile.seek(offset)
 
     while True:
-        forced = await force_updates.read() if force_updates else []
         records = logfile.read_records()
-        count = await update_keys([*forced, *parse_log(records)])
-        if force_updates:
-            await force_updates.acknowledge()
+        keys = parse_log(records)
+        count = await update_keys(keys)
 
         if logfile.tell() != offset:
             offset = logfile.tell()
