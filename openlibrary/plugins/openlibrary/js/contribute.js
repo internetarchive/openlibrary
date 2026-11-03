@@ -359,7 +359,7 @@ function initIntroDismiss(link) {
 }
 
 /**
- * Drop the "Save and next" receipt from the URL, so a reload doesn't show its toast again.
+ * Drop the "Save and next" receipt from the URL, so a reload doesn't show its callout again.
  * @returns {void}
  */
 function clearSavedReceipt() {

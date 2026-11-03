@@ -138,6 +138,35 @@
   }
 }
 
+/* "Save and next": the save just made. */
+.contrib-saved {
+  min-width: 0;
+}
+
+.contrib-saved__status {
+  display: flex;
+  gap: var(--spacing-inline-sm);
+  align-items: center;
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-success-fg);
+}
+
+.contrib-saved__title {
+  font-weight: var(--font-weight-semibold);
+}
+
+.contrib-saved__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contrib-saved__title a:hover {
+    text-decoration: underline;
+  }
+}
+
 .contrib-book__authors {
   font-size: var(--font-size-body-medium);
 }
@@ -213,16 +242,12 @@
   transform: scaleX(-1);
 }
 
-/* Task page: the question and the record in one column, help beside it on desktop. */
+/* Task page: the question on its own row, then the record with help beside it on desktop. */
 .contrib-task__main,
 .contrib-task__help {
   min-width: 0;
   display: grid;
   align-content: start;
-}
-
-.contrib-task__main > :not(:last-child) {
-  margin-block-end: var(--spacing-stack-lg);
 }
 
 .contrib-question__text {
@@ -350,6 +375,16 @@
   justify-items: start;
 }
 
+/* Cover choices need the panel's whole width, so the control sits under its label instead of beside it. */
+.contrib-record__row--stacked {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-stack-sm);
+}
+
+.contrib-record__row--stacked dt {
+  line-height: inherit;
+}
+
 .contrib-suggest {
   display: flex;
   flex-wrap: wrap;
@@ -371,39 +406,42 @@
   gap: var(--spacing-stack-sm);
 }
 
+/* Help supports the form, so its headings and lists stay plain. */
 .contrib-help .contrib-h {
   margin-block-end: 0;
+  font-size: var(--font-size-title-small);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--color-text);
+}
+
+.contrib-steps,
+.contrib-traps {
+  margin: 0;
+  padding-inline-start: var(--spacing-xl);
+  display: grid;
+  line-height: var(--line-height-body);
 }
 
 .contrib-steps {
-  counter-reset: contrib-step;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
   gap: var(--spacing-stack-md);
 }
 
 .contrib-steps > li {
-  counter-increment: contrib-step;
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
-  gap: var(--spacing-stack-sm) var(--spacing-inline-lg);
+  list-style: decimal;
 }
 
-.contrib-steps > li::before {
-  content: counter(contrib-step);
-  grid-row: span 2;
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--border-radius-pill);
-  background: var(--color-text);
-  color: var(--color-text-inverse);
-  font-size: var(--font-size-body-small);
-  font-weight: var(--font-weight-semibold);
-  font-variant-numeric: tabular-nums;
+.contrib-steps > li > :not(:last-child) {
+  margin-block-end: var(--spacing-stack-sm);
+}
+
+.contrib-traps {
+  gap: var(--spacing-stack-sm);
+}
+
+.contrib-traps > li {
+  list-style: disc;
 }
 
 .contrib-linkouts {
@@ -717,7 +755,9 @@
 }
 
 .contrib-receipt > div {
+  min-width: 0;
   display: grid;
+  overflow-wrap: anywhere;
   gap: var(--spacing-stack-sm);
 }
 
@@ -758,12 +798,31 @@
     grid-template-columns: minmax(0, 1fr) 340px;
     grid-template-areas:
       "back back"
+      "question question"
       "main help";
     column-gap: var(--spacing-section-gap-desktop);
   }
 
+  /* The help row takes the spare height, so a tall record doesn't stretch the callout. */
+  .contrib-page--task:has(> .contrib-saved) {
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-areas:
+      "back back"
+      "question question"
+      "main saved"
+      "main help";
+  }
+
+  .contrib-page--task > .contrib-saved {
+    grid-area: saved;
+  }
+
   .contrib-page--task > .contrib-back {
     grid-area: back;
+  }
+
+  .contrib-page--task > .contrib-question {
+    grid-area: question;
   }
 
   .contrib-task__main {
@@ -777,34 +836,12 @@
 
   .contrib-task__help {
     grid-area: help;
-    padding-block-start: var(--spacing-stack-xs);
   }
 }
 
 /* --- Identifier tasks -----------------------------------------------------
    A wrong identifier is worse than none, so these pages list the usual
    mistakes and gate the answer behind a confirmation. */
-
-.contrib-traps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--spacing-stack-sm);
-}
-
-.contrib-trap {
-  display: flex;
-  gap: var(--spacing-inline-md);
-  align-items: flex-start;
-  line-height: var(--line-height-body);
-}
-
-.contrib-trap ol-icon {
-  flex: none;
-  margin-block-start: calc((1lh - var(--icon-size-sm)) / 2);
-  color: var(--color-warning-fg);
-}
 
 .contrib-confirm {
   display: flex;
@@ -878,7 +915,6 @@
   gap: var(--spacing-inline-sm);
   justify-self: stretch;
   min-width: 0;
-  max-width: 24rem;
   margin: 0;
   padding: 0;
   border: 0;

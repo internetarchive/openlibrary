@@ -536,7 +536,7 @@ msgstr ""
 msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
-#: ObservationsModal.html account/loans.html contribute/task.html.jinja lists/lists.html merge/authors.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html account/loans.html lists/lists.html merge/authors.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -4198,16 +4198,6 @@ msgstr ""
 
 #: contribute/nothing.html.jinja contribute/task.html.jinja
 msgid "Back to the list"
-msgstr ""
-
-#: contribute/task.html.jinja
-#, python-format
-msgid "Saved %(field)s for %(link_start)s%(title)s%(link_end)s: %(value)s"
-msgstr ""
-
-#: contribute/task.html.jinja
-#, python-format
-msgid "Saved %(field)s for %(link_start)s%(title)s%(link_end)s"
 msgstr ""
 
 #: covers/add.html
@@ -7920,6 +7910,15 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 msgid "Go to edit page"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Just saved"
+msgstr ""
+
+#: contribute/parts.html.jinja
+#, python-format
+msgid "%(field)s: %(value)s"
 msgstr ""
 
 #: contribute/parts.html.jinja

@@ -62,6 +62,33 @@
         {% endif %}
     </div>
 {% endmacro %}
+{% macro saved_receipt(receipt) %}
+    {#- What "Save and next" just saved. -#}
+    <div class="contrib-saved" role="status" data-receipt>
+        <div class="contrib-receipt">
+            {% if receipt.cover_url %}
+                <img class="contrib-receipt__cover"
+                     src="{{ receipt.cover_url }}"
+                     alt=""
+                     width="64"
+                     height="96" />
+            {% endif %}
+            <div>
+                <div class="contrib-saved__status">{{ icon("circle-check", size="sm") }}{{ _("Just saved") }}</div>
+                <div class="contrib-saved__title">
+                    <a href="{{ receipt.url }}" data-ol-link-track="TaskForm|SavedBook">{{ receipt.title }}</a>
+                </div>
+                <div>
+                    {% if receipt.value %}
+                        {{ _("%(field)s: %(value)s", field=receipt.field_label, value=receipt.value) }}
+                    {% else %}
+                        {{ receipt.field_label }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
 {% macro task_row(task, track) %}
     {#- One to-do per field, styled as a menu item: an icon and the action it leads to.
         ``track`` is the analytics "Category|Action"; the field becomes the label. -#}
@@ -107,10 +134,7 @@
         <h2 class="contrib-h">{{ _("How this edit goes wrong") }}</h2>
         <ul class="contrib-traps">
             {% for trap in items %}
-                <li class="contrib-trap">
-                    {{ icon("triangle-alert", size="sm") }}
-                    <span>{{ trap }}</span>
-                </li>
+                <li>{{ trap }}</li>
             {% endfor %}
         </ul>
     </section>
@@ -299,7 +323,7 @@
             <dl class="contrib-record__fields">
                 {% for row in data.record_fields %}
                     {% if row.ask %}
-                        <div class="contrib-record__row contrib-record__row--ask">
+                        <div class="contrib-record__row contrib-record__row--ask{% if data.is_cover %} contrib-record__row--stacked{% endif %}">
                             <dt>
                                 <label for="contrib-other-value">{{ row.label }}</label>
                             </dt>
