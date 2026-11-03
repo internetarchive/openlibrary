@@ -25,6 +25,8 @@ The decision and its reason (e.g. "#123 (closing keyword) has no Lead label") ar
 ## `pr_lead_sweep.mjs`
 Runs on a schedule (`.github/workflows/pm_pr_lead_sweep.yml`; 14:00 and 02:00 UTC, i.e. 6 AM and 6 PM PST, an hour later during daylight time) and applies the same decision as `new_pr_labeler.mjs` to every open PR that is not a draft, was not opened by a bot, and has never had an assignee. This catches PRs whose issue got its lead after the PR opened, and PRs whose body was edited later. It never re-assigns someone a human removed; any earlier assignment, including a self-assignment, means the PR is left alone. It only adds a priority label to a PR that has none. One failing PR is reported in the summary without stopping the rest, and any failure fails the run.
 
+After the PRs, it keeps `Needs: Lead` in step with `Lead:` labels on every open issue (`needs_lead_sync.mjs`): it adds `Needs: Lead` to issues with no `Lead: @` label and removes it from issues that have one. The issue templates add `Needs: Lead` on creation, but nothing else updates it when a lead is added or removed later.
+
 ### Usage:
 <pre><b>node pr_lead_sweep.mjs</b> repository</pre>
 It writes assignments and labels with the given `GITHUB_TOKEN`, so a local run acts on the real repository. A maintainer can also start it from the Actions tab ("Run workflow").

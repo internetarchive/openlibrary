@@ -7,6 +7,7 @@ import {
     sweepLabels,
     sweepSkipReason
 } from '../../../scripts/gh_scripts/new_pr_labeler_core.mjs';
+import { formatNeedsLeadSummary, syncNeedsLead } from '../../../scripts/gh_scripts/needs_lead_sync.mjs';
 import { formatSweepSummary, linkify, planForPr, runSweep } from '../../../scripts/gh_scripts/pr_lead_resolver.mjs';
 
 // Behavioural tests for how a PR's lead and labels are decided
@@ -398,5 +399,67 @@ describe('formatSweepSummary', () => {
 describe('linkify', () => {
     test('leaves existing links, labels and words alone', () => {
         expect(linkify('[#5](x) Priority: 1 abc#5 me@example.com', REPO)).toBe('[#5](x) Priority: 1 abc#5 me@example.com');
+    });
+});
+
+describe('syncNeedsLead', () => {
+    // graphql() returns one page of open issues per call (an Error value is
+    // thrown); request() records each write, or throws the Error in `errors`.
+    function fakeOctokit(pages, errors = {}) {
+        const writes = [];
+        let page = 0;
+        return {
+            writes,
+            graphql: async () => {
+                const next = pages[page++];
+                if (next instanceof Error) throw next;
+                return { repository: { issues: next } };
+            },
+            request: async (route, params) => {
+                if (errors[params.issue_number]) throw errors[params.issue_number];
+                writes.push([route.split(' ')[0], params.issue_number, params.name ?? params.labels]);
+                return { data: {} };
+            }
+        };
+    }
+    const issue = (number, ...labels) => ({ number, labels: { nodes: labels.map(name => ({ name })) } });
+    const page = (nodes, endCursor = null) => ({ pageInfo: { hasNextPage: Boolean(endCursor), endCursor }, nodes });
+
+    test('adds Needs: Lead where there is no lead and removes it where there is one, across pages', async () => {
+        const octokit = fakeOctokit([
+            page([issue(1, 'Type: Bug'), issue(2, 'Lead: @foo', 'Needs: Lead')], 'c1'),
+            page([issue(3, 'Needs: Lead'), issue(4, 'Lead: @foo')])
+        ]);
+        const result = await syncNeedsLead(octokit, REPO);
+        expect(octokit.writes).toEqual([
+            ['POST', 1, ['Needs: Lead']],
+            ['DELETE', 2, 'Needs: Lead']
+        ]);
+        expect(result).toEqual({
+            changes: [
+                { number: 1, change: 'add' },
+                { number: 2, change: 'remove' }
+            ],
+            listError: null
+        });
+    });
+
+    test('a failed write is recorded without stopping the rest; a 404 on remove counts as done', async () => {
+        const gone = Object.assign(new Error('Label does not exist'), { status: 404 });
+        const octokit = fakeOctokit([page([issue(1), issue(2, 'Lead: @foo', 'Needs: Lead'), issue(3)])], { 1: new Error('403'), 2: gone });
+        const { changes } = await syncNeedsLead(octokit, REPO);
+        expect(changes).toEqual([
+            { number: 1, change: 'add', error: '403' },
+            { number: 2, change: 'remove' },
+            { number: 3, change: 'add' }
+        ]);
+    });
+
+    test('a listing failure keeps the changes made so far, and the summary says so', async () => {
+        const result = await syncNeedsLead(fakeOctokit([page([issue(1)], 'c1'), new Error('502')]), REPO);
+        expect(result.changes).toHaveLength(1);
+        const summary = formatNeedsLeadSummary(result, REPO);
+        expect(summary).toContain('Added to issues with no lead (1): [#1](https://github.com/internetarchive/openlibrary/issues/1)');
+        expect(summary).toContain('Listing open issues failed partway');
     });
 });
