@@ -160,10 +160,10 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
     end = dt.datetime.now()  # - datetime.timedelta(days = 10)# Right now
     start = dt.datetime(hour=0, minute=0, second=0, day=end.day, month=end.month, year=end.year)  # Beginning of the day
     logger.info("Gathering range data")
-    data = {}
     for i in range(int(ndays)):
         logger.info(" %s to %s", start, end)
-        data.update(run_gathering_functions(infobase_db, coverstore_db, start, end, logroot, prefix="admin_range__"))
+        # Fresh per day: a key that raises NoStats or fails for this day mustn't inherit the later day's value.
+        data = run_gathering_functions(infobase_db, coverstore_db, start, end, logroot, prefix="admin_range__")
         store_data(data, start.strftime("%Y-%m-%d"))
         end = start
         start = end - dt.timedelta(days=1)

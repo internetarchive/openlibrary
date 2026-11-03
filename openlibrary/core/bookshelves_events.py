@@ -105,7 +105,7 @@ class BookshelvesEvents(db.CommonExtras):
             """
                 SELECT
                     substring(event_date from 1 for 4) as year,
-                    count(*) as count
+                    count(DISTINCT work_id) as count
                 FROM bookshelves_events
                 WHERE username=$username AND event_type=$event_type
                 GROUP BY year
@@ -188,21 +188,6 @@ class BookshelvesEvents(db.CommonExtras):
             vars=where_vars,
             updated=update_time,
             event_date=event_date,
-        )
-
-    def update_event_data(cls, pid, data):
-        oldb = db.get_db()
-
-        where_clause = "id=$id"
-        where_vars = {"id": pid}
-        update_time = datetime.now()
-
-        return oldb.update(
-            cls.TABLENAME,
-            where=where_clause,
-            vars=where_vars,
-            updated=update_time,
-            data=data,
         )
 
     # Delete methods:

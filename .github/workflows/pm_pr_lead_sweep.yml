@@ -1,0 +1,55 @@
+name: pm_pr_lead_sweep
+# Assigns leads to open PRs that nobody has assigned, using the same decision as
+# new_pr_labeler (see scripts/gh_scripts/pr_lead_sweep.mjs). It catches PRs whose
+# issue got its `Lead:` label after the PR opened, and PRs whose body was edited
+# later.
+#
+# Runs twice a day, before and after the team's daily call. GitHub cron is UTC,
+# so these fire at 6 AM / 6 PM PST, and an hour later during daylight time.
+on:
+  schedule:
+    - cron: '0 14 * * *'
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      live:
+        description: 'Write assignments and labels (otherwise a dry run that only reports)'
+        type: boolean
+        default: false
+env:
+  NODE_VERSION: '24'
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+jobs:
+  sweep:
+    if: ${{ github.repository == 'internetarchive/openlibrary' }}
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          check-latest: true
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: cache-octokit
+        with:
+          path: 'node_modules'
+          # Cache key shared across workflows (must match new_pr_labeler.yml)
+          key: ${{ runner.os }}-node${{ env.NODE_VERSION}}-octokit-${{ hashFiles('**/package-lock.json') }}
+      - if: steps.cache-octokit.outputs.cache-hit != 'true'
+        run: npm install @octokit/action  # zizmor: ignore[adhoc-packages]
+      # Scheduled runs are dry runs (report only). A manual run with `live`
+      # checked writes assignments and labels. To make scheduled runs write
+      # too, set DRY_RUN to 'false'.
+      - run: node scripts/gh_scripts/pr_lead_sweep.mjs ${{ github.repository }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.live && 'false' || 'true' }}
