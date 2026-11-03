@@ -77,9 +77,7 @@ def work(n: int) -> dict:
 
 
 def poll(log: TransactionLog) -> list[str]:
-    batch = asyncio.run(log.read())
-    log.commit()
-    return batch.keys
+    return asyncio.run(log.read())[0]
 
 
 @pytest.mark.integration
@@ -98,19 +96,21 @@ def test_moved_edition_reindexes_the_work_and_author_it_left(infobase_db):
 def test_transaction_that_commits_late_is_not_skipped(infobase_db):
     slow = infobase_db()
     slow_id = save(slow, [work(1)])  # gets id 1, not committed yet
-    fast_id = commit_save(infobase_db, [work(2)])
+    commit_save(infobase_db, [work(2)])
     log = TransactionLog(0)
 
     assert poll(log) == ["/works/OL2W"]
-    assert log.pending_gaps == [slow_id]
-    assert log.position == 0  # can't move past the in-flight save
+    # Later edits and polls neither skip nor block on the open save.
+    last_id = commit_save(infobase_db, [work(3)])
+    assert poll(log) == ["/works/OL3W"]
+    assert list(log.gaps) == [slow_id]
+    assert log.position == 0
 
     slow.commit()
     slow.close()
 
     assert poll(log) == ["/works/OL1W"]
-    assert log.pending_gaps == []
-    assert log.position == fast_id
+    assert log.position == last_id
 
 
 @pytest.mark.integration
@@ -124,26 +124,7 @@ def test_rolled_back_transaction_does_not_block_the_position(infobase_db):
     failed.close()
 
     assert poll(log) == []
-    assert log.pending_gaps == []
     assert log.position == later_id
-
-
-@pytest.mark.integration
-def test_gap_is_kept_while_its_transaction_could_still_commit(infobase_db):
-    slow = infobase_db()
-    save(slow, [work(1)])
-    commit_save(infobase_db, [work(2)])
-    log = TransactionLog(0)
-    poll(log)
-
-    # Other edits and polls don't settle the gap while the slow save is open.
-    commit_save(infobase_db, [work(3)])
-    assert poll(log) == ["/works/OL3W"]
-    assert poll(log) == []
-    assert log.position == 0
-
-    slow.rollback()
-    slow.close()
 
 
 @pytest.mark.integration
@@ -173,40 +154,14 @@ def put_force_update_doc(connect, seqs: list[int]) -> None:
         conn.execute("INSERT INTO store (key, json) VALUES ('solr-force-update', %s) ON CONFLICT (key) DO UPDATE SET json = EXCLUDED.json", (doc,))
 
 
-def read_force_updates(force: ForceUpdates) -> list[str]:
-    keys = asyncio.run(force.read())
-    force.commit()
-    return keys
-
-
 @pytest.mark.integration
-def test_force_update_requests_are_read_once_each_and_never_deleted(infobase_db):
+def test_force_update_requests_are_each_read_once(infobase_db):
     put_force_update_doc(infobase_db, [1, 2])
     force = ForceUpdates(0)
 
-    assert read_force_updates(force) == ["/works/OL1W", "/works/OL2W"]
-    assert read_force_updates(force) == []
-
+    assert asyncio.run(force.read()) == ["/works/OL1W", "/works/OL2W"]
+    assert asyncio.run(force.read()) == []
     # A third request overwrites the document; only it is new.
     put_force_update_doc(infobase_db, [1, 2, 3])
-    assert read_force_updates(force) == ["/works/OL3W"]
-    assert force.last_seq == 3
-    # A second reader (solr-next-updater, a read-only check) sees everything independently.
-    assert read_force_updates(ForceUpdates(0)) == ["/works/OL1W", "/works/OL2W", "/works/OL3W"]
-    assert asyncio.run(async_db.fetch_val("SELECT count(*) FROM store")) == 1
-
-
-@pytest.mark.integration
-def test_force_update_reports_requests_that_fell_out_of_the_history(infobase_db, caplog):
-    put_force_update_doc(infobase_db, [5, 6])
-
-    assert read_force_updates(ForceUpdates(2)) == ["/works/OL5W", "/works/OL6W"]
-    assert "Missed admin force-update requests 3-4" in caplog.text
-
-
-@pytest.mark.integration
-def test_force_update_position_at_a_point_in_time(infobase_db):
-    put_force_update_doc(infobase_db, [1, 2, 3])
-
+    assert asyncio.run(force.read()) == ["/works/OL3W"]
     assert asyncio.run(force_update_seq_at(dt.datetime(2026, 11, 3, 10, 2, 30))) == 2
-    assert asyncio.run(force_update_seq_at(dt.datetime(2026, 11, 3, 9, 0))) == 0

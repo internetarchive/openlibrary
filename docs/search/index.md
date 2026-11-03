@@ -70,26 +70,11 @@ Subjects are **not stored as documents**. They are derived at query time from wo
 It reads edits from one of two sources, chosen with `--source` (`SOLR_UPDATER_SOURCE` in compose):
 
 - **`infobase`** (default): polls the Infobase write log at `http://{infobase_host}/openlibrary.org/log/{offset}?limit=100` and saves the log offset (`YYYY-MM-DD:N`, e.g. `2023-02-11:4217`) in its state file (`STATE_FILE`, e.g. `/solr-updater-data/solr-update.offset`).
-- **`database`**: reads Infobase's `transaction` table directly (`scripts/solr_updater/transaction_log.py`). Each row lists the keys and revisions a save changed; the saved and previous revisions come from `data`, so keys a document stopped referencing (e.g. the work an edition moved away from) are reindexed too. It saves its position (last transaction id and last admin force-update request) as JSON in a file next to the offset file, with a `.txid` suffix, e.g. `{"transaction": 4027, "force_update": 6}`. Transaction ids are handed out before commit, so the reader remembers ids that weren't visible yet and re-reads them until they commit, or until Postgres shows every transaction that could have held them has finished (rolled back).
+- **`database`**: reads Infobase's `transaction` table directly (`scripts/solr_updater/transaction_log.py`). Each row lists the keys and revisions a save changed; the previous revision in `data` gives the keys a document stopped referencing (e.g. the work an edition moved away from). Transaction ids are handed out before commit, so ids that aren't visible yet are re-read until they commit or are rolled back. Its position is saved next to the offset file with a `.txid` suffix, e.g. `{"transaction": 4027, "force_update": 6}`, and each batch logs how far behind the newest edit it is.
 
-Both sources produce the same keys and pass them to `update_keys()`, then save their position. Restarting reprocesses at most the last batch.
+Each source keeps its own position. On startup, if the other source ran more recently, it replays from the beginning of the day the other one had reached, so switching back and forth never skips an edit. With no saved position, `--initial-state` sets the start (an Infobase offset, or for `database` also a UTC date or datetime); otherwise it is the beginning of today.
 
-**Switching sources.** Each source keeps its own position file, and on startup each checks whether the other ran more recently:
-
-- Infobase → database: starts one minute before the first edit in the Infobase log that hasn't been processed, so nothing is skipped and only about a minute is replayed.
-- Database → Infobase: the write log can only be addressed by day, so it replays from the beginning of the day of the last processed transaction.
-
-With no position file, `--initial-state` sets the start (an Infobase offset, or for `database` also a UTC date or datetime such as `2026-11-03T10:00`); otherwise both start at the beginning of today. The database source logs at startup how many transactions it has to catch up on, and after each batch how far behind the newest edit it is.
-
-**Admin force-updates** (`/admin/solr`) overwrite the `solr-force-update` store document as before: its `keys` field is the latest request, which the Infobase source sees in the write log. The document also keeps the last 100 requests in `requests`, each with an increasing `seq`, and the database source remembers the last `seq` it indexed. Nothing is deleted, so a request that a later one overwrote isn't lost, and any number of updaters (including `solr-next-updater`) can follow it.
-
-**Checking the database source against the log.** `scripts/solr_updater/compare_sources.py` is read-only: for every save in the Infobase log since a given time, it reads the same transaction from the database and compares the keys each source would reindex, plus admin force-update keys. Run it where the solr-updater runs, before switching production over:
-
-```
-docker compose exec solr-updater python scripts/solr_updater/compare_sources.py /olsystem/etc/openlibrary.yml 2026-11-03T00:00
-```
-
-It prints a JSON summary (`same_keys`, `different_keys` with examples, `only_in_db`) and exits 1 if any transaction differs.
+**Admin force-updates** (`/admin/solr`) overwrite the `solr-force-update` store document; the Infobase source sees each write in the log. The document also keeps the last 100 requests with an increasing `seq`, and the database source remembers the last `seq` it indexed, so it doesn't miss an overwritten request and never writes to the database.
 
 A second daemon, `trending_updater.py`, runs in parallel and writes trending scores from the OL DB into Solr periodically.
 
