@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import pytest
 import web
 
 from openlibrary.plugins.worksearch import code
@@ -104,6 +105,25 @@ def test_prepare_solr_query_params_first_publish_year_string():
     # Check that the fq param for first_publish_year is correctly added
     fq_params = [p for p in params if p[0] == "fq"]
     assert ("fq", 'first_publish_year:"1997"') in fq_params
+
+
+@pytest.mark.parametrize(
+    ("sort", "expected_sort_params"),
+    [
+        (None, []),  # no sort -> no sort param
+        ("", []),  # empty -> no sort param
+        (" ", []),  # whitespace-only -> no sort param (NOT an empty "sort=" to Solr)
+        (",", []),  # bare comma -> no sort param
+        ("new", [("sort", "first_publish_year desc")]),  # valid sort -> sort param
+        ("editions,", [("sort", "edition_count desc")]),  # empty component dropped
+    ],
+)
+def test_prepare_solr_query_params_blank_sort_omits_sort_param(sort, expected_sort_params):
+    """A sort that reduces to empty must NOT emit an empty Solr ``sort=`` — it
+    should be omitted entirely, identical to no sort (issue #13988)."""
+    scheme = WorkSearchScheme()
+    params, _ = _prepare_solr_query_params(scheme, {"q": "tolkien"}, sort=sort)
+    assert [p for p in params if p[0] == "sort"] == expected_sort_params
 
 
 def _editions_fq_for(param: dict) -> list[str]:

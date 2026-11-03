@@ -469,8 +469,12 @@ def _prepare_solr_query_params(  # noqa: PLR0912
             solr_internals_params=solr_internals_params,
         )
 
-    if sort:
-        params.append(("sort", scheme.process_user_sort(sort)))
+    if sort and (processed_sort := scheme.process_user_sort(sort)):
+        # A sort made up only of empty components (e.g. "%20" or a bare ",")
+        # reduces to an empty string; omit the Solr `sort` param entirely so it
+        # behaves identically to no sort, rather than sending Solr an empty
+        # `sort=` value.
+        params.append(("sort", processed_sort))
 
     return params, fields
 
@@ -866,6 +870,15 @@ class search(delegate.page):
 
         page = int(param.get("page", 1))
         sort = param.get("sort")
+        # An unknown sort would 500 the whole HTML page (via process_user_sort).
+        # A 422 JSON body is not appropriate for a browser page, so fall back to
+        # the default relevance order instead, keeping the results page working.
+        if sort:
+            try:
+                WorkSearchScheme.validate_user_sort(sort)
+            except ValueError:
+                sort = None
+                param.pop("sort", None)
         rows = 20
 
         if get_ol_env().OL_EXPOSE_SOLR_INTERNALS_PARAMS:
