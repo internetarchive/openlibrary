@@ -21,13 +21,13 @@ from typing import TYPE_CHECKING, Any
 
 import web
 
-from . import db
-from .db import CommonExtras
+from . import db  # noqa: TID251
+from .db import CommonExtras  # noqa: TID251
 
 logger = logging.getLogger("openlibrary.acquisitions")
 
 if TYPE_CHECKING:
-    from web.db import ResultSet
+    from web.db import ResultSet  # noqa: TID251
 
 
 def _utcnow() -> dt.datetime:
