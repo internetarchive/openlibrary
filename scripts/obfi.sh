@@ -484,6 +484,11 @@ OBFI_BOT_PATTERN=$(
 )
 
 obfi_grep_bots() {
+    # An empty pattern would match every line, so fail instead of giving wrong results
+    if [ -z "$OBFI_BOT_PATTERN" ]; then
+        echo "obfi_grep_bots: bot list not found (expected openlibrary/utils/bot_user_agents.txt next to scripts/)" >&2
+        return 1
+    fi
     grep $1 -iE "$OBFI_BOT_PATTERN" -
 }
 

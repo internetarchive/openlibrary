@@ -472,6 +472,9 @@ deploy_openlibrary() {
     cp -r openlibrary/docker openlibrary_new
     cp -r openlibrary/scripts openlibrary_new
     cp -r openlibrary/conf openlibrary_new
+    # scripts/obfi.sh reads the shared bot list from ../openlibrary/utils/
+    mkdir -p openlibrary_new/openlibrary/utils
+    cp openlibrary/openlibrary/utils/bot_user_agents.txt openlibrary_new/openlibrary/utils/
     COPYFILE_DISABLE=1 tar -czf openlibrary_new.tar.gz openlibrary_new
 
     if [[ "$SKIP_OL_TRANSFER_CODE" != "1" ]]; then
