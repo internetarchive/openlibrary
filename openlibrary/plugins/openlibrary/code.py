@@ -12,7 +12,7 @@ import random
 import socket
 import sys
 from time import time
-from urllib.parse import parse_qs, quote, urlencode
+from urllib.parse import parse_qs, quote, urlencode, urlparse
 
 import web
 import yaml
@@ -506,21 +506,47 @@ class BatchImportView(delegate.page):
         )
 
 
+def _is_same_origin_request():
+    """Best-effort same-origin check for a state-changing POST.
+
+    Returns False only when the request carries an Origin (or, absent that, a
+    Referer) whose host does not match this site's host. A missing
+    Origin/Referer is allowed: some privacy proxies strip them, and the
+    SameSite=Lax session cookie is the primary CSRF control -- this is defense
+    in depth, not the sole guard.
+    """
+    env = web.ctx.env or {}
+    source = env.get("HTTP_ORIGIN") or env.get("HTTP_REFERER")
+    if not source:
+        return True
+    return urlparse(source).netloc == web.ctx.host
+
+
 class BatchImportApprove(delegate.page):
     """
     Approve `batch_id`, with a `status` of `needs_review`, for import.
 
-    Making a GET as an admin to this endpoint will change a batch's status from
-    `needs_review` to `pending`.
+    Approval changes state, so it is a POST, not a GET: a state-changing GET can
+    be fired by a crawler, a prefetch, or a link an admin is tricked into
+    following (CSRF). The GET is inert and redirects to the batch view, where
+    Approve is rendered as a POST form; the POST also rejects cross-origin
+    requests as a second layer on top of the SameSite=Lax session cookie.
     """
 
     path = r"/import/batch/approve/(\d+)"
 
     def GET(self, batch_id):
+        # Inert: never changes state. Send the admin to the batch view, where
+        # the Approve action is a POST form.
+        return web.seeother(f"/import/batch/{batch_id}")
 
+    def POST(self, batch_id):
         user_key = delegate.context.user and delegate.context.user.key
         if user_key not in _get_members_of_group("/usergroup/admin"):
             raise Forbidden("Permission Denied.")
+
+        if not _is_same_origin_request():
+            raise Forbidden("Cross-origin request blocked.")
 
         db.query(
             """
@@ -531,7 +557,7 @@ class BatchImportApprove(delegate.page):
             vars=locals(),
         )
 
-        return web.found(f"/import/batch/{batch_id}")
+        return web.seeother(f"/import/batch/{batch_id}")
 
 
 class BatchImportPendingView(delegate.page):
