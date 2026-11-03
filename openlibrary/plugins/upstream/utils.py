@@ -1444,33 +1444,32 @@ class Request:
         Used for adding <meta rel="canonical" ..> tag in all web pages.
         Required to make OL retain the page rank after https migration.
         """
-        readable_path = web.ctx.get("readable_path", web.ctx.path) or ""
-        query = web.ctx.query or ""
-        host = web.ctx.host or ""
-        if url := host + readable_path + query:
-            url = "https://" + url
-            parsed_url = urlparse(url)
+        return canonical_url(web.ctx.host or "", web.ctx.get("readable_path", web.ctx.path) or "", web.ctx.query or "")
 
-            parsed_query = parse_qs(parsed_url.query)
-            queries_to_exclude = ["sort", "mode", "v", "type", "debug"]
 
-            canonical_query = {q: v for q, v in parsed_query.items() if q not in queries_to_exclude}
-            query = parse_urlencode(canonical_query, doseq=True)
-            parsed_url = parsed_url._replace(query=query)
+def canonical_url(host: str, readable_path: str, query: str) -> str:
+    """The https:// URL for ``host + readable_path + query``, minus view-only params.
 
-            url = urlunparse(parsed_url)
-
-            return url
-        return ""
+    ``query`` includes its leading "?", like ``web.ctx.query``.
+    """
+    if url := host + readable_path + query:
+        parsed_url = urlparse("https://" + url)
+        canonical_query = {q: v for q, v in parse_qs(parsed_url.query).items() if q not in ("sort", "mode", "v", "type", "debug")}
+        return urlunparse(parsed_url._replace(query=parse_urlencode(canonical_query, doseq=True)))
+    return ""
 
 
 @public
 def render_once(key: str) -> bool:
-    rendered = web.ctx.setdefault("render_once", {})
+    rendered = request_context.rendered_keys.get()
+    if rendered is None:
+        # Preserve standalone template rendering without a shared mutable default.
+        rendered = set()
+        request_context.rendered_keys.set(rendered)
     if key in rendered:
         return False
     else:
-        rendered[key] = True
+        rendered.add(key)
         return True
 
 
@@ -1515,6 +1514,21 @@ def reformat_html(html_str: str, max_length: int | None = None) -> str:
         return truncate("".join(content), max_length).strip().replace("\n", "<br>")
     else:
         return "".join(content).strip().replace("\n", "<br>")
+
+
+@public
+def markdown_excerpt(text: str, max_length: int = 200) -> str:
+    """Plain-text excerpt of a markdown field (e.g. a book description) for meta tags.
+
+    Cuts at a word boundary and adds an ellipsis when the text is longer than max_length.
+    """
+    html = get_markdown(str(text or "")).convert()
+    html = re.sub(r"<(script|style)\b.*?</\1>", " ", html, flags=re.DOTALL | re.IGNORECASE)
+    plain = " ".join(unescape(re.sub(r"<[^>]+>", " ", html)).split())
+    plain = re.sub(r" ([,.;:!?)])", r"\1", plain)
+    if len(plain) <= max_length:
+        return plain
+    return plain[:max_length].rsplit(" ", 1)[0].rstrip(",;:—-") + "…"
 
 
 def get_colon_only_loc_pub(pair: str) -> tuple[str, str]:

@@ -1,5 +1,5 @@
 import { SHELF } from '../../../../components/lit/utils/books-api.js';
-import { FadingToast } from '../Toast.js';
+import { showToast } from '../../../../components/lit/toast.js';
 import { queueAction } from '../utils.js';
 
 export function initRatingHandlers(ratingForms) {
@@ -73,7 +73,7 @@ function handleRatingSubmission(event, form) {
                 announceRating(form.dataset.workKey, rating ?? null);
             })
             .catch(error => {
-                new FadingToast(error.message).show();
+                showToast(error.message, { type: 'error' });
             });
     }
 }

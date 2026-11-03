@@ -24,9 +24,8 @@ import { slotHasContent } from './utils/slot-utils.js';
  *
  * Placed declaratively, the toast renders in-flow where the parent puts it.
  * For the common imperative case (show a toast in the fixed bottom-center
- * stack after a fetch resolves), use the `showToast` helper exported from
- * `OlToastRegion.js` — the region arranges the toasts into a bottom-anchored
- * vertical list by setting the `data-stacked` attribute and an
+ * stack after a fetch resolves), use `showToast()` from `toast.js` — the
+ * region arranges the toasts into a bottom-anchored vertical list by setting the `data-stacked` attribute and an
  * `--ol-toast-offset` custom property on each toast.
  *
  * All motion is transition-driven (transform/opacity only): a `data-mounted`
@@ -50,7 +49,7 @@ import { slotHasContent } from './utils/slot-utils.js';
  *
  * @example
  * // Imperative, fixed bottom-center stack (message already translated)
- * import { showToast } from './OlToastRegion.js';
+ * import { showToast } from './toast.js';
  * showToast(i18nStrings.updateSuccess, { type: 'success' });
  * showToast(i18nStrings.relaunchToUpdate, { description: version, persistent: true });
  *

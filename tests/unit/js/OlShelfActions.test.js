@@ -1937,6 +1937,34 @@ describe('ol-shelf-actions analytics labels', () => {
         expect(events()).toEqual([['ReadingLog', 'CurrentlyReading', 'menu']]);
     });
 
+    // The server shelves a rated book only off no shelf or Want to Read, and once.
+    test.each([
+        [
+            'an unshelved book',
+            null,
+            [
+                ['StarRating', 'BookRated'],
+                ['ReadingLog', 'AlreadyRead', 'rating']
+            ]
+        ],
+        [
+            'a Want to Read book',
+            SHELF.WANT_TO_READ,
+            [
+                ['StarRating', 'BookRated'],
+                ['ReadingLog', 'AlreadyRead', 'rating']
+            ]
+        ],
+        ['an Already Read book', SHELF.ALREADY_READ, [['StarRating', 'BookRated']]],
+        ['a Currently Reading book', SHELF.CURRENTLY_READING, [['StarRating', 'BookRated']]]
+    ])('rating %s reports a shelf move only when there is one', async (_label, shelf, expected) => {
+        stubFetch();
+        const el = await mount({ shelf });
+        qa(el, '.star')[3].click();
+        await tick(el);
+        expect(events()).toEqual(expected);
+    });
+
     test('a failed request reports the operation and status, and no save', async () => {
         stubFetch({ failWith: 500 });
         const el = await mount();

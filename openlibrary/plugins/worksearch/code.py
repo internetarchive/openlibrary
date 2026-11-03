@@ -972,29 +972,22 @@ def top_books_from_author(akey: str, rows=5) -> SearchResponse:
 
 
 class advancedsearch(delegate.page):
+    """Retire once production routes /advancedsearch to FastAPI (``openlibrary/fastapi/search.py``)."""
+
     path = "/advancedsearch"
 
     def GET(self):
-        # facets are only a fallback
-        i = web.input(
-            q="",
-            title="",
-            author="",
-            isbn="",
-            subject="",
-            place="",
-            person="",
-            publisher="",
-            subject_facet="",
-            publisher_facet="",
-            person_facet="",
-            place_facet="",
-        )
-        i.subject = i.subject or i.subject_facet
-        i.publisher = i.publisher or i.publisher_facet
-        i.person = i.person or i.person_facet
-        i.place = i.place or i.place_facet
-        return render_template("search/advancedsearch.html", i)
+        # Local imports: openlibrary.fastapi.search imports this module, and this handler is temporary.
+        from markupsafe import escape
+
+        from openlibrary.core.jinja import render_jinja_template
+        from openlibrary.fastapi.search import AdvancedSearchForm, SearchNav
+
+        params = web.input(_method="get")
+        form = AdvancedSearchForm.model_validate(dict(params))
+        body = render_jinja_template("search/advancedsearch.html.jinja", form=form, nav=SearchNav.from_query(web.ctx.path, params))
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(_("Advanced Search")))
 
 
 @dataclass

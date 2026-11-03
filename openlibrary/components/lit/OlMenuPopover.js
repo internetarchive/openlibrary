@@ -2,6 +2,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 import './OlPopover.js';
+import { focusRing, menuRow } from './control-styles.js';
 
 let _idCounter = 0;
 
@@ -53,98 +54,76 @@ export class OlMenuPopover extends LitElement {
         _focusIndex: { state: true }
     };
 
-    static styles = css`
-        :host {
-            display: inline-block;
-            font-family: var(--font-family-body);
+    static styles = [
+        menuRow,
+        focusRing,
+        css`
+            :host {
+                display: inline-block;
+                font-family: var(--font-family-body);
 
-            /* Declared here rather than on .panel: the panel is slotted into
+                /* Declared here rather than on .panel: the panel is slotted into
                <ol-popover>, whose tray clears these, and an override only
                reaches it by inheriting past the tray. */
-            --ol-popover-content-max-width: 360px;
-            --ol-popover-content-max-height: min(70vh, 480px);
-        }
+                --ol-popover-content-max-width: 360px;
+                --ol-popover-content-max-height: min(70vh, 480px);
+            }
 
-        /* No trigger styles here: the default trigger is an <ol-button>,
+            /* No trigger styles here: the default trigger is an <ol-button>,
            which paints itself. */
 
-        .panel {
-            display: flex;
-            flex-direction: column;
-            min-width: 200px;
-            max-width: var(--ol-popover-content-max-width);
-            max-height: var(--ol-popover-content-max-height);
-        }
+            .panel {
+                display: flex;
+                flex-direction: column;
+                min-width: 200px;
+                max-width: var(--ol-popover-content-max-width);
+                max-height: var(--ol-popover-content-max-height);
+            }
 
-        .menu {
-            display: flex;
-            flex-direction: column;
-            padding: var(--menu-row-inset) 0;
-            overflow-y: auto;
-        }
+            .menu {
+                display: flex;
+                flex-direction: column;
+                padding: var(--menu-row-inset) 0;
+                overflow-y: auto;
+            }
 
-        .menu-heading {
-            margin: 0;
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
-            color: var(--color-text-muted);
-            font-size: var(--font-size-overline);
-            font-weight: var(--font-weight-overline);
-            letter-spacing: var(--letter-spacing-overline);
-            text-transform: var(--text-transform-overline);
-        }
+            .menu-heading {
+                margin: 0;
+                padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
+                color: var(--color-text-muted);
+                font-size: var(--font-size-overline);
+                font-weight: var(--font-weight-overline);
+                letter-spacing: var(--letter-spacing-overline);
+                text-transform: var(--text-transform-overline);
+            }
 
-        /* Real <button>s so Enter/Space activate natively; the keydown handler
-           only moves focus. UA button box reset so they read as menu rows. */
-        .item {
-            display: flex;
-            align-items: center;
-            box-sizing: border-box;
-            /* One height across every menu row; a wrapping label grows past it. */
-            min-height: var(--menu-row-height);
-            /* The menu-row pill, shared verbatim with OlOptionsPopover and
-               OlSelectPopover: inset from the panel edge so the hover fill reads
-               as a pill, the padding giving back what the margin takes. */
-            margin: 0 var(--menu-row-inset);
-            padding-block: var(--spacing-inset-xs);
-            padding-inline: var(--menu-row-padding-inline);
-            border: 0;
-            border-radius: var(--border-radius-menu-row);
-            background: none;
-            /* A real <button>, so the page ink has to be inherited explicitly. */
-            color: inherit;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 400;
-            line-height: var(--line-height-control);
-            text-align: left;
-            cursor: pointer;
-        }
+            /* Real <button>s so Enter/Space activate natively; the keydown handler
+           only moves focus. The row geometry and hover are the shared .menu-row
+           (control-styles.js); this is the UA button reset on top of it. */
+            .item {
+                border: 0;
+                background: none;
+                /* A real <button>, so the page ink has to be inherited explicitly. */
+                color: inherit;
+                font-family: inherit;
+                font-size: 14px;
+                text-align: left;
+                /* The shared .focus-ring, pulled inside the row: an outer ring would
+               be clipped by the panel. */
+                --_focus-offset: -2px;
+            }
 
-        /* Nested items are a subset of the item above them. Less the row's own
+            /* Nested items are a subset of the item above them. Less the row's own
            inset, so the indent is measured from the panel like every other
            label offset. */
-        .item--nested {
-            padding-left: calc(var(--spacing-inset-xl) - var(--menu-row-inset));
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .item:hover {
-                background: var(--color-hover-overlay);
+            .item--nested {
+                padding-left: calc(var(--spacing-inset-xl) - var(--menu-row-inset));
             }
-        }
 
-        /* No radio on the row, so the label carries the state — colour only,
-           since a weight change would re-measure the label and shift the row.
-           The fill stays reserved for hover. */
-        .item[aria-checked='true'] {
-            color: var(--color-link);
-        }
-
-        .item:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: -2px;
-        }
-    `;
+            /* No radio on the row, so the shared .menu-row selected look
+           (tint + link text, keyed on aria-checked) is the whole indicator. */
+        `
+    ];
 
     constructor() {
         super();
@@ -256,7 +235,7 @@ export class OlMenuPopover extends LitElement {
         const isCurrent = item.value === this.value;
         return html`
             <button
-                class="item ${item.nested ? 'item--nested' : ''}"
+                class="item menu-row focus-ring ${item.nested ? 'item--nested' : ''}"
                 type="button"
                 role="menuitemradio"
                 aria-checked=${isCurrent ? 'true' : 'false'}

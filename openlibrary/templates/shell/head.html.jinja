@@ -139,12 +139,12 @@
         <meta name="description"
               content="{{ _('Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free.') }}" />
     {% endif %}
-    <title>{{ layout.head.title | safe }} | {{ _("Open Library") }}</title>
+    <title>{{ layout.head.title }} | {{ _("Open Library") }}</title>
     {% for link in layout.head.links %}
-        {{ link | safe }}
+        {{ link }}
     {% endfor %}
     {% for tag in layout.head.metatags %}
-        {{ tag | safe }}
+        {{ tag }}
     {% endfor %}
     {% if layout.head.sentry %}
         <meta name="sentry-trace" content="{{ layout.head.sentry.traceparent }}">
