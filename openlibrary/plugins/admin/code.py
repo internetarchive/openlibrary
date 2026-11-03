@@ -10,10 +10,12 @@ import subprocess
 import sys
 import traceback
 from collections.abc import Iterable
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
+from uuid import uuid4
 
 import requests
 import web
+from internetarchive.exceptions import ItemLocateError
 
 import openlibrary
 from infogami import config
@@ -23,7 +25,10 @@ from infogami.utils.context import context
 from infogami.utils.view import add_flash_message, public, render
 from openlibrary import accounts
 from openlibrary.accounts.model import Account, OpenLibraryAccount, clear_cookies
-from openlibrary.catalog.add_book import update_ia_metadata_for_ol_edition
+from openlibrary.catalog.add_book import (
+    create_ol_subjects_for_ocaid,
+    update_ia_metadata_for_ol_edition,
+)
 from openlibrary.core import (
     admin as admin_stats,
 )
@@ -34,7 +39,6 @@ from openlibrary.core import (
 from openlibrary.core.models import Work
 from openlibrary.plugins.openlibrary.pd import get_pd_dashboard_data
 from openlibrary.plugins.upstream import forms, spamcheck
-from openlibrary.utils.request_context import site
 
 logger = logging.getLogger("openlibrary.admin")
 
@@ -54,10 +58,6 @@ def register_admin_page(path, cls, label=None, visible=True, librarians=False):
     admin_tasks.append(t)
 
 
-# `lists` is the pre-#12226 action; older changesets still carry it.
-LIST_CREATE_ACTIONS = ("lists", "create-list", "create-series")
-
-
 def revert_all_user_edits(account: Account) -> tuple[int, int]:
     """
     :return: tuple of (number of edits reverted, number of documents deleted)
@@ -69,11 +69,11 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
     while not stop:
         changes = account.get_recentchanges(limit=100, offset=100 * i)
         added_records: list[list[dict]] = [c.changes for c in changes if c.kind == "add-book"]
-        # Also delete lists and series `created` by this user
+        # Also delete lists `created` by this user
         added_records.extend(
             [r for r in c.changes if r.get("revision") == 1]  # created, not just edited
             for c in changes
-            if c.kind in LIST_CREATE_ACTIONS
+            if c.kind == "lists"
         )
         flattened_records: list[dict] = [record for lst in added_records for record in lst]
         keys_to_delete |= {r["key"] for r in flattened_records}
@@ -83,7 +83,7 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
             for item in change.changes:
                 keys_to_revert[item.key].append(change.id)
 
-        deleted_keys = site.get().things({"key": list(keys_to_revert), "type": {"key": "/type/delete"}})
+        deleted_keys = web.ctx.site.things({"key": list(keys_to_revert), "type": {"key": "/type/delete"}})
 
         changesets_with_deleted_works = {change_id for key in deleted_keys for change_id in keys_to_revert[key]}
 
@@ -96,7 +96,7 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
             stop = True
 
     delete_payload = [{"key": key, "type": {"key": "/type/delete"}} for key in keys_to_delete]
-    site.get().save_many(delete_payload, "Delete spam", action="bulk-revert-spam")
+    web.ctx.site.save_many(delete_payload, "Delete spam", action="bulk-revert-spam")
     return edit_count, len(delete_payload)
 
 
@@ -112,13 +112,13 @@ def revert_changesets(changeset_ids: Iterable[int], comment: str):
         if revision == 0:
             return {"key": key, "type": {"key": "/type/delete"}}
         else:
-            return site.get().get(key, revision).dict()
+            return web.ctx.site.get(key, revision).dict()
 
-    _site = site.get()
-    docs = [get_doc(c["key"], c["revision"] - 1) for cid in changeset_ids for c in _site.get_change(cid).changes]
+    site = web.ctx.site
+    docs = [get_doc(c["key"], c["revision"] - 1) for cid in changeset_ids for c in site.get_change(cid).changes]
     docs = [doc for doc in docs if doc.get("type", {}).get("key") != "/type/delete"]
     data = {"reverted_changesets": [str(cid) for cid in changeset_ids]}
-    manifest = site.get().save_many(docs, action="revert", data=data, comment=comment)
+    manifest = web.ctx.site.save_many(docs, action="revert", data=data, comment=comment)
     return manifest, len(docs)
 
 
@@ -154,7 +154,7 @@ class admin(delegate.page):
 
     def is_admin(self):
         """Returns True if the current user is in admin usergroup."""
-        return context.user and context.user.key in [m.key for m in site.get().get("/usergroup/admin").members]
+        return context.user and context.user.key in [m.key for m in web.ctx.site.get("/usergroup/admin").members]
 
 
 class admin_index:
@@ -237,6 +237,29 @@ class people:
         if account:
             raise web.seeother(f"/admin/people/{account.username}")
         return render_template("admin/people/index", email=i.email, ia_id=i.ia_id)
+
+
+class add_work_to_staff_picks:
+    def GET(self):
+        return render_template("admin/sync")
+
+    def POST(self):
+        i = web.input(action="add", work_id="", subjects="openlibrary_staff_picks")
+        results = {}
+        work_ids = i.work_id.split(",")
+        subjects = i.subjects.split(",")
+        for work_id in work_ids:
+            work = web.ctx.site.get("/works/%s" % work_id)
+            editions = work.editions
+            ocaids = [edition.ocaid for edition in editions if edition.ocaid]
+            results[work_id] = {}
+            for ocaid in ocaids:
+                try:
+                    results[work_id][ocaid] = create_ol_subjects_for_ocaid(ocaid, subjects=subjects)
+                except ItemLocateError as err:
+                    results[work_id][ocaid] = f"Failed to add to staff picks. Error message: {err}"
+
+        return delegate.RawText(json.dumps(results), content_type="application/json")
 
 
 class resolve_redirects:
@@ -383,10 +406,7 @@ class people_view:
         code = account.generate_login_code()
         # Clear all existing admin cookies before logging in as another user
         clear_cookies()
-        # SameSite=Lax must match the login path (_set_login_cookies): without
-        # it the impersonated session is set without the CSRF protection the
-        # rest of the auth flow relies on. See GHSA-wq89-ph2h-pp44.
-        web.setcookie(config.login_cookie_name, code, expires="", samesite="Lax")
+        web.setcookie(config.login_cookie_name, code, expires="")
 
         return web.seeother("/")
 
@@ -446,7 +466,7 @@ class ipaddress_view:
 
 class stats:
     def GET(self, today):
-        json = site.get()._conn.request(site.get().name, "/get", "GET", {"key": "/admin/stats/" + today})
+        json = web.ctx.site._conn.request(web.ctx.site.name, "/get", "GET", {"key": "/admin/stats/" + today})
         return delegate.RawText(json)
 
     def POST(self, today):
@@ -456,10 +476,10 @@ class stats:
         raise web.seeother(web.ctx.path)
 
     def get_stats(self, today):
-        stats = site.get()._request("/stats/" + today)
+        stats = web.ctx.site._request("/stats/" + today)
 
         key = "/admin/stats/" + today
-        doc = site.get().new(key, {"key": key, "type": {"key": "/type/object"}})
+        doc = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/object"}})
         doc.edits = {
             "human": stats.edits - stats.edits_by_bots,
             "bot": stats.edits_by_bots,
@@ -471,7 +491,7 @@ class stats:
 
 class block:
     def GET(self):
-        page = site.get().get("/admin/block") or web.storage(ips=[web.storage(ip="127.0.0.1", duration="1 week", since="1 day")])
+        page = web.ctx.site.get("/admin/block") or web.storage(ips=[web.storage(ip="127.0.0.1", duration="1 week", since="1 day")])
         return render_template("admin/block", page)
 
     def POST(self):
@@ -482,13 +502,13 @@ class block:
         raise web.seeother("/admin/block")
 
     def block_ips(self, ips):
-        page = site.get().get("/admin/block") or site.get().new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
+        page = web.ctx.get("/admin/block") or web.ctx.site.new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
         page.ips = [{"ip": ip} for ip in ips]
         page._save("updated blocked IPs", action="edit-blocked-ips")
 
 
 def get_blocked_ips():
-    if doc := site.get().get("/admin/block"):
+    if doc := web.ctx.site.get("/admin/block"):
         return [d.ip for d in doc.ips]
     else:
         return []
@@ -537,13 +557,13 @@ class inspect:
         i = web.input(key=None, type=None, name=None, value=None)
 
         if i.key:
-            doc = site.get().store.get(i.key)
+            doc = web.ctx.site.store.get(i.key)
             if doc:
                 docs = [doc]
             else:
                 docs = []
         else:
-            docs = site.get().store.values(
+            docs = web.ctx.site.store.values(
                 type=i.type or None,
                 name=i.name or None,
                 value=i.value or None,
@@ -598,7 +618,7 @@ class permissions:
         return render_template("admin/permissions", perm_records, perm_pages)
 
     def get_permission(self, key):
-        doc = site.get().get(key)
+        doc = web.ctx.site.get(key)
         perm = doc and doc.child_permission
         return (perm and perm.key) or "/permission/open"
 
@@ -606,7 +626,7 @@ class permissions:
         """Returns the doc with permission set.
         The caller must save the doc.
         """
-        doc = site.get().get(key)
+        doc = web.ctx.site.get(key)
         doc = (doc and doc.dict()) or {"key": key, "type": {"key": "/type/page"}}
 
         # so that only admins can modify the permission
@@ -625,7 +645,7 @@ class permissions:
         works = self.set_permission("/works", i.perm_records)
         books = self.set_permission("/books", i.perm_records)
         authors = self.set_permission("/authors", i.perm_records)
-        site.get().save_many(
+        web.ctx.site.save_many(
             [root, works, books, authors],
             comment="Updated edit policy.",
             action="bulk-edit-permissions",
@@ -661,11 +681,10 @@ class solr:
     def POST(self):
         i = web.input(keys="")
         keys = i["keys"].strip().split()
-        site.get().store["solr-force-update"] = {
-            "type": "solr-force-update",
-            "keys": keys,
-            "_rev": None,
-        }
+        # One document per request, so a second request before the solr-updater
+        # runs can't overwrite the first. The updater deletes it once indexed.
+        request_id = f"{datetime.now(UTC):%Y%m%dT%H%M%S}-{uuid4().hex[:8]}"
+        web.ctx.site.store[f"solr-force-update/{request_id}"] = {"type": "solr-force-update", "keys": keys}
         add_flash_message("info", "Added the specified keys to solr update queue.!")
         return self.GET()
 
@@ -739,6 +758,8 @@ def setup():
     register_admin_page("/admin/solr", solr, label="", librarians=True)
     register_admin_page("/admin/sync", sync_ol_ia, label="", librarians=True)
     register_admin_page("/admin/resolve_redirects", resolve_redirects, label="Resolve Redirects")
+
+    register_admin_page("/admin/staffpicks", add_work_to_staff_picks, label="", librarians=True)
 
     register_admin_page("/admin/imports", imports_home, label="")
     register_admin_page("/admin/imports/add", imports_add, label="")
