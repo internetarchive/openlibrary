@@ -1576,9 +1576,9 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
     # the colon is a publisher. This can be exploited by using
     # string.split(";") because everything to the 'left' of a colon is a
     # location, and whatever is to the right is a publisher.
+    locations: list[str] = []
+    publishers: list[str] = []
     if ":" in loc_pub:
-        locations: list[str] = []
-        publishers: list[str] = []
         parts = loc_pub.split(";") if ";" in loc_pub else [loc_pub]
         # Track in indices of values placed into locations or publishers.
         last_placed_index = 0
@@ -1602,15 +1602,13 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
                     locations.append(place.strip(STRIP_CHARS))
                 locations.append(location)  # Preserve location order.
                 last_placed_index = index + 1
+    else:
+        publishers = [loc_pub.strip(STRIP_CHARS)]
 
-        # Clean up and empty list items left over from strip() string replacement.
-        locations = [item for item in locations if item]
-        publishers = [item for item in publishers if item]
-
-        return (locations, publishers)
-
-    # Fall back to making the input a list returning that and an empty location.
-    return ([], [loc_pub.strip(STRIP_CHARS)])
+    # Clean up and empty list items left over from strip() string replacement.
+    locations = [item for item in locations if item]
+    publishers = [item for item in publishers if item]
+    return (locations, publishers)
 
 
 @public
