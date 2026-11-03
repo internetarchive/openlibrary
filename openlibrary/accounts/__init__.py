@@ -40,15 +40,14 @@ class RunAs:
             raise KeyError("Invalid username")
 
     def _set_conn_auth_token(self, token: str | None) -> None:
-        """Set the auth token on all available connections.
+        """Set the auth token on this request's Infobase connection.
 
-        The canonical connection lives on ``site.get()._conn`` (set by both
-        web.py and FastAPI middleware).  Some legacy code also reads
-        ``web.ctx.conn`` directly, so we set it there too when available.
+        Only ``site.get()._conn`` is request-scoped. On web.py it is the same
+        object as ``web.ctx.conn``. Under FastAPI, ``web.ctx`` is shared by every
+        request on the event-loop thread, so ``web.ctx.conn`` can belong to another
+        request and must not be touched here.
         """
         site.get()._conn.set_auth_token(token)
-        if hasattr(web.ctx, "conn"):
-            web.ctx.conn.set_auth_token(token)
 
     def __enter__(self):
         # Save token of currently logged in user (or no-user)

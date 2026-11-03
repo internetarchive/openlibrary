@@ -29,11 +29,19 @@ from openlibrary.utils import extract_numeric_id_from_olid
 
 if typing.TYPE_CHECKING:
     from infogami.infobase.client import Site
+    from openlibrary.core.models import ThingReferenceDict
 
 logger = logging.getLogger("openlibrary.solr.data_provider")
 
 IA_METADATA_FIELDS = ("identifier", "boxid", "collection", "access-restricted-item")
 OCAID_PATTERN = re.compile(r"^[^\s&#?/]+$")
+SUPPORTED_WORK_TAG_FIELDS = ("genres", "subgenres", "audiences")
+
+
+def normalize_tag(tag: str | ThingReferenceDict) -> ThingReferenceDict:
+    """Normalize a tag key or reference to a standard thing reference."""
+    key = tag["key"] if isinstance(tag, dict) else tag
+    return {"key": key}
 
 
 def get_data_provider(type="default"):
@@ -355,11 +363,11 @@ class DatabaseDataProvider(DataProvider):
             infogami._setup()
             delegate.fakeload()
 
-            from openlibrary.core.db import get_db
+            from openlibrary.core.db import get_db  # noqa: TID251
 
             self.db = get_db()
             covers_db_parameters = web.config.db_parameters | {"db": "coverstore"}
-            self.covers_db = web.database(**covers_db_parameters)
+            self.covers_db = web.database(**covers_db_parameters)  # noqa: TID251
         else:
             self.db = db
 
@@ -377,6 +385,7 @@ class DatabaseDataProvider(DataProvider):
         self.preload_documents0(keys2)
         self._preload_works()
         self._preload_authors()
+        self._preload_tags()
         self._preload_editions()
         await self._preload_metadata_of_editions()
         self.preload_cover_dimensions()
@@ -428,6 +437,15 @@ class DatabaseDataProvider(DataProvider):
                 keys.extend(a["author"]["key"] for a in doc["authors"])
             if doc and doc["type"]["key"] == "/type/edition" and doc.get("authors"):
                 keys.extend(a["key"] for a in doc["authors"])
+        self.preload_documents0(list(set(keys)))
+
+    def _preload_tags(self):
+        """Preloads tags (genres, etc.) for all works in the cache."""
+        keys = []
+        for doc in self.cache.values():
+            if doc and doc["type"]["key"] == "/type/work":
+                for field in SUPPORTED_WORK_TAG_FIELDS:
+                    keys.extend(normalize_tag(t)["key"] for t in doc.get(field, []))
         self.preload_documents0(list(set(keys)))
 
     def find_redirects(self, key):
@@ -534,7 +552,7 @@ class DatabaseDataProvider(DataProvider):
     @typing.override
     def get_work_reading_log(self, work_key: str) -> WorkReadingLogSolrSummary:
         work_id = extract_numeric_id_from_olid(work_key)
-        counts = Bookshelves.get_work_summary(work_id)
+        counts = Bookshelves.get_work_summary_sync(work_id)
         return cast(
             WorkReadingLogSolrSummary,
             {

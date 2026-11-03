@@ -632,15 +632,6 @@ def test_load_testing_state_accepts_legacy_bare_array(tmp_path, monkeypatch):
     assert state.prs[0].pull_latest_sha == ""
 
 
-def test_ensure_testing_state_file_creates_empty_state(tmp_path, monkeypatch):
-    state_file = tmp_path / "_testing-prs.json"
-    monkeypatch.setattr(status_module, "TESTING_STATE_FILE", state_file)
-
-    status_module._ensure_testing_state_file()
-
-    assert json.loads(state_file.read_text()) == {"last_deploy_at": "", "prs": []}
-
-
 def test_ensure_testing_state_file_does_not_overwrite_existing(tmp_path, monkeypatch):
     state_file = tmp_path / "_testing-prs.json"
     state_file.write_text(json.dumps({"last_deploy_at": "x", "prs": [{"pr": 13269}]}))

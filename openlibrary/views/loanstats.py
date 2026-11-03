@@ -9,14 +9,19 @@ import web
 from infogami.utils import delegate
 
 from .. import app
+from ..contribute import initiatives, tasks
+from ..contribute.field_guides import get_field_guides
 from ..core import cache
+from ..core.admin import get_count_docs, rolling_counts
 from ..core.booknotes import Booknotes
 from ..core.bookshelves import Bookshelves
 from ..core.follows import PubSub
+from ..core.helpers import commify
 from ..core.lending import get_availabilities
 from ..core.observations import Observations
 from ..core.ratings import Ratings
 from ..core.yearly_reading_goals import YearlyReadingGoals
+from ..i18n import gettext as _
 from ..plugins.admin.code import get_counts
 from ..plugins.worksearch.code import get_solr_works
 from ..utils import dateutil
@@ -43,9 +48,9 @@ def reading_log_summary():
     stats = Bookshelves.summary()
     stats.update(YearlyReadingGoals.summary_sync())
     stats.update(Ratings.summary_sync())
-    stats.update(Observations.summary())
+    stats.update(Observations.summary_sync())
     stats.update(Booknotes.summary_sync())
-    stats.update(PubSub.summary())
+    stats.update(PubSub.summary_sync())
     return stats
 
 
@@ -239,3 +244,157 @@ class readinglog_stats(app.view):
                     item["availability"] = availabilities.get(item["work"]["key"])
 
         return app.render_template("stats/readinglog", stats=stats)
+
+
+def format_count(value: int | None) -> str:
+    return "—" if value is None else commify(value)
+
+
+def format_change(latest: int | None, earlier: int | None) -> dict | None:
+    "The change from `earlier` to `latest` as a percentage, for a card's delta line. None without an earlier value to compare."
+    if latest is None or not earlier:
+        return None
+    change = (latest - earlier) / earlier * 100
+    direction = "up" if change >= 0.5 else "down" if change <= -0.5 else "flat"
+    return {"direction": direction, "text": f"{abs(change):.1f}%"}
+
+
+def latest(counts: dict, key: str) -> int | None:
+    "A rolling count's latest value, None if the stats script hasn't written it."
+    return (counts.get(key) or {}).get("latest")
+
+
+def build_tasks_stats_cards(counts: dict) -> list[dict]:
+    """One card per metric the main chart can show, each on the trailing 28 days. `metric` is the chart's name for it, and
+    `note` says what one of its bars counts."""
+    cards = {
+        "editors": (
+            "catalog_editors_28d",
+            _("Editors"),
+            _("People who changed a book, work or author record. In week and month views, someone who edited on several days counts once."),
+        ),
+        "new_editors": (
+            "new_catalog_editors_28d",
+            _("First-time editors"),
+            _("People who made their first edit ever on that day. Each person is counted once, on the day of their first edit."),
+        ),
+        "saves": ("tasks_saves_28d", _("Tasks saves"), _("Edits saved from the Tasks page.")),
+        "tasks_editors": (
+            "tasks_editors_28d",
+            _("Tasks editors"),
+            _("People who saved an edit from the Tasks page. In week and month views, someone who saved on several days counts once."),
+        ),
+    }
+    result = []
+    for metric, (key, label, note) in cards.items():
+        value, earlier = latest(counts, key), (counts.get(key) or {}).get("earlier")
+        result.append({"metric": metric, "label": label, "note": note, "value": format_count(value), "change": format_change(value, earlier)})
+    return result
+
+
+# Below this many saves (or fills) in the window, a share is mostly noise, so the page leaves it out.
+GUARDRAIL_MIN_SAMPLE = 20
+
+
+def build_undone_rate(counts: dict, undone_key: str, total_key: str) -> dict:
+    "An undone count over the trailing 28 days, its total and the share: None without `GUARDRAIL_MIN_SAMPLE` behind it."
+    undone, total = latest(counts, undone_key), latest(counts, total_key)
+    share = f"{undone / total:.1%}" if undone is not None and total is not None and total >= GUARDRAIL_MIN_SAMPLE else None
+    return {"undone": format_count(undone), "total": format_count(total), "share": share}
+
+
+def build_guardrail(counts: dict) -> dict:
+    """Tasks saves undone, beside the same check on the same fields filled outside Tasks, so the rate has something to
+    be compared with."""
+    return {
+        "tasks": build_undone_rate(counts, "tasks_saves_undone_28d", "tasks_saves_28d"),
+        "other": build_undone_rate(counts, "other_fills_undone_28d", "other_fills_28d"),
+        "min_sample": GUARDRAIL_MIN_SAMPLE,
+    }
+
+
+def build_initiative(counts: dict) -> dict:
+    "The active initiative's latest snapshot. Each key is `None` until the stats script has taken one."
+    open_gaps, editions = latest(counts, "initiative_open_gaps"), latest(counts, "initiative_editions")
+    slots = (editions or 0) * len(tasks.OFFERED)
+    return {
+        "title": _("Most-read %(count)s", count=commify(initiatives.ACTIVE.size)),
+        "open": format_count(open_gaps),
+        "done": format_count(latest(counts, "initiative_done_editions")),
+        "not_found": format_count(latest(counts, "initiative_not_found")),
+        "editions": format_count(editions),
+        # Rounded down, like initiatives.progress, so it only reads 100% when nothing is left.
+        "percent": f"{(slots - open_gaps) * 100 // slots}%" if open_gaps is not None and slots else "—",
+    }
+
+
+def build_saves_by_field(docs: list[dict]) -> list[dict]:
+    "Tasks saves over `docs` by the field they filled, most first, each with its share of the total."
+    totals: dict[str, int] = {}
+    for doc in docs:
+        for field, count in (doc.get("tasks_saves_by_field_1d") or {}).items():
+            totals[field] = totals.get(field, 0) + count
+    total, peak = sum(totals.values()), max(totals.values(), default=0)
+    guides = get_field_guides()
+    return [
+        {
+            "label": guides[field].label if field in guides else field,
+            "count": commify(count),
+            "share": f"{count / total:.0%}",
+            "width": round(count / peak * 100),
+        }
+        for field, count in sorted(totals.items(), key=lambda item: -item[1])
+    ]
+
+
+def build_tasks_stats_i18n() -> dict[str, str]:
+    "Strings the page's script draws on its charts. Keys and English text match DEFAULT_STRINGS in tasks_stats.js."
+    return {
+        "perDay": _("Per day"),
+        "perWeek": _("Per week"),
+        "perMonth": _("Per 4 weeks"),
+        "previousPeriod": _("Previous period"),
+        "previousValue": _("Previous period: %(count)s"),
+        "change": _("%(change)s vs previous period"),
+        "todaySoFar": _("Today so far, updated hourly"),
+        "periodSoFar": _("Still in progress"),
+        "openDetails": _("%(count)s details still open"),
+        "tasksUndone": _("Tasks: %(share)s undone, %(undone)s of %(total)s saves"),
+        "otherUndone": _("Outside Tasks: %(share)s undone, %(undone)s of %(total)s fills"),
+        "noData": _("No counts for this range yet."),
+        "loadFailed": _("The charts couldn't load. Reload the page to try again."),
+    }
+
+
+def build_tasks_stats_page() -> dict:
+    keys = [
+        "catalog_editors_28d",
+        "new_catalog_editors_28d",
+        "tasks_saves_28d",
+        "tasks_editors_28d",
+        "tasks_saves_undone_28d",
+        "other_fills_28d",
+        "other_fills_undone_28d",
+        "initiative_open_gaps",
+        "initiative_done_editions",
+        "initiative_not_found",
+        "initiative_editions",
+    ]
+    # 29 days: today, and the day 28 before it to compare with. The field breakdown takes the last 28.
+    docs = get_count_docs(29)
+    counts = rolling_counts(docs, keys)
+    since = (dt.date.today() - dt.timedelta(days=27)).strftime("counts-%Y-%m-%d")
+    return {
+        "cards": build_tasks_stats_cards(counts),
+        "guardrail": build_guardrail(counts),
+        "initiative": build_initiative(counts),
+        "saves_by_field": build_saves_by_field([d for d in docs if d["_key"] >= since]),
+        "i18n": build_tasks_stats_i18n(),
+    }
+
+
+class tasks_stats(app.view):
+    path = "/stats/tasks"
+
+    def GET(self):
+        return app.render_template("stats/tasks", page=build_tasks_stats_page())

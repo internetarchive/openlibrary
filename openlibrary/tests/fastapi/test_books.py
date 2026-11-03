@@ -24,7 +24,7 @@ def mock_dynlinks():
     - Otherwise: returns JS variable wrapper
     """
 
-    def dynlinks_mock(bib_keys, options):
+    def dynlinks_mock(bib_keys, options, base_url=None):
         base_data = json.dumps({"ISBN:059035342X": {"bib_key": "ISBN:059035342X", "info_url": "http://localhost/books/OL1M"}})
         if options.get("format") == "json" or "callback" in options:
             return base_data
@@ -72,6 +72,13 @@ class TestGetBooks:
         mock_dynlinks.assert_called_once()
         call_kwargs = mock_dynlinks.call_args
         assert "ISBN:059035342X" in call_kwargs[1]["bib_keys"]
+
+    def test_passes_base_url_to_dynlinks(self, client, mock_dynlinks):
+        """Verify the request's scheme://host is forwarded as dynlinks' base_url."""
+        response = client.get("/api/books.json?bibkeys=ISBN:059035342X")
+
+        assert response.status_code == 200
+        assert mock_dynlinks.call_args[1]["base_url"] == "http://testserver"
 
     def test_passes_details_and_jscmd(self, client, mock_dynlinks):
         """Verify details and jscmd query params are forwarded to dynlinks options."""
@@ -316,21 +323,28 @@ class TestGetVolumesMultiget:
         response = client.get("/api/volumes/brief/json/isbn:0452010586.json")
 
         assert response.status_code == 200
-        mock_readlinks.assert_called_once_with("isbn:0452010586", {})
+        mock_readlinks.assert_called_once_with("isbn:0452010586", {}, base_url="http://testserver")
+
+    def test_passes_base_url_to_readlinks(self, client, mock_readlinks):
+        """Verify the request's scheme://host is forwarded as readlinks' base_url."""
+        response = client.get("/api/volumes/brief/json/isbn:0452010586.json")
+
+        assert response.status_code == 200
+        assert mock_readlinks.call_args[1]["base_url"] == "http://testserver"
 
     def test_multiple_identifiers(self, client, mock_readlinks):
         """Verify pipe-separated identifiers are passed through."""
         response = client.get("/api/volumes/brief/json/isbn:0452010586|lccn:88037464.json")
 
         assert response.status_code == 200
-        mock_readlinks.assert_called_once_with("isbn:0452010586|lccn:88037464", {})
+        mock_readlinks.assert_called_once_with("isbn:0452010586|lccn:88037464", {}, base_url="http://testserver")
 
     def test_jsonp_callback(self, client, mock_readlinks):
         """Verify JSONP callback wrapping works for multiget endpoint."""
         response = client.get("/api/volumes/brief/json/isbn:0452010586.json?callback=jQueryCb")
 
         assert response.status_code == 200
-        mock_readlinks.assert_called_once_with("isbn:0452010586", {})
+        mock_readlinks.assert_called_once_with("isbn:0452010586", {}, base_url="http://testserver")
         data = extract_jsonp(response.text, "jQueryCb")
         assert isinstance(data, dict)
 
