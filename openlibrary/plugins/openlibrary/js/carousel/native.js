@@ -22,6 +22,14 @@ export function initNativeCarousels(elems) {
             if (track) trackEvent(...track.split('|'));
         });
 
+        // On touch the caption is the visible link; show the loading state on its cover.
+        carousel.addEventListener('click', e => {
+            const caption = e.target.closest('.carousel-caption');
+            if (!caption || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            const cover = caption.closest('.book')?.querySelector('ol-book-cover');
+            if (cover) cover.loading = true;
+        });
+
         const loadMore = config.loadMore;
         if (!loadMore?.queryType) return;
         let locked = false;

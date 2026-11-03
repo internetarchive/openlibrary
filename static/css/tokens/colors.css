@@ -177,6 +177,8 @@
      staying lighter than --color-border-subtle so the pill keeps a visible
      outline against the track. */
   --color-control-track: var(--neutral-100);
+  /* The same track on --color-surface-sunken, where --color-control-track nearly vanishes. */
+  --color-control-track-sunken: var(--neutral-200);
   /* Drag handle on a sheet or tray — see-through ink, like --color-hover-overlay. */
   --color-drag-handle: color-mix(in srgb, var(--ink-overlay) 20%, transparent);
   /* Loading skeletons (components/skeleton.css); see-through, so they work on any surface. */

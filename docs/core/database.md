@@ -19,6 +19,12 @@ The handle is two calls. `site.get()` returns the current site; it's the `site` 
 
 The sync handle isn't going away overnight. Plenty of legacy web.py code still runs through it, and you don't need to migrate a model just to fix something adjacent to it. But don't add new sync queries. When FastAPI work touches a model, migrate it; the pattern below is a few lines per method.
 
+Ruff enforces this with rule `TID251`, which flags imports of `openlibrary.core.db`, `psycopg2`, `web.db` and uses of `web.database`. Tests, `scripts/` and the coverstore service are exempt.
+
+- Files that used the legacy driver before the ban carry `# noqa: TID251` on that line. Never add one.
+- The rule only sees imports, so it can't stop new sync queries in those files. Write them async anyway, with a `_sync` bridge if web.py needs them.
+- When a file's last legacy use goes, Ruff's `RUF100` flags the leftover `noqa`; delete it.
+
 ## The async pool: `openlibrary/core/async_db.py`
 
 Single-statement helpers. Each takes a connection from the pool, runs one query, commits, and returns the connection:
@@ -46,7 +52,7 @@ The module docstring documents the details. The parts that trip agents up:
 
 - Placeholders are psycopg3's `%(name)s`, not web.py's `$name`.
 - One pool per event loop. FastAPI's loop gets its pool from the app lifespan (`init_pool()` / `close_pool()` in `openlibrary/asgi_app.py`); anything else (the bridge loop, a pytest loop) gets one lazily on first use. This is why `AsyncConnectionPool` can't be a module-level singleton.
-- Rows map through psycopg row factories. `class_row(Model)` gives typed rows; import it from `async_db`, which guards the psycopg import. Migrated models keep a small dataclass or TypedDict next to them for the row type (`YearlyReadingGoal` in `yearly_reading_goals.py`).
+- Rows map through psycopg row factories. `class_row(Model)` gives typed rows; import it from `async_db`. Migrated models keep a small dataclass or TypedDict next to them for the row type (`YearlyReadingGoal` in `yearly_reading_goals.py`).
 - Missing psycopg with a configured database fails at pool startup, not on the first request.
 
 ## Calling async code from sync web.py code: the bridge
@@ -77,7 +83,7 @@ The reading-goals model was the first to move end-to-end. Copy this set:
 - `openlibrary/fastapi/yearly_reading_goals.py` — FastAPI endpoint calling the async model directly
 - `openlibrary/plugins/upstream/yearly_reading_goals.py` — the web.py adapter; it resolves the current user, then bridges with `async_bridge.run`
 - `openlibrary/plugins/openlibrary/partials.py` — `ReadingGoalProgressPartial.generate_async`, an async partial feeding Jinja
-- Tests: `openlibrary/tests/core/test_yearly_reading_goals_async.py` patches the helpers and asserts the query and params; `openlibrary/tests/core/async_db_fakes.py` holds the connection/cursor fakes for helper-level tests
+- Tests: `openlibrary/tests/core/test_yearly_reading_goals.py` patches the helpers and asserts the query and params; `openlibrary/tests/core/async_db_fakes.py` holds the connection/cursor fakes for helper-level tests
 
 ## Testing DB code
 
@@ -115,6 +121,6 @@ Run them with `make test-py-integration` (needs `pg_ctl` on `PATH` — `brew ins
 
 - **New table or new query?** Async helpers from the start.
 - **FastAPI endpoint or partial touching SQL?** Always async. A sync DB call blocks the event-loop worker.
-- **Only touching legacy web.py behavior on a `db.py` model?** Sync is fine; don't half-migrate one flow across both drivers.
+- **Fixing an existing sync query on a `db.py` model?** Edit it in place; don't half-migrate one flow across both drivers. A new query on that model is still async, bridged with `_sync`.
 - **Same model needed in both worlds?** Async method plus a thin `_sync` bridge, or a web.py adapter like `get_reading_goals`.
 - **Page data (works, editions, authors, users)?** Not SQL at all. Use `site.get()` or the API.

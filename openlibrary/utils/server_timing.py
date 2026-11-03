@@ -375,7 +375,7 @@ def install_legacy_bridge() -> None:
     if _bridge_installed:
         return
     original_begin, original_end = stats.begin, stats.end
-    original_db_execute = web.db.DB._db_execute
+    original_db_execute = web.db.DB._db_execute  # noqa: TID251
     original_template_call = web.template.Template.__call__
 
     original_bridge_run = AsyncBridge.run
@@ -411,7 +411,7 @@ def install_legacy_bridge() -> None:
             return original_template_call(self, *a, **kw)
 
     stats.begin, stats.end = begin, end
-    web.db.DB._db_execute = _db_execute
+    web.db.DB._db_execute = _db_execute  # noqa: TID251
     AsyncBridge.run = bridge_run  # type: ignore[method-assign]
     web.template.Template.__call__ = template_call
     _bridge_installed = True
