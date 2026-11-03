@@ -281,13 +281,13 @@ def test_get_abbrev_from_full_lang_name(
 
 @pytest.mark.parametrize(
     ("loc_pub", "expected"),
-    (
+    [
         ("", ("", "")),
         ("New York : Random House", ("New York", "Random House")),
         ("[New York] : [Random House]", ("[New York]", "[Random House]")),
         ("Random House,", ("", "Random House")),
         ("[Place of publication not identified]", ("", "[Place of publication not identified]")),
-    )
+    ]
 )
 def test_get_colon_only_loc_pub(loc_pub: str, expected) -> None:
     # This is a helper function, and its caller,
@@ -298,12 +298,12 @@ def test_get_colon_only_loc_pub(loc_pub: str, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    ("loc_pub"),
-    (
+    "loc_pub",
+    [
         "",  # Empty string
         "[Place of publication not identified]",
         "Place of publication not identified",
-    )
+    ]
 )
 def test_empty_get_location_and_publisher(loc_pub:str) -> None:
     assert utils.get_location_and_publisher(loc_pub) == ([], [])
@@ -311,7 +311,7 @@ def test_empty_get_location_and_publisher(loc_pub:str) -> None:
 
 @pytest.mark.parametrize(
     ("loc_pub", "expected"),
-    (
+    [
         (  # Simple case of "City : Publisher"
             "Sŏul T'ŭkpyŏlsi : [Kimyŏngsa]",
             (
@@ -352,7 +352,7 @@ def test_empty_get_location_and_publisher(loc_pub:str) -> None:
             "[Place of publication not identified], BARBOUR PUB INC",
             ([], ["BARBOUR PUB INC"])
         ),
-    )
+    ]
 )
 def test_get_location_and_publisher(loc_pub: str, expected) -> None:
     assert utils.get_location_and_publisher(loc_pub) == expected
