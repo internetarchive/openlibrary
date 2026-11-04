@@ -1441,28 +1441,26 @@ class Request:
         Used for adding <meta rel="canonical" ..> tag in all web pages.
         Required to make OL retain the page rank after https migration.
         """
-        readable_path = web.ctx.get("readable_path", web.ctx.path) or ""
-        query = web.ctx.query or ""
-        host = web.ctx.host or ""
-        if url := host + readable_path + query:
-            url = "https://" + url
-            parsed_url = urlparse(url)
+        return canonical_url(web.ctx.host or "", web.ctx.get("readable_path", web.ctx.path) or "", web.ctx.query or "")
 
-            parsed_query = parse_qs(parsed_url.query)
-            # Params that do not change what the page is about: presentation (sort, mode,
-            # layout), revision and diff selectors (v, a, b), librarian and debug toggles,
-            # tracking, read-aloud autostart, and a work's selected edition (every edition
-            # has its own /books/ page).
-            queries_to_exclude = ["sort", "mode", "v", "type", "debug", "layout", "a", "b", "show_page_status", "edition", "ref", "_autoReadAloud"]
 
-            canonical_query = {q: v for q, v in parsed_query.items() if q not in queries_to_exclude}
-            query = parse_urlencode(canonical_query, doseq=True)
-            parsed_url = parsed_url._replace(query=query)
+# Params that do not change what the page is about: presentation (sort, mode,
+# layout), revision and diff selectors (v, a, b), librarian and debug toggles,
+# tracking, read-aloud autostart, and a work's selected edition (every edition
+# has its own /books/ page).
+CANONICAL_QUERY_EXCLUDES = frozenset({"sort", "mode", "v", "type", "debug", "layout", "a", "b", "show_page_status", "edition", "ref", "_autoReadAloud"})
 
-            url = urlunparse(parsed_url)
 
-            return url
-        return ""
+def canonical_url(host: str, readable_path: str, query: str) -> str:
+    """The https:// URL for ``host + readable_path + query``, minus view-only params.
+
+    ``query`` includes its leading "?", like ``web.ctx.query``.
+    """
+    if url := host + readable_path + query:
+        parsed_url = urlparse("https://" + url)
+        canonical_query = {q: v for q, v in parse_qs(parsed_url.query).items() if q not in CANONICAL_QUERY_EXCLUDES}
+        return urlunparse(parsed_url._replace(query=parse_urlencode(canonical_query, doseq=True)))
+    return ""
 
 
 @public
@@ -1585,9 +1583,9 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
     # the colon is a publisher. This can be exploited by using
     # string.split(";") because everything to the 'left' of a colon is a
     # location, and whatever is to the right is a publisher.
+    locations: list[str] = []
+    publishers: list[str] = []
     if ":" in loc_pub:
-        locations: list[str] = []
-        publishers: list[str] = []
         parts = loc_pub.split(";") if ";" in loc_pub else [loc_pub]
         # Track in indices of values placed into locations or publishers.
         last_placed_index = 0
@@ -1611,15 +1609,13 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
                     locations.append(place.strip(STRIP_CHARS))
                 locations.append(location)  # Preserve location order.
                 last_placed_index = index + 1
+    else:
+        publishers = [loc_pub.strip(STRIP_CHARS)]
 
-        # Clean up and empty list items left over from strip() string replacement.
-        locations = [item for item in locations if item]
-        publishers = [item for item in publishers if item]
-
-        return (locations, publishers)
-
-    # Fall back to making the input a list returning that and an empty location.
-    return ([], [loc_pub.strip(STRIP_CHARS)])
+    # Clean up and empty list items left over from strip() string replacement.
+    locations = [item for item in locations if item]
+    publishers = [item for item in publishers if item]
+    return (locations, publishers)
 
 
 @public

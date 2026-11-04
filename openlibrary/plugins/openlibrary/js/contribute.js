@@ -11,6 +11,8 @@ import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
 import { trackEvent } from './ol.analytics.js';
 
 const SKIPPED_KEY = 'ol-contribute-skipped';
+// The "Not sure" row's value on a choice list; mirrors ``UNSURE`` in contribute.py.
+const UNSURE = 'unsure';
 // While placeholder cards are up, the server is building the list in the background: ask again soon, then
 // every few seconds, for as long as its Solr query may take, then give up and say the list couldn't load.
 const ROWS_RETRY_MS = [1000, 1000, 2000, 3000, 5000];
@@ -141,6 +143,9 @@ function initSkipButton(form) {
  * @returns {string} the trimmed answer, or '' with no control
  */
 function currentAnswer(form) {
+    // A choice list is a set of radios rather than one control.
+    const checked = form.querySelector('input[name="value"]:checked');
+    if (checked) return checked.value;
     const control = form.querySelector('#contrib-other-value');
     if (!control) return '';
     return control.tagName === 'OL-OPTIONS-POPOVER' ? control.selected : control.value.trim();
@@ -161,7 +166,8 @@ function answerSource(form) {
 
 /**
  * Report a save as ``TaskForm|Save`` or ``TaskForm|SaveNext`` with the field as
- * label, plus ``:chip``/``:typed`` when the field offered suggestions. On the
+ * label, plus ``:chip``/``:typed`` when the field offered suggestions. A "Not sure"
+ * answer reports as ``NotFound`` and is remembered as skipped, like the button. On the
  * ``submit`` event rather than the buttons' clicks so Enter in the answer field
  * counts too; the submitter is the button's in-form proxy.
  * @param {HTMLFormElement} form - a ``[data-task-form]`` with ``data-task-field``
@@ -172,6 +178,12 @@ function initSaveTracking(form) {
         const then = event.submitter?.closest('ol-button')?.value || event.submitter?.value;
         // "I couldn't find it" also submits; its click is already tracked as NotFound.
         if (then === 'notfound') return;
+        // "Not sure" on a choice list is the same honest exit: the server counts it as "couldn't find it".
+        if (currentAnswer(form) === UNSURE) {
+            markTaskSkipped(form.dataset.taskKey);
+            trackEvent('TaskForm', 'NotFound', form.dataset.taskField);
+            return;
+        }
         const source = answerSource(form);
         trackEvent('TaskForm', then === 'next' ? 'SaveNext' : 'Save', source ? `${form.dataset.taskField}:${source}` : form.dataset.taskField);
     });
@@ -204,6 +216,43 @@ function initSiblingSuggestions(form) {
     });
     control.addEventListener(isPicker ? 'ol-options-popover-change' : 'input', syncChipSelection);
     syncChipSelection();
+}
+
+/**
+ * Quick next: on a form that opts in, clicking the already-picked choice row saves and moves on, so an easy
+ * call (fiction or nonfiction) takes two clicks on the answer and none on the buttons. The first click on a
+ * row only selects it; a double-click is just the two clicks in a row. Keyboard activation (Space on a
+ * checked radio also fires ``click``) is left alone: Enter already submits with "Save and next".
+ * @param {HTMLFormElement} form - a ``[data-task-form][data-quick-next]``
+ * @returns {void}
+ */
+function initQuickNext(form) {
+    if (!('quickNext' in form.dataset)) return;
+    let picked = form.querySelector('input[name="value"]:checked');
+    // A click with no pointerdown before it came from the keyboard or a script.
+    let pointer = false;
+    form.addEventListener('pointerdown', () => {
+        pointer = true;
+    });
+    form.addEventListener('keydown', () => {
+        pointer = false;
+    });
+    form.addEventListener('change', event => {
+        if (event.target.name === 'value') picked = event.target;
+    });
+    form.addEventListener('click', event => {
+        const input = event.target;
+        if (!(input instanceof HTMLInputElement) || input.name !== 'value' || input.type !== 'radio') return;
+        const viaPointer = pointer;
+        pointer = false;
+        // ``change`` for a fresh pick fires after this click, so ``picked`` still names the previous row here.
+        if (!viaPointer || input !== picked) return;
+        // ol-button keeps a native submit proxy in the form; submitting through it keeps ``then=next`` and the Save tracking.
+        const next = form.querySelector('button[name="then"][value="next"]');
+        if (!next) return;
+        trackEvent('TaskForm', 'QuickNext', form.dataset.taskField);
+        form.requestSubmit(next);
+    });
 }
 
 /**
@@ -404,6 +453,7 @@ export function init() {
         initSkipButton(form);
         initSiblingSuggestions(form);
         initSaveTracking(form);
+        initQuickNext(form);
     });
     if (document.querySelector('[data-receipt]')) clearSavedReceipt();
     document.querySelectorAll('form[data-id-form]').forEach(initIdentifierForm);

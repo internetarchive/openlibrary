@@ -37,7 +37,7 @@ from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from openlibrary.plugins.upstream.utils import get_identifier_config
 from openlibrary.utils import extract_numeric_id_from_olid, normalize_subject_name
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
-from openlibrary.utils.request_context import get_print_disabled, site
+from openlibrary.utils.request_context import get_print_disabled, site, visitor
 
 from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
 from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_url
@@ -967,13 +967,16 @@ class User(Thing):
         return self.is_usergroup_member("/usergroup/super-librarians")
 
     def is_librarian_or_higher(self) -> bool:
-        return self.is_member_of_any(
+        is_librarian = self.is_member_of_any(
             [
                 "/usergroup/librarians",
                 "/usergroup/super-librarians",
                 "/usergroup/admin",
             ]
         )
+        if (v := visitor.get()) and v.user_key == self.key:
+            v.is_librarian = is_librarian  # for the request metrics' visitor label (openlibrary/utils/prometheus.py)
+        return is_librarian
 
     def is_super_librarian_or_higher(self) -> bool:
         return self.is_member_of_any(

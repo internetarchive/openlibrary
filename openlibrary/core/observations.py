@@ -10,7 +10,7 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
-from . import cache, db
+from . import cache, db  # noqa: TID251
 
 ObservationIds = namedtuple("ObservationIds", ["type_id", "value_id"])
 ObservationKeyValue = namedtuple("ObservationKeyValue", ["key", "value"])

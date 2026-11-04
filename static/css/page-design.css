@@ -24,6 +24,7 @@
    CSS component without loading its stylesheet renders unstyled markup, which
    is worse than not documenting it at all. */
 @import "components/ol-message.css";
+@import "components/choice-list.css";
 @import "components/copy-button.css";
 
 /* Page and component titles set in the serif; import the face so it loads. */

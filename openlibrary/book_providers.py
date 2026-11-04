@@ -22,6 +22,19 @@ if typing.TYPE_CHECKING:
 
 logger = logging.getLogger("openlibrary.book_providers")
 
+
+def is_safe_provider_url(url: str | None) -> bool:
+    """A provider URL is safe to store and render only if it is an absolute
+    http(s) URL with a host. Blocks javascript:, data:, and scheme-relative
+    URLs, which can otherwise reach an unescaped href on the borrow
+    interstitial. A scheme obfuscated with HTML character references fails
+    this check too, since urlparse never sees the literal scheme."""
+    if not isinstance(url, str) or not url:
+        return False
+    parsed = parse.urlparse(url)
+    return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+
+
 AcquisitionAccessLiteral = Literal["sample", "buy", "open-access", "borrow", "subscribe"]
 
 
@@ -84,6 +97,15 @@ class Acquisition:
     price: str | None
     url: str
     provider_name: str | None = None
+    # The OPDS `rel="self"` link: this publication on the provider's own feed.
+    # Distinct from `url`, which is the acquisition link -- what a reader
+    # follows to buy, borrow or read. A consumer that wants the source record
+    # needs this one, and today reverse-engineers it per provider.
+    source_url: str | None = None
+    # The provider's human-readable name ("Project Gutenberg"), where
+    # `provider_name` is a slug ("gutenberg"). Filled from the provider's
+    # `long_name` by `get_acquisitions`.
+    feed_name: str | None = None
 
     @property
     def ebook_access(self) -> EbookAccess:
@@ -106,6 +128,8 @@ class Acquisition:
             access = json.get("access", "open-access")
             if access in html_access:
                 access = html_access[access]
+            if not is_safe_provider_url(json["url"]):
+                raise ValueError(f"Unsafe acquisition URL scheme: {json['url']!r}")
             # Pressbooks/OL-style
             return Acquisition(
                 access=access,
@@ -113,6 +137,8 @@ class Acquisition:
                 price=json.get("price"),
                 url=json["url"],
                 provider_name=json.get("provider_name"),
+                source_url=json.get("source_url"),
+                feed_name=json.get("feed_name"),
             )
         else:
             raise ValueError(f"Unknown ebook acquisition format: {json}")
@@ -150,6 +176,8 @@ class Acquisition:
         else:
             price = None
 
+        if not is_safe_provider_url(json["href"]):
+            raise ValueError(f"Unsafe acquisition URL scheme: {json['href']!r}")
         return Acquisition(
             access=json["rel"].split("/")[-1],
             format=fmt,
@@ -223,6 +251,11 @@ class AbstractBookProvider[TProviderMetadata]:
     def get_template_path(self, typ: Literal["read_button", "download_options"]) -> str:
         return f"book_providers/{self.short_name}_{typ}.html"
 
+    def get_read_acquisition(self, ed_or_solr: Edition | dict) -> Acquisition | None:
+        """The acquisition the read button offers: the most open one, if any is readable."""
+        readable = [p for p in self.get_acquisitions(ed_or_solr) if p.ebook_access >= EbookAccess.PRINTDISABLED]
+        return max(readable, key=lambda p: p.ebook_access, default=None)
+
     def render_read_button(
         self,
         edition_key: str,
@@ -231,15 +264,9 @@ class AbstractBookProvider[TProviderMetadata]:
         show_locate: bool = False,
         check_loan_status: bool = False,
     ) -> TemplateResult | str:
-        acq_sorted = sorted(
-            (p for p in self.get_acquisitions(ed_or_solr) if p.ebook_access >= EbookAccess.PRINTDISABLED),
-            key=lambda p: p.ebook_access,
-            reverse=True,
-        )
-        if not acq_sorted:
+        if not (acquisition := self.get_read_acquisition(ed_or_solr)):
             return ""
 
-        acquisition = acq_sorted[0]
         # Asked here rather than in the template so the lookup needs no template
         # global, and only when the caller says this page is worth asking on --
         # see LoanStatus.html, which keeps it off carousels and search results.
@@ -1039,9 +1066,18 @@ def get_acquisitions(solr_edition: dict, edition: Edition) -> list[Acquisition]:
     acquisitions: list[Acquisition] = []
     for provider in get_book_providers(edition):
         if isinstance(provider, InternetArchiveProvider):
-            acquisitions.extend(provider.get_acquisitions(solr_edition, db_edition=edition))
+            provider_acquisitions = provider.get_acquisitions(solr_edition, db_edition=edition)
         else:
-            acquisitions.extend(provider.get_acquisitions(edition))
+            provider_acquisitions = provider.get_acquisitions(edition)
+        # Stamped here rather than inside each provider's `get_acquisitions`:
+        # the name belongs to the provider, not to one acquisition, and this
+        # is the only place that holds both. An acquisition that already
+        # carries a name keeps it -- `DirectProvider` reads `Edition.providers`,
+        # where the name came from the record rather than from a provider class.
+        for acquisition in provider_acquisitions:
+            if acquisition.feed_name is None:
+                acquisition.feed_name = provider.long_name
+        acquisitions.extend(provider_acquisitions)
     return acquisitions
 
 

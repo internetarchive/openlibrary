@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Notify openlibrary-i18n of pot change
         env:
-          GH_TOKEN: ${{ secrets.OL_BOT_PAT }}
+          GH_TOKEN: ${{ secrets.OL_I18N_DISPATCH_TOKEN }}
         run: |
           gh api repos/internetarchive/openlibrary-i18n/dispatches \
             -f event_type=openlibrary-pot-updated \

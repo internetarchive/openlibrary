@@ -101,7 +101,8 @@
     "@ericblade/quagga2": {
       "form-data": "4.0.5",
       "qs": "6.15.2"
-    }
+    },
+    "shell-quote": "1.11.0"
   },
   "browserslist": [
     "Chrome > 0 and last 3 years",
