@@ -403,12 +403,26 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
      * @returns {void}
      */
     _resolveOptions() {
-        if (Array.isArray(this.options)) return; // direct options win; no fetch
-        if (!this.tagType || this._fetchedType === this.tagType) return;
+        if (Array.isArray(this.options)) {
+            this.loading = false; // direct options win; nothing in flight to wait on
+            return;
+        }
+        if (!this.tagType) {
+            // No type to resolve (e.g. tag-type cleared while a fetch was in
+            // flight): release loading and drop the guard so the next real type
+            // refetches — the in-flight .then is blocked by the stale-type check.
+            this.loading = false;
+            this._fetchedType = null;
+            return;
+        }
+        if (this._fetchedType === this.tagType) return;
         const type = this.tagType;
         this._fetchedType = type;
         this.loading = true;
         fetchTagsOfType(type).then(rows => {
+            // A newer tag-type may have won while this request was in flight; a
+            // stale response must not overwrite the current type's options.
+            if (this.tagType !== type) return;
             this._resolvedOptions = rows;
             this.loading = false;
             // fetchTagsOfType evicts the cache on failure; if it's gone, the fetch
@@ -640,7 +654,7 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
             new CustomEvent('ol-tag-picker-change', {
                 bubbles: true,
                 composed: true,
-                detail: { value: nextKeys, added, removed }
+                detail: { value: [...nextKeys], added, removed }
             })
         );
     }
