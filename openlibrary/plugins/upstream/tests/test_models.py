@@ -4,6 +4,7 @@ Capture some of the unintuitive aspects of Storage, Things, and Works
 
 from unittest.mock import patch
 
+import pytest
 import web
 
 import openlibrary.core.lists.model as list_model
@@ -200,6 +201,23 @@ class TestEdition:
         with patch("openlibrary.core.lending.is_loaned_out", return_value=True):
             loans = ed.get_available_loans()
         assert loans == []
+
+    def test_set_providers_rejects_an_unsafe_url(self):
+        ed = self._make_edition()
+        with pytest.raises(client.ClientException):
+            ed.set_providers([{"url": "javascript:alert(1)", "format": "web"}])
+
+    def test_set_providers_accepts_an_http_url(self):
+        ed = self._make_edition()
+        ed.set_providers([{"url": "https://example.com/b", "format": "web"}])
+        assert ed.providers[0]["url"] == "https://example.com/b"
+
+    def test_set_providers_allows_a_blank_url_row(self):
+        # Empty rows are a normal artefact of the edit form; they are harmless
+        # and must not break the save.
+        ed = self._make_edition()
+        ed.set_providers([{"url": "", "format": "web"}])
+        assert ed.providers[0]["url"] == ""
 
     def test_get_ia_meta_fields_no_external_identifier(self):
         ed = self._make_edition(ocaid="testitem00archive")

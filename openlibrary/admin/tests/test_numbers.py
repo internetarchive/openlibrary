@@ -30,7 +30,7 @@ class FakeStore(dict):
 def run(fn, db):
     numbers.cached_bot_accounts = [11, 12]
     try:
-        return fn(thingdb=db, coverdb=None, logroot=None, start=datetime(2026, 10, 15), end=datetime(2026, 10, 15, 21, 0, 0))
+        return fn(thingdb=db, coverdb=None, start=datetime(2026, 10, 15), end=datetime(2026, 10, 15, 21, 0, 0))
     finally:
         numbers.cached_bot_accounts = None
 

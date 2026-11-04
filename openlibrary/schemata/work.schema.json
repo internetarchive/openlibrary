@@ -42,6 +42,9 @@
     "subgenres":           { "$ref": "shared_definitions.json#/string_array" },
     "audiences":           { "$ref": "shared_definitions.json#/string_array" },
     "literary_form":       { "$ref": "#/definitions/tag_ref" },
+    "content_warnings":    { "$ref": "shared_definitions.json#/string_array" },
+    "content_formats":     { "$ref": "shared_definitions.json#/string_array" },
+    "literary_forms":      { "$ref": "shared_definitions.json#/string_array" },
 
     "first_publish_date": { "type": "string" },
 

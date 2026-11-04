@@ -256,6 +256,36 @@
                 "key": "/type/property"
             },
             "name": "literary_form"
+        },
+        {
+            "expected_type": {
+                "key": "/type/tag"
+            },
+            "unique": false,
+            "type": {
+                "key": "/type/property"
+            },
+            "name": "content_warnings"
+        },
+        {
+            "expected_type": {
+                "key": "/type/tag"
+            },
+            "unique": false,
+            "type": {
+                "key": "/type/property"
+            },
+            "name": "content_formats"
+        },
+        {
+            "expected_type": {
+                "key": "/type/tag"
+            },
+            "unique": false,
+            "type": {
+                "key": "/type/property"
+            },
+            "name": "literary_forms"
         }
     ],
     "revision": 14

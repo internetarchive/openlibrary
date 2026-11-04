@@ -20,7 +20,10 @@
      data-wait="{{ wait }}">
     <h1>{{ _("You are being redirected to your book") }}</h1>
     <p id="countdown">{{ _("This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider", book_provider=book_provider) | safe }}</p>
-    <p>{{ _("In %(time)s seconds, you will be automatically redirected to: %(url)s", time=('<span id=\"timer\">' ~ wait ~ '</span>') | safe, url=('<a href=\"' ~ url ~ '\">' ~ url ~ '</a>') | safe) | safe }}</p>
+    {# Built as a block so autoescape applies to `url`; a hand-built string
+       marked `safe` would put the raw value into the href. #}
+    {% set link %}<a href="{{ url }}">{{ url }}</a>{% endset %}
+    <p>{{ _("In %(time)s seconds, you will be automatically redirected to: %(url)s", time=('<span id=\"timer\">' ~ wait ~ '</span>') | safe, url=link) }}</p>
     <p>
         <a href="#" class="close-window">{{ _("Cancel") }}</a>
         <a href="{{ url }}">{{ _("Continue without waiting") }}</a>
