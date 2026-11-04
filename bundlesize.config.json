@@ -5,8 +5,8 @@
       "maxSize": "35KB"
     },
     {
-      "path": "static/build/js/carousel.*.js",
-      "maxSize": "13KB"
+      "path": "static/build/js/native.*.js",
+      "maxSize": "2KB"
     },
     {
       "path": "static/build/js/covers.*.js",
