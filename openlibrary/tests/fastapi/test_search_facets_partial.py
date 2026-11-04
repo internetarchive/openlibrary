@@ -50,8 +50,8 @@ class TestSearchFacetsPartial:
 
     @pytest.mark.parametrize(
         "path",
-        [None, "", "search", "https://example.com/search", 123],
-        ids=["missing", "empty", "relative", "absolute-url", "not-a-string"],
+        [None, "", "search", "https://example.com/search", "//example.com/search", 123],
+        ids=["missing", "empty", "relative", "absolute-url", "protocol-relative-url", "not-a-string"],
     )
     def test_rejects_data_without_a_page_path(self, fastapi_client, mock_solr, path):
         data = {"param": {"q": "tolkien"}, "query": "?q=tolkien"}

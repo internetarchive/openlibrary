@@ -67,7 +67,7 @@ async def search_facets_partial(
     # Only the caller knows which page the facet links belong on. Without a path,
     # changequery() falls back to web.ctx.path, which under FastAPI is a startup placeholder.
     path = parsed_data.get("path")
-    if not isinstance(path, str) or not path.startswith("/"):
+    if not isinstance(path, str) or not path.startswith("/") or path.startswith("//"):
         raise HTTPException(status_code=422, detail="data.path is required: the path of the page the facet links point at, e.g. '/search'")
 
     return await SearchFacetsPartial.generate_async(data=parsed_data, sfw=sfw == "yes", show_merge_authors=is_librarian)
