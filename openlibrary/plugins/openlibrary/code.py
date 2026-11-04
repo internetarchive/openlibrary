@@ -457,10 +457,34 @@ class batch_imports(delegate.page):
         return render_template("batch_import.html", batch_result=batch_result)
 
 
+def _require_admin():
+    """Raise 403 unless the current user is logged in and an admin."""
+    user_key = delegate.context.user and delegate.context.user.key
+    if not user_key or user_key not in _get_members_of_group("/usergroup/admin"):
+        raise Forbidden("Permission Denied.")
+
+
 class BatchImportView(delegate.page):
     path = r"/import/batch/(\d+)"
 
     def GET(self, batch_id):
+        # A batch view exposes its import rows and the submitter's identity, so
+        # it is limited to the batch's submitter and to admins. The 403 is
+        # identical whether or not the batch exists, so a non-admin cannot use
+        # this endpoint to probe which batch ids exist.
+        user = delegate.context.user
+        user_key = user and user.key
+        if not user_key:
+            raise Forbidden("Permission Denied.")
+        is_admin = user_key in _get_members_of_group("/usergroup/admin")
+
+        batch_rows = db.select("import_batch", where="id=$batch_id", vars=locals())
+        batch = batch_rows[0] if batch_rows else None
+        if not is_admin and (batch is None or batch.submitter != user.get_username()):
+            raise Forbidden("Permission Denied.")
+        if batch is None:
+            raise web.notfound()
+
         i = web.input(page=1, limit=10, sort="added_time asc")
         page = int(i.page)
         limit = int(i.limit)
@@ -473,8 +497,6 @@ class BatchImportView(delegate.page):
             sort_order = "asc"
 
         offset = (page - 1) * limit
-
-        batch = db.select("import_batch", where="id=$batch_id", vars=locals())[0]
         total_rows = db.query(
             "SELECT COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id",
             vars=locals(),
@@ -542,6 +564,9 @@ class BatchImportPendingView(delegate.page):
     path = r"/import/batch/pending"
 
     def GET(self):
+        # Lists every batch awaiting review, across all submitters -- admins only.
+        _require_admin()
+
         i = web.input(page=1, limit=10, sort="added_time asc")
         page = int(i.page)
         limit = int(i.limit)
