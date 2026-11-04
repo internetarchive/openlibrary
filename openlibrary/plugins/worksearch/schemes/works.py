@@ -87,6 +87,8 @@ class WorkSearchScheme(SearchScheme):
             "content_format_name",
             "literary_form_key",
             "literary_form_name",
+            "award_key",
+            "award_name",
             "subject",
             "person",
             "place",

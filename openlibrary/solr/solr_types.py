@@ -77,6 +77,8 @@ class SolrDocument(TypedDict):
     content_format_name: Optional[list[str]]
     literary_form_key: Optional[list[str]]
     literary_form_name: Optional[list[str]]
+    award_key: Optional[list[str]]
+    award_name: Optional[list[str]]
     series_key: Optional[list[str]]
     series_name: Optional[list[str]]
     series_position: Optional[list[str]]
