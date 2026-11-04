@@ -67,6 +67,15 @@ def get_recaptcha():
         return None
 
 
+def recaptcha_failed(back: int = -1):
+    """Message page for a failed captcha; `back` is how many history entries away the form with the widget is."""
+    return render_template(
+        "message.html",
+        _("Recaptcha solution was incorrect"),
+        _("Please %(link_start)sgo back%(link_end)s and try again.", link_start=f'<a href="javascript:history.go({back})">', link_end="</a>"),
+    )
+
+
 def make_author(key: str, name: str) -> Author:
     """
     Use author_key and author_name and return an Author.
@@ -259,6 +268,13 @@ class addbook(delegate.page):
         if not is_valid_web_book_url(i.web_book_url):
             return render_template("message.html", _("Invalid Book URL"), _("Please enter a valid URL starting with http:// or https://"))
 
+        recap = get_recaptcha()
+        # check.html is one history entry past the add form, which is where a usable widget is.
+        back = -2 if i.get("from_check") else -1
+        # Reject tokenless requests before they use author keys or Solr.
+        if recap and not i.get("g-recaptcha-response"):
+            return recaptcha_failed(back)
+
         i = utils.unflatten(i)
         saveutil = DocSaveHelper()
         created_author = saveutil.create_authors_from_form_data(i.authors, i.author_names, _test=i._test == "true")
@@ -275,15 +291,8 @@ class addbook(delegate.page):
             # unspent: check.html posts it back with the user's choice, and it's verified then.
             return render_template("books/check", i, match)
 
-        recap = get_recaptcha()
         if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip):
-            # The token is spent or expired, so from check.html go back to the add form's widget.
-            back = -2 if i.get("work") else -1
-            return render_template(
-                "message.html",
-                "Recaptcha solution was incorrect",
-                f'Please <a href="javascript:history.go({back})">go back</a> and try again.',
-            )
+            return recaptcha_failed(back)
 
         if match and match.key.startswith("/books"):
             # work match and edition match, match is an Edition
@@ -350,7 +359,7 @@ class addbook(delegate.page):
         solr = get_solr()
         # Less exact solr search than try_edition_match(), search by supplied title and author only.
         result = solr.select(
-            {"title": i.title, "author_key": author_key.split("/")[-1]},
+            {"type": "work", "title": i.title, "author_key": author_key.split("/")[-1]},
             doc_wrapper=make_work,
             q_op="AND",
         )
@@ -394,7 +403,8 @@ class addbook(delegate.page):
         if not publisher and not publish_year and not id_value:
             return None
 
-        q: dict = {}
+        # Solr also indexes editions, but the callers expect works.
+        q: dict = {"type": "work"}
         work and q.setdefault("key", work.key.split("/")[-1])
         title and q.setdefault("title", title)
         author_key and q.setdefault("author_key", author_key.split("/")[-1])
@@ -834,11 +844,7 @@ class book_edit(delegate.page):
 
         recap = get_recaptcha()
         if recap and not recap.validate_response(form_data.get("g-recaptcha-response"), web.ctx.ip):
-            return render_template(
-                "message.html",
-                "Recaptcha solution was incorrect",
-                'Please <a href="javascript:history.back()">go back</a> and try again.',
-            )
+            return recaptcha_failed()
         v = i.v and safeint(i.v, None)
         edition = web.ctx.site.get(key, v)
 
@@ -899,11 +905,7 @@ class work_edit(delegate.page):
         recap = get_recaptcha()
 
         if recap and not recap.validate_response(form_data.get("g-recaptcha-response"), web.ctx.ip):
-            return render_template(
-                "message.html",
-                "Recaptcha solution was incorrect",
-                'Please <a href="javascript:history.back()">go back</a> and try again.',
-            )
+            return recaptcha_failed()
 
         v = i.v and safeint(i.v, None)
         work = web.ctx.site.get(key, v)

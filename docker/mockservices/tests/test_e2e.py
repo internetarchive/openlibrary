@@ -387,6 +387,20 @@ class TestLoanChangesFeed:
 # ---------------------------------------------------------------------------
 
 
+class TestRecaptchaMock:
+    URL = f"{MOCKSERVICES_URL}/recaptcha/api/siteverify"
+
+    def test_rejects_missing_token(self):
+        data = requests.get(self.URL, params={"secret": ""}, timeout=5).json()
+        assert data == {"success": False, "error-codes": ["missing-input-response"]}
+
+    def test_token_is_single_use(self):
+        params = {"response": os.urandom(8).hex()}
+        assert requests.get(self.URL, params=params, timeout=5).json()["success"] is True
+        data = requests.get(self.URL, params=params, timeout=5).json()
+        assert data == {"success": False, "error-codes": ["timeout-or-duplicate"]}
+
+
 class TestMatomoMock:
     def test_rejects_unimplemented_methods(self):
         resp = _post("/matomo/index.php", data={"method": "SitesManager.getAllSites", "token_auth": "t"})

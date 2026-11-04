@@ -1,11 +1,14 @@
 """py.test tests for addbook"""
 
 import pytest
+import requests
 import web
 
 from infogami.utils import delegate
 from openlibrary import accounts
+from openlibrary.i18n import ungettext
 from openlibrary.mocks.mock_infobase import MockSite
+from openlibrary.plugins.recaptcha import recaptcha
 
 from .. import addbook
 
@@ -643,7 +646,7 @@ class TestAddBookPostCaptcha:
                 verified.append(response)
                 return self.valid and response == TestAddBookPostCaptcha.TOKEN
 
-        def run(form, match=None, valid=True, recaptcha_required=True):
+        def run(form, match=None, valid=True, recaptcha_required=True, unflatten=lambda d: d):
             data = web.storage(
                 title="",
                 book_title="A Title",
@@ -661,7 +664,7 @@ class TestAddBookPostCaptcha:
             monkeypatch.setattr(web, "input", lambda **_: data)
             monkeypatch.setattr(web.ctx, "ip", "127.0.0.1", raising=False)
             monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *_, **__: False)
-            monkeypatch.setattr(addbook.utils, "unflatten", lambda d: d)
+            monkeypatch.setattr(addbook.utils, "unflatten", unflatten)
             monkeypatch.setattr(addbook.DocSaveHelper, "create_authors_from_form_data", lambda *_, **__: False)
             monkeypatch.setattr(addbook, "get_recaptcha", lambda: FakeRecaptcha(valid) if recaptcha_required else None)
             monkeypatch.setattr(addbook, "render_template", lambda name, *args: (name, args))
@@ -703,11 +706,87 @@ class TestAddBookPostCaptcha:
 
     @pytest.mark.parametrize("work", ["none-of-these", "/works/OL1W"])
     def test_check_page_post_cannot_skip_the_captcha(self, post, work):
-        result, _ = post({"work": work})
+        result, _ = post({"work": work, "from_check": "true"})
         assert self.is_rejected(result)
         assert "history.go(-2)" in result[1][1]
 
     def test_check_page_post_with_carried_token_saves(self, post):
-        result, verified = post({"work": "none-of-these", "g-recaptcha-response": self.TOKEN})
+        result, verified = post({"work": "none-of-these", "from_check": "true", "g-recaptcha-response": self.TOKEN})
         assert result == "no_match"
         assert verified == [self.TOKEN]
+
+    def test_failed_token_from_check_page_goes_back_to_the_add_form(self, post):
+        result, _ = post({"work": "none-of-these", "from_check": "true", "g-recaptcha-response": self.TOKEN}, valid=False)
+        assert self.is_rejected(result)
+        assert "history.go(-2)" in result[1][1]
+
+    def test_add_another_edition_form_goes_back_one_page(self, post):
+        # /books/add?work=... posts `work` from the add form itself.
+        result, _ = post({"work": "/works/OL1W"})
+        assert self.is_rejected(result)
+        assert "history.go(-1)" in result[1][1]
+
+    def test_tokenless_post_is_rejected_before_any_work(self, post):
+        def fail(*_):
+            raise AssertionError("should have been rejected first")
+
+        result, verified = post({}, unflatten=fail)
+        assert self.is_rejected(result)
+        assert verified == []
+
+
+class TestCheckPageForm:
+    """check.html must post back everything /books/add POST reads."""
+
+    @pytest.fixture
+    def form_html(self, render_template, monkeypatch, mock_site, request_context_fixture):
+        request_context_fixture(lang="en")
+        monkeypatch.setitem(web.template.Template.globals, "ungettext", ungettext)
+        d = web.storage(
+            title="A Title",
+            author_names=["An Author"],
+            authors=[web.storage(author=web.storage(key="/authors/OL1A"))],
+            publisher="A Publisher",
+            publish_date="2020",
+            id_name="",
+            id_value="",
+            web_book_url="https://example.com/book",
+        )
+        d["g-recaptcha-response"] = "solved-token"
+        matches = [web.storage(key="/works/OL1W", cover_url="", title="A Title", authors=[], first_publish_year=None)]
+        return render_template("books/check", d, matches)
+
+    @pytest.mark.parametrize(
+        ("name", "value"),
+        [
+            ("book_title", "A Title"),
+            ("g-recaptcha-response", "solved-token"),
+            ("web_book_url", "https://example.com/book"),
+            ("from_check", "true"),
+        ],
+    )
+    def test_posts_back_field(self, form_html, name, value):
+        assert f'name="{name}" value="{value}"' in form_html
+
+
+class TestRecaptchaValidateResponse:
+    @pytest.fixture
+    def recap(self, monkeypatch):
+        monkeypatch.setattr(recaptcha.config, "recaptcha_url", "http://recaptcha.invalid", raising=False)
+        return recaptcha.Recaptcha("public", "private")
+
+    @pytest.mark.parametrize("token", [None, ""])
+    def test_missing_token_fails_without_a_network_call(self, recap, monkeypatch, token):
+        def fail(*_, **__):
+            raise AssertionError("should not call the service")
+
+        monkeypatch.setattr(recaptcha.requests, "get", fail)
+        assert recap.validate_response(token) is False
+
+    def test_non_json_response_lets_the_user_through(self, recap, monkeypatch):
+        class HtmlResponse:
+            def json(self):
+                raise requests.exceptions.JSONDecodeError("Expecting value", "<html>", 0)
+
+        monkeypatch.setattr(recaptcha.requests, "get", lambda *_, **__: HtmlResponse())
+        assert recap.validate_response("a-token") is True

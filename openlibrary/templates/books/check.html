@@ -44,11 +44,13 @@ $var title: $_("Add a book")
 
     <form method="POST" id="addbook" class="olform addbook1 hidden" name="edit">
         <input type="hidden" id="work" name="work" value="none-of-these"/>
-        <input type="hidden" name="title" value="$d.title"/>
+        <input type="hidden" name="from_check" value="true"/>
+        <input type="hidden" name="book_title" value="$d.title"/>
         <input type="hidden" name="publisher" value="$d.publisher"/>
         <input type="hidden" name="publish_date" value="$d.publish_date"/>
         <input type="hidden" name="id_name" value="$d.id_name"/>
         <input type="hidden" name="id_value" value="$d.id_value"/>
+        <input type="hidden" name="web_book_url" value="$d.get('web_book_url', '')"/>
         <input type="hidden" name="g-recaptcha-response" value="$d.get('g-recaptcha-response', '')"/>
         $for author in d.authors:
             <input type="hidden" name="authors--$loop.index0--author--key" value="$author['author']['key']"/>
