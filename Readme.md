@@ -17,4 +17,4 @@ To volunteer in non-development roles, visit [openlibrary.org/volunteer](https:/
 
 ## License
 
-All source code published here is available under the terms of the [GNU Affero General Public License, version 3](https://www.gnu.org/licenses/agpl-3.0.html).
+All source code published here is available under the terms of the [GNU Affero General Public License, version 3](https://www.gnu.org/licenses/agpl-3.0.html) 
