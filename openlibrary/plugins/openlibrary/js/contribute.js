@@ -11,6 +11,8 @@ import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
 import { trackEvent } from './ol.analytics.js';
 
 const SKIPPED_KEY = 'ol-contribute-skipped';
+// The "Not sure" row's value on a choice list; mirrors ``UNSURE`` in contribute.py.
+const UNSURE = 'unsure';
 // While placeholder cards are up, the server is building the list in the background: ask again soon, then
 // every few seconds, for as long as its Solr query may take, then give up and say the list couldn't load.
 const ROWS_RETRY_MS = [1000, 1000, 2000, 3000, 5000];
@@ -125,12 +127,14 @@ function initTaskList(root) {
 }
 
 /**
- * Remember this task as skipped when its "I couldn't find it" control is clicked.
+ * Remember this task as skipped when "Skip" or "I couldn't find it" is clicked.
  * @param {HTMLFormElement} form - a ``[data-task-form]`` whose ``data-task-key`` identifies the task
  * @returns {void}
  */
 function initSkipButton(form) {
-    form.querySelector('[data-skip]')?.addEventListener('click', () => markTaskSkipped(form.dataset.taskKey));
+    for (const control of form.querySelectorAll('[data-skip]')) {
+        control.addEventListener('click', () => markTaskSkipped(form.dataset.taskKey));
+    }
 }
 
 /**
@@ -139,6 +143,9 @@ function initSkipButton(form) {
  * @returns {string} the trimmed answer, or '' with no control
  */
 function currentAnswer(form) {
+    // A choice list is a set of radios rather than one control.
+    const checked = form.querySelector('input[name="value"]:checked');
+    if (checked) return checked.value;
     const control = form.querySelector('#contrib-other-value');
     if (!control) return '';
     return control.tagName === 'OL-OPTIONS-POPOVER' ? control.selected : control.value.trim();
@@ -159,7 +166,8 @@ function answerSource(form) {
 
 /**
  * Report a save as ``TaskForm|Save`` or ``TaskForm|SaveNext`` with the field as
- * label, plus ``:chip``/``:typed`` when the field offered suggestions. On the
+ * label, plus ``:chip``/``:typed`` when the field offered suggestions. A "Not sure"
+ * answer reports as ``NotFound`` and is remembered as skipped, like the button. On the
  * ``submit`` event rather than the buttons' clicks so Enter in the answer field
  * counts too; the submitter is the button's in-form proxy.
  * @param {HTMLFormElement} form - a ``[data-task-form]`` with ``data-task-field``
@@ -168,6 +176,14 @@ function answerSource(form) {
 function initSaveTracking(form) {
     form.addEventListener('submit', event => {
         const then = event.submitter?.closest('ol-button')?.value || event.submitter?.value;
+        // "I couldn't find it" also submits; its click is already tracked as NotFound.
+        if (then === 'notfound') return;
+        // "Not sure" on a choice list is the same honest exit: the server counts it as "couldn't find it".
+        if (currentAnswer(form) === UNSURE) {
+            markTaskSkipped(form.dataset.taskKey);
+            trackEvent('TaskForm', 'NotFound', form.dataset.taskField);
+            return;
+        }
         const source = answerSource(form);
         trackEvent('TaskForm', then === 'next' ? 'SaveNext' : 'Save', source ? `${form.dataset.taskField}:${source}` : form.dataset.taskField);
     });
@@ -200,6 +216,43 @@ function initSiblingSuggestions(form) {
     });
     control.addEventListener(isPicker ? 'ol-options-popover-change' : 'input', syncChipSelection);
     syncChipSelection();
+}
+
+/**
+ * Quick next: on a form that opts in, clicking the already-picked choice row saves and moves on, so an easy
+ * call (fiction or nonfiction) takes two clicks on the answer and none on the buttons. The first click on a
+ * row only selects it; a double-click is just the two clicks in a row. Keyboard activation (Space on a
+ * checked radio also fires ``click``) is left alone: Enter already submits with "Save and next".
+ * @param {HTMLFormElement} form - a ``[data-task-form][data-quick-next]``
+ * @returns {void}
+ */
+function initQuickNext(form) {
+    if (!('quickNext' in form.dataset)) return;
+    let picked = form.querySelector('input[name="value"]:checked');
+    // A click with no pointerdown before it came from the keyboard or a script.
+    let pointer = false;
+    form.addEventListener('pointerdown', () => {
+        pointer = true;
+    });
+    form.addEventListener('keydown', () => {
+        pointer = false;
+    });
+    form.addEventListener('change', event => {
+        if (event.target.name === 'value') picked = event.target;
+    });
+    form.addEventListener('click', event => {
+        const input = event.target;
+        if (!(input instanceof HTMLInputElement) || input.name !== 'value' || input.type !== 'radio') return;
+        const viaPointer = pointer;
+        pointer = false;
+        // ``change`` for a fresh pick fires after this click, so ``picked`` still names the previous row here.
+        if (!viaPointer || input !== picked) return;
+        // ol-button keeps a native submit proxy in the form; submitting through it keeps ``then=next`` and the Save tracking.
+        const next = form.querySelector('button[name="then"][value="next"]');
+        if (!next) return;
+        trackEvent('TaskForm', 'QuickNext', form.dataset.taskField);
+        form.requestSubmit(next);
+    });
 }
 
 /**
@@ -236,6 +289,99 @@ function initIdentifierForm(form) {
             rejected = true;
         }
     });
+}
+
+/**
+ * Cover task: the new cover is one of a few rows, Amazon's image for the ISBN once it loads or an
+ * upload (picked, dropped, or pasted anywhere on the page). The chosen row's image goes into the
+ * one file input the form submits, and shows in the record's cover slot.
+ * @param {HTMLFormElement} form - a ``[data-cover-form]`` holding ``[data-cover-input]`` and the ``[data-cover-option]`` rows
+ * @returns {void}
+ */
+function initCoverForm(form) {
+    const input = form.querySelector('[data-cover-input]');
+    const preview = form.querySelector('[data-cover-preview]');
+    const slot = preview?.closest('[data-cover-drop]');
+    const suggestedRow = form.querySelector('[data-cover-option="suggested"]');
+    const uploadRow = form.querySelector('[data-cover-option="upload"]');
+    if (!input || !slot || !uploadRow) return;
+    const uploadThumb = uploadRow.querySelector('[data-cover-upload-thumb]');
+    const uploadName = uploadRow.querySelector('[data-cover-upload-name]');
+    const files = {};
+    const urls = {};
+
+    const setFile = (choice, file) => {
+        if (urls[choice]) URL.revokeObjectURL(urls[choice]);
+        files[choice] = file;
+        urls[choice] = file ? URL.createObjectURL(file) : '';
+    };
+    const select = choice => {
+        const transfer = new DataTransfer();
+        if (files[choice]) transfer.items.add(files[choice]);
+        input.files = transfer.files;
+        form.querySelector(`input[name="cover_choice"][value="${choice}"]`).checked = true;
+        preview.src = urls[choice] || '';
+        preview.hidden = !files[choice];
+        slot.classList.toggle('has-image', !!files[choice]);
+    };
+    const checkedChoice = () => form.querySelector('input[name="cover_choice"]:checked')?.value;
+    // The server checks the extension, and a pasted image may arrive without one.
+    const upload = file => {
+        const name = /\.\w+$/.test(file.name) ? file.name : `cover.${file.type.split('/')[1]}`;
+        setFile('upload', new File([file], name, { type: file.type }));
+        uploadThumb.src = urls.upload;
+        uploadThumb.hidden = false;
+        uploadRow.classList.add('has-image');
+        uploadName.textContent = name;
+        select('upload');
+    };
+    const take = fileList => {
+        const image = [...fileList].find(file => file.type.startsWith('image/'));
+        if (image) upload(image);
+        return !!image;
+    };
+
+    form.addEventListener('change', event => {
+        if (event.target.name !== 'cover_choice') return;
+        // Picking the upload row with nothing uploaded yet opens the file picker.
+        if (event.target.value === 'upload' && !files.upload) input.click();
+        select(event.target.value);
+    });
+    uploadRow.querySelector('[data-cover-browse]')?.addEventListener('click', () => input.click());
+    // A cancelled picker empties the input, so put back whichever row is chosen.
+    input.addEventListener('change', () => {
+        if (input.files[0]) upload(input.files[0]);
+        else if (checkedChoice()) select(checkedChoice());
+    });
+    form.querySelectorAll('[data-cover-drop]').forEach(target => {
+        target.addEventListener('dragover', event => {
+            event.preventDefault();
+            target.classList.add('is-over');
+        });
+        target.addEventListener('dragleave', () => target.classList.remove('is-over'));
+        target.addEventListener('drop', event => {
+            event.preventDefault();
+            target.classList.remove('is-over');
+            take(event.dataTransfer.files);
+        });
+    });
+    document.addEventListener('paste', event => {
+        if (event.clipboardData && take(event.clipboardData.files)) event.preventDefault();
+    });
+
+    // Amazon sends a tiny GIF when it has no cover for the ISBN; the row stays hidden then.
+    const suggestion = suggestedRow?.dataset.coverSuggestion;
+    if (suggestion) {
+        fetch(suggestion)
+            .then(response => (response.ok ? response.blob() : null))
+            .then(blob => {
+                if (!blob || blob.type !== 'image/jpeg' || blob.size < 1000) return;
+                setFile('suggested', new File([blob], 'amazon-cover.jpg', { type: blob.type }));
+                suggestedRow.querySelector('[data-cover-suggested-thumb]').src = urls.suggested;
+                suggestedRow.hidden = false;
+            })
+            .catch(() => {});
+    }
 }
 
 /**
@@ -307,8 +453,10 @@ export function init() {
         initSkipButton(form);
         initSiblingSuggestions(form);
         initSaveTracking(form);
+        initQuickNext(form);
     });
     if (document.querySelector('[data-receipt]')) clearSavedReceipt();
     document.querySelectorAll('form[data-id-form]').forEach(initIdentifierForm);
+    document.querySelectorAll('form[data-cover-form]').forEach(initCoverForm);
     document.querySelectorAll('[data-contribute-done]').forEach(root => hideSkippedTasks(root, '[data-same-book]'));
 }

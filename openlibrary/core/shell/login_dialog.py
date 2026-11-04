@@ -4,7 +4,10 @@ the archive.org third-party sign-in frame (``shell/login_dialog.html.jinja``).""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from openlibrary.core.shell.request import ShellRequest
 
 
 @dataclass(frozen=True)
@@ -22,26 +25,24 @@ class LoginDialogContext:
     labels: dict[str, Any] = field(default_factory=dict)
 
 
-def _third_party_src() -> str:
+def _third_party_src(req: ShellRequest) -> str:
     """archive.org's frame of third-party sign-in buttons (Google and the
     like), which posts S3 keys back to this origin: the frame the login page
     embeds (account/ia_thirdparty_logins.html), for the dialog."""
     from urllib.parse import urlencode
 
-    import web
-
     from openlibrary.plugins.upstream.utils import get_ia_host
 
-    origin = (getattr(web.ctx, "home", "") or "").replace("http:", "https:")
+    origin = f"https://{req.host}{req.homepath}"
     return f"https://{get_ia_host(allow_dev=True)}/account/login.thirdparty.php?{urlencode({'origin': origin})}"
 
 
-def build_login_dialog_context() -> LoginDialogContext:
+def build_login_dialog_context(req: ShellRequest) -> LoginDialogContext:
     from openlibrary.core.shell._util import _safe
     from openlibrary.i18n import gettext as _
 
     return LoginDialogContext(
-        third_party_src=_safe(_third_party_src, ""),
+        third_party_src=_safe(lambda: _third_party_src(req), ""),
         labels={
             "heading": _("Log in or sign up"),
             "signupPrompt": _("New to Open Library?"),

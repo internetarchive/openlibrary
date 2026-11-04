@@ -18,7 +18,7 @@ import web
 import yaml
 
 import infogami
-from openlibrary.core import db
+from openlibrary.core import db  # noqa: TID251
 from openlibrary.core.batch_imports import (
     batch_import,
 )
@@ -920,13 +920,6 @@ class new:
         except client.ClientException as e:
             raise BadRequest(str(e))
 
-        # graphite/statsd tracking of bot edits
-        user = delegate.context.user and delegate.context.user.key
-        if user.lower().endswith("bot"):
-            botname = user.replace("/people/", "", 1)
-            botname = botname.replace(".", "-")
-            key = "ol.edits.bots." + botname
-            openlibrary.core.stats.increment(key)
         return json.dumps(keys)
 
 
