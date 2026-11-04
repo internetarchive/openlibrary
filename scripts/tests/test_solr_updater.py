@@ -2,6 +2,7 @@ import asyncio
 import datetime as dt
 import os
 import sys
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -11,6 +12,7 @@ sys.modules["_init_path"] = MagicMock()
 
 from scripts.solr_updater import solr_updater
 from scripts.solr_updater.solr_updater import main, parse_log
+from scripts.solr_updater.transaction_log import TransactionsOffset
 
 
 class TestParseLog:
@@ -301,22 +303,25 @@ def test_database_source_rejects_unsupported_exclude_option():
         asyncio.run(main(ol_config="", source="database", exclude_edits_containing="test"))
 
 
-class TestTransactionStart:
+class TestFindTransactionsStart:
     def write(self, tmp_path, name, content, old=False):
         (tmp_path / name).write_text(content)
         if old:
             os.utime(tmp_path / name, (1, 1))
 
     def start(self, tmp_path, initial_state=None):
-        return solr_updater.transaction_start(tmp_path / "solr.txid", tmp_path / "solr.offset", initial_state)
+        return solr_updater.find_transactions_start(tmp_path / "solr.transactions-offset.json", tmp_path / "solr.offset", initial_state)
 
-    def test_resumes_from_its_own_position(self, tmp_path):
+    def test_offset_file_sits_next_to_the_log_offset_file(self):
+        assert solr_updater.get_transactions_offset_file(Path("/data/solr-update.offset")) == Path("/data/solr-update.transactions-offset.json")
+
+    def test_resumes_from_its_own_offset(self, tmp_path):
         self.write(tmp_path, "solr.offset", "2026-11-03:0", old=True)
-        self.write(tmp_path, "solr.txid", '{"transaction": 1234, "force_update": 7}')
-        assert self.start(tmp_path) == {"transaction": 1234, "force_update": 7}
+        self.write(tmp_path, "solr.transactions-offset.json", '{"transaction": 1234, "force_update": 7}')
+        assert self.start(tmp_path) == TransactionsOffset(transaction=1234, force_update=7)
 
     def test_switching_from_infobase_replays_its_day(self, tmp_path):
-        self.write(tmp_path, "solr.txid", '{"transaction": 1234, "force_update": 7}', old=True)
+        self.write(tmp_path, "solr.transactions-offset.json", '{"transaction": 1234, "force_update": 7}', old=True)
         self.write(tmp_path, "solr.offset", "2026-11-03:4284441")
         assert self.start(tmp_path) == dt.datetime(2026, 11, 3)
 
