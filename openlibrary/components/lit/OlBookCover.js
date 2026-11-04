@@ -130,9 +130,11 @@ export class OlBookCover extends LitElement {
             transform: scaleX(-1);
         }
 
+        /* Also carries the hover/focus ring: same box as the frame, but outside the link's dim filter. */
         .corner {
             position: relative;
             pointer-events: none;
+            border-radius: var(--border-radius-thumbnail);
         }
 
         .link {
@@ -141,7 +143,7 @@ export class OlBookCover extends LitElement {
 
         @media (hover: hover) and (pointer: fine) {
             /* Zero-width at rest so hover grows it. Tucked under the edge to hide the corner seam. */
-            :host([href]) .frame {
+            :host([href]) .corner {
                 outline: 0 solid var(--color-border-pointed);
                 outline-offset: calc(-1 * var(--border-width-media));
                 transition: outline-width var(--duration-fast) var(--ease-exit);
@@ -152,13 +154,13 @@ export class OlBookCover extends LitElement {
             }
         }
 
-        :host([link-focus]) .frame {
+        :host([link-focus]) .corner {
             outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
         @media (hover: hover) and (pointer: fine) {
-            :host([href]:hover) .frame {
+            :host([href]:hover) .corner {
                 outline: calc(var(--pointed-ring-width) + var(--border-width-media)) solid var(--color-border-pointed);
                 outline-offset: calc(-1 * var(--border-width-media));
                 transition-timing-function: var(--ease-enter);
@@ -171,7 +173,7 @@ export class OlBookCover extends LitElement {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            :host([href]) .frame,
+            :host([href]) .corner,
             :host([href]) .link {
                 transition: none;
             }
