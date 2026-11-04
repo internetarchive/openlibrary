@@ -8973,6 +8973,14 @@ msgstr ""
 msgid "Notification preferences have been updated successfully."
 msgstr ""
 
+#: openlibrary/plugins/upstream/addbook.py
+msgid "Permission denied"
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
+msgid "You are not allowed to add an Internet Archive ID."
+msgstr ""
+
 #: openlibrary/plugins/upstream/borrow.py
 msgid "this book"
 msgstr ""

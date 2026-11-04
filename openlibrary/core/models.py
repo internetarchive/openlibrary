@@ -976,6 +976,13 @@ class User(Thing):
     def is_admin(self) -> bool:
         return self.is_usergroup_member("/usergroup/admin")
 
+    def can_edit_ocaid(self) -> bool:
+        """Whether the user can add, change or remove an edition's Internet Archive ID (ocaid).
+
+        The single place that decides who may edit ocaids, in templates and on the server.
+        """
+        return self.is_admin()
+
     def is_maintainer(self) -> bool:
         """Whether the user can manage the testing environment (maintainers + admins)."""
         return self.is_member_of_any(["/usergroup/maintainers", "/usergroup/admin"])

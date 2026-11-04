@@ -3,7 +3,9 @@
 import pytest
 import web
 
+from infogami.utils import delegate
 from openlibrary import accounts
+from openlibrary.core.models import User
 from openlibrary.mocks.mock_infobase import MockSite
 
 from .. import addbook
@@ -23,6 +25,7 @@ def mock_user():
             "is_super_librarian_or_higher": lambda slf: slf.is_admin() or slf.is_super_librarian(),
             "is_librarian": lambda slf: False,
             "is_usergroup_member": lambda slf, grp: False,
+            "can_edit_ocaid": User.can_edit_ocaid,
         },
     )()
 
@@ -551,6 +554,44 @@ class TestSaveBookHelper:
     def _ocaid_form(ocaid):
         identifiers = [{"name": "ocaid", "value": ocaid}] if ocaid else []
         return web.storage(identifiers=identifiers)
+
+
+class TestAddBookOcaid:
+    @pytest.fixture
+    def post(self, monkeypatch):
+        """POST /books/add with an ocaid; returns render_template's args, or None if it got past the ocaid check."""
+
+        def _post(user_factory):
+            monkeypatch.setattr(accounts, "get_current_user", user_factory)
+            monkeypatch.setattr(web, "input", lambda **kw: web.storage(kw, book_title="Book", id_name="ocaid", id_value="newitem00arch"))
+            monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *a, **kw: False)
+            monkeypatch.setattr(addbook, "render_template", lambda *a, **kw: a)
+
+            class PastOcaidCheck(Exception):
+                pass
+
+            def past_check(*a, **kw):
+                raise PastOcaidCheck
+
+            monkeypatch.setattr(addbook.utils, "unflatten", past_check)
+            try:
+                # `addbook.addbook` is shadowed by a later class of the same name, so look the page up by path.
+                return delegate.pages["/books/add"][None]().POST()
+            except PastOcaidCheck:
+                return None
+
+        return _post
+
+    def test_non_admin_cannot_add_ocaid(self, post):
+        assert post(mock_user)[0] == "message.html"
+
+    def test_admin_can_add_ocaid(self, post):
+        def admin():
+            u = mock_user()
+            u.is_admin = lambda: True
+            return u
+
+        assert post(admin) is None
 
 
 class TestDaisyPage:

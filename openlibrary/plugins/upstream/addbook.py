@@ -17,7 +17,7 @@ from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
 from openlibrary.core.helpers import uniq
-from openlibrary.i18n import gettext as _  # noqa: F401 side effects may be needed
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
@@ -32,6 +32,12 @@ if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Author, Edition, Work
 
 logger = logging.getLogger("openlibrary.book")
+
+
+def can_edit_ocaid() -> bool:
+    """Whether the current user may add, change or remove an edition's ocaid. See `User.can_edit_ocaid`."""
+    user = accounts.get_current_user()
+    return bool(user and user.can_edit_ocaid())
 
 
 def get_recaptcha():
@@ -255,6 +261,9 @@ class addbook(delegate.page):
                     "Recaptcha solution was incorrect",
                     'Please <a href="javascript:history.back()">go back</a> and try again.',
                 )
+
+        if i.id_name == "ocaid" and i.id_value and not can_edit_ocaid():
+            return render_template("message.html", _("Permission denied"), _("You are not allowed to add an Internet Archive ID."))
 
         i = utils.unflatten(i)
         saveutil = DocSaveHelper()
@@ -746,9 +755,7 @@ class SaveBookHelper:
         return trim_doc(work)
 
     def _prevent_ocaid_deletion(self, edition) -> None:
-        # Allow admins to modify ocaid
-        user = accounts.get_current_user()
-        if user and user.is_admin():
+        if can_edit_ocaid():
             return
 
         # read ocaid from form data. A top-level `ocaid` field overrides the identifiers
