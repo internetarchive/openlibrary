@@ -31,7 +31,7 @@ def make_tag(**kw):
     kw.setdefault("key", "/tags/OL%dT" % tag_counter)
     kw.setdefault("type", {"key": "/type/tag"})
     kw.setdefault("name", "Foo Tag")
-    kw.setdefault("tag_type", "genres")
+    kw.setdefault("tag_type", "genre")
     return kw
 
 

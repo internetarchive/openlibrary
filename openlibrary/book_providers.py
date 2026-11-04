@@ -22,6 +22,19 @@ if typing.TYPE_CHECKING:
 
 logger = logging.getLogger("openlibrary.book_providers")
 
+
+def is_safe_provider_url(url: str | None) -> bool:
+    """A provider URL is safe to store and render only if it is an absolute
+    http(s) URL with a host. Blocks javascript:, data:, and scheme-relative
+    URLs, which can otherwise reach an unescaped href on the borrow
+    interstitial. A scheme obfuscated with HTML character references fails
+    this check too, since urlparse never sees the literal scheme."""
+    if not isinstance(url, str) or not url:
+        return False
+    parsed = parse.urlparse(url)
+    return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+
+
 AcquisitionAccessLiteral = Literal["sample", "buy", "open-access", "borrow", "subscribe"]
 
 
@@ -106,6 +119,8 @@ class Acquisition:
             access = json.get("access", "open-access")
             if access in html_access:
                 access = html_access[access]
+            if not is_safe_provider_url(json["url"]):
+                raise ValueError(f"Unsafe acquisition URL scheme: {json['url']!r}")
             # Pressbooks/OL-style
             return Acquisition(
                 access=access,
@@ -150,6 +165,8 @@ class Acquisition:
         else:
             price = None
 
+        if not is_safe_provider_url(json["href"]):
+            raise ValueError(f"Unsafe acquisition URL scheme: {json['href']!r}")
         return Acquisition(
             access=json["rel"].split("/")[-1],
             format=fmt,

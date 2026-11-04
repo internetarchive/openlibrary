@@ -279,68 +279,83 @@ def test_get_abbrev_from_full_lang_name(
         utils.get_abbrev_from_full_lang_name("Missing or non-existent language")
 
 
-def test_get_colon_only_loc_pub() -> None:
-    # This is intended as a helper function, and its caller,
-    # get_location_and_publisher(), replaces certain characters,
-    # including "[" and "]".
-    test_cases = [
+@pytest.mark.parametrize(
+    ("loc_pub", "expected"),
+    [
         ("", ("", "")),
         ("New York : Random House", ("New York", "Random House")),
         ("[New York] : [Random House]", ("[New York]", "[Random House]")),
         ("Random House,", ("", "Random House")),
-    ]
+        ("[Place of publication not identified]", ("", "[Place of publication not identified]")),
+    ],
+)
+def test_get_colon_only_loc_pub(loc_pub: str, expected: tuple[list[str], list[str]]) -> None:
+    # This is a helper function, and its caller,
+    # get_location_and_publisher(), replaces certain characters,
+    # including "[" and "]".
+    result = utils.get_colon_only_loc_pub(loc_pub)
+    assert result == expected, f"For {loc_pub}, expected {expected}, but got {result}"
 
-    for tc, expected in test_cases:
-        result = utils.get_colon_only_loc_pub(tc)
-        assert result == expected, f"For {tc}, expected {expected}, but got {result}"
+
+@pytest.mark.parametrize(
+    "loc_pub",
+    [
+        "",  # Empty string
+        "[Place of publication not identified]",
+        "Place of publication not identified",
+    ],
+)
+def test_empty_get_location_and_publisher(loc_pub: str) -> None:
+    assert utils.get_location_and_publisher(loc_pub) == ([], [])
 
 
-def test_get_location_and_publisher() -> None:
-    # Empty string
-    assert utils.get_location_and_publisher("") == ([], [])
+@pytest.mark.parametrize(
+    ("loc_pub", "expected"),
+    [
+        (  # Simple case of "City : Publisher"
+            "Sŏul T'ŭkpyŏlsi : [Kimyŏngsa]",
+            (
+                ["Sŏul T'ŭkpyŏlsi"],  # city
+                ["Kimyŏngsa"],  # publisher
+            ),
+        ),
+        (  # No colon case: everything is captured by 'publisher'
+            "Funtimes",
+            ([], ["Funtimes"]),
+        ),
+        (  # Multiple locations and one publisher
+            "Londres ; [New York] ; Paris : Berlitz Publishing",
+            (["Londres", "New York", "Paris"], ["Berlitz Publishing"]),
+        ),
+        (  # Two locations and two corresponding publishers
+            "Paris : Pearson ; San Jose (Calif.) : Adobe",
+            (["Paris", "San Jose (Calif.)"], ["Pearson", "Adobe"]),
+        ),
+        (  # "Pattern" breaker insofar as it has two colons separators in a row
+            "London : Wise Publications ; Bury St. Edmunds, Suffolk : Exclusive Distributors : Music Sales Limited",
+            (["London"], ["Wise Publications"]),
+        ),
+        (  # Place of publication not identified
+            "[Place of publication not identified] : Pearson",
+            ([], ["Pearson"]),
+        ),
+        (  # Separating place not identified with a comma
+            "[Place of publication not identified], BARBOUR PUB INC",
+            ([], ["BARBOUR PUB INC"]),
+        ),
+    ],
+)
+def test_get_location_and_publisher(loc_pub: str, expected: tuple[list[str], list[str]]) -> None:
+    assert utils.get_location_and_publisher(loc_pub) == expected
 
-    # Test simple case of "City : Publisher".
-    loc_pub = "Sŏul T'ŭkpyŏlsi : [Kimyŏngsa]"
-    assert utils.get_location_and_publisher(loc_pub) == (
-        ["Sŏul T'ŭkpyŏlsi"],
-        ["Kimyŏngsa"],
-    )
 
-    # Test multiple locations and one publisher.
-    loc_pub = "Londres ; [New York] ; Paris : Berlitz Publishing"
-    assert utils.get_location_and_publisher(loc_pub) == (
-        ["Londres", "New York", "Paris"],
-        ["Berlitz Publishing"],
-    )
-
-    # Test two locations and two corresponding publishers.
-    loc_pub = "Paris : Pearson ; San Jose (Calif.) : Adobe"
-    assert utils.get_location_and_publisher(loc_pub) == (
-        ["Paris", "San Jose (Calif.)"],
-        ["Pearson", "Adobe"],
-    )
-
-    # Test location not identified.
-    loc_pub = "[Place of publication not identified] : Pearson"
-    assert utils.get_location_and_publisher(loc_pub) == ([], ["Pearson"])
-
-    # "Pattern" breaker insofar as it has two colons separators in a row.
-    loc_pub = "London : Wise Publications ; Bury St. Edmunds, Suffolk : Exclusive Distributors : Music Sales Limited"
-    assert utils.get_location_and_publisher(loc_pub) == (
-        ["London"],
-        ["Wise Publications"],
-    )
-
+def test_get_location_and_publisher_bad_type() -> None:
     # Bad input where Python thinks the IA metadata is a Python list
-    loc_pub = [  # type: ignore[assignment]
+    loc_pub = [
         "Charleston, SC : Monkeypaw Press, LLC",
         "Charleston, SC : [manufactured by CreateSpace]",
     ]
-    assert utils.get_location_and_publisher(loc_pub) == ([], [])
-
-    # Separating a not identified place with a comma
-    loc_pub = "[Place of publication not identified], BARBOUR PUB INC"
-    assert utils.get_location_and_publisher(loc_pub) == ([], ["BARBOUR PUB INC"])
+    assert utils.get_location_and_publisher(loc_pub) == ([], [])  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
