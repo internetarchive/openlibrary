@@ -129,6 +129,16 @@ QUERY_PARSER_TESTS = {
     "DDC: wildcard integer": ("ddc:2*", "ddc:2*"),
     "DDC: ddc_sort": ("ddc_sort:65.8", "ddc_sort:065.8"),
     "DDC: quotes preserved": ('ddc:"65.8"', 'ddc:"065.8"'),
+    "DDC: uppercase field normalized": ("DDC:65.8", "ddc:065.8"),
+    "Normalizes cased id_ field": ("ID_GOODREADS:123", "id_goodreads:123"),
+    "Normalizes cased edition. prefixed field": ("Edition.Publisher:Harper", "edition.publisher:Harper"),
+    "Uppercase alias resolved": ("AUTHOR:Twain", "author_name:Twain"),
+    "Negated uppercase ISBN": ("-ISBN:978-0-06-093546-7", "-isbn:9780060935467"),
+    "Grouped mixed-case fields": ("(ISBN:9780060935467 OR LCC:PS1303)", "(isbn:9780060935467 OR lcc:PS-1303.00000000)"),
+    "Uppercase LCC range": ("LCC:[PS1 TO PS2]", "lcc:[PS-0001.00000000 TO PS-0002.00000000]"),
+    "Unknown cased field still escaped": ("Foo:bar", "Foo\\:bar"),
+    "Cased field after *:*": ("*:* AND ISBN:123", "*\\:* AND isbn:123"),
+    "Prefixed alias only lowercased": ("Work.Title:foo", "work.title:foo"),
 }
 
 
