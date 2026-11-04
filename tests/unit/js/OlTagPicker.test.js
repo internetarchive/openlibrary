@@ -400,6 +400,37 @@ describe('ol-tag-picker fetch-and-cache (requirement 7)', () => {
         await el.updateComplete; // loading flips inside updated(), scheduling one more render
         expect(optionNames(el)).toEqual(['Direct']);
     });
+
+    test('clearing tag-type mid-fetch does not strand loading; restoring the type recovers', async () => {
+        let settle;
+        const fetchMock = vi.fn(
+            () =>
+                new Promise(res => {
+                    settle = rows => res({ ok: true, json: () => Promise.resolve(rows) });
+                })
+        );
+        const el = await mountFetching('clear_mid', fetchMock);
+        expect(el.loading).toBe(true);
+
+        el.tagType = ''; // clear while the fetch is still pending
+        await el.updateComplete;
+        expect(el.loading).toBe(false); // must not be stranded by the clear
+
+        // The abandoned request resolves after the clear — must stay non-loading.
+        settle([{ key: '/tags/OL970T', name: 'Recovered' }]);
+        await flush();
+        await el.updateComplete;
+        expect(el.loading).toBe(false);
+
+        // Restoring the same type must re-resolve (from cache) and recover, not sit empty.
+        el.tagType = 'clear_mid';
+        await el.updateComplete;
+        await flush();
+        await el.updateComplete;
+        expect(el.loading).toBe(false);
+        expect(optionNames(el)).toEqual(['Recovered']);
+        expect(fetchMock).toHaveBeenCalledTimes(1); // cache reused, no redundant network
+    });
 });
 
 describe('ol-tag-picker change event', () => {

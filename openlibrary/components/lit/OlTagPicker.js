@@ -407,7 +407,15 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
             this.loading = false; // direct options win; nothing in flight to wait on
             return;
         }
-        if (!this.tagType || this._fetchedType === this.tagType) return;
+        if (!this.tagType) {
+            // No type to resolve (e.g. tag-type cleared while a fetch was in
+            // flight): release loading and drop the guard so the next real type
+            // refetches — the in-flight .then is blocked by the stale-type check.
+            this.loading = false;
+            this._fetchedType = null;
+            return;
+        }
+        if (this._fetchedType === this.tagType) return;
         const type = this.tagType;
         this._fetchedType = type;
         this.loading = true;
