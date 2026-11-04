@@ -197,14 +197,7 @@ $(function () {
         import('./lists/ListViewBody.js');
     }
 
-    // Enable any carousels in the page
-    const carouselElements = document.querySelectorAll('.carousel--progressively-enhanced');
-    if (carouselElements.length) {
-        import('./carousel').then(module => {
-            module.initialzeCarousels(carouselElements);
-        });
-    }
-    // Rows rendered with the page (home/welcome.html, account/mybooks.html); lazy rows are set up by lazy-carousel.js.
+    // Carousels rendered with the page (home/welcome.html, account/mybooks.html); lazy rows are set up by lazy-carousel.js.
     const nativeCarousels = document.querySelectorAll('ol-carousel[data-config]');
     if (nativeCarousels.length) {
         import('./carousel/native.js').then(module => module.initNativeCarousels(nativeCarousels));

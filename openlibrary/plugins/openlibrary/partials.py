@@ -213,7 +213,7 @@ def _render_carousel_card_loan_status(book, *, work_key: str, key: str, layout: 
         work_key=work_key,
         listen=False,
         analytics_override="BookCarousel|{action}Click|%s" % key,
-        # Only ol-carousel rows shrink .cta-btn to match (buttonCta.css); Slick and grid rows stay medium.
+        # Only ol-carousel rows shrink .cta-btn to match (buttonCta.css); grid rows stay medium.
         cta_size="small" if layout == "ol-carousel" else "medium",
     )
     return Markup(str(macro["__body__"]))
@@ -859,9 +859,6 @@ class CarouselPartial:
             title=book_data["title"],
             url=book_data["url"],
             key=book_data["key"],
-            grid=book_data["grid"],
-            compact=book_data["compact"],
-            loadjs=book_data["loadjs"],
             config_json=book_data["config_json"],
             cards=book_data["cards"],
             count=book_data["count"],
@@ -1000,14 +997,11 @@ class BookCarouselData(CarouselCommonData):
     """Data for books/custom_carousel.html.jinja."""
 
     show: bool
-    grid: str
-    compact: str
-    loadjs: str
     config_json: str
     cards: list[str]
     count: int | None  # shown after the title; a shelf carousel's count is kept live by book-state.js
     shelf: int | None
-    layout: str  # "carousel" (slick), "grid", or "ol-carousel"
+    layout: str  # "ol-carousel" or "grid"
 
 
 class CarouselPlaceholderData(TypedDict):
@@ -1018,7 +1012,6 @@ class CarouselPlaceholderData(TypedDict):
     # For macros/CarouselSkeleton.html.jinja.
     title: str
     title_link: bool
-    layout: str
 
 
 class EagerQueryCarouselData(BookCarouselData):
@@ -1038,8 +1031,7 @@ def get_book_carousel_data(
     min_books: int = 1,
     load_more: dict | None = None,
     test: bool = False,
-    compact_mode: bool = False,
-    layout: str = "carousel",
+    layout: str = "ol-carousel",
     full_path: str,
     count: int | None = None,
     shelf: int | None = None,
@@ -1056,15 +1048,11 @@ def get_book_carousel_data(
     key = common.get("key", "")
     books = books or []
     if not (test or (books and len(books) >= min_books)):
-        return BookCarouselData(
-            show=False, title=title, url=url, key=key, grid="", compact="", loadjs="", config_json="", cards=[], count=count, shelf=shelf, layout=layout
-        )
+        return BookCarouselData(show=False, title=title, url=url, key=key, config_json="", cards=[], count=count, shelf=shelf, layout=layout)
 
     config = {
-        "booksPerBreakpoint": [4, 4, 4, 3, 2, 1] if compact_mode else [6, 5, 4, 3, 2, 1],
         "analyticsCategory": "BookCarousel",
         "carouselKey": key,
-        "i18n": {"loading": _("Loading...")},
         "loadMore": (
             {
                 "queryType": load_more.get("queryType", ""),
@@ -1102,9 +1090,6 @@ def get_book_carousel_data(
         title=title,
         url=url,
         key=key,
-        grid="carousel--grid" if layout == "grid" else "",
-        compact="carousel--compact" if compact_mode else "",
-        loadjs="carousel--progressively-enhanced" if layout == "carousel" else "",
         config_json=json_encode(config),
         cards=cards,
         count=count,
@@ -1189,7 +1174,6 @@ class HomeGenrePartial:
                 id=row.key,
                 title=row.title,
                 see_all=True,
-                layout=row.layout,
                 fallback=None,
             )
             for row in (cls.row(genre, s) for s in subgenres)
@@ -1236,7 +1220,6 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         fallback=params.get("fallback"),
         title=config.get("title", ""),
         title_link=True,
-        layout=config["layout"],
     )
 
 
@@ -1285,7 +1268,6 @@ def build_nearby_books_placeholder_config(work_key: str, language: str | None = 
         fallback=None,
         title=_("On the Same Shelf"),
         title_link=False,
-        layout="ol-carousel",
     )
 
 
