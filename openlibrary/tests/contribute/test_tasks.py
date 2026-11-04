@@ -20,24 +20,24 @@ def test_tasks_are_the_empty_fields_most_valuable_first():
 def test_the_literary_form_is_a_task_on_the_edition_when_its_work_has_none():
     work = FakeWork()
     ed = FakeEdition(works=[work])
-    assert tasks.is_missing(ed, "literary_form")
-    assert tasks.is_missing(ed, "literary_form", work=FakeWork(literary_form={"key": "/tags/OL1T"})) is False
+    assert tasks.is_missing(ed, "literary_forms")
+    assert tasks.is_missing(ed, "literary_forms", work=FakeWork(literary_forms=[{"key": "/tags/OL1T"}])) is False
     # A bare key, as the tags migration stored genres, counts as filled too.
-    work["literary_form"] = "/tags/OL1T"
-    assert not tasks.is_missing(ed, "literary_form")
+    work["literary_forms"] = "/tags/OL1T"
+    assert not tasks.is_missing(ed, "literary_forms")
     # An orphan edition has no work to put the answer on.
-    assert not tasks.is_missing(FakeEdition(), "literary_form")
+    assert not tasks.is_missing(FakeEdition(), "literary_forms")
 
 
 def test_beta_fields_are_only_visible_to_the_tags_whitelist():
-    assert "literary_form" not in tasks.visible_fields(False)
-    assert "literary_form" in tasks.visible_fields(True)
+    assert "literary_forms" not in tasks.visible_fields(False)
+    assert "literary_forms" in tasks.visible_fields(True)
     assert tasks.visible_fields(True) == tuple(tasks.POINTS)
 
 
 def test_offered_fields_add_the_beta_ones_only_for_those_who_see_them():
     assert set(tasks.offered_fields(tasks.visible_fields(False))) == set(tasks.OFFERED)
-    assert set(tasks.offered_fields(tasks.visible_fields(True))) == {*tasks.OFFERED, "literary_form"}
+    assert set(tasks.offered_fields(tasks.visible_fields(True))) == {*tasks.OFFERED, "literary_forms"}
 
 
 def test_a_cover_is_missing_with_only_deleted_covers_but_not_on_a_scanned_book():

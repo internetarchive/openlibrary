@@ -6,7 +6,7 @@ URLs stay one shape; its answer saves to the edition's work.
 
 from dataclasses import dataclass
 
-from openlibrary.core.tags import LITERARY_FORM, work_tag_keys
+from openlibrary.core.tags import LITERARY_FORMS, work_tag_keys
 
 # The fields on offer, most valuable first. Four weights match a same-named Edition Scorecard
 # check exactly: covers == ``cover`` (35), languages == ``language`` (15), publishers == ``publisher`` (2),
@@ -23,13 +23,13 @@ POINTS = {
     "oclc_numbers": 25,
     "languages": 15,
     "number_of_pages": 10,
-    LITERARY_FORM: 10,
+    LITERARY_FORMS: 10,
     "publishers": 2,
 }
 # Fields that live on the work rather than the edition.
-WORK_FIELDS = frozenset({LITERARY_FORM})
+WORK_FIELDS = frozenset({LITERARY_FORMS})
 # Fields only the tags whitelist sees, until the feature opens up.
-BETA_FIELDS = frozenset({LITERARY_FORM})
+BETA_FIELDS = frozenset({LITERARY_FORMS})
 # The fields Tasks hands out and the initiative counts. LCCN and OCLC keep their task pages and filter, reachable by URL but not linked.
 OFFERED = ("covers", "languages", "number_of_pages", "publishers")
 

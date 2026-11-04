@@ -28,7 +28,7 @@ NOT_FOUND_PEOPLE = {
     "covers": 3,
     "languages": 4,
     # "Not sure": a judgment rather than a lookup, so a few people unsure is a sign the form really is contested.
-    tasks.LITERARY_FORM: 3,
+    tasks.LITERARY_FORMS: 3,
 }
 NOT_FOUND_TYPE = "contribute-notfound"
 

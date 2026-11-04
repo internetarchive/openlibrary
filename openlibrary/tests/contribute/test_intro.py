@@ -36,5 +36,5 @@ def test_rail_links_only_filters_over_offered_fields():
     assert tracks == ["covers", "languages", "number_of_pages", "publishers"]
     assert contribute.normalize_filter("identifiers") == "identifiers"
     beta_tracks = [f["track"] for f in contribute.build_filter_rail("", contribute.tasks.visible_fields(True))["filters"]]
-    assert "literary_form" in beta_tracks
+    assert "literary_forms" in beta_tracks
     assert "identifiers" not in beta_tracks

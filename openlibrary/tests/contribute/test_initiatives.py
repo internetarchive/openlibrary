@@ -22,7 +22,7 @@ class FakeWork(dict):
         self.type = web.storage(key="/type/work")
 
 
-WORK = FakeWork("/works/OL1W", literary_form={"key": "/tags/OL1T"})
+WORK = FakeWork("/works/OL1W", literary_forms=[{"key": "/tags/OL1T"}])
 
 
 class FakeSite:
@@ -88,11 +88,11 @@ def test_a_work_level_gap_is_read_from_the_edition_s_work():
         works=(bare,),
         store={"contribute-initiative-test": {"editions": [["/books/OL1M", 9]]}},
     )
-    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, ["literary_form"], []]]
+    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, ["literary_forms"], []]]
 
 
 def test_progress_counts_only_the_fields_the_viewer_sees():
-    gaps = [["/books/OL1M", 9, ["literary_form"], []], ["/books/OL2M", 8, ["publishers"], ["literary_form"]]]
+    gaps = [["/books/OL1M", 9, ["literary_forms"], []], ["/books/OL2M", 8, ["publishers"], ["literary_forms"]]]
     public = initiatives.progress(gaps, ("publishers", "covers"))
     assert public == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 75}
     assert initiatives.progress(gaps, initiatives.tasks.visible_fields(True))["open"] == 2

@@ -50,7 +50,7 @@ def get_filters() -> dict[str, tuple[str, tuple[str, ...]]]:
         "number_of_pages": (_("Page count"), ("number_of_pages",)),
         "publishers": (_("Publisher"), ("publishers",)),
         "identifiers": (_("Identifiers"), ("lccn", "oclc_numbers")),
-        "literary_form": (_("Fiction or nonfiction"), ("literary_form",)),
+        "literary_forms": (_("Fiction or nonfiction"), ("literary_forms",)),
     }
 
 
@@ -62,7 +62,7 @@ def get_filter_headings() -> dict[str, str]:
         "number_of_pages": _("Missing page count"),
         "publishers": _("Missing publisher"),
         "identifiers": _("Missing identifiers"),
-        "literary_form": _("Missing fiction or nonfiction"),
+        "literary_forms": _("Missing fiction or nonfiction"),
     }
 
 

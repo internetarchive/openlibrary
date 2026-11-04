@@ -37,7 +37,7 @@ $jsdef render_subject_autocomplete_item(item):
                 <label id="label-literary-form">$_("Fiction or nonfiction?")</label>
             </div>
             <div class="input">
-                $:render_jinja_template("forms/choice_list.html.jinja", name="work--literary_form", rows=tag_choices("literary_form", _("Not sure")), value=tag_key(work.get('literary_form')) or "", labelled_by="label-literary-form")
+                $:render_jinja_template("forms/choice_list.html.jinja", name="work--literary_forms", rows=tag_choices("literary_forms", _("Not sure")), value=(work_tag_keys(work, "literary_forms") or [""])[0], labelled_by="label-literary-form")
             </div>
         </div>
 

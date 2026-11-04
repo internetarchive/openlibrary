@@ -55,7 +55,7 @@ class FieldGuide:
     input_type: str = "text"
     check: str = ""  # what to look at before saving, shown under the answer
     confirm: str = ""  # a checkbox the answer can't be saved without
-    choices: str = ""  # a tag type: the answer is one of its tags, picked rather than typed
+    choices: str = ""  # a work tag field: the answer is one of its tags, picked rather than typed
     not_found: str = ""  # the honest exit's label when it isn't "I couldn't find it"
     quick_next: bool = False  # choices only: clicking the picked row again saves and moves on
 
@@ -130,8 +130,8 @@ def get_field_guides() -> dict[str, FieldGuide]:
             input_type="number",
         ),
         # A judgment about the work: answer from knowing the book, or look it up.
-        "literary_form": FieldGuide(
-            field="literary_form",
+        "literary_forms": FieldGuide(
+            field="literary_forms",
             label=_("Literary form"),
             action=_("Pick fiction or nonfiction"),
             question=_("Is this book fiction or nonfiction?"),
@@ -141,7 +141,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
                 GuidelineNote(_("Nonfiction can read like a story. A memoir that bends the truth is still nonfiction: it is presented as fact.")),
                 GuidelineNote(_("Anthologies and collections take the form of what's inside. A book of essays about novels is nonfiction.")),
             ],
-            choices="literary_form",
+            choices="literary_forms",
             not_found=_("Not sure"),
             # An easy call most of the time, so the answer can double as the save.
             quick_next=True,
