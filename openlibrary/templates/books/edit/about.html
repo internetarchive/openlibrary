@@ -66,7 +66,12 @@ $jsdef render_subject_autocomplete_item(item):
             $# The picker is a name-less UI control: the hidden inputs below are the
             $# authoritative form values, so a work's genres survive even if the
             $# picker's JavaScript fails to load (edit.js initGenresTagPicker syncs them).
-            <ol-tag-picker id="work-genres" tag-type="genres" value="$json_encode(genre_keys)"></ol-tag-picker>
+            $# tag-type is the Tag's SINGULAR type ("genre") — the value sent to
+            $# query.json; the work FIELD that lists these Tags is plural ("genres",
+            $# used in the hidden input names below). Production Tags are singular.
+            $# label is set explicitly so the trigger stays plural ("+ Add Genres")
+            $# and translatable, rather than defaulting to the singular tag-type.
+            <ol-tag-picker id="work-genres" tag-type="genre" label="$_('+ Add Genres')" value="$json_encode(genre_keys)"></ol-tag-picker>
             <span class="work-genres__inputs">
                 $for idx, gk in enumerate(genre_keys):
                     <input type="hidden" name="work--genres--$idx--key" value="$gk"/>

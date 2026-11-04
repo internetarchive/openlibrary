@@ -33,6 +33,17 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("openlibrary.book")
 
+# A managed-Tag work field maps to the Tag's SINGULAR tag_type. Per the project
+# convention: the work field is plural ("genres"), a Tag's tag_type is singular
+# ("genre"), and the Solr field is the singular stem. The edit page's picker
+# `tag-type` attribute and the save-path validation both use the singular value;
+# only the work field name and the hidden-input names stay plural. The mapped
+# value is validated against addtag.SUBJECT_SUB_TYPES in process_managed_tags (a
+# lazy import there avoids the addtag<->addbook module import cycle).
+# TODO(#14216): fold into the canonical core.tags.FIELD_TAG_TYPES once #14216
+# lands; the name is kept compatible so this collapses to an import.
+FIELD_TAG_TYPES = {"genres": "genre"}
+
 
 def get_recaptcha():
     def recaptcha_exempt() -> bool:
@@ -738,6 +749,8 @@ class SaveBookHelper:
         # than clearing it — see process_managed_tags.
         if work.get("_genres_present"):
             stored_genres = self.work.get("genres") if self.work else None
+            # "genres" is the work FIELD; process_managed_tags derives the
+            # singular Tag type ("genre") from FIELD_TAG_TYPES for validation.
             work.genres = self.process_managed_tags(work.get("genres"), "genres", stored_genres)
         if ": " in work.get("title", ""):
             work.title, work.subtitle = work.title.split(": ", 1)
@@ -753,7 +766,7 @@ class SaveBookHelper:
         return trim_doc(work)
 
     @staticmethod
-    def process_managed_tags(values, tag_type: str, stored=None) -> list[dict]:
+    def process_managed_tags(values, field: str, stored=None) -> list[dict]:
         """Merge the posted managed-Tag selection into a list of refs.
 
         The work edit form submits each selected Tag as its key
@@ -780,18 +793,28 @@ class SaveBookHelper:
           ``expected_type /type/tag``, a dangling ref would make Infobase reject
           the whole atomic save, leaving the work un-editable on any genre change.)
         - An **added** key (posted but not stored) is kept only if it resolves to
-          an existing Tag whose ``tag_type`` matches ``tag_type`` (the plural
-          form, e.g. ``"genres"``). A ref to a missing Tag would fail the atomic
-          save, so a bad added key is dropped rather than persisted.
+          an existing Tag whose ``tag_type`` matches the field's **singular** Tag
+          type (``FIELD_TAG_TYPES[field]``, e.g. ``"genres"`` → ``"genre"``). All
+          production Tags are singular-typed; a ref to a missing or wrong-typed
+          Tag would fail the atomic save, so a bad added key is dropped rather
+          than persisted.
 
         :param values: the posted value — a list of key strings and/or
             ``{"key": …}`` refs, or ``None`` when nothing is selected.
-        :param tag_type: the Tag type the field holds, e.g. ``"genres"``.
+        :param field: the plural work field the value belongs to, e.g.
+            ``"genres"``; the singular Tag type to validate against is looked up
+            in ``FIELD_TAG_TYPES``.
         :param stored: the work's currently stored value (either shape), used to
             tell additions from keys that were already present.
         :return: ``[{"key": "/tags/OL…T"}, …]``, empty if nothing remains. An
             empty list clears the field (``trim_doc`` maps it to ``None``).
         """
+        # Lazy import: addtag imports addbook at module scope, so importing
+        # SUBJECT_SUB_TYPES at the top would be a circular import.
+        from openlibrary.plugins.upstream.addtag import SUBJECT_SUB_TYPES
+
+        tag_type = FIELD_TAG_TYPES[field]
+        assert tag_type in SUBJECT_SUB_TYPES, f"FIELD_TAG_TYPES[{field!r}] = {tag_type!r} is not a known Tag type"
 
         def keys_of(items) -> list[str]:
             out: list[str] = []
@@ -847,7 +870,7 @@ class SaveBookHelper:
                 # tag_type is not re-checked, so retyped/legacy genres survive.
                 final = resolve_live_tag(key)
             else:
-                # Added key: must be an existing Tag of the right tag_type.
+                # Added key: must be an existing Tag of the field's singular tag_type.
                 doc = site.get(key)
                 final = key if (doc is not None and doc.type.key == "/type/tag" and doc.get("tag_type") == tag_type) else None
             if final and final not in seen:

@@ -500,13 +500,16 @@ class TestProcessManagedTags:
         web.ctx.site = MockSite()
         web.ctx.site.save_many(
             [
-                {"type": {"key": "/type/tag"}, "key": "/tags/OL1T", "name": "Fantasy", "tag_type": "genres"},
-                {"type": {"key": "/type/tag"}, "key": "/tags/OL2T", "name": "Horror", "tag_type": "genres"},
+                # Canonical production genre Tags carry the SINGULAR tag_type
+                # "genre" (all 197 Tags were retyped singular on 2026-11-04).
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL1T", "name": "Fantasy", "tag_type": "genre"},
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL2T", "name": "Horror", "tag_type": "genre"},
                 # A Tag of a different type — must never be accepted as a genre.
-                {"type": {"key": "/type/tag"}, "key": "/tags/OL9T", "name": "Novel", "tag_type": "content_formats"},
-                # A real genre Tag carrying the LEGACY singular tag_type — it
-                # would fail today's validation, but must survive once stored.
-                {"type": {"key": "/type/tag"}, "key": "/tags/OL84T", "name": "Legacy", "tag_type": "genre"},
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL9T", "name": "Novel", "tag_type": "content_format"},
+                # A real genre Tag carrying the LEGACY PLURAL tag_type "genres" —
+                # it would fail today's (singular) validation, but must survive
+                # once stored, since stored refs are not re-type-checked.
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL84T", "name": "Legacy", "tag_type": "genres"},
                 # A deleted Tag (tombstone): no longer a /type/tag.
                 {"type": {"key": "/type/delete"}, "key": "/tags/OL77T"},
                 # A merged Tag: a redirect pointing at the live OL1T.
@@ -539,8 +542,19 @@ class TestProcessManagedTags:
         assert self.process(["/tags/OL1T", "/tags/OL404T"]) == [{"key": "/tags/OL1T"}]
 
     def test_drops_wrong_tag_type_when_added(self):
-        # OL9T is a real Tag, but a content_formats one — not a genre.
+        # OL9T is a real Tag, but a content_format one — not a genre.
         assert self.process(["/tags/OL1T", "/tags/OL9T"]) == [{"key": "/tags/OL1T"}]
+
+    def test_added_singular_genre_accepted_plural_and_wrong_type_rejected(self):
+        # The canonical production Tag type is the SINGULAR "genre"; an ADDED key
+        # is validated against FIELD_TAG_TYPES["genres"] == "genre". OL1T (singular
+        # "genre") is accepted; OL84T (legacy PLURAL "genres") and OL9T
+        # ("content_format") are both rejected as additions. This pins the retype:
+        # before the singular flip the validation compared against "genres", which
+        # would have accepted OL84T and rejected OL1T — the inverse of correct.
+        assert self.process(["/tags/OL1T", "/tags/OL84T", "/tags/OL9T"]) == [
+            {"key": "/tags/OL1T"},
+        ]
 
     def test_drops_non_tag_documents_when_added(self):
         # OL5W resolves, but it is a work, not a Tag.
@@ -557,7 +571,7 @@ class TestProcessManagedTags:
         assert self.process(None) == []
 
     def test_preserves_stored_key_that_fails_validation_today(self):
-        # OL84T is a genre Tag with the legacy singular tag_type "genre"; if it is
+        # OL84T is a genre Tag with the legacy plural tag_type "genres"; if it is
         # already stored, re-posting it unchanged (e.g. on a title edit) must keep
         # it — validating stored keys would be a silent data migration.
         assert self.process(
@@ -608,7 +622,7 @@ class TestProcessManagedTags:
         ) == [{"key": "/tags/OL1T"}, {"key": "/tags/OL2T"}]
 
     def test_legacy_typed_stored_ref_preserved_when_set_changes(self):
-        # OL84T is a live /type/tag with a legacy singular tag_type. Even when the
+        # OL84T is a live /type/tag with a legacy plural tag_type. Even when the
         # set changes (a key is added), a stored ref is checked only for /type/tag,
         # never tag_type, so the legacy genre survives.
         assert self.process(
@@ -699,7 +713,7 @@ class TestProcessManagedTags:
                 "work--_genres_present": "1",
                 "work--genres--0--key": "/tags/OL1T",  # valid genre
                 "work--genres--1--key": "/tags/OL404T",  # does not exist
-                "work--genres--2--key": "/tags/OL9T",  # exists, but content_formats
+                "work--genres--2--key": "/tags/OL9T",  # exists, but content_format
                 "edition--title": "A Work",
                 "edition--works--0--key": "/works/OL14W",
             }
@@ -755,7 +769,7 @@ class TestProcessManagedTags:
                     "type": {"key": "/type/work"},
                     "key": "/works/OL12W",
                     "title": "Old Title",
-                    # plain-string shape, and OL84T is legacy singular-typed
+                    # plain-string shape, and OL84T is legacy plural-typed
                     "genres": ["/tags/OL1T", "/tags/OL84T"],
                 },
                 {

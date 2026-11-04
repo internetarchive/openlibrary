@@ -3413,6 +3413,10 @@ msgid "Add one or more literary genres for this work."
 msgstr ""
 
 #: books/edit/about.html
+msgid "+ Add Genres"
+msgstr ""
+
+#: books/edit/about.html
 msgid "A person? Or, people?"
 msgstr ""
 
