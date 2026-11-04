@@ -24,8 +24,8 @@ def pick(monkeypatch):
     """Run /tasks/one over a fixed pool of rows, returning the URL it redirects to."""
     pool = [row("OL1M", "languages"), row("OL2M", "languages", "publishers"), row("OL3M", "covers")]
 
-    def build_rows(task, fields=None):
-        fields = fields or contribute.get_filter_fields(task)
+    def build_rows(task, visible=tuple(contribute.tasks.POINTS), fields=None):
+        fields = fields or contribute.get_filter_fields(task, visible)
         rows = [{**r, "tasks": [t for t in r["tasks"] if t["field"] in fields]} for r in pool]
         return [r for r in rows if r["tasks"]]
 
@@ -73,7 +73,7 @@ def test_surprise_me_is_marked_so_the_next_pick_stays_open(pick):
 
 
 def test_redirects_to_the_list_when_nothing_is_left(pick, monkeypatch):
-    monkeypatch.setattr(contribute, "build_task_rows", lambda task, fields=None: [])
+    monkeypatch.setattr(contribute, "build_task_rows", lambda task, visible=(), fields=None: [])
     assert pick(task="covers", field="covers").endswith("/tasks?task=covers")
 
 

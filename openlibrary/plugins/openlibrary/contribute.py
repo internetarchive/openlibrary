@@ -15,11 +15,13 @@ from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
 from openlibrary.contribute import feed, initiatives, save, supply, tasks
 from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides
-from openlibrary.contribute.tasks import field_values
+from openlibrary.contribute.tasks import field_values, work_of
 from openlibrary.core import admin, helpers
+from openlibrary.core.tags import can_edit_tags, find_tag, tag_choices, work_tag_keys
 from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream import spamcheck
+from openlibrary.plugins.upstream.utils import markdown_excerpt
 
 LIST_SIZE = 25
 # Placeholder cards while a cold cache builds the list in the background; the script swaps them for the rows.
@@ -51,11 +53,33 @@ def get_filters() -> dict[str, tuple[str, tuple[str, ...]]]:
         "number_of_pages": (_("Page count"), ("number_of_pages",)),
         "publishers": (_("Publisher"), ("publishers",)),
         "identifiers": (_("Identifiers"), ("lccn", "oclc_numbers")),
+        "literary_forms": (_("Fiction or nonfiction"), ("literary_forms",)),
     }
 
 
-def normalize_filter(raw: str) -> str:
-    return raw if raw in get_filters() else ""
+def get_filter_headings() -> dict[str, str]:
+    """The dashboard's heading per filter: a whole phrase, so each language can case and order it."""
+    return {
+        "covers": _("Missing cover"),
+        "languages": _("Missing language"),
+        "number_of_pages": _("Missing page count"),
+        "publishers": _("Missing publisher"),
+        "identifiers": _("Missing identifiers"),
+        "literary_forms": _("Missing fiction or nonfiction"),
+    }
+
+
+def fields_for(user) -> tuple[str, ...]:
+    """The task fields this visitor sees: the beta ones only on the tags whitelist."""
+    return tasks.visible_fields(can_edit_tags(user))
+
+
+def visible_filters(fields: tuple[str, ...]) -> dict[str, tuple[str, tuple[str, ...]]]:
+    return {fid: f for fid, f in get_filters().items() if set(f[1]) <= set(fields)}
+
+
+def normalize_filter(raw: str, fields: tuple[str, ...] = tuple(tasks.POINTS)) -> str:
+    return raw if raw in visible_filters(fields) else ""
 
 
 def render_contribute(template: str, title: str, **params):
@@ -110,6 +134,9 @@ def format_field_value(edition, fld: str) -> str:
     """The field's current value as the receipt shows it. A cover is shown as the image instead."""
     if fld == "covers":
         return ""
+    if fld in tasks.WORK_FIELDS:
+        work = work_of(edition)
+        return ", ".join(tag.name for k in (work_tag_keys(work, fld) if work else []) if (tag := find_tag(fld, k)))
     values = field_values(edition, fld)
     if fld == "languages":
         names = get_language_names({str(v) for v in values})
@@ -139,6 +166,47 @@ def build_edition_field_rows(edition, fld: str) -> list[dict]:
     return out
 
 
+def text_of(block) -> str:
+    """A description's text, whether stored as a string or a ``/type/text`` block."""
+    return str(getattr(block, "value", block) or "")
+
+
+def build_work_field_rows(edition, fld: str) -> list[dict]:
+    """The work's record as a work-level task shows it: what the whole work says, with the blank in place."""
+    work = work_of(edition)
+    subjects = (work.get("subjects") or [])[:8] if work else []
+    rows = [
+        (_("First published"), work.get("first_publish_date") if work else ""),
+        (_("Subjects"), ", ".join(subjects)),
+        (_("Editions"), str(edition.works[0].get_edition_count()) if edition.works else ""),
+    ]
+    out = [{"label": label, "value": value, "ask": False} for label, value in rows if value]
+    out.append({"label": get_field_guides()[fld].label, "value": "", "ask": True})
+    return out
+
+
+# The choice-list row that is an honest exit rather than an answer.
+UNSURE = "unsure"
+
+
+def field_guide_choices(fld: str) -> str:
+    return get_field_guides()[fld].choices
+
+
+def build_choices(field_guide) -> list:
+    """A choice field's rows: the tag type's tags, then "Not sure"."""
+    if not field_guide.choices:
+        return []
+    return tag_choices(field_guide.choices, field_guide.not_found or _("Not sure"), unsure_value=UNSURE)
+
+
+def build_evidence(edition) -> str:
+    """What the record itself says, for a task that is a judgment rather than a lookup: the blurb, as plain text."""
+    work = work_of(edition)
+    blurb = (text_of(work.get("description")) if work else "") or text_of(edition.get("description"))
+    return markdown_excerpt(blurb, max_length=600)
+
+
 def count_sibling_values(fld: str, others: list, limit: int = 5) -> dict:
     """How often each value appears across the other editions, most common first."""
     values = [field_values(e, fld) for e in others]
@@ -156,17 +224,18 @@ def count_sibling_values(fld: str, others: list, limit: int = 5) -> dict:
 def get_recent_fixes(changes: list) -> list[dict]:
     """The right column's "Your recent fixes", from the user's ``save.recent_saves``."""
     keys = [c.changes[0]["key"] for c in changes if c.changes]
-    editions = {e.key: e for e in web.ctx.site.get_many(keys)} if keys else {}
+    # An edition for most fields; the work for a work field.
+    records = {r.key: r for r in web.ctx.site.get_many(keys)} if keys else {}
     field_guides = get_field_guides()
     out = []
     for c in changes:
         key = c.changes[0]["key"] if c.changes else ""
-        if not (edition := editions.get(key)):
+        if not (record := records.get(key)):
             continue
         fld = (c.data or {}).get("field", "")
         out.append(
             {
-                "title": edition.get_title(),
+                "title": record.get_title() if record.type.key == "/type/edition" else record.title,
                 "url": f"{key}?m=history",
                 "field_label": field_guides[fld].label if fld in field_guides else "",
                 "when": helpers.datestr(c.timestamp),
@@ -218,16 +287,17 @@ def build_task_summary(task: tasks.Task, field_guides, back: str = "") -> dict:
     }
 
 
-def get_filter_fields(task: str) -> tuple[str, ...]:
-    return get_filters()[task][1] if task else tasks.OFFERED
+def get_filter_fields(task: str, visible: tuple[str, ...] = tuple(tasks.POINTS)) -> tuple[str, ...]:
+    return get_filters()[task][1] if task else tasks.offered_fields(visible)
 
 
-def build_task_rows(task: str, fields: tuple[str, ...] | None = None) -> list[dict] | None:
+def build_task_rows(task: str, visible: tuple[str, ...] = tuple(tasks.POINTS), fields: tuple[str, ...] | None = None) -> list[dict] | None:
     """A random draw of the filter's books from the active initiative, each with its open tasks weighted by ``tasks.impact`` for "Surprise me".
 
-    ``fields`` narrows the draw within the filter. None while the initiative's gaps are still being built.
+    ``visible`` is what this visitor may see; a filter narrows it further, and ``fields`` narrows the draw within the filter.
+    None while the initiative's gaps are still being built.
     """
-    fields = fields or get_filter_fields(task)
+    fields = fields or get_filter_fields(task, visible)
     if (candidates := supply.candidates(fields)) is None:
         return None
     field_guides = get_field_guides()
@@ -254,11 +324,11 @@ def get_initiative_people() -> int:
     return 0
 
 
-def build_progress() -> dict | None:
+def build_progress(fields: tuple[str, ...]) -> dict | None:
     """The active initiative's progress for the dashboard, or None while its gaps are still being built."""
     if not (gaps := initiatives.get_gaps()):
         return None
-    p = initiatives.progress(gaps)
+    p = initiatives.progress(gaps, tasks.offered_fields(fields))
     people = get_initiative_people()
     return {
         "title": _("The %(count)s most-read books", count=helpers.commify(p["total"])),
@@ -274,7 +344,7 @@ def build_progress() -> dict | None:
     }
 
 
-def build_filter_rail(task: str) -> dict:
+def build_filter_rail(task: str, fields: tuple[str, ...]) -> dict:
     filters = [
         {
             "label": label,
@@ -282,9 +352,8 @@ def build_filter_rail(task: str) -> dict:
             "on": task == fid,
             "track": fid,
         }
-        for fid, (label, fields) in get_filters().items()
         # A filter over fields Tasks doesn't offer still works by URL, but isn't linked.
-        if set(fields) <= set(tasks.OFFERED)
+        for fid, (label, _fields) in visible_filters(tasks.offered_fields(fields)).items()
     ]
     return {"all": {"label": _("All open tasks"), "url": build_dashboard_url(), "on": not task, "track": "all"}, "filters": filters}
 
@@ -373,23 +442,24 @@ class contribute_index(delegate.page):
         recent_saves = save.recent_saves(user.key)
         if not has_seen_intro(recent_saves):
             return render_landing(user)
-        task = normalize_filter(query_param("task", ""))
-        rows = build_task_rows(task)
+        fields = fields_for(user)
+        task = normalize_filter(query_param("task", ""), fields)
+        rows = build_task_rows(task, fields)
         return render_contribute(
             "contribute/dashboard.html.jinja",
             _("Tasks"),
             one_task_url=build_dashboard_url(task, base="/tasks/one"),
-            rail=build_filter_rail(task),
+            rail=build_filter_rail(task, fields),
             rows=rows,
             # While the pool builds, the script fetches the rows from here.
             rows_url=build_dashboard_url(task, base="/tasks/rows") if rows is None else "",
             skeleton_rows=LIST_SKELETON_ROWS if rows is None else 0,
-            heading=_("Missing: %(field)s", field=get_filters()[task][0]) if task else _("Most needed"),
+            heading=get_filter_headings()[task] if task else _("Most needed"),
             empty=_("Nothing missing here right now. Thank you."),
             recent=get_recent_fixes(recent_saves),
             history_url=user.key,
             apply=build_apply(user),
-            progress=build_progress(),
+            progress=build_progress(fields),
         )
 
 
@@ -402,16 +472,17 @@ class contribute_one(delegate.page):
     path = "/tasks/one"
 
     def GET(self):
-        task = normalize_filter(query_param("task", ""))
-        require_login(build_dashboard_url(task, base=self.path))
+        user = require_login(build_dashboard_url(normalize_filter(query_param("task", "")), base=self.path))
+        fields = fields_for(user)
+        task = normalize_filter(query_param("task", ""), fields)
         exclude = f"/books/{query_param('exclude', '')}"
         fld = query_param("field", "")
 
-        def open_tasks(fields: tuple[str, ...] | None = None) -> list[dict]:
-            return [t for row in build_task_rows(task, fields) or [] if row["book"]["key"] != exclude for t in row["tasks"]]
+        def open_tasks(narrow: tuple[str, ...] | None = None) -> list[dict]:
+            return [t for row in build_task_rows(task, fields, narrow) or [] if row["book"]["key"] != exclude for t in row["tasks"]]
 
         # The field the user has been working on, until it runs out; a field outside the filter doesn't override it.
-        if not (options := open_tasks((fld,)) if fld in get_filter_fields(task) else []) and not (options := open_tasks()):
+        if not (options := open_tasks((fld,)) if fld in get_filter_fields(task, fields) else []) and not (options := open_tasks()):
             raise web.seeother(build_dashboard_url(task))
         pick = random.choices(options, weights=[max(t["weight"], 1) for t in options])[0]
         # No field asked for means "Surprise me": the pick's field isn't the user's choice, so "Save and next" shouldn't stick to it.
@@ -454,7 +525,10 @@ def build_task_context(edition, task: tasks.Task, back: str, surprise: bool = Fa
         "tally": tally,
         # Quick picks for the answer, only where the other editions are good evidence for this one.
         "suggestions": tally["values"][:3] if field_guide.suggest_from_siblings else [],
-        "record_fields": build_edition_field_rows(edition, task.field),
+        "record_fields": build_work_field_rows(edition, task.field) if task.field in tasks.WORK_FIELDS else build_edition_field_rows(edition, task.field),
+        # A judgment: the description, when there is one, is a clue beside the lookups.
+        "evidence": build_evidence(edition) if field_guide.choices else None,
+        "choices": build_choices(field_guide),
         "list_url": build_dashboard_url(back),
         # Moving on without an answer records nothing; "I couldn't find it" is the one that counts.
         "skip_url": build_next_url(back, task, saved=False, surprise=surprise),
@@ -470,8 +544,14 @@ def build_task_context(edition, task: tasks.Task, back: str, surprise: bool = Fa
 TASK_PATH = rf"/tasks/task/(OL\d+M)/({'|'.join(tasks.POINTS)})"
 
 
-def get_back_filter() -> str:
-    return normalize_filter(query_param("back", ""))
+def get_back_filter(fields: tuple[str, ...]) -> str:
+    return normalize_filter(query_param("back", ""), fields)
+
+
+def require_field_access(user, fld: str) -> None:
+    """A beta field is simply not there for anyone off the whitelist."""
+    if fld in tasks.BETA_FIELDS and not can_edit_tags(user):
+        raise web.notfound()
 
 
 def build_receipt(saved: str) -> dict | None:
@@ -499,7 +579,12 @@ def get_edition_or_404(olid: str):
 def render_nothing_page(edition, fld: str, back: str):
     label = get_field_guides()[fld].label
     return render_contribute(
-        "contribute/nothing.html.jinja", _("Nothing to fill in here"), book=build_book_header(edition), field_label=label, list_url=build_dashboard_url(back)
+        "contribute/nothing.html.jinja",
+        _("Nothing to fill in here"),
+        book=build_book_header(edition),
+        field_label=label,
+        on_work=fld in tasks.WORK_FIELDS,
+        list_url=build_dashboard_url(back),
     )
 
 
@@ -507,8 +592,9 @@ class contribute_task(delegate.page):
     path = TASK_PATH
 
     def GET(self, olid, fld):
-        require_login(f"/tasks/task/{olid}/{fld}")
-        back = get_back_filter()
+        user = require_login(f"/tasks/task/{olid}/{fld}")
+        require_field_access(user, fld)
+        back = get_back_filter(fields_for(user))
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return render_nothing_page(edition, fld, back)
@@ -517,20 +603,24 @@ class contribute_task(delegate.page):
 
     def POST(self, olid, fld):
         user = require_login(f"/tasks/task/{olid}/{fld}")
+        require_field_access(user, fld)
         i = web.input(value="", note="", back="", surprise="", confirmed="", then="", file={})
         # Drop the upload's field storage, as the add-cover page does.
         web.ctx.pop("_fieldstorage", None)
         # Same check as the edit form; it also stops read-only and blocked accounts. The image is not text to check.
         if spamcheck.is_spam(web.storage((k, v) for k, v in i.items() if k != "file"), allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
-        back = normalize_filter(i.back)
+        back = normalize_filter(i.back, fields_for(user))
         surprise = bool(i.surprise)
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return render_nothing_page(edition, fld, back)
-        if i.then == "notfound":
+        if i.then == "notfound" or (field_guide_choices(fld) and i.value == UNSURE):
+            # "Not sure" on a choice list counts like "I couldn't find it": enough people and the gap is set aside.
             initiatives.record_not_found(web.ctx.site, edition.key, fld, user.key)
-            raise web.seeother(build_next_url(back, task, saved=False, surprise=surprise))
+            if i.then == "next":
+                raise web.seeother(build_next_url(back, task, saved=False, surprise=surprise))
+            raise web.seeother(f"/tasks/task/{olid}/{fld}/done?{urlencode({'choice': 'unsure', 'back': back, 'surprise': '1' if surprise else ''})}")
         done = f"/tasks/task/{olid}/{fld}/done"
         field_guide = get_field_guides()[fld]
         try:
@@ -538,6 +628,8 @@ class contribute_task(delegate.page):
                 raise save.InvalidAnswer(_("Check that it matches this edition, and tick the box to say so."))
             if fld == "covers":
                 save.save_cover(edition, i.file, from_amazon=i.get("cover_choice") == "suggested")
+            elif fld in tasks.WORK_FIELDS:
+                save.save_work_answer(work_of(edition), fld, i.value, field_guide.label, i.note)
             else:
                 save.save_answer(edition, fld, i.value, field_guide.label, i.note)
         except save.InvalidAnswer as e:
@@ -552,12 +644,17 @@ class contribute_done(delegate.page):
     path = TASK_PATH + "/done"
 
     def GET(self, olid, fld):
-        require_login(f"/tasks/task/{olid}/{fld}/done")
-        back = get_back_filter()
+        user = require_login(f"/tasks/task/{olid}/{fld}/done")
+        require_field_access(user, fld)
+        fields = fields_for(user)
+        back = get_back_filter(fields)
         edition = get_edition_or_404(olid)
         field_guides = get_field_guides()
         saved = query_param("choice", "") == "saved"
-        same_book = [build_task_summary(t, field_guides, back) for t in tasks.tasks_for_edition(edition) if t.field != fld and t.field in tasks.OFFERED]
+        offered = tasks.offered_fields(fields)
+        same_book = [build_task_summary(t, field_guides, back) for t in tasks.tasks_for_edition(edition) if t.field != fld and t.field in offered]
+        # A work answer lands in the work's history.
+        edited = work_of(edition) if fld in tasks.WORK_FIELDS and work_of(edition) else edition
         return render_contribute(
             "contribute/done.html.jinja",
             _("Saved") if saved else _("Skipped"),
@@ -566,7 +663,7 @@ class contribute_done(delegate.page):
             saved=saved,
             value=format_field_value(edition, fld) if saved else "",
             cover_url=edition.get_cover_url("M") if saved and fld == "covers" else "",
-            history_url=f"{edition.key}?m=history",
+            history_url=f"{edited.key}?m=history",
             same_book=same_book,
             next_url=build_next_url(back, tasks.Task(olid, fld), saved=False, surprise=bool(query_param("surprise", ""))),
             list_url=build_dashboard_url(back),
