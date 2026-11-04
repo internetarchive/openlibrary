@@ -229,6 +229,12 @@ def verify_session_cookie(cookie_value: str) -> bool:
     return verify_hash(get_secret_key(), data, signature)
 
 
+# The challenge page itself: checking cookies there would bounce a flagged visitor
+# back to it in a loop, and turn away one whose ``vf`` went stale (a rotated key)
+# instead of letting them earn a new one. Read by web.py and FastAPI alike.
+HUMAN_CHECK_EXEMPT_PATHS: frozenset[str] = frozenset({"/verify_human"})
+
+
 @dataclass(frozen=True)
 class HumanCookieCheck:
     """What a request's cookies say about the human-verification challenge."""

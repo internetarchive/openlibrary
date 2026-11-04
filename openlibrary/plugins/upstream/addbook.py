@@ -42,6 +42,12 @@ def is_valid_web_book_url(url: str) -> bool:
     return parsed.scheme in ("http", "https") and bool(parsed.netloc)
 
 
+def can_edit_ocaid() -> bool:
+    """Whether the current user may add, change or remove an edition's ocaid. See `User.can_edit_ocaid`."""
+    user = accounts.get_current_user()
+    return bool(user and user.can_edit_ocaid())
+
+
 def get_recaptcha():
     def recaptcha_exempt() -> bool:
         """Check to see if account is an admin, or more than two years old."""
@@ -267,6 +273,9 @@ class addbook(delegate.page):
         i.web_book_url = i.web_book_url.strip()
         if not is_valid_web_book_url(i.web_book_url):
             return render_template("message.html", _("Invalid Book URL"), _("Please enter a valid URL starting with http:// or https://"))
+
+        if i.id_name == "ocaid" and i.id_value and not can_edit_ocaid():
+            return render_template("message.html", _("Permission denied"), _("You are not allowed to add an Internet Archive ID."))
 
         i = utils.unflatten(i)
         saveutil = DocSaveHelper()
@@ -744,6 +753,9 @@ class SaveBookHelper:
         work.subject_places = list(read_subject(work.get("subject_places", "")))
         work.subject_times = list(read_subject(work.get("subject_times", "")))
         work.subject_people = list(read_subject(work.get("subject_people", "")))
+        # The form posts the chosen tag's key; "" clears it (trim_doc makes that None, which the save drops).
+        if "literary_forms" in work:
+            work.literary_forms = [{"key": work.literary_forms}] if work.literary_forms else None
         if ": " in work.get("title", ""):
             work.title, work.subtitle = work.title.split(": ", 1)
         else:
@@ -758,19 +770,22 @@ class SaveBookHelper:
         return trim_doc(work)
 
     def _prevent_ocaid_deletion(self, edition) -> None:
-        # Allow admins to modify ocaid
-        user = accounts.get_current_user()
-        if user and user.is_super_librarian_or_higher():
+        if can_edit_ocaid():
             return
 
-        # read ocaid from form data
-        ocaid = next(
-            (id_["value"] for id_ in edition.get("identifiers", []) if id_["name"] == "ocaid"),
-            None,
+        # read ocaid from form data. A top-level `ocaid` field overrides the identifiers
+        # list, since `save` applies it with `edition.update` after `set_identifiers`.
+        ocaid = edition.get(
+            "ocaid",
+            next(
+                (id_["value"] for id_ in edition.get("identifiers", []) if id_["name"] == "ocaid"),
+                None,
+            ),
         )
 
-        # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata
-        if self.edition and self.edition.get("ocaid") and self.edition.get("ocaid") != ocaid:
+        # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata.
+        # Adding an ocaid to an edition that has none counts as a change too.
+        if self.edition and (self.edition.get("ocaid") or None) != (ocaid or None):
             logger.warning(
                 "Attempt to change ocaid of %s from %r to %r.",
                 self.edition.key,
@@ -809,6 +824,7 @@ class book_edit(delegate.page):
         v = i.v and safeint(i.v, None)
 
         if not web.ctx.site.can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
@@ -875,6 +891,7 @@ class work_edit(delegate.page):
         v = i.v and safeint(i.v, None)
 
         if not web.ctx.site.can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
@@ -923,6 +940,7 @@ class author_edit(delegate.page):
 
     def GET(self, key):
         if not web.ctx.site.can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,

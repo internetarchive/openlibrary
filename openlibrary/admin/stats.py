@@ -12,6 +12,7 @@ import yaml
 
 from openlibrary.admin import numbers
 from openlibrary.admin.vitals import gather_participation_scores, write_to_statsd
+from openlibrary.utils.request_context import create_context_for_script, req_context, site
 
 logger = logging.getLogger(__name__)
 
@@ -44,17 +45,6 @@ def connect_to_pg(config_file):
     return web.database(dbn="postgres", **conf)  # noqa: TID251
 
 
-def get_config_info(infobase_config):
-    """Parses the config file(s) to get back all the necessary pieces of data.
-
-    Add extra parameters here and change the point of calling.
-    """
-    with open(infobase_config) as f:
-        config = yaml.safe_load(f)
-    logroot = config.get("writelog")
-    return logroot
-
-
 def store_data(data, date):
     uid = "counts-%s" % date
     logger.debug(" Updating stats for %s - %s", uid, data)
@@ -67,7 +57,7 @@ def store_data(data, date):
     web.ctx.site.store[uid] = doc
 
 
-def run_gathering_functions(infobase_db, coverstore_db, start, end, logroot, prefix, key_prefix=None):
+def run_gathering_functions(infobase_db, coverstore_db, start, end, prefix, key_prefix=None):
     """Runs all the data gathering functions with the given prefix
     inside the numbers module"""
     funcs = [x for x in dir(numbers) if x.startswith(prefix)]
@@ -81,7 +71,6 @@ def run_gathering_functions(infobase_db, coverstore_db, start, end, logroot, pre
             ret = fn(
                 thingdb=infobase_db,
                 coverdb=coverstore_db,
-                logroot=logroot,
                 start=start,
                 end=end,
             )
@@ -115,6 +104,8 @@ def setup_ol_config(openlibrary_config_file):
             config.infobase = yaml.safe_load(file)
 
     infogami._setup()
+    site.set(web.ctx.site)
+    req_context.set(create_context_for_script())
 
 
 def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
@@ -126,7 +117,6 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
     try:
         infobase_db = connect_to_pg(infobase_config)
         coverstore_db = connect_to_pg(coverstore_config)
-        logroot = get_config_info(infobase_config)
     except KeyError as k:
         logger.critical("Config file section '%s' missing", k.args[0])
         return -1
@@ -147,7 +137,6 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
             coverstore_db,
             yesterday,
             today,
-            logroot,
             prefix="admin_total__",
             key_prefix="total",
         )
@@ -163,7 +152,7 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
     for i in range(int(ndays)):
         logger.info(" %s to %s", start, end)
         # Fresh per day: a key that raises NoStats or fails for this day mustn't inherit the later day's value.
-        data = run_gathering_functions(infobase_db, coverstore_db, start, end, logroot, prefix="admin_range__")
+        data = run_gathering_functions(infobase_db, coverstore_db, start, end, prefix="admin_range__")
         store_data(data, start.strftime("%Y-%m-%d"))
         end = start
         start = end - dt.timedelta(days=1)
