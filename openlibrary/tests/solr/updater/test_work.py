@@ -441,121 +441,109 @@ def make_work_solr_builder_with_tags(work, tags=None):
     return make_work_solr_builder(work=work, tags=tags or [])
 
 
+# (Tag's singular tag_type, the work field [plural] that lists such tags). The
+# Solr fields are the singular tag_type stem plus `_key` / `_name`.
+WORK_TAG_CASES = [
+    ("genre", "genres"),
+    ("subgenre", "subgenres"),
+    ("audience", "audiences"),
+    ("content_warning", "content_warnings"),
+    ("content_format", "content_formats"),
+    ("literary_form", "literary_forms"),
+]
+
+
 class TestWorkSolrBuilderTags:
     def test_no_tags(self):
-        wsb = make_work_solr_builder(make_work())
-        assert wsb.genre_key == []
-        assert wsb.genre_name == []
-        assert wsb.subgenre_key == []
-        assert wsb.subgenre_name == []
-        assert wsb.audience_key == []
-        assert wsb.audience_name == []
+        assert make_work_solr_builder(make_work()).build_tags() == {}
 
-    def test_genres(self):
+    @pytest.mark.parametrize(("tag_type", "work_field"), WORK_TAG_CASES)
+    def test_tag_type_indexed(self, tag_type, work_field):
         tags = [
-            make_tag(tag_type="genres", name="Romance", key="/tags/OL177T"),
-            make_tag(tag_type="genres", name="Sci-Fi", key="/tags/OL179T"),
+            make_tag(tag_type=tag_type, name="A", key="/tags/OL1T"),
+            make_tag(tag_type=tag_type, name="B", key="/tags/OL2T"),
         ]
-        wsb = make_work_solr_builder_with_tags(make_work(), tags)
-        assert wsb.genre_key == ["OL177T", "OL179T"]
-        assert wsb.genre_name == ["Romance", "Sci-Fi"]
-        assert wsb.subgenre_key == []
-        assert wsb.audience_key == []
+        doc = make_work_solr_builder_with_tags(make_work(), tags).build_tags()
+        assert doc[f"{tag_type}_key"] == ["OL1T", "OL2T"]
+        assert doc[f"{tag_type}_name"] == ["A", "B"]
 
-    def test_ignores_singular_genre_tag_type(self):
-        tags = [make_tag(tag_type="genre", name="Cyberpunk", key="/tags/OL84T")]
-        wsb = make_work_solr_builder_with_tags(make_work(), tags)
-        assert wsb.genre_key == []
-        assert wsb.genre_name == []
+    @pytest.mark.parametrize(("tag_type", "work_field"), WORK_TAG_CASES)
+    def test_ignores_plural_tag_type(self, tag_type, work_field):
+        # Only the singular tag_type is indexed; the plural work-field spelling
+        # used as a tag_type must not leak into the Solr fields.
+        tags = [make_tag(tag_type=work_field, name="A", key="/tags/OL1T")]
+        doc = make_work_solr_builder_with_tags(make_work(), tags).build_tags()
+        assert f"{tag_type}_key" not in doc
+        assert f"{tag_type}_name" not in doc
 
     def test_separates_tag_types(self):
-        tags = [
-            make_tag(tag_type="genres", name="Horror", key="/tags/OL171T"),
-            make_tag(tag_type="subgenres", name="Cyberpunk", key="/tags/OL272T"),
-            make_tag(tag_type="audience", name="Adult", key="/tags/OL301T"),
-        ]
-        wsb = make_work_solr_builder_with_tags(make_work(), tags)
-        assert wsb.genre_key == ["OL171T"]
-        assert wsb.genre_name == ["Horror"]
-        assert wsb.subgenre_key == ["OL272T"]
-        assert wsb.subgenre_name == ["Cyberpunk"]
-        assert wsb.audience_key == ["OL301T"]
-        assert wsb.audience_name == ["Adult"]
-
-    def test_all_three_audience_types(self):
-        tags = [
-            make_tag(tag_type="audience", name="Adult", key="/tags/OL301T"),
-            make_tag(tag_type="audience", name="YA", key="/tags/OL302T"),
-        ]
-        wsb = make_work_solr_builder_with_tags(make_work(), tags)
-        assert wsb.audience_key == ["OL301T", "OL302T"]
-        assert wsb.audience_name == ["Adult", "YA"]
+        tags = [make_tag(tag_type=tag_type, name=tag_type.upper(), key=f"/tags/OL{i}T") for i, (tag_type, _) in enumerate(WORK_TAG_CASES, start=1)]
+        doc = make_work_solr_builder_with_tags(make_work(), tags).build_tags()
+        for i, (tag_type, _) in enumerate(WORK_TAG_CASES, start=1):
+            assert doc[f"{tag_type}_key"] == [f"OL{i}T"]
+            assert doc[f"{tag_type}_name"] == [tag_type.upper()]
 
     def test_missing_name_and_type(self):
-        wsb = make_work_solr_builder_with_tags(
+        doc = make_work_solr_builder_with_tags(
             make_work(),
             tags=[
-                {"key": "/tags/OL1T", "type": {"key": "/type/tag"}, "tag_type": "genres"},
+                {"key": "/tags/OL1T", "type": {"key": "/type/tag"}, "tag_type": "genre"},
                 {"key": "/tags/OL2T", "type": {"key": "/type/tag"}, "name": "No type"},
             ],
-        )
-        assert wsb.genre_key == ["OL1T"]
-        assert wsb.genre_name == [""]
-        assert wsb.subgenre_key == []
-        assert wsb.audience_key == []
+        ).build_tags()
+        assert doc["genre_key"] == ["OL1T"]
+        assert doc["genre_name"] == [""]
+        assert "subgenre_key" not in doc
 
     def test_tags_in_solr_doc(self):
-        wsb = make_work_solr_builder_with_tags(
+        doc = make_work_solr_builder_with_tags(
             make_work(),
-            tags=[make_tag(tag_type="genres", name="Romance", key="/tags/OL177T")],
-        )
-        doc = wsb.build()
+            tags=[make_tag(tag_type="genre", name="Romance", key="/tags/OL177T")],
+        ).build()
         assert doc.get("genre_key") == ["OL177T"]
         assert doc.get("genre_name") == ["Romance"]
 
 
 class TestWorkSolrUpdaterTags:
     @pytest.mark.asyncio
-    async def test_tags_loaded_from_data_provider(self):
-        genre = make_tag(tag_type="genres", name="Romance", key="/tags/OL177T")
+    @pytest.mark.parametrize(("tag_type", "work_field"), WORK_TAG_CASES)
+    async def test_tag_loaded_from_data_provider(self, tag_type, work_field):
+        tags = [
+            make_tag(tag_type=tag_type, name="A", key="/tags/OL1T"),
+            make_tag(tag_type=tag_type, name="B", key="/tags/OL2T"),
+        ]
         work = make_work()
-        work["genres"] = [{"key": "/tags/OL177T"}]
-        req, _ = await WorkSolrUpdater(FakeDataProvider([work, genre])).update_key(work)
+        # Exercise both {"key": ...} refs and bare string refs
+        work[work_field] = [{"key": "/tags/OL1T"}, "/tags/OL2T"]
+        req, _ = await WorkSolrUpdater(FakeDataProvider([work, *tags])).update_key(work)
         assert len(req.adds) == 1
-        assert req.adds[0]["genre_key"] == ["OL177T"]
-        assert req.adds[0]["genre_name"] == ["Romance"]
+        assert req.adds[0][f"{tag_type}_key"] == ["OL1T", "OL2T"]
+        assert req.adds[0][f"{tag_type}_name"] == ["A", "B"]
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(("tag_type", "work_field"), WORK_TAG_CASES)
+    async def test_tag_ignores_non_tag_docs(self, tag_type, work_field):
+        tag = make_tag(tag_type=tag_type, name="A", key="/tags/OL1T")
+        tag["type"] = {"key": "/type/delete"}
+        work = make_work()
+        work[work_field] = [{"key": "/tags/OL1T"}]
+        req, _ = await WorkSolrUpdater(FakeDataProvider([work, tag])).update_key(work)
+        assert len(req.adds) == 1
+        assert req.adds[0].get(f"{tag_type}_key") is None
+        assert req.adds[0].get(f"{tag_type}_name") is None
 
     @pytest.mark.asyncio
     async def test_tags_fetched_across_all_fields(self):
-        tags = [
-            make_tag(tag_type="genres", name="Romance", key="/tags/OL177T"),
-            make_tag(tag_type="subgenres", name="Cyberpunk", key="/tags/OL272T"),
-            make_tag(tag_type="audience", name="Adult", key="/tags/OL301T"),
-        ]
+        tags = [make_tag(tag_type=tag_type, name=tag_type.upper(), key=f"/tags/OL{i}T") for i, (tag_type, _) in enumerate(WORK_TAG_CASES, start=1)]
         work = make_work()
-        work["genres"] = [{"key": "/tags/OL177T"}]
-        work["subgenres"] = [{"key": "/tags/OL272T"}]
-        work["audiences"] = ["/tags/OL301T"]
+        for i, (_, work_field) in enumerate(WORK_TAG_CASES, start=1):
+            work[work_field] = [{"key": f"/tags/OL{i}T"}]
         req, _ = await WorkSolrUpdater(FakeDataProvider([work, *tags])).update_key(work)
         assert len(req.adds) == 1
         doc = req.adds[0]
-        assert doc["genre_key"] == ["OL177T"]
-        assert doc["subgenre_key"] == ["OL272T"]
-        assert doc["audience_key"] == ["OL301T"]
-        assert doc["genre_name"] == ["Romance"]
-        assert doc["subgenre_name"] == ["Cyberpunk"]
-        assert doc["audience_name"] == ["Adult"]
-
-    @pytest.mark.asyncio
-    async def test_tags_fetched_ignores_non_tag_docs(self):
-        genre = make_tag(tag_type="genres", name="Romance", key="/tags/OL177T")
-        genre["type"] = {"key": "/type/delete"}
-        work = make_work()
-        work["genres"] = [{"key": "/tags/OL177T"}]
-        req, _ = await WorkSolrUpdater(FakeDataProvider([work, genre])).update_key(work)
-        assert len(req.adds) == 1
-        assert req.adds[0].get("genre_key") is None
-        assert req.adds[0].get("genre_name") is None
+        for i, (tag_type, _) in enumerate(WORK_TAG_CASES, start=1):
+            assert doc[f"{tag_type}_key"] == [f"OL{i}T"]
+            assert doc[f"{tag_type}_name"] == [tag_type.upper()]
 
 
 class Test_number_of_pages_median:
