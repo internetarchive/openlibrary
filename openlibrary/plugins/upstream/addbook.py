@@ -17,7 +17,7 @@ from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
 from openlibrary.core.helpers import uniq
-from openlibrary.core.tags import FIELD_TAG_TYPES, PICKER_TAG_FIELDS
+from openlibrary.core.tags import FIELD_TAG_TYPES, PICKER_TAG_FIELDS, can_edit_tags
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
@@ -745,17 +745,28 @@ class SaveBookHelper:
         work.subject_places = list(read_subject(work.get("subject_places", "")))
         work.subject_times = list(read_subject(work.get("subject_times", "")))
         work.subject_people = list(read_subject(work.get("subject_people", "")))
-        # Only touch a managed-tag field when the edit form actually carried its
-        # section (books/edit/about.html renders a hidden `_<field>_present`
-        # marker per field). A form without the section leaves that field
-        # untouched rather than clearing it — see process_managed_tags.
-        for fld in PICKER_TAG_FIELDS:
-            if work.get(f"_{fld}_present"):
-                stored = self.work.get(fld) if self.work else None
-                work[fld] = self.process_managed_tags(work.get(fld), fld, stored)
-        # The form posts the chosen tag's key; "" clears it (trim_doc makes that None, which the save drops).
-        if "literary_forms" in work:
-            work.literary_forms = [{"key": work.literary_forms}] if work.literary_forms else None
+        # Managed Tag fields (the pickers + literary_forms) are editable only by
+        # the tags-beta whitelist. The template gates rendering; this server-side
+        # check is the authoritative guard. `unflatten` has already copied any
+        # posted `work--<field>--N--key` values onto `work`, so a crafted POST
+        # from a user without access must be scrubbed, not merely left unprocessed.
+        if can_edit_tags(accounts.get_current_user()):
+            # Only touch a field when the form carried its section (a hidden
+            # `_<field>_present` marker); a form without the section leaves that
+            # field untouched rather than clearing it — see process_managed_tags.
+            for fld in PICKER_TAG_FIELDS:
+                if work.get(f"_{fld}_present"):
+                    stored = self.work.get(fld) if self.work else None
+                    work[fld] = self.process_managed_tags(work.get(fld), fld, stored)
+            # The form posts the chosen tag's key; "" clears it (trim_doc makes that None, which the save drops).
+            if "literary_forms" in work:
+                work.literary_forms = [{"key": work.literary_forms}] if work.literary_forms else None
+        else:
+            # No access: discard any posted value for a managed field and keep the
+            # stored one, so a crafted POST can't write these fields.
+            for fld in (*PICKER_TAG_FIELDS, "literary_forms"):
+                if fld in work:
+                    work[fld] = self.work.get(fld) if self.work else None
         if ": " in work.get("title", ""):
             work.title, work.subtitle = work.title.split(": ", 1)
         else:

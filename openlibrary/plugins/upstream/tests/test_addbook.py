@@ -27,6 +27,21 @@ def mock_user():
     )()
 
 
+def mock_tags_editor():
+    """A user on the tags-beta whitelist, so core.tags.can_edit_tags is True."""
+    return type(
+        "MockTagsEditor",
+        (object,),
+        {
+            "is_admin": lambda slf: True,
+            "is_super_librarian": lambda slf: False,
+            "is_super_librarian_or_higher": lambda slf: True,
+            "is_librarian": lambda slf: False,
+            "is_usergroup_member": lambda slf, grp: False,
+        },
+    )()
+
+
 class TestSaveBookHelper:
     def setup_method(self, method):
         web.ctx.site = MockSite()
@@ -678,7 +693,7 @@ class TestProcessManagedTags:
     def test_save_persists_genres_as_refs(self, monkeypatch):
         """End-to-end through save(): the indexed form shape the edit page posts
         (``work--genres--N--key``) lands on the work as a list of refs."""
-        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(accounts, "get_current_user", mock_tags_editor)
         web.ctx.site.save_many(
             [
                 {"type": {"key": "/type/work"}, "key": "/works/OL10W", "title": "A Work"},
@@ -714,12 +729,50 @@ class TestProcessManagedTags:
             {"key": "/tags/OL2T"},
         ]
 
+    def test_save_ignores_managed_tags_from_a_user_without_access(self, monkeypatch):
+        """A user not on the tags-beta whitelist can't write managed Tag fields,
+        even by crafting the POST (the template never renders these controls for
+        them). The server-side can_edit_tags gate restores the stored value, so a
+        posted key and presence marker are discarded rather than persisted."""
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)  # can_edit_tags is False
+        web.ctx.site.save_many(
+            [
+                {"type": {"key": "/type/work"}, "key": "/works/OL30W", "title": "A Work", "genres": [{"key": "/tags/OL2T"}]},
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL30M",
+                    "title": "A Work",
+                    "works": [{"key": "/works/OL30W"}],
+                },
+            ]
+        )
+        work = web.ctx.site.get("/works/OL30W")
+        edition = web.ctx.site.get("/books/OL30M")
+
+        # A crafted POST: the presence marker and a (valid) genre key the UI would
+        # never have offered this user.
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL30W",
+                "work--title": "A Work",
+                "work--_genres_present": "1",
+                "work--genres--0--key": "/tags/OL1T",
+                "edition--title": "A Work",
+                "edition--works--0--key": "/works/OL30W",
+            }
+        )
+
+        addbook.SaveBookHelper(work, edition).save(formdata)
+
+        # The stored genre is untouched; the crafted OL1T is not written.
+        assert web.ctx.site.docs["/works/OL30W"]["genres"] == [{"key": "/tags/OL2T"}]
+
     def test_save_drops_an_invalid_added_key(self, monkeypatch):
         """Validation runs on the real save path, not just the helper: an added
         key that is not an existing genre Tag is dropped before it is persisted
         (otherwise it would ride through on unflatten's raw refs and, once
         /type/work declares genres, reject the atomic save)."""
-        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(accounts, "get_current_user", mock_tags_editor)
         web.ctx.site.save_many(
             [
                 {"type": {"key": "/type/work"}, "key": "/works/OL14W", "title": "A Work"},
@@ -753,7 +806,7 @@ class TestProcessManagedTags:
 
     def test_save_clears_genres_when_none_posted(self, monkeypatch):
         """With the Genres section present but empty, saving clears the field."""
-        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(accounts, "get_current_user", mock_tags_editor)
         web.ctx.site.save_many(
             [
                 {
@@ -790,7 +843,7 @@ class TestProcessManagedTags:
     def test_save_preserves_stored_genres_on_an_unrelated_title_edit(self, monkeypatch):
         """A title edit that re-posts the stored genres must keep them all — even
         a plain-string-stored, legacy-typed genre that would fail validation."""
-        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(accounts, "get_current_user", mock_tags_editor)
         web.ctx.site.save_many(
             [
                 {
@@ -832,7 +885,7 @@ class TestProcessManagedTags:
     def test_save_without_genres_section_leaves_genres_untouched(self, monkeypatch):
         """A form that doesn't carry the Genres section (no presence marker) must
         not clear a work's genres."""
-        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(accounts, "get_current_user", mock_tags_editor)
         web.ctx.site.save_many(
             [
                 {
