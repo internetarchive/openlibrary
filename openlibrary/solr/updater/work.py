@@ -39,6 +39,19 @@ re_author_key = re.compile(r"^/(?:a|authors)/(OL\d+A)")
 re_edition_key = re.compile(r"/books/([^/]+)")
 re_subject = re.compile("[, _]+")
 
+# Tag types indexed onto works. A Tag's `tag_type` is singular (e.g.
+# `content_warning`); the work field that lists such tags is plural
+# (`content_warnings`, see SUPPORTED_WORK_TAG_FIELDS); the Solr fields are the
+# singular stem plus `_key` / `_name`.
+WORK_TAG_TYPES = (
+    "genre",
+    "subgenre",
+    "audience",
+    "content_warning",
+    "content_format",
+    "literary_form",
+)
+
 
 class WorkSolrUpdater(AbstractSolrUpdater):
     key_prefix = "/works/"
@@ -98,7 +111,9 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     logger.warning("Unexpected author type error: %s", work["key"])
                 authors = [a for a in authors if a["type"]["key"] == "/type/author"]
 
-                # Fetch tags (genres, subgenres, audiences)
+                # Fetch tags across all SUPPORTED_WORK_TAG_FIELDS (genres,
+                # subgenres, audiences, content_warnings, content_formats,
+                # literary_forms)
                 tag_keys = [normalize_tag(t)["key"] for field in SUPPORTED_WORK_TAG_FIELDS for t in work.get(field, [])]
                 tags = [await self.data_provider.get_document(key) for key in tag_keys]
                 tags = [t for t in tags if t["type"]["key"] == "/type/tag"]
@@ -320,6 +335,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
                 **(self._ratings or {}),
                 **(self._reading_log or {}),
                 **self._trending_data,
+                **self.build_tags(),
             },
         )
 
@@ -668,32 +684,17 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     def author_name(self) -> list[str]:
         return [a.get("name", "") for a in self._authors]
 
-    def _tags_of_type(self, tag_type: str) -> list[dict]:
-        return [t for t in self._tags if t.get("tag_type") == tag_type]
-
-    @cached_property
-    def genre_key(self) -> list[str]:
-        return [t["key"].split("/")[-1] for t in self._tags_of_type("genres")]
-
-    @cached_property
-    def genre_name(self) -> list[str]:
-        return [t.get("name", "") for t in self._tags_of_type("genres")]
-
-    @cached_property
-    def subgenre_key(self) -> list[str]:
-        return [t["key"].split("/")[-1] for t in self._tags_of_type("subgenres")]
-
-    @cached_property
-    def subgenre_name(self) -> list[str]:
-        return [t.get("name", "") for t in self._tags_of_type("subgenres")]
-
-    @cached_property
-    def audience_key(self) -> list[str]:
-        return [t["key"].split("/")[-1] for t in self._tags_of_type("audience")]
-
-    @cached_property
-    def audience_name(self) -> list[str]:
-        return [t.get("name", "") for t in self._tags_of_type("audience")]
+    def build_tags(self) -> dict[str, list[str]]:
+        # One pass over the work's tags, bucketed by the Tag's (singular)
+        # tag_type into the `{tag_type}_key` / `{tag_type}_name` Solr fields.
+        doc: dict[str, list[str]] = {}
+        for tag in self._tags:
+            tag_type = tag.get("tag_type")
+            if tag_type not in WORK_TAG_TYPES:
+                continue
+            doc.setdefault(f"{tag_type}_key", []).append(tag["key"].split("/")[-1])
+            doc.setdefault(f"{tag_type}_name", []).append(tag.get("name", ""))
+        return doc
 
     @cached_property
     def author_alternative_name(self) -> set[str]:
