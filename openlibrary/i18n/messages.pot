@@ -17,11 +17,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: account.html account/notifications.html account/privacy.html account/sidebar.html shell/header.html.jinja type/user/view.html
+#: account.html account/notifications.html account/privacy.html shell/header.html.jinja type/user/view.html
 msgid "Settings"
 msgstr ""
 
-#: account.html
+#: account.html account/sidebar.html
 msgid "Settings & Privacy"
 msgstr ""
 
@@ -1675,6 +1675,14 @@ msgid "Hi, <span>%(name)s</span>!"
 msgstr ""
 
 #: account/sidebar.html
+msgid "Public profile"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Private profile"
+msgstr ""
+
+#: account/sidebar.html
 msgid "Following"
 msgstr ""
 
@@ -1683,31 +1691,15 @@ msgid "Followers"
 msgstr ""
 
 #: account/sidebar.html
-msgid "Public profile"
-msgstr ""
-
-#: account/sidebar.html
 msgid "Share profile"
-msgstr ""
-
-#: account/sidebar.html
-msgid "Private profile"
-msgstr ""
-
-#: account/sidebar.html
-msgid "Make profile public to share"
 msgstr ""
 
 #: ShareModal.html account/sidebar.html stats/tasks.html.jinja type/edition/modal_links.html type/edition/title_and_author.html
 msgid "Share"
 msgstr ""
 
-#: account/sidebar.html openlibrary/plugins/upstream/mybooks.py
-msgid "My Feed"
-msgstr ""
-
-#: account/sidebar.html
-msgid "My Reading Stats"
+#: NotesModalDialog.html account/sidebar.html openlibrary/plugins/upstream/mybooks.py type/edition/modal_links.html
+msgid "Notes"
 msgstr ""
 
 #: account/sidebar.html
@@ -1715,7 +1707,7 @@ msgid "Reading Goal"
 msgstr ""
 
 #: account/sidebar.html
-msgid "Edit reading goal"
+msgid "Update your reading goal"
 msgstr ""
 
 #: account/sidebar.html
@@ -1733,14 +1725,6 @@ msgid "Bookshelves"
 msgstr ""
 
 #: account/sidebar.html
-msgid "Activity"
-msgstr ""
-
-#: NotesModalDialog.html account/sidebar.html openlibrary/plugins/upstream/mybooks.py type/edition/modal_links.html
-msgid "Notes"
-msgstr ""
-
-#: account/sidebar.html
 msgid "My lists"
 msgstr ""
 
@@ -1749,7 +1733,7 @@ msgid "Lists"
 msgstr ""
 
 #: account/sidebar.html
-msgid "New list"
+msgid "Create a new list"
 msgstr ""
 
 #: account/sidebar.html
@@ -1758,6 +1742,14 @@ msgstr ""
 
 #: account/sidebar.html
 msgid "Untitled list"
+msgstr ""
+
+#: account/sidebar.html openlibrary/plugins/upstream/mybooks.py
+msgid "My Feed"
+msgstr ""
+
+#: account/sidebar.html
+msgid "My Reading Stats"
 msgstr ""
 
 #: account/sidebar.html

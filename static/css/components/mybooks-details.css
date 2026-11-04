@@ -81,17 +81,27 @@
 }
 
 .mybooks-details {
-  padding: var(--spacing-inset-sm);
+  /* Same inset as .mybooks-menu, so both panes share one content line */
+  padding: var(--spacing-inset-md);
   display: flex;
   flex-direction: column;
   margin: 0 auto;
-  width: 75%;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Bleed to this pane's edge, not the page gutter, which would cross the sidebar border */
+/* --width-breakpoint-tablet */
+@media (min-width: 768px) {
+  .mybooks-details .carousel-container {
+    margin-inline: calc(-1 * var(--spacing-inset-md));
+  }
 }
 
 .mybooks-details .details-databar {
   position: absolute;
-  top: var(--spacing-inset-sm);
-  right: var(--spacing-inset-sm);
+  top: var(--spacing-inset-md);
+  inset-inline-end: var(--spacing-inset-md);
 }
 
 .carousel-section:nth-child(2) h2 {
@@ -107,14 +117,9 @@
   margin-right: 10px;
 }
 
-.mybooks-details .details-content {
-  padding: 8px;
-}
-
 /* stylelint-disable selector-max-specificity */
 .mybooks-details .details-content > div#contentBody {
   padding: 0 !important;
-  margin-left: 8px;
 }
 
 /* stylelint-enable selector-max-specificity */
@@ -127,14 +132,15 @@
   display: inline;
 }
 
-/* stylelint-disable selector-max-specificity */
-.mybooks-details > div:not([class]):not([id]) {
-  margin-left: 8px;
+/* Stacked under the sidebar's mobile trigger (see mybooks-menu.css) */
+@media only screen and (max-width: 959px) /* --width-breakpoint-desktop - 1 */ {
+  .mybooks-details {
+    margin: 0;
+    width: 100%;
+  }
 }
 
-/* stylelint-enable selector-max-specificity */
-
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: 767px) {
   .breadcrumb-wrapper {
     align-items: self-end;
   }
@@ -146,8 +152,6 @@
 
   .mybooks-details {
     padding: 10px;
-    margin: 0;
-    width: 100%;
   }
 
   .mybooks-details .page-banner-mybooks {

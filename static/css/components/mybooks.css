@@ -13,7 +13,7 @@
   margin-top: 0;
   font-size: 0.9em;
 }
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: 959px) /* --width-breakpoint-desktop - 1 */ {
   .mybooks {
     flex-direction: column;
   }

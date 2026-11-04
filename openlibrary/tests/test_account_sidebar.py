@@ -2,9 +2,10 @@
 
 The sidebar shows different blocks depending on whether the viewer owns the
 page (owners_page) and whether the reading log is public (public):
-- owners: everything (profile + actions, goal, shelves, activity, lists)
+- owners: everything (profile + tools, primary nav, goal, shelves, lists,
+  secondary nav)
 - public visitors: profile (no "Hi", share-only actions), "Books" nav,
-  shelves, lists — but no goal, activity, privacy buttons or "My" labels
+  shelves, lists — but no goal, notes, loans, privacy link or "My" labels
 - private visitors: profile header (avatar + name) and lists only
 
 These tests render ``account/sidebar.html`` with stubbed template globals.
@@ -83,9 +84,41 @@ def test_owner_sees_everything():
     assert "My Books" in html
     assert "My Feed" in html
     assert "Reading Goal" in html
-    assert "Activity" in html
     assert "Bookshelves" in html
     assert "My lists" in html
+
+
+def test_owner_section_order():
+    html = render_sidebar(owners_page=True, public=True, counts=FULL_COUNTS)
+    labels = [
+        "My Books",
+        "Notes",
+        "Reviews",
+        "Loans &amp; History",
+        "Reading Goal",
+        "Bookshelves",
+        "My lists",
+        "My Feed",
+        "My Reading Stats",
+        "Import your data",
+    ]
+    positions = [html.index(label) for label in labels]
+    assert positions == sorted(positions)
+
+
+def test_owner_privacy_status_links_to_settings():
+    for public, label, other in [(True, "Public profile", "Private profile"), (False, "Private profile", "Public profile")]:
+        html = render_sidebar(owners_page=True, public=public, counts=FULL_COUNTS)
+        assert f">{label}</a>" in html
+        assert other not in html
+        assert "sb-privacy-link" in html
+
+
+def test_private_owner_has_no_share_control():
+    html = render_sidebar(owners_page=True, public=False, counts=FULL_COUNTS)
+    assert "Private profile" in html
+    assert "share-2" not in html
+    assert "MyBooksModalLinkClick|ShareIcon" not in html
 
 
 def test_public_visitor_has_no_owner_content():
@@ -107,7 +140,8 @@ def test_public_visitor_has_no_owner_content():
     assert "My Reading Stats" not in html
     assert "Import your data" not in html
     assert "Reading Goal" not in html
-    assert "Activity" not in html
+    assert "Notes" not in html
+    assert "Loans" not in html
     # Shelves and lists stay
     assert "Bookshelves" in html
     assert "Lists" in html
@@ -127,6 +161,21 @@ def test_private_visitor_sees_profile_lists_and_share():
     assert ">Share<" in html
     assert "Bookshelves" not in html
     assert "Reading Goal" not in html
-    assert "Activity" not in html
+    assert "Notes" not in html
     assert "Lists" in html
     assert "All lists" in html
+
+
+def test_zero_follow_counts_are_hidden():
+    html = render_sidebar(owners_page=True, public=True, counts=FULL_COUNTS | {"following": 0, "followers": 0})
+    assert "sb-social-info" not in html
+
+    html = render_sidebar(owners_page=True, public=True, counts=FULL_COUNTS | {"following": 0})
+    assert "Followers" in html
+    assert "Following" not in html
+    assert "sb-social-separator" not in html
+
+    html = render_sidebar(owners_page=True, public=True, counts=FULL_COUNTS)
+    assert "Following" in html
+    assert "Followers" in html
+    assert "sb-social-separator" in html

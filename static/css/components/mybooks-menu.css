@@ -2,9 +2,9 @@
  * MyBooksMenu
  * http://localhost:8080/people/openlibrary/books
  *
- * One flat surface; sections are separated by dividers and share a single
- * row shape (muted icon, label, optional count), matching the other
- * redesigned menus.
+ * One flat surface; sections are separated by hairline dividers and share a
+ * single row shape (muted icon, label, optional count), matching the header's
+ * browse and My Books popovers.
  *
  *   1. Container            .mybooks-menu
  *   2. Sections + headings  .sb-section, .sb-heading
@@ -16,25 +16,22 @@
 
 /* ── 1. Container ───────────────────────────────────────────────── */
 .mybooks-menu {
-  width: 25%;
+  box-sizing: border-box;
+  flex: 0 0 var(--menu-sidebar-width);
   background: var(--color-surface-sunken);
-  border-top-left-radius: var(--border-radius-card);
-  border-bottom-left-radius: var(--border-radius-card);
-  padding-block: var(--spacing-inset-md);
-  padding-inline: 0;
+  border-inline-end: 1px solid var(--color-border-subtle);
+  border-start-start-radius: var(--border-radius-card);
+  border-end-start-radius: var(--border-radius-card);
+  /* Same inset as .mybooks-details, so both panes share one content line */
+  padding: var(--spacing-inset-md);
 }
 
-/* The panel gutter lives here so the mobile popover gets it too. Rows sit
-   --menu-row-inset inside it; headings, dividers and the profile sit on that
-   same edge, so the heading's first letter lines up with the row pill's left
-   edge (a "virtual border") and the icon is inside the pill. */
 .mybooks-menu-content {
   display: flex;
   flex-direction: column;
-  padding-inline: var(--spacing-sm);
 }
 
-/* Global link styles */
+/* Links in the sidebar are rows and controls, not inline prose */
 .mybooks-menu a:link,
 .mybooks-menu a:hover,
 .mybooks-menu a:visited,
@@ -45,100 +42,65 @@
 }
 
 /* ── 2. Sections + headings ─────────────────────────────────────── */
-/* Space above a heading is larger than below it, so the heading reads as the
-   label of the rows under it rather than of the group above. */
 .sb-section {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-stack-xs);
   margin: 0;
-  padding: var(--spacing-md) 0 var(--spacing-sm);
-}
-
-/* Divider: spans exactly the width of a row pill. */
-.sb-section::before {
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline: var(--menu-row-inset);
-  border-top: 1px solid var(--color-border-subtle);
-}
-
-/* Everything that isn't a row (profile, headings, goal bar and note) starts on
-   the row pill's edge. */
-.sb-section > :not(ul, li) {
-  margin-inline: var(--menu-row-inset);
-}
-
-/* The nav is a <ul class="sb-section"> with no heading: rows stack flush */
-ul.sb-section {
-  gap: 0;
-  padding-block: var(--spacing-sm);
+  padding-block: var(--spacing-lg);
 }
 
 .sb-section:first-child {
   padding-top: 0;
 }
 
-.sb-section:first-child::before {
-  content: none;
+.sb-section + .sb-section {
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .sb-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 .sb-heading h3 {
   margin: 0;
+  font-family: inherit;
   font-size: var(--font-size-overline);
   font-weight: var(--font-weight-overline);
   letter-spacing: var(--letter-spacing-overline);
+  line-height: inherit;
   text-transform: var(--text-transform-overline);
   color: var(--color-text-secondary);
 }
 
-/* Muted icon action at the end of a heading (edit goal, new list, settings) */
+/* Ghost icon button at the end of a header (edit goal, new list).
+   Negative margins let the fill overhang the 16px glyph, so the button doesn't
+   stretch its row and its edge lines up with the row pills' hover fill. */
 .sb-heading-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-secondary);
+  margin: calc((var(--icon-size-sm) - var(--control-height-medium)) / 2);
 }
 
-/* Profile settings gear: pinned to the card's top-right corner, not centered */
-.sb-profile-header > .sb-heading-action {
-  align-self: flex-start;
-}
-
-/* In a section heading, line up with the count column of the rows below */
-.sb-heading .sb-heading-action {
-  margin-inline-end: var(--menu-row-padding-inline);
-}
-
-.sb-heading-action:link,
-.sb-heading-action:visited {
+.sb-heading-action svg {
   color: var(--color-text-secondary);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .sb-heading-action:hover {
-    color: var(--color-link);
+  .sb-heading-action:hover svg {
+    color: var(--color-text);
   }
 }
 
 /* ── 3. Profile ─────────────────────────────────────────────────── */
 .sb-profile {
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-md);
-  padding-bottom: var(--spacing-inset-md);
 }
 
 .sb-profile-header {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--spacing-inline-md);
 }
 
 .sb-avatar-link {
@@ -148,11 +110,11 @@ ul.sb-section {
 
 .sb-avatar {
   display: block;
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   border-radius: var(--border-radius-avatar);
   object-fit: cover;
-  background: var(--background-grey);
+  background: var(--color-surface-sunken);
 }
 
 .sb-profile-info {
@@ -163,9 +125,28 @@ ul.sb-section {
 .sb-welcome {
   margin: 0 0 var(--spacing-2xs);
   font-size: var(--font-size-title-medium);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-control);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-snug);
   overflow-wrap: anywhere;
+}
+
+/* Reads as status until hovered; the padding keeps it tappable */
+.sb-privacy-link {
+  display: inline-block;
+  padding-block: var(--spacing-2xs);
+  font-size: var(--font-size-label-medium);
+}
+
+.sb-privacy-link:link,
+.sb-privacy-link:visited {
+  color: var(--color-text-secondary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sb-profile-info .sb-privacy-link:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
 }
 
 .sb-social-info {
@@ -193,35 +174,41 @@ ul.sb-section {
 }
 
 .sb-social-separator {
-  color: var(--color-border);
+  color: var(--color-border-muted);
 }
 
-/* Primary profile button stretches; the share icon-button keeps its square */
+/* Settings and share, stacked beside the avatar. The end margin lets the fills
+   overhang, so the glyphs line up with the heading actions below. */
+.sb-profile-tools {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-inline-end: calc(
+    (var(--icon-size-sm) - var(--control-height-medium)) / 2
+  );
+}
+
+.sb-profile-tools ol-button :is(svg, ol-icon) {
+  color: var(--color-text-secondary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sb-profile-tools ol-button:hover :is(svg, ol-icon) {
+    color: var(--color-text);
+  }
+}
+
+/* Visitors' share row */
 .sb-profile-actions {
   display: flex;
-  gap: var(--spacing-sm);
-  align-items: stretch;
-}
-
-.sb-profile-actions > ol-button {
-  flex: 1;
-  min-width: 0;
-}
-
-.sb-profile-actions > ol-button::part(control) {
-  width: 100%;
-}
-
-/* ShareModal wrapper participates in the flex row without breaking it */
-.sb-profile-actions .share-popover-component {
-  display: flex;
-  flex-shrink: 0;
 }
 
 /* Visitor row holds only the share control: stretch the wrapper and the
    popover host full-width; the popover's `block` trigger slot carries the
    button the rest of the way to the row's edges. */
 .sb-profile-actions > .share-popover-component:only-child {
+  display: flex;
   flex: 1;
   min-width: 0;
 }
@@ -231,7 +218,7 @@ ul.sb-section {
   min-width: 0;
 }
 
-/* ── 4. Rows (nav, bookshelves, activity, lists) ────────────────── */
+/* ── 4. Rows (nav, bookshelves, lists) ─────────────────────────── */
 .mybooks-menu ul,
 .mybooks-menu-mobile ul {
   margin: 0;
@@ -239,14 +226,16 @@ ul.sb-section {
   list-style: none;
 }
 
+/* On the menu-row contract (tokens/control-heights.css), like the popovers.
+   The negative margin pulls the pill out past the content line, so the hover
+   fill reads as a pill while the row stays with the section headers. */
 .sb-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-inline-md);
   min-height: var(--menu-row-height);
-  padding-inline: var(--menu-row-padding-inline);
-  margin-inline: var(--menu-row-inset);
+  margin-inline: calc(var(--menu-row-inset) - var(--menu-row-padding-inline));
+  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
   border-radius: var(--border-radius-menu-row);
   font-size: var(--font-size-body-medium);
   line-height: var(--line-height-control);
@@ -257,25 +246,28 @@ ul.sb-section {
   color: var(--color-text);
 }
 
+.sb-row:focus-visible,
+.sb-row:active {
+  background-color: var(--color-hover-overlay);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .sb-row:hover {
-    background: var(--color-hover-overlay);
+    background-color: var(--color-hover-overlay);
   }
 }
 
 .sb-row-label {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-inline-sm);
+  flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
+/* These glyphs only echo the label beside them, so they stay on the
+   decorative tier rather than competing with the text. */
 .sb-row-icon {
   flex-shrink: 0;
-  color: var(--color-text-secondary);
+  color: var(--color-icon-muted);
 }
 
 .sb-row-count {
@@ -284,19 +276,20 @@ ul.sb-section {
   color: var(--color-text-secondary);
 }
 
-/* Current page: color only (no tint, no weight change) so nothing re-measures */
+/* Current page: color only, so nothing re-measures. The count stays secondary. */
 .sb-row[aria-current="page"],
-.sb-row[aria-current="page"] .sb-row-icon,
-.sb-row[aria-current="page"] .sb-row-count {
+.sb-row[aria-current="page"] .sb-row-icon {
   color: var(--color-link);
 }
 
 /* ── 5. Reading goal ────────────────────────────────────────────── */
+/* White track with a hairline edge: the edge lets it sit on the sidebar's tint */
 .sb-goal-bar {
-  height: 8px;
+  box-sizing: border-box;
+  height: var(--spacing-sm);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--border-radius-pill);
   background: var(--color-surface);
-  border: 1px solid var(--color-border-subtle);
   overflow: hidden;
 }
 
@@ -309,35 +302,21 @@ ul.sb-section {
 }
 
 .sb-goal-sub {
-  margin: 0;
-  font-size: var(--font-size-label-large);
+  margin: var(--spacing-stack-sm) 0 0;
+  font-size: var(--font-size-body-small);
+  line-height: var(--line-height-meta);
   color: var(--color-text-secondary);
 }
 
-/* Goal content is not a heading, so it follows the rows: it starts where the
-   row icons/labels start and ends where the counts end. */
-.sb-goal-card > .sb-goal-bar,
-.sb-goal-card > .sb-goal-sub,
-.sb-goal-card > ol-button {
-  margin-inline: calc(var(--menu-row-inset) + var(--menu-row-padding-inline));
-}
-
-/* Rows under a heading get ~12px of air to their text (4px gap + 8px of row
-   padding). The bar and the set-goal button have no row padding of their own,
-   so they take it as margin to keep the heading-to-content rhythm. */
-.sb-goal-card > .sb-goal-bar,
-.sb-goal-card > ol-button {
-  margin-block-start: var(--spacing-sm);
-}
-
 /* ── 6. Responsive ─────────────────────────────────────────────── */
-@media only screen and (min-width: 768px) /* --width-breakpoint-tablet */ {
+/* Below desktop a fixed sidebar leaves the main pane too narrow for book rows */
+@media only screen and (min-width: 960px) /* --width-breakpoint-desktop */ {
   .mybooks-menu-mobile {
     display: none;
   }
 }
 
-@media only screen and (max-width: 767px) /* --width-breakpoint-tablet - 1 */ {
+@media only screen and (max-width: 959px) /* --width-breakpoint-desktop - 1 */ {
   /* Hide the desktop sidebar */
   .mybooks-menu {
     display: none;
@@ -346,6 +325,12 @@ ul.sb-section {
   /* Mobile sidebar popover */
   .mobile-sidebar-popover {
     width: 100%;
+  }
+
+  /* The panel has no inset of its own; desktop's comes from .mybooks-menu */
+  .mobile-sidebar-panel .mybooks-menu-content {
+    padding-inline: var(--spacing-inset-md);
+    padding-block-start: var(--spacing-inset-md);
   }
 
   /* Trigger: the same look as a secondary ol-button (fill, border, radius,

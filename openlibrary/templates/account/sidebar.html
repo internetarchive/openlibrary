@@ -12,7 +12,8 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
         data-ol-link-track="$track"
         $if current: aria-current="page"
       >
-        <span class="sb-row-label">$:macros.icon(icon_name, size="md", extra_class="sb-row-icon") $label</span>
+        $:macros.icon(icon_name, size="sm", extra_class="sb-row-icon")
+        <span class="sb-row-label">$label</span>
         $if count is not None:
           $if count_for:
             <span class="sb-row-count" data-shelf-count-for="$count_for">$count</span>
@@ -35,72 +36,63 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
             $else:
               $username
           </h3>
-          $if counts and 'followers' in counts:
+          $if owners_page:
+            $# Quiet status + settings link; the share control sits with the gear.
+            <a
+              href="/account/privacy"
+              class="sb-privacy-link"
+              data-ol-link-track="MyBooksSidebar|ProfilePrivacy"
+            >$(_('Public profile') if public else _('Private profile'))</a>
+          $ following = counts.get('following', 0) if counts else 0
+          $ followers = counts.get('followers', 0) if counts else 0
+          $if following or followers:
             <div class="sb-social-info">
-              <a href="/people/$username/following" class="sb-social-link">
-                <strong>$(counts.get('following', 0))</strong>
-                $_("Following")
-              </a>
-              <span class="sb-social-separator" aria-hidden="true">·</span>
-              <a href="/people/$username/followers" class="sb-social-link">
-                <strong>$(counts.get('followers', 0))</strong>
-                $_("Followers")
-              </a>
+              $if following:
+                <a href="/people/$username/following" class="sb-social-link">
+                  <strong>$following</strong>
+                  $_("Following")
+                </a>
+              $if following and followers:
+                <span class="sb-social-separator" aria-hidden="true">·</span>
+              $if followers:
+                <a href="/people/$username/followers" class="sb-social-link">
+                  <strong>$followers</strong>
+                  $_("Followers")
+                </a>
             </div>
         </div>
         $if owners_page:
-          <a
-            href="/account"
-            class="sb-heading-action"
-            title="$_('Settings')"
-            aria-label="$_('Settings')"
-          >
-            $:macros.icon("settings", size="sm")
-          </a>
-      </div>
-      $# Actions render for every viewer; the branches inside stay gated.
-      <div class="sb-profile-actions">
-          $if owners_page and public:
-            <ol-button
-              variant="secondary"
-              href="/account/privacy"
-              data-ol-link-track="MyBooksSidebar|ProfilePrivacy"
-            >$_('Public profile')</ol-button>
-            $set_share_links(url=request.canonical_url, title=username, view_context=ctx)
-            $ share_content = '<ol-button shape="icon" no-chevron slot="trigger" aria-label="%s" data-ol-link-track="MyBooksModalLinkClick|ShareIcon"><ol-icon name="share-2" slot="icon-start"></ol-icon></ol-button>' % _('Share profile')
-            $:macros.ShareModal(ctx.get('share_links') or [], request.home, share_content, "share-modal-wrapper", show_embed=False)
-          $elif owners_page:
-            $# Secondary, not primary: this is a status + settings link, not the page's main action.
-            <ol-button
-              variant="secondary"
-              href="/account/privacy"
-              data-ol-link-track="MyBooksSidebar|ProfilePrivacy"
-            >$_('Private profile')</ol-button>
-            <ol-tooltip content="$_('Make profile public to share')">
+          <div class="sb-profile-tools">
+            <ol-tooltip content="$_('Settings & Privacy')">
               <ol-button
+                variant="ghost"
                 shape="icon"
-                no-chevron
-                disabled
-                aria-label="$_('Make profile public to share')"
-              >
-                <ol-icon name="share-2" slot="icon-start"></ol-icon>
-              </ol-button>
+                href="/account"
+                aria-label="$_('Settings & Privacy')"
+              >$:macros.icon("settings", size="sm", slot="icon-start")</ol-button>
             </ol-tooltip>
-          $else:
-            $# Visitors never see privacy settings; share-only row.
-            $set_share_links(url=request.canonical_url, title=username, view_context=ctx)
-            $ share_content = '<ol-button full-width no-chevron slot="trigger" aria-label="%s" data-ol-link-track="MyBooksModalLinkClick|ShareIcon"><ol-icon name="share-2" slot="icon-start"></ol-icon>%s</ol-button>' % (_('Share profile'), _('Share'))
-            $:macros.ShareModal(ctx.get('share_links') or [], request.home, share_content, "share-modal-wrapper", show_embed=False, block=True)
+            $if public:
+              $set_share_links(url=request.canonical_url, title=username, view_context=ctx)
+              $ share_content = '<ol-button variant="ghost" shape="icon" no-chevron slot="trigger" aria-label="%s" data-ol-link-track="MyBooksModalLinkClick|ShareIcon"><ol-icon name="share-2" size="sm" slot="icon-start"></ol-icon></ol-button>' % _('Share profile')
+              $:macros.ShareModal(ctx.get('share_links') or [], request.home, share_content, "share-modal-wrapper", show_embed=False)
+          </div>
       </div>
+      $if not owners_page:
+        $# Visitors never see privacy settings; share-only row.
+        <div class="sb-profile-actions">
+          $set_share_links(url=request.canonical_url, title=username, view_context=ctx)
+          $ share_content = '<ol-button full-width no-chevron slot="trigger" aria-label="%s" data-ol-link-track="MyBooksModalLinkClick|ShareIcon"><ol-icon name="share-2" slot="icon-start"></ol-icon>%s</ol-button>' % (_('Share profile'), _('Share'))
+          $:macros.ShareModal(ctx.get('share_links') or [], request.home, share_content, "share-modal-wrapper", show_embed=False, block=True)
+        </div>
     </div>
 
-    $# ── Profile nav ─────────────────────────────────────────────────
+    $# ── Primary nav: the books and what the reader did with them ────
     <ul class="sb-section">
       $:nav_row("/people/%s/books" % username, "MyBooksSidebar|MyBooks", "book", _('My Books') if owners_page else _('Books'), key == 'mybooks')
       $if owners_page:
-        $:nav_row("/people/%s/books/feed" % username, "MyBooksSidebar|MyFeed", "rss", _('My Feed'), key == 'feed')
-        $:nav_row("/account/books/already-read/stats", "MyBooksSidebar|ReadingStats", "chart-column", _('My Reading Stats'), key == 'stats')
-        $:nav_row("/account/import", "MyBooksSidebar|Import", "download", _('Import your data'), key == 'imports')
+        $:nav_row("/people/%s/books/notes" % username, "MyBooksSidebar|MyNotes", "sticky-note", _('Notes'), key == 'notes', counts['notes'])
+        $:nav_row("/people/%s/books/observations" % username, "MyBooksSidebar|MyReviews", "message-square-text", _('Reviews'), key == 'observations', counts['observations'])
+        $:nav_row("/account/loans", "MyBooksSidebar|Loans", "clock", _('Loans & History'), key == 'loans')
     </ul>
 
     $# ── Reading goal ────────────────────────────────────────────────
@@ -111,16 +103,15 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
         <div class="sb-heading">
           <h3>$_('Reading Goal')</h3>
           $if current_goal and current_goal.goal:
-            <a
-              href="javascript:;"
-              class="sb-heading-action"
-              title="$_('Edit reading goal')"
-              aria-label="$_('Edit reading goal')"
-              data-ol-link-track="MyBooksSidebar|EditReadingGoal"
-              data-dialog-trigger="#yearly-goal-modal"
-            >
-              $:macros.icon("pencil", size="sm")
-            </a>
+            <ol-tooltip class="sb-heading-action" content="$_('Update your reading goal')">
+              <ol-button
+                variant="ghost"
+                shape="icon"
+                aria-label="$_('Update your reading goal')"
+                data-ol-link-track="MyBooksSidebar|EditReadingGoal"
+                data-dialog-trigger="#yearly-goal-modal"
+              >$:macros.icon("pencil", size="sm", slot="icon-start")</ol-button>
+            </ol-tooltip>
         </div>
         $if current_goal and current_goal.goal:
           $ read = current_goal.books_read or 0
@@ -139,7 +130,7 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
           <p class="sb-goal-sub">$:_('%(read)d of %(goal)d books read', read=read, goal=target)</p>
         $else:
           <ol-button
-            variant="primary"
+            variant="secondary"
             full-width
             href="javascript:;"
             data-ol-link-track="MyBooksLandingPage|SetReadingGoal"
@@ -159,32 +150,21 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
         </ul>
       </div>
 
-    $# ── Activity ────────────────────────────────────────────────────
-    $if owners_page:
-      <div class="sb-section">
-        <div class="sb-heading"><h3>$_('Activity')</h3></div>
-        <ul>
-          $:nav_row("/people/%s/books/notes" % username, "MyBooksSidebar|MyNotes", "sticky-note", _('Notes'), key == 'notes', counts['notes'])
-          $:nav_row("/people/%s/books/observations" % username, "MyBooksSidebar|MyReviews", "message-square-text", _('Reviews'), key == 'observations', counts['observations'])
-          $:nav_row("/account/loans", "MyBooksSidebar|Loans", "clock", _('Loans & History'), key == 'loans')
-        </ul>
-      </div>
-
     $# ── Lists (always rendered, like upstream: even visitors of
     $# private logs see the lists index) ───────────────────────────────
     <div class="sb-section">
       <div class="sb-heading">
         <h3>$(_('My lists') if owners_page else _('Lists'))</h3>
         $if owners_page:
-          <a
-            href="/people/$username/lists/add"
-            class="sb-heading-action"
-            title="$_('New list')"
-            aria-label="$_('New list')"
-            data-ol-link-track="MyBooksSidebar|CreateList"
-          >
-            $:macros.icon("plus", size="sm")
-          </a>
+          <ol-tooltip class="sb-heading-action" content="$_('Create a new list')">
+            <ol-button
+              variant="ghost"
+              shape="icon"
+              href="/people/$username/lists/add"
+              aria-label="$_('Create a new list')"
+              data-ol-link-track="MyBooksSidebar|CreateList"
+            >$:macros.icon("plus", size="sm", slot="icon-start")</ol-button>
+          </ol-tooltip>
       </div>
       <ul>
         $:nav_row("/people/%s/lists" % username, "MyBooksSidebar|AllLists", "library-big", _('All lists'), key == 'lists')
@@ -198,6 +178,14 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
           $:nav_row("/people/%s/lists/%s" % (username, list_id), "MyBooksSidebar|PatronList", "list", name, is_current, len(lst.seeds))
       </ul>
     </div>
+
+    $# ── Less frequent destinations ──────────────────────────────────
+    $if owners_page:
+      <ul class="sb-section">
+        $:nav_row("/people/%s/books/feed" % username, "MyBooksSidebar|MyFeed", "rss", _('My Feed'), key == 'feed')
+        $:nav_row("/account/books/already-read/stats", "MyBooksSidebar|ReadingStats", "chart-column", _('My Reading Stats'), key == 'stats')
+        $:nav_row("/account/import", "MyBooksSidebar|Import", "download", _('Import your data'), key == 'imports')
+      </ul>
 
   $# ── SIDEBAR WRAPPER ──────────────────────────────────────────────
   <div class="mybooks-menu">

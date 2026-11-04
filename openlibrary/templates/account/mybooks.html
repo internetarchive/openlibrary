@@ -65,7 +65,7 @@ $def empty_carousel(data):
 
 $# Render carousels
 $if owners_page:
-  $:(compact_carousel(loans) or empty_carousel(loans))
+  $:(compact_carousel(loans) or "")
 $if owners_page or public:
   $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
   $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
