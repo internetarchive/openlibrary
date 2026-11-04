@@ -7,6 +7,7 @@ import pytest
 import web
 from pydantic import ValidationError
 
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.vendors import betterworldbooks_fmt
 from openlibrary.plugins.openlibrary import code, home_genres  # noqa: F401  # code.setup() imports partials; import it first
 from openlibrary.plugins.openlibrary.partials import (
@@ -136,6 +137,33 @@ class TestHomeGenreNarrow:
             assert [link["name"] for link in HomeGenrePartial.jump_links(HORROR, HORROR["subgenres"])] == ["Gothique", "Psychological"]
             assert self.narrow("gothic").title == "Gothique"
             assert HomeGenrePartial.row(HORROR, HORROR["subgenres"][0]).title == "Gothique"
+
+
+class TestCarouselLabel:
+    """The label names the carousel region for screen readers."""
+
+    @pytest.fixture(autouse=True)
+    def setup_context(self, request_context_fixture):
+        request_context_fixture(lang="en")
+
+    @pytest.mark.parametrize(("title", "label"), [("More by this author", "More by this author"), (None, "Books"), ("", "Books")])
+    def test_label_is_the_title_or_books(self, title, label):
+        html = render_jinja_template(
+            "books/custom_carousel.html.jinja",
+            show=True,
+            title=title,
+            url=None,
+            key="",
+            grid="",
+            compact="",
+            loadjs="",
+            config_json="{}",
+            cards=[],
+            count=None,
+            shelf=None,
+            layout="ol-carousel",
+        )
+        assert f' label="{label}" ' in html
 
 
 class TestHomeGenreShelf:
