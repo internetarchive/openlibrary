@@ -156,3 +156,28 @@ something_else (totally/custom.py:1)
 ol.render_list_preview_image
 other.other"""
     )
+
+
+def test_classify_async_bridge_call():
+    """A worker waiting on AsyncBridge is named after the wrapped coroutine, not its caller."""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as input_fp:
+        input_fp.write(
+            """    wait (threading.py:369)
+    result (concurrent/futures/_base.py:445)
+    run (openlibrary/utils/async_utils.py:38)
+    run_solr_query_async (openlibrary/utils/async_utils.py:54)
+    GET (openlibrary/plugins/worksearch/code.py:600)
+"""
+        )
+
+    result = bash_run(
+        f"cat {input_fp.name} | exclude_internal_methods | head -n1 | classify_workers_cur_fn",
+        sources=["olspy.sh"],
+        capture_output=True,
+    )
+    assert result.stdout.strip() == "async.run_solr_query"
+
+
+def test_classify_ignores_other_libraries_async_utils():
+    """jinja2 ships its own async_utils.py with a `wrapper` function; it is not an AsyncBridge call."""
+    assert _classify_lines("    wrapper (jinja2/async_utils.py:45)\n") == "other.other"

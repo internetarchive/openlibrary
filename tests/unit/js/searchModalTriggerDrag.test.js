@@ -69,7 +69,7 @@ describe('SearchModal trigger drag-and-drop', () => {
     test.each([
         ['a file', ['Files']],
         ['an image', ['text/uri-list', 'text/html']],
-        ['an ILE book selection', ['text/plain', 'application/x.ile+json']],
+        ['an ILE book selection', ['text/plain', 'application/x.ile+json']]
     ])('ignores a drag of %s', (_label, types) => {
         const { modal, trigger } = setup();
         const dataTransfer = { types, dropEffect: '', getData: vi.fn().mockReturnValue('{"x":1}') };

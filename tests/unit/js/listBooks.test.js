@@ -3,7 +3,7 @@ import { ListBooks } from '../../../openlibrary/plugins/openlibrary/js/list_book
 // Must be `mock`-prefixed: vitest hoists the factory above the declarations.
 const mockTrackEvent = vi.fn();
 vi.mock('../../../openlibrary/plugins/openlibrary/js/ol.analytics.js', () => ({
-    trackEvent: (...args) => mockTrackEvent(...args),
+    trackEvent: (...args) => mockTrackEvent(...args)
 }));
 
 // Stand-in for <ol-segmented-control>: the consumer only listens for the

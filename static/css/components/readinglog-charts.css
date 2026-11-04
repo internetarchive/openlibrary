@@ -1,0 +1,66 @@
+/**
+ * ReadingLogCharts
+ * Defined in:
+ * - openlibrary/templates/account/readinglog_stats.html
+ * Charts are drawn by openlibrary/plugins/openlibrary/js/readinglog_stats.js
+ */
+
+.readinglog-charts {
+  padding: var(--spacing-inset-md);
+}
+
+.readinglog-charts__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-stack-lg);
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+/* --width-breakpoint-tablet */
+@media (min-width: 768px) {
+  .readinglog-charts__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Disclosure under a chart listing the works it couldn't place. Padding gives
+   the one-line summary a comfortable tap height on phones. */
+.excluded-works__summary {
+  padding-block: var(--spacing-inset-sm);
+  cursor: pointer;
+}
+
+/* Panel listing the works behind the clicked bar */
+.selected-works {
+  position: sticky;
+  bottom: 0;
+  max-height: 160px;
+  overflow: auto;
+  background-color: var(--color-surface);
+  border-top: var(--border-divider);
+}
+
+/* cursor: pointer also marks the header as clickable for Firefox on Android, which otherwise
+   snaps taps on it to the chart canvas underneath (it has a click listener) */
+.selected-works__summary {
+  position: sticky;
+  top: 0;
+  cursor: pointer;
+  padding: var(--spacing-inset-xs);
+  background-color: var(--color-surface-sunken);
+}
+
+.selected-works__body {
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm)
+    var(--spacing-inset-sm);
+}
+
+/* Hanging indent, so wrapped entries line up under the title */
+.works-list > li {
+  padding-inline-start: 1.5em;
+  text-indent: -1.5em;
+}
+
+.works-list__title {
+  font-style: italic;
+}

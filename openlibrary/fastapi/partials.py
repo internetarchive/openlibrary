@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 from datetime import datetime
 from typing import Annotated
@@ -9,6 +8,7 @@ from typing import Annotated
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, BeforeValidator
 
+from openlibrary.core.env import get_ol_env
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
@@ -24,6 +24,8 @@ from openlibrary.plugins.openlibrary.partials import (
     CarouselLoadMoreParams,
     CarouselPartial,
     FullTextSuggestionsPartial,
+    HomeGenreParams,
+    HomeGenrePartial,
     LazyCarouselParams,
     MyBooksDropperListsPartial,
     NearbyBooksParams,
@@ -39,7 +41,7 @@ from openlibrary.plugins.openlibrary.partials import (
 router = APIRouter()
 
 # Only show partials endpoints in OpenAPI schema in local dev
-SHOW_PARTIALS_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+SHOW_PARTIALS_IN_SCHEMA = get_ol_env().LOCAL_DEV
 
 
 @router.get("/partials/SearchFacets.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -218,7 +220,7 @@ class ReadingStateResponse(BaseModel):
 
 
 @router.get("/partials/ReadingState.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
-def reading_state_partial(
+async def reading_state_partial(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     work_ids: Annotated[
         list[str],
@@ -232,7 +234,7 @@ def reading_state_partial(
     Every requested work is present, with nulls where the reader has no state.
     book-state.js hydrates carousel shelf buttons from this.
     """
-    states = ReadingStatePartial.generate(user.username, work_ids)
+    states = await ReadingStatePartial.generate_async(user.username, work_ids)
     return ReadingStateResponse(user_key=user.user_key, works={olid: ReadingStateEntry(**state) for olid, state in states.items()})
 
 
@@ -246,6 +248,12 @@ async def lazy_carousel_partial(
     TODO: Drop the lazy naming. Partials always load later.
     """
     return await CarouselPartial.generate_async(params=params, full_path=full_path)
+
+
+@router.get("/partials/HomeGenre.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+async def home_genre_partial(params: Annotated[HomeGenreParams, Query()]) -> dict:
+    """Get the shelf HTML for one genre in the home page's "Browse the stacks"."""
+    return await HomeGenrePartial.generate_async(params=params)
 
 
 @router.get("/partials/NearbyBooks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

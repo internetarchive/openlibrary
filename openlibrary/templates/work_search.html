@@ -145,9 +145,6 @@ $def fulltext_rescue(query, exclude=None):
             </h2>
           $ query = query_param('q')
           <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
-            $ username = ctx.user and ctx.user.key.split('/')[-1]
-            $if username:
-                $ works = add_read_statuses(username, works)
             $ reading_states = get_reading_states(ctx.user, works)
             $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 

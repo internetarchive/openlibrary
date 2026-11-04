@@ -1,109 +1,89 @@
 <template>
-  <div
-    class="book-room"
-    :class="{'expanding-animation': expandingAnimation}"
-  >
-    <!-- <div class="room-breadcrumbs">
+    <div class="book-room" :class="{ 'expanding-animation': expandingAnimation }">
+        <!-- <div class="room-breadcrumbs">
       <span v-for="(node, i) of breadcrumbs" :key="i">
         <button @click="goUpTo(i)">{{i === 0 ? 'Home' : node.name}}</button>
         &gt;
       </span>
       <span v-if="breadcrumbs.length">{{activeRoom.name}}</span>
     </div> -->
-    <div class="lr-signs">
-      <button
-        v-if="signState.left"
-        class="bookshelf-name bookshelf-signage--sign bookshelf-signage--lr-sign left"
-        @click="moveToShelf(activeBookcaseIndex - 1)"
-      >
-        <main class="sign-body">
-          <RightArrowIcon class="arrow-icon" />
-          <div class="sign-classification">
-            {{ signState.left.short }}
-          </div>
-          <div class="sign-label">
-            {{ signState.left.name }}
-          </div>
-        </main>
-      </button>
-      <!-- Gap --> <div style="flex: 1" />
-      <button
-        v-if="signState.right"
-        class="bookshelf-name bookshelf-signage--sign bookshelf-signage--lr-sign right"
-        @click="moveToShelf(activeBookcaseIndex + 1)"
-      >
-        <main class="sign-body">
-          <RightArrowIcon class="arrow-icon" />
-          <div class="sign-classification">
-            {{ signState.right.short }}
-          </div>
-          <div class="sign-label">
-            {{ signState.right.name }}
-          </div>
-        </main>
-      </button>
-    </div>
-    <div
-      ref="scrollingElement"
-      class="book-room-shelves"
-      @scroll.passive="updateActiveShelfOnScroll"
-    >
-      <div
-        v-for="(bookshelf, i) of activeRoom.children"
-        :key="i"
-        class="bookshelf-wrapper"
-        :data-short="bookshelf.short"
-      >
-        <div class="bookshelf-name-wrapper">
-          <div class="bookshelf-name bookshelf-signage--sign bookshelf-signage--center-sign">
-            <main class="sign-body">
-              <div class="sign-classification">
-                {{ bookshelf.short }}
-              </div>
-              <div class="sign-label">
-                {{ bookshelf.name }}
-              </div>
-            </main>
-            <div class="sign-toolbar">
-              <button
-                v-if="breadcrumbs.length"
-                @click="goUpTo(breadcrumbs.length - 1)"
-              >
-                <RightArrowIcon style="transform: rotate(-90deg)" /> <span class="label">Go up</span>
-              </button>
-              <!-- Gap --> <div style="flex: 1" />
-              <button
-                v-if="bookshelf.children && bookshelf.children[0].children"
-                title="Expand"
-                @click="expandBookshelf(bookshelf)"
-              >
-                <ExpandIcon /> <span class="label">See more</span>
-              </button>
-            </div>
-          </div>
+        <div class="lr-signs">
+            <button
+                v-if="signState.left"
+                class="bookshelf-name bookshelf-signage--sign bookshelf-signage--lr-sign left"
+                @click="moveToShelf(activeBookcaseIndex - 1)"
+            >
+                <main class="sign-body">
+                    <RightArrowIcon class="arrow-icon" />
+                    <div class="sign-classification">
+                        {{ signState.left.short }}
+                    </div>
+                    <div class="sign-label">
+                        {{ signState.left.name }}
+                    </div>
+                </main>
+            </button>
+            <!-- Gap -->
+            <div style="flex: 1" />
+            <button
+                v-if="signState.right"
+                class="bookshelf-name bookshelf-signage--sign bookshelf-signage--lr-sign right"
+                @click="moveToShelf(activeBookcaseIndex + 1)"
+            >
+                <main class="sign-body">
+                    <RightArrowIcon class="arrow-icon" />
+                    <div class="sign-classification">
+                        {{ signState.right.short }}
+                    </div>
+                    <div class="sign-label">
+                        {{ signState.right.name }}
+                    </div>
+                </main>
+            </button>
         </div>
+        <div ref="scrollingElement" class="book-room-shelves" @scroll.passive="updateActiveShelfOnScroll">
+            <div v-for="(bookshelf, i) of activeRoom.children" :key="i" class="bookshelf-wrapper" :data-short="bookshelf.short">
+                <div class="bookshelf-name-wrapper">
+                    <div class="bookshelf-name bookshelf-signage--sign bookshelf-signage--center-sign">
+                        <main class="sign-body">
+                            <div class="sign-classification">
+                                {{ bookshelf.short }}
+                            </div>
+                            <div class="sign-label">
+                                {{ bookshelf.name }}
+                            </div>
+                        </main>
+                        <div class="sign-toolbar">
+                            <button v-if="breadcrumbs.length" @click="goUpTo(breadcrumbs.length - 1)">
+                                <RightArrowIcon style="transform: rotate(-90deg)" /> <span class="label">Go up</span>
+                            </button>
+                            <!-- Gap -->
+                            <div style="flex: 1" />
+                            <button v-if="bookshelf.children && bookshelf.children[0].children" title="Expand" @click="expandBookshelf(bookshelf)">
+                                <ExpandIcon /> <span class="label">See more</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-        <transition-group>
-          <div
-            v-for="node in breadcrumbs"
-            :key="node.name || 'root'"
-            class="bookshelf bookshelf-back"
-          />
-        </transition-group>
+                <transition-group>
+                    <div v-for="node in breadcrumbs" :key="node.name || 'root'" class="bookshelf bookshelf-back" />
+                </transition-group>
 
-        <Bookshelf
-          :node="bookshelf"
-          :expand-bookshelf="expandBookshelf"
-          :features="features"
-          :classification="classification"
-          :labels="appSettings.labels"
-          :filter="filter"
-          :sort="sort"
-        />
-      </div>
-      <!-- Gap --> <div style="width: 70px; height: 1px; flex-shrink: 0" />
+                <Bookshelf
+                    :node="bookshelf"
+                    :expand-bookshelf="expandBookshelf"
+                    :features="features"
+                    :classification="classification"
+                    :labels="appSettings.labels"
+                    :filter="filter"
+                    :sort="sort"
+                />
+            </div>
+            <!-- Gap -->
+            <div style="width: 70px; height: 1px; flex-shrink: 0" />
+        </div>
     </div>
-  </div>
 </template>
 
 <script>
@@ -124,9 +104,7 @@ import CONFIGS from '../../configs';
  */
 function findClassification(classificationNode, classification) {
     // First we find the closest matching node in the current classification tree
-    const path = hierarchyFind(
-        classificationNode,
-        node => testLuceneSyntax(node.query, classification));
+    const path = hierarchyFind(classificationNode, node => testLuceneSyntax(node.query, classification));
     if (!path.length) return;
 
     // pad until length is at least 3, so that we can destructure into [shelf, bookcase, room]
@@ -141,7 +119,7 @@ function findClassification(classificationNode, classification) {
         room,
         bookcase,
         shelf,
-        breadcrumbs: path.slice(0, -3),
+        breadcrumbs: path.slice(0, -3)
     };
 }
 
@@ -149,7 +127,7 @@ export default {
     components: {
         Bookshelf,
         RightArrowIcon,
-        ExpandIcon,
+        ExpandIcon
     },
     props: {
         /** @type {import('../utils.js').ClassificationTree} */
@@ -180,7 +158,7 @@ export default {
             default: () => ({
                 book3d: true,
                 cover: 'image',
-                shelfLabel: 'slider',
+                shelfLabel: 'slider'
             })
         }
     },
@@ -196,7 +174,7 @@ export default {
 
             roomWidth: 1,
             viewportWidth: 1,
-            activeBookcaseIndex: 0,
+            activeBookcaseIndex: 0
         };
     },
 
@@ -209,7 +187,7 @@ export default {
                 left: cases[i - 1],
                 main: cases[i],
                 right: cases[i + 1],
-                parent: this.breadcrumbs.length && this.activeRoom,
+                parent: this.breadcrumbs.length && this.activeRoom
             };
         }
     },
@@ -232,26 +210,30 @@ export default {
         if (this.jumpToData?.shelf) {
             this.$el.querySelector(`[data-short="${this.jumpToData.shelf.short}"]`).scrollIntoView({
                 inline: 'center',
-                block: 'start',
+                block: 'start'
             });
 
             // Find the offset of the predecessor of the requested item in its shelf
             const predecessor = decrementStringSolr(this.jumpToData.classification, false, this.classification.field === 'ddc');
             const shelf_query = `${this.classification.field}_sort:${this.jumpToData.shelf.query} ${this.filter}`;
             /** @type {number} */
-            const offset = await fetch(`${CONFIGS.OL_BASE_SEARCH}/search.json?${new URLSearchParams({
-                q: `${shelf_query} AND ${this.classification.field}_sort:[* TO ${predecessor}]`,
-                limit: 0,
-            })}`).then(r => r.json()).then(r => r.numFound);
-            const olCarousel = await pollUntilTruthy(
-                () => this.$el.querySelector(`.ol-carousel[data-short="${this.jumpToData.shelf.short}"]`),
-                { timeout: 5000, interval: 100 }
-            );
+            const offset = await fetch(
+                `${CONFIGS.OL_BASE_SEARCH}/search.json?${new URLSearchParams({
+                    q: `${shelf_query} AND ${this.classification.field}_sort:[* TO ${predecessor}]`,
+                    limit: 0
+                })}`
+            )
+                .then(r => r.json())
+                .then(r => r.numFound);
+            const olCarousel = await pollUntilTruthy(() => this.$el.querySelector(`.ol-carousel[data-short="${this.jumpToData.shelf.short}"]`), {
+                timeout: 5000,
+                interval: 100
+            });
             const pageOffset = await olCarousel._hack_loadPageContainingOffset(offset + 1);
-            const bookEl = await pollUntilTruthy(
-                () => olCarousel.querySelector(`.book:nth-of-type(${(offset + 1) - pageOffset})`),
-                { timeout: 5000, interval: 100 }
-            );
+            const bookEl = await pollUntilTruthy(() => olCarousel.querySelector(`.book:nth-of-type(${offset + 1 - pageOffset})`), {
+                timeout: 5000,
+                interval: 100
+            });
 
             bookEl.scrollIntoView({
                 inline: 'center'
@@ -266,15 +248,14 @@ export default {
          * @param {ClassificationNode} bookshelf something that is currently a bookcase, that will be the new room
          * @param {ClassificationNode} [shelf] the shelf (child of bookshelf)
          */
-        async expandBookshelf(bookshelf, shelf=null) {
+        async expandBookshelf(bookshelf, shelf = null) {
             this.expandingAnimation = true;
             await new Promise(r => setTimeout(r, 200));
             this.expandingAnimation = false;
             this.breadcrumbs.push(this.activeRoom);
             this.activeRoom = bookshelf;
-            const nodeToScrollTo = shelf?.position === 'root' ? shelf :
-                shelf?.children && shelf?.position ? shelf.children[shelf.position]
-                    : (shelf || bookshelf);
+            const nodeToScrollTo =
+                shelf?.position === 'root' ? shelf : shelf?.children && shelf?.position ? shelf.children[shelf.position] : shelf || bookshelf;
             await nextTick();
             this.$el.querySelector(`[data-short="${nodeToScrollTo.short}"]`).scrollIntoView();
         },
@@ -302,222 +283,221 @@ export default {
             const scrollCenterX = this.$refs.scrollingElement.scrollLeft + this.viewportWidth / 2;
             const shelves = this.activeRoom.children;
             const shelvesCount = shelves.length;
-            this.activeBookcaseIndex =  Math.floor(shelvesCount * (scrollCenterX / this.roomWidth));
+            this.activeBookcaseIndex = Math.floor(shelvesCount * (scrollCenterX / this.roomWidth));
         },
 
         moveToShelf(index) {
-            this.$el.querySelector(`.bookshelf-wrapper:nth-child(${index + 1})`)
-                .scrollIntoView({
-                    behavior: 'smooth',
-                    inline: 'center',
-                    block: 'nearest'
-                });
-        },
+            this.$el.querySelector(`.bookshelf-wrapper:nth-child(${index + 1})`).scrollIntoView({
+                behavior: 'smooth',
+                inline: 'center',
+                block: 'nearest'
+            });
+        }
     }
 };
 </script>
 
 <style>
 button {
-  font-family: inherit;
-  text-align: inherit;
-  cursor: pointer;
-  transition: background-color 0.2s;
+    font-family: inherit;
+    text-align: inherit;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
 .bookshelf-name {
-  margin: 0 auto;
-  margin-bottom: 40px;
+    margin: 0 auto;
+    margin-bottom: 40px;
 }
 
 /* Seal the room's internal layering (books, shelves, signs) off from the
    page. The toolbar outside still paints above everything in the room —
    the whole isolated room sits at `auto` beneath its `fixed`. */
 .book-room {
-  isolation: isolate;
+    isolation: isolate;
 }
 
 .lr-signs {
-  position: sticky;
-  top: 10px;
-  pointer-events: none;
-  /* Above the shelves and books (local-1) inside the isolated room. */
-  z-index: var(--z-index-local-2);
-  display: flex;
+    position: sticky;
+    top: 10px;
+    pointer-events: none;
+    /* Above the shelves and books (local-1) inside the isolated room. */
+    z-index: var(--z-index-local-2);
+    display: flex;
 }
 @media (max-width: 450px) {
-  .lr-signs {
-    top: 75%;
-  }
+    .lr-signs {
+        top: 75%;
+    }
 }
 
 .bookshelf-signage--sign {
-  background: #232323;
-  color: white;
-  box-sizing: border-box;
-  border-radius: 4px;
-  overflow: hidden;
-  overflow: clip;
+    background: #232323;
+    color: white;
+    box-sizing: border-box;
+    border-radius: 4px;
+    overflow: hidden;
+    overflow: clip;
 }
 .bookshelf-signage--sign .sign-classification {
-  opacity: .5;
-  font-size: .9em;
+    opacity: 0.5;
+    font-size: 0.9em;
 }
 
 .bookshelf-signage--lr-sign {
-  max-width: 300px;
-  margin: 0;
-  line-height: 1em;
-  padding: 14px;
-  pointer-events: all;
-  border: 0;
+    max-width: 300px;
+    margin: 0;
+    line-height: 1em;
+    padding: 14px;
+    pointer-events: all;
+    border: 0;
 }
 .bookshelf-signage--lr-sign:hover {
-  background: #303030;
+    background: #303030;
 }
 .bookshelf-signage--lr-sign.left .sign-body .arrow-icon {
-  float: left;
-  transform: rotateZ(-180deg);
-  margin-right: 8px;
+    float: left;
+    transform: rotateZ(-180deg);
+    margin-right: 8px;
 }
 .bookshelf-signage--lr-sign.right .sign-body .arrow-icon {
-  float: right;
+    float: right;
 }
 @media (min-width: 450px) {
-  .bookshelf-signage--lr-sign {
-    min-width: 150px;
-    width: 25%;
-    margin: 4px;
-  }
+    .bookshelf-signage--lr-sign {
+        min-width: 150px;
+        width: 25%;
+        margin: 4px;
+    }
 }
 @media (max-width: 450px) {
-  .bookshelf-signage--lr-sign .sign-label,
-  .bookshelf-signage--lr-sign .sign-classification {
-    display: none;
-  }
-  .bookshelf-signage--lr-sign.left .sign-body .arrow-icon {
-    margin-right: 0;
-  }
+    .bookshelf-signage--lr-sign .sign-label,
+    .bookshelf-signage--lr-sign .sign-classification {
+        display: none;
+    }
+    .bookshelf-signage--lr-sign.left .sign-body .arrow-icon {
+        margin-right: 0;
+    }
 }
 .bookshelf-signage--lr-sign .sign-toolbar {
-  display: none;
+    display: none;
 }
 .bookshelf-signage--lr-sign .sign-label {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  overflow: clip;
-  white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    overflow: clip;
+    white-space: nowrap;
 }
 .bookshelf-signage--lr-sign svg {
-  padding: .5em .2em;
+    padding: 0.5em 0.2em;
 }
 
 .bookshelf-signage--center-sign {
-  display: flex;
-  flex-direction: column;
-  max-width: 500px;
-  min-height: 124px;
-  width: 100%;
-  padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    max-width: 500px;
+    min-height: 124px;
+    width: 100%;
+    padding-top: 20px;
 }
 @media (min-width: 450px) {
-  .bookshelf-signage--center-sign {
-    min-width: 400px;
-  }
+    .bookshelf-signage--center-sign {
+        min-width: 400px;
+    }
 }
 .bookshelf-signage--center-sign .sign-body .arrow-icon {
-  display: none;
+    display: none;
 }
 .bookshelf-signage--center-sign .sign-body {
-  flex: 1;
+    flex: 1;
 }
 .bookshelf-signage--center-sign .sign-label {
-  font-size: 1.3em;
+    font-size: 1.3em;
 }
 .bookshelf-signage--center-sign .sign-toolbar {
-  background: #2c2c2c;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
+    background: #2c2c2c;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
 }
 .bookshelf-signage--center-sign .sign-toolbar button {
-  font-size: 0.75em;
-  opacity: 0.95;
+    font-size: 0.75em;
+    opacity: 0.95;
 }
 .bookshelf-signage--center-sign .sign-toolbar .label {
-  margin-left: 3px;
+    margin-left: 3px;
 }
 .bookshelf-signage--center-sign .sign-toolbar svg {
-  height: 14px;
-  width: 14px;
-  margin-bottom: -2px;
+    height: 14px;
+    width: 14px;
+    margin-bottom: -2px;
 }
 .bookshelf-signage--center-sign .sign-classification,
 .bookshelf-signage--center-sign .sign-label {
-  padding: 0 25px;
+    padding: 0 25px;
 }
 
 .bookshelf-signage--breadcrumb-sign {
-  transform-origin: bottom center;
-  transform: scale(.85);
-  opacity: .8;
+    transform-origin: bottom center;
+    transform: scale(0.85);
+    opacity: 0.8;
 }
 .bookshelf-signage--breadcrumb-sign div {
-  display: inline-block;
+    display: inline-block;
 }
 .bookshelf-signage--breadcrumb-sign .sign-label {
-  margin-left: 1em;
+    margin-left: 1em;
 }
 
 .bookshelf-signage--main-sign {
-  padding: 20px 30px;
+    padding: 20px 30px;
 }
 .bookshelf-signage--main-sign .sign-label {
-  font-size: 1.3em;
+    font-size: 1.3em;
 }
 
 .bookshelf-name-wrapper {
-  height: 190px;
-  display: flex;
-  align-items: flex-end;
+    height: 190px;
+    display: flex;
+    align-items: flex-end;
 }
 
 .book-room.expanding-animation .bookshelf {
-  transform: scale(.8);
-  opacity: .9;
-  filter: brightness(.6);
+    transform: scale(0.8);
+    opacity: 0.9;
+    filter: brightness(0.6);
 }
 .book-room-shelves {
-  display: flex;
-  overflow-x: auto;
-  -webkit-scroll-snap-type: x mandatory;
-  scroll-snap-type: x mandatory;
+    display: flex;
+    overflow-x: auto;
+    -webkit-scroll-snap-type: x mandatory;
+    scroll-snap-type: x mandatory;
 }
 
 .bookshelf-wrapper {
-  width: 900px;
-  max-width: 100%;
-  margin: 0 30px;
-  -webkit-scroll-snap-align: center;
-  scroll-snap-align: center;
-  position: relative;
-  flex-shrink: 0;
+    width: 900px;
+    max-width: 100%;
+    margin: 0 30px;
+    -webkit-scroll-snap-align: center;
+    scroll-snap-align: center;
+    position: relative;
+    flex-shrink: 0;
 }
 
 .bookshelf.bookshelf-back {
-  height: 30px;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  transition-property: transform, opacity, filter;
-  transition-duration: .2s;
-  transform: scale(.8) translateY(12px);
-  opacity: .9;
-  filter: brightness(.6);
+    height: 30px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    transition-property: transform, opacity, filter;
+    transition-duration: 0.2s;
+    transform: scale(0.8) translateY(12px);
+    opacity: 0.9;
+    filter: brightness(0.6);
 }
 .bookshelf.bookshelf-back.v-enter,
 .bookshelf.bookshelf-back.v-leave-to {
-  transform: initial;
-  filter: initial;
-  opacity: 0;
+    transform: initial;
+    filter: initial;
+    opacity: 0;
 }
 </style>

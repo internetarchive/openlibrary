@@ -5,13 +5,7 @@
  * reading a browser-resolved color and compositing it, which is what the badges
  * do and the matrix doesn't.
  */
-import {
-    WHITE,
-    compositeOver,
-    contrastOn,
-    luminanceFromCssColor,
-    parseCssColor,
-} from '../../../openlibrary/plugins/openlibrary/js/design-system/contrast.js';
+import { WHITE, compositeOver, contrastOn, luminanceFromCssColor, parseCssColor } from '../../../openlibrary/plugins/openlibrary/js/design-system/contrast.js';
 
 // --blue-500, hsl(202, 96%, 37%), as a computed style resolves it.
 const BLUE_500 = [4, 119, 185];

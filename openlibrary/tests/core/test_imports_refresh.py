@@ -18,11 +18,15 @@ no existing importer changes behaviour.
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+from threading import Barrier
 from typing import Final
 
 import pytest
 import web
 
+from openlibrary.core import db as core_db
 from openlibrary.core.db import get_db
 from openlibrary.core.imports import Batch
 
@@ -232,3 +236,193 @@ class TestIsolation:
 
         assert result == {"added": 1, "refreshed": 1, "unchanged": 1, "skipped_in_flight": 1}
         assert len(list(import_db.select("import_item"))) == 4
+
+
+@pytest.fixture
+def batch_insert_db(monkeypatch):
+    oldb = web.database(dbn="sqlite", db=":memory:")
+    monkeypatch.setattr(core_db, "get_db", lambda: oldb)
+    for ddl in (IMPORT_BATCH_DDL, IMPORT_ITEM_DDL):
+        oldb.query(ddl)
+    yield oldb
+    oldb.ctx.db.close()
+
+
+@pytest.fixture
+def pg_import_db(pg_db, monkeypatch):
+    oldb = web.database(**web.config.db_parameters)
+    monkeypatch.setattr(core_db, "get_db", lambda: oldb)
+    # Import tables live in the Infobase schema, outside pg_db's feature tables.
+    schema = (Path(__file__).resolve().parents[2] / "core" / "infobase_schema.sql").read_text()
+    for table in ("import_batch", "import_item"):
+        start = schema.index(f"CREATE TABLE {table} (")
+        end = schema.index("\n);", start) + len("\n);")
+        oldb.query(schema[start:end])
+    yield oldb
+    oldb.ctx.db.close()
+
+
+@pytest.mark.parametrize("method", ["add_items", "add_or_refresh_items"])
+class TestBatchInserts:
+    def test_duplicates_keep_first_row_and_insert_remaining_items(self, batch_insert_db, method):
+        batch = Batch.new("duplicate-records")
+        write = getattr(batch, method)
+        first = item("betterworldbooks:1", 1.25)
+        write([first, item("betterworldbooks:1", 9.99), item("betterworldbooks:2", 2.0)])
+        before = rows(batch_insert_db)["betterworldbooks:1"]
+
+        write([item("betterworldbooks:1", 50.0), item("betterworldbooks:3", 3.0)])
+
+        stored = rows(batch_insert_db)
+        assert len(stored) == 3
+        assert stored["betterworldbooks:1"] == before
+        assert json.loads(before.data) == first["data"]
+        assert json.loads(stored["betterworldbooks:3"].data) == item("betterworldbooks:3", 3.0)["data"]
+
+    def test_collision_after_read_preserves_existing_row(self, batch_insert_db, method, monkeypatch):
+        batch = Batch.new("stale-read")
+        query = batch_insert_db.query
+        snapshots = []
+
+        def insert_after_read(sql, *args, **kwargs):
+            result = query(sql, *args, **kwargs)
+            if str(sql).lstrip().startswith("SELECT") and "FROM import_item" in str(sql) and not snapshots:
+                result = list(result)
+                batch_insert_db.insert(
+                    "import_item",
+                    batch_id=batch.id,
+                    ia_id="betterworldbooks:1",
+                    status="created",
+                    data='{"title": "Existing record"}',
+                    submitter="original",
+                    added_time="2020-01-01 00:00:00",
+                    import_time="2020-01-02 00:00:00",
+                    error="original error",
+                    comments="original comments",
+                    ol_key="/books/OL1M",
+                )
+                snapshot = {row.ia_id: row for row in query("SELECT * FROM import_item")}
+                snapshots.append(snapshot["betterworldbooks:1"])
+            return result
+
+        monkeypatch.setattr(batch_insert_db, "query", insert_after_read)
+        getattr(batch, method)([item("betterworldbooks:1", 9.99), item("betterworldbooks:2", 2.0)])
+
+        stored = rows(batch_insert_db)
+        assert len(stored) == 2
+        assert stored["betterworldbooks:1"] == snapshots[0]
+        assert json.loads(stored["betterworldbooks:2"].data) == item("betterworldbooks:2", 2.0)["data"]
+
+    def test_one_parameterized_insert_for_the_whole_batch(self, batch_insert_db, method, monkeypatch):
+        batch = Batch.new("bound-values")
+        query = batch_insert_db.query
+        inserts = []
+
+        def capture_insert(sql, *args, **kwargs):
+            if str(sql).lstrip().startswith("INSERT INTO import_item"):
+                inserts.append((sql, kwargs.get("vars")))
+            return query(sql, *args, **kwargs)
+
+        monkeypatch.setattr(batch_insert_db, "query", capture_insert)
+        identifier = "partner:O'Reilly; $price 日本語"
+        record = {"ia_id": identifier, "status": "staged", "submitter": "O'Reilly", "data": {"title": "A 'quoted' book 日本語"}}
+        getattr(batch, method)([record, record, item("betterworldbooks:2", 2.0)])
+
+        assert len(inserts) == 1
+        sql, params = inserts[0]
+        assert "ON CONFLICT (batch_id, ia_id) DO NOTHING" in sql
+        assert identifier not in sql
+        assert identifier in params.values()
+        stored = rows(batch_insert_db)
+        assert len(stored) == 2
+        assert stored[identifier].status == "staged"
+        assert stored[identifier].submitter == record["submitter"]
+        assert json.loads(stored[identifier].data) == record["data"]
+
+    def test_empty_input_does_not_write(self, batch_insert_db, method, monkeypatch):
+        batch = Batch.new("empty-input")
+
+        def unexpected_query(*args, **kwargs):
+            pytest.fail("Empty input must not query the database")
+
+        monkeypatch.setattr(batch_insert_db, "query", unexpected_query)
+        result = getattr(batch, method)([])
+        if method == "add_items":
+            assert result is None
+        else:
+            assert result == {"added": 0, "refreshed": 0, "unchanged": 0, "skipped_in_flight": 0}
+
+
+class TestLegacyBatchInserts:
+    def test_legacy_and_dict_items_can_share_one_insert(self, batch_insert_db):
+        batch = Batch.new("mixed-input")
+        record = {"ia_id": "partner:1", "status": "needs_review", "submitter": "patron", "data": {"title": "A Book"}}
+        assert batch.add_items(["ocaid_1", record, "ocaid_1"]) is None
+        batch.add_items(["ocaid_1", "ocaid_2"])
+
+        stored = rows(batch_insert_db)
+        assert len(stored) == 3
+        assert stored["ocaid_1"].status == "pending"
+        assert stored["ocaid_1"].data is None
+        assert stored["ocaid_1"].submitter is None
+        assert stored["partner:1"].status == "needs_review"
+        assert stored["partner:1"].submitter == "patron"
+        assert json.loads(stored["partner:1"].data) == record["data"]
+
+    def test_add_items_keeps_global_deduplication(self, batch_insert_db):
+        other = Batch.new("other-importer")
+        other.add_items(["ocaid_1"])
+        batch = Batch.new("new-importer")
+        batch.add_items(["ocaid_1", "ocaid_2"])
+
+        stored = rows(batch_insert_db)
+        assert len(stored) == 2
+        assert stored["ocaid_1"].batch_id == other.id
+        assert stored["ocaid_2"].batch_id == batch.id
+        assert batch.total_submitted == 2
+        assert batch.total_queued == 1
+        assert batch.items_skipped == {"ocaid_1"}
+
+
+@pytest.mark.integration
+class TestBatchInsertsPostgres(TestBatchInserts):
+    @pytest.fixture
+    def batch_insert_db(self, pg_import_db):
+        return pg_import_db
+
+    def test_concurrent_inserts_keep_every_unique_item(self, pg_import_db, method, monkeypatch):
+        batch = Batch.new("concurrent-importers")
+        query = pg_import_db.query
+        barrier = Barrier(2, timeout=10)
+
+        def read_before_either_insert(sql, *args, **kwargs):
+            result = query(sql, *args, **kwargs)
+            if str(sql).lstrip().startswith("SELECT") and "FROM import_item" in str(sql):
+                result = list(result)
+                barrier.wait()
+            return result
+
+        def write(index):
+            try:
+                # Each thread has its own web.py connection and Batch counters.
+                with pg_import_db.transaction():
+                    getattr(Batch(dict(batch)), method)([item("betterworldbooks:shared", index), item(f"betterworldbooks:{index}", index)])
+            finally:
+                pg_import_db.ctx.db.close()
+
+        with monkeypatch.context() as patcher:
+            patcher.setattr(pg_import_db, "query", read_before_either_insert)
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                list(executor.map(write, [1, 2]))
+
+        stored = rows(pg_import_db)
+        assert set(stored) == {"betterworldbooks:shared", "betterworldbooks:1", "betterworldbooks:2"}
+        assert all(row.status == "pending" for row in stored.values())
+        assert all(row.added_time is not None for row in stored.values())
+
+
+@pytest.mark.integration
+class TestLegacyBatchInsertsPostgres(TestLegacyBatchInserts):
+    @pytest.fixture
+    def batch_insert_db(self, pg_import_db):
+        return pg_import_db

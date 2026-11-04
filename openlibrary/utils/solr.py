@@ -9,6 +9,7 @@ from urllib.parse import urlencode, urlsplit
 import httpx
 import web
 
+from openlibrary.utils import server_timing
 from openlibrary.utils.async_utils import async_bridge, cache_per_event_loop
 
 logger = logging.getLogger("openlibrary.logger")
@@ -50,6 +51,11 @@ SolrRequestLabel = Literal[
     "SUBJECT_SEARCH_API",
     "AUTHOR_SEARCH",
     "AUTHOR_SEARCH_API",
+    "EDITION_SEARCH",
+    "EDITION_SEARCH_API",
+    # Picking the editions of a Tasks initiative, once per initiative
+    "CONTRIBUTE_INITIATIVE",
+    "READING_LOG_SORT",
 ]
 
 
@@ -60,7 +66,7 @@ class Solr:
         """
         self.base_url = base_url
         self.host = urlsplit(self.base_url)[1]
-        self.get_async_session = cache_per_event_loop(httpx.AsyncClient)
+        self.get_async_session = cache_per_event_loop(lambda: httpx.AsyncClient(transport=server_timing.TimedTransport("solr")))
 
     @staticmethod
     def escape(query):
@@ -245,6 +251,7 @@ class Solr:
 
         d = web.storage()
         d.num_found = response["numFound"]
+        d.partial = bool(result.get("responseHeader", {}).get("partialResults"))
         d.docs = [doc_wrapper(doc) for doc in response["docs"]]
 
         if "facet_counts" in result:

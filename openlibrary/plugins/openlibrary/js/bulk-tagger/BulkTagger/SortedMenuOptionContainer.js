@@ -6,7 +6,6 @@
  * to the DOM in the correct order, based on tag name and type.
  */
 export class SortedMenuOptionContainer {
-
     /**
      * Creates a new sorted menu options container, with the given
      * element as the root element.
@@ -60,7 +59,7 @@ export class SortedMenuOptionContainer {
         for (const option of menuOptions) {
             const index = this.findIndex(option);
             const removed = this.sortedMenuOptions.splice(index, 1);
-            removed.forEach((option) => option.remove());
+            removed.forEach(option => option.remove());
         }
     }
 
@@ -83,8 +82,7 @@ export class SortedMenuOptionContainer {
                 if (currentMenuOption.tag.tagType.toLowerCase() >= menuOption.tag.tagType.toLowerCase()) {
                     return index;
                 }
-            }
-            else if (currentMenuOption.tag.tagName.toLowerCase() > menuOption.tag.tagName.toLowerCase()) {
+            } else if (currentMenuOption.tag.tagName.toLowerCase() > menuOption.tag.tagName.toLowerCase()) {
                 return index;
             }
             ++index;
@@ -100,7 +98,7 @@ export class SortedMenuOptionContainer {
      * @returns {boolean} `true` if a matching menu option exists in this container
      */
     contains(menuOption) {
-        return this.sortedMenuOptions.some((option) => menuOption.tag.equals(option.tag));
+        return this.sortedMenuOptions.some(option => menuOption.tag.equals(option.tag));
     }
 
     /**
@@ -110,7 +108,7 @@ export class SortedMenuOptionContainer {
      * @returns {boolean} `true` if a menu option which represents the given tag is in this container.
      */
     containsOptionWithTag(tag) {
-        return this.sortedMenuOptions.some((option) => tag.equals(option.tag));
+        return this.sortedMenuOptions.some(option => tag.equals(option.tag));
     }
 
     /**
@@ -120,7 +118,7 @@ export class SortedMenuOptionContainer {
      * @returns {MenuOption|undefined} The first matching menu option, or `undefined` if none were found.
      */
     findByTag(tag) {
-        return this.sortedMenuOptions.find((option) => tag.equals(option.tag));
+        return this.sortedMenuOptions.find(option => tag.equals(option.tag));
     }
 
     /**

@@ -28,17 +28,16 @@ const sel = {
     pageReadout: '#demo-carousel-page',
     loadMore: '#demo-load-more',
     batches: '#demo-load-more-batches',
-    count: '#demo-load-more-count',
+    count: '#demo-load-more-count'
 };
 
 async function gotoFixture(page: Page): Promise<void> {
-    await page.route('https://archive.org/**', (route) => route.abort());
+    await page.route('https://archive.org/**', route => route.abort());
     await page.goto(PAGE);
     await page.waitForFunction(() => customElements.get('ol-carousel'));
     await page.locator(sel.demo).scrollIntoViewIfNeeded();
     // Wait for the component to have measured (page arithmetic ready).
-    await page.waitForFunction(() =>
-        (document.querySelector('#demo-carousel') as any).totalPages > 1);
+    await page.waitForFunction(() => (document.querySelector('#demo-carousel') as any).totalPages > 1);
 }
 
 /** Drag the demo carousel's viewport with the mouse: down, `steps` quick
@@ -82,7 +81,7 @@ test.describe('ol-carousel', () => {
 
     test('mouse drag advances exactly one page and swallows the click', async ({ page }) => {
         const errors = collectConsoleErrors(page);
-        await page.evaluate((demo) => {
+        await page.evaluate(demo => {
             (window as any).__clicks = 0;
             document.querySelector(demo)!.addEventListener('click', () => (window as any).__clicks++);
         }, sel.demo);
@@ -107,13 +106,13 @@ test.describe('ol-carousel', () => {
         // composed through the host. Capturing the pointer at pointerdown
         // would move click's target to the shadow viewport, cutting slotted
         // buttons and links out of the path — so listen on the card.
-        await page.evaluate((demo) => {
+        await page.evaluate(demo => {
             (window as any).__cardClicks = 0;
             const card = document.querySelector(demo)!.children[0];
             card.addEventListener('click', () => (window as any).__cardClicks++);
         }, sel.demo);
 
-        const box = await page.evaluate((demo) => {
+        const box = await page.evaluate(demo => {
             const r = document.querySelector(demo)!.children[0].getBoundingClientRect();
             return { x: r.x, y: r.y, width: r.width, height: r.height };
         }, sel.demo);
@@ -132,22 +131,23 @@ test.describe('ol-carousel', () => {
         await dragViewport(page, 400);
         // Settled: both transient viewport phases gone (the browser owns
         // snapping again) and the rail resting exactly on a page offset.
-        await page.waitForFunction((demo) => {
+        await page.waitForFunction(demo => {
             const el = document.querySelector(demo) as any;
             const viewport = el.shadowRoot.querySelector('.viewport');
-            return !viewport.classList.contains('dragging')
-                && !viewport.classList.contains('settling')
-                && Math.abs(viewport.scrollLeft - el._pageOffsets[el.page]) < 2;
+            return (
+                !viewport.classList.contains('dragging') &&
+                !viewport.classList.contains('settling') &&
+                Math.abs(viewport.scrollLeft - el._pageOffsets[el.page]) < 2
+            );
         }, sel.demo);
         // A 400px throw travels somewhere real: past page 0.
-        expect(await page.evaluate((demo) =>
-            (document.querySelector(demo) as any).page, sel.demo)).toBeGreaterThan(0);
+        expect(await page.evaluate(demo => (document.querySelector(demo) as any).page, sel.demo)).toBeGreaterThan(0);
     });
 
     test('keyboard focus into an off-page card aligns its page', async ({ page }) => {
         // The demo cards hold no focusables; give an off-page card a link and
         // Tab into it from just before the carousel.
-        await page.evaluate((demo) => {
+        await page.evaluate(demo => {
             const el = document.querySelector(demo) as any;
             const link = document.createElement('a');
             link.href = '#probe';
@@ -166,7 +166,7 @@ test.describe('ol-carousel', () => {
         await expect(page.locator('#probe-link')).toBeFocused();
 
         // The last item lives on the last page; the whole page must align.
-        await page.waitForFunction((demo) => {
+        await page.waitForFunction(demo => {
             const el = document.querySelector(demo) as any;
             return el.page === el.totalPages - 1;
         }, sel.demo);
@@ -176,7 +176,7 @@ test.describe('ol-carousel', () => {
         await page.locator(sel.loadMore).scrollIntoViewIfNeeded();
 
         for (const batch of ['1', '2', '3']) {
-            await page.evaluate((loadMore) => {
+            await page.evaluate(loadMore => {
                 const el = document.querySelector(loadMore) as any;
                 el.goToPage(el.totalPages - 1);
             }, sel.loadMore);
@@ -185,17 +185,16 @@ test.describe('ol-carousel', () => {
         await expect(page.locator(sel.count)).toHaveText('45');
 
         // The demo consumer is exhausted: another settle appends nothing.
-        await page.evaluate((loadMore) => {
+        await page.evaluate(loadMore => {
             const el = document.querySelector(loadMore) as any;
             el.goToPage(0);
         }, sel.loadMore);
-        await page.waitForFunction((loadMore) =>
-            (document.querySelector(loadMore) as any).page === 0, sel.loadMore);
-        await page.evaluate((loadMore) => {
+        await page.waitForFunction(loadMore => (document.querySelector(loadMore) as any).page === 0, sel.loadMore);
+        await page.evaluate(loadMore => {
             const el = document.querySelector(loadMore) as any;
             el.goToPage(el.totalPages - 1);
         }, sel.loadMore);
-        await page.waitForFunction((loadMore) => {
+        await page.waitForFunction(loadMore => {
             const el = document.querySelector(loadMore) as any;
             return el.page === el.totalPages - 1;
         }, sel.loadMore);

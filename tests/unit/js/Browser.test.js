@@ -34,15 +34,15 @@ describe('getJsonFromUrl', () => {
     });
 
     test('Handles normal params', () => {
-        expect(fn('?hello=world')).toEqual({hello: 'world'});
-        expect(fn('?x=3&y=4&z=5')).toEqual({x: '3', y: '4', z: '5'});
+        expect(fn('?hello=world')).toEqual({ hello: 'world' });
+        expect(fn('?x=3&y=4&z=5')).toEqual({ x: '3', y: '4', z: '5' });
     });
 
     test('Decodes parameter values', () => {
-        expect(fn('?q=foo%20bar')).toEqual({q: 'foo bar'});
+        expect(fn('?q=foo%20bar')).toEqual({ q: 'foo bar' });
     });
 
     test('Parameters override each other', () => {
-        expect(fn('?x=1&x=2&x=3')).toEqual({x: '3'});
+        expect(fn('?x=1&x=2&x=3')).toEqual({ x: '3' });
     });
 });

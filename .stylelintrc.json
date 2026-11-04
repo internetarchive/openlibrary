@@ -1,5 +1,4 @@
 {
-  "extends": ["stylelint-prettier/recommended"],
   "plugins": [
     "stylelint-declaration-strict-value",
     "./stylelint/ol-import-at-top.cjs"
@@ -69,7 +68,6 @@
       "files": ["openlibrary/**/*.js"],
       "customSyntax": "postcss-lit",
       "rules": {
-        "prettier/prettier": null,
         "scale-unlimited/declaration-strict-value": [
           ["z-index"],
           { "disableFix": true, "ignoreValues": ["inherit", "transparent", "none"] }

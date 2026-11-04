@@ -13,7 +13,7 @@ http://www.archive.org/download/ol-sitemaps/sitindex-works.xml.gz
 http://www.archive.org/download/ol-sitemaps/sitindex-subjects.xml.gz
 """
 
-import datetime
+import datetime as dt
 import os
 import sys
 from gzip import open as gzopen
@@ -77,7 +77,7 @@ def gzwrite(path, data):
 
 
 def write_sitemaps(data, outdir, prefix):
-    timestamp = datetime.datetime.utcnow().isoformat() + "Z"
+    timestamp = dt.datetime.utcnow().isoformat() + "Z"
 
     # maximum permitted entries in one sitemap is 50K.
     for i, rows in enumerate(web.group(data, 50000)):

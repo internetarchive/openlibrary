@@ -76,10 +76,6 @@
   text-align: center;
 }
 
-.olform .mia__input .mia__preview {
-  flex: 1;
-}
-
 /* Weird glitch where while dragging the element is very offset */
 .olform .mia__input.ui-sortable-helper {
   margin-top: -20px;
@@ -192,10 +188,6 @@
   font-size: var(--font-size-label-small);
   color: var(--color-text-secondary);
   font-family: var(--font-family-body) !important;
-}
-
-.olform__input--large {
-  height: 265px;
 }
 
 @media all and (min-width: 960px) /* @width-breakpoint-desktop */ {

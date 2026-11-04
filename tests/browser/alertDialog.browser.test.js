@@ -17,7 +17,7 @@ beforeAll(() => {
 });
 
 afterEach(() => {
-    document.querySelectorAll('ol-dialog, button.trigger').forEach((el) => el.remove());
+    document.querySelectorAll('ol-dialog, button.trigger').forEach(el => el.remove());
 });
 
 /** The dialog olConfirm() appended, once it has rendered and opened. */
@@ -26,15 +26,15 @@ async function openedDialog() {
     const dialog = document.querySelector('ol-dialog[open]');
     await dialog.updateComplete;
     // Initial focus is set in a rAF.
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     return dialog;
 }
 
 function button(dialog, label) {
-    return [...dialog.querySelectorAll('ol-button')].find((b) => b.textContent === label);
+    return [...dialog.querySelectorAll('ol-button')].find(b => b.textContent === label);
 }
 
-test('resolves true when the confirm button is pressed, then removes the dialog', async() => {
+test('resolves true when the confirm button is pressed, then removes the dialog', async () => {
     const result = olConfirm({ title: 'Delete this list?', message: 'This can’t be undone.', confirmLabel: 'Delete list' });
     const dialog = await openedDialog();
 
@@ -44,12 +44,12 @@ test('resolves true when the confirm button is pressed, then removes the dialog'
     expect(document.querySelector('ol-dialog')).toBeNull();
 });
 
-test('resolves false on Cancel, Escape, the backdrop, and the close button', async() => {
+test('resolves false on Cancel, Escape, the backdrop, and the close button', async () => {
     const dismissals = {
-        cancel: (dialog) => userEvent.click(button(dialog, 'Cancel')),
+        cancel: dialog => userEvent.click(button(dialog, 'Cancel')),
         escape: () => userEvent.keyboard('{Escape}'),
-        backdrop: (dialog) => dialog.dialog.dispatchEvent(new MouseEvent('click', { bubbles: true })),
-        close: (dialog) => userEvent.click(dialog.shadowRoot.querySelector('.close-button')),
+        backdrop: dialog => dialog.dialog.dispatchEvent(new MouseEvent('click', { bubbles: true })),
+        close: dialog => userEvent.click(dialog.shadowRoot.querySelector('.close-button'))
     };
     for (const [name, dismiss] of Object.entries(dismissals)) {
         const result = olConfirm({ title: `Dismiss via ${name}?` });
@@ -58,7 +58,7 @@ test('resolves false on Cancel, Escape, the backdrop, and the close button', asy
     }
 });
 
-test('announces as an alertdialog named by the title and described by the message', async() => {
+test('announces as an alertdialog named by the title and described by the message', async () => {
     olConfirm({ title: 'Delete this list?', message: 'This can’t be undone.' });
     const dialog = await openedDialog();
 
@@ -70,7 +70,7 @@ test('announces as an alertdialog named by the title and described by the messag
     await userEvent.keyboard('{Escape}');
 });
 
-test('destructive confirmations focus Cancel; others focus the confirm button', async() => {
+test('destructive confirmations focus Cancel; others focus the confirm button', async () => {
     olConfirm({ title: 'Delete?', confirmLabel: 'Delete', destructive: true });
     let dialog = await openedDialog();
     expect(document.activeElement).toBe(button(dialog, 'Cancel'));
@@ -87,14 +87,14 @@ test('destructive confirmations focus Cancel; others focus the confirm button', 
     await userEvent.keyboard('{Escape}');
 });
 
-test('Enter on the default focus answers the question', async() => {
+test('Enter on the default focus answers the question', async () => {
     const result = olConfirm({ title: 'Delete?', destructive: true });
     await openedDialog();
     await userEvent.keyboard('{Enter}');
     await expect(result).resolves.toBe(false);
 });
 
-test('string messages are text, never HTML; templates are cloned', async() => {
+test('string messages are text, never HTML; templates are cloned', async () => {
     olConfirm({ title: 'Remove?', message: '<img src=x onerror=alert(1)>' });
     let dialog = await openedDialog();
     expect(dialog.querySelector('img')).toBeNull();
@@ -111,7 +111,7 @@ test('string messages are text, never HTML; templates are cloned', async() => {
     await userEvent.keyboard('{Escape}');
 });
 
-test('passes translated labels through, including the close button name', async() => {
+test('passes translated labels through, including the close button name', async () => {
     olConfirm({ title: '¿Eliminar?', confirmLabel: 'Eliminar', cancelLabel: 'Cancelar', labelClose: 'Cerrar' });
     const dialog = await openedDialog();
 
@@ -121,7 +121,7 @@ test('passes translated labels through, including the close button name', async(
     await userEvent.keyboard('{Escape}');
 });
 
-test('restores focus to the trigger after closing', async() => {
+test('restores focus to the trigger after closing', async () => {
     const trigger = document.createElement('button');
     trigger.className = 'trigger';
     trigger.textContent = 'Delete';
@@ -136,7 +136,7 @@ test('restores focus to the trigger after closing', async() => {
     await expect.poll(() => document.activeElement).toBe(trigger);
 });
 
-test('olAlert resolves once acknowledged', async() => {
+test('olAlert resolves once acknowledged', async () => {
     const result = olAlert({ title: 'No primary record', message: 'Select one first.', okLabel: 'Got it' });
     const dialog = await openedDialog();
 
@@ -146,7 +146,7 @@ test('olAlert resolves once acknowledged', async() => {
     await expect(result).resolves.toBeUndefined();
 });
 
-test('a confirmation opened from inside a dialog traps Tab and leaves the parent open', async() => {
+test('a confirmation opened from inside a dialog traps Tab and leaves the parent open', async () => {
     const parent = document.createElement('ol-dialog');
     parent.label = 'Notes';
     parent.innerHTML = '<textarea></textarea><button class="delete-note">Delete note</button>';
@@ -156,9 +156,9 @@ test('a confirmation opened from inside a dialog traps Tab and leaves the parent
 
     const result = olConfirm({ title: 'Delete this note?', confirmLabel: 'Delete', destructive: true });
     await expect.poll(() => document.querySelectorAll('ol-dialog[open]').length).toBe(2);
-    const confirmDialog = [...document.querySelectorAll('ol-dialog[open]')].find((d) => d !== parent);
+    const confirmDialog = [...document.querySelectorAll('ol-dialog[open]')].find(d => d !== parent);
     await confirmDialog.updateComplete;
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
     let parentFocused = 0;
     parent.addEventListener('focusin', () => parentFocused++);
@@ -177,7 +177,7 @@ test('a confirmation opened from inside a dialog traps Tab and leaves the parent
     expect(parent.dialog.open).toBe(true);
 });
 
-test('<ol-dialog> close(returnValue) reports it on ol-close and ol-after-close, and resets on reopen', async() => {
+test('<ol-dialog> close(returnValue) reports it on ol-close and ol-after-close, and resets on reopen', async () => {
     const dialog = document.createElement('ol-dialog');
     dialog.label = 'Save?';
     document.body.append(dialog);
@@ -185,12 +185,15 @@ test('<ol-dialog> close(returnValue) reports it on ol-close and ol-after-close, 
     await dialog.updateComplete;
 
     const seen = [];
-    dialog.addEventListener('ol-close', (e) => seen.push(['close', e.detail.returnValue]));
-    dialog.addEventListener('ol-after-close', (e) => seen.push(['after-close', e.detail.returnValue]));
+    dialog.addEventListener('ol-close', e => seen.push(['close', e.detail.returnValue]));
+    dialog.addEventListener('ol-after-close', e => seen.push(['after-close', e.detail.returnValue]));
 
     dialog.close('save');
     await expect.poll(() => seen.length).toBe(2);
-    expect(seen).toEqual([['close', 'save'], ['after-close', 'save']]);
+    expect(seen).toEqual([
+        ['close', 'save'],
+        ['after-close', 'save']
+    ]);
     expect(dialog.returnValue).toBe('save');
 
     dialog.open = true;
@@ -198,10 +201,13 @@ test('<ol-dialog> close(returnValue) reports it on ol-close and ol-after-close, 
     expect(dialog.returnValue).toBe('');
     await userEvent.keyboard('{Escape}');
     await expect.poll(() => seen.length).toBe(4);
-    expect(seen.slice(2)).toEqual([['close', ''], ['after-close', '']]);
+    expect(seen.slice(2)).toEqual([
+        ['close', ''],
+        ['after-close', '']
+    ]);
 });
 
-test('the confirmation gets the small width preset', async() => {
+test('the confirmation gets the small width preset', async () => {
     // width drives :host([width=…]) rules, so the property has to reach the attribute.
     olConfirm({ title: 'Delete?' });
     const dialog = await openedDialog();
@@ -212,7 +218,7 @@ test('the confirmation gets the small width preset', async() => {
     await userEvent.keyboard('{Escape}');
 });
 
-test('<ol-dialog> keeps role="dialog" and no description unless alert is set', async() => {
+test('<ol-dialog> keeps role="dialog" and no description unless alert is set', async () => {
     const dialog = document.createElement('ol-dialog');
     dialog.label = 'Edit profile';
     document.body.append(dialog);

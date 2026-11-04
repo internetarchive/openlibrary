@@ -1,5 +1,6 @@
 :root {
-  --contentBody-padding: 20px;
+  /* Legacy name; the value is the page gutter token (tokens/spacing.css). */
+  --contentBody-padding: var(--spacing-page-gutter);
 }
 
 /* === v2 layout === */

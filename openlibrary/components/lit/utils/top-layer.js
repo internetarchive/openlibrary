@@ -32,9 +32,7 @@
  */
 
 /** Whether the browser supports the Popover API (Chrome 114, Safari 17, Firefox 125). */
-export const SUPPORTS_TOP_LAYER =
-    typeof HTMLElement !== 'undefined' &&
-    typeof HTMLElement.prototype.showPopover === 'function';
+export const SUPPORTS_TOP_LAYER = typeof HTMLElement !== 'undefined' && typeof HTMLElement.prototype.showPopover === 'function';
 
 /**
  * The `popover` attribute value to render on a promotable panel, or `undefined`

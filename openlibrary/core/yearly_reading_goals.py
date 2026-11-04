@@ -45,10 +45,15 @@ class YearlyReadingGoals:
 
     @classmethod
     async def create(cls, username: str, year: int, target: int) -> None:
-        await execute(
-            f"INSERT INTO {cls.TABLENAME} (username, year, target) VALUES (%(username)s, %(year)s, %(target)s)",
-            {"username": username, "year": year, "target": target},
+        """Set ``username``'s goal for ``year``, creating the row or updating it in place."""
+        # created and updated come from the column defaults (UTC).
+        query = (
+            f"INSERT INTO {cls.TABLENAME} (username, year, target)"
+            f" VALUES (%(username)s, %(year)s, %(target)s)"
+            f" ON CONFLICT (username, year) DO UPDATE SET"
+            f" target = EXCLUDED.target, updated = DEFAULT"
         )
+        await execute(query, {"username": username, "year": year, "target": target})
 
     # Read methods:
     # web.db's `order=` is raw SQL, only `vars=` is parameterized. Limit
@@ -71,19 +76,6 @@ class YearlyReadingGoals:
         """The user's goal for ``year``, or None if they have not set one."""
         query = f"SELECT username, year, target, created, updated FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"
         return await fetch_one(query, {"username": username, "year": year}, row_factory=class_row(YearlyReadingGoal))
-
-    @classmethod
-    async def update_target(cls, username: str, year: int, new_target: int) -> None:
-        query = f"UPDATE {cls.TABLENAME} SET target = %(target)s, updated = %(updated)s WHERE username = %(username)s AND year = %(year)s"
-        await execute(
-            query,
-            {
-                "username": username,
-                "year": year,
-                "target": new_target,
-                "updated": datetime.now(),
-            },
-        )
 
     @classmethod
     async def delete_by_username_and_year(cls, username: str, year: int) -> None:

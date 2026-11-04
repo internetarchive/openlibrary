@@ -4,12 +4,26 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin, fetchWorkEditions, trackError } from './utils/books-api.js';
+import {
+    SHELF,
+    SHELF_LABEL,
+    SHELF_ICON,
+    SHELF_ICON_FILLED,
+    SHELF_EVENT,
+    setShelf,
+    setRating,
+    setCheckIn,
+    deleteCheckIn,
+    redirectToLogin,
+    fetchWorkEditions,
+    trackError
+} from './utils/books-api.js';
+import { menuRow } from './control-styles.js';
 import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
 import { getRecentLists, noteListUsed } from './utils/recent-lists.js';
 import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
 import { MONTHS, formatReadDate, quickYears, partialDate } from './utils/dates.js';
-import { showToast } from './OlToastRegion.js';
+import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { translate } from './utils/labels.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
@@ -67,10 +81,10 @@ export const DEFAULT_LABELS = {
     month: 'Month',
     day: 'Day',
     saveDate: 'Save',
-    removeDate: 'Remove date',
+    removeDate: 'Remove date'
 };
 
-const SHELF_ROWS = Object.values(SHELF).map((id) => ({ id, icon: SHELF_ICON[id], iconOn: SHELF_ICON_FILLED[id], label: SHELF_LABEL[id] }));
+const SHELF_ROWS = Object.values(SHELF).map(id => ({ id, icon: SHELF_ICON[id], iconOn: SHELF_ICON_FILLED[id], label: SHELF_LABEL[id] }));
 
 /**
  * Lists needed before the lists the book is on, and the recent ones, are
@@ -187,212 +201,198 @@ export class OlShelfActions extends LitElement {
         _amending: { state: true },
         _checkInPending: { state: true },
         _dateBusy: { state: true },
-        _date: { state: true },
+        _date: { state: true }
     };
 
-    static styles = css`
-        :host {
-            display: inline-flex;
-            font-family: var(--font-family-body);
-        }
-
-        .panel {
-            /* A fixed measure: the popover shrink-wraps its content, and the
-               title would otherwise size the panel per book. */
-            width: 320px;
-            /* Keeps the first and last rows off the rounded corners. */
-            padding-block: var(--spacing-inset-xs);
-            color: var(--color-text);
-            font-size: var(--font-size-body-medium);
-            /* clip, not hidden: focusing the off-screen pane must not scroll
-               the panel (that would double up with the track's translate). */
-            overflow: clip;
-            border-radius: var(--border-radius-overlay);
-        }
-
-        /* ol-popover becomes a full-bleed bottom tray here (keep in sync with
-           its 767px breakpoint), so fill it instead of leaving a dead strip. */
-        @media (max-width: 767px) {
-            .panel {
-                width: 100%;
+    static styles = [
+        menuRow,
+        css`
+            :host {
+                display: inline-flex;
+                font-family: var(--font-family-body);
             }
-        }
 
-        /* Metadata, not a title bar: quiet enough that the rows below it read
+            .panel {
+                /* A fixed measure: the popover shrink-wraps its content, and the
+               title would otherwise size the panel per book. */
+                width: 320px;
+                /* Keeps the first and last rows off the rounded corners. */
+                padding-block: var(--spacing-inset-xs);
+                color: var(--color-text);
+                font-size: var(--font-size-body-medium);
+                /* text-align inherits through the shadow boundary; don't pick up
+               a centered host context (e.g. carousel captions). */
+                text-align: start;
+                /* clip, not hidden: focusing the off-screen pane must not scroll
+               the panel (that would double up with the track's translate). */
+                overflow: clip;
+                border-radius: var(--border-radius-overlay);
+            }
+
+            /* ol-popover becomes a full-bleed bottom tray here (keep in sync with
+           its 767px breakpoint), so fill it instead of leaving a dead strip. */
+            @media (max-width: 767px) {
+                .panel {
+                    width: 100%;
+                }
+            }
+
+            /* Metadata, not a title bar: quiet enough that the rows below it read
            as the actionable part of the panel. */
-        .header {
-            position: relative;
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-medium);
-        }
+            .header {
+                position: relative;
+                padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-medium);
+            }
 
-        /* Clamped as one block so the year wraps with the title. */
-        .header .heading {
-            display: -webkit-box;
-            -webkit-box-orient: vertical;
-            -webkit-line-clamp: 2;
-            overflow: hidden;
-        }
+            /* Clamped as one block so the year wraps with the title. */
+            .header .heading {
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                overflow: hidden;
+            }
 
-        /* Inset rules read as separators inside the surface; a full-bleed one
+            /* Inset rules read as separators inside the surface; a full-bleed one
            reads as a panel edge. */
-        .header::after,
-        .lists-header::after,
-        .pane-header::after,
-        .group.rating::before,
-        .group.lists-entry::before,
-        .group.retract::before {
-            content: "";
-            position: absolute;
-            inset-inline: var(--spacing-inset-md);
-            height: 1px;
-            background: var(--color-border-subtle);
-        }
+            .header::after,
+            .lists-header::after,
+            .pane-header::after,
+            .group.rating::before,
+            .group.lists-entry::before,
+            .group.retract::before {
+                content: '';
+                position: absolute;
+                inset-inline: var(--spacing-inset-md);
+                height: 1px;
+                background: var(--color-border-subtle);
+            }
 
-        .header::after,
-        .lists-header::after,
-        .pane-header::after {
-            bottom: 0;
-        }
+            .header::after,
+            .lists-header::after,
+            .pane-header::after {
+                bottom: 0;
+            }
 
-        /* Panes side by side in a track --pane-count panels wide; the track
+            /* Panes side by side in a track --pane-count panels wide; the track
            slides to bring one into view. Its height is set inline to the active
            pane's height (measured), so the panel doesn't stretch to the tallest
            one. Both the width and the slide come from --pane-count, so adding a
            pane to PANES is the whole change. */
-        .track {
-            display: flex;
-            align-items: flex-start;
-            width: calc(100% * var(--pane-count));
-            transition:
-                transform 220ms cubic-bezier(0.165, 0.84, 0.44, 1),
-                height 220ms cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-
-        /* Reset to the main pane on close without a visible slide. */
-        .track.snap {
-            transition: none;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
             .track {
+                display: flex;
+                align-items: flex-start;
+                width: calc(100% * var(--pane-count));
+                transition:
+                    transform 220ms cubic-bezier(0.165, 0.84, 0.44, 1),
+                    height 220ms cubic-bezier(0.165, 0.84, 0.44, 1);
+            }
+
+            /* Reset to the main pane on close without a visible slide. */
+            .track.snap {
                 transition: none;
             }
-        }
 
-        .pane {
-            width: calc(100% / var(--pane-count));
-            flex: 0 0 calc(100% / var(--pane-count));
-            box-sizing: border-box;
-        }
+            @media (prefers-reduced-motion: reduce) {
+                .track {
+                    transition: none;
+                }
+            }
 
-        /* Off-screen pane must not be reachable */
-        .pane[inert] {
-            visibility: hidden;
-        }
+            .pane {
+                width: calc(100% / var(--pane-count));
+                flex: 0 0 calc(100% / var(--pane-count));
+                box-sizing: border-box;
+            }
 
-        .group {
-            display: flex;
-            flex-direction: column;
-            padding: var(--spacing-inset-xs) 0;
-        }
+            /* Off-screen pane must not be reachable */
+            .pane[inert] {
+                visibility: hidden;
+            }
 
-        .group.rating,
-        .group.lists-entry,
-        .group.retract {
-            position: relative;
-        }
+            .group {
+                display: flex;
+                flex-direction: column;
+                padding: var(--spacing-inset-xs) 0;
+            }
 
-        .group.rating::before,
-        .group.lists-entry::before,
-        .group.retract::before {
-            top: 0;
-        }
+            .group.rating,
+            .group.lists-entry,
+            .group.retract {
+                position: relative;
+            }
 
-        /* Inset so the hover fill reads as a pill inside the panel rather
+            .group.rating::before,
+            .group.lists-entry::before,
+            .group.retract::before {
+                top: 0;
+            }
+
+            /* Inset so the hover fill reads as a pill inside the panel rather
            than a band running to its edges; the padding gives back what the
            margin takes, so the icon column stays put. */
-        .row {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-icon-gap);
-            box-sizing: border-box;
-            /* One height for every row, so the panel never shifts as rows
+            .row {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-icon-gap);
+                box-sizing: border-box;
+                /* One height for every row, so the panel never shifts as rows
                re-render (the rating caption swaps between a span and a button). */
-            min-height: var(--menu-row-height);
-            margin: 0;
-            margin-inline: var(--menu-row-inset);
-            padding-block: var(--spacing-inset-sm);
-            padding-inline: var(--menu-row-padding-inline);
-            border-radius: var(--border-radius-menu-row);
-            border: 0;
-            background: none;
-            color: inherit;
-            font: inherit;
-            text-align: left;
-            cursor: pointer;
-            text-decoration: none;
-        }
+                min-height: var(--menu-row-height);
+                margin: 0;
+                margin-inline: var(--menu-row-inset);
+                padding-block: var(--spacing-inset-sm);
+                padding-inline: var(--menu-row-padding-inline);
+                border-radius: var(--border-radius-menu-row);
+                border: 0;
+                background: none;
+                color: inherit;
+                font: inherit;
+                font-weight: var(--font-weight-button);
+                text-align: left;
+                cursor: pointer;
+                text-decoration: none;
+            }
 
-        .row .obd-icon {
-            width: 20px;
-            height: 20px;
-            flex: 0 0 20px;
-            color: var(--color-icon-muted);
-        }
+            .row .obd-icon {
+                width: 20px;
+                height: 20px;
+                flex: 0 0 20px;
+                color: var(--color-icon-muted);
+            }
 
-        .row .label {
-            flex: 1;
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+            .row .label {
+                flex: 1;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
 
-        /* The basis too, not just the width: WebKit sizes the row from the
+            /* The basis too, not just the width: WebKit sizes the row from the
            width but lays it out at .obd-icon's 20px basis, and the 4px
            difference comes out of the label beside it ("Add d…"). */
-        .row .trail {
-            flex-basis: 16px;
-            width: 16px;
-            height: 16px;
-            color: var(--color-icon-muted);
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .row:hover {
-                background: var(--color-hover-overlay);
+            .row .trail {
+                flex-basis: 16px;
+                width: 16px;
+                height: 16px;
+                color: var(--color-icon-muted);
             }
-        }
 
-        /* Press feedback — the fill, not the squeeze <ol-button> gives. A row
-           has no resting fill, so the press paints one; on touch, where :hover
-           never runs, there would otherwise be nothing at all. The scale stays
-           with real buttons: a menu row that shrinks reads as the panel
-           moving rather than the row being pressed. */
-        .row:active,
-        .list-row:active {
-            background: var(--color-hover-overlay);
-        }
+            .row:focus-visible {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: -2px;
+            }
 
-        .row:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: -2px;
-        }
+            /* Hover, press and the selected tint (the shelf a book is on, the
+           date it was finished on, a list it's in) are the shared .menu-row
+           rules; the icon follows the text. */
+            .row[aria-pressed='true'] .obd-icon {
+                color: var(--color-link);
+            }
 
-        /* The shelf a book is on, and the date it was finished on, are the same
-           kind of answer — both mark their row the same way. */
-        .row[aria-pressed="true"] {
-            color: var(--color-link);
-            font-weight: 600;
-        }
-
-        .row[aria-pressed="true"] .obd-icon {
-            color: var(--color-link);
-        }
-
-        /* Already Read on the shelf: the label toggles like the other rows,
+            /* Already Read on the shelf: the label toggles like the other rows,
            the date is a second target into the date pane. Each half keeps its
            own hover pill; the pair takes the inset a single row would.
            Neither half is sized for English: the shelf label never shrinks
@@ -400,455 +400,467 @@ export class OlShelfActions extends LitElement {
            the date wraps under the label instead of truncating — the indent
            lines it up with the label text, and the shelf half's negative
            margin keeps the indent out of the one-line layout. */
-        .row-split {
-            --split-indent: calc(var(--menu-row-padding-inline) + 20px + var(--spacing-inline-md) - var(--spacing-inset-sm));
-            display: flex;
-            flex-wrap: wrap;
-            margin-inline: var(--menu-row-inset);
-            padding-inline-start: var(--split-indent);
-        }
+            .row-split {
+                --split-indent: calc(var(--menu-row-padding-inline) + 20px + var(--spacing-inline-md) - var(--spacing-inset-sm));
+                display: flex;
+                flex-wrap: wrap;
+                margin-inline: var(--menu-row-inset);
+                padding-inline-start: var(--split-indent);
+            }
 
-        .row-split > .row {
-            margin-inline: 0;
-            max-width: 100%;
-        }
+            .row-split > .row {
+                margin-inline: 0;
+                max-width: 100%;
+            }
 
-        .row-split > .row:first-child {
-            flex: 1 0 auto;
-            margin-inline-start: calc(-1 * var(--split-indent));
-            max-width: calc(100% + var(--split-indent));
-        }
+            .row-split > .row:first-child {
+                flex: 1 0 auto;
+                margin-inline-start: calc(-1 * var(--split-indent));
+                max-width: calc(100% + var(--split-indent));
+            }
 
-        .date-link {
-            flex: 0 0 auto;
-            gap: var(--spacing-inline-xs);
-            padding-inline: var(--spacing-inset-sm);
-        }
+            .date-link {
+                flex: 0 0 auto;
+                gap: var(--spacing-inline-xs);
+                padding-inline: var(--spacing-inset-sm);
+            }
 
-        .date-link .count {
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+            /* When Already Read is the shelf, the split row as a whole wears the
+           selected tint, so it reads as one row whether the date sits beside
+           the label, wraps under it, or isn't drawn yet. The halves stay
+           clear and each tops the tint up on its own hover and press. */
+            .row-split:has(> [aria-pressed='true']) {
+                background: var(--color-control-selected-bg);
+                border-radius: var(--border-radius-menu-row);
+            }
 
+            .row-split:has(> [aria-pressed='true']) > .row {
+                background: none;
+            }
 
-        /* A request in flight dims the group rather than disabling its rows:
+            .row-split:has(> [aria-pressed='true']) > .row:active {
+                background: var(--color-control-selected-overlay);
+            }
+
+            @media (hover: hover) and (pointer: fine) {
+                .row-split:has(> [aria-pressed='true']) > .row:hover {
+                    background: var(--color-control-selected-overlay);
+                }
+            }
+
+            .date-link .count {
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            /* A request in flight dims the group rather than disabling its rows:
            disabling the focused row would drop focus to the document. The
            handlers ignore clicks while busy, so this is feedback only. */
-        [aria-busy="true"] .row,
-        [aria-busy="true"] .star,
-        [aria-busy="true"] .clear {
-            cursor: default;
-            opacity: 0.6;
-        }
+            [aria-busy='true'] .row,
+            [aria-busy='true'] .star,
+            [aria-busy='true'] .clear {
+                cursor: default;
+                opacity: 0.6;
+            }
 
-        /* Stars */
-        .stars {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-inline-md);
-            box-sizing: border-box;
-            /* min-height, not height: the 24px star targets and the caption
+            /* Stars */
+            .stars {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-inline-md);
+                box-sizing: border-box;
+                /* min-height, not height: the 24px star targets and the caption
                have to fit whatever the row height is, and the row has to stay
                level with the shelf rows above it. */
-            min-height: var(--menu-row-height);
-            padding: 0 var(--spacing-inset-md);
-        }
+                min-height: var(--menu-row-height);
+                padding: 0 var(--spacing-inset-md);
+            }
 
-        .star-buttons,
-        .stars .caption {
-            line-height: 1;
-        }
+            .star-buttons,
+            .stars .caption {
+                line-height: 1;
+            }
 
-        .star-buttons {
-            display: inline-flex;
-        }
+            .star-buttons {
+                display: inline-flex;
+            }
 
-        /* 24px hit target (WCAG 2.5.8) around a 20px glyph. */
-        .star {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-            padding: 0;
-            border: 0;
-            background: none;
-            cursor: pointer;
-            line-height: 0;
-        }
+            /* 24px hit target (WCAG 2.5.8) around a 20px glyph. */
+            .star {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 24px;
+                height: 24px;
+                padding: 0;
+                border: 0;
+                background: none;
+                cursor: pointer;
+                line-height: 0;
+            }
 
-        /* Sized to the row icons, and only the filled stars carry the gold —
+            /* Sized to the row icons, and only the filled stars carry the gold —
            an all-gold band outweighs the shelves above it. Filled vs. empty is
            the whole rating to a sighted reader, so both sit at 3:1 on white
            (--amber-400 and --color-icon-muted are decorative-tier). */
-        .star .obd-icon {
-            width: 20px;
-            height: 20px;
-            color: var(--color-text-muted);
-            --ol-icon-stroke-width: 1.5;
-        }
-
-        .star .obd-icon[filled] {
-            color: var(--amber-500);
-        }
-
-        .star:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            border-radius: var(--border-radius-sm);
-        }
-
-        .stars .caption {
-            /* The check-in pane's .caption padding would push this 16px
-               further from the stars than the Clear-rating button sits. */
-            padding: 0;
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-medium);
-        }
-
-        /* Clear rating: a quiet text link, so it never competes with the stars
-           it undoes. Padding comes from .caption, which the stars row zeroes. */
-        .clear {
-            border: 0;
-            background: none;
-            color: var(--color-text-secondary);
-            font: inherit;
-            font-size: var(--font-size-label-medium);
-            cursor: pointer;
-        }
-
-        .clear:hover {
-            color: var(--color-text);
-            text-decoration: underline;
-        }
-
-        .clear:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            border-radius: var(--border-radius-sm);
-        }
-
-        /* Check-in pane */
-
-        /* Muted like the question above it: these rows undo an answer rather
-           than giving one, so they must not read as more dates to pick. */
-        .retract .row {
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-medium);
-        }
-
-        /* The question, not a heading: the rows under it are the answer. */
-        .caption {
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-medium);
-        }
-
-        /* A disclosure, not a link onwards: the chevron points down at the
-           fields the row opens and flips once they are showing. */
-        .date-toggle .trail {
-            transition: transform 180ms cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-
-        .date-toggle[aria-expanded='true'] .trail {
-            transform: rotate(180deg);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .date-toggle .trail {
-                transition: none;
+            .star .obd-icon {
+                width: 20px;
+                height: 20px;
+                color: var(--color-text-muted);
+                --ol-icon-stroke-width: 1.5;
             }
-        }
 
-        /* Sits directly under the row that opened it, so the gap reads as a
+            .star .obd-icon[filled] {
+                color: var(--amber-500);
+            }
+
+            .star:focus-visible {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                border-radius: var(--border-radius-sm);
+            }
+
+            .stars .caption {
+                /* The check-in pane's .caption padding would push this 16px
+               further from the stars than the Clear-rating button sits. */
+                padding: 0;
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-medium);
+            }
+
+            /* Clear rating: a quiet text link, so it never competes with the stars
+           it undoes. Padding comes from .caption, which the stars row zeroes. */
+            .clear {
+                border: 0;
+                background: none;
+                color: var(--color-text-secondary);
+                font: inherit;
+                font-size: var(--font-size-label-medium);
+                cursor: pointer;
+            }
+
+            .clear:hover {
+                color: var(--color-text);
+                text-decoration: underline;
+            }
+
+            .clear:focus-visible {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                border-radius: var(--border-radius-sm);
+            }
+
+            /* Check-in pane */
+
+            /* Muted like the question above it: these rows undo an answer rather
+           than giving one, so they must not read as more dates to pick. */
+            .retract .row {
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-medium);
+            }
+
+            /* The question, not a heading: the rows under it are the answer. */
+            .caption {
+                padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-medium);
+            }
+
+            /* A disclosure, not a link onwards: the chevron points down at the
+           fields the row opens and flips once they are showing. */
+            .date-toggle .trail {
+                transition: transform 180ms cubic-bezier(0.165, 0.84, 0.44, 1);
+            }
+
+            .date-toggle[aria-expanded='true'] .trail {
+                transform: rotate(180deg);
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .date-toggle .trail {
+                    transition: none;
+                }
+            }
+
+            /* Sits directly under the row that opened it, so the gap reads as a
            seam between row and fields rather than a new section. */
-        .date-form {
-            padding-top: var(--spacing-inset-xs);
-        }
+            .date-form {
+                padding-top: var(--spacing-inset-xs);
+            }
 
-        /* Three selects on one line only fit at small size — the same height
+            /* Three selects on one line only fit at small size — the same height
            and radius the small web-component controls use. */
-        .date-fields {
-            display: flex;
-            gap: var(--spacing-inline-sm);
-            padding: 0 var(--spacing-inset-md) var(--spacing-inset-sm);
-        }
+            .date-fields {
+                display: flex;
+                gap: var(--spacing-inline-sm);
+                padding: 0 var(--spacing-inset-md) var(--spacing-inset-sm);
+            }
 
-        .select {
-            flex: 1;
-            min-width: 0;
-            height: var(--control-height-small);
-            box-sizing: border-box;
-            padding: 0 var(--spacing-inset-xs);
-            border: var(--border-input);
-            border-radius: var(--border-radius-input);
-            background: var(--color-surface);
-            color: inherit;
-            font: inherit;
-            font-size: var(--font-size-label-medium);
-        }
+            .select {
+                flex: 1;
+                min-width: 0;
+                height: var(--control-height-small);
+                box-sizing: border-box;
+                padding: 0 var(--spacing-inset-xs);
+                border: var(--border-input);
+                border-radius: var(--border-radius-input);
+                background: var(--color-surface);
+                color: inherit;
+                font: inherit;
+                font-size: var(--font-size-label-medium);
+            }
 
-        /* Year is the only one that is always meaningful, so it gets the room. */
-        .select.year {
-            flex: 0 0 84px;
-        }
+            /* Year is the only one that is always meaningful, so it gets the room. */
+            .select.year {
+                flex: 0 0 84px;
+            }
 
-        .select:focus {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: -1px;
-        }
+            .select:focus {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: -1px;
+            }
 
-        .select:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+            .select:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
 
-        .date-actions {
-            display: flex;
-            justify-content: flex-end;
-            padding: 0 var(--spacing-inset-md) var(--spacing-inset-sm);
-        }
+            .date-actions {
+                display: flex;
+                justify-content: flex-end;
+                padding: 0 var(--spacing-inset-md) var(--spacing-inset-sm);
+            }
 
-        /* Lists pane */
+            /* Lists pane */
 
-        /* Header and field each hold a small control at most, and swap what
+            /* Header and field each hold a small control at most, and swap what
            they show when creating a list; a fixed height keeps the list below
            from jumping when they do. */
-        .lists-header,
-        .pane-header,
-        .field {
-            box-sizing: border-box;
-            height: calc(var(--control-height-small) + 2 * var(--spacing-inset-sm));
-        }
+            .lists-header,
+            .pane-header,
+            .field {
+                box-sizing: border-box;
+                height: calc(var(--control-height-small) + 2 * var(--spacing-inset-sm));
+            }
 
-        /* Lists-only in a split frame: the slotted trigger is the whole
+            /* Lists-only in a split frame: the slotted trigger is the whole
            button, so the popover (its flex parent) must fill the host. */
-        :host([lists-only]) ol-popover {
-            flex: 1;
-            min-width: 0;
-        }
+            :host([lists-only]) ol-popover {
+                flex: 1;
+                min-width: 0;
+            }
 
-        /* Lists-only: the seed's title stands where Back would be. */
-        .lists-title {
-            min-width: 0;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-medium);
-        }
+            /* Lists-only: the seed's title stands where Back would be. */
+            .lists-title {
+                min-width: 0;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-medium);
+            }
 
-        .lists-header,
-        .pane-header {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: var(--spacing-inline-sm);
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-        }
+            .lists-header,
+            .pane-header {
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: var(--spacing-inline-sm);
+                padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            }
 
-        /* Small ghost <ol-button>s. The negative margin pulls the button's own
+            /* Small ghost <ol-button>s. The negative margin pulls the button's own
            padding back so the chevron / label sits flush with the content below. */
-        .back,
-        .lists-link {
-            margin-left: calc(-1 * var(--spacing-sm));
-        }
+            .back,
+            .lists-link {
+                margin-left: calc(-1 * var(--spacing-sm));
+            }
 
-        /* The way out to the lists themselves, below the rows so it is never
+            /* The way out to the lists themselves, below the rows so it is never
            in reach of a tick. Same ghost button as Back, mirrored. */
-        .lists-footer {
-            position: relative;
-            padding: var(--spacing-inset-xs) var(--spacing-inset-md);
-        }
+            .lists-footer {
+                position: relative;
+                padding: var(--spacing-inset-xs) var(--spacing-inset-md);
+            }
 
-        .lists-footer::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            inset-inline: var(--spacing-inset-md);
-            height: 1px;
-            background: var(--color-border-subtle);
-        }
+            .lists-footer::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                inset-inline: var(--spacing-inset-md);
+                height: 1px;
+                background: var(--color-border-subtle);
+            }
 
-        .field {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-inline-sm);
-            padding: 0 var(--spacing-inset-md);
-            margin-bottom: var(--spacing-stack-xs);
-        }
+            .field {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-inline-sm);
+                padding: 0 var(--spacing-inset-md);
+                margin-bottom: var(--spacing-stack-xs);
+            }
 
-        .input {
-            flex: 1;
-            min-width: 0;
-            height: var(--control-height-small);
-            box-sizing: border-box;
-            padding: 0 var(--spacing-inset-sm);
-            border: var(--border-input);
-            border-radius: var(--border-radius-input);
-            background: var(--color-surface);
-            color: inherit;
-            font: inherit;
-        }
+            .input {
+                flex: 1;
+                min-width: 0;
+                height: var(--control-height-small);
+                box-sizing: border-box;
+                padding: 0 var(--spacing-inset-sm);
+                border: var(--border-input);
+                border-radius: var(--border-radius-input);
+                background: var(--color-surface);
+                color: inherit;
+                font: inherit;
+            }
 
-        .input:focus {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: -1px;
-        }
+            .input:focus {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: -1px;
+            }
 
-        /* iOS zooms in on focus when the field's font is < 16px; bump the
+            /* iOS zooms in on focus when the field's font is < 16px; bump the
            text field and the date selects up on mobile to suppress that. */
-        @media (max-width: 767px) {
-            .input,
-            .select {
-                font-size: var(--font-size-body-large);
+            @media (max-width: 767px) {
+                .input,
+                .select {
+                    font-size: var(--font-size-body-large);
+                }
             }
-        }
 
-        /* Same breathing room off the header rule as the main pane's groups. */
-        .list-items {
-            max-height: 240px;
-            overflow-y: auto;
-            padding-block: var(--spacing-inset-xs);
-        }
-
-        .list-row {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-icon-gap);
-            margin-inline: var(--menu-row-inset);
-            padding-block: var(--spacing-inset-sm);
-            padding-inline: var(--menu-row-padding-inline);
-            border-radius: var(--border-radius-menu-row);
-            cursor: pointer;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .list-row:hover {
-                background: var(--color-hover-overlay);
+            /* Same breathing room off the header rule as the main pane's groups. */
+            .list-items {
+                max-height: 240px;
+                overflow-y: auto;
+                padding-block: var(--spacing-inset-xs);
             }
-        }
 
-        /* Plus or check, marked like the main pane's recent-list shortcuts, so
+            .list-row {
+                position: relative;
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-icon-gap);
+                margin-inline: var(--menu-row-inset);
+                padding-block: var(--spacing-inset-sm);
+                padding-inline: var(--menu-row-padding-inline);
+                border-radius: var(--border-radius-menu-row);
+                font-weight: var(--font-weight-button);
+                cursor: pointer;
+            }
+
+            /* Plus or check, marked like the main pane's recent-list shortcuts, so
            a list the book is on looks the same in both panes. */
-        .list-row .obd-icon {
-            width: 20px;
-            height: 20px;
-            flex: 0 0 20px;
-            color: var(--color-icon-muted);
-        }
+            .list-row .obd-icon {
+                width: 20px;
+                height: 20px;
+                flex: 0 0 20px;
+                color: var(--color-icon-muted);
+            }
 
-        .list-row.checked {
-            color: var(--color-link);
-            font-weight: 600;
-        }
+            .list-row.checked .obd-icon {
+                color: var(--color-link);
+            }
 
-        .list-row.checked .obd-icon {
-            color: var(--color-link);
-        }
+            /* The date fields describe the answer, they are not the row's label. */
+            .list-row .other-form {
+                font-weight: var(--font-weight-regular);
+            }
 
-        /* The annotations describe the list, not the answer. */
-        .list-row .count,
-        .list-row .other-form {
-            font-weight: normal;
-        }
+            /* The checkbox is hidden, so the row wears its focus. */
+            .list-row:has(input:focus-visible) {
+                outline: var(--focus-width) solid var(--color-focus-ring);
+                outline-offset: -2px;
+            }
 
-        /* The checkbox is hidden, so the row wears its focus. */
-        .list-row:has(input:focus-visible) {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: -2px;
-        }
+            /* What Enter commits to, marked so the key is never a guess. */
+            .list-row.target {
+                box-shadow: inset 0 0 0 1px var(--color-border-subtle);
+            }
 
-        /* What Enter commits to, marked so the key is never a guess. */
-        .list-row.target {
-            box-shadow: inset 0 0 0 1px var(--color-border-subtle);
-        }
-
-        /* Name over label. The name is what the reader is looking for, so it
+            /* Name over label. The name is what the reader is looking for, so it
            keeps the full width and the annotation goes under it rather than
            taking room from it. */
-        .list-row .text {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-        }
+            .list-row .text {
+                flex: 1;
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+            }
 
-        .list-row .name {
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+            .list-row .name {
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
 
-        .count {
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-medium);
-        }
+            /* Counts, dates and prompts describe the row, they are not its label:
+           regular beside the control-weight label. */
+            .count {
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-medium);
+                font-weight: var(--font-weight-regular);
+            }
 
-        /* A prompt, not an answer: it must not take the pressed row's weight. */
-        .count.hint {
-            font-weight: normal;
-        }
+            .shortcuts {
+                display: flex;
+                flex-direction: column;
+            }
 
-        .shortcuts {
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Says the book is on this list already, as another edition or with no
+            /* Says the book is on this list already, as another edition or with no
            edition named. Tight leading, so a labelled row grows by one small
            line rather than by a whole row. */
-        .list-row .other-form {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            line-height: 1.3;
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-small);
-        }
-
-        /* Live region and the list rows' checkboxes: read out, never laid out. */
-        .sr-only,
-        .list-row input {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip-path: inset(50%);
-            white-space: nowrap;
-        }
-
-        .empty,
-        .loading {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-inline-sm);
-            padding: var(--spacing-inset-md);
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-label-medium);
-        }
-
-        .spinner {
-            width: 18px;
-            height: 18px;
-            animation: spin 0.9s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .spinner {
-                animation-duration: 3s;
+            .list-row .other-form {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                line-height: 1.3;
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-small);
             }
-        }
-    `;
+
+            /* Live region and the list rows' checkboxes: read out, never laid out. */
+            .sr-only,
+            .list-row input {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip-path: inset(50%);
+                white-space: nowrap;
+            }
+
+            .empty,
+            .loading {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-inline-sm);
+                padding: var(--spacing-inset-md);
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-label-medium);
+            }
+
+            .spinner {
+                width: 18px;
+                height: 18px;
+                animation: spin 0.9s linear infinite;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .spinner {
+                    animation-duration: 3s;
+                }
+            }
+        `
+    ];
 
     constructor() {
         super();
@@ -919,8 +931,9 @@ export class OlShelfActions extends LitElement {
     _findStarsElsewhere() {
         const key = this.book?.key;
         if (!key) return false;
-        return [...document.querySelectorAll(`.star-rating-form[data-work-key="${key}"]`)]
-            .some(form => (form.checkVisibility ? form.checkVisibility() : form.getClientRects().length > 0));
+        return [...document.querySelectorAll(`.star-rating-form[data-work-key="${key}"]`)].some(form =>
+            form.checkVisibility ? form.checkVisibility() : form.getClientRects().length > 0
+        );
     }
 
     /** Open the popover without a trigger click; the split button's main half does this for a book on a reading shelf. */
@@ -967,7 +980,10 @@ export class OlShelfActions extends LitElement {
         const workKey = this.book?.key;
         if (!workKey || this.listsOnly || !workKey.startsWith('/works/')) return null;
         if (!EDITION_KEYS.has(workKey)) {
-            EDITION_KEYS.set(workKey, fetchWorkEditions(workKey).catch(() => []));
+            EDITION_KEYS.set(
+                workKey,
+                fetchWorkEditions(workKey).catch(() => [])
+            );
         }
         return EDITION_KEYS.get(workKey);
     }
@@ -1007,7 +1023,7 @@ export class OlShelfActions extends LitElement {
         const track = {
             '--pane-count': String(PANES.length),
             transform: `translateX(${(-100 / PANES.length) * this._paneIndex}%)`,
-            height: this._trackHeight ? `${this._trackHeight}px` : null,
+            height: this._trackHeight ? `${this._trackHeight}px` : null
         };
         return html`
             <ol-popover
@@ -1021,21 +1037,26 @@ export class OlShelfActions extends LitElement {
             >
                 <slot name="trigger" slot="trigger"></slot>
                 <div class="panel">
-                    ${this._warm ? html`
-                        <div
-                            class="track ${classMap({ snap: this._snap })}"
-                            style=${styleMap(track)}
-                        >
-                            ${PANES.map(name => html`
-                                <div
-                                    class="pane"
-                                    ?inert=${this._pane !== name}
-                                    role=${name === 'lists' ? 'group' : nothing}
-                                    aria-label=${name === 'lists' ? this.t('addToList') : nothing}
-                                >${this._renderPane(name)}</div>
-                            `)}
-                        </div>
-                    ` : nothing}
+                    ${
+                        this._warm
+                            ? html`
+                                  <div class="track ${classMap({ snap: this._snap })}" style=${styleMap(track)}>
+                                      ${PANES.map(
+                                          name => html`
+                                              <div
+                                                  class="pane"
+                                                  ?inert=${this._pane !== name}
+                                                  role=${name === 'lists' ? 'group' : nothing}
+                                                  aria-label=${name === 'lists' ? this.t('addToList') : nothing}
+                                              >
+                                                  ${this._renderPane(name)}
+                                              </div>
+                                          `
+                                      )}
+                                  </div>
+                              `
+                            : nothing
+                    }
                     <!-- Outside the track: a pane goes inert when it slides
                          away, and a live region inside one would go with it. -->
                     <span class="sr-only" role="status">${this._announce}</span>
@@ -1053,37 +1074,29 @@ export class OlShelfActions extends LitElement {
             <!-- Toggle buttons, not a menu: the panel is a dialog holding
                  several kinds of control, and menuitem roles promise arrow-key
                  navigation the rows don't have. aria-pressed marks the shelf
-                 the book is on, which is what the checkmark shows. -->
+                 the book is on; the row's selected look and filled icon show it. -->
             <div class="group shelves" role="group" aria-label=${this.t('readingLog')} aria-busy=${this._held}>
                 ${SHELF_ROWS.map(row => {
-        const toggle = html`
+                    const toggle = html`
                         <button
                             type="button"
-                            class="row"
+                            class="row menu-row"
                             data-shelf=${row.id}
                             aria-pressed=${this.shelf === row.id ? 'true' : 'false'}
                             @click=${() => this._onShelfClick(row.id)}
                         >
                             <ol-icon class="obd-icon" name=${this.shelf === row.id ? row.iconOn : row.icon}></ol-icon>
                             <span class="label">${this.t(row.label)}</span>
-                            <!-- Already Read's date half sits where the check would; the pressed color marks it. -->
-                            ${this.shelf === row.id && row.id !== SHELF.ALREADY_READ ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
                         </button>
                     `;
-        // Wrapped whether or not the date shows, so toggling the
-        // shelf re-renders neither half and focus stays put.
-        return row.id === SHELF.ALREADY_READ
-            ? html`<div class="row-split">${toggle}${this._renderDateLink()}</div>`
-            : toggle;
-    })}
+                    // Wrapped whether or not the date shows, so toggling the
+                    // shelf re-renders neither half and focus stays put.
+                    return row.id === SHELF.ALREADY_READ ? html`<div class="row-split">${toggle}${this._renderDateLink()}</div>` : toggle;
+                })}
             </div>
-            ${this.hideRating || this._starsElsewhere ? nothing : html`
-                <div class="group rating" aria-busy=${this._held}>
-                    ${this._renderStars()}
-                </div>
-            `}
+            ${this.hideRating || this._starsElsewhere ? nothing : html` <div class="group rating" aria-busy=${this._held}>${this._renderStars()}</div> `}
             <div class="group lists-entry">
-                <button type="button" class="row" @click=${this._openLists}>
+                <button type="button" class="row menu-row" @click=${this._openLists}>
                     <ol-icon class="obd-icon" name="list-plus"></ol-icon>
                     <span class="label">${this.t('addToList')}</span>
                     ${this._listCount && !this._matchPending ? html`<span class="count">${this.t('onLists', { count: this._listCount })}</span>` : nothing}
@@ -1123,7 +1136,7 @@ export class OlShelfActions extends LitElement {
         return html`
             <button
                 type="button"
-                class="row shortcut"
+                class="row menu-row shortcut"
                 aria-pressed=${inList ? 'true' : 'false'}
                 @click=${() => this._onListToggle(recent.key, !inList)}
             >
@@ -1150,7 +1163,7 @@ export class OlShelfActions extends LitElement {
         return html`
             <button
                 type="button"
-                class="row date-link"
+                class="row menu-row date-link"
                 aria-label=${date ? this.t('dateSaved', { date }) : nothing}
                 @click=${() => this._openCheckIn({ amending: true })}
             >
@@ -1181,22 +1194,34 @@ export class OlShelfActions extends LitElement {
                     role="radiogroup"
                     aria-label=${this.t('rateThisBook')}
                     @keydown=${this._onStarKeydown}
-                    @mouseleave=${() => { this._hoverRating = 0; }}
+                    @mouseleave=${() => {
+                        this._hoverRating = 0;
+                    }}
                 >
-                    ${[1, 2, 3, 4, 5].map(n => html`
-                        <button
-                            type="button"
-                            class="star"
-                            role="radio"
-                            aria-checked=${this.rating === n ? 'true' : 'false'}
-                            aria-label=${this.t('rateStar', { rating: n })}
-                            tabindex=${n === tabStop ? '0' : '-1'}
-                            @mouseenter=${() => { this._hoverRating = n; }}
-                            @focus=${() => { this._hoverRating = n; }}
-                            @blur=${() => { this._hoverRating = 0; }}
-                            @click=${() => this._onRate(n)}
-                        ><ol-icon class="obd-icon" name="star" ?filled=${n <= shown}></ol-icon></button>
-                    `)}
+                    ${[1, 2, 3, 4, 5].map(
+                        n => html`
+                            <button
+                                type="button"
+                                class="star"
+                                role="radio"
+                                aria-checked=${this.rating === n ? 'true' : 'false'}
+                                aria-label=${this.t('rateStar', { rating: n })}
+                                tabindex=${n === tabStop ? '0' : '-1'}
+                                @mouseenter=${() => {
+                                    this._hoverRating = n;
+                                }}
+                                @focus=${() => {
+                                    this._hoverRating = n;
+                                }}
+                                @blur=${() => {
+                                    this._hoverRating = 0;
+                                }}
+                                @click=${() => this._onRate(n)}
+                            >
+                                <ol-icon class="obd-icon" name="star" ?filled=${n <= shown}></ol-icon>
+                            </button>
+                        `
+                    )}
                 </span>
                 ${caption}
             </div>
@@ -1251,37 +1276,36 @@ export class OlShelfActions extends LitElement {
             <div class="group dates" role="group" aria-labelledby="check-in-question" aria-busy=${this._dateBusy}>
                 <!-- The date is optional, and Back alone doesn't say so. Only
                      while there is none: with one, Skip would read as clearing it. -->
-                ${this.readDate ? nothing : html`
-                    <button type="button" class="row skip" @click=${this._onSkipDate}>
-                        <ol-icon class="obd-icon" name="arrow-right"></ol-icon>
-                        <span class="label">${this.t('skipDate')}</span>
-                    </button>
-                `}
-                <button
-                    type="button"
-                    class="row today"
-                    aria-pressed=${answered === 'today' ? 'true' : 'false'}
-                    @click=${this._onToday}
-                >
+                ${
+                    this.readDate
+                        ? nothing
+                        : html`
+                              <button type="button" class="row menu-row skip" @click=${this._onSkipDate}>
+                                  <ol-icon class="obd-icon" name="arrow-right"></ol-icon>
+                                  <span class="label">${this.t('skipDate')}</span>
+                              </button>
+                          `
+                }
+                <button type="button" class="row menu-row today" aria-pressed=${answered === 'today' ? 'true' : 'false'} @click=${this._onToday}>
                     <ol-icon class="obd-icon" name="calendar-check"></ol-icon>
                     <span class="label">${this.t('today')}</span>
-                    ${answered === 'today' ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
                 </button>
-                ${quickYears().map(year => html`
-                    <button
-                        type="button"
-                        class="row year"
-                        aria-pressed=${answered === String(year) ? 'true' : 'false'}
-                        @click=${() => this._onYear(year)}
-                    >
-                        <ol-icon class="obd-icon" name="calendar"></ol-icon>
-                        <span class="label">${this.t('inYear', { year })}</span>
-                        ${answered === String(year) ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
-                    </button>
-                `)}
+                ${quickYears().map(
+                    year => html`
+                        <button
+                            type="button"
+                            class="row menu-row year"
+                            aria-pressed=${answered === String(year) ? 'true' : 'false'}
+                            @click=${() => this._onYear(year)}
+                        >
+                            <ol-icon class="obd-icon" name="calendar"></ol-icon>
+                            <span class="label">${this.t('inYear', { year })}</span>
+                        </button>
+                    `
+                )}
                 <button
                     type="button"
-                    class="row date-toggle"
+                    class="row menu-row date-toggle"
                     aria-pressed=${answered === 'other' ? 'true' : 'false'}
                     aria-expanded=${this._pickingDate}
                     aria-controls=${ifDefined(this._pickingDate ? 'date-fields' : undefined)}
@@ -1298,12 +1322,16 @@ export class OlShelfActions extends LitElement {
                  stands outside the group the question names. Keeps the shelf:
                  coming off it is the shelf row's job. Only when amending:
                  someone who just chose the shelf is here to date the read. -->
-            ${this._amending && this.eventId ? html`<div class="group retract">
-                <button type="button" class="row remove-date" @click=${this._onRemoveDate}>
-                    <ol-icon class="obd-icon" name="x"></ol-icon>
-                    <span class="label">${this.t('removeDate')}</span>
-                </button>
-            </div>` : nothing}
+            ${
+                this._amending && this.eventId
+                    ? html`<div class="group retract">
+                          <button type="button" class="row menu-row remove-date" @click=${this._onRemoveDate}>
+                              <ol-icon class="obd-icon" name="x"></ol-icon>
+                              <span class="label">${this.t('removeDate')}</span>
+                          </button>
+                      </div>`
+                    : nothing
+            }
         `;
     }
 
@@ -1318,7 +1346,12 @@ export class OlShelfActions extends LitElement {
                 id="date-fields"
                 class="date-form"
                 @submit=${this._onSaveDate}
-                @keydown=${e => { if (e.key === 'Escape') { e.stopPropagation(); this._toggleDatePicker(); } }}
+                @keydown=${e => {
+                    if (e.key === 'Escape') {
+                        e.stopPropagation();
+                        this._toggleDatePicker();
+                    }
+                }}
             >
                 <!-- Selection rides on each option's .selected rather than the
                      select's .value: Lit commits the select's own bindings
@@ -1349,56 +1382,79 @@ export class OlShelfActions extends LitElement {
         const creating = this._creating || this._firstList;
         return html`
             <div class="lists-header">
-                ${this.listsOnly ? html`
-                    <span class="lists-title">${this.book.title}</span>
-                ` : html`
-                    <ol-button class="back" variant="ghost" size="small" @click=${this._backToMain}>
-                        <ol-icon slot="icon-start" name="chevron-left"></ol-icon>${this.t('back')}
-                    </ol-button>
-                `}
-                ${creating ? nothing : html`
-                    <ol-button size="small" @click=${this._startCreate}>
-                        <ol-icon slot="icon-start" name="plus"></ol-icon>${this.t('createList')}
-                    </ol-button>
-                `}
+                ${
+                    this.listsOnly
+                        ? html` <span class="lists-title">${this.book.title}</span> `
+                        : html`
+                              <ol-button class="back" variant="ghost" size="small" @click=${this._backToMain}>
+                                  <ol-icon slot="icon-start" name="chevron-left"></ol-icon>${this.t('back')}
+                              </ol-button>
+                          `
+                }
+                ${
+                    creating
+                        ? nothing
+                        : html`
+                              <ol-button size="small" @click=${this._startCreate}>
+                                  <ol-icon slot="icon-start" name="plus"></ol-icon>${this.t('createList')}
+                              </ol-button>
+                          `
+                }
             </div>
-            ${creating ? html`
-                ${this._firstList ? html`<div class="caption">${this.t('createFirstList')}</div>` : nothing}
-                <form class="field" @submit=${this._onCreateSubmit}>
-                    <input
-                        class="input"
-                        name="name"
-                        type="text"
-                        required
-                        maxlength="200"
-                        placeholder=${this.t('listName')}
-                        aria-label=${this.t('listName')}
-                        aria-busy=${this._createBusy}
-                        @keydown=${e => { if (e.key === 'Escape') { e.stopPropagation(); this._cancelCreate(); } }}
-                    />
-                    <ol-button type="submit" variant="primary" size="small">${this.t('create')}</ol-button>
-                </form>
-            ` : this._listTotal > FILTER_THRESHOLD ? html`
-                <div class="field">
-                    <input
-                        class="input"
-                        type="search"
-                        placeholder=${this.t('filterLists')}
-                        aria-label=${this.t('filterLists')}
-                        .value=${this._listFilter}
-                        @input=${e => { this._listFilter = e.target.value; }}
-                        @keydown=${this._onFilterKeydown}
-                    />
-                </div>
-            ` : nothing}
+            ${
+                creating
+                    ? html`
+                          ${this._firstList ? html`<div class="caption">${this.t('createFirstList')}</div>` : nothing}
+                          <form class="field" @submit=${this._onCreateSubmit}>
+                              <input
+                                  class="input"
+                                  name="name"
+                                  type="text"
+                                  required
+                                  maxlength="200"
+                                  placeholder=${this.t('listName')}
+                                  aria-label=${this.t('listName')}
+                                  aria-busy=${this._createBusy}
+                                  @keydown=${e => {
+                                      if (e.key === 'Escape') {
+                                          e.stopPropagation();
+                                          this._cancelCreate();
+                                      }
+                                  }}
+                              />
+                              <ol-button type="submit" variant="primary" size="small">${this.t('create')}</ol-button>
+                          </form>
+                      `
+                    : this._listTotal > FILTER_THRESHOLD
+                      ? html`
+                            <div class="field">
+                                <input
+                                    class="input"
+                                    type="search"
+                                    placeholder=${this.t('filterLists')}
+                                    aria-label=${this.t('filterLists')}
+                                    .value=${this._listFilter}
+                                    @input=${e => {
+                                        this._listFilter = e.target.value;
+                                    }}
+                                    @keydown=${this._onFilterKeydown}
+                                />
+                            </div>
+                        `
+                      : nothing
+            }
             <div class="list-items">${this._renderListItems()}</div>
-            ${!this._listTotal || !this.userKey ? nothing : html`
-                <div class="lists-footer">
-                    <ol-button class="lists-link" variant="ghost" size="small" href=${`${this.userKey}/lists`}>
-                        ${this.t('manageLists')}<ol-icon slot="icon-end" name="arrow-right"></ol-icon>
-                    </ol-button>
-                </div>
-            `}
+            ${
+                !this._listTotal || !this.userKey
+                    ? nothing
+                    : html`
+                          <div class="lists-footer">
+                              <ol-button class="lists-link" variant="ghost" size="small" href=${`${this.userKey}/lists`}>
+                                  ${this.t('manageLists')}<ol-icon slot="icon-end" name="arrow-right"></ol-icon>
+                              </ol-button>
+                          </div>
+                      `
+            }
         `;
     }
 
@@ -1416,40 +1472,39 @@ export class OlShelfActions extends LitElement {
         const target = this._listFilter.trim() ? (pinned[0] ?? rest[0]) : null;
         if (!pinned.length) return this._renderListRows(lists, rest, target);
         const group = (keys, label) => html`
-            <div class="group-lists" role="group" aria-label=${this.t(label)}>
-                ${this._renderListRows(lists, keys, target)}
-            </div>
+            <div class="group-lists" role="group" aria-label=${this.t(label)}>${this._renderListRows(lists, keys, target)}</div>
         `;
         // The pinned group's label follows what is actually in it, so it never
         // promises rows for this book when there are none.
         const pinnedLabel = pinned.some(key => this._members.includes(key)) ? 'pinnedLists' : 'recentLists';
-        return html`
-            ${group(pinned, pinnedLabel)}
-            ${rest.length ? group(rest, 'otherLists') : nothing}
-        `;
+        return html` ${group(pinned, pinnedLabel)} ${rest.length ? group(rest, 'otherLists') : nothing} `;
     }
 
     _renderListRows(lists, keys, target) {
         // Filtering shuffles which list sits at each index, so key the rows
         // to keep Lit from rebuilding them; the other lists in this file are
         // static and fine with index reconciliation.
-        return repeat(keys, key => key, key => {
-            const list = lists[key];
-            const checked = this._holdsSeed(list);
-            const other = this._otherForm(list);
-            return html`
-                <label class="list-row ${classMap({ target: key === target, checked })}">
-                    <!-- Still a checkbox to assistive tech and the keyboard; the icon is what shows. -->
-                    <input type="checkbox" .checked=${checked} @change=${e => this._onListToggle(key, e.target.checked)} />
-                    <ol-icon class="obd-icon" name=${checked ? 'check' : 'plus'}></ol-icon>
-                    <span class="text">
-                        <span class="name">${list.listName}</span>
-                        ${other ? html`<span class="other-form">${other.kind === 'edition' ? this.t('otherEditions', { count: other.count }) : this.t('anyEdition')}</span>` : nothing}
-                    </span>
-                    <span class="count" aria-label=${this.t('itemsInList', { count: list.members.length })}>${list.members.length}</span>
-                </label>
-            `;
-        });
+        return repeat(
+            keys,
+            key => key,
+            key => {
+                const list = lists[key];
+                const checked = this._holdsSeed(list);
+                const other = this._otherForm(list);
+                return html`
+                    <label class="list-row menu-row ${classMap({ target: key === target, checked })}">
+                        <!-- Still a checkbox to assistive tech and the keyboard; the icon is what shows. -->
+                        <input type="checkbox" .checked=${checked} @change=${e => this._onListToggle(key, e.target.checked)} />
+                        <ol-icon class="obd-icon" name=${checked ? 'check' : 'plus'}></ol-icon>
+                        <span class="text">
+                            <span class="name">${list.listName}</span>
+                            ${other ? html`<span class="other-form">${other.kind === 'edition' ? this.t('otherEditions', { count: other.count }) : this.t('anyEdition')}</span>` : nothing}
+                        </span>
+                        <span class="count" aria-label=${this.t('itemsInList', { count: list.members.length })}>${list.members.length}</span>
+                    </label>
+                `;
+            }
+        );
     }
 
     willUpdate(changed) {
@@ -1546,11 +1601,13 @@ export class OlShelfActions extends LitElement {
     }
 
     _emitState() {
-        this.dispatchEvent(new CustomEvent('ol-book-state-change', {
-            bubbles: true,
-            composed: true,
-            detail: { key: this.book.key, shelf: this.shelf, rating: this.rating },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-book-state-change', {
+                bubbles: true,
+                composed: true,
+                detail: { key: this.book.key, shelf: this.shelf, rating: this.rating }
+            })
+        );
     }
 
     /** `operation` names the request that failed, for the error's analytics label. */
@@ -1615,21 +1672,24 @@ export class OlShelfActions extends LitElement {
         // Coming off a shelf deletes the book's check-in events with it, so the
         // date goes too — a kept event id would make the next check-in amend an
         // event the server no longer has, and 404.
-        const announce = removing
-            ? this.t('removedFromShelf')
-            : this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[shelfId]) });
+        const announce = removing ? this.t('removedFromShelf') : this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[shelfId]) });
         // Only on the way in, and only when they chose the shelf themselves:
         // rating moves a book to Already Read too, and interrupting that
         // would turn one tap into two.
         const checkIn = !removing && shelfId === SHELF.ALREADY_READ && previous !== SHELF.ALREADY_READ;
         const optimistic = removing ? { shelf: null, readDate: null, eventId: null } : { shelf: shelfId, _checkInPending: checkIn };
-        return this._mutate('shelf', optimistic, async() => {
-            await setShelf(this.book.key, shelfId, { editionKey: this.book.editionKey });
-            // "menu": told apart from the split button's one-tap half, which says "quick".
-            trackEvent('ReadingLog', SHELF_EVENT[removing ? null : shelfId], 'menu');
-            this._emitState();
-            if (checkIn) this._openCheckIn();
-        }, announce);
+        return this._mutate(
+            'shelf',
+            optimistic,
+            async () => {
+                await setShelf(this.book.key, shelfId, { editionKey: this.book.editionKey });
+                // "menu": told apart from the split button's one-tap half, which says "quick".
+                trackEvent('ReadingLog', SHELF_EVENT[removing ? null : shelfId], 'menu');
+                this._emitState();
+                if (checkIn) this._openCheckIn();
+            },
+            announce
+        );
     }
 
     // ── Rating ───────────────────────────────────────────────
@@ -1641,17 +1701,27 @@ export class OlShelfActions extends LitElement {
         // Reading are explicit choices it will not overwrite.
         const autoShelves = !this.shelf || this.shelf === SHELF.WANT_TO_READ;
         const optimistic = next && autoShelves ? { rating: next, shelf: SHELF.ALREADY_READ } : { rating: next };
+        const moved = Boolean(optimistic.shelf && optimistic.shelf !== this.shelf);
         // Say the shelf move too when there is one: a rating that quietly moved
         // the book would be a surprise on the next open.
         const announce = [
             next ? this.t('rated', { rating: next }) : this.t('ratingCleared'),
-            optimistic.shelf && optimistic.shelf !== this.shelf ? this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[optimistic.shelf]) }) : '',
-        ].filter(Boolean).join('. ');
-        return this._mutate('rating', optimistic, async() => {
-            await setRating(this.book.key, next, { editionKey: this.book.editionKey });
-            trackEvent('StarRating', next ? 'BookRated' : 'RatingCleared');
-            this._emitState();
-        }, announce);
+            moved ? this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[optimistic.shelf]) }) : ''
+        ]
+            .filter(Boolean)
+            .join('. ');
+        return this._mutate(
+            'rating',
+            optimistic,
+            async () => {
+                await setRating(this.book.key, next, { editionKey: this.book.editionKey });
+                trackEvent('StarRating', next ? 'BookRated' : 'RatingCleared');
+                // The server shelved it too; "rating" tells this apart from a shelf chosen in the menu.
+                if (moved) trackEvent('ReadingLog', SHELF_EVENT[SHELF.ALREADY_READ], 'rating');
+                this._emitState();
+            },
+            announce
+        );
     }
 
     // ── Check-in ─────────────────────────────────────────────
@@ -1721,11 +1791,14 @@ export class OlShelfActions extends LitElement {
         e.preventDefault();
         const { year, month, day } = this._date;
         if (!year) return;
-        return this._saveCheckIn({
-            year: Number(year),
-            month: month ? Number(month) : null,
-            day: day ? Number(day) : null,
-        }, ['CheckInForm', 'SubmitCheckIn']);
+        return this._saveCheckIn(
+            {
+                year: Number(year),
+                month: month ? Number(month) : null,
+                day: day ? Number(day) : null
+            },
+            ['CheckInForm', 'SubmitCheckIn']
+        );
     }
 
     /** Drops the date but keeps the shelf, as the old form's Delete Event did, under its event name. */
@@ -1737,11 +1810,13 @@ export class OlShelfActions extends LitElement {
             this.readDate = null;
             this.eventId = null;
             trackEvent('CheckInForm', 'DeleteCheckIn');
-            this.dispatchEvent(new CustomEvent('ol-book-check-in', {
-                bubbles: true,
-                composed: true,
-                detail: { key: this.book.key, date: null, eventId: null },
-            }));
+            this.dispatchEvent(
+                new CustomEvent('ol-book-check-in', {
+                    bubbles: true,
+                    composed: true,
+                    detail: { key: this.book.key, date: null, eventId: null }
+                })
+            );
             this._say(this.t('dateRemoved'));
             this._backToMain();
         } catch (error) {
@@ -1762,11 +1837,13 @@ export class OlShelfActions extends LitElement {
             this.readDate = partialDate(date);
             this.eventId = saved?.id ?? this.eventId ?? null;
             trackEvent(...event);
-            this.dispatchEvent(new CustomEvent('ol-book-check-in', {
-                bubbles: true,
-                composed: true,
-                detail: { key: this.book.key, date: this.readDate, eventId: this.eventId },
-            }));
+            this.dispatchEvent(
+                new CustomEvent('ol-book-check-in', {
+                    bubbles: true,
+                    composed: true,
+                    detail: { key: this.book.key, date: this.readDate, eventId: this.eventId }
+                })
+            );
             this._say(this.t('dateSaved', { date: formatReadDate(this.readDate) }));
             this._backToMain();
         } catch (error) {
@@ -1832,9 +1909,7 @@ export class OlShelfActions extends LitElement {
         // shelf half when the date half has gone with the shelf.
         const main = this.shadowRoot.querySelector('.pane:nth-child(1)');
         const shelfHalf = main?.querySelector(`.row[data-shelf="${SHELF.ALREADY_READ}"]`);
-        const row = from === 'checkIn'
-            ? (amending && main?.querySelector('.date-link')) || shelfHalf
-            : main?.querySelector('.group.lists-entry .row');
+        const row = from === 'checkIn' ? (amending && main?.querySelector('.date-link')) || shelfHalf : main?.querySelector('.group.lists-entry .row');
         row?.focus({ preventScroll: true });
     }
 
@@ -1858,10 +1933,7 @@ export class OlShelfActions extends LitElement {
      */
     _orderedKeys(lists) {
         const seen = new Set(this._order);
-        return [
-            ...Object.keys(lists).filter(key => !seen.has(key)),
-            ...this._order.filter(key => key in lists),
-        ];
+        return [...Object.keys(lists).filter(key => !seen.has(key)), ...this._order.filter(key => key in lists)];
     }
 
     /**
@@ -1937,11 +2009,13 @@ export class OlShelfActions extends LitElement {
             // book back out is as good a signal as putting one in.
             noteListUsed(this.userKey, listKey, name);
             trackEvent('Lists', checked ? 'AddSeed' : 'RemoveSeed');
-            this.dispatchEvent(new CustomEvent('ol-list-change', {
-                bubbles: true,
-                composed: true,
-                detail: { key: listKey, name, seedKey: this._seedKey, member: checked },
-            }));
+            this.dispatchEvent(
+                new CustomEvent('ol-list-change', {
+                    bubbles: true,
+                    composed: true,
+                    detail: { key: listKey, name, seedKey: this._seedKey, member: checked }
+                })
+            );
         } catch (error) {
             this._fail(error, 'list-toggle');
         }
@@ -1994,11 +2068,13 @@ export class OlShelfActions extends LitElement {
             noteListUsed(this.userKey, key, name);
             trackEvent('Lists', 'CreateList');
             this._creating = false;
-            this.dispatchEvent(new CustomEvent('ol-list-created', {
-                bubbles: true,
-                composed: true,
-                detail: { key, name, seedKey: this._seedKey },
-            }));
+            this.dispatchEvent(
+                new CustomEvent('ol-list-created', {
+                    bubbles: true,
+                    composed: true,
+                    detail: { key, name, seedKey: this._seedKey }
+                })
+            );
             // The form is gone with the field that had focus; the new list is
             // the first row, already checked, and says so when focused.
             await this.updateComplete;

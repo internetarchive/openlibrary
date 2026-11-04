@@ -40,10 +40,9 @@ from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.core.auth import TimedOneTimePassword as OTP
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.carousels import get_carousel_data
-from openlibrary.core.db import get_db
+from openlibrary.core.db import get_db  # noqa: TID251
 from openlibrary.core.follows import PubSub
-from openlibrary.core.lending import get_loan_history_data
+from openlibrary.core.lending import AccountNotFoundError, get_loan_history_data
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.i18n import gettext as _
@@ -568,7 +567,7 @@ class account_login(delegate.page):
             if op == "follow" and args:
                 publisher = args
                 if publisher_account := OpenLibraryAccount.get_by_username(publisher):
-                    PubSub.subscribe(subscriber=ol_account.username, publisher=publisher)
+                    PubSub.subscribe_sync(subscriber=ol_account.username, publisher=publisher)
 
                     publisher_name = publisher_account["data"]["displayname"]
                     flash_message = f"You are now following {publisher_name}!"
@@ -836,7 +835,7 @@ class account_privacy(delegate.page):
 
         user.save_preferences(i)
         username = user.key.split("/")[-1]
-        PubSub.toggle_privacy(username, private=i.public_readlog == "no")
+        PubSub.toggle_privacy_sync(username, private=i.public_readlog == "no")
         web.setcookie("sfw", i.safe_mode, expires="" if i.safe_mode.lower() == "yes" else -1)
         add_flash_message("note", _("Notification preferences have been updated successfully."))
         web.seeother("/account")
@@ -898,7 +897,7 @@ class import_books(delegate.page):
         user = accounts.get_current_user()
         username = user["key"].split("/")[-1]
         template = render["account/import"]()
-        return MyBooksTemplate(username, "imports").render(header_title=_("Imports and Exports"), template=template)
+        return MyBooksTemplate(username, "imports").render(header_title=_("Import your data"), template=template)
 
 
 class fetch_goodreads(delegate.page):
@@ -1186,6 +1185,12 @@ class export_books(delegate.page):
     @require_login
     def GET(self):
         i = web.input(type="")
+        if not i.type:
+            # Render export selection page when no type specified
+            user = accounts.get_current_user()
+            username = user.key.split("/")[-1]
+            template = render["account/export"](user=user)
+            return MyBooksTemplate(username, "exports").render(header_title=_("Export your data"), template=template)
 
         export = self.get_export(i.type)
         data = export.make_export(export.get_data(), export.fieldnames)
@@ -1232,12 +1237,12 @@ class my_follows(delegate.page):
         i = web.input(page=1)
 
         # Validate page ID, force between 1 and max allowed by size and total count
-        follow_count = PubSub.count_followers(username) if key == "followers" else PubSub.count_following(username)
+        follow_count = PubSub.count_followers_sync(username) if key == "followers" else PubSub.count_following_sync(username)
         page = _validate_follows_page(i.page, page_size, follow_count)
 
         # Get slice of follows belonging to this page
         offset = max(0, (page - 1) * page_size)
-        follows = PubSub.get_followers(username, page_size, offset) if key == "followers" else PubSub.get_following(username, page_size, offset)
+        follows = PubSub.get_followers_sync(username, page_size, offset) if key == "followers" else PubSub.get_following_sync(username, page_size, offset)
 
         mb = MyBooksTemplate(username, "following")
         manage = key == "following" and mb.is_my_page
@@ -1250,9 +1255,9 @@ def get_account_loans_json(user: User) -> dict[str, Any]:
     return {"loans": loans}
 
 
-def get_account_loan_history_json(user: User, page: int) -> dict[str, Any]:
+def get_account_loan_history_json(user: User, page: int, s3_cookie: str | None) -> dict[str, Any]:
     username = user["key"].split("/")[-1]
-    loan_history_data = dict(get_loan_history_data(username, page=page))
+    loan_history_data = dict(get_loan_history_data(username, page=page, s3_cookie=s3_cookie))
     # Ensure all `docs` are `dicts`, as some are `Edition`s.
     loan_history_data["docs"] = [loan.dict() if not isinstance(loan, dict) else loan for loan in loan_history_data["docs"]]
     return {"loans_history": loan_history_data}
@@ -1264,7 +1269,7 @@ class account_loans(delegate.page):
     @require_login
     def GET(self):
         from openlibrary.core.lending import get_loans_of_user
-        from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
+        from openlibrary.plugins.upstream import lenny
 
         i = web.input(page=1)
         try:
@@ -1275,10 +1280,22 @@ class account_loans(delegate.page):
         username = user["key"].split("/")[-1]
         mb = MyBooksTemplate(username, "loans")
         docs = get_loans_of_user(user.key)
-        loan_history_data = get_loan_history_data(username, page=page)
-        featured_subjects = get_cached_featured_subjects()
 
-        staff_picks = get_carousel_data(carousels=("staff_picks",))["staff_picks"]
+        # Provider loans are merged here rather than inside get_loans_of_user,
+        # and that placement is the point (#13687). That function is not a
+        # display lookup: User.update_loan_status() feeds every element to
+        # lending.sync_loan(loan["ocaid"]) -- called on the line above -- and
+        # borrow.py mints an Internet Archive bookreader link from loan["_key"]
+        # for whichever loan matches the edition. A loan with no ocaid reaching
+        # either of those is a 500 on this page, or an IA reader link for a loan
+        # the Internet Archive has never heard of.
+        provider = lenny.provider_loans(username)
+        docs = list(docs) + provider.loans
+
+        try:
+            loan_history_data = get_loan_history_data(username, page=page, s3_cookie=web.cookies().get("s3"))
+        except AccountNotFoundError as e:
+            raise render.notfound(str(e), create=False)
 
         template = render["account/loans"](
             user,
@@ -1287,8 +1304,8 @@ class account_loans(delegate.page):
             current_page=page,
             show_next=loan_history_data["show_next"],
             ia_base_url=CONFIG_IA_DOMAIN,
-            featured_subjects=featured_subjects,
-            carousel=staff_picks,
+            provider_unreachable=provider.unreachable,
+            provider_unauthorized=provider.unauthorized,
         )
         return mb.render(header_title=_("Loans & History"), template=template)
 
@@ -1328,8 +1345,12 @@ class account_loan_history_json(delegate.page):
         i = web.input(page=1)
         page = int(i.page)
         user = accounts.get_current_user()
+        try:
+            data = get_account_loan_history_json(user, page, s3_cookie=web.cookies().get("s3"))
+        except AccountNotFoundError as e:
+            raise render.notfound(str(e), create=False)
         web.header("Content-Type", "application/json")
-        return delegate.RawText(json.dumps(get_account_loan_history_json(user, page)))
+        return delegate.RawText(json.dumps(data))
 
 
 class account_waitlist(delegate.page):
@@ -1387,7 +1408,7 @@ class account_anonymization_json(delegate.page):
 
         try:
             with RunAs(ol_account.username):
-                result = ol_account.anonymize(test=test)
+                result = ol_account.anonymize_sync(test=test)
         except Exception as e:
             logger.error(e)
             raise web.HTTPError("500 Internal Server Error", {"Content-Type": "application/json"})
