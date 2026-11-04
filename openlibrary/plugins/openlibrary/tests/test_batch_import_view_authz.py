@@ -73,7 +73,7 @@ def _patches(db_mock, user):
             "input",
             lambda **kw: types.SimpleNamespace(page="1", limit="10", sort="added_time asc"),
         ),
-        patch.object(code.web, "notfound", lambda: _NotFound()),
+        patch.object(code.web, "notfound", _NotFound),
     ]
 
 
