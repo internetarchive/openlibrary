@@ -853,7 +853,7 @@ msgstr ""
 msgid "on <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>"
 msgstr ""
 
-#: search/authors.html search/lists.html search/subjects.html work_search.html
+#: openlibrary/fastapi/search.py search/authors.html search/lists.html search/subjects.html work_search.html
 msgid "Checking Search Inside matches"
 msgstr ""
 
@@ -1571,7 +1571,7 @@ msgstr ""
 msgid "Search your reading log"
 msgstr ""
 
-#: account/reading_log.html search/authors.html search/lists.html search/subjects.html
+#: account/reading_log.html search/authors.html search/lists.html search/lists.html.jinja search/subjects.html
 #, python-format
 msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
@@ -2715,7 +2715,7 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
-#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html.jinja search/publishers.html search/searchbox.html shell/header.html.jinja type/local_id/view.html
+#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html.jinja search/publishers.html search/searchbox.html search/searchbox.html.jinja shell/header.html.jinja type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -5531,15 +5531,15 @@ msgstr ""
 msgid "Grid"
 msgstr ""
 
-#: search/lists.html
+#: openlibrary/fastapi/search.py search/lists.html
 msgid "Search results for Lists"
 msgstr ""
 
-#: search/lists.html
+#: search/lists.html search/lists.html.jinja
 msgid "Search Lists"
 msgstr ""
 
-#: search/lists.html
+#: search/lists.html search/lists.html.jinja
 msgid "No <strong>lists</strong> directly matched your search"
 msgstr ""
 
