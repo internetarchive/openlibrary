@@ -538,6 +538,7 @@ class TestProcessManagedTags:
                 {"type": {"key": "/type/tag"}, "key": "/tags/OL20T", "name": "Epic Fantasy", "tag_type": "subgenre"},
                 {"type": {"key": "/type/tag"}, "key": "/tags/OL21T", "name": "Violence", "tag_type": "content_warning"},
                 {"type": {"key": "/type/tag"}, "key": "/tags/OL22T", "name": "Hugo Award", "tag_type": "award"},
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL50T", "name": "Fiction", "tag_type": "literary_form"},
                 # A real genre Tag carrying the LEGACY PLURAL tag_type "genres" —
                 # it would fail today's (singular) validation, but must survive
                 # once stored, since stored refs are not re-type-checked.
@@ -766,6 +767,45 @@ class TestProcessManagedTags:
 
         # The stored genre is untouched; the crafted OL1T is not written.
         assert web.ctx.site.docs["/works/OL30W"]["genres"] == [{"key": "/tags/OL2T"}]
+
+    def _save_literary_forms(self, monkeypatch, posted_key, stored):
+        monkeypatch.setattr(accounts, "get_current_user", mock_tags_editor)
+        work_doc = {"type": {"key": "/type/work"}, "key": "/works/OL40W", "title": "A Work"}
+        if stored is not None:
+            work_doc["literary_forms"] = stored
+        web.ctx.site.save_many(
+            [
+                work_doc,
+                {"type": {"key": "/type/edition"}, "key": "/books/OL40M", "title": "A Work", "works": [{"key": "/works/OL40W"}]},
+            ]
+        )
+        work = web.ctx.site.get("/works/OL40W")
+        edition = web.ctx.site.get("/books/OL40M")
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL40W",
+                "work--title": "A Work",
+                "work--literary_forms": posted_key,
+                "edition--title": "A Work",
+                "edition--works--0--key": "/works/OL40W",
+            }
+        )
+        addbook.SaveBookHelper(work, edition).save(formdata)
+        return web.ctx.site.docs["/works/OL40W"].get("literary_forms")
+
+    def test_save_literary_forms_accepts_a_valid_key(self, monkeypatch):
+        # OL50T is a live literary_form Tag; the posted key is wrapped as a ref.
+        assert self._save_literary_forms(monkeypatch, "/tags/OL50T", stored=None) == [{"key": "/tags/OL50T"}]
+
+    def test_save_literary_forms_rejects_invalid_key_keeps_stored(self, monkeypatch):
+        # A posted key that is not a live literary_form Tag (OL9T is a
+        # content_format) is forged/stale: the stored value is kept, not
+        # overwritten and not cleared.
+        assert self._save_literary_forms(monkeypatch, "/tags/OL9T", stored=[{"key": "/tags/OL50T"}]) == [{"key": "/tags/OL50T"}]
+
+    def test_save_literary_forms_clears_on_not_sure(self, monkeypatch):
+        # The "Not sure" radio posts "", which clears the field.
+        assert self._save_literary_forms(monkeypatch, "", stored=[{"key": "/tags/OL50T"}]) is None
 
     def test_save_drops_an_invalid_added_key(self, monkeypatch):
         """Validation runs on the real save path, not just the helper: an added

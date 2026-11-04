@@ -758,9 +758,19 @@ class SaveBookHelper:
                 if work.get(f"_{fld}_present"):
                     stored = self.work.get(fld) if self.work else None
                     work[fld] = self.process_managed_tags(work.get(fld), fld, stored)
-            # The form posts the chosen tag's key; "" clears it (trim_doc makes that None, which the save drops).
+            # The radio posts the chosen tag's key; "" ("Not sure") clears it. A
+            # posted key is validated as a live literary_form Tag, so a forged or
+            # stale key can't be written; an invalid one keeps the stored value
+            # rather than clearing it.
             if "literary_forms" in work:
-                work.literary_forms = [{"key": work.literary_forms}] if work.literary_forms else None
+                key = work.literary_forms
+                stored_literary_forms = self.work.get("literary_forms") if self.work else None
+                if not key:
+                    work.literary_forms = None
+                elif (doc := web.ctx.site.get(key)) is not None and doc.type.key == "/type/tag" and doc.get("tag_type") == FIELD_TAG_TYPES["literary_forms"]:
+                    work.literary_forms = [{"key": key}]
+                else:
+                    work.literary_forms = stored_literary_forms
         else:
             # No access: discard any posted value for a managed field and keep the
             # stored one, so a crafted POST can't write these fields.
