@@ -17,7 +17,7 @@ from pytest_postgresql import factories
 from pytest_postgresql.janitor import DatabaseJanitor
 
 from openlibrary.core import async_db
-from scripts.solr_updater.transaction_log import ForceUpdates, TransactionLog, force_update_seq_at, transaction_id_at
+from scripts.solr_updater.transaction_log import ForceUpdates, TransactionLog, find_force_update_seq_at, find_transaction_id_at
 
 _INFOBASE_SCHEMA = Path(__file__).resolve().parents[2] / "core" / "infobase_schema.sql"
 
@@ -89,7 +89,7 @@ def test_moved_edition_reindexes_the_work_and_author_it_left(infobase_db):
     log = TransactionLog(0)
 
     assert poll(log) == ["/books/OL1M", "/works/OL1W"]
-    assert log.position == 2
+    assert log.offset == 2
 
 
 @pytest.mark.integration
@@ -103,18 +103,18 @@ def test_transaction_that_commits_late_is_not_skipped(infobase_db):
     # Later edits and polls neither skip nor block on the open save.
     last_id = commit_save(infobase_db, [work(3)])
     assert poll(log) == ["/works/OL3W"]
-    assert list(log.gaps) == [slow_id]
-    assert log.position == 0
+    assert list(log.missing_ids) == [slow_id]
+    assert log.offset == 0
 
     slow.commit()
     slow.close()
 
     assert poll(log) == ["/works/OL1W"]
-    assert log.position == last_id
+    assert log.offset == last_id
 
 
 @pytest.mark.integration
-def test_rolled_back_transaction_does_not_block_the_position(infobase_db):
+def test_rolled_back_transaction_does_not_block_the_offset(infobase_db):
     failed = infobase_db()
     save(failed, [work(1)])
     later_id = commit_save(infobase_db, [work(2)])
@@ -124,7 +124,7 @@ def test_rolled_back_transaction_does_not_block_the_position(infobase_db):
     failed.close()
 
     assert poll(log) == []
-    assert log.position == later_id
+    assert log.offset == later_id
 
 
 @pytest.mark.integration
@@ -134,7 +134,7 @@ def test_batches_page_through_a_backlog(infobase_db):
     log = TransactionLog(0, batch_size=2)
 
     assert [poll(log) for _ in range(3)] == [["/works/OL1W", "/works/OL2W"], ["/works/OL3W", "/works/OL4W"], ["/works/OL5W"]]
-    assert log.position == 5
+    assert log.offset == 5
 
 
 @pytest.mark.integration
@@ -142,8 +142,8 @@ def test_start_from_a_point_in_time(infobase_db):
     commit_save(infobase_db, [work(1)], created=dt.datetime(2026, 11, 2, 23, 59))
     second = commit_save(infobase_db, [work(2)], created=dt.datetime(2026, 11, 3, 0, 1))
 
-    assert asyncio.run(transaction_id_at(dt.datetime(2026, 11, 3))) == second - 1
-    assert asyncio.run(transaction_id_at(dt.datetime(2026, 11, 4))) == second  # nothing yet: start at the end
+    assert asyncio.run(find_transaction_id_at(dt.datetime(2026, 11, 3))) == second - 1
+    assert asyncio.run(find_transaction_id_at(dt.datetime(2026, 11, 4))) == second  # nothing yet: start at the end
 
 
 def put_force_update_doc(connect, seqs: list[int]) -> None:
@@ -164,4 +164,4 @@ def test_force_update_requests_are_each_read_once(infobase_db):
     # A third request overwrites the document; only it is new.
     put_force_update_doc(infobase_db, [1, 2, 3])
     assert asyncio.run(force.read()) == ["/works/OL3W"]
-    assert asyncio.run(force_update_seq_at(dt.datetime(2026, 11, 3, 10, 2, 30))) == 2
+    assert asyncio.run(find_force_update_seq_at(dt.datetime(2026, 11, 3, 10, 2, 30))) == 2
