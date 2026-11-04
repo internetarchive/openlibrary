@@ -17,6 +17,7 @@ from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
 from openlibrary.core.helpers import uniq
+from openlibrary.core.tags import FIELD_TAG_TYPES, PICKER_TAG_FIELDS, can_edit_tags
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
@@ -744,9 +745,38 @@ class SaveBookHelper:
         work.subject_places = list(read_subject(work.get("subject_places", "")))
         work.subject_times = list(read_subject(work.get("subject_times", "")))
         work.subject_people = list(read_subject(work.get("subject_people", "")))
-        # The form posts the chosen tag's key; "" clears it (trim_doc makes that None, which the save drops).
-        if "literary_forms" in work:
-            work.literary_forms = [{"key": work.literary_forms}] if work.literary_forms else None
+        # Managed Tag fields (the pickers + literary_forms) are editable only by
+        # the tags-beta whitelist. The template gates rendering; this server-side
+        # check is the authoritative guard. `unflatten` has already copied any
+        # posted `work--<field>--N--key` values onto `work`, so a crafted POST
+        # from a user without access must be scrubbed, not merely left unprocessed.
+        if can_edit_tags(accounts.get_current_user()):
+            # Only touch a field when the form carried its section (a hidden
+            # `_<field>_present` marker); a form without the section leaves that
+            # field untouched rather than clearing it — see process_managed_tags.
+            for fld in PICKER_TAG_FIELDS:
+                if work.get(f"_{fld}_present"):
+                    stored = self.work.get(fld) if self.work else None
+                    work[fld] = self.process_managed_tags(work.get(fld), fld, stored)
+            # The radio posts the chosen tag's key; "" ("Not sure") clears it. A
+            # posted key is validated as a live literary_form Tag, so a forged or
+            # stale key can't be written; an invalid one keeps the stored value
+            # rather than clearing it.
+            if "literary_forms" in work:
+                key = work.literary_forms
+                stored_literary_forms = self.work.get("literary_forms") if self.work else None
+                if not key:
+                    work.literary_forms = None
+                elif (doc := web.ctx.site.get(key)) is not None and doc.type.key == "/type/tag" and doc.get("tag_type") == FIELD_TAG_TYPES["literary_forms"]:
+                    work.literary_forms = [{"key": key}]
+                else:
+                    work.literary_forms = stored_literary_forms
+        else:
+            # No access: discard any posted value for a managed field and keep the
+            # stored one, so a crafted POST can't write these fields.
+            for fld in (*PICKER_TAG_FIELDS, "literary_forms"):
+                if fld in work:
+                    work[fld] = self.work.get(fld) if self.work else None
         if ": " in work.get("title", ""):
             work.title, work.subtitle = work.title.split(": ", 1)
         else:
@@ -759,6 +789,115 @@ class SaveBookHelper:
         work.authors = [a for a in work.get("authors", []) if a.get("author", {}).get("key", "").strip()]
 
         return trim_doc(work)
+
+    @staticmethod
+    def process_managed_tags(values, field: str, stored=None) -> list[dict]:
+        """Merge the posted managed-Tag selection into a list of refs.
+
+        The work edit form submits each selected Tag as its key
+        (``/tags/OL…T``). Both stored shapes are accepted on input — plain key
+        strings (every work from the scripted backfill) and ``{"key": …}`` refs,
+        mixed, in any order — and the result is normalised to refs and
+        deduplicated, preserving the posted order.
+
+        An **unrelated edit never migrates genres.** If the posted genre set is
+        identical to what is stored (a title edit re-posts the stored keys
+        unchanged), every key passes through untouched — Infobase skips
+        validation of an unchanged value, so nothing is re-checked or dropped.
+
+        When the editor **changes** the genre set, each posted key is checked:
+
+        - A key already stored on the work is resolved to a live ``/type/tag``.
+          Its ``tag_type`` is NOT re-checked, so a retyped or legacy singular
+          ``tag_type`` genre (e.g. ``/tags/OL84T``) survives. A ref to a Tag since
+          **merged** (a ``/type/redirect``) is followed to its target (up to two
+          hops) and the target key substituted — a merge means "these are the same
+          genre", so dropping it would silently un-tag the work. A ref to a
+          **deleted** Tag, or one that doesn't resolve to a ``/type/tag``, is
+          dropped. (Otherwise, once ``/type/work`` declares ``genres`` with
+          ``expected_type /type/tag``, a dangling ref would make Infobase reject
+          the whole atomic save, leaving the work un-editable on any genre change.)
+        - An **added** key (posted but not stored) is kept only if it resolves to
+          an existing Tag whose ``tag_type`` matches the field's **singular** Tag
+          type (``FIELD_TAG_TYPES[field]``, e.g. ``"genres"`` → ``"genre"``). All
+          production Tags are singular-typed; a ref to a missing or wrong-typed
+          Tag would fail the atomic save, so a bad added key is dropped rather
+          than persisted.
+
+        :param values: the posted value — a list of key strings and/or
+            ``{"key": …}`` refs, or ``None`` when nothing is selected.
+        :param field: the plural work field the value belongs to, e.g.
+            ``"genres"``; the singular Tag type to validate against is looked up
+            in ``FIELD_TAG_TYPES``.
+        :param stored: the work's currently stored value (either shape), used to
+            tell additions from keys that were already present.
+        :return: ``[{"key": "/tags/OL…T"}, …]``, empty if nothing remains. An
+            empty list clears the field (``trim_doc`` maps it to ``None``).
+        """
+        assert field in FIELD_TAG_TYPES, f"{field!r} is not a managed-tag work field"
+        tag_type = FIELD_TAG_TYPES[field]
+
+        def keys_of(items) -> list[str]:
+            out: list[str] = []
+            seen: set[str] = set()
+            for item in items or []:
+                if isinstance(item, dict):
+                    key = item.get("key")
+                elif hasattr(item, "key"):
+                    key = item.key
+                else:
+                    key = item
+                if key and key not in seen:
+                    seen.add(key)
+                    out.append(key)
+            return out
+
+        posted = keys_of(values)
+        stored_list = keys_of(stored)
+        # Unchanged set: never migrate on an unrelated edit (Infobase skips an
+        # unchanged value, so a dead stored ref can't reject the save either).
+        if posted == stored_list:
+            return [{"key": key} for key in posted]
+
+        stored_keys = set(stored_list)
+        site = web.ctx.site
+
+        def resolve_live_tag(key: str, hops: int = 2) -> str | None:
+            """Follow ``/type/redirect`` refs (a merged Tag) to the live
+            ``/type/tag`` they point at, up to ``hops`` hops. Returns the final
+            Tag key, or ``None`` if it is deleted / doesn't resolve to a Tag."""
+            visited: set[str] = set()
+            for _hop in range(hops + 1):
+                if not key or key in visited:
+                    return None
+                visited.add(key)
+                doc = site.get(key)
+                if doc is None:
+                    return None
+                type_key = doc.type.key
+                if type_key == "/type/tag":
+                    return key
+                if type_key == "/type/redirect":
+                    key = doc.get("location")
+                    continue
+                return None
+            return None
+
+        out: list[str] = []
+        seen: set[str] = set()
+        for key in posted:
+            if key in stored_keys:
+                # Retained ref: follow a merge to its target, drop if dead. Its
+                # tag_type is not re-checked, so retyped/legacy genres survive.
+                final = resolve_live_tag(key)
+            else:
+                # Added key: must be an existing Tag of the field's singular tag_type.
+                doc = site.get(key)
+                final = key if (doc is not None and doc.type.key == "/type/tag" and doc.get("tag_type") == tag_type) else None
+            if final and final not in seen:
+                seen.add(final)
+                out.append(final)
+        return [{"key": key} for key in out]
 
     def _prevent_ocaid_deletion(self, edition) -> None:
         # Allow admins to modify ocaid

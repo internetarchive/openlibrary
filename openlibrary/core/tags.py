@@ -15,9 +15,20 @@ LITERARY_FORMS = "literary_forms"
 # The whitelist: admins plus this group. The group is a plain /type/usergroup document, so an admin can add people on the site.
 TAGS_BETA_GROUP = "/usergroup/tags-beta"
 # The work fields that hold tag references, in the order the book page shows them.
-WORK_TAG_FIELDS = (LITERARY_FORMS, "genres", "subgenres")
-# Work fields are plural and a tag's ``tag_type`` singular (#14229).
-FIELD_TAG_TYPES = {LITERARY_FORMS: "literary_form"}
+WORK_TAG_FIELDS = (LITERARY_FORMS, "genres", "subgenres", "content_warnings", "content_formats", "awards")
+# Work fields are plural and a tag's ``tag_type`` singular (#14229). (audiences is
+# omitted until the singular ``audience`` type is registered in addtag.SUBJECT_SUB_TYPES.)
+FIELD_TAG_TYPES = {
+    LITERARY_FORMS: "literary_form",
+    "genres": "genre",
+    "subgenres": "subgenre",
+    "content_warnings": "content_warning",
+    "content_formats": "content_format",
+    "awards": "award",
+}
+# The managed-tag fields edited with the multi-select picker on the work edit page
+# (literary_forms is a single-choice radio, handled separately).
+PICKER_TAG_FIELDS = ("genres", "subgenres", "content_warnings", "content_formats", "awards")
 
 
 @public
@@ -32,6 +43,12 @@ def tag_key(value) -> str | None:
     if value is None:
         return None
     return value.get("key") or None
+
+
+@public
+def tag_type_for(fld: str) -> str:
+    """The singular Tag ``tag_type`` a work field holds (e.g. ``genres`` → ``genre``)."""
+    return FIELD_TAG_TYPES[fld]
 
 
 @public

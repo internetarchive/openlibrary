@@ -405,6 +405,44 @@ export function initSubjectsAutocomplete() {
     });
 }
 
+/**
+ * Wires the work edit page's managed-tag <ol-tag-picker> controls to the hidden
+ * form inputs that actually submit.
+ *
+ * Each picker is used name-less (it does not participate in the form itself).
+ * Instead, the current tags are server-rendered as hidden
+ * `work--<field>--N--key` inputs — the openlibrary form convention that
+ * `utils.unflatten` turns into `[{"key": "/tags/OL…T"}]` — and this glue keeps
+ * those inputs in sync with the picker's selection. Because the authoritative
+ * values are plain server-rendered HTML, a work's tags survive even if this
+ * script (or the component) never runs; the picker is then a read-only preserve
+ * rather than an editable control. The work field is read from the container's
+ * `data-field` attribute, so one function serves genres, subgenres, etc.
+ */
+export function initManagedTagPickers() {
+    document.querySelectorAll('.work-tag-picker').forEach(container => {
+        const field = container.dataset.field;
+        const picker = container.querySelector('ol-tag-picker');
+        const inputs = container.querySelector('.work-tag-picker__inputs');
+        if (!field || !picker || !inputs) return;
+
+        picker.addEventListener('ol-tag-picker-change', event => {
+            // Rebuild the whole set on every change so removals — including clearing
+            // to empty, which submits no inputs and clears the field — are reflected.
+            const keys = event.detail.value || [];
+            inputs.replaceChildren(
+                ...keys.map((key, idx) => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = `work--${field}--${idx}--key`;
+                    input.value = key;
+                    return input;
+                })
+            );
+        });
+    });
+}
+
 export function initEditRow() {
     document.querySelector('#add_row_button').addEventListener('click', () => add_row('website'));
 }
