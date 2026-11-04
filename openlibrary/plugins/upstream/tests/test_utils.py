@@ -45,6 +45,24 @@ def test_entity_decode():
     assert utils.entity_decode("<h1>") == "<h1>"
 
 
+@pytest.mark.parametrize(
+    ("isni", "expected"),
+    [
+        ("0000000121309873", "0000 0001 2130 9873"),
+        ("0000 0001 2130 9873", "0000 0001 2130 9873"),
+        ("000000000000000x", "0000 0000 0000 000X"),
+        ("not-an-isni", "not-an-isni"),
+    ],
+)
+def test_format_isni_display_value(isni, expected):
+    assert utils.format_isni_display_value(isni) == expected
+
+
+def test_format_author_identifier_value_only_formats_isni():
+    assert utils.format_author_identifier_value("isni", "0000000121309873") == "0000 0001 2130 9873"
+    assert utils.format_author_identifier_value("viaf", "123456") == "123456"
+
+
 def test_set_share_links():
     class TestContext:
         def __init__(self):

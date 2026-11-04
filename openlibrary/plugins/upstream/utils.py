@@ -1168,6 +1168,24 @@ def get_identifier_config(identifier: Literal["work", "edition", "author"]) -> S
     return _get_identifier_config(identifier)
 
 
+def format_isni_display_value(isni: str) -> str:
+    """Format an ISNI for human-readable display according to ISO 27729."""
+    normalized = re.sub(r"\s+", "", isni).upper()
+    if re.fullmatch(r"\d{15}[\dX]", normalized):
+        return " ".join(normalized[i : i + 4] for i in range(0, 16, 4))
+
+    return isni
+
+
+@public
+def format_author_identifier_value(identifier_name: str, value: str) -> str:
+    """Format author identifiers for display without changing stored values."""
+    if identifier_name == "isni":
+        return format_isni_display_value(value)
+
+    return value
+
+
 @functools.cache
 def _get_identifier_config(identifier: Literal["work", "edition", "author"]) -> Storage:
     """

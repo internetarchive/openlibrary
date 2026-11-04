@@ -212,7 +212,8 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     $for id in configured_ids:
                         $if id.name in page.remote_ids:
                             $ href = id.url.replace('@@@', page.remote_ids[id.name])
-                            <li>$id.label: <a itemprop="sameAs" href="$href">$page.remote_ids[id.name]</a></li>
+                            $ display_value = format_author_identifier_value(id.name, page.remote_ids[id.name])
+                            <li>$id.label: <a itemprop="sameAs" href="$href">$display_value</a></li>
                             $if id.name == 'wikidata' and 'inventaire' not in page.remote_ids:
                               <li>$_("Inventaire.io:") <a
                                   itemprop="sameAs"
