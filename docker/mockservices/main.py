@@ -581,11 +581,11 @@ async def borrow_status(identifier: str) -> JSONResponse:
 
 # ---------------------------------------------------------------------------
 # reCAPTCHA siteverify  (was hitting recaptcha.net in dev)
-# POST /recaptcha/api/siteverify
+# GET /recaptcha/api/siteverify (what recaptcha.py sends)
 # ---------------------------------------------------------------------------
 
 
-@app.post("/recaptcha/api/siteverify")
+@app.api_route("/recaptcha/api/siteverify", methods=["GET", "POST"])
 async def recaptcha_siteverify() -> JSONResponse:
     return JSONResponse({"success": True, "score": 0.9, "action": "submit"})
 

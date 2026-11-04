@@ -3,6 +3,7 @@
 import pytest
 import web
 
+from infogami.utils import delegate
 from openlibrary import accounts
 from openlibrary.mocks.mock_infobase import MockSite
 
@@ -623,3 +624,90 @@ class TestMakeWork:
 )
 def test_is_valid_web_book_url(url, expected):
     assert addbook.is_valid_web_book_url(url) is expected
+
+
+class TestAddBookPostCaptcha:
+    TOKEN = "solved-token"
+
+    @pytest.fixture
+    def post(self, monkeypatch):
+        """Runs /books/add POST with a captcha-requiring user; returns the outcome and the tokens verified."""
+        page_cls = delegate.pages["/books/add"][None]
+        verified: list[str | None] = []
+
+        class FakeRecaptcha:
+            def __init__(self, valid):
+                self.valid = valid
+
+            def validate_response(self, response, remoteip):
+                verified.append(response)
+                return self.valid and response == TestAddBookPostCaptcha.TOKEN
+
+        def run(form, match=None, valid=True, recaptcha_required=True):
+            data = web.storage(
+                title="",
+                book_title="A Title",
+                publisher="A Publisher",
+                publish_date="2020",
+                id_name="",
+                id_value="",
+                web_book_url="",
+                _test="false",
+                authors=[],
+                author_names=[],
+            )
+            data.update(form)
+            monkeypatch.setattr(accounts, "get_current_user", mock_user)
+            monkeypatch.setattr(web, "input", lambda **_: data)
+            monkeypatch.setattr(web.ctx, "ip", "127.0.0.1", raising=False)
+            monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *_, **__: False)
+            monkeypatch.setattr(addbook.utils, "unflatten", lambda d: d)
+            monkeypatch.setattr(addbook.DocSaveHelper, "create_authors_from_form_data", lambda *_, **__: False)
+            monkeypatch.setattr(addbook, "get_recaptcha", lambda: FakeRecaptcha(valid) if recaptcha_required else None)
+            monkeypatch.setattr(addbook, "render_template", lambda name, *args: (name, args))
+            monkeypatch.setattr(page_cls, "find_matches", lambda self, i: match)
+            monkeypatch.setattr(page_cls, "work_match", lambda *_: "work_match")
+            monkeypatch.setattr(page_cls, "work_edition_match", lambda *_: "work_edition_match")
+            monkeypatch.setattr(page_cls, "no_match", lambda *_: "no_match")
+            return page_cls().POST(), verified
+
+        return run
+
+    @staticmethod
+    def is_rejected(result):
+        return isinstance(result, tuple) and result[0] == "message.html" and result[1][0] == "Recaptcha solution was incorrect"
+
+    def test_save_requires_a_valid_token(self, post):
+        result, _ = post({})
+        assert self.is_rejected(result)
+
+    def test_valid_token_saves(self, post):
+        result, verified = post({"g-recaptcha-response": self.TOKEN})
+        assert result == "no_match"
+        assert verified == [self.TOKEN]
+
+    def test_failed_verification_blocks_work_match(self, post):
+        result, _ = post({"g-recaptcha-response": self.TOKEN}, match=web.storage(key="/works/OL1W"), valid=False)
+        assert self.is_rejected(result)
+
+    def test_exempt_user_needs_no_token(self, post):
+        result, verified = post({}, recaptcha_required=False)
+        assert result == "no_match"
+        assert verified == []
+
+    def test_multiple_matches_leave_the_token_unspent(self, post):
+        matches = [web.storage(key="/works/OL1W"), web.storage(key="/works/OL2W")]
+        (name, _), verified = post({"g-recaptcha-response": self.TOKEN}, match=matches)
+        assert name == "books/check"
+        assert verified == []
+
+    @pytest.mark.parametrize("work", ["none-of-these", "/works/OL1W"])
+    def test_check_page_post_cannot_skip_the_captcha(self, post, work):
+        result, _ = post({"work": work})
+        assert self.is_rejected(result)
+        assert "history.go(-2)" in result[1][1]
+
+    def test_check_page_post_with_carried_token_saves(self, post):
+        result, verified = post({"work": "none-of-these", "g-recaptcha-response": self.TOKEN})
+        assert result == "no_match"
+        assert verified == [self.TOKEN]

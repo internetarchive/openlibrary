@@ -49,6 +49,7 @@ $var title: $_("Add a book")
         <input type="hidden" name="publish_date" value="$d.publish_date"/>
         <input type="hidden" name="id_name" value="$d.id_name"/>
         <input type="hidden" name="id_value" value="$d.id_value"/>
+        <input type="hidden" name="g-recaptcha-response" value="$d.get('g-recaptcha-response', '')"/>
         $for author in d.authors:
             <input type="hidden" name="authors--$loop.index0--author--key" value="$author['author']['key']"/>
         $for name in d.author_names:

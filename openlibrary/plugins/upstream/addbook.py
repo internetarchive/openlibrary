@@ -255,15 +255,6 @@ class addbook(delegate.page):
         if spamcheck.is_spam(i, allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
-        if not accounts.get_current_user():
-            recap = get_recaptcha()
-            if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip):
-                return render_template(
-                    "message.html",
-                    "Recaptcha solution was incorrect",
-                    'Please <a href="javascript:history.back()">go back</a> and try again.',
-                )
-
         i.web_book_url = i.web_book_url.strip()
         if not is_valid_web_book_url(i.web_book_url):
             return render_template("message.html", _("Invalid Book URL"), _("Please enter a valid URL starting with http:// or https://"))
@@ -280,10 +271,21 @@ class addbook(delegate.page):
                 return "No match found"
 
         if isinstance(match, list):
-            # multiple matches
+            # Multiple matches. Nothing is saved yet, so leave the single-use captcha token
+            # unspent: check.html posts it back with the user's choice, and it's verified then.
             return render_template("books/check", i, match)
 
-        elif match and match.key.startswith("/books"):
+        recap = get_recaptcha()
+        if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip):
+            # The token is spent or expired, so from check.html go back to the add form's widget.
+            back = -2 if i.get("work") else -1
+            return render_template(
+                "message.html",
+                "Recaptcha solution was incorrect",
+                f'Please <a href="javascript:history.go({back})">go back</a> and try again.',
+            )
+
+        if match and match.key.startswith("/books"):
             # work match and edition match, match is an Edition
             if i.web_book_url:
                 match.provider = [{"url": i.web_book_url, "format": "web"}]
