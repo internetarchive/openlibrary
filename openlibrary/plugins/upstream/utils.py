@@ -1168,6 +1168,24 @@ def get_identifier_config(identifier: Literal["work", "edition", "author"]) -> S
     return _get_identifier_config(identifier)
 
 
+def format_isni_display_value(isni: str) -> str:
+    """Format an ISNI for human-readable display according to ISO 27729."""
+    normalized = re.sub(r"\s+", "", isni).upper()
+    if re.fullmatch(r"\d{15}[\dX]", normalized):
+        return " ".join(normalized[i : i + 4] for i in range(0, 16, 4))
+
+    return isni
+
+
+@public
+def format_author_identifier_value(identifier_name: str, value: str) -> str:
+    """Format author identifiers for display without changing stored values."""
+    if identifier_name == "isni":
+        return format_isni_display_value(value)
+
+    return value
+
+
 @functools.cache
 def _get_identifier_config(identifier: Literal["work", "edition", "author"]) -> Storage:
     """
@@ -1444,6 +1462,13 @@ class Request:
         return canonical_url(web.ctx.host or "", web.ctx.get("readable_path", web.ctx.path) or "", web.ctx.query or "")
 
 
+# Params that do not change what the page is about: presentation (sort, mode,
+# layout), revision and diff selectors (v, a, b), librarian and debug toggles,
+# tracking, read-aloud autostart, and a work's selected edition (every edition
+# has its own /books/ page).
+CANONICAL_QUERY_EXCLUDES = frozenset({"sort", "mode", "v", "type", "debug", "layout", "a", "b", "show_page_status", "edition", "ref", "_autoReadAloud"})
+
+
 def canonical_url(host: str, readable_path: str, query: str) -> str:
     """The https:// URL for ``host + readable_path + query``, minus view-only params.
 
@@ -1451,7 +1476,7 @@ def canonical_url(host: str, readable_path: str, query: str) -> str:
     """
     if url := host + readable_path + query:
         parsed_url = urlparse("https://" + url)
-        canonical_query = {q: v for q, v in parse_qs(parsed_url.query).items() if q not in ("sort", "mode", "v", "type", "debug")}
+        canonical_query = {q: v for q, v in parse_qs(parsed_url.query).items() if q not in CANONICAL_QUERY_EXCLUDES}
         return urlunparse(parsed_url._replace(query=parse_urlencode(canonical_query, doseq=True)))
     return ""
 

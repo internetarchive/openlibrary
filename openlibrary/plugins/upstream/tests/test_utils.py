@@ -45,6 +45,24 @@ def test_entity_decode():
     assert utils.entity_decode("<h1>") == "<h1>"
 
 
+@pytest.mark.parametrize(
+    ("isni", "expected"),
+    [
+        ("0000000121309873", "0000 0001 2130 9873"),
+        ("0000 0001 2130 9873", "0000 0001 2130 9873"),
+        ("000000000000000x", "0000 0000 0000 000X"),
+        ("not-an-isni", "not-an-isni"),
+    ],
+)
+def test_format_isni_display_value(isni, expected):
+    assert utils.format_isni_display_value(isni) == expected
+
+
+def test_format_author_identifier_value_only_formats_isni():
+    assert utils.format_author_identifier_value("isni", "0000000121309873") == "0000 0001 2130 9873"
+    assert utils.format_author_identifier_value("viaf", "123456") == "123456"
+
+
 def test_set_share_links():
     class TestContext:
         def __init__(self):
@@ -145,6 +163,27 @@ def test_canonical_url():
 
     web.ctx.query = "?sort=new&mode=2"
     url = "https://www.openlibrary.org/authors/Ayn_Rand"
+    assert request.canonical_url == url
+
+    # Revision selectors for history and diff links.
+    web.ctx.query = "?b=8&a=3"
+    url = "https://www.openlibrary.org/authors/Ayn_Rand"
+    assert request.canonical_url == url
+
+    # Presentation and the librarian toggle go; pagination stays.
+    web.ctx.query = "?page=2&layout=grid&show_page_status=1"
+    url = "https://www.openlibrary.org/authors/Ayn_Rand?page=2"
+    assert request.canonical_url == url
+
+    # A query changes what the page shows, so it stays.
+    web.ctx.query = "?q=anthem&page=2&ref=ol"
+    url = "https://www.openlibrary.org/authors/Ayn_Rand?q=anthem&page=2"
+    assert request.canonical_url == url
+
+    # A work canonicalizes without the edition it happens to be showing.
+    web.ctx.path = "/works/OL1W/Title"
+    web.ctx.query = "?edition=key:/books/OL1M&_autoReadAloud=show&ref=ol"
+    url = "https://www.openlibrary.org/works/OL1W/Title"
     assert request.canonical_url == url
 
 
