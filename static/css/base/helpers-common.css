@@ -34,12 +34,6 @@
   background-color: var(--grey);
   color: var(--white);
 }
-.hidden--nojs {
-  display: none;
-}
-.client-js .hidden--nojs {
-  display: block;
-}
 .clearfix {
   width: 100%;
   clear: both;

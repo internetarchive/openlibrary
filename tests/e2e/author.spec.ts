@@ -8,7 +8,7 @@ const AUTHOR_URL = '/authors/OL23919A';
 const skipIfNotFound = async ({ page }: { page: import('@playwright/test').Page }) => {
     const response = await page.goto(AUTHOR_URL);
     if (response?.status() === 404) {
-        test.skip(true, 'Author not in this environment\'s DB — skipping');
+        test.skip(true, "Author not in this environment's DB — skipping");
     }
 };
 
@@ -16,7 +16,7 @@ test.describe('Author page @smoke', () => {
     test('loads with author name in heading', async ({ page }) => {
         const errors = collectConsoleErrors(page);
         const response = await page.goto(AUTHOR_URL);
-        test.skip(response?.status() === 404, 'Author not in this environment\'s DB');
+        test.skip(response?.status() === 404, "Author not in this environment's DB");
         // h1[itemprop="name"] is the author name heading in type/author/view.html
         const heading = page.locator('h1[itemprop="name"]');
         await expect(heading).toBeVisible();

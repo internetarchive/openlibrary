@@ -29,7 +29,7 @@ copied, so there is one definition of the fake feed and it cannot drift from
 what the container serves.
 """
 
-import datetime
+import datetime as dt
 import importlib.util
 import pathlib
 import threading
@@ -105,9 +105,9 @@ def client(matomo_url):
     return MatomoClient("mock-token", url=matomo_url)
 
 
-def _recent() -> datetime.datetime:
+def _recent() -> dt.datetime:
     """A `since` early enough to include the mock's whole fixed-epoch feed."""
-    return datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=6)
+    return dt.datetime.now(dt.UTC) - dt.timedelta(days=6)
 
 
 class TestWireFormat:
@@ -171,7 +171,7 @@ class TestWindowFiltering:
     """
 
     def test_a_window_after_the_whole_feed_returns_nothing(self, client):
-        fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=1))
+        fetch = client.get_visits_since(dt.datetime.now(dt.UTC) - dt.timedelta(minutes=1))
         assert fetch.visits == []
         assert fetch.truncated is False
 
@@ -179,5 +179,5 @@ class TestWindowFiltering:
         module = _load_mock_app_module()
         epoch, interval = module.MATOMO_MOCK_EPOCH, module.MATOMO_MOCK_INTERVAL
         # Halfway through the feed, so roughly half the visits are excluded.
-        midpoint = datetime.datetime.fromtimestamp(epoch + (expected_visits // 2) * interval, datetime.UTC)
+        midpoint = dt.datetime.fromtimestamp(epoch + (expected_visits // 2) * interval, dt.UTC)
         assert 0 < len(client.get_visits_since(midpoint).visits) < expected_visits

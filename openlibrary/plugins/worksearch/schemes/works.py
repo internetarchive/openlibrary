@@ -75,6 +75,20 @@ class WorkSearchScheme(SearchScheme):
             "author_key",
             "author_name",
             "author_alternative_name",
+            "genre_key",
+            "genre_name",
+            "subgenre_key",
+            "subgenre_name",
+            "audience_key",
+            "audience_name",
+            "content_warning_key",
+            "content_warning_name",
+            "content_format_key",
+            "content_format_name",
+            "literary_form_key",
+            "literary_form_name",
+            "award_key",
+            "award_name",
             "subject",
             "person",
             "place",
@@ -397,12 +411,8 @@ class WorkSearchScheme(SearchScheme):
                 "alternative_title": "alternative_title",
                 "alternative_subtitle": "subtitle",
                 "cover_i": "cover_i",
-                # Duplicate author fields
-                # Disabled until the next full reindex
-                # 'author_name': 'author_name',
-                # 'author_key': 'author_key',
-                # 'author_alternative_name': 'author_alternative_name',
-                # 'author_facet': 'author_facet',
+                # Author fields are duplicated onto editions only so unprefixed queries match via the
+                # edition qf; every edition has its work's authors, so forwarding them would be redundant.
                 # Misc useful data
                 "format": "format",
                 "language": "language",

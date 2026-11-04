@@ -1,6 +1,6 @@
 """Tests for get_days_registered — Matomo retention dimension helper."""
 
-import datetime
+import datetime as dt
 from unittest.mock import MagicMock
 
 import pytest
@@ -11,7 +11,7 @@ from openlibrary.accounts import get_days_registered
 def _user(days_ago):
     """Return a mock user whose account was created `days_ago` days ago (UTC)."""
     user = MagicMock()
-    user.created = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=days_ago)
+    user.created = dt.datetime.now(dt.UTC) - dt.timedelta(days=days_ago)
     return user
 
 

@@ -15,7 +15,7 @@ import '../../../openlibrary/components/lit/OLButton.js';
 // constructed (the constructor calls attachInternals?.()).
 let fakeInternals;
 beforeAll(() => {
-    HTMLElement.prototype.attachInternals = function() {
+    HTMLElement.prototype.attachInternals = function () {
         fakeInternals = { form: null };
         return fakeInternals;
     };
@@ -33,16 +33,16 @@ async function mount(attrs = {}, label = 'Label', parent = document.body) {
     return el;
 }
 
-const control = (el) => el.shadowRoot.querySelector('.control');
-const proxy = (el) => el.querySelector(':scope > button');
+const control = el => el.shadowRoot.querySelector('.control');
+const proxy = el => el.querySelector(':scope > button');
 // Click forwarding is deferred past event dispatch (setTimeout 0).
-const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
 async function mountInForm(attrs, label = 'Go') {
     const form = document.createElement('form');
     document.body.appendChild(form);
     const submits = [];
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', e => {
         e.preventDefault();
         submits.push(e);
     });
@@ -55,7 +55,7 @@ afterEach(() => {
 });
 
 describe('OLButton', () => {
-    test('renders a <button> in its shadow root and slots the label', async() => {
+    test('renders a <button> in its shadow root and slots the label', async () => {
         const el = await mount();
         expect(el.shadowRoot).not.toBeNull();
         // Nothing rendered into light DOM — the author's text stays put.
@@ -70,7 +70,7 @@ describe('OLButton', () => {
         expect(slot.assignedNodes()[0].textContent).toBe('Label');
     });
 
-    test('preserves node identity of slotted content', async() => {
+    test('preserves node identity of slotted content', async () => {
         const el = document.createElement('ol-button');
         const span = document.createElement('span');
         span.textContent = 'One';
@@ -83,7 +83,7 @@ describe('OLButton', () => {
         expect(el.textContent).toBe('Two');
     });
 
-    test('projects icon-start / icon-end into named slots inside the label', async() => {
+    test('projects icon-start / icon-end into named slots inside the label', async () => {
         const el = document.createElement('ol-button');
         const start = document.createElement('svg');
         start.setAttribute('slot', 'icon-start');
@@ -93,13 +93,13 @@ describe('OLButton', () => {
         document.body.appendChild(el);
         await el.updateComplete;
         const label = el.shadowRoot.querySelector('.label');
-        const slots = [...label.querySelectorAll('slot')].map((sl) => sl.name);
+        const slots = [...label.querySelectorAll('slot')].map(sl => sl.name);
         expect(slots).toEqual(['icon-start', '', 'icon-end']);
         expect(label.querySelector('slot[name="icon-start"]').assignedElements()[0]).toBe(start);
         expect(label.querySelector('slot[name="icon-end"]').assignedElements()[0]).toBe(end);
     });
 
-    test('renders an <a> when href is set, passing link attributes through', async() => {
+    test('renders an <a> when href is set, passing link attributes through', async () => {
         const el = await mount({ href: '/borrow/OL1M', target: '_blank', rel: 'noopener', download: 'x.pdf' });
         const a = control(el);
         expect(a.tagName).toBe('A');
@@ -110,14 +110,14 @@ describe('OLButton', () => {
         expect(a.hasAttribute('aria-disabled')).toBe(false);
     });
 
-    test('a disabled link drops its href and sets aria-disabled', async() => {
+    test('a disabled link drops its href and sets aria-disabled', async () => {
         const el = await mount({ href: '/x', disabled: '' });
         const a = control(el);
         expect(a.hasAttribute('href')).toBe(false);
         expect(a.getAttribute('aria-disabled')).toBe('true');
     });
 
-    test('a loading link keeps its href but blocks activation, and reports aria-busy', async() => {
+    test('a loading link keeps its href but blocks activation, and reports aria-busy', async () => {
         const el = await mount({ href: '/x', loading: '' });
         const a = control(el);
         // Unlike disabled, loading keeps the href: consumers set loading from
@@ -132,13 +132,16 @@ describe('OLButton', () => {
         expect(e.defaultPrevented).toBe(true);
     });
 
-    test('a click on a live link passes through, and loading set by it keeps the href', async() => {
+    test('a click on a live link passes through, and loading set by it keeps the href', async () => {
         const el = await mount({ href: '/x' });
         const a = control(el);
         // Record whether the component prevented the click before our own
         // guard does (the guard only stops jsdom from attempting navigation).
         let preventedByComponent = null;
-        const guard = (e) => { preventedByComponent = e.defaultPrevented; e.preventDefault(); };
+        const guard = e => {
+            preventedByComponent = e.defaultPrevented;
+            e.preventDefault();
+        };
         document.addEventListener('click', guard);
         a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, composed: true }));
         document.removeEventListener('click', guard);
@@ -150,7 +153,7 @@ describe('OLButton', () => {
         expect(control(el).getAttribute('href')).toBe('/x');
     });
 
-    test('toggling href swaps between <a> and <button>', async() => {
+    test('toggling href swaps between <a> and <button>', async () => {
         const el = await mount();
         el.href = '/x';
         await el.updateComplete;
@@ -160,7 +163,7 @@ describe('OLButton', () => {
         expect(control(el).tagName).toBe('BUTTON');
     });
 
-    test('mirrors aria-label / aria-haspopup / aria-expanded onto the control', async() => {
+    test('mirrors aria-label / aria-haspopup / aria-expanded onto the control', async () => {
         const el = await mount({ 'aria-label': 'Save', 'aria-haspopup': 'dialog', 'aria-expanded': 'true' });
         const btn = control(el);
         expect(btn.getAttribute('aria-label')).toBe('Save');
@@ -175,7 +178,7 @@ describe('OLButton', () => {
     });
 
     describe('form proxy', () => {
-        test('type="submit" keeps one hidden, unslotted native submit button in light DOM', async() => {
+        test('type="submit" keeps one hidden, unslotted native submit button in light DOM', async () => {
             const el = await mount({ type: 'submit', name: 'action', value: 'save' });
             const p = proxy(el);
             expect(p).not.toBeNull();
@@ -191,7 +194,7 @@ describe('OLButton', () => {
             expect(el.textContent).toBe('Label');
         });
 
-        test('mirrors form* attributes and disabled/loading onto the proxy', async() => {
+        test('mirrors form* attributes and disabled/loading onto the proxy', async () => {
             const el = await mount({ type: 'submit', formaction: '/save', formmethod: 'post', formnovalidate: '', formtarget: '_blank' });
             const p = proxy(el);
             expect(p.getAttribute('formaction')).toBe('/save');
@@ -213,7 +216,7 @@ describe('OLButton', () => {
             expect(p.hasAttribute('formaction')).toBe(false);
         });
 
-        test('type="button" and links have no proxy; it follows type/href changes', async() => {
+        test('type="button" and links have no proxy; it follows type/href changes', async () => {
             const el = await mount();
             expect(proxy(el)).toBeNull();
             el.type = 'submit';
@@ -231,7 +234,7 @@ describe('OLButton', () => {
             expect(proxy(el)).toBeNull();
         });
 
-        test('restores the proxy if a consumer replaces the light DOM', async() => {
+        test('restores the proxy if a consumer replaces the light DOM', async () => {
             const el = await mount({ type: 'submit' });
             el.textContent = 'New label';
             expect(proxy(el)).toBeNull();
@@ -240,7 +243,7 @@ describe('OLButton', () => {
             expect(el.textContent).toBe('New label');
         });
 
-        test('form* properties reach the proxy, not just attributes', async() => {
+        test('form* properties reach the proxy, not just attributes', async () => {
             const el = await mount({ type: 'submit' });
             el.formAction = '/save';
             el.formMethod = 'post';
@@ -259,7 +262,7 @@ describe('OLButton', () => {
     });
 
     describe('form submission', () => {
-        test('type="submit" submits with the proxy as submitter, carrying name/value', async() => {
+        test('type="submit" submits with the proxy as submitter, carrying name/value', async () => {
             const { form, el, submits } = await mountInForm({ type: 'submit', name: 'action', value: 'save' });
             control(el).click();
             expect(submits).toHaveLength(0); // deferred past dispatch
@@ -270,7 +273,7 @@ describe('OLButton', () => {
             expect(new FormData(form, submits[0].submitter).get('action')).toBe('save');
         });
 
-        test('type="reset" resets the form', async() => {
+        test('type="reset" resets the form', async () => {
             const { form, el } = await mountInForm({ type: 'reset' }, 'Clear');
             const input = document.createElement('input');
             input.name = 'q';
@@ -281,16 +284,16 @@ describe('OLButton', () => {
             expect(input.value).toBe('');
         });
 
-        test('type="button" does not touch the form', async() => {
+        test('type="button" does not touch the form', async () => {
             const { el, submits } = await mountInForm({}, 'Noop');
             control(el).click();
             await flush();
             expect(submits).toHaveLength(0);
         });
 
-        test('preventDefault() on the host or an ancestor cancels the submit, like a native button', async() => {
+        test('preventDefault() on the host or an ancestor cancels the submit, like a native button', async () => {
             const { form, el, submits } = await mountInForm({ type: 'submit' });
-            const cancel = (e) => e.preventDefault();
+            const cancel = e => e.preventDefault();
             form.addEventListener('click', cancel);
             control(el).click();
             await flush();
@@ -308,7 +311,7 @@ describe('OLButton', () => {
             expect(submits).toHaveLength(1);
         });
 
-        test('does not submit while disabled or loading', async() => {
+        test('does not submit while disabled or loading', async () => {
             const { el, submits } = await mountInForm({ type: 'submit', disabled: '' });
             control(el).click();
             await flush();
@@ -320,7 +323,7 @@ describe('OLButton', () => {
             expect(submits).toHaveLength(0);
         });
 
-        test('falls back to internals.form.requestSubmit() when the proxy has no form owner', async() => {
+        test('falls back to internals.form.requestSubmit() when the proxy has no form owner', async () => {
             // e.g. the button is inside another component's shadow root and the
             // form is outside — the proxy can't associate, ElementInternals can.
             const el = await mount({ type: 'submit' });
@@ -333,7 +336,7 @@ describe('OLButton', () => {
         });
     });
 
-    test('formDisabledCallback disables the control without reflecting a disabled attribute', async() => {
+    test('formDisabledCallback disables the control without reflecting a disabled attribute', async () => {
         const el = await mount({ type: 'submit' });
         el.formDisabledCallback(true);
         await el.updateComplete;

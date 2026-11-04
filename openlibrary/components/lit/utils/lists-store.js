@@ -78,7 +78,7 @@ export async function toggleListSeed(listKey, seedKey, inList) {
  */
 export async function createUserList(userKey, name, seedKey) {
     const created = await createList(userKey, name, seedKey);
-    lists = { [created.key]: { listName: name, members: seedKey ? [seedKey] : [] }, ...(lists || {}) };
+    lists = { [created.key]: { listName: name, members: seedKey ? [seedKey] : [] }, ...lists };
     notify();
     return created.key;
 }

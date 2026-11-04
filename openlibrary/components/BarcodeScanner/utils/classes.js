@@ -42,7 +42,9 @@ export class OCRScanner {
      * @param {HTMLCanvasElement} canvas
      */
     async doOCR(canvas) {
-        const { data: { lines } } = await this.scheduler.addJob('recognize', canvas);
+        const {
+            data: { lines }
+        } = await this.scheduler.addJob('recognize', canvas);
         const textLines = lines.map(l => l.text.trim()).filter(line => line);
         console.log(textLines.join('\n'));
         for (const line of textLines) {
@@ -68,7 +70,7 @@ export class ThrottleGrouping {
      * @param {function(Parameters<TFunc>[]): Parameters<TFunc>} param0.reducer
      * @param {number} param0.wait
      */
-    constructor({func, reducer, wait=100}) {
+    constructor({ func, reducer, wait = 100 }) {
         this.func = func;
         this.reducer = reducer;
         this.wait = wait;

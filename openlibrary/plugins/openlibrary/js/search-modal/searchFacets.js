@@ -11,7 +11,7 @@ const FACETS_PATH = '/search/facets.json';
 // Filter params to drop when counting a given field, where the param name isn't
 // just the field name: /search accepts either spelling of the author filter.
 const OWN_FILTER_PARAMS = {
-    author_facet: ['author_facet', 'author_key'],
+    author_facet: ['author_facet', 'author_key']
 };
 
 // How long a dropper stays shut waiting for its counts before opening anyway.
@@ -101,7 +101,9 @@ export async function openWhenCountsReady(event, load) {
     const { focusFirst } = event.detail;
 
     let timer;
-    const budget = new Promise(resolve => { timer = setTimeout(resolve, FACET_OPEN_BUDGET_MS); });
+    const budget = new Promise(resolve => {
+        timer = setTimeout(resolve, FACET_OPEN_BUDGET_MS);
+    });
     try {
         await Promise.race([load(), budget]);
     } finally {

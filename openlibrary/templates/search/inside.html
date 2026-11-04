@@ -1,4 +1,4 @@
-$def with (q, rows, total, page=1, results_per_page=20, language=None, readable=False, error=None, empty_reason=None)
+$def with (q, rows, total, page=1, results_per_page=20, language=None, readable=False, phrase=True, was_auto_phrased=False, used_fallback=False, opted_out=False, error=None, empty_reason=None)
 
 $var title: $_('Search Open Library for %s', q)
 
@@ -47,10 +47,20 @@ $ range_start = (page - 1) * results_per_page + 1
       </div>
 
       $if total:
-        $if filtered or not rows:
-          <div class="search-results-stats">$ungettext('About %(total)s result', 'About %(total)s results', total, total=commify(total))</div>
-        $else:
-          <div class="search-results-stats">$ungettext('%(start)s - %(end)s of about %(total)s result', '%(start)s - %(end)s of about %(total)s results', total, start=range_start, end=range_start + len(rows) - 1, total=commify(total))</div>
+        $# One row: the count, then how the query was read (wraps under the count on narrow screens).
+        <div class="search-results-stats search-results-stats--wrap">
+          $if filtered or not rows:
+            <span>$ungettext('About %(total)s result', 'About %(total)s results', total, total=commify(total))</span>
+          $else:
+            <span>$ungettext('%(start)s - %(end)s of about %(total)s result', '%(start)s - %(end)s of about %(total)s results', total, start=range_start, end=range_start + len(rows) - 1, total=commify(total))</span>
+          $if used_fallback:
+            <span class="search-results-stats__note">$_('No exact matches for "%(query)s". Showing books containing all of these words.', query=q)</span>
+          $elif was_auto_phrased:
+            $# Keep the whole message translatable so its link can be repositioned for each language.
+            <span class="search-results-stats__note">$:_('Showing exact matches for "%(query)s". %(link_start)sSearch for all of these words instead.%(link_end)s', query=websafe(q), link_start='<a href="%s">' % websafe(changequery(phrase='false', page=None)), link_end='</a>')</span>
+          $elif opted_out:
+            <span class="search-results-stats__note">$:_('Showing all of these words, in any order. %(link_start)sSearch for the exact phrase instead.%(link_end)s', link_start='<a href="%s">' % websafe(changequery(phrase=None, page=None)), link_end='</a>')</span>
+        </div>
   </div>
 
   $if error:
@@ -64,6 +74,6 @@ $ range_start = (page - 1) * results_per_page + 1
 
   $if rows:
     <div class="resultsContainer search-results-container">
-      $:macros.FulltextResults(q, rows, total, page=page, results_per_page=results_per_page)
+      $:macros.FulltextResults(q, rows, total, page=page, results_per_page=results_per_page, phrase=phrase)
     </div>
 </div>

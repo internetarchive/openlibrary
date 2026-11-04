@@ -103,10 +103,6 @@
   display: block;
 }
 
-.searchResultItem span.resultType {
-  font-size: 0.6875em;
-}
-
 .searchResultItem .bookseries {
   font-size: var(--font-size-body-medium);
 }

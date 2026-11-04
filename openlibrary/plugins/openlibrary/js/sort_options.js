@@ -9,12 +9,12 @@ import { trackEvent } from './ol.analytics.js';
  * @param {function(string): void} [navigate] Test seam — jsdom's
  *   window.location can be neither replaced nor spied on.
  */
-export function initSortOptions(menu, navigate = (url) => window.location.assign(url)) {
+export function initSortOptions(menu, navigate = url => window.location.assign(url)) {
     // Read up front: activating an item updates `value`, so it stops
     // describing what the page is showing.
     const renderedValue = menu.getAttribute('value');
 
-    menu.addEventListener('ol-menu-popover-select', function(event) {
+    menu.addEventListener('ol-menu-popover-select', function (event) {
         const value = event.detail.value;
         // Re-picking the sort the page is already showing: nothing to load.
         if (value === renderedValue) return;

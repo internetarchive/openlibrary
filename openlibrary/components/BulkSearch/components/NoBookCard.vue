@@ -1,16 +1,15 @@
 <template>
-  <div class="noBookCard">
-    <p> No Books Found</p>
-  </div>
+    <div class="noBookCard">
+        <p>No Books Found</p>
+    </div>
 </template>
 
 <script>
-export default {
-};
+export default {};
 </script>
 
 <style>
-.noBookCard{
+.noBookCard {
     flex-shrink: 0;
     margin-right: 6px;
     width: 80vw;
@@ -27,6 +26,6 @@ export default {
     justify-content: center;
 }
 .noBookCard:first-child {
-    animation: slideUp .8s;
+    animation: slideUp 0.8s;
 }
 </style>

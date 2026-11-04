@@ -3,15 +3,13 @@
 from __future__ import annotations  # Needed for 'Loan' return types early on
 
 import logging
-import os
 import time
 from collections.abc import Iterable
+from json import JSONDecodeError
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 import httpx
-import requests
 import web
-from simplejson.errors import JSONDecodeError
 
 from infogami.utils import delegate
 from infogami.utils.view import public
@@ -190,12 +188,12 @@ async def get_groundtruth_availability_async(ocaid, s3_keys=None):
     including 1-hour borrows"""
     params = "?action=availability&identifier=" + ocaid
     url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
-    timeout = 2 if os.getenv("LOCAL_DEV") else config_http_request_timeout
+    timeout = 2 if get_ol_env().LOCAL_DEV else config_http_request_timeout
     try:
-        response = await ia.get_async_session().post(url + params, data=s3_keys, timeout=timeout)
+        response = await ia.get_async_session().post(url + params, data=s3_keys, timeout=timeout, extensions={"server_timing": "ia-loans"})
         response.raise_for_status()
     except httpx.TimeoutException:
-        if os.getenv("LOCAL_DEV"):
+        if get_ol_env().LOCAL_DEV:
             logger.warning("Availability request timed out in LOCAL_DEV environment. Returning empty dictionary.")
             return {}
         else:
@@ -230,7 +228,7 @@ async def s3_loan_api_async(s3_keys, ocaid=None, action="browse", **kwargs):
 
     data = s3_keys | kwargs
 
-    response = await ia.get_async_session().post(url + params, data=data, timeout=config_http_request_timeout)
+    response = await ia.get_async_session().post(url + params, data=data, timeout=config_http_request_timeout, extensions={"server_timing": "ia-loans"})
     # We want this to be just `409` but first
     # `www/common/Lending.inc#L111-114` needs to
     # be updated on petabox
@@ -292,7 +290,7 @@ async def get_available_async(
             "x-preferred-client-id": client_ip,
             "x-application-id": "openlibrary",
         }
-        response = await ia.get_async_session().get(url, headers=headers, timeout=config_http_request_timeout)
+        response = await ia.get_async_session().get(url, headers=headers, timeout=config_http_request_timeout, extensions={"server_timing": "ia-search"})
         items = response.json().get("response", {}).get("docs", [])
         results = {}
         for item in items:
@@ -437,6 +435,7 @@ async def get_availability_async(
             },
             headers=headers,
             timeout=config_http_request_timeout,
+            extensions={"server_timing": "ia-availability"},
         )
 
         # This API should always return 200
@@ -605,7 +604,8 @@ def is_loaned_out_on_ia(identifier: str) -> bool | None:
     """Returns True if the item is checked out on Internet Archive."""
     url = f"https://archive.org/services/borrow/{identifier}?action=status"
     try:
-        response = ia.session.get(url, timeout=config_http_request_timeout).json()
+        r = ia.session.get(url, timeout=config_http_request_timeout, extensions={"server_timing": "ia-borrow"})
+        response = r.json()
         return response and response.get("checkedout")
     except Exception:  # TODO: Narrow exception scope
         logger.exception(f"is_loaned_out_on_ia({identifier})")
@@ -791,11 +791,13 @@ class IA_Lending_API:
         payload["token"] = config_ia_ol_shared_key
 
         try:
-            jsontext = requests.post(
+            resp = ia.session.post(
                 config_ia_loan_api_url,
                 data=payload,
                 timeout=config_http_request_timeout,
-            ).json()
+                extensions={"server_timing": "ia-loans"},
+            )
+            jsontext = resp.json()
             logger.info("POST response: %s", jsontext)
             return jsontext
         except JSONDecodeError:
@@ -893,7 +895,11 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
 RESULTS_PER_PAGE: int = 25
 
 
-def get_loan_history_data(username: str, page: int) -> dict:
+class AccountNotFoundError(LookupError):
+    """No Open Library account exists for the requested username."""
+
+
+def get_loan_history_data(username: str, page: int, s3_cookie: str | None) -> dict:
     """Fetch loan history data for a user.
 
     This will use a patron's S3 keys to query the IA loan history API,
@@ -904,13 +910,16 @@ def get_loan_history_data(username: str, page: int) -> dict:
     includes items that are not in Open Library, and displaying only IA
     items creates pagination and navigation issues. For further discussion,
     see https://github.com/internetarchive/openlibrary/pull/8375.
+
+    `s3_cookie` is the patron's encrypted `s3` cookie. Callers pass it in
+    because FastAPI requests have no web.py context to read it from.
+
+    Raises AccountNotFoundError when `username` has no Open Library account.
     """
-    from infogami.utils.view import render
-
     if not OpenLibraryAccount.get_by_username(username):
-        raise render.notfound("Account not found for %s" % username, create=False)
+        raise AccountNotFoundError(f"Account not found for {username}")
 
-    s3_keys = parse_s3_cookie(web.cookies().get("s3"))
+    s3_keys = parse_s3_cookie(s3_cookie)
     limit = RESULTS_PER_PAGE
     offset = page * limit - limit
 

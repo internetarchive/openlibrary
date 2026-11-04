@@ -1,7 +1,7 @@
 import yaml
 from statsd import StatsClient
 
-from openlibrary.core import db
+from openlibrary.core import db  # noqa: TID251
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings
 
@@ -41,7 +41,7 @@ def write_to_statsd(configfile, stats):
 
 def gather_participation_scores() -> dict[str, int | dict[str, int]]:
     results: dict[str, int | dict[str, int]] = {}
-    results.update(Ratings.calc_star_rating_counts())
+    results.update(Ratings.calc_star_rating_counts_sync())
     results.update(Bookshelves.calc_reading_log_counts())
     results.update(calc_list_counts())
     return results

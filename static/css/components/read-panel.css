@@ -158,8 +158,7 @@ ul.ebook-download-options li {
     content: "";
   }
 
-  .readers-stats__wrapper.mobile .readers-stats li.avg-ratings,
-  .readers-stats__wrapper.mobile .readers-stats li.readers-stats__review-count {
+  .readers-stats__wrapper.mobile .readers-stats li.avg-ratings {
     display: none;
   }
   /* stylelint-enable selector-max-specificity */

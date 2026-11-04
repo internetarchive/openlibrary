@@ -56,8 +56,8 @@ async function showAlertDialog({ title, message, actions, focusValue, labelClose
 
     dialog.append(body, footer);
 
-    return new Promise((resolve) => {
-        dialog.addEventListener('ol-after-close', (event) => {
+    return new Promise(resolve => {
+        dialog.addEventListener('ol-after-close', event => {
             // Ignore after-close events bubbling up from a dialog nested in the message.
             if (event.target !== dialog) return;
             dialog.remove();
@@ -83,23 +83,16 @@ async function showAlertDialog({ title, message, actions, focusValue, labelClose
  *     and puts initial focus on Cancel so a stray Enter doesn't destroy anything.
  * @returns {Promise<Boolean>} true only when the confirm button was pressed.
  */
-export async function olConfirm({
-    title,
-    message,
-    confirmLabel = 'Confirm',
-    cancelLabel = 'Cancel',
-    labelClose,
-    destructive = false,
-}) {
+export async function olConfirm({ title, message, confirmLabel = 'Confirm', cancelLabel = 'Cancel', labelClose, destructive = false }) {
     const value = await showAlertDialog({
         title,
         message,
         labelClose,
         actions: [
             { label: cancelLabel, value: 'cancel', variant: 'secondary' },
-            { label: confirmLabel, value: 'confirm', variant: 'primary', tone: destructive ? 'danger' : undefined },
+            { label: confirmLabel, value: 'confirm', variant: 'primary', tone: destructive ? 'danger' : undefined }
         ],
-        focusValue: destructive ? 'cancel' : 'confirm',
+        focusValue: destructive ? 'cancel' : 'confirm'
     });
     return value === 'confirm';
 }
@@ -121,6 +114,6 @@ export async function olAlert({ title, message, okLabel = 'OK', labelClose }) {
         message,
         labelClose,
         actions: [{ label: okLabel, value: 'ok', variant: 'primary' }],
-        focusValue: 'ok',
+        focusValue: 'ok'
     });
 }

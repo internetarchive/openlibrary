@@ -30,7 +30,7 @@ mkdir -p $DEPLOY_DIR
 WEB_HOSTNAMES="ol-web0 ol-web2 ol-web3"
 # Note: ol-solr0 and ol-solr2 are currently excluded due to a version
 # upgrade pending full reindex
-ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 $WEB_HOSTNAMES"
+ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www1 $WEB_HOSTNAMES"
 SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 
 KILL_CRON=${KILL_CRON:-""}
@@ -267,8 +267,9 @@ deploy_olsystem() {
     echo -ne "Cloning $REPO repo ... "
     git clone --depth=1 "$CLONE_URL" $REPO_NEW 2> /dev/null
     echo -n "✔ (SHA: $(git -C $REPO_NEW rev-parse HEAD | cut -c -7))"
-    # compress the repo to speed up the transfer
-    tar -czf $REPO_NEW.tar.gz $REPO_NEW
+    # compress the repo to speed up the transfer. COPYFILE_DISABLE stops macOS tar
+    # from adding ._* AppleDouble entries, which extract as junk files on the servers.
+    COPYFILE_DISABLE=1 tar -czf $REPO_NEW.tar.gz $REPO_NEW
     echo " ($(du -h $REPO_NEW.tar.gz | cut -f1) compressed)"
 
     if ! copy_to_servers "$DEPLOY_DIR/$REPO_NEW.tar.gz" "/opt/$REPO_NEW" "$REPO_NEW"; then
@@ -411,6 +412,16 @@ check_olbase_image_up_to_date() {
     fi
 }
 
+# Start the olbase build with the gh CLI, if installed, so it builds during the rest
+# of the deploy. Sets OLBASE_RUN_ID. Returns 1 if gh is missing or the dispatch fails.
+start_olbase_build() {
+    command -v gh &> /dev/null || return 1
+    local run_url
+    run_url=$(gh workflow run olbase.yaml --repo internetarchive/openlibrary --ref "${GIT_BRANCH:-master}" | grep /actions/runs/) || return 1
+    OLBASE_RUN_ID=${run_url##*/}
+    echo "✓ Started olbase build: $run_url"
+}
+
 deploy_openlibrary() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
@@ -461,7 +472,10 @@ deploy_openlibrary() {
     cp -r openlibrary/docker openlibrary_new
     cp -r openlibrary/scripts openlibrary_new
     cp -r openlibrary/conf openlibrary_new
-    tar -czf openlibrary_new.tar.gz openlibrary_new
+    # scripts/obfi.sh reads the shared bot list from ../openlibrary/utils/
+    mkdir -p openlibrary_new/openlibrary/utils
+    cp openlibrary/openlibrary/utils/bot_user_agents.txt openlibrary_new/openlibrary/utils/
+    COPYFILE_DISABLE=1 tar -czf openlibrary_new.tar.gz openlibrary_new
 
     if [[ "$SKIP_OL_TRANSFER_CODE" != "1" ]]; then
         if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary_new" "openlibrary_new"; then
@@ -720,16 +734,16 @@ prune_docker () {
 # Which compose service runs nginx on each host; the compose profile is the
 # hostname. Hosts absent from this list don't run nginx.
 #
-# All three belong here, even though ol-www0/web_nginx is the only one that loads
+# All three belong here, even though ol-www1/web_nginx is the only one that loads
 # the ModSecurity ruleset (`modsecurity on` appears in docker/web_nginx.conf and
 # nowhere else). Every nginx service mounts the shared docker/nginx.conf, which
 # includes seven files out of /olsystem -- logging.conf, tagger.js, deny.conf,
 # is_blessed_ip.conf, is_blessed_ua.conf, is_sus_ip.conf, ua_rate_limit_key.conf
 # -- so a bad olsystem include crash-loops infobase_nginx and covers_nginx just
-# as readily. Narrowing this map to ol-www0 would leave those unguarded.
+# as readily. Narrowing this map to ol-www1 would leave those unguarded.
 nginx_service_for() {
     case "$1" in
-        ol-www0)    echo "web_nginx" ;;
+        ol-www1)    echo "web_nginx" ;;
         ol-home0)   echo "infobase_nginx" ;;
         ol-covers0) echo "covers_nginx" ;;
         *)          echo "" ;;
@@ -940,6 +954,15 @@ deploy_wizard() {
     fi
     echo ""
 
+    # Start the olbase image build before the announcement so it builds during the
+    # announcement and olsystem deploy. Without gh, it has to be started by hand.
+    if ! check_olbase_image_up_to_date; then
+        if ! start_olbase_build; then
+            read -p "Once you've clicked 'Run workflow', press Enter to continue..."
+        fi
+    fi
+    echo ""
+
     # Announce the deploy
     echo "[Now] Announce deploy to #openlibrary-g, #openlibrary, and #open-librarians-g:"
     echo ""
@@ -949,11 +972,6 @@ deploy_wizard() {
     echo "PRs going out: $RELEASE_MERGED_PRS_URL"
     echo ""
     read -p "Once announced, press Enter to continue..."
-    echo ""
-
-    if ! check_olbase_image_up_to_date; then
-        read -p "Once you've clicked 'Run workflow', press Enter to continue..."
-    fi
     echo ""
 
     # Deploy olsystem
@@ -967,8 +985,11 @@ deploy_wizard() {
     fi
     echo ""
 
+    if [ -n "$OLBASE_RUN_ID" ]; then
+        gh run watch "$OLBASE_RUN_ID" --repo internetarchive/openlibrary --exit-status --compact --interval 30 || true
+    fi
     until check_olbase_image_up_to_date; do
-        read -p "Once built, press Enter to continue..."
+        read -p "Image still out of date. Check the olbase build, then press Enter to recheck..."
     done
     echo ""
 

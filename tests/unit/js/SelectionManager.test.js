@@ -16,7 +16,7 @@ function createTestElementsForProcessClick() {
 
     listItem.appendChild(bookTitle);
 
-    return {listItem, link};
+    return { listItem, link };
 }
 
 function setupSelectionManager() {
@@ -38,7 +38,7 @@ describe('SelectionManager', () => {
         expect(sm.selectedItems).toEqual({
             work: [],
             edition: [],
-            author: [],
+            author: []
         });
     });
 
@@ -49,10 +49,9 @@ describe('SelectionManager', () => {
         expect(sm.selectedItems).toEqual({
             work: ['OL1W'],
             edition: [],
-            author: [],
+            author: []
         });
     });
-
 
     test('processClick - clicking on a link or button', () => {
         const sm = setupSelectionManager();

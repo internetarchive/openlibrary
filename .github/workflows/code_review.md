@@ -129,7 +129,7 @@ Only material violations — confusing, error-prone, or tech debt. Open Library'
   code.
 - No speculative abstractions (a helper called once), and no error handling for states the
   framework already rules out; validate at system boundaries only.
-- CSS follows `docs/ai/css.md`; web components follow `docs/ai/web-components.md`.
+- CSS follows `docs/frontend/css.md`; web components follow `docs/frontend/web-components.md`.
 
 Not findings: formatting a linter already enforces, subjective naming, or missing type
 annotations in a file that has none.

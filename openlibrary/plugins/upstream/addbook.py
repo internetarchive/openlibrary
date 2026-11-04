@@ -1,7 +1,7 @@
 """Handlers for adding and editing books."""
 
 import csv
-import datetime
+import datetime as dt
 import io
 import logging
 import re
@@ -17,7 +17,7 @@ from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
 from openlibrary.core.helpers import uniq
-from openlibrary.i18n import gettext as _  # noqa: F401 side effects may be needed
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
@@ -45,6 +45,14 @@ logger = logging.getLogger("openlibrary.book")
 FIELD_TAG_TYPES = {"genres": "genre"}
 
 
+def is_valid_web_book_url(url: str) -> bool:
+    """Blank, or an absolute http(s) URL with a host."""
+    if not url:
+        return True
+    parsed = urllib.parse.urlparse(url)
+    return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+
+
 def get_recaptcha():
     def recaptcha_exempt() -> bool:
         """Check to see if account is an admin, or more than two years old."""
@@ -58,7 +66,7 @@ def get_recaptcha():
             return True
 
         create_dt = account.creation_time()
-        now_dt = datetime.datetime.utcnow()
+        now_dt = dt.datetime.utcnow()
         delta = now_dt - create_dt
         return delta.days > 30
 
@@ -266,6 +274,10 @@ class addbook(delegate.page):
                     "Recaptcha solution was incorrect",
                     'Please <a href="javascript:history.back()">go back</a> and try again.',
                 )
+
+        i.web_book_url = i.web_book_url.strip()
+        if not is_valid_web_book_url(i.web_book_url):
+            return render_template("message.html", _("Invalid Book URL"), _("Please enter a valid URL starting with http:// or https://"))
 
         i = utils.unflatten(i)
         saveutil = DocSaveHelper()
@@ -752,6 +764,9 @@ class SaveBookHelper:
             # "genres" is the work FIELD; process_managed_tags derives the
             # singular Tag type ("genre") from FIELD_TAG_TYPES for validation.
             work.genres = self.process_managed_tags(work.get("genres"), "genres", stored_genres)
+        # The form posts the chosen tag's key; "" clears it (trim_doc makes that None, which the save drops).
+        if "literary_forms" in work:
+            work.literary_forms = [{"key": work.literary_forms}] if work.literary_forms else None
         if ": " in work.get("title", ""):
             work.title, work.subtitle = work.title.split(": ", 1)
         else:

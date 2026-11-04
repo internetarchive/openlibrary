@@ -1,8 +1,8 @@
-import { PersistentToast } from './Toast';
+import { showToast } from '../../../components/lit/toast.js';
 
 export async function initAsyncFollowing(followForms) {
     followForms.forEach(form => {
-        form.addEventListener('submit', async(e) => {
+        form.addEventListener('submit', async e => {
             e.preventDefault();
             const url = form.action;
             const formData = new FormData(form);
@@ -16,7 +16,7 @@ export async function initAsyncFollowing(followForms) {
             await fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
                 body: new URLSearchParams(formData)
             })
@@ -30,7 +30,7 @@ export async function initAsyncFollowing(followForms) {
                     stateInput.value = isFollowRequest ? '1' : '0';
                 })
                 .catch(() => {
-                    new PersistentToast(i18nStrings.errorMsg).show();
+                    showToast(i18nStrings.errorMsg, { type: 'error', persistent: true });
                 })
                 .finally(() => {
                     submitButton.disabled = false;

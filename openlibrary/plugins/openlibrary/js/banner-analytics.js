@@ -7,7 +7,7 @@ const BANNER_EVENTS = {
  * Tracks Matomo and Archive Analytics events when banners are dismissed.
  */
 export function initBannerAnalytics() {
-    document.addEventListener('ol-banner-dismiss', (e) => {
+    document.addEventListener('ol-banner-dismiss', e => {
         const bannerId = e.detail?.dismissId || e.target.id || e.target.getAttribute('dismiss-id');
         if (!bannerId) return;
 

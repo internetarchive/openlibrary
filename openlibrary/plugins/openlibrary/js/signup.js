@@ -29,7 +29,7 @@ export function initSignupForm() {
 
     // Checks whether reportValidity exists for cross-browser compatibility
     // Includes invalid input count to account for checks not covered by reportValidity
-    $(signupForm).on('submit', function(e) {
+    $(signupForm).on('submit', function (e) {
         e.preventDefault();
         validatePDSelection();
         const numInvalidInputs = signupForm.querySelectorAll('.invalid').length;
@@ -40,7 +40,7 @@ export function initSignupForm() {
         }
     });
 
-    $('#username').on('keyup', function(){
+    $('#username').on('keyup', function () {
         const value = $(this).val();
         $('#userUrl').addClass('darkgreen').text(value).css('font-weight', '700');
     });
@@ -85,7 +85,7 @@ export function initSignupForm() {
             return;
         }
 
-        if (!(VALID_USERNAME_RE.test(value_username))) {
+        if (!VALID_USERNAME_RE.test(value_username)) {
             renderError('#username', '#usernameMessage', i18nStrings['username_char_err']);
             return;
         }
@@ -96,7 +96,7 @@ export function initSignupForm() {
             url: '/account/validate',
             data: { username: value_username },
             type: 'GET',
-            success: function(errors) {
+            success: function (errors) {
                 usernameLoadingIcon.hide();
 
                 if (errors.username) {
@@ -130,7 +130,7 @@ export function initSignupForm() {
             url: '/account/validate',
             data: { email: value_email },
             type: 'GET',
-            success: function(errors) {
+            success: function (errors) {
                 emailLoadingIcon.hide();
 
                 if (errors.email) {
@@ -192,21 +192,24 @@ export function initSignupForm() {
     const $nonCheckboxInputs = $('form[name=signup] input:not([type="checkbox"])');
 
     // Validates input fields already marked as invalid on value change
-    $nonCheckboxInputs.on('input', debounce(function(){
-        if ($(this).hasClass('invalid')) {
-            validateInput(this);
-        }
-    }, 50));
+    $nonCheckboxInputs.on(
+        'input',
+        debounce(function () {
+            if ($(this).hasClass('invalid')) {
+                validateInput(this);
+            }
+        }, 50)
+    );
 
     // Validates all other input fields (i.e. not already marked as invalid) on blur
-    $nonCheckboxInputs.on('blur', function() {
+    $nonCheckboxInputs.on('blur', function () {
         if (!$(this).hasClass('invalid')) {
             validateInput(this);
         }
     });
 
     // Validates the print-disability authority selection when the selection changes
-    $('form[name=signup] select').on('change', function() {
+    $('form[name=signup] select').on('change', function () {
         validatePDSelection();
     });
 

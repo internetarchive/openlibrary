@@ -1,5 +1,13 @@
 import { createActiveShowcaseItem, ShowcaseItem } from '../../../openlibrary/plugins/openlibrary/js/lists/ShowcaseItem.js';
-import { showcaseI18nInput, subjectShowcase, authorShowcase, workShowcase, editionShowcase, activeListShowcase, listsSectionShowcase } from './sample-html/lists-test-data';
+import {
+    showcaseI18nInput,
+    subjectShowcase,
+    authorShowcase,
+    workShowcase,
+    editionShowcase,
+    activeListShowcase,
+    listsSectionShowcase
+} from './sample-html/lists-test-data';
 
 describe('createActiveShowcaseItem() tests', () => {
     test('createActiveShowcaseItem() results are as expected', () => {
@@ -14,7 +22,6 @@ describe('createActiveShowcaseItem() tests', () => {
         const [imageLink, titleLink, removeLink] = anchors;
         const inputs = li.querySelectorAll('input');
         const [titleInput, seedKeyInput, seedTypeInput] = inputs;
-
 
         // Must have `actionable-item` class
         expect(li.classList.contains('actionable-item')).toBe(true);
@@ -92,7 +99,7 @@ describe('ShowcaseItem class tests', () => {
         expect(showcase.listKey === '/people/openlibrary/lists/OL1L').toBe(true);
         expect(showcase.seedKey === '/works/OL54120W').toBe(true);
         expect(showcase.type).toBe('work');
-        expect(showcase.seed).toMatchObject({key: '/works/OL54120W'});
+        expect(showcase.seed).toMatchObject({ key: '/works/OL54120W' });
     });
 
     it('correctly infers if it is an active showcase', () => {
@@ -107,27 +114,27 @@ describe('ShowcaseItem class tests', () => {
 
     describe('Seed type inference', () => {
         const cases = [
-            {markup: subjectShowcase, expectedType: 'subject', expectedIsWorkValue: false, expectedIsSubjectValue: true},
-            {markup: authorShowcase, expectedType: 'author', expectedIsWorkValue: false, expectedIsSubjectValue: false},
-            {markup: workShowcase, expectedType: 'work', expectedIsWorkValue: true, expectedIsSubjectValue: false},
-            {markup: editionShowcase, expectedType: 'edition', expectedIsWorkValue: false, expectedIsSubjectValue: false}
+            { markup: subjectShowcase, expectedType: 'subject', expectedIsWorkValue: false, expectedIsSubjectValue: true },
+            { markup: authorShowcase, expectedType: 'author', expectedIsWorkValue: false, expectedIsSubjectValue: false },
+            { markup: workShowcase, expectedType: 'work', expectedIsWorkValue: true, expectedIsSubjectValue: false },
+            { markup: editionShowcase, expectedType: 'edition', expectedIsWorkValue: false, expectedIsSubjectValue: false }
         ];
 
-        test.each(cases)('Type is $expectedType', ({markup, expectedType}) => {
+        test.each(cases)('Type is $expectedType', ({ markup, expectedType }) => {
             document.body.innerHTML = markup;
             const showcaseElem = document.querySelector('.actionable-item');
             const showcase = new ShowcaseItem(showcaseElem);
             expect(showcase.type).toBe(expectedType);
         });
 
-        test.each(cases)('`isWork` value expected to be $expectedIsWorkValue', ({markup, expectedIsWorkValue}) => {
+        test.each(cases)('`isWork` value expected to be $expectedIsWorkValue', ({ markup, expectedIsWorkValue }) => {
             document.body.innerHTML = markup;
             const showcaseElem = document.querySelector('.actionable-item');
             const showcase = new ShowcaseItem(showcaseElem);
             expect(showcase.isWork).toBe(expectedIsWorkValue);
         });
 
-        test.each(cases)('`isSubject` value expected to be $expectedIsSubjectValue', ({markup, expectedIsSubjectValue}) => {
+        test.each(cases)('`isSubject` value expected to be $expectedIsSubjectValue', ({ markup, expectedIsSubjectValue }) => {
             document.body.innerHTML = markup;
             const showcaseElem = document.querySelector('.actionable-item');
             const showcase = new ShowcaseItem(showcaseElem);

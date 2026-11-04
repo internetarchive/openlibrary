@@ -19,7 +19,7 @@ import { LitElement, html, css } from 'lit';
  */
 export class OLChipGroup extends LitElement {
     static properties = {
-        gap: { type: String, reflect: true },
+        gap: { type: String, reflect: true }
     };
 
     static styles = css`
@@ -29,11 +29,11 @@ export class OLChipGroup extends LitElement {
             gap: 8px;
         }
 
-        :host([gap="small"]) {
+        :host([gap='small']) {
             gap: 4px;
         }
 
-        :host([gap="large"]) {
+        :host([gap='large']) {
             gap: 12px;
         }
     `;

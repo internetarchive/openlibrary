@@ -19,8 +19,10 @@ name: PR Auto-Responder
 # scope. Do not do that.
 #
 # What remains, and is accepted deliberately: the model *reads* untrusted PR content
-# (title, body, diff) while holding OL_BOT_PAT, so prompt injection is a real surface.
-# It is bounded by --allowedTools below and by pr_autoresponder.md, which forbids
+# (title, body, diff) while holding OL_BOT_PR_PAT -- a fine-grained token scoped to
+# issues:write + pull-requests:write on this repo ONLY (no contents, no other repos), so
+# prompt injection is bounded to comment/label actions here, not the broad OL_BOT_PAT.
+# It is bounded further by --allowedTools below and by pr_autoresponder.md, which forbids
 # merging, closing and editing code. `Bash(gh api:*)` is the widest remaining grant --
 # narrowing it to the specific read calls Step 1 needs would shrink the surface further,
 # and is left as a follow-up rather than bundled here because changing allowedTools has
@@ -40,7 +42,7 @@ permissions:
   pull-requests: write
   issues: write
   # Must be `write`: GitHub accepts only `write` or `none` here, so `read` made the whole
-  # file unparseable, and `none` would break the OIDC fetch described above.
+  # file unparsable, and `none` would break the OIDC fetch described above.
   id-token: write
 
 concurrency:
@@ -64,7 +66,7 @@ jobs:
     steps:
       # NO `ref:` -- deliberately checks out the base commit, not the PR head. See the
       # SECURITY note at the top of this file before changing this.
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -95,8 +97,8 @@ jobs:
             Bash(gh pr diff:*) Bash(gh pr checks:*) Bash(gh pr comment:*) Bash(gh pr edit:*)
             Bash(gh issue view:*) Bash(gh issue list:*) Bash(gh pr list:*)
             Bash(gh api:*) Bash(gh label list:*)"
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          github_token: ${{ secrets.OL_BOT_PAT }}
+          claude_code_oauth_token: ${{ secrets.OL_BOT_CLAUDE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.OL_BOT_PR_PAT }}
           # PR authors on a public repo mostly have only read access, same reasoning
           # as issue_enrichment.yml. NOTE: #13161 found this bypass unreliable for
           # issues due to a GitHub Actions workflow-resolution lag for non-ref-tied
