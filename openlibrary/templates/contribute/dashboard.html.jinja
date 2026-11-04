@@ -61,12 +61,12 @@
             {% endif %}
         </main>
         <aside class="contrib-dash__aside">
-            {#- One card per initiative: the open one in full, the others as a way over. The list and the rail follow the open one. -#}
+            {#- One card per initiative, all one shape: the open one in full on the selected tint, the others quieter and a way over. -#}
             <section class="contrib-initiatives" aria-label="{{ _('Initiatives') }}">
                 <span class="contrib-overline">{{ _("Initiatives") }}</span>
                 {% for card in data.initiatives %}
                     {% if card.on %}
-                        <div class="contrib-progress" aria-current="true">
+                        <div class="contrib-progress contrib-progress--on" aria-current="true">
                             <div class="contrib-progress__intro">
                                 <h2 class="contrib-progress__title" id="contrib-progress-title">{{ card.title }}</h2>
                                 <p class="contrib-progress__description">{{ card.description }}</p>

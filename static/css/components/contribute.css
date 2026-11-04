@@ -1767,14 +1767,21 @@ a.contrib-recent__title {
   }
 }
 
-/* The active initiative's progress, a sunken tile at the top of the dashboard's aside. */
+/* An initiative's progress card at the top of the dashboard's aside. The open one takes the control-selected look
+   (the same tint, border and link ink as ol-button[selected] and the current pagination page), so "active" reads
+   the way "selected" reads everywhere else, and the others stay plain surface cards. */
 .contrib-progress {
   display: grid;
   gap: var(--spacing-stack-md);
   padding: var(--spacing-inset-md);
   border: var(--border-card);
   border-radius: var(--border-radius-card);
-  background: var(--color-surface-sunken);
+  background: var(--color-surface);
+}
+
+.contrib-progress--on {
+  border-color: var(--color-control-selected-border);
+  background: var(--color-control-selected-bg);
 }
 
 .contrib-progress__intro {
@@ -1825,17 +1832,29 @@ a.contrib-recent__title {
   background: var(--color-primary);
 }
 
+.contrib-progress--on .contrib-progress__title,
+.contrib-progress--on .contrib-progress__percent {
+  color: var(--color-link);
+}
+
+/* The neutral track vanishes on the tint; a deeper step of the same blue keeps the bar legible. */
+.contrib-progress--on .contrib-progress__track {
+  background: var(--color-control-selected-bg-hover);
+}
+
 /* Initiatives: the open one as the full progress card, the others as a quieter card that is a link over. */
 .contrib-initiatives {
   display: grid;
   gap: var(--spacing-stack-sm);
 }
 
-.contrib-progress--other {
+/* The title stays in ink with no underline: the card is the link, and the tint on the open one says which is which.
+   The element in the selector outranks the base a:link rule, which would otherwise paint and underline the whole card. */
+a.contrib-progress--other,
+a.contrib-progress--other:is(:link, :visited, :hover) {
   gap: var(--spacing-stack-xs);
   padding: var(--spacing-inset-sm) var(--spacing-inset-md);
   color: inherit;
-  background: var(--color-surface);
   text-decoration: none;
 }
 
@@ -1854,13 +1873,15 @@ a.contrib-recent__title {
   white-space: nowrap;
 }
 
+/* Hover moves the fill and the border together, one step each, as the raised controls do. */
 @media (hover: hover) and (pointer: fine) {
-  .contrib-progress--other:hover {
+  a.contrib-progress--other:hover {
     border-color: var(--color-border-muted);
+    background: var(--color-control-hover);
   }
 
   .contrib-progress--other:hover .contrib-progress__title {
-    text-decoration: underline;
+    color: var(--color-link);
   }
 }
 
