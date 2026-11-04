@@ -77,7 +77,7 @@ $(function () {
     const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
     const autocompleteSeeds = document.querySelector('.multi-input-autocomplete--seeds');
     const autocompleteSubjects = document.querySelector('.csv-autocomplete--subjects');
-    const genresTagPicker = document.querySelector('.work-genres');
+    const managedTagPicker = document.querySelector('.work-tag-picker');
     const addRowButton = document.getElementById('add_row_button');
     const roles = document.querySelector('#roles');
     const classifications = document.querySelector('#classifications');
@@ -94,7 +94,7 @@ $(function () {
         autocompleteWorks ||
         autocompleteSeeds ||
         autocompleteSubjects ||
-        genresTagPicker ||
+        managedTagPicker ||
         addRowButton ||
         roles ||
         classifications ||
@@ -136,8 +136,8 @@ $(function () {
             if (autocompleteSubjects) {
                 module.initSubjectsAutocomplete();
             }
-            if (genresTagPicker) {
-                module.initGenresTagPicker();
+            if (managedTagPicker) {
+                module.initManagedTagPickers();
             }
             if (autocompleteSeeds) {
                 module.initSeedsMultiInputAutocomplete();

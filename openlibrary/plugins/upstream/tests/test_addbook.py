@@ -491,6 +491,18 @@ class TestSaveBookHelper:
         assert not new_work.subjects
 
 
+# The managed-tag work fields this PR generates a picker section for, each paired
+# with a canonical (singular) Tag of its type from TestProcessManagedTags setup.
+# The singular type is looked up per field in core.tags.FIELD_TAG_TYPES.
+_MANAGED_FIELD_CASES = (
+    ("genres", "/tags/OL1T"),
+    ("subgenres", "/tags/OL20T"),
+    ("content_warnings", "/tags/OL21T"),
+    ("content_formats", "/tags/OL9T"),
+    ("awards", "/tags/OL22T"),
+)
+
+
 class TestProcessManagedTags:
     """``SaveBookHelper.process_managed_tags`` merges the genre Tag selection
     posted from the work edit page into a list of refs, validating only
@@ -506,6 +518,11 @@ class TestProcessManagedTags:
                 {"type": {"key": "/type/tag"}, "key": "/tags/OL2T", "name": "Horror", "tag_type": "genre"},
                 # A Tag of a different type — must never be accepted as a genre.
                 {"type": {"key": "/type/tag"}, "key": "/tags/OL9T", "name": "Novel", "tag_type": "content_format"},
+                # One canonical (singular) Tag per other managed work field, so the
+                # same merge/validation logic can be exercised across every field.
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL20T", "name": "Epic Fantasy", "tag_type": "subgenre"},
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL21T", "name": "Violence", "tag_type": "content_warning"},
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL22T", "name": "Hugo Award", "tag_type": "award"},
                 # A real genre Tag carrying the LEGACY PLURAL tag_type "genres" —
                 # it would fail today's (singular) validation, but must survive
                 # once stored, since stored refs are not re-type-checked.
@@ -555,6 +572,17 @@ class TestProcessManagedTags:
         assert self.process(["/tags/OL1T", "/tags/OL84T", "/tags/OL9T"]) == [
             {"key": "/tags/OL1T"},
         ]
+
+    @pytest.mark.parametrize(("field", "tag_key"), _MANAGED_FIELD_CASES)
+    def test_added_tag_of_matching_type_accepted_per_field(self, field, tag_key):
+        # Every managed field accepts an added Tag whose singular tag_type matches.
+        assert addbook.SaveBookHelper.process_managed_tags([tag_key], field) == [{"key": tag_key}]
+
+    @pytest.mark.parametrize(("field", "tag_key"), _MANAGED_FIELD_CASES)
+    def test_added_wrong_type_tag_rejected_per_field(self, field, tag_key):
+        # OL84T (tag_type "genres", a plural legacy value) matches no field's
+        # singular type, so it is dropped as an addition for every field.
+        assert addbook.SaveBookHelper.process_managed_tags(["/tags/OL84T"], field) == []
 
     def test_drops_non_tag_documents_when_added(self):
         # OL5W resolves, but it is a work, not a Tag.

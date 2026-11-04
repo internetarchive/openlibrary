@@ -17,6 +17,7 @@ from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
 from openlibrary.core.helpers import uniq
+from openlibrary.core.tags import FIELD_TAG_TYPES, PICKER_TAG_FIELDS
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
@@ -32,17 +33,6 @@ if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Author, Edition, Work
 
 logger = logging.getLogger("openlibrary.book")
-
-# A managed-Tag work field maps to the Tag's SINGULAR tag_type. Per the project
-# convention: the work field is plural ("genres"), a Tag's tag_type is singular
-# ("genre"), and the Solr field is the singular stem. The edit page's picker
-# `tag-type` attribute and the save-path validation both use the singular value;
-# only the work field name and the hidden-input names stay plural. The mapped
-# value is validated against addtag.SUBJECT_SUB_TYPES in process_managed_tags (a
-# lazy import there avoids the addtag<->addbook module import cycle).
-# TODO(#14216): fold into the canonical core.tags.FIELD_TAG_TYPES once #14216
-# lands; the name is kept compatible so this collapses to an import.
-FIELD_TAG_TYPES = {"genres": "genre"}
 
 
 def is_valid_web_book_url(url: str) -> bool:
@@ -755,15 +745,14 @@ class SaveBookHelper:
         work.subject_places = list(read_subject(work.get("subject_places", "")))
         work.subject_times = list(read_subject(work.get("subject_times", "")))
         work.subject_people = list(read_subject(work.get("subject_people", "")))
-        # Only touch genres when the edit form actually carried the Genres
-        # section (books/edit/about.html renders a hidden `_genres_present`
-        # marker). A form without the section leaves the field untouched rather
-        # than clearing it — see process_managed_tags.
-        if work.get("_genres_present"):
-            stored_genres = self.work.get("genres") if self.work else None
-            # "genres" is the work FIELD; process_managed_tags derives the
-            # singular Tag type ("genre") from FIELD_TAG_TYPES for validation.
-            work.genres = self.process_managed_tags(work.get("genres"), "genres", stored_genres)
+        # Only touch a managed-tag field when the edit form actually carried its
+        # section (books/edit/about.html renders a hidden `_<field>_present`
+        # marker per field). A form without the section leaves that field
+        # untouched rather than clearing it — see process_managed_tags.
+        for fld in PICKER_TAG_FIELDS:
+            if work.get(f"_{fld}_present"):
+                stored = self.work.get(fld) if self.work else None
+                work[fld] = self.process_managed_tags(work.get(fld), fld, stored)
         # The form posts the chosen tag's key; "" clears it (trim_doc makes that None, which the save drops).
         if "literary_forms" in work:
             work.literary_forms = [{"key": work.literary_forms}] if work.literary_forms else None
@@ -824,12 +813,8 @@ class SaveBookHelper:
         :return: ``[{"key": "/tags/OL…T"}, …]``, empty if nothing remains. An
             empty list clears the field (``trim_doc`` maps it to ``None``).
         """
-        # Lazy import: addtag imports addbook at module scope, so importing
-        # SUBJECT_SUB_TYPES at the top would be a circular import.
-        from openlibrary.plugins.upstream.addtag import SUBJECT_SUB_TYPES
-
+        assert field in FIELD_TAG_TYPES, f"{field!r} is not a managed-tag work field"
         tag_type = FIELD_TAG_TYPES[field]
-        assert tag_type in SUBJECT_SUB_TYPES, f"FIELD_TAG_TYPES[{field!r}] = {tag_type!r} is not a known Tag type"
 
         def keys_of(items) -> list[str]:
             out: list[str] = []

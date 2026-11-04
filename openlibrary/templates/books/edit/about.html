@@ -41,6 +41,30 @@ $jsdef render_subject_autocomplete_item(item):
             </div>
         </div>
 
+        $# One multi-select picker section per managed-tag work field, generated from
+        $# the field list. The picker is a name-less UI control; the authoritative
+        $# values are the server-rendered hidden work--<field>--N--key inputs (the
+        $# openlibrary convention utils.unflatten turns into refs), so a work's tags
+        $# survive even if the picker's JavaScript never runs (edit.js syncs them).
+        $# tag-type is the Tag's SINGULAR type (tag_type_for); the work FIELD and the
+        $# hidden-input names are plural. The label is explicit and translatable.
+        $ picker_fields = [("genres", _("Genres?"), _("Add one or more literary genres for this work."), _("+ Add Genres")), ("subgenres", _("Subgenres?"), _("Add one or more subgenres for this work."), _("+ Add Subgenres")), ("content_warnings", _("Content warnings?"), _("Flag sensitive or distressing content in this work."), _("+ Add Content Warnings")), ("content_formats", _("Content formats?"), _("How this work is formatted or presented."), _("+ Add Content Formats")), ("awards", _("Awards?"), _("Awards this work has received."), _("+ Add Awards"))]
+        $for fld, label, tip, add_label in picker_fields:
+            <div class="formElement">
+                <div class="label">
+                    <label for="work-${fld}">$label</label>
+                    <span class="tip">$tip</span>
+                </div>
+                <div class="input work-tag-picker" data-field="${fld}">
+                    <input type="hidden" name="work--_${fld}_present" value="1"/>
+                    <ol-tag-picker id="work-${fld}" tag-type="${tag_type_for(fld)}" label="$add_label" value="$json_encode(work_tag_keys(work, fld))"></ol-tag-picker>
+                    <span class="work-tag-picker__inputs">
+                        $for idx, k in enumerate(work_tag_keys(work, fld)):
+                            <input type="hidden" name="work--${fld}--${idx}--key" value="${k}"/>
+                    </span>
+                </div>
+            </div>
+
     <div class="formElement">
         <div class="label">
             <label for="about-subjects">$_("Subject keywords?")</label>
@@ -49,45 +73,6 @@ $jsdef render_subject_autocomplete_item(item):
         $ config = {'name': 'subjects', 'facet': 'subject', 'data': work.get_subjects() if len(work.get_subjects()) else []}
         <div class="csv-autocomplete--subjects" data-config="$json_encode(config)">
             $:render_subject_field(config['name'], config['data'])
-        </div>
-    </div>
-
-    <div class="formElement">
-        <div class="label">
-            <label for="work-genres">$_("Genres?")</label>
-            <span class="tip">$_("Add one or more literary genres for this work.")</span>
-        </div>
-        $# Genre keys may be stored as refs ({"key": "/tags/OL…T"}) or, on works from
-        $# the scripted backfill, as plain strings. Accept both when rendering.
-        $code:
-            genre_keys = []
-            for g in (work.get('genres') or []):
-                if isinstance(g, dict):
-                    gk = g.get('key')
-                elif hasattr(g, 'key'):
-                    gk = g.key
-                else:
-                    gk = g
-                if gk:
-                    genre_keys.append(gk)
-        <div class="input work-genres">
-            $# Marks that this form carried the Genres section, so the save path
-            $# edits genres instead of leaving them untouched. The `_` prefix keeps
-            $# it out of the saved work (trim_doc drops underscore-prefixed keys).
-            <input type="hidden" name="work--_genres_present" value="1"/>
-            $# The picker is a name-less UI control: the hidden inputs below are the
-            $# authoritative form values, so a work's genres survive even if the
-            $# picker's JavaScript fails to load (edit.js initGenresTagPicker syncs them).
-            $# tag-type is the Tag's SINGULAR type ("genre") — the value sent to
-            $# query.json; the work FIELD that lists these Tags is plural ("genres",
-            $# used in the hidden input names below). Production Tags are singular.
-            $# label is set explicitly so the trigger stays plural ("+ Add Genres")
-            $# and translatable, rather than defaulting to the singular tag-type.
-            <ol-tag-picker id="work-genres" tag-type="genre" label="$_('+ Add Genres')" value="$json_encode(genre_keys)"></ol-tag-picker>
-            <span class="work-genres__inputs">
-                $for idx, gk in enumerate(genre_keys):
-                    <input type="hidden" name="work--genres--$idx--key" value="$gk"/>
-            </span>
         </div>
     </div>
 

@@ -3491,18 +3491,6 @@ msgid "Not sure"
 msgstr ""
 
 #: books/edit/about.html
-msgid "Subject keywords?"
-msgstr ""
-
-#: books/edit/about.html
-msgid "Please separate with commas."
-msgstr ""
-
-#: books/edit/about.html
-msgid "For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a href=\"/subjects/roman_empire\">Roman Empire</a>, <a href=\"/subjects/psychology\">psychology</a></i>"
-msgstr ""
-
-#: books/edit/about.html
 msgid "Genres?"
 msgstr ""
 
@@ -3512,6 +3500,66 @@ msgstr ""
 
 #: books/edit/about.html
 msgid "+ Add Genres"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Subgenres?"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Add one or more subgenres for this work."
+msgstr ""
+
+#: books/edit/about.html
+msgid "+ Add Subgenres"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Content warnings?"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Flag sensitive or distressing content in this work."
+msgstr ""
+
+#: books/edit/about.html
+msgid "+ Add Content Warnings"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Content formats?"
+msgstr ""
+
+#: books/edit/about.html
+msgid "How this work is formatted or presented."
+msgstr ""
+
+#: books/edit/about.html
+msgid "+ Add Content Formats"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Awards?"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Awards this work has received."
+msgstr ""
+
+#: books/edit/about.html
+msgid "+ Add Awards"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Subject keywords?"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Please separate with commas."
+msgstr ""
+
+#: books/edit/about.html
+msgid "For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a href=\"/subjects/roman_empire\">Roman Empire</a>, <a href=\"/subjects/psychology\">psychology</a></i>"
 msgstr ""
 
 #: books/edit/about.html
