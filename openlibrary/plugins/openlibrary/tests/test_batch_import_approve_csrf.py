@@ -2,14 +2,16 @@
 
 Approving a batch import used to run as a side-effecting GET on
 ``/import/batch/approve/<id>``, so a crawler, a prefetch, or a link an admin was
-tricked into visiting could silently approve a batch (CSRF). These tests are
-written to FAIL against the unfixed source:
+tricked into visiting could silently approve a batch (CSRF). The fix is minimal:
+the state change moves to a POST that keeps the existing admin check, and the GET
+is made inert. There is no CSRF token -- protection rests on the ``s3`` session
+cookie being ``SameSite=Lax`` (a forged cross-site POST then arrives without the
+admin's session and fails the admin check). ``test_session_cookie_is_samesite_lax``
+is the tripwire guarding that assumption.
 
+Written to FAIL against the unfixed source:
 - ``test_get_does_not_change_state`` fails because the old GET runs the UPDATE.
 - the POST tests fail because the old handler has no POST handler at all.
-
-With the fix the state change lives only on POST, which additionally requires an
-admin session and a same-origin request (defense in depth atop SameSite=Lax).
 """
 
 from unittest.mock import MagicMock, patch
@@ -17,11 +19,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from openlibrary.plugins.openlibrary import code
-from openlibrary.plugins.openlibrary.code import (
-    BatchImportApprove,
-    Forbidden,
-    _is_same_origin_request,
-)
+from openlibrary.plugins.openlibrary.code import BatchImportApprove, Forbidden
 
 ADMIN_KEY = "/people/admin"
 BATCH_ID = "5"
@@ -32,31 +30,16 @@ class _User:
         self.key = key
 
 
-def _fake_ctx(origin=None, referer=None, host="openlibrary.org"):
-    env = {}
-    if origin is not None:
-        env["HTTP_ORIGIN"] = origin
-    if referer is not None:
-        env["HTTP_REFERER"] = referer
-    ctx = MagicMock()
-    ctx.env = env
-    ctx.host = host
-    return ctx
-
-
-def _patched(db_mock, user_key=ADMIN_KEY, ctx=None):
-    """Patch the handler's collaborators: db spy, admin group, current user,
-    and the redirect helpers (so no real web context is required)."""
-    patches = [
+def _patched(db_mock, user_key=ADMIN_KEY):
+    """Patch the handler's collaborators: db spy, admin group, current user, and
+    the redirect helper (so no real web context is required)."""
+    return [
         patch.object(code, "db", db_mock),
         patch.object(code, "_get_members_of_group", lambda group: [ADMIN_KEY]),
         patch.object(code.delegate, "context", MagicMock(user=_User(user_key))),
         patch.object(code.web, "seeother", lambda url: ("seeother", url)),
         patch.object(code.web, "found", lambda url: ("found", url)),
     ]
-    if ctx is not None:
-        patches.append(patch.object(code.web, "ctx", ctx))
-    return patches
 
 
 def _enter(patches):
@@ -72,7 +55,7 @@ def _exit(patches):
 def test_get_does_not_change_state():
     """The core CSRF fix: a GET must never run the approval UPDATE."""
     db_mock = MagicMock()
-    patches = _patched(db_mock, ctx=_fake_ctx())
+    patches = _patched(db_mock)
     _enter(patches)
     try:
         BatchImportApprove().GET(BATCH_ID)
@@ -81,9 +64,9 @@ def test_get_does_not_change_state():
         _exit(patches)
 
 
-def test_post_same_origin_admin_approves():
+def test_post_admin_approves():
     db_mock = MagicMock()
-    patches = _patched(db_mock, ctx=_fake_ctx(origin="https://openlibrary.org"))
+    patches = _patched(db_mock)
     _enter(patches)
     try:
         BatchImportApprove().POST(BATCH_ID)
@@ -93,25 +76,9 @@ def test_post_same_origin_admin_approves():
         _exit(patches)
 
 
-def test_post_cross_origin_is_blocked_without_touching_state():
-    db_mock = MagicMock()
-    patches = _patched(db_mock, ctx=_fake_ctx(origin="https://evil.example.com"))
-    _enter(patches)
-    try:
-        with pytest.raises(Forbidden):
-            BatchImportApprove().POST(BATCH_ID)
-        db_mock.query.assert_not_called()
-    finally:
-        _exit(patches)
-
-
 def test_post_requires_admin():
     db_mock = MagicMock()
-    patches = _patched(
-        db_mock,
-        user_key="/people/not_admin",
-        ctx=_fake_ctx(origin="https://openlibrary.org"),
-    )
+    patches = _patched(db_mock, user_key="/people/not_admin")
     _enter(patches)
     try:
         with pytest.raises(Forbidden):
@@ -121,16 +88,29 @@ def test_post_requires_admin():
         _exit(patches)
 
 
-@pytest.mark.parametrize(
-    ("origin", "referer", "expected"),
-    [
-        ("https://openlibrary.org", None, True),  # same-origin Origin
-        ("https://evil.example.com", None, False),  # cross-origin Origin
-        (None, "https://openlibrary.org/import/batch/5", True),  # Referer fallback, same
-        (None, "https://evil.example.com/x", False),  # Referer fallback, cross
-        (None, None, True),  # absent -> allowed (SameSite=Lax is the primary control)
-    ],
-)
-def test_is_same_origin_request(origin, referer, expected):
-    with patch.object(code.web, "ctx", _fake_ctx(origin=origin, referer=referer)):
-        assert _is_same_origin_request() is expected
+def test_session_cookie_is_samesite_lax():
+    """Tripwire: the approve fix is a bare POST + admin check, which is safe only
+    because the ``s3`` session cookie is ``SameSite=Lax``. If that attribute is
+    ever weakened, a forged cross-site POST would carry the admin's session and
+    the CSRF protection would be gone -- so this must fail loudly."""
+    from openlibrary.plugins.upstream import account
+
+    recorded = {}
+
+    def fake_setcookie(name, value, **kwargs):
+        recorded[name] = kwargs
+
+    with (
+        patch.object(account.web, "setcookie", fake_setcookie),
+        patch.object(account.web, "ctx", MagicMock()),
+        patch.object(account, "config", MagicMock()),
+        patch.object(account, "encrypt_s3_keys", lambda a, s: "tok"),
+    ):
+        account._set_login_cookies(
+            {"s3_keys": {"access": "a", "secret": "s"}, "special_access": False},
+            ol_account=None,
+        )
+
+    assert recorded["s3"]["samesite"] == "Lax"
+    assert recorded["s3"]["secure"] is True
+    assert recorded["s3"]["httponly"] is True

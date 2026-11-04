@@ -12,7 +12,7 @@ import random
 import socket
 import sys
 from time import time
-from urllib.parse import parse_qs, quote, urlencode, urlparse
+from urllib.parse import parse_qs, quote, urlencode
 
 import web
 import yaml
@@ -506,22 +506,6 @@ class BatchImportView(delegate.page):
         )
 
 
-def _is_same_origin_request():
-    """Best-effort same-origin check for a state-changing POST.
-
-    Returns False only when the request carries an Origin (or, absent that, a
-    Referer) whose host does not match this site's host. A missing
-    Origin/Referer is allowed: some privacy proxies strip them, and the
-    SameSite=Lax session cookie is the primary CSRF control -- this is defense
-    in depth, not the sole guard.
-    """
-    env = web.ctx.env or {}
-    source = env.get("HTTP_ORIGIN") or env.get("HTTP_REFERER")
-    if not source:
-        return True
-    return urlparse(source).netloc == web.ctx.host
-
-
 class BatchImportApprove(delegate.page):
     """
     Approve `batch_id`, with a `status` of `needs_review`, for import.
@@ -529,8 +513,12 @@ class BatchImportApprove(delegate.page):
     Approval changes state, so it is a POST, not a GET: a state-changing GET can
     be fired by a crawler, a prefetch, or a link an admin is tricked into
     following (CSRF). The GET is inert and redirects to the batch view, where
-    Approve is rendered as a POST form; the POST also rejects cross-origin
-    requests as a second layer on top of the SameSite=Lax session cookie.
+    Approve is rendered as a POST form.
+
+    CSRF protection rests on the session cookie: `s3` is `SameSite=Lax`, so a
+    forged cross-site POST arrives without the admin's session and fails the
+    admin check below. ``test_session_cookie_is_samesite_lax`` is the tripwire
+    that fails loudly if that cookie attribute is ever weakened.
     """
 
     path = r"/import/batch/approve/(\d+)"
@@ -544,9 +532,6 @@ class BatchImportApprove(delegate.page):
         user_key = delegate.context.user and delegate.context.user.key
         if user_key not in _get_members_of_group("/usergroup/admin"):
             raise Forbidden("Permission Denied.")
-
-        if not _is_same_origin_request():
-            raise Forbidden("Cross-origin request blocked.")
 
         db.query(
             """
