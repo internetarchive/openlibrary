@@ -75,31 +75,30 @@
   margin-top: 0;
 }
 
-.ol-cover-form .carousel-container {
+/* The existing covers to pick from: a scroll strip (covers/add.html). */
+.cover-picker {
+  display: flex;
+  gap: var(--spacing-inline-lg);
+  margin: 0;
   padding: var(--spacing-inset-sm) 0;
-  margin: 0;
-  border-radius: 10px;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
 }
 
-.ol-cover-form .carousel {
-  padding: 0;
-}
-
-.ol-cover-form .carousel__item {
-  margin: 0;
-}
-
-.ol-cover-form .book-cover {
-  height: auto;
+.cover-picker__item {
+  display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
+  align-items: center;
   gap: var(--spacing-stack-sm);
+  scroll-snap-align: start;
 }
 
-.ol-cover-form .carousel .cta-btn {
-  color: var(--color-text-secondary);
-  border: 2px solid var(--color-border-muted);
-  border-radius: 6px;
-  position: relative;
+.cover-picker__item img {
+  height: 100px;
+  width: auto;
+  border-radius: var(--border-radius-thumbnail);
 }
 
 .ol-cover-form--external a {
@@ -128,19 +127,11 @@
   min-width: 1px;
 }
 
-div#covers.input {
-  max-height: 132px;
-  overflow: hidden;
-  margin-left: -80px;
-  text-align: center;
-}
-
 div.imageIntro {
   margin: 0 0 var(--spacing-stack-sm);
 }
 
 @media only screen and (min-width: 768px) /* @width-breakpoint-tablet */ {
-  .floatform div#covers.input,
   .floatform .label,
   .floatform .input {
     width: 560px;

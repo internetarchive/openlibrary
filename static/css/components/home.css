@@ -1,20 +1,18 @@
 /* Homepage about section */
 
+/* <ol-carousel> sets the card's width (home/welcome.html). */
 div.tutorial__item {
   background-color: var(--book-cover-carousel-cards);
   border: var(--border-card);
   border-radius: var(--border-radius-card);
   padding: var(--spacing-inset-sm);
-  min-width: 220px;
-  height: 100%;
   box-sizing: border-box;
 }
 
-/* @width-breakpoint-desktop: 960px */
-@media only screen and (min-width: 960px) {
-  div.tutorial__item {
-    min-width: 310px;
-  }
+/* Undoes the book-card reset in carousel.css, which this file loads after. */
+.carousel--native > .tutorial__item {
+  padding: var(--spacing-inset-sm);
+  text-align: start;
 }
 
 div.tutorial__item:focus {
@@ -40,6 +38,7 @@ div.tutorial__item a {
   align-items: center;
   min-height: 100px;
   gap: var(--spacing-inline-md);
+  text-decoration: none;
 }
 
 div.tutorial__item img {

@@ -4,9 +4,16 @@
   </div>
 
   <div class="carousel-container">
-    <div
-      class="carousel carousel--progressively-enhanced"
-      data-config="$json_encode({'carouselKey': 'welcome', 'booksPerBreakpoint': [3, 2, 2, 1, 1]})"
+    <ol-carousel
+      class="carousel--native"
+      breakpoints="[[600, 1], [1024, 2], [null, 3]]"
+      label="$_('Welcome to Open Library')"
+      label-previous="$_('Previous page')"
+      label-next="$_('Next page')"
+      label-pages="$_('Carousel pages')"
+      label-go-to-page="$_('Go to page {page} of {total}')"
+      label-page-announcement="$_('Page {page} of {total}')"
+      data-config="$json_encode({'carouselKey': 'welcome'})"
     >
       $ read_online_card = {
       $    "card_title": _("Read Free Library Books Online"),
@@ -74,6 +81,6 @@
       $ }
       $:render_template('home/onboarding_card', feedback_card['card_title'], feedback_card['card_body'], feedback_card['img_src'], feedback_card['href'], ol_link_track=feedback_card['ol_link_track'], attribution=feedback_card['attribution'])
 
-    </div>
+    </ol-carousel>
   </div>
 </div>

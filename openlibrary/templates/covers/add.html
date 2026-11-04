@@ -28,19 +28,13 @@ $if doc.type.key == "/type/work":
                 <div class="label">
                     <label>$:_("<strong>Pick one</strong> from the existing covers")</label>
                 </div>
-                <div class="carousel-section">
-                    <div id="covers" class="carousel-container carousel-container-decorated carousel--minimal">
-                        <div class="carousel carousel--progressively-enhanced" data-config="$json_encode({'booksPerBreakpoint': [3, 3, 3, 3, 2, 1]})">
-                            $for cover in doc.get_edition_covers():
-                                <div class="book carousel__item">
-                                    <div class="book-cover">
-                                        <img src="$cover.url(size='M')" width="100" class="bookcover"/>
-                                        <button type="submit" name="coverid" value="$cover.id" class="cta-btn cta-btn--vanilla">$_("Use this image")</button>
-                                    </div>
-                                </div>
-                        </div>
-                    </div>
-                </div>
+                <ul class="cover-picker">
+                    $for cover in doc.get_edition_covers():
+                        <li class="cover-picker__item">
+                            <img src="$cover.url(size='M')" alt="" loading="lazy"/>
+                            <button type="submit" name="coverid" value="$cover.id" class="cta-btn cta-btn--vanilla">$_("Use this image")</button>
+                        </li>
+                </ul>
             </div>
         </form>
 
