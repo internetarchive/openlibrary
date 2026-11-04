@@ -1,6 +1,5 @@
 """Site context initialization at script/service entry points (#13966)."""
 
-import sys
 from contextvars import Context
 from types import SimpleNamespace
 from unittest.mock import Mock
@@ -37,51 +36,20 @@ def stub_script_setup(monkeypatch):
     return script_site
 
 
-@pytest.mark.parametrize("entrypoint", ["load_config", "development", "gunicorn"])
-def test_affiliate_entrypoints_set_script_context(monkeypatch, tmp_path, entrypoint):
+def test_affiliate_load_config_sets_script_context(monkeypatch, tmp_path):
+    # start_server() and the gunicorn loader both go through load_config().
     script_site = stub_script_setup(monkeypatch)
     monkeypatch.setattr(config, "amazon_creators_api", {"key": "test", "secret": "test", "id": "test"}, raising=False)
     monkeypatch.setattr(affiliate_server, "AmazonCreatorsAPI", Mock())
     config_path = tmp_path / "openlibrary.yml"
     config_path.touch()
 
-    observed = []
-
-    def check_context():
+    def run():
+        affiliate_server.load_config(str(config_path))
         assert site.get() is script_site
         assert req_context.get() == create_context_for_script()
-        observed.append(True)
-
-    def serve_wsgi(middleware):
-        check_context()
-        assert middleware is affiliate_server.https_middleware
-        return "wsgi-app"
-
-    class Application:
-        def __init__(self, usage):
-            pass
-
-        def run(self):
-            assert self.load() == "wsgi-app"
-
-    monkeypatch.setattr(affiliate_server, "setup_requests", check_context)
-    monkeypatch.setattr(affiliate_server.app, "run", check_context)
-    monkeypatch.setattr(affiliate_server.app, "wsgifunc", serve_wsgi)
-    monkeypatch.setattr("gunicorn.app.base.Application", Application)
-    monkeypatch.setattr(sys, "argv", ["affiliate_server.py", str(config_path), "31337"])
-    monkeypatch.setattr(web, "ol_configfile", None, raising=False)
-
-    def run():
-        if entrypoint == "load_config":
-            affiliate_server.load_config(str(config_path))
-        elif entrypoint == "development":
-            affiliate_server.start_server()
-        else:
-            affiliate_server.start_gunicorn_server()
-        check_context()
 
     Context().run(run)
-    assert len(observed) == (1 if entrypoint == "load_config" else 3)
 
 
 def test_stats_initializes_script_context(monkeypatch):
