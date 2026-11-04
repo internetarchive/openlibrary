@@ -235,5 +235,3 @@ def setup():
     register_filter("url", stats_filters.url)
     register_filter("loggedin", stats_filters.loggedin)
     register_filter("not_loggedin", stats_filters.not_loggedin)
-
-    # delegate.add_exception_hook(lambda: increment_error_count('ol.exceptions'))
