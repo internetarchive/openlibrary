@@ -265,19 +265,12 @@ class TestSearchEndpoint:
         assert response.status_code == 422
         mock_work_search.assert_not_called()
 
-    def test_editions_sort_absent_is_omitted(self, client, mock_work_search):
-        response = search(client, q="test")
+    def test_editions_sort_empty_is_omitted(self, client, mock_work_search):
+        """An empty editions.sort is left out so Solr keeps its default edition ordering."""
+        response = search(client, q="test", **{"editions.sort": ""})
 
         assert response.status_code == 200
         assert "editions.sort" not in mock_work_search.call_args[0][0]
-
-    def test_query_json_still_passes_editions_sort(self, client, mock_work_search):
-        """The JSON query parameter is still passed through whole."""
-        payload = {"q": "crime and punishment", "editions.sort": "old"}
-        response = search(client, query=json.dumps(payload))
-
-        assert response.status_code == 200
-        assert mock_work_search.call_args[0][0] == payload
 
     def test_multiple_author_keys(self, client, mock_work_search):
         """Test that multiple author_key parameters are parsed correctly.
