@@ -1,36 +1,78 @@
 {#- /tasks — Open Library Tasks: one task at random, or a list narrowed by the rail.
     Which books, and in what order, is decided in contribute.py; this page only shows them. -#}
 {% import "contribute/parts.html.jinja" as parts %}
+{#- The inside of an initiative card: the same for the open one and the links over, so the cards differ by tint alone.
+    Three rows, each earning its height: title with the percent at its end, the pitch, then the bar with the counts beside it. -#}
+{% macro initiative_card(card) %}
+    <div class="contrib-progress__intro">
+        <div class="contrib-progress__head">
+            <h2 class="contrib-progress__title"
+                id="contrib-progress-title-{{ card.slug }}">{{ card.title }}</h2>
+            {% if card.percent is not none %}
+                <span class="contrib-progress__percent" aria-hidden="true">{{ card.figure }}</span>
+            {% endif %}
+        </div>
+        <p class="contrib-progress__description">{{ card.description }}</p>
+    </div>
+    {% if card.percent is not none %}
+        <div class="contrib-progress__status">
+            <div class="contrib-progress__track"
+                 role="progressbar"
+                 aria-valuemin="0"
+                 aria-valuemax="100"
+                 aria-valuenow="{{ card.percent }}"
+                 aria-labelledby="contrib-progress-title-{{ card.slug }}">
+                <span class="contrib-progress__fill" style="width: {{ card.percent }}%"></span>
+            </div>
+            <p class="contrib-progress__counts">
+                <span class="contrib-progress__tasks">{{ card.tasks_left | safe }}</span>
+                {% if card.people %}<span class="contrib-progress__people">{{ card.people }}</span>{% endif %}
+            </p>
+        </div>
+    {% else %}
+        <p class="contrib-progress__description">{{ _("Getting the list ready…") }}</p>
+    {% endif %}
+{% endmacro %}
 <div class="contrib-dash" data-contribute-list>
     <header class="contrib-dash__head">
         <div class="contrib-hero">
             <h1 class="contrib-title">{{ _("Tasks") }}</h1>
-            <p class="contrib-muted">{{ _("Fill in what's missing on real books, one detail at a time.") }}</p>
-        </div>
-        <div class="contrib-dash__one">
-            <ol-button variant="primary" full-width href="{{ data.one_task_url }}" data-ol-link-track="TasksDashboard|SurpriseMe">
-                {{ icon("dices", slot="icon-start") }}
-                {{ _("Surprise me") }}
-            </ol-button>
-            <span class="contrib-muted">{{ _("A random book that needs a hand.") }}</span>
         </div>
     </header>
+    {#- One card per initiative in a row, every card the same shape and type: the open one sits on the selected tint, the others are a link over. -#}
+    <section class="contrib-initiatives" aria-label="{{ _('Initiatives') }}">
+        <span class="contrib-overline">{{ _("Current initiatives") }}</span>
+        <div class="contrib-initiatives__row">
+            {% for card in data.initiatives %}
+                {% if card.on %}
+                    <div class="contrib-progress contrib-progress--on" aria-current="true">{{ initiative_card(card) }}</div>
+                {% else %}
+                    <a class="contrib-progress contrib-progress--other"
+                       href="{{ card.url }}"
+                       data-ol-link-track="TasksDashboard|Initiative|{{ card.slug }}">{{ initiative_card(card) }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
     <div class="contrib-dash__body">
         <nav class="contrib-rail" data-rail aria-label="{{ _('Filter tasks') }}">
             <div class="contrib-rail__group">
+                <span class="contrib-overline">{{ _("Tasks") }}</span>
                 <a class="contrib-rail__item{{ ' is-on' if data.rail.all.on else '' }}"
                    href="{{ data.rail.all.url }}"
                    data-ol-link-track="TasksDashboard|Filter|{{ data.rail.all.track }}"
                    {% if data.rail.all.on %}aria-current="page"{% endif %}>{{ data.rail.all.label }}</a>
-            </div>
-            <div class="contrib-rail__group">
-                <span class="contrib-overline">{{ _("Missing") }}</span>
                 {% for item in data.rail.filters %}
                     <a class="contrib-rail__item{{ ' is-on' if item.on else '' }}"
                        href="{{ item.url }}"
                        data-ol-link-track="TasksDashboard|Filter|{{ item.track }}"
                        {% if item.on %}aria-current="true"{% endif %}>{{ item.label }}</a>
                 {% endfor %}
+            </div>
+            <div class="contrib-rail__group contrib-rail__group--action">
+                <a class="contrib-rail__item"
+                   href="{{ data.one_task_url }}"
+                   data-ol-link-track="TasksDashboard|SurpriseMe">{{ _("Surprise me") }}</a>
             </div>
         </nav>
         <main class="contrib-dash__main">
@@ -61,51 +103,6 @@
             {% endif %}
         </main>
         <aside class="contrib-dash__aside">
-            {#- One card per initiative, all one shape: the open one in full on the selected tint, the others quieter and a way over. -#}
-            <section class="contrib-initiatives" aria-label="{{ _('Initiatives') }}">
-                <span class="contrib-overline">{{ _("Initiatives") }}</span>
-                {% for card in data.initiatives %}
-                    {% if card.on %}
-                        <div class="contrib-progress contrib-progress--on" aria-current="true">
-                            <div class="contrib-progress__intro">
-                                <h2 class="contrib-progress__title" id="contrib-progress-title">{{ card.title }}</h2>
-                                <p class="contrib-progress__description">{{ card.description }}</p>
-                            </div>
-                            {% if card.percent is not none %}
-                                <div class="contrib-progress__bar">
-                                    <div class="contrib-progress__track"
-                                         role="progressbar"
-                                         aria-valuemin="0"
-                                         aria-valuemax="100"
-                                         aria-valuenow="{{ card.percent }}"
-                                         aria-labelledby="contrib-progress-title">
-                                        <span class="contrib-progress__fill" style="width: {{ card.percent }}%"></span>
-                                    </div>
-                                    <span class="contrib-progress__percent" aria-hidden="true">{{ card.figure }}</span>
-                                </div>
-                            {% else %}
-                                <p class="contrib-progress__description">{{ _("Getting the list ready…") }}</p>
-                            {% endif %}
-                        </div>
-                    {% else %}
-                        <a class="contrib-progress contrib-progress--other"
-                           href="{{ card.url }}"
-                           data-ol-link-track="TasksDashboard|Initiative|{{ card.slug }}">
-                            <span class="contrib-progress__title">{{ card.title }}</span>
-                            {% if card.percent is not none %}
-                                <span class="contrib-progress__bar">
-                                    <span class="contrib-progress__track" aria-hidden="true">
-                                        <span class="contrib-progress__fill" style="width: {{ card.percent }}%"></span>
-                                    </span>
-                                    <span class="contrib-progress__figure">{{ _("%(percent)s done", percent=card.figure) }}</span>
-                                </span>
-                            {% else %}
-                                <span class="contrib-progress__figure">{{ _("Getting the list ready…") }}</span>
-                            {% endif %}
-                        </a>
-                    {% endif %}
-                {% endfor %}
-            </section>
             <section class="contrib-side">
                 <h2 class="contrib-dash__h2">{{ _("Your recent fixes") }}</h2>
                 {% if data.recent %}

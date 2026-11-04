@@ -18,9 +18,10 @@ from openlibrary import accounts
 from openlibrary.contribute import feed, initiatives, save, supply, tasks
 from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values, work_of
-from openlibrary.core import helpers
+from openlibrary.core import admin, helpers
 from openlibrary.core.tags import GENRES, LITERARY_FORM, subject_matches, tag_choices, tag_key_named, tag_options, work_tag_names
 from openlibrary.i18n import gettext as _
+from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.utils import markdown_excerpt
 
@@ -38,6 +39,8 @@ APPLY_FORM_USERNAME_FIELD = "entry.629295430"
 # Signed-in members see the /tasks intro once. Clicking through sets this cookie, the way banner dismissals do.
 INTRO_COOKIE = "tasks_intro"
 INTRO_COOKIE_DAYS = 365
+# Below this, a count of helpers makes an initiative look empty rather than shared, so the line stays hidden.
+MIN_PEOPLE_SHOWN = 5
 
 
 def setup():
@@ -94,8 +97,8 @@ def initiative_copy(initiative: initiatives.Initiative) -> dict[str, str]:
     count = helpers.commify(initiative.size)
     if initiative is initiatives.TAGS:
         return {
-            "title": _("Genres for the %(count)s most-read books", count=count),
-            "description": _("Say whether each book is fiction or nonfiction, and pick the genres that fit."),
+            "title": _("Find every book its shelf"),
+            "description": _("Fiction or nonfiction, and the genres that fit, starting with the most-read books."),
         }
     return {"title": _("The %(count)s most-read books", count=count), "description": _("Fill in what's missing on the books people shelve most.")}
 
@@ -397,15 +400,26 @@ def build_task_rows(task: str, initiative: initiatives.Initiative) -> list[dict]
     return rows
 
 
+def get_initiative_people(initiative: initiatives.Initiative) -> int:
+    """How many people have saved for ``initiative``, from the stats job's latest counts. Yesterday's doc covers just after midnight."""
+    for doc in reversed(admin.get_count_docs(2)):
+        if doc.get("initiative_slug") == initiative.slug and "initiative_people" in doc:
+            return doc["initiative_people"]
+    return 0
+
+
 def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
-    """One card per initiative for the dashboard's aside: the open one in full, the others as a way over.
+    """One card per initiative in the row under the dashboard's header, all one shape; only the open one is tinted.
 
     Asking for every initiative's gaps starts the builds for all of them, so the first visit warms the lot.
+    The percent takes dozens of saves to move a point, so each card also counts the tasks left, which moves on every
+    save, and from MIN_PEOPLE_SHOWN up, how many people have helped.
     """
     cards = []
     for initiative in initiatives.INITIATIVES:
         gaps = initiatives.get_gaps(initiative)
         p = initiatives.progress(gaps, initiative.fields) if gaps else None
+        people = get_initiative_people(initiative) if p else 0
         cards.append(
             initiative_copy(initiative)
             | {
@@ -415,6 +429,12 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
                 # None while the list is still being built.
                 "percent": p["percent"] if p else None,
                 "figure": _("%(percent)s%%", percent=p["percent"]) if p else "",
+                "tasks_left": ungettext("<b>%(count)s</b> task left", "<b>%(count)s</b> tasks left", p["open"], count=helpers.commify(p["open"])) if p else "",
+                "people": (
+                    ungettext("%(count)s person has helped", "%(count)s people have helped", people, count=helpers.commify(people))
+                    if people >= MIN_PEOPLE_SHOWN
+                    else None
+                ),
             }
         )
     return cards
@@ -432,7 +452,7 @@ def build_filter_rail(task: str, initiative: initiatives.Initiative) -> dict:
         # A filter over fields the initiative doesn't ask about still works by URL, but isn't linked.
         for fid, (label, _fields) in visible_filters(initiative.fields).items()
     ]
-    return {"all": {"label": _("All open tasks"), "url": build_dashboard_url(initiative=slug), "on": not task, "track": "all"}, "filters": filters}
+    return {"all": {"label": _("All tasks"), "url": build_dashboard_url(initiative=slug), "on": not task, "track": "all"}, "filters": filters}
 
 
 def landing_figures() -> dict[str, str]:
@@ -532,7 +552,7 @@ class contribute_index(delegate.page):
             # While the pool builds, the script fetches the rows from here.
             rows_url=build_dashboard_url(task, base="/tasks/rows", initiative=slug) if rows is None else "",
             skeleton_rows=LIST_SKELETON_ROWS if rows is None else 0,
-            heading=get_filter_headings()[task] if task else _("Most needed"),
+            heading=get_filter_headings()[task] if task else _("All tasks"),
             empty=_("Nothing missing here right now. Thank you."),
             recent=get_recent_fixes(recent_saves),
             history_url=user.key,

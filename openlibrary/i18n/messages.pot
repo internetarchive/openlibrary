@@ -4062,32 +4062,12 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
+#: contribute/dashboard.html.jinja
+msgid "Getting the list ready…"
+msgstr ""
+
 #: contribute/dashboard.html.jinja openlibrary/plugins/openlibrary/contribute.py
 msgid "Tasks"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Fill in what's missing on real books, one detail at a time."
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Surprise me"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "A random book that needs a hand."
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Filter tasks"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Missing"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Tasks couldn't load right now. Reload the page to try again."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
@@ -4095,12 +4075,19 @@ msgid "Initiatives"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Getting the list ready…"
+msgid "Current initiatives"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-#, python-format
-msgid "%(percent)s done"
+msgid "Filter tasks"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Surprise me"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Tasks couldn't load right now. Reload the page to try again."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
@@ -9266,12 +9253,11 @@ msgid "Missing genre"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-#, python-format
-msgid "Genres for the %(count)s most-read books"
+msgid "Find every book its shelf"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Say whether each book is fiction or nonfiction, and pick the genres that fit."
+msgid "Fiction or nonfiction, and the genres that fit, starting with the most-read books."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -9310,7 +9296,21 @@ msgid "%(percent)s%%"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "All open tasks"
+#, python-format
+msgid "<b>%(count)s</b> task left"
+msgid_plural "<b>%(count)s</b> tasks left"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(count)s person has helped"
+msgid_plural "%(count)s people have helped"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "All tasks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -9347,10 +9347,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "Doing a lot of these? Open Librarians get more editing tools. Applying takes a few minutes."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Most needed"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

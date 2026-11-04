@@ -1103,24 +1103,11 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--spacing-stack-md) var(--spacing-inline-xl);
-  padding-block-end: var(--spacing-stack-lg);
-  border-block-end: var(--border-divider);
 }
 
-.contrib-dash__one {
-  display: grid;
-  justify-items: end;
-  margin-inline-start: auto;
-  text-align: end;
-  gap: var(--spacing-stack-sm);
-}
-
-@media (max-width: 767px) {
-  .contrib-dash__one {
-    flex-basis: 100%;
-    justify-items: stretch;
-    text-align: center;
-  }
+/* The initiatives' overline labels the row right under the title, so the title sits closer to it than to a section. */
+.contrib-dash > .contrib-dash__head {
+  margin-block-end: var(--spacing-stack-md);
 }
 
 .contrib-dash__h2 {
@@ -1138,7 +1125,7 @@
 /* Rail: wrapping pills on phones, a vertical menu from desktop width. */
 .contrib-rail {
   display: grid;
-  gap: var(--spacing-stack-md);
+  gap: var(--spacing-stack-sm);
   align-content: start;
 }
 
@@ -1151,6 +1138,13 @@
 
 .contrib-rail__group > .contrib-overline {
   flex-basis: 100%;
+}
+
+/* "Surprise me" closes the rail: a row like the filters, but an action, so a rule sets it apart. The rule sits as close
+   to the rows on either side as the divider in the browse menu does; the rows' own height keeps the text off it. */
+.contrib-rail__group--action {
+  padding-block-start: var(--spacing-stack-sm);
+  border-block-start: 1px solid var(--color-border-subtle);
 }
 
 .contrib-rail .contrib-rail__item {
@@ -1229,10 +1223,6 @@
   .contrib-dash__body {
     grid-template-columns: 200px minmax(0, 1fr);
     column-gap: var(--spacing-section-gap);
-  }
-
-  .contrib-rail {
-    gap: var(--spacing-stack-lg);
   }
 
   .contrib-rail__group {
@@ -1319,23 +1309,6 @@ a.contrib-recent__title {
 
   .contrib-dash__aside {
     grid-column: auto;
-  }
-
-  /* The header shares the body's columns, so the action sits over the aside. */
-  .contrib-dash__head {
-    display: grid;
-    grid-template-columns: 200px minmax(0, 1fr) 280px;
-    column-gap: var(--spacing-section-gap);
-  }
-
-  .contrib-hero {
-    grid-column: 1 / 3;
-  }
-
-  .contrib-dash__one {
-    justify-items: stretch;
-    margin-inline-start: 0;
-    text-align: center;
   }
 }
 
@@ -1767,12 +1740,12 @@ a.contrib-recent__title {
   }
 }
 
-/* An initiative's progress card at the top of the dashboard's aside. The open one takes the control-selected look
+/* An initiative's progress card in the row under the dashboard's header. The open one takes the control-selected look
    (the same tint, border and link ink as ol-button[selected] and the current pagination page), so "active" reads
    the way "selected" reads everywhere else, and the others stay plain surface cards. */
 .contrib-progress {
   display: grid;
-  gap: var(--spacing-stack-md);
+  gap: var(--spacing-stack-sm);
   padding: var(--spacing-inset-md);
   border: var(--border-card);
   border-radius: var(--border-radius-card);
@@ -1802,23 +1775,50 @@ a.contrib-recent__title {
   font-size: var(--font-size-body-medium);
 }
 
-/* The bar and the headline number sit together; the number climbs with every save. */
-.contrib-progress__bar {
+/* The percent ends the title line, at the title's size: the bar below is the figure's picture, so it needs no headline. */
+.contrib-progress__head {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-inline-lg);
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-inline-md);
 }
 
 .contrib-progress__percent {
+  flex: none;
   color: var(--color-text-heading);
-  font-size: var(--font-size-headline-large);
-  font-weight: var(--font-weight-heading);
-  line-height: var(--line-height-single);
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
   font-variant-numeric: tabular-nums;
 }
 
+/* The bar and the counts share the foot row; the counts drop under the bar when the card is too narrow for both.
+   The percent barely moves between saves, so the count of tasks left is what visibly changes. */
+.contrib-progress__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-stack-xs) var(--spacing-inline-lg);
+}
+
+.contrib-progress__counts {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  margin: 0;
+  gap: var(--spacing-stack-xs) var(--spacing-inline-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-small);
+  line-height: var(--line-height-single);
+}
+
+.contrib-progress__tasks b {
+  color: var(--color-text-heading);
+  font-weight: var(--font-weight-semibold);
+}
+
 .contrib-progress__track {
-  flex: 1 1 auto;
+  flex: 1 1 120px;
   height: 10px;
   overflow: hidden;
   border-radius: var(--border-radius-lg);
@@ -1832,8 +1832,10 @@ a.contrib-recent__title {
   background: var(--color-primary);
 }
 
+/* The open card differs from the others by colour alone: the same type and bar, on the tint, with the link ink. */
 .contrib-progress--on .contrib-progress__title,
-.contrib-progress--on .contrib-progress__percent {
+.contrib-progress--on .contrib-progress__percent,
+.contrib-progress--on .contrib-progress__tasks b {
   color: var(--color-link);
 }
 
@@ -1842,35 +1844,33 @@ a.contrib-recent__title {
   background: var(--color-control-selected-bg-hover);
 }
 
-/* Initiatives: the open one as the full progress card, the others as a quieter card that is a link over. */
+/* Initiatives: a row of cards under the header, ruled off from the list below. The open one is tinted, the others are
+   plain and a link over; every card stretches to the row's height with its bar at the foot. */
 .contrib-initiatives {
   display: grid;
   gap: var(--spacing-stack-sm);
+  padding-block-end: var(--spacing-stack-lg);
+  border-block-end: var(--border-divider);
+}
+
+.contrib-initiatives__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-md);
+}
+
+.contrib-initiatives__row > .contrib-progress {
+  flex: 1 1 240px;
+  max-width: 360px;
+  align-content: space-between;
 }
 
 /* The title stays in ink with no underline: the card is the link, and the tint on the open one says which is which.
    The element in the selector outranks the base a:link rule, which would otherwise paint and underline the whole card. */
 a.contrib-progress--other,
 a.contrib-progress--other:is(:link, :visited, :hover) {
-  gap: var(--spacing-stack-xs);
-  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
   color: inherit;
   text-decoration: none;
-}
-
-.contrib-progress--other .contrib-progress__title {
-  font-size: var(--font-size-body-medium);
-}
-
-.contrib-progress--other .contrib-progress__track {
-  height: 6px;
-}
-
-.contrib-progress__figure {
-  flex: none;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-body-small);
-  white-space: nowrap;
 }
 
 /* Hover moves the fill and the border together, one step each, as the raised controls do. */
