@@ -31,6 +31,7 @@ SUBJECT_SUB_TYPES = [
     "genre",
     "subgenre",
     "content_format",
+    "content_warning",
     "literary_form",
     "mood",
 ]
