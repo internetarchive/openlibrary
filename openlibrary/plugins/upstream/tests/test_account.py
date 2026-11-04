@@ -356,6 +356,35 @@ class TestAccountLoginRedirect:
         mock_web.seeother.assert_called_with("/account/books")
 
 
+class TestAccountLoginOtpRedeemRedirect:
+    """The redirect returned by /account/login/otp/redeem is navigated to by the
+    OTP login component, so it must stay on this site."""
+
+    @pytest.mark.parametrize(
+        ("redirect", "expected"),
+        [
+            ("/works/OL1W", "/works/OL1W"),
+            ("/\\evil.example", "/account/books"),
+            ("//evil.example", "/account/books"),
+            ("https://evil.example", "/account/books"),
+            ("/account/login", "/account/books"),
+            ("", "/account/books"),
+        ],
+    )
+    @mock.patch("openlibrary.plugins.upstream.account._set_login_cookies")
+    @mock.patch("openlibrary.plugins.upstream.account.OpenLibraryAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.audit_accounts")
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_redirect_is_sanitized(self, mock_web, mock_ia, mock_audit, mock_ol_account, mock_set_cookies, redirect, expected):
+        mock_web.ctx.env = {}
+        mock_web.input.return_value = web.storage(email="test@example.com", otp="123456", redirect=redirect)
+        mock_ia.redeem_otp.return_value = {"success": True, "values": {"s3": {"access": "a", "secret": "s"}}}
+        mock_audit.return_value = {"ia_email": "test@example.com"}
+        result = account.account_login_otp_redeem().POST()
+        assert json.loads(result.rawtext) == {"success": True, "redirect": expected}
+
+
 class TestOtpServiceS3Auth:
     """Tests for S3 key validation on /account/otp/issue and /account/otp/redeem."""
 

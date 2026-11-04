@@ -538,7 +538,7 @@ class account_login_otp_redeem(delegate.page):
         redirect = i.redirect
         # Reject non-path redirects (open redirect prevention) and login loops
         _blacklist = ["/account/login", "/account/create"]
-        if not redirect or not redirect.startswith("/") or redirect.startswith("//") or any(path in redirect for path in _blacklist):
+        if not is_safe_redirect(redirect) or any(path in redirect for path in _blacklist):
             redirect = "/account/books"
         return delegate.RawText(json.dumps({"success": True, "redirect": redirect}))
 
