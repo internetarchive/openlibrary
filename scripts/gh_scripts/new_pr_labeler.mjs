@@ -11,23 +11,23 @@
  * `PR_BODY`   is the body of the pull request
  *
  * Broadly, this script does the following:
- * 1. Searches the given PR body for a "closes" statement
- * 2. Fetches the issue referenced by the "closes" statement, storing references
- *    to the first priority and lead label encountered
- * 3. Updates PR, adding the same priority label as the issue and assigning the lead
+ * 1. Finds the issues the PR body references: closing keywords ("Closes #N")
+ *    first, then non-closing references ("Part of #N", "Refs #N", ...)
+ * 2. Takes the lead from the first referenced issue that has one, falling back
+ *    to the issue's parent (the epic it is a sub-issue of). The priority label
+ *    is only inherited from a closing reference.
+ * 3. Updates the PR, assigning the lead and adding the priority label, and
+ *    writes the decision and its reason to the job summary
  *
  * A PR is never labeled "Needs: Lead": an unassigned PR already signals that it
  * needs a lead, so the label is redundant on PRs. ("Needs: Lead" stays meaningful
  * on issues, which this script does not touch.)
  *
- * The decision logic lives in ./new_pr_labeler_core.mjs so it can be unit tested;
- * this file keeps the argv parsing and the Octokit I/O.
+ * PRs this misses (e.g. the issue's lead is added later) are picked up by the
+ * scheduled sweep in ./pr_lead_sweep.mjs, which shares ./pr_lead_resolver.mjs.
  */
 import { Octokit } from '@octokit/action';
-import { decideLabelsAndAssignee, getLinkedIssueMetadata } from './new_pr_labeler_core.mjs';
-
-const CLOSES_REGEX = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?\s+#(\d+)/i;
-const DEFAULT_REQUEST_HEADERS = { 'X-GitHub-Api-Version': '2022-11-28' };
+import { applyPlan, planForPr, writeJobSummary } from './pr_lead_resolver.mjs';
 
 console.log('Script starting....');
 const octokit = new Octokit();
@@ -35,45 +35,17 @@ await main();
 console.log('Script terminated....');
 
 async function main() {
-    // Parse and assign all command-line variables
     const { fullRepoName, prAuthor, prNumber, prBody } = parseArgs();
-    const [repoOwner, repoName] = fullRepoName.split('/');
 
-    // Fetch linked issue, if any
-    const issue = await findLinkedIssue(prBody, repoOwner, repoName);
-    if (!issue) {
-        console.log('No linked issue found for this pull request.');
-    }
-
-    const { assignee, labels } = decideLabelsAndAssignee(getLinkedIssueMetadata(issue), prAuthor);
-
-    // If a lead was identified, assign them to the PR:
-    if (assignee) {
-        await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/assignees', {
-            owner: repoOwner,
-            repo: repoName,
-            issue_number: prNumber,
-            assignees: [assignee],
-            headers: DEFAULT_REQUEST_HEADERS
-        });
-    }
-
-    // Add labels to PR, if needed:
-    if (labels.length) {
-        await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
-            owner: repoOwner,
-            repo: repoName,
-            issue_number: prNumber,
-            labels,
-            headers: DEFAULT_REQUEST_HEADERS
-        });
-    }
+    const plan = await planForPr(octokit, fullRepoName, prBody, prAuthor);
+    const { assigned } = await applyPlan(octokit, fullRepoName, Number(prNumber), plan);
+    const reason = assigned ? plan.reason : `could not assign @${plan.assignee} (no repo access?); planned: ${plan.reason}`;
+    console.log(`PR #${prNumber}: ${reason}`);
+    await writeJobSummary(`PR #${prNumber}: ${reason}${plan.labels.length ? `; add ${plan.labels.join(', ')}` : ''}`);
 }
 
 /**
  * Returns an object containing the parsed command-line arguments.
- *
- * Any newline characters in the PR's body are replaced by space characters.
  *
  * @returns {Record<string, string>}
  */
@@ -89,31 +61,4 @@ function parseArgs() {
         prNumber: process.argv[4],
         prBody: prBody
     };
-}
-
-/**
- * Finds first "Closes" statement in the given pull request body, then
- * returns the linked issue (or `null` if no such issue exists).
- *
- * @param {string} body The body of a GitHub pull request
- * @param {string} repoOwner The owner of the repo (e.g. internetarchive)
- * @param {string} repoName The name of the repo (e.g. openlibrary)
- * @returns {Promise<OctokitResponse<T>>|null} The linked issue that will be closed by
- *                         this pull request, or null if no "Closes"
- *                         statement is found.
- */
-async function findLinkedIssue(body, repoOwner, repoName) {
-    const matches = body.match(CLOSES_REGEX);
-    const issueNumber = matches?.length ? Number(matches[1]) : null;
-
-    if (!issueNumber) {
-        return null;
-    }
-
-    return octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}', {
-        owner: repoOwner,
-        repo: repoName,
-        issue_number: issueNumber,
-        headers: DEFAULT_REQUEST_HEADERS
-    });
 }

@@ -18,6 +18,7 @@ from openlibrary.core.models import (
     WorkSeriesEdge,
 )
 from openlibrary.plugins.upstream.utils import safeget
+from openlibrary.solr.data_provider import SUPPORTED_WORK_TAG_FIELDS, normalize_tag
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrBuilder, sort_title
@@ -37,6 +38,20 @@ logger = logging.getLogger("openlibrary.solr")
 re_author_key = re.compile(r"^/(?:a|authors)/(OL\d+A)")
 re_edition_key = re.compile(r"/books/([^/]+)")
 re_subject = re.compile("[, _]+")
+
+# Tag types indexed onto works. A Tag's `tag_type` is singular (e.g.
+# `content_warning`); the work field that lists such tags is plural
+# (`content_warnings`, see SUPPORTED_WORK_TAG_FIELDS); the Solr fields are the
+# singular stem plus `_key` / `_name`.
+WORK_TAG_TYPES = (
+    "genre",
+    "subgenre",
+    "audience",
+    "content_warning",
+    "content_format",
+    "literary_form",
+    "award",
+)
 
 
 class WorkSolrUpdater(AbstractSolrUpdater):
@@ -78,16 +93,12 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 "editions": [work],
                 "authors": [{"type": "/type/author_role", "author": {"key": a["key"]}} for a in work.get("authors", [])],
             }
-            # Hack to add subjects when indexing /books/ia:xxx
             if work.get("subjects"):
                 fake_work["subjects"] = work["subjects"]
             return await self.update_key(fake_work)
         elif work["type"]["key"] == "/type/work":
             try:
-                # Anand - Oct 2013
-                # For /works/ia:xxx, editions are already supplied. Querying will empty response.
-
-                # Fetch editions
+                # Fetch editions. The fake work for an orphaned edition already has them.
                 if "editions" in work:
                     editions = work["editions"]
                 else:
@@ -100,6 +111,13 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     # we don't want to raise an exception but just write a warning on the log
                     logger.warning("Unexpected author type error: %s", work["key"])
                 authors = [a for a in authors if a["type"]["key"] == "/type/author"]
+
+                # Fetch tags across all SUPPORTED_WORK_TAG_FIELDS (genres,
+                # subgenres, audiences, content_warnings, content_formats,
+                # literary_forms)
+                tag_keys = [normalize_tag(t)["key"] for field in SUPPORTED_WORK_TAG_FIELDS for t in work.get(field, [])]
+                tags = [await self.data_provider.get_document(key) for key in tag_keys]
+                tags = [t for t in tags if t["type"]["key"] == "/type/tag"]
 
                 # Fetch series
                 series_edges = uniq(
@@ -136,15 +154,12 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     self.data_provider,
                     ia_metadata,
                     trending_data,
+                    tags,
                 ).build()
             except:  # noqa: E722
                 logger.error("failed to update work %s", work["key"], exc_info=True)
             else:
                 if solr_doc is not None:
-                    iaids = solr_doc.get("ia") or []
-                    # Delete all ia:foobar keys
-                    if iaids:
-                        update.deletes += [f"/works/ia:{iaid}" for iaid in iaids]
                     update.adds.append(solr_doc)
         else:
             logger.error("unrecognized type while updating work %s", wkey)
@@ -279,10 +294,12 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         data_provider: DataProvider,
         ia_metadata: dict[str, bp.IALiteMetadata | None],
         trending_data: dict,
+        tags: list[dict],
     ):
         self._work = work
         self._editions = editions
         self._authors = authors
+        self._tags = tags
         self._series = series
         self._ia_metadata = ia_metadata
         self._data_provider = data_provider
@@ -319,6 +336,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
                 **(self._ratings or {}),
                 **(self._reading_log or {}),
                 **self._trending_data,
+                **self.build_tags(),
             },
         )
 
@@ -666,6 +684,18 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     @cached_property
     def author_name(self) -> list[str]:
         return [a.get("name", "") for a in self._authors]
+
+    def build_tags(self) -> dict[str, list[str]]:
+        # One pass over the work's tags, bucketed by the Tag's (singular)
+        # tag_type into the `{tag_type}_key` / `{tag_type}_name` Solr fields.
+        doc: dict[str, list[str]] = {}
+        for tag in self._tags:
+            tag_type = tag.get("tag_type")
+            if tag_type not in WORK_TAG_TYPES:
+                continue
+            doc.setdefault(f"{tag_type}_key", []).append(tag["key"].split("/")[-1])
+            doc.setdefault(f"{tag_type}_name", []).append(tag.get("name", ""))
+        return doc
 
     @cached_property
     def author_alternative_name(self) -> set[str]:
