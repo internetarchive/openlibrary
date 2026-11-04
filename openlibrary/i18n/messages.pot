@@ -81,6 +81,14 @@ msgstr ""
 msgid "Deactivate Account"
 msgstr ""
 
+#: account.html shell/footer.html.jinja
+msgid "Please write your message above this line."
+msgstr ""
+
+#: account.html shell/footer.html.jinja
+msgid "The details below help us look into your message. You can delete anything you would rather not share."
+msgstr ""
+
 #: account.html
 msgid "Please contact us if you need help with anything else."
 msgstr ""
@@ -718,7 +726,7 @@ msgstr ""
 msgid "Now"
 msgstr ""
 
-#: admin/graphs.html admin/index.html my_books/shelf_button_i18n.html trending.html
+#: admin/graphs.html admin/index.html openlibrary/core/shell/shelf_labels.py trending.html
 msgid "Today"
 msgstr ""
 
@@ -738,7 +746,7 @@ msgstr ""
 msgid "All Time"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
+#: openlibrary/plugins/openlibrary/api.py trending.html
 msgid "Trending Books"
 msgstr ""
 
@@ -750,12 +758,12 @@ msgstr ""
 msgid "Earliest trending data is from October 2017"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html my_books/shelf_button_i18n.html search/sort_options.html trending.html
+#: account/mybooks.html account/sidebar.html openlibrary/core/shell/shelf_labels.py search/sort_options.html trending.html
 msgid "Want to Read"
 msgstr ""
 
 #. Display name for the "currently-reading" reading log shelf used in page headings and breadcrumbs.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/shelf_button_i18n.html search/sort_options.html trending.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html openlibrary/core/shell/shelf_labels.py search/sort_options.html trending.html
 msgid "Currently Reading"
 msgstr ""
 
@@ -764,7 +772,7 @@ msgid "Read"
 msgstr ""
 
 #. Display name for the "stopped-reading" reading log shelf used in page headings and breadcrumbs.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/shelf_button_i18n.html search/sort_options.html trending.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html openlibrary/core/shell/shelf_labels.py search/sort_options.html trending.html
 msgid "Stopped Reading"
 msgstr ""
 
@@ -927,11 +935,11 @@ msgstr ""
 msgid "Add a new book"
 msgstr ""
 
-#: SearchNavigation.html authors/index.html.jinja merge/authors.html openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/authors.py publishers/view.html shell/footer.html.jinja work_search.html
+#: SearchNavigation.html.jinja authors/index.html.jinja merge/authors.html openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/authors.py publishers/view.html shell/footer.html.jinja work_search.html
 msgid "Authors"
 msgstr ""
 
-#: SearchNavigation.html books/mybooks_breadcrumb_select.html openlibrary/core/shell/search_modal.py openlibrary/plugins/upstream/mybooks.py shell/footer.html.jinja work_search.html
+#: SearchNavigation.html.jinja books/custom_carousel.html.jinja books/mybooks_breadcrumb_select.html openlibrary/core/shell/search_modal.py openlibrary/plugins/upstream/mybooks.py shell/footer.html.jinja work_search.html
 msgid "Books"
 msgstr ""
 
@@ -1340,18 +1348,6 @@ msgstr ""
 msgid "<a href=\"/search\">Search for a book</a> to borrow."
 msgstr ""
 
-#: account/loans.html
-msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
-msgstr ""
-
-#: account/loans.html home/index.html
-msgid "Books We Love"
-msgstr ""
-
-#: account/loans.html
-msgid "Or, check out our <a href=\"/collections\">special collections</a>."
-msgstr ""
-
 #: account/mybooks.html
 msgid "No books are on this shelf"
 msgstr ""
@@ -1361,7 +1357,7 @@ msgid "Loans & History"
 msgstr ""
 
 #. Display name for the "already-read" reading log shelf used in page headings and breadcrumbs.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/shelf_button_i18n.html openlibrary/plugins/upstream/mybooks.py search/sort_options.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html openlibrary/core/shell/shelf_labels.py openlibrary/plugins/upstream/mybooks.py search/sort_options.html
 msgid "Already Read"
 msgstr ""
 
@@ -1396,6 +1392,10 @@ msgstr ""
 
 #: BookByline.html SearchResultsWork.html account/notes.html account/observations.html
 msgid "Unknown author"
+msgstr ""
+
+#: account/notes.html
+msgid "My notes for this work"
 msgstr ""
 
 #: account/notes.html
@@ -1455,7 +1455,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/parts.html.jinja covers/manage.html my_books/shelf_button_i18n.html
+#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/parts.html.jinja covers/manage.html openlibrary/core/shell/shelf_labels.py
 msgid "Save"
 msgstr ""
 
@@ -1704,7 +1704,7 @@ msgstr ""
 msgid "My lists"
 msgstr ""
 
-#: EditionNavBar.html SearchNavigation.html account/sidebar.html lists/home.html openlibrary/core/shell/nav.py recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
+#: EditionNavBar.html SearchNavigation.html.jinja account/sidebar.html lists/home.html openlibrary/core/shell/nav.py recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
 msgid "Lists"
 msgstr ""
 
@@ -1712,7 +1712,7 @@ msgstr ""
 msgid "See All"
 msgstr ""
 
-#: account/sidebar.html my_books/shelf_button_i18n.html type/list/edit.html type/series/edit.html
+#: account/sidebar.html openlibrary/core/shell/shelf_labels.py type/list/edit.html type/series/edit.html
 msgid "Create a list"
 msgstr ""
 
@@ -1751,7 +1751,7 @@ msgstr ""
 msgid "Followers"
 msgstr ""
 
-#: ShareModal.html account/view.html type/edition/modal_links.html type/edition/title_and_author.html
+#: ShareModal.html account/view.html stats/tasks.html.jinja type/edition/modal_links.html type/edition/title_and_author.html
 msgid "Share"
 msgstr ""
 
@@ -2003,6 +2003,10 @@ msgid "Stats"
 msgstr ""
 
 #: admin/index.html
+msgid "Tasks stats: who is editing, and how Tasks edits hold up"
+msgstr ""
+
+#: admin/index.html
 msgid "Edits Per Day"
 msgstr ""
 
@@ -2018,7 +2022,7 @@ msgstr ""
 msgid "Last 7 days"
 msgstr ""
 
-#: admin/index.html
+#: admin/index.html stats/tasks.html.jinja
 msgid "Last 28 days"
 msgstr ""
 
@@ -2062,7 +2066,7 @@ msgstr ""
 msgid "Covers Added"
 msgstr ""
 
-#: admin/index.html home/stats.html
+#: admin/index.html openlibrary/plugins/openlibrary/home.py
 msgid "New Members"
 msgstr ""
 
@@ -2114,7 +2118,7 @@ msgstr ""
 msgid "Star Rating Patrons"
 msgstr ""
 
-#: admin/index.html home/stats.html
+#: admin/index.html
 msgid "Unique Visitors"
 msgstr ""
 
@@ -2711,7 +2715,7 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
-#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/searchbox.html shell/header.html.jinja type/local_id/view.html
+#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html.jinja search/publishers.html search/searchbox.html shell/header.html.jinja type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -3004,6 +3008,10 @@ msgstr ""
 msgid "Are you sure that's the published date?"
 msgstr ""
 
+#: books/add.html openlibrary/plugins/upstream/addbook.py
+msgid "Please enter a valid URL starting with http:// or https://"
+msgstr ""
+
 #: books/add.html
 msgid "Add a book to Open Library"
 msgstr ""
@@ -3012,7 +3020,7 @@ msgstr ""
 msgid "We require a minimum set of fields to create a new record. These are those fields."
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html search/advancedsearch.html type/about/edit.html type/page/edit.html type/template/edit.html
+#: books/add.html books/edit.html books/edit/edition.html search/advancedsearch.html.jinja search/sort_options.html type/about/edit.html type/page/edit.html type/template/edit.html
 msgid "Title"
 msgstr ""
 
@@ -3024,7 +3032,7 @@ msgstr ""
 msgid "Required field"
 msgstr ""
 
-#: SearchAuthorSuggestion.html TestingEnvironment.html.jinja books/add.html books/edit.html books/edit/edition.html openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py search/advancedsearch.html
+#: SearchAuthorSuggestion.html TestingEnvironment.html.jinja books/add.html books/edit.html books/edit/edition.html openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py search/advancedsearch.html.jinja
 msgid "Author"
 msgstr ""
 
@@ -3166,6 +3174,37 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
+#: books/custom_carousel.html.jinja
+#, python-format
+msgid "See all %(title)s"
+msgstr ""
+
+#: CarouselSkeleton.html.jinja books/custom_carousel.html.jinja lists/carousel.html.jinja lists/home.html lists/showcase.html
+msgid "See all"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Previous page"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Next page"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Carousel pages"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-brace-format
+msgid "Go to page {page} of {total}"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-brace-format
+msgid "Page {page} of {total}"
+msgstr ""
+
 #: books/custom_carousel_card.html.jinja
 #, python-format
 msgid "1 person waiting"
@@ -3185,7 +3224,7 @@ msgstr ""
 msgid "Return book"
 msgstr ""
 
-#: books/daisy.html my_books/shelf_button_i18n.html
+#: books/daisy.html openlibrary/core/shell/shelf_labels.py
 msgid "Back"
 msgstr ""
 
@@ -3344,7 +3383,7 @@ msgstr ""
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
 msgstr ""
 
-#: FulltextResultIA.html.jinja IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html lists/widget.html type/work/editions.html
+#: FulltextResultIA.html.jinja IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -3441,6 +3480,14 @@ msgstr ""
 
 #: books/edit/about.html
 msgid "There's no wrong answer here."
+msgstr ""
+
+#: books/edit/about.html
+msgid "Fiction or nonfiction?"
+msgstr ""
+
+#: books/edit/about.html openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py
+msgid "Not sure"
 msgstr ""
 
 #: books/edit/about.html
@@ -4007,7 +4054,7 @@ msgstr ""
 msgid "Back to Open Library"
 msgstr ""
 
-#: bulk_search/bulk_search.html search/advancedsearch.html
+#: bulk_search/bulk_search.html search/advancedsearch.html.jinja
 msgid "Bulk Search (beta)"
 msgstr ""
 
@@ -4036,6 +4083,14 @@ msgid "Missing"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
+msgid "Tasks couldn't load right now. Reload the page to try again."
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Current initiative"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
 msgid "Your recent fixes"
 msgstr ""
 
@@ -4045,6 +4100,14 @@ msgstr ""
 
 #: contribute/dashboard.html.jinja
 msgid "Fixes you save here show up in this list."
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Go further"
+msgstr ""
+
+#: contribute/done.html.jinja
+msgid "The cover you added"
 msgstr ""
 
 #: contribute/done.html.jinja openlibrary/plugins/openlibrary/contribute.py
@@ -4087,6 +4150,50 @@ msgstr ""
 
 #: contribute/done.html.jinja
 msgid "Pick a different book"
+msgstr ""
+
+#: contribute/landing.html.jinja
+msgid "Open Library Tasks"
+msgstr ""
+
+#: contribute/landing.html.jinja
+#, python-format
+msgid "Open Library serves %(readers)s readers every month across %(books)s catalogued books, and its %(mark_start)sreaders like you%(mark_end)s make thousands of edits every week."
+msgstr ""
+
+#: contribute/landing.html.jinja
+msgid "Many books on Open Library are still missing a detail: a cover, a language, a publisher. You can help fill them in."
+msgstr ""
+
+#: contribute/landing.html.jinja
+msgid "Recent edits"
+msgstr ""
+
+#: FulltextResultIA.html.jinja contribute/landing.html.jinja contribute/parts.html.jinja
+#, python-format
+msgid "by %(authors)s"
+msgstr ""
+
+#: contribute/landing.html.jinja
+msgid "Quiet for the moment. Edits show up here as they happen."
+msgstr ""
+
+#: contribute/landing.html.jinja
+msgid "What a task looks like"
+msgstr ""
+
+#: contribute/landing.html.jinja
+msgid "Each task is one book and one empty field. Here are just a few examples."
+msgstr ""
+
+#: contribute/landing.html.jinja
+#, python-format
+msgid "Add %(field)s"
+msgstr ""
+
+#: contribute/nothing.html.jinja
+#, python-format
+msgid "%(field)s is already filled in for this book"
 msgstr ""
 
 #: contribute/nothing.html.jinja
@@ -4315,111 +4422,95 @@ msgstr ""
 msgid "Latest Blog Posts"
 msgstr ""
 
-#: home/categories.html
-msgid "Browse by Subject"
+#: home/browse_stacks.html.jinja
+msgid "Browse the stacks"
 msgstr ""
 
-#: home/categories.html
+#: home/browse_stacks.html.jinja home/genre_shelf.html.jinja openlibrary/core/shell/nav.py openlibrary/plugins/openlibrary/partials.py search/sort_options.html
+msgid "Trending"
+msgstr ""
+
+#: home/browse_stacks.html.jinja openlibrary/plugins/openlibrary/partials.py
 #, python-format
-msgid "%(count)s Book"
-msgid_plural "%(count)s Books"
-msgstr[0] ""
-msgstr[1] ""
+msgid "Trending in %(genre)s"
+msgstr ""
+
+#: home/browse_stacks.html.jinja home/genre_shelf.html.jinja
+msgid "Jump to"
+msgstr ""
+
+#: home/genre_shelf.html.jinja
+#, python-format
+msgid "%(genre)s subgenres"
+msgstr ""
+
+#: home/genre_shelf.html.jinja merge_request_table/table_header.html
+msgid "Newest"
+msgstr ""
+
+#: home/genre_shelf.html.jinja
+msgid "Top rated"
+msgstr ""
+
+#: home/genre_shelf.html.jinja search/sort_options.html
+msgid "Sort by"
+msgstr ""
 
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-msgid "Classic Books"
-msgstr ""
-
 #: home/index.html
-msgid "Recently Returned"
+msgid "Couldn't load this shelf. Try again?"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
-msgid "Romance"
+#: home/library_row.html.jinja
+msgid "A library made by the people who use it."
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-msgid "Kids"
+#: home/library_row.html.jinja
+msgid "A catalog for every book ever published, maintained by readers like you."
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-msgid "Thrillers"
+#: home/library_row.html.jinja
+msgid "Start contributing"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
-msgid "Textbooks"
+#: home/library_row.html.jinja
+msgid "Editable"
 msgstr ""
 
-#: home/index.html
-msgid "Authors Alliance & MIT Press"
+#: home/library_row.html.jinja
+msgid "By anyone, like Wikipedia"
 msgstr ""
 
-#: home/index.html
-msgid "Books in Local Environment"
+#: home/library_row.html.jinja
+msgid "Public"
 msgstr ""
 
-#: home/stats.html
-msgid "Around the Library"
+#: home/library_row.html.jinja
+msgid "Every record, free to download"
 msgstr ""
 
-#: home/stats.html
-msgid "Here's what's happened over the last 28 days. More <a href=\"/recentchanges\">recent changes</a>"
+#: home/library_row.html.jinja
+msgid "Nonprofit"
 msgstr ""
 
-#: home/stats.html
-msgid "See all visitors to OpenLibrary.org"
+#: home/library_row.html.jinja
+msgid "Run by the Internet Archive"
 msgstr ""
 
-#: home/stats.html
-msgid "Area graph of recent unique visitors"
+#: home/library_row.html.jinja
+msgid "In the last month"
 msgstr ""
 
-#: home/stats.html
-msgid "How many new Open Library members have we welcomed?"
+#: home/library_row.html.jinja
+msgid "Change over the month, by 7-day average"
 msgstr ""
 
-#: home/stats.html
-msgid "Area graph of new members"
-msgstr ""
-
-#: home/stats.html
-msgid "People are constantly updating the catalog"
-msgstr ""
-
-#: home/stats.html
-msgid "Area graph of recent catalog edits"
-msgstr ""
-
-#: home/stats.html
-msgid "Catalog Edits"
-msgstr ""
-
-#: home/stats.html
-msgid "Members can create Lists"
-msgstr ""
-
-#: home/stats.html
-msgid "Area graph of lists created recently"
-msgstr ""
-
-#: home/stats.html
-msgid "Lists Created"
-msgstr ""
-
-#: home/stats.html
-msgid "We're a library, so we lend books, too"
-msgstr ""
-
-#: home/stats.html
-msgid "Area graph of ebooks borrowed recently"
-msgstr ""
-
-#: home/stats.html
-msgid "eBooks Borrowed"
+#: home/library_row.html.jinja
+#, python-format
+msgid "Up %(percent)d%% over the month"
 msgstr ""
 
 #: home/welcome.html
@@ -4460,14 +4551,6 @@ msgstr ""
 
 #: home/welcome.html
 msgid "Find matching results within the text of millions of books"
-msgstr ""
-
-#: home/welcome.html
-msgid "Be an Open Librarian"
-msgstr ""
-
-#: home/welcome.html
-msgid "Dozens of ways you can help improve the library"
 msgstr ""
 
 #: home/welcome.html
@@ -4552,7 +4635,7 @@ msgstr ""
 msgid "Copy Wikipedia citation"
 msgstr ""
 
-#: databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py
+#: databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "History"
 msgstr ""
 
@@ -4600,10 +4683,6 @@ msgstr ""
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Quality Criteria"
-msgstr ""
-
-#: lists/carousel.html.jinja lists/home.html lists/showcase.html
-msgid "See all"
 msgstr ""
 
 #: lists/export_as_html.html
@@ -4725,7 +4804,7 @@ msgstr ""
 msgid "Avatar of the owner of the list"
 msgstr ""
 
-#: lists/list_follow.html.jinja lists/widget.html
+#: lists/list_follow.html.jinja
 msgid "You"
 msgstr ""
 
@@ -4810,19 +4889,21 @@ msgid "You have no lists."
 msgstr ""
 
 #: lists/widget.html
-msgid "See this list"
+msgid "On your lists"
 msgstr ""
 
 #: lists/widget.html
-msgid "Remove from your list?"
+#, python-format
+msgid "Remove from %(name)s"
 msgstr ""
 
-#: lists/widget.html type/type/view.html
-msgid "from"
+#: lists/widget.html openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Removed from %(name)s"
 msgstr ""
 
-#: lists/widget.html
-msgid "Loading<span class=\"loading-ellipsis\">...</span>"
+#: lists/widget.html openlibrary/core/shell/shelf_labels.py
+msgid "Something went wrong. Please try again."
 msgstr ""
 
 #: merge/authors.html
@@ -5025,10 +5106,6 @@ msgid "Sort"
 msgstr ""
 
 #: merge_request_table/table_header.html
-msgid "Newest"
-msgstr ""
-
-#: merge_request_table/table_header.html
 msgid "Oldest"
 msgstr ""
 
@@ -5077,209 +5154,6 @@ msgstr ""
 msgid "comments"
 msgstr ""
 
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Save %(title)s to your reading log"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "%(title)s is on your reading log"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "%(shelf)s: %(title)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "More options for %(title)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Add %(title)s to a list"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Actions for %(title)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Reading log"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Added to %(shelf)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Removed from shelf"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Rated %(rating)s of 5"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Rating cleared"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Finished %(date)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Date removed"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Rate this book"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Rate %(rating)s of 5"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Clear rating"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Add to list"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "List name"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Create"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Filter lists…"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Create your first list"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "No lists match."
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Loading lists…"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "%(count)s item"
-msgid_plural "%(count)s items"
-msgstr[0] ""
-msgstr[1] ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "%(count)s other edition"
-msgid_plural "%(count)s other editions"
-msgstr[0] ""
-msgstr[1] ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Any edition"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "On %(count)s list"
-msgid_plural "On %(count)s lists"
-msgstr[0] ""
-msgstr[1] ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Recently used"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "On this book and recently used"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Other lists"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Added to %(name)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Removed from %(name)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Manage lists"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Something went wrong. Please try again."
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Add date"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "When did you finish this book?"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Skip"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "In %(year)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Other date"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Year"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Month"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Day"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Remove date"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Moved to %(shelf)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Undo"
-msgstr ""
-
 #: observations/review_component.html
 msgid "Community Reviews"
 msgstr ""
@@ -5322,7 +5196,7 @@ msgstr ""
 msgid "Publisher: %(name)s"
 msgstr ""
 
-#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html type/edition/view.html type/work/view.html
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html.jinja type/edition/view.html type/work/view.html
 msgid "Publisher"
 msgstr ""
 
@@ -5553,35 +5427,35 @@ msgstr ""
 msgid "%(count)d records modified."
 msgstr ""
 
-#: SearchNavigation.html openlibrary/core/shell/nav.py search/advancedsearch.html shell/footer.html.jinja
-msgid "Advanced Search"
-msgstr ""
-
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "All fields"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/contribute.py search/advancedsearch.html
+#: openlibrary/plugins/openlibrary/contribute.py search/advancedsearch.html.jinja
 msgid "ISBN"
 msgstr ""
 
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "Subject"
 msgstr ""
 
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "Place"
 msgstr ""
 
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "Person"
 msgstr ""
 
-#: search/advancedsearch.html
+#: SearchNavigation.html.jinja openlibrary/core/shell/nav.py openlibrary/fastapi/search.py openlibrary/plugins/worksearch/code.py search/advancedsearch.html.jinja shell/footer.html.jinja
+msgid "Advanced Search"
+msgstr ""
+
+#: search/advancedsearch.html.jinja
 msgid "How to search?"
 msgstr ""
 
-#: search/advancedsearch.html
+#: search/advancedsearch.html.jinja
 msgid "Full Text Search?"
 msgstr ""
 
@@ -5611,7 +5485,7 @@ msgstr ""
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: SearchNavigation.html openlibrary/core/shell/search_modal.py search/inside.html
+#: SearchNavigation.html.jinja openlibrary/core/shell/search_modal.py search/inside.html
 msgid "Search Inside"
 msgstr ""
 
@@ -5632,6 +5506,21 @@ msgid "%(start)s - %(end)s of about %(total)s result"
 msgid_plural "%(start)s - %(end)s of about %(total)s results"
 msgstr[0] ""
 msgstr[1] ""
+
+#: search/inside.html
+#, python-format
+msgid "No exact matches for \"%(query)s\". Showing books containing all of these words."
+msgstr ""
+
+#: search/inside.html
+#, python-format
+msgid "Showing exact matches for \"%(query)s\". %(link_start)sSearch for all of these words instead.%(link_end)s"
+msgstr ""
+
+#: search/inside.html
+#, python-format
+msgid "Showing all of these words, in any order. %(link_start)sSearch for the exact phrase instead.%(link_end)s"
+msgstr ""
 
 #: search/inside.html
 msgid "No results found. Try a different word or phrase."
@@ -5698,7 +5587,11 @@ msgid "List Order"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Last Modified"
+msgid "Recently Added"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Recently Edited"
 msgstr ""
 
 #: search/sort_options.html
@@ -5718,11 +5611,19 @@ msgid "Date Added (oldest)"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Most Editions"
+msgid "First Published"
 msgstr ""
 
 #: search/sort_options.html
-msgid "First Published"
+msgid "Your Top Rated"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Most Wanted"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Most Editions"
 msgstr ""
 
 #: search/sort_options.html
@@ -5737,16 +5638,8 @@ msgstr ""
 msgid "Any"
 msgstr ""
 
-#: openlibrary/core/shell/nav.py search/sort_options.html
-msgid "Trending"
-msgstr ""
-
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Sort by"
 msgstr ""
 
 #: search/sort_options.html
@@ -5853,7 +5746,7 @@ msgstr ""
 msgid "Reader-curated collections"
 msgstr ""
 
-#: databarWork.html shell/browse_popover.html.jinja shell/header.html.jinja
+#: contribute/parts.html.jinja databarWork.html shell/browse_popover.html.jinja shell/header.html.jinja
 msgid "Browse"
 msgstr ""
 
@@ -5909,7 +5802,7 @@ msgstr ""
 msgid "Explore subjects"
 msgstr ""
 
-#: RelatedSubjects.html.jinja SearchNavigation.html SubjectTags.html openlibrary/core/shell/nav.py openlibrary/plugins/worksearch/code.py shell/footer.html.jinja subjects/notfound.html type/author/view.html type/list/view_body.html
+#: RelatedSubjects.html.jinja SearchNavigation.html.jinja SubjectTags.html openlibrary/core/shell/nav.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py shell/footer.html.jinja subjects/notfound.html type/author/view.html type/list/view_body.html
 msgid "Subjects"
 msgstr ""
 
@@ -6075,6 +5968,10 @@ msgid "Contribute"
 msgstr ""
 
 #: shell/header.html.jinja
+msgid "Improve the Catalog"
+msgstr ""
+
+#: shell/header.html.jinja
 msgid "Recent Community Edits"
 msgstr ""
 
@@ -6163,6 +6060,153 @@ msgstr ""
 
 #: stats/readinglog.html
 msgid "Most Rated Books (All Time)"
+msgstr ""
+
+#: stats/tasks.html stats/tasks.html.jinja
+msgid "Tasks Stats"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Counts are gathered every hour, so today's figures fill in as the day goes on."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Metrics, last 28 days. Choose one to chart it."
+msgstr ""
+
+#: stats/tasks.html.jinja
+#, python-format
+msgid "%(change)s vs previous 28 days"
+msgstr ""
+
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+msgid "Per day"
+msgstr ""
+
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+msgid "Previous period"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Date range"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "28 days"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "90 days"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "6 months"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "12 months"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Group by"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py stats/tasks.html.jinja
+msgid "Day"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Week"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py stats/tasks.html.jinja
+msgid "Month"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Compare to previous period"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Chart of the chosen metric over the chosen range"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Details still missing across the initiative's books, counted nightly. A detail nobody could find counts as filled."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "of details filled"
+msgstr ""
+
+#: stats/tasks.html.jinja
+#, python-format
+msgid "<b>%(done)s of %(count)s</b> books complete"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "details still open"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "marked not found"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Details still open, by day"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Saves by field, last 28 days"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Which details people are filling in."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Field"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Saves"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "No Tasks saves in the last 28 days."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Guardrail"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Saves whose value is no longer on the record: undone, reverted or changed by a later edit, over the 28 days to each day. The dashed line is the same check on the same fields filled outside Tasks, by people editing a record directly."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "of Tasks saves undone"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Tasks saves: too few to compare yet"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "of fills outside Tasks undone"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Fills outside Tasks: too few to compare yet"
+msgstr ""
+
+#: stats/tasks.html.jinja
+#, python-format
+msgid "Last 28 days: %(tasks_undone)s of %(tasks)s Tasks saves and %(other_undone)s of %(other)s fills outside Tasks. A share shows once there are %(min)s."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Share of Tasks saves undone, and of fills outside Tasks, by day"
 msgstr ""
 
 #: subjects/notfound.html
@@ -6297,6 +6341,11 @@ msgstr ""
 msgid "Search %(author)s books"
 msgstr ""
 
+#: type/author/view.html
+#, python-format
+msgid "There are no more works on this page. %(link_start)sBack to page 1%(link_end)s."
+msgstr ""
+
 #: RelatedSubjects.html.jinja SubjectTags.html openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
 msgid "Places"
 msgstr ""
@@ -6409,6 +6458,21 @@ msgstr ""
 #: type/edition/title_and_author.html
 #, python-format
 msgid "Book %s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+#, python-format
+msgid "Edition published in %(year)s by %(publishers)s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+#, python-format
+msgid "Edition published in %(year)s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+#, python-format
+msgid "Edition published by %(publishers)s"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -6713,7 +6777,7 @@ msgstr ""
 
 #: type/list/view_body.html
 #, python-format
-msgid "Last modified <span>%(date)s</span>"
+msgid "Edited <span>%(date)s</span>"
 msgstr ""
 
 #: type/list/view_body.html
@@ -6812,7 +6876,7 @@ msgstr ""
 msgid "Readers"
 msgstr ""
 
-#: type/permission/view.html
+#: openlibrary/plugins/openlibrary/home_genres.py type/permission/view.html
 msgid "Writers"
 msgstr ""
 
@@ -6944,6 +7008,10 @@ msgstr ""
 
 #: type/type/view.html
 msgid "Backreferences"
+msgstr ""
+
+#: type/type/view.html
+msgid "from"
 msgstr ""
 
 #: type/user/edit.html
@@ -7177,6 +7245,10 @@ msgstr ""
 msgid "See more about this book on Archive.org"
 msgstr ""
 
+#: CarouselSkeleton.html.jinja
+msgid "Loading carousel"
+msgstr ""
+
 #: CheckWorldcat.html ReadingOptionsMenu.html
 msgid "Nearby Libraries"
 msgstr ""
@@ -7222,11 +7294,6 @@ msgstr ""
 
 #: FormatExpiry.html.jinja
 msgid "Expires"
-msgstr ""
-
-#: FulltextResultIA.html.jinja
-#, python-format
-msgid "by %(authors)s"
 msgstr ""
 
 #: FulltextSearchSuggestion.html.jinja openlibrary/core/shell/search_modal.py
@@ -7513,6 +7580,11 @@ msgstr ""
 
 #: SubjectTags.html
 msgid "Manage Subjects"
+msgstr ""
+
+#: SubjectTags.html
+#, python-format
+msgid "Show %(count)s more"
 msgstr ""
 
 #: Subnavigation.html
@@ -7892,6 +7964,10 @@ msgid "How this edit goes wrong"
 msgstr ""
 
 #: contribute/parts.html.jinja
+msgid "What the record says"
+msgstr ""
+
+#: contribute/parts.html.jinja
 #, python-format
 msgid "The other edition"
 msgid_plural "The other %(count)d editions"
@@ -7916,6 +7992,35 @@ msgstr ""
 #: contribute/parts.html.jinja
 #, python-format
 msgid "And %(count)s more."
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Click again to save and continue"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Choose the new cover"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Cover from Amazon"
+msgstr ""
+
+#: contribute/parts.html.jinja
+#, python-format
+msgid "Found by ISBN %(isbn)s"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Upload a new image"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Drop a file here, paste, or browse"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "JPG, GIF, PNG or WebP, up to 10 MB."
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -7959,10 +8064,6 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: contribute/parts.html.jinja
-msgid "I opened the record and the year and publisher match this edition."
-msgstr ""
-
-#: contribute/parts.html.jinja
 msgid "Add a comment about your edit"
 msgstr ""
 
@@ -7982,13 +8083,44 @@ msgstr ""
 msgid "I couldn't find it"
 msgstr ""
 
-#: contribute/parts.html.jinja
-#, python-format
-msgid "Next: a random task from %(filter)s"
+#: contribute/parts.html.jinja openlibrary/core/shell/shelf_labels.py
+msgid "Skip"
 msgstr ""
 
-#: contribute/parts.html.jinja
-msgid "Next: a random task from all open tasks"
+#: openlibrary/contribute/feed.py
+msgid "Edited this book"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "Added this book"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "Added a cover"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "Merged duplicate authors"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "Merged duplicate works"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "Updated this record"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "Edited this author"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "Reverted an edit"
+msgstr ""
+
+#: openlibrary/contribute/feed.py
+msgid "a visitor"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8005,6 +8137,42 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "Library of Congress"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py
+msgid "Cover"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Add a cover"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Can you find this edition's cover?"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Look the ISBN up on Google Books, Amazon or Better World Books and save the front cover image. Check that the title, author and publisher on the image match this edition, then upload it here."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/partials.py
+msgid "Better World Books"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Upload the cover only, flat and in full: no photos of the book on a table, no 3D mockups, no store badges or watermarks."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "The cover belongs to another edition. A paperback, a reissue or a translation usually has a different cover; check the publisher."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Making a cover yourself. If you can't find the real one, leave it for someone who can."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Look for anything that doesn't fit this edition, such as “Graphic Novel”, “Movie tie-in” or a title in another language."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8027,7 +8195,7 @@ msgstr ""
 msgid "For example English"
 msgstr ""
 
-#: openlibrary/contribute/field_guides.py
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py
 msgid "Page count"
 msgstr ""
 
@@ -8049,6 +8217,30 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "For example 320"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Literary form"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Pick fiction or nonfiction"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Is this book fiction or nonfiction?"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "If you know the book, answer from what you know. If you don't, look it up."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Nonfiction can read like a story. A memoir that bends the truth is still nonfiction: it is presented as fact."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Anthologies and collections take the form of what's inside. A book of essays about novels is nonfiction."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8084,7 +8276,7 @@ msgid "What is this edition's Library of Congress number?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "Search the Library of Congress catalog for this ISBN. Open the record whose year and publisher match this edition, and copy the number shown as LCCN."
+msgid "Search the Library of Congress catalog for this ISBN. Open the record whose publisher and edition match this one, and copy the number shown as LCCN. A paperback or later printing can show a different year and still be the same record."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8092,11 +8284,11 @@ msgid "Hyphenated and padded forms are the same number: 75-425165 and 75425165. 
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The number belongs to a different printing. Search results lead with the best-known one, not with yours."
+msgid "The number belongs to a different edition: another publisher's, a revised edition, a translation or the ebook. Each has its own record."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The number is already on another edition of this work, which means one of the two records is wrong."
+msgid "The number is already on another edition of this work. That's right when it's the hardcover, paperback or a later printing from the same publisher; a different publisher or a revised edition means one of the two records is wrong."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8105,6 +8297,10 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "For example 75425165"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "I opened the record and its publisher and edition match this one."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8120,7 +8316,7 @@ msgid "What is this edition's WorldCat (OCLC) number?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "Search WorldCat for this ISBN. Open the record whose year, publisher and format match this edition, and copy the number shown as OCLC Number."
+msgid "Search WorldCat for this ISBN. Open the print record whose publisher and edition match this one, and copy the number shown as OCLC Number. A paperback or later printing can show a different year and still be the same record."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8132,7 +8328,11 @@ msgid "The prefixes ocm, ocn, on and (OCoLC) are padding added by library system
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The number belongs to a different printing, a book club edition, or the ebook rather than the print copy."
+msgid "WorldCat sometimes lists one edition more than once. Any of those numbers is right; OCLC merges them over time."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "The number belongs to a different record: the ebook, another publisher's edition, a revised edition, large print or a translation."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8141,6 +8341,10 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "Digits only, for example 47810608"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "I opened a print record and its publisher and edition match this one."
 msgstr ""
 
 #: openlibrary/contribute/save.py
@@ -8162,6 +8366,22 @@ msgstr ""
 #: openlibrary/contribute/save.py
 #, python-format
 msgid "Filled in %(field)s from Open Library Tasks"
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "Choose one of the options."
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "Choose an image of the cover."
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "We couldn't save the cover just now. Please try again in a minute."
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "That isn't an image Open Library can use. Choose a JPG, GIF, PNG or WebP under 10 MB."
 msgstr ""
 
 #: openlibrary/core/bookshelves.py
@@ -8327,12 +8547,228 @@ msgstr ""
 
 #: openlibrary/core/shell/search_modal.py
 #, python-format
+msgid "Showing exact matches for \"%s\"."
+msgstr ""
+
+#: openlibrary/core/shell/search_modal.py
+msgid "Search for all of these words instead."
+msgstr ""
+
+#: openlibrary/core/shell/search_modal.py
+msgid "Showing all of these words, in any order."
+msgstr ""
+
+#: openlibrary/core/shell/search_modal.py
+msgid "Search for the exact phrase instead."
+msgstr ""
+
+#: openlibrary/core/shell/search_modal.py
+#, python-format
+msgid "No exact matches for \"%s\". Showing books containing all of these words."
+msgstr ""
+
+#: openlibrary/core/shell/search_modal.py
+#, python-format
 msgid "%s match found inside books"
 msgstr ""
 
 #: openlibrary/core/shell/search_modal.py
 #, python-format
 msgid "%s matches found inside books"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Save %(title)s to your reading log"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "%(title)s is on your reading log"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "%(shelf)s: %(title)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "More options for %(title)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Add %(title)s to a list"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Actions for %(title)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Reading log"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Added to %(shelf)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Removed from shelf"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Rated %(rating)s of 5"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Rating cleared"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Finished %(date)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Date removed"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Rate this book"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Rate %(rating)s of 5"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Clear rating"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Add to list"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "List name"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Create"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Filter lists…"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Create your first list"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "No lists match."
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Loading lists…"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "%(count)s item"
+msgid_plural "%(count)s items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "%(count)s other edition"
+msgid_plural "%(count)s other editions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Already on this list"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "On %(count)s list"
+msgid_plural "On %(count)s lists"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Recently used"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "On this book and recently used"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Other lists"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Added to %(name)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Manage lists"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Add date"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "When did you finish this book?"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "In %(year)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Other date"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Year"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Remove date"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Moved to %(shelf)s"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py
+msgid "Undo"
+msgstr ""
+
+#: openlibrary/core/tags.py
+msgid "Novels, stories, plays and poems."
+msgstr ""
+
+#: openlibrary/core/tags.py
+msgid "History, biography, memoir, essays, how-to and reference."
+msgstr ""
+
+#: openlibrary/core/tags.py
+msgid "Hard to call, like a book based on a true story or a collection that mixes fiction and nonfiction."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8647,6 +9083,26 @@ msgstr ""
 msgid "Search Results"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/api.py
+msgid "Classic Books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
+msgid "Romance"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home_genres.py
+msgid "Kids"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py
+msgid "Thrillers"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
+msgid "Textbooks"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"
 msgstr ""
@@ -8720,7 +9176,31 @@ msgid "Filipino"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Tasks are open to librarians only, for now"
+msgid "Fiction or nonfiction"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Missing cover"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Missing language"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Missing page count"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Missing publisher"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Missing identifiers"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Missing fiction or nonfiction"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -8731,13 +9211,66 @@ msgstr ""
 msgid "OCLC"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py
+msgid "First published"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Editions"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "The %(count)s most-read books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(percent)s%%"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Fill in what's missing on the books people shelve most."
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "All open tasks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-#, python-format
-msgid "Missing: %(field)s"
+msgid "Ready when you are"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Try a task"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Browse all tasks"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Join in"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Create an account"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Tasks are open to anyone with a free Open Library account."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Already have one? Log in"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Become an Open Librarian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Doing a lot of these? Open Librarians get more editing tools. Applying takes a few minutes."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -8753,10 +9286,26 @@ msgid "Nothing to fill in here"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Open the record and confirm it matches this edition first."
+msgid "Check that it matches this edition, and tick the box to say so."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
+msgid "Books Read"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Catalog Edits"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Lists Updated"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Lists Created"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Art"
 msgstr ""
 
@@ -8764,7 +9313,7 @@ msgstr ""
 msgid "Science Fiction"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Fantasy"
 msgstr ""
 
@@ -8784,7 +9333,7 @@ msgstr ""
 msgid "Medicine"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Religion"
 msgstr ""
 
@@ -8800,8 +9349,144 @@ msgstr ""
 msgid "Music"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Science"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Biography"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Philosophy"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Psychology"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Poetry"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Travel"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Cooking"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Friendship"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Adventure"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Mystery"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "School"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Picture books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Humor"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "United States"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Great Britain"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "World War II"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Military"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Ancient"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Middle Ages"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Historical"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Western"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Regency"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Paranormal"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Contemporary"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Suspense"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Women"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Memoir"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Royalty"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Artists"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Presidents"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "What's new"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Books we love"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Classics"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Most wanted"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Featured"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
@@ -8845,10 +9530,6 @@ msgid "Has number of pages"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
-msgid "Better World Books"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/partials.py
 msgid "Bookshop.org"
 msgstr ""
 
@@ -8857,7 +9538,13 @@ msgid "This work does not appear on any lists."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
-msgid "Loading carousel"
+#, python-format
+msgid "Newest in %(genre)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+#, python-format
+msgid "Top rated in %(genre)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
@@ -8974,6 +9661,10 @@ msgid "Notification preferences have been updated successfully."
 msgstr ""
 
 #: openlibrary/plugins/upstream/addbook.py
+msgid "Invalid Book URL"
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
 msgid "Permission denied"
 msgstr ""
 
@@ -9044,6 +9735,22 @@ msgid "Choose a password"
 msgstr ""
 
 #: openlibrary/plugins/upstream/lenny.py
+msgid "Open Library could not reach that library to return this book. Please try again later."
+msgstr ""
+
+#: openlibrary/plugins/upstream/lenny.py
+msgid "Open Library is no longer connected to that library. Please borrow again to reconnect, then return."
+msgstr ""
+
+#: openlibrary/plugins/upstream/lenny.py
+msgid "That library could not return this book right now. Please try again later."
+msgstr ""
+
+#: openlibrary/plugins/upstream/lenny.py
+msgid "This book has been returned."
+msgstr ""
+
+#: openlibrary/plugins/upstream/lenny.py
 #, python-format
 msgid "Borrowed from %(library)s. Your loan is due %(due)s."
 msgstr ""
@@ -9077,10 +9784,6 @@ msgid "eBook?"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
-msgid "First published"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
 msgid "Classic eBooks"
 msgstr ""
 
@@ -9104,5 +9807,91 @@ msgstr ""
 #: openlibrary/plugins/worksearch/facets.py
 #, python-format
 msgid "%(title)s - search"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Editors"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "People who changed a book, work or author record. In week and month views, someone who edited on several days counts once."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "First-time editors"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "People who made their first edit ever on that day. Each person is counted once, on the day of their first edit."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks saves"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Edits saved from the Tasks page."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks editors"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "People who saved an edit from the Tasks page. In week and month views, someone who saved on several days counts once."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "Most-read %(count)s"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Per week"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Per 4 weeks"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "Previous period: %(count)s"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(change)s vs previous period"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Today so far, updated hourly"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Still in progress"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(count)s details still open"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "Tasks: %(share)s undone, %(undone)s of %(total)s saves"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "Outside Tasks: %(share)s undone, %(undone)s of %(total)s fills"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "No counts for this range yet."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "The charts couldn't load. Reload the page to try again."
 msgstr ""
 

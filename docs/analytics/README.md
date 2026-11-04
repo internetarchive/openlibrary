@@ -101,6 +101,7 @@ The only lossless counter. Plain Python:
 
 ```python
 from openlibrary.core import stats
+
 stats.increment("ol.account.verify.success")
 ```
 

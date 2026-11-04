@@ -1,0 +1,71 @@
+{#
+  The row under the home page carousels: the librarian call-out, which pitches the catalog as a
+  commons and sends readers to /tasks, and beside it the stats card ("In the last month"), four
+  28-day counts with sparklines and, when it rose, the change from the line's first point to its last. `stats` is home.get_library_stats(); it's empty when admin
+  stats are unavailable, and then the call-out takes the whole row.
+#}
+<div class="library-row{% if not stats %} library-row--solo{% endif %}">
+    <section class="librarian-card" aria-labelledby="librarian-card-title">
+        <div class="librarian-card__main">
+            <h2 class="librarian-card__title" id="librarian-card-title">{{ _("A library made by the people who use it.") }}</h2>
+            <p class="librarian-card__body">{{ _("A catalog for every book ever published, maintained by readers like you.") }}</p>
+            <ol-button class="librarian-card__cta" variant="primary" href="/tasks" data-ol-link-track="HomeLibrarianCard|Tasks">
+                {{ _("Start contributing") }}
+                {{ icon("arrow-right", size="sm", slot="icon-end") }}
+            </ol-button>
+        </div>
+        <dl class="librarian-card__facts">
+            <div class="librarian-card__fact">
+                {{ icon("pencil", extra_class="librarian-card__fact-icon") }}
+                <dt>{{ _("Editable") }}</dt>
+                <dd>
+                    {{ _("By anyone, like Wikipedia") }}
+                </dd>
+            </div>
+            <div class="librarian-card__fact">
+                {{ icon("globe", extra_class="librarian-card__fact-icon") }}
+                <dt>{{ _("Public") }}</dt>
+                <dd>
+                    {{ _("Every record, free to download") }}
+                </dd>
+            </div>
+            <div class="librarian-card__fact">
+                {{ icon("landmark", extra_class="librarian-card__fact-icon") }}
+                <dt>{{ _("Nonprofit") }}</dt>
+                <dd>
+                    {{ _("Run by the Internet Archive") }}
+                </dd>
+            </div>
+        </dl>
+    </section>
+    {% if stats %}
+        <section class="library-stats" aria-labelledby="library-stats-title">
+            <h2 class="library-stats__title" id="library-stats-title">{{ _("In the last month") }}</h2>
+            <ul class="library-stats__grid">
+                {% for stat in stats %}
+                    <li>
+                        <a class="library-stat" href="{{ stat.href }}">
+                            <span class="library-stat__figures">
+                                <span class="library-stat__value">{{ stat.value }}</span>
+                                {# Only a rise is called out; the sparkline's label says the same in words. #}
+                                {% if stat.change and stat.change > 0 %}
+                                    <span class="library-stat__change"
+                                          title="{{ _('Change over the month, by 7-day average') }}"
+                                          aria-hidden="true">↑ {{ stat.change }}%</span>
+                                {% endif %}
+                            </span>
+                            <span class="library-stat__label">{{ stat.label }}</span>
+                            <svg class="library-stat__spark"
+                                 viewBox="0 0 120 28"
+                                 preserveAspectRatio="none"
+                                 {% if stat.change and stat.change > 0 %} role="img" aria-label="{{ _('Up %(percent)d%% over the month', percent=stat.change) }}" {% else %} aria-hidden="true" {% endif %}
+                                 focusable="false">
+                                <polyline points="{{ stat.points }}" vector-effect="non-scaling-stroke"></polyline>
+                            </svg>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+</div>

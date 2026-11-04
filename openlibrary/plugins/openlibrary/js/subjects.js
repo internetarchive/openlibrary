@@ -10,14 +10,14 @@ import { fetchAndSwap } from './utils';
  * The chart initially contains a loading indicator instead of a graph. Once
  * visible, a request is made for the chart's real markup (with the
  * publish_year facet data baked in), the placeholder is replaced with it,
- * and the flot chart is drawn against the newly-inserted markup.
+ * and the chart is drawn against the newly-inserted markup.
  *
  * @param {HTMLElement} elem Root element of the publishing-history component
  */
 export async function initPublishingHistory(elem) {
     await fetchAndSwap(elem, 'SubjectPublishingHistory', async () => {
-        const graphs = await import('./graphs');
-        graphs.initPublishersGraph();
+        const publishingHistory = await import('./publishing_history');
+        publishingHistory.init();
     });
 }
 

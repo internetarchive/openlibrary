@@ -4,6 +4,7 @@ import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
 import './OlIcon.js';
 import './OlTooltip.js';
+import { focusRing, pressable, raised } from './control-styles.js';
 
 /**
  * OlSegmentedControl - A single-select control styled like ol-button.
@@ -59,33 +60,37 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         _options: { state: true }
     };
 
-    static styles = css`
-        :host {
-            display: inline-flex;
-            vertical-align: middle;
+    static styles = [
+        raised,
+        pressable,
+        focusRing,
+        css`
+            :host {
+                display: inline-flex;
+                vertical-align: middle;
 
-            /* Concentric with the track: the pill sits one --spacing-3xs inside
+                /* Concentric with the track: the pill sits one --spacing-3xs inside
                it, so its radius has to shed that inset or it reads rounder than
                the corner containing it. */
-            --pill-radius: calc(var(--border-radius-button) - var(--spacing-3xs));
+                --pill-radius: calc(var(--border-radius-button) - var(--spacing-3xs));
 
-            /* A crisp ease-out (no overshoot) for the slide — the pill should
+                /* A crisp ease-out (no overshoot) for the slide — the pill should
                feel like it snaps to the new segment, not bounce. */
-            --slide-duration: var(--duration-base);
-            --slide-ease: var(--ease-move);
-        }
+                --slide-duration: var(--duration-base);
+                --slide-ease: var(--ease-move);
+            }
 
-        :host([full-width]) {
-            display: flex;
-            width: 100%;
-        }
+            :host([full-width]) {
+                display: flex;
+                width: 100%;
+            }
 
-        :host(:disabled) {
-            opacity: 0.55;
-            cursor: not-allowed;
-        }
+            :host(:disabled) {
+                opacity: 0.55;
+                cursor: not-allowed;
+            }
 
-        /* A light-grey inset track. The selected segment floats inside it as a
+            /* A light-grey inset track. The selected segment floats inside it as a
            white pill, so the track padding sets the gap around that pill.
 
            Two stacked layers ride inside the track, both built from the same
@@ -98,233 +103,228 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
            flip exactly where the pill's edge crosses it, so the colour change
            travels *with* the pill instead of toggling instantly. The white pill
            itself is a separate .pill element (clip-path would eat its shadow). */
-        .track {
-            position: relative;
-            isolation: isolate;
-            display: inline-flex;
-            box-sizing: border-box;
-            height: var(--control-height-medium);
-            padding: var(--spacing-3xs);
-            border-radius: var(--border-radius-button);
-            background-color: var(--color-control-track);
-        }
+            .track {
+                position: relative;
+                isolation: isolate;
+                display: inline-flex;
+                box-sizing: border-box;
+                height: var(--control-height-medium);
+                padding: var(--spacing-3xs);
+                border-radius: var(--border-radius-button);
+                background-color: var(--color-control-track);
+            }
 
-        :host([full-width]) .track {
-            display: flex;
-            width: 100%;
-        }
+            :host([full-width]) .track {
+                display: flex;
+                width: 100%;
+            }
 
-        .layer {
-            display: inline-flex;
-        }
+            .layer {
+                display: inline-flex;
+            }
 
-        /* The interactive layer sits above the pill so its text reads on top of
+            /* The interactive layer sits above the pill so its text reads on top of
            the white fill; the active (clipped) layer sits above both. It's a
            flex item of the track, so align-items: stretch already sizes it to
            the track's content height — its segments fill that via height: 100%. */
-        .layer--base {
-            position: relative;
-            z-index: var(--z-index-local-2);
-            height: 100%;
-        }
+            .layer--base {
+                position: relative;
+                z-index: var(--z-index-local-2);
+                height: 100%;
+            }
 
-        :host([full-width]) .layer--base {
-            flex: 1;
-        }
+            :host([full-width]) .layer--base {
+                flex: 1;
+            }
 
-        .layer--active {
-            position: absolute;
-            z-index: var(--z-index-local-3);
-            inset: var(--spacing-3xs);
-            display: flex;
-            pointer-events: none;
-            /* clip-path (revealing only the selected segment's slice of the
+            .layer--active {
+                position: absolute;
+                z-index: var(--z-index-local-3);
+                inset: var(--spacing-3xs);
+                display: flex;
+                pointer-events: none;
+                /* clip-path (revealing only the selected segment's slice of the
                dark-text layer) is set directly by _measure() so its changes
                trigger the transition — an inherited var() change would not. */
-            visibility: hidden;
-        }
+                visibility: hidden;
+            }
 
-        /* The selected segment's text. Doubled class (.segment.segment--ghost)
+            /* The selected segment's text. Doubled class (.segment.segment--ghost)
            so this beats the later, equal-specificity ".segment" color rule —
            otherwise the cascade resolves the ghost to --color-text-muted and the
            selected segment looks dimmed instead of full-strength #333. */
-        .segment.segment--ghost {
-            color: var(--color-text);
-        }
+            .segment.segment--ghost {
+                color: var(--color-text);
+            }
 
-        /* The sliding white pill — carries the raised look the selected segment
+            /* The sliding white pill — carries the raised look the selected segment
            used to draw itself. translateX + width walk it to the active
            segment; its shadow can't be clipped, hence its own element. */
-        .pill {
-            position: absolute;
-            z-index: var(--z-index-local-1);
-            /* border-box so _measure()'s width — a segment's border-box width —
+            .pill {
+                position: absolute;
+                z-index: var(--z-index-local-1);
+                /* border-box so _measure()'s width — a segment's border-box width —
                isn't widened by this element's own border. Without it the pill
                overhangs its segment by 2px, swallowing the track's right
                padding on the last segment. */
-            box-sizing: border-box;
-            top: var(--spacing-3xs);
-            bottom: var(--spacing-3xs);
-            left: var(--spacing-3xs);
-            /* width + translateX are set directly by _measure() (see above). */
-            width: 0;
-            /* Border, fill and lift are ol-button[variant="secondary"]'s, so the
-               selected segment reads as the same control as the buttons beside
-               it. The track stays a step lighter than this border, so the pill
-               keeps a visible outline against it. */
-            border: 1px solid var(--color-control-border);
-            border-radius: var(--pill-radius);
-            background-color: var(--color-control-bg);
-            --control-surface: var(--color-control-bg);
-            box-shadow:
-                var(--box-shadow-raised),
-                inset 0 1px 0 color-mix(in srgb, var(--white) 35%, var(--control-surface));
-            visibility: hidden;
-        }
+                box-sizing: border-box;
+                top: var(--spacing-3xs);
+                bottom: var(--spacing-3xs);
+                left: var(--spacing-3xs);
+                /* width + translateX are set directly by _measure() (see above). */
+                width: 0;
+                /* Border, fill and lift (the shared .raised recipe) are
+               ol-button[variant="secondary"]'s, so the selected segment reads as
+               the same control as the buttons beside it. The track stays a step
+               lighter than this border, so the pill keeps a visible outline
+               against it. */
+                border: 1px solid var(--color-control-border);
+                border-radius: var(--pill-radius);
+                background-color: var(--color-control-bg);
+                --control-surface: var(--color-control-bg);
+                --control-highlight-strength: 35%;
+                visibility: hidden;
+            }
 
-        /* Both are hidden until _measure() has placed them (avoids a flash of
+            /* Both are hidden until _measure() has placed them (avoids a flash of
            an unpositioned pill on first paint). */
-        .track.is-ready .pill,
-        .track.is-ready .layer--active {
-            visibility: visible;
-        }
+            .track.is-ready .pill,
+            .track.is-ready .layer--active {
+                visibility: visible;
+            }
 
-        /* Transitions are enabled one frame after the initial placement so the
+            /* Transitions are enabled one frame after the initial placement so the
            pill appears in position instead of sliding in from the left. */
-        .track.is-animated .pill {
-            transition:
-                transform var(--slide-duration) var(--slide-ease),
-                width var(--slide-duration) var(--slide-ease);
-        }
+            .track.is-animated .pill {
+                transition:
+                    transform var(--slide-duration) var(--slide-ease),
+                    width var(--slide-duration) var(--slide-ease);
+            }
 
-        .track.is-animated .layer--active {
-            transition: clip-path var(--slide-duration) var(--slide-ease);
-        }
+            .track.is-animated .layer--active {
+                transition: clip-path var(--slide-duration) var(--slide-ease);
+            }
 
-        /* The tooltip wrapper around an icon segment must generate no box: the
+            /* The tooltip wrapper around an icon segment must generate no box: the
            button has to stay a direct flex item of .layer--base so full-width
            sizing and _measure()'s rects match the ghost layer exactly. */
-        ol-tooltip {
-            display: contents;
-        }
+            ol-tooltip {
+                display: contents;
+            }
 
-        .segment {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
-            height: 100%;
-            padding: 0 var(--spacing-md);
-            /* Transparent border on every segment keeps widths stable, so
+            .segment {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                box-sizing: border-box;
+                height: 100%;
+                padding: 0 var(--spacing-md);
+                /* Transparent border on every segment keeps widths stable, so
                selecting one doesn't shift its neighbors when its border shows. */
-            border: 1px solid transparent;
-            border-radius: var(--border-radius-button);
-            background-color: transparent;
-            /* Non-selected segments are dimmed so the selected one reads as
+                border: 1px solid transparent;
+                border-radius: var(--border-radius-button);
+                background-color: transparent;
+                /* Non-selected segments are dimmed so the selected one reads as
                active; hover and the selected pill darken back to full strength. */
-            color: var(--color-text-muted);
-            font-family: var(--font-family-button);
-            font-size: var(--font-size-body-medium);
-            line-height: var(--line-height-control);
-            white-space: nowrap;
-            cursor: pointer;
-            user-select: none;
-            /* Only the selected pill crossfades in (background/border/shadow).
+                color: var(--color-text-muted);
+                font-family: var(--font-family-button);
+                font-size: var(--font-size-body-medium);
+                font-weight: var(--font-weight-button);
+                line-height: var(--line-height-control);
+                white-space: nowrap;
+                cursor: pointer;
+                user-select: none;
+                /* The shared .focus-ring, pulled inside the segment: an outer ring
+               would be clipped by the track. */
+                --_focus-offset: -2px;
+                /* Only the selected pill crossfades in (background/border/shadow).
                Color is intentionally NOT transitioned so hover darkening is
                instant — the hover effect must give immediate feedback. */
-            transition:
-                background-color var(--duration-fast),
-                border-color var(--duration-fast),
-                box-shadow var(--duration-fast);
-        }
+                transition:
+                    background-color var(--duration-fast),
+                    border-color var(--duration-fast),
+                    box-shadow var(--duration-fast);
+            }
 
-        :host([full-width]) .segment {
-            flex: 1 1 0;
-        }
+            :host([full-width]) .segment {
+                flex: 1 1 0;
+            }
 
-        /* Icon segments: size the glyph to the control and let it inherit the
+            /* Icon segments: size the glyph to the control and let it inherit the
            segment's color so it tracks selected/hover states like text does.
            An outer-tree rule beats <ol-icon>'s own :host size, so this wins. */
-        .segment ol-icon,
-        .segment svg {
-            display: block;
-            width: 18px;
-            height: 18px;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .segment:not([aria-checked='true']):not(:disabled):hover {
-                color: var(--color-text);
+            .segment ol-icon,
+            .segment svg {
+                display: block;
+                width: 18px;
+                height: 18px;
             }
-        }
 
-        .segment:active:not(:disabled) {
-            transform: scale(var(--press-scale));
-        }
+            @media (hover: hover) and (pointer: fine) {
+                .segment:not([aria-checked='true']):not(:disabled):hover {
+                    color: var(--color-text);
+                }
+            }
 
-        /* The selected segment's raised-white-pill look now lives on the
+            /* The selected segment's raised-white-pill look now lives on the
            floating .pill, and its dark text on the clipped .layer--active — so
            the interactive base button stays dimmed and transparent even when
            selected (its text reads through from the active layer above). */
 
-        .segment:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-        }
-
-        .segment:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: -2px;
-        }
-
-        /* Sizes — mirror ol-button so same-size controls line up. */
-        :host([size='small']) .track {
-            height: var(--control-height-small);
-        }
-
-        :host([size='small']) .segment {
-            padding: 0 var(--spacing-sm);
-            font-size: var(--font-size-label-medium);
-        }
-
-        :host([size='small']) .segment ol-icon,
-        :host([size='small']) .segment svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        :host([size='large']) .track {
-            height: var(--control-height-large);
-        }
-
-        :host([size='large']) .segment {
-            padding: 0 var(--spacing-lg);
-            font-size: var(--font-size-body-large);
-        }
-
-        :host([size='large']) .segment ol-icon,
-        :host([size='large']) .segment svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .segment {
-                transition: none;
+            .segment:disabled {
+                opacity: 0.45;
+                cursor: not-allowed;
             }
 
-            .segment:active:not(:disabled) {
-                transform: none;
+            /* Sizes — mirror ol-button so same-size controls line up. */
+            :host([size='small']) .track {
+                height: var(--control-height-small);
             }
 
-            /* The pill and active layer still jump straight to the selected
+            :host([size='small']) .segment {
+                padding: 0 var(--spacing-sm);
+                font-size: var(--font-size-label-medium);
+            }
+
+            :host([size='small']) .segment ol-icon,
+            :host([size='small']) .segment svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            :host([size='large']) .track {
+                height: var(--control-height-large);
+            }
+
+            :host([size='large']) .segment {
+                padding: 0 var(--spacing-lg);
+                font-size: var(--font-size-body-large);
+            }
+
+            :host([size='large']) .segment ol-icon,
+            :host([size='large']) .segment svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .segment {
+                    transition: none;
+                }
+
+                .segment:active:not(:disabled) {
+                    transform: none;
+                }
+
+                /* The pill and active layer still jump straight to the selected
                segment (positioned by JS) — just without the slide. */
-            .track.is-animated .pill,
-            .track.is-animated .layer--active {
-                transition: none;
+                .track.is-animated .pill,
+                .track.is-animated .layer--active {
+                    transition: none;
+                }
             }
-        }
-    `;
+        `
+    ];
 
     constructor() {
         super();
@@ -496,7 +496,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         // pixel-aligned — the clip can then split a label's colour mid-glyph.
         return html`
             <div class="track" role="radiogroup" aria-label=${this.accessibleLabel || nothing} @keydown=${this._onKeydown}>
-                <div class="pill" aria-hidden="true"></div>
+                <div class="pill raised" aria-hidden="true"></div>
                 <div class="layer layer--base">${this._options.map((option, i) => this._renderSegment(option, i, activeIndex))}</div>
                 <div class="layer layer--active" aria-hidden="true">${this._options.map(option => this._renderGhost(option))}</div>
             </div>
@@ -515,7 +515,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         const labelAttr = option.isMarkup ? option.accessibleLabel : nothing;
         const button = html`
             <button
-                class="segment"
+                class="segment pressable focus-ring"
                 type="button"
                 role="radio"
                 aria-checked=${checked ? 'true' : 'false'}

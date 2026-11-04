@@ -22,7 +22,6 @@
 @import "components/read-panel.css";
 @import "components/diff.css";
 @import "components/carousel.css";
-@import "components/category-item.css";
 @import "components/loading-indicator.css";
 @import "components/editions.css";
 /* Header sub-imports */
@@ -92,7 +91,6 @@
 /* CHARTING */
 @import "components/chart.css";
 @import "components/merge-form.css";
-@import "components/listLists.css";
 @import "components/rating-form.css";
 @import "components/searchResultItemCta.css";
 

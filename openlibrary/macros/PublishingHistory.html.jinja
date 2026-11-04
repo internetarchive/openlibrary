@@ -15,7 +15,7 @@
             <span class="small async-partial-retry hidden">{{ _("Something went wrong.") }} <a href="#" class="retry-btn">{{ _("Retry") }}</a></span>
         </div>
     {% else %}
-        <script type="text/json+graph" id="graph-json-chartPubHistory">{{ publishing_history_json | safe }}</script>
+        <script type="application/json" id="graph-json-chartPubHistory">{{ publishing_history_json | safe }}</script>
         <div class="chart">
             <div class="chartYaxis">{{ _("Editions Published") }}</div>
             <div id="chartPubHistory" class="thisChart">

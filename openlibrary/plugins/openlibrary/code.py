@@ -2,7 +2,7 @@
 Open Library Plugin.
 """
 
-import datetime
+import datetime as dt
 import gzip
 import json
 import logging
@@ -18,7 +18,7 @@ import web
 import yaml
 
 import infogami
-from openlibrary.core import db
+from openlibrary.core import db  # noqa: TID251
 from openlibrary.core.batch_imports import (
     batch_import,
 )
@@ -76,7 +76,9 @@ def setup_contextvars(handler):
     return handler()
 
 
-# Add processors in order - setup_contextvars must come BEFORE the handler
+# Infogami has already initialized web.ctx.site and language. Set ContextVars
+# before any OL processor can read them; leave them available for layout rendering.
+delegate.app.add_processor(setup_contextvars)
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(
@@ -89,9 +91,6 @@ delegate.app.add_processor(processors.PreferenceProcessor())
 delegate.app.add_processor(processors.ExperimentsProcessor())
 # Refer to https://github.com/internetarchive/openlibrary/pull/10005 to force patron's to login
 # delegate.app.add_processor(processors.RequireLogoutProcessor())
-# IMPORTANT: setup_contextvars must run AFTER other processors but BEFORE the handler
-# It's added here (not as a loadhook) so it runs in the same request context
-delegate.app.add_processor(setup_contextvars)
 
 try:
     from infogami.plugins.api import code as api
@@ -920,13 +919,6 @@ class new:
         except client.ClientException as e:
             raise BadRequest(str(e))
 
-        # graphite/statsd tracking of bot edits
-        user = delegate.context.user and delegate.context.user.key
-        if user.lower().endswith("bot"):
-            botname = user.replace("/people/", "", 1)
-            botname = botname.replace(".", "-")
-            key = "ol.edits.bots." + botname
-            openlibrary.core.stats.increment(key)
         return json.dumps(keys)
 
 
@@ -990,7 +982,7 @@ class invalidate(delegate.page):
 
 
 def save_error():
-    t = datetime.datetime.utcnow()
+    t = dt.datetime.utcnow()
     name = "%04d-%02d-%02d/%02d%02d%02d%06d" % (
         t.year,
         t.month,

@@ -44,7 +44,7 @@ https://archive.org/bookreader/BookReaderAuth.php?
 ```python
 timestamp = int(time.time() + expiry_seconds)
 token_data = f"{item_id}-{timestamp}"
-token = f"{timestamp}-{HMAC-MD5(config.ia_access_secret, token_data)}"
+token = f"{timestamp}-{HMAC - MD5(config.ia_access_secret, token_data)}"
 ```
 
 | Token type | Expiry | Used for |

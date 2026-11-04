@@ -4,7 +4,7 @@ To run:
 PYTHONPATH=. python ./scripts/import_pressbooks.py /olsystem/etc/openlibrary.yml ./path/to/pressbooks.json
 """
 
-import datetime
+import datetime as dt
 import html
 import json
 import logging
@@ -53,7 +53,7 @@ def convert_pressbooks_to_ol(data):
         book["other_titles"] = [data["alternateName"]]
     if data.get("alternativeHeadline"):
         book["edition_name"] = data["alternativeHeadline"]
-    book["publish_date"] = data.get("datePublished") or data.get("copyrightYear") or datetime.datetime.fromtimestamp(data.get("lastUpdated")).date().isoformat()
+    book["publish_date"] = data.get("datePublished") or data.get("copyrightYear") or dt.datetime.fromtimestamp(data.get("lastUpdated")).date().isoformat()
     assert book["publish_date"], data
 
     subjects = (data.get("about") or []) + (data.get("keywords") or "").split(", ")
@@ -108,7 +108,7 @@ def convert_pressbooks_to_ol(data):
 def main(ol_config: str, filename: str, batch_size=5000, dry_run=False):
     if not dry_run:
         load_config(ol_config)
-        date = datetime.date.today()
+        date = dt.date.today()
         batch_name = f"pressbooks-{date:%Y%m}"
         batch = Batch.find(batch_name) or Batch.new(batch_name)
 

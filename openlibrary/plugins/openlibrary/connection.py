@@ -1,6 +1,6 @@
 """Open Library extension to provide a new kind of client connection with caching support."""
 
-import datetime
+import datetime as dt
 import functools
 import json
 import logging
@@ -216,7 +216,7 @@ class IAMiddleware(ConnectionMiddleware):
                     "_key": key,
                     "type": "ia-scan",
                     "identifier": identifier,
-                    "created": datetime.datetime.utcnow().isoformat(),
+                    "created": dt.datetime.utcnow().isoformat(),
                 }
                 self.store_put(sitename, store_key, json.dumps(doc))
                 return doc

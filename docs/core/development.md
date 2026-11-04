@@ -112,11 +112,11 @@ pre-commit runs: `mypy`, `black`, `ruff`, JS lint, Stylelint. Python version mus
 
 ```python
 import web
-from openlibrary.config import load_config   # NOT infogami.config.load — that has no .load()
+from openlibrary.config import load_config  # NOT infogami.config.load — that has no .load()
 from infogami.utils import delegate
 
-load_config('/openlibrary/conf/openlibrary.yml')
-delegate.fakeload()   # connects web.ctx.site to the REAL infobase over its client, disables permission checks
+load_config("/openlibrary/conf/openlibrary.yml")
+delegate.fakeload()  # connects web.ctx.site to the REAL infobase over its client, disables permission checks
 
 site = web.ctx.site
 # Now real reads/writes work, e.g.:
@@ -124,7 +124,7 @@ prefs_key = "/people/AccountBot/preferences"
 prefs = site.store.get(prefs_key) or {"update": "no", "public_readlog": "no", "type": "preferences"}
 prefs["public_readlog"] = "yes"
 prefs["_rev"] = None
-site.store[prefs_key] = prefs   # writes for real — same DB the `web` container reads from
+site.store[prefs_key] = prefs  # writes for real — same DB the `web` container reads from
 ```
 
 If you also need `get_current_user()`/`accounts.get_current_user()` or anything gated on the `site` ContextVar specifically (as opposed to `web.ctx.site`) to resolve inside a *pytest* test (as opposed to a standalone script, where `fakeload()` above is enough on its own), additionally pull in `site as site_context` from `openlibrary.utils.request_context` and set it explicitly — `fakeload()` alone does not populate that ContextVar:
@@ -133,9 +133,10 @@ If you also need `get_current_user()`/`accounts.get_current_user()` or anything 
 import web
 from openlibrary.utils.request_context import site as site_context
 
+
 def test_something(render_template, request_context_fixture, mock_site):
     request_context_fixture(lang="en")
-    site_context.set(web.ctx.site)   # mock_site fixture already set web.ctx.site = MockSite()
+    site_context.set(web.ctx.site)  # mock_site fixture already set web.ctx.site = MockSite()
     html = str(render_template("follow/follow", "somepublisher", following=True, link_track=PAYLOAD))
 ```
 

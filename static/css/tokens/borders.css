@@ -26,6 +26,7 @@
   --border-width-table: 1px;
   --border-width-divider: 1px;
   --focus-width: 2px;
+  --pointed-ring-width: var(--border-width-heavy); /* ring hugging the item under the pointer, e.g. a hovered book cover */
 
   /* Complete border styles. Every hairline is --color-border-subtle, so cards,
      tables, and inputs share one warm line. */
@@ -62,6 +63,9 @@
      button on cover art) rather than on the page. Pair with the same inline
      specular highlight as above; see ol-button[elevation="floating"]. */
   --box-shadow-floating: 0 1px 4px hsla(44, 60%, 18%, 0.15);
+
+  /* Book cover. The inset hairline border lives in OlBookCover.js. */
+  --box-shadow-cover: 0 1px 1px -0.5px hsla(44, 60%, 18%, 0.1), 0 3px 3px -1.5px hsla(44, 60%, 18%, 0.1), 0 6px 6px -3px hsla(44, 60%, 18%, 0.1);
 
   /* Overlay surface — the floating panel behind popovers, menus, dialogs, and toasts.
      The hairline border draws the edge that a soft shadow alone loses against

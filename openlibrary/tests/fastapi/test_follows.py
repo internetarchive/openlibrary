@@ -1,5 +1,5 @@
 from datetime import datetime
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -16,7 +16,7 @@ FAKE_FOLLOWING = [
 
 class TestGetPatronFollows:
     def test_returns_following_list(self, fastapi_client, mock_optional_authenticated_user):
-        with patch("openlibrary.fastapi.internal.api.PubSub.get_following", return_value=FAKE_FOLLOWING):
+        with patch("openlibrary.fastapi.internal.api.PubSub.get_following", new_callable=AsyncMock, return_value=FAKE_FOLLOWING):
             response = fastapi_client.get("/people/testuser/follows.json")
 
         assert response.status_code == 200
@@ -31,7 +31,7 @@ class TestGetPatronFollows:
         ]
 
     def test_empty_list(self, fastapi_client, mock_optional_authenticated_user):
-        with patch("openlibrary.fastapi.internal.api.PubSub.get_following", return_value=[]):
+        with patch("openlibrary.fastapi.internal.api.PubSub.get_following", new_callable=AsyncMock, return_value=[]):
             response = fastapi_client.get("/people/testuser/follows.json")
 
         assert response.status_code == 200
@@ -74,7 +74,7 @@ class TestPostPatronFollows:
     ):
         with (
             patch("openlibrary.fastapi.internal.api.accounts.find", return_value=True),
-            patch(f"openlibrary.fastapi.internal.api.PubSub.{expected_method}") as mock_action,
+            patch(f"openlibrary.fastapi.internal.api.PubSub.{expected_method}", new_callable=AsyncMock) as mock_action,
         ):
             response = fastapi_client.post(
                 "/people/testuser/follows.json",
@@ -117,7 +117,7 @@ class TestPostPatronFollows:
     def test_success_redirects_to_redir_url(self, fastapi_client, mock_optional_authenticated_user):
         with (
             patch("openlibrary.fastapi.internal.api.accounts.find", return_value=True),
-            patch("openlibrary.fastapi.internal.api.PubSub.subscribe"),
+            patch("openlibrary.fastapi.internal.api.PubSub.subscribe", new_callable=AsyncMock),
         ):
             response = fastapi_client.post(
                 "/people/testuser/follows.json",

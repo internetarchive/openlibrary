@@ -4,9 +4,9 @@ Capture some of the unintuitive aspects of Storage, Things, and Works
 
 from unittest.mock import patch
 
+import pytest
 import web
 
-import openlibrary.core.lists.model as list_model
 from infogami.infobase import client
 from openlibrary.core.cache import _get_cache
 from openlibrary.mocks.mock_infobase import MockSite
@@ -28,14 +28,14 @@ class TestModels:
             "/type/place": models.SubjectPlace,
             "/type/person": models.SubjectPerson,
             "/type/user": models.User,
-            "/type/list": list_model.List,
+            "/type/tag": models.Tag,
         }
         expected_changesets = {
             None: models.Changeset,
             "merge-authors": models.MergeAuthors,
+            "merge-works": models.MergeWorks,
             "undo": models.Undo,
             "add-book": models.AddBookChangeset,
-            "lists": list_model.ListChangeset,
             "new-account": models.NewAccountChangeset,
         }
         models.setup()
@@ -90,8 +90,8 @@ class TestModels:
         assert callable(work.get_sorted_editions)  # Issue #3633
         assert work.get_sorted_editions() == []
 
-    def test_user_settings(self):
-        user = models.User(web.ctx.site, "user")
+    def test_user_settings(self, mock_site):
+        user = models.User(mock_site, "user")
         assert user.get_safe_mode() == ""
         user.save_preferences({"safe_mode": "yes"})
         assert user.get_safe_mode() == "yes"
@@ -200,6 +200,23 @@ class TestEdition:
         with patch("openlibrary.core.lending.is_loaned_out", return_value=True):
             loans = ed.get_available_loans()
         assert loans == []
+
+    def test_set_providers_rejects_an_unsafe_url(self):
+        ed = self._make_edition()
+        with pytest.raises(client.ClientException):
+            ed.set_providers([{"url": "javascript:alert(1)", "format": "web"}])
+
+    def test_set_providers_accepts_an_http_url(self):
+        ed = self._make_edition()
+        ed.set_providers([{"url": "https://example.com/b", "format": "web"}])
+        assert ed.providers[0]["url"] == "https://example.com/b"
+
+    def test_set_providers_allows_a_blank_url_row(self):
+        # Empty rows are a normal artefact of the edit form; they are harmless
+        # and must not break the save.
+        ed = self._make_edition()
+        ed.set_providers([{"url": "", "format": "web"}])
+        assert ed.providers[0]["url"] == ""
 
     def test_get_ia_meta_fields_no_external_identifier(self):
         ed = self._make_edition(ocaid="testitem00archive")

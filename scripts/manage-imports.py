@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import datetime
+import datetime as dt
 import functools
 import json
 import logging
@@ -90,7 +90,7 @@ def import_ocaids(*ocaids, **kwargs):
     servername = kwargs.get("servername")
     require_marc = not kwargs.get("no_marc", False)
 
-    date = datetime.date.today()
+    date = dt.date.today()
     if not ocaids:
         raise ValueError("Must provide at least one ocaid")
     batch_name = f"import-{ocaids[0]}-{date.year:04}{date.month:02}"
@@ -116,10 +116,10 @@ def add_new_scans(args):
     if args:
         datestr = args[0]
         yyyy, mm, dd = datestr.split("-")
-        date = datetime.date(int(yyyy), int(mm), int(dd))
+        date = dt.date(int(yyyy), int(mm), int(dd))
     else:
         # yesterday
-        date = datetime.date.today() - datetime.timedelta(days=1)
+        date = dt.date.today() - dt.timedelta(days=1)
 
     items = list(get_candidate_ocaids(date))
     batch_name = f"new-scans-{date.year:04}{date.month:02}"

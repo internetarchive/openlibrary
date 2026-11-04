@@ -20,7 +20,7 @@ How to use:
 Each doc is a storage object with "id", "key", "revision" and "data".
 """
 
-import datetime
+import datetime as dt
 import functools
 import json
 import sys
@@ -47,7 +47,7 @@ def setup_database(**db_params):
     """Setup the database. This must be called before using any other functions in this module."""
     global db, db_parameters
     db_params.setdefault("dbn", "postgres")
-    db = web.database(**db_params)
+    db = web.database(**db_params)  # noqa: TID251
     db.printing = False
     db_parameters = db_params
 
@@ -87,7 +87,7 @@ def longquery(query, vars, chunk_size=10000):
     """
     # DB cursor is valid only in the transaction
     # Create a new database to avoid this transaction interfere with the application code
-    db = web.database(**db_parameters)
+    db = web.database(**db_parameters)  # noqa: TID251
     db.printing = False
 
     tx = db.transaction()
@@ -153,7 +153,7 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
 
     This doesn't update the index tables. Avoid this function if you have any change that requires updating the index tables.
     """
-    now = datetime.datetime.utcnow()
+    now = dt.datetime.utcnow()
     author_id = get_thing_id(author)
     t = db.transaction()
     try:

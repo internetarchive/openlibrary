@@ -55,7 +55,7 @@ repos:
       - id: validate-pyproject
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.1
+    rev: v0.17.1
     hooks:
       - id: ruff-check
         args: [--fix]

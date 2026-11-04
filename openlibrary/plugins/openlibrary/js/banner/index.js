@@ -17,12 +17,13 @@ import { initBannerAnalytics } from '../banner-analytics.js';
 
 /**
  * Persist a banner dismissal by POSTing to /hide_banner.
+ * Also used for other seen-once pages (the Tasks intro), which dismiss the same way.
  *
  * @param {string} cookieName
  * @param {number} cookieDurationDays
  * @returns {Promise<Response>}
  */
-function setBannerCookie(cookieName, cookieDurationDays) {
+export function setBannerCookie(cookieName, cookieDurationDays) {
     return fetch('/hide_banner', {
         method: 'POST',
         headers: {

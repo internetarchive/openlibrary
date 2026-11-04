@@ -1,7 +1,7 @@
 """Handlers for adding and editing books."""
 
 import csv
-import datetime
+import datetime as dt
 import io
 import logging
 import re
@@ -34,6 +34,14 @@ if TYPE_CHECKING:
 logger = logging.getLogger("openlibrary.book")
 
 
+def is_valid_web_book_url(url: str) -> bool:
+    """Blank, or an absolute http(s) URL with a host."""
+    if not url:
+        return True
+    parsed = urllib.parse.urlparse(url)
+    return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+
+
 def can_edit_ocaid() -> bool:
     """Whether the current user may add, change or remove an edition's ocaid. See `User.can_edit_ocaid`."""
     user = accounts.get_current_user()
@@ -53,7 +61,7 @@ def get_recaptcha():
             return True
 
         create_dt = account.creation_time()
-        now_dt = datetime.datetime.utcnow()
+        now_dt = dt.datetime.utcnow()
         delta = now_dt - create_dt
         return delta.days > 30
 
@@ -261,6 +269,10 @@ class addbook(delegate.page):
                     "Recaptcha solution was incorrect",
                     'Please <a href="javascript:history.back()">go back</a> and try again.',
                 )
+
+        i.web_book_url = i.web_book_url.strip()
+        if not is_valid_web_book_url(i.web_book_url):
+            return render_template("message.html", _("Invalid Book URL"), _("Please enter a valid URL starting with http:// or https://"))
 
         if i.id_name == "ocaid" and i.id_value and not can_edit_ocaid():
             return render_template("message.html", _("Permission denied"), _("You are not allowed to add an Internet Archive ID."))
@@ -741,6 +753,9 @@ class SaveBookHelper:
         work.subject_places = list(read_subject(work.get("subject_places", "")))
         work.subject_times = list(read_subject(work.get("subject_times", "")))
         work.subject_people = list(read_subject(work.get("subject_people", "")))
+        # The form posts the chosen tag's key; "" clears it (trim_doc makes that None, which the save drops).
+        if "literary_forms" in work:
+            work.literary_forms = [{"key": work.literary_forms}] if work.literary_forms else None
         if ": " in work.get("title", ""):
             work.title, work.subtitle = work.title.split(": ", 1)
         else:
@@ -809,6 +824,7 @@ class book_edit(delegate.page):
         v = i.v and safeint(i.v, None)
 
         if not web.ctx.site.can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
@@ -875,6 +891,7 @@ class work_edit(delegate.page):
         v = i.v and safeint(i.v, None)
 
         if not web.ctx.site.can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
@@ -923,6 +940,7 @@ class author_edit(delegate.page):
 
     def GET(self, key):
         if not web.ctx.site.can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
