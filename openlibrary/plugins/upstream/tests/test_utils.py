@@ -147,6 +147,27 @@ def test_canonical_url():
     url = "https://www.openlibrary.org/authors/Ayn_Rand"
     assert request.canonical_url == url
 
+    # Revision selectors for history and diff links.
+    web.ctx.query = "?b=8&a=3"
+    url = "https://www.openlibrary.org/authors/Ayn_Rand"
+    assert request.canonical_url == url
+
+    # Presentation and the librarian toggle go; pagination stays.
+    web.ctx.query = "?page=2&layout=grid&show_page_status=1"
+    url = "https://www.openlibrary.org/authors/Ayn_Rand?page=2"
+    assert request.canonical_url == url
+
+    # A query changes what the page shows, so it stays.
+    web.ctx.query = "?q=anthem&page=2&ref=ol"
+    url = "https://www.openlibrary.org/authors/Ayn_Rand?q=anthem&page=2"
+    assert request.canonical_url == url
+
+    # A work canonicalizes without the edition it happens to be showing.
+    web.ctx.path = "/works/OL1W/Title"
+    web.ctx.query = "?edition=key:/books/OL1M&_autoReadAloud=show&ref=ol"
+    url = "https://www.openlibrary.org/works/OL1W/Title"
+    assert request.canonical_url == url
+
 
 def test_get_coverstore_url(monkeypatch):
     monkeypatch.delattr(config, "coverstore_url", raising=False)

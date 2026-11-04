@@ -1444,6 +1444,13 @@ class Request:
         return canonical_url(web.ctx.host or "", web.ctx.get("readable_path", web.ctx.path) or "", web.ctx.query or "")
 
 
+# Params that do not change what the page is about: presentation (sort, mode,
+# layout), revision and diff selectors (v, a, b), librarian and debug toggles,
+# tracking, read-aloud autostart, and a work's selected edition (every edition
+# has its own /books/ page).
+CANONICAL_QUERY_EXCLUDES = frozenset({"sort", "mode", "v", "type", "debug", "layout", "a", "b", "show_page_status", "edition", "ref", "_autoReadAloud"})
+
+
 def canonical_url(host: str, readable_path: str, query: str) -> str:
     """The https:// URL for ``host + readable_path + query``, minus view-only params.
 
@@ -1451,7 +1458,7 @@ def canonical_url(host: str, readable_path: str, query: str) -> str:
     """
     if url := host + readable_path + query:
         parsed_url = urlparse("https://" + url)
-        canonical_query = {q: v for q, v in parse_qs(parsed_url.query).items() if q not in ("sort", "mode", "v", "type", "debug")}
+        canonical_query = {q: v for q, v in parse_qs(parsed_url.query).items() if q not in CANONICAL_QUERY_EXCLUDES}
         return urlunparse(parsed_url._replace(query=parse_urlencode(canonical_query, doseq=True)))
     return ""
 
