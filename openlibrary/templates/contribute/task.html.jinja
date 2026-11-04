@@ -12,6 +12,7 @@
         {{ parts.record_form(data) }}
     </div>
     <aside class="contrib-task__help">
+        {% if data.evidence is not none %}{{ parts.evidence(data.evidence) }}{% endif %}
         {{ parts.how_to(data.field_guide, data.link_outs) }}
         {% if data.field_guide.traps %}{{ parts.traps(data.field_guide.traps) }}{% endif %}
         {% if data.siblings %}

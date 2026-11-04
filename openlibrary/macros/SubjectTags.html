@@ -2,8 +2,8 @@ $def with(work, tags=[], edit_mode=False)
 
 $def render_subjects(label, subjects, track_value, prefix="", edit_mode=False):
   $if subjects:
-    <div class="section link-box">
-      <span class="clamp" data-before="&#9656; ">
+    <div class="section link-box subject-row">
+      <div class="subject-row__label">
         <h3>$label</h3>
         $if edit_mode:
           <button class="edit-subject-btn"
@@ -12,9 +12,12 @@ $def render_subjects(label, subjects, track_value, prefix="", edit_mode=False):
                   aria-label="$_('Manage Subjects')">
             $:macros.icon("pencil", size="sm")
           </button>
+      </div>
+      <div class="subject-row__chips" data-more-label="$_('Show %(count)s more', count='{count}')">
         $for subject in subjects:
           <ol-chip size="small" href="$subject_name_to_key(subject, prefix=prefix)" data-ol-link-track="$track_value">$subject</ol-chip>
-      </span>
+        <ol-chip size="small" variant="neutral" class="subject-row__more" hidden></ol-chip>
+      </div>
     </div>
 
 $if work:
