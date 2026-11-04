@@ -44,7 +44,6 @@ from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.utils.request_context import req_context, site
 
 router = APIRouter()
-# HTML pages, wrapped in the site shell.
 pages = APIRouter(route_class=SitePageRoute)
 
 # Facet fields exposed by /search/facets.json — mirrors WorkSearchScheme.facet_fields

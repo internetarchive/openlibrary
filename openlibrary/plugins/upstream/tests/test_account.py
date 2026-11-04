@@ -49,6 +49,8 @@ def test_create_list_doc(wildcard):
         ("https://evil.example/path", False),
         ("//evil.example/path", False),
         ("/\\evil.example/path", False),
+        ("\\evil.example/path", False),
+        ("javascript:alert(1)", False),
         ("", False),
     ],
 )
