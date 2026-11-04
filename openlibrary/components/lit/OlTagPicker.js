@@ -23,7 +23,7 @@ const _tagCache = new Map();
  * `query.json`'s `name~=` prefix match is case-sensitive, so this fetches the
  * whole (small) type and the component filters client-side instead.
  *
- * @param {string} tagType - e.g. "content_formats", "genres".
+ * @param {string} tagType - e.g. "content_format", "genre".
  * @returns {Promise<Array<{key: string, name: string}>>} Empty on any failure.
  */
 function fetchTagsOfType(tagType) {
@@ -52,7 +52,7 @@ function keyOf(entry) {
     return entry && typeof entry === 'object' ? entry.key : undefined;
 }
 
-/** "content_formats" -> "Content Formats"; used for the default trigger label. */
+/** "content_format" -> "Content Format"; used for the default trigger label. */
 function humanizeType(tagType) {
     return (tagType || '')
         .split(/[_\s]+/)
@@ -78,8 +78,8 @@ function humanizeType(tagType) {
  *
  * @element ol-tag-picker
  *
- * @prop {String} tagType - The Tag type to pick from, e.g. "content_formats" or
- *     "genres". Scopes both the trigger label and the fetch. Attribute:
+ * @prop {String} tagType - The Tag type to pick from, e.g. "content_format" or
+ *     "genre". Scopes both the trigger label and the fetch. Attribute:
  *     `tag-type`. Works unchanged for any managed type.
  * @prop {Array} options - The pickable Tags, as `{ key, name }` objects. When
  *     supplied, no network fetch happens. When omitted and `tagType` is set,
@@ -92,7 +92,7 @@ function humanizeType(tagType) {
  * @prop {String} name - Form field name. When set, each selected key submits
  *     with the enclosing `<form>` as a repeated `name` entry (FormAssociatedMixin).
  * @prop {String} label - Trigger text. Defaults to `+ Add <Type>` derived from
- *     `tagType` (e.g. "+ Add Content Formats").
+ *     `tagType` (e.g. "+ Add Content Format").
  * @prop {String} placeholder - Combobox input placeholder (default "Search…").
  * @prop {String} chipVariant - `ol-chip` colour variant for the selection chips
  *     (default "subject"). Attribute: `chip-variant`.
@@ -112,7 +112,7 @@ function humanizeType(tagType) {
  *
  * @example
  * <ol-tag-picker
- *     tag-type="content_formats"
+ *     tag-type="content_format"
  *     name="content_formats"
  *     value='["/tags/OL136T"]'
  * ></ol-tag-picker>
@@ -120,7 +120,7 @@ function humanizeType(tagType) {
  * @example
  * <!-- Demo / no-network: supply options directly -->
  * <ol-tag-picker
- *     tag-type="content_formats"
+ *     tag-type="content_format"
  *     .options=${[{key: '/tags/OL136T', name: 'Novel'}]}
  *     @ol-tag-picker-change=${e => console.log(e.detail.value)}
  * ></ol-tag-picker>

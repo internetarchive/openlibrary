@@ -65,14 +65,14 @@ afterEach(() => {
 
 describe('ol-tag-picker rendering & trigger', () => {
     test('injects a default trigger labelled "+ Add <Type>" from tag-type', async () => {
-        const el = await mount({ attrs: { 'tag-type': 'content_formats' } });
+        const el = await mount({ attrs: { 'tag-type': 'content_format' } });
         const trigger = el.querySelector('[slot="trigger"]');
         expect(trigger).toBeTruthy();
-        expect(trigger.textContent.trim()).toBe('+ Add Content Formats');
+        expect(trigger.textContent.trim()).toBe('+ Add Content Format');
     });
 
     test('an explicit label overrides the derived one', async () => {
-        const el = await mount({ attrs: { 'tag-type': 'content_formats', label: '+ Add formats' } });
+        const el = await mount({ attrs: { 'tag-type': 'content_format', label: '+ Add formats' } });
         expect(el.querySelector('[slot="trigger"]').textContent.trim()).toBe('+ Add formats');
     });
 
@@ -403,16 +403,16 @@ describe('ol-tag-picker reset with a property-initialised default (demo init ord
 
 describe('ol-tag-picker runtime tag-type switch', () => {
     test('switching tag-type drops selections made under the old type', async () => {
-        const el = await mount({ attrs: { 'tag-type': 'content_formats' }, props: { value: ['/tags/OL120T'] } });
+        const el = await mount({ attrs: { 'tag-type': 'content_format' }, props: { value: ['/tags/OL120T'] } });
         expect(chipNames(el)).toEqual(['Almanac']);
         el.options = [{ key: '/tags/OL169T', name: 'Fantasy' }];
-        el.tagType = 'genres';
+        el.tagType = 'genre';
         await el.updateComplete;
         expect(chipNames(el)).toEqual([]);
     });
 
     test('the initial tag-type set does NOT clear an authored initial value', async () => {
-        const el = await mount({ attrs: { 'tag-type': 'content_formats' }, props: { value: ['/tags/OL120T'] } });
+        const el = await mount({ attrs: { 'tag-type': 'content_format' }, props: { value: ['/tags/OL120T'] } });
         expect(chipNames(el)).toEqual(['Almanac']);
     });
 });

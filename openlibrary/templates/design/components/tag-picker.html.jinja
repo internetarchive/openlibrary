@@ -1,8 +1,8 @@
 {% import "design/_example.html.jinja" as ex %}
 {% macro demos() %}
     {% call ex.example("Content formats", "Click the trigger, type to filter the type's Tags (case-insensitively), and pick one or more. Each becomes a removable chip; the popover stays open so several can be added in a row.",
-        code='<ol-tag-picker\n  tag-type="content_formats"\n  name="content_formats">\n</ol-tag-picker>\n\n<!-- Fetches the type\'s Tags from query.json. On a dev DB with none,\n     pass them directly: el.options = [{key, name}, ...] -->') %}
-        <ol-tag-picker id="demo-tag-picker" tag-type="content_formats" name="content_formats" aria-label="Content formats">
+        code='<ol-tag-picker\n  tag-type="content_format"\n  name="content_formats">\n</ol-tag-picker>\n\n<!-- Fetches the type\'s Tags from query.json. On a dev DB with none,\n     pass them directly: el.options = [{key, name}, ...] -->') %}
+        <ol-tag-picker id="demo-tag-picker" tag-type="content_format" name="content_formats" aria-label="Content formats">
         </ol-tag-picker>
         <p>Selected: <strong id="demo-tag-picker-out">(none)</strong></p>
         <script>
@@ -32,7 +32,7 @@
         </script>
 {% endcall %}
 {% call ex.example("Preselected, both stored shapes", "Initial selections are accepted as plain key strings (\"/tags/OL136T\") and as refs ({\"key\": \"/tags/OL142T\"}), mixed freely. Existing works hold strings; works saved after the type is declared hold refs.") %}
-    <ol-tag-picker id="demo-tag-picker-pre" tag-type="content_formats" name="content_formats" aria-label="Content formats">
+    <ol-tag-picker id="demo-tag-picker-pre" tag-type="content_format" name="content_formats" aria-label="Content formats">
     </ol-tag-picker>
     <script>
             (function () {
@@ -48,7 +48,7 @@
     </script>
 {% endcall %}
 {% call ex.example("Custom trigger", "Any element with slot=\"trigger\" works; the component owns the popover, combobox, and ARIA wiring.") %}
-    <ol-tag-picker id="demo-tag-picker-custom" tag-type="genres" aria-label="Genres">
+    <ol-tag-picker id="demo-tag-picker-custom" tag-type="genre" aria-label="Genres">
         <ol-button slot="trigger" variant="secondary">
             Pick genres
         </ol-button>

@@ -16,8 +16,8 @@ const OPTIONS = [
 ];
 
 const MARKUP = `
-    <ol-tag-picker tag-type="content_formats" aria-label="Content formats">
-        <button slot="trigger" type="button">+ Add Content Formats</button>
+    <ol-tag-picker tag-type="content_format" aria-label="Content formats">
+        <button slot="trigger" type="button">+ Add Content Format</button>
     </ol-tag-picker>
 `;
 
