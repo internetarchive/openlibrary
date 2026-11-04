@@ -7,7 +7,6 @@ from unittest.mock import patch
 import pytest
 import web
 
-import openlibrary.core.lists.model as list_model
 from infogami.infobase import client
 from openlibrary.core.cache import _get_cache
 from openlibrary.mocks.mock_infobase import MockSite
@@ -29,14 +28,14 @@ class TestModels:
             "/type/place": models.SubjectPlace,
             "/type/person": models.SubjectPerson,
             "/type/user": models.User,
-            "/type/list": list_model.List,
+            "/type/tag": models.Tag,
         }
         expected_changesets = {
             None: models.Changeset,
             "merge-authors": models.MergeAuthors,
+            "merge-works": models.MergeWorks,
             "undo": models.Undo,
             "add-book": models.AddBookChangeset,
-            "lists": list_model.ListChangeset,
             "new-account": models.NewAccountChangeset,
         }
         models.setup()
@@ -91,8 +90,8 @@ class TestModels:
         assert callable(work.get_sorted_editions)  # Issue #3633
         assert work.get_sorted_editions() == []
 
-    def test_user_settings(self):
-        user = models.User(web.ctx.site, "user")
+    def test_user_settings(self, mock_site):
+        user = models.User(mock_site, "user")
         assert user.get_safe_mode() == ""
         user.save_preferences({"safe_mode": "yes"})
         assert user.get_safe_mode() == "yes"
