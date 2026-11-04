@@ -360,6 +360,63 @@ describe('ol-tag-picker fetch-and-cache (requirement 7)', () => {
         expect(fetchMock).toHaveBeenCalledTimes(2);
         expect(optionNames(el)).toEqual(['Iota']);
     });
+
+    test('a stale response from a previous tag-type does not overwrite the current type', async () => {
+        const settle = {};
+        const fetchMock = vi.fn(
+            url =>
+                new Promise(res => {
+                    const type = url.match(/tag_type=([^&]+)/)[1];
+                    settle[type] = rows => res({ ok: true, json: () => Promise.resolve(rows) });
+                })
+        );
+        const el = await mountFetching('race_old', fetchMock); // race_old fetch now pending
+
+        el.tagType = 'race_new'; // switch before race_old resolves
+        await el.updateComplete; // race_new fetch now pending
+
+        // The CURRENT type resolves first (correct).
+        settle['race_new']([{ key: '/tags/OL950T', name: 'NewTag' }]);
+        await flush();
+        await el.updateComplete;
+        expect(optionNames(el)).toEqual(['NewTag']);
+
+        // The abandoned race_old request resolves LATER — it must be ignored,
+        // not clobber the current options.
+        settle['race_old']([{ key: '/tags/OL951T', name: 'OldTag' }]);
+        await flush();
+        await el.updateComplete;
+        expect(optionNames(el)).toEqual(['NewTag']);
+    });
+
+    test('setting direct options while a fetch is in flight clears the loading flag', async () => {
+        const fetchMock = vi.fn(() => new Promise(() => {})); // never resolves
+        const el = await mountFetching('race_loading_opts', fetchMock);
+        expect(el.loading).toBe(true);
+
+        el.options = [{ key: '/tags/OL960T', name: 'Direct' }];
+        await el.updateComplete;
+        expect(el.loading).toBe(false);
+        await el.updateComplete; // loading flips inside updated(), scheduling one more render
+        expect(optionNames(el)).toEqual(['Direct']);
+    });
+});
+
+describe('ol-tag-picker change event', () => {
+    test('detail.value is a copy, not the live selection (a listener cannot mutate state)', async () => {
+        const el = await mount();
+        let captured;
+        el.addEventListener('ol-tag-picker-change', e => {
+            captured = e.detail.value;
+        });
+        el._selectKey('/tags/OL120T');
+        await el.updateComplete;
+        expect(captured).toEqual(['/tags/OL120T']);
+
+        // A listener mutating the event payload must not corrupt the live value.
+        captured.push('/tags/OL999T');
+        expect(el.value).toEqual(['/tags/OL120T']);
+    });
 });
 
 describe('ol-tag-picker keyboard: Home/End and Escape are left to the input/popover', () => {
