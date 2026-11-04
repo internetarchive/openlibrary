@@ -53,6 +53,14 @@
             });
         </script>
     {% endcall %}
+    {% call ex.example("Page navigation", "When each tab is its own page there is nothing to switch in place, so the component doesn't apply: use a plain nav of links with the same look, the current page marked aria-current. Clicks navigate as usual, with or without JavaScript.", output_style="max-width: 560px;") %}
+        <nav class="ol-tab-nav" aria-label="Trending views">
+            <a href="#" aria-current="page">Rising</a>
+            <a href="#">Breakouts</a>
+            <a href="#">Most Shelved</a>
+            <a href="#">Live</a>
+        </nav>
+    {% endcall %}
     <div class="ds-notes">
         <p>
             <b>Keyboard &amp; accessibility.</b> Follows the ARIA tabs pattern: a <code>tablist</code> of <code>tab</code>s, each controlling a <code>tabpanel</code>, with ids and labels wired up automatically. Tab moves into the selected tab; arrow keys and Home / End switch tabs, wrapping at the ends. Modified clicks (Ctrl / Cmd / Shift) behave like the links they are. A panel with nothing focusable inside is itself a tab stop, so its content stays reachable. When the row overflows it scrolls sideways, keeping the selected tab in view.

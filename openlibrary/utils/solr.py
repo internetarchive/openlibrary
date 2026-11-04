@@ -56,6 +56,8 @@ SolrRequestLabel = Literal[
     # Picking the editions of a Tasks initiative, once per initiative
     "CONTRIBUTE_INITIATIVE",
     "READING_LOG_SORT",
+    # The Rising tab of /trending: the whole index by trending_z_score
+    "TRENDING_PAGE",
 ]
 
 
