@@ -505,6 +505,16 @@ class TestSaveBookHelper:
         with pytest.raises(addbook.ValidationException):
             s._prevent_ocaid_deletion(self._ocaid_form(submitted_ocaid))
 
+    @pytest.mark.parametrize("current_ocaid", [None, "olditem00arch"])
+    def test_top_level_ocaid_field_needs_admin(self, monkeypatch, current_ocaid):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        s = addbook.SaveBookHelper(None, self._edition_with_ocaid(current_ocaid))
+        form = self._ocaid_form(current_ocaid)
+        form.ocaid = "newitem00arch"
+
+        with pytest.raises(addbook.ValidationException):
+            s._prevent_ocaid_deletion(form)
+
     @pytest.mark.parametrize("ocaid", [None, "olditem00arch"])
     def test_unchanged_ocaid_is_allowed(self, monkeypatch, ocaid):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)

@@ -751,10 +751,14 @@ class SaveBookHelper:
         if user and user.is_admin():
             return
 
-        # read ocaid from form data
-        ocaid = next(
-            (id_["value"] for id_ in edition.get("identifiers", []) if id_["name"] == "ocaid"),
-            None,
+        # read ocaid from form data. A top-level `ocaid` field overrides the identifiers
+        # list, since `save` applies it with `edition.update` after `set_identifiers`.
+        ocaid = edition.get(
+            "ocaid",
+            next(
+                (id_["value"] for id_ in edition.get("identifiers", []) if id_["name"] == "ocaid"),
+                None,
+            ),
         )
 
         # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata.
