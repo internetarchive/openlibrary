@@ -6,14 +6,18 @@ both, adds HEAD, and wraps the GET body in the site shell.
 """
 
 from http.cookies import SimpleCookie
+from urllib.parse import urlencode
 
 import pytest
 import web
 from fastapi.testclient import TestClient
 
 from infogami import config
+from infogami.utils.context import context
 from openlibrary.accounts.model import check_human_cookies
-from openlibrary.fastapi.account import pages
+from openlibrary.core.jinja import render_jinja_template
+from openlibrary.fastapi.account import _safe_redirect, pages
+from openlibrary.plugins.upstream import account as legacy_account
 
 
 @pytest.fixture
@@ -92,3 +96,19 @@ def test_post_with_spoofed_vf_sets_fresh_vf_cookie(client, monkeypatch):
     vf = morsel["vf"].value
     assert vf.startswith("vf/")
     assert check_human_cookies({"vf": vf}).verified
+
+
+@pytest.mark.parametrize("next", ["/search?q=x", "//evil.example", "/\\evil.example", "\\evil.example", "http://evil.example"])
+def test_webpy_handler_renders_the_fastapi_body(monkeypatch, request_context_fixture, next):
+    """Until web.py's handler is retired, both servers render the same page body, with the same ``next``."""
+    request_context_fixture(lang="en")
+    env = {"QUERY_STRING": urlencode({"next": next}), "REQUEST_METHOD": "GET"}
+    monkeypatch.setattr(web.ctx, "env", env, raising=False)
+    monkeypatch.setattr(web.ctx, "path", "/verify_human", raising=False)
+    monkeypatch.setattr(context, "disable_analytics", False, raising=False)
+
+    result = legacy_account.account_verify_human().GET()
+
+    assert result.title == "Human Verification"  # web.py's layout reads the title from here
+    assert context.disable_analytics is True
+    assert str(result) == render_jinja_template("verify_human.html.jinja", next_url=_safe_redirect(next))

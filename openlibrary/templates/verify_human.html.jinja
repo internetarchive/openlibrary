@@ -1,3 +1,4 @@
+{# Takes `next_url`: a same-origin path to return to once verified. #}
 <div id="contentHead">
     <h1 id="verify-human-title">{{ _("Human Verification") }}</h1>
 </div>
@@ -22,7 +23,7 @@
     btn.addEventListener('click', function() {
         btn.disabled = true;
         btn.textContent = verifyingText;
-        err.style.display = 'none';
+        err.hidden = true;
 
         fetch('/verify_human', {
             method: 'POST',
@@ -36,7 +37,7 @@
         .catch(function() {
             btn.disabled = false;
             btn.textContent = origText;
-            err.style.display = 'block';
+            err.hidden = false;
         });
     });
 })();
