@@ -48,7 +48,6 @@ logger = logging.getLogger("openlibrary.fastapi.account")
 VERIFICATION_COOKIE_EXPIRES_SECONDS = 30 * 24 * 60 * 60
 
 router = APIRouter()
-# HTML pages, wrapped in the site shell.
 pages = APIRouter(route_class=SitePageRoute)
 
 SHOW_INTERNAL_IN_SCHEMA = get_ol_env().LOCAL_DEV
