@@ -10,7 +10,7 @@ import pytest
 import web
 
 from infogami.utils import delegate
-from openlibrary.core import carousels, lending
+from openlibrary.core import lending
 from openlibrary.plugins.openlibrary import code, home, lists
 from openlibrary.plugins.upstream import utils
 from openlibrary.plugins.worksearch import code as worksearch
@@ -88,7 +88,6 @@ def test_context_precedes_ol_processors_and_survives_layout(monkeypatch, first_r
         lambda: lists._get_active_lists_in_random(limit=0),
         lambda: worksearch.rewrite_list_query("/lists/OL1L", 1, 0, 1, {}),
         lambda: subjects._compute_notable_authors("unknown", "/subjects/example"),
-        lambda: carousels.get_ia_carousel_books("example"),
         lambda: utils._get_changes_v1_raw({}),
         lambda: utils._get_changes_v2_raw({}),
         utils._get_recent_changes2,
@@ -102,7 +101,6 @@ def test_context_precedes_ol_processors_and_survives_layout(monkeypatch, first_r
         "active-lists",
         "list-query",
         "notable-authors",
-        "carousel",
         "changes-v1",
         "changes-v2",
         "recent-changes",
@@ -131,7 +129,6 @@ def test_fakeload_callers_synchronize_context(monkeypatch, fetch):
         web.ctx.site = anonymous
 
     monkeypatch.setattr(delegate, "fakeload", fakeload)
-    monkeypatch.setattr(carousels.lending, "get_available", reached_data)
     monkeypatch.setattr(subjects, "get_subject", reached_data)
     monkeypatch.setattr(home.home_genres, "load_tile_covers", reached_data)
     monkeypatch.setattr(loanstats.Bookshelves, "summary", reached_data)

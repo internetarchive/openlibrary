@@ -919,13 +919,6 @@ class new:
         except client.ClientException as e:
             raise BadRequest(str(e))
 
-        # graphite/statsd tracking of bot edits
-        user = delegate.context.user and delegate.context.user.key
-        if user.lower().endswith("bot"):
-            botname = user.replace("/people/", "", 1)
-            botname = botname.replace(".", "-")
-            key = "ol.edits.bots." + botname
-            openlibrary.core.stats.increment(key)
         return json.dumps(keys)
 
 

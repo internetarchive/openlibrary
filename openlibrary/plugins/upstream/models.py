@@ -453,6 +453,17 @@ class Edition(models.Edition):
         self.providers.append(data)
 
     def set_providers(self, providers):
+        from openlibrary.book_providers import is_safe_provider_url
+
+        # Only guards the edit form; a raw `?m=edit` save bypasses this, so the
+        # parse-time check in Acquisition.from_json is what protects rendering.
+        for provider in providers or []:
+            url = provider.get("url")
+            if url and not is_safe_provider_url(url):
+                raise client.ClientException(
+                    "400 Bad Request",
+                    f"Invalid provider URL: {url!r}. Must start with http:// or https://.",
+                )
         self.providers = providers
 
 

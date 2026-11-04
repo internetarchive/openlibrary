@@ -129,7 +129,7 @@
 .browse-stacks__name {
   text-wrap: balance;
   font-size: var(--font-size-title-small);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
 }
 
