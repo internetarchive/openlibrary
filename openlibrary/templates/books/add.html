@@ -91,7 +91,7 @@ $ i18n_strings = {
                 <div id="web-book-url-errors" class="note hidden"></div>
             </div>
 
-        $if recaptcha and not ctx.user:
+        $if recaptcha:
             $:render_template("recaptcha", recaptcha.public_key, error=None)
 
         <div class="formElement bottom">

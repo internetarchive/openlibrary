@@ -581,12 +581,21 @@ async def borrow_status(identifier: str) -> JSONResponse:
 
 # ---------------------------------------------------------------------------
 # reCAPTCHA siteverify  (was hitting recaptcha.net in dev)
-# POST /recaptcha/api/siteverify
+# GET /recaptcha/api/siteverify (what recaptcha.py sends)
 # ---------------------------------------------------------------------------
 
 
-@app.post("/recaptcha/api/siteverify")
-async def recaptcha_siteverify() -> JSONResponse:
+_spent_recaptcha_tokens: set[str] = set()
+
+
+@app.api_route("/recaptcha/api/siteverify", methods=["GET", "POST"])
+async def recaptcha_siteverify(response: str = "") -> JSONResponse:
+    """Rejects missing and reused tokens as the real service does, so dev can reach the failure paths."""
+    if not response:
+        return JSONResponse({"success": False, "error-codes": ["missing-input-response"]})
+    if response in _spent_recaptcha_tokens:
+        return JSONResponse({"success": False, "error-codes": ["timeout-or-duplicate"]})
+    _spent_recaptcha_tokens.add(response)
     return JSONResponse({"success": True, "score": 0.9, "action": "submit"})
 
 

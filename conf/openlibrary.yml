@@ -140,7 +140,8 @@ ia_ignore_prefixes:
     - "gov.uscourts."
 
 plugin_recaptcha:
-    public_key: ''
+    # Google's public test site key, so the widget renders in dev. mockservices does the verifying.
+    public_key: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
     private_key: ''
 
 plugin_invisible_recaptcha:

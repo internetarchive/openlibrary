@@ -9659,6 +9659,15 @@ msgid "Notification preferences have been updated successfully."
 msgstr ""
 
 #: openlibrary/plugins/upstream/addbook.py
+msgid "Recaptcha solution was incorrect"
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
+#, python-format
+msgid "Please %(link_start)sgo back%(link_end)s and try again."
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
 msgid "Invalid Book URL"
 msgstr ""
 
