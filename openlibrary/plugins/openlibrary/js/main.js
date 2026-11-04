@@ -595,6 +595,12 @@ $(function () {
         import('./go-back-links').then(module => module.initGoBackLinks(backLinks));
     }
 
+    // "Contact Us" mailto links: pre-fill page URL and browser details
+    const contactLinks = document.querySelectorAll('a[data-contact-link]');
+    if (contactLinks.length) {
+        import('./contact-link').then(module => module.initContactLinks(contactLinks));
+    }
+
     // Lazy-load book page lists section
     const listSection = document.querySelector('.lists-section');
     if (listSection) {
