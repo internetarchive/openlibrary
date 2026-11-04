@@ -10,6 +10,7 @@ os.environ.pop("OL_DEPLOYMENT_NAME", None)
 
 import pytest
 import web
+
 from infogami import config
 from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import macro, template
@@ -26,7 +27,6 @@ def _fixed_find(path):
 
 infogami_template.find = _fixed_find
 from infogami.utils.view import render_template as infobase_render_template
-
 from openlibrary.core import helpers
 from openlibrary.core.env import get_ol_env
 from openlibrary.i18n import gettext

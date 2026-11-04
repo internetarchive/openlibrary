@@ -15,8 +15,8 @@ from unittest.mock import MagicMock, patch
 
 import web
 from bs4 import BeautifulSoup
-from infogami.utils import macro
 
+from infogami.utils import macro
 from openlibrary.core.jinja import get_jinja_env
 
 INJECTION_PAYLOAD = "x onmouseover=alert(document.cookie)//"

@@ -10,10 +10,10 @@ from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Unpack
 from urllib.parse import parse_qs, parse_qsl, quote, quote_plus, urlsplit, urlunsplit
 
 import web
-from infogami.utils.view import public
 from markupsafe import Markup
 from pydantic import BaseModel, Field
 
+from infogami.utils.view import public
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
 from openlibrary.core.fulltext import FulltextRow, all_words_query, exclude_ocaids, fulltext_page, fulltext_search_async, phrase_query

@@ -12,6 +12,9 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Literal
 
 import web
+from markupsafe import Markup, escape
+from pydantic import BaseModel, Field
+
 from infogami import config
 from infogami.infobase.utils import parse_datetime
 from infogami.utils import delegate
@@ -19,9 +22,6 @@ from infogami.utils.view import (
     add_flash_message,
     public,
 )
-from markupsafe import Markup, escape
-from pydantic import BaseModel, Field
-
 from openlibrary import accounts
 from openlibrary.accounts.model import OpenLibraryAccount, parse_s3_cookie
 from openlibrary.core import (
