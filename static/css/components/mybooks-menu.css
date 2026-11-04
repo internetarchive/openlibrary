@@ -2,58 +2,143 @@
  * MyBooksMenu
  * http://localhost:8080/people/openlibrary/books
  *
- * Organized top-down, following the sidebar's hierarchy:
+ * One flat surface; sections are separated by dividers and share a single
+ * row shape (muted icon, label, optional count), matching the other
+ * redesigned menus.
  *
  *   1. Container            .mybooks-menu
- *   2. Cards                .sb-card
- *   3. Profile card         .sb-profile-card
- *        header (avatar | info) + corner icon-button -> divider
- *        -> actions (primary + share) -> divider -> profile nav
- *   4. Reading goal card    .sb-goal-*
- *   5. Section headers      .sb-card > .section-header
- *   6. Profile nav rows     .sb-card-section
- *   7. Bookshelf tiles      .sb-shelf-*
- *   8. Activity tiles       .sb-activity-*
- *   9. Lists                .sb-lists-*, ol-chip-group
- *   10. Responsive          desktop / tablet and mobile
+ *   2. Sections + headings  .sb-section, .sb-heading
+ *   3. Profile              .sb-profile
+ *   4. Rows                 .sb-row
+ *   5. Reading goal         .sb-goal-*
+ *   6. Responsive           desktop / tablet and mobile
  */
 
 /* ── 1. Container ───────────────────────────────────────────────── */
 .mybooks-menu {
   width: 25%;
-  background: var(--color-surface-header);
+  background: var(--color-surface-sunken);
   border-top-left-radius: var(--border-radius-card);
   border-bottom-left-radius: var(--border-radius-card);
-  padding: var(--spacing-md);
+  padding-block: var(--spacing-inset-md);
+  padding-inline: 0;
 }
 
+/* The panel gutter lives here so the mobile popover gets it too. Rows sit
+   --menu-row-inset inside it; headings, dividers and the profile sit on that
+   same edge, so the heading's first letter lines up with the row pill's left
+   edge (a "virtual border") and the icon is inside the pill. */
 .mybooks-menu-content {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  padding-inline: var(--spacing-sm);
 }
 
-/* ── 2. Cards ───────────────────────────────────────────────────── */
-.sb-card {
-  background: var(--color-surface);
-  border-radius: var(--border-radius-card);
-  box-shadow: var(--box-shadow-raised);
-  overflow: hidden;
-  padding: var(--spacing-sm);
+/* Global link styles */
+.mybooks-menu a:link,
+.mybooks-menu a:hover,
+.mybooks-menu a:visited,
+.mybooks-menu-mobile a:link,
+.mybooks-menu-mobile a:hover,
+.mybooks-menu-mobile a:visited {
+  text-decoration: none;
 }
 
-/* ── 3. Profile card ────────────────────────────────────────────── */
-.sb-profile-card {
+/* ── 2. Sections + headings ─────────────────────────────────────── */
+/* Space above a heading is larger than below it, so the heading reads as the
+   label of the rows under it rather than of the group above. */
+.sb-section {
+  position: relative;
   display: flex;
   flex-direction: column;
-  position: relative;
+  gap: var(--spacing-stack-xs);
+  margin: 0;
+  padding: var(--spacing-md) 0 var(--spacing-sm);
 }
 
-/* 3b. Profile header (horizontal layout: avatar | text | settings) */
+/* Divider: spans exactly the width of a row pill. */
+.sb-section::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: var(--menu-row-inset);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+/* Everything that isn't a row (profile, headings, goal bar and note) starts on
+   the row pill's edge. */
+.sb-section > :not(ul, li) {
+  margin-inline: var(--menu-row-inset);
+}
+
+/* The nav is a <ul class="sb-section"> with no heading: rows stack flush */
+ul.sb-section {
+  gap: 0;
+  padding-block: var(--spacing-sm);
+}
+
+.sb-section:first-child {
+  padding-top: 0;
+}
+
+.sb-section:first-child::before {
+  content: none;
+}
+
+.sb-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sb-heading h3 {
+  margin: 0;
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+  color: var(--color-text-secondary);
+}
+
+/* Muted icon action at the end of a heading (edit goal, new list, settings) */
+.sb-heading-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+/* Profile settings gear: pinned to the card's top-right corner, not centered */
+.sb-profile-header > .sb-heading-action {
+  align-self: flex-start;
+}
+
+/* In a section heading, line up with the count column of the rows below */
+.sb-heading .sb-heading-action {
+  margin-inline-end: var(--menu-row-padding-inline);
+}
+
+.sb-heading-action:link,
+.sb-heading-action:visited {
+  color: var(--color-text-secondary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sb-heading-action:hover {
+    color: var(--color-link);
+  }
+}
+
+/* ── 3. Profile ─────────────────────────────────────────────────── */
+.sb-profile {
+  gap: var(--spacing-md);
+  padding-bottom: var(--spacing-inset-md);
+}
+
 .sb-profile-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-md);
 }
 
 .sb-avatar-link {
@@ -63,8 +148,8 @@
 
 .sb-avatar {
   display: block;
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: var(--border-radius-avatar);
   object-fit: cover;
   background: var(--background-grey);
@@ -75,63 +160,32 @@
   min-width: 0;
 }
 
-/* Shared corner icon-button (settings gear, goal pencil): absolutely
-   positioned top-right of its card, a muted icon that goes solid primary
-   on hover. */
-.sb-icon-btn {
-  position: absolute;
-  top: var(--spacing-sm);
-  right: var(--spacing-sm);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  opacity: 0.6;
-  transition:
-    opacity 0.15s ease,
-    color 0.15s ease;
-}
-
-/* Outrank base a:link / a:visited so the icon stays muted, not navy */
-.sb-icon-btn:link,
-.sb-icon-btn:visited {
-  color: var(--color-text-secondary);
-}
-
-.sb-icon-btn:hover {
-  opacity: 1;
-  color: var(--color-primary);
-}
-
-/* 3c. Welcome message */
 .sb-welcome {
   margin: 0 0 var(--spacing-2xs);
   font-size: var(--font-size-title-medium);
-  font-weight: 700;
-  line-height: 1.3;
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-control);
+  overflow-wrap: anywhere;
 }
 
-.sb-welcome span {
-  font-weight: 800;
-}
-
-/* 3d. Social info (followers / following) */
 .sb-social-info {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--spacing-inline-sm);
   font-size: var(--font-size-label-medium);
   color: var(--color-text-secondary);
-  flex-wrap: wrap;
 }
 
-.sb-social-link {
-  color: var(--color-text-secondary) !important;
+.sb-social-link:link,
+.sb-social-link:visited {
+  color: var(--color-text-secondary);
 }
 
-.sb-social-link:hover {
-  color: var(--color-primary) !important;
+@media (hover: hover) and (pointer: fine) {
+  .sb-social-link:hover {
+    color: var(--color-link);
+  }
 }
 
 .sb-social-link strong {
@@ -139,19 +193,19 @@
 }
 
 .sb-social-separator {
-  color: var(--color-border-muted);
+  color: var(--color-border);
 }
 
-/* 3e. Profile actions (primary button + separate share button) */
+/* Primary profile button stretches; the share icon-button keeps its square */
 .sb-profile-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--spacing-sm);
   align-items: stretch;
 }
 
-/* The profile link button stretches; the share icon-button keeps its square */
 .sb-profile-actions > ol-button {
   flex: 1;
+  min-width: 0;
 }
 
 .sb-profile-actions > ol-button::part(control) {
@@ -177,330 +231,113 @@
   min-width: 0;
 }
 
-.sb-divider {
-  border: none;
-  border-top: 1px solid var(--color-border-subtle);
-  margin: var(--spacing-sm) 0;
-  width: 100%;
-}
-
-/* ── Reading Goal card ─────────────────────────────────────────── */
-.sb-card.sb-goal-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.sb-goal-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.sb-goal-ring {
-  flex-shrink: 0;
-  width: 64px;
-  height: 64px;
-}
-
-.sb-goal-ring svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.sb-goal-track {
-  fill: none;
-  stroke: var(--grey-fafafa);
-  stroke-width: 8;
-}
-
-.sb-goal-arc {
-  fill: none;
-  stroke: var(--color-primary);
-  stroke-width: 8;
-  stroke-linecap: round;
-}
-
-.sb-goal-ring-text {
-  font-size: 17px;
-  font-weight: 800;
-  fill: var(--color-text);
-  text-anchor: middle;
-}
-
-.sb-goal-ring-q {
-  font-size: 22px;
-  font-weight: 800;
-  fill: var(--color-text-secondary);
-  text-anchor: middle;
-}
-
-.sb-goal-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.sb-goal-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sb-goal-title {
-  flex: 1;
+/* ── 4. Rows (nav, bookshelves, activity, lists) ────────────────── */
+.mybooks-menu ul,
+.mybooks-menu-mobile ul {
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.3;
+  padding-inline: 0; /* keep the section's vertical padding on the nav <ul> */
+  list-style: none;
+}
+
+.sb-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  min-height: var(--menu-row-height);
+  padding-inline: var(--menu-row-padding-inline);
+  margin-inline: var(--menu-row-inset);
+  border-radius: var(--border-radius-menu-row);
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-control);
+}
+
+.sb-row:link,
+.sb-row:visited {
   color: var(--color-text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sb-row:hover {
+    background: var(--color-hover-overlay);
+  }
+}
+
+.sb-row-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sb-row-icon {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+.sb-row-count {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+/* Current page: color only (no tint, no weight change) so nothing re-measures */
+.sb-row[aria-current="page"],
+.sb-row[aria-current="page"] .sb-row-icon,
+.sb-row[aria-current="page"] .sb-row-count {
+  color: var(--color-link);
+}
+
+/* ── 5. Reading goal ────────────────────────────────────────────── */
+.sb-goal-bar {
+  height: 8px;
+  border-radius: var(--border-radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  overflow: hidden;
+}
+
+.sb-goal-bar-fill {
+  display: block;
+  height: 100%;
+  width: var(--progress-width, 0%);
+  border-radius: inherit;
+  background: var(--color-primary);
 }
 
 .sb-goal-sub {
-  margin: 2px 0 0;
-  font-size: 13px;
-  line-height: 1.4;
+  margin: 0;
+  font-size: var(--font-size-label-large);
   color: var(--color-text-secondary);
 }
 
-.sb-goal-set-full {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px;
-  border-radius: var(--border-radius-lg);
-  background: var(--color-primary);
-  color: var(--white);
-  font-size: var(--font-size-body-medium);
-  font-weight: 700;
+/* Goal content is not a heading, so it follows the rows: it starts where the
+   row icons/labels start and ends where the counts end. */
+.sb-goal-card > .sb-goal-bar,
+.sb-goal-card > .sb-goal-sub,
+.sb-goal-card > ol-button {
+  margin-inline: calc(var(--menu-row-inset) + var(--menu-row-padding-inline));
 }
 
-/* Outrank base a:link / a:visited so the label stays white, not navy */
-.sb-goal-set-full:link,
-.sb-goal-set-full:visited {
-  color: var(--white);
+/* Rows under a heading get ~12px of air to their text (4px gap + 8px of row
+   padding). The bar and the set-goal button have no row padding of their own,
+   so they take it as margin to keep the heading-to-content rhythm. */
+.sb-goal-card > .sb-goal-bar,
+.sb-goal-card > ol-button {
+  margin-block-start: var(--spacing-sm);
 }
 
-.sb-goal-set-full:hover {
-  background: var(--color-primary-hover);
-  color: var(--white);
-}
-
-/* ── 5. Section headers + 6. Profile nav rows ─────────────────── */
-.sb-card > .section-header {
-  font-size: var(--font-size-label-medium);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-stack-sm);
-  display: flex;
-  justify-content: space-between;
-}
-
-.sb-card-section {
-  width: 100%;
-}
-
-.sb-card-section a {
-  position: relative;
-  display: inline-flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  font-size: var(--font-size-body-medium);
-  line-height: var(--line-height-control);
-  color: var(--color-text) !important;
-  transition:
-    background 0.1s,
-    color 0.1s;
-}
-
-.sb-card-section a:hover {
-  background: var(--color-control-hover);
-}
-
-.sb-nav-icon {
-  margin-right: var(--spacing-inline-sm);
-  vertical-align: -3px;
-}
-
-/* Active nav row: tinted rounded background, blue label + icon, and a 4px
-   accent bar aligned with the card's leading edge (the negative offset
-   cancels the card's own padding). */
-.sb-card-section a[aria-current="page"] {
-  background: var(--background-grey);
-  border-radius: var(--border-radius-menu-row);
-  color: var(--color-primary) !important;
-  font-weight: 700;
-}
-
-.sb-card-section a[aria-current="page"]::before {
-  content: "";
-  position: absolute;
-  left: calc(-1 * var(--spacing-sm));
-  top: 4px;
-  bottom: 4px;
-  width: 4px;
-  border-radius: 0 4px 4px 0;
-  background: var(--color-primary);
-}
-
-/* Global link styles */
-.mybooks-menu a:link,
-.mybooks-menu a:hover,
-.mybooks-menu a:visited,
-.mybooks-menu-mobile a:link,
-.mybooks-menu-mobile a:hover,
-.mybooks-menu-mobile a:visited {
-  text-decoration: none !important;
-}
-
-/* ── Bookshelf tiles (wrap by width: 2x2 narrow, 4-in-a-row wide) ── */
-.sb-shelf-tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 8px;
-}
-
-.sb-shelf-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 12px;
-  min-width: 80px;
-  max-width: 240px;
-  border: 2px solid transparent;
-  border-radius: var(--border-radius-lg);
-  background: var(--background-grey);
-  text-align: center;
-  transition:
-    background 0.1s ease,
-    border-color 0.1s ease;
-}
-
-a.sb-shelf-tile:hover {
-  background: var(--color-control-hover);
-}
-
-.sb-shelf-tile.selected {
-  border-color: var(--color-primary);
-  background: var(--color-primary-subtle);
-}
-
-.sb-shelf-count {
-  font-size: 24px;
-  font-weight: 800;
-  line-height: 1.1;
-  color: var(--color-text);
-}
-
-.sb-shelf-label {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--color-text);
-}
-
-.sb-shelf-tile.selected .sb-shelf-count,
-.sb-shelf-tile.selected .sb-shelf-label {
-  color: var(--color-primary);
-}
-
-/* ── Activity tiles ────────────────────────────────────────────── */
-.sb-activity-tiles {
-  display: flex;
-  gap: 8px;
-}
-
-.sb-activity-tile {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 10px 4px;
-  border: 2px solid transparent;
-  border-radius: var(--border-radius-lg);
-  background: var(--background-grey);
-  text-align: center;
-  transition:
-    background 0.1s ease,
-    border-color 0.1s ease;
-}
-
-a.sb-activity-tile:hover {
-  background: var(--color-control-hover);
-}
-
-.sb-activity-tile.selected {
-  border-color: var(--color-primary);
-  background: var(--color-primary-subtle);
-}
-
-.sb-activity-count {
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--color-text);
-}
-
-.sb-activity-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 24px;
-  color: var(--color-text);
-}
-
-.sb-activity-label {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--color-text);
-}
-
-.sb-activity-tile.selected .sb-activity-count,
-.sb-activity-tile.selected .sb-activity-label {
-  color: var(--color-primary);
-}
-
-.sb-lists-new-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: var(--font-size-label-medium);
-  font-weight: 600;
-  color: var(--color-primary);
-  text-decoration: none;
-  /* Opt out of the section header's uppercase; render sentence-case "New +" */
-  text-transform: none;
-  letter-spacing: normal;
-}
-
-/* Outrank base a:link / a:visited / a:hover so New stays primary blue */
-.sb-lists-new-link:link,
-.sb-lists-new-link:visited,
-.sb-lists-new-link:hover {
-  color: var(--color-primary);
-}
-
-.sb-lists-new-link:hover {
-  text-decoration: underline;
-}
-
-/* ── 10. Responsive ─────────────────────────────────────────────── */
-@media only screen and (min-width: 769px) /* @width-breakpoint-tablet + 1 */ {
+/* ── 6. Responsive ─────────────────────────────────────────────── */
+@media only screen and (min-width: 768px) /* --width-breakpoint-tablet */ {
   .mybooks-menu-mobile {
     display: none;
   }
 }
 
-@media only screen and (max-width: 768px) /* @width-breakpoint-tablet */ {
+@media only screen and (max-width: 767px) /* --width-breakpoint-tablet - 1 */ {
   /* Hide the desktop sidebar */
   .mybooks-menu {
     display: none;
@@ -511,39 +348,60 @@ a.sb-activity-tile:hover {
     width: 100%;
   }
 
-  /* Trigger */
+  /* Trigger: the same look as a secondary ol-button (fill, border, radius,
+     hover, press) so it reads as a control, not a grey banner. */
   .mobile-sidebar-trigger {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    background: var(--background-grey);
-    border: 1px solid var(--color-border-subtle);
+    gap: var(--spacing-sm);
+    box-sizing: border-box;
+    width: calc(100% - 2 * var(--spacing-sm));
+    min-height: var(--control-height-large);
+    margin: var(--spacing-sm);
+    padding: 0 var(--spacing-md);
+    border: 1px solid var(--color-control-border);
+    border-radius: var(--border-radius-button);
+    background-color: var(--color-control-bg);
+    color: var(--color-text);
+    font-family: var(--font-family-button);
     font-size: var(--font-size-body-medium);
+    font-weight: var(--font-weight-button);
+    line-height: var(--line-height-control);
+    text-align: start;
     cursor: pointer;
-    width: 100%;
-    text-align: left;
-    transition:
-      background 0.15s ease,
-      border-color 0.15s ease;
-    margin: 8px 12px;
+    transition: transform var(--duration-press);
   }
 
-  .mobile-sidebar-trigger:hover {
-    background: var(--color-hover-overlay);
+  /* Hover is instant; the border moves with the fill (see design.md). */
+  @media (hover: hover) and (pointer: fine) {
+    .mobile-sidebar-trigger:hover {
+      border-color: var(--color-border-muted);
+      background-color: var(--color-control-hover);
+    }
+  }
+
+  /* Full-width control: the wide press tier. */
+  .mobile-sidebar-trigger:active {
+    transform: scale(var(--press-scale-wide));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-sidebar-trigger {
+      transition: none;
+    }
   }
 
   .mobile-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--border-radius-card);
+    width: 24px;
+    height: 24px;
+    border-radius: var(--border-radius-avatar);
     object-fit: cover;
-    border: 2px solid var(--color-border-subtle);
     flex-shrink: 0;
   }
 
   .mobile-current-page {
     flex: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -551,5 +409,6 @@ a.sb-activity-tile:hover {
 
   .mobile-popover-chevron {
     flex-shrink: 0;
+    color: var(--color-text-secondary);
   }
 }

@@ -1711,11 +1711,6 @@ msgid "My Reading Stats"
 msgstr ""
 
 #: account/sidebar.html
-#, python-format
-msgid "%(read)d of %(goal)d books read"
-msgstr ""
-
-#: account/sidebar.html
 msgid "Reading Goal"
 msgstr ""
 
@@ -1724,11 +1719,8 @@ msgid "Edit reading goal"
 msgstr ""
 
 #: account/sidebar.html
-msgid "No reading goal set"
-msgstr ""
-
-#: account/sidebar.html
-msgid "No goal set yet"
+#, python-format
+msgid "%(read)d of %(goal)d books read"
 msgstr ""
 
 #: account/sidebar.html
@@ -1748,10 +1740,6 @@ msgstr ""
 msgid "Notes"
 msgstr ""
 
-#: account/sidebar.html admin/people/view.html type/user/view.html
-msgid "Loans"
-msgstr ""
-
 #: account/sidebar.html
 msgid "My lists"
 msgstr ""
@@ -1760,8 +1748,8 @@ msgstr ""
 msgid "Lists"
 msgstr ""
 
-#: AffiliateLinks.html.jinja account/sidebar.html
-msgid "New"
+#: account/sidebar.html
+msgid "New list"
 msgstr ""
 
 #: account/sidebar.html
@@ -2735,6 +2723,10 @@ msgstr ""
 
 #: admin/people/view.html
 msgid "Anonymize Account"
+msgstr ""
+
+#: admin/people/view.html type/user/view.html
+msgid "Loans"
 msgstr ""
 
 #: admin/people/view.html
@@ -7138,6 +7130,10 @@ msgstr ""
 
 #: type/work/editions_datatable.html
 msgid "Add another edition?"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "New"
 msgstr ""
 
 #: AffiliateLinks.html.jinja

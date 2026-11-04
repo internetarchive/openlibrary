@@ -33,7 +33,10 @@ def render_sidebar(username="someuser", key="mybooks", owners_page=False, public
             "request": SimpleNamespace(canonical_url="http://localhost/people/someuser/books", home="http://localhost"),
             # ShareModal stub renders just the trigger markup (args[2]),
             # so share triggers stay observable without the real macro.
-            "macros": SimpleNamespace(ShareModal=lambda *args, **kwargs: args[2] if len(args) > 2 else ""),
+            "macros": SimpleNamespace(
+                ShareModal=lambda *args, **kwargs: args[2] if len(args) > 2 else "",
+                icon=lambda name, **kwargs: f'<svg data-icon="{name}"></svg>',
+            ),
             "set_share_links": lambda *args, **kwargs: None,
             "get_reading_goals": lambda year=None: None,
             "current_year": lambda: 2026,
