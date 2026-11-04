@@ -19,7 +19,7 @@ from openlibrary.contribute import feed, initiatives, save, supply, tasks
 from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values, work_of
 from openlibrary.core import admin, helpers
-from openlibrary.core.tags import GENRES, LITERARY_FORM, subject_matches, tag_choices, tag_key_named, tag_options, work_tag_names
+from openlibrary.core.tags import GENRES, LITERARY_FORMS, subject_matches, tag_choices, tag_key_named, tag_options, work_tag_names
 from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream import spamcheck
@@ -55,7 +55,7 @@ def get_filters() -> dict[str, tuple[str, tuple[str, ...]]]:
         "number_of_pages": (_("Page count"), ("number_of_pages",)),
         "publishers": (_("Publisher"), ("publishers",)),
         "identifiers": (_("Identifiers"), ("lccn", "oclc_numbers")),
-        LITERARY_FORM: (_("Fiction or nonfiction"), (LITERARY_FORM,)),
+        LITERARY_FORMS: (_("Fiction or nonfiction"), (LITERARY_FORMS,)),
         GENRES: (_("Genre"), (GENRES,)),
     }
 
@@ -68,7 +68,7 @@ def get_filter_headings() -> dict[str, str]:
         "number_of_pages": _("Missing page count"),
         "publishers": _("Missing publisher"),
         "identifiers": _("Missing identifiers"),
-        LITERARY_FORM: _("Missing fiction or nonfiction"),
+        LITERARY_FORMS: _("Missing fiction or nonfiction"),
         GENRES: _("Missing genre"),
     }
 
@@ -166,7 +166,7 @@ def format_field_value(edition, fld: str) -> str:
 def format_saved_value(edition, fld: str) -> str:
     """The receipt's value. A literary form brings the work's genres along: its page asks for both."""
     value = format_field_value(edition, fld)
-    if fld == LITERARY_FORM and (genres := format_field_value(edition, GENRES)):
+    if fld == LITERARY_FORMS and (genres := format_field_value(edition, GENRES)):
         return f"{value} · {genres}"
     return value
 
@@ -681,7 +681,7 @@ def render_nothing_page(edition, fld: str, back: str, initiative: str = ""):
 def build_work_answers(edition, fld: str, i) -> dict[str, list[str]]:
     """What a work task saves: its own field, plus the companion's picks when "Fiction" opened it and the book is open for it."""
     answers = {fld: list(i.genres) if fld == GENRES else [i.value]}
-    if tasks.COMPANIONS.get(fld) == GENRES and i.genres and i.value == tag_key_named(LITERARY_FORM, "fiction") and tasks.task_for(edition, GENRES):
+    if tasks.COMPANIONS.get(fld) == GENRES and i.genres and i.value == tag_key_named(LITERARY_FORMS, "fiction") and tasks.task_for(edition, GENRES):
         answers[GENRES] = list(i.genres)
     return answers
 

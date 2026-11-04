@@ -1,6 +1,6 @@
 """Typed tags on a work: the literary form (fiction or nonfiction) and the genres.
 
-A work points at ``/type/tag`` objects (``literary_form`` holds one, ``genres`` and ``subgenres`` a list).
+A work points at ``/type/tag`` objects (each field holds a list, even where people pick one, as with ``literary_forms``).
 Older migrations stored bare keys, so every reader here takes a key string, a ``{"key": ...}`` dict or a Thing.
 Editing these tags on the book and edit pages is limited to ``can_edit_tags`` while the vocabulary is new.
 """
@@ -16,17 +16,17 @@ from openlibrary.i18n import gettext as _
 from openlibrary.utils import normalize_subject_name
 from openlibrary.utils.request_context import site
 
-LITERARY_FORM = "literary_form"
+LITERARY_FORMS = "literary_forms"
 GENRES = "genres"
 # The whitelist: admins plus this group. The group is a plain /type/usergroup document, so an admin can add people on the site.
 TAGS_BETA_GROUP = "/usergroup/tags-beta"
 # The work fields that hold tag references, in the order the book page shows them.
-WORK_TAG_FIELDS = (LITERARY_FORM, GENRES, "subgenres")
-# Fields that hold a list of tags; the others hold one.
+WORK_TAG_FIELDS = (LITERARY_FORMS, GENRES, "subgenres")
+# Fields where people pick several tags; the others take one.
 MANY = frozenset({GENRES, "subgenres"})
 # A field's tags by their ``tag_type``. Production typed tags with the plural field name first and is moving to the
 # singular (#14229), so both are read; the field name is the one the rest of the code uses.
-FIELD_TAG_TYPES = {LITERARY_FORM: ("literary_form",), GENRES: ("genres", "genre"), "subgenres": ("subgenres", "subgenre")}
+FIELD_TAG_TYPES = {LITERARY_FORMS: ("literary_form",), GENRES: ("genres", "genre"), "subgenres": ("subgenres", "subgenre")}
 # How long a field's tag list is kept in the process before the site is asked again.
 TAGS_TTL_SECONDS = 300
 
@@ -36,7 +36,6 @@ def can_edit_tags(user) -> bool:
     return bool(user) and (user.is_admin() or user.is_usergroup_member(TAGS_BETA_GROUP))
 
 
-@public
 def tag_key(value) -> str | None:
     """The tag key behind a stored reference, whichever shape it was saved in."""
     if isinstance(value, str):
@@ -46,6 +45,7 @@ def tag_key(value) -> str | None:
     return value.get("key") or None
 
 
+@public
 def work_tag_keys(work, fld: str) -> list[str]:
     raw = work.get(fld)
     values = raw if isinstance(raw, list) else [raw]
@@ -103,7 +103,7 @@ def choice_hints(fld: str) -> dict[str, str]:
 
     Written as examples and gotchas: the vocabulary's definitions only restate the name, so rows without a hint show none.
     """
-    if fld == LITERARY_FORM:
+    if fld == LITERARY_FORMS:
         return {
             "fiction": _("Novels, stories, plays and poems."),
             "nonfiction": _("History, biography, memoir, essays, how-to and reference."),
@@ -143,7 +143,7 @@ def work_tag_names(work, fld: str) -> list[str]:
 
 def literary_form_of(work) -> str:
     """ "fiction", "nonfiction" or "" when the work doesn't say."""
-    names = work_tag_names(work, LITERARY_FORM)
+    names = work_tag_names(work, LITERARY_FORMS)
     return names[0].casefold() if names else ""
 
 

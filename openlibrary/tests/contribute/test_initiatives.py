@@ -24,7 +24,7 @@ class FakeWork(dict):
 
 
 NONFICTION = "/tags/OL9T"
-WORK = FakeWork("/works/OL1W", literary_form={"key": "/tags/OL1T"}, genres=[{"key": "/tags/OL2T"}])
+WORK = FakeWork("/works/OL1W", literary_forms=[{"key": "/tags/OL1T"}], genres=[{"key": "/tags/OL2T"}])
 
 
 class FakeSite:
@@ -42,7 +42,7 @@ FOUR = ("covers", "languages", "number_of_pages", "publishers")
 
 @pytest.fixture(autouse=True)
 def nonfiction_by_key(monkeypatch):
-    monkeypatch.setattr(tasks, "is_nonfiction", lambda work: work.get("literary_form") == NONFICTION)
+    monkeypatch.setattr(tasks, "is_nonfiction", lambda work: work.get("literary_forms") == [NONFICTION])
 
 
 def make_initiative(picks, calls=None, fields=FOUR):
@@ -61,7 +61,7 @@ def test_the_initiatives_have_their_own_slugs_and_fields_tasks_knows():
         assert initiatives.get(initiative.slug) is initiative
     assert initiatives.get("not-an-initiative") is None
     assert initiatives.ACTIVE in initiatives.INITIATIVES
-    assert initiatives.TAGS.fields == ("literary_form", "genres")
+    assert initiatives.TAGS.fields == ("literary_forms", "genres")
 
 
 def test_the_first_load_picks_and_stores_the_list_and_later_loads_read_it_back():
@@ -106,11 +106,11 @@ def test_a_work_level_gap_is_read_from_the_edition_s_work():
         works=(bare,),
         store={"contribute-initiative-test": {"editions": [["/books/OL1M", 9]]}},
     )
-    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, ["literary_form", "genres"], []]]
+    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, ["literary_forms", "genres"], []]]
 
 
 def test_a_nonfiction_work_has_no_genre_gap():
-    nonfiction = FakeWork("/works/OL2W", literary_form=NONFICTION)
+    nonfiction = FakeWork("/works/OL2W", literary_forms=[NONFICTION])
     site = FakeSite(
         editions=[FakeEdition("/books/OL1M", **(COMPLETE | {"works": [nonfiction]}))],
         works=(nonfiction,),
@@ -120,7 +120,7 @@ def test_a_nonfiction_work_has_no_genre_gap():
 
 
 def test_progress_counts_only_the_initiative_s_fields():
-    gaps = [["/books/OL1M", 9, ["literary_form"], []], ["/books/OL2M", 8, ["publishers"], ["literary_form"]]]
+    gaps = [["/books/OL1M", 9, ["literary_forms"], []], ["/books/OL2M", 8, ["publishers"], ["literary_forms"]]]
     assert initiatives.progress(gaps, ("publishers", "covers")) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 75}
     assert initiatives.progress(gaps, initiatives.TAGS.fields) == {"done": 1, "total": 2, "open": 1, "not_found": 1, "percent": 75}
     assert initiatives.progress(gaps, tuple(tasks.POINTS))["open"] == 2
@@ -182,7 +182,7 @@ def test_most_shelved_keeps_isbn_editions_two_per_work_and_tops_up_from_search(m
 
 
 def test_untagged_works_are_picked_one_edition_each_and_only_while_a_tag_is_missing(monkeypatch):
-    tagged, bare, nonfiction = WORK, FakeWork("/works/OL2W"), FakeWork("/works/OL3W", literary_form=NONFICTION)
+    tagged, bare, nonfiction = WORK, FakeWork("/works/OL2W"), FakeWork("/works/OL3W", literary_forms=[NONFICTION])
     rows = [
         {"edition_id": 1, "work_id": 1, "readers": 900},  # work fully tagged
         {"edition_id": 2, "work_id": 2, "readers": 800},

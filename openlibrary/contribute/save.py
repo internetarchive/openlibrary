@@ -113,13 +113,13 @@ def tag_answers(fld: str, raws: list[str]) -> list[dict]:
 def save_work_answers(work, answers: dict[str, list[str]], label: str, note: str = "") -> None:
     """Write tag answers to the work in one revision, the same way as an edition answer.
 
-    ``answers`` maps each work field to the tag keys picked for it; a field that holds one tag takes the first.
+    ``answers`` maps each work field to the tag keys picked for it; a field where people pick one keeps just the first.
     ``data.field`` names the task that was answered, ``data.fields`` everything the save filled.
     """
     doc = work.dict()
     for fld, raws in answers.items():
         refs = tag_answers(fld, raws)
-        doc[fld] = refs if fld in MANY else refs[0]
+        doc[fld] = refs if fld in MANY else refs[:1]
     fields = list(answers)
     comment = note.strip() or _("Filled in %(field)s from Open Library Tasks", field=label)
     web.ctx.site.save(doc, comment=comment, action=ACTION, data={"source": SOURCE, "field": fields[0], "fields": fields})

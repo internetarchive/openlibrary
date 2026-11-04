@@ -37,7 +37,7 @@ def test_rail_links_only_the_initiative_s_own_filters():
     # Every filter still works by URL.
     assert contribute.normalize_filter("identifiers") == "identifiers"
     tag_rail = contribute.build_filter_rail("", contribute.initiatives.TAGS)
-    assert [f["track"] for f in tag_rail["filters"]] == ["literary_form", "genres"]
+    assert [f["track"] for f in tag_rail["filters"]] == ["literary_forms", "genres"]
     assert tag_rail["all"]["url"] == "/tasks?initiative=genres-2026-11"
     assert tag_rail["filters"][1]["url"] == "/tasks?initiative=genres-2026-11&task=genres"
 

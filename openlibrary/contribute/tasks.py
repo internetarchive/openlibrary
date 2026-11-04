@@ -6,7 +6,7 @@ URLs stay one shape; its answer saves to the edition's work.
 
 from dataclasses import dataclass
 
-from openlibrary.core.tags import GENRES, LITERARY_FORM, is_nonfiction, work_tag_keys
+from openlibrary.core.tags import GENRES, LITERARY_FORMS, is_nonfiction, work_tag_keys
 
 # The fields on offer, most valuable first. Four weights match a same-named Edition Scorecard
 # check exactly: covers == ``cover`` (35), languages == ``language`` (15), publishers == ``publisher`` (2),
@@ -23,14 +23,14 @@ POINTS = {
     "oclc_numbers": 25,
     "languages": 15,
     "number_of_pages": 10,
-    LITERARY_FORM: 10,
+    LITERARY_FORMS: 10,
     GENRES: 10,
     "publishers": 2,
 }
 # Fields that live on the work rather than the edition.
-WORK_FIELDS = frozenset({LITERARY_FORM, GENRES})
+WORK_FIELDS = frozenset({LITERARY_FORMS, GENRES})
 # A field asked on another field's page when both are open: the form is the lead, the genres follow a "fiction".
-COMPANIONS = {LITERARY_FORM: GENRES}
+COMPANIONS = {LITERARY_FORMS: GENRES}
 
 
 def work_of(edition):

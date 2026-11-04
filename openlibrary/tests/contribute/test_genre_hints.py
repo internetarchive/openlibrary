@@ -53,6 +53,6 @@ def test_the_hints_come_from_the_subjects_on_the_genre_page_and_the_form_page(ge
     assert contribute.genre_hints(FakeEdition(works=[])) == {}
     # The companion genres on the literary form page carry the same hints.
     monkeypatch.setattr(tasks, "task_for", lambda ed, fld: tasks.Task("OL1M", fld))
-    companion = contribute.build_companion(edition("Horror"), "literary_form", [], suggested={HORROR: ["Horror"]})
+    companion = contribute.build_companion(edition("Horror"), "literary_forms", [], suggested={HORROR: ["Horror"]})
     assert companion["field"] == "genres"
     assert companion["suggested"][HORROR]["subjects"] == ["Horror"]

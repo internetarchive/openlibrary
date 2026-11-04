@@ -14,7 +14,7 @@ from datetime import UTC, datetime
 from infogami.utils.delegate import create_site
 from openlibrary.contribute import pool, tasks
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.tags import GENRES, LITERARY_FORM
+from openlibrary.core.tags import GENRES, LITERARY_FORMS
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.dateutil import DAY_SECS, MINUTE_SECS
 from openlibrary.utils.request_context import site as request_site
@@ -31,7 +31,7 @@ NOT_FOUND_PEOPLE = {
     "covers": 3,
     "languages": 4,
     # "Not sure": a judgment rather than a lookup, so a few people unsure is a sign the call really is contested.
-    LITERARY_FORM: 3,
+    LITERARY_FORMS: 3,
     GENRES: 3,
 }
 NOT_FOUND_TYPE = "contribute-notfound"
@@ -144,7 +144,7 @@ def pick_most_read(size: int, site=None) -> list[list]:
     return [[d["editions"]["docs"][0]["key"], d.get("readinglog_count")] for d in result.docs if d.get("editions", {}).get("docs")]
 
 
-TAG_FIELDS = (LITERARY_FORM, GENRES)
+TAG_FIELDS = (LITERARY_FORMS, GENRES)
 
 
 def pick_untagged_works(size: int, site) -> list[list]:

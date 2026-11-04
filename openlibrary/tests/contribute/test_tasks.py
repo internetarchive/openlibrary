@@ -17,7 +17,7 @@ class FakeWork(dict):
 @pytest.fixture(autouse=True)
 def nonfiction_by_key(monkeypatch):
     """Spare the tests a site: a work is nonfiction when its literary form is the NONFICTION key."""
-    monkeypatch.setattr(tasks, "is_nonfiction", lambda work: work.get("literary_form") == NONFICTION)
+    monkeypatch.setattr(tasks, "is_nonfiction", lambda work: work.get("literary_forms") == [NONFICTION])
 
 
 def test_tasks_are_the_empty_fields_most_valuable_first():
@@ -30,28 +30,28 @@ def test_tasks_are_the_empty_fields_most_valuable_first():
 def test_the_literary_form_is_a_task_on_the_edition_when_its_work_has_none():
     work = FakeWork()
     ed = FakeEdition(works=[work])
-    assert tasks.is_missing(ed, "literary_form")
-    assert tasks.is_missing(ed, "literary_form", work=FakeWork(literary_form={"key": "/tags/OL1T"})) is False
+    assert tasks.is_missing(ed, "literary_forms")
+    assert tasks.is_missing(ed, "literary_forms", work=FakeWork(literary_forms=[{"key": "/tags/OL1T"}])) is False
     # A bare key, as the tags migration stored genres, counts as filled too.
-    work["literary_form"] = "/tags/OL1T"
-    assert not tasks.is_missing(ed, "literary_form")
+    work["literary_forms"] = "/tags/OL1T"
+    assert not tasks.is_missing(ed, "literary_forms")
     # An orphan edition has no work to put the answer on.
-    assert not tasks.is_missing(FakeEdition(), "literary_form")
+    assert not tasks.is_missing(FakeEdition(), "literary_forms")
 
 
 def test_genres_are_a_task_until_the_work_has_some_or_is_nonfiction():
     ed = FakeEdition(works=[FakeWork()])
     assert tasks.is_missing(ed, "genres")
-    assert tasks.is_missing(ed, "genres", work=FakeWork(literary_form="/tags/OL1T"))
+    assert tasks.is_missing(ed, "genres", work=FakeWork(literary_forms=["/tags/OL1T"]))
     assert not tasks.is_missing(ed, "genres", work=FakeWork(genres=["/tags/OL2T"]))
     # The genre vocabulary is for fiction: a nonfiction work has nothing to fill in.
-    assert not tasks.is_missing(ed, "genres", work=FakeWork(literary_form=NONFICTION))
+    assert not tasks.is_missing(ed, "genres", work=FakeWork(literary_forms=[NONFICTION]))
     assert not tasks.is_missing(FakeEdition(), "genres")
 
 
 def test_the_genres_follow_the_literary_form_as_its_companion():
-    assert tasks.COMPANIONS == {"literary_form": "genres"}
-    assert {"literary_form", "genres"} == tasks.WORK_FIELDS
+    assert tasks.COMPANIONS == {"literary_forms": "genres"}
+    assert {"literary_forms", "genres"} == tasks.WORK_FIELDS
 
 
 def test_a_cover_is_missing_with_only_deleted_covers_but_not_on_a_scanned_book():

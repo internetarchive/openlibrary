@@ -251,16 +251,6 @@
             "expected_type": {
                 "key": "/type/tag"
             },
-            "unique": true,
-            "type": {
-                "key": "/type/property"
-            },
-            "name": "literary_form"
-        },
-        {
-            "expected_type": {
-                "key": "/type/tag"
-            },
             "unique": false,
             "type": {
                 "key": "/type/property"
