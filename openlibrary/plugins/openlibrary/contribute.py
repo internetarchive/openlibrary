@@ -555,17 +555,24 @@ def require_field_access(user, fld: str) -> None:
 
 
 def build_receipt(saved: str) -> dict | None:
-    """The previous task's "Just saved" callout, from a ``OL…M/field`` key, when "Save and next" brought us here."""
+    """The previous task's "Just saved" callout, from a ``OL…M/field`` key, when "Save and next" brought us here.
+
+    None when the field is still empty, as there's nothing saved to show. A cover has no text value; the image is its value.
+    """
     olid, _sep, fld = saved.partition("/")
     field_guide = get_field_guides().get(fld)
     if not field_guide or not (edition := web.ctx.site.get(f"/books/{olid}")):
         return None
+    value = format_field_value(edition, fld)
+    cover_url = edition.get_cover_url("M")
+    if not value and not (fld == "covers" and cover_url):
+        return None
     return {
         "field_label": field_guide.label,
         "title": edition.title,
-        "value": format_field_value(edition, fld),
+        "value": value,
         "url": edition.url(),
-        "cover_url": edition.get_cover_url("M"),
+        "cover_url": cover_url,
     }
 
 

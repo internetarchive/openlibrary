@@ -152,8 +152,17 @@
   color: var(--color-success-fg);
 }
 
+.contrib-saved__book {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+}
+
 .contrib-saved__title {
   font-weight: var(--font-weight-semibold);
+}
+
+.contrib-saved__detail {
+  font-size: var(--font-size-body-small);
 }
 
 .contrib-saved__title a {
@@ -203,7 +212,9 @@
   }
 
   .contrib-row:hover .contrib-book__actions,
-  .contrib-row:focus-within .contrib-book__actions {
+  .contrib-row:focus-within .contrib-book__actions,
+  .contrib-saved:hover .contrib-book__actions,
+  .contrib-saved:focus-within .contrib-book__actions {
     opacity: 1;
   }
 }
@@ -393,6 +404,11 @@
   gap: var(--spacing-inline-sm) var(--spacing-inline-md);
   font-size: var(--font-size-body-small);
   color: var(--color-text-secondary);
+}
+
+/* A lead-in to the chips, so it keeps its own line and every chip starts at the same edge. */
+.contrib-suggest__label {
+  flex-basis: 100%;
 }
 
 /* Help column */

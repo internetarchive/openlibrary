@@ -7943,7 +7943,12 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 #, python-format
-msgid "%(field)s: %(value)s"
+msgid "%(field)s added: %(value)s"
+msgstr ""
+
+#: contribute/parts.html.jinja
+#, python-format
+msgid "%(field)s added"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8052,7 +8057,7 @@ msgid "No matching language"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Other editions say"
+msgid "Other editions say…"
 msgstr ""
 
 #: contribute/parts.html.jinja

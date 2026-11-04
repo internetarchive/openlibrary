@@ -93,3 +93,19 @@ def test_receipt_says_what_was_saved(monkeypatch):
 
 def test_no_receipt_without_a_saved_task():
     assert contribute.build_receipt("") is None
+
+
+@pytest.mark.parametrize(
+    ("fld", "cover_url", "shown"),
+    [
+        ("languages", "/cover.jpg", False),
+        ("covers", None, False),
+        ("covers", "/cover.jpg", True),
+    ],
+)
+def test_receipt_needs_a_saved_value(monkeypatch, fld, cover_url, shown):
+    edition = SimpleNamespace(title="A Book", url=lambda: "/books/OL1M/A_Book", get_cover_url=lambda size: cover_url)
+    monkeypatch.setattr(web, "ctx", web.storage(site=SimpleNamespace(get=lambda key: edition)))
+    monkeypatch.setattr(contribute, "get_field_guides", lambda: {fld: web.storage(label="Label")})
+    monkeypatch.setattr(contribute, "format_field_value", lambda e, f: "")
+    assert bool(contribute.build_receipt(f"OL1M/{fld}")) is shown

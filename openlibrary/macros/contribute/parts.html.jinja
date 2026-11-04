@@ -70,17 +70,24 @@
             {% endif %}
             <div>
                 <div class="contrib-saved__status">{{ icon("circle-check", size="sm") }}{{ _("Just saved") }}</div>
-                <div class="contrib-saved__title">
-                    <a href="{{ receipt.url }}" data-ol-link-track="TaskForm|SavedBook">{{ receipt.title }}</a>
-                </div>
-                <div>
-                    {% if receipt.value %}
-                        {{ _("%(field)s: %(value)s", field=receipt.field_label, value=receipt.value) }}
-                    {% else %}
-                        {{ receipt.field_label }}
-                    {% endif %}
+                <div class="contrib-saved__book">
+                    <div class="contrib-saved__title">
+                        <a href="{{ receipt.url }}" data-ol-link-track="TaskForm|SavedBook">{{ receipt.title }}</a>
+                    </div>
+                    <div class="contrib-saved__detail">
+                        {% if receipt.value %}
+                            {{ _("%(field)s added: %(value)s", field=receipt.field_label, value=receipt.value) }}
+                        {% else %}
+                            {{ _("%(field)s added", field=receipt.field_label) }}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
+            <ol-tooltip class="contrib-book__actions" content="{{ _('Go to book page') }}">
+                <ol-button variant="ghost" shape="icon" size="small" href="{{ receipt.url }}" aria-label="{{ _('Go to book page') }}">
+                    {{ icon("eye", size="sm") }}
+                </ol-button>
+            </ol-tooltip>
         </div>
     </div>
 {% endmacro %}
@@ -352,7 +359,7 @@
                                 {% if data.is_identifier %}<p class="contrib-field__verdict" data-id-verdict role="status"></p>{% endif %}
                                 {% if data.suggestions %}
                                     <div class="contrib-suggest" data-suggest>
-                                        <span>{{ _("Other editions say") }}</span>
+                                        <span class="contrib-suggest__label">{{ _("Other editions say…") }}</span>
                                         {% for s in data.suggestions %}
                                             <ol-chip size="small" count="{{ s.count }}" data-value="{{ s.value }}" accessible-label="{{ ngettext('%(value)s, on 1 edition', '%(value)s, on %(count)d editions', s.count, value=s.label, count=s.count) }}">
                                                 {{ s.label }}
