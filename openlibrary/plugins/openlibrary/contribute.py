@@ -63,13 +63,13 @@ def get_filters() -> dict[str, tuple[str, tuple[str, ...]]]:
 def get_filter_headings() -> dict[str, str]:
     """The dashboard's heading per filter: a whole phrase, so each language can case and order it."""
     return {
-        "covers": _("Missing cover"),
-        "languages": _("Missing language"),
-        "number_of_pages": _("Missing page count"),
-        "publishers": _("Missing publisher"),
-        "identifiers": _("Missing identifiers"),
-        LITERARY_FORMS: _("Missing fiction or nonfiction"),
-        GENRES: _("Missing genre"),
+        "covers": _("Books missing a cover"),
+        "languages": _("Books missing a language"),
+        "number_of_pages": _("Books missing a page count"),
+        "publishers": _("Books missing a publisher"),
+        "identifiers": _("Books missing identifiers"),
+        LITERARY_FORMS: _("Books not marked fiction or nonfiction"),
+        GENRES: _("Books missing a genre"),
     }
 
 
@@ -100,7 +100,7 @@ def initiative_copy(initiative: initiatives.Initiative) -> dict[str, str]:
             "title": _("Find every book its shelf"),
             "description": _("Fiction or nonfiction, and the genres that fit, starting with the most-read books."),
         }
-    return {"title": _("The %(count)s most-read books", count=count), "description": _("Fill in what's missing on the books people shelve most.")}
+    return {"title": _("Complete the %(count)s most-read books", count=count), "description": _("Fill in what's missing on the books people shelve most.")}
 
 
 def render_contribute(template: str, title: str, **params):
@@ -309,7 +309,7 @@ def count_sibling_values(fld: str, others: list, limit: int = 5) -> dict:
 
 
 def get_recent_fixes(changes: list) -> list[dict]:
-    """The right column's "Your recent fixes", from the user's ``save.recent_saves``."""
+    """The right column's "Your recent contributions", from the user's ``save.recent_saves``."""
     keys = [c.changes[0]["key"] for c in changes if c.changes]
     # An edition for most fields; the work for a work field.
     records = {r.key: r for r in web.ctx.site.get_many(keys)} if keys else {}
@@ -535,7 +535,7 @@ class contribute_index(delegate.page):
     def GET(self):
         if not (user := accounts.get_current_user()):
             return render_landing()
-        # One query for both the intro check and the "recent fixes" column.
+        # One query for both the intro check and the "recent contributions" column.
         recent_saves = save.recent_saves(user.key)
         if not has_seen_intro(recent_saves):
             return render_landing(user)

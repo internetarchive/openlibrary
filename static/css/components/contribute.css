@@ -1111,7 +1111,7 @@
 }
 
 .contrib-dash__h2 {
-  font-size: var(--font-size-title-large);
+  font-size: var(--font-size-title-medium);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-title);
   text-wrap: balance;
@@ -1134,10 +1134,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--spacing-inline-sm);
-}
-
-.contrib-rail__group > .contrib-overline {
-  flex-basis: 100%;
 }
 
 /* "Surprise me" closes the rail: a row like the filters, but an action, so a rule sets it apart. The rule sits as close
@@ -1231,12 +1227,6 @@
     gap: 2px;
   }
 
-  .contrib-rail__group > .contrib-overline {
-    flex-basis: auto;
-    padding-inline: var(--menu-row-padding-inline);
-    margin-block-end: var(--spacing-stack-xs);
-  }
-
   .contrib-rail .contrib-rail__item {
     display: flex;
     border-color: transparent;
@@ -1248,7 +1238,7 @@
   }
 }
 
-/* "Your recent fixes" in the dashboard's right column. */
+/* "Your recent contributions" in the dashboard's right column. */
 .contrib-recent {
   display: grid;
   gap: var(--spacing-stack-sm);

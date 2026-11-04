@@ -40,8 +40,9 @@
         </div>
     </header>
     {#- One card per initiative in a row, every card the same shape and type: the open one sits on the selected tint, the others are a link over. -#}
-    <section class="contrib-initiatives" aria-label="{{ _('Initiatives') }}">
-        <span class="contrib-overline">{{ _("Current initiatives") }}</span>
+    <section class="contrib-initiatives"
+             aria-label="{{ _('Community projects') }}">
+        <span class="contrib-overline">{{ _("Community projects") }}</span>
         <div class="contrib-initiatives__row">
             {% for card in data.initiatives %}
                 {% if card.on %}
@@ -57,7 +58,6 @@
     <div class="contrib-dash__body">
         <nav class="contrib-rail" data-rail aria-label="{{ _('Filter tasks') }}">
             <div class="contrib-rail__group">
-                <span class="contrib-overline">{{ _("Tasks") }}</span>
                 <a class="contrib-rail__item{{ ' is-on' if data.rail.all.on else '' }}"
                    href="{{ data.rail.all.url }}"
                    data-ol-link-track="TasksDashboard|Filter|{{ data.rail.all.track }}"
@@ -104,7 +104,7 @@
         </main>
         <aside class="contrib-dash__aside">
             <section class="contrib-side">
-                <h2 class="contrib-dash__h2">{{ _("Your recent fixes") }}</h2>
+                <h2 class="contrib-dash__h2">{{ _("Your recent contributions") }}</h2>
                 {% if data.recent %}
                     <ul class="contrib-recent">
                         {% for fix in data.recent %}

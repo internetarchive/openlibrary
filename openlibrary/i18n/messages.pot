@@ -4067,11 +4067,7 @@ msgid "Tasks"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Initiatives"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Current initiatives"
+msgid "Community projects"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
@@ -4087,7 +4083,7 @@ msgid "Tasks couldn't load right now. Reload the page to try again."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Your recent fixes"
+msgid "Your recent contributions"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
@@ -6126,7 +6122,7 @@ msgid "Chart of the chosen metric over the chosen range"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Details still missing across the initiative's books, counted nightly. A detail nobody could find counts as filled."
+msgid "Details still missing across the project's books, counted nightly. A detail nobody could find counts as filled."
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -9221,31 +9217,31 @@ msgid "Fiction or nonfiction"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Missing cover"
+msgid "Books missing a cover"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Missing language"
+msgid "Books missing a language"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Missing page count"
+msgid "Books missing a page count"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Missing publisher"
+msgid "Books missing a publisher"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Missing identifiers"
+msgid "Books missing identifiers"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Missing fiction or nonfiction"
+msgid "Books not marked fiction or nonfiction"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Missing genre"
+msgid "Books missing a genre"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -9258,7 +9254,7 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "The %(count)s most-read books"
+msgid "Complete the %(count)s most-read books"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
