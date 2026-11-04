@@ -533,3 +533,48 @@ class TestTheWarningChangesNothing:
         with caplog.at_level(logging.WARNING, logger="openlibrary.book_providers"):
             assert lenny.get_access(edition("46539165")) == EbookAccess.BORROWABLE
         assert len(lenny_warnings(caplog)) == 1
+
+
+class TestAcquisitionUrlSchemeIsValidated:
+    """A stored provider URL is rendered into the borrow interstitial, so a
+    non-http(s) scheme must never parse into an Acquisition (GHSA-74p9)."""
+
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "javascript:alert(1)",
+            "jav&#x0A;ascript:alert(1)",  # codespell:ignore ascript
+            "data:text/html,<script>alert(1)</script>",
+            "//evil.example.com",
+            "not a url",
+            "",
+        ],
+    )
+    def test_an_unsafe_url_is_rejected(self, url):
+        with pytest.raises(ValueError, match="Unsafe acquisition URL"):
+            Acquisition.from_json({"url": url, "access": "read"})
+
+    @pytest.mark.parametrize("url", ["http://example.com/b", "https://example.com/b"])
+    def test_an_http_url_is_accepted(self, url):
+        assert Acquisition.from_json({"url": url, "access": "read"}).url == url
+
+    def test_from_json_safe_drops_an_unsafe_row(self):
+        # The render path uses from_json_safe, so a poisoned row already in the
+        # database silently yields nothing rather than reaching the template.
+        assert Acquisition.from_json_safe({"url": "javascript:alert(1)", "access": "read"}) is None
+
+    @pytest.mark.parametrize(
+        ("url", "expected"),
+        [
+            ("https://example.com", True),
+            ("http://example.com/x", True),
+            ("javascript:alert(1)", False),
+            ("//example.com", False),
+            ("", False),
+            (None, False),
+            (["https://example.com"], False),
+            (5, False),
+        ],
+    )
+    def test_is_safe_provider_url(self, url, expected):
+        assert book_providers.is_safe_provider_url(url) is expected

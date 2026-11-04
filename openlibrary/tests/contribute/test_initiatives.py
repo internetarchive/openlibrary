@@ -15,16 +15,26 @@ class FakeEdition(dict):
         self.type = web.storage(key=type_key)
 
 
+class FakeWork(dict):
+    def __init__(self, key, **fields):
+        super().__init__(**fields)
+        self.key = key
+        self.type = web.storage(key="/type/work")
+
+
+WORK = FakeWork("/works/OL1W", literary_forms=[{"key": "/tags/OL1T"}])
+
+
 class FakeSite:
-    def __init__(self, editions=(), store=None):
-        self.editions = {e.key: e for e in editions}
+    def __init__(self, editions=(), store=None, works=(WORK,)):
+        self.editions = {e.key: e for e in editions} | {w.key: w for w in works}
         self.store = FakeStore(store or {})
 
     def get_many(self, keys):
         return [self.editions[k] for k in keys if k in self.editions]
 
 
-COMPLETE = {"covers": [1], "lccn": ["1"], "oclc_numbers": ["1"], "languages": ["eng"], "number_of_pages": 300, "publishers": ["P"]}
+COMPLETE = {"covers": [1], "lccn": ["1"], "oclc_numbers": ["1"], "languages": ["eng"], "number_of_pages": 300, "publishers": ["P"], "works": [WORK]}
 
 
 def make_initiative(picks, calls=None):
@@ -67,8 +77,30 @@ def test_gaps_list_open_fields_and_set_aside_ones_nobody_could_find():
     )
     gaps = initiatives.build_gaps(make_initiative([]), site)
     assert gaps == [["/books/OL1M", 9, ["publishers"], ["lccn"]], ["/books/OL2M", 8, [], []]]
-    # 2 editions x 6 fields = 12 details, 1 still open: 11/12 filled, rounded down.
-    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 1, "percent": 91}
+    # 2 editions x 4 offered fields = 8 details, 1 still open: 7/8 filled, rounded down. The unfound LCCN isn't offered, so it doesn't count.
+    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
+
+
+def test_a_work_level_gap_is_read_from_the_edition_s_work():
+    bare = FakeWork("/works/OL2W")
+    site = FakeSite(
+        editions=[FakeEdition("/books/OL1M", **(COMPLETE | {"works": [bare]}))],
+        works=(bare,),
+        store={"contribute-initiative-test": {"editions": [["/books/OL1M", 9]]}},
+    )
+    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, ["literary_forms"], []]]
+
+
+def test_progress_counts_only_the_fields_the_viewer_sees():
+    gaps = [["/books/OL1M", 9, ["literary_forms"], []], ["/books/OL2M", 8, ["publishers"], ["literary_forms"]]]
+    public = initiatives.progress(gaps, ("publishers", "covers"))
+    assert public == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 75}
+    assert initiatives.progress(gaps, initiatives.tasks.visible_fields(True))["open"] == 2
+
+
+def test_progress_counts_only_the_fields_tasks_offers():
+    gaps = [["/books/OL1M", 9, ["lccn", "oclc_numbers"], []], ["/books/OL2M", 8, ["covers"], ["oclc_numbers"]]]
+    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
 
 
 def test_every_task_field_has_a_not_found_threshold():
@@ -83,6 +115,8 @@ def test_fields_books_nearly_always_have_need_more_people_to_set_aside():
             "b": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL1M", "field": "publishers", "people": people[:3]},
             "c": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL1M", "field": "languages", "people": people[:3]},
             "d": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL2M", "field": "languages", "people": people},
+            # A mark left by a field that is no longer on offer.
+            "e": {"type": initiatives.NOT_FOUND_TYPE, "edition": "/books/OL2M", "field": "dewey_decimal_class", "people": people},
         },
     )
     assert initiatives.not_found_fields(site) == {"/books/OL1M": {"publishers"}, "/books/OL2M": {"languages"}}

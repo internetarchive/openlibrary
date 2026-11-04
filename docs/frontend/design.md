@@ -147,7 +147,7 @@ Before writing new markup or CSS, check whether an existing component already do
 | Read More | `ol-read-more` | Collapse long prose behind an expander | Only for prose. Don't hide controls or lists behind it. |
 | Markdown Editor | `ol-markdown-editor` | WYSIWYG editing of a Markdown body | For a plain text field use <textarea>; this is for Markdown bodies only. |
 | Icon | `ol-icon` | One icon from the Open Library set | Only for icons from the set; don't use it to embed arbitrary SVG. |
-| Book Cover | `ol-book-cover` | A cover at a fixed 2:3 ratio, with a title/author panel when there is no artwork and an `overlay` slot for a control | |
+| Book Cover | `ol-book-cover` | A cover in a 2:3 slot that keeps the artwork's own proportions, with a title/author panel when there is no artwork and an `overlay` slot for a control | |
 | Shelf Button | `ol-shelf-button` | Put a book on a reading-log shelf; split, icon, and outline shapes all open Shelf Actions | |
 | Shelf Actions | `ol-shelf-actions` | The per-book popover: shelves, rating, add to list, check-in | |
 
@@ -238,7 +238,8 @@ Semantic tokens reference primitives and describe purpose, not appearance.
 The radius tokens carry one extra rule, because a shape says what kind of object
 it is: **12px floats** (dialog, popover, toast, tray), **8px sits in the page**
 (card, banner, button, input, menu row), **4px is a small object in its own
-right** (badge, tag). Reach for the token whose tier matches the thing, not the
+right** (badge, tag), **2px is a printed object** (a book cover, which has an
+edge of its own). Reach for the token whose tier matches the thing, not the
 one whose number you like — a card at the overlay radius makes a search result
 and a modal the same shape, and the page loses a distinction it was using.
 

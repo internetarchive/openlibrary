@@ -19,26 +19,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger("openlibrary.catalog.add_book.load_book")
 
 
-def east_in_by_statement(rec: dict[str, Any], author: dict[str, Any]) -> bool:
-    """
-    Returns False if there is no by_statement in rec.
-    Otherwise returns whether author name uses eastern name order.
-    TODO: elaborate on what this actually means, and how it is used.
-    """
-    if "by_statement" not in rec:
-        return False
-    if "authors" not in rec:
-        return False
-    name = author["name"]
-    flipped = flip_name(name)
-    name = name.replace(".", "")
-    name = name.replace(", ", "")
-    if name == flipped.replace(".", ""):
-        # name was not flipped
-        return False
-    return rec["by_statement"].find(name) != -1
-
-
 class AuthorImportDict(TypedDict):
     """
     Keys expected in the author import dict.
@@ -214,14 +194,13 @@ def find_entity(author: AuthorImportDict) -> Author | None:
     return things[0] if things else None
 
 
-def author_import_record_to_author(author_import_record_dict: dict, eastern=False) -> Author | dict[str, Any]:
+def author_import_record_to_author(author_import_record_dict: dict) -> Author | dict[str, Any]:
     """
     Converts an import style new-author dictionary into an
     Open Library existing author, or new author candidate, representation.
     Does NOT create new authors.
 
     :param dict author: Author import record {"name": "Some One"}
-    :param bool eastern: Eastern name order
     :return: Open Library style Author representation, either existing Author with "key",
              or new candidate dict without "key".
     """
@@ -237,7 +216,7 @@ def author_import_record_to_author(author_import_record_dict: dict, eastern=Fals
             exc_info=True,
         )
     author_import_record = cast(AuthorImportDict, author_import_record_dict)
-    if author_import_record.get("entity_type") != "org" and not eastern:
+    if author_import_record.get("entity_type") != "org":
         do_flip(author_import_record)
     if existing := find_entity(author_import_record):
         assert existing.type.key == "/type/author"
@@ -283,8 +262,7 @@ def import_record_to_edition(rec: dict[str, Any]) -> dict[str, Any]:
             if v and v[0]:
                 book["authors"] = []
                 for author in v:
-                    east = east_in_by_statement(rec, author)
-                    book["authors"].append(author_import_record_to_author(author, eastern=east))
+                    book["authors"].append(author_import_record_to_author(author))
             continue
 
         if k in ("languages", "translated_from"):

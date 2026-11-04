@@ -173,14 +173,10 @@ $(function () {
         import('./signup.js').then(module => module.initLoginForm());
     }
 
-    // conditionally load clamping components
-    const clampers = document.querySelectorAll('.clamp');
-    if (clampers.length) {
-        import('./clampers.js').then(module => {
-            if (clampers.length) {
-                module.initClampers(clampers);
-            }
-        });
+    // Book page subject rows collapse to one line with a "+N" chip
+    const subjectLists = document.querySelectorAll('.subject-row__chips');
+    if (subjectLists.length) {
+        import('./subject-rows.js').then(module => module.initSubjectRows(subjectLists));
     }
 
     // conditionally load file dropzone for CSV import (Goodreads, etc.)
@@ -211,6 +207,11 @@ $(function () {
     const importsChart = document.getElementById('books-added-per-day');
     if (importsChart) {
         import('./imports_chart').then(module => module.init(importsChart));
+    }
+
+    const tasksStats = document.querySelector('.tasks-stats');
+    if (tasksStats) {
+        import('./tasks_stats').then(module => module.init(tasksStats));
     }
 
     const readingLogCharts = document.querySelector('.readinglog-charts');
@@ -588,6 +589,12 @@ $(function () {
     const backLinks = document.querySelectorAll('.go-back-link');
     if (backLinks.length) {
         import('./go-back-links').then(module => module.initGoBackLinks(backLinks));
+    }
+
+    // "Contact Us" mailto links: pre-fill page URL and browser details
+    const contactLinks = document.querySelectorAll('a[data-contact-link]');
+    if (contactLinks.length) {
+        import('./contact-link').then(module => module.initContactLinks(contactLinks));
     }
 
     // Lazy-load book page lists section
