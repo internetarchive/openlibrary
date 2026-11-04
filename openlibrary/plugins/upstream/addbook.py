@@ -812,6 +812,7 @@ class book_edit(delegate.page):
         v = i.v and safeint(i.v, None)
 
         if not web.ctx.site.can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
@@ -878,6 +879,7 @@ class work_edit(delegate.page):
         v = i.v and safeint(i.v, None)
 
         if not web.ctx.site.can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
@@ -926,6 +928,7 @@ class author_edit(delegate.page):
 
     def GET(self, key):
         if not web.ctx.site.can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
