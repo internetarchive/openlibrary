@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 from openlibrary.core.helpers import datestr
 from openlibrary.core.shell._util import _safe
+from openlibrary.core.shell.login_dialog import LoginDialogContext, build_login_dialog_context
 from openlibrary.core.shell.nav import BROWSE_FEATURED_COUNT, NavLink, browse_links
 from openlibrary.core.shell.search_modal import SearchModalContext, build_search_modal_i18n
 from openlibrary.utils.request_context import get_request_lang
@@ -87,6 +88,8 @@ class HeaderContext:
     browse_links: list[NavLink]
     browse_featured_count: int
     search_modal: SearchModalContext
+    # For shell/login_dialog.html.jinja; None when signed in, so nothing renders.
+    login_dialog: LoginDialogContext | None = None
 
     @classmethod
     def build(cls, *, req: ShellRequest, user: ShellUser | None) -> HeaderContext:
@@ -105,4 +108,5 @@ class HeaderContext:
             browse_links=links,
             browse_featured_count=BROWSE_FEATURED_COUNT,
             search_modal=build_search_modal_i18n(),
+            login_dialog=None if user else build_login_dialog_context(req),
         )

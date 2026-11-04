@@ -1216,6 +1216,20 @@ export class SearchModal extends LitElement {
         this._shelfStateWanted = false;
         this._onBookStateChange = this._onBookStateChange.bind(this);
         this._onBookCheckIn = this._onBookCheckIn.bind(this);
+        this._onLoginSuccess = this._onLoginSuccess.bind(this);
+    }
+
+    /**
+     * A login through the login dialog, from one of these rows or anywhere on
+     * the page: the rows now have a reader, and their state is wanted at once
+     * (the button that opened the dialog is waiting on it). book-state.js
+     * can't reach in here, so the modal keeps its own copy of the key.
+     */
+    _onLoginSuccess(e) {
+        this._userKey = e.detail?.userKey || document.body.dataset.userKey || '';
+        if (!this._userKey) return;
+        this._shelfStateWanted = false;
+        this._onShelfIntent();
     }
 
     connectedCallback() {
@@ -1232,12 +1246,14 @@ export class SearchModal extends LitElement {
         // At the document, so a change made anywhere on the page reaches the same map.
         document.addEventListener('ol-book-state-change', this._onBookStateChange);
         document.addEventListener('ol-book-check-in', this._onBookCheckIn);
+        document.addEventListener('ol-login-success', this._onLoginSuccess);
     }
 
     disconnectedCallback() {
         window.removeEventListener('pageshow', this._onPageShow);
         document.removeEventListener('ol-book-state-change', this._onBookStateChange);
         document.removeEventListener('ol-book-check-in', this._onBookCheckIn);
+        document.removeEventListener('ol-login-success', this._onLoginSuccess);
         this._clearOutcomeTimers();
         this._clearStaleTimer();
         super.disconnectedCallback();

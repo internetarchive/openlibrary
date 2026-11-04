@@ -402,6 +402,12 @@ def _login_error_response(redirect: str, action: str, username: str, message: st
     return response
 
 
+def _wants_json(request: Request) -> bool:
+    """A form login that asks for JSON back: the in-page login dialog. Browsers
+    submitting the login page ask for text/html, API clients for */*."""
+    return "application/json" in (request.headers.get("accept") or "").lower()
+
+
 @router.post("/account/login")
 async def login(
     request: Request,
@@ -414,7 +420,8 @@ async def login(
     1. Validates email/password against Internet Archive
     2. Creates/links OpenLibrary account if needed
     3. Sets session cookie and other cookies
-    4. Redirects to target page
+    4. Redirects to target page, or answers in JSON when the form was posted
+       with `Accept: application/json` (the login dialog stays on its page)
 
     This reuses all existing authentication logic from the legacy system.
     """
@@ -423,6 +430,8 @@ async def login(
     # are required for password-less login.
     if (request.headers.get("content-type") or "").lower().startswith("application/json"):
         return await _login_json(request)
+
+    wants_json = _wants_json(request)
 
     # web.py's web.input() merges query string params with the posted form
     # (the public openlibrary/api.py client logs in via query string).
@@ -449,11 +458,15 @@ async def login(
     # Authentication errors go back to the login form with a message,
     # mirroring web.py's render_error
     if error := audit.get("error"):
+        if wants_json:
+            return _json_login_error(error)
         return _login_error_response(redirect, action, username, get_login_error(error))
 
     # Extract user info from audit result
     ol_username = audit.get("ol_username")
     if not ol_username:
+        if wants_json:
+            return _json_login_error("undefined_error")
         return _login_error_response(redirect, action, username, get_login_error("undefined_error"))
 
     # web.py lands on the account books page whenever the redirect is missing,
@@ -465,11 +478,16 @@ async def login(
         is_valid_redirect = False
         redirect_url = "/account/books"
 
-    # Create response with redirect
-    response = Response(
-        status_code=status.HTTP_303_SEE_OTHER,
-        headers={"Location": redirect_url},
-    )
+    response: Response
+    if wants_json:
+        # The dialog stays on its page, so it gets the reader's key to hydrate
+        # with rather than a redirect to follow.
+        response = JSONResponse({"success": True, "user_key": f"/people/{ol_username}", "redirect": redirect_url})
+    else:
+        response = Response(
+            status_code=status.HTTP_303_SEE_OTHER,
+            headers={"Location": redirect_url},
+        )
 
     if is_valid_redirect:
         response.delete_cookie("pending_action")

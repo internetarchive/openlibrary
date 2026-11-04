@@ -6,6 +6,7 @@
 
 import { trackEvent } from '../../../plugins/openlibrary/js/ol.analytics.js';
 import { queueAction, buildPartialsUrl } from '../../../plugins/openlibrary/js/utils.js';
+import { olLogin } from '../login-dialog.js';
 
 export const SHELF = Object.freeze({
     WANT_TO_READ: 1,
@@ -198,4 +199,22 @@ export function redirectToLogin({ action, title, type = 'book', resumeUrl } = {}
     const target = resumeTarget(resumeUrl);
     if (action && title) queueAction(action, title, target, type);
     window.location.href = `/account/login?redirect=${encodeURIComponent(target)}`;
+}
+
+/**
+ * Ask a signed-out visitor to log in without leaving the page: the login
+ * dialog, with `message` saying why. The intent is queued first, as for the
+ * redirect, so a visitor who goes on to sign up still finds it waiting on My
+ * Books. Without the dialog (the components bundle did not load) it falls back
+ * to the login page.
+ * @returns {Promise<boolean>} true once the visitor is logged in.
+ */
+export async function requestLogin({ action, title, type = 'book', resumeUrl, message, heading } = {}) {
+    if (!customElements.get('ol-login-dialog')) {
+        redirectToLogin({ action, title, type, resumeUrl });
+        return false;
+    }
+    const target = resumeTarget(resumeUrl);
+    if (action && title) queueAction(action, title, target, type);
+    return Boolean(await olLogin({ message, heading, redirect: target }));
 }

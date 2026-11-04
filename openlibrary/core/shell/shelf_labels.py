@@ -22,6 +22,8 @@ def build_shelf_button_labels() -> dict[str, Any]:
         "shelfToggle": _("%(shelf)s: %(title)s"),
         "shelfMenu": _("More options for %(title)s"),
         "addToListFor": _("Add %(title)s to a list"),
+        "loginToShelve": _("Log in or sign up to add books to your reading log."),
+        "loginToList": _("Log in or sign up to add books to a list."),
         # OlShelfActions.js
         "actionsFor": _("Actions for %(title)s"),
         "readingLog": _("Reading log"),

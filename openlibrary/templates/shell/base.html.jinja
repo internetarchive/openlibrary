@@ -19,6 +19,7 @@
         {% if layout.show_ol_shell %}
             {% include "shell/alert.html.jinja" %}
             {% include "shell/header.html.jinja" %}
+            {% include "shell/login_dialog.html.jinja" %}
             <input type="hidden"
                    name="shelf-button-i18n-strings"
                    value="{{ layout.shelf_button_labels_json }}">
