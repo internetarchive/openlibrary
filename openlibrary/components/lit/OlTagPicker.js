@@ -30,11 +30,11 @@ function fetchTagsOfType(tagType) {
     if (!_tagCache.has(tagType)) {
         const url = `/query.json?type=/type/tag&tag_type=${encodeURIComponent(tagType)}&name=&key=&limit=1000`;
         const promise = fetch(url)
-            .then((r) => {
+            .then(r => {
                 if (!r.ok) throw new Error(`query.json returned ${r.status}`);
                 return r.json();
             })
-            .then((rows) => (Array.isArray(rows) ? rows : []).map((t) => ({ key: t.key, name: t.name })))
+            .then(rows => (Array.isArray(rows) ? rows : []).map(t => ({ key: t.key, name: t.name })))
             .catch(() => {
                 // Don't cache a failure: evict so a later open retries rather than
                 // serving an empty list for the page's whole lifetime.
@@ -57,7 +57,7 @@ function humanizeType(tagType) {
     return (tagType || '')
         .split(/[_\s]+/)
         .filter(Boolean)
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
         .join(' ');
 }
 
@@ -140,7 +140,7 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
         loading: { type: Boolean, reflect: true },
         _query: { state: true },
         _activeIndex: { state: true },
-        _resolvedOptions: { state: true },
+        _resolvedOptions: { state: true }
     };
 
     static styles = css`
@@ -202,7 +202,9 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
         /* iOS zooms in on focus when the input font is < 16px; bump it up on
            mobile to suppress that. */
         @media (max-width: 767px) {
-            .filter-input { font-size: var(--font-size-body-large); }
+            .filter-input {
+                font-size: var(--font-size-body-large);
+            }
         }
 
         .filter-icon {
@@ -272,7 +274,9 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
         /* ── Loading state ───────────────────────────────────────── */
 
         @keyframes ol-tp-spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .loading-row {
@@ -296,7 +300,10 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .loading-spinner { animation: none; opacity: 0.5; }
+            .loading-spinner {
+                animation: none;
+                opacity: 0.5;
+            }
         }
     `;
 
@@ -377,16 +384,14 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
 
     /** Display name for a key, falling back to the key itself until loaded. */
     _nameOf(key) {
-        return this._allOptions.find((o) => o.key === key)?.name ?? key;
+        return this._allOptions.find(o => o.key === key)?.name ?? key;
     }
 
     /** Options not yet selected, filtered by the (case-insensitive) query. */
     get _filteredOptions() {
         const selected = new Set(this._selectedKeys);
         const query = this._query.trim().toLowerCase();
-        return this._allOptions.filter(
-            (o) => !selected.has(o.key) && (query === '' || (o.name || '').toLowerCase().includes(query)),
-        );
+        return this._allOptions.filter(o => !selected.has(o.key) && (query === '' || (o.name || '').toLowerCase().includes(query)));
     }
 
     // ── Data ─────────────────────────────────────────────────────
@@ -403,7 +408,7 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
         const type = this.tagType;
         this._fetchedType = type;
         this.loading = true;
-        fetchTagsOfType(type).then((rows) => {
+        fetchTagsOfType(type).then(rows => {
             this._resolvedOptions = rows;
             this.loading = false;
             // fetchTagsOfType evicts the cache on failure; if it's gone, the fetch
@@ -415,9 +420,7 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
     // ── Trigger ──────────────────────────────────────────────────
 
     _hasConsumerTrigger() {
-        return Array.from(this.children).some(
-            (el) => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
-        );
+        return Array.from(this.children).some(el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger');
     }
 
     /** Default trigger text: `label`, else "+ Add <Type>". */
@@ -450,10 +453,7 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
         const ariaLabel = this.getAttribute('aria-label') || this.label || this._triggerLabel;
         return html`
             ${this._renderChips()}
-            <ol-popover
-                aria-label=${ifDefined(ariaLabel || undefined)}
-                @ol-popover-open=${this._onPopoverOpen}
-            >
+            <ol-popover aria-label=${ifDefined(ariaLabel || undefined)} @ol-popover-open=${this._onPopoverOpen}>
                 <slot name="trigger" slot="trigger"></slot>
                 ${this._renderPanel(ariaLabel)}
             </ol-popover>
@@ -466,18 +466,14 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
         return html`
             <ol-chip-group class="chips" gap="small" @ol-chip-select=${this._onChipSelect}>
                 ${repeat(
-        keys,
-        (key) => key,
-        (key) => html`
-                        <ol-chip
-                            variant=${this.chipVariant}
-                            size="small"
-                            selected
-                            accessible-label="Remove ${this._nameOf(key)}"
-                            data-key=${key}
-                        >${this._nameOf(key)}</ol-chip>
-                    `,
-    )}
+                    keys,
+                    key => key,
+                    key => html`
+                        <ol-chip variant=${this.chipVariant} size="small" selected accessible-label="Remove ${this._nameOf(key)}" data-key=${key}
+                            >${this._nameOf(key)}</ol-chip
+                        >
+                    `
+                )}
             </ol-chip-group>
         `;
     }
@@ -485,10 +481,7 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
     _renderPanel(ariaLabel) {
         const options = this._filteredOptions;
         const query = this._query.trim();
-        const activeId =
-            this._activeIndex >= 0 && this._activeIndex < options.length
-                ? `${this._listboxId}-opt-${this._activeIndex}`
-                : undefined;
+        const activeId = this._activeIndex >= 0 && this._activeIndex < options.length ? `${this._listboxId}-opt-${this._activeIndex}` : undefined;
         // A listbox must own at least one option (axe: aria-required-children),
         // so when nothing matches we collapse the combobox and show the
         // empty-state as a live region instead of an empty listbox.
@@ -513,36 +506,38 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
                         @keydown=${this._onComboKeydown}
                     />
                 </div>
-                ${this.loading
-        ? html`
-                    <div class="loading-row" role="status" aria-live="polite">
-                        <span class="loading-spinner" aria-hidden="true"></span>
-                        <span>${this.loadingLabel}</span>
-                    </div>`
-        : hasOptions
-            ? html`
-                    <ul class="listbox" role="listbox" id=${this._listboxId} aria-label=${ifDefined(ariaLabel || undefined)}>
-                        ${repeat(
-        options,
-        (o) => o.key,
-        (o, i) => html`
-                                    <li
-                                        class="option ${i === this._activeIndex ? 'option--active' : ''}"
-                                        role="option"
-                                        id="${this._listboxId}-opt-${i}"
-                                        aria-selected=${i === this._activeIndex}
-                                        @mousedown=${this._onOptionMousedown}
-                                        @mouseenter=${() => { this._activeIndex = i; }}
-                                        @click=${() => this._selectKey(o.key)}
-                                    >
-                                        <span class="option-label">${o.name}</span>
-                                    </li>
-                                `,
-    )}
-                    </ul>`
-            : query
-                ? html`<div class="empty-state" role="status" aria-live="polite">${this.noMatchesLabel}</div>`
-                : nothing}
+                ${
+                    this.loading
+                        ? html` <div class="loading-row" role="status" aria-live="polite">
+                              <span class="loading-spinner" aria-hidden="true"></span>
+                              <span>${this.loadingLabel}</span>
+                          </div>`
+                        : hasOptions
+                          ? html` <ul class="listbox" role="listbox" id=${this._listboxId} aria-label=${ifDefined(ariaLabel || undefined)}>
+                                ${repeat(
+                                    options,
+                                    o => o.key,
+                                    (o, i) => html`
+                                        <li
+                                            class="option ${i === this._activeIndex ? 'option--active' : ''}"
+                                            role="option"
+                                            id="${this._listboxId}-opt-${i}"
+                                            aria-selected=${i === this._activeIndex}
+                                            @mousedown=${this._onOptionMousedown}
+                                            @mouseenter=${() => {
+                                                this._activeIndex = i;
+                                            }}
+                                            @click=${() => this._selectKey(o.key)}
+                                        >
+                                            <span class="option-label">${o.name}</span>
+                                        </li>
+                                    `
+                                )}
+                            </ul>`
+                          : query
+                            ? html`<div class="empty-state" role="status" aria-live="polite">${this.noMatchesLabel}</div>`
+                            : nothing
+                }
             </div>
         `;
     }
@@ -597,7 +592,7 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
             count: this._filteredOptions.length,
             current: this._activeIndex,
             orientation: 'vertical',
-            wrap: true,
+            wrap: true
         });
         if (next !== -1) {
             e.preventDefault();
@@ -634,7 +629,7 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
 
     _removeKey(key) {
         if (!this._selectedKeys.includes(key)) return;
-        const next = this._selectedKeys.filter((k) => k !== key);
+        const next = this._selectedKeys.filter(k => k !== key);
         this._commit(next, null, key);
     }
 
@@ -645,8 +640,8 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
             new CustomEvent('ol-tag-picker-change', {
                 bubbles: true,
                 composed: true,
-                detail: { value: nextKeys, added, removed },
-            }),
+                detail: { value: nextKeys, added, removed }
+            })
         );
     }
 

@@ -12,7 +12,7 @@ const OPTIONS = [
     { key: '/tags/OL120T', name: 'Almanac' },
     { key: '/tags/OL134T', name: 'Manga' },
     { key: '/tags/OL136T', name: 'Novel' },
-    { key: '/tags/OL130T', name: 'Essays' },
+    { key: '/tags/OL130T', name: 'Essays' }
 ];
 
 const MARKUP = `
@@ -22,7 +22,7 @@ const MARKUP = `
 `;
 
 /** The OlPopover this component composes around; it owns the open state. */
-const innerPopover = (el) => el.shadowRoot.querySelector('ol-popover');
+const innerPopover = el => el.shadowRoot.querySelector('ol-popover');
 
 async function mountPicker(props = {}) {
     const el = await mount(MARKUP);
@@ -41,7 +41,7 @@ beforeEach(() => setupComponentEnv());
 afterEach(cleanup);
 
 describe('OlTagPicker a11y', () => {
-    test('closed: no violations, selections render as chips', async() => {
+    test('closed: no violations, selections render as chips', async () => {
         const el = await mountPicker({ value: ['/tags/OL120T', '/tags/OL134T'] });
 
         const chips = [...el.shadowRoot.querySelectorAll('ol-chip')];
@@ -49,7 +49,7 @@ describe('OlTagPicker a11y', () => {
         expect(await checkA11y()).toHaveNoViolations();
     });
 
-    test('open: combobox + listbox are wired and labelled, no violations', async() => {
+    test('open: combobox + listbox are wired and labelled, no violations', async () => {
         const el = await mountOpened();
 
         const combo = el.shadowRoot.querySelector('[role="combobox"]');
@@ -64,10 +64,10 @@ describe('OlTagPicker a11y', () => {
         expect(await checkA11y()).toHaveNoViolations();
     });
 
-    test('open with a selection: options exclude it and chips carry a remove name', async() => {
+    test('open with a selection: options exclude it and chips carry a remove name', async () => {
         const el = await mountOpened({ value: ['/tags/OL134T'] });
 
-        const optionNames = [...el.shadowRoot.querySelectorAll('[role="option"]')].map((o) => o.textContent.trim());
+        const optionNames = [...el.shadowRoot.querySelectorAll('[role="option"]')].map(o => o.textContent.trim());
         expect(optionNames).not.toContain('Manga');
 
         const chip = el.shadowRoot.querySelector('ol-chip');
@@ -77,7 +77,7 @@ describe('OlTagPicker a11y', () => {
         expect(await checkA11y()).toHaveNoViolations();
     });
 
-    test('open: an active option is referenced by aria-activedescendant and marked selected', async() => {
+    test('open: an active option is referenced by aria-activedescendant and marked selected', async () => {
         const el = await mountOpened();
         const combo = el.shadowRoot.querySelector('[role="combobox"]');
         combo.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
@@ -92,7 +92,7 @@ describe('OlTagPicker a11y', () => {
         expect(await checkA11y()).toHaveNoViolations();
     });
 
-    test('open with no matches: empty state keeps the listbox valid, no violations', async() => {
+    test('open with no matches: empty state keeps the listbox valid, no violations', async () => {
         const el = await mountOpened();
         const combo = el.shadowRoot.querySelector('[role="combobox"]');
         combo.value = 'nothing-matches-this';
