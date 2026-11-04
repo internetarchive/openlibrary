@@ -42,6 +42,7 @@ SUPPORTED_WORK_TAG_FIELDS = (
     "content_warnings",
     "content_formats",
     "literary_forms",
+    "awards",
 )
 
 
