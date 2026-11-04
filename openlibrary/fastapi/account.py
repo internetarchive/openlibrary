@@ -39,6 +39,7 @@ from openlibrary.fastapi.shared.utils import set_flash_cookie
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import account as legacy_account
 from openlibrary.plugins.upstream.account import get_login_error
+from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils.request_context import site
 
 logger = logging.getLogger("openlibrary.fastapi.account")
@@ -70,11 +71,11 @@ class AnonymizeResponse(BaseModel):
 
 
 def _safe_redirect(url: str, default: str = "/") -> str:
-    """Return url only if it is a same-origin path; fall back to default."""
-    parsed = urlparse(url)
-    if parsed.scheme or parsed.netloc or not url.startswith("/") or url.startswith(("//", "/\\")):
-        return default
-    return url
+    """Return url only if it is a same-origin path; fall back to default.
+
+    Shares ``is_safe_redirect`` with web.py, so both servers accept the same redirects.
+    """
+    return url if is_safe_redirect(url) else default
 
 
 def _cookie_secure() -> bool:
