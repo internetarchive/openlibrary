@@ -1429,7 +1429,7 @@ class account_verify_human(delegate.page):
     """Endpoint for human verification challenge.
 
     GET renders the challenge page; POST sets a signed cookie and returns JSON.
-    Retire once production routes /verify_human to FastAPI (``openlibrary/fastapi/account.py``).
+    TODO: Retire once production routes /verify_human to FastAPI (``openlibrary/fastapi/account.py``).
     """
 
     path = "/verify_human"
