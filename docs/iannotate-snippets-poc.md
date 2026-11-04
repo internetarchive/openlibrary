@@ -40,7 +40,7 @@ includes it (i.e. after that PR merges).
 
 ## Topology
 
-`web_nginx` (serving openlibrary.org) runs on **ol-www0**; iannotate runs on **ol-home0** —
+`web_nginx` (serving openlibrary.org) runs on **ol-www1**; iannotate runs on **ol-home0** —
 different hosts. So nginx reaches iannotate cross-host via a published port
 (`http://ol-home0.us.archive.org:8000`), exactly like the affiliate-server — not via docker
 service-name DNS.
@@ -69,10 +69,10 @@ Verify port `8000` is free on ol-home0 first (the affiliate-server uses `31337`)
 change the published port in `docker/iannotate/compose.yaml` and the `proxy_pass` port in
 `docker/web_nginx.conf` to match.
 
-### 2. Ship the nginx routing to ol-www0
-`web_nginx.conf` is mounted into the `web_nginx` container (profile `ol-www0`). Patch-deploy it:
+### 2. Ship the nginx routing to ol-www1
+`web_nginx.conf` is mounted into the `web_nginx` container (profile `ol-www1`). Patch-deploy it:
 ```bash
-SERVERS=ol-www0 SERVICE=web_nginx ./scripts/deployment/patchdeploy.sh <PR_NUMBER>
+SERVERS=ol-www1 SERVICE=web_nginx ./scripts/deployment/patchdeploy.sh <PR_NUMBER>
 ```
 `patchdeploy.sh` validates `nginx -t` and reloads. (A normal weekly deploy also picks it up.)
 
@@ -98,8 +98,8 @@ curl -i 'https://openlibrary.org/api/snippets' -H 'Origin: https://evil.example'
 ```bash
 # on ol-home0
 docker compose -f docker/iannotate/compose.yaml down          # add -v to drop the SQLite volume
-# revert the nginx change on ol-www0 (patchdeploy supports un-applying)
-SERVERS=ol-www0 SERVICE=web_nginx APPLY_OPTIONS='-R' ./scripts/deployment/patchdeploy.sh <PR_NUMBER>
+# revert the nginx change on ol-www1 (patchdeploy supports un-applying)
+SERVERS=ol-www1 SERVICE=web_nginx APPLY_OPTIONS='-R' ./scripts/deployment/patchdeploy.sh <PR_NUMBER>
 ```
 
 ## Caveats (POC-grade on purpose)
