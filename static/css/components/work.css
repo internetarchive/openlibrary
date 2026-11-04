@@ -169,19 +169,93 @@ div.editionAbout p.featured-count {
   vertical-align: middle;
 }
 
-.clamp {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
+/* Subjects, People, Places, Times: each label over a full-width line of chips on phones,
+   labels in their own column beside the chips from tablet up. */
+.subject-row {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  margin: 0;
+  padding-block: var(--spacing-stack-sm);
+}
+
+/* Divide the categories only when there's more than one. */
+.subject-row:not(:last-child) {
+  border-bottom: 1px solid var(--color-border-extra-subtle);
+}
+
+.subject-row__label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+}
+
+@media (min-width: 768px) {
+  /* --width-breakpoint-tablet */
+  .subjects-content {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: var(--spacing-inline-xl);
+  }
+
+  .subject-row {
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: start;
+  }
+
+  /* Centred on the first line of chips, however many lines the row grows to. */
+  .subject-row__label {
+    min-height: var(--control-height-small);
+  }
+}
+
+.subject-row__label h3 {
+  margin: 0;
+}
+
+/* The librarian pencil shows on hover or focus where there's a pointer; touch keeps it visible. */
+@media (hover: hover) and (pointer: fine) {
+  .subject-row .edit-subject-btn {
+    opacity: 0;
+    transition: opacity var(--duration-fast) var(--ease-enter);
+  }
+
+  .subject-row:hover .edit-subject-btn,
+  .subject-row .edit-subject-btn:focus-visible {
+    opacity: 1;
+  }
+}
+
+/* --subject-row-lines: how many lines of chips show before the "+N" chip (read by subject-rows.js). */
+.subject-row__chips {
+  --subject-row-lines: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-sm);
+}
+
+@media (min-width: 768px) {
+  /* --width-breakpoint-tablet: the chips get the row's width, so one line holds plenty */
+  .subject-row__chips {
+    --subject-row-lines: 1;
+  }
+}
+
+/* Clamped to those lines until subject-rows.js has measured them, so the page doesn't jump. */
+.subject-row__chips:not(
+  .subject-row__chips--fitted,
+  .subject-row__chips--expanded
+) {
+  max-height: calc(
+    var(--subject-row-lines) * var(--control-height-small) +
+      (var(--subject-row-lines) - 1) * var(--spacing-inline-sm)
+  );
   overflow: hidden;
 }
 
-.clamp:hover {
-  cursor: pointer;
-}
-
-.clamp::before {
-  content: attr(data-before);
+/* ol-chip's :host display beats the UA's [hidden] rule. */
+.subject-row__chips > [hidden] {
+  display: none;
 }
 
 .section h6 {
