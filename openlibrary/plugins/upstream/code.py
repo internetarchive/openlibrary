@@ -98,8 +98,10 @@ class view(core.view):
 
     def GET(self, path):
         if path.startswith("/authors/"):
-            i = web.input(page=None, q="", mode="")
+            i = web.input(page=None, q="", mode="", rows=None)
             page_num = safeint(i.page, 1)
+            # The template honors ?rows= (default 20), so the last page must too
+            rows = max(1, safeint(i.rows, 20))
             if page_num > 1 and (author := web.ctx.site.get(path)) and author.type.key == "/type/author":
                 from openlibrary.plugins.worksearch.code import works_by_author
 
@@ -112,7 +114,7 @@ class view(core.view):
                     request_label="AUTHOR_BOOKS_PAGE_COUNT",
                 ).num_found
                 # num_found is None when Solr errors; render the page as before rather than 500
-                if num_found is not None and page_num > max(1, -(-num_found // 20)):
+                if num_found is not None and page_num > max(1, -(-num_found // rows)):
                     web.ctx.status = "404 Not Found"
 
         # Everything else goes through core.view unchanged, without the
