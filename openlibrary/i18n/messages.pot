@@ -9895,3 +9895,7 @@ msgstr ""
 msgid "The charts couldn't load. Reload the page to try again."
 msgstr ""
 
+#: openlibrary/core/edits.py
+msgid "Only super librarians and admins can modify 'What work is this an edition of?'"
+msgstr ""
+
