@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
+from unittest.mock import Mock
 
 import pytest
 import web
@@ -234,6 +235,27 @@ def test_strip_accents():
     assert f("Des idées napoléoniennes") == "Des idees napoleoniennes"
     # It only modifies Unicode Nonspacing Mark characters:
     assert f("Bokmål : Standard Østnorsk") == "Bokmal : Standard Østnorsk"
+
+
+class TestConvertIsoToMarcCache:
+    @pytest.fixture(autouse=True)
+    def language_catalog(self, monkeypatch):
+        loader = Mock(
+            return_value={
+                "eng": web.storage(code="eng", identifiers={"iso_639_1": ["en"]}),
+                "fre": web.storage(code="fre", identifiers={"iso_639_1": ["fr"]}),
+            }
+        )
+        monkeypatch.setattr(utils, "get_languages", loader)
+        utils.convert_iso_to_marc.cache_clear()
+        yield loader
+        utils.convert_iso_to_marc.cache_clear()
+
+    def test_unknown_languages_do_not_grow_cache_without_limit(self):
+        for index in range(1024):
+            assert utils.convert_iso_to_marc(f"unsupported-{index}") is None
+
+        assert utils.convert_iso_to_marc.cache_info().currsize <= 256
 
 
 def test_get_abbrev_from_full_lang_name(

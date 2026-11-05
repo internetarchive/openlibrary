@@ -96,6 +96,21 @@ class Test_ungettext:
         assert i18n.ungettext("one book", "%(n)d books", 2, n=2) == "2 libres"
 
 
+class Test_load_translations:
+    @pytest.fixture(autouse=True)
+    def isolated_translations(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(i18n, "root", str(tmp_path))
+        i18n.load_translations.cache_clear()
+        yield
+        i18n.load_translations.cache_clear()
+
+    def test_missing_locales_do_not_grow_cache_without_limit(self):
+        for index in range(1024):
+            assert i18n.load_translations(f"unsupported-{index}") is None
+
+        assert i18n.load_translations.cache_info().currsize <= 256
+
+
 class Test_pot_width:
     """``messages.pot`` is written with ``width=POT_WIDTH`` so Babel never wraps the
     ``#:`` location comments onto multiple lines, which is what caused spurious merge
