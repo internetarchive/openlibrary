@@ -64,6 +64,7 @@ async def test_anonymize_test_mode_awaits_all_sql_models(monkeypatch):
         "ratings": (model.Ratings, "update_username", 3),
         "observations": (model.Observations, "update_username", 4),
         "bookshelves": (model.Bookshelves, "update_username", 5),
+        "read_history": (model.ReadHistory, "update_username", 8),
         "edits": (model.CommunityEditsQueue, "update_submitter_name", 6),
         "bestbooks": (model.Bestbook, "update_username", 7),
     }
@@ -82,11 +83,12 @@ async def test_anonymize_test_mode_awaits_all_sql_models(monkeypatch):
         "ratings_count": 3,
         "observations_count": 4,
         "bookshelves_count": 5,
+        "read_history_count": 8,
         "merge_request_count": 6,
         "bestbooks_count": 7,
     }
     mocks["booknotes"].assert_awaited_once_with("testuser", _test=True)
-    for key in ("ratings", "observations", "bookshelves", "edits", "bestbooks"):
+    for key in ("ratings", "observations", "bookshelves", "read_history", "edits", "bestbooks"):
         mocks[key].assert_awaited_once_with("testuser", "anonymous-abc123", _test=True)
 
 
