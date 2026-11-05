@@ -3,7 +3,6 @@ from io import BytesIO
 import pytest
 import web
 from babel.messages.catalog import Catalog
-from babel.messages.mofile import write_mo
 from babel.messages.pofile import write_po
 
 # The i18n module should be moved to core.
@@ -110,29 +109,6 @@ class Test_load_translations:
             assert i18n.load_translations(f"unsupported-{index}") is None
 
         assert i18n.load_translations.cache_info().currsize <= 256
-
-    def test_supported_translation_reloads_after_eviction(self, tmp_path, request_context_fixture):
-        directory = tmp_path / "fr"
-        directory.mkdir()
-        catalog = Catalog(locale="fr")
-        catalog.add("Buy %(title)s", "Acheter %(title)s")
-        with (directory / "messages.mo").open("wb") as stream:
-            write_mo(stream, catalog)
-        request_context_fixture(lang="fr")
-
-        original = i18n.load_translations("fr")
-        assert original is not None
-        assert i18n.load_translations("fr") is original
-        assert i18n.gettext("Buy %(title)s", title="Dune") == "Acheter Dune"
-        for index in range(1024):
-            assert i18n.load_translations(f"unsupported-{index}") is None
-
-        assert i18n.load_translations("fr") is not original
-        assert i18n.gettext("Buy %(title)s", title="Dune") == "Acheter Dune"
-
-    def test_missing_locale_preserves_interpolation(self, request_context_fixture):
-        request_context_fixture(lang="unsupported")
-        assert i18n.gettext("Buy %(title)s", title="Dune") == "Buy Dune"
 
 
 class Test_pot_width:

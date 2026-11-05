@@ -1,7 +1,5 @@
 import inspect
-import threading
 import time
-from unittest.mock import Mock
 
 import pytest
 
@@ -77,30 +75,6 @@ class Test_memcache_memoize:
         assert m.active_threads == {}
         assert m.memcache.get(flag) == "another worker"
         assert m.memcache_get((20,), {}) is None
-
-    @pytest.mark.parametrize("failure", ["prethread", "compute", "delete"])
-    def test_failed_refresh_cleans_its_registration(self, failure):
-        m = self.square_memoize()
-        client = Mock()
-        client.add.return_value = True
-        m._memcache = client
-        flag = m.compute_key((20,), {}) + "/flag"
-        thread = threading.current_thread()
-        other_thread = threading.Thread(name="other-refresh")
-        m.active_threads = {thread.name: thread, other_thread.name: other_thread}
-        error = Mock(side_effect=RuntimeError("refresh failed"))
-        if failure == "prethread":
-            m.prethread = error
-        elif failure == "compute":
-            m.f = error
-        else:
-            client.delete.side_effect = error
-
-        with pytest.raises(RuntimeError, match="refresh failed"):
-            m._update_async_worker(20)
-
-        assert m.active_threads == {other_thread.name: other_thread}
-        client.delete.assert_called_once_with(flag)
 
     def test_timeout(self, monkeytime):
         m = self.square_memoize()

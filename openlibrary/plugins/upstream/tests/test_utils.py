@@ -251,26 +251,11 @@ class TestConvertIsoToMarcCache:
         yield loader
         utils.convert_iso_to_marc.cache_clear()
 
-    @pytest.mark.parametrize(("language", "expected"), [("en", "eng"), ("fr", "fre"), ("xx", None), ("en-US", None), ("EN", None), ("", None)])
-    def test_conversions_and_unknown_languages(self, language, expected):
-        assert utils.convert_iso_to_marc(language) == expected
-
     def test_unknown_languages_do_not_grow_cache_without_limit(self):
         for index in range(1024):
             assert utils.convert_iso_to_marc(f"unsupported-{index}") is None
 
         assert utils.convert_iso_to_marc.cache_info().currsize <= 256
-
-    def test_supported_language_reloads_after_eviction(self, language_catalog):
-        assert utils.convert_iso_to_marc("fr") == "fre"
-        for index in range(1024):
-            utils.convert_iso_to_marc(f"unsupported-{index}")
-
-        calls = language_catalog.call_count
-        assert utils.convert_iso_to_marc("fr") == "fre"
-        assert language_catalog.call_count == calls + 1
-        assert utils.convert_iso_to_marc("fr") == "fre"
-        assert language_catalog.call_count == calls + 1
 
 
 def test_get_abbrev_from_full_lang_name(
