@@ -119,6 +119,10 @@ export default {
                     if (r.status === 403) {
                         throw new Error('Merge failed, your account may be missing the /usergroup/api permission.');
                     }
+                    if (!r.ok) {
+                        // Don't report success or record the merge request when the save failed
+                        throw new Error(`Merge failed (HTTP ${r.status}): ${await r.text()}`);
+                    }
                     this.mergeOutput = await r.json();
                     if (this.mrid) {
                         await update_merge_request(this.mrid, 'approve', this.comment);
