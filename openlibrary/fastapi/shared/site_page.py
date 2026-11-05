@@ -27,7 +27,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.routing import APIRoute
 
-from openlibrary.accounts.model import check_human_cookies
+from openlibrary.accounts.model import HUMAN_CHECK_EXEMPT_PATHS, check_human_cookies
 from openlibrary.core.shell.context import render_site
 from openlibrary.core.shell.request import FLASH_COOKIE, PageMeta, ShellRequest
 from openlibrary.core.shell.user import ShellUser, load_shell_user
@@ -95,7 +95,7 @@ def _human_check_response(request: Request) -> Response | None:
     leaves checking the cookies to the app, so without this a bot skips the
     challenge by sending any ``vf`` cookie. A signature check, no I/O.
     """
-    if req_context.get().is_recognized_bot:
+    if request.url.path in HUMAN_CHECK_EXEMPT_PATHS or req_context.get().is_recognized_bot:
         return None
     # web.py percent-encodes cookie values and web.cookies() decodes them; Starlette doesn't.
     check = check_human_cookies({name: unquote(value) for name, value in request.cookies.items()})

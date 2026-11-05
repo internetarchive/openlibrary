@@ -124,7 +124,7 @@ Librarians collect, vet, and execute author and work merge requests. The merge f
 **Depends on:**
 - [[core-operations]] — editorial UI, admin dashboard, Infogami record editing
 - [[tags]] — subject/tag overlap; community tags (Observations) sit in the tag system
-- [[infrastructure]] — spam blocking via nginx/olsystem on ol-www0; PostgreSQL for account queries
+- [[infrastructure]] — spam blocking via nginx/olsystem on ol-www1; PostgreSQL for account queries
 
 **Depended on by:**
 - [[imports]] — librarians review and correct imported records
