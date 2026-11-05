@@ -222,7 +222,7 @@ class DynamicDocument:
             self.last_modified = min(doc.last_modified for doc in docs)
             self._text = "\n\n".join(doc.get("body", "") for doc in docs)
         else:
-            self.last_modified = dt.datetime.utcnow()
+            self.last_modified = dt.datetime.now(dt.UTC).replace(tzinfo=None)
             self._text = ""
 
     def get_text(self):
