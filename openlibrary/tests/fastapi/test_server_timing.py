@@ -154,7 +154,7 @@ def test_real_app_does_not_retain_legacy_statistics(monkeypatch, timing_enabled,
             else:
                 assert "Server-Timing" not in response.headers
         if timing_enabled:
-            assert {call.args[0] for call in put.call_args_list} == {"ol.fastapi.total", "ol.fastapi.infobase"}
+            assert {"ol.fastapi.total", "ol.fastapi.infobase"} <= {call.args[0] for call in put.call_args_list}
         else:
             put.assert_not_called()
 

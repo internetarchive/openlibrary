@@ -88,6 +88,55 @@ list_unknown_bot_counts() {
 }
 export -f list_unknown_bot_counts
 
+log_recent_bot_statuses() {
+    BUCKET="$1"
+
+    # Requests per (bot, status group) in the previous minute, eg to see how often
+    # googlebot is rate limited or gets errors. The totals in log_recent_bot_traffic
+    # and log_recent_http_statuses can't answer that since they're tallied separately.
+
+    # Like list_unknown_bot_counts, only look at the User-Agent (the 6th "-delimited
+    # field), and take only the FIRST known bot in it, unlike obfi_top_bots. A UA
+    # that names two bots would otherwise be counted twice and skew error rates.
+
+    # Statuses are grouped to keep the number of series bounded (at most 5 per bot
+    # in OBFI_BOT_PATTERN). 429 gets its own group since it's how we throttle bots.
+    # Anything that isn't a 1xx-5xx status (eg nginx's rare 000) is skipped.
+    BOT_STATUS_COUNTS=$(
+        obfi_in_docker obfi_previous_minute | \
+        awk -F'"' -v pattern="$OBFI_BOT_PATTERN" '
+            match(tolower($6), pattern) {
+                bot = substr(tolower($6), RSTART, RLENGTH)
+                gsub(/[^[:alnum:]]/, "_", bot)
+                split($3, fields, " ")
+                status = fields[1]
+                if (status !~ /^[1-5][0-9][0-9]$/) next
+                group = (status == "429") ? "http_429" : "http_" substr(status, 1, 1) "xx"
+                print bot, group
+            }' | \
+        sort | uniq -c
+    )
+    # Output like this:
+    #   5120 googlebot http_2xx
+    #    310 googlebot http_3xx
+    #     42 googlebot http_429
+    #      7 googlebot http_5xx
+
+    local ts=$(date +%s)
+    # Iterate over, and log in grafana to bucket eg `stats.ol.bot_status.googlebot.http_429`
+    while IFS= read -r line; do
+        # An empty minute still yields one empty line here
+        [ -z "$line" ] && continue
+        count=$(echo $line | awk '{print $1}')
+        bot=$(echo $line | awk '{print $2}')
+        group=$(echo $line | awk '{print $3}')
+        graphite_event="$BUCKET.$bot.$group $count $ts"
+        echo $graphite_event
+        echo $graphite_event | nc -q0 graphite.us.archive.org 2003
+    done <<< "$BOT_STATUS_COUNTS"
+}
+export -f log_recent_bot_statuses
+
 log_recent_http_statuses() {
     BUCKET="$1"
 

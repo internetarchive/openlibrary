@@ -57,7 +57,7 @@ router = APIRouter()
 async def my_feature(): ...
 ```
 
-**Rule of thumb:** New public API, async, Pydantic models → FastAPI. Full HTML page using Infogami templates or touching Infogami object types directly → web.py for now.
+**Rule of thumb:** New public API, async, Pydantic models → FastAPI. Full HTML pages can move too: render a Jinja template inside the shared site shell. See [Serving HTML pages from FastAPI](fastapi-pages.md); `/advancedsearch` is the reference port. Pages that touch Infogami object types directly → web.py for now.
 
 ## Subcomponents and Architecture
 

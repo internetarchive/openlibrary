@@ -21,7 +21,7 @@ from openlibrary.catalog import add_book  # noqa: F401 side effects may be neede
 from openlibrary.core import lending
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.booknotes import Booknotes
-from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.bookshelves import Bookshelves, ReadingLogSort
 from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import (
     parse_datetime,
@@ -37,7 +37,7 @@ from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from openlibrary.plugins.upstream.utils import get_identifier_config
 from openlibrary.utils import extract_numeric_id_from_olid, normalize_subject_name
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
-from openlibrary.utils.request_context import get_print_disabled, site
+from openlibrary.utils.request_context import get_print_disabled, site, visitor
 
 from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
 from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_url
@@ -554,7 +554,7 @@ class Work(Thing):
         if not username:
             return None
         work_id = extract_numeric_id_from_olid(self.key)
-        status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
+        status_id = Bookshelves.get_users_read_status_of_work_sync(username, work_id)
         return status_id
 
     def get_users_notes(self, username, edition_olid=None):
@@ -593,7 +593,7 @@ class Work(Thing):
                 "stopped-reading": 0,
             }
         work_id = extract_numeric_id_from_olid(self.key)
-        num_users_by_bookshelf = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
+        num_users_by_bookshelf = Bookshelves.get_num_users_by_bookshelf_by_work_id_sync(work_id)
         return {
             "want-to-read": num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES["Want to Read"], 0),
             "currently-reading": num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES["Currently Reading"], 0),
@@ -611,26 +611,6 @@ class Work(Thing):
                 "avg_rating": round(rating_stats["avg_rating"], 2),
                 "num_ratings": rating_stats["num_ratings"],
             }
-
-    def get_awards(self) -> list:
-        if not self.key:
-            return []
-
-        work_id = extract_numeric_id_from_olid(self.key)
-        return Bestbook.get_awards(work_id)
-
-    def check_if_user_awarded(self, username) -> bool:
-        if not self.key:
-            return False
-        work_id = extract_numeric_id_from_olid(self.key)
-        return bool(Bestbook.get_awards(username=username, work_id=work_id))
-
-    def get_award_by_username(self, username):
-        if not self.key:
-            return None
-        work_id = extract_numeric_id_from_olid(self.key)
-        awards = Bestbook.get_awards(username=username, work_id=work_id)
-        return awards[0] if awards else None
 
     def _get_d(self):
         """Returns the data that goes into memcache as d/$self.key.
@@ -744,7 +724,7 @@ class Work(Thing):
             r["occurrences"]["readinglog"] = len(Bookshelves.get_works_shelves(olid))
             r["occurrences"]["ratings"] = len(Ratings.get_all_works_ratings_sync(olid))
             r["occurrences"]["booknotes"] = len(Booknotes.get_booknotes_for_work_sync(olid))
-            r["occurrences"]["bestbooks"] = Bestbook.get_count(work_id=olid)
+            r["occurrences"]["bestbooks"] = Bestbook.get_count_sync(work_id=olid)
             r["occurrences"]["observations"] = len(Observations.get_observations_for_work(olid))
 
             if new_olid != olid:
@@ -965,7 +945,7 @@ class User(Thing):
 
     def is_subscribed_user(self, username: str) -> int:
         my_username = self.get_username()
-        return PubSub.is_subscribed(my_username, username) if my_username != username else -1
+        return PubSub.is_subscribed_sync(my_username, username) if my_username != username else -1
 
     def has_cookie(self, name):
         return web.cookies().get(name, False)
@@ -987,13 +967,16 @@ class User(Thing):
         return self.is_usergroup_member("/usergroup/super-librarians")
 
     def is_librarian_or_higher(self) -> bool:
-        return self.is_member_of_any(
+        is_librarian = self.is_member_of_any(
             [
                 "/usergroup/librarians",
                 "/usergroup/super-librarians",
                 "/usergroup/admin",
             ]
         )
+        if (v := visitor.get()) and v.user_key == self.key:
+            v.is_librarian = is_librarian  # for the request metrics' visitor label (openlibrary/utils/prometheus.py)
+        return is_librarian
 
     def is_super_librarian_or_higher(self) -> bool:
         return self.is_member_of_any(
@@ -1319,6 +1302,8 @@ class LoggedBooksData:
         for filtering the reading log.
     param ratings holds a list of ratings such that the index of each rating corresponds
         to the index of each doc/work in self.docs.
+    param sort holds the sort the shelf was actually sorted by, which can differ from
+        the one asked for (e.g. if Solr fails). None when filtering.
     """
 
     username: str
@@ -1328,6 +1313,7 @@ class LoggedBooksData:
     docs: list[web.storage]
     q: str = ""
     ratings: list[int] = field(default_factory=list)
+    sort: ReadingLogSort | None = None
 
     def load_ratings(self) -> None:
         """

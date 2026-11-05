@@ -1,13 +1,16 @@
 """Tests for the template helpers in openlibrary.plugins.upstream.mybooks."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 import web
 
 from infogami.infobase.client import LazyObject
 from infogami.utils import macro
 from openlibrary.core.booknotes import Booknotes
-from openlibrary.plugins.upstream.mybooks import PatronBooknotes, edition_key_of, get_reading_states, shelf_button_for, work_key_of
+from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.plugins.upstream import mybooks
+from openlibrary.plugins.upstream.mybooks import PatronBooknotes, ReadingLog, edition_key_of, get_reading_states, shelf_button_for, work_key_of
 
 
 class Thing:
@@ -68,7 +71,7 @@ class TestShelfButtonFor:
     def render(self, doc, **kwargs):
         with (
             patch("openlibrary.plugins.upstream.mybooks.accounts.get_current_user", return_value=web.storage(key="/people/tester")),
-            patch("openlibrary.plugins.upstream.mybooks.get_reading_state", return_value={1: FINISHED}) as get_state,
+            patch("openlibrary.plugins.upstream.mybooks.get_reading_state_sync", return_value={1: FINISHED}) as get_state,
         ):
             html = shelf_button_for(doc, **kwargs)
         return html, get_state
@@ -135,7 +138,7 @@ class TestShelfButtonFor:
 
 class TestGetReadingStates:
     def test_signed_out_is_empty_without_querying(self):
-        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state") as get_state:
+        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state_sync") as get_state:
             assert get_reading_states(None, [{"key": "/works/OL1W"}]) == {}
         get_state.assert_not_called()
 
@@ -150,7 +153,7 @@ class TestGetReadingStates:
             1: {"shelf": 1, "rating": None, "read_date": None, "event_id": None},
             2: {"shelf": None, "rating": 3, "read_date": None, "event_id": None},
         }
-        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state", return_value=states) as get_state:
+        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state_sync", return_value=states) as get_state:
             result = get_reading_states(web.storage(key="/people/tester"), docs)
 
         assert result == {"/works/OL1W": states[1], "/works/OL2W": states[2]}
@@ -336,3 +339,46 @@ def test_patron_booknotes_counts_use_sync_booknotes_bridge():
     ):
         assert PatronBooknotes.get_counts("alice") == {"notes": 2, "observations": 3}
         notes_count.assert_called_once_with("alice")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("sort_order", "expected"),
+    [
+        ("desc", "created desc"),
+        ("asc", "created asc"),
+        ("title", "title"),
+        ("old", "old"),
+        ("rating", "rating"),
+        ("want_to_read", "want_to_read"),
+        ("not-a-sort", "created desc"),
+    ],
+)
+async def test_reading_log_passes_sort_to_shelf_query(sort_order, expected):
+    with patch.object(Bookshelves, "get_users_logged_books", new_callable=AsyncMock) as get_users_logged_books:
+        await ReadingLog(user=MagicMock()).get_works_async("want-to-read", sort_order=sort_order)
+
+    assert get_users_logged_books.await_args.kwargs["sort"] == expected
+
+
+@pytest.mark.parametrize(
+    ("requested", "owners_page", "used", "asked_for", "shown"),
+    [
+        ("rating", True, "rating", "rating", "rating"),
+        ("rating", False, "created desc", "desc", "desc"),
+        ("title", False, "title", "title", "title"),
+        ("title", True, "created desc", "title", "desc"),
+    ],
+)
+def test_reading_log_menu_shows_the_sort_actually_used(monkeypatch, requested, owners_page, used, asked_for, shown):
+    monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, sort=requested))
+    monkeypatch.setattr(mybooks, "add_availability", lambda docs, mode: docs)
+    monkeypatch.setattr(mybooks, "get_internet_archive_id", lambda key: "")
+    monkeypatch.setattr(mybooks, "render", MagicMock())
+    mb = MagicMock(key="want-to-read", is_my_page=owners_page, counts={"want-to-read": 0})
+    mb.readlog.get_works.return_value = MagicMock(docs=[], total_results=0, ratings=[], sort=used)
+
+    mybooks.mybooks_readinglog().render_template(mb)
+
+    assert mb.readlog.get_works.call_args.kwargs["sort_order"] == asked_for
+    assert mybooks.render["account/reading_log"].call_args.kwargs["sort_order"] == shown

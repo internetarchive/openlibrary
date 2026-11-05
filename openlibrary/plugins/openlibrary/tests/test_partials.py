@@ -483,6 +483,7 @@ class TestBookPageListsPartial:
             patch.object(
                 BookPageListsPartial,
                 "get_list_card",
+                new_callable=AsyncMock,
                 side_effect=[good, AttributeError("'Thing' object has no attribute 'get_users_settings'"), good],
             ),
         ):
@@ -497,7 +498,7 @@ class TestBookPageListsPartial:
     async def test_render_failure_keeps_old_fallback(self):
         with (
             patch("openlibrary.plugins.openlibrary.partials.get_lists_async", AsyncMock(return_value=LISTS)),
-            patch.object(BookPageListsPartial, "get_list_card", return_value=_community_card("Fine list")),
+            patch.object(BookPageListsPartial, "get_list_card", new_callable=AsyncMock, return_value=_community_card("Fine list")),
             patch(
                 "openlibrary.plugins.openlibrary.partials.render_jinja_template",
                 side_effect=RuntimeError("boom"),
