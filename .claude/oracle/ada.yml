@@ -11,7 +11,8 @@
 #
 # State is artifact-native: every predicate re-derives live from the PR on GitHub.
 # The one structured carrier is an HTML-comment block in the PR body (invisible in
-# rendered Markdown):
+# rendered Markdown). The LAST such block in the body is authoritative (so an
+# illustrative example earlier in the description never shadows the real stamp):
 #
 #   <!-- oracle
 #   status: developing
@@ -26,7 +27,7 @@
 # `gh pr view` with no argument resolves the PR for the current branch. Checks that
 # cannot reach GitHub will gate rather than fail open; the engine's error verdict
 # and attempt cap are the backstops (clean per-check fail-open wants an engine
-# builtin — see the PR description).
+# builtin — see the PR description). The awk below extracts the LAST oracle block.
 
 context: []
 
@@ -39,13 +40,9 @@ states:
   # builtin — flagged in the PR.)
   - id: blocked-reject
     applies_when: |-
-      gh pr view --json body -q .body 2>/dev/null \
-        | sed -n '/<!--[[:space:]]*oracle/,/-->/p' \
-        | grep -iqE '^status:[[:space:]]*blocked\b'
+      gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^status:[[:space:]]*blocked\b'
     check: |-
-      gh pr view --json body -q .body 2>/dev/null \
-        | sed -n '/<!--[[:space:]]*oracle/,/-->/p' \
-        | grep -iqE '^blocker:[[:space:]]*(decision-needed|missing-info|access|upstream-dependency):[[:space:]]*.{15,}$'
+      gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^blocker:[[:space:]]*(decision-needed|missing-info|access|upstream-dependency):[[:space:]]*.{15,}$'
     prompt: |
       Your plan's status is `blocked`, but the blocker is not a valid escape. A
       blocker clears you to stop ONLY if a LEAD can act on it by conversing with
@@ -62,9 +59,7 @@ states:
   #    env block may have nothing worth committing).
   - id: tree-clean
     applies_when: |-
-      ! gh pr view --json body -q .body 2>/dev/null \
-        | sed -n '/<!--[[:space:]]*oracle/,/-->/p' \
-        | grep -iqE '^status:[[:space:]]*blocked\b'
+      ! gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^status:[[:space:]]*blocked\b'
     check: test -z "$(git status --porcelain)"
     prompt: |
       Your working tree has uncommitted changes. Commit them with a clear message
@@ -105,20 +100,16 @@ states:
       The PR body is empty. Write the plan: what you are building, the approach,
       current status, and the oracle block (status + head SHA).
 
-  # 5. Plan current with work — SHA equality. The oracle block's recorded `head:`
-  #    must match the PR's live headRefOid (prefix match tolerates a short SHA).
-  #    Skipped when blocked (the plan then carries the blocker, not a code summary).
+  # 5. Plan current with work — SHA equality. The LAST oracle block's recorded
+  #    `head:` must match the PR's live headRefOid (prefix match tolerates a short
+  #    SHA). Skipped when blocked (the plan then carries the blocker, not a code
+  #    summary).
   - id: plan-current
     applies_when: |-
-      ! gh pr view --json body -q .body 2>/dev/null \
-        | sed -n '/<!--[[:space:]]*oracle/,/-->/p' \
-        | grep -iqE '^status:[[:space:]]*blocked\b'
+      ! gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^status:[[:space:]]*blocked\b'
     check: |-
       H=$(gh pr view --json headRefOid -q .headRefOid 2>/dev/null)
-      S=$(gh pr view --json body -q .body 2>/dev/null \
-        | sed -n '/<!--[[:space:]]*oracle/,/-->/p' \
-        | grep -iE '^head:' | head -1 \
-        | sed -E 's/^head:[[:space:]]*//I; s/[[:space:]]*$//')
+      S=$(gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iE '^head:' | tail -1 | sed -E 's/^head:[[:space:]]*//I; s/[[:space:]]*$//')
       test -n "$H" && test -n "$S" && { [ "${H#$S}" != "$H" ] || [ "${S#$H}" != "$S" ]; }
     prompt: |
       Your plan is stale: the oracle block's `head:` SHA does not match the PR's
@@ -127,12 +118,10 @@ states:
 
           head: <paste `git rev-parse HEAD`>
 
-  # 6. Status set — one of the vocabulary values in the oracle block.
+  # 6. Status set — one of the vocabulary values in the LAST oracle block.
   - id: status-set
     check: |-
-      gh pr view --json body -q .body 2>/dev/null \
-        | sed -n '/<!--[[:space:]]*oracle/,/-->/p' \
-        | grep -iqE '^status:[[:space:]]*(investigating|developing|blocked|ready-for-review|needs-decision|merged-pending-deploy)[[:space:]]*$'
+      gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^status:[[:space:]]*(investigating|developing|blocked|ready-for-review|needs-decision|merged-pending-deploy)[[:space:]]*$'
     prompt: |
       Set a status in the oracle block of the PR body. One of:
       investigating | developing | ready-for-review | needs-decision |
