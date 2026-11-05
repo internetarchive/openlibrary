@@ -40,9 +40,9 @@ states:
   # builtin — flagged in the PR.)
   - id: blocked-reject
     applies_when: |-
-      gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^status:[[:space:]]*blocked\b'
+      gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^[[:space:]]*status:[[:space:]]*blocked\b'
     check: |-
-      gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^blocker:[[:space:]]*(decision-needed|missing-info|access|upstream-dependency):[[:space:]]*.{15,}$'
+      gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^[[:space:]]*blocker:[[:space:]]*(decision-needed|missing-info|access|upstream-dependency):[[:space:]]*.{15,}$'
     prompt: |
       Your plan's status is `blocked`, but the blocker is not a valid escape. A
       blocker clears you to stop ONLY if a LEAD can act on it by conversing with
@@ -59,7 +59,7 @@ states:
   #    env block may have nothing worth committing).
   - id: tree-clean
     applies_when: |-
-      ! gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^status:[[:space:]]*blocked\b'
+      ! gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^[[:space:]]*status:[[:space:]]*blocked\b'
     check: test -z "$(git status --porcelain)"
     prompt: |
       Your working tree has uncommitted changes. Commit them with a clear message
@@ -106,10 +106,10 @@ states:
   #    summary).
   - id: plan-current
     applies_when: |-
-      ! gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^status:[[:space:]]*blocked\b'
+      ! gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^[[:space:]]*status:[[:space:]]*blocked\b'
     check: |-
       H=$(gh pr view --json headRefOid -q .headRefOid 2>/dev/null)
-      S=$(gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iE '^head:' | tail -1 | sed -E 's/^head:[[:space:]]*//I; s/[[:space:]]*$//')
+      S=$(gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iE '^[[:space:]]*head:' | tail -1 | sed -E 's/^[[:space:]]*head:[[:space:]]*//I; s/[[:space:]]*$//')
       test -n "$H" && test -n "$S" && { [ "${H#$S}" != "$H" ] || [ "${S#$H}" != "$S" ]; }
     prompt: |
       Your plan is stale: the oracle block's `head:` SHA does not match the PR's
@@ -121,7 +121,7 @@ states:
   # 6. Status set — one of the vocabulary values in the LAST oracle block.
   - id: status-set
     check: |-
-      gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^status:[[:space:]]*(investigating|developing|blocked|ready-for-review|needs-decision|merged-pending-deploy)[[:space:]]*$'
+      gh pr view --json body -q .body 2>/dev/null | awk '/<!--[[:space:]]*oracle/{inb=1;cur=""} inb{cur=cur $0 "\n"} /-->/&&inb{inb=0;last=cur} END{printf "%s",last}' | grep -iqE '^[[:space:]]*status:[[:space:]]*(investigating|developing|blocked|ready-for-review|needs-decision|merged-pending-deploy)[[:space:]]*$'
     prompt: |
       Set a status in the oracle block of the PR body. One of:
       investigating | developing | ready-for-review | needs-decision |

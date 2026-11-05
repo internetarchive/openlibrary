@@ -7,19 +7,29 @@
 #
 # The float-up is the LEAD PULLING at its own stop — never an ada pushing.
 #
-# $ORACLE_DIVISION is the division name; the engine's hook sets it from
-# `agents whoami`. Child issues default to those carrying a label == the division;
-# override with $ORACLE_CHILD_QUERY (a gh search fragment).
+# CONFIG — explicit, from the lead's ENVIRONMENT (set at launch / by the wire).
+# The engine does NOT derive these; it passes os.environ through unchanged, and
+# the registry has no clean per-lead "division" field yet (a deferred design
+# question — not solved here). So for the prototype the lead must be launched with:
+#   ORACLE_DIVISION    — the division name, used in the `[NOW] <division>` title.
+#   ORACLE_CHILD_QUERY — a gh search fragment selecting THIS lead's ada issues.
+#                        OL does not label by division, so there is no useful
+#                        default; set it explicitly, e.g. `assignee:openlibrary-bot`
+#                        or the trial ada's issue/PR query.
+# Fail-safe: if ORACLE_DIVISION is unset the lead oracle is INERT by design (every
+# check no-ops to allow-stop); now-current also no-ops without ORACLE_CHILD_QUERY,
+# rather than silently matching nothing. Same spirit as the whoami role gate.
 
 context: []
 
 states:
   # The NOW issue must exist before it can be kept current.
   - id: now-exists
-    check: >-
-      test -n "$(gh issue list --state open
-      --search 'in:title \"[NOW] '"$ORACLE_DIVISION"'\"'
-      --json number -q '.[0].number' 2>/dev/null)"
+    check: |-
+      [ -n "$ORACLE_DIVISION" ] || exit 0
+      test -n "$(gh issue list --state open \
+        --search 'in:title "[NOW] '"$ORACLE_DIVISION"'"' \
+        --json number -q '.[0].number' 2>/dev/null)"
     prompt: |
       No open `[NOW] $ORACLE_DIVISION` issue found. Create ONE dedicated issue
       titled exactly `[NOW] $ORACLE_DIVISION`. Its body is your division's NOW:
@@ -34,14 +44,14 @@ states:
   # clean fail-open); the inline form below is the working best-effort.
   - id: now-current
     check: |-
+      { [ -n "$ORACLE_DIVISION" ] && [ -n "$ORACLE_CHILD_QUERY" ]; } || exit 0
       REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)
-      FRAG=${ORACLE_CHILD_QUERY:-label:\"$ORACLE_DIVISION\"}
       R=$(gh api graphql \
         -f query='query($now:String!,$kids:String!){
           now: search(query:$now, type:ISSUE, first:5){nodes{... on Issue{number title lastEditedAt createdAt}}}
           kids: search(query:$kids, type:ISSUE, first:50){nodes{... on Issue{number updatedAt}}}}' \
         -f now="repo:$REPO is:issue is:open in:title \"[NOW] $ORACLE_DIVISION\"" \
-        -f kids="repo:$REPO is:issue $FRAG" \
+        -f kids="repo:$REPO is:issue $ORACLE_CHILD_QUERY" \
         -q '(.data.now.nodes[0]) as $n
             | ($n | (.lastEditedAt // .createdAt)) as $a
             | ([.data.kids.nodes[] | select(.number != $n.number) | .updatedAt] | max // $a) as $m
