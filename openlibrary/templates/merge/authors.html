@@ -113,7 +113,8 @@ $if can_merge:
                             $for id in configured_ids:
                                 $if id.name in a.remote_ids:
                                     $ href = id.url.replace('@@@', a.remote_ids[id.name])
-                                    <small>$id.label:<a href="$href">$a.remote_ids[id.name]</a></small>
+                                    $ display_value = format_author_identifier_value(id.name, a.remote_ids[id.name])
+                                    <small>$id.label:<a href="$href">$display_value</a></small>
                             </div>
                     </label>
                     $if a.bio:

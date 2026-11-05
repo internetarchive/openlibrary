@@ -101,6 +101,13 @@ export default {
             if (!this.$refs.mergeTable.merge) return;
             const { record: master, dupes, editions_to_move, unmergeable_works } = this.$refs.mergeTable.merge;
 
+            // A merge writes `works` pointing at the master and copies work-shaped fields
+            // onto it, so the target must be a work (see #13390).
+            if (master.type.key !== '/type/work') {
+                this.mergeOutput = 'The primary record must be a work — editions can be included in a merge, but not chosen as the primary.';
+                return;
+            }
+
             this.mergeStatus = SAVING;
             if (this.isSuperLibrarian) {
                 // Perform the merge and create new/update existing merge request
@@ -111,6 +118,10 @@ export default {
                     const r = await do_merge(master, dupes, editions_to_move, this.mrid);
                     if (r.status === 403) {
                         throw new Error('Merge failed, your account may be missing the /usergroup/api permission.');
+                    }
+                    if (!r.ok) {
+                        // Don't report success or record the merge request when the save failed
+                        throw new Error(`Merge failed (HTTP ${r.status}): ${await r.text()}`);
                     }
                     this.mergeOutput = await r.json();
                     if (this.mrid) {

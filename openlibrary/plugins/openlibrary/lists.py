@@ -42,7 +42,7 @@ from openlibrary.plugins.upstream.addbook import safe_seeother
 from openlibrary.plugins.worksearch import subjects
 from openlibrary.plugins.worksearch.code import get_solr_works
 from openlibrary.utils import olid_to_key
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import set_context_from_legacy_web_py, site
 
 # One pattern for every seed type: delegate keys its `pages` registry by the raw
 # regex text, so both handlers below must register the identical string.
@@ -687,6 +687,20 @@ def _resolve_list_view_items(seeds: list[ListSeed]) -> list[ResolvedListItem]:
     return items
 
 
+def sort_list_seeds(seeds: list[ListSeed], sort: str | None) -> list[ListSeed]:
+    """Reorder list seeds for display; unknown sorts preserve list order."""
+    if sort == "added":
+        return seeds[::-1]
+    if sort == "title":
+        books = [seed for seed in seeds if seed.type in ("work", "edition")]
+        others = [seed for seed in seeds if seed.type not in ("work", "edition")]
+        # str(): legacy records can hold a non-string title.
+        return sorted(books, key=lambda seed: utils.strip_accents(str(seed.title)).casefold()) + others
+    if sort == "last_modified":
+        return h.safesort(seeds, reverse=True, key=lambda seed: seed.last_update)
+    return seeds
+
+
 class list_view(delegate.page):
     """HTML view for a single list or series page.
 
@@ -727,10 +741,11 @@ class list_view(delegate.page):
             web.redirect(lst.location)
 
         page = safeint(query_param("page"), 1) - 1
-        sort = query_param("sort", None)
+        # A series always stays in volume order.
+        sort = None if lst.type.key == "/type/series" else query_param("sort", None)
         page_size = LIST_VIEW_PAGE_SIZE
 
-        seeds = lst.get_seeds(sort=(sort == "last_modified"), resolve_redirects=True)
+        seeds = sort_list_seeds(lst.get_seeds(resolve_redirects=True), sort)
         page_seeds = seeds[page * page_size : page * page_size + page_size]
         items = _resolve_list_view_items(page_seeds)
 
@@ -1029,6 +1044,7 @@ def _get_recently_modified_lists(limit, offset=0):
     # web.ctx must be initialized as it won't be available to the background thread.
     if "env" not in web.ctx:
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
     keys = web.ctx.site.things(
         {
@@ -1076,6 +1092,7 @@ def _preload_lists(lists):
 def _get_active_lists_in_random(limit=20, preload=True):
     if "env" not in web.ctx:
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
     lists = []
     offset = 0

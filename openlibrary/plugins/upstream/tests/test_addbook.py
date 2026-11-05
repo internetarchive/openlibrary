@@ -3,7 +3,9 @@
 import pytest
 import web
 
+from infogami.utils import delegate
 from openlibrary import accounts
+from openlibrary.core.models import User
 from openlibrary.mocks.mock_infobase import MockSite
 from openlibrary.utils.request_context import site as site_context
 
@@ -30,6 +32,7 @@ def mock_user():
             "is_super_librarian_or_higher": lambda slf: slf.is_admin() or slf.is_super_librarian(),
             "is_librarian": lambda slf: False,
             "is_usergroup_member": lambda slf, grp: False,
+            "can_edit_ocaid": User.can_edit_ocaid,
         },
     )()
 
@@ -549,6 +552,106 @@ class TestSaveBookHelper:
         # Should ignore authors/subjects by default
         assert not new_work.authors
         assert not new_work.subjects
+
+    @pytest.mark.parametrize(
+        ("current_ocaid", "submitted_ocaid"),
+        [
+            (None, "newitem00arch"),
+            ("olditem00arch", "newitem00arch"),
+            ("olditem00arch", None),
+        ],
+    )
+    def test_ocaid_changes_need_admin(self, monkeypatch, current_ocaid, submitted_ocaid):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        s = addbook.SaveBookHelper(None, self._edition_with_ocaid(current_ocaid))
+
+        with pytest.raises(addbook.ValidationException):
+            s._prevent_ocaid_deletion(self._ocaid_form(submitted_ocaid))
+
+    @pytest.mark.parametrize("current_ocaid", [None, "olditem00arch"])
+    def test_top_level_ocaid_field_needs_admin(self, monkeypatch, current_ocaid):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        s = addbook.SaveBookHelper(None, self._edition_with_ocaid(current_ocaid))
+        form = self._ocaid_form(current_ocaid)
+        form.ocaid = "newitem00arch"
+
+        with pytest.raises(addbook.ValidationException):
+            s._prevent_ocaid_deletion(form)
+
+    @pytest.mark.parametrize("ocaid", [None, "olditem00arch"])
+    def test_unchanged_ocaid_is_allowed(self, monkeypatch, ocaid):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        s = addbook.SaveBookHelper(None, self._edition_with_ocaid(ocaid))
+
+        s._prevent_ocaid_deletion(self._ocaid_form(ocaid))
+
+    @pytest.mark.parametrize(("is_admin", "is_super_librarian", "allowed"), [(True, False, True), (False, True, False)])
+    def test_only_admins_can_add_ocaid(self, monkeypatch, is_admin, is_super_librarian, allowed):
+        def user():
+            u = mock_user()
+            u.is_admin = lambda: is_admin
+            u.is_super_librarian = lambda: is_super_librarian
+            return u
+
+        monkeypatch.setattr(accounts, "get_current_user", user)
+        s = addbook.SaveBookHelper(None, self._edition_with_ocaid(None))
+
+        if allowed:
+            s._prevent_ocaid_deletion(self._ocaid_form("newitem00arch"))
+        else:
+            with pytest.raises(addbook.ValidationException):
+                s._prevent_ocaid_deletion(self._ocaid_form("newitem00arch"))
+
+    @staticmethod
+    def _edition_with_ocaid(ocaid):
+        doc = {"type": {"key": "/type/edition"}, "key": "/books/OL1M", "title": "Edition"}
+        if ocaid:
+            doc["ocaid"] = ocaid
+        web.ctx.site.save(doc)
+        return web.ctx.site.get("/books/OL1M")
+
+    @staticmethod
+    def _ocaid_form(ocaid):
+        identifiers = [{"name": "ocaid", "value": ocaid}] if ocaid else []
+        return web.storage(identifiers=identifiers)
+
+
+class TestAddBookOcaid:
+    @pytest.fixture
+    def post(self, monkeypatch):
+        """POST /books/add with an ocaid; returns render_template's args, or None if it got past the ocaid check."""
+
+        def _post(user_factory):
+            monkeypatch.setattr(accounts, "get_current_user", user_factory)
+            monkeypatch.setattr(web, "input", lambda **kw: web.storage(kw, book_title="Book", id_name="ocaid", id_value="newitem00arch"))
+            monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *a, **kw: False)
+            monkeypatch.setattr(addbook, "render_template", lambda *a, **kw: a)
+
+            class PastOcaidCheck(Exception):
+                pass
+
+            def past_check(*a, **kw):
+                raise PastOcaidCheck
+
+            monkeypatch.setattr(addbook.utils, "unflatten", past_check)
+            try:
+                # `addbook.addbook` is shadowed by a later class of the same name, so look the page up by path.
+                return delegate.pages["/books/add"][None]().POST()
+            except PastOcaidCheck:
+                return None
+
+        return _post
+
+    def test_non_admin_cannot_add_ocaid(self, post):
+        assert post(mock_user)[0] == "message.html"
+
+    def test_admin_can_add_ocaid(self, post):
+        def admin():
+            u = mock_user()
+            u.is_admin = lambda: True
+            return u
+
+        assert post(admin) is None
 
 
 class TestDaisyPage:

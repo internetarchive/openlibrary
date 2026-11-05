@@ -12,7 +12,6 @@ import datetime as dt
 import itertools
 import json
 import logging
-import re
 import socket
 import sys
 from collections.abc import Iterable, Iterator
@@ -156,7 +155,7 @@ def find_keys(d: dict | list) -> Iterator[str]:
         return
 
 
-def parse_log(records: Iterable[InfobaseLogRecord], load_ia_scans: bool):
+def parse_log(records: Iterable[InfobaseLogRecord]):
     for rec in records:
         action = rec.get("action")
 
@@ -178,36 +177,13 @@ def parse_log(records: Iterable[InfobaseLogRecord], load_ia_scans: bool):
             # Record shape: {"action": "store.put", "data": {"key": <key>, "data": <store doc>}, ...}
             data = rec.get("data", {}).get("data", {})
             key = data.get("_key", "")
-            if load_ia_scans and data.get("type") == "ia-scan" and key.startswith("ia-scan/"):
-                identifier = cast(str | None, data.get("identifier"))
-                if identifier and is_allowed_itemid(identifier):
-                    yield "/books/ia:" + identifier
-
             # Hack to force updating something from admin interface
             # The admin interface writes the keys to update to a document named
             # 'solr-force-update' in the store and whatever keys are written to that
             # are picked by this script
-            elif key == "solr-force-update":
+            if key == "solr-force-update":
                 keys = cast(list[str], data.get("keys", []))
                 yield from keys
-
-        elif action == "store.delete":
-            data = rec.get("data", {})
-            key = cast(str, data.get("key"))
-            # An ia-scan key is deleted when that book is deleted/darked from IA.
-            # Delete it from OL solr by updating that key
-            if key.startswith("ia-scan/"):
-                ol_key = "/works/ia:" + key.split("/")[-1]
-                yield ol_key
-
-
-def is_allowed_itemid(identifier: str):
-    if not re.match("^[a-zA-Z0-9_.-]*$", identifier):
-        return False
-
-    # items starts with these prefixes are not books. Ignore them.
-    ignore_prefixes = cast(list[str], config.get("ia_ignore_prefixes", []))
-    return all(not identifier.startswith(prefix) for prefix in ignore_prefixes)
 
 
 async def update_keys(keys: Iterable[str]):
@@ -241,7 +217,6 @@ async def main(
     exclude_edits_containing: str | None = None,
     ol_url="http://openlibrary.org/",  # Has side effects, is read globally
     socket_timeout: int = 10,
-    load_ia_scans: bool = False,
     initial_state: str | None = None,
 ):
     """
@@ -284,7 +259,7 @@ async def main(
 
     while True:
         records = logfile.read_records()
-        keys = parse_log(records, load_ia_scans)
+        keys = parse_log(records)
         count = await update_keys(keys)
 
         if logfile.tell() != offset:

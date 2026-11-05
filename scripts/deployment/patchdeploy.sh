@@ -13,7 +13,7 @@ if [[ -z "$1" || "$1" == "--help" ]]; then
     echo "  PATCH_ON=host|container          Whether to apply the patch on the host or inside"
     echo "                                   the container."
     echo "                                   Default: container unless patching www nginx changes"
-    echo "  SERVICE=container_name           Default: web for ol-web hosts, web_nginx for ol-www0"
+    echo "  SERVICE=container_name           Default: web for ol-web hosts, web_nginx for ol-www1"
     echo "  APPLY_OPTIONS=''                 Options to pass to git apply. E.g. use -R to"
     echo "                                   un-apply a patch. See 'git apply --help' for options."
     echo "  RESET=''                         If 'true', resets the container before applying the patch."
@@ -37,7 +37,7 @@ echo "Applying patch ${PATCH_URL} to ${SERVERS}:"
 
 for host in $SERVERS; do
     # Determine default container name based on host
-    if [[ "$host" == "ol-www0" ]]; then
+    if [[ "$host" == "ol-www1" ]]; then
         SERVICE=${SERVICE:-"web_nginx"}
         if [[ "$SERVICE" == "web_nginx" ]]; then
             # If deploying nginx configs, must apply only to host

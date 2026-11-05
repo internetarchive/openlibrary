@@ -16,7 +16,7 @@ from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 from openlibrary.utils.request_context import site
 
-from . import db
+from . import db  # noqa: TID251
 
 logger = logging.getLogger(__name__)
 
@@ -739,6 +739,19 @@ class Bookshelves(db.CommonExtras):
                 {"username": username, "work_id": int(work_id)},
             )
         return deleted.rowcount or None
+
+    @classmethod
+    async def most_logged_editions(cls, limit: int) -> list[dict]:
+        """The editions most often named when a book is shelved, as ``edition_id``, ``work_id`` and ``readers``. Scans the whole table."""
+        query = (
+            f"SELECT edition_id, work_id, count(*) AS readers FROM {cls.TABLENAME} "
+            "WHERE edition_id IS NOT NULL GROUP BY edition_id, work_id ORDER BY readers DESC LIMIT %(limit)s"
+        )
+        return await fetch_all(query, {"limit": limit})
+
+    @classmethod
+    def most_logged_editions_sync(cls, limit: int) -> list[dict]:
+        return async_bridge.run(cls.most_logged_editions(limit))
 
     @classmethod
     async def get_num_users_by_bookshelf_by_work_id(cls, work_id: str) -> dict[int, int]:

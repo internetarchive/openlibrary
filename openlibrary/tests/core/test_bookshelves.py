@@ -38,6 +38,15 @@ async def test_get_users_read_status_of_works_uses_any(helpers):
 
 
 @pytest.mark.asyncio
+async def test_most_logged_editions_counts_shelvings_that_name_an_edition(helpers):
+    helpers.fetch_all.return_value = [{"edition_id": 1, "work_id": 2, "readers": 3}]
+    assert await Bookshelves.most_logged_editions(10) == [{"edition_id": 1, "work_id": 2, "readers": 3}]
+    (query, params), _kwargs = helpers.fetch_all.await_args
+    assert "WHERE edition_id IS NOT NULL GROUP BY edition_id, work_id ORDER BY readers DESC" in query
+    assert params == {"limit": 10}
+
+
+@pytest.mark.asyncio
 async def test_get_users_read_status_of_works_empty_skips_query(helpers):
     assert await Bookshelves.get_users_read_status_of_works("alice", []) == []
     helpers.fetch_all.assert_not_awaited()

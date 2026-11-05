@@ -5,13 +5,11 @@ from typing import Literal
 
 import web
 
-from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import render_template, require_login
 from openlibrary import accounts
 from openlibrary.core.edits import ApiMode, CommunityEditsQueue, get_status_for_view
 from openlibrary.utils.request_context import site
-from openlibrary.utils.retry import RetryStrategy
 
 # Usergroups that may use create or update merge requests
 ALLOWED_USERGROUPS: list[str] = [
@@ -38,43 +36,25 @@ def process_merge_request(rtype, data):
     return resp
 
 
-def perform_merge_update(mrid: str | None, olids: str, comment: str | None) -> None:
-    """Orchestrate the merge request update with retries.
+async def perform_merge_update(username: str, mrid: int | None, olids: str, comment: str | None) -> None:
+    """Close the given merge request, or record a new already-merged author merge request."""
+    if mrid:
+        await CommunityEditsQueue.update_request_status(mrid, CommunityEditsQueue.STATUS["MERGED"], username, comment)
+        return
 
-    Builds the appropriate request type and data, then attempts to process
-    the merge request with retry logic.
-
-    Args:
-        mrid: Merge request ID to approve, or None to create a new request.
-        olids: Comma-separated author keys (used when creating a new request).
-        comment: Optional comment for the merge request.
-
-    Raises:
-        MaxRetriesExceeded: If all retry attempts to process the request fail.
-    """
-
-    def update_request() -> None:
-        if mrid:
-            process_merge_request(
-                "update-request",
-                {
-                    "action": "approve",
-                    "mrid": mrid,
-                    **({"comment": comment} if comment else {}),
-                },
-            )
-        else:
-            process_merge_request(
-                "create-request",
-                {
-                    "mr_type": 2,
-                    "olids": olids,
-                    "action": "create-merged",
-                    **({"comment": comment} if comment else {}),
-                },
-            )
-
-    RetryStrategy([ClientException], max_retries=5, delay=2)(update_request)
+    olid_list = olids.split(",")
+    title = community_edits_queue.create_title(CommunityEditsQueue.TYPE["AUTHOR_MERGE"], olid_list)
+    url = community_edits_queue.create_url(CommunityEditsQueue.TYPE["AUTHOR_MERGE"], olid_list)
+    await CommunityEditsQueue.submit_request(
+        url,
+        username,
+        reviewer=username,
+        status=CommunityEditsQueue.STATUS["MERGED"],
+        title=title,
+        comment=comment,
+        mr_type=CommunityEditsQueue.TYPE["AUTHOR_MERGE"],
+        unique_url=True,
+    )
 
 
 class community_edits_queue(delegate.page):
@@ -169,14 +149,14 @@ class community_edits_queue(delegate.page):
 
             # Validate URL
             is_valid_url = True
-            if needs_unique_url(mr_type) and CommunityEditsQueue.exists(url):
+            if needs_unique_url(mr_type) and CommunityEditsQueue.exists_sync(url):
                 is_valid_url = False
 
             if is_valid_url:
                 if action == "create-pending":
-                    result = CommunityEditsQueue.submit_request(url, username, title=title, comment=comment, mr_type=mr_type)
+                    result = CommunityEditsQueue.submit_request_sync(url, username, title=title, comment=comment, mr_type=mr_type)
                 elif action == "create-merged":
-                    result = CommunityEditsQueue.submit_request(
+                    result = CommunityEditsQueue.submit_request_sync(
                         url,
                         username,
                         title=title,
@@ -219,11 +199,11 @@ class community_edits_queue(delegate.page):
             resp = response(newStatus=status)
         # Close request by approving:
         elif action == "approve":
-            CommunityEditsQueue.update_request_status(mrid, CommunityEditsQueue.STATUS["MERGED"], username, comment=comment)
+            CommunityEditsQueue.update_request_status_sync(mrid, CommunityEditsQueue.STATUS["MERGED"], username, comment=comment)
             resp = response()
         # Close request by declining:
         elif action == "decline":
-            CommunityEditsQueue.update_request_status(mrid, CommunityEditsQueue.STATUS["DECLINED"], username, comment=comment)
+            CommunityEditsQueue.update_request_status_sync(mrid, CommunityEditsQueue.STATUS["DECLINED"], username, comment=comment)
             resp = response()
         # Unknown request:
         else:

@@ -30,6 +30,7 @@ SolrRequestLabel = Literal[
     "BOOK_CAROUSEL",
     "AUTHOR_BOOKS_PAGE",
     "AUTHOR_BOOKS_READABLE_COUNT",
+    "AUTHOR_BOOKS_PAGE_COUNT",
     # /get endpoint
     "GET_WORK_SOLR_DATA",
     # Subject, publisher pages
@@ -53,8 +54,8 @@ SolrRequestLabel = Literal[
     "AUTHOR_SEARCH_API",
     "EDITION_SEARCH",
     "EDITION_SEARCH_API",
-    # Librarian Tasks dashboard candidate query
-    "CONTRIBUTE_TASKS",
+    # Picking the editions of a Tasks initiative, once per initiative
+    "CONTRIBUTE_INITIATIVE",
     "READING_LOG_SORT",
 ]
 
