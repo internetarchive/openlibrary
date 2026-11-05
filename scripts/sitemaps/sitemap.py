@@ -15,7 +15,7 @@ import re
 import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from time import perf_counter
 
 import web
@@ -161,7 +161,7 @@ def generate_siteindex() -> None:
     filenames = sorted(os.listdir("sitemaps"))
     if "siteindex.xml.gz" in filenames:
         filenames.remove("siteindex.xml.gz")
-    timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    timestamp = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     index = siteindex(filenames, timestamp)
     write("sitemaps/siteindex.xml.gz", index)
 

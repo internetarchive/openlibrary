@@ -982,7 +982,7 @@ class invalidate(delegate.page):
 
 
 def save_error():
-    t = dt.datetime.utcnow()
+    t = dt.datetime.now(dt.UTC).replace(tzinfo=None)
     name = "%04d-%02d-%02d/%02d%02d%02d%06d" % (
         t.year,
         t.month,
