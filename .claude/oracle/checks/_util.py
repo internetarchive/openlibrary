@@ -11,8 +11,7 @@ under-enforces. See .claude/oracle/README.md.
 State is never stored here. Every predicate re-derives its answer live from
 GitHub (the artifact) each call. The only GitHub-authoritative anchors we trust:
   - headRefOid        (always populated, server-side, nothing to spoof)
-  - PR/issue existence and body text
-  - labels
+  - PR/issue existence and body text (incl. the oracle body block)
 We deliberately do NOT depend on push-time dates: GitHub's Commit.pushedDate is
 null in practice and PushEvent is 90d/300-event capped. Plan-currency is anchored
 on HEAD SHA equality instead (Oliver's schema call).
@@ -78,7 +77,7 @@ def pr_for_branch() -> dict | None:
             "--state",
             "open",
             "--json",
-            "number,body,headRefOid,isDraft,labels",
+            "number,body,headRefOid,isDraft",
         ]
     )
     return prs[0] if prs else None

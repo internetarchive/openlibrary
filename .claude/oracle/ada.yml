@@ -28,7 +28,7 @@ states:
   # continue with the rejection. That rejection is what stops `blocked` from
   # becoming a lazy bail.
   - id: blocked-escape
-    applies_when: python3 "$ORACLE_DIR/checks/pr.py" blocked_labeled
+    applies_when: python3 "$ORACLE_DIR/checks/pr.py" status_blocked
     check: python3 "$ORACLE_DIR/checks/pr.py" blocked_valid
     prompt: |
       Your plan's status is `blocked`, but the blocker is not a valid escape.

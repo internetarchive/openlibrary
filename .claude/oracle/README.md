@@ -36,7 +36,7 @@ is *"is my summary artifact newer than what's beneath it?"* We trust only
 server-authoritative GitHub facts:
 
 - **`headRefOid`** — always populated, server-side, nothing to spoof.
-- PR / issue existence and body text, labels.
+- PR / issue existence and body text (including the oracle body block).
 
 We deliberately do **not** depend on push-time dates. `Commit.pushedDate` is
 null in practice (confirmed live against this repo) and the REST PushEvent feed

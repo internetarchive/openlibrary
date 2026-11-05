@@ -14,7 +14,7 @@ Predicates:
   plan_current     the oracle block's recorded HEAD == live headRefOid (SHA
                    equality — the plan reflects the pushed code)
   status_set       the oracle block carries a status in the vocabulary
-  blocked_labeled  the oracle block's status is `blocked`
+  status_blocked   the oracle block's status is `blocked`
   blocked_valid    status is `blocked` AND a typed, lead-actionable blocker is
                    written (the one legitimate clear-to-stop escape)
 """
@@ -71,7 +71,7 @@ def _status_is_blocked() -> bool:
     return parse_oracle_block(pr.get("body") or "").get("status", "").strip().lower() == "blocked"
 
 
-def blocked_labeled() -> bool:
+def status_blocked() -> bool:
     return _status_is_blocked()
 
 
@@ -90,7 +90,7 @@ PREDICATES = {
     "pr_body_nonempty": pr_body_nonempty,
     "plan_current": plan_current,
     "status_set": status_set,
-    "blocked_labeled": blocked_labeled,
+    "status_blocked": status_blocked,
     "blocked_valid": blocked_valid,
 }
 
