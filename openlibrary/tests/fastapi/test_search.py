@@ -562,8 +562,6 @@ class TestSearchInsideEndpoint:
             "argentina brazil", page=1, offset=None, limit=20, js=True, facets=True, readable=False, phrase=False, language=None
         )
 
-
-
     def test_limit_over_cap_returns_422(self, fastapi_client, mock_fulltext_search_async, languages):
         """limit > 100 is rejected with 422 before any backend call."""
         response = fastapi_client.get("/search/inside.json?q=hello&limit=101")

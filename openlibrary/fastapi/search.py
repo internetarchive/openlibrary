@@ -294,9 +294,9 @@ async def search_json(
     return raw_response
 
 
-
 class SearchInsidePagination(Pagination):
     """Pagination for /search/inside.json with a hard limit of 100."""
+
     limit: int = Field(20, ge=0, le=100, description="Maximum number of results to return.")
 
 
