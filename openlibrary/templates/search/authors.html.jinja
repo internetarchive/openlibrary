@@ -1,16 +1,14 @@
 {# /search/authors body. For the FastAPI endpoint (openlibrary/fastapi/search.py) and temporarily the web.py handler (openlibrary/plugins/worksearch/code.py) until ops routes /search/authors there in production. #}
-
 <div id="contentHead">
     <h1>{{ _("Search Authors") }}</h1>
 </div>
-
 <div id="contentBody">
     {% include "SearchNavigation.html.jinja" %}
-  <div class="section">
-    <form class="siteSearch olform" action="">
-        {{ searchbox(q=q) }}
-    </form>
-  </div>
+    <div class="section">
+        <form class="siteSearch olform" action="">
+            {{ searchbox(q=q) }}
+        </form>
+    </div>
     {% if q and search_response.error %}
         <strong>
             {% for line in search_response.error.splitlines() %}
@@ -21,55 +19,57 @@
             {% endfor %}
         </strong>
     {% endif %}
-
     {% if q and not search_response.error %}
         {% if search_response.num_found %}
             <div class="search-results-stats">
                 {{ ngettext('%(count)s hit', '%(count)s hits', search_response.num_found, count=commified_num_found) }}
-            {% if search_response.num_found > 1 %}
-                {{ render_templetor_template("search/sort_options.html", selected_sort=sort, search_scheme="authors") }}            
-                {% set user_can_merge = ctx.user and ctx.user.is_librarian_or_higher() %}
-                {% if search_response.num_found >= 2 and user_can_merge %}
-                  {% set keys = ','.join(doc['key'].split("/")[-1] for doc in results.docs) %}
-                  <div class="mergeThis">{{ _('Is the same author listed twice?') }} <a class="large sansserif" href="/authors/merge?records=$keys">{{ _('Merge authors') }}</a></div>
+                {% if search_response.num_found > 1 %}
+                    {{ render_templetor_template("search/sort_options.html", selected_sort=sort, search_scheme="authors") }}
+                    {% set user_can_merge = ctx.user and ctx.user.is_librarian_or_higher() %}
+                    {% if search_response.num_found >= 2 and user_can_merge %}
+                        {% set keys = ','.join(doc['key'].split("/")[-1] for doc in results.docs) %}
+                        <div class="mergeThis">{{ _("Is the same author listed twice?") }} <a class="large sansserif" href="/authors/merge?records=$keys">{{ _("Merge authors") }}</a></div>
+                    {% endif %}
                 {% endif %}
-            {% endif %}
             </div>
         {% else %}
             <center>
-                <div class="red">{{ _('No <strong>authors</strong> directly matched your search') | safe }}</div>
+                <div class="red">{{ _("No <strong>authors</strong> directly matched your search") | safe }}</div>
                 <hr>
-              </center>
-              <div id="fulltext-search-suggestion" data-query="{{ q }}">{{ loading_indicator }}</div>
+            </center>
+            <div id="fulltext-search-suggestion" data-query="{{ q }}">{{ loading_indicator }}</div>
         {% endif %}
         {% if search_response and search_response.num_found %}
             <ul class="authorList list-books">
-            {% for doc in search_response.docs %}
-                {% set n = doc['name'] %}
-                {% set url = doc['key'] + '/' + urlsafe(n) %}
-                {% set num = doc['work_count'] %}
-                {% set wc = ungettext("%(count)d book", "%(count)d books", num, count=num) %}
-                {% set date = '' %}
-                {% if 'birth_date' in doc or 'death_date' in doc %}
-                    {% set date = doc.get('birth_date', '') + ' - ' + doc.get('death_date', '') %}
-                {% elif 'date' in doc %}
-                    {% date = doc['date'] %}
-                {% endif %}
-                <li class="searchResultItem">
-                <img src="{{get_coverstore_public_url()}}/a/olid/{{doc['key'].split('/')[-1]}}-M.jpg" itemprop="image" class="cover author" alt="{{ _('Photo of %(author)s', author=n) }}">
-                <div class="details">
-                    <a href="{{ url }}" class="larger">$n</a>&nbsp;<span class="brown small">{{ date }}</span><br />
-                    <span class="small grey"><b>$wc</b>
-                    {% if 'top_subjects' in doc %}
-                        {{ _('about %(subjects)s', subjects=', '.join(doc['top_subjects'])) }},
-                        {{ _('including <i>%(topwork)s</i>', topwork=doc.get('top_work', '')) | safe }} </span>
+                {% for doc in search_response.docs %}
+                    {% set n = doc['name'] %}
+                    {% set url = doc['key'] + '/' + urlsafe(n) %}
+                    {% set num = doc['work_count'] %}
+                    {% set wc = ungettext("%(count)d book", "%(count)d books", num, count=num) %}
+                    {% set date = "" %}
+                    {% if 'birth_date' in doc or 'death_date' in doc %}
+                        {% set date = doc.get('birth_date', '') + ' - ' + doc.get('death_date', '') %}
+                    {% elif 'date' in doc %}
+                        {% date = doc['date'] %}
                     {% endif %}
-                </div>
-                </li>
-            {% endfor %}
+                    <li class="searchResultItem">
+                        <img src="{{ get_coverstore_public_url() }}/a/olid/{{ doc['key'].split('/')[-1] }}-M.jpg"
+                             itemprop="image"
+                             class="cover author"
+                             alt="{{ _('Photo of %(author)s', author=n) }}">
+                        <div class="details">
+                            <a href="{{ url }}" class="larger">$n</a>&nbsp;<span class="brown small">{{ date }}</span>
+                            <br />
+                            <span class="small grey"><b>$wc</b>
+                                {% if 'top_subjects' in doc %}
+                                    {{ _('about %(subjects)s', subjects=', '.join(doc['top_subjects'])) }},
+                                    {{ _('including <i>%(topwork)s</i>', topwork=doc.get('top_work', '')) | safe }} </span>
+                            {% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
             </ul>
             {{ pagination }}
         {% endif %}
-  </div>
-
-</div>
+        </div>
+        </div>
