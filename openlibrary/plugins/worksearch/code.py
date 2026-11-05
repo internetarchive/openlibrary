@@ -1,3 +1,4 @@
+import asyncio
 import copy
 import functools
 import itertools
@@ -21,7 +22,7 @@ from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import is_passage_query
-from openlibrary.core.lending import add_availability, add_availability_async
+from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Edition
 from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.i18n import gettext as _
@@ -179,24 +180,18 @@ def get_availability_label(value: str) -> str:
     }.get(value, value)
 
 
-def _get_readable_count(param: dict, search_response) -> int | None:
+async def _get_readable_count_async(param: dict) -> int:
     """Count of the current search's results that are readable in-browser, for
     the "Readable Only" toggle sublabel on work_search.html. Mirrors the
-    'readable' availability filter (has_fulltext=true). Reuses the main result
-    count when the search is already readable-scoped; otherwise runs one cheap
-    rows=0 count query. Returns None when there's nothing to count.
+    'readable' availability filter (has_fulltext=true) with a rows=0 query.
 
     Note we can't use the has_fulltext facet count here: has_fulltext is indexed
     as ebook_access > UNCLASSIFIED (includes printdisabled), but the toggle's
     filter is ebook_access:[borrowable TO *], so the facet would over-count.
     """
-    if not param or not search_response.num_found:
-        return None
-    if get_active_availability(param) == "readable":
-        return search_response.num_found  # the main query already counted it
     readable_param = {k: v for k, v in param.items() if k != "public_scan"}
     readable_param["has_fulltext"] = "true"
-    resp = run_solr_query(
+    resp = await run_solr_query_async(
         WorkSearchScheme(solr_editions=req_context.get().solr_editions),
         readable_param,
         rows=0,
@@ -206,6 +201,43 @@ def _get_readable_count(param: dict, search_response) -> int | None:
         request_label="BOOK_SEARCH_READABLE_COUNT",
     )
     return resp.num_found
+
+
+async def _run_work_search_async(
+    param: dict,
+    rows: int,
+    page: int,
+    sort: str | None,
+    solr_internals_params: SolrInternalsParams | None,
+) -> tuple[SearchResponse, list[web.storage], int | None]:
+    """Run the /search page's Solr queries and availability lookup. The readable
+    count only needs `param`, so it runs alongside the main query and the
+    availability lookup that follows it, rather than after them."""
+
+    async def search_with_availability() -> tuple[SearchResponse, list[web.storage]]:
+        resp = await run_solr_query_async(
+            WorkSearchScheme(solr_editions=req_context.get().solr_editions),
+            param,
+            rows=rows,
+            page=page,
+            sort=sort,
+            spellcheck_count=3,
+            fields=compute_work_search_html_fields(sort, req_context.get().sfw),
+            facet=False,
+            highlight=True,
+            request_label="BOOK_SEARCH",
+            solr_internals_params=solr_internals_params,
+        )
+        works = [get_doc(doc) for doc in resp.docs]
+        await add_availability_async([(w.get("editions") or [None])[0] or w for w in works])
+        return resp, works
+
+    if get_active_availability(param) == "readable":
+        resp, works = await search_with_availability()
+        readable_count = resp.num_found  # the main query already counted it
+    else:
+        (resp, works), readable_count = await asyncio.gather(search_with_availability(), _get_readable_count_async(param))
+    return resp, works, readable_count if resp.num_found else None
 
 
 # Make public
@@ -874,32 +906,18 @@ class search(delegate.page):
             solr_internals_params = None
 
         if param:
-            search_response = run_solr_query(
-                WorkSearchScheme(solr_editions=req_context.get().solr_editions),
-                param,
-                rows=rows,
-                page=page,
-                sort=sort,
-                spellcheck_count=3,
-                fields=compute_work_search_html_fields(sort, req_context.get().sfw),
-                facet=False,
-                highlight=True,
-                request_label="BOOK_SEARCH",
-                solr_internals_params=solr_internals_params,
+            search_response, works, readable_count = async_bridge.run(
+                _run_work_search_async(param, rows=rows, page=page, sort=sort, solr_internals_params=solr_internals_params)
             )
         else:
             search_response = SearchResponse(facet_counts=None, sort="", docs=[], num_found=0, solr_select="")
-
-        readable_count = _get_readable_count(param, search_response)
+            works, readable_count = [], None
 
         # Surface an author row above the results when the query names the author
         # of one of the top works (see author_suggestion.derive_authors). No extra
         # Solr round-trip: it reuses the docs this same search already returned.
         q_joined = " ".join(q_list)
         author_suggestions = derive_authors(search_response.docs, q_joined)
-
-        works = [get_doc(doc) for doc in search_response.docs]
-        add_availability([(w.get("editions") or [None])[0] or w for w in works])
 
         return render.work_search(
             q_joined,
