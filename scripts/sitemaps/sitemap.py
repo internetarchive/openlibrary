@@ -161,7 +161,7 @@ def generate_siteindex() -> None:
     filenames = sorted(os.listdir("sitemaps"))
     if "siteindex.xml.gz" in filenames:
         filenames.remove("siteindex.xml.gz")
-    timestamp = datetime.now(UTC).replace(tzinfo=None).strftime("%Y-%m-%dT%H:%M:%SZ")
+    timestamp = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     index = siteindex(filenames, timestamp)
     write("sitemaps/siteindex.xml.gz", index)
 
