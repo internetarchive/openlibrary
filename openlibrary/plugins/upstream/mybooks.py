@@ -159,7 +159,7 @@ class mybooks_home(delegate.page):
                 logger.exception("Failed to fetch loan history for %s; rendering without it", mb.username)
 
             try:
-                raw_history = ReadHistory.get_history(mb.username, limit=18)
+                raw_history = ReadHistory.get_history_sync(mb.username, limit=18)
                 read_history_items = [dict(r) for r in raw_history]
                 if read_history_items:
                     Bookshelves.add_solr_works(read_history_items)

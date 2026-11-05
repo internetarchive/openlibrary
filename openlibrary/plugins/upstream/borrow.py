@@ -184,7 +184,7 @@ def _record_read_history(user, edition):
 
     if work_id:
         try:
-            ReadHistory.add(
+            ReadHistory.add_sync(
                 username=username,
                 work_id=int(work_id),
                 edition_id=int(edition_id) if edition_id else None,

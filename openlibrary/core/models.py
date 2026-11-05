@@ -727,7 +727,7 @@ class Work(Thing):
             r["occurrences"]["booknotes"] = len(Booknotes.get_booknotes_for_work_sync(olid))
             r["occurrences"]["bestbooks"] = Bestbook.get_count_sync(work_id=olid)
             r["occurrences"]["observations"] = len(Observations.get_observations_for_work(olid))
-            r["occurrences"]["readhistory"] = len(ReadHistory.get_for_work(olid))
+            r["occurrences"]["readhistory"] = len(ReadHistory.get_for_work_sync(olid))
 
             if new_olid != olid:
                 # track updates
@@ -736,7 +736,7 @@ class Work(Thing):
                 r["updates"]["booknotes"] = Booknotes.update_work_id(olid, new_olid, _test=test)
                 r["updates"]["observations"] = Observations.update_work_id(olid, new_olid, _test=test)
                 r["updates"]["bestbooks"] = Bestbook.update_work_id(olid, new_olid, _test=test)
-                r["updates"]["readhistory"] = ReadHistory.update_work_id(olid, new_olid, _test=test)
+                r["updates"]["readhistory"] = ReadHistory.update_work_id_sync(olid, new_olid, _test=test)
                 summary["modified"] = summary["modified"] or any(
                     any(r["updates"][group].values())
                     for group in [

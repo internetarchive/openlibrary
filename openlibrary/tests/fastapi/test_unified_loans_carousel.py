@@ -290,7 +290,7 @@ def test_unified_loans_carousel_includes_read_history_and_deduplicates():
     with (
         patch("openlibrary.plugins.upstream.mybooks.get_loans_of_user", return_value=[]),
         patch("openlibrary.plugins.upstream.mybooks.get_loan_history_data", return_value={"docs": []}),
-        patch("openlibrary.core.read_history.ReadHistory.get_history", return_value=mock_read_history_items),
+        patch("openlibrary.core.read_history.ReadHistory.get_history_sync", return_value=mock_read_history_items),
         patch("openlibrary.plugins.upstream.mybooks.Bookshelves.add_solr_works"),
         patch("openlibrary.plugins.upstream.mybooks.site", mock_site_context),
         patch("openlibrary.plugins.upstream.mybooks.render", mock_render),
@@ -374,7 +374,7 @@ def test_active_loan_bumps_to_top_when_read():
     with (
         patch("openlibrary.plugins.upstream.mybooks.get_loans_of_user", return_value=mock_active_loans),
         patch("openlibrary.plugins.upstream.mybooks.get_loan_history_data", return_value={"docs": []}),
-        patch("openlibrary.core.read_history.ReadHistory.get_history", return_value=mock_read_history_items),
+        patch("openlibrary.core.read_history.ReadHistory.get_history_sync", return_value=mock_read_history_items),
         patch("openlibrary.plugins.upstream.mybooks.Bookshelves.add_solr_works"),
         patch("openlibrary.plugins.upstream.mybooks.site", mock_site_context),
         patch("openlibrary.plugins.upstream.mybooks.render", mock_render),

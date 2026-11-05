@@ -844,7 +844,7 @@ class account_privacy(delegate.page):
         old_track = old_prefs.get("track_read_history", "yes")
         new_track = i.track_read_history or "yes"
         if old_track == "yes" and new_track == "no":
-            ReadHistory.clear_history(username)
+            ReadHistory.clear_history_sync(username)
 
         PubSub.toggle_privacy_sync(username, private=i.public_readlog == "no")
         web.setcookie("sfw", i.safe_mode, expires="" if i.safe_mode.lower() == "yes" else -1)
