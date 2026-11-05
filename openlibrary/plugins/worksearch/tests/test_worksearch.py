@@ -1,5 +1,7 @@
+import asyncio
 from unittest.mock import patch
 
+import pytest
 import web
 
 from openlibrary.plugins.worksearch import code
@@ -194,6 +196,66 @@ def _with_req_context(fn):
         return fn()
     finally:
         req_context.reset(token)
+
+
+class TestRunWorkSearch:
+    """_run_work_search_async: the readable count's Solr query runs alongside
+    the main search, and the count matches what the old sequential code gave."""
+
+    @staticmethod
+    def _fake_solr(num_found: int, readable_num_found: int, calls: list):
+        both_started = asyncio.Event()
+
+        async def fake_run_solr_query_async(scheme, param, **kwargs):
+            calls.append((param, kwargs))
+            if len(calls) == 2:
+                both_started.set()
+            # Each query waits for the other to start: this only finishes if they run concurrently.
+            await asyncio.wait_for(both_started.wait(), timeout=1)
+            if kwargs["rows"] == 0:
+                return SearchResponse(facet_counts=None, sort="", docs=[], num_found=readable_num_found, solr_select="")
+            return SearchResponse(facet_counts=None, sort="", docs=[], num_found=num_found, solr_select="")
+
+        return fake_run_solr_query_async
+
+    @staticmethod
+    async def _run(param: dict, fake_solr):
+        token = req_context.set(RequestContextVars(x_forwarded_for=None, user_agent=None, lang="en", solr_editions=True, print_disabled=False))
+        try:
+            with (
+                patch.object(code, "run_solr_query_async", side_effect=fake_solr),
+                patch.object(code, "add_availability_async", side_effect=lambda items: items),
+            ):
+                return await code._run_work_search_async(param, rows=20, page=1, sort=None, solr_internals_params=None)
+        finally:
+            req_context.reset(token)
+
+    @pytest.mark.asyncio
+    async def test_counts_readable_alongside_main_query(self):
+        calls: list = []
+        resp, works, readable_count = await self._run({"q": "harry potter", "public_scan": "true"}, self._fake_solr(100, 42, calls))
+        assert (resp.num_found, works, readable_count) == (100, [], 42)
+        assert len(calls) == 2
+        readable_param, readable_kwargs = next(c for c in calls if c[1]["rows"] == 0)
+        assert readable_param == {"q": "harry potter", "has_fulltext": "true"}
+        assert readable_kwargs["request_label"] == "BOOK_SEARCH_READABLE_COUNT"
+
+    @pytest.mark.asyncio
+    async def test_reuses_main_count_when_already_readable(self):
+        calls: list = []
+
+        async def fake_solr(scheme, param, **kwargs):
+            calls.append((param, kwargs))
+            return SearchResponse(facet_counts=None, sort="", docs=[], num_found=123, solr_select="")
+
+        _, _, readable_count = await self._run({"q": "harry potter", "has_fulltext": "true"}, fake_solr)
+        assert readable_count == 123
+        assert len(calls) == 1  # no separate count query
+
+    @pytest.mark.asyncio
+    async def test_no_readable_count_when_no_results(self):
+        _, _, readable_count = await self._run({"q": "zzzz"}, self._fake_solr(0, 0, []))
+        assert readable_count is None
 
 
 def _stub_search_web_input(monkeypatch):
