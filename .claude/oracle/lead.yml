@@ -1,0 +1,34 @@
+# Oracle checklist — LEAD role.
+#
+# A lead's only job at its stop: keep the division NOW current with the adas
+# beneath it. The NOW lives in ONE dedicated per-division GitHub issue titled
+# `[NOW] <division>`. The lead AUTHORS the NOW (judgment + priorities) on top of
+# the pulled state; it is never auto-generated.
+#
+# The float-up is the LEAD PULLING at its own stop — never an ada pushing.
+#
+# $ORACLE_DIR -> this directory; $ORACLE_DIVISION -> the division name (both set
+# by hook.py). Predicates in checks/now.py fail OPEN (exit 0 = satisfied).
+
+context: []
+
+states:
+  # The NOW issue must exist before it can be kept current.
+  - id: now-exists
+    check: python3 "$ORACLE_DIR/checks/now.py" now_exists
+    prompt: |
+      No open `[NOW] $ORACLE_DIVISION` issue found. Create ONE dedicated issue
+      titled exactly `[NOW] $ORACLE_DIVISION`. Its body is your division's NOW:
+      the current priorities and state across your adas, authored in your words.
+
+  # NOW current with adas: no owned child issue has changed more recently than
+  # the NOW was last authored. `now_current` compares each child's `updatedAt`
+  # (intentionally sensitive — over-checking is the safe direction) against the
+  # NOW issue's `lastEditedAt`. When a child is newer, reconcile and re-author.
+  - id: now-current
+    check: python3 "$ORACLE_DIR/checks/now.py" now_current
+    prompt: |
+      An owned issue has changed more recently than your `[NOW] $ORACLE_DIVISION`
+      was last authored. Pull the latest from your adas' issues, then reconcile the
+      NOW: re-author it with your judgment and priorities on top of what changed —
+      do not just paste their updates. Editing the issue body re-stamps it current.

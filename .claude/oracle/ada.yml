@@ -1,0 +1,116 @@
+# Oracle checklist — ADA role (one ada, one PR).
+#
+# Evaluated at every would-be Stop. The oracle engine walks states in order; the
+# FIRST state whose `check:` fails becomes the next prompt (force-continue, exit
+# 2). When every state passes, the stop is allowed (exit 0).
+#
+# Terminal = (all work items met) OR (a valid blocked-escape).
+#
+# $ORACLE_DIR is exported by hook.py to this directory, so checks resolve
+# regardless of cwd. Predicates in checks/pr.py fail OPEN (exit 0 = satisfied).
+#
+# State is artifact-native: every predicate re-derives live from the PR on
+# GitHub. The one structured carrier is an HTML-comment block in the PR body:
+#   <!-- oracle
+#   status: developing
+#   head: <sha the plan was last written against>
+#   blocker: <type>: <specifics>        # only when status: blocked
+#   -->
+
+context: []
+
+states:
+  # ---- Blocked-escape gate (a DISTINCT valid clear-to-stop) -----------------
+  # Only applies when the plan's status is `blocked`. If the blocker is typed and
+  # lead-actionable, this passes and every work item below is skipped (they
+  # `applies_when: ! blocked_valid`) => all states pass => stop allowed. If the
+  # "blocker" reduces to "haven't-finished-looking", the check fails => force-
+  # continue with the rejection. That rejection is what stops `blocked` from
+  # becoming a lazy bail.
+  - id: blocked-escape
+    applies_when: python3 "$ORACLE_DIR/checks/pr.py" blocked_labeled
+    check: python3 "$ORACLE_DIR/checks/pr.py" blocked_valid
+    prompt: |
+      Your plan's status is `blocked`, but the blocker is not a valid escape.
+      A blocker clears you to stop ONLY if it is something a LEAD can act on by
+      conversing with you. In the oracle block of the PR body, write:
+
+          blocker: <type>: <specific, lead-actionable detail>
+
+      where <type> is one of: decision-needed | missing-info | access |
+      upstream-dependency. It must NOT reduce to "I haven't finished looking yet"
+      (still investigating / need to read more / keep exploring) — that is not a
+      blocker, it is unfinished work, so keep going instead.
+
+      If you are not actually blocked, change `status:` to reflect reality and
+      continue the work.
+
+  # ---- Work items (first unmet becomes the next prompt) ---------------------
+
+  # 1. Working tree clean. Skipped when validly blocked (never force a commit —
+  #    a broken-env block may have nothing worth committing).
+  - id: tree-clean
+    applies_when: "! python3 \"$ORACLE_DIR/checks/pr.py\" blocked_valid"
+    check: test -z "$(git status --porcelain)"
+    prompt: |
+      Your working tree has uncommitted changes. Commit them with a clear message
+      (`git add -A && git commit`), then continue. If some changes are scratch and
+      should not ship, remove or stash them first — but do not leave the tree dirty.
+
+  # 2. Commits ahead are pushed. Applies even when blocked, so the lead inherits
+  #    your partial state (Oliver #6: "push IF the tree has commits"). It never
+  #    forces a commit; it only pushes what is already committed.
+  - id: pushed
+    check: >-
+      U=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null);
+      test -n "$U" && test -z "$(git log '@{u}'..HEAD --oneline 2>/dev/null)"
+    prompt: |
+      You have local commits that are not on the remote. Push them so the work is
+      visible (and the lead can see it):
+
+          git push -u origin HEAD
+
+  # 3. A PR exists for this branch (open a DRAFT; its body is the plan).
+  - id: pr-exists
+    check: python3 "$ORACLE_DIR/checks/pr.py" pr_exists
+    prompt: |
+      No open PR for this branch. Open a DRAFT PR whose body IS your plan:
+
+          gh pr create --draft --title "<concise title>" --body "<plan>"
+
+      The plan should say what you are building, your approach, and status. Include
+      the oracle block so the checklist can read your status and head SHA:
+
+          <!-- oracle
+          status: developing
+          head: <paste the current `git rev-parse HEAD`>
+          -->
+
+  # 4. PR body is non-empty (the plan is actually written).
+  - id: pr-body
+    check: python3 "$ORACLE_DIR/checks/pr.py" pr_body_nonempty
+    prompt: |
+      The PR body is empty. Write the plan: what you are building, the approach,
+      current status, and the oracle block (status + head SHA).
+
+  # 5. Plan current with work — SHA equality. The oracle block's recorded `head:`
+  #    must equal the PR's live headRefOid. Skipped when validly blocked.
+  - id: plan-current
+    applies_when: "! python3 \"$ORACLE_DIR/checks/pr.py\" blocked_valid"
+    check: python3 "$ORACLE_DIR/checks/pr.py" plan_current
+    prompt: |
+      Your plan is stale: the oracle block's `head:` SHA does not match the PR's
+      current pushed HEAD. You pushed code without refreshing the plan. Update the
+      PR description so it reflects the latest commits, and stamp the current HEAD:
+
+          head: <paste the current `git rev-parse HEAD`>
+
+  # 6. Status set — one of the vocabulary values in the oracle block. Skipped
+  #    when validly blocked (the status there IS `blocked`, already handled).
+  - id: status-set
+    applies_when: "! python3 \"$ORACLE_DIR/checks/pr.py\" blocked_valid"
+    check: python3 "$ORACLE_DIR/checks/pr.py" status_set
+    prompt: |
+      Set a status in the oracle block of the PR body. One of:
+      investigating | developing | ready-for-review | needs-decision |
+      merged-pending-deploy | blocked.
