@@ -1,32 +1,52 @@
 # Oracle checklist — LEAD role.
 #
-# A lead's only job at its stop: keep the division NOW current with the adas
-# beneath it. The NOW lives in ONE dedicated per-division GitHub issue titled
-# `[NOW] <division>`. The lead AUTHORS the NOW (judgment + priorities) on top of
-# the pulled state; it is never auto-generated.
+# PURE DATA for the Oracle engine (see ada.yml header). A lead's only job at its
+# stop: keep the division NOW current with the adas beneath it. The NOW lives in
+# ONE dedicated per-division GitHub issue titled `[NOW] <division>`. The lead
+# AUTHORS the NOW (judgment + priorities) on top of the pulled state.
 #
 # The float-up is the LEAD PULLING at its own stop — never an ada pushing.
 #
-# $ORACLE_DIR -> this directory; $ORACLE_DIVISION -> the division name (both set
-# by hook.py). Predicates in checks/now.py fail OPEN (exit 0 = satisfied).
+# $ORACLE_DIVISION is the division name; the engine's hook sets it from
+# `agents whoami`. Child issues default to those carrying a label == the division;
+# override with $ORACLE_CHILD_QUERY (a gh search fragment).
 
 context: []
 
 states:
   # The NOW issue must exist before it can be kept current.
   - id: now-exists
-    check: python3 "$ORACLE_DIR/checks/now.py" now_exists
+    check: >-
+      test -n "$(gh issue list --state open
+      --search 'in:title \"[NOW] '"$ORACLE_DIVISION"'\"'
+      --json number -q '.[0].number' 2>/dev/null)"
     prompt: |
       No open `[NOW] $ORACLE_DIVISION` issue found. Create ONE dedicated issue
       titled exactly `[NOW] $ORACLE_DIVISION`. Its body is your division's NOW:
       the current priorities and state across your adas, authored in your words.
 
-  # NOW current with adas: no owned child issue has changed more recently than
-  # the NOW was last authored. `now_current` compares each child's `updatedAt`
-  # (intentionally sensitive — over-checking is the safe direction) against the
-  # NOW issue's `lastEditedAt`. When a child is newer, reconcile and re-author.
+  # NOW current with adas: no owned child issue has changed more recently than the
+  # NOW was last authored. Children are compared on `updatedAt` (intentionally
+  # sensitive — over-checking is the safe direction); the NOW is anchored on its
+  # body `lastEditedAt` (falling back to createdAt), which only the lead AUTHORING
+  # a reconciliation moves. This GraphQL + timestamp comparison is the predicate
+  # most worth promoting to an ENGINE builtin (precise lastEditedAt handling and
+  # clean fail-open); the inline form below is the working best-effort.
   - id: now-current
-    check: python3 "$ORACLE_DIR/checks/now.py" now_current
+    check: |-
+      REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)
+      FRAG=${ORACLE_CHILD_QUERY:-label:\"$ORACLE_DIVISION\"}
+      R=$(gh api graphql \
+        -f query='query($now:String!,$kids:String!){
+          now: search(query:$now, type:ISSUE, first:5){nodes{... on Issue{number title lastEditedAt createdAt}}}
+          kids: search(query:$kids, type:ISSUE, first:50){nodes{... on Issue{number updatedAt}}}}' \
+        -f now="repo:$REPO is:issue is:open in:title \"[NOW] $ORACLE_DIVISION\"" \
+        -f kids="repo:$REPO is:issue $FRAG" \
+        -q '(.data.now.nodes[0]) as $n
+            | ($n | (.lastEditedAt // .createdAt)) as $a
+            | ([.data.kids.nodes[] | select(.number != $n.number) | .updatedAt] | max // $a) as $m
+            | ($m <= $a)' 2>/dev/null)
+      [ "$R" = "true" ]
     prompt: |
       An owned issue has changed more recently than your `[NOW] $ORACLE_DIVISION`
       was last authored. Pull the latest from your adas' issues, then reconcile the
