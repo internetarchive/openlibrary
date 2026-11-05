@@ -39,8 +39,10 @@ transaction is discarded and the next access connects again. The async
 psycopg3 pool has its own connection checks and is unaffected.
 
 An active transaction never reconnects onto a different session. A connection
-drop fails the operation; commit or rollback discards the closed connection
-and its transaction stack so later operations can recover. Queries, writes,
+drop fails the operation, and the rest of the outermost transaction keeps
+failing even if a nested savepoint's error is caught. The outermost commit or
+rollback discards the closed connection and its transaction stack so later
+operations can recover. Queries, writes,
 and transactions are never retried. Since psycopg2 may only discover a dropped
 connection when an operation fails, each thread can fail its first request
 after a database restart. Subsequent requests recover once the database is

@@ -8,11 +8,18 @@ from web.db import DB, Transaction  # noqa: TID251
 _installed = False
 
 
-def _discard_closed_connection(ctx) -> bool:
+def _discard_closed_connection(ctx, depth: int = 0) -> bool:
+    """Unwind a closed connection's transactions down to ``depth``.
+
+    The connection itself is only dropped once no enclosing transaction remains,
+    so a failed savepoint cannot turn the rest of its outer transaction into
+    autocommitted writes on a new session.
+    """
     if (conn := ctx.get("db")) is None or not getattr(conn, "closed", False):
         return False
-    del ctx.db
-    ctx.transactions = []
+    ctx.transactions = ctx.get("transactions", [])[:depth]
+    if not depth:
+        del ctx.db
     return True
 
 
@@ -47,18 +54,18 @@ def install_connection_recovery() -> None:
         finally:
             # A failed commit must not leave a dead connection and transaction
             # stack attached to this thread forever.
-            _discard_closed_connection(self.ctx)
+            _discard_closed_connection(self.ctx, self.transaction_count)
 
     @wraps(original_rollback)
     def rollback(self):
         # A disconnected session cannot roll back or use a savepoint. Discard
         # local state without masking the original query error.
-        if _discard_closed_connection(self.ctx):
+        if _discard_closed_connection(self.ctx, self.transaction_count):
             return None
         try:
             return original_rollback(self)
         finally:
-            _discard_closed_connection(self.ctx)
+            _discard_closed_connection(self.ctx, self.transaction_count)
 
     DB._getctx = getctx
     # The property captures its getter when the class is defined; replacing

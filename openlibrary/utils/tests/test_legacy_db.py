@@ -221,3 +221,27 @@ def test_installation_is_idempotent(recovery):
     methods = DB._getctx, DB.ctx, Transaction.commit, Transaction.rollback
     legacy_db.install_connection_recovery()
     assert (DB._getctx, DB.ctx, Transaction.commit, Transaction.rollback) == methods
+
+
+@pytest.mark.parametrize("detected", [False, True])
+def test_failed_savepoint_keeps_outer_transaction_on_closed_connection(db, detected):
+    outer = db.transaction()
+    first = db.ctx.db
+    savepoint = db.transaction()
+    if detected:
+        first.closed = 1
+    else:
+        first.drop_on_execute = True
+    with pytest.raises(psycopg2.Error):
+        db.query("INSERT INTO example VALUES (1)")
+    savepoint.rollback()
+    # The caller swallowed the savepoint's error, but the outer transaction is
+    # still open: its next write must fail rather than autocommit on a new session.
+    assert len(db._ctx.transactions) == 1
+    with pytest.raises(psycopg2.InterfaceError):
+        db.query("INSERT INTO example VALUES (2)")
+    assert db._connect.call_count == 1
+    outer.rollback()
+    assert "db" not in db._ctx
+    assert db.query("SELECT 2") == 1
+    assert db.ctx.db.statements == ["SELECT 2"]
