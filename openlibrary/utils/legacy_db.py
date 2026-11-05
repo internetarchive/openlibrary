@@ -2,7 +2,8 @@
 
 from functools import wraps
 
-from web.db import DB, Transaction
+# Patches web.db connection handling itself (no SQL); see issue #14126.
+from web.db import DB, Transaction  # noqa: TID251
 
 _installed = False
 

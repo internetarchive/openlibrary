@@ -6,7 +6,7 @@
 <html lang="{{ layout.lang }}">
     {% include "shell/head.html.jinja" %}
     <body class="{{ layout.body_class }}"
-          {% for attr in layout.body_attrs %} {{ attr | safe }}{% endfor %}>
+          {% for attr in layout.body_attrs %} {{ attr }}{% endfor %}>
         <script>
             // Provide a signal that JS will load
             document.body.className += ' client-js';
@@ -19,7 +19,9 @@
         {% if layout.show_ol_shell %}
             {% include "shell/alert.html.jinja" %}
             {% include "shell/header.html.jinja" %}
-            {{ render_templetor_template("my_books/shelf_button_i18n") }}
+            <input type="hidden"
+                   name="shelf-button-i18n-strings"
+                   value="{{ layout.shelf_button_labels_json }}">
         {% endif %}
         <main {% if layout.show_ol_shell %} id="test-body-mobile" tabindex="-1"{% endif %}>
             {% if layout.show_ol_shell %}
