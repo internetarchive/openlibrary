@@ -576,16 +576,23 @@ def test_site_shell_renders_with_real_layout_context(monkeypatch, request_contex
     assert "<p>hi</p>" in html
 
 
-def test_donate_script_loads_async(monkeypatch, request_context_fixture):
+def test_third_party_scripts_load_async(monkeypatch, request_context_fixture):
+    """donate.js and athena.js come from archive.org; a slow fetch must not block rendering."""
     request_context_fixture(lang="en")
     env = get_jinja_env()
     monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
     monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
     layout = _layout()
-    html = env.get_template("shell/alert.html.jinja").render(layout=layout)
-    script = BeautifulSoup(html, "lxml").find("script", src=layout.donate_script_url)
-    assert script is not None
-    assert script.has_attr("async")
+    soup = BeautifulSoup(env.get_template("shell/base.html.jinja").render(page="", layout=layout), "lxml")
+
+    donate = soup.find("script", src=layout.donate_script_url)
+    assert donate is not None
+    assert donate.has_attr("async")
+    assert donate["data-platform"] == "ol"
+
+    athena = soup.find("script", src="/cdn/archive.org/athena.js")
+    assert athena is not None
+    assert athena.has_attr("async")
 
 
 def test_header_search_i18n_attributes_are_json_with_raw_placeholders(monkeypatch, request_context_fixture):
