@@ -248,6 +248,30 @@ class TestSearchEndpoint:
         assert "osp_count_fake" not in query_arg
         assert query_arg["q"] == "test"
 
+    @pytest.mark.parametrize("sort_option", ["old", "new", "title", "ebook_access"])
+    def test_editions_sort_is_forwarded(self, client, mock_work_search, sort_option):
+        """Documented editions.sort must reach work_search_async."""
+        response = search(client, q="test", **{"editions.sort": sort_option})
+
+        assert response.status_code == 200
+        mock_work_search.assert_called_once()
+        query_arg = mock_work_search.call_args[0][0]
+        assert query_arg["editions.sort"] == sort_option
+
+    def test_editions_sort_invalid_is_rejected(self, client, mock_work_search):
+        """An unknown editions.sort is a 422, same as sort on /search/editions.json."""
+        response = search(client, q="test", **{"editions.sort": "bogus"})
+
+        assert response.status_code == 422
+        mock_work_search.assert_not_called()
+
+    def test_editions_sort_empty_is_omitted(self, client, mock_work_search):
+        """An empty editions.sort is left out so Solr keeps its default edition ordering."""
+        response = search(client, q="test", **{"editions.sort": ""})
+
+        assert response.status_code == 200
+        assert "editions.sort" not in mock_work_search.call_args[0][0]
+
     def test_multiple_author_keys(self, client, mock_work_search):
         """Test that multiple author_key parameters are parsed correctly.
         Supporting multiple keys from query params isn't the default so this is important to check.

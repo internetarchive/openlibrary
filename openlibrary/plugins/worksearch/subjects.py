@@ -18,6 +18,7 @@ from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils.async_utils import async_bridge
+from openlibrary.utils.request_context import set_context_from_legacy_web_py
 
 if TYPE_CHECKING:
     from openlibrary.utils.solr import SolrRequestLabel
@@ -237,6 +238,7 @@ def _compute_notable_authors(subject_type: str, path: str) -> list[dict]:
         # The background refresh thread has no request ctx. Same guard as
         # core/lending.get_user_waiting_loans.
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
     engine = next((e for e in SUBJECTS if e.name == subject_type), None)
     if engine is None:
