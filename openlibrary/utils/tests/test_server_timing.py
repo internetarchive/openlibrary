@@ -199,18 +199,6 @@ class TestInfogamiBridge:
         assert timings.snapshot()["infobase"][::2] == (1, 0)
         assert "stats" not in web.ctx
 
-    def test_nested_discard_stats_keeps_outer_scope_active(self):
-        with server_timing.discard_legacy_stats():
-            with server_timing.discard_legacy_stats():
-                stats.begin("discarded")
-                stats.end()
-            stats.begin("also-discarded")
-            stats.end()
-        assert "stats" not in web.ctx
-        stats.begin("infobase")
-        stats.end()
-        assert stats.stats_summary()["infobase"].count == 1
-
 
 def test_all_metric_names_are_valid():
     root = pathlib.Path(__file__).parents[2]

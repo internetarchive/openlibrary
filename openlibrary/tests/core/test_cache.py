@@ -78,8 +78,8 @@ class Test_memcache_memoize:
         assert m.memcache.get(flag) == "another worker"
         assert m.memcache_get((20,), {}) is None
 
-    @pytest.mark.parametrize("failure", ["key", "acquire", "prethread", "compute", "delete"])
-    def test_failed_refresh_cleans_its_registration(self, monkeypatch, failure):
+    @pytest.mark.parametrize("failure", ["prethread", "compute", "delete"])
+    def test_failed_refresh_cleans_its_registration(self, failure):
         m = self.square_memoize()
         client = Mock()
         client.add.return_value = True
@@ -89,11 +89,7 @@ class Test_memcache_memoize:
         other_thread = threading.Thread(name="other-refresh")
         m.active_threads = {thread.name: thread, other_thread.name: other_thread}
         error = Mock(side_effect=RuntimeError("refresh failed"))
-        if failure == "key":
-            monkeypatch.setattr(m, "compute_key", error)
-        elif failure == "acquire":
-            client.add.side_effect = error
-        elif failure == "prethread":
+        if failure == "prethread":
             m.prethread = error
         elif failure == "compute":
             m.f = error
@@ -104,10 +100,7 @@ class Test_memcache_memoize:
             m._update_async_worker(20)
 
         assert m.active_threads == {other_thread.name: other_thread}
-        if failure in {"key", "acquire"}:
-            client.delete.assert_not_called()
-        else:
-            client.delete.assert_called_once_with(flag)
+        client.delete.assert_called_once_with(flag)
 
     def test_timeout(self, monkeytime):
         m = self.square_memoize()

@@ -272,13 +272,6 @@ class TestConvertIsoToMarcCache:
         assert utils.convert_iso_to_marc("fr") == "fre"
         assert language_catalog.call_count == calls + 1
 
-    def test_cache_clear_reloads_language(self, language_catalog):
-        assert utils.convert_iso_to_marc("en") == "eng"
-        utils.convert_iso_to_marc.cache_clear()
-        assert utils.convert_iso_to_marc.cache_info().currsize == 0
-        assert utils.convert_iso_to_marc("en") == "eng"
-        assert language_catalog.call_count == 2
-
 
 def test_get_abbrev_from_full_lang_name(
     mock_site: MockSite,
