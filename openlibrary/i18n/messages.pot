@@ -8392,6 +8392,10 @@ msgstr ""
 msgid "Unknown"
 msgstr ""
 
+#: openlibrary/core/edits.py
+msgid "Only super librarians and admins can modify 'What work is this an edition of?'"
+msgstr ""
+
 #: openlibrary/core/shell/nav.py
 msgid "K-12 Student Library"
 msgstr ""
@@ -9893,9 +9897,5 @@ msgstr ""
 
 #: openlibrary/views/loanstats.py
 msgid "The charts couldn't load. Reload the page to try again."
-msgstr ""
-
-#: openlibrary/core/edits.py
-msgid "Only super librarians and admins can modify 'What work is this an edition of?'"
 msgstr ""
 

@@ -351,6 +351,7 @@ def cached_get_counts_by_mode(mode: ApiMode = "all", reviewer="", **kwargs):
         timeout=dateutil.MINUTE_SECS,
     )(mode=mode, reviewer=reviewer, **kwargs)
 
+
 # Monkeypatch Thing.validate to restrict 'works' modifications on editions
 from infogami.utils.storage import Thing
 
