@@ -27,34 +27,10 @@ Ruff enforces this with rule `TID251`, which flags imports of `openlibrary.core.
 
 ## Legacy connections under FastAPI
 
-web.py clears its thread-local database state after each request. FastAPI does
-not, so legacy `web.database` connections can outlive individual requests, both
-in sync endpoint worker threads and in legacy calls made on the event loop.
+web.py opens a fresh `web.database` connection per request; FastAPI keeps each thread's connection between requests. So both FastAPI apps (main and covers) call `openlibrary.utils.legacy_db.install_connection_recovery()` at startup: once a connection is found closed, it's dropped and the next query reconnects.
 
-The main FastAPI and covers app factories install
-`openlibrary.utils.legacy_db.install_connection_recovery()` once per process.
-It applies to all web.py database instances, including Infobase's in-process
-reads. Healthy connections remain reusable. A closed connection outside a
-transaction is discarded and the next access connects again. The async
-psycopg3 pool has its own connection checks and is unaffected.
-
-An active transaction never reconnects onto a different session. A connection
-drop fails the operation, and the rest of the outermost transaction keeps
-failing even if a nested savepoint's error is caught. The outermost commit or
-rollback discards the closed connection and its transaction stack so later
-operations can recover. Queries, writes,
-and transactions are never retried. Since psycopg2 may only discover a dropped
-connection when an operation fails, each thread can fail its first request
-after a database restart. Subsequent requests recover once the database is
-available, without restarting the app container.
-
-This first-failure cost is per stale thread-local connection, not one request
-across the service. Async cover handlers use the event-loop thread; sync
-FastAPI endpoints use worker threads with separate connections. A thread
-accessing multiple database instances can encounter a failure for each one.
-With multiple processes and threads, failures can arrive as traffic first
-reaches each stale connection. Recovery is independent of Server-Timing and
-Sentry settings: both app factories install the hook unconditionally.
+- psycopg2 only notices a drop when a query fails, so after a database restart each thread fails one request, then recovers.
+- Nothing is retried. A drop inside a transaction fails the rest of it, savepoints included, and the outermost rollback lets the thread reconnect.
 
 ## The async pool: `openlibrary/core/async_db.py`
 

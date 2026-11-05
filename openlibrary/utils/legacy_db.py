@@ -1,76 +1,55 @@
-"""Recover web.py database connections retained by FastAPI threads."""
+"""Recover web.py database connections that FastAPI keeps between requests."""
 
 from functools import wraps
 
-# Patches web.db connection handling itself (no SQL); see issue #14126.
-from web.db import DB, Transaction  # noqa: TID251
+from web import DB
 
 _installed = False
 
 
-def _discard_closed_connection(ctx, depth: int = 0) -> bool:
-    """Unwind a closed connection's transactions down to ``depth``.
-
-    The connection itself is only dropped once no enclosing transaction remains,
-    so a failed savepoint cannot turn the rest of its outer transaction into
-    autocommitted writes on a new session.
-    """
-    if (conn := ctx.get("db")) is None or not getattr(conn, "closed", False):
-        return False
-    ctx.transactions = ctx.get("transactions", [])[:depth]
-    if not depth:
-        del ctx.db
-    return True
-
-
 def install_connection_recovery() -> None:
-    """Install once per FastAPI process, including covers and in-process Infobase.
+    """Drop a thread's web.py connection once it is closed, so the next query reconnects.
 
-    Unlike web.py, FastAPI does not clear web.py's thread-locals per request.
-    Keep healthy connections, but let the next query replace a closed one.
-    Never replace a connection while its transaction is still active: the
-    transaction must fail and unwind first. No query is retried.
-
-    See https://github.com/internetarchive/openlibrary/issues/14126.
+    web.py clears its thread-locals after every request; FastAPI doesn't, so without
+    this a dropped connection fails every later request on that thread. web.py only
+    calls ``ctx.commit``/``ctx.rollback`` for the outermost transaction, so a
+    connection lost inside a savepoint keeps failing until the outer transaction
+    unwinds. Nothing is retried. See https://github.com/internetarchive/openlibrary/issues/14126.
     """
     global _installed
     if _installed:
         return
+    original_load_context = DB._load_context
 
-    original_getctx = DB._getctx
-    original_commit = Transaction.commit
-    original_rollback = Transaction.rollback
+    @wraps(original_load_context)
+    def load_context(self, ctx):
+        original_load_context(self, ctx)
+        commit, rollback = ctx.commit, ctx.rollback
 
-    @wraps(original_getctx)
-    def getctx(self):
-        if not self._ctx.get("transactions"):
-            _discard_closed_connection(self._ctx)
-        return original_getctx(self)
+        def closed() -> bool:
+            return bool(getattr(ctx.get("db"), "closed", False))
 
-    @wraps(original_commit)
-    def commit(self):
-        try:
-            return original_commit(self)
-        finally:
-            # A failed commit must not leave a dead connection and transaction
-            # stack attached to this thread forever.
-            _discard_closed_connection(self.ctx, self.transaction_count)
+        def discard_if_closed():
+            if closed():
+                del ctx.db
+                ctx.transactions = []
 
-    @wraps(original_rollback)
-    def rollback(self):
-        # A disconnected session cannot roll back or use a savepoint. Discard
-        # local state without masking the original query error.
-        if _discard_closed_connection(self.ctx, self.transaction_count):
-            return None
-        try:
-            return original_rollback(self)
-        finally:
-            _discard_closed_connection(self.ctx, self.transaction_count)
+        def recovering_commit(unload=True):
+            try:
+                commit(unload)
+            finally:
+                discard_if_closed()
 
-    DB._getctx = getctx
-    # The property captures its getter when the class is defined; replacing
-    # _getctx alone does not change accesses through self.ctx.
-    DB.ctx = property(getctx)
-    Transaction.commit = commit
-    Transaction.rollback = rollback
+        def recovering_rollback():
+            try:
+                # Rolling back a closed connection would raise and mask the original
+                # error; the server has already discarded the transaction.
+                if not closed():
+                    rollback()
+            finally:
+                discard_if_closed()
+
+        ctx.commit, ctx.rollback = recovering_commit, recovering_rollback
+
+    DB._load_context = load_context
     _installed = True
