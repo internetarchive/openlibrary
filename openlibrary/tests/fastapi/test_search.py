@@ -563,6 +563,22 @@ class TestSearchInsideEndpoint:
         )
 
 
+
+    def test_limit_over_cap_returns_422(self, fastapi_client, mock_fulltext_search_async, languages):
+        """limit > 100 is rejected with 422 before any backend call."""
+        response = fastapi_client.get("/search/inside.json?q=hello&limit=101")
+        assert response.status_code == 422
+        mock_fulltext_search_async.assert_not_called()
+
+    def test_limit_at_cap_succeeds(self, fastapi_client, mock_fulltext_search_async, languages):
+        """limit == 100 is accepted and forwarded."""
+        response = fastapi_client.get("/search/inside.json?q=hello&limit=100")
+        assert response.status_code == 200
+        mock_fulltext_search_async.assert_called_once_with(
+            "hello", page=1, offset=None, limit=100, js=True, facets=True, readable=False, phrase=True, language=None
+        )
+
+
 class TestEditionSearchEndpoint:
     """Tests for the /search/editions.json endpoint."""
 
