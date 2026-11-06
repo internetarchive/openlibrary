@@ -208,10 +208,14 @@ def test_untagged_works_are_picked_one_edition_each_and_only_while_a_tag_is_miss
 
 def test_the_pool_s_thread_builds_on_a_fresh_site_that_is_also_its_request_site(monkeypatch):
     seen = {}
-    fresh = object()
+    fresh, outer = object(), object()
     monkeypatch.setattr(initiatives, "create_site", lambda: fresh)
     monkeypatch.setattr(initiatives, "build_gaps", lambda initiative, site: seen.update(site=site, request=initiatives.request_site.get()) or ["gaps"])
-    assert initiatives.build_gaps_in_thread(initiatives.TAGS) == ["gaps"]
-    assert seen == {"site": fresh, "request": fresh}
-    with pytest.raises(LookupError):
-        initiatives.request_site.get()
+    # Other tests can leave the ContextVar set, so pin a known outer value and check it comes back.
+    token = initiatives.request_site.set(outer)
+    try:
+        assert initiatives.build_gaps_in_thread(initiatives.TAGS) == ["gaps"]
+        assert seen == {"site": fresh, "request": fresh}
+        assert initiatives.request_site.get() is outer
+    finally:
+        initiatives.request_site.reset(token)
