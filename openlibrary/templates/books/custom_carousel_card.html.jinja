@@ -67,7 +67,7 @@
                              loading="lazy"
                              title="{{ title }}{{ byline }}"
                              alt="{{ title }}{{ byline }}"
-                             {% if lazy and layout == 'carousel' %} data-lazy="{{ cover_url }}" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" {% else %} src="{{ cover_url }}" {% endif %} />
+                             src="{{ cover_url }}" />
                     {% else %}
                         <div class="carousel__item__blankcover" title="{{ title }}">
                             <div class="carousel__item__blankcover--title">{{ truncate_string(title, 70) }}</div>

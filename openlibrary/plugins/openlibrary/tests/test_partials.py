@@ -154,9 +154,6 @@ class TestCarouselLabel:
             title=title,
             url=None,
             key="",
-            grid="",
-            compact="",
-            loadjs="",
             config_json="{}",
             cards=[],
             count=None,
@@ -472,8 +469,8 @@ def test_build_nearby_books_placeholder_config_targets_the_nearby_books_partial(
     config = build_nearby_books_placeholder_config("/works/OL1W", "eng")
     assert json.loads(config["lazy_config_json"]) == {"partial": "NearbyBooks", "work_key": "/works/OL1W", "language": "eng"}
     assert config["fallback"] is None
-    # The skeleton stands in for NearbyBooksPartial's ol-carousel row and its unlinked heading.
-    assert (config["layout"], config["title_link"]) == ("ol-carousel", False)
+    # The skeleton stands in for NearbyBooksPartial's row and its unlinked heading.
+    assert config["title_link"] is False
 
 
 def _community_card(title: str) -> dict:

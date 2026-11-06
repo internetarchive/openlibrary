@@ -1,19 +1,35 @@
 /* Homepage about section */
 
+/* <ol-carousel> sets the card's width (home/welcome.html). */
 div.tutorial__item {
   background-color: var(--book-cover-carousel-cards);
   border: var(--border-card);
   border-radius: var(--border-radius-card);
   padding: var(--spacing-inset-sm);
-  min-width: 220px;
-  height: 100%;
   box-sizing: border-box;
 }
 
-/* @width-breakpoint-desktop: 960px */
-@media only screen and (min-width: 960px) {
-  div.tutorial__item {
-    min-width: 310px;
+/* Undoes the book-card reset in carousel.css, which this file loads after. */
+.carousel--native > .tutorial__item {
+  padding: var(--spacing-inset-sm);
+  text-align: start;
+}
+
+/* Pre-upgrade skeleton: the generic one in ol-components.css assumes 8 book columns,
+   which squeezes these cards to a sliver. Mirror the 3/2/1 breakpoints in home/welcome.html. */
+ol-carousel:not(:defined) > .tutorial__item {
+  flex-basis: 30.6%;
+}
+
+@media (max-width: 1024px) {
+  ol-carousel:not(:defined) > .tutorial__item {
+    flex-basis: 46.5%;
+  }
+}
+
+@media (max-width: 600px) {
+  ol-carousel:not(:defined) > .tutorial__item {
+    flex-basis: 94%;
   }
 }
 
@@ -40,6 +56,7 @@ div.tutorial__item a {
   align-items: center;
   min-height: 100px;
   gap: var(--spacing-inline-md);
+  text-decoration: none;
 }
 
 div.tutorial__item img {

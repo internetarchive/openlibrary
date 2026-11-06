@@ -74,7 +74,6 @@
     "oxlint": "^1.87.0",
     "postcss-lit": "^1.4.1",
     "prismjs": "^1.30.0",
-    "slick-carousel": "1.6.0",
     "stylelint": "^16.26.1",
     "stylelint-declaration-strict-value": "^1.11.1",
     "svgo": "^4.1.0",

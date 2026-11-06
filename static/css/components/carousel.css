@@ -2,7 +2,6 @@
 
 :root {
   --height-blank-cover: 200px;
-  --height-cover-compact: 125px;
 }
 
 /**
@@ -85,14 +84,7 @@
   }
 }
 
-.carousel {
-  display: flex;
-  margin-bottom: var(--spacing-stack-md);
-  overflow-x: scroll;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-lg);
-}
-
-/* Native rows run edge to edge on phones; slick's overhanging arrows would widen the page. */
+/* Native rows run edge to edge on phones. */
 /* --width-breakpoint-tablet */
 @media (max-width: 767px) {
   .carousel-container:has(> .carousel--native) {
@@ -116,12 +108,6 @@
 }
 
 .carousel__item {
-  padding: var(--spacing-inset-xs);
-  float: left;
-  height: 100%;
-  margin: 0 var(--spacing-inline-md);
-  min-height: 1px;
-  overflow: hidden;
   box-sizing: border-box;
 }
 
@@ -131,12 +117,7 @@
   --ol-carousel-gap: var(--spacing-carousel-gap);
 }
 
-/* Room for the cover rings (OlBookCover.js). */
 .carousel--native > .carousel__item {
-  float: none;
-  margin: 0;
-  padding: 0;
-  overflow: visible;
   text-align: center;
 }
 
@@ -192,34 +173,6 @@
   white-space: nowrap;
 }
 
-.carousel.carousel--grid .carousel__item {
-  margin: 0; /* Handled by grid gap */
-}
-
-/* Modifiers */
-/* A smaller carousel. */
-.carousel--minimal img {
-  max-height: 100px;
-  width: auto;
-}
-
-.carousel > div {
-  min-width: 130px;
-}
-
-/* Slick's prev/next arrows, which it appends as direct children of the
-   carousel. Pre-styled here so they don't flash as ordinary buttons on slower
-   connections. Kept to `>` so it can't reach the buttons inside a card. */
-.carousel > button {
-  border: 0;
-  position: absolute;
-  color: transparent;
-}
-
-.carousel .book:last-child {
-  margin-right: 0;
-}
-
 /*h2*/
 .carousel .book .book-title {
   font-size: 0.8em;
@@ -232,10 +185,6 @@
 .carousel .book .book-title a {
   color: var(--color-link);
   text-decoration: none;
-}
-
-.carousel__item .slick-loading {
-  opacity: 0;
 }
 
 /**
@@ -258,13 +207,6 @@
 /* TODO: Document where this is used. This is unlikely to need to be so specific. */
 .carousel-section .SRPCover img {
   box-shadow: 1px 2px 5px 0 var(--book-cover-shadow-color);
-}
-
-/* Hide horizontal scroll bar if JS is going to be loaded */
-.client-js .carousel {
-  margin-bottom: 0;
-  /* hide the overlay until carousel--js has loaded */
-  overflow: hidden;
 }
 
 .carousel__item__blankcover {
@@ -316,24 +258,7 @@
   box-shadow: none;
 }
 
-.carousel--compact .book .book-cover {
-  height: var(--height-cover-compact);
-  position: relative;
-}
-
-.carousel--compact .book .bookcover {
-  height: var(--height-cover-compact);
-}
-
-.carousel--compact .carousel__item__blankcover {
-  height: var(--height-cover-compact);
-  padding: 20% var(--spacing-inset-sm) var(--spacing-inset-sm);
-  margin: 0 auto;
-  width: 130px;
-  box-sizing: border-box;
-}
-
-/* A blank cover is a fixed 130px for slick; in the native row it follows the card. */
+/* In the native row a blank cover follows the card's width. */
 .carousel--native .carousel__item__blankcover {
   width: 100%;
   max-width: 130px;
@@ -519,47 +444,6 @@
 .carousel-skeleton__row {
   display: flex;
   overflow: hidden;
-}
-
-/* Slick's 6/5/4/3/2 cards per width (carousel/Carousel.js). */
-.carousel-skeleton__row:not(.carousel--native) {
-  padding: var(--spacing-inset-sm) var(--spacing-inset-lg);
-  --skeleton-columns: 6;
-}
-
-/* Most slick rows have a Preview button, 5px taller than the others. */
-.carousel-skeleton__row:not(.carousel--native) .ol-action-row {
-  padding-bottom: 5px;
-}
-
-.carousel-skeleton__row:not(.carousel--native) > .carousel__item {
-  flex: 0 0 auto;
-  float: none;
-  width: calc(100% / var(--skeleton-columns) - 2 * var(--spacing-inline-md));
-}
-
-@media (max-width: 1200px) {
-  .carousel-skeleton__row:not(.carousel--native) {
-    --skeleton-columns: 5;
-  }
-}
-
-@media (max-width: 1024px) {
-  .carousel-skeleton__row:not(.carousel--native) {
-    --skeleton-columns: 4;
-  }
-}
-
-@media (max-width: 600px) {
-  .carousel-skeleton__row:not(.carousel--native) {
-    --skeleton-columns: 3;
-  }
-}
-
-@media (max-width: 480px) {
-  .carousel-skeleton__row:not(.carousel--native) {
-    --skeleton-columns: 2;
-  }
 }
 
 /* Mirrors ol-carousel's track, columns and peek (OlCarousel.js). */

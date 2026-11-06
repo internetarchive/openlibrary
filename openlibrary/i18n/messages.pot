@@ -455,7 +455,7 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: RelatedSubjects.html.jinja account/create.html librarian_dashboard/data_quality_table.html login.html openlibrary/plugins/openlibrary/partials.py search/work_search_facets.html.jinja
+#: RelatedSubjects.html.jinja account/create.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html.jinja
 msgid "Loading..."
 msgstr ""
 
@@ -3183,24 +3183,24 @@ msgstr ""
 msgid "See all"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 msgid "Previous page"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 msgid "Next page"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 msgid "Carousel pages"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 #, python-brace-format
 msgid "Go to page {page} of {total}"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 #, python-brace-format
 msgid "Page {page} of {total}"
 msgstr ""
