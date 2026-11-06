@@ -19,6 +19,7 @@ export { OlOptionsPopover } from './OlOptionsPopover.js';
 export { OlMenuPopover } from './OlMenuPopover.js';
 export { OLChip } from './OLChip.js';
 export { OLChipGroup } from './OLChipGroup.js';
+export { OlTagPicker } from './OlTagPicker.js';
 export { OLButton } from './OLButton.js';
 export { OlSegmentedControl } from './OlSegmentedControl.js';
 export { OlToggle } from './OlToggle.js';
