@@ -788,23 +788,23 @@ msgid_plural "Logged %(count)i times %(time_unit)s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: verify_human.html
+#: openlibrary/fastapi/account.py openlibrary/plugins/upstream/account.py verify_human.html.jinja
 msgid "Human Verification"
 msgstr ""
 
-#: verify_human.html
+#: verify_human.html.jinja
 msgid "Please verify you are human to continue."
 msgstr ""
 
-#: verify_human.html
+#: verify_human.html.jinja
 msgid "Verify you are human"
 msgstr ""
 
-#: verify_human.html
+#: verify_human.html.jinja
 msgid "Verification failed. Please try again."
 msgstr ""
 
-#: verify_human.html
+#: verify_human.html.jinja
 msgid "Verifying..."
 msgstr ""
 
@@ -3383,7 +3383,7 @@ msgstr ""
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
 msgstr ""
 
-#: FulltextResultIA.html.jinja IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html lists/widget.html type/work/editions.html
+#: FulltextResultIA.html.jinja IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -4796,7 +4796,7 @@ msgstr ""
 msgid "Avatar of the owner of the list"
 msgstr ""
 
-#: lists/list_follow.html.jinja lists/widget.html
+#: lists/list_follow.html.jinja
 msgid "You"
 msgstr ""
 
@@ -4881,19 +4881,21 @@ msgid "You have no lists."
 msgstr ""
 
 #: lists/widget.html
-msgid "See this list"
+msgid "On your lists"
 msgstr ""
 
 #: lists/widget.html
-msgid "Remove from your list?"
+#, python-format
+msgid "Remove from %(name)s"
 msgstr ""
 
-#: lists/widget.html type/type/view.html
-msgid "from"
+#: lists/widget.html openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "Removed from %(name)s"
 msgstr ""
 
-#: lists/widget.html
-msgid "Loading<span class=\"loading-ellipsis\">...</span>"
+#: lists/widget.html openlibrary/core/shell/shelf_labels.py
+msgid "Something went wrong. Please try again."
 msgstr ""
 
 #: merge/authors.html
@@ -6331,6 +6333,11 @@ msgstr ""
 msgid "Search %(author)s books"
 msgstr ""
 
+#: type/author/view.html
+#, python-format
+msgid "There are no more works on this page. %(link_start)sBack to page 1%(link_end)s."
+msgstr ""
+
 #: RelatedSubjects.html.jinja SubjectTags.html openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
 msgid "Places"
 msgstr ""
@@ -6993,6 +7000,10 @@ msgstr ""
 
 #: type/type/view.html
 msgid "Backreferences"
+msgstr ""
+
+#: type/type/view.html
+msgid "from"
 msgstr ""
 
 #: type/user/edit.html
@@ -8722,7 +8733,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: openlibrary/core/shell/shelf_labels.py
-msgid "Any edition"
+msgid "Already on this list"
 msgstr ""
 
 #: openlibrary/core/shell/shelf_labels.py
@@ -8750,16 +8761,7 @@ msgid "Added to %(name)s"
 msgstr ""
 
 #: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "Removed from %(name)s"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
 msgid "Manage lists"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Something went wrong. Please try again."
 msgstr ""
 
 #: openlibrary/core/shell/shelf_labels.py
@@ -9735,6 +9737,14 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/addbook.py
 msgid "Invalid Book URL"
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
+msgid "Permission denied"
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
+msgid "You are not allowed to add an Internet Archive ID."
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py
