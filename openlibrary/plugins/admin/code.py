@@ -10,7 +10,7 @@ import subprocess
 import sys
 import traceback
 from collections.abc import Iterable
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import requests
 import web
@@ -673,6 +673,30 @@ class attach_debugger:
         return self.GET()
 
 
+SOLR_FORCE_UPDATE_KEY = "solr-force-update"
+# How many recent requests the solr-force-update document keeps for the solr-updater.
+SOLR_FORCE_UPDATE_HISTORY = 100
+
+
+def add_solr_force_update(store, keys: list[str]) -> None:
+    """Ask the solr-updater to reindex ``keys``.
+
+    ``keys`` is the latest request, which the Infobase write-log source reads from
+    the log. ``requests`` keeps recent requests with an increasing ``seq`` for the
+    database source, so one that a later request overwrote isn't missed. ``_rev``
+    makes a simultaneous request fail with a conflict instead of dropping one.
+    """
+    doc = store.get(SOLR_FORCE_UPDATE_KEY) or {}
+    recent = doc.get("requests", [])
+    request = {"seq": recent[-1]["seq"] + 1 if recent else 1, "time": datetime.now(UTC).replace(tzinfo=None).isoformat(), "keys": keys}
+    store[SOLR_FORCE_UPDATE_KEY] = {
+        "type": SOLR_FORCE_UPDATE_KEY,
+        "keys": keys,
+        "requests": [*recent, request][-SOLR_FORCE_UPDATE_HISTORY:],
+        "_rev": doc.get("_rev"),
+    }
+
+
 class solr:
     def GET(self):
         return render_template("admin/solr")
@@ -680,11 +704,7 @@ class solr:
     def POST(self):
         i = web.input(keys="")
         keys = i["keys"].strip().split()
-        web.ctx.site.store["solr-force-update"] = {
-            "type": "solr-force-update",
-            "keys": keys,
-            "_rev": None,
-        }
+        add_solr_force_update(web.ctx.site.store, keys)
         add_flash_message("info", "Added the specified keys to solr update queue.!")
         return self.GET()
 

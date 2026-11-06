@@ -287,3 +287,15 @@ class TestPeopleEditsTemplate:
     )
     def test_bad_page_and_limit_fall_back_to_defaults(self, render_edits, query_string, pager):
         assert pager in render_edits(query_string)
+
+
+def test_add_solr_force_update_keeps_latest_keys_and_recent_numbered_requests(monkeypatch):
+    monkeypatch.setattr(admin_code, "SOLR_FORCE_UPDATE_HISTORY", 2)
+    store: dict = {}
+    for keys in (["/works/OL1W"], ["/works/OL2W"], ["/books/OL3M", "/authors/OL3A"]):
+        admin_code.add_solr_force_update(store, keys)
+
+    doc = store["solr-force-update"]
+    # The Infobase write-log source reads "keys", as before.
+    assert doc["keys"] == ["/books/OL3M", "/authors/OL3A"]
+    assert [(r["seq"], r["keys"]) for r in doc["requests"]] == [(2, ["/works/OL2W"]), (3, ["/books/OL3M", "/authors/OL3A"])]

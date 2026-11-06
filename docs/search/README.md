@@ -16,7 +16,7 @@ Apache Solr 10 is Open Library's search index. It powers all search pages, the P
 OL database (postgres/infobase)
     │
     │  solr-updater daemon (scripts/solr_updater/solr_updater.py)
-    │  polls Infobase changelog at /log/{offset} → extract changed OL keys
+    │  reads the Infobase log (default) or the transaction table → extract changed OL keys
     ▼
 openlibrary/solr/update.py → update_keys()
     │  runs updaters in order: EditionSolrUpdater → WorkSolrUpdater → AuthorSolrUpdater → ListSolrUpdater
@@ -30,7 +30,7 @@ openlibrary/solr/utils.py → solr_update()
 Solr (ol-solr0 / ol-solr2 via HAProxy port 8984)
 ```
 
-**solr-updater state file**: `/solr-updater-data/solr_state` — stores the last consumed changelog offset as `YYYY-MM-DD:N`. On startup, the daemon resumes from this offset. Loss of this file means the updater must restart from scratch or a known offset.
+**solr-updater state files**: the Infobase source stores its log offset (`YYYY-MM-DD:N`) in `STATE_FILE`; the database source (`--source database`) stores its position (last transaction id and admin force-update request) next to it with a `.txid` suffix. On startup the daemon resumes from its own file, or replays from the beginning of the other source's day if that ran more recently. See [the solr-updater section of index.md](index.md#the-solr-updater-daemon).
 
 **End-to-end latency**: solr-updater polls with 0–5s latency; Solr's `autoSoftCommit.maxTime` is **60000ms in production**. Combined: **~60–65 seconds** from an OL edit to appearing in search in the happy path.
 
@@ -207,7 +207,7 @@ curl "http://localhost:8983/solr/openlibrary/select?q=frankenstein&rows=3&wt=jso
 
 ### solr-updater daemon
 
-`scripts/solr_updater/solr_updater.py` — long-running daemon. Reads changelog offset from state file, polls Infobase `/log/{offset}`, calls `update_keys()`, persists new offset. The `docker/ol-solr-updater-start.sh` entrypoint starts both this daemon and `trending_updater.py` in parallel.
+`scripts/solr_updater/solr_updater.py` — long-running daemon. Reads edits from the Infobase `/log/{offset}` (default) or the `transaction` table (`--source database`, `scripts/solr_updater/transaction_log.py`), calls `update_keys()`, persists its position. The `docker/ol-solr-updater-start.sh` entrypoint starts both this daemon and `trending_updater.py` in parallel.
 
 **OSP data**: `osp_totals.db` (Open Syllabus Project citation counts) is downloaded from IA on startup and stored at `/solr-updater-data/osp_totals.db`. Used by `WorkSolrBuilder` to populate `osp_count`.
 
@@ -327,7 +327,7 @@ All are `indexed=false, stored=false` — not searchable or retrievable, used on
 | `openlibrary/plugins/worksearch/schemes/authors.py` | `AuthorSearchScheme` |
 | `openlibrary/plugins/worksearch/schemes/editions.py` | `EditionSearchScheme` |
 | `openlibrary/fastapi/search.py` | FastAPI endpoint definitions: `/search.json`, `/search/carousels.json`, etc. |
-| `scripts/solr_updater/solr_updater.py` | solr-updater daemon — tails Infobase changelog |
+| `scripts/solr_updater/solr_updater.py` | solr-updater daemon — reads the Infobase log or the `transaction` table |
 | `scripts/solr_updater/trending_updater.py` | Writes trending scores into Solr |
 | `scripts/solr_builder/` | Full reindex pipeline (Jenkins + Docker) |
 | `docker/ol-solr-updater-start.sh` | Entrypoint for `solr-updater` container; starts both daemons |
