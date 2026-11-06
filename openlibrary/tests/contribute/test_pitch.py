@@ -1,9 +1,10 @@
 from types import SimpleNamespace
 
 import pytest
+from markupsafe import Markup
 
 from openlibrary.contribute import initiatives, pitch
-from openlibrary.core.jinja import render_jinja_template
+from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.plugins.openlibrary.contribute import build_edit_saved, initiative_copy
 from openlibrary.utils.request_context import RequestContextVars, req_context
 
@@ -106,13 +107,18 @@ def test_a_new_initiative_brings_a_closed_pitch_back(monkeypatch):
     assert pitch.wanted(closed)
 
 
-def render(saved):
-    return render_jinja_template("shell/edit_saved.html.jinja", layout=SimpleNamespace(edit_saved=saved))
+@pytest.fixture
+def render(monkeypatch):
+    # The icon macro is Templetor's, which these tests don't load.
+    monkeypatch.setitem(get_jinja_env().globals, "icon", lambda name, **kw: Markup(f'<svg data-icon="{name}"></svg>'))
+    return lambda saved: render_jinja_template("shell/edit_saved.html.jinja", layout=SimpleNamespace(edit_saved=saved))
 
 
-def test_banner_links_each_project_and_remembers_being_closed():
+def test_banner_links_each_project_and_remembers_being_closed(render):
     html = render(build_edit_saved(f"{MOST_READ.slug}:485,{TAGS.slug}:"))
     assert "Thank you for improving the Open Library catalog!" in html
+    assert 'data-icon="circle-check"' in html
+    assert html.count('size="small"') == 2
     assert f'dismiss-id="{pitch.dismiss_cookie()}"' in html
     assert "data-dismiss-on-link" in html
     assert 'href="/tasks"' in html
@@ -123,12 +129,12 @@ def test_banner_links_each_project_and_remembers_being_closed():
     assert "See all projects" not in html
 
 
-def test_banner_is_the_thank_you_alone_without_projects():
+def test_banner_is_the_thank_you_alone_without_projects(render):
     html = render(pitch.EditSaved())
     assert "Thank you for improving the Open Library catalog!" in html
     assert "ol-chip" not in html
     assert "dismiss-id" not in html
 
 
-def test_no_banner_without_an_edit_saved_flash():
+def test_no_banner_without_an_edit_saved_flash(render):
     assert render(None).strip() == ""

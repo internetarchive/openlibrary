@@ -1,24 +1,46 @@
 /**
  * The banner an edit-page save lands on (shell/edit_saved.html.jinja): a thank-you, and
- * under it a row of links to the Tasks projects. It is an <ol-banner>, so the surface,
- * icon and close button are that component's (plain, since it runs edge to edge under
- * the header); these rules lay out what goes inside. Site-wide because a save can land
- * on any page.
+ * under it a row of links to the Tasks projects. It is an <ol-banner>, so the surface
+ * and close button are that component's (plain, since it runs edge to edge under the
+ * header); these rules fit it to the page shell and lay out what goes inside.
+ * Site-wide because a save can land on any page.
  */
+
+/* First thing in the page shell, so its top corners follow the shell's, inside its 1px border.
+   The tag is in the selector to outrank the plain banner's square corners. */
+ol-banner.edit-saved {
+  border-start-start-radius: calc(var(--border-radius-card) - 1px);
+  border-start-end-radius: calc(var(--border-radius-card) - 1px);
+}
+
+body.full-width ol-banner.edit-saved {
+  border-radius: 0;
+}
+
+/* The thank-you reads as Tasks' "Just saved" does: an outlined check and semibold text in
+   the success ink, so it stays the loudest line over the small chips. The banner's filled
+   icon circle goes clear, before and after it hydrates. */
+.edit-saved:not([hydrated])::before,
+.edit-saved > .ol-banner__icon {
+  background-color: transparent;
+  color: var(--color-success-fg);
+}
 
 .edit-saved__thanks {
   margin: 0;
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-success-fg);
 }
 
 .edit-saved__projects {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--spacing-stack-sm) var(--spacing-inline-md);
-  margin-block: var(--spacing-stack-sm) var(--spacing-stack-xs);
+  gap: var(--spacing-stack-xs) var(--spacing-inline-md);
+  margin-block: var(--spacing-stack-xs);
 }
 
 .edit-saved__label {
   color: var(--color-text-secondary);
+  font-size: var(--font-size-body-small);
 }
