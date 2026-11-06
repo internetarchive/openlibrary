@@ -180,6 +180,15 @@ class tag_edit(delegate.page):
             )
 
         i = web.input(_comment=None, redir=None)
+        if "_delete" in i:
+            try:
+                tag = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
+                tag._save(comment=i._comment, action="delete-tag")
+                raise safe_seeother(key)
+            except (ClientException, ValidationException) as e:
+                add_flash_message("error", str(e))
+                return render_template("type/tag/form", tag, redirect=i.redir)
+
         formdata = trim_doc(i)
         if formdata:
             slugs_input = formdata.get("slugs", "") or ""
@@ -196,10 +205,6 @@ class tag_edit(delegate.page):
                     return render_template("type/tag/form", formdata, redirect=i.redir)
 
         try:
-            if "_delete" in i:
-                tag = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
-                tag._save(comment=i._comment, action="delete-tag")
-                raise safe_seeother(key)
             tag.update(formdata)
             tag._save(comment=i._comment, action="edit-tag")
             raise safe_seeother(i.redir or key)
