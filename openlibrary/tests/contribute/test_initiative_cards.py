@@ -35,17 +35,17 @@ def test_blank_while_the_gaps_are_being_built(cards):
 
 
 def test_tasks_left_uses_the_plural_and_groups_thousands(cards):
-    assert cards()[ACTIVE.slug]["tasks_left"] == "<b>1</b> task left"
+    assert cards()[ACTIVE.slug]["tasks_left"] == "1 task left"
     many = [[f"/books/OL{i}M", 9, list(ACTIVE.fields[:2]), []] for i in range(600)]
-    assert cards(gaps=many)[ACTIVE.slug]["tasks_left"] == "<b>1,200</b> tasks left"
+    assert cards(gaps=many)[ACTIVE.slug]["tasks_left"] == "1,200 tasks left"
 
 
 @pytest.mark.parametrize(
     ("people", "expected"),
     [
         (contribute.MIN_PEOPLE_SHOWN - 1, None),
-        (contribute.MIN_PEOPLE_SHOWN, f"{contribute.MIN_PEOPLE_SHOWN} people have helped"),
-        (1200, "1,200 people have helped"),
+        (contribute.MIN_PEOPLE_SHOWN, f"{contribute.MIN_PEOPLE_SHOWN} people helping"),
+        (1200, "1,200 people helping"),
     ],
 )
 def test_people_line_hides_low_counts(cards, people, expected):
@@ -59,12 +59,12 @@ def test_people_line_waits_for_the_stats_job(cards):
 
 def test_people_prefers_todays_count_and_falls_back_to_yesterdays(cards):
     yesterday = {"initiative_slug": ACTIVE.slug, "initiative_people": 8}
-    assert cards(docs=[yesterday, {"initiative_slug": ACTIVE.slug, "initiative_people": 9}])[ACTIVE.slug]["people"] == "9 people have helped"
-    assert cards(docs=[yesterday, {"saves": 3}])[ACTIVE.slug]["people"] == "8 people have helped"
+    assert cards(docs=[yesterday, {"initiative_slug": ACTIVE.slug, "initiative_people": 9}])[ACTIVE.slug]["people"] == "9 people helping"
+    assert cards(docs=[yesterday, {"saves": 3}])[ACTIVE.slug]["people"] == "8 people helping"
 
 
 def test_people_count_goes_to_the_initiative_it_names(cards):
     other = next(i for i in contribute.initiatives.INITIATIVES if i is not ACTIVE)
     built = cards(docs=[{"initiative_slug": other.slug, "initiative_people": 50}])
     assert built[ACTIVE.slug]["people"] is None
-    assert built[other.slug]["people"] == "50 people have helped"
+    assert built[other.slug]["people"] == "50 people helping"
