@@ -15,7 +15,7 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
-from openlibrary.contribute import feed, initiatives, save, supply, tasks
+from openlibrary.contribute import feed, initiatives, pitch, save, supply, tasks
 from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values, work_of
 from openlibrary.core import admin, helpers
@@ -101,6 +101,24 @@ def initiative_copy(initiative: initiatives.Initiative) -> dict[str, str]:
             "description": _("Fiction or nonfiction, and the genres that fit, starting with the most-read books."),
         }
     return {"title": _("Complete the %(count)s most-read books", count=count), "description": _("Fill in what's missing on the books people shelve most.")}
+
+
+def build_edit_saved(payload: str) -> pitch.EditSaved:
+    """The thank-you banner an edit-page save lands on, naming the projects in the save's flash message. Does no I/O: the site shell builds it."""
+    named, more = pitch.decode(payload)
+    if not named:
+        return pitch.EditSaved()
+    projects = tuple(
+        pitch.Project(
+            slug=initiative.slug,
+            title=initiative_copy(initiative)["title"],
+            url=build_dashboard_url(initiative=initiative_param(initiative)),
+            # No-break spaces: in a chip that wraps on a phone, the count stays in one piece.
+            left=ungettext("%(count)s left", "%(count)s left", left, count=helpers.commify(left)).replace(" ", "\N{NO-BREAK SPACE}") if left else "",
+        )
+        for initiative, left in named
+    )
+    return pitch.EditSaved(projects=projects, more=more, dismiss_cookie=pitch.dismiss_cookie())
 
 
 def render_contribute(template: str, title: str, **params):

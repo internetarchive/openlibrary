@@ -16,6 +16,7 @@ from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
+from openlibrary.contribute import pitch
 from openlibrary.core.helpers import uniq
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.recaptcha import recaptcha
@@ -23,6 +24,7 @@ from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
 from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.utils.dateutil import DAY_SECS
 from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
@@ -32,6 +34,18 @@ if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Author, Edition, Work
 
 logger = logging.getLogger("openlibrary.book")
+
+
+def add_edit_saved_flash(*book_keys: str) -> None:
+    """Thank the editor on the page the save lands on and, at most once a day, name the Tasks projects there."""
+    payload = ""
+    try:
+        if pitch.wanted(web.cookies()) and (payload := pitch.encode(book_keys)):
+            web.setcookie(pitch.SEEN_COOKIE, "1", expires=DAY_SECS)
+    except Exception:
+        # The edit is already saved; a cache that can't be read only costs the pitch.
+        logger.exception("Could not build the Tasks pitch")
+    add_flash_message(pitch.FLASH_TYPE, payload)
 
 
 def is_valid_web_book_url(url: str) -> bool:
@@ -867,7 +881,7 @@ class book_edit(delegate.page):
             helper = SaveBookHelper(work, edition)
             helper.save(web.input())
 
-            add_flash_message("info", utils.get_message("flash_catalog_updated"))
+            add_edit_saved_flash(edition.key)
 
             if i.work_key and i.work_key.startswith("/works/"):
                 url = i.work_key
@@ -928,7 +942,7 @@ class work_edit(delegate.page):
         try:
             helper = SaveBookHelper(work, None)
             helper.save(web.input())
-            add_flash_message("info", utils.get_message("flash_catalog_updated"))
+            add_edit_saved_flash()
             raise safe_seeother(work.url())
         except (ClientException, ValidationException) as e:
             add_flash_message("error", str(e))

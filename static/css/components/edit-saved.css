@@ -1,0 +1,24 @@
+/**
+ * The banner an edit-page save lands on (shell/edit_saved.html.jinja): a thank-you, and
+ * under it a row of links to the Tasks projects. It is an <ol-banner>, so the surface,
+ * icon and close button are that component's (plain, since it runs edge to edge under
+ * the header); these rules lay out what goes inside. Site-wide because a save can land
+ * on any page.
+ */
+
+.edit-saved__thanks {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.edit-saved__projects {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-stack-sm) var(--spacing-inline-md);
+  margin-block: var(--spacing-stack-sm) var(--spacing-stack-xs);
+}
+
+.edit-saved__label {
+  color: var(--color-text-secondary);
+}
