@@ -9663,6 +9663,26 @@ msgstr ""
 msgid "Notification preferences have been updated successfully."
 msgstr ""
 
+#: openlibrary/plugins/upstream/account.py
+msgid "Please select a CSV file to import."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "The CSV file must be 10MB or smaller."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "The file is not a valid Goodreads CSV."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "The file is not a valid UTF-8 Goodreads CSV."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "The file is empty or is not a valid Goodreads CSV."
+msgstr ""
+
 #: openlibrary/plugins/upstream/addbook.py
 msgid "Invalid Book URL"
 msgstr ""
