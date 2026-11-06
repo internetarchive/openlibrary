@@ -1147,6 +1147,16 @@
   gap: var(--spacing-stack-sm) var(--spacing-inline-xl);
 }
 
+.contrib-dash__heading {
+  display: grid;
+  gap: var(--spacing-3xs);
+}
+
+.contrib-dash__lede {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-medium);
+}
+
 .contrib-dash__edits {
   font-size: var(--font-size-body-medium);
 }
@@ -1175,8 +1185,11 @@
   gap: var(--spacing-stack-sm);
 }
 
+/* Darker and heavier than the shared overline, so the side column has an anchor beside the project title. */
 .contrib-projects > .contrib-overline {
   padding-inline: var(--menu-row-padding-inline);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
 }
 
 .contrib-projects__list {

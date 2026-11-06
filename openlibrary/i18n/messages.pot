@@ -4063,6 +4063,10 @@ msgid "Tasks"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
+msgid "Help build the catalog, one book at a time."
+msgstr ""
+
+#: contribute/dashboard.html.jinja
 msgid "Your edits"
 msgstr ""
 

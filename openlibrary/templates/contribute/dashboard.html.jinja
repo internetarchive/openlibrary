@@ -3,7 +3,10 @@
 {% import "contribute/parts.html.jinja" as parts %}
 <div class="contrib-dash" data-contribute-list>
     <header class="contrib-dash__head">
-        <h1 class="contrib-title">{{ _("Tasks") }}</h1>
+        <hgroup class="contrib-dash__heading">
+            <h1 class="contrib-title">{{ _("Tasks") }}</h1>
+            <p class="contrib-dash__lede">{{ _("Help build the catalog, one book at a time.") }}</p>
+        </hgroup>
         <a class="contrib-dash__edits"
            href="{{ data.history_url }}"
            data-ol-link-track="TasksDashboard|SeeAllEdits">{{ _("Your edits") }}</a>
