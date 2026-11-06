@@ -21,6 +21,7 @@ from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.fastapi.middleware.server_timing import add_server_timing
 from openlibrary.utils import prometheus, prometheus_multiprocess, server_timing
+from openlibrary.utils.legacy_db import install_connection_recovery
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
@@ -132,6 +133,7 @@ sentry: Sentry | None = None
 
 def _include_routers(app: FastAPI) -> None:
     """Include all FastAPI routers."""
+    from openlibrary.fastapi.account import pages as account_pages
     from openlibrary.fastapi.account import router as account_router
     from openlibrary.fastapi.books import router as books_router
     from openlibrary.fastapi.borrow import router as borrow_router
@@ -180,6 +182,7 @@ def _include_routers(app: FastAPI) -> None:
     app.include_router(yearly_reading_goals_router)
 
     # HTML pages, wrapped in the site shell (SitePageRoute).
+    app.include_router(account_pages)
     app.include_router(search_pages)
 
 
@@ -198,6 +201,7 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI | None:
+    install_connection_recovery()
     if "pytest" not in sys.modules:
         _setup_env()
 

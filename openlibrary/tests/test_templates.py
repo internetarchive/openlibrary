@@ -56,6 +56,24 @@ def test_login_template_does_not_bind_password_value():
     assert "$form.password.value" not in template
 
 
+def test_edition_weight_and_dimensions_allow_zero_values():
+    template = Path("openlibrary/templates/books/edit/edition.html").read_text(encoding="utf-8")
+    numeric_fields = (
+        "edition--weight--value",
+        "edition--physical_dimensions--height",
+        "edition--physical_dimensions--width",
+        "edition--physical_dimensions--depth",
+    )
+
+    for name in numeric_fields:
+        input_match = re.search(rf"<input[^>]+name=\"{re.escape(name)}\"[^>]*>", template)
+        assert input_match, f"Missing input for {name}"
+        input_tag = input_match.group(0)
+        assert 'type="number"' in input_tag
+        assert 'min="0"' in input_tag
+        assert 'min="0.001"' not in input_tag
+
+
 def test_no_role_trio_in_source():
     """No source file should use all three of is_admin(), is_librarian(),
     is_super_librarian() on the same line -- use is_librarian_or_higher() instead.
