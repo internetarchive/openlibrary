@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { collectConsoleErrors, login, E2E_EMAIL, E2E_PASSWORD } from './helpers';
+import { ACCOUNT_AVATAR, collectConsoleErrors, login, E2E_EMAIL, E2E_PASSWORD } from './helpers';
 
 test.describe('Login page @smoke', () => {
     test('loads with Log In heading', async ({ page }) => {
@@ -21,6 +21,8 @@ test.describe('Login page @smoke', () => {
     });
 
     test('wrong password shows an error and stays on the login page', async ({ page }) => {
+        // A failed form login is a 303 back to /account/login with the error in
+        // the flash cookie (openlibrary/fastapi/account.py, _login_error_response).
         // The dev mock IA auth accepts any non-empty password except the
         // sentinel "bad_password" (docker/mockservices/main.py), so this is
         // the only wrong password that fails in both dev and production.
@@ -35,16 +37,22 @@ test.describe('Login page @smoke', () => {
         await expect(page.locator('#header-bar a[href="/account/login"]').first()).toBeAttached();
     });
 
-    test('form login with valid credentials lands on My Books', async ({ page }) => {
-        // The form authenticates against IA by email, unlike login.json.
+    test('form login with valid credentials signs the patron in', async ({ page }) => {
+        // The form authenticates against IA by email, unlike login.json. Reached
+        // directly it posts an empty redirect, and the login route treats that as
+        // "no redirect" and falls back to My Books (openlibrary/fastapi/account.py),
+        // which then resolves to the patron's own /people/<user>/books.
         test.skip(!E2E_EMAIL, 'No credentials for this environment — set OL_E2E_EMAIL / OL_E2E_PASSWORD');
         const errors = collectConsoleErrors(page);
         await page.goto('/account/login');
         await page.fill('input[name="username"]', E2E_EMAIL);
         await page.fill('input[name="password"]', E2E_PASSWORD);
         await page.click('button[name="login"]');
-        await page.waitForURL(/\/people\/[^/]+\/books/, { timeout: 10_000 });
-        await expect(page.locator('#header-bar').first()).toBeVisible();
+        await page.waitForURL(/\/(account|people\/[^/]+)\/books/, { timeout: 10_000 });
+        const header = page.locator('#header-bar').first();
+        await expect(header).toBeVisible();
+        await expect(header.locator(ACCOUNT_AVATAR).first()).toBeAttached();
+        await expect(header.locator('a[href="/account/login"]')).toHaveCount(0);
         expect(errors()).toHaveLength(0);
     });
 
