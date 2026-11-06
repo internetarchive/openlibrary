@@ -1,4 +1,4 @@
-"""The Tasks pitch under the thank-you an edit-page save lands on: "Join a community project", a link per initiative.
+"""The Tasks pitch under the thank-you an edit-page save lands on: "Keep going with a community project", a link per initiative.
 
 The save decides what to pitch, where reading the cache and the cookies is ordinary work, and hands it to the next page as the
 flash message's text. The shell that shows it then needs only the registry, so rendering the site layout still does no I/O.

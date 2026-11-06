@@ -11,7 +11,7 @@
         <p class="edit-saved__thanks">{{ _("Thank you for improving the Open Library catalog!") }}</p>
         {% if saved.projects %}
             <div class="edit-saved__projects">
-                <span class="edit-saved__label" id="edit-saved-projects">{{ _("Join a community project:") }}</span>
+                <span class="edit-saved__label" id="edit-saved-projects">{{ _("Keep going with a community project:") }}</span>
                 <ol-chip-group aria-labelledby="edit-saved-projects">
                     {% for project in saved.projects %}
                         <ol-chip size="small" href="{{ project.url }}" {% if project.left %}count="{{ project.left }}"{% endif %} data-ol-link-track="EditSaved|Initiative|{{ project.slug }}">{{ project.title }}</ol-chip>

@@ -5733,7 +5733,7 @@ msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
 #: shell/edit_saved.html.jinja
-msgid "Join a community project:"
+msgid "Keep going with a community project:"
 msgstr ""
 
 #: shell/edit_saved.html.jinja
