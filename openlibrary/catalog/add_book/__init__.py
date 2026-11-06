@@ -29,7 +29,6 @@ import re
 import uuid
 from collections import defaultdict
 from collections.abc import Iterable
-from copy import copy
 from html import unescape as html_unescape
 from time import sleep
 from typing import TYPE_CHECKING, Any, Final
@@ -379,24 +378,6 @@ def modify_ia_item(item, data):
     access_key = lending.config_ia_ol_metadata_write_s3 and lending.config_ia_ol_metadata_write_s3["s3_key"]
     secret_key = lending.config_ia_ol_metadata_write_s3 and lending.config_ia_ol_metadata_write_s3["s3_secret"]
     return item.modify_metadata(data, access_key=access_key, secret_key=secret_key)
-
-
-def create_ol_subjects_for_ocaid(ocaid, subjects):
-    item = get_ia_item(ocaid)
-    openlibrary_subjects = copy(item.metadata.get("openlibrary_subject")) or []
-
-    if not isinstance(openlibrary_subjects, list):
-        openlibrary_subjects = [openlibrary_subjects]
-
-    for subject in subjects:
-        if subject not in openlibrary_subjects:
-            openlibrary_subjects.append(subject)
-
-    r = modify_ia_item(item, {"openlibrary_subject": openlibrary_subjects})
-    if r.status_code != 200:
-        return f"{item.identifier} failed: {r.content}"
-    else:
-        return f"success for {item.identifier}"
 
 
 def update_ia_metadata_for_ol_edition(edition_id):
