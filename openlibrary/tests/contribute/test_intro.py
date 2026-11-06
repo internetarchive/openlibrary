@@ -32,9 +32,6 @@ def test_visitor_cta_asks_for_an_account_and_never_sets_the_cookie():
 
 
 def test_rail_links_only_filters_over_offered_fields():
-    tracks = [f["track"] for f in contribute.build_filter_rail("", contribute.tasks.visible_fields(False))["filters"]]
-    assert tracks == ["covers", "languages", "number_of_pages", "publishers"]
+    tracks = [f["track"] for f in contribute.build_filter_rail("")["filters"]]
+    assert tracks == ["covers", "languages", "number_of_pages", "publishers", "literary_forms"]
     assert contribute.normalize_filter("identifiers") == "identifiers"
-    beta_tracks = [f["track"] for f in contribute.build_filter_rail("", contribute.tasks.visible_fields(True))["filters"]]
-    assert "literary_forms" in beta_tracks
-    assert "identifiers" not in beta_tracks
