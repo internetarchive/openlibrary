@@ -106,7 +106,7 @@ services:
         max-file: "4"
 
   covers:
-    profiles: ["ol-covers0"]
+    profiles: ["ol-covers1"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
@@ -126,7 +126,7 @@ services:
       replicas: 2
 
   covers_nginx:
-    profiles: ["ol-covers0"]
+    profiles: ["ol-covers1"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     user: root
     command: docker/ol-nginx-start.sh
@@ -358,7 +358,7 @@ services:
   # This job runs various monitoring/grafana checks across the entire cluster.
   # It has access to the other nodes via the docker socket.
   monitoring:
-    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-web3", "ol-covers0", "ol-www1", "ol-solr0", "ol-solr1", "ol-solr2", "ol-home0"]
+    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-web3", "ol-covers1", "ol-www1", "ol-solr0", "ol-solr1", "ol-solr2", "ol-home0"]
     build:
       context: .
       dockerfile: scripts/monitoring/Dockerfile
@@ -387,7 +387,7 @@ services:
         max-file: "4"
 
   node-exporter:
-    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-web3", "ol-covers0", "ol-www1", "ol-solr0", "ol-solr1", "ol-solr2", "ol-home0"]
+    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-web3", "ol-covers1", "ol-www1", "ol-solr0", "ol-solr1", "ol-solr2", "ol-home0"]
     image: prom/node-exporter:v1.12.1
     restart: unless-stopped
     hostname: "$HOSTNAME"
