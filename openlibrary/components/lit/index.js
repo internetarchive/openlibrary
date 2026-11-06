@@ -30,6 +30,7 @@ export { OpenLibraryOTP } from './OpenLibraryOTP.js';
 export { OlCarousel } from './OlCarousel.js';
 export { OlScorecard } from './OlScorecard.js';
 export { OlDrawer } from './OlDrawer.js';
+export { OlLightbox } from './OlLightbox.js';
 export { OlBookCover } from './OlBookCover.js';
 export { OlShelfActions } from './OlShelfActions.js';
 export { OlShelfButton } from './OlShelfButton.js';
