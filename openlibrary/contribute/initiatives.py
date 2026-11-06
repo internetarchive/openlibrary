@@ -27,6 +27,8 @@ NOT_FOUND_PEOPLE = {
     "publishers": 3,
     "covers": 3,
     "languages": 4,
+    # "Not sure": a judgment rather than a lookup, so a few people unsure is a sign the form really is contested.
+    tasks.LITERARY_FORMS: 3,
 }
 NOT_FOUND_TYPE = "contribute-notfound"
 
@@ -111,10 +113,17 @@ def pick_most_read(size: int, site=None) -> list[list]:
 ACTIVE = Initiative("most-read-2026-11", 2000, pick_most_shelved)
 
 
-def load_or_freeze(initiative: Initiative, site) -> list[list]:
-    """The frozen list from the store; the first call picks it and stores it."""
+def load_frozen(initiative: Initiative, site) -> list[list] | None:
+    """The frozen list from the store, or None if it hasn't been picked yet. Never picks."""
     if doc := site.store.get(initiative.store_key):
         return doc["editions"]
+    return None
+
+
+def load_or_freeze(initiative: Initiative, site) -> list[list]:
+    """The frozen list from the store; the first call picks it and stores it."""
+    if (editions := load_frozen(initiative, site)) is not None:
+        return editions
     editions = initiative.pick(initiative.size, site)
     if editions:
         site.store[initiative.store_key] = {
@@ -130,24 +139,33 @@ def not_found_fields(site) -> dict[str, set[str]]:
     """Fields enough people couldn't find, by edition key."""
     found: dict[str, set[str]] = {}
     for doc in site.store.values(type=NOT_FOUND_TYPE, limit=100_000):
-        if len(doc.get("people", [])) >= NOT_FOUND_PEOPLE[doc["field"]]:
+        # A mark for a field no longer on offer has no threshold; leave it be.
+        if (threshold := NOT_FOUND_PEOPLE.get(doc["field"])) and len(doc.get("people", [])) >= threshold:
             found.setdefault(doc["edition"], set()).add(doc["field"])
     return found
 
 
 def build_gaps(initiative: Initiative, site, batch: int = 100) -> list[list]:
-    """Every edition on the list as ``[key, readers, open fields, fields nobody could find]``, read from the database."""
-    picks = load_or_freeze(initiative, site)
+    """Every edition on the list as ``[key, readers, open fields, fields nobody could find]``, picking the list if needed."""
+    return gaps_for(load_or_freeze(initiative, site), site, batch)
+
+
+def gaps_for(picks: list[list], site, batch: int = 100) -> list[list]:
+    """Gaps for an already-loaded list of ``[key, readers]`` picks, read from the database."""
     unfindable = not_found_fields(site)
     rows = []
     for i in range(0, len(picks), batch):
         chunk = picks[i : i + batch]
         editions = {e.key: e for e in site.get_many([key for key, _readers in chunk])}
+        # The work fields read each edition's work; one fetch for the chunk rather than one per edition.
+        work_keys = [w.key for e in editions.values() if (w := tasks.work_of(e))]
+        works = {w.key: w for w in site.get_many(work_keys)} if work_keys else {}
         for key, readers in chunk:
             # A merged or deleted edition has nothing left to fill.
             if not (edition := editions.get(key)) or edition.type.key != "/type/edition":
                 continue
-            missing = [t.field for t in tasks.tasks_for_edition(edition)]
+            work = tasks.work_of(edition)
+            missing = [t.field for t in tasks.tasks_for_edition(edition, works.get(work.key) if work else None)]
             skipped = unfindable.get(key, set())
             rows.append([key, readers, [f for f in missing if f not in skipped], [f for f in missing if f in skipped]])
     return rows
@@ -159,16 +177,18 @@ def get_gaps(initiative: Initiative = ACTIVE) -> list[list] | None:
     return pool.get(f"contribute.initiative:{initiative.slug}", OPEN_TTL, lambda: build_gaps(initiative, create_site()), lock_ttl=OPEN_LOCK_TTL, keep=DAY_SECS)
 
 
-def progress(gaps: list[list]) -> dict[str, int]:
+def progress(gaps: list[list], fields: tuple[str, ...] = tasks.OFFERED) -> dict[str, int]:
     """How far the initiative has come: editions with nothing left to fill, out of all of them, the gaps still open, and the
-    share of details filled. A detail nobody could find counts as filled, so every save or "couldn't find it" moves it."""
-    open_count = sum(len(open_fields) for _key, _readers, open_fields, _skipped in gaps)
-    slots = len(gaps) * len(tasks.POINTS)
+    share of details filled. A detail nobody could find counts as filled, so every save or "couldn't find it" moves it.
+    Only ``fields`` count, so a field the viewer can't see doesn't move their figure; the gaps keep the rest for the unlinked filters."""
+    wanted = set(fields)
+    open_count = sum(1 for _key, _readers, open_fields, _skipped in gaps for f in open_fields if f in wanted)
+    slots = len(gaps) * len(wanted)
     return {
-        "done": sum(1 for _key, _readers, open_fields, _skipped in gaps if not open_fields),
+        "done": sum(1 for _key, _readers, open_fields, _skipped in gaps if not wanted.intersection(open_fields)),
         "total": len(gaps),
         "open": open_count,
-        "not_found": sum(len(skipped) for _key, _readers, _open, skipped in gaps),
+        "not_found": sum(1 for _key, _readers, _open, skipped in gaps for f in skipped if f in wanted),
         # Rounded down, so it only reads 100 when nothing is left.
         "percent": (slots - open_count) * 100 // slots if slots else 0,
     }

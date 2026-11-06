@@ -36,6 +36,7 @@ from openlibrary.bookworm.registry import (
 from openlibrary.catalog.add_book import load
 from openlibrary.config import load_config
 from openlibrary.plugins.upstream.utils import setup_requests
+from openlibrary.setup import setup_for_script
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.bookworm.cli")
@@ -433,7 +434,7 @@ def preview_command(
     :param verbose: print a line per record, not just the summary.
     """
     logging.basicConfig(level=logging.INFO)
-    load_config(ol_config)
+    setup_for_script(ol_config)
     setup_requests()
 
     if not provider:

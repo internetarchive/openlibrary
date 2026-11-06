@@ -19,7 +19,7 @@ from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO, MINUTE_SECS
 from openlibrary.utils.request_context import site
 
-from . import db
+from . import db  # noqa: TID251
 
 logger = logging.getLogger(__name__)
 
