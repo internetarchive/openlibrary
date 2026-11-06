@@ -1,85 +1,237 @@
-$def with (username, key=None, owners_page=False, public=False, counts=None, lists=None, component_times={}, current_goal=None)
+$def with (username, key=None, owners_page=False, public=False, counts=None, lists=None, component_times={}, user=None)
 
-  $def year_span(year, use_local_year=False):
-    $if use_local_year:
-      <span class="use-local-year" data-server-year="$year">$year</span>
-    $else:
-      <span>$year</span>
   $ component_times['Sidebar'] = time()
-  <div class="mybooks-menu">
-    $if owners_page:
-      <ul class="sidebar-section">
-        <li class="section-header">$username</li>
-        <li>
-          <a class="li-title-desktop" href="/account/loans" data-ol-link-track="MyBooksSidebar|Loans" $('class=selected' if key == 'loans' else '')>$_('Loans & History')</a>
-        </li>
-	<li><a data-ol-link-track="MyBooksSidebar|MyFeed" $('class=selected' if key=='feed' else '') href="/people/$username/books/feed">$_('My Feed')</a></li>
-      </ul>
+
+  $# One row shape shared by every menu in the sidebar: muted icon, label, optional count.
+  $# The current page is marked with aria-current; CSS turns icon + label blue (no tint).
+  $def nav_row(href, track, icon_name, label, current=False, count=None, count_for=None):
+    <li>
+      <a
+        href="$href"
+        class="sb-row"
+        data-ol-link-track="$track"
+        $if current: aria-current="page"
+      >
+        $:macros.icon(icon_name, size="sm", extra_class="sb-row-icon")
+        <span class="sb-row-label">$label</span>
+        $if count is not None:
+          $if count_for:
+            <span class="sb-row-count" data-shelf-count-for="$count_for">$count</span>
+          $else:
+            <span class="sb-row-count">$count</span>
+      </a>
+    </li>
+
+  $def sidebar_content(username, key, owners_page, public, counts, lists):
+    $# ── Profile (always rendered; inner regions stay gated) ─────────
+    <div class="sb-section sb-profile">
+      <div class="sb-profile-header">
+        <a href="/people/$username/books" class="sb-avatar-link">
+          <img src="/people/$username/avatar" class="sb-avatar" alt="$username">
+        </a>
+        <div class="sb-profile-info">
+          <h3 class="sb-welcome">
+            $if owners_page:
+              $:_("Hi, <span>%(name)s</span>!", name=username)
+            $else:
+              $username
+          </h3>
+          $if owners_page:
+            $# Quiet status + settings link; the share control sits with the gear.
+            <a
+              href="/account/privacy"
+              class="sb-privacy-link"
+              data-ol-link-track="MyBooksSidebar|ProfilePrivacy"
+            >$(_('Public profile') if public else _('Private profile'))</a>
+          $ following = counts.get('following', 0) if counts else 0
+          $ followers = counts.get('followers', 0) if counts else 0
+          $if following or followers:
+            <div class="sb-social-info">
+              $if following:
+                <a href="/people/$username/following" class="sb-social-link">
+                  <strong>$following</strong>
+                  $_("Following")
+                </a>
+              $if following and followers:
+                <span class="sb-social-separator" aria-hidden="true">·</span>
+              $if followers:
+                <a href="/people/$username/followers" class="sb-social-link">
+                  <strong>$followers</strong>
+                  $_("Followers")
+                </a>
+            </div>
+        </div>
+        $if owners_page:
+          <div class="sb-profile-tools">
+            <ol-tooltip content="$_('Settings & Privacy')">
+              <ol-button
+                variant="ghost"
+                shape="icon"
+                href="/account"
+                aria-label="$_('Settings & Privacy')"
+              >$:macros.icon("settings", size="sm", slot="icon-start")</ol-button>
+            </ol-tooltip>
+            $if public:
+              $set_share_links(url=request.canonical_url, title=username, view_context=ctx)
+              $ share_content = '<ol-button variant="ghost" shape="icon" no-chevron slot="trigger" aria-label="%s" data-ol-link-track="MyBooksModalLinkClick|ShareIcon"><ol-icon name="share-2" size="sm" slot="icon-start"></ol-icon></ol-button>' % _('Share profile')
+              $:macros.ShareModal(ctx.get('share_links') or [], request.home, share_content, "share-modal-wrapper", show_embed=False)
+          </div>
+      </div>
+      $if not owners_page:
+        $# Visitors never see privacy settings; share-only row.
+        <div class="sb-profile-actions">
+          $set_share_links(url=request.canonical_url, title=username, view_context=ctx)
+          $ share_content = '<ol-button full-width no-chevron slot="trigger" aria-label="%s" data-ol-link-track="MyBooksModalLinkClick|ShareIcon"><ol-icon name="share-2" slot="icon-start"></ol-icon>%s</ol-button>' % (_('Share profile'), _('Share'))
+          $:macros.ShareModal(ctx.get('share_links') or [], request.home, share_content, "share-modal-wrapper", show_embed=False, block=True)
+        </div>
+    </div>
+
+    $# ── Primary nav: the books and what the reader did with them ────
+    <ul class="sb-section">
+      $:nav_row("/people/%s/books" % username, "MyBooksSidebar|MyBooks", "book", _('My Books') if owners_page else _('Books'), key == 'mybooks')
+      $if owners_page:
+        $:nav_row("/people/%s/books/notes" % username, "MyBooksSidebar|MyNotes", "sticky-note", _('Notes'), key == 'notes', counts['notes'])
+        $:nav_row("/people/%s/books/observations" % username, "MyBooksSidebar|MyReviews", "message-square-text", _('Reviews'), key == 'observations', counts['observations'])
+        $:nav_row("/account/loans", "MyBooksSidebar|Loans", "clock", _('Loans & History'), key == 'loans')
     </ul>
+
+    $# ── Reading goal ────────────────────────────────────────────────
     $if owners_page:
       $ year = current_year()
-      $ hidden = 'hidden' if current_goal else ''
-      <ul class="sidebar-section">
-        <li class="section-header">$_("%(year)d Reading Goal", year=year)</li>
-        <li>
-          <div class="yearly-goal-section">
-            <div class="chip-group $hidden">
-              <span class="">
-                $ year_markup = year_span(year)
-                <a class="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set %(year_span)s reading goal', year_span=year_markup)</a>
-              </span>
-            </div>
-            $if current_goal:
-            <span id="reading-goal-container">
-              $:render_jinja_template("reading_goals/reading_goal_progress.html.jinja", entries=[current_goal])
-            </span>
+      $ current_goal = get_reading_goals(year=year)
+      <div class="sb-section sb-goal-card">
+        <div class="sb-heading">
+          <h3>$_('Reading Goal')</h3>
+          $if current_goal and current_goal.goal:
+            <ol-tooltip class="sb-heading-action" content="$_('Update your reading goal')">
+              <ol-button
+                variant="ghost"
+                shape="icon"
+                aria-label="$_('Update your reading goal')"
+                data-ol-link-track="MyBooksSidebar|EditReadingGoal"
+                data-dialog-trigger="#yearly-goal-modal"
+              >$:macros.icon("pencil", size="sm", slot="icon-start")</ol-button>
+            </ol-tooltip>
+        </div>
+        $if current_goal and current_goal.goal:
+          $ read = current_goal.books_read or 0
+          $ target = current_goal.goal
+          $ pct = int(min(max(read / float(target), 0), 1) * 100)
+          <div
+            class="sb-goal-bar"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="$target"
+            aria-valuenow="$read"
+            aria-label="$:_('%(read)d of %(goal)d books read', read=read, goal=target)"
+          >
+            <span class="sb-goal-bar-fill" style="--progress-width: $(pct)%"></span>
           </div>
-        </li>
-      </ul>
+          <p class="sb-goal-sub">$:_('%(read)d of %(goal)d books read', read=read, goal=target)</p>
+        $else:
+          <ol-button
+            variant="secondary"
+            full-width
+            href="javascript:;"
+            data-ol-link-track="MyBooksLandingPage|SetReadingGoal"
+            data-dialog-trigger="#yearly-goal-modal"
+          >$:_('Set goal for %(year)d', year=year)</ol-button>
+      </div>
 
+    $# ── Bookshelves ─────────────────────────────────────────────────
     $if public or owners_page:
-      <ul class="sidebar-section">
-        <li class="section-header">$_('Reading Log')</li>
-        <li>
-          <a class="li-title-desktop" href="/people/$username/books/currently-reading" data-ol-link-track="MyBooksSidebar|CurrentlyReading" $('class=selected' if key == 'currently-reading' else '')><span class="li-count" data-shelf-count-for="$shelf_ids()['currently-reading']">$counts['currently-reading']</span>$_('Currently Reading')</a>
-        </li>
-        <li>
-          <a class="li-title-desktop" href="/people/$username/books/want-to-read" data-ol-link-track="MyBooksSidebar|WantToRead" $('class=selected' if key == 'want-to-read' else '')><span class="li-count" data-shelf-count-for="$shelf_ids()['want-to-read']">$counts['want-to-read']</span>$_('Want to Read')</a>
-        </li>
-        <li>
-          <a class="li-title-desktop" href="/people/$username/books/already-read" data-ol-link-track="MyBooksSidebar|AlreadyRead" $('class=selected' if key == 'already-read' else '')><span class="li-count" data-shelf-count-for="$shelf_ids()['already-read']">$counts['already-read']</span>$_('Already Read')</a>
-        </li>
-        <li>
-          <a class="li-title-desktop" href="/people/$username/books/stopped-reading" data-ol-link-track="MyBooksSidebar|StoppedReading" $('class=selected' if key == 'stopped-reading' else '')><span class="li-count" data-shelf-count-for="$shelf_ids()['stopped-reading']">$counts['stopped-reading']</span>$_('Stopped Reading')</a>
-        </li>
-      $if owners_page:
-        <hr>
-	<li><a data-ol-link-track="MyBooksSidebar|MyNotes" $('class=selected' if key=='notes' else '') href="/people/$username/books/notes"><span class="li-count">$counts['notes']</span>$_('My Notes')</a></li>
-        <li><a data-ol-link-track="MyBooksSidebar|MyReviews" $('class=selected' if key=='observations' else '') href="/people/$username/books/observations"><span class="li-count">$counts['observations']</span>$_('My Reviews')</a></li>
-        <hr>
-        <li><a data-ol-link-track="MyBooksSidebar|ReadingStats" href="/account/books/already-read/stats">$_('My Reading Stats')</a></li>
-        <li><a data-ol-link-track="MyBooksSidebar|Import" href="/account/import" $('class=selected' if key=='imports' else '')>$_("Import your data")</a></li>
-      </ul>
-    <ul class="sidebar-section">
-      <li class="section-header section-header-split"><span>$(_('My lists') if owners_page else _('Lists'))</span> <a href="/people/$username/lists" data-ol-link-track="MyBooksSidebar|AllLists" class="li-count chevron">$(_('See All'))</a></li>
-      $if owners_page:
-        <li class="create-new-list">
-          <a href="/people/$username/lists/add">$_('Create a list')</a>
-        </li>
+      <div class="sb-section">
+        <div class="sb-heading"><h3>$_('Bookshelves')</h3></div>
+        <ul>
+          $:nav_row("/people/%s/books/currently-reading" % username, "MyBooksSidebar|CurrentlyReading", "book-open", _('Currently Reading'), key == 'currently-reading', counts['currently-reading'], shelf_ids()['currently-reading'])
+          $:nav_row("/people/%s/books/want-to-read" % username, "MyBooksSidebar|WantToRead", "bookmark", _('Want to Read'), key == 'want-to-read', counts['want-to-read'], shelf_ids()['want-to-read'])
+          $:nav_row("/people/%s/books/already-read" % username, "MyBooksSidebar|AlreadyRead", "circle-check", _('Already Read'), key == 'already-read', counts['already-read'], shelf_ids()['already-read'])
+          $:nav_row("/people/%s/books/stopped-reading" % username, "MyBooksSidebar|StoppedReading", "circle-pause", _('Stopped Reading'), key == 'stopped-reading', counts['stopped-reading'], shelf_ids()['stopped-reading'])
+        </ul>
+      </div>
 
-      <div class="list-overflow">
+    $# ── Lists (always rendered, like upstream: even visitors of
+    $# private logs see the lists index) ───────────────────────────────
+    <div class="sb-section">
+      <div class="sb-heading">
+        <h3>$(_('My lists') if owners_page else _('Lists'))</h3>
+        $if owners_page:
+          <ol-tooltip class="sb-heading-action" content="$_('Create a new list')">
+            <ol-button
+              variant="ghost"
+              shape="icon"
+              href="/people/$username/lists/add"
+              aria-label="$_('Create a new list')"
+              data-ol-link-track="MyBooksSidebar|CreateList"
+            >$:macros.icon("plus", size="sm", slot="icon-start")</ol-button>
+          </ol-tooltip>
+      </div>
+      <ul>
+        $:nav_row("/people/%s/lists" % username, "MyBooksSidebar|AllLists", "library-big", _('All lists'), key == 'lists')
         $ placeholder_name = _('Untitled list')
         $for lst in lists:
-        $# e.g. OL1L from /people/mekBot/lists/OL1L
           $ list_id = lst.key.split('/')[-1]
-          $ class_list = ''
+          $ name = lst['name'] if lst['name'] else '[%s]' % placeholder_name
+          $ is_current = False
           $if key == 'list':
-            $# e.g. /people/openlibrary/lists/OL1L/MyList
-            $ path_id = ctx.path.split('/')[4]
-            $if list_id == path_id:
-              $ class_list = class_list + 'selected'
-          <li><a class="$class_list" data-ol-link-track="MyBooksSidebar|PatronList" href="/people/$username/lists/$list_id"><span class="li-count">$(len(lst.seeds))</span>$(lst['name'] if lst['name'] else '[%s]' % placeholder_name)</a></li>
-      </div>
-    </ul>
+            $ is_current = list_id == ctx.path.split('/')[4]
+          $:nav_row("/people/%s/lists/%s" % (username, list_id), "MyBooksSidebar|PatronList", "list", name, is_current, len(lst.seeds))
+      </ul>
+    </div>
+
+    $# ── Less frequent destinations ──────────────────────────────────
+    $if owners_page:
+      <ul class="sb-section">
+        $:nav_row("/people/%s/books/feed" % username, "MyBooksSidebar|MyFeed", "rss", _('My Feed'), key == 'feed')
+        $:nav_row("/account/books/already-read/stats", "MyBooksSidebar|ReadingStats", "chart-column", _('My Reading Stats'), key == 'stats')
+        $:nav_row("/account/import", "MyBooksSidebar|Import", "download", _('Import your data'), key == 'imports')
+      </ul>
+
+  $# ── SIDEBAR WRAPPER ──────────────────────────────────────────────
+  <div class="mybooks-menu">
+    <div class="mybooks-menu-content">
+      $:sidebar_content(username, key, owners_page, public, counts, lists)
+    </div>
   </div>
+
+  $# ── MOBILE POPOVER (shown on mobile ≤768px via CSS; owners and
+  $# visitors of public logs — otherwise visitors could not switch tabs)
+  $if owners_page or public:
+    <div class="mybooks-menu-mobile">
+      <ol-popover
+        aria-label="$(_('My Books Menu') if owners_page else _('Books menu'))"
+        placement="bottom-start"
+        class="mobile-sidebar-popover"
+      >
+        <button
+          slot="trigger"
+          class="mobile-sidebar-trigger"
+          aria-label="$(_('Open My Books menu') if owners_page else _('Open books menu'))"
+        >
+          <img src="/people/$username/avatar" class="mobile-avatar" alt="$username">
+          <span class="mobile-current-page">
+            $if key == 'mybooks': $(_('My Books') if owners_page else _('Books'))
+            $elif key == 'currently-reading': $_('Currently Reading')
+            $elif key == 'want-to-read': $_('Want to Read')
+            $elif key == 'already-read': $_('Already Read')
+            $elif key == 'stopped-reading': $_('Stopped Reading')
+            $elif key == 'notes': $_('My Notes')
+            $elif key == 'observations': $_('My Reviews')
+            $elif key == 'loans': $_('Loans & History')
+            $elif key == 'feed': $_('My Feed')
+            $elif key == 'stats': $_('My Reading Stats')
+            $elif key == 'imports': $_('Import your data')
+            $elif key == 'lists': $_('All lists')
+            $else: $(_('My Books') if owners_page else _('Books'))
+          </span>
+          <ol-icon name="chevron-down" size="sm" class="mobile-popover-chevron"></ol-icon>
+        </button>
+        <div class="mobile-sidebar-panel">
+          <div class="mybooks-menu-content">
+            $:sidebar_content(username, key, owners_page, public, counts, lists)
+          </div>
+        </div>
+      </ol-popover>
+    </div>
+
   $ component_times['Sidebar'] = time() - component_times['Sidebar']

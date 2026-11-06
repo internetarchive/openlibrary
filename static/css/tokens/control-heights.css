@@ -32,6 +32,8 @@
   --menu-row-height: 36px;
   --menu-row-inset: var(--spacing-inset-xs);
   --menu-row-padding-inline: calc(var(--spacing-inset-md) - var(--menu-row-inset));
+  /* A sidebar that holds a stack of menu rows (My Books) */
+  --menu-sidebar-width: 280px;
 }
 
 /* With a mouse there is no thumb to land, so rows drop to the medium control
