@@ -92,17 +92,6 @@ def initiative_param(initiative: initiatives.Initiative) -> str:
     return "" if initiative is initiatives.ACTIVE else initiative.slug
 
 
-def initiative_copy(initiative: initiatives.Initiative) -> dict[str, str]:
-    """An initiative's name and pitch, as the dashboard shows them."""
-    count = helpers.commify(initiative.size)
-    if initiative is initiatives.TAGS:
-        return {
-            "title": _("Find every book its shelf"),
-            "description": _("Fiction or nonfiction, and the genres that fit, starting with the most-read books."),
-        }
-    return {"title": _("Complete the %(count)s most-read books", count=count), "description": _("Fill in what's missing on the books people shelve most.")}
-
-
 def build_edit_saved(payload: str) -> pitch.EditSaved:
     """The thank-you banner an edit-page save lands on, naming the project in the save's flash message. Does no I/O: the site shell builds it."""
     if not (named := pitch.decode(payload)):
@@ -110,7 +99,7 @@ def build_edit_saved(payload: str) -> pitch.EditSaved:
     initiative, left = named
     project = pitch.Project(
         slug=initiative.slug,
-        title=initiative_copy(initiative)["title"],
+        title=initiatives.describe(initiative)["title"],
         url=build_dashboard_url(initiative=initiative_param(initiative)),
         # No-break spaces: in a chip that wraps on a phone, the count stays in one piece.
         left=ungettext("%(count)s task left", "%(count)s tasks left", left, count=helpers.commify(left)).replace(" ", "\N{NO-BREAK SPACE}") if left else "",
@@ -326,30 +315,6 @@ def count_sibling_values(fld: str, others: list, limit: int = 5) -> dict:
     }
 
 
-def get_recent_fixes(changes: list) -> list[dict]:
-    """The right column's "Your recent contributions", from the user's ``save.recent_saves``."""
-    keys = [c.changes[0]["key"] for c in changes if c.changes]
-    # An edition for most fields; the work for a work field.
-    records = {r.key: r for r in web.ctx.site.get_many(keys)} if keys else {}
-    field_guides = get_field_guides()
-    out = []
-    for c in changes:
-        key = c.changes[0]["key"] if c.changes else ""
-        if not (record := records.get(key)):
-            continue
-        data = c.data or {}
-        fields = data.get("fields") or [data.get("field", "")]
-        out.append(
-            {
-                "title": record.get_title() if record.type.key == "/type/edition" else record.title,
-                "url": f"{key}?m=history",
-                "field_label": ", ".join(field_guides[f].label for f in fields if f in field_guides),
-                "when": helpers.datestr(c.timestamp),
-            }
-        )
-    return out
-
-
 def build_book_header(edition, readers: int | None = None) -> dict:
     """What the book header shows. Live from the local record."""
     work = edition.works[0] if edition.works else None
@@ -427,17 +392,17 @@ def build_task_rows(task: str, initiative: initiatives.Initiative, fields: tuple
 def get_initiative_people(initiative: initiatives.Initiative) -> int:
     """How many people have saved for ``initiative``, from the stats job's latest counts. Yesterday's doc covers just after midnight."""
     for doc in reversed(admin.get_count_docs(2)):
-        if doc.get("initiative_slug") == initiative.slug and "initiative_people" in doc:
-            return doc["initiative_people"]
+        if (people := admin.initiative_counts(doc).get(initiative.slug, {}).get("people")) is not None:
+            return people
     return 0
 
 
 def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
-    """One card per initiative in the row under the dashboard's header, all one shape; only the open one is tinted.
+    """One entry per initiative in the dashboard's project list, all one shape; only the open one is selected.
 
     Asking for every initiative's gaps starts the builds for all of them, so the first visit warms the lot.
     The percent takes dozens of saves to move a point, so each card also counts the tasks left, which moves on every
-    save, and from MIN_PEOPLE_SHOWN up, how many people have helped.
+    save, and from MIN_PEOPLE_SHOWN up, how many people have saved for it.
     """
     cards = []
     for initiative in initiatives.INITIATIVES:
@@ -445,7 +410,7 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
         p = initiatives.progress(gaps, initiative.fields) if gaps else None
         people = get_initiative_people(initiative) if p else 0
         cards.append(
-            initiative_copy(initiative)
+            initiatives.describe(initiative)
             | {
                 "slug": initiative.slug,
                 "on": initiative is current,
@@ -453,9 +418,10 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
                 # None while the list is still being built.
                 "percent": p["percent"] if p else None,
                 "figure": _("%(percent)s%%", percent=p["percent"]) if p else "",
-                "tasks_left": ungettext("<b>%(count)s</b> task left", "<b>%(count)s</b> tasks left", p["open"], count=helpers.commify(p["open"])) if p else "",
+                "done_label": _("%(percent)s%% done", percent=p["percent"]) if p else "",
+                "tasks_left": ungettext("%(count)s task left", "%(count)s tasks left", p["open"], count=helpers.commify(p["open"])) if p else "",
                 "people": (
-                    ungettext("%(count)s person has helped", "%(count)s people have helped", people, count=helpers.commify(people))
+                    ungettext("%(count)s person helping", "%(count)s people helping", people, count=helpers.commify(people))
                     if people >= MIN_PEOPLE_SHOWN
                     else None
                 ),
@@ -464,7 +430,16 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
     return cards
 
 
-def build_filter_rail(task: str, initiative: initiatives.Initiative) -> dict:
+def count_open(gaps: list[list] | None, fields: tuple[str, ...]) -> str:
+    """Open tasks in ``fields`` across the initiative's gaps, for a filter chip; blank while the gaps are being built."""
+    if gaps is None:
+        return ""
+    wanted = set(fields)
+    return helpers.commify(sum(1 for _key, _readers, open_fields, _skipped in gaps for f in open_fields if f in wanted))
+
+
+def build_filter_rail(task: str, initiative: initiatives.Initiative, gaps: list[list] | None = None) -> dict:
+    """The filter chips over the list: the whole project, then one per kind of task it asks about, each with its open count."""
     slug = initiative_param(initiative)
     filters = [
         {
@@ -472,11 +447,21 @@ def build_filter_rail(task: str, initiative: initiatives.Initiative) -> dict:
             "url": build_dashboard_url("" if task == fid else fid, initiative=slug),
             "on": task == fid,
             "track": fid,
+            "count": count_open(gaps, fields),
         }
         # A filter over fields the initiative doesn't ask about still works by URL, but isn't linked.
-        for fid, (label, _fields) in visible_filters(initiative.fields).items()
+        for fid, (label, fields) in visible_filters(initiative.fields).items()
     ]
-    return {"all": {"label": _("All tasks"), "url": build_dashboard_url(initiative=slug), "on": not task, "track": "all"}, "filters": filters}
+    return {
+        "all": {
+            "label": _("All project tasks"),
+            "url": build_dashboard_url(initiative=slug),
+            "on": not task,
+            "track": "all",
+            "count": count_open(gaps, initiative.fields),
+        },
+        "filters": filters,
+    }
 
 
 def landing_figures() -> dict[str, str]:
@@ -559,29 +544,27 @@ class contribute_index(delegate.page):
     def GET(self):
         if not (user := accounts.get_current_user()):
             return render_landing()
-        # One query for both the intro check and the "recent contributions" column.
-        recent_saves = save.recent_saves(user.key)
-        if not has_seen_intro(recent_saves):
+        if not has_seen_intro(save.recent_saves(user.key)):
             return render_landing(user)
         initiative = get_initiative(query_param("initiative", ""))
         slug = initiative_param(initiative)
         task = normalize_filter(query_param("task", ""))
         rows = build_task_rows(task, initiative)
+        projects = build_initiative_cards(initiative)
         return render_contribute(
             "contribute/dashboard.html.jinja",
             _("Tasks"),
-            one_task_url=build_dashboard_url(task, base="/tasks/one", initiative=slug),
-            rail=build_filter_rail(task, initiative),
+            rail=build_filter_rail(task, initiative, initiatives.get_gaps(initiative)),
             rows=rows,
             # While the pool builds, the script fetches the rows from here.
             rows_url=build_dashboard_url(task, base="/tasks/rows", initiative=slug) if rows is None else "",
             skeleton_rows=LIST_SKELETON_ROWS if rows is None else 0,
-            heading=get_filter_headings()[task] if task else _("All tasks"),
+            heading=get_filter_headings()[task] if task else _("All project tasks"),
             empty=_("Nothing missing here right now. Thank you."),
-            recent=get_recent_fixes(recent_saves),
             history_url=user.key,
             apply=build_apply(user),
-            initiatives=build_initiative_cards(initiative),
+            initiatives=projects,
+            project=next(card for card in projects if card["on"]),
         )
 
 
@@ -771,7 +754,8 @@ class contribute_task(delegate.page):
         if spamcheck.is_spam(web.storage((k, v) for k, v in i.items() if isinstance(v, str)), allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         back = normalize_filter(i.back)
-        slug = initiative_param(get_initiative(i.initiative))
+        initiative = get_initiative(i.initiative)
+        slug = initiative_param(initiative)
         surprise = bool(i.surprise)
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
@@ -787,12 +771,12 @@ class contribute_task(delegate.page):
             if field_guide.confirm and not i.confirmed:
                 raise save.InvalidAnswer(_("Check that it matches this edition, and tick the box to say so."))
             if fld == "covers":
-                save.save_cover(edition, i.file, from_amazon=i.get("cover_choice") == "suggested")
+                save.save_cover(edition, i.file, from_amazon=i.get("cover_choice") == "suggested", initiative=initiative.slug)
             elif fld in tasks.WORK_FIELDS:
                 answers = build_work_answers(edition, fld, i)
-                save.save_work_answers(work_of(edition), answers, answers_label(list(answers)), i.note)
+                save.save_work_answers(work_of(edition), answers, answers_label(list(answers)), i.note, initiative=initiative.slug)
             else:
-                save.save_answer(edition, fld, i.value, field_guide.label, i.note)
+                save.save_answer(edition, fld, i.value, field_guide.label, i.note, initiative=initiative.slug)
         except save.InvalidAnswer as e:
             context = build_task_context(edition, task, back, slug, surprise=surprise, error=str(e), value=i.value, many=i.genres, note=i.note)
             return render_contribute("contribute/task.html.jinja", field_guide.question, **context)

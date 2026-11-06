@@ -1,4 +1,4 @@
-{#- /stats/tasks: who is editing the catalog, and how the Tasks page and its initiative are doing. Numbers are rendered here;
+{#- /stats/tasks: who is editing the catalog, and how the Tasks page and its community projects are doing. Numbers are rendered here;
     the charts are drawn by openlibrary/plugins/openlibrary/js/tasks_stats.js from /stats/tasks.json. -#}
 <div id="contentHead">
     <h1>{{ _("Tasks Stats") }}</h1>
@@ -73,21 +73,39 @@
         <p class="tasks-stats__note tasks-stats__chart-note">{{ page.cards[0].note if page.cards else "" }}</p>
     </section>
     <div class="tasks-stats__panels">
-        <section class="tasks-stats__panel">
-            <h2>{{ page.initiative.title }}</h2>
+        <section class="tasks-stats__panel tasks-stats__panel--wide">
+            <h2>{{ _("Community projects") }}</h2>
             <p class="tasks-stats__note">
-                {{ _("Details still missing across the project's books, counted nightly. A detail nobody could find counts as filled.") }}
+                {{ _("Details still missing across each project's books, counted nightly. A detail nobody could find counts as filled.") }}
             </p>
-            <p class="tasks-stats__figures">
-                <span><b>{{ page.initiative.percent }}</b> {{ _("of details filled") }}</span>
-                <span>{{ _("<b>%(done)s of %(count)s</b> books complete", done=page.initiative.done, count=page.initiative.editions) | safe }}</span>
-                <span><b>{{ page.initiative.open }}</b> {{ _("details still open") }}</span>
-                <span><b>{{ page.initiative.not_found }}</b> {{ _("marked not found") }}</span>
-            </p>
+            <div class="tasks-stats__cards tasks-stats__cards--projects"
+                 role="group"
+                 aria-label="{{ _('Community projects. Choose one to chart it.') }}">
+                {% for project in page.initiatives %}
+                    <button type="button"
+                            class="tasks-stats__card"
+                            data-initiative="{{ project.slug }}"
+                            aria-pressed="{{ 'true' if project.on else 'false' }}">
+                        <span class="tasks-stats__card-label">{{ project.title }}</span>
+                        <span class="tasks-stats__card-value">{{ project.percent }}</span>
+                        <span class="tasks-stats__card-window">{{ _("of details filled") }}</span>
+                    </button>
+                {% endfor %}
+            </div>
+            {% for project in page.initiatives %}
+                <p class="tasks-stats__figures"
+                   data-initiative-figures="{{ project.slug }}"
+                   {% if not project.on %}hidden{% endif %}>
+                    <span>{{ _("<b>%(done)s of %(count)s</b> books complete", done=project.done, count=project.editions) | safe }}</span>
+                    <span><b>{{ project.open }}</b> {{ _("details still open") }}</span>
+                    <span><b>{{ project.not_found }}</b> {{ _("marked not found") }}</span>
+                    <span>{{ project.people | safe }}</span>
+                </p>
+            {% endfor %}
             <div class="tasks-stats__canvas">
                 <canvas data-chart="initiative"
                         role="img"
-                        aria-label="{{ _('Details still open, by day') }}"></canvas>
+                        aria-label="{{ _('Details still open on the chosen project, by day') }}"></canvas>
             </div>
         </section>
         <section class="tasks-stats__panel">
@@ -121,7 +139,7 @@
                 <p>{{ _("No Tasks saves in the last 28 days.") }}</p>
             {% endif %}
         </section>
-        <section class="tasks-stats__panel tasks-stats__panel--wide">
+        <section class="tasks-stats__panel">
             <h2>{{ _("Guardrail") }}</h2>
             <p class="tasks-stats__note">
                 {{ _("Saves whose value is no longer on the record: undone, reverted or changed by a later edit, over the 28 days to each day. The dashed line is the same check on the same fields filled outside Tasks, by people editing a record directly.") }}

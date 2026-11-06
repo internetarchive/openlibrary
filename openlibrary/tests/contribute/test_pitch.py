@@ -5,7 +5,7 @@ from markupsafe import Markup
 
 from openlibrary.contribute import initiatives, pitch
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
-from openlibrary.plugins.openlibrary.contribute import build_edit_saved, initiative_copy
+from openlibrary.plugins.openlibrary.contribute import build_edit_saved
 from openlibrary.utils.request_context import RequestContextVars, req_context
 
 MOST_READ, TAGS = initiatives.MOST_READ, initiatives.TAGS
@@ -64,7 +64,7 @@ def test_banner_links_the_initiative_with_its_tasks_left():
     assert (saved.project.slug, saved.project.url, saved.project.left) == (TAGS.slug, f"/tasks?initiative={TAGS.slug}", "3,760\xa0tasks\xa0left")
     assert saved.dismiss_cookie == pitch.dismiss_cookie()
     headline = build_edit_saved(f"{MOST_READ.slug}:485").project
-    assert (headline.url, headline.left, headline.title) == ("/tasks", "485\xa0tasks\xa0left", initiative_copy(MOST_READ)["title"])
+    assert (headline.url, headline.left, headline.title) == ("/tasks", "485\xa0tasks\xa0left", initiatives.describe(MOST_READ)["title"])
 
 
 @pytest.mark.parametrize("payload", ["", "no-such-initiative:5", "<script>:1", ":"])

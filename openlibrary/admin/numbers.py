@@ -265,70 +265,58 @@ def admin_range__tasks_saves_by_field_1d(**kargs):
     return {row.field: row.count for row in rows if row.field}
 
 
-# Initiative counts. The frozen edition list and the not-found marks live in the store, so these read through
+# Initiative counts. The frozen edition lists and the not-found marks live in the store, so these read through
 # `web.ctx.site`, which `stats.setup_ol_config` provides, rather than through `thingdb`.
-_cached_initiative_progress: dict | None = None
-
-
 def _initiative():
     from openlibrary.contribute import initiatives
 
     return initiatives
 
 
-def _initiative_progress(kargs) -> dict:
-    """`initiatives.progress` for the active initiative, as of now. Only for today: a snapshot has no history, and the
-    backfill loop would otherwise stamp today's figure onto every past day. Read once per run, for all four keys.
-    Never picks the list: freezing it is the web app's job, so until it has, there's nothing to report."""
-    global _cached_initiative_progress
+def _initiative_people(db, initiative, since: str, end: str) -> int:
+    """Accounts that saved for ``initiative`` from ``since`` to ``end``. A save names its initiative; one from before saves did
+    is matched by its field, which no two initiatives shared then."""
+    sql = f"""
+        SELECT count(DISTINCT t.author_id) AS count FROM transaction t
+        WHERE t.created >= $since AND t.created < $end AND t.id IN ({TASKS_SAVES})
+          AND COALESCE(t.data::json->>'initiative' = $slug, t.data::json->>'field' IN $fields)
+    """
+    vars = {"since": since, "end": end, "tasks_source": TASKS_SOURCE, "slug": initiative.slug, "fields": list(initiative.fields)}
+    return db.query(sql, vars=vars)[0].count
+
+
+def admin_range__initiatives(**kargs):
+    """Every initiative's progress as of now, by slug: details still open, editions done, details nobody could find, editions
+    on the list, and people who have saved for it since the list was frozen. Stored as a dict, so an initiative added to the
+    registry is counted from the next run, with nothing to set up. Read with `openlibrary.core.admin.initiative_counts`.
+
+    Only for today: a snapshot has no history, and the backfill loop would otherwise stamp today's figures onto every past
+    day. An initiative whose list the web app hasn't frozen yet is left out; this never picks one."""
     try:
         start, end = kargs["start"], kargs["end"]
     except KeyError as k:
-        raise TypeError(f"{k} is a required argument for the initiative counts")
+        raise TypeError(f"{k} is a required argument for admin_range__initiatives")
     # Only the run's first window, which ends at "now", is shorter than a day. Checking the clock instead would
     # skip the snapshot when a run that started before midnight gets here after it.
     if end - start >= timedelta(days=1):
         raise NoStats
-    if _cached_initiative_progress is None:
-        initiatives = _initiative()
-        if not (picks := initiatives.load_frozen(initiatives.ACTIVE, web.ctx.site)):
-            raise NoStats
-        _cached_initiative_progress = initiatives.progress(initiatives.gaps_for(picks, web.ctx.site), initiatives.ACTIVE.fields)
-    return _cached_initiative_progress
-
-
-def admin_range__initiative_slug(**kargs):
-    "Which initiative the day's `initiative_*` counts describe, so a new list doesn't continue the old one's lines."
-    _initiative_progress(kargs)
-    return _initiative().ACTIVE.slug
-
-
-def admin_range__initiative_open_gaps(**kargs):
-    "Fields still missing across the active initiative's editions, less those enough people couldn't find."
-    return _initiative_progress(kargs)["open"]
-
-
-def admin_range__initiative_done_editions(**kargs):
-    "Editions on the active initiative's list with nothing left to fill."
-    return _initiative_progress(kargs)["done"]
-
-
-def admin_range__initiative_not_found(**kargs):
-    "Fields on the active initiative's list that enough people couldn't find."
-    return _initiative_progress(kargs)["not_found"]
-
-
-def admin_range__initiative_editions(**kargs):
-    "Editions on the active initiative's list still in the catalog."
-    return _initiative_progress(kargs)["total"]
-
-
-def admin_range__initiative_people(**kargs):
-    "Accounts that have saved from the Tasks page since the active initiative's list was frozen. A running total, so only for today."
-    _initiative_progress(kargs)
+    db, _start, end_str = _range_args("admin_range__initiatives", kargs)
     initiatives = _initiative()
-    db, _start, end = _range_args("admin_range__initiative_people", kargs)
-    return _count_tasks_editors(db, web.ctx.site.store.get(initiatives.ACTIVE.store_key)["frozen_at"], end)
+    counts = {}
+    for initiative in initiatives.INITIATIVES:
+        if not (frozen := web.ctx.site.store.get(initiative.store_key)):
+            continue
+        p = initiatives.progress(initiatives.gaps_for(frozen["editions"], web.ctx.site), initiative.fields)
+        counts[initiative.slug] = {
+            "open": p["open"],
+            "done": p["done"],
+            "not_found": p["not_found"],
+            "editions": p["total"],
+            "people": _initiative_people(db, initiative, frozen["frozen_at"], end_str),
+        }
+    if not counts:
+        raise NoStats
+    return counts
 
 
 def admin_range__tasks_saves_undone_28d(**kargs):
