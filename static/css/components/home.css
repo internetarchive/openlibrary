@@ -15,6 +15,24 @@ div.tutorial__item {
   text-align: start;
 }
 
+/* Pre-upgrade skeleton: the generic one in ol-components.css assumes 8 book columns,
+   which squeezes these cards to a sliver. Mirror the 3/2/1 breakpoints in home/welcome.html. */
+ol-carousel:not(:defined) > .tutorial__item {
+  flex-basis: 30.6%;
+}
+
+@media (max-width: 1024px) {
+  ol-carousel:not(:defined) > .tutorial__item {
+    flex-basis: 46.5%;
+  }
+}
+
+@media (max-width: 600px) {
+  ol-carousel:not(:defined) > .tutorial__item {
+    flex-basis: 94%;
+  }
+}
+
 div.tutorial__item:focus {
   box-shadow: var(--box-shadow-focus);
 }
