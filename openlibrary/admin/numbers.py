@@ -221,11 +221,15 @@ def new_catalog_editors(days, **kargs):
 TASKS_SAVES = "SELECT tx_id FROM transaction_index WHERE key = 'source' AND value = $tasks_source"
 
 
+def _count_tasks_editors(db, since, end):
+    sql = f"SELECT count(DISTINCT t.author_id) AS count FROM transaction t WHERE t.created >= $since AND t.created < $end AND t.id IN ({TASKS_SAVES})"
+    return db.query(sql, vars={"since": since, "end": end, "tasks_source": TASKS_SOURCE})[0].count
+
+
 def tasks_editors(days, **kargs):
     "Accounts that saved from the Tasks page in the `days` before `end`."
     db, since, end = _window_args(f"admin_range__tasks_editors_{days}d", kargs, days)
-    sql = f"SELECT count(DISTINCT t.author_id) AS count FROM transaction t WHERE t.created >= $since AND t.created < $end AND t.id IN ({TASKS_SAVES})"
-    return db.query(sql, vars={"since": since, "end": end, "tasks_source": TASKS_SOURCE})[0].count
+    return _count_tasks_editors(db, since, end)
 
 
 def tasks_saves(days, **kargs):
@@ -317,6 +321,14 @@ def admin_range__initiative_not_found(**kargs):
 def admin_range__initiative_editions(**kargs):
     "Editions on the active initiative's list still in the catalog."
     return _initiative_progress(kargs)["total"]
+
+
+def admin_range__initiative_people(**kargs):
+    "Accounts that have saved from the Tasks page since the active initiative's list was frozen. A running total, so only for today."
+    _initiative_progress(kargs)
+    initiatives = _initiative()
+    db, _start, end = _range_args("admin_range__initiative_people", kargs)
+    return _count_tasks_editors(db, web.ctx.site.store.get(initiatives.ACTIVE.store_key)["frozen_at"], end)
 
 
 def admin_range__tasks_saves_undone_28d(**kargs):

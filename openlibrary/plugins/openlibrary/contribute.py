@@ -119,9 +119,12 @@ def build_dashboard_url(task: str = "", base: str = "/tasks", initiative: str = 
     return f"{base}?{query}" if query else base
 
 
-def build_next_url(back: str, after: tasks.Task, saved: bool, initiative: str = "") -> str:
-    """Another random task from the same initiative and filter, skipping the book just done; ``saved`` carries the receipt along."""
-    params = {"initiative": initiative, "task": back, "exclude": after.olid} | ({"saved": after.key} if saved else {})
+def build_next_url(back: str, after: tasks.Task, saved: bool, initiative: str = "", surprise: bool = False) -> str:
+    """Another random task from the same initiative, filter and field, skipping the book just done; ``saved`` carries the receipt along.
+
+    ``surprise`` means "Surprise me" chose the field rather than the user, so the next pick is open again.
+    """
+    params = {"initiative": initiative, "task": back, "field": "" if surprise else after.field, "exclude": after.olid} | ({"saved": after.key} if saved else {})
     return f"/tasks/one?{urlencode({k: v for k, v in params.items() if v})}"
 
 
@@ -358,10 +361,10 @@ def build_book_header(edition, readers: int | None = None) -> dict:
     }
 
 
-def build_task_url(task: tasks.Task, back: str = "", initiative: str = "") -> str:
+def build_task_url(task: tasks.Task, back: str = "", initiative: str = "", surprise: bool = False) -> str:
     url = f"/tasks/task/{task.olid}/{task.field}"
-    query = urlencode({k: v for k, v in {"back": back, "initiative": initiative}.items() if v})
-    return f"{url}?{query}" if query else url
+    params = {"back": back, "initiative": initiative, "surprise": "1" if surprise else ""}
+    return f"{url}?{query}" if (query := urlencode({k: v for k, v in params.items() if v})) else url
 
 
 def build_task_summary(task: tasks.Task, field_guides, back: str = "", initiative: str = "") -> dict:
@@ -375,12 +378,18 @@ def build_task_summary(task: tasks.Task, field_guides, back: str = "", initiativ
     }
 
 
-def build_task_rows(task: str, initiative: initiatives.Initiative) -> list[dict] | None:
+def get_filter_fields(task: str, initiative: initiatives.Initiative) -> tuple[str, ...]:
+    """The filter's fields, or with no filter, the initiative's own."""
+    return get_filters()[task][1] if task else initiative.fields
+
+
+def build_task_rows(task: str, initiative: initiatives.Initiative, fields: tuple[str, ...] | None = None) -> list[dict] | None:
     """A random draw of the filter's books from the initiative, each with its open tasks weighted by ``tasks.impact`` for "Surprise me".
 
-    No filter means the initiative's own fields. None while the initiative's gaps are still being built.
+    No filter means the initiative's own fields; ``fields`` narrows the draw within the filter.
+    None while the initiative's gaps are still being built.
     """
-    fields = get_filters()[task][1] if task else initiative.fields
+    fields = fields or get_filter_fields(task, initiative)
     if (candidates := supply.candidates(initiative, fields)) is None:
         return None
     field_guides = get_field_guides()
@@ -575,12 +584,19 @@ class contribute_one(delegate.page):
         task = normalize_filter(query_param("task", ""))
         require_login(build_dashboard_url(task, base=self.path, initiative=slug))
         exclude = f"/books/{query_param('exclude', '')}"
-        options = [t for row in build_task_rows(task, initiative) or [] if row["book"]["key"] != exclude for t in row["tasks"]]
-        if not options:
+        fld = query_param("field", "")
+
+        def open_tasks(narrow: tuple[str, ...] | None = None) -> list[dict]:
+            return [t for row in build_task_rows(task, initiative, narrow) or [] if row["book"]["key"] != exclude for t in row["tasks"]]
+
+        # The field the user has been working on, until it runs out; a field outside the filter doesn't override it.
+        if not (options := open_tasks((fld,)) if fld in get_filter_fields(task, initiative) else []) and not (options := open_tasks()):
             raise web.seeother(build_dashboard_url(task, initiative=slug))
         pick = random.choices(options, weights=[max(t["weight"], 1) for t in options])[0]
-        saved = query_param("saved", "")
-        raise web.seeother(f"{pick['url']}{'&' if '?' in pick['url'] else '?'}{urlencode({'saved': saved})}" if saved else pick["url"])
+        # No field asked for means "Surprise me": the pick's field isn't the user's choice, so "Save and next" shouldn't stick to it.
+        params = {"saved": query_param("saved", ""), "surprise": "" if fld else "1"}
+        query = urlencode({k: v for k, v in params.items() if v})
+        raise web.seeother(f"{pick['url']}{'&' if '?' in pick['url'] else '?'}{query}" if query else pick["url"])
 
 
 def get_sibling_editions(edition) -> list:
@@ -591,7 +607,15 @@ def get_sibling_editions(edition) -> list:
 
 
 def build_task_context(
-    edition, task: tasks.Task, back: str, initiative: str = "", error: str = "", value: str = "", many: Sequence[str] = (), note: str = ""
+    edition,
+    task: tasks.Task,
+    back: str,
+    initiative: str = "",
+    surprise: bool = False,
+    error: str = "",
+    value: str = "",
+    many: Sequence[str] = (),
+    note: str = "",
 ) -> dict:
     field_guide = get_field_guides()[task.field]
     others = get_sibling_editions(edition) if field_guide.show_siblings else []
@@ -607,7 +631,7 @@ def build_task_context(
         "task": {
             "key": task.key,
             "field": task.field,
-            "url": build_task_url(task, back, initiative),
+            "url": build_task_url(task, back, initiative, surprise),
         },
         "initiative": initiative,
         "is_identifier": task.field in save.NORMALIZERS,
@@ -633,7 +657,7 @@ def build_task_context(
         "not_found_label": field_guide.not_found or _("I couldn't find it"),
         "list_url": build_dashboard_url(back, initiative=initiative),
         # Moving on without an answer records nothing; "I couldn't find it" is the one that counts.
-        "skip_url": build_next_url(back, task, saved=False, initiative=initiative),
+        "skip_url": build_next_url(back, task, saved=False, initiative=initiative, surprise=surprise),
         "languages": save.language_options() if task.field == "languages" else [],
         "error": error,
         "value": value,
@@ -651,12 +675,25 @@ def get_back_filter() -> str:
 
 
 def build_receipt(saved: str) -> dict | None:
-    """The previous task's "Saved" line, from a ``OL…M/field`` key, when "Save and next" brought us here."""
+    """The previous task's "Just saved" callout, from a ``OL…M/field`` key, when "Save and next" brought us here.
+
+    None when the field is still empty, as there's nothing saved to show. A cover has no text value; the image is its value.
+    """
     olid, _sep, fld = saved.partition("/")
     field_guide = get_field_guides().get(fld)
     if not field_guide or not (edition := web.ctx.site.get(f"/books/{olid}")):
         return None
-    return {"field_label": field_guide.label, "title": edition.title, "value": format_saved_value(edition, fld), "url": edition.url()}
+    value = format_saved_value(edition, fld)
+    cover_url = edition.get_cover_url("M")
+    if not value and not (fld == "covers" and cover_url):
+        return None
+    return {
+        "field_label": field_guide.label,
+        "title": edition.title,
+        "value": value,
+        "url": edition.url(),
+        "cover_url": cover_url,
+    }
 
 
 def get_edition_or_404(olid: str):
@@ -692,8 +729,9 @@ def answers_label(fields: list[str]) -> str:
     return _("%(first)s and %(second)s", first=labels[0], second=labels[1]) if len(labels) == 2 else labels[0]
 
 
-def build_done_url(olid: str, fld: str, choice: str, back: str, initiative: str) -> str:
-    return f"/tasks/task/{olid}/{fld}/done?{urlencode({k: v for k, v in {'choice': choice, 'back': back, 'initiative': initiative}.items() if v})}"
+def build_done_url(olid: str, fld: str, choice: str, back: str, initiative: str, surprise: bool = False) -> str:
+    params = {"choice": choice, "back": back, "initiative": initiative, "surprise": "1" if surprise else ""}
+    return f"/tasks/task/{olid}/{fld}/done?{urlencode({k: v for k, v in params.items() if v})}"
 
 
 class contribute_task(delegate.page):
@@ -706,12 +744,12 @@ class contribute_task(delegate.page):
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return render_nothing_page(edition, fld, back, slug)
-        context = build_task_context(edition, task, back, slug) | {"receipt": build_receipt(query_param("saved", ""))}
+        context = build_task_context(edition, task, back, slug, surprise=bool(query_param("surprise", ""))) | {"receipt": build_receipt(query_param("saved", ""))}
         return render_contribute("contribute/task.html.jinja", get_field_guides()[fld].question, **context)
 
     def POST(self, olid, fld):
         user = require_login(f"/tasks/task/{olid}/{fld}")
-        i = web.input(value="", genres=[], note="", back="", initiative="", confirmed="", then="", file={})
+        i = web.input(value="", genres=[], note="", back="", initiative="", surprise="", confirmed="", then="", file={})
         # Drop the upload's field storage, as the add-cover page does.
         web.ctx.pop("_fieldstorage", None)
         # Same check as the edit form; it also stops read-only and blocked accounts. Only the text is checked: not the image, not the picked keys.
@@ -719,6 +757,7 @@ class contribute_task(delegate.page):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         back = normalize_filter(i.back)
         slug = initiative_param(get_initiative(i.initiative))
+        surprise = bool(i.surprise)
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return render_nothing_page(edition, fld, back, slug)
@@ -726,8 +765,8 @@ class contribute_task(delegate.page):
             # "Not sure" counts like "I couldn't find it": enough people and the gap is set aside.
             initiatives.record_not_found(web.ctx.site, edition.key, fld, user.key)
             if i.then == "next":
-                raise web.seeother(build_next_url(back, task, saved=False, initiative=slug))
-            raise web.seeother(build_done_url(olid, fld, "unsure", back, slug))
+                raise web.seeother(build_next_url(back, task, saved=False, initiative=slug, surprise=surprise))
+            raise web.seeother(build_done_url(olid, fld, "unsure", back, slug, surprise))
         field_guide = get_field_guides()[fld]
         try:
             if field_guide.confirm and not i.confirmed:
@@ -740,11 +779,11 @@ class contribute_task(delegate.page):
             else:
                 save.save_answer(edition, fld, i.value, field_guide.label, i.note)
         except save.InvalidAnswer as e:
-            context = build_task_context(edition, task, back, slug, error=str(e), value=i.value, many=i.genres, note=i.note)
+            context = build_task_context(edition, task, back, slug, surprise=surprise, error=str(e), value=i.value, many=i.genres, note=i.note)
             return render_contribute("contribute/task.html.jinja", field_guide.question, **context)
         if i.then == "next":
-            raise web.seeother(build_next_url(back, task, saved=True, initiative=slug))
-        raise web.seeother(build_done_url(olid, fld, "saved", back, slug))
+            raise web.seeother(build_next_url(back, task, saved=True, initiative=slug, surprise=surprise))
+        raise web.seeother(build_done_url(olid, fld, "saved", back, slug, surprise))
 
 
 class contribute_done(delegate.page):
@@ -771,6 +810,6 @@ class contribute_done(delegate.page):
             cover_url=edition.get_cover_url("M") if saved and fld == "covers" else "",
             history_url=f"{edited.key}?m=history",
             same_book=same_book,
-            next_url=build_next_url(back, tasks.Task(olid, fld), saved=False, initiative=slug),
+            next_url=build_next_url(back, tasks.Task(olid, fld), saved=False, initiative=slug, surprise=bool(query_param("surprise", ""))),
             list_url=build_dashboard_url(back, initiative=slug),
         )

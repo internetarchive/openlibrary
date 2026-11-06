@@ -57,6 +57,40 @@
         {% endif %}
     </div>
 {% endmacro %}
+{% macro saved_receipt(receipt) %}
+    {#- What "Save and next" just saved. -#}
+    <div class="contrib-saved" role="status" data-receipt>
+        <div class="contrib-receipt">
+            {% if receipt.cover_url %}
+                <img class="contrib-receipt__cover"
+                     src="{{ receipt.cover_url }}"
+                     alt=""
+                     width="64"
+                     height="96" />
+            {% endif %}
+            <div>
+                <div class="contrib-saved__status">{{ icon("circle-check", size="sm") }}{{ _("Just saved") }}</div>
+                <div class="contrib-saved__book">
+                    <div class="contrib-saved__title">
+                        <a href="{{ receipt.url }}" data-ol-link-track="TaskForm|SavedBook">{{ receipt.title }}</a>
+                    </div>
+                    <div class="contrib-saved__detail">
+                        {% if receipt.value %}
+                            {{ _("%(field)s added: %(value)s", field=receipt.field_label, value=receipt.value) }}
+                        {% else %}
+                            {{ _("%(field)s added", field=receipt.field_label) }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <ol-tooltip class="contrib-book__actions" content="{{ _('Go to book page') }}">
+                <ol-button variant="ghost" shape="icon" size="small" href="{{ receipt.url }}" aria-label="{{ _('Go to book page') }}">
+                    {{ icon("eye", size="sm") }}
+                </ol-button>
+            </ol-tooltip>
+        </div>
+    </div>
+{% endmacro %}
 {% macro task_row(task, track) %}
     {#- One to-do per field, styled as a menu item: an icon and the action it leads to.
         ``track`` is the analytics "Category|Action"; the field becomes the label. -#}
@@ -105,10 +139,7 @@
         <h2 class="contrib-h">{{ _("How this edit goes wrong") }}</h2>
         <ul class="contrib-traps">
             {% for trap in items %}
-                <li class="contrib-trap">
-                    {{ icon("triangle-alert", size="sm") }}
-                    <span>{{ trap }}</span>
-                </li>
+                <li>{{ trap }}</li>
             {% endfor %}
         </ul>
     </section>
@@ -360,8 +391,8 @@
             <dl class="contrib-record__fields">
                 {% for row in data.record_fields %}
                     {% if row.ask %}
-                        {#- A chip group takes the full width under its label: a dozen chips beside an 88px label wrap into twice the rows. -#}
-                        <div class="contrib-record__row contrib-record__row--ask{% if data.many %} contrib-record__row--stack{% endif %}">
+                        {#- Chips and cover choices take the full width under their label: beside an 88px label they wrap into twice the rows. -#}
+                        <div class="contrib-record__row contrib-record__row--ask{% if data.many or data.is_cover %} contrib-record__row--stack{% endif %}">
                             <dt>
                                 {#- A choice list is a group of radios and chips are a group too, so the label names the group rather than one control. -#}
                                 {% if data.many %}
@@ -377,7 +408,7 @@
                                 {% if data.is_identifier %}<p class="contrib-field__verdict" data-id-verdict role="status"></p>{% endif %}
                                 {% if data.suggestions %}
                                     <div class="contrib-suggest" data-suggest>
-                                        <span>{{ _("Other editions say") }}</span>
+                                        <span class="contrib-suggest__label">{{ _("Other editions say…") }}</span>
                                         {% for s in data.suggestions %}
                                             <ol-chip size="small" count="{{ s.count }}" data-value="{{ s.value }}" accessible-label="{{ ngettext('%(value)s, on 1 edition', '%(value)s, on %(count)d editions', s.count, value=s.label, count=s.count) }}">
                                                 {{ s.label }}

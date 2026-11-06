@@ -49,5 +49,8 @@ def test_urls_name_the_initiative_only_when_it_is_not_the_headline_one():
     assert contribute.get_initiative("genres-2026-11") is contribute.initiatives.TAGS
     task = contribute.tasks.Task("OL1M", "genres")
     assert contribute.build_task_url(task, "genres", "genres-2026-11") == "/tasks/task/OL1M/genres?back=genres&initiative=genres-2026-11"
-    assert contribute.build_next_url("", task, saved=True, initiative="genres-2026-11") == "/tasks/one?initiative=genres-2026-11&exclude=OL1M&saved=OL1M%2Fgenres"
+    assert (
+        contribute.build_next_url("", task, saved=True, initiative="genres-2026-11")
+        == "/tasks/one?initiative=genres-2026-11&field=genres&exclude=OL1M&saved=OL1M%2Fgenres"
+    )
     assert contribute.build_done_url("OL1M", "genres", "saved", "", "") == "/tasks/task/OL1M/genres/done?choice=saved"
