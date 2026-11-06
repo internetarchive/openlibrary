@@ -99,7 +99,7 @@ def initiative_copy(initiative: initiatives.Initiative) -> dict[str, str]:
         return {
             "title": _("Fiction or nonfiction"),
             "description": _(
-                "%(count)s of the most-shelved books that aren't marked fiction or nonfiction yet, or are missing their genres. Both are answered on one page.",
+                "%(count)s of the most-shelved books that aren't marked fiction or nonfiction yet, or are missing their genres.",
                 count=count,
             ),
         }

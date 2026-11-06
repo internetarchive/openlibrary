@@ -9240,7 +9240,7 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "%(count)s of the most-shelved books that aren't marked fiction or nonfiction yet, or are missing their genres. Both are answered on one page."
+msgid "%(count)s of the most-shelved books that aren't marked fiction or nonfiction yet, or are missing their genres."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

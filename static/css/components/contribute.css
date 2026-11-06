@@ -1201,7 +1201,7 @@
 .contrib-projects__name {
   font-family: var(--font-family-button);
   font-size: var(--font-size-body-medium);
-  font-weight: var(--font-weight-button);
+  font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-title);
 }
 
@@ -1278,7 +1278,7 @@
   display: grid;
   flex: none;
   place-items: center;
-  width: 104px;
+  width: 84px;
   aspect-ratio: 1;
 }
 
@@ -1316,7 +1316,7 @@
 .contrib-ring__figure {
   position: relative;
   color: var(--color-text-heading);
-  font-size: var(--font-size-headline-small);
+  font-size: var(--font-size-title-large);
   font-weight: var(--font-weight-semibold);
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -1336,7 +1336,6 @@
   gap: var(--spacing-inline-md);
   min-height: var(--control-height-medium);
   padding: 0 var(--spacing-inset-sm) 0 var(--menu-row-padding-inline);
-  border: 1px solid var(--color-border);
   border-radius: var(--border-radius-pill);
   color: var(--color-text-secondary);
   font-family: var(--font-family-button);
@@ -1351,8 +1350,8 @@
   font-weight: var(--font-weight-regular);
 }
 
+/* Ghost pills: the same tint as the project rows beside them. */
 .contrib-rail .contrib-rail__item.is-on {
-  border-color: var(--color-control-selected-border);
   background: var(--color-control-selected-bg);
   color: var(--color-link);
 }
@@ -1368,9 +1367,12 @@
 
 @media (hover: hover) and (pointer: fine) {
   .contrib-rail__item:not(.is-on):hover {
-    border-color: var(--color-border-hover);
     background-color: var(--color-hover-overlay);
     color: var(--color-text);
+  }
+
+  .contrib-rail__item.is-on:hover {
+    background-color: var(--color-control-selected-bg-hover);
   }
 }
 
