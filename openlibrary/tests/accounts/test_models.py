@@ -1,5 +1,8 @@
+import threading
 from unittest import mock
+from unittest.mock import AsyncMock
 
+import pytest
 from requests.models import Response
 
 from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, model
@@ -51,6 +54,51 @@ def test_xauth_http_error_with_json(monkeypatch):
     resp._content = b'{"error": "Unknown Parameter Blah"}'
     monkeypatch.setattr(model.requests, "post", lambda url, **kwargs: resp)
     assert xauth("create", s3_key="_", s3_secret="_") == {"error": "Unknown Parameter Blah"}
+
+
+@pytest.mark.asyncio
+async def test_anonymize_test_mode_awaits_all_sql_models(monkeypatch):
+    account = OpenLibraryAccount(_key="/people/testuser")
+    methods = {
+        "booknotes": (model.Booknotes, "delete_all_by_username", 2),
+        "ratings": (model.Ratings, "update_username", 3),
+        "observations": (model.Observations, "update_username", 4),
+        "bookshelves": (model.Bookshelves, "update_username", 5),
+        "edits": (model.CommunityEditsQueue, "update_submitter_name", 6),
+        "bestbooks": (model.Bestbook, "update_username", 7),
+    }
+    mocks = {}
+    for key, (klass, name, count) in methods.items():
+        async_mock = AsyncMock(return_value=count)
+        monkeypatch.setattr(klass, name, async_mock)
+        mocks[key] = async_mock
+
+    with mock.patch.object(OpenLibraryAccount, "get_activation_link", return_value=model.Link(code="abc123")):
+        result = await account.anonymize(test=True)
+
+    assert result == {
+        "new_username": "anonymous-abc123",
+        "booknotes_count": 2,
+        "ratings_count": 3,
+        "observations_count": 4,
+        "bookshelves_count": 5,
+        "merge_request_count": 6,
+        "bestbooks_count": 7,
+    }
+    mocks["booknotes"].assert_awaited_once_with("testuser", _test=True)
+    for key in ("ratings", "observations", "bookshelves", "edits", "bestbooks"):
+        mocks[key].assert_awaited_once_with("testuser", "anonymous-abc123", _test=True)
+
+
+def test_anonymize_sync_deletes_infobase_data_on_calling_thread(monkeypatch):
+    # Infobase saves read the request's thread-local web.ctx.ip, which the async bridge thread lacks.
+    account = OpenLibraryAccount(_key="/people/testuser")
+    threads = []
+    monkeypatch.setattr(OpenLibraryAccount, "_delete_infobase_data", lambda self: threads.append(threading.current_thread()))
+    monkeypatch.setattr(OpenLibraryAccount, "_anonymize_tables", AsyncMock(return_value={"new_username": "anonymous-abc123"}))
+
+    assert account.anonymize_sync() == {"new_username": "anonymous-abc123"}
+    assert threads == [threading.current_thread()]
 
 
 @mock.patch("openlibrary.accounts.model.site")

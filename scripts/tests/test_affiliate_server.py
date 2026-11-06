@@ -376,7 +376,7 @@ class TestLoadConfigRequiresCreatorsAPI:
             cfg["amazon_api"] = legacy
 
         with (
-            patch("scripts.affiliate_server.openlibrary_load_config"),
+            patch("scripts.affiliate_server.setup_for_script"),
             patch("scripts.affiliate_server.stats"),
             patch("scripts.affiliate_server.config", new=cfg),
             patch("scripts.affiliate_server.AmazonCreatorsAPI") as creators_cls,

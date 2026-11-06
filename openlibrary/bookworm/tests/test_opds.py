@@ -158,3 +158,42 @@ def test_names_the_ol_edition_only_when_the_feed_says_so(flag, local_id, expecte
     record = to_import_record(pub, feed)
     assert record is not None
     assert record.get("openlibrary") == expected
+
+
+def test_acquisitions_keep_the_source_publication_link():
+    """The publication's own ``self`` link must survive ingestion.
+
+    ``extract_local_id`` already reads this link for the ``self_link`` id
+    strategy and drops the URL once it has the id. Without it a consumer
+    cannot follow an acquisition back to the provider's own record for the
+    book, and has to reverse-engineer that URL per provider -- done for Better
+    World Books, and not something that scales as feeds are onboarded.
+    """
+    for name, feed in [("bwb", BWB), ("gutenberg", GUTENBERG), ("lenny", LENNY)]:
+        pub = _pubs(name)[0]
+        rec = to_import_record(pub, feed)
+        assert rec["acquisitions"], name
+        for acq in rec["acquisitions"]:
+            assert acq["data"]["source_url"] == pub.self_href(), name
+
+
+def test_the_source_link_is_the_publication_not_the_acquisition():
+    """Two different URLs.
+
+    A test that only asserted the key was present would also pass against
+    ``data["source_url"] = link.href``, which carries nothing new.
+    """
+    pub = _pubs("gutenberg")[0]
+    acq = to_import_record(pub, GUTENBERG)["acquisitions"][0]
+    assert acq["data"]["source_url"] != acq["data"]["url"]
+
+
+def test_source_url_is_absent_when_the_feed_gives_no_self_link():
+    """Absent rather than empty: a key holding "" reads as a real location."""
+    pub = Publication(
+        metadata={"title": "A Book", "author": "Someone", "identifier": "urn:isbn:9781737408802"},
+        links=[Link(rel="http://opds-spec.org/acquisition/buy", href="https://example.test/buy/1", type="text/html")],
+    )
+    rec = to_import_record(pub, BWB)
+    assert rec is not None
+    assert "source_url" not in rec["acquisitions"][0]["data"]

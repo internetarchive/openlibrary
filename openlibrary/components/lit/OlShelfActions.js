@@ -52,7 +52,8 @@ export const DEFAULT_LABELS = {
     addToList: 'Add to list',
     // A plural set: how many other editions of this book the list already holds.
     otherEditions: { one: '%(count)s other edition', other: '%(count)s other editions' },
-    anyEdition: 'Any edition',
+    // The list holds the book but not this edition; shown while the row is unticked.
+    alreadyOnList: 'Already on this list',
     back: 'Back',
     createList: 'Create a list',
     listName: 'List name',
@@ -1498,13 +1499,20 @@ export class OlShelfActions extends LitElement {
                         <ol-icon class="obd-icon" name=${checked ? 'check' : 'plus'}></ol-icon>
                         <span class="text">
                             <span class="name">${list.listName}</span>
-                            ${other ? html`<span class="other-form">${other.kind === 'edition' ? this.t('otherEditions', { count: other.count }) : this.t('anyEdition')}</span>` : nothing}
+                            ${this._renderOtherForm(other, checked)}
                         </span>
                         <span class="count" aria-label=${this.t('itemsInList', { count: list.members.length })}>${list.members.length}</span>
                     </label>
                 `;
             }
         );
+    }
+
+    /** "N other editions", or, while unticked, that the book is already on the list some other way. */
+    _renderOtherForm(other, checked) {
+        if (other?.kind === 'edition') return html`<span class="other-form">${this.t('otherEditions', { count: other.count })}</span>`;
+        if (other?.kind === 'work' && !checked) return html`<span class="other-form">${this.t('alreadyOnList')}</span>`;
+        return nothing;
     }
 
     willUpdate(changed) {
@@ -1701,11 +1709,12 @@ export class OlShelfActions extends LitElement {
         // Reading are explicit choices it will not overwrite.
         const autoShelves = !this.shelf || this.shelf === SHELF.WANT_TO_READ;
         const optimistic = next && autoShelves ? { rating: next, shelf: SHELF.ALREADY_READ } : { rating: next };
+        const moved = Boolean(optimistic.shelf && optimistic.shelf !== this.shelf);
         // Say the shelf move too when there is one: a rating that quietly moved
         // the book would be a surprise on the next open.
         const announce = [
             next ? this.t('rated', { rating: next }) : this.t('ratingCleared'),
-            optimistic.shelf && optimistic.shelf !== this.shelf ? this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[optimistic.shelf]) }) : ''
+            moved ? this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[optimistic.shelf]) }) : ''
         ]
             .filter(Boolean)
             .join('. ');
@@ -1715,6 +1724,8 @@ export class OlShelfActions extends LitElement {
             async () => {
                 await setRating(this.book.key, next, { editionKey: this.book.editionKey });
                 trackEvent('StarRating', next ? 'BookRated' : 'RatingCleared');
+                // The server shelved it too; "rating" tells this apart from a shelf chosen in the menu.
+                if (moved) trackEvent('ReadingLog', SHELF_EVENT[SHELF.ALREADY_READ], 'rating');
                 this._emitState();
             },
             announce

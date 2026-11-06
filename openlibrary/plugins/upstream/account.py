@@ -40,10 +40,9 @@ from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.core.auth import TimedOneTimePassword as OTP
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.carousels import get_carousel_data
-from openlibrary.core.db import get_db
+from openlibrary.core.db import get_db  # noqa: TID251
 from openlibrary.core.follows import PubSub
-from openlibrary.core.lending import get_loan_history_data
+from openlibrary.core.lending import AccountNotFoundError, get_loan_history_data
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.i18n import gettext as _
@@ -1256,9 +1255,9 @@ def get_account_loans_json(user: User) -> dict[str, Any]:
     return {"loans": loans}
 
 
-def get_account_loan_history_json(user: User, page: int) -> dict[str, Any]:
+def get_account_loan_history_json(user: User, page: int, s3_cookie: str | None) -> dict[str, Any]:
     username = user["key"].split("/")[-1]
-    loan_history_data = dict(get_loan_history_data(username, page=page))
+    loan_history_data = dict(get_loan_history_data(username, page=page, s3_cookie=s3_cookie))
     # Ensure all `docs` are `dicts`, as some are `Edition`s.
     loan_history_data["docs"] = [loan.dict() if not isinstance(loan, dict) else loan for loan in loan_history_data["docs"]]
     return {"loans_history": loan_history_data}
@@ -1293,9 +1292,10 @@ class account_loans(delegate.page):
         provider = lenny.provider_loans(username)
         docs = list(docs) + provider.loans
 
-        loan_history_data = get_loan_history_data(username, page=page)
-
-        staff_picks = get_carousel_data(carousels=("staff_picks",))["staff_picks"]
+        try:
+            loan_history_data = get_loan_history_data(username, page=page, s3_cookie=web.cookies().get("s3"))
+        except AccountNotFoundError as e:
+            raise render.notfound(str(e), create=False)
 
         template = render["account/loans"](
             user,
@@ -1304,7 +1304,6 @@ class account_loans(delegate.page):
             current_page=page,
             show_next=loan_history_data["show_next"],
             ia_base_url=CONFIG_IA_DOMAIN,
-            carousel=staff_picks,
             provider_unreachable=provider.unreachable,
             provider_unauthorized=provider.unauthorized,
         )
@@ -1346,8 +1345,12 @@ class account_loan_history_json(delegate.page):
         i = web.input(page=1)
         page = int(i.page)
         user = accounts.get_current_user()
+        try:
+            data = get_account_loan_history_json(user, page, s3_cookie=web.cookies().get("s3"))
+        except AccountNotFoundError as e:
+            raise render.notfound(str(e), create=False)
         web.header("Content-Type", "application/json")
-        return delegate.RawText(json.dumps(get_account_loan_history_json(user, page)))
+        return delegate.RawText(json.dumps(data))
 
 
 class account_waitlist(delegate.page):
@@ -1405,7 +1408,7 @@ class account_anonymization_json(delegate.page):
 
         try:
             with RunAs(ol_account.username):
-                result = ol_account.anonymize(test=test)
+                result = ol_account.anonymize_sync(test=test)
         except Exception as e:
             logger.error(e)
             raise web.HTTPError("500 Internal Server Error", {"Content-Type": "application/json"})
@@ -1426,6 +1429,7 @@ class account_verify_human(delegate.page):
     """Endpoint for human verification challenge.
 
     GET renders the challenge page; POST sets a signed cookie and returns JSON.
+    TODO: Retire once production routes /verify_human to FastAPI (``openlibrary/fastapi/account.py``).
     """
 
     path = "/verify_human"
@@ -1434,12 +1438,21 @@ class account_verify_human(delegate.page):
     VERIFICATION_COOKIE_EXPIRES_SECONDS = 30 * 24 * 60 * 60
 
     def GET(self):
+        # Local imports: this handler is temporary.
+        from markupsafe import escape
+
+        from infogami.utils.context import context
+        from openlibrary.core.jinja import render_jinja_template
+
         next_url = web.input(next="/").next
         # Only allow same-origin redirects
-        if not next_url.startswith("/") or next_url.startswith("//"):
+        if not is_safe_redirect(next_url):
             next_url = "/"
         stats.increment("ol.verify_human.challenged")
-        return render_template("verify_human", next_url=next_url)
+        context.disable_analytics = True
+        body = render_jinja_template("verify_human.html.jinja", next_url=next_url)
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(_("Human Verification")))
 
     def POST(self):
         from openlibrary.accounts.model import create_verification_cookie_value
