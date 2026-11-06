@@ -1,7 +1,7 @@
-$def with (book_title, edit_url)
+$def with (book_title, edit_url, title_lang=None)
 
 <div class="compact-title hidden">
-  <span class="compact-title__heading">$book_title</span>
+  <span class="compact-title__heading" $:cond(title_lang, 'lang="%s"' % title_lang)>$book_title</span>
   <div class="compact-title__edit-btn">
     <a
       class="cta-btn cta-btn--vanilla"
