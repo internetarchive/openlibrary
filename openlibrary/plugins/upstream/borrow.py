@@ -8,7 +8,7 @@ import logging
 import time
 import urllib
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Literal
 
 import web
@@ -436,7 +436,7 @@ def datetime_from_isoformat(expiry):
 
 @public
 def datetime_from_utc_timestamp(seconds):
-    return datetime.utcfromtimestamp(seconds)
+    return datetime.fromtimestamp(seconds, UTC).replace(tzinfo=None)
 
 
 def get_bookreader_stream_url(itemid: str) -> str:

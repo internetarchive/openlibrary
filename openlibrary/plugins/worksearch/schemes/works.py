@@ -87,6 +87,8 @@ class WorkSearchScheme(SearchScheme):
             "content_format_name",
             "literary_form_key",
             "literary_form_name",
+            "award_key",
+            "award_name",
             "subject",
             "person",
             "place",
@@ -298,8 +300,6 @@ class WorkSearchScheme(SearchScheme):
         for node, parents in luqum_traverse(q_tree):
             if isinstance(node, luqum.tree.SearchField):
                 has_search_fields = True
-                if node.name.lower() in self.field_name_map:
-                    node.name = self.field_name_map[node.name.lower()]
                 if node.name == "isbn":
                     isbn_transform(node)
                 if node.name in ("lcc", "lcc_sort"):

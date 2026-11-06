@@ -1,35 +1,32 @@
-$def with (next_url='/')
-$var title: $_("Human Verification")
-$putctx('disable_analytics', True)
-
+{# Takes `next_url`: a same-origin path to return to once verified. #}
 <div id="contentHead">
-    <h1>$_("Human Verification")</h1>
+    <h1 id="verify-human-title">{{ _("Human Verification") }}</h1>
 </div>
-
 <div id="contentBody">
     <div class="verification-challenge">
-        <p class="verification-message">$_("Please verify you are human to continue.")</p>
-        <button id="verify-human-btn" class="cta-btn cta-btn--shell" type="button" data-next="$next_url">
-            $_("Verify you are human")
-        </button>
-        <p id="verify-error" class="verification-error" style="display:none">
-            $_("Verification failed. Please try again.")
-        </p>
+        <p class="verification-message">{{ _("Please verify you are human to continue.") }}</p>
+        <button id="verify-human-btn"
+                class="cta-btn cta-btn--shell"
+                type="button"
+                data-next="{{ next_url }}">{{ _("Verify you are human") }}</button>
+        <p id="verify-human-error"
+           class="verification-error"
+           role="alert"
+           hidden>{{ _("Verification failed. Please try again.") }}</p>
     </div>
 </div>
-
 <script>
 (function() {
     const btn = document.getElementById('verify-human-btn');
-    const err = document.getElementById('verify-error');
+    const err = document.getElementById('verify-human-error');
     const next = btn.dataset.next;
-    const verifyingText = $:json_encode(_("Verifying..."));
+    const verifyingText = {{ _("Verifying...")|tojson }};
     const origText = btn.textContent;
 
     btn.addEventListener('click', function() {
         btn.disabled = true;
         btn.textContent = verifyingText;
-        err.style.display = 'none';
+        err.hidden = true;
 
         fetch('/verify_human', {
             method: 'POST',
@@ -43,7 +40,7 @@ $putctx('disable_analytics', True)
         .catch(function() {
             btn.disabled = false;
             btn.textContent = origText;
-            err.style.display = 'block';
+            err.hidden = false;
         });
     });
 })();

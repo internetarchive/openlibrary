@@ -349,6 +349,16 @@ COMPONENTS = (
         avoid="Inline, next to the thing it describes. For page-level notices use Banner.",
     ),
     Component(
+        "choice-list",
+        "Choice list",
+        "design/components/choice-list.html.jinja",
+        group="Actions",
+        avoid=(
+            "One answer from a few, each needing a line of explanation. "
+            "Plain options with no explanation fit a Segmented Control; more than about five belong in an Options Popover."
+        ),
+    ),
+    Component(
         "scorecard",
         "Scorecard",
         "design/components/scorecard.html.jinja",
@@ -424,6 +434,13 @@ COMPONENTS = (
         "design/components/shelf-actions.html.jinja",
         group="Books",
         tag="ol-shelf-actions",
+    ),
+    Component(
+        "book-lists",
+        "Book Lists",
+        "design/components/book-lists.html.jinja",
+        group="Books",
+        tag="ol-book-lists",
     ),
 )
 
