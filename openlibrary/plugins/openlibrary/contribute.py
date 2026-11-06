@@ -104,21 +104,18 @@ def initiative_copy(initiative: initiatives.Initiative) -> dict[str, str]:
 
 
 def build_edit_saved(payload: str) -> pitch.EditSaved:
-    """The thank-you banner an edit-page save lands on, naming the projects in the save's flash message. Does no I/O: the site shell builds it."""
-    named, more = pitch.decode(payload)
-    if not named:
+    """The thank-you banner an edit-page save lands on, naming the project in the save's flash message. Does no I/O: the site shell builds it."""
+    if not (named := pitch.decode(payload)):
         return pitch.EditSaved()
-    projects = tuple(
-        pitch.Project(
-            slug=initiative.slug,
-            title=initiative_copy(initiative)["title"],
-            url=build_dashboard_url(initiative=initiative_param(initiative)),
-            # No-break spaces: in a chip that wraps on a phone, the count stays in one piece.
-            left=ungettext("%(count)s left", "%(count)s left", left, count=helpers.commify(left)).replace(" ", "\N{NO-BREAK SPACE}") if left else "",
-        )
-        for initiative, left in named
+    initiative, left = named
+    project = pitch.Project(
+        slug=initiative.slug,
+        title=initiative_copy(initiative)["title"],
+        url=build_dashboard_url(initiative=initiative_param(initiative)),
+        # No-break spaces: in a chip that wraps on a phone, the count stays in one piece.
+        left=ungettext("%(count)s task left", "%(count)s tasks left", left, count=helpers.commify(left)).replace(" ", "\N{NO-BREAK SPACE}") if left else "",
     )
-    return pitch.EditSaved(projects=projects, more=more, dismiss_cookie=pitch.dismiss_cookie())
+    return pitch.EditSaved(project=project, dismiss_cookie=pitch.dismiss_cookie())
 
 
 def render_contribute(template: str, title: str, **params):

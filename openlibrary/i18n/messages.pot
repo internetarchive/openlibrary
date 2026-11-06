@@ -5733,11 +5733,7 @@ msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
 #: shell/edit_saved.html.jinja
-msgid "Keep going with a community project: quick fixes on popular books"
-msgstr ""
-
-#: shell/edit_saved.html.jinja
-msgid "See all projects"
+msgid "Got a minute? Help with a community project"
 msgstr ""
 
 #: shell/footer.html.jinja
@@ -9277,8 +9273,8 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "%(count)s left"
-msgid_plural "%(count)s left"
+msgid "%(count)s task left"
+msgid_plural "%(count)s tasks left"
 msgstr[0] ""
 msgstr[1] ""
 

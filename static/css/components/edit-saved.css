@@ -1,6 +1,6 @@
 /**
  * The banner an edit-page save lands on (shell/edit_saved.html.jinja): a thank-you on
- * one side and, on the other, a labelled group of links to the Tasks projects. It is an
+ * one side and, on the other, a labelled link to a Tasks project. It is an
  * <ol-banner>, so the surface, border and close button are that component's; these
  * rules place it in the page shell and lay out what goes inside. Site-wide because a
  * save can land on any page.
@@ -18,13 +18,13 @@
 }
 
 /* The check sits in the thank-you line, as in Tasks' "Just saved", so it stays beside
-   the text when the projects wrap under it. The banner's own icon slot is not used. */
+   the text when the project wraps under it. The banner's own icon slot is not used. */
 .edit-saved:not([hydrated])::before,
 .edit-saved > .ol-banner__icon {
   display: none;
 }
 
-/* One row while both halves fit; the projects drop under the thank-you when they don't. */
+/* One row while both halves fit; the project drops under the thank-you when they don't. */
 .edit-saved__body {
   display: flex;
   flex: 1;
@@ -50,9 +50,10 @@
   flex: none;
 }
 
-.edit-saved__projects {
+.edit-saved__project {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--spacing-stack-xs);
   min-width: 0;
 }

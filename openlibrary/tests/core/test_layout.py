@@ -190,14 +190,14 @@ def test_layout_build_flash_messages(request_context_fixture):
 
 
 def test_layout_build_gives_the_edit_saved_flash_its_own_banner(request_context_fixture):
-    """The edit pages' thank-you leaves the flash messages for ``edit_saved``, with the Tasks projects it names."""
+    """The edit pages' thank-you leaves the flash messages for ``edit_saved``, with the Tasks project it names."""
     request_context_fixture(lang="en")
     error = {"type": "error", "message": "Invalid password"}
     layout = _build(_req(flash_messages=({"type": "edit-saved", "message": "most-read-2026-11:485"}, error)))
     assert layout.flash_messages == [error]
-    assert [(p.url, p.left) for p in layout.edit_saved.projects] == [("/tasks", "485\xa0left")]
+    assert (layout.edit_saved.project.url, layout.edit_saved.project.left) == ("/tasks", "485\xa0tasks\xa0left")
     # A save that pitched nothing still thanks the editor.
-    assert _build(_req(flash_messages=({"type": "edit-saved", "message": ""},))).edit_saved.projects == ()
+    assert _build(_req(flash_messages=({"type": "edit-saved", "message": ""},))).edit_saved.project is None
     assert _build().edit_saved is None
 
 

@@ -1,4 +1,4 @@
-"""The Tasks pitch under the thank-you an edit-page save lands on: "Keep going with a community project", a link per initiative.
+"""The Tasks pitch under the thank-you an edit-page save lands on: "Got a minute? Help with a community project", and a link to one initiative.
 
 The save decides what to pitch, where reading the cache and the cookies is ordinary work, and hands it to the next page as the
 flash message's text. The shell that shows it then needs only the registry, so rendering the site layout still does no I/O.
@@ -15,11 +15,8 @@ from openlibrary.contribute import initiatives
 FLASH_TYPE = "edit-saved"
 # Set when the pitch is shown, so someone saving many edits in a sitting sees it once a day.
 SEEN_COOKIE = "tasks_pitch_seen"
-# How long closing the pitch, or following one of its links, keeps it away.
+# How long closing the pitch, or following its link, keeps it away.
 DISMISS_DAYS = 365
-# A link each for up to this many projects; past it the last slot goes to "See all projects".
-MAX_LINKS = 3
-MORE = "+"
 
 
 @dataclass(frozen=True)
@@ -27,16 +24,15 @@ class Project:
     slug: str
     title: str
     url: str
-    # "485 left", or "" while the initiative's list is still being built.
+    # "485 tasks left", or "" while the initiative's list is still being built.
     left: str
 
 
 @dataclass(frozen=True)
 class EditSaved:
-    """What the thank-you banner shows. With no projects it is the thank-you alone."""
+    """What the thank-you banner shows. With no project it is the thank-you alone."""
 
-    projects: tuple[Project, ...] = ()
-    more: bool = False
+    project: Project | None = None
     dismiss_cookie: str = ""
     dismiss_days: int = DISMISS_DAYS
 
@@ -53,10 +49,10 @@ def wanted(cookies: Mapping[str, str]) -> bool:
 
 
 def encode(book_keys: Collection[str] = ()) -> str:
-    """``slug:tasks left`` for each initiative with something left, comma-separated; "" when there is nothing to pitch.
+    """``slug:tasks left`` for the one initiative to pitch; "" when none has anything left.
 
-    An initiative that lists one of ``book_keys`` with a gap still open comes first, then the headline one.
-    A list that is still being built keeps its place, with no count.
+    An initiative that lists one of ``book_keys`` with a gap still open wins, then the headline one, then the registry's order.
+    One whose list is still being built is named with no count.
     """
     ranked = []
     for initiative in initiatives.INITIATIVES:
@@ -67,22 +63,16 @@ def encode(book_keys: Collection[str] = ()) -> str:
         fields = set(initiative.fields)
         has_book = any(key in book_keys and fields.intersection(open_fields) for key, _readers, open_fields, _skipped in gaps or [])
         ranked.append((not has_book, initiative is not initiatives.ACTIVE, f"{initiative.slug}:{'' if left is None else left}"))
-    # Stable, so initiatives that tie keep the registry's order.
-    entries = [entry for _no_book, _not_headline, entry in sorted(ranked, key=lambda r: r[:2])]
-    if len(entries) > MAX_LINKS:
-        entries = [*entries[: MAX_LINKS - 1], MORE]
-    return ",".join(entries)
+    # min keeps the first of equals, so initiatives that tie fall back to the registry's order.
+    return min(ranked, key=lambda r: r[:2])[2] if ranked else ""
 
 
-def decode(payload: str) -> tuple[list[tuple[initiatives.Initiative, int]], bool]:
-    """The initiatives a flash message from ``encode`` names, each with its tasks left (0 when unknown), and whether there are more.
+def decode(payload: str) -> tuple[initiatives.Initiative, int] | None:
+    """The initiative a flash message from ``encode`` names, with its tasks left (0 when unknown).
 
-    The text comes back in a cookie, so nothing in it is taken as written: a slug has to name an initiative, a count has to be a number.
+    The text comes back in a cookie, so nothing in it is taken as written: the slug has to name an initiative, the count has to be a number.
     """
-    entries = payload.split(",")
-    named = []
-    for entry in entries:
-        slug, _sep, count = entry.partition(":")
-        if initiative := initiatives.get(slug):
-            named.append((initiative, int(count) if count.isascii() and count.isdigit() and len(count) < 8 else 0))
-    return named[:MAX_LINKS], bool(named) and MORE in entries
+    slug, _sep, count = payload.partition(":")
+    if not (initiative := initiatives.get(slug)):
+        return None
+    return initiative, int(count) if count.isascii() and count.isdigit() and len(count) < 8 else 0

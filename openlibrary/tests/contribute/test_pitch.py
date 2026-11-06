@@ -31,66 +31,52 @@ def gaps(monkeypatch):
     return set_gaps
 
 
-def test_encode_leads_with_the_headline_initiative_and_counts_tasks_left(gaps):
+def test_encode_names_the_headline_initiative_with_its_tasks_left(gaps):
     gaps({MOST_READ.slug: rows(MOST_READ, 2), TAGS.slug: rows(TAGS)})
-    assert pitch.encode() == f"{MOST_READ.slug}:2,{TAGS.slug}:1"
+    assert pitch.encode() == f"{MOST_READ.slug}:2"
 
 
-def test_encode_leads_with_the_initiative_that_lists_the_saved_book(gaps):
+def test_encode_prefers_the_initiative_that_lists_the_saved_book(gaps):
     gaps({MOST_READ.slug: rows(MOST_READ, 2), TAGS.slug: rows(TAGS, first_key="/books/OL9M")})
-    assert pitch.encode(["/books/OL9M"]) == f"{TAGS.slug}:1,{MOST_READ.slug}:2"
+    assert pitch.encode(["/books/OL9M"]) == f"{TAGS.slug}:1"
 
 
-def test_a_saved_book_with_nothing_left_for_the_initiative_does_not_reorder(gaps):
+def test_a_saved_book_with_nothing_left_for_the_initiative_does_not_win(gaps):
     done = [["/books/OL9M", 9, [], []], *rows(TAGS)]
     gaps({MOST_READ.slug: rows(MOST_READ), TAGS.slug: done})
-    assert pitch.encode(["/books/OL9M"]).startswith(MOST_READ.slug)
+    assert pitch.encode(["/books/OL9M"]) == f"{MOST_READ.slug}:1"
 
 
-def test_encode_drops_a_finished_initiative(gaps):
+def test_encode_skips_a_finished_initiative(gaps):
     gaps({MOST_READ.slug: [["/books/OL1M", 9, [], []]], TAGS.slug: rows(TAGS)})
     assert pitch.encode() == f"{TAGS.slug}:1"
     gaps({MOST_READ.slug: [], TAGS.slug: []})
     assert pitch.encode() == ""
 
 
-def test_encode_keeps_a_list_that_is_still_being_built_without_a_count(gaps):
+def test_encode_names_a_list_that_is_still_being_built_without_a_count(gaps):
     gaps({})
-    assert pitch.encode() == f"{MOST_READ.slug}:,{TAGS.slug}:"
+    assert pitch.encode() == f"{MOST_READ.slug}:"
 
 
-def test_past_three_initiatives_the_last_slot_is_see_all(gaps, monkeypatch):
-    extra = [initiatives.Initiative(f"extra-{i}", 10, initiatives.pick_most_shelved, MOST_READ.fields) for i in range(2)]
-    monkeypatch.setattr(initiatives, "INITIATIVES", (MOST_READ, TAGS, *extra))
-    gaps({i.slug: rows(i) for i in initiatives.INITIATIVES})
-    payload = pitch.encode()
-    assert payload == f"{MOST_READ.slug}:1,{TAGS.slug}:1,{pitch.MORE}"
-    saved = build_edit_saved(payload)
-    assert [p.slug for p in saved.projects] == [MOST_READ.slug, TAGS.slug]
-    assert saved.more
-
-
-def test_banner_links_each_initiative_with_its_tasks_left():
-    saved = build_edit_saved(f"{TAGS.slug}:3760,{MOST_READ.slug}:485")
-    assert [(p.slug, p.url, p.left) for p in saved.projects] == [
-        (TAGS.slug, f"/tasks?initiative={TAGS.slug}", "3,760\xa0left"),
-        (MOST_READ.slug, "/tasks", "485\xa0left"),
-    ]
-    assert saved.projects[1].title == initiative_copy(MOST_READ)["title"]
-    assert not saved.more
+def test_banner_links_the_initiative_with_its_tasks_left():
+    saved = build_edit_saved(f"{TAGS.slug}:3760")
+    assert (saved.project.slug, saved.project.url, saved.project.left) == (TAGS.slug, f"/tasks?initiative={TAGS.slug}", "3,760\xa0tasks\xa0left")
     assert saved.dismiss_cookie == pitch.dismiss_cookie()
+    headline = build_edit_saved(f"{MOST_READ.slug}:485").project
+    assert (headline.url, headline.left, headline.title) == ("/tasks", "485\xa0tasks\xa0left", initiative_copy(MOST_READ)["title"])
 
 
-@pytest.mark.parametrize("payload", ["", "no-such-initiative:5", "<script>:1", ":", pitch.MORE])
+@pytest.mark.parametrize("payload", ["", "no-such-initiative:5", "<script>:1", ":"])
 def test_banner_is_the_thank_you_alone_when_nothing_names_an_initiative(payload):
     assert build_edit_saved(payload) == pitch.EditSaved()
 
 
-def test_banner_trusts_nothing_in_a_forged_cookie():
-    saved = build_edit_saved(",".join([f"{MOST_READ.slug}:<b>", f"{MOST_READ.slug}:99999999", "bogus:1"] + [f"{TAGS.slug}:1"] * 20))
-    assert len(saved.projects) == pitch.MAX_LINKS
-    assert [p.left for p in saved.projects[:2]] == ["", ""]
-    assert {p.slug for p in saved.projects} == {MOST_READ.slug, TAGS.slug}
+@pytest.mark.parametrize("count", ["<b>", "99999999", "-5", f"1,{TAGS.slug}:2"])
+def test_banner_shows_no_count_it_cannot_trust(count):
+    """The flash message comes back in a cookie, so a count that isn't a plain number is dropped."""
+    project = build_edit_saved(f"{MOST_READ.slug}:{count}").project
+    assert (project.slug, project.left) == (MOST_READ.slug, "")
 
 
 def test_wanted_until_seen_today_or_closed():
@@ -114,22 +100,24 @@ def render(monkeypatch):
     return lambda saved: render_jinja_template("shell/edit_saved.html.jinja", layout=SimpleNamespace(edit_saved=saved))
 
 
-def test_banner_links_each_project_and_remembers_being_closed(render):
-    html = render(build_edit_saved(f"{MOST_READ.slug}:485,{TAGS.slug}:"))
+def test_banner_links_the_project_and_remembers_being_closed(render):
+    html = render(build_edit_saved(f"{TAGS.slug}:485"))
     assert "Thank you for improving the Open Library catalog!" in html
     assert 'data-icon="circle-check"' in html
-    assert html.count('size="small"') == 2
     assert f'dismiss-id="{pitch.dismiss_cookie()}"' in html
     assert "data-dismiss-on-link" in html
-    assert 'href="/tasks"' in html
-    assert 'count="485\xa0left"' in html
+    assert html.count("<ol-chip") == 1
     assert f'href="/tasks?initiative={TAGS.slug}"' in html
-    # A list still being built is named without a count.
-    assert html.count("count=") == 1
-    assert "See all projects" not in html
+    assert 'count="485\xa0tasks\xa0left"' in html
 
 
-def test_banner_is_the_thank_you_alone_without_projects(render):
+def test_banner_names_a_list_still_being_built_without_a_count(render):
+    html = render(build_edit_saved(f"{MOST_READ.slug}:"))
+    assert 'href="/tasks"' in html
+    assert "count=" not in html
+
+
+def test_banner_is_the_thank_you_alone_without_a_project(render):
     html = render(pitch.EditSaved())
     assert "Thank you for improving the Open Library catalog!" in html
     assert "ol-chip" not in html
