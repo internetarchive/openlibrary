@@ -1,7 +1,7 @@
 /**
  * JS only module.
- * Defined in:
- * - vendor/js/jquery-datatables/jquery.dataTables.min.js
+ * Styles the `datatables.net-dt` npm package. Imported by:
+ * - openlibrary/plugins/openlibrary/js/editions-table/index.js
  * It will be refactored at the earliest opportunity.
  * DO NOT ADD NEW CSS here
  * Unless... you are removing an inline style and moving it into here.
