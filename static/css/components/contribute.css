@@ -1121,13 +1121,13 @@
   border-radius: var(--border-radius-thumbnail);
 }
 
-/* Dashboard (/tasks): a rail of filters beside the list.
-   One column on phones; the rail joins at desktop width. */
+/* Dashboard (/tasks): the community projects down the side, the open project's header, filter chips and books in the main column.
+   One column on phones; the projects become a side column at desktop width. */
 .contrib-dash {
   max-width: 1320px;
 }
 
-.contrib-dash :is(h1, h2, p) {
+.contrib-dash :is(h1, h2, h3, p) {
   margin: 0;
 }
 
@@ -1142,21 +1142,23 @@
 .contrib-dash__head {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: baseline;
   justify-content: space-between;
-  gap: var(--spacing-stack-md) var(--spacing-inline-xl);
+  gap: var(--spacing-stack-sm) var(--spacing-inline-xl);
 }
 
-/* The initiatives' overline labels the row right under the title, so the title sits closer to it than to a section. */
-.contrib-dash > .contrib-dash__head {
-  margin-block-end: var(--spacing-stack-md);
+.contrib-dash__heading {
+  display: grid;
+  gap: var(--spacing-3xs);
 }
 
-.contrib-dash__h2 {
-  font-size: var(--font-size-title-medium);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-title);
-  text-wrap: balance;
+.contrib-dash__lede {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-medium);
+}
+
+.contrib-dash__edits {
+  font-size: var(--font-size-body-medium);
 }
 
 .contrib-dash__body {
@@ -1164,47 +1166,211 @@
   gap: var(--spacing-section-gap);
 }
 
-/* Rail: wrapping pills on phones, a vertical menu from desktop width. */
-.contrib-rail {
+.contrib-dash__side {
   display: grid;
-  gap: var(--spacing-stack-sm);
+  gap: var(--spacing-section-gap);
   align-content: start;
 }
 
-.contrib-rail__group {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-inline-sm);
+.contrib-side {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  justify-items: start;
 }
 
-/* "Surprise me" closes the rail: a row like the filters, but an action, so a rule sets it apart. The rule sits as close
-   to the rows on either side as the divider in the browse menu does; the rows' own height keeps the text off it. */
-.contrib-rail__group--action {
-  padding-block-start: var(--spacing-stack-sm);
-  border-block-start: 1px solid var(--color-border-subtle);
+/* Community projects: menu rows of two lines, the name at the control weight and what's left under it in regular type.
+   The open one takes the control-selected tint, like the selected row in any menu. */
+.contrib-projects {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+/* Darker and heavier than the shared overline, so the side column has an anchor beside the project title. */
+.contrib-projects > .contrib-overline {
+  padding-inline: var(--menu-row-padding-inline);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.contrib-projects__list {
+  display: grid;
+  gap: var(--spacing-inline-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contrib-projects__item,
+.contrib-projects__item:is(:link, :visited) {
+  display: grid;
+  gap: var(--spacing-3xs);
+  min-height: var(--menu-row-height);
+  padding: var(--spacing-inset-sm) var(--menu-row-padding-inline);
+  border-radius: var(--border-radius-menu-row);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.contrib-projects__name {
+  font-family: var(--font-family-button);
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+}
+
+.contrib-projects__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--spacing-inline-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-regular);
+}
+
+.contrib-projects__item[aria-current] {
+  background: var(--color-control-selected-bg);
+}
+
+.contrib-projects__item[aria-current]
+  :is(.contrib-projects__name, .contrib-projects__meta) {
+  color: var(--color-link);
+}
+
+.contrib-projects__item:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contrib-projects__item:not([aria-current]):hover {
+    background: var(--color-hover-overlay);
+  }
+
+  .contrib-projects__item[aria-current]:hover {
+    background: var(--color-control-selected-bg-hover);
+  }
+}
+
+.contrib-dash__main {
+  display: grid;
+  gap: var(--spacing-stack-md);
+  align-content: start;
+  min-width: 0;
+}
+
+/* The open project: name and pitch, with its progress as one ring beside them. */
+.contrib-project {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-stack-md) var(--spacing-inline-xl);
+  margin-block-end: var(--spacing-stack-sm);
+}
+
+.contrib-project__intro {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  min-width: 0;
+  max-width: 62ch;
+}
+
+.contrib-project__title {
+  font-size: var(--font-size-headline-small);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+  text-wrap: balance;
+}
+
+.contrib-project__description {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-large);
+}
+
+.contrib-ring {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 84px;
+  aspect-ratio: 1;
+}
+
+/* --width-breakpoint-tablet: a smaller ring on phones, so the title keeps its width. */
+@media (max-width: 767px) {
+  .contrib-ring {
+    width: 72px;
+  }
+
+  .contrib-ring__figure {
+    font-size: var(--font-size-title-medium);
+  }
+}
+
+.contrib-ring__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.contrib-ring__svg circle {
+  fill: none;
+  stroke-width: 9;
+}
+
+.contrib-ring__track {
+  stroke: var(--color-control-track-sunken);
+}
+
+.contrib-ring__fill {
+  stroke: var(--color-primary);
+}
+
+.contrib-ring__figure {
+  position: relative;
+  color: var(--color-text-heading);
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* Filter chips: the whole project, then each kind of task, with open counts. One is always on, so the selected one
+   takes the control-selected look rather than ol-chip's removable state. */
+.contrib-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-md);
 }
 
 .contrib-rail .contrib-rail__item {
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--spacing-inline-md);
-  min-height: var(--menu-row-height);
-  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
-  border: 1px solid var(--color-border);
+  min-height: var(--control-height-medium);
+  padding: 0 var(--spacing-inset-sm) 0 var(--menu-row-padding-inline);
   border-radius: var(--border-radius-pill);
   color: var(--color-text-secondary);
+  font-family: var(--font-family-button);
   font-size: var(--font-size-label-large);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-button);
   text-decoration: none;
 }
 
-/* The selected look ol-button[selected] and ol-toggle share: a blue tint, link-blue text. */
+.contrib-rail__count {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+  font-weight: var(--font-weight-regular);
+}
+
+/* Ghost pills: the same tint as the project rows beside them. */
 .contrib-rail .contrib-rail__item.is-on {
-  border-color: var(--color-control-selected-border);
   background: var(--color-control-selected-bg);
   color: var(--color-link);
+}
+
+.contrib-rail__item.is-on .contrib-rail__count {
+  color: inherit;
 }
 
 .contrib-rail .contrib-rail__item:focus-visible {
@@ -1217,6 +1383,10 @@
     background-color: var(--color-hover-overlay);
     color: var(--color-text);
   }
+
+  .contrib-rail__item.is-on:hover {
+    background-color: var(--color-control-selected-bg-hover);
+  }
 }
 
 /* A trailing spinner on the pressed filter while its page loads; toggled by js/contribute.js. */
@@ -1224,8 +1394,8 @@
   content: "";
   flex: none;
   box-sizing: border-box;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border: 2px solid currentColor;
   border-right-color: transparent;
   border-radius: var(--border-radius-circle);
@@ -1244,103 +1414,15 @@
   }
 }
 
-.contrib-dash__main {
-  min-width: 0;
-}
-
-.contrib-dash__main .contrib-dash__listhead {
-  margin-block-end: var(--spacing-stack-md);
-}
-
 .contrib-dash__main .contrib-rows {
   margin-block-end: var(--spacing-stack-md);
 }
 
-/* Desktop and up: the rail becomes a vertical menu. */
+/* --width-breakpoint-desktop: the projects become a side column. */
 @media (min-width: 960px) {
   .contrib-dash__body {
-    grid-template-columns: 200px minmax(0, 1fr);
-    column-gap: var(--spacing-section-gap);
-  }
-
-  .contrib-rail__group {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 2px;
-  }
-
-  .contrib-rail .contrib-rail__item {
-    display: flex;
-    border-color: transparent;
-    border-radius: var(--border-radius-menu-row);
-  }
-
-  .contrib-rail .contrib-rail__item.is-on {
-    border-color: transparent;
-  }
-}
-
-/* "Your recent contributions" in the dashboard's right column. */
-.contrib-recent {
-  display: grid;
-  gap: var(--spacing-stack-sm);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.contrib-recent__item {
-  display: grid;
-  gap: var(--spacing-3xs);
-  padding-block-end: var(--spacing-stack-sm);
-  border-block-end: 1px solid var(--color-border-subtle);
-}
-
-a.contrib-recent__title {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (hover: hover) {
-  a.contrib-recent__title:hover {
-    text-decoration: underline;
-  }
-}
-
-.contrib-recent__all {
-  justify-self: start;
-  font-size: var(--font-size-body-medium);
-}
-
-.contrib-recent__meta {
-  font-size: var(--font-size-body-small);
-}
-
-.contrib-dash__aside {
-  display: grid;
-  gap: var(--spacing-section-gap);
-  align-content: start;
-}
-
-.contrib-side {
-  display: grid;
-  gap: var(--spacing-stack-sm);
-}
-
-/* Desktop: the aside sits under the list until there is room beside it. */
-@media (min-width: 960px) {
-  .contrib-dash__aside {
-    grid-column: 2;
-  }
-}
-
-@media (min-width: 1200px) {
-  .contrib-dash__body {
-    grid-template-columns: 200px minmax(0, 1fr) 280px;
-  }
-
-  .contrib-dash__aside {
-    grid-column: auto;
+    grid-template-columns: 276px minmax(0, 1fr);
+    column-gap: var(--spacing-section-gap-desktop);
   }
 }
 
@@ -1769,151 +1851,6 @@ a.contrib-recent__title {
   .contrib-feed__row.is-new .contrib-feed__inner,
   .contrib-land__mark path {
     animation: none;
-  }
-}
-
-/* An initiative's progress card in the row under the dashboard's header. The open one takes the control-selected look
-   (the same tint, border and link ink as ol-button[selected] and the current pagination page), so "active" reads
-   the way "selected" reads everywhere else, and the others stay plain surface cards. */
-.contrib-progress {
-  display: grid;
-  gap: var(--spacing-stack-sm);
-  padding: var(--spacing-inset-md);
-  border: var(--border-card);
-  border-radius: var(--border-radius-card);
-  background: var(--color-surface);
-}
-
-.contrib-progress--on {
-  border-color: var(--color-control-selected-border);
-  background: var(--color-control-selected-bg);
-}
-
-.contrib-progress__intro {
-  display: grid;
-  gap: var(--spacing-stack-xs);
-}
-
-.contrib-progress__title {
-  margin: 0;
-  font-size: var(--font-size-title-medium);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-title);
-}
-
-.contrib-progress__description {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-body-medium);
-}
-
-/* The percent ends the title line, at the title's size: the bar below is the figure's picture, so it needs no headline. */
-.contrib-progress__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--spacing-inline-md);
-}
-
-.contrib-progress__percent {
-  flex: none;
-  color: var(--color-text-heading);
-  font-size: var(--font-size-title-medium);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-title);
-  font-variant-numeric: tabular-nums;
-}
-
-/* The bar and the counts share the foot row; the counts drop under the bar when the card is too narrow for both.
-   The percent barely moves between saves, so the count of tasks left is what visibly changes. */
-.contrib-progress__status {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-stack-xs) var(--spacing-inline-lg);
-}
-
-.contrib-progress__counts {
-  display: flex;
-  flex: none;
-  flex-wrap: wrap;
-  margin: 0;
-  gap: var(--spacing-stack-xs) var(--spacing-inline-md);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-body-small);
-  line-height: var(--line-height-single);
-}
-
-.contrib-progress__tasks b {
-  color: var(--color-text-heading);
-  font-weight: var(--font-weight-semibold);
-}
-
-.contrib-progress__track {
-  flex: 1 1 120px;
-  height: 10px;
-  overflow: hidden;
-  border-radius: var(--border-radius-lg);
-  background: var(--color-control-track-sunken);
-}
-
-.contrib-progress__fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--color-primary);
-}
-
-/* The open card differs from the others by colour alone: the same type and bar, on the tint, with the link ink. */
-.contrib-progress--on .contrib-progress__title,
-.contrib-progress--on .contrib-progress__percent,
-.contrib-progress--on .contrib-progress__tasks b {
-  color: var(--color-link);
-}
-
-/* The neutral track vanishes on the tint; a deeper step of the same blue keeps the bar legible. */
-.contrib-progress--on .contrib-progress__track {
-  background: var(--color-control-selected-bg-hover);
-}
-
-/* Initiatives: a row of cards under the header, ruled off from the list below. The open one is tinted, the others are
-   plain and a link over; every card stretches to the row's height with its bar at the foot. */
-.contrib-initiatives {
-  display: grid;
-  gap: var(--spacing-stack-sm);
-  padding-block-end: var(--spacing-stack-lg);
-  border-block-end: var(--border-divider);
-}
-
-.contrib-initiatives__row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-inline-md);
-}
-
-.contrib-initiatives__row > .contrib-progress {
-  flex: 1 1 240px;
-  max-width: 360px;
-  align-content: space-between;
-}
-
-/* The title stays in ink with no underline: the card is the link, and the tint on the open one says which is which.
-   The element in the selector outranks the base a:link rule, which would otherwise paint and underline the whole card. */
-a.contrib-progress--other,
-a.contrib-progress--other:is(:link, :visited, :hover) {
-  color: inherit;
-  text-decoration: none;
-}
-
-/* Hover moves the fill and the border together, one step each, as the raised controls do. */
-@media (hover: hover) and (pointer: fine) {
-  a.contrib-progress--other:hover {
-    border-color: var(--color-border-muted);
-    background: var(--color-control-hover);
-  }
-
-  .contrib-progress--other:hover .contrib-progress__title {
-    color: var(--color-link);
   }
 }
 

@@ -163,15 +163,19 @@ ACTIVE = MOST_READ
 
 
 def describe(initiative: Initiative) -> dict[str, str]:
-    """An initiative's name and pitch, as the Tasks dashboard and the stats page show them."""
+    """An initiative's name and pitch, as Tasks and the stats page show them: the name says what it is, the pitch how many books and what they need."""
+    count = commify(initiative.size)
     if initiative is TAGS:
         return {
-            "title": _("Find every book its shelf"),
-            "description": _("Fiction or nonfiction, and the genres that fit, starting with the most-read books."),
+            "title": _("Fiction or nonfiction"),
+            "description": _(
+                "%(count)s of the most-shelved books that aren't marked fiction or nonfiction yet, or are missing their genres.",
+                count=count,
+            ),
         }
     return {
-        "title": _("Complete the %(count)s most-read books", count=commify(initiative.size)),
-        "description": _("Fill in what's missing on the books people shelve most."),
+        "title": _("%(count)s most-read books", count=count),
+        "description": _("The %(count)s editions people shelve most. Fill in any cover, page count, publisher or language they're missing.", count=count),
     }
 
 

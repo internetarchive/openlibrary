@@ -4058,12 +4058,16 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
-#: contribute/dashboard.html.jinja
-msgid "Getting the list ready…"
-msgstr ""
-
 #: contribute/dashboard.html.jinja openlibrary/plugins/openlibrary/contribute.py
 msgid "Tasks"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Help build the catalog, one book at a time."
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Your edits"
 msgstr ""
 
 #: contribute/dashboard.html.jinja stats/tasks.html.jinja
@@ -4071,31 +4075,19 @@ msgid "Community projects"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Filter tasks"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Surprise me"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Tasks couldn't load right now. Reload the page to try again."
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Your recent contributions"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "See all your edits"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Fixes you save here show up in this list."
+msgid "Getting the list ready…"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
 msgid "Go further"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Filter tasks"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Tasks couldn't load right now. Reload the page to try again."
 msgstr ""
 
 #: contribute/done.html.jinja
@@ -8390,21 +8382,23 @@ msgstr ""
 msgid "I opened a print record and its publisher and edition match this one."
 msgstr ""
 
-#: openlibrary/contribute/initiatives.py
-msgid "Find every book its shelf"
-msgstr ""
-
-#: openlibrary/contribute/initiatives.py
-msgid "Fiction or nonfiction, and the genres that fit, starting with the most-read books."
+#: openlibrary/contribute/initiatives.py openlibrary/plugins/openlibrary/contribute.py
+msgid "Fiction or nonfiction"
 msgstr ""
 
 #: openlibrary/contribute/initiatives.py
 #, python-format
-msgid "Complete the %(count)s most-read books"
+msgid "%(count)s of the most-shelved books that aren't marked fiction or nonfiction yet, or are missing their genres."
 msgstr ""
 
 #: openlibrary/contribute/initiatives.py
-msgid "Fill in what's missing on the books people shelve most."
+#, python-format
+msgid "%(count)s most-read books"
+msgstr ""
+
+#: openlibrary/contribute/initiatives.py
+#, python-format
+msgid "The %(count)s editions people shelve most. Fill in any cover, page count, publisher or language they're missing."
 msgstr ""
 
 #: openlibrary/contribute/save.py
@@ -9240,10 +9234,6 @@ msgid "Filipino"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Fiction or nonfiction"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Books missing a cover"
 msgstr ""
 
@@ -9299,20 +9289,25 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "<b>%(count)s</b> task left"
-msgid_plural "<b>%(count)s</b> tasks left"
+msgid "%(percent)s%% done"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(count)s task left"
+msgid_plural "%(count)s tasks left"
 msgstr[0] ""
 msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "%(count)s person has helped"
-msgid_plural "%(count)s people have helped"
+msgid "%(count)s person helping"
+msgid_plural "%(count)s people helping"
 msgstr[0] ""
 msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "All tasks"
+msgid "All project tasks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
