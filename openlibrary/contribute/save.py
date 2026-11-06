@@ -92,12 +92,17 @@ def answer_value(edition, fld: str, raw: str):
     raise InvalidAnswer(_("This field can't be filled in here."))
 
 
-def save_answer(edition, fld: str, raw: str, label: str, note: str = "") -> None:
+def change_data(fld: str, initiative: str, **more) -> dict:
+    """A Tasks save's ``data``: the source, the task's field, and the initiative it counts toward, so the stats can split them."""
+    return {"source": SOURCE, "field": fld} | ({"initiative": initiative} if initiative else {}) | more
+
+
+def save_answer(edition, fld: str, raw: str, label: str, note: str = "", initiative: str = "") -> None:
     """Write the answer to the edition as a normal edit by the current user."""
     doc = edition.dict()
     doc[fld] = answer_value(edition, fld, raw)
     comment = note.strip() or _("Filled in %(field)s from Open Library Tasks", field=label)
-    web.ctx.site.save(doc, comment=comment, action=ACTION, data={"source": SOURCE, "field": fld})
+    web.ctx.site.save(doc, comment=comment, action=ACTION, data=change_data(fld, initiative))
 
 
 def tag_answers(fld: str, raws: list[str]) -> list[dict]:
@@ -110,7 +115,7 @@ def tag_answers(fld: str, raws: list[str]) -> list[dict]:
     return [{"key": k} for k in keys]
 
 
-def save_work_answers(work, answers: dict[str, list[str]], label: str, note: str = "") -> None:
+def save_work_answers(work, answers: dict[str, list[str]], label: str, note: str = "", initiative: str = "") -> None:
     """Write tag answers to the work in one revision, the same way as an edition answer.
 
     ``answers`` maps each work field to the tag keys picked for it; a field where people pick one keeps just the first.
@@ -122,10 +127,10 @@ def save_work_answers(work, answers: dict[str, list[str]], label: str, note: str
         doc[fld] = refs if fld in MANY else refs[:1]
     fields = list(answers)
     comment = note.strip() or _("Filled in %(field)s from Open Library Tasks", field=label)
-    web.ctx.site.save(doc, comment=comment, action=ACTION, data={"source": SOURCE, "field": fields[0], "fields": fields})
+    web.ctx.site.save(doc, comment=comment, action=ACTION, data=change_data(fields[0], initiative, fields=fields))
 
 
-def save_cover(edition, file, from_amazon: bool = False) -> None:
+def save_cover(edition, file, from_amazon: bool = False, initiative: str = "") -> None:
     """Upload the image and put it first on the edition, as the add-cover page does."""
     if not getattr(file, "filename", ""):
         raise InvalidAnswer(_("Choose an image of the cover."))
@@ -135,7 +140,7 @@ def save_cover(edition, file, from_amazon: bool = False) -> None:
     if not (cover_id := data.get("id")):
         raise InvalidAnswer(_("That isn't an image Open Library can use. Choose a JPG, GIF, PNG or WebP under 10 MB."))
     edition.covers = [cover_id] + [c.id for c in edition.get_covers()]
-    change = {"source": SOURCE, "field": "covers"}
+    change = change_data("covers", initiative)
     # The browser uploads the Amazon image it showed; passing it to coverstore as a URL would download it again there.
     if from_amazon and (isbn10 := edition.get_isbn10()):
         change["url"] = AMAZON_COVER.format(isbn10=isbn10)

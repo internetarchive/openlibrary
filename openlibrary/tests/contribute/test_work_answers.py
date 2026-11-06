@@ -40,6 +40,13 @@ def test_a_genre_answer_alone_names_only_itself(saved):
     assert saved[0]["data"] == {"source": "contribute", "field": "genres", "fields": ["genres"]}
 
 
+def test_a_save_names_the_initiative_it_counts_toward(saved):
+    save.save_work_answers(work(), {"genres": ["/tags/OL2T"]}, "Genres", initiative="genres-2026-11")
+    assert saved[0]["data"] == {"source": "contribute", "field": "genres", "initiative": "genres-2026-11", "fields": ["genres"]}
+    save.save_answer(SimpleNamespace(dict=dict, get=lambda k: None), "publishers", "Penguin", "Publisher", initiative="most-read-2026-11")
+    assert saved[1]["data"] == {"source": "contribute", "field": "publishers", "initiative": "most-read-2026-11"}
+
+
 def test_empty_and_unknown_picks_are_refused(saved):
     with pytest.raises(save.InvalidAnswer, match="at least one genre"):
         save.save_work_answers(work(), {"genres": ["", "  "]}, "Genres")

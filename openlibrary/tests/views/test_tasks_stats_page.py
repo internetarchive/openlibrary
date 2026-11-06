@@ -1,6 +1,19 @@
 """Tests for the numbers /stats/tasks renders server-side (openlibrary.views.loanstats)."""
 
+import pytest
+
+from openlibrary.contribute import initiatives
+from openlibrary.core import admin
+from openlibrary.fastapi import stats
+from openlibrary.utils.request_context import RequestContextVars, req_context
 from openlibrary.views import loanstats
+
+
+@pytest.fixture
+def request_lang():
+    token = req_context.set(RequestContextVars(x_forwarded_for=None, user_agent=None, lang="en", solr_editions=False, print_disabled=False))
+    yield
+    req_context.reset(token)
 
 
 def test_change_reads_as_a_percentage_with_a_direction():
@@ -42,14 +55,48 @@ def test_guardrail_hides_a_share_with_too_few_saves_behind_it():
     assert guardrail["other"]["share"] is None
 
 
-def test_initiative_percent_counts_every_offered_field_on_every_book():
-    counts = {key: {"latest": value} for key, value in {"initiative_open_gaps": 3, "initiative_editions": 2, "initiative_done_editions": 1}.items()}
-    # 2 books x 4 offered fields = 8 slots, 3 open: 62%, rounded down
-    initiative = loanstats.build_initiative(counts)
-    assert initiative["percent"] == "62%"
-    assert initiative["done"] == "1"
-    assert initiative["not_found"] == "—"
-    assert loanstats.build_initiative({})["percent"] == "—"
+MOST_READ, TAGS = initiatives.MOST_READ, initiatives.TAGS
+
+
+def test_initiative_counts_read_the_nested_snapshot_and_the_older_flat_keys():
+    nested = {"initiatives": {TAGS.slug: {"open": 5}}, "initiative_slug": MOST_READ.slug, "initiative_open_gaps": 9}
+    assert admin.initiative_counts(nested) == {TAGS.slug: {"open": 5}}
+    flat = {"initiative_slug": MOST_READ.slug, "initiative_open_gaps": 9, "initiative_people": 4}
+    assert admin.initiative_counts(flat) == {MOST_READ.slug: {"open": 9, "people": 4}}
+    assert admin.initiative_counts({"saves": 3}) == {}
+
+
+def test_every_initiative_gets_a_card_headline_first_selected(request_lang):
+    projects = loanstats.build_initiatives([])
+    assert [p["slug"] for p in projects] == [i.slug for i in initiatives.INITIATIVES]
+    assert [p["on"] for p in projects] == [i is initiatives.ACTIVE for i in initiatives.INITIATIVES]
+    assert all(p["percent"] == "—" for p in projects)
+
+
+def test_initiative_percent_counts_every_field_it_asks_about_on_every_book(request_lang):
+    # 2 books x 4 fields = 8 slots, 3 open: 62%, rounded down
+    docs = [{"initiative_slug": MOST_READ.slug, "initiative_open_gaps": 3, "initiative_editions": 2, "initiative_done_editions": 1}]
+    most_read = loanstats.build_initiatives(docs)[0]
+    assert len(MOST_READ.fields) == 4
+    assert (most_read["percent"], most_read["done"], most_read["not_found"]) == ("62%", "1", "—")
+
+
+def test_each_initiative_reads_its_own_latest_snapshot(request_lang):
+    docs = [
+        {"initiatives": {TAGS.slug: {"open": 10, "editions": 5, "people": 1}}},
+        {"initiatives": {MOST_READ.slug: {"open": 2, "editions": 2, "people": 1200}}},
+    ]
+    by_slug = {p["slug"]: p for p in loanstats.build_initiatives(docs)}
+    assert by_slug[MOST_READ.slug]["open"] == "2"
+    assert by_slug[MOST_READ.slug]["people"] == "<b>1,200</b> people have helped"
+    # Today's doc has no genres snapshot yet, so yesterday's stands.
+    assert by_slug[TAGS.slug]["open"] == "10"
+    assert by_slug[TAGS.slug]["people"] == "<b>1</b> person has helped"
+
+
+def test_series_has_a_line_per_initiative_aligned_to_the_days():
+    days = [{}, {"initiative_slug": MOST_READ.slug, "initiative_open_gaps": 9}, {"initiatives": {MOST_READ.slug: {"open": 8}, TAGS.slug: {"open": 40}}}]
+    assert stats.initiative_series(days) == {MOST_READ.slug: [None, 9, 8], TAGS.slug: [None, None, 40]}
 
 
 def test_saves_by_field_add_up_across_days_most_first():

@@ -63,6 +63,13 @@ def test_people_prefers_todays_count_and_falls_back_to_yesterdays(cards):
     assert cards(docs=[yesterday, {"saves": 3}])[ACTIVE.slug]["people"] == "8 people have helped"
 
 
+def test_people_read_from_the_nested_snapshot(cards):
+    other = next(i for i in contribute.initiatives.INITIATIVES if i is not ACTIVE)
+    built = cards(docs=[{"initiatives": {ACTIVE.slug: {"people": 6}, other.slug: {"people": 12}}}])
+    assert built[ACTIVE.slug]["people"] == "6 people have helped"
+    assert built[other.slug]["people"] == "12 people have helped"
+
+
 def test_people_count_goes_to_the_initiative_it_names(cards):
     other = next(i for i in contribute.initiatives.INITIATIVES if i is not ACTIVE)
     built = cards(docs=[{"initiative_slug": other.slug, "initiative_people": 50}])

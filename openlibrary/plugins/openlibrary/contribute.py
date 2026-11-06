@@ -92,17 +92,6 @@ def initiative_param(initiative: initiatives.Initiative) -> str:
     return "" if initiative is initiatives.ACTIVE else initiative.slug
 
 
-def initiative_copy(initiative: initiatives.Initiative) -> dict[str, str]:
-    """An initiative's name and pitch, as the dashboard shows them."""
-    count = helpers.commify(initiative.size)
-    if initiative is initiatives.TAGS:
-        return {
-            "title": _("Find every book its shelf"),
-            "description": _("Fiction or nonfiction, and the genres that fit, starting with the most-read books."),
-        }
-    return {"title": _("Complete the %(count)s most-read books", count=count), "description": _("Fill in what's missing on the books people shelve most.")}
-
-
 def render_contribute(template: str, title: str, **params):
     return render_template("contribute", web.storage(template=template, title=title, params=params))
 
@@ -412,8 +401,8 @@ def build_task_rows(task: str, initiative: initiatives.Initiative, fields: tuple
 def get_initiative_people(initiative: initiatives.Initiative) -> int:
     """How many people have saved for ``initiative``, from the stats job's latest counts. Yesterday's doc covers just after midnight."""
     for doc in reversed(admin.get_count_docs(2)):
-        if doc.get("initiative_slug") == initiative.slug and "initiative_people" in doc:
-            return doc["initiative_people"]
+        if (people := admin.initiative_counts(doc).get(initiative.slug, {}).get("people")) is not None:
+            return people
     return 0
 
 
@@ -430,7 +419,7 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
         p = initiatives.progress(gaps, initiative.fields) if gaps else None
         people = get_initiative_people(initiative) if p else 0
         cards.append(
-            initiative_copy(initiative)
+            initiatives.describe(initiative)
             | {
                 "slug": initiative.slug,
                 "on": initiative is current,
@@ -756,7 +745,8 @@ class contribute_task(delegate.page):
         if spamcheck.is_spam(web.storage((k, v) for k, v in i.items() if isinstance(v, str)), allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         back = normalize_filter(i.back)
-        slug = initiative_param(get_initiative(i.initiative))
+        initiative = get_initiative(i.initiative)
+        slug = initiative_param(initiative)
         surprise = bool(i.surprise)
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
@@ -772,12 +762,12 @@ class contribute_task(delegate.page):
             if field_guide.confirm and not i.confirmed:
                 raise save.InvalidAnswer(_("Check that it matches this edition, and tick the box to say so."))
             if fld == "covers":
-                save.save_cover(edition, i.file, from_amazon=i.get("cover_choice") == "suggested")
+                save.save_cover(edition, i.file, from_amazon=i.get("cover_choice") == "suggested", initiative=initiative.slug)
             elif fld in tasks.WORK_FIELDS:
                 answers = build_work_answers(edition, fld, i)
-                save.save_work_answers(work_of(edition), answers, answers_label(list(answers)), i.note)
+                save.save_work_answers(work_of(edition), answers, answers_label(list(answers)), i.note, initiative=initiative.slug)
             else:
-                save.save_answer(edition, fld, i.value, field_guide.label, i.note)
+                save.save_answer(edition, fld, i.value, field_guide.label, i.note, initiative=initiative.slug)
         except save.InvalidAnswer as e:
             context = build_task_context(edition, task, back, slug, surprise=surprise, error=str(e), value=i.value, many=i.genres, note=i.note)
             return render_contribute("contribute/task.html.jinja", field_guide.question, **context)
