@@ -26,8 +26,12 @@ body.full-width ol-banner.edit-saved {
   color: var(--color-success-fg);
 }
 
+/* The banner centres its icon and close button on a 28px first row, and centres a lone line
+   of text there too. This line has a row under it, so it sits at the top instead: the
+   padding brings its first line back to that centre, and holds when the line wraps. */
 .edit-saved__thanks {
   margin: 0;
+  padding-block-start: var(--spacing-stack-xs);
   font-weight: var(--font-weight-semibold);
   color: var(--color-success-fg);
 }
