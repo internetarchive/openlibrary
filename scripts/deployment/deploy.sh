@@ -23,6 +23,7 @@ set -e
 
 # See https://docs.openlibrary.org/advanced/deployment-scratchpad.html
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib.sh"
 DEPLOY_DIR="/tmp/openlibrary_deploy"
 
 mkdir -p $DEPLOY_DIR
@@ -140,17 +141,9 @@ check_server_access() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 
-    for SERVER in $FQDNS; do
-        echo -n "   $SERVER ... "
-        DOCKER_ACCESS=$(ssh -o ConnectTimeout=10 $SERVER "sudo usermod -a -G docker \"\$USER\"" && echo "✓" || echo "✗")
-        if [ "$DOCKER_ACCESS" == "✓" ]; then
-            echo "✓"
-        else
-            echo "⚠"
-            echo "Could not access $SERVER."
-            exit 1
-        fi
-    done
+    if ! check_docker_access $FQDNS; then
+        exit 1
+    fi
 }
 
 copy_to_servers() {
