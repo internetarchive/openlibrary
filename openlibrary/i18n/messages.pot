@@ -2344,42 +2344,6 @@ msgstr ""
 msgid "Please enter domains to blacklist in the textarea below, one per line."
 msgstr ""
 
-#: admin/sync.html
-msgid "Sync"
-msgstr ""
-
-#: admin/sync.html
-msgid "Sync the metadata of various types of Open Library items (e.g. lists, subjects, works) with Archive.org."
-msgstr ""
-
-#: admin/sync.html
-msgid "Add Works to Staff Picks"
-msgstr ""
-
-#: admin/sync.html
-msgid "This utility will add your work to an Open Library list called `Staff Picks` under the `openlibrary` user. It will then take the added work and explode it into a list of all its readable editions. For each Open Library edition, a metadata field called `openlibrary_subject` will be injected into the archive.org metadata of the edition's corresponding archive.org item."
-msgstr ""
-
-#: admin/sync.html
-msgid "add"
-msgstr ""
-
-#: admin/sync.html
-msgid "remove"
-msgstr ""
-
-#: admin/sync.html
-msgid "Update edition"
-msgstr ""
-
-#: admin/sync.html
-msgid "Updates an edition on archive.org by writing in its latest  openlibrary_edition and openlibrary_work identifier values"
-msgstr ""
-
-#: admin/sync.html
-msgid "TODO"
-msgstr ""
-
 #: admin/inspect/memcache.html
 msgid "[Admin Center] Inspect Memcache"
 msgstr ""
@@ -6390,10 +6354,6 @@ msgstr ""
 
 #: type/delete/view.html
 msgid "Recreate it"
-msgstr ""
-
-#: type/edition/admin_bar.html
-msgid "Add IA Book to Staff Picks"
 msgstr ""
 
 #: type/edition/admin_bar.html
