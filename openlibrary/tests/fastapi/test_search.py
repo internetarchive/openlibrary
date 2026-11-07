@@ -562,6 +562,17 @@ class TestSearchInsideEndpoint:
             "argentina brazil", page=1, offset=None, limit=20, js=True, facets=True, readable=False, phrase=False, language=None
         )
 
+    def test_limit_cap_accepts_max_allowed(self, fastapi_client, mock_fulltext_search_async, languages):
+        response = fastapi_client.get("/search/inside.json?q=hello&limit=100")
+        assert response.status_code == 200
+        mock_fulltext_search_async.assert_called_once_with(
+            "hello", page=1, offset=None, limit=100, js=True, facets=True, readable=False, phrase=True, language=None
+        )
+
+    def test_limit_cap_rejects_over_max(self, fastapi_client, mock_fulltext_search_async, languages):
+        response = fastapi_client.get("/search/inside.json?q=hello&limit=101")
+        assert response.status_code == 422
+
 
 class TestEditionSearchEndpoint:
     """Tests for the /search/editions.json endpoint."""
