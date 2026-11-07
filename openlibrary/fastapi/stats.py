@@ -17,7 +17,7 @@ router = APIRouter()
 # Enough for a 12-month view with a previous period to compare the first weeks against.
 MAX_DAYS = 400
 # The keys the page may ask for. `_1d` keys are per day; 7d and 28d are rolling windows ending that day; the
-# `initiative_*` keys are nightly snapshots. All written by scripts/store_counts.py from openlibrary/admin/numbers.py.
+# initiatives' snapshots come separately. All written by scripts/store_counts.py from openlibrary/admin/numbers.py.
 SERIES_KEYS = (
     "catalog_editors_1d",
     "catalog_editors_7d",
@@ -33,10 +33,6 @@ SERIES_KEYS = (
     "tasks_editors_1d",
     "tasks_editors_7d",
     "tasks_editors_28d",
-    "initiative_open_gaps",
-    "initiative_done_editions",
-    "initiative_not_found",
-    "initiative_editions",
 )
 
 
@@ -47,8 +43,8 @@ class TasksSeries(BaseModel):
     """Each key in `SERIES_KEYS`; None on a day the stats script hadn't written it."""
     saves_by_field: list[dict[str, int] | None]
     """The day's Tasks saves by field filled."""
-    initiative: list[str | None]
-    """Which initiative the day's `initiative_*` values describe."""
+    initiatives: dict[str, list[int | None]]
+    """Details still open on each initiative's list, by slug; None on a day without its snapshot."""
 
 
 # Plain def: the store reads are blocking I/O, so the route runs in the threadpool.
@@ -56,6 +52,13 @@ class TasksSeries(BaseModel):
 def _count_docs_by_day() -> dict[str, dict]:
     """The last `MAX_DAYS` count docs, by date. Gathered hourly, so a quarter hour of staleness is within noise."""
     return {doc["_key"].removeprefix("counts-"): doc for doc in admin.read_count_docs(site.get(), MAX_DAYS)}
+
+
+def initiative_series(day_docs: list[dict]) -> dict[str, list[int | None]]:
+    """Each initiative's open details across ``day_docs``, for every initiative any of them has a snapshot of."""
+    by_day = [admin.initiative_counts(doc) for doc in day_docs]
+    slugs = dict.fromkeys(slug for counts in by_day for slug in counts)
+    return {slug: [counts.get(slug, {}).get("open") for counts in by_day] for slug in slugs}
 
 
 @router.get("/stats/tasks.json", response_model=TasksSeries)
@@ -71,5 +74,5 @@ def tasks_series(
         dates=dates,
         series={key: [doc.get(key) for doc in day_docs] for key in SERIES_KEYS},
         saves_by_field=[doc.get("tasks_saves_by_field_1d") for doc in day_docs],
-        initiative=[doc.get("initiative_slug") for doc in day_docs],
+        initiatives=initiative_series(day_docs),
     )
