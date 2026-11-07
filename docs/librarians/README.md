@@ -127,9 +127,9 @@ Librarians collect, vet, and execute author and work merge requests. The merge f
 - [[infrastructure]] — spam blocking via nginx/olsystem on ol-www1; PostgreSQL for account queries
 
 **Depended on by:**
-- [[imports]] — librarians review and correct imported records
-- [[core-vitals]] — librarian actions (Book Edit, Author Edit, Work Merge, Author Merge, Cover uploads, Series edits) are Participation events; their ω-value contribution feeds the Participation Score
+- [imports](../imports/README.md) — librarians review and correct imported records
+- [core-vitals](../analytics/core-vitals.md) — librarian actions (Book Edit, Author Edit, Work Merge, Author Merge, Cover uploads, Series edits) are Participation events; their ω-value contribution feeds the Participation Score
 
 ---
 
-*Sources: `raw/openlibrary-wiki/Lead:-Community-Librarian.md` (role), `Anti-Spam-Tools.md` (deprecated), `Library-Metadata-Standards.md`, `Librarian-Resources/Guide-to-Identifiers.md` · Merge/ILE tool stub — needs follow-up · See [[README]] · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-wiki/Lead:-Community-Librarian.md` (role), `Anti-Spam-Tools.md` (deprecated), `Library-Metadata-Standards.md`, `Librarian-Resources/Guide-to-Identifiers.md` · Merge/ILE tool stub — needs follow-up · See [README](../README.md) · [[METHODOLOGY]]*

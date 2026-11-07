@@ -64,7 +64,7 @@ async def my_feature(): ...
 ### Infogami
 The foundational layer. Provides: versioned object storage, plugin loader, web.py routing, Templetor template engine, Infobase client API. Lives in `vendor/infogami/` as a git submodule. Effectively frozen — OL owns all maintenance. See [[infogami]].
 
-OL types (Work, Edition, Author) are registered on Infogami via `openlibrary/core/schema.py` and `openlibrary/core/models.py`. See [[imports]] for the data model.
+OL types (Work, Edition, Author) are registered on Infogami via `openlibrary/core/schema.py` and `openlibrary/core/models.py`. See [imports](../imports/README.md) for the data model.
 
 ### Plugin system
 
@@ -72,9 +72,9 @@ OL types (Work, Edition, Author) are registered on Infogami via `openlibrary/cor
 |---|---|
 | `plugins/openlibrary/` | Public-facing pages, core site routes, JS source files (`js/`), ~71 route handler classes |
 | `plugins/upstream/` | All data mutations: account management, borrowing, add/edit book, merge authors |
-| `plugins/worksearch/` | Search routes, Solr integration, autocomplete — see [[search]] |
-| `plugins/importapi/` | Machine-readable book import API — see [[imports]] |
-| `plugins/books/` | Legacy book API (JSON/RDF), dynamic/read links — see [[public-apis]] |
+| `plugins/worksearch/` | Search routes, Solr integration, autocomplete — see [search](../search/README.md) |
+| `plugins/importapi/` | Machine-readable book import API — see [imports](../imports/README.md) |
+| `plugins/books/` | Legacy book API (JSON/RDF), dynamic/read links — see [public-apis](../public-apis/README.md) |
 | `plugins/admin/` | Admin dashboard, stats, monitoring |
 | `plugins/inside/` | IA PDF viewer integration |
 | `plugins/recaptcha/` | reCAPTCHA for form spam protection |
@@ -163,12 +163,12 @@ make test                # All tests
 
 ## Performance
 
-Infogami object reads go through `openlibrary/core/cache.py` (Memcache). FastAPI endpoints are async; web.py handlers are synchronous. Most page-load cost is in [[search]] (Solr) and [[lending]] (IA availability checks).
+Infogami object reads go through `openlibrary/core/cache.py` (Memcache). FastAPI endpoints are async; web.py handlers are synchronous. Most page-load cost is in [search](../search/README.md) (Solr) and [lending](../lending/README.md) (IA availability checks).
 
 ## Related Processes
 
-- Solr updater background service — see [[search]]
-- Batch import crons — see [[imports]] and [[infrastructure]]
+- Solr updater background service — see [search](../search/README.md)
+- Batch import crons — see [imports](../imports/README.md) and [[infrastructure]]
 - Deployment via olsystem — see [[infrastructure]]
 
 ## What's Broken / Fragile / Unimplemented
@@ -194,4 +194,4 @@ Docker Compose for development. Production via [[infrastructure]] (olsystem, sup
 
 ---
 
-*Sources: `raw/openlibrary-docs-ai/README.md` · See [[README]] · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-docs-ai/README.md` · See [README](../README.md) · [[METHODOLOGY]]*
