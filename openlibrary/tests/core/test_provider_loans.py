@@ -307,18 +307,17 @@ class TestItSurvivesTheRealCacheAndNotJustTheFake:
         lenny = pytest.importorskip("openlibrary.plugins.upstream.lenny")
         loan = lenny.loan_from_node(
             "lenny",
-            "https://lennyforlibraries.org",
             "patron",
             {"status": "borrowed", "edition_id": 37044497, "due_at": "2026-10-06T12:00:00+00:00"},
         )
         provider_loans.prime_provider_loans("patron", loan)
         held = provider_loans.get_provider_loan("/books/OL37044497M", user=FakeUser())
         assert held is not None
-        assert held["read_url"] == "https://lennyforlibraries.org/v1/api/items/37044497/read"
+        assert held["read_url"] == "https://openlibrary.org/borrow/lenny/OL37044497M/read"
 
     def test_a_borrow_with_no_borrowed_at_still_reaches_the_page(self, real_cache):
         """`borrowed_at` is nullable, so `_epoch`'s substitute must encode."""
         lenny = pytest.importorskip("openlibrary.plugins.upstream.lenny")
-        loan = lenny.loan_from_node("lenny", "https://lennyforlibraries.org", "patron", {"edition_id": 37044497})
+        loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 37044497})
         provider_loans.prime_provider_loans("patron", loan)
         assert provider_loans.get_provider_loan("/books/OL37044497M", user=FakeUser()) is not None
