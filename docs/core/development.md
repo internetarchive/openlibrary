@@ -312,4 +312,4 @@ Full route listing: `https://dev.openlibrary.org/developers/routes`
 
 ---
 
-*Sources: `raw/openlibrary-wiki/Developer-Resources/Getting-Started.md` (⚠️ STALE — self-described), `Testing.md`, `Writing-Bots.md`, `Endpoints.md` · Canonical setup: `docker/README.md` in repo · See [[README]] · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-wiki/Developer-Resources/Getting-Started.md` (⚠️ STALE — self-described), `Testing.md`, `Writing-Bots.md`, `Endpoints.md` · Canonical setup: `docker/README.md` in repo · See [README](../README.md) · [[METHODOLOGY]]*
