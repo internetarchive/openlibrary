@@ -196,6 +196,14 @@
   margin: 0; /* Handled by grid gap */
 }
 
+.mybooks-details .carousel .book,
+.mybooks-details .carousel .carousel__item {
+  flex: 0 0 140px;
+  width: 140px;
+  max-width: 140px;
+  box-sizing: border-box;
+}
+
 /* Modifiers */
 /* A smaller carousel. */
 .carousel--minimal img {

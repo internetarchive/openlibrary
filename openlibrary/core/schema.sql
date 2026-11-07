@@ -178,6 +178,18 @@ CREATE TABLE feed_registry (
 
 CREATE INDEX feed_registry_provider_name ON feed_registry (provider_name);
 
+CREATE TABLE read_history (
+    username text NOT NULL,
+    work_id integer NOT NULL,
+    edition_id integer default null,
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    PRIMARY KEY (username, work_id)
+);
+
+CREATE INDEX read_history_user_updated_idx ON read_history (username, updated DESC);
+CREATE INDEX read_history_work_id_idx ON read_history (work_id);
+
 -- A patron's OAuth grant at each trusted book provider (#13685). One row per
 -- (username, provider_name); both tokens are Fernet-encrypted at rest with the
 -- same secret the S3 keys use. `UNIQUE (username, provider_name)` is

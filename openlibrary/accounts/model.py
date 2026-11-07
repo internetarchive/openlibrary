@@ -29,6 +29,7 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
+from openlibrary.core.read_history import ReadHistory
 from openlibrary.plugins.openlibrary.pd import get_pd_org
 from openlibrary.utils import server_timing
 from openlibrary.utils.async_utils import async_bridge
@@ -324,6 +325,7 @@ class AccountAnonymizationResult(TypedDict):
     ratings_count: int
     observations_count: int
     bookshelves_count: int
+    read_history_count: int
     merge_request_count: int
     bestbooks_count: int
 
@@ -547,6 +549,7 @@ class Account(web.storage):
         ratings_count = await Ratings.update_username(self.username, new_username, _test=test)
         observations_count = await Observations.update_username(self.username, new_username, _test=test)
         bookshelves_count = await Bookshelves.update_username(self.username, new_username, _test=test)
+        read_history_count = await ReadHistory.update_username(self.username, new_username, _test=test)
         merge_request_count = await CommunityEditsQueue.update_submitter_name(self.username, new_username, _test=test)
         bestbooks_count = await Bestbook.update_username(self.username, new_username, _test=test)
 
@@ -556,6 +559,7 @@ class Account(web.storage):
             "ratings_count": ratings_count,
             "observations_count": observations_count,
             "bookshelves_count": bookshelves_count,
+            "read_history_count": read_history_count,
             "merge_request_count": merge_request_count,
             "bestbooks_count": bestbooks_count,
         }

@@ -50,6 +50,7 @@ def _anonymize_post(
                 "ratings_count": 0,
                 "observations_count": 0,
                 "bookshelves_count": 0,
+                "read_history_count": 0,
                 "merge_request_count": 0,
                 "bestbooks_count": 0,
             }

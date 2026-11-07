@@ -65,6 +65,7 @@ class AnonymizeResponse(BaseModel):
     ratings_count: int = Field(description="Number of ratings anonymized")
     observations_count: int = Field(description="Number of observations anonymized")
     bookshelves_count: int = Field(description="Number of bookshelf entries anonymized")
+    read_history_count: int = Field(description="Number of read history entries anonymized")
     merge_request_count: int = Field(description="Number of merge requests updated")
     bestbooks_count: int = Field(description="Number of bestbook entries anonymized")
 

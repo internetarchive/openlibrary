@@ -1352,8 +1352,8 @@ msgstr ""
 msgid "No books are on this shelf"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
-msgid "Loans & History"
+#: account/mybooks.html
+msgid "Continue Reading"
 msgstr ""
 
 #. Display name for the "already-read" reading log shelf used in page headings and breadcrumbs.
@@ -1505,6 +1505,14 @@ msgstr ""
 
 #: account/privacy.html
 msgid "Safe Mode blurs book covers that have been flagged as having sensitive imagery."
+msgstr ""
+
+#: account/privacy.html
+msgid "Track my reading history"
+msgstr ""
+
+#: account/privacy.html
+msgid "When enabled, books you read are saved to your Continue Reading history and account settings. Turning this off will clear your existing reading history."
 msgstr ""
 
 #: account/reading_log.html
@@ -1680,6 +1688,10 @@ msgstr ""
 
 #: account/readinglog_stats.html
 msgid "Matching works"
+msgstr ""
+
+#: account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+msgid "Loans & History"
 msgstr ""
 
 #: account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
