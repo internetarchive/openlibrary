@@ -294,9 +294,13 @@ async def search_json(
     return raw_response
 
 
+class SearchInsidePagination(Pagination):
+    limit: int = Field(20, ge=0, le=100, description="Maximum number of results to return (max 100).")
+
+
 @router.get("/search/inside.json")
 async def search_inside_json(
-    pagination: Annotated[PaginationLimit20, Depends()],
+    pagination: Annotated[SearchInsidePagination, Depends()],
     q: Annotated[str, Query(title="Search query")],
     facets: Annotated[bool, Query(description="Include facet aggregations in the response.")] = True,
     readable: Annotated[bool, Query(description="Drop matches that aren't readable (public or borrowable) scans. hits.total still counts them.")] = False,
