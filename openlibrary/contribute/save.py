@@ -12,7 +12,7 @@ import re
 import web
 
 from openlibrary.contribute.field_guides import AMAZON_COVER
-from openlibrary.core.tags import find_tag
+from openlibrary.core.tags import MANY, find_tag
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.covers import add_cover
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, get_languages
@@ -100,19 +100,29 @@ def save_answer(edition, fld: str, raw: str, label: str, note: str = "") -> None
     web.ctx.site.save(doc, comment=comment, action=ACTION, data={"source": SOURCE, "field": fld})
 
 
-def tag_answer(fld: str, raw: str) -> dict:
-    """The reference to store for a chosen tag; the choice must be one of the field's tags."""
-    if not find_tag(fld, raw.strip()):
+def tag_answers(fld: str, raws: list[str]) -> list[dict]:
+    """The references to store for the chosen tags, in the order picked and without repeats; each must be one of the field's tags."""
+    keys = list(dict.fromkeys(r.strip() for r in raws if r.strip()))
+    if not keys:
+        raise InvalidAnswer(_("Pick at least one genre, or choose “Not sure”.") if fld in MANY else _("Choose one of the options."))
+    if any(not find_tag(fld, k) for k in keys):
         raise InvalidAnswer(_("Choose one of the options."))
-    return {"key": raw.strip()}
+    return [{"key": k} for k in keys]
 
 
-def save_work_answer(work, fld: str, raw: str, label: str, note: str = "") -> None:
-    """Write a tag answer to the work, the same way as an edition answer."""
+def save_work_answers(work, answers: dict[str, list[str]], label: str, note: str = "") -> None:
+    """Write tag answers to the work in one revision, the same way as an edition answer.
+
+    ``answers`` maps each work field to the tag keys picked for it; a field where people pick one keeps just the first.
+    ``data.field`` names the task that was answered, ``data.fields`` everything the save filled.
+    """
     doc = work.dict()
-    doc[fld] = [tag_answer(fld, raw)]
+    for fld, raws in answers.items():
+        refs = tag_answers(fld, raws)
+        doc[fld] = refs if fld in MANY else refs[:1]
+    fields = list(answers)
     comment = note.strip() or _("Filled in %(field)s from Open Library Tasks", field=label)
-    web.ctx.site.save(doc, comment=comment, action=ACTION, data={"source": SOURCE, "field": fld})
+    web.ctx.site.save(doc, comment=comment, action=ACTION, data={"source": SOURCE, "field": fields[0], "fields": fields})
 
 
 def save_cover(edition, file, from_amazon: bool = False) -> None:

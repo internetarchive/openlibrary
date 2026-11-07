@@ -6,7 +6,7 @@ import pytest
 import web
 
 from openlibrary.admin import numbers
-from openlibrary.contribute import save, tasks
+from openlibrary.contribute import initiatives, save
 
 
 class FakeDB:
@@ -164,11 +164,11 @@ def fake_initiative(monkeypatch):
         raise AssertionError("the stats run must not pick and freeze the list")
 
     initiatives = SimpleNamespace(
-        ACTIVE=SimpleNamespace(slug="most-read-test", store_key="contribute-initiative-most-read-test"),
+        ACTIVE=SimpleNamespace(slug="most-read-test", store_key="contribute-initiative-most-read-test", fields=("covers", "publishers")),
         load_frozen=load_frozen,
         gaps_for=gaps_for,
         build_gaps=build_gaps,
-        progress=lambda gaps: {"open": 1, "done": 1, "not_found": 1, "total": 2, "percent": 91},
+        progress=lambda gaps, fields: {"open": 1, "done": 1, "not_found": 1, "total": 2, "percent": 91},
         calls=calls,
     )
     monkeypatch.setattr(numbers, "_initiative", lambda: initiatives)
@@ -239,8 +239,8 @@ def test_other_fills_are_one_query_for_both_keys(monkeypatch):
     assert "t.created >= '2026-09-17 21:00:00' AND t.created < '2026-10-15 21:00:00'" in sql
 
 
-def test_tasks_fields_match_what_tasks_offers():
-    assert set(numbers.TASKS_FIELDS) == set(tasks.OFFERED)
+def test_tasks_fields_match_what_the_headline_initiative_offers():
+    assert set(numbers.TASKS_FIELDS) == set(initiatives.ACTIVE.fields)
 
 
 def test_tasks_source_matches_what_tasks_saves_write():
