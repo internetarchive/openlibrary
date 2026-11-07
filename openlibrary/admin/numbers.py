@@ -319,14 +319,6 @@ def admin_range__initiatives(**kargs):
     return counts
 
 
-def admin_range__initiative_people(**kargs):
-    "Accounts that have saved from the Tasks page since the active initiative's list was frozen. A running total, so only for today."
-    _initiative_progress(kargs)
-    initiatives = _initiative()
-    db, _start, end = _range_args("admin_range__initiative_people", kargs)
-    return _count_tasks_editors(db, web.ctx.site.store.get(initiatives.ACTIVE.store_key)["frozen_at"], end)
-
-
 def admin_range__tasks_saves_undone_28d(**kargs):
     """Tasks saves in the 28 days before `end` whose value the record no longer holds, by undo, revert or a later edit.
 
