@@ -2,6 +2,7 @@ import $ from 'jquery';
 import initSentry from './sentry';
 import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
+import { trackLocalAiAvailability } from './local-ai-availability.js';
 import init from './ol.js';
 import initServiceWorker from './service-worker-init.js';
 import './experiments.js';
@@ -47,6 +48,8 @@ initServiceWorker();
 // This to the best of our knowledge needs to be run synchronously,
 // because it sends the initial pageview to analytics.
 initAnalytics();
+// Async and once per tab session, so it doesn't hold up the rest (#14046)
+trackLocalAiAvailability();
 
 // Initialise some things
 $(function () {
