@@ -8,12 +8,14 @@ import time
 import urllib
 from collections.abc import Iterable
 from dataclasses import dataclass
+from math import ceil
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 from unicodedata import normalize
 
 import httpx
 import web
+from markupsafe import Markup, escape
 
 from infogami import config
 from infogami.infobase.client import storify
@@ -22,6 +24,8 @@ from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import is_passage_query
+from openlibrary.core.helpers import commify
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Edition
 from openlibrary.fastapi.models import SolrInternalsParams
@@ -998,7 +1002,6 @@ class advancedsearch(delegate.page):
         # Local imports: openlibrary.fastapi.search imports this module, and this handler is temporary.
         from markupsafe import escape
 
-        from openlibrary.core.jinja import render_jinja_template
         from openlibrary.fastapi.search import AdvancedSearchForm, SearchNav
 
         params = web.input(_method="get")
@@ -1050,13 +1053,30 @@ class ListSearchRequest:
 class list_search(delegate.page):
     path = "/search/lists"
 
-    def GET(self):  # referenced subject_search
+    def GET(self):
         req = ListSearchRequest.from_web_input(web.input(api="next"))
         # Can't set fields when rendering html
         req.fields = "key"
         resp = self.get_results(req, "LIST_SEARCH")
         lists = list(web.ctx.site.get_many([doc["key"] for doc in resp.docs]))
-        return render_template("search/lists.html", req, resp, lists)
+
+        # Local import: openlibrary.fastapi.search imports this module.
+        from openlibrary.fastapi.search import SearchNav
+
+        # Templetor macros aren't reachable from Jinja; render them and pass the HTML in.
+        ol_macros = web.template.Template.globals["macros"]
+        body = render_jinja_template(
+            "search/lists.html.jinja",
+            nav=SearchNav.from_query(web.ctx.path, web.input(_method="get")),
+            q=req.q,
+            search_response=resp,
+            lists=lists,
+            commified_num_found=commify(resp.num_found),
+            pagination=Markup(str(ol_macros.OlPagination(req.page, ceil(resp.num_found / req.limit)))),
+            loading_indicator=Markup(str(ol_macros.LoadingIndicator(_("Checking Search Inside matches")))),
+        )
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(_("Search results for Lists")))
 
     def get_results(
         self,
