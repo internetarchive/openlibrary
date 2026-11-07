@@ -42,7 +42,7 @@
     "@eslint/js": "^10.0.1",
     "@internetarchive/elements": "^0.2.5",
     "@playwright/test": "^1.60.0",
-    "@sentry/browser": "^10.60.0",
+    "@sentry/browser": "^11.0.0",
     "@tiptap/core": "^3.20.4",
     "@tiptap/extension-hard-break": "^3.26.0",
     "@tiptap/extension-image": "^3.22.1",
