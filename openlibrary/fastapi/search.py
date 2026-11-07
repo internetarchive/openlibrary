@@ -630,6 +630,7 @@ async def search_lists(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePag
     )
     return SitePage(body, page=PageMeta(title=_("Search results for Lists")))
 
+
 @pages.get("/search/authors")
 async def search_authors(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePage:
     """HTML author search page, rendered from authors.html.jinja.

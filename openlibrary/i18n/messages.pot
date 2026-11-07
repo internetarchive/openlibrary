@@ -9079,6 +9079,10 @@ msgstr ""
 msgid "Search results for Lists"
 msgstr ""
 
+#: openlibrary/fastapi/search.py
+msgid "Search results for Authors"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/api.py
 msgid "Search Results"
 msgstr ""
