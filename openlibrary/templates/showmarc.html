@@ -1,4 +1,4 @@
-$def with (record, filename, begin, length, edition=None)
+$def with (record, filename, begin, length, edition=None, next_length=5)
 $# Template entry point for MARC record's that are not amazon or IA.
 $# e.g. /show-records/marc_loc_2016/BooksAll.2016.part21.utf8:30354813:779
 $ format = query_param('format')
@@ -9,7 +9,7 @@ $if format == 'raw':
 $ get_source_record = render_template("history/sources").get_source_record
 $ source_record = get_source_record("%s:%s:%s" % (filename, begin, length))
 $ title = "MARC Record from " + source_record.source_name
-$ next_url = "../%s:%s:5" % (filename, begin + length)
+$ next_url = "../%s:%s:%s" % (filename, begin + length, next_length)
 
 $var title: $title
 
@@ -44,7 +44,7 @@ $var title: $title
     $else:
         <p><b>$_("LEADER:")</b> <code>$record.leader</code><br>
         $:record.html()</p>
-   $if ctx.user and ctx.user.is_super_librarian_or_higher():
+   $if ctx.user and ctx.user.is_super_librarian_or_higher() and next_length:
        <div>
           <a href="$next_url" class="slick-next adminOnly right">$_("Next")</a>
        </div>
