@@ -92,6 +92,26 @@ QUERY_PARSER_TESTS = {
         "lcc:[NC1 TO NC1000]",
         "lcc:[NC-0001.00000000 TO NC-1000.00000000]",
     ),
+    "LCC: range, open end": (
+        "lcc:[NC1 TO *]",
+        "lcc:[NC-0001.00000000 TO *]",
+    ),
+    "LCC: range, invalid bounds left as is": (
+        "lcc:[1 TO 5]",
+        "lcc:[1 TO 5]",
+    ),
+    "LCC: range, only valid bound normalized": (
+        "lcc:[NC1 TO 5]",
+        "lcc:[NC-0001.00000000 TO 5]",
+    ),
+    "LCC: lcc_sort range, only valid bound normalized": (
+        "lcc_sort:[A TO 5]",
+        "lcc_sort:[A--0000.00000000 TO 5]",
+    ),
+    "LCC: lcc_sort range from Library Explorer with unparsable LCC": (
+        "lcc_sort:QC* AND lcc_sort:[* TO QC'398.2'P47'1987zzzzz]",
+        "lcc_sort:QC* AND lcc_sort:[* TO QC'398.2'P47'1987zzzzz]",
+    ),
     "LCC: prefix": (
         "lcc:NC76.B2813*",
         "lcc:NC-0076.00000000.B2813*",

@@ -793,9 +793,11 @@ def lcc_transform(sf: luqum.tree.SearchField):
     # for proper range search
     val = sf.children[0]
     if isinstance(val, luqum.tree.Range):
-        normed_range = normalize_lcc_range(val.low.value, val.high.value)
-        if normed_range:
-            val.low.value, val.high.value = normed_range
+        normed_low, normed_high = normalize_lcc_range(val.low.value, val.high.value)
+        if normed_low:
+            val.low.value = normed_low
+        if normed_high:
+            val.high.value = normed_high
     elif isinstance(val, luqum.tree.Word):
         if "*" in val.value and not val.value.startswith("*"):
             # Marshals human repr into solr repr
