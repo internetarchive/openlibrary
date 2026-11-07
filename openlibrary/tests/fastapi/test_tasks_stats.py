@@ -16,8 +16,9 @@ def test_series_line_up_with_one_entry_per_calendar_day(fastapi_client):
             "tasks_saves_1d": 3,
             "tasks_saves_by_field_1d": {"covers": 2, "lccn": 1},
             "initiative_slug": "most-read-2026-11",
+            "initiative_open_gaps": 900,
         },
-        today.isoformat(): {"catalog_editors_1d": 61},
+        today.isoformat(): {"catalog_editors_1d": 61, "initiatives": {"most-read-2026-11": {"open": 880}, "fiction-2026-11": {"open": 40}}},
     }
     with patch("openlibrary.fastapi.stats._count_docs_by_day", return_value=docs):
         response = fastapi_client.get("/stats/tasks.json", params={"days": 3})
@@ -27,8 +28,8 @@ def test_series_line_up_with_one_entry_per_calendar_day(fastapi_client):
     assert body["series"]["catalog_editors_1d"] == [None, 140, 61]
     assert body["series"]["tasks_saves_1d"] == [None, 3, None]
     assert body["saves_by_field"] == [None, {"covers": 2, "lccn": 1}, None]
-    assert body["initiative"] == [None, "most-read-2026-11", None]
-    assert "initiative_open_gaps" in body["series"]
+    # Yesterday's doc predates per-initiative snapshots, so its flat keys still read as the headline initiative's.
+    assert body["initiatives"] == {"most-read-2026-11": [None, 900, 880], "fiction-2026-11": [None, None, 40]}
 
 
 def test_series_rejects_more_than_the_cached_range(fastapi_client):

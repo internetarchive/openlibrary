@@ -1,7 +1,8 @@
-"""An initiative: a fixed list of editions that Tasks works through.
+"""An initiative: a fixed list of editions that Tasks works through, and the fields it asks about.
 
 The list is picked once and frozen in the store, so progress means gaps filled, not a pool that drifts as books get fixed.
 Nothing builds it by hand: the first request after a deploy starts the pick on a background thread, as ``pool`` does.
+Several initiatives run at once; ``/tasks`` opens on ``ACTIVE`` and the others are a click away.
 """
 
 import logging
@@ -13,8 +14,12 @@ from datetime import UTC, datetime
 from infogami.utils.delegate import create_site
 from openlibrary.contribute import pool, tasks
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.helpers import commify
+from openlibrary.core.tags import GENRES, LITERARY_FORMS
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.dateutil import DAY_SECS, MINUTE_SECS
+from openlibrary.utils.request_context import site as request_site
 
 logger = logging.getLogger("openlibrary.contribute.initiatives")
 
@@ -27,8 +32,9 @@ NOT_FOUND_PEOPLE = {
     "publishers": 3,
     "covers": 3,
     "languages": 4,
-    # "Not sure": a judgment rather than a lookup, so a few people unsure is a sign the form really is contested.
-    tasks.LITERARY_FORMS: 3,
+    # "Not sure": a judgment rather than a lookup, so a few people unsure is a sign the call really is contested.
+    LITERARY_FORMS: 3,
+    GENRES: 3,
 }
 NOT_FOUND_TYPE = "contribute-notfound"
 
@@ -45,6 +51,8 @@ class Initiative:
     size: int
     # ``(size, site)`` -> ``[[edition key, readers], ...]``, most-read first.
     pick: Callable[[int, object], list[list]]
+    # The fields it asks about: its filters, its progress figure and its "Surprise me" draw from these.
+    fields: tuple[str, ...]
 
     @property
     def store_key(self) -> str:
@@ -58,29 +66,58 @@ EDITIONS_PER_WORK = 2
 OVERFETCH = 3
 
 
-def pick_most_shelved(size: int, site) -> list[list]:
-    """The editions people name most when they shelve a book: ISBN editions only, at most ``EDITIONS_PER_WORK`` per work.
+def with_open_gap(picks: list[list], site, fields: tuple[str, ...], taken_works: set[str]) -> list[list]:
+    """Of ``[key, readers]`` picks, the editions with something still to fill in ``fields``, one per work.
+
+    A work field reads the edition's work; ``taken_works`` grows with the works kept, so a later call skips their other editions.
+    """
+    kept = []
+    for i in range(0, len(picks), 100):
+        chunk = picks[i : i + 100]
+        editions = {e.key: e for e in site.get_many([key for key, _readers in chunk])}
+        work_keys = [w.key for e in editions.values() if (w := tasks.work_of(e))]
+        works = {w.key: w for w in site.get_many(work_keys)} if work_keys else {}
+        for key, readers in chunk:
+            if not (edition := editions.get(key)):
+                continue
+            work = tasks.work_of(edition)
+            if work is not None and work.key in taken_works:
+                continue
+            if any(tasks.is_missing(edition, f, works.get(work.key) if work is not None else None) for f in fields):
+                kept.append([key, readers])
+                if work is not None:
+                    taken_works.add(work.key)
+    return kept
+
+
+def pick_most_shelved(size: int, site, per_work: int = EDITIONS_PER_WORK, fields: tuple[str, ...] | None = None) -> list[list]:
+    """The editions people name most when they shelve a book: ISBN editions only, at most ``per_work`` per work, and with
+    ``fields`` only those that still have a gap in one of them (which are work fields, so then one edition per work).
 
     Tops up from ``pick_most_read`` when the reading log names too few editions, as on a dev database.
     """
     rows = Bookshelves.most_logged_editions_sync(size * OVERFETCH)
     picks: list[list] = []
-    per_work: Counter[int] = Counter()
+    taken_works: set[str] = set()
+    counted: Counter[int] = Counter()
     for i in range(0, len(rows), 100):
         chunk = rows[i : i + 100]
         editions = {e.key: e for e in site.get_many([f"/books/OL{r['edition_id']}M" for r in chunk])}
+        wanted = []
         for r in chunk:
             edition = editions.get(f"/books/OL{r['edition_id']}M")
             if not edition or edition.type.key != "/type/edition" or not (edition.get("isbn_13") or edition.get("isbn_10")):
                 continue
-            if per_work[r["work_id"]] >= EDITIONS_PER_WORK:
+            if counted[r["work_id"]] >= per_work:
                 continue
-            per_work[r["work_id"]] += 1
-            picks.append([edition.key, r["readers"]])
-            if len(picks) == size:
-                return picks
+            counted[r["work_id"]] += 1
+            wanted.append([edition.key, r["readers"]])
+        picks += with_open_gap(wanted, site, fields, taken_works) if fields else wanted
+        if len(picks) >= size:
+            return picks[:size]
     taken = {p[0] for p in picks}
-    return picks + [p for p in pick_most_read(size, site) if p[0] not in taken][: size - len(picks)]
+    more = [p for p in pick_most_read(size, site) if p[0] not in taken]
+    return picks + (with_open_gap(more, site, fields, taken_works) if fields else more)[: size - len(picks)]
 
 
 def pick_most_read(size: int, site=None) -> list[list]:
@@ -109,8 +146,41 @@ def pick_most_read(size: int, site=None) -> list[list]:
     return [[d["editions"]["docs"][0]["key"], d.get("readinglog_count")] for d in result.docs if d.get("editions", {}).get("docs")]
 
 
-# The one Tasks works through. A new initiative is a new slug: the old list stays in the store for comparison.
-ACTIVE = Initiative("most-read-2026-11", 2000, pick_most_shelved)
+TAG_FIELDS = (LITERARY_FORMS, GENRES)
+
+
+def pick_untagged_works(size: int, site) -> list[list]:
+    """The most-read works still missing their literary form or genres, one edition each: the tags live on the work."""
+    return pick_most_shelved(size, site, per_work=1, fields=TAG_FIELDS)
+
+
+# The initiatives Tasks runs. A new list is a new slug: the old one stays in the store for comparison.
+MOST_READ = Initiative("most-read-2026-11", 2000, pick_most_shelved, ("covers", "languages", "number_of_pages", "publishers"))
+TAGS = Initiative("genres-2026-11", 2000, pick_untagged_works, TAG_FIELDS)
+INITIATIVES = (MOST_READ, TAGS)
+# The headline one: /tasks opens on it, and the stats snapshot follows it.
+ACTIVE = MOST_READ
+
+
+def describe(initiative: Initiative) -> dict[str, str]:
+    """An initiative's name and pitch, as Tasks and the stats page show them: the name says what it is, the pitch how many books and what they need."""
+    count = commify(initiative.size)
+    if initiative is TAGS:
+        return {
+            "title": _("Fiction or nonfiction"),
+            "description": _(
+                "%(count)s of the most-shelved books that aren't marked fiction or nonfiction yet, or are missing their genres.",
+                count=count,
+            ),
+        }
+    return {
+        "title": _("%(count)s most-read books", count=count),
+        "description": _("The %(count)s editions people shelve most. Fill in any cover, page count, publisher or language they're missing.", count=count),
+    }
+
+
+def get(slug: str) -> Initiative | None:
+    return next((i for i in INITIATIVES if i.slug == slug), None)
 
 
 def load_frozen(initiative: Initiative, site) -> list[list] | None:
@@ -171,16 +241,29 @@ def gaps_for(picks: list[list], site, batch: int = 100) -> list[list]:
     return rows
 
 
-def get_gaps(initiative: Initiative = ACTIVE) -> list[list] | None:
+def build_gaps_in_thread(initiative: Initiative) -> list[list]:
+    """The rebuild as the pool's thread runs it: on a fresh anonymous site, which the thread also gets as its request site.
+
+    The request's own site carries the visitor's auth token and cache, so the thread must not share it; the tag vocabulary
+    the work fields read goes through the request site, so the thread needs one set.
+    """
+    site = create_site()
+    token = request_site.set(site)
+    try:
+        return build_gaps(initiative, site)
+    finally:
+        request_site.reset(token)
+
+
+def get_gaps(initiative: Initiative) -> list[list] | None:
     """The shared gaps for ``initiative``, or None while the first build (and on a new initiative, the pick) runs."""
-    # A fresh anonymous site for the thread: the request's carries the visitor's auth token and its own cache.
-    return pool.get(f"contribute.initiative:{initiative.slug}", OPEN_TTL, lambda: build_gaps(initiative, create_site()), lock_ttl=OPEN_LOCK_TTL, keep=DAY_SECS)
+    return pool.get(f"contribute.initiative:{initiative.slug}", OPEN_TTL, lambda: build_gaps_in_thread(initiative), lock_ttl=OPEN_LOCK_TTL, keep=DAY_SECS)
 
 
-def progress(gaps: list[list], fields: tuple[str, ...] = tasks.OFFERED) -> dict[str, int]:
-    """How far the initiative has come: editions with nothing left to fill, out of all of them, the gaps still open, and the
+def progress(gaps: list[list], fields: tuple[str, ...]) -> dict[str, int]:
+    """How far an initiative has come: editions with nothing left to fill, out of all of them, the gaps still open, and the
     share of details filled. A detail nobody could find counts as filled, so every save or "couldn't find it" moves it.
-    Only ``fields`` count, so a field the viewer can't see doesn't move their figure; the gaps keep the rest for the unlinked filters."""
+    Only ``fields`` count, the initiative's own; the gaps keep the rest for the unlinked filters."""
     wanted = set(fields)
     open_count = sum(1 for _key, _readers, open_fields, _skipped in gaps for f in open_fields if f in wanted)
     slots = len(gaps) * len(wanted)
