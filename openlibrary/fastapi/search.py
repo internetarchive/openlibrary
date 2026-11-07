@@ -629,3 +629,37 @@ async def search_lists(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePag
         loading_indicator=Markup(str(ol_macros.LoadingIndicator(_("Checking Search Inside matches")))),
     )
     return SitePage(body, page=PageMeta(title=_("Search results for Lists")))
+
+@pages.get("/search/authors")
+async def search_authors(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePage:
+    """HTML author search page, rendered from authors.html.jinja.
+
+    Retire the web.py ``author_search`` handler (which still renders the
+    Templetor ``search/authors.html``) once production routes /search/authors here.
+    """
+    page = max(1, page)
+    limit = 20  # Can't set fields or limit when rendering html
+    response = await run_solr_query_async(
+        ListSearchScheme(),
+        {"q": q},
+        offset=(page - 1) * limit,
+        rows=limit,
+        fields="key",
+        sort="",
+        request_label="AUTHOR_SEARCH",
+    )
+    authors = site.get().get_many([doc["key"] for doc in response.docs])
+
+    # Templetor macros aren't reachable from Jinja; render them and pass the HTML in.
+    ol_macros = web.template.Template.globals["macros"]
+    body = render_jinja_template(
+        "search/authors.html.jinja",
+        nav=nav,
+        q=q,
+        search_response=response,
+        authors=authors,
+        commified_num_found=commify(response.num_found),
+        pagination=Markup(str(ol_macros.OlPagination(page, ceil(response.num_found / limit)))),
+        loading_indicator=Markup(str(ol_macros.LoadingIndicator(_("Checking Search Inside matches")))),
+    )
+    return SitePage(body, page=PageMeta(title=_("Search results for Authors")))
