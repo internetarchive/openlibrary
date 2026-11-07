@@ -63,3 +63,32 @@ def browse_links() -> list[NavLink]:
 #: How many leading ``browse_links()`` entries the Browse popover promotes to
 #: featured rows. The popover supplies an icon and blurb for exactly these.
 BROWSE_FEATURED_COUNT = 4
+
+
+def mybooks_links() -> list[list[NavLink]]:
+    """My Books destinations, grouped as the My Books popover presents them.
+
+    The first group is featured (icon tile + blurb); each later group is a plain
+    link list set off by a divider. ``/account/...`` paths redirect to the
+    patron's own pages, or to login when signed out, so no username is needed.
+    """
+    return [
+        [
+            NavLink("/account/books", _("My Books"), "MyBooks"),
+            NavLink("/account/loans", _("Loans & History"), "Loans"),
+            NavLink("/account/lists", _("My Lists"), "MyLists"),
+        ],
+        [
+            NavLink("/account/books/want-to-read", _("Want to Read"), "WantToRead"),
+            NavLink("/account/books/currently-reading", _("Currently Reading"), "CurrentlyReading"),
+            NavLink("/account/books/already-read", _("Already Read"), "AlreadyRead"),
+            NavLink("/account/books/stopped-reading", _("Stopped Reading"), "StoppedReading"),
+        ],
+        [
+            NavLink("/account/books/feed", _("My Feed"), "MyFeed"),
+            NavLink("/account/books/notes", _("My Notes"), "MyNotes"),
+            NavLink("/account/books/observations", _("My Reviews"), "MyReviews"),
+            NavLink("/account/books/already-read/stats", _("My Reading Stats"), "ReadingStats"),
+            NavLink("/account/import", _("Import & Export Options"), "ImportExport"),
+        ],
+    ]
