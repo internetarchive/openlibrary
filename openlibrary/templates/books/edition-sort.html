@@ -25,6 +25,12 @@ $ isbn_10 = (isbn_13 and isbn_13_to_isbn_10(isbn_13)) or book.get_isbn10()
 $ isbn = isbn_10 or isbn_13
 $ asin = isbn_10 or None
 
+$# Anything else the record lists, for the table's filter. isbn_10 above is
+$# derived from the ISBN-13, so on a record whose two ISBNs do not correspond
+$# it is not the ISBN-10 the edition actually carries -- filtering for the real
+$# one matched nothing. A record can also list more than one of either.
+$ other_isbns = [i for i in book.get_filterable_isbns() if i not in (isbn_10, isbn_13)]
+
 $ url = book.get_cover_url("S") or "/static/images/icons/avatar_book-sm.png"
 
     <td class="book">
@@ -76,7 +82,7 @@ $ url = book.get_cover_url("S") or "/static/images/icons/avatar_book-sm.png"
         </div>
 
 	<div class="hidden">
-		$isbn_10 $isbn_13
+		$isbn_10 $isbn_13 $(' '.join(other_isbns))
 	</div>
 
       </div>
