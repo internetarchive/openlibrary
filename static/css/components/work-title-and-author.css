@@ -8,7 +8,7 @@
 }
 
 .work-title-and-author h1 {
-  line-height: normal;
+  line-height: var(--line-height-display);
 }
 
 .work-title-and-author h1.work-title {
@@ -16,6 +16,7 @@
   margin: 0;
   color: var(--color-text);
   font-size: var(--font-size-headline-large);
+  font-weight: var(--font-weight-semibold);
   overflow-wrap: break-word;
 }
 
