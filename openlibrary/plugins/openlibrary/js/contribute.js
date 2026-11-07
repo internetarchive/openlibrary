@@ -190,6 +190,35 @@ function initSaveTracking(form) {
 }
 
 /**
+ * Show a spinner on the pressed submit button while the next page loads, and disable the others so a second
+ * press can't save twice. Deferred because a loading ol-button disables its proxy: on Enter, that could land
+ * before the browser reads the form and drop ``then=next`` from the submission.
+ * @param {HTMLFormElement} form - a ``[data-task-form]``
+ * @returns {void}
+ */
+function initSubmitLoading(form) {
+    const buttons = form.querySelectorAll('ol-button[type="submit"]');
+    form.addEventListener('submit', event => {
+        const pressed = event.submitter?.closest('ol-button');
+        setTimeout(() => {
+            if (event.defaultPrevented) return;
+            buttons.forEach(button => {
+                button.loading = button === pressed;
+                button.disabled = button !== pressed;
+            });
+        }, 0);
+    });
+    // Back/forward restores this DOM from bfcache with the spinner still showing.
+    window.addEventListener('pageshow', event => {
+        if (!event.persisted) return;
+        buttons.forEach(button => {
+            button.loading = false;
+            button.disabled = false;
+        });
+    });
+}
+
+/**
  * Wire the "Other editions say" chips to the answer control. The chip matching
  * the current answer shows selected; clicking it again clears it.
  * @param {HTMLFormElement} form - the task form holding the chips and answer control
@@ -408,7 +437,7 @@ function initIntroDismiss(link) {
 }
 
 /**
- * Drop the "Save and next" receipt from the URL, so a reload doesn't show its toast again.
+ * Drop the "Save and next" receipt from the URL, so a reload doesn't show its callout again.
  * @returns {void}
  */
 function clearSavedReceipt() {
@@ -453,6 +482,7 @@ export function init() {
         initSkipButton(form);
         initSiblingSuggestions(form);
         initSaveTracking(form);
+        initSubmitLoading(form);
         initQuickNext(form);
     });
     if (document.querySelector('[data-receipt]')) clearSavedReceipt();
