@@ -485,9 +485,15 @@ async def fetch_node_loans(issuer: str, token: str, timeout_seconds: float) -> l
     """The ``{"loans": [...]}`` payload from one node, as a list.
 
     Returns the node's own dicts -- ``edition_id``, ``borrowed_at``, ``due_at``
-    -- and does not translate them. Raises on HTTP failures, which the caller
-    turns into "that library did not answer" rather than into a broken page.
-    An unreadable or non-object JSON body is treated as an empty loan list.
+    -- and does not translate them. Raises on HTTP failures, and on a 2xx whose
+    body is not a JSON object, which the caller turns into "that library did
+    not answer" rather than into a broken page.
+
+    A body we cannot read is not an empty loan list. ``[]`` is an answer -- the
+    node is up and the patron holds nothing there -- and the loans page says so
+    in those words. Returning it for a garbled body told a patron whose library
+    had answered with nonsense that they had no loans at it, which is a wrong
+    statement rather than an honest degradation. See :func:`provider_loans`.
 
     The bound is handed to httpx rather than wrapped in ``asyncio.timeout``
     (which is what ruff's ASYNC109 asks for, hence the parameter's name): httpx
@@ -502,7 +508,10 @@ async def fetch_node_loans(issuer: str, token: str, timeout_seconds: float) -> l
         timeout=timeout_seconds,
     )
     resp.raise_for_status()
-    return (_node_json(resp) or {}).get("loans") or []
+    body = _node_json(resp)
+    if body is None:
+        raise ValueError(f"{issuer} loans response is not a JSON object")
+    return body.get("loans") or []
 
 
 def _parse_iso(value: Any) -> dt.datetime | None:
