@@ -17,7 +17,7 @@ from openlibrary.contribute import feed, initiatives, save, supply, tasks
 from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values, work_of
 from openlibrary.core import admin, helpers
-from openlibrary.core.tags import can_edit_tags, find_tag, tag_choices, work_tag_keys
+from openlibrary.core.tags import find_tag, tag_choices, work_tag_keys
 from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream import spamcheck
@@ -69,17 +69,8 @@ def get_filter_headings() -> dict[str, str]:
     }
 
 
-def fields_for(user) -> tuple[str, ...]:
-    """The task fields this visitor sees: the beta ones only on the tags whitelist."""
-    return tasks.visible_fields(can_edit_tags(user))
-
-
-def visible_filters(fields: tuple[str, ...]) -> dict[str, tuple[str, tuple[str, ...]]]:
-    return {fid: f for fid, f in get_filters().items() if set(f[1]) <= set(fields)}
-
-
-def normalize_filter(raw: str, fields: tuple[str, ...] = tuple(tasks.POINTS)) -> str:
-    return raw if raw in visible_filters(fields) else ""
+def normalize_filter(raw: str) -> str:
+    return raw if raw in get_filters() else ""
 
 
 def render_contribute(template: str, title: str, **params):
@@ -287,17 +278,16 @@ def build_task_summary(task: tasks.Task, field_guides, back: str = "") -> dict:
     }
 
 
-def get_filter_fields(task: str, visible: tuple[str, ...] = tuple(tasks.POINTS)) -> tuple[str, ...]:
-    return get_filters()[task][1] if task else tasks.offered_fields(visible)
+def get_filter_fields(task: str) -> tuple[str, ...]:
+    return get_filters()[task][1] if task else tasks.TASK_FIELDS
 
 
-def build_task_rows(task: str, visible: tuple[str, ...] = tuple(tasks.POINTS), fields: tuple[str, ...] | None = None) -> list[dict] | None:
+def build_task_rows(task: str, fields: tuple[str, ...] | None = None) -> list[dict] | None:
     """A random draw of the filter's books from the active initiative, each with its open tasks weighted by ``tasks.impact`` for "Surprise me".
 
-    ``visible`` is what this visitor may see; a filter narrows it further, and ``fields`` narrows the draw within the filter.
-    None while the initiative's gaps are still being built.
+    ``fields`` narrows the draw within the filter. None while the initiative's gaps are still being built.
     """
-    fields = fields or get_filter_fields(task, visible)
+    fields = fields or get_filter_fields(task)
     if (candidates := supply.candidates(fields)) is None:
         return None
     field_guides = get_field_guides()
@@ -324,11 +314,11 @@ def get_initiative_people() -> int:
     return 0
 
 
-def build_progress(fields: tuple[str, ...]) -> dict | None:
+def build_progress() -> dict | None:
     """The active initiative's progress for the dashboard, or None while its gaps are still being built."""
     if not (gaps := initiatives.get_gaps()):
         return None
-    p = initiatives.progress(gaps, tasks.offered_fields(fields))
+    p = initiatives.progress(gaps, tasks.TASK_FIELDS)
     people = get_initiative_people()
     return {
         "title": _("The %(count)s most-read books", count=helpers.commify(p["total"])),
@@ -344,7 +334,7 @@ def build_progress(fields: tuple[str, ...]) -> dict | None:
     }
 
 
-def build_filter_rail(task: str, fields: tuple[str, ...]) -> dict:
+def build_filter_rail(task: str) -> dict:
     filters = [
         {
             "label": label,
@@ -352,8 +342,9 @@ def build_filter_rail(task: str, fields: tuple[str, ...]) -> dict:
             "on": task == fid,
             "track": fid,
         }
+        for fid, (label, fields) in get_filters().items()
         # A filter over fields Tasks doesn't offer still works by URL, but isn't linked.
-        for fid, (label, _fields) in visible_filters(tasks.offered_fields(fields)).items()
+        if set(fields) <= set(tasks.TASK_FIELDS)
     ]
     return {"all": {"label": _("All open tasks"), "url": build_dashboard_url(), "on": not task, "track": "all"}, "filters": filters}
 
@@ -442,14 +433,13 @@ class contribute_index(delegate.page):
         recent_saves = save.recent_saves(user.key)
         if not has_seen_intro(recent_saves):
             return render_landing(user)
-        fields = fields_for(user)
-        task = normalize_filter(query_param("task", ""), fields)
-        rows = build_task_rows(task, fields)
+        task = normalize_filter(query_param("task", ""))
+        rows = build_task_rows(task)
         return render_contribute(
             "contribute/dashboard.html.jinja",
             _("Tasks"),
             one_task_url=build_dashboard_url(task, base="/tasks/one"),
-            rail=build_filter_rail(task, fields),
+            rail=build_filter_rail(task),
             rows=rows,
             # While the pool builds, the script fetches the rows from here.
             rows_url=build_dashboard_url(task, base="/tasks/rows") if rows is None else "",
@@ -459,7 +449,7 @@ class contribute_index(delegate.page):
             recent=get_recent_fixes(recent_saves),
             history_url=user.key,
             apply=build_apply(user),
-            progress=build_progress(fields),
+            progress=build_progress(),
         )
 
 
@@ -472,17 +462,16 @@ class contribute_one(delegate.page):
     path = "/tasks/one"
 
     def GET(self):
-        user = require_login(build_dashboard_url(normalize_filter(query_param("task", "")), base=self.path))
-        fields = fields_for(user)
-        task = normalize_filter(query_param("task", ""), fields)
+        task = normalize_filter(query_param("task", ""))
+        require_login(build_dashboard_url(task, base=self.path))
         exclude = f"/books/{query_param('exclude', '')}"
         fld = query_param("field", "")
 
         def open_tasks(narrow: tuple[str, ...] | None = None) -> list[dict]:
-            return [t for row in build_task_rows(task, fields, narrow) or [] if row["book"]["key"] != exclude for t in row["tasks"]]
+            return [t for row in build_task_rows(task, narrow) or [] if row["book"]["key"] != exclude for t in row["tasks"]]
 
         # The field the user has been working on, until it runs out; a field outside the filter doesn't override it.
-        if not (options := open_tasks((fld,)) if fld in get_filter_fields(task, fields) else []) and not (options := open_tasks()):
+        if not (options := open_tasks((fld,)) if fld in get_filter_fields(task) else []) and not (options := open_tasks()):
             raise web.seeother(build_dashboard_url(task))
         pick = random.choices(options, weights=[max(t["weight"], 1) for t in options])[0]
         # No field asked for means "Surprise me": the pick's field isn't the user's choice, so "Save and next" shouldn't stick to it.
@@ -544,14 +533,8 @@ def build_task_context(edition, task: tasks.Task, back: str, surprise: bool = Fa
 TASK_PATH = rf"/tasks/task/(OL\d+M)/({'|'.join(tasks.POINTS)})"
 
 
-def get_back_filter(fields: tuple[str, ...]) -> str:
-    return normalize_filter(query_param("back", ""), fields)
-
-
-def require_field_access(user, fld: str) -> None:
-    """A beta field is simply not there for anyone off the whitelist."""
-    if fld in tasks.BETA_FIELDS and not can_edit_tags(user):
-        raise web.notfound()
+def get_back_filter() -> str:
+    return normalize_filter(query_param("back", ""))
 
 
 def build_receipt(saved: str) -> dict | None:
@@ -599,9 +582,8 @@ class contribute_task(delegate.page):
     path = TASK_PATH
 
     def GET(self, olid, fld):
-        user = require_login(f"/tasks/task/{olid}/{fld}")
-        require_field_access(user, fld)
-        back = get_back_filter(fields_for(user))
+        require_login(f"/tasks/task/{olid}/{fld}")
+        back = get_back_filter()
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return render_nothing_page(edition, fld, back)
@@ -610,14 +592,13 @@ class contribute_task(delegate.page):
 
     def POST(self, olid, fld):
         user = require_login(f"/tasks/task/{olid}/{fld}")
-        require_field_access(user, fld)
         i = web.input(value="", note="", back="", surprise="", confirmed="", then="", file={})
         # Drop the upload's field storage, as the add-cover page does.
         web.ctx.pop("_fieldstorage", None)
         # Same check as the edit form; it also stops read-only and blocked accounts. The image is not text to check.
         if spamcheck.is_spam(web.storage((k, v) for k, v in i.items() if k != "file"), allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
-        back = normalize_filter(i.back, fields_for(user))
+        back = normalize_filter(i.back)
         surprise = bool(i.surprise)
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
@@ -651,15 +632,12 @@ class contribute_done(delegate.page):
     path = TASK_PATH + "/done"
 
     def GET(self, olid, fld):
-        user = require_login(f"/tasks/task/{olid}/{fld}/done")
-        require_field_access(user, fld)
-        fields = fields_for(user)
-        back = get_back_filter(fields)
+        require_login(f"/tasks/task/{olid}/{fld}/done")
+        back = get_back_filter()
         edition = get_edition_or_404(olid)
         field_guides = get_field_guides()
         saved = query_param("choice", "") == "saved"
-        offered = tasks.offered_fields(fields)
-        same_book = [build_task_summary(t, field_guides, back) for t in tasks.tasks_for_edition(edition) if t.field != fld and t.field in offered]
+        same_book = [build_task_summary(t, field_guides, back) for t in tasks.tasks_for_edition(edition) if t.field != fld and t.field in tasks.TASK_FIELDS]
         # A work answer lands in the work's history.
         edited = work_of(edition) if fld in tasks.WORK_FIELDS and work_of(edition) else edition
         return render_contribute(

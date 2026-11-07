@@ -29,15 +29,9 @@ def test_the_literary_form_is_a_task_on_the_edition_when_its_work_has_none():
     assert not tasks.is_missing(FakeEdition(), "literary_forms")
 
 
-def test_beta_fields_are_only_visible_to_the_tags_whitelist():
-    assert "literary_forms" not in tasks.visible_fields(False)
-    assert "literary_forms" in tasks.visible_fields(True)
-    assert tasks.visible_fields(True) == tuple(tasks.POINTS)
-
-
-def test_offered_fields_add_the_beta_ones_only_for_those_who_see_them():
-    assert set(tasks.offered_fields(tasks.visible_fields(False))) == set(tasks.OFFERED)
-    assert set(tasks.offered_fields(tasks.visible_fields(True))) == {*tasks.OFFERED, "literary_forms"}
+def test_tasks_hand_out_the_work_tags_to_everyone_alongside_the_edition_fields():
+    assert set(tasks.TASK_FIELDS) == {*tasks.OFFERED, "literary_forms"}
+    assert tuple(f for f in tasks.POINTS if f in tasks.TASK_FIELDS) == tasks.TASK_FIELDS
 
 
 def test_a_cover_is_missing_with_only_deleted_covers_but_not_on_a_scanned_book():

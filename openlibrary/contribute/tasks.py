@@ -28,19 +28,10 @@ POINTS = {
 }
 # Fields that live on the work rather than the edition.
 WORK_FIELDS = frozenset({LITERARY_FORMS})
-# Fields only the tags whitelist sees, until the feature opens up.
-BETA_FIELDS = frozenset({LITERARY_FORMS})
-# The fields Tasks hands out and the initiative counts. LCCN and OCLC keep their task pages and filter, reachable by URL but not linked.
+# The edition fields Tasks hands out, as the catalog stats count them. LCCN and OCLC keep their task pages and filter, reachable by URL but not linked.
 OFFERED = ("covers", "languages", "number_of_pages", "publishers")
-
-
-def visible_fields(can_edit_tags: bool) -> tuple[str, ...]:
-    return tuple(f for f in POINTS if can_edit_tags or f not in BETA_FIELDS)
-
-
-def offered_fields(visible: tuple[str, ...]) -> tuple[str, ...]:
-    """Of the fields a visitor can see, the ones Tasks hands them: the public mix, plus any beta fields."""
-    return tuple(f for f in visible if f in OFFERED or f in BETA_FIELDS)
+# Everything Tasks hands out and the initiative's progress counts: the edition fields plus the work's tags, most valuable first.
+TASK_FIELDS = tuple(f for f in POINTS if f in OFFERED or f in WORK_FIELDS)
 
 
 def work_of(edition):

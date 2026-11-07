@@ -2,7 +2,7 @@
 
 A work points at ``/type/tag`` objects (each field holds a list, even where people pick one, as with ``literary_forms``).
 Older migrations stored bare keys, so every reader here takes a key string, a ``{"key": ...}`` dict or a Thing.
-While the feature is new, every surface that shows or edits these tags is limited to ``can_edit_tags``.
+Anyone who can edit a work can set its tags, with the same spam and captcha checks as any other edit.
 """
 
 import web
@@ -12,17 +12,10 @@ from openlibrary.i18n import gettext as _
 from openlibrary.utils.request_context import site
 
 LITERARY_FORMS = "literary_forms"
-# The whitelist: admins plus this group. The group is a plain /type/usergroup document, so an admin can add people on the site.
-TAGS_BETA_GROUP = "/usergroup/tags-beta"
 # The work fields that hold tag references, in the order the book page shows them.
 WORK_TAG_FIELDS = (LITERARY_FORMS, "genres", "subgenres")
 # Work fields are plural and a tag's ``tag_type`` singular (#14229).
 FIELD_TAG_TYPES = {LITERARY_FORMS: "literary_form"}
-
-
-@public
-def can_edit_tags(user) -> bool:
-    return bool(user) and (user.is_admin() or user.is_usergroup_member(TAGS_BETA_GROUP))
 
 
 def tag_key(value) -> str | None:

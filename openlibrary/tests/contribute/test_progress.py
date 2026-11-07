@@ -15,7 +15,7 @@ def progress(monkeypatch):
     def build(gaps=GAPS, docs=()):
         monkeypatch.setattr(contribute.initiatives, "get_gaps", lambda: gaps)
         monkeypatch.setattr(contribute.admin, "get_count_docs", lambda ndays: list(docs))
-        return contribute.build_progress(tuple(contribute.tasks.POINTS))
+        return contribute.build_progress()
 
     yield build
     req_context.reset(token)

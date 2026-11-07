@@ -24,8 +24,8 @@ def pick(monkeypatch):
     """Run /tasks/one over a fixed pool of rows, returning the URL it redirects to."""
     pool = [row("OL1M", "languages"), row("OL2M", "languages", "publishers"), row("OL3M", "covers")]
 
-    def build_rows(task, visible=tuple(contribute.tasks.POINTS), fields=None):
-        fields = fields or contribute.get_filter_fields(task, visible)
+    def build_rows(task, fields=None):
+        fields = fields or contribute.get_filter_fields(task)
         rows = [{**r, "tasks": [t for t in r["tasks"] if t["field"] in fields]} for r in pool]
         return [r for r in rows if r["tasks"]]
 

@@ -5,24 +5,6 @@ import web
 from openlibrary.core import tags
 
 
-class FakeUser:
-    def __init__(self, groups=()):
-        self.groups = set(groups)
-
-    def is_admin(self):
-        return "/usergroup/admin" in self.groups
-
-    def is_usergroup_member(self, group):
-        return group in self.groups
-
-
-def test_tags_are_editable_by_admins_and_the_beta_group_only():
-    assert not tags.can_edit_tags(None)
-    assert not tags.can_edit_tags(FakeUser(["/usergroup/librarians"]))
-    assert tags.can_edit_tags(FakeUser(["/usergroup/admin"]))
-    assert tags.can_edit_tags(FakeUser([tags.TAGS_BETA_GROUP]))
-
-
 def test_a_tag_reference_reads_the_same_in_every_stored_shape():
     assert tags.tag_key("/tags/OL1T") == "/tags/OL1T"
     assert tags.tag_key({"key": "/tags/OL1T"}) == "/tags/OL1T"
