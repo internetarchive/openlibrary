@@ -30,6 +30,11 @@
       "groupSlug": "github-actions"
     },
     {
+      "description": "Bump the range in package.json on every npm update (not just the lockfile), so declared minimums match what we run.",
+      "matchManagers": ["npm"],
+      "rangeStrategy": "bump"
+    },
+    {
       "description": "Catch-all for npm packages not yet in a category below. Must stay before the category rules (last match wins).",
       "matchManagers": ["npm"],
       "groupName": "JS other deps",
