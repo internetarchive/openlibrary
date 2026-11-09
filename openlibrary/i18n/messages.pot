@@ -540,11 +540,7 @@ msgstr ""
 msgid "Added new book."
 msgstr ""
 
-#: messages.html
-msgid "Thank you for improving the Open Library catalog!"
-msgstr ""
-
-#: ObservationsModal.html account/loans.html lists/lists.html merge/authors.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html account/loans.html lists/lists.html merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -5724,6 +5720,14 @@ msgstr ""
 msgid "Browse"
 msgstr ""
 
+#: shell/edit_saved.html.jinja
+msgid "Thank you for improving the Open Library catalog!"
+msgstr ""
+
+#: shell/edit_saved.html.jinja
+msgid "Got a minute? Help with a community project"
+msgstr ""
+
 #: shell/footer.html.jinja
 msgid "Vision"
 msgstr ""
@@ -9262,6 +9266,13 @@ msgid "Books missing a genre"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(count)s task left"
+msgid_plural "%(count)s tasks left"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Published"
 msgstr ""
 
@@ -9291,13 +9302,6 @@ msgstr ""
 #, python-format
 msgid "%(percent)s%% done"
 msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-#, python-format
-msgid "%(count)s task left"
-msgid_plural "%(count)s tasks left"
-msgstr[0] ""
-msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
