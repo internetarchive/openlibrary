@@ -50,8 +50,9 @@ def tasks_feed(
 def tasks_rows(
     _user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     task: Annotated[str, Query(description="The dashboard filter; unknown values mean all tasks.")] = "",
+    initiative: Annotated[str, Query(description="The initiative's slug; unknown values mean the headline one.")] = "",
 ) -> Response:
     """The dashboard's list on its own, for a page that rendered placeholders: 202 while the pool is still being built."""
-    if (rows := contribute.build_task_rows(contribute.normalize_filter(task))) is None:
+    if (rows := contribute.build_task_rows(contribute.normalize_filter(task), contribute.get_initiative(initiative))) is None:
         return Response(status_code=202)
     return HTMLResponse(render_jinja_template("contribute/rows.html.jinja", rows=rows))

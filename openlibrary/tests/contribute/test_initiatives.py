@@ -1,6 +1,7 @@
+import pytest
 import web
 
-from openlibrary.contribute import initiatives
+from openlibrary.contribute import initiatives, tasks
 
 
 class FakeStore(dict):
@@ -22,7 +23,8 @@ class FakeWork(dict):
         self.type = web.storage(key="/type/work")
 
 
-WORK = FakeWork("/works/OL1W", literary_forms=[{"key": "/tags/OL1T"}])
+NONFICTION = "/tags/OL9T"
+WORK = FakeWork("/works/OL1W", literary_forms=[{"key": "/tags/OL1T"}], genres=[{"key": "/tags/OL2T"}])
 
 
 class FakeSite:
@@ -35,15 +37,31 @@ class FakeSite:
 
 
 COMPLETE = {"covers": [1], "lccn": ["1"], "oclc_numbers": ["1"], "languages": ["eng"], "number_of_pages": 300, "publishers": ["P"], "works": [WORK]}
+FOUR = ("covers", "languages", "number_of_pages", "publishers")
 
 
-def make_initiative(picks, calls=None):
+@pytest.fixture(autouse=True)
+def nonfiction_by_key(monkeypatch):
+    monkeypatch.setattr(tasks, "is_nonfiction", lambda work: work.get("literary_forms") == [NONFICTION])
+
+
+def make_initiative(picks, calls=None, fields=FOUR):
     def pick(size, site):
         if calls is not None:
             calls.append(size)
         return picks[:size]
 
-    return initiatives.Initiative("test", 3, pick)
+    return initiatives.Initiative("test", 3, pick, fields)
+
+
+def test_the_initiatives_have_their_own_slugs_and_fields_tasks_knows():
+    assert len({i.slug for i in initiatives.INITIATIVES}) == len(initiatives.INITIATIVES)
+    for initiative in initiatives.INITIATIVES:
+        assert set(initiative.fields) <= set(tasks.POINTS)
+        assert initiatives.get(initiative.slug) is initiative
+    assert initiatives.get("not-an-initiative") is None
+    assert initiatives.ACTIVE in initiatives.INITIATIVES
+    assert initiatives.TAGS.fields == ("literary_forms", "genres")
 
 
 def test_the_first_load_picks_and_stores_the_list_and_later_loads_read_it_back():
@@ -77,8 +95,8 @@ def test_gaps_list_open_fields_and_set_aside_ones_nobody_could_find():
     )
     gaps = initiatives.build_gaps(make_initiative([]), site)
     assert gaps == [["/books/OL1M", 9, ["publishers"], ["lccn"]], ["/books/OL2M", 8, [], []]]
-    # 2 editions x 4 offered fields = 8 details, 1 still open: 7/8 filled, rounded down. The unfound LCCN isn't offered, so it doesn't count.
-    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
+    # 2 editions x 4 fields = 8 details, 1 still open: 7/8 filled, rounded down. The unfound LCCN isn't one of the fields, so it doesn't count.
+    assert initiatives.progress(gaps, FOUR) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
 
 
 def test_a_work_level_gap_is_read_from_the_edition_s_work():
@@ -88,23 +106,33 @@ def test_a_work_level_gap_is_read_from_the_edition_s_work():
         works=(bare,),
         store={"contribute-initiative-test": {"editions": [["/books/OL1M", 9]]}},
     )
-    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, ["literary_forms"], []]]
+    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, ["literary_forms", "genres"], []]]
 
 
-def test_progress_counts_only_the_fields_asked_for():
+def test_a_nonfiction_work_has_no_genre_gap():
+    nonfiction = FakeWork("/works/OL2W", literary_forms=[NONFICTION])
+    site = FakeSite(
+        editions=[FakeEdition("/books/OL1M", **(COMPLETE | {"works": [nonfiction]}))],
+        works=(nonfiction,),
+        store={"contribute-initiative-test": {"editions": [["/books/OL1M", 9]]}},
+    )
+    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, [], []]]
+
+
+def test_progress_counts_only_the_initiative_s_fields():
     gaps = [["/books/OL1M", 9, ["literary_forms"], []], ["/books/OL2M", 8, ["publishers"], ["literary_forms"]]]
-    public = initiatives.progress(gaps, ("publishers", "covers"))
-    assert public == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 75}
-    assert initiatives.progress(gaps, initiatives.tasks.TASK_FIELDS)["open"] == 2
+    assert initiatives.progress(gaps, ("publishers", "covers")) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 75}
+    assert initiatives.progress(gaps, initiatives.TAGS.fields) == {"done": 1, "total": 2, "open": 1, "not_found": 1, "percent": 75}
+    assert initiatives.progress(gaps, tuple(tasks.POINTS))["open"] == 2
 
 
-def test_progress_counts_only_the_fields_tasks_offers():
+def test_progress_leaves_out_fields_the_initiative_does_not_ask_about():
     gaps = [["/books/OL1M", 9, ["lccn", "oclc_numbers"], []], ["/books/OL2M", 8, ["covers"], ["oclc_numbers"]]]
-    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
+    assert initiatives.progress(gaps, FOUR) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
 
 
 def test_every_task_field_has_a_not_found_threshold():
-    assert set(initiatives.NOT_FOUND_PEOPLE) == set(initiatives.tasks.POINTS)
+    assert set(initiatives.NOT_FOUND_PEOPLE) == set(tasks.POINTS)
 
 
 def test_fields_books_nearly_always_have_need_more_people_to_set_aside():
@@ -151,3 +179,43 @@ def test_most_shelved_keeps_isbn_editions_two_per_work_and_tops_up_from_search(m
 
     assert initiatives.pick_most_shelved(3, site) == [["/books/OL1M", 900], ["/books/OL2M", 800], ["/books/OL9M", 8]]
     assert initiatives.pick_most_shelved(2, site) == [["/books/OL1M", 900], ["/books/OL2M", 800]]
+
+
+def test_untagged_works_are_picked_one_edition_each_and_only_while_a_tag_is_missing(monkeypatch):
+    tagged, bare, nonfiction = WORK, FakeWork("/works/OL2W"), FakeWork("/works/OL3W", literary_forms=[NONFICTION])
+    rows = [
+        {"edition_id": 1, "work_id": 1, "readers": 900},  # work fully tagged
+        {"edition_id": 2, "work_id": 2, "readers": 800},
+        {"edition_id": 3, "work_id": 2, "readers": 700},  # a second edition of the same work
+        {"edition_id": 4, "work_id": 3, "readers": 600},  # nonfiction, so no genre to pick, but the form is filled too
+        {"edition_id": 5, "work_id": 5, "readers": 500},  # an orphan: nowhere to put the answer
+    ]
+    site = FakeSite(
+        editions=[
+            FakeEdition("/books/OL1M", isbn_13=["1"], works=[tagged]),
+            FakeEdition("/books/OL2M", isbn_13=["2"], works=[bare]),
+            FakeEdition("/books/OL3M", isbn_13=["3"], works=[bare]),
+            FakeEdition("/books/OL4M", isbn_13=["4"], works=[nonfiction]),
+            FakeEdition("/books/OL5M", isbn_13=["5"]),
+        ],
+        works=(tagged, bare, nonfiction),
+    )
+    monkeypatch.setattr(initiatives.Bookshelves, "most_logged_editions_sync", lambda limit: rows)
+    monkeypatch.setattr(initiatives, "pick_most_read", lambda size, site=None: [["/books/OL3M", 1], ["/books/OL6M", 1]])
+
+    assert initiatives.pick_untagged_works(3, site) == [["/books/OL2M", 800]]
+
+
+def test_the_pool_s_thread_builds_on_a_fresh_site_that_is_also_its_request_site(monkeypatch):
+    seen = {}
+    fresh, outer = object(), object()
+    monkeypatch.setattr(initiatives, "create_site", lambda: fresh)
+    monkeypatch.setattr(initiatives, "build_gaps", lambda initiative, site: seen.update(site=site, request=initiatives.request_site.get()) or ["gaps"])
+    # Other tests can leave the ContextVar set, so pin a known outer value and check it comes back.
+    token = initiatives.request_site.set(outer)
+    try:
+        assert initiatives.build_gaps_in_thread(initiatives.TAGS) == ["gaps"]
+        assert seen == {"site": fresh, "request": fresh}
+        assert initiatives.request_site.get() is outer
+    finally:
+        initiatives.request_site.reset(token)
