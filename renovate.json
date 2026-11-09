@@ -18,11 +18,45 @@
   },
   "packageRules": [
     {
+      "description": "Catch-all for Python runtime deps (requirements.txt) not in a group below. Patch/minor only: majors keep their own PR. Must stay before the more specific Python rules (last match wins).",
       "matchManagers": ["pip_requirements"],
       "matchUpdateTypes": ["patch", "minor"],
-      "groupName": "Python dependencies (non-major)",
-      "groupSlug": "python-non-major",
-      "minimumReleaseAge": "7 days"
+      "groupName": "Python other runtime deps",
+      "groupSlug": "python-other-runtime"
+    },
+    {
+      "description": "Packages that tend to need matching bumps. Patch/minor only: majors keep their own PR.",
+      "matchManagers": ["pip_requirements"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "matchPackageNames": [
+        "fastapi",
+        "gunicorn",
+        "httpx",
+        "multipart",
+        "prometheus-fastapi-instrumentator",
+        "pydantic",
+        "pydantic-settings",
+        "python-multipart",
+        "sentry-sdk",
+        "uvicorn"
+      ],
+      "groupName": "Python web stack",
+      "groupSlug": "python-web"
+    },
+    {
+      "description": "Offline-script deps. All update types, including majors.",
+      "matchManagers": ["pip_requirements"],
+      "matchFileNames": ["requirements_scripts.txt"],
+      "groupName": "Python script deps",
+      "groupSlug": "python-scripts"
+    },
+    {
+      "description": "Dev-only deps. All update types, including majors. Matched by file so new test packages are picked up automatically.",
+      "matchManagers": ["pip_requirements"],
+      "matchFileNames": ["requirements_test.txt"],
+      "groupName": "Python test & lint deps",
+      "groupSlug": "python-test-lint",
+      "automerge": false
     },
     {
       "matchManagers": ["github-actions"],
