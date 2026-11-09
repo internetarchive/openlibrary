@@ -3,12 +3,13 @@ import {
     decideLabelsAndAssignee,
     findIssueReferences,
     getLinkedIssueMetadata,
+    needsReviewSwap,
     resolveIssueMetadata,
     sweepLabels,
     sweepSkipReason
 } from '../../../scripts/gh_scripts/new_pr_labeler_core.mjs';
 import { formatNeedsLeadSummary, syncNeedsLead } from '../../../scripts/gh_scripts/needs_lead_sync.mjs';
-import { formatSweepSummary, linkify, planForPr, runSweep } from '../../../scripts/gh_scripts/pr_lead_resolver.mjs';
+import { formatSweepSummary, linkify, planForPr, runSweep, swapNeedsResponseForReview } from '../../../scripts/gh_scripts/pr_lead_resolver.mjs';
 
 // Behavioural tests for how a PR's lead and labels are decided
 // (new_pr_labeler_core.mjs, pr_lead_resolver.mjs), including the scheduled
@@ -123,6 +124,14 @@ describe('findIssueReferences', () => {
         expect(findIssueReferences('See #4 for context', REPO)).toEqual([]);
         expect(findIssueReferences('', REPO)).toEqual([]);
         expect(findIssueReferences(null, REPO)).toEqual([]);
+    });
+});
+
+describe('needsReviewSwap', () => {
+    test('swaps only an open issue that has Needs: Response', () => {
+        expect(needsReviewSwap({ state: 'OPEN', labelNames: ['Type: Bug', 'Needs: Response'] })).toBe(true);
+        expect(needsReviewSwap({ state: 'CLOSED', labelNames: ['Needs: Response'] })).toBe(false);
+        expect(needsReviewSwap({ state: 'OPEN', labelNames: ['Needs: Review'] })).toBe(false);
     });
 });
 
@@ -292,6 +301,33 @@ describe('planForPr: lookups that fail', () => {
         await expect(planForPr(fakeOctokit({ issues: { 9: new Error('rate limited') } }), REPO, 'Closes #9', 'bar')).rejects.toThrow('rate limited');
         const forbidden = graphqlError([{ type: 'FORBIDDEN', path: ['repository', 'issueOrPullRequest'] }]);
         await expect(planForPr(fakeOctokit({ issues: { 9: forbidden } }), REPO, 'Closes #9', 'bar')).rejects.toThrow();
+    });
+});
+
+describe('swapNeedsResponseForReview', () => {
+    test('adds Needs: Review then removes Needs: Response on referenced open issues, tolerating a 404', async () => {
+        const open = labels => ({ ...issueNode(labels), state: 'OPEN' });
+        const octokit = fakeOctokit({
+            issues: {
+                1: open(['Needs: Response']),
+                2: open(['Needs: Response']),
+                3: { __typename: 'PullRequest' },
+                4: { ...issueNode(['Needs: Response']), state: 'CLOSED' }
+            }
+        });
+        const { request } = octokit;
+        octokit.request = async (route, params) => {
+            const response = await request(route, params);
+            if (route.startsWith('DELETE') && params.issue_number === 2) throw Object.assign(new Error('Not Found'), { status: 404 });
+            return response;
+        };
+        expect(await swapNeedsResponseForReview(octokit, REPO, 'Closes #1, closes #3, fixes #4. Part of #2')).toEqual([1, 2]);
+        expect(octokit.writes.map(w => [w.route.split(' ')[0], w.issue_number])).toEqual([
+            ['POST', 1],
+            ['DELETE', 1],
+            ['POST', 2],
+            ['DELETE', 2]
+        ]);
     });
 });
 

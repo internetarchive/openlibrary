@@ -20,6 +20,8 @@ The script looks in the PR body for the issues it references, case-insensitively
 2. The lead comes from the first referenced issue that has a `Lead: @` label, or failing that from its parent issue in this repo (the epic it is a sub-issue of). References that are PRs, Discussions or missing numbers are skipped. The lead is assigned to the PR even when they wrote it, since as the owner they still have to see it through or hand it on.
 3. The first https://github.com/internetarchive/openlibrary/labels/Priority%3A%200, https://github.com/internetarchive/openlibrary/labels/Priority%3A%201, or https://github.com/internetarchive/openlibrary/labels/Priority%3A%202 label on the first closing reference that has one is added to the PR. Non-closing references never supply a priority: "Part of #N" usually points at an epic, whose priority says little about one PR.
 
+4. Each open issue the PR references (closing or not) that has https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Response gets https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Review instead. This runs only when the PR opens or leaves draft.
+
 The decision and its reason (e.g. "#123 (closing keyword) has no Lead label") are written to the job summary. If GitHub silently drops the assignee (e.g. the lead has no repo access), the reason says "could not assign". The shared logic lives in `pr_lead_resolver.mjs` and `new_pr_labeler_core.mjs`.
 
 ## `pr_lead_sweep.mjs`
