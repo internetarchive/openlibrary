@@ -11,12 +11,22 @@
   "git-submodules": {
     "enabled": true
   },
+  "pre-commit": {
+    "enabled": true
+  },
   "pip_requirements": {
     "managerFilePatterns": [
       "/(^|/)requirements[^/]*\\.txt$/"
     ]
   },
   "packageRules": [
+    {
+      "description": "Catch-all for pre-commit hook repos (rev:) not grouped below. Must stay before the more specific rules (last match wins).",
+      "matchManagers": ["pre-commit"],
+      "matchDepTypes": ["repository"],
+      "groupName": "pre-commit hooks",
+      "groupSlug": "pre-commit-hooks"
+    },
     {
       "description": "Catch-all for Python runtime deps (requirements.txt) not in a group below. Patch/minor only: majors keep their own PR. Must stay before the more specific Python rules (last match wins).",
       "matchManagers": ["pip_requirements"],
@@ -25,8 +35,16 @@
       "groupSlug": "python-other-runtime"
     },
     {
-      "description": "Packages that tend to need matching bumps. Patch/minor only: majors keep their own PR.",
-      "matchManagers": ["pip_requirements"],
+      "description": "Python additional_dependencies in .pre-commit-config.yaml pin requirements.txt versions, so they join the same catch-all group and PR.",
+      "matchManagers": ["pre-commit"],
+      "matchDepTypes": ["pre-commit-python"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "Python other runtime deps",
+      "groupSlug": "python-other-runtime"
+    },
+    {
+      "description": "Packages that tend to need matching bumps. Patch/minor only: majors keep their own PR. Also matches their pins in .pre-commit-config.yaml.",
+      "matchManagers": ["pip_requirements", "pre-commit"],
       "matchUpdateTypes": ["patch", "minor"],
       "matchPackageNames": [
         "fastapi",
@@ -59,6 +77,14 @@
       "automerge": false
     },
     {
+      "description": "Hook revs for tools pinned in requirements_test.txt, so the hook and the package move in the same PR.",
+      "matchManagers": ["pre-commit"],
+      "matchPackageNames": ["astral-sh/ruff-pre-commit", "pre-commit/mirrors-mypy"],
+      "groupName": "Python test & lint deps",
+      "groupSlug": "python-test-lint",
+      "automerge": false
+    },
+    {
       "matchManagers": ["github-actions"],
       "groupName": "GitHub Actions",
       "groupSlug": "github-actions"
@@ -76,7 +102,8 @@
       "automerge": false
     },
     {
-      "matchManagers": ["npm"],
+      "description": "Also matches these packages in .pre-commit-config.yaml additional_dependencies, so hook pins move with package.json.",
+      "matchManagers": ["npm", "pre-commit"],
       "matchPackageNames": [
         "@axe-core/playwright",
         "@eslint/js",
@@ -102,7 +129,7 @@
       "automerge": false
     },
     {
-      "matchManagers": ["npm"],
+      "matchManagers": ["npm", "pre-commit"],
       "matchPackageNames": [
         "@custom-elements-manifest/analyzer",
         "@vitejs/plugin-vue",
