@@ -516,14 +516,14 @@ function clearSavedReceipt() {
  * @returns {void}
  */
 /**
- * Show a spinner on the pressed rail filter while the next page loads.
- * @param {HTMLElement} rail - the ``[data-rail]`` nav
+ * Show a spinner on the pressed project link while the next page loads.
+ * @param {HTMLElement} rail - a ``[data-nav-loading]`` nav
  * @returns {void}
  */
-function initRailLoading(rail) {
+function initNavLoading(rail) {
     rail.addEventListener('click', e => {
         const link = e.target.closest('a[href]');
-        if (!link || link.classList.contains('is-on')) return;
+        if (!link || link.hasAttribute('aria-current')) return;
         // New-tab / modified / non-left clicks don't navigate this window.
         if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         link.classList.add('is-target');
@@ -539,7 +539,7 @@ export function init() {
     document.querySelectorAll('[data-contribute-list]').forEach(root => {
         initTaskList(root);
     });
-    document.querySelectorAll('[data-rail]').forEach(initRailLoading);
+    document.querySelectorAll('[data-nav-loading]').forEach(initNavLoading);
     document.querySelectorAll('[data-feed]').forEach(initFeed);
     document.querySelectorAll('[data-intro-cookie]').forEach(initIntroDismiss);
     document.querySelectorAll('form[data-task-form]').forEach(form => {

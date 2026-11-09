@@ -1389,27 +1389,35 @@
   }
 }
 
-/* A trailing spinner on the pressed filter while its page loads; toggled by js/contribute.js. */
-.contrib-rail__item.is-target::after {
-  content: "";
-  flex: none;
-  box-sizing: border-box;
-  width: 14px;
-  height: 14px;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: var(--border-radius-circle);
-  animation: contrib-rail-spin var(--duration-spin) linear infinite;
+/* A spinner at the end of the pressed project row while its page loads; toggled by js/contribute.js.
+   18px, as on the search modal's result rows. */
+.contrib-projects__item.is-target {
+  position: relative;
 }
 
-@keyframes contrib-rail-spin {
+.contrib-projects__item.is-target::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: var(--menu-row-padding-inline);
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  margin-block: auto;
+  border: 2px solid var(--color-text-secondary);
+  border-right-color: transparent;
+  border-radius: var(--border-radius-circle);
+  animation: contrib-projects-spin var(--duration-spin) linear infinite;
+}
+
+@keyframes contrib-projects-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .contrib-rail__item.is-target::after {
+  .contrib-projects__item.is-target::after {
     animation-duration: 2s;
   }
 }
