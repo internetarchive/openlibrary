@@ -30,11 +30,11 @@
       "groupSlug": "github-actions"
     },
     {
+      "description": "Catch-all for npm packages not yet in a category below. Must stay before the category rules (last match wins).",
       "matchManagers": ["npm"],
-      "matchUpdateTypes": ["patch", "minor"],
-      "groupName": "JS dependencies (non-major)",
-      "groupSlug": "js-non-major",
-      "minimumReleaseAge": "7 days"
+      "groupName": "JS other deps",
+      "groupSlug": "js-other",
+      "automerge": false
     },
     {
       "matchManagers": ["npm"],
