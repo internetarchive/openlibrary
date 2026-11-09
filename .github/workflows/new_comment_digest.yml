@@ -20,7 +20,7 @@ on:
         - 'Yes'
         - 'No'
       label_issues:
-        description: 'Add `Needs: Response` labels to issues?'
+        description: 'Add/remove `Needs: Response` labels on issues?'
         type: boolean
         default: false
 
