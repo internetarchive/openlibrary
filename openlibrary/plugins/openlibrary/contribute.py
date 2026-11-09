@@ -19,7 +19,7 @@ from openlibrary.contribute import feed, initiatives, pitch, save, supply, tasks
 from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values, work_of
 from openlibrary.core import admin, helpers
-from openlibrary.core.tags import GENRES, LITERARY_FORMS, subject_matches, tag_choices, tag_key_named, tag_options, work_tag_names
+from openlibrary.core.tags import GENRES, LITERARY_FORMS, find_tag, subject_matches, tag_choices, tag_key_named, tag_options, work_tag_names
 from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream import spamcheck
@@ -123,12 +123,14 @@ def build_dashboard_url(task: str = "", base: str = "/tasks", initiative: str = 
     return f"{base}?{query}" if query else base
 
 
-def build_next_url(back: str, after: tasks.Task, saved: bool, initiative: str = "", surprise: bool = False) -> str:
+def build_next_url(back: str, after: tasks.Task, saved: bool, initiative: str = "", surprise: bool = False, picked: str = "") -> str:
     """Another random task from the same initiative, filter and field, skipping the book just done; ``saved`` carries the receipt along.
 
     ``surprise`` means "Surprise me" chose the field rather than the user, so the next pick is open again.
+    ``picked`` is the tags a work answer saved (see ``picked_param``).
     """
-    params = {"initiative": initiative, "task": back, "field": "" if surprise else after.field, "exclude": after.olid} | ({"saved": after.key} if saved else {})
+    params = {"initiative": initiative, "task": back, "field": "" if surprise else after.field, "exclude": after.olid}
+    params |= {"saved": after.key, "picked": picked} if saved else {}
     return f"/tasks/one?{urlencode({k: v for k, v in params.items() if v})}"
 
 
@@ -170,12 +172,26 @@ def format_field_value(edition, fld: str) -> str:
     return ", ".join(str(v) for v in values)
 
 
-def format_saved_value(edition, fld: str) -> str:
-    """The receipt's value. A literary form brings the work's genres along: its page asks for both."""
-    value = format_field_value(edition, fld)
-    if fld == LITERARY_FORMS and (genres := format_field_value(edition, GENRES)):
-        return f"{value} · {genres}"
-    return value
+def picked_param(answers: dict[str, list[str]]) -> str:
+    """A work answer's tags for the next page's receipt, as ``OL1T,OL2T``. The receipt can't read them back off the
+    work: the next request may still get the copy cached from before the save."""
+    return ",".join(dict.fromkeys(k.strip().removeprefix("/tags/") for keys in answers.values() for k in keys if k.strip()))
+
+
+def format_picked(picked: str) -> tuple[list[str], str]:
+    """The fields ``picked`` filled and their tag names, as "Fiction · Mystery, Thriller"; unknown tags are dropped."""
+    keys = [f"/tags/{k}" for k in picked.split(",") if k]
+    names = {f: [tag.name for k in keys if (tag := find_tag(f, k))] for f in (LITERARY_FORMS, GENRES)}
+    fields = [f for f, n in names.items() if n]
+    return fields, " · ".join(", ".join(names[f]) for f in fields)
+
+
+def describe_saved(edition, fld: str, picked: str = "") -> tuple[str, str]:
+    """The receipt's field label and value: the picked tags when a work answer passed them on, else the record's value."""
+    fields, value = format_picked(picked)
+    if fields:
+        return answers_label(fields), value
+    return get_field_guides()[fld].label, format_field_value(edition, fld)
 
 
 def build_edition_field_rows(edition, fld: str) -> list[dict]:
@@ -592,7 +608,7 @@ class contribute_one(delegate.page):
             raise web.seeother(build_dashboard_url(task, initiative=slug))
         pick = random.choices(options, weights=[max(t["weight"], 1) for t in options])[0]
         # No field asked for means "Surprise me": the pick's field isn't the user's choice, so "Save and next" shouldn't stick to it.
-        params = {"saved": query_param("saved", ""), "surprise": "" if fld else "1"}
+        params = {"saved": query_param("saved", ""), "picked": query_param("picked", ""), "surprise": "" if fld else "1"}
         query = urlencode({k: v for k, v in params.items() if v})
         raise web.seeother(f"{pick['url']}{'&' if '?' in pick['url'] else '?'}{query}" if query else pick["url"])
 
@@ -672,21 +688,20 @@ def get_back_filter() -> str:
     return normalize_filter(query_param("back", ""))
 
 
-def build_receipt(saved: str) -> dict | None:
+def build_receipt(saved: str, picked: str = "") -> dict | None:
     """The previous task's "Just saved" callout, from a ``OL…M/field`` key, when "Save and next" brought us here.
 
     None when the field is still empty, as there's nothing saved to show. A cover has no text value; the image is its value.
     """
     olid, _sep, fld = saved.partition("/")
-    field_guide = get_field_guides().get(fld)
-    if not field_guide or not (edition := web.ctx.site.get(f"/books/{olid}")):
+    if fld not in get_field_guides() or not (edition := web.ctx.site.get(f"/books/{olid}")):
         return None
-    value = format_saved_value(edition, fld)
+    field_label, value = describe_saved(edition, fld, picked)
     cover_url = edition.get_cover_url("M")
     if not value and not (fld == "covers" and cover_url):
         return None
     return {
-        "field_label": field_guide.label,
+        "field_label": field_label,
         "title": edition.title,
         "value": value,
         "url": edition.url(),
@@ -727,8 +742,8 @@ def answers_label(fields: list[str]) -> str:
     return _("%(first)s and %(second)s", first=labels[0], second=labels[1]) if len(labels) == 2 else labels[0]
 
 
-def build_done_url(olid: str, fld: str, choice: str, back: str, initiative: str, surprise: bool = False) -> str:
-    params = {"choice": choice, "back": back, "initiative": initiative, "surprise": "1" if surprise else ""}
+def build_done_url(olid: str, fld: str, choice: str, back: str, initiative: str, surprise: bool = False, picked: str = "") -> str:
+    params = {"choice": choice, "picked": picked, "back": back, "initiative": initiative, "surprise": "1" if surprise else ""}
     return f"/tasks/task/{olid}/{fld}/done?{urlencode({k: v for k, v in params.items() if v})}"
 
 
@@ -742,7 +757,8 @@ class contribute_task(delegate.page):
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return render_nothing_page(edition, fld, back, slug)
-        context = build_task_context(edition, task, back, slug, surprise=bool(query_param("surprise", ""))) | {"receipt": build_receipt(query_param("saved", ""))}
+        receipt = build_receipt(query_param("saved", ""), query_param("picked", ""))
+        context = build_task_context(edition, task, back, slug, surprise=bool(query_param("surprise", ""))) | {"receipt": receipt}
         return render_contribute("contribute/task.html.jinja", get_field_guides()[fld].question, **context)
 
     def POST(self, olid, fld):
@@ -767,6 +783,7 @@ class contribute_task(delegate.page):
                 raise web.seeother(build_next_url(back, task, saved=False, initiative=slug, surprise=surprise))
             raise web.seeother(build_done_url(olid, fld, "unsure", back, slug, surprise))
         field_guide = get_field_guides()[fld]
+        picked = ""
         try:
             if field_guide.confirm and not i.confirmed:
                 raise save.InvalidAnswer(_("Check that it matches this edition, and tick the box to say so."))
@@ -775,14 +792,15 @@ class contribute_task(delegate.page):
             elif fld in tasks.WORK_FIELDS:
                 answers = build_work_answers(edition, fld, i)
                 save.save_work_answers(work_of(edition), answers, answers_label(list(answers)), i.note, initiative=initiative.slug)
+                picked = picked_param(answers)
             else:
                 save.save_answer(edition, fld, i.value, field_guide.label, i.note, initiative=initiative.slug)
         except save.InvalidAnswer as e:
             context = build_task_context(edition, task, back, slug, surprise=surprise, error=str(e), value=i.value, many=i.genres, note=i.note)
             return render_contribute("contribute/task.html.jinja", field_guide.question, **context)
         if i.then == "next":
-            raise web.seeother(build_next_url(back, task, saved=True, initiative=slug, surprise=surprise))
-        raise web.seeother(build_done_url(olid, fld, "saved", back, slug, surprise))
+            raise web.seeother(build_next_url(back, task, saved=True, initiative=slug, surprise=surprise, picked=picked))
+        raise web.seeother(build_done_url(olid, fld, "saved", back, slug, surprise, picked=picked))
 
 
 class contribute_done(delegate.page):
@@ -799,13 +817,14 @@ class contribute_done(delegate.page):
         same_book = [build_task_summary(t, field_guides, back, slug) for t in tasks.tasks_for_edition(edition) if t.field != fld and t.field in initiative.fields]
         # A work answer lands in the work's history.
         edited = work_of(edition) if fld in tasks.WORK_FIELDS and work_of(edition) else edition
+        field_label, value = describe_saved(edition, fld, query_param("picked", "")) if saved else (field_guides[fld].label, "")
         return render_contribute(
             "contribute/done.html.jinja",
             _("Saved") if saved else _("Skipped"),
             book=build_book_header(edition),
-            field_label=field_guides[fld].label,
+            field_label=field_label,
             saved=saved,
-            value=format_saved_value(edition, fld) if saved else "",
+            value=value,
             cover_url=edition.get_cover_url("M") if saved and fld == "covers" else "",
             history_url=f"{edited.key}?m=history",
             same_book=same_book,
