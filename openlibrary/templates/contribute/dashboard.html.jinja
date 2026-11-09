@@ -14,7 +14,7 @@
     <div class="contrib-dash__body">
         <div class="contrib-dash__side">
             {#- Every project as a menu row: its name, then what's left and who's on it. The open one takes the selected tint. -#}
-            <nav class="contrib-projects" aria-labelledby="contrib-projects-heading">
+            <nav class="contrib-projects" data-nav-loading aria-labelledby="contrib-projects-heading">
                 <h2 class="contrib-overline" id="contrib-projects-heading">{{ _("Community projects") }}</h2>
                 <ul class="contrib-projects__list">
                     {% for card in data.initiatives %}
@@ -70,7 +70,7 @@
                     </div>
                 {% endif %}
             </header>
-            <nav class="contrib-rail" data-rail aria-label="{{ _('Filter tasks') }}">
+            <nav class="contrib-rail" aria-label="{{ _('Filter tasks') }}">
                 <a class="contrib-rail__item{{ ' is-on' if data.rail.all.on else '' }}"
                    href="{{ data.rail.all.url }}"
                    data-ol-link-track="TasksDashboard|Filter|{{ data.rail.all.track }}"
