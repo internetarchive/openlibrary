@@ -223,6 +223,7 @@ export async function runSweep(octokit, fullRepoName) {
 const tableCell = text =>
     String(text)
         .replace(/\s*\n\s*/g, ' ')
+        .replace(/\\/g, '\\\\')
         .replace(/\|/g, '\\|');
 
 /**
