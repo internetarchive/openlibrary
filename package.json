@@ -58,7 +58,7 @@
     "chartjs-plugin-zoom": "2.2.0",
     "concurrently": "^10.0.0",
     "datatables.net-dt": "1.13.11",
-    "diff": "^4.0.4",
+    "diff": "^9.0.0",
     "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-vue": "^10.0.0",
