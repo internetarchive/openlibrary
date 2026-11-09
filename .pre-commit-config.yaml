@@ -145,10 +145,10 @@ repos:
     hooks:
       - id: stylelint
         language: node
-        # stylelint 17 resolves plugins with ESM resolution, which ignores the NODE_PATH pre-commit sets,
-        # then falls back to the global npm prefix. With a system Node (as on pre-commit.ci) that prefix is
-        # /usr, not the hook env, so plugins aren't found. Point PREFIX at the hook env.
-        entry: &stylelint_entry sh -c 'PREFIX="$NODE_VIRTUAL_ENV" exec stylelint "$@"' --
+        # stylelint 17 resolves plugins with ESM resolution, which ignores the NODE_PATH pre-commit sets, then
+        # falls back to the global npm prefix. A system Node (the pre-commit.ci default) makes that prefix /usr,
+        # so plugins aren't found. A pre-commit-managed Node puts the prefix inside the hook env instead.
+        language_version: lts
         files: \.css$
         additional_dependencies: &stylelint_deps
           - stylelint@17.16.0
@@ -161,7 +161,7 @@ repos:
       - id: stylelint
         name: stylelint (lit)
         language: node
-        entry: *stylelint_entry
+        language_version: lts
         # Same hook, but check-only. postcss-lit can't write Lit files back without
         # shifting comment indentation, so --fix would rewrite files that had no errors.
         # Matches all JS so a `css` literal is linted wherever it lands; files
