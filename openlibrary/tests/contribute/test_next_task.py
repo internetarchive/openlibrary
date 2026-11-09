@@ -109,3 +109,37 @@ def test_receipt_needs_a_saved_value(monkeypatch, fld, cover_url, shown):
     monkeypatch.setattr(contribute, "get_field_guides", lambda: {fld: web.storage(label="Label")})
     monkeypatch.setattr(contribute, "format_field_value", lambda e, f: "")
     assert bool(contribute.build_receipt(f"OL1M/{fld}")) is shown
+
+
+FICTION, MYSTERY = web.storage(key="/tags/OL1T", name="Fiction"), web.storage(key="/tags/OL2T", name="Mystery")
+
+
+@pytest.fixture
+def vocabulary(monkeypatch):
+    by_field = {"literary_forms": [FICTION], "genres": [MYSTERY]}
+    monkeypatch.setattr(contribute, "find_tag", lambda fld, key: next((t for t in by_field[fld] if t.key == key), None))
+    monkeypatch.setattr(contribute, "get_field_guides", lambda: {"literary_forms": web.storage(label="Literary form"), "genres": web.storage(label="Genres")})
+
+
+def test_picked_carries_a_work_answers_tags():
+    assert contribute.picked_param({"literary_forms": ["/tags/OL1T"], "genres": ["/tags/OL2T", " /tags/OL2T"]}) == "OL1T,OL2T"
+    url = contribute.build_next_url("", Task("OL1M", "literary_forms"), saved=True, picked="OL1T")
+    assert parse_qs(urlsplit(url).query)["picked"] == ["OL1T"]
+
+
+def test_receipt_names_the_picked_tags_not_the_records(monkeypatch, vocabulary):
+    """The record may be the copy cached before the save, so the receipt names what was picked."""
+    edition = SimpleNamespace(title="A Book", url=lambda: "/books/OL1M/A_Book", get_cover_url=lambda size: None)
+    monkeypatch.setattr(web, "ctx", web.storage(site=SimpleNamespace(get=lambda key: edition)))
+    monkeypatch.setattr(contribute, "format_field_value", lambda e, f: "")
+    receipt = contribute.build_receipt("OL1M/literary_forms", "OL1T")
+    assert (receipt["field_label"], receipt["value"]) == ("Literary form", "Fiction")
+    receipt = contribute.build_receipt("OL1M/literary_forms", "OL1T,OL2T")
+    assert (receipt["field_label"], receipt["value"]) == ("Literary form and Genres", "Fiction · Mystery")
+
+
+def test_receipt_shows_only_the_answered_field_without_picked(monkeypatch, vocabulary):
+    edition = SimpleNamespace(title="A Book", url=lambda: "/books/OL1M/A_Book", get_cover_url=lambda size: None)
+    monkeypatch.setattr(web, "ctx", web.storage(site=SimpleNamespace(get=lambda key: edition)))
+    monkeypatch.setattr(contribute, "format_field_value", lambda e, f: {"literary_forms": "Fiction", "genres": "Sci-Fi"}[f])
+    assert contribute.build_receipt("OL1M/literary_forms")["value"] == "Fiction"
