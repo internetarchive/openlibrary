@@ -1,15 +1,16 @@
 {
-  "staff": ["mekarpeles", "cdrini", "RayBB", "lokesh"],
   "leads": [
     {
       "githubUsername": "mekarpeles",
       "leadLabel": "Lead: @mekarpeles",
-      "slackId": "<@U0AB3N5L7>"
+      "slackId": "<@U0AB3N5L7>",
+      "clearsNeedsResponseOnAnyIssue": true
     },
     {
       "githubUsername": "cdrini",
       "leadLabel": "Lead: @cdrini",
-      "slackId": "<@U709VCNLD>"
+      "slackId": "<@U709VCNLD>",
+      "clearsNeedsResponseOnAnyIssue": true
     },
     {
       "githubUsername": "scottbarnes",
@@ -29,7 +30,8 @@
     {
       "githubUsername": "RayBB",
       "leadLabel": "Lead: @RayBB",
-      "slackId": "<@U01TC3EG9LJ>"
+      "slackId": "<@U01TC3EG9LJ>",
+      "clearsNeedsResponseOnAnyIssue": true
     },
     {
       "githubUsername": "rebecca-shoptaw",
@@ -39,7 +41,8 @@
     {
       "githubUsername": "lokesh",
       "leadLabel": "Lead: @lokesh",
-      "slackId": "<@U09NTCSNVNG>"
+      "slackId": "<@U09NTCSNVNG>",
+      "clearsNeedsResponseOnAnyIssue": true
     }
   ],
   "bots": [

@@ -429,7 +429,7 @@ def start_job():
         print("Reading configuration file...")
         config = read_config(args.config)
         leads = config.get("leads", [])
-        staff = [username.lower() for username in config.get("staff", [])]
+        staff = [lead["githubUsername"].lower() for lead in leads if lead.get("clearsNeedsResponseOnAnyIssue")]
         bots = config.get("bots", [])
     except OSError, json.JSONDecodeError:
         raise ConfigurationError("An error occurred while parsing the configuration file.")

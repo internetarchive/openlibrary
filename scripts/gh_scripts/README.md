@@ -35,7 +35,7 @@ It writes assignments and labels with the given `GITHUB_TOKEN`, so a local run a
 
 This script fetches issues that have new comments from contributors within the past number of hours, then posts a message to the team in our Slack channel.
 
-It also removes the https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Response label when a staff member (the `staff` list in the config file) or the issue's own `Lead: @name` posts the latest comment; `--no-labels` skips both adding and removing.
+It also removes the https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Response label when a lead flagged `clearsNeedsResponseOnAnyIssue` in the config file, or the issue's own `Lead: @name` posts the latest comment; `--no-labels` skips both adding and removing.
 
 ### Usage:
 ```
