@@ -369,6 +369,15 @@ describe('formatSweepSummary', () => {
         expect(row).toBe('| [#10](https://github.com/internetarchive/openlibrary/issues/10) | error: Request failed: - a \\| b |  |');
     });
 
+    test('escapes backslashes so a backslash before a pipe cannot unescape it', () => {
+        const summary = formatSweepSummary(
+            { rows: [{ number: 10, assignee: null, labels: [], reason: 'a\\|b' }], skipped: 0, failed: 0, listError: null },
+            REPO
+        );
+        const row = summary.split('\n').find(line => line.startsWith('| [#10]'));
+        expect(row).toBe('| [#10](https://github.com/internetarchive/openlibrary/issues/10) | a\\\\\\|b |  |');
+    });
+
     test('flags an incomplete run', () => {
         expect(formatSweepSummary({ rows: [], skipped: 0, failed: 0, listError: '502' }, REPO)).toContain('Listing open PRs failed partway');
     });
