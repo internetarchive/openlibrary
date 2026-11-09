@@ -12,7 +12,7 @@ from .. import app
 from ..contribute import initiatives
 from ..contribute.field_guides import get_field_guides
 from ..core import cache
-from ..core.admin import get_count_docs, rolling_counts
+from ..core.admin import get_count_docs, initiative_counts, rolling_counts
 from ..core.booknotes import Booknotes
 from ..core.bookshelves import Bookshelves
 from ..core.follows import PubSub
@@ -22,6 +22,7 @@ from ..core.observations import Observations
 from ..core.ratings import Ratings
 from ..core.yearly_reading_goals import YearlyReadingGoals
 from ..i18n import gettext as _
+from ..i18n import ungettext
 from ..plugins.admin.code import get_counts
 from ..plugins.worksearch.code import get_solr_works
 from ..utils import dateutil
@@ -316,19 +317,37 @@ def build_guardrail(counts: dict) -> dict:
     }
 
 
-def build_initiative(counts: dict) -> dict:
-    "The active initiative's latest snapshot. Each key is `None` until the stats script has taken one."
-    open_gaps, editions = latest(counts, "initiative_open_gaps"), latest(counts, "initiative_editions")
-    slots = (editions or 0) * len(initiatives.ACTIVE.fields)
-    return {
-        "title": _("Most-read %(count)s", count=commify(initiatives.ACTIVE.size)),
-        "open": format_count(open_gaps),
-        "done": format_count(latest(counts, "initiative_done_editions")),
-        "not_found": format_count(latest(counts, "initiative_not_found")),
-        "editions": format_count(editions),
-        # Rounded down, like initiatives.progress, so it only reads 100% when nothing is left.
-        "percent": f"{(slots - open_gaps) * 100 // slots}%" if open_gaps is not None and slots else "—",
-    }
+def format_people(people: int | None) -> str:
+    "How many people have saved for an initiative, as a figure line: a bold count and its noun."
+    if people is None:
+        return _("<b>—</b> people have helped")
+    return ungettext("<b>%(count)s</b> person has helped", "<b>%(count)s</b> people have helped", people, count=commify(people))
+
+
+def build_initiatives(docs: list[dict]) -> list[dict]:
+    """Every initiative in the registry with its latest snapshot, headline one first selected. A figure is a dash until the
+    stats script has counted that initiative, which it does from the first run after its list is frozen."""
+    by_day = [initiative_counts(doc) for doc in reversed(docs)]
+    result = []
+    for initiative in initiatives.INITIATIVES:
+        snap = next((day[initiative.slug] for day in by_day if initiative.slug in day), {})
+        open_gaps, editions = snap.get("open"), snap.get("editions")
+        slots = (editions or 0) * len(initiative.fields)
+        result.append(
+            initiatives.describe(initiative)
+            | {
+                "slug": initiative.slug,
+                "on": initiative is initiatives.ACTIVE,
+                "open": format_count(open_gaps),
+                "done": format_count(snap.get("done")),
+                "not_found": format_count(snap.get("not_found")),
+                "editions": format_count(editions),
+                "people": format_people(snap.get("people")),
+                # Rounded down, like initiatives.progress, so it only reads 100% when nothing is left.
+                "percent": f"{(slots - open_gaps) * 100 // slots}%" if open_gaps is not None and slots else "—",
+            }
+        )
+    return result
 
 
 def build_saves_by_field(docs: list[dict]) -> list[dict]:
@@ -378,10 +397,6 @@ def build_tasks_stats_page() -> dict:
         "tasks_saves_undone_28d",
         "other_fills_28d",
         "other_fills_undone_28d",
-        "initiative_open_gaps",
-        "initiative_done_editions",
-        "initiative_not_found",
-        "initiative_editions",
     ]
     # 29 days: today, and the day 28 before it to compare with. The field breakdown takes the last 28.
     docs = get_count_docs(29)
@@ -390,7 +405,7 @@ def build_tasks_stats_page() -> dict:
     return {
         "cards": build_tasks_stats_cards(counts),
         "guardrail": build_guardrail(counts),
-        "initiative": build_initiative(counts),
+        "initiatives": build_initiatives(docs),
         "saves_by_field": build_saves_by_field([d for d in docs if d["_key"] >= since]),
         "i18n": build_tasks_stats_i18n(),
     }

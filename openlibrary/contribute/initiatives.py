@@ -14,7 +14,9 @@ from datetime import UTC, datetime
 from infogami.utils.delegate import create_site
 from openlibrary.contribute import pool, tasks
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.helpers import commify
 from openlibrary.core.tags import GENRES, LITERARY_FORMS
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.dateutil import DAY_SECS, MINUTE_SECS
 from openlibrary.utils.request_context import site as request_site
@@ -158,6 +160,23 @@ TAGS = Initiative("genres-2026-11", 2000, pick_untagged_works, TAG_FIELDS)
 INITIATIVES = (MOST_READ, TAGS)
 # The headline one: /tasks opens on it, and the stats snapshot follows it.
 ACTIVE = MOST_READ
+
+
+def describe(initiative: Initiative) -> dict[str, str]:
+    """An initiative's name and pitch, as Tasks and the stats page show them: the name says what it is, the pitch how many books and what they need."""
+    count = commify(initiative.size)
+    if initiative is TAGS:
+        return {
+            "title": _("Fiction or nonfiction"),
+            "description": _(
+                "%(count)s of the most-shelved books that aren't marked fiction or nonfiction yet, or are missing their genres.",
+                count=count,
+            ),
+        }
+    return {
+        "title": _("%(count)s most-read books", count=count),
+        "description": _("The %(count)s editions people shelve most. Fill in any cover, page count, publisher or language they're missing.", count=count),
+    }
 
 
 def get(slug: str) -> Initiative | None:
