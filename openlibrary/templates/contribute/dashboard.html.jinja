@@ -14,7 +14,9 @@
     <div class="contrib-dash__body">
         <div class="contrib-dash__side">
             {#- Every project as a menu row: its name, then what's left and who's on it. The open one takes the selected tint. -#}
-            <nav class="contrib-projects" data-nav-loading aria-labelledby="contrib-projects-heading">
+            <nav class="contrib-projects"
+                 data-nav-loading
+                 aria-labelledby="contrib-projects-heading">
                 <h2 class="contrib-overline" id="contrib-projects-heading">{{ _("Community projects") }}</h2>
                 <ul class="contrib-projects__list">
                     {% for card in data.initiatives %}
