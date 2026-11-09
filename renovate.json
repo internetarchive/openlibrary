@@ -18,12 +18,6 @@
   },
   "packageRules": [
     {
-      "matchCategories": ["security"],
-      "minimumReleaseAge": "0 days",
-      "schedule": ["at any time"],
-      "prConcurrentLimit": 0
-    },
-    {
       "matchManagers": ["pip_requirements"],
       "matchUpdateTypes": ["patch", "minor"],
       "groupName": "Python dependencies (non-major)",
@@ -41,6 +35,84 @@
       "groupName": "JS dependencies (non-major)",
       "groupSlug": "js-non-major",
       "minimumReleaseAge": "7 days"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": [
+        "@axe-core/playwright",
+        "@eslint/js",
+        "@playwright/test",
+        "@vitest/browser-playwright",
+        "axe-core",
+        "bundlesize2",
+        "eslint",
+        "eslint-config-prettier",
+        "eslint-plugin-vue",
+        "globals",
+        "jsdom",
+        "oxfmt",
+        "oxlint",
+        "stylelint",
+        "stylelint-declaration-strict-value",
+        "vitest",
+        "vitest-browser-lit",
+        "vitest-browser-vue"
+      ],
+      "groupName": "JS lint & test deps",
+      "groupSlug": "js-lint-test",
+      "automerge": false
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": [
+        "@custom-elements-manifest/analyzer",
+        "@vitejs/plugin-vue",
+        "concurrently",
+        "postcss-lit",
+        "svgo",
+        "vite"
+      ],
+      "groupName": "JS build deps",
+      "groupSlug": "js-build",
+      "automerge": false
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": [
+        "@ericblade/quagga2",
+        "@sentry/browser",
+        "@tiptap/**",
+        "chart.js",
+        "chartjs-plugin-*",
+        "datatables.net-dt",
+        "diff",
+        "isbn3",
+        "jquery",
+        "jquery-ui",
+        "jquery-ui-touch-punch",
+        "lit",
+        "lucene-query-parser",
+        "prismjs",
+        "slick-carousel",
+        "tesseract.js",
+        "tiptap-markdown",
+        "vue",
+        "vue-async-computed",
+        "vue-multiselect",
+        "workbox-*"
+      ],
+      "groupName": "JS runtime deps",
+      "groupSlug": "js-runtime",
+      "automerge": false
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": [
+        "@internetarchive/**"
+      ],
+      "groupName": "Internet Archive JS deps",
+      "groupSlug": "js-ia",
+      "automerge": false
     },
     {
       "matchPackageNames": [
@@ -78,6 +150,13 @@
       "matchPackageNames": [
         "/^actions//"
       ]
+    },
+    {
+      "matchCategories": ["security"],
+      "groupName": null,
+      "minimumReleaseAge": "0 days",
+      "schedule": ["at any time"],
+      "prConcurrentLimit": 0
     }
   ]
 }
