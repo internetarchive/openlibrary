@@ -57,7 +57,7 @@ repos:
       - id: validate-pyproject
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.1
+    rev: v0.17.3
     hooks:
       - id: ruff-check
         args: [--fix]
@@ -94,7 +94,7 @@ repos:
         exclude: (^|/)tests?/
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.3.0
+    rev: v2.4.1
     hooks:
       - id: mypy  # See pyproject.toml for args
         # Declared so Renovate updates additional_dependencies (it only reads hooks with an explicit language).
