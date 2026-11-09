@@ -147,7 +147,7 @@ repos:
         language: node
         files: \.css$
         additional_dependencies: &stylelint_deps
-          - stylelint@16.26.1
+          - stylelint@17.16.0
           - stylelint-declaration-strict-value@1.11.1
           - postcss-lit@1.4.1
         # --allow-empty-input: pre-commit passes the staged .css files, and
@@ -180,7 +180,7 @@ repos:
           - "@eslint/js@10.0.1"
           - eslint-config-prettier@10.1.8
           - eslint-plugin-vue@10.11.1
-          - globals@15.14.0
+          - globals@17.14.0
         args: [--fix]
 
   - repo: local
