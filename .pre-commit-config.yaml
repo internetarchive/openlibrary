@@ -8,7 +8,9 @@ default_language_version:
 
 ci:
   submodules: true
-  autoupdate_schedule: "monthly"
+  # Renovate keeps hook revs updated (see renovate.json). pre-commit.ci can't turn its autoupdate off
+  # (pre-commit-ci/issues#83), so run it rarely; its PRs can be closed.
+  autoupdate_schedule: "quarterly"
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
