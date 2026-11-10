@@ -497,34 +497,41 @@ jobs:
             // "base"), but NOT vendor or .github, so a live sink there still escalates. (F2/F5/F-C)
             const buildBaseIndex = (root) => {
               const tokens = new Set();
+              let partial = false;
               const EXCLUDE_DIR = new Set(['node_modules', '.git', 'pr-head']);
               const EXCLUDE_FILE = new Set(['review.diff', 'review.json', 'review-range.json']);
               const walk = (dir, atRoot) => {
                 let ents;
-                try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return; }
+                // A read error leaves a subtree/file UNindexed -> a live sink there would be absent
+                // and read as "not on base" (fail-OPEN). Flag `partial` so baseHasSymbol escalates
+                // everything, matching the old grep's fail-CLOSED on a read error. The intentional
+                // binary skip below is NOT flagged: binary files hold no code symbols, and flagging
+                // them would make any repo with an image always-partial -> escalate everything.
+                try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { partial = true; return; }
                 for (const ent of ents) {
                   if (ent.isSymbolicLink()) continue;
                   const full = `${dir}/${ent.name}`;
                   if (ent.isDirectory()) { if (!EXCLUDE_DIR.has(ent.name)) walk(full, false); continue; }
                   if (atRoot && EXCLUDE_FILE.has(ent.name)) continue;
                   let buf;
-                  try { buf = fs.readFileSync(full); } catch (e) { continue; }
-                  if (buf.includes(0)) continue; // skip binary
+                  try { buf = fs.readFileSync(full); } catch (e) { partial = true; continue; }
+                  if (buf.includes(0)) continue; // skip binary (intentional; not a gap)
                   for (const tok of buf.toString('utf8').split(/[^A-Za-z0-9_]+/)) if (tok) tokens.add(tok);
                 }
               };
               walk(root, true);
-              return tokens;
+              return { tokens, partial };
             };
             const segOf = (ref) => {
               if (typeof ref !== 'string') return null;
               const s = ref.split(/[./\\]/).filter(Boolean).pop();
               return s && /^[A-Za-z_]\w*$/.test(s) ? s : null;
             };
-            let baseTokens = new Set(), indexErr = false;
-            try { baseTokens = buildBaseIndex('.'); } catch (e) { indexErr = true; }
+            let baseTokens = new Set(), baseIncomplete = true;
+            try { const idx = buildBaseIndex('.'); baseTokens = idx.tokens; baseIncomplete = idx.partial; }
+            catch (e) { baseIncomplete = true; } // whole build threw -> fail-closed
             const baseHasSymbol = (ref) => {
-              if (indexErr) return true; // index build failed -> fail-closed (escalate)
+              if (baseIncomplete) return true; // index missing or partial -> fail-closed (escalate)
               try { if ((ref.includes('/') || /\.[A-Za-z0-9]+$/.test(ref)) && !ref.includes('..') && fs.existsSync(ref)) return true; } catch (e) {}
               const s = segOf(ref);
               return s ? baseTokens.has(s) : true; // cannot isolate a symbol -> fail-closed

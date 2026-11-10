@@ -128,10 +128,11 @@ function baseTree(dir) {
 // once at the top of classify; here we build it per test from a temp tree and compose the identical
 // lookup). buildBaseIndex takes the root as an argument, so no process.chdir is needed (vitest
 // workers forbid it); the path-existence branch is exercised with an absolute ref.
-function baseHasSymbol(tokens, ref) {
+function baseHasSymbol(idx, ref) {
+    if (idx.partial) return true; // an incomplete index fails closed -> escalate everything
     if ((ref.includes('/') || /\.[A-Za-z0-9]+$/.test(ref)) && !ref.includes('..') && existsSync(ref)) return true;
     const s = segOf(ref);
-    return s ? tokens.has(s) : true;
+    return s ? idx.tokens.has(s) : true;
 }
 function withBaseTree(fn) {
     const dir = mkdtempSync(join(tmpdir(), 'olcr-base-'));
@@ -144,24 +145,30 @@ function withBaseTree(fn) {
 }
 
 test('buildBaseIndex indexes base source tokens; excludes pr-head/ and review artifacts', () => {
-    withBaseTree(tokens => {
-        assert.ok(tokens.has('legacy_fetch'), 'base source token indexed');
-        assert.ok(!tokens.has('pr_only_sink'), 'pr-head/ is excluded');
-        assert.ok(!tokens.has('diff_only_sink'), 'review.diff is excluded');
+    withBaseTree(idx => {
+        assert.equal(idx.partial, false);
+        assert.ok(idx.tokens.has('legacy_fetch'), 'base source token indexed');
+        assert.ok(!idx.tokens.has('pr_only_sink'), 'pr-head/ is excluded');
+        assert.ok(!idx.tokens.has('diff_only_sink'), 'review.diff is excluded');
     });
 });
 test('baseHasSymbol: bare + QUALIFIED sink_ref whose segment is on base -> true (F2)', () => {
-    withBaseTree(t => {
-        assert.equal(baseHasSymbol(t, 'legacy_fetch'), true);
-        assert.equal(baseHasSymbol(t, 'openlibrary.core.lending.legacy_fetch'), true);
+    withBaseTree(idx => {
+        assert.equal(baseHasSymbol(idx, 'legacy_fetch'), true);
+        assert.equal(baseHasSymbol(idx, 'openlibrary.core.lending.legacy_fetch'), true);
     });
 });
 test('baseHasSymbol: absent symbol -> false; PR-only symbol -> false (not on base)', () => {
-    withBaseTree(t => {
-        assert.equal(baseHasSymbol(t, 'nonexistent_symbol_zzz'), false);
-        assert.equal(baseHasSymbol(t, 'pr_only_sink'), false);
+    withBaseTree(idx => {
+        assert.equal(baseHasSymbol(idx, 'nonexistent_symbol_zzz'), false);
+        assert.equal(baseHasSymbol(idx, 'pr_only_sink'), false);
     });
 });
 test('baseHasSymbol: a file that exists resolves by existence (#3)', () => {
-    withBaseTree((t, dir) => assert.equal(baseHasSymbol(t, join(dir, 'setup.py')), true));
+    withBaseTree((idx, dir) => assert.equal(baseHasSymbol(idx, join(dir, 'setup.py')), true));
+});
+test('buildBaseIndex flags `partial` on a read error -> baseHasSymbol fails CLOSED (escalates)', () => {
+    const idx = buildBaseIndex('/no/such/dir/olcr-does-not-exist-zzz');
+    assert.equal(idx.partial, true, 'an unreadable root sets partial');
+    assert.equal(baseHasSymbol(idx, 'anything_whatsoever'), true, 'partial index escalates every ref');
 });
