@@ -15,7 +15,7 @@ from unicodedata import normalize
 
 import httpx
 import web
-from markupsafe import Markup, escape
+from markupsafe import escape
 
 from infogami import config
 from infogami.infobase.client import storify
@@ -1063,8 +1063,6 @@ class list_search(delegate.page):
         # Local import: openlibrary.fastapi.search imports this module.
         from openlibrary.fastapi.search import SearchNav
 
-        # Templetor macros aren't reachable from Jinja; render them and pass the HTML in.
-        ol_macros = web.template.Template.globals["macros"]
         body = render_jinja_template(
             "search/lists.html.jinja",
             nav=SearchNav.from_query(web.ctx.path, web.input(_method="get")),
@@ -1072,8 +1070,8 @@ class list_search(delegate.page):
             search_response=resp,
             lists=lists,
             commified_num_found=commify(resp.num_found),
-            pagination=Markup(str(ol_macros.OlPagination(req.page, ceil(resp.num_found / req.limit)))),
-            loading_indicator=Markup(str(ol_macros.LoadingIndicator(_("Checking Search Inside matches")))),
+            page=req.page,
+            total_pages=ceil(resp.num_found / req.limit),
         )
         # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
         return web.template.TemplateResult(__body__=body, title=escape(_("Search results for Lists")))

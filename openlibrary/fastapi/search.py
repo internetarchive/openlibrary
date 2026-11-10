@@ -7,9 +7,7 @@ from math import ceil
 from typing import Annotated, Any, Literal, Self
 from urllib.parse import urlencode
 
-import web
 from fastapi import APIRouter, Depends, Query, Request
-from markupsafe import Markup
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -613,8 +611,6 @@ async def search_lists(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePag
     )
     lists = site.get().get_many([doc["key"] for doc in response.docs])
 
-    # Templetor macros aren't reachable from Jinja; render them and pass the HTML in.
-    ol_macros = web.template.Template.globals["macros"]
     body = render_jinja_template(
         "search/lists.html.jinja",
         nav=nav,
@@ -622,7 +618,7 @@ async def search_lists(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePag
         search_response=response,
         lists=lists,
         commified_num_found=commify(response.num_found),
-        pagination=Markup(str(ol_macros.OlPagination(page, ceil(response.num_found / limit)))),
-        loading_indicator=Markup(str(ol_macros.LoadingIndicator(_("Checking Search Inside matches")))),
+        page=page,
+        total_pages=ceil(response.num_found / limit),
     )
     return SitePage(body, page=PageMeta(title=_("Search results for Lists")))

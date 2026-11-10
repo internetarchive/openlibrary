@@ -1,4 +1,6 @@
 {% from "search/searchbox.html.jinja" import searchbox %}
+{% from "OlPagination.html.jinja" import ol_pagination %}
+{% from "LoadingIndicator.html.jinja" import loading_indicator %}
 <div id="contentHead">
     <h1>{{ _("Search Lists") }}</h1>
 </div>
@@ -31,13 +33,13 @@
                     {% endfor %}
                 </ul>
             </div>
-            {{ pagination }}
+            {{ ol_pagination(page, total_pages) }}
         {% else %}
             <center>
                 <div class="red">{{ _("No <strong>lists</strong> directly matched your search") | safe }}</div>
                 <hr>
             </center>
-            <div id="fulltext-search-suggestion" data-query="{{ q }}">{{ loading_indicator }}</div>
+            <div id="fulltext-search-suggestion" data-query="{{ q }}">{{ loading_indicator(_("Checking Search Inside matches")) }}</div>
         {% endif %}
     {% endif %}
 </div>
