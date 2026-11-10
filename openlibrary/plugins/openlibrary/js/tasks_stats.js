@@ -40,7 +40,7 @@ const METRICS = {
  * @typedef {object} TasksSeries
  * @property {string[]} dates ISO dates, oldest first, ending today
  * @property {Record<string, (number | null)[]>} series
- * @property {(string | null)[]} initiative the initiative each day's `initiative_*` values describe
+ * @property {Record<string, (number | null)[]>} initiatives details still open on each initiative's list, by slug
  */
 
 /**
@@ -158,7 +158,9 @@ export async function init(root) {
     const lastDay = dates.length - 1;
     const series = (/** @type {string} */ key) => data.series[key] || dates.map(() => null);
 
-    const state = { days: 90, granularity: 'day', compare: true, metric: 'editors' };
+    const projects = /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.tasks-stats__card[data-initiative]'));
+    const pressed = [...projects].find(card => card.getAttribute('aria-pressed') === 'true');
+    const state = { days: 90, granularity: 'day', compare: true, metric: 'editors', initiative: pressed?.dataset.initiative || '' };
 
     /** @param {Bucket} bucket */
     const shortLabel = bucket =>
@@ -281,9 +283,7 @@ export async function init(root) {
 
     // The initiative and guardrail lines are daily snapshots, so they follow the range but not the grouping.
     function drawDailyLines() {
-        // Only the current initiative's days, so a new list doesn't carry on from the old one's line.
-        const currentInitiative = data.initiative?.findLast(slug => slug !== null);
-        const openGaps = series('initiative_open_gaps').map((v, i) => (data.initiative?.[i] === currentInitiative ? v : null));
+        const openGaps = data.initiatives?.[state.initiative] || dates.map(() => null);
         const days = bucketize(openGaps, 1).slice(-state.days);
         draw('initiative', {
             type: 'line',
@@ -371,7 +371,7 @@ export async function init(root) {
     const unit = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-unit'));
     const legend = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__legend'));
     const note = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-note'));
-    const cards = /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.tasks-stats__card'));
+    const cards = /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.tasks-stats__card[data-metric]'));
     const units = { day: strings.perDay, week: strings.perWeek, month: strings.perMonth };
 
     function update() {
@@ -387,6 +387,16 @@ export async function init(root) {
             title.textContent = card.querySelector('.tasks-stats__card-label')?.textContent || '';
             note.textContent = card.dataset.note || '';
             drawMain();
+        })
+    );
+    projects.forEach(card =>
+        card.addEventListener('click', () => {
+            state.initiative = card.dataset.initiative || '';
+            projects.forEach(other => other.setAttribute('aria-pressed', String(other === card)));
+            root.querySelectorAll('[data-initiative-figures]').forEach(figures => {
+                /** @type {HTMLElement} */ (figures).hidden = /** @type {HTMLElement} */ (figures).dataset.initiativeFigures !== state.initiative;
+            });
+            drawDailyLines();
         })
     );
     root.querySelector('.tasks-stats__range')?.addEventListener('ol-segmented-control-change', event => {

@@ -8,7 +8,6 @@ from fastapi import APIRouter, Depends, Query, Response
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-from openlibrary.accounts import get_current_user
 from openlibrary.contribute import feed
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
@@ -51,9 +50,9 @@ def tasks_feed(
 def tasks_rows(
     _user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     task: Annotated[str, Query(description="The dashboard filter; unknown values mean all tasks.")] = "",
+    initiative: Annotated[str, Query(description="The initiative's slug; unknown values mean the headline one.")] = "",
 ) -> Response:
     """The dashboard's list on its own, for a page that rendered placeholders: 202 while the pool is still being built."""
-    fields = contribute.fields_for(get_current_user())
-    if (rows := contribute.build_task_rows(contribute.normalize_filter(task, fields), fields)) is None:
+    if (rows := contribute.build_task_rows(contribute.normalize_filter(task), contribute.get_initiative(initiative))) is None:
         return Response(status_code=202)
     return HTMLResponse(render_jinja_template("contribute/rows.html.jinja", rows=rows))

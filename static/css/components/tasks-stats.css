@@ -169,6 +169,10 @@
   color: var(--color-text);
 }
 
+.tasks-stats__figures[hidden] {
+  display: none;
+}
+
 .tasks-stats__panels {
   display: grid;
   gap: var(--spacing-xl);

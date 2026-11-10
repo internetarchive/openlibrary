@@ -6,7 +6,7 @@ import pytest
 import web
 
 from openlibrary.admin import numbers
-from openlibrary.contribute import save, tasks
+from openlibrary.contribute import initiatives, save
 
 
 class FakeDB:
@@ -148,70 +148,82 @@ def test_saves_by_field_is_a_dict_of_the_days_saves():
     assert "t.created >= '2026-10-15' AND t.created < '2026-10-15 21:00:00'" in sql
 
 
-@pytest.fixture
-def fake_initiative(monkeypatch):
-    """A stand-in for `openlibrary.contribute.initiatives` with a two-edition list, plus a `web.ctx.site` holding its store doc."""
-    calls = []
+FROZEN = {"frozen_at": "2026-10-28T12:00:00+00:00", "editions": [["/books/OL1M", 9], ["/books/OL2M", 8]]}
 
-    def load_frozen(initiative, site):
-        return (doc := site.store.get(initiative.store_key)) and doc["editions"]
+
+@pytest.fixture
+def fake_initiatives(monkeypatch):
+    """A stand-in for `openlibrary.contribute.initiatives` with two initiatives, only the first frozen, plus a `web.ctx.site` holding its store doc."""
+    calls = []
 
     def gaps_for(picks, site):
         calls.append(len(picks))
         return [["/books/OL1M", 9, ["lccn"], []], ["/books/OL2M", 8, [], ["covers"]]]
 
     def build_gaps(initiative, site):
-        raise AssertionError("the stats run must not pick and freeze the list")
+        raise AssertionError("the stats run must not pick and freeze a list")
+
+    def initiative(slug, fields):
+        return SimpleNamespace(slug=slug, store_key=f"contribute-initiative-{slug}", fields=fields)
 
     initiatives = SimpleNamespace(
-        ACTIVE=SimpleNamespace(slug="most-read-test", store_key="contribute-initiative-most-read-test"),
-        load_frozen=load_frozen,
+        INITIATIVES=(initiative("most-read-test", ("covers", "publishers")), initiative("genres-test", ("genres",))),
         gaps_for=gaps_for,
         build_gaps=build_gaps,
-        progress=lambda gaps: {"open": 1, "done": 1, "not_found": 1, "total": 2, "percent": 91},
+        progress=lambda gaps, fields: {"open": 1, "done": 1, "not_found": 1, "total": 2, "percent": 91},
         calls=calls,
     )
     monkeypatch.setattr(numbers, "_initiative", lambda: initiatives)
-    store = FakeStore({"contribute-initiative-most-read-test": {"editions": [["/books/OL1M", 9], ["/books/OL2M", 8]]}})
-    monkeypatch.setattr(web.ctx, "site", SimpleNamespace(store=store), raising=False)
-    monkeypatch.setattr(numbers, "_cached_initiative_progress", None)
+    monkeypatch.setattr(web.ctx, "site", SimpleNamespace(store=FakeStore({"contribute-initiative-most-read-test": FROZEN})), raising=False)
     return initiatives
 
 
-def test_initiative_snapshot_is_read_once_for_all_its_keys(fake_initiative):
+def today_kargs(db=None):
     now = datetime.now()
-    kargs = {"thingdb": FakeDB(), "start": now.replace(hour=0, minute=0, second=0, microsecond=0), "end": now}
-    assert numbers.admin_range__initiative_open_gaps(**kargs) == 1
-    assert numbers.admin_range__initiative_done_editions(**kargs) == 1
-    assert numbers.admin_range__initiative_not_found(**kargs) == 1
-    assert numbers.admin_range__initiative_editions(**kargs) == 2
-    assert numbers.admin_range__initiative_slug(**kargs) == "most-read-test"
-    assert fake_initiative.calls == [2]
+    return {"thingdb": db or FakeDB(), "start": now.replace(hour=0, minute=0, second=0, microsecond=0), "end": now}
 
 
-def test_initiative_snapshot_survives_a_run_that_crosses_midnight(fake_initiative):
-    "A run started at 23:5x reaches these keys after midnight; the window, not the clock, says it's today's."
+def test_initiatives_counts_each_frozen_list_and_skips_the_rest(fake_initiatives):
+    assert numbers.admin_range__initiatives(**today_kargs()) == {"most-read-test": {"open": 1, "done": 1, "not_found": 1, "editions": 2, "people": 7}}
+    assert fake_initiatives.calls == [2]
+
+
+def test_a_newly_frozen_initiative_is_counted_on_the_next_run(fake_initiatives):
+    web.ctx.site.store["contribute-initiative-genres-test"] = FROZEN
+    assert set(numbers.admin_range__initiatives(**today_kargs())) == {"most-read-test", "genres-test"}
+
+
+def test_initiatives_survive_a_run_that_crosses_midnight(fake_initiatives):
+    "A run started at 23:5x reaches this after midnight; the window, not the clock, says it's today's."
     start = datetime(2026, 10, 29)
-    kargs = {"thingdb": FakeDB(), "start": start, "end": start.replace(hour=23, minute=55)}
-    assert numbers.admin_range__initiative_open_gaps(**kargs) == 1
+    assert "most-read-test" in numbers.admin_range__initiatives(thingdb=FakeDB(), start=start, end=start.replace(hour=23, minute=55))
 
 
-def test_initiative_snapshot_waits_for_the_web_app_to_freeze_the_list(fake_initiative):
+def test_initiatives_wait_for_the_web_app_to_freeze_a_list(fake_initiatives):
     web.ctx.site.store.clear()
-    now = datetime.now()
-    kargs = {"thingdb": FakeDB(), "start": now.replace(hour=0, minute=0, second=0, microsecond=0), "end": now}
     with pytest.raises(numbers.NoStats):
-        numbers.admin_range__initiative_open_gaps(**kargs)
-    assert fake_initiative.calls == []
+        numbers.admin_range__initiatives(**today_kargs())
+    assert fake_initiatives.calls == []
 
 
-def test_initiative_snapshot_refuses_past_days(fake_initiative):
+def test_initiative_people_count_savers_since_the_freeze_by_tag_or_field(fake_initiatives):
+    db = FakeDB()
+    start = datetime(2026, 11, 2)
+    numbers.admin_range__initiatives(thingdb=db, start=start, end=start.replace(hour=21))
+    [(q, vars)] = db.queries
+    sql = str(web.db.reparam(q, vars))
+    assert "count(DISTINCT t.author_id)" in sql
+    assert "t.created >= '2026-10-28T12:00:00+00:00' AND t.created < '2026-11-02 21:00:00'" in sql
+    assert "key = 'source' AND value = 'contribute'" in sql
+    # A save tagged with an initiative counts only there; an untagged one by its field.
+    assert "COALESCE(t.data::json->>'initiative' = 'most-read-test', t.data::json->>'field' IN ('covers', 'publishers'))" in sql
+
+
+def test_initiatives_refuse_past_days(fake_initiatives):
     "The backfill loop calls every function for every past day; a snapshot has no past to report."
-    kargs = {"thingdb": FakeDB(), "start": datetime(2026, 10, 15), "end": datetime(2026, 10, 16)}
-    for fn in [numbers.admin_range__initiative_open_gaps, numbers.admin_range__initiative_slug]:
-        with pytest.raises(numbers.NoStats):
-            fn(**kargs)
-    assert fake_initiative.calls == []
+    with pytest.raises(numbers.NoStats):
+        numbers.admin_range__initiatives(thingdb=FakeDB(), start=datetime(2026, 10, 15), end=datetime(2026, 10, 16))
+    assert fake_initiatives.calls == []
 
 
 def test_other_fills_are_one_query_for_both_keys(monkeypatch):
@@ -228,8 +240,8 @@ def test_other_fills_are_one_query_for_both_keys(monkeypatch):
     assert "t.created >= '2026-09-17 21:00:00' AND t.created < '2026-10-15 21:00:00'" in sql
 
 
-def test_tasks_fields_match_what_tasks_offers():
-    assert set(numbers.TASKS_FIELDS) == set(tasks.OFFERED)
+def test_tasks_fields_match_what_the_headline_initiative_offers():
+    assert set(numbers.TASKS_FIELDS) == set(initiatives.ACTIVE.fields)
 
 
 def test_tasks_source_matches_what_tasks_saves_write():

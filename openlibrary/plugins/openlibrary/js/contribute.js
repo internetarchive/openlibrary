@@ -190,6 +190,35 @@ function initSaveTracking(form) {
 }
 
 /**
+ * Show a spinner on the pressed submit button while the next page loads, and disable the others so a second
+ * press can't save twice. Deferred because a loading ol-button disables its proxy: on Enter, that could land
+ * before the browser reads the form and drop ``then=next`` from the submission.
+ * @param {HTMLFormElement} form - a ``[data-task-form]``
+ * @returns {void}
+ */
+function initSubmitLoading(form) {
+    const buttons = form.querySelectorAll('ol-button[type="submit"]');
+    form.addEventListener('submit', event => {
+        const pressed = event.submitter?.closest('ol-button');
+        setTimeout(() => {
+            if (event.defaultPrevented) return;
+            buttons.forEach(button => {
+                button.loading = button === pressed;
+                button.disabled = button !== pressed;
+            });
+        }, 0);
+    });
+    // Back/forward restores this DOM from bfcache with the spinner still showing.
+    window.addEventListener('pageshow', event => {
+        if (!event.persisted) return;
+        buttons.forEach(button => {
+            button.loading = false;
+            button.disabled = false;
+        });
+    });
+}
+
+/**
  * Wire the "Other editions say" chips to the answer control. The chip matching
  * the current answer shows selected; clicking it again clears it.
  * @param {HTMLFormElement} form - the task form holding the chips and answer control
@@ -243,6 +272,8 @@ function initQuickNext(form) {
     form.addEventListener('click', event => {
         const input = event.target;
         if (!(input instanceof HTMLInputElement) || input.name !== 'value' || input.type !== 'radio') return;
+        // The row that opens the companion field asks for a second look at the page, not a second click.
+        if (input.dataset.reveals) return;
         const viaPointer = pointer;
         pointer = false;
         // ``change`` for a fresh pick fires after this click, so ``picked`` still names the previous row here.
@@ -253,6 +284,68 @@ function initQuickNext(form) {
         trackEvent('TaskForm', 'QuickNext', form.dataset.taskField);
         form.requestSubmit(next);
     });
+}
+
+/**
+ * A many-tags answer: chips that toggle, with a hidden input per picked key so
+ * the form posts the picks under the group's name. A chip the subjects suggested
+ * carries them in ``data-subjects``: hovering or focusing it lights those subjects
+ * in the record, and picking it reports as ``PickSuggestion``, like a sibling chip
+ * on a text field.
+ * @param {HTMLElement} group - a ``[data-many-choice]`` holding ``ol-chip[data-value]`` elements
+ * @returns {void}
+ */
+function initManyChoice(group) {
+    const name = group.dataset.manyChoice;
+    const form = group.closest('form');
+    const field = form?.dataset.taskField;
+    const light = (chip, on) => {
+        const subjects = JSON.parse(chip.dataset.subjects);
+        form?.querySelectorAll('[data-subject]').forEach(el => el.toggleAttribute('data-lit', on && subjects.includes(el.dataset.subject)));
+    };
+    for (const chip of group.querySelectorAll('ol-chip[data-subjects]')) {
+        chip.addEventListener('mouseenter', () => light(chip, true));
+        chip.addEventListener('mouseleave', () => light(chip, false));
+        chip.addEventListener('focusin', () => light(chip, true));
+        chip.addEventListener('focusout', () => light(chip, false));
+    }
+    const sync = () => {
+        group.querySelectorAll('input[type="hidden"]').forEach(input => input.remove());
+        // By property: the chip reflects ``selected`` to its attribute only on its next render.
+        for (const chip of [...group.querySelectorAll('ol-chip')].filter(chip => chip.selected)) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = chip.dataset.value;
+            group.append(input);
+        }
+    };
+    group.addEventListener('ol-chip-select', event => {
+        const chip = event.target.closest('ol-chip');
+        chip.selected = event.detail.selected;
+        sync();
+        if (event.detail.selected && chip.dataset.subjects && field) trackEvent('TaskForm', 'PickSuggestion', `${field}:${name}`);
+    });
+    sync();
+}
+
+/**
+ * The companion field (the genres under "fiction"): shown while the choice row
+ * that opens it, marked ``data-reveals`` with the field's name, is the one picked.
+ * @param {HTMLFormElement} form - a task form that may hold a ``[data-companion]`` row
+ * @returns {void}
+ */
+function initCompanion(form) {
+    const panel = form.querySelector('[data-companion]');
+    if (!panel) return;
+    const sync = () => {
+        const checked = form.querySelector('input[name="value"]:checked');
+        panel.hidden = checked?.dataset.reveals !== panel.dataset.companion;
+    };
+    form.addEventListener('change', event => {
+        if (event.target.name === 'value') sync();
+    });
+    sync();
 }
 
 /**
@@ -408,7 +501,7 @@ function initIntroDismiss(link) {
 }
 
 /**
- * Drop the "Save and next" receipt from the URL, so a reload doesn't show its toast again.
+ * Drop the "Save and next" receipt from the URL, so a reload doesn't show its callout again.
  * @returns {void}
  */
 function clearSavedReceipt() {
@@ -423,14 +516,14 @@ function clearSavedReceipt() {
  * @returns {void}
  */
 /**
- * Show a spinner on the pressed rail filter while the next page loads.
- * @param {HTMLElement} rail - the ``[data-rail]`` nav
+ * Show a spinner on the pressed project link while the next page loads.
+ * @param {HTMLElement} rail - a ``[data-nav-loading]`` nav
  * @returns {void}
  */
-function initRailLoading(rail) {
+function initNavLoading(rail) {
     rail.addEventListener('click', e => {
         const link = e.target.closest('a[href]');
-        if (!link || link.classList.contains('is-on')) return;
+        if (!link || link.hasAttribute('aria-current')) return;
         // New-tab / modified / non-left clicks don't navigate this window.
         if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         link.classList.add('is-target');
@@ -446,15 +539,18 @@ export function init() {
     document.querySelectorAll('[data-contribute-list]').forEach(root => {
         initTaskList(root);
     });
-    document.querySelectorAll('[data-rail]').forEach(initRailLoading);
+    document.querySelectorAll('[data-nav-loading]').forEach(initNavLoading);
     document.querySelectorAll('[data-feed]').forEach(initFeed);
     document.querySelectorAll('[data-intro-cookie]').forEach(initIntroDismiss);
     document.querySelectorAll('form[data-task-form]').forEach(form => {
         initSkipButton(form);
         initSiblingSuggestions(form);
         initSaveTracking(form);
+        initSubmitLoading(form);
         initQuickNext(form);
+        initCompanion(form);
     });
+    document.querySelectorAll('[data-many-choice]').forEach(initManyChoice);
     if (document.querySelector('[data-receipt]')) clearSavedReceipt();
     document.querySelectorAll('form[data-id-form]').forEach(initIdentifierForm);
     document.querySelectorAll('form[data-cover-form]').forEach(initCoverForm);

@@ -24,24 +24,109 @@ $def with (md_provider_factory, req, result=None)
     </form>
 
 
+    $def thing_section(info, edits_by_key, headings):
+        $ key = info['key']
+        $ status = info['status']
+        $ edit = edits_by_key.get(key)
+        <section class="import-preview__section">
+            $if status == 'created':
+                <h3>$headings['created']</h3>
+                $if edit:
+                    <textarea readonly aria-label="json preview of new record" style="width: 100%; height: 200px;">$json_encode(edit, indent=2)</textarea>
+            $else:
+                <h3>$:headings[status]</h3>
+                $ prev = get_document(key)
+                $if prev.type.key == '/type/author':
+                    $:macros.SearchAuthorSuggestion([{'key': key.split('/')[-1], 'name': prev.name}])
+                $elif prev.type.key in ('/type/work', '/type/edition'):
+                    <ul class="list-books">
+                        $:macros.SearchResultsWork(prev, cta=False, show_title_year=True)
+                    </ul>
+                $if status == 'modified' and edit:
+                    $:render_template('diff.html', prev, create_thing(edit), show_header=False)
+        </section>
+
     $if result:
         <h2>$_("Preview")</h2>
-        <details $cond(not result.get('edits'), 'open')>
+        <details $cond(not result.get('success'), 'open')>
             <summary>$_("Show Raw Import Data")</summary>
             <textarea readonly aria-label="json preview of import record" style="width: 100%; height: 300px;">$json_encode(result, indent=2)</textarea>
         </details>
-        $if 'edits' in result and result['edits']:
+
+        $if result.get('success'):
+            $code:
+                edits_by_key = {edit['key']: edit for edit in result.get('edits', [])}
+
+                def olid_link(key):
+                    return '<a href="%s">%s</a>' % (websafe(key), websafe(key.split('/')[-1]))
+
+                work_link = olid_link(result['work']['key'])
+                edition_link = olid_link(result['edition']['key'])
+                work_headings = {
+                    'created': _("New work will be created"),
+                    'matched': _("Work matched: %(link)s", link=work_link),
+                    'modified': _("Work modified: %(link)s", link=work_link),
+                }
+                edition_headings = {
+                    'created': _("New edition will be created"),
+                    'matched': _("Edition matched: %(link)s", link=edition_link),
+                    'modified': _("Edition modified: %(link)s", link=edition_link),
+                }
+
+                def other_headings(edit):
+                    return {
+                        'created': _("New %(thing_type)s record will be created", thing_type=edit['type']['key']),
+                        'modified': _("Changes to %(key)s", key=olid_link(edit['key'])),
+                    }
+
+                def author_headings(key):
+                    link = olid_link(key)
+                    return {
+                        'created': _("New author will be created"),
+                        'matched': _("Author matched: %(link)s", link=link),
+                        'modified': _("Author modified: %(link)s", link=link),
+                    }
+
+            $:thing_section(result['work'], edits_by_key, work_headings)
+            $:thing_section(result['edition'], edits_by_key, edition_headings)
+
+            $for author in result.get('authors', []):
+                $:thing_section(author, edits_by_key, author_headings(author['key']))
+
+            $ shown = {result['work']['key'], result['edition']['key']} | {a['key'] for a in result.get('authors', [])}
+            $ other_edits = [edit for edit in result.get('edits', []) if edit['key'] not in shown]
+            $if other_edits:
+                <h3>$_("Other edits")</h3>
+                $for edit in other_edits:
+                    $ status = 'modified' if edit.get('revision') else 'created'
+                    $:thing_section({'key': edit['key'], 'status': status}, edits_by_key, other_headings(edit))
+
+            $if result.get('acquisitions'):
+                <section class="import-preview__section">
+                    <h3>$_("Acquisitions that will be added")</h3>
+                    <table class="changeHistory">
+                        <thead>
+                            <tr>
+                                <th>$_("Provider")</th>
+                                <th>$_("Provider ID")</th>
+                                <th>$_("Access")</th>
+                                <th>$_("Format")</th>
+                                <th>$_("URL")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            $for acq in result['acquisitions']:
+                                <tr>
+                                    <td>$acq['provider_name']</td>
+                                    <td>$acq['local_id']</td>
+                                    <td>$acq['data'].get('access', '')</td>
+                                    <td>$acq['data'].get('format', '')</td>
+                                    <td><a href="$acq['data'].get('url', '')">$acq['data'].get('url', '')</a></td>
+                                </tr>
+                        </tbody>
+                    </table>
+                </section>
             <hr>
-            $for edit in result['edits']:
-                $if not edit.get('revision'):
-                    <h3>$_("New %(thing_type)s record will be created", thing_type=edit['type']['key'])</h3>
-                    <textarea readonly aria-label="json preview of new record" style="width: 100%; height: 200px;">$json_encode(edit, indent=2)</textarea>
-                $else:
-                    <h3>$_("Changes to %(key)s", key=edit['key'])</h3>
-                    $ prev = get_document(edit['key'])
-                    $ edit = create_thing(edit)
-                    $:render_template('diff.html', prev, edit, show_header=False)
-                <hr>
 
         <form method="POST" action="/import/preview">
             <input type="hidden" name="provider" value="$req.metadata_provider.id_name">

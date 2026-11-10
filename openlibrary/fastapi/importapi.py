@@ -52,7 +52,7 @@ def import_preview_json_get(
     provider: Annotated[
         str | None,
         Query(
-            description="Metadata provider: amazon, ia, or marc",
+            description="Metadata provider: amazon, ia, marc, or project_gutenberg",
         ),
     ] = None,
     identifier: Annotated[

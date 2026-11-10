@@ -6,7 +6,7 @@
  * The pure decision logic lives in ./new_pr_labeler_core.mjs. Nothing here runs
  * at import time, so the tests drive it with a fake Octokit.
  */
-import { decideLabelsAndAssignee, findIssueReferences, resolveIssueMetadata, sweepLabels, sweepSkipReason } from './new_pr_labeler_core.mjs';
+import { decideLabelsAndAssignee, findIssueReferences, needsReviewSwap, resolveIssueMetadata, sweepLabels, sweepSkipReason } from './new_pr_labeler_core.mjs';
 
 // `issueOrPullRequest` because a `#N` may point at a PR as well as an issue.
 // `parent` is the issue this one is a sub-issue of (typically its epic).
@@ -16,6 +16,7 @@ const ISSUE_QUERY = `
       issueOrPullRequest(number: $number) {
         __typename
         ... on Issue {
+          state
           labels(first: 50) { nodes { name } }
           parent { number repository { nameWithOwner } labels(first: 50) { nodes { name } } }
         }
@@ -159,6 +160,52 @@ export async function applyPlan(octokit, fullRepoName, prNumber, { assignee, lab
 }
 
 /**
+ * Swaps `Needs: Response` for `Needs: Review` on each open same-repo issue the
+ * PR body references (closing or not; see findIssueReferences()). PRs,
+ * Discussions and missing numbers are skipped. Safe to re-run: the new label is
+ * added before the old one is removed, so a failure part-way leaves both.
+ *
+ * @param {import('@octokit/core').Octokit} octokit
+ * @param {string} fullRepoName
+ * @param {string} prBody
+ * @returns {Promise<number[]>} The issues that were swapped.
+ */
+export async function swapNeedsResponseForReview(octokit, fullRepoName, prBody) {
+    const [owner, repo] = fullRepoName.split('/');
+    const headers = { 'X-GitHub-Api-Version': '2022-11-28' };
+    const swapped = [];
+    for (const { number } of findIssueReferences(prBody, fullRepoName).slice(0, MAX_REFERENCES)) {
+        const node = await lookUpReference(octokit, owner, repo, number);
+        if (node?.__typename !== 'Issue' || !needsReviewSwap({ state: node.state, labelNames: node.labels.nodes.map(label => label.name) })) {
+            continue;
+        }
+        await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
+            owner,
+            repo,
+            issue_number: number,
+            labels: ['Needs: Review'],
+            headers
+        });
+        try {
+            await octokit.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}', {
+                owner,
+                repo,
+                issue_number: number,
+                name: 'Needs: Response',
+                headers
+            });
+        } catch (error) {
+            // Already removed (e.g. by a concurrent run or a human) is fine.
+            if (error.status !== 404) {
+                throw error;
+            }
+        }
+        swapped.push(number);
+    }
+    return swapped;
+}
+
+/**
  * Runs the sweep: plans and applies a lead for every open PR
  * that sweepSkipReason() lets through.
  *
@@ -223,6 +270,7 @@ export async function runSweep(octokit, fullRepoName) {
 const tableCell = text =>
     String(text)
         .replace(/\s*\n\s*/g, ' ')
+        .replace(/\\/g, '\\\\')
         .replace(/\|/g, '\\|');
 
 /**
