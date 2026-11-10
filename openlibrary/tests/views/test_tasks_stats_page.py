@@ -1,6 +1,7 @@
 """Tests for the numbers /stats/tasks renders server-side (openlibrary.views.loanstats)."""
 
 import datetime as dt
+from types import SimpleNamespace
 
 import pytest
 
@@ -152,3 +153,14 @@ def test_saves_by_field_add_up_across_days_most_first():
         ("Publisher", "1", "10%", 14),
     ]
     assert loanstats.build_saves_by_field([]) == []
+
+
+def test_unreadable_visitor_counts_leave_the_page_without_visitors(monkeypatch):
+    monkeypatch.setattr(admin, "get_ol_env", lambda: SimpleNamespace(LOCAL_DEV=False))
+
+    def empty_answer(ndays):
+        # Graphite answering `[]` makes `response.json()[0]` raise this.
+        raise IndexError("list index out of range")
+
+    monkeypatch.setattr(admin, "_get_visitor_counts_from_graphite", empty_answer)
+    assert admin.visitors_by_day(30) == {}

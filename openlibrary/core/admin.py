@@ -1,6 +1,7 @@
 """Admin functionality."""
 
 import calendar
+import logging
 import random
 from datetime import UTC, date, datetime, timedelta
 
@@ -11,6 +12,8 @@ from openlibrary.core import cache
 from openlibrary.core.async_db import fetch_val
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.helpers import commify, format_date
+
+logger = logging.getLogger(__name__)
 
 
 class Stats:
