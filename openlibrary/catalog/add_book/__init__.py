@@ -37,8 +37,8 @@ from urllib.parse import urlparse
 
 import requests
 import web
-
 from infogami import config
+
 from openlibrary import accounts
 from openlibrary.catalog.add_book.load_book import (
     author_import_record_to_author,
@@ -88,6 +88,7 @@ ALLOWED_COVER_HOSTS: Final = (
     "commons.wikimedia.org",
     "covers.openlibrary.org",
     "m.media-amazon.com",
+    "www.gutenberg.org",
 )
 
 

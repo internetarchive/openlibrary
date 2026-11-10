@@ -3,9 +3,9 @@ from datetime import datetime
 
 import pytest
 import web
-
 from infogami.infobase.client import Nothing
 from infogami.infobase.core import Text
+
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
     IndependentlyPublished,
@@ -2108,6 +2108,7 @@ def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
         ("https://m.media-amazon.com/image/123.jpg", True),
         ("http://m.media-amazon.com/image/123.jpg", True),
         ("https://m.MEDIA-amazon.com/image/123.jpg", True),
+        ("https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg", True),
     ],
 )
 def test_check_cover_url_host(cover_url: str, is_valid: bool) -> None:
