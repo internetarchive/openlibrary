@@ -197,3 +197,42 @@ def test_source_url_is_absent_when_the_feed_gives_no_self_link():
     rec = to_import_record(pub, BWB)
     assert rec is not None
     assert "source_url" not in rec["acquisitions"][0]["data"]
+
+
+def _isbn_pub(identifier: str) -> Publication:
+    return Publication(
+        metadata={"title": "A Book", "author": "Someone", "identifier": identifier},
+        links=[Link(rel="http://opds-spec.org/acquisition/buy", href="https://example.org/buy")],
+    )
+
+
+@pytest.mark.parametrize(
+    ("identifier", "field", "stored"),
+    [
+        # An "isbn" feed says its local id is an ISBN, not that it is an ISBN 13.
+        ("urn:isbn:0-486-28061-6", "isbn_10", "0486280616"),
+        ("urn:isbn:0486280616", "isbn_10", "0486280616"),
+        ("urn:isbn:978-0-486-28061-5", "isbn_13", "9780486280615"),
+        ("urn:isbn:9780486280615", "isbn_13", "9780486280615"),
+    ],
+)
+def test_isbn_feed_routes_by_canonical_form(identifier, field, stored):
+    rec = to_import_record(_isbn_pub(identifier), BWB)
+    assert rec[field] == [stored]
+    other = "isbn_13" if field == "isbn_10" else "isbn_10"
+    assert other not in rec
+
+
+def test_isbn_feed_keeps_the_providers_local_id_for_identity():
+    """The ISBN field is canonicalized; the acquisitions identity is not."""
+    rec = to_import_record(_isbn_pub("urn:isbn:0-486-28061-6"), BWB)
+    assert rec["isbn_10"] == ["0486280616"]
+    assert rec["source_records"] == ["betterworldbooks:0-486-28061-6"]
+    assert rec["acquisitions"][0]["local_id"] == "0-486-28061-6"
+
+
+@pytest.mark.parametrize("identifier", ["urn:isbn:not-an-isbn", "urn:isbn:12345678901234"])
+def test_isbn_feed_drops_an_unusable_isbn(identifier):
+    rec = to_import_record(_isbn_pub(identifier), BWB)
+    assert "isbn_10" not in rec
+    assert "isbn_13" not in rec
