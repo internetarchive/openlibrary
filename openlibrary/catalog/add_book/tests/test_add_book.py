@@ -166,6 +166,47 @@ def test_match_wikisource_edition(mock_site, add_languages, ia_writeback):
     assert result == ["/books/OL1M"]
 
 
+def _gutenberg_rec(pg_id: str = "1661") -> dict:
+    return {
+        "title": "The Adventures of Sherlock Holmes",
+        "authors": [{"name": "Arthur Conan Doyle"}],
+        "source_records": [f"project_gutenberg:{pg_id}"],
+        "identifiers": {"project_gutenberg": [pg_id]},
+    }
+
+
+def test_gutenberg_reimport_matches_by_id(mock_site, add_languages, ia_writeback):
+    first = load(_gutenberg_rec())
+    assert first["edition"]["status"] == "created"
+
+    second = load(_gutenberg_rec())
+    assert second["edition"]["key"] == first["edition"]["key"]
+    assert second["edition"]["status"] != "created"
+
+
+def test_gutenberg_import_matches_librarian_tagged_edition(mock_site, add_languages, ia_writeback):
+    existing = load(
+        {
+            "title": "Adventures of Sherlock Holmes",
+            "publishers": ["Some Publisher"],
+            "source_records": ["test:sherlock"],
+            "identifiers": {"project_gutenberg": ["1661"]},
+        }
+    )
+
+    assert load(_gutenberg_rec())["edition"]["key"] == existing["edition"]["key"]
+
+
+def test_gutenberg_import_ignores_same_title_edition_without_its_id(mock_site, add_languages, ia_writeback):
+    print_edition = load({**_gutenberg_rec(), "source_records": ["test:print"], "identifiers": {}})
+    other_pg = load(_gutenberg_rec("48320"))
+
+    reply = load(_gutenberg_rec())
+    assert reply["edition"]["status"] == "created"
+    assert reply["edition"]["key"] not in (print_edition["edition"]["key"], other_pg["edition"]["key"])
+    assert build_pool(_gutenberg_rec()) == {"project_gutenberg": [reply["edition"]["key"]]}
+
+
 def test_load_without_required_field():
     rec = {"ocaid": "test item"}
     with pytest.raises(RequiredFields):
