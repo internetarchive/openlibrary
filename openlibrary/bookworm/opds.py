@@ -27,6 +27,7 @@ from pydantic import BaseModel, ConfigDict
 
 from openlibrary.coverstore.utils import is_allowed_cover_url
 from openlibrary.plugins.upstream.utils import get_marc21_language
+from openlibrary.utils.isbn import get_isbn_field
 
 BUY_REL = "http://opds-spec.org/acquisition/buy"
 OPEN_ACCESS_REL = "http://opds-spec.org/acquisition/open-access"
@@ -223,7 +224,13 @@ def to_import_record(pub: Publication, feed: Feed) -> dict[str, Any] | None:
     # its identifier type are one and the same — e.g. gutenberg must be
     # registered as ``project_gutenberg``.
     if feed.id_strategy == "isbn":
-        record["isbn_13"] = [local_id]
+        # An "isbn" feed states that its local id is an ISBN, not that it is an
+        # ISBN 13 -- hyphenated or not, a 10 belongs in isbn_10. local_id itself
+        # stays exactly as the provider sent it, since it is this publication's
+        # identity in the acquisitions table.
+        isbn_field, canonical_isbn = get_isbn_field(local_id)
+        if isbn_field:
+            record[isbn_field] = [canonical_isbn]
     elif feed.id_strategy == "gutenberg":
         record["identifiers"] = {"project_gutenberg": [local_id]}
     elif feed.id_strategy == "self_link":
