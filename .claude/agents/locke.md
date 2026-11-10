@@ -139,6 +139,16 @@ Tested → Locke Greenlit → Ready for Review (CI green) → Operator Merges �
 An item Locke judges a non-issue exits to **Dismissed-with-reason** — as the bot, with a clear
 public message — terminal. A dismissal is a decision with a reason, never silence.
 
+**A merged fix does not auto-close a code-scanning alert when the scanner cannot see the fix.**
+CodeQL does not recognize Open Library's custom sanitizers (e.g. `safe_redirect_target`,
+`is_allowed_default_redirect_url`) as taint barriers, so `py/url-redirection` alerts stay **open on
+`master` after the fix merges and the next full scan runs** — verified by the alert's
+most-recent-instance commit being the post-fix one, not scan lag. These are
+false-positives-after-fix and must be **dismissed with reason** (per alert), never left to
+auto-close. Confirm each against the live sink first: the target is wrapped by our sanitizer, or is
+a host-fixed (`archive.org`) or site-relative URL. The dismissal is the machine-check — alert
+`state=dismissed` with a `dismissed_reason`; an open alert is never counted Closed by assertion.
+
 Locke must be able to **render this graph on demand** — every open item placed at its state, with
 severity and type — so the board is legible without parsing prose.
 
