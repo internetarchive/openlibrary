@@ -394,6 +394,34 @@ msgid "Show Raw Import Data"
 msgstr ""
 
 #: import_preview.html
+msgid "New work will be created"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Work matched: %(link)s"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Work modified: %(link)s"
+msgstr ""
+
+#: import_preview.html
+msgid "New edition will be created"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Edition matched: %(link)s"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Edition modified: %(link)s"
+msgstr ""
+
+#: import_preview.html
 #, python-format
 msgid "New %(thing_type)s record will be created"
 msgstr ""
@@ -401,6 +429,48 @@ msgstr ""
 #: import_preview.html
 #, python-format
 msgid "Changes to %(key)s"
+msgstr ""
+
+#: import_preview.html
+msgid "New author will be created"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Author matched: %(link)s"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Author modified: %(link)s"
+msgstr ""
+
+#: import_preview.html
+msgid "Other edits"
+msgstr ""
+
+#: import_preview.html
+msgid "Acquisitions that will be added"
+msgstr ""
+
+#: import_preview.html
+msgid "Provider"
+msgstr ""
+
+#: import_preview.html
+msgid "Provider ID"
+msgstr ""
+
+#: import_preview.html openlibrary/edition_scorecard.py
+msgid "Access"
+msgstr ""
+
+#: import_preview.html openlibrary/plugins/openlibrary/contribute.py type/edition/view.html type/work/view.html
+msgid "Format"
+msgstr ""
+
+#: books/edit/web.html import_preview.html
+msgid "URL"
 msgstr ""
 
 #: internalerror.html
@@ -540,11 +610,7 @@ msgstr ""
 msgid "Added new book."
 msgstr ""
 
-#: messages.html
-msgid "Thank you for improving the Open Library catalog!"
-msgstr ""
-
-#: ObservationsModal.html account/loans.html contribute/task.html.jinja lists/lists.html merge/authors.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html account/loans.html lists/lists.html merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -1704,7 +1770,7 @@ msgstr ""
 msgid "My lists"
 msgstr ""
 
-#: EditionNavBar.html SearchNavigation.html.jinja account/sidebar.html lists/home.html openlibrary/core/shell/nav.py recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
+#: EditionNavBar.html SearchNavigation.html.jinja account/sidebar.html lists/home.html openlibrary/core/shell/nav.py openlibrary/views/loanstats.py recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
 msgid "Lists"
 msgstr ""
 
@@ -2010,7 +2076,7 @@ msgstr ""
 msgid "Edits Per Day"
 msgstr ""
 
-#: admin/index.html admin/people/index.html
+#: admin/index.html admin/people/index.html openlibrary/views/loanstats.py
 msgid "Edits"
 msgstr ""
 
@@ -2018,7 +2084,7 @@ msgstr ""
 msgid "Yesterday"
 msgstr ""
 
-#: admin/index.html
+#: admin/index.html stats/tasks.html.jinja
 msgid "Last 7 days"
 msgstr ""
 
@@ -4014,10 +4080,6 @@ msgid "For example: <em>New York Times review</em>"
 msgstr ""
 
 #: books/edit/web.html
-msgid "URL"
-msgstr ""
-
-#: books/edit/web.html
 msgid "Add Link"
 msgstr ""
 
@@ -4058,20 +4120,28 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
-#: contribute/dashboard.html.jinja openlibrary/plugins/openlibrary/contribute.py
+#: contribute/dashboard.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
 msgid "Tasks"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Fill in what's missing on real books, one detail at a time."
+msgid "Help build the catalog, one book at a time."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Surprise me"
+msgid "Your edits"
+msgstr ""
+
+#: contribute/dashboard.html.jinja stats/tasks.html.jinja
+msgid "Community projects"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "A random book that needs a hand."
+msgid "Getting the list ready…"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Go further"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
@@ -4079,31 +4149,7 @@ msgid "Filter tasks"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Missing"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
 msgid "Tasks couldn't load right now. Reload the page to try again."
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Current initiative"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Your recent fixes"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "See all your edits"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Fixes you save here show up in this list."
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Go further"
 msgstr ""
 
 #: contribute/done.html.jinja
@@ -4207,16 +4253,6 @@ msgstr ""
 
 #: contribute/nothing.html.jinja contribute/task.html.jinja
 msgid "Back to the list"
-msgstr ""
-
-#: contribute/task.html.jinja
-#, python-format
-msgid "Saved %(field)s for %(link_start)s%(title)s%(link_end)s: %(value)s"
-msgstr ""
-
-#: contribute/task.html.jinja
-#, python-format
-msgid "Saved %(field)s for %(link_start)s%(title)s%(link_end)s"
 msgstr ""
 
 #: covers/add.html
@@ -5746,6 +5782,14 @@ msgstr ""
 msgid "Browse"
 msgstr ""
 
+#: shell/edit_saved.html.jinja
+msgid "Thank you for improving the Open Library catalog!"
+msgstr ""
+
+#: shell/edit_saved.html.jinja
+msgid "Got a minute? Help with a community project"
+msgstr ""
+
 #: shell/footer.html.jinja
 msgid "Vision"
 msgstr ""
@@ -6059,20 +6103,41 @@ msgid "Most Rated Books (All Time)"
 msgstr ""
 
 #: stats/tasks.html stats/tasks.html.jinja
-msgid "Tasks Stats"
+msgid "Editing Stats"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Counts are gathered every hour, so today's figures fill in as the day goes on."
+msgid "Metrics. Choose one to chart it."
 msgstr ""
 
-#: stats/tasks.html.jinja
-msgid "Metrics, last 28 days. Choose one to chart it."
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+#, python-format
+msgid "%(returning)s returning · %(first_time)s first-time"
 msgstr ""
 
-#: stats/tasks.html.jinja
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
 #, python-format
 msgid "%(change)s vs previous 28 days"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Scope"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "All editing"
+msgstr ""
+
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+msgid "Through Tasks"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Period"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Compare to previous period"
 msgstr ""
 
 #: openlibrary/views/loanstats.py stats/tasks.html.jinja
@@ -6080,7 +6145,7 @@ msgid "Per day"
 msgstr ""
 
 #: openlibrary/views/loanstats.py stats/tasks.html.jinja
-msgid "Previous period"
+msgid "4 weeks earlier"
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -6120,15 +6185,35 @@ msgid "Month"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Compare to previous period"
-msgstr ""
-
-#: stats/tasks.html.jinja
 msgid "Chart of the chosen metric over the chosen range"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Details still missing across the initiative's books, counted nightly. A detail nobody could find counts as filled."
+msgid "Share through Tasks"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Tasks saves as a share of all edits, and Tasks editors as a share of all editors, by day."
+msgstr ""
+
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+msgid "Of edits"
+msgstr ""
+
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+msgid "Of editors"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Share of edits and of editors through Tasks, by day"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Details still missing across each project's books. A detail nobody could find counts as filled."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Community projects. Choose one to chart it."
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -6149,7 +6234,7 @@ msgid "marked not found"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Details still open, by day"
+msgid "Details still open on the chosen project, by day"
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -6203,6 +6288,19 @@ msgstr ""
 
 #: stats/tasks.html.jinja
 msgid "Share of Tasks saves undone, and of fills outside Tasks, by day"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Counts are gathered every hour, so today's figures fill in as the day goes on."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Community project progress is counted nightly."
+msgstr ""
+
+#: stats/tasks.html.jinja
+#, python-format
+msgid "Edit totals start on %(date)s, so longer ranges begin partway through."
 msgstr ""
 
 #: subjects/notfound.html
@@ -6530,7 +6628,7 @@ msgstr ""
 msgid "Volume"
 msgstr ""
 
-#: type/edition/view.html type/work/view.html
+#: openlibrary/plugins/openlibrary/contribute.py type/edition/view.html type/work/view.html
 msgid "Genre"
 msgstr ""
 
@@ -6552,10 +6650,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "External Links"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py type/edition/view.html type/work/view.html
-msgid "Format"
 msgstr ""
 
 #: OlPagination.html.jinja OlPaginationArrows.html type/edition/view.html type/work/editions_datatable.html type/work/view.html
@@ -6849,7 +6943,7 @@ msgstr ""
 msgid "Collection"
 msgstr ""
 
-#: type/page/view.html
+#: openlibrary/contribute/initiatives.py type/page/view.html
 #, python-format
 msgid "%(count)s book"
 msgid_plural "%(count)s books"
@@ -7944,6 +8038,20 @@ msgid "Go to edit page"
 msgstr ""
 
 #: contribute/parts.html.jinja
+msgid "Just saved"
+msgstr ""
+
+#: contribute/parts.html.jinja
+#, python-format
+msgid "%(field)s added: %(value)s"
+msgstr ""
+
+#: contribute/parts.html.jinja
+#, python-format
+msgid "%(field)s added"
+msgstr ""
+
+#: contribute/parts.html.jinja
 msgid "How to answer"
 msgstr ""
 
@@ -7988,6 +8096,14 @@ msgstr ""
 #: contribute/parts.html.jinja
 #, python-format
 msgid "And %(count)s more."
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Suggested by the subjects"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Other genres"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8049,7 +8165,7 @@ msgid "No matching language"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Other editions say"
+msgid "Other editions say…"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8073,10 +8189,6 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 msgid "Save and next"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "I couldn't find it"
 msgstr ""
 
 #: contribute/parts.html.jinja openlibrary/core/shell/shelf_labels.py
@@ -8240,6 +8352,45 @@ msgid "Anthologies and collections take the form of what's inside. A book of ess
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
+msgid "Genres"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Pick genres"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Which genres fit this book?"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid ""
+"Start with the record: the subjects, and the description when there is one. If you know the book, pick from what you know.\n"
+"\n"
+"Otherwise look it up. Google Books lists Categories such as Fiction / Horror, WorldCat lists Genre/Form headings such as Fantasy fiction, and Goodreads shows what readers shelve it as."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Goodreads"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Some genres are settings (fantasy, historical), some are plot shapes (mystery, romance) and some are tones (humor). A book takes at most one of each, and usually just one or two in all."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Go by what the book is sold as, not every element in it. A fantasy with a love story is fantasy; a love story in a fantasy setting is romance."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Children's and young adult are audiences, not genres, and a subject of just “Fiction” says nothing about genre. With nothing more to go on, choose Not sure."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Pick every genre that fits. Not sure of one? Leave it out."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
 msgid "Fill in publisher"
 msgstr ""
 
@@ -8343,6 +8494,27 @@ msgstr ""
 msgid "I opened a print record and its publisher and edition match this one."
 msgstr ""
 
+#: openlibrary/contribute/initiatives.py
+msgid "Sort the Stacks"
+msgstr ""
+
+#: openlibrary/contribute/initiatives.py
+msgid "Mark the books people shelve most as fiction or nonfiction, and pick their genres."
+msgstr ""
+
+#: openlibrary/contribute/initiatives.py
+msgid "Fill the Gaps"
+msgstr ""
+
+#: openlibrary/contribute/initiatives.py
+msgid "Add missing covers, page counts, publishers and languages to the books people shelve most."
+msgstr ""
+
+#: openlibrary/contribute/initiatives.py
+#, python-format
+msgid "%(books)s · Started %(date)s"
+msgstr ""
+
 #: openlibrary/contribute/save.py
 msgid "Pick a language from the list."
 msgstr ""
@@ -8362,6 +8534,10 @@ msgstr ""
 #: openlibrary/contribute/save.py
 #, python-format
 msgid "Filled in %(field)s from Open Library Tasks"
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "Pick at least one genre, or choose “Not sure”."
 msgstr ""
 
 #: openlibrary/contribute/save.py
@@ -9056,10 +9232,6 @@ msgid "Edition Scorecard"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid "Access"
-msgstr ""
-
-#: openlibrary/edition_scorecard.py
 msgid "Discovery"
 msgstr ""
 
@@ -9185,28 +9357,39 @@ msgid "Fiction or nonfiction"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Missing cover"
+msgid "Books missing a cover"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Missing language"
+msgid "Books missing a language"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Missing page count"
+msgid "Books missing a page count"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Missing publisher"
+msgid "Books missing a publisher"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Missing identifiers"
+msgid "Books missing identifiers"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Missing fiction or nonfiction"
+msgid "Books not marked fiction or nonfiction"
 msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Books missing a genre"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(count)s task left"
+msgid_plural "%(count)s tasks left"
+msgstr[0] ""
+msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "Published"
@@ -9226,7 +9409,7 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "The %(count)s most-read books"
+msgid "Subjects mention %(subjects)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -9235,11 +9418,19 @@ msgid "%(percent)s%%"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Fill in what's missing on the books people shelve most."
+#, python-format
+msgid "%(percent)s%% done"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "All open tasks"
+#, python-format
+msgid "%(count)s person helping"
+msgid_plural "%(count)s people helping"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "All project tasks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -9279,15 +9470,20 @@ msgid "Doing a lot of these? Open Librarians get more editing tools. Applying ta
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Most needed"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Nothing missing here right now. Thank you."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
+msgid "I couldn't find it"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Nothing to fill in here"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(first)s and %(second)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -9819,15 +10015,25 @@ msgid "Editors"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "People who changed a book, work or author record. In week and month views, someone who edited on several days counts once."
+msgid "People who changed a book, work or author record, and those whose first edit ever it was. Week and month views count each person once."
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "First-time editors"
+msgid "Edits saved by people, not bots: to books, works, authors and other pages, to lists, and from the Tasks page."
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "People who made their first edit ever on that day. Each person is counted once, on the day of their first edit."
+#, python-format
+msgid "≈ %(count)s per editor"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "The share of edits saved from the Tasks page."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "of edits · %(share)s of editors"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -9836,6 +10042,11 @@ msgstr ""
 
 #: openlibrary/views/loanstats.py
 msgid "Edits saved from the Tasks page."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(share)s of all edits"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -9848,8 +10059,32 @@ msgstr ""
 
 #: openlibrary/views/loanstats.py
 #, python-format
-msgid "Most-read %(count)s"
+msgid "%(share)s of all editors"
 msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Saves per Tasks editor"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks saves for each person who saved one."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "vs ≈ %(count)s edits per editor overall"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "<b>—</b> people have helped"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "<b>%(count)s</b> person has helped"
+msgid_plural "<b>%(count)s</b> people have helped"
+msgstr[0] ""
+msgstr[1] ""
 
 #: openlibrary/views/loanstats.py
 msgid "Per week"
@@ -9860,13 +10095,32 @@ msgid "Per 4 weeks"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-#, python-format
-msgid "Previous period: %(count)s"
+msgid "A week earlier"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
 #, python-format
-msgid "%(change)s vs previous period"
+msgid "A week earlier: %(count)s"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "4 weeks earlier: %(count)s"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(change)s vs a week earlier"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(change)s vs 4 weeks earlier"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(change)s vs previous 7 days"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -9894,6 +10148,23 @@ msgstr ""
 
 #: openlibrary/views/loanstats.py
 msgid "No counts for this range yet."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Returning"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "First edit ever"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Records and other pages"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "Total: %(count)s"
 msgstr ""
 
 #: openlibrary/views/loanstats.py

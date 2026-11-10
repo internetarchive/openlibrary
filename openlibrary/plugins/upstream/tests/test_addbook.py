@@ -726,3 +726,42 @@ class TestMakeWork:
 )
 def test_is_valid_web_book_url(url, expected):
     assert addbook.is_valid_web_book_url(url) is expected
+
+
+class TestEditSavedFlash:
+    """``add_edit_saved_flash``: the thank-you every save gets, and the Tasks pitch at most once a day."""
+
+    @pytest.fixture
+    def saved(self, monkeypatch):
+        seen = web.storage(flash=[], cookies={}, set_cookies={})
+        monkeypatch.setattr(addbook, "add_flash_message", lambda type, message: seen.flash.append((type, message)))
+        monkeypatch.setattr(web, "cookies", lambda: seen.cookies)
+        monkeypatch.setattr(web, "setcookie", lambda name, value, expires="": seen.set_cookies.update({name: expires}))
+        monkeypatch.setattr(addbook.pitch, "encode", lambda book_keys=(): "most-read-2026-11:485")
+        return seen
+
+    def test_pitches_tasks_and_marks_it_seen_for_a_day(self, saved):
+        addbook.add_edit_saved_flash("/books/OL1M")
+        assert saved.flash == [("edit-saved", "most-read-2026-11:485")]
+        assert saved.set_cookies == {addbook.pitch.SEEN_COOKIE: 24 * 60 * 60}
+
+    @pytest.mark.parametrize("cookie", [addbook.pitch.SEEN_COOKIE, addbook.pitch.dismiss_cookie()])
+    def test_only_thanks_once_seen_today_or_closed(self, saved, cookie):
+        saved.cookies[cookie] = "1"
+        addbook.add_edit_saved_flash("/books/OL1M")
+        assert saved.flash == [("edit-saved", "")]
+        assert saved.set_cookies == {}
+
+    def test_nothing_to_pitch_leaves_tomorrows_chance_alone(self, saved, monkeypatch):
+        monkeypatch.setattr(addbook.pitch, "encode", lambda book_keys=(): "")
+        addbook.add_edit_saved_flash()
+        assert saved.flash == [("edit-saved", "")]
+        assert saved.set_cookies == {}
+
+    def test_a_broken_cache_still_thanks_the_editor(self, saved, monkeypatch):
+        def broken(book_keys=()):
+            raise RuntimeError("memcache is down")
+
+        monkeypatch.setattr(addbook.pitch, "encode", broken)
+        addbook.add_edit_saved_flash("/books/OL1M")
+        assert saved.flash == [("edit-saved", "")]

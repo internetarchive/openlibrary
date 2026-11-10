@@ -156,14 +156,14 @@ Registered types:
 
 **Depends on:**
 - [[core-operations]] — Infogami `Thing` class for List/Series; `web.ctx.site` for data access
-- [[search]] — `get_users_logged_books()` enriches DB records with Solr work data
-- [[auth]] — all features require a logged-in patron
+- [search](../search/README.md) — `get_users_logged_books()` enriches DB records with Solr work data
+- [auth](../core/auth.md) — all features require a logged-in patron
 
 **Depended on by:**
-- [[lending]] — reading log `Currently Reading` shelf can reflect borrowed books
-- [[bookreader]] — reading progress, bookmarks within BookReader integrate with reading log
-- [[core-vitals]] — `bookshelves_books` is the primary demand signal for the Demand Score; `monthly_edition_readinglog_counts` and `historical_work_readinglog_counts` feed directly into the CVS formula
+- [lending](../lending/README.md) — reading log `Currently Reading` shelf can reflect borrowed books
+- [bookreader](../frontend/bookreader.md) — reading progress, bookmarks within BookReader integrate with reading log
+- [core-vitals](../analytics/core-vitals.md) — `bookshelves_books` is the primary demand signal for the Demand Score; `monthly_edition_readinglog_counts` and `historical_work_readinglog_counts` feed directly into the CVS formula
 
 ---
 
-*Sources: `bookshelves.py`, `ratings.py`, `observations.py`, `booknotes.py`, `yearly_reading_goals.py`, `follows.py`, `lists/model.py` (code synthesis) · See [[README]] · [[METHODOLOGY]]*
+*Sources: `bookshelves.py`, `ratings.py`, `observations.py`, `booknotes.py`, `yearly_reading_goals.py`, `follows.py`, `lists/model.py` (code synthesis) · See [README](../README.md) · [[METHODOLOGY]]*

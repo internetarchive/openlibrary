@@ -176,3 +176,15 @@ export function needsLeadChange(labelNames) {
     if (hasLead && hasNeedsLead) return 'remove';
     return null;
 }
+
+/**
+ * Decides whether an issue a PR references should move from `Needs: Response`
+ * to `Needs: Review`: once an open PR works on it, the next step is reviewing
+ * the PR, not answering on the issue. Closed issues are left alone.
+ *
+ * @param {{state: string, labelNames: string[]}} issue `state` is GraphQL's OPEN or CLOSED.
+ * @returns {boolean}
+ */
+export function needsReviewSwap({ state, labelNames }) {
+    return state === 'OPEN' && labelNames.includes('Needs: Response');
+}

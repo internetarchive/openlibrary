@@ -138,6 +138,44 @@
   }
 }
 
+/* "Save and next": the save just made. */
+.contrib-saved {
+  min-width: 0;
+}
+
+.contrib-saved__status {
+  display: flex;
+  gap: var(--spacing-inline-sm);
+  align-items: center;
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-success-fg);
+}
+
+.contrib-saved__book {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+}
+
+.contrib-saved__title {
+  font-weight: var(--font-weight-semibold);
+}
+
+.contrib-saved__detail {
+  font-size: var(--font-size-body-small);
+}
+
+.contrib-saved__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contrib-saved__title a:hover {
+    text-decoration: underline;
+  }
+}
+
 .contrib-book__authors {
   font-size: var(--font-size-body-medium);
 }
@@ -174,7 +212,9 @@
   }
 
   .contrib-row:hover .contrib-book__actions,
-  .contrib-row:focus-within .contrib-book__actions {
+  .contrib-row:focus-within .contrib-book__actions,
+  .contrib-saved:hover .contrib-book__actions,
+  .contrib-saved:focus-within .contrib-book__actions {
     opacity: 1;
   }
 }
@@ -213,16 +253,12 @@
   transform: scaleX(-1);
 }
 
-/* Task page: the question and the record in one column, help beside it on desktop. */
+/* Task page: the question on its own row, then the record with help beside it on desktop. */
 .contrib-task__main,
 .contrib-task__help {
   min-width: 0;
   display: grid;
   align-content: start;
-}
-
-.contrib-task__main > :not(:last-child) {
-  margin-block-end: var(--spacing-stack-lg);
 }
 
 .contrib-question__text {
@@ -351,6 +387,53 @@
   justify-items: start;
 }
 
+/* Chips and cover choices need the panel's whole width: the label sits on a row of its own, any hint beside it, and the control below. */
+.contrib-record__row--stack {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-stack-sm);
+}
+
+.contrib-record__row--stack dt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-inline-md);
+  line-height: inherit;
+}
+
+/* The chips, in two groups when the subjects suggest some: the suggested row over the rest, each under an overline. */
+.contrib-chips {
+  justify-self: stretch;
+  display: grid;
+  gap: var(--spacing-stack-md);
+}
+
+.contrib-chips__group {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.contrib-chips__group + .contrib-chips__group {
+  padding-block-start: var(--spacing-stack-md);
+  border-block-start: var(--border-width) solid var(--color-border-extra-subtle);
+}
+
+.contrib-chips .contrib-h {
+  margin: 0;
+}
+
+/* A subject behind a suggested genre, lit while its chip is hovered or focused: the chip's evidence, in the record. */
+.contrib-record__subject {
+  border-radius: var(--border-radius-sm);
+  padding-inline: 2px;
+  margin-inline: -2px;
+}
+
+.contrib-record__subject[data-lit] {
+  background: var(--color-control-selected-bg);
+  color: var(--color-link);
+}
+
 .contrib-suggest {
   display: flex;
   flex-wrap: wrap;
@@ -358,6 +441,11 @@
   gap: var(--spacing-inline-sm) var(--spacing-inline-md);
   font-size: var(--font-size-body-small);
   color: var(--color-text-secondary);
+}
+
+/* A lead-in to the chips, so it keeps its own line and every chip starts at the same edge. */
+.contrib-suggest__label {
+  flex-basis: 100%;
 }
 
 /* Help column */
@@ -372,39 +460,51 @@
   gap: var(--spacing-stack-sm);
 }
 
+/* Help supports the form, so its headings and lists stay plain. */
 .contrib-help .contrib-h {
   margin-block-end: 0;
+  font-size: var(--font-size-title-small);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--color-text);
+}
+
+.contrib-steps,
+.contrib-traps {
+  margin: 0;
+  padding-inline-start: var(--spacing-xl);
+  display: grid;
+  line-height: var(--line-height-body);
 }
 
 .contrib-steps {
-  counter-reset: contrib-step;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
   gap: var(--spacing-stack-md);
 }
 
 .contrib-steps > li {
-  counter-increment: contrib-step;
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
-  gap: var(--spacing-stack-sm) var(--spacing-inline-lg);
+  list-style: decimal;
 }
 
-.contrib-steps > li::before {
-  content: counter(contrib-step);
-  grid-row: span 2;
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--border-radius-pill);
-  background: var(--color-text);
-  color: var(--color-text-inverse);
-  font-size: var(--font-size-body-small);
-  font-weight: var(--font-weight-semibold);
-  font-variant-numeric: tabular-nums;
+.contrib-steps > li > :not(:last-child) {
+  margin-block-end: var(--spacing-stack-sm);
+}
+
+.contrib-traps {
+  gap: var(--spacing-stack-sm);
+}
+
+.contrib-traps > li {
+  list-style: disc;
+}
+
+/* One step: no number to count. */
+.contrib-steps--one > li {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.contrib-steps--one > li::before {
+  display: none;
 }
 
 .contrib-steps__text {
@@ -727,7 +827,9 @@
 }
 
 .contrib-receipt > div {
+  min-width: 0;
   display: grid;
+  overflow-wrap: anywhere;
   gap: var(--spacing-stack-sm);
 }
 
@@ -768,12 +870,31 @@
     grid-template-columns: minmax(0, 1fr) 340px;
     grid-template-areas:
       "back back"
+      "question question"
       "main help";
     column-gap: var(--spacing-section-gap-desktop);
   }
 
+  /* The help row takes the spare height, so a tall record doesn't stretch the callout. */
+  .contrib-page--task:has(> .contrib-saved) {
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-areas:
+      "back back"
+      "question question"
+      "main saved"
+      "main help";
+  }
+
+  .contrib-page--task > .contrib-saved {
+    grid-area: saved;
+  }
+
   .contrib-page--task > .contrib-back {
     grid-area: back;
+  }
+
+  .contrib-page--task > .contrib-question {
+    grid-area: question;
   }
 
   .contrib-task__main {
@@ -787,34 +908,12 @@
 
   .contrib-task__help {
     grid-area: help;
-    padding-block-start: var(--spacing-stack-xs);
   }
 }
 
 /* --- Identifier tasks -----------------------------------------------------
    A wrong identifier is worse than none, so these pages list the usual
    mistakes and gate the answer behind a confirmation. */
-
-.contrib-traps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--spacing-stack-sm);
-}
-
-.contrib-trap {
-  display: flex;
-  gap: var(--spacing-inline-md);
-  align-items: flex-start;
-  line-height: var(--line-height-body);
-}
-
-.contrib-trap ol-icon {
-  flex: none;
-  margin-block-start: calc((1lh - var(--icon-size-sm)) / 2);
-  color: var(--color-warning-fg);
-}
 
 .contrib-confirm {
   display: flex;
@@ -888,7 +987,6 @@
   gap: var(--spacing-inline-sm);
   justify-self: stretch;
   min-width: 0;
-  max-width: 24rem;
   margin: 0;
   padding: 0;
   border: 0;
@@ -1023,13 +1121,13 @@
   border-radius: var(--border-radius-thumbnail);
 }
 
-/* Dashboard (/tasks): a rail of filters beside the list.
-   One column on phones; the rail joins at desktop width. */
+/* Dashboard (/tasks): the community projects down the side, the open project's header, filter chips and books in the main column.
+   One column on phones; the projects become a side column at desktop width. */
 .contrib-dash {
   max-width: 1320px;
 }
 
-.contrib-dash :is(h1, h2, p) {
+.contrib-dash :is(h1, h2, h3, p) {
   margin: 0;
 }
 
@@ -1044,34 +1142,23 @@
 .contrib-dash__head {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: baseline;
   justify-content: space-between;
-  gap: var(--spacing-stack-md) var(--spacing-inline-xl);
-  padding-block-end: var(--spacing-stack-lg);
-  border-block-end: var(--border-divider);
+  gap: var(--spacing-stack-sm) var(--spacing-inline-xl);
 }
 
-.contrib-dash__one {
+.contrib-dash__heading {
   display: grid;
-  justify-items: end;
-  margin-inline-start: auto;
-  text-align: end;
-  gap: var(--spacing-stack-sm);
+  gap: var(--spacing-3xs);
 }
 
-@media (max-width: 767px) {
-  .contrib-dash__one {
-    flex-basis: 100%;
-    justify-items: stretch;
-    text-align: center;
-  }
+.contrib-dash__lede {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-medium);
 }
 
-.contrib-dash__h2 {
-  font-size: var(--font-size-title-large);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-title);
-  text-wrap: balance;
+.contrib-dash__edits {
+  font-size: var(--font-size-body-medium);
 }
 
 .contrib-dash__body {
@@ -1079,44 +1166,216 @@
   gap: var(--spacing-section-gap);
 }
 
-/* Rail: wrapping pills on phones, a vertical menu from desktop width. */
-.contrib-rail {
+.contrib-dash__side {
   display: grid;
-  gap: var(--spacing-stack-md);
+  gap: var(--spacing-section-gap);
   align-content: start;
 }
 
-.contrib-rail__group {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-inline-sm);
+.contrib-side {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  justify-items: start;
 }
 
-.contrib-rail__group > .contrib-overline {
-  flex-basis: 100%;
+/* Community projects: menu rows of two lines, the name at the control weight and what's left under it in regular type.
+   The open one takes the control-selected tint, like the selected row in any menu. */
+.contrib-projects {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+/* Darker and heavier than the shared overline, so the side column has an anchor beside the project title. */
+.contrib-projects > .contrib-overline {
+  padding-inline: var(--menu-row-padding-inline);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.contrib-projects__list {
+  display: grid;
+  gap: var(--spacing-inline-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contrib-projects__item,
+.contrib-projects__item:is(:link, :visited) {
+  display: grid;
+  gap: var(--spacing-3xs);
+  min-height: var(--menu-row-height);
+  padding: var(--spacing-inset-sm) var(--menu-row-padding-inline);
+  border-radius: var(--border-radius-menu-row);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.contrib-projects__name {
+  font-family: var(--font-family-button);
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+}
+
+.contrib-projects__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--spacing-inline-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-regular);
+}
+
+.contrib-projects__item[aria-current] {
+  background: var(--color-control-selected-bg);
+}
+
+.contrib-projects__item[aria-current]
+  :is(.contrib-projects__name, .contrib-projects__meta) {
+  color: var(--color-link);
+}
+
+.contrib-projects__item:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contrib-projects__item:not([aria-current]):hover {
+    background: var(--color-hover-overlay);
+  }
+
+  .contrib-projects__item[aria-current]:hover {
+    background: var(--color-control-selected-bg-hover);
+  }
+}
+
+.contrib-dash__main {
+  display: grid;
+  gap: var(--spacing-stack-md);
+  align-content: start;
+  min-width: 0;
+}
+
+/* The open project: name and pitch, with its progress as one ring beside them. */
+.contrib-project {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-stack-md) var(--spacing-inline-xl);
+  margin-block-end: var(--spacing-stack-sm);
+}
+
+.contrib-project__intro {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  min-width: 0;
+  max-width: 62ch;
+}
+
+.contrib-project__title {
+  font-size: var(--font-size-headline-small);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+  text-wrap: balance;
+}
+
+.contrib-project__description {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-large);
+}
+
+.contrib-project__meta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+}
+
+.contrib-ring {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 84px;
+  aspect-ratio: 1;
+}
+
+/* --width-breakpoint-tablet: a smaller ring on phones, so the title keeps its width. */
+@media (max-width: 767px) {
+  .contrib-ring {
+    width: 72px;
+  }
+
+  .contrib-ring__figure {
+    font-size: var(--font-size-title-medium);
+  }
+}
+
+.contrib-ring__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.contrib-ring__svg circle {
+  fill: none;
+  stroke-width: 9;
+}
+
+.contrib-ring__track {
+  stroke: var(--color-control-track-sunken);
+}
+
+.contrib-ring__fill {
+  stroke: var(--color-primary);
+}
+
+.contrib-ring__figure {
+  position: relative;
+  color: var(--color-text-heading);
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* Filter chips: the whole project, then each kind of task, with open counts. One is always on, so the selected one
+   takes the control-selected look rather than ol-chip's removable state. */
+.contrib-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-md);
 }
 
 .contrib-rail .contrib-rail__item {
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--spacing-inline-md);
-  min-height: var(--menu-row-height);
-  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
-  border: 1px solid var(--color-border);
+  min-height: var(--control-height-medium);
+  padding: 0 var(--spacing-inset-sm) 0 var(--menu-row-padding-inline);
   border-radius: var(--border-radius-pill);
   color: var(--color-text-secondary);
+  font-family: var(--font-family-button);
   font-size: var(--font-size-label-large);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-button);
   text-decoration: none;
 }
 
-/* The selected look ol-button[selected] and ol-toggle share: a blue tint, link-blue text. */
+.contrib-rail__count {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+  font-weight: var(--font-weight-regular);
+}
+
+/* Ghost pills: the same tint as the project rows beside them. */
 .contrib-rail .contrib-rail__item.is-on {
-  border-color: var(--color-control-selected-border);
   background: var(--color-control-selected-bg);
   color: var(--color-link);
+}
+
+.contrib-rail__item.is-on .contrib-rail__count {
+  color: inherit;
 }
 
 .contrib-rail .contrib-rail__item:focus-visible {
@@ -1129,157 +1388,54 @@
     background-color: var(--color-hover-overlay);
     color: var(--color-text);
   }
+
+  .contrib-rail__item.is-on:hover {
+    background-color: var(--color-control-selected-bg-hover);
+  }
 }
 
-/* A trailing spinner on the pressed filter while its page loads; toggled by js/contribute.js. */
-.contrib-rail__item.is-target::after {
+/* A spinner at the end of the pressed project row while its page loads; toggled by js/contribute.js.
+   18px, as on the search modal's result rows. */
+.contrib-projects__item.is-target {
+  position: relative;
+}
+
+.contrib-projects__item.is-target::after {
   content: "";
-  flex: none;
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: var(--menu-row-padding-inline);
   box-sizing: border-box;
-  width: 16px;
-  height: 16px;
-  border: 2px solid currentColor;
+  width: 18px;
+  height: 18px;
+  margin-block: auto;
+  border: 2px solid var(--color-text-secondary);
   border-right-color: transparent;
   border-radius: var(--border-radius-circle);
-  animation: contrib-rail-spin var(--duration-spin) linear infinite;
+  animation: contrib-projects-spin var(--duration-spin) linear infinite;
 }
 
-@keyframes contrib-rail-spin {
+@keyframes contrib-projects-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .contrib-rail__item.is-target::after {
+  .contrib-projects__item.is-target::after {
     animation-duration: 2s;
   }
-}
-
-.contrib-dash__main {
-  min-width: 0;
-}
-
-.contrib-dash__main .contrib-dash__listhead {
-  margin-block-end: var(--spacing-stack-md);
 }
 
 .contrib-dash__main .contrib-rows {
   margin-block-end: var(--spacing-stack-md);
 }
 
-/* Desktop and up: the rail becomes a vertical menu. */
+/* --width-breakpoint-desktop: the projects become a side column. */
 @media (min-width: 960px) {
   .contrib-dash__body {
-    grid-template-columns: 200px minmax(0, 1fr);
-    column-gap: var(--spacing-section-gap);
-  }
-
-  .contrib-rail {
-    gap: var(--spacing-stack-lg);
-  }
-
-  .contrib-rail__group {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 2px;
-  }
-
-  .contrib-rail__group > .contrib-overline {
-    flex-basis: auto;
-    padding-inline: var(--menu-row-padding-inline);
-    margin-block-end: var(--spacing-stack-xs);
-  }
-
-  .contrib-rail .contrib-rail__item {
-    display: flex;
-    border-color: transparent;
-    border-radius: var(--border-radius-menu-row);
-  }
-
-  .contrib-rail .contrib-rail__item.is-on {
-    border-color: transparent;
-  }
-}
-
-/* "Your recent fixes" in the dashboard's right column. */
-.contrib-recent {
-  display: grid;
-  gap: var(--spacing-stack-sm);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.contrib-recent__item {
-  display: grid;
-  gap: var(--spacing-3xs);
-  padding-block-end: var(--spacing-stack-sm);
-  border-block-end: 1px solid var(--color-border-subtle);
-}
-
-a.contrib-recent__title {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (hover: hover) {
-  a.contrib-recent__title:hover {
-    text-decoration: underline;
-  }
-}
-
-.contrib-recent__all {
-  justify-self: start;
-  font-size: var(--font-size-body-medium);
-}
-
-.contrib-recent__meta {
-  font-size: var(--font-size-body-small);
-}
-
-.contrib-dash__aside {
-  display: grid;
-  gap: var(--spacing-section-gap);
-  align-content: start;
-}
-
-.contrib-side {
-  display: grid;
-  gap: var(--spacing-stack-sm);
-}
-
-/* Desktop: the aside sits under the list until there is room beside it. */
-@media (min-width: 960px) {
-  .contrib-dash__aside {
-    grid-column: 2;
-  }
-}
-
-@media (min-width: 1200px) {
-  .contrib-dash__body {
-    grid-template-columns: 200px minmax(0, 1fr) 280px;
-  }
-
-  .contrib-dash__aside {
-    grid-column: auto;
-  }
-
-  /* The header shares the body's columns, so the action sits over the aside. */
-  .contrib-dash__head {
-    display: grid;
-    grid-template-columns: 200px minmax(0, 1fr) 280px;
-    column-gap: var(--spacing-section-gap);
-  }
-
-  .contrib-hero {
-    grid-column: 1 / 3;
-  }
-
-  .contrib-dash__one {
-    justify-items: stretch;
-    margin-inline-start: 0;
-    text-align: center;
+    grid-template-columns: 276px minmax(0, 1fr);
+    column-gap: var(--spacing-section-gap-desktop);
   }
 }
 
@@ -1711,60 +1867,7 @@ a.contrib-recent__title {
   }
 }
 
-/* The active initiative's progress, a sunken tile at the top of the dashboard's aside. */
-.contrib-progress {
-  display: grid;
-  gap: var(--spacing-stack-md);
-  padding: var(--spacing-inset-md);
-  border: var(--border-card);
-  border-radius: var(--border-radius-card);
-  background: var(--color-surface-sunken);
-}
-
-.contrib-progress__intro {
-  display: grid;
-  gap: var(--spacing-stack-xs);
-}
-
-.contrib-progress__title {
-  margin: 0;
-  font-size: var(--font-size-title-medium);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-title);
-}
-
-.contrib-progress__description {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-body-medium);
-}
-
-/* The bar and the headline number sit together; the number climbs with every save. */
-.contrib-progress__bar {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-inline-lg);
-}
-
-.contrib-progress__percent {
-  color: var(--color-text-heading);
-  font-size: var(--font-size-headline-large);
-  font-weight: var(--font-weight-heading);
-  line-height: var(--line-height-single);
-  font-variant-numeric: tabular-nums;
-}
-
-.contrib-progress__track {
-  flex: 1 1 auto;
-  height: 10px;
-  overflow: hidden;
-  border-radius: var(--border-radius-lg);
-  background: var(--color-control-track-sunken);
-}
-
-.contrib-progress__fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--color-primary);
+/* The row's display: grid outranks the UA's [hidden]; the companion row hides until the row that opens it is picked. */
+.contrib-record__row[hidden] {
+  display: none;
 }
