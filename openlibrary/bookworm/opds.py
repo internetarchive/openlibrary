@@ -45,6 +45,31 @@ def _as_list(value: Any) -> list:
     return value if isinstance(value, list) else [value]
 
 
+def _localized(value: Any) -> str | None:
+    """An OPDS string, which may be a language map like ``{"en": "..."}``."""
+    if isinstance(value, dict):
+        value = value.get("en") or next(iter(value.values()), None)
+    return value.strip() if isinstance(value, str) and value.strip() else None
+
+
+def _names(value: Any) -> list[str]:
+    """Names from an OPDS contributor or subject field.
+
+    Each entry may be a bare string or an object with a (possibly localized)
+    ``name``, and the field itself may be one entry or a list of them.
+    """
+    names = []
+    for entry in _as_list(value):
+        name = _localized(entry.get("name") if isinstance(entry, dict) else entry)
+        if name and name not in names:
+            names.append(name)
+    return names
+
+
+# Subject schemes that are classifications rather than topics.
+LCC_SCHEME = "http://purl.org/dc/terms/LCC"
+
+
 class Price(BaseModel):
     currency: str
     value: float
@@ -84,13 +109,39 @@ class Publication(BaseModel):
         return self.metadata.get("title")
 
     @property
+    def subtitle(self) -> str | None:
+        return _localized(self.metadata.get("subtitle"))
+
+    @property
     def authors(self) -> list[dict[str, str]]:
-        out = []
-        for author in _as_list(self.metadata.get("author")):
-            name = author.get("name") if isinstance(author, dict) else author
-            if name:
-                out.append({"name": name})
-        return out
+        return [{"name": name} for name in _names(self.metadata.get("author"))]
+
+    @property
+    def publishers(self) -> list[str]:
+        return _names(self.metadata.get("publisher"))
+
+    @property
+    def description(self) -> str | None:
+        return _localized(self.metadata.get("description"))
+
+    @property
+    def subjects(self) -> list[str]:
+        topics = [s for s in _as_list(self.metadata.get("subject")) if not (isinstance(s, dict) and s.get("scheme") == LCC_SCHEME)]
+        return _names(topics)
+
+    @property
+    def lc_classifications(self) -> list[str]:
+        """LCC codes, which OPDS carries as subjects in the LCC scheme."""
+        codes = []
+        for subject in _as_list(self.metadata.get("subject")):
+            if isinstance(subject, dict) and subject.get("scheme") == LCC_SCHEME and (code := _localized(subject.get("code"))) and code not in codes:
+                codes.append(code)
+        return codes
+
+    @property
+    def number_of_pages(self) -> int | None:
+        pages = self.metadata.get("numberOfPages")
+        return pages if isinstance(pages, int) and not isinstance(pages, bool) and pages > 0 else None
 
     @property
     def languages(self) -> list[str]:
@@ -213,6 +264,15 @@ def to_import_record(pub: Publication, feed: Feed) -> dict[str, Any] | None:
         "source_records": [f"{feed.provider_name}:{local_id}"],
         "publish_date": pub.metadata.get("published", ""),
     }
+    optional_fields = {
+        "subtitle": pub.subtitle,
+        "publishers": pub.publishers,
+        "description": pub.description,
+        "subjects": pub.subjects,
+        "lc_classifications": pub.lc_classifications,
+        "number_of_pages": pub.number_of_pages,
+    }
+    record.update({field: value for field, value in optional_fields.items() if value})
     # Invariant: for non-ISBN feeds the ``identifiers`` KEY must equal the
     # registered ``provider_name`` (the ``source_records`` prefix). The import
     # validator's feed-source exemption only accepts the record when the two

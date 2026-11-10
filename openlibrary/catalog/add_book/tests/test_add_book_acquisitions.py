@@ -53,7 +53,7 @@ CREATE TABLE feed_registry (
 """
 
 # The catalog only writes acquisitions for providers with a registered feed.
-REGISTERED_PROVIDERS: Final = ["lenny", "bwb"]
+REGISTERED_PROVIDERS: Final = ["lenny", "bwb", "project_gutenberg"]
 
 BASE: Final = {
     "title": "Flatland",
@@ -185,6 +185,22 @@ def test_end_to_end_opds_publication_to_edition_with_acquisition(mock_site, add_
     assert rows[0].provider_name == "lenny"
     assert rows[0].local_id == rec["acquisitions"][0]["local_id"]
     assert rows[0].data["acquisitions"][0]["access"] == "open-access"
+
+
+def test_opds_descriptive_metadata_reaches_the_edition_and_work(mock_site, add_languages, ia_writeback, acquisitions_db):
+    gutenberg = opds.Feed(provider_name="project_gutenberg", id_strategy="gutenberg")
+    pub = opds.Publication(**json.loads((SAMPLES / "gutenberg_2641.json").read_text()))
+    rec = opds.to_import_record(pub, gutenberg)
+    assert rec is not None
+
+    reply = load(import_edition_builder(init_dict=rec).get_dict())
+    assert reply["success"] is True
+
+    edition = mock_site.get(reply["edition"]["key"])
+    work = mock_site.get(reply["work"]["key"])
+    assert edition.lc_classifications == ["PR"]
+    assert work.description.startswith("Creators: E. M. Forster")
+    assert "Florence (Italy) -- Fiction" in work.subjects
 
 
 def test_every_acquisition_of_a_publication_is_kept(mock_site, add_languages, ia_writeback, acquisitions_db):
