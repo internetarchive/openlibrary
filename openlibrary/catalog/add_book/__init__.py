@@ -88,6 +88,7 @@ ALLOWED_COVER_HOSTS: Final = (
     "commons.wikimedia.org",
     "covers.openlibrary.org",
     "m.media-amazon.com",
+    "www.gutenberg.org",
 )
 
 
