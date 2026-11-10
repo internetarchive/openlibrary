@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
+from unittest.mock import Mock
 
 import pytest
 import web
@@ -43,6 +44,24 @@ def test_urlencode():
 def test_entity_decode():
     assert utils.entity_decode("&gt;foo") == ">foo"
     assert utils.entity_decode("<h1>") == "<h1>"
+
+
+@pytest.mark.parametrize(
+    ("isni", "expected"),
+    [
+        ("0000000121309873", "0000 0001 2130 9873"),
+        ("0000 0001 2130 9873", "0000 0001 2130 9873"),
+        ("000000000000000x", "0000 0000 0000 000X"),
+        ("not-an-isni", "not-an-isni"),
+    ],
+)
+def test_format_isni_display_value(isni, expected):
+    assert utils.format_isni_display_value(isni) == expected
+
+
+def test_format_author_identifier_value_only_formats_isni():
+    assert utils.format_author_identifier_value("isni", "0000000121309873") == "0000 0001 2130 9873"
+    assert utils.format_author_identifier_value("viaf", "123456") == "123456"
 
 
 def test_set_share_links():
@@ -147,6 +166,27 @@ def test_canonical_url():
     url = "https://www.openlibrary.org/authors/Ayn_Rand"
     assert request.canonical_url == url
 
+    # Revision selectors for history and diff links.
+    web.ctx.query = "?b=8&a=3"
+    url = "https://www.openlibrary.org/authors/Ayn_Rand"
+    assert request.canonical_url == url
+
+    # Presentation and the librarian toggle go; pagination stays.
+    web.ctx.query = "?page=2&layout=grid&show_page_status=1"
+    url = "https://www.openlibrary.org/authors/Ayn_Rand?page=2"
+    assert request.canonical_url == url
+
+    # A query changes what the page shows, so it stays.
+    web.ctx.query = "?q=anthem&page=2&ref=ol"
+    url = "https://www.openlibrary.org/authors/Ayn_Rand?q=anthem&page=2"
+    assert request.canonical_url == url
+
+    # A work canonicalizes without the edition it happens to be showing.
+    web.ctx.path = "/works/OL1W/Title"
+    web.ctx.query = "?edition=key:/books/OL1M&_autoReadAloud=show&ref=ol"
+    url = "https://www.openlibrary.org/works/OL1W/Title"
+    assert request.canonical_url == url
+
 
 def test_get_coverstore_url(monkeypatch):
     monkeypatch.delattr(config, "coverstore_url", raising=False)
@@ -195,6 +235,27 @@ def test_strip_accents():
     assert f("Des idées napoléoniennes") == "Des idees napoleoniennes"
     # It only modifies Unicode Nonspacing Mark characters:
     assert f("Bokmål : Standard Østnorsk") == "Bokmal : Standard Østnorsk"
+
+
+class TestConvertIsoToMarcCache:
+    @pytest.fixture(autouse=True)
+    def language_catalog(self, monkeypatch):
+        loader = Mock(
+            return_value={
+                "eng": web.storage(code="eng", identifiers={"iso_639_1": ["en"]}),
+                "fre": web.storage(code="fre", identifiers={"iso_639_1": ["fr"]}),
+            }
+        )
+        monkeypatch.setattr(utils, "get_languages", loader)
+        utils.convert_iso_to_marc.cache_clear()
+        yield loader
+        utils.convert_iso_to_marc.cache_clear()
+
+    def test_unknown_languages_do_not_grow_cache_without_limit(self):
+        for index in range(1024):
+            assert utils.convert_iso_to_marc(f"unsupported-{index}") is None
+
+        assert utils.convert_iso_to_marc.cache_info().currsize <= 256
 
 
 def test_get_abbrev_from_full_lang_name(

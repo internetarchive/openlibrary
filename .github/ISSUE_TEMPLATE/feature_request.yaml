@@ -1,6 +1,7 @@
 name: Feature Request
 description: Propose a change or feature to Open Library
-labels: ["Type: Feature Request", "Needs: Triage", "Needs: Lead", "Needs: Breakdown"]
+type: Feature
+labels: ["Needs: Triage", "Needs: Lead", "Needs: Breakdown"]
 body:
   - type: markdown
     attributes:

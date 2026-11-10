@@ -396,7 +396,7 @@ class ImportItem(web.storage):
             "status": status,
             "error": error,
             "ol_key": ol_key,
-            "import_time": dt.datetime.utcnow(),
+            "import_time": dt.datetime.now(dt.UTC).replace(tzinfo=None),
         }
         if status != "failed":
             d = dict(**d, data=None)

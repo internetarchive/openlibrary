@@ -32,8 +32,17 @@ export function trackEvent(category, action, label) {
 }
 
 export default function initAnalytics() {
+    const startTime = new Date();
+    if (window.archive_analytics) {
+        setUpAthena(startTime);
+        return;
+    }
+    // athena.js loads async, so it can arrive after this bundle runs.
+    document.querySelector('script[src$="/cdn/archive.org/athena.js"]')?.addEventListener('load', () => setUpAthena(startTime), { once: true });
+}
+
+function setUpAthena(startTime) {
     var vs, i;
-    var startTime = new Date();
     if (window.archive_analytics) {
         // Setup analytics, depends on script loaded from CDN
         window.archive_analytics.set_up_event_tracking();

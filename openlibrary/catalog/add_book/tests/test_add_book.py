@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 
@@ -2108,6 +2109,8 @@ def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
         ("https://m.media-amazon.com/image/123.jpg", True),
         ("http://m.media-amazon.com/image/123.jpg", True),
         ("https://m.MEDIA-amazon.com/image/123.jpg", True),
+        ("https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg", True),
+        ("https://cdn.sanity.io/images/3lm68n5v/production/e7ffe418212f76c942fe906ae66cff17867bd602-190x300.jpg?w=1920&q=75&auto=format", True),
     ],
 )
 def test_check_cover_url_host(cover_url: str, is_valid: bool) -> None:
@@ -2138,3 +2141,16 @@ def test_load_author_import_records_without_web_ctx_site(mock_site, monkeypatch,
     assert authors == [{"key": "/authors/OL1A"}]
     assert author_reply[0]["status"] == expected_status
     assert bool(edits) is (expected_status == "modified")
+
+
+def test_modified_author_is_one_serializable_edit(mock_site):
+    """Previews json-encode their edits, and saves should write each author once."""
+    mock_site.save({"type": {"key": "/type/author"}, "key": "/authors/OL1A", "name": "John Doe"})
+    author = mock_site.get("/authors/OL1A")
+    author.name = "John Q. Doe"
+    edits: list = []
+
+    add_book.load_author_import_records([author], edits, "ia:test_item", save=False)
+
+    assert edits == [{**author.dict(), "name": "John Q. Doe"}]
+    json.dumps(edits)
