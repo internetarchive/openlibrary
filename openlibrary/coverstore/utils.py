@@ -31,6 +31,8 @@ ALLOWED_COVER_URLS: Final = (
     r"^https?://books.google.com/.*$",
     r"^https?://commons.wikimedia.org/.*$",
     r"^https?://m.media-amazon.com/.*$",
+    # e.g. https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg
+    r"^https?://www.gutenberg.org/cache/epub/\d+/pg\d+\.cover\.(small|medium)\.jpg$",
 )
 
 

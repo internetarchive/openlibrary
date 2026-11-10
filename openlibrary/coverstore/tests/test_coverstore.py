@@ -162,6 +162,8 @@ def test_image_path(image_dir):
         "https://books.google.com/books?id=foo&printsec=frontcover",
         "https://commons.wikimedia.org/wiki/File:Example.jpg",
         "https://m.media-amazon.com/images/I/51abc123.jpg",
+        "https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg",
+        "https://www.gutenberg.org/cache/epub/1661/pg1661.cover.medium.jpg",
     ],
 )
 def test_is_allowed_cover_url_allowed(url):
@@ -188,6 +190,9 @@ def test_is_allowed_cover_url_allowed(url):
         "https://archive.org/services/img/goody#evil/full/pct:600/0/default.jpg",
         # covers.openlibrary.org with wrong extension
         "https://covers.openlibrary.org/b/id/15082914.png",
+        # gutenberg.org outside the cover image paths
+        "https://www.gutenberg.org/ebooks/1661.epub3.images",
+        "https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg?evil=1",
         # empty string and bare domain
         "",
         "https://archive.org",
