@@ -36,9 +36,12 @@ $def with (md_provider_factory, req, result=None)
             $else:
                 <h3>$:headings[status]</h3>
                 $ prev = get_document(key)
-                <ul class="list-books">
-                    $:macros.SearchResultsWork(prev, cta=False, show_title_year=True)
-                </ul>
+                $if prev.type.key == '/type/author':
+                    $:macros.SearchAuthorSuggestion([{'key': key.split('/')[-1], 'name': prev.name}])
+                $else:
+                    <ul class="list-books">
+                        $:macros.SearchResultsWork(prev, cta=False, show_title_year=True)
+                    </ul>
                 $if status == 'modified' and edit:
                     $:render_template('diff.html', prev, create_thing(edit), show_header=False)
         </section>
@@ -70,16 +73,19 @@ $def with (md_provider_factory, req, result=None)
                     'modified': _("Edition modified: %(link)s", link=edition_link),
                 }
 
+                def author_headings(key):
+                    link = olid_link(key)
+                    return {
+                        'created': _("New author will be created"),
+                        'matched': _("Author matched: %(link)s", link=link),
+                        'modified': _("Author modified: %(link)s", link=link),
+                    }
+
             $:thing_section(result['work'], edits_by_key, work_headings)
             $:thing_section(result['edition'], edits_by_key, edition_headings)
 
-            $ new_authors = [a for a in result.get('authors', []) if a.get('status') == 'created']
-            $if new_authors:
-                <section class="import-preview__section">
-                    <h3>$_("New authors will be created")</h3>
-                    $for author in new_authors:
-                        <textarea readonly aria-label="json preview of new record" style="width: 100%; height: 120px;">$json_encode(edits_by_key.get(author['key'], author), indent=2)</textarea>
-                </section>
+            $for author in result.get('authors', []):
+                $:thing_section(author, edits_by_key, author_headings(author['key']))
 
             $if result.get('acquisitions'):
                 <section class="import-preview__section">

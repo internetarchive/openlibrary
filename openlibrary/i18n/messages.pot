@@ -422,7 +422,17 @@ msgid "Edition modified: %(link)s"
 msgstr ""
 
 #: import_preview.html
-msgid "New authors will be created"
+msgid "New author will be created"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Author matched: %(link)s"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Author modified: %(link)s"
 msgstr ""
 
 #: import_preview.html
