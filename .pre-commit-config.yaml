@@ -151,7 +151,7 @@ repos:
         language_version: lts
         files: \.css$
         additional_dependencies: &stylelint_deps
-          - stylelint@17.16.0
+          - stylelint@18.0.0
           - stylelint-declaration-strict-value@1.12.1
           - postcss-lit@1.4.1
         # --allow-empty-input: pre-commit passes the staged .css files, and
