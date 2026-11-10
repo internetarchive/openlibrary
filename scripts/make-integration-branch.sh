@@ -102,5 +102,9 @@ else
     echo "Nothing to build: no state file and no branches file provided."
 fi
 
+# Merging a PR only moves a submodule's gitlink; check out what the merged
+# branch points to, so PRs that bump vendor/infogami actually take effect.
+git submodule update --init
+
 echo "---"
 echo "Complete; $NEW_BRANCH created (SHA: $(git rev-parse --short HEAD))"
