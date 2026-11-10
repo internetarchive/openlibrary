@@ -127,7 +127,7 @@ class TestTheExpiryTheNodeActuallySends:
     def _from_node(due_at):
         from openlibrary.plugins.upstream import lenny
 
-        loan = lenny.loan_from_node("lenny", "https://lennyforlibraries.org", "patron", {"edition_id": 37044497, "due_at": due_at})
+        loan = lenny.loan_from_node("lenny", "patron", {"edition_id": 37044497, "due_at": due_at})
         assert loan is not None
         return loan
 
