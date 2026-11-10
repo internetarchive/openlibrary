@@ -97,7 +97,7 @@ msgstr ""
 msgid "Barcode Scanner (Beta)"
 msgstr ""
 
-#: batch_import.html
+#: batch_import.html batch_import_list.html
 msgid "Batch Imports"
 msgstr ""
 
@@ -170,27 +170,39 @@ msgstr ""
 msgid "View Batch Status"
 msgstr ""
 
-#: batch_import_pending_view.html
-msgid "Pending Batch Imports"
+#: batch_import_list.html
+msgid "Status:"
 msgstr ""
 
-#: batch_import_pending_view.html
+#: about/index.html batch_import_list.html type/tag/index.html
+msgid "All"
+msgstr ""
+
+#: batch_import_list.html
+msgid "Default sort: date added, newest first."
+msgstr ""
+
+#: batch_import_list.html
 msgid "batch_id"
 msgstr ""
 
-#: admin/imports.html admin/imports_by_date.html batch_import_pending_view.html batch_import_view.html
+#: admin/inspect/store.html admin/people/index.html batch_import_list.html search/sort_options.html status.html type/author/edit.html type/language/view.html
+msgid "Name"
+msgstr ""
+
+#: admin/imports.html admin/imports_by_date.html batch_import_list.html batch_import_view.html
 msgid "Added Time"
 msgstr ""
 
-#: account/import.html account/loans.html admin/imports.html admin/imports_by_date.html admin/loans_table.html admin/menu.html batch_import_pending_view.html batch_import_view.html librarian_dashboard/data_quality_table.html status.html
+#: account/import.html account/loans.html admin/imports.html admin/imports_by_date.html admin/loans_table.html admin/menu.html batch_import_list.html batch_import_view.html librarian_dashboard/data_quality_table.html status.html
 msgid "Status"
 msgstr ""
 
-#: batch_import_pending_view.html batch_import_view.html merge_request_table/table_header.html
+#: batch_import_list.html batch_import_view.html merge_request_table/table_header.html
 msgid "Submitter"
 msgstr ""
 
-#: batch_import_pending_view.html batch_import_view.html
+#: batch_import_list.html batch_import_view.html
 msgid "Comments"
 msgstr ""
 
@@ -752,10 +764,6 @@ msgstr ""
 msgid "Show changed files"
 msgstr ""
 
-#: admin/inspect/store.html admin/people/index.html search/sort_options.html status.html type/author/edit.html type/language/view.html
-msgid "Name"
-msgstr ""
-
 #: status.html
 msgid "System information"
 msgstr ""
@@ -1028,10 +1036,6 @@ msgstr ""
 
 #: about/index.html
 msgid "Role:"
-msgstr ""
-
-#: about/index.html type/tag/index.html
-msgid "All"
 msgstr ""
 
 #: about/index.html
@@ -7269,7 +7273,7 @@ msgid "When you buy books using these links the Internet Archive may earn a <a c
 msgstr ""
 
 #: BatchImportNavigation.html
-msgid "Pending Imports"
+msgid "All Batches"
 msgstr ""
 
 #: BookByline.html

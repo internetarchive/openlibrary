@@ -12,7 +12,7 @@ import random
 import socket
 import sys
 from time import time
-from urllib.parse import parse_qs, quote, urlencode
+from urllib.parse import parse_qs, parse_qsl, quote, urlencode
 
 import web
 import yaml
@@ -23,6 +23,7 @@ from openlibrary.core.batch_imports import (
     batch_import,
 )
 from openlibrary.core.env import get_deployment_name, get_ol_env
+from openlibrary.core.imports import BATCH_SORT_COLUMNS, IMPORT_ITEM_STATUSES, Batch
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell import SiteLayoutTemplate
 from openlibrary.i18n import gettext as _
@@ -568,46 +569,60 @@ class BatchImportApprove(delegate.page):
         return web.seeother(f"/import/batch/{batch_id}")
 
 
+class BatchImportList(delegate.page):
+    """
+    Lists batch imports, optionally only those with items of a given `status`.
+    """
+
+    path = r"/import/batch"
+
+    DEFAULT_SORT = "added_time desc"
+    MAX_LIMIT = 100
+
+    def GET(self):
+        # Lists batches across all submitters, with their names -- admins only.
+        _require_admin()
+
+        i = web.input(page=1, limit=10, sort=self.DEFAULT_SORT, status="")
+        page = max(1, safeint(i.page, 1))
+        limit = min(max(1, safeint(i.limit, 10)), self.MAX_LIMIT)
+        status = i.status if i.status in IMPORT_ITEM_STATUSES else None
+
+        sort_field, sort_order = i.sort.partition(" ")[::2]
+        if sort_field not in BATCH_SORT_COLUMNS or sort_order not in ("asc", "desc"):
+            sort_field, sort_order = self.DEFAULT_SORT.split()
+
+        total, rows = Batch.list_summaries(
+            status=status,
+            sort=sort_field,
+            order=sort_order,
+            limit=limit,
+            offset=(page - 1) * limit,
+        )
+
+        return render_template(
+            "batch_import_list",
+            rows=rows,
+            page=page,
+            total_pages=math.ceil(total / limit),
+            status=status,
+            statuses=IMPORT_ITEM_STATUSES,
+            sort_field=sort_field,
+            sort_order=sort_order,
+            default_sort=self.DEFAULT_SORT,
+        )
+
+
 class BatchImportPendingView(delegate.page):
     """
-    Endpoint for viewing `needs_review` batch imports.
+    Old URL for the list of batches awaiting review.
     """
 
     path = r"/import/batch/pending"
 
     def GET(self):
-        # Lists every batch awaiting review, across all submitters -- admins only.
-        _require_admin()
-
-        i = web.input(page=1, limit=10, sort="added_time asc")
-        page = int(i.page)
-        limit = int(i.limit)
-        sort = i.sort
-
-        valid_sort_fields = ["added_time", "import_time", "status"]
-        sort_field, sort_order = sort.split()
-        if sort_field not in valid_sort_fields or sort_order not in ["asc", "desc"]:
-            sort_field = "added_time"
-            sort_order = "asc"
-
-        offset = (page - 1) * limit
-
-        rows = db.query(
-            """
-            SELECT batch_id, MIN(status) AS status, MIN(comments) AS comments, MIN(added_time) AS added_time, MAX(submitter) AS submitter
-            FROM import_item
-            WHERE status = 'needs_review'
-            GROUP BY batch_id;
-            """,
-            vars=locals(),
-        )
-
-        return render_template(
-            "batch_import_pending_view",
-            rows=rows,
-            page=page,
-            limit=limit,
-        )
+        query = [(k, v) for k, v in parse_qsl(web.ctx.query.lstrip("?"), keep_blank_values=True) if k != "status"]
+        raise web.redirect("/import/batch?" + urlencode([("status", "needs_review"), *query]))
 
 
 class isbn_lookup(delegate.page):

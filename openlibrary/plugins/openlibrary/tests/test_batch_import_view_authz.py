@@ -9,7 +9,7 @@ Two batch-import views had NO authorization and were readable by anyone:
 The fix:
 - a single batch is viewable by its submitter or an admin; everyone else gets an
   identical 403 whether or not the batch exists (no existence oracle);
-- the pending list is admin-only.
+- the batch list is admin-only (``/import/batch/pending`` now redirects to it).
 
 Written to FAIL against the unfixed source, which renders for anyone (and
 IndexErrors on a missing batch).
@@ -22,7 +22,7 @@ import pytest
 
 from openlibrary.plugins.openlibrary import code
 from openlibrary.plugins.openlibrary.code import (
-    BatchImportPendingView,
+    BatchImportList,
     BatchImportView,
     Forbidden,
 )
@@ -69,9 +69,10 @@ def _patches(db_mock, user):
         patch.object(
             code.web,
             "input",
-            lambda **kw: types.SimpleNamespace(page="1", limit="10", sort="added_time asc"),
+            lambda **kw: types.SimpleNamespace(page="1", limit="10", sort="added_time asc", status=""),
         ),
         patch.object(code.web, "notfound", _NotFound),
+        patch.object(code.Batch, "list_summaries", MagicMock(return_value=(0, []))),
     ]
 
 
@@ -157,38 +158,38 @@ def test_single_batch_admin_missing_is_notfound_not_forbidden():
         _exit(ps)
 
 
-# --- pending list: /import/batch/pending -----------------------------------
+# --- batch list: /import/batch ----------------------------------------------
 
 
-def test_pending_anonymous_is_forbidden():
+def test_batch_list_anonymous_is_forbidden():
     db_mock = _make_db()
     ps = _patches(db_mock, user=None)
     _enter(ps)
     try:
         with pytest.raises(Forbidden):
-            BatchImportPendingView().GET()
+            BatchImportList().GET()
         code.render_template.assert_not_called()
     finally:
         _exit(ps)
 
 
-def test_pending_non_admin_is_forbidden():
+def test_batch_list_non_admin_is_forbidden():
     db_mock = _make_db()
     ps = _patches(db_mock, user=_User(OWNER_KEY, OWNER_USERNAME))
     _enter(ps)
     try:
         with pytest.raises(Forbidden):
-            BatchImportPendingView().GET()
+            BatchImportList().GET()
         code.render_template.assert_not_called()
     finally:
         _exit(ps)
 
 
-def test_pending_admin_can_view():
+def test_batch_list_admin_can_view():
     db_mock = _make_db()
     ps = _patches(db_mock, user=_User(ADMIN_KEY, "admin"))
     _enter(ps)
     try:
-        assert BatchImportPendingView().GET() == "RENDERED"
+        assert BatchImportList().GET() == "RENDERED"
     finally:
         _exit(ps)
