@@ -36,7 +36,6 @@ export const DEFAULT_STRINGS = {
     total: 'Total: %(count)s',
     ofEdits: 'Of edits',
     ofEditors: 'Of editors',
-    perDayAverage: 'Per day, averaged',
     loadFailed: "The charts couldn't load. Reload the page to try again."
 };
 
@@ -81,10 +80,9 @@ function readStrings(root) {
  * @param {(number | null)[]} daily
  * @param {number} size
  * @param {(number | null)[]} [rolling] a rolling series to sample at each period's end, for counts that don't add up
- * @param {boolean} [average] the period's daily average instead of its sum
  * @returns {Bucket[]}
  */
-export function bucketize(daily, size, rolling, average = false) {
+export function bucketize(daily, size, rolling) {
     const buckets = [];
     for (let end = daily.length - 1; end - size + 1 >= 0; end -= size) {
         const start = end - size + 1;
@@ -93,7 +91,7 @@ export function bucketize(daily, size, rolling, average = false) {
         else if (rolling) value = rolling[end];
         else {
             const days = daily.slice(start, end + 1).filter(v => v !== null);
-            value = days.length ? days.reduce((a, b) => a + b, 0) / (average ? days.length : 1) : null;
+            value = days.length ? days.reduce((a, b) => a + b, 0) : null;
         }
         buckets.unshift({ start, end, value });
     }
@@ -173,7 +171,6 @@ export function pointRadii(values) {
  * @property {Part[]} parts stacked bottom up
  * @property {Bucket[]} total what the previous period and the change compare
  * @property {'count' | 'percent' | 'decimal'} format
- * @property {boolean} [average] week and month bars are daily averages
  * @property {(number | null)[][]} [complete] daily series a card needs every day of, or its sum would read as a drop
  */
 
@@ -222,7 +219,6 @@ export async function init(root) {
     const numberFormat = new Intl.NumberFormat(lang, { maximumFractionDigits: 0 });
     const decimalFormat = new Intl.NumberFormat(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const percentFormat = new Intl.NumberFormat(lang, { style: 'percent', maximumFractionDigits: 1 });
-    const compactFormat = new Intl.NumberFormat(lang, { notation: 'compact' });
     const formats = {
         count: (/** @type {number} */ v) => numberFormat.format(v),
         decimal: (/** @type {number} */ v) => decimalFormat.format(v),
@@ -245,10 +241,6 @@ export async function init(root) {
         const orZero = (/** @type {(number | null)[]} */ values) => values.map((v, i) => (edits[i] === null ? null : (v ?? 0)));
         const lists = orZero(series('list_edits'));
         const tasksSaves = orZero(series('tasks_saves_1d'));
-        // Today's Graphite count is partial, so it's left out like the server's cards leave it out.
-        const visitors = series('visitors').map((v, i) => (i === lastDay ? null : v));
-        // Only days with both counts, so a missing visitor count doesn't read as a jump in the ratio.
-        const pairedEdits = edits.map((v, i) => (visitors[i] === null ? null : v));
 
         /**
          * People can't be added up across days, so week and month views of them take the stored 7- or 28-day window ending on
@@ -291,27 +283,24 @@ export async function init(root) {
                 ];
                 return { parts, total: stackTotal(parts), format: 'count', complete: [edits] };
             },
-            visitors: size => single(bucketize(visitors, size, undefined, true), 'count', true),
-            edits_per_visitors: size => single(ratio(sum(pairedEdits, size), sum(visitors, size), 1000), 'decimal'),
             tasks_share: size => ({ ...single(ratio(sum(tasksSaves, size), sum(edits, size), 100), 'percent'), complete: [edits] }),
             saves: size => single(sum(series('tasks_saves_1d'), size), 'count'),
             tasks_editors: size => single(people('tasks_editors', size), 'count'),
             saves_per_editor: size => single(ratio(sum(series('tasks_saves_1d'), size), people('tasks_editors', size), 1), 'decimal')
         };
-        return { METRICS, edits, tasksSaves, visitors, pairedEdits };
+        return { METRICS, edits, tasksSaves };
     }
-    const { METRICS, edits, tasksSaves, visitors, pairedEdits } = buildMetrics(dates.length);
+    const { METRICS, edits, tasksSaves } = buildMetrics(dates.length);
     const gathered = Math.max(...['catalog_editors_1d', 'catalog_edits', 'tasks_saves_1d'].map(key => fullSeries(key).findLastIndex(v => v !== null)));
     const CARD_METRICS = gathered >= 0 ? buildMetrics(gathered + 1).METRICS : METRICS;
 
     /**
      * @param {Bucket[]} buckets
      * @param {Metric['format']} format
-     * @param {boolean} [average]
      * @returns {Metric}
      */
-    function single(buckets, format, average = false) {
-        return { parts: [{ label: '', color: colors.bar, buckets }], total: buckets, format, average };
+    function single(buckets, format) {
+        return { parts: [{ label: '', color: colors.bar, buckets }], total: buckets, format };
     }
 
     const projects = /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.tasks-stats__card[data-initiative]'));
@@ -477,7 +466,7 @@ export async function init(root) {
                 }
             })
         });
-        unit.textContent = metric.average && state.granularity !== 'day' ? strings.perDayAverage : units[state.granularity];
+        unit.textContent = units[state.granularity];
         parts.replaceChildren(
             ...(stacked ? metric.parts : []).map(part => {
                 const item = document.createElement('span');
@@ -494,11 +483,8 @@ export async function init(root) {
      * @param {string} name
      * @param {{values: (number | null)[], color: string, dashed?: boolean, label?: string}[]} lines
      * @param {Metric['format']} format
-     * @param {object} [extra]
-     * @param {boolean} [extra.small]
-     * @param {boolean} [extra.area]
      */
-    function drawLines(name, lines, format, { small = false, area = false } = {}) {
+    function drawLines(name, lines, format) {
         const days = bucketize(lines[0].values, 1).slice(-state.days);
         draw(name, {
             type: 'line',
@@ -513,7 +499,6 @@ export async function init(root) {
                         borderColor: line.color,
                         backgroundColor: withAlpha(line.color, 0.2),
                         pointBackgroundColor: line.color,
-                        fill: area,
                         borderDash: line.dashed ? [4, 4] : [],
                         borderWidth: line.dashed ? 1.5 : 2,
                         pointRadius: pointRadii(values),
@@ -522,19 +507,8 @@ export async function init(root) {
                 })
             },
             options: options({
-                xTicks: small ? 4 : 8,
-                // Small multiples share one axis width, so their days line up down the column.
-                y: small
-                    ? {
-                          ticks: {
-                              maxTicksLimit: 3,
-                              callback: (/** @type {number} */ v) => (format === 'count' ? compactFormat.format(v) : formats[format](v))
-                          },
-                          afterFit: (/** @type {{width: number}} */ scale) => {
-                              scale.width = 44;
-                          }
-                      }
-                    : axis(format),
+                xTicks: 8,
+                y: axis(format),
                 tooltip: {
                     title: items => fullLabel(days[items[0].dataIndex]),
                     label: item => (item.dataset.label ? `${item.dataset.label}: ` : '') + formats[format](item.raw)
@@ -560,9 +534,6 @@ export async function init(root) {
             ],
             'percent'
         );
-        drawLines('visitors', [{ values: visitors, color: colors.accent }], 'count', { small: true, area: true });
-        drawLines('edits', [{ values: edits, color: colors.bar }], 'count', { small: true, area: true });
-        drawLines('ratio', [{ values: perDay(pairedEdits, visitors, 1000), color: colors.text }], 'decimal', { small: true });
     }
 
     function drawTasksPanels() {
@@ -752,7 +723,6 @@ export async function init(root) {
         /** @type {Record<string, string | null | undefined>} */
         const details = {
             edits: perEditor && fill(strings.perEditor, { count: perEditor }),
-            edits_per_visitors: '',
             tasks_share: value.tasks_share !== null ? (s => s && fill(strings.tasksShareDetail, { share: s }))(share(value.tasks_editors, value.editors)) : '',
             saves: (s => s && fill(strings.shareOfEdits, { share: s }))(share(value.saves, value.edits)),
             tasks_editors: (s => s && fill(strings.shareOfEditors, { share: s }))(share(value.tasks_editors, value.editors)),
@@ -784,7 +754,6 @@ export async function init(root) {
                             : '';
                 }
             } else if (detailEl && details[name] !== undefined) {
-                // Visitors keeps the server's note, which says why the figure might be missing.
                 detailEl.textContent = details[name] || '';
             }
         });

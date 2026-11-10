@@ -20,11 +20,7 @@ def test_series_line_up_with_one_entry_per_calendar_day(fastapi_client):
         },
         today.isoformat(): {"catalog_editors_1d": 61, "initiatives": {"most-read-2026-11": {"open": 880}, "fiction-2026-11": {"open": 40}}},
     }
-    visitors = {yesterday.isoformat(): 150_000}
-    with (
-        patch("openlibrary.fastapi.stats._count_docs_by_day", return_value=docs),
-        patch("openlibrary.core.admin.visitors_by_day", return_value=visitors),
-    ):
+    with patch("openlibrary.fastapi.stats._count_docs_by_day", return_value=docs):
         response = fastapi_client.get("/stats/tasks.json", params={"days": 3})
     assert response.status_code == 200
     body = response.json()
@@ -32,7 +28,6 @@ def test_series_line_up_with_one_entry_per_calendar_day(fastapi_client):
     assert body["series"]["catalog_editors_1d"] == [None, 140, 61]
     assert body["series"]["tasks_saves_1d"] == [None, 3, None]
     assert body["series"]["catalog_edits"] == [None, None, None]
-    assert body["series"]["visitors"] == [None, 150_000, None]
     assert body["saves_by_field"] == [None, {"covers": 2, "lccn": 1}, None]
     # Yesterday's doc predates per-initiative snapshots, so its flat keys still read as the headline initiative's.
     assert body["initiatives"] == {"most-read-2026-11": [None, 900, 880], "fiction-2026-11": [None, None, 40]}

@@ -1,7 +1,6 @@
 """Admin functionality."""
 
 import calendar
-import logging
 import random
 from datetime import UTC, date, datetime, timedelta
 
@@ -12,8 +11,6 @@ from openlibrary.core import cache
 from openlibrary.core.async_db import fetch_val
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.helpers import commify, format_date
-
-logger = logging.getLogger(__name__)
 
 
 class Stats:
@@ -178,19 +175,6 @@ class VisitorStats(Stats):
         visitors = _get_visitor_counts_from_graphite(ndays)
         # Flip the order, convert timestamp to msec, and convert count==None to zero
         return [(int(timestamp * 1000), int(count or 0)) for count, timestamp in visitors]
-
-
-def visitors_by_day(ndays: int) -> dict[str, int]:
-    """Unique visitors a day for the last `ndays`, by ISO date. Empty in local dev, which can't reach Graphite, and when it's down."""
-    if get_ol_env().LOCAL_DEV:
-        return {}
-    # Visitors are an extra on the stats page: an odd Graphite answer (an empty list, a bad point) must not take the page down.
-    try:
-        points = _get_visitor_counts_from_graphite(ndays)
-        return {datetime.fromtimestamp(ts, UTC).date().isoformat(): int(count) for count, ts in points if count is not None}
-    except ValueError, IndexError, KeyError, TypeError:
-        logger.exception("Unreadable visitor counts from Graphite")
-        return {}
 
 
 def read_count_docs(site, ndays: int) -> list[dict]:

@@ -18,10 +18,6 @@ describe('bucketize', () => {
         const rolling = [10, 11, 12, 13];
         expect(bucketize([5, 5, 5, 5], 2, rolling).map(b => b.value)).toEqual([11, 13]);
     });
-
-    test('an averaged period divides by the days that have a count', () => {
-        expect(bucketize([2, 4, null, 6], 2, undefined, true).map(b => b.value)).toEqual([3, 6]);
-    });
 });
 
 describe('subtract', () => {

@@ -117,7 +117,7 @@
     <div class="tasks-stats__panels"
          data-scope="all"
          {% if page.scope != "all" %}hidden{% endif %}>
-        <section class="tasks-stats__panel">
+        <section class="tasks-stats__panel tasks-stats__panel--wide">
             <h2>{{ _("Share through Tasks") }}</h2>
             <p class="tasks-stats__note">
                 {{ _("Tasks saves as a share of all edits, and Tasks editors as a share of all editors, by day.") }}
@@ -130,36 +130,6 @@
                 <canvas data-chart="share"
                         role="img"
                         aria-label="{{ _('Share of edits and of editors through Tasks, by day') }}"></canvas>
-            </div>
-        </section>
-        <section class="tasks-stats__panel">
-            <h2>{{ _("Traffic and editing") }}</h2>
-            <p class="tasks-stats__note">
-                {{ _("Visitors, edits, and edits per 1,000 visitors, by day. If visitors rise and the ratio holds, editing is keeping pace.") }}
-            </p>
-            <div class="tasks-stats__multiples">
-                <div class="tasks-stats__multiple">
-                    <span class="tasks-stats__multiple-label">{{ _("Visitors") }}</span>
-                    <div class="tasks-stats__canvas tasks-stats__canvas--small">
-                        <canvas data-chart="visitors"
-                                role="img"
-                                aria-label="{{ _('Visitors by day') }}"></canvas>
-                    </div>
-                </div>
-                <div class="tasks-stats__multiple">
-                    <span class="tasks-stats__multiple-label">{{ _("Edits") }}</span>
-                    <div class="tasks-stats__canvas tasks-stats__canvas--small">
-                        <canvas data-chart="edits" role="img" aria-label="{{ _('Edits by day') }}"></canvas>
-                    </div>
-                </div>
-                <div class="tasks-stats__multiple">
-                    <span class="tasks-stats__multiple-label">{{ _("Edits per 1,000 visitors") }}</span>
-                    <div class="tasks-stats__canvas tasks-stats__canvas--small">
-                        <canvas data-chart="ratio"
-                                role="img"
-                                aria-label="{{ _('Edits per 1,000 visitors by day') }}"></canvas>
-                    </div>
-                </div>
             </div>
         </section>
     </div>
@@ -267,9 +237,6 @@
     <ul class="tasks-stats__note tasks-stats__fine-print">
         <li>{{ _("Counts are gathered every hour, so today's figures fill in as the day goes on.") }}</li>
         <li>{{ _("Community project progress is counted nightly.") }}</li>
-        <li>
-            {{ _("Visitors are unique IP addresses a day, counted only on openlibrary.org. Today's count is left out until the day is over.") }}
-        </li>
         <li>{{ _("Edit totals start on %(date)s, so longer ranges begin partway through.", date=page.edits_since) }}</li>
     </ul>
 </div>

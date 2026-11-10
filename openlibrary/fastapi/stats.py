@@ -42,7 +42,7 @@ class TasksSeries(BaseModel):
     dates: list[str]
     """One ISO date per calendar day, oldest first, ending today, which is still being gathered. Every list below lines up with it."""
     series: dict[str, list[int | None]]
-    """Each key in `SERIES_KEYS`, plus `visitors` (unique IPs, from Graphite); None on a day without a count."""
+    """Each key in `SERIES_KEYS`; None on a day without a count."""
     saves_by_field: list[dict[str, int] | None]
     """The day's Tasks saves by field filled."""
     initiatives: dict[str, list[int | None]]
@@ -72,10 +72,9 @@ def tasks_series(
     today = date.today()
     dates = [(today - timedelta(days=i)).isoformat() for i in reversed(range(days))]
     day_docs = [docs.get(d, {}) for d in dates]
-    visitors = admin.visitors_by_day(MAX_DAYS)
     return TasksSeries(
         dates=dates,
-        series={key: [doc.get(key) for doc in day_docs] for key in SERIES_KEYS} | {"visitors": [visitors.get(d) for d in dates]},
+        series={key: [doc.get(key) for doc in day_docs] for key in SERIES_KEYS},
         saves_by_field=[doc.get("tasks_saves_by_field_1d") for doc in day_docs],
         initiatives=initiative_series(day_docs),
     )

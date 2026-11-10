@@ -2006,7 +2006,7 @@ msgstr ""
 msgid "Edits Per Day"
 msgstr ""
 
-#: admin/index.html admin/people/index.html openlibrary/views/loanstats.py stats/tasks.html.jinja
+#: admin/index.html admin/people/index.html openlibrary/views/loanstats.py
 msgid "Edits"
 msgstr ""
 
@@ -6147,34 +6147,6 @@ msgid "Share of edits and of editors through Tasks, by day"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Traffic and editing"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Visitors, edits, and edits per 1,000 visitors, by day. If visitors rise and the ratio holds, editing is keeping pace."
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Visitors"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Visitors by day"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Edits by day"
-msgstr ""
-
-#: openlibrary/views/loanstats.py stats/tasks.html.jinja
-msgid "Edits per 1,000 visitors"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Edits per 1,000 visitors by day"
-msgstr ""
-
-#: stats/tasks.html.jinja
 msgid "Details still missing across each project's books. A detail nobody could find counts as filled."
 msgstr ""
 
@@ -6262,10 +6234,6 @@ msgstr ""
 
 #: stats/tasks.html.jinja
 msgid "Community project progress is counted nightly."
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Visitors are unique IP addresses a day, counted only on openlibrary.org. Today's count is left out until the day is over."
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -9991,22 +9959,6 @@ msgid "≈ %(count)s per editor"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "Visitors a day"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Unique visitors (IP addresses) a day. In week and month views, the daily average."
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Only counted on openlibrary.org"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Edits for every 1,000 visitors. Steady means editing is keeping pace with traffic."
-msgstr ""
-
-#: openlibrary/views/loanstats.py
 msgid "The share of edits saved from the Tasks page."
 msgstr ""
 
@@ -10144,10 +10096,6 @@ msgstr ""
 #: openlibrary/views/loanstats.py
 #, python-format
 msgid "Total: %(count)s"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Per day, averaged"
 msgstr ""
 
 #: openlibrary/views/loanstats.py

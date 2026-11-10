@@ -12,7 +12,7 @@ from .. import app
 from ..contribute import initiatives
 from ..contribute.field_guides import get_field_guides
 from ..core import cache
-from ..core.admin import get_count_docs, initiative_counts, rolling_counts, visitors_by_day
+from ..core.admin import get_count_docs, initiative_counts, rolling_counts
 from ..core.booknotes import Booknotes
 from ..core.bookshelves import Bookshelves
 from ..core.follows import PubSub
@@ -294,17 +294,12 @@ def day_keys(end: dt.date, days: int = 28) -> list[str]:
     return [(end - dt.timedelta(days=i)).strftime("counts-%Y-%m-%d") for i in range(days)]
 
 
-def build_editing_cards(counts: dict, docs: list[dict], visitors: dict[str, int], today: dt.date) -> list[dict]:
+def build_editing_cards(counts: dict, docs: list[dict], today: dt.date) -> list[dict]:
     "The All editing cards, each on the trailing 28 days."
     editors, editors_change = counted(counts, "catalog_editors_28d")
     first_time = latest(counts, "new_catalog_editors_28d")
     edits = window_sum(docs, "catalog_edits", day_keys(today))
     edits_change = format_change(edits, window_sum(docs, "catalog_edits", day_keys(today - dt.timedelta(days=28))))
-    # The window's complete days, since today's Graphite count is partial or missing. tasks_stats.js counts the same days.
-    complete = [(today - dt.timedelta(days=i)).isoformat() for i in range(1, 28)]
-    visitor_days = [visitors[d] for d in complete if d in visitors]
-    edit_days: dict[str, int] = {d["_key"]: d["catalog_edits"] for d in docs if d.get("catalog_edits") is not None}
-    paired = [(edit_days[f"counts-{d}"], visitors[d]) for d in complete if d in visitors and f"counts-{d}" in edit_days]
     tasks_saves, tasks_editors = latest(counts, "tasks_saves_28d"), latest(counts, "tasks_editors_28d")
     split = None
     if editors and first_time is not None:
@@ -329,19 +324,6 @@ def build_editing_cards(counts: dict, docs: list[dict], visitors: dict[str, int]
             format_count(edits),
             edits_change,
             detail=_("≈ %(count)s per editor", count=commify(round(edits / editors))) if edits and editors else "",
-        ),
-        card(
-            "visitors",
-            _("Visitors a day"),
-            _("Unique visitors (IP addresses) a day. In week and month views, the daily average."),
-            format_count(round(sum(visitor_days) / len(visitor_days))) if visitor_days else "—",
-            detail="" if visitor_days else _("Only counted on openlibrary.org"),
-        ),
-        card(
-            "edits_per_visitors",
-            _("Edits per 1,000 visitors"),
-            _("Edits for every 1,000 visitors. Steady means editing is keeping pace with traffic."),
-            f"{sum(e for e, _v in paired) / sum(v for _e, v in paired) * 1000:.1f}" if paired else "—",
         ),
         card(
             "tasks_share",
@@ -495,7 +477,6 @@ def build_tasks_stats_i18n() -> dict[str, str]:
         "total": _("Total: %(count)s"),
         "ofEdits": _("Of edits"),
         "ofEditors": _("Of editors"),
-        "perDayAverage": _("Per day, averaged"),
         "loadFailed": _("The charts couldn't load. Reload the page to try again."),
     }
 
@@ -524,7 +505,7 @@ def build_tasks_stats_page(scope: str = "all") -> dict:
     return {
         "scope": scope if scope in SCOPES else "all",
         "cards": {
-            "all": build_editing_cards(counts, docs, visitors_by_day(30), today),
+            "all": build_editing_cards(counts, docs, today),
             "tasks": build_tasks_stats_cards(counts, edits),
         },
         "guardrail": build_guardrail(counts),

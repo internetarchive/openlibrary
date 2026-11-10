@@ -226,25 +226,6 @@
   height: 300px;
 }
 
-.tasks-stats__canvas--small {
-  height: 90px;
-}
-
-.tasks-stats__multiples {
-  display: grid;
-  gap: var(--spacing-md);
-}
-
-.tasks-stats__multiple {
-  display: grid;
-  gap: var(--spacing-3xs);
-}
-
-.tasks-stats__multiple-label {
-  font-size: var(--font-size-body-small);
-  color: var(--color-text-secondary);
-}
-
 .tasks-stats__note {
   margin: 0;
   font-size: var(--font-size-body-small);

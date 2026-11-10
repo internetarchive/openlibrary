@@ -1,7 +1,6 @@
 """Tests for the numbers /stats/tasks renders server-side (openlibrary.views.loanstats)."""
 
 import datetime as dt
-from types import SimpleNamespace
 
 import pytest
 
@@ -53,15 +52,12 @@ def test_editing_cards_split_editors_and_compare_with_traffic(request_lang):
         "tasks_editors_28d": {"latest": 50},
     }
     docs = day_docs(today, {"catalog_edits": 100})
-    visitors = {(today - dt.timedelta(days=i)).isoformat(): 10_000 for i in range(1, 28)}
-    by_metric = {c["metric"]: c for c in loanstats.build_editing_cards(counts, docs, visitors, today)}
-    assert list(by_metric) == ["editors", "edits", "visitors", "edits_per_visitors", "tasks_share"]
+    by_metric = {c["metric"]: c for c in loanstats.build_editing_cards(counts, docs, today)}
+    assert list(by_metric) == ["editors", "edits", "tasks_share"]
     assert by_metric["editors"]["split"] == {"returning": "500", "first_time": "2,000", "first_time_width": 80.0}
     assert by_metric["edits"]["value"] == "2,800"
     # The 28 days before have no edit counts, so there's nothing to compare with.
     assert by_metric["edits"]["change"] is None
-    assert by_metric["visitors"]["value"] == "10,000"
-    assert by_metric["edits_per_visitors"]["value"] == "10.0"
     assert by_metric["tasks_share"]["value"] == "10.0%"
     assert by_metric["tasks_share"]["detail"] == "of edits · 2.0% of editors"
 
@@ -69,10 +65,8 @@ def test_editing_cards_split_editors_and_compare_with_traffic(request_lang):
 def test_edits_need_every_day_of_the_window(request_lang):
     today = dt.date(2026, 11, 9)
     docs = day_docs(today, {"catalog_edits": 100}, days=27)
-    by_metric = {c["metric"]: c for c in loanstats.build_editing_cards({}, docs, {}, today)}
+    by_metric = {c["metric"]: c for c in loanstats.build_editing_cards({}, docs, today)}
     assert by_metric["edits"]["value"] == "—"
-    assert by_metric["visitors"]["value"] == "—"
-    assert by_metric["visitors"]["detail"] == "Only counted on openlibrary.org"
     assert by_metric["tasks_share"]["value"] == "—"
     assert by_metric["tasks_share"]["detail"] == ""
 
@@ -153,14 +147,3 @@ def test_saves_by_field_add_up_across_days_most_first():
         ("Publisher", "1", "10%", 14),
     ]
     assert loanstats.build_saves_by_field([]) == []
-
-
-def test_unreadable_visitor_counts_leave_the_page_without_visitors(monkeypatch):
-    monkeypatch.setattr(admin, "get_ol_env", lambda: SimpleNamespace(LOCAL_DEV=False))
-
-    def empty_answer(ndays):
-        # Graphite answering `[]` makes `response.json()[0]` raise this.
-        raise IndexError("list index out of range")
-
-    monkeypatch.setattr(admin, "_get_visitor_counts_from_graphite", empty_answer)
-    assert admin.visitors_by_day(30) == {}
