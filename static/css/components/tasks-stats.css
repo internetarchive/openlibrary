@@ -31,14 +31,11 @@
   gap: var(--spacing-sm);
 }
 
-/* Scope is its own group; compare and its period read as a pair. */
-.tasks-stats__scope {
-  margin-inline-end: var(--spacing-md);
-}
-
-/* The period only sets what the comparison measures, so it hides with it. */
-.tasks-stats--no-compare .tasks-stats__window {
-  display: none;
+/* Scope on its own row; the cards' period and the compare toggle under it. */
+.tasks-stats__toolbar {
+  display: grid;
+  justify-items: start;
+  gap: var(--spacing-sm);
 }
 
 .tasks-stats__cards {

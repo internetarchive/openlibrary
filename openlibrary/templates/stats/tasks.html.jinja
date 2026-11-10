@@ -47,7 +47,7 @@
      data-scope="{{ page.scope }}"
      data-i18n="{{ page.i18n | tojson | forceescape }}"
      data-min-sample="{{ page.guardrail.min_sample }}">
-    <div class="tasks-stats__controls">
+    <div class="tasks-stats__toolbar">
         <ol-segmented-control class="tasks-stats__scope" value="{{ page.scope }}" accessible-label="{{ _('Scope') }}">
             <ol-segment value="all">
                 {{ _("All editing") }}
@@ -56,16 +56,18 @@
                 {{ _("Through Tasks") }}
             </ol-segment>
         </ol-segmented-control>
-        <ol-toggle class="tasks-stats__compare" variant="button" checked label="{{ _('Compare to previous period') }}">
-        </ol-toggle>
-        <ol-segmented-control class="tasks-stats__window" value="28" accessible-label="{{ _('Period') }}">
-            <ol-segment value="7">
-                {{ _("Last 7 days") }}
-            </ol-segment>
-            <ol-segment value="28">
-                {{ _("Last 28 days") }}
-            </ol-segment>
-        </ol-segmented-control>
+        <div class="tasks-stats__controls">
+            <ol-segmented-control class="tasks-stats__window" size="small" value="28" accessible-label="{{ _('Period') }}">
+                <ol-segment value="7">
+                    {{ _("Last 7 days") }}
+                </ol-segment>
+                <ol-segment value="28">
+                    {{ _("Last 28 days") }}
+                </ol-segment>
+            </ol-segmented-control>
+            <ol-toggle class="tasks-stats__compare" variant="button" size="small" checked label="{{ _('Compare to previous period') }}">
+            </ol-toggle>
+        </div>
     </div>
     {{ metric_cards(page.cards.all, "all") }}
     {{ metric_cards(page.cards.tasks, "tasks") }}
