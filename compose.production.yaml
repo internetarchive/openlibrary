@@ -111,7 +111,7 @@ services:
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 10 --timeout 300 --max-requests 5000 --max-requests-jitter 500
+      - GUNICORN_OPTS= --workers 20 --timeout 300 --max-requests 5000 --max-requests-jitter 500
       - COVERSTORE_CONFIG=/olsystem/etc/coverstore.yml
     volumes:
       - ../olsystem:/olsystem
@@ -123,7 +123,7 @@ services:
     deploy:
       # Note: the replicas here must be kept in sync with the `upstream covers_backend`
       # value in `docker/covers_nginx.conf`.
-      replicas: 2
+      replicas: 1
 
   covers_nginx:
     profiles: ["ol-covers1"]
