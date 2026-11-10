@@ -85,6 +85,7 @@ SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
 ALLOWED_COVER_HOSTS: Final = (
     "archive.org",
     "books.google.com",
+    "cdn.sanity.io",
     "commons.wikimedia.org",
     "covers.openlibrary.org",
     "m.media-amazon.com",
