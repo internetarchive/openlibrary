@@ -132,6 +132,22 @@ def test_lists_page_respects_page_param(client):
     assert 'current-page="3"' in response.text
 
 
+def test_lists_page_clamps_page_below_one(client):
+    with ExitStack() as stack:
+        patched_search(stack, _solr_response(num_found=45))
+        response = client.get("/search/lists?q=dogs&page=-3")
+
+    assert response.status_code == 200
+    assert 'current-page="1"' in response.text
+
+
+def test_lists_page_rejects_a_non_numeric_page(client):
+    # Unlike web.py, which read it as page 1, FastAPI validates it: a clean 422, not a 500.
+    response = client.get("/search/lists?q=dogs&page=abc")
+
+    assert response.status_code == 422
+
+
 def test_lists_page_no_results(client):
     with ExitStack() as stack:
         patched_search(stack, _solr_response())
