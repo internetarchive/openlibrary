@@ -394,6 +394,38 @@ msgid "Show Raw Import Data"
 msgstr ""
 
 #: import_preview.html
+msgid "New work will be created"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Work matched: %(link)s"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Work modified: %(link)s"
+msgstr ""
+
+#: import_preview.html
+msgid "New edition will be created"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Edition matched: %(link)s"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Edition modified: %(link)s"
+msgstr ""
+
+#: import_preview.html
+msgid "New authors will be created"
+msgstr ""
+
+#: import_preview.html
 msgid "Acquisitions that will be added"
 msgstr ""
 
@@ -415,16 +447,6 @@ msgstr ""
 
 #: books/edit/web.html import_preview.html
 msgid "URL"
-msgstr ""
-
-#: import_preview.html
-#, python-format
-msgid "New %(thing_type)s record will be created"
-msgstr ""
-
-#: import_preview.html
-#, python-format
-msgid "Changes to %(key)s"
 msgstr ""
 
 #: internalerror.html
