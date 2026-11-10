@@ -152,6 +152,14 @@ it is a scanner bot** (e.g. CodeQL) re-flagging the diff, not a human — an un-
 means the fix is not confirmed to clear the finding. Resolve or dismiss-with-reason every thread
 before an item is Ready.
 
+Four states have no GitHub object of their own — **ADA Dispatched, Development Cycle Completed,
+Code Review Requested, e2e Tested**. Per the spine's primary-source rule, their proof is promoted
+into the fork PR's **ada-status block** (structured fields versioned in the PR body —
+`dispatched`, `tests: red-green@<sha>`, `review: <reviewer>`, `e2e: <result>@<sha>`), with a PR
+**label** as the machine-check fallback. A state backed only by an internal note or an agent's
+say-so is not objective and does not count: if it cannot resolve against a primary source, it is
+not a state in this model.
+
 ## Hand-offs
 
 - **Finished, not drafts.** What reaches the operator is ready to act on.
