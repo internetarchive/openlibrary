@@ -72,6 +72,14 @@ why advisory forks run no CI) are in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## The security pipeline — the state graph
 
+> **This pipeline is a specialization of the team's canonical development process**
+> ([`docs/project-management/development-process.md`](../../docs/project-management/development-process.md)),
+> not its own island. It inherits that spine's states and adds only the embargo-specific states
+> and the three operator-gated stops (fork, merge, publish). Where the two differ, the spine
+> wins. Every state below is defined to the spine's bar: **objectively computable at any instant
+> from a primary source** (a GitHub API query or a structured fleet record), never inferred from
+> an agent's narrative.
+
 Every security item moves through **named** states. Locke must know, at any moment and
 **objectively**, which state every open item is in — "where are we?" has one right answer, not a
 reading of tea leaves. States are named, never numbered: a number means nothing to the operator
