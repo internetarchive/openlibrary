@@ -1,5 +1,5 @@
 {#- The dashboard's list: a card per book with its open tasks. Rendered inside dashboard.html.jinja,
-    and on its own by /tasks/rows for a page that rendered placeholders while the pool was being built. -#}
+    and on its own by /partials/TaskRows.json for a page that rendered placeholders while the pool was being built. -#}
 {% import "contribute/parts.html.jinja" as parts %}
 {% for row in rows %}
     <li class="contrib-row" data-book-row>

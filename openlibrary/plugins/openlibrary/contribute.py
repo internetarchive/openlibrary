@@ -573,7 +573,7 @@ class contribute_index(delegate.page):
             rail=build_filter_rail(task, initiative, initiatives.get_gaps(initiative)),
             rows=rows,
             # While the pool builds, the script fetches the rows from here.
-            rows_url=build_dashboard_url(task, base="/tasks/rows", initiative=slug) if rows is None else "",
+            rows_url=build_dashboard_url(task, base="/partials/TaskRows.json", initiative=slug) if rows is None else "",
             skeleton_rows=LIST_SKELETON_ROWS if rows is None else 0,
             heading=get_filter_headings()[task] if task else _("All project tasks"),
             empty=_("Nothing missing here right now. Thank you."),

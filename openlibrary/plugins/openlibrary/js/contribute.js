@@ -89,9 +89,9 @@ async function loadTaskRows(root, list) {
     let loaded = false;
     for (let attempt = 0; attempt < ROWS_MAX_TRIES; attempt++) {
         try {
-            const res = await fetch(list.dataset.rowsUrl, { headers: { Accept: 'text/html' } });
+            const res = await fetch(list.dataset.rowsUrl);
             if (res.ok && res.status !== 202) {
-                list.innerHTML = await res.text();
+                list.innerHTML = (await res.json()).partials;
                 loaded = true;
                 break;
             }
