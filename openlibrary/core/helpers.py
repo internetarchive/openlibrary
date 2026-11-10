@@ -23,6 +23,7 @@ from infogami.infobase.client import Nothing
 # handy utility to parse ISO date strings
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
+from openlibrary.utils.request_context import get_request_lang
 
 if TYPE_CHECKING:
     from babel.core import Locale
@@ -129,7 +130,7 @@ def datestr(
     relative: bool = True,
 ) -> str:
     """Internationalized version of web.datestr."""
-    lang = lang or web.ctx.lang
+    lang = lang or get_request_lang()
     if relative:
         if now is None:
             now = datetime.now()
@@ -144,7 +145,7 @@ def datetimestr_utc(then):
 
 
 def format_date(date: datetime | None, lang: str | None = None) -> str:
-    lang = lang or web.ctx.lang
+    lang = lang or get_request_lang()
     locale = _get_babel_locale(lang)
     return babel.dates.format_date(date, format="long", locale=locale)
 
