@@ -32,10 +32,27 @@ $def with (md_provider_factory, req, result=None)
         </details>
         $if result.get('acquisitions'):
             <h3>$_("Acquisitions that will be added")</h3>
-            <ul>
-                $for acq in result['acquisitions']:
-                    <li>$acq['provider_name']: $acq['data'].get('access') $acq['data'].get('format', '') <a href="$acq['data'].get('url')">$acq['data'].get('url')</a></li>
-            </ul>
+            <table class="changeHistory">
+                <thead>
+                    <tr>
+                        <th>$_("Provider")</th>
+                        <th>$_("Provider ID")</th>
+                        <th>$_("Access")</th>
+                        <th>$_("Format")</th>
+                        <th>$_("URL")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    $for acq in result['acquisitions']:
+                        <tr>
+                            <td>$acq['provider_name']</td>
+                            <td>$acq['local_id']</td>
+                            <td>$acq['data'].get('access', '')</td>
+                            <td>$acq['data'].get('format', '')</td>
+                            <td><a href="$acq['data'].get('url', '')">$acq['data'].get('url', '')</a></td>
+                        </tr>
+                </tbody>
+            </table>
         $if 'edits' in result and result['edits']:
             <hr>
             $for edit in result['edits']:
@@ -43,8 +60,14 @@ $def with (md_provider_factory, req, result=None)
                     <h3>$_("New %(thing_type)s record will be created", thing_type=edit['type']['key'])</h3>
                     <textarea readonly aria-label="json preview of new record" style="width: 100%; height: 200px;">$json_encode(edit, indent=2)</textarea>
                 $else:
-                    <h3>$_("Changes to %(key)s", key=edit['key'])</h3>
                     $ prev = get_document(edit['key'])
+                    $ changes_to = _("Changes to %(key)s", key=edit['key'])
+                    $if prev and prev.type.key in ('/type/edition', '/type/work'):
+                        <ul class="list-books">
+                            $:macros.SearchResultsWork(prev, cta=False, show_title_year=True, extra='<div><strong>%s</strong></div>' % websafe(changes_to))
+                        </ul>
+                    $else:
+                        <h3>$changes_to</h3>
                     $ edit = create_thing(edit)
                     $:render_template('diff.html', prev, edit, show_header=False)
                 <hr>
