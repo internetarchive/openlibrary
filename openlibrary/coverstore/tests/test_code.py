@@ -23,6 +23,13 @@ class TestServeDefaultOpenRedirect:
         resp = code._serve_default("https://openlibrary.org.evil.example.com/phish")
         assert resp.status_code != 303
 
+    def test_rejects_backslash_authority_confusion(self):
+        # urlsplit sees host=openlibrary.org (trusted), but a WHATWG browser
+        # normalises "\" to "/" and navigates to evil.example.com. The guard
+        # must reject the raw backslash rather than validate a different string.
+        resp = code._serve_default("https://evil.example.com\\@openlibrary.org/phish")
+        assert resp.status_code != 303
+
     def test_allows_trusted_fallback_redirect(self):
         # The real, legitimate use: OL/IA static fallback images.
         url = "https://openlibrary.org/static/images/icons/avatar_book.png"
@@ -57,6 +64,9 @@ class TestSafeRedirectTarget:
 
     def test_scheme_relative_falls_back(self):
         assert utils.safe_redirect_target("//evil.example.com/x") == "/"
+
+    def test_backslash_authority_confusion_falls_back(self):
+        assert utils.safe_redirect_target("https://evil.example.com\\@openlibrary.org/x") == "/"
 
     def test_none_falls_back(self):
         assert utils.safe_redirect_target(None) == "/"

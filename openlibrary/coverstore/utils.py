@@ -78,6 +78,12 @@ def is_allowed_default_redirect_url(url: str) -> bool:
     OL/IA host, or an already-allowed external cover URL. Everything else
     (evil.com, internal hosts, scheme-relative ``//evil.com``, ``javascript:``)
     is rejected, closing the GHSA-8ffj open redirect."""
+    # A backslash has no place in a URL, but WHATWG browsers normalise it to "/"
+    # while urlsplit does not: https://evil.com\@openlibrary.org parses here as
+    # host=openlibrary.org (trusted) yet a browser navigates to evil.com. Reject
+    # it outright so the string we validate matches the string the browser uses.
+    if "\\" in url:
+        return False
     try:
         parts = urlsplit(url)
     except ValueError:
@@ -99,8 +105,14 @@ def safe_redirect_target(target: str | None, fallback: str = "/") -> str:
     # Browsers strip embedded control chars; a value carrying them is hostile.
     if not cleaned or any(c in cleaned for c in ("\n", "\r", "\t")):
         return fallback
-    # Scheme-relative or backslash-smuggled host -> unsafe.
-    if cleaned.startswith(("//", "/\\", "\\")):
+    # A backslash anywhere is unsafe: WHATWG browsers normalise "\" to "/", so
+    # urlsplit's view of the host would differ from the browser's (e.g.
+    # https://evil.com\@openlibrary.org parses as host=openlibrary.org here but
+    # navigates to evil.com). Reject it rather than validate a different string.
+    if "\\" in cleaned:
+        return fallback
+    # Scheme-relative host -> unsafe.
+    if cleaned.startswith("//"):
         return fallback
     try:
         parts = urlsplit(cleaned)
