@@ -14,7 +14,6 @@ from datetime import datetime, timedelta
 
 import requests
 import web
-from internetarchive.exceptions import ItemLocateError
 
 import openlibrary
 from infogami import config
@@ -24,10 +23,7 @@ from infogami.utils.context import context
 from infogami.utils.view import add_flash_message, public, render
 from openlibrary import accounts
 from openlibrary.accounts.model import Account, OpenLibraryAccount, clear_cookies
-from openlibrary.catalog.add_book import (
-    create_ol_subjects_for_ocaid,
-    update_ia_metadata_for_ol_edition,
-)
+from openlibrary.catalog.add_book import update_ia_metadata_for_ol_edition
 from openlibrary.core import (
     admin as admin_stats,
 )
@@ -236,29 +232,6 @@ class people:
         if account:
             raise web.seeother(f"/admin/people/{account.username}")
         return render_template("admin/people/index", email=i.email, ia_id=i.ia_id)
-
-
-class add_work_to_staff_picks:
-    def GET(self):
-        return render_template("admin/sync")
-
-    def POST(self):
-        i = web.input(action="add", work_id="", subjects="openlibrary_staff_picks")
-        results = {}
-        work_ids = i.work_id.split(",")
-        subjects = i.subjects.split(",")
-        for work_id in work_ids:
-            work = web.ctx.site.get("/works/%s" % work_id)
-            editions = work.editions
-            ocaids = [edition.ocaid for edition in editions if edition.ocaid]
-            results[work_id] = {}
-            for ocaid in ocaids:
-                try:
-                    results[work_id][ocaid] = create_ol_subjects_for_ocaid(ocaid, subjects=subjects)
-                except ItemLocateError as err:
-                    results[work_id][ocaid] = f"Failed to add to staff picks. Error message: {err}"
-
-        return delegate.RawText(json.dumps(results), content_type="application/json")
 
 
 class resolve_redirects:
@@ -758,8 +731,6 @@ def setup():
     register_admin_page("/admin/solr", solr, label="", librarians=True)
     register_admin_page("/admin/sync", sync_ol_ia, label="", librarians=True)
     register_admin_page("/admin/resolve_redirects", resolve_redirects, label="Resolve Redirects")
-
-    register_admin_page("/admin/staffpicks", add_work_to_staff_picks, label="", librarians=True)
 
     register_admin_page("/admin/imports", imports_home, label="")
     register_admin_page("/admin/imports/add", imports_add, label="")
