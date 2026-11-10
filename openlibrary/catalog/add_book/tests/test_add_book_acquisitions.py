@@ -203,6 +203,16 @@ def test_opds_descriptive_metadata_reaches_the_edition_and_work(mock_site, add_l
     assert "Florence (Italy) -- Fiction" in work.subjects
 
 
+def test_opds_gutenberg_author_matches_on_gutenberg_id(mock_site, add_languages, ia_writeback, acquisitions_db):
+    mock_site.save({"name": "Edward Morgan Forster", "key": "/authors/OL5A", "type": {"key": "/type/author"}, "remote_ids": {"project_gutenberg": "975"}})
+    gutenberg = opds.Feed(provider_name="project_gutenberg", id_strategy="gutenberg")
+    pub = opds.Publication(**json.loads((SAMPLES / "gutenberg_2641.json").read_text()))
+
+    reply = load(import_edition_builder(init_dict=opds.to_import_record(pub, gutenberg)).get_dict())
+
+    assert [a["key"] for a in reply["authors"]] == ["/authors/OL5A"]
+
+
 def test_every_acquisition_of_a_publication_is_kept(mock_site, add_languages, ia_writeback, acquisitions_db):
     """All links share one row, so all of them must survive.
 

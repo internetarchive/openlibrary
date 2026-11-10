@@ -69,6 +69,18 @@ def _names(value: Any) -> list[str]:
 # Subject schemes that are classifications rather than topics.
 LCC_SCHEME = "http://purl.org/dc/terms/LCC"
 
+# Contributor ``identifier`` URLs we recognise -> the OL author remote_ids type
+# they carry, which add_book matches authors on before falling back to names.
+AUTHOR_ID_PATTERNS = ((re.compile(r"^https?://(?:www\.)?gutenberg\.org/ebooks/author/(\d+)/?$"), "project_gutenberg"),)
+
+
+def _author_remote_ids(identifier: Any) -> dict[str, str]:
+    if isinstance(identifier, str):
+        for pattern, id_type in AUTHOR_ID_PATTERNS:
+            if match := pattern.match(identifier.strip()):
+                return {id_type: match[1]}
+    return {}
+
 
 class Price(BaseModel):
     currency: str
@@ -113,8 +125,17 @@ class Publication(BaseModel):
         return _localized(self.metadata.get("subtitle"))
 
     @property
-    def authors(self) -> list[dict[str, str]]:
-        return [{"name": name} for name in _names(self.metadata.get("author"))]
+    def authors(self) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
+        for entry in _as_list(self.metadata.get("author")):
+            name = _localized(entry.get("name") if isinstance(entry, dict) else entry)
+            if not name or any(a["name"] == name for a in out):
+                continue
+            author: dict[str, Any] = {"name": name}
+            if isinstance(entry, dict) and (remote_ids := _author_remote_ids(entry.get("identifier"))):
+                author["remote_ids"] = remote_ids
+            out.append(author)
+        return out
 
     @property
     def publishers(self) -> list[str]:
