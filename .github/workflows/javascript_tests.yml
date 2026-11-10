@@ -7,6 +7,11 @@ on:
     paths:
       - 'Makefile'
       - '.github/workflows/javascript_tests.yml'
+      # The code-review disclosure gate is embedded in this workflow and covered by
+      # tests/unit/js/code_review_gate.test.js, which extracts and evals it. Re-run the JS suite
+      # when the gate or its model contract changes, even if no other JS/JSON changed.
+      - '.github/workflows/code_review_action.yml'
+      - '.github/workflows/code_review.md'
       - 'vendor/js/**'
       # Icon sources feed the generated glyph module the JS tests import.
       - 'static/icons/**'

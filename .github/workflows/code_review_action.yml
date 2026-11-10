@@ -17,21 +17,26 @@ name: Code Review Action
 # Do not "simplify" this into one job. Do not add any PAT to `analyze`. Do not add write
 # scopes to `analyze`'s permissions block.
 #
-# DISCLOSURE GATE -- a security finding is never published, per pm/workflows/code_review.md
-# ("do NOT post publicly. Follow security.md"). REVIEW_GATE_JS below is the one definition of
-# what may be published; both jobs evaluate that same text:
-#   - `analyze` runs it after the model and uploads ONLY what it returns: the allowlisted copy
-#     of the review if it passes, a {"withheld": true} stub if not. The model's own files never
-#     leave the runner -- not review.json, and not review.diff or review-range.json, which the
-#     model could have rewritten. Artifacts on a public repo are downloadable by any signed-in
-#     GitHub user, so anything unscanned in the artifact is a disclosure.
-#   - `post` runs it again on a fresh runner and is the enforcer: it publishes nothing unless
-#     the gate passes, whatever `analyze` claims, and renders only from the allowlisted copy.
-#     It re-fetches the diff itself from the range the pre-model step resolved.
-# The gate withholds the WHOLE review: a security finding suppresses every other finding too.
-# A withheld run fails with one fixed message whatever the reason -- a security finding, a
-# backstop hit, a malformed or missing review. Logs on a public repo are public, so the reason
-# is never written anywhere.
+# DISCLOSURE GATE -- POST BY DEFAULT (epic #13160 reframe). The review exists to CATCH harmful
+# PRs before merge, so a finding about the PR's OWN proposed code is PUBLISHED -- that visibility
+# is the point. The ONLY thing never made public is a finding that discloses a vulnerability
+# already LIVE in deployed (base) code; that is routed PRIVATE (a GHSA sink, in a later PR) and,
+# until that sink lands, dropped. REVIEW_GATE_JS below is the one definition of this split
+# (classify / routeFinding); both jobs evaluate that same text:
+#   - `analyze` runs it after the model. It is the AUTHORITATIVE classifier (the only job with the
+#     model output AND the base tree AND the diff). It uploads ONLY the classified, redacted
+#     PUBLIC payload, or a fixed stub when there is no public finding. The raw model review.json is
+#     NEVER uploaded or logged; private findings leave the runner by no path in this PR. Artifacts
+#     on a public repo are downloadable by any signed-in user, so the artifact is a public surface
+#     and this is THE containment point.
+#   - `post` checks out the base tree and INDEPENDENTLY re-runs routeFinding on each public-payload
+#     finding (two-eval, fail-closed on disagreement): it can DEMOTE public->private (drop) but,
+#     because the artifact never carries a private finding, can never promote. It holds the sole
+#     write PAT and renders from the public payload only.
+# Routing is by WHERE THE VULNERABLE CONSTRUCT LIVES, fail-closed to PRIVATE (see REVIEW_GATE_JS).
+# Every NON-posting outcome -- all-private, nothing-to-say, malformed -- is a GREEN job with no
+# comment and the same stub artifact, so the absence of a comment never signals a private finding.
+# No review text, count, or reason is ever written to the public run log.
 #
 # Fork PRs: `pull_request` from a fork gets no secrets, so the review_requested path covers
 # same-repo PRs only. The `issue_comment` path runs in base-repo context WITH secrets and does
@@ -42,11 +47,26 @@ name: Code Review Action
 # the workspace, and can write only review.json -- see the Review step.
 
 env:
-  # Evaluates to { dimensions, check(review) }. check() fails closed: anything not positively
-  # shaped as a publishable review is withheld. On success it returns `clean`, an allowlisted
-  # copy holding exactly the fields `post` renders -- that copy, never the model's own file, is
-  # what gets uploaded and posted, so no unscanned field or extra key reaches a public surface.
-  # The security dimension's note is not in `clean`: it is never published, so it is not scanned.
+  # REVIEW_GATE_JS -- the engine-agnostic DISCLOSURE GATE. Evaluates to an object exposing
+  # classify(review, ctx) and routeFinding(finding, ctx). It takes a structured review
+  # (findings-as-JSON from ANY review engine) plus a diff/base context, and splits findings into a
+  # PUBLIC payload (posted) and a PRIVATE list (a vuln already LIVE in deployed/base code -> GHSA
+  # sink in a later PR; dropped for now). It OWNS the publish/route decision; it does not produce
+  # the review. See code_review.md for the model contract.
+  #
+  # POST-BY-DEFAULT (epic #13160 reframe): a review of a PR's OWN proposed code is published --
+  # catching a harmful change before merge is the whole point. The ONLY thing never made public is
+  # a finding that discloses a vulnerability already LIVE in deployed (base) code. Routing is by
+  # WHERE THE VULNERABLE CONSTRUCT LIVES, fail-closed to PRIVATE:
+  #   - disclosure = pre-existing-live, or absent/invalid        -> PRIVATE
+  #   - pr-introduced, but anchored to a base/unchanged line     -> PRIVATE (escalate)
+  #   - pr-introduced, but sink_ref resolves on the base tree    -> PRIVATE (escalate; live sink)
+  #   - pr-introduced disclosure-SHAPE finding with no sink_ref  -> PRIVATE (fail-closed)
+  #   - otherwise                                                -> PUBLIC
+  # The two cross-checks ESCALATE only (never downgrade), so they strictly add disclosure safety.
+  # `secrets` is a value-echo SCRUBBER overlay (a literal credential is redacted from public text),
+  # never a router: a PR-introduced hardcoded secret still posts by location + a rotate warning,
+  # because its value is already public in the diff.
   REVIEW_GATE_JS: |
     ({
       dimensions: {
@@ -54,86 +74,148 @@ env:
         test_coverage: 'Test coverage', styleguide: 'Styleguide',
       },
       severities: ['high', 'medium', 'low'],
-      // Non-model backstop for a security concern the model filed under another dimension or
-      // wrote into prose. It is best-effort -- it cannot recognise every phrasing -- and the
-      // primary control is the model's classification. False positives cost a withheld review;
-      // false negatives cost a disclosure.
-      terms: /\b(secur\w*|vulnerab\w*|exploit\w*|attack\w*|malicious\w*|inject\w*|xss|cross[- ]site|csrf|xsrf|ssrf|rce|remote code|code execution|open[- ]redirect|traversal|privilege\w*|escalat\w* (to|privilege\w*)|(un)?authori[sz]\w*|impersonat\w*|exfiltrat\w*|(auth\w*|permission|access|login|csrf|validation) bypass\w*|bypass\w* (the )?(auth\w*|permission|access|login|csrf|validation)|(credential|secret|password|pii|personal data)s? (are |is )?leak\w*|leak\w* (of )?(the )?(credential|secret|password|pii|personal data|patron|user|reader)\w*|secrets?|credentials?|passwords?|api[- _]?keys?|(auth|access|api|session|csrf|bearer|oauth|refresh)[- _]?tokens?|cve-\d+|ghsa-\w+|deserializ\w*|pickle|shell\s*=\s*true|sql\w* (string|injection)|(concatenat|interpolat|format|substitut)\w* into (the |a )?(sql|query|shell|command)|(missing|no|without( an?)?|lacks?( an?)?) (auth\w*|permission|access|ownership|owner|csrf|host|origin) (check|validation|verification)\w*|without (checking|validating|verifying) the (host|origin|domain|scheme|redirect|owner\w*)|another (patron|user|account|reader)'?s|yaml\.load|httponly|samesite|unsaniti[sz]ed|sanitiz\w*|unescaped|clickjack\w*|denial of service|redos)\b/i,
-      // Shapes that are not words, so they cannot sit inside the \b...\b list above.
-      patterns: /\|\s*safe\b|\beval\s*\(|\bexec\s*\(|\bos\.system\b|\bMarkup\s*\(|x-forwarded-for|rate[- ]limit\w* (is |are )?(missing|absent)|(no|missing|without) rate[- ]limit/i,
-      // Credential shapes, independent of the term list: a review must never carry one.
-      secrets: /sk-ant-[\w-]{20,}|\bgh[pousr]_[A-Za-z0-9]{30,}|\bgithub_pat_\w{30,}|\beyJ[\w-]{8,}\.[\w-]{8,}\.[\w-]{6,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/,
-      // What GitHub renders as plain text, so the scan sees the words a reader would: decode
-      // character references (an unrecognised named one returns null and withholds), drop HTML
-      // comments and tags, invisible format characters and combining marks, unwrap markdown
-      // links and emphasis/code marks, and split identifiers (snake_case, camelCase) into words.
-      // Every regex here is linear: model text is untrusted and can be large.
-      entities: { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', mdash: ' ', ndash: ' ', hellip: ' ', copy: ' ', reg: ' ', times: ' ', rarr: ' ', larr: ' ' },
+      disclosures: ['pr-introduced', 'pre-existing-live'],
+
+      // A finding describes an exploitable MECHANISM. Used ONLY to fail a `pr-introduced` finding
+      // CLOSED to private when it lacks the structured proof (a PR-local sink_ref) that the construct
+      // is new -- never to withhold a whole review. Post-by-default means a pr-introduced mechanism
+      // with a resolved PR-local sink_ref IS published: catching it before merge is the whole point.
+      shapes: /\b(inject\w*|xss|cross[- ]site|csrf|xsrf|ssrf|rce|remote code|code execution|open[- ]redirect|path traversal|directory traversal|(un)?authori[sz]\w*|exfiltrat\w*|(auth\w*|permission|access|login|csrf|validation) bypass\w*|bypass\w* (the )?(auth\w*|permission|access|login|csrf|validation)|(missing|no|without( an?)?|lacks?( an?)?) (auth\w*|permission|access|ownership|owner|csrf|host|origin) (check|validation|verification)\w*|without (checking|validating|verifying) the (host|origin|domain|scheme|redirect|owner\w*)|another (patron|user|account|reader)'?s|yaml\.load|deserializ\w*|pickle|shell\s*=\s*true|sql\w* (string|injection)|(concatenat|interpolat|format|substitut)\w* into (the |a )?(sql|query|shell|command)|unsaniti[sz]ed|unescaped|clickjack\w*|redos|denial of service)\b/i,
+      // Shapes that aren't \b-words.
+      shapePatterns: /\|\s*safe\b|\beval\s*\(|\bexec\s*\(|\bos\.system\b|\bMarkup\s*\(/i,
+
+      // Literal credential VALUE shapes. A print-guard OVERLAY on public text (never a router): the
+      // value is redacted from every public surface; the finding still posts by location. Global flag
+      // so replace() scrubs all occurrences.
+      secrets: /sk-ant-[\w-]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_\w{30,}|eyJ[\w-]{8,}\.[\w-]{8,}\.[\w-]{6,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35}|xox[baprs]-[0-9A-Za-z-]{10,}/g,
+
+      path: /^(?!.*(^|\/)\.\.(\/|$))[A-Za-z0-9_.][A-Za-z0-9_.\/-]*$/,
+      // A sink_ref is a code identifier or repo-relative path, no spaces/markdown; bounded.
+      sinkRef: /^[A-Za-z0-9_.][A-Za-z0-9_.\/-]{0,200}$/,
+      maxText: 65536,
+
+      // Normalize text the way GitHub renders it, so a scan sees the words a reader would.
       plain(t) {
-        const cp = (n) => (Number.isInteger(n) && n >= 0 && n <= 0x10FFFF ? String.fromCodePoint(n) : ' ');
-        let unknown = false;
-        t = t.normalize('NFKC')
-          .replace(/&#x([0-9a-f]{1,8});?/gi, (_, h) => cp(parseInt(h, 16)))
-          .replace(/&#(\d{1,10});?/g, (_, d) => cp(Number(d)))
-          .replace(/&([a-z][a-z0-9]{0,31});/gi, (_, n) => (Object.hasOwn(this.entities, n.toLowerCase()) ? this.entities[n.toLowerCase()] : ((unknown = true), ' ')));
-        if (unknown) return null;
-        return t.replace(/<!--[\s\S]*?(-->|$)/g, '').replace(/<[^<>]*>/g, '')
+        if (typeof t !== 'string') return '';
+        return t.normalize('NFKC')
+          .replace(/<!--[\s\S]*?(-->|$)/g, '').replace(/<[^<>]*>/g, '')
           .normalize('NFKD').replace(/[\p{Cf}\p{M}]/gu, '')
           .replace(/\[([^\[\]]*)\]\([^()]*\)/g, '$1').replace(/[*`~]/g, '')
+          .replace(/_/g, ' ').replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2')
           .normalize('NFKC');
       },
-      // The same text with identifiers split into words. Scanned in addition to plain(), not
-      // instead: splitting would break shapes like HttpOnly or a token's mixed case.
-      words(t) {
-        return t.replace(/_/g, ' ').replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
+
+      // Redact any literal credential value from text bound for a public surface.
+      redact(t) {
+        return typeof t === 'string'
+          ? t.replace(this.secrets, '[redacted credential — rotate, treat as compromised]')
+          : t;
       },
-      // Longer published text than this is withheld rather than scanned.
-      maxText: 65536,
-      // A repository-relative path: no spaces, markdown, absolute paths or `..` segments.
-      path: /^(?!.*(^|\/)\.\.(\/|$))[A-Za-z0-9_.][A-Za-z0-9_.\/-]*$/,
-      check(review) {
-        try { return this.evaluate(review); } catch (e) { return { publish: false }; }
+
+      // Does this finding anchor ONLY to added (+) lines of the reviewed diff?
+      //   true  -> cited lines are new (only in pr-head)   [POST-eligible]
+      //   false -> touches a context/unchanged base line   [escalate PRIVATE]
+      //   null  -> no usable in-diff anchor                [indeterminate]
+      anchorAddedOnly(f, ctx) {
+        if (!f.path || !ctx.added || !ctx.added.has(f.path)) return null;
+        const start = Number(f.start_line != null ? f.start_line : f.line), end = Number(f.line);
+        if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < start) return null;
+        const added = ctx.added.get(f.path);
+        let sawAdded = false;
+        for (let ln = start; ln <= end; ln++) {
+          // Fail-closed: every anchored line must be an ADDED (+) line of the reviewed diff. A
+          // context/unchanged line (code live on base) or any line outside the added set escalates.
+          if (!added.has(ln)) return false;
+          sawAdded = true;
+        }
+        return sawAdded ? true : null;
       },
-      evaluate(review) {
-        const no = { publish: false };
+
+      // Route one finding: 'public' | 'private'. Fail-closed to 'private'. Escalate-only cross-checks.
+      routeFinding(f, ctx) {
+        const d = f.disclosure;
+        if (d === 'pre-existing-live') return 'private';
+        if (d !== 'pr-introduced') return 'private';                 // absent / invalid -> fail-closed
+        if (this.anchorAddedOnly(f, ctx) !== true) return 'private'; // must anchor to added lines only
+        const ref = (typeof f.sink_ref === 'string' && this.sinkRef.test(f.sink_ref)) ? f.sink_ref : null;
+        if (ref && ctx.baseHasSymbol(ref)) return 'private';         // sink lives unchanged on base
+        const text = this.plain([f.title, f.body].filter((x) => x != null).join('\n'));
+        const shaped = this.shapes.test(text) || this.shapePatterns.test(text);
+        if (shaped && !ref) return 'private';                        // exploitable mechanism, no PR-local proof
+        return 'public';
+      },
+
+      // Validate schema + split findings. Fail-closed: malformed -> { ok:false, public:null, private:[] }.
+      classify(review, ctx) {
+        try { return this.evaluate(review, ctx); } catch (e) { return { ok: false, public: null, private: [] }; }
+      },
+      evaluate(review, ctx) {
+        const fail = { ok: false, public: null, private: [] };
         const str = (v) => typeof v === 'string';
         const absent = (v) => v === undefined || v === null;
         const line = (v) => absent(v) || (Number.isInteger(v) && v > 0);
-        if (!review || typeof review !== 'object' || Array.isArray(review)) return no;
+        if (!review || typeof review !== 'object' || Array.isArray(review)) return fail;
         const { dimensions: dims, findings } = review;
-        if (!str(review.summary) || !Array.isArray(findings) || !dims || typeof dims !== 'object') return no;
-        const clean = { summary: review.summary, dimensions: {}, findings: [] };
-        const counts = {};
+        if (!str(review.summary) || !Array.isArray(findings) || !dims || typeof dims !== 'object') return fail;
+
+        const pub = [], priv = [], modelCounts = {}, pubCounts = {};
         for (const f of findings) {
-          if (!f || typeof f !== 'object' || !str(f.dimension) || !Object.hasOwn(this.dimensions, f.dimension)) return no;
-          if (!this.severities.includes(f.severity) || !str(f.title) || !f.title.trim() || !str(f.body) || !f.body.trim()) return no;
-          if (!line(f.line) || !line(f.start_line)) return no;
-          if (!absent(f.path) && !(str(f.path) && this.path.test(f.path))) return no;
-          if (!absent(f.suggestion) && !str(f.suggestion)) return no;
-          counts[f.dimension] = (counts[f.dimension] || 0) + 1;
-          const c = { dimension: f.dimension, severity: f.severity, title: f.title, body: f.body };
-          for (const k of ['path', 'start_line', 'line', 'suggestion']) if (!absent(f[k])) c[k] = f[k];
-          clean.findings.push(c);
+          if (!f || typeof f !== 'object' || !str(f.dimension) || !Object.hasOwn(this.dimensions, f.dimension)) return fail;
+          if (!this.severities.includes(f.severity) || !str(f.title) || !f.title.trim() || !str(f.body) || !f.body.trim()) return fail;
+          if (!line(f.line) || !line(f.start_line)) return fail;
+          if (!absent(f.path) && !(str(f.path) && this.path.test(f.path))) return fail;
+          if (!absent(f.suggestion) && !str(f.suggestion)) return fail;
+          if (!absent(f.disclosure) && !this.disclosures.includes(f.disclosure)) return fail; // invalid enum -> malformed
+          if (!absent(f.sink_ref) && !str(f.sink_ref)) return fail;
+          modelCounts[f.dimension] = (modelCounts[f.dimension] || 0) + 1;
+
+          if (this.routeFinding(f, ctx) === 'public') {
+            // MUST-FIX 2: retain `disclosure` + `sink_ref` on PUBLIC findings so POST can re-run the
+            // full routeFinding independently (the real two-independent-evaluations). Both name
+            // PR-introduced constructs already visible in the public diff, so they are non-sensitive.
+            const c = {
+              dimension: f.dimension, severity: f.severity,
+              title: this.redact(f.title), body: this.redact(f.body),
+              disclosure: f.disclosure,
+            };
+            for (const k of ['path', 'start_line', 'line', 'sink_ref']) if (!absent(f[k])) c[k] = f[k];
+            if (!absent(f.suggestion)) c.suggestion = this.redact(f.suggestion);
+            pub.push(c);
+            pubCounts[f.dimension] = (pubCounts[f.dimension] || 0) + 1;
+          } else {
+            priv.push({ dimension: f.dimension, severity: f.severity, title: f.title, body: f.body });
+          }
         }
+
+        // Validate the model's own dimension self-consistency (integrity check only; not the router).
         for (const k of Object.keys(this.dimensions)) {
-          const d = dims[k], n = counts[k] || 0;
-          if (!d || typeof d !== 'object' || (d.status !== 'none' && d.status !== 'findings')) return no;
-          if ((d.status === 'none') !== (n === 0)) return no;
-          // The security note is never published, so it is neither required nor kept.
-          if (k !== 'security' && d.status === 'none' && !(str(d.note) && d.note.trim())) return no;
-          if (k !== 'security' && !absent(d.note) && !str(d.note)) return no;
-          clean.dimensions[k] = k === 'security' ? { status: d.status } : { status: d.status, note: d.note };
+          const dd = dims[k], n = modelCounts[k] || 0;
+          if (!dd || typeof dd !== 'object' || (dd.status !== 'none' && dd.status !== 'findings')) return fail;
+          if ((dd.status === 'none') !== (n === 0)) return fail;
+          if (!absent(dd.note) && !str(dd.note)) return fail;
         }
-        if (clean.dimensions.security.status !== 'none') return no;
-        const text = [clean.summary];
-        for (const [k, d] of Object.entries(clean.dimensions)) if (k !== 'security') text.push(d.note);
-        for (const f of clean.findings) text.push(f.title, f.body, f.suggestion, f.path);
-        const raw = text.filter((t) => t != null).join('\n');
-        if (raw.length > this.maxText) return no;
-        const plain = this.plain(raw);
-        if (plain === null || this.secrets.test(plain)) return no;
-        for (const t of [plain, this.words(plain)]) if (this.terms.test(t) || this.patterns.test(t)) return no;
-        return { publish: true, clean };
+
+        // PUBLIC payload.
+        // MUST-FIX 1 (gap#1, deterministic): the model's free-text summary may describe a
+        // pre-existing-live finding, and redact() scrubs only credential VALUES, not prose. So the
+        // model summary is rendered ONLY when NOTHING is routed private (nothing to leak); whenever a
+        // private finding exists, the summary is a neutral line built from public counts. No trust in
+        // model discipline. The dimensions block is always rebuilt by the renderer from PUBLIC counts
+        // (never the model's status/notes), so the public surface cannot reveal that a private finding
+        // exists.
+        const modelSummary = this.redact(review.summary);
+        if (modelSummary.length > this.maxText) return fail;
+        const total = pub.length;
+        const summary = priv.length > 0
+          ? `Review of this PR's changes.${total ? ` ${total} finding${total === 1 ? '' : 's'} below.` : ''}`
+          : modelSummary;
+        const publicReview = {
+          summary,
+          dimensions: {},                 // rebuilt by the renderer from pubCounts
+          findings: pub,
+          publicCounts: pubCounts,
+        };
+        return { ok: true, public: publicReview, private: priv };
       },
     })
 
@@ -336,30 +418,73 @@ jobs:
           show_full_output: false
           display_report: false
 
-      - name: Gate the analysis before upload
+      - name: Classify findings and prepare the PUBLIC-only artifact
         id: analyze-gate
         if: steps.range.outputs.skip == 'false'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const fs = require('fs');
-            const file = `${process.env.GITHUB_WORKSPACE}/review.json`;
+            const { execFileSync } = require('child_process');
             const gate = eval(process.env.REVIEW_GATE_JS);
+            const file = `${process.env.GITHUB_WORKSPACE}/review.json`;
+
+            // CONTAINMENT INVARIANT (disclosure gate, DECISION 1a): the raw model review.json is
+            // NEVER uploaded or logged. Only the classified, redacted PUBLIC payload is written here
+            // and uploaded; the artifact is a public surface. Findings that disclose a vuln already
+            // LIVE in deployed/base code are classified PRIVATE and, in this PR, DROPPED -- they
+            // leave this runner by no path. (A later PR routes them to a private GHSA via a
+            // credential scoped to this job and never shared with a fork-triggered context.)
             let review = null;
             try { review = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { review = null; }
-            // Upload the gate's allowlisted copy, never the model's file. Same log line either way:
-            // the run log is public, and a difference would say which.
-            const res = gate.check(review);
-            fs.writeFileSync(file, JSON.stringify(res.publish ? res.clean : { withheld: true }));
-            core.info('Gate evaluated; artifact prepared.');
 
-      - name: Upload analysis
+            // ctx for the gate: `added` = RIGHT-side added (+) lines per path from the reviewed
+            // diff; baseHasSymbol greps the BASE tree (checked out at base.sha in `./`) for a
+            // finding's structured sink_ref, excluding vendored trees. Both drive escalate-only
+            // cross-checks; on any grep error we fail closed (treat as present -> escalate).
+            const buildAdded = (diffText) => {
+              const added = new Map(); let f = null, ln = 0;
+              for (const raw of diffText.split('\n')) {
+                if (raw.startsWith('+++ ')) { const p = raw.slice(4).trim(); f = p === '/dev/null' ? null : p.replace(/^b\//, ''); if (f) added.set(f, new Set()); continue; }
+                const h = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+                if (h) { ln = Number(h[1]); continue; }
+                if (!f) continue;
+                if (raw.startsWith('+')) added.get(f).add(ln++);
+                else if (raw.startsWith(' ')) ln++;
+              }
+              return added;
+            };
+            const baseHasSymbol = (ref) => {
+              // Grep the BASE source tree only. Exclude vendored trees AND the review artifacts and
+              // the PR-head extraction that also sit in the workspace -- review.diff / pr-head/
+              // carry the PR's OWN added code, so including them would resolve every PR-introduced
+              // sink_ref and wrongly privatise everything.
+              try { execFileSync('grep', ['-rwFq', '--exclude-dir=node_modules', '--exclude-dir=vendor', '--exclude-dir=.git', '--exclude-dir=.github', '--exclude-dir=pr-head', '--exclude=review.diff', '--exclude=review.json', '--exclude=review-range.json', '-e', ref, '.'], { stdio: 'ignore' }); return true; }
+              catch (e) { return e && e.status === 1 ? false : true; }
+            };
+            let added = new Map();
+            try { added = buildAdded(fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/review.diff`, 'utf8')); } catch (e) {}
+            const ctx = { added, baseHasSymbol };
+
+            const res = gate.classify(review, ctx);
+            // A fixed stub whenever there is NO public finding -- byte-identical for clean,
+            // all-private, and malformed, so the artifact never signals which occurred.
+            const STUB = JSON.stringify({ noPublicFindings: true });
+            if (res.ok && res.public.findings.length > 0) {
+              fs.writeFileSync(file, JSON.stringify({ summary: res.public.summary, findings: res.public.findings }));
+            } else {
+              fs.writeFileSync(file, STUB);
+            }
+            core.info('Analysis classified.'); // fixed line: no reason, count, or review text
+
+      - name: Upload the public-only analysis
         if: steps.range.outputs.skip == 'false'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: code-review-${{ steps.range.outputs.pr }}
-          # review.json only, as rewritten by the gate step. review.diff and review-range.json
-          # were on disk while the model ran; `post` re-derives both from job outputs.
+          # review.json ONLY, after the classify step rewrote it to the public-only payload (or the
+          # fixed stub). review.diff / review-range.json are not uploaded; `post` re-derives the
+          # diff from job outputs and re-checks out the base tree itself.
           path: review.json
           if-no-files-found: error
           retention-days: 7
@@ -372,6 +497,14 @@ jobs:
       contents: read        # the diff fetch below, with the job's own GITHUB_TOKEN
       pull-requests: write
     steps:
+      # Check out the BASE tree so post can INDEPENDENTLY re-run the disclosure gate's
+      # base-presence cross-check (DECISION 1b / R1: two-eval fail-closed on disagreement). The
+      # base, never the PR head: this job must never materialise fork-controlled content.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.analyze.outputs.base_sha }}
+          persist-credentials: false
+
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: code-review-${{ needs.analyze.outputs.pr }}
@@ -406,100 +539,88 @@ jobs:
           github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
           script: |
             const fs = require('fs');
+            const { execFileSync } = require('child_process');
             const owner = context.repo.owner, repo = context.repo.repo;
             const prNumber = Number(process.env.PR);
             const headSha = process.env.HEAD_SHA;
             const gate = eval(process.env.REVIEW_GATE_JS);
 
-            // --- The disclosure gate. Nothing below this block runs unless it passes. One fixed
-            // message for every reason, and no reason, count or text from the review in the log:
-            // the log is public.
-            let review = null;
-            try { review = JSON.parse(fs.readFileSync('review.json', 'utf8')); } catch (e) { review = null; }
-            const verdict = gate.check(review);
-            if (!verdict.publish) {
-              core.setFailed('Review not published: the analysis did not pass the pre-publication gate, '
-                + 'and this run does not retain it. A maintainer should re-run the review privately '
-                + 'before anything is posted -- see .github/workflows/code_review.md.');
-              return;
-            }
-            // Everything below renders from the allowlisted copy only.
-            review = verdict.clean;
+            // --- Load the PUBLIC-only payload analyze produced. The stub (or any payload with no
+            // findings) means there is nothing public to post: exit GREEN with no comment and no
+            // annotation. That path is byte-identical for clean / all-private / malformed, so the
+            // ABSENCE of a comment is never a signal that a private finding was found (DECISION 3).
+            let payload = null;
+            try { payload = JSON.parse(fs.readFileSync('review.json', 'utf8')); } catch (e) { payload = null; }
+            const candidates = (payload && Array.isArray(payload.findings)) ? payload.findings : [];
+            if (!candidates.length) { core.info('No public findings; nothing to post.'); return; }
 
-            // --- Anchorable lines: RIGHT-side (added + context) lines of the reviewed diff.
-            // GitHub documents no behaviour for an out-of-diff anchor, and this API surface is
-            // already known to no-op silently here, so we drop bad anchors rather than find out.
-            const anchorable = new Map();
-            {
-              let file = null, newLn = 0;
-              for (const raw of fs.readFileSync('review.diff', 'utf8').split('\n')) {
-                if (raw.startsWith('+++ ')) {
-                  const p = raw.slice(4).trim();
-                  file = p === '/dev/null' ? null : p.replace(/^b\//, '');
-                  if (file) anchorable.set(file, new Set());
-                  continue;
-                }
+            // --- INDEPENDENT re-classification (R1 / DECISION 1b). Rebuild the diff/base context
+            // from the re-fetched diff and the base tree checked out in this job, then re-run the
+            // gate's routeFinding on each candidate. A finding posts only if BOTH analyze AND post
+            // call it public; post can DEMOTE public->private (drop) but -- because the artifact is
+            // public-only and never carries a private finding -- it can never promote. Fail closed.
+            const buildAdded = (diffText) => {
+              const added = new Map(); let f = null, ln = 0;
+              for (const raw of diffText.split('\n')) {
+                if (raw.startsWith('+++ ')) { const p = raw.slice(4).trim(); f = p === '/dev/null' ? null : p.replace(/^b\//, ''); if (f) added.set(f, new Set()); continue; }
                 const h = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
-                if (h) { newLn = Number(h[1]); continue; }
-                if (!file) continue;
-                if (raw.startsWith('+') || raw.startsWith(' ')) { anchorable.get(file).add(newLn++); }
+                if (h) { ln = Number(h[1]); continue; }
+                if (!f) continue;
+                if (raw.startsWith('+')) added.get(f).add(ln++);
+                else if (raw.startsWith(' ')) ln++;
               }
-            }
+              return added;
+            };
+            const baseHasSymbol = (ref) => {
+              // Grep the BASE source tree only. Exclude vendored trees AND the review artifacts and
+              // the PR-head extraction that also sit in the workspace -- review.diff / pr-head/
+              // carry the PR's OWN added code, so including them would resolve every PR-introduced
+              // sink_ref and wrongly privatise everything.
+              try { execFileSync('grep', ['-rwFq', '--exclude-dir=node_modules', '--exclude-dir=vendor', '--exclude-dir=.git', '--exclude-dir=.github', '--exclude-dir=pr-head', '--exclude=review.diff', '--exclude=review.json', '--exclude=review-range.json', '-e', ref, '.'], { stdio: 'ignore' }); return true; }
+              catch (e) { return e && e.status === 1 ? false : true; }
+            };
+            const ctx = { added: buildAdded(fs.readFileSync('review.diff', 'utf8')), baseHasSymbol };
+            const findings = candidates.filter((f) => gate.routeFinding(f, ctx) === 'public');
+            if (!findings.length) { core.info('No public findings after re-check; nothing to post.'); return; }
+            const dropped = candidates.length - findings.length;
 
-            const inline = [], orphaned = [];
-            for (const f of (review.findings || [])) {
-              const hasAnchor = f.path && f.line;
-              const start = f.start_line || f.line;
-              const ok = hasAnchor
-                && anchorable.has(f.path)
-                && anchorable.get(f.path).has(Number(f.line))
-                && anchorable.get(f.path).has(Number(start))
-                && Number(start) <= Number(f.line);
-              if (!ok) { orphaned.push(f); continue; }
-
-              let body = `**${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`;
+            // --- Inline comments. Every surviving public finding anchors to added (+) lines by
+            // construction. redact() is applied again here as a print-guard: a literal credential
+            // value never reaches a public surface (the finding still posts by location).
+            const inline = [];
+            for (const f of findings) {
+              const start = Number(f.start_line || f.line);
+              let body = gate.redact(`**${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`);
               if (f.suggestion != null) {
-                // A suggestion must replace exactly start..line or it cannot be applied.
-                const want = Number(f.line) - Number(start) + 1;
+                const want = Number(f.line) - start + 1;
                 const got = String(f.suggestion).split('\n').length;
-                if (want === got) body += `\n\n\`\`\`suggestion\n${f.suggestion}\n\`\`\``;
-                else core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (${got} lines for a ${want}-line range).`);
+                if (want === got) body += `\n\n\`\`\`suggestion\n${gate.redact(String(f.suggestion))}\n\`\`\``;
               }
               const c = { path: f.path, line: Number(f.line), side: 'RIGHT', body };
-              if (Number(start) !== Number(f.line)) { c.start_line = Number(start); c.start_side = 'RIGHT'; }
+              if (start !== Number(f.line)) { c.start_line = start; c.start_side = 'RIGHT'; }
               inline.push(c);
             }
 
-            // --- Summary body. Findings with no honest in-diff anchor live here rather than
-            // being pinned to an approximate line: on a real review of #13548, 3 of 9 findings
-            // proved themselves in files the diff never touched.
-            let summary = review.summary || '';
-            // The range comes from analyze's job outputs, set before the model ran.
+            // --- Summary. Rendered from PUBLIC counts only (never the model's per-dimension notes).
+            // If post DEMOTED any finding, the analyze-time summary is not trusted (it may describe a
+            // now-private finding): fall back to a neutral line.
+            const count = {};
+            for (const f of findings) count[f.dimension] = (count[f.dimension] || 0) + 1;
+            let summary = dropped > 0
+              ? `Review of this PR's changes. ${findings.length} finding${findings.length === 1 ? '' : 's'} below.`
+              : gate.redact(String(payload.summary || `Review of this PR's changes.`));
             const sha = /^[0-9a-f]{40}$/, baseSha = process.env.BASE_SHA;
             if (process.env.INCREMENTAL === 'true' && sha.test(baseSha) && sha.test(headSha)) {
               summary = `*Reviewing only the ${baseSha.slice(0,8)}..${headSha.slice(0,8)} range — the commits pushed since my last pass.*\n\n${summary}`;
             }
+            summary += '\n\n### Dimensions\n\n' + Object.entries(gate.dimensions).map(([k, label]) =>
+              count[k] ? `- **${label}** — ${count[k]} finding${count[k] === 1 ? '' : 's'}` : `- **${label}** — no findings in this range.`
+            ).join('\n');
+            summary += `\n\n---\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. It flags issues in this PR's proposed changes; it is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot -->`;
 
-            // --- Every dimension, stated. Silence on one reads identically to having checked it.
-            // Security is a fixed line: a review that reaches this point has none by construction.
-            const count = {};
-            for (const f of review.findings) count[f.dimension] = (count[f.dimension] || 0) + 1;
-            summary += '\n\n### Dimensions\n\n' + Object.entries(gate.dimensions).map(([k, label]) => {
-              if (k === 'security') return `- **${label}** — no findings in this range. This is not a security audit.`;
-              if (count[k]) return `- **${label}** — ${count[k]} finding${count[k] === 1 ? '' : 's'}`;
-              return `- **${label}** — no findings. ${review.dimensions[k].note}`;
-            }).join('\n');
-
-            if (orphaned.length) {
-              summary += `\n\n### Findings without an in-diff anchor\n\n` + orphaned.map(f =>
-                `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body).replace(/\n/g, '\n  ')}`
-              ).join('\n\n');
-            }
-            summary += `\n\n---\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot -->`;
-
-            // --- One batched review. The per-comment endpoint (POST /pulls/{n}/comments) is
-            // documented but returns 422 `pull_request_review_thread.base` in practice
-            // (cli/cli#13358); the batched payload with identical anchors succeeds.
+            // --- One batched review. The per-comment endpoint (POST /pulls/{n}/comments) returns
+            // 422 `pull_request_review_thread.base` in practice (cli/cli#13358); the batched payload
+            // with identical anchors succeeds.
             const { data: posted } = await github.rest.pulls.createReview({
               owner, repo, pull_number: prNumber,
               commit_id: headSha,          // resolved at post time -- an older SHA silently outdates comments
@@ -508,13 +629,14 @@ jobs:
               comments: inline,
             });
 
-            // --- Verify. Step 4 of pr_autoresponder.md documents this API surface returning
-            // 2xx while changing nothing, so confirm rather than trusting the status code.
+            // --- Verify. This API surface can return 2xx while changing nothing, so confirm. A
+            // genuine post failure is an operational error worth surfacing (it only fires when there
+            // ARE public findings, so it is not a disclosure side channel).
             const after = await github.paginate(github.rest.pulls.listReviews, {
               owner, repo, pull_number: prNumber, per_page: 100,
             });
-            if (!after.some(r => r.id === posted.id)) {
+            if (!after.some((r) => r.id === posted.id)) {
               core.setFailed(`createReview returned ${posted.id} but it is not present on the PR.`);
               return;
             }
-            core.info(`Posted review ${posted.id}: ${inline.length} inline, ${orphaned.length} in summary.`);
+            core.info(`Posted review ${posted.id}: ${inline.length} inline.`);

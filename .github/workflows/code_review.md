@@ -12,6 +12,13 @@ summary.
 Your role is analytical, not authoritative: you surface findings, and a human maintainer decides
 whether to approve and merge. Never phrase the review as "looks good" or "approved".
 
+**This review posts by default.** Its purpose is to catch harmful or buggy changes before they
+merge, so findings about the PR's own proposed code are published — including security problems the
+PR introduces. The only thing kept out of public view is a finding that would disclose a
+vulnerability already *live in deployed (base) code*; you flag which is which with each finding's
+`disclosure` field (Step 3.2) and a non-model gate routes the live-vuln ones to a private channel.
+Classify honestly and, when unsure, mark `pre-existing-live` — the gate fails closed to private.
+
 ---
 
 ## Step 1: Establish the review range
@@ -73,21 +80,48 @@ Scan every PR. Read closely anything touching auth, sessions, cookies, redirects
 reaching SQL, shell, file paths or templates, `eval`/`exec`/`__import__`, `subprocess`, or
 `innerHTML`/`.html()` with user content.
 
-**Security concerns are never published by this bot.** Open Library routes them to
-maintainers privately (`pm/workflows/security.md`); a public review comment is a disclosure,
-and editing it afterwards does not undo that. So:
+**Post by default — surface security problems the PR *introduces*.** Catching a harmful change
+before it merges is the whole point of this review, so a security problem in the PR's own
+proposed code — an open redirect, an auth bypass, an injection, a hardcoded credential, a
+backdoor — is a normal `"dimension": "security"` finding and **is published**. Do not soften,
+omit, or re-file it; that visibility is the value.
 
-- Every security concern — however minor, however speculative, and **including one in code the
-  diff does not touch** — goes in `findings` with `"dimension": "security"`, and the security
-  dimension's `status` is `"findings"`. Never file it under another dimension, and never
-  mention it in the `summary`, another finding, or another dimension's `note`.
-- Do not discuss security in the `summary` at all, not even to say there is nothing to report.
-  That is what the security dimension's `status` and `note` are for.
-- A review containing any security finding is withheld in full: nothing from it is posted,
-  including its other findings. That is the intended outcome, not a failure on your part.
-  Report what you find; do not soften or omit a concern to get the rest of the review posted.
-- The posting step also withholds any review whose published text reads as security-related,
-  so misfiling a concern does not get it posted — it only loses the rest of the review.
+**The one exception: a vulnerability already LIVE in deployed code.** If a finding would reveal a
+weakness that exists in the **base (unchanged)** code — exploitable in production right now,
+independent of this PR — that is a zero-day disclosure and must never be public. You do not route
+it yourself; a non-model gate does, from your classification. So **classify every finding** (not
+only security ones) with a `disclosure` field:
+
+- **`"disclosure": "pr-introduced"`** — the construct the finding is about is **new in this PR's
+  added lines**; it is not live until this merges. (Published.)
+- **`"disclosure": "pre-existing-live"`** — the construct exists **unchanged on the base branch**
+  (live/deployed); the finding merely references or newly reaches it. (Routed private.)
+
+Attribute by what the finding **discloses**, not by what the PR adds. A finding that *looks*
+PR-introduced but whose explanation necessarily reveals a live base weakness ("this PR passes
+input to `render_raw()`, which in deployed code never escapes") is **`pre-existing-live`**. When
+in any doubt, use `pre-existing-live`: the gate fails closed to private, and a wrongly-private
+benign finding costs only a dropped comment, while a wrongly-public live vuln is a disclosure.
+
+- **`sink_ref` — required on any finding that describes an exploitable mechanism**, and useful on
+  every finding. Give the single **specific** identifier or repo-relative path of the construct
+  the finding concerns — a qualified function/method/route/file (e.g.
+  `openlibrary.core.lending.get_crossref` or `openlibrary/core/lending.py`), **not** a bare common
+  word like `get` or `redirect` (which matches the base tree everywhere and needlessly privatises
+  the finding). The gate greps the **base tree** for it: if it resolves there, the construct is
+  live and the finding is routed private regardless of your label. A mechanism finding with **no**
+  `sink_ref` is routed private (fail-closed), so a genuinely PR-introduced security finding needs
+  one to publish.
+
+- **Never put a literal secret VALUE in the review.** If the PR hardcodes a credential, report it
+  by **location** and say *"rotate — treat as compromised"*; do not paste the value. (It is
+  redacted from anything public anyway, and its value is already public in the diff — the response
+  is rotation, so the finding is published by location.)
+
+**Containment.** Write the `summary` and every dimension `note` **after** classifying your
+findings, and never describe a `pre-existing-live` finding in any of them — the summary is public.
+(As a backstop, whenever any finding is `pre-existing-live` the gate discards your summary and
+substitutes a neutral line; keep live-vuln detail out of the summary regardless.)
 
 ### 3. Accessibility — `accessibility`
 
@@ -152,6 +186,8 @@ annotations in a file that has none.
       "severity": "high",
       "title": "Short noun phrase",
       "body": "What is wrong, why it matters, and what to do...",
+      "disclosure": "pr-introduced",
+      "sink_ref": "docker/mockservices/main.py",
       "path": "docker/mockservices/main.py",
       "start_line": 421,
       "line": 428,
@@ -171,15 +207,25 @@ Field rules:
   unpublishable. Rank the array most severe first.
 - `title` and `body` — required, non-empty strings. Keys not shown in the schema are discarded
   before anything is posted, so do not put content anywhere else.
+- **`disclosure` — set it on EVERY finding** (Step 3.2): `"pr-introduced"` (new in this PR's added
+  lines — published) or `"pre-existing-live"` (lives unchanged on the base branch — routed
+  private). **A missing or unrecognised value is treated as `pre-existing-live` and the finding is
+  routed private (dropped) — so an ordinary correctness/style/a11y/test finding needs
+  `"pr-introduced"` to appear at all.**
+- **`sink_ref` — the single specific identifier or repo-relative path the finding concerns**
+  (qualified symbol or file path, never a bare common word). Required for any finding describing an
+  exploitable mechanism (without it, such a finding is routed private); recommended on all. The
+  gate greps the base tree for it and routes the finding private if it resolves there.
 - `path` — repository-relative, exactly as it appears in `review.diff` (`openlibrary/core/models.py`),
   never with a `pr-head/` prefix. A path containing spaces, markdown, `..` or a leading `/` makes
   the review unpublishable.
 - `path`, `start_line`, `line` — the anchor. `line` is the **last** line of the range;
-  `start_line` the first. **Both must be lines that appear as added or context lines on the
-  RIGHT side of `review.diff`.** If a finding's real evidence is in a file the diff does not
-  touch, **omit `path`/`start_line`/`line`** (or set them to `null`) and write it into the finding `body` —
-  the posting step will fold it into the summary. Do not invent a nearby anchor to make a
-  finding postable; a misplaced comment is worse than a summarised one.
+  `start_line` the first. **Every published finding must anchor to lines that appear as ADDED (`+`)
+  lines on the RIGHT side of `review.diff`.** A finding anchored to an unchanged/context line, or
+  with no `path`/`line` anchor at all, is treated as possibly about live base code and **routed
+  private (dropped) — it is NOT folded into the summary.** So anchor each finding you want
+  published to the specific added line it concerns; do not raise a finding you cannot anchor to the
+  PR's own added lines, and do not invent a nearby anchor.
 - `suggestion` — optional. The replacement text for **exactly** the `start_line..line` range,
   rendered as a GitHub suggestion block. The line count must match the range exactly, or the
   suggestion is unappliable. Omit it unless you are confident; prose is fine.
@@ -187,8 +233,9 @@ Field rules:
   padded ones, and this review costs money per run.
 
 If the PR is clean, say so in `summary`, mark every dimension `"none"` with its note, and return
-an empty `findings` array. That is a useful review and a cheap one. Do not restate what the PR
-description already says.
+an empty `findings` array. No comment is posted when there are no publishable findings (a clean
+PR, or one whose only findings are `pre-existing-live`), which is intended — silence is not a
+signal. Do not restate what the PR description already says.
 
 ## Step 5: Ignore our own bot
 
