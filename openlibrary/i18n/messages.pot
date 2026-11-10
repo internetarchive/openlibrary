@@ -1770,7 +1770,7 @@ msgstr ""
 msgid "My lists"
 msgstr ""
 
-#: EditionNavBar.html SearchNavigation.html.jinja account/sidebar.html lists/home.html openlibrary/core/shell/nav.py openlibrary/views/loanstats.py recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
+#: EditionNavBar.html SearchNavigation.html.jinja account/sidebar.html lists/carousel.html.jinja lists/home.html openlibrary/core/shell/nav.py openlibrary/views/loanstats.py recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
 msgid "Lists"
 msgstr ""
 
@@ -3249,24 +3249,24 @@ msgstr ""
 msgid "See all"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja lists/carousel.html.jinja lists/showcase.html
 msgid "Previous page"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja lists/carousel.html.jinja lists/showcase.html
 msgid "Next page"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja lists/carousel.html.jinja lists/showcase.html
 msgid "Carousel pages"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja lists/carousel.html.jinja lists/showcase.html
 #, python-brace-format
 msgid "Go to page {page} of {total}"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja lists/carousel.html.jinja lists/showcase.html
 #, python-brace-format
 msgid "Page {page} of {total}"
 msgstr ""
@@ -4918,6 +4918,10 @@ msgstr ""
 #: lists/showcase.html
 #, python-format
 msgid "My Lists (%(count)d)"
+msgstr ""
+
+#: lists/showcase.html type/user/view.html
+msgid "My Lists"
 msgstr ""
 
 #: lists/showcase.html
@@ -7150,10 +7154,6 @@ msgstr ""
 #: type/user/view.html
 #, python-format
 msgid "Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
-
-#: type/user/view.html
-msgid "My Lists"
 msgstr ""
 
 #: type/user/view.html
