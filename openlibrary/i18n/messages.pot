@@ -7127,6 +7127,10 @@ msgid "admin page"
 msgstr ""
 
 #: type/user/view.html
+msgid "Blocked"
+msgstr ""
+
+#: type/user/view.html
 #, python-format
 msgid "You are publicly sharing the books you are <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and have <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
 msgstr ""
