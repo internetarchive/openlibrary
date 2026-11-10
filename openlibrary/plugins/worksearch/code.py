@@ -1061,7 +1061,7 @@ class list_search(delegate.page):
         lists = list(web.ctx.site.get_many([doc["key"] for doc in resp.docs]))
 
         # Local import: openlibrary.fastapi.search imports this module.
-        from openlibrary.fastapi.search import SearchNav
+        from openlibrary.fastapi.search import SearchNav, lists_search_title
 
         body = render_jinja_template(
             "search/lists.html.jinja",
@@ -1074,7 +1074,7 @@ class list_search(delegate.page):
             total_pages=ceil(resp.num_found / req.limit),
         )
         # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
-        return web.template.TemplateResult(__body__=body, title=escape(_("Search results for Lists")))
+        return web.template.TemplateResult(__body__=body, title=escape(lists_search_title(req.q)))
 
     def get_results(
         self,

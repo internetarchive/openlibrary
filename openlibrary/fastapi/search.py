@@ -594,6 +594,11 @@ async def advancedsearch(form: Annotated[AdvancedSearchForm, Query()], nav: Sear
     return SitePage(render_jinja_template("search/advancedsearch.html.jinja", form=form, nav=nav), page=PageMeta(title=_("Advanced Search")))
 
 
+def lists_search_title(q: str) -> str:
+    """Page title for /search/lists: led by the query, as in Wikipedia's, so tabs and history tell searches apart."""
+    return _("%(query)s - List search", query=q) if q else _("List search")
+
+
 @pages.get("/search/lists")
 async def search_lists(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePage:
     # TODO: Retire the web.py `list_search` handler (it still serves /search/lists
@@ -621,4 +626,4 @@ async def search_lists(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePag
         page=page,
         total_pages=ceil(response.num_found / limit),
     )
-    return SitePage(body, page=PageMeta(title=_("Search results for Lists")))
+    return SitePage(body, page=PageMeta(title=lists_search_title(q)))

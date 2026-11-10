@@ -67,7 +67,7 @@ def test_lists_page_without_query(client, stub_templetor_partials):
 
     assert response.status_code == 200
     html = response.text
-    assert "<title>Search results for Lists | Open Library</title>" in html
+    assert "<title>List search | Open Library</title>" in html
     assert 'action="/search/lists"' in html
     # The search tabs
     assert 'data-ol-link-track="SearchNav|SearchLists"' in html
@@ -75,6 +75,15 @@ def test_lists_page_without_query(client, stub_templetor_partials):
     assert "search-results-stats" not in html
     assert "listResults" not in html
     assert "ol-pagination-wrapper" not in html
+
+
+def test_lists_page_title_leads_with_the_query(client, stub_templetor_partials):
+    with ExitStack() as stack:
+        patched_search(stack, _solr_response())
+        response = client.get("/search/lists?q=pokemon+%3Cstuff%3E")
+
+    assert response.status_code == 200
+    assert "<title>pokemon &lt;stuff&gt; - List search | Open Library</title>" in response.text
 
 
 def test_lists_page_results(client, stub_templetor_partials):

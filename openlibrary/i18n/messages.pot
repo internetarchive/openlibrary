@@ -9075,8 +9075,13 @@ msgstr ""
 msgid "How well can a patron determine if this edition is relevant to their needs before accessing it?"
 msgstr ""
 
-#: openlibrary/fastapi/search.py openlibrary/plugins/worksearch/code.py
-msgid "Search results for Lists"
+#: openlibrary/fastapi/search.py
+#, python-format
+msgid "%(query)s - List search"
+msgstr ""
+
+#: openlibrary/fastapi/search.py
+msgid "List search"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/api.py
