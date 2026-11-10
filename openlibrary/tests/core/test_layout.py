@@ -42,6 +42,7 @@ LAYOUT_TEMPLATES = [
     TEMPLATES_DIR / "shell" / "base.html.jinja",
     TEMPLATES_DIR / "shell" / "alert.html.jinja",
     TEMPLATES_DIR / "shell" / "banner.html.jinja",
+    TEMPLATES_DIR / "shell" / "edit_saved.html.jinja",
     TEMPLATES_DIR / "shell" / "head.html.jinja",
     TEMPLATES_DIR / "shell" / "footer.html.jinja",
     TEMPLATES_DIR / "shell" / "header.html.jinja",
@@ -187,6 +188,18 @@ def test_layout_build_flash_messages(request_context_fixture):
     request_context_fixture(lang="en")
     layout = _build(_req(flash_messages=({"type": "error", "message": "Invalid password"},)))
     assert layout.flash_messages == [{"type": "error", "message": "Invalid password"}]
+
+
+def test_layout_build_gives_the_edit_saved_flash_its_own_banner(request_context_fixture):
+    """The edit pages' thank-you leaves the flash messages for ``edit_saved``, with the Tasks project it names."""
+    request_context_fixture(lang="en")
+    error = {"type": "error", "message": "Invalid password"}
+    layout = _build(_req(flash_messages=({"type": "edit-saved", "message": "most-read-2026-11:485"}, error)))
+    assert layout.flash_messages == [error]
+    assert (layout.edit_saved.project.url, layout.edit_saved.project.left) == ("/tasks", "485\xa0tasks\xa0left")
+    # A save that pitched nothing still thanks the editor.
+    assert _build(_req(flash_messages=({"type": "edit-saved", "message": ""},))).edit_saved.project is None
+    assert _build().edit_saved is None
 
 
 def test_announcement_banner_structure():

@@ -1,10 +1,12 @@
 """Open Library Tasks at /tasks: books missing a field, and one page to fill each.
 
 Answers save straight to the record as normal edits, so they show in its history and revert like any other.
+Books come from initiatives, fixed lists with their own fields; a request names one with ``initiative=slug``.
 """
 
 import random
 from collections import Counter
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from urllib.parse import urlencode
 
@@ -13,12 +15,13 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
-from openlibrary.contribute import feed, initiatives, save, supply, tasks
+from openlibrary.contribute import feed, initiatives, pitch, save, supply, tasks
 from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides
 from openlibrary.contribute.tasks import field_values, work_of
-from openlibrary.core import helpers
-from openlibrary.core.tags import can_edit_tags, find_tag, tag_choices, work_tag_keys
+from openlibrary.core import admin, helpers
+from openlibrary.core.tags import GENRES, LITERARY_FORMS, find_tag, subject_matches, tag_choices, tag_key_named, tag_options, work_tag_names
 from openlibrary.i18n import gettext as _
+from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.utils import markdown_excerpt
 
@@ -36,6 +39,8 @@ APPLY_FORM_USERNAME_FIELD = "entry.629295430"
 # Signed-in members see the /tasks intro once. Clicking through sets this cookie, the way banner dismissals do.
 INTRO_COOKIE = "tasks_intro"
 INTRO_COOKIE_DAYS = 365
+# Below this, a count of helpers makes an initiative look empty rather than shared, so the line stays hidden.
+MIN_PEOPLE_SHOWN = 5
 
 
 def setup():
@@ -50,25 +55,22 @@ def get_filters() -> dict[str, tuple[str, tuple[str, ...]]]:
         "number_of_pages": (_("Page count"), ("number_of_pages",)),
         "publishers": (_("Publisher"), ("publishers",)),
         "identifiers": (_("Identifiers"), ("lccn", "oclc_numbers")),
-        "literary_forms": (_("Fiction or nonfiction"), ("literary_forms",)),
+        LITERARY_FORMS: (_("Fiction or nonfiction"), (LITERARY_FORMS,)),
+        GENRES: (_("Genre"), (GENRES,)),
     }
 
 
 def get_filter_headings() -> dict[str, str]:
     """The dashboard's heading per filter: a whole phrase, so each language can case and order it."""
     return {
-        "covers": _("Missing cover"),
-        "languages": _("Missing language"),
-        "number_of_pages": _("Missing page count"),
-        "publishers": _("Missing publisher"),
-        "identifiers": _("Missing identifiers"),
-        "literary_forms": _("Missing fiction or nonfiction"),
+        "covers": _("Books missing a cover"),
+        "languages": _("Books missing a language"),
+        "number_of_pages": _("Books missing a page count"),
+        "publishers": _("Books missing a publisher"),
+        "identifiers": _("Books missing identifiers"),
+        LITERARY_FORMS: _("Books not marked fiction or nonfiction"),
+        GENRES: _("Books missing a genre"),
     }
-
-
-def fields_for(user) -> tuple[str, ...]:
-    """The task fields this visitor sees: the beta ones only on the tags whitelist."""
-    return tasks.visible_fields(can_edit_tags(user))
 
 
 def visible_filters(fields: tuple[str, ...]) -> dict[str, tuple[str, tuple[str, ...]]]:
@@ -76,7 +78,33 @@ def visible_filters(fields: tuple[str, ...]) -> dict[str, tuple[str, tuple[str, 
 
 
 def normalize_filter(raw: str, fields: tuple[str, ...] = tuple(tasks.POINTS)) -> str:
+    """A known filter or "". Every filter works by URL; which ones the rail links is the initiative's call."""
     return raw if raw in visible_filters(fields) else ""
+
+
+def get_initiative(slug: str) -> initiatives.Initiative:
+    """The initiative a request names, or the headline one."""
+    return initiatives.get(slug) or initiatives.ACTIVE
+
+
+def initiative_param(initiative: initiatives.Initiative) -> str:
+    """What URLs carry for the initiative: nothing for the headline one, so its links stay as they were."""
+    return "" if initiative is initiatives.ACTIVE else initiative.slug
+
+
+def build_edit_saved(payload: str) -> pitch.EditSaved:
+    """The thank-you banner an edit-page save lands on, naming the project in the save's flash message. Does no I/O: the site shell builds it."""
+    if not (named := pitch.decode(payload)):
+        return pitch.EditSaved()
+    initiative, left = named
+    project = pitch.Project(
+        slug=initiative.slug,
+        title=initiatives.describe(initiative)["title"],
+        url=build_dashboard_url(initiative=initiative_param(initiative)),
+        # No-break spaces: in a chip that wraps on a phone, the count stays in one piece.
+        left=ungettext("%(count)s task left", "%(count)s tasks left", left, count=helpers.commify(left)).replace(" ", "\N{NO-BREAK SPACE}") if left else "",
+    )
+    return pitch.EditSaved(project=project, dismiss_cookie=pitch.dismiss_cookie())
 
 
 def render_contribute(template: str, title: str, **params):
@@ -90,13 +118,19 @@ def require_login(path: str):
     return user
 
 
-def build_dashboard_url(task: str = "", base: str = "/tasks") -> str:
-    return f"{base}?{urlencode({'task': task})}" if task else base
+def build_dashboard_url(task: str = "", base: str = "/tasks", initiative: str = "") -> str:
+    query = urlencode({k: v for k, v in {"initiative": initiative, "task": task}.items() if v})
+    return f"{base}?{query}" if query else base
 
 
-def build_next_url(back: str, after: tasks.Task, saved: bool) -> str:
-    """Another random task from the same filter, skipping the book just done; ``saved`` carries the receipt along."""
-    params = {"task": back, "exclude": after.olid} | ({"saved": after.key} if saved else {})
+def build_next_url(back: str, after: tasks.Task, saved: bool, initiative: str = "", surprise: bool = False, picked: str = "") -> str:
+    """Another random task from the same initiative, filter and field, skipping the book just done; ``saved`` carries the receipt along.
+
+    ``surprise`` means "Surprise me" chose the field rather than the user, so the next pick is open again.
+    ``picked`` is the tags a work answer saved (see ``picked_param``).
+    """
+    params = {"initiative": initiative, "task": back, "field": "" if surprise else after.field, "exclude": after.olid}
+    params |= {"saved": after.key, "picked": picked} if saved else {}
     return f"/tasks/one?{urlencode({k: v for k, v in params.items() if v})}"
 
 
@@ -130,12 +164,34 @@ def format_field_value(edition, fld: str) -> str:
         return ""
     if fld in tasks.WORK_FIELDS:
         work = work_of(edition)
-        return ", ".join(tag.name for k in (work_tag_keys(work, fld) if work else []) if (tag := find_tag(fld, k)))
+        return ", ".join(work_tag_names(work, fld)) if work else ""
     values = field_values(edition, fld)
     if fld == "languages":
         names = get_language_names({str(v) for v in values})
         return ", ".join(names.get(str(v), str(v)) for v in values)
     return ", ".join(str(v) for v in values)
+
+
+def picked_param(answers: dict[str, list[str]]) -> str:
+    """A work answer's tags for the next page's receipt, as ``OL1T,OL2T``. The receipt can't read them back off the
+    work: the next request may still get the copy cached from before the save."""
+    return ",".join(dict.fromkeys(k.strip().removeprefix("/tags/") for keys in answers.values() for k in keys if k.strip()))
+
+
+def format_picked(picked: str) -> tuple[list[str], str]:
+    """The fields ``picked`` filled and their tag names, as "Fiction · Mystery, Thriller"; unknown tags are dropped."""
+    keys = [f"/tags/{k}" for k in picked.split(",") if k]
+    names = {f: [tag.name for k in keys if (tag := find_tag(f, k))] for f in (LITERARY_FORMS, GENRES)}
+    fields = [f for f, n in names.items() if n]
+    return fields, " · ".join(", ".join(names[f]) for f in fields)
+
+
+def describe_saved(edition, fld: str, picked: str = "") -> tuple[str, str]:
+    """The receipt's field label and value: the picked tags when a work answer passed them on, else the record's value."""
+    fields, value = format_picked(picked)
+    if fields:
+        return answers_label(fields), value
+    return get_field_guides()[fld].label, format_field_value(edition, fld)
 
 
 def build_edition_field_rows(edition, fld: str) -> list[dict]:
@@ -165,17 +221,38 @@ def text_of(block) -> str:
     return str(getattr(block, "value", block) or "")
 
 
-def build_work_field_rows(edition, fld: str) -> list[dict]:
-    """The work's record as a work-level task shows it: what the whole work says, with the blank in place."""
+def work_subjects(edition) -> list[str]:
+    """The work's free-text subjects as the task page shows them: the first few, which is where the catalog's own go."""
     work = work_of(edition)
-    subjects = (work.get("subjects") or [])[:8] if work else []
+    return [str(s) for s in (work.get("subjects") or [])[:8]] if work else []
+
+
+def genre_hints(edition) -> dict[str, list[str]]:
+    """Genre tag key to the work's subjects that name it. The subjects are the record's strongest clue to its genres,
+    so the page sets those chips in a row of their own and, on hover, points back at the subjects; it never picks for the reader."""
+    return subject_matches(GENRES, work_subjects(edition))
+
+
+def build_work_field_rows(edition, fld: str, hits: Sequence[str] = ()) -> list[dict]:
+    """The work's record as a work-level task shows it: what the whole work says, with the blank in place.
+
+    The other work tags show too, so a genre task sees the book is fiction and a form task sees the genres someone already picked.
+    ``hits`` are the subjects behind a suggested genre; the Subjects row carries them as ``parts`` so a hovered chip can light its own.
+    """
+    work = work_of(edition)
+    subjects = work_subjects(edition)
+    field_guides = get_field_guides()
     rows = [
         (_("First published"), work.get("first_publish_date") if work else ""),
         (_("Subjects"), ", ".join(subjects)),
         (_("Editions"), str(edition.works[0].get_edition_count()) if edition.works else ""),
     ]
+    rows += [(field_guides[f].label, format_field_value(edition, f)) for f in tasks.WORK_FIELDS if f != fld and f in field_guides]
     out = [{"label": label, "value": value, "ask": False} for label, value in rows if value]
-    out.append({"label": get_field_guides()[fld].label, "value": "", "ask": True})
+    for row in out:
+        if row["label"] == _("Subjects") and hits:
+            row["parts"] = [{"text": s, "hit": s in hits} for s in subjects]
+    out.append({"label": field_guides[fld].label, "value": "", "ask": True})
     return out
 
 
@@ -183,15 +260,54 @@ def build_work_field_rows(edition, fld: str) -> list[dict]:
 UNSURE = "unsure"
 
 
-def field_guide_choices(fld: str) -> str:
-    return get_field_guides()[fld].choices
+def is_choice_list(fld: str) -> bool:
+    """Whether the field's answer is one row of a choice list, where "Not sure" is a row too."""
+    guide = get_field_guides()[fld]
+    return bool(guide.choices) and not guide.many
 
 
-def build_choices(field_guide) -> list:
-    """A choice field's rows: the tag type's tags, then "Not sure"."""
-    if not field_guide.choices:
+def build_choices(field_guide, reveals: str = "") -> list:
+    """A choice field's rows: the field's tags, then "Not sure". ``reveals`` marks the "Fiction" row as the one that opens the companion."""
+    if not field_guide.choices or field_guide.many:
         return []
-    return tag_choices(field_guide.choices, field_guide.not_found or _("Not sure"), unsure_value=UNSURE)
+    rows = tag_choices(field_guide.choices, field_guide.not_found or _("Not sure"), unsure_value=UNSURE)
+    if reveals and (fiction := tag_key_named(field_guide.choices, "fiction")):
+        for row in rows:
+            if row.value == fiction:
+                row.reveals = reveals
+    return rows
+
+
+def build_suggestions(hints: dict[str, list[str]] | None) -> dict[str, dict]:
+    """A suggested chip's reasons, by tag key: the subjects behind it, and the line the chip shows on hover."""
+    return {
+        key: {"subjects": subjects, "why": _("Subjects mention %(subjects)s", subjects=", ".join(f"“{s}”" for s in subjects))}
+        for key, subjects in (hints or {}).items()
+    }
+
+
+def build_many(field_guide, selected: Sequence[str], suggested: dict[str, list[str]] | None = None) -> dict | None:
+    """A many-tags field's chips: every tag of the field, with the ones already picked marked.
+
+    ``suggested`` maps a tag key to the subjects that name it; those chips sit in a row of their own above the rest."""
+    if not field_guide.many:
+        return None
+    return {"options": tag_options(field_guide.choices), "selected": list(selected), "suggested": build_suggestions(suggested)}
+
+
+def build_companion(edition, fld: str, selected: Sequence[str], suggested: dict[str, list[str]] | None = None) -> dict | None:
+    """The field asked alongside ``fld`` when the book is open for both: on the literary form page, the genres once "Fiction" is picked."""
+    if not (other := tasks.COMPANIONS.get(fld)) or not tasks.task_for(edition, other):
+        return None
+    guide = get_field_guides()[other]
+    return {
+        "field": other,
+        "label": guide.label,
+        "hint": guide.check,
+        "options": tag_options(other),
+        "selected": list(selected),
+        "suggested": build_suggestions(suggested),
+    }
 
 
 def build_evidence(edition) -> str:
@@ -213,29 +329,6 @@ def count_sibling_values(fld: str, others: list, limit: int = 5) -> dict:
         "more": len(common) - limit if len(common) > limit else 0,
         "unfilled": sum(1 for vs in values if not vs),
     }
-
-
-def get_recent_fixes(changes: list) -> list[dict]:
-    """The right column's "Your recent fixes", from the user's ``save.recent_saves``."""
-    keys = [c.changes[0]["key"] for c in changes if c.changes]
-    # An edition for most fields; the work for a work field.
-    records = {r.key: r for r in web.ctx.site.get_many(keys)} if keys else {}
-    field_guides = get_field_guides()
-    out = []
-    for c in changes:
-        key = c.changes[0]["key"] if c.changes else ""
-        if not (record := records.get(key)):
-            continue
-        fld = (c.data or {}).get("field", "")
-        out.append(
-            {
-                "title": record.get_title() if record.type.key == "/type/edition" else record.title,
-                "url": f"{key}?m=history",
-                "field_label": field_guides[fld].label if fld in field_guides else "",
-                "when": helpers.datestr(c.timestamp),
-            }
-        )
-    return out
 
 
 def build_book_header(edition, readers: int | None = None) -> dict:
@@ -264,31 +357,39 @@ def build_book_header(edition, readers: int | None = None) -> dict:
     }
 
 
-def build_task_url(task: tasks.Task, back: str = "") -> str:
+def build_task_url(task: tasks.Task, back: str = "", initiative: str = "", surprise: bool = False) -> str:
     url = f"/tasks/task/{task.olid}/{task.field}"
-    return f"{url}?{urlencode({'back': back})}" if back else url
+    params = {"back": back, "initiative": initiative, "surprise": "1" if surprise else ""}
+    return f"{url}?{query}" if (query := urlencode({k: v for k, v in params.items() if v})) else url
 
 
-def build_task_summary(task: tasks.Task, field_guides, back: str = "") -> dict:
+def build_task_summary(task: tasks.Task, field_guides, back: str = "", initiative: str = "") -> dict:
     field_guide = field_guides[task.field]
     return {
         "key": task.key,
         "field": task.field,
         "label": field_guide.label,
         "action_label": field_guide.action,
-        "url": build_task_url(task, back),
+        "url": build_task_url(task, back, initiative),
     }
 
 
-def build_task_rows(task: str, visible: tuple[str, ...] = tuple(tasks.POINTS)) -> list[dict] | None:
-    """A random draw of the filter's books from the active initiative, each with its open tasks weighted by ``tasks.impact`` for "Surprise me".
+def get_filter_fields(task: str, initiative: initiatives.Initiative) -> tuple[str, ...]:
+    """The filter's fields, or with no filter, the initiative's own."""
+    return get_filters()[task][1] if task else initiative.fields
 
-    ``visible`` is what this visitor may see; a filter narrows it further. None while the initiative's gaps are still being built.
+
+def build_task_rows(task: str, initiative: initiatives.Initiative, fields: tuple[str, ...] | None = None) -> list[dict] | None:
+    """A random draw of the filter's books from the initiative, each with its open tasks weighted by ``tasks.impact`` for "Surprise me".
+
+    No filter means the initiative's own fields; ``fields`` narrows the draw within the filter.
+    None while the initiative's gaps are still being built.
     """
-    fields = get_filters()[task][1] if task else tasks.offered_fields(visible)
-    if (candidates := supply.candidates(fields)) is None:
+    fields = fields or get_filter_fields(task, initiative)
+    if (candidates := supply.candidates(initiative, fields)) is None:
         return None
     field_guides = get_field_guides()
+    slug = initiative_param(initiative)
     rows: list[dict] = []
     for cand in candidates:
         if len(rows) == LIST_SIZE:
@@ -298,37 +399,85 @@ def build_task_rows(task: str, visible: tuple[str, ...] = tuple(tasks.POINTS)) -
             rows.append(
                 {
                     "book": build_book_header(cand.edition, cand.readers),
-                    "tasks": [build_task_summary(t, field_guides, task) | {"weight": tasks.impact(cand.readers, t)} for t in ts],
+                    "tasks": [build_task_summary(t, field_guides, task, slug) | {"weight": tasks.impact(cand.readers, t)} for t in ts],
                 }
             )
     return rows
 
 
-def build_progress(fields: tuple[str, ...]) -> dict | None:
-    """The active initiative's progress for the dashboard, or None while its gaps are still being built."""
-    if not (gaps := initiatives.get_gaps()):
-        return None
-    p = initiatives.progress(gaps, tasks.offered_fields(fields))
-    return {
-        "title": _("The %(count)s most-read books", count=helpers.commify(p["total"])),
-        "percent": p["percent"],
-        "figure": _("%(percent)s%%", percent=p["percent"]),
-        "description": _("Fill in what's missing on the books people shelve most."),
-    }
+def get_initiative_people(initiative: initiatives.Initiative) -> int:
+    """How many people have saved for ``initiative``, from the stats job's latest counts. Yesterday's doc covers just after midnight."""
+    for doc in reversed(admin.get_count_docs(2)):
+        if (people := admin.initiative_counts(doc).get(initiative.slug, {}).get("people")) is not None:
+            return people
+    return 0
 
 
-def build_filter_rail(task: str, fields: tuple[str, ...]) -> dict:
+def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
+    """One entry per initiative in the dashboard's project list, all one shape; only the open one is selected.
+
+    Asking for every initiative's gaps starts the builds for all of them, so the first visit warms the lot.
+    The percent takes dozens of saves to move a point, so each card also counts the tasks left, which moves on every
+    save, and from MIN_PEOPLE_SHOWN up, how many people have saved for it.
+    """
+    cards = []
+    for initiative in initiatives.INITIATIVES:
+        gaps = initiatives.get_gaps(initiative)
+        p = initiatives.progress(gaps, initiative.fields) if gaps else None
+        people = get_initiative_people(initiative) if p else 0
+        cards.append(
+            initiatives.describe(initiative)
+            | {
+                "slug": initiative.slug,
+                "on": initiative is current,
+                "url": build_dashboard_url(initiative=initiative_param(initiative)),
+                # None while the list is still being built.
+                "percent": p["percent"] if p else None,
+                "figure": _("%(percent)s%%", percent=p["percent"]) if p else "",
+                "done_label": _("%(percent)s%% done", percent=p["percent"]) if p else "",
+                "tasks_left": ungettext("%(count)s task left", "%(count)s tasks left", p["open"], count=helpers.commify(p["open"])) if p else "",
+                "people": (
+                    ungettext("%(count)s person helping", "%(count)s people helping", people, count=helpers.commify(people))
+                    if people >= MIN_PEOPLE_SHOWN
+                    else None
+                ),
+            }
+        )
+    return cards
+
+
+def count_open(gaps: list[list] | None, fields: tuple[str, ...]) -> str:
+    """Open tasks in ``fields`` across the initiative's gaps, for a filter chip; blank while the gaps are being built."""
+    if gaps is None:
+        return ""
+    wanted = set(fields)
+    return helpers.commify(sum(1 for _key, _readers, open_fields, _skipped in gaps for f in open_fields if f in wanted))
+
+
+def build_filter_rail(task: str, initiative: initiatives.Initiative, gaps: list[list] | None = None) -> dict:
+    """The filter chips over the list: the whole project, then one per kind of task it asks about, each with its open count."""
+    slug = initiative_param(initiative)
     filters = [
         {
             "label": label,
-            "url": build_dashboard_url("" if task == fid else fid),
+            "url": build_dashboard_url("" if task == fid else fid, initiative=slug),
             "on": task == fid,
             "track": fid,
+            "count": count_open(gaps, fields),
         }
-        # A filter over fields Tasks doesn't offer still works by URL, but isn't linked.
-        for fid, (label, _fields) in visible_filters(tasks.offered_fields(fields)).items()
+        # A filter over fields the initiative doesn't ask about still works by URL, but isn't linked.
+        for fid, (label, fields) in visible_filters(initiative.fields).items()
     ]
-    return {"all": {"label": _("All open tasks"), "url": build_dashboard_url(), "on": not task, "track": "all"}, "filters": filters}
+    return {
+        "all": {
+            "label": _("All project tasks"),
+            "url": build_dashboard_url(initiative=slug),
+            "on": not task,
+            "track": "all",
+            "count": count_open(gaps, initiative.fields),
+        },
+        "filters": filters,
+    }
 
 
 def landing_figures() -> dict[str, str]:
@@ -411,33 +560,33 @@ class contribute_index(delegate.page):
     def GET(self):
         if not (user := accounts.get_current_user()):
             return render_landing()
-        # One query for both the intro check and the "recent fixes" column.
-        recent_saves = save.recent_saves(user.key)
-        if not has_seen_intro(recent_saves):
+        if not has_seen_intro(save.recent_saves(user.key)):
             return render_landing(user)
-        fields = fields_for(user)
-        task = normalize_filter(query_param("task", ""), fields)
-        rows = build_task_rows(task, fields)
+        initiative = get_initiative(query_param("initiative", ""))
+        slug = initiative_param(initiative)
+        task = normalize_filter(query_param("task", ""))
+        rows = build_task_rows(task, initiative)
+        projects = build_initiative_cards(initiative)
         return render_contribute(
             "contribute/dashboard.html.jinja",
             _("Tasks"),
-            one_task_url=build_dashboard_url(task, base="/tasks/one"),
-            rail=build_filter_rail(task, fields),
+            rail=build_filter_rail(task, initiative, initiatives.get_gaps(initiative)),
             rows=rows,
             # While the pool builds, the script fetches the rows from here.
-            rows_url=build_dashboard_url(task, base="/tasks/rows") if rows is None else "",
+            rows_url=build_dashboard_url(task, base="/tasks/rows", initiative=slug) if rows is None else "",
             skeleton_rows=LIST_SKELETON_ROWS if rows is None else 0,
-            heading=get_filter_headings()[task] if task else _("Most needed"),
+            heading=get_filter_headings()[task] if task else _("All project tasks"),
             empty=_("Nothing missing here right now. Thank you."),
-            recent=get_recent_fixes(recent_saves),
             history_url=user.key,
             apply=build_apply(user),
-            progress=build_progress(fields),
+            initiatives=projects,
+            project=next(card for card in projects if card["on"]),
+            fine_print=initiatives.fine_print(initiative, web.ctx.site),
         )
 
 
 class contribute_one(delegate.page):
-    """Do one task: a weighted random pick from the dashboard's current filter, straight to its task page.
+    """Do one task: a weighted random pick from the dashboard's current initiative and filter, straight to its task page.
 
     While the pool is still being built there is nothing to pick from, so this lands on the dashboard, which shows the wait.
     """
@@ -445,16 +594,24 @@ class contribute_one(delegate.page):
     path = "/tasks/one"
 
     def GET(self):
-        user = require_login(build_dashboard_url(normalize_filter(query_param("task", "")), base=self.path))
-        fields = fields_for(user)
-        task = normalize_filter(query_param("task", ""), fields)
+        initiative = get_initiative(query_param("initiative", ""))
+        slug = initiative_param(initiative)
+        task = normalize_filter(query_param("task", ""))
+        require_login(build_dashboard_url(task, base=self.path, initiative=slug))
         exclude = f"/books/{query_param('exclude', '')}"
-        options = [t for row in build_task_rows(task, fields) or [] if row["book"]["key"] != exclude for t in row["tasks"]]
-        if not options:
-            raise web.seeother(build_dashboard_url(task))
+        fld = query_param("field", "")
+
+        def open_tasks(narrow: tuple[str, ...] | None = None) -> list[dict]:
+            return [t for row in build_task_rows(task, initiative, narrow) or [] if row["book"]["key"] != exclude for t in row["tasks"]]
+
+        # The field the user has been working on, until it runs out; a field outside the filter doesn't override it.
+        if not (options := open_tasks((fld,)) if fld in get_filter_fields(task, initiative) else []) and not (options := open_tasks()):
+            raise web.seeother(build_dashboard_url(task, initiative=slug))
         pick = random.choices(options, weights=[max(t["weight"], 1) for t in options])[0]
-        saved = query_param("saved", "")
-        raise web.seeother(f"{pick['url']}{'&' if '?' in pick['url'] else '?'}{urlencode({'saved': saved})}" if saved else pick["url"])
+        # No field asked for means "Surprise me": the pick's field isn't the user's choice, so "Save and next" shouldn't stick to it.
+        params = {"saved": query_param("saved", ""), "picked": query_param("picked", ""), "surprise": "" if fld else "1"}
+        query = urlencode({k: v for k, v in params.items() if v})
+        raise web.seeother(f"{pick['url']}{'&' if '?' in pick['url'] else '?'}{query}" if query else pick["url"])
 
 
 def get_sibling_editions(edition) -> list:
@@ -464,19 +621,34 @@ def get_sibling_editions(edition) -> list:
     return [e for e in work.get_sorted_editions(keys=[edition.key]) if e.key != edition.key]
 
 
-def build_task_context(edition, task: tasks.Task, back: str, error: str = "", value: str = "", note: str = "") -> dict:
+def build_task_context(
+    edition,
+    task: tasks.Task,
+    back: str,
+    initiative: str = "",
+    surprise: bool = False,
+    error: str = "",
+    value: str = "",
+    many: Sequence[str] = (),
+    note: str = "",
+) -> dict:
     field_guide = get_field_guides()[task.field]
     others = get_sibling_editions(edition) if field_guide.show_siblings else []
     siblings = build_sibling_rows(task.field, others)
     tally = count_sibling_values(task.field, others)
     book = build_book_header(edition)
+    # The subjects' genre hints, on the genre page and on the form page where the genres follow a "Fiction".
+    hints = genre_hints(edition) if GENRES in (task.field, tasks.COMPANIONS.get(task.field)) else {}
+    hits = sorted({s for subjects in hints.values() for s in subjects})
+    companion = build_companion(edition, task.field, many, suggested=hints)
     return {
         "book": book,
         "task": {
             "key": task.key,
             "field": task.field,
-            "url": build_task_url(task, back),
+            "url": build_task_url(task, back, initiative, surprise),
         },
+        "initiative": initiative,
         "is_identifier": task.field in save.NORMALIZERS,
         "is_cover": task.field == "covers",
         # Offered as one of the cover choices, next to uploading one.
@@ -491,13 +663,16 @@ def build_task_context(edition, task: tasks.Task, back: str, error: str = "", va
         "tally": tally,
         # Quick picks for the answer, only where the other editions are good evidence for this one.
         "suggestions": tally["values"][:3] if field_guide.suggest_from_siblings else [],
-        "record_fields": build_work_field_rows(edition, task.field) if task.field in tasks.WORK_FIELDS else build_edition_field_rows(edition, task.field),
+        "record_fields": build_work_field_rows(edition, task.field, hits) if task.field in tasks.WORK_FIELDS else build_edition_field_rows(edition, task.field),
         # A judgment: the description, when there is one, is a clue beside the lookups.
         "evidence": build_evidence(edition) if field_guide.choices else None,
-        "choices": build_choices(field_guide),
-        "list_url": build_dashboard_url(back),
+        "choices": build_choices(field_guide, reveals=companion["field"] if companion else ""),
+        "many": build_many(field_guide, many, suggested=hints),
+        "companion": companion,
+        "not_found_label": field_guide.not_found or _("I couldn't find it"),
+        "list_url": build_dashboard_url(back, initiative=initiative),
         # Moving on without an answer records nothing; "I couldn't find it" is the one that counts.
-        "skip_url": build_next_url(back, task, saved=False),
+        "skip_url": build_next_url(back, task, saved=False, initiative=initiative, surprise=surprise),
         "languages": save.language_options() if task.field == "languages" else [],
         "error": error,
         "value": value,
@@ -510,23 +685,29 @@ def build_task_context(edition, task: tasks.Task, back: str, error: str = "", va
 TASK_PATH = rf"/tasks/task/(OL\d+M)/({'|'.join(tasks.POINTS)})"
 
 
-def get_back_filter(fields: tuple[str, ...]) -> str:
-    return normalize_filter(query_param("back", ""), fields)
+def get_back_filter() -> str:
+    return normalize_filter(query_param("back", ""))
 
 
-def require_field_access(user, fld: str) -> None:
-    """A beta field is simply not there for anyone off the whitelist."""
-    if fld in tasks.BETA_FIELDS and not can_edit_tags(user):
-        raise web.notfound()
+def build_receipt(saved: str, picked: str = "") -> dict | None:
+    """The previous task's "Just saved" callout, from a ``OL…M/field`` key, when "Save and next" brought us here.
 
-
-def build_receipt(saved: str) -> dict | None:
-    """The previous task's "Saved" line, from a ``OL…M/field`` key, when "Save and next" brought us here."""
+    None when the field is still empty, as there's nothing saved to show. A cover has no text value; the image is its value.
+    """
     olid, _sep, fld = saved.partition("/")
-    field_guide = get_field_guides().get(fld)
-    if not field_guide or not (edition := web.ctx.site.get(f"/books/{olid}")):
+    if fld not in get_field_guides() or not (edition := web.ctx.site.get(f"/books/{olid}")):
         return None
-    return {"field_label": field_guide.label, "title": edition.title, "value": format_field_value(edition, fld), "url": edition.url()}
+    field_label, value = describe_saved(edition, fld, picked)
+    cover_url = edition.get_cover_url("M")
+    if not value and not (fld == "covers" and cover_url):
+        return None
+    return {
+        "field_label": field_label,
+        "title": edition.title,
+        "value": value,
+        "url": edition.url(),
+        "cover_url": cover_url,
+    }
 
 
 def get_edition_or_404(olid: str):
@@ -536,7 +717,7 @@ def get_edition_or_404(olid: str):
     return edition
 
 
-def render_nothing_page(edition, fld: str, back: str):
+def render_nothing_page(edition, fld: str, back: str, initiative: str = ""):
     label = get_field_guides()[fld].label
     return render_contribute(
         "contribute/nothing.html.jinja",
@@ -544,86 +725,110 @@ def render_nothing_page(edition, fld: str, back: str):
         book=build_book_header(edition),
         field_label=label,
         on_work=fld in tasks.WORK_FIELDS,
-        list_url=build_dashboard_url(back),
+        list_url=build_dashboard_url(back, initiative=initiative),
     )
+
+
+def build_work_answers(edition, fld: str, i) -> dict[str, list[str]]:
+    """What a work task saves: its own field, plus the companion's picks when "Fiction" opened it and the book is open for it."""
+    answers = {fld: list(i.genres) if fld == GENRES else [i.value]}
+    if tasks.COMPANIONS.get(fld) == GENRES and i.genres and i.value == tag_key_named(LITERARY_FORMS, "fiction") and tasks.task_for(edition, GENRES):
+        answers[GENRES] = list(i.genres)
+    return answers
+
+
+def answers_label(fields: list[str]) -> str:
+    """The saved fields for the edit comment, as one phrase."""
+    labels = [get_field_guides()[f].label for f in fields]
+    return _("%(first)s and %(second)s", first=labels[0], second=labels[1]) if len(labels) == 2 else labels[0]
+
+
+def build_done_url(olid: str, fld: str, choice: str, back: str, initiative: str, surprise: bool = False, picked: str = "") -> str:
+    params = {"choice": choice, "picked": picked, "back": back, "initiative": initiative, "surprise": "1" if surprise else ""}
+    return f"/tasks/task/{olid}/{fld}/done?{urlencode({k: v for k, v in params.items() if v})}"
 
 
 class contribute_task(delegate.page):
     path = TASK_PATH
 
     def GET(self, olid, fld):
-        user = require_login(f"/tasks/task/{olid}/{fld}")
-        require_field_access(user, fld)
-        back = get_back_filter(fields_for(user))
+        require_login(f"/tasks/task/{olid}/{fld}")
+        back = get_back_filter()
+        slug = initiative_param(get_initiative(query_param("initiative", "")))
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
-            return render_nothing_page(edition, fld, back)
-        context = build_task_context(edition, task, back) | {"receipt": build_receipt(query_param("saved", ""))}
+            return render_nothing_page(edition, fld, back, slug)
+        receipt = build_receipt(query_param("saved", ""), query_param("picked", ""))
+        context = build_task_context(edition, task, back, slug, surprise=bool(query_param("surprise", ""))) | {"receipt": receipt}
         return render_contribute("contribute/task.html.jinja", get_field_guides()[fld].question, **context)
 
     def POST(self, olid, fld):
         user = require_login(f"/tasks/task/{olid}/{fld}")
-        require_field_access(user, fld)
-        i = web.input(value="", note="", back="", confirmed="", then="", file={})
+        i = web.input(value="", genres=[], note="", back="", initiative="", surprise="", confirmed="", then="", file={})
         # Drop the upload's field storage, as the add-cover page does.
         web.ctx.pop("_fieldstorage", None)
-        # Same check as the edit form; it also stops read-only and blocked accounts. The image is not text to check.
-        if spamcheck.is_spam(web.storage((k, v) for k, v in i.items() if k != "file"), allow_privileged_edits=True):
+        # Same check as the edit form; it also stops read-only and blocked accounts. Only the text is checked: not the image, not the picked keys.
+        if spamcheck.is_spam(web.storage((k, v) for k, v in i.items() if isinstance(v, str)), allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
-        back = normalize_filter(i.back, fields_for(user))
+        back = normalize_filter(i.back)
+        initiative = get_initiative(i.initiative)
+        slug = initiative_param(initiative)
+        surprise = bool(i.surprise)
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
-            return render_nothing_page(edition, fld, back)
-        if i.then == "notfound" or (field_guide_choices(fld) and i.value == UNSURE):
-            # "Not sure" on a choice list counts like "I couldn't find it": enough people and the gap is set aside.
+            return render_nothing_page(edition, fld, back, slug)
+        if i.then == "notfound" or (is_choice_list(fld) and i.value == UNSURE):
+            # "Not sure" counts like "I couldn't find it": enough people and the gap is set aside.
             initiatives.record_not_found(web.ctx.site, edition.key, fld, user.key)
             if i.then == "next":
-                raise web.seeother(build_next_url(back, task, saved=False))
-            raise web.seeother(f"/tasks/task/{olid}/{fld}/done?{urlencode({'choice': 'unsure', 'back': back})}")
-        done = f"/tasks/task/{olid}/{fld}/done"
+                raise web.seeother(build_next_url(back, task, saved=False, initiative=slug, surprise=surprise))
+            raise web.seeother(build_done_url(olid, fld, "unsure", back, slug, surprise))
         field_guide = get_field_guides()[fld]
+        picked = ""
         try:
             if field_guide.confirm and not i.confirmed:
                 raise save.InvalidAnswer(_("Check that it matches this edition, and tick the box to say so."))
             if fld == "covers":
-                save.save_cover(edition, i.file, from_amazon=i.get("cover_choice") == "suggested")
+                save.save_cover(edition, i.file, from_amazon=i.get("cover_choice") == "suggested", initiative=initiative.slug)
             elif fld in tasks.WORK_FIELDS:
-                save.save_work_answer(work_of(edition), fld, i.value, field_guide.label, i.note)
+                answers = build_work_answers(edition, fld, i)
+                save.save_work_answers(work_of(edition), answers, answers_label(list(answers)), i.note, initiative=initiative.slug)
+                picked = picked_param(answers)
             else:
-                save.save_answer(edition, fld, i.value, field_guide.label, i.note)
+                save.save_answer(edition, fld, i.value, field_guide.label, i.note, initiative=initiative.slug)
         except save.InvalidAnswer as e:
-            context = build_task_context(edition, task, back, error=str(e), value=i.value, note=i.note)
+            context = build_task_context(edition, task, back, slug, surprise=surprise, error=str(e), value=i.value, many=i.genres, note=i.note)
             return render_contribute("contribute/task.html.jinja", field_guide.question, **context)
         if i.then == "next":
-            raise web.seeother(build_next_url(back, task, saved=True))
-        raise web.seeother(f"{done}?{urlencode({'choice': 'saved', 'back': back})}")
+            raise web.seeother(build_next_url(back, task, saved=True, initiative=slug, surprise=surprise, picked=picked))
+        raise web.seeother(build_done_url(olid, fld, "saved", back, slug, surprise, picked=picked))
 
 
 class contribute_done(delegate.page):
     path = TASK_PATH + "/done"
 
     def GET(self, olid, fld):
-        user = require_login(f"/tasks/task/{olid}/{fld}/done")
-        require_field_access(user, fld)
-        fields = fields_for(user)
-        back = get_back_filter(fields)
+        require_login(f"/tasks/task/{olid}/{fld}/done")
+        back = get_back_filter()
+        initiative = get_initiative(query_param("initiative", ""))
+        slug = initiative_param(initiative)
         edition = get_edition_or_404(olid)
         field_guides = get_field_guides()
         saved = query_param("choice", "") == "saved"
-        offered = tasks.offered_fields(fields)
-        same_book = [build_task_summary(t, field_guides, back) for t in tasks.tasks_for_edition(edition) if t.field != fld and t.field in offered]
+        same_book = [build_task_summary(t, field_guides, back, slug) for t in tasks.tasks_for_edition(edition) if t.field != fld and t.field in initiative.fields]
         # A work answer lands in the work's history.
         edited = work_of(edition) if fld in tasks.WORK_FIELDS and work_of(edition) else edition
+        field_label, value = describe_saved(edition, fld, query_param("picked", "")) if saved else (field_guides[fld].label, "")
         return render_contribute(
             "contribute/done.html.jinja",
             _("Saved") if saved else _("Skipped"),
             book=build_book_header(edition),
-            field_label=field_guides[fld].label,
+            field_label=field_label,
             saved=saved,
-            value=format_field_value(edition, fld) if saved else "",
+            value=value,
             cover_url=edition.get_cover_url("M") if saved and fld == "covers" else "",
             history_url=f"{edited.key}?m=history",
             same_book=same_book,
-            next_url=build_next_url(back, tasks.Task(olid, fld), saved=False),
-            list_url=build_dashboard_url(back),
+            next_url=build_next_url(back, tasks.Task(olid, fld), saved=False, initiative=slug, surprise=bool(query_param("surprise", ""))),
+            list_url=build_dashboard_url(back, initiative=slug),
         )

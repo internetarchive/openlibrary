@@ -1449,6 +1449,7 @@ class account_verify_human(delegate.page):
     """Endpoint for human verification challenge.
 
     GET renders the challenge page; POST sets a signed cookie and returns JSON.
+    TODO: Retire once production routes /verify_human to FastAPI (``openlibrary/fastapi/account.py``).
     """
 
     path = "/verify_human"
@@ -1457,12 +1458,21 @@ class account_verify_human(delegate.page):
     VERIFICATION_COOKIE_EXPIRES_SECONDS = 30 * 24 * 60 * 60
 
     def GET(self):
+        # Local imports: this handler is temporary.
+        from markupsafe import escape
+
+        from infogami.utils.context import context
+        from openlibrary.core.jinja import render_jinja_template
+
         next_url = web.input(next="/").next
         # Only allow same-origin redirects
-        if not next_url.startswith("/") or next_url.startswith("//"):
+        if not is_safe_redirect(next_url):
             next_url = "/"
         stats.increment("ol.verify_human.challenged")
-        return render_template("verify_human", next_url=next_url)
+        context.disable_analytics = True
+        body = render_jinja_template("verify_human.html.jinja", next_url=next_url)
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(_("Human Verification")))
 
     def POST(self):
         from openlibrary.accounts.model import create_verification_cookie_value

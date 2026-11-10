@@ -26,6 +26,7 @@
         {% endif %}
         <main {% if layout.show_ol_shell %} id="test-body-mobile" tabindex="-1"{% endif %}>
             {% if layout.show_ol_shell %}
+                {% include "shell/edit_saved.html.jinja" %}
                 {% if layout.flash_messages %}
                     <div class="flash-messages">
                         {% for flash in layout.flash_messages %}
@@ -49,7 +50,7 @@
             {% include "shell/stats.html.jinja" %}
         {% endif %}
         {% if not layout.is_bot %}
-            <script src="/cdn/archive.org/athena.js" type="text/javascript"></script>
+            <script src="/cdn/archive.org/athena.js" async></script>
         {% endif %}
         <script src="{{ static_url('build/js/all.js') }}" type="module"></script>
         <script src="{{ static_url('build/components/production/ol-components.js') }}"

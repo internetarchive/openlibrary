@@ -76,19 +76,20 @@ def test_self_link_id_strips_query_and_fragment():
     assert extract_local_id(pub, LENNY) == "37044775"
 
 
-def test_no_cover_field_emitted():
-    """Cover URLs are intentionally omitted from import records.
-
-    OL's server-side cover fetch is gated by two host allowlists none of these
-    feed hosts satisfy, and the match/merge path (which feed re-imports hit)
-    retries a doomed URL 10x with a 2s sleep — up to 20s wasted per record. So
-    we don't ship a ``cover`` field; covers are a later, dedicated concern. #12844
-    """
-    for name, feed in [("bwb", BWB), ("gutenberg", GUTENBERG), ("lenny", LENNY)]:
-        for pub in _pubs(name):
-            rec = to_import_record(pub, feed)
-            assert rec is not None, f"{name}: record should parse"
-            assert "cover" not in rec, f"{name}: cover should be omitted"
+@pytest.mark.parametrize(
+    ("name", "feed", "expected_cover"),
+    [
+        ("gutenberg", GUTENBERG, "https://www.gutenberg.org/cache/epub/67979/pg67979.cover.medium.jpg"),
+        ("lenny", LENNY, "https://covers.openlibrary.org/b/id/12622094-L.jpg"),
+        # Not on coverstore's allowlist, so omitted rather than left for
+        # add_cover() to retry.
+        ("bwb", BWB, None),
+    ],
+)
+def test_cover_emitted_only_when_coverstore_allows_it(name, feed, expected_cover):
+    rec = to_import_record(_pubs(name)[0], feed)
+    assert rec is not None
+    assert rec.get("cover") == expected_cover
 
 
 def test_lenny_borrow_acquisition_is_not_discarded():

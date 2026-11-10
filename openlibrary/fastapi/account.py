@@ -16,25 +16,39 @@ from pydantic import BaseModel, Field
 from infogami import config
 from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, RunAs
-from openlibrary.accounts.model import audit_accounts, encrypt_s3_keys, generate_login_code_for_user
+from openlibrary.accounts.model import (
+    audit_accounts,
+    create_verification_cookie_value,
+    encrypt_s3_keys,
+    generate_login_code_for_user,
+)
 from openlibrary.core import stats
 from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.follows import PubSub
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.lending import AccountNotFoundError
+from openlibrary.core.shell.request import PageMeta
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
     require_authenticated_user,
 )
+from openlibrary.fastapi.shared.site_page import SitePage, SitePageRoute
 from openlibrary.fastapi.shared.utils import set_flash_cookie
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import account as legacy_account
 from openlibrary.plugins.upstream.account import get_login_error
+from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils.request_context import site
 
 logger = logging.getLogger("openlibrary.fastapi.account")
 
+# The verification challenge cookie expires in 30 days.
+VERIFICATION_COOKIE_EXPIRES_SECONDS = 30 * 24 * 60 * 60
+
 router = APIRouter()
+pages = APIRouter(route_class=SitePageRoute)
 
 SHOW_INTERNAL_IN_SCHEMA = get_ol_env().LOCAL_DEV
 
@@ -56,11 +70,11 @@ class AnonymizeResponse(BaseModel):
 
 
 def _safe_redirect(url: str, default: str = "/") -> str:
-    """Return url only if it is a same-origin path; fall back to default."""
-    parsed = urlparse(url)
-    if parsed.scheme or parsed.netloc or not url.startswith("/") or url.startswith(("//", "/\\")):
-        return default
-    return url
+    """Return url only if it is a same-origin path; fall back to default.
+
+    Shares ``is_safe_redirect`` with web.py, so both servers accept the same redirects.
+    """
+    return url if is_safe_redirect(url) else default
 
 
 def _cookie_secure() -> bool:
@@ -359,7 +373,7 @@ async def _login_json(request: Request) -> Response:
     response = Response(status_code=status.HTTP_200_OK)
     response.set_cookie(
         config.login_cookie_name,
-        site.get()._conn.get_auth_token(),
+        site.get()._conn.get_auth_token() or "",
         httponly=True,
         secure=_cookie_secure(),
         samesite="lax",
@@ -597,3 +611,31 @@ async def anonymize_account(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
 
     return AnonymizeResponse(**result)
+
+
+@pages.get("/verify_human")
+async def verify_human(
+    next: Annotated[str, Query()] = "/",
+) -> SitePage:
+    """Render the human verification challenge page."""
+    stats.increment("ol.verify_human.challenged")
+    return SitePage(
+        render_jinja_template("verify_human.html.jinja", next_url=_safe_redirect(next)),
+        page=PageMeta(title=_("Human Verification"), disable_analytics=True),
+    )
+
+
+@pages.post("/verify_human")
+async def verify_human_challenge() -> Response:
+    """Answer the challenge: set a signed ``vf`` cookie and confirm as JSON."""
+    response = JSONResponse({"success": True})
+    response.set_cookie(
+        "vf",
+        create_verification_cookie_value(),
+        max_age=VERIFICATION_COOKIE_EXPIRES_SECONDS,
+        secure=_cookie_secure(),
+        httponly=True,
+        samesite="lax",
+    )
+    stats.increment("ol.verify_human.verified")
+    return response

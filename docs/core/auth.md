@@ -199,12 +199,12 @@ curl -s -X POST http://localhost:8080/account/otp/redeem \
 **Depends on:**
 - [[core-operations]] — web.py routing; Infobase session/auth token
 - [[infrastructure]] — Memcache for rate limiting; olsystem for production secrets (xauthn URL, service S3 keys)
-- [[lending]] — S3 keys from auth flow are consumed by the lending borrow flow; HMAC for BookReader login also uses IA credentials
+- [lending](../lending/README.md) — S3 keys from auth flow are consumed by the lending borrow flow; HMAC for BookReader login also uses IA credentials
 
 **Depended on by:**
-- [[lending]] — OTP issued to patrons as part of the IA lending flow; S3 keys used in `s3_loan_api()`
-- [[features]] — patron account identity for bookshelves, ratings, etc.
+- [lending](../lending/README.md) — OTP issued to patrons as part of the IA lending flow; S3 keys used in `s3_loan_api()`
+- [features](../features/README.md) — patron account identity for bookshelves, ratings, etc.
 
 ---
 
-*Sources: `raw/openlibrary-docs-ai/subsystems/otp_service.md` · code synthesis: `account.py`, `accounts/model.py` · See [[README]] · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-docs-ai/subsystems/otp_service.md` · code synthesis: `account.py`, `accounts/model.py` · See [README](../README.md) · [[METHODOLOGY]]*

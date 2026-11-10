@@ -13,16 +13,19 @@
                        type="radio"
                        name="{{ name }}"
                        value="{{ row.value }}"
+                       {#- The row that opens a companion field (contribute.js); the field's name. #}
+                       {% if row.get("reveals") %}data-reveals="{{ row.reveals }}"{% endif %}
                        {% if value is defined and row.value == value %}checked{% endif %} />
-                <span class="ol-choice__text">
-                    <span class="ol-choice__title">{{ row.label }}</span>
-                    {% if row.description %}<span class="ol-choice__meta">{{ row.description }}</span>{% endif %}
-                </span>
-                {#- Pointer-only guidance, kept out of the radio's name; Enter already submits for keyboard users. -#}
-                {% if again_hint %}
-                    <span class="ol-choice__again" aria-hidden="true">{{ again_hint }}{{ icon("arrow-right", size="sm") }}</span>
-                {% endif %}
-            </label>
+                    <span class="ol-choice__text">
+                        <span class="ol-choice__title">{{ row.label }}</span>
+                        {% if row.description %}<span class="ol-choice__meta">{{ row.description }}</span>{% endif %}
+                    </span>
+                    {#- Pointer-only guidance, kept out of the radio's name; Enter already submits for keyboard users.
+                        Not on the row that opens a companion field: that one asks for a second look at the page, not a second click. -#}
+                    {% if again_hint and not row.get("reveals") %}
+                        <span class="ol-choice__again" aria-hidden="true">{{ again_hint }}{{ icon("arrow-right", size="sm") }}</span>
+                    {% endif %}
+                </label>
         {% endfor %}
     </div>
 {% endif %}

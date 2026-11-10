@@ -85,9 +85,11 @@ SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
 ALLOWED_COVER_HOSTS: Final = (
     "archive.org",
     "books.google.com",
+    "cdn.sanity.io",
     "commons.wikimedia.org",
     "covers.openlibrary.org",
     "m.media-amazon.com",
+    "www.gutenberg.org",
 )
 
 
@@ -265,13 +267,11 @@ def load_author_import_records(authors_in, edits, source, save: bool = True):
             a["source_records"] = [source]
         else:
             stored = site.get().get(a["key"])  # Fresh read to check for modifications
-            if a.dict() != stored.dict():
-                edits.append(a.dict())
-                status = "modified"
-            else:
-                status = "matched"
-        if status in ("created", "modified"):
+            status = "modified" if a.dict() != stored.dict() else "matched"
+        if status == "created":
             edits.append(a)
+        elif status == "modified":
+            edits.append(a.dict())
         authors.append({"key": a["key"]})
         author_reply.append(
             {
@@ -1082,8 +1082,12 @@ def load(
     """
     acquisitions = rec.pop("acquisitions", None)
     reply = _load(rec, account_key=account_key, from_marc_record=from_marc_record, save=save)
-    if acquisitions and save and reply.get("success"):
-        _save_acquisitions(reply, acquisitions)
+    if acquisitions and reply.get("success"):
+        if save:
+            _save_acquisitions(reply, acquisitions)
+        else:
+            # Previews write nothing, so report what an import would add.
+            reply["acquisitions"] = acquisitions
     return reply
 
 
