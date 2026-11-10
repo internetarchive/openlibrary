@@ -4943,7 +4943,7 @@ msgstr ""
 msgid "Removed from %(name)s"
 msgstr ""
 
-#: lists/widget.html openlibrary/core/shell/shelf_labels.py
+#: lists/widget.html openlibrary/core/shell/login_dialog.py openlibrary/core/shell/shelf_labels.py
 msgid "Something went wrong. Please try again."
 msgstr ""
 
@@ -8627,10 +8627,6 @@ msgstr ""
 
 #: openlibrary/core/shell/login_dialog.py
 msgid "Continue on the login page"
-msgstr ""
-
-#: openlibrary/core/shell/login_dialog.py openlibrary/core/shell/shelf_labels.py
-msgid "Something went wrong. Please try again."
 msgstr ""
 
 #: openlibrary/core/shell/login_dialog.py
