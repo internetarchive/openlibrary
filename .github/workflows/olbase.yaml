@@ -81,7 +81,7 @@ jobs:
   docker-arm64:
     needs: i18n-ref
     if: github.repository_owner == 'internetarchive'
-    runs-on: ubuntu-26.04-arm
+    runs-on: ubuntu-24.04-arm
 
     steps:
       # Docker tags only allow [A-Za-z0-9_.-], so e.g. "7450/foo" becomes "7450-foo"

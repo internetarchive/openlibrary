@@ -20,7 +20,7 @@ jobs:
     # Pinned: ubuntu-latest is now 26.04, and actions/setup-python has no Python 3.14.5
     # build for 26.04 (builds start at 3.14.6). Go back to ubuntu-latest once
     # pyproject.toml and docker/Dockerfile.olbase move to 3.14.6 or later.
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -73,7 +73,7 @@ jobs:
   # Runs the i18n checks against the .po files olbase will bake from openlibrary-i18n
   # (via the same script docker/Dockerfile.olbase runs), not the ones committed here.
   i18n_upstream:
-    runs-on: ubuntu-26.04 # Pinned for Python 3.14.5; see python_tests above.
+    runs-on: ubuntu-24.04 # Pinned for Python 3.14.5; see python_tests above.
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
