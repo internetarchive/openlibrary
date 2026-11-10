@@ -33,6 +33,18 @@ The `ada-status` schema (states, the RAN/READ split, the sha-pinned adversarial-
 line) is defined in `.claude/agents/CONTRIBUTING.md` and is the machine anchor for the
 states below.
 
+**A state backed only by an agent's internal prose is not objective** — no matter how
+rigorous the note — because another process can change it and no one else can query it.
+Where a state's proof would live only in a scratch record (a `cq` note, an evidence file),
+**promote it into a primary source**: a structured field in the PR-body `ada-status`
+block (versioned on GitHub, publicly queryable) or a PR label. The `ada-status` block
+counts as primary; a private note does not. If a state cannot be made to resolve against
+a primary source, it is not a state in this model.
+
+For CodeQL / code-scanning fixes, the authoritative pre-merge proof is the **merge ref**,
+not the head: `gh api "repos/<repo>/code-scanning/alerts?ref=refs/pull/<n>/merge"` → zero
+instances of the rule means the merge closes the alert (the `/head` ref can still show it).
+
 ## The graph
 
 The funnel is a **graph, not a line** — items move *backward* on any failure. Every
@@ -69,6 +81,29 @@ sha match is what makes that falsifiable (PAM #56).
 Everything in states 1–8 is in-flight and **silent by design**. Silence means
 "progressing, our move," and is itself verifiable (the item computes to a non-9,
 non-blocked state). No war-room briefs; no status-of-the-universe.
+
+## Handoff signaling — keep the ships moving
+
+The silence rule above governs comms to the **operator**. It is the *opposite* of the
+obligation to peers:
+
+- **To the operator:** states 1–8 are silent.
+- **To a dependent agent:** the moment a transition *unblocks downstream work, the
+  finishing agent MUST `SendMessage` the blocked owner — by name, with the fact and
+  where to pick up.* A completed dependency that is not announced leaves the dependent
+  idle, and idle dependents stall the whole funnel. All ships stop.
+
+Rules:
+
+- Every `Blocked on <party>` names a specific agent or access, never "the team." When
+  that party completes the thing, **it pings the blocked owner** — the unblock is not
+  finished until the next owner has been told.
+- A state transition that satisfies *someone else's* exit gate is a message, not just a
+  status change. "I finished my part" is not done while the next owner still thinks they
+  are waiting.
+- This is the active-push counterpart to the queryable model: the model lets anyone
+  **pull** "where are we"; signaling **pushes** the unblock so no one waits to be asked.
+  Both are required — a queryable funnel with no handoff signal still idles.
 
 ## Class specializations (same spine, extra stops)
 
