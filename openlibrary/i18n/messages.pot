@@ -6835,7 +6835,7 @@ msgstr ""
 msgid "Collection"
 msgstr ""
 
-#: type/page/view.html
+#: openlibrary/contribute/initiatives.py type/page/view.html
 #, python-format
 msgid "%(count)s book"
 msgid_plural "%(count)s books"
@@ -8386,23 +8386,25 @@ msgstr ""
 msgid "I opened a print record and its publisher and edition match this one."
 msgstr ""
 
-#: openlibrary/contribute/initiatives.py openlibrary/plugins/openlibrary/contribute.py
-msgid "Fiction or nonfiction"
+#: openlibrary/contribute/initiatives.py
+msgid "Sort the Stacks"
+msgstr ""
+
+#: openlibrary/contribute/initiatives.py
+msgid "Mark the books people shelve most as fiction or nonfiction, and pick their genres."
+msgstr ""
+
+#: openlibrary/contribute/initiatives.py
+msgid "Fill the Gaps"
+msgstr ""
+
+#: openlibrary/contribute/initiatives.py
+msgid "Add missing covers, page counts, publishers and languages to the books people shelve most."
 msgstr ""
 
 #: openlibrary/contribute/initiatives.py
 #, python-format
-msgid "%(count)s of the most-shelved books that aren't marked fiction or nonfiction yet, or are missing their genres."
-msgstr ""
-
-#: openlibrary/contribute/initiatives.py
-#, python-format
-msgid "%(count)s most-read books"
-msgstr ""
-
-#: openlibrary/contribute/initiatives.py
-#, python-format
-msgid "The %(count)s editions people shelve most. Fill in any cover, page count, publisher or language they're missing."
+msgid "%(books)s · Started %(date)s"
 msgstr ""
 
 #: openlibrary/contribute/save.py
@@ -9235,6 +9237,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Filipino"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Fiction or nonfiction"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
