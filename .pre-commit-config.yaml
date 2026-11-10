@@ -121,7 +121,7 @@ repos:
         files: \.(css|js|mjs|cjs|ts|vue)$
         args: [--no-error-on-unmatched-pattern]
         additional_dependencies:
-          - oxfmt@0.72.0
+          - oxfmt@0.76.0
 
   - repo: https://github.com/oxc-project/mirrors-oxlint
     # Mirror tag lags npm; pin the same version as package.json.
@@ -138,7 +138,7 @@ repos:
         # spuriously fail the hook. Mirrors the oxfmt hook above.
         args: [--no-error-on-unmatched-pattern]
         additional_dependencies:
-          - oxlint@1.87.0
+          - oxlint@1.91.0
 
   - repo: https://github.com/awebdeveloper/pre-commit-stylelint
     rev: 0.0.2
@@ -152,7 +152,7 @@ repos:
         files: \.css$
         additional_dependencies: &stylelint_deps
           - stylelint@17.16.0
-          - stylelint-declaration-strict-value@1.11.1
+          - stylelint-declaration-strict-value@1.12.1
           - postcss-lit@1.4.1
         # --allow-empty-input: pre-commit passes the staged .css files, and
         # stylelint fails with AllFilesIgnoredError if .stylelintignore excludes
@@ -181,10 +181,10 @@ repos:
         types: [file]
         types_or: [vue]
         additional_dependencies:
-          - eslint@10.12.0
+          - eslint@10.14.0
           - "@eslint/js@10.0.1"
           - eslint-config-prettier@10.1.8
-          - eslint-plugin-vue@10.11.1
+          - eslint-plugin-vue@10.12.0
           - globals@17.14.0
         args: [--fix]
 
