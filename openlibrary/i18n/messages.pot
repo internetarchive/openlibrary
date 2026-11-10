@@ -250,6 +250,10 @@ msgstr ""
 msgid "Not yet imported"
 msgstr ""
 
+#: BookPreview.html PreviewSearchInside.html batch_import_view.html book_providers/read_button.html books/edit/edition.html editpage.html import_preview.html
+msgid "Preview"
+msgstr ""
+
 #: diff.html
 #, python-format
 msgid "Diff on %s"
@@ -306,10 +310,6 @@ msgstr ""
 
 #: edit_yaml.html
 msgid "YAML Representation:"
-msgstr ""
-
-#: BookPreview.html PreviewSearchInside.html book_providers/read_button.html books/edit/edition.html editpage.html import_preview.html
-msgid "Preview"
 msgstr ""
 
 #: history.html
