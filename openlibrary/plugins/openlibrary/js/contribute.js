@@ -11,6 +11,8 @@ import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
 import { trackEvent } from './ol.analytics.js';
 
 const SKIPPED_KEY = 'ol-contribute-skipped';
+// The "Not sure" row's value on a choice list; mirrors ``UNSURE`` in contribute.py.
+const UNSURE = 'unsure';
 // While placeholder cards are up, the server is building the list in the background: ask again soon, then
 // every few seconds, for as long as its Solr query may take, then give up and say the list couldn't load.
 const ROWS_RETRY_MS = [1000, 1000, 2000, 3000, 5000];
@@ -141,6 +143,9 @@ function initSkipButton(form) {
  * @returns {string} the trimmed answer, or '' with no control
  */
 function currentAnswer(form) {
+    // A choice list is a set of radios rather than one control.
+    const checked = form.querySelector('input[name="value"]:checked');
+    if (checked) return checked.value;
     const control = form.querySelector('#contrib-other-value');
     if (!control) return '';
     return control.tagName === 'OL-OPTIONS-POPOVER' ? control.selected : control.value.trim();
@@ -161,7 +166,8 @@ function answerSource(form) {
 
 /**
  * Report a save as ``TaskForm|Save`` or ``TaskForm|SaveNext`` with the field as
- * label, plus ``:chip``/``:typed`` when the field offered suggestions. On the
+ * label, plus ``:chip``/``:typed`` when the field offered suggestions. A "Not sure"
+ * answer reports as ``NotFound`` and is remembered as skipped, like the button. On the
  * ``submit`` event rather than the buttons' clicks so Enter in the answer field
  * counts too; the submitter is the button's in-form proxy.
  * @param {HTMLFormElement} form - a ``[data-task-form]`` with ``data-task-field``
@@ -172,8 +178,43 @@ function initSaveTracking(form) {
         const then = event.submitter?.closest('ol-button')?.value || event.submitter?.value;
         // "I couldn't find it" also submits; its click is already tracked as NotFound.
         if (then === 'notfound') return;
+        // "Not sure" on a choice list is the same honest exit: the server counts it as "couldn't find it".
+        if (currentAnswer(form) === UNSURE) {
+            markTaskSkipped(form.dataset.taskKey);
+            trackEvent('TaskForm', 'NotFound', form.dataset.taskField);
+            return;
+        }
         const source = answerSource(form);
         trackEvent('TaskForm', then === 'next' ? 'SaveNext' : 'Save', source ? `${form.dataset.taskField}:${source}` : form.dataset.taskField);
+    });
+}
+
+/**
+ * Show a spinner on the pressed submit button while the next page loads, and disable the others so a second
+ * press can't save twice. Deferred because a loading ol-button disables its proxy: on Enter, that could land
+ * before the browser reads the form and drop ``then=next`` from the submission.
+ * @param {HTMLFormElement} form - a ``[data-task-form]``
+ * @returns {void}
+ */
+function initSubmitLoading(form) {
+    const buttons = form.querySelectorAll('ol-button[type="submit"]');
+    form.addEventListener('submit', event => {
+        const pressed = event.submitter?.closest('ol-button');
+        setTimeout(() => {
+            if (event.defaultPrevented) return;
+            buttons.forEach(button => {
+                button.loading = button === pressed;
+                button.disabled = button !== pressed;
+            });
+        }, 0);
+    });
+    // Back/forward restores this DOM from bfcache with the spinner still showing.
+    window.addEventListener('pageshow', event => {
+        if (!event.persisted) return;
+        buttons.forEach(button => {
+            button.loading = false;
+            button.disabled = false;
+        });
     });
 }
 
@@ -204,6 +245,107 @@ function initSiblingSuggestions(form) {
     });
     control.addEventListener(isPicker ? 'ol-options-popover-change' : 'input', syncChipSelection);
     syncChipSelection();
+}
+
+/**
+ * Quick next: on a form that opts in, clicking the already-picked choice row saves and moves on, so an easy
+ * call (fiction or nonfiction) takes two clicks on the answer and none on the buttons. The first click on a
+ * row only selects it; a double-click is just the two clicks in a row. Keyboard activation (Space on a
+ * checked radio also fires ``click``) is left alone: Enter already submits with "Save and next".
+ * @param {HTMLFormElement} form - a ``[data-task-form][data-quick-next]``
+ * @returns {void}
+ */
+function initQuickNext(form) {
+    if (!('quickNext' in form.dataset)) return;
+    let picked = form.querySelector('input[name="value"]:checked');
+    // A click with no pointerdown before it came from the keyboard or a script.
+    let pointer = false;
+    form.addEventListener('pointerdown', () => {
+        pointer = true;
+    });
+    form.addEventListener('keydown', () => {
+        pointer = false;
+    });
+    form.addEventListener('change', event => {
+        if (event.target.name === 'value') picked = event.target;
+    });
+    form.addEventListener('click', event => {
+        const input = event.target;
+        if (!(input instanceof HTMLInputElement) || input.name !== 'value' || input.type !== 'radio') return;
+        // The row that opens the companion field asks for a second look at the page, not a second click.
+        if (input.dataset.reveals) return;
+        const viaPointer = pointer;
+        pointer = false;
+        // ``change`` for a fresh pick fires after this click, so ``picked`` still names the previous row here.
+        if (!viaPointer || input !== picked) return;
+        // ol-button keeps a native submit proxy in the form; submitting through it keeps ``then=next`` and the Save tracking.
+        const next = form.querySelector('button[name="then"][value="next"]');
+        if (!next) return;
+        trackEvent('TaskForm', 'QuickNext', form.dataset.taskField);
+        form.requestSubmit(next);
+    });
+}
+
+/**
+ * A many-tags answer: chips that toggle, with a hidden input per picked key so
+ * the form posts the picks under the group's name. A chip the subjects suggested
+ * carries them in ``data-subjects``: hovering or focusing it lights those subjects
+ * in the record, and picking it reports as ``PickSuggestion``, like a sibling chip
+ * on a text field.
+ * @param {HTMLElement} group - a ``[data-many-choice]`` holding ``ol-chip[data-value]`` elements
+ * @returns {void}
+ */
+function initManyChoice(group) {
+    const name = group.dataset.manyChoice;
+    const form = group.closest('form');
+    const field = form?.dataset.taskField;
+    const light = (chip, on) => {
+        const subjects = JSON.parse(chip.dataset.subjects);
+        form?.querySelectorAll('[data-subject]').forEach(el => el.toggleAttribute('data-lit', on && subjects.includes(el.dataset.subject)));
+    };
+    for (const chip of group.querySelectorAll('ol-chip[data-subjects]')) {
+        chip.addEventListener('mouseenter', () => light(chip, true));
+        chip.addEventListener('mouseleave', () => light(chip, false));
+        chip.addEventListener('focusin', () => light(chip, true));
+        chip.addEventListener('focusout', () => light(chip, false));
+    }
+    const sync = () => {
+        group.querySelectorAll('input[type="hidden"]').forEach(input => input.remove());
+        // By property: the chip reflects ``selected`` to its attribute only on its next render.
+        for (const chip of [...group.querySelectorAll('ol-chip')].filter(chip => chip.selected)) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = chip.dataset.value;
+            group.append(input);
+        }
+    };
+    group.addEventListener('ol-chip-select', event => {
+        const chip = event.target.closest('ol-chip');
+        chip.selected = event.detail.selected;
+        sync();
+        if (event.detail.selected && chip.dataset.subjects && field) trackEvent('TaskForm', 'PickSuggestion', `${field}:${name}`);
+    });
+    sync();
+}
+
+/**
+ * The companion field (the genres under "fiction"): shown while the choice row
+ * that opens it, marked ``data-reveals`` with the field's name, is the one picked.
+ * @param {HTMLFormElement} form - a task form that may hold a ``[data-companion]`` row
+ * @returns {void}
+ */
+function initCompanion(form) {
+    const panel = form.querySelector('[data-companion]');
+    if (!panel) return;
+    const sync = () => {
+        const checked = form.querySelector('input[name="value"]:checked');
+        panel.hidden = checked?.dataset.reveals !== panel.dataset.companion;
+    };
+    form.addEventListener('change', event => {
+        if (event.target.name === 'value') sync();
+    });
+    sync();
 }
 
 /**
@@ -359,7 +501,7 @@ function initIntroDismiss(link) {
 }
 
 /**
- * Drop the "Save and next" receipt from the URL, so a reload doesn't show its toast again.
+ * Drop the "Save and next" receipt from the URL, so a reload doesn't show its callout again.
  * @returns {void}
  */
 function clearSavedReceipt() {
@@ -374,14 +516,14 @@ function clearSavedReceipt() {
  * @returns {void}
  */
 /**
- * Show a spinner on the pressed rail filter while the next page loads.
- * @param {HTMLElement} rail - the ``[data-rail]`` nav
+ * Show a spinner on the pressed project link while the next page loads.
+ * @param {HTMLElement} rail - a ``[data-nav-loading]`` nav
  * @returns {void}
  */
-function initRailLoading(rail) {
+function initNavLoading(rail) {
     rail.addEventListener('click', e => {
         const link = e.target.closest('a[href]');
-        if (!link || link.classList.contains('is-on')) return;
+        if (!link || link.hasAttribute('aria-current')) return;
         // New-tab / modified / non-left clicks don't navigate this window.
         if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         link.classList.add('is-target');
@@ -397,14 +539,18 @@ export function init() {
     document.querySelectorAll('[data-contribute-list]').forEach(root => {
         initTaskList(root);
     });
-    document.querySelectorAll('[data-rail]').forEach(initRailLoading);
+    document.querySelectorAll('[data-nav-loading]').forEach(initNavLoading);
     document.querySelectorAll('[data-feed]').forEach(initFeed);
     document.querySelectorAll('[data-intro-cookie]').forEach(initIntroDismiss);
     document.querySelectorAll('form[data-task-form]').forEach(form => {
         initSkipButton(form);
         initSiblingSuggestions(form);
         initSaveTracking(form);
+        initSubmitLoading(form);
+        initQuickNext(form);
+        initCompanion(form);
     });
+    document.querySelectorAll('[data-many-choice]').forEach(initManyChoice);
     if (document.querySelector('[data-receipt]')) clearSavedReceipt();
     document.querySelectorAll('form[data-id-form]').forEach(initIdentifierForm);
     document.querySelectorAll('form[data-cover-form]').forEach(initCoverForm);

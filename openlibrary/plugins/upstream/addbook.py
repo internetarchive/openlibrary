@@ -16,6 +16,7 @@ from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
+from openlibrary.contribute import pitch
 from openlibrary.core.helpers import uniq
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.recaptcha import recaptcha
@@ -23,6 +24,7 @@ from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
 from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.utils.dateutil import DAY_SECS
 from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
@@ -34,12 +36,30 @@ if TYPE_CHECKING:
 logger = logging.getLogger("openlibrary.book")
 
 
+def add_edit_saved_flash(*book_keys: str) -> None:
+    """Thank the editor on the page the save lands on and, at most once a day, name the Tasks projects there."""
+    payload = ""
+    try:
+        if pitch.wanted(web.cookies()) and (payload := pitch.encode(book_keys)):
+            web.setcookie(pitch.SEEN_COOKIE, "1", expires=DAY_SECS)
+    except Exception:
+        # The edit is already saved; a cache that can't be read only costs the pitch.
+        logger.exception("Could not build the Tasks pitch")
+    add_flash_message(pitch.FLASH_TYPE, payload)
+
+
 def is_valid_web_book_url(url: str) -> bool:
     """Blank, or an absolute http(s) URL with a host."""
     if not url:
         return True
     parsed = urllib.parse.urlparse(url)
     return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+
+
+def can_edit_ocaid() -> bool:
+    """Whether the current user may add, change or remove an edition's ocaid. See `User.can_edit_ocaid`."""
+    user = accounts.get_current_user()
+    return bool(user and user.can_edit_ocaid())
 
 
 def get_recaptcha():
@@ -55,7 +75,7 @@ def get_recaptcha():
             return True
 
         create_dt = account.creation_time()
-        now_dt = dt.datetime.utcnow()
+        now_dt = dt.datetime.now(dt.UTC).replace(tzinfo=None)
         delta = now_dt - create_dt
         return delta.days > 30
 
@@ -267,6 +287,9 @@ class addbook(delegate.page):
         i.web_book_url = i.web_book_url.strip()
         if not is_valid_web_book_url(i.web_book_url):
             return render_template("message.html", _("Invalid Book URL"), _("Please enter a valid URL starting with http:// or https://"))
+
+        if i.id_name == "ocaid" and i.id_value and not can_edit_ocaid():
+            return render_template("message.html", _("Permission denied"), _("You are not allowed to add an Internet Archive ID."))
 
         i = utils.unflatten(i)
         saveutil = DocSaveHelper()
@@ -744,6 +767,9 @@ class SaveBookHelper:
         work.subject_places = list(read_subject(work.get("subject_places", "")))
         work.subject_times = list(read_subject(work.get("subject_times", "")))
         work.subject_people = list(read_subject(work.get("subject_people", "")))
+        # The form posts the chosen tag's key; "" clears it (trim_doc makes that None, which the save drops).
+        if "literary_forms" in work:
+            work.literary_forms = [{"key": work.literary_forms}] if work.literary_forms else None
         if ": " in work.get("title", ""):
             work.title, work.subtitle = work.title.split(": ", 1)
         else:
@@ -758,19 +784,22 @@ class SaveBookHelper:
         return trim_doc(work)
 
     def _prevent_ocaid_deletion(self, edition) -> None:
-        # Allow admins to modify ocaid
-        user = accounts.get_current_user()
-        if user and user.is_super_librarian_or_higher():
+        if can_edit_ocaid():
             return
 
-        # read ocaid from form data
-        ocaid = next(
-            (id_["value"] for id_ in edition.get("identifiers", []) if id_["name"] == "ocaid"),
-            None,
+        # read ocaid from form data. A top-level `ocaid` field overrides the identifiers
+        # list, since `save` applies it with `edition.update` after `set_identifiers`.
+        ocaid = edition.get(
+            "ocaid",
+            next(
+                (id_["value"] for id_ in edition.get("identifiers", []) if id_["name"] == "ocaid"),
+                None,
+            ),
         )
 
-        # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata
-        if self.edition and self.edition.get("ocaid") and self.edition.get("ocaid") != ocaid:
+        # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata.
+        # Adding an ocaid to an edition that has none counts as a change too.
+        if self.edition and (self.edition.get("ocaid") or None) != (ocaid or None):
             logger.warning(
                 "Attempt to change ocaid of %s from %r to %r.",
                 self.edition.key,
@@ -809,6 +838,7 @@ class book_edit(delegate.page):
         v = i.v and safeint(i.v, None)
 
         if not web.ctx.site.can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
@@ -851,7 +881,7 @@ class book_edit(delegate.page):
             helper = SaveBookHelper(work, edition)
             helper.save(web.input())
 
-            add_flash_message("info", utils.get_message("flash_catalog_updated"))
+            add_edit_saved_flash(edition.key)
 
             if i.work_key and i.work_key.startswith("/works/"):
                 url = i.work_key
@@ -875,6 +905,7 @@ class work_edit(delegate.page):
         v = i.v and safeint(i.v, None)
 
         if not web.ctx.site.can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
@@ -911,7 +942,7 @@ class work_edit(delegate.page):
         try:
             helper = SaveBookHelper(work, None)
             helper.save(web.input())
-            add_flash_message("info", utils.get_message("flash_catalog_updated"))
+            add_edit_saved_flash()
             raise safe_seeother(work.url())
         except (ClientException, ValidationException) as e:
             add_flash_message("error", str(e))
@@ -923,6 +954,7 @@ class author_edit(delegate.page):
 
     def GET(self, key):
         if not web.ctx.site.can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,

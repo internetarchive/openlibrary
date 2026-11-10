@@ -276,6 +276,16 @@
                 "key": "/type/property"
             },
             "name": "literary_forms"
+        },
+        {
+            "expected_type": {
+                "key": "/type/tag"
+            },
+            "unique": false,
+            "type": {
+                "key": "/type/property"
+            },
+            "name": "awards"
         }
     ],
     "revision": 14

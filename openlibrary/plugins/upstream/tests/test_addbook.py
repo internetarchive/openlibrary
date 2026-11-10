@@ -3,7 +3,9 @@
 import pytest
 import web
 
+from infogami.utils import delegate
 from openlibrary import accounts
+from openlibrary.core.models import User
 from openlibrary.mocks.mock_infobase import MockSite
 
 from .. import addbook
@@ -23,6 +25,7 @@ def mock_user():
             "is_super_librarian_or_higher": lambda slf: slf.is_admin() or slf.is_super_librarian(),
             "is_librarian": lambda slf: False,
             "is_usergroup_member": lambda slf, grp: False,
+            "can_edit_ocaid": User.can_edit_ocaid,
         },
     )()
 
@@ -490,6 +493,106 @@ class TestSaveBookHelper:
         assert not new_work.authors
         assert not new_work.subjects
 
+    @pytest.mark.parametrize(
+        ("current_ocaid", "submitted_ocaid"),
+        [
+            (None, "newitem00arch"),
+            ("olditem00arch", "newitem00arch"),
+            ("olditem00arch", None),
+        ],
+    )
+    def test_ocaid_changes_need_admin(self, monkeypatch, current_ocaid, submitted_ocaid):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        s = addbook.SaveBookHelper(None, self._edition_with_ocaid(current_ocaid))
+
+        with pytest.raises(addbook.ValidationException):
+            s._prevent_ocaid_deletion(self._ocaid_form(submitted_ocaid))
+
+    @pytest.mark.parametrize("current_ocaid", [None, "olditem00arch"])
+    def test_top_level_ocaid_field_needs_admin(self, monkeypatch, current_ocaid):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        s = addbook.SaveBookHelper(None, self._edition_with_ocaid(current_ocaid))
+        form = self._ocaid_form(current_ocaid)
+        form.ocaid = "newitem00arch"
+
+        with pytest.raises(addbook.ValidationException):
+            s._prevent_ocaid_deletion(form)
+
+    @pytest.mark.parametrize("ocaid", [None, "olditem00arch"])
+    def test_unchanged_ocaid_is_allowed(self, monkeypatch, ocaid):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        s = addbook.SaveBookHelper(None, self._edition_with_ocaid(ocaid))
+
+        s._prevent_ocaid_deletion(self._ocaid_form(ocaid))
+
+    @pytest.mark.parametrize(("is_admin", "is_super_librarian", "allowed"), [(True, False, True), (False, True, False)])
+    def test_only_admins_can_add_ocaid(self, monkeypatch, is_admin, is_super_librarian, allowed):
+        def user():
+            u = mock_user()
+            u.is_admin = lambda: is_admin
+            u.is_super_librarian = lambda: is_super_librarian
+            return u
+
+        monkeypatch.setattr(accounts, "get_current_user", user)
+        s = addbook.SaveBookHelper(None, self._edition_with_ocaid(None))
+
+        if allowed:
+            s._prevent_ocaid_deletion(self._ocaid_form("newitem00arch"))
+        else:
+            with pytest.raises(addbook.ValidationException):
+                s._prevent_ocaid_deletion(self._ocaid_form("newitem00arch"))
+
+    @staticmethod
+    def _edition_with_ocaid(ocaid):
+        doc = {"type": {"key": "/type/edition"}, "key": "/books/OL1M", "title": "Edition"}
+        if ocaid:
+            doc["ocaid"] = ocaid
+        web.ctx.site.save(doc)
+        return web.ctx.site.get("/books/OL1M")
+
+    @staticmethod
+    def _ocaid_form(ocaid):
+        identifiers = [{"name": "ocaid", "value": ocaid}] if ocaid else []
+        return web.storage(identifiers=identifiers)
+
+
+class TestAddBookOcaid:
+    @pytest.fixture
+    def post(self, monkeypatch):
+        """POST /books/add with an ocaid; returns render_template's args, or None if it got past the ocaid check."""
+
+        def _post(user_factory):
+            monkeypatch.setattr(accounts, "get_current_user", user_factory)
+            monkeypatch.setattr(web, "input", lambda **kw: web.storage(kw, book_title="Book", id_name="ocaid", id_value="newitem00arch"))
+            monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *a, **kw: False)
+            monkeypatch.setattr(addbook, "render_template", lambda *a, **kw: a)
+
+            class PastOcaidCheck(Exception):
+                pass
+
+            def past_check(*a, **kw):
+                raise PastOcaidCheck
+
+            monkeypatch.setattr(addbook.utils, "unflatten", past_check)
+            try:
+                # `addbook.addbook` is shadowed by a later class of the same name, so look the page up by path.
+                return delegate.pages["/books/add"][None]().POST()
+            except PastOcaidCheck:
+                return None
+
+        return _post
+
+    def test_non_admin_cannot_add_ocaid(self, post):
+        assert post(mock_user)[0] == "message.html"
+
+    def test_admin_can_add_ocaid(self, post):
+        def admin():
+            u = mock_user()
+            u.is_admin = lambda: True
+            return u
+
+        assert post(admin) is None
+
 
 class TestDaisyPage:
     def setup_method(self, method):
@@ -623,3 +726,42 @@ class TestMakeWork:
 )
 def test_is_valid_web_book_url(url, expected):
     assert addbook.is_valid_web_book_url(url) is expected
+
+
+class TestEditSavedFlash:
+    """``add_edit_saved_flash``: the thank-you every save gets, and the Tasks pitch at most once a day."""
+
+    @pytest.fixture
+    def saved(self, monkeypatch):
+        seen = web.storage(flash=[], cookies={}, set_cookies={})
+        monkeypatch.setattr(addbook, "add_flash_message", lambda type, message: seen.flash.append((type, message)))
+        monkeypatch.setattr(web, "cookies", lambda: seen.cookies)
+        monkeypatch.setattr(web, "setcookie", lambda name, value, expires="": seen.set_cookies.update({name: expires}))
+        monkeypatch.setattr(addbook.pitch, "encode", lambda book_keys=(): "most-read-2026-11:485")
+        return seen
+
+    def test_pitches_tasks_and_marks_it_seen_for_a_day(self, saved):
+        addbook.add_edit_saved_flash("/books/OL1M")
+        assert saved.flash == [("edit-saved", "most-read-2026-11:485")]
+        assert saved.set_cookies == {addbook.pitch.SEEN_COOKIE: 24 * 60 * 60}
+
+    @pytest.mark.parametrize("cookie", [addbook.pitch.SEEN_COOKIE, addbook.pitch.dismiss_cookie()])
+    def test_only_thanks_once_seen_today_or_closed(self, saved, cookie):
+        saved.cookies[cookie] = "1"
+        addbook.add_edit_saved_flash("/books/OL1M")
+        assert saved.flash == [("edit-saved", "")]
+        assert saved.set_cookies == {}
+
+    def test_nothing_to_pitch_leaves_tomorrows_chance_alone(self, saved, monkeypatch):
+        monkeypatch.setattr(addbook.pitch, "encode", lambda book_keys=(): "")
+        addbook.add_edit_saved_flash()
+        assert saved.flash == [("edit-saved", "")]
+        assert saved.set_cookies == {}
+
+    def test_a_broken_cache_still_thanks_the_editor(self, saved, monkeypatch):
+        def broken(book_keys=()):
+            raise RuntimeError("memcache is down")
+
+        monkeypatch.setattr(addbook.pitch, "encode", broken)
+        addbook.add_edit_saved_flash("/books/OL1M")
+        assert saved.flash == [("edit-saved", "")]

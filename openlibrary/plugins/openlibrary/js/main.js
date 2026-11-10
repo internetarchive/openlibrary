@@ -173,14 +173,10 @@ $(function () {
         import('./signup.js').then(module => module.initLoginForm());
     }
 
-    // conditionally load clamping components
-    const clampers = document.querySelectorAll('.clamp');
-    if (clampers.length) {
-        import('./clampers.js').then(module => {
-            if (clampers.length) {
-                module.initClampers(clampers);
-            }
-        });
+    // Book page subject rows collapse to one line with a "+N" chip
+    const subjectLists = document.querySelectorAll('.subject-row__chips');
+    if (subjectLists.length) {
+        import('./subject-rows.js').then(module => module.initSubjectRows(subjectLists));
     }
 
     // conditionally load file dropzone for CSV import (Goodreads, etc.)
@@ -386,12 +382,6 @@ $(function () {
     // Shelf buttons: hydrate the ones the server rendered without state and keep every copy of a book in step.
     if (document.querySelector('ol-shelf-button, .lazy-carousel, .browse-stacks')) {
         import('./book-state').then(module => module.initBookState());
-    }
-
-    // The lists a book is on, under the shelf button on its page:
-    const listShowcase = document.querySelector('.already-lists[data-seed-keys]');
-    if (listShowcase) {
-        import('./lists/list-showcase').then(module => module.initListShowcase(listShowcase));
     }
 
     // TODO: Make these selectors a consistent interface
