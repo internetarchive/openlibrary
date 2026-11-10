@@ -14,3 +14,11 @@ $if not invisible:
 
 $if render_once('recaptcha'):
     <script src="https://www.recaptcha.net/recaptcha/api.js" async defer></script>
+    <script>
+        // Back/forward cache restores a solved widget whose token may be spent.
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted && window.grecaptcha && document.querySelector('.g-recaptcha')) {
+                window.grecaptcha.reset();
+            }
+        });
+    </script>

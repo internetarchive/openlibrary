@@ -1,12 +1,15 @@
 """py.test tests for addbook"""
 
 import pytest
+import requests
 import web
 
 from infogami.utils import delegate
 from openlibrary import accounts
 from openlibrary.core.models import User
+from openlibrary.i18n import ungettext
 from openlibrary.mocks.mock_infobase import MockSite
+from openlibrary.plugins.recaptcha import recaptcha
 
 from .. import addbook
 
@@ -566,6 +569,7 @@ class TestAddBookOcaid:
             monkeypatch.setattr(web, "input", lambda **kw: web.storage(kw, book_title="Book", id_name="ocaid", id_value="newitem00arch"))
             monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *a, **kw: False)
             monkeypatch.setattr(addbook, "render_template", lambda *a, **kw: a)
+            monkeypatch.setattr(addbook, "get_recaptcha", lambda: None)
 
             class PastOcaidCheck(Exception):
                 pass
@@ -726,6 +730,169 @@ class TestMakeWork:
 )
 def test_is_valid_web_book_url(url, expected):
     assert addbook.is_valid_web_book_url(url) is expected
+
+
+class TestAddBookPostCaptcha:
+    TOKEN = "solved-token"
+
+    @pytest.fixture
+    def post(self, monkeypatch):
+        """Runs /books/add POST with a captcha-requiring user; returns the outcome and the tokens verified."""
+        page_cls = delegate.pages["/books/add"][None]
+        verified: list[str | None] = []
+
+        class FakeRecaptcha:
+            def __init__(self, valid):
+                self.valid = valid
+
+            def validate_response(self, response, remoteip):
+                verified.append(response)
+                return self.valid and response == TestAddBookPostCaptcha.TOKEN
+
+        def run(form, match=None, valid=True, recaptcha_required=True, unflatten=lambda d: d):
+            data = web.storage(
+                title="",
+                book_title="A Title",
+                publisher="A Publisher",
+                publish_date="2020",
+                id_name="",
+                id_value="",
+                web_book_url="",
+                _test="false",
+                authors=[],
+                author_names=[],
+            )
+            data.update(form)
+            monkeypatch.setattr(accounts, "get_current_user", mock_user)
+            monkeypatch.setattr(web, "input", lambda **_: data)
+            monkeypatch.setattr(web.ctx, "ip", "127.0.0.1", raising=False)
+            monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *_, **__: False)
+            monkeypatch.setattr(addbook.utils, "unflatten", unflatten)
+            monkeypatch.setattr(addbook.DocSaveHelper, "create_authors_from_form_data", lambda *_, **__: False)
+            monkeypatch.setattr(addbook, "get_recaptcha", lambda: FakeRecaptcha(valid) if recaptcha_required else None)
+            monkeypatch.setattr(addbook, "render_template", lambda name, *args: (name, args))
+            monkeypatch.setattr(page_cls, "find_matches", lambda self, i: match)
+            monkeypatch.setattr(page_cls, "work_match", lambda *_: "work_match")
+            monkeypatch.setattr(page_cls, "work_edition_match", lambda *_: "work_edition_match")
+            monkeypatch.setattr(page_cls, "no_match", lambda *_: "no_match")
+            return page_cls().POST(), verified
+
+        return run
+
+    @staticmethod
+    def is_rejected(result):
+        return isinstance(result, tuple) and result[0] == "message.html" and result[1][0] == "Recaptcha solution was incorrect"
+
+    def test_save_requires_a_valid_token(self, post):
+        result, _ = post({})
+        assert self.is_rejected(result)
+
+    def test_valid_token_saves(self, post):
+        result, verified = post({"g-recaptcha-response": self.TOKEN})
+        assert result == "no_match"
+        assert verified == [self.TOKEN]
+
+    def test_failed_verification_blocks_work_match(self, post):
+        result, _ = post({"g-recaptcha-response": self.TOKEN}, match=web.storage(key="/works/OL1W"), valid=False)
+        assert self.is_rejected(result)
+
+    def test_exempt_user_needs_no_token(self, post):
+        result, verified = post({}, recaptcha_required=False)
+        assert result == "no_match"
+        assert verified == []
+
+    def test_multiple_matches_leave_the_token_unspent(self, post):
+        matches = [web.storage(key="/works/OL1W"), web.storage(key="/works/OL2W")]
+        (name, _), verified = post({"g-recaptcha-response": self.TOKEN}, match=matches)
+        assert name == "books/check"
+        assert verified == []
+
+    @pytest.mark.parametrize("work", ["none-of-these", "/works/OL1W"])
+    def test_check_page_post_cannot_skip_the_captcha(self, post, work):
+        result, _ = post({"work": work, "from_check": "true"})
+        assert self.is_rejected(result)
+        assert "history.go(-2)" in result[1][1]
+
+    def test_check_page_post_with_carried_token_saves(self, post):
+        result, verified = post({"work": "none-of-these", "from_check": "true", "g-recaptcha-response": self.TOKEN})
+        assert result == "no_match"
+        assert verified == [self.TOKEN]
+
+    def test_failed_token_from_check_page_goes_back_to_the_add_form(self, post):
+        result, _ = post({"work": "none-of-these", "from_check": "true", "g-recaptcha-response": self.TOKEN}, valid=False)
+        assert self.is_rejected(result)
+        assert "history.go(-2)" in result[1][1]
+
+    def test_add_another_edition_form_goes_back_one_page(self, post):
+        # /books/add?work=... posts `work` from the add form itself.
+        result, _ = post({"work": "/works/OL1W"})
+        assert self.is_rejected(result)
+        assert "history.go(-1)" in result[1][1]
+
+    def test_tokenless_post_is_rejected_before_any_work(self, post):
+        def fail(*_):
+            raise AssertionError("should have been rejected first")
+
+        result, verified = post({}, unflatten=fail)
+        assert self.is_rejected(result)
+        assert verified == []
+
+
+class TestCheckPageForm:
+    """check.html must post back everything /books/add POST reads."""
+
+    @pytest.fixture
+    def form_html(self, render_template, monkeypatch, mock_site, request_context_fixture):
+        request_context_fixture(lang="en")
+        monkeypatch.setitem(web.template.Template.globals, "ungettext", ungettext)
+        d = web.storage(
+            title="A Title",
+            author_names=["An Author"],
+            authors=[web.storage(author=web.storage(key="/authors/OL1A"))],
+            publisher="A Publisher",
+            publish_date="2020",
+            id_name="",
+            id_value="",
+            web_book_url="https://example.com/book",
+        )
+        d["g-recaptcha-response"] = "solved-token"
+        matches = [web.storage(key="/works/OL1W", cover_url="", title="A Title", authors=[], first_publish_year=None)]
+        return render_template("books/check", d, matches)
+
+    @pytest.mark.parametrize(
+        ("name", "value"),
+        [
+            ("book_title", "A Title"),
+            ("g-recaptcha-response", "solved-token"),
+            ("web_book_url", "https://example.com/book"),
+            ("from_check", "true"),
+        ],
+    )
+    def test_posts_back_field(self, form_html, name, value):
+        assert f'name="{name}" value="{value}"' in form_html
+
+
+class TestRecaptchaValidateResponse:
+    @pytest.fixture
+    def recap(self, monkeypatch):
+        monkeypatch.setattr(recaptcha.config, "recaptcha_url", "http://recaptcha.invalid", raising=False)
+        return recaptcha.Recaptcha("public", "private")
+
+    @pytest.mark.parametrize("token", [None, ""])
+    def test_missing_token_fails_without_a_network_call(self, recap, monkeypatch, token):
+        def fail(*_, **__):
+            raise AssertionError("should not call the service")
+
+        monkeypatch.setattr(recaptcha.requests, "get", fail)
+        assert recap.validate_response(token) is False
+
+    def test_non_json_response_lets_the_user_through(self, recap, monkeypatch):
+        class HtmlResponse:
+            def json(self):
+                raise requests.exceptions.JSONDecodeError("Expecting value", "<html>", 0)
+
+        monkeypatch.setattr(recaptcha.requests, "get", lambda *_, **__: HtmlResponse())
+        assert recap.validate_response("a-token") is True
 
 
 class TestEditSavedFlash:

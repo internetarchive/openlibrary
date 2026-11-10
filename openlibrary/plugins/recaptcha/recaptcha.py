@@ -40,6 +40,9 @@ class Recaptcha(web.form.Input):
         def accept_error(error_codes: list[str]) -> bool:
             return not any(error in INVALIDATING_ERRORS for error in error_codes)
 
+        if not response:
+            return False
+
         url = config.get("recaptcha_url")
         params = {
             "secret": self._private_key,
@@ -48,12 +51,11 @@ class Recaptcha(web.form.Input):
         }
 
         try:
-            r = requests.get(url, params=params, timeout=3)
+            data = requests.get(url, params=params, timeout=3).json()
         except requests.exceptions.RequestException:
             logger.exception("Recaptcha call failed: letting user through")
             return True
 
-        data = r.json()
         if not data.get("success", False) and "error-codes" in data:
             logger.error(f"Recaptcha Error: {data['error-codes']}")
             return accept_error(data["error-codes"])

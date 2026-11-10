@@ -87,6 +87,15 @@ def get_recaptcha():
         return None
 
 
+def recaptcha_failed(back: int = -1):
+    """Message page for a failed captcha; `back` is how many history entries away the form with the widget is."""
+    return render_template(
+        "message.html",
+        _("Recaptcha solution was incorrect"),
+        _("Please %(link_start)sgo back%(link_end)s and try again.", link_start=f'<a href="javascript:history.go({back})">', link_end="</a>"),
+    )
+
+
 def make_author(key: str, name: str) -> Author:
     """
     Use author_key and author_name and return an Author.
@@ -275,21 +284,19 @@ class addbook(delegate.page):
         if spamcheck.is_spam(i, allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
-        if not accounts.get_current_user():
-            recap = get_recaptcha()
-            if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip):
-                return render_template(
-                    "message.html",
-                    "Recaptcha solution was incorrect",
-                    'Please <a href="javascript:history.back()">go back</a> and try again.',
-                )
-
         i.web_book_url = i.web_book_url.strip()
         if not is_valid_web_book_url(i.web_book_url):
             return render_template("message.html", _("Invalid Book URL"), _("Please enter a valid URL starting with http:// or https://"))
 
         if i.id_name == "ocaid" and i.id_value and not can_edit_ocaid():
             return render_template("message.html", _("Permission denied"), _("You are not allowed to add an Internet Archive ID."))
+
+        recap = get_recaptcha()
+        # check.html is one history entry past the add form, which is where a usable widget is.
+        back = -2 if i.get("from_check") else -1
+        # Reject tokenless requests before they use author keys or Solr.
+        if recap and not i.get("g-recaptcha-response"):
+            return recaptcha_failed(back)
 
         i = utils.unflatten(i)
         saveutil = DocSaveHelper()
@@ -303,10 +310,14 @@ class addbook(delegate.page):
                 return "No match found"
 
         if isinstance(match, list):
-            # multiple matches
+            # Multiple matches. Nothing is saved yet, so leave the single-use captcha token
+            # unspent: check.html posts it back with the user's choice, and it's verified then.
             return render_template("books/check", i, match)
 
-        elif match and match.key.startswith("/books"):
+        if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip):
+            return recaptcha_failed(back)
+
+        if match and match.key.startswith("/books"):
             # work match and edition match, match is an Edition
             if i.web_book_url:
                 match.provider = [{"url": i.web_book_url, "format": "web"}]
@@ -371,7 +382,7 @@ class addbook(delegate.page):
         solr = get_solr()
         # Less exact solr search than try_edition_match(), search by supplied title and author only.
         result = solr.select(
-            {"title": i.title, "author_key": author_key.split("/")[-1]},
+            {"type": "work", "title": i.title, "author_key": author_key.split("/")[-1]},
             doc_wrapper=make_work,
             q_op="AND",
         )
@@ -415,7 +426,8 @@ class addbook(delegate.page):
         if not publisher and not publish_year and not id_value:
             return None
 
-        q: dict = {}
+        # Solr also indexes editions, but the callers expect works.
+        q: dict = {"type": "work"}
         work and q.setdefault("key", work.key.split("/")[-1])
         title and q.setdefault("title", title)
         author_key and q.setdefault("author_key", author_key.split("/")[-1])
@@ -862,11 +874,7 @@ class book_edit(delegate.page):
 
         recap = get_recaptcha()
         if recap and not recap.validate_response(form_data.get("g-recaptcha-response"), web.ctx.ip):
-            return render_template(
-                "message.html",
-                "Recaptcha solution was incorrect",
-                'Please <a href="javascript:history.back()">go back</a> and try again.',
-            )
+            return recaptcha_failed()
         v = i.v and safeint(i.v, None)
         edition = web.ctx.site.get(key, v)
 
@@ -928,11 +936,7 @@ class work_edit(delegate.page):
         recap = get_recaptcha()
 
         if recap and not recap.validate_response(form_data.get("g-recaptcha-response"), web.ctx.ip):
-            return render_template(
-                "message.html",
-                "Recaptcha solution was incorrect",
-                'Please <a href="javascript:history.back()">go back</a> and try again.',
-            )
+            return recaptcha_failed()
 
         v = i.v and safeint(i.v, None)
         work = web.ctx.site.get(key, v)
