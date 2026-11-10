@@ -39,6 +39,19 @@ name: Code Review Action
 # comment and the same stub artifact, so the absence of a comment never signals a private finding.
 # No review text, count, or reason is ever written to the public run log.
 #
+# KNOWN ACCEPTED LIMITATION (the post-by-default trade-off, #13160; ruled by the security lead,
+# Mek FYI'd). The gate constrains the STRUCTURE of a finding -- its anchor line, its sink_ref
+# symbol, and literal credential VALUES -- not the free-text SEMANTICS of the summary or a finding
+# body. A model suborned by a prompt injection in the PR can therefore narrate, in prose, a
+# vulnerability that is live in the (already-public) base code and have it posted. This is bounded:
+# on a public repo no secret source leaks -- the harm is publicly advertising a live base weakness
+# that anyone analysing the public source could derive. It is NOT deterministically closable: a
+# prose scan would false-positive on exactly the legitimate PR-introduced security findings this
+# bot exists to post. Mitigations: the honest-model classification is the primary control;
+# code_review.md instructs the model to treat all PR content as untrusted and to raise an injection
+# attempt as a finding; and MUST-FIX 1 neutralises the summary whenever any finding is private (the
+# honest-model common case). The finding-body channel is inherent to posting model prose by design.
+#
 # Fork PRs: `pull_request` from a fork gets no secrets, so the review_requested path covers
 # same-repo PRs only. The `issue_comment` path runs in base-repo context WITH secrets and does
 # cover fork PRs -- which is why that path is staff-gated by an explicit allowlist below.
