@@ -155,6 +155,9 @@ env:
         // `sink_ref` and `path` are published to the artifact UN-redacted (post needs them intact), so
         // a credential value smuggled through either must never go public: route private, don't trust.
         if (this.secretsTest(f.sink_ref) || this.secretsTest(f.path)) return 'private';
+        // F-E: bound the text that the shape/pattern scan (and the public redact) will process. An
+        // over-long finding is not scanned -- fail closed to private.
+        if (String(f.title).length + String(f.body).length > this.maxText) return 'private';
         if (this.anchorAddedOnly(f, ctx) !== true) return 'private'; // must anchor to added lines only
         const ref = (typeof f.sink_ref === 'string' && this.sinkRef.test(f.sink_ref)) ? f.sink_ref : null;
         if (ref && ctx.baseHasSymbol(ref)) return 'private';         // sink lives unchanged on base
@@ -443,7 +446,6 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const { execFileSync } = require('child_process');
             const gate = eval(process.env.REVIEW_GATE_JS);
             const file = `${process.env.GITHUB_WORKSPACE}/review.json`;
 
@@ -484,19 +486,48 @@ jobs:
               }
               return added;
             };
+            // F-C: content-independent base-presence. Build an in-memory index of the BASE tree's
+            // word tokens ONCE, unconditionally -- a single pass whose cost is independent of how
+            // many findings exist -- then every per-finding lookup is in-memory with NO subprocess.
+            // This keeps the classify step's duration constant whether 0 or N findings reach the
+            // base check: GitHub publishes per-step timings publicly, and a grep-ran-vs-not tell on
+            // this separate step would reveal that a live-base finding escalated (exactly the bit the
+            // stub indistinguishability protects). Exclude node_modules/.git and the review artifacts
+            // / PR-head extraction (they carry the PR's OWN added code, which must not resolve as
+            // "base"), but NOT vendor or .github, so a live sink there still escalates. (F2/F5/F-C)
+            const buildBaseIndex = (root) => {
+              const tokens = new Set();
+              const EXCLUDE_DIR = new Set(['node_modules', '.git', 'pr-head']);
+              const EXCLUDE_FILE = new Set(['review.diff', 'review.json', 'review-range.json']);
+              const walk = (dir, atRoot) => {
+                let ents;
+                try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return; }
+                for (const ent of ents) {
+                  if (ent.isSymbolicLink()) continue;
+                  const full = `${dir}/${ent.name}`;
+                  if (ent.isDirectory()) { if (!EXCLUDE_DIR.has(ent.name)) walk(full, false); continue; }
+                  if (atRoot && EXCLUDE_FILE.has(ent.name)) continue;
+                  let buf;
+                  try { buf = fs.readFileSync(full); } catch (e) { continue; }
+                  if (buf.includes(0)) continue; // skip binary
+                  for (const tok of buf.toString('utf8').split(/[^A-Za-z0-9_]+/)) if (tok) tokens.add(tok);
+                }
+              };
+              walk(root, true);
+              return tokens;
+            };
+            const segOf = (ref) => {
+              if (typeof ref !== 'string') return null;
+              const s = ref.split(/[./\\]/).filter(Boolean).pop();
+              return s && /^[A-Za-z_]\w*$/.test(s) ? s : null;
+            };
+            let baseTokens = new Set(), indexErr = false;
+            try { baseTokens = buildBaseIndex('.'); } catch (e) { indexErr = true; }
             const baseHasSymbol = (ref) => {
-              // Resolve `ref` against the BASE tree in `./`. A qualified ref
-              // (openlibrary.core.lending.get_crossref) or a dotted/attribute form (self.fetch_url)
-              // never appears literally in source, so grep its LAST identifier segment; a path-shaped
-              // ref resolves by file existence. Fail-closed: anything we cannot isolate -> treat as
-              // present (escalate). Exclude only node_modules/.git and the review artifacts / PR-head
-              // extraction (those carry the PR's OWN added code, which must not resolve as "base") --
-              // NOT vendor or .github, so a live sink in vendored or workflow code still escalates. (F2/F5)
+              if (indexErr) return true; // index build failed -> fail-closed (escalate)
               try { if ((ref.includes('/') || /\.[A-Za-z0-9]+$/.test(ref)) && !ref.includes('..') && fs.existsSync(ref)) return true; } catch (e) {}
-              const seg = String(ref).split(/[./\\]/).filter(Boolean).pop();
-              if (!seg || !/^[A-Za-z_]\w*$/.test(seg)) return true;
-              try { execFileSync('grep', ['-rwFq', '--exclude-dir=node_modules', '--exclude-dir=.git', '--exclude-dir=pr-head', '--exclude=review.diff', '--exclude=review.json', '--exclude=review-range.json', '-e', seg, '.'], { stdio: 'ignore' }); return true; }
-              catch (e) { return e && e.status === 1 ? false : true; }
+              const s = segOf(ref);
+              return s ? baseTokens.has(s) : true; // cannot isolate a symbol -> fail-closed
             };
             let added = new Map();
             try { added = buildAdded(fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/review.diff`, 'utf8')); } catch (e) {}

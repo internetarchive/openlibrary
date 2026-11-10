@@ -264,3 +264,15 @@ test('[F1] secretsTest is stateless (no /g lastIndex bug)', () => {
     assert.equal(gate.secretsTest(v), true);
     assert.equal(gate.secretsTest(v), true);
 });
+test('[F-E] an over-long finding body is not scanned -> routed PRIVATE', () => {
+    const f = F({
+        dimension: 'styleguide',
+        title: 'x',
+        body: 'y'.repeat(70000),
+        path: 'a.py',
+        start_line: 10,
+        line: 10,
+        disclosure: 'pr-introduced'
+    });
+    assert.equal(gate.classify(review([f]), ctx({ added })).public.findings.length, 0);
+});
