@@ -456,7 +456,7 @@ jobs:
               const added = new Map(); let f = null, ln = 0, inHunk = false, prev = '';
               for (const raw of diffText.split('\n')) {
                 if (raw.startsWith('diff --git ')) { f = null; inHunk = false; prev = raw; continue; }
-                if (raw.startsWith('+++ ') && prev.startsWith('--- ')) {
+                if (raw.startsWith('+++ ') && prev.startsWith('--- ') && !inHunk) {
                   const p = raw.slice(4).trim(); f = p === '/dev/null' ? null : p.replace(/^b\//, '');
                   if (f && !added.has(f)) added.set(f, new Set());
                   inHunk = false; prev = raw; continue;
@@ -479,7 +479,7 @@ jobs:
               // present (escalate). Exclude only node_modules/.git and the review artifacts / PR-head
               // extraction (those carry the PR's OWN added code, which must not resolve as "base") --
               // NOT vendor or .github, so a live sink in vendored or workflow code still escalates. (F2/F5)
-              try { if (ref.includes('/') && !ref.includes('..') && fs.existsSync(ref)) return true; } catch (e) {}
+              try { if ((ref.includes('/') || /\.[A-Za-z0-9]+$/.test(ref)) && !ref.includes('..') && fs.existsSync(ref)) return true; } catch (e) {}
               const seg = String(ref).split(/[./\\]/).filter(Boolean).pop();
               if (!seg || !/^[A-Za-z_]\w*$/.test(seg)) return true;
               try { execFileSync('grep', ['-rwFq', '--exclude-dir=node_modules', '--exclude-dir=.git', '--exclude-dir=pr-head', '--exclude=review.diff', '--exclude=review.json', '--exclude=review-range.json', '-e', seg, '.'], { stdio: 'ignore' }); return true; }
@@ -593,7 +593,7 @@ jobs:
               const added = new Map(); let f = null, ln = 0, inHunk = false, prev = '';
               for (const raw of diffText.split('\n')) {
                 if (raw.startsWith('diff --git ')) { f = null; inHunk = false; prev = raw; continue; }
-                if (raw.startsWith('+++ ') && prev.startsWith('--- ')) {
+                if (raw.startsWith('+++ ') && prev.startsWith('--- ') && !inHunk) {
                   const p = raw.slice(4).trim(); f = p === '/dev/null' ? null : p.replace(/^b\//, '');
                   if (f && !added.has(f)) added.set(f, new Set());
                   inHunk = false; prev = raw; continue;
