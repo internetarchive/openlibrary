@@ -4289,6 +4289,11 @@ msgid "<strong>Pick one</strong> from the existing covers"
 msgstr ""
 
 #: covers/add.html
+#, python-format
+msgid "Cover %(index)d of %(total)d"
+msgstr ""
+
+#: covers/add.html
 msgid "Use this image"
 msgstr ""
 

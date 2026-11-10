@@ -9,9 +9,8 @@ div.tutorial__item {
   box-sizing: border-box;
 }
 
-/* Undoes the book-card reset in carousel.css, which this file loads after. */
+/* carousel.css centers native-row items; these cards read left-aligned. */
 .carousel--native > .tutorial__item {
-  padding: var(--spacing-inset-sm);
   text-align: start;
 }
 

@@ -22,17 +22,18 @@ $if status:
 
 <div class="imageIntro">$intro  <span>$:_('Learn more by reading our <a href="/help/faq/editing#picture" target="blank">%(guidelines)s</a>.', guidelines=guideline)</span></div>
 $if doc.type.key == "/type/work":
-    $if doc.get_edition_covers():
+    $ edition_covers = doc.get_edition_covers()
+    $if edition_covers:
         <form class="ol-cover-form ol-cover-form--id" method="post" enctype="multipart/form-data" action="$action">
             <div class="formElement">
                 <div class="label">
                     <label>$:_("<strong>Pick one</strong> from the existing covers")</label>
                 </div>
                 <ul class="cover-picker">
-                    $for cover in doc.get_edition_covers():
+                    $for cover in edition_covers:
                         <li class="cover-picker__item">
-                            <img src="$cover.url(size='M')" alt="" loading="lazy"/>
-                            <button type="submit" name="coverid" value="$cover.id" class="cta-btn cta-btn--vanilla">$_("Use this image")</button>
+                            <img id="cover-picker-$cover.id" src="$cover.url(size='M')" alt="$_('Cover %(index)d of %(total)d', index=loop.index, total=len(edition_covers))" loading="lazy"/>
+                            <button type="submit" name="coverid" value="$cover.id" class="cta-btn cta-btn--vanilla" aria-describedby="cover-picker-$cover.id">$_("Use this image")</button>
                         </li>
                 </ul>
             </div>

@@ -6,12 +6,12 @@ import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from hashlib import md5
-from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Unpack
+from typing import TYPE_CHECKING, Annotated, Any, Literal, NotRequired, TypedDict, Unpack
 from urllib.parse import parse_qs, parse_qsl, quote, quote_plus, urlsplit, urlunsplit
 
 import web
 from markupsafe import Markup
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, BeforeValidator, Field
 
 from infogami.utils.view import public
 from openlibrary.book_providers import get_book_provider
@@ -144,6 +144,17 @@ class ReadingStatePartial:
         return {f"OL{work_id}W": state for work_id, state in (await get_reading_state(username, work_ids)).items()}
 
 
+CarouselLayoutName = Literal["ol-carousel", "grid"]
+
+
+def normalize_carousel_layout(layout: str | None) -> CarouselLayoutName:
+    """Anything but "grid" is an <ol-carousel> row, including the pre-slick-removal "carousel" and a missing value."""
+    return "grid" if layout == "grid" else "ol-carousel"
+
+
+CarouselLayout = Annotated[CarouselLayoutName, BeforeValidator(normalize_carousel_layout)]
+
+
 class CarouselLoadMoreParams(BaseModel):
     """Parameters for the carousel load-more partial."""
 
@@ -155,7 +166,7 @@ class CarouselLoadMoreParams(BaseModel):
     subject: str = ""
     hasFulltextOnly: bool = False
     key: str = ""
-    layout: str | None = None
+    layout: CarouselLayout = "ol-carousel"
     published_in: str = ""
 
 
@@ -261,8 +272,8 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
     if loan and hasattr(book, "get_waitinglist_size"):
         waitlist_size = book.get_waitinglist_size()
 
-    # Loan cards keep the legacy cover for their overlay badge.
-    book_cover = layout == "ol-carousel" and not loan
+    layout = normalize_carousel_layout(layout)
+    book_cover = layout == "ol-carousel"
 
     expiry = loan.get("expiry") if loan else None
     if expiry:
@@ -803,7 +814,7 @@ class LazyCarouselParams(BaseModel):
     search: bool = False
     has_fulltext_only: bool = True
     url: str | None = None
-    layout: str = "ol-carousel"
+    layout: CarouselLayout = "ol-carousel"
     fallback: str | None = None
     safe_mode: bool = True
     # Link `url` from a "See all" instead of the title.
@@ -1047,6 +1058,7 @@ def get_book_carousel_data(
     url = common.get("url", "")
     key = common.get("key", "")
     books = books or []
+    layout = normalize_carousel_layout(layout)
     if not (test or (books and len(books) >= min_books)):
         return BookCarouselData(show=False, title=title, url=url, key=key, config_json="", cards=[], count=count, shelf=shelf, layout=layout)
 
@@ -1210,7 +1222,7 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         "limit": params.get("limit", 20),
         "search": params.get("search", False),
         "has_fulltext_only": params.get("has_fulltext_only", True),
-        "layout": params.get("layout", "ol-carousel"),
+        "layout": normalize_carousel_layout(params.get("layout")),
         "fallback": params.get("fallback"),
         **({"title": params["title"]} if params.get("title") else {}),
         **({"url": params["url"]} if params.get("url") else {}),

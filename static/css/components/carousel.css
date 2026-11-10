@@ -287,6 +287,14 @@
   width: 100%;
   box-sizing: border-box;
 }
+/* In <ol-book-cover> the badge is in the overlay slot: along the cover's foot, not its top corner. */
+ol-book-cover > .loan-overlay-badge {
+  top: auto;
+  inset-inline-end: auto;
+  border-radius: 0 0 var(--border-radius-thumbnail)
+    var(--border-radius-thumbnail);
+}
+
 .loan-overlay-badge .local-date-time {
   color: var(--white) !important;
 }
@@ -446,12 +454,15 @@
   overflow: hidden;
 }
 
-/* Mirrors ol-carousel's track, columns and peek (OlCarousel.js). */
-.carousel-skeleton .carousel-container {
+/* Mirrors ol-carousel's track, columns and peek (OlCarousel.js). A page-rendered
+   book row (My Books) gets the same until it upgrades, not ol-components.css's 8 columns. */
+.carousel-skeleton .carousel-container,
+:where(.carousel-container-decorated):has(> .carousel--native:not(:defined)) {
   container-type: inline-size;
 }
 
-.carousel-skeleton__row.carousel--native {
+.carousel-skeleton__row.carousel--native,
+:where(.carousel-container-decorated) > .carousel--native:not(:defined) {
   gap: var(--spacing-carousel-gap);
   padding-block: var(--ol-carousel-viewport-padding);
   padding-inline: var(--ol-carousel-inset, 0);
@@ -459,7 +470,10 @@
   --skeleton-columns: 7;
 }
 
-.carousel-skeleton__row.carousel--native > .carousel__item {
+.carousel-skeleton__row.carousel--native > .carousel__item,
+:where(.carousel-container-decorated)
+  > .carousel--native:not(:defined)
+  > .carousel__item {
   flex: 0 0 auto;
   width: calc(
     (100cqi - 2 * var(--ol-carousel-inset, 0px)) * 0.94 /
@@ -469,25 +483,29 @@
 }
 
 @container (max-width: 1024px) {
-  .carousel-skeleton__row.carousel--native {
+  .carousel-skeleton__row.carousel--native,
+  :where(.carousel-container-decorated) > .carousel--native:not(:defined) {
     --skeleton-columns: 6;
   }
 }
 
 @container (max-width: 768px) {
-  .carousel-skeleton__row.carousel--native {
+  .carousel-skeleton__row.carousel--native,
+  :where(.carousel-container-decorated) > .carousel--native:not(:defined) {
     --skeleton-columns: 4;
   }
 }
 
 @container (max-width: 600px) {
-  .carousel-skeleton__row.carousel--native {
+  .carousel-skeleton__row.carousel--native,
+  :where(.carousel-container-decorated) > .carousel--native:not(:defined) {
     --skeleton-columns: 3;
   }
 }
 
 @container (max-width: 480px) {
-  .carousel-skeleton__row.carousel--native {
+  .carousel-skeleton__row.carousel--native,
+  :where(.carousel-container-decorated) > .carousel--native:not(:defined) {
     --skeleton-columns: 2;
   }
 }
