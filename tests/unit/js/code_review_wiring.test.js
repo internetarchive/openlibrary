@@ -172,3 +172,18 @@ test('buildBaseIndex flags `partial` on a read error -> baseHasSymbol fails CLOS
     assert.equal(idx.partial, true, 'an unreadable root sets partial');
     assert.equal(baseHasSymbol(idx, 'anything_whatsoever'), true, 'partial index escalates every ref');
 });
+test('a binary file is SKIPPED without flagging partial (the deliberate exception, not a gap)', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'olcr-bin-'));
+    try {
+        writeFileSync(join(dir, 'ok.py'), 'def real_sym():\n    pass\n');
+        writeFileSync(join(dir, 'img.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00, 0x01, 0x02]));
+        const idx = buildBaseIndex(dir);
+        assert.equal(idx.partial, false, 'a binary skip must NOT set partial');
+        assert.ok(idx.tokens.has('real_sym'), 'text tokens are still indexed');
+        // Crucially, the presence of a binary file does not force every finding private.
+        assert.equal(baseHasSymbol(idx, 'some_absent_symbol'), false, 'not escalating everything');
+        assert.equal(baseHasSymbol(idx, 'real_sym'), true);
+    } finally {
+        rmSync(dir, { recursive: true, force: true });
+    }
+});
