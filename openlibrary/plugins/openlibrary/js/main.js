@@ -386,6 +386,12 @@ $(function () {
         import('./book-state').then(module => module.initBookState());
     }
 
+    // The shell renders the login dialog for signed-out visitors; a login
+    // through it has to reach the header too.
+    if (document.querySelector('ol-login-dialog')) {
+        import('./login-session').then(module => module.initLoginSession());
+    }
+
     // TODO: Make these selectors a consistent interface
     if (document.querySelector('.dialog--open, #bookPreview')) {
         import('./dialog').then(module => module.initDialogs());

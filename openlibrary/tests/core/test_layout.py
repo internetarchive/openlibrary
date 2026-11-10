@@ -21,6 +21,7 @@ from openlibrary.core.shell import (
     can_show_librarian_tools,
     load_shell_user,
 )
+from openlibrary.core.shell.login_dialog import _third_party_src
 
 
 def _req(**overrides) -> ShellRequest:
@@ -216,6 +217,23 @@ def test_layout_build_header_user_logged_out(request_context_fixture):
     request_context_fixture(lang="en")
     layout = _build()
     assert layout.header.user is None
+
+
+def test_layout_build_login_dialog_for_visitors_only(request_context_fixture):
+    """Signed out, the shell carries the login dialog's labels with their
+    client-side placeholders intact; signed in there is nothing to render."""
+    request_context_fixture(lang="en")
+    dialog = _build().header.login_dialog
+    assert dialog is not None
+    assert dialog.labels["heading"] == "Log in or sign up"
+    assert dialog.labels["codeSent"] == "We sent a 6-digit code to %(email)s."
+    assert _build(user=_user()).header.login_dialog is None
+
+
+def test_login_dialog_third_party_frame_posts_back_to_this_origin(monkeypatch):
+    """The archive.org frame is told where to post the keys: this site, over https."""
+    monkeypatch.setattr("openlibrary.plugins.upstream.utils.get_ia_host", lambda allow_dev=False: "archive.org")
+    assert _third_party_src(_req(host="openlibrary.org")) == "https://archive.org/account/login.thirdparty.php?origin=https%3A%2F%2Fopenlibrary.org"
 
 
 def test_layout_build_header_user_logged_in(request_context_fixture):

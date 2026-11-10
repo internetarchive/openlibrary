@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { translate } from './utils/labels.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin, trackError } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin, requestLogin, trackError } from './utils/books-api.js';
 import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { DEFAULT_LABELS as ACTION_LABELS } from './OlShelfActions.js';
@@ -18,7 +18,10 @@ export const DEFAULT_LABELS = {
     // it is the visible label.
     shelfToggle: '%(shelf)s: %(title)s',
     shelfMenu: 'More options for %(title)s',
-    addToListFor: 'Add %(title)s to a list'
+    addToListFor: 'Add %(title)s to a list',
+    // Why the login dialog opened, under its title.
+    loginToShelve: 'Log in or sign up to add books to your reading log.',
+    loginToList: 'Log in or sign up to add books to a list.'
 };
 
 /**
@@ -39,8 +42,8 @@ export const DEFAULT_LABELS = {
  * Once the book is on one of the three reading shelves the main half opens the
  * popover instead: those shelves carry dates, ratings and goal progress, so
  * leaving one goes through the menu, which takes Already Read via its date
- * pane. Signed out, every shape sends the visitor to log in with the intent
- * remembered.
+ * pane. Signed out, every shape opens the login dialog with the intent
+ * remembered, and finishes what was clicked once the visitor is in.
  *
  * **Stateless by design.** It never writes to `shelf` or `rating` itself — it
  * emits `ol-book-state-change` and the surface that owns the book applies it,
@@ -610,22 +613,70 @@ export class OlShelfButton extends LitElement {
         if (!e.defaultPrevented) this.toggleAttribute('open', false);
     }
 
-    /** Counted so we can see how many visitors want to save a book before they have an account. */
-    _onLoggedOut(e) {
+    /**
+     * Counted so we can see how many visitors want to save a book before they
+     * have an account. Then the login dialog, and once they are in, the click
+     * they made: the main half's toggle, or the menu for any other trigger.
+     */
+    async _onLoggedOut(e) {
         e.preventDefault();
         trackEvent('ShelfActions', 'LoggedOut', this._shape);
-        this._toLogin();
-    }
-
-    _toLogin() {
+        const intent = !this.listsOnly && e.currentTarget?.classList?.contains('main') ? 'toggle' : 'menu';
         // No resumeUrl: come back to the page they were on. On a book page that
         // is the same thing, but from a list of results it is not — the legacy
         // dropper returned them to their results too.
+        const loggedIn = await requestLogin({
+            action: this.t(this.listsOnly ? 'addToList' : 'wantToRead'),
+            title: this.bookTitle,
+            message: this.t(this.listsOnly ? 'loginToList' : 'loginToShelve')
+        });
+        if (loggedIn) await this._resumeAfterLogin(intent);
+    }
+
+    /** An expired session mid-action: the login page, as before. */
+    _toLogin() {
         redirectToLogin({ action: this.t(this.listsOnly ? 'addToList' : 'wantToRead'), title: this.bookTitle });
     }
 
-    async _onMainClick(e) {
+    /**
+     * book-state.js hands every button the reader's key on ol-login-success
+     * and fetches the state the signed-out render could not know; a page
+     * without it reads the key off <body>. The click waits for that state:
+     * the shelf POST is a toggle, so acting on an unknown shelf could undo a save.
+     */
+    async _resumeAfterLogin(intent) {
+        this.userKey ||= document.body.dataset.userKey || '';
+        if (!this.userKey) return;
+        await this.updateComplete;
+        await this._whenStateKnown();
+        if (intent === 'toggle') return this._toggleWantToRead();
+        this._openActions();
+    }
+
+    /** Resolves once `pending` clears, or after a bounded wait if it never does. */
+    _whenStateKnown(timeout = 3000) {
+        if (!this.pending) return Promise.resolve();
+        return new Promise(resolve => {
+            const done = () => {
+                clearTimeout(timer);
+                this._stateKnown = null;
+                resolve();
+            };
+            const timer = setTimeout(done, timeout);
+            this._stateKnown = done;
+        });
+    }
+
+    updated(changed) {
+        if (changed.has('pending') && !this.pending) this._stateKnown?.();
+    }
+
+    _onMainClick(e) {
         if (!this.userKey) return this._onLoggedOut(e);
+        return this._toggleWantToRead();
+    }
+
+    async _toggleWantToRead() {
         // The shelf we emit only comes back down as a property a tick later, so
         // a second click before the request lands would toggle twice on the
         // server while the button shows one change. Unknown state is the same risk.
