@@ -1082,8 +1082,12 @@ def load(
     """
     acquisitions = rec.pop("acquisitions", None)
     reply = _load(rec, account_key=account_key, from_marc_record=from_marc_record, save=save)
-    if acquisitions and save and reply.get("success"):
-        _save_acquisitions(reply, acquisitions)
+    if acquisitions and reply.get("success"):
+        if save:
+            _save_acquisitions(reply, acquisitions)
+        else:
+            # Previews write nothing, so report what an import would add.
+            reply["acquisitions"] = acquisitions
     return reply
 
 

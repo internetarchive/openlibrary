@@ -394,6 +394,10 @@ msgid "Show Raw Import Data"
 msgstr ""
 
 #: import_preview.html
+msgid "Acquisitions that will be added"
+msgstr ""
+
+#: import_preview.html
 #, python-format
 msgid "New %(thing_type)s record will be created"
 msgstr ""
