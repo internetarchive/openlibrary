@@ -25,11 +25,14 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
+from openlibrary.coverstore.utils import is_allowed_cover_url
 from openlibrary.plugins.upstream.utils import get_marc21_language
 
 BUY_REL = "http://opds-spec.org/acquisition/buy"
 OPEN_ACCESS_REL = "http://opds-spec.org/acquisition/open-access"
 BORROW_REL = "http://opds-spec.org/acquisition/borrow"
+# Full-size image rels; Gutenberg uses the OPDS 1 rel, BWB and Lenny use "cover".
+COVER_RELS = ("cover", "http://opds-spec.org/image")
 # rel -> the access value we store on the acquisition
 ACQUISITION_ACCESS = {
     BUY_REL: "buy",
@@ -108,7 +111,7 @@ class Publication(BaseModel):
 
     def cover(self) -> str | None:
         for image in self.images:
-            if image.rel == "cover" and image.href:
+            if image.rel in COVER_RELS and image.href:
                 return image.href
         return None
 
@@ -166,8 +169,17 @@ def build_acquisitions(pub: Publication, feed: Feed, local_id: str) -> list[dict
     convenience copy of values already inside ``link``.
     """
     items = []
+    # Read once, outside the loop: `self` identifies the publication, so every
+    # acquisition link on it shares the same one. `extract_local_id` already
+    # reads this for the `self_link` id strategy and drops the URL once it has
+    # the id; keeping it is the difference between a consumer being able to
+    # follow an acquisition back to its source record and having to
+    # reverse-engineer the URL per provider.
+    source_url = pub.self_href()
     for link in pub.acquisition_links():
         data: dict[str, Any] = {"access": ACQUISITION_ACCESS[link.rel], "url": link.href}
+        if source_url:
+            data["source_url"] = source_url
         if link.type:
             data["format"] = link.type
         if link.title:
@@ -225,13 +237,11 @@ def to_import_record(pub: Publication, feed: Feed) -> dict[str, Any] | None:
         # verifies the id resolves before trusting it (resolve_edition_ref), which
         # matters because providers do not always validate the id they were given.
         record["openlibrary"] = f"OL{local_id}M"
-    # A ``cover`` URL is intentionally NOT emitted. OL's server-side cover fetch
-    # is gated by two host allowlists (none of these feed hosts satisfy), and on
-    # the match/merge path — which feed re-imports hit constantly — add_cover()
-    # retries a doomed URL 10x with sleep(2), burning up to 20s per record (see
-    # internetarchive/openlibrary#10856 and the covers wiki). Covers for ingested
-    # feeds are a separate, later concern. ``Publication.cover()`` stays available
-    # for that future path. #12844
+    # Only covers coverstore will actually fetch: on the match/merge path (which
+    # feed re-imports hit constantly) add_cover() has no host check of its own
+    # and retries a rejected URL 10x with sleep(2), up to 20s per record.
+    if (cover := pub.cover()) and is_allowed_cover_url(cover):
+        record["cover"] = cover
     if acquisitions := build_acquisitions(pub, feed, local_id):
         record["acquisitions"] = acquisitions
     return record

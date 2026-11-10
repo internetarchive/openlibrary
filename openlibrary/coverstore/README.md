@@ -18,7 +18,7 @@ covers = _db.select('cover', where='archived=$f and id>6708293', order='id', var
 
 # How to run Covers Archival
 
-First, `ssh -A ol-covers0` and run `docker exec -it openlibrary_covers_1 bash`. Next, launch a python terminal and run:
+First, `ssh -A ol-covers1` and run `docker exec -it openlibrary_covers_1 bash`. Next, launch a python terminal and run:
 
 ```
 from openlibrary.coverstore import config
@@ -60,7 +60,7 @@ The item name itself (e.g. `coverd_0007`) is a combination of the prefix `covers
 
 **Recipe for moving one batch of 10k covers at a time into tars on archive.org.**
 
-1. On ol-covers0 docker container, run archive.py on ~10k items to create a new partial of unarchived covers, starting at stable ID 8M (e.g. `covers_0008_00`)
+1. On ol-covers1 docker container, run archive.py on ~10k items to create a new partial of unarchived covers, starting at stable ID 8M (e.g. `covers_0008_00`)
     ```
     from openlibrary.coverstore import config
     from openlibrary.coverstore.server import load_config
@@ -73,7 +73,7 @@ The item name itself (e.g. `coverd_0007`) is a combination of the prefix `covers
     * `s_covers_0008` -> `s_covers_0008_00.index` and `s_covers_0008_00.tar`
     * `m_covers_0008` -> `m_covers_0008_00.index` and `m_covers_0008_00.tar`
     * `l_covers_0008` -> `l_covers_0008_00.index` and `l_covers_0008_00.tar`
-3. Update the upper bound value in code.py ~L290 by +10k (on `ol-covers0` container 1 & 2 + restart)
+3. Update the upper bound value in code.py ~L290 by +10k (on `ol-covers1` container 1 & 2 + restart)
   * `if (8100000 > int(value) >= 8000000):` (or whatever is the upper bound)  ...
 4. Restart the containers + test to make sure the service is resolving to archive.org for all sizes
 5. Remove only the completed partial (e.g. 00 from each folder on /1/var/lib/openlibrary/coverstore/items/

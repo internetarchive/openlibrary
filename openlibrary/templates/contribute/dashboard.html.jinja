@@ -1,73 +1,121 @@
-{#- /tasks — Open Library Tasks: one task at random, or a list narrowed by the rail.
+{#- /tasks — Open Library Tasks: the community projects down the side, the open one's books in the main column.
     Which books, and in what order, is decided in contribute.py; this page only shows them. -#}
 {% import "contribute/parts.html.jinja" as parts %}
 <div class="contrib-dash" data-contribute-list>
     <header class="contrib-dash__head">
-        <div class="contrib-hero">
+        <hgroup class="contrib-dash__heading">
             <h1 class="contrib-title">{{ _("Tasks") }}</h1>
-            <p class="contrib-muted">{{ _("Fill in what's missing on real books, one detail at a time.") }}</p>
-        </div>
-        <div class="contrib-dash__one">
-            <ol-button variant="primary" full-width href="{{ data.one_task_url }}">
-                {{ icon("dices", slot="icon-start") }}
-                {{ _("Surprise me") }}
-            </ol-button>
-            <span class="contrib-muted">{{ _("A random book that needs a hand.") }}</span>
-        </div>
+            <p class="contrib-dash__lede">{{ _("Help build the catalog, one book at a time.") }}</p>
+        </hgroup>
+        <a class="contrib-dash__edits"
+           href="{{ data.history_url }}"
+           data-ol-link-track="TasksDashboard|SeeAllEdits">{{ _("Your edits") }}</a>
     </header>
     <div class="contrib-dash__body">
-        <nav class="contrib-rail" aria-label="{{ _('Filter tasks') }}">
-            <div class="contrib-rail__group">
+        <div class="contrib-dash__side">
+            {#- Every project as a menu row: its name, then what's left and who's on it. The open one takes the selected tint. -#}
+            <nav class="contrib-projects"
+                 data-nav-loading
+                 aria-labelledby="contrib-projects-heading">
+                <h2 class="contrib-overline" id="contrib-projects-heading">{{ _("Community projects") }}</h2>
+                <ul class="contrib-projects__list">
+                    {% for card in data.initiatives %}
+                        <li>
+                            <a class="contrib-projects__item"
+                               href="{{ card.url }}"
+                               data-ol-link-track="TasksDashboard|Initiative|{{ card.slug }}"
+                               {% if card.on %}aria-current="page"{% endif %}>
+                                <span class="contrib-projects__name">{{ card.title }}</span>
+                                <span class="contrib-projects__meta">
+                                    {% if card.percent is not none %}
+                                        <span>{{ card.tasks_left }}</span>
+                                        {% if card.people %}
+                                            <span aria-hidden="true">·</span>
+                                            <span>{{ card.people }}</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span>{{ _("Getting the list ready…") }}</span>
+                                    {% endif %}
+                                </span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+            {% if data.apply %}
+                <section class="contrib-side">
+                    <h2 class="contrib-overline">{{ _("Go further") }}</h2>
+                    <p class="contrib-muted">{{ data.apply.note }}</p>
+                    <ol-button variant="secondary" size="small" href="{{ data.apply.href }}" target="_blank" rel="noopener">
+                        {{ data.apply.label }}
+                    </ol-button>
+                </section>
+            {% endif %}
+        </div>
+        <main class="contrib-dash__main">
+            {#- The open project: its name and pitch, with how far along it is as one ring beside them. -#}
+            <header class="contrib-project">
+                <div class="contrib-project__intro">
+                    <h2 class="contrib-project__title">{{ data.project.title }}</h2>
+                    <p class="contrib-project__description">{{ data.project.description }}</p>
+                    <p class="contrib-project__meta">{{ data.fine_print }}</p>
+                </div>
+                {% if data.project.percent is not none %}
+                    <div class="contrib-ring"
+                         role="img"
+                         aria-label="{{ data.project.done_label }}">
+                        <svg class="contrib-ring__svg" viewBox="0 0 104 104" aria-hidden="true">
+                            <circle class="contrib-ring__track" cx="52" cy="52" r="40" />
+                            {#- pathLength 100 makes the dash the percent itself; rotated so it starts at twelve o'clock. -#}
+                            <circle class="contrib-ring__fill" cx="52" cy="52" r="40" pathLength="100" stroke-dasharray="{{ data.project.percent }} 100" transform="rotate(-90 52 52)" />
+                        </svg>
+                        <span class="contrib-ring__figure" aria-hidden="true">{{ data.project.figure }}</span>
+                    </div>
+                {% endif %}
+            </header>
+            <nav class="contrib-rail" aria-label="{{ _('Filter tasks') }}">
                 <a class="contrib-rail__item{{ ' is-on' if data.rail.all.on else '' }}"
                    href="{{ data.rail.all.url }}"
-                   {% if data.rail.all.on %}aria-current="page"{% endif %}>{{ data.rail.all.label }}</a>
-            </div>
-            <div class="contrib-rail__group">
-                <span class="contrib-overline">{{ _("Missing") }}</span>
+                   data-ol-link-track="TasksDashboard|Filter|{{ data.rail.all.track }}"
+                   {% if data.rail.all.on %}aria-current="page"{% endif %}>
+                    {{ data.rail.all.label }}
+                    {% if data.rail.all.count %}<span class="contrib-rail__count">{{ data.rail.all.count }}</span>{% endif %}
+                </a>
                 {% for item in data.rail.filters %}
                     <a class="contrib-rail__item{{ ' is-on' if item.on else '' }}"
                        href="{{ item.url }}"
-                       {% if item.on %}aria-current="true"{% endif %}>{{ item.label }}</a>
+                       data-ol-link-track="TasksDashboard|Filter|{{ item.track }}"
+                       {% if item.on %}aria-current="true"{% endif %}>
+                        {{ item.label }}
+                        {% if item.count %}<span class="contrib-rail__count">{{ item.count }}</span>{% endif %}
+                    </a>
                 {% endfor %}
-            </div>
-        </nav>
-        <main class="contrib-dash__main">
-            <h2 class="contrib-dash__h2 contrib-dash__listhead">{{ data.heading }}</h2>
-            <ol class="contrib-rows">
-                {% for row in data.rows %}
-                    <li class="contrib-row" data-book-row>
-                        {{ parts.book_header(row.book, compact=True, linked=False) }}
-                        <ul class="contrib-row__tasks">
-                            {% for task in row.tasks %}
-                                {{ parts.task_row(task) }}
-                            {% endfor %}
-                        </ul>
-                    </li>
-                {% endfor %}
+            </nav>
+            <h3 class="contrib-visually-hidden">{{ data.heading }}</h3>
+            {#- While a cold cache builds the list in the background, placeholders stand in and contribute.js fetches the rows from data-rows-url. -#}
+            <ol class="contrib-rows"
+                data-rows
+                {% if data.rows_url %}data-rows-url="{{ data.rows_url }}"{% endif %}>
+                {% if data.rows_url %}
+                    {% for _i in range(data.skeleton_rows or 0) %}
+                        {{ parts.row_skeleton(tasks=2 + loop.index % 2) }}
+                    {% endfor %}
+                {% else %}
+                    {% with rows = data.rows %}
+                        {% include "contribute/rows.html.jinja" %}
+                    {% endwith %}
+                {% endif %}
             </ol>
             <div class="contrib-empty"
                  data-list-empty
-                 {% if data.rows %}hidden{% endif %}>
+                 {% if data.rows or data.rows_url %}hidden{% endif %}>
                 <p>{{ data.empty }}</p>
             </div>
+            {% if data.rows_url %}
+                <div class="contrib-empty" data-list-error hidden>
+                    <p>{{ _("Tasks couldn't load right now. Reload the page to try again.") }}</p>
+                </div>
+            {% endif %}
         </main>
-        <aside class="contrib-dash__aside">
-            <section class="contrib-side">
-                <h2 class="contrib-dash__h2">{{ _("Your recent fixes") }}</h2>
-                {% if data.recent %}
-                    <ul class="contrib-recent">
-                        {% for fix in data.recent %}
-                            <li class="contrib-recent__item">
-                                <a class="contrib-recent__title" href="{{ fix.url }}">{{ fix.title }}</a>
-                                <span class="contrib-muted contrib-recent__meta">{{ fix.when }}{% if fix.field_label %} · {{ fix.field_label }}{% endif %}</span>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                    <a class="contrib-recent__all" href="{{ data.history_url }}">{{ _("See all your edits") }}</a>
-                {% else %}
-                    <p class="contrib-muted">{{ _("Fixes you save here show up in this list.") }}</p>
-                {% endif %}
-            </section>
-        </aside>
     </div>
 </div>

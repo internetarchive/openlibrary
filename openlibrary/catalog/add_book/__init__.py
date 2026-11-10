@@ -42,7 +42,6 @@ from infogami import config
 from openlibrary import accounts
 from openlibrary.catalog.add_book.load_book import (
     author_import_record_to_author,
-    east_in_by_statement,
     import_record_to_edition,
 )
 from openlibrary.catalog.add_book.match import editions_match, mk_norm
@@ -89,6 +88,7 @@ ALLOWED_COVER_HOSTS: Final = (
     "commons.wikimedia.org",
     "covers.openlibrary.org",
     "m.media-amazon.com",
+    "www.gutenberg.org",
 )
 
 
@@ -266,13 +266,11 @@ def load_author_import_records(authors_in, edits, source, save: bool = True):
             a["source_records"] = [source]
         else:
             stored = site.get().get(a["key"])  # Fresh read to check for modifications
-            if a.dict() != stored.dict():
-                edits.append(a.dict())
-                status = "modified"
-            else:
-                status = "matched"
-        if status in ("created", "modified"):
+            status = "modified" if a.dict() != stored.dict() else "matched"
+        if status == "created":
             edits.append(a)
+        elif status == "modified":
+            edits.append(a.dict())
         authors.append({"key": a["key"]})
         author_reply.append(
             {
@@ -756,11 +754,8 @@ def load_data(  # noqa: PLR0912, PLR0915
         reply["preview"] = True
         reply["edits"] = edits
 
-    # edition.authors may have passed through `author_import_record_to_author` in `build_query`,
-    # but not necessarily
-    author_in = [(author_import_record_to_author(a, eastern=east_in_by_statement(rec, a)) if isinstance(a, dict) else a) for a in edition.get("authors", [])]
-    # build_author_reply() adds authors to edits
-    authors, author_reply = load_author_import_records(author_in, edits, rec["source_records"][0], save=save)
+    authors_in = edition.get("authors", [])
+    authors, author_reply = load_author_import_records(authors_in, edits, rec["source_records"][0], save=save)
 
     if authors:
         edition["authors"] = authors
@@ -1086,8 +1081,12 @@ def load(
     """
     acquisitions = rec.pop("acquisitions", None)
     reply = _load(rec, account_key=account_key, from_marc_record=from_marc_record, save=save)
-    if acquisitions and save and reply.get("success"):
-        _save_acquisitions(reply, acquisitions)
+    if acquisitions and reply.get("success"):
+        if save:
+            _save_acquisitions(reply, acquisitions)
+        else:
+            # Previews write nothing, so report what an import would add.
+            reply["acquisitions"] = acquisitions
     return reply
 
 

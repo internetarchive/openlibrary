@@ -7,12 +7,15 @@ import pytest
 import web
 from pydantic import ValidationError
 
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.vendors import betterworldbooks_fmt
 from openlibrary.plugins.openlibrary import code, home_genres  # noqa: F401  # code.setup() imports partials; import it first
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateOffer,
     AffiliateStoreBuildContext,
     BookPageListsPartial,
+    CarouselCardPartial,
+    CarouselLoadMoreParams,
     CarouselPartial,
     HomeGenreParams,
     HomeGenrePartial,
@@ -21,6 +24,7 @@ from openlibrary.plugins.openlibrary.partials import (
     NearbyBooksPartial,
     ReadingGoalProgressPartial,
     _carousel_card_book,
+    _carousel_card_format,
     _solr_query_to_subject_key,
     build_nearby_books_placeholder_config,
     build_stores,
@@ -135,6 +139,33 @@ class TestHomeGenreNarrow:
             assert HomeGenrePartial.row(HORROR, HORROR["subgenres"][0]).title == "Gothique"
 
 
+class TestCarouselLabel:
+    """The label names the carousel region for screen readers."""
+
+    @pytest.fixture(autouse=True)
+    def setup_context(self, request_context_fixture):
+        request_context_fixture(lang="en")
+
+    @pytest.mark.parametrize(("title", "label"), [("More by this author", "More by this author"), (None, "Books"), ("", "Books")])
+    def test_label_is_the_title_or_books(self, title, label):
+        html = render_jinja_template(
+            "books/custom_carousel.html.jinja",
+            show=True,
+            title=title,
+            url=None,
+            key="",
+            grid="",
+            compact="",
+            loadjs="",
+            config_json="{}",
+            cards=[],
+            count=None,
+            shelf=None,
+            layout="ol-carousel",
+        )
+        assert f' label="{label}" ' in html
+
+
 class TestHomeGenreShelf:
     """One request renders the header, the loaded genre row and a lazy placeholder per subgenre."""
 
@@ -230,6 +261,17 @@ class TestCarouselCardBook:
         assert card.key == "/works/OL1W"
         assert card.author_name == ["A"]
         assert "work_key" not in card
+
+
+class TestCarouselCardFormat:
+    def test_librivox_book_is_audio(self):
+        assert _carousel_card_format({"key": "/books/OL1M", "id_librivox": ["123"], "ebook_access": "public"}) == "audio"
+
+    def test_ia_scan_is_read_on_the_web(self):
+        assert _carousel_card_format({"key": "/books/OL1M", "ia": ["foo"], "ebook_access": "public"}) == "web"
+
+    def test_book_without_a_provider_has_no_format(self):
+        assert _carousel_card_format({"key": "/books/OL1M"}) == ""
 
 
 class TestSolrQueryToSubjectKey:
@@ -405,12 +447,33 @@ class TestNearbyBooksPartial:
         assert result == {"partials": "<div/>"}
 
 
+class TestCarouselCardPartialSearch:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("published_in", "expected_fq"),
+        [
+            ("", None),
+            ("1900-1920", ["publish_year:[1900 TO 1920]"]),
+            ("not-a-range", None),
+        ],
+    )
+    async def test_published_in_narrows_the_query(self, published_in, expected_fq):
+        """The subject page's publishing-history chart filters SEARCH rows by year, as an fq beside q."""
+        params = CarouselLoadMoreParams(queryType="SEARCH", q='subject:"a" OR subject:"b"', published_in=published_in)
+        with patch("openlibrary.plugins.openlibrary.partials.work_search_async", AsyncMock(return_value={"docs": []})) as search:
+            await CarouselCardPartial._do_search_query(params)
+
+        query = search.await_args.args[0]
+        assert query["q"] == 'subject:"a" OR subject:"b"'
+        assert query.get("fq") == expected_fq
+
+
 def test_build_nearby_books_placeholder_config_targets_the_nearby_books_partial():
     config = build_nearby_books_placeholder_config("/works/OL1W", "eng")
     assert json.loads(config["lazy_config_json"]) == {"partial": "NearbyBooks", "work_key": "/works/OL1W", "language": "eng"}
     assert config["fallback"] is None
-    # The skeleton stands in for NearbyBooksPartial's slick row and its unlinked heading.
-    assert (config["layout"], config["title_link"]) == ("carousel", False)
+    # The skeleton stands in for NearbyBooksPartial's ol-carousel row and its unlinked heading.
+    assert (config["layout"], config["title_link"]) == ("ol-carousel", False)
 
 
 def _community_card(title: str) -> dict:
@@ -483,6 +546,7 @@ class TestBookPageListsPartial:
             patch.object(
                 BookPageListsPartial,
                 "get_list_card",
+                new_callable=AsyncMock,
                 side_effect=[good, AttributeError("'Thing' object has no attribute 'get_users_settings'"), good],
             ),
         ):
@@ -497,7 +561,7 @@ class TestBookPageListsPartial:
     async def test_render_failure_keeps_old_fallback(self):
         with (
             patch("openlibrary.plugins.openlibrary.partials.get_lists_async", AsyncMock(return_value=LISTS)),
-            patch.object(BookPageListsPartial, "get_list_card", return_value=_community_card("Fine list")),
+            patch.object(BookPageListsPartial, "get_list_card", new_callable=AsyncMock, return_value=_community_card("Fine list")),
             patch(
                 "openlibrary.plugins.openlibrary.partials.render_jinja_template",
                 side_effect=RuntimeError("boom"),

@@ -1,6 +1,6 @@
 {% import "design/_example.html.jinja" as ex %}
 {% macro demos() %}
-    {% call ex.example("Default", "The switch, a label, and an optional greyed sublabel.", output_style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;") %}
+    {% call ex.example("Default", "The switch, a label, and an optional greyed sublabel. Press squashes the knob and release springs it across the track. The knob is the press feedback, so neither variant scales.", output_style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;") %}
         <ol-toggle label="Readable Only" sublabel="4.6M">
         </ol-toggle>
         <ol-toggle label="Readable Only" sublabel="4.6M" checked>
@@ -10,6 +10,20 @@
         <ol-toggle variant="button" label="Readable Only" sublabel="4.6M">
         </ol-toggle>
         <ol-toggle variant="button" label="Readable Only" sublabel="4.6M" checked>
+        </ol-toggle>
+    {% endcall %}
+    {% call ex.example("Small", "size=\"small\" shrinks the switch and text, and the button variant takes the small control height, matching ol-button and ol-segmented-control at size=\"small\".", output_style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;") %}
+        <ol-segmented-control size="small" value="28" accessible-label="Period">
+            <ol-segment value="7">
+                Last 7 days
+            </ol-segment>
+            <ol-segment value="28">
+                Last 28 days
+            </ol-segment>
+        </ol-segmented-control>
+        <ol-toggle variant="button" size="small" label="Compare to previous period" checked>
+        </ol-toggle>
+        <ol-toggle size="small" label="Readable Only" sublabel="4.6M">
         </ol-toggle>
     {% endcall %}
     {% call ex.example("Custom label content", "Put content in the default slot instead of using label / sublabel. Supply accessible-label so the switch still has an accessible name.") %}

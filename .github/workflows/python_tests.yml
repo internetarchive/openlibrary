@@ -17,13 +17,17 @@ permissions:
 
 jobs:
   python_tests:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest is now 26.04, and actions/setup-python has no Python 3.14.5
+    # build for 26.04 (builds start at 3.14.6). Go back to ubuntu-latest once
+    # pyproject.toml and docker/Dockerfile.olbase move to 3.14.6 or later.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
           persist-credentials: false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: pyproject.toml
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -36,7 +40,7 @@ jobs:
           # https://lxml.de/installation.html#requirements
           sudo apt-get install -y libxml2 libxslt-dev
       - name: Install uv
-        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - name: Install dependencies
         env:
           UV_SYSTEM_PYTHON: 1
@@ -60,25 +64,23 @@ jobs:
           git fetch --no-tags --prune --depth=1 origin master
           make test-py
       - name: Run integration tests
+        timeout-minutes: 5
         # ubuntu-latest has PostgreSQL pre-installed; pg_ctl is at
         # /usr/lib/postgresql/*/bin/ (pytest-postgresql finds it via pg_config).
         run: |
           pytest -m integration openlibrary/tests/core/
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   # Runs the i18n checks against the .po files olbase will bake from openlibrary-i18n
   # (via the same script docker/Dockerfile.olbase runs), not the ones committed here.
   i18n_upstream:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Pinned for Python 3.14.5; see python_tests above.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
           persist-credentials: false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: pyproject.toml
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -86,7 +88,7 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ runner.os }}-venv-${{ env.pythonLocation }}-${{ hashFiles('requirements*.txt') }}
       - name: Install uv
-        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - name: Install dependencies
         env:
           UV_SYSTEM_PYTHON: 1

@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
 import './OlIcon.js';
+import { focusRingLayered, pressable, raised } from './control-styles.js';
 
 /**
  * OLChip - A pill-shaped interactive chip web component
@@ -46,192 +47,190 @@ export class OLChip extends FocusableHostMixin(LitElement) {
         accessibleLabel: { type: String, attribute: 'accessible-label' }
     };
 
-    static styles = css`
-        :host {
-            --chip-padding-block: var(--spacing-xs);
-            --chip-padding-inline: var(--spacing-md);
-            --chip-icon-size: 14px;
-            --chip-icon-gap: var(--spacing-xs);
-            /* The x glyph paints across the middle of its 24-unit viewBox
+    static styles = [
+        raised,
+        pressable,
+        focusRingLayered,
+        css`
+            :host {
+                --chip-padding-block: var(--spacing-xs);
+                --chip-padding-inline: var(--spacing-md);
+                --chip-icon-size: 14px;
+                --chip-icon-gap: var(--spacing-xs);
+                /* The x glyph paints across the middle of its 24-unit viewBox
                (6 -> 18, stroke included), leaving 3/16 of the icon box empty on
                each side. The slack is pulled back out below so the chip spaces
                the painted glyph rather than its box. */
-            --_chip-icon-slack: calc(var(--chip-icon-size) * 3 / 16);
+                --_chip-icon-slack: calc(var(--chip-icon-size) * 3 / 16);
 
-            /* Color slots. Default = idle, unselected neutral chip; overridden
+                /* Color slots. Default = idle, unselected neutral chip; overridden
                below by [selected] and by each domain [variant]. */
-            --_chip-bg: var(--color-control-bg);
-            --_chip-fg: var(--color-text);
-            --_chip-border: var(--color-control-border);
-            --_chip-bg-hover: var(--color-control-hover);
-            /* Border darkens in step with the fill on hover, matching
+                --_chip-bg: var(--color-control-bg);
+                --_chip-fg: var(--color-text);
+                --_chip-border: var(--color-control-border);
+                --_chip-bg-hover: var(--color-control-hover);
+                /* Border darkens in step with the fill on hover, matching
                ol-button[variant="secondary"]. Derived from the resting border
                so every variant tracks its own color: a ~8% mix toward black
                lands the neutral chip exactly on --light-grey (87% → 80%) and
                nudges each domain tint's border down by a proportional amount. */
-            --_chip-border-hover: color-mix(in srgb, var(--_chip-border) 92%, black);
-            --_chip-count-fg: var(--color-text-muted);
-            /* Specular top edge, on ol-button's scale: full on the light tints,
+                --_chip-border-hover: color-mix(in srgb, var(--_chip-border) 92%, black);
+                --_chip-count-fg: var(--color-text-muted);
+                /* Specular top edge, on ol-button's scale: full on the light tints,
                dialed down on the solid blue fill below. */
-            --control-highlight-strength: 35%;
+                --control-highlight-strength: 35%;
 
-            display: inline-block;
-        }
-
-        :host([size='small']) {
-            --chip-padding-block: var(--spacing-2xs);
-            --chip-padding-inline: var(--spacing-sm);
-            --chip-icon-size: 12px;
-            --chip-icon-gap: var(--spacing-2xs);
-        }
-
-        .chip {
-            display: inline-flex;
-            align-items: center;
-            padding: var(--chip-padding-block) var(--chip-padding-inline);
-            border: var(--border-width) solid var(--_chip-border);
-            border-radius: var(--border-radius-chip);
-            font-family: var(--font-family-button);
-            font-size: var(--font-size-body-medium);
-            line-height: var(--line-height-chip);
-            background: var(--_chip-bg);
-            color: var(--_chip-fg);
-            /* Raised look, matching ol-button. Declared here rather than on
-               :host so :hover can retone the highlight and the surface never
-               leaks to slotted content; held in a var so :focus-visible can
-               layer the focus ring without restating the resting shadow. */
-            --control-surface: var(--_chip-bg);
-            --_chip-raised-shadow:
-                var(--box-shadow-raised), inset 0 1px 0 color-mix(in srgb, var(--white) var(--control-highlight-strength), var(--control-surface));
-            box-shadow: var(--_chip-raised-shadow);
-            cursor: pointer;
-            user-select: none;
-            text-decoration: none;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .chip:hover {
-                background: var(--_chip-bg-hover);
-                border-color: var(--_chip-border-hover);
-                /* Track the background, or the highlight stays toned to the
-                   resting fill. */
-                --control-surface: var(--_chip-bg-hover);
+                display: inline-block;
             }
-        }
 
-        .chip:active {
-            transform: scale(var(--press-scale));
-        }
+            :host([size='small']) {
+                --chip-padding-block: var(--spacing-2xs);
+                --chip-padding-inline: var(--spacing-sm);
+                --chip-icon-size: 12px;
+                --chip-icon-gap: var(--spacing-2xs);
+            }
 
-        .chip:focus-visible {
-            outline: none;
-            box-shadow: var(--box-shadow-focus), var(--_chip-raised-shadow);
-        }
+            .chip {
+                display: inline-flex;
+                align-items: center;
+                box-sizing: border-box;
+                /* Single-line chips line up with same-size buttons; a wrapped chip
+               grows past the floor (see tokens/control-heights.css). */
+                min-height: var(--control-height-medium);
+                padding: var(--chip-padding-block) var(--chip-padding-inline);
+                border: var(--border-width) solid var(--_chip-border);
+                border-radius: var(--border-radius-chip);
+                font-family: var(--font-family-button);
+                font-size: var(--font-size-body-medium);
+                font-weight: var(--font-weight-button);
+                line-height: var(--line-height-chip);
+                background: var(--_chip-bg);
+                color: var(--_chip-fg);
+                /* The lift is the shared .raised recipe; its surface is declared here
+               rather than on :host so :hover can retone the highlight and it never
+               leaks to slotted content. */
+                --control-surface: var(--_chip-bg);
+                cursor: pointer;
+                user-select: none;
+                text-decoration: none;
+            }
 
-        /* Default selected (no domain variant): solid primary-blue fill. */
-        :host([selected]:not([variant])) {
-            --_chip-bg: var(--color-primary);
-            --_chip-fg: var(--white);
-            --_chip-border: var(--color-primary-border);
-            --_chip-bg-hover: var(--color-primary);
-            /* This chip lightens on hover via a brightness() filter (below)
+            @media (hover: hover) and (pointer: fine) {
+                .chip:hover {
+                    background: var(--_chip-bg-hover);
+                    border-color: var(--_chip-border-hover);
+                    /* Track the background, or the highlight stays toned to the
+                   resting fill. */
+                    --control-surface: var(--_chip-bg-hover);
+                }
+            }
+
+            /* Default selected (no domain variant): solid primary-blue fill. */
+            :host([selected]:not([variant])) {
+                --_chip-bg: var(--color-primary);
+                --_chip-fg: var(--white);
+                --_chip-border: var(--color-primary-border);
+                --_chip-bg-hover: var(--color-primary);
+                /* This chip lightens on hover via a brightness() filter (below)
                rather than darkening its fill, so keep the border color put — the
                filter carries the whole pill, edge included. */
-            --_chip-border-hover: var(--_chip-border);
-            --_chip-count-fg: #c6e1f0;
-            /* A white edge reads much louder on the dark fill than on a tint
+                --_chip-border-hover: var(--_chip-border);
+                --_chip-count-fg: #c6e1f0;
+                /* A white edge reads much louder on the dark fill than on a tint
                (same strength as primary buttons). */
-            --control-highlight-strength: var(--control-highlight-strength-filled);
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            :host([selected]:not([variant])) .chip:hover {
-                filter: brightness(1.1);
+                --control-highlight-strength: var(--control-highlight-strength-filled);
             }
-        }
 
-        /* ── Domain variants: soft category-colored tint ──────────────────
+            @media (hover: hover) and (pointer: fine) {
+                :host([selected]:not([variant])) .chip:hover {
+                    filter: brightness(1.1);
+                }
+            }
+
+            /* ── Domain variants: soft category-colored tint ──────────────────
            The tint is identical whether or not the chip is selected; selecting
            one only adds the close icon, so a selected variant chip reads as a
            removable, category-colored pill. */
-        :host([variant='language']) {
-            --_chip-bg: var(--color-chip-language-bg);
-            --_chip-fg: var(--color-chip-language-fg);
-            --_chip-border: var(--color-chip-language-border);
-            --_chip-bg-hover: var(--color-chip-language-bg-hover);
-            --_chip-count-fg: var(--color-chip-language-fg);
-        }
+            :host([variant='language']) {
+                --_chip-bg: var(--color-chip-language-bg);
+                --_chip-fg: var(--color-chip-language-fg);
+                --_chip-border: var(--color-chip-language-border);
+                --_chip-bg-hover: var(--color-chip-language-bg-hover);
+                --_chip-count-fg: var(--color-chip-language-fg);
+            }
 
-        :host([variant='subject']) {
-            --_chip-bg: var(--color-chip-subject-bg);
-            --_chip-fg: var(--color-chip-subject-fg);
-            --_chip-border: var(--color-chip-subject-border);
-            --_chip-bg-hover: var(--color-chip-subject-bg-hover);
-            --_chip-count-fg: var(--color-chip-subject-fg);
-        }
+            :host([variant='subject']) {
+                --_chip-bg: var(--color-chip-subject-bg);
+                --_chip-fg: var(--color-chip-subject-fg);
+                --_chip-border: var(--color-chip-subject-border);
+                --_chip-bg-hover: var(--color-chip-subject-bg-hover);
+                --_chip-count-fg: var(--color-chip-subject-fg);
+            }
 
-        :host([variant='genre']) {
-            --_chip-bg: var(--color-chip-genre-bg);
-            --_chip-fg: var(--color-chip-genre-fg);
-            --_chip-border: var(--color-chip-genre-border);
-            --_chip-bg-hover: var(--color-chip-genre-bg-hover);
-            --_chip-count-fg: var(--color-chip-genre-fg);
-        }
+            :host([variant='genre']) {
+                --_chip-bg: var(--color-chip-genre-bg);
+                --_chip-fg: var(--color-chip-genre-fg);
+                --_chip-border: var(--color-chip-genre-border);
+                --_chip-bg-hover: var(--color-chip-genre-bg-hover);
+                --_chip-count-fg: var(--color-chip-genre-fg);
+            }
 
-        :host([variant='author']) {
-            --_chip-bg: var(--color-chip-author-bg);
-            --_chip-fg: var(--color-chip-author-fg);
-            --_chip-border: var(--color-chip-author-border);
-            --_chip-bg-hover: var(--color-chip-author-bg-hover);
-            --_chip-count-fg: var(--color-chip-author-fg);
-        }
+            :host([variant='author']) {
+                --_chip-bg: var(--color-chip-author-bg);
+                --_chip-fg: var(--color-chip-author-fg);
+                --_chip-border: var(--color-chip-author-border);
+                --_chip-bg-hover: var(--color-chip-author-bg-hover);
+                --_chip-count-fg: var(--color-chip-author-fg);
+            }
 
-        :host([variant='place']) {
-            --_chip-bg: var(--color-chip-place-bg);
-            --_chip-fg: var(--color-chip-place-fg);
-            --_chip-border: var(--color-chip-place-border);
-            --_chip-bg-hover: var(--color-chip-place-bg-hover);
-            --_chip-count-fg: var(--color-chip-place-fg);
-        }
+            :host([variant='place']) {
+                --_chip-bg: var(--color-chip-place-bg);
+                --_chip-fg: var(--color-chip-place-fg);
+                --_chip-border: var(--color-chip-place-border);
+                --_chip-bg-hover: var(--color-chip-place-bg-hover);
+                --_chip-count-fg: var(--color-chip-place-fg);
+            }
 
-        :host([variant='neutral']) {
-            --_chip-bg: var(--color-chip-neutral-bg);
-            --_chip-fg: var(--color-chip-neutral-fg);
-            --_chip-border: var(--color-chip-neutral-border);
-            --_chip-bg-hover: var(--color-chip-neutral-bg-hover);
-            --_chip-count-fg: var(--color-text-muted);
-        }
+            :host([variant='neutral']) {
+                --_chip-bg: var(--color-chip-neutral-bg);
+                --_chip-fg: var(--color-chip-neutral-fg);
+                --_chip-border: var(--color-chip-neutral-border);
+                --_chip-bg-hover: var(--color-chip-neutral-bg-hover);
+                --_chip-count-fg: var(--color-text-muted);
+            }
 
-        /* Small size */
-        :host([size='small']) .chip {
-            font-size: var(--font-size-label-medium);
-        }
+            /* Small size */
+            :host([size='small']) .chip {
+                min-height: var(--control-height-small);
+                font-size: var(--font-size-label-medium);
+            }
 
-        /* Close icon for selected state. Negative margins absorb the glyph's
+            /* Close icon for selected state. Negative margins absorb the glyph's
            dead space, so the leading inset and the gap to the label both
            measure from the painted x. */
-        .icon-slot {
-            display: inline-flex;
-            flex: none;
-            width: var(--chip-icon-size);
-            height: var(--chip-icon-size);
-            margin-inline: calc(-1 * var(--_chip-icon-slack)) calc(var(--chip-icon-gap) - var(--_chip-icon-slack));
-        }
+            .icon-slot {
+                display: inline-flex;
+                flex: none;
+                width: var(--chip-icon-size);
+                height: var(--chip-icon-size);
+                margin-inline: calc(-1 * var(--_chip-icon-slack)) calc(var(--chip-icon-gap) - var(--_chip-icon-slack));
+            }
 
-        .icon {
-            width: var(--chip-icon-size);
-            height: var(--chip-icon-size);
-            --ol-icon-stroke-width: 3;
-        }
+            .icon {
+                width: var(--chip-icon-size);
+                height: var(--chip-icon-size);
+                --ol-icon-stroke-width: 3;
+            }
 
-        /* Count */
-        .count {
-            margin-inline-start: var(--spacing-2xs);
-            color: var(--_chip-count-fg);
-            font-size: 0.85em;
-            font-variant-numeric: tabular-nums;
-        }
-    `;
+            /* Count */
+            .count {
+                margin-inline-start: var(--spacing-2xs);
+                color: var(--_chip-count-fg);
+                font-size: 0.85em;
+                font-variant-numeric: tabular-nums;
+            }
+        `
+    ];
 
     constructor() {
         super();
@@ -287,11 +286,21 @@ export class OLChip extends FocusableHostMixin(LitElement) {
         `;
 
         if (this.href) {
-            return html` <a class="chip" href=${this.href} aria-label=${this.accessibleLabel || nothing} @click=${this._handleClick}> ${content} </a> `;
+            return html`
+                <a class="chip raised pressable focus-ring-layered" href=${this.href} aria-label=${this.accessibleLabel || nothing} @click=${this._handleClick}>
+                    ${content}
+                </a>
+            `;
         }
 
         return html`
-            <button class="chip" type="button" aria-label=${this.accessibleLabel || nothing} aria-pressed=${this.selected} @click=${this._handleClick}>
+            <button
+                class="chip raised pressable focus-ring-layered"
+                type="button"
+                aria-label=${this.accessibleLabel || nothing}
+                aria-pressed=${this.selected}
+                @click=${this._handleClick}
+            >
                 ${content}
             </button>
         `;

@@ -18,7 +18,7 @@ from scripts.monitoring.utils import GraphiteEvent
 def monitor(monkeypatch):
     """Import monitor.py fresh, so promoter state does not leak between tests."""
     # Imported here, not at module scope: monitor.py reads HOSTNAME at import time.
-    monkeypatch.setenv("HOSTNAME", "ol-www0.us.archive.org")
+    monkeypatch.setenv("HOSTNAME", "ol-www1.us.archive.org")
     return importlib.reload(importlib.import_module("scripts.monitoring.monitor"))
 
 
@@ -48,7 +48,7 @@ def test_monitor_nginx_logs_submits_promoted_bots_and_other(monitor, submitted, 
     monitor.monitor_nginx_logs()
 
     # aggressivecrawler clears the 75 floor on its first tick; rarespider does not
-    # and aggregates into other. Both land under the ol-www0 bucket, `ol`.
+    # and aggregates into other. Both land under the ol-www1 bucket, `ol`.
     assert sorted((e.path, e.value) for e in submitted) == [
         ("stats.ol.bot_traffic.aggressivecrawler", 90.0),
         ("stats.ol.bot_traffic.other", 2.0),
@@ -61,6 +61,29 @@ def test_monitor_nginx_logs_still_submits_other_when_nothing_is_promoted(monitor
     monitor.monitor_nginx_logs()
 
     assert [(e.path, e.value) for e in submitted] == [("stats.ol.bot_traffic.other", 3.0)]
+
+
+@pytest.mark.parametrize(
+    ("hostname", "expected"),
+    [
+        ("ol-www1.us.archive.org", ["log_recent_bot_statuses stats.ol.bot_status"]),
+        ("ol-covers1.us.archive.org", []),
+    ],
+)
+def test_monitor_nginx_logs_logs_bot_statuses_only_on_www(monitor, submitted, monkeypatch, hostname, expected):
+    monkeypatch.setenv("HOSTNAME", hostname)
+    monitor = importlib.reload(monitor)
+    commands: list[str] = []
+
+    def fake_bash_run(cmd, **_kwargs):
+        commands.append(cmd.strip())
+        return types.SimpleNamespace(stdout="")
+
+    monkeypatch.setattr(monitor, "bash_run", fake_bash_run)
+
+    monitor.monitor_nginx_logs()
+
+    assert [c for c in commands if c.startswith("log_recent_bot_statuses")] == expected
 
 
 def test_monitor_partner_useragents_promotes_a_new_partner_past_the_pinned_list(monitor, submitted, monkeypatch):

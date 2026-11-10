@@ -8,7 +8,9 @@ default_language_version:
 
 ci:
   submodules: true
-  autoupdate_schedule: "monthly"
+  # Renovate keeps hook revs updated (see renovate.json). pre-commit.ci can't turn its autoupdate off
+  # (pre-commit-ci/issues#83), so run it rarely; its PRs can be closed.
+  autoupdate_schedule: "quarterly"
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -55,7 +57,7 @@ repos:
       - id: validate-pyproject
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.1
+    rev: v0.17.3
     hooks:
       - id: ruff-check
         args: [--fix]
@@ -92,9 +94,11 @@ repos:
         exclude: (^|/)tests?/
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.3.0
+    rev: v2.4.1
     hooks:
       - id: mypy  # See pyproject.toml for args
+        # Declared so Renovate updates additional_dependencies (it only reads hooks with an explicit language).
+        language: python
         additional_dependencies:
           - types-PyYAML
           - types-aiofiles
@@ -110,6 +114,8 @@ repos:
     hooks:
       - id: oxfmt
         name: oxfmt
+        # Declared so Renovate updates additional_dependencies (it only reads hooks with an explicit language).
+        language: node
         # Mirror hook targets JS/TS by default; also run it on CSS and Vue.
         types_or: [css, javascript, ts, vue]
         files: \.(css|js|mjs|cjs|ts|vue)$
@@ -123,6 +129,7 @@ repos:
     hooks:
       - id: oxlint
         name: oxlint
+        language: node
         # Mirror hook targets JS/TS by default.
         types_or: [javascript, ts]
         files: \.(js|mjs|cjs|ts)$
@@ -137,9 +144,14 @@ repos:
     rev: 0.0.2
     hooks:
       - id: stylelint
+        language: node
+        # stylelint 17 resolves plugins with ESM resolution, which ignores the NODE_PATH pre-commit sets, then
+        # falls back to the global npm prefix. A system Node (the pre-commit.ci default) makes that prefix /usr,
+        # so plugins aren't found. A pre-commit-managed Node puts the prefix inside the hook env instead.
+        language_version: lts
         files: \.css$
         additional_dependencies: &stylelint_deps
-          - stylelint@16.26.1
+          - stylelint@17.16.0
           - stylelint-declaration-strict-value@1.11.1
           - postcss-lit@1.4.1
         # --allow-empty-input: pre-commit passes the staged .css files, and
@@ -148,6 +160,8 @@ repos:
         args: [--fix, --allow-empty-input]
       - id: stylelint
         name: stylelint (lit)
+        language: node
+        language_version: lts
         # Same hook, but check-only. postcss-lit can't write Lit files back without
         # shifting comment indentation, so --fix would rewrite files that had no errors.
         # Matches all JS so a `css` literal is linted wherever it lands; files
@@ -163,6 +177,7 @@ repos:
       # JS is linted by oxlint, and JS and Vue are formatted by oxfmt; ESLint is
       # only kept for the Vue-specific rules oxlint can't run on .vue templates.
       - id: eslint
+        language: node
         types: [file]
         types_or: [vue]
         additional_dependencies:
@@ -170,7 +185,7 @@ repos:
           - "@eslint/js@10.0.1"
           - eslint-config-prettier@10.1.8
           - eslint-plugin-vue@10.11.1
-          - globals@15.14.0
+          - globals@17.14.0
         args: [--fix]
 
   - repo: local
@@ -195,15 +210,15 @@ repos:
       types_or: [python, html, jinja]
       language: python
       pass_filenames: false
-      # Dependencies must be manually updated to match versions in requirements.txt
+      # Renovate bumps these alongside requirements.txt (same package rules, same PRs).
       additional_dependencies:
         - Babel==2.18.0
         - Jinja2==3.1.6
         - multipart==1.3.1
         - "git+https://github.com/webpy/webpy.git@2598dfe693ff931a9c67196f0b904b13637ec19f"
-        - fastapi==0.136.1 # annoyingly, these three needed to be added when we started using contextvars in i18n files
+        - fastapi==0.143.0 # annoyingly, these three needed to be added when we started using contextvars in i18n files
         - simplejson==3.20.2
-        - requests==2.34.0
+        - requests==2.34.2
 
   - repo: local
     hooks:

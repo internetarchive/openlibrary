@@ -9,7 +9,8 @@ $ i18n_strings = {
     $ "invalid_lccn": _("Invalid LC Control Number format"),
     $ "invalid_oclc": _("Invalid OCLC/WorldCat Control Number format"),
     $ "empty_id": _("Please enter a value for the selected identifier"),
-    $ "invalid_publish_date": _("Are you sure that's the published date?")
+    $ "invalid_publish_date": _("Are you sure that's the published date?"),
+    $ "invalid_web_book_url": _("Please enter a valid URL starting with http:// or https://")
     $ }
 
 <div id="contentHead">
@@ -56,7 +57,6 @@ $ i18n_strings = {
             </div>
         </div>
 
-        $ is_privileged = ctx.user and ctx.user.is_super_librarian_or_higher()
         <div class="formElement">
             <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
                 <label for="id_name" class="hidden">$_("ID Type")</label>
@@ -65,7 +65,7 @@ $ i18n_strings = {
             <div class="input">
                 <select name="id_name" id="id_name">
                 <option value="">$_("Select")</option>
-                $if is_privileged:
+                $if ctx.user and ctx.user.can_edit_ocaid():
                     <option value="ocaid">$_("Internet Archive")</option>
                 <option value="isbn_10">$_("ISBN 10")</option>
                 <option value="isbn_13">$_("ISBN 13")</option>
@@ -87,6 +87,7 @@ $ i18n_strings = {
                 <div class="input">
                     <input type="text" name="web_book_url" class="" id="web_book_url"/>
                 </div>
+                <div id="web-book-url-errors" class="note hidden"></div>
             </div>
 
         $if recaptcha and not ctx.user:
