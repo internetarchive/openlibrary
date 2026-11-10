@@ -6071,11 +6071,11 @@ msgid "Through Tasks"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Compare to previous period"
+msgid "Period"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Period"
+msgid "Compare to previous period"
 msgstr ""
 
 #: openlibrary/views/loanstats.py stats/tasks.html.jinja
