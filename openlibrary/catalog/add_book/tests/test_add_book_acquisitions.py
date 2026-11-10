@@ -220,6 +220,22 @@ def test_every_acquisition_of_a_publication_is_kept(mock_site, add_languages, ia
     ]
 
 
+def test_preview_reports_acquisitions_without_writing_them(mock_site, add_languages, ia_writeback, acquisitions_db):
+    acquisitions = [{"provider_name": "lenny", "local_id": "7", "data": {"access": "open-access", "url": "https://g/7.epub"}}]
+    rec = {
+        "title": "Preview Only",
+        "source_records": ["lenny:7"],
+        "authors": [{"name": "A N Author"}],
+        "identifiers": {"lenny": ["7"]},
+        "acquisitions": acquisitions,
+    }
+
+    reply = load(rec, save=False)
+
+    assert reply["acquisitions"] == acquisitions
+    assert list(acquisitions_db.select("acquisitions")) == []
+
+
 def test_a_later_save_replaces_withdrawn_links(mock_site, add_languages, ia_writeback, acquisitions_db):
     """The feed is authoritative for its own publication, so a link the provider
     has withdrawn must disappear rather than linger forever. That is why the set

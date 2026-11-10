@@ -394,6 +394,34 @@ msgid "Show Raw Import Data"
 msgstr ""
 
 #: import_preview.html
+msgid "New work will be created"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Work matched: %(link)s"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Work modified: %(link)s"
+msgstr ""
+
+#: import_preview.html
+msgid "New edition will be created"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Edition matched: %(link)s"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Edition modified: %(link)s"
+msgstr ""
+
+#: import_preview.html
 #, python-format
 msgid "New %(thing_type)s record will be created"
 msgstr ""
@@ -401,6 +429,48 @@ msgstr ""
 #: import_preview.html
 #, python-format
 msgid "Changes to %(key)s"
+msgstr ""
+
+#: import_preview.html
+msgid "New author will be created"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Author matched: %(link)s"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Author modified: %(link)s"
+msgstr ""
+
+#: import_preview.html
+msgid "Other edits"
+msgstr ""
+
+#: import_preview.html
+msgid "Acquisitions that will be added"
+msgstr ""
+
+#: import_preview.html
+msgid "Provider"
+msgstr ""
+
+#: import_preview.html
+msgid "Provider ID"
+msgstr ""
+
+#: import_preview.html openlibrary/edition_scorecard.py
+msgid "Access"
+msgstr ""
+
+#: import_preview.html openlibrary/plugins/openlibrary/contribute.py type/edition/view.html type/work/view.html
+msgid "Format"
+msgstr ""
+
+#: books/edit/web.html import_preview.html
+msgid "URL"
 msgstr ""
 
 #: internalerror.html
@@ -4010,10 +4080,6 @@ msgid "For example: <em>New York Times review</em>"
 msgstr ""
 
 #: books/edit/web.html
-msgid "URL"
-msgstr ""
-
-#: books/edit/web.html
 msgid "Add Link"
 msgstr ""
 
@@ -6538,10 +6604,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "External Links"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py type/edition/view.html type/work/view.html
-msgid "Format"
 msgstr ""
 
 #: OlPagination.html OlPaginationArrows.html type/edition/view.html type/work/editions_datatable.html type/work/view.html
@@ -9121,10 +9183,6 @@ msgstr ""
 
 #: openlibrary/edition_scorecard.py
 msgid "Edition Scorecard"
-msgstr ""
-
-#: openlibrary/edition_scorecard.py
-msgid "Access"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py

@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 
@@ -2138,3 +2139,16 @@ def test_load_author_import_records_without_web_ctx_site(mock_site, monkeypatch,
     assert authors == [{"key": "/authors/OL1A"}]
     assert author_reply[0]["status"] == expected_status
     assert bool(edits) is (expected_status == "modified")
+
+
+def test_modified_author_is_one_serializable_edit(mock_site):
+    """Previews json-encode their edits, and saves should write each author once."""
+    mock_site.save({"type": {"key": "/type/author"}, "key": "/authors/OL1A", "name": "John Doe"})
+    author = mock_site.get("/authors/OL1A")
+    author.name = "John Q. Doe"
+    edits: list = []
+
+    add_book.load_author_import_records([author], edits, "ia:test_item", save=False)
+
+    assert edits == [{**author.dict(), "name": "John Q. Doe"}]
+    json.dumps(edits)
