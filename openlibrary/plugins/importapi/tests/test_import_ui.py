@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from openlibrary.plugins.importapi import import_ui
-from openlibrary.plugins.importapi.import_ui import GutenbergMetadataProvider, ImportPreviewRequest
+from openlibrary.plugins.importapi.import_ui import GutenbergMetadataProvider, ImportPreviewRequest, RawJsonMetadataProvider
 
 GUTENBERG_SAMPLE = Path(__file__).parents[3] / "bookworm" / "tests" / "samples" / "gutenberg.json"
 
@@ -61,3 +61,52 @@ def test_gutenberg_is_selectable_by_source_prefix():
     req = ImportPreviewRequest.from_input({"source": "project_gutenberg:67979"})
     assert isinstance(req.metadata_provider, GutenbergMetadataProvider)
     assert req.identifier == "67979"
+
+
+@pytest.fixture
+def loaded(monkeypatch):
+    calls: dict = {}
+
+    def load(rec, account_key, save):
+        calls["record"] = rec
+        calls["save"] = save
+        return {"success": True}
+
+    monkeypatch.setattr(import_ui.add_book, "load", load)
+    return calls
+
+
+def test_raw_json_preview_loads_the_record(loaded):
+    rec = {
+        "title": "A Book",
+        "authors": [{"name": "Some Author"}],
+        "publish_date": "2001",
+        "publishers": ["Pub"],
+        "source_records": ["test:123"],
+    }
+    RawJsonMetadataProvider().do_import(json.dumps(rec, indent=2), save=False)
+
+    assert loaded["save"] is False
+    assert loaded["record"]["title"] == "A Book"
+    assert loaded["record"]["source_records"] == ["test:123"]
+
+
+@pytest.mark.parametrize(
+    ("identifier", "error"),
+    [
+        ("", "Invalid JSON"),
+        ("not json", "Invalid JSON"),
+        ("<?xml version='1.0'?><a/>", "Invalid JSON"),
+        ("[1, 2]", "must be a JSON object"),
+    ],
+)
+def test_raw_json_preview_rejects_non_objects(loaded, identifier, error):
+    with pytest.raises(ValueError, match=error):
+        RawJsonMetadataProvider().do_import(identifier, save=False)
+    assert "record" not in loaded
+
+
+def test_raw_json_is_selectable_by_source_prefix():
+    req = ImportPreviewRequest.from_input({"source": 'json:{"title": "a:b"}'})
+    assert isinstance(req.metadata_provider, RawJsonMetadataProvider)
+    assert req.identifier == '{"title": "a:b"}'
