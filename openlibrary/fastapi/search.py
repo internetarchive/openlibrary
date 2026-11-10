@@ -598,9 +598,7 @@ async def advancedsearch(form: Annotated[AdvancedSearchForm, Query()], nav: Sear
 
 @pages.get("/search/lists")
 async def search_lists(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePage:
-    """HTML list search page, rendered from lists.html.jinja.
-
-    Retire the web.py ``list_search`` handler (which still renders the
+    """Retire the web.py ``list_search`` handler (which still renders the
     Templetor ``search/lists.html``) once production routes /search/lists here.
     """
     page = max(1, page)
