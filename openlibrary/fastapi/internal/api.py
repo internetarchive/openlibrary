@@ -9,6 +9,7 @@ its experience. This does not include public facing APIs with LTS
 from __future__ import annotations
 
 import io
+import re
 from datetime import datetime
 from typing import Annotated, Any, Literal
 from urllib.parse import urlencode
@@ -433,6 +434,11 @@ class HideBannerResponse(BaseModel):
 @router.post("/hide_banner")
 def hide_banner(data: HideBannerRequest, response: Response) -> HideBannerResponse:
     """Persist a banner dismissal in a cookie and, when applicable, user preferences."""
+    # The cookie name is caller-supplied. Constrain it to a safe cookie-token
+    # character set so it cannot smuggle CRLF/control characters into the
+    # Set-Cookie header or name an unrelated cookie (CodeQL py/cookie-injection).
+    if not re.fullmatch(r"[\w-]{1,64}", data.cookie_name):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="invalid banner cookie name")
     if (user := accounts.get_current_user()) and data.cookie_name.startswith("yrg"):
         user.save_preferences({"yrg_banner_pref": data.cookie_name})
 
