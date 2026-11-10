@@ -1,4 +1,4 @@
-"""The daily series behind /stats/tasks, for a chart that can pick its own range and granularity."""
+"""The daily series behind /stats/tasks, for charts that can pick their own range and granularity."""
 
 from __future__ import annotations
 
@@ -19,6 +19,8 @@ MAX_DAYS = 400
 # The keys the page may ask for. `_1d` keys are per day; 7d and 28d are rolling windows ending that day; the
 # initiatives' snapshots come separately. All written by scripts/store_counts.py from openlibrary/admin/numbers.py.
 SERIES_KEYS = (
+    "catalog_edits",
+    "list_edits",
     "catalog_editors_1d",
     "catalog_editors_7d",
     "catalog_editors_28d",
@@ -40,7 +42,7 @@ class TasksSeries(BaseModel):
     dates: list[str]
     """One ISO date per calendar day, oldest first, ending today, which is still being gathered. Every list below lines up with it."""
     series: dict[str, list[int | None]]
-    """Each key in `SERIES_KEYS`; None on a day the stats script hadn't written it."""
+    """Each key in `SERIES_KEYS`, plus `visitors` (unique IPs, from Graphite); None on a day without a count."""
     saves_by_field: list[dict[str, int] | None]
     """The day's Tasks saves by field filled."""
     initiatives: dict[str, list[int | None]]
@@ -70,9 +72,10 @@ def tasks_series(
     today = date.today()
     dates = [(today - timedelta(days=i)).isoformat() for i in reversed(range(days))]
     day_docs = [docs.get(d, {}) for d in dates]
+    visitors = admin.visitors_by_day(MAX_DAYS)
     return TasksSeries(
         dates=dates,
-        series={key: [doc.get(key) for doc in day_docs] for key in SERIES_KEYS},
+        series={key: [doc.get(key) for doc in day_docs] for key in SERIES_KEYS} | {"visitors": [visitors.get(d) for d in dates]},
         saves_by_field=[doc.get("tasks_saves_by_field_1d") for doc in day_docs],
         initiatives=initiative_series(day_docs),
     )

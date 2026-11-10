@@ -177,6 +177,19 @@ class VisitorStats(Stats):
         return [(int(timestamp * 1000), int(count or 0)) for count, timestamp in visitors]
 
 
+def visitors_by_day(ndays: int) -> dict[str, int]:
+    """Unique visitors a day for the last `ndays`, by ISO date. Empty in local dev, which can't reach Graphite, and when it's down."""
+    if get_ol_env().LOCAL_DEV:
+        return {}
+    # Visitors are an extra on the stats page: an odd Graphite answer (an empty list, a bad point) must not take the page down.
+    try:
+        points = _get_visitor_counts_from_graphite(ndays)
+        return {datetime.fromtimestamp(ts, UTC).date().isoformat(): int(count) for count, ts in points if count is not None}
+    except (ValueError, IndexError, KeyError, TypeError):
+        logger.exception("Unreadable visitor counts from Graphite")
+        return {}
+
+
 def read_count_docs(site, ndays: int) -> list[dict]:
     """The daily count docs `scripts/store_counts.py` writes, oldest first, for the last `ndays` up to today. Days with no
     doc are left out. Takes the site so FastAPI (`site.get()`) and web.py (`web.ctx.site`) can both read them."""
