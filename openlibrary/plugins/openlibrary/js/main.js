@@ -173,14 +173,10 @@ $(function () {
         import('./signup.js').then(module => module.initLoginForm());
     }
 
-    // conditionally load clamping components
-    const clampers = document.querySelectorAll('.clamp');
-    if (clampers.length) {
-        import('./clampers.js').then(module => {
-            if (clampers.length) {
-                module.initClampers(clampers);
-            }
-        });
+    // Book page subject rows collapse to one line with a "+N" chip
+    const subjectLists = document.querySelectorAll('.subject-row__chips');
+    if (subjectLists.length) {
+        import('./subject-rows.js').then(module => module.initSubjectRows(subjectLists));
     }
 
     // conditionally load file dropzone for CSV import (Goodreads, etc.)
@@ -390,12 +386,6 @@ $(function () {
         import('./book-state').then(module => module.initBookState());
     }
 
-    // The lists a book is on, under the shelf button on its page:
-    const listShowcase = document.querySelector('.already-lists[data-seed-keys]');
-    if (listShowcase) {
-        import('./lists/list-showcase').then(module => module.initListShowcase(listShowcase));
-    }
-
     // TODO: Make these selectors a consistent interface
     if (document.querySelector('.dialog--open, #bookPreview')) {
         import('./dialog').then(module => module.initDialogs());
@@ -593,6 +583,12 @@ $(function () {
     const backLinks = document.querySelectorAll('.go-back-link');
     if (backLinks.length) {
         import('./go-back-links').then(module => module.initGoBackLinks(backLinks));
+    }
+
+    // "Contact Us" mailto links: pre-fill page URL and browser details
+    const contactLinks = document.querySelectorAll('a[data-contact-link]');
+    if (contactLinks.length) {
+        import('./contact-link').then(module => module.initContactLinks(contactLinks));
     }
 
     // Lazy-load book page lists section

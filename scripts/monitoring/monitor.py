@@ -27,12 +27,12 @@ from scripts.monitoring.utils import (
 )
 from scripts.utils.scheduler import OlAsyncIOScheduler
 
-HOST = os.getenv("HOSTNAME")  # eg "ol-www0.us.archive.org"
+HOST = os.getenv("HOSTNAME")  # eg "ol-www1.us.archive.org"
 
 if not HOST:
     raise ValueError("HOSTNAME environment variable not set.")
 
-SERVER = HOST.split(".")[0]  # eg "ol-www0"
+SERVER = HOST.split(".")[0]  # eg "ol-www1"
 GRAPHITE_URL = "graphite.us.archive.org:2004"
 scheduler = OlAsyncIOScheduler("OL-MONITOR")
 
@@ -65,7 +65,7 @@ def submit_promoted_counts(
     GraphiteEvent.submit_many(events, GRAPHITE_URL)
 
 
-@limit_server(["ol-web*", "ol-covers0"], scheduler)
+@limit_server(["ol-web*", "ol-covers1"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)
 def log_workers_cur_fn():
     """Logs the state of the gunicorn workers."""
@@ -79,14 +79,14 @@ def log_workers_cur_fn():
     )
 
 
-@limit_server(["ol-www0", "ol-covers0"], scheduler)
+@limit_server(["ol-www1", "ol-covers1"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)
 def monitor_nginx_logs():
     """Logs recent bot traffic, HTTP statuses, and top IP counts."""
     match SERVER:
-        case "ol-www0":
+        case "ol-www1":
             bucket = "ol"
-        case "ol-covers0":
+        case "ol-covers1":
             bucket = "ol-covers"
         case _:
             raise ValueError(f"Unknown server: {SERVER}")
@@ -272,7 +272,7 @@ def partner_label(user_agent: str) -> str:
 PINNED_PARTNER_NAMES = set(tally(parse_uniq_c(PINNED_PARTNER_UAS), key=partner_label))
 
 
-@limit_server(["ol-www0"], scheduler)
+@limit_server(["ol-www1"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)
 async def monitor_partner_useragents():
     recent_uas = bash_run(
@@ -289,7 +289,7 @@ async def monitor_partner_useragents():
     )
 
 
-@limit_server(["ol-www0"], scheduler)
+@limit_server(["ol-www1"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)
 async def monitor_empty_homepage():
     async with httpx.AsyncClient() as client:
@@ -303,7 +303,7 @@ async def monitor_empty_homepage():
         ).submit(GRAPHITE_URL)
 
 
-@limit_server(["ol-www0"], scheduler)
+@limit_server(["ol-www1"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)
 def monitor_fail2ban():
     """Logs fail2ban jail stats (currently failed and banned counts) for every configured jail."""

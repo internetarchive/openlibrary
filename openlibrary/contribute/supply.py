@@ -1,4 +1,4 @@
-"""Which books need a hand: the active initiative's editions that still have a gap in the fields asked for."""
+"""Which books need a hand: an initiative's editions that still have a gap in the fields asked for."""
 
 import random
 from collections.abc import Iterator
@@ -16,12 +16,12 @@ class Candidate:
     not_found: frozenset[str] = field(default_factory=frozenset)
 
 
-def candidates(fields: tuple[str, ...], batch: int = 50) -> Iterator[Candidate] | None:
+def candidates(initiative: initiatives.Initiative, fields: tuple[str, ...], batch: int = 50) -> Iterator[Candidate] | None:
     """The initiative's editions with an open gap in ``fields``, in random order.
 
     None while the initiative's gaps are still being built. Editions load a batch at a time, so a caller that stops early never fetches them all.
     """
-    if (gaps := initiatives.get_gaps()) is None:
+    if (gaps := initiatives.get_gaps(initiative)) is None:
         return None
     wanted = set(fields)
     picks = [[key, readers, skipped] for key, readers, open_fields, skipped in gaps if wanted.intersection(open_fields)]

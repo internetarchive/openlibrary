@@ -384,6 +384,7 @@ def _get_changes_v1_raw(query: dict[str, str | int], revision: int | None = None
     """
     if "env" not in web.ctx:
         delegate.fakeload()
+        request_context.set_context_from_legacy_web_py()
 
     versions = web.ctx.site.versions(query)
 
@@ -417,6 +418,7 @@ def _get_changes_v2_raw(query: dict[str, str | int], revision: int | None = None
     """
     if "env" not in web.ctx:
         delegate.fakeload()
+        request_context.set_context_from_legacy_web_py()
 
     changes = web.ctx.site.recentchanges(query)
     return [c.dict() for c in changes]
@@ -1151,10 +1153,12 @@ def get_populated_languages() -> set[str]:
 
 
 @public
-@functools.cache
+@functools.lru_cache(maxsize=256)
 def convert_iso_to_marc(iso_639_1: str) -> str | None:
     """
     e.g. 'en' -> 'eng'
+
+    Bound the cache because language values can come from request input.
     """
     for lang in get_languages().values():
         code = safeget(lambda: lang["identifiers"]["iso_639_1"][0])
@@ -1166,6 +1170,24 @@ def convert_iso_to_marc(iso_639_1: str) -> str | None:
 @public
 def get_identifier_config(identifier: Literal["work", "edition", "author"]) -> Storage:
     return _get_identifier_config(identifier)
+
+
+def format_isni_display_value(isni: str) -> str:
+    """Format an ISNI for human-readable display according to ISO 27729."""
+    normalized = re.sub(r"\s+", "", isni).upper()
+    if re.fullmatch(r"\d{15}[\dX]", normalized):
+        return " ".join(normalized[i : i + 4] for i in range(0, 16, 4))
+
+    return isni
+
+
+@public
+def format_author_identifier_value(identifier_name: str, value: str) -> str:
+    """Format author identifiers for display without changing stored values."""
+    if identifier_name == "isni":
+        return format_isni_display_value(value)
+
+    return value
 
 
 @functools.cache
@@ -1322,6 +1344,7 @@ def _get_recent_changes2():
     """
     if "env" not in web.ctx:
         delegate.fakeload()
+        request_context.set_context_from_legacy_web_py()
 
     q = {"bot": False, "limit": 100}
     changes = web.ctx.site.recentchanges(q)
@@ -1444,6 +1467,13 @@ class Request:
         return canonical_url(web.ctx.host or "", web.ctx.get("readable_path", web.ctx.path) or "", web.ctx.query or "")
 
 
+# Params that do not change what the page is about: presentation (sort, mode,
+# layout), revision and diff selectors (v, a, b), librarian and debug toggles,
+# tracking, read-aloud autostart, and a work's selected edition (every edition
+# has its own /books/ page).
+CANONICAL_QUERY_EXCLUDES = frozenset({"sort", "mode", "v", "type", "debug", "layout", "a", "b", "show_page_status", "edition", "ref", "_autoReadAloud"})
+
+
 def canonical_url(host: str, readable_path: str, query: str) -> str:
     """The https:// URL for ``host + readable_path + query``, minus view-only params.
 
@@ -1451,7 +1481,7 @@ def canonical_url(host: str, readable_path: str, query: str) -> str:
     """
     if url := host + readable_path + query:
         parsed_url = urlparse("https://" + url)
-        canonical_query = {q: v for q, v in parse_qs(parsed_url.query).items() if q not in ("sort", "mode", "v", "type", "debug")}
+        canonical_query = {q: v for q, v in parse_qs(parsed_url.query).items() if q not in CANONICAL_QUERY_EXCLUDES}
         return urlunparse(parsed_url._replace(query=parse_urlencode(canonical_query, doseq=True)))
     return ""
 
@@ -1576,9 +1606,9 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
     # the colon is a publisher. This can be exploited by using
     # string.split(";") because everything to the 'left' of a colon is a
     # location, and whatever is to the right is a publisher.
+    locations: list[str] = []
+    publishers: list[str] = []
     if ":" in loc_pub:
-        locations: list[str] = []
-        publishers: list[str] = []
         parts = loc_pub.split(";") if ";" in loc_pub else [loc_pub]
         # Track in indices of values placed into locations or publishers.
         last_placed_index = 0
@@ -1602,15 +1632,13 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
                     locations.append(place.strip(STRIP_CHARS))
                 locations.append(location)  # Preserve location order.
                 last_placed_index = index + 1
+    else:
+        publishers = [loc_pub.strip(STRIP_CHARS)]
 
-        # Clean up and empty list items left over from strip() string replacement.
-        locations = [item for item in locations if item]
-        publishers = [item for item in publishers if item]
-
-        return (locations, publishers)
-
-    # Fall back to making the input a list returning that and an empty location.
-    return ([], [loc_pub.strip(STRIP_CHARS)])
+    # Clean up and empty list items left over from strip() string replacement.
+    locations = [item for item in locations if item]
+    publishers = [item for item in publishers if item]
+    return (locations, publishers)
 
 
 @public

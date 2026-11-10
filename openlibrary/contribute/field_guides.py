@@ -21,6 +21,7 @@ GOOGLE_BOOKS = "https://books.google.com/books?vid=ISBN{isbn}"
 AMAZON = "https://www.amazon.com/s?k={isbn}"
 LOC = "https://catalog.loc.gov/vwebv/search?searchArg={isbn}&searchCode=GKEY%5E*&searchType=0"
 BETTER_WORLD_BOOKS = "https://www.betterworldbooks.com/product/detail/{isbn}"
+GOODREADS = "https://www.goodreads.com/search?q={isbn}"
 # A book's Amazon product id is its ISBN-10; L is the large image. A 1x1 GIF when Amazon has none.
 AMAZON_COVER = "https://m.media-amazon.com/images/P/{isbn10}.01.L.jpg"
 
@@ -43,7 +44,7 @@ class FieldGuide:
     label: str
     action: str
     question: str
-    how: str  # where to look and what to copy
+    how: str  # where to look and what to copy; a blank line starts a new paragraph
     sources: list[LookupSource] = dc_field(default_factory=list)
     why: str = ""
     show_siblings: bool = False  # set only for fields where other editions' values help
@@ -55,6 +56,10 @@ class FieldGuide:
     input_type: str = "text"
     check: str = ""  # what to look at before saving, shown under the answer
     confirm: str = ""  # a checkbox the answer can't be saved without
+    choices: str = ""  # a work tag field: the answer is one of its tags, picked rather than typed
+    many: bool = False  # choices only: any number of tags, as a row of chips rather than a list of one-pick rows
+    not_found: str = ""  # the honest exit's label when it isn't "I couldn't find it"
+    quick_next: bool = False  # choices only: clicking the picked row again saves and moves on
 
 
 def get_field_guides() -> dict[str, FieldGuide]:
@@ -125,6 +130,59 @@ def get_field_guides() -> dict[str, FieldGuide]:
             ],
             placeholder=_("For example 320"),
             input_type="number",
+        ),
+        # A judgment about the work: answer from knowing the book, or look it up.
+        "literary_forms": FieldGuide(
+            field="literary_forms",
+            label=_("Literary form"),
+            action=_("Pick fiction or nonfiction"),
+            question=_("Is this book fiction or nonfiction?"),
+            how=_("If you know the book, answer from what you know. If you don't, look it up."),
+            sources=[google, worldcat],
+            notes=[
+                GuidelineNote(_("Nonfiction can read like a story. A memoir that bends the truth is still nonfiction: it is presented as fact.")),
+                GuidelineNote(_("Anthologies and collections take the form of what's inside. A book of essays about novels is nonfiction.")),
+            ],
+            choices="literary_forms",
+            not_found=_("Not sure"),
+            # An easy call most of the time, so the answer can double as the save.
+            quick_next=True,
+        ),
+        "genres": FieldGuide(
+            field="genres",
+            label=_("Genres"),
+            action=_("Pick genres"),
+            question=_("Which genres fit this book?"),
+            how=_(
+                "Start with the record: the subjects, and the description when there is one. If you know the book, pick from what you know.\n\n"
+                "Otherwise look it up. Google Books lists Categories such as Fiction / Horror, WorldCat lists Genre/Form headings such as "
+                "Fantasy fiction, and Goodreads shows what readers shelve it as."
+            ),
+            sources=[google, worldcat, LookupSource(_("Goodreads"), GOODREADS)],
+            notes=[
+                GuidelineNote(
+                    _(
+                        "Some genres are settings (fantasy, historical), some are plot shapes (mystery, romance) and some are tones (humor). "
+                        "A book takes at most one of each, and usually just one or two in all."
+                    )
+                ),
+                GuidelineNote(
+                    _(
+                        "Go by what the book is sold as, not every element in it. "
+                        "A fantasy with a love story is fantasy; a love story in a fantasy setting is romance."
+                    )
+                ),
+                GuidelineNote(
+                    _(
+                        "Children's and young adult are audiences, not genres, and a subject of just “Fiction” says nothing about genre. "
+                        "With nothing more to go on, choose Not sure."
+                    )
+                ),
+            ],
+            choices="genres",
+            many=True,
+            check=_("Pick every genre that fits. Not sure of one? Leave it out."),
+            not_found=_("Not sure"),
         ),
         "publishers": FieldGuide(
             field="publishers",

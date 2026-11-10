@@ -1,4 +1,4 @@
-$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', user_lang_only=False, fallback=False, safe_mode=True)
+$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='ol-carousel', user_lang_only=False, fallback=False, safe_mode=True)
 
 $# Takes following parameters
 $# * query (str) -- Any arbitrary Open Library search query, e.g. subject:"Textbooks"
@@ -7,7 +7,7 @@ $# * sort (str) -- optional sort param defined within work_search.py `work_searc
 $# * key (str) -- unique name of the carousel in analytics
 $# * limit (int) -- initial number of books to pull
 $# * search (bool) -- whether to include search within collection
-$# * layout (str) -- layout type, default 'carousel', currently also supports 'grid'
+$# * layout (str) -- layout type, default 'ol-carousel'; also 'grid', or 'carousel' for the legacy slick row
 $# * user_lang_only (bool) -- Whether to filter results by the user's language
 $# * fallback (bool) -- Whether to show a fallback message if no results are found
 $# * safe_mode (bool) -- When True, blurs covers of books that have a `content_warning` tag
