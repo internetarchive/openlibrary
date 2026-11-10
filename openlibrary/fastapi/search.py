@@ -598,9 +598,8 @@ async def advancedsearch(form: Annotated[AdvancedSearchForm, Query()], nav: Sear
 
 @pages.get("/search/lists")
 async def search_lists(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePage:
-    """TODO: Retire the web.py ``list_search`` handler (which still renders the
-    Templetor ``search/lists.html``) once production routes /search/lists here.
-    """
+    # TODO: Retire the web.py `list_search` handler (it still serves /search/lists
+    # in production) once production routes /search/lists here.
     page = max(1, page)
     limit = 20  # Can't set fields or limit when rendering html
     response = await run_solr_query_async(
