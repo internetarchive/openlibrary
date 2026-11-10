@@ -1770,7 +1770,7 @@ msgstr ""
 msgid "My lists"
 msgstr ""
 
-#: EditionNavBar.html SearchNavigation.html.jinja account/sidebar.html lists/home.html openlibrary/core/shell/nav.py recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
+#: EditionNavBar.html SearchNavigation.html.jinja account/sidebar.html lists/home.html openlibrary/core/shell/nav.py openlibrary/views/loanstats.py recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
 msgid "Lists"
 msgstr ""
 
@@ -2076,7 +2076,7 @@ msgstr ""
 msgid "Edits Per Day"
 msgstr ""
 
-#: admin/index.html admin/people/index.html
+#: admin/index.html admin/people/index.html openlibrary/views/loanstats.py
 msgid "Edits"
 msgstr ""
 
@@ -2084,7 +2084,7 @@ msgstr ""
 msgid "Yesterday"
 msgstr ""
 
-#: admin/index.html
+#: admin/index.html stats/tasks.html.jinja
 msgid "Last 7 days"
 msgstr ""
 
@@ -4120,7 +4120,7 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
-#: contribute/dashboard.html.jinja openlibrary/plugins/openlibrary/contribute.py
+#: contribute/dashboard.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
 msgid "Tasks"
 msgstr ""
 
@@ -6107,20 +6107,41 @@ msgid "Most Rated Books (All Time)"
 msgstr ""
 
 #: stats/tasks.html stats/tasks.html.jinja
-msgid "Tasks Stats"
+msgid "Editing Stats"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Counts are gathered every hour, so today's figures fill in as the day goes on."
+msgid "Metrics. Choose one to chart it."
 msgstr ""
 
-#: stats/tasks.html.jinja
-msgid "Metrics, last 28 days. Choose one to chart it."
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+#, python-format
+msgid "%(returning)s returning · %(first_time)s first-time"
 msgstr ""
 
-#: stats/tasks.html.jinja
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
 #, python-format
 msgid "%(change)s vs previous 28 days"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Scope"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "All editing"
+msgstr ""
+
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+msgid "Through Tasks"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Period"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Compare to previous period"
 msgstr ""
 
 #: openlibrary/views/loanstats.py stats/tasks.html.jinja
@@ -6128,7 +6149,7 @@ msgid "Per day"
 msgstr ""
 
 #: openlibrary/views/loanstats.py stats/tasks.html.jinja
-msgid "Previous period"
+msgid "4 weeks earlier"
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -6168,15 +6189,31 @@ msgid "Month"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Compare to previous period"
-msgstr ""
-
-#: stats/tasks.html.jinja
 msgid "Chart of the chosen metric over the chosen range"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Details still missing across each project's books, counted nightly. A detail nobody could find counts as filled."
+msgid "Share through Tasks"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Tasks saves as a share of all edits, and Tasks editors as a share of all editors, by day."
+msgstr ""
+
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+msgid "Of edits"
+msgstr ""
+
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+msgid "Of editors"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Share of edits and of editors through Tasks, by day"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Details still missing across each project's books. A detail nobody could find counts as filled."
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -6255,6 +6292,19 @@ msgstr ""
 
 #: stats/tasks.html.jinja
 msgid "Share of Tasks saves undone, and of fills outside Tasks, by day"
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Counts are gathered every hour, so today's figures fill in as the day goes on."
+msgstr ""
+
+#: stats/tasks.html.jinja
+msgid "Community project progress is counted nightly."
+msgstr ""
+
+#: stats/tasks.html.jinja
+#, python-format
+msgid "Edit totals start on %(date)s, so longer ranges begin partway through."
 msgstr ""
 
 #: subjects/notfound.html
@@ -9960,15 +10010,25 @@ msgid "Editors"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "People who changed a book, work or author record. In week and month views, someone who edited on several days counts once."
+msgid "People who changed a book, work or author record, and those whose first edit ever it was. Week and month views count each person once."
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "First-time editors"
+msgid "Edits saved by people, not bots: to books, works, authors and other pages, to lists, and from the Tasks page."
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "People who made their first edit ever on that day. Each person is counted once, on the day of their first edit."
+#, python-format
+msgid "≈ %(count)s per editor"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "The share of edits saved from the Tasks page."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "of edits · %(share)s of editors"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -9980,11 +10040,34 @@ msgid "Edits saved from the Tasks page."
 msgstr ""
 
 #: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(share)s of all edits"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
 msgid "Tasks editors"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
 msgid "People who saved an edit from the Tasks page. In week and month views, someone who saved on several days counts once."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(share)s of all editors"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Saves per Tasks editor"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Tasks saves for each person who saved one."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "vs ≈ %(count)s edits per editor overall"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -10007,13 +10090,32 @@ msgid "Per 4 weeks"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-#, python-format
-msgid "Previous period: %(count)s"
+msgid "A week earlier"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
 #, python-format
-msgid "%(change)s vs previous period"
+msgid "A week earlier: %(count)s"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "4 weeks earlier: %(count)s"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(change)s vs a week earlier"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(change)s vs 4 weeks earlier"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(change)s vs previous 7 days"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -10041,6 +10143,23 @@ msgstr ""
 
 #: openlibrary/views/loanstats.py
 msgid "No counts for this range yet."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Returning"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "First edit ever"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Records and other pages"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "Total: %(count)s"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
