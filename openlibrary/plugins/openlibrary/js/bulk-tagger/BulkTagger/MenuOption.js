@@ -107,13 +107,25 @@ export class MenuOption {
                 break;
         }
 
-        const markup = `<span class="selected-tag__status selected-tag__status--${bemSuffix}"></span>
-            <span class="selected-tag__name">${this.tag.tagName}</span>
-            <span class="selected-tag__type-container">
-                <span class="selected-tag__type ${typeBadgeClasses[this.tag.tagType]}">${this.tag.displayType}</span>
-            </span>`;
+        // Build with safe DOM construction. `tag.tagName` and `tag.displayType`
+        // are user-controlled tag data and must never be parsed as HTML
+        // (GHSA-6xcf): render them as text, not markup.
+        const statusSpan = document.createElement('span');
+        statusSpan.className = `selected-tag__status selected-tag__status--${bemSuffix}`;
 
-        parentElem.innerHTML = markup;
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'selected-tag__name';
+        nameSpan.textContent = this.tag.tagName;
+
+        const typeContainer = document.createElement('span');
+        typeContainer.className = 'selected-tag__type-container';
+        const typeSpan = document.createElement('span');
+        const badgeClass = typeBadgeClasses[this.tag.tagType];
+        typeSpan.className = badgeClass ? `selected-tag__type ${badgeClass}` : 'selected-tag__type';
+        typeSpan.textContent = this.tag.displayType;
+        typeContainer.appendChild(typeSpan);
+
+        parentElem.replaceChildren(statusSpan, nameSpan, typeContainer);
         this.rootElement = parentElem;
     }
 
