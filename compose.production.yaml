@@ -120,10 +120,6 @@ services:
       # openlibrary.yml needs to reference the service name, to avoid some issues with how we
       # use hostname, and a cyclical networks request (or something)
       infobase_nginx: 207.241.234.145  # ol-home0.us.archive.org
-    deploy:
-      # Note: the replicas here must be kept in sync with the `upstream covers_backend`
-      # value in `docker/covers_nginx.conf`.
-      replicas: 1
 
   covers_nginx:
     profiles: ["ol-covers1"]
