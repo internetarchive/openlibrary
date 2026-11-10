@@ -185,7 +185,7 @@ def visitors_by_day(ndays: int) -> dict[str, int]:
     try:
         points = _get_visitor_counts_from_graphite(ndays)
         return {datetime.fromtimestamp(ts, UTC).date().isoformat(): int(count) for count, ts in points if count is not None}
-    except (ValueError, IndexError, KeyError, TypeError):
+    except ValueError, IndexError, KeyError, TypeError:
         logger.exception("Unreadable visitor counts from Graphite")
         return {}
 
