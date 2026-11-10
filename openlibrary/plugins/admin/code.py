@@ -405,7 +405,10 @@ class people_view:
         code = account.generate_login_code()
         # Clear all existing admin cookies before logging in as another user
         clear_cookies()
-        web.setcookie(config.login_cookie_name, code, expires="")
+        # SameSite=Lax must match the login path (_set_login_cookies): without
+        # it the impersonated session is set without the CSRF protection the
+        # rest of the auth flow relies on. See GHSA-wq89-ph2h-pp44.
+        web.setcookie(config.login_cookie_name, code, expires="", samesite="Lax")
 
         return web.seeother("/")
 
