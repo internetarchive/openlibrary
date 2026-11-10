@@ -150,6 +150,12 @@
       "automerge": false
     },
     {
+      "description": "Held: rolldown 1.2.18's linux-x64-gnu binary was built for x86-64-v3 (uses BMI2) and dies with 'Illegal instruction' on ol-dev1 (testing), whose CPU predates it. Upstream: https://github.com/rolldown/rolldown/issues/11607 (fixed by rolldown#11617, not yet released). vite 8.3.7 requires rolldown ~1.2.18, so vite is held too. Lift once a 1.2.x release with the fix is out, then drop the rolldown override in package.json.",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["vite", "rolldown"],
+      "enabled": false
+    },
+    {
       "matchManagers": ["npm"],
       "matchPackageNames": [
         "@ericblade/quagga2",
