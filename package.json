@@ -85,7 +85,7 @@
     "vitest": "^5.0.0",
     "vitest-browser-lit": "^1.0.1",
     "vitest-browser-vue": "^3.1.0",
-    "vue": "^3.5.34",
+    "vue": "^3.5.42",
     "vue-async-computed": "^4.0.1",
     "vue-multiselect": "^3.5.0",
     "workbox-cacheable-response": "^7.4.1",
@@ -103,7 +103,8 @@
       "form-data": "4.0.5",
       "qs": "6.15.2"
     },
-    "shell-quote": "1.11.0"
+    "shell-quote": "1.11.0",
+    "@vue/server-renderer": "3.5.45"
   },
   "browserslist": [
     "Chrome > 0 and last 3 years",
