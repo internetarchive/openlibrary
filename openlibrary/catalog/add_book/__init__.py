@@ -265,13 +265,11 @@ def load_author_import_records(authors_in, edits, source, save: bool = True):
             a["source_records"] = [source]
         else:
             stored = site.get().get(a["key"])  # Fresh read to check for modifications
-            if a.dict() != stored.dict():
-                edits.append(a.dict())
-                status = "modified"
-            else:
-                status = "matched"
-        if status in ("created", "modified"):
+            status = "modified" if a.dict() != stored.dict() else "matched"
+        if status == "created":
             edits.append(a)
+        elif status == "modified":
+            edits.append(a.dict())
         authors.append({"key": a["key"]})
         author_reply.append(
             {
