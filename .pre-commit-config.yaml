@@ -145,9 +145,13 @@ repos:
     hooks:
       - id: stylelint
         language: node
+        # stylelint 17 resolves plugins with ESM resolution, which ignores the NODE_PATH pre-commit sets, then
+        # falls back to the global npm prefix. A system Node (the pre-commit.ci default) makes that prefix /usr,
+        # so plugins aren't found. A pre-commit-managed Node puts the prefix inside the hook env instead.
+        language_version: lts
         files: \.css$
         additional_dependencies: &stylelint_deps
-          - stylelint@16.26.1
+          - stylelint@17.16.0
           - stylelint-declaration-strict-value@1.11.1
           - postcss-lit@1.4.1
         # --allow-empty-input: pre-commit passes the staged .css files, and
@@ -157,6 +161,7 @@ repos:
       - id: stylelint
         name: stylelint (lit)
         language: node
+        language_version: lts
         # Same hook, but check-only. postcss-lit can't write Lit files back without
         # shifting comment indentation, so --fix would rewrite files that had no errors.
         # Matches all JS so a `css` literal is linted wherever it lands; files
@@ -180,7 +185,7 @@ repos:
           - "@eslint/js@10.0.1"
           - eslint-config-prettier@10.1.8
           - eslint-plugin-vue@10.11.1
-          - globals@15.14.0
+          - globals@17.14.0
         args: [--fix]
 
   - repo: local
