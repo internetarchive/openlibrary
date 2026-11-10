@@ -38,7 +38,7 @@ $def with (md_provider_factory, req, result=None)
                 $ prev = get_document(key)
                 $if prev.type.key == '/type/author':
                     $:macros.SearchAuthorSuggestion([{'key': key.split('/')[-1], 'name': prev.name}])
-                $else:
+                $elif prev.type.key in ('/type/work', '/type/edition'):
                     <ul class="list-books">
                         $:macros.SearchResultsWork(prev, cta=False, show_title_year=True)
                     </ul>
@@ -73,6 +73,12 @@ $def with (md_provider_factory, req, result=None)
                     'modified': _("Edition modified: %(link)s", link=edition_link),
                 }
 
+                def other_headings(edit):
+                    return {
+                        'created': _("New %(thing_type)s record will be created", thing_type=edit['type']['key']),
+                        'modified': _("Changes to %(key)s", key=olid_link(edit['key'])),
+                    }
+
                 def author_headings(key):
                     link = olid_link(key)
                     return {
@@ -86,6 +92,14 @@ $def with (md_provider_factory, req, result=None)
 
             $for author in result.get('authors', []):
                 $:thing_section(author, edits_by_key, author_headings(author['key']))
+
+            $ shown = {result['work']['key'], result['edition']['key']} | {a['key'] for a in result.get('authors', [])}
+            $ other_edits = [edit for edit in result.get('edits', []) if edit['key'] not in shown]
+            $if other_edits:
+                <h3>$_("Other edits")</h3>
+                $for edit in other_edits:
+                    $ status = 'modified' if edit.get('revision') else 'created'
+                    $:thing_section({'key': edit['key'], 'status': status}, edits_by_key, other_headings(edit))
 
             $if result.get('acquisitions'):
                 <section class="import-preview__section">

@@ -422,6 +422,16 @@ msgid "Edition modified: %(link)s"
 msgstr ""
 
 #: import_preview.html
+#, python-format
+msgid "New %(thing_type)s record will be created"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Changes to %(key)s"
+msgstr ""
+
+#: import_preview.html
 msgid "New author will be created"
 msgstr ""
 
@@ -433,6 +443,10 @@ msgstr ""
 #: import_preview.html
 #, python-format
 msgid "Author modified: %(link)s"
+msgstr ""
+
+#: import_preview.html
+msgid "Other edits"
 msgstr ""
 
 #: import_preview.html
