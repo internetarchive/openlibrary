@@ -11,10 +11,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-from markupsafe import Markup
 
 from infogami.utils import macro
-from openlibrary.core.jinja import get_jinja_env
+from openlibrary.core.lists.model import ListPreview
 from openlibrary.fastapi.search import pages
 from openlibrary.plugins.worksearch.code import SearchResponse
 
@@ -26,14 +25,25 @@ def client(site_page_app) -> TestClient:
     return TestClient(site_page_app(pages))
 
 
-@pytest.fixture
-def stub_templetor_partials(monkeypatch):
-    """Stub the Templetor subtemplates (search box, list previews) with safe markers."""
+class FakeList:
+    """A list that only knows how to preview itself (see `List.card`)."""
 
-    def stub(name, *args, **kwargs):
-        return Markup(f'<div data-stub="{name}"></div>')
+    def __init__(self, key: str, name: str):
+        self.key = key
+        self.name = name
 
-    monkeypatch.setitem(get_jinja_env().globals, "render_templetor_template", stub)
+    def card(self, current_user_key: str | None = None) -> ListPreview:
+        return ListPreview(
+            key=self.key,
+            name=self.name,
+            cover_url="/static/images/icons/avatar_book-sm.png",
+            owner_key="/people/jane",
+            owner_name="Jane",
+            is_owner=current_user_key == "/people/jane",
+            item_count=2,
+            modified="2 days ago",
+            description_html="<p>About <em>dogs</em></p>",
+        )
 
 
 def _solr_response(*keys, error: str = "", num_found: int | None = None) -> SearchResponse:
@@ -60,7 +70,7 @@ def patched_search(stack: ExitStack, response: SearchResponse, lists: list | Non
     return current_site
 
 
-def test_lists_page_without_query(client, stub_templetor_partials):
+def test_lists_page_without_query(client):
     with ExitStack() as stack:
         patched_search(stack, _solr_response())
         response = client.get("/search/lists")
@@ -77,7 +87,7 @@ def test_lists_page_without_query(client, stub_templetor_partials):
     assert "ol-pagination-wrapper" not in html
 
 
-def test_lists_page_title_leads_with_the_query(client, stub_templetor_partials):
+def test_lists_page_title_leads_with_the_query(client):
     with ExitStack() as stack:
         patched_search(stack, _solr_response())
         response = client.get("/search/lists?q=pokemon+%3Cstuff%3E")
@@ -86,12 +96,12 @@ def test_lists_page_title_leads_with_the_query(client, stub_templetor_partials):
     assert "<title>pokemon &lt;stuff&gt; - List search | Open Library</title>" in response.text
 
 
-def test_lists_page_results(client, stub_templetor_partials):
+def test_lists_page_results(client):
     with ExitStack() as stack:
         current_site = patched_search(
             stack,
             _solr_response("/people/jane/lists/OL1L", "/people/jane/lists/OL2L", num_found=45),
-            lists=[MagicMock(), MagicMock()],
+            lists=[FakeList("/people/jane/lists/OL1L", "Dogs"), FakeList("/people/jane/lists/OL2L", "More dogs")],
         )
         response = client.get("/search/lists?q=dogs")
 
@@ -100,14 +110,20 @@ def test_lists_page_results(client, stub_templetor_partials):
     assert "search-results-stats" in html
     assert "1 hit" not in html  # 45 found, so the plural form
     assert 'id="listResults"' in html
-    assert html.count('data-stub="lists/preview"') == 2  # one per list doc
+    assert html.count('class="searchResultItem"') == 2  # one preview per list doc
+    assert "Dogs" in html
+    # The owner's byline, and the list's size and last-modified date
+    assert 'by <a href="/people/jane">Jane</a>' in " ".join(html.split())
+    assert "2 items" in html
+    assert "Last modified 2 days ago" in html
+    assert "<p>About <em>dogs</em></p>" in html
     # One page per 20 results
     assert 'total-pages="3"' in html
     assert 'current-page="1"' in html
     current_site.get_many.assert_called_once_with(["/people/jane/lists/OL1L", "/people/jane/lists/OL2L"])
 
 
-def test_lists_page_respects_page_param(client, stub_templetor_partials):
+def test_lists_page_respects_page_param(client):
     with ExitStack() as stack:
         patched_search(stack, _solr_response(num_found=45))
         response = client.get("/search/lists?q=dogs&page=3")
@@ -116,7 +132,7 @@ def test_lists_page_respects_page_param(client, stub_templetor_partials):
     assert 'current-page="3"' in response.text
 
 
-def test_lists_page_no_results(client, stub_templetor_partials):
+def test_lists_page_no_results(client):
     with ExitStack() as stack:
         patched_search(stack, _solr_response())
         response = client.get("/search/lists?q=zzzzz")
@@ -129,7 +145,7 @@ def test_lists_page_no_results(client, stub_templetor_partials):
     assert "listResults" not in html
 
 
-def test_lists_page_solr_error(client, stub_templetor_partials):
+def test_lists_page_solr_error(client):
     with ExitStack() as stack:
         patched_search(stack, _solr_response(error="first problem\nsecond problem"))
         response = client.get("/search/lists?q=broken")
@@ -141,7 +157,7 @@ def test_lists_page_solr_error(client, stub_templetor_partials):
     assert "listResults" not in html
 
 
-def test_lists_page_escapes_query(client, stub_templetor_partials):
+def test_lists_page_escapes_query(client):
     with ExitStack() as stack:
         patched_search(stack, _solr_response())
         response = client.get("/search/lists?q=%22%3E%3Cscript%3E")

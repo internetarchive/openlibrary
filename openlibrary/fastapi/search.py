@@ -30,7 +30,7 @@ from openlibrary.fastapi.models import (
     SolrInternalsParams,
     parse_comma_separated_list,
 )
-from openlibrary.fastapi.shared.site_page import SitePage, SitePageRoute
+from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SitePageRoute
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
@@ -604,7 +604,7 @@ def lists_search_title(q: str) -> str:
 
 
 @pages.get("/search/lists")
-async def search_lists(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePage:
+async def search_lists(nav: SearchNavDep, user: CurrentUserDep, q: str = "", page: int = 1) -> SitePage:
     # TODO: Retire the web.py `list_search` handler (it still serves /search/lists
     # in production) once production routes /search/lists here.
     page = max(1, page)
@@ -625,7 +625,7 @@ async def search_lists(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePag
         nav=nav,
         q=q,
         search_response=response,
-        lists=lists,
+        previews=[lst.card(user.key if user else None) for lst in lists],
         commified_num_found=commify(response.num_found),
         page=page,
         total_pages=ceil(response.num_found / limit),

@@ -1,4 +1,5 @@
 {% from "search/searchbox.html.jinja" import searchbox %}
+{% from "lists/preview.html.jinja" import list_card %}
 {% from "OlPagination.html.jinja" import ol_pagination %}
 {% from "LoadingIndicator.html.jinja" import loading_indicator %}
 <div id="contentHead">
@@ -28,8 +29,8 @@
             </div>
             <div class="mybooks-list">
                 <ul id="listResults" class="list-books">
-                    {% for list in lists %}
-                        <li class="searchResultItem">{{ render_templetor_template("lists/preview", list) }}</li>
+                    {% for preview in previews %}
+                        <li class="searchResultItem">{{ list_card(preview) }}</li>
                     {% endfor %}
                 </ul>
             </div>

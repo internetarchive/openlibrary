@@ -21,6 +21,7 @@ from infogami import config
 from infogami.infobase.client import storify
 from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
+from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import is_passage_query
@@ -1068,7 +1069,7 @@ class list_search(delegate.page):
             nav=SearchNav.from_query(web.ctx.path, web.input(_method="get")),
             q=req.q,
             search_response=resp,
-            lists=lists,
+            previews=[lst.card(user.key if (user := get_current_user()) else None) for lst in lists],
             commified_num_found=commify(resp.num_found),
             page=req.page,
             total_pages=ceil(resp.num_found / req.limit),
