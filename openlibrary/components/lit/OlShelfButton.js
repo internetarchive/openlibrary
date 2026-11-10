@@ -181,6 +181,7 @@ export class OlShelfButton extends LitElement {
             color: var(--color-text);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
+            font-weight: var(--font-weight-button);
             cursor: pointer;
         }
 

@@ -1,0 +1,16 @@
+{# djlint:off J004,H021 #}
+{# Verbatim port of the Templetor macro: same markup, same static URL and inline style. #}
+{% macro loading_indicator(caption, additional_classes="", hidden=True) %}
+    <div class="{{ 'hidden' if hidden else '' }} loadingIndicator {{ additional_classes }}">
+        <figure>
+            <img src="/static/images/ajax-loader-bar.gif"
+                 alt="{{ _('Loading indicator') }}"
+                 loading="lazy">
+            <figcaption style="justify-content: center; display: flex;">{{ caption }}</figcaption>
+        </figure>
+    </div>
+{% endmacro %}
+{#- Rendering this file directly (from Templetor's LoadingIndicator macro) draws the indicator. -#}
+{% if caption is defined %}
+    {{ loading_indicator(caption, additional_classes|default(""), hidden|default(True)) }}
+{% endif %}

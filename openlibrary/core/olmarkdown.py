@@ -193,6 +193,32 @@ class LinkParenPreprocessor(markdown.Preprocessor):
 
 LINK_PAREN_PREPROCESSOR = LinkParenPreprocessor()
 
+LINK_SPAN_RE = r"\[[^\]]*\]\s*(?:\([^)]*\)|\[[^\]]*\])"
+
+
+def emphasis_containing_link_re(delimiter):
+    """Match text wrapped in `delimiter` that contains a link.
+
+    The base LINK_PATTERN runs before the emphasis patterns and splits the line
+    at each link, so emphasis around a link never matches. Patterns built from
+    this run before LINK_PATTERN instead. As in CommonMark, an opening delimiter
+    can't follow a letter or digit or come before whitespace, and a closing one
+    the reverse, so emphasis on either side of a link isn't paired across it.
+    """
+    delim = re.escape(delimiter)
+    char = re.escape(delimiter[0])
+    other = rf"(?:(?!{delim})[^\[]|(?!{LINK_SPAN_RE})\[)"
+    text = rf"(?:{other})*{LINK_SPAN_RE}(?:{LINK_SPAN_RE}|{other})*"
+    return rf"(?<![^\W_]|{char}){delim}(?![\s{char}])({text})(?<![\s{char}]){delim}(?![^\W_]|{char})"
+
+
+EMPHASIS_AROUND_LINK_PATTERNS = [
+    markdown.SimpleTagPattern(emphasis_containing_link_re("**"), "strong"),
+    markdown.SimpleTagPattern(emphasis_containing_link_re("__"), "strong"),
+    markdown.SimpleTagPattern(emphasis_containing_link_re("*"), "em"),
+    markdown.SimpleTagPattern(emphasis_containing_link_re("_"), "em"),
+]
+
 
 class OLMarkdown(markdown.Markdown):
     """Open Library flavored Markdown, inspired by [Github Flavored Markdown][GFM].
@@ -213,6 +239,8 @@ class OLMarkdown(markdown.Markdown):
         patterns = self.inlinePatterns
         autolink = markdown.AutolinkPattern(markdown.AUTOLINK_RE.replace("http", "https?"))
         patterns[patterns.index(markdown.AUTOLINK_PATTERN)] = autolink
+        first_link_pattern = patterns.index(markdown.IMAGE_LINK_PATTERN)
+        patterns[first_link_pattern:first_link_pattern] = EMPHASIS_AROUND_LINK_PATTERNS
 
         p = self.preprocessors
         p.insert(0, FENCED_CODE_PREPROCESSOR)

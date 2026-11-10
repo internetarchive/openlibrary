@@ -22,7 +22,7 @@ jobs:
     if: ${{ github.repository == 'internetarchive/openlibrary' && !github.event.pull_request.draft }}
     permissions:
       contents: read
-      issues: read
+      issues: write  # swaps Needs: Response for Needs: Review on issues the PR references
       pull-requests: write
     runs-on: ubuntu-latest
     steps:

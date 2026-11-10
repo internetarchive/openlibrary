@@ -93,14 +93,14 @@ class TestWaitingLoanGetWaitingInDays:
 
     def test_waiting_in_days_for_new_loan(self):
         """Test that a new loan has waited 1 day (includes current day)."""
-        today = dt.datetime.utcnow()
+        today = dt.datetime.now(dt.UTC).replace(tzinfo=None)
         w = WaitingLoan({"since": today.isoformat()})
         # Should be 1 day because it adds 1 to round off
         assert w.get_waiting_in_days() == 1
 
     def test_waiting_in_days_for_week_old_loan(self):
         """Test calculating days waited for a loan from a week ago."""
-        week_ago = dt.datetime.utcnow() - dt.timedelta(days=7)
+        week_ago = dt.datetime.now(dt.UTC).replace(tzinfo=None) - dt.timedelta(days=7)
         w = WaitingLoan({"since": week_ago.isoformat()})
         # 7 days + 1 for rounding = 8
         assert w.get_waiting_in_days() == 8
@@ -111,7 +111,7 @@ class TestWaitingLoanGetExpiryInHours:
 
     def test_expiry_in_hours_when_expiring_soon(self):
         """Test calculating hours until expiry for a loan expiring soon."""
-        expiry_time = dt.datetime.utcnow() + dt.timedelta(hours=2, minutes=30)
+        expiry_time = dt.datetime.now(dt.UTC).replace(tzinfo=None) + dt.timedelta(hours=2, minutes=30)
         w = WaitingLoan({"expiry": expiry_time.isoformat()})
         # Should be approximately 2.5 hours
         result = w.get_expiry_in_hours()
@@ -119,7 +119,7 @@ class TestWaitingLoanGetExpiryInHours:
 
     def test_expiry_in_hours_when_expired(self):
         """Test that expired loans return 0 hours."""
-        past_time = dt.datetime.utcnow() - dt.timedelta(hours=5)
+        past_time = dt.datetime.now(dt.UTC).replace(tzinfo=None) - dt.timedelta(hours=5)
         w = WaitingLoan({"expiry": past_time.isoformat()})
         assert w.get_expiry_in_hours() == 0.0
 
@@ -131,7 +131,7 @@ class TestWaitingLoanGetExpiryInHours:
     def test_expiry_in_hours_clamps_negative_to_zero(self):
         """Test that a loan that just expired returns 0, not negative hours."""
         # A loan that expired 5 seconds ago
-        five_seconds_ago = dt.datetime.utcnow() - dt.timedelta(seconds=5)
+        five_seconds_ago = dt.datetime.now(dt.UTC).replace(tzinfo=None) - dt.timedelta(seconds=5)
         w = WaitingLoan({"expiry": five_seconds_ago.isoformat()})
         # Should be 0.0, not negative, due to max(0.0, ...)
         result = w.get_expiry_in_hours()
@@ -152,7 +152,7 @@ class TestWaitingLoanDict:
 
     def test_dict_is_json_serializable(self):
         """Test that the dict output can be serialized to JSON."""
-        since = dt.datetime.utcnow()
+        since = dt.datetime.now(dt.UTC).replace(tzinfo=None)
         w = WaitingLoan(
             {
                 "status": "waiting",

@@ -177,27 +177,50 @@ class VisitorStats(Stats):
         return [(int(timestamp * 1000), int(count or 0)) for count, timestamp in visitors]
 
 
+def read_count_docs(site, ndays: int) -> list[dict]:
+    """The daily count docs `scripts/store_counts.py` writes, oldest first, for the last `ndays` up to today. Days with no
+    doc are left out. Takes the site so FastAPI (`site.get()`) and web.py (`web.ctx.site`) can both read them."""
+    today = date.today()
+    dates = [today - timedelta(days=i) for i in reversed(range(ndays))]
+    docs = [site.store.get(d.strftime("counts-%Y-%m-%d")) for d in dates]
+    return [d for d in docs if d]
+
+
+# The flat keys a count doc held before the stats job counted every initiative, by the nested key that replaced each.
+LEGACY_INITIATIVE_KEYS = {
+    "open": "initiative_open_gaps",
+    "done": "initiative_done_editions",
+    "not_found": "initiative_not_found",
+    "editions": "initiative_editions",
+    "people": "initiative_people",
+}
+
+
+def initiative_counts(doc: dict) -> dict[str, dict[str, int]]:
+    """A count doc's initiative snapshots by slug, each with ``open``, ``done``, ``not_found``, ``editions`` and ``people``.
+
+    Older docs held only the headline initiative's, in flat keys, so its history reads on across the change."""
+    if (counts := doc.get("initiatives")) is not None:
+        return counts
+    if not (slug := doc.get("initiative_slug")):
+        return {}
+    return {slug: {name: doc[key] for name, key in LEGACY_INITIATIVE_KEYS.items() if key in doc}}
+
+
 @cache.memoize(engine="memcache", key="admin._get_count_docs", expires=5 * 60)
-def _get_count_docs(ndays):
+def get_count_docs(ndays: int) -> list[dict]:
     """Returns the count docs from admin stats database.
 
     This function is memoized to avoid accessing the db for every request.
     """
-    today = date.today()
-    dates = [today - timedelta(days=i) for i in range(ndays)]
-
-    # we want the dates in reverse order
-    dates.reverse()
-
-    docs = [web.ctx.site.store.get(d.strftime("counts-%Y-%m-%d")) for d in dates]
-    return [d for d in docs if d]
+    return read_count_docs(web.ctx.site, ndays)
 
 
 def get_stats(ndays=30, use_mock_data=False):
     """Returns the stats for the past `ndays`"""
     if use_mock_data:
         return mock_get_stats(ndays)
-    docs = _get_count_docs(ndays)
+    docs = get_count_docs(ndays)
     return {
         "human_edits": Stats(docs, "human_edits", "human_edits"),
         "bot_edits": Stats(docs, "bot_edits", "bot_edits"),
@@ -214,6 +237,30 @@ def get_stats(ndays=30, use_mock_data=False):
         "authors": Stats(docs, "authors", "total_authors"),
         "subjects": Stats(docs, "subjects", "total_subjects"),
     }
+
+
+def rolling_counts(all_docs: list[dict], keys: list[str], lookback: int = 28) -> dict[str, dict | None]:
+    """Rolling counts from the daily docs, by key: the latest value and the value `lookback` days before it. None for a
+    key the stats script hasn't written yet."""
+    counts: dict[str, dict | None] = {}
+    for key in keys:
+        if not (docs := [d for d in all_docs if key in d]):
+            counts[key] = None
+            continue
+        before = (datetime.strptime(docs[-1]["_key"], "counts-%Y-%m-%d") - timedelta(days=lookback)).strftime("counts-%Y-%m-%d")
+        counts[key] = {"latest": docs[-1][key], "earlier": next((d[key] for d in docs if d["_key"] == before), None)}
+    return counts
+
+
+def get_rolling_counts(keys: list[str], ndays: int, lookback: int = 28) -> dict[str, dict | None]:
+    "`rolling_counts` over the cached docs, each with a bar chart of the last `ndays`."
+    all_docs = get_count_docs(ndays + lookback)
+    counts = rolling_counts(all_docs, keys, lookback)
+    for key, count in counts.items():
+        if count:
+            docs = [d for d in all_docs if key in d]
+            count["chart"] = Stats(docs, key, key).get_bar_chart(min(ndays, len(docs)), width=250, height=35)
+    return counts
 
 
 @cache.memoize(engine="memcache", key="logins_since", expires=12 * 60 * 60)

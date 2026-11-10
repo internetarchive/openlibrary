@@ -4,6 +4,7 @@ import pytest
 import web
 
 from openlibrary.core.models import Tag
+from openlibrary.plugins.upstream import addtag
 from openlibrary.plugins.upstream.addtag import (
     SUBJECT_SUB_TYPES,
     TAG_TYPES,
@@ -90,3 +91,40 @@ def test_tag_edit_validate_accepts_new_types(tag_type):
         slugs=["thriller"],
     )
     assert handler.validate(data, tag_type)
+
+
+def test_tag_edit_delete_skips_form_validation(monkeypatch):
+    """A bare `_delete` POST must delete the tag without a full, valid tag form."""
+    key = "/tags/OL1T"
+    saved = {}
+
+    class FakeDoc:
+        def __init__(self, data):
+            self.data = data
+
+        def _save(self, comment=None, action=None):
+            saved.update(data=self.data, comment=comment, action=action)
+
+    class FakeSite:
+        def get(self, k):
+            return web.storage(key=k, tag_type="subject")
+
+        def new(self, k, data):
+            return FakeDoc(data)
+
+    class Redirect(Exception):
+        pass
+
+    monkeypatch.setattr(web.ctx, "site", FakeSite(), raising=False)
+    monkeypatch.setattr(web, "input", lambda **kw: web.storage(kw, _delete="true", _comment="bye"))
+    monkeypatch.setattr(tag_edit, "has_permission", lambda self, tag: True)
+    monkeypatch.setattr(addtag, "safe_seeother", Redirect)
+
+    with pytest.raises(Redirect):
+        tag_edit().POST(key)
+
+    assert saved == {
+        "data": {"key": key, "type": {"key": "/type/delete"}},
+        "comment": "bye",
+        "action": "delete-tag",
+    }

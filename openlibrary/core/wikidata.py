@@ -12,7 +12,7 @@ from datetime import datetime
 
 import requests
 
-from openlibrary.core import db
+from openlibrary.core import db  # noqa: TID251
 from openlibrary.core.helpers import days_since
 
 logger = logging.getLogger("core.wikidata")

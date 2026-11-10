@@ -349,11 +349,29 @@ function initIconFilter(root) {
 }
 
 /**
+ * The ol-popover a pinnable host opens: the host itself, or the first one
+ * found through its shadow roots (ol-shelf-button keeps its popover two
+ * levels down, inside ol-shelf-actions).
+ */
+function findPopover(host, depth = 0) {
+    if (host.tagName === 'OL-POPOVER') return host;
+    const shadow = host.shadowRoot;
+    if (!shadow || depth > 3) return null;
+    const direct = shadow.querySelector('ol-popover');
+    if (direct) return direct;
+    for (const child of shadow.querySelectorAll('*')) {
+        const found = child.shadowRoot && findPopover(child, depth + 1);
+        if (found) return found;
+    }
+    return null;
+}
+
+/**
  * Playground "Pin open": hold every panel in the menus check open at once so
  * their rows can be compared side by side. The composed popovers (menu,
- * options, select) keep their ol-popover in their shadow root and expose no
- * open/auto-close of their own, so this QA surface reaches in for it — a
- * playground-only liberty, not a pattern for product code.
+ * options, select, shelf actions) keep their ol-popover in their shadow root
+ * and expose no open/auto-close of their own, so this QA surface reaches in
+ * for it — a playground-only liberty, not a pattern for product code.
  */
 function initPinnedMenus(root) {
     const toggle = root.querySelector('[data-ds-pin-menus]');
@@ -365,7 +383,7 @@ function initPinnedMenus(root) {
         const pinned = event.detail.checked;
         section?.classList.toggle('ds--menus-pinned', pinned);
         panels.forEach(host => {
-            const popover = host.tagName === 'OL-POPOVER' ? host : host.shadowRoot?.querySelector('ol-popover');
+            const popover = findPopover(host);
             if (!popover) return;
             popover.autoClose = !pinned;
             popover.open = pinned;

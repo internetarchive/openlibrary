@@ -1,8 +1,10 @@
 {#- Shared pieces of the /tasks pages. Data arrives precomputed from
     openlibrary/plugins/openlibrary/contribute.py; nothing here calls functions on it. -#}
-{% macro book_header(book, compact=False, linked=True) %}
-    {#- linked=False (dashboard cards): cover and title aren't links, so a stray click can't be mistaken
-        for starting a task; view/edit buttons in the corner reach the book instead. -#}
+{% macro book_header(book, compact=False, href=None, track=None) %}
+    {#- ``href`` is where the cover and title lead: the book page by default, or a task on the dashboard,
+        where people click the title expecting to start one. When it isn't the book page, view/edit
+        buttons in the corner reach the book instead. ``track`` is the title link's "Category|Action|Label". -#}
+    {% set href = href or book.key %}
     {% set cover %}
         {% if book.cover_url %}
             <img class="contrib-book__cover"
@@ -17,22 +19,15 @@
         {% endif %}
     {% endset %}
     <div class="contrib-book{% if compact %} contrib-book--compact{% endif %}">
-        {% if linked %}
-            {#- A second way to the title's link, so keep it out of the tab order and the accessibility tree. -#}
-            <a class="contrib-cover-link"
-               href="{{ book.key }}"
-               tabindex="-1"
-               aria-hidden="true">{{ cover }}</a>
-        {% else %}
-            {{ cover }}
-        {% endif %}
+        {#- A second way to the title's link, so keep it out of the tab order and the accessibility tree. -#}
+        <a class="contrib-cover-link"
+           href="{{ href }}"
+           tabindex="-1"
+           aria-hidden="true">{{ cover }}</a>
         <div class="contrib-book__meta">
             <div class="contrib-book__title">
-                {% if linked %}
-                    <a href="{{ book.key }}">{{ book.title }}</a>
-                {% else %}
-                    {{ book.title }}
-                {% endif %}
+                <a href="{{ href }}"
+                   {% if track %} data-ol-link-track="{{ track }}"{% endif %}>{{ book.title }}</a>
             </div>
             {% if book.authors %}<div class="contrib-book__authors">{{ book.authors }}</div>{% endif %}
             <div class="contrib-book__line">
@@ -46,7 +41,7 @@
                 <div class="contrib-book__why">{{ _("Why this book: on about %(count)s readers' shelves.", count="{:,}".format(book.readers)) }}</div>
             {% endif %}
         </div>
-        {% if not linked %}
+        {% if href != book.key %}
             <div class="contrib-book__actions">
                 <ol-tooltip content="{{ _('Go to book page') }}">
                     <ol-button variant="ghost" shape="icon" size="small" href="{{ book.key }}" aria-label="{{ _('Go to book page') }}">
@@ -62,10 +57,46 @@
         {% endif %}
     </div>
 {% endmacro %}
-{% macro task_row(task) %}
-    {#- One to-do per field, styled as a menu item: an icon and the action it leads to. -#}
+{% macro saved_receipt(receipt) %}
+    {#- What "Save and next" just saved. -#}
+    <div class="contrib-saved" role="status" data-receipt>
+        <div class="contrib-receipt">
+            {% if receipt.cover_url %}
+                <img class="contrib-receipt__cover"
+                     src="{{ receipt.cover_url }}"
+                     alt=""
+                     width="64"
+                     height="96" />
+            {% endif %}
+            <div>
+                <div class="contrib-saved__status">{{ icon("circle-check", size="sm") }}{{ _("Just saved") }}</div>
+                <div class="contrib-saved__book">
+                    <div class="contrib-saved__title">
+                        <a href="{{ receipt.url }}" data-ol-link-track="TaskForm|SavedBook">{{ receipt.title }}</a>
+                    </div>
+                    <div class="contrib-saved__detail">
+                        {% if receipt.value %}
+                            {{ _("%(field)s added: %(value)s", field=receipt.field_label, value=receipt.value) }}
+                        {% else %}
+                            {{ _("%(field)s added", field=receipt.field_label) }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <ol-tooltip class="contrib-book__actions" content="{{ _('Go to book page') }}">
+                <ol-button variant="ghost" shape="icon" size="small" href="{{ receipt.url }}" aria-label="{{ _('Go to book page') }}">
+                    {{ icon("eye", size="sm") }}
+                </ol-button>
+            </ol-tooltip>
+        </div>
+    </div>
+{% endmacro %}
+{% macro task_row(task, track) %}
+    {#- One to-do per field, styled as a menu item: an icon and the action it leads to.
+        ``track`` is the analytics "Category|Action"; the field becomes the label. -#}
     <li class="contrib-row__task" data-task-key="{{ task.key }}">
-        <a href="{{ task.url }}">
+        <a href="{{ task.url }}"
+           data-ol-link-track="{{ track }}|{{ task.field }}">
             <span class="contrib-row__badge">{{ icon("plus", size="sm") }}</span>
             <span>{{ task.action_label }}</span>
         </a>
@@ -74,9 +105,12 @@
 {% macro how_to(field_guide, links) %}
     <section class="contrib-help">
         <h2 class="contrib-h">{{ _("How to answer") }}</h2>
-        <ol class="contrib-steps">
+        {#- One step needs no number. -#}
+        <ol class="contrib-steps{% if not field_guide.notes %} contrib-steps--one{% endif %}">
             <li>
-                <p>{{ field_guide.how }}</p>
+                <div class="contrib-steps__text">
+                    {% for para in field_guide.how.split("\n\n") %}<p>{{ para }}</p>{% endfor %}
+                </div>
                 {% if links %}
                     <ul class="contrib-linkouts">
                         {% for link in links %}
@@ -85,7 +119,7 @@
                             </li>
                         {% endfor %}
                     </ul>
-                {% else %}
+                {% elif field_guide.sources %}
                     <p class="contrib-muted">{{ _("This edition has no ISBN to search by, so look it up by title and author.") }}</p>
                 {% endif %}
             </li>
@@ -105,13 +139,19 @@
         <h2 class="contrib-h">{{ _("How this edit goes wrong") }}</h2>
         <ul class="contrib-traps">
             {% for trap in items %}
-                <li class="contrib-trap">
-                    {{ icon("triangle-alert", size="sm") }}
-                    <span>{{ trap }}</span>
-                </li>
+                <li>{{ trap }}</li>
             {% endfor %}
         </ul>
     </section>
+{% endmacro %}
+{% macro evidence(blurb) %}
+    {#- For a judgment, the record's own description is a clue; with none, the how-to's lookups stand in. -#}
+    {% if blurb %}
+        <section class="contrib-help">
+            <h2 class="contrib-h">{{ _("What the record says") }}</h2>
+            <p class="contrib-evidence">{{ blurb }}</p>
+        </section>
+    {% endif %}
 {% endmacro %}
 {% macro sibling_tally(tally, siblings, total, hint) %}
     {#- What the work's other editions put in this field: a count per value, then each edition behind a disclosure. -#}
@@ -157,8 +197,116 @@
         </details>
     </section>
 {% endmacro %}
-{% macro answer_control(task, field_guide, is_identifier, value, languages) %}
-    {% if is_identifier %}
+{% macro chip_choices(name, many, labelled_by) %}
+    {#- Any number of a field's tags, as chips: a tap toggles one. contribute.js keeps a hidden input per pick, so the
+        form posts the picked keys under ``name``; the ones rendered here are the picks an error re-render carries over.
+        The tags the work's subjects name come first, in a row of their own, never picked in advance: with "Save and next"
+        a pre-made pick would write the subjects' noise into the record at speed. Each says why on hover, and lights the
+        subjects behind it in the record (contribute.js). The headings name genres: that is the one many-tags field. -#}
+    <div class="contrib-chips" data-many-choice="{{ name }}">
+        {% if many.suggested %}
+            <div class="contrib-chips__group">
+                <span class="contrib-h" id="{{ labelled_by }}-suggested">{{ _("Suggested by the subjects") }}</span>
+                <ol-chip-group aria-labelledby="{{ labelled_by }} {{ labelled_by }}-suggested">
+                    {% for opt in many.options if opt.value in many.suggested %}
+                        <ol-tooltip content="{{ many.suggested[opt.value].why }}">
+                            <ol-chip data-value="{{ opt.value }}" data-subjects='{{ many.suggested[opt.value].subjects | tojson }}' {% if opt.value in many.selected %}selected{% endif %}>
+                                {{ opt.label }}
+                            </ol-chip>
+                        </ol-tooltip>
+                    {% endfor %}
+                </ol-chip-group>
+            </div>
+        {% endif %}
+        <div class="contrib-chips__group">
+            {% set others_labels = labelled_by ~ " " ~ labelled_by ~ "-others" if many.suggested else labelled_by %}
+            {% if many.suggested %}<span class="contrib-h" id="{{ labelled_by }}-others">{{ _("Other genres") }}</span>{% endif %}
+            <ol-chip-group aria-labelledby="{{ others_labels }}">
+                {% for opt in many.options if opt.value not in many.suggested %}
+                    <ol-chip data-value="{{ opt.value }}" {% if opt.value in many.selected %}selected{% endif %}>
+                        {{ opt.label }}
+                    </ol-chip>
+                {% endfor %}
+            </ol-chip-group>
+        </div>
+        {% for picked in many.selected %}
+            <input type="hidden" name="{{ name }}" value="{{ picked }}" />
+        {% endfor %}
+    </div>
+{% endmacro %}
+{% macro chip_label(id, label, hint) %}
+    {#- The label row over a full-width chip group, with the how-many hint beside it. -#}
+    <span class="contrib-record__ask-label" id="{{ id }}">{{ label }}</span>
+    {% if hint %}<span class="contrib-field__hint contrib-muted">{{ hint }}</span>{% endif %}
+{% endmacro %}
+{% macro answer_control(task, field_guide, is_identifier, value, languages, cover_suggestion=None, choices=[], many=None) %}
+    {% if many %}
+        {{ chip_choices(task.field, many, "contrib-other-label") }}
+    {% elif choices %}
+        {#- A few fixed answers with what each means, none picked in advance: a judgment the librarian makes, not a
+            default they confirm. "Not sure" is one of the rows; the handler counts it the way it counts "I couldn't find it".
+            With quick_next, the picked row shows a hint that a second click saves and moves on (contribute.js). -#}
+        {% with name="value", rows=choices, labelled_by="contrib-other-label",
+            again_hint=(_("Click again to save and continue") if field_guide.quick_next else "") %}
+            {% include "forms/choice_list.html.jinja" %}
+        {% endwith %}
+    {% elif field_guide.input_type == "file" %}
+        {#- The choices for the new cover, as rows. Each fills the one file input, so saving is the same for all of them.
+            contribute.js reveals the Amazon row once its image loads, and previews the choice in the record's cover slot. -#}
+        <fieldset class="contrib-cover-options">
+            <legend class="contrib-visually-hidden">{{ _("Choose the new cover") }}</legend>
+            {% if cover_suggestion %}
+                <label class="contrib-cover-option"
+                       data-cover-option="suggested"
+                       data-cover-suggestion="{{ cover_suggestion.url }}"
+                       hidden>
+                    <input type="radio"
+                           name="cover_choice"
+                           value="suggested"
+                           class="contrib-visually-hidden" />
+                    <img class="contrib-cover-option__thumb"
+                         data-cover-suggested-thumb
+                         alt=""
+                         width="160"
+                         height="240" />
+                    <span class="contrib-cover-option__text">
+                        <span class="contrib-cover-option__title">{{ _("Cover from Amazon") }}</span>
+                        <span class="contrib-cover-option__meta">{{ _("Found by ISBN %(isbn)s", isbn=cover_suggestion.isbn10) }}</span>
+                    </span>
+                </label>
+            {% endif %}
+            <div class="contrib-cover-option contrib-cover-option--upload"
+                 data-cover-option="upload"
+                 data-cover-drop>
+                <label class="contrib-cover-option__pick">
+                    <input type="radio"
+                           name="cover_choice"
+                           value="upload"
+                           class="contrib-visually-hidden" />
+                    <span class="contrib-cover-option__thumb contrib-cover-option__thumb--empty">
+                        {{ icon("upload", size="lg") }}
+                        <img data-cover-upload-thumb alt="" hidden />
+                    </span>
+                    <span class="contrib-cover-option__text">
+                        <span class="contrib-cover-option__title">{{ _("Upload a new image") }}</span>
+                        <span class="contrib-cover-option__meta" data-cover-upload-name>{{ _("Drop a file here, paste, or browse") }}</span>
+                    </span>
+                </label>
+                <ol-button class="contrib-cover-option__browse" variant="secondary" size="small" type="button" data-cover-browse>
+                    {{ _("Browse") }}
+                </ol-button>
+                <input id="contrib-other-value"
+                       type="file"
+                       name="file"
+                       class="contrib-visually-hidden"
+                       accept=".jpg, .jpeg, .gif, .png, .webp"
+                       required
+                       tabindex="-1"
+                       data-cover-input />
+            </div>
+        </fieldset>
+        <p class="contrib-muted contrib-field__hint">{{ _("JPG, GIF, PNG or WebP, up to 10 MB.") }}</p>
+    {% elif is_identifier %}
         <input id="contrib-other-value"
                type="text"
                name="value"
@@ -189,34 +337,46 @@
 {% endmacro %}
 {% macro record_form(data) %}
     {#- The edition's record with the missing field as the live input, so the answer has an obvious place.
-        An identifier answer is gated behind "I opened the record": a wrong number silently corrupts record matching. -#}
+        Identifiers are gated behind a confirm box: a wrong number silently corrupts record matching. -#}
     {% set task = data.task %}
     {% set book = data.book %}
     <form method="post"
           action="{{ task.url }}"
           class="contrib-answer"
+          {% if data.is_cover %}enctype="multipart/form-data" data-cover-form{% endif %}
           data-task-form
           {% if data.is_identifier %}data-id-form{% endif %}
-          data-task-key="{{ task.key }}">
+          {% if data.field_guide.quick_next %}data-quick-next{% endif %}
+          data-task-key="{{ task.key }}"
+          data-task-field="{{ task.field }}">
+        {% if data.initiative %}<input type="hidden" name="initiative" value="{{ data.initiative }}" />{% endif %}
         {% if data.error %}<p class="ol-message ol-message--error" role="alert">{{ data.error }}</p>{% endif %}
         <div class="contrib-record">
             {#- A second way to the title's link, so keep it out of the tab order and the accessibility tree. -#}
-            <a class="contrib-cover-link"
-               href="{{ book.key }}"
-               tabindex="-1"
-               aria-hidden="true">
-                {% if book.cover_url %}
-                    <img class="contrib-record__cover"
-                         src="{{ book.cover_url }}"
-                         alt=""
-                         width="96"
-                         height="144"
-                         loading="lazy" />
-                {% else %}
-                    <div class="contrib-record__cover contrib-book__cover--empty"
-                         aria-hidden="true">{{ icon("book-open", size="md") }}</div>
-                {% endif %}
-            </a>
+            {% if data.is_cover %}
+                {#- The slot the answer fills: a drop target that shows the chosen image. The file input is the accessible control. -#}
+                <div class="contrib-record__cover contrib-cover-drop" data-cover-drop>
+                    <span class="contrib-cover-drop__empty" aria-hidden="true">{{ icon("image", size="lg") }}</span>
+                    <img class="contrib-cover-drop__preview" data-cover-preview alt="" hidden />
+                </div>
+            {% else %}
+                <a class="contrib-cover-link"
+                   href="{{ book.key }}"
+                   tabindex="-1"
+                   aria-hidden="true">
+                    {% if book.cover_url %}
+                        <img class="contrib-record__cover"
+                             src="{{ book.cover_url }}"
+                             alt=""
+                             width="96"
+                             height="144"
+                             loading="lazy" />
+                    {% else %}
+                        <div class="contrib-record__cover contrib-book__cover--empty"
+                             aria-hidden="true">{{ icon("book-open", size="md") }}</div>
+                    {% endif %}
+                </a>
+            {% endif %}
             <div class="contrib-record__head">
                 <div class="contrib-book__title">
                     <a href="{{ book.key }}">{{ book.title }}</a>
@@ -231,16 +391,24 @@
             <dl class="contrib-record__fields">
                 {% for row in data.record_fields %}
                     {% if row.ask %}
-                        <div class="contrib-record__row contrib-record__row--ask">
+                        {#- Chips and cover choices take the full width under their label: beside an 88px label they wrap into twice the rows. -#}
+                        <div class="contrib-record__row contrib-record__row--ask{% if data.many or data.is_cover %} contrib-record__row--stack{% endif %}">
                             <dt>
-                                <label for="contrib-other-value">{{ row.label }}</label>
+                                {#- A choice list is a group of radios and chips are a group too, so the label names the group rather than one control. -#}
+                                {% if data.many %}
+                                    {{ chip_label("contrib-other-label", row.label, data.field_guide.check) }}
+                                {% elif data.choices %}
+                                    <span class="contrib-record__ask-label" id="contrib-other-label">{{ row.label }}</span>
+                                {% else %}
+                                    <label for="contrib-other-value">{{ row.label }}</label>
+                                {% endif %}
                             </dt>
                             <dd>
-                                {{ answer_control(task, data.field_guide, data.is_identifier, data.value, data.languages) }}
+                                {{ answer_control(task, data.field_guide, data.is_identifier, data.value, data.languages, data.cover_suggestion, data.choices, data.many) }}
                                 {% if data.is_identifier %}<p class="contrib-field__verdict" data-id-verdict role="status"></p>{% endif %}
                                 {% if data.suggestions %}
                                     <div class="contrib-suggest" data-suggest>
-                                        <span>{{ _("Other editions say") }}</span>
+                                        <span class="contrib-suggest__label">{{ _("Other editions say…") }}</span>
                                         {% for s in data.suggestions %}
                                             <ol-chip size="small" count="{{ s.count }}" data-value="{{ s.value }}" accessible-label="{{ ngettext('%(value)s, on 1 edition', '%(value)s, on %(count)d editions', s.count, value=s.label, count=s.count) }}">
                                                 {{ s.label }}
@@ -248,34 +416,58 @@
                                         {% endfor %}
                                     </div>
                                 {% endif %}
-                                {% if data.is_identifier %}
+                                {% if data.field_guide.check and not data.many %}<p class="contrib-field__hint">{{ data.field_guide.check }}</p>{% endif %}
+                                {% if data.field_guide.confirm %}
                                     <label class="contrib-confirm">
                                         <input type="checkbox" name="confirmed" value="1" required />
-                                        <span>{{ _("I opened the record and the year and publisher match this edition.") }}</span>
+                                        <span>{{ data.field_guide.confirm }}</span>
                                     </label>
                                 {% endif %}
                             </dd>
                         </div>
+                        {% if data.companion %}
+                            {#- A second blank, asked on this page because the book is open for both: hidden until the row that
+                                opens it ("Fiction") is picked (contribute.js). Its picks post with the lead answer and save as one edit. -#}
+                            {%- set c = data.companion -%}
+                            <div class="contrib-record__row contrib-record__row--ask contrib-record__row--stack contrib-record__row--companion"
+                                 data-companion="{{ c.field }}"
+                                 hidden>
+                                <dt>{{ chip_label("contrib-companion-label", c.label, c.hint) }}</dt>
+                                <dd>
+                                    {{ chip_choices(c.field, c, "contrib-companion-label") }}
+                                </dd>
+                            </div>
+                        {% endif %}
                     {% else %}
                         <div class="contrib-record__row">
                             <dt>{{ row.label }}</dt>
                             <dd>
-                                {{ row.value }}
+                                {% if row.get("parts") %}
+                                    {#- A subject behind a suggested genre lights up while that chip is hovered or focused (contribute.js). -#}
+                                    {% for part in row.parts %}
+                                        {%- if part.hit %}<span class="contrib-record__subject" data-subject="{{ part.text }}">{{ part.text }}</span>{% else %}{{ part.text }}{% endif %}{% if not loop.last %}, {% endif -%}
+                                    {% endfor %}
+                                {% else %}
+                                    {{ row.value }}
+                                {% endif %}
                             </dd>
                         </div>
                     {% endif %}
                 {% endfor %}
             </dl>
         </div>
-        <details class="contrib-disclosure"{% if data.note %} open{% endif %}>
-            <summary>{{ _("Add a comment about your edit") }}</summary>
-            <label class="contrib-visually-hidden" for="contrib-note">{{ _("Edit comment") }}</label>
-            <textarea id="contrib-note"
-                      name="note"
-                      rows="2"
-                      class="contrib-input"
-                      placeholder="{{ _('Where you found it') }}">{{ data.note }}</textarea>
-        </details>
+        {#- A cover's history comment is the image itself, so there is no comment to add. -#}
+        {% if not data.is_cover %}
+            <details class="contrib-disclosure"{% if data.note %} open{% endif %}>
+                <summary>{{ _("Add a comment about your edit") }}</summary>
+                <label class="contrib-visually-hidden" for="contrib-note">{{ _("Edit comment") }}</label>
+                <textarea id="contrib-note"
+                          name="note"
+                          rows="2"
+                          class="contrib-input"
+                          placeholder="{{ _('Where you found it') }}">{{ data.note }}</textarea>
+            </details>
+        {% endif %}
         <div class="contrib-answer__actions">
             <div class="contrib-answer__save">
                 {#- First in the form, so Enter in the answer field saves and moves on. -#}
@@ -286,17 +478,19 @@
                     {{ _("Save") }}
                 </ol-button>
             </div>
-            <ol-button variant="ghost" href="{{ task.skip_url }}" data-skip>
-                {{ _("I couldn't find it") }}
-                {{ icon("arrow-right", slot="icon-end") }}
-            </ol-button>
-            <p class="contrib-muted contrib-answer__next">
-                {% if data.next_scope %}
-                    {{ _("Next: a random task from %(filter)s", filter=data.next_scope) }}
-                {% else %}
-                    {{ _("Next: a random task from all open tasks") }}
+            <div class="contrib-answer__move">
+                {#- Submits without the answer's checks: the handler notes it and moves on to the next task.
+                    A choice list carries "Not sure" as one of its rows instead. -#}
+                {% if not data.choices %}
+                    <ol-button variant="ghost" type="submit" name="then" value="notfound" formnovalidate data-skip data-ol-link-track="TaskForm|NotFound|{{ task.field }}">
+                        {{ data.not_found_label }}
+                    </ol-button>
                 {% endif %}
-            </p>
+                <ol-button variant="ghost" href="{{ data.skip_url }}" data-skip data-ol-link-track="TaskForm|Skip|{{ task.field }}">
+                    {{ _("Skip") }}
+                    {{ icon("arrow-right", slot="icon-end") }}
+                </ol-button>
+            </div>
         </div>
     </form>
 {% endmacro %}
@@ -332,5 +526,42 @@
                 </div>
             </div>
         </div>
+    </li>
+{% endmacro %}
+{% macro feed_skeleton_row() %}
+    {#- A row's shape while a cold cache builds the feed in the background; contribute-feed.js swaps each one for a real row. -#}
+    <li class="contrib-feed__row contrib-feed__row--skeleton"
+        data-feed-skeleton
+        aria-hidden="true">
+        <div class="contrib-feed__inner">
+            <span class="skeleton contrib-feed__when"></span>
+            <span class="skeleton contrib-feed__cover-skeleton"></span>
+            <div class="contrib-feed__meta">
+                <span class="skeleton contrib-feed__title"></span>
+                <span class="skeleton contrib-feed__line"></span>
+            </div>
+        </div>
+    </li>
+{% endmacro %}
+{% macro row_skeleton(tasks=2) %}
+    {#- A dashboard card's shape while a cold cache builds the list in the background; contribute.js swaps them for the rows. -#}
+    <li class="contrib-row contrib-row--skeleton"
+        data-row-skeleton
+        aria-hidden="true">
+        <div class="contrib-book contrib-book--compact">
+            <span class="skeleton contrib-row__cover-skeleton"></span>
+            <div class="contrib-book__meta">
+                <span class="skeleton contrib-book__title"></span>
+                <span class="skeleton contrib-book__authors"></span>
+                <span class="skeleton contrib-book__line"></span>
+            </div>
+        </div>
+        <ul class="contrib-row__tasks">
+            {% for _i in range(tasks) %}
+                <li class="contrib-row__task">
+                    <span class="skeleton"></span>
+                </li>
+            {% endfor %}
+        </ul>
     </li>
 {% endmacro %}

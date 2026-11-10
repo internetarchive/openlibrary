@@ -59,12 +59,12 @@ def test_log_workers_cur_fn_webpy():
         aliases_fp.write(_make_aliases(nc_fp.name, "scripts/monitoring/tests/sample_py_spy_webpy_dump.txt"))
 
     bash_run(
-        "log_workers_cur_fn webpy stats.ol-covers0.workers.webpy.cur_fn",
+        "log_workers_cur_fn webpy stats.ol-covers1.workers.webpy.cur_fn",
         sources=[aliases_fp.name, "olspy.sh"],
     )
 
     with open(nc_fp.name) as f:
-        assert f.read().strip() == "stats.ol-covers0.workers.webpy.cur_fn.db._db_execute 1 1741054377"
+        assert f.read().strip() == "stats.ol-covers1.workers.webpy.cur_fn.db._db_execute 1 1741054377"
 
 
 def test_log_workers_cur_fn_fastapi():
@@ -93,12 +93,12 @@ def test_coverstore_workers_are_found_under_fastapi():
         aliases_fp.write(_make_aliases_with_ps(nc_fp.name, "scripts/monitoring/tests/sample_py_spy_fastapi_dump.txt", COVERSTORE_PS))
 
     bash_run(
-        "log_workers_cur_fn fastapi stats.ol-covers0.workers.fastapi.cur_fn",
+        "log_workers_cur_fn fastapi stats.ol-covers1.workers.fastapi.cur_fn",
         sources=[aliases_fp.name, "olspy.sh"],
     )
     with open(nc_fp.name) as f:
         # one worker (the Ss master is excluded)
-        assert f.read().strip() == "stats.ol-covers0.workers.fastapi.cur_fn.ia.get_api_response 1 1741054377"
+        assert f.read().strip() == "stats.ol-covers1.workers.fastapi.cur_fn.ia.get_api_response 1 1741054377"
 
 
 def test_coverstore_workers_are_not_found_under_webpy():
@@ -109,7 +109,7 @@ def test_coverstore_workers_are_not_found_under_webpy():
         aliases_fp.write(_make_aliases_with_ps(nc_fp.name, "scripts/monitoring/tests/sample_py_spy_webpy_dump.txt", COVERSTORE_PS))
 
     bash_run(
-        "log_workers_cur_fn webpy stats.ol-covers0.workers.webpy.cur_fn",
+        "log_workers_cur_fn webpy stats.ol-covers1.workers.webpy.cur_fn",
         sources=[aliases_fp.name, "olspy.sh"],
     )
     with open(nc_fp.name) as f:

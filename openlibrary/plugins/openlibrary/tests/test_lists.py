@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -273,6 +274,65 @@ def _make_seed(key, type_, document=None):
     return SimpleNamespace(key=key, type=type_, document=document, notes=None, last_update=None)
 
 
+class TestSortListSeeds:
+    def test_recently_added_reverses_list_order(self):
+        seeds = [
+            SimpleNamespace(key="/works/OL1W", type="work", title="First"),
+            SimpleNamespace(key="/works/OL2W", type="work", title="Second"),
+            SimpleNamespace(key="/works/OL3W", type="work", title="Third"),
+        ]
+
+        assert legacy_lists.sort_list_seeds(seeds, "added") == seeds[::-1]
+        assert seeds[0].title == "First"
+
+    def test_title_sorts_books_case_insensitively_and_stably(self):
+        banana = SimpleNamespace(key="/works/OL1W", type="work", title="Banana")
+        apple = SimpleNamespace(key="/books/OL2M", type="edition", title="apple")
+        duplicate = SimpleNamespace(key="/works/OL3W", type="work", title="APPLE")
+
+        assert legacy_lists.sort_list_seeds([banana, apple, duplicate], "title") == [apple, duplicate, banana]
+
+    def test_title_sorts_accented_letters_with_their_base_letter(self):
+        zola = SimpleNamespace(key="/works/OL1W", type="work", title="Zola")
+        emile = SimpleNamespace(key="/works/OL2W", type="work", title="Émile")
+        apple = SimpleNamespace(key="/works/OL3W", type="work", title="Apple")
+
+        assert legacy_lists.sort_list_seeds([zola, emile, apple], "title") == [apple, emile, zola]
+
+    def test_title_keeps_non_books_after_books_in_list_order(self):
+        author = SimpleNamespace(key="/authors/OL1A", type="author", title="Author")
+        book = SimpleNamespace(key="/works/OL2W", type="work", title="Book")
+        subject = SimpleNamespace(key="subject:books", type="subject", title="Subject")
+
+        assert legacy_lists.sort_list_seeds([author, book, subject], "title") == [book, author, subject]
+
+    @pytest.mark.parametrize("malformed_title", [["Banana"], 42, SimpleNamespace(key="/x")])
+    def test_title_tolerates_non_string_titles(self, malformed_title):
+        malformed = SimpleNamespace(key="/works/OL1W", type="work", title=malformed_title)
+        valid = SimpleNamespace(key="/works/OL2W", type="work", title="Apple")
+
+        assert malformed in legacy_lists.sort_list_seeds([malformed, valid], "title")
+
+    def test_last_modified_sorts_newest_first_and_tolerates_missing_dates(self):
+        older = SimpleNamespace(key="/works/OL1W", type="work", last_update=datetime(2020, 1, 1))
+        undated = SimpleNamespace(key="subject:books", type="subject", last_update=None)
+        newer = SimpleNamespace(key="/works/OL2W", type="work", last_update=datetime(2024, 1, 1))
+
+        result = legacy_lists.sort_list_seeds([older, undated, newer], "last_modified")
+
+        assert result.index(newer) < result.index(older)
+        assert undated in result
+
+    @pytest.mark.parametrize("sort", [None, "index", "bogus"])
+    def test_other_sorts_preserve_list_order(self, sort):
+        seeds = [
+            SimpleNamespace(key="/works/OL1W", type="work", title="Zebra"),
+            SimpleNamespace(key="/works/OL2W", type="work", title="Apple"),
+        ]
+
+        assert legacy_lists.sort_list_seeds(seeds, sort) == seeds
+
+
 class TestResolveListViewItems:
     """Unit tests for the seed -> Solr doc -> availability batching."""
 
@@ -448,6 +508,74 @@ class TestListViewGet:
         resolve_mock.assert_called_once_with(all_seeds[50:100])
         render_mock.assert_called_once_with("type/list/view", lst, [], 1, 50, None)
 
+    @pytest.mark.parametrize(
+        ("sort", "expected_keys"),
+        [
+            ("added", [f"/works/OL{i}W" for i in range(19, -1, -1)]),
+            ("title", [f"/works/OL{i}W" for i in range(15, 35)]),
+            ("last_modified", [f"/works/OL{i}W" for i in range(54, 34, -1)]),
+        ],
+    )
+    def test_sort_is_applied_before_pagination(self, monkeypatch, sort, expected_keys):
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, page="2", sort=sort))
+        # Rotated values, so each sort's second page differs from the unsorted slice and the reversed one.
+        all_seeds = [SimpleNamespace(key=f"/works/OL{i}W", type="work", title=f"Book {(i + 35) % 70:02d}", last_update=(i + 35) % 70) for i in range(70)]
+        lst = SimpleNamespace(
+            type=SimpleNamespace(key="/type/list"),
+            get_seeds=Mock(return_value=all_seeds),
+        )
+        mock_site = Mock()
+        mock_site.get.return_value = lst
+
+        resolve_mock = Mock(return_value=[])
+        with (
+            patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context,
+            patch(
+                "openlibrary.plugins.openlibrary.lists._resolve_list_view_items",
+                resolve_mock,
+            ),
+            patch(
+                "openlibrary.plugins.openlibrary.lists.render_template",
+                Mock(return_value="rendered"),
+            ),
+        ):
+            mock_site_context.get.return_value = mock_site
+            legacy_lists.list_view().GET("/lists/OL1L")
+
+        resolved_keys = [seed.key for seed in resolve_mock.call_args.args[0]]
+        assert resolved_keys == expected_keys
+        lst.get_seeds.assert_called_once_with(resolve_redirects=True)
+
+    @pytest.mark.parametrize("sort", ["added", "title", "last_modified"])
+    def test_series_ignores_sort_and_keeps_volume_order(self, monkeypatch, sort):
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, page=None, sort=sort))
+        volumes = [
+            SimpleNamespace(key="/works/OL1W", type="work", title="Zebra", last_update=1),
+            SimpleNamespace(key="/works/OL2W", type="work", title="Apple", last_update=2),
+        ]
+        lst = SimpleNamespace(
+            type=SimpleNamespace(key="/type/series"),
+            get_seeds=Mock(return_value=volumes),
+        )
+        mock_site = Mock()
+        mock_site.get.return_value = lst
+
+        resolve_mock = Mock(return_value=[])
+        render_mock = Mock(return_value="rendered")
+        with (
+            patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context,
+            patch("openlibrary.plugins.openlibrary.lists._resolve_list_view_items", resolve_mock),
+            patch("openlibrary.plugins.openlibrary.lists.render_template", render_mock),
+        ):
+            mock_site_context.get.return_value = mock_site
+            legacy_lists.list_view().GET("/series/OL1L")
+
+        resolve_mock.assert_called_once_with(volumes)
+        # The template must not get the sort either, or it shows per-row "Edited" dates.
+        render_mock.assert_called_once_with("type/list/view", lst, [], 0, 50, None)
+
     def test_page_zero_query_param_preserves_preexisting_slicing_quirk(self, monkeypatch):
         """`?page=0` -> page=-1 -> a negative-start slice that yields no items.
 
@@ -513,27 +641,6 @@ class TestListViewGet:
         assert excinfo.value.args[0] == "303 See Other"
         assert any(h[0] == "Location" and h[1] == "/lists/OL1L" for h in web.ctx.headers)
 
-    def test_sort_last_modified_is_forwarded_to_get_seeds(self, monkeypatch):
-        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
-        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, page=None, sort="last_modified"))
-
-        lst = SimpleNamespace(
-            type=SimpleNamespace(key="/type/list"),
-            get_seeds=Mock(return_value=[]),
-        )
-        mock_site = Mock()
-        mock_site.get.return_value = lst
-
-        with (
-            patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context,
-            patch("openlibrary.plugins.openlibrary.lists.render_template", Mock(return_value="rendered")),
-        ):
-            mock_site_context.get.return_value = mock_site
-
-            legacy_lists.list_view().GET("/lists/OL1L")
-
-        lst.get_seeds.assert_called_once_with(sort=True, resolve_redirects=True)
-
 
 class TestUserListsEviction:
     def test_get_user_lists_uses_the_cached_default_limit(self):
@@ -566,3 +673,33 @@ class TestUserListsEviction:
             legacy_lists.site.reset(token)
         fake_site.save.assert_called_once()
         delete.assert_any_call("d/people/alice")
+
+
+class TestConvertList:
+    def test_convert_list_uses_contextvar_site(self, monkeypatch):
+        """convert_list should load data via the request-scoped site ContextVar,
+        not web.ctx.site (which is a startup singleton under FastAPI with a stale cache).
+        """
+        fake_site = Mock()
+        fake_site._load.return_value = {
+            "key": "/people/alice/lists/OL1L",
+            "name": "Fresh List",
+            "seeds": [],
+        }
+        stale_web_ctx_site = Mock()
+        stale_web_ctx_site._load.return_value = {
+            "key": "/people/alice/lists/OL1L",
+            "name": "Stale List",
+            "seeds": [],
+        }
+        monkeypatch.setattr(web.ctx, "site", stale_web_ctx_site, raising=False)
+
+        token = legacy_lists.site.set(fake_site)
+        try:
+            lst = legacy_lists.convert_list("/people/alice/lists/OL1L")
+            assert lst._site is fake_site
+            assert lst.name == "Fresh List"
+            fake_site._load.assert_called_once_with("/people/alice/lists/OL1L")
+            stale_web_ctx_site._load.assert_not_called()
+        finally:
+            legacy_lists.site.reset(token)
