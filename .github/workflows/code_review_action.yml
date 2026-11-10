@@ -29,10 +29,11 @@ name: Code Review Action
 #     NEVER uploaded or logged; private findings leave the runner by no path in this PR. Artifacts
 #     on a public repo are downloadable by any signed-in user, so the artifact is a public surface
 #     and this is THE containment point.
-#   - `post` checks out the base tree and INDEPENDENTLY re-runs routeFinding on each public-payload
-#     finding (two-eval, fail-closed on disagreement): it can DEMOTE public->private (drop) but,
-#     because the artifact never carries a private finding, can never promote. It holds the sole
-#     write PAT and renders from the public payload only.
+#   - `post` checks out NO tree (so it never materialises fork content). It re-runs the base-FREE
+#     parts of routeFinding on each public-payload finding, against its own re-fetched diff
+#     (disclosure label, added-line anchor, shape-with-sink_ref, credential guard), fail-closed on
+#     disagreement: it can DEMOTE public->private (drop) but never promote. Base-presence is
+#     analyze's authoritative call. `post` holds the sole write PAT and renders the public payload.
 # Routing is by WHERE THE VULNERABLE CONSTRUCT LIVES, fail-closed to PRIVATE (see REVIEW_GATE_JS).
 # Every NON-posting outcome -- all-private, nothing-to-say, malformed -- is a GREEN job with no
 # comment and the same stub artifact, so the absence of a comment never signals a private finding.
@@ -84,10 +85,10 @@ env:
       // Shapes that aren't \b-words.
       shapePatterns: /\|\s*safe\b|\beval\s*\(|\bexec\s*\(|\bos\.system\b|\bMarkup\s*\(/i,
 
-      // Literal credential VALUE shapes. A print-guard OVERLAY on public text (never a router): the
-      // value is redacted from every public surface; the finding still posts by location. Global flag
-      // so replace() scrubs all occurrences.
-      secrets: /sk-ant-[\w-]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_\w{30,}|eyJ[\w-]{8,}\.[\w-]{8,}\.[\w-]{6,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35}|xox[baprs]-[0-9A-Za-z-]{10,}/g,
+      // Literal credential VALUE shapes. NOT a router -- a print-guard. NO /g flag, so `.test()` is
+      // stateless (a /g regex's lastIndex makes repeated .test() alternate true/false). redact()
+      // rebuilds a global copy to scrub all occurrences.
+      secrets: /sk-ant-[\w-]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_\w{30,}|eyJ[\w-]{8,}\.[\w-]{8,}\.[\w-]{6,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35}|xox[baprs]-[0-9A-Za-z-]{10,}/,
 
       path: /^(?!.*(^|\/)\.\.(\/|$))[A-Za-z0-9_.][A-Za-z0-9_.\/-]*$/,
       // A sink_ref is a code identifier or repo-relative path, no spaces/markdown; bounded.
@@ -108,9 +109,11 @@ env:
       // Redact any literal credential value from text bound for a public surface.
       redact(t) {
         return typeof t === 'string'
-          ? t.replace(this.secrets, '[redacted credential — rotate, treat as compromised]')
+          ? t.replace(new RegExp(this.secrets.source, 'g'), '[redacted credential — rotate, treat as compromised]')
           : t;
       },
+      // Does this value contain a literal credential shape? (stateless; secrets has no /g)
+      secretsTest(v) { return typeof v === 'string' && this.secrets.test(v); },
 
       // Does this finding anchor ONLY to added (+) lines of the reviewed diff?
       //   true  -> cited lines are new (only in pr-head)   [POST-eligible]
@@ -136,6 +139,9 @@ env:
         const d = f.disclosure;
         if (d === 'pre-existing-live') return 'private';
         if (d !== 'pr-introduced') return 'private';                 // absent / invalid -> fail-closed
+        // `sink_ref` and `path` are published to the artifact UN-redacted (post needs them intact), so
+        // a credential value smuggled through either must never go public: route private, don't trust.
+        if (this.secretsTest(f.sink_ref) || this.secretsTest(f.path)) return 'private';
         if (this.anchorAddedOnly(f, ctx) !== true) return 'private'; // must anchor to added lines only
         const ref = (typeof f.sink_ref === 'string' && this.sinkRef.test(f.sink_ref)) ? f.sink_ref : null;
         if (ref && ctx.baseHasSymbol(ref)) return 'private';         // sink lives unchanged on base
@@ -218,7 +224,6 @@ env:
         return { ok: true, public: publicReview, private: priv };
       },
     })
-
 on:
   pull_request:
     types: [review_requested, opened, ready_for_review]
@@ -443,23 +448,41 @@ jobs:
             // finding's structured sink_ref, excluding vendored trees. Both drive escalate-only
             // cross-checks; on any grep error we fail closed (treat as present -> escalate).
             const buildAdded = (diffText) => {
-              const added = new Map(); let f = null, ln = 0;
+              // A `+++ ` line is a file header ONLY when its `--- ` pair is the previous line and we
+              // are not inside a hunk. Inside a hunk an added line whose content begins with `++ `
+              // reads as `+++ ...` but is `+<content>`, not a header -- requiring the `--- `
+              // predecessor stops a PR from poisoning the added-line map with crafted `+++ b/x`
+              // added content (F4). Only `+` lines inside a hunk count as added.
+              const added = new Map(); let f = null, ln = 0, inHunk = false, prev = '';
               for (const raw of diffText.split('\n')) {
-                if (raw.startsWith('+++ ')) { const p = raw.slice(4).trim(); f = p === '/dev/null' ? null : p.replace(/^b\//, ''); if (f) added.set(f, new Set()); continue; }
+                if (raw.startsWith('diff --git ')) { f = null; inHunk = false; prev = raw; continue; }
+                if (raw.startsWith('+++ ') && prev.startsWith('--- ')) {
+                  const p = raw.slice(4).trim(); f = p === '/dev/null' ? null : p.replace(/^b\//, '');
+                  if (f && !added.has(f)) added.set(f, new Set());
+                  inHunk = false; prev = raw; continue;
+                }
                 const h = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
-                if (h) { ln = Number(h[1]); continue; }
-                if (!f) continue;
-                if (raw.startsWith('+')) added.get(f).add(ln++);
-                else if (raw.startsWith(' ')) ln++;
+                if (h) { ln = Number(h[1]); inHunk = true; prev = raw; continue; }
+                if (inHunk && f) {
+                  if (raw.startsWith('+')) added.get(f).add(ln++);
+                  else if (raw.startsWith(' ')) ln++;
+                }
+                prev = raw;
               }
               return added;
             };
             const baseHasSymbol = (ref) => {
-              // Grep the BASE source tree only. Exclude vendored trees AND the review artifacts and
-              // the PR-head extraction that also sit in the workspace -- review.diff / pr-head/
-              // carry the PR's OWN added code, so including them would resolve every PR-introduced
-              // sink_ref and wrongly privatise everything.
-              try { execFileSync('grep', ['-rwFq', '--exclude-dir=node_modules', '--exclude-dir=vendor', '--exclude-dir=.git', '--exclude-dir=.github', '--exclude-dir=pr-head', '--exclude=review.diff', '--exclude=review.json', '--exclude=review-range.json', '-e', ref, '.'], { stdio: 'ignore' }); return true; }
+              // Resolve `ref` against the BASE tree in `./`. A qualified ref
+              // (openlibrary.core.lending.get_crossref) or a dotted/attribute form (self.fetch_url)
+              // never appears literally in source, so grep its LAST identifier segment; a path-shaped
+              // ref resolves by file existence. Fail-closed: anything we cannot isolate -> treat as
+              // present (escalate). Exclude only node_modules/.git and the review artifacts / PR-head
+              // extraction (those carry the PR's OWN added code, which must not resolve as "base") --
+              // NOT vendor or .github, so a live sink in vendored or workflow code still escalates. (F2/F5)
+              try { if (ref.includes('/') && !ref.includes('..') && fs.existsSync(ref)) return true; } catch (e) {}
+              const seg = String(ref).split(/[./\\]/).filter(Boolean).pop();
+              if (!seg || !/^[A-Za-z_]\w*$/.test(seg)) return true;
+              try { execFileSync('grep', ['-rwFq', '--exclude-dir=node_modules', '--exclude-dir=.git', '--exclude-dir=pr-head', '--exclude=review.diff', '--exclude=review.json', '--exclude=review-range.json', '-e', seg, '.'], { stdio: 'ignore' }); return true; }
               catch (e) { return e && e.status === 1 ? false : true; }
             };
             let added = new Map();
@@ -484,7 +507,7 @@ jobs:
           name: code-review-${{ steps.range.outputs.pr }}
           # review.json ONLY, after the classify step rewrote it to the public-only payload (or the
           # fixed stub). review.diff / review-range.json are not uploaded; `post` re-derives the
-          # diff from job outputs and re-checks out the base tree itself.
+          # diff from job outputs (it checks out no tree).
           path: review.json
           if-no-files-found: error
           retention-days: 7
@@ -497,14 +520,13 @@ jobs:
       contents: read        # the diff fetch below, with the job's own GITHUB_TOKEN
       pull-requests: write
     steps:
-      # Check out the BASE tree so post can INDEPENDENTLY re-run the disclosure gate's
-      # base-presence cross-check (DECISION 1b / R1: two-eval fail-closed on disagreement). The
-      # base, never the PR head: this job must never materialise fork-controlled content.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ needs.analyze.outputs.base_sha }}
-          persist-credentials: false
-
+      # No checkout here, deliberately. `post` must never materialise a tree: on an incremental
+      # re-review base_sha is an intermediate PR commit, which on a fork PR is fork-controlled
+      # content (F6). The base-presence cross-check (grep of the real base tree) is authoritative in
+      # `analyze`, which has the true base (pr.base.sha) and the model output; `post` independently
+      # re-validates the cheaper, base-free parts of the gate -- disclosure label, added-line anchor
+      # (against its own re-fetched diff), shape-without-sink_ref, and the credential guard -- and can
+      # only DEMOTE a public finding to private, never promote. It holds the sole write PAT.
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: code-review-${{ needs.analyze.outputs.pr }}
@@ -539,7 +561,6 @@ jobs:
           github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
           script: |
             const fs = require('fs');
-            const { execFileSync } = require('child_process');
             const owner = context.repo.owner, repo = context.repo.repo;
             const prNumber = Number(process.env.PR);
             const headSha = process.env.HEAD_SHA;
@@ -554,32 +575,42 @@ jobs:
             const candidates = (payload && Array.isArray(payload.findings)) ? payload.findings : [];
             if (!candidates.length) { core.info('No public findings; nothing to post.'); return; }
 
-            // --- INDEPENDENT re-classification (R1 / DECISION 1b). Rebuild the diff/base context
-            // from the re-fetched diff and the base tree checked out in this job, then re-run the
-            // gate's routeFinding on each candidate. A finding posts only if BOTH analyze AND post
-            // call it public; post can DEMOTE public->private (drop) but -- because the artifact is
-            // public-only and never carries a private finding -- it can never promote. Fail closed.
+            // --- Second-gate re-check (fail-closed on disagreement). Rebuild `added` from post's
+            // OWN re-fetched diff and re-run routeFinding on each candidate. This is NOT a full
+            // independent re-eval: it runs the same gate text, and base-presence is deliberately
+            // skipped here (analyze owns it; post holds no tree -- see the step note). What it adds
+            // is a check against post's independently re-fetched diff -- a finding posts only if it
+            // re-validates as public (disclosure label, added-line anchor, shape-with-sink_ref,
+            // credential guard). post can only DEMOTE public->private, never promote (the artifact
+            // never carries a private finding). The authoritative disclosure surface is the
+            // public-only artifact analyze produced.
             const buildAdded = (diffText) => {
-              const added = new Map(); let f = null, ln = 0;
+              // A `+++ ` line is a file header ONLY when its `--- ` pair is the previous line and we
+              // are not inside a hunk. Inside a hunk an added line whose content begins with `++ `
+              // reads as `+++ ...` but is `+<content>`, not a header -- requiring the `--- `
+              // predecessor stops a PR from poisoning the added-line map with crafted `+++ b/x`
+              // added content (F4). Only `+` lines inside a hunk count as added.
+              const added = new Map(); let f = null, ln = 0, inHunk = false, prev = '';
               for (const raw of diffText.split('\n')) {
-                if (raw.startsWith('+++ ')) { const p = raw.slice(4).trim(); f = p === '/dev/null' ? null : p.replace(/^b\//, ''); if (f) added.set(f, new Set()); continue; }
+                if (raw.startsWith('diff --git ')) { f = null; inHunk = false; prev = raw; continue; }
+                if (raw.startsWith('+++ ') && prev.startsWith('--- ')) {
+                  const p = raw.slice(4).trim(); f = p === '/dev/null' ? null : p.replace(/^b\//, '');
+                  if (f && !added.has(f)) added.set(f, new Set());
+                  inHunk = false; prev = raw; continue;
+                }
                 const h = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
-                if (h) { ln = Number(h[1]); continue; }
-                if (!f) continue;
-                if (raw.startsWith('+')) added.get(f).add(ln++);
-                else if (raw.startsWith(' ')) ln++;
+                if (h) { ln = Number(h[1]); inHunk = true; prev = raw; continue; }
+                if (inHunk && f) {
+                  if (raw.startsWith('+')) added.get(f).add(ln++);
+                  else if (raw.startsWith(' ')) ln++;
+                }
+                prev = raw;
               }
               return added;
             };
-            const baseHasSymbol = (ref) => {
-              // Grep the BASE source tree only. Exclude vendored trees AND the review artifacts and
-              // the PR-head extraction that also sit in the workspace -- review.diff / pr-head/
-              // carry the PR's OWN added code, so including them would resolve every PR-introduced
-              // sink_ref and wrongly privatise everything.
-              try { execFileSync('grep', ['-rwFq', '--exclude-dir=node_modules', '--exclude-dir=vendor', '--exclude-dir=.git', '--exclude-dir=.github', '--exclude-dir=pr-head', '--exclude=review.diff', '--exclude=review.json', '--exclude=review-range.json', '-e', ref, '.'], { stdio: 'ignore' }); return true; }
-              catch (e) { return e && e.status === 1 ? false : true; }
-            };
-            const ctx = { added: buildAdded(fs.readFileSync('review.diff', 'utf8')), baseHasSymbol };
+            // post holds no base tree (it checks nothing out), so base-presence is analyze's
+            // authoritative call. Re-check only the base-free parts and never escalate on base.
+            const ctx = { added: buildAdded(fs.readFileSync('review.diff', 'utf8')), baseHasSymbol: () => false };
             const findings = candidates.filter((f) => gate.routeFinding(f, ctx) === 'public');
             if (!findings.length) { core.info('No public findings after re-check; nothing to post.'); return; }
             const dropped = candidates.length - findings.length;

@@ -235,3 +235,32 @@ test('model dimension inconsistency (status none but a finding present) -> malfo
     r.dimensions.correctness = { status: 'none', note: 'lie' };
     assert.equal(gate.classify(r, ctx({ added })).ok, false);
 });
+
+// Adversarial-review regressions (F1): a credential must not reach the public artifact through
+// an un-redacted sink_ref/path, and the secrets test must be stateless.
+test('[F1] credential-shaped sink_ref -> routed PRIVATE', () => {
+    const leaked = `ghp_${'A'.repeat(36)}`;
+    const f = F({
+        dimension: 'security',
+        title: 'x',
+        body: 'y',
+        path: 'a.py',
+        start_line: 10,
+        line: 10,
+        disclosure: 'pr-introduced',
+        sink_ref: leaked
+    });
+    const r = gate.classify(review([f]), ctx({ added, baseSymbols: [] }));
+    assert.equal(r.public.findings.length, 0);
+    assert.ok(!JSON.stringify(r.public).includes(leaked));
+});
+test('[F1] credential-shaped path -> routed PRIVATE', () => {
+    const leaked = `AKIA${'A'.repeat(16)}`;
+    const f = F({ dimension: 'styleguide', title: 'x', body: 'y', path: leaked, start_line: 10, line: 10, disclosure: 'pr-introduced' });
+    assert.equal(gate.classify(review([f]), ctx({ added })).public.findings.length, 0);
+});
+test('[F1] secretsTest is stateless (no /g lastIndex bug)', () => {
+    const v = `ghp_${'B'.repeat(36)}`;
+    assert.equal(gate.secretsTest(v), true);
+    assert.equal(gate.secretsTest(v), true);
+});
