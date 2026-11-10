@@ -2110,6 +2110,7 @@ def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
         ("http://m.media-amazon.com/image/123.jpg", True),
         ("https://m.MEDIA-amazon.com/image/123.jpg", True),
         ("https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg", True),
+        ("https://cdn.sanity.io/images/3lm68n5v/production/e7ffe418212f76c942fe906ae66cff17867bd602-190x300.jpg?w=1920&q=75&auto=format", True),
     ],
 )
 def test_check_cover_url_host(cover_url: str, is_valid: bool) -> None:

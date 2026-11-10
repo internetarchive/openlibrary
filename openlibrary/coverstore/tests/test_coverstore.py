@@ -164,6 +164,10 @@ def test_image_path(image_dir):
         "https://m.media-amazon.com/images/I/51abc123.jpg",
         "https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg",
         "https://www.gutenberg.org/cache/epub/1661/pg1661.cover.medium.jpg",
+        "https://www.gutenberg.org/cache/epub/1661/images/cover.jpg",
+        "https://cdn.sanity.io/images/3lm68n5v/production/e7ffe418212f76c942fe906ae66cff17867bd602-190x300.jpg?w=1920&q=75&auto=format",
+        "https://cdn.sanity.io/images/3lm68n5v/production/e7ffe418212f76c942fe906ae66cff17867bd602-190x300.jpg",
+        "https://cdn.sanity.io/images/otherproj/production/e7ffe418212f76c942fe906ae66cff17867bd602-190x300.png",
     ],
 )
 def test_is_allowed_cover_url_allowed(url):
@@ -190,9 +194,13 @@ def test_is_allowed_cover_url_allowed(url):
         "https://archive.org/services/img/goody#evil/full/pct:600/0/default.jpg",
         # covers.openlibrary.org with wrong extension
         "https://covers.openlibrary.org/b/id/15082914.png",
-        # gutenberg.org outside the cover image paths
+        # gutenberg.org outside /cache/
         "https://www.gutenberg.org/ebooks/1661.epub3.images",
+        "https://www.gutenberg.org/cache/",
         "https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg?evil=1",
+        # cdn.sanity.io outside /images/
+        "https://cdn.sanity.io/files/3lm68n5v/production/e7ffe418212f76c942fe906ae66cff17867bd602.pdf",
+        "https://cdn.sanity.io/",
         # empty string and bare domain
         "",
         "https://archive.org",
