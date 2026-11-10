@@ -471,7 +471,11 @@ def _set_login_cookies(
     def _setcookie(name, value, **kwargs):
         web.setcookie(name, value, expires=expires if value else 1, **kwargs)
 
-    _setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
+    # SameSite=Lax keeps the auth cookie off forged cross-site POSTs, which is
+    # the CSRF control several state-changing endpoints rely on (e.g.
+    # /import/batch/approve). The FastAPI login path already sets this; web.py
+    # had omitted it. See GHSA-wq89-ph2h-pp44.
+    _setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(), samesite="Lax")
     _setcookie("pd", "1" if audit.get("special_access") else "")
 
     if s3_keys := audit.get("s3_keys"):

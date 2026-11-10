@@ -515,10 +515,12 @@ class BatchImportApprove(delegate.page):
     following (CSRF). The GET is inert and redirects to the batch view, where
     Approve is rendered as a POST form.
 
-    CSRF protection rests on the session cookie: `s3` is `SameSite=Lax`, so a
-    forged cross-site POST arrives without the admin's session and fails the
-    admin check below. ``test_session_cookie_is_samesite_lax`` is the tripwire
-    that fails loudly if that cookie attribute is ever weakened.
+    CSRF protection rests on the auth cookie (``config.login_cookie_name`` ->
+    ``session``) being ``SameSite=Lax``, so a forged cross-site POST arrives
+    without the admin's session and fails the admin check below.
+    ``test_session_cookie_is_samesite_lax`` is the tripwire that fails loudly if
+    that cookie attribute is ever weakened. (``s3`` carries archive.org API keys,
+    not the Open Library session, so it is not what protects this endpoint.)
     """
 
     path = r"/import/batch/approve/(\d+)"
