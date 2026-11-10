@@ -581,6 +581,7 @@ class contribute_index(delegate.page):
             apply=build_apply(user),
             initiatives=projects,
             project=next(card for card in projects if card["on"]),
+            fine_print=initiatives.fine_print(initiative, web.ctx.site),
         )
 
 
