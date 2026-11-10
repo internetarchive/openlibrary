@@ -6,7 +6,6 @@ $ settings = page.get_users_settings()
 $ owners_page = ctx.user and ctx.user.key == page.key
 $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
 $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(username)
-$ is_blocked = page.get_account().status == 'blocked'
 $if days_since(page.created) < 30:
   $ putctx('robots', 'noindex')
 
@@ -28,8 +27,9 @@ $ lists = page.get_lists(limit=3)
     $elif ctx.user and ctx.user.is_admin():
         &bull;
         <span class="adminOnly"><a href="/admin$page.key">$_('admin page')</a></span>
-        &bull;
-        $if is_blocked:
+        $ account = page.get_account();
+        $if account and account.is_blocked():
+            &bull;
             <span class="adminOnly"><a>$_('Blocked')</a></span>
     $if lists:
         &bull;
