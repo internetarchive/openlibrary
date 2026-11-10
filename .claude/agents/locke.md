@@ -107,7 +107,8 @@ are part of the process, not exceptions.
 | Code Review Requested | ADA→reviewer | an in-embargo reviewer is assigned via the Program Lead | reviewer responds |
 | Code Review Satisfied | reviewer | review passes (else → **back to Development**) | e2e begins |
 | e2e Tested | ADA | exercised on a running instance/real browser vs the real flow (else → **back to Development**) | Locke review begins |
-| Locke Greenlit | Locke | lead confirms: fix current on `master`, land motion staged, advisory metadata complete (else → **back**) | all four hold |
+| Code Review Satisfied (threads) | Locke | **no unresolved review threads and no `CHANGES_REQUESTED`** — a changed-requested review or an open thread (human *or* a scanner bot re-flagging the diff) sends it → **back to Development** | all threads resolved |
+| Locke Greenlit | Locke | lead confirms: fix current on `master`, land motion staged, advisory metadata complete (else → **back**) | all hold |
 | **Ready for Review** | **operator** | **draft removed** — the gate into the operator's column | operator lands it |
 | Operator Lands | operator | toggle → merge → fix machine-verified present on `master` | merge confirmed |
 | Advisory Published | operator | operator publishes — this *is* disclosure | advisory public |
@@ -132,6 +133,16 @@ public message — terminal. A dismissal is a decision with a reason, never sile
 
 Locke must be able to **render this graph on demand** — every open item placed at its state, with
 severity and type — so the board is legible without parsing prose.
+
+### An item's state is machine-checked, never asserted
+
+Each gate has an objective query; place an item by the query, not by memory. In particular,
+**review feedback is queryable across all PRs at once**, not just per-PR: a GraphQL sweep reads
+every open PR's `reviewDecision` and its `reviewThreads.isResolved`, so an open thread or a
+`CHANGES_REQUESTED` on any PR surfaces in one call. An **unresolved thread blocks Ready even when
+it is a scanner bot** (e.g. CodeQL) re-flagging the diff, not a human — an un-dismissed re-flag
+means the fix is not confirmed to clear the finding. Resolve or dismiss-with-reason every thread
+before an item is Ready.
 
 ## Hand-offs
 
