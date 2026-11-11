@@ -66,7 +66,7 @@
   border-radius: 4px;
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
   margin: var(--spacing-stack-xs) var(--spacing-inline-sm);
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 .mybooks-menu ul li:not(.section-header) a {
@@ -88,7 +88,7 @@
 .mybooks-menu ul li.section-header {
   padding: 4px 15px;
   text-transform: uppercase;
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   font-size: 0.8em;
   color: var(--color-text-secondary);
   background: var(--background-grey);
@@ -158,7 +158,7 @@
   margin: 0 var(--spacing-inline-sm);
   position: absolute;
   font-size: 1.5em;
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   top: 50%;
   transform: translateY(-50%);
   right: 0;
@@ -215,13 +215,13 @@
     border-radius: 4px;
     padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
     margin: var(--spacing-stack-xs) var(--spacing-inline-sm);
-    font-weight: bold;
+    font-weight: var(--font-weight-bold);
   }
 
   .mybooks-menu-mobile ul li a {
     display: block;
     font-size: 4vw;
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
   }
 
   .mybooks-menu-mobile .carousel-section-header {
@@ -238,7 +238,7 @@
   .mybooks-menu-mobile ul li.section-header {
     padding: 4px 15px;
     text-transform: uppercase;
-    font-weight: bold;
+    font-weight: var(--font-weight-bold);
     font-size: 0.8em;
     color: var(--color-text-secondary);
     background: var(--background-grey);

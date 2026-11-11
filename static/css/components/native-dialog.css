@@ -30,7 +30,7 @@ div.floaterHead {
 }
 
 div.floaterHead h2 {
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   text-align: center;
   color: var(--color-text);
   font-size: var(--font-size-title-large);

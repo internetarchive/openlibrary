@@ -28,11 +28,11 @@
 .olform .label label {
   font-size: 1em;
   font-family: var(--font-family-body);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .olform .label span {
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 
 .olform textarea {

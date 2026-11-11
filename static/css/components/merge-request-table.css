@@ -21,7 +21,7 @@
 
 /* Table header */
 .selected {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 .table-header {
@@ -92,7 +92,7 @@
 }
 
 .mr-dropdown-menu .dropdown-header span {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 .mr-dropdown-menu .dropdown-header button {
@@ -210,7 +210,7 @@
 }
 
 .mr-details__request-title {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   font-size: 1rem;
   margin-bottom: 5px;
 }
@@ -272,7 +272,7 @@
   border-radius: 6px;
   box-shadow: none;
   height: 100%;
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   font-size: var(--font-size-label-medium);
   margin-left: var(--spacing-inline-lg);
   width: 60px;
@@ -314,7 +314,7 @@
   color: var(--white);
   font-size: var(--font-size-label-medium);
   font-style: normal;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   line-height: normal;
   text-align: center;
   margin-top: var(--spacing-stack-lg);
@@ -347,7 +347,7 @@
 }
 
 .mr-comment-toggle__comment-count {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   margin-right: var(--spacing-inline-sm);
   color: var(--black);
 }

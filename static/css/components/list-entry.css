@@ -23,7 +23,7 @@
   color: var(--color-text-secondary);
 }
 .listEntry .name .title {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   font-size: 1.375em;
 }
 .listEntry .description p,

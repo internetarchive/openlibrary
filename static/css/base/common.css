@@ -85,6 +85,10 @@ h6 {
   color: var(--color-text-heading);
   font-weight: var(--font-weight-subheading);
 }
+b,
+strong {
+  font-weight: var(--font-weight-bold);
+}
 div.head {
   margin-bottom: var(--spacing-stack-sm);
   margin-top: var(--spacing-stack-lg);

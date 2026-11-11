@@ -116,7 +116,7 @@ export class OpenLibraryOTP extends LitElement {
             }
             .ol-otp-email-form label {
                 font-size: 0.9rem;
-                font-weight: bold;
+                font-weight: var(--font-weight-bold);
             }
             .ol-otp-email-form input[type='email'] {
                 padding: 8px;

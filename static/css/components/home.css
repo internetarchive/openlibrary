@@ -24,7 +24,7 @@ div.tutorial__item:focus {
 div.tutorial__item p {
   margin: 0;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
   overflow-wrap: break-word;
 }
@@ -71,7 +71,7 @@ div.tutorial__item img {
   line-height: var(--line-height-body);
   font-family: var(--font-family-serif);
   color: var(--color-text);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 /* stylelint-enable selector-max-specificity */
 

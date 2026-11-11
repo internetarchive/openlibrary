@@ -7,7 +7,7 @@
 .lists-page-cta h2 {
   font-size: 1.5em;
   font-family: var(--font-family-title);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   color: var(--color-text);
   margin: 0 0 var(--spacing-stack-sm);
 }

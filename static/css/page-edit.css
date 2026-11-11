@@ -51,7 +51,7 @@ div#revertLink {
 .label label {
   font-size: 1em;
   font-family: var(--font-family-body);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 .label span {
   font-size: 0.75em;
@@ -97,7 +97,7 @@ table.code td {
   font-family: var(--font-family-body);
   color: var(--red);
   font-size: var(--font-size-label-large);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   text-decoration: underline;
 }
 #editHead p {
