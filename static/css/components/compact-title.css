@@ -30,7 +30,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     font-family: var(--font-family-title);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
   }
 }
 

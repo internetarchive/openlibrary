@@ -24,13 +24,13 @@
   margin: 0;
   color: var(--color-text-secondary);
   font-size: 1.3em;
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   font-style: italic;
 }
 
 .work-title-and-author h2.edition-byline {
   font-size: var(--font-size-title-medium);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   color: var(--color-text);
   margin: 10px 0 20px;
   line-height: var(--line-height-meta);
@@ -46,7 +46,7 @@
 }
 
 .work-title-and-author .series-line a {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   text-decoration: none;
 }
 

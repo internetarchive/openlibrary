@@ -13,7 +13,7 @@
 /* Badly named. Should be renamed "carousel-heading" or similar. */
 .home-h2 {
   font-size: var(--font-size-title-medium);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   color: var(--color-text-heading);
   margin-bottom: 0.5em;
   margin-top: 1.75em;
@@ -225,7 +225,7 @@
   font-size: 0.8em;
   margin: var(--spacing-stack-xs) 0;
   color: var(--color-text);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
@@ -425,7 +425,7 @@
 
 .loan-overlay-badge__not-downloaded {
   color: var(--red-two);
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 .loan-overlay-badge__download-link {

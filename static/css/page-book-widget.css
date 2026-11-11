@@ -77,7 +77,7 @@ a.noshow {
 .author {
   font-family: var(--font-family-body);
   font-size: 0.7em;
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   color: var(--color-text-secondary);
   margin: 5px auto 7px;
   width: 130px;

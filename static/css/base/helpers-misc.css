@@ -5,15 +5,15 @@
 
 .small {
   font-size: var(--font-size-label-medium) !important;
-  font-weight: normal !important;
+  font-weight: var(--font-weight-regular) !important;
 }
 .smaller {
   font-size: var(--font-size-label-small);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 .smallest {
   font-size: 10px;
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 .reduce {
   font-size: 50% !important;
@@ -167,7 +167,7 @@ button.larger {
 }
 
 .bold {
-  font-weight: bold !important;
+  font-weight: var(--font-weight-bold) !important;
 }
 
 .headline,
