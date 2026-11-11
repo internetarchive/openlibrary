@@ -17,6 +17,7 @@ from openlibrary.plugins.upstream.utils import (
     get_coverstore_url,
     render_template,
 )
+from openlibrary.utils.request_context import site
 
 logger = getLogger("openlibrary.plugins.upstream.covers")
 
@@ -55,11 +56,11 @@ class add_cover(delegate.page):
     cover_category = "b"
 
     def GET(self, key):
-        book = web.ctx.site.get(key)
+        book = site.get().get(key)
         return render_template("covers/add", book)
 
     def POST(self, key):
-        book = web.ctx.site.get(key)
+        book = site.get().get(key)
         if not book:
             raise web.notfound("")
 
@@ -78,7 +79,7 @@ class add_cover(delegate.page):
             if isinstance(i.url, bytes):
                 i.url = i.url.decode("utf-8")
             self.save(book, coverid, url=i.url)
-            cover = Image(web.ctx.site, "b", coverid)
+            cover = Image(site.get(), "b", coverid)
             image_info = cover.info()
             return render_template("covers/saved", cover, image_info=image_info)
         else:
@@ -154,7 +155,7 @@ class add_photo(add_cover):
     cover_category = "a"
 
     def GET(self, key):
-        author = web.ctx.site.get(key)
+        author = site.get().get(key)
         wikidata_images = author.wikidata().get_image_urls() if author and author.wikidata() else []
         return render_template("covers/add", author, {"wikidata_images": wikidata_images})
 
@@ -167,7 +168,7 @@ class manage_covers(delegate.page):
     path = r"(/books/OL\d+M)/manage-covers"
 
     def GET(self, key):
-        book = web.ctx.site.get(key)
+        book = site.get().get(key)
         if not book:
             raise web.notfound()
         return render_template("covers/manage", key, self.get_images(book))
@@ -185,7 +186,7 @@ class manage_covers(delegate.page):
     def POST(self, key):
         if not accounts.get_current_user():
             raise web.unauthorized()
-        book = web.ctx.site.get(key)
+        book = site.get().get(key)
         if not book:
             raise web.notfound()
 

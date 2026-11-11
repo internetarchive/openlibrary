@@ -49,7 +49,7 @@ from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.query_utils import fully_escape_query
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
-from openlibrary.utils.request_context import get_request_lang, req_context, set_context_from_legacy_web_py
+from openlibrary.utils.request_context import get_request_lang, req_context, set_context_from_legacy_web_py, site
 from openlibrary.utils.solr import (
     DEFAULT_PASS_TIME_ALLOWED,
     DEFAULT_SOLR_TIMEOUT_SECONDS,
@@ -1059,7 +1059,7 @@ class list_search(delegate.page):
         # Can't set fields when rendering html
         req.fields = "key"
         resp = self.get_results(req, "LIST_SEARCH")
-        lists = list(web.ctx.site.get_many([doc["key"] for doc in resp.docs]))
+        lists = list(site.get().get_many([doc["key"] for doc in resp.docs]))
 
         # Local import: openlibrary.fastapi.search imports this module.
         from openlibrary.fastapi.search import SearchNav, lists_search_title
@@ -1203,7 +1203,7 @@ def rewrite_list_query(q: str, page, offset, limit, params: dict):
         if "env" not in web.ctx:
             delegate.fakeload()
             set_context_from_legacy_web_py()
-        lst = cast(List, web.ctx.site.get(key))
+        lst = cast(List, site.get().get(key))
         return list(itertools.islice(lst.get_work_keys(), offset, offset + limit))
 
     if list_key_match := re.match(r"^(/people/[^/]+)?/lists/OL\d+L", q):
