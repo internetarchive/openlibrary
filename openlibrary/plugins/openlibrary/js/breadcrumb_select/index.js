@@ -11,10 +11,7 @@
 export function safeSameOriginUrl(value) {
     try {
         const url = new URL(value, window.location.href);
-        if (
-            (url.protocol === 'http:' || url.protocol === 'https:') &&
-            url.origin === window.location.origin
-        ) {
+        if ((url.protocol === 'http:' || url.protocol === 'https:') && url.origin === window.location.origin) {
             return url.href;
         }
     } catch {
