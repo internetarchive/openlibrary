@@ -104,7 +104,7 @@ div.measurements .measure {
 }
 
 div.measurements .large {
-  font-size: 1.125em !important;
+  font-size: var(--font-size-body-xlarge) !important;
 }
 
 /* stylelint-disable selector-max-specificity */

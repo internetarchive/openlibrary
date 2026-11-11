@@ -39,7 +39,7 @@
 .subsectionSeparator {
   width: 100%;
   margin: 0;
-  font-size: 20px;
+  font-size: var(--font-size-title-large);
   font-weight: 600;
   color: var(--mid-grey);
 }
@@ -93,7 +93,7 @@
 .description__name--length-long {
   text-decoration: underline;
   padding-top: 80px;
-  font-size: 18px;
+  font-size: var(--font-size-body-xlarge);
   margin-bottom: 0;
 }
 .description__name--length-short {
@@ -104,7 +104,7 @@
 .description__title {
   font-weight: 400;
   height: 40px;
-  font-size: 18px;
+  font-size: var(--font-size-body-xlarge);
   margin-top: 10px;
   text-align: center;
 }
@@ -118,7 +118,7 @@
   color: var(--mid-grey);
 }
 .description__tenure {
-  font-size: 13px;
+  font-size: var(--font-size-body-small);
   margin: 2px 0 0;
   text-align: center;
   color: var(--mid-grey);

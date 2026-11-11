@@ -233,7 +233,7 @@ div#editHistory {
 .data-transfer-section-heading {
   margin-top: var(--spacing-2xl);
   margin-bottom: var(--spacing-md);
-  font-size: 1.25rem;
+  font-size: var(--font-size-title-large);
   font-weight: 600;
   width: 100%;
 }

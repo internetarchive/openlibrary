@@ -109,7 +109,7 @@
 }
 
 .search-subject-row-name {
-  font-size: 13px;
+  font-size: var(--font-size-body-small);
   color: var(--black);
   font-weight: 400;
 }
@@ -127,7 +127,7 @@
 
 .search-subject-row-name.search-subject-row-name-create
   .search-subject-row-name-create-p {
-  font-size: 13px;
+  font-size: var(--font-size-body-small);
   color: var(--black);
   font-weight: 400;
   margin-bottom: 5px;
