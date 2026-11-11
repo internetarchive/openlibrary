@@ -103,7 +103,7 @@ export class OpenLibraryOTP extends LitElement {
             }
             .ol-otp-dialog h2 {
                 margin: 0 0 0.5rem;
-                font-size: 1.25rem;
+                font-size: var(--font-size-title-large);
             }
             .ol-otp-dialog p {
                 margin: 0 0 1rem;

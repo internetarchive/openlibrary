@@ -28,14 +28,14 @@
   font-size: var(--font-size-title-medium) !important;
 }
 .largest {
-  font-size: 18px !important;
+  font-size: var(--font-size-body-xlarge) !important;
 }
 button.larger {
-  font-size: 18px !important;
+  font-size: var(--font-size-body-xlarge) !important;
   cursor: pointer;
 }
 .average {
-  font-size: 13px;
+  font-size: var(--font-size-body-small);
 }
 .invisible {
   visibility: hidden;

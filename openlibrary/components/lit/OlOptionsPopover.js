@@ -276,7 +276,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
                 margin-left: var(--spacing-inline-md);
                 color: var(--color-text-muted);
                 font-weight: var(--font-weight-regular);
-                font-size: 13px;
+                font-size: var(--font-size-body-small);
                 font-variant-numeric: tabular-nums;
             }
         `

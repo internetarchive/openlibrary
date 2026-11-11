@@ -248,7 +248,7 @@ a.page-history-compare__submit {
   border-radius: var(--border-radius-button);
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: 18px;
+  font-size: var(--font-size-body-xlarge);
   line-height: 1;
   cursor: pointer;
 }

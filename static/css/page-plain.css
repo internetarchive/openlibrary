@@ -67,7 +67,7 @@ div.nav {
   font-family: var(--font-family-body);
   color: var(--teal);
   font-weight: 600;
-  font-size: 1.125em;
+  font-size: var(--font-size-body-xlarge);
 }
 
 div.message {
@@ -79,7 +79,7 @@ div.message {
 }
 div.message h2 {
   font-weight: normal;
-  font-size: 18px;
+  font-size: var(--font-size-title-large);
   color: var(--black);
   margin: 0;
   padding: 0;
@@ -94,7 +94,7 @@ ul.link {
   margin-bottom: 50px;
 }
 ul.link li {
-  font-size: 1.125em;
+  font-size: var(--font-size-body-xlarge);
 }
 
 #faq h4 {

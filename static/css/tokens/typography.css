@@ -51,6 +51,7 @@
   --font-size-label-medium: 12px;
   --font-size-label-small: 11px;
 
+  --font-size-body-xlarge: 18px; /* lead paragraphs and emphasised copy. Not a heading size: headings step from title-medium to title-large */
   --font-size-body-large: 16px;
   --font-size-body-medium: 14px;
   --font-size-body-small: 12px;
