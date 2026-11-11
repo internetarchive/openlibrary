@@ -509,14 +509,27 @@ class BatchImportApprove(delegate.page):
     """
     Approve `batch_id`, with a `status` of `needs_review`, for import.
 
-    Making a GET as an admin to this endpoint will change a batch's status from
-    `needs_review` to `pending`.
+    Approval changes state, so it is a POST, not a GET: a state-changing GET can
+    be fired by a crawler, a prefetch, or a link an admin is tricked into
+    following (CSRF). The GET is inert and redirects to the batch view, where
+    Approve is rendered as a POST form.
+
+    CSRF protection rests on the auth cookie (``config.login_cookie_name`` ->
+    ``session``) being ``SameSite=Lax``, so a forged cross-site POST arrives
+    without the admin's session and fails the admin check below.
+    ``test_session_cookie_is_samesite_lax`` is the tripwire that fails loudly if
+    that cookie attribute is ever weakened. (``s3`` carries archive.org API keys,
+    not the Open Library session, so it is not what protects this endpoint.)
     """
 
     path = r"/import/batch/approve/(\d+)"
 
     def GET(self, batch_id):
+        # Inert: never changes state. Send the admin to the batch view, where
+        # the Approve action is a POST form.
+        return web.seeother(f"/import/batch/{batch_id}")
 
+    def POST(self, batch_id):
         user_key = delegate.context.user and delegate.context.user.key
         if user_key not in _get_members_of_group("/usergroup/admin"):
             raise Forbidden("Permission Denied.")
@@ -530,7 +543,7 @@ class BatchImportApprove(delegate.page):
             vars=locals(),
         )
 
-        return web.found(f"/import/batch/{batch_id}")
+        return web.seeother(f"/import/batch/{batch_id}")
 
 
 class BatchImportPendingView(delegate.page):
