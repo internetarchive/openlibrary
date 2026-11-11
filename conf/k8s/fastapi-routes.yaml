@@ -4,6 +4,7 @@ fastapiRoutes:
   # Pages (SitePageRoute)
   - GET /advancedsearch
   - GET /search/lists
+  - GET /search/subjects
   - GET POST /verify_human
   # JSON / API
   - POST /account/anonymize.json
