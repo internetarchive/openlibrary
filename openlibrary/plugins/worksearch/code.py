@@ -33,6 +33,7 @@ from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
+    get_coverstore_public_url,
     get_language_name,
     safeget,
     urlencode,
@@ -1134,7 +1135,7 @@ class author_search(delegate.page):
         page = safeint(i.page, 1) if i.page else 1
         offset = (page - 1) * results_per_page
         sort = i.sort or ""
-        results = (
+        resp = (
             self.get_results(
                 q,
                 offset=offset,
@@ -1145,7 +1146,27 @@ class author_search(delegate.page):
             if q
             else None
         )
-        return render_template("search/authors", q, page, results_per_page, sort, results)
+        # An empty query renders the bare search form, so there is no response to read.
+        num_found = resp.num_found if resp else 0
+
+        # Local import: openlibrary.fastapi.search imports this module.
+        from openlibrary.fastapi.search import SearchNav
+
+        body = render_jinja_template(
+            "search/authors.html.jinja",
+            nav=SearchNav.from_query(web.ctx.path, web.input(_method="get")),
+            q=q,
+            sort=sort,
+            search_response=resp,
+            user=web.ctx.site.get_user(),
+            urlsafe=urlsafe,
+            coverstore_url=get_coverstore_public_url(),
+            commified_num_found=commify(num_found),
+            page=page,
+            total_pages=ceil(num_found / results_per_page),
+        )
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(_("Search results for Authors")))
 
     def get_results(
         self,

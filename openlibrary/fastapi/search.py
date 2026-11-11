@@ -19,9 +19,10 @@ from pydantic import (
     model_validator,
 )
 
+from openlibrary.accounts import get_current_user
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import fulltext_search_async, resolve_language
-from openlibrary.core.helpers import commify
+from openlibrary.core.helpers import commify, urlsafe
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell.request import PageMeta
 from openlibrary.fastapi.models import (
@@ -32,6 +33,7 @@ from openlibrary.fastapi.models import (
 )
 from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SitePageRoute
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
     run_solr_query_async,
@@ -631,3 +633,38 @@ async def search_lists(nav: SearchNavDep, user: CurrentUserDep, q: str = "", pag
         total_pages=ceil(response.num_found / limit),
     )
     return SitePage(body, page=PageMeta(title=lists_search_title(q)))
+
+
+@pages.get("/search/authors")
+async def search_authors(nav: SearchNavDep, q: str = "", page: int = 1, sort: AuthorSortOption = "") -> SitePage:  # type: ignore[valid-type]
+    """HTML author search page, rendered from authors.html.jinja.
+
+    Retire the web.py ``author_search`` handler (which still renders the
+    Templetor ``search/authors.html``) once production routes /search/authors here.
+    """
+    page = max(1, page)
+    limit = 100  # Matches web.py's author_search results_per_page
+    response = await run_solr_query_async(
+        AuthorSearchScheme(),
+        {"q": q},
+        offset=(page - 1) * limit,
+        rows=limit,
+        fields="*",
+        sort=sort,
+        request_label="AUTHOR_SEARCH",
+    )
+
+    body = render_jinja_template(
+        "search/authors.html.jinja",
+        nav=nav,
+        q=q,
+        sort=sort,
+        search_response=response,
+        user=get_current_user(),
+        urlsafe=urlsafe,
+        coverstore_url=get_coverstore_public_url(),
+        commified_num_found=commify(response.num_found),
+        page=page,
+        total_pages=ceil(response.num_found / limit),
+    )
+    return SitePage(body, page=PageMeta(title=_("Search results for Authors")))
