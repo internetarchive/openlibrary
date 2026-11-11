@@ -74,7 +74,9 @@
         <div>
             <dt>{{ _("Asks for") }}</dt>
             <dd>
-                {{ project.fields | join(", ") }}
+                <ul class="contrib-admin__list">
+                    {% for field in project.fields %}<li>{{ field }}</li>{% endfor %}
+                </ul>
             </dd>
         </div>
         <div>
@@ -209,6 +211,7 @@
     <p class="contrib-admin__note">{{ _("Dates are in UTC. People, saves and the trend are counted nightly; the rest is live.") }}</p>
     <section class="contrib-admin__section">
         <h2 class="contrib-overline">{{ _("Edit details") }}</h2>
+        <p class="contrib-admin__note">{{ _("The title and description are not translated.") }}</p>
         <form class="contrib-admin__form"
               method="post"
               action="{{ page.urls.edit }}">
@@ -219,14 +222,9 @@
                        id="contrib-admin-title"
                        name="title"
                        value="{{ page.form.title }}"
+                       {% if page.builtin %}placeholder="{{ project.title }}"{% endif %}
                        maxlength="{{ page.form.title_max }}"
-                       {% if page.builtin %}aria-describedby="contrib-admin-title-hint"{% else %}required{% endif %} />
-                {% if page.builtin %}
-                    <p class="contrib-field__hint contrib-muted"
-                       id="contrib-admin-title-hint">
-                        {{ _("Leave blank to keep this project's built-in title and description, which are translated. Text typed here shows as written in every language.") }}
-                    </p>
-                {% endif %}
+                       {% if not page.builtin %}required{% endif %} />
             </div>
             <div class="contrib-admin__field">
                 <label for="contrib-admin-description">{{ _("Description") }}</label>
@@ -234,6 +232,7 @@
                           id="contrib-admin-description"
                           name="description"
                           rows="2"
+                          {% if page.builtin %}placeholder="{{ project.description }}"{% endif %}
                           maxlength="{{ page.form.description_max }}">{{ page.form.description }}</textarea>
             </div>
             <div class="contrib-admin__dates">

@@ -173,6 +173,13 @@
   font-size: var(--font-size-body-small);
 }
 
+/* A fact with several values, one to a line. */
+.contrib-admin__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .contrib-admin__section {
   display: grid;
   gap: var(--spacing-stack-sm);

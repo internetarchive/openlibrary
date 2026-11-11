@@ -4415,7 +4415,7 @@ msgid "Edit details"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Leave blank to keep this project's built-in title and description, which are translated. Text typed here shows as written in every language."
+msgid "The title and description are not translated."
 msgstr ""
 
 #: contribute/admin/project.html.jinja type/tag/view.html type/user/edit.html
