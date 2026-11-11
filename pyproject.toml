@@ -216,6 +216,7 @@ max-statements = 70
 "openlibrary/coverstore/*.py" = ["PLC0415"]
 "openlibrary/plugins/admin/*.py" = ["PLC0415"]
 "openlibrary/plugins/importapi/*.py" = ["PLC0415"]
+"openlibrary/plugins/inside/*.py" = ["PLC0415"]
 "openlibrary/plugins/openlibrary/*.py" = ["PLC0415"]
 "openlibrary/plugins/upstream/*.py" = ["PLC0415"]
 "openlibrary/plugins/worksearch/*.py" = ["PLC0415"]
