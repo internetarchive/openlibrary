@@ -34,6 +34,7 @@ from openlibrary.core import (
 from openlibrary.core.models import Work
 from openlibrary.plugins.openlibrary.pd import get_pd_dashboard_data
 from openlibrary.plugins.upstream import forms, spamcheck
+from openlibrary.utils.request_context import site
 
 logger = logging.getLogger("openlibrary.admin")
 
@@ -78,7 +79,7 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
             for item in change.changes:
                 keys_to_revert[item.key].append(change.id)
 
-        deleted_keys = web.ctx.site.things({"key": list(keys_to_revert), "type": {"key": "/type/delete"}})
+        deleted_keys = site.get().things({"key": list(keys_to_revert), "type": {"key": "/type/delete"}})
 
         changesets_with_deleted_works = {change_id for key in deleted_keys for change_id in keys_to_revert[key]}
 
@@ -91,7 +92,7 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
             stop = True
 
     delete_payload = [{"key": key, "type": {"key": "/type/delete"}} for key in keys_to_delete]
-    web.ctx.site.save_many(delete_payload, "Delete spam", action="bulk-revert-spam")
+    site.get().save_many(delete_payload, "Delete spam", action="bulk-revert-spam")
     return edit_count, len(delete_payload)
 
 
@@ -107,13 +108,13 @@ def revert_changesets(changeset_ids: Iterable[int], comment: str):
         if revision == 0:
             return {"key": key, "type": {"key": "/type/delete"}}
         else:
-            return web.ctx.site.get(key, revision).dict()
+            return site.get().get(key, revision).dict()
 
-    site = web.ctx.site
-    docs = [get_doc(c["key"], c["revision"] - 1) for cid in changeset_ids for c in site.get_change(cid).changes]
+    _site = site.get()
+    docs = [get_doc(c["key"], c["revision"] - 1) for cid in changeset_ids for c in _site.get_change(cid).changes]
     docs = [doc for doc in docs if doc.get("type", {}).get("key") != "/type/delete"]
     data = {"reverted_changesets": [str(cid) for cid in changeset_ids]}
-    manifest = web.ctx.site.save_many(docs, action="revert", data=data, comment=comment)
+    manifest = site.get().save_many(docs, action="revert", data=data, comment=comment)
     return manifest, len(docs)
 
 
@@ -149,7 +150,7 @@ class admin(delegate.page):
 
     def is_admin(self):
         """Returns True if the current user is in admin usergroup."""
-        return context.user and context.user.key in [m.key for m in web.ctx.site.get("/usergroup/admin").members]
+        return context.user and context.user.key in [m.key for m in site.get().get("/usergroup/admin").members]
 
 
 class admin_index:
@@ -438,7 +439,7 @@ class ipaddress_view:
 
 class stats:
     def GET(self, today):
-        json = web.ctx.site._conn.request(web.ctx.site.name, "/get", "GET", {"key": "/admin/stats/" + today})
+        json = site.get()._conn.request(site.get().name, "/get", "GET", {"key": "/admin/stats/" + today})
         return delegate.RawText(json)
 
     def POST(self, today):
@@ -448,10 +449,10 @@ class stats:
         raise web.seeother(web.ctx.path)
 
     def get_stats(self, today):
-        stats = web.ctx.site._request("/stats/" + today)
+        stats = site.get()._request("/stats/" + today)
 
         key = "/admin/stats/" + today
-        doc = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/object"}})
+        doc = site.get().new(key, {"key": key, "type": {"key": "/type/object"}})
         doc.edits = {
             "human": stats.edits - stats.edits_by_bots,
             "bot": stats.edits_by_bots,
@@ -463,7 +464,7 @@ class stats:
 
 class block:
     def GET(self):
-        page = web.ctx.site.get("/admin/block") or web.storage(ips=[web.storage(ip="127.0.0.1", duration="1 week", since="1 day")])
+        page = site.get().get("/admin/block") or web.storage(ips=[web.storage(ip="127.0.0.1", duration="1 week", since="1 day")])
         return render_template("admin/block", page)
 
     def POST(self):
@@ -474,13 +475,13 @@ class block:
         raise web.seeother("/admin/block")
 
     def block_ips(self, ips):
-        page = web.ctx.get("/admin/block") or web.ctx.site.new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
+        page = site.get().get("/admin/block") or site.get().new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
         page.ips = [{"ip": ip} for ip in ips]
         page._save("updated blocked IPs", action="edit-blocked-ips")
 
 
 def get_blocked_ips():
-    if doc := web.ctx.site.get("/admin/block"):
+    if doc := site.get().get("/admin/block"):
         return [d.ip for d in doc.ips]
     else:
         return []
@@ -529,13 +530,13 @@ class inspect:
         i = web.input(key=None, type=None, name=None, value=None)
 
         if i.key:
-            doc = web.ctx.site.store.get(i.key)
+            doc = site.get().store.get(i.key)
             if doc:
                 docs = [doc]
             else:
                 docs = []
         else:
-            docs = web.ctx.site.store.values(
+            docs = site.get().store.values(
                 type=i.type or None,
                 name=i.name or None,
                 value=i.value or None,
@@ -590,7 +591,7 @@ class permissions:
         return render_template("admin/permissions", perm_records, perm_pages)
 
     def get_permission(self, key):
-        doc = web.ctx.site.get(key)
+        doc = site.get().get(key)
         perm = doc and doc.child_permission
         return (perm and perm.key) or "/permission/open"
 
@@ -598,7 +599,7 @@ class permissions:
         """Returns the doc with permission set.
         The caller must save the doc.
         """
-        doc = web.ctx.site.get(key)
+        doc = site.get().get(key)
         doc = (doc and doc.dict()) or {"key": key, "type": {"key": "/type/page"}}
 
         # so that only admins can modify the permission
@@ -617,7 +618,7 @@ class permissions:
         works = self.set_permission("/works", i.perm_records)
         books = self.set_permission("/books", i.perm_records)
         authors = self.set_permission("/authors", i.perm_records)
-        web.ctx.site.save_many(
+        site.get().save_many(
             [root, works, books, authors],
             comment="Updated edit policy.",
             action="bulk-edit-permissions",
@@ -653,7 +654,7 @@ class solr:
     def POST(self):
         i = web.input(keys="")
         keys = i["keys"].strip().split()
-        web.ctx.site.store["solr-force-update"] = {
+        site.get().store["solr-force-update"] = {
             "type": "solr-force-update",
             "keys": keys,
             "_rev": None,
