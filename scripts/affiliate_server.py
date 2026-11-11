@@ -352,7 +352,7 @@ def is_book_needed(book: dict, edition: dict) -> list[str]:
     Should an OL edition's metadata be updated with Amazon book data?
 
     :param book: dict from openlibrary.core.vendors.clean_amazon_metadata_for_load()
-    :param edition: dict from web.ctx.site.get_many(edition_ids)
+    :param edition: dict from site.get().get_many(edition_ids)
     """
     needed_book_fields = []  # book fields that should be copied to the edition
     for book_field, edition_field in AZ_OL_MAP.items():

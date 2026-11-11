@@ -266,7 +266,7 @@ def admin_range__tasks_saves_by_field_1d(**kargs):
 
 
 # Initiative counts. The frozen edition lists and the not-found marks live in the store, so these read through
-# `web.ctx.site`, which `stats.setup_ol_config` provides, rather than through `thingdb`.
+# `site.get()`, which `stats.setup_ol_config` provides, rather than through `thingdb`.
 def _initiative():
     from openlibrary.contribute import initiatives
 
