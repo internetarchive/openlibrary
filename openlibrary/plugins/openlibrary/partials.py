@@ -1229,10 +1229,22 @@ def query_carousel(
 ) -> str:
     """Render a query or list carousel placeholder without Templetor.
 
-    ``lang`` is supplied by the caller, never read from the request here.
-    ``user_lang_only`` filters to populated ebook languages, defaulting to
-    English when no language is supplied. ``fallback`` retries the original
-    query when the language-filtered query has no results.
+    Backs the ``{{QueryCarousel(...)}}`` and ``{{ListCarousel(...)}}`` wiki macros.
+
+    :param query: Any Open Library search query, e.g. ``subject:"Textbooks"``, or a list key
+    :param title: A title to show above the carousel (links to /search?q=query)
+    :param sort: Sort param defined within work_search.py ``work_search``
+    :param key: Unique name of the carousel in analytics
+    :param limit: Initial number of books to pull
+    :param search: Whether to include search within collection
+    :param has_fulltext_only: Only include readable titles
+    :param url: Make the title link to this URL
+    :param layout: ``ol-carousel`` (default), ``grid``, or ``carousel`` for the legacy slick row
+    :param user_lang_only: Filter results to ``lang`` when it's a populated ebook language;
+        defaults to English when no language is supplied
+    :param fallback: Offer to retry the unfiltered query when the language-filtered one has no results
+    :param safe_mode: Blur covers of books that have a ``content_warning`` tag
+    :param lang: The visitor's ISO 639-1 language, supplied by the caller, never read from the request here
     """
     fallback_query = None
     if user_lang_only:
