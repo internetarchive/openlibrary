@@ -138,7 +138,7 @@ a.list-follow-card__username-link {
 
 .list-follow-card__private-button .pvt-text {
   color: var(--white);
-  font-size: 12px; /* Override base size */
+  font-size: var(--font-size-label-medium); /* Override base size */
   padding: var(--spacing-inset-xs) var(--spacing-inset-xs); /* Less padding */
   box-shadow: none; /* Remove default shadow if present */
   margin: 0;
@@ -148,7 +148,7 @@ a.list-follow-card__username-link {
 
 .list-follow-card__private-button .pvt-icon {
   color: var(--white);
-  font-size: 14px;
+  font-size: var(--font-size-label-large);
 }
 
 .list-follow-card__title {

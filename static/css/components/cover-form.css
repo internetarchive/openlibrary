@@ -10,7 +10,7 @@
 
 .floatform button[type="submit"],
 .ol-cover-form button[type="submit"] {
-  font-size: 1em;
+  font-size: inherit;
   width: auto;
   cursor: pointer;
   display: inline-block;
@@ -23,7 +23,7 @@
 
 .floatform .label label,
 .ol-cover-form .label label {
-  font-size: 1em;
+  font-size: inherit;
   font-family: var(--font-family-body);
   font-weight: var(--font-weight-bold);
 }

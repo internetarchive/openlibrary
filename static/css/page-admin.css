@@ -53,7 +53,7 @@ table.services td.node {
   background-color: var(--lightest-grey);
   border-bottom: 1px solid var(--admin-table-border);
   color: var(--color-text-secondary);
-  font-size: 0.8675em;
+  font-size: var(--font-size-label-large);
   font-weight: var(--font-weight-bold);
   padding: var(--spacing-inset-sm);
 }
@@ -61,7 +61,7 @@ table.services td.node {
 #adminHistory td {
   border-bottom: 1px solid var(--admin-table-border);
   padding: var(--spacing-inset-sm);
-  font-size: 0.75em;
+  font-size: var(--font-size-label-small);
 }
 
 #adminHistory td.number {

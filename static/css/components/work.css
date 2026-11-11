@@ -119,7 +119,7 @@ div.editionAbout p.featured-count {
   flex: 1;
   margin-top: 5px;
   margin-bottom: 14px;
-  font-size: 1.375em;
+  font-size: var(--font-size-title-large);
 }
 
 .workFooter .lists-heading a {
@@ -147,7 +147,7 @@ div.editionAbout p.featured-count {
 .edition-notes ol li,
 .book-description ol li {
   list-style-type: initial;
-  font-size: 0.8rem;
+  font-size: var(--font-size-body-small);
 }
 
 .checkboxes label {
@@ -358,7 +358,7 @@ a.section-anchor--no-height {
 }
 
 .preview-languages {
-  font-size: 0.8em;
+  font-size: var(--font-size-body-small);
   color: var(--color-text-secondary);
 }
 

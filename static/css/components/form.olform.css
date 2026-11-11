@@ -26,7 +26,7 @@
 }
 
 .olform .label label {
-  font-size: 1em;
+  font-size: inherit;
   font-family: var(--font-family-body);
   font-weight: var(--font-weight-bold);
 }
@@ -116,7 +116,7 @@
 .olform input[type="password"],
 .olform input[type="url"],
 .olform textarea {
-  font-size: 1em;
+  font-size: inherit;
   font-family: var(--font-family-body);
   padding: var(--spacing-inset-xs);
   max-width: 100%;
@@ -176,7 +176,7 @@
 
 /* stylelint-disable-next-line max-nesting-depth */
 .olform.books .TitleAuthor input#author {
-  font-size: 1em !important;
+  font-size: inherit !important;
   width: 100%;
 }
 /* stylelint-enable selector-max-specificity */
@@ -259,7 +259,7 @@
   transition: all 0.2s ease-out;
   top: -8px;
   left: 3px;
-  font-size: 11px;
+  font-size: var(--font-size-label-small);
   background: var(--white);
   padding: 0 var(--spacing-inset-xs);
   white-space: nowrap;

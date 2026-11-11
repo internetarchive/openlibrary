@@ -272,7 +272,7 @@
   padding: 33% var(--spacing-inset-sm) var(--spacing-inset-sm);
   text-align: center;
   background: var(--lighter-grey);
-  font-size: 1em;
+  font-size: inherit;
   color: var(--black);
   height: var(--height-blank-cover);
   width: 130px;
