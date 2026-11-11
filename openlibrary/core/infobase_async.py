@@ -54,6 +54,24 @@ async def _type_id(type_key: str) -> int | None:
     return _type_ids[type_key]
 
 
+async def get_redirect_location(key: str) -> str | None:
+    """Read the latest location only if the key is currently a redirect document."""
+    data = await fetch_val(
+        """
+        SELECT d.data FROM thing t
+        JOIN data d ON d.thing_id = t.id AND d.revision = t.latest_revision
+        WHERE t.key = %(key)s AND t.type = (SELECT id FROM thing WHERE key = '/type/redirect')
+        """,
+        {"key": key},
+    )
+    if data is None:
+        return None
+    location = json.loads(data).get("location")
+    if isinstance(location, str) and location and not location.startswith(("http://", "://")):
+        return location
+    return None
+
+
 async def _datatypes(type_key: str) -> dict[str, str]:
     """Each property's datatype, from the type's latest revision."""
     if type_key not in _type_datatypes:

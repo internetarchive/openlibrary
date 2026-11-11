@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 from fastapi.testclient import TestClient
 from prometheus_client import CollectorRegistry
@@ -15,6 +15,7 @@ def test_metrics_are_labelled_fastapi(monkeypatch):
     monkeypatch.setattr("openlibrary.asgi_app.set_context_from_fastapi", lambda request: None)
     from openlibrary.asgi_app import create_app  # noqa: PLC0415
 
+    monkeypatch.setattr("openlibrary.asgi_app.get_redirect_location", AsyncMock(return_value=None))
     with TestClient(create_app()) as client:
         client.get("/no-such-route")
 
@@ -54,6 +55,7 @@ def test_fastapi_labels_bots_from_the_request_context(monkeypatch):
     monkeypatch.setattr(request_context, "create_site", Mock)
     from openlibrary.asgi_app import create_app  # noqa: PLC0415
 
+    monkeypatch.setattr("openlibrary.asgi_app.get_redirect_location", AsyncMock(return_value=None))
     with TestClient(create_app()) as client:
         client.get("/no-such-route", headers={"User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"})
 
