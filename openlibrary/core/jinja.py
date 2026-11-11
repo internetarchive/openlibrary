@@ -103,8 +103,15 @@ def get_jinja_env() -> Environment:
         ``Markup`` because a rendered template is HTML by construction and
         the env autoescapes — without it every call site would need
         ``|safe`` (see ``icon`` below for the same rationale).
+
+        Under FastAPI, ``web.ctx`` is still the startup placeholder, so the
+        render is lent the current request's path and query; without that,
+        legacy helpers like ``changequery()`` link to ``/install``.
         """
-        return Markup(str(render_template(name, *args, **kwargs)))
+        from openlibrary.utils.request_context import templetor_web_ctx
+
+        with templetor_web_ctx():
+            return Markup(str(render_template(name, *args, **kwargs)))
 
     env.globals["render_templetor_template"] = _render_templetor_template
 
@@ -123,9 +130,33 @@ def get_jinja_env() -> Environment:
     # system primitive any template may need.
     env.globals["icon"] = _icon
 
-    # static_url is used by many templates (site shell, nav, macros) so it
-    # is a true Jinja global, like icon. Import here to avoid circular
-    # import at module load time.
+    # Request-scoped helpers a Jinja partial needs but no caller can supply: the
+    # sort menu (search/sort_options.html.jinja) builds links with changequery()
+    # and hides the shuffle control from bots. Wrapped because changequery reads
+    # web.ctx, which FastAPI leaves at its startup placeholder; the lend is the
+    # same one render_templetor_template uses. Imports are deferred so importing
+    # this module stays safe at plugin load time.
+    def _changequery(*args: Any, **kwargs: Any) -> str:
+        from openlibrary.plugins.openlibrary.code import changequery
+        from openlibrary.utils.request_context import templetor_web_ctx
+
+        with templetor_web_ctx():
+            return changequery(*args, **kwargs)
+
+    def _is_bot() -> bool:
+        from openlibrary.plugins.openlibrary.code import is_bot
+
+        return is_bot()
+
+    def _today() -> Any:
+        from openlibrary.plugins.upstream.utils import today
+
+        return today()
+
+    env.globals["changequery"] = _changequery
+    env.globals["is_bot"] = _is_bot
+    env.globals["today"] = _today
+
     from openlibrary.plugins.upstream.code import static_url
 
     env.globals["static_url"] = static_url
