@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: olbase-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   # Resolve the openlibrary-i18n ref to a SHA once, so the amd64 and arm64 images
   # bake the same translations even if the branch moves between the two builds.
