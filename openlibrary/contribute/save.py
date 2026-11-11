@@ -18,6 +18,7 @@ from openlibrary.plugins.upstream.covers import add_cover
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, get_languages
 from openlibrary.utils.lccn import normalize_lccn
 from openlibrary.utils.oclc import normalize_oclc
+from openlibrary.utils.request_context import site
 
 SOURCE = "contribute"
 ACTION = "edit-book"
@@ -102,7 +103,7 @@ def save_answer(edition, fld: str, raw: str, label: str, note: str = "", initiat
     doc = edition.dict()
     doc[fld] = answer_value(edition, fld, raw)
     comment = note.strip() or _("Filled in %(field)s from Open Library Tasks", field=label)
-    web.ctx.site.save(doc, comment=comment, action=ACTION, data=change_data(fld, initiative))
+    site.get().save(doc, comment=comment, action=ACTION, data=change_data(fld, initiative))
 
 
 def tag_answers(fld: str, raws: list[str]) -> list[dict]:
@@ -127,7 +128,7 @@ def save_work_answers(work, answers: dict[str, list[str]], label: str, note: str
         doc[fld] = refs if fld in MANY else refs[:1]
     fields = list(answers)
     comment = note.strip() or _("Filled in %(field)s from Open Library Tasks", field=label)
-    web.ctx.site.save(doc, comment=comment, action=ACTION, data=change_data(fields[0], initiative, fields=fields))
+    site.get().save(doc, comment=comment, action=ACTION, data=change_data(fields[0], initiative, fields=fields))
 
 
 def save_cover(edition, file, from_amazon: bool = False, initiative: str = "") -> None:
@@ -150,7 +151,7 @@ def save_cover(edition, file, from_amazon: bool = False, initiative: str = "") -
 
 def _tasks_changes(query: dict) -> list:
     """The changes matching ``query`` that Tasks saved, newest first. Filtered here: ``data`` filters need an index entry."""
-    changes = [c for kind in (ACTION, COVER_ACTION) for c in web.ctx.site.recentchanges(query | {"kind": kind})]
+    changes = [c for kind in (ACTION, COVER_ACTION) for c in site.get().recentchanges(query | {"kind": kind})]
     return sorted((c for c in changes if (c.data or {}).get("source") == SOURCE), key=lambda c: c.timestamp, reverse=True)
 
 

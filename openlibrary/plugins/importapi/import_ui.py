@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from typing import Literal, cast, override
 
@@ -11,6 +12,7 @@ from openlibrary.catalog import add_book
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.core.vendors import get_amazon_metadata
+from openlibrary.utils.request_context import site
 
 
 class import_preview(delegate.page):
@@ -18,7 +20,7 @@ class import_preview(delegate.page):
     """Preview page for import API."""
 
     def GET(self):
-        user = web.ctx.site.get_user()
+        user = site.get().get_user()
 
         if user is None:
             raise web.unauthorized()
@@ -32,7 +34,7 @@ class import_preview(delegate.page):
         return render_template("import_preview.html", metadata_provider_factory, req)
 
     def POST(self):
-        user = web.ctx.site.get_user()
+        user = site.get().get_user()
 
         if user is None:
             raise web.unauthorized()
@@ -180,12 +182,44 @@ class RawMarcMetadataProvider(AbstractMetadataProvider):
         )
 
 
+class GutenbergMetadataProvider(AbstractMetadataProvider):
+    full_name = "Project Gutenberg"
+    # Matches the ``source_records`` prefix and identifier type that the
+    # BookWorm Gutenberg feed writes, so a preview and a harvest agree.
+    id_name = "project_gutenberg"
+
+    PUBLICATION_URL = "https://opds-test.pglaf.org/opds/publications?id={}"
+    # A bare ebook number, or its gutenberg.org page URL.
+    ID_RE = re.compile(r"^(?:https?://(?:www\.)?gutenberg\.org/ebooks/)?(\d+)/?$")
+
+    @override
+    def do_import(self, identifier: str, save: bool):
+        from openlibrary.bookworm import opds
+        from openlibrary.bookworm.harvest import build_session
+
+        match = self.ID_RE.match(identifier.strip())
+        if not match:
+            raise ValueError(f"Invalid Project Gutenberg id: {identifier!r}")
+
+        response = build_session().get(self.PUBLICATION_URL.format(match[1]), timeout=20)
+        response.raise_for_status()
+        feed = opds.Feed(provider_name=self.id_name, id_strategy="gutenberg")
+        import_record = opds.to_import_record(opds.Publication(**response.json()), feed)
+        assert import_record, "No metadata found for the given identifier"
+        return add_book.load(
+            import_record,
+            account_key="account/ImportBot",
+            save=save,
+        )
+
+
 class MetadataProviderFactory:
     def __init__(self):
         providers = [
             AmazonMetadataProvider(),
             IaMetadataProvider(),
             RawMarcMetadataProvider(),
+            GutenbergMetadataProvider(),
         ]
         self.metadata_providers = {provider.id_name: provider for provider in providers}
 

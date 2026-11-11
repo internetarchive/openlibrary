@@ -14,9 +14,10 @@ from datetime import UTC, datetime
 from infogami.utils.delegate import create_site
 from openlibrary.contribute import pool, tasks
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.helpers import commify
+from openlibrary.core.helpers import commify, format_date
 from openlibrary.core.tags import GENRES, LITERARY_FORMS
 from openlibrary.i18n import gettext as _
+from openlibrary.i18n import ungettext
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.dateutil import DAY_SECS, MINUTE_SECS
 from openlibrary.utils.request_context import site as request_site
@@ -163,20 +164,28 @@ ACTIVE = MOST_READ
 
 
 def describe(initiative: Initiative) -> dict[str, str]:
-    """An initiative's name and pitch, as Tasks and the stats page show them: the name says what it is, the pitch how many books and what they need."""
-    count = commify(initiative.size)
+    """An initiative's name and pitch, as Tasks and the stats page show them: the name says the job, the pitch which books and what they need.
+
+    Both draw on the most-shelved books, so the job is what tells them apart; the book count goes in the dashboard's fine print.
+    Names are title case: a project is a proper name, unlike the sentence-case labels around it.
+    """
     if initiative is TAGS:
         return {
-            "title": _("Fiction or nonfiction"),
-            "description": _(
-                "%(count)s of the most-shelved books that aren't marked fiction or nonfiction yet, or are missing their genres.",
-                count=count,
-            ),
+            "title": _("Sort the Stacks"),
+            "description": _("Mark the books people shelve most as fiction or nonfiction, and pick their genres."),
         }
     return {
-        "title": _("%(count)s most-read books", count=count),
-        "description": _("The %(count)s editions people shelve most. Fill in any cover, page count, publisher or language they're missing.", count=count),
+        "title": _("Fill the Gaps"),
+        "description": _("Add missing covers, page counts, publishers and languages to the books people shelve most."),
     }
+
+
+def fine_print(initiative: Initiative, site) -> str:
+    """The line under the dashboard's pitch: how many books, and when the list was picked."""
+    books = ungettext("%(count)s book", "%(count)s books", initiative.size, count=commify(initiative.size))
+    if started := started_at(initiative, site):
+        return _("%(books)s · Started %(date)s", books=books, date=format_date(started))
+    return books
 
 
 def get(slug: str) -> Initiative | None:
@@ -188,6 +197,16 @@ def load_frozen(initiative: Initiative, site) -> list[list] | None:
     if doc := site.store.get(initiative.store_key):
         return doc["editions"]
     return None
+
+
+_started: dict[str, datetime] = {}
+
+
+def started_at(initiative: Initiative, site) -> datetime | None:
+    """When the list was picked, or None before then. Kept once read: it never changes, and the doc carries the whole list."""
+    if initiative.slug not in _started and (doc := site.store.get(initiative.store_key)):
+        _started[initiative.slug] = datetime.fromisoformat(doc["frozen_at"])
+    return _started.get(initiative.slug)
 
 
 def load_or_freeze(initiative: Initiative, site) -> list[list]:

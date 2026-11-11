@@ -6,10 +6,9 @@ with anonymized accounts.
 
 import argparse
 
-import web
-
 from openlibrary.core import db
 from openlibrary.setup import setup_for_script
+from openlibrary.utils.request_context import site
 
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 
@@ -71,7 +70,7 @@ def remediate(test=False):
         if not is_account_active(f"account/{record['username']}") and (key := fetch_store_key(record["username"])):
             print(f"Found affected record with key: {key}")
             if not test:
-                web.ctx.site.store.delete(key)
+                site.get().store.delete(key)
             deleted_entries += 1
 
     print(f"Remediated {deleted_entries} `account-email` store entries.")

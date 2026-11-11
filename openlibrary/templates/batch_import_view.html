@@ -14,7 +14,11 @@ $var title: $_("Batch Import Status")
     <ul>
         $for status_count in status_counts:
             $if status_count.status == "needs_review":
-              <li>$status_count.status: $status_count.count (<a href="/import/batch/approve/$batch.id">$_('Approve')</a>)</li>
+              $# Approval changes state, so it is a POST form, not a GET link (CSRF). Shown only to admins; the server re-checks.
+              $if ctx.user and ctx.user.is_admin():
+                <li>$status_count.status: $status_count.count (<form method="post" action="/import/batch/approve/$batch.id" class="batch-approve-form"><button type="submit">$_('Approve')</button></form>)</li>
+              $else:
+                <li>$status_count.status: $status_count.count</li>
             $else:
               <li>$status_count.status: $status_count.count</li>
     </ul>

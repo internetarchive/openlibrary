@@ -1286,6 +1286,11 @@
   font-size: var(--font-size-body-large);
 }
 
+.contrib-project__meta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+}
+
 .contrib-ring {
   position: relative;
   display: grid;

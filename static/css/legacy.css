@@ -249,10 +249,6 @@ abbr {
 /*SET FONT SIZES AS em, DIVIDING YOUR PIXEL SIZE by 16 (i.e. 12px = 12/16 or 0.75em)*/
 
 /* DEFINE SOME DEFAULTS */
-b,
-strong {
-  font-weight: 650;
-}
 
 i,
 em {

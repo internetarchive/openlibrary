@@ -163,9 +163,9 @@ def sampledump():
     def expand_keys(keys):
         def f(k):
             if isinstance(k, dict):
-                return web.ctx.site.things(k)
+                return site.get().things(k)
             elif k.endswith("*"):
-                return web.ctx.site.things({"key~": k})
+                return site.get().things({"key~": k})
             else:
                 return [k]
 
@@ -201,7 +201,7 @@ def sampledump():
             visited.add(key)
             return
 
-        thing = web.ctx.site.get(key)
+        thing = site.get().get(key)
         if not thing:
             return
 
@@ -235,7 +235,7 @@ def sampleload(filename="sampledump.txt.gz"):
     with gzip.open(filename) if filename.endswith(".gz") else open(filename) as file:
         queries = [json.loads(line) for line in file]
 
-    print(web.ctx.site.save_many(queries, action="infogami-sampleload-action"))
+    print(site.get().save_many(queries, action="infogami-sampleload-action"))
 
 
 class routes(delegate.page):
@@ -269,20 +269,20 @@ class addbook(delegate.page):
     path = "/addbook"
 
     def GET(self):
-        d = {"type": web.ctx.site.get("/type/edition")}
+        d = {"type": site.get().get("/type/edition")}
 
         i = web.input()
-        author = i.get("author") and web.ctx.site.get(i.author)
+        author = i.get("author") and site.get().get(i.author)
         if author:
             d["authors"] = [author]
 
-        page = web.ctx.site.new("", d)
+        page = site.get().new("", d)
         return render.edit(page, self.path, "Add Book")
 
     def POST(self):
         from infogami.core.code import edit
 
-        key = web.ctx.site.new_key("/type/edition")
+        key = site.get().new_key("/type/edition")
         web.ctx.path = key
         return edit().POST(key)
 
@@ -292,7 +292,7 @@ class widget(delegate.page):
 
     def GET(self, key: str):  # type: ignore[override]
         olid = key.rsplit("/", maxsplit=1)[-1]
-        item = web.ctx.site.get(key)
+        item = site.get().get(key)
         is_work = key.startswith("/works/")
         item["olid"] = olid
         item["availability"] = get_availability(
@@ -337,9 +337,9 @@ class addauthor(delegate.page):
         i = web.input("name")
         if len(i.name) < 2:
             return web.badrequest()
-        key = web.ctx.site.new_key("/type/author")
+        key = site.get().new_key("/type/author")
         web.ctx.path = key
-        web.ctx.site.save(
+        site.get().save(
             {"key": key, "name": i.name, "type": {"key": "/type/author"}},
             comment="New Author",
             action="create-author",
@@ -352,7 +352,7 @@ class clonebook(delegate.page):
         from infogami.core.code import edit  # noqa: F401 side effects may be needed
 
         i = web.input("key")
-        page = web.ctx.site.get(i.key)
+        page = site.get().get(i.key)
         if page is None:
             raise web.seeother(i.key)
         else:
@@ -456,10 +456,34 @@ class batch_imports(delegate.page):
         return render_template("batch_import.html", batch_result=batch_result)
 
 
+def _require_admin():
+    """Raise 403 unless the current user is logged in and an admin."""
+    user_key = delegate.context.user and delegate.context.user.key
+    if not user_key or user_key not in _get_members_of_group("/usergroup/admin"):
+        raise Forbidden("Permission Denied.")
+
+
 class BatchImportView(delegate.page):
     path = r"/import/batch/(\d+)"
 
     def GET(self, batch_id):
+        # A batch view exposes its import rows and the submitter's identity, so
+        # it is limited to the batch's submitter and to admins. The 403 is
+        # identical whether or not the batch exists, so a non-admin cannot use
+        # this endpoint to probe which batch ids exist.
+        user = delegate.context.user
+        user_key = user and user.key
+        if not user_key:
+            raise Forbidden("Permission Denied.")
+        is_admin = user_key in _get_members_of_group("/usergroup/admin")
+
+        batch_rows = db.select("import_batch", where="id=$batch_id", vars=locals())
+        batch = batch_rows[0] if batch_rows else None
+        if not is_admin and (batch is None or batch.submitter != user.get_username()):
+            raise Forbidden("Permission Denied.")
+        if batch is None:
+            raise web.notfound()
+
         i = web.input(page=1, limit=10, sort="added_time asc")
         page = int(i.page)
         limit = int(i.limit)
@@ -472,8 +496,6 @@ class BatchImportView(delegate.page):
             sort_order = "asc"
 
         offset = (page - 1) * limit
-
-        batch = db.select("import_batch", where="id=$batch_id", vars=locals())[0]
         total_rows = db.query(
             "SELECT COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id",
             vars=locals(),
@@ -509,14 +531,27 @@ class BatchImportApprove(delegate.page):
     """
     Approve `batch_id`, with a `status` of `needs_review`, for import.
 
-    Making a GET as an admin to this endpoint will change a batch's status from
-    `needs_review` to `pending`.
+    Approval changes state, so it is a POST, not a GET: a state-changing GET can
+    be fired by a crawler, a prefetch, or a link an admin is tricked into
+    following (CSRF). The GET is inert and redirects to the batch view, where
+    Approve is rendered as a POST form.
+
+    CSRF protection rests on the auth cookie (``config.login_cookie_name`` ->
+    ``session``) being ``SameSite=Lax``, so a forged cross-site POST arrives
+    without the admin's session and fails the admin check below.
+    ``test_session_cookie_is_samesite_lax`` is the tripwire that fails loudly if
+    that cookie attribute is ever weakened. (``s3`` carries archive.org API keys,
+    not the Open Library session, so it is not what protects this endpoint.)
     """
 
     path = r"/import/batch/approve/(\d+)"
 
     def GET(self, batch_id):
+        # Inert: never changes state. Send the admin to the batch view, where
+        # the Approve action is a POST form.
+        return web.seeother(f"/import/batch/{batch_id}")
 
+    def POST(self, batch_id):
         user_key = delegate.context.user and delegate.context.user.key
         if user_key not in _get_members_of_group("/usergroup/admin"):
             raise Forbidden("Permission Denied.")
@@ -530,7 +565,7 @@ class BatchImportApprove(delegate.page):
             vars=locals(),
         )
 
-        return web.found(f"/import/batch/{batch_id}")
+        return web.seeother(f"/import/batch/{batch_id}")
 
 
 class BatchImportPendingView(delegate.page):
@@ -541,6 +576,9 @@ class BatchImportPendingView(delegate.page):
     path = r"/import/batch/pending"
 
     def GET(self):
+        # Lists every batch awaiting review, across all submitters -- admins only.
+        _require_admin()
+
         i = web.input(page=1, limit=10, sort="added_time asc")
         page = int(i.page)
         limit = int(i.limit)
@@ -631,7 +669,7 @@ class bookpage(delegate.page):
 
         q = {"type": "/type/edition", key: value}
 
-        result = web.ctx.site.things(q)
+        result = site.get().things(q)
 
         if result:
             return web.found(result[0] + ext)
@@ -642,7 +680,7 @@ class bookpage(delegate.page):
                 {"type": "/type/volume", "ia_id": value},
             ]
             for q in ocaid_alternatives:
-                result = web.ctx.site.things(q)
+                result = site.get().things(q)
                 if result:
                     return web.found(result[0] + ext)
 
@@ -671,7 +709,7 @@ class rdf(delegate.mode):
     encoding = "rdf"
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
         if not page:
             raise web.notfound("")
         else:
@@ -693,7 +731,7 @@ class opds(delegate.mode):
     encoding = "opds"
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
         if not page:
             raise web.notfound("")
         else:
@@ -715,7 +753,7 @@ class marcxml(delegate.mode):
     encoding = "marcxml"
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
         if page is None or page.type.key != "/type/edition":
             raise web.notfound("")
         else:
@@ -801,7 +839,7 @@ class _yaml_edit(_yaml):
 
         if "_save" in i:
             d = self.load(i.body)
-            p = web.ctx.site.new(key, d)
+            p = site.get().new(key, d)
             try:
                 p._save(i._comment, action="edit-yaml")
             except (client.ClientException, ValidationException) as e:
@@ -822,14 +860,14 @@ def _get_user_root():
 
 
 def _get_bots():
-    bots = web.ctx.site.store.values(type="account", name="bot", value="true")
+    bots = site.get().store.values(type="account", name="bot", value="true")
     user_root = _get_user_root()
     return [user_root + "/" + account["username"] for account in bots]
 
 
 def _get_members_of_group(group_key):
     """Returns keys of all members of the group identifier by group_key."""
-    usergroup = web.ctx.site.get(group_key) or {}
+    usergroup = site.get().get(group_key) or {}
     return [m.key for m in usergroup.get("members", [])]
 
 
@@ -871,7 +909,7 @@ class new:
             type = query["type"]
             if isinstance(type, dict):
                 type = type["key"]
-            query["key"] = web.ctx.site.new_key(type)
+            query["key"] = site.get().new_key(type)
             return query["key"]
 
     def verify_types(self, query):
@@ -915,7 +953,7 @@ class new:
         try:
             if not isinstance(query, list):
                 query = [query]
-            web.ctx.site.save_many(query, comment=comment, action=action)
+            site.get().save_many(query, comment=comment, action=action)
         except client.ClientException as e:
             raise BadRequest(str(e))
 
@@ -976,7 +1014,7 @@ class invalidate(delegate.page):
         if not isinstance(data, list):
             data = [data]
         for d in data:
-            thing = client.Thing(web.ctx.site, d["key"], client.storify(d))
+            thing = client.Thing(site.get(), d["key"], client.storify(d))
             client._run_hooks("on_new_version", thing)
         return delegate.RawText("ok")
 

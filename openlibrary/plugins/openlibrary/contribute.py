@@ -24,6 +24,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.utils import markdown_excerpt
+from openlibrary.utils.request_context import site
 
 LIST_SIZE = 25
 # Placeholder cards while a cold cache builds the list in the background; the script swaps them for the rows.
@@ -137,7 +138,7 @@ def build_next_url(back: str, after: tasks.Task, saved: bool, initiative: str = 
 def get_language_names(codes: set[str]) -> dict[str, str]:
     names = {}
     for code in codes:
-        if lang := web.ctx.site.get(f"/languages/{code}"):
+        if lang := site.get().get(f"/languages/{code}"):
             names[code] = lang.name or code
     return names
 
@@ -581,6 +582,7 @@ class contribute_index(delegate.page):
             apply=build_apply(user),
             initiatives=projects,
             project=next(card for card in projects if card["on"]),
+            fine_print=initiatives.fine_print(initiative, site.get()),
         )
 
 
@@ -694,7 +696,7 @@ def build_receipt(saved: str, picked: str = "") -> dict | None:
     None when the field is still empty, as there's nothing saved to show. A cover has no text value; the image is its value.
     """
     olid, _sep, fld = saved.partition("/")
-    if fld not in get_field_guides() or not (edition := web.ctx.site.get(f"/books/{olid}")):
+    if fld not in get_field_guides() or not (edition := site.get().get(f"/books/{olid}")):
         return None
     field_label, value = describe_saved(edition, fld, picked)
     cover_url = edition.get_cover_url("M")
@@ -710,7 +712,7 @@ def build_receipt(saved: str, picked: str = "") -> dict | None:
 
 
 def get_edition_or_404(olid: str):
-    edition = web.ctx.site.get(f"/books/{olid}")
+    edition = site.get().get(f"/books/{olid}")
     if not edition or edition.type.key != "/type/edition":
         raise web.notfound()
     return edition
@@ -778,7 +780,7 @@ class contribute_task(delegate.page):
             return render_nothing_page(edition, fld, back, slug)
         if i.then == "notfound" or (is_choice_list(fld) and i.value == UNSURE):
             # "Not sure" counts like "I couldn't find it": enough people and the gap is set aside.
-            initiatives.record_not_found(web.ctx.site, edition.key, fld, user.key)
+            initiatives.record_not_found(site.get(), edition.key, fld, user.key)
             if i.then == "next":
                 raise web.seeother(build_next_url(back, task, saved=False, initiative=slug, surprise=surprise))
             raise web.seeother(build_done_url(olid, fld, "unsure", back, slug, surprise))

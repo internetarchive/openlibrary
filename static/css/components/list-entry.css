@@ -19,12 +19,12 @@
   font-family: var(--font-family-body);
 }
 .listEntry .name {
-  font-size: 0.6875em;
+  font-size: var(--font-size-label-small);
   color: var(--color-text-secondary);
 }
 .listEntry .name .title {
-  font-weight: bold;
-  font-size: 1.375em;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-title-medium);
 }
 .listEntry .description p,
 .listEntry .description li {
@@ -33,7 +33,7 @@
   margin: 0 !important;
 }
 .listEntry .meta {
-  font-size: 0.6875em;
+  font-size: var(--font-size-label-small);
   color: var(--color-text-secondary);
   line-height: 1.5em;
   margin: var(--spacing-stack-xs) 0;

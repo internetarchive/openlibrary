@@ -3,13 +3,8 @@
 
  * Used in templates:
  * - openlibrary/templates/type/about/edit.html
- * - openlibrary/templates/type/i18n/edit.html
- * - openlibrary/templates/type/macro/view.html
- * - openlibrary/templates/type/macro/edit.html
  * - openlibrary/templates/type/page/edit.html
  * - openlibrary/templates/type/permission/edit.html
- * - openlibrary/templates/type/rawtext/edit.html
- * - openlibrary/templates/type/rawtext/view.html
  * - openlibrary/templates/type/template/view.html
  * - openlibrary/templates/type/template/edit.html
  * - openlibrary/templates/type/user/edit.html
@@ -54,23 +49,23 @@ div#revertLink {
   padding: var(--spacing-inset-sm) 0 var(--spacing-inset-xs);
 }
 .label label {
-  font-size: 1em;
+  font-size: inherit;
   font-family: var(--font-family-body);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 .label span {
-  font-size: 0.75em;
+  font-size: var(--font-size-label-medium);
   font-family: var(--font-family-body);
 }
 textarea {
   font-family: var(--font-family-code);
-  font-size: 0.875em;
+  font-size: var(--font-size-body-medium);
   padding: var(--spacing-inset-xs);
   resize: vertical;
 }
 .formElement input[type="text"],
 .formElement select {
-  font-size: 1em;
+  font-size: inherit;
   font-family: var(--font-family-body);
   color: var(--color-text);
   padding: var(--spacing-inset-xs);
@@ -102,7 +97,7 @@ table.code td {
   font-family: var(--font-family-body);
   color: var(--red);
   font-size: var(--font-size-label-large);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   text-decoration: underline;
 }
 #editHead p {

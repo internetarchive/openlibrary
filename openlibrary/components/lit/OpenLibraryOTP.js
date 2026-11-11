@@ -103,7 +103,7 @@ export class OpenLibraryOTP extends LitElement {
             }
             .ol-otp-dialog h2 {
                 margin: 0 0 0.5rem;
-                font-size: 1.25rem;
+                font-size: var(--font-size-title-large);
             }
             .ol-otp-dialog p {
                 margin: 0 0 1rem;
@@ -116,7 +116,7 @@ export class OpenLibraryOTP extends LitElement {
             }
             .ol-otp-email-form label {
                 font-size: 0.9rem;
-                font-weight: bold;
+                font-weight: var(--font-weight-bold);
             }
             .ol-otp-email-form input[type='email'] {
                 padding: 8px;

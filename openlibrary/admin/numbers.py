@@ -19,7 +19,7 @@ import functools
 import logging
 from datetime import timedelta
 
-import web
+from openlibrary.utils.request_context import site
 
 logger = logging.getLogger(__name__)
 
@@ -304,9 +304,9 @@ def admin_range__initiatives(**kargs):
     initiatives = _initiative()
     counts = {}
     for initiative in initiatives.INITIATIVES:
-        if not (frozen := web.ctx.site.store.get(initiative.store_key)):
+        if not (frozen := site.get().store.get(initiative.store_key)):
             continue
-        p = initiatives.progress(initiatives.gaps_for(frozen["editions"], web.ctx.site), initiative.fields)
+        p = initiatives.progress(initiatives.gaps_for(frozen["editions"], site.get()), initiative.fields)
         counts[initiative.slug] = {
             "open": p["open"],
             "done": p["done"],

@@ -11,6 +11,7 @@ import infogami
 from openlibrary.accounts import RunAs
 from openlibrary.core import db
 from openlibrary.setup import setup_for_script
+from openlibrary.utils.request_context import site
 from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
@@ -46,7 +47,7 @@ def update_preferences(keys: list[str]) -> list[str]:
     retry_list = []
     for key in keys:
         try:
-            prefs = web.ctx.site.get(key)
+            prefs = site.get().get(key)
             new_prefs = prefs.dict()
             if "pda" in new_prefs["notifications"]:
                 del new_prefs["notifications"]["pda"]
@@ -54,7 +55,7 @@ def update_preferences(keys: list[str]) -> list[str]:
                 del new_prefs["notifications"]["rpd"]
             username = key.split("/")[2]
             with RunAs(username):
-                web.ctx.site.save(new_prefs, "Updating preferences")
+                site.get().save(new_prefs, "Updating preferences")
         except infogami.infobase.client.ClientException, KeyError, IndexError:
             retry_list.append(key)
 

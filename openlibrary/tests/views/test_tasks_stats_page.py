@@ -1,5 +1,7 @@
 """Tests for the numbers /stats/tasks renders server-side (openlibrary.views.loanstats)."""
 
+import datetime as dt
+
 import pytest
 
 from openlibrary.contribute import initiatives
@@ -28,12 +30,45 @@ def test_change_needs_an_earlier_count():
     assert loanstats.format_change(None, 5) is None
 
 
-def test_cards_show_dashes_until_the_counts_exist():
-    cards = loanstats.build_tasks_stats_cards({"tasks_saves_28d": {"latest": 1200, "earlier": 1000}})
-    assert [c["metric"] for c in cards] == ["editors", "new_editors", "saves", "tasks_editors"]
-    assert cards[0]["value"] == "—"
-    assert cards[0]["change"] is None
-    assert cards[2]["value"] == "1,200"
+def test_tasks_cards_show_dashes_until_the_counts_exist(request_lang):
+    cards = loanstats.build_tasks_stats_cards({"tasks_saves_28d": {"latest": 1200, "earlier": 1000}}, None)
+    assert [c["metric"] for c in cards] == ["saves", "tasks_editors", "saves_per_editor"]
+    assert cards[0]["value"] == "1,200"
+    assert cards[0]["change"] == {"direction": "up", "text": "20.0%"}
+    assert cards[1]["value"] == "—"
+    assert cards[2]["value"] == "—"
+
+
+def day_docs(today, values: dict[str, int], days: int = 28) -> list[dict]:
+    return [{"_key": key, **values} for key in reversed(loanstats.day_keys(today, days))]
+
+
+def test_editing_cards_split_editors_and_compare_with_traffic(request_lang):
+    today = dt.date(2026, 11, 9)
+    counts = {
+        "catalog_editors_28d": {"latest": 2500, "earlier": 2000},
+        "new_catalog_editors_28d": {"latest": 2000},
+        "tasks_saves_28d": {"latest": 280},
+        "tasks_editors_28d": {"latest": 50},
+    }
+    docs = day_docs(today, {"catalog_edits": 100})
+    by_metric = {c["metric"]: c for c in loanstats.build_editing_cards(counts, docs, today)}
+    assert list(by_metric) == ["editors", "edits", "tasks_share"]
+    assert by_metric["editors"]["split"] == {"returning": "500", "first_time": "2,000", "first_time_width": 80.0}
+    assert by_metric["edits"]["value"] == "2,800"
+    # The 28 days before have no edit counts, so there's nothing to compare with.
+    assert by_metric["edits"]["change"] is None
+    assert by_metric["tasks_share"]["value"] == "10.0%"
+    assert by_metric["tasks_share"]["detail"] == "of edits · 2.0% of editors"
+
+
+def test_edits_need_every_day_of_the_window(request_lang):
+    today = dt.date(2026, 11, 9)
+    docs = day_docs(today, {"catalog_edits": 100}, days=27)
+    by_metric = {c["metric"]: c for c in loanstats.build_editing_cards({}, docs, today)}
+    assert by_metric["edits"]["value"] == "—"
+    assert by_metric["tasks_share"]["value"] == "—"
+    assert by_metric["tasks_share"]["detail"] == ""
 
 
 def test_guardrail_compares_tasks_with_the_same_fields_filled_elsewhere():

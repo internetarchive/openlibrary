@@ -35,7 +35,7 @@ li {
   color: var(--color-text);
 }
 body {
-  font-size: 100%;
+  font-size: inherit;
   line-height: normal;
   background-color: var(--color-background);
   font-family: var(--font-family-body);
@@ -84,6 +84,10 @@ h6 {
   font-family: var(--font-family-subheading);
   color: var(--color-text-heading);
   font-weight: var(--font-weight-subheading);
+}
+b,
+strong {
+  font-weight: var(--font-weight-bold);
 }
 div.head {
   margin-bottom: var(--spacing-stack-sm);
