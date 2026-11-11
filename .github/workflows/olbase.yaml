@@ -152,6 +152,14 @@ jobs:
           docker manifest annotate openlibrary/olbase:${TAG_NAME} openlibrary/olbase@${ARM64_DIGEST}
           docker manifest push openlibrary/olbase:${TAG_NAME}
 
+          # Tag the same images with the commit SHA so deploys can pin an exact build.
+          docker manifest create openlibrary/olbase:${GITHUB_SHA::12} \
+            openlibrary/olbase@${AMD64_DIGEST} \
+            openlibrary/olbase@${ARM64_DIGEST}
+          docker manifest annotate openlibrary/olbase:${GITHUB_SHA::12} openlibrary/olbase@${AMD64_DIGEST}
+          docker manifest annotate openlibrary/olbase:${GITHUB_SHA::12} openlibrary/olbase@${ARM64_DIGEST}
+          docker manifest push openlibrary/olbase:${GITHUB_SHA::12}
+
   # Report which locales the image kept at their committed .po because the
   # openlibrary-i18n file was rejected. Reads the manifest from the pushed amd64
   # image (both arches run the same script on the same SHA). Informational only:
