@@ -1,5 +1,7 @@
 """py.test tests for addbook"""
 
+from unittest.mock import Mock
+
 import pytest
 import web
 
@@ -7,8 +9,18 @@ from infogami.utils import delegate
 from openlibrary import accounts
 from openlibrary.core.models import User
 from openlibrary.mocks.mock_infobase import MockSite
+from openlibrary.utils.request_context import site
 
 from .. import addbook
+
+
+@pytest.fixture(autouse=True)
+def initialized_site(monkeypatch):
+    current = MockSite()
+    monkeypatch.setattr(web.ctx, "site", current, raising=False)
+    token = site.set(current)
+    yield
+    site.reset(token)
 
 
 def strip_nones(d):
@@ -31,9 +43,6 @@ def mock_user():
 
 
 class TestSaveBookHelper:
-    def setup_method(self, method):
-        web.ctx.site = MockSite()
-
     def test_authors(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
@@ -595,9 +604,6 @@ class TestAddBookOcaid:
 
 
 class TestDaisyPage:
-    def setup_method(self, method):
-        web.ctx.site = MockSite()
-
     def test_redirects_to_archive_item_for_edition_with_ocaid(self, monkeypatch):
         web.ctx.site.save(
             {
@@ -765,3 +771,151 @@ class TestEditSavedFlash:
         monkeypatch.setattr(addbook.pitch, "encode", broken)
         addbook.add_edit_saved_flash("/books/OL1M")
         assert saved.flash == [("edit-saved", "")]
+
+
+class TestSiteContextMigration:
+    @pytest.fixture(params=["missing", "different"])
+    def current(self, mock_site, monkeypatch, request):
+        # Normal mock_site sets both handles; separate them to catch legacy reads.
+        if request.param == "missing":
+            monkeypatch.delitem(web.ctx, "site")
+        else:
+            monkeypatch.setitem(web.ctx, "site", MockSite())
+        monkeypatch.setattr(mock_site, "can_write", Mock(return_value=True), raising=False)
+        monkeypatch.setattr(mock_site, "seq", Mock(next_value=Mock(return_value=17)), raising=False)
+        for key, value in {"home": "http://openlibrary.org", "path": "/books/add", "fullpath": "/books/add", "lang": "en"}.items():
+            monkeypatch.setitem(web.ctx, key, value)
+        monkeypatch.setattr(addbook, "get_recaptcha", lambda: None)
+        monkeypatch.setattr(accounts, "get_current_user", lambda: Mock(can_edit_ocaid=lambda: True))
+        monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *args, **kwargs: False)
+        monkeypatch.setattr(addbook, "add_edit_saved_flash", lambda *keys: None)
+        monkeypatch.setattr(addbook.utils, "get_message", lambda key: "Saved book")
+        return mock_site
+
+    @pytest.mark.parametrize(
+        ("type_", "key"),
+        [("author", "/authors/OL1A"), ("work", "/works/OL1W"), ("edition", "/books/OL1M"), ("list", "/list/OL17L"), ("series", "/series/OL17L")],
+    )
+    def test_new_doc_uses_current_site(self, current, type_, key):
+        doc = addbook.new_doc("/type/" + type_, title="New record")
+        assert doc._site is current
+        assert doc.key == key
+        assert doc.title == "New record"
+        if type_ in {"list", "series"}:
+            current.seq.next_value.assert_called_once_with("list")
+
+    def test_add_book_post_saves_author_work_and_edition(self, current, monkeypatch):
+        form = {
+            "book_title": "New book",
+            "publisher": "Publisher",
+            "publish_date": "2020",
+            "authors--0--author--key": "__new__",
+            "author_names--0": "New author",
+        }
+        monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, **form))
+        with pytest.raises(web.HTTPError, match="303 See Other"):
+            delegate.pages["/books/add"][None]().POST()
+        assert current.get("/authors/OL1A").name == "New author"
+        work = current.get("/works/OL1W")
+        edition = current.get("/books/OL1M")
+        assert work.title == edition.title == "New book"
+        assert work.authors[0].author.key == "/authors/OL1A"
+        assert edition.works[0].key == work.key
+        assert current.changesets[-1]["kind"] == "add-book"
+        assert current.changesets[-1]["comment"] == "Saved book"
+        assert dict(web.ctx.headers)["Location"].endswith("/edit?mode=add-work")
+
+    def test_add_book_get_prefills_current_records(self, current, monkeypatch):
+        current.quicksave("/authors/OL1A", "/type/author", name="Author")
+        current.quicksave("/works/OL1W", "/type/work", title="Work", authors=[{"author": {"key": "/authors/OL1A"}}])
+        monkeypatch.setattr(web, "input", lambda **defaults: web.storage(work="/works/OL1W", author="/authors/OL1A"))
+        render = Mock()
+        monkeypatch.setattr(addbook, "render_template", render)
+        delegate.pages["/books/add"][None]().GET()
+        assert render.call_args.kwargs["work"].title == "Work"
+        assert [a.key for a in render.call_args.kwargs["authors"]] == ["/authors/OL1A"]
+        current.can_write.assert_called_once_with("/books/add")
+
+    def test_selected_work_match_uses_current_site(self, current, monkeypatch):
+        current.quicksave("/works/OL1W", "/type/work", title="Selected work")
+        page = delegate.pages["/books/add"][None]()
+        monkeypatch.setattr(page, "try_edition_match", lambda **kwargs: None)
+        form = web.storage(work="/works/OL1W", title="Book", publish_date="", authors=[], publisher="", id_name="", id_value="")
+        assert page.find_matches(form).title == "Selected work"
+
+    def test_edition_match_fetches_from_current_site(self, current, monkeypatch):
+        current.quicksave("/books/OL1M", "/type/edition", title="Matching edition", publishers=["Publisher"])
+        solr = Mock()
+        solr.select.return_value = web.storage(docs=[web.storage(edition_key=["OL1M"], publisher=["Publisher"])])
+        monkeypatch.setattr(addbook, "get_solr", lambda: solr)
+        edition = delegate.pages["/books/add"][None]().try_edition_match(publisher="Publisher")
+        assert edition._site is current
+        assert edition.title == "Matching edition"
+
+    @pytest.mark.parametrize(
+        ("handler", "key", "type_"),
+        [(addbook.book_edit, "/books/OL1M", "edition"), (addbook.work_edit, "/works/OL1W", "work"), (addbook.author_edit, "/authors/OL1A", "author")],
+    )
+    @pytest.mark.parametrize("allowed", [False, True])
+    def test_edit_get_uses_current_permissions_and_records(self, current, monkeypatch, handler, key, type_, allowed):
+        current.quicksave("/works/OL2W", "/type/work", title="Parent")
+        current.quicksave(key, "/type/" + type_, title="Current record", works=[{"key": "/works/OL2W"}])
+        current.can_write.return_value = allowed
+        get = Mock(wraps=current.get)
+        monkeypatch.setattr(current, "get", get)
+        monkeypatch.setattr(web, "input", lambda **defaults: web.storage(v="1"))
+        render = Mock()
+        monkeypatch.setattr(addbook, "render_template", render)
+        handler().GET(key)
+        current.can_write.assert_called_once_with(key)
+        if allowed:
+            if handler is addbook.author_edit:
+                get.assert_called_with(key)
+            else:
+                get.assert_called_with(key, 1)
+            assert render.call_args.args[1]._site is current
+        else:
+            get.assert_not_called()
+            assert web.ctx.status == "403 Forbidden"
+            assert render.call_args.args[0] == "permission_denied"
+
+    @pytest.mark.parametrize(
+        ("handler", "key", "type_"),
+        [(addbook.book_edit, "/books/OL1M", "edition"), (addbook.work_edit, "/works/OL1W", "work"), (addbook.author_edit, "/authors/OL1A", "author")],
+    )
+    def test_edit_post_saves_current_record(self, current, monkeypatch, handler, key, type_):
+        current.quicksave(key, "/type/" + type_, title="Before", name="Before")
+        fields = {"_comment": "Edit record", "_save": "Save", f"{type_}--key": key, f"{type_}--title": "After"}
+        if type_ == "author":
+            fields["author--name"] = "After"
+        monkeypatch.setattr(web, "input", lambda **defaults: web.storage(dict(defaults) | fields))
+        with pytest.raises(web.HTTPError, match="303 See Other"):
+            handler().POST(key)
+        assert current.get(key).title == "After"
+        assert current.changesets[-1]["comment"] == "Edit record"
+
+    @pytest.mark.parametrize("author_handler", [False, True])
+    def test_delete_saves_tombstone_to_current_site(self, current, monkeypatch, author_handler):
+        key = "/authors/OL1A"
+        current.quicksave(key, "/type/author", name="Author")
+        if author_handler:
+            monkeypatch.setattr(web, "input", lambda **defaults: web.storage(_comment="Delete", _delete="Delete", **{"author--name": "Author"}))
+            with pytest.raises(web.HTTPError, match="303 See Other"):
+                addbook.author_edit().POST(key)
+        else:
+            addbook.SaveBookHelper.delete(key, comment="Delete")
+        assert current.get(key).type.key == "/type/delete"
+        assert current.changesets[-1]["comment"] == "Delete"
+
+    @pytest.mark.parametrize("ocaid", [None, "item/with spaces"])
+    def test_daisy_uses_current_edition(self, current, monkeypatch, ocaid):
+        current.quicksave("/books/OL1M", "/type/edition", title="Accessible", ocaid=ocaid)
+        render = Mock()
+        monkeypatch.setattr(addbook, "render_template", render)
+        if ocaid:
+            with pytest.raises(web.HTTPError, match="303 See Other"):
+                addbook.daisy().GET("/books/OL1M")
+            assert dict(web.ctx.headers)["Location"] == "https://archive.org/details/item%2Fwith%20spaces"
+        else:
+            addbook.daisy().GET("/books/OL1M")
+            assert render.call_args.args[1].title == "Accessible"
