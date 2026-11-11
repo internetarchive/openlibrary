@@ -236,6 +236,7 @@ All `*.json` endpoints are defined in `openlibrary/fastapi/search.py`, served by
 | `POST /search/carousels.json` | `search_carousels_json()` | Up to 20 queries in one call. Used by OPDS. Max 20. (PR #12987) |
 | `GET /search` (HTML) | `search` in `worksearch/code.py` | Search results page — facets, ISBN redirect, spellcheck. |
 | `GET /subjects/{key}` | `subjects` in `worksearch/subjects.py` | Subject page: works list + related subjects. |
+| `GET /search/inside` | `search_inside()` in `fastapi/search.py` | Full-text search inside books (HTML). |
 | `GET /search/subjects` | `subject_search` in `worksearch/code.py` | Subject autocomplete (HTML). |
 | `GET /search/authors` | `author_search` in `worksearch/code.py` | Author search (HTML). |
 | `GET /advancedsearch` | `advancedsearch` in `worksearch/code.py` | Advanced search form (HTML). |
