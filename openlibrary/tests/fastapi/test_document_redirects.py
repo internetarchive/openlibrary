@@ -31,7 +31,7 @@ def fetch_document(monkeypatch):
 def test_redirect_location(fastapi_client, fetch_document, method, location, expected):
     fetch_document.return_value = json.dumps({"location": location})
     response = fastapi_client.request(method, "/nested/short", headers={"X-Scheme": "https"}, follow_redirects=False)
-    assert response.status_code == 301
+    assert response.status_code == 302
     assert response.headers["location"] == expected
     fetch_document.assert_awaited_once()
     assert fetch_document.await_args.args[1] == {"key": "/nested/short"}

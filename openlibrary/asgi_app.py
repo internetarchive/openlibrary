@@ -318,7 +318,8 @@ def create_app() -> FastAPI | None:
                     # web.py resolves even //host/path against the current origin.
                     scheme = request.headers.get("x-forwarded-proto") or request.headers.get("x-scheme") or request.url.scheme
                     target = f"{scheme}://{request.url.netloc}{target}"
-                return RedirectResponse(target, status_code=301)
+                # These links can be repointed by editors. Browsers should request the current target.
+                return RedirectResponse(target, status_code=302)
 
         if local_dev or testing:
             return await proxy.proxy_to_webpy(request)
