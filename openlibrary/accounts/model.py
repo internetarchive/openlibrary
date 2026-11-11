@@ -642,7 +642,39 @@ class OpenLibraryAccount(Account):
                 displayname=displayname,
             )
         except ClientException:
-            raise ValueError("something_went_wrong")
+            # A concurrent registration may have created this account
+            # between our existence checks and the server-side insert.
+            # Check whether the account now exists with the same identity.
+            # get_by_username queries the store directly, bypassing memcache.
+            # The register request also invalidates the relevant account and
+            # email cache entries, so get_by_email can be used for the
+            # conflicting-email check.
+            try:
+                existing = cls.get_by_username(username)
+
+                if existing:
+                    if existing.get("username") == username and (existing.get("email") or "").strip().lower() == email.strip().lower():
+                        # The competing request registered the same account.
+                        # Continue with the normal post-registration setup.
+                        pass
+                    else:
+                        # The username belongs to a different account.
+                        ve = ValueError("username_registered")
+                        ve.value = username
+                        raise ve
+
+                elif cls.get_by_email(email):
+                    # The email belongs to a different account.
+                    raise ValueError("email_registered")
+
+                else:
+                    # No matching account was found, so this was likely
+                    # an unrelated registration failure.
+                    raise ValueError("something_went_wrong")
+
+            except ClientException:
+                # We couldn't verify whether the competing request succeeded.
+                raise ValueError("something_went_wrong")
 
         if verified:
             key = f"account/{username}/verify"

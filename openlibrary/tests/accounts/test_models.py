@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock
 import pytest
 from requests.models import Response
 
+from infogami.infobase.client import ClientException
 from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, model
 
 
@@ -164,6 +165,275 @@ def test_get(mock_web, mock_site):
     key = f"test/{retrieved_username}"
     retrieved_account = OpenLibraryAccount.get_by_key(key)
     assert retrieved_account
+
+
+# --- OpenLibraryAccount.create() concurrent registration races ---
+
+
+def _wire_racing_store(mock_site):
+    """Backs the mocked ``site``'s store lookups with plain dicts that a test
+    can mutate mid-flow to simulate a competing registration committing
+    between this request's existence checks and its ``register`` call.
+
+    Returns the ``(docs, matches)`` dicts: ``docs`` backs ``store.get(key)``
+    and ``matches`` backs ``store.values(name=..., value=...)``.
+    """
+    docs: dict = {}
+    matches: dict = {}
+
+    def values(**kw):
+        return matches.get((kw.get("name"), kw.get("value")), [])
+
+    def store_get(key):
+        return docs.get(key)
+
+    mock_store = mock_site.get.return_value.store
+    mock_store.values.side_effect = values
+    mock_store.get.side_effect = store_get
+    return docs, matches
+
+
+def _account_doc(username="racer", email="racer@example.com") -> dict:
+    return {
+        "_key": f"account/{username}",
+        "_rev": "12",
+        "type": "account",
+        "status": "pending",
+        "username": username,
+        "lusername": username.lower(),
+        "email": email,
+        "enc_password": "salt$hash",
+        "data": {"displayname": "Racer"},
+    }
+
+
+def _email_doc(email, username) -> dict:
+    return {
+        "_key": f"account-email/{email.lower()}",
+        "type": "account-email",
+        "username": username,
+    }
+
+
+@mock.patch("openlibrary.accounts.RunAs")
+@mock.patch("openlibrary.accounts.model.site")
+def test_create_treats_concurrent_duplicate_registration_as_success(mock_site, mock_run_as):
+    """A registration that loses the race to an identical concurrent
+    registration succeeds: the winning request created the account with the
+    same username and email, so create() finishes the shared setup and
+    returns that account instead of raising something_went_wrong."""
+    docs, matches = _wire_racing_store(mock_site)
+    winner = _account_doc()
+
+    def competing_register(**kwargs):
+        # The competing request commits the same identity just before ours;
+        # the store's unique key constraint rejects ours.
+        docs["account/racer"] = winner
+        docs["account-email/racer@example.com"] = _email_doc("racer@example.com", "racer")
+        matches[("username", "racer")] = [winner]
+        raise ClientException("400 Bad Data", "User already exists: racer")
+
+    mock_site.get.return_value.register.side_effect = competing_register
+
+    ol_account = OpenLibraryAccount.create(
+        username="racer",
+        email="racer@example.com",
+        password="password",
+        displayname="Racer",
+        verified=True,
+    )
+
+    assert ol_account.username == "racer"
+    assert ol_account["email"] == "racer@example.com"
+    mock_site.get.return_value.register.assert_called_once()
+    # The losing request still finishes the shared post-registration setup.
+    mock_site.get.return_value.activate_account.assert_called_once_with(username="racer")
+    mock_run_as.assert_called_once_with("racer")
+
+
+@mock.patch("openlibrary.accounts.RunAs")
+@mock.patch("openlibrary.accounts.model.site")
+def test_create_treats_duplicate_as_success_when_email_case_differs(mock_site, mock_run_as):
+    """Emails are compared case-insensitively, mirroring get_by_email, so a
+    competing registration that used different email casing still counts as
+    the same identity."""
+    docs, matches = _wire_racing_store(mock_site)
+    winner = _account_doc(email="Racer@Example.com")
+
+    def competing_register(**kwargs):
+        docs["account/racer"] = winner
+        # the server stores the email doc under the lowercased email
+        docs["account-email/racer@example.com"] = _email_doc("Racer@Example.com", "racer")
+        matches[("username", "racer")] = [winner]
+        raise ClientException("400 Bad Data", "Email is already used: racer@example.com")
+
+    mock_site.get.return_value.register.side_effect = competing_register
+
+    ol_account = OpenLibraryAccount.create(
+        username="racer",
+        email="racer@example.com",
+        password="password",
+        verified=True,
+    )
+
+    assert ol_account.username == "racer"
+    mock_run_as.assert_called_once_with("racer")
+
+
+@mock.patch("openlibrary.accounts.model.site")
+def test_create_reports_username_registered_when_winner_has_different_email(mock_site):
+    """When the username was taken by a different identity, the race loser
+    reports the real conflict instead of something_went_wrong."""
+    docs, matches = _wire_racing_store(mock_site)
+    winner = _account_doc(email="someone-else@example.com")
+
+    def competing_register(**kwargs):
+        docs["account/racer"] = winner
+        matches[("username", "racer")] = [winner]
+        raise ClientException("400 Bad Data", "User already exists: racer")
+
+    mock_site.get.return_value.register.side_effect = competing_register
+
+    with pytest.raises(ValueError, match="username_registered") as exc_info:
+        OpenLibraryAccount.create(
+            username="racer",
+            email="racer@example.com",
+            password="password",
+            verified=True,
+        )
+
+    # like the pre-register check, the error carries the taken username
+    assert exc_info.value.value == "racer"
+    mock_site.get.return_value.activate_account.assert_not_called()
+
+
+@mock.patch("openlibrary.accounts.model.site")
+def test_create_reports_username_registered_when_winner_username_case_differs(
+    mock_site,
+):
+    """Username matching is exact: an account registered as "Racer" is a
+    different username than the requested "racer" and stays a conflict."""
+    docs, matches = _wire_racing_store(mock_site)
+    winner = _account_doc(username="Racer")
+
+    def competing_register(**kwargs):
+        docs["account/Racer"] = winner
+        matches[("lusername", "racer")] = [winner]
+        raise ClientException("400 Bad Data", "User already exists: Racer")
+
+    mock_site.get.return_value.register.side_effect = competing_register
+
+    with pytest.raises(ValueError, match="username_registered"):
+        OpenLibraryAccount.create(
+            username="racer",
+            email="racer@example.com",
+            password="password",
+            verified=True,
+        )
+
+
+@mock.patch("openlibrary.accounts.model.site")
+def test_create_reports_email_registered_when_email_taken_by_different_account(
+    mock_site,
+):
+    """When the email was taken by a different username, the race loser
+    reports the real conflict instead of something_went_wrong."""
+    docs, _ = _wire_racing_store(mock_site)
+    winner = _account_doc(username="someone-else")
+
+    def competing_register(**kwargs):
+        docs["account/someone-else"] = winner
+        docs["account-email/racer@example.com"] = _email_doc("racer@example.com", "someone-else")
+        raise ClientException("400 Bad Data", "Email is already used: racer@example.com")
+
+    mock_site.get.return_value.register.side_effect = competing_register
+
+    with pytest.raises(ValueError, match="email_registered"):
+        OpenLibraryAccount.create(
+            username="racer",
+            email="racer@example.com",
+            password="password",
+            verified=True,
+        )
+    mock_site.get.return_value.activate_account.assert_not_called()
+
+
+@mock.patch("openlibrary.accounts.model.site")
+def test_create_reports_something_went_wrong_for_unrelated_failure(mock_site):
+    """A register failure with no matching account anywhere is an unrelated
+    database/network/server failure and stays an error."""
+    _wire_racing_store(mock_site)
+    mock_site.get.return_value.register.side_effect = ClientException("500 Internal Server Error", "internal error")
+
+    with pytest.raises(ValueError, match="something_went_wrong"):
+        OpenLibraryAccount.create(
+            username="racer",
+            email="racer@example.com",
+            password="password",
+            verified=True,
+        )
+    mock_site.get.return_value.activate_account.assert_not_called()
+
+
+@mock.patch("openlibrary.accounts.model.site")
+def test_create_keeps_generic_error_when_recheck_lookup_fails(mock_site):
+    """If the post-failure recheck itself cannot reach the store (e.g. the
+    same outage that broke register), the original failure stands and no
+    success is assumed."""
+    _, matches = _wire_racing_store(mock_site)
+    outage = {"active": False}
+
+    def values(**kw):
+        if outage["active"]:
+            raise ClientException("503 Service Unavailable", "store unreachable")
+        return matches.get((kw.get("name"), kw.get("value")), [])
+
+    def register(**kwargs):
+        outage["active"] = True
+        raise ClientException("503 Service Unavailable", "store unreachable")
+
+    mock_site.get.return_value.store.values.side_effect = values
+    mock_site.get.return_value.register.side_effect = register
+
+    with pytest.raises(ValueError, match="something_went_wrong"):
+        OpenLibraryAccount.create(
+            username="racer",
+            email="racer@example.com",
+            password="password",
+            verified=True,
+        )
+    mock_site.get.return_value.activate_account.assert_not_called()
+
+
+@mock.patch("openlibrary.accounts.model.site")
+def test_create_still_rejects_genuine_conflicts_before_registering(mock_site):
+    """The pre-register existence checks are unchanged: genuine email and
+    username conflicts raise before register() is ever called."""
+    docs, matches = _wire_racing_store(mock_site)
+
+    # genuine email conflict
+    docs["account-email/racer@example.com"] = _email_doc("racer@example.com", "racer")
+    docs["account/racer"] = _account_doc()
+    with pytest.raises(ValueError, match="email_registered"):
+        OpenLibraryAccount.create(
+            username="racer",
+            email="racer@example.com",
+            password="password",
+            verified=True,
+        )
+
+    # genuine username conflict (the email is now free)
+    del docs["account-email/racer@example.com"]
+    matches[("username", "racer")] = [_account_doc()]
+    with pytest.raises(ValueError, match="username_registered"):
+        OpenLibraryAccount.create(
+            username="racer",
+            email="racer@example.com",
+            password="password",
+            verified=True,
+        )
+
+    mock_site.get.return_value.register.assert_not_called()
 
 
 # --- InternetArchiveAccount.verify() ---
