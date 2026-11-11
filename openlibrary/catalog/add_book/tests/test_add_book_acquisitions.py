@@ -191,7 +191,8 @@ def test_end_to_end_opds_publication_to_edition_with_acquisition(mock_site, add_
     assert rows[0].data["acquisitions"][0]["access"] == "open-access"
 
 
-def test_opds_descriptive_metadata_reaches_the_edition_and_work(mock_site, add_languages, ia_writeback, acquisitions_db):
+def test_opds_descriptive_metadata_reaches_the_edition_and_work(mock_site, add_languages, ia_writeback, acquisitions_db, monkeypatch):
+    monkeypatch.setattr(add_book, "add_cover", lambda url, ekey, account_key=None: 1234)
     gutenberg = opds.Feed(provider_name="project_gutenberg", id_strategy="gutenberg")
     pub = opds.Publication(**json.loads((SAMPLES / "gutenberg_2641.json").read_text()))
     rec = opds.to_import_record(pub, gutenberg)
@@ -207,7 +208,8 @@ def test_opds_descriptive_metadata_reaches_the_edition_and_work(mock_site, add_l
     assert "Florence (Italy) -- Fiction" in work.subjects
 
 
-def test_opds_gutenberg_author_matches_on_gutenberg_id(mock_site, add_languages, ia_writeback, acquisitions_db):
+def test_opds_gutenberg_author_matches_on_gutenberg_id(mock_site, add_languages, ia_writeback, acquisitions_db, monkeypatch):
+    monkeypatch.setattr(add_book, "add_cover", lambda url, ekey, account_key=None: 1234)
     mock_site.save({"name": "Edward Morgan Forster", "key": "/authors/OL5A", "type": {"key": "/type/author"}, "remote_ids": {"project_gutenberg": "975"}})
     gutenberg = opds.Feed(provider_name="project_gutenberg", id_strategy="gutenberg")
     pub = opds.Publication(**json.loads((SAMPLES / "gutenberg_2641.json").read_text()))
