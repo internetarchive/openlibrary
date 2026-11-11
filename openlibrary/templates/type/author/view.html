@@ -154,7 +154,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     $# search page's .search-filter-row.
                     <div class="search-results-stats__tools">
                         $if books_count > 1:
-                            $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
+                            $:render_jinja_template("search/sort_options.html.jinja", selected_sort=books.sort, exclude='relevance', default_sort='editions', user=ctx.user)
 
                         $if books_count > 0:
                             $:render_template("search/layout_options.html", selected_layout=layout)

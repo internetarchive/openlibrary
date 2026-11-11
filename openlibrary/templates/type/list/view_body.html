@@ -91,7 +91,7 @@ $def seed_attrs(seed):
 
         <div class="search-results-stats">
             $if not list.key.startswith('/series/'):
-                $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
+                $:render_jinja_template("search/sort_options.html.jinja", selected_sort=sort, default_sort='index', search_scheme="lists_seeds", user=ctx.user)
             $ layout = get_remembered_layout()
             $:render_template("search/layout_options.html", selected_layout=layout)
         </div>
