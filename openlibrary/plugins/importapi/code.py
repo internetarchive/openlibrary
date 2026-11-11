@@ -91,26 +91,7 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
         else:
             raise DataError("unrecognized-XML-format")
     elif data.startswith(b"{") and data.endswith(b"}"):
-        obj = json.loads(data)
-
-        # Only look to the import_item table if a record is incomplete.
-        # This is the minimum to achieve a complete record. See:
-        # https://github.com/internetarchive/openlibrary/issues/9440
-        # import_validator().validate() requires more fields.
-        minimum_complete_fields = ["title", "authors", "publish_date"]
-        is_complete = all(obj.get(field) for field in minimum_complete_fields)
-        if not is_complete:
-            isbn_10 = safeget(lambda: obj.get("isbn_10", [])[0])
-            isbn_13 = safeget(lambda: obj.get("isbn_13", [])[0])
-            identifier = to_isbn_13(isbn_13 or isbn_10 or "")
-
-            if not identifier:
-                identifier = get_non_isbn_asin(rec=obj)
-
-            if identifier:
-                supplement_rec_with_import_item_metadata(rec=obj, identifier=identifier)
-
-        edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
+        edition_builder = json_edition_builder(json.loads(data))
         format = "json"
     elif data[:MARC_LENGTH_POS].isdigit():
         # Marc Binary
@@ -125,6 +106,28 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
 
     parse_meta_headers(edition_builder)
     return edition_builder.get_dict(), format
+
+
+def json_edition_builder(obj: dict) -> import_edition_builder.import_edition_builder:
+    """Build an edition from a JSON import record, as POSTed to /api/import."""
+    # Only look to the import_item table if a record is incomplete.
+    # This is the minimum to achieve a complete record. See:
+    # https://github.com/internetarchive/openlibrary/issues/9440
+    # import_validator().validate() requires more fields.
+    minimum_complete_fields = ["title", "authors", "publish_date"]
+    is_complete = all(obj.get(field) for field in minimum_complete_fields)
+    if not is_complete:
+        isbn_10 = safeget(lambda: obj.get("isbn_10", [])[0])
+        isbn_13 = safeget(lambda: obj.get("isbn_13", [])[0])
+        identifier = to_isbn_13(isbn_13 or isbn_10 or "")
+
+        if not identifier:
+            identifier = get_non_isbn_asin(rec=obj)
+
+        if identifier:
+            supplement_rec_with_import_item_metadata(rec=obj, identifier=identifier)
+
+    return import_edition_builder.import_edition_builder(init_dict=obj)
 
 
 def supplement_rec_with_import_item_metadata(rec: dict[str, Any], identifier: str) -> None:

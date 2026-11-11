@@ -5,7 +5,8 @@ $def with (md_provider_factory, req, result=None)
 </div>
 
 <div id="contentBody">
-    <form method="POST" action="/import/preview">
+    $ is_json = bool(req) and req.metadata_provider.id_name == 'json'
+    <form method="POST" action="/import/preview" class="import-preview__form">
         <select aria-label="select provider" name="provider" required>
             $for prefix, provider in md_provider_factory.metadata_providers.items():
                 <option
@@ -13,15 +14,37 @@ $def with (md_provider_factory, req, result=None)
                     $:cond(req and req.metadata_provider == provider, 'selected')
                 >$provider.full_name</option>
         </select>
+        $# Only the enabled one of these two is submitted (and required).
         <input
             aria-label="input provider identifier"
             type="text"
             name="identifier"
             required
-            value="$(req.identifier if req else '')"
+            value="$(req.identifier if req and not is_json else '')"
+            $:cond(is_json, 'hidden disabled')
         >
+        <textarea
+            aria-label="input raw import record json"
+            name="identifier"
+            required
+            placeholder='{"title": "...", "authors": [{"name": "..."}], "publish_date": "...", "source_records": ["..."]}'
+            style="width: 100%; height: 300px; font-family: monospace;"
+            $:cond(not is_json, 'hidden disabled')
+        >$(req.identifier if is_json else '')</textarea>
         <button type="submit">$_("Preview Import")</button>
     </form>
+    <script>
+        document.querySelectorAll('.import-preview__form').forEach(function (form) {
+            var select = form.querySelector('select[name="provider"]');
+            var input = form.querySelector('input[name="identifier"]');
+            var textarea = form.querySelector('textarea[name="identifier"]');
+            select.addEventListener('change', function () {
+                var isJson = select.value === 'json';
+                input.hidden = input.disabled = isJson;
+                textarea.hidden = textarea.disabled = !isJson;
+            });
+        });
+    </script>
 
 
     $def thing_section(info, edits_by_key, headings):

@@ -46,7 +46,16 @@ $var title: $_("Batch Import Status")
                     <td>$row.status</td>
                     <td>$row.error</td>
                     <td>$row.ia_id</td>
-                    <td>$row.data</td>
+                    <td>
+                        $row.data
+                        $if row.data and row.data.strip().startswith('{'):
+                            $# POST, since a record can be too long for a URL.
+                            <form method="POST" action="/import/preview" target="_blank" style="display: inline;">
+                                <input type="hidden" name="provider" value="json">
+                                <input type="hidden" name="identifier" value="$row.data">
+                                <button type="submit">$_("Preview")</button>
+                            </form>
+                    </td>
                     <td>
                     $if row.ol_key:
                         <a href="$row.ol_key">$row.ol_key</a>
