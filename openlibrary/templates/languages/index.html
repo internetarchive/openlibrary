@@ -6,7 +6,7 @@ $var title: $_("Languages")
     <h1>$_("Languages")</h1>
 </div>
 <div id="contentBody">
-    $:render_template("search/sort_options.html", selected_sort=query_param('sort', None), default_sort='count', search_scheme="languages")
+    $:render_jinja_template("search/sort_options.html.jinja", selected_sort=query_param('sort', None), default_sort='count', search_scheme="languages", user=ctx.user)
     <ul class="subjectList">
         $for lang in languages:
             <li>

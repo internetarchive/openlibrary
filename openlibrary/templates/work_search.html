@@ -72,7 +72,7 @@ $def fulltext_rescue(query, exclude=None):
           $if param and not search_response.error and len(search_response.docs):
             <div class="search-filter-row__tools">
               $if search_response.num_found > 1:
-                $:render_template("search/sort_options.html", search_response.sort)
+                $:render_jinja_template("search/sort_options.html.jinja", selected_sort=search_response.sort, user=ctx.user)
 
               $if search_response.num_found > 0:
                 $:render_template("search/layout_options.html", selected_layout=layout)
