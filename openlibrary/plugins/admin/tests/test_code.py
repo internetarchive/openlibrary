@@ -1,4 +1,5 @@
 from typing import cast
+from unittest.mock import Mock
 from urllib.parse import parse_qsl
 
 import pytest
@@ -7,6 +8,7 @@ import web
 from openlibrary.accounts.model import (
     OpenLibraryAccount,
 )
+from openlibrary.mocks.mock_infobase import MockSite
 from openlibrary.plugins.admin import code as admin_code
 from openlibrary.plugins.admin.code import revert_all_user_edits
 
@@ -287,3 +289,115 @@ class TestPeopleEditsTemplate:
     )
     def test_bad_page_and_limit_fall_back_to_defaults(self, render_edits, query_string, pager):
         assert pager in render_edits(query_string)
+
+
+class TestSiteContextMigration:
+    @pytest.fixture(params=["missing", "different"])
+    def current(self, mock_site, monkeypatch, request):
+        # The normal fixture sets both handles; keep only the ContextVar current.
+        if request.param == "missing":
+            monkeypatch.delitem(web.ctx, "site")
+        else:
+            monkeypatch.setitem(web.ctx, "site", MockSite())
+        for key, value in {"home": "http://openlibrary.org", "path": "/admin/block", "method": "GET", "ip": "192.0.2.1"}.items():
+            monkeypatch.setitem(web.ctx, key, value)
+        monkeypatch.setattr(admin_code, "render_template", Mock())
+        monkeypatch.setattr(admin_code, "render", Mock())
+        monkeypatch.setattr(admin_code, "add_flash_message", Mock())
+        monkeypatch.setattr(admin_code.context, "user", None, raising=False)
+        return mock_site
+
+    @pytest.mark.parametrize("allowed", [False, True])
+    def test_admin_dispatch_uses_current_membership(self, current, monkeypatch, allowed):
+        members = [{"key": "/people/alice"}]
+        current.quicksave("/usergroup/admin", members=members if allowed else [])
+        if legacy := web.ctx.get("site"):
+            legacy.quicksave("/usergroup/admin", members=[] if allowed else members)
+        user = Mock(key="/people/alice", is_librarian=lambda: False, is_super_librarian=lambda: False)
+        monkeypatch.setattr(admin_code.context, "user", user)
+        page = Mock()
+        result = admin_code.admin().handle(lambda: page)
+        if allowed:
+            page.GET.assert_called_once_with()
+            assert result is page.GET.return_value
+            admin_code.render.permission_denied.assert_not_called()
+        else:
+            page.GET.assert_not_called()
+            admin_code.render.permission_denied.assert_called_once_with("/admin/block", "Permission denied.")
+
+    def test_spam_cleanup_reverts_edits_and_deletes_created_records(self, current):
+        current.quicksave("/works/OL1W", "/type/work", title="Keep this")
+        current.quicksave("/works/OL1W", "/type/work", title="Spam edit")
+        edited = current.get_change(current.changesets[-1]["id"])
+        current.quicksave("/works/OL2W", "/type/work", title="Spam book")
+        added = current.get_change(current.changesets[-1]["id"])
+        current.quicksave("/works/OL3W", "/type/delete")
+        deleted = current.get_change(current.changesets[-1]["id"])
+        # Treat the new book as an add-book changeset, as the real form does.
+        added.kind = "add-book"
+        account = Mock(get_recentchanges=Mock(return_value=[edited, added, deleted]))
+        edits, deletions = admin_code.revert_all_user_edits(account)
+        assert (edits, deletions) == (1, 1)
+        assert current.get("/works/OL1W").title == "Keep this"
+        assert current.get("/works/OL2W").type.key == "/type/delete"
+        assert current.get("/works/OL3W").type.key == "/type/delete"
+        assert current.changesets[-1]["comment"] == "Delete spam"
+        assert current.changesets[-1]["kind"] == "bulk-revert-spam"
+        account.get_recentchanges.assert_called_once_with(limit=100, offset=0)
+
+    def test_stats_read_and_save_use_current_site(self, current, monkeypatch):
+        connection = Mock()
+        connection.request.return_value = '{"edits": 7}'
+        monkeypatch.setattr(current, "_conn", connection, raising=False)
+        monkeypatch.setattr(current, "name", "current-site", raising=False)
+        monkeypatch.setattr(current, "_request", Mock(return_value=web.storage(edits=7, edits_by_bots=2, new_accounts=3)), raising=False)
+        assert admin_code.stats().GET("2026-11-11").rawtext == '{"edits": 7}'
+        connection.request.assert_called_once_with("current-site", "/get", "GET", {"key": "/admin/stats/2026-11-11"})
+        with pytest.raises(web.HTTPError, match="303 See Other"):
+            admin_code.stats().POST("2026-11-11")
+        doc = current.get("/admin/stats/2026-11-11")
+        assert (doc.edits.human, doc.edits.bot, doc.edits.total, doc.members) == (5, 2, 7, 3)
+        assert current.changesets[-1]["kind"] == "create-stats"
+
+    def test_block_list_read_and_save_use_current_site(self, current, monkeypatch):
+        monkeypatch.setattr(web, "input", lambda: web.storage(ips=" 192.0.2.1 \n192.0.2.2"))
+        with pytest.raises(web.HTTPError, match="303 See Other"):
+            admin_code.block().POST()
+        assert admin_code.get_blocked_ips() == ["192.0.2.1", "192.0.2.2"]
+        assert current.changesets[-1]["kind"] == "edit-blocked-ips"
+        admin_code.block().GET()
+        assert admin_code.render_template.call_args.args[1]._site is current
+        monkeypatch.setitem(web.ctx, "path", "/books/OL1M/edit")
+        handler = Mock()
+        admin_code.block_ip_processor(handler)
+        handler.assert_not_called()
+
+    @pytest.mark.parametrize("by_key", [False, True])
+    def test_inspect_queries_current_store(self, current, monkeypatch, by_key):
+        current.store["account/alice"] = {"type": "account", "username": "alice"}
+        current.store["other/1"] = {"type": "other"}
+        monkeypatch.setattr(web, "input", lambda **defaults: web.storage(key="account/alice" if by_key else None, type="account", name=None, value=None))
+        admin_code.inspect().GET_store()
+        assert [doc["_key"] for doc in admin_code.render_template.call_args.args[1]] == ["account/alice"]
+
+    def test_permission_update_uses_current_documents(self, current, monkeypatch):
+        current.quicksave("/works", "/type/page", title="Keep title", child_permission={"key": "/permission/open"})
+        monkeypatch.setattr(web, "input", lambda **defaults: web.storage(perm_pages="/permission/open", perm_records="/permission/loggedinusers"))
+        admin_code.permissions().POST()
+        assert current.get("/works").title == "Keep title"
+        for key in ["/", "/works", "/books", "/authors"]:
+            doc = current.get(key)
+            assert doc.permission.key == "/permission/restricted"
+            assert doc.child_permission.key == ("/permission/open" if key == "/" else "/permission/loggedinusers")
+        assert current.changesets[-1]["kind"] == "bulk-edit-permissions"
+        assert current.changesets[-1]["comment"] == "Updated edit policy."
+
+    def test_solr_update_uses_current_store(self, current, monkeypatch):
+        monkeypatch.setattr(web, "input", lambda **defaults: web.storage(keys=" /works/OL1W \n /books/OL2M "))
+        admin_code.solr().POST()
+        assert current.store["solr-force-update"] == {
+            "_key": "solr-force-update",
+            "type": "solr-force-update",
+            "keys": ["/works/OL1W", "/books/OL2M"],
+            "_rev": None,
+        }
