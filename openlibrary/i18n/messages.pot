@@ -927,7 +927,7 @@ msgstr ""
 msgid "on <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>"
 msgstr ""
 
-#: search/authors.html search/lists.html.jinja search/subjects.html.jinja work_search.html
+#: search/authors.html.jinja search/lists.html.jinja search/subjects.html.jinja work_search.html
 msgid "Checking Search Inside matches"
 msgstr ""
 
@@ -1362,7 +1362,7 @@ msgstr ""
 msgid "You will lose your place in line for <strong>%(title)s</strong>."
 msgstr ""
 
-#: account/loans.html authors/index.html.jinja lists/list_follow.html.jinja lists/showcase.html publishers/view.html search/authors.html search/publishers.html search/subjects.html.jinja
+#: account/loans.html authors/index.html.jinja lists/list_follow.html.jinja lists/showcase.html publishers/view.html search/authors.html.jinja search/publishers.html search/subjects.html.jinja
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
@@ -1642,7 +1642,7 @@ msgstr ""
 msgid "Search your reading log"
 msgstr ""
 
-#: account/reading_log.html search/authors.html search/lists.html.jinja search/subjects.html.jinja
+#: account/reading_log.html search/authors.html.jinja search/lists.html.jinja search/subjects.html.jinja
 #, python-format
 msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
@@ -2754,12 +2754,12 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
-#: authors/index.html.jinja search/authors.html
+#: authors/index.html.jinja search/authors.html.jinja
 #, python-format
 msgid "about %(subjects)s"
 msgstr ""
 
-#: authors/index.html.jinja search/authors.html
+#: authors/index.html.jinja search/authors.html.jinja
 #, python-format
 msgid "including <i>%(topwork)s</i>"
 msgstr ""
@@ -4837,7 +4837,7 @@ msgstr ""
 msgid "Pull up a larger author photo"
 msgstr ""
 
-#: covers/author_photo.html search/authors.html
+#: covers/author_photo.html search/authors.html.jinja
 #, python-format
 msgid "Photo of %(author)s"
 msgstr ""
@@ -6001,24 +6001,19 @@ msgstr ""
 msgid "Full Text Search?"
 msgstr ""
 
-#: search/authors.html
-#, python-format
-msgid "Search Open Library for \"%(query)s\""
-msgstr ""
-
-#: search/authors.html
+#: search/authors.html.jinja
 msgid "Search Authors"
 msgstr ""
 
-#: search/authors.html
+#: search/authors.html.jinja
 msgid "Is the same author listed twice?"
 msgstr ""
 
-#: search/authors.html
+#: search/authors.html.jinja
 msgid "Merge authors"
 msgstr ""
 
-#: search/authors.html
+#: search/authors.html.jinja
 msgid "No <strong>authors</strong> directly matched your search"
 msgstr ""
 
@@ -10046,6 +10041,10 @@ msgstr ""
 
 #: openlibrary/fastapi/search.py
 msgid "Subject search"
+msgstr ""
+
+#: openlibrary/fastapi/search.py openlibrary/plugins/worksearch/code.py
+msgid "Search results for Authors"
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py
