@@ -70,6 +70,18 @@ separate gates; verify the one you are claiming. The GHSA-specific mechanics (me
 advisory page, verifying on `master` before closing, why a published advisory can't be closed,
 why advisory forks run no CI) are in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
+### A claimed fix is a lead, not a conclusion — verify against *current* master
+
+Security work often arrives as a stale branch, a local-only worktree, or a months-old audit
+patch handed over by a teammate, each **claiming** a vulnerability — sometimes "critical." The
+claim is a starting point, never a finding. **Verify the vulnerability against current `master`,
+not against the patch.** Code gets refactored: the sink a patch targeted may have moved, been
+renamed, or been closed by a different path, so a patch can be fully superseded while its alarming
+commit message still reads live. For each claimed vuln, read the **actual sink on `master`** and
+confirm whether it is guarded there — the fix being absent from master does **not** mean the vuln
+is present. A superseded branch is **released, not resurrected or pushed**; only a vuln still live
+on `master` enters the advisory track. Never escalate "critical" on a commit message's word.
+
 ## The security pipeline — the state graph
 
 > **This pipeline is a specialization of the team's canonical development process**
@@ -148,6 +160,26 @@ false-positives-after-fix and must be **dismissed with reason** (per alert), nev
 auto-close. Confirm each against the live sink first: the target is wrapped by our sanitizer, or is
 a host-fixed (`archive.org`) or site-relative URL. The dismissal is the machine-check — alert
 `state=dismissed` with a `dismissed_reason`; an open alert is never counted Closed by assertion.
+
+**The review → dismiss → comment procedure (standard, repeatable):**
+
+1. **Verify the fix is real, on `master`.** If the dismissal rests on "it's fixed," machine-check
+   the fix PR is merged **and** the sink is actually guarded on `master` — never from memory or an
+   agent's word.
+2. **Classify by the re-scan, not the merge.** A merged fix alone resolves nothing. Read the
+   alert's most-recent-instance commit: if a full scan on `master` **after** the fix no longer
+   flags it, it is auto-closing — **wait, don't dismiss**. If the post-fix scan **still** flags it
+   and the sink is guarded, it is a **false-positive-after-fix** → dismiss. (`won't fix` = accepted
+   risk; `used in tests` = test-only.)
+3. **Dismiss with a documented reason.** `state=dismissed` + `dismissed_reason` + a comment
+   (GitHub caps it at 280 chars) naming: the classification, the fix PR, that it is live on
+   `master`, and why the scanner still flags it.
+4. **Mirror the rationale onto the GHSA advisory when the item has one** — the advisory is the
+   embargoed record; a bare code-scanning alert's own dismissal comment is its record.
+5. **Machine-verify `state=dismissed`** and who dismissed it. Identity: the dismissal is a write —
+   as the bot only if it holds `security_events` scope, else as the operator on explicit per-batch
+   confirmation. The board then carries the item to **Resolution**, and it drops off when the
+   finding is actually gone.
 
 Locke must be able to **render this graph on demand** — every open item placed at its state, with
 severity and type — so the board is legible without parsing prose.
