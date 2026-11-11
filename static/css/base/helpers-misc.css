@@ -5,15 +5,15 @@
 
 .small {
   font-size: var(--font-size-label-medium) !important;
-  font-weight: normal !important;
+  font-weight: var(--font-weight-regular) !important;
 }
 .smaller {
   font-size: var(--font-size-label-small);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 .smallest {
   font-size: 10px;
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 .reduce {
   font-size: 50% !important;
@@ -28,14 +28,14 @@
   font-size: var(--font-size-title-medium) !important;
 }
 .largest {
-  font-size: 18px !important;
+  font-size: var(--font-size-body-xlarge) !important;
 }
 button.larger {
-  font-size: 18px !important;
+  font-size: var(--font-size-body-xlarge) !important;
   cursor: pointer;
 }
 .average {
-  font-size: 13px;
+  font-size: var(--font-size-body-small);
 }
 .invisible {
   visibility: hidden;
@@ -167,7 +167,7 @@ button.larger {
 }
 
 .bold {
-  font-weight: bold !important;
+  font-weight: var(--font-weight-bold) !important;
 }
 
 .headline,

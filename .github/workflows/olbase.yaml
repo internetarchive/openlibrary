@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: olbase-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   # Resolve the openlibrary-i18n ref to a SHA once, so the amd64 and arm64 images
   # bake the same translations even if the branch moves between the two builds.
@@ -151,6 +155,14 @@ jobs:
           docker manifest annotate openlibrary/olbase:${TAG_NAME} openlibrary/olbase@${AMD64_DIGEST}
           docker manifest annotate openlibrary/olbase:${TAG_NAME} openlibrary/olbase@${ARM64_DIGEST}
           docker manifest push openlibrary/olbase:${TAG_NAME}
+
+          # Tag the same images with the commit SHA so deploys can pin an exact build.
+          docker manifest create openlibrary/olbase:${GITHUB_SHA::12} \
+            openlibrary/olbase@${AMD64_DIGEST} \
+            openlibrary/olbase@${ARM64_DIGEST}
+          docker manifest annotate openlibrary/olbase:${GITHUB_SHA::12} openlibrary/olbase@${AMD64_DIGEST}
+          docker manifest annotate openlibrary/olbase:${GITHUB_SHA::12} openlibrary/olbase@${ARM64_DIGEST}
+          docker manifest push openlibrary/olbase:${GITHUB_SHA::12}
 
   # Report which locales the image kept at their committed .po because the
   # openlibrary-i18n file was rejected. Reads the manifest from the pushed amd64

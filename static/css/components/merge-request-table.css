@@ -21,7 +21,7 @@
 
 /* Table header */
 .selected {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 .table-header {
@@ -30,7 +30,7 @@
   gap: 24px;
   height: 42px;
   background-color: var(--grey-f4f4f4);
-  font-size: 13px;
+  font-size: var(--font-size-label-medium);
   box-sizing: border-box;
   padding-left: var(--spacing-inset-md);
   padding-right: 27px;
@@ -55,7 +55,7 @@
 .mr-dropdown {
   color: var(--color-text);
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--font-size-label-medium);
 }
 
 .mr-dropdown-menu {
@@ -72,7 +72,7 @@
     0 4px 4px var(--light-mid-grey);
   border-radius: 5px;
   color: var(--black);
-  font-size: 13px;
+  font-size: var(--font-size-label-medium);
   cursor: default;
   overflow: auto;
   transform: translateX(-195px);
@@ -92,7 +92,7 @@
 }
 
 .mr-dropdown-menu .dropdown-header span {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 .mr-dropdown-menu .dropdown-header button {
@@ -210,7 +210,7 @@
 }
 
 .mr-details__request-title {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   font-size: 1rem;
   margin-bottom: 5px;
 }
@@ -272,8 +272,8 @@
   border-radius: 6px;
   box-shadow: none;
   height: 100%;
-  font-weight: bold;
-  font-size: 13px;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-label-medium);
   margin-left: var(--spacing-inline-lg);
   width: 60px;
 }
@@ -312,9 +312,9 @@
   height: 41px;
   background-color: var(--color-primary);
   color: var(--white);
-  font-size: 13px;
+  font-size: var(--font-size-label-medium);
   font-style: normal;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   line-height: normal;
   text-align: center;
   margin-top: var(--spacing-stack-lg);
@@ -347,7 +347,7 @@
 }
 
 .mr-comment-toggle__comment-count {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   margin-right: var(--spacing-inline-sm);
   color: var(--black);
 }

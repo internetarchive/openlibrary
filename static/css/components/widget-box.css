@@ -17,7 +17,7 @@
 
 .widget-box ul > *,
 .widget-box .unordered > * {
-  font-size: 13px;
+  font-size: var(--font-size-body-small);
 }
 
 /* --width-breakpoint-tablet */

@@ -182,7 +182,7 @@ export class OLMarkdownEditor extends LitElement {
             border-bottom: 1px dashed var(--color-border-muted);
             font-size: 0.7rem;
             font-family: monospace;
-            font-weight: 600;
+            font-weight: var(--font-weight-semibold);
             color: var(--color-text);
         }
 

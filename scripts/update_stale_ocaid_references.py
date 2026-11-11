@@ -21,6 +21,7 @@ from urllib3.util.retry import Retry  # Correct import path
 from infogami import config
 from openlibrary.accounts import RunAs
 from openlibrary.setup import setup_for_script
+from openlibrary.utils.request_context import site
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 # Configure logging
@@ -112,7 +113,7 @@ def disassociate_dark_ocaids(s3_keys, es_editions, test=True):
     # Process ocaids in batches of 1000
     BATCH_SIZE = 1_000
     for batch_keys in batched(edition_keys, BATCH_SIZE, strict=False):
-        ol_editions = web.ctx.site.get_many(list(batch_keys))
+        ol_editions = site.get().get_many(list(batch_keys))
 
         updated_eds = []
         for ed in ol_editions:
@@ -128,7 +129,7 @@ def disassociate_dark_ocaids(s3_keys, es_editions, test=True):
             counts["updated"] += len(updated_eds)
             with RunAs("ImportBot"):
                 web.ctx.ip = web.ctx.ip or "127.0.0.1"
-                web.ctx.site.save_many(
+                site.get().save_many(
                     updated_eds,
                     comment="Redacting ocaids",
                     action="bulk-update-edition-ocaid",

@@ -25,12 +25,12 @@
 .ol-cover-form .label label {
   font-size: 1em;
   font-family: var(--font-family-body);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .floatform .label span,
 .ol-cover-form .label span {
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 
 .floatform input[type="text"],
@@ -39,7 +39,7 @@
 .ol-cover-form input[type="text"],
 .ol-cover-form input[type="url"],
 .ol-cover-form input[type="file"] {
-  font-size: 1.125em;
+  font-size: var(--font-size-body-xlarge);
   font-family: var(--font-family-body);
   padding: var(--spacing-inset-xs);
 }

@@ -34,6 +34,7 @@ from openlibrary.plugins.upstream.utils import (
     safeget,
 )
 from openlibrary.utils.isbn import get_isbn_10s_and_13s, to_isbn_13
+from openlibrary.utils.request_context import site
 
 MARC_LENGTH_POS = 5
 logger = logging.getLogger("openlibrary.importapi")
@@ -356,7 +357,7 @@ class ia_importapi(importapi):
 
             local_id = i.get("local_id")
             if local_id:
-                local_id_type = web.ctx.site.get("/local_ids/" + local_id)
+                local_id_type = site.get().get("/local_ids/" + local_id)
                 prefix = local_id_type.urn_prefix
                 force_import = True
                 id_field, id_subfield = local_id_type.id_location.split("$")
@@ -495,14 +496,14 @@ class ia_importapi(importapi):
         """
         # match ocaid
         q = {"type": "/type/edition", "ocaid": identifier}
-        keys = web.ctx.site.things(q)
+        keys = site.get().things(q)
         if keys:
             return keys[0]
 
         # Match source_records
         # When there are multiple scans for the same edition, only source_records is updated.
         q = {"type": "/type/edition", "source_records": "ia:" + identifier}
-        keys = web.ctx.site.things(q)
+        keys = site.get().things(q)
         if keys:
             return keys[0]
 

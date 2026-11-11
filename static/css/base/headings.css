@@ -6,14 +6,14 @@ h1.title {
 }
 h1 span.subtitle {
   font-size: var(--font-size-title-small);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 /* TODO: Check if this class is still used. */
 h1.publisher {
   color: var(--color-text-heading);
   font-size: var(--font-size-headline-medium);
   font-family: var(--font-family-serif) !important;
-  font-weight: normal !important;
+  font-weight: var(--font-weight-regular) !important;
   margin: 0;
 }
 h1 span.count {
@@ -26,7 +26,7 @@ h2 {
 h2.author {
   color: var(--color-text-heading);
   font-size: var(--font-size-title-medium);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 h2.publisher {
   background-color: var(--lightest-grey);
@@ -35,7 +35,7 @@ h2.edition-title {
   margin: var(--spacing-stack-sm) 0 0;
   color: var(--color-text-secondary);
   font-family: var(--font-family-title);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   font-size: var(--font-size-title-medium);
 }
 h2 a {
@@ -54,7 +54,7 @@ h2.edition {
   font-size: var(--font-size-title-medium);
   margin: 0;
   padding: 0;
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 
 h3 {
@@ -66,12 +66,12 @@ h4 {
 }
 h4.publisher {
   font-family: var(--font-family-body);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 h4.facetHead {
   font-family: var(--font-family-body);
   font-size: var(--font-size-label-medium);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--black);
   text-transform: uppercase;
   margin: 0;
@@ -83,7 +83,7 @@ h4.facetHead {
 h4.facetHead span.merge {
   font-family: var(--font-family-body);
   font-size: var(--font-size-label-small);
-  font-weight: normal !important;
+  font-weight: var(--font-weight-regular) !important;
   text-transform: none !important;
   /* Not tokenized: must exceed the 16px icon width to avoid text overlap */
   padding-left: 22px;
@@ -94,7 +94,7 @@ h4.facetHead span.merge {
 h5 {
   font-size: var(--font-size-title-small);
   font-family: var(--font-family-serif) !important;
-  font-weight: normal !important;
+  font-weight: var(--font-weight-regular) !important;
 }
 
 h6 {
@@ -126,7 +126,7 @@ dt,
 span.title,
 h6.title {
   font-size: var(--font-size-label-medium);
-  font-weight: normal !important;
+  font-weight: var(--font-weight-regular) !important;
   font-family: var(--font-family-body);
   color: var(--color-text-secondary);
   margin: 0;

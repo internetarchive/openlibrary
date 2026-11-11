@@ -7,6 +7,7 @@ import web
 
 from openlibrary.admin import numbers
 from openlibrary.contribute import initiatives, save
+from openlibrary.utils.request_context import site as site_context
 
 
 class FakeDB:
@@ -175,6 +176,7 @@ def fake_initiatives(monkeypatch):
     )
     monkeypatch.setattr(numbers, "_initiative", lambda: initiatives)
     monkeypatch.setattr(web.ctx, "site", SimpleNamespace(store=FakeStore({"contribute-initiative-most-read-test": FROZEN})), raising=False)
+    site_context.set(web.ctx.site)
     return initiatives
 
 
@@ -253,3 +255,10 @@ def test_catalog_change_matches_record_keys_only():
     assert pattern.search('[{"key": "/books/OL1M", "revision": 2}]')
     assert pattern.search('[{"key": "/authors/OL1A", "revision": 2}]')
     assert not pattern.search('[{"key": "/people/x/lists/OL1L", "revision": 2}]')
+
+
+@pytest.fixture(autouse=True)
+def restore_site_context():
+    token = site_context.set(site_context.get(None))
+    yield
+    site_context.reset(token)
