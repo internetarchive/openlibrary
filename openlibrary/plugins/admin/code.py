@@ -475,7 +475,7 @@ class block:
         raise web.seeother("/admin/block")
 
     def block_ips(self, ips):
-        page = web.ctx.get("/admin/block") or site.get().new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
+        page = site.get().get("/admin/block") or site.get().new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
         page.ips = [{"ip": ip} for ip in ips]
         page._save("updated blocked IPs", action="edit-blocked-ips")
 

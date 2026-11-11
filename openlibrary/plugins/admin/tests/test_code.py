@@ -372,6 +372,13 @@ class TestSiteContextMigration:
         admin_code.block_ip_processor(handler)
         handler.assert_not_called()
 
+    def test_block_list_save_updates_existing_doc(self, current):
+        current.quicksave("/admin/block", "/type/object", ips=[{"ip": "192.0.2.9"}], note="keep me")
+        admin_code.block().block_ips(["192.0.2.1"])
+        doc = current.get("/admin/block")
+        assert [d.ip for d in doc.ips] == ["192.0.2.1"]
+        assert doc.note == "keep me"
+
     @pytest.mark.parametrize("by_key", [False, True])
     def test_inspect_queries_current_store(self, current, monkeypatch, by_key):
         current.store["account/alice"] = {"type": "account", "username": "alice"}
