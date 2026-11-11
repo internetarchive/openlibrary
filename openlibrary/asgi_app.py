@@ -19,6 +19,7 @@ from starlette.routing import Route
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
+from infogami.utils import app as infogami_app
 from openlibrary.core.env import get_deployment_name, get_ol_env
 from openlibrary.core.infobase_async import get_redirect_location
 from openlibrary.fastapi import proxy
@@ -202,6 +203,20 @@ async def lifespan(app: FastAPI):
         await close_pool()
 
 
+def _is_current_document_view(request: Request) -> bool:
+    """Leave edit modes, historical revisions and alternate representations to web.py."""
+    if request.method not in ("GET", "HEAD") or request.query_params.get("m", "view") != "view" or "v" in request.query_params:
+        return False
+
+    # Match Infogami's find_encoding(): GET negotiates Accept, HEAD uses Content-Type.
+    if request.method == "GET":
+        media_type = infogami_app.parse_accept(request.headers.get("accept", ""))[0]["media_type"]
+    else:
+        media_type = request.headers.get("content-type")
+    extension = request.url.path.rpartition(".")[2]
+    return media_type not in infogami_app.media_types and extension not in infogami_app.encodings
+
+
 def create_app() -> FastAPI | None:
     install_connection_recovery()
     if "pytest" not in sys.modules:
@@ -309,8 +324,7 @@ def create_app() -> FastAPI | None:
         if request.headers.get("X-Proxied-By") == "FastAPI":
             raise HTTPException(status_code=404)
 
-        # Only the current document view redirects. Editing and historical revisions are web.py modes.
-        if request.method in ("GET", "HEAD") and request.query_params.get("m", "view") == "view" and "v" not in request.query_params:
+        if _is_current_document_view(request):
             key = f"/{request.path_params['path']}"
             if location := await get_redirect_location(key):
                 target = urljoin(key, location)
