@@ -22,6 +22,21 @@ logger = logging.getLogger("openlibrary.imports")
 
 STAGED_SOURCES: Final = ("amazon", "idb", "google_books")
 
+IMPORT_ITEM_STATUSES: Final = (
+    "staged",
+    "needs_review",
+    "pending",
+    "processing",
+    "found",
+    "created",
+    "modified",
+    "failed",
+)
+"""Every status an ``import_item`` row can have."""
+
+BATCH_SORT_COLUMNS: Final = {"added_time": "b.submit_time", "batch_id": "b.id"}
+"""Sort keys accepted by :meth:`Batch.list_summaries`, mapped to SQL columns."""
+
 if TYPE_CHECKING:
     from web.db import ResultSet  # noqa: TID251
 
@@ -286,6 +301,64 @@ class Batch(web.storage):
     def get_items(self, status="pending"):
         result = db.where("import_item", batch_id=self.id, status=status)
         return [ImportItem(row) for row in result]
+
+    @staticmethod
+    def list_summaries(
+        status: str | None = None,
+        sort: str = "added_time",
+        order: str = "desc",
+        limit: int = 10,
+        offset: int = 0,
+    ) -> tuple[int, list[web.storage]]:
+        """Return ``(total, summaries)`` for one page of batches.
+
+        With ``status``, only batches holding at least one item of that status
+        are listed, and their ``status_counts`` cover only those items.
+
+        Batches are driven from ``import_batch`` rather than by grouping
+        ``import_item``, which has far too many rows to aggregate in full on
+        every page view; items are only counted for the batches on the page.
+        """
+        if status is not None and status not in IMPORT_ITEM_STATUSES:
+            raise ValueError(f"invalid import_item status: {status!r}")
+        if sort not in BATCH_SORT_COLUMNS or order not in ("asc", "desc"):
+            raise ValueError(f"invalid sort: {sort!r} {order!r}")
+
+        where = "b.id IN (SELECT batch_id FROM import_item WHERE status = $status)" if status else "1=1"
+        sql_vars = {"status": status, "limit": limit, "offset": offset}
+        total = db.query(f"SELECT COUNT(*) AS count FROM import_batch b WHERE {where}", vars=sql_vars)[0].count
+        batches = list(
+            db.query(
+                f"SELECT b.id AS batch_id, b.name, b.submitter, b.submit_time AS added_time"
+                f" FROM import_batch b WHERE {where}"
+                f" ORDER BY {BATCH_SORT_COLUMNS[sort]} {order}, b.id {order}"
+                " LIMIT $limit OFFSET $offset",
+                vars=sql_vars,
+            )
+        )
+        if not batches:
+            return total, []
+
+        by_id = {}
+        for batch in batches:
+            batch.status_counts = {}
+            batch.comments = None
+            by_id[batch.batch_id] = batch
+        status_where = " AND status = $status" if status else ""
+        counts = db.query(
+            "SELECT batch_id, status, COUNT(*) AS count, MIN(comments) AS comments, MAX(submitter) AS submitter"
+            f" FROM import_item WHERE batch_id IN $batch_ids{status_where}"
+            " GROUP BY batch_id, status ORDER BY batch_id, status",
+            vars={"batch_ids": list(by_id), "status": status},
+        )
+        for row in counts:
+            batch = by_id[row.batch_id]
+            batch.status_counts[row.status] = row.count
+            if row.comments is not None and (batch.comments is None or row.comments < batch.comments):
+                batch.comments = row.comments
+            # import_batch.submitter is not set by every importer.
+            batch.submitter = batch.submitter or row.submitter
+        return total, batches
 
 
 class ImportItem(web.storage):
