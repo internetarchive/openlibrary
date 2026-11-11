@@ -1273,6 +1273,15 @@ msgid "Importing..."
 msgstr ""
 
 #: account/import.html
+#, python-format
+msgid "%(imported)s imported, %(failed)s could not be imported"
+msgstr ""
+
+#: account/import.html
+msgid "Download the books that could not be imported"
+msgstr ""
+
+#: account/import.html
 msgid "Reason"
 msgstr ""
 
