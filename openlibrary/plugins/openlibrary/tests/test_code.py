@@ -2,17 +2,14 @@
 
 import gzip
 import json
-from contextvars import Context
 from unittest.mock import Mock
 
 import pytest
 import web
 
-import infogami
 from infogami import config
 from infogami.core import code as infogami_code
 from infogami.utils import delegate, template
-from openlibrary import setup
 from openlibrary.mocks.mock_infobase import MockSite
 from openlibrary.plugins.openlibrary import code, opds
 from openlibrary.utils.request_context import site
@@ -58,56 +55,6 @@ def test_sampleload_writes_current_site(current_site, tmp_path, compressed):
 
     assert current_site.get("/books/OL1M").title == "Loaded book"
     assert current_site.changesets[-1]["kind"] == "infogami-sampleload-action"
-
-
-@pytest.fixture
-def script_startup(monkeypatch, mock_site):
-    """Keep real setup and fakeload while isolating their global state."""
-    monkeypatch.setattr(delegate, "_load", lambda: None)
-    monkeypatch.setattr(delegate, "create_site", lambda: mock_site)
-    monkeypatch.setattr(delegate.features, "loadhook", lambda: None)
-    monkeypatch.setitem(web.config, "db_parameters", web.config.db_parameters)
-    old_context = dict(delegate.context)
-    yield
-    delegate.context.clear()
-    delegate.context.update(old_context)
-
-
-def test_sample_actions_after_script_setup(script_startup, mock_site, tmp_path, capsys):
-    path = tmp_path / "sample.json"
-    path.write_text(json.dumps({"key": "/b/OL1M", "type": {"key": "/type/edition"}, "title": "Script book"}))
-
-    def run():
-        with pytest.raises(LookupError):
-            site.get()
-        setup.setup_for_script()
-        assert site.get() is mock_site
-        infogami.run_action("sampleload", [str(path)])
-        infogami.run_action("sampledump")
-
-    Context().run(run)
-    assert mock_site.get("/b/OL1M").title == "Script book"
-    assert '"title": "Script book"' in capsys.readouterr().out
-
-
-@pytest.mark.parametrize("action", ["sampledump", "sampleload"])
-def test_sample_action_after_infogami_startup(script_startup, mock_site, tmp_path, capsys, action):
-    path = tmp_path / "sample.json"
-    path.write_text(json.dumps({"key": "/b/OL1M", "type": {"key": "/type/edition"}, "title": "Command book"}))
-    if action == "sampledump":
-        mock_site.quicksave("/b/OL1M", "/type/edition", title="Command book")
-
-    def run():
-        with pytest.raises(LookupError):
-            site.get()
-        infogami.run([action, str(path)] if action == "sampleload" else [action])
-        assert site.get() is mock_site
-
-    Context().run(run)
-    if action == "sampleload":
-        assert mock_site.get("/b/OL1M").title == "Command book"
-    else:
-        assert '"title": "Command book"' in capsys.readouterr().out
 
 
 def test_addbook_get_uses_current_site(current_site, monkeypatch):

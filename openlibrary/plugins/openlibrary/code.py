@@ -160,10 +160,6 @@ class hooks(client.hook):
 def sampledump():
     """Creates a dump of objects from OL database for creating a sample database."""
 
-    # Infogami's command runner initializes web.py, but not ContextVars.
-    if site.get(None) is None:
-        set_context_from_legacy_web_py()
-
     def expand_keys(keys):
         def f(k):
             if isinstance(k, dict):
@@ -235,10 +231,6 @@ def sampledump():
 
 @infogami.action
 def sampleload(filename="sampledump.txt.gz"):
-
-    # Infogami's command runner initializes web.py, but not ContextVars.
-    if site.get(None) is None:
-        set_context_from_legacy_web_py()
 
     with gzip.open(filename) if filename.endswith(".gz") else open(filename) as file:
         queries = [json.loads(line) for line in file]
