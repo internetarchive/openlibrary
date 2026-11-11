@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from math import ceil
 from typing import Annotated, Any, Literal, Self
-from urllib.parse import urlencode
+from urllib.parse import parse_qsl, urlencode
 
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import (
@@ -32,6 +32,7 @@ from openlibrary.fastapi.models import (
 )
 from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SitePageRoute
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.inside.code import RESULTS_PER_PAGE, render_inside_body
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
     run_solr_query_async,
@@ -631,3 +632,89 @@ async def search_lists(nav: SearchNavDep, user: CurrentUserDep, q: str = "", pag
         total_pages=ceil(response.num_found / limit),
     )
     return SitePage(body, page=PageMeta(title=lists_search_title(q)))
+
+
+class InsideSearchParams(BaseModel):
+    """Query params for /search/inside.
+
+    Plain `str` flags, not `Literal`: web.py answers `readable=yes` by reading it
+    as false, and the page has to render that rather than return a 422.
+    """
+
+    q: str = ""
+    page: int = 1
+    language: list[str] = Field(
+        [],
+        description="Filter by language — a MARC code (e.g. fre) or language name. The FTS backend takes one language; extra values are ignored.",
+    )
+    readable: str = Field("", description="'true' keeps only hits on readable (public or borrowable) scans.")
+    phrase: str = Field("true", description="'false' searches all the words instead of the exact phrase.")
+
+
+@dataclass(frozen=True)
+class InsideNav:
+    """The phrase toggles in the results header, each keeping the page's other filters."""
+
+    all_words_href: str
+    phrase_href: str
+
+    @classmethod
+    def from_query(cls, path: str, query: str) -> Self:
+        """``query`` is the raw query string, with or without its leading "?"; repeated params are kept."""
+        pairs = [(key, value) for key, value in parse_qsl(query.lstrip("?"), keep_blank_values=True) if key not in {"page", "phrase"}]
+        return cls(
+            all_words_href=f"{path}?{urlencode([*pairs, ('phrase', 'false')])}",
+            phrase_href=f"{path}?{urlencode(pairs)}" if pairs else path,
+        )
+
+    @classmethod
+    def from_request(cls, request: Request) -> Self:
+        return cls.from_query(request.url.path, request.url.query)
+
+
+InsideNavDep = Annotated[InsideNav, Depends(InsideNav.from_request)]
+
+
+def inside_search_title(q: str) -> str:
+    return _("Search Open Library for %(query)s", query=q)
+
+
+@pages.get("/search/inside")
+async def search_inside(params: Annotated[InsideSearchParams, Query()], nav: SearchNavDep, inside_nav: InsideNavDep, user: CurrentUserDep) -> SitePage:
+    # TODO: Retire the web.py `search_inside` handler (it still serves /search/inside
+    # in production) once production routes /search/inside here.
+    query = params.q
+    page = max(1, params.page)
+    readable = params.readable == "true"
+    phrase = params.phrase != "false"
+    # (code, name): FTS takes the name; generated URLs keep the code. Only look the
+    # name up when a language was asked for: the table comes from the database.
+    language = resolve_language(params.language) if params.language else None
+
+    data = (
+        await fulltext_search_async(
+            query,
+            page=page,
+            limit=RESULTS_PER_PAGE,
+            facets=False,
+            readable=readable,
+            language=language[1] if language else None,
+            phrase=phrase,
+        )
+        if query
+        else {}
+    )
+
+    body = render_inside_body(
+        nav=nav,
+        inside_nav=inside_nav,
+        query=query,
+        page=page,
+        language=language,
+        readable=readable,
+        phrase=phrase,
+        data=data,
+        user=user,
+    )
+    # The search pages size their covers and rows differently, so they set bodyclass just as the Templetor page did.
+    return SitePage(body, page=PageMeta(title=inside_search_title(query), bodyclass=("search-page",)))
