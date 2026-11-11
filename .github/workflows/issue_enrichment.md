@@ -216,6 +216,10 @@ Always end every comment with `<!-- ol-issue-bot -->`.
 
 ### Comment structure
 
+**For an unassigned `Good First Issue`**, include this guidance when applying or retaining the label:
+
+> To work on this Good First Issue, check nobody else is working on it, then leave a comment here saying you are taking it on. No assignment or approval is needed: open a PR with a closing reference to this issue and the bot will assign you automatically. If you skip the comment, the bot closes the PR with recovery instructions. Leads do not assign Good First Issues by hand.
+
 **Opening line** (non-staff authors only — omit for staff):
 
 > Thank you @{author} for submitting this issue!

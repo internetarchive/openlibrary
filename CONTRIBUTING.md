@@ -7,8 +7,8 @@ For setup instructions, see the [Quick Start](https://docs.openlibrary.org/devel
 ## How contributing works
 
 1. Find an unassigned issue
-2. Comment to request assignment and describe your plan
-3. Wait for assignment
+2. Comment to describe your plan. For `Good First Issue`, say you are working on it; for other issues, request assignment.
+3. For `Good First Issue`, check nobody else is working on it and start without waiting. For other issues, wait for assignment.
 4. Complete the work and test it
 5. Open a self-contained PR
 6. Respond to review comments clearly
@@ -27,7 +27,9 @@ Our community thrives on mutual respect. Please consider others who may already 
 - **Give space for follow-through**: If an assigned issue has been inactive for 2 weeks, kindly ask whether it can be reassigned rather than assuming it's abandoned
 ### Requesting Issue Assignments
 
-Please **request assignment** to an issue before starting work. Our maintainers triage issues weekly (or immediately for high-priority items) to ensure your contribution aligns with current priorities and prevent duplicate effort.
+For issues labelled `Good First Issue`, comment to say you are working on it, check nobody else is already working on it, and start without waiting for assignment. The bot assigns you when you open a PR that closes the issue. Leads do not assign these issues by hand.
+
+For all other issues, please **request assignment** before starting work. Our maintainers triage issues weekly (or immediately for high-priority items) to ensure your contribution aligns with current priorities and prevent duplicate effort.
 
 When requesting assignment:
 
@@ -44,8 +46,10 @@ When requesting assignment:
 [Browse Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) — ideal for first-time contributors.
 
 - Only work on issues that are not assigned to anyone
-- Request assignment before you start
-- If an assigned issue has been inactive for 2 weeks, ask whether it can be reassigned
+- Check the comments for someone already working on it, then leave a comment saying you are taking it on
+- Open a PR with a closing reference (for example, `Closes #123`); the bot assigns you automatically
+- If you skip the comment, the bot closes your PR with instructions: comment on the issue, then reopen the PR or open a new one if reopening is unavailable
+- If the issue is already assigned, coordinate with the assignee and lead before proceeding
 
 ### When no Good First Issues are available
 
@@ -70,7 +74,7 @@ Review comments are a normal part of the process. Most PRs need at least one rou
 - When resolving a comment, reply with "DONE" or "WON'T FIX because ..."
 - If the issue has a `Lead: @username` label, that person is usually the best reviewer to tag
 
-If you haven't heard back within one week of requesting assignment, feel free to tag the `Lead:` on the issue.
+For issues other than `Good First Issue`, if you haven't heard back within one week of requesting assignment, feel free to tag the `Lead:` on the issue.
 
 ## Community & getting help
 

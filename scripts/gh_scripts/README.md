@@ -20,9 +20,17 @@ The script looks in the PR body for the issues it references, case-insensitively
 2. The lead comes from the first referenced issue that has a `Lead: @` label, or failing that from its parent issue in this repo (the epic it is a sub-issue of). References that are PRs, Discussions or missing numbers are skipped. The lead is assigned to the PR even when they wrote it, since as the owner they still have to see it through or hand it on.
 3. The first https://github.com/internetarchive/openlibrary/labels/Priority%3A%200, https://github.com/internetarchive/openlibrary/labels/Priority%3A%201, or https://github.com/internetarchive/openlibrary/labels/Priority%3A%202 label on the first closing reference that has one is added to the PR. Non-closing references never supply a priority: "Part of #N" usually points at an epic, whose priority says little about one PR.
 
-4. Each open issue the PR references (closing or not) that has https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Response gets https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Review instead. This runs only when the PR opens or leaves draft.
+4. Each open issue the PR references (closing or not) that has https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Response gets https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Review instead. This runs when the PR opens, leaves draft, or is reopened.
 
 The decision and its reason (e.g. "#123 (closing keyword) has no Lead label") are written to the job summary. If GitHub silently drops the assignee (e.g. the lead has no repo access), the reason says "could not assign". The shared logic lives in `pr_lead_resolver.mjs` and `new_pr_labeler_core.mjs`.
+
+### Good First Issue assignment
+
+Independently of lead assignment and the review-label swap, `gfi_pr_assignment.mjs` checks only the first closing reference. For an open `Good First Issue`, a contributor who has commented on the issue is assigned automatically. Otherwise the PR is closed with recovery instructions; if someone else owns the issue, it is closed as a duplicate. Commenting and reopening (or opening a new PR if reopening is unavailable) lets the contributor recover.
+
+Closed issues, draft/closed PRs, staff (`MEMBER`, `OWNER`, `COLLABORATOR`), bot logins (including `openlibrary-bot`), and issues already assigned to the author are skipped. The GFI step honors `no-automation` on either the issue or PR; bots must honor this opt-out. This does not change the other scripts' opt-out behavior.
+
+Comments are paginated and a failed read prevents closure. Bot comments carry `<!-- ol-bot -->` and are not repeated on retries; current assignment and PR state prevent repeated mutations. The workflow also runs on `reopened` and passes `PR_AUTHOR_ASSOCIATION`. Each step reports its own failure without blocking the other steps. This is the first repository automation that closes PRs.
 
 ## `pr_lead_sweep.mjs`
 Runs on a schedule (`.github/workflows/pm_pr_lead_sweep.yml`; 14:00 and 02:00 UTC, i.e. 6 AM and 6 PM PST, an hour later during daylight time) and applies the same decision as `new_pr_labeler.mjs` to every open PR that is not a draft, was not opened by a bot, and has never had an assignee. This catches PRs whose issue got its lead after the PR opened, and PRs whose body was edited later. It never re-assigns someone a human removed; any earlier assignment, including a self-assignment, means the PR is left alone. It only adds a priority label to a PR that has none. One failing PR is reported in the summary without stopping the rest, and any failure fails the run.
