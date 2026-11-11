@@ -12,6 +12,7 @@ from openlibrary.plugins.upstream.addtag import (
     tag_edit,
     validate_subject_tag,
 )
+from openlibrary.utils.request_context import site as site_context
 
 
 @pytest.mark.parametrize(
@@ -116,6 +117,7 @@ def test_tag_edit_delete_skips_form_validation(monkeypatch):
         pass
 
     monkeypatch.setattr(web.ctx, "site", FakeSite(), raising=False)
+    site_context.set(web.ctx.site)
     monkeypatch.setattr(web, "input", lambda **kw: web.storage(kw, _delete="true", _comment="bye"))
     monkeypatch.setattr(tag_edit, "has_permission", lambda self, tag: True)
     monkeypatch.setattr(addtag, "safe_seeother", Redirect)
@@ -128,3 +130,10 @@ def test_tag_edit_delete_skips_form_validation(monkeypatch):
         "comment": "bye",
         "action": "delete-tag",
     }
+
+
+@pytest.fixture(autouse=True)
+def restore_site_context():
+    token = site_context.set(site_context.get(None))
+    yield
+    site_context.reset(token)
