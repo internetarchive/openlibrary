@@ -7,6 +7,7 @@ from collections.abc import Iterable
 import web
 
 from infogami.utils import delegate
+from openlibrary.utils.request_context import site
 
 from .. import app
 from ..contribute import initiatives
@@ -228,7 +229,7 @@ class readinglog_stats(app.view):
         # Batch-fetch any works Solr missed in a single call instead of
         # one web.ctx.site.get() per work (N+1).
         miss_keys = [key for key in all_keys if key not in solr_docs]
-        db_works = {w.key: w for w in web.ctx.site.get_many(miss_keys)} if miss_keys else {}
+        db_works = {w.key: w for w in site.get().get_many(miss_keys)} if miss_keys else {}
 
         # Fetch works from solr and inject into leaderboard
         for leaderboard in stats["leaderboard"].values():
