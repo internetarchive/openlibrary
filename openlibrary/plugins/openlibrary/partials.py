@@ -39,6 +39,8 @@ from openlibrary.plugins.openlibrary.lists import (
 from openlibrary.plugins.upstream.borrow import datetime_from_isoformat
 from openlibrary.plugins.upstream.mybooks import shelf_button_for
 from openlibrary.plugins.upstream.utils import (
+    convert_iso_to_marc,
+    get_populated_languages,
     get_user_object,
     json_encode,
     render_macro,
@@ -1206,6 +1208,53 @@ class HomeGenrePartial:
             subgenre_rows=subgenre_rows,
         )
         return {"partials": html}
+
+
+@public
+def query_carousel(
+    query: str,
+    title: str | None = None,
+    sort: str = "new",
+    key: str = "",
+    limit: int = 20,
+    search: bool = False,
+    has_fulltext_only: bool = True,
+    url: str | None = None,
+    layout: str = "ol-carousel",
+    user_lang_only: bool = False,
+    fallback: bool = False,
+    safe_mode: bool = True,
+    *,
+    lang: str | None = None,
+) -> str:
+    """Render a query or list carousel placeholder without Templetor.
+
+    ``lang`` is supplied by the caller, never read from the request here.
+    ``user_lang_only`` filters to populated ebook languages, defaulting to
+    English when no language is supplied. ``fallback`` retries the original
+    query when the language-filtered query has no results.
+    """
+    fallback_query = None
+    if user_lang_only:
+        user_lang = convert_iso_to_marc(lang or "en")
+        if user_lang and user_lang in get_populated_languages():
+            fallback_query = query
+            query = query + " language:" + user_lang
+
+    carousel = build_carousel_placeholder_config(
+        query=query,
+        title=title,
+        sort=sort,
+        key=key,
+        limit=limit,
+        search=search,
+        has_fulltext_only=has_fulltext_only,
+        url=url,
+        layout=layout,
+        fallback=fallback and fallback_query,
+        safe_mode=safe_mode,
+    )
+    return render_jinja_template("RawQueryCarouselPlaceholder.html.jinja", **carousel)
 
 
 @public
