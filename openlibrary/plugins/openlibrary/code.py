@@ -163,9 +163,9 @@ def sampledump():
     def expand_keys(keys):
         def f(k):
             if isinstance(k, dict):
-                return web.ctx.site.things(k)
+                return site.get().things(k)
             elif k.endswith("*"):
-                return web.ctx.site.things({"key~": k})
+                return site.get().things({"key~": k})
             else:
                 return [k]
 
@@ -201,7 +201,7 @@ def sampledump():
             visited.add(key)
             return
 
-        thing = web.ctx.site.get(key)
+        thing = site.get().get(key)
         if not thing:
             return
 
@@ -235,7 +235,7 @@ def sampleload(filename="sampledump.txt.gz"):
     with gzip.open(filename) if filename.endswith(".gz") else open(filename) as file:
         queries = [json.loads(line) for line in file]
 
-    print(web.ctx.site.save_many(queries, action="infogami-sampleload-action"))
+    print(site.get().save_many(queries, action="infogami-sampleload-action"))
 
 
 class routes(delegate.page):
@@ -269,20 +269,20 @@ class addbook(delegate.page):
     path = "/addbook"
 
     def GET(self):
-        d = {"type": web.ctx.site.get("/type/edition")}
+        d = {"type": site.get().get("/type/edition")}
 
         i = web.input()
-        author = i.get("author") and web.ctx.site.get(i.author)
+        author = i.get("author") and site.get().get(i.author)
         if author:
             d["authors"] = [author]
 
-        page = web.ctx.site.new("", d)
+        page = site.get().new("", d)
         return render.edit(page, self.path, "Add Book")
 
     def POST(self):
         from infogami.core.code import edit
 
-        key = web.ctx.site.new_key("/type/edition")
+        key = site.get().new_key("/type/edition")
         web.ctx.path = key
         return edit().POST(key)
 
@@ -292,7 +292,7 @@ class widget(delegate.page):
 
     def GET(self, key: str):  # type: ignore[override]
         olid = key.rsplit("/", maxsplit=1)[-1]
-        item = web.ctx.site.get(key)
+        item = site.get().get(key)
         is_work = key.startswith("/works/")
         item["olid"] = olid
         item["availability"] = get_availability(
@@ -337,9 +337,9 @@ class addauthor(delegate.page):
         i = web.input("name")
         if len(i.name) < 2:
             return web.badrequest()
-        key = web.ctx.site.new_key("/type/author")
+        key = site.get().new_key("/type/author")
         web.ctx.path = key
-        web.ctx.site.save(
+        site.get().save(
             {"key": key, "name": i.name, "type": {"key": "/type/author"}},
             comment="New Author",
             action="create-author",
@@ -352,7 +352,7 @@ class clonebook(delegate.page):
         from infogami.core.code import edit  # noqa: F401 side effects may be needed
 
         i = web.input("key")
-        page = web.ctx.site.get(i.key)
+        page = site.get().get(i.key)
         if page is None:
             raise web.seeother(i.key)
         else:
@@ -631,7 +631,7 @@ class bookpage(delegate.page):
 
         q = {"type": "/type/edition", key: value}
 
-        result = web.ctx.site.things(q)
+        result = site.get().things(q)
 
         if result:
             return web.found(result[0] + ext)
@@ -642,7 +642,7 @@ class bookpage(delegate.page):
                 {"type": "/type/volume", "ia_id": value},
             ]
             for q in ocaid_alternatives:
-                result = web.ctx.site.things(q)
+                result = site.get().things(q)
                 if result:
                     return web.found(result[0] + ext)
 
@@ -671,7 +671,7 @@ class rdf(delegate.mode):
     encoding = "rdf"
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
         if not page:
             raise web.notfound("")
         else:
@@ -693,7 +693,7 @@ class opds(delegate.mode):
     encoding = "opds"
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
         if not page:
             raise web.notfound("")
         else:
@@ -715,7 +715,7 @@ class marcxml(delegate.mode):
     encoding = "marcxml"
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
         if page is None or page.type.key != "/type/edition":
             raise web.notfound("")
         else:
@@ -801,7 +801,7 @@ class _yaml_edit(_yaml):
 
         if "_save" in i:
             d = self.load(i.body)
-            p = web.ctx.site.new(key, d)
+            p = site.get().new(key, d)
             try:
                 p._save(i._comment, action="edit-yaml")
             except (client.ClientException, ValidationException) as e:
@@ -822,14 +822,14 @@ def _get_user_root():
 
 
 def _get_bots():
-    bots = web.ctx.site.store.values(type="account", name="bot", value="true")
+    bots = site.get().store.values(type="account", name="bot", value="true")
     user_root = _get_user_root()
     return [user_root + "/" + account["username"] for account in bots]
 
 
 def _get_members_of_group(group_key):
     """Returns keys of all members of the group identifier by group_key."""
-    usergroup = web.ctx.site.get(group_key) or {}
+    usergroup = site.get().get(group_key) or {}
     return [m.key for m in usergroup.get("members", [])]
 
 
@@ -871,7 +871,7 @@ class new:
             type = query["type"]
             if isinstance(type, dict):
                 type = type["key"]
-            query["key"] = web.ctx.site.new_key(type)
+            query["key"] = site.get().new_key(type)
             return query["key"]
 
     def verify_types(self, query):
@@ -915,7 +915,7 @@ class new:
         try:
             if not isinstance(query, list):
                 query = [query]
-            web.ctx.site.save_many(query, comment=comment, action=action)
+            site.get().save_many(query, comment=comment, action=action)
         except client.ClientException as e:
             raise BadRequest(str(e))
 
@@ -976,7 +976,7 @@ class invalidate(delegate.page):
         if not isinstance(data, list):
             data = [data]
         for d in data:
-            thing = client.Thing(web.ctx.site, d["key"], client.storify(d))
+            thing = client.Thing(site.get(), d["key"], client.storify(d))
             client._run_hooks("on_new_version", thing)
         return delegate.RawText("ok")
 
