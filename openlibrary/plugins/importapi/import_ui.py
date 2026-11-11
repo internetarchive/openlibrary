@@ -12,6 +12,7 @@ from openlibrary.catalog import add_book
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.core.vendors import get_amazon_metadata
+from openlibrary.utils.request_context import site
 
 
 class import_preview(delegate.page):
@@ -19,7 +20,7 @@ class import_preview(delegate.page):
     """Preview page for import API."""
 
     def GET(self):
-        user = web.ctx.site.get_user()
+        user = site.get().get_user()
 
         if user is None:
             raise web.unauthorized()
@@ -33,7 +34,7 @@ class import_preview(delegate.page):
         return render_template("import_preview.html", metadata_provider_factory, req)
 
     def POST(self):
-        user = web.ctx.site.get_user()
+        user = site.get().get_user()
 
         if user is None:
             raise web.unauthorized()
