@@ -8,12 +8,15 @@ import web
 from fastapi import Request
 
 from openlibrary.accounts.model import generate_hash
+from openlibrary.plugins.openlibrary.code import changequery
 from openlibrary.utils.request_context import (
     USER_AGENT_BOTS,
     Visitor,
     _parse_solr_editions_from_fastapi,
     _parse_solr_editions_from_web,
     _visitor,
+    fastapi_request,
+    templetor_web_ctx,
 )
 
 
@@ -169,3 +172,60 @@ def test_user_agent_bots_format():
     # name as a regex with only dots escaped.
     assert sorted(set(USER_AGENT_BOTS)) == USER_AGENT_BOTS
     assert all(re.fullmatch(r"[a-z0-9./-]+", bot) for bot in USER_AGENT_BOTS)
+
+
+def _fastapi_request(path="/search/authors", query="q=martha"):
+    return Request(
+        {
+            "type": "http",
+            "method": "GET",
+            "scheme": "http",
+            "server": ("openlibrary.org", 80),
+            "root_path": "",
+            "path": path,
+            "query_string": query.encode(),
+            "headers": [(b"host", b"openlibrary.org")],
+        }
+    )
+
+
+@pytest.fixture
+def fakeload_web_ctx(monkeypatch):
+    """``web.ctx`` as ``delegate.fakeload()`` leaves it under FastAPI: a startup placeholder.
+
+    The attributes are set on the existing ``web.ctx`` rather than swapping the object,
+    because ``web.input()`` reads the same thread-local through ``web.webapi.ctx``.
+    """
+    monkeypatch.setattr(web.ctx, "path", "/install", raising=False)
+    monkeypatch.setattr(web.ctx, "readable_path", "/install", raising=False)
+    monkeypatch.setattr(web.ctx, "query", "", raising=False)
+    monkeypatch.setattr(web.ctx, "env", {"QUERY_STRING": ""}, raising=False)
+
+
+def test_templetor_web_ctx_lends_changequery_the_request(fakeload_web_ctx):
+    token = fastapi_request.set(_fastapi_request())
+    try:
+        with templetor_web_ctx():
+            assert changequery(page=None, sort="name") == "/search/authors?q=martha&sort=name"
+    finally:
+        fastapi_request.reset(token)
+
+
+def test_templetor_web_ctx_restores_web_ctx(fakeload_web_ctx):
+    token = fastapi_request.set(_fastapi_request())
+    try:
+        with templetor_web_ctx():
+            assert web.ctx.path == "/search/authors"
+            assert web.ctx.query == "?q=martha"
+    finally:
+        fastapi_request.reset(token)
+
+    assert web.ctx.path == "/install"
+    assert web.ctx.readable_path == "/install"
+    assert web.ctx.query == ""
+    assert web.ctx.env == {"QUERY_STRING": ""}
+
+
+def test_templetor_web_ctx_without_a_fastapi_request_is_a_noop(fakeload_web_ctx):
+    with templetor_web_ctx():
+        assert changequery(page=None, sort="name") == "/install?sort=name"

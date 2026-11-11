@@ -1,0 +1,90 @@
+{# /search/authors body. For the FastAPI endpoint (openlibrary/fastapi/search.py) and temporarily the web.py handler (openlibrary/plugins/worksearch/code.py) until ops routes /search/authors there in production.
+
+   Besides nav/q/sort/search_response, the render call must pass:
+     user           -- the logged-in user, or None
+     urlsafe        -- openlibrary.core.helpers.urlsafe
+     coverstore_url -- get_coverstore_public_url()
+   They are render args rather than Jinja globals, and the env is StrictUndefined,
+   so a render call missing one of them raises.
+#}
+{% from "search/searchbox.html.jinja" import searchbox %}
+{% from "search/sort_options.html.jinja" import sort_options %}
+{% from "OlPagination.html.jinja" import ol_pagination %}
+{% from "LoadingIndicator.html.jinja" import loading_indicator %}
+<div id="contentHead">
+    <h1>{{ _("Search Authors") }}</h1>
+</div>
+<div id="contentBody">
+    {% include "SearchNavigation.html.jinja" %}
+    <div class="section">
+        <form class="siteSearch olform" action="/search/authors">
+            {{ searchbox(q=q) }}
+        </form>
+    </div>
+    {% if q and search_response.error %}
+        <strong>
+            {% for line in search_response.error.splitlines() %}
+                {{ line }}
+                {% if not loop.last %}
+                    <br>
+                {% endif %}
+            {% endfor %}
+        </strong>
+    {% endif %}
+    {% if q and not search_response.error %}
+        {% if search_response.num_found %}
+            <div class="search-results-stats">
+                {{ ngettext('%(count)s hit', '%(count)s hits', search_response.num_found, count=commified_num_found) }}
+                {% if search_response.num_found > 1 %}
+                    {{ sort_options(sort, search_scheme="authors", user=user) }}
+                    {% if search_response.num_found >= 2 and user and user.is_librarian_or_higher() %}
+                        {# Jinja has no generator expressions; collect the OLIDs by appending to a list. #}
+                        {% set merge_keys = [] %}
+                        {% for doc in search_response.docs %}
+                            {% set _ = merge_keys.append(doc['key'].split('/')[-1]) %}
+                        {% endfor %}
+                        <div class="mergeThis">{{ _("Is the same author listed twice?") }} <a class="large sansserif"
+    href="/authors/merge?records={{ merge_keys | join(',') }}">{{ _("Merge authors") }}</a></div>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <ul class="authorList list-books">
+                {% for doc in search_response.docs %}
+                    {% set n = doc['name'] %}
+                    {% set url = doc['key'] + '/' + urlsafe(n) %}
+                    {% set num = doc['work_count'] %}
+                    {% set wc = ngettext("%(count)d book", "%(count)d books", num, count=num) %}
+                    {% set date = "" %}
+                    {% if 'birth_date' in doc or 'death_date' in doc %}
+                        {% set date = doc.get('birth_date', '') + ' - ' + doc.get('death_date', '') %}
+                    {% elif 'date' in doc %}
+                        {% set date = doc['date'] %}
+                    {% endif %}
+                    <li class="searchResultItem">
+                        <img src="{{ coverstore_url }}/a/olid/{{ doc['key'].split('/')[-1] }}-M.jpg"
+                             itemprop="image"
+                             class="cover author"
+                             alt="{{ _('Photo of %(author)s', author=n) }}">
+                        <div class="details">
+                            <a href="{{ url }}" class="larger">{{ n }}</a>&nbsp;<span class="brown small">{{ date }}</span>
+                            <br />
+                            <span class="small grey"><b>{{ wc }}</b>
+                                {% if 'top_subjects' in doc %}
+                                    {{ _('about %(subjects)s', subjects=', '.join(doc['top_subjects'])) }},
+                                    {{ _('including <i>%(topwork)s</i>', topwork=doc.get('top_work', '')) | safe }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+            {{ ol_pagination(page, total_pages) }}
+        {% else %}
+            <center>
+                <div class="red">{{ _("No <strong>authors</strong> directly matched your search") | safe }}</div>
+                <hr>
+            </center>
+            <div id="fulltext-search-suggestion" data-query="{{ q }}">{{ loading_indicator(_("Checking Search Inside matches")) }}</div>
+        {% endif %}
+    {% endif %}
+</div>

@@ -3,6 +3,7 @@
 fastapiRoutes:
   # Pages (SitePageRoute)
   - GET /advancedsearch
+  - GET /search/authors
   - GET /search/lists
   - GET POST /verify_human
   # JSON / API

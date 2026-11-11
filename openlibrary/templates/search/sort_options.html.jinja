@@ -1,0 +1,117 @@
+{# Sort menu for search results: a macro for Jinja callers, and renderable directly (with selected_sort) from Templetor. #}
+{% macro sort_options(selected_sort, exclude=None, default_sort="relevance", search_scheme="works", user=None) %}
+    {% set selected_sort = selected_sort or default_sort %}
+    {% if search_scheme == "authors" %}
+        {% set options = [
+            {"sort": "relevance", "name": _("Relevance"), "ga_key": "Relevance"},
+            {"sort": "name", "name": _("Name"), "ga_key": "Name"},
+            {"sort": "work_count desc", "name": _("Work Count"), "ga_key": "WorkCountDesc"},
+            {"sort": "random", "name": _("Random"), "ga_key": "Random", "selected": selected_sort and selected_sort.startswith("random")},
+        ] %}
+        {% if selected_sort in ("birth_date asc", "birth_date desc") or (user and (user.is_admin() or user.is_librarian())) %}
+            {% set unused = options.append({"sort": "birth_date asc", "name": _("Birth Date (oldest) (beta: Librarian only)"), "ga_key": "BirthDateOldest"}) %}
+            {% set unused = options.append({"sort": "birth_date desc", "name": _("Birth Date (youngest) (beta: Librarian only)"), "ga_key": "BirthDateYoungest"}) %}
+        {% endif %}
+    {% elif search_scheme == "lists_seeds" %}
+        {% set options = [
+            {"sort": "index", "name": _("List Order"), "ga_key": "ListOrder"},
+            {"sort": "added", "name": _("Recently Added"), "ga_key": "RecentlyAdded"},
+            {"sort": "title", "name": _("Title"), "ga_key": "ListTitle"},
+            {"sort": "last_modified", "name": _("Recently Edited"), "ga_key": "LastModified"},
+        ] %}
+    {% elif search_scheme == "languages" %}
+        {% set options = [
+            {"sort": "count", "name": _("Work Count"), "ga_key": "WorkCount"},
+            {"sort": "name", "name": _("Language Name"), "ga_key": "LanguageName"},
+            {"sort": "ebook_edition_count", "name": _("Ebook Edition Count"), "ga_key": "EbookEditionCount"},
+        ] %}
+    {% elif search_scheme == "reading_log" %}
+        {% set options = [
+            {"sort": "desc", "name": _('Date Added (newest)'), "ga_key": "DateAddedNewest"},
+            {"sort": "asc", "name": _('Date Added (oldest)'), "ga_key": "DateAddedOldest"},
+            {"sort": "title", "name": _("Title"), "ga_key": "ShelfTitle"},
+            {"sort": "old", "name": _("First Published"), "ga_key": "ShelfOld"},
+            {"sort": "rating", "name": _("Your Top Rated"), "ga_key": "ShelfYourRating"},
+            {"sort": "want_to_read", "name": _("Most Wanted"), "ga_key": "ShelfMostWanted"},
+        ] %}
+    {% else %}
+        {% set options = [
+            {"sort": "relevance", "name": _("Relevance"), "ga_key": "Relevance"},
+            {"sort": "editions", "name": _("Most Editions"), "ga_key": "Editions"},
+            {"sort": "old", "name": _("First Published"), "ga_key": "Old"},
+            {"sort": "new", "name": _("Most Recent"), "ga_key": "New"},
+            {"sort": "rating", "name": _("Top Rated"), "ga_key": "Rating"},
+            {
+                "sort": "readinglog",
+                "name": _("Reading Log"),
+                "ga_key": "ReadingLog",
+                "sub_sorts": [
+                    {"sort": "readinglog", "name": _("Any"), "ga_key": "ReadingLogAny"},
+                    {"sort": "want_to_read", "name": _("Want to Read"), "ga_key": "ReadingLogWantToRead"},
+                    {"sort": "currently_reading", "name": _("Currently Reading"), "ga_key": "ReadingLogCurrentlyReading"},
+                    {"sort": "already_read", "name": _("Already Read"), "ga_key": "ReadingLogAlreadyRead"},
+                    {"sort": "stopped_reading", "name": _("Stopped Reading"), "ga_key": "ReadingLogStoppedReading"},
+                ],
+            },
+            {"sort": "trending", "name": _("Trending"), "ga_key": "Trending"},
+            {"sort": "random", "name": _("Random"), "ga_key": "Random", "selected": selected_sort and selected_sort.startswith("random")},
+        ] %}
+        {% if selected_sort == "title" or (user and (user.is_admin() or user.is_librarian())) %}
+            {% set unused = options.append({"sort": "title", "name": _("Work Title (beta: Librarian only)"), "ga_key": "Title"}) %}
+        {% endif %}
+    {% endif %}
+    {# The selected option, falling back to the scheme's default when no option matches. #}
+    {% set chosen = namespace(option=None) %}
+    {% set chosen_default = namespace(option=None) %}
+    {% for option in options %}
+        {% for candidate in [option] + option.get("sub_sorts", []) %}
+            {% if chosen.option is none and (candidate["sort"] == selected_sort or candidate.get("selected")) %}
+                {% set chosen.option = candidate %}
+            {% endif %}
+            {% if chosen_default.option is none and candidate["sort"] == default_sort %}
+                {% set chosen_default.option = candidate %}
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+    {% set selected_option = chosen.option if chosen.option is not none else chosen_default.option %}
+    {# Flatten for the menu. Sub-sorts become `nested` rows, always visible. A sub-sort repeating its
+       parent's key (Reading Log / "Any") is dropped: the parent already selects it, and both rows
+       would read as checked. #}
+    {% set items = [] %}
+    {% for option in options if not (exclude and option["sort"] in exclude) %}
+        {% set unused = items.append({
+            "value": option["sort"],
+            "label": option["name"],
+            "url": changequery(page=None, sort=None if option["sort"] == default_sort else option["sort"]),
+            "track": option["ga_key"],
+        }) %}
+        {% for sub_sort in option.get("sub_sorts", []) if sub_sort["sort"] != option["sort"] %}
+            {% set unused = items.append({
+                "value": sub_sort["sort"],
+                "label": sub_sort["name"],
+                "nested": True,
+                "url": changequery(page=None, sort=None if sub_sort["sort"] == default_sort else sub_sort["sort"]),
+                "track": option["ga_key"] + "SubSort",
+            }) %}
+        {% endfor %}
+    {% endfor %}
+    {# Trigger is slotted rather than left to the component's default so it's server-rendered — no
+       layout shift on upgrade. sort_options.js navigates. #}
+    <span class="sort">
+        <ol-menu-popover class="sort-options" label="{{ _('Sort by') }}" heading="{{ _('Sort by') }}" value="{{ selected_option['sort'] }}" items="{{ items | tojson | force_escape }}" aria-label="{{ _('Sort results') }}">
+            <ol-button slot="trigger">
+                {{ selected_option['name'] }}
+            </ol-button>
+        </ol-menu-popover>
+        {% if selected_sort and selected_sort.startswith('random') and not is_bot() %}
+            <a class="sort-random-shuffle"
+               href="{{ changequery(page=None, sort='random_%s' % today().timestamp()) }}"
+               data-ol-link-track="SearchSort|RandomShuffle"
+               rel="nofollow">{{ _("Shuffle") }}</a>
+        {% endif %}
+    </span>
+{% endmacro %}
+{#- Templetor renders this file directly, with selected_sort and the rest as keyword arguments. -#}
+{% if selected_sort is defined %}
+    {{ sort_options(selected_sort, exclude=exclude|default(none), default_sort=default_sort|default("relevance"), search_scheme=search_scheme|default("works"), user=user|default(none)) }}
+{% endif %}

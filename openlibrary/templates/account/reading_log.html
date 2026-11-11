@@ -70,7 +70,7 @@ $add_metatag(property="og:image", content=meta_photo_url)
       <div class="search-results-stats__tools">
         $# Year pages always list by check-in date, so sorting would do nothing.
         $if not is_filtered and not checkin_year:
-          $:render_template("search/sort_options.html", sort_order, exclude=None if owners_page else ['rating'], default_sort='desc', search_scheme='reading_log')
+          $:render_jinja_template("search/sort_options.html.jinja", selected_sort=sort_order, exclude=None if owners_page else ['rating'], default_sort='desc', search_scheme='reading_log', user=ctx.user)
 
         $ layout = get_remembered_layout()
         $:render_template("search/layout_options.html", selected_layout=layout)
