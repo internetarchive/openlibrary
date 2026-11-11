@@ -4,7 +4,7 @@ Live figures come from the shared gaps, as on /tasks; people, saves and the tren
 count docs, so they are a day behind and blank until the job has counted the initiative.
 """
 
-from datetime import datetime
+from datetime import UTC, date, datetime, time, timedelta
 
 from openlibrary.contribute import initiatives
 from openlibrary.contribute.field_guides import get_field_guides
@@ -34,9 +34,15 @@ def format_day(when: datetime | None) -> str:
     return format_date(when) if when else ""
 
 
+def last_day(ends_at: datetime | None) -> date | None:
+    """The last day a project runs. An end date is stored as the midnight after it, and a stop as the moment it happened."""
+    return (ends_at - timedelta(microseconds=1)).date() if ends_at else None
+
+
 def format_run(initiative: initiatives.Initiative) -> str:
     """When it runs, as one phrase. Dates are UTC days, as stored."""
-    starts, ends = format_day(initiative.starts_at), format_day(initiative.ends_at)
+    starts = format_day(initiative.starts_at)
+    ends = format_day(datetime.combine(day, time())) if (day := last_day(initiative.ends_at)) else ""
     if not starts:
         return _("No start date")
     if not ends:
@@ -163,4 +169,104 @@ def build_detail(initiative: initiatives.Initiative) -> dict:
         "fields": build_field_rows(initiative, gaps) if gaps is not None else [],
         "trend": build_trend(docs, initiative.slug),
         "saves": build_saves(docs, initiative.slug),
+    } | build_controls(initiative, summary["status"], initiatives.definition_doc(site.get(), initiative.slug))
+
+
+TITLE_MAX = 80
+DESCRIPTION_MAX = 300
+
+
+def build_controls(initiative: initiatives.Initiative, status: str, doc: dict) -> dict:
+    """What the project page's forms need: which actions apply now, the edit form's values, and the change log."""
+    base = f"{BASE_URL}/{initiative.slug}"
+    return {
+        # Every form posts this back, so a change made against an out-of-date page is refused.
+        "rev": doc.get("_rev", ""),
+        "urls": {name: f"{base}/{name}" for name in ("edit", "hide", "unhide", "stop", "headline")},
+        "can_hide": not initiative.hidden,
+        "can_stop": status == "live",
+        # Only a project the public can open can be the one /tasks opens on.
+        "can_headline": status == "live" and not initiative.hidden and not initiative.featured,
+        "form": {
+            "title": initiative.title,
+            "description": initiative.description if initiative.title else "",
+            "starts": initiative.starts_at.date().isoformat() if initiative.starts_at else "",
+            "ends": day.isoformat() if (day := last_day(initiative.ends_at)) else "",
+            "title_max": TITLE_MAX,
+            "description_max": DESCRIPTION_MAX,
+        },
+        "log": build_log(doc),
     }
+
+
+def edit_labels() -> dict[str, str]:
+    return {"title": _("title"), "description": _("description"), "starts_at": _("start date"), "ends_at": _("end date")}
+
+
+def describe_change(entry: dict) -> str:
+    """One log entry in words."""
+    plain = {
+        "hide": _("Hid the project"),
+        "unhide": _("Made the project visible again"),
+        "stop": _("Stopped the project early"),
+        "headline": _("Made it the headline project"),
+        "unheadline": _("Another project became the headline"),
+    }
+    if (action := entry.get("action")) in plain:
+        return plain[action]
+    labels = edit_labels()
+    return _("Edited: %(details)s", details=", ".join(labels[k] for k in entry.get("changes") or {} if k in labels))
+
+
+def build_log(doc: dict) -> list[dict]:
+    """The definition's change log, newest first."""
+    return [
+        {
+            "when": _("%(time)s UTC", time=str(entry.get("at", ""))[:16].replace("T", " ")),
+            "who": str(entry.get("by", "")).rsplit("/", maxsplit=1)[-1],
+            "who_url": str(entry.get("by", "")),
+            "what": describe_change(entry),
+        }
+        for entry in reversed(doc.get("log") or [])
+    ]
+
+
+def parse_day(raw: str) -> date | None:
+    return date.fromisoformat(raw) if raw else None
+
+
+def midnight(day: date) -> str:
+    return datetime.combine(day, time(), tzinfo=UTC).isoformat(timespec="seconds")
+
+
+def parse_edit(initiative: initiatives.Initiative, title: str, description: str, starts: str, ends: str) -> tuple[dict, str]:
+    """The edit form as changes to the definition, or an error to show. Only what differs is a change, so the log says what moved.
+
+    A built-in project may leave the title blank: it then keeps its own name and description, which are translated.
+    """
+    title, description = title.strip(), description.strip()
+    try:
+        start_day, end_day = parse_day(starts), parse_day(ends)
+    except ValueError:
+        return {}, _("That date isn't one we can read.")
+    if not title and not initiative.pick:
+        return {}, _("A project needs a title.")
+    if len(title) > TITLE_MAX or len(description) > DESCRIPTION_MAX:
+        return {}, _("The title or description is too long.")
+    if end_day and not start_day:
+        return {}, _("A project with an end date needs a start date.")
+    if end_day and start_day and end_day < start_day:
+        return {}, _("The end date is before the start date.")
+    if not title:
+        description = ""
+    changes: dict = {}
+    if title != initiative.title:
+        changes["title"] = title
+    if description != (initiative.description if initiative.title else ""):
+        changes["description"] = description
+    if start_day != (initiative.starts_at.date() if initiative.starts_at else None):
+        changes["starts_at"] = midnight(start_day) if start_day else None
+    # Compared as days: a project stopped at 2pm still shows that day, and saving the form again mustn't restart it until midnight.
+    if end_day != last_day(initiative.ends_at):
+        changes["ends_at"] = midnight(end_day + timedelta(days=1)) if end_day else None
+    return changes, ""

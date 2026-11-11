@@ -339,3 +339,46 @@ def test_an_ended_initiative_hands_out_no_tasks(monkeypatch):
     monkeypatch.setattr(initiatives, "get_gaps", lambda initiative: [["/books/OL1M", 5, ["covers"], []]])
     ended = initiatives.Initiative("test", 1, None, ("covers",), starts_at=datetime.now(UTC) - timedelta(days=9), ends_at=datetime.now(UTC) - timedelta(days=1))
     assert list(supply.candidates(ended, ("covers",))) == []
+
+
+@pytest.fixture
+def forgotten(monkeypatch):
+    """The cache keys a write clears, in place of memcache."""
+    keys: list[str] = []
+    monkeypatch.setattr(initiatives.cache, "get_memcache", lambda: web.storage(delete=keys.append))
+    return keys
+
+
+def test_a_change_writes_the_keys_logs_who_made_it_and_clears_the_cache(forgotten):
+    site = FakeSite()
+    initiatives.change(site, "winter-covers", {"hidden": True}, "/people/mek", "hide", rev="")
+    doc = site.store["contribute-project-winter-covers"]
+    assert (doc["type"], doc["slug"], doc["hidden"]) == ("contribute-project", "winter-covers", True)
+    [entry] = doc["log"]
+    assert (entry["by"], entry["action"], entry["changes"]) == ("/people/mek", "hide", {"hidden": True})
+    assert forgotten == ["contribute.definitions"]
+
+
+def test_a_change_made_against_an_older_revision_is_refused(forgotten):
+    site = FakeSite(store={"contribute-project-winter-covers": definition(_rev="8")})
+    with pytest.raises(initiatives.Conflict):
+        initiatives.change(site, "winter-covers", {"hidden": True}, "/people/mek", "hide", rev="7")
+    assert "hidden" not in site.store["contribute-project-winter-covers"]
+    assert forgotten == []
+    initiatives.change(site, "winter-covers", {"hidden": True}, "/people/mek", "hide", rev="8")
+    assert site.store["contribute-project-winter-covers"]["hidden"] is True
+
+
+def test_the_log_keeps_only_the_latest_entries(forgotten):
+    site = FakeSite(store={"contribute-project-winter-covers": definition(log=[{"action": "old"}] * initiatives.LOG_LIMIT)})
+    initiatives.change(site, "winter-covers", {"hidden": True}, "/people/mek", "hide", rev="")
+    log = site.store["contribute-project-winter-covers"]["log"]
+    assert (len(log), log[-1]["action"]) == (initiatives.LOG_LIMIT, "hide")
+
+
+def test_making_one_project_the_headline_unfeatures_the_rest(forgotten):
+    site = FakeSite(store={"contribute-project-winter-covers": {"type": "contribute-project"} | definition()})
+    initiatives.set_headline(site, "winter-covers", "/people/mek", rev="")
+    assert site.store["contribute-project-winter-covers"]["featured"] is True
+    assert site.store[f"contribute-project-{initiatives.MOST_READ.slug}"]["featured"] is False
+    assert f"contribute-project-{initiatives.TAGS.slug}" not in site.store

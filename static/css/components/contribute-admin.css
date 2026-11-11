@@ -263,3 +263,53 @@
   font-size: var(--font-size-body-small);
   color: var(--color-text-secondary);
 }
+
+.contrib-admin__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-sm);
+}
+
+/* A page form: one column, capped so a title field isn't a page wide. */
+.contrib-admin__form {
+  display: grid;
+  gap: var(--spacing-stack-md);
+  max-width: 36rem;
+}
+
+.contrib-admin__field {
+  display: grid;
+  gap: var(--spacing-3xs);
+}
+
+.contrib-admin__field label {
+  font-weight: var(--font-weight-medium);
+}
+
+.contrib-admin__form textarea {
+  resize: vertical;
+}
+
+.contrib-admin__dates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--spacing-stack-md) var(--spacing-inline-md);
+}
+
+.contrib-admin__log {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contrib-admin__log li {
+  display: grid;
+  gap: var(--spacing-3xs);
+}
+
+.contrib-admin__log-meta {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}

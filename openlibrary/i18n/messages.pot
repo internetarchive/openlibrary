@@ -525,7 +525,7 @@ msgstr ""
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr ""
 
-#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html.jinja lists/lists.html merge/authors.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
+#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html contribute/admin/project.html.jinja databarEdit.html interstitial.html.jinja lists/lists.html merge/authors.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -622,7 +622,7 @@ msgstr ""
 msgid "Added new book."
 msgstr ""
 
-#: ObservationsModal.html account/loans.html lists/lists.html merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -1525,7 +1525,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/parts.html.jinja covers/manage.html openlibrary/core/shell/shelf_labels.py
+#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/admin/project.html.jinja contribute/parts.html.jinja covers/manage.html openlibrary/core/shell/shelf_labels.py
 msgid "Save"
 msgstr ""
 
@@ -3054,7 +3054,7 @@ msgstr ""
 msgid "We require a minimum set of fields to create a new record. These are those fields."
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html search/advancedsearch.html.jinja search/sort_options.html type/about/edit.html type/page/edit.html type/template/edit.html
+#: books/add.html books/edit.html books/edit/edition.html contribute/admin/project.html.jinja search/advancedsearch.html.jinja search/sort_options.html type/about/edit.html type/page/edit.html type/template/edit.html
 msgid "Title"
 msgstr ""
 
@@ -4277,6 +4277,42 @@ msgid "View on Tasks"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
+msgid "Make headline"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Hide"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Unhide"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Stop early"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Stop this project now?"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Stop project"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "It will hand out no more tasks. It stays on the Tasks page as finished, with its final numbers. To run it again, change its end date."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Make this the headline project?"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Links to the Tasks page that don't name a project will open this one from now on, in place of the current headline."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
 msgid "Asks for"
 msgstr ""
 
@@ -4372,6 +4408,38 @@ msgstr ""
 
 #: contribute/admin/project.html.jinja
 msgid "Dates are in UTC. People, saves and the trend are counted nightly; the rest is live."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Edit details"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Leave blank to keep this project's built-in title and description, which are translated. Text typed here shows as written in every language."
+msgstr ""
+
+#: contribute/admin/project.html.jinja type/tag/view.html type/user/edit.html
+msgid "Description"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Start date"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "End date (optional)"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "The project runs from the start of its start date through the end of its end date, UTC. A future start date schedules it; no start date makes it a draft. Either takes a live project off the Tasks page."
+msgstr ""
+
+#: contribute/admin/project.html.jinja databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
+msgid "History"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "No changes have been made here yet."
 msgstr ""
 
 #: covers/add.html
@@ -4788,10 +4856,6 @@ msgstr ""
 
 #: lib/exports.html
 msgid "Copy Wikipedia citation"
-msgstr ""
-
-#: databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
-msgid "History"
 msgstr ""
 
 #: lib/history.html
@@ -7166,10 +7230,6 @@ msgstr ""
 msgid "<strong>Type:</strong> %(tag_type)s"
 msgstr ""
 
-#: type/tag/view.html type/user/edit.html
-msgid "Description"
-msgstr ""
-
 #: type/tag/view.html
 msgid "Tag Body"
 msgstr ""
@@ -8656,6 +8716,72 @@ msgstr ""
 msgid "%(start)s to %(end)s"
 msgstr ""
 
+#: openlibrary/contribute/manage.py
+msgid "title"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "description"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "start date"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "end date"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Hid the project"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Made the project visible again"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Stopped the project early"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Made it the headline project"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Another project became the headline"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+#, python-format
+msgid "Edited: %(details)s"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+#, python-format
+msgid "%(time)s UTC"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "That date isn't one we can read."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "A project needs a title."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "The title or description is too long."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "A project with an end date needs a start date."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "The end date is before the start date."
+msgstr ""
+
 #: openlibrary/contribute/save.py
 msgid "Pick a language from the list."
 msgstr ""
@@ -9395,6 +9521,42 @@ msgstr ""
 
 #: openlibrary/fastapi/search.py
 msgid "List search"
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "Someone else changed this project while you had it open. Check it below, then try again."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "The project is hidden from the Tasks and stats pages."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "The project is visible again."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "Only a live project can be stopped."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "The project has ended. It hands out no more tasks."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "Only a live project that isn't hidden can be the headline."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "This is now the headline project."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "Nothing changed."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "Saved."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/api.py

@@ -3,11 +3,12 @@ and the /tasks/admin pages, where the community projects are run."""
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Annotated
 from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response, status
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 
 from openlibrary.contribute import feed, initiatives, manage
@@ -16,8 +17,10 @@ from openlibrary.core.shell.request import PageMeta
 from openlibrary.core.shell.user import ShellUser
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
 from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SitePageRoute
+from openlibrary.fastapi.shared.utils import FlashType, set_flash_cookie
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary import contribute
+from openlibrary.utils.request_context import site
 
 router = APIRouter()
 
@@ -87,6 +90,31 @@ def tasks_rows(
     return HTMLResponse(render_jinja_template("contribute/rows.html.jinja", rows=rows))
 
 
+def find_project(slug: str) -> initiatives.Initiative:
+    """Any project by its slug, whatever its status. Read fresh: a page loaded right after a change must show it."""
+    if not (initiative := next((i for i in initiatives.every(initiatives.read_definitions(site.get())) if i.slug == slug), None)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such project")
+    return initiative
+
+
+def back_to_project(slug: str, kind: FlashType, message: str) -> RedirectResponse:
+    """Back to the project's page after a change, with what happened as a banner."""
+    response = RedirectResponse(f"{manage.BASE_URL}/{slug}", status_code=status.HTTP_303_SEE_OTHER)
+    set_flash_cookie(response, kind, message)
+    return response
+
+
+def change_project(slug: str, user: ShellUser, rev: str, action: str, changes: dict, done: str) -> RedirectResponse:
+    try:
+        if action == "headline":
+            initiatives.set_headline(site.get(), slug, user.key, rev)
+        else:
+            initiatives.change(site.get(), slug, changes, user.key, action, rev)
+    except initiatives.Conflict:
+        return back_to_project(slug, "error", _("Someone else changed this project while you had it open. Check it below, then try again."))
+    return back_to_project(slug, "note", done)
+
+
 # Plain defs: the gaps come from memcache and the counts from the store, both blocking.
 @pages.get("/tasks/admin")
 def tasks_admin() -> SitePage:
@@ -98,8 +126,55 @@ def tasks_admin() -> SitePage:
 @pages.get("/tasks/admin/{slug}")
 def tasks_admin_project(slug: str) -> SitePage:
     """One community project: its definition, its progress by detail, and its saves."""
-    if not (initiative := next((i for i in initiatives.every() if i.slug == slug), None)):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such project")
-    detail = manage.build_detail(initiative)
+    detail = manage.build_detail(find_project(slug))
     body = render_jinja_template("contribute/admin/project.html.jinja", page=detail)
     return SitePage(body, page=admin_page(detail["project"]["title"]))
+
+
+Rev = Annotated[str, Form(description="The definition's revision when the page was rendered; a stale one is refused.")]
+
+
+@pages.post("/tasks/admin/{slug}/hide")
+def tasks_admin_hide(slug: str, user: ProjectManagerDep, rev: Rev = "") -> RedirectResponse:
+    find_project(slug)
+    return change_project(slug, user, rev, "hide", {"hidden": True}, _("The project is hidden from the Tasks and stats pages."))
+
+
+@pages.post("/tasks/admin/{slug}/unhide")
+def tasks_admin_unhide(slug: str, user: ProjectManagerDep, rev: Rev = "") -> RedirectResponse:
+    find_project(slug)
+    return change_project(slug, user, rev, "unhide", {"hidden": False}, _("The project is visible again."))
+
+
+@pages.post("/tasks/admin/{slug}/stop")
+def tasks_admin_stop(slug: str, user: ProjectManagerDep, rev: Rev = "") -> RedirectResponse:
+    if find_project(slug).status() != "live":
+        return back_to_project(slug, "error", _("Only a live project can be stopped."))
+    ends_at = datetime.now(UTC).isoformat(timespec="seconds")
+    return change_project(slug, user, rev, "stop", {"ends_at": ends_at}, _("The project has ended. It hands out no more tasks."))
+
+
+@pages.post("/tasks/admin/{slug}/headline")
+def tasks_admin_headline(slug: str, user: ProjectManagerDep, rev: Rev = "") -> RedirectResponse:
+    initiative = find_project(slug)
+    if initiative.status() != "live" or initiative.hidden:
+        return back_to_project(slug, "error", _("Only a live project that isn't hidden can be the headline."))
+    return change_project(slug, user, rev, "headline", {}, _("This is now the headline project."))
+
+
+@pages.post("/tasks/admin/{slug}/edit")
+def tasks_admin_edit(
+    slug: str,
+    user: ProjectManagerDep,
+    rev: Rev = "",
+    title: Annotated[str, Form()] = "",
+    description: Annotated[str, Form()] = "",
+    starts: Annotated[str, Form()] = "",
+    ends: Annotated[str, Form()] = "",
+) -> RedirectResponse:
+    changes, error = manage.parse_edit(find_project(slug), title, description, starts, ends)
+    if error:
+        return back_to_project(slug, "error", error)
+    if not changes:
+        return back_to_project(slug, "note", _("Nothing changed."))
+    return change_project(slug, user, rev, "edit", changes, _("Saved."))

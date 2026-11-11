@@ -15,6 +15,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 
+from infogami.infobase.client import ClientException
 from infogami.utils.delegate import create_site
 from openlibrary.contribute import pool, tasks
 from openlibrary.core import cache
@@ -203,6 +204,53 @@ def read_definitions(site) -> list[dict]:
 def cached_definitions() -> list[dict]:
     """The definition docs as every request reads them: a change shows within ``DEFINITIONS_TTL``."""
     return read_definitions(request_site.get())
+
+
+class Conflict(Exception):
+    """The definition changed after the caller read it, so their change wasn't made."""
+
+
+# Enough to see who did what for a long while, without the doc every request reads growing forever.
+LOG_LIMIT = 200
+
+
+def definition_doc(site, slug: str) -> dict:
+    """The initiative's definition doc as stored, {} when it has none: a built-in one nobody has changed."""
+    return site.store.get(definition_key(slug)) or {}
+
+
+def definition_rev(site, slug: str) -> str:
+    """The definition doc's revision, "" when there is none yet. A change names the one it was made against."""
+    return definition_doc(site, slug).get("_rev", "")
+
+
+def change(site, slug: str, changes: dict, by: str, action: str, rev: str) -> None:
+    """Set ``changes`` on the initiative's definition, noting who did it in the doc's own log: store docs keep no history.
+
+    ``rev`` is the revision the caller saw. If the doc has moved on since, nothing is written and ``Conflict`` is raised,
+    so two people changing one project can't silently undo each other.
+    """
+    key = definition_key(slug)
+    doc = dict(definition_doc(site, slug) or {"type": DEFINITION_TYPE, "slug": slug})
+    if doc.get("_rev", "") != rev:
+        raise Conflict(slug)
+    entry = {"at": datetime.now(UTC).isoformat(timespec="seconds"), "by": by, "action": action, "changes": changes}
+    doc |= changes
+    doc["log"] = [*doc.get("log", []), entry][-LOG_LIMIT:]
+    try:
+        site.store[key] = doc
+    except ClientException as e:
+        # The store checks the revision again as it writes, which catches a change made since the read above.
+        raise Conflict(slug) from e
+    cache.get_memcache().delete("contribute.definitions")
+
+
+def set_headline(site, slug: str, by: str, rev: str) -> None:
+    """Make ``slug`` the featured initiative and unfeature the rest, so there is one headline."""
+    change(site, slug, {"featured": True}, by, "headline", rev)
+    for other in every(read_definitions(site)):
+        if other.featured and other.slug != slug:
+            change(site, other.slug, {"featured": False}, by, "unheadline", definition_rev(site, other.slug))
 
 
 def parse_time(raw) -> datetime | None:

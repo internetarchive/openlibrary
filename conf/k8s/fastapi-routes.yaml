@@ -6,6 +6,11 @@ fastapiRoutes:
   - GET /search/lists
   - GET /tasks/admin
   - GET /tasks/admin/{slug}
+  - POST /tasks/admin/{slug}/edit
+  - POST /tasks/admin/{slug}/headline
+  - POST /tasks/admin/{slug}/hide
+  - POST /tasks/admin/{slug}/stop
+  - POST /tasks/admin/{slug}/unhide
   - GET POST /verify_human
   # JSON / API
   - POST /account/anonymize.json

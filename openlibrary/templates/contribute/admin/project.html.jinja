@@ -1,7 +1,8 @@
 {#- /tasks/admin/<slug>: one community project in detail. Takes `page` from manage.build_detail. -#}
 {% import "contribute/admin/parts.html.jinja" as parts %}
 {% set project = page.project %}
-<div class="contrib-dash contrib-admin contrib-admin--detail">
+<div class="contrib-dash contrib-admin contrib-admin--detail"
+     data-contribute-admin>
     <header class="contrib-admin__head">
         <a class="contrib-admin__back" href="{{ page.index_url }}">{{ _("Community projects") }}</a>
         <div class="contrib-dash__head">
@@ -14,7 +15,55 @@
             {% endif %}
         </div>
         {{ parts.status(project) }}
+        {#- One small form per action, so each is a plain POST that works without the script; the script only adds the confirm. -#}
+        <div class="contrib-admin__actions">
+            {% if page.can_headline %}
+                <form method="post"
+                      action="{{ page.urls.headline }}"
+                      data-confirm="contrib-admin-headline">
+                    <input type="hidden" name="rev" value="{{ page.rev }}" />
+                    <ol-button type="submit" variant="secondary" size="small">
+                        {{ _("Make headline") }}
+                    </ol-button>
+                </form>
+            {% endif %}
+            {% if page.can_hide %}
+                <form method="post" action="{{ page.urls.hide }}">
+                    <input type="hidden" name="rev" value="{{ page.rev }}" />
+                    <ol-button type="submit" variant="secondary" size="small">
+                        {{ _("Hide") }}
+                    </ol-button>
+                </form>
+            {% else %}
+                <form method="post" action="{{ page.urls.unhide }}">
+                    <input type="hidden" name="rev" value="{{ page.rev }}" />
+                    <ol-button type="submit" variant="secondary" size="small">
+                        {{ _("Unhide") }}
+                    </ol-button>
+                </form>
+            {% endif %}
+            {% if page.can_stop %}
+                <form method="post"
+                      action="{{ page.urls.stop }}"
+                      data-confirm="contrib-admin-stop">
+                    <input type="hidden" name="rev" value="{{ page.rev }}" />
+                    <ol-button type="submit" variant="secondary" tone="danger" size="small">
+                        {{ _("Stop early") }}
+                    </ol-button>
+                </form>
+            {% endif %}
+        </div>
     </header>
+    {#- Confirmation text for contribute.js; see confirm-template.js. -#}
+    <template id="contrib-admin-stop"
+              data-i18n="{{ {'title': _('Stop this project now?') , 'confirm': _('Stop project'), 'cancel': _('Cancel'), 'close': _('Close')} | tojson | forceescape }}">
+        {{ _("It will hand out no more tasks. It stays on the Tasks page as finished, with its final numbers. To run it again, change its end date.") }}
+    </template>
+    <template id="contrib-admin-headline"
+              data-destructive="false"
+              data-i18n="{{ {'title': _('Make this the headline project?') , 'confirm': _('Make headline'), 'cancel': _('Cancel'), 'close': _('Close')} | tojson | forceescape }}">
+        {{ _("Links to the Tasks page that don't name a project will open this one from now on, in place of the current headline.") }}
+    </template>
     <dl class="contrib-admin__facts">
         <div>
             <dt>{{ _("Runs") }}</dt>
@@ -158,4 +207,81 @@
         </section>
     </div>
     <p class="contrib-admin__note">{{ _("Dates are in UTC. People, saves and the trend are counted nightly; the rest is live.") }}</p>
+    <section class="contrib-admin__section">
+        <h2 class="contrib-overline">{{ _("Edit details") }}</h2>
+        <form class="contrib-admin__form"
+              method="post"
+              action="{{ page.urls.edit }}">
+            <input type="hidden" name="rev" value="{{ page.rev }}" />
+            <div class="contrib-admin__field">
+                <label for="contrib-admin-title">{{ _("Title") }}</label>
+                <input class="contrib-input"
+                       id="contrib-admin-title"
+                       name="title"
+                       value="{{ page.form.title }}"
+                       maxlength="{{ page.form.title_max }}"
+                       {% if page.builtin %}aria-describedby="contrib-admin-title-hint"{% else %}required{% endif %} />
+                {% if page.builtin %}
+                    <p class="contrib-field__hint contrib-muted"
+                       id="contrib-admin-title-hint">
+                        {{ _("Leave blank to keep this project's built-in title and description, which are translated. Text typed here shows as written in every language.") }}
+                    </p>
+                {% endif %}
+            </div>
+            <div class="contrib-admin__field">
+                <label for="contrib-admin-description">{{ _("Description") }}</label>
+                <textarea class="contrib-input"
+                          id="contrib-admin-description"
+                          name="description"
+                          rows="2"
+                          maxlength="{{ page.form.description_max }}">{{ page.form.description }}</textarea>
+            </div>
+            <div class="contrib-admin__dates">
+                <div class="contrib-admin__field">
+                    <label for="contrib-admin-starts">{{ _("Start date") }}</label>
+                    <input class="contrib-input"
+                           id="contrib-admin-starts"
+                           type="date"
+                           name="starts"
+                           value="{{ page.form.starts }}"
+                           aria-describedby="contrib-admin-dates-hint" />
+                </div>
+                <div class="contrib-admin__field">
+                    <label for="contrib-admin-ends">{{ _("End date (optional)") }}</label>
+                    <input class="contrib-input"
+                           id="contrib-admin-ends"
+                           type="date"
+                           name="ends"
+                           value="{{ page.form.ends }}"
+                           aria-describedby="contrib-admin-dates-hint" />
+                </div>
+            </div>
+            <p class="contrib-field__hint contrib-muted"
+               id="contrib-admin-dates-hint">
+                {{ _("The project runs from the start of its start date through the end of its end date, UTC. A future start date schedules it; no start date makes it a draft. Either takes a live project off the Tasks page.") }}
+            </p>
+            <div>
+                <ol-button type="submit" variant="primary">
+                    {{ _("Save") }}
+                </ol-button>
+            </div>
+        </form>
+    </section>
+    <section class="contrib-admin__section">
+        <h2 class="contrib-overline">{{ _("History") }}</h2>
+        {% if page.log %}
+            <ol class="contrib-admin__log">
+                {% for entry in page.log %}
+                    <li>
+                        <span>{{ entry.what }}</span>
+                        <span class="contrib-admin__log-meta">
+                            <a href="{{ entry.who_url }}">{{ entry.who }}</a> · {{ entry.when }}
+                        </span>
+                    </li>
+                {% endfor %}
+            </ol>
+        {% else %}
+            <p class="contrib-muted">{{ _("No changes have been made here yet.") }}</p>
+        {% endif %}
+    </section>
 </div>
