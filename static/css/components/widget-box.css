@@ -4,7 +4,7 @@
  */
 .widget-box .head > div {
   color: var(--color-success-fg) !important;
-  font-size: 10px;
+  font-size: var(--font-size-label-small);
 }
 
 /* FIXME: The unordered class should be replaced with the semantic

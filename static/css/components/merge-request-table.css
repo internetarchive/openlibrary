@@ -211,7 +211,7 @@
 
 .mr-details__request-title {
   font-weight: var(--font-weight-bold);
-  font-size: 1rem;
+  font-size: var(--font-size-title-medium);
   margin-bottom: 5px;
 }
 

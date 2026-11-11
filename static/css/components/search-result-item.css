@@ -262,7 +262,7 @@
 }
 
 .searchResultItem__librarian-extras {
-  font-size: 0.7em;
+  font-size: var(--font-size-label-small);
   border-top: 1px dashed currentColor;
   margin-top: var(--spacing-stack-sm);
   margin-bottom: calc(-1 * var(--spacing-stack-xs));

@@ -56,7 +56,7 @@
 }
 
 .ac_author .action {
-  font-size: 9px;
+  font-size: var(--font-size-label-small);
   color: var(--color-success-fg);
 }
 

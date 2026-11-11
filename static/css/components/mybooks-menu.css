@@ -89,7 +89,7 @@
   padding: 4px 15px;
   text-transform: uppercase;
   font-weight: var(--font-weight-bold);
-  font-size: 0.8em;
+  font-size: var(--font-size-label-medium);
   color: var(--color-text-secondary);
   background: var(--background-grey);
   border: 1px solid var(--color-border-subtle);
@@ -109,7 +109,7 @@
   border-radius: 5px;
   cursor: pointer;
   padding: var(--spacing-inset-xs) 5%;
-  font-size: 0.96em;
+  font-size: var(--font-size-body-medium);
   background-color: var(--background-grey);
   border: 1px solid var(--color-border-subtle);
   color: var(--color-text-secondary);

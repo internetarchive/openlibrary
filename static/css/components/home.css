@@ -23,7 +23,7 @@ div.tutorial__item:focus {
 
 div.tutorial__item p {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--font-size-body-large);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
   overflow-wrap: break-word;
@@ -31,7 +31,7 @@ div.tutorial__item p {
 
 div.tutorial__item p.small {
   margin-top: var(--spacing-3xs);
-  font-size: 0.8rem;
+  font-size: var(--font-size-body-small);
   line-height: var(--line-height-snug);
 }
 

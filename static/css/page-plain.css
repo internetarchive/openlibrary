@@ -147,7 +147,7 @@ h1 {
 }
 
 .borrow span.book {
-  font-size: 1em;
+  font-size: inherit;
   font-weight: var(--font-weight-bold);
 }
 .borrow span.author {
@@ -164,7 +164,7 @@ h1 {
   color: var(--color-text-secondary);
 }
 .borrow span.expires {
-  font-size: 1em;
+  font-size: inherit;
 }
 .borrow table {
   border-bottom: none;

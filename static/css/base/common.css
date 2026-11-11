@@ -35,7 +35,7 @@ li {
   color: var(--color-text);
 }
 body {
-  font-size: 100%;
+  font-size: inherit;
   line-height: normal;
   background-color: var(--color-background);
   font-family: var(--font-family-body);

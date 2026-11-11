@@ -49,23 +49,23 @@ div#revertLink {
   padding: var(--spacing-inset-sm) 0 var(--spacing-inset-xs);
 }
 .label label {
-  font-size: 1em;
+  font-size: inherit;
   font-family: var(--font-family-body);
   font-weight: var(--font-weight-bold);
 }
 .label span {
-  font-size: 0.75em;
+  font-size: var(--font-size-label-medium);
   font-family: var(--font-family-body);
 }
 textarea {
   font-family: var(--font-family-code);
-  font-size: 0.875em;
+  font-size: var(--font-size-body-medium);
   padding: var(--spacing-inset-xs);
   resize: vertical;
 }
 .formElement input[type="text"],
 .formElement select {
-  font-size: 1em;
+  font-size: inherit;
   font-family: var(--font-family-body);
   color: var(--color-text);
   padding: var(--spacing-inset-xs);
