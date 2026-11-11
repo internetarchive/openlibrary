@@ -53,9 +53,7 @@ def _batch(submitter=OWNER_USERNAME):
 
 def _make_db(batch=None):
     db_mock = MagicMock()
-    db_mock.select.side_effect = lambda table, **kw: (
-        ([batch] if batch is not None else []) if table == "import_batch" else []
-    )
+    db_mock.select.side_effect = lambda table, **kw: ([batch] if batch is not None else []) if table == "import_batch" else []
     db_mock.query.return_value = [MagicMock(count=0)]
     return db_mock
 
