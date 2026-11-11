@@ -14,6 +14,7 @@ from pydantic import ValidationError
 
 from openlibrary.catalog import add_book
 from openlibrary.core import cache
+from openlibrary.utils.request_context import site
 
 from . import db  # noqa: TID251
 
@@ -353,7 +354,7 @@ class ImportItem(web.storage):
                 if reply.get("success") and "edition" in reply:
                     edition = reply["edition"]
                     self.set_status(edition["status"], ol_key=edition["key"])  # type: ignore[index]
-                    return web.ctx.site.get(edition["key"])  # type: ignore[index]
+                    return site.get().get(edition["key"])  # type: ignore[index]
                 else:
                     error_code = reply.get("error_code", "unknown-error")
                     self.set_status("failed", error=error_code)
