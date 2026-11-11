@@ -1,7 +1,10 @@
+from dataclasses import replace
+from datetime import UTC, datetime, timedelta
+
 import pytest
 import web
 
-from openlibrary.contribute import initiatives, tasks
+from openlibrary.contribute import initiatives, supply, tasks
 
 
 class FakeStore(dict):
@@ -55,12 +58,12 @@ def make_initiative(picks, calls=None, fields=FOUR):
 
 
 def test_the_initiatives_have_their_own_slugs_and_fields_tasks_knows():
-    assert len({i.slug for i in initiatives.INITIATIVES}) == len(initiatives.INITIATIVES)
-    for initiative in initiatives.INITIATIVES:
+    assert len({i.slug for i in initiatives.BUILTIN}) == len(initiatives.BUILTIN)
+    for initiative in initiatives.BUILTIN:
         assert set(initiative.fields) <= set(tasks.POINTS)
         assert initiatives.get(initiative.slug) is initiative
     assert initiatives.get("not-an-initiative") is None
-    assert initiatives.ACTIVE in initiatives.INITIATIVES
+    assert initiatives.headline() is initiatives.MOST_READ
     assert initiatives.TAGS.fields == ("literary_forms", "genres")
 
 
@@ -219,3 +222,120 @@ def test_the_pool_s_thread_builds_on_a_fresh_site_that_is_also_its_request_site(
         assert initiatives.request_site.get() is outer
     finally:
         initiatives.request_site.reset(token)
+
+
+NOW = datetime(2026, 12, 10, tzinfo=UTC)
+
+
+def definition(slug="winter-covers", **more):
+    return {"slug": slug, "title": "Winter Covers", "description": "Covers.", "fields": ["covers"], "starts_at": "2026-11-02T00:00:00+00:00"} | more
+
+
+@pytest.mark.parametrize(
+    ("starts_at", "ends_at", "expected"),
+    [
+        (None, None, "draft"),
+        (NOW + timedelta(days=1), None, "scheduled"),
+        (NOW, None, "live"),
+        (NOW - timedelta(days=5), NOW + timedelta(days=1), "live"),
+        (NOW - timedelta(days=5), NOW, "ended"),
+    ],
+)
+def test_status_comes_from_the_dates(starts_at, ends_at, expected):
+    initiative = initiatives.Initiative("test", 3, None, FOUR, starts_at=starts_at, ends_at=ends_at)
+    assert initiative.status(NOW) == expected
+
+
+def test_a_built_in_initiative_the_store_does_not_mention_is_the_one_defined_in_code():
+    assert initiatives.every([]) == list(initiatives.BUILTIN)
+    assert all(a is b for a, b in zip(initiatives.every([]), initiatives.BUILTIN))
+
+
+def test_a_store_doc_adds_an_initiative_with_its_own_name():
+    added = initiatives.every([definition(size=40, ends_at="2027-01-01")])[-1]
+    assert (added.slug, added.size, added.fields, added.pick) == ("winter-covers", 40, ("covers",), None)
+    assert (added.starts_at, added.ends_at) == (datetime(2026, 11, 2, tzinfo=UTC), datetime(2027, 1, 1, tzinfo=UTC))
+    assert initiatives.describe(added) == {"title": "Winter Covers", "description": "Covers."}
+
+
+def test_a_store_doc_overrides_only_the_keys_it_names_on_a_built_in_one():
+    tags = initiatives.every([{"slug": initiatives.TAGS.slug, "hidden": True}])[1]
+    assert tags == replace(initiatives.TAGS, hidden=True)
+    assert tags.pick is initiatives.TAGS.pick
+
+
+@pytest.mark.parametrize(
+    "doc",
+    [
+        definition(slug=""),
+        definition(title=""),
+        definition(fields=["not-a-field"]),
+        {"title": "No slug", "fields": ["covers"]},
+    ],
+)
+def test_a_definition_that_cannot_be_an_initiative_is_skipped(doc):
+    assert initiatives.every([doc]) == list(initiatives.BUILTIN)
+
+
+def test_a_bad_override_leaves_the_built_in_one_as_it_was():
+    assert initiatives.every([{"slug": initiatives.TAGS.slug, "fields": []}])[1] is initiatives.TAGS
+
+
+def test_a_time_that_does_not_parse_makes_a_draft_and_a_bare_date_is_utc():
+    assert initiatives.every([definition(starts_at="soon")])[-1].status() == "draft"
+    assert initiatives.parse_time("2026-12-01") == datetime(2026, 12, 1, tzinfo=UTC)
+    assert initiatives.parse_time("2026-12-01T02:00:00+02:00") == datetime(2026, 12, 1, tzinfo=UTC)
+
+
+@pytest.fixture
+def stored(monkeypatch):
+    return lambda *docs: monkeypatch.setattr(initiatives, "cached_definitions", lambda: list(docs))
+
+
+def slugs(found):
+    return [i.slug for i in found]
+
+
+def test_drafts_and_scheduled_initiatives_are_nowhere_public(stored):
+    stored(definition("draft", starts_at=None), definition("later", starts_at="2999-01-01"))
+    assert slugs(initiatives.every()) == [initiatives.MOST_READ.slug, initiatives.TAGS.slug, "later", "draft"]
+    assert slugs(initiatives.started()) == slugs(initiatives.BUILTIN)
+    assert initiatives.get("later") is None
+    assert initiatives.get("later", hidden=True) is None
+
+
+def test_a_hidden_initiative_is_off_the_lists_but_still_counted_and_still_takes_a_save(stored):
+    stored(definition(hidden=True))
+    assert "winter-covers" not in slugs(initiatives.listed())
+    assert "winter-covers" in slugs(initiatives.started())
+    assert initiatives.get("winter-covers") is None
+    assert initiatives.get("winter-covers", hidden=True).slug == "winter-covers"
+
+
+def test_an_ended_initiative_stays_listed_but_is_not_running(stored):
+    stored(definition(ends_at="2026-11-03"))
+    assert "winter-covers" in slugs(initiatives.listed())
+    assert "winter-covers" not in slugs(initiatives.running())
+
+
+def test_the_headline_is_the_featured_running_initiative(stored):
+    stored(definition(featured=True), {"slug": initiatives.MOST_READ.slug, "featured": False})
+    assert initiatives.headline().slug == "winter-covers"
+    stored(definition(featured=True, ends_at="2026-11-03"))
+    assert initiatives.headline() is initiatives.MOST_READ
+    stored({"slug": initiatives.MOST_READ.slug, "hidden": True})
+    assert initiatives.headline() is initiatives.TAGS
+
+
+def test_an_initiative_with_no_picker_has_no_books_until_its_list_is_frozen():
+    site = FakeSite()
+    added = initiatives.every([definition()])[-1]
+    assert initiatives.load_or_freeze(added, site) == []
+    site.store[added.store_key] = {"editions": [["/books/OL1M", 5]]}
+    assert initiatives.load_or_freeze(added, site) == [["/books/OL1M", 5]]
+
+
+def test_an_ended_initiative_hands_out_no_tasks(monkeypatch):
+    monkeypatch.setattr(initiatives, "get_gaps", lambda initiative: [["/books/OL1M", 5, ["covers"], []]])
+    ended = initiatives.Initiative("test", 1, None, ("covers",), starts_at=datetime.now(UTC) - timedelta(days=9), ends_at=datetime.now(UTC) - timedelta(days=1))
+    assert list(supply.candidates(ended, ("covers",))) == []

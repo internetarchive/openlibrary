@@ -85,12 +85,12 @@ def normalize_filter(raw: str, fields: tuple[str, ...] = tuple(tasks.POINTS)) ->
 
 def get_initiative(slug: str) -> initiatives.Initiative:
     """The initiative a request names, or the headline one."""
-    return initiatives.get(slug) or initiatives.ACTIVE
+    return initiatives.get(slug) or initiatives.headline()
 
 
 def initiative_param(initiative: initiatives.Initiative) -> str:
     """What URLs carry for the initiative: nothing for the headline one, so its links stay as they were."""
-    return "" if initiative is initiatives.ACTIVE else initiative.slug
+    return "" if initiative.slug == initiatives.headline().slug else initiative.slug
 
 
 def build_edit_saved(payload: str) -> pitch.EditSaved:
@@ -422,7 +422,7 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
     save, and from MIN_PEOPLE_SHOWN up, how many people have saved for it.
     """
     cards = []
-    for initiative in initiatives.INITIATIVES:
+    for initiative in initiatives.listed():
         gaps = initiatives.get_gaps(initiative)
         p = initiatives.progress(gaps, initiative.fields) if gaps else None
         people = get_initiative_people(initiative) if p else 0
@@ -430,7 +430,7 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
             initiatives.describe(initiative)
             | {
                 "slug": initiative.slug,
-                "on": initiative is current,
+                "on": initiative.slug == current.slug,
                 "url": build_dashboard_url(initiative=initiative_param(initiative)),
                 # None while the list is still being built.
                 "percent": p["percent"] if p else None,
@@ -579,6 +579,7 @@ class contribute_index(delegate.page):
             heading=get_filter_headings()[task] if task else _("All project tasks"),
             empty=_("Nothing missing here right now. Thank you."),
             history_url=user.key,
+            manage_url="/tasks/admin" if user.can_manage_tasks() else "",
             apply=build_apply(user),
             initiatives=projects,
             project=next(card for card in projects if card["on"]),
@@ -772,7 +773,8 @@ class contribute_task(delegate.page):
         if spamcheck.is_spam(web.storage((k, v) for k, v in i.items() if isinstance(v, str)), allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         back = normalize_filter(i.back)
-        initiative = get_initiative(i.initiative)
+        # A task opened before its initiative was hidden still saves toward it.
+        initiative = initiatives.get(i.initiative, hidden=True) or initiatives.headline()
         slug = initiative_param(initiative)
         surprise = bool(i.surprise)
         edition = get_edition_or_404(olid)

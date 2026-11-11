@@ -1,0 +1,161 @@
+{#- /tasks/admin/<slug>: one community project in detail. Takes `page` from manage.build_detail. -#}
+{% import "contribute/admin/parts.html.jinja" as parts %}
+{% set project = page.project %}
+<div class="contrib-dash contrib-admin contrib-admin--detail">
+    <header class="contrib-admin__head">
+        <a class="contrib-admin__back" href="{{ page.index_url }}">{{ _("Community projects") }}</a>
+        <div class="contrib-dash__head">
+            <hgroup class="contrib-dash__heading">
+                <h1 class="contrib-title">{{ project.title }}</h1>
+                <p class="contrib-dash__lede">{{ project.description }}</p>
+            </hgroup>
+            {% if page.public_url %}
+                <a class="contrib-dash__edits" href="{{ page.public_url }}">{{ _("View on Tasks") }}</a>
+            {% endif %}
+        </div>
+        {{ parts.status(project) }}
+    </header>
+    <dl class="contrib-admin__facts">
+        <div>
+            <dt>{{ _("Runs") }}</dt>
+            <dd>
+                {{ project.run }}
+            </dd>
+        </div>
+        <div>
+            <dt>{{ _("Asks for") }}</dt>
+            <dd>
+                {{ project.fields | join(", ") }}
+            </dd>
+        </div>
+        <div>
+            <dt>{{ _("Books") }}</dt>
+            <dd>
+                {{ project.books }}
+                {% if page.picked %}
+                    <span class="contrib-muted">{{ _("List picked %(date)s", date=page.picked) }}</span>
+                {% endif %}
+            </dd>
+        </div>
+        <div>
+            <dt>{{ _("Identifier") }}</dt>
+            <dd>
+                <code>{{ project.slug }}</code>
+                {% if page.builtin %}
+                    <span class="contrib-muted">{{ _("Defined in code") }}</span>
+                {% endif %}
+            </dd>
+        </div>
+    </dl>
+    <section class="contrib-admin__section">
+        <h2 class="contrib-overline">{{ _("Progress") }}</h2>
+        {% if project.progress %}
+            <ul class="contrib-admin__tiles">
+                <li>
+                    <span class="contrib-admin__tile-value">{{ _("%(percent)s%%", percent=project.progress.percent) }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("Details filled") }}</span>
+                </li>
+                <li>
+                    <span class="contrib-admin__tile-value">{{ page.done }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("Books complete, of %(count)s", count=project.books) }}</span>
+                </li>
+                <li>
+                    <span class="contrib-admin__tile-value">{{ project.tasks_left }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("Tasks left") }}</span>
+                </li>
+                <li>
+                    <span class="contrib-admin__tile-value">{{ page.not_found }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("Marked not found") }}</span>
+                </li>
+                <li>
+                    <span class="contrib-admin__tile-value">{{ page.people }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("People have helped") }}</span>
+                </li>
+            </ul>
+        {% elif project.building %}
+            <p class="contrib-muted">{{ _("Getting the list ready. Reload in a minute.") }}</p>
+        {% else %}
+            <p class="contrib-muted">{{ _("Progress is counted once the project starts.") }}</p>
+        {% endif %}
+    </section>
+    {% if page.fields %}
+        <section class="contrib-admin__section">
+            <h2 class="contrib-overline">{{ _("By detail") }}</h2>
+            <div class="contrib-admin__scroll">
+                <table class="contrib-admin__table no-table-collapse">
+                    <thead>
+                        <tr>
+                            <th scope="col">{{ _("Detail") }}</th>
+                            <th scope="col">{{ _("Progress") }}</th>
+                            <th scope="col" class="contrib-admin__num">{{ _("Filled") }}</th>
+                            <th scope="col" class="contrib-admin__num">{{ _("Still open") }}</th>
+                            <th scope="col" class="contrib-admin__num">{{ _("Not found") }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in page.fields %}
+                            <tr>
+                                <th scope="row">{{ row.label }}</th>
+                                <td>
+                                    <span class="contrib-admin__progress">
+                                        <span class="contrib-admin__meter" aria-hidden="true">
+                                            <span class="contrib-admin__meter-fill" style="width: {{ row.percent }}%"></span>
+                                        </span>
+                                        <span class="contrib-admin__percent">{{ _("%(percent)s%%", percent=row.percent) }}</span>
+                                    </span>
+                                </td>
+                                <td class="contrib-admin__num">{{ row.filled }}</td>
+                                <td class="contrib-admin__num">{{ row.open }}</td>
+                                <td class="contrib-admin__num">{{ row.not_found }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+    <div class="contrib-admin__charts">
+        <section class="contrib-admin__section">
+            <h2 class="contrib-overline">{{ _("Tasks left, by day") }}</h2>
+            {% if page.trend.points %}
+                <svg class="contrib-admin__spark"
+                     viewBox="0 0 100 32"
+                     preserveAspectRatio="none"
+                     role="img"
+                     aria-label="{{ _('Tasks left went from %(first)s to %(last)s over %(days)s days', first=page.trend.first, last=page.trend.last, days=page.trend.days) }}">
+                    <polyline points="{{ page.trend.points }}" />
+                </svg>
+                <p class="contrib-admin__caption">
+                    {{ _("From %(first)s to %(last)s over %(days)s days", first=page.trend.first, last=page.trend.last, days=page.trend.days) }}
+                </p>
+            {% else %}
+                <p class="contrib-muted">{{ _("Not enough days counted yet.") }}</p>
+            {% endif %}
+        </section>
+        <section class="contrib-admin__section">
+            <h2 class="contrib-overline">{{ _("Saves, last 28 days") }}</h2>
+            {% if page.saves.bars %}
+                <ol class="contrib-admin__bars">
+                    {% for bar in page.saves.bars %}
+                        <li title="{{ bar.day }}: {{ bar.count }}">
+                            <span class="contrib-admin__bar" style="height: {{ bar.height }}%"></span>
+                            <span class="contrib-visually-hidden">{{ bar.day }}: {{ bar.count }}</span>
+                        </li>
+                    {% endfor %}
+                </ol>
+            {% endif %}
+            {% if page.saves.counted %}
+                <p class="contrib-admin__caption">
+                    {% if page.saves.undone_share %}
+                        {{ _("%(saves)s saves, %(undone)s since undone (%(share)s)", saves=page.saves.total, undone=page.saves.undone, share=page.saves.undone_share) }}
+                    {% else %}
+                        {{ _("%(saves)s saves", saves=page.saves.total) }}
+                    {% endif %}
+                </p>
+            {% else %}
+                <p class="contrib-muted">{{ _("No saves counted yet.") }}</p>
+            {% endif %}
+        </section>
+    </div>
+    <p class="contrib-admin__note">{{ _("Dates are in UTC. People, saves and the trend are counted nightly; the rest is live.") }}</p>
+</div>

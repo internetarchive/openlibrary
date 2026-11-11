@@ -2,17 +2,22 @@
 
 The list is picked once and frozen in the store, so progress means gaps filled, not a pool that drifts as books get fixed.
 Nothing builds it by hand: the first request after a deploy starts the pick on a background thread, as ``pool`` does.
-Several initiatives run at once; ``/tasks`` opens on ``ACTIVE`` and the others are a click away.
+Several initiatives run at once; ``/tasks`` opens on ``headline()`` and the others are a click away.
+
+What an initiative is (its name, fields, dates, whether it is hidden) lives in the store too, in a small doc apart from
+the list, so it changes without a deploy. ``BUILTIN`` holds the ones defined here; a store doc with the same slug overrides
+the keys it names, and a doc with a new slug is a new initiative.
 """
 
 import logging
 from collections import Counter
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 
 from infogami.utils.delegate import create_site
 from openlibrary.contribute import pool, tasks
+from openlibrary.core import cache
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.helpers import commify, format_date
 from openlibrary.core.tags import GENRES, LITERARY_FORMS
@@ -50,14 +55,32 @@ OPEN_LOCK_TTL = 5 * MINUTE_SECS
 class Initiative:
     slug: str
     size: int
-    # ``(size, site)`` -> ``[[edition key, readers], ...]``, most-read first.
-    pick: Callable[[int, object], list[list]]
+    # ``(size, site)`` -> ``[[edition key, readers], ...]``, most-read first. None when the list is frozen by whoever defines it.
+    pick: Callable[[int, object], list[list]] | None
     # The fields it asks about: its filters, its progress figure and its "Surprise me" draw from these.
     fields: tuple[str, ...]
+    # As typed by whoever set it up, so untranslated; blank on a built-in one, whose name ``describe`` translates.
+    title: str = ""
+    description: str = ""
+    # No start means a draft. From ``ends_at`` on it hands out no more tasks, but stays listed with its final figures.
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    # Off the public pages whatever its dates; its saves and stats carry on.
+    hidden: bool = False
+    featured: bool = False
 
     @property
     def store_key(self) -> str:
         return f"contribute-initiative-{self.slug}"
+
+    def status(self, now: datetime | None = None) -> str:
+        """``draft``, ``scheduled``, ``live`` or ``ended``. Derived from the dates on every read, so a start date is a schedule."""
+        now = now or datetime.now(UTC)
+        if self.starts_at is None:
+            return "draft"
+        if now < self.starts_at:
+            return "scheduled"
+        return "ended" if self.ends_at is not None and now >= self.ends_at else "live"
 
 
 # Most shelvings name the edition (61% of all, 73% for the most-read books, 2026-10), so the reading log can pick the copy people read.
@@ -155,12 +178,98 @@ def pick_untagged_works(size: int, site) -> list[list]:
     return pick_most_shelved(size, site, per_work=1, fields=TAG_FIELDS)
 
 
-# The initiatives Tasks runs. A new list is a new slug: the old one stays in the store for comparison.
-MOST_READ = Initiative("most-read-2026-11", 2000, pick_most_shelved, ("covers", "languages", "number_of_pages", "publishers"))
-TAGS = Initiative("genres-2026-11", 2000, pick_untagged_works, TAG_FIELDS)
-INITIATIVES = (MOST_READ, TAGS)
-# The headline one: /tasks opens on it, and the stats snapshot follows it.
-ACTIVE = MOST_READ
+# The initiatives defined here; the store adds to them and overrides them. A new list is a new slug: the old one stays in the store for comparison.
+BUILTIN_START = datetime(2026, 11, 1, tzinfo=UTC)
+MOST_READ = Initiative(
+    "most-read-2026-11", 2000, pick_most_shelved, ("covers", "languages", "number_of_pages", "publishers"), starts_at=BUILTIN_START, featured=True
+)
+TAGS = Initiative("genres-2026-11", 2000, pick_untagged_works, TAG_FIELDS, starts_at=BUILTIN_START)
+BUILTIN = (MOST_READ, TAGS)
+
+DEFINITION_TYPE = "contribute-project"
+DEFINITIONS_TTL = MINUTE_SECS
+
+
+def definition_key(slug: str) -> str:
+    return f"{DEFINITION_TYPE}-{slug}"
+
+
+def read_definitions(site) -> list[dict]:
+    """Every initiative's definition doc, straight from the store."""
+    return site.store.values(type=DEFINITION_TYPE, limit=1000)
+
+
+@cache.memoize(engine="memcache", key="contribute.definitions", expires=DEFINITIONS_TTL)
+def cached_definitions() -> list[dict]:
+    """The definition docs as every request reads them: a change shows within ``DEFINITIONS_TTL``."""
+    return read_definitions(request_site.get())
+
+
+def parse_time(raw) -> datetime | None:
+    """A stored ISO time as UTC, taken as UTC when it names no zone; None for a blank or a value that isn't one."""
+    try:
+        when = datetime.fromisoformat(raw) if raw else None
+    except TypeError, ValueError:
+        return None
+    return (when.replace(tzinfo=UTC) if when.tzinfo is None else when.astimezone(UTC)) if when else None
+
+
+def from_definition(doc: dict, base: Initiative | None = None) -> Initiative | None:
+    """The initiative ``doc`` defines, or ``base`` with the keys ``doc`` names changed.
+
+    A doc that can't be one (no slug, no title of its own, no fields Tasks knows) is skipped rather than raised, so it
+    can't take /tasks down: the answer is then ``base``, which is None for a new slug.
+    """
+    slug = doc.get("slug")
+    if not (start := base or (Initiative(slug, 0, None, ()) if slug and isinstance(slug, str) else None)):
+        return None
+    changes: dict = {}
+    if doc.get("title"):
+        changes |= {"title": str(doc["title"]), "description": str(doc.get("description") or "")}
+    if "fields" in doc:
+        changes["fields"] = tuple(f for f in doc["fields"] or () if f in tasks.POINTS)
+    if isinstance(doc.get("size"), int):
+        changes["size"] = doc["size"]
+    changes |= {key: parse_time(doc[key]) for key in ("starts_at", "ends_at") if key in doc}
+    changes |= {key: bool(doc[key]) for key in ("hidden", "featured") if key in doc}
+    initiative = replace(start, **changes)
+    if not initiative.fields or not (base or initiative.title):
+        logger.warning("Skipping the initiative definition %r", slug)
+        return base
+    return initiative
+
+
+def every(definitions: list[dict] | None = None) -> list[Initiative]:
+    """All initiatives whatever their status: the built-in ones as the store changes them, then the store's own, earliest start first.
+
+    A built-in one the store doesn't mention is the very object defined above.
+    """
+    docs = {d["slug"]: d for d in (cached_definitions() if definitions is None else definitions) if isinstance(d.get("slug"), str)}
+    builtin = [from_definition(docs.pop(b.slug), b) or b if b.slug in docs else b for b in BUILTIN]
+    stored = [i for doc in docs.values() if (i := from_definition(doc))]
+    far = datetime.max.replace(tzinfo=UTC)
+    return builtin + sorted(stored, key=lambda i: (i.starts_at or far, i.slug))
+
+
+def started(definitions: list[dict] | None = None) -> list[Initiative]:
+    """The initiatives with saves and stats to count: live or ended, hidden or not."""
+    return [i for i in every(definitions) if i.status() in ("live", "ended")]
+
+
+def listed() -> list[Initiative]:
+    """The initiatives the public pages show: live or ended, and not hidden."""
+    return [i for i in started() if not i.hidden]
+
+
+def running() -> list[Initiative]:
+    """The listed initiatives still handing out tasks."""
+    return [i for i in listed() if i.status() == "live"]
+
+
+def headline() -> Initiative:
+    """The one /tasks opens on: the featured running initiative, else the first running, else the first listed."""
+    on = running()
+    return next((i for i in on if i.featured), None) or next(iter(on or listed()), MOST_READ)
 
 
 def describe(initiative: Initiative) -> dict[str, str]:
@@ -169,7 +278,9 @@ def describe(initiative: Initiative) -> dict[str, str]:
     Both draw on the most-shelved books, so the job is what tells them apart; the book count goes in the dashboard's fine print.
     Names are title case: a project is a proper name, unlike the sentence-case labels around it.
     """
-    if initiative is TAGS:
+    if initiative.title:
+        return {"title": initiative.title, "description": initiative.description}
+    if initiative.slug == TAGS.slug:
         return {
             "title": _("Sort the Stacks"),
             "description": _("Mark the books people shelve most as fiction or nonfiction, and pick their genres."),
@@ -188,8 +299,9 @@ def fine_print(initiative: Initiative, site) -> str:
     return books
 
 
-def get(slug: str) -> Initiative | None:
-    return next((i for i in INITIATIVES if i.slug == slug), None)
+def get(slug: str, hidden: bool = False) -> Initiative | None:
+    """The listed initiative with this slug; with ``hidden``, a hidden one too, for a save that began before it was hidden."""
+    return next((i for i in (started() if hidden else listed()) if i.slug == slug), None)
 
 
 def load_frozen(initiative: Initiative, site) -> list[list] | None:
@@ -213,7 +325,8 @@ def load_or_freeze(initiative: Initiative, site) -> list[list]:
     """The frozen list from the store; the first call picks it and stores it."""
     if (editions := load_frozen(initiative, site)) is not None:
         return editions
-    editions = initiative.pick(initiative.size, site)
+    # One with no picker has its list frozen when it is set up; until then it has no books.
+    editions = initiative.pick(initiative.size, site) if initiative.pick else []
     if editions:
         site.store[initiative.store_key] = {
             "type": "contribute-initiative",

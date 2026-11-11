@@ -165,10 +165,13 @@ def fake_initiatives(monkeypatch):
         raise AssertionError("the stats run must not pick and freeze a list")
 
     def initiative(slug, fields):
-        return SimpleNamespace(slug=slug, store_key=f"contribute-initiative-{slug}", fields=fields)
+        return SimpleNamespace(slug=slug, store_key=f"contribute-initiative-{slug}", fields=fields, ends_at=None)
 
+    registry = [initiative("most-read-test", ("covers", "publishers")), initiative("genres-test", ("genres",))]
     initiatives = SimpleNamespace(
-        INITIATIVES=(initiative("most-read-test", ("covers", "publishers")), initiative("genres-test", ("genres",))),
+        registry=registry,
+        read_definitions=lambda site: [],
+        started=lambda definitions: registry,
         gaps_for=gaps_for,
         build_gaps=build_gaps,
         progress=lambda gaps, fields: {"open": 1, "done": 1, "not_found": 1, "total": 2, "percent": 91},
@@ -243,7 +246,7 @@ def test_other_fills_are_one_query_for_both_keys(monkeypatch):
 
 
 def test_tasks_fields_match_what_the_headline_initiative_offers():
-    assert set(numbers.TASKS_FIELDS) == set(initiatives.ACTIVE.fields)
+    assert set(numbers.TASKS_FIELDS) == set(initiatives.MOST_READ.fields)
 
 
 def test_tasks_source_matches_what_tasks_saves_write():
@@ -262,3 +265,24 @@ def restore_site_context():
     token = site_context.set(site_context.get(None))
     yield
     site_context.reset(token)
+
+
+def test_saves_by_initiative_is_a_dict_of_the_days_saves_that_name_one():
+    db = FakeDB(rows=[web.storage(initiative="most-read-2026-11", count=9), web.storage(initiative=None, count=4)])
+    assert run(numbers.admin_range__tasks_saves_by_initiative_1d, db) == {"most-read-2026-11": 9}
+    [(q, vars)] = db.queries
+    sql = str(web.db.reparam(q, vars))
+    assert "key = 'source' AND value = 'contribute'" in sql
+    assert "t.created >= '2026-10-15' AND t.created < '2026-10-15 21:00:00'" in sql
+
+
+def test_the_28_day_saves_by_initiative_pair_each_count_with_its_undone():
+    class TwoQueries(FakeDB):
+        def query(self, q, vars=None):
+            self.queries.append((q, vars))
+            undone = "latest.data" in q
+            return [web.storage(initiative="most-read-2026-11", count=2 if undone else 40), web.storage(initiative=None, count=1)]
+
+    db = TwoQueries()
+    assert run(numbers.admin_range__tasks_saves_by_initiative_28d, db) == {"most-read-2026-11": {"saves": 40, "undone": 2}}
+    assert len(db.queries) == 2

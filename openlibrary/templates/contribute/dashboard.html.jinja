@@ -7,9 +7,16 @@
             <h1 class="contrib-title">{{ _("Tasks") }}</h1>
             <p class="contrib-dash__lede">{{ _("Help build the catalog, one book at a time.") }}</p>
         </hgroup>
-        <a class="contrib-dash__edits"
-           href="{{ data.history_url }}"
-           data-ol-link-track="TasksDashboard|SeeAllEdits">{{ _("Your edits") }}</a>
+        <nav class="contrib-dash__links" aria-label="{{ _('Your Tasks pages') }}">
+            {% if data.manage_url %}
+                <a class="contrib-dash__edits"
+                   href="{{ data.manage_url }}"
+                   data-ol-link-track="TasksDashboard|ManageProjects">{{ _("Manage projects") }}</a>
+            {% endif %}
+            <a class="contrib-dash__edits"
+               href="{{ data.history_url }}"
+               data-ol-link-track="TasksDashboard|SeeAllEdits">{{ _("Your edits") }}</a>
+        </nav>
     </header>
     <div class="contrib-dash__body">
         <div class="contrib-dash__side">

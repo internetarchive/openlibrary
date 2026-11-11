@@ -3,7 +3,7 @@ import pytest
 from openlibrary.plugins.openlibrary import contribute
 from openlibrary.utils.request_context import RequestContextVars, req_context
 
-ACTIVE = contribute.initiatives.ACTIVE
+ACTIVE = contribute.initiatives.MOST_READ
 # One open task out of the fields the initiative asks about, on one book.
 GAPS = [["/books/OL1M", 9, [ACTIVE.fields[0]], []]]
 
@@ -24,7 +24,7 @@ def cards(monkeypatch):
 def test_only_the_open_initiative_is_on(cards):
     built = cards()
     assert [slug for slug, card in built.items() if card["on"]] == [ACTIVE.slug]
-    assert len(built) == len(contribute.initiatives.INITIATIVES)
+    assert len(built) == len(contribute.initiatives.BUILTIN)
 
 
 def test_blank_while_the_gaps_are_being_built(cards):
@@ -64,14 +64,14 @@ def test_people_prefers_todays_count_and_falls_back_to_yesterdays(cards):
 
 
 def test_people_read_from_the_nested_snapshot(cards):
-    other = next(i for i in contribute.initiatives.INITIATIVES if i is not ACTIVE)
+    other = next(i for i in contribute.initiatives.BUILTIN if i is not ACTIVE)
     built = cards(docs=[{"initiatives": {ACTIVE.slug: {"people": 6}, other.slug: {"people": 12}}}])
     assert built[ACTIVE.slug]["people"] == "6 people helping"
     assert built[other.slug]["people"] == "12 people helping"
 
 
 def test_people_count_goes_to_the_initiative_it_names(cards):
-    other = next(i for i in contribute.initiatives.INITIATIVES if i is not ACTIVE)
+    other = next(i for i in contribute.initiatives.BUILTIN if i is not ACTIVE)
     built = cards(docs=[{"initiative_slug": other.slug, "initiative_people": 50}])
     assert built[ACTIVE.slug]["people"] is None
     assert built[other.slug]["people"] == "50 people helping"

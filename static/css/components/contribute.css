@@ -1157,6 +1157,12 @@
   font-size: var(--font-size-body-medium);
 }
 
+.contrib-dash__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-lg);
+}
+
 .contrib-dash__edits {
   font-size: var(--font-size-body-medium);
 }

@@ -19,10 +19,13 @@ class Candidate:
 def candidates(initiative: initiatives.Initiative, fields: tuple[str, ...], batch: int = 50) -> Iterator[Candidate] | None:
     """The initiative's editions with an open gap in ``fields``, in random order.
 
-    None while the initiative's gaps are still being built. Editions load a batch at a time, so a caller that stops early never fetches them all.
+    None while the initiative's gaps are still being built, and nothing once it has ended.
+    Editions load a batch at a time, so a caller that stops early never fetches them all.
     """
     if (gaps := initiatives.get_gaps(initiative)) is None:
         return None
+    if initiative.status() == "ended":
+        return iter(())
     wanted = set(fields)
     picks = [[key, readers, skipped] for key, readers, open_fields, skipped in gaps if wanted.intersection(open_fields)]
     return _load(picks, batch)

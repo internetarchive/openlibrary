@@ -68,7 +68,7 @@ def test_impact_is_readers_times_points():
 
 def test_candidates_are_none_while_the_gaps_build(monkeypatch):
     monkeypatch.setattr(supply.initiatives, "get_gaps", lambda initiative: None)
-    assert supply.candidates(initiatives.ACTIVE, ("languages",)) is None
+    assert supply.candidates(initiatives.MOST_READ, ("languages",)) is None
 
 
 def test_candidates_are_the_initiative_s_editions_with_an_open_gap_in_the_fields(monkeypatch):

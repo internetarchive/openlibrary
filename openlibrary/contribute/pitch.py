@@ -39,7 +39,7 @@ class EditSaved:
 
 def dismiss_cookie() -> str:
     """The cookie that closing the pitch sets. Named for the initiatives running now: closing silences all of them, and a new one brings the pitch back."""
-    slugs = ",".join(sorted(i.slug for i in initiatives.INITIATIVES))
+    slugs = ",".join(sorted(i.slug for i in initiatives.running()))
     return f"tasks_pitch_{zlib.crc32(slugs.encode()):08x}"
 
 
@@ -55,14 +55,15 @@ def encode(book_keys: Collection[str] = ()) -> str:
     One whose list is still being built is named with no count.
     """
     ranked = []
-    for initiative in initiatives.INITIATIVES:
+    headline = initiatives.headline().slug
+    for initiative in initiatives.running():
         gaps = initiatives.get_gaps(initiative)
         left = None if gaps is None else initiatives.progress(gaps, initiative.fields)["open"]
         if left == 0:
             continue
         fields = set(initiative.fields)
         has_book = any(key in book_keys and fields.intersection(open_fields) for key, _readers, open_fields, _skipped in gaps or [])
-        ranked.append((not has_book, initiative is not initiatives.ACTIVE, f"{initiative.slug}:{'' if left is None else left}"))
+        ranked.append((not has_book, initiative.slug != headline, f"{initiative.slug}:{'' if left is None else left}"))
     # min keeps the first of equals, so initiatives that tie fall back to the registry's order.
     return min(ranked, key=lambda r: r[:2])[2] if ranked else ""
 

@@ -103,8 +103,8 @@ def test_initiative_counts_read_the_nested_snapshot_and_the_older_flat_keys():
 
 def test_every_initiative_gets_a_card_headline_first_selected(request_lang):
     projects = loanstats.build_initiatives([])
-    assert [p["slug"] for p in projects] == [i.slug for i in initiatives.INITIATIVES]
-    assert [p["on"] for p in projects] == [i is initiatives.ACTIVE for i in initiatives.INITIATIVES]
+    assert [p["slug"] for p in projects] == [i.slug for i in initiatives.BUILTIN]
+    assert [p["on"] for p in projects] == [i is initiatives.MOST_READ for i in initiatives.BUILTIN]
     assert all(p["percent"] == "—" for p in projects)
 
 
