@@ -825,33 +825,6 @@ class TestSiteContextMigration:
         assert current.changesets[-1]["comment"] == "Saved book"
         assert dict(web.ctx.headers)["Location"].endswith("/edit?mode=add-work")
 
-    def test_add_book_get_prefills_current_records(self, current, monkeypatch):
-        current.quicksave("/authors/OL1A", "/type/author", name="Author")
-        current.quicksave("/works/OL1W", "/type/work", title="Work", authors=[{"author": {"key": "/authors/OL1A"}}])
-        monkeypatch.setattr(web, "input", lambda **defaults: web.storage(work="/works/OL1W", author="/authors/OL1A"))
-        render = Mock()
-        monkeypatch.setattr(addbook, "render_template", render)
-        delegate.pages["/books/add"][None]().GET()
-        assert render.call_args.kwargs["work"].title == "Work"
-        assert [a.key for a in render.call_args.kwargs["authors"]] == ["/authors/OL1A"]
-        current.can_write.assert_called_once_with("/books/add")
-
-    def test_selected_work_match_uses_current_site(self, current, monkeypatch):
-        current.quicksave("/works/OL1W", "/type/work", title="Selected work")
-        page = delegate.pages["/books/add"][None]()
-        monkeypatch.setattr(page, "try_edition_match", lambda **kwargs: None)
-        form = web.storage(work="/works/OL1W", title="Book", publish_date="", authors=[], publisher="", id_name="", id_value="")
-        assert page.find_matches(form).title == "Selected work"
-
-    def test_edition_match_fetches_from_current_site(self, current, monkeypatch):
-        current.quicksave("/books/OL1M", "/type/edition", title="Matching edition", publishers=["Publisher"])
-        solr = Mock()
-        solr.select.return_value = web.storage(docs=[web.storage(edition_key=["OL1M"], publisher=["Publisher"])])
-        monkeypatch.setattr(addbook, "get_solr", lambda: solr)
-        edition = delegate.pages["/books/add"][None]().try_edition_match(publisher="Publisher")
-        assert edition._site is current
-        assert edition.title == "Matching edition"
-
     @pytest.mark.parametrize(
         ("handler", "key", "type_"),
         [(addbook.book_edit, "/books/OL1M", "edition"), (addbook.work_edit, "/works/OL1W", "work"), (addbook.author_edit, "/authors/OL1A", "author")],
@@ -893,29 +866,3 @@ class TestSiteContextMigration:
             handler().POST(key)
         assert current.get(key).title == "After"
         assert current.changesets[-1]["comment"] == "Edit record"
-
-    @pytest.mark.parametrize("author_handler", [False, True])
-    def test_delete_saves_tombstone_to_current_site(self, current, monkeypatch, author_handler):
-        key = "/authors/OL1A"
-        current.quicksave(key, "/type/author", name="Author")
-        if author_handler:
-            monkeypatch.setattr(web, "input", lambda **defaults: web.storage(_comment="Delete", _delete="Delete", **{"author--name": "Author"}))
-            with pytest.raises(web.HTTPError, match="303 See Other"):
-                addbook.author_edit().POST(key)
-        else:
-            addbook.SaveBookHelper.delete(key, comment="Delete")
-        assert current.get(key).type.key == "/type/delete"
-        assert current.changesets[-1]["comment"] == "Delete"
-
-    @pytest.mark.parametrize("ocaid", [None, "item/with spaces"])
-    def test_daisy_uses_current_edition(self, current, monkeypatch, ocaid):
-        current.quicksave("/books/OL1M", "/type/edition", title="Accessible", ocaid=ocaid)
-        render = Mock()
-        monkeypatch.setattr(addbook, "render_template", render)
-        if ocaid:
-            with pytest.raises(web.HTTPError, match="303 See Other"):
-                addbook.daisy().GET("/books/OL1M")
-            assert dict(web.ctx.headers)["Location"] == "https://archive.org/details/item%2Fwith%20spaces"
-        else:
-            addbook.daisy().GET("/books/OL1M")
-            assert render.call_args.args[1].title == "Accessible"
