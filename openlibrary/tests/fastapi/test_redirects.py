@@ -12,13 +12,13 @@ import pytest
 
 pytestmark = pytest.mark.importorskip("openlibrary.asgi_app", reason="openlibrary deps not installed")
 
-from openlibrary.asgi_app import _lookup_redirect_location, _redirect_type_id  # noqa: E402
+from openlibrary.asgi_app import _lookup_redirect_location
 
 
 @pytest.fixture(autouse=True)
 def reset_redirect_cache():
     """Reset the redirect type ID cache before each test."""
-    import openlibrary.asgi_app as asgi_app
+    from openlibrary import asgi_app
 
     asgi_app._redirect_type_id = None
 

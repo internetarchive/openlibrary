@@ -18,7 +18,7 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
 from openlibrary.core.async_db import fetch_one, fetch_val
-from openlibrary.core.env import get_deployment_name, get_ol_env
+from openlibrary.core.env import get_ol_env
 from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.fastapi.middleware.server_timing import add_server_timing
