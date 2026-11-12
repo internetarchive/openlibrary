@@ -1,6 +1,10 @@
+from dataclasses import replace
+from datetime import UTC, datetime, timedelta
+
+import pytest
 import web
 
-from openlibrary.contribute import initiatives
+from openlibrary.contribute import initiatives, supply, tasks
 
 
 class FakeStore(dict):
@@ -22,7 +26,8 @@ class FakeWork(dict):
         self.type = web.storage(key="/type/work")
 
 
-WORK = FakeWork("/works/OL1W", literary_forms=[{"key": "/tags/OL1T"}])
+NONFICTION = "/tags/OL9T"
+WORK = FakeWork("/works/OL1W", literary_forms=[{"key": "/tags/OL1T"}], genres=[{"key": "/tags/OL2T"}])
 
 
 class FakeSite:
@@ -35,15 +40,31 @@ class FakeSite:
 
 
 COMPLETE = {"covers": [1], "lccn": ["1"], "oclc_numbers": ["1"], "languages": ["eng"], "number_of_pages": 300, "publishers": ["P"], "works": [WORK]}
+FOUR = ("covers", "languages", "number_of_pages", "publishers")
 
 
-def make_initiative(picks, calls=None):
+@pytest.fixture(autouse=True)
+def nonfiction_by_key(monkeypatch):
+    monkeypatch.setattr(tasks, "is_nonfiction", lambda work: work.get("literary_forms") == [NONFICTION])
+
+
+def make_initiative(picks, calls=None, fields=FOUR):
     def pick(size, site):
         if calls is not None:
             calls.append(size)
         return picks[:size]
 
-    return initiatives.Initiative("test", 3, pick)
+    return initiatives.Initiative("test", 3, pick, fields)
+
+
+def test_the_initiatives_have_their_own_slugs_and_fields_tasks_knows():
+    assert len({i.slug for i in initiatives.BUILTIN}) == len(initiatives.BUILTIN)
+    for initiative in initiatives.BUILTIN:
+        assert set(initiative.fields) <= set(tasks.POINTS)
+        assert initiatives.get(initiative.slug) is initiative
+    assert initiatives.get("not-an-initiative") is None
+    assert initiatives.headline() is initiatives.MOST_READ
+    assert initiatives.TAGS.fields == ("literary_forms", "genres")
 
 
 def test_the_first_load_picks_and_stores_the_list_and_later_loads_read_it_back():
@@ -76,9 +97,9 @@ def test_gaps_list_open_fields_and_set_aside_ones_nobody_could_find():
         },
     )
     gaps = initiatives.build_gaps(make_initiative([]), site)
-    assert gaps == [["/books/OL1M", 9, ["publishers"], ["lccn"]], ["/books/OL2M", 8, [], []]]
-    # 2 editions x 4 offered fields = 8 details, 1 still open: 7/8 filled, rounded down. The unfound LCCN isn't offered, so it doesn't count.
-    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
+    assert gaps == [["/books/OL1M", 9, ["publishers"], ["lccn"], "/works/OL1W"], ["/books/OL2M", 8, [], [], "/works/OL1W"]]
+    # 1 detail still open; with no start recorded, today is the start. The unfound LCCN isn't one of the fields, so it doesn't count.
+    assert initiatives.progress(gaps, FOUR) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "start": 1, "percent": 0}
 
 
 def test_a_work_level_gap_is_read_from_the_edition_s_work():
@@ -88,23 +109,88 @@ def test_a_work_level_gap_is_read_from_the_edition_s_work():
         works=(bare,),
         store={"contribute-initiative-test": {"editions": [["/books/OL1M", 9]]}},
     )
-    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, ["literary_forms"], []]]
+    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, ["literary_forms", "genres"], [], bare.key]]
 
 
-def test_progress_counts_only_the_fields_the_viewer_sees():
+def test_a_nonfiction_work_has_no_genre_gap():
+    nonfiction = FakeWork("/works/OL2W", literary_forms=[NONFICTION])
+    site = FakeSite(
+        editions=[FakeEdition("/books/OL1M", **(COMPLETE | {"works": [nonfiction]}))],
+        works=(nonfiction,),
+        store={"contribute-initiative-test": {"editions": [["/books/OL1M", 9]]}},
+    )
+    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, [], [], nonfiction.key]]
+
+
+def test_a_work_field_counts_once_per_work_and_an_edition_field_once_per_edition():
+    # Two editions of one work, both missing its genres; a third edition of another work, where nobody could find them.
+    gaps = [
+        ["/books/OL1M", 9, ["genres", "covers"], [], "/works/OL1W"],
+        ["/books/OL2M", 8, ["genres"], [], "/works/OL1W"],
+        ["/books/OL3M", 7, [], ["genres"], "/works/OL2W"],
+    ]
+    assert initiatives.field_counts(gaps, "genres") == {"total": 2, "open": 1, "not_found": 1}
+    assert initiatives.field_counts(gaps, "covers") == {"total": 3, "open": 1, "not_found": 0}
+    # Two open: one edition's cover and one work's genres. Eight open at the start, so six closed.
+    assert initiatives.progress(gaps, ("covers", "genres"), {"open": 8}) == {"done": 1, "total": 3, "open": 2, "not_found": 1, "start": 8, "percent": 75}
+    # Rows cached before they carried the work each stand for themselves.
+    assert initiatives.field_counts([row[:4] for row in gaps], "genres") == {"total": 3, "open": 2, "not_found": 1}
+
+
+def test_progress_counts_only_the_initiative_s_fields():
     gaps = [["/books/OL1M", 9, ["literary_forms"], []], ["/books/OL2M", 8, ["publishers"], ["literary_forms"]]]
-    public = initiatives.progress(gaps, ("publishers", "covers"))
-    assert public == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 75}
-    assert initiatives.progress(gaps, initiatives.tasks.visible_fields(True))["open"] == 2
+    assert initiatives.progress(gaps, ("publishers", "covers"), {"open": 4}) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "start": 4, "percent": 75}
+    assert initiatives.progress(gaps, initiatives.TAGS.fields, {"open": 4}) == {"done": 1, "total": 2, "open": 1, "not_found": 1, "start": 4, "percent": 75}
+    assert initiatives.progress(gaps, tuple(tasks.POINTS))["open"] == 2
 
 
-def test_progress_counts_only_the_fields_tasks_offers():
+def test_progress_leaves_out_fields_the_initiative_does_not_ask_about():
     gaps = [["/books/OL1M", 9, ["lccn", "oclc_numbers"], []], ["/books/OL2M", 8, ["covers"], ["oclc_numbers"]]]
-    assert initiatives.progress(gaps) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
+    assert initiatives.progress(gaps, FOUR, {"open": 2}) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "start": 2, "percent": 50}
+
+
+def test_progress_counts_up_from_what_was_open_at_the_start():
+    assert initiatives.closed_share(2576, 2576) == 0
+    assert initiatives.closed_share(2576, 1288) == 50
+    # Rounded down, so it reads 100 only once nothing is left.
+    assert (initiatives.closed_share(2576, 1), initiatives.closed_share(2576, 0)) == (99, 100)
+    # A detail emptied after the start can push open past it; the share stops at 0.
+    assert initiatives.closed_share(10, 12) == 0
+    assert (initiatives.closed_share(0, 0), initiatives.closed_share(0, 3)) == (100, 0)
+
+
+def test_the_start_is_recorded_once_from_the_first_count_when_there_is_one(monkeypatch):
+    gaps = [["/books/OL1M", 9, ["covers"], ["languages"]], ["/books/OL2M", 8, ["covers", "publishers"], []]]
+    initiative = initiatives.Initiative("test", 2, None, ("covers", "languages", "publishers"))
+    site = FakeSite(store={"contribute-project-test": {"type": "contribute-project", "slug": "test", "title": "Test"}})
+    monkeypatch.setattr(initiatives, "first_counted_open", lambda initiative, site: None)
+    initiatives.record_start(initiative, site, gaps)
+    start = site.store["contribute-project-test"]["start"]
+    assert (start["open"], start["fields"]["covers"], start["fields"]["languages"]) == (3, {"open": 2, "not_found": 0}, {"open": 0, "not_found": 1})
+    assert site.store["contribute-project-test"]["title"] == "Test"
+    # Recorded once: a later build leaves it be.
+    initiatives.record_start(initiative, site, [])
+    assert site.store["contribute-project-test"]["start"] == start
+    # One that ran before starts were kept takes its total from the first nightly count.
+    monkeypatch.setattr(initiatives, "first_counted_open", lambda initiative, site: 40)
+    site = FakeSite(store={"contribute-project-test": {"type": "contribute-project", "slug": "test", "title": "Test"}})
+    initiatives.record_start(initiative, site, gaps)
+    assert site.store["contribute-project-test"]["start"]["open"] == 40
+
+
+def test_a_deleted_project_gets_no_start_written_back():
+    site = FakeSite()
+    initiatives.record_start(initiatives.Initiative("gone", 2, None, FOUR), site, [["/books/OL1M", 9, ["covers"], []]])
+    assert site.store.get("contribute-project-gone") is None
+
+
+def test_a_stored_start_reaches_the_initiative():
+    doc = {"slug": "x", "title": "X", "fields": ["covers"], "start": {"open": 5}}
+    assert initiatives.from_definition(doc).start == {"open": 5}
 
 
 def test_every_task_field_has_a_not_found_threshold():
-    assert set(initiatives.NOT_FOUND_PEOPLE) == set(initiatives.tasks.POINTS)
+    assert set(initiatives.NOT_FOUND_PEOPLE) == set(tasks.POINTS)
 
 
 def test_fields_books_nearly_always_have_need_more_people_to_set_aside():
@@ -151,3 +237,277 @@ def test_most_shelved_keeps_isbn_editions_two_per_work_and_tops_up_from_search(m
 
     assert initiatives.pick_most_shelved(3, site) == [["/books/OL1M", 900], ["/books/OL2M", 800], ["/books/OL9M", 8]]
     assert initiatives.pick_most_shelved(2, site) == [["/books/OL1M", 900], ["/books/OL2M", 800]]
+
+
+def test_untagged_works_are_picked_one_edition_each_and_only_while_a_tag_is_missing(monkeypatch):
+    tagged, bare, nonfiction = WORK, FakeWork("/works/OL2W"), FakeWork("/works/OL3W", literary_forms=[NONFICTION])
+    rows = [
+        {"edition_id": 1, "work_id": 1, "readers": 900},  # work fully tagged
+        {"edition_id": 2, "work_id": 2, "readers": 800},
+        {"edition_id": 3, "work_id": 2, "readers": 700},  # a second edition of the same work
+        {"edition_id": 4, "work_id": 3, "readers": 600},  # nonfiction, so no genre to pick, but the form is filled too
+        {"edition_id": 5, "work_id": 5, "readers": 500},  # an orphan: nowhere to put the answer
+    ]
+    site = FakeSite(
+        editions=[
+            FakeEdition("/books/OL1M", isbn_13=["1"], works=[tagged]),
+            FakeEdition("/books/OL2M", isbn_13=["2"], works=[bare]),
+            FakeEdition("/books/OL3M", isbn_13=["3"], works=[bare]),
+            FakeEdition("/books/OL4M", isbn_13=["4"], works=[nonfiction]),
+            FakeEdition("/books/OL5M", isbn_13=["5"]),
+        ],
+        works=(tagged, bare, nonfiction),
+    )
+    monkeypatch.setattr(initiatives.Bookshelves, "most_logged_editions_sync", lambda limit: rows)
+    monkeypatch.setattr(initiatives, "pick_most_read", lambda size, site=None: [["/books/OL3M", 1], ["/books/OL6M", 1]])
+
+    assert initiatives.pick_untagged_works(3, site) == [["/books/OL2M", 800]]
+
+
+def test_the_pool_s_thread_builds_on_a_fresh_site_that_is_also_its_request_site(monkeypatch):
+    seen = {}
+    fresh, outer = object(), object()
+    monkeypatch.setattr(initiatives, "create_site", lambda: fresh)
+    monkeypatch.setattr(initiatives, "build_gaps", lambda initiative, site: seen.update(site=site, request=initiatives.request_site.get()) or ["gaps"])
+    monkeypatch.setattr(initiatives, "record_start", lambda initiative, site, gaps: seen.update(start=(site, gaps)))
+    # Other tests can leave the ContextVar set, so pin a known outer value and check it comes back.
+    token = initiatives.request_site.set(outer)
+    try:
+        assert initiatives.build_gaps_in_thread(initiatives.TAGS) == ["gaps"]
+        # The first build with no start recorded notes one, on the same site.
+        assert seen == {"site": fresh, "request": fresh, "start": (fresh, ["gaps"])}
+        assert initiatives.request_site.get() is outer
+    finally:
+        initiatives.request_site.reset(token)
+
+
+NOW = datetime(2026, 12, 10, tzinfo=UTC)
+
+
+def definition(slug="winter-covers", **more):
+    return {"slug": slug, "title": "Winter Covers", "description": "Covers.", "fields": ["covers"], "starts_at": "2026-11-02T00:00:00+00:00"} | more
+
+
+@pytest.mark.parametrize(
+    ("starts_at", "ends_at", "expected"),
+    [
+        (None, None, "draft"),
+        (NOW + timedelta(days=1), None, "scheduled"),
+        (NOW, None, "live"),
+        (NOW - timedelta(days=5), NOW + timedelta(days=1), "live"),
+        (NOW - timedelta(days=5), NOW, "ended"),
+    ],
+)
+def test_status_comes_from_the_dates(starts_at, ends_at, expected):
+    initiative = initiatives.Initiative("test", 3, None, FOUR, starts_at=starts_at, ends_at=ends_at)
+    assert initiative.status(NOW) == expected
+
+
+def test_a_built_in_initiative_the_store_does_not_mention_is_the_one_defined_in_code():
+    assert initiatives.every([]) == list(initiatives.BUILTIN)
+    assert all(a is b for a, b in zip(initiatives.every([]), initiatives.BUILTIN))
+
+
+def test_a_store_doc_adds_an_initiative_with_its_own_name():
+    added = initiatives.every([definition(size=40, ends_at="2027-01-01")])[-1]
+    assert (added.slug, added.size, added.fields, added.pick) == ("winter-covers", 40, ("covers",), None)
+    assert (added.starts_at, added.ends_at) == (datetime(2026, 11, 2, tzinfo=UTC), datetime(2027, 1, 1, tzinfo=UTC))
+    assert initiatives.describe(added) == {"title": "Winter Covers", "description": "Covers."}
+
+
+def test_a_store_doc_overrides_only_the_keys_it_names_on_a_built_in_one():
+    tags = initiatives.every([{"slug": initiatives.TAGS.slug, "hidden": True}])[1]
+    assert tags == replace(initiatives.TAGS, hidden=True)
+    assert tags.pick is initiatives.TAGS.pick
+
+
+@pytest.mark.parametrize(
+    "doc",
+    [
+        definition(slug=""),
+        definition(title=""),
+        definition(fields=["not-a-field"]),
+        {"title": "No slug", "fields": ["covers"]},
+    ],
+)
+def test_a_definition_that_cannot_be_an_initiative_is_skipped(doc):
+    assert initiatives.every([doc]) == list(initiatives.BUILTIN)
+
+
+def test_a_bad_override_leaves_the_built_in_one_as_it_was():
+    assert initiatives.every([{"slug": initiatives.TAGS.slug, "fields": []}])[1] is initiatives.TAGS
+
+
+def test_a_time_that_does_not_parse_makes_a_draft_and_a_bare_date_is_utc():
+    assert initiatives.every([definition(starts_at="soon")])[-1].status() == "draft"
+    assert initiatives.parse_time("2026-12-01") == datetime(2026, 12, 1, tzinfo=UTC)
+    assert initiatives.parse_time("2026-12-01T02:00:00+02:00") == datetime(2026, 12, 1, tzinfo=UTC)
+
+
+@pytest.fixture
+def stored(monkeypatch):
+    return lambda *docs: monkeypatch.setattr(initiatives, "cached_definitions", lambda: list(docs))
+
+
+def slugs(found):
+    return [i.slug for i in found]
+
+
+def test_drafts_and_scheduled_initiatives_are_nowhere_public(stored):
+    stored(definition("draft", starts_at=None), definition("later", starts_at="2999-01-01"))
+    assert slugs(initiatives.every()) == [initiatives.MOST_READ.slug, initiatives.TAGS.slug, "later", "draft"]
+    assert slugs(initiatives.started()) == slugs(initiatives.BUILTIN)
+    assert initiatives.get("later") is None
+    assert initiatives.get("later", hidden=True) is None
+
+
+def test_a_hidden_initiative_is_off_the_lists_but_still_counted_and_still_takes_a_save(stored):
+    stored(definition(hidden=True))
+    assert "winter-covers" not in slugs(initiatives.listed())
+    assert "winter-covers" in slugs(initiatives.started())
+    assert initiatives.get("winter-covers") is None
+    assert initiatives.get("winter-covers", hidden=True).slug == "winter-covers"
+
+
+def test_an_ended_initiative_stays_listed_but_is_not_running(stored):
+    stored(definition(ends_at="2026-11-03"))
+    assert "winter-covers" in slugs(initiatives.listed())
+    assert "winter-covers" not in slugs(initiatives.running())
+
+
+def test_the_headline_is_the_featured_running_initiative(stored):
+    stored(definition(featured=True), {"slug": initiatives.MOST_READ.slug, "featured": False})
+    assert initiatives.headline().slug == "winter-covers"
+    stored(definition(featured=True, ends_at="2026-11-03"))
+    assert initiatives.headline() is initiatives.MOST_READ
+    stored({"slug": initiatives.MOST_READ.slug, "hidden": True})
+    assert initiatives.headline() is initiatives.TAGS
+
+
+def test_with_nothing_listed_the_headline_is_most_read_as_the_store_changed_it(stored):
+    stored({"slug": initiatives.MOST_READ.slug, "hidden": True, "title": "Renamed"}, {"slug": initiatives.TAGS.slug, "starts_at": None})
+    assert initiatives.listed() == []
+    assert (initiatives.headline().slug, initiatives.headline().title) == (initiatives.MOST_READ.slug, "Renamed")
+
+
+def test_an_initiative_with_no_picker_has_no_books_until_its_list_is_frozen():
+    site = FakeSite()
+    added = initiatives.every([definition()])[-1]
+    assert initiatives.load_or_freeze(added, site) == []
+    site.store[added.store_key] = {"editions": [["/books/OL1M", 5]]}
+    assert initiatives.load_or_freeze(added, site) == [["/books/OL1M", 5]]
+
+
+def test_an_ended_initiative_hands_out_no_tasks(monkeypatch):
+    monkeypatch.setattr(initiatives, "get_gaps", lambda initiative: [["/books/OL1M", 5, ["covers"], []]])
+    ended = initiatives.Initiative("test", 1, None, ("covers",), starts_at=datetime.now(UTC) - timedelta(days=9), ends_at=datetime.now(UTC) - timedelta(days=1))
+    assert list(supply.candidates(ended, ("covers",))) == []
+
+
+@pytest.fixture
+def forgotten(monkeypatch):
+    """The cache keys a write clears, in place of memcache."""
+    keys: list[str] = []
+    monkeypatch.setattr(initiatives.cache, "get_memcache", lambda: web.storage(delete=keys.append))
+    return keys
+
+
+def test_a_change_writes_the_keys_logs_who_made_it_and_clears_the_cache(forgotten):
+    site = FakeSite()
+    initiatives.change(site, "winter-covers", {"hidden": True}, "/people/mek", "hide", rev="")
+    doc = site.store["contribute-project-winter-covers"]
+    assert (doc["type"], doc["slug"], doc["hidden"]) == ("contribute-project", "winter-covers", True)
+    [entry] = doc["log"]
+    assert (entry["by"], entry["action"], entry["changes"]) == ("/people/mek", "hide", {"hidden": True})
+    assert forgotten == ["contribute.definitions"]
+
+
+def test_a_change_made_against_an_older_revision_is_refused(forgotten):
+    site = FakeSite(store={"contribute-project-winter-covers": definition(_rev="8")})
+    with pytest.raises(initiatives.Conflict):
+        initiatives.change(site, "winter-covers", {"hidden": True}, "/people/mek", "hide", rev="7")
+    assert "hidden" not in site.store["contribute-project-winter-covers"]
+    assert forgotten == []
+    initiatives.change(site, "winter-covers", {"hidden": True}, "/people/mek", "hide", rev="8")
+    assert site.store["contribute-project-winter-covers"]["hidden"] is True
+
+
+def test_the_log_keeps_only_the_latest_entries(forgotten):
+    site = FakeSite(store={"contribute-project-winter-covers": definition(log=[{"action": "old"}] * initiatives.LOG_LIMIT)})
+    initiatives.change(site, "winter-covers", {"hidden": True}, "/people/mek", "hide", rev="")
+    log = site.store["contribute-project-winter-covers"]["log"]
+    assert (len(log), log[-1]["action"]) == (initiatives.LOG_LIMIT, "hide")
+
+
+def test_making_one_project_the_headline_unfeatures_the_rest(forgotten):
+    site = FakeSite(store={"contribute-project-winter-covers": {"type": "contribute-project"} | definition()})
+    initiatives.set_headline(site, "winter-covers", "/people/mek", rev="")
+    assert site.store["contribute-project-winter-covers"]["featured"] is True
+    assert site.store[f"contribute-project-{initiatives.MOST_READ.slug}"]["featured"] is False
+    assert f"contribute-project-{initiatives.TAGS.slug}" not in site.store
+
+
+def test_a_slug_is_the_title_and_the_month_and_never_one_already_taken():
+    today = datetime(2026, 11, 11, tzinfo=UTC)
+    assert initiatives.make_slug("Winter Covers!", set(), today) == "winter-covers-2026-11"
+    assert initiatives.make_slug("Winter Covers", {"winter-covers-2026-11", "winter-covers-2026-11-2"}, today) == "winter-covers-2026-11-3"
+    assert initiatives.make_slug("日本語", set(), today) == "project-2026-11"
+
+
+def test_creating_freezes_the_list_and_writes_the_definition_with_its_first_log_entry(forgotten):
+    site = FakeSite()
+    made = initiatives.create(site, {"title": "Winter Covers", "fields": ["covers"], "starts_at": None, "size": 1}, [["/books/OL1M", None]], "/people/mek")
+    assert (made.title, made.fields, made.status(), made.pick) == ("Winter Covers", ("covers",), "draft", None)
+    assert site.store[made.store_key]["editions"] == [["/books/OL1M", None]]
+    doc = site.store[initiatives.definition_key(made.slug)]
+    assert [(e["action"], e["by"], e["changes"]) for e in doc["log"]] == [("create", "/people/mek", {})]
+    assert initiatives.load_or_freeze(made, site) == [["/books/OL1M", None]]
+
+
+def test_a_definition_that_names_a_picker_gets_its_list_from_it():
+    missing = initiatives.every([definition(picker="most-shelved-missing", fields=["genres"])])[-1]
+    assert missing.pick.func is initiatives.pick_most_shelved
+    assert missing.pick.keywords == {"per_work": 1, "fields": ("genres",)}
+    # Asking an edition detail too, the list can hold more than one edition of a work.
+    mixed = initiatives.every([definition(picker="most-shelved-missing", fields=["covers", "genres"])])[-1]
+    assert mixed.pick.keywords["per_work"] == initiatives.EDITIONS_PER_WORK
+    assert initiatives.every([definition(picker="most-shelved")])[-1].pick is initiatives.pick_most_shelved
+    assert initiatives.every([definition(picker="nope")])[-1].pick is None
+    # A built-in one keeps its own picker whatever the store says.
+    assert initiatives.every([{"slug": initiatives.TAGS.slug, "picker": "most-shelved"}])[1].pick is initiatives.TAGS.pick
+
+
+def test_deleting_removes_the_definition_the_list_and_the_shared_gaps(forgotten):
+    site = FakeSite()
+    made = initiatives.create(site, {"title": "Winter Covers", "fields": ["covers"]}, [["/books/OL1M", None]], "/people/mek")
+    forgotten.clear()
+    initiatives.delete(site, made)
+    assert dict(site.store) == {}
+    assert forgotten == [
+        "contribute.definitions",
+        f"contribute.initiative:{made.slug}",
+        f"contribute.initiative:{made.slug}.lock",
+        f"contribute.started:{made.slug}",
+    ]
+
+
+class FakeMemcache(dict):
+    def set(self, key, value, expires=0):
+        self[key] = value
+
+    def delete(self, key):
+        self.pop(key, None)
+
+
+def test_a_stored_project_s_start_date_is_read_once_until_it_is_frozen_again(monkeypatch):
+    mc = FakeMemcache()
+    monkeypatch.setattr(initiatives.cache, "get_memcache", lambda: mc)
+    added = initiatives.Initiative("added", 1, None, ("covers",))
+    site = FakeSite(store={added.store_key: {"frozen_at": "2026-11-01T00:00:00+00:00", "editions": [["/books/OL1M", 5]]}})
+    assert initiatives.started_at(added, site) == datetime(2026, 11, 1, tzinfo=UTC)
+    # Kept, so the whole list isn't read again.
+    del site.store[added.store_key]
+    assert initiatives.started_at(added, site) == datetime(2026, 11, 1, tzinfo=UTC)
+    # Freezing a list again, as a project made again under the same slug does, forgets it.
+    initiatives.freeze(site, added, [["/books/OL2M", 1]])
+    assert initiatives.started_at(added, site).date() == datetime.now(UTC).date()

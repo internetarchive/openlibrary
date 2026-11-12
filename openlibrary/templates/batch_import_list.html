@@ -1,0 +1,59 @@
+$def with (rows, page, total_pages, status, statuses, sort_field, sort_order, default_sort)
+$var title: $_("Batch Imports")
+
+$def sort_link(field, label):
+    $# Clicking the active column flips its order; any other column starts newest/highest first.
+    $ next_order = 'asc' if field == sort_field and sort_order == 'desc' else 'desc'
+    $ is_default = '%s %s' % (field, next_order) == default_sort
+    <a href="$changequery(page=None, sort=None if is_default else '%s %s' % (field, next_order))">$label</a>
+    $if field == sort_field:
+        <span aria-hidden="true">$('▼' if sort_order == 'desc' else '▲')</span>
+
+<div id="contentHead">
+  <h1>$_("Batch Imports")</h1>
+</div>
+<div id="contentBody" class="batchImportList">
+  $:macros.BatchImportNavigation()
+  <p>
+    $_("Status:")
+    $if status:
+      <a href="$changequery(page=None, status=None)">$_("All")</a>
+    $else:
+      <strong>$_("All")</strong>
+    $for s in statuses:
+      |
+      $if s == status:
+        <strong>$s</strong>
+      $else:
+        <a href="$changequery(page=None, status=s)">$s</a>
+  </p>
+  <p>$_("Default sort: date added, newest first.")</p>
+  <table class="changeHistory">
+    <thead>
+      <tr>
+        <th>$:sort_link('batch_id', _('batch_id'))</th>
+        <th>$_('Name')</th>
+        <th>$:sort_link('added_time', _('Added Time'))</th>
+        <th>$_('Status')</th>
+        <th>$_('Submitter')</th>
+        <th>$_('Comments')</th>
+      </tr>
+    </thead>
+    <tbody>
+      $for row in rows:
+        <tr>
+          <td><a href="/import/batch/$row.batch_id">$row.batch_id</a></td>
+          <td>$row.name</td>
+          <td>$datestr(row.added_time)</td>
+          <td>
+            $for s, count in row.status_counts.items():
+              $s: $count<br>
+          </td>
+          <td>$row.submitter</td>
+          <td>$row.comments</td>
+        </tr>
+    </tbody>
+  </table>
+
+  $:macros.OlPagination(page, total_pages)
+</div>

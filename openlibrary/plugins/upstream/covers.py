@@ -18,6 +18,7 @@ from openlibrary.plugins.upstream.utils import (
     get_coverstore_url,
     render_template,
 )
+from openlibrary.utils.request_context import site
 
 logger = getLogger("openlibrary.plugins.upstream.covers")
 
@@ -293,7 +294,7 @@ class add_cover(delegate.page):
     kind: RecordImages = IMAGE_KINDS["/type/edition"]
 
     def POST(self, key):
-        book = web.ctx.site.get(key)
+        book = site.get().get(key)
         if not book:
             raise web.notfound("")
 
@@ -315,7 +316,7 @@ class add_cover(delegate.page):
         if not (coverid := data.get("id")):
             raise web.badrequest(data.get("message") or data.get("error") or "Upload failed")
         self.save(book, coverid, url=i.url)
-        return render_template("covers/saved", Image(web.ctx.site, self.kind.category, coverid))
+        return render_template("covers/saved", Image(site.get(), self.kind.category, coverid))
 
     def upload(self, key, i):
         """Uploads a cover to coverstore and returns the response."""

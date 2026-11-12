@@ -1,5 +1,10 @@
-from openlibrary.contribute import supply, tasks
+import pytest
+
+from openlibrary.contribute import initiatives, supply, tasks
 from openlibrary.contribute.tasks import Task
+from openlibrary.plugins.openlibrary import contribute
+
+NONFICTION = "/tags/OL9T"
 
 
 class FakeEdition(dict):
@@ -8,6 +13,12 @@ class FakeEdition(dict):
 
 class FakeWork(dict):
     key = "/works/OL1W"
+
+
+@pytest.fixture(autouse=True)
+def nonfiction_by_key(monkeypatch):
+    """Spare the tests a site: a work is nonfiction when its literary form is the NONFICTION key."""
+    monkeypatch.setattr(tasks, "is_nonfiction", lambda work: work.get("literary_forms") == [NONFICTION])
 
 
 def test_tasks_are_the_empty_fields_most_valuable_first():
@@ -29,15 +40,19 @@ def test_the_literary_form_is_a_task_on_the_edition_when_its_work_has_none():
     assert not tasks.is_missing(FakeEdition(), "literary_forms")
 
 
-def test_beta_fields_are_only_visible_to_the_tags_whitelist():
-    assert "literary_forms" not in tasks.visible_fields(False)
-    assert "literary_forms" in tasks.visible_fields(True)
-    assert tasks.visible_fields(True) == tuple(tasks.POINTS)
+def test_genres_are_a_task_until_the_work_has_some_or_is_nonfiction():
+    ed = FakeEdition(works=[FakeWork()])
+    assert tasks.is_missing(ed, "genres")
+    assert tasks.is_missing(ed, "genres", work=FakeWork(literary_forms=["/tags/OL1T"]))
+    assert not tasks.is_missing(ed, "genres", work=FakeWork(genres=["/tags/OL2T"]))
+    # The genre vocabulary is for fiction: a nonfiction work has nothing to fill in.
+    assert not tasks.is_missing(ed, "genres", work=FakeWork(literary_forms=[NONFICTION]))
+    assert not tasks.is_missing(FakeEdition(), "genres")
 
 
-def test_offered_fields_add_the_beta_ones_only_for_those_who_see_them():
-    assert set(tasks.offered_fields(tasks.visible_fields(False))) == set(tasks.OFFERED)
-    assert set(tasks.offered_fields(tasks.visible_fields(True))) == {*tasks.OFFERED, "literary_forms"}
+def test_the_genres_follow_the_literary_form_as_its_companion():
+    assert tasks.COMPANIONS == {"literary_forms": "genres"}
+    assert {"literary_forms", "genres"} == tasks.WORK_FIELDS
 
 
 def test_a_cover_is_missing_with_only_deleted_covers_but_not_on_a_scanned_book():
@@ -53,18 +68,28 @@ def test_impact_is_readers_times_points():
 
 
 def test_candidates_are_none_while_the_gaps_build(monkeypatch):
-    monkeypatch.setattr(supply.initiatives, "get_gaps", lambda: None)
-    assert supply.candidates(("languages",)) is None
+    monkeypatch.setattr(supply.initiatives, "get_gaps", lambda initiative: None)
+    assert supply.candidates(initiatives.MOST_READ, ("languages",)) is None
 
 
-def test_candidates_are_the_editions_with_an_open_gap_in_the_fields(monkeypatch):
+def test_candidates_are_the_initiative_s_editions_with_an_open_gap_in_the_fields(monkeypatch):
     gaps = [
         ["/books/OL1M", 10, ["languages"], []],
         ["/books/OL2M", 20, ["publishers"], ["lccn"]],
         ["/books/OL3M", 30, [], ["languages"]],
     ]
-    monkeypatch.setattr(supply.initiatives, "get_gaps", lambda: gaps)
+    asked = []
+    monkeypatch.setattr(supply.initiatives, "get_gaps", lambda initiative: asked.append(initiative) or gaps)
     loaded = []
     monkeypatch.setattr(supply, "_load", lambda picks, batch: loaded.extend(picks) or iter(()))
-    list(supply.candidates(("languages", "publishers")))
+    list(supply.candidates(initiatives.TAGS, ("languages", "publishers")))
+    assert asked == [initiatives.TAGS]
     assert sorted(loaded) == [["/books/OL1M", 10, []], ["/books/OL2M", 20, ["lccn"]]]
+
+
+def test_a_task_says_whether_the_answer_is_for_one_edition_or_every_edition(request_context_fixture):
+    request_context_fixture(lang="en")
+    assert "Penguin · 2008" in contribute.build_scope("number_of_pages", "Penguin · 2008")
+    assert "this edition only" in contribute.build_scope("covers", "")
+    assert "every edition" in contribute.build_scope("genres", "Penguin · 2008")
+    assert "Penguin" not in contribute.build_scope("genres", "Penguin · 2008")

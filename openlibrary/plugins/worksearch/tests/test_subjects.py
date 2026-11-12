@@ -12,6 +12,7 @@ from openlibrary.plugins.worksearch.subjects import (
     normalize_author_name,
 )
 from openlibrary.plugins.worksearch.subjects import subjects as subjects_handler
+from openlibrary.utils.request_context import site as site_context
 
 
 class TestFacetWrapper:
@@ -54,6 +55,7 @@ class TestDecorateWithTags:
             patch("web.ctx") as mock_ctx,
         ):
             mock_ctx.site.get_many.return_value = [mock_tag]
+            site_context.set(mock_ctx.site)
             handler.decorate_with_tags(subject)
 
         mock_find.assert_called_once_with("thriller")
@@ -73,6 +75,7 @@ class TestDecorateWithTags:
             patch("web.ctx") as mock_ctx,
         ):
             mock_ctx.site.get_many.return_value = [mock_tag]
+            site_context.set(mock_ctx.site)
             handler.decorate_with_tags(subject)
 
         mock_find.assert_called_once_with("science_fiction")
@@ -106,6 +109,7 @@ class TestDecorateWithTags:
             patch("web.ctx") as mock_ctx,
         ):
             mock_ctx.site.get_many.return_value = [mock_tag]
+            site_context.set(mock_ctx.site)
             handler.decorate_with_tags(subject)
 
         assert not hasattr(subject, "tag")
@@ -125,6 +129,7 @@ class TestDecorateWithTags:
             patch("web.ctx") as mock_ctx,
         ):
             mock_ctx.site.get_many.return_value = [mock_tag]
+            site_context.set(mock_ctx.site)
             handler.decorate_with_tags(subject)
 
         mock_find.assert_called_once_with("graphic_novel")
@@ -580,3 +585,10 @@ class TestNormalizeAuthorName:
     def test_non_latin_scripts_still_dedupe(self):
         assert normalize_author_name("Лев Толстой") == normalize_author_name("лев толстой")
         assert normalize_author_name("Лев Толстой") != normalize_author_name("Антон Чехов")
+
+
+@pytest.fixture(autouse=True)
+def restore_site_context():
+    token = site_context.set(site_context.get(None))
+    yield
+    site_context.reset(token)

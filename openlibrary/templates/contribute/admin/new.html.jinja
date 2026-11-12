@@ -1,0 +1,179 @@
+{#- /tasks/admin/new: set up a community project. Takes `page` from manage.build_new_form. -#}
+<div class="contrib-dash contrib-admin contrib-admin--detail"
+     data-contribute-admin>
+    <header class="contrib-admin__head">
+        <a class="contrib-admin__back" href="{{ page.index_url }}">{{ _("Community projects") }}</a>
+        <hgroup class="contrib-dash__heading">
+            <h1 class="contrib-title">{{ _("New project") }}</h1>
+            <p class="contrib-dash__lede">
+                {{ _("Nothing is public until the start date. Without one, the project is a draft you can check first.") }}
+            </p>
+        </hgroup>
+    </header>
+    {% if page.error %}
+        <div class="ol-message ol-message--error" role="alert">{{ page.error }}</div>
+    {% endif %}
+    <form class="contrib-admin__form" method="post" action="{{ page.action }}">
+        <div class="contrib-admin__field">
+            <label for="contrib-admin-title">{{ _("Title") }}</label>
+            <input class="contrib-input"
+                   id="contrib-admin-title"
+                   name="title"
+                   value="{{ page.form.title }}"
+                   maxlength="{{ page.title_max }}"
+                   required />
+        </div>
+        <div class="contrib-admin__field">
+            <label for="contrib-admin-description">{{ _("Description") }}</label>
+            <textarea class="contrib-input"
+                      id="contrib-admin-description"
+                      name="description"
+                      rows="2"
+                      maxlength="{{ page.description_max }}"
+                      aria-describedby="contrib-admin-text-hint">{{ page.form.description }}</textarea>
+            <p class="contrib-field__hint contrib-muted"
+               id="contrib-admin-text-hint">{{ _("The title and description are not translated.") }}</p>
+        </div>
+        <fieldset class="contrib-admin__group">
+            <legend>{{ _("Details to ask for") }}</legend>
+            <p class="contrib-field__hint contrib-muted">
+                {{ _("Choose any from either group. These can't be changed once the project is made.") }}
+            </p>
+            {% for group in page.field_groups %}
+                <div class="contrib-admin__subgroup"
+                     role="group"
+                     aria-labelledby="contrib-admin-fields-{{ group.id }}">
+                    <p class="contrib-admin__subhead"
+                       id="contrib-admin-fields-{{ group.id }}">{{ group.legend }}</p>
+                    <p class="contrib-field__hint contrib-muted">{{ group.hint }}</p>
+                    <div class="ol-choice-list contrib-admin__choices">
+                        {% for field in group.fields %}
+                            <label class="ol-choice">
+                                <input class="ol-choice__input"
+                                       type="checkbox"
+                                       name="fields"
+                                       value="{{ field.value }}"
+                                       {% if field.checked %}checked{% endif %} />
+                                <span class="ol-choice__text">
+                                    <span class="ol-choice__title">{{ field.label }}</span>
+                                </span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </fieldset>
+        <fieldset class="contrib-admin__group">
+            <legend>{{ _("Books") }}</legend>
+            <p class="contrib-field__hint contrib-muted">
+                {{ _("The list is fixed when the project is made, so progress always counts the same books. Up to %(count)s.", count=page.max_books) }}
+            </p>
+            <div class="ol-choice-list">
+                <label class="ol-choice">
+                    <input class="ol-choice__input"
+                           type="radio"
+                           name="source"
+                           value="pasted"
+                           {% if page.form.source == "pasted" %}checked{% endif %} />
+                    <span class="ol-choice__text">
+                        <span class="ol-choice__title">{{ _("Books I list") }}</span>
+                        <span class="ol-choice__meta">{{ _("Open Library edition or work IDs, book URLs, or ISBNs.") }}</span>
+                    </span>
+                </label>
+                <label class="ol-choice">
+                    <input class="ol-choice__input"
+                           type="radio"
+                           name="source"
+                           value="list"
+                           {% if page.form.source == "list" %}checked{% endif %} />
+                    <span class="ol-choice__text">
+                        <span class="ol-choice__title">{{ _("An Open Library list") }}</span>
+                        <span class="ol-choice__meta">{{ _("Every book on the list as it is today.") }}</span>
+                    </span>
+                </label>
+                <label class="ol-choice">
+                    <input class="ol-choice__input"
+                           type="radio"
+                           name="source"
+                           value="most-shelved-missing"
+                           {% if page.form.source == "most-shelved-missing" %}checked{% endif %} />
+                    <span class="ol-choice__text">
+                        <span class="ol-choice__title">{{ _("The most-shelved books missing these details") }}</span>
+                        <span class="ol-choice__meta">{{ _("The books readers shelve most that still need one of the details above.") }}</span>
+                    </span>
+                </label>
+                <label class="ol-choice">
+                    <input class="ol-choice__input"
+                           type="radio"
+                           name="source"
+                           value="most-shelved"
+                           {% if page.form.source == "most-shelved" %}checked{% endif %} />
+                    <span class="ol-choice__text">
+                        <span class="ol-choice__title">{{ _("The most-shelved books") }}</span>
+                        <span class="ol-choice__meta">{{ _("Whether or not they need anything. Books with nothing missing add no tasks.") }}</span>
+                    </span>
+                </label>
+            </div>
+            {#- All three inputs stay on the page, so the form works without a script; only the chosen source's is read. -#}
+            <div class="contrib-admin__field">
+                <label for="contrib-admin-books">{{ _("Books to list") }}</label>
+                <textarea class="contrib-input"
+                          id="contrib-admin-books"
+                          name="books"
+                          rows="6"
+                          spellcheck="false"
+                          aria-describedby="contrib-admin-books-hint">{{ page.form.books }}</textarea>
+                <p class="contrib-field__hint contrib-muted"
+                   id="contrib-admin-books-hint">
+                    {{ _("One per line, or separated by commas or spaces. A work is added as one of its editions.") }}
+                </p>
+            </div>
+            <div class="contrib-admin__field">
+                <label for="contrib-admin-list">{{ _("List URL") }}</label>
+                <input class="contrib-input"
+                       id="contrib-admin-list"
+                       name="list_url"
+                       value="{{ page.form.list_url }}"
+                       placeholder="https://openlibrary.org/people/…/lists/OL…L"
+                       spellcheck="false" />
+            </div>
+            <div class="contrib-admin__field contrib-admin__field--short">
+                <label for="contrib-admin-size">{{ _("How many most-shelved books") }}</label>
+                <input class="contrib-input"
+                       id="contrib-admin-size"
+                       name="size"
+                       inputmode="numeric"
+                       value="{{ page.form.size }}" />
+            </div>
+        </fieldset>
+        <div class="contrib-admin__dates">
+            <div class="contrib-admin__field">
+                <label for="contrib-admin-starts">{{ _("Start date (optional)") }}</label>
+                <input class="contrib-input"
+                       id="contrib-admin-starts"
+                       type="date"
+                       name="starts"
+                       value="{{ page.form.starts }}"
+                       aria-describedby="contrib-admin-dates-hint" />
+            </div>
+            <div class="contrib-admin__field">
+                <label for="contrib-admin-ends">{{ _("End date (optional)") }}</label>
+                <input class="contrib-input"
+                       id="contrib-admin-ends"
+                       type="date"
+                       name="ends"
+                       value="{{ page.form.ends }}"
+                       aria-describedby="contrib-admin-dates-hint" />
+            </div>
+        </div>
+        <p class="contrib-field__hint contrib-muted"
+           id="contrib-admin-dates-hint">
+            {{ _("The project runs from the start of its start date through the end of its end date, UTC. Both can be set or changed later.") }}
+        </p>
+        <div>
+            <ol-button type="submit" variant="primary">
+                {{ _("Create project") }}
+            </ol-button>
+        </div>
+    </form>
+</div>

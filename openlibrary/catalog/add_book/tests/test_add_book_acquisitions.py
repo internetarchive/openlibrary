@@ -53,7 +53,7 @@ CREATE TABLE feed_registry (
 """
 
 # The catalog only writes acquisitions for providers with a registered feed.
-REGISTERED_PROVIDERS: Final = ["lenny", "bwb"]
+REGISTERED_PROVIDERS: Final = ["lenny", "bwb", "project_gutenberg"]
 
 BASE: Final = {
     "title": "Flatland",
@@ -160,7 +160,7 @@ def test_load_drops_acquisitions_for_unregistered_provider(mock_site, add_langua
     assert [row.provider_name for row in rows] == ["lenny"]  # evilcorp dropped, lenny kept
 
 
-def test_end_to_end_opds_publication_to_edition_with_acquisition(mock_site, add_languages, ia_writeback, acquisitions_db):
+def test_end_to_end_opds_publication_to_edition_with_acquisition(mock_site, add_languages, ia_writeback, acquisitions_db, monkeypatch):
     """Full seam: OPDS publication -> import record -> /api/import validation -> edition + acquisition.
 
     Exercises the real path a harvested feed record takes: parser output ->
@@ -174,10 +174,14 @@ def test_end_to_end_opds_publication_to_edition_with_acquisition(mock_site, add_
     assert rec is not None
     assert rec["acquisitions"]  # parser produced a record carrying an acquisition
 
+    added_covers = []
+    monkeypatch.setattr(add_book, "add_cover", lambda url, ekey, account_key=None: added_covers.append(url) or 1234)
+
     # The /api/import seam: build + validate the edition dict, then load it.
     edition = import_edition_builder(init_dict=rec).get_dict()
     reply = load(edition)
     assert reply["success"] is True
+    assert added_covers == [rec["cover"]]
 
     edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
     rows = Acquisition.get_by_edition(edition_id)
@@ -185,6 +189,34 @@ def test_end_to_end_opds_publication_to_edition_with_acquisition(mock_site, add_
     assert rows[0].provider_name == "lenny"
     assert rows[0].local_id == rec["acquisitions"][0]["local_id"]
     assert rows[0].data["acquisitions"][0]["access"] == "open-access"
+
+
+def test_opds_descriptive_metadata_reaches_the_edition_and_work(mock_site, add_languages, ia_writeback, acquisitions_db, monkeypatch):
+    monkeypatch.setattr(add_book, "add_cover", lambda url, ekey, account_key=None: 1234)
+    gutenberg = opds.Feed(provider_name="project_gutenberg", id_strategy="gutenberg")
+    pub = opds.Publication(**json.loads((SAMPLES / "gutenberg_2641.json").read_text()))
+    rec = opds.to_import_record(pub, gutenberg)
+    assert rec is not None
+
+    reply = load(import_edition_builder(init_dict=rec).get_dict())
+    assert reply["success"] is True
+
+    edition = mock_site.get(reply["edition"]["key"])
+    work = mock_site.get(reply["work"]["key"])
+    assert edition.lc_classifications == ["PR"]
+    assert work.description.startswith("Creators: E. M. Forster")
+    assert "Florence (Italy) -- Fiction" in work.subjects
+
+
+def test_opds_gutenberg_author_matches_on_gutenberg_id(mock_site, add_languages, ia_writeback, acquisitions_db, monkeypatch):
+    monkeypatch.setattr(add_book, "add_cover", lambda url, ekey, account_key=None: 1234)
+    mock_site.save({"name": "Edward Morgan Forster", "key": "/authors/OL5A", "type": {"key": "/type/author"}, "remote_ids": {"project_gutenberg": "975"}})
+    gutenberg = opds.Feed(provider_name="project_gutenberg", id_strategy="gutenberg")
+    pub = opds.Publication(**json.loads((SAMPLES / "gutenberg_2641.json").read_text()))
+
+    reply = load(import_edition_builder(init_dict=opds.to_import_record(pub, gutenberg)).get_dict())
+
+    assert [a["key"] for a in reply["authors"]] == ["/authors/OL5A"]
 
 
 def test_every_acquisition_of_a_publication_is_kept(mock_site, add_languages, ia_writeback, acquisitions_db):
@@ -218,6 +250,22 @@ def test_every_acquisition_of_a_publication_is_kept(mock_site, add_languages, ia
         "text/html",
         "text/plain",
     ]
+
+
+def test_preview_reports_acquisitions_without_writing_them(mock_site, add_languages, ia_writeback, acquisitions_db):
+    acquisitions = [{"provider_name": "lenny", "local_id": "7", "data": {"access": "open-access", "url": "https://g/7.epub"}}]
+    rec = {
+        "title": "Preview Only",
+        "source_records": ["lenny:7"],
+        "authors": [{"name": "A N Author"}],
+        "identifiers": {"lenny": ["7"]},
+        "acquisitions": acquisitions,
+    }
+
+    reply = load(rec, save=False)
+
+    assert reply["acquisitions"] == acquisitions
+    assert list(acquisitions_db.select("acquisitions")) == []
 
 
 def test_a_later_save_replaces_withdrawn_links(mock_site, add_languages, ia_writeback, acquisitions_db):

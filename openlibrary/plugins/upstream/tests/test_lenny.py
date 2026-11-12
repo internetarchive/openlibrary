@@ -1888,8 +1888,7 @@ class TestLennyReturnRoute:
         ret["redirect_field"] = "/works/OL1W/Some_Title"
         assert self._go() == "/works/OL1W/Some_Title"
 
-    def test_an_absolute_redirect_is_stripped_to_a_path(self, ret):
-        """Open-redirect guard, same as `handle_borrow_async`: only the path,
-        query and fragment of a submitted redirect survive."""
+    def test_an_offsite_redirect_falls_back_to_the_book_page(self, ret):
+        """Open-redirect guard: anything but a same-site path is dropped."""
         ret["redirect_field"] = "https://evil.example.com/phish"
-        assert self._go() == "/phish"
+        assert self._go() == "/books/OL51008637M"

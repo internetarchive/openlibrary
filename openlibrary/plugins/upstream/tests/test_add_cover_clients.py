@@ -16,6 +16,7 @@ from PIL import Image as PILImage
 
 from openlibrary.core.models import Image
 from openlibrary.plugins.upstream import covers
+from openlibrary.utils.request_context import site as site_context
 
 COVER_URL = "https://example.com/cover.jpg"
 
@@ -64,6 +65,7 @@ def setup(monkeypatch, render_template, request_context_fixture):
     request_context_fixture(lang="en")
     book = FakeEdition()
     web.ctx.site = MagicMock(get=lambda key: book if key == book.key else None)
+    token = site_context.set(web.ctx.site)
     web.ctx.ip = "127.0.0.1"
     user = MagicMock(key="/people/bwbimportbot", is_read_only=lambda: False)
     monkeypatch.setattr(covers.accounts, "get_current_user", lambda: user)
@@ -77,7 +79,8 @@ def setup(monkeypatch, render_template, request_context_fixture):
         return web.storage(id=500)
 
     monkeypatch.setattr(covers, "upload_to_coverstore", fake_upload)
-    return book, uploads
+    yield book, uploads
+    site_context.reset(token)
 
 
 def test_upload_from_file_like_bwbcoverbot(setup):

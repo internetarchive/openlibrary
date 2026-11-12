@@ -255,6 +255,9 @@
 
   /* Default bar colour for the daily stats charts on /stats. */
   --color-stats-chart-bar: var(--stat-yellow);
+  /* The part of a stacked stats bar worth watching (first-time editors, Tasks saves), and a quiet one beside it. */
+  --color-stats-chart-accent: var(--blue-400);
+  --color-stats-chart-muted: var(--neutral-300);
 }
 
 /**
