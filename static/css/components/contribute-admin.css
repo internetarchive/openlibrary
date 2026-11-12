@@ -154,13 +154,15 @@
   background-color: var(--color-primary);
 }
 
-/* The goal: a tick taller than the bar, so it reads on the track and on the fill. */
+.contrib-admin__meter-fill.is-reached {
+  background-color: var(--color-success-object);
+}
+
+/* The goal: a hairline across the bar, kept inside its height, as on the /tasks ring. */
 .contrib-admin__meter-goal {
   position: absolute;
-  inset-block: -3px;
-  width: 2px;
-  margin-inline-start: -1px;
-  border-radius: var(--border-radius-pill);
+  inset-block: 0;
+  width: 1px;
   background-color: var(--color-text);
 }
 

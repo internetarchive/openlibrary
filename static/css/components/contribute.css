@@ -1382,22 +1382,22 @@ textarea.contrib-input {
   stroke: var(--color-primary);
 }
 
-/* The goal: a tick across the ring, past its edges so it reads on the track and on the fill. */
+/* Past the goal the fill turns green; it keeps filling to 100%. */
+.contrib-ring__fill.is-reached {
+  stroke: var(--color-success-object);
+}
+
+/* The goal: a hairline across the ring's band, kept inside its edges. */
 .contrib-ring__goal {
   stroke: var(--color-text);
-  stroke-width: 2.5;
-  stroke-linecap: round;
+  stroke-width: 1.1;
 }
 
 .contrib-ring__goal-label {
-  color: var(--color-text-secondary);
+  color: var(--color-text);
   font-size: var(--font-size-label-medium);
   font-weight: var(--font-weight-medium);
   text-align: center;
-}
-
-.contrib-ring__goal-label.is-reached {
-  color: var(--color-success-fg);
 }
 
 .contrib-ring__figure {

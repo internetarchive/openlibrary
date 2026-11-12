@@ -19,7 +19,7 @@
     {% if project.progress %}
         <span class="contrib-admin__progress">
             <span class="contrib-admin__meter" aria-hidden="true">
-                <span class="contrib-admin__meter-fill"
+                <span class="contrib-admin__meter-fill{{ ' is-reached' if project.progress.reached else '' }}"
                       style="width: {{ project.progress.percent }}%"></span>
                 <span class="contrib-admin__meter-goal"
                       style="inset-inline-start: {{ project.goal }}%"></span>
