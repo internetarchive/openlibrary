@@ -28,7 +28,7 @@ def mock_site():
 
 # Utility to configure the mock API's ``get`` method for profile and account lookups.
 def configure_profile_and_account_lookup(api, username: str, *, profile_exists: bool = True, account_active: bool = True):
-    """Set ``api.get`` side‑effects.
+    """Set ``api.get`` side-effects.
 
     * ``/people/<username>`` returns a minimal profile document when
       ``profile_exists`` is True, otherwise ``None``.
@@ -50,7 +50,7 @@ def configure_profile_and_account_lookup(api, username: str, *, profile_exists: 
 
 
 # ---------------------------------------------------------------------------
-# 1. Concurrent activation – two threads race on the same account.
+# 1. Concurrent activation - two threads race on the same account.
 # ---------------------------------------------------------------------------
 def test_concurrent_activation(mock_site, monkeypatch):
     username = "raceuser"
@@ -84,7 +84,7 @@ def test_concurrent_activation(mock_site, monkeypatch):
     def worker():
         try:
             OpenLibraryAccount(_key=f"/people/{username}", username=username).activate()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             excs.append(e)
 
     threads = [threading.Thread(target=worker) for _ in range(2)]
@@ -99,7 +99,7 @@ def test_concurrent_activation(mock_site, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# 2. Already‑active account – the RPC raises a known race error but the
+# 2. Already-active account - the RPC raises a known race error but the
 #    account is already active.
 # ---------------------------------------------------------------------------
 def test_activation_already_active(mock_site, monkeypatch):
@@ -115,7 +115,7 @@ def test_activation_already_active(mock_site, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# 3. Unrelated error – a different error code must propagate unchanged.
+# 3. Unrelated error - a different error code must propagate unchanged.
 # ---------------------------------------------------------------------------
 def test_unrelated_error_propagates(mock_site, monkeypatch):
     username = "bad_user"
@@ -130,7 +130,7 @@ def test_unrelated_error_propagates(mock_site, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# 4. Profile/account lookup failure – the wrapper must not swallow the lookup
+# 4. Profile/account lookup failure - the wrapper must not swallow the lookup
 #    exception.
 # ---------------------------------------------------------------------------
 def test_lookup_failure_propagates(mock_site, monkeypatch):
@@ -150,8 +150,8 @@ def test_lookup_failure_propagates(mock_site, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# 5. Pending account – profile exists but account status is not "active".
-#    The original activation exception should be re‑raised.
+# 5. Pending account - profile exists but account status is not "active".
+#    The original activation exception should be re-raised.
 # ---------------------------------------------------------------------------
 def test_pending_account_propagates_original_error(mock_site, monkeypatch):
     username = "pending_user"
