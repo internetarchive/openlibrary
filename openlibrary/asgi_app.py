@@ -10,12 +10,14 @@ from pathlib import Path
 import yaml
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from prometheus_fastapi_instrumentator import Instrumentator
 from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
+from openlibrary.core.async_db import fetch_one, fetch_val
 from openlibrary.core.env import get_deployment_name, get_ol_env
 from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
@@ -27,6 +29,49 @@ from openlibrary.utils.sentry import Sentry, init_sentry
 
 logger = logging.getLogger("openlibrary.asgi_app")
 STATIC_ROOT = Path(__file__).resolve().parent.parent / "static"
+
+# ---- Redirect document lookup ----------------------------------------------
+
+_redirect_type_id: int | None = None
+
+
+async def _get_redirect_type_id() -> int | None:
+    """Look up (once, cached) the thing id for /type/redirect."""
+    global _redirect_type_id
+    if _redirect_type_id is None:
+        _redirect_type_id = await fetch_val(
+            "SELECT id FROM thing WHERE key = %(key)s",
+            {"key": "/type/redirect"},
+        )
+    return _redirect_type_id
+
+
+async def _lookup_redirect_location(path: str) -> str | None:
+    """Look up ``path`` as a document key.
+
+    Return the redirect location if the document is a /type/redirect with a
+    usable location (relative path or https:// target; never http:// or ://),
+    otherwise None.
+    """
+    row = await fetch_one(
+        """SELECT t.type AS type_id, d.value AS location
+           FROM thing t
+           LEFT JOIN data d ON d.thing_id = t.id AND d.revision = t.latest_revision
+           LEFT JOIN property p ON p.id = d.key_id AND p.name = 'location'
+           WHERE t.key = %(key)s""",
+        {"key": path},
+    )
+    if row is None:
+        return None
+    redirect_type_id = await _get_redirect_type_id()
+    if redirect_type_id is None or row["type_id"] != redirect_type_id:
+        return None
+    location = row["location"]
+    if location is None:
+        return None
+    if location.startswith("http://") or location.startswith("://"):
+        return None
+    return location
 
 
 # ---- Legacy loader (mirrors scripts/openlibrary-server) --------------------
@@ -296,19 +341,22 @@ def create_app() -> FastAPI | None:
 
     _include_routers(app)
 
-    # FastAPI is the front door for local dev and testing; proxy the rest to
-    # web.py (production keeps web.py on :8080, so the proxy stays off). Outside
-    # local dev, serve only the real testing and staging hosts.
-    if get_ol_env().LOCAL_DEV or get_deployment_name() == "testing":
-
-        @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
-        async def fallback(request: Request, path: str) -> Response:
-            host = request.headers.get("host", "").split(":")[0]
-            if not get_ol_env().LOCAL_DEV and host not in ("testing.openlibrary.org", "staging.openlibrary.org"):
-                raise HTTPException(status_code=404)
-            if request.headers.get("X-Proxied-By") == "FastAPI":
-                raise HTTPException(status_code=404)
-            return await proxy.proxy_to_webpy(request)
+    # Catch-all route: always registered. Redirect documents get a 302 here.
+    # Everything else proxies to web.py in local dev/testing, 404 elsewhere.
+    @app.api_route(
+        "/{path:path}",
+        methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
+        include_in_schema=False,
+    )
+    async def fallback(request: Request, path: str) -> Response:
+        if location := await _lookup_redirect_location(path):
+            return RedirectResponse(url=location, status_code=302)
+        host = request.headers.get("host", "").split(":")[0]
+        if not get_ol_env().LOCAL_DEV and host not in ("testing.openlibrary.org", "staging.openlibrary.org"):
+            raise HTTPException(status_code=404)
+        if request.headers.get("X-Proxied-By") == "FastAPI":
+            raise HTTPException(status_code=404)
+        return await proxy.proxy_to_webpy(request)
 
     return app
 
