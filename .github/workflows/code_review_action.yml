@@ -11,8 +11,12 @@ name: Code Review Action
 # A review PASS is TWO things: the review posted successfully for this SHA, AND every review thread
 # is resolved-or-outdated (GitHub's own isResolved/isOutdated). On a pass we post commit status
 # `ada/code-review = success` on the reviewed SHA and add the label; otherwise `= failure`, no
-# label. The status is SHA-bound: a later push leaves the new head unreviewed (no status), and the
-# `strip_labels` job removes the stale label on every push so it cannot gate e2e on unreviewed code.
+# label. The status is SHA-bound: a later push leaves the new head unreviewed (no status). The
+# AUTHORITATIVE gate is that status -- the e2e entrypoint re-checks `ada/code-review=success` on the
+# run-time head before running docker, so an unreviewed head never runs e2e. The companion workflow
+# strip_verification_labels.yml also strips the stale label on every push (defense in depth); it is
+# SEPARATE so its strip can never be cancelled mid-flight by a review run. This workflow does not
+# strip -- `synchronize` is not one of its triggers.
 # ============================================================================================
 
 # Implements the Code Review Action from epic #13160:
@@ -155,16 +159,15 @@ env:
 on:
   pull_request:
     # PENDING MEK (see PR body): the exact review-trigger set is awaiting a final ruling. Working
-    # assumption below -- opened/ready_for_review/review_requested run the reviewer, synchronize
-    # runs ONLY strip_labels. A review NEVER runs on a bare push (synchronize is excluded from the
-    # analyze `if`), which is the property that makes the SHA-bound status an honest merge gate.
+    # assumption below. A review NEVER runs on a bare push -- `synchronize` is NOT a trigger of this
+    # workflow at all (the separate strip_verification_labels.yml owns the push path), which is the
+    # property that makes the SHA-bound status an honest merge gate.
     #  - opened / ready_for_review: review every PR on open or on draft->ready (post-by-default),
     #    including bot/ada-authored PRs, which cannot request the bot as their own reviewer (422).
     #    Giving review its OWN trigger here removes the hidden dependency on auto_assign_reviewer.
     #  - review_requested (reviewer == openlibrary-bot): explicit (re-)review requests, and the
     #    auto_assign_reviewer bounce on open. cancel-in-progress collapses the opened+bounce pair.
-    #  - synchronize: NOT a review trigger -- it runs only the cheap strip_labels job below.
-    types: [opened, ready_for_review, review_requested, synchronize]
+    types: [opened, ready_for_review, review_requested]
   issue_comment:
     types: [created]
   workflow_dispatch:
@@ -177,15 +180,17 @@ on:
 concurrency:
   group: code-review-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
   # PENDING MEK (see PR body): true so an `opened` run and auto_assign_reviewer's `review_requested`
-  # bounce collapse to ONE review per head. A superseded head's run is cancelled (its status/labels
-  # are re-derived by the new head's run or the push's strip_labels); no bare push ever reviews.
+  # bounce collapse to ONE review per head. A superseded head's run is cancelled (its status/label
+  # are re-derived by the new head's run; the stale label is stripped by strip_verification_labels.yml
+  # and ignored by the e2e entrypoint, which rechecks the status). This group covers only review
+  # events -- strip lives in its own workflow/group, so a review run can never cancel a strip.
   cancel-in-progress: true
 
 jobs:
   analyze:
     runs-on: ubuntu-latest
-    # Trigger paths (synchronize does NOT run this job -- it only runs strip_labels below, so a
-    # bare push never reviews):
+    # Trigger paths (this workflow has no `synchronize` trigger at all, so a bare push never
+    # reviews; the push path lives in strip_verification_labels.yml):
     #   1. pull_request opened / ready_for_review -- review every same-repo, non-draft PR once on
     #      open or on draft->ready (post-by-default), including bot/ada-authored PRs.
     #   2. pull_request review_requested with openlibrary-bot as the reviewer -- explicit
@@ -682,10 +687,10 @@ jobs:
       # Race guard for the PR-scoped label (the commit STATUS is already SHA-bound and immune). If a
       # push landed between the review and now, the reviewed head is no longer current, so the label
       # -- which is not SHA-bound -- must NOT be added: it would assert a pass on unreviewed code, and
-      # with cancel-in-progress a superseded run could otherwise add it after strip_labels ran. We
-      # re-read the head with the job's own GITHUB_TOKEN right before the write and skip on a mismatch.
-      # NOTE: the authoritative, SHA-bound gate is the `ada/code-review` status; the e2e dispatcher
-      # SHOULD key off that status, treating this label as advisory (see PR body).
+      # with cancel-in-progress a superseded run could otherwise add it after strip_verification_labels.yml
+      # ran. We re-read the head with the job's own GITHUB_TOKEN right before the write and skip on a
+      # mismatch. NOTE: the authoritative, SHA-bound gate is the `ada/code-review` status, which the
+      # e2e entrypoint rechecks on the run-time head before running docker; this label is advisory.
       - name: Re-check the reviewed head is still current
         id: recheck
         if: steps.decide.outputs.pass == 'true'
@@ -720,52 +725,3 @@ jobs:
               issue_number: Number(process.env.PR), labels: ['Needs: e2e testing'],
             });
             core.info(`Added 'Needs: e2e testing' to PR #${process.env.PR}.`);
-
-  # ----------------------------------------------------------------------------------------------
-  # strip_labels -- keep verification labels honest on every push (synchronize).
-  #
-  # A verification label asserts something about a SPECIFIC reviewed commit. A new push makes every
-  # such assertion stale, so they are removed here -- cheap, no docker -- BEFORE anything downstream
-  # (the forge's e2e dispatch) can read a stale `Needs: e2e testing` and run docker on now-unreviewed
-  # code. The commit STATUS is already SHA-bound and thus absent on the new head; this keeps the
-  # LABELS in step. This job does NOT review and does NOT add any label.
-  strip_labels:
-    if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Strip stale verification labels on push
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          PR: ${{ github.event.pull_request.number }}
-        with:
-          # openlibrary-bot; needs Issues: write to remove labels. SWAP POINT (one token line).
-          github-token: ${{ secrets.OL_BOT_ISSUE_PAT }}
-          script: |
-            const owner = context.repo.owner, repo = context.repo.repo;
-            const pr = Number(process.env.PR);
-
-            // Which of the PR's current labels are POSITIVE per-commit verification labels that a
-            // push invalidates: the e2e gate and any `Passed:` result label. NOT `Needs: Code Review`
-            // -- that is a "still needs review" request, not a passed-state assertion; stripping it on
-            // a push would destroy a signal nothing here re-adds, for zero e2e-safety gain (the
-            // authoritative "needs review" signal is the SHA-bound `ada/code-review` status going
-            // absent on the new head anyway).
-            const verificationLabelsToStrip = (names) => {
-              return names.filter((n) =>
-                n === 'Needs: e2e testing' || n.startsWith('Passed:'));
-            };
-
-            const { data: current } = await github.rest.issues.listLabelsOnIssue({
-              owner, repo, issue_number: pr, per_page: 100,
-            });
-            const toStrip = verificationLabelsToStrip(current.map((l) => l.name));
-            for (const name of toStrip) {
-              try {
-                await github.rest.issues.removeLabel({ owner, repo, issue_number: pr, name });
-              } catch (e) {
-                if (e.status !== 404) throw e;   // 404 == already gone (a concurrent push raced us)
-              }
-            }
-            core.info(`Stripped ${toStrip.length} stale verification label(s) on push to PR #${pr}.`);
