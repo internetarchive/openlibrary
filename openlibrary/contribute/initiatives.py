@@ -425,14 +425,20 @@ def last_day(ends_at: datetime | None) -> date | None:
 
 
 def fine_print(initiative: Initiative, site) -> str:
-    """The line under the dashboard's pitch: how many books, and when the list was picked or, once it has ended, when it ran."""
-    books = ungettext("%(count)s book", "%(count)s books", initiative.size, count=commify(initiative.size))
+    """The line under the dashboard's pitch: when it runs and how many books."""
     started = started_at(initiative, site)
-    if started and initiative.status() == "ended" and (ended := last_day(initiative.ends_at)):
-        return _("%(books)s · Ran %(start)s to %(end)s", books=books, start=format_date(started), end=format_date(datetime.combine(ended, time())))
-    if started:
-        return _("%(books)s · Started %(date)s", books=books, date=format_date(started))
-    return books
+    ended = last_day(initiative.ends_at)
+    parts = []
+    if started and ended:
+        start, end = format_date(started), format_date(datetime.combine(ended, time()))
+        if initiative.status() == "ended":
+            parts.append(_("Ran %(start)s to %(end)s", start=start, end=end))
+        else:
+            parts.append(_("Started %(start)s, ends %(end)s", start=start, end=end))
+    elif started:
+        parts.append(_("Started %(date)s", date=format_date(started)))
+    parts.append(ungettext("%(count)s book", "%(count)s books", initiative.size, count=commify(initiative.size)))
+    return " · ".join(parts)
 
 
 def get(slug: str, hidden: bool = False) -> Initiative | None:

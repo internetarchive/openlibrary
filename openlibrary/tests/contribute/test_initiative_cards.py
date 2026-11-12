@@ -112,4 +112,9 @@ def test_a_finished_project_shows_a_closing_note_and_the_project_to_go_to(cards,
 
 def test_the_fine_print_of_a_finished_project_says_when_it_ran(cards, ended):
     site = type("Site", (), {"store": {ended.store_key: {"frozen_at": "2026-10-01T00:00:00+00:00"}}})()
-    assert contribute.initiatives.fine_print(ended, site) == "3 books · Ran October 1, 2026 to October 30, 2026"
+    assert contribute.initiatives.fine_print(ended, site) == "Ran October 1, 2026 to October 30, 2026 · 3 books"
+
+
+def test_a_card_counts_the_tasks_done_out_of_those_open_at_the_start(cards):
+    assert cards()[ACTIVE.slug]["tasks_done"] == "0 of 1 task done"
+    assert cards(gaps=None)[ACTIVE.slug]["tasks_done"] == ""

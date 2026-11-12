@@ -22,7 +22,7 @@
                     <th scope="col">{{ _("Runs") }}</th>
                     <th scope="col" class="contrib-admin__num">{{ _("Books") }}</th>
                     <th scope="col">{{ _("Progress") }}</th>
-                    <th scope="col" class="contrib-admin__num">{{ _("Tasks left") }}</th>
+                    <th scope="col" class="contrib-admin__num">{{ _("Tasks done") }}</th>
                     <th scope="col" class="contrib-admin__num">{{ _("People") }}</th>
                 </tr>
             </thead>
@@ -37,7 +37,13 @@
                         <td>{{ project.run }}</td>
                         <td class="contrib-admin__num">{{ project.books }}</td>
                         <td>{{ parts.progress(project) }}</td>
-                        <td class="contrib-admin__num">{{ project.tasks_left }}</td>
+                        <td class="contrib-admin__num contrib-admin__minor">
+                            {%- if project.tasks_total -%}
+                                {{ _("%(done)s of %(count)s", done=project.tasks_done, count=project.tasks_total) }}
+                            {%- else -%}
+                                {{ project.tasks_done }}
+                            {%- endif -%}
+                        </td>
                         <td class="contrib-admin__num">{{ project.people }}</td>
                     </tr>
                 {% endfor %}

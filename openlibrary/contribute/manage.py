@@ -76,6 +76,9 @@ def build_summary(initiative: initiatives.Initiative, docs: list[dict]) -> dict:
         "building": started and progress is None,
         "progress": progress,
         "tasks_left": format_count(progress["open"]) if progress else BLANK,
+        # Closed since the start, out of what was open then; a gap emptied after the start can't push it below 0.
+        "tasks_done": format_count(max(0, progress["start"] - progress["open"])) if progress else BLANK,
+        "tasks_total": format_count(progress["start"]) if progress else "",
         "people": format_count(latest_snapshot(docs, initiative.slug).get("people")),
     }
 

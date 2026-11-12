@@ -119,8 +119,12 @@
         {% if project.progress %}
             <ul class="contrib-admin__tiles">
                 <li>
+                    <span class="contrib-admin__tile-value">{{ project.tasks_done }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("Tasks done, of %(count)s", count=project.tasks_total) }}</span>
+                </li>
+                <li>
                     <span class="contrib-admin__tile-value">{{ _("%(percent)s%%", percent=project.progress.percent) }}</span>
-                    <span class="contrib-admin__tile-label">{{ _("Tasks done") }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("Complete") }}</span>
                 </li>
                 <li>
                     <span class="contrib-admin__tile-value">{{ page.done }}</span>

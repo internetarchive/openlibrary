@@ -78,6 +78,8 @@ def test_summary_figures_come_from_the_gaps_and_the_latest_count(client):
     summary = manage.build_summary(MOST_READ, DOCS)
     assert (summary["status"], summary["featured"], summary["building"]) == ("live", True, False)
     assert (summary["books"], summary["tasks_left"], summary["people"]) == ("2", "1", "6")
+    # No recorded start, so today is the start: nothing done yet.
+    assert (summary["tasks_done"], summary["tasks_total"]) == ("0", "1")
     draft = manage.build_summary(initiatives.every()[-1], DOCS)
     assert (draft["status"], draft["books"], draft["progress"], draft["building"]) == ("draft", "40", None, True)
 

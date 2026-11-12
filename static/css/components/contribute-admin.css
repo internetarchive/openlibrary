@@ -64,6 +64,12 @@
   text-align: end;
 }
 
+/* A figure read as fine print: the tasks done, out of those open at the start. */
+.contrib-admin__table td.contrib-admin__minor {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
 .contrib-admin__name {
   display: block;
   font-weight: var(--font-weight-medium);
@@ -99,9 +105,7 @@
 
 /* A badge with a tooltip behind it: the dotted underline is the usual sign that hovering explains the word. */
 .contrib-admin__badge--hint {
-  cursor: help;
-  text-decoration: underline dotted;
-  text-underline-offset: 2px;
+  cursor: default;
 }
 
 .contrib-admin__badge--hint:focus-visible {

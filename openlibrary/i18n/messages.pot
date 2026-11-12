@@ -4255,8 +4255,13 @@ msgstr ""
 msgid "Progress"
 msgstr ""
 
-#: contribute/admin/index.html.jinja contribute/admin/project.html.jinja
-msgid "Tasks left"
+#: contribute/admin/index.html.jinja
+msgid "Tasks done"
+msgstr ""
+
+#: contribute/admin/index.html.jinja
+#, python-format
+msgid "%(done)s of %(count)s"
 msgstr ""
 
 #: contribute/admin/index.html.jinja
@@ -4440,12 +4445,21 @@ msgid "Defined in code"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Tasks done"
+#, python-format
+msgid "Tasks done, of %(count)s"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Complete"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
 #, python-format
 msgid "Editions complete, of %(count)s"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Tasks left"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -8817,12 +8831,17 @@ msgstr ""
 
 #: openlibrary/contribute/initiatives.py
 #, python-format
-msgid "%(books)s · Ran %(start)s to %(end)s"
+msgid "Ran %(start)s to %(end)s"
 msgstr ""
 
 #: openlibrary/contribute/initiatives.py
 #, python-format
-msgid "%(books)s · Started %(date)s"
+msgid "Started %(start)s, ends %(end)s"
+msgstr ""
+
+#: openlibrary/contribute/initiatives.py
+#, python-format
+msgid "Started %(date)s"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
@@ -9964,6 +9983,13 @@ msgstr ""
 #, python-format
 msgid "%(percent)s%% done"
 msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(done)s of %(count)s task done"
+msgid_plural "%(done)s of %(count)s tasks done"
+msgstr[0] ""
+msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format

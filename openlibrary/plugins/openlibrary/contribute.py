@@ -450,6 +450,18 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
                 "percent": p["percent"] if p else None,
                 "figure": _("%(percent)s%%", percent=p["percent"]) if p else "",
                 "done_label": _("%(percent)s%% done", percent=p["percent"]) if p else "",
+                # Out of the tasks open at the start, the same count the percent is taken from.
+                "tasks_done": (
+                    ungettext(
+                        "%(done)s of %(count)s task done",
+                        "%(done)s of %(count)s tasks done",
+                        p["start"],
+                        done=helpers.commify(max(0, p["start"] - p["open"])),
+                        count=helpers.commify(p["start"]),
+                    )
+                    if p
+                    else ""
+                ),
                 "tasks_left": ungettext("%(count)s task left", "%(count)s tasks left", p["open"], count=helpers.commify(p["open"])) if p else "",
                 # An ended one hands out no tasks, so its row says how it finished instead of what is left.
                 "finished": finished,
@@ -611,12 +623,13 @@ class contribute_index(delegate.page):
         slug = initiative_param(initiative)
         task = normalize_filter(query_param("task", ""))
         rows = build_task_rows(task, initiative)
+        gaps = initiatives.get_gaps(initiative)
         projects = build_initiative_cards(initiative)
         project = next(card for card in projects if card["on"])
         return render_contribute(
             "contribute/dashboard.html.jinja",
             _("Tasks"),
-            rail=build_filter_rail(task, initiative, initiatives.get_gaps(initiative)),
+            rail=build_filter_rail(task, initiative, gaps),
             rows=rows,
             # While the pool builds, the script fetches the rows from here.
             rows_url=build_dashboard_url(task, base="/tasks/rows", initiative=slug) if rows is None else "",
