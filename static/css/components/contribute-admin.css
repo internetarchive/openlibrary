@@ -138,18 +138,35 @@
 }
 
 .contrib-admin__meter {
+  position: relative;
   display: block;
   width: 72px;
   height: 6px;
   border-radius: var(--border-radius-pill);
   background-color: var(--color-control-track-sunken);
-  overflow: hidden;
 }
 
 .contrib-admin__meter-fill {
   display: block;
+  max-width: 100%;
   height: 100%;
+  border-radius: inherit;
   background-color: var(--color-primary);
+}
+
+/* The goal: a tick taller than the bar, so it reads on the track and on the fill. */
+.contrib-admin__meter-goal {
+  position: absolute;
+  inset-block: -3px;
+  width: 2px;
+  margin-inline-start: -1px;
+  border-radius: var(--border-radius-pill);
+  background-color: var(--color-text);
+}
+
+.contrib-admin__reached {
+  color: var(--color-success-fg);
+  white-space: nowrap;
 }
 
 .contrib-admin__percent {

@@ -135,6 +135,7 @@ class NewProject(BaseModel):
     size: str = ""
     starts: str = ""
     ends: str = ""
+    goal: str = ""
 
 
 def new_project_page(form: dict, status_code: int = status.HTTP_200_OK) -> SitePage:
@@ -208,9 +209,10 @@ def tasks_admin_edit(
     description: Annotated[str, Form()] = "",
     starts: Annotated[str, Form()] = "",
     ends: Annotated[str, Form()] = "",
+    goal: Annotated[str, Form()] = "",
 ) -> RedirectResponse:
     initiative = find_project(slug)
-    changes, error = manage.parse_edit(initiative, title, description, starts, ends)
+    changes, error = manage.parse_edit(initiative, title, description, starts, ends, goal)
     if not error and changes.get("starts_at") and not initiative.pick and not initiatives.load_frozen(initiative, site.get()):
         error = _("A project needs books before it can start.")
     if error:

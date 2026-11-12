@@ -170,6 +170,7 @@
            id="contrib-admin-dates-hint">
             {{ _("The project runs from the start of its start date through the end of its end date, UTC. Both can be set or changed later.") }}
         </p>
+        {% include "contribute/admin/goal_field.html.jinja" %}
         <div>
             <ol-button type="submit" variant="primary">
                 {{ _("Create project") }}

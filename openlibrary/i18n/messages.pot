@@ -4159,6 +4159,10 @@ msgid "See it in the record's history"
 msgstr ""
 
 #: contribute/done.html.jinja
+msgid "Nothing on the record changed. We noted your answer, and once enough people give it, this task leaves the list."
+msgstr ""
+
+#: contribute/done.html.jinja
 msgid "Nothing on the record changed."
 msgstr ""
 
@@ -4229,6 +4233,14 @@ msgstr ""
 
 #: contribute/nothing.html.jinja contribute/task.html.jinja
 msgid "Back to the list"
+msgstr ""
+
+#: contribute/admin/goal_field.html.jinja
+msgid "Goal, in percent"
+msgstr ""
+
+#: contribute/admin/goal_field.html.jinja
+msgid "The share of the tasks open at the start that counts as success. Some gaps can't be filled, so a goal of 100 is rarely reachable: 90 suits most projects, less for slow details like LCC. The project keeps going past it."
 msgstr ""
 
 #: contribute/admin/index.html.jinja
@@ -4374,6 +4386,10 @@ msgstr ""
 msgid "%(percent)s%%"
 msgstr ""
 
+#: contribute/admin/parts.html.jinja openlibrary/plugins/openlibrary/contribute.py
+msgid "Goal reached"
+msgstr ""
+
 #: contribute/admin/project.html.jinja
 msgid "View on Tasks"
 msgstr ""
@@ -4441,6 +4457,15 @@ msgid "%(count)s entries left out, listed below"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
+msgid "Goal"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+#, python-format
+msgid "%(percent)s%% of the tasks open at the start"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
 msgid "Defined in code"
 msgstr ""
 
@@ -4450,7 +4475,12 @@ msgid "Tasks done, of %(count)s"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Complete"
+msgid "Done, goal reached"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+#, python-format
+msgid "Done, goal %(percent)s%%"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -8870,6 +8900,11 @@ msgstr ""
 msgid "%(start)s to %(end)s"
 msgstr ""
 
+#: openlibrary/contribute/manage.py openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "Goal: %(percent)s%%"
+msgstr ""
+
 #: openlibrary/contribute/manage.py
 #, python-format
 msgid "%(count)s work"
@@ -8891,6 +8926,10 @@ msgstr ""
 
 #: openlibrary/contribute/manage.py
 msgid "end date"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "goal"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
@@ -8925,6 +8964,10 @@ msgstr ""
 #: openlibrary/contribute/manage.py
 #, python-format
 msgid "%(time)s UTC"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "The goal is a percent from 1 to 100."
 msgstr ""
 
 #: openlibrary/contribute/manage.py
@@ -9981,7 +10024,12 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "%(percent)s%% done"
+msgid "%(percent)s%% done, goal reached"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(percent)s%% done, goal %(goal)s%%"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -9990,6 +10038,10 @@ msgid "%(done)s of %(count)s task done"
 msgid_plural "%(done)s of %(count)s tasks done"
 msgstr[0] ""
 msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Finished · goal reached"
+msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
@@ -10009,6 +10061,11 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
+msgid "Together we reached the goal: %(percent)s%% of its details were filled in. Thank you to everyone who helped."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
 msgid "%(count)s person filled in %(percent)s%% of its details. Thank you."
 msgid_plural "%(count)s people filled in %(percent)s%% of its details. Thank you."
 msgstr[0] ""
@@ -10017,6 +10074,10 @@ msgstr[1] ""
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
 msgid "%(percent)s%% of its details were filled in. Thank you to everyone who helped."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "This project reached its goal"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

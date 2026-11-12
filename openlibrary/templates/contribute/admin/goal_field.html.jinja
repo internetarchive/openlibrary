@@ -1,0 +1,18 @@
+{#- The goal input, shared by the create and edit forms. Reads `page.form.goal`. -#}
+<div class="contrib-admin__field contrib-admin__field--short">
+    <label for="contrib-admin-goal">{{ _("Goal, in percent") }}</label>
+    <input class="contrib-input"
+           id="contrib-admin-goal"
+           name="goal"
+           type="number"
+           min="1"
+           max="100"
+           step="1"
+           inputmode="numeric"
+           value="{{ page.form.goal }}"
+           aria-describedby="contrib-admin-goal-hint" />
+</div>
+<p class="contrib-field__hint contrib-muted"
+   id="contrib-admin-goal-hint">
+    {{ _("The share of the tasks open at the start that counts as success. Some gaps can't be filled, so a goal of 100 is rarely reachable: 90 suits most projects, less for slow details like LCC. The project keeps going past it.") }}
+</p>

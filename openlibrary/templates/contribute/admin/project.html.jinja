@@ -105,6 +105,12 @@
             </dd>
         </div>
         <div>
+            <dt>{{ _("Goal") }}</dt>
+            <dd>
+                {{ _("%(percent)s%% of the tasks open at the start", percent=project.goal) }}
+            </dd>
+        </div>
+        <div>
             <dt>{{ _("Identifier") }}</dt>
             <dd>
                 <code>{{ project.slug }}</code>
@@ -124,7 +130,13 @@
                 </li>
                 <li>
                     <span class="contrib-admin__tile-value">{{ _("%(percent)s%%", percent=project.progress.percent) }}</span>
-                    <span class="contrib-admin__tile-label">{{ _("Complete") }}</span>
+                    <span class="contrib-admin__tile-label">
+                        {%- if project.progress.reached -%}
+                            {{ _("Done, goal reached") }}
+                        {%- else -%}
+                            {{ _("Done, goal %(percent)s%%", percent=project.goal) }}
+                        {%- endif -%}
+                    </span>
                 </li>
                 <li>
                     <span class="contrib-admin__tile-value">{{ page.done }}</span>
@@ -311,6 +323,7 @@
                id="contrib-admin-dates-hint">
                 {{ _("The project runs from the start of its start date through the end of its end date, UTC. A future start date schedules it; no start date makes it a draft. Either takes a live project off the Tasks page.") }}
             </p>
+            {% include "contribute/admin/goal_field.html.jinja" %}
             <div>
                 <ol-button type="submit" variant="primary">
                     {{ _("Save") }}

@@ -60,7 +60,7 @@ def build_summary(initiative: initiatives.Initiative, docs: list[dict]) -> dict:
     status = initiative.status()
     started = status in ("live", "ended") or not initiatives.is_builtin(initiative)
     gaps = initiatives.get_gaps(initiative) if started else None
-    progress = initiatives.progress(gaps, initiative.fields, initiative.start) if gaps is not None else None
+    progress = initiatives.progress(gaps, initiative.fields, initiative.start, initiative.goal) if gaps is not None else None
     guides = get_field_guides()
     return initiatives.describe(initiative) | {
         "slug": initiative.slug,
@@ -75,6 +75,8 @@ def build_summary(initiative: initiatives.Initiative, docs: list[dict]) -> dict:
         # Started, but the shared gaps aren't built yet; the page says so rather than showing zeros.
         "building": started and progress is None,
         "progress": progress,
+        "goal": initiative.goal,
+        "goal_label": _("Goal: %(percent)s%%", percent=initiative.goal),
         "tasks_left": format_count(progress["open"]) if progress else BLANK,
         # Closed since the start, out of what was open then; a gap emptied after the start can't push it below 0.
         "tasks_done": format_count(max(0, progress["start"] - progress["open"])) if progress else BLANK,
@@ -211,6 +213,7 @@ def build_controls(initiative: initiatives.Initiative, status: str, doc: dict) -
             "description": initiative.description if initiative.title else "",
             "starts": initiative.starts_at.date().isoformat() if initiative.starts_at else "",
             "ends": day.isoformat() if (day := initiatives.last_day(initiative.ends_at)) else "",
+            "goal": str(initiative.goal),
             "title_max": TITLE_MAX,
             "description_max": DESCRIPTION_MAX,
         },
@@ -219,7 +222,7 @@ def build_controls(initiative: initiatives.Initiative, status: str, doc: dict) -
 
 
 def edit_labels() -> dict[str, str]:
-    return {"title": _("title"), "description": _("description"), "starts_at": _("start date"), "ends_at": _("end date")}
+    return {"title": _("title"), "description": _("description"), "starts_at": _("start date"), "ends_at": _("end date"), "goal": _("goal")}
 
 
 def describe_change(entry: dict) -> str:
@@ -259,7 +262,17 @@ def midnight(day: date) -> str:
     return datetime.combine(day, time(), tzinfo=UTC).isoformat(timespec="seconds")
 
 
-def parse_edit(initiative: initiatives.Initiative, title: str, description: str, starts: str, ends: str) -> tuple[dict, str]:
+def parse_goal(raw: str) -> int | None:
+    """A goal as typed, a whole percent from 1 to 100 with or without its sign; None for anything else."""
+    raw = raw.strip().removesuffix("%").strip()
+    return int(raw) if raw.isascii() and raw.isdigit() and 1 <= int(raw) <= 100 else None
+
+
+def goal_error() -> str:
+    return _("The goal is a percent from 1 to 100.")
+
+
+def parse_edit(initiative: initiatives.Initiative, title: str, description: str, starts: str, ends: str, goal: str = "") -> tuple[dict, str]:
     """The edit form as changes to the definition, or an error to show. Only what differs is a change, so the log says what moved.
 
     A built-in project may leave the title blank: it then keeps its own name and description, which are translated.
@@ -277,6 +290,10 @@ def parse_edit(initiative: initiatives.Initiative, title: str, description: str,
         return {}, _("A project with an end date needs a start date.")
     if end_day and start_day and end_day < start_day:
         return {}, _("The end date is before the start date.")
+    # Left blank, the goal stays as it was.
+    new_goal = parse_goal(goal) if goal.strip() else initiative.goal
+    if new_goal is None:
+        return {}, goal_error()
     if not title:
         description = ""
     changes: dict = {}
@@ -289,6 +306,8 @@ def parse_edit(initiative: initiatives.Initiative, title: str, description: str,
     # Compared as days: a project stopped at 2pm still shows that day, and saving the form again mustn't restart it until midnight.
     if end_day != initiatives.last_day(initiative.ends_at):
         changes["ends_at"] = midnight(end_day + timedelta(days=1)) if end_day else None
+    if new_goal != initiative.goal:
+        changes["goal"] = new_goal
     return changes, ""
 
 
@@ -330,7 +349,7 @@ def build_new_form(values: dict | None = None, error: str = "") -> dict:
         "action": f"{BASE_URL}/new",
         "error": error,
         "form": dict.fromkeys(("title", "description", "books", "list_url", "starts", "ends"), "")
-        | {"source": "pasted", "size": str(DEFAULT_SIZE)}
+        | {"source": "pasted", "size": str(DEFAULT_SIZE), "goal": str(initiatives.DEFAULT_GOAL)}
         | {k: v for k, v in values.items() if k != "fields" and v},
         "field_groups": [
             {
@@ -378,12 +397,15 @@ def parse_create(values: dict) -> tuple[dict, booklist.Resolved | None, str]:
         return {}, None, _("A project with an end date needs a start date.")
     if end_day and start_day and end_day < start_day:
         return {}, None, _("The end date is before the start date.")
+    if (goal := parse_goal(str(values.get("goal") or initiatives.DEFAULT_GOAL))) is None:
+        return {}, None, goal_error()
     definition: dict = {
         "title": title,
         "description": description,
         "fields": fields,
         "starts_at": midnight(start_day) if start_day else None,
         "ends_at": midnight(end_day + timedelta(days=1)) if end_day else None,
+        "goal": goal,
         "source": source,
     }
     if source in ("most-shelved", "most-shelved-missing"):

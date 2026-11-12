@@ -21,8 +21,15 @@
             <span class="contrib-admin__meter" aria-hidden="true">
                 <span class="contrib-admin__meter-fill"
                       style="width: {{ project.progress.percent }}%"></span>
+                <span class="contrib-admin__meter-goal"
+                      style="inset-inline-start: {{ project.goal }}%"></span>
             </span>
             <span class="contrib-admin__percent">{{ _("%(percent)s%%", percent=project.progress.percent) }}</span>
+            {% if project.progress.reached %}
+                <span class="contrib-admin__reached">{{ _("Goal reached") }}</span>
+            {% else %}
+                <span class="contrib-visually-hidden">{{ project.goal_label }}</span>
+            {% endif %}
         </span>
     {% elif project.building %}
         <span class="contrib-muted">{{ _("Getting the list ready…") }}</span>
