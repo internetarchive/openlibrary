@@ -300,24 +300,8 @@
                           maxlength="{{ page.form.description_max }}">{{ page.form.description }}</textarea>
             </div>
             <div class="contrib-admin__dates">
-                <div class="contrib-admin__field">
-                    <label for="contrib-admin-starts">{{ _("Start date") }}</label>
-                    <input class="contrib-input"
-                           id="contrib-admin-starts"
-                           type="date"
-                           name="starts"
-                           value="{{ page.form.starts }}"
-                           aria-describedby="contrib-admin-dates-hint" />
-                </div>
-                <div class="contrib-admin__field">
-                    <label for="contrib-admin-ends">{{ _("End date (optional)") }}</label>
-                    <input class="contrib-input"
-                           id="contrib-admin-ends"
-                           type="date"
-                           name="ends"
-                           value="{{ page.form.ends }}"
-                           aria-describedby="contrib-admin-dates-hint" />
-                </div>
+                {{ parts.date_field("contrib-admin-starts", "starts", _("Start date") , _("Clear the start date") , page.form.starts, "contrib-admin-dates-hint") }}
+                {{ parts.date_field("contrib-admin-ends", "ends", _("End date (optional)") , _("Clear the end date") , page.form.ends, "contrib-admin-dates-hint") }}
             </div>
             <p class="contrib-field__hint contrib-muted"
                id="contrib-admin-dates-hint">

@@ -4240,7 +4240,15 @@ msgid "Goal, in percent"
 msgstr ""
 
 #: contribute/admin/goal_field.html.jinja
-msgid "The share of the tasks open at the start that counts as success. Some gaps can't be filled, so a goal of 100 is rarely reachable: 90 suits most projects, less for slow details like LCC. The project keeps going past it."
+msgid "Suggested for these details:"
+msgstr ""
+
+#: contribute/admin/goal_field.html.jinja
+msgid "The share of the tasks open at the start that counts as success. Some gaps can't be filled, so a goal of 100 is rarely reachable: 90 suits most projects. Many books have no LCCN or OCLC number, so a project asking for them starts lower."
+msgstr ""
+
+#: contribute/admin/goal_field.html.jinja
+msgid "Reaching the goal doesn't end the project. Its progress ring turns green and reads “Goal reached”, and it keeps handing out tasks, which still count, until its end date or until it's stopped. Once it ends, it hands out no more tasks and stays on the Tasks page as finished, with its final numbers."
 msgstr ""
 
 #: contribute/admin/index.html.jinja
@@ -4301,40 +4309,12 @@ msgid "Choose any from either group. These can't be changed once the project is 
 msgstr ""
 
 #: contribute/admin/new.html.jinja
+msgid "A work's details are shared by all its editions, so each is asked once per work, however many of its editions are in the project."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
 #, python-format
 msgid "The list is fixed when the project is made, so progress always counts the same books. Up to %(count)s."
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "Books I list"
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "Open Library edition or work IDs, book URLs, or ISBNs."
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "An Open Library list"
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "Every book on the list as it is today."
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "The most-shelved books missing these details"
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "The books readers shelve most that still need one of the details above."
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "The most-shelved books"
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "Whether or not they need anything. Books with nothing missing add no tasks."
 msgstr ""
 
 #: contribute/admin/new.html.jinja
@@ -4354,15 +4334,53 @@ msgid "How many most-shelved books"
 msgstr ""
 
 #: contribute/admin/new.html.jinja
+msgid "Schedule and goal"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
 msgid "Start date (optional)"
+msgstr ""
+
+#: contribute/admin/new.html.jinja contribute/admin/project.html.jinja
+msgid "Clear the start date"
 msgstr ""
 
 #: contribute/admin/new.html.jinja contribute/admin/project.html.jinja
 msgid "End date (optional)"
 msgstr ""
 
+#: contribute/admin/new.html.jinja contribute/admin/project.html.jinja
+msgid "Clear the end date"
+msgstr ""
+
 #: contribute/admin/new.html.jinja
 msgid "The project runs from the start of its start date through the end of its end date, UTC. Both can be set or changed later."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "None yet"
+msgstr ""
+
+#: contribute/admin/new.html.jinja openlibrary/contribute/initiatives.py type/page/view.html
+#, python-format
+msgid "%(count)s book"
+msgid_plural "%(count)s books"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contribute/admin/new.html.jinja
+#, python-format
+msgid "The %(count)s most-shelved book missing a detail"
+msgid_plural "The %(count)s most-shelved books missing a detail"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contribute/admin/new.html.jinja
+msgid "Every book on the list"
+msgstr ""
+
+#: contribute/admin/new.html.jinja contribute/admin/project.html.jinja
+msgid "Asks for"
 msgstr ""
 
 #: contribute/admin/new.html.jinja
@@ -4388,6 +4406,10 @@ msgstr ""
 
 #: contribute/admin/parts.html.jinja openlibrary/plugins/openlibrary/contribute.py
 msgid "Goal reached"
+msgstr ""
+
+#: contribute/admin/parts.html.jinja
+msgid "Clear"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -4440,10 +4462,6 @@ msgstr ""
 
 #: contribute/admin/project.html.jinja
 msgid "Links to the Tasks page that don't name a project will open this one from now on, in place of the current headline."
-msgstr ""
-
-#: contribute/admin/project.html.jinja
-msgid "Asks for"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -7296,13 +7314,6 @@ msgstr ""
 msgid "Collection"
 msgstr ""
 
-#: openlibrary/contribute/initiatives.py type/page/view.html
-#, python-format
-msgid "%(count)s book"
-msgid_plural "%(count)s books"
-msgstr[0] ""
-msgstr[1] ""
-
 #: type/permission/edit.html type/usergroup/edit.html
 msgid "Description:"
 msgstr ""
@@ -9028,15 +9039,23 @@ msgid "About the edition"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
-msgid "One published version of a book. Asked of every edition in the project."
-msgstr ""
-
-#: openlibrary/contribute/manage.py
 msgid "About the work"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
-msgid "Shared by every edition of a book. Asked once per work, however many of its editions are in the project."
+msgid "Custom list"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "(work IDs, book URLs, or ISBNs)"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Open Library list"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Most-shelved books"
 msgstr ""
 
 #: openlibrary/contribute/manage.py

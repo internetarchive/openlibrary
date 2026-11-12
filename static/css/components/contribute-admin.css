@@ -304,7 +304,7 @@
 /* A page form: one column, capped so a title field isn't a page wide. */
 .contrib-admin__form {
   display: grid;
-  gap: var(--spacing-stack-md);
+  gap: var(--spacing-stack-lg);
   max-width: 36rem;
 }
 
@@ -317,6 +317,14 @@
   font-weight: var(--font-weight-medium);
 }
 
+/* The create form's book inputs: each shows only while its source is picked. Without :has() all stay visible.
+   The condition sits in :where() so the rule weighs no more than .contrib-admin__field, which it follows. */
+:where(.contrib-admin__form:has([name="source"]:checked:not([value="pasted"]))) [data-source="pasted"],
+:where(.contrib-admin__form:has([name="source"]:checked:not([value="list"]))) [data-source="list"],
+:where(.contrib-admin__form:has([name="source"]:checked:not([value="most-shelved-missing"]))) [data-source="most-shelved-missing"] {
+  display: none;
+}
+
 .contrib-admin__form textarea {
   resize: vertical;
 }
@@ -325,6 +333,44 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: var(--spacing-stack-md) var(--spacing-inline-md);
+}
+
+/* A date input with its Clear button beside it. */
+.contrib-admin__date {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-xs);
+}
+
+.contrib-admin__date .contrib-input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The create form's suggested goal, offered once someone has typed their own. */
+.contrib-admin__suggest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-xs);
+  margin: 0;
+  font-size: var(--font-size-body-small);
+}
+
+/* Their own display would otherwise override the hidden attribute. */
+.contrib-admin__suggest[hidden],
+.contrib-admin__summary[hidden] {
+  display: none;
+}
+
+/* A hint in more than one paragraph. */
+.contrib-admin__hints {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+}
+
+.contrib-admin__hints p {
+  margin: 0;
 }
 
 .contrib-admin__log {
@@ -360,10 +406,69 @@
   font-weight: var(--font-weight-medium);
 }
 
+/* A form section's name: the subheading role, which sits at body size and takes semibold to read as a heading. */
+.contrib-admin__group .contrib-admin__legend {
+  font-family: var(--font-family-subheading);
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-subheading);
+  line-height: var(--line-height-heading);
+  /* A legend sits outside its fieldset's grid, so the gap doesn't reach it. */
+  margin-bottom: var(--spacing-stack-sm);
+}
+
+/* The edition's details and the work's, side by side. */
+.contrib-admin__subgroups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-stack-md) var(--spacing-inline-xl);
+}
+
+/* --width-breakpoint-mobile: one above the other on phones. */
+@media (max-width: 449px) {
+  .contrib-admin__subgroups {
+    grid-template-columns: 1fr;
+  }
+}
+
 .contrib-admin__subgroup {
   display: grid;
+  align-content: start;
   gap: var(--spacing-stack-xs);
   margin-top: var(--spacing-stack-xs);
+}
+
+/* The create form's last step: a rule, what the project will be, and the button. */
+.contrib-admin__submit {
+  display: grid;
+  justify-items: start;
+  gap: var(--spacing-stack-md);
+  padding-top: var(--spacing-stack-lg);
+  border-top: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.contrib-admin__summary {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--spacing-stack-xs) var(--spacing-inline-lg);
+  margin: 0;
+}
+
+.contrib-admin__summary > div {
+  display: contents;
+}
+
+.contrib-admin__summary dt {
+  color: var(--color-text-secondary);
+}
+
+.contrib-admin__summary dd {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.contrib-admin__summary dd.is-missing {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-regular);
 }
 
 .contrib-admin__subhead {
@@ -372,8 +477,43 @@
   font-weight: var(--font-weight-medium);
 }
 
-.contrib-admin__choices {
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+/* The details to ask for: plain checkboxes, one per line. */
+.contrib-admin__checks {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contrib-admin__check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  cursor: pointer;
+}
+
+.contrib-admin__check input {
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+/* The end of a block inside a section (the book sources, the dates), set apart from the next one.
+   Scoped to the form so it outweighs .contrib-field__hint's zero margin. */
+.contrib-admin__form .contrib-admin__block-end {
+  margin-bottom: var(--spacing-stack-sm);
+}
+
+/* Where the books come from: three short options, side by side. */
+.contrib-admin__sources {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* --width-breakpoint-mobile: stacked on phones. */
+@media (max-width: 449px) {
+  .contrib-admin__sources {
+    grid-template-columns: 1fr;
+  }
 }
 
 .contrib-admin__field--short {

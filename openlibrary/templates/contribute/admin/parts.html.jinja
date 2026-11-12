@@ -37,3 +37,25 @@
         <span class="contrib-muted">—</span>
     {% endif %}
 {% endmacro %}
+{#- A date input with a Clear button, which contribute.js shows while the input has a date. -#}
+{% macro date_field(id, name, label, clear_label, value, hint_id) %}
+    <div class="contrib-admin__field">
+        <label for="{{ id }}">{{ label }}</label>
+        <div class="contrib-admin__date">
+            <input class="contrib-input"
+                   id="{{ id }}"
+                   type="date"
+                   name="{{ name }}"
+                   value="{{ value }}"
+                   aria-describedby="{{ hint_id }}" />
+            <ol-button type="button"
+                       variant="ghost"
+                       size="small"
+                       aria-label="{{ clear_label }}"
+                       data-clear-date="{{ id }}"
+                       {% if not value %}hidden{% endif %}>
+                {{ _("Clear") }}
+            </ol-button>
+        </div>
+    </div>
+{% endmacro %}

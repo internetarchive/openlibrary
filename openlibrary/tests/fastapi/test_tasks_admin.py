@@ -257,6 +257,20 @@ def test_creating_takes_the_goal_typed_or_the_default(client, created):
     assert 'name="goal"' in client.get("/tasks/admin/new").text
 
 
+@pytest.mark.parametrize(
+    ("fields", "goal"),
+    [(["covers"], 90), (["covers", "lccn"], 75), (["lccn", "oclc_numbers"], 50), (["oclc_numbers"], 50), ([], 90)],
+)
+def test_the_suggested_goal_is_lower_for_details_many_books_lack(fields, goal):
+    assert manage.suggested_goal(fields) == goal
+
+
+def test_a_blank_goal_on_create_takes_the_suggestion_for_its_details(client, created):
+    client.post("/tasks/admin/new", data=NEW | {"fields": ["lccn"], "goal": ""})
+    assert created[0][0]["goal"] == 50
+    assert "data-goal-rule" in client.get("/tasks/admin/new").text
+
+
 def test_saving_the_form_again_does_not_restart_a_project_stopped_today():
     stopped = replace(MOST_READ, ends_at=datetime(2026, 11, 11, 14, 0, tzinfo=UTC))
     assert manage.build_controls(stopped, "ended", {})["form"]["ends"] == "2026-11-11"
@@ -351,8 +365,10 @@ def test_a_picker_project_names_no_books_and_is_picked_later(client, created):
         ({"source": ""}, "Choose where the books come from."),
         ({"books": "nonsense"}, "None of those are books the project can use."),
         ({"source": "list", "list_url": "not a list"}, "isn&#39;t an Open Library list"),
-        ({"source": "most-shelved", "size": "0"}, "Choose how many books"),
-        ({"source": "most-shelved", "size": "99999"}, "Choose how many books"),
+        ({"source": "most-shelved-missing", "size": "0"}, "Choose how many books"),
+        ({"source": "most-shelved-missing", "size": "99999"}, "Choose how many books"),
+        # No longer offered: whether or not a book needs anything.
+        ({"source": "most-shelved"}, "Choose where the books come from."),
         ({"ends": "2026-12-01"}, "needs a start date"),
         ({"goal": "ninety"}, "The goal is a percent from 1 to 100."),
     ],

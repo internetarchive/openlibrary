@@ -1,4 +1,5 @@
-{#- The goal input, shared by the create and edit forms. Reads `page.form.goal`. -#}
+{#- The goal input, shared by the create and edit forms. Reads `page.form.goal`; on the create form, `page.goal_rule`
+    lets contribute.js follow the details ticked with a suggested goal until the person types their own. -#}
 <div class="contrib-admin__field contrib-admin__field--short">
     <label for="contrib-admin-goal">{{ _("Goal, in percent") }}</label>
     <input class="contrib-input"
@@ -10,9 +11,21 @@
            step="1"
            inputmode="numeric"
            value="{{ page.form.goal }}"
+           {% if page.get("goal_rule") %}data-goal-rule="{{ page.goal_rule | tojson | forceescape }}"{% endif %}
            aria-describedby="contrib-admin-goal-hint" />
 </div>
-<p class="contrib-field__hint contrib-muted"
-   id="contrib-admin-goal-hint">
-    {{ _("The share of the tasks open at the start that counts as success. Some gaps can't be filled, so a goal of 100 is rarely reachable: 90 suits most projects, less for slow details like LCC. The project keeps going past it.") }}
-</p>
+{% if page.get("goal_rule") %}
+    <p class="contrib-admin__suggest contrib-muted" data-goal-suggestion hidden>
+        {{ _("Suggested for these details:") }}
+        <ol-button type="button" variant="secondary" size="small" data-goal-use></ol-button>
+    </p>
+{% endif %}
+<div class="contrib-admin__hints contrib-field__hint contrib-muted"
+     id="contrib-admin-goal-hint">
+    <p>
+        {{ _("The share of the tasks open at the start that counts as success. Some gaps can't be filled, so a goal of 100 is rarely reachable: 90 suits most projects. Many books have no LCCN or OCLC number, so a project asking for them starts lower.") }}
+    </p>
+    <p>
+        {{ _("Reaching the goal doesn't end the project. Its progress ring turns green and reads “Goal reached”, and it keeps handing out tasks, which still count, until its end date or until it's stopped. Once it ends, it hands out no more tasks and stays on the Tasks page as finished, with its final numbers.") }}
+    </p>
+</div>

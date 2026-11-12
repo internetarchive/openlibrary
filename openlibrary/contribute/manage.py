@@ -262,6 +262,25 @@ def midnight(day: date) -> str:
     return datetime.combine(day, time(), tzinfo=UTC).isoformat(timespec="seconds")
 
 
+# Details many books really don't have: a project asking for them starts with a lower goal.
+HARD_FIELDS = frozenset({"lccn", "oclc_numbers"})
+GOAL_SOME_HARD = 75
+GOAL_ALL_HARD = 50
+
+
+def suggested_goal(fields) -> int:
+    """The goal the create form starts with for these details: lower when some are often missing, lowest when all are."""
+    chosen = set(fields)
+    if not chosen & HARD_FIELDS:
+        return initiatives.DEFAULT_GOAL
+    return GOAL_ALL_HARD if chosen <= HARD_FIELDS else GOAL_SOME_HARD
+
+
+def goal_rule() -> dict:
+    """``suggested_goal`` as data, so the create form's script follows the details as they're ticked."""
+    return {"hard": sorted(HARD_FIELDS), "default": initiatives.DEFAULT_GOAL, "some": GOAL_SOME_HARD, "all": GOAL_ALL_HARD}
+
+
 def parse_goal(raw: str) -> int | None:
     """A goal as typed, a whole percent from 1 to 100 with or without its sign; None for anything else."""
     raw = raw.strip().removesuffix("%").strip()
@@ -311,7 +330,8 @@ def parse_edit(initiative: initiatives.Initiative, title: str, description: str,
     return changes, ""
 
 
-SOURCES = ("pasted", "list", "most-shelved", "most-shelved-missing")
+# "most-shelved" (whether or not a book needs anything) is no longer offered, but a project made with it still runs.
+SOURCES = ("pasted", "list", "most-shelved-missing")
 SKIPPED_KEPT = 50
 DEFAULT_SIZE = 500
 
@@ -349,23 +369,25 @@ def build_new_form(values: dict | None = None, error: str = "") -> dict:
         "action": f"{BASE_URL}/new",
         "error": error,
         "form": dict.fromkeys(("title", "description", "books", "list_url", "starts", "ends"), "")
-        | {"source": "pasted", "size": str(DEFAULT_SIZE), "goal": str(initiatives.DEFAULT_GOAL)}
+        | {"source": "pasted", "size": str(DEFAULT_SIZE), "goal": str(suggested_goal(chosen))}
         | {k: v for k, v in values.items() if k != "fields" and v},
         "field_groups": [
             {
                 "id": group,
                 "legend": legend,
-                "hint": hint,
                 "fields": [
                     {"value": f, "label": guides[f].label if f in guides else f, "checked": f in chosen}
                     for f in tasks.POINTS
                     if (f in tasks.WORK_FIELDS) == (group == "work")
                 ],
             }
-            for group, legend, hint in (
-                ("edition", _("About the edition"), _("One published version of a book. Asked of every edition in the project.")),
-                ("work", _("About the work"), _("Shared by every edition of a book. Asked once per work, however many of its editions are in the project.")),
-            )
+            for group, legend in (("edition", _("About the edition")), ("work", _("About the work")))
+        ],
+        "goal_rule": goal_rule(),
+        "sources": [
+            {"value": "pasted", "label": _("Custom list"), "note": _("(work IDs, book URLs, or ISBNs)")},
+            {"value": "list", "label": _("Open Library list"), "note": ""},
+            {"value": "most-shelved-missing", "label": _("Most-shelved books"), "note": ""},
         ],
         "title_max": TITLE_MAX,
         "description_max": DESCRIPTION_MAX,
@@ -397,7 +419,7 @@ def parse_create(values: dict) -> tuple[dict, booklist.Resolved | None, str]:
         return {}, None, _("A project with an end date needs a start date.")
     if end_day and start_day and end_day < start_day:
         return {}, None, _("The end date is before the start date.")
-    if (goal := parse_goal(str(values.get("goal") or initiatives.DEFAULT_GOAL))) is None:
+    if (goal := parse_goal(str(values.get("goal") or suggested_goal(fields)))) is None:
         return {}, None, goal_error()
     definition: dict = {
         "title": title,
@@ -408,7 +430,7 @@ def parse_create(values: dict) -> tuple[dict, booklist.Resolved | None, str]:
         "goal": goal,
         "source": source,
     }
-    if source in ("most-shelved", "most-shelved-missing"):
+    if source == "most-shelved-missing":
         size = str(values.get("size", "")).strip()
         if not (size.isascii() and size.isdigit() and 1 <= int(size) <= booklist.MAX_BOOKS):
             return {}, None, _("Choose how many books, from 1 to %(count)s.", count=commify(booklist.MAX_BOOKS))
