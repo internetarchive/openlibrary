@@ -576,6 +576,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      pull-requests: read   # GITHUB_TOKEN, for the pre-label head re-check (race guard) only
     steps:
       - name: Decide the gate and post the ada/code-review status
         id: decide
@@ -589,9 +590,11 @@ jobs:
           # #14451 rewrite. The producer (`core.setOutput('public_findings_count', ...)` in the
           # analyze-gate step) and its `outputs:` declaration are added when this branch REBASES onto
           # merged #14451, off #14451's own lines so that merge stays conflict-resolution-only. Until
-          # then this output is unset -> parsed as 0 below, degrading safely to threads-only. A
-          # withheld/all-private review also reports 0 (public by construction), so green-on-private
-          # is preserved: this is NOT the withheld marker, which we never read, infer, or surface.
+          # then this output is unset -> parsed as null below -> FAIL CLOSED (the status blocks, never
+          # passes): absent is NOT treated as clean, since orphaned/summary-only findings create no
+          # thread and threads-only cannot catch them. A withheld/all-private review reports 0 (public
+          # by construction), so green-on-private is preserved: this is NOT the withheld marker, which
+          # we never read, infer, or surface.
           PUBLIC_FINDINGS_COUNT: ${{ needs.analyze.outputs.public_findings_count }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
@@ -607,12 +610,15 @@ jobs:
             const postSucceeded = process.env.POST_RESULT === 'success';
             if (!/^[0-9a-f]{40}$/.test(headSha)) { core.setFailed('Unexpected head sha.'); return; }
 
-            // Public findings this pass, from the analyze job's declared output. A non-integer
-            // (absent before the #14451 rebase) is treated as 0 -> the gate degrades to threads-only
-            // until the output exists, which is safe (threads still block). Post-rebase it is always
-            // a non-negative integer produced by #14451's gate.
-            const n = Number(process.env.PUBLIC_FINDINGS_COUNT);
-            const findings = Number.isInteger(n) && n >= 0 ? n : 0;
+            // Public findings this pass, from the analyze job's declared output. FAIL CLOSED: an
+            // absent output (before the #14451 producer lands, or on a skip path) or any non-integer
+            // returns null = "unknown", which decideStatus treats as BLOCKING -- NOT as 0/clean.
+            // Treating absent-as-clean would be a gate bypass: orphaned/summary-only findings create
+            // no review thread, so threads-only cannot catch them (see #13548, 3 of 9). Post-rebase
+            // the producer always emits a non-negative integer (public findings incl. orphaned).
+            const parseFindings = (raw) => {
+              return /^\d+$/.test((raw ?? '').toString().trim()) ? Number(raw) : null;
+            };
 
             // Feedback resolved: a thread blocks only when it is BOTH unresolved AND not outdated.
             // Resolved, outdated (a later push moved the code), or on a dismissed review -> does not
@@ -622,14 +628,16 @@ jobs:
               return threads.reduce((n, t) => n + ((!t.isResolved && !t.isOutdated) ? 1 : 0), 0);
             };
 
-            // The decision. Bias to blocking; the description is non-leaky (counts and generic
+            // The decision. Bias to blocking: PASS needs findings KNOWN-to-be-0 (null blocks), zero
+            // unresolved threads, and a clean post. The description is non-leaky (counts and fixed
             // phrases only -- never a finding's content). A public findings count is public by
-            // construction; it is NOT the withheld-marker we must never expose.
+            // construction; it is NOT the withheld-marker we must never read, infer, or surface.
             const decideStatus = ({ postSucceeded, findings, unresolved }) => {
               const pass = postSucceeded && findings === 0 && unresolved === 0;
               let description;
               if (pass) description = 'Review passed; all feedback resolved.';
               else if (!postSucceeded) description = 'No clean review for this commit.';
+              else if (findings === null) description = 'Review findings count unavailable.';
               else if (findings > 0) description = `${findings} finding${findings === 1 ? '' : 's'} to address.`;
               else description = `${unresolved} unresolved review thread${unresolved === 1 ? '' : 's'}.`;
               return { pass, state: pass ? 'success' : 'failure', description };
@@ -656,6 +664,7 @@ jobs:
             }
             const unresolved = unresolvedThreadCount(threads);
 
+            const findings = parseFindings(process.env.PUBLIC_FINDINGS_COUNT);
             const d = decideStatus({ postSucceeded, findings, unresolved });
             await github.rest.repos.createCommitStatus({
               owner, repo, sha: headSha,
@@ -668,11 +677,36 @@ jobs:
             core.setOutput('pass', d.pass ? 'true' : 'false');
             core.info(`ada/code-review=${d.state} on ${headSha.slice(0, 8)} (post=${process.env.POST_RESULT}, findings=${findings}, unresolved=${unresolved}).`);
 
-      # The SOLE PRODUCER of `Needs: e2e testing` -- added here, only on a pass, and nowhere else in
-      # the repo (see the E2E GATE INVARIANT banner). Separate step because the label write needs a
-      # bot PAT with Issues: write, distinct from the status step's Commit statuses: write.
-      - name: Add the e2e-testing label on a pass
+      # Race guard for the PR-scoped label (the commit STATUS is already SHA-bound and immune). If a
+      # push landed between the review and now, the reviewed head is no longer current, so the label
+      # -- which is not SHA-bound -- must NOT be added: it would assert a pass on unreviewed code, and
+      # with cancel-in-progress a superseded run could otherwise add it after strip_labels ran. We
+      # re-read the head with the job's own GITHUB_TOKEN right before the write and skip on a mismatch.
+      # NOTE: the authoritative, SHA-bound gate is the `ada/code-review` status; the e2e dispatcher
+      # SHOULD key off that status, treating this label as advisory (see PR body).
+      - name: Re-check the reviewed head is still current
+        id: recheck
         if: steps.decide.outputs.pass == 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR: ${{ needs.analyze.outputs.pr }}
+          HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner, repo: context.repo.repo, pull_number: Number(process.env.PR),
+            });
+            const current = pr.head.sha === process.env.HEAD_SHA;
+            if (!current) core.info('Head advanced since review -- not labeling; a later push supersedes this pass.');
+            core.setOutput('current', current ? 'true' : 'false');
+
+      # The SOLE PRODUCER of `Needs: e2e testing` -- added here, only on a pass whose reviewed head is
+      # still current, and nowhere else in the repo (see the E2E GATE INVARIANT banner). Separate step
+      # because the label write needs a bot PAT with Issues: write, distinct from the status step's
+      # Commit statuses: write.
+      - name: Add the e2e-testing label on a pass
+        if: steps.decide.outputs.pass == 'true' && steps.recheck.outputs.current == 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           PR: ${{ needs.analyze.outputs.pr }}

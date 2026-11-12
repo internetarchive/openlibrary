@@ -1,13 +1,14 @@
 // Unit tests for the STATUS-GATE logic added to .github/workflows/code_review_action.yml (#14453):
 // the `status` job (SHA-bound `ada/code-review` commit status + the SOLE producer of the
-// `Needs: e2e testing` label) and the `strip_labels` job. Those jobs embed three pure helpers
+// `Needs: e2e testing` label) and the `strip_labels` job. Those jobs embed four pure helpers
 // inline in their github-script steps; this test extracts the EXACT text that ships and exercises
 // it, so the tested logic and the deployed logic cannot drift. The helpers are:
+//   - parseFindings(raw)                   -- the env->findings derivation, FAIL CLOSED on absent
 //   - unresolvedThreadCount(threads)       -- threads that are unresolved AND not outdated
 //   - decideStatus({postSucceeded,...})    -- the pass/fail + state + non-leaky description
 //   - verificationLabelsToStrip(names)     -- which labels a push invalidates
-// (The public-findings count itself is a declared output of the analyze job, produced and tested
-// by #14451; this gate only consumes it as a number, so decideStatus is exercised with one here.)
+// (The public-findings COUNT itself is a declared output of the analyze job, produced and tested by
+// #14451; this gate derives a number from it via parseFindings and blocks when it is absent.)
 // See the E2E GATE INVARIANT banner at the top of the workflow for why each exists.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
@@ -46,9 +47,25 @@ function extractFn(name) {
     return new Function(`return (${src});`)();
 }
 
+const parseFindings = extractFn('parseFindings');
 const unresolvedThreadCount = extractFn('unresolvedThreadCount');
 const decideStatus = extractFn('decideStatus');
 const verificationLabelsToStrip = extractFn('verificationLabelsToStrip');
+
+// ---- parseFindings: the env->findings derivation. FAIL CLOSED (absent/garbage -> null, blocks) ----
+test('parseFindings returns the integer for a well-formed non-negative count', () => {
+    assert.equal(parseFindings('0'), 0);
+    assert.equal(parseFindings('3'), 3);
+    assert.equal(parseFindings(' 7 '), 7);
+});
+test('parseFindings returns null (=> blocks) for absent or malformed input -- NOT 0', () => {
+    // This is the H1 fail-closed guard: before the #14451 producer lands, or on a skip path, the
+    // output is absent. null -> decideStatus blocks. Treating absent as 0/clean would let a review
+    // with only orphaned (summary-only, un-threaded) findings pass. Each of these MUST be null.
+    for (const raw of ['', undefined, null, 'abc', '-1', '3.5', '1e2', 'NaN', '0x3', ' ']) {
+        assert.equal(parseFindings(raw), null, `expected null for ${JSON.stringify(raw)}`);
+    }
+});
 
 // ---- unresolvedThreadCount: GitHub's own isResolved/isOutdated are authoritative ----
 test('unresolvedThreadCount counts only threads that are unresolved AND not outdated', () => {
@@ -90,19 +107,28 @@ test('decideStatus FAILS when prior feedback is unresolved, even with a clean pa
     const many = decideStatus({ postSucceeded: true, findings: 0, unresolved: 3 });
     assert.equal(many.description, '3 unresolved review threads.');
 });
+test('decideStatus FAILS CLOSED when the findings count is unavailable (null), even with zero unresolved', () => {
+    // H1: an unknown count must NOT pass. null is what parseFindings returns when the producer
+    // output is absent -- a review could have orphaned/summary-only findings we cannot see.
+    const d = decideStatus({ postSucceeded: true, findings: null, unresolved: 0 });
+    assert.equal(d.pass, false);
+    assert.equal(d.state, 'failure');
+    assert.equal(d.description, 'Review findings count unavailable.');
+});
 test('decideStatus never leaks finding content -- description is counts and fixed phrases only', () => {
     for (const c of [
         { postSucceeded: true, findings: 0, unresolved: 0 },
         { postSucceeded: false, findings: 0, unresolved: 0 },
         { postSucceeded: true, findings: 2, unresolved: 0 },
-        { postSucceeded: true, findings: 0, unresolved: 2 }
+        { postSucceeded: true, findings: 0, unresolved: 2 },
+        { postSucceeded: true, findings: null, unresolved: 0 }
     ]) {
         const { description } = decideStatus(c);
         // One of a small fixed set of templates -- a count plus fixed words, no free text that
         // could carry a finding's content.
         assert.match(
             description,
-            /^(Review passed; all feedback resolved\.|No clean review for this commit\.|\d+ findings? to address\.|\d+ unresolved review threads?\.)$/
+            /^(Review passed; all feedback resolved\.|No clean review for this commit\.|Review findings count unavailable\.|\d+ findings? to address\.|\d+ unresolved review threads?\.)$/
         );
     }
 });
