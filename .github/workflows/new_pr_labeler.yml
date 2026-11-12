@@ -12,7 +12,7 @@ on:  # zizmor: ignore[dangerous-triggers] -- FIX ME!
       - opened
       - ready_for_review
 env:
-  NODE_VERSION: '24'
+  NODE_VERSION: '26'
 jobs:
   label_pr:
     # Continue only if this is the canonical repo and the PR is not a draft.

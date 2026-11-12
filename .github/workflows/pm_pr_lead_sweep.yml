@@ -12,7 +12,7 @@ on:
     - cron: '0 2 * * *'
   workflow_dispatch:
 env:
-  NODE_VERSION: '24'
+  NODE_VERSION: '26'
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
