@@ -136,12 +136,12 @@ export class OLMarkdownEditor extends LitElement {
         }
 
         .editor-input .tiptap h1 {
-            font-size: var(--font-size-headline-small);
+            font-size: var(--font-size-headline-medium);
             margin: 0 0 0.5em;
         }
 
         .editor-input .tiptap h2 {
-            font-size: var(--font-size-title-large);
+            font-size: var(--font-size-headline-small);
             margin: 0 0 0.45em;
         }
 

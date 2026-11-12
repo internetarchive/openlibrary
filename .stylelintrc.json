@@ -68,7 +68,8 @@
             "disableFix": true,
             "ignoreValues": ["inherit", "transparent", "none"]
           }
-        ]
+        ],
+        "declaration-property-value-allowed-list": null
       }
     },
     {
