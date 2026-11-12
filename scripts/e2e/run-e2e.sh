@@ -65,7 +65,8 @@ HEAD_SHA="${3:-${HEAD_SHA:-}}"
 STATUS_CONTEXT="${4:-${STATUS_CONTEXT:-ada/e2e}}"
 LABEL="${5:-${LABEL:-Needs: e2e testing}}"
 
-E2E_TIMEOUT="${E2E_TIMEOUT:-1800}"
+E2E_TIMEOUT="${E2E_TIMEOUT:-1800}"          # hard cap on the e2e run (step 4)
+E2E_STATUS_TIMEOUT="${E2E_STATUS_TIMEOUT:-60}"  # hard cap on each terminal gh write
 
 # --- state the trap reads ----------------------------------------------------
 RESULT="failure"        # default failure: a crash before success => failure
@@ -193,6 +194,24 @@ cleanup_worktree() {
 # Runs on EVERY exit path once the trap is armed: normal end, error, SIGTERM,
 # SIGINT. Posts the terminal status exactly once, but only if WE posted pending
 # (so a death before step 2 does not fabricate a status for someone else).
+# Run a command with a hard wall-clock bound, SIGKILLing it if it overruns.
+# Used for the terminal GitHub writes inside finalize, where TERM/INT are
+# ignored: a hung `gh` post would otherwise wedge finalize and effectively leave
+# the commit at pending, immune to everything but SIGKILL. SIGKILL can't be
+# ignored, so the watchdog can always reap the child. Pure bash — no dependency
+# on timeout(1), which isn't present everywhere. Returns the child's exit code,
+# or 137 if it was killed on timeout.
+bounded() {
+  local secs="$1"; shift
+  "$@" & local pid=$!
+  ( sleep "$secs"; kill -KILL "$pid" 2>/dev/null ) & local watchdog=$!
+  local rc=0
+  wait "$pid" 2>/dev/null || rc=$?
+  kill -KILL "$watchdog" 2>/dev/null
+  wait "$watchdog" 2>/dev/null || true
+  return "$rc"
+}
+
 # Signal handler: kill the running e2e child (if any) so `wait` returns, then
 # exit — which runs finalize (the EXIT trap) and posts the terminal status.
 on_signal() {
@@ -213,8 +232,9 @@ finalize() {
   if [[ "$PENDING_POSTED" == "1" && "$TERMINAL_POSTED" == "0" ]]; then
     TERMINAL_POSTED=1
     log "posting terminal status: $RESULT"
-    post_status "$RESULT" "e2e ${RESULT}" || warn "terminal status post failed"
-    clear_label || warn "label clear failed"
+    # Hard-bound both writes so a hung gh can't wedge finalize at pending.
+    bounded "$E2E_STATUS_TIMEOUT" post_status "$RESULT" "e2e ${RESULT}" || warn "terminal status post failed/timed out"
+    bounded "$E2E_STATUS_TIMEOUT" clear_label || warn "label clear failed/timed out"
   fi
   cleanup_worktree || true
   exit "$rc"

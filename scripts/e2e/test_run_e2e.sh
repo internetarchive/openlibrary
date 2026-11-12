@@ -62,6 +62,13 @@ case "$*" in
       kill -TERM "$PPID" 2>/dev/null
     fi
     ;;
+  *state=success*|*state=failure*)
+    # Simulate a HUNG terminal gh post: finalize ignores TERM/INT, so without a
+    # hard bound this would wedge the script at pending forever.
+    if [[ -n "${MOCK_HANG_TERMINAL:-}" ]]; then
+      sleep "${MOCK_HANG_TERMINAL}"
+    fi
+    ;;
   *"/statuses"*)
     if [[ -n "${MOCK_STATUSES:-}" ]]; then
       printf '%s\n' $MOCK_STATUSES
@@ -177,6 +184,22 @@ run_entry MOCK_STATUSES="" \
           WORKTREE_ADD_CMD="true"
 assert_contains "kill-during-pending-post: pending was posted" "$GH_CALLS" "state=pending"
 assert_contains "kill-during-pending-post: terminal status STILL posted (not left pending)" "$GH_CALLS" "state=failure"
+drop_sandbox
+
+# --- 4c. HUNG terminal gh post must NOT wedge finalize (bounded write) -------
+#        finalize ignores TERM/INT; a hung terminal `gh` would otherwise block
+#        forever. The bounded() SIGKILL watchdog must let the script exit well
+#        inside the mock's hang time. E2E_STATUS_TIMEOUT=2, mock hangs 20s.
+new_sandbox
+start=$(date +%s)
+run_entry MOCK_STATUSES="" \
+          MOCK_HANG_TERMINAL="20" \
+          E2E_STATUS_TIMEOUT="2" \
+          E2E_CMD="exit 1" \
+          WORKTREE_ADD_CMD="true"
+dur=$(( $(date +%s) - start ))
+if (( dur < 12 )); then _ok "hung-terminal-post: script exits bounded (${dur}s < 12s), not wedged"; \
+  else _fail "hung-terminal-post: script exits bounded" "took ${dur}s (hang not bounded)"; fi
 drop_sandbox
 
 # --- 5. sha-pinning: worktree is added at the exact HEAD_SHA, detached -------
