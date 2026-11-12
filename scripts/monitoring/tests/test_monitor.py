@@ -67,7 +67,7 @@ def test_monitor_nginx_logs_still_submits_other_when_nothing_is_promoted(monitor
     ("hostname", "expected"),
     [
         ("ol-www1.us.archive.org", ["log_recent_bot_statuses stats.ol.bot_status"]),
-        ("ol-covers0.us.archive.org", []),
+        ("ol-covers1.us.archive.org", []),
     ],
 )
 def test_monitor_nginx_logs_logs_bot_statuses_only_on_www(monitor, submitted, monkeypatch, hostname, expected):

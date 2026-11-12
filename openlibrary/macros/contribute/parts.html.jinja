@@ -57,6 +57,40 @@
         {% endif %}
     </div>
 {% endmacro %}
+{% macro saved_receipt(receipt) %}
+    {#- What "Save and next" just saved. -#}
+    <div class="contrib-saved" role="status" data-receipt>
+        <div class="contrib-receipt">
+            {% if receipt.cover_url %}
+                <img class="contrib-receipt__cover"
+                     src="{{ receipt.cover_url }}"
+                     alt=""
+                     width="64"
+                     height="96" />
+            {% endif %}
+            <div>
+                <div class="contrib-saved__status">{{ icon("circle-check", size="sm") }}{{ _("Just saved") }}</div>
+                <div class="contrib-saved__book">
+                    <div class="contrib-saved__title">
+                        <a href="{{ receipt.url }}" data-ol-link-track="TaskForm|SavedBook">{{ receipt.title }}</a>
+                    </div>
+                    <div class="contrib-saved__detail">
+                        {% if receipt.value %}
+                            {{ _("%(field)s added: %(value)s", field=receipt.field_label, value=receipt.value) }}
+                        {% else %}
+                            {{ _("%(field)s added", field=receipt.field_label) }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <ol-tooltip class="contrib-book__actions" content="{{ _('Go to book page') }}">
+                <ol-button variant="ghost" shape="icon" size="small" href="{{ receipt.url }}" aria-label="{{ _('Go to book page') }}">
+                    {{ icon("eye", size="sm") }}
+                </ol-button>
+            </ol-tooltip>
+        </div>
+    </div>
+{% endmacro %}
 {% macro task_row(task, track) %}
     {#- One to-do per field, styled as a menu item: an icon and the action it leads to.
         ``track`` is the analytics "Category|Action"; the field becomes the label. -#}
@@ -71,7 +105,8 @@
 {% macro how_to(field_guide, links) %}
     <section class="contrib-help">
         <h2 class="contrib-h">{{ _("How to answer") }}</h2>
-        <ol class="contrib-steps">
+        {#- One step needs no number. -#}
+        <ol class="contrib-steps{% if not field_guide.notes %} contrib-steps--one{% endif %}">
             <li>
                 <div class="contrib-steps__text">
                     {% for para in field_guide.how.split("\n\n") %}<p>{{ para }}</p>{% endfor %}
@@ -104,10 +139,7 @@
         <h2 class="contrib-h">{{ _("How this edit goes wrong") }}</h2>
         <ul class="contrib-traps">
             {% for trap in items %}
-                <li class="contrib-trap">
-                    {{ icon("triangle-alert", size="sm") }}
-                    <span>{{ trap }}</span>
-                </li>
+                <li>{{ trap }}</li>
             {% endfor %}
         </ul>
     </section>
@@ -165,8 +197,52 @@
         </details>
     </section>
 {% endmacro %}
-{% macro answer_control(task, field_guide, is_identifier, value, languages, cover_suggestion=None, choices=[]) %}
-    {% if choices %}
+{% macro chip_choices(name, many, labelled_by) %}
+    {#- Any number of a field's tags, as chips: a tap toggles one. contribute.js keeps a hidden input per pick, so the
+        form posts the picked keys under ``name``; the ones rendered here are the picks an error re-render carries over.
+        The tags the work's subjects name come first, in a row of their own, never picked in advance: with "Save and next"
+        a pre-made pick would write the subjects' noise into the record at speed. Each says why on hover, and lights the
+        subjects behind it in the record (contribute.js). The headings name genres: that is the one many-tags field. -#}
+    <div class="contrib-chips" data-many-choice="{{ name }}">
+        {% if many.suggested %}
+            <div class="contrib-chips__group">
+                <span class="contrib-h" id="{{ labelled_by }}-suggested">{{ _("Suggested by the subjects") }}</span>
+                <ol-chip-group aria-labelledby="{{ labelled_by }} {{ labelled_by }}-suggested">
+                    {% for opt in many.options if opt.value in many.suggested %}
+                        <ol-tooltip content="{{ many.suggested[opt.value].why }}">
+                            <ol-chip data-value="{{ opt.value }}" data-subjects='{{ many.suggested[opt.value].subjects | tojson }}' {% if opt.value in many.selected %}selected{% endif %}>
+                                {{ opt.label }}
+                            </ol-chip>
+                        </ol-tooltip>
+                    {% endfor %}
+                </ol-chip-group>
+            </div>
+        {% endif %}
+        <div class="contrib-chips__group">
+            {% set others_labels = labelled_by ~ " " ~ labelled_by ~ "-others" if many.suggested else labelled_by %}
+            {% if many.suggested %}<span class="contrib-h" id="{{ labelled_by }}-others">{{ _("Other genres") }}</span>{% endif %}
+            <ol-chip-group aria-labelledby="{{ others_labels }}">
+                {% for opt in many.options if opt.value not in many.suggested %}
+                    <ol-chip data-value="{{ opt.value }}" {% if opt.value in many.selected %}selected{% endif %}>
+                        {{ opt.label }}
+                    </ol-chip>
+                {% endfor %}
+            </ol-chip-group>
+        </div>
+        {% for picked in many.selected %}
+            <input type="hidden" name="{{ name }}" value="{{ picked }}" />
+        {% endfor %}
+    </div>
+{% endmacro %}
+{% macro chip_label(id, label, hint) %}
+    {#- The label row over a full-width chip group, with the how-many hint beside it. -#}
+    <span class="contrib-record__ask-label" id="{{ id }}">{{ label }}</span>
+    {% if hint %}<span class="contrib-field__hint contrib-muted">{{ hint }}</span>{% endif %}
+{% endmacro %}
+{% macro answer_control(task, field_guide, is_identifier, value, languages, cover_suggestion=None, choices=[], many=None) %}
+    {% if many %}
+        {{ chip_choices(task.field, many, "contrib-other-label") }}
+    {% elif choices %}
         {#- A few fixed answers with what each means, none picked in advance: a judgment the librarian makes, not a
             default they confirm. "Not sure" is one of the rows; the handler counts it the way it counts "I couldn't find it".
             With quick_next, the picked row shows a hint that a second click saves and moves on (contribute.js). -#}
@@ -273,6 +349,7 @@
           {% if data.field_guide.quick_next %}data-quick-next{% endif %}
           data-task-key="{{ task.key }}"
           data-task-field="{{ task.field }}">
+        {% if data.project %}<input type="hidden" name="project" value="{{ data.project }}" />{% endif %}
         {% if data.error %}<p class="ol-message ol-message--error" role="alert">{{ data.error }}</p>{% endif %}
         <div class="contrib-record">
             {#- A second way to the title's link, so keep it out of the tab order and the accessibility tree. -#}
@@ -314,21 +391,24 @@
             <dl class="contrib-record__fields">
                 {% for row in data.record_fields %}
                     {% if row.ask %}
-                        <div class="contrib-record__row contrib-record__row--ask">
+                        {#- Chips and cover choices take the full width under their label: beside an 88px label they wrap into twice the rows. -#}
+                        <div class="contrib-record__row contrib-record__row--ask{% if data.many or data.is_cover %} contrib-record__row--stack{% endif %}">
                             <dt>
-                                {#- A choice list is a group of radios, so its label names the group rather than one control. -#}
-                                {% if data.choices %}
+                                {#- A choice list is a group of radios and chips are a group too, so the label names the group rather than one control. -#}
+                                {% if data.many %}
+                                    {{ chip_label("contrib-other-label", row.label, data.field_guide.check) }}
+                                {% elif data.choices %}
                                     <span class="contrib-record__ask-label" id="contrib-other-label">{{ row.label }}</span>
                                 {% else %}
                                     <label for="contrib-other-value">{{ row.label }}</label>
                                 {% endif %}
                             </dt>
                             <dd>
-                                {{ answer_control(task, data.field_guide, data.is_identifier, data.value, data.languages, data.cover_suggestion, data.choices) }}
+                                {{ answer_control(task, data.field_guide, data.is_identifier, data.value, data.languages, data.cover_suggestion, data.choices, data.many) }}
                                 {% if data.is_identifier %}<p class="contrib-field__verdict" data-id-verdict role="status"></p>{% endif %}
                                 {% if data.suggestions %}
                                     <div class="contrib-suggest" data-suggest>
-                                        <span>{{ _("Other editions say") }}</span>
+                                        <span class="contrib-suggest__label">{{ _("Other editions say…") }}</span>
                                         {% for s in data.suggestions %}
                                             <ol-chip size="small" count="{{ s.count }}" data-value="{{ s.value }}" accessible-label="{{ ngettext('%(value)s, on 1 edition', '%(value)s, on %(count)d editions', s.count, value=s.label, count=s.count) }}">
                                                 {{ s.label }}
@@ -336,7 +416,7 @@
                                         {% endfor %}
                                     </div>
                                 {% endif %}
-                                {% if data.field_guide.check %}<p class="contrib-field__hint">{{ data.field_guide.check }}</p>{% endif %}
+                                {% if data.field_guide.check and not data.many %}<p class="contrib-field__hint">{{ data.field_guide.check }}</p>{% endif %}
                                 {% if data.field_guide.confirm %}
                                     <label class="contrib-confirm">
                                         <input type="checkbox" name="confirmed" value="1" required />
@@ -345,11 +425,31 @@
                                 {% endif %}
                             </dd>
                         </div>
+                        {% if data.companion %}
+                            {#- A second blank, asked on this page because the book is open for both: hidden until the row that
+                                opens it ("Fiction") is picked (contribute.js). Its picks post with the lead answer and save as one edit. -#}
+                            {%- set c = data.companion -%}
+                            <div class="contrib-record__row contrib-record__row--ask contrib-record__row--stack contrib-record__row--companion"
+                                 data-companion="{{ c.field }}"
+                                 hidden>
+                                <dt>{{ chip_label("contrib-companion-label", c.label, c.hint) }}</dt>
+                                <dd>
+                                    {{ chip_choices(c.field, c, "contrib-companion-label") }}
+                                </dd>
+                            </div>
+                        {% endif %}
                     {% else %}
                         <div class="contrib-record__row">
                             <dt>{{ row.label }}</dt>
                             <dd>
-                                {{ row.value }}
+                                {% if row.get("parts") %}
+                                    {#- A subject behind a suggested genre lights up while that chip is hovered or focused (contribute.js). -#}
+                                    {% for part in row.parts %}
+                                        {%- if part.hit %}<span class="contrib-record__subject" data-subject="{{ part.text }}">{{ part.text }}</span>{% else %}{{ part.text }}{% endif %}{% if not loop.last %}, {% endif -%}
+                                    {% endfor %}
+                                {% else %}
+                                    {{ row.value }}
+                                {% endif %}
                             </dd>
                         </div>
                     {% endif %}
@@ -383,7 +483,7 @@
                     A choice list carries "Not sure" as one of its rows instead. -#}
                 {% if not data.choices %}
                     <ol-button variant="ghost" type="submit" name="then" value="notfound" formnovalidate data-skip data-ol-link-track="TaskForm|NotFound|{{ task.field }}">
-                        {{ _("I couldn't find it") }}
+                        {{ data.not_found_label }}
                     </ol-button>
                 {% endif %}
                 <ol-button variant="ghost" href="{{ data.skip_url }}" data-skip data-ol-link-track="TaskForm|Skip|{{ task.field }}">

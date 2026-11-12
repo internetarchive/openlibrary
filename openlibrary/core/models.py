@@ -963,6 +963,10 @@ class User(Thing):
         """
         return self.is_admin()
 
+    def can_manage_tasks(self) -> bool:
+        """Whether the user can set up and run the community projects on /tasks. Its pages check `ShellUser.is_super_librarian`, the same two groups."""
+        return self.is_super_librarian_or_higher()
+
     def is_maintainer(self) -> bool:
         """Whether the user can manage the testing environment (maintainers + admins)."""
         return self.is_member_of_any(["/usergroup/maintainers", "/usergroup/admin"])

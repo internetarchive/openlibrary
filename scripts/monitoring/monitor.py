@@ -65,7 +65,7 @@ def submit_promoted_counts(
     GraphiteEvent.submit_many(events, GRAPHITE_URL)
 
 
-@limit_server(["ol-web*", "ol-covers0"], scheduler)
+@limit_server(["ol-web*", "ol-covers1"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)
 def log_workers_cur_fn():
     """Logs the state of the gunicorn workers."""
@@ -79,14 +79,14 @@ def log_workers_cur_fn():
     )
 
 
-@limit_server(["ol-www1", "ol-covers0"], scheduler)
+@limit_server(["ol-www1", "ol-covers1"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)
 def monitor_nginx_logs():
     """Logs recent bot traffic, HTTP statuses, and top IP counts."""
     match SERVER:
         case "ol-www1":
             bucket = "ol"
-        case "ol-covers0":
+        case "ol-covers1":
             bucket = "ol-covers"
         case _:
             raise ValueError(f"Unknown server: {SERVER}")

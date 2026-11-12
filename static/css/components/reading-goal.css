@@ -42,7 +42,7 @@
 }
 
 .goal-form__question span {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .goal-form__input-section input {

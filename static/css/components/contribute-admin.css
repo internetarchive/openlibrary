@@ -1,0 +1,362 @@
+/* /tasks/admin: where the community projects are run. Builds on the .contrib-dash page frame in contribute.css. */
+
+.contrib-admin--detail {
+  max-width: 1100px;
+}
+
+/* Each child is a section of its own, so they sit further apart than the dashboard's head and body. */
+.contrib-admin > :not(:last-child) {
+  margin-block-end: var(--spacing-section-gap);
+}
+
+.contrib-admin__head {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.contrib-admin__back {
+  font-size: var(--font-size-body-small);
+  justify-self: start;
+}
+
+/* A wide table scrolls inside its own box, so the page never does. */
+.contrib-admin__scroll {
+  overflow-x: auto;
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background-color: var(--color-surface);
+}
+
+.contrib-admin__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.contrib-admin__table :is(th, td) {
+  padding: var(--spacing-inset-sm);
+  text-align: start;
+  vertical-align: middle;
+  font-weight: var(--font-weight-regular);
+  white-space: nowrap;
+}
+
+/* The outer cells keep the card's own inset; the columns between sit closer so seven fit the page. */
+.contrib-admin__table :is(th, td):first-child {
+  padding-inline-start: var(--spacing-inset-md);
+}
+
+.contrib-admin__table :is(th, td):last-child {
+  padding-inline-end: var(--spacing-inset-md);
+}
+
+.contrib-admin__table thead th {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.contrib-admin__table tbody tr + tr :is(th, td) {
+  border-block-start: var(--border-width-thin) solid
+    var(--color-border-extra-subtle);
+}
+
+.contrib-admin__table :is(th, td).contrib-admin__num {
+  text-align: end;
+}
+
+/* A figure read as fine print: the tasks done, out of those open at the start. */
+.contrib-admin__table td.contrib-admin__minor {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.contrib-admin__name {
+  display: block;
+  font-weight: var(--font-weight-medium);
+}
+
+.contrib-admin__fields {
+  display: block;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.contrib-admin__badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-xs);
+}
+
+.contrib-admin__badge {
+  padding: var(--spacing-3xs) var(--spacing-xs);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-badge);
+  background-color: var(--color-surface-sunken);
+  font-size: var(--font-size-body-small);
+  line-height: var(--line-height-single);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* The table's cells don't wrap, and the tooltip's panel would inherit that and run off as one long line. */
+.contrib-admin ol-tooltip {
+  white-space: normal;
+}
+
+/* A badge with a tooltip behind it: the dotted underline is the usual sign that hovering explains the word. */
+.contrib-admin__badge--hint {
+  cursor: default;
+}
+
+.contrib-admin__badge--hint:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.contrib-admin__badge[data-status="live"] {
+  border-color: var(--color-success-border);
+  background-color: var(--color-success-bg);
+  color: var(--color-success-fg);
+}
+
+.contrib-admin__badge[data-status="scheduled"] {
+  border-color: var(--color-info-border);
+  background-color: var(--color-info-bg);
+  color: var(--color-info-fg);
+}
+
+.contrib-admin__badge[data-status="hidden"] {
+  border-color: var(--color-warning-border);
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+}
+
+.contrib-admin__progress {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+}
+
+.contrib-admin__meter {
+  display: block;
+  width: 72px;
+  height: 6px;
+  border-radius: var(--border-radius-pill);
+  background-color: var(--color-control-track-sunken);
+  overflow: hidden;
+}
+
+.contrib-admin__meter-fill {
+  display: block;
+  height: 100%;
+  background-color: var(--color-primary);
+}
+
+.contrib-admin__percent {
+  min-width: 4ch;
+  text-align: end;
+}
+
+.contrib-admin__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-stack-md) var(--spacing-inline-xl);
+  margin: 0;
+}
+
+.contrib-admin__facts dt {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.contrib-admin__facts dd {
+  margin: 0;
+}
+
+.contrib-admin__facts dd .contrib-muted {
+  display: block;
+  font-size: var(--font-size-body-small);
+}
+
+/* A fact with several values, one to a line. */
+.contrib-admin__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contrib-admin__section {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  align-content: start;
+}
+
+.contrib-admin__tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-inline-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contrib-admin__tiles li {
+  display: grid;
+  gap: var(--spacing-3xs);
+  padding: var(--spacing-inset-card);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background-color: var(--color-surface);
+}
+
+.contrib-admin__tile-value {
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+}
+
+.contrib-admin__tile-label {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.contrib-admin__charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-section-gap) var(--spacing-inline-xl);
+}
+
+.contrib-admin__spark {
+  display: block;
+  width: 100%;
+  height: 96px;
+}
+
+.contrib-admin__spark polyline {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  /* The box stretches to the column; the stroke shouldn't stretch with it. */
+  vector-effect: non-scaling-stroke;
+}
+
+.contrib-admin__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-3xs);
+  height: 96px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.contrib-admin__bars li {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.contrib-admin__bar {
+  display: block;
+  width: 100%;
+  /* A day with one save among hundreds still shows. */
+  min-height: 1px;
+  border-start-start-radius: var(--border-radius-xs);
+  border-start-end-radius: var(--border-radius-xs);
+  background-color: var(--color-primary);
+}
+
+.contrib-admin__caption,
+.contrib-admin__note {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.contrib-admin__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-sm);
+}
+
+/* A page form: one column, capped so a title field isn't a page wide. */
+.contrib-admin__form {
+  display: grid;
+  gap: var(--spacing-stack-md);
+  max-width: 36rem;
+}
+
+.contrib-admin__field {
+  display: grid;
+  gap: var(--spacing-3xs);
+}
+
+.contrib-admin__field label {
+  font-weight: var(--font-weight-medium);
+}
+
+.contrib-admin__form textarea {
+  resize: vertical;
+}
+
+.contrib-admin__dates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--spacing-stack-md) var(--spacing-inline-md);
+}
+
+.contrib-admin__log {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contrib-admin__log li {
+  display: grid;
+  gap: var(--spacing-3xs);
+}
+
+.contrib-admin__log-meta {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+/* A group of related controls in the create form: the legend reads as a field label. */
+.contrib-admin__group {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.contrib-admin__group legend {
+  padding: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.contrib-admin__subgroup {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  margin-top: var(--spacing-stack-xs);
+}
+
+.contrib-admin__subhead {
+  margin: 0;
+  font-size: var(--font-size-label-medium);
+  font-weight: var(--font-weight-medium);
+}
+
+.contrib-admin__choices {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.contrib-admin__field--short {
+  max-width: 12rem;
+}

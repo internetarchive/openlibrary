@@ -28,6 +28,8 @@ import { focusRingLayered, raised } from './control-styles.js';
  *   hover) that fills with a soft blue tint when checked. Neither variant
  *   scales on press: the knob is the press feedback (see "Knob motion" in
  *   the styles), so the wide button container never lurches.
+ * @property {"small" | "medium"} size - Default: "medium". Small shrinks the
+ *   switch, text, and (button variant) height to match other small controls.
  * @property {String} label - Primary label text.
  * @property {String} sublabel - Secondary greyed text shown after the label.
  * @property {String} accessibleLabel - Override aria-label on the switch.
@@ -56,6 +58,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         checked: { type: Boolean, reflect: true },
         disabled: { type: Boolean, reflect: true },
         variant: { type: String, reflect: true },
+        size: { type: String, reflect: true },
         label: { type: String },
         sublabel: { type: String },
         accessibleLabel: { type: String, attribute: 'accessible-label' },
@@ -246,6 +249,23 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                on. A transparent surface keeps the 0% mix fully transparent. */
                 --control-surface: transparent;
                 --control-highlight-strength: 0%;
+            }
+
+            /* Small size — mirrors ol-button / ol-segmented-control so same-size controls line up. */
+            :host([size='small']) {
+                --toggle-track-width: 28px;
+                --toggle-track-height: 16px;
+                --toggle-knob-size: 12px;
+                --toggle-gap: 8px;
+            }
+
+            :host([size='small']) .toggle {
+                font-size: var(--font-size-label-medium);
+            }
+
+            :host([variant='button'][size='small']) .toggle {
+                height: var(--control-height-small);
+                padding: 0 var(--spacing-sm);
             }
 
             /* Button + checked: soft blue tint fill (matching the selected row in

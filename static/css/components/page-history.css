@@ -75,7 +75,7 @@ table.history td:first-child {
 /* History page redesign - #12628 */
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory thead tr th {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   font-size: var(--font-size-label-small);
   padding: 10px 12px;
 }
@@ -123,7 +123,7 @@ table#pageHistory .compare-against a {
   display: inline-block;
   min-width: 64px;
   font-size: var(--font-size-label-small);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   padding: 3px 8px;
   text-align: center;
   text-decoration: none;
@@ -220,7 +220,7 @@ a.page-history-compare__submit {
   background: var(--white);
   color: var(--color-text);
   font-size: var(--font-size-label-small);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   padding: 3px 10px;
   text-decoration: none;
 }
@@ -248,7 +248,7 @@ a.page-history-compare__submit {
   border-radius: var(--border-radius-button);
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: 18px;
+  font-size: var(--font-size-body-xlarge);
   line-height: 1;
   cursor: pointer;
 }

@@ -10,6 +10,14 @@ For Jinja syntax and Templetor→Jinja conversion, see [`docs/wiki/developers/fr
 
 So only the route (and `SitePageRoute`, for the shell) sees the request. The route declares typed inputs, FastAPI builds them, and everything below gets plain values: no `Request`, no `web.ctx`, no `web.input()`, and no Templetor request globals (`ctx`, `query_param`, `changequery`) in the template.
 
+## A port changes nothing the user can see
+
+The FastAPI page must be semantically identical to the web.py page it replaces: the same text, links, attributes, form fields, title and status codes, for every query. Jinja may encode some characters differently (`&#34;` where Templetor wrote `&quot;`) and indent differently. Those differences are fine. Anything else is a change.
+
+Before you delete the Templetor template, compare your page with the page from master for the same queries, including empty, bad and escaped input. An easy way: save the HTML that each version returns for your main inputs, and ask an AI to check that each pair is semantically identical.
+
+If you also fix something (an accessibility fix, a security fix, a bug), put it in its own commit, and say in the pull request what changed, why, and what it gains.
+
 ## The shape of a page route
 
 ```python
@@ -46,6 +54,7 @@ Each argument has one job:
 ## Steps
 
 1. **Convert the template to Jinja.** Put a comment at the top naming the values it takes (`{# Takes `form` (AdvancedSearchForm) and `nav` (SearchNav) #}`). Shared partials take one object, like `SearchNavigation.html.jinja` takes `nav`. A Templetor page that still includes the partial passes a dict with the same keys.
+   - **Convert what the template includes, too.** Templetor subtemplates and macros (`render_template(...)`, `macros.X`) read request state through `web.ctx` and `ctx`. For example, `lists/preview.html` reads `ctx.user`, and `datestr` reads `web.ctx.lang`. Under FastAPI those values belong to another request, or don't exist. Convert each one to Jinja first, in its own commit, or compute its values in the route. Don't call `render_templetor_template` or a Templetor macro from a FastAPI page, and don't patch `web.ctx` or legacy helpers to make one work.
 
 2. **Declare query params as a Pydantic model**: `Annotated[Model, Query()]`. Defaults, normalisation and fallbacks (like `subject_facet` filling `subject`) go in the model's validators. Don't hand-parse `request.query_params`. Unknown params are ignored, and a repeated scalar param keeps its last value, as `web.input()` does (declare `list[str]` for params that repeat on purpose, like `author_key`). If the page has a JSON twin (`/search` and `/search.json`), share the fields and their normalisation with the JSON endpoint through a base model, but keep that base lenient, and let the JSON model narrow it in a subclass.
    - The JSON models reject requests the HTML page has to render: `/search.json?q=x` and `/search.json?q=tolkien&has_fulltext=yes` are 422s, but web.py's `/search` renders both.
@@ -67,6 +76,7 @@ Each argument has one job:
    - **Every format, chosen by `Accept` header or suffix.** infogami picks the response format on the same path (`find_encoding` in `vendor/infogami/infogami/utils/app.py`): `Accept: application/json` on `/works/OL1W` returns JSON, not HTML, and so do `.json`, `.rdf`, `.yml`, `.opds` and `.marcxml` suffixes (registered in `openlibrary/plugins/openlibrary/code.py`). API clients depend on these. A FastAPI route that only renders HTML would break every one of them.
    - **Every infogami view, chosen by `?m=`.** These are `delegate.mode` classes: `edit`, `history`, `diff`, `permission`, `backlinks`, `review`, `approve`, `revert`, `change_cover`, and the `rdf`, `opds`, `marcxml` and `yml` formats (`vendor/infogami/infogami/core/code.py`, `vendor/infogami/infogami/plugins/`, `openlibrary/plugins/upstream/code.py`, `openlibrary/plugins/openlibrary/code.py`). Old revisions are `?v=N`. These also combine with `Accept`: `?m=history` with `Accept: application/json` returns JSON.
    - **Every URL shape.** Work, edition and author pages redirect to a slug URL (`/works/OL1W` → `/works/OL1W/Title`), so the route must take `{id}/{slug}` too, and keep the redirects. The same applies to a trailing slash (`/advancedsearch/` redirects today).
+   - **Every processor exemption.** Some web.py processors skip some paths. For example, web.py doesn't run the human-cookie check on `/verify_human`. `SitePageRoute` must skip the same paths. If web.py has a helper for a check (such as `is_safe_redirect`), call that helper instead of writing a second one.
 
 8. **Keep the web.py handler as a thin wrapper, then delete it.** Production still sends a path to web.py until the proxy config (in the ops repo) routes it to FastAPI. Until then, the web.py handler builds the same inputs and renders the same template, with the same title:
 
@@ -89,7 +99,7 @@ Each argument has one job:
 
 ## Tests to copy
 
-`openlibrary/tests/fastapi/test_advancedsearch.py` has the three that matter for every port. The fixtures they use are in `openlibrary/tests/fastapi/conftest.py`:
+`openlibrary/tests/fastapi/test_advancedsearch.py` has the three tests that every port needs. The fixtures they use are in `openlibrary/tests/fastapi/conftest.py`:
 
 - `site_page_app(*routers)` builds an app with your page router, logged in as the `x-user` header's user and with no infobase.
 - `webpy_leftovers` fills `web.ctx` and infogami's `context` with another request's state, every value containing `LEFTOVER`.
@@ -97,9 +107,19 @@ Each argument has one job:
 
 The three tests:
 
-- **Isolation.** Run interleaved requests with `webpy_leftovers` set, and check each page shows only its own query and never `LEFTOVER`. This proves the page body reads nothing from the thread-locals. The shell's own isolation (user, flash messages, language) is tested once, in `openlibrary/tests/fastapi/test_site_page.py`.
+- **Isolation.** Run interleaved requests with `webpy_leftovers` set, and check each page shows only its own query and never `LEFTOVER`. This proves the page body reads nothing from the thread-locals. Don't stub any part of the page body here, or the test can't see what it reads. The shell's own isolation (user, flash messages, language) is tested once, in `openlibrary/tests/fastapi/test_site_page.py`.
 - **Parity.** While the web.py handler exists, the web.py and FastAPI bodies for the same query are identical.
 - **Inputs.** Escaping, fallbacks, repeated and unknown params.
+
+## Pull requests
+
+- Port one path per pull request. Name it "Serve /path from FastAPI".
+- Write "Part of #N", not "Closes #N". The issue stays open until production routes the path to FastAPI and the web.py handler is deleted.
+- In the Testing section, say how you compared your page with web.py, and list any differences you found.
+- Put each fix in its own commit, and explain it in the description (see [A port changes nothing the user can see](#a-port-changes-nothing-the-user-can-see)).
+- Keep it in draft until it's ready for review.
+- After you merge master, regenerate `messages.pot`.
+- If your PR adds, moves or removes a route (any new path or method FastAPI serves), commit the regenerated Kubernetes route list `conf/k8s/fastapi-routes.yaml`. `openlibrary/tests/fastapi/test_fastapi_routes.py` fails while it is stale and prints the command to run. See #14384.
 
 ## Where code goes
 

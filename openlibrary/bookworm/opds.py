@@ -25,11 +25,14 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
+from openlibrary.coverstore.utils import is_allowed_cover_url
 from openlibrary.plugins.upstream.utils import get_marc21_language
 
 BUY_REL = "http://opds-spec.org/acquisition/buy"
 OPEN_ACCESS_REL = "http://opds-spec.org/acquisition/open-access"
 BORROW_REL = "http://opds-spec.org/acquisition/borrow"
+# Full-size image rels; Gutenberg uses the OPDS 1 rel, BWB and Lenny use "cover".
+COVER_RELS = ("cover", "http://opds-spec.org/image")
 # rel -> the access value we store on the acquisition
 ACQUISITION_ACCESS = {
     BUY_REL: "buy",
@@ -43,6 +46,43 @@ def _as_list(value: Any) -> list:
     if value is None:
         return []
     return value if isinstance(value, list) else [value]
+
+
+def _localized(value: Any) -> str | None:
+    """An OPDS string, which may be a language map like ``{"en": "..."}``."""
+    if isinstance(value, dict):
+        value = value.get("en") or next(iter(value.values()), None)
+    return value.strip() if isinstance(value, str) and value.strip() else None
+
+
+def _names(value: Any) -> list[str]:
+    """Names from an OPDS contributor or subject field.
+
+    Each entry may be a bare string or an object with a (possibly localized)
+    ``name``, and the field itself may be one entry or a list of them.
+    """
+    names = []
+    for entry in _as_list(value):
+        name = _localized(entry.get("name") if isinstance(entry, dict) else entry)
+        if name and name not in names:
+            names.append(name)
+    return names
+
+
+# Subject schemes that are classifications rather than topics.
+LCC_SCHEME = "http://purl.org/dc/terms/LCC"
+
+# Contributor ``identifier`` URLs we recognise -> the OL author remote_ids type
+# they carry, which add_book matches authors on before falling back to names.
+AUTHOR_ID_PATTERNS = ((re.compile(r"^https?://(?:www\.)?gutenberg\.org/ebooks/author/(\d+)/?$"), "project_gutenberg"),)
+
+
+def _author_remote_ids(identifier: Any) -> dict[str, str]:
+    if isinstance(identifier, str):
+        for pattern, id_type in AUTHOR_ID_PATTERNS:
+            if match := pattern.match(identifier.strip()):
+                return {id_type: match[1]}
+    return {}
 
 
 class Price(BaseModel):
@@ -84,13 +124,48 @@ class Publication(BaseModel):
         return self.metadata.get("title")
 
     @property
-    def authors(self) -> list[dict[str, str]]:
-        out = []
-        for author in _as_list(self.metadata.get("author")):
-            name = author.get("name") if isinstance(author, dict) else author
-            if name:
-                out.append({"name": name})
+    def subtitle(self) -> str | None:
+        return _localized(self.metadata.get("subtitle"))
+
+    @property
+    def authors(self) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
+        for entry in _as_list(self.metadata.get("author")):
+            name = _localized(entry.get("name") if isinstance(entry, dict) else entry)
+            if not name or any(a["name"] == name for a in out):
+                continue
+            author: dict[str, Any] = {"name": name}
+            if isinstance(entry, dict) and (remote_ids := _author_remote_ids(entry.get("identifier"))):
+                author["remote_ids"] = remote_ids
+            out.append(author)
         return out
+
+    @property
+    def publishers(self) -> list[str]:
+        return _names(self.metadata.get("publisher"))
+
+    @property
+    def description(self) -> str | None:
+        return _localized(self.metadata.get("description"))
+
+    @property
+    def subjects(self) -> list[str]:
+        topics = [s for s in _as_list(self.metadata.get("subject")) if not (isinstance(s, dict) and s.get("scheme") == LCC_SCHEME)]
+        return _names(topics)
+
+    @property
+    def lc_classifications(self) -> list[str]:
+        """LCC codes, which OPDS carries as subjects in the LCC scheme."""
+        codes = []
+        for subject in _as_list(self.metadata.get("subject")):
+            if isinstance(subject, dict) and subject.get("scheme") == LCC_SCHEME and (code := _localized(subject.get("code"))) and code not in codes:
+                codes.append(code)
+        return codes
+
+    @property
+    def number_of_pages(self) -> int | None:
+        pages = self.metadata.get("numberOfPages")
+        return pages if isinstance(pages, int) and not isinstance(pages, bool) and pages > 0 else None
 
     @property
     def languages(self) -> list[str]:
@@ -108,7 +183,7 @@ class Publication(BaseModel):
 
     def cover(self) -> str | None:
         for image in self.images:
-            if image.rel == "cover" and image.href:
+            if image.rel in COVER_RELS and image.href:
                 return image.href
         return None
 
@@ -213,6 +288,15 @@ def to_import_record(pub: Publication, feed: Feed) -> dict[str, Any] | None:
         "source_records": [f"{feed.provider_name}:{local_id}"],
         "publish_date": pub.metadata.get("published", ""),
     }
+    optional_fields = {
+        "subtitle": pub.subtitle,
+        "publishers": pub.publishers,
+        "description": pub.description,
+        "subjects": pub.subjects,
+        "lc_classifications": pub.lc_classifications,
+        "number_of_pages": pub.number_of_pages,
+    }
+    record.update({field: value for field, value in optional_fields.items() if value})
     # Invariant: for non-ISBN feeds the ``identifiers`` KEY must equal the
     # registered ``provider_name`` (the ``source_records`` prefix). The import
     # validator's feed-source exemption only accepts the record when the two
@@ -234,13 +318,11 @@ def to_import_record(pub: Publication, feed: Feed) -> dict[str, Any] | None:
         # verifies the id resolves before trusting it (resolve_edition_ref), which
         # matters because providers do not always validate the id they were given.
         record["openlibrary"] = f"OL{local_id}M"
-    # A ``cover`` URL is intentionally NOT emitted. OL's server-side cover fetch
-    # is gated by two host allowlists (none of these feed hosts satisfy), and on
-    # the match/merge path — which feed re-imports hit constantly — add_cover()
-    # retries a doomed URL 10x with sleep(2), burning up to 20s per record (see
-    # internetarchive/openlibrary#10856 and the covers wiki). Covers for ingested
-    # feeds are a separate, later concern. ``Publication.cover()`` stays available
-    # for that future path. #12844
+    # Only covers coverstore will actually fetch: on the match/merge path (which
+    # feed re-imports hit constantly) add_cover() has no host check of its own
+    # and retries a rejected URL 10x with sleep(2), up to 20s per record.
+    if (cover := pub.cover()) and is_allowed_cover_url(cover):
+        record["cover"] = cover
     if acquisitions := build_acquisitions(pub, feed, local_id):
         record["acquisitions"] = acquisitions
     return record

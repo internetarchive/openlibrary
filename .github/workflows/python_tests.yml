@@ -2,16 +2,10 @@ name: python_tests
 on:
   push:
     branches: [master]
+  # No `paths-ignore:` filter here: python_tests is a required status check on master,
+  # and a workflow skipped by a trigger filter never reports, leaving the PR unmergeable.
   pull_request:
     branches: [master]
-    paths-ignore:
-      - '.github/workflows/javascript_tests.yml'
-      - 'vendor/js/**'
-      - 'package*.json'
-      - '**.js'
-      - '**.vue'
-      - '**.css'
-      - '**.md'
 permissions:
   contents: read
 
@@ -27,7 +21,7 @@ jobs:
         with:
           submodules: true
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: pyproject.toml
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -40,7 +34,7 @@ jobs:
           # https://lxml.de/installation.html#requirements
           sudo apt-get install -y libxml2 libxslt-dev
       - name: Install uv
-        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - name: Install dependencies
         env:
           UV_SYSTEM_PYTHON: 1
@@ -80,7 +74,7 @@ jobs:
         with:
           submodules: true
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: pyproject.toml
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -88,7 +82,7 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ runner.os }}-venv-${{ env.pythonLocation }}-${{ hashFiles('requirements*.txt') }}
       - name: Install uv
-        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - name: Install dependencies
         env:
           UV_SYSTEM_PYTHON: 1

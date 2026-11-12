@@ -348,10 +348,10 @@ $jsdef render_work_autocomplete_item(item):
                 <label for="edition-toc">$_('Table of Contents')</label>
                 <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
         $# detect-missing-i18n-skip-line
-        <pre class="smaller gray"> * Part 1 | THIS WORLD | 1
-        ** Chapter 1 | Of the Nature of Flatland | 3
-        ** Chapter 2 | Of the Climate and Houses in Flatland | 5
-        * Part 2 | OTHER WORLDS | 42</pre>
+        <pre class="smaller gray">* Part 1 | THIS WORLD | 1
+** Chapter 1 | Of the Nature of Flatland | 3
+** Chapter 2 | Of the Climate and Houses in Flatland | 5
+* Part 2 | OTHER WORLDS | 42</pre>
                 <br/>
                 $ toc = book.get_table_of_contents()
                 $if toc and toc.is_complex():

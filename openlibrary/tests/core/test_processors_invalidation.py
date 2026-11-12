@@ -1,10 +1,12 @@
 import datetime as dt
 
+import pytest
 import web
 
 from infogami.infobase import client
 from openlibrary.core.processors import invalidation
 from openlibrary.mocks.mock_infobase import MockSite
+from openlibrary.utils.request_context import site as site_context
 
 
 class MockHook:
@@ -165,6 +167,7 @@ class TestInvalidationProcessor:
 
         self._load_fake_context()
         web.ctx.site = MockSite()
+        site_context.set(web.ctx.site)
 
         def setcookie(name, value, expires):
             self.cookie = {"name": name, "value": value, "expires": expires}
@@ -174,3 +177,10 @@ class TestInvalidationProcessor:
     def _monkeypatch_hooks(self, monkeypatch):
         self.hook = MockHook()
         monkeypatch.setattr(client, "hooks", [self.hook])
+
+
+@pytest.fixture(autouse=True)
+def restore_site_context():
+    token = site_context.set(site_context.get(None))
+    yield
+    site_context.reset(token)

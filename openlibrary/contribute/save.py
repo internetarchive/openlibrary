@@ -12,12 +12,13 @@ import re
 import web
 
 from openlibrary.contribute.field_guides import AMAZON_COVER
-from openlibrary.core.tags import find_tag
+from openlibrary.core.tags import MANY, find_tag
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.covers import add_cover
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, get_languages
 from openlibrary.utils.lccn import normalize_lccn
 from openlibrary.utils.oclc import normalize_oclc
+from openlibrary.utils.request_context import site
 
 SOURCE = "contribute"
 ACTION = "edit-book"
@@ -92,30 +93,45 @@ def answer_value(edition, fld: str, raw: str):
     raise InvalidAnswer(_("This field can't be filled in here."))
 
 
-def save_answer(edition, fld: str, raw: str, label: str, note: str = "") -> None:
+def change_data(fld: str, initiative: str, **more) -> dict:
+    """A Tasks save's ``data``: the source, the task's field, and the initiative it counts toward, so the stats can split them."""
+    return {"source": SOURCE, "field": fld} | ({"initiative": initiative} if initiative else {}) | more
+
+
+def save_answer(edition, fld: str, raw: str, label: str, note: str = "", initiative: str = "") -> None:
     """Write the answer to the edition as a normal edit by the current user."""
     doc = edition.dict()
     doc[fld] = answer_value(edition, fld, raw)
     comment = note.strip() or _("Filled in %(field)s from Open Library Tasks", field=label)
-    web.ctx.site.save(doc, comment=comment, action=ACTION, data={"source": SOURCE, "field": fld})
+    site.get().save(doc, comment=comment, action=ACTION, data=change_data(fld, initiative))
 
 
-def tag_answer(fld: str, raw: str) -> dict:
-    """The reference to store for a chosen tag; the choice must be one of the field's tags."""
-    if not find_tag(fld, raw.strip()):
+def tag_answers(fld: str, raws: list[str]) -> list[dict]:
+    """The references to store for the chosen tags, in the order picked and without repeats; each must be one of the field's tags."""
+    keys = list(dict.fromkeys(r.strip() for r in raws if r.strip()))
+    if not keys:
+        raise InvalidAnswer(_("Pick at least one genre, or choose “Not sure”.") if fld in MANY else _("Choose one of the options."))
+    if any(not find_tag(fld, k) for k in keys):
         raise InvalidAnswer(_("Choose one of the options."))
-    return {"key": raw.strip()}
+    return [{"key": k} for k in keys]
 
 
-def save_work_answer(work, fld: str, raw: str, label: str, note: str = "") -> None:
-    """Write a tag answer to the work, the same way as an edition answer."""
+def save_work_answers(work, answers: dict[str, list[str]], label: str, note: str = "", initiative: str = "") -> None:
+    """Write tag answers to the work in one revision, the same way as an edition answer.
+
+    ``answers`` maps each work field to the tag keys picked for it; a field where people pick one keeps just the first.
+    ``data.field`` names the task that was answered, ``data.fields`` everything the save filled.
+    """
     doc = work.dict()
-    doc[fld] = [tag_answer(fld, raw)]
+    for fld, raws in answers.items():
+        refs = tag_answers(fld, raws)
+        doc[fld] = refs if fld in MANY else refs[:1]
+    fields = list(answers)
     comment = note.strip() or _("Filled in %(field)s from Open Library Tasks", field=label)
-    web.ctx.site.save(doc, comment=comment, action=ACTION, data={"source": SOURCE, "field": fld})
+    site.get().save(doc, comment=comment, action=ACTION, data=change_data(fields[0], initiative, fields=fields))
 
 
-def save_cover(edition, file, from_amazon: bool = False) -> None:
+def save_cover(edition, file, from_amazon: bool = False, initiative: str = "") -> None:
     """Upload the image and put it first on the edition, as the add-cover page does."""
     if not getattr(file, "filename", ""):
         raise InvalidAnswer(_("Choose an image of the cover."))
@@ -125,7 +141,7 @@ def save_cover(edition, file, from_amazon: bool = False) -> None:
     if not (cover_id := data.get("id")):
         raise InvalidAnswer(_("That isn't an image Open Library can use. Choose a JPG, GIF, PNG or WebP under 10 MB."))
     edition.covers = [cover_id] + [c.id for c in edition.get_covers()]
-    change = {"source": SOURCE, "field": "covers"}
+    change = change_data("covers", initiative)
     # The browser uploads the Amazon image it showed; passing it to coverstore as a URL would download it again there.
     if from_amazon and (isbn10 := edition.get_isbn10()):
         change["url"] = AMAZON_COVER.format(isbn10=isbn10)
@@ -135,7 +151,7 @@ def save_cover(edition, file, from_amazon: bool = False) -> None:
 
 def _tasks_changes(query: dict) -> list:
     """The changes matching ``query`` that Tasks saved, newest first. Filtered here: ``data`` filters need an index entry."""
-    changes = [c for kind in (ACTION, COVER_ACTION) for c in web.ctx.site.recentchanges(query | {"kind": kind})]
+    changes = [c for kind in (ACTION, COVER_ACTION) for c in site.get().recentchanges(query | {"kind": kind})]
     return sorted((c for c in changes if (c.data or {}).get("source") == SOURCE), key=lambda c: c.timestamp, reverse=True)
 
 

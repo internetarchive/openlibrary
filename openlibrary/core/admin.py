@@ -5,12 +5,12 @@ import random
 from datetime import UTC, date, datetime, timedelta
 
 import requests
-import web
 
 from openlibrary.core import cache
 from openlibrary.core.async_db import fetch_val
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.helpers import commify, format_date
+from openlibrary.utils.request_context import site as site_context
 
 
 class Stats:
@@ -186,13 +186,34 @@ def read_count_docs(site, ndays: int) -> list[dict]:
     return [d for d in docs if d]
 
 
+# The flat keys a count doc held before the stats job counted every initiative, by the nested key that replaced each.
+LEGACY_INITIATIVE_KEYS = {
+    "open": "initiative_open_gaps",
+    "done": "initiative_done_editions",
+    "not_found": "initiative_not_found",
+    "editions": "initiative_editions",
+    "people": "initiative_people",
+}
+
+
+def initiative_counts(doc: dict) -> dict[str, dict[str, int]]:
+    """A count doc's initiative snapshots by slug, each with ``open``, ``done``, ``not_found``, ``editions`` and ``people``.
+
+    Older docs held only the headline initiative's, in flat keys, so its history reads on across the change."""
+    if (counts := doc.get("initiatives")) is not None:
+        return counts
+    if not (slug := doc.get("initiative_slug")):
+        return {}
+    return {slug: {name: doc[key] for name, key in LEGACY_INITIATIVE_KEYS.items() if key in doc}}
+
+
 @cache.memoize(engine="memcache", key="admin._get_count_docs", expires=5 * 60)
 def get_count_docs(ndays: int) -> list[dict]:
     """Returns the count docs from admin stats database.
 
     This function is memoized to avoid accessing the db for every request.
     """
-    return read_count_docs(web.ctx.site, ndays)
+    return read_count_docs(site_context.get(), ndays)
 
 
 def get_stats(ndays=30, use_mock_data=False):

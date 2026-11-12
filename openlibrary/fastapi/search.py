@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping
 from dataclasses import dataclass
+from math import ceil
 from typing import Annotated, Any, Literal, Self
 from urllib.parse import urlencode
 
@@ -20,6 +21,7 @@ from pydantic import (
 
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import fulltext_search_async, resolve_language
+from openlibrary.core.helpers import commify
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell.request import PageMeta
 from openlibrary.fastapi.models import (
@@ -28,7 +30,7 @@ from openlibrary.fastapi.models import (
     SolrInternalsParams,
     parse_comma_separated_list,
 )
-from openlibrary.fastapi.shared.site_page import SitePage, SitePageRoute
+from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SitePageRoute
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
@@ -294,9 +296,13 @@ async def search_json(
     return raw_response
 
 
+class SearchInsidePagination(Pagination):
+    limit: int = Field(20, ge=0, le=100, description="Maximum number of results to return (max 100).")
+
+
 @router.get("/search/inside.json")
 async def search_inside_json(
-    pagination: Annotated[PaginationLimit20, Depends()],
+    pagination: Annotated[SearchInsidePagination, Depends()],
     q: Annotated[str, Query(title="Search query")],
     facets: Annotated[bool, Query(description="Include facet aggregations in the response.")] = True,
     readable: Annotated[bool, Query(description="Drop matches that aren't readable (public or borrowable) scans. hits.total still counts them.")] = False,
@@ -590,3 +596,38 @@ class AdvancedSearchForm(BaseModel):
 @pages.get("/advancedsearch")
 async def advancedsearch(form: Annotated[AdvancedSearchForm, Query()], nav: SearchNavDep) -> SitePage:
     return SitePage(render_jinja_template("search/advancedsearch.html.jinja", form=form, nav=nav), page=PageMeta(title=_("Advanced Search")))
+
+
+def lists_search_title(q: str) -> str:
+    """Page title for /search/lists: led by the query, as in Wikipedia's, so tabs and history tell searches apart."""
+    return _("%(query)s - List search", query=q) if q else _("List search")
+
+
+@pages.get("/search/lists")
+async def search_lists(nav: SearchNavDep, user: CurrentUserDep, q: str = "", page: int = 1) -> SitePage:
+    # TODO: Retire the web.py `list_search` handler (it still serves /search/lists
+    # in production) once production routes /search/lists here.
+    page = max(1, page)
+    limit = 20  # Can't set fields or limit when rendering html
+    response = await run_solr_query_async(
+        ListSearchScheme(),
+        {"q": q},
+        offset=(page - 1) * limit,
+        rows=limit,
+        fields="key",
+        sort="",
+        request_label="LIST_SEARCH",
+    )
+    lists = site.get().get_many([doc["key"] for doc in response.docs])
+
+    body = render_jinja_template(
+        "search/lists.html.jinja",
+        nav=nav,
+        q=q,
+        search_response=response,
+        previews=[lst.card(user.key if user else None) for lst in lists],
+        commified_num_found=commify(response.num_found),
+        page=page,
+        total_pages=ceil(response.num_found / limit),
+    )
+    return SitePage(body, page=PageMeta(title=lists_search_title(q)))

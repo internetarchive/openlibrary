@@ -25,6 +25,7 @@
         {% endif %}
         <main {% if layout.show_ol_shell %} id="test-body-mobile" tabindex="-1"{% endif %}>
             {% if layout.show_ol_shell %}
+                {% include "shell/edit_saved.html.jinja" %}
                 {% if layout.flash_messages %}
                     <div class="flash-messages">
                         {% for flash in layout.flash_messages %}

@@ -281,9 +281,9 @@ This trade-off is the crux of the Feed Registry / Acquisitions epic and is not y
 
 ## Dependencies
 
-*Depends on →* [[../lending|Lending]] (shares `EbookAccess`, `book_providers.py`), Infogami edition objects, Solr (`enumsConfig.xml`).
-*Depended on by →* [[../features|Features]], Solr search (`ebook_access`, `has_fulltext`), Read/Borrow/Download buttons.
+*Depends on →* [Lending](README.md) (shares `EbookAccess`, `book_providers.py`), Infogami edition objects, Solr (`enumsConfig.xml`).
+*Depended on by →* [Features](../features/README.md), Solr search (`ebook_access`, `has_fulltext`), Read/Borrow/Download buttons.
 
 ---
 
-*See [[README]] · [[METHODOLOGY]] for ingest rules*
+*See [README](../README.md) · [[METHODOLOGY]] for ingest rules*
