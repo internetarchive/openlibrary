@@ -165,7 +165,7 @@ def fake_initiatives(monkeypatch):
         raise AssertionError("the stats run must not pick and freeze a list")
 
     def initiative(slug, fields):
-        return SimpleNamespace(slug=slug, store_key=f"contribute-initiative-{slug}", fields=fields, ends_at=None)
+        return SimpleNamespace(slug=slug, store_key=f"contribute-initiative-{slug}", fields=fields, ends_at=None, start=None)
 
     registry = [initiative("most-read-test", ("covers", "publishers")), initiative("genres-test", ("genres",))]
     initiatives = SimpleNamespace(
@@ -174,7 +174,7 @@ def fake_initiatives(monkeypatch):
         started=lambda definitions: registry,
         gaps_for=gaps_for,
         build_gaps=build_gaps,
-        progress=lambda gaps, fields: {"open": 1, "done": 1, "not_found": 1, "total": 2, "percent": 91},
+        progress=lambda gaps, fields, start: {"open": 1, "done": 1, "not_found": 1, "total": 2, "percent": 91},
         calls=calls,
     )
     monkeypatch.setattr(numbers, "_initiative", lambda: initiatives)

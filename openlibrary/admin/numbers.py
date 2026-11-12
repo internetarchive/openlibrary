@@ -322,7 +322,7 @@ def admin_range__initiatives(**kargs):
             continue
         if not (frozen := site.get().store.get(initiative.store_key)):
             continue
-        p = initiatives.progress(initiatives.gaps_for(frozen["editions"], site.get()), initiative.fields)
+        p = initiatives.progress(initiatives.gaps_for(frozen["editions"], site.get()), initiative.fields, initiative.start)
         counts[initiative.slug] = {
             "open": p["open"],
             "done": p["done"],

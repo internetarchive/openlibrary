@@ -85,9 +85,14 @@ def test_summary_figures_come_from_the_gaps_and_the_latest_count(client):
 def test_a_project_page_breaks_progress_down_by_detail(client, request_context_fixture):
     # The plural "out of" strings read the request's language.
     request_context_fixture(lang="en")
+    # Two covers and the publisher open at the start: one cover filled since, and nobody could find the publisher.
+    start = {"open": 3, "fields": {"covers": {"open": 2, "not_found": 0}, "publishers": {"open": 1, "not_found": 0}}}
+    rows = {r["label"]: r for r in manage.build_field_rows(replace(MOST_READ, start=start), GAPS)}
+    assert rows["Cover"] == {"label": "Cover", "open": "1", "not_found": "0", "filled": "1", "percent": 50, "out_of": "2 editions", "had": "0"}
+    assert rows["Publisher"] == {"label": "Publisher", "open": "0", "not_found": "1", "filled": "0", "percent": 100, "out_of": "1 edition", "had": "1"}
+    # No start recorded yet: today is the start, so nothing has moved.
     rows = {r["label"]: r for r in manage.build_field_rows(MOST_READ, GAPS)}
-    assert rows["Cover"] == {"label": "Cover", "open": "1", "not_found": "0", "filled": "1", "percent": 50, "out_of": "2 editions"}
-    assert rows["Publisher"] == {"label": "Publisher", "open": "0", "not_found": "1", "filled": "1", "percent": 100, "out_of": "2 editions"}
+    assert rows["Cover"] == {"label": "Cover", "open": "1", "not_found": "0", "filled": "0", "percent": 0, "out_of": "1 edition", "had": "1"}
     html = client.get(f"/tasks/admin/{MOST_READ.slug}").text
     assert "40 saves, 2 since undone (5%)" in html
     assert "From 9 to 5 over 2 days" in html

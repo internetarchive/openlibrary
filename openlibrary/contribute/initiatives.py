@@ -1,6 +1,7 @@
 """An initiative: a fixed list of editions that Tasks works through, and the fields it asks about.
 
-The list is picked once and frozen in the store, so progress means gaps filled, not a pool that drifts as books get fixed.
+The list is picked once and frozen in the store, and what it had open then is kept, so progress counts up from 0% as the
+gaps open at the start close, not against a pool that drifts as books get fixed.
 Nothing builds it by hand: the first request after a deploy starts the pick on a background thread, as ``pool`` does.
 Several initiatives run at once; ``/tasks`` opens on ``headline()`` and the others are a click away.
 
@@ -14,13 +15,13 @@ import logging
 import re
 from collections import Counter
 from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime, time, timedelta
 
 from infogami.infobase.client import ClientException
 from infogami.utils.delegate import create_site
 from openlibrary.contribute import pool, tasks
-from openlibrary.core import cache
+from openlibrary.core import admin, cache
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.helpers import commify, format_date
 from openlibrary.core.tags import GENRES, LITERARY_FORMS
@@ -71,6 +72,9 @@ class Initiative:
     # Off the public pages whatever its dates; its saves and stats carry on.
     hidden: bool = False
     featured: bool = False
+    # What was open when the list was frozen, so progress counts up from 0%: ``{"open": n, "fields": {field: {"open": n,
+    # "not_found": n}}}``. None until the first gaps build records it (``record_start``).
+    start: dict | None = field(default=None, hash=False, compare=False)
 
     @property
     def store_key(self) -> str:
@@ -348,6 +352,8 @@ def from_definition(doc: dict, base: Initiative | None = None) -> Initiative | N
         changes["size"] = doc["size"]
     changes |= {key: parse_time(doc[key]) for key in ("starts_at", "ends_at") if key in doc}
     changes |= {key: bool(doc[key]) for key in ("hidden", "featured") if key in doc}
+    if isinstance(doc.get("start"), dict):
+        changes["start"] = doc["start"]
     initiative = replace(start, **changes)
     if not base and (picker := make_picker(str(doc.get("picker") or ""), initiative.fields)):
         initiative = replace(initiative, pick=picker)
@@ -509,9 +515,45 @@ def build_gaps_in_thread(initiative: Initiative) -> list[list]:
     site = create_site()
     token = request_site.set(site)
     try:
-        return build_gaps(initiative, site)
+        gaps = build_gaps(initiative, site)
+        if gaps and not initiative.start:
+            record_start(initiative, site, gaps)
+        return gaps
     finally:
         request_site.reset(token)
+
+
+def first_counted_open(initiative: Initiative, site) -> int | None:
+    """The open details the stats job first counted for the initiative, the first point of its "Tasks left" line; None if it never has."""
+    if not (frozen := site.store.get(initiative.store_key)):
+        return None
+    days = (date.today() - datetime.fromisoformat(frozen["frozen_at"]).date()).days + 1
+    counts = (admin.initiative_counts(doc).get(initiative.slug, {}) for doc in admin.read_count_docs(site, max(days, 1)))
+    return next((c["open"] for c in counts if "open" in c), None)
+
+
+def record_start(initiative: Initiative, site, gaps: list[list]) -> None:
+    """Store what is open now as where the initiative started, once. One that ran before starts were recorded takes its
+    total from the stats job's first count, so the work done since still shows; its per-detail figures can only be today's."""
+    doc = definition_doc(site, initiative.slug)
+    # Gone, or a stored one deleted while this build ran: writing would bring back a doc with no title.
+    if doc.get("start") or (not doc and not is_builtin(initiative)):
+        return
+    counts = {f: field_counts(gaps, f) for f in set(initiative.fields)}
+    still_open = sum(c["open"] for c in counts.values())
+    first = first_counted_open(initiative, site)
+    start = {
+        "at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "open": still_open if first is None else first,
+        "fields": {f: {"open": c["open"], "not_found": c["not_found"]} for f, c in counts.items()},
+    }
+    try:
+        site.store[definition_key(initiative.slug)] = (doc or {"type": DEFINITION_TYPE, "slug": initiative.slug}) | {"start": start}
+    except ClientException:
+        # Someone changed the definition as this wrote; the next build tries again.
+        logger.info("Could not record where %s started", initiative.slug)
+        return
+    cache.get_memcache().delete("contribute.definitions")
 
 
 def get_gaps(initiative: Initiative) -> list[list] | None:
@@ -544,22 +586,31 @@ def field_counts(gaps: list[list], fld: str) -> dict[str, int]:
     return {"total": len(works), "open": len(still_open), "not_found": len(not_found)}
 
 
-def progress(gaps: list[list], fields: tuple[str, ...]) -> dict[str, int]:
+def closed_share(start: int, still_open: int) -> int:
+    """The percent of ``start`` open details closed since. Rounded down, so it only reads 100 when nothing is left, and
+    never below 0, which a detail emptied after the start would otherwise push it to."""
+    if not start:
+        return 0 if still_open else 100
+    return max(0, (start - still_open) * 100 // start)
+
+
+def progress(gaps: list[list], fields: tuple[str, ...], start: dict | None = None) -> dict[str, int]:
     """How far an initiative has come: editions with nothing left to fill, out of all of them, the gaps still open, and the
-    share of details filled. A detail nobody could find counts as filled, so every save or "couldn't find it" moves it.
+    share of the gaps open at ``start`` (``Initiative.start``) closed since; without one, today is the start.
+    A detail nobody could find counts as closed, so every save or "couldn't find it" moves it.
     Only ``fields`` count, the initiative's own; the gaps keep the rest for the unlinked filters. A work field counts
     once per work (see ``field_counts``), so one answer is one gap closed."""
     wanted = set(fields)
     counts = [field_counts(gaps, f) for f in wanted]
     open_count = sum(c["open"] for c in counts)
-    slots = sum(c["total"] for c in counts)
+    began = start["open"] if start and "open" in start else open_count
     return {
         "done": sum(1 for row in gaps if not wanted.intersection(row[2])),
         "total": len(gaps),
         "open": open_count,
         "not_found": sum(c["not_found"] for c in counts),
-        # Rounded down, so it only reads 100 when nothing is left.
-        "percent": (slots - open_count) * 100 // slots if slots else 0,
+        "start": began,
+        "percent": closed_share(began, open_count),
     }
 
 

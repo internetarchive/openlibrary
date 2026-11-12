@@ -4317,7 +4317,7 @@ msgid "The most-shelved books"
 msgstr ""
 
 #: contribute/admin/new.html.jinja
-msgid "Whether or not they need anything, so the starting progress shows how complete they are."
+msgid "Whether or not they need anything. Books with nothing missing add no tasks."
 msgstr ""
 
 #: contribute/admin/new.html.jinja
@@ -4440,7 +4440,7 @@ msgid "Defined in code"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Details filled"
+msgid "Tasks done"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -4485,7 +4485,11 @@ msgid "Not found"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Out of"
+msgid "Open at start"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Already had it"
 msgstr ""
 
 #: contribute/admin/project.html.jinja

@@ -98,8 +98,8 @@ def test_gaps_list_open_fields_and_set_aside_ones_nobody_could_find():
     )
     gaps = initiatives.build_gaps(make_initiative([]), site)
     assert gaps == [["/books/OL1M", 9, ["publishers"], ["lccn"], "/works/OL1W"], ["/books/OL2M", 8, [], [], "/works/OL1W"]]
-    # 2 editions x 4 fields = 8 details, 1 still open: 7/8 filled, rounded down. The unfound LCCN isn't one of the fields, so it doesn't count.
-    assert initiatives.progress(gaps, FOUR) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
+    # 1 detail still open; with no start recorded, today is the start. The unfound LCCN isn't one of the fields, so it doesn't count.
+    assert initiatives.progress(gaps, FOUR) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "start": 1, "percent": 0}
 
 
 def test_a_work_level_gap_is_read_from_the_edition_s_work():
@@ -131,22 +131,62 @@ def test_a_work_field_counts_once_per_work_and_an_edition_field_once_per_edition
     ]
     assert initiatives.field_counts(gaps, "genres") == {"total": 2, "open": 1, "not_found": 1}
     assert initiatives.field_counts(gaps, "covers") == {"total": 3, "open": 1, "not_found": 0}
-    # Five slots, three covers and two works' genres, with two still open.
-    assert initiatives.progress(gaps, ("covers", "genres")) == {"done": 1, "total": 3, "open": 2, "not_found": 1, "percent": 60}
+    # Two open: one edition's cover and one work's genres. Eight open at the start, so six closed.
+    assert initiatives.progress(gaps, ("covers", "genres"), {"open": 8}) == {"done": 1, "total": 3, "open": 2, "not_found": 1, "start": 8, "percent": 75}
     # Rows cached before they carried the work each stand for themselves.
     assert initiatives.field_counts([row[:4] for row in gaps], "genres") == {"total": 3, "open": 2, "not_found": 1}
 
 
 def test_progress_counts_only_the_initiative_s_fields():
     gaps = [["/books/OL1M", 9, ["literary_forms"], []], ["/books/OL2M", 8, ["publishers"], ["literary_forms"]]]
-    assert initiatives.progress(gaps, ("publishers", "covers")) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 75}
-    assert initiatives.progress(gaps, initiatives.TAGS.fields) == {"done": 1, "total": 2, "open": 1, "not_found": 1, "percent": 75}
+    assert initiatives.progress(gaps, ("publishers", "covers"), {"open": 4}) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "start": 4, "percent": 75}
+    assert initiatives.progress(gaps, initiatives.TAGS.fields, {"open": 4}) == {"done": 1, "total": 2, "open": 1, "not_found": 1, "start": 4, "percent": 75}
     assert initiatives.progress(gaps, tuple(tasks.POINTS))["open"] == 2
 
 
 def test_progress_leaves_out_fields_the_initiative_does_not_ask_about():
     gaps = [["/books/OL1M", 9, ["lccn", "oclc_numbers"], []], ["/books/OL2M", 8, ["covers"], ["oclc_numbers"]]]
-    assert initiatives.progress(gaps, FOUR) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
+    assert initiatives.progress(gaps, FOUR, {"open": 2}) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "start": 2, "percent": 50}
+
+
+def test_progress_counts_up_from_what_was_open_at_the_start():
+    assert initiatives.closed_share(2576, 2576) == 0
+    assert initiatives.closed_share(2576, 1288) == 50
+    # Rounded down, so it reads 100 only once nothing is left.
+    assert (initiatives.closed_share(2576, 1), initiatives.closed_share(2576, 0)) == (99, 100)
+    # A detail emptied after the start can push open past it; the share stops at 0.
+    assert initiatives.closed_share(10, 12) == 0
+    assert (initiatives.closed_share(0, 0), initiatives.closed_share(0, 3)) == (100, 0)
+
+
+def test_the_start_is_recorded_once_from_the_first_count_when_there_is_one(monkeypatch):
+    gaps = [["/books/OL1M", 9, ["covers"], ["languages"]], ["/books/OL2M", 8, ["covers", "publishers"], []]]
+    initiative = initiatives.Initiative("test", 2, None, ("covers", "languages", "publishers"))
+    site = FakeSite(store={"contribute-project-test": {"type": "contribute-project", "slug": "test", "title": "Test"}})
+    monkeypatch.setattr(initiatives, "first_counted_open", lambda initiative, site: None)
+    initiatives.record_start(initiative, site, gaps)
+    start = site.store["contribute-project-test"]["start"]
+    assert (start["open"], start["fields"]["covers"], start["fields"]["languages"]) == (3, {"open": 2, "not_found": 0}, {"open": 0, "not_found": 1})
+    assert site.store["contribute-project-test"]["title"] == "Test"
+    # Recorded once: a later build leaves it be.
+    initiatives.record_start(initiative, site, [])
+    assert site.store["contribute-project-test"]["start"] == start
+    # One that ran before starts were kept takes its total from the first nightly count.
+    monkeypatch.setattr(initiatives, "first_counted_open", lambda initiative, site: 40)
+    site = FakeSite(store={"contribute-project-test": {"type": "contribute-project", "slug": "test", "title": "Test"}})
+    initiatives.record_start(initiative, site, gaps)
+    assert site.store["contribute-project-test"]["start"]["open"] == 40
+
+
+def test_a_deleted_project_gets_no_start_written_back():
+    site = FakeSite()
+    initiatives.record_start(initiatives.Initiative("gone", 2, None, FOUR), site, [["/books/OL1M", 9, ["covers"], []]])
+    assert site.store.get("contribute-project-gone") is None
+
+
+def test_a_stored_start_reaches_the_initiative():
+    doc = {"slug": "x", "title": "X", "fields": ["covers"], "start": {"open": 5}}
+    assert initiatives.from_definition(doc).start == {"open": 5}
 
 
 def test_every_task_field_has_a_not_found_threshold():
@@ -229,11 +269,13 @@ def test_the_pool_s_thread_builds_on_a_fresh_site_that_is_also_its_request_site(
     fresh, outer = object(), object()
     monkeypatch.setattr(initiatives, "create_site", lambda: fresh)
     monkeypatch.setattr(initiatives, "build_gaps", lambda initiative, site: seen.update(site=site, request=initiatives.request_site.get()) or ["gaps"])
+    monkeypatch.setattr(initiatives, "record_start", lambda initiative, site, gaps: seen.update(start=(site, gaps)))
     # Other tests can leave the ContextVar set, so pin a known outer value and check it comes back.
     token = initiatives.request_site.set(outer)
     try:
         assert initiatives.build_gaps_in_thread(initiatives.TAGS) == ["gaps"]
-        assert seen == {"site": fresh, "request": fresh}
+        # The first build with no start recorded notes one, on the same site.
+        assert seen == {"site": fresh, "request": fresh, "start": (fresh, ["gaps"])}
         assert initiatives.request_site.get() is outer
     finally:
         initiatives.request_site.reset(token)

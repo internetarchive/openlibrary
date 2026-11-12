@@ -120,7 +120,7 @@
             <ul class="contrib-admin__tiles">
                 <li>
                     <span class="contrib-admin__tile-value">{{ _("%(percent)s%%", percent=project.progress.percent) }}</span>
-                    <span class="contrib-admin__tile-label">{{ _("Details filled") }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("Tasks done") }}</span>
                 </li>
                 <li>
                     <span class="contrib-admin__tile-value">{{ page.done }}</span>
@@ -157,7 +157,8 @@
                             <th scope="col" class="contrib-admin__num">{{ _("Filled") }}</th>
                             <th scope="col" class="contrib-admin__num">{{ _("Still open") }}</th>
                             <th scope="col" class="contrib-admin__num">{{ _("Not found") }}</th>
-                            <th scope="col" class="contrib-admin__num">{{ _("Out of") }}</th>
+                            <th scope="col" class="contrib-admin__num">{{ _("Open at start") }}</th>
+                            <th scope="col" class="contrib-admin__num">{{ _("Already had it") }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -176,6 +177,7 @@
                                 <td class="contrib-admin__num">{{ row.open }}</td>
                                 <td class="contrib-admin__num">{{ row.not_found }}</td>
                                 <td class="contrib-admin__num">{{ row.out_of }}</td>
+                                <td class="contrib-admin__num contrib-muted">{{ row.had }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

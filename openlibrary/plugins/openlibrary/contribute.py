@@ -433,7 +433,7 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
     cards = []
     for initiative in initiatives.listed():
         gaps = initiatives.get_gaps(initiative)
-        p = initiatives.progress(gaps, initiative.fields) if gaps else None
+        p = initiatives.progress(gaps, initiative.fields, initiative.start) if gaps else None
         people = get_initiative_people(initiative) if p else 0
         finished = initiative.status() == "ended"
         cards.append(

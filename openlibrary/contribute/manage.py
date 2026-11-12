@@ -60,7 +60,7 @@ def build_summary(initiative: initiatives.Initiative, docs: list[dict]) -> dict:
     status = initiative.status()
     started = status in ("live", "ended") or not initiatives.is_builtin(initiative)
     gaps = initiatives.get_gaps(initiative) if started else None
-    progress = initiatives.progress(gaps, initiative.fields) if gaps is not None else None
+    progress = initiatives.progress(gaps, initiative.fields, initiative.start) if gaps is not None else None
     guides = get_field_guides()
     return initiatives.describe(initiative) | {
         "slug": initiative.slug,
@@ -89,25 +89,30 @@ def build_index() -> dict:
 
 
 def build_field_rows(initiative: initiatives.Initiative, gaps: list[list]) -> list[dict]:
-    """Per field the initiative asks about: books still missing it, books where nobody could find it, and the rest."""
+    """Per field the initiative asks about, against what was open at the start: filled since, nobody could find since,
+    still open, and the books that already had it. Without a recorded start, today is the start."""
     guides = get_field_guides()
+    starts = (initiative.start or {}).get("fields") or {}
     rows = []
     for fld in initiative.fields:
         counts = initiatives.field_counts(gaps, fld)
         total, still_open, not_found = counts["total"], counts["open"], counts["not_found"]
+        began = starts.get(fld) or {"open": still_open, "not_found": not_found}
+        unfound = max(0, not_found - began["not_found"])
         rows.append(
             {
                 "label": guides[fld].label if fld in guides else fld,
                 "open": commify(still_open),
-                "not_found": commify(not_found),
-                "filled": commify(total - still_open - not_found),
-                "percent": (total - still_open) * 100 // total if total else 0,
+                "not_found": commify(unfound),
+                "filled": commify(max(0, began["open"] - still_open - unfound)),
+                "percent": initiatives.closed_share(began["open"], still_open),
                 # A work detail is counted once per work, an edition detail once per edition.
                 "out_of": (
-                    ungettext("%(count)s work", "%(count)s works", total, count=commify(total))
+                    ungettext("%(count)s work", "%(count)s works", began["open"], count=commify(began["open"]))
                     if fld in tasks.WORK_FIELDS
-                    else ungettext("%(count)s edition", "%(count)s editions", total, count=commify(total))
+                    else ungettext("%(count)s edition", "%(count)s editions", began["open"], count=commify(began["open"]))
                 ),
+                "had": commify(max(0, total - began["open"] - began["not_found"])),
             }
         )
     return rows
