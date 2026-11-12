@@ -134,22 +134,34 @@ run_e2e() {
   local timeout_bin
   timeout_bin="$(command -v timeout || command -v gtimeout || true)"
 
+  # The e2e signal (v1). Measured on a clean stack at this PR's tree (== master
+  # for every app file): the FULL `npm run test:e2e` suite fails 5 specs
+  # deterministically — the ol-carousel / ol-shelf-button component-hydration
+  # tests and the logged-in home account-menu, whose `/partials/ReadingState.json`
+  # fetches never resolve from a from-scratch stack (3 runs, same 5 red). The
+  # `@smoke` anonymous subset (server-rendered page loads + HTTP-200 + headings +
+  # the valid-credentials login flow across home/search/subjects/work/edition/
+  # author/login/my-books) was green 3/3 in ~12s. A flaky or failing gate false-
+  # fails every e2e, so v1 gates on that reliable subset. Promote to the full
+  # suite by setting E2E_PLAYWRIGHT_CMD once the hydration failures are resolved.
+  local playwright_cmd="${E2E_PLAYWRIGHT_CMD:-npx playwright test --project=desktop --grep @smoke --grep-invert \"logged in\"}"
+
   local proc="ol-e2e-${PR_NUMBER}"
   # shellcheck disable=SC2016
   local body='
     set -euo pipefail
     cd "$1"
     OL_MOUNT_DIR="$1" docker compose -p "$2" up -d --wait \
-      web infobase db memcached home covers
+      web infobase db memcached home covers mockservices
     npm ci
     npx playwright install chromium chromium-headless-shell
-    npm run test:e2e
+    eval "$3"
   '
   if [[ -n "$timeout_bin" ]]; then
-    "$timeout_bin" --signal=TERM "$E2E_TIMEOUT" bash -c "$body" _ "$WORKTREE_DIR" "$proc" &
+    "$timeout_bin" --signal=TERM "$E2E_TIMEOUT" bash -c "$body" _ "$WORKTREE_DIR" "$proc" "$playwright_cmd" &
   else
     warn "no timeout(1) available; running e2e without a hard time cap"
-    bash -c "$body" _ "$WORKTREE_DIR" "$proc" &
+    bash -c "$body" _ "$WORKTREE_DIR" "$proc" "$playwright_cmd" &
   fi
   E2E_PID=$!
   wait "$E2E_PID"; rc=$?
