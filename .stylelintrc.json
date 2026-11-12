@@ -7,7 +7,6 @@
     "scale-unlimited/declaration-strict-value": [
       [
         "font-family",
-        "font-weight",
         "background-color",
         "z-index",
         "color"
@@ -24,6 +23,13 @@
       {
         "severity": "warning",
         "message": "Use a semantic or local z-index token, not a --z-index-level-* primitive (#12363)"
+      }
+    ],
+    "declaration-property-value-allowed-list": [
+      { "font-weight": ["/^var\\(/", "inherit"] },
+      {
+        "severity": "warning",
+        "message": "Use a --font-weight-* token (#14298)"
       }
     ],
     "color-no-hex": true,
@@ -54,10 +60,10 @@
   },
   "overrides": [
     {
-      "files": ["static/css/fonts/*.css"],
+      "files": ["static/css/base/common.css"],
       "rules": {
         "scale-unlimited/declaration-strict-value": [
-          ["font-family", "background-color", "z-index", "color"],
+          ["font-family", "font-weight", "background-color", "z-index", "color"],
           {
             "disableFix": true,
             "ignoreValues": ["inherit", "transparent", "none"]
@@ -66,12 +72,25 @@
       }
     },
     {
+      "files": ["static/css/fonts/*.css"],
+      "rules": {
+        "declaration-property-value-allowed-list": null
+      }
+    },
+    {
       "files": ["openlibrary/**/*.js"],
       "customSyntax": "postcss-lit",
       "rules": {
         "scale-unlimited/declaration-strict-value": [
-          ["font-size", "font-weight", "z-index"],
+          ["z-index"],
           { "disableFix": true, "ignoreValues": ["inherit", "transparent", "none"] }
+        ],
+        "declaration-property-value-allowed-list": [
+          { "font-size": ["/^var\\(/", "inherit"], "font-weight": ["/^var\\(/", "inherit"] },
+          {
+            "severity": "warning",
+            "message": "Use a --font-size-* or --font-weight-* token (#14298)"
+          }
         ],
         "color-no-hex": null,
         "color-named": null,

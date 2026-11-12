@@ -97,7 +97,7 @@ export class OpenLibraryOTP extends LitElement {
                 background: none;
                 border: none;
                 /* A text glyph, not type; held for the icon decision in #14298. */
-                /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
+                /* stylelint-disable-next-line declaration-property-value-allowed-list */
                 font-size: 1.5rem;
                 cursor: pointer;
                 line-height: 1;

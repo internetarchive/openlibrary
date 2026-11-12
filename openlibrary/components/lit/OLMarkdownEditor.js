@@ -221,7 +221,7 @@ export class OLMarkdownEditor extends LitElement {
             padding: 0.1em 0.3em;
             font-family: monospace;
             /* Relative so inline code tracks the heading or paragraph around it. */
-            /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
+            /* stylelint-disable-next-line declaration-property-value-allowed-list */
             font-size: 0.85em;
         }
 
