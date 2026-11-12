@@ -1,0 +1,64 @@
+# Oracle checklist — LEAD role.
+#
+# PURE DATA for the Oracle engine (see ada.yml header). A lead's only job at its
+# stop: keep the division NOW current with the adas beneath it. The NOW lives in
+# ONE dedicated per-division GitHub issue titled `[NOW] <division>`. The lead
+# AUTHORS the NOW (judgment + priorities) on top of the pulled state.
+#
+# The float-up is the LEAD PULLING at its own stop — never an ada pushing.
+#
+# CONFIG — explicit, from the lead's ENVIRONMENT (set at launch / by the wire).
+# The engine does NOT derive these; it passes os.environ through unchanged, and
+# the registry has no clean per-lead "division" field yet (a deferred design
+# question — not solved here). So for the prototype the lead must be launched with:
+#   ORACLE_DIVISION    — the division name, used in the `[NOW] <division>` title.
+#   ORACLE_CHILD_QUERY — a gh search fragment selecting THIS lead's ada issues.
+#                        OL does not label by division, so there is no useful
+#                        default; set it explicitly, e.g. `assignee:openlibrary-bot`
+#                        or the trial ada's issue/PR query.
+# Fail-safe: if ORACLE_DIVISION is unset the lead oracle is INERT by design (every
+# check no-ops to allow-stop); now-current also no-ops without ORACLE_CHILD_QUERY,
+# rather than silently matching nothing. Same spirit as the whoami role gate.
+
+context: []
+
+states:
+  # The NOW issue must exist before it can be kept current.
+  - id: now-exists
+    check: |-
+      [ -n "$ORACLE_DIVISION" ] || exit 0
+      test -n "$(gh issue list --state open \
+        --search 'in:title "[NOW] '"$ORACLE_DIVISION"'"' \
+        --json number -q '.[0].number' 2>/dev/null)"
+    prompt: |
+      No open `[NOW] $ORACLE_DIVISION` issue found. Create ONE dedicated issue
+      titled exactly `[NOW] $ORACLE_DIVISION`. Its body is your division's NOW:
+      the current priorities and state across your adas, authored in your words.
+
+  # NOW current with adas: no owned child issue has changed more recently than the
+  # NOW was last authored. Children are compared on `updatedAt` (intentionally
+  # sensitive — over-checking is the safe direction); the NOW is anchored on its
+  # body `lastEditedAt` (falling back to createdAt), which only the lead AUTHORING
+  # a reconciliation moves. This GraphQL + timestamp comparison is the predicate
+  # most worth promoting to an ENGINE builtin (precise lastEditedAt handling and
+  # clean fail-open); the inline form below is the working best-effort.
+  - id: now-current
+    check: |-
+      { [ -n "$ORACLE_DIVISION" ] && [ -n "$ORACLE_CHILD_QUERY" ]; } || exit 0
+      REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)
+      R=$(gh api graphql \
+        -f query='query($now:String!,$kids:String!){
+          now: search(query:$now, type:ISSUE, first:5){nodes{... on Issue{number title lastEditedAt createdAt}}}
+          kids: search(query:$kids, type:ISSUE, first:50){nodes{... on Issue{number updatedAt}}}}' \
+        -f now="repo:$REPO is:issue is:open in:title \"[NOW] $ORACLE_DIVISION\"" \
+        -f kids="repo:$REPO is:issue $ORACLE_CHILD_QUERY" \
+        -q '(.data.now.nodes[0]) as $n
+            | ($n | (.lastEditedAt // .createdAt)) as $a
+            | ([.data.kids.nodes[] | select(.number != $n.number) | .updatedAt] | max // $a) as $m
+            | ($m <= $a)' 2>/dev/null)
+      [ "$R" = "true" ]
+    prompt: |
+      An owned issue has changed more recently than your `[NOW] $ORACLE_DIVISION`
+      was last authored. Pull the latest from your adas' issues, then reconcile the
+      NOW: re-author it with your judgment and priorities on top of what changed —
+      do not just paste their updates. Editing the issue body re-stamps it current.
