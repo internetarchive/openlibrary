@@ -8,6 +8,37 @@ const LS_RESULTS_LENGTH_KEY = 'editions-table.resultsLength';
 const DATATABLES_DOM = 'lfrti';
 
 /**
+ * Strip diacritics so "germenes" and "gérmenes" match each other.
+ * DataTables 1.x has no diacritic-insensitive search, so both the cell text and
+ * the search term are folded with this.
+ * @param {string} text
+ * @returns {string}
+ */
+export function foldDiacritics(text) {
+    return String(text).normalize('NFD').replace(/\p{M}/gu, '');
+}
+
+// Column renderer: folded text for filtering, the cell unchanged for everything else.
+function renderFoldedForFilter(data, type) {
+    return type === 'filter' ? foldDiacritics(data) : data;
+}
+
+/**
+ * Replace DataTables' handler on the search box with one that folds the term,
+ * so a search typed with or without accents matches the folded cell text.
+ * @param {object} table - DataTables API instance for #editions
+ */
+function initDiacriticInsensitiveSearch(table) {
+    const input = $(table.table().container()).find('.dataTables_filter input');
+    input.off().on('input', function () {
+        const term = foldDiacritics(this.value);
+        if (term !== table.search()) {
+            table.search(term).draw();
+        }
+    });
+}
+
+/**
  * Point the template-rendered <ol-pagination> at the DataTable's paging state.
  * @param {object} table - DataTables API instance for #editions
  */
@@ -81,7 +112,7 @@ export function initEditionsTable() {
     } else {
         currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY));
         const table = $('#editions').DataTable({
-            aoColumns: [{ sType: 'html' }, null],
+            aoColumns: [{ sType: 'html', render: renderFoldedForFilter }, { render: renderFoldedForFilter }],
             order: [[1, 'asc']],
             lengthMenu: [
                 [3, 10, 25, 50, 100, -1],
@@ -124,5 +155,6 @@ export function initEditionsTable() {
             }
         });
         initPagination(table);
+        initDiacriticInsensitiveSearch(table);
     }
 }
