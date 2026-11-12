@@ -36,6 +36,12 @@ def no_requests(monkeypatch):
     monkeypatch.setattr("requests.sessions.Session.request", mock_request)
 
 
+@pytest.fixture(autouse=True)
+def no_stored_initiatives(monkeypatch):
+    """Tasks reads its initiatives' definitions from the store on most pages; tests get the built-in ones alone."""
+    monkeypatch.setattr("openlibrary.contribute.initiatives.cached_definitions", list)
+
+
 @pytest.fixture
 def local_dev(monkeypatch):
     """Run the test as if LOCAL_DEV=true."""

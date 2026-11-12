@@ -1,0 +1,54 @@
+{#- /tasks/admin: every community project with its status and progress. Takes `page` from manage.build_index. -#}
+{% import "contribute/admin/parts.html.jinja" as parts %}
+<div class="contrib-dash contrib-admin">
+    <header class="contrib-dash__head">
+        <hgroup class="contrib-dash__heading">
+            <h1 class="contrib-title">{{ _("Community projects") }}</h1>
+            <p class="contrib-dash__lede">{{ _("The projects on the Tasks page: what is running, what is coming and what is over.") }}</p>
+        </hgroup>
+        <nav class="contrib-dash__links" aria-label="{{ _('Project pages') }}">
+            <a class="contrib-dash__edits" href="/tasks">{{ _("Tasks") }}</a>
+            <ol-button variant="primary" size="small" href="{{ page.new_url }}">
+                {{ _("New project") }}
+            </ol-button>
+        </nav>
+    </header>
+    <div class="contrib-admin__scroll">
+        <table class="contrib-admin__table no-table-collapse">
+            <thead>
+                <tr>
+                    <th scope="col">{{ _("Project") }}</th>
+                    <th scope="col">{{ _("Status") }}</th>
+                    <th scope="col">{{ _("Runs") }}</th>
+                    <th scope="col" class="contrib-admin__num">{{ _("Books") }}</th>
+                    <th scope="col">{{ _("Progress") }}</th>
+                    <th scope="col" class="contrib-admin__num">{{ _("Tasks done") }}</th>
+                    <th scope="col" class="contrib-admin__num">{{ _("People") }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in page.projects %}
+                    <tr>
+                        <th scope="row">
+                            <a class="contrib-admin__name" href="{{ project.url }}">{{ project.title }}</a>
+                            <span class="contrib-admin__fields">{{ project.fields | join(" · ") }}</span>
+                        </th>
+                        <td>{{ parts.status(project) }}</td>
+                        <td>{{ project.run }}</td>
+                        <td class="contrib-admin__num">{{ project.books }}</td>
+                        <td>{{ parts.progress(project) }}</td>
+                        <td class="contrib-admin__num contrib-admin__minor">
+                            {%- if project.tasks_total -%}
+                                {{ _("%(done)s of %(count)s", done=project.tasks_done, count=project.tasks_total) }}
+                            {%- else -%}
+                                {{ project.tasks_done }}
+                            {%- endif -%}
+                        </td>
+                        <td class="contrib-admin__num">{{ project.people }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="contrib-admin__note">{{ _("Dates are in UTC. People are counted nightly.") }}</p>
+</div>

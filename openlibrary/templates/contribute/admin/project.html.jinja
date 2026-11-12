@@ -1,0 +1,338 @@
+{#- /tasks/admin/<slug>: one community project in detail. Takes `page` from manage.build_detail. -#}
+{% import "contribute/admin/parts.html.jinja" as parts %}
+{% set project = page.project %}
+<div class="contrib-dash contrib-admin contrib-admin--detail"
+     data-contribute-admin>
+    <header class="contrib-admin__head">
+        <a class="contrib-admin__back" href="{{ page.index_url }}">{{ _("Community projects") }}</a>
+        <div class="contrib-dash__head">
+            <hgroup class="contrib-dash__heading">
+                <h1 class="contrib-title">{{ project.title }}</h1>
+                <p class="contrib-dash__lede">{{ project.description }}</p>
+            </hgroup>
+            {% if page.public_url %}
+                <a class="contrib-dash__edits" href="{{ page.public_url }}">{{ _("View on Tasks") }}</a>
+            {% endif %}
+        </div>
+        {{ parts.status(project) }}
+        {#- One small form per action, so each is a plain POST that works without the script; the script only adds the confirm. -#}
+        <div class="contrib-admin__actions">
+            {% if page.can_headline %}
+                <form method="post"
+                      action="{{ page.urls.headline }}"
+                      data-confirm="contrib-admin-headline">
+                    <input type="hidden" name="rev" value="{{ page.rev }}" />
+                    <ol-button type="submit" variant="secondary" size="small">
+                        {{ _("Make headline") }}
+                    </ol-button>
+                </form>
+            {% endif %}
+            {% if page.can_hide %}
+                <form method="post" action="{{ page.urls.hide }}">
+                    <input type="hidden" name="rev" value="{{ page.rev }}" />
+                    <ol-button type="submit" variant="secondary" size="small">
+                        {{ _("Hide") }}
+                    </ol-button>
+                </form>
+            {% else %}
+                <form method="post" action="{{ page.urls.unhide }}">
+                    <input type="hidden" name="rev" value="{{ page.rev }}" />
+                    <ol-button type="submit" variant="secondary" size="small">
+                        {{ _("Unhide") }}
+                    </ol-button>
+                </form>
+            {% endif %}
+            {% if page.can_delete %}
+                <form method="post"
+                      action="{{ page.urls.delete }}"
+                      data-confirm="contrib-admin-delete">
+                    <ol-button type="submit" variant="secondary" tone="danger" size="small">
+                        {{ _("Delete") }}
+                    </ol-button>
+                </form>
+            {% endif %}
+            {% if page.can_stop %}
+                <form method="post"
+                      action="{{ page.urls.stop }}"
+                      data-confirm="contrib-admin-stop">
+                    <input type="hidden" name="rev" value="{{ page.rev }}" />
+                    <ol-button type="submit" variant="secondary" tone="danger" size="small">
+                        {{ _("Stop early") }}
+                    </ol-button>
+                </form>
+            {% endif %}
+        </div>
+    </header>
+    {#- Confirmation text for contribute.js; see confirm-template.js. -#}
+    <template id="contrib-admin-stop"
+              data-i18n="{{ {'title': _('Stop this project now?') , 'confirm': _('Stop project'), 'cancel': _('Cancel'), 'close': _('Close')} | tojson | forceescape }}">
+        {{ _("It will hand out no more tasks. It stays on the Tasks page as finished, with its final numbers. To run it again, change its end date.") }}
+    </template>
+    <template id="contrib-admin-delete"
+              data-i18n="{{ {'title': _('Delete this project?') , 'confirm': _('Delete project'), 'cancel': _('Cancel'), 'close': _('Close')} | tojson | forceescape }}">
+        {{ _("The project and its book list are removed. This can't be undone.") }}
+    </template>
+    <template id="contrib-admin-headline"
+              data-destructive="false"
+              data-i18n="{{ {'title': _('Make this the headline project?') , 'confirm': _('Make headline'), 'cancel': _('Cancel'), 'close': _('Close')} | tojson | forceescape }}">
+        {{ _("Links to the Tasks page that don't name a project will open this one from now on, in place of the current headline.") }}
+    </template>
+    <dl class="contrib-admin__facts">
+        <div>
+            <dt>{{ _("Runs") }}</dt>
+            <dd>
+                {{ project.run }}
+            </dd>
+        </div>
+        <div>
+            <dt>{{ _("Asks for") }}</dt>
+            <dd>
+                <ul class="contrib-admin__list">
+                    {% for field in project.fields %}<li>{{ field }}</li>{% endfor %}
+                </ul>
+            </dd>
+        </div>
+        <div>
+            <dt>{{ _("Books") }}</dt>
+            <dd>
+                {{ project.books }}
+                {% if page.picked %}
+                    <span class="contrib-muted">{{ _("List picked %(date)s", date=page.picked) }}</span>
+                {% endif %}
+                {% if page.skipped.count %}
+                    <span class="contrib-muted">{{ _("%(count)s entries left out, listed below", count=page.skipped.count) }}</span>
+                {% endif %}
+            </dd>
+        </div>
+        <div>
+            <dt>{{ _("Identifier") }}</dt>
+            <dd>
+                <code>{{ project.slug }}</code>
+                {% if page.builtin %}
+                    <span class="contrib-muted">{{ _("Defined in code") }}</span>
+                {% endif %}
+            </dd>
+        </div>
+    </dl>
+    <section class="contrib-admin__section">
+        <h2 class="contrib-overline">{{ _("Progress") }}</h2>
+        {% if project.progress %}
+            <ul class="contrib-admin__tiles">
+                <li>
+                    <span class="contrib-admin__tile-value">{{ project.tasks_done }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("Tasks done, of %(count)s", count=project.tasks_total) }}</span>
+                </li>
+                <li>
+                    <span class="contrib-admin__tile-value">{{ _("%(percent)s%%", percent=project.progress.percent) }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("Complete") }}</span>
+                </li>
+                <li>
+                    <span class="contrib-admin__tile-value">{{ page.done }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("Editions complete, of %(count)s", count=project.books) }}</span>
+                </li>
+                <li>
+                    <span class="contrib-admin__tile-value">{{ project.tasks_left }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("Tasks left") }}</span>
+                </li>
+                <li>
+                    <span class="contrib-admin__tile-value">{{ page.not_found }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("Marked not found") }}</span>
+                </li>
+                <li>
+                    <span class="contrib-admin__tile-value">{{ page.people }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("People have helped") }}</span>
+                </li>
+            </ul>
+        {% elif project.building %}
+            <p class="contrib-muted">{{ _("Getting the list ready. Reload in a minute.") }}</p>
+        {% else %}
+            <p class="contrib-muted">{{ _("Progress is counted once the project starts.") }}</p>
+        {% endif %}
+    </section>
+    {% if page.fields %}
+        <section class="contrib-admin__section">
+            <h2 class="contrib-overline">{{ _("By detail") }}</h2>
+            <div class="contrib-admin__scroll">
+                <table class="contrib-admin__table no-table-collapse">
+                    <thead>
+                        <tr>
+                            <th scope="col">{{ _("Detail") }}</th>
+                            <th scope="col">{{ _("Progress") }}</th>
+                            <th scope="col" class="contrib-admin__num">{{ _("Filled") }}</th>
+                            <th scope="col" class="contrib-admin__num">{{ _("Still open") }}</th>
+                            <th scope="col" class="contrib-admin__num">{{ _("Not found") }}</th>
+                            <th scope="col" class="contrib-admin__num">{{ _("Open at start") }}</th>
+                            <th scope="col" class="contrib-admin__num">{{ _("Already had it") }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in page.fields %}
+                            <tr>
+                                <th scope="row">{{ row.label }}</th>
+                                <td>
+                                    <span class="contrib-admin__progress">
+                                        <span class="contrib-admin__meter" aria-hidden="true">
+                                            <span class="contrib-admin__meter-fill" style="width: {{ row.percent }}%"></span>
+                                        </span>
+                                        <span class="contrib-admin__percent">{{ _("%(percent)s%%", percent=row.percent) }}</span>
+                                    </span>
+                                </td>
+                                <td class="contrib-admin__num">{{ row.filled }}</td>
+                                <td class="contrib-admin__num">{{ row.open }}</td>
+                                <td class="contrib-admin__num">{{ row.not_found }}</td>
+                                <td class="contrib-admin__num">{{ row.out_of }}</td>
+                                <td class="contrib-admin__num contrib-muted">{{ row.had }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+    {% if page.skipped.count %}
+        <section class="contrib-admin__section">
+            <h2 class="contrib-overline">{{ _("Left out of the book list") }}</h2>
+            <div class="contrib-admin__scroll">
+                <table class="contrib-admin__table no-table-collapse">
+                    <thead>
+                        <tr>
+                            <th scope="col">{{ _("Entry") }}</th>
+                            <th scope="col">{{ _("Why") }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in page.skipped.rows %}
+                            <tr>
+                                <th scope="row">
+                                    <code>{{ row.entry }}</code>
+                                </th>
+                                <td>{{ row.reason }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if page.skipped.more %}
+                <p class="contrib-admin__caption">{{ _("Only the first entries are kept.") }}</p>
+            {% endif %}
+        </section>
+    {% endif %}
+    <div class="contrib-admin__charts">
+        <section class="contrib-admin__section">
+            <h2 class="contrib-overline">{{ _("Tasks left, by day") }}</h2>
+            {% if page.trend.points %}
+                <svg class="contrib-admin__spark"
+                     viewBox="0 0 100 32"
+                     preserveAspectRatio="none"
+                     role="img"
+                     aria-label="{{ _('Tasks left went from %(first)s to %(last)s over %(days)s days', first=page.trend.first, last=page.trend.last, days=page.trend.days) }}">
+                    <polyline points="{{ page.trend.points }}" />
+                </svg>
+                <p class="contrib-admin__caption">
+                    {{ _("From %(first)s to %(last)s over %(days)s days", first=page.trend.first, last=page.trend.last, days=page.trend.days) }}
+                </p>
+            {% else %}
+                <p class="contrib-muted">{{ _("Not enough days counted yet.") }}</p>
+            {% endif %}
+        </section>
+        <section class="contrib-admin__section">
+            <h2 class="contrib-overline">{{ _("Saves, last 28 days") }}</h2>
+            {% if page.saves.bars %}
+                <ol class="contrib-admin__bars">
+                    {% for bar in page.saves.bars %}
+                        <li title="{{ bar.day }}: {{ bar.count }}">
+                            <span class="contrib-admin__bar" style="height: {{ bar.height }}%"></span>
+                            <span class="contrib-visually-hidden">{{ bar.day }}: {{ bar.count }}</span>
+                        </li>
+                    {% endfor %}
+                </ol>
+            {% endif %}
+            {% if page.saves.counted %}
+                <p class="contrib-admin__caption">
+                    {% if page.saves.undone_share %}
+                        {{ _("%(saves)s saves, %(undone)s since undone (%(share)s)", saves=page.saves.total, undone=page.saves.undone, share=page.saves.undone_share) }}
+                    {% else %}
+                        {{ _("%(saves)s saves", saves=page.saves.total) }}
+                    {% endif %}
+                </p>
+            {% else %}
+                <p class="contrib-muted">{{ _("No saves counted yet.") }}</p>
+            {% endif %}
+        </section>
+    </div>
+    <p class="contrib-admin__note">{{ _("Dates are in UTC. People, saves and the trend are counted nightly; the rest is live.") }}</p>
+    <section class="contrib-admin__section">
+        <h2 class="contrib-overline">{{ _("Edit details") }}</h2>
+        <p class="contrib-admin__note">{{ _("The title and description are not translated.") }}</p>
+        <form class="contrib-admin__form"
+              method="post"
+              action="{{ page.urls.edit }}">
+            <input type="hidden" name="rev" value="{{ page.rev }}" />
+            <div class="contrib-admin__field">
+                <label for="contrib-admin-title">{{ _("Title") }}</label>
+                <input class="contrib-input"
+                       id="contrib-admin-title"
+                       name="title"
+                       value="{{ page.form.title }}"
+                       {% if page.builtin %}placeholder="{{ project.title }}"{% endif %}
+                       maxlength="{{ page.form.title_max }}"
+                       {% if not page.builtin %}required{% endif %} />
+            </div>
+            <div class="contrib-admin__field">
+                <label for="contrib-admin-description">{{ _("Description") }}</label>
+                <textarea class="contrib-input"
+                          id="contrib-admin-description"
+                          name="description"
+                          rows="2"
+                          {% if page.builtin %}placeholder="{{ project.description }}"{% endif %}
+                          maxlength="{{ page.form.description_max }}">{{ page.form.description }}</textarea>
+            </div>
+            <div class="contrib-admin__dates">
+                <div class="contrib-admin__field">
+                    <label for="contrib-admin-starts">{{ _("Start date") }}</label>
+                    <input class="contrib-input"
+                           id="contrib-admin-starts"
+                           type="date"
+                           name="starts"
+                           value="{{ page.form.starts }}"
+                           aria-describedby="contrib-admin-dates-hint" />
+                </div>
+                <div class="contrib-admin__field">
+                    <label for="contrib-admin-ends">{{ _("End date (optional)") }}</label>
+                    <input class="contrib-input"
+                           id="contrib-admin-ends"
+                           type="date"
+                           name="ends"
+                           value="{{ page.form.ends }}"
+                           aria-describedby="contrib-admin-dates-hint" />
+                </div>
+            </div>
+            <p class="contrib-field__hint contrib-muted"
+               id="contrib-admin-dates-hint">
+                {{ _("The project runs from the start of its start date through the end of its end date, UTC. A future start date schedules it; no start date makes it a draft. Either takes a live project off the Tasks page.") }}
+            </p>
+            <div>
+                <ol-button type="submit" variant="primary">
+                    {{ _("Save") }}
+                </ol-button>
+            </div>
+        </form>
+    </section>
+    <section class="contrib-admin__section">
+        <h2 class="contrib-overline">{{ _("History") }}</h2>
+        {% if page.log %}
+            <ol class="contrib-admin__log">
+                {% for entry in page.log %}
+                    <li>
+                        <span>{{ entry.what }}</span>
+                        <span class="contrib-admin__log-meta">
+                            <a href="{{ entry.who_url }}">{{ entry.who }}</a> · {{ entry.when }}
+                        </span>
+                    </li>
+                {% endfor %}
+            </ol>
+        {% else %}
+            <p class="contrib-muted">{{ _("No changes have been made here yet.") }}</p>
+        {% endif %}
+    </section>
+</div>

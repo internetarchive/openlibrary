@@ -32,6 +32,16 @@ When the work is a vulnerability, it does not go through the normal public PR/is
   fork PR page has neither. Merging from that panel lands the fix on the parent repo's `master`
   as a `Merge commit from fork` commit. (The fork PR URL's *own* merge button is a different
   button and merges only within the throwaway fork — the fix never reaches the parent.)
+- **The parent's required status checks cannot be satisfied from the fork, so the merge is
+  blocked by branch protection — this is expected, not a failure to wait out.** If `master`
+  requires a status check (e.g. a pre-commit CI gate) and that check comes from an app that
+  never runs on the fork, the required context stays permanently "expected," and the merge is
+  refused with a branch-protection / repository-rule violation. Because the fix has already been
+  proven locally and e2e on a dev instance (see below), that check is redundant here — do not
+  try to make it pass, and **never widen disclosure or weaken the fix to get a green.** Clearing
+  the protection for the single verified merge is an **operator-layer admin action** (the
+  operator holds admin; the bot identity does not). The exact, minimal mechanism lives in the
+  operator's own layer, not here — it is scoped to that one merge and reverted immediately.
 - **After merging, machine-verify the fix is present on the parent repo's `master` before
   closing the advisory.** Closing tears the fork down; a fix that only reached the fork is then
   silently lost, and a green merge is not proof the commit landed upstream. This one check is

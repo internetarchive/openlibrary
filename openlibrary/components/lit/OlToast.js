@@ -229,7 +229,7 @@ export class OlToast extends LitElement {
             /* Applied to the body (not just the message) so slotted rich
                content gets the same treatment */
             font-size: var(--font-size-body-large);
-            font-weight: 500;
+            font-weight: var(--font-weight-medium);
 
             /* Align single-line text to center of the close button height */
             display: flex;
@@ -247,7 +247,7 @@ export class OlToast extends LitElement {
             margin-top: 2px;
             color: var(--color-text-muted);
             font-size: var(--font-size-label-medium);
-            font-weight: normal;
+            font-weight: var(--font-weight-regular);
         }
 
         /* The close control is an <ol-button shape="icon" variant="ghost" size="small">,

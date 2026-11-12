@@ -33,6 +33,7 @@ from openlibrary.coverstore.utils import (
     safeint,
 )
 from openlibrary.plugins.upstream.utils import setup_requests
+from openlibrary.utils.request_context import site
 
 if coverstore_config := os.getenv("COVERSTORE_CONFIG"):
     load_config(coverstore_config)
@@ -546,7 +547,7 @@ def render_list_preview_image(lst_key: str):
     locations to create a new image for social-card"""
     from openlibrary.core.lists.model import List
 
-    lst = cast(List, web.ctx.site.get(lst_key))
+    lst = cast(List, site.get().get(lst_key))
     five_covers = itertools.islice(
         (cover for seed in lst.get_seeds() if seed._type != "subject" and (cover := seed.get_cover())),
         0,

@@ -578,3 +578,16 @@ class TestAcquisitionUrlSchemeIsValidated:
     )
     def test_is_safe_provider_url(self, url, expected):
         assert book_providers.is_safe_provider_url(url) is expected
+
+
+@pytest.mark.parametrize("legacy", ["missing", "different"])
+def test_provider_edition_lookup_uses_current_site(mock_site, monkeypatch, legacy):
+    lookup = Mock(return_value=["/books/OL1M"])
+    monkeypatch.setattr(mock_site, "things", lookup)
+    if legacy == "missing":
+        monkeypatch.delitem(web.ctx, "site")
+    else:
+        monkeypatch.setitem(web.ctx, "site", Mock())
+    provider = book_providers.ProjectGutenbergProvider()
+    assert provider.get_olids("123") == ["/books/OL1M"]
+    lookup.assert_called_once_with({"type": "/type/edition", provider.db_selector: "123"})

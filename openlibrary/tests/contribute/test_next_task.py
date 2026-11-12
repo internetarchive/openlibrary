@@ -6,6 +6,7 @@ import web
 
 from openlibrary.contribute.tasks import Task
 from openlibrary.plugins.openlibrary import contribute
+from openlibrary.utils.request_context import site as site_context
 
 
 class Redirect(Exception):
@@ -80,6 +81,7 @@ def test_redirects_to_the_list_when_nothing_is_left(pick, monkeypatch):
 def test_receipt_says_what_was_saved(monkeypatch):
     edition = SimpleNamespace(title="A Book", url=lambda: "/books/OL1M/A_Book", get_cover_url=lambda size: "/cover.jpg")
     monkeypatch.setattr(web, "ctx", web.storage(site=SimpleNamespace(get=lambda key: edition)))
+    site_context.set(web.ctx.site)
     monkeypatch.setattr(contribute, "get_field_guides", lambda: {"languages": web.storage(label="Language")})
     monkeypatch.setattr(contribute, "format_field_value", lambda e, f: "English")
     assert contribute.build_receipt("OL1M/languages") == {
@@ -106,6 +108,7 @@ def test_no_receipt_without_a_saved_task():
 def test_receipt_needs_a_saved_value(monkeypatch, fld, cover_url, shown):
     edition = SimpleNamespace(title="A Book", url=lambda: "/books/OL1M/A_Book", get_cover_url=lambda size: cover_url)
     monkeypatch.setattr(web, "ctx", web.storage(site=SimpleNamespace(get=lambda key: edition)))
+    site_context.set(web.ctx.site)
     monkeypatch.setattr(contribute, "get_field_guides", lambda: {fld: web.storage(label="Label")})
     monkeypatch.setattr(contribute, "format_field_value", lambda e, f: "")
     assert bool(contribute.build_receipt(f"OL1M/{fld}")) is shown
@@ -131,6 +134,7 @@ def test_receipt_names_the_picked_tags_not_the_records(monkeypatch, vocabulary):
     """The record may be the copy cached before the save, so the receipt names what was picked."""
     edition = SimpleNamespace(title="A Book", url=lambda: "/books/OL1M/A_Book", get_cover_url=lambda size: None)
     monkeypatch.setattr(web, "ctx", web.storage(site=SimpleNamespace(get=lambda key: edition)))
+    site_context.set(web.ctx.site)
     monkeypatch.setattr(contribute, "format_field_value", lambda e, f: "")
     receipt = contribute.build_receipt("OL1M/literary_forms", "OL1T")
     assert (receipt["field_label"], receipt["value"]) == ("Literary form", "Fiction")
@@ -141,5 +145,13 @@ def test_receipt_names_the_picked_tags_not_the_records(monkeypatch, vocabulary):
 def test_receipt_shows_only_the_answered_field_without_picked(monkeypatch, vocabulary):
     edition = SimpleNamespace(title="A Book", url=lambda: "/books/OL1M/A_Book", get_cover_url=lambda size: None)
     monkeypatch.setattr(web, "ctx", web.storage(site=SimpleNamespace(get=lambda key: edition)))
+    site_context.set(web.ctx.site)
     monkeypatch.setattr(contribute, "format_field_value", lambda e, f: {"literary_forms": "Fiction", "genres": "Sci-Fi"}[f])
     assert contribute.build_receipt("OL1M/literary_forms")["value"] == "Fiction"
+
+
+@pytest.fixture(autouse=True)
+def restore_site_context():
+    token = site_context.set(site_context.get(None))
+    yield
+    site_context.reset(token)

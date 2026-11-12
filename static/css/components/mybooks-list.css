@@ -21,14 +21,14 @@
 }
 
 .mybooks-list h2.subtitle {
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 
 .mybooks-list h4.work-subtitle {
   font-family: var(--font-family-subtitle);
   color: var(--color-text-secondary);
-  font-size: 1em;
-  font-weight: normal;
+  font-size: inherit;
+  font-weight: var(--font-weight-regular);
   font-style: italic;
 }
 
@@ -59,8 +59,8 @@
   display: inline;
   padding-right: 10px;
   font-family: var(--font-family-body);
-  font-size: 1em;
-  font-weight: normal;
+  font-size: inherit;
+  font-weight: var(--font-weight-regular);
   margin-bottom: 0;
 }
 
@@ -92,7 +92,7 @@
 
 .mybooks-list--clean span.editions {
   margin-top: 0;
-  font-size: 0.6875em;
+  font-size: var(--font-size-label-small);
   color: var(--color-text-secondary);
   padding-top: var(--spacing-inset-xs);
   padding-bottom: var(--spacing-inset-xs);

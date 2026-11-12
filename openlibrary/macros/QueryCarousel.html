@@ -1,28 +1,3 @@
 $def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='ol-carousel', user_lang_only=False, fallback=False, safe_mode=True)
 
-$# Takes following parameters
-$# * query (str) -- Any arbitrary Open Library search query, e.g. subject:"Textbooks"
-$# * title (str) -- A title to show above the carousel (links to /search?q=query)
-$# * sort (str) -- optional sort param defined within work_search.py `work_search`
-$# * key (str) -- unique name of the carousel in analytics
-$# * limit (int) -- initial number of books to pull
-$# * search (bool) -- whether to include search within collection
-$# * layout (str) -- layout type, default 'ol-carousel'; also 'grid'
-$# * user_lang_only (bool) -- Whether to filter results by the user's language
-$# * fallback (bool) -- Whether to show a fallback message if no results are found
-$# * safe_mode (bool) -- When True, blurs covers of books that have a `content_warning` tag
-
-$ fallback_query = None
-$if user_lang_only:
-  $ web_lang = get_lang() or 'en'
-  $ user_lang= convert_iso_to_marc(web_lang)
-  $if user_lang and user_lang in get_populated_languages():
-        $ fallback_query = query
-        $ query = query + ' language:' + user_lang
-
-$ fallback = fallback and fallback_query
-
-$# Eager case lives only in CarouselPartial (fastapi/partials.py). Templates use placeholder only.
-$ carousel = build_carousel_placeholder_config(query=query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, fallback=fallback, safe_mode=safe_mode)
-
-$:render_jinja_template("RawQueryCarouselPlaceholder.html.jinja", **carousel)
+$:query_carousel(query=query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, user_lang_only=user_lang_only, fallback=fallback, safe_mode=safe_mode, lang=get_lang() if user_lang_only else None)

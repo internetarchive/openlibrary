@@ -233,8 +233,8 @@ div#editHistory {
 .data-transfer-section-heading {
   margin-top: var(--spacing-2xl);
   margin-bottom: var(--spacing-md);
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-semibold);
   width: 100%;
 }
 
@@ -244,7 +244,7 @@ div#editHistory {
 
 .data-transfer-card__badge {
   color: var(--primary-blue);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 /* ── Dropzone (reusable) ─────────────────────────────────────────── */
@@ -295,7 +295,7 @@ div#editHistory {
   border: none;
   color: var(--primary-blue);
   font: inherit;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   text-decoration: underline;
   cursor: pointer;
   padding: 0;
@@ -411,13 +411,13 @@ th.toggle-all {
 }
 
 .error-imported {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   color: var(--red);
 }
 
 .success-imported {
   color: var(--green);
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 tr.table-row.selected {
@@ -454,7 +454,7 @@ textarea.toc-editor {
   table.classifications.identifiers td:first-child {
     width: 100%;
     text-align: left !important;
-    font-weight: bold;
+    font-weight: var(--font-weight-bold);
     color: var(--grey-555);
     margin-bottom: 4px;
   }

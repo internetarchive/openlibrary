@@ -50,6 +50,8 @@ if not config.get("coverstore_url"):
 
 import logging
 
+from openlibrary.utils.request_context import site
+
 logger = logging.getLogger("openlibrary.plugins.upstream.code")
 
 
@@ -74,7 +76,7 @@ class edit(core.edit):
     """Overwrite ?m=edit behaviour for author, book, work, and people pages."""
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
         editable_keys_re = re.compile(r"/(authors|books|works|tags|lists|series|people/[^/]+/lists)/OL.*")
         if editable_keys_re.match(key):
             if page is None:
@@ -102,7 +104,7 @@ class view(core.view):
             page_num = safeint(i.page, 1)
             # The template honors ?rows= (default 20), so the last page must too
             rows = max(1, safeint(i.rows, 20))
-            if page_num > 1 and (author := web.ctx.site.get(path)) and author.type.key == "/type/author":
+            if page_num > 1 and (author := site.get().get(path)) and author.type.key == "/type/author":
                 from openlibrary.plugins.worksearch.code import works_by_author
 
                 num_found = works_by_author(
@@ -146,7 +148,7 @@ class change_cover(delegate.mode):
     path = r"(/books/OL\d+M)/cover"
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
         if page is None or page.type.key not in ["/type/edition", "/type/author"]:
             raise web.seeother(key)
         return render.change_cover(page)
@@ -178,7 +180,7 @@ class merge_work(delegate.page):
 
     def GET(self):
         i = web.input(records="", mrid=None, primary=None)
-        user = web.ctx.site.get_user()
+        user = site.get().get_user()
 
         if user is None:
             raise web.unauthorized()
@@ -216,8 +218,8 @@ class DynamicDocument:
         self.last_modified = None
 
     def update(self):
-        keys = web.ctx.site.things({"type": "/type/rawtext", "key~": self.root + "/*"})
-        docs = sorted(web.ctx.site.get_many(keys), key=lambda doc: doc.key)
+        keys = site.get().things({"type": "/type/rawtext", "key~": self.root + "/*"})
+        docs = sorted(site.get().get_many(keys), key=lambda doc: doc.key)
         if docs:
             self.last_modified = min(doc.last_modified for doc in docs)
             self._text = "\n\n".join(doc.get("body", "") for doc in docs)
@@ -302,7 +304,7 @@ def reload():
 def get_document(key, limit_redirs=5):
     doc = None
     for i in range(limit_redirs):
-        doc = web.ctx.site.get(key)
+        doc = site.get().get(key)
         if doc is None:
             return None
         if doc.type.key == "/type/redirect":
@@ -485,25 +487,25 @@ class revert(delegate.mode):
         if v is None:
             raise web.seeother(web.changequery({}))
 
-        user = web.ctx.site.get_user()
-        if not web.ctx.site.can_write(key) or not (user and user.is_super_librarian_or_higher()):
+        user = site.get().get_user()
+        if not site.get().can_write(key) or not (user and user.is_super_librarian_or_higher()):
             return render.permission_denied(web.ctx.fullpath, "Permission denied to edit " + key + ".")
 
-        thing = web.ctx.site.get(key, i.v)
+        thing = site.get().get(key, i.v)
 
         if not thing:
             raise web.notfound()
 
         def revert(thing):
             if thing.type.key == "/type/delete" and thing.revision > 1:
-                prev = web.ctx.site.get(thing.key, thing.revision - 1)
+                prev = site.get().get(thing.key, thing.revision - 1)
                 if prev.type.key in ["/type/delete", "/type/redirect"]:
                     return revert(prev)
                 else:
                     prev._save("revert to revision %d" % prev.revision, action="revert-version")
                     return prev
             elif thing.type.key == "/type/redirect":
-                redirect = web.ctx.site.get(thing.location)
+                redirect = site.get().get(thing.location)
                 if redirect and redirect.type.key not in [
                     "/type/delete",
                     "/type/redirect",
@@ -511,7 +513,7 @@ class revert(delegate.mode):
                     return redirect
                 else:
                     # bad redirect. Try the previous revision
-                    prev = web.ctx.site.get(thing.key, thing.revision - 1)
+                    prev = site.get().get(thing.key, thing.revision - 1)
                     return revert(prev)
             else:
                 return thing
