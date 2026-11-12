@@ -1,0 +1,72 @@
+name: pr_preflight
+
+# Three cheap, text-only preflight gates on a PR's own metadata/body. They carry
+# no Docker, no build, and no app dependencies -- just node running a small pure
+# script (scripts/gh_scripts/pr_preflight_gates*.mjs) over the event payload:
+#
+#   1. priority     -- fail if the PR has no `Priority: N` label.
+#   2. issue-ref    -- fail if the body references no issue (`#N` or an issue/PR
+#                      URL). A `Closes`/linked relationship is NOT required.
+#   3. dev-evidence -- fail if a non-staff/non-lead author shows no sign the code
+#                      was run in a dev instance. Staff/leads are exempt, and the
+#                      heuristic errs toward passing (see the core module).
+#
+# Each run is a check-run bound to the PR's HEAD commit, so the gates re-evaluate
+# automatically on every push and on label changes -- branch protection is green
+# iff the current HEAD carries this check as success.
+#
+# `pull_request`, NOT `pull_request_target`: this job reads PR metadata/body from
+# the event payload only; it never executes PR code for its decision (it runs the
+# repo's own small node script, with no `npm install`, over env values passed from
+# the payload). A `pull_request` run from a fork gets a read-only token, which is
+# all these read-only checks need. Tradeoff accepted for this advisory nudge:
+# because the workflow/script version that runs on a fork PR is the fork's, a
+# motivated author could edit them to pass -- which is fine here (merge is always
+# a human decision, and the edit is visible in the diff). If these ever need
+# enforcement teeth, switch to `pull_request_target` + metadata-only (no
+# checkout), the pattern new_pr_labeler.yml / auto_assign_reviewer.yml use.
+
+on:
+  pull_request:
+    # `labeled`/`unlabeled` are load-bearing, not cosmetic: a PR often opens
+    # before new_pr_labeler/pm_pr_lead_sweep carry the Priority label over from
+    # its issue, so gate 1 would fail on `opened`. Re-evaluating on label changes
+    # lets a just-labeled PR go green with no manual push. `ready_for_review`
+    # covers a PR un-drafted after the `!draft` guard skipped it on `opened`.
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+      - ready_for_review
+      - labeled
+      - unlabeled
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-preflight-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    # Canonical repo only, and not while the PR is a draft (a draft cannot be
+    # merged anyway; marking it ready fires `ready_for_review` and re-evaluates).
+    if: ${{ github.repository == 'internetarchive/openlibrary' && !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Evaluate PR preflight gates
+        run: node scripts/gh_scripts/pr_preflight_gates.mjs
+        env:
+          # All decision inputs come from the event payload -- never from checked-out code.
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_LABELS: ${{ toJSON(github.event.pull_request.labels) }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
