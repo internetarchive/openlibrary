@@ -137,9 +137,107 @@ env:
       },
     })
 
+  # Fork-path abuse controls (Phase 2, #14210). PURE decision only -- the API lookups that
+  # feed it live in the `forkgate` step, which runs in `analyze` with NO PAT and NO write
+  # scope (the merged-PR count and the run count are both READS). decide() fails CLOSED:
+  # the step passes mergedPrCount=0 / runsToday=limit on any lookup error, so an unknown
+  # author or an unmeasurable rate both BLOCK (no auto-review; the manual staff @-mention
+  # path still works). Blocking is a silent no-op -- no review, no label.
+  FORK_GATE_JS: |
+    ({
+      // block === true  =>  do not auto-review this fork PR.
+      // Contributor gate: only authors with >=1 prior MERGED PR into this repo. Brand-new
+      // accounts are where risk is highest, so they keep the human gate (manual staff
+      // @openlibrary-bot mention) and are not auto-reviewed here.
+      // Rate limits bound model cost on this privileged path: per-author/day, plus a global
+      // /day backstop against a many-accounts spam burst.
+      decide({ mergedPrCount, runsToday, perAuthorPerDay, globalToday, globalPerDay }) {
+        if (!(mergedPrCount >= 1)) return { block: true };
+        if (!(runsToday < perAuthorPerDay)) return { block: true };
+        if (!(globalToday < globalPerDay)) return { block: true };
+        return { block: false };
+      },
+      // Count this workflow's own prior pull_request_target runs from a (date-filtered) run
+      // list. Pure so it is unit-tested; the caller supplies the API page and the current
+      // identifiers. Match on the workflow NAME, not a hardcoded path, so a future rename
+      // stays self-consistent (context.workflow renames with it) rather than silently
+      // failing open. The current run is excluded so a PR never rate-limits itself.
+      // NOTE: a run that forkgate BLOCKED still appears here (it already triggered), so the
+      // global tally also counts cheap gate-blocked spam -- a known, bounded limitation: it
+      // can pause GLOBAL auto-review for a UTC day (degrading to the manual path, no model
+      // cost, no disclosure), never bypass a gate. A follow-up can mark model-reached runs.
+      tally(runs, { author, currentRunId, workflowName }) {
+        const mine = (runs || []).filter((r) => r.id !== currentRunId && r.name === workflowName);
+        return {
+          globalToday: mine.length,
+          runsToday: mine.filter((r) => r.actor && r.actor.login === author).length,
+        };
+      },
+    })
+
+  # Triage-label decision (Phase 2, #14210). PURE and deliberately NON-DISCLOSING: a withheld
+  # review (a possible security finding, suppressed by the disclosure gate) folds into the
+  # SAME boolean as ordinary findings or a red CI check. There is no branch, label, or log
+  # here that distinguishes a withheld run from any other PR that needs a human -- they all
+  # get the one generic label. The caller re-derives `withheld`/`findingsCount` from the
+  # gate verdict and `ciRed` from the live checks API keyed on the trusted head SHA; this
+  # object never reads an analyze-written file.
+  TRIAGE_JS: |
+    ({
+      decide({ withheld, findingsCount, ciRed }) {
+        const needsChanges = !!withheld || (findingsCount > 0) || !!ciRed;
+        return { needsChanges };
+      },
+      // A check-run/status is CI-red only once it has CONCLUDED in a failing state. Pending,
+      // neutral, skipped and success never set red -- the review may finish before CI does,
+      // and a not-yet-failed check must not be reported as a failure. ours(x) drops this
+      // workflow's own runs so the review action can never red-flag itself into the label.
+      FAIL_CONCLUSIONS: ['failure', 'timed_out', 'cancelled', 'action_required', 'startup_failure'],
+      FAIL_STATES: ['failure', 'error'],
+      ciRed({ checkRuns, statuses, ours }) {
+        for (const c of (checkRuns || [])) {
+          if (ours(c)) continue;
+          if (c.status === 'completed' && this.FAIL_CONCLUSIONS.includes(c.conclusion)) return true;
+        }
+        for (const s of (statuses || [])) {
+          if (this.FAIL_STATES.includes(s.state)) return true;
+        }
+        return false;
+      },
+      // We reuse a shared managed label (Needs: Submitter Input), so we only CLEAR it when WE
+      // put it there -- never a copy a human or another automation applied for its own reason.
+      // labelEvents is this label's labeled/unlabeled timeline in order: [{actor, added}].
+      // Returns true only if the most recent event is one of our bot identities ADDING it.
+      lastLabelerIsBot(labelEvents, botLogins) {
+        if (!labelEvents || !labelEvents.length) return false;
+        const last = labelEvents[labelEvents.length - 1];
+        return last.added === true && botLogins.includes(last.actor);
+      },
+    })
+
 on:
   pull_request:
     types: [review_requested, opened, ready_for_review]
+  # Fork-review path (Phase 2, #14210). pull_request_target runs in BASE-repo context, so
+  # secrets (the model credential) are available even for a PR from a fork -- which a plain
+  # `pull_request` run from a fork never gets. The workflow definition, the gate and the
+  # extraction all come from the base default branch (master); a fork editing the workflow
+  # only changes its own `pull_request` copy, which this path never uses. The fork head is
+  # still only ever handled by the inert extraction in the no-PAT/no-shell `analyze` job.
+  #
+  # GATING: this trigger must NOT be merged before Phase 1 (#14211, the pre-model
+  # injection early-abort in `analyze`) is merged and proven. Until then this is draft only.
+  # `synchronize` re-reviews incrementally and re-evaluates the triage label on each push.
+  #
+  # zizmor flags pull_request_target as dangerous because it runs in base context WITH
+  # secrets while a fork controls the PR content -- which is exactly why this workflow was
+  # built the way it is: `analyze` holds no PAT and no write scope and never checks fork
+  # code into the tree (it reads an inert, de-executabled, symlink/agent-config-stripped
+  # copy with a no-shell/no-network model); `post` holds the write credential, runs no
+  # model, and re-validates everything against a diff it re-fetches itself. The fork head is
+  # never trusted with a token. See the SECURITY note at the top of this file and #14210.
+  pull_request_target: # zizmor: ignore[dangerous-triggers]
+    types: [opened, ready_for_review, synchronize]
   issue_comment:
     types: [created]
   workflow_dispatch:
@@ -156,7 +254,7 @@ concurrency:
 jobs:
   analyze:
     runs-on: ubuntu-latest
-    # Three trigger paths:
+    # Trigger paths:
     #   1. review_requested with openlibrary-bot as the reviewer -- covers both a human manually
     #      requesting it, and auto_assign_reviewer.yml's automated request. No staff-login check:
     #      requesting any reviewer already requires write/triage access on GitHub's side.
@@ -166,7 +264,14 @@ jobs:
     #   3. issue_comment @-mention on a PR -- open to any commenter including external
     #      contributors, and it runs with secrets in scope, so this path keeps an explicit
     #      staff allowlist.
-    # Drafts: the three automatic paths above skip draft PRs -- no reviewing unfinished work.
+    #   4. pull_request_target from a FORK (Phase 2, #14210) -- the only auto path that reviews
+    #      untrusted fork content, so it runs in base context with secrets. The `if` here is the
+    #      cheap half of the gate (fork-only + not-draft); the privileged half (>=1 merged PR,
+    #      rate limits) needs API reads and lives in the `forkgate` step, which short-circuits
+    #      before the model runs. Same-repo PRs are handled by path 1 and excluded here by the
+    #      `!=` guard, so a PR is never reviewed twice. There is no staff-login gate: removing
+    #      the manual @-mention is the whole point, and the contributor gate replaces it.
+    # Drafts: the automatic paths skip draft PRs -- no reviewing unfinished work.
     # A manual workflow_dispatch reviews a draft deliberately; it is the staff debug path, and
     # GitHub already requires write access to dispatch.
     if: >
@@ -185,10 +290,18 @@ jobs:
         contains(github.event.comment.body, '@openlibrary-bot') &&
         github.event.comment.user.login != 'openlibrary-bot' &&
         contains(fromJSON('["mekarpeles","cdrini","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login)
+      ) || (
+        github.event_name == 'pull_request_target' &&
+        !github.event.pull_request.draft &&
+        github.event.pull_request.head.repo.full_name != github.repository
       )
     permissions:
       contents: read
       pull-requests: read
+      # Read-only, for the fork-path rate limit: forkgate counts this workflow's prior
+      # pull_request_target runs via the Actions API. NOT write -- `analyze` reads untrusted
+      # content and must hold no credential that can write. See the SECURITY note above.
+      actions: read
       # Required by claude-code-action's OIDC fetch. GitHub accepts only `write` or `none`
       # here; `none` breaks the token exchange. This is NOT repository write access -- see
       # #13604, where removing it silently broke the PR auto-responder.
@@ -208,7 +321,66 @@ jobs:
           ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
 
+      # Fork-path abuse controls (#14210). Runs ONLY for pull_request_target, BEFORE the model,
+      # with the job's read-only GITHUB_TOKEN -- no PAT, no write. On block it sets an output
+      # that skips `range` (and so every downstream step and the whole `post` job): a blocked
+      # fork PR is a silent no-op, exactly like a brand-new account that never @-mentioned the
+      # bot. Decision shape lives in FORK_GATE_JS; this step only does the READS that feed it,
+      # and fails CLOSED (block) on any lookup error.
+      - name: Fork gate -- contributor (>=1 merged PR) and per-author/global daily rate limit
+        id: forkgate
+        if: github.event_name == 'pull_request_target'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PER_AUTHOR_PER_DAY: "5"
+          GLOBAL_PER_DAY: "100"
+        with:
+          script: |
+            const gate = eval(process.env.FORK_GATE_JS);
+            const owner = context.repo.owner, repo = context.repo.repo;
+            const author = context.payload.pull_request.user.login;
+            const perAuthorPerDay = Number(process.env.PER_AUTHOR_PER_DAY);
+            const globalPerDay = Number(process.env.GLOBAL_PER_DAY);
+
+            // Contributor gate: >=1 prior MERGED PR authored by this user in this repo. READ
+            // only. Fail closed -- an unmeasurable count is treated as a brand-new account.
+            let mergedPrCount = 0;
+            try {
+              const res = await github.rest.search.issuesAndPullRequests({
+                q: `repo:${owner}/${repo} type:pr is:merged author:${author}`, per_page: 1,
+              });
+              mergedPrCount = res.data.total_count || 0;
+            } catch (e) { mergedPrCount = 0; }
+
+            // Rate limit: this workflow's own pull_request_target runs since 00:00 UTC. The
+            // current run is excluded; fail closed (== the cap) on any error so an outage
+            // cannot lift the bound. perAuthor keys on the triggering actor; global is the
+            // backstop against a spray of fresh-but-eligible accounts.
+            const since = new Date(); since.setUTCHours(0, 0, 0, 0);
+            let runsToday = perAuthorPerDay, globalToday = globalPerDay;
+            try {
+              const runs = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+                owner, repo, event: 'pull_request_target',
+                created: `>=${since.toISOString()}`, per_page: 100,
+              });
+              ({ runsToday, globalToday } = gate.tally(runs, {
+                author, currentRunId: context.runId, workflowName: context.workflow,
+              }));
+            } catch (e) { runsToday = perAuthorPerDay; globalToday = globalPerDay; }
+
+            const { block } = gate.decide({
+              mergedPrCount, runsToday, perAuthorPerDay, globalToday, globalPerDay,
+            });
+            // One generic line whatever the reason -- the log is public and the reason
+            // (new account vs rate) is not something to broadcast per-PR.
+            core.info(block ? 'Fork PR not auto-reviewed; the manual review path remains available.'
+                            : 'Fork PR eligible for auto-review.');
+            core.setOutput('block', block ? 'true' : 'false');
+
       - name: Resolve review range (incremental since our last pass)
+        # Skipped when the fork gate blocks: an empty `range.skip` output then skips every
+        # downstream step and the `post` job, so a blocked fork PR produces no review.
+        if: steps.forkgate.outputs.block != 'true'
         id: range
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
@@ -371,6 +543,11 @@ jobs:
     permissions:
       contents: read        # the diff fetch below, with the job's own GITHUB_TOKEN
       pull-requests: write
+      # Read-only, for the triage-label step (#14210): it reads the PR's OTHER check-runs and
+      # commit statuses to decide "is CI green". The label itself is written with the job's own
+      # GITHUB_TOKEN (pull-requests: write), not the review PAT.
+      checks: read
+      statuses: read
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -518,3 +695,94 @@ jobs:
               return;
             }
             core.info(`Posted review ${posted.id}: ${inline.length} inline, ${orphaned.length} in summary.`);
+
+      # Triage label (#14210). Mek's ask: a PR that is not both CI-green and review-clean gets a
+      # label so staff can skip the rest. `if: always()` is load-bearing -- a WITHHELD review
+      # makes the step above setFailed, and we must still label it. NON-DISCLOSURE: withheld
+      # folds into the SAME needsChanges boolean as findings or red CI (TRIAGE_JS.decide), the
+      # label is one constant string, and the only log line is applied/cleared -- never the
+      # reason. So a withheld (possible-security) run is indistinguishable, by label or log,
+      # from any other PR that needs a human. This step re-derives the gate verdict and the CI
+      # state itself from analyze's job outputs + the live API; it never reads review.diff or
+      # review-range.json. Writes go through the job's GITHUB_TOKEN (pull-requests: write), not
+      # the review PAT. It is resilient -- a label/timeline API miss warns, it does not fail --
+      # and it CLEARS the label only when one of our own bot identities applied it last, so it
+      # never strips a Needs: Submitter Input a human set for an unrelated reason.
+      - name: Apply triage label (non-disclosing)
+        if: always()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR: ${{ needs.analyze.outputs.pr }}
+          HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
+          RUN_ID: ${{ github.run_id }}
+          # One-line swap if the triage taxonomy changes. Reuses an existing managed label
+          # ("Waiting on input from the creator of the issue/pr"); no label is created here.
+          TRIAGE_LABEL: "Needs: Submitter Input"
+          # Identities this workflow could label under: GITHUB_TOKEN here, the review PAT bot
+          # elsewhere. Only a label whose last setter is one of these is ours to clear.
+          BOT_LOGINS: '["github-actions[bot]","openlibrary-bot"]'
+        with:
+          script: |
+            const fs = require('fs');
+            const triage = eval(process.env.TRIAGE_JS);
+            const gate = eval(process.env.REVIEW_GATE_JS);
+            const owner = context.repo.owner, repo = context.repo.repo;
+            const prNumber = Number(process.env.PR);
+            const label = process.env.TRIAGE_LABEL;
+            const botLogins = JSON.parse(process.env.BOT_LOGINS);
+
+            // The head SHA is analyze's job output, fixed before the model ran -- never a
+            // model-writable file. CI is read live from this SHA.
+            const headSha = process.env.HEAD_SHA;
+            if (!/^[0-9a-f]{40}$/.test(headSha)) { core.warning('No usable head SHA; skipping triage label.'); return; }
+
+            // Verdict re-derived from the gated artifact through the SAME gate `post` publishes
+            // from -- re-validated, not trusted raw. `withheld` is a suppressed security finding
+            // OR a malformed/missing review; both mean a human should look.
+            let review = null;
+            try { review = JSON.parse(fs.readFileSync('review.json', 'utf8')); } catch (e) { review = null; }
+            const verdict = gate.check(review);
+            const withheld = !verdict.publish;
+            const findingsCount = withheld ? 0 : ((verdict.clean.findings || []).length);
+
+            // CI re-derived live from the PR's OTHER checks. Drop this workflow's own run so the
+            // review action never red-flags itself: a check-run's details_url carries /runs/<id>/.
+            const runId = String(process.env.RUN_ID);
+            const ours = (c) => !!(c && c.details_url && c.details_url.includes(`/runs/${runId}/`));
+            let checkRuns = [], statuses = [];
+            try {
+              checkRuns = await github.paginate(github.rest.checks.listForRef, { owner, repo, ref: headSha, per_page: 100 });
+            } catch (e) { core.warning('Could not read check-runs; treating CI as not-red for triage.'); }
+            try {
+              const combined = await github.rest.repos.getCombinedStatusForRef({ owner, repo, ref: headSha });
+              statuses = combined.data.statuses || [];
+            } catch (e) { core.warning('Could not read commit statuses; treating as not-red for triage.'); }
+            const ciRed = triage.ciRed({ checkRuns, statuses, ours });
+
+            const { needsChanges } = triage.decide({ withheld, findingsCount, ciRed });
+
+            // Is the label currently present?
+            let has = false;
+            try {
+              const cur = await github.paginate(github.rest.issues.listLabelsOnIssue, { owner, repo, issue_number: prNumber, per_page: 100 });
+              has = cur.some(l => l.name === label);
+            } catch (e) { core.warning('Could not read current labels; proceeding best-effort.'); }
+
+            try {
+              if (needsChanges && !has) {
+                await github.rest.issues.addLabels({ owner, repo, issue_number: prNumber, labels: [label] });
+              } else if (!needsChanges && has) {
+                // Only clear a label WE applied last -- never a human's copy of this shared label.
+                let labelEvents = [];
+                try {
+                  const tl = await github.paginate(github.rest.issues.listEventsForTimeline, { owner, repo, issue_number: prNumber, per_page: 100 });
+                  labelEvents = tl
+                    .filter(e => (e.event === 'labeled' || e.event === 'unlabeled') && e.label && e.label.name === label)
+                    .map(e => ({ actor: e.actor && e.actor.login, added: e.event === 'labeled' }));
+                } catch (e) { core.warning('Could not read label history; leaving the label in place.'); }
+                if (triage.lastLabelerIsBot(labelEvents, botLogins)) {
+                  await github.rest.issues.removeLabel({ owner, repo, issue_number: prNumber, name: label });
+                }
+              }
+            } catch (e) { core.warning('Triage label update did not apply; continuing.'); }
+            core.info(`Triage label ${needsChanges ? 'applied' : 'cleared'}.`);
