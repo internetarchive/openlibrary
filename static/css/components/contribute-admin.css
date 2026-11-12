@@ -319,9 +319,16 @@
 
 /* The create form's book inputs: each shows only while its source is picked. Without :has() all stay visible.
    The condition sits in :where() so the rule weighs no more than .contrib-admin__field, which it follows. */
-:where(.contrib-admin__form:has([name="source"]:checked:not([value="pasted"]))) [data-source="pasted"],
-:where(.contrib-admin__form:has([name="source"]:checked:not([value="list"]))) [data-source="list"],
-:where(.contrib-admin__form:has([name="source"]:checked:not([value="most-shelved-missing"]))) [data-source="most-shelved-missing"] {
+:where(.contrib-admin__form:has([name="source"]:checked:not([value="pasted"])))
+  [data-source="pasted"],
+:where(.contrib-admin__form:has([name="source"]:checked:not([value="list"])))
+  [data-source="list"],
+:where(
+    .contrib-admin__form:has(
+      [name="source"]:checked:not([value="most-shelved-missing"])
+    )
+  )
+  [data-source="most-shelved-missing"] {
   display: none;
 }
 

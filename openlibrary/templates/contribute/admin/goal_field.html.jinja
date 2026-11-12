@@ -15,9 +15,12 @@
            aria-describedby="contrib-admin-goal-hint" />
 </div>
 {% if page.get("goal_rule") %}
-    <p class="contrib-admin__suggest contrib-muted" data-goal-suggestion hidden>
+    <p class="contrib-admin__suggest contrib-muted"
+       data-goal-suggestion
+       hidden>
         {{ _("Suggested for these details:") }}
-        <ol-button type="button" variant="secondary" size="small" data-goal-use></ol-button>
+        <ol-button type="button" variant="secondary" size="small" data-goal-use>
+        </ol-button>
     </p>
 {% endif %}
 <div class="contrib-admin__hints contrib-field__hint contrib-muted"

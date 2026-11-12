@@ -138,14 +138,7 @@
             details and books. Without the script the summary stays hidden and the server checks the form. -#}
         <div class="contrib-admin__submit"
              data-create-summary
-             data-i18n="{{ {
-             'none': _('None yet'),
-             'books_one': ngettext('%(count)s book', '%(count)s books', 1, count='{count}'),
-             'books_other': ngettext('%(count)s book', '%(count)s books', 2, count='{count}'),
-             'shelved_one': ngettext('The %(count)s most-shelved book missing a detail', 'The %(count)s most-shelved books missing a detail', 1, count='{count}'),
-             'shelved_other': ngettext('The %(count)s most-shelved book missing a detail', 'The %(count)s most-shelved books missing a detail', 2, count='{count}'),
-             'list': _('Every book on the list'),
-             } | tojson | forceescape }}">
+             data-i18n="{{ { 'none': _('None yet') , 'books_one': ngettext('%(count)s book', '%(count)s books', 1, count='{count}'), 'books_other': ngettext('%(count)s book', '%(count)s books', 2, count='{count}'), 'shelved_one': ngettext('The %(count)s most-shelved book missing a detail', 'The %(count)s most-shelved books missing a detail', 1, count='{count}'), 'shelved_other': ngettext('The %(count)s most-shelved book missing a detail', 'The %(count)s most-shelved books missing a detail', 2, count='{count}'), 'list': _('Every book on the list'), } | tojson | forceescape }}">
             <dl class="contrib-admin__summary" hidden>
                 <div>
                     <dt>{{ _("Books") }}</dt>

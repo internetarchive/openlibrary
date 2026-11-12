@@ -48,12 +48,7 @@
                    name="{{ name }}"
                    value="{{ value }}"
                    aria-describedby="{{ hint_id }}" />
-            <ol-button type="button"
-                       variant="ghost"
-                       size="small"
-                       aria-label="{{ clear_label }}"
-                       data-clear-date="{{ id }}"
-                       {% if not value %}hidden{% endif %}>
+            <ol-button type="button" variant="ghost" size="small" aria-label="{{ clear_label }}" data-clear-date="{{ id }}" {% if not value %}hidden{% endif %}>
                 {{ _("Clear") }}
             </ol-button>
         </div>
