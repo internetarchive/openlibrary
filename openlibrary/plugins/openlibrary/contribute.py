@@ -466,6 +466,8 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
                 ),
                 # The goal is where the project counts as a success; the ring keeps filling past it.
                 "goal": initiative.goal,
+                # Where the ring's goal mark sits, in degrees from twelve o'clock: 3.6 a percent.
+                "goal_angle": round(initiative.goal * 3.6, 1),
                 "reached": bool(p and p["reached"]),
                 "goal_label": _("Goal reached") if p and p["reached"] else _("Goal: %(percent)s%%", percent=initiative.goal),
                 # Out of the tasks open at the start, the same count the percent is taken from.

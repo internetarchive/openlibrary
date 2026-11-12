@@ -82,8 +82,8 @@
                                 <circle class="contrib-ring__track" cx="52" cy="52" r="40" />
                                 {#- pathLength 100 makes the dash the percent itself; rotated so it starts at twelve o'clock. -#}
                                 <circle class="contrib-ring__fill{{ ' is-reached' if data.project.reached else '' }}" cx="52" cy="52" r="40" pathLength="100" stroke-dasharray="{{ data.project.percent }} 100" transform="rotate(-90 52 52)" />
-                                {#- The goal as a hairline across the ring's band (r 35.5–44.5), turned from twelve o'clock: 3.6 degrees a percent. -#}
-                                <line class="contrib-ring__goal" x1="52" y1="7.5" x2="52" y2="16.5" transform="rotate({{ data.project.goal * 3.6 }} 52 52)" />
+                                {#- The goal as a hairline across the ring's band (r 35.5–44.5), turned from twelve o'clock. -#}
+                                <line class="contrib-ring__goal" x1="52" y1="7.5" x2="52" y2="16.5" transform="rotate({{ data.project.goal_angle }} 52 52)" />
                             </svg>
                             <span class="contrib-ring__figure" aria-hidden="true">{{ data.project.figure }}</span>
                         </div>
