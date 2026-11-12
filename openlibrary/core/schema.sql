@@ -85,6 +85,14 @@ CREATE TABLE bookshelves_events (
 CREATE INDEX bookshelves_events_user_checkins_idx
     ON bookshelves_events (username, work_id, event_type DESC, event_date DESC);
 
+CREATE TABLE readers_also_read (
+    work_id integer NOT NULL,
+    related_work_id integer NOT NULL,
+    score real NOT NULL,
+    rank smallint NOT NULL,
+    primary key (work_id, rank)
+);
+
 CREATE TABLE observations (
     work_id INTEGER not null,
     edition_id INTEGER default -1,
