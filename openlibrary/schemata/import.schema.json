@@ -113,13 +113,28 @@
       "patternProperties": {
         "^\\w+": { "$ref": "shared_definitions.json#/string_array" }
       },
-      "description": "Unique identifiers used by external sites to identify a book. Used by Open Library to link offsite.",
+      "description": "Unique identifiers used by external sites to identify a book (edition). Used by Open Library to link offsite.",
       "examples": [
         {
             "standard_ebooks": ["leo-tolstoy/what-is-art/aylmer-maude"]
         },
         {
             "project_gutenberg": ["64317"]
+        }
+      ]
+    },
+    "work_identifiers": {
+      "type": "object",
+      "patternProperties": {
+        "^\\w+": { "$ref": "shared_definitions.json#/string_array" }
+      },
+      "description": "Identifiers for the Work (as distinct from the Edition). Used to match an import record against an existing OL Work. E.g. Goodreads work ID, Wikidata Q-number.",
+      "examples": [
+        {
+            "goodreads": ["1128434"]
+        },
+        {
+            "wikidata": ["Q8337"]
         }
       ]
     },
