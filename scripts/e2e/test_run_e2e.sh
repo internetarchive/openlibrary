@@ -104,7 +104,7 @@ run_entry() {
     PR_NUMBER="${PR_NUMBER:-4242}" \
     REPO="${REPO:-internetarchive/openlibrary}" \
     HEAD_SHA="${HEAD_SHA:-deadbeefdeadbeefdeadbeefdeadbeefdeadbeef}" \
-    STATUS_CONTEXT="${STATUS_CONTEXT:-ada/e2e}" \
+    STATUS_CONTEXT="${STATUS_CONTEXT:-check/tested-e2e}" \
     LABEL="${LABEL:-Needs: e2e testing}" \
     GH_CALLS="$GH_CALLS" \
     "${env[@]}" \
@@ -117,7 +117,7 @@ echo "test_run_e2e.sh"
 
 # --- 1. idempotency: context already present => no-op exit 0, no new writes --
 new_sandbox
-run_entry MOCK_STATUSES="ada/e2e" \
+run_entry MOCK_STATUSES="check/tested-e2e" \
           E2E_CMD="echo SHOULD_NOT_RUN" \
           WORKTREE_ADD_CMD="echo SHOULD_NOT_RUN"
 assert_eq   "idempotent: exits 0 when status present" 0 "$RC"
@@ -158,7 +158,7 @@ drop_sandbox
 new_sandbox
 env PR_NUMBER=4242 REPO=internetarchive/openlibrary \
     HEAD_SHA=deadbeefdeadbeefdeadbeefdeadbeefdeadbeef \
-    STATUS_CONTEXT=ada/e2e LABEL="Needs: e2e testing" \
+    STATUS_CONTEXT=check/tested-e2e LABEL="Needs: e2e testing" \
     GH_CALLS="$GH_CALLS" \
     MOCK_STATUSES="" \
     E2E_CMD='while true; do sleep 0.2; done' \

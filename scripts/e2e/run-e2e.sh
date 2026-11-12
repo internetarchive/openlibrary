@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # run-e2e.sh — the deterministic entrypoint a forge-dispatched e2e agent invokes
-# to produce the `ada/e2e` commit status on a PR.
+# to produce the `check/tested-e2e` commit status on a PR.
 #
 # It is a SCRIPT, not a prompt, for one reason: a stuck `pending` on a required
 # check blocks a branch-protection merge forever, so the terminal-status post has
@@ -18,7 +18,7 @@
 #   PR_NUMBER       (required)  the PR to label/report on
 #   REPO            default internetarchive/openlibrary
 #   HEAD_SHA        (required)  the exact commit to pin, status, and test
-#   STATUS_CONTEXT  default ada/e2e
+#   STATUS_CONTEXT  default check/tested-e2e
 #   LABEL           default "Needs: e2e testing"
 #
 # Behaviour, in order:
@@ -62,11 +62,11 @@ export GH_CONFIG_DIR
 PR_NUMBER="${1:-${PR_NUMBER:-}}"
 REPO="${2:-${REPO:-internetarchive/openlibrary}}"
 HEAD_SHA="${3:-${HEAD_SHA:-}}"
-STATUS_CONTEXT="${4:-${STATUS_CONTEXT:-ada/e2e}}"
+STATUS_CONTEXT="${4:-${STATUS_CONTEXT:-check/tested-e2e}}"
 LABEL="${5:-${LABEL:-Needs: e2e testing}}"
 # The review gate that must be green on HEAD_SHA for e2e to run. Set empty to
 # disable the precondition.
-REVIEW_STATUS_CONTEXT="${6-${REVIEW_STATUS_CONTEXT-ada/code-review}}"
+REVIEW_STATUS_CONTEXT="${6-${REVIEW_STATUS_CONTEXT-check/code-review}}"
 
 E2E_TIMEOUT="${E2E_TIMEOUT:-1800}"          # hard cap on the e2e run (step 4)
 E2E_STATUS_TIMEOUT="${E2E_STATUS_TIMEOUT:-60}"  # hard cap on each terminal gh write
@@ -272,7 +272,7 @@ main() {
   # e2e should only run on a head whose review passed. If the review gate isn't
   # green on THIS sha, the forge label that triggered us is stale (a push
   # invalidated the review), so no-op. This is BEFORE we arm the trap or post
-  # pending, so the no-op is trivially terminal-safe — no ada/e2e pending is
+  # pending, so the no-op is trivially terminal-safe — no check/tested-e2e pending is
   # ever left. Skipped when REVIEW_STATUS_CONTEXT is empty.
   if [[ -n "$REVIEW_STATUS_CONTEXT" ]]; then
     local rv=0
