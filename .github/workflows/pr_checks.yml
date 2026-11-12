@@ -1,0 +1,85 @@
+name: pr_checks
+
+# Five cheap, text-only checks on a PR's own metadata/body, each POSTED as its
+# OWN named commit status on the PR HEAD commit, so each is independently
+# require-able in branch protection (GitHub groups required contexts by the
+# segment before `/`):
+#
+#   check/priority           -- fail if the PR has no `Priority: N` label.
+#   check/references-issue   -- fail if the body references no issue (`#N` or URL).
+#   check/issue-is-ready     -- fail if the referenced issue is labeled
+#                               `Not Ready for Work!` (reads the issue's live labels).
+#   check/passes-pr-template -- fail if the body does not follow the PR template.
+#   check/ran-the-code       -- fail if a non-staff/non-lead author shows no sign
+#                               the code was run. Staff/leads exempt; errs toward passing.
+#
+# The decision logic is a pure node module (scripts/gh_scripts/pr_checks*.mjs) run
+# over the event payload -- no Docker, no build, no app deps, no `npm install`.
+#
+# WHY pull_request_target (not pull_request): each check is a commit status posted
+# with a token. GitHub withholds repo secrets from fork-triggered `pull_request`
+# runs, so a fork PR could never receive these checks at all -- the token would
+# resolve empty and the post would just fail. pull_request_target runs in the
+# base-repo context, where the secret is available, so fork PRs get the checks too
+# (closing the fork-coverage gap). Using it SAFELY requires never executing fork
+# code: this job checks out the trusted BASE repo (the default ref) to get its own
+# script, and every decision input is read from the event payload (passed as env,
+# never interpolated into a shell). Nothing from the fork is run. Same posture as
+# auto_assign_reviewer.yml / new_pr_labeler.yml; keep zizmor green and it polices
+# the footgun.
+#
+# The statuses are posted via OL_BOT_STATUS_PAT (a `statuses:write` token for
+# @openlibrary-bot -- see #14455) rather than GITHUB_TOKEN, so the check author is
+# openlibrary-bot. While that secret is unset the job runs in dry-run: it computes
+# and logs the five statuses but posts nothing, and never fails.
+on:  # zizmor: ignore[dangerous-triggers] -- safe: checks out only the trusted base repo (never fork head), all inputs from the event payload passed as env; no fork code is executed.
+  pull_request_target:
+    # `labeled`/`unlabeled` are load-bearing, not cosmetic: a PR often opens before
+    # new_pr_labeler/pm_pr_lead_sweep carry the Priority label over from its issue,
+    # so check/priority would fail on `opened`. Re-evaluating on label changes lets
+    # a just-labeled PR go green with no manual push. `ready_for_review` covers a
+    # PR un-drafted after the `!draft` guard skipped it on `opened`.
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+      - ready_for_review
+      - labeled
+      - unlabeled
+
+permissions:
+  contents: read  # statuses are posted via OL_BOT_STATUS_PAT, not GITHUB_TOKEN
+
+concurrency:
+  group: pr-checks-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    # Canonical repo only, and not while the PR is a draft (a draft cannot be
+    # merged anyway; marking it ready fires `ready_for_review` and re-evaluates).
+    # Intentionally does NOT exclude fork PRs -- pull_request_target keeps the
+    # token needed to post their statuses.
+    if: ${{ github.repository == 'internetarchive/openlibrary' && !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      # Default ref on pull_request_target is the BASE repo (trusted) -- this
+      # fetches the repo's own committed script, never the fork's version.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Evaluate PR checks and post commit statuses
+        run: node scripts/gh_scripts/pr_checks.mjs
+        env:
+          # All decision inputs come from the event payload -- never from checked-out code.
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_LABELS: ${{ toJSON(github.event.pull_request.labels) }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          # statuses:write token for @openlibrary-bot (#14455). Unset -> dry-run.
+          OL_BOT_STATUS_PAT: ${{ secrets.OL_BOT_STATUS_PAT }}
