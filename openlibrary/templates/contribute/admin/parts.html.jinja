@@ -1,0 +1,32 @@
+{#- Shared by the /tasks/admin pages. Each macro takes a project summary from manage.build_summary. -#}
+{% macro status(project) %}
+    <span class="contrib-admin__badges">
+        <span class="contrib-admin__badge" data-status="{{ project.status }}">{{ project.status_label }}</span>
+        {% if project.hidden %}
+            <span class="contrib-admin__badge" data-status="hidden">{{ _("Hidden") }}</span>
+        {% endif %}
+        {% if project.featured %}
+            {#- Focusable, so the explanation reaches keyboard and screen-reader users too. -#}
+            <ol-tooltip placement="bottom-start" content="{{ _('The default project. The Tasks page opens on it, the thank-you after a book edit points to it unless another project lists that book, and the stats page charts it first.') }}">
+                <span class="contrib-admin__badge contrib-admin__badge--hint"
+                      data-status="featured"
+                      tabindex="0">{{ _("Headline") }}</span>
+            </ol-tooltip>
+        {% endif %}
+    </span>
+{% endmacro %}
+{% macro progress(project) %}
+    {% if project.progress %}
+        <span class="contrib-admin__progress">
+            <span class="contrib-admin__meter" aria-hidden="true">
+                <span class="contrib-admin__meter-fill"
+                      style="width: {{ project.progress.percent }}%"></span>
+            </span>
+            <span class="contrib-admin__percent">{{ _("%(percent)s%%", percent=project.progress.percent) }}</span>
+        </span>
+    {% elif project.building %}
+        <span class="contrib-muted">{{ _("Getting the list ready…") }}</span>
+    {% else %}
+        <span class="contrib-muted">—</span>
+    {% endif %}
+{% endmacro %}

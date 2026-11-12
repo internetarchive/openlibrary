@@ -349,7 +349,7 @@
           {% if data.field_guide.quick_next %}data-quick-next{% endif %}
           data-task-key="{{ task.key }}"
           data-task-field="{{ task.field }}">
-        {% if data.initiative %}<input type="hidden" name="initiative" value="{{ data.initiative }}" />{% endif %}
+        {% if data.project %}<input type="hidden" name="project" value="{{ data.project }}" />{% endif %}
         {% if data.error %}<p class="ol-message ol-message--error" role="alert">{{ data.error }}</p>{% endif %}
         <div class="contrib-record">
             {#- A second way to the title's link, so keep it out of the tab order and the accessibility tree. -#}

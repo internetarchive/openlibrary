@@ -6,6 +6,7 @@
  */
 
 import { setBannerCookie } from './banner';
+import { confirmFromTemplate } from './confirm-template';
 import { initFeed } from './contribute-feed';
 import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
 import { trackEvent } from './ol.analytics.js';
@@ -535,7 +536,28 @@ function initNavLoading(rail) {
     });
 }
 
+/**
+ * Ask before a form on the project admin page posts, with the dialog text from the ``<template>`` it names.
+ * Without the script the form posts straight away, which the server allows.
+ * @param {HTMLFormElement} form - a ``form[data-confirm]``
+ * @returns {void}
+ */
+function initConfirmForm(form) {
+    const template = document.getElementById(form.dataset.confirm);
+    if (!template) return;
+    let confirmed = false;
+    form.addEventListener('submit', async e => {
+        if (confirmed) return;
+        e.preventDefault();
+        if (await confirmFromTemplate(template, { destructive: template.dataset.destructive !== 'false' })) {
+            confirmed = true;
+            form.submit();
+        }
+    });
+}
+
 export function init() {
+    document.querySelectorAll('[data-contribute-admin] form[data-confirm]').forEach(initConfirmForm);
     document.querySelectorAll('[data-contribute-list]').forEach(root => {
         initTaskList(root);
     });
