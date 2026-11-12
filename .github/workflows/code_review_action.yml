@@ -137,6 +137,143 @@ env:
       },
     })
 
+  # Evaluates to { check(diff) }. The PRE-MODEL input scan: `analyze` runs this on review.diff
+  # BEFORE the review model, and on a match withholds the whole review -- reusing the same fixed
+  # withheld path the disclosure gate uses -- WITHOUT spending a model turn. Phase 1 of #14210.
+  #
+  # This is the mirror image of REVIEW_GATE_JS above, and the distinction is the whole point:
+  #   - REVIEW_GATE_JS scans the model's OUTPUT (its findings) for security TERMS, to stop a
+  #     disclosure. It normalises to what a GitHub reader sees (tags stripped, entities decoded).
+  #   - INJECTION_SCAN_JS scans untrusted INPUT (the diff) for COERCION aimed at the reviewer, to
+  #     stop a prompt injection reaching the model at all. It normalises to what the MODEL reads:
+  #     source text read literally, so it does NOT strip tags (a <|im_start|> or <system> marker
+  #     is exactly what an injection uses, and the model sees it) and does NOT fail closed on an
+  #     unknown named entity (source legitimately contains &foo;). Best-effort, and FAILS CLOSED.
+  #
+  # WHY review.diff is the whole surface. The diff is base...head, so every byte the PR introduces
+  # is an added (`+`) line here. Content the model can also Read from pr-head/ that is NOT in the
+  # diff is byte-identical to base -- our own trusted code even on a fork, since `analyze` checks
+  # out OUR base.sha. So scanning the added lines covers 100% of attacker-introduced TEXT, and
+  # scanning only those avoids withholding on unchanged context (and avoids self-withholding every
+  # review once this very file -- full of attack shapes -- lives in the tree). KNOWN RESIDUAL: a
+  # file git treats as binary carries no content in the diff yet the model could Read it; accepted
+  # for the trusted same-repo Phase-1 path and to be closed in Phase 2, when forks make it matter.
+  #
+  # Every regex here is LINEAR: character classes, literal alternations and BOUNDED quantifiers
+  # ({0,N}) only -- no nested unbounded repetition. The input is untrusted and can be large.
+  INJECTION_SCAN_JS: |
+    ({
+      // Known named entities decoded as an evasion aid only (never to withhold). Decoding lt/gt
+      // means an entity-encoded role marker (&lt;system&gt;) still reaches the role regex.
+      entities: { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' },
+      // Common Latin-lookalikes (Cyrillic, Greek) folded to ASCII before matching. NFKC/NFKD
+      // already fold fullwidth and math-alphanumeric letters; cross-script confusables it does not,
+      // so an injection spelled with Cyrillic о/е/а would slip a plain regex. Best-effort by design.
+      confusables: {
+        'а':'a','ӓ':'a','е':'e','ё':'e','о':'o','р':'p','с':'c','у':'y','х':'x','ѕ':'s','і':'i',
+        'ј':'j','ԁ':'d','һ':'h','ν':'v','ο':'o','ρ':'p','τ':'t','α':'a','ε':'e','ι':'i',
+        'κ':'k','μ':'m','η':'n','γ':'y','А':'A','В':'B','Е':'E','К':'K','М':'M','Н':'H','О':'O',
+        'Р':'P','С':'C','Т':'T','Х':'X','У':'Y','І':'I','Ј':'J','Ѕ':'S','Α':'A','Β':'B','Ε':'E',
+        'Ζ':'Z','Η':'H','Ι':'I','Κ':'K','Μ':'M','Ν':'N','Ο':'O','Ρ':'P','Τ':'T','Υ':'Y','Χ':'X',
+      },
+      // The bytes the MODEL reads, normalised: NFKC, decode numeric + known-named entities, then
+      // strip invisible format characters (\p{Cf}: zero-width spaces/joiners AND bidi/RTL
+      // overrides) and combining marks (\p{M}) via an NFKD round-trip. Returns a string always --
+      // unlike the output gate, an unknown entity is left intact rather than withholding.
+      plain(t) {
+        const cp = (n) => (Number.isInteger(n) && n >= 0 && n <= 0x10FFFF ? String.fromCodePoint(n) : ' ');
+        t = String(t).normalize('NFKC')
+          .replace(/&#x([0-9a-f]{1,8});?/gi, (_, h) => cp(parseInt(h, 16)))
+          .replace(/&#(\d{1,10});?/g, (_, d) => cp(Number(d)))
+          .replace(/&([a-z][a-z0-9]{0,31});/gi, (_, n) => (Object.hasOwn(this.entities, n.toLowerCase()) ? this.entities[n.toLowerCase()] : ('&' + n + ';')));
+        return t.normalize('NFKD').replace(/[\p{Cf}\p{M}]/gu, '').normalize('NFKC');
+      },
+      // Homoglyph fold. Built per call from the table; the keys are letters, so no class escaping.
+      fold(t) {
+        const re = new RegExp('[' + Object.keys(this.confusables).join('') + ']', 'gu');
+        return t.replace(re, (m) => (Object.hasOwn(this.confusables, m) ? this.confusables[m] : m));
+      },
+      // All punctuation/markup collapsed to spaces and identifiers split, so a phrase regex matches
+      // across markdown, HTML, snake_case or camelCase. Scanned IN ADDITION to the punctuation-
+      // preserving view (which the marker regexes need), never instead.
+      words(t) {
+        return t
+          .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+          .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+          .replace(/[^A-Za-z0-9]+/g, ' ')
+          .toLowerCase();
+      },
+      // Only ADDED lines: the text the PR introduces. `+++ ` file headers carry an attacker-chosen
+      // path the model may see, so keep the path but drop the marker; skip ` ` context and `-`
+      // removed lines (both are base = trusted) and `@@` hunk headers.
+      added(diff) {
+        const out = [];
+        for (const l of String(diff).split('\n')) {
+          if (l.startsWith('+++')) out.push(l.slice(3));
+          else if (l.startsWith('+')) out.push(l.slice(1));
+        }
+        return out.join('\n');
+      },
+      // base64 can hide an injection from the regexes while a model may still decode it. Decode
+      // long base64/base64url runs (bounded in count and total output) and scan the result too.
+      // One level only -- a documented Phase-1 bound. Decoding is linear and cannot expansion-bomb
+      // (output is 3/4 of input); a legit blob (minified asset, data URI) decodes to non-matching
+      // bytes, so this adds coverage without the false-withholds of treating any long run as hostile.
+      b64run: /[A-Za-z0-9+/_-]{20,}={0,2}/g,
+      maxBlobs: 4000,
+      maxDecoded: 4000000,
+      b64(t) {
+        const runs = String(t).match(this.b64run);
+        if (!runs) return '';
+        let out = '', budget = this.maxDecoded, n = 0;
+        for (const r of runs) {
+          if (n++ >= this.maxBlobs || budget <= 0) break;
+          const s = r.replace(/-/g, '+').replace(/_/g, '/').replace(/=+$/, '');
+          let dec = '';
+          try { dec = Buffer.from(s, 'base64').toString('utf8'); } catch (e) { continue; }
+          if (dec) { dec = dec.slice(0, budget); out += dec + '\n'; budget -= dec.length; }
+        }
+        return out;
+      },
+      // --- The coercion shapes. Each is linear; each tests a normalised view below.
+      // Role / turn markers (punctuation-preserving view): ChatML <|...|>, <system>/<assistant>,
+      // [INST]/[/INST], <<SYS>>, and a markdown system/assistant header.
+      role: /<\|[^|>\r\n]{0,60}\|>|<\/?(?:system|assistant|developer)>|\[\/?(?:inst|sys)\]|<<\/?sys>>|(?:^|\n)[ \t]{0,8}#{1,6}[ \t]*(?:system|assistant|developer)\b/i,
+      // "ignore/disregard/... <=6 words ... instructions/prompt/rules/..." (words view).
+      imperative: /\b(?:ignore|disregard|forget|override|overrule|disobey|discard|supersede)\b(?: \w+){0,6} \b(?:instruction|instructions|prompt|prompts|directive|directives|rule|rules|guideline|guidelines|constraint|constraints|command|commands|request|requests|task|tasks)\b/i,
+      // "ignore <=4 words the above/previous" -- the object need not be the word "instructions".
+      imperative2: /\b(?:ignore|disregard|forget|override|disobey)\b(?: \w+){0,4} \b(?:previous|prior|above|earlier|preceding|foregoing|aforementioned)\b/i,
+      // Persona / jailbreak framing (words view).
+      persona: /\byou are now\b|\byou are (?:a |an |the )?(?:dan|jailbroken|unrestricted|unfiltered|unbounded)\b|\b(?:act|behave|respond|roleplay|role play|pose) as (?:a |an |the |if )\b|\bpretend (?:to be|you are|that you|that it)\b|\bsimulate (?:a |an |being )\b|\bdeveloper mode\b|\bdo anything now\b|\bdan mode\b|\bignore your (?:training|guidelines|programming|rules|instructions|safety)\b/i,
+      // Contract / task override (words view).
+      contract: /\b(?:new|updated|revised|additional|secret|hidden|real|actual|true) (?:instruction|instructions|directive|directives|task|tasks|system prompt|objective|objectives) (?:for you |below|are |is |here )?\b|\bfrom now on you\b|\byour (?:new|real|actual|true|only|primary) (?:task|instruction|instructions|job|goal|objective|purpose|role) (?:is|are)\b|\binstead of (?:reviewing|the review|your task|following)\b|\bstop (?:reviewing|the review|following)\b/i,
+      // Subverting the review's output contract (words view).
+      subvert: /\b(?:do not|dont|never|you must not|you should not|please do not|refrain from) (?:report|reporting|flag|flagging|mention|mentioning|disclose|disclosing|post|posting|list|listing|raise|raising|surface|surfacing)\b(?: \w+){0,3} \b(?:finding|findings|issue|issues|bug|bugs|vulnerab\w*|problem|problems|concern|concerns|security)\b|\b(?:approve|accept|pass) this (?:pr|pull request|change|review|code)\b|\bgive (?:a |this )?(?:positive|clean|passing|favorable|good) (?:review|rating|result|report)\b|\breturn (?:an? )?(?:empty|clean|passing|positive|no findings?) (?:review|result|report|response|json|array)\b|\bmark (?:this|it) (?:as )?(?:safe|clean|approved|secure|reviewed|passing)\b|\bsay (?:that )?(?:the code|this|it|everything) (?:is|looks|seems) (?:fine|clean|safe|good|secure|correct|ok|okay)\b/i,
+      // Exfiltration of the prompt / secrets (words view).
+      exfil: /\b(?:print|reveal|show|display|output|repeat|echo|disclose|leak|exfiltrate|dump|expose|reproduce) (?:me )?(?:your|the|all your|all the|its) (?:system prompt|system message|prompt|instructions|initial instructions|guidelines|configuration|config|secret|secrets|credential|credentials|token|tokens|api key|api keys|password|passwords|env|environment)\b|\brepeat (?:the |everything |all )(?:words |text |content |message )?(?:above|before|preceding|prior)\b|\bwhat (?:are|were) your (?:instructions|initial instructions|system prompt|guidelines|rules)\b/i,
+      check(diff) {
+        try { return this.evaluate(diff); } catch (e) { return { clear: false }; }
+      },
+      evaluate(diff) {
+        // Fail closed: a read that did not return a string (missing/unreadable review.diff) is
+        // not positively cleared, so it is withheld.
+        if (typeof diff !== 'string') return { clear: false };
+        const regexes = [this.role, this.imperative, this.imperative2, this.persona, this.contract, this.subvert, this.exfil];
+        const scan = (raw) => {
+          const norm = this.fold(this.plain(raw));
+          for (const re of [norm, this.words(norm)]) {
+            for (const rx of regexes) if (rx.test(re)) return false;
+          }
+          return true;
+        };
+        const added = this.added(diff);
+        if (!scan(added)) return { clear: false };
+        const decoded = this.b64(added);
+        if (decoded && !scan(decoded)) return { clear: false };
+        return { clear: true };
+      },
+    })
+
 on:
   pull_request:
     types: [review_requested, opened, ready_for_review]
@@ -305,8 +442,37 @@ jobs:
           # mode, so that leaves executable files executable.
           find pr-head -type f -exec chmod a-x {} +
 
-      - name: Review
+      # PRE-MODEL EARLY-ABORT (#14211). Statically scan the untrusted input the model is about to
+      # ingest -- review.diff -- for prompt-injection / attack shapes, and on a match withhold the
+      # review here, before the model runs, reusing the fixed withheld path. This is the cheapest
+      # rung of the early-abort ladder and the prerequisite that makes reviewing fork content (#14210
+      # Phase 2) safe. See INJECTION_SCAN_JS above for the surface argument and the shapes matched.
+      - name: Scan the input for injection shapes (pre-model early-abort)
+        id: injection-scan
         if: steps.range.outputs.skip == 'false'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require('fs');
+            const scan = eval(process.env.INJECTION_SCAN_JS);
+            let diff = null;
+            try { diff = fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/review.diff`, 'utf8'); } catch (e) { diff = null; }
+            // Fail closed: scan.check() withholds on anything it cannot positively clear, a missing
+            // diff included. On a match, seed the SAME {withheld:true} stub the disclosure gate
+            // writes (so the uploaded artifact is correct even if later steps change) and signal the
+            // Review step to skip -- no model turn is spent. The log line is identical either way:
+            // the run log is public, so it must not say whether, or why, the input was withheld.
+            const withhold = !scan.check(diff).clear;
+            if (withhold) {
+              fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review.json`, JSON.stringify({ withheld: true }));
+            }
+            core.setOutput('withhold', withhold ? 'true' : 'false');
+            core.info('Pre-model input scan complete.');
+
+      - name: Review
+        # Skipped when the pre-model scan withheld: the input is withheld without spending a model
+        # turn, and the {withheld:true} stub already on disk carries through to `post`.
+        if: steps.range.outputs.skip == 'false' && steps.injection-scan.outputs.withhold != 'true'
         # Pinned deliberately -- do not restore the floating `@v1`. Same upstream regression as
         # issue_enrichment.yml and pr_autoresponder.yml: from a later version every run reports
         # success while producing nothing, in workflows that set `allowed_non_write_users`.
