@@ -103,6 +103,10 @@ def find_author(author: AuthorImportDict) -> list[Author]:
             seen.add(obj["key"])
         return obj
 
+    def has_conflicting_remote_ids(candidate: Author) -> bool:
+        existing = candidate.get("remote_ids") or {}
+        return any(id_type in existing and existing[id_type] != value for id_type, value in (author.get("remote_ids") or {}).items())
+
     def get_redirected_authors(authors: list[Author]):
         keys = [a.type.key for a in authors]
         if any(k != "/type/author" for k in keys):
@@ -172,6 +176,9 @@ def find_author(author: AuthorImportDict) -> list[Author]:
             continue
         assert a.type.key == "/type/author"
         if has_dates(author) and not author_dates_match(author, a):
+            continue
+        if has_conflicting_remote_ids(a):
+            # A shared name, but the ids say this is someone else.
             continue
         match.append(a)
     if not match:

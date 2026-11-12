@@ -4,7 +4,8 @@ $def with ()
   <li class="$('selected' if ctx.path == '/import/batch/new' else '')">
     <a data-ol-link-track="BatchImportNav|NewBatch" href="/import/batch/new">$_("New Batch Import")</a>
   </li>
-  <li class="$('selected' if ctx.path == '/import/batch/pending' else '')">
-    <a data-ol-link-track="BatchImportNav|Pending" href="/import/batch/pending">$_("Pending Imports")</a>
-  </li>
+  $if ctx.user and ctx.user.is_admin():
+    <li class="$('selected' if ctx.path == '/import/batch' else '')">
+      <a data-ol-link-track="BatchImportNav|All" href="/import/batch">$_("All Batches")</a>
+    </li>
 </ul>

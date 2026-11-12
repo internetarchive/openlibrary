@@ -34,7 +34,7 @@
 /* Matched terms: a highlight, since bold barely registers in small serif text.
    The negative margin keeps the padding from pushing adjacent punctuation. */
 .fsi-quote strong {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   background-color: var(--amber-100);
   border-radius: var(--border-radius-sm);
   padding: 0 var(--spacing-inline-xs);

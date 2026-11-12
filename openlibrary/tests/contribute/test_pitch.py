@@ -88,7 +88,9 @@ def test_wanted_until_seen_today_or_closed():
 def test_a_new_initiative_brings_a_closed_pitch_back(monkeypatch):
     closed = {pitch.dismiss_cookie(): "1"}
     monkeypatch.setattr(
-        initiatives, "INITIATIVES", (*initiatives.INITIATIVES, initiatives.Initiative("new-one", 10, initiatives.pick_most_shelved, MOST_READ.fields))
+        initiatives,
+        "cached_definitions",
+        lambda: [{"slug": "new-one", "title": "New one", "fields": list(MOST_READ.fields), "starts_at": "2026-11-05T00:00:00+00:00"}],
     )
     assert pitch.wanted(closed)
 

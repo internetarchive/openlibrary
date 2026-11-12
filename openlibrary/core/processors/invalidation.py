@@ -5,6 +5,7 @@ import web
 
 from infogami.infobase import client
 from openlibrary.core import helpers as h
+from openlibrary.utils.request_context import site
 
 __all__ = ["InvalidationProcessor"]
 
@@ -131,11 +132,11 @@ class InvalidationProcessor:
                 "last_modified>": self.last_poll_time.isoformat(),
                 "limit": 1000,
             }
-            keys += web.ctx.site.things(q)
+            keys += site.get().things(q)
 
         if keys:
             web.ctx._invalidation_inprogress = True
-            docs = web.ctx.site.get_many(keys)
+            docs = site.get().get_many(keys)
             for doc in docs:
                 with contextlib.suppress(Exception):
                     client._run_hooks("on_new_version", doc)
@@ -170,7 +171,7 @@ class _InvalidationHook:
         if any(doc.key.startswith(prefix) for prefix in self.prefixes):
             # The supplied does doesn't have the updated last_modified time.
             # Fetch the document afresh to get the correct last_modified time.
-            doc = web.ctx.site.get(doc.key)
+            doc = site.get().get(doc.key)
             t = doc.last_modified
 
             web.setcookie(self.cookie_name, t.isoformat(), expires=self.expire_time)

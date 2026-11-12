@@ -39,6 +39,8 @@ from openlibrary.plugins.openlibrary.lists import (
 from openlibrary.plugins.upstream.borrow import datetime_from_isoformat
 from openlibrary.plugins.upstream.mybooks import shelf_button_for
 from openlibrary.plugins.upstream.utils import (
+    convert_iso_to_marc,
+    get_populated_languages,
     get_user_object,
     json_encode,
     render_macro,
@@ -1217,6 +1219,65 @@ class HomeGenrePartial:
             subgenre_rows=subgenre_rows,
         )
         return {"partials": html}
+
+
+@public
+def query_carousel(
+    query: str,
+    title: str | None = None,
+    sort: str = "new",
+    key: str = "",
+    limit: int = 20,
+    search: bool = False,
+    has_fulltext_only: bool = True,
+    url: str | None = None,
+    layout: str = "ol-carousel",
+    user_lang_only: bool = False,
+    fallback: bool = False,
+    safe_mode: bool = True,
+    *,
+    lang: str | None = None,
+) -> str:
+    """Render a query or list carousel placeholder without Templetor.
+
+    Backs the ``{{QueryCarousel(...)}}`` and ``{{ListCarousel(...)}}`` wiki macros.
+
+    :param query: Any Open Library search query, e.g. ``subject:"Textbooks"``, or a list key
+    :param title: A title to show above the carousel (links to /search?q=query)
+    :param sort: Sort param defined within work_search.py ``work_search``
+    :param key: Unique name of the carousel in analytics
+    :param limit: Initial number of books to pull
+    :param search: Whether to include search within collection
+    :param has_fulltext_only: Only include readable titles
+    :param url: Make the title link to this URL
+    :param layout: ``ol-carousel`` (default), ``grid``, or ``carousel`` for the legacy slick row
+    :param user_lang_only: Filter results to ``lang`` when it's a populated ebook language;
+        defaults to English when no language is supplied
+    :param fallback: Offer to retry the unfiltered query when the language-filtered one has no results
+    :param safe_mode: Blur covers of books that have a ``content_warning`` tag
+    :param lang: The visitor's ISO 639-1 language, supplied by the caller, never read from the request here
+    """
+    fallback_query = None
+    if user_lang_only:
+        user_lang = convert_iso_to_marc(lang or "en")
+        if user_lang and user_lang in get_populated_languages():
+            fallback_query = query
+            query = query + " language:" + user_lang
+
+    carousel = build_carousel_placeholder_config(
+        query=query,
+        title=title,
+        sort=sort,
+        key=key,
+        limit=limit,
+        search=search,
+        has_fulltext_only=has_fulltext_only,
+        url=url,
+        layout=layout,
+        fallback=fallback and fallback_query,
+        safe_mode=safe_mode,
+    )
+    return render_jinja_template("RawQueryCarouselPlaceholder.html.jinja", **carousel)
 
 
 @public

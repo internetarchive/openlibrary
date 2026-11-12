@@ -37,7 +37,7 @@ never fires.** ImportBot would process anything staged; nothing stages
 anything. The ~94 records harvested in production were run **by hand** by an
 agent — that is the entire harvest history of the system.
 
-**Consequence for [[#12655]] planning: this is the only missing piece, and it
+**Consequence for [#12655](https://github.com/internetarchive/openlibrary/issues/12655) planning: this is the only missing piece, and it
 is one crontab line in olsystem.** Configuration, not a project. It should be
 reordered ahead of every other item in the epic — and note it interacts with
 the unbounded-row-fetch follow-up, which must land *before* harvest volume
@@ -310,9 +310,9 @@ Key behaviors this captures (all existing): every import path — direct `/api/i
 
 ## Dependencies
 
-*Depends on →* [[trusted-book-providers]] (acquisition storage model + `book_providers.py`), [[../imports|Imports]] (`add_book.load()` pipeline), Infogami, Solr.
-*Depended on by →* [[../features|Features]], search-by-price / availability filtering, `ebook_access` deduction.
+*Depends on →* [[trusted-book-providers]] (acquisition storage model + `book_providers.py`), [Imports](README.md) (`add_book.load()` pipeline), Infogami, Solr.
+*Depended on by →* [Features](../features/README.md), search-by-price / availability filtering, `ebook_access` deduction.
 
 ---
 
-*See [[README]] · [[trusted-book-providers]] · epic internetarchive/openlibrary#12844*
+*See [README](../README.md) · [[trusted-book-providers]] · epic internetarchive/openlibrary#12844*

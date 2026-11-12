@@ -24,6 +24,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.utils import markdown_excerpt
+from openlibrary.utils.request_context import site
 
 LIST_SIZE = 25
 # Placeholder cards while a cold cache builds the list in the background; the script swaps them for the rows.
@@ -84,12 +85,12 @@ def normalize_filter(raw: str, fields: tuple[str, ...] = tuple(tasks.POINTS)) ->
 
 def get_initiative(slug: str) -> initiatives.Initiative:
     """The initiative a request names, or the headline one."""
-    return initiatives.get(slug) or initiatives.ACTIVE
+    return initiatives.get(slug) or initiatives.headline()
 
 
 def initiative_param(initiative: initiatives.Initiative) -> str:
     """What URLs carry for the initiative: nothing for the headline one, so its links stay as they were."""
-    return "" if initiative is initiatives.ACTIVE else initiative.slug
+    return "" if initiative.slug == initiatives.headline().slug else initiative.slug
 
 
 def build_edit_saved(payload: str) -> pitch.EditSaved:
@@ -137,7 +138,7 @@ def build_next_url(back: str, after: tasks.Task, saved: bool, initiative: str = 
 def get_language_names(codes: set[str]) -> dict[str, str]:
     names = {}
     for code in codes:
-        if lang := web.ctx.site.get(f"/languages/{code}"):
+        if lang := site.get().get(f"/languages/{code}"):
             names[code] = lang.name or code
     return names
 
@@ -317,6 +318,15 @@ def build_evidence(edition) -> str:
     return markdown_excerpt(blurb, max_length=600)
 
 
+def build_scope(fld: str, edition_line: str) -> str:
+    """What an answer covers, for under the question: this one edition, named when the record can name it, or the whole work."""
+    if fld in tasks.WORK_FIELDS:
+        return _("Your answer applies to every edition of this book, not just this one.")
+    if edition_line:
+        return _("Answer for this edition only: %(edition)s. Other editions of the book can differ.", edition=edition_line)
+    return _("Answer for this edition only. Other editions of the book can differ.")
+
+
 def count_sibling_values(fld: str, others: list, limit: int = 5) -> dict:
     """How often each value appears across the other editions, most common first."""
     values = [field_values(e, fld) for e in others]
@@ -421,21 +431,42 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
     save, and from MIN_PEOPLE_SHOWN up, how many people have saved for it.
     """
     cards = []
-    for initiative in initiatives.INITIATIVES:
+    listed = initiatives.listed()
+    # With nothing listed, the headline falls back to one that isn't; it still gets a card, so the page has a project to show.
+    if all(i.slug != current.slug for i in listed):
+        listed.append(current)
+    for initiative in listed:
         gaps = initiatives.get_gaps(initiative)
-        p = initiatives.progress(gaps, initiative.fields) if gaps else None
+        p = initiatives.progress(gaps, initiative.fields, initiative.start) if gaps else None
         people = get_initiative_people(initiative) if p else 0
+        finished = initiative.status() == "ended"
         cards.append(
             initiatives.describe(initiative)
             | {
                 "slug": initiative.slug,
-                "on": initiative is current,
+                "on": initiative.slug == current.slug,
                 "url": build_dashboard_url(initiative=initiative_param(initiative)),
                 # None while the list is still being built.
                 "percent": p["percent"] if p else None,
                 "figure": _("%(percent)s%%", percent=p["percent"]) if p else "",
                 "done_label": _("%(percent)s%% done", percent=p["percent"]) if p else "",
+                # Out of the tasks open at the start, the same count the percent is taken from.
+                "tasks_done": (
+                    ungettext(
+                        "%(done)s of %(count)s task done",
+                        "%(done)s of %(count)s tasks done",
+                        p["start"],
+                        done=helpers.commify(max(0, p["start"] - p["open"])),
+                        count=helpers.commify(p["start"]),
+                    )
+                    if p
+                    else ""
+                ),
                 "tasks_left": ungettext("%(count)s task left", "%(count)s tasks left", p["open"], count=helpers.commify(p["open"])) if p else "",
+                # An ended one hands out no tasks, so its row says how it finished instead of what is left.
+                "finished": finished,
+                "finished_label": _("Finished · %(percent)s%% filled", percent=p["percent"]) if p else _("Finished"),
+                "people_count": people,
                 "people": (
                     ungettext("%(count)s person helping", "%(count)s people helping", people, count=helpers.commify(people))
                     if people >= MIN_PEOPLE_SHOWN
@@ -446,12 +477,38 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
     return cards
 
 
+def build_finished(card: dict) -> dict | None:
+    """What an ended project shows in place of its tasks: how it finished, and the running project to go to next."""
+    if not card["finished"]:
+        return None
+    people = card["people_count"]
+    if card["percent"] is None:
+        note = _("Thank you to everyone who helped.")
+    elif people >= MIN_PEOPLE_SHOWN:
+        note = ungettext(
+            "%(count)s person filled in %(percent)s%% of its details. Thank you.",
+            "%(count)s people filled in %(percent)s%% of its details. Thank you.",
+            people,
+            count=helpers.commify(people),
+            percent=card["percent"],
+        )
+    else:
+        note = _("%(percent)s%% of its details were filled in. Thank you to everyone who helped.", percent=card["percent"])
+    running = initiatives.running()
+    following = initiatives.headline() if running else None
+    return {
+        "title": _("This project has finished"),
+        "note": note,
+        "next_url": build_dashboard_url(initiative=initiative_param(following)) if following else "",
+        "next_label": _("Go to %(project)s", project=initiatives.describe(following)["title"]) if following else "",
+    }
+
+
 def count_open(gaps: list[list] | None, fields: tuple[str, ...]) -> str:
     """Open tasks in ``fields`` across the initiative's gaps, for a filter chip; blank while the gaps are being built."""
     if gaps is None:
         return ""
-    wanted = set(fields)
-    return helpers.commify(sum(1 for _key, _readers, open_fields, _skipped in gaps for f in open_fields if f in wanted))
+    return helpers.commify(sum(initiatives.field_counts(gaps, f)["open"] for f in set(fields)))
 
 
 def build_filter_rail(task: str, initiative: initiatives.Initiative, gaps: list[list] | None = None) -> dict:
@@ -566,11 +623,13 @@ class contribute_index(delegate.page):
         slug = initiative_param(initiative)
         task = normalize_filter(query_param("task", ""))
         rows = build_task_rows(task, initiative)
+        gaps = initiatives.get_gaps(initiative)
         projects = build_initiative_cards(initiative)
+        project = next(card for card in projects if card["on"])
         return render_contribute(
             "contribute/dashboard.html.jinja",
             _("Tasks"),
-            rail=build_filter_rail(task, initiative, initiatives.get_gaps(initiative)),
+            rail=build_filter_rail(task, initiative, gaps),
             rows=rows,
             # While the pool builds, the script fetches the rows from here.
             rows_url=build_dashboard_url(task, base="/partials/TaskRows.json", initiative=slug) if rows is None else "",
@@ -578,9 +637,12 @@ class contribute_index(delegate.page):
             heading=get_filter_headings()[task] if task else _("All project tasks"),
             empty=_("Nothing missing here right now. Thank you."),
             history_url=user.key,
+            manage_url="/tasks/admin" if user.can_manage_tasks() else "",
             apply=build_apply(user),
             initiatives=projects,
-            project=next(card for card in projects if card["on"]),
+            project=project,
+            finished=build_finished(project),
+            fine_print=initiatives.fine_print(initiative, site.get()),
         )
 
 
@@ -630,6 +692,7 @@ def build_task_context(
     value: str = "",
     many: Sequence[str] = (),
     note: str = "",
+    project: str = "",
 ) -> dict:
     field_guide = get_field_guides()[task.field]
     others = get_sibling_editions(edition) if field_guide.show_siblings else []
@@ -648,6 +711,9 @@ def build_task_context(
             "url": build_task_url(task, back, initiative, surprise),
         },
         "initiative": initiative,
+        # The form names its project outright, even the headline one its URLs leave out, so a save is credited to the
+        # project the task came from if the headline changes before it is submitted.
+        "project": project or initiative,
         "is_identifier": task.field in save.NORMALIZERS,
         "is_cover": task.field == "covers",
         # Offered as one of the cover choices, next to uploading one.
@@ -655,6 +721,7 @@ def build_task_context(
         if task.field == "covers" and (isbn10 := edition.get_isbn10())
         else None,
         "field_guide": field_guide,
+        "scope": build_scope(task.field, book["edition_line"]),
         "link_outs": build_link_outs(field_guide, book["isbn13"]),
         # Nothing to compare against when no other edition has a value.
         "siblings": siblings if any(s["value"] for s in siblings) else [],
@@ -694,7 +761,7 @@ def build_receipt(saved: str, picked: str = "") -> dict | None:
     None when the field is still empty, as there's nothing saved to show. A cover has no text value; the image is its value.
     """
     olid, _sep, fld = saved.partition("/")
-    if fld not in get_field_guides() or not (edition := web.ctx.site.get(f"/books/{olid}")):
+    if fld not in get_field_guides() or not (edition := site.get().get(f"/books/{olid}")):
         return None
     field_label, value = describe_saved(edition, fld, picked)
     cover_url = edition.get_cover_url("M")
@@ -710,7 +777,7 @@ def build_receipt(saved: str, picked: str = "") -> dict | None:
 
 
 def get_edition_or_404(olid: str):
-    edition = web.ctx.site.get(f"/books/{olid}")
+    edition = site.get().get(f"/books/{olid}")
     if not edition or edition.type.key != "/type/edition":
         raise web.notfound()
     return edition
@@ -753,24 +820,27 @@ class contribute_task(delegate.page):
     def GET(self, olid, fld):
         require_login(f"/tasks/task/{olid}/{fld}")
         back = get_back_filter()
-        slug = initiative_param(get_initiative(query_param("initiative", "")))
+        initiative = get_initiative(query_param("initiative", ""))
+        slug = initiative_param(initiative)
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return render_nothing_page(edition, fld, back, slug)
         receipt = build_receipt(query_param("saved", ""), query_param("picked", ""))
-        context = build_task_context(edition, task, back, slug, surprise=bool(query_param("surprise", ""))) | {"receipt": receipt}
+        context = build_task_context(edition, task, back, slug, surprise=bool(query_param("surprise", "")), project=initiative.slug) | {"receipt": receipt}
         return render_contribute("contribute/task.html.jinja", get_field_guides()[fld].question, **context)
 
     def POST(self, olid, fld):
         user = require_login(f"/tasks/task/{olid}/{fld}")
-        i = web.input(value="", genres=[], note="", back="", initiative="", surprise="", confirmed="", then="", file={})
+        i = web.input(value="", genres=[], note="", back="", initiative="", project="", surprise="", confirmed="", then="", file={})
         # Drop the upload's field storage, as the add-cover page does.
         web.ctx.pop("_fieldstorage", None)
         # Same check as the edit form; it also stops read-only and blocked accounts. Only the text is checked: not the image, not the picked keys.
         if spamcheck.is_spam(web.storage((k, v) for k, v in i.items() if isinstance(v, str)), allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         back = normalize_filter(i.back)
-        initiative = get_initiative(i.initiative)
+        # A task opened before its initiative was hidden still saves toward it. The form names its project; the URL's
+        # ``initiative`` covers a form rendered before it did.
+        initiative = initiatives.get(i.project or i.initiative, hidden=True) or initiatives.headline()
         slug = initiative_param(initiative)
         surprise = bool(i.surprise)
         edition = get_edition_or_404(olid)
@@ -778,7 +848,7 @@ class contribute_task(delegate.page):
             return render_nothing_page(edition, fld, back, slug)
         if i.then == "notfound" or (is_choice_list(fld) and i.value == UNSURE):
             # "Not sure" counts like "I couldn't find it": enough people and the gap is set aside.
-            initiatives.record_not_found(web.ctx.site, edition.key, fld, user.key)
+            initiatives.record_not_found(site.get(), edition.key, fld, user.key)
             if i.then == "next":
                 raise web.seeother(build_next_url(back, task, saved=False, initiative=slug, surprise=surprise))
             raise web.seeother(build_done_url(olid, fld, "unsure", back, slug, surprise))
@@ -796,7 +866,9 @@ class contribute_task(delegate.page):
             else:
                 save.save_answer(edition, fld, i.value, field_guide.label, i.note, initiative=initiative.slug)
         except save.InvalidAnswer as e:
-            context = build_task_context(edition, task, back, slug, surprise=surprise, error=str(e), value=i.value, many=i.genres, note=i.note)
+            context = build_task_context(
+                edition, task, back, slug, surprise=surprise, error=str(e), value=i.value, many=i.genres, note=i.note, project=initiative.slug
+            )
             return render_contribute("contribute/task.html.jinja", field_guide.question, **context)
         if i.then == "next":
             raise web.seeother(build_next_url(back, task, saved=True, initiative=slug, surprise=surprise, picked=picked))

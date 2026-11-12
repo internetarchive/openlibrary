@@ -25,12 +25,12 @@
   }
 
   .compact-title__heading {
-    font-size: 1.25em;
+    font-size: var(--font-size-title-large);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     font-family: var(--font-family-title);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
   }
 }
 

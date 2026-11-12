@@ -17,6 +17,7 @@ import web
 
 from openlibrary.mocks import mock_infobase
 from openlibrary.plugins.books import dynlinks
+from openlibrary.utils.request_context import site as site_context
 from openlibrary.utils.solr import Solr
 
 
@@ -461,6 +462,7 @@ async def test_isbnx(monkeypatch):
     )
 
     monkeypatch.setattr(web.ctx, "site", site, raising=False)
+    site_context.set(web.ctx.site)
 
     async def things(query):
         # infobase_async reads Postgres; serve the lookup from the mock site instead.
@@ -542,3 +544,10 @@ class TestDataProcessor:
         doc["preview"] = "full"
 
         assert p.process_doc(doc) == data9["result"]["data"]
+
+
+@pytest.fixture(autouse=True)
+def restore_site_context():
+    token = site_context.set(site_context.get(None))
+    yield
+    site_context.reset(token)

@@ -257,7 +257,7 @@ export class OlBookCover extends LitElement {
         .blank__title {
             font-family: var(--font-family-heading);
             font-size: var(--font-size-title-medium);
-            font-weight: 500;
+            font-weight: var(--font-weight-medium);
             line-height: var(--line-height-tight);
             overflow: hidden;
             display: -webkit-box;
@@ -302,7 +302,7 @@ export class OlBookCover extends LitElement {
         }
 
         .tip__title {
-            font-weight: 600;
+            font-weight: var(--font-weight-semibold);
         }
 
         .tip__year,

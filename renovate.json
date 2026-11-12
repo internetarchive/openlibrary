@@ -90,6 +90,13 @@
       "groupSlug": "github-actions"
     },
     {
+      "description": "Runner OS and Node majors in workflows are upgraded by hand: python_tests is pinned to ubuntu-24.04 until Python moves past 3.14.5 (no setup-python 3.14.5 build for 26.04), and CI Node must match docker/Dockerfile.olbase and package.json engines.",
+      "matchManagers": ["github-actions"],
+      "matchDepNames": ["ubuntu", "node"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
       "description": "Bump the range in package.json on every npm update (not just the lockfile), so declared minimums match what we run.",
       "matchManagers": ["npm"],
       "rangeStrategy": "bump"

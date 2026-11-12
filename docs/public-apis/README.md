@@ -47,7 +47,7 @@ reader.archive.org    openlibrary.org/opds (reverse proxy)
 1. Reading app → `GET opds.openlibrary.org/search?query=tolkien`
 2. Route handler in `app/routes/opds.py` calls `provider.search(query, ...)`
 3. `pyopds2_openlibrary.__init__._get()` → `openlibrary.org/search.json`
-4. OL backend hits Solr (see [[search]])
+4. OL backend hits Solr (see [search](../search/README.md))
 5. Results wrapped in OPDS 2.0 `publications` JSON → Memcached → returned
 
 ### Cache TTLs
@@ -171,7 +171,7 @@ If a bibkey is an ISBN not found in OL:
 - `high_priority=true` → `Edition.from_isbn()` called immediately; if found, imported and returned
 - `high_priority=false` (default) → missed ISBNs queued to the affiliate server (BookWorm); returns nothing for that ISBN this call
 
-Availability (`preview` field) comes from Solr — `ebook_access` field mapped to `full/borrow/restricted/noview`. See [[lending]] and [[search]].
+Availability (`preview` field) comes from Solr — `ebook_access` field mapped to `full/borrow/restricted/noview`. See [lending](../lending/README.md) and [search](../search/README.md).
 
 ### Key code path
 
@@ -265,10 +265,10 @@ There is also an **unwired stub** `async def unlink_ia_ol(): pass` in `openlibra
 
 | API | Entry point | Status | See |
 |-----|-------------|--------|-----|
-| Search API | `/search.json`, `/search/authors.json` | FastAPI | [[search]] |
-| Import API | `/api/import`, `/import/batch/new` | web.py | [[imports]] |
+| Search API | `/search.json`, `/search/authors.json` | FastAPI | [search](../search/README.md) |
+| Import API | `/api/import`, `/import/batch/new` | web.py | [imports](../imports/README.md) |
 | Covers API | `covers.openlibrary.org` | standalone | [[covers]] |
-| Lists API | `/lists/{olid}.json` | Infogami .json encoding | [[features]] |
+| Lists API | `/lists/{olid}.json` | Infogami .json encoding | [features](../features/README.md) |
 | OPDS | `opds.openlibrary.org/opds/...` | FastAPI (Nomad) | See above |
 | Partials | Various `/partials/` paths | FastAPI | HTML fragments |
 
@@ -282,7 +282,7 @@ There is also an **unwired stub** `async def unlink_ia_ol(): pass` in `openlibra
 
 `raw/openlibrary-docs-ai/opds/index.md`: "Both [pyopds2 #102 and OL #12987] were closed without merging. The actual fix was opds #41."
 
-These directly conflict. **Verify current status on GitHub before relying on either.** The OPDS source says the workaround was already shipped via `opds #41`; the Solr priorities source says it was still open and needed. If #12987 was closed, update [[search]] PR table accordingly.
+These directly conflict. **Verify current status on GitHub before relying on either.** The OPDS source says the workaround was already shipped via `opds #41`; the Solr priorities source says it was still open and needed. If #12987 was closed, update [search](../search/README.md) PR table accordingly.
 
 ### docker-compose.yml worktree naming
 
@@ -307,9 +307,9 @@ Mock `pyopds2_openlibrary._get_http_client`, not `httpx.get`. The old bare-httpx
 ## Dependencies
 
 **Depends on:**
-- [[search]] — all OPDS search calls hit Solr via `openlibrary.org/search.json`
+- [search](../search/README.md) — all OPDS search calls hit Solr via `openlibrary.org/search.json`
 - [[core-operations]] — OL backend provides the Books/Authors/Works JSON APIs the OPDS service calls
-- [[imports]] — `/api/import` endpoint lives in the importapi plugin
+- [imports](../imports/README.md) — `/api/import` endpoint lives in the importapi plugin
 - [[infrastructure]] — `opds.openlibrary.org` runs on Nomad; see also [[infrastructure]] for deployment
 
 **Depended on by:**
@@ -326,4 +326,4 @@ Mock `pyopds2_openlibrary._get_http_client`, not `httpx.get`. The old bare-httpx
 
 ---
 
-*Sources: `raw/openlibrary-docs-ai/opds/index.md` · code synthesis: `fastapi/books.py`, `plugins/books/dynlinks.py`, `plugins/books/readlinks.py`, `infogami/plugins/api/code.py` · See [[README]] · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-docs-ai/opds/index.md` · code synthesis: `fastapi/books.py`, `plugins/books/dynlinks.py`, `plugins/books/readlinks.py`, `infogami/plugins/api/code.py` · See [README](../README.md) · [[METHODOLOGY]]*
