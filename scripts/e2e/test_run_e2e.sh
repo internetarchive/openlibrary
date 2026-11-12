@@ -70,9 +70,16 @@ case "$*" in
     fi
     ;;
   *"/statuses"*)
+    # idempotency GET (commit statuses history): emit canned contexts
     if [[ -n "${MOCK_STATUSES:-}" ]]; then
       printf '%s\n' $MOCK_STATUSES
     fi
+    ;;
+  *"/status"*)
+    # combined-status GET for the code-review precondition: emit the review
+    # state. Default success so existing tests proceed; override to "" (absent)
+    # or "failure" to exercise the stale-trigger no-op.
+    printf '%s\n' "${MOCK_REVIEW_STATE-success}"
     ;;
 esac
 exit "${MOCK_GH_EXIT:-0}"
@@ -234,6 +241,40 @@ new_sandbox
 run_entry PR_NUMBER="" HEAD_SHA="" MOCK_STATUSES="" E2E_CMD="true" WORKTREE_ADD_CMD="true"
 assert_eq   "validation: non-zero exit on missing inputs" 2 "$RC"
 assert_not_contains "validation: posts no pending on bad input" "$GH_CALLS" "state=pending"
+drop_sandbox
+
+# --- 8. code-review precondition: review absent => no-op, no pending ---------
+new_sandbox
+run_entry MOCK_STATUSES="" MOCK_REVIEW_STATE="" \
+          E2E_CMD="echo SHOULD_NOT_RUN" WORKTREE_ADD_CMD="echo SHOULD_NOT_RUN"
+assert_eq   "review-absent: exits 0 no-op" 0 "$RC"
+assert_not_contains "review-absent: posts no pending" "$GH_CALLS" "state=pending"
+assert_not_contains "review-absent: runs no e2e" "$TESTDIR/out.log" "SHOULD_NOT_RUN"
+drop_sandbox
+
+# --- 9. review present but not success (failure/pending) => no-op ------------
+new_sandbox
+run_entry MOCK_STATUSES="" MOCK_REVIEW_STATE="failure" \
+          E2E_CMD="true" WORKTREE_ADD_CMD="true"
+assert_eq   "review-failed: exits 0 no-op" 0 "$RC"
+assert_not_contains "review-failed: posts no pending" "$GH_CALLS" "state=pending"
+drop_sandbox
+
+# --- 10. review=success => proceeds (pending + terminal posted) --------------
+new_sandbox
+run_entry MOCK_STATUSES="" MOCK_REVIEW_STATE="success" \
+          E2E_CMD="true" WORKTREE_ADD_CMD="true"
+assert_eq   "review-green: proceeds and succeeds" 0 "$RC"
+assert_contains "review-green: posts pending" "$GH_CALLS" "state=pending"
+assert_contains "review-green: posts success" "$GH_CALLS" "state=success"
+drop_sandbox
+
+# --- 11. REVIEW_STATUS_CONTEXT empty => precondition skipped (runs anyway) ----
+new_sandbox
+run_entry MOCK_STATUSES="" MOCK_REVIEW_STATE="" REVIEW_STATUS_CONTEXT="" \
+          E2E_CMD="true" WORKTREE_ADD_CMD="true"
+assert_eq   "review-disabled: proceeds despite absent review" 0 "$RC"
+assert_contains "review-disabled: posts pending" "$GH_CALLS" "state=pending"
 drop_sandbox
 
 # ===========================================================================

@@ -64,6 +64,9 @@ REPO="${2:-${REPO:-internetarchive/openlibrary}}"
 HEAD_SHA="${3:-${HEAD_SHA:-}}"
 STATUS_CONTEXT="${4:-${STATUS_CONTEXT:-ada/e2e}}"
 LABEL="${5:-${LABEL:-Needs: e2e testing}}"
+# The review gate that must be green on HEAD_SHA for e2e to run. Set empty to
+# disable the precondition.
+REVIEW_STATUS_CONTEXT="${6-${REVIEW_STATUS_CONTEXT-ada/code-review}}"
 
 E2E_TIMEOUT="${E2E_TIMEOUT:-1800}"          # hard cap on the e2e run (step 4)
 E2E_STATUS_TIMEOUT="${E2E_STATUS_TIMEOUT:-60}"  # hard cap on each terminal gh write
@@ -88,6 +91,17 @@ check_existing_status() {
     return 2
   fi
   grep -Fxq "$STATUS_CONTEXT" <<<"$out"
+}
+
+# 0 = REVIEW_STATUS_CONTEXT is green (state=success) on HEAD_SHA; 1 = not green
+# (absent or any non-success latest state); 2 = the gh read failed.
+review_is_green() {
+  local out
+  if ! out="$(gh api "repos/$REPO/commits/$HEAD_SHA/status" \
+      --jq ".statuses[]? | select(.context == \"$REVIEW_STATUS_CONTEXT\") | .state" 2>/dev/null)"; then
+    return 2
+  fi
+  grep -Fxq "success" <<<"$out"
 }
 
 post_status() {
@@ -253,6 +267,22 @@ main() {
     2) die "could not read commit statuses for $HEAD_SHA (gh/auth?)" 3 ;;
     *) : ;;  # 1 = absent, proceed
   esac
+
+  # --- step 1.5: code-review precondition -----------------------------------
+  # e2e should only run on a head whose review passed. If the review gate isn't
+  # green on THIS sha, the forge label that triggered us is stale (a push
+  # invalidated the review), so no-op. This is BEFORE we arm the trap or post
+  # pending, so the no-op is trivially terminal-safe — no ada/e2e pending is
+  # ever left. Skipped when REVIEW_STATUS_CONTEXT is empty.
+  if [[ -n "$REVIEW_STATUS_CONTEXT" ]]; then
+    local rv=0
+    review_is_green || rv=$?
+    case "$rv" in
+      0) : ;;  # green, proceed
+      1) log "review '$REVIEW_STATUS_CONTEXT' not green on $HEAD_SHA — stale trigger; no-op"; exit 0 ;;
+      2) die "could not read review status for $HEAD_SHA (gh/auth?)" 3 ;;
+    esac
+  fi
 
   # Arm the terminal guarantee BEFORE posting pending. TERM/INT re-exit through
   # the EXIT trap so finalize always runs.
