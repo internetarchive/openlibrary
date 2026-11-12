@@ -11,9 +11,11 @@ name: Strip Verification Labels
 # completion on a push. As a job inside the review workflow it would share that workflow's
 # cancel-in-progress, so a `review_requested` arriving right after the push (a human re-requesting
 # review on a fix -- a common flow) could cancel the run MID-STRIP, leaving a stale label on an
-# unreviewed head. Standalone, it has its OWN concurrency group with cancel-in-progress:false, so a
-# strip always completes and concurrent pushes queue rather than cancel. As a bonus this keeps the
-# review workflow free of the `synchronize` trigger entirely.
+# unreviewed head. Standalone, it has its OWN concurrency group with cancel-in-progress:false, so the
+# in-progress strip always completes and the newest push's strip always runs (GitHub keeps the
+# running one plus one pending; only an intermediate pending run is superseded, and the final strip
+# is for the latest head -> the end label state is clean). As a bonus this keeps the review workflow
+# free of the `synchronize` trigger entirely.
 #
 # DEFENSE IN DEPTH, not the sole guard: the AUTHORITATIVE gate is the SHA-bound `ada/code-review`
 # commit status, and the e2e entrypoint re-checks that status on the run-time head before running
@@ -26,8 +28,9 @@ on:
 
 concurrency:
   # Own group, distinct from the review workflow's `code-review-<pr>`: a review run can never cancel
-  # a strip, and cancel-in-progress:false means a strip always runs to completion (concurrent pushes
-  # queue rather than cancel one mid-strip).
+  # a strip. cancel-in-progress:false means the in-progress strip always completes and the newest
+  # push's strip always runs (an intermediate pending run may be superseded, but the final strip is
+  # for the latest head, so the end label state is clean).
   group: code-review-strip-${{ github.event.pull_request.number }}
   cancel-in-progress: false
 
@@ -40,8 +43,9 @@ jobs:
     # NOT use pull_request_target (which would run with secrets on forks) -- unnecessary surface here.
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    # No GITHUB_TOKEN scopes needed: the label removal uses OL_BOT_ISSUE_PAT, and no step reads the
+    # default token. Least privilege -> none.
+    permissions: {}
     steps:
       - name: Strip stale verification labels on push
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
