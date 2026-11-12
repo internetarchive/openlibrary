@@ -54,6 +54,14 @@ echo "$*" >> "$GH_CALLS"
 # '.[].context'; emit one context per line from $MOCK_STATUSES (space/newline
 # separated). The script does the exact-match itself, so a dumb echo is enough.
 case "$*" in
+  *state=pending*)
+    # Simulate an orchestrator SIGTERM landing WHILE the pending POST is the
+    # running foreground gh child (the window finding #1 is about). We've
+    # already logged the call above; now deliver the signal to the script.
+    if [[ "${MOCK_KILL_ON_PENDING:-}" == "1" ]]; then
+      kill -TERM "$PPID" 2>/dev/null
+    fi
+    ;;
   *"/statuses"*)
     if [[ -n "${MOCK_STATUSES:-}" ]]; then
       printf '%s\n' $MOCK_STATUSES
@@ -156,6 +164,19 @@ else
   _fail "sigterm: a terminal status was posted (not left pending)" "only pending in $GH_CALLS"
 fi
 if (( RC != 0 )); then _ok "sigterm: exit code is non-zero"; else _fail "sigterm: exit code is non-zero" "got 0"; fi
+drop_sandbox
+
+# --- 4b. THE EVEN-HARDER ONE: SIGTERM lands DURING the pending POST ----------
+#        (the window where PENDING_POSTED may not be set yet). The mock gh kills
+#        the script the instant it posts `pending`. A terminal status must still
+#        be posted — the commit must never be left only-pending.
+new_sandbox
+run_entry MOCK_STATUSES="" \
+          MOCK_KILL_ON_PENDING="1" \
+          E2E_CMD="true" \
+          WORKTREE_ADD_CMD="true"
+assert_contains "kill-during-pending-post: pending was posted" "$GH_CALLS" "state=pending"
+assert_contains "kill-during-pending-post: terminal status STILL posted (not left pending)" "$GH_CALLS" "state=failure"
 drop_sandbox
 
 # --- 5. sha-pinning: worktree is added at the exact HEAD_SHA, detached -------

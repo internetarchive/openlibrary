@@ -101,9 +101,16 @@ clear_label() {
   gh pr edit "$PR_NUMBER" --repo "$REPO" --remove-label "$LABEL" >/dev/null 2>&1
 }
 
+# A compose project / worktree key unique to this (PR, sha). Including the sha
+# keeps a force-push re-dispatch (same PR, new HEAD_SHA) from colliding on the
+# docker project name — so one run's teardown can't rip down the other's stack.
+COMPOSE_PROJECT="ol-e2e-${PR_NUMBER}-${HEAD_SHA:0:12}"
+WORKTREE_PARENT=""      # throwaway mktemp dir holding the worktree; cleaned up
+
 # --- worktree (step 3) -------------------------------------------------------
 add_worktree() {
-  WORKTREE_DIR="$(mktemp -d)/ol-e2e-${PR_NUMBER}-${HEAD_SHA:0:12}"
+  WORKTREE_PARENT="$(mktemp -d)"
+  WORKTREE_DIR="${WORKTREE_PARENT}/ol-e2e-${PR_NUMBER}-${HEAD_SHA:0:12}"
   if [[ -n "${WORKTREE_ADD_CMD:-}" ]]; then
     # Test seam: hand the seam the exact args we'd give git, so a test can
     # assert on `--detach` and the pinned sha without touching the repo.
@@ -146,7 +153,7 @@ run_e2e() {
   # suite by setting E2E_PLAYWRIGHT_CMD once the hydration failures are resolved.
   local playwright_cmd="${E2E_PLAYWRIGHT_CMD:-npx playwright test --project=desktop --grep @smoke --grep-invert \"logged in\"}"
 
-  local proc="ol-e2e-${PR_NUMBER}"
+  local proc="$COMPOSE_PROJECT"
   # shellcheck disable=SC2016
   local body='
     set -euo pipefail
@@ -175,8 +182,10 @@ cleanup_worktree() {
   # In test mode (seams set) no real worktree/stack was created — skip.
   [[ -z "${WORKTREE_ADD_CMD:-}" ]] || return 0
   git worktree remove --force "$WORKTREE_DIR" 2>/dev/null || rm -rf "$WORKTREE_DIR"
+  # Remove the throwaway parent mktemp dir too (not just the worktree inside it).
+  [[ -n "$WORKTREE_PARENT" ]] && rm -rf "$WORKTREE_PARENT"
   if [[ -z "${E2E_CMD:-}" ]]; then
-    docker compose -p "ol-e2e-${PR_NUMBER}" down -v 2>/dev/null || true
+    docker compose -p "$COMPOSE_PROJECT" down -v 2>/dev/null || true
   fi
 }
 
@@ -195,7 +204,12 @@ on_signal() {
 
 finalize() {
   local rc=$?
-  trap - EXIT TERM INT   # disarm: no re-entry while we post
+  # Clear EXIT so we don't re-enter, but IGNORE (not default) TERM/INT across
+  # the terminal post: an orchestrator that escalates with a second SIGTERM must
+  # not kill us mid-post and leave the commit stuck at pending. (SIGKILL is still
+  # untrappable — that edge belongs to the wrapping agent's richer handling.)
+  trap - EXIT
+  trap '' TERM INT
   if [[ "$PENDING_POSTED" == "1" && "$TERMINAL_POSTED" == "0" ]]; then
     TERMINAL_POSTED=1
     log "posting terminal status: $RESULT"
@@ -227,10 +241,20 @@ main() {
   trap 'on_signal INT 2' INT
 
   # --- step 2: pending ------------------------------------------------------
-  if ! post_status "pending" "e2e running"; then
-    die "failed to post pending status for $HEAD_SHA" 4
-  fi
+  # Claim the pending status OPTIMISTICALLY, *before* the POST. If a SIGTERM
+  # lands while the POST is the running foreground child, bash defers the trap
+  # until the POST returns, then runs finalize — which must see PENDING_POSTED=1
+  # so it posts a terminal status. Setting the flag after the POST loses that
+  # race and leaves the commit stuck at pending (the one outcome we forbid).
+  # The trade: if the POST never actually reached GitHub, finalize posts a
+  # terminal `failure` instead of nothing — but RESULT defaults to failure, a
+  # terminal failure is safe and re-dispatchable, and never a stuck pending.
   PENDING_POSTED=1
+  if ! post_status "pending" "e2e running"; then
+    warn "failed to post pending status for $HEAD_SHA; will still finalize terminal"
+    RESULT="failure"
+    exit 4   # -> finalize posts a terminal failure (never leaves pending)
+  fi
   log "posted pending for PR #$PR_NUMBER @ $HEAD_SHA"
 
   # --- step 3: pin the sha in a detached worktree ---------------------------
