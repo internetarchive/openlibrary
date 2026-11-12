@@ -153,6 +153,7 @@ def _include_routers(app: FastAPI) -> None:
     from openlibrary.fastapi.stats import router as stats_router
     from openlibrary.fastapi.status import router as status_router
     from openlibrary.fastapi.subjects import router as subjects_router
+    from openlibrary.fastapi.tasks import pages as tasks_pages
     from openlibrary.fastapi.tasks import router as tasks_router
     from openlibrary.fastapi.yearly_reading_goals import (
         router as yearly_reading_goals_router,
@@ -182,6 +183,7 @@ def _include_routers(app: FastAPI) -> None:
     # HTML pages, wrapped in the site shell (SitePageRoute).
     app.include_router(account_pages)
     app.include_router(search_pages)
+    app.include_router(tasks_pages)
 
 
 @asynccontextmanager

@@ -15,7 +15,7 @@
   color: var(--black);
   background: var(--grey-blue);
   border: 1px solid var(--blue-b0bed9);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 .page-banner-black {
   background-color: var(--dark-grey);
@@ -25,7 +25,7 @@
   padding: 4px 8px;
   border-radius: 5px;
   border: 1px solid var(--grey-555);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   text-decoration: none;
   background: var(--grey-464646);
   margin: 0 5px;

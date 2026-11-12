@@ -70,7 +70,7 @@
   padding: 0;
   color: var(--color-text);
   font-size: 1.1em;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   font-family: var(--font-family-title);
   line-height: var(--line-height-heading);
 
@@ -108,7 +108,7 @@
 }
 
 .searchResultItem .bookseries [itemprop~="name"] {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 .searchResultItem .resultDetails {
@@ -187,7 +187,7 @@
 }
 
 .srw__subjects em {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   font-style: normal;
 }
 
@@ -253,7 +253,7 @@
 }
 
 .srw__chapters .srw__chapter em {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
@@ -262,7 +262,7 @@
 }
 
 .searchResultItem__librarian-extras {
-  font-size: 0.7em;
+  font-size: var(--font-size-label-small);
   border-top: 1px dashed currentColor;
   margin-top: var(--spacing-stack-sm);
   margin-bottom: calc(-1 * var(--spacing-stack-xs));

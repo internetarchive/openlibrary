@@ -16,14 +16,14 @@
   align-items: center;
   height: 33px;
   padding: 7px 15px;
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 .close-bulk-tagging-form {
   cursor: pointer;
   color: var(--black);
   font-size: 17px;
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 
 .search-subject-container {
@@ -80,7 +80,7 @@
 .subject-type-option {
   font-size: var(--font-size-label-small);
   color: var(--white);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   width: fit-content;
   padding: 3px 6px;
   border-radius: 8px;
@@ -109,9 +109,9 @@
 }
 
 .search-subject-row-name {
-  font-size: 13px;
+  font-size: var(--font-size-body-small);
   color: var(--black);
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
 }
 
 .search-subject-row-name.search-subject-row-name-create {
@@ -127,9 +127,9 @@
 
 .search-subject-row-name.search-subject-row-name-create
   .search-subject-row-name-create-p {
-  font-size: 13px;
+  font-size: var(--font-size-body-small);
   color: var(--black);
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
   margin-bottom: 5px;
 }
 
@@ -148,7 +148,7 @@
   padding: 5px 0;
   display: flex;
   align-items: center;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .selected-tag .selected-tag__status {

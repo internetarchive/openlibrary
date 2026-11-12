@@ -43,7 +43,7 @@ dd {
   padding: var(--spacing-inset-sm);
   font-family: var(--font-family-body);
   font-size: var(--font-size-label-small);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--black);
 }
 .diff .revisions .heading {

@@ -53,6 +53,7 @@ from openlibrary.plugins.upstream import forms
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils.dateutil import elapsed_time
+from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
     from openlibrary.core.models import SubjectType
@@ -470,7 +471,11 @@ def _set_login_cookies(
     def _setcookie(name, value, **kwargs):
         web.setcookie(name, value, expires=expires if value else 1, **kwargs)
 
-    _setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
+    # SameSite=Lax keeps the auth cookie off forged cross-site POSTs, which is
+    # the CSRF control several state-changing endpoints rely on (e.g.
+    # /import/batch/approve). The FastAPI login path already sets this; web.py
+    # had omitted it. See GHSA-wq89-ph2h-pp44.
+    _setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(), samesite="Lax")
     _setcookie("pd", "1" if audit.get("special_access") else "")
 
     if s3_keys := audit.get("s3_keys"):
@@ -538,7 +543,7 @@ class account_login_otp_redeem(delegate.page):
         redirect = i.redirect
         # Reject non-path redirects (open redirect prevention) and login loops
         _blacklist = ["/account/login", "/account/create"]
-        if not redirect or not redirect.startswith("/") or redirect.startswith("//") or any(path in redirect for path in _blacklist):
+        if not is_safe_redirect(redirect) or any(path in redirect for path in _blacklist):
             redirect = "/account/books"
         return delegate.RawText(json.dumps({"success": True, "redirect": redirect}))
 
@@ -939,12 +944,12 @@ class PatronExport(ABC):
         from openlibrary.plugins.upstream.models import Work
 
         work_key = f"/works/{work_id}"
-        work: Work = web.ctx.site.get(work_key)
+        work: Work = site.get().get(work_key)
         if not work:
             raise ValueError(f"No Work found for {work_key}.")
         if work.type.key == "/type/redirect":
             # Resolve the redirect before exporting
-            work = web.ctx.site.get(Work.resolve_redirect_chain(work_key).get("resolved_key"))
+            work = site.get().get(Work.resolve_redirect_chain(work_key).get("resolved_key"))
         return work
 
     @property

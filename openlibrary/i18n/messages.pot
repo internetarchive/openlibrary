@@ -97,7 +97,7 @@ msgstr ""
 msgid "Barcode Scanner (Beta)"
 msgstr ""
 
-#: batch_import.html
+#: batch_import.html batch_import_list.html
 msgid "Batch Imports"
 msgstr ""
 
@@ -170,27 +170,39 @@ msgstr ""
 msgid "View Batch Status"
 msgstr ""
 
-#: batch_import_pending_view.html
-msgid "Pending Batch Imports"
+#: batch_import_list.html
+msgid "Status:"
 msgstr ""
 
-#: batch_import_pending_view.html
+#: about/index.html batch_import_list.html type/tag/index.html
+msgid "All"
+msgstr ""
+
+#: batch_import_list.html
+msgid "Default sort: date added, newest first."
+msgstr ""
+
+#: batch_import_list.html
 msgid "batch_id"
 msgstr ""
 
-#: admin/imports.html admin/imports_by_date.html batch_import_pending_view.html batch_import_view.html
+#: admin/inspect/store.html admin/people/index.html batch_import_list.html search/sort_options.html status.html type/author/edit.html type/language/view.html
+msgid "Name"
+msgstr ""
+
+#: admin/imports.html admin/imports_by_date.html batch_import_list.html batch_import_view.html
 msgid "Added Time"
 msgstr ""
 
-#: account/import.html account/loans.html admin/imports.html admin/imports_by_date.html admin/loans_table.html admin/menu.html batch_import_pending_view.html batch_import_view.html librarian_dashboard/data_quality_table.html status.html
+#: account/import.html account/loans.html admin/imports.html admin/imports_by_date.html admin/loans_table.html admin/menu.html batch_import_list.html batch_import_view.html contribute/admin/index.html.jinja librarian_dashboard/data_quality_table.html status.html
 msgid "Status"
 msgstr ""
 
-#: batch_import_pending_view.html batch_import_view.html merge_request_table/table_header.html
+#: batch_import_list.html batch_import_view.html merge_request_table/table_header.html
 msgid "Submitter"
 msgstr ""
 
-#: batch_import_pending_view.html batch_import_view.html
+#: batch_import_list.html batch_import_view.html
 msgid "Comments"
 msgstr ""
 
@@ -250,6 +262,10 @@ msgstr ""
 msgid "Not yet imported"
 msgstr ""
 
+#: BookPreview.html PreviewSearchInside.html batch_import_view.html book_providers/read_button.html books/edit/edition.html editpage.html import_preview.html
+msgid "Preview"
+msgstr ""
+
 #: diff.html
 #, python-format
 msgid "Diff on %s"
@@ -306,10 +322,6 @@ msgstr ""
 
 #: edit_yaml.html
 msgid "YAML Representation:"
-msgstr ""
-
-#: BookPreview.html PreviewSearchInside.html book_providers/read_button.html books/edit/edition.html editpage.html import_preview.html
-msgid "Preview"
 msgstr ""
 
 #: history.html
@@ -513,7 +525,7 @@ msgstr ""
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr ""
 
-#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html.jinja lists/lists.html merge/authors.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
+#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html contribute/admin/project.html.jinja databarEdit.html interstitial.html.jinja lists/lists.html merge/authors.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -610,7 +622,7 @@ msgstr ""
 msgid "Added new book."
 msgstr ""
 
-#: ObservationsModal.html account/loans.html lists/lists.html merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -750,10 +762,6 @@ msgstr ""
 
 #: status.html
 msgid "Show changed files"
-msgstr ""
-
-#: admin/inspect/store.html admin/people/index.html search/sort_options.html status.html type/author/edit.html type/language/view.html
-msgid "Name"
 msgstr ""
 
 #: status.html
@@ -919,7 +927,7 @@ msgstr ""
 msgid "on <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>"
 msgstr ""
 
-#: search/authors.html search/lists.html search/subjects.html work_search.html
+#: search/authors.html search/lists.html.jinja search/subjects.html work_search.html
 msgid "Checking Search Inside matches"
 msgstr ""
 
@@ -1005,7 +1013,7 @@ msgstr ""
 msgid "Authors"
 msgstr ""
 
-#: SearchNavigation.html.jinja books/custom_carousel.html.jinja books/mybooks_breadcrumb_select.html openlibrary/core/shell/search_modal.py openlibrary/plugins/upstream/mybooks.py shell/footer.html.jinja work_search.html
+#: SearchNavigation.html.jinja books/custom_carousel.html.jinja books/mybooks_breadcrumb_select.html contribute/admin/index.html.jinja contribute/admin/new.html.jinja contribute/admin/project.html.jinja openlibrary/core/shell/search_modal.py openlibrary/plugins/upstream/mybooks.py shell/footer.html.jinja work_search.html
 msgid "Books"
 msgstr ""
 
@@ -1028,10 +1036,6 @@ msgstr ""
 
 #: about/index.html
 msgid "Role:"
-msgstr ""
-
-#: about/index.html type/tag/index.html
-msgid "All"
 msgstr ""
 
 #: about/index.html
@@ -1456,7 +1460,7 @@ msgstr ""
 msgid "My Reviews"
 msgstr ""
 
-#: BookByline.html SearchResultsWork.html account/notes.html account/observations.html
+#: BookByline.html SearchResultsWork.html account/notes.html account/observations.html lists/preview.html.jinja
 msgid "Unknown author"
 msgstr ""
 
@@ -1521,7 +1525,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/parts.html.jinja covers/manage.html openlibrary/core/shell/shelf_labels.py
+#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/admin/project.html.jinja contribute/parts.html.jinja covers/manage.html openlibrary/core/shell/shelf_labels.py
 msgid "Save"
 msgstr ""
 
@@ -1529,7 +1533,7 @@ msgstr ""
 msgid "Reviews"
 msgstr ""
 
-#: account/observations.html admin/inspect/memcache.html
+#: account/observations.html admin/inspect/memcache.html contribute/admin/project.html.jinja
 msgid "Delete"
 msgstr ""
 
@@ -1637,7 +1641,7 @@ msgstr ""
 msgid "Search your reading log"
 msgstr ""
 
-#: account/reading_log.html search/authors.html search/lists.html search/subjects.html
+#: account/reading_log.html search/authors.html search/lists.html.jinja search/subjects.html
 #, python-format
 msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
@@ -2028,7 +2032,7 @@ msgstr ""
 msgid "Recent Imports"
 msgstr ""
 
-#: admin/imports.html admin/imports_by_date.html
+#: admin/imports.html admin/imports_by_date.html contribute/admin/project.html.jinja
 msgid "Identifier"
 msgstr ""
 
@@ -2262,7 +2266,7 @@ msgstr ""
 msgid "Admin Center"
 msgstr ""
 
-#: RelatedSubjects.html.jinja SubjectTags.html admin/menu.html admin/people/index.html admin/people/view.html openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
+#: RelatedSubjects.html.jinja SubjectTags.html admin/menu.html admin/people/index.html admin/people/view.html contribute/admin/index.html.jinja openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
 msgid "People"
 msgstr ""
 
@@ -2408,42 +2412,6 @@ msgstr ""
 
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
-msgstr ""
-
-#: admin/sync.html
-msgid "Sync"
-msgstr ""
-
-#: admin/sync.html
-msgid "Sync the metadata of various types of Open Library items (e.g. lists, subjects, works) with Archive.org."
-msgstr ""
-
-#: admin/sync.html
-msgid "Add Works to Staff Picks"
-msgstr ""
-
-#: admin/sync.html
-msgid "This utility will add your work to an Open Library list called `Staff Picks` under the `openlibrary` user. It will then take the added work and explode it into a list of all its readable editions. For each Open Library edition, a metadata field called `openlibrary_subject` will be injected into the archive.org metadata of the edition's corresponding archive.org item."
-msgstr ""
-
-#: admin/sync.html
-msgid "add"
-msgstr ""
-
-#: admin/sync.html
-msgid "remove"
-msgstr ""
-
-#: admin/sync.html
-msgid "Update edition"
-msgstr ""
-
-#: admin/sync.html
-msgid "Updates an edition on archive.org by writing in its latest  openlibrary_edition and openlibrary_work identifier values"
-msgstr ""
-
-#: admin/sync.html
-msgid "TODO"
 msgstr ""
 
 #: admin/inspect/memcache.html
@@ -2781,7 +2749,7 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
-#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html.jinja search/publishers.html search/searchbox.html shell/header.html.jinja type/local_id/view.html
+#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html.jinja search/publishers.html search/searchbox.html search/searchbox.html.jinja shell/header.html.jinja type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -3086,7 +3054,7 @@ msgstr ""
 msgid "We require a minimum set of fields to create a new record. These are those fields."
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html search/advancedsearch.html.jinja search/sort_options.html type/about/edit.html type/page/edit.html type/template/edit.html
+#: books/add.html books/edit.html books/edit/edition.html contribute/admin/new.html.jinja contribute/admin/project.html.jinja search/advancedsearch.html.jinja search/sort_options.html type/about/edit.html type/page/edit.html type/template/edit.html
 msgid "Title"
 msgstr ""
 
@@ -3220,7 +3188,7 @@ msgstr ""
 msgid "Select this book"
 msgstr ""
 
-#: SearchResultsWork.html books/check.html merge/authors.html publishers/view.html
+#: SearchResultsWork.html books/check.html merge/authors.html openlibrary/contribute/manage.py publishers/view.html
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
@@ -3449,7 +3417,7 @@ msgstr ""
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
 msgstr ""
 
-#: FulltextResultIA.html.jinja IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html type/work/editions.html
+#: FulltextResultIA.html.jinja IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html.jinja lists/snippet.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -4120,7 +4088,7 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
-#: contribute/dashboard.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
+#: contribute/admin/index.html.jinja contribute/dashboard.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
 msgid "Tasks"
 msgstr ""
 
@@ -4129,14 +4097,22 @@ msgid "Help build the catalog, one book at a time."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Your edits"
-msgstr ""
-
-#: contribute/dashboard.html.jinja stats/tasks.html.jinja
-msgid "Community projects"
+msgid "Your Tasks pages"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
+msgid "Manage projects"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Your edits"
+msgstr ""
+
+#: contribute/admin/index.html.jinja contribute/admin/new.html.jinja contribute/admin/project.html.jinja contribute/dashboard.html.jinja openlibrary/fastapi/tasks.py stats/tasks.html.jinja
+msgid "Community projects"
+msgstr ""
+
+#: contribute/admin/parts.html.jinja contribute/dashboard.html.jinja
 msgid "Getting the list ready…"
 msgstr ""
 
@@ -4253,6 +4229,357 @@ msgstr ""
 
 #: contribute/nothing.html.jinja contribute/task.html.jinja
 msgid "Back to the list"
+msgstr ""
+
+#: contribute/admin/index.html.jinja
+msgid "The projects on the Tasks page: what is running, what is coming and what is over."
+msgstr ""
+
+#: contribute/admin/index.html.jinja
+msgid "Project pages"
+msgstr ""
+
+#: contribute/admin/index.html.jinja contribute/admin/new.html.jinja openlibrary/fastapi/tasks.py
+msgid "New project"
+msgstr ""
+
+#: contribute/admin/index.html.jinja
+msgid "Project"
+msgstr ""
+
+#: contribute/admin/index.html.jinja contribute/admin/project.html.jinja
+msgid "Runs"
+msgstr ""
+
+#: contribute/admin/index.html.jinja contribute/admin/project.html.jinja
+msgid "Progress"
+msgstr ""
+
+#: contribute/admin/index.html.jinja
+msgid "Tasks done"
+msgstr ""
+
+#: contribute/admin/index.html.jinja
+#, python-format
+msgid "%(done)s of %(count)s"
+msgstr ""
+
+#: contribute/admin/index.html.jinja
+msgid "Dates are in UTC. People are counted nightly."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Nothing is public until the start date. Without one, the project is a draft you can check first."
+msgstr ""
+
+#: contribute/admin/new.html.jinja contribute/admin/project.html.jinja type/tag/view.html type/user/edit.html
+msgid "Description"
+msgstr ""
+
+#: contribute/admin/new.html.jinja contribute/admin/project.html.jinja
+msgid "The title and description are not translated."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Details to ask for"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Choose any from either group. These can't be changed once the project is made."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+#, python-format
+msgid "The list is fixed when the project is made, so progress always counts the same books. Up to %(count)s."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Books I list"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Open Library edition or work IDs, book URLs, or ISBNs."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "An Open Library list"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Every book on the list as it is today."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "The most-shelved books missing these details"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "The books readers shelve most that still need one of the details above."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "The most-shelved books"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Whether or not they need anything. Books with nothing missing add no tasks."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Books to list"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "One per line, or separated by commas or spaces. A work is added as one of its editions."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "List URL"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "How many most-shelved books"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Start date (optional)"
+msgstr ""
+
+#: contribute/admin/new.html.jinja contribute/admin/project.html.jinja
+msgid "End date (optional)"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "The project runs from the start of its start date through the end of its end date, UTC. Both can be set or changed later."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Create project"
+msgstr ""
+
+#: contribute/admin/parts.html.jinja
+msgid "Hidden"
+msgstr ""
+
+#: contribute/admin/parts.html.jinja
+msgid "The default project. The Tasks page opens on it, the thank-you after a book edit points to it unless another project lists that book, and the stats page charts it first."
+msgstr ""
+
+#: contribute/admin/parts.html.jinja
+msgid "Headline"
+msgstr ""
+
+#: contribute/admin/parts.html.jinja contribute/admin/project.html.jinja openlibrary/contribute/manage.py openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(percent)s%%"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "View on Tasks"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Make headline"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Hide"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Unhide"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Stop early"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Stop this project now?"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Stop project"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "It will hand out no more tasks. It stays on the Tasks page as finished, with its final numbers. To run it again, change its end date."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Delete this project?"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Delete project"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "The project and its book list are removed. This can't be undone."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Make this the headline project?"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Links to the Tasks page that don't name a project will open this one from now on, in place of the current headline."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Asks for"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+#, python-format
+msgid "List picked %(date)s"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+#, python-format
+msgid "%(count)s entries left out, listed below"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Defined in code"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+#, python-format
+msgid "Tasks done, of %(count)s"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Complete"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+#, python-format
+msgid "Editions complete, of %(count)s"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Tasks left"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Marked not found"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "People have helped"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Getting the list ready. Reload in a minute."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Progress is counted once the project starts."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "By detail"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Detail"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Filled"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Still open"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Not found"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Open at start"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Already had it"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Left out of the book list"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Entry"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Why"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Only the first entries are kept."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Tasks left, by day"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+#, python-format
+msgid "Tasks left went from %(first)s to %(last)s over %(days)s days"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+#, python-format
+msgid "From %(first)s to %(last)s over %(days)s days"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Not enough days counted yet."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Saves, last 28 days"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+#, python-format
+msgid "%(saves)s saves, %(undone)s since undone (%(share)s)"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+#, python-format
+msgid "%(saves)s saves"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "No saves counted yet."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Dates are in UTC. People, saves and the trend are counted nightly; the rest is live."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Edit details"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Start date"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "The project runs from the start of its start date through the end of its end date, UTC. A future start date schedules it; no start date makes it a draft. Either takes a live project off the Tasks page."
+msgstr ""
+
+#: contribute/admin/project.html.jinja databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
+msgid "History"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "No changes have been made here yet."
 msgstr ""
 
 #: covers/add.html
@@ -4414,7 +4741,7 @@ msgstr ""
 msgid "Add another image"
 msgstr ""
 
-#: covers/saved.html
+#: covers/saved.html openlibrary/plugins/openlibrary/contribute.py
 msgid "Finished"
 msgstr ""
 
@@ -4671,10 +4998,6 @@ msgstr ""
 msgid "Copy Wikipedia citation"
 msgstr ""
 
-#: databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
-msgid "History"
-msgstr ""
-
 #: lib/history.html
 #, python-format
 msgid "Created %(date)s"
@@ -4812,14 +5135,14 @@ msgstr ""
 msgid "from <a href=\"%(key)s\">%(owner)s</a>"
 msgstr ""
 
-#: lists/home.html lists/preview.html lists/snippet.html type/list/embed.html type/list/view_body.html
+#: lists/home.html lists/preview.html.jinja lists/snippet.html type/list/embed.html type/list/view_body.html
 #, python-format
 msgid "%(count)d item"
 msgid_plural "%(count)d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lists/home.html lists/preview.html lists/snippet.html
+#: lists/home.html lists/preview.html.jinja lists/snippet.html
 #, python-format
 msgid "Last modified %(date)s"
 msgstr ""
@@ -4910,9 +5233,14 @@ msgstr ""
 msgid "Learn how to create your first list."
 msgstr ""
 
-#: lists/preview.html
+#: lists/preview.html.jinja
 #, python-format
-msgid "by <a href=\"%s\">You</a>"
+msgid "by <a href=\"%(key)s\">You</a>"
+msgstr ""
+
+#: BookByline.html lists/preview.html.jinja type/list/embed.html
+#, python-format
+msgid "by %(name)s"
 msgstr ""
 
 #: lists/showcase.html
@@ -5582,15 +5910,11 @@ msgstr ""
 msgid "Grid"
 msgstr ""
 
-#: search/lists.html
-msgid "Search results for Lists"
-msgstr ""
-
-#: search/lists.html
+#: search/lists.html.jinja
 msgid "Search Lists"
 msgstr ""
 
-#: search/lists.html
+#: search/lists.html.jinja
 msgid "No <strong>lists</strong> directly matched your search"
 msgstr ""
 
@@ -6221,12 +6545,16 @@ msgid "Community projects. Choose one to chart it."
 msgstr ""
 
 #: stats/tasks.html.jinja
+msgid "of details filled · Finished"
+msgstr ""
+
+#: stats/tasks.html.jinja
 msgid "of details filled"
 msgstr ""
 
 #: stats/tasks.html.jinja
 #, python-format
-msgid "<b>%(done)s of %(count)s</b> books complete"
+msgid "<b>%(done)s of %(count)s</b> editions complete"
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -6501,10 +6829,6 @@ msgid "Recreate it"
 msgstr ""
 
 #: type/edition/admin_bar.html
-msgid "Add IA Book to Staff Picks"
-msgstr ""
-
-#: type/edition/admin_bar.html
 msgid "Sync Archive.org ID"
 msgstr ""
 
@@ -6656,7 +6980,7 @@ msgstr ""
 msgid "External Links"
 msgstr ""
 
-#: OlPagination.html OlPaginationArrows.html type/edition/view.html type/work/editions_datatable.html type/work/view.html
+#: OlPagination.html.jinja OlPaginationArrows.html type/edition/view.html type/work/editions_datatable.html type/work/view.html
 msgid "Pagination"
 msgstr ""
 
@@ -6808,11 +7132,6 @@ msgstr ""
 
 #: type/list/embed.html
 msgid "Protected DAISY"
-msgstr ""
-
-#: BookByline.html type/list/embed.html
-#, python-format
-msgid "by %(name)s"
 msgstr ""
 
 #: type/list/exports.html
@@ -7055,10 +7374,6 @@ msgstr ""
 msgid "<strong>Type:</strong> %(tag_type)s"
 msgstr ""
 
-#: type/tag/view.html type/user/edit.html
-msgid "Description"
-msgstr ""
-
 #: type/tag/view.html
 msgid "Tag Body"
 msgstr ""
@@ -7202,20 +7517,20 @@ msgstr ""
 msgid "Availability"
 msgstr ""
 
-#: OlPagination.html OlPaginationArrows.html type/work/editions_datatable.html
+#: OlPagination.html.jinja OlPaginationArrows.html type/work/editions_datatable.html
 msgid "Go to previous page"
 msgstr ""
 
-#: OlPagination.html OlPaginationArrows.html type/work/editions_datatable.html
+#: OlPagination.html.jinja OlPaginationArrows.html type/work/editions_datatable.html
 msgid "Go to next page"
 msgstr ""
 
-#: OlPagination.html type/work/editions_datatable.html
+#: OlPagination.html.jinja type/work/editions_datatable.html
 #, python-brace-format
 msgid "Go to page {page}"
 msgstr ""
 
-#: OlPagination.html type/work/editions_datatable.html
+#: OlPagination.html.jinja type/work/editions_datatable.html
 #, python-brace-format
 msgid "Page {page}, current page"
 msgstr ""
@@ -7313,7 +7628,7 @@ msgid "When you buy books using these links the Internet Archive may earn a <a c
 msgstr ""
 
 #: BatchImportNavigation.html
-msgid "Pending Imports"
+msgid "All Batches"
 msgstr ""
 
 #: BookByline.html
@@ -7406,7 +7721,7 @@ msgstr[1] ""
 msgid "Borrowed from Internet Archive: %(title)s"
 msgstr ""
 
-#: LoadingIndicator.html
+#: LoadingIndicator.html.jinja
 msgid "Loading indicator"
 msgstr ""
 
@@ -7786,7 +8101,7 @@ msgstr ""
 msgid "PR"
 msgstr ""
 
-#: TestingEnvironment.html.jinja
+#: TestingEnvironment.html.jinja openlibrary/contribute/manage.py
 msgid "Draft"
 msgstr ""
 
@@ -8516,7 +8831,190 @@ msgstr ""
 
 #: openlibrary/contribute/initiatives.py
 #, python-format
-msgid "%(books)s · Started %(date)s"
+msgid "Ran %(start)s to %(end)s"
+msgstr ""
+
+#: openlibrary/contribute/initiatives.py
+#, python-format
+msgid "Started %(start)s, ends %(end)s"
+msgstr ""
+
+#: openlibrary/contribute/initiatives.py
+#, python-format
+msgid "Started %(date)s"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Live"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Scheduled"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Ended"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "No start date"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+#, python-format
+msgid "From %(start)s"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+#, python-format
+msgid "%(start)s to %(end)s"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+#, python-format
+msgid "%(count)s work"
+msgid_plural "%(count)s works"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/contribute/manage.py
+msgid "title"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "description"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "start date"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "end date"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Created the project"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Hid the project"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Made the project visible again"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Stopped the project early"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Made it the headline project"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Another project became the headline"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+#, python-format
+msgid "Edited: %(details)s"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+#, python-format
+msgid "%(time)s UTC"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "That date isn't one we can read."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "A project needs a title."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "The title or description is too long."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "A project with an end date needs a start date."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "The end date is before the start date."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Not an Open Library ID or an ISBN"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "No book has this ISBN"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "No such book"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Not a book"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "This work has no editions"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Listed twice"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Another edition of the same work is already listed"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+#, python-format
+msgid "Past the limit of %(count)s books"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "About the edition"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "One published version of a book. Asked of every edition in the project."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "About the work"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Shared by every edition of a book. Asked once per work, however many of its editions are in the project."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Choose at least one detail for the project to ask for."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Choose where the books come from."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+#, python-format
+msgid "Choose how many books, from 1 to %(count)s."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "That isn't an Open Library list we can find."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "None of those are books the project can use."
 msgstr ""
 
 #: openlibrary/contribute/save.py
@@ -9251,6 +9749,67 @@ msgstr ""
 msgid "How well can a patron determine if this edition is relevant to their needs before accessing it?"
 msgstr ""
 
+#: openlibrary/fastapi/search.py
+#, python-format
+msgid "%(query)s - List search"
+msgstr ""
+
+#: openlibrary/fastapi/search.py
+msgid "List search"
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "Someone else changed this project while you had it open. Check it below, then try again."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "The project is set up. Check its books below."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "The project is hidden from the Tasks and stats pages."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "The project is visible again."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "Only a live project can be stopped."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "The project has ended. It hands out no more tasks."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "Only a live project that isn't hidden can be the headline."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "This is now the headline project."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "A project needs books before it can start."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "Nothing changed."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "Saved."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "Only a project that hasn't started can be deleted. Stop or hide this one."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "The project is deleted."
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/api.py
 msgid "Search Results"
 msgstr ""
@@ -9408,8 +9967,16 @@ msgid "Subjects mention %(subjects)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
+msgid "Your answer applies to every edition of this book, not just this one."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "%(percent)s%%"
+msgid "Answer for this edition only: %(edition)s. Other editions of the book can differ."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Answer for this edition only. Other editions of the book can differ."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -9419,10 +9986,47 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
+msgid "%(done)s of %(count)s task done"
+msgid_plural "%(done)s of %(count)s tasks done"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "Finished · %(percent)s%% filled"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
 msgid "%(count)s person helping"
 msgid_plural "%(count)s people helping"
 msgstr[0] ""
 msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Thank you to everyone who helped."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(count)s person filled in %(percent)s%% of its details. Thank you."
+msgid_plural "%(count)s people filled in %(percent)s%% of its details. Thank you."
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(percent)s%% of its details were filled in. Thank you to everyone who helped."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "This project has finished"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "Go to %(project)s"
+msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "All project tasks"

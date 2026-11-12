@@ -167,6 +167,47 @@ def test_match_wikisource_edition(mock_site, add_languages, ia_writeback):
     assert result == ["/books/OL1M"]
 
 
+def _gutenberg_rec(pg_id: str = "1661") -> dict:
+    return {
+        "title": "The Adventures of Sherlock Holmes",
+        "authors": [{"name": "Arthur Conan Doyle"}],
+        "source_records": [f"project_gutenberg:{pg_id}"],
+        "identifiers": {"project_gutenberg": [pg_id]},
+    }
+
+
+def test_gutenberg_reimport_matches_by_id(mock_site, add_languages, ia_writeback):
+    first = load(_gutenberg_rec())
+    assert first["edition"]["status"] == "created"
+
+    second = load(_gutenberg_rec())
+    assert second["edition"]["key"] == first["edition"]["key"]
+    assert second["edition"]["status"] != "created"
+
+
+def test_gutenberg_import_matches_librarian_tagged_edition(mock_site, add_languages, ia_writeback):
+    existing = load(
+        {
+            "title": "Adventures of Sherlock Holmes",
+            "publishers": ["Some Publisher"],
+            "source_records": ["test:sherlock"],
+            "identifiers": {"project_gutenberg": ["1661"]},
+        }
+    )
+
+    assert load(_gutenberg_rec())["edition"]["key"] == existing["edition"]["key"]
+
+
+def test_gutenberg_import_ignores_same_title_edition_without_its_id(mock_site, add_languages, ia_writeback):
+    print_edition = load({**_gutenberg_rec(), "source_records": ["test:print"], "identifiers": {}})
+    other_pg = load(_gutenberg_rec("48320"))
+
+    reply = load(_gutenberg_rec())
+    assert reply["edition"]["status"] == "created"
+    assert reply["edition"]["key"] not in (print_edition["edition"]["key"], other_pg["edition"]["key"])
+    assert build_pool(_gutenberg_rec()) == {"project_gutenberg": [reply["edition"]["key"]]}
+
+
 def test_load_without_required_field():
     rec = {"ocaid": "test item"}
     with pytest.raises(RequiredFields):
@@ -654,6 +695,9 @@ class Test_From_MARC:
         existing = mock_site.get("/authors/OL1A")
         assert existing.death_date == "1970"
         assert existing.remote_ids.get("isni") == isni
+        # One save of each of the author, work and edition
+        saved_keys = sorted(c["key"] for c in mock_site.changesets[-1]["changes"])
+        assert saved_keys == sorted(["/authors/OL1A", reply["work"]["key"], reply["edition"]["key"]])
 
 
 def test_build_pool(mock_site):
@@ -2110,6 +2154,7 @@ def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
         ("http://m.media-amazon.com/image/123.jpg", True),
         ("https://m.MEDIA-amazon.com/image/123.jpg", True),
         ("https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg", True),
+        ("https://cdn.sanity.io/images/3lm68n5v/production/e7ffe418212f76c942fe906ae66cff17867bd602-190x300.jpg?w=1920&q=75&auto=format", True),
     ],
 )
 def test_check_cover_url_host(cover_url: str, is_valid: bool) -> None:

@@ -373,7 +373,7 @@ async def _login_json(request: Request) -> Response:
     response = Response(status_code=status.HTTP_200_OK)
     response.set_cookie(
         config.login_cookie_name,
-        site.get()._conn.get_auth_token(),
+        site.get()._conn.get_auth_token() or "",
         httponly=True,
         secure=_cookie_secure(),
         samesite="lax",

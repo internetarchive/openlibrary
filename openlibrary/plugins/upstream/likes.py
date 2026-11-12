@@ -4,13 +4,14 @@ import web
 
 from infogami.utils import delegate
 from openlibrary.core.likes import Likes
+from openlibrary.utils.request_context import site
 
 
 class likes_control(delegate.page):
     path = "/api/like"
 
     def POST(self):
-        user = web.ctx.site.get_user()
+        user = site.get().get_user()
         if not user:
             raise web.unauthorized()
         data = json.loads(web.data())
@@ -27,7 +28,7 @@ class likes_control(delegate.page):
         return delegate.RawText(json.dumps({"key": key, "value": value}))
 
     def DELETE(self):
-        user = web.ctx.site.get_user()
+        user = site.get().get_user()
         if not user:
             raise web.unauthorized()
         data = json.loads(web.data())
@@ -54,7 +55,7 @@ class get_likes_record(delegate.page):
         if not key:
             raise web.badrequest()
         count = Likes.get_count(key)
-        if user := web.ctx.site.get_user():
+        if user := site.get().get_user():
             username = user.key.split("/")[-1]
             patron_liked = Likes.patron_liked(username, key)
         else:
@@ -73,7 +74,7 @@ class get_patron_likes(delegate.page):
     MAX_LIMIT = 200
 
     def GET(self):
-        user = web.ctx.site.get_user()
+        user = site.get().get_user()
         if not user:
             raise web.unauthorized()
         username = user.key.split("/")[-1]

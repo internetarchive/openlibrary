@@ -5,14 +5,14 @@
   background-position: center 0;
 }
 .lists-page-cta h2 {
-  font-size: 1.5em;
+  font-size: var(--font-size-headline-small);
   font-family: var(--font-family-title);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   color: var(--color-text);
   margin: 0 0 var(--spacing-stack-sm);
 }
 .lists-page-cta p {
-  font-size: 0.875em;
+  font-size: var(--font-size-body-medium);
   margin: 0 0 var(--spacing-stack-xl);
 }
 /* @width-breakpoint-desktop */

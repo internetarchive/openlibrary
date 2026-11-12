@@ -1,5 +1,3 @@
-import web
-
 from infogami.core import forms
 from infogami.infobase.client import ClientException
 from openlibrary import accounts
@@ -14,6 +12,7 @@ from openlibrary.utils.form import (
     Textbox,
     Validator,
 )
+from openlibrary.utils.request_context import site
 
 from . import spamcheck
 
@@ -143,7 +142,7 @@ def verify_password(password):
 
     try:
         username = user.key.split("/")[-1]
-        web.ctx.site.login(username, password)
+        site.get().login(username, password)
     except ClientException:
         return False
 

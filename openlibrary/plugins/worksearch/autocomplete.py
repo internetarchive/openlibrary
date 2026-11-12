@@ -13,6 +13,7 @@ from openlibrary.utils import (
     find_olid_in_string,
     olid_to_key,
 )
+from openlibrary.utils.request_context import site
 from openlibrary.utils.solr import Solr
 
 if TYPE_CHECKING:
@@ -33,7 +34,7 @@ class autocomplete(delegate.page):
     query = 'title:"{q}"^2 OR title:({q}*) OR name:"{q}"^2 OR name:({q}*)'
 
     def db_fetch(self, key: str) -> Thing | None:
-        if thing := web.ctx.site.get(key):
+        if thing := site.get().get(key):
             return thing.as_fake_solr_record()
         else:
             return None
