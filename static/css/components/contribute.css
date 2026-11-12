@@ -629,19 +629,33 @@
   --ol-popover-content-max-height: min(50vh, 360px);
 }
 
+/* The design playground's text field: the input border, radius and control height. */
 .contrib-input {
   width: 100%;
   box-sizing: border-box;
+  min-height: var(--control-height-medium);
   font: inherit;
   font-size: var(--font-size-body-medium);
-  padding: 8px 12px;
-  border: 1px solid var(--color-border);
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+  border: var(--border-input);
   border-radius: var(--border-radius-input);
   background: var(--color-surface);
   color: var(--color-text);
 }
 
+textarea.contrib-input {
+  padding-block: var(--spacing-inset-sm);
+  resize: vertical;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contrib-input:hover {
+    border: var(--border-input-hovered);
+  }
+}
+
 .contrib-input:focus-visible {
+  border: var(--border-input-focused);
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 1px;
 }
