@@ -133,17 +133,17 @@ test('decideStatus never leaks finding content -- description is counts and fixe
     }
 });
 
-// ---- verificationLabelsToStrip: a push invalidates per-commit verification labels ----
-test('verificationLabelsToStrip strips the e2e/code-review/Passed labels and nothing else', () => {
+// ---- verificationLabelsToStrip: a push invalidates POSITIVE per-commit verification labels ----
+test('verificationLabelsToStrip strips e2e + Passed labels, but KEEPS Needs: Code Review and unrelated labels', () => {
     const current = [
         'Needs: e2e testing',
-        'Needs: Code Review',
+        'Needs: Code Review', // NOT stripped -- a "still needs review" request, not a passed-state
         'Passed: e2e testing',
         'Passed: automated testing',
         'Priority: 1 (highest)',
         'bug',
         'Theme: Design'
     ];
-    assert.deepEqual(verificationLabelsToStrip(current), ['Needs: e2e testing', 'Needs: Code Review', 'Passed: e2e testing', 'Passed: automated testing']);
-    assert.deepEqual(verificationLabelsToStrip(['bug', 'Priority: 1 (highest)']), []);
+    assert.deepEqual(verificationLabelsToStrip(current), ['Needs: e2e testing', 'Passed: e2e testing', 'Passed: automated testing']);
+    assert.deepEqual(verificationLabelsToStrip(['bug', 'Priority: 1 (highest)', 'Needs: Code Review']), []);
 });

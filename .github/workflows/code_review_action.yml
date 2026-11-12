@@ -744,11 +744,15 @@ jobs:
             const owner = context.repo.owner, repo = context.repo.repo;
             const pr = Number(process.env.PR);
 
-            // Which of the PR's current labels are per-commit verification labels that a push
-            // invalidates: the e2e gate, the code-review need, and any `Passed:` result label.
+            // Which of the PR's current labels are POSITIVE per-commit verification labels that a
+            // push invalidates: the e2e gate and any `Passed:` result label. NOT `Needs: Code Review`
+            // -- that is a "still needs review" request, not a passed-state assertion; stripping it on
+            // a push would destroy a signal nothing here re-adds, for zero e2e-safety gain (the
+            // authoritative "needs review" signal is the SHA-bound `ada/code-review` status going
+            // absent on the new head anyway).
             const verificationLabelsToStrip = (names) => {
               return names.filter((n) =>
-                n === 'Needs: e2e testing' || n === 'Needs: Code Review' || n.startsWith('Passed:'));
+                n === 'Needs: e2e testing' || n.startsWith('Passed:'));
             };
 
             const { data: current } = await github.rest.issues.listLabelsOnIssue({
