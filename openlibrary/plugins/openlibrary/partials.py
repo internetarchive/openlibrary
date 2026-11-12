@@ -21,6 +21,7 @@ from openlibrary.core.fulltext import FulltextRow, all_words_query, exclude_ocai
 from openlibrary.core.helpers import affiliate_id, commify, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.core.lending import add_availability_async, compose_ia_url, get_available_async
+from openlibrary.core.readers_also_read import MIN_RELATED_TO_SHOW, ReadersAlsoRead
 from openlibrary.core.reading_state import ReadingState, get_reading_state
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
@@ -62,7 +63,7 @@ from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject_async,
 )
-from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.request_context import get_request_lang
 from openlibrary.views.loanstats import get_trending_books
 
@@ -1469,6 +1470,97 @@ class NearbyBooksPartial:
             title=_("On the Same Shelf"),
             url=None,
             key="nearby-books",
+            layout="ol-carousel",
+            full_path=full_path,
+        )
+        return {"partials": render_jinja_template("books/custom_carousel.html.jinja", **data)}
+
+
+_READERS_ALSO_READ_KEY = "readers-also-read"
+
+
+class ReadersAlsoReadParams(BaseModel):
+    """Parameters for the book page's "Readers also read" carousel."""
+
+    work_key: str = Field(pattern=r"^/works/OL\d+W$")
+
+
+@public
+def build_readers_also_read_placeholder_config(work_key: str) -> CarouselPlaceholderData:
+    """Build config for the Readers also read placeholder (macros/RawQueryCarouselPlaceholder.html.jinja).
+
+    lazy-carousel.js fetches /partials/ReadersAlsoRead.json and reports the row's
+    impressions under ``key``, the same key its cards report clicks under.
+    """
+    config = {"partial": "ReadersAlsoRead", "work_key": work_key, "key": _READERS_ALSO_READ_KEY}
+    return CarouselPlaceholderData(
+        lazy_config_json=json_encode(config),
+        fallback=None,
+        title=_("Readers also read"),
+        title_link=False,
+        layout="ol-carousel",
+    )
+
+
+@cache.memoize(
+    engine="memcache",
+    key=lambda work_key, lang: "ReadersAlsoRead-" + md5(f"{work_key}-{lang}".encode()).hexdigest(),
+    expires=dateutil.DAY_SECS,
+    cacheable=lambda key, value: value is not None,
+)
+async def gather_readers_also_read_async(work_key: str, lang: str) -> list[dict] | None:
+    """Solr docs for the works most read alongside ``work_key``, best match first.
+
+    The related works come from the nightly ``readers_also_read`` table, so a day
+    in memcache costs nothing. ``lang`` picks each work's edition. Returns None
+    (not cached) when the database or Solr fails.
+    """
+    try:
+        related_ids = await ReadersAlsoRead.get_related_work_ids(int(extract_numeric_id_from_olid(work_key)))
+    except Exception:
+        logger.exception("gather_readers_also_read_async failed to read the related works of %r", work_key)
+        return None
+    if not related_ids:
+        return []
+
+    keys = [f"/works/OL{work_id}W" for work_id in related_ids]
+    try:
+        response = await run_solr_query_async(
+            WorkSearchScheme(lang=lang),
+            {"q": "*:*"},
+            rows=len(keys),
+            fields=_CAROUSEL_FIELDS,
+            facet=False,
+            extra_params=[("fq", "{!terms f=key}" + ",".join(keys)), ("fq", _SAFE_MODE_FILTER)],
+            request_label="BOOK_CAROUSEL",
+        )
+    except Exception:
+        logger.exception("gather_readers_also_read_async failed to fetch the related works of %r", work_key)
+        return None
+    if response.num_found is None:
+        logger.error("gather_readers_also_read_async failed to fetch the related works of %r: %s", work_key, response.error)
+        return None
+
+    docs_by_key = {doc["key"]: doc for doc in response.docs}
+    return [docs_by_key[key] for key in keys if key in docs_by_key]
+
+
+class ReadersAlsoReadPartial:
+    """Handler for the book page's "Readers also read" carousel."""
+
+    @classmethod
+    async def generate_async(cls, params: ReadersAlsoReadParams, full_path: str = "/") -> dict:
+        books = await gather_readers_also_read_async(work_key=params.work_key, lang=get_request_lang())
+        if not books or len(books) < MIN_RELATED_TO_SHOW:
+            return {"partials": ""}
+
+        await add_availability_async([book["editions"]["docs"][0] if book.get("editions", {}).get("docs") else book for book in books])
+
+        data = get_book_carousel_data(
+            books=[web.storage(b) for b in books],
+            title=_("Readers also read"),
+            url=None,
+            key=_READERS_ALSO_READ_KEY,
             layout="ol-carousel",
             full_path=full_path,
         )

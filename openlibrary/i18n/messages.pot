@@ -10351,6 +10351,10 @@ msgstr ""
 msgid "On the Same Shelf"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Readers also read"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/pd.py
 msgid "I don't have one yet"
 msgstr ""

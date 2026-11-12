@@ -24,13 +24,17 @@ from openlibrary.plugins.openlibrary.partials import (
     LazyCarouselParams,
     NearbyBooksParams,
     NearbyBooksPartial,
+    ReadersAlsoReadParams,
+    ReadersAlsoReadPartial,
     ReadingGoalProgressPartial,
     _carousel_card_book,
     _carousel_card_format,
     _solr_query_to_subject_key,
     build_nearby_books_placeholder_config,
+    build_readers_also_read_placeholder_config,
     build_stores,
     gather_nearby_books_async,
+    gather_readers_also_read_async,
     query_carousel,
 )
 from openlibrary.plugins.upstream import utils
@@ -550,6 +554,128 @@ class TestNearbyBooksPartial:
         assert result == {"partials": "<div/>"}
 
 
+_gather_readers_also_read = gather_readers_also_read_async.__wrapped__
+
+
+def _search_response(docs):
+    return Mock(docs=docs, num_found=len(docs), error=None)
+
+
+class TestGatherReadersAlsoReadAsync:
+    @pytest.fixture
+    def related(self):
+        with patch("openlibrary.plugins.openlibrary.partials.ReadersAlsoRead.get_related_work_ids", AsyncMock()) as get_related:
+            yield get_related
+
+    @pytest.fixture
+    def solr(self):
+        with patch("openlibrary.plugins.openlibrary.partials.run_solr_query_async", AsyncMock()) as run_solr_query:
+            yield run_solr_query
+
+    @pytest.mark.asyncio
+    async def test_returns_the_related_works_in_rank_order(self, related, solr):
+        related.return_value = [30, 10, 20]
+        solr.return_value = _search_response([{"key": "/works/OL10W"}, {"key": "/works/OL20W"}, {"key": "/works/OL30W"}])
+
+        docs = await _gather_readers_also_read("/works/OL1W", lang="en")
+
+        assert [doc["key"] for doc in docs] == ["/works/OL30W", "/works/OL10W", "/works/OL20W"]
+        related.assert_awaited_once_with(1)
+
+    @pytest.mark.asyncio
+    async def test_fetches_by_key_in_the_readers_language_without_flagged_covers(self, related, solr):
+        related.return_value = [10, 20]
+        solr.return_value = _search_response([])
+
+        await _gather_readers_also_read("/works/OL1W", lang="fr")
+
+        scheme, params = solr.await_args.args
+        assert scheme.lang == "fr"
+        assert params == {"q": "*:*"}
+        assert solr.await_args.kwargs["rows"] == 2
+        assert solr.await_args.kwargs["extra_params"] == [("fq", "{!terms f=key}/works/OL10W,/works/OL20W"), ("fq", '-subject:"content_warning:cover"')]
+
+    @pytest.mark.asyncio
+    async def test_skips_works_solr_does_not_return(self, related, solr):
+        related.return_value = [10, 20]
+        solr.return_value = _search_response([{"key": "/works/OL20W"}])
+
+        assert await _gather_readers_also_read("/works/OL1W", lang="en") == [{"key": "/works/OL20W"}]
+
+    @pytest.mark.asyncio
+    async def test_skips_solr_for_a_work_with_no_related_works(self, related, solr):
+        related.return_value = []
+
+        assert await _gather_readers_also_read("/works/OL1W", lang="en") == []
+        solr.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_returns_none_when_the_database_fails(self, related, solr):
+        """None (unlike []) is not memoized, so a blip isn't pinned for a day."""
+        related.side_effect = RuntimeError("db down")
+
+        assert await _gather_readers_also_read("/works/OL1W", lang="en") is None
+        solr.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_returns_none_when_solr_fails(self, related, solr):
+        related.return_value = [10]
+        solr.return_value = Mock(docs=[], num_found=None, error=None)
+
+        assert await _gather_readers_also_read("/works/OL1W", lang="en") is None
+
+    @pytest.mark.asyncio
+    async def test_returns_none_when_solr_raises(self, related, solr):
+        related.return_value = [10]
+        solr.side_effect = RuntimeError("solr down")
+
+        assert await _gather_readers_also_read("/works/OL1W", lang="en") is None
+
+
+class TestReadersAlsoReadParams:
+    @pytest.mark.parametrize("work_key", ['/works/OL1W" OR key:"', "/books/OL1M", "/works/OL1W/Title", ""])
+    def test_rejects_anything_but_a_work_key(self, work_key):
+        with pytest.raises(ValidationError):
+            ReadersAlsoReadParams(work_key=work_key)
+
+    def test_accepts_a_work_key(self):
+        assert ReadersAlsoReadParams(work_key="/works/OL1W").work_key == "/works/OL1W"
+
+
+def _work_doc(n: int) -> dict:
+    return {"key": f"/works/OL{n}W", "title": f"Work {n}", "editions": {"numFound": 1, "docs": [{"key": f"/books/OL{n}M", "title": f"Edition {n}"}]}}
+
+
+class TestReadersAlsoReadPartial:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("docs", [None, [], [_work_doc(n) for n in range(5)]])
+    async def test_renders_nothing_below_six_books(self, docs):
+        with (
+            patch("openlibrary.plugins.openlibrary.partials.gather_readers_also_read_async", AsyncMock(return_value=docs)),
+            patch("openlibrary.plugins.openlibrary.partials.add_availability_async", AsyncMock()) as add_availability,
+        ):
+            result = await ReadersAlsoReadPartial.generate_async(ReadersAlsoReadParams(work_key="/works/OL1W"))
+
+        assert result == {"partials": ""}
+        add_availability.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_attaches_availability_to_the_edition_each_card_shows(self):
+        docs = [_work_doc(n) for n in range(6)]
+        with (
+            patch("openlibrary.plugins.openlibrary.partials.gather_readers_also_read_async", AsyncMock(return_value=docs)),
+            patch("openlibrary.plugins.openlibrary.partials.add_availability_async", AsyncMock()) as add_availability,
+            patch("openlibrary.plugins.openlibrary.partials.get_book_carousel_data", return_value={}) as carousel_data,
+            patch("openlibrary.plugins.openlibrary.partials.render_jinja_template", return_value="<div/>"),
+        ):
+            result = await ReadersAlsoReadPartial.generate_async(ReadersAlsoReadParams(work_key="/works/OL1W"))
+
+        assert result == {"partials": "<div/>"}
+        add_availability.assert_awaited_once_with([doc["editions"]["docs"][0] for doc in docs])
+        assert carousel_data.call_args.kwargs["key"] == "readers-also-read"
+        assert carousel_data.call_args.kwargs["title"] == "Readers also read"
+
+
 class TestCarouselCardPartialSearch:
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -577,6 +703,13 @@ def test_build_nearby_books_placeholder_config_targets_the_nearby_books_partial(
     assert config["fallback"] is None
     # The skeleton stands in for NearbyBooksPartial's ol-carousel row and its unlinked heading.
     assert (config["layout"], config["title_link"]) == ("ol-carousel", False)
+
+
+def test_build_readers_also_read_placeholder_config_targets_the_partial_and_names_the_row():
+    config = build_readers_also_read_placeholder_config("/works/OL1W")
+    assert json.loads(config["lazy_config_json"]) == {"partial": "ReadersAlsoRead", "work_key": "/works/OL1W", "key": "readers-also-read"}
+    assert config["fallback"] is None
+    assert (config["title"], config["layout"], config["title_link"]) == ("Readers also read", "ol-carousel", False)
 
 
 def _community_card(title: str) -> dict:
