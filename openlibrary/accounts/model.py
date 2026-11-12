@@ -378,7 +378,7 @@ class Account(web.storage):
         """Activate the account, handling concurrent activation races.
 
         The underlying Infogami ``activate_account`` RPC may raise a ``ClientException``
-        (e.g. due to a unique‑violation or lock conflict) when another request has
+        (e.g. due to a unique-violation or lock conflict) when another request has
         already activated the same account. In that case the user profile will exist
         (``/people/<username>``). This wrapper treats such a situation as a successful
         activation.
@@ -387,12 +387,12 @@ class Account(web.storage):
             site.get().activate_account(username=self.username)
             return
         except ClientException as e:
-            # Check if this is a known activation‑race error.
+            # Check if this is a known activation-race error.
             data = e.get_data() if hasattr(e, "get_data") else {}
             code = data.get("code")
             known_codes = {"unique_violation", "lock_not_available", "conflict"}
             if code not in known_codes:
-                # Unexpected error – re‑raise original exception.
+                # Unexpected error - re-raise original exception.
                 raise
 
             # Verify that the profile and an active account already exist.
@@ -402,7 +402,7 @@ class Account(web.storage):
                 # Activation succeeded elsewhere.
                 return
 
-            # If conditions aren't met, re‑raise the original race exception.
+            # If conditions aren't met, re-raise the original race exception.
             raise
 
     def block(self) -> None:
