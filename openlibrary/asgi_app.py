@@ -69,7 +69,7 @@ async def _lookup_redirect_location(path: str) -> str | None:
         return None
     try:
         doc = json.loads(row["data_json"]) if row["data_json"] else {}
-    except (json.JSONDecodeError, TypeError):
+    except json.JSONDecodeError, TypeError:
         return None
     location = doc.get("location")
     if not location:
