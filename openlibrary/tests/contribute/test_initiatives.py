@@ -97,7 +97,7 @@ def test_gaps_list_open_fields_and_set_aside_ones_nobody_could_find():
         },
     )
     gaps = initiatives.build_gaps(make_initiative([]), site)
-    assert gaps == [["/books/OL1M", 9, ["publishers"], ["lccn"]], ["/books/OL2M", 8, [], []]]
+    assert gaps == [["/books/OL1M", 9, ["publishers"], ["lccn"], "/works/OL1W"], ["/books/OL2M", 8, [], [], "/works/OL1W"]]
     # 2 editions x 4 fields = 8 details, 1 still open: 7/8 filled, rounded down. The unfound LCCN isn't one of the fields, so it doesn't count.
     assert initiatives.progress(gaps, FOUR) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "percent": 87}
 
@@ -109,7 +109,7 @@ def test_a_work_level_gap_is_read_from_the_edition_s_work():
         works=(bare,),
         store={"contribute-initiative-test": {"editions": [["/books/OL1M", 9]]}},
     )
-    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, ["literary_forms", "genres"], []]]
+    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, ["literary_forms", "genres"], [], bare.key]]
 
 
 def test_a_nonfiction_work_has_no_genre_gap():
@@ -119,7 +119,22 @@ def test_a_nonfiction_work_has_no_genre_gap():
         works=(nonfiction,),
         store={"contribute-initiative-test": {"editions": [["/books/OL1M", 9]]}},
     )
-    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, [], []]]
+    assert initiatives.build_gaps(make_initiative([]), site) == [["/books/OL1M", 9, [], [], nonfiction.key]]
+
+
+def test_a_work_field_counts_once_per_work_and_an_edition_field_once_per_edition():
+    # Two editions of one work, both missing its genres; a third edition of another work, where nobody could find them.
+    gaps = [
+        ["/books/OL1M", 9, ["genres", "covers"], [], "/works/OL1W"],
+        ["/books/OL2M", 8, ["genres"], [], "/works/OL1W"],
+        ["/books/OL3M", 7, [], ["genres"], "/works/OL2W"],
+    ]
+    assert initiatives.field_counts(gaps, "genres") == {"total": 2, "open": 1, "not_found": 1}
+    assert initiatives.field_counts(gaps, "covers") == {"total": 3, "open": 1, "not_found": 0}
+    # Five slots, three covers and two works' genres, with two still open.
+    assert initiatives.progress(gaps, ("covers", "genres")) == {"done": 1, "total": 3, "open": 2, "not_found": 1, "percent": 60}
+    # Rows cached before they carried the work each stand for themselves.
+    assert initiatives.field_counts([row[:4] for row in gaps], "genres") == {"total": 3, "open": 2, "not_found": 1}
 
 
 def test_progress_counts_only_the_initiative_s_fields():
@@ -382,3 +397,42 @@ def test_making_one_project_the_headline_unfeatures_the_rest(forgotten):
     assert site.store["contribute-project-winter-covers"]["featured"] is True
     assert site.store[f"contribute-project-{initiatives.MOST_READ.slug}"]["featured"] is False
     assert f"contribute-project-{initiatives.TAGS.slug}" not in site.store
+
+
+def test_a_slug_is_the_title_and_the_month_and_never_one_already_taken():
+    today = datetime(2026, 11, 11, tzinfo=UTC)
+    assert initiatives.make_slug("Winter Covers!", set(), today) == "winter-covers-2026-11"
+    assert initiatives.make_slug("Winter Covers", {"winter-covers-2026-11", "winter-covers-2026-11-2"}, today) == "winter-covers-2026-11-3"
+    assert initiatives.make_slug("日本語", set(), today) == "project-2026-11"
+
+
+def test_creating_freezes_the_list_and_writes_the_definition_with_its_first_log_entry(forgotten):
+    site = FakeSite()
+    made = initiatives.create(site, {"title": "Winter Covers", "fields": ["covers"], "starts_at": None, "size": 1}, [["/books/OL1M", None]], "/people/mek")
+    assert (made.title, made.fields, made.status(), made.pick) == ("Winter Covers", ("covers",), "draft", None)
+    assert site.store[made.store_key]["editions"] == [["/books/OL1M", None]]
+    doc = site.store[initiatives.definition_key(made.slug)]
+    assert [(e["action"], e["by"], e["changes"]) for e in doc["log"]] == [("create", "/people/mek", {})]
+    assert initiatives.load_or_freeze(made, site) == [["/books/OL1M", None]]
+
+
+def test_a_definition_that_names_a_picker_gets_its_list_from_it():
+    missing = initiatives.every([definition(picker="most-shelved-missing", fields=["genres"])])[-1]
+    assert missing.pick.func is initiatives.pick_most_shelved
+    assert missing.pick.keywords == {"per_work": 1, "fields": ("genres",)}
+    # Asking an edition detail too, the list can hold more than one edition of a work.
+    mixed = initiatives.every([definition(picker="most-shelved-missing", fields=["covers", "genres"])])[-1]
+    assert mixed.pick.keywords["per_work"] == initiatives.EDITIONS_PER_WORK
+    assert initiatives.every([definition(picker="most-shelved")])[-1].pick is initiatives.pick_most_shelved
+    assert initiatives.every([definition(picker="nope")])[-1].pick is None
+    # A built-in one keeps its own picker whatever the store says.
+    assert initiatives.every([{"slug": initiatives.TAGS.slug, "picker": "most-shelved"}])[1].pick is initiatives.TAGS.pick
+
+
+def test_deleting_removes_the_definition_the_list_and_the_shared_gaps(forgotten):
+    site = FakeSite()
+    made = initiatives.create(site, {"title": "Winter Covers", "fields": ["covers"]}, [["/books/OL1M", None]], "/people/mek")
+    forgotten.clear()
+    initiatives.delete(site, made)
+    assert dict(site.store) == {}
+    assert forgotten == ["contribute.definitions", f"contribute.initiative:{made.slug}", f"contribute.initiative:{made.slug}.lock"]

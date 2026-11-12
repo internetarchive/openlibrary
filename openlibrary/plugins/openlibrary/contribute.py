@@ -318,6 +318,15 @@ def build_evidence(edition) -> str:
     return markdown_excerpt(blurb, max_length=600)
 
 
+def build_scope(fld: str, edition_line: str) -> str:
+    """What an answer covers, for under the question: this one edition, named when the record can name it, or the whole work."""
+    if fld in tasks.WORK_FIELDS:
+        return _("Your answer applies to every edition of this book, not just this one.")
+    if edition_line:
+        return _("Answer for this edition only: %(edition)s. Other editions of the book can differ.", edition=edition_line)
+    return _("Answer for this edition only. Other editions of the book can differ.")
+
+
 def count_sibling_values(fld: str, others: list, limit: int = 5) -> dict:
     """How often each value appears across the other editions, most common first."""
     values = [field_values(e, fld) for e in others]
@@ -426,6 +435,7 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
         gaps = initiatives.get_gaps(initiative)
         p = initiatives.progress(gaps, initiative.fields) if gaps else None
         people = get_initiative_people(initiative) if p else 0
+        finished = initiative.status() == "ended"
         cards.append(
             initiatives.describe(initiative)
             | {
@@ -437,6 +447,10 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
                 "figure": _("%(percent)s%%", percent=p["percent"]) if p else "",
                 "done_label": _("%(percent)s%% done", percent=p["percent"]) if p else "",
                 "tasks_left": ungettext("%(count)s task left", "%(count)s tasks left", p["open"], count=helpers.commify(p["open"])) if p else "",
+                # An ended one hands out no tasks, so its row says how it finished instead of what is left.
+                "finished": finished,
+                "finished_label": _("Finished · %(percent)s%% filled", percent=p["percent"]) if p else _("Finished"),
+                "people_count": people,
                 "people": (
                     ungettext("%(count)s person helping", "%(count)s people helping", people, count=helpers.commify(people))
                     if people >= MIN_PEOPLE_SHOWN
@@ -447,12 +461,38 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
     return cards
 
 
+def build_finished(card: dict) -> dict | None:
+    """What an ended project shows in place of its tasks: how it finished, and the running project to go to next."""
+    if not card["finished"]:
+        return None
+    people = card["people_count"]
+    if card["percent"] is None:
+        note = _("Thank you to everyone who helped.")
+    elif people >= MIN_PEOPLE_SHOWN:
+        note = ungettext(
+            "%(count)s person filled in %(percent)s%% of its details. Thank you.",
+            "%(count)s people filled in %(percent)s%% of its details. Thank you.",
+            people,
+            count=helpers.commify(people),
+            percent=card["percent"],
+        )
+    else:
+        note = _("%(percent)s%% of its details were filled in. Thank you to everyone who helped.", percent=card["percent"])
+    running = initiatives.running()
+    following = initiatives.headline() if running else None
+    return {
+        "title": _("This project has finished"),
+        "note": note,
+        "next_url": build_dashboard_url(initiative=initiative_param(following)) if following else "",
+        "next_label": _("Go to %(project)s", project=initiatives.describe(following)["title"]) if following else "",
+    }
+
+
 def count_open(gaps: list[list] | None, fields: tuple[str, ...]) -> str:
     """Open tasks in ``fields`` across the initiative's gaps, for a filter chip; blank while the gaps are being built."""
     if gaps is None:
         return ""
-    wanted = set(fields)
-    return helpers.commify(sum(1 for _key, _readers, open_fields, _skipped in gaps for f in open_fields if f in wanted))
+    return helpers.commify(sum(initiatives.field_counts(gaps, f)["open"] for f in set(fields)))
 
 
 def build_filter_rail(task: str, initiative: initiatives.Initiative, gaps: list[list] | None = None) -> dict:
@@ -568,6 +608,7 @@ class contribute_index(delegate.page):
         task = normalize_filter(query_param("task", ""))
         rows = build_task_rows(task, initiative)
         projects = build_initiative_cards(initiative)
+        project = next(card for card in projects if card["on"])
         return render_contribute(
             "contribute/dashboard.html.jinja",
             _("Tasks"),
@@ -582,7 +623,8 @@ class contribute_index(delegate.page):
             manage_url="/tasks/admin" if user.can_manage_tasks() else "",
             apply=build_apply(user),
             initiatives=projects,
-            project=next(card for card in projects if card["on"]),
+            project=project,
+            finished=build_finished(project),
             fine_print=initiatives.fine_print(initiative, site.get()),
         )
 
@@ -658,6 +700,7 @@ def build_task_context(
         if task.field == "covers" and (isbn10 := edition.get_isbn10())
         else None,
         "field_guide": field_guide,
+        "scope": build_scope(task.field, book["edition_line"]),
         "link_outs": build_link_outs(field_guide, book["isbn13"]),
         # Nothing to compare against when no other edition has a value.
         "siblings": siblings if any(s["value"] for s in siblings) else [],

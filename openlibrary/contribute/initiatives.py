@@ -9,11 +9,13 @@ the list, so it changes without a deploy. ``BUILTIN`` holds the ones defined her
 the keys it names, and a doc with a new slug is a new initiative.
 """
 
+import functools
 import logging
+import re
 from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass, replace
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, time, timedelta
 
 from infogami.infobase.client import ClientException
 from infogami.utils.delegate import create_site
@@ -92,10 +94,11 @@ OVERFETCH = 3
 
 
 def with_open_gap(picks: list[list], site, fields: tuple[str, ...], taken_works: set[str]) -> list[list]:
-    """Of ``[key, readers]`` picks, the editions with something still to fill in ``fields``, one per work.
+    """Of ``[key, readers]`` picks, the editions with something still to fill in ``fields``; one per work when all of those live on the work.
 
     A work field reads the edition's work; ``taken_works`` grows with the works kept, so a later call skips their other editions.
     """
+    one_per_work = tasks.WORK_FIELDS.issuperset(fields)
     kept = []
     for i in range(0, len(picks), 100):
         chunk = picks[i : i + 100]
@@ -106,7 +109,7 @@ def with_open_gap(picks: list[list], site, fields: tuple[str, ...], taken_works:
             if not (edition := editions.get(key)):
                 continue
             work = tasks.work_of(edition)
-            if work is not None and work.key in taken_works:
+            if one_per_work and work is not None and work.key in taken_works:
                 continue
             if any(tasks.is_missing(edition, f, works.get(work.key) if work is not None else None) for f in fields):
                 kept.append([key, readers])
@@ -187,6 +190,23 @@ MOST_READ = Initiative(
 TAGS = Initiative("genres-2026-11", 2000, pick_untagged_works, TAG_FIELDS, starts_at=BUILTIN_START)
 BUILTIN = (MOST_READ, TAGS)
 
+
+def is_builtin(initiative: Initiative) -> bool:
+    return any(b.slug == initiative.slug for b in BUILTIN)
+
+
+def make_picker(name: str, fields: tuple[str, ...]) -> Callable[[int, object], list[list]] | None:
+    """The picker a stored definition names. Its list is then picked and frozen on the first read, on the pool's thread, as a built-in one's is.
+
+    ``most-shelved-missing`` keeps only books with a gap in ``fields``; when all of those live on the work, one edition per work.
+    """
+    if name == "most-shelved":
+        return pick_most_shelved
+    if name == "most-shelved-missing":
+        return functools.partial(pick_most_shelved, per_work=1 if tasks.WORK_FIELDS.issuperset(fields) else EDITIONS_PER_WORK, fields=fields)
+    return None
+
+
 DEFINITION_TYPE = "contribute-project"
 DEFINITIONS_TTL = MINUTE_SECS
 
@@ -234,7 +254,7 @@ def change(site, slug: str, changes: dict, by: str, action: str, rev: str) -> No
     doc = dict(definition_doc(site, slug) or {"type": DEFINITION_TYPE, "slug": slug})
     if doc.get("_rev", "") != rev:
         raise Conflict(slug)
-    entry = {"at": datetime.now(UTC).isoformat(timespec="seconds"), "by": by, "action": action, "changes": changes}
+    entry = {"at": datetime.now(UTC).isoformat(timespec="seconds"), "by": by, "action": action, "changes": {} if action == "create" else changes}
     doc |= changes
     doc["log"] = [*doc.get("log", []), entry][-LOG_LIMIT:]
     try:
@@ -243,6 +263,54 @@ def change(site, slug: str, changes: dict, by: str, action: str, rev: str) -> No
         # The store checks the revision again as it writes, which catches a change made since the read above.
         raise Conflict(slug) from e
     cache.get_memcache().delete("contribute.definitions")
+
+
+def freeze(site, initiative: Initiative, editions: list[list]) -> None:
+    """Store ``editions`` as the initiative's list."""
+    site.store[initiative.store_key] = {
+        "type": "contribute-initiative",
+        "slug": initiative.slug,
+        "frozen_at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "editions": editions,
+    }
+
+
+def gaps_key(slug: str) -> str:
+    return f"contribute.initiative:{slug}"
+
+
+def make_slug(title: str, taken: set[str], today: datetime | None = None) -> str:
+    """A slug nothing else has: the title in lowercase with hyphens, the month it was made, and a number if that is taken.
+
+    It never changes afterwards: saves, stats and URLs all name the project by it.
+    """
+    today = today or datetime.now(UTC)
+    words = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")[:40].strip("-") or "project"
+    base = f"{words}-{today:%Y-%m}"
+    return next(s for s in (base, *(f"{base}-{n}" for n in range(2, 1000))) if s not in taken)
+
+
+def create(site, definition: dict, editions: list[list] | None, by: str) -> Initiative:
+    """Set up a new initiative from ``definition`` (title, description, fields, dates, and a picker if it has one), with
+    ``editions`` as its list when whoever made it named the books. Returns it as the registry will read it."""
+    slug = make_slug(definition["title"], {i.slug for i in every(read_definitions(site))} | {"new"})
+    doc = {"type": DEFINITION_TYPE, "slug": slug} | definition
+    if not (initiative := from_definition(doc)):
+        raise ValueError("Not a definition Tasks can run")
+    if editions is not None:
+        freeze(site, initiative, editions)
+    change(site, slug, definition, by, "create", rev="")
+    return initiative
+
+
+def delete(site, initiative: Initiative) -> None:
+    """Remove an initiative set up in the store, with its list and its shared gaps. Its saves, if it ever had any, keep its slug."""
+    for key in (definition_key(initiative.slug), initiative.store_key):
+        if site.store.get(key):
+            del site.store[key]
+    mc = cache.get_memcache()
+    for key in ("contribute.definitions", gaps_key(initiative.slug), pool.lock_key(gaps_key(initiative.slug))):
+        mc.delete(key)
 
 
 def set_headline(site, slug: str, by: str, rev: str) -> None:
@@ -281,6 +349,8 @@ def from_definition(doc: dict, base: Initiative | None = None) -> Initiative | N
     changes |= {key: parse_time(doc[key]) for key in ("starts_at", "ends_at") if key in doc}
     changes |= {key: bool(doc[key]) for key in ("hidden", "featured") if key in doc}
     initiative = replace(start, **changes)
+    if not base and (picker := make_picker(str(doc.get("picker") or ""), initiative.fields)):
+        initiative = replace(initiative, pick=picker)
     if not initiative.fields or not (base or initiative.title):
         logger.warning("Skipping the initiative definition %r", slug)
         return base
@@ -305,8 +375,8 @@ def started(definitions: list[dict] | None = None) -> list[Initiative]:
 
 
 def listed() -> list[Initiative]:
-    """The initiatives the public pages show: live or ended, and not hidden."""
-    return [i for i in started() if not i.hidden]
+    """The initiatives the public pages show: live or ended, and not hidden. The live ones come first."""
+    return sorted((i for i in started() if not i.hidden), key=lambda i: i.status() == "ended")
 
 
 def running() -> list[Initiative]:
@@ -339,10 +409,18 @@ def describe(initiative: Initiative) -> dict[str, str]:
     }
 
 
+def last_day(ends_at: datetime | None) -> date | None:
+    """The last day a project runs. An end date is stored as the midnight after it, and a stop as the moment it happened."""
+    return (ends_at - timedelta(microseconds=1)).date() if ends_at else None
+
+
 def fine_print(initiative: Initiative, site) -> str:
-    """The line under the dashboard's pitch: how many books, and when the list was picked."""
+    """The line under the dashboard's pitch: how many books, and when the list was picked or, once it has ended, when it ran."""
     books = ungettext("%(count)s book", "%(count)s books", initiative.size, count=commify(initiative.size))
-    if started := started_at(initiative, site):
+    started = started_at(initiative, site)
+    if started and initiative.status() == "ended" and (ended := last_day(initiative.ends_at)):
+        return _("%(books)s · Ran %(start)s to %(end)s", books=books, start=format_date(started), end=format_date(datetime.combine(ended, time())))
+    if started:
         return _("%(books)s · Started %(date)s", books=books, date=format_date(started))
     return books
 
@@ -363,10 +441,16 @@ _started: dict[str, datetime] = {}
 
 
 def started_at(initiative: Initiative, site) -> datetime | None:
-    """When the list was picked, or None before then. Kept once read: it never changes, and the doc carries the whole list."""
-    if initiative.slug not in _started and (doc := site.store.get(initiative.store_key)):
-        _started[initiative.slug] = datetime.fromisoformat(doc["frozen_at"])
-    return _started.get(initiative.slug)
+    """When the list was picked, or None before then. Kept once read for a built-in one: it never changes, and the doc
+    carries the whole list. One set up in the store can be deleted and made again, so its date is read each time."""
+    if initiative.slug in _started:
+        return _started[initiative.slug]
+    if not (doc := site.store.get(initiative.store_key)):
+        return None
+    when = datetime.fromisoformat(doc["frozen_at"])
+    if is_builtin(initiative):
+        _started[initiative.slug] = when
+    return when
 
 
 def load_or_freeze(initiative: Initiative, site) -> list[list]:
@@ -376,12 +460,7 @@ def load_or_freeze(initiative: Initiative, site) -> list[list]:
     # One with no picker has its list frozen when it is set up; until then it has no books.
     editions = initiative.pick(initiative.size, site) if initiative.pick else []
     if editions:
-        site.store[initiative.store_key] = {
-            "type": "contribute-initiative",
-            "slug": initiative.slug,
-            "frozen_at": datetime.now(UTC).isoformat(timespec="seconds"),
-            "editions": editions,
-        }
+        freeze(site, initiative, editions)
     return editions
 
 
@@ -396,7 +475,7 @@ def not_found_fields(site) -> dict[str, set[str]]:
 
 
 def build_gaps(initiative: Initiative, site, batch: int = 100) -> list[list]:
-    """Every edition on the list as ``[key, readers, open fields, fields nobody could find]``, picking the list if needed."""
+    """Every edition on the list as ``[key, readers, open fields, fields nobody could find, work key]``, picking the list if needed."""
     return gaps_for(load_or_freeze(initiative, site), site, batch)
 
 
@@ -417,7 +496,7 @@ def gaps_for(picks: list[list], site, batch: int = 100) -> list[list]:
             work = tasks.work_of(edition)
             missing = [t.field for t in tasks.tasks_for_edition(edition, works.get(work.key) if work else None)]
             skipped = unfindable.get(key, set())
-            rows.append([key, readers, [f for f in missing if f not in skipped], [f for f in missing if f in skipped]])
+            rows.append([key, readers, [f for f in missing if f not in skipped], [f for f in missing if f in skipped], work.key if work is not None else None])
     return rows
 
 
@@ -437,21 +516,48 @@ def build_gaps_in_thread(initiative: Initiative) -> list[list]:
 
 def get_gaps(initiative: Initiative) -> list[list] | None:
     """The shared gaps for ``initiative``, or None while the first build (and on a new initiative, the pick) runs."""
-    return pool.get(f"contribute.initiative:{initiative.slug}", OPEN_TTL, lambda: build_gaps_in_thread(initiative), lock_ttl=OPEN_LOCK_TTL, keep=DAY_SECS)
+    return pool.get(gaps_key(initiative.slug), OPEN_TTL, lambda: build_gaps_in_thread(initiative), lock_ttl=OPEN_LOCK_TTL, keep=DAY_SECS)
+
+
+def field_counts(gaps: list[list], fld: str) -> dict[str, int]:
+    """One field across the gaps: how many it is asked of, still open, and nobody could find.
+
+    An edition field is asked of every edition. A work field is asked once per work, however many of its editions are
+    listed: open while any of them has it open, since one answer fills it for all.
+    """
+    if fld not in tasks.WORK_FIELDS:
+        return {
+            "total": len(gaps),
+            "open": sum(1 for row in gaps if fld in row[2]),
+            "not_found": sum(1 for row in gaps if fld in row[3]),
+        }
+    # A row cached before rows carried the work, or an orphan edition, stands for itself.
+    works, still_open, not_found = set(), set(), set()
+    for row in gaps:
+        work = (row[4] if len(row) > 4 else None) or row[0]
+        works.add(work)
+        if fld in row[2]:
+            still_open.add(work)
+        elif fld in row[3]:
+            not_found.add(work)
+    not_found -= still_open
+    return {"total": len(works), "open": len(still_open), "not_found": len(not_found)}
 
 
 def progress(gaps: list[list], fields: tuple[str, ...]) -> dict[str, int]:
     """How far an initiative has come: editions with nothing left to fill, out of all of them, the gaps still open, and the
     share of details filled. A detail nobody could find counts as filled, so every save or "couldn't find it" moves it.
-    Only ``fields`` count, the initiative's own; the gaps keep the rest for the unlinked filters."""
+    Only ``fields`` count, the initiative's own; the gaps keep the rest for the unlinked filters. A work field counts
+    once per work (see ``field_counts``), so one answer is one gap closed."""
     wanted = set(fields)
-    open_count = sum(1 for _key, _readers, open_fields, _skipped in gaps for f in open_fields if f in wanted)
-    slots = len(gaps) * len(wanted)
+    counts = [field_counts(gaps, f) for f in wanted]
+    open_count = sum(c["open"] for c in counts)
+    slots = sum(c["total"] for c in counts)
     return {
-        "done": sum(1 for _key, _readers, open_fields, _skipped in gaps if not wanted.intersection(open_fields)),
+        "done": sum(1 for row in gaps if not wanted.intersection(row[2])),
         "total": len(gaps),
         "open": open_count,
-        "not_found": sum(1 for _key, _readers, _open, skipped in gaps for f in skipped if f in wanted),
+        "not_found": sum(c["not_found"] for c in counts),
         # Rounded down, so it only reads 100 when nothing is left.
         "percent": (slots - open_count) * 100 // slots if slots else 0,
     }

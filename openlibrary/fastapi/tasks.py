@@ -123,6 +123,43 @@ def tasks_admin() -> SitePage:
     return SitePage(body, page=admin_page(_("Community projects")))
 
 
+class NewProject(BaseModel):
+    """The create form. Every field is text, so a bad value comes back as a message on the form, not a 422."""
+
+    title: str = ""
+    description: str = ""
+    fields: list[str] = []
+    source: str = ""
+    books: str = ""
+    list_url: str = ""
+    size: str = ""
+    starts: str = ""
+    ends: str = ""
+
+
+def new_project_page(form: dict, status_code: int = status.HTTP_200_OK) -> SitePage:
+    body = render_jinja_template("contribute/admin/new.html.jinja", page=form)
+    return SitePage(body, page=admin_page(_("New project")), status_code=status_code)
+
+
+# Declared before the {slug} routes, which would otherwise take "new" for a project.
+@pages.get("/tasks/admin/new")
+def tasks_admin_new() -> SitePage:
+    return new_project_page(manage.build_new_form())
+
+
+@pages.post("/tasks/admin/new")
+def tasks_admin_create(form: Annotated[NewProject, Form()], user: ProjectManagerDep) -> Response:
+    """Set up a project. A list someone named is read and frozen here; a picker's is picked afterwards, off the request."""
+    values = form.model_dump()
+    definition, resolved, error = manage.parse_create(values)
+    if error:
+        # Shown on the form as it was posted: a pasted list is too much to lose to a redirect.
+        return new_project_page(manage.build_new_form(values, error), status.HTTP_400_BAD_REQUEST)
+    initiative = initiatives.create(site.get(), definition, resolved.picks if resolved else None, user.key)
+    return back_to_project(initiative.slug, "note", _("The project is set up. Check its books below."))
+
+
 @pages.get("/tasks/admin/{slug}")
 def tasks_admin_project(slug: str) -> SitePage:
     """One community project: its definition, its progress by detail, and its saves."""
@@ -172,9 +209,23 @@ def tasks_admin_edit(
     starts: Annotated[str, Form()] = "",
     ends: Annotated[str, Form()] = "",
 ) -> RedirectResponse:
-    changes, error = manage.parse_edit(find_project(slug), title, description, starts, ends)
+    initiative = find_project(slug)
+    changes, error = manage.parse_edit(initiative, title, description, starts, ends)
+    if not error and changes.get("starts_at") and not initiative.pick and not initiatives.load_frozen(initiative, site.get()):
+        error = _("A project needs books before it can start.")
     if error:
         return back_to_project(slug, "error", error)
     if not changes:
         return back_to_project(slug, "note", _("Nothing changed."))
     return change_project(slug, user, rev, "edit", changes, _("Saved."))
+
+
+@pages.post("/tasks/admin/{slug}/delete")
+def tasks_admin_delete(slug: str, user: ProjectManagerDep) -> RedirectResponse:
+    initiative = find_project(slug)
+    if initiatives.is_builtin(initiative) or initiative.status() not in ("draft", "scheduled"):
+        return back_to_project(slug, "error", _("Only a project that hasn't started can be deleted. Stop or hide this one."))
+    initiatives.delete(site.get(), initiative)
+    response = RedirectResponse(manage.BASE_URL, status_code=status.HTTP_303_SEE_OTHER)
+    set_flash_cookie(response, "note", _("The project is deleted."))
+    return response

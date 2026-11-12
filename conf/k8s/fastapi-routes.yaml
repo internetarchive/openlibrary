@@ -5,7 +5,9 @@ fastapiRoutes:
   - GET /advancedsearch
   - GET /search/lists
   - GET /tasks/admin
+  - GET POST /tasks/admin/new
   - GET /tasks/admin/{slug}
+  - POST /tasks/admin/{slug}/delete
   - POST /tasks/admin/{slug}/edit
   - POST /tasks/admin/{slug}/headline
   - POST /tasks/admin/{slug}/hide

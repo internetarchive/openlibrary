@@ -34,7 +34,9 @@
                                {% if card.on %}aria-current="page"{% endif %}>
                                 <span class="contrib-projects__name">{{ card.title }}</span>
                                 <span class="contrib-projects__meta">
-                                    {% if card.percent is not none %}
+                                    {% if card.finished %}
+                                        <span>{{ card.finished_label }}</span>
+                                    {% elif card.percent is not none %}
                                         <span>{{ card.tasks_left }}</span>
                                         {% if card.people %}
                                             <span aria-hidden="true">·</span>
@@ -80,48 +82,61 @@
                     </div>
                 {% endif %}
             </header>
-            <nav class="contrib-rail" aria-label="{{ _('Filter tasks') }}">
-                <a class="contrib-rail__item{{ ' is-on' if data.rail.all.on else '' }}"
-                   href="{{ data.rail.all.url }}"
-                   data-ol-link-track="TasksDashboard|Filter|{{ data.rail.all.track }}"
-                   {% if data.rail.all.on %}aria-current="page"{% endif %}>
-                    {{ data.rail.all.label }}
-                    {% if data.rail.all.count %}<span class="contrib-rail__count">{{ data.rail.all.count }}</span>{% endif %}
-                </a>
-                {% for item in data.rail.filters %}
-                    <a class="contrib-rail__item{{ ' is-on' if item.on else '' }}"
-                       href="{{ item.url }}"
-                       data-ol-link-track="TasksDashboard|Filter|{{ item.track }}"
-                       {% if item.on %}aria-current="true"{% endif %}>
-                        {{ item.label }}
-                        {% if item.count %}<span class="contrib-rail__count">{{ item.count }}</span>{% endif %}
+            {% if data.finished %}
+                {#- An ended project hands out no tasks: how it finished, and where to go next. -#}
+                <section class="contrib-finished">
+                    <h3 class="contrib-finished__title">{{ data.finished.title }}</h3>
+                    <p class="contrib-muted">{{ data.finished.note }}</p>
+                    {% if data.finished.next_url %}
+                        <ol-button variant="primary" href="{{ data.finished.next_url }}" data-ol-link-track="TasksDashboard|FinishedNext">
+                            {{ data.finished.next_label }}
+                        </ol-button>
+                    {% endif %}
+                </section>
+            {% else %}
+                <nav class="contrib-rail" aria-label="{{ _('Filter tasks') }}">
+                    <a class="contrib-rail__item{{ ' is-on' if data.rail.all.on else '' }}"
+                       href="{{ data.rail.all.url }}"
+                       data-ol-link-track="TasksDashboard|Filter|{{ data.rail.all.track }}"
+                       {% if data.rail.all.on %}aria-current="page"{% endif %}>
+                        {{ data.rail.all.label }}
+                        {% if data.rail.all.count %}<span class="contrib-rail__count">{{ data.rail.all.count }}</span>{% endif %}
                     </a>
-                {% endfor %}
-            </nav>
-            <h3 class="contrib-visually-hidden">{{ data.heading }}</h3>
-            {#- While a cold cache builds the list in the background, placeholders stand in and contribute.js fetches the rows from data-rows-url. -#}
-            <ol class="contrib-rows"
-                data-rows
-                {% if data.rows_url %}data-rows-url="{{ data.rows_url }}"{% endif %}>
-                {% if data.rows_url %}
-                    {% for _i in range(data.skeleton_rows or 0) %}
-                        {{ parts.row_skeleton(tasks=2 + loop.index % 2) }}
+                    {% for item in data.rail.filters %}
+                        <a class="contrib-rail__item{{ ' is-on' if item.on else '' }}"
+                           href="{{ item.url }}"
+                           data-ol-link-track="TasksDashboard|Filter|{{ item.track }}"
+                           {% if item.on %}aria-current="true"{% endif %}>
+                            {{ item.label }}
+                            {% if item.count %}<span class="contrib-rail__count">{{ item.count }}</span>{% endif %}
+                        </a>
                     {% endfor %}
-                {% else %}
-                    {% with rows = data.rows %}
-                        {% include "contribute/rows.html.jinja" %}
-                    {% endwith %}
-                {% endif %}
-            </ol>
-            <div class="contrib-empty"
-                 data-list-empty
-                 {% if data.rows or data.rows_url %}hidden{% endif %}>
-                <p>{{ data.empty }}</p>
-            </div>
-            {% if data.rows_url %}
-                <div class="contrib-empty" data-list-error hidden>
-                    <p>{{ _("Tasks couldn't load right now. Reload the page to try again.") }}</p>
+                </nav>
+                <h3 class="contrib-visually-hidden">{{ data.heading }}</h3>
+                {#- While a cold cache builds the list in the background, placeholders stand in and contribute.js fetches the rows from data-rows-url. -#}
+                <ol class="contrib-rows"
+                    data-rows
+                    {% if data.rows_url %}data-rows-url="{{ data.rows_url }}"{% endif %}>
+                    {% if data.rows_url %}
+                        {% for _i in range(data.skeleton_rows or 0) %}
+                            {{ parts.row_skeleton(tasks=2 + loop.index % 2) }}
+                        {% endfor %}
+                    {% else %}
+                        {% with rows = data.rows %}
+                            {% include "contribute/rows.html.jinja" %}
+                        {% endwith %}
+                    {% endif %}
+                </ol>
+                <div class="contrib-empty"
+                     data-list-empty
+                     {% if data.rows or data.rows_url %}hidden{% endif %}>
+                    <p>{{ data.empty }}</p>
                 </div>
+                {% if data.rows_url %}
+                    <div class="contrib-empty" data-list-error hidden>
+                        <p>{{ _("Tasks couldn't load right now. Reload the page to try again.") }}</p>
+                    </div>
+                {% endif %}
             {% endif %}
         </main>
     </div>

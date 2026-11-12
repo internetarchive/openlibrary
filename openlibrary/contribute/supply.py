@@ -27,7 +27,7 @@ def candidates(initiative: initiatives.Initiative, fields: tuple[str, ...], batc
     if initiative.status() == "ended":
         return iter(())
     wanted = set(fields)
-    picks = [[key, readers, skipped] for key, readers, open_fields, skipped in gaps if wanted.intersection(open_fields)]
+    picks = [[key, readers, skipped] for key, readers, open_fields, skipped, *_work in gaps if wanted.intersection(open_fields)]
     return _load(picks, batch)
 
 

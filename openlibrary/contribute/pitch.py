@@ -62,7 +62,7 @@ def encode(book_keys: Collection[str] = ()) -> str:
         if left == 0:
             continue
         fields = set(initiative.fields)
-        has_book = any(key in book_keys and fields.intersection(open_fields) for key, _readers, open_fields, _skipped in gaps or [])
+        has_book = any(key in book_keys and fields.intersection(open_fields) for key, _readers, open_fields, *_rest in gaps or [])
         ranked.append((not has_book, initiative.slug != headline, f"{initiative.slug}:{'' if left is None else left}"))
     # min keeps the first of equals, so initiatives that tie fall back to the registry's order.
     return min(ranked, key=lambda r: r[:2])[2] if ranked else ""

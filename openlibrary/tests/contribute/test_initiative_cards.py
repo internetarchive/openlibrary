@@ -75,3 +75,35 @@ def test_people_count_goes_to_the_initiative_it_names(cards):
     built = cards(docs=[{"initiative_slug": other.slug, "initiative_people": 50}])
     assert built[ACTIVE.slug]["people"] is None
     assert built[other.slug]["people"] == "50 people helping"
+
+
+ENDED = {"slug": "october-sprint", "title": "October Sprint", "fields": ["covers"], "starts_at": "2026-10-01", "ends_at": "2026-10-31", "size": 3}
+
+
+@pytest.fixture
+def ended(cards, monkeypatch):
+    monkeypatch.setattr(contribute.initiatives, "cached_definitions", lambda: [ENDED])
+    return next(i for i in contribute.initiatives.listed() if i.slug == ENDED["slug"])
+
+
+def test_a_finished_project_comes_last_and_says_how_it_finished(cards, ended):
+    built = cards()
+    assert list(built)[-1] == ended.slug
+    assert (built[ended.slug]["finished"], built[ended.slug]["finished_label"]) == (True, "Finished · 0% filled")
+    assert built[ACTIVE.slug]["finished"] is False
+    assert cards(gaps=None)[ended.slug]["finished_label"] == "Finished"
+
+
+def test_a_finished_project_shows_a_closing_note_and_the_project_to_go_to(cards, ended):
+    built = cards()
+    assert contribute.build_finished(built[ACTIVE.slug]) is None
+    finished = contribute.build_finished(built[ended.slug])
+    assert finished["note"] == "0% of its details were filled in. Thank you to everyone who helped."
+    assert (finished["next_url"], finished["next_label"]) == ("/tasks", "Go to Fill the Gaps")
+    crowd = cards(docs=[{"initiatives": {ended.slug: {"people": 12}}}])[ended.slug]
+    assert contribute.build_finished(crowd)["note"] == "12 people filled in 0% of its details. Thank you."
+
+
+def test_the_fine_print_of_a_finished_project_says_when_it_ran(cards, ended):
+    site = type("Site", (), {"store": {ended.store_key: {"frozen_at": "2026-10-01T00:00:00+00:00"}}})()
+    assert contribute.initiatives.fine_print(ended, site) == "3 books · Ran October 1, 2026 to October 30, 2026"

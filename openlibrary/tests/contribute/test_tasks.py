@@ -2,6 +2,7 @@ import pytest
 
 from openlibrary.contribute import initiatives, supply, tasks
 from openlibrary.contribute.tasks import Task
+from openlibrary.plugins.openlibrary import contribute
 
 NONFICTION = "/tags/OL9T"
 
@@ -84,3 +85,11 @@ def test_candidates_are_the_initiative_s_editions_with_an_open_gap_in_the_fields
     list(supply.candidates(initiatives.TAGS, ("languages", "publishers")))
     assert asked == [initiatives.TAGS]
     assert sorted(loaded) == [["/books/OL1M", 10, []], ["/books/OL2M", 20, ["lccn"]]]
+
+
+def test_a_task_says_whether_the_answer_is_for_one_edition_or_every_edition(request_context_fixture):
+    request_context_fixture(lang="en")
+    assert "Penguin · 2008" in contribute.build_scope("number_of_pages", "Penguin · 2008")
+    assert "this edition only" in contribute.build_scope("covers", "")
+    assert "every edition" in contribute.build_scope("genres", "Penguin · 2008")
+    assert "Penguin" not in contribute.build_scope("genres", "Penguin · 2008")

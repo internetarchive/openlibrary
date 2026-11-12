@@ -328,6 +328,7 @@ def admin_range__initiatives(**kargs):
             "done": p["done"],
             "not_found": p["not_found"],
             "editions": p["total"],
+            "percent": p["percent"],
             "people": _initiative_people(db, initiative, frozen["frozen_at"], end_str),
         }
     if not counts:

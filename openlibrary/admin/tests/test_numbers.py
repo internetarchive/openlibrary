@@ -189,7 +189,9 @@ def today_kargs(db=None):
 
 
 def test_initiatives_counts_each_frozen_list_and_skips_the_rest(fake_initiatives):
-    assert numbers.admin_range__initiatives(**today_kargs()) == {"most-read-test": {"open": 1, "done": 1, "not_found": 1, "editions": 2, "people": 7}}
+    assert numbers.admin_range__initiatives(**today_kargs()) == {
+        "most-read-test": {"open": 1, "done": 1, "not_found": 1, "editions": 2, "percent": 91, "people": 7}
+    }
     assert fake_initiatives.calls == [2]
 
 

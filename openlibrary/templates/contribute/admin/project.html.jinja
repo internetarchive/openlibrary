@@ -42,6 +42,15 @@
                     </ol-button>
                 </form>
             {% endif %}
+            {% if page.can_delete %}
+                <form method="post"
+                      action="{{ page.urls.delete }}"
+                      data-confirm="contrib-admin-delete">
+                    <ol-button type="submit" variant="secondary" tone="danger" size="small">
+                        {{ _("Delete") }}
+                    </ol-button>
+                </form>
+            {% endif %}
             {% if page.can_stop %}
                 <form method="post"
                       action="{{ page.urls.stop }}"
@@ -58,6 +67,10 @@
     <template id="contrib-admin-stop"
               data-i18n="{{ {'title': _('Stop this project now?') , 'confirm': _('Stop project'), 'cancel': _('Cancel'), 'close': _('Close')} | tojson | forceescape }}">
         {{ _("It will hand out no more tasks. It stays on the Tasks page as finished, with its final numbers. To run it again, change its end date.") }}
+    </template>
+    <template id="contrib-admin-delete"
+              data-i18n="{{ {'title': _('Delete this project?') , 'confirm': _('Delete project'), 'cancel': _('Cancel'), 'close': _('Close')} | tojson | forceescape }}">
+        {{ _("The project and its book list are removed. This can't be undone.") }}
     </template>
     <template id="contrib-admin-headline"
               data-destructive="false"
@@ -86,6 +99,9 @@
                 {% if page.picked %}
                     <span class="contrib-muted">{{ _("List picked %(date)s", date=page.picked) }}</span>
                 {% endif %}
+                {% if page.skipped.count %}
+                    <span class="contrib-muted">{{ _("%(count)s entries left out, listed below", count=page.skipped.count) }}</span>
+                {% endif %}
             </dd>
         </div>
         <div>
@@ -108,7 +124,7 @@
                 </li>
                 <li>
                     <span class="contrib-admin__tile-value">{{ page.done }}</span>
-                    <span class="contrib-admin__tile-label">{{ _("Books complete, of %(count)s", count=project.books) }}</span>
+                    <span class="contrib-admin__tile-label">{{ _("Editions complete, of %(count)s", count=project.books) }}</span>
                 </li>
                 <li>
                     <span class="contrib-admin__tile-value">{{ project.tasks_left }}</span>
@@ -141,6 +157,7 @@
                             <th scope="col" class="contrib-admin__num">{{ _("Filled") }}</th>
                             <th scope="col" class="contrib-admin__num">{{ _("Still open") }}</th>
                             <th scope="col" class="contrib-admin__num">{{ _("Not found") }}</th>
+                            <th scope="col" class="contrib-admin__num">{{ _("Out of") }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -158,11 +175,40 @@
                                 <td class="contrib-admin__num">{{ row.filled }}</td>
                                 <td class="contrib-admin__num">{{ row.open }}</td>
                                 <td class="contrib-admin__num">{{ row.not_found }}</td>
+                                <td class="contrib-admin__num">{{ row.out_of }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+        </section>
+    {% endif %}
+    {% if page.skipped.count %}
+        <section class="contrib-admin__section">
+            <h2 class="contrib-overline">{{ _("Left out of the book list") }}</h2>
+            <div class="contrib-admin__scroll">
+                <table class="contrib-admin__table no-table-collapse">
+                    <thead>
+                        <tr>
+                            <th scope="col">{{ _("Entry") }}</th>
+                            <th scope="col">{{ _("Why") }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in page.skipped.rows %}
+                            <tr>
+                                <th scope="row">
+                                    <code>{{ row.entry }}</code>
+                                </th>
+                                <td>{{ row.reason }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if page.skipped.more %}
+                <p class="contrib-admin__caption">{{ _("Only the first entries are kept.") }}</p>
+            {% endif %}
         </section>
     {% endif %}
     <div class="contrib-admin__charts">

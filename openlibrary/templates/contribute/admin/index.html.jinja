@@ -6,7 +6,12 @@
             <h1 class="contrib-title">{{ _("Community projects") }}</h1>
             <p class="contrib-dash__lede">{{ _("The projects on the Tasks page: what is running, what is coming and what is over.") }}</p>
         </hgroup>
-        <a class="contrib-dash__edits" href="/tasks">{{ _("Tasks") }}</a>
+        <nav class="contrib-dash__links" aria-label="{{ _('Project pages') }}">
+            <a class="contrib-dash__edits" href="/tasks">{{ _("Tasks") }}</a>
+            <ol-button variant="primary" size="small" href="{{ page.new_url }}">
+                {{ _("New project") }}
+            </ol-button>
+        </nav>
     </header>
     <div class="contrib-admin__scroll">
         <table class="contrib-admin__table no-table-collapse">

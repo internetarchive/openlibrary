@@ -1013,7 +1013,7 @@ msgstr ""
 msgid "Authors"
 msgstr ""
 
-#: SearchNavigation.html.jinja books/custom_carousel.html.jinja books/mybooks_breadcrumb_select.html contribute/admin/index.html.jinja contribute/admin/project.html.jinja openlibrary/core/shell/search_modal.py openlibrary/plugins/upstream/mybooks.py shell/footer.html.jinja work_search.html
+#: SearchNavigation.html.jinja books/custom_carousel.html.jinja books/mybooks_breadcrumb_select.html contribute/admin/index.html.jinja contribute/admin/new.html.jinja contribute/admin/project.html.jinja openlibrary/core/shell/search_modal.py openlibrary/plugins/upstream/mybooks.py shell/footer.html.jinja work_search.html
 msgid "Books"
 msgstr ""
 
@@ -1533,7 +1533,7 @@ msgstr ""
 msgid "Reviews"
 msgstr ""
 
-#: account/observations.html admin/inspect/memcache.html
+#: account/observations.html admin/inspect/memcache.html contribute/admin/project.html.jinja
 msgid "Delete"
 msgstr ""
 
@@ -3054,7 +3054,7 @@ msgstr ""
 msgid "We require a minimum set of fields to create a new record. These are those fields."
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html contribute/admin/project.html.jinja search/advancedsearch.html.jinja search/sort_options.html type/about/edit.html type/page/edit.html type/template/edit.html
+#: books/add.html books/edit.html books/edit/edition.html contribute/admin/new.html.jinja contribute/admin/project.html.jinja search/advancedsearch.html.jinja search/sort_options.html type/about/edit.html type/page/edit.html type/template/edit.html
 msgid "Title"
 msgstr ""
 
@@ -3188,7 +3188,7 @@ msgstr ""
 msgid "Select this book"
 msgstr ""
 
-#: SearchResultsWork.html books/check.html merge/authors.html publishers/view.html
+#: SearchResultsWork.html books/check.html merge/authors.html openlibrary/contribute/manage.py publishers/view.html
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
@@ -4108,7 +4108,7 @@ msgstr ""
 msgid "Your edits"
 msgstr ""
 
-#: contribute/admin/index.html.jinja contribute/admin/project.html.jinja contribute/dashboard.html.jinja openlibrary/fastapi/tasks.py stats/tasks.html.jinja
+#: contribute/admin/index.html.jinja contribute/admin/new.html.jinja contribute/admin/project.html.jinja contribute/dashboard.html.jinja openlibrary/fastapi/tasks.py stats/tasks.html.jinja
 msgid "Community projects"
 msgstr ""
 
@@ -4236,6 +4236,14 @@ msgid "The projects on the Tasks page: what is running, what is coming and what 
 msgstr ""
 
 #: contribute/admin/index.html.jinja
+msgid "Project pages"
+msgstr ""
+
+#: contribute/admin/index.html.jinja contribute/admin/new.html.jinja openlibrary/fastapi/tasks.py
+msgid "New project"
+msgstr ""
+
+#: contribute/admin/index.html.jinja
 msgid "Project"
 msgstr ""
 
@@ -4253,6 +4261,95 @@ msgstr ""
 
 #: contribute/admin/index.html.jinja
 msgid "Dates are in UTC. People are counted nightly."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Nothing is public until the start date. Without one, the project is a draft you can check first."
+msgstr ""
+
+#: contribute/admin/new.html.jinja contribute/admin/project.html.jinja type/tag/view.html type/user/edit.html
+msgid "Description"
+msgstr ""
+
+#: contribute/admin/new.html.jinja contribute/admin/project.html.jinja
+msgid "The title and description are not translated."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Details to ask for"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Choose any from either group. These can't be changed once the project is made."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+#, python-format
+msgid "The list is fixed when the project is made, so progress always counts the same books. Up to %(count)s."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Books I list"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Open Library edition or work IDs, book URLs, or ISBNs."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "An Open Library list"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Every book on the list as it is today."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "The most-shelved books missing these details"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "The books readers shelve most that still need one of the details above."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "The most-shelved books"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Whether or not they need anything, so the starting progress shows how complete they are."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Books to list"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "One per line, or separated by commas or spaces. A work is added as one of its editions."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "List URL"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "How many most-shelved books"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Start date (optional)"
+msgstr ""
+
+#: contribute/admin/new.html.jinja contribute/admin/project.html.jinja
+msgid "End date (optional)"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "The project runs from the start of its start date through the end of its end date, UTC. Both can be set or changed later."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
+msgid "Create project"
 msgstr ""
 
 #: contribute/admin/parts.html.jinja
@@ -4305,6 +4402,18 @@ msgid "It will hand out no more tasks. It stays on the Tasks page as finished, w
 msgstr ""
 
 #: contribute/admin/project.html.jinja
+msgid "Delete this project?"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Delete project"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "The project and its book list are removed. This can't be undone."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
 msgid "Make this the headline project?"
 msgstr ""
 
@@ -4322,6 +4431,11 @@ msgid "List picked %(date)s"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
+#, python-format
+msgid "%(count)s entries left out, listed below"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
 msgid "Defined in code"
 msgstr ""
 
@@ -4331,7 +4445,7 @@ msgstr ""
 
 #: contribute/admin/project.html.jinja
 #, python-format
-msgid "Books complete, of %(count)s"
+msgid "Editions complete, of %(count)s"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -4368,6 +4482,26 @@ msgstr ""
 
 #: contribute/admin/project.html.jinja
 msgid "Not found"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Out of"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Left out of the book list"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Entry"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Why"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Only the first entries are kept."
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -4415,19 +4549,7 @@ msgid "Edit details"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "The title and description are not translated."
-msgstr ""
-
-#: contribute/admin/project.html.jinja type/tag/view.html type/user/edit.html
-msgid "Description"
-msgstr ""
-
-#: contribute/admin/project.html.jinja
 msgid "Start date"
-msgstr ""
-
-#: contribute/admin/project.html.jinja
-msgid "End date (optional)"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -4601,7 +4723,7 @@ msgstr ""
 msgid "Add another image"
 msgstr ""
 
-#: covers/saved.html
+#: covers/saved.html openlibrary/plugins/openlibrary/contribute.py
 msgid "Finished"
 msgstr ""
 
@@ -6405,12 +6527,16 @@ msgid "Community projects. Choose one to chart it."
 msgstr ""
 
 #: stats/tasks.html.jinja
+msgid "of details filled · Finished"
+msgstr ""
+
+#: stats/tasks.html.jinja
 msgid "of details filled"
 msgstr ""
 
 #: stats/tasks.html.jinja
 #, python-format
-msgid "<b>%(done)s of %(count)s</b> books complete"
+msgid "<b>%(done)s of %(count)s</b> editions complete"
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -8687,6 +8813,11 @@ msgstr ""
 
 #: openlibrary/contribute/initiatives.py
 #, python-format
+msgid "%(books)s · Ran %(start)s to %(end)s"
+msgstr ""
+
+#: openlibrary/contribute/initiatives.py
+#, python-format
 msgid "%(books)s · Started %(date)s"
 msgstr ""
 
@@ -8717,6 +8848,13 @@ msgid "%(start)s to %(end)s"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
+#, python-format
+msgid "%(count)s work"
+msgid_plural "%(count)s works"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/contribute/manage.py
 msgid "title"
 msgstr ""
 
@@ -8730,6 +8868,10 @@ msgstr ""
 
 #: openlibrary/contribute/manage.py
 msgid "end date"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Created the project"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
@@ -8780,6 +8922,76 @@ msgstr ""
 
 #: openlibrary/contribute/manage.py
 msgid "The end date is before the start date."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Not an Open Library ID or an ISBN"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "No book has this ISBN"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "No such book"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Not a book"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "This work has no editions"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Listed twice"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Another edition of the same work is already listed"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+#, python-format
+msgid "Past the limit of %(count)s books"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "About the edition"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "One published version of a book. Asked of every edition in the project."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "About the work"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Shared by every edition of a book. Asked once per work, however many of its editions are in the project."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Choose at least one detail for the project to ask for."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Choose where the books come from."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+#, python-format
+msgid "Choose how many books, from 1 to %(count)s."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "That isn't an Open Library list we can find."
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "None of those are books the project can use."
 msgstr ""
 
 #: openlibrary/contribute/save.py
@@ -9528,6 +9740,10 @@ msgid "Someone else changed this project while you had it open. Check it below, 
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py
+msgid "The project is set up. Check its books below."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
 msgid "The project is hidden from the Tasks and stats pages."
 msgstr ""
 
@@ -9552,11 +9768,23 @@ msgid "This is now the headline project."
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py
+msgid "A project needs books before it can start."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
 msgid "Nothing changed."
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py
 msgid "Saved."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "Only a project that hasn't started can be deleted. Stop or hide this one."
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
+msgid "The project is deleted."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/api.py
@@ -9716,8 +9944,26 @@ msgid "Subjects mention %(subjects)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
+msgid "Your answer applies to every edition of this book, not just this one."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "Answer for this edition only: %(edition)s. Other editions of the book can differ."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Answer for this edition only. Other editions of the book can differ."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
 msgid "%(percent)s%% done"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "Finished · %(percent)s%% filled"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -9726,6 +9972,31 @@ msgid "%(count)s person helping"
 msgid_plural "%(count)s people helping"
 msgstr[0] ""
 msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Thank you to everyone who helped."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(count)s person filled in %(percent)s%% of its details. Thank you."
+msgid_plural "%(count)s people filled in %(percent)s%% of its details. Thank you."
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(percent)s%% of its details were filled in. Thank you to everyone who helped."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "This project has finished"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "Go to %(project)s"
+msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "All project tasks"

@@ -6,11 +6,12 @@ count docs, so they are a day behind and blank until the job has counted the ini
 
 from datetime import UTC, date, datetime, time, timedelta
 
-from openlibrary.contribute import initiatives
+from openlibrary.contribute import booklist, initiatives, tasks
 from openlibrary.contribute.field_guides import get_field_guides
 from openlibrary.core import admin
 from openlibrary.core.helpers import commify, format_date
 from openlibrary.i18n import gettext as _
+from openlibrary.i18n import ungettext
 from openlibrary.utils.request_context import site
 
 BASE_URL = "/tasks/admin"
@@ -34,15 +35,10 @@ def format_day(when: datetime | None) -> str:
     return format_date(when) if when else ""
 
 
-def last_day(ends_at: datetime | None) -> date | None:
-    """The last day a project runs. An end date is stored as the midnight after it, and a stop as the moment it happened."""
-    return (ends_at - timedelta(microseconds=1)).date() if ends_at else None
-
-
 def format_run(initiative: initiatives.Initiative) -> str:
     """When it runs, as one phrase. Dates are UTC days, as stored."""
     starts = format_day(initiative.starts_at)
-    ends = format_day(datetime.combine(day, time())) if (day := last_day(initiative.ends_at)) else ""
+    ends = format_day(datetime.combine(day, time())) if (day := initiatives.last_day(initiative.ends_at)) else ""
     if not starts:
         return _("No start date")
     if not ends:
@@ -56,9 +52,13 @@ def latest_snapshot(docs: list[dict], slug: str) -> dict:
 
 
 def build_summary(initiative: initiatives.Initiative, docs: list[dict]) -> dict:
-    """One initiative as the list shows it. Only a started one has gaps: asking for a draft's would pick its list early."""
+    """One initiative as the list shows it.
+
+    A built-in one has gaps only once it starts: asking sooner would pick its list early. One set up here is counted
+    from the day it is made, which is how whoever made it checks the books before it starts.
+    """
     status = initiative.status()
-    started = status in ("live", "ended")
+    started = status in ("live", "ended") or not initiatives.is_builtin(initiative)
     gaps = initiatives.get_gaps(initiative) if started else None
     progress = initiatives.progress(gaps, initiative.fields) if gaps is not None else None
     guides = get_field_guides()
@@ -85,7 +85,7 @@ def build_index() -> dict:
     docs = admin.get_count_docs(7)
     projects = [build_summary(i, docs) for i in initiatives.every()]
     # A stable sort, so within a status the registry's order holds.
-    return {"projects": sorted(projects, key=lambda p: STATUS_ORDER.index(p["status"]))}
+    return {"projects": sorted(projects, key=lambda p: STATUS_ORDER.index(p["status"])), "new_url": f"{BASE_URL}/new"}
 
 
 def build_field_rows(initiative: initiatives.Initiative, gaps: list[list]) -> list[dict]:
@@ -93,15 +93,21 @@ def build_field_rows(initiative: initiatives.Initiative, gaps: list[list]) -> li
     guides = get_field_guides()
     rows = []
     for fld in initiative.fields:
-        still_open = sum(1 for _key, _readers, open_fields, _skipped in gaps if fld in open_fields)
-        not_found = sum(1 for _key, _readers, _open, skipped in gaps if fld in skipped)
+        counts = initiatives.field_counts(gaps, fld)
+        total, still_open, not_found = counts["total"], counts["open"], counts["not_found"]
         rows.append(
             {
                 "label": guides[fld].label if fld in guides else fld,
                 "open": commify(still_open),
                 "not_found": commify(not_found),
-                "filled": commify(len(gaps) - still_open - not_found),
-                "percent": (len(gaps) - still_open) * 100 // len(gaps) if gaps else 0,
+                "filled": commify(total - still_open - not_found),
+                "percent": (total - still_open) * 100 // total if total else 0,
+                # A work detail is counted once per work, an edition detail once per edition.
+                "out_of": (
+                    ungettext("%(count)s work", "%(count)s works", total, count=commify(total))
+                    if fld in tasks.WORK_FIELDS
+                    else ungettext("%(count)s edition", "%(count)s editions", total, count=commify(total))
+                ),
             }
         )
     return rows
@@ -153,23 +159,26 @@ def build_detail(initiative: initiatives.Initiative) -> dict:
     docs = admin.get_count_docs(TREND_DAYS)
     summary = build_summary(initiative, docs)
     started = summary["status"] in ("live", "ended")
-    gaps = initiatives.get_gaps(initiative) if started else None
+    builtin = initiatives.is_builtin(initiative)
+    gaps = initiatives.get_gaps(initiative) if started or not builtin else None
     snapshot = latest_snapshot(docs, initiative.slug)
-    picked = initiatives.started_at(initiative, site.get()) if started else None
+    picked = initiatives.started_at(initiative, site.get()) if started or not builtin else None
+    doc = initiatives.definition_doc(site.get(), initiative.slug)
     return {
         "project": summary,
         "index_url": BASE_URL,
         # The public page only lists it once it has started and while it isn't hidden.
         "public_url": f"/tasks?initiative={initiative.slug}" if started and not initiative.hidden else "",
         "picked": format_day(picked),
-        "builtin": initiative.pick is not None,
+        "builtin": builtin,
+        "skipped": build_skipped(doc.get("skipped") or [], doc.get("skipped_count") or 0),
         "not_found": format_count(summary["progress"]["not_found"]) if summary["progress"] else BLANK,
         "done": format_count(summary["progress"]["done"]) if summary["progress"] else BLANK,
         "people": format_count(snapshot.get("people")),
         "fields": build_field_rows(initiative, gaps) if gaps is not None else [],
         "trend": build_trend(docs, initiative.slug),
         "saves": build_saves(docs, initiative.slug),
-    } | build_controls(initiative, summary["status"], initiatives.definition_doc(site.get(), initiative.slug))
+    } | build_controls(initiative, summary["status"], doc)
 
 
 TITLE_MAX = 80
@@ -182,7 +191,9 @@ def build_controls(initiative: initiatives.Initiative, status: str, doc: dict) -
     return {
         # Every form posts this back, so a change made against an out-of-date page is refused.
         "rev": doc.get("_rev", ""),
-        "urls": {name: f"{base}/{name}" for name in ("edit", "hide", "unhide", "stop", "headline")},
+        "urls": {name: f"{base}/{name}" for name in ("edit", "hide", "unhide", "stop", "headline", "delete")},
+        # Once it has started, people have saved toward it, so it can only be stopped or hidden.
+        "can_delete": not initiatives.is_builtin(initiative) and status in ("draft", "scheduled"),
         "can_hide": not initiative.hidden,
         "can_stop": status == "live",
         # Only a project the public can open can be the one /tasks opens on.
@@ -191,7 +202,7 @@ def build_controls(initiative: initiatives.Initiative, status: str, doc: dict) -
             "title": initiative.title,
             "description": initiative.description if initiative.title else "",
             "starts": initiative.starts_at.date().isoformat() if initiative.starts_at else "",
-            "ends": day.isoformat() if (day := last_day(initiative.ends_at)) else "",
+            "ends": day.isoformat() if (day := initiatives.last_day(initiative.ends_at)) else "",
             "title_max": TITLE_MAX,
             "description_max": DESCRIPTION_MAX,
         },
@@ -206,6 +217,7 @@ def edit_labels() -> dict[str, str]:
 def describe_change(entry: dict) -> str:
     """One log entry in words."""
     plain = {
+        "create": _("Created the project"),
         "hide": _("Hid the project"),
         "unhide": _("Made the project visible again"),
         "stop": _("Stopped the project early"),
@@ -249,7 +261,7 @@ def parse_edit(initiative: initiatives.Initiative, title: str, description: str,
         start_day, end_day = parse_day(starts), parse_day(ends)
     except ValueError:
         return {}, _("That date isn't one we can read.")
-    if not title and not initiative.pick:
+    if not title and not initiatives.is_builtin(initiative):
         return {}, _("A project needs a title.")
     if len(title) > TITLE_MAX or len(description) > DESCRIPTION_MAX:
         return {}, _("The title or description is too long.")
@@ -267,6 +279,118 @@ def parse_edit(initiative: initiatives.Initiative, title: str, description: str,
     if start_day != (initiative.starts_at.date() if initiative.starts_at else None):
         changes["starts_at"] = midnight(start_day) if start_day else None
     # Compared as days: a project stopped at 2pm still shows that day, and saving the form again mustn't restart it until midnight.
-    if end_day != last_day(initiative.ends_at):
+    if end_day != initiatives.last_day(initiative.ends_at):
         changes["ends_at"] = midnight(end_day + timedelta(days=1)) if end_day else None
     return changes, ""
+
+
+SOURCES = ("pasted", "list", "most-shelved", "most-shelved-missing")
+SKIPPED_KEPT = 50
+DEFAULT_SIZE = 500
+
+
+def skip_reasons() -> dict[str, str]:
+    return {
+        "unknown": _("Not an Open Library ID or an ISBN"),
+        "no_isbn": _("No book has this ISBN"),
+        "missing": _("No such book"),
+        "not_book": _("Not a book"),
+        "no_edition": _("This work has no editions"),
+        "duplicate": _("Listed twice"),
+        "same_work": _("Another edition of the same work is already listed"),
+        "over_limit": _("Past the limit of %(count)s books", count=commify(booklist.MAX_BOOKS)),
+    }
+
+
+def build_skipped(skipped: list[dict], count: int) -> dict:
+    """What the book list left out when the project was made: the first few entries with why, and how many in all."""
+    reasons = skip_reasons()
+    return {
+        "count": commify(count) if count else "",
+        "rows": [{"entry": str(s.get("entry", "")), "reason": reasons.get(str(s.get("reason")), "")} for s in skipped],
+        "more": count > len(skipped),
+    }
+
+
+def build_new_form(values: dict | None = None, error: str = "") -> dict:
+    """The create form, blank or as it was posted with what was wrong."""
+    guides = get_field_guides()
+    values = values or {}
+    chosen = set(values.get("fields") or ())
+    return {
+        "index_url": BASE_URL,
+        "action": f"{BASE_URL}/new",
+        "error": error,
+        "form": dict.fromkeys(("title", "description", "books", "list_url", "starts", "ends"), "")
+        | {"source": "pasted", "size": str(DEFAULT_SIZE)}
+        | {k: v for k, v in values.items() if k != "fields" and v},
+        "field_groups": [
+            {
+                "id": group,
+                "legend": legend,
+                "hint": hint,
+                "fields": [
+                    {"value": f, "label": guides[f].label if f in guides else f, "checked": f in chosen}
+                    for f in tasks.POINTS
+                    if (f in tasks.WORK_FIELDS) == (group == "work")
+                ],
+            }
+            for group, legend, hint in (
+                ("edition", _("About the edition"), _("One published version of a book. Asked of every edition in the project.")),
+                ("work", _("About the work"), _("Shared by every edition of a book. Asked once per work, however many of its editions are in the project.")),
+            )
+        ],
+        "title_max": TITLE_MAX,
+        "description_max": DESCRIPTION_MAX,
+        "max_books": commify(booklist.MAX_BOOKS),
+    }
+
+
+def parse_create(values: dict) -> tuple[dict, booklist.Resolved | None, str]:
+    """The create form as a definition and, when the books were named, the list they resolve to; or an error to show.
+
+    A picker's list is picked later, off the request, so there is nothing to resolve for one here.
+    """
+    title, description = str(values.get("title", "")).strip(), str(values.get("description", "")).strip()
+    fields = [f for f in tasks.POINTS if f in (values.get("fields") or ())]
+    source = values.get("source")
+    if not title:
+        return {}, None, _("A project needs a title.")
+    if len(title) > TITLE_MAX or len(description) > DESCRIPTION_MAX:
+        return {}, None, _("The title or description is too long.")
+    if not fields:
+        return {}, None, _("Choose at least one detail for the project to ask for.")
+    if source not in SOURCES:
+        return {}, None, _("Choose where the books come from.")
+    try:
+        start_day, end_day = parse_day(str(values.get("starts", ""))), parse_day(str(values.get("ends", "")))
+    except ValueError:
+        return {}, None, _("That date isn't one we can read.")
+    if end_day and not start_day:
+        return {}, None, _("A project with an end date needs a start date.")
+    if end_day and start_day and end_day < start_day:
+        return {}, None, _("The end date is before the start date.")
+    definition: dict = {
+        "title": title,
+        "description": description,
+        "fields": fields,
+        "starts_at": midnight(start_day) if start_day else None,
+        "ends_at": midnight(end_day + timedelta(days=1)) if end_day else None,
+        "source": source,
+    }
+    if source in ("most-shelved", "most-shelved-missing"):
+        size = str(values.get("size", "")).strip()
+        if not (size.isascii() and size.isdigit() and 1 <= int(size) <= booklist.MAX_BOOKS):
+            return {}, None, _("Choose how many books, from 1 to %(count)s.", count=commify(booklist.MAX_BOOKS))
+        return definition | {"picker": source, "size": int(size)}, None, ""
+    # With only work details to ask, a second edition of a work would add nothing to do.
+    one_per_work = tasks.WORK_FIELDS.issuperset(fields)
+    if source == "list":
+        if (resolved := booklist.resolve_list(site.get(), str(values.get("list_url", "")), one_per_work)) is None:
+            return {}, None, _("That isn't an Open Library list we can find.")
+    else:
+        resolved = booklist.resolve(site.get(), booklist.split_entries(str(values.get("books", ""))), one_per_work)
+    if not resolved.picks:
+        return {}, None, _("None of those are books the project can use.")
+    definition |= {"size": len(resolved.picks), "skipped": resolved.skipped[:SKIPPED_KEPT], "skipped_count": len(resolved.skipped)}
+    return definition, resolved, ""

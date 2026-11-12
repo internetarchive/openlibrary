@@ -7,7 +7,7 @@ from urllib.parse import unquote
 import pytest
 from fastapi.testclient import TestClient
 
-from openlibrary.contribute import initiatives, manage
+from openlibrary.contribute import booklist, initiatives, manage
 from openlibrary.core.shell.user import ShellUser
 from openlibrary.fastapi import tasks
 
@@ -79,19 +79,15 @@ def test_summary_figures_come_from_the_gaps_and_the_latest_count(client):
     assert (summary["status"], summary["featured"], summary["building"]) == ("live", True, False)
     assert (summary["books"], summary["tasks_left"], summary["people"]) == ("2", "1", "6")
     draft = manage.build_summary(initiatives.every()[-1], DOCS)
-    assert (draft["status"], draft["books"], draft["progress"], draft["building"]) == ("draft", "40", None, False)
+    assert (draft["status"], draft["books"], draft["progress"], draft["building"]) == ("draft", "40", None, True)
 
 
-def test_a_draft_is_never_asked_for_its_gaps(monkeypatch):
-    monkeypatch.setattr(initiatives, "get_gaps", lambda initiative: pytest.fail("asking would pick the list early"))
-    monkeypatch.setattr(initiatives, "cached_definitions", lambda: [DRAFT])
-    assert manage.build_summary(initiatives.every()[-1], [])["tasks_left"] == manage.BLANK
-
-
-def test_a_project_page_breaks_progress_down_by_detail(client):
+def test_a_project_page_breaks_progress_down_by_detail(client, request_context_fixture):
+    # The plural "out of" strings read the request's language.
+    request_context_fixture(lang="en")
     rows = {r["label"]: r for r in manage.build_field_rows(MOST_READ, GAPS)}
-    assert rows["Cover"] == {"label": "Cover", "open": "1", "not_found": "0", "filled": "1", "percent": 50}
-    assert rows["Publisher"] == {"label": "Publisher", "open": "0", "not_found": "1", "filled": "1", "percent": 100}
+    assert rows["Cover"] == {"label": "Cover", "open": "1", "not_found": "0", "filled": "1", "percent": 50, "out_of": "2 editions"}
+    assert rows["Publisher"] == {"label": "Publisher", "open": "0", "not_found": "1", "filled": "1", "percent": 100, "out_of": "2 editions"}
     html = client.get(f"/tasks/admin/{MOST_READ.slug}").text
     assert "40 saves, 2 since undone (5%)" in html
     assert "From 9 to 5 over 2 days" in html
@@ -100,7 +96,7 @@ def test_a_project_page_breaks_progress_down_by_detail(client):
 
 def test_a_draft_has_no_public_link_and_no_progress(client):
     html = client.get("/tasks/admin/winter-covers").text
-    assert "Progress is counted once the project starts." in html
+    assert "Getting the list ready" in html  # counted before it starts, so its books can be checked
     assert "View on Tasks" not in html
     assert "No saves counted yet." in html
 
@@ -130,6 +126,7 @@ def changes(monkeypatch):
     made = []
     monkeypatch.setattr(initiatives, "change", lambda site, slug, changes, by, action, rev: made.append((slug, action, changes, by, rev)))
     monkeypatch.setattr(initiatives, "set_headline", lambda site, slug, by, rev: made.append((slug, "headline", {}, by, rev)))
+    monkeypatch.setattr(initiatives, "load_frozen", lambda initiative, site: [["/books/OL1M", None]])
     return made
 
 
@@ -241,3 +238,141 @@ def test_saving_the_form_again_does_not_restart_a_project_stopped_today():
     assert manage.build_controls(stopped, "ended", {})["form"]["ends"] == "2026-11-11"
     assert manage.parse_edit(stopped, "", "", "2026-11-01", "2026-11-11") == ({}, "")
     assert manage.parse_edit(stopped, "", "", "2026-11-01", "2026-11-12")[0] == {"ends_at": "2026-11-13T00:00:00+00:00"}
+
+
+@pytest.fixture
+def created(monkeypatch):
+    """What the create route sets up, in place of the store: ``(definition, editions, by)`` per project."""
+    made = []
+
+    def create(site, definition, editions, by):
+        made.append((definition, editions, by))
+        return initiatives.from_definition({"slug": "made-2026-11"} | definition)
+
+    monkeypatch.setattr(initiatives, "create", create)
+
+    def resolve(site, entries, one_per_work=False):
+        """IDs that look like editions are books; anything else is left out."""
+        picks = [[f"/books/{e}", None] for e in entries if e.startswith("OL")]
+        return booklist.Resolved(picks, [{"entry": e, "reason": "unknown"} for e in entries if not e.startswith("OL")])
+
+    monkeypatch.setattr(booklist, "resolve", resolve)
+    return made
+
+
+NEW = {"title": "Winter Covers", "description": "Covers.", "fields": ["covers", "bogus"], "source": "pasted", "books": "OL1M, OL2M\nnonsense"}
+
+
+def test_the_create_form_is_gated_and_offers_every_field(client):
+    client.as_role("librarian")
+    assert client.get("/tasks/admin/new").status_code == 403
+    assert client.post("/tasks/admin/new", data=NEW).status_code == 403
+    client.as_role("")
+    html = client.get("/tasks/admin/new").text
+    assert "<title>New project | Open Library</title>" in html
+    assert html.count('name="fields"') == len(manage.tasks.POINTS)
+    # The details come in two groups, the work's apart from the edition's.
+    edition, work = html.split("About the work")
+    assert "About the edition" in edition
+    assert 'value="covers"' in edition
+    assert 'value="covers"' not in work
+    assert work.count('name="fields"') == len(manage.tasks.WORK_FIELDS)
+    assert 'href="/tasks/admin/new"' in client.get("/tasks/admin").text
+
+
+def test_creating_freezes_the_books_named_and_keeps_what_was_left_out(client, created):
+    response = client.post("/tasks/admin/new", data=NEW | {"starts": "2026-12-01"})
+    assert (response.status_code, response.headers["location"]) == (303, "/tasks/admin/made-2026-11")
+    [(definition, editions, by)] = created
+    assert editions == [["/books/OL1M", None], ["/books/OL2M", None]]
+    assert by == "/people/u"
+    assert definition == {
+        "title": "Winter Covers",
+        "description": "Covers.",
+        "fields": ["covers"],
+        "starts_at": "2026-12-01T00:00:00+00:00",
+        "ends_at": None,
+        "source": "pasted",
+        "size": 2,
+        "skipped": [{"entry": "nonsense", "reason": "unknown"}],
+        "skipped_count": 1,
+    }
+
+
+def test_edition_and_work_details_can_be_asked_together(client, created, monkeypatch):
+    seen = []
+    resolve = booklist.resolve
+    monkeypatch.setattr(booklist, "resolve", lambda site, entries, one_per_work=False: seen.append(one_per_work) or resolve(site, entries, one_per_work))
+    assert client.post("/tasks/admin/new", data=NEW | {"fields": ["covers", "genres"]}).status_code == 303
+    assert client.post("/tasks/admin/new", data=NEW | {"fields": ["genres"]}).status_code == 303
+    assert [d["fields"] for d, _editions, _by in created] == [["covers", "genres"], ["genres"]]
+    # Only a project asking nothing but work details keeps one edition per work.
+    assert seen == [False, True]
+
+
+def test_a_picker_project_names_no_books_and_is_picked_later(client, created):
+    client.post("/tasks/admin/new", data=NEW | {"source": "most-shelved-missing", "size": "300"})
+    [(definition, editions, _by)] = created
+    assert editions is None
+    assert (definition["picker"], definition["size"]) == ("most-shelved-missing", 300)
+    assert "skipped" not in definition
+
+
+@pytest.mark.parametrize(
+    ("change", "error"),
+    [
+        ({"title": " "}, "A project needs a title."),
+        ({"fields": ["bogus"]}, "Choose at least one detail"),
+        ({"source": ""}, "Choose where the books come from."),
+        ({"books": "nonsense"}, "None of those are books the project can use."),
+        ({"source": "list", "list_url": "not a list"}, "isn&#39;t an Open Library list"),
+        ({"source": "most-shelved", "size": "0"}, "Choose how many books"),
+        ({"source": "most-shelved", "size": "99999"}, "Choose how many books"),
+        ({"ends": "2026-12-01"}, "needs a start date"),
+    ],
+)
+def test_a_bad_create_comes_back_on_the_form_with_what_was_typed(client, created, change, error):
+    response = client.post("/tasks/admin/new", data=NEW | change)
+    assert response.status_code == 400
+    assert error in response.text
+    assert created == []
+    # The pasted list survives the round trip, and the choices made stay made.
+    if "books" not in change:
+        assert "OL1M, OL2M" in response.text
+    if "fields" not in change:
+        assert 'value="covers"\n' in response.text.replace("  ", "") or 'value="covers" checked' in " ".join(response.text.split())
+
+
+def test_only_a_project_made_here_that_has_not_started_can_be_deleted(client, monkeypatch):
+    deleted = []
+    monkeypatch.setattr(initiatives, "delete", lambda site, initiative: deleted.append(initiative.slug))
+    assert "Only a project that hasn" in flash(client.post(f"/tasks/admin/{MOST_READ.slug}/delete"))
+    response = client.post("/tasks/admin/winter-covers/delete")
+    assert (response.status_code, response.headers["location"]) == (303, "/tasks/admin")
+    assert deleted == ["winter-covers"]
+    assert "/delete" in client.get("/tasks/admin/winter-covers").text
+    assert "/delete" not in client.get(f"/tasks/admin/{MOST_READ.slug}").text
+
+
+def test_a_project_with_no_books_cannot_be_given_a_start_date(client, changes, monkeypatch):
+    monkeypatch.setattr(initiatives, "load_frozen", lambda initiative, site: None)
+    form = {"title": "Winter <Covers>", "description": "Covers.", "starts": "2026-12-01"}
+    assert "needs books before it can start" in flash(client.post("/tasks/admin/winter-covers/edit", data=form))
+    assert changes == []
+
+
+def test_a_draft_made_here_is_counted_before_it_starts_but_a_built_in_one_is_not(monkeypatch):
+    asked = []
+    monkeypatch.setattr(initiatives, "get_gaps", lambda initiative: asked.append(initiative.slug) or GAPS)
+    monkeypatch.setattr(initiatives, "cached_definitions", lambda: [DRAFT])
+    assert manage.build_summary(initiatives.every()[-1], [])["tasks_left"] == "1"
+    manage.build_summary(replace(MOST_READ, starts_at=None), [])
+    assert asked == ["winter-covers"]
+
+
+def test_what_was_left_out_is_listed_with_its_reason():
+    skipped = manage.build_skipped([{"entry": "nonsense", "reason": "unknown"}, {"entry": "OL9W", "reason": "no_edition"}], 60)
+    assert skipped["count"] == "60"
+    assert skipped["more"] is True
+    assert skipped["rows"][1] == {"entry": "OL9W", "reason": "This work has no editions"}
+    assert manage.build_skipped([], 0)["count"] == ""

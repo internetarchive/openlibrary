@@ -414,13 +414,15 @@ def build_initiatives(docs: list[dict]) -> list[dict]:
             | {
                 "slug": initiative.slug,
                 "on": initiative.slug == headline,
+                "finished": initiative.status() == "ended",
                 "open": format_count(open_gaps),
                 "done": format_count(snap.get("done")),
                 "not_found": format_count(snap.get("not_found")),
                 "editions": format_count(editions),
                 "people": format_people(snap.get("people")),
                 # Rounded down, like initiatives.progress, so it only reads 100% when nothing is left.
-                "percent": f"{(slots - open_gaps) * 100 // slots}%" if open_gaps is not None and slots else "—",
+                # Snapshots since work details were counted once per work carry the percent; older ones are worked out here.
+                "percent": f"{snap['percent']}%" if "percent" in snap else f"{(slots - open_gaps) * 100 // slots}%" if open_gaps is not None and slots else "—",
             }
         )
     return result

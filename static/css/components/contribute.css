@@ -815,6 +815,21 @@
   color: var(--color-text-secondary);
 }
 
+/* An ended project's closing note, where its tasks were. */
+.contrib-finished {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  justify-items: start;
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-inset-lg);
+}
+
+.contrib-finished__title {
+  margin: 0;
+  font-size: var(--font-size-title-large);
+}
+
 /* Receipt */
 .contrib-receipt {
   display: flex;

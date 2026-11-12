@@ -8,6 +8,7 @@
     {% if data.receipt %}{{ parts.saved_receipt(data.receipt) }}{% endif %}
     <div class="contrib-question">
         <h1 class="contrib-question__text">{{ data.field_guide.question }}</h1>
+        <p class="contrib-question__scope contrib-muted">{{ data.scope }}</p>
         {% if data.field_guide.why %}<p class="contrib-muted">{{ data.field_guide.why }}</p>{% endif %}
     </div>
     <div class="contrib-task__main">{{ parts.record_form(data) }}</div>
