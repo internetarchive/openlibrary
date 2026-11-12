@@ -6,17 +6,18 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from types import MappingProxyType
 from typing import Any, Literal, TypedDict, cast
+from uuid import uuid4
 
 import web
 
 from infogami.infobase.utils import flatten
+from openlibrary.core import cache
 from openlibrary.core.async_db import connection, fetch_all, fetch_val
-from openlibrary.core.cache import singleflight_cache
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.async_utils import async_bridge
-from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO, MINUTE_SECS
+from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO, DAY_SECS, MINUTE_SECS
 from openlibrary.utils.request_context import site
 
 from . import db  # noqa: TID251
@@ -56,6 +57,7 @@ class Bookshelves(db.CommonExtras):
 
     MAX_SOLR_ORDERED_SHELF_SIZE = 5000
     SHELF_ORDER_TTL = 10 * MINUTE_SECS
+    READING_LOG_VERSION_TTL = DAY_SECS
 
     @classmethod
     def summary(cls):
@@ -358,8 +360,36 @@ class Bookshelves(db.CommonExtras):
                     )
                 )
 
+    @staticmethod
+    def _reading_log_version_key(username: str) -> str:
+        return "bookshelves.reading_log_version." + hashlib.md5(username.encode()).hexdigest()
+
     @classmethod
-    async def get_shelf_order(cls, username: str, bookshelf_id: int, sort: ReadingLogSort, fq: list[str], shelf_count: int) -> list[int] | None:
+    def reading_log_changed(cls, username: str) -> None:
+        """
+        Make every cached shelf order of `username` out of date. Call it once the
+        change has committed, or a page built in between could cache the old shelf
+        under the new version.
+        """
+        cache.get_memcache().set(cls._reading_log_version_key(username), uuid4().hex, expires=cls.READING_LOG_VERSION_TTL)
+
+    @classmethod
+    def _reading_log_version(cls, username: str) -> str:
+        """
+        The version of `username`'s reading log that cached shelf orders are keyed
+        on. When memcache has none, a new random one is stored, so a version that
+        was evicted never comes back and serves the orders cached under it.
+        """
+        mc = cache.get_memcache()
+        key = cls._reading_log_version_key(username)
+        if version := mc.get(key):
+            return version
+        fresh = uuid4().hex
+        mc.add(key, fresh, expires=cls.READING_LOG_VERSION_TTL)
+        return mc.get(key) or fresh
+
+    @classmethod
+    async def get_shelf_order(cls, username: str, bookshelf_id: int, sort: ReadingLogSort, fq: list[str]) -> list[int] | None:
         """
         Get the work IDs of every book on a shelf in `sort` order, keeping only the
         books that match the Solr filters `fq`. Sorting by a Solr field puts books
@@ -367,8 +397,9 @@ class Bookshelves(db.CommonExtras):
 
         The order is cached for a few minutes and each page of the shelf is a slice
         of it, so the shelf goes to Solr once rather than on every page, and pages
-        don't repeat or skip books. Adding or removing a book changes `shelf_count`,
-        which is part of the cache key, so the order is rebuilt.
+        don't repeat or skip books. The cache key holds the patron's reading log
+        version, which every change to their shelves or ratings replaces, so the
+        first page view after a change builds a new order.
         Returns None if Solr fails.
         """
         from openlibrary.plugins.worksearch.code import run_solr_query_async
@@ -417,12 +448,18 @@ class Bookshelves(db.CommonExtras):
                 work_keys = sorted_keys + [key for key in work_keys if key not in in_sorted]
             return [work_ids[key] for key in work_keys]
 
-        cache_key = "bookshelves.shelf_order." + hashlib.md5(json.dumps([username, bookshelf_id, sort, fq, shelf_count]).encode()).hexdigest()
+        version = cls._reading_log_version(username)
+        cache_key = "bookshelves.shelf_order." + hashlib.md5(json.dumps([username, bookshelf_id, sort, fq, version]).encode()).hexdigest()
+        mc = cache.get_memcache()
+        if (order := mc.get(cache_key)) is not None:
+            return order
         try:
-            return await singleflight_cache(cache_key, build_order, ttl=cls.SHELF_ORDER_TTL)
+            order = await build_order()
         except ShelfOrderError as e:
             logger.error(f"Reading log sort {sort!r} with filters {fq} failed: {e}")
             return None
+        mc.set(cache_key, order, expires=cls.SHELF_ORDER_TTL)
+        return order
 
     @classmethod
     async def get_users_logged_books(
@@ -578,7 +615,7 @@ class Bookshelves(db.CommonExtras):
             if checkin_year or (sort in cls.SOLR_SORT_FIELDS and not can_order_with_solr):
                 sort = "created desc"
             elif fq or sort in cls.SOLR_SORT_FIELDS:
-                if (order := await cls.get_shelf_order(username, bookshelf_id, sort, fq or [], total_results)) is not None:
+                if (order := await cls.get_shelf_order(username, bookshelf_id, sort, fq or [])) is not None:
                     page_ids = order[offset : offset + limit]
                     if fq:
                         total_results = len(order)
@@ -747,16 +784,16 @@ class Bookshelves(db.CommonExtras):
                 "AND bookshelf_id = ANY(%(preset_bookshelf_ids)s)",
                 {**params, "preset_bookshelf_ids": list(cls.PRESET_BOOKSHELVES.values())},
             )
-            if update.rowcount:
-                return update.rowcount
-
-            insert = await conn.execute(
-                f"INSERT INTO {cls.TABLENAME} (username, bookshelf_id, work_id, edition_id) "
-                "VALUES (%(username)s, %(bookshelf_id)s, %(work_id)s, %(edition_id)s) "
-                "ON CONFLICT (username, work_id, bookshelf_id) DO UPDATE SET edition_id = EXCLUDED.edition_id",
-                params,
-            )
-            return insert.rowcount
+            if not (rowcount := update.rowcount):
+                insert = await conn.execute(
+                    f"INSERT INTO {cls.TABLENAME} (username, bookshelf_id, work_id, edition_id) "
+                    "VALUES (%(username)s, %(bookshelf_id)s, %(work_id)s, %(edition_id)s) "
+                    "ON CONFLICT (username, work_id, bookshelf_id) DO UPDATE SET edition_id = EXCLUDED.edition_id",
+                    params,
+                )
+                rowcount = insert.rowcount
+        cls.reading_log_changed(username)
+        return rowcount
 
     @classmethod
     async def remove(cls, username: str, work_id: str, bookshelf_id: str | None = None) -> int | None:
@@ -774,6 +811,7 @@ class Bookshelves(db.CommonExtras):
                 "DELETE FROM bookshelves_events WHERE username = %(username)s AND work_id = %(work_id)s",
                 {"username": username, "work_id": int(work_id)},
             )
+        cls.reading_log_changed(username)
         return deleted.rowcount or None
 
     @classmethod
