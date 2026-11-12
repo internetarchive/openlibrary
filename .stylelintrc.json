@@ -7,6 +7,7 @@
     "scale-unlimited/declaration-strict-value": [
       [
         "font-family",
+        "font-weight",
         "background-color",
         "z-index",
         "color"
@@ -53,10 +54,10 @@
   },
   "overrides": [
     {
-      "files": ["static/css/base/common.css"],
+      "files": ["static/css/fonts/*.css"],
       "rules": {
         "scale-unlimited/declaration-strict-value": [
-          ["font-family", "font-weight", "background-color", "z-index", "color"],
+          ["font-family", "background-color", "z-index", "color"],
           {
             "disableFix": true,
             "ignoreValues": ["inherit", "transparent", "none"]
@@ -69,7 +70,7 @@
       "customSyntax": "postcss-lit",
       "rules": {
         "scale-unlimited/declaration-strict-value": [
-          ["z-index"],
+          ["font-size", "font-weight", "z-index"],
           { "disableFix": true, "ignoreValues": ["inherit", "transparent", "none"] }
         ],
         "color-no-hex": null,

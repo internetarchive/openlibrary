@@ -199,7 +199,7 @@ export class SearchModal extends LitElement {
             border: none;
             color: inherit;
             font: inherit;
-            font-size: 17px;
+            font-size: var(--font-size-body-xlarge);
             line-height: 1.4;
         }
 
@@ -229,7 +229,7 @@ export class SearchModal extends LitElement {
             color: var(--color-text-muted);
             font: inherit;
             font-size: var(--font-size-label-medium);
-            font-weight: 600;
+            font-weight: var(--font-weight-semibold);
             letter-spacing: 0.04em;
             cursor: pointer;
             white-space: nowrap;
@@ -600,7 +600,7 @@ export class SearchModal extends LitElement {
             display: block;
             overflow: hidden;
             color: var(--color-text);
-            font-weight: 600;
+            font-weight: var(--font-weight-semibold);
             text-decoration: none;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -610,7 +610,7 @@ export class SearchModal extends LitElement {
             display: block;
             overflow: hidden;
             color: var(--color-text-muted);
-            font-size: 13px;
+            font-size: var(--font-size-body-small);
             text-overflow: ellipsis;
             white-space: nowrap;
         }
@@ -619,7 +619,7 @@ export class SearchModal extends LitElement {
             display: block;
             color: var(--color-text-muted);
             font-size: var(--font-size-label-medium);
-            font-weight: 400;
+            font-weight: var(--font-weight-regular);
         }
 
         /* The title truncates; the badge beside it stays whole. */
@@ -644,7 +644,7 @@ export class SearchModal extends LitElement {
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-badge);
             font-size: var(--font-size-label-medium);
-            font-weight: 500;
+            font-weight: var(--font-weight-medium);
             line-height: 1.5;
             white-space: nowrap;
             color: var(--color-text-muted);
@@ -799,7 +799,7 @@ export class SearchModal extends LitElement {
         .ft-quote mark {
             background-color: var(--amber-100);
             color: inherit;
-            font-weight: 500;
+            font-weight: var(--font-weight-medium);
             border-radius: var(--border-radius-sm);
             padding: 0 var(--spacing-inline-xs);
             margin: 0 calc(-1 * var(--spacing-inline-xs));
@@ -881,7 +881,7 @@ export class SearchModal extends LitElement {
 
         /* A past query, not a book title — lighter than the result rows. */
         .recent-result .result__title {
-            font-weight: 500;
+            font-weight: var(--font-weight-medium);
         }
 
         .result__recent-icon {

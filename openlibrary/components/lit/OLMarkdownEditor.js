@@ -131,17 +131,17 @@ export class OLMarkdownEditor extends LitElement {
             outline: none;
             flex-grow: 1;
             font-family: var(--font-family-body);
-            font-size: var(--font-size-body, 0.875rem);
+            font-size: var(--font-size-body-medium);
             line-height: var(--line-height-body);
         }
 
         .editor-input .tiptap h1 {
-            font-size: var(--font-size-h1, 1.5rem);
+            font-size: var(--font-size-headline-small);
             margin: 0 0 0.5em;
         }
 
         .editor-input .tiptap h2 {
-            font-size: var(--font-size-h2, 1.25rem);
+            font-size: var(--font-size-title-large);
             margin: 0 0 0.45em;
         }
 
@@ -180,7 +180,7 @@ export class OLMarkdownEditor extends LitElement {
             padding: 4px 8px;
             background: var(--color-surface-header);
             border-bottom: 1px dashed var(--color-border-muted);
-            font-size: 0.7rem;
+            font-size: var(--font-size-label-small);
             font-family: monospace;
             font-weight: var(--font-weight-semibold);
             color: var(--color-text);
@@ -192,7 +192,7 @@ export class OLMarkdownEditor extends LitElement {
             border: none;
             padding: 8px;
             font-family: monospace;
-            font-size: 0.8rem;
+            font-size: var(--font-size-body-small);
             resize: vertical;
             min-height: 40px;
             box-sizing: border-box;
@@ -220,6 +220,8 @@ export class OLMarkdownEditor extends LitElement {
             border-radius: var(--border-radius-input);
             padding: 0.1em 0.3em;
             font-family: monospace;
+            /* Relative so inline code tracks the heading or paragraph around it. */
+            /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
             font-size: 0.85em;
         }
 
@@ -231,7 +233,7 @@ export class OLMarkdownEditor extends LitElement {
             margin: 0 0 0.55em;
             overflow-x: auto;
             font-family: monospace;
-            font-size: 0.85em;
+            font-size: var(--font-size-body-small);
         }
 
         .editor-input .tiptap pre code {
@@ -393,7 +395,7 @@ export class OLMarkdownEditor extends LitElement {
             background: var(--white);
             color: var(--color-text);
             font-family: monospace;
-            font-size: 0.75rem;
+            font-size: var(--font-size-body-small);
             line-height: 1.5;
             resize: vertical;
             outline: none;
