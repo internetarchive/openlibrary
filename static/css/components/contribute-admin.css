@@ -56,7 +56,8 @@
 }
 
 .contrib-admin__table tbody tr + tr :is(th, td) {
-  border-block-start: var(--border-width-thin) solid var(--color-border-extra-subtle);
+  border-block-start: var(--border-width-thin) solid
+    var(--color-border-extra-subtle);
 }
 
 .contrib-admin__table :is(th, td).contrib-admin__num {
