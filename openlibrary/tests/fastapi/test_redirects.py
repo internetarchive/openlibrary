@@ -35,7 +35,7 @@ async def test_redirect_relative_path_returns_location():
         patch(
             "openlibrary.asgi_app.fetch_one",
             new_callable=AsyncMock,
-            return_value={"type_id": redirect_type_id, "location": "/works/OL1W"},
+            return_value={"type_id": redirect_type_id, "data_json": '{"location": "/works/OL1W"}'},
         ),
     ):
         location = await _lookup_redirect_location("/olcc2026")
@@ -56,7 +56,7 @@ async def test_redirect_https_target_returns_location():
             new_callable=AsyncMock,
             return_value={
                 "type_id": redirect_type_id,
-                "location": "https://slides.google.com/abc",
+                "data_json": '{"location": "https://slides.google.com/abc"}',
             },
         ),
     ):
@@ -78,7 +78,7 @@ async def test_redirect_http_location_returns_none():
             new_callable=AsyncMock,
             return_value={
                 "type_id": redirect_type_id,
-                "location": "http://example.com",
+                "data_json": '{"location": "http://example.com"}',
             },
         ),
     ):
@@ -98,7 +98,7 @@ async def test_redirect_colon_colon_location_returns_none():
         patch(
             "openlibrary.asgi_app.fetch_one",
             new_callable=AsyncMock,
-            return_value={"type_id": redirect_type_id, "location": "://example.com"},
+            return_value={"type_id": redirect_type_id, "data_json": '{"location": "://example.com"}'},
         ),
     ):
         location = await _lookup_redirect_location("/some-path")
@@ -116,7 +116,7 @@ async def test_non_redirect_document_returns_none():
         patch(
             "openlibrary.asgi_app.fetch_one",
             new_callable=AsyncMock,
-            return_value={"type_id": 99, "location": "/works/OL1W"},
+            return_value={"type_id": 99, "data_json": '{"location": "/works/OL1W"}'},
         ),
     ):
         location = await _lookup_redirect_location("/works/OL1W")
@@ -153,7 +153,7 @@ async def test_redirect_no_location_returns_none():
         patch(
             "openlibrary.asgi_app.fetch_one",
             new_callable=AsyncMock,
-            return_value={"type_id": redirect_type_id, "location": None},
+            return_value={"type_id": redirect_type_id, "data_json": "{}"},
         ),
     ):
         location = await _lookup_redirect_location("/some-path")

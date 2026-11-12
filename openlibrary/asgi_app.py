@@ -53,11 +53,12 @@ async def _lookup_redirect_location(path: str) -> str | None:
     usable location (relative path or https:// target; never http:// or ://),
     otherwise None.
     """
+    import json
+
     row = await fetch_one(
-        """SELECT t.type AS type_id, d.value AS location
+        """SELECT t.type AS type_id, d.data AS data_json
            FROM thing t
-           LEFT JOIN data d ON d.thing_id = t.id AND d.revision = t.latest_revision
-           LEFT JOIN property p ON p.id = d.key_id AND p.name = 'location'
+           JOIN data d ON d.thing_id = t.id AND d.revision = t.latest_revision
            WHERE t.key = %(key)s""",
         {"key": path},
     )
@@ -66,8 +67,12 @@ async def _lookup_redirect_location(path: str) -> str | None:
     redirect_type_id = await _get_redirect_type_id()
     if redirect_type_id is None or row["type_id"] != redirect_type_id:
         return None
-    location = row["location"]
-    if location is None:
+    try:
+        doc = json.loads(row["data_json"]) if row["data_json"] else {}
+    except (json.JSONDecodeError, TypeError):
+        return None
+    location = doc.get("location")
+    if not location:
         return None
     if location.startswith("http://") or location.startswith("://"):
         return None
