@@ -384,6 +384,12 @@ def test_the_headline_is_the_featured_running_initiative(stored):
     assert initiatives.headline() is initiatives.TAGS
 
 
+def test_with_nothing_listed_the_headline_is_most_read_as_the_store_changed_it(stored):
+    stored({"slug": initiatives.MOST_READ.slug, "hidden": True, "title": "Renamed"}, {"slug": initiatives.TAGS.slug, "starts_at": None})
+    assert initiatives.listed() == []
+    assert (initiatives.headline().slug, initiatives.headline().title) == (initiatives.MOST_READ.slug, "Renamed")
+
+
 def test_an_initiative_with_no_picker_has_no_books_until_its_list_is_frozen():
     site = FakeSite()
     added = initiatives.every([definition()])[-1]
@@ -477,4 +483,31 @@ def test_deleting_removes_the_definition_the_list_and_the_shared_gaps(forgotten)
     forgotten.clear()
     initiatives.delete(site, made)
     assert dict(site.store) == {}
-    assert forgotten == ["contribute.definitions", f"contribute.initiative:{made.slug}", f"contribute.initiative:{made.slug}.lock"]
+    assert forgotten == [
+        "contribute.definitions",
+        f"contribute.initiative:{made.slug}",
+        f"contribute.initiative:{made.slug}.lock",
+        f"contribute.started:{made.slug}",
+    ]
+
+
+class FakeMemcache(dict):
+    def set(self, key, value, expires=0):
+        self[key] = value
+
+    def delete(self, key):
+        self.pop(key, None)
+
+
+def test_a_stored_project_s_start_date_is_read_once_until_it_is_frozen_again(monkeypatch):
+    mc = FakeMemcache()
+    monkeypatch.setattr(initiatives.cache, "get_memcache", lambda: mc)
+    added = initiatives.Initiative("added", 1, None, ("covers",))
+    site = FakeSite(store={added.store_key: {"frozen_at": "2026-11-01T00:00:00+00:00", "editions": [["/books/OL1M", 5]]}})
+    assert initiatives.started_at(added, site) == datetime(2026, 11, 1, tzinfo=UTC)
+    # Kept, so the whole list isn't read again.
+    del site.store[added.store_key]
+    assert initiatives.started_at(added, site) == datetime(2026, 11, 1, tzinfo=UTC)
+    # Freezing a list again, as a project made again under the same slug does, forgets it.
+    initiatives.freeze(site, added, [["/books/OL2M", 1]])
+    assert initiatives.started_at(added, site).date() == datetime.now(UTC).date()

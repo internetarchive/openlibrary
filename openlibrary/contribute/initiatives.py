@@ -277,6 +277,7 @@ def freeze(site, initiative: Initiative, editions: list[list]) -> None:
         "frozen_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "editions": editions,
     }
+    cache.get_memcache().delete(started_key(initiative.slug))
 
 
 def gaps_key(slug: str) -> str:
@@ -313,7 +314,7 @@ def delete(site, initiative: Initiative) -> None:
         if site.store.get(key):
             del site.store[key]
     mc = cache.get_memcache()
-    for key in ("contribute.definitions", gaps_key(initiative.slug), pool.lock_key(gaps_key(initiative.slug))):
+    for key in ("contribute.definitions", gaps_key(initiative.slug), pool.lock_key(gaps_key(initiative.slug)), started_key(initiative.slug)):
         mc.delete(key)
 
 
@@ -391,9 +392,12 @@ def running() -> list[Initiative]:
 
 
 def headline() -> Initiative:
-    """The one /tasks opens on: the featured running initiative, else the first running, else the first listed."""
+    """The one /tasks opens on: the featured running initiative, else the first running, else the first listed, else the
+    built-in most-read one as the store has changed it, so there is always one to open."""
     on = running()
-    return next((i for i in on if i.featured), None) or next(iter(on or listed()), MOST_READ)
+    if found := next((i for i in on if i.featured), None) or next(iter(on or listed()), None):
+        return found
+    return next((i for i in every() if i.slug == MOST_READ.slug), MOST_READ)
 
 
 def describe(initiative: Initiative) -> dict[str, str]:
@@ -446,16 +450,26 @@ def load_frozen(initiative: Initiative, site) -> list[list] | None:
 _started: dict[str, datetime] = {}
 
 
+def started_key(slug: str) -> str:
+    return f"contribute.started:{slug}"
+
+
 def started_at(initiative: Initiative, site) -> datetime | None:
-    """When the list was picked, or None before then. Kept once read for a built-in one: it never changes, and the doc
-    carries the whole list. One set up in the store can be deleted and made again, so its date is read each time."""
+    """When the list was picked, or None before then. The doc carries the whole list, so the date is kept once read: in
+    the process for a built-in one, whose date never changes, and in memcache for one set up in the store, which
+    ``freeze`` and ``delete`` clear, since it can be deleted and made again."""
     if initiative.slug in _started:
         return _started[initiative.slug]
+    mc = cache.get_memcache()
+    if not is_builtin(initiative) and (kept := mc.get(started_key(initiative.slug))):
+        return datetime.fromisoformat(kept)
     if not (doc := site.store.get(initiative.store_key)):
         return None
     when = datetime.fromisoformat(doc["frozen_at"])
     if is_builtin(initiative):
         _started[initiative.slug] = when
+    else:
+        mc.set(started_key(initiative.slug), doc["frozen_at"])
     return when
 
 

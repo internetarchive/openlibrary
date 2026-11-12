@@ -431,7 +431,11 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
     save, and from MIN_PEOPLE_SHOWN up, how many people have saved for it.
     """
     cards = []
-    for initiative in initiatives.listed():
+    listed = initiatives.listed()
+    # With nothing listed, the headline falls back to one that isn't; it still gets a card, so the page has a project to show.
+    if all(i.slug != current.slug for i in listed):
+        listed.append(current)
+    for initiative in listed:
         gaps = initiatives.get_gaps(initiative)
         p = initiatives.progress(gaps, initiative.fields, initiative.start) if gaps else None
         people = get_initiative_people(initiative) if p else 0
@@ -675,6 +679,7 @@ def build_task_context(
     value: str = "",
     many: Sequence[str] = (),
     note: str = "",
+    project: str = "",
 ) -> dict:
     field_guide = get_field_guides()[task.field]
     others = get_sibling_editions(edition) if field_guide.show_siblings else []
@@ -693,6 +698,9 @@ def build_task_context(
             "url": build_task_url(task, back, initiative, surprise),
         },
         "initiative": initiative,
+        # The form names its project outright, even the headline one its URLs leave out, so a save is credited to the
+        # project the task came from if the headline changes before it is submitted.
+        "project": project or initiative,
         "is_identifier": task.field in save.NORMALIZERS,
         "is_cover": task.field == "covers",
         # Offered as one of the cover choices, next to uploading one.
@@ -799,25 +807,27 @@ class contribute_task(delegate.page):
     def GET(self, olid, fld):
         require_login(f"/tasks/task/{olid}/{fld}")
         back = get_back_filter()
-        slug = initiative_param(get_initiative(query_param("initiative", "")))
+        initiative = get_initiative(query_param("initiative", ""))
+        slug = initiative_param(initiative)
         edition = get_edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return render_nothing_page(edition, fld, back, slug)
         receipt = build_receipt(query_param("saved", ""), query_param("picked", ""))
-        context = build_task_context(edition, task, back, slug, surprise=bool(query_param("surprise", ""))) | {"receipt": receipt}
+        context = build_task_context(edition, task, back, slug, surprise=bool(query_param("surprise", "")), project=initiative.slug) | {"receipt": receipt}
         return render_contribute("contribute/task.html.jinja", get_field_guides()[fld].question, **context)
 
     def POST(self, olid, fld):
         user = require_login(f"/tasks/task/{olid}/{fld}")
-        i = web.input(value="", genres=[], note="", back="", initiative="", surprise="", confirmed="", then="", file={})
+        i = web.input(value="", genres=[], note="", back="", initiative="", project="", surprise="", confirmed="", then="", file={})
         # Drop the upload's field storage, as the add-cover page does.
         web.ctx.pop("_fieldstorage", None)
         # Same check as the edit form; it also stops read-only and blocked accounts. Only the text is checked: not the image, not the picked keys.
         if spamcheck.is_spam(web.storage((k, v) for k, v in i.items() if isinstance(v, str)), allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         back = normalize_filter(i.back)
-        # A task opened before its initiative was hidden still saves toward it.
-        initiative = initiatives.get(i.initiative, hidden=True) or initiatives.headline()
+        # A task opened before its initiative was hidden still saves toward it. The form names its project; the URL's
+        # ``initiative`` covers a form rendered before it did.
+        initiative = initiatives.get(i.project or i.initiative, hidden=True) or initiatives.headline()
         slug = initiative_param(initiative)
         surprise = bool(i.surprise)
         edition = get_edition_or_404(olid)
@@ -843,7 +853,9 @@ class contribute_task(delegate.page):
             else:
                 save.save_answer(edition, fld, i.value, field_guide.label, i.note, initiative=initiative.slug)
         except save.InvalidAnswer as e:
-            context = build_task_context(edition, task, back, slug, surprise=surprise, error=str(e), value=i.value, many=i.genres, note=i.note)
+            context = build_task_context(
+                edition, task, back, slug, surprise=surprise, error=str(e), value=i.value, many=i.genres, note=i.note, project=initiative.slug
+            )
             return render_contribute("contribute/task.html.jinja", field_guide.question, **context)
         if i.then == "next":
             raise web.seeother(build_next_url(back, task, saved=True, initiative=slug, surprise=surprise, picked=picked))

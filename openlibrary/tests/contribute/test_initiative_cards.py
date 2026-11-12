@@ -27,6 +27,12 @@ def test_only_the_open_initiative_is_on(cards):
     assert len(built) == len(contribute.initiatives.BUILTIN)
 
 
+def test_the_open_initiative_has_a_card_even_when_nothing_is_listed(cards, monkeypatch):
+    monkeypatch.setattr(contribute.initiatives, "listed", list)
+    built = cards()
+    assert [slug for slug, card in built.items() if card["on"]] == [ACTIVE.slug]
+
+
 def test_blank_while_the_gaps_are_being_built(cards):
     card = cards(gaps=None)[ACTIVE.slug]
     assert card["percent"] is None

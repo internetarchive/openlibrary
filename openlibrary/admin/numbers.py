@@ -286,6 +286,20 @@ def _initiative():
     return initiatives
 
 
+# How far back to look for an ended initiative's last snapshot, so a few nights the job missed don't drop it.
+LAST_SNAPSHOT_DAYS = 14
+
+
+def _last_snapshot(slug: str, before) -> dict | None:
+    """The initiative's figures in the newest count doc before ``before``, or None if none in ``LAST_SNAPSHOT_DAYS`` has them."""
+    from openlibrary.core.admin import initiative_counts
+
+    for days in range(1, LAST_SNAPSHOT_DAYS + 1):
+        if (doc := site.get().store.get((before - timedelta(days=days)).strftime("counts-%Y-%m-%d"))) and (snap := initiative_counts(doc).get(slug)):
+            return snap
+    return None
+
+
 def _initiative_people(db, initiative, since: str, end: str) -> int:
     """Accounts that saved for ``initiative`` from ``since`` to ``end``. A save names its initiative; one from before saves did
     is matched by its field, which no two initiatives shared then."""
@@ -316,9 +330,12 @@ def admin_range__initiatives(**kargs):
     db, _start, end_str = _range_args("admin_range__initiatives", kargs)
     initiatives = _initiative()
     counts = {}
-    # Read fresh, not through the web app's cache. One that ended before this day keeps its last snapshot.
+    # Read fresh, not through the web app's cache. One that ended before this day keeps its last snapshot, carried
+    # into today's doc so pages reading only the last few days still find its final figures.
     for initiative in initiatives.started(initiatives.read_definitions(site.get())):
         if initiative.ends_at and initiative.ends_at.replace(tzinfo=None) < start:
+            if last := _last_snapshot(initiative.slug, start):
+                counts[initiative.slug] = last
             continue
         if not (frozen := site.get().store.get(initiative.store_key)):
             continue

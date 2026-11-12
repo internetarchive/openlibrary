@@ -206,6 +206,19 @@ def test_initiatives_survive_a_run_that_crosses_midnight(fake_initiatives):
     assert "most-read-test" in numbers.admin_range__initiatives(thingdb=FakeDB(), start=start, end=start.replace(hour=23, minute=55))
 
 
+def test_an_ended_initiative_carries_its_last_snapshot_forward(fake_initiatives):
+    ended = fake_initiatives.registry[1]
+    ended.ends_at = datetime(2026, 10, 1)
+    last = {"open": 3, "done": 40, "not_found": 2, "editions": 50, "percent": 90, "people": 12}
+    # Two nights missed: the newest doc within reach still has it.
+    web.ctx.site.store["counts-2026-10-27"] = {"initiatives": {"genres-test": last}}
+    start = datetime(2026, 10, 30)
+    counts = numbers.admin_range__initiatives(thingdb=FakeDB(), start=start, end=start.replace(hour=1))
+    assert counts["genres-test"] == last
+    # Never recounted: only the live one's list is read.
+    assert fake_initiatives.calls == [2]
+
+
 def test_initiatives_wait_for_the_web_app_to_freeze_a_list(fake_initiatives):
     web.ctx.site.store.clear()
     with pytest.raises(numbers.NoStats):
