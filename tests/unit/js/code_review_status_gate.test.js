@@ -1,7 +1,7 @@
 // Unit tests for the STATUS-GATE logic (#14453). Four pure helpers are embedded inline in two
 // workflows' github-script steps; this test extracts the EXACT text that ships and exercises it, so
 // the tested logic and the deployed logic cannot drift. The helpers and their home file:
-//   code_review_action.yml (the `status` job -- SHA-bound `ada/code-review` status + the SOLE
+//   code_review_action.yml (the `status` job -- SHA-bound `check/code-review` status + the SOLE
 //   producer of the `Needs: e2e testing` label):
 //     - parseFindings(raw)                 -- the env->findings derivation, FAIL CLOSED on absent
 //     - unresolvedThreadCount(threads)     -- threads that are unresolved AND not outdated

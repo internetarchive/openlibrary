@@ -17,7 +17,7 @@ name: Strip Verification Labels
 # is for the latest head -> the end label state is clean). As a bonus this keeps the review workflow
 # free of the `synchronize` trigger entirely.
 #
-# DEFENSE IN DEPTH, not the sole guard: the AUTHORITATIVE gate is the SHA-bound `ada/code-review`
+# DEFENSE IN DEPTH, not the sole guard: the AUTHORITATIVE gate is the SHA-bound `check/code-review`
 # commit status, and the e2e entrypoint re-checks that status on the run-time head before running
 # docker -- so a stale label alone never runs unreviewed code. This keeps the label honest too.
 # This workflow NEVER reviews and NEVER adds a label.
@@ -39,7 +39,7 @@ jobs:
     # Same-repo only. A fork's `pull_request` event gets a read-only token and NO secrets, so
     # OL_BOT_ISSUE_PAT would be empty and the strip would error; and a fork PR only ever carries the
     # e2e label via the staff @-mention review path (an edge case) whose stale-label safety is
-    # already covered by the e2e entrypoint re-checking the SHA-bound `ada/code-review` status. We do
+    # already covered by the e2e entrypoint re-checking the SHA-bound `check/code-review` status. We do
     # NOT use pull_request_target (which would run with secrets on forks) -- unnecessary surface here.
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
@@ -62,7 +62,7 @@ jobs:
             // push invalidates: the e2e gate and any `Passed:` result label. NOT `Needs: Code Review`
             // -- that is a "still needs review" request, not a passed-state assertion; stripping it on
             // a push would destroy a signal nothing here re-adds, for zero e2e-safety gain (the
-            // authoritative "needs review" signal is the SHA-bound `ada/code-review` status going
+            // authoritative "needs review" signal is the SHA-bound `check/code-review` status going
             // absent on the new head anyway).
             const verificationLabelsToStrip = (names) => {
               return names.filter((n) =>

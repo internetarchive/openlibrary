@@ -10,9 +10,9 @@ name: Code Review Action
 #
 # A review PASS is TWO things: the review posted successfully for this SHA, AND every review thread
 # is resolved-or-outdated (GitHub's own isResolved/isOutdated). On a pass we post commit status
-# `ada/code-review = success` on the reviewed SHA and add the label; otherwise `= failure`, no
+# `check/code-review = success` on the reviewed SHA and add the label; otherwise `= failure`, no
 # label. The status is SHA-bound: a later push leaves the new head unreviewed (no status). The
-# AUTHORITATIVE gate is that status -- the e2e entrypoint re-checks `ada/code-review=success` on the
+# AUTHORITATIVE gate is that status -- the e2e entrypoint re-checks `check/code-review=success` on the
 # run-time head before running docker, so an unreviewed head never runs e2e. The companion workflow
 # strip_verification_labels.yml also strips the stale label on every push (defense in depth); it is
 # SEPARATE so its strip can never be cancelled mid-flight by a review run. This workflow does not
@@ -558,7 +558,7 @@ jobs:
   # status -- the SHA-bound merge signal and the SOLE producer of `Needs: e2e testing`.
   #
   # Runs after analyze+post on every reviewed head (opened / ready_for_review / review_requested /
-  # @-mention / dispatch), never on a bare push. It posts commit status `ada/code-review` on the
+  # @-mention / dispatch), never on a bare push. It posts commit status `check/code-review` on the
   # exact SHA that was reviewed and, only on a PASS, adds `Needs: e2e testing`. See the E2E GATE
   # INVARIANT banner at the top.
   #
@@ -585,7 +585,7 @@ jobs:
       contents: read
       pull-requests: read   # GITHUB_TOKEN, for the pre-label head re-check (race guard) only
     steps:
-      - name: Decide the gate and post the ada/code-review status
+      - name: Decide the gate and post the check/code-review status
         id: decide
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
@@ -675,21 +675,21 @@ jobs:
             const d = decideStatus({ postSucceeded, findings, unresolved });
             await github.rest.repos.createCommitStatus({
               owner, repo, sha: headSha,
-              context: 'ada/code-review',
+              context: 'check/code-review',
               state: d.state,
               target_url: process.env.RUN_URL,
               description: d.description,
             });
             // The label add is a separate step: it needs Issues: write, a different bot PAT scope.
             core.setOutput('pass', d.pass ? 'true' : 'false');
-            core.info(`ada/code-review=${d.state} on ${headSha.slice(0, 8)} (post=${process.env.POST_RESULT}, findings=${findings}, unresolved=${unresolved}).`);
+            core.info(`check/code-review=${d.state} on ${headSha.slice(0, 8)} (post=${process.env.POST_RESULT}, findings=${findings}, unresolved=${unresolved}).`);
 
       # Race guard for the PR-scoped label (the commit STATUS is already SHA-bound and immune). If a
       # push landed between the review and now, the reviewed head is no longer current, so the label
       # -- which is not SHA-bound -- must NOT be added: it would assert a pass on unreviewed code, and
       # with cancel-in-progress a superseded run could otherwise add it after strip_verification_labels.yml
       # ran. We re-read the head with the job's own GITHUB_TOKEN right before the write and skip on a
-      # mismatch. NOTE: the authoritative, SHA-bound gate is the `ada/code-review` status, which the
+      # mismatch. NOTE: the authoritative, SHA-bound gate is the `check/code-review` status, which the
       # e2e entrypoint rechecks on the run-time head before running docker; this label is advisory.
       - name: Re-check the reviewed head is still current
         id: recheck
