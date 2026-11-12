@@ -276,7 +276,7 @@ msgstr ""
 msgid "Revision %d"
 msgstr ""
 
-#: books/check.html covers/book_cover.html diff.html jsdef/LazyWorkPreview.html
+#: books/check.html diff.html jsdef/LazyWorkPreview.html
 msgid "by"
 msgstr ""
 
@@ -622,7 +622,7 @@ msgstr ""
 msgid "Added new book."
 msgstr ""
 
-#: ObservationsModal.html account/loans.html lists/lists.html merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html account/loans.html covers/author_photo.html covers/book_cover.html lists/lists.html merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -4296,13 +4296,13 @@ msgstr ""
 msgid "Wikidata"
 msgstr ""
 
-#: covers/author_photo.html
-msgid "Pull up a larger author photo"
-msgstr ""
-
 #: covers/author_photo.html search/authors.html
 #, python-format
 msgid "Photo of %(author)s"
+msgstr ""
+
+#: covers/author_photo.html
+msgid "Pull up a larger author photo"
 msgstr ""
 
 #: covers/author_photo.html
@@ -4310,13 +4310,13 @@ msgstr ""
 msgid "We need a photo of %(author)s"
 msgstr ""
 
-#: covers/book_cover.html
-msgid "Pull up a bigger book cover"
-msgstr ""
-
 #: covers/book_cover.html covers/book_cover_small.html
 #, python-format
 msgid "Cover of: %(title)s by %(authors)s"
+msgstr ""
+
+#: covers/book_cover.html
+msgid "Pull up a bigger book cover"
 msgstr ""
 
 #: covers/book_cover_small.html
