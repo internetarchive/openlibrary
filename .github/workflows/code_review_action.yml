@@ -563,10 +563,12 @@ jobs:
   #       authoritative, not a heuristic, to keep false blocks low).
   # The model never says "approved" (code_review.md), so (a)'s greenlight is "a clean review ran":
   # post.result==success AND the analyze job's declared public findings count is 0 (we read that
-  # DECLARED OUTPUT, never analyze's artifact internals, which #14451 rewrites). A post that WITHHELD a private
-  # disclosure still succeeds and still shows 0 PUBLIC findings -- that is the deliberate
-  # indistinguishability of the disclosure gate (#14451); a private finding is handled out-of-band
+  # DECLARED OUTPUT, never analyze's artifact internals, which #14451 rewrites). POST-#14451, a post
+  # that WITHHELD a private disclosure still succeeds and still shows 0 PUBLIC findings -- the
+  # deliberate indistinguishability of the disclosure gate; a private finding is handled out-of-band
   # and must NOT block public e2e, so we never read, infer, or surface a "withheld" marker here.
+  # (Before that rebase, master's post fails on a withhold -> post.result=failure -> this blocks,
+  # which is also safe; the green-on-private behaviour above arrives with the #14451 post semantics.)
   # Any public finding becomes a review comment/thread too, so (b) reinforces (a); (a) additionally
   # catches a finding that landed in the summary with no in-diff anchor (no thread to resolve).
   # We bias toward BLOCKING: anything short of (posted-clean AND fully-resolved) posts `failure`.
