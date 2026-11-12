@@ -33,6 +33,12 @@ concurrency:
 
 jobs:
   strip_labels:
+    # Same-repo only. A fork's `pull_request` event gets a read-only token and NO secrets, so
+    # OL_BOT_ISSUE_PAT would be empty and the strip would error; and a fork PR only ever carries the
+    # e2e label via the staff @-mention review path (an edge case) whose stale-label safety is
+    # already covered by the e2e entrypoint re-checking the SHA-bound `ada/code-review` status. We do
+    # NOT use pull_request_target (which would run with secrets on forks) -- unnecessary surface here.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: read
