@@ -9,14 +9,24 @@
   margin-block-end: var(--spacing-section-gap);
 }
 
+/* The head's divider sits midway: as much room above it as the section gap below. */
+.contrib-admin .contrib-dash__head {
+  padding-block-end: var(--spacing-section-gap);
+}
+
+.contrib-admin__state-line {
+  padding-block-start: var(--spacing-stack-sm);
+}
+
 .contrib-admin__head {
   display: grid;
   gap: var(--spacing-stack-sm);
 }
 
+/* A small ghost button; pulled out by its padding so the chevron lines up with the heading. */
 .contrib-admin__back {
-  font-size: var(--font-size-body-small);
   justify-self: start;
+  margin-inline-start: calc(-1 * var(--spacing-sm));
 }
 
 /* A wide table scrolls inside its own box, so the page never does. */
@@ -81,54 +91,66 @@
   color: var(--color-text-secondary);
 }
 
-.contrib-admin__badges {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-inline-xs);
-}
-
-.contrib-admin__badge {
-  padding: var(--spacing-3xs) var(--spacing-xs);
-  border: var(--border-width-thin) solid var(--color-border-subtle);
-  border-radius: var(--border-radius-badge);
-  background-color: var(--color-surface-sunken);
-  font-size: var(--font-size-body-small);
-  line-height: var(--line-height-single);
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-}
-
 /* The table's cells don't wrap, and the tooltip's panel would inherit that and run off as one long line. */
 .contrib-admin ol-tooltip {
   white-space: normal;
 }
 
-/* A badge with a tooltip behind it: the dotted underline is the usual sign that hovering explains the word. */
-.contrib-admin__badge--hint {
+/* A project's status line: each state a coloured dot and its words, set apart by space alone. */
+.contrib-admin__state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3xs) var(--spacing-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-small);
+}
+
+.contrib-admin__state-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.contrib-admin__state-item[data-status] {
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Every state leads with a filled dot in its colour. */
+.contrib-admin__state-item::after {
+  order: -1;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-neutral-object);
+  content: "";
+}
+
+.contrib-admin__state-item[data-status="live"]::after {
+  background-color: var(--color-success-object);
+}
+
+.contrib-admin__state-item[data-status="scheduled"]::after {
+  background-color: var(--color-info-fg);
+}
+
+.contrib-admin__state-item--featured::after {
+  background-color: var(--color-link);
+}
+
+.contrib-admin__state-item--hidden::after {
+  background-color: var(--color-warning-object);
+}
+
+.contrib-admin__state-item--featured[tabindex] {
   cursor: default;
 }
 
-.contrib-admin__badge--hint:focus-visible {
+.contrib-admin__state-item--featured[tabindex]:focus-visible {
+  border-radius: var(--border-radius-badge);
   outline: var(--border-width-thick) solid var(--color-focus-ring);
   outline-offset: 2px;
-}
-
-.contrib-admin__badge[data-status="live"] {
-  border-color: var(--color-success-border);
-  background-color: var(--color-success-bg);
-  color: var(--color-success-fg);
-}
-
-.contrib-admin__badge[data-status="scheduled"] {
-  border-color: var(--color-info-border);
-  background-color: var(--color-info-bg);
-  color: var(--color-info-fg);
-}
-
-.contrib-admin__badge[data-status="hidden"] {
-  border-color: var(--color-warning-border);
-  background-color: var(--color-warning-bg);
-  color: var(--color-warning-fg);
 }
 
 .contrib-admin__progress {
@@ -525,4 +547,9 @@
 
 .contrib-admin__field--short {
   max-width: 12rem;
+}
+
+/* The back chevron points back in either direction. */
+.contrib-admin__back:dir(rtl) .ol-icon {
+  transform: scaleX(-1);
 }

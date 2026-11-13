@@ -7,15 +7,19 @@
             <h1 class="contrib-title">{{ _("Tasks") }}</h1>
             <p class="contrib-dash__lede">{{ _("Help build the catalog, one book at a time.") }}</p>
         </hgroup>
-        <nav class="contrib-dash__links" aria-label="{{ _('Your Tasks pages') }}">
+        <nav class="contrib-dash__links contrib-dash__flush"
+             aria-label="{{ _('Your Tasks pages') }}">
+            <ol-button variant="ghost" href="/tasks/faq" data-ol-link-track="TasksDashboard|FAQ">
+                {{ icon("circle-help", slot="icon-start") }}{{ _("FAQ") }}
+            </ol-button>
             {% if data.manage_url %}
-                <a class="contrib-dash__edits"
-                   href="{{ data.manage_url }}"
-                   data-ol-link-track="TasksDashboard|ManageProjects">{{ _("Manage projects") }}</a>
+                <ol-button variant="ghost" href="{{ data.manage_url }}" data-ol-link-track="TasksDashboard|ManageProjects">
+                    {{ icon("settings", slot="icon-start") }}{{ _("Manage projects") }}
+                </ol-button>
             {% endif %}
-            <a class="contrib-dash__edits"
-               href="{{ data.history_url }}"
-               data-ol-link-track="TasksDashboard|SeeAllEdits">{{ _("Your edits") }}</a>
+            <ol-button variant="ghost" href="{{ data.history_url }}" data-ol-link-track="TasksDashboard|SeeAllEdits">
+                {{ icon("history", slot="icon-start") }}{{ _("Your edits") }}
+            </ol-button>
         </nav>
     </header>
     <div class="contrib-dash__body">

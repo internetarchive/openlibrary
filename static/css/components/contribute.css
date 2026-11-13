@@ -878,10 +878,9 @@ textarea.contrib-input {
   gap: var(--spacing-stack-sm);
 }
 
-/* Tablet and up. Same gutter as .contrib-land below, so the two /tasks pages line up. */
+/* Tablet and up */
 @media (min-width: 768px) {
-  .contrib-page,
-  .contrib-dash {
+  .contrib-page {
     padding-inline: var(--spacing-inset-xl);
   }
 
@@ -1174,6 +1173,8 @@ textarea.contrib-input {
   align-items: baseline;
   justify-content: space-between;
   gap: var(--spacing-stack-sm) var(--spacing-inline-xl);
+  padding-block-end: var(--spacing-stack-lg);
+  border-block-end: var(--border-width) solid var(--color-border-subtle);
 }
 
 .contrib-dash__heading {
@@ -1186,14 +1187,17 @@ textarea.contrib-input {
   font-size: var(--font-size-body-medium);
 }
 
+/* Header links are ghost buttons: page-level actions, not links in running text. */
 .contrib-dash__links {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-inline-lg);
+  align-items: center;
+  gap: var(--spacing-inline-sm);
 }
 
-.contrib-dash__edits {
-  font-size: var(--font-size-body-medium);
+/* Pulls a medium ghost button's padding out, so its label lines up with the page edge on either side. */
+.contrib-dash__flush {
+  margin-inline: calc(-1 * var(--spacing-md));
 }
 
 .contrib-dash__body {
@@ -1939,4 +1943,36 @@ textarea.contrib-input {
 /* The row's display: grid outranks the UA's [hidden]; the companion row hides until the row that opens it is picked. */
 .contrib-record__row[hidden] {
   display: none;
+}
+
+/* FAQ (/tasks/faq): question groups under an overline, each answer a heading and a few paragraphs. */
+.contrib-faq > :not(:last-child) {
+  margin-block-end: var(--spacing-section-gap);
+}
+
+/* The overline and each question are separate blocks, so they're spaced by margins; a question's own lines take gap. */
+.contrib-faq__group > :not(:last-child) {
+  margin-block-end: var(--spacing-stack-lg);
+}
+
+.contrib-faq__group > .contrib-overline {
+  margin-block-end: var(--spacing-stack-md);
+}
+
+.contrib-faq__item {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  /* Questions are linked to by id from the task pages. */
+  scroll-margin-top: var(--spacing-stack-lg);
+}
+
+.contrib-faq__item h3 {
+  margin: 0;
+  font-size: var(--font-size-title-medium);
+  line-height: var(--line-height-heading);
+  text-wrap: balance;
+}
+
+.contrib-faq__item p {
+  max-width: 65ch;
 }

@@ -3,7 +3,9 @@
 <div class="contrib-dash contrib-admin contrib-admin--detail"
      data-contribute-admin>
     <header class="contrib-admin__head">
-        <a class="contrib-admin__back" href="{{ page.index_url }}">{{ _("Community projects") }}</a>
+        <ol-button class="contrib-admin__back" variant="ghost" size="small" href="{{ page.index_url }}">
+            {{ icon("chevron-left", slot="icon-start") }}{{ _("Community projects") }}
+        </ol-button>
         <hgroup class="contrib-dash__heading">
             <h1 class="contrib-title">{{ _("New project") }}</h1>
             <p class="contrib-dash__lede">

@@ -4,63 +4,72 @@
 <div class="contrib-dash contrib-admin contrib-admin--detail"
      data-contribute-admin>
     <header class="contrib-admin__head">
-        <a class="contrib-admin__back" href="{{ page.index_url }}">{{ _("Community projects") }}</a>
+        <ol-button class="contrib-admin__back" variant="ghost" size="small" href="{{ page.index_url }}">
+            {{ icon("chevron-left", slot="icon-start") }}{{ _("Community projects") }}
+        </ol-button>
         <div class="contrib-dash__head">
             <hgroup class="contrib-dash__heading">
                 <h1 class="contrib-title">{{ project.title }}</h1>
                 <p class="contrib-dash__lede">{{ project.description }}</p>
+                <p class="contrib-admin__state-line">{{ parts.state(project, explain=true) }}</p>
             </hgroup>
-            {% if page.public_url %}
-                <a class="contrib-dash__edits" href="{{ page.public_url }}">{{ _("View on Tasks") }}</a>
-            {% endif %}
-        </div>
-        {{ parts.status(project) }}
-        {#- One small form per action, so each is a plain POST that works without the script; the script only adds the confirm. -#}
-        <div class="contrib-admin__actions">
-            {% if page.can_headline %}
-                <form method="post"
-                      action="{{ page.urls.headline }}"
-                      data-confirm="contrib-admin-headline">
-                    <input type="hidden" name="rev" value="{{ page.rev }}" />
-                    <ol-button type="submit" variant="secondary" size="small">
-                        {{ _("Make headline") }}
-                    </ol-button>
-                </form>
-            {% endif %}
-            {% if page.can_hide %}
-                <form method="post" action="{{ page.urls.hide }}">
-                    <input type="hidden" name="rev" value="{{ page.rev }}" />
-                    <ol-button type="submit" variant="secondary" size="small">
-                        {{ _("Hide") }}
-                    </ol-button>
-                </form>
-            {% else %}
-                <form method="post" action="{{ page.urls.unhide }}">
-                    <input type="hidden" name="rev" value="{{ page.rev }}" />
-                    <ol-button type="submit" variant="secondary" size="small">
-                        {{ _("Unhide") }}
-                    </ol-button>
-                </form>
-            {% endif %}
-            {% if page.can_delete %}
-                <form method="post"
-                      action="{{ page.urls.delete }}"
-                      data-confirm="contrib-admin-delete">
-                    <ol-button type="submit" variant="secondary" tone="danger" size="small">
-                        {{ _("Delete") }}
-                    </ol-button>
-                </form>
-            {% endif %}
-            {% if page.can_stop %}
-                <form method="post"
-                      action="{{ page.urls.stop }}"
-                      data-confirm="contrib-admin-stop">
-                    <input type="hidden" name="rev" value="{{ page.rev }}" />
-                    <ol-button type="submit" variant="secondary" tone="danger" size="small">
-                        {{ _("Stop early") }}
-                    </ol-button>
-                </form>
-            {% endif %}
+            {#- One small form per action, so each is a plain POST that works without the script; the script only adds the confirm. -#}
+            <div class="contrib-admin__actions">
+                {% if page.can_headline %}
+                    <form method="post"
+                          action="{{ page.urls.headline }}"
+                          data-confirm="contrib-admin-headline">
+                        <input type="hidden" name="rev" value="{{ page.rev }}" />
+                        <ol-tooltip placement="bottom-end" content="{{ _('Make this the project the Tasks page opens on. The project featured now stays live.') }}">
+                            <ol-button type="submit" variant="secondary" size="small">
+                                {{ _("Feature") }}
+                            </ol-button>
+                        </ol-tooltip>
+                    </form>
+                {% endif %}
+                {% if page.can_hide %}
+                    <form method="post" action="{{ page.urls.hide }}">
+                        <input type="hidden" name="rev" value="{{ page.rev }}" />
+                        <ol-tooltip placement="bottom-end" content="{{ _('Take it off the Tasks and stats pages, so nobody new picks up its tasks. The Tasks page opens on another project while it is hidden. You can unhide it any time.') if project.featured else _('Take it off the Tasks and stats pages, so nobody new picks up its tasks. Tasks already open still save toward it, and you can unhide it any time.') }}">
+                            <ol-button type="submit" variant="secondary" size="small">
+                                {{ _("Hide") }}
+                            </ol-button>
+                        </ol-tooltip>
+                    </form>
+                {% else %}
+                    <form method="post" action="{{ page.urls.unhide }}">
+                        <input type="hidden" name="rev" value="{{ page.rev }}" />
+                        <ol-tooltip placement="bottom-end" content="{{ _('Put it back on the Tasks and stats pages.') }}">
+                            <ol-button type="submit" variant="secondary" size="small">
+                                {{ _("Unhide") }}
+                            </ol-button>
+                        </ol-tooltip>
+                    </form>
+                {% endif %}
+                {% if page.can_delete %}
+                    <form method="post"
+                          action="{{ page.urls.delete }}"
+                          data-confirm="contrib-admin-delete">
+                        <ol-tooltip placement="bottom-end" content="{{ _('Remove the project and its book list for good. Only a project that has not started can be deleted.') }}">
+                            <ol-button type="submit" variant="secondary" tone="danger" size="small">
+                                {{ _("Delete") }}
+                            </ol-button>
+                        </ol-tooltip>
+                    </form>
+                {% endif %}
+                {% if page.can_stop %}
+                    <form method="post"
+                          action="{{ page.urls.stop }}"
+                          data-confirm="contrib-admin-stop">
+                        <input type="hidden" name="rev" value="{{ page.rev }}" />
+                        <ol-tooltip placement="bottom-end" content="{{ _('End it now: it hands out no more tasks and shows as finished on the Tasks page, with its final numbers. To run it again, set a later end date.') }}">
+                            <ol-button type="submit" variant="secondary" tone="danger" size="small">
+                                {{ _("Stop early") }}
+                            </ol-button>
+                        </ol-tooltip>
+                    </form>
+                {% endif %}
+            </div>
         </div>
     </header>
     {#- Confirmation text for contribute.js; see confirm-template.js. -#}
@@ -74,8 +83,8 @@
     </template>
     <template id="contrib-admin-headline"
               data-destructive="false"
-              data-i18n="{{ {'title': _('Make this the headline project?') , 'confirm': _('Make headline'), 'cancel': _('Cancel'), 'close': _('Close')} | tojson | forceescape }}">
-        {{ _("Links to the Tasks page that don't name a project will open this one from now on, in place of the current headline.") }}
+              data-i18n="{{ {'title': _('Feature this project?') , 'confirm': _('Feature project'), 'cancel': _('Cancel'), 'close': _('Close')} | tojson | forceescape }}">
+        {{ _("Links to the Tasks page that don't name a project will open this one from now on, in place of the current featured project.") }}
     </template>
     <dl class="contrib-admin__facts">
         <div>

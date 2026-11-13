@@ -98,13 +98,11 @@ def test_a_project_page_breaks_progress_down_by_detail(client, request_context_f
     html = client.get(f"/tasks/admin/{MOST_READ.slug}").text
     assert "40 saves, 2 since undone (5%)" in html
     assert "From 9 to 5 over 2 days" in html
-    assert f'href="/tasks?initiative={MOST_READ.slug}"' in html
 
 
-def test_a_draft_has_no_public_link_and_no_progress(client):
+def test_a_draft_has_no_progress(client):
     html = client.get("/tasks/admin/winter-covers").text
     assert "Getting the list ready" in html  # counted before it starts, so its books can be checked
-    assert "View on Tasks" not in html
     assert "No saves counted yet." in html
 
 

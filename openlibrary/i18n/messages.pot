@@ -4088,7 +4088,7 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
-#: contribute/admin/index.html.jinja contribute/dashboard.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
+#: contribute/admin/index.html.jinja contribute/dashboard.html.jinja contribute/faq.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
 msgid "Tasks"
 msgstr ""
 
@@ -4101,10 +4101,14 @@ msgid "Your Tasks pages"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Manage projects"
+msgid "FAQ"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
+msgid "Manage projects"
+msgstr ""
+
+#: contribute/dashboard.html.jinja contribute/faq.html.jinja
 msgid "Your edits"
 msgstr ""
 
@@ -4176,6 +4180,107 @@ msgstr ""
 
 #: contribute/done.html.jinja
 msgid "Pick a different book"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Questions about Tasks"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Answering"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Does my answer change this edition or the whole book?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Most tasks are about one edition: a particular printing, like the 2003 Penguin paperback. Its cover, page count, publisher, language and identifiers can differ from other editions, so your answer is saved on that edition only."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Fiction or nonfiction, and genres, describe the book itself, so they are saved on the work and every edition shows them. The line under each question says which one your answer covers."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Where should I look?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "The best source is the book itself: if you have a copy in hand, the title page and copyright page answer most tasks. The publisher's website is also good. Each task also links to places that usually have the answer, such as WorldCat, Google Books and the Library of Congress, searched by the edition's ISBN."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "If sources disagree, go with the one that is clearly about this edition: same ISBN, same publisher, same year. If you can't tell, it's fine to move on."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "When there's no answer"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "What's the difference between \"Skip\" and \"I couldn't find it\"?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "\"Skip\" records nothing. The book stays on the list for the next person, and you may see it again. Use it when you'd rather not answer this one: you don't know where to look, or you don't have time."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "\"I couldn't find it\" is an answer. It says you looked and the detail doesn't seem to exist. The record doesn't change, but once a few people say the same, the book leaves the list so nobody else spends time on it."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "What if the book doesn't have this detail at all?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "That happens. Many books never got a Library of Congress number or an OCLC number. Say \"I couldn't find it\" rather than guessing: a wrong value is harder to catch than a blank one. We note your answer, and if a few other people can't find it either, we take it that the book doesn't have this detail and remove the task from the list."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "What does \"Not sure\" mean on fiction and genre tasks?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "These are judgment calls, not lookups. \"Not sure\" means you can't decide from what you see, and it counts like \"I couldn't find it\": when a few people are unsure, the book is set aside."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "What if something else on the record is wrong?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+#, python-format
+msgid "Tasks only fill in blanks. To fix a wrong title, author or anything else, open the book's edit page from the task. If the problem is bigger, like two books mixed up in one record, %(link_start)stell us about it%(link_end)s."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Does my answer show up right away? Can it be undone?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Yes to both. A saved answer is an ordinary edit: it is live on the book at once, appears in the book's history and in your edits, and anyone can revert it. Made a mistake? Open the book and fix it the usual way."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Who can do tasks?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Anyone with a free Open Library account. Saves go through the same checks as the edit page, so a save from a blocked account, or one that looks like spam, won't go through."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Projects"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "What is a project?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "A fixed list of books and the details it asks about, like \"covers and page counts for the most-read books.\" Open Library librarians set them up. Tasks come from the list in random order."
 msgstr ""
 
 #: contribute/landing.html.jinja
@@ -4253,10 +4358,6 @@ msgstr ""
 
 #: contribute/admin/index.html.jinja
 msgid "The projects on the Tasks page: what is running, what is coming and what is over."
-msgstr ""
-
-#: contribute/admin/index.html.jinja
-msgid "Project pages"
 msgstr ""
 
 #: contribute/admin/index.html.jinja contribute/admin/new.html.jinja openlibrary/fastapi/tasks.py
@@ -4366,15 +4467,23 @@ msgid "Create project"
 msgstr ""
 
 #: contribute/admin/parts.html.jinja
-msgid "Hidden"
+msgid "Featured: the Tasks page opens on this project"
 msgstr ""
 
 #: contribute/admin/parts.html.jinja
 msgid "The default project. The Tasks page opens on it, the thank-you after a book edit points to it unless another project lists that book, and the stats page charts it first."
 msgstr ""
 
+#: contribute/admin/parts.html.jinja openlibrary/plugins/openlibrary/home_genres.py
+msgid "Featured"
+msgstr ""
+
 #: contribute/admin/parts.html.jinja
-msgid "Headline"
+msgid "Hidden from the Tasks and stats pages"
+msgstr ""
+
+#: contribute/admin/parts.html.jinja
+msgid "Hidden"
 msgstr ""
 
 #: contribute/admin/parts.html.jinja contribute/admin/project.html.jinja openlibrary/contribute/manage.py openlibrary/plugins/openlibrary/contribute.py
@@ -4391,11 +4500,19 @@ msgid "Clear"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "View on Tasks"
+msgid "Make this the project the Tasks page opens on. The project featured now stays live."
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Make headline"
+msgid "Feature"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Take it off the Tasks and stats pages, so nobody new picks up its tasks. The Tasks page opens on another project while it is hidden. You can unhide it any time."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Take it off the Tasks and stats pages, so nobody new picks up its tasks. Tasks already open still save toward it, and you can unhide it any time."
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -4403,7 +4520,19 @@ msgid "Hide"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
+msgid "Put it back on the Tasks and stats pages."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
 msgid "Unhide"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Remove the project and its book list for good. Only a project that has not started can be deleted."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "End it now: it hands out no more tasks and shows as finished on the Tasks page, with its final numbers. To run it again, set a later end date."
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -4435,11 +4564,15 @@ msgid "The project and its book list are removed. This can't be undone."
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Make this the headline project?"
+msgid "Feature this project?"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Links to the Tasks page that don't name a project will open this one from now on, in place of the current headline."
+msgid "Feature project"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Links to the Tasks page that don't name a project will open this one from now on, in place of the current featured project."
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -8945,11 +9078,11 @@ msgid "Stopped the project early"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
-msgid "Made it the headline project"
+msgid "Made it the featured project"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
-msgid "Another project became the headline"
+msgid "Another project was featured"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
@@ -9818,6 +9951,10 @@ msgid "Someone else changed this project while you had it open. Check it below, 
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py
+msgid "Tasks FAQ"
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
 msgid "The project is set up. Check its books below."
 msgstr ""
 
@@ -9838,11 +9975,11 @@ msgid "The project has ended. It hands out no more tasks."
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py
-msgid "Only a live project that isn't hidden can be the headline."
+msgid "Only a live project that isn't hidden can be featured."
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py
-msgid "This is now the headline project."
+msgid "This is now the featured project."
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py
@@ -10356,10 +10493,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home_genres.py
 msgid "Most wanted"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home_genres.py
-msgid "Featured"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py

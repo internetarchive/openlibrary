@@ -177,8 +177,6 @@ def build_detail(initiative: initiatives.Initiative) -> dict:
     return {
         "project": summary,
         "index_url": BASE_URL,
-        # The public page only lists it once it has started and while it isn't hidden.
-        "public_url": f"/tasks?initiative={initiative.slug}" if started and not initiative.hidden else "",
         "picked": format_day(picked),
         "builtin": builtin,
         "skipped": build_skipped(doc.get("skipped") or [], doc.get("skipped_count") or 0),
@@ -232,8 +230,8 @@ def describe_change(entry: dict) -> str:
         "hide": _("Hid the project"),
         "unhide": _("Made the project visible again"),
         "stop": _("Stopped the project early"),
-        "headline": _("Made it the headline project"),
-        "unheadline": _("Another project became the headline"),
+        "headline": _("Made it the featured project"),
+        "unheadline": _("Another project was featured"),
     }
     if (action := entry.get("action")) in plain:
         return plain[action]

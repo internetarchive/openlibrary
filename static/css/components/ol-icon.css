@@ -17,17 +17,21 @@
 ol-icon {
   display: inline-flex;
   flex-shrink: 0;
-  width: var(--icon-size-md);
-  height: var(--icon-size-md);
   vertical-align: middle;
 }
 
-ol-icon[size="sm"] {
+/* A slotted icon is sized by its host (ol-button's 14/16/18px); page CSS would beat the host's ::slotted rule. */
+ol-icon:where(:not([slot])) {
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+}
+
+ol-icon[size="sm"]:where(:not([slot])) {
   width: var(--icon-size-sm);
   height: var(--icon-size-sm);
 }
 
-ol-icon[size="lg"] {
+ol-icon[size="lg"]:where(:not([slot])) {
   width: var(--icon-size-lg);
   height: var(--icon-size-lg);
 }
@@ -36,26 +40,30 @@ ol-icon[size="lg"] {
 .ol-icon {
   display: inline-block;
   flex-shrink: 0;
-  width: var(--icon-size-md);
-  height: var(--icon-size-md);
   vertical-align: middle;
   stroke-width: var(--icon-stroke-md);
 }
 
 .ol-icon--sm {
-  width: var(--icon-size-sm);
-  height: var(--icon-size-sm);
   stroke-width: var(--icon-stroke-sm);
 }
 
-.ol-icon--md {
-  width: var(--icon-size-md);
-  height: var(--icon-size-md);
-  stroke-width: var(--icon-stroke-md);
+.ol-icon--lg {
+  stroke-width: var(--icon-stroke-lg);
 }
 
-.ol-icon--lg {
+/* Sizes only off a slot, as for ol-icon above. */
+.ol-icon:where(:not([slot])) {
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+}
+
+.ol-icon--sm:where(:not([slot])) {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+}
+
+.ol-icon--lg:where(:not([slot])) {
   width: var(--icon-size-lg);
   height: var(--icon-size-lg);
-  stroke-width: var(--icon-stroke-lg);
 }
