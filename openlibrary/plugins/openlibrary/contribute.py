@@ -16,7 +16,7 @@ from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
 from openlibrary.contribute import feed, initiatives, pitch, save, supply, tasks
-from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides
+from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides, is_speculative
 from openlibrary.contribute.tasks import field_values, work_of
 from openlibrary.core import admin, helpers
 from openlibrary.core.tags import GENRES, LITERARY_FORMS, find_tag, subject_matches, tag_choices, tag_key_named, tag_options, work_tag_names
@@ -204,12 +204,30 @@ def describe_saved(edition, fld: str, picked: str = "") -> tuple[str, str]:
     return get_field_guides()[fld].label, format_field_value(edition, fld)
 
 
+CONTRIBUTORS_SHOWN = 6
+
+
+def format_contributors(edition) -> str:
+    """The edition's contributors with their roles, as "Ken Liu (Translator), Stephan Martiniere (Cover artist)".
+
+    A translator, narrator or illustrator says what kind of edition this is. Older records keep them as plain strings.
+    """
+    out = []
+    for c in edition.get("contributors") or []:
+        name, role = str(c.get("name") or "").strip(), str(c.get("role") or "").strip()
+        if name:
+            out.append(f"{name} ({role})" if role else name)
+    out += [text for c in edition.get("contributions") or [] if (text := str(c).strip())]
+    return ", ".join(list(dict.fromkeys(out))[:CONTRIBUTORS_SHOWN])
+
+
 def build_edition_field_rows(edition, fld: str) -> list[dict]:
     """The edition's record as the task page shows it: the fields it has, plus the one being asked about, in place."""
     rows = [
         ("publishers", _("Publisher")),
         ("publish_date", _("Published")),
         ("physical_format", _("Format")),
+        ("contributors", _("Contributors")),
         ("number_of_pages", _("Pages")),
         ("languages", _("Language")),
         ("isbn", _("ISBN")),
@@ -220,7 +238,12 @@ def build_edition_field_rows(edition, fld: str) -> list[dict]:
     ]
     out = []
     for f, label in rows:
-        value = (edition.get_isbn13() or ", ".join(edition.get("isbn_10") or [])) if f == "isbn" else format_field_value(edition, f)
+        if f == "isbn":
+            value = edition.get_isbn13() or ", ".join(edition.get("isbn_10") or [])
+        elif f == "contributors":
+            value = format_contributors(edition)
+        else:
+            value = format_field_value(edition, f)
         if value or f == fld:
             out.append({"label": label, "value": value, "ask": f == fld})
     return out
@@ -235,6 +258,13 @@ def work_subjects(edition) -> list[str]:
     """The work's free-text subjects as the task page shows them: the first few, which is where the catalog's own go."""
     work = work_of(edition)
     return [str(s) for s in (work.get("subjects") or [])[:8]] if work else []
+
+
+def genre_labels(edition) -> list[str]:
+    """What the work says about its genre in words: its genre tags' names, then all of its subjects."""
+    if not (work := work_of(edition)):
+        return []
+    return [*work_tag_names(work, GENRES), *(str(s) for s in work.get("subjects") or [])]
 
 
 def genre_hints(edition) -> dict[str, list[str]]:
@@ -749,7 +779,16 @@ def build_task_context(
         else None,
         "field_guide": field_guide,
         "scope": build_scope(task.field, book["edition_line"]),
-        "link_outs": build_link_outs(field_guide, book["isbn13"]),
+        "link_outs": build_link_outs(
+            field_guide,
+            book["isbn13"],
+            title=book["title"],
+            authors=book["authors"],
+            lccn=next((str(n).strip() for n in edition.get("lccn") or [] if str(n).strip()), ""),
+            speculative=field_guide.isfdb and is_speculative(genre_labels(edition)),
+        ),
+        # Without an ISBN the links search on the title and author, and the page says so.
+        "links_by_title": not book["isbn13"],
         # Nothing to compare against when no other edition has a value.
         "siblings": siblings if any(s["value"] for s in siblings) else [],
         "sibling_total": len(others),

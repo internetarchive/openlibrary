@@ -3663,7 +3663,7 @@ msgstr ""
 msgid "For example: <i>The Story of Civilization, Part III</i>"
 msgstr ""
 
-#: books/edit/edition.html type/edition/view.html type/work/view.html
+#: books/edit/edition.html openlibrary/plugins/openlibrary/contribute.py type/edition/view.html type/work/view.html
 msgid "Contributors"
 msgstr ""
 
@@ -8534,7 +8534,7 @@ msgid "How to answer"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "This edition has no ISBN to search by, so look it up by title and author."
+msgid "This edition has no ISBN, so these links search by title and author. Check that the publisher and year match before you copy anything."
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8766,7 +8766,7 @@ msgid "Fill in language"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "Look the ISBN up in WorldCat or Google Books; both list the language of the text. The title page and cover tell you too."
+msgid "Start with the title, subtitle and publisher on this page. Then look the ISBN up: WorldCat lists the language, and Google Books shows a “Translated by” line when the edition is a translation."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8794,7 +8794,10 @@ msgid "How many pages does this edition have?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "WorldCat lists the page count in the record's description. Google Books calls it Length. Make sure the record is for this ISBN, not another printing."
+msgid ""
+"Google Books lists the page count as Length. WorldCat has it in the record's description, sometimes only after you sign in. Amazon's print length often counts every page, so use it to check a number rather than to find one.\n"
+"\n"
+"Make sure the record is for this edition, not another printing."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8877,7 +8880,7 @@ msgid "Who published this edition?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The imprint is printed on the title page and the spine. WorldCat and the Library of Congress list it under Publisher."
+msgid "The imprint is printed on the title page and the spine. The Library of Congress copies it from the title page, and WorldCat lists it under Publisher. Google Books often names the parent company instead."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8970,6 +8973,22 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "I opened a print record and its publisher and edition match this one."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "This edition has a Library of Congress number. Its record states the language and gives the publisher as printed on the title page."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Library of Congress record"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "This book is science fiction or fantasy, which ISFDB covers well. It lists each printing on its own, and a record marked as verified was checked against a physical copy."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "ISFDB"
 msgstr ""
 
 #: openlibrary/contribute/initiatives.py
