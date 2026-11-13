@@ -435,11 +435,8 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 height: var(--_icon-size);
             }
 
-            /* A 14px glyph's own side bearing already reads as space, so the small size tightens the gap. */
             :host([size='small']) .label {
                 --_icon-size: 14px;
-
-                gap: var(--spacing-xs);
             }
 
             :host([size='large']) .label {

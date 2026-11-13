@@ -89,16 +89,12 @@ ol-button[size="large"]:not(:defined) {
   font-size: var(--font-size-body-large);
 }
 
-/* Slotted icons, at the component's sizes: page CSS no longer sizes a slotted
-   icon (see ol-icon.css), so without these an unsized SVG flashes large. */
+/* Slotted icons, at the component's sizes: ol-icon.css leaves them unsized
+   for the component, so without these an SVG flashes large before it loads. */
 ol-button:not(:defined) > :where([slot="icon-start"], [slot="icon-end"]) {
   flex-shrink: 0;
   width: 16px;
   height: 16px;
-}
-
-ol-button[size="small"]:not(:defined) {
-  gap: var(--spacing-xs);
 }
 
 ol-button[size="small"]:not(:defined)

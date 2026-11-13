@@ -20,18 +20,18 @@ ol-icon {
   vertical-align: middle;
 }
 
-/* A slotted icon is sized by its host (ol-button's 14/16/18px); page CSS would beat the host's ::slotted rule. */
-ol-icon:where(:not([slot])) {
+/* ol-button sizes its own slotted icons (14/16/18px); page CSS here would beat its ::slotted rule. */
+ol-icon:where(:not(ol-button > [slot])) {
   width: var(--icon-size-md);
   height: var(--icon-size-md);
 }
 
-ol-icon[size="sm"]:where(:not([slot])) {
+ol-icon[size="sm"]:where(:not(ol-button > [slot])) {
   width: var(--icon-size-sm);
   height: var(--icon-size-sm);
 }
 
-ol-icon[size="lg"]:where(:not([slot])) {
+ol-icon[size="lg"]:where(:not(ol-button > [slot])) {
   width: var(--icon-size-lg);
   height: var(--icon-size-lg);
 }
@@ -52,18 +52,18 @@ ol-icon[size="lg"]:where(:not([slot])) {
   stroke-width: var(--icon-stroke-lg);
 }
 
-/* Sizes only off a slot, as for ol-icon above. */
-.ol-icon:where(:not([slot])) {
+/* Not inside ol-button, as for ol-icon above. */
+.ol-icon:where(:not(ol-button > [slot])) {
   width: var(--icon-size-md);
   height: var(--icon-size-md);
 }
 
-.ol-icon--sm:where(:not([slot])) {
+.ol-icon--sm:where(:not(ol-button > [slot])) {
   width: var(--icon-size-sm);
   height: var(--icon-size-sm);
 }
 
-.ol-icon--lg:where(:not([slot])) {
+.ol-icon--lg:where(:not(ol-button > [slot])) {
   width: var(--icon-size-lg);
   height: var(--icon-size-lg);
 }
