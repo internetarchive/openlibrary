@@ -101,12 +101,14 @@ ol-button[size="small"]:not(:defined) {
   gap: var(--spacing-xs);
 }
 
-ol-button[size="small"]:not(:defined) > :where([slot="icon-start"], [slot="icon-end"]) {
+ol-button[size="small"]:not(:defined)
+  > :where([slot="icon-start"], [slot="icon-end"]) {
   width: 14px;
   height: 14px;
 }
 
-ol-button[size="large"]:not(:defined) > :where([slot="icon-start"], [slot="icon-end"]) {
+ol-button[size="large"]:not(:defined)
+  > :where([slot="icon-start"], [slot="icon-end"]) {
   width: 18px;
   height: 18px;
 }
