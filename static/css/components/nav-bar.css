@@ -2,7 +2,7 @@
    New overlays use ol-popover / ol-dialog, which live in the top layer (#12363). */
 .nav-bar {
   margin-bottom: 20px;
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 
   display: flex;
   overflow-x: auto;
@@ -38,7 +38,7 @@
 }
 
 .nav-bar.search-nav {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .nav-bar.search-nav li {
@@ -46,7 +46,7 @@
 }
 
 .nav-bar.search-nav li.selected a {
-  font-weight: 650;
+  font-weight: var(--font-weight-bold);
 }
 /* stylelint-enable selector-max-specificity */
 

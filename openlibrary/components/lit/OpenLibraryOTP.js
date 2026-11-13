@@ -96,6 +96,7 @@ export class OpenLibraryOTP extends LitElement {
                 right: 0.75rem;
                 background: none;
                 border: none;
+                /* A text glyph, not type; held for the icon decision in #14298. */
                 font-size: 1.5rem;
                 cursor: pointer;
                 line-height: 1;
@@ -107,7 +108,7 @@ export class OpenLibraryOTP extends LitElement {
             }
             .ol-otp-dialog p {
                 margin: 0 0 1rem;
-                font-size: 0.95rem;
+                font-size: var(--font-size-body-large);
             }
             .ol-otp-email-form {
                 display: flex;
@@ -115,12 +116,12 @@ export class OpenLibraryOTP extends LitElement {
                 gap: 0.75rem;
             }
             .ol-otp-email-form label {
-                font-size: 0.9rem;
-                font-weight: bold;
+                font-size: var(--font-size-label-large);
+                font-weight: var(--font-weight-bold);
             }
             .ol-otp-email-form input[type='email'] {
                 padding: 8px;
-                font-size: 1rem;
+                font-size: var(--font-size-body-large);
                 border: 1px solid #ccc;
                 border-radius: 4px;
                 width: 100%;
@@ -132,7 +133,7 @@ export class OpenLibraryOTP extends LitElement {
                 color: var(--color-on-primary);
                 border: none;
                 border-radius: 4px;
-                font-size: 1rem;
+                font-size: var(--font-size-body-large);
                 font-family: inherit;
                 cursor: pointer;
                 align-self: flex-start;
@@ -143,7 +144,7 @@ export class OpenLibraryOTP extends LitElement {
             }
             .ol-otp-error {
                 color: var(--color-danger);
-                font-size: 0.9rem;
+                font-size: var(--font-size-body-medium);
                 margin: 0;
             }
             ia-otp-form {

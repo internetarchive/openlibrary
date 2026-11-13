@@ -75,7 +75,7 @@
   margin: 0;
   font-family: var(--font-family-body);
   font-size: var(--font-size-label-large);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.12em;
   color: var(--color-text-muted);
   text-transform: uppercase;
@@ -91,7 +91,7 @@
   margin: 0;
   font-family: var(--font-family-title);
   font-size: var(--font-size-display-medium);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   line-height: var(--line-height-display);
   color: var(--color-text);
 }
@@ -103,7 +103,7 @@
 .collections-page #contentBody h6 {
   margin-block: 0 var(--spacing-stack-sm);
   font-family: var(--font-family-title);
-  font-weight: 650;
+  font-weight: var(--font-weight-bold);
   line-height: var(--line-height-heading);
   color: var(--color-text);
 }
@@ -113,7 +113,7 @@
    sits at the same weight as the other body heads. */
 .collections-page #contentBody h1 {
   margin-block: 0 var(--spacing-stack-sm);
-  font-weight: 650;
+  font-weight: var(--font-weight-bold);
 }
 
 /* Sans below h2: the serif carries the title and the section heads, so the
@@ -135,7 +135,7 @@
 
 .collections-page #contentBody {
   font-size: var(--font-size-body-large);
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
 }
 
 /* common.css colors p and li directly, so inheritance wouldn't reach them. */

@@ -33,14 +33,14 @@
   width: 100%;
   margin: 0;
   margin-top: 30px;
-  font-size: 30px;
-  font-weight: 600;
+  font-size: var(--font-size-headline-large);
+  font-weight: var(--font-weight-semibold);
 }
 .subsectionSeparator {
   width: 100%;
   margin: 0;
   font-size: var(--font-size-title-large);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--mid-grey);
 }
 .hidden {
@@ -102,15 +102,15 @@
   margin-bottom: 0;
 }
 .description__title {
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
   height: 40px;
   font-size: var(--font-size-body-xlarge);
   margin-top: 10px;
   text-align: center;
 }
 .description__project {
-  font-weight: 400;
-  font-size: 15px;
+  font-weight: var(--font-weight-regular);
+  font-size: var(--font-size-body-medium);
   margin: 2px 0 0;
   padding-left: 15px;
   padding-right: 15px;

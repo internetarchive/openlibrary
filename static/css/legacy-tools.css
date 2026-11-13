@@ -80,7 +80,7 @@
   min-height: 32px;
   width: 250px;
   font-family: var(--font-family-body) !important;
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   outline: 0;
   position: relative;
   margin: 0;
@@ -120,7 +120,7 @@
 .Tools h3 span.head {
   padding-left: 10px;
   font-size: 1.125em;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--black);
 }
 
@@ -132,7 +132,7 @@
   font-size: 1em;
   font-family: var(--font-family-body);
   color: var(--teal);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   margin: 0 0 var(--spacing-stack-sm);
   padding: 0;
   zoom: 1;

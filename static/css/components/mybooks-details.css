@@ -225,7 +225,7 @@
   box-shadow:
     0 4px 12px var(--icon-link-grey),
     0 1px 3px var(--icon-link-grey);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   font-size: var(--font-size-body-large);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }

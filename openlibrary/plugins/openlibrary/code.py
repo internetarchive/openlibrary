@@ -12,7 +12,7 @@ import random
 import socket
 import sys
 from time import time
-from urllib.parse import parse_qs, quote, urlencode
+from urllib.parse import parse_qs, parse_qsl, quote, urlencode
 
 import web
 import yaml
@@ -23,6 +23,7 @@ from openlibrary.core.batch_imports import (
     batch_import,
 )
 from openlibrary.core.env import get_deployment_name, get_ol_env
+from openlibrary.core.imports import BATCH_SORT_COLUMNS, IMPORT_ITEM_STATUSES, Batch
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell import SiteLayoutTemplate
 from openlibrary.i18n import gettext as _
@@ -456,10 +457,34 @@ class batch_imports(delegate.page):
         return render_template("batch_import.html", batch_result=batch_result)
 
 
+def _require_admin():
+    """Raise 403 unless the current user is logged in and an admin."""
+    user_key = delegate.context.user and delegate.context.user.key
+    if not user_key or user_key not in _get_members_of_group("/usergroup/admin"):
+        raise Forbidden("Permission Denied.")
+
+
 class BatchImportView(delegate.page):
     path = r"/import/batch/(\d+)"
 
     def GET(self, batch_id):
+        # A batch view exposes its import rows and the submitter's identity, so
+        # it is limited to the batch's submitter and to admins. The 403 is
+        # identical whether or not the batch exists, so a non-admin cannot use
+        # this endpoint to probe which batch ids exist.
+        user = delegate.context.user
+        user_key = user and user.key
+        if not user_key:
+            raise Forbidden("Permission Denied.")
+        is_admin = user_key in _get_members_of_group("/usergroup/admin")
+
+        batch_rows = db.select("import_batch", where="id=$batch_id", vars=locals())
+        batch = batch_rows[0] if batch_rows else None
+        if not is_admin and (batch is None or batch.submitter != user.get_username()):
+            raise Forbidden("Permission Denied.")
+        if batch is None:
+            raise web.notfound()
+
         i = web.input(page=1, limit=10, sort="added_time asc")
         page = int(i.page)
         limit = int(i.limit)
@@ -472,8 +497,6 @@ class BatchImportView(delegate.page):
             sort_order = "asc"
 
         offset = (page - 1) * limit
-
-        batch = db.select("import_batch", where="id=$batch_id", vars=locals())[0]
         total_rows = db.query(
             "SELECT COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id",
             vars=locals(),
@@ -509,14 +532,27 @@ class BatchImportApprove(delegate.page):
     """
     Approve `batch_id`, with a `status` of `needs_review`, for import.
 
-    Making a GET as an admin to this endpoint will change a batch's status from
-    `needs_review` to `pending`.
+    Approval changes state, so it is a POST, not a GET: a state-changing GET can
+    be fired by a crawler, a prefetch, or a link an admin is tricked into
+    following (CSRF). The GET is inert and redirects to the batch view, where
+    Approve is rendered as a POST form.
+
+    CSRF protection rests on the auth cookie (``config.login_cookie_name`` ->
+    ``session``) being ``SameSite=Lax``, so a forged cross-site POST arrives
+    without the admin's session and fails the admin check below.
+    ``test_session_cookie_is_samesite_lax`` is the tripwire that fails loudly if
+    that cookie attribute is ever weakened. (``s3`` carries archive.org API keys,
+    not the Open Library session, so it is not what protects this endpoint.)
     """
 
     path = r"/import/batch/approve/(\d+)"
 
     def GET(self, batch_id):
+        # Inert: never changes state. Send the admin to the batch view, where
+        # the Approve action is a POST form.
+        return web.seeother(f"/import/batch/{batch_id}")
 
+    def POST(self, batch_id):
         user_key = delegate.context.user and delegate.context.user.key
         if user_key not in _get_members_of_group("/usergroup/admin"):
             raise Forbidden("Permission Denied.")
@@ -530,46 +566,63 @@ class BatchImportApprove(delegate.page):
             vars=locals(),
         )
 
-        return web.found(f"/import/batch/{batch_id}")
+        return web.seeother(f"/import/batch/{batch_id}")
+
+
+class BatchImportList(delegate.page):
+    """
+    Lists batch imports, optionally only those with items of a given `status`.
+    """
+
+    path = r"/import/batch"
+
+    DEFAULT_SORT = "added_time desc"
+    MAX_LIMIT = 100
+
+    def GET(self):
+        # Lists batches across all submitters, with their names -- admins only.
+        _require_admin()
+
+        i = web.input(page=1, limit=10, sort=self.DEFAULT_SORT, status="")
+        page = max(1, safeint(i.page, 1))
+        limit = min(max(1, safeint(i.limit, 10)), self.MAX_LIMIT)
+        status = i.status if i.status in IMPORT_ITEM_STATUSES else None
+
+        sort_field, sort_order = i.sort.partition(" ")[::2]
+        if sort_field not in BATCH_SORT_COLUMNS or sort_order not in ("asc", "desc"):
+            sort_field, sort_order = self.DEFAULT_SORT.split()
+
+        total, rows = Batch.list_summaries(
+            status=status,
+            sort=sort_field,
+            order=sort_order,
+            limit=limit,
+            offset=(page - 1) * limit,
+        )
+
+        return render_template(
+            "batch_import_list",
+            rows=rows,
+            page=page,
+            total_pages=math.ceil(total / limit),
+            status=status,
+            statuses=IMPORT_ITEM_STATUSES,
+            sort_field=sort_field,
+            sort_order=sort_order,
+            default_sort=self.DEFAULT_SORT,
+        )
 
 
 class BatchImportPendingView(delegate.page):
     """
-    Endpoint for viewing `needs_review` batch imports.
+    Old URL for the list of batches awaiting review.
     """
 
     path = r"/import/batch/pending"
 
     def GET(self):
-        i = web.input(page=1, limit=10, sort="added_time asc")
-        page = int(i.page)
-        limit = int(i.limit)
-        sort = i.sort
-
-        valid_sort_fields = ["added_time", "import_time", "status"]
-        sort_field, sort_order = sort.split()
-        if sort_field not in valid_sort_fields or sort_order not in ["asc", "desc"]:
-            sort_field = "added_time"
-            sort_order = "asc"
-
-        offset = (page - 1) * limit
-
-        rows = db.query(
-            """
-            SELECT batch_id, MIN(status) AS status, MIN(comments) AS comments, MIN(added_time) AS added_time, MAX(submitter) AS submitter
-            FROM import_item
-            WHERE status = 'needs_review'
-            GROUP BY batch_id;
-            """,
-            vars=locals(),
-        )
-
-        return render_template(
-            "batch_import_pending_view",
-            rows=rows,
-            page=page,
-            limit=limit,
-        )
+        query = [(k, v) for k, v in parse_qsl(web.ctx.query.lstrip("?"), keep_blank_values=True) if k != "status"]
+        raise web.redirect("/import/batch?" + urlencode([("status", "needs_review"), *query]))
 
 
 class isbn_lookup(delegate.page):

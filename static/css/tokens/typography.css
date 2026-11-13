@@ -72,16 +72,18 @@
 /**
  * Font weights
  * ============
- * Four steps, matching the 400–700 range the variable webfonts cover.
- * Off-scale values in legacy rules (650, 300) snap to the nearest step when
- * migrated. Fall back to a primitive only where no role fits.
+ * Five steps inside the 400–700 range the variable webfonts cover. Bold is
+ * 650, not 700: a face with no 650 (Georgia, Segoe UI) draws its 700, so only
+ * the variable fonts get the lighter cut. Other off-scale values in legacy
+ * rules (300) snap to the nearest step when migrated. Fall back to a primitive
+ * only where no role fits.
  */
 :root {
   --font-weight-regular: 400; /* body copy, the default */
   --font-weight-book: 450; /* control labels: steadier than regular without reading as emphasis. A real cut only in the variable sans; a static fallback snaps it to its nearest face */
   --font-weight-medium: 500; /* quiet emphasis: overlines, large headings */
   --font-weight-semibold: 600; /* small headings and labels that must stand apart from copy */
-  --font-weight-bold: 700; /* strong emphasis, table headers */
+  --font-weight-bold: 650; /* strong emphasis (b, strong), table headers */
 }
 
 /**

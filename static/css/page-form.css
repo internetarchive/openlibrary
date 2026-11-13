@@ -94,7 +94,7 @@ div#revertLink,
 .saved {
   background: url(/static/images/icons/icon_saved.png) no-repeat;
   font-size: 1.5em;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--black);
   padding: var(--spacing-inset-xs) 0 0 40px;
   min-height: 30px;

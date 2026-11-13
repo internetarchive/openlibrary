@@ -155,7 +155,7 @@
   border-radius: var(--border-radius-notification);
   padding: 1px var(--spacing-inset-xs);
   font-size: var(--font-size-label-medium);
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 /* Chrome reset for controls inside a header dropdown (the drawer's logout
@@ -204,7 +204,7 @@
   width: max-content;
   padding: 2px 5px;
   font-size: 9px;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   letter-spacing: 0.025em;
   text-transform: uppercase;
   line-height: var(--line-height-chip);
@@ -770,7 +770,7 @@
 .drawer-menu__subsection {
   font-family: var(--font-family-subheading);
   font-size: var(--font-size-label-large);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--dark-grey);
@@ -854,7 +854,7 @@
 
 .drawer-menu__subheading {
   font-size: var(--font-size-label-medium);
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
   color: var(--accessible-grey);
 }
 

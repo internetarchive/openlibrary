@@ -298,7 +298,7 @@ class work_delete(delegate.page):
         offset = 0
 
         while True:
-            keys: list = web.ctx.site.things(
+            keys: list = site.get().things(
                 {
                     "type": "/type/edition",
                     "works": work.key,
@@ -323,7 +323,7 @@ class work_delete(delegate.page):
             else:
                 break
 
-        return web.ctx.site.get_many(all_keys, raw=True)
+        return site.get().get_many(all_keys, raw=True)
 
     def POST(self, work_id: str):
         if not can_write():
@@ -333,7 +333,7 @@ class work_delete(delegate.page):
 
         comment = web_input.get("comment")
 
-        work: Work = web.ctx.site.get(f"/works/{work_id}")
+        work: Work = site.get().get(f"/works/{work_id}")
         if work is None:
             return web.HTTPError(status="404 Not Found")
 
@@ -341,7 +341,7 @@ class work_delete(delegate.page):
         keys_to_delete: list = [el.get("key") for el in [*editions, work.dict()]]
         delete_payload: list[dict] = [{"key": key, "type": {"key": "/type/delete"}} for key in keys_to_delete]
 
-        web.ctx.site.save_many(delete_payload, comment, action="bulk-delete-books")
+        site.get().save_many(delete_payload, comment, action="bulk-delete-books")
         return delegate.RawText(
             json.dumps(
                 {
@@ -637,13 +637,13 @@ class unlink_ia_ol(delegate.page):
         ocaid, _ts = parts
 
         # Fetch affected editions
-        edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": ocaid})
-        edition_keys.extend(web.ctx.site.things({"type": "/type/edition", "source_records": f"ia:{ocaid}"}))
+        edition_keys = site.get().things({"type": "/type/edition", "ocaid": ocaid})
+        edition_keys.extend(site.get().things({"type": "/type/edition", "source_records": f"ia:{ocaid}"}))
         edition_keys = list(set(edition_keys))
         if not edition_keys:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
-        editions = web.ctx.site.get_many(edition_keys)
+        editions = site.get().get_many(edition_keys)
         logger.info(f"Disassociating {ocaid} from the following editions: {', '.join(edition_keys)}")
 
         # Update records
@@ -671,7 +671,7 @@ class unlink_ia_ol(delegate.page):
             del data["source_records"]
         with accounts.RunAs("ImportBot"):
             web.ctx.ip = web.ctx.ip or "127.0.0.1"
-            web.ctx.site.save(
+            site.get().save(
                 data,
                 comment or DEFAULT_UNLINK_COMMENT,
                 action="edit-edition-ocaid",

@@ -26,7 +26,7 @@ img {
 table.services th {
   font-family: var(--font-family-body);
   font-size: var(--font-size-label-small);
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   color: var(--color-text);
 }
@@ -53,15 +53,15 @@ table.services td.node {
   background-color: var(--lightest-grey);
   border-bottom: 1px solid var(--admin-table-border);
   color: var(--color-text-secondary);
-  font-size: 0.8675em;
-  font-weight: 700;
+  font-size: var(--font-size-label-large);
+  font-weight: var(--font-weight-bold);
   padding: var(--spacing-inset-sm);
 }
 
 #adminHistory td {
   border-bottom: 1px solid var(--admin-table-border);
   padding: var(--spacing-inset-sm);
-  font-size: 0.75em;
+  font-size: var(--font-size-label-small);
 }
 
 #adminHistory td.number {
@@ -89,7 +89,7 @@ div#prolific span {
   bottom: 2px;
   font-size: 0.5625em;
   font-family: var(--font-family-body);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   color: var(--color-text-secondary);
   text-transform: uppercase;
 }

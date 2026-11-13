@@ -83,6 +83,8 @@ class MockSite:
         if author:
             author = {"key": author.key}
 
+        # Mirrors client.Site.save, which sends the query as JSON
+        json.dumps(dict(query))
         doc = self._save_doc(query, timestamp)
 
         changes = [web.storage({"key": doc["key"], "revision": doc["revision"]})]
@@ -100,6 +102,8 @@ class MockSite:
 
     def save_many(self, query, comment=None, action=None, data=None, timestamp=None, author=None):
         timestamp = timestamp or datetime.now()
+        # Mirrors client.Site.save_many, which sends the query as JSON
+        json.dumps(query)
         docs = [self._save_doc(doc, timestamp) for doc in query]
 
         if author:

@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from typing import Literal, TypedDict, TypeVar, cast, override
 from urllib import parse
 
-import web
 from web import uniq
 
 from openlibrary.app import render_template
@@ -15,7 +14,7 @@ from openlibrary.core.provider_loans import get_provider_loan
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.utils import OrderedEnum, multisort_best
-from openlibrary.utils.request_context import get_provider_pref
+from openlibrary.utils.request_context import get_provider_pref, site
 
 if typing.TYPE_CHECKING:
     from web.template import TemplateResult
@@ -213,7 +212,7 @@ class AbstractBookProvider[TProviderMetadata]:
         return self.identifier_key or self.short_name
 
     def get_olids(self, identifier: str) -> list[str]:
-        return web.ctx.site.things({"type": "/type/edition", self.db_selector: identifier})
+        return site.get().things({"type": "/type/edition", self.db_selector: identifier})
 
     @property
     def editions_query(self):

@@ -16,9 +16,8 @@ Each waiting instance is represented as a document in the store as follows:
 import datetime as dt
 import logging
 
-import web
-
 from openlibrary.accounts.model import OpenLibraryAccount
+from openlibrary.utils.request_context import site
 
 from . import helpers as h
 from . import lending
@@ -29,11 +28,11 @@ _wl_api = lending.ia_lending_api
 
 
 def _get_book(identifier: str):
-    if keys := web.ctx.site.things({"type": "/type/edition", "ocaid": identifier}):
-        return web.ctx.site.get(keys[0])
+    if keys := site.get().things({"type": "/type/edition", "ocaid": identifier}):
+        return site.get().get(keys[0])
     else:
         key = "/books/ia:" + identifier
-        return web.ctx.site.get(key)
+        return site.get().get(key)
 
 
 class WaitingLoan(dict):
@@ -55,7 +54,7 @@ class WaitingLoan(dict):
 
     def get_user(self):
         user_key = self.get_user_key()
-        return user_key and web.ctx.site.get(user_key)
+        return user_key and site.get().get(user_key)
 
     def get_position(self) -> int:
         return self["position"]
@@ -144,7 +143,7 @@ def get_waitinglist_for_book(book_key: str) -> list[WaitingLoan]:
 
     This is an admin-only feature. It works only if the current user is an admin.
     """
-    book = web.ctx.site.get(book_key)
+    book = site.get().get(book_key)
     if book and book.ocaid:
         return WaitingLoan.query(identifier=book.ocaid)
     else:

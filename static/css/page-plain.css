@@ -57,7 +57,7 @@ div.nav {
 .borrow-table table th.expires {
   font-family: var(--font-family-body);
   color: var(--color-text-heading);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   font-size: 0.6875em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -66,7 +66,7 @@ div.nav {
 .borrow-table table th.titles {
   font-family: var(--font-family-body);
   color: var(--teal);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-body-xlarge);
 }
 
@@ -78,7 +78,7 @@ div.message {
     no-repeat 15px 50%;
 }
 div.message h2 {
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   font-size: var(--font-size-title-large);
   color: var(--black);
   margin: 0;
@@ -147,8 +147,8 @@ h1 {
 }
 
 .borrow span.book {
-  font-size: 1em;
-  font-weight: 700;
+  font-size: inherit;
+  font-weight: var(--font-weight-bold);
 }
 .borrow span.author {
   font-size: 0.875em;
@@ -164,7 +164,7 @@ h1 {
   color: var(--color-text-secondary);
 }
 .borrow span.expires {
-  font-size: 1em;
+  font-size: inherit;
 }
 .borrow table {
   border-bottom: none;

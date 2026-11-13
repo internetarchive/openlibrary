@@ -100,7 +100,7 @@ div.box {
 .dataTables_empty {
   text-align: center;
   font-size: var(--font-size-label-large);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   padding: var(--spacing-inset-md) 0;
   color: var(--red);
 }

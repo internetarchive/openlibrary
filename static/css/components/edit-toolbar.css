@@ -24,7 +24,7 @@ div#editInfo {
 
 div#editInfo > div {
   font-size: var(--font-size-label-small);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   color: var(--brown) !important;
   font-family: var(--font-family-body);
 }

@@ -2,16 +2,10 @@ name: python_tests
 on:
   push:
     branches: [master]
+  # No `paths-ignore:` filter here: python_tests is a required status check on master,
+  # and a workflow skipped by a trigger filter never reports, leaving the PR unmergeable.
   pull_request:
     branches: [master]
-    paths-ignore:
-      - '.github/workflows/javascript_tests.yml'
-      - 'vendor/js/**'
-      - 'package*.json'
-      - '**.js'
-      - '**.vue'
-      - '**.css'
-      - '**.md'
 permissions:
   contents: read
 

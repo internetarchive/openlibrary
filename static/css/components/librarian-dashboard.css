@@ -12,7 +12,7 @@ details.librarian-dashboard {
 
 .dq-table th {
   background: var(--white);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   text-align: center;
   padding: var(--spacing-inset-sm);
 }
@@ -35,7 +35,7 @@ details.librarian-dashboard {
 }
 
 .dq-table__row .dq-table__criterion-cell {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   width: 30%;
 }
 
