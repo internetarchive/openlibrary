@@ -2,10 +2,10 @@ name: python_tests
 on:
   push:
     branches: [master]
-  # No `paths-ignore:` filter here: python_tests is a required status check on master,
+  # No `branches:` or `paths-ignore:` filter here: python_tests is a required status check on master,
   # and a workflow skipped by a trigger filter never reports, leaving the PR unmergeable.
+  # That includes a stacked PR, which targets the branch of the PR below it.
   pull_request:
-    branches: [master]
 permissions:
   contents: read
 
@@ -21,32 +21,33 @@ jobs:
         with:
           submodules: true
           persist-credentials: false
+      # The runner image doesn't have this Python, so setup-python would download it (~10s).
+      # Cache the tool-cache entry it creates instead.
+      - name: Read the Python version
+        id: python
+        run: |
+          version=$(sed -nE 's/^requires-python = ">=([0-9.]+),.*/\1/p' pyproject.toml)
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "cache-key=python-$version-$ImageOS-$RUNNER_ARCH" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.tool_cache }}/Python/${{ steps.python.outputs.version }}
+          key: ${{ steps.python.outputs.cache-key }}
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: pyproject.toml
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-venv-${{ env.pythonLocation }}-${{ hashFiles('requirements*.txt') }}
-      - if: "contains(matrix.python-version, '-dev')"
-        run: |
-          sudo apt-get update
-          # https://lxml.de/installation.html#requirements
-          sudo apt-get install -y libxml2 libxslt-dev
+      # setup-uv prunes its cache to what's slow to rebuild: psycopg2 (built from source) and the git dependencies.
       - name: Install uv
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
-      - name: Install dependencies
+        with:
+          activate-environment: true
+          enable-cache: true
+          cache-dependency-glob: requirements*.txt
         env:
-          UV_SYSTEM_PYTHON: 1
+          UV_PYTHON_DOWNLOADS: never # build the venv from setup-python's Python
+      - name: Install dependencies
         run: |
-          # Try to upgrade pip, setuptools, and wheel
-          uv pip install --upgrade pip setuptools wheel || {
-            echo "pip is broken or missing, reinstalling..."
-            curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-            python get-pip.py
-            rm -f get-pip.py
-            uv pip install --upgrade pip setuptools wheel
-          }
           uv pip install -r requirements_test.txt
       - run: make git
       - name: Run make i18n
@@ -56,13 +57,19 @@ jobs:
       - name: Run tests
         run: |
           git fetch --no-tags --prune --depth=1 origin master
-          make test-py
-      - name: Run integration tests
-        timeout-minutes: 5
-        # ubuntu-latest has PostgreSQL pre-installed; pg_ctl is at
-        # /usr/lib/postgresql/*/bin/ (pytest-postgresql finds it via pg_config).
-        run: |
-          pytest -m integration openlibrary/tests/core/
+          # The integration tests mostly wait on PostgreSQL (pre-installed on the runner), so they run in the background.
+          timeout 300 pytest -m integration openlibrary/tests/core/ > integration.log 2>&1 &
+          integration_pid=$!
+          # One xdist worker per physical core of this 4-vCPU runner. 4 workers were slower: every worker repeats collection.
+          unit_status=0
+          make test-py PYTEST_ARGS=". --doctest-modules -n 2" || unit_status=$?
+          integration_status=0
+          wait $integration_pid || integration_status=$?
+          echo "::group::Integration tests (exit $integration_status)"
+          cat integration.log
+          echo "::endgroup::"
+          [ "$integration_status" -eq 0 ] || echo "::error::Integration tests failed (exit $integration_status); see the 'Integration tests' group above"
+          [ "$unit_status" -eq 0 ] && [ "$integration_status" -eq 0 ]
 
   # Runs the i18n checks against the .po files olbase will bake from openlibrary-i18n
   # (via the same script docker/Dockerfile.olbase runs), not the ones committed here.

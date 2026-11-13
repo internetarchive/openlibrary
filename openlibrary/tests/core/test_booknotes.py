@@ -149,14 +149,14 @@ class TestBooknotesIntegration:
     @pytest.mark.asyncio
     async def test_add_stamps_utc_timestamps(self, pg_db, monkeypatch):
         # Run the app and the DB session far from UTC so a local-time value would stand out.
-        monkeypatch.setenv("TZ", "Pacific/Kiritimati")  # UTC+14
-        monkeypatch.setenv("PGTZ", "Pacific/Kiritimati")  # libpq sets the session TimeZone from this
-        time.tzset()
         try:
-            first = await Booknotes.add("alice", 1, "First note")
-            second = await Booknotes.add("alice", 1, "Second note")
+            with monkeypatch.context() as mp:
+                mp.setenv("TZ", "Pacific/Kiritimati")  # UTC+14
+                mp.setenv("PGTZ", "Pacific/Kiritimati")  # libpq sets the session TimeZone from this
+                time.tzset()
+                first = await Booknotes.add("alice", 1, "First note")
+                second = await Booknotes.add("alice", 1, "Second note")
         finally:
-            monkeypatch.undo()
             time.tzset()
 
         utc_now = datetime.now(UTC).replace(tzinfo=None)

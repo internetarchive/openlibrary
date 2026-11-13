@@ -20,23 +20,30 @@ def setup_db():
     """These tests have to run as the openlibrary user."""
     system("dropdb coverstore_test")
     system("createdb coverstore_test")
-    config.db_parameters = {
-        "dbn": "postgres",
-        "db": "coverstore_test",
-        "user": "openlibrary",
-        "pw": "",
-    }
-    db_schema = schema.get_schema("postgres")
-    db = web.database(**config.db_parameters)
-    db.query(db_schema)
-    db.insert("category", name="b")
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(
+            config,
+            "db_parameters",
+            {
+                "dbn": "postgres",
+                "db": "coverstore_test",
+                "user": "openlibrary",
+                "pw": "",
+            },
+            raising=False,
+        )
+        db_schema = schema.get_schema("postgres")
+        db = web.database(**config.db_parameters)
+        db.query(db_schema)
+        db.insert("category", name="b")
+        yield
 
 
 @pytest.fixture
-def image_dir(tmpdir):
+def image_dir(tmpdir, monkeypatch):
     tmpdir.mkdir("localdisk")
     tmpdir.mkdir("items")
-    config.data_root = str(tmpdir)
+    monkeypatch.setattr(config, "data_root", str(tmpdir))
 
 
 class Mock:

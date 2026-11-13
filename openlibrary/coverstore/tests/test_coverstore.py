@@ -16,7 +16,7 @@ image_formats = [
 
 
 @pytest.fixture
-def image_dir(tmpdir):
+def image_dir(tmpdir, monkeypatch):
     tmpdir.mkdir("localdisk")
     tmpdir.mkdir("items")
     tmpdir.mkdir("items", "covers_0000")
@@ -24,7 +24,7 @@ def image_dir(tmpdir):
     tmpdir.mkdir("items", "m_covers_0000")
     tmpdir.mkdir("items", "l_covers_0000")
 
-    config.data_root = str(tmpdir)
+    monkeypatch.setattr(config, "data_root", str(tmpdir))
 
 
 @pytest.mark.parametrize(("prefix", "path"), image_formats)

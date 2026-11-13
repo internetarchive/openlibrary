@@ -1,13 +1,5 @@
 """pytest configuration for openlibrary"""
 
-import os
-
-# Tests must behave the same in the dev container as in CI, so drop the
-# deployment flags compose sets before anything reads them (some modules do at
-# import time). A test that needs dev-mode behaviour uses the local_dev fixture.
-os.environ.pop("LOCAL_DEV", None)
-os.environ.pop("OL_DEPLOYMENT_NAME", None)
-
 import pytest
 import web
 
@@ -68,7 +60,7 @@ def no_sleep(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def setup_db_config():
+def setup_db_config(monkeypatch):
     """
     Set up empty database configuration for all tests to prevent db_parameters errors.
 
@@ -78,11 +70,11 @@ def setup_db_config():
     missing or incorrect database parameters when initializing site.
     """
     # Set web.config.db_parameters for OLConnection
-    web.config.db_parameters = {}
+    monkeypatch.setitem(web.config, "db_parameters", {})
 
     # Set infobase_parameters to use local connection instead of OLConnection
     # This prevents the database configuration error when tests run
-    config.infobase_parameters = {"type": "local"}
+    monkeypatch.setattr(config, "infobase_parameters", {"type": "local"}, raising=False)
 
 
 @pytest.fixture
