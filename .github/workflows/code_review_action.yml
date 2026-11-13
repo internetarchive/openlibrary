@@ -218,9 +218,11 @@ concurrency:
   # `status` job posts, the next run sees "already reviewed H" -> skips -> the status job never runs
   # -> H gets NO `code-review` status -> unmergeable until a new head is pushed (on a fork, until a
   # maintainer re-requests). With FALSE, the in-flight run always completes (review AND status); a
-  # second trigger QUEUES and then runs -- and on the SAME head it is cheap (the range step returns
-  # "already reviewed this SHA" and skips the model), so the common opened + auto_assign
-  # review_requested bounce costs one review, not two. The only cost of FALSE is an occasional wasted
+  # second trigger QUEUES and then runs -- and on the SAME head it is USUALLY cheap: the range step
+  # returns "already reviewed this SHA" (keyed on our prior review existing on that head) and skips
+  # the model, so the common opened + auto_assign review_requested bounce costs one review, not two.
+  # (Edge: a prior run that WITHHELD posts no review, so a same-head re-trigger there re-runs the
+  # model -- rare, and that trigger is authorized/same-repo.) The only cost of FALSE is an occasional wasted
   # review when a NEW head arrives mid-review (the old head is reviewed to completion first); that is
   # bounded by the `if` below (forks don't auto-review; external authors can't request a reviewer)
   # and is a deliberate trade for never stranding a required status. A superseded head's status is
