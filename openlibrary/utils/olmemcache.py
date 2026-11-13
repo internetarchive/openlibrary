@@ -4,6 +4,7 @@ import memcache
 import web
 
 from openlibrary.utils.olcompress import OLCompressor
+from openlibrary.utils.saturation_metrics import MEMCACHE_CALL
 
 
 class Client:
@@ -19,7 +20,8 @@ class Client:
 
     def get(self, key):
         try:
-            value = self._client.get(web.safestr(key))
+            with MEMCACHE_CALL.labels("get").time():
+                value = self._client.get(web.safestr(key))
         except memcache.Client.MemcachedKeyError:
             return None
 
@@ -27,23 +29,31 @@ class Client:
 
     def get_multi(self, keys):
         keys = [web.safestr(k) for k in keys]
-        d = self._client.get_multi(keys)
+        with MEMCACHE_CALL.labels("get_multi").time():
+            d = self._client.get_multi(keys)
         return {str(k): self.decompress(v) for k, v in d.items()}
 
     def set(self, key, val, time=0):
-        return self._client.set(web.safestr(key), self.compress(val), time=time)
+        val = self.compress(val)
+        with MEMCACHE_CALL.labels("set").time():
+            return self._client.set(web.safestr(key), val, time=time)
 
     def set_multi(self, mapping, time=0):
         mapping = {web.safestr(k): self.compress(v) for k, v in mapping.items()}
-        return self._client.set_multi(mapping, time=time)
+        with MEMCACHE_CALL.labels("set_multi").time():
+            return self._client.set_multi(mapping, time=time)
 
     def add(self, key, val, time=0):
-        return self._client.add(web.safestr(key), self.compress(val), time=time)
+        val = self.compress(val)
+        with MEMCACHE_CALL.labels("add").time():
+            return self._client.add(web.safestr(key), val, time=time)
 
     def delete(self, key):
         key = web.safestr(key)
-        return self._client.delete(key)
+        with MEMCACHE_CALL.labels("delete").time():
+            return self._client.delete(key)
 
     def delete_multi(self, keys, time=0):
         keys = [web.safestr(k) for k in keys]
-        return self._client.delete_multi(keys, time=time)
+        with MEMCACHE_CALL.labels("delete_multi").time():
+            return self._client.delete_multi(keys, time=time)

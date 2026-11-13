@@ -20,7 +20,7 @@ from openlibrary.core.env import get_deployment_name, get_ol_env
 from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.fastapi.middleware.server_timing import add_server_timing
-from openlibrary.utils import prometheus, prometheus_multiprocess, server_timing
+from openlibrary.utils import prometheus, prometheus_multiprocess, saturation_metrics, server_timing
 from openlibrary.utils.legacy_db import install_connection_recovery
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
@@ -197,7 +197,8 @@ async def lifespan(app: FastAPI):
 
     await init_pool()
     try:
-        yield
+        async with saturation_metrics.sampling():
+            yield
     finally:
         await close_pool()
 
@@ -273,6 +274,7 @@ def create_app() -> FastAPI | None:
         excluded_handlers=list(prometheus.EXCLUDED_HANDLERS),
     ).add(prometheus.request_metrics("fastapi")).instrument(app)
     prometheus_multiprocess.expose(app)
+    app.add_middleware(saturation_metrics.InFlightMiddleware)
 
     @app.middleware("http")
     async def set_context(request: Request, call_next):
