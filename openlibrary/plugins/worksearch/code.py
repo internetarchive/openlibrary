@@ -457,9 +457,9 @@ def _prepare_solr_query_params(  # noqa: PLR0912
             params.append(("fq", rewrite() if callable(rewrite) else rewrite))
 
     for field in facet_params:
+        values = param[field]
         if field == "author_facet":
             field = "author_key"
-        values = param[field]
         if isinstance(values, str):
             values = [values]
         non_empty = [val for val in values if val]
