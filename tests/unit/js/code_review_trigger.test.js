@@ -41,7 +41,17 @@ function toJs(expr) {
     return expr.replace(/!=|==/g, m => (m === '!=' ? '!==' : '==='));
 }
 function evalIf(expr, github) {
-    const contains = (a, b) => (Array.isArray(a) ? a.includes(b) : String(a ?? '').includes(b));
+    // GitHub Actions `contains()` is case-INSENSITIVE for both substring and array membership
+    // (docs: "Casing is ignored."); mirror that so the harness cannot green a guard that would
+    // behave differently in prod on a case-variant login or @-mention.
+    const contains = (a, b) => {
+        const needle = String(b ?? '').toLowerCase();
+        return Array.isArray(a)
+            ? a.some(x => String(x ?? '').toLowerCase() === needle)
+            : String(a ?? '')
+                  .toLowerCase()
+                  .includes(needle);
+    };
     const fromJSON = s => JSON.parse(s);
     // eslint-disable-next-line no-new-func
     return new Function('github', 'contains', 'fromJSON', `return (${toJs(expr)});`)(github, contains, fromJSON);
@@ -80,6 +90,12 @@ test('if-evaluator transpiles == / != / contains faithfully (harness self-check)
     assert.equal(evalIf("github.event_name == 'x'", ctx({ event_name: 'y' })), false);
     assert.equal(evalIf("github.event.comment.user.login != 'openlibrary-bot'", ctx({ event: { comment: { user: { login: 'mek' } } } })), true);
     assert.equal(evalIf('contains(fromJSON(\'["a","b"]\'), github.event.comment.user.login)', ctx({ event: { comment: { user: { login: 'b' } } } })), true);
+    // contains() must be case-INSENSITIVE like GHA's, for both array membership and substring.
+    assert.equal(evalIf('contains(fromJSON(\'["a","b"]\'), github.event.comment.user.login)', ctx({ event: { comment: { user: { login: 'B' } } } })), true);
+    assert.equal(
+        evalIf("contains(github.event.comment.body, '@openlibrary-bot')", ctx({ event: { comment: { body: 'please @OpenLibrary-Bot review' } } })),
+        true
+    );
 });
 
 // ---- The model-run guard: single team-keyed path ----
