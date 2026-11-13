@@ -7,8 +7,8 @@ For setup instructions, see the [Quick Start](https://docs.openlibrary.org/devel
 ## How contributing works
 
 1. Find an unassigned issue
-2. Comment to describe your plan. For `Good First Issue`, say you are working on it; for other issues, request assignment.
-3. For `Good First Issue`, start without waiting (see [Good First Issues](#good-first-issues) for the courtesy rules). For other issues, wait for assignment.
+2. Comment to describe your plan and request assignment ([Good First Issues](#good-first-issues) work differently)
+3. Wait for assignment
 4. Complete the work and test it
 5. Open a self-contained PR
 6. Respond to review comments clearly
@@ -27,9 +27,7 @@ Our community thrives on mutual respect. Please consider others who may already 
 - **Give space for follow-through**: If an assigned issue has been inactive for 2 weeks, kindly ask whether it can be reassigned rather than assuming it's abandoned
 ### Requesting Issue Assignments
 
-For issues labelled `Good First Issue`, start without waiting for assignment and comment on the issue before you open your PR (see [Good First Issues](#good-first-issues) below). The bot assigns you when you open a PR that closes the issue. Leads do not assign these issues by hand.
-
-For all other issues, please **request assignment** before starting work. Our maintainers triage issues weekly (or immediately for high-priority items) to ensure your contribution aligns with current priorities and prevent duplicate effort.
+`Good First Issue`s don't need assignment; see [Good First Issues](#good-first-issues) below. For all other issues, please **request assignment** before starting work. Our maintainers triage issues weekly (or immediately for high-priority items) to ensure your contribution aligns with current priorities and prevent duplicate effort.
 
 When requesting assignment:
 

@@ -65,12 +65,7 @@ npm run watch               # Dev mode with hot reload
 
 ### Picking Up an Issue
 
-Agents opening PRs follow [`CONTRIBUTING.md`](CONTRIBUTING.md) like everyone else. Before starting work on an issue, read its comments and linked pull requests:
-
-- **Open PR already exists:** don't start; pick a different issue.
-- **Someone else said they're working on it:** give them a day to work on it. If there's still no PR after that, you can take it on.
-- **`Good First Issue`:** comment on the issue before you open the PR (ideally when you start, so others know it's being worked on), or the bot closes the PR. Use a closing reference (`Closes #123`) so the bot can assign you. The issue goes to the first person who opens a ready (non-draft) PR after commenting, not to whoever commented first.
-- **Any other issue:** request assignment and wait for it.
+Agents opening PRs follow [`CONTRIBUTING.md`](CONTRIBUTING.md) like everyone else: read it before starting work on an issue, including the `Good First Issue` rules (the bot closes PRs from authors who haven't commented on the issue).
 
 ### Entry Points
 

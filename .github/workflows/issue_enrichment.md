@@ -218,7 +218,7 @@ Always end every comment with `<!-- ol-issue-bot -->`.
 
 **For an unassigned `Good First Issue`**, include this guidance when applying or retaining the label:
 
-> To work on this Good First Issue, check the comments and linked pull requests first: if there's already an open PR, please pick a different issue, and if someone else has said they're working on it, give them a day to work on it first (if there's still no PR after that, it's fine for you to take it on too). Leave a comment here before you open your PR, ideally when you start, so others know it's being worked on. No assignment or approval is needed: open a PR with a closing reference to this issue and the bot will assign you automatically. If you skip the comment, the bot closes the PR with recovery instructions. Leads do not assign Good First Issues by hand.
+> No assignment is needed for this Good First Issue. Before you start, read [how to pick up a Good First Issue](https://docs.openlibrary.org/developers/CONTRIBUTING.html#good-first-issues), and leave a comment here before you open your PR.
 
 **Opening line** (non-staff authors only — omit for staff):
 
