@@ -367,7 +367,7 @@ describe('entry script pr_checks.mjs (offline dry-run IO path)', () => {
         try {
             const stdout = execFileSync(process.execPath, [script], {
                 // Scrub any ambient PAT so the test is hermetic and offline.
-                env: { ...process.env, OL_BOT_STATUS_PAT: '', HEAD_SHA: '', ...env },
+                env: { ...process.env, OL_BOT_COMMIT_STATUS_PAT: '', HEAD_SHA: '', ...env },
                 encoding: 'utf8'
             });
             return { code: 0, stdout };
@@ -400,7 +400,7 @@ describe('entry script pr_checks.mjs (offline dry-run IO path)', () => {
         // closed local port so every POST fails fast and offline; body references no
         // issue so there is no label fetch. Every post fails -> non-zero exit surfaces it.
         const { code, stdout } = run({
-            OL_BOT_STATUS_PAT: 'dummy-token',
+            OL_BOT_COMMIT_STATUS_PAT: 'dummy-token',
             HEAD_SHA: 'deadbeef',
             GITHUB_API_URL: 'http://127.0.0.1:1',
             PR_AUTHOR: 'external-dev',

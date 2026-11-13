@@ -28,7 +28,7 @@ name: pr_checks
 # auto_assign_reviewer.yml / new_pr_labeler.yml; keep zizmor green and it polices
 # the footgun.
 #
-# The statuses are posted via OL_BOT_STATUS_PAT (a `statuses:write` token for
+# The statuses are posted via OL_BOT_COMMIT_STATUS_PAT (a `statuses:write` token for
 # @openlibrary-bot -- see #14455) rather than GITHUB_TOKEN, so the check author is
 # openlibrary-bot. While that secret is unset the job runs in dry-run: it computes
 # and logs the five statuses but posts nothing, and never fails.
@@ -49,7 +49,7 @@ on:  # zizmor: ignore[dangerous-triggers] -- safe: checks out only the trusted b
       - unlabeled
 
 permissions:
-  contents: read  # statuses are posted via OL_BOT_STATUS_PAT, not GITHUB_TOKEN
+  contents: read  # statuses are posted via OL_BOT_COMMIT_STATUS_PAT, not GITHUB_TOKEN
 
 concurrency:
   group: pr-checks-${{ github.event.pull_request.number }}
@@ -82,4 +82,4 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           # statuses:write token for @openlibrary-bot (#14455). Unset -> dry-run.
-          OL_BOT_STATUS_PAT: ${{ secrets.OL_BOT_STATUS_PAT }}
+          OL_BOT_COMMIT_STATUS_PAT: ${{ secrets.OL_BOT_COMMIT_STATUS_PAT }}

@@ -23,7 +23,7 @@
  *   PR_NUMBER          the pull request number (for logging)
  *   HEAD_SHA           the PR head commit SHA to bind the statuses to
  *   GITHUB_REPOSITORY  `owner/name`
- *   OL_BOT_STATUS_PAT  a token with `statuses:write` (see #14455). Absent -> the
+ *   OL_BOT_COMMIT_STATUS_PAT  a token with `statuses:write` (see #14455). Absent -> the
  *                      script runs in dry-run: it computes and prints the statuses
  *                      but posts nothing (the expected interim before the PAT is
  *                      minted, and what the offline unit test exercises).
@@ -44,7 +44,7 @@ async function main() {
     const prNumber = process.env.PR_NUMBER ?? '?';
     const headSha = process.env.HEAD_SHA ?? '';
     const repo = process.env.GITHUB_REPOSITORY || DEFAULT_REPO;
-    const token = process.env.OL_BOT_STATUS_PAT ?? '';
+    const token = process.env.OL_BOT_COMMIT_STATUS_PAT ?? '';
     const labels = parseLabels(process.env.PR_LABELS);
     const dryRun = token === '' || headSha === '';
 
@@ -75,7 +75,7 @@ async function main() {
     lines.push('');
     lines.push(
         dryRun
-            ? '_Dry-run: set `OL_BOT_STATUS_PAT` (statuses:write) to post these as commit statuses._'
+            ? '_Dry-run: set `OL_BOT_COMMIT_STATUS_PAT` (statuses:write) to post these as commit statuses._'
             : postFailures === 0
               ? '_Posted all checks as commit statuses on the PR HEAD._'
               : allPostsFailed
