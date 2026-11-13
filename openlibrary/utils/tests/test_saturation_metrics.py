@@ -2,7 +2,6 @@ import asyncio
 from unittest.mock import MagicMock
 
 import pytest
-import web
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from prometheus_client import REGISTRY
@@ -11,58 +10,36 @@ from openlibrary.utils import olmemcache, saturation_metrics
 
 
 def sample(name, labels=None):
-    return REGISTRY.get_sample_value(name, labels or {})
+    return REGISTRY.get_sample_value(name, labels or {}) or 0
 
 
-def test_fastapi_counts_requests_in_flight():
+def test_in_flight_counts_requests_until_they_end():
     seen = []
     app = FastAPI()
 
-    @app.get("/x")
-    async def x():
-        seen.append(sample("ol_http_requests_in_flight", {"app": "fastapi"}))
+    @app.get("/ok")
+    async def ok():
+        seen.append(sample("ol_http_requests_in_flight"))
         return {}
-
-    app.add_middleware(saturation_metrics.InFlightMiddleware)
-    before = sample("ol_http_requests_in_flight", {"app": "fastapi"}) or 0
-    assert TestClient(app).get("/x").status_code == 200
-    assert seen == [before + 1]
-    assert sample("ol_http_requests_in_flight", {"app": "fastapi"}) == before
-
-
-def test_fastapi_in_flight_drops_when_the_handler_fails():
-    app = FastAPI()
 
     @app.get("/boom")
     async def boom():
         raise RuntimeError("boom")
 
     app.add_middleware(saturation_metrics.InFlightMiddleware)
-    before = sample("ol_http_requests_in_flight", {"app": "fastapi"}) or 0
+    client = TestClient(app)
+    before = sample("ol_http_requests_in_flight")
+    assert client.get("/ok").status_code == 200
     with pytest.raises(RuntimeError):
-        TestClient(app).get("/boom")
-    assert sample("ol_http_requests_in_flight", {"app": "fastapi"}) == before
-
-
-def test_webpy_counts_requests_in_flight():
-    seen = []
-
-    class thing:
-        def GET(self):
-            seen.append(sample("ol_http_requests_in_flight", {"app": "webpy"}))
-            raise web.notfound()
-
-    app = web.application(("/thing", "thing"), {"thing": thing})
-    saturation_metrics.instrument_webpy(app)
-    before = sample("ol_http_requests_in_flight", {"app": "webpy"}) or 0
-    app.request("/thing")
+        client.get("/boom")
     assert seen == [before + 1]
-    assert sample("ol_http_requests_in_flight", {"app": "webpy"}) == before
+    assert sample("ol_http_requests_in_flight") == before
 
 
-def test_sample_once_records_pools(monkeypatch):
+def test_sample_pools(monkeypatch):
     monkeypatch.setattr(saturation_metrics.anyio.to_thread, "current_default_thread_limiter", lambda: MagicMock(borrowed_tokens=3))
-    saturation_metrics.sample_once({"requests_waiting": 4, "pool_size": 2, "pool_available": 1})
+    monkeypatch.setattr(saturation_metrics.async_db, "pool_stats", lambda: {"requests_waiting": 4, "pool_size": 2, "pool_available": 1})
+    saturation_metrics.sample_pools()
     assert sample("ol_threadpool_in_use") == 3
     assert sample("ol_async_db_pool_requests_waiting") == 4
     assert sample("ol_async_db_pool_size") == 2
@@ -71,19 +48,19 @@ def test_sample_once_records_pools(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_sampling_records_event_loop_lag():
-    before = sample("ol_event_loop_lag_seconds_count") or 0
+    before = sample("ol_event_loop_lag_seconds_count")
     async with saturation_metrics.sampling():
         await asyncio.sleep(saturation_metrics.SAMPLE_INTERVAL * 3)
-    assert sample("ol_event_loop_lag_seconds_count") >= before + 1
+    assert sample("ol_event_loop_lag_seconds_count") > before
 
 
-def test_memcache_calls_are_timed(monkeypatch):
+def test_memcache_calls_are_timed():
     client = olmemcache.Client.__new__(olmemcache.Client)
     client._client = MagicMock()
     client._client.get.return_value = None
-    client.compress = client.decompress = lambda v: v
-    before = sample("ol_memcache_call_seconds_count", {"op": "get"}) or 0
+    client.compress = lambda v: v
+    before = sample("ol_memcache_call_seconds_count", {"op": "get"}), sample("ol_memcache_call_seconds_count", {"op": "set"})
     assert client.get("k") is None
     client.set("k", "v")
-    assert sample("ol_memcache_call_seconds_count", {"op": "get"}) == before + 1
-    assert sample("ol_memcache_call_seconds_count", {"op": "set"}) >= 1
+    after = sample("ol_memcache_call_seconds_count", {"op": "get"}), sample("ol_memcache_call_seconds_count", {"op": "set"})
+    assert after == (before[0] + 1, before[1] + 1)

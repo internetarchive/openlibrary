@@ -38,7 +38,6 @@ from starlette.responses import Response
 
 from infogami.utils import app as infogami_app
 from infogami.utils import types
-from openlibrary.utils import saturation_metrics
 from openlibrary.utils.prometheus_multiprocess import metrics_registry
 from openlibrary.utils.request_context import visitor
 from openlibrary.utils.sentry import InfogamiRoute, find_infogami_route
@@ -415,7 +414,6 @@ def instrument_webpy(app: web.application, wsgi_app):
 
     Only call this in the web.py server: FastAPI loads the web.py app too, and records its own metrics.
     """
-    saturation_metrics.instrument_webpy(app)
     if instrumentation := request_metrics("webpy"):
         app.processors.insert(0, WebPyPrometheusProcessor(instrumentation))
         app.add_processor(web.loadhook(capture_infogami_route))

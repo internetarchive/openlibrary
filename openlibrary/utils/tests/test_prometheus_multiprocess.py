@@ -65,9 +65,11 @@ def test_merge_dead_worker_keeps_totals(metrics_dir, monkeypatch):
 def test_merge_dead_worker_leaves_gauges(metrics_dir, monkeypatch):
     monkeypatch.setattr(values, "ValueClass", values.MultiProcessValue(lambda: 1))
     Gauge("in_progress", "In progress", multiprocess_mode="all", registry=None).set(1)
+    Gauge("in_flight", "In flight", multiprocess_mode="livesum", registry=None).set(1)
 
     merge_dead_worker(str(metrics_dir), 1)
     assert (metrics_dir / "gauge_all_1.db").exists()
+    assert not (metrics_dir / "gauge_livesum_1.db").exists()  # a live gauge counts only live workers
     assert not (metrics_dir / "gauge_archive.db").exists()
 
 
