@@ -42,6 +42,9 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const prNumber = context.payload.pull_request.number;
+            // Keep this slug in sync with the requested_team.slug guard in code_review_action.yml
+            // (a unit test pins them equal). The team must be a repo collaborator with >=read access,
+            // or the default GITHUB_TOKEN cannot resolve/request it -- the GET-verify below catches that.
             const TEAM = 'openlibrary-agentic-code-reviewer';
 
             const { data: requested } = await github.rest.pulls.listRequestedReviewers({
@@ -64,4 +67,22 @@ jobs:
               owner, repo, pull_number: prNumber,
               team_reviewers: [TEAM],
             });
+
+            // Verify the request actually took. requestReviewers can return 200/201 yet leave
+            // requested_reviewers EMPTY -- neither 422 nor 404 (documented in this repo at
+            // pr_autoresponder.md:72). For a TEAM request that silent no-op is the EXPECTED failure
+            // when the default (repo-scoped) GITHUB_TOKEN cannot resolve the org team, so a success
+            // log here would hide a dead same-repo auto-review path. Re-GET and assert the team is
+            // present; fail loudly (not a false info) if it is not.
+            const { data: after } = await github.rest.pulls.listRequestedReviewers({
+              owner, repo, pull_number: prNumber,
+            });
+            if (!(after.teams || []).some((t) => t.slug === TEAM)) {
+              core.setFailed(
+                `Requested the ${TEAM} team on PR #${prNumber} but it is absent on a follow-up read -- ` +
+                `the request silently no-opped. The default GITHUB_TOKEN likely cannot resolve the org ` +
+                `team; auto_assign needs a token with org read (a PAT) to request it.`
+              );
+              return;
+            }
             core.info(`Requested the ${TEAM} team as reviewer on PR #${prNumber}.`);
