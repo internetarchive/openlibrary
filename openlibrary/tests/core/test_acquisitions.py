@@ -29,11 +29,12 @@ SEED: Final = [
 
 @pytest.fixture(scope="module")
 def setup_db():
-    web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
-    db = get_db()
-    db.query(ACQUISITIONS_DDL)
-    yield db
-    db.query("delete from acquisitions;")
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setitem(web.config, "db_parameters", {"dbn": "sqlite", "db": ":memory:"})
+        db = get_db()
+        db.query(ACQUISITIONS_DDL)
+        yield db
+        db.query("delete from acquisitions;")
 
 
 @pytest.fixture

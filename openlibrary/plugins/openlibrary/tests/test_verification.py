@@ -21,8 +21,8 @@ class TestCookieValidationProcessor:
         ctx.home = "http://localhost"
         monkeypatch.setattr(web, "ctx", ctx)
         monkeypatch.setattr(web.webapi, "ctx", ctx)
-        config.infobase = web.storage(secret_key="test-secret-key")
-        config.login_cookie_name = "session"
+        monkeypatch.setattr(config, "infobase", web.storage(secret_key="test-secret-key"), raising=False)
+        monkeypatch.setattr(config, "login_cookie_name", "session", raising=False)
         self._req_context_token = req_context.set(
             RequestContextVars(
                 x_forwarded_for=None,

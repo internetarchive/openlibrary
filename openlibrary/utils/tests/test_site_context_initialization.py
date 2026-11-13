@@ -191,6 +191,7 @@ def test_affiliate_worker_initializes_context(monkeypatch):
         raise StopWorker
 
     monkeypatch.setattr(affiliate_server.time, "time", stop)
+    monkeypatch.setattr(affiliate_server.stats, "client", affiliate_server.stats.client)  # amazon_lookup() replaces it
 
     def run():
         with suppress(StopWorker):
