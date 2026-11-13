@@ -27,6 +27,10 @@ $ lists = page.get_lists(limit=3)
     $elif ctx.user and ctx.user.is_admin():
         &bull;
         <span class="adminOnly"><a href="/admin$page.key">$_('admin page')</a></span>
+        $ account = page.get_account();
+        $if account and account.is_blocked():
+            &bull;
+            <span class="adminOnly"><a>$_('Blocked')</a></span>
     $if lists:
         &bull;
         <a href="$homepath()$page.key/lists">$_("Lists")</a>
