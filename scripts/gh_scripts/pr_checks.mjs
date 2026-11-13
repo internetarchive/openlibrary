@@ -36,6 +36,12 @@ import { buildStatuses, resolveIssueNumber, DEFAULT_REPO } from './pr_checks_cor
 // host on GHES); honor it rather than hard-coding the host.
 const API_BASE = process.env.GITHUB_API_URL || 'https://api.github.com';
 
+// Bound every outbound call so a slow/hung GitHub (or GHES) response fails fast
+// into the existing catch/!res.ok handling instead of stalling the step until the
+// job-level timeout -- the statuses post sequentially, so one hang would block the
+// rest. 10s is generous for a single issues/statuses call.
+const FETCH_TIMEOUT_MS = 10_000;
+
 main();
 
 async function main() {
@@ -128,7 +134,8 @@ async function fetchIssueLabels(repo, number, token) {
                 Accept: 'application/vnd.github+json',
                 'User-Agent': 'ol-pr-checks',
                 'X-GitHub-Api-Version': '2022-11-28'
-            }
+            },
+            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
         });
         if (res.status === 404) {
             return { kind: 'none' };
@@ -162,7 +169,8 @@ async function postStatus({ repo, sha, token, targetUrl, context, state, descrip
                 'User-Agent': 'ol-pr-checks',
                 'X-GitHub-Api-Version': '2022-11-28'
             },
-            body: JSON.stringify({ state, context, description, ...(targetUrl ? { target_url: targetUrl } : {}) })
+            body: JSON.stringify({ state, context, description, ...(targetUrl ? { target_url: targetUrl } : {}) }),
+            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
         });
         if (!res.ok) {
             console.log(`Failed to post ${context}: ${res.status} ${await res.text()}`);
