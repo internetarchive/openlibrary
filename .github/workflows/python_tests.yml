@@ -2,10 +2,10 @@ name: python_tests
 on:
   push:
     branches: [master]
-  # No `paths-ignore:` filter here: python_tests is a required status check on master,
+  # No `branches:` or `paths-ignore:` filter here: python_tests is a required status check on master,
   # and a workflow skipped by a trigger filter never reports, leaving the PR unmergeable.
+  # That includes a stacked PR, which targets the branch of the PR below it.
   pull_request:
-    branches: [master]
 permissions:
   contents: read
 
