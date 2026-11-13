@@ -1,287 +1,170 @@
 #!/usr/bin/env bash
 #
-# Unit tests for scripts/e2e/run-e2e.sh — the deterministic e2e entrypoint.
+# test_run_e2e.sh — unit tests for scripts/e2e/run-e2e.sh, the RUN execution core.
 #
-# These exercise the DETERMINISTIC mechanics (idempotency, the pending post, the
-# terminal-status EXIT trap, label-clear, sha-pinning) with NO real GitHub and NO
-# real docker:
+# The RUN job holds no GitHub token: its only observable is the RESULT ARTIFACT
+# it writes. These tests assert on that artifact (via jq), with no real GitHub,
+# docker, or git — the e2e step, the sha check, and the changed-paths source are
+# all driven through seams.
 #
-#   * `gh` is replaced by a mock on PATH that records every call to a log file and
-#     emits canned commit-status output (controlled by $MOCK_STATUSES).
-#   * the heavy e2e step (docker up + playwright) is replaced via the script's
-#     $E2E_CMD seam, so a test can make the run pass, fail, or kill itself mid-run.
-#   * the worktree add is replaced via the $WORKTREE_ADD_CMD seam.
-#
-# Run: bash scripts/e2e/test_run_e2e.sh
-# Exit 0 = all pass. No arguments.
+# Covers wally's prove-the-test-fails requirements:
+#   (a) a crash / external kill mid-run still yields a `failure` artifact.
+#   (c) the unsafe-path denylist yields `failure` WITHOUT executing the harness.
 
+# SC2015: `[[ cond ]] && ok || bad` is intentional — ok/bad always return 0, so
+# the `bad` branch never runs when the condition holds. SC1090: the guard test
+# sources the script by a computed path on purpose.
+# shellcheck disable=SC2015,SC1090
 set -uo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RUN_E2E="$SCRIPT_DIR/run-e2e.sh"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+RUN="$HERE/run-e2e.sh"
+GOODSHA="abcdef0123456789abcdef0123456789abcdef01"
+TESTDIR=""
 
-PASS=0
-FAIL=0
-FAILED_NAMES=()
+pass=0; fail=0
+ok()  { printf '  ok   %s\n' "$1"; pass=$((pass+1)); }
+bad() { printf '  FAIL %s\n     %s\n' "$1" "${2:-}"; fail=$((fail+1)); }
 
-# --- tiny assertion helpers -------------------------------------------------
-_ok()   { PASS=$((PASS + 1)); printf '  ok   %s\n' "$1"; }
-_fail() { FAIL=$((FAIL + 1)); FAILED_NAMES+=("$1"); printf '  FAIL %s\n     %s\n' "$1" "${2:-}"; }
+setup() { TESTDIR="$(mktemp -d)"; }
+teardown() { [[ -n "$TESTDIR" && -d "$TESTDIR" ]] && rm -rf "$TESTDIR"; }
 
-assert_eq() { # name expected actual
-  if [[ "$2" == "$3" ]]; then _ok "$1"; else _fail "$1" "expected [$2] got [$3]"; fi
-}
-assert_contains() { # name haystack-file needle
-  if grep -Fq -e "$3" "$2"; then _ok "$1"; else _fail "$1" "expected to find [$3] in $2"; fi
-}
-assert_not_contains() { # name haystack-file needle
-  if grep -Fq -e "$3" "$2"; then _fail "$1" "did NOT expect [$3] in $2"; else _ok "$1"; fi
-}
+# Field from the result artifact, or "" if the file is missing. No `// empty`:
+# that would turn a boolean `false` (e.g. .ran) into "" since `//` treats false
+# as empty. An absent field prints "null", which simply won't match assertions.
+rf() { [[ -f "$TESTDIR/result.json" ]] && jq -r "$1" "$TESTDIR/result.json" 2>/dev/null || true; }
 
-# --- per-test sandbox -------------------------------------------------------
-# Builds a throwaway dir with a mock `gh` on PATH and returns env for a run.
-# Sets globals: TESTDIR, GH_CALLS, and prepends the mock to PATH.
-new_sandbox() {
-  TESTDIR="$(mktemp -d)"
-  GH_CALLS="$TESTDIR/gh_calls.log"
-  : > "$GH_CALLS"
-  mkdir -p "$TESTDIR/bin"
-  cat > "$TESTDIR/bin/gh" <<'MOCK'
-#!/usr/bin/env bash
-# Mock gh: record the call, emit canned status contexts for the idempotency GET.
-echo "$*" >> "$GH_CALLS"
-# The idempotency check asks for commit statuses and filters with --jq
-# '.[].context'; emit one context per line from $MOCK_STATUSES (space/newline
-# separated). The script does the exact-match itself, so a dumb echo is enough.
-case "$*" in
-  *state=pending*)
-    # Simulate an orchestrator SIGTERM landing WHILE the pending POST is the
-    # running foreground gh child (the window finding #1 is about). We've
-    # already logged the call above; now deliver the signal to the script.
-    if [[ "${MOCK_KILL_ON_PENDING:-}" == "1" ]]; then
-      kill -TERM "$PPID" 2>/dev/null
-    fi
-    ;;
-  *state=success*|*state=failure*)
-    # Simulate a HUNG terminal gh post: finalize ignores TERM/INT, so without a
-    # hard bound this would wedge the script at pending forever.
-    if [[ -n "${MOCK_HANG_TERMINAL:-}" ]]; then
-      sleep "${MOCK_HANG_TERMINAL}"
-    fi
-    ;;
-  *"/statuses"*)
-    # idempotency GET (commit statuses history): emit canned contexts
-    if [[ -n "${MOCK_STATUSES:-}" ]]; then
-      printf '%s\n' $MOCK_STATUSES
-    fi
-    ;;
-  *"/status"*)
-    # combined-status GET for the code-review precondition: emit the review
-    # state. Default success so existing tests proceed; override to "" (absent)
-    # or "failure" to exercise the stale-trigger no-op.
-    printf '%s\n' "${MOCK_REVIEW_STATE-success}"
-    ;;
-esac
-exit "${MOCK_GH_EXIT:-0}"
-MOCK
-  chmod +x "$TESTDIR/bin/gh"
-  export GH_CALLS
-  export PATH="$TESTDIR/bin:$PATH"
-}
-
-drop_sandbox() {
-  [[ -n "${TESTDIR:-}" && -d "$TESTDIR" ]] && rm -rf "$TESTDIR"
-  # restore PATH (strip the one entry we prepended)
-  export PATH="${PATH#"$TESTDIR/bin:"}"
-}
-
-# Run the entrypoint with a given env; capture exit code into RC.
-# Usage: run_entry VAR=val VAR2=val2 ...
+# Run the entrypoint with safe defaults; extra VAR=val args override.
+# Default: sha check skipped, a trivially-safe changed path, result in TESTDIR.
 run_entry() {
-  local env=()
-  for kv in "$@"; do env+=("$kv"); done
-  env \
-    PR_NUMBER="${PR_NUMBER:-4242}" \
-    REPO="${REPO:-internetarchive/openlibrary}" \
-    HEAD_SHA="${HEAD_SHA:-deadbeefdeadbeefdeadbeefdeadbeefdeadbeef}" \
-    STATUS_CONTEXT="${STATUS_CONTEXT:-check/tested-e2e}" \
-    LABEL="${LABEL:-Needs: e2e testing}" \
-    GH_CALLS="$GH_CALLS" \
-    "${env[@]}" \
-    bash "$RUN_E2E" >"$TESTDIR/out.log" 2>&1
+  env PR_NUMBER=4242 HEAD_SHA="$GOODSHA" \
+      RESULT_FILE="$TESTDIR/result.json" \
+      SKIP_SHA_VERIFY=1 CHANGED_PATHS="openlibrary/app.py" \
+      "$@" bash "$RUN" >"$TESTDIR/out.log" 2>&1
   RC=$?
 }
 
-# ===========================================================================
 echo "test_run_e2e.sh"
 
-# --- 1. idempotency: context already present => no-op exit 0, no new writes --
-new_sandbox
-run_entry MOCK_STATUSES="check/tested-e2e" \
-          E2E_CMD="echo SHOULD_NOT_RUN" \
-          WORKTREE_ADD_CMD="echo SHOULD_NOT_RUN"
-assert_eq   "idempotent: exits 0 when status present" 0 "$RC"
-assert_not_contains "idempotent: does not re-post pending" "$GH_CALLS" "state=pending"
-assert_not_contains "idempotent: does not run e2e"         "$TESTDIR/out.log" "SHOULD_NOT_RUN"
-drop_sandbox
+# --- 1. happy path: safe diff + e2e passes => success artifact ---------------
+setup
+run_entry E2E_CMD="true"
+[[ $RC -eq 0 ]] && ok "pass: exit 0" || bad "pass: exit 0" "rc=$RC"
+[[ "$(rf .result)" == success ]] && ok "pass: result=success" || bad "pass: result=success" "$(cat "$TESTDIR/result.json" 2>/dev/null)"
+[[ "$(rf .ran)" == true ]] && ok "pass: ran=true" || bad "pass: ran=true"
+[[ "$(rf .pr)" == 4242 ]] && ok "pass: pr recorded" || bad "pass: pr"
+[[ "$(rf .head_sha)" == "$GOODSHA" ]] && ok "pass: head_sha recorded" || bad "pass: head_sha"
+teardown
 
-# --- 2. happy path: no status yet, e2e passes => pending then success --------
-new_sandbox
-run_entry MOCK_STATUSES="" \
-          E2E_CMD="true" \
-          WORKTREE_ADD_CMD="true"
-assert_eq   "pass: exit code mirrors success" 0 "$RC"
-assert_contains "pass: posts pending"   "$GH_CALLS" "state=pending"
-assert_contains "pass: posts success"   "$GH_CALLS" "state=success"
-assert_not_contains "pass: never posts failure" "$GH_CALLS" "state=failure"
-assert_contains "pass: clears the label" "$GH_CALLS" "--remove-label"
-drop_sandbox
+# --- 2. failure path: e2e exits non-zero => failure artifact, exit mirrors ---
+setup
+run_entry E2E_CMD="exit 7"
+[[ $RC -ne 0 ]] && ok "fail: non-zero exit" || bad "fail: non-zero exit" "rc=$RC"
+[[ "$(rf .result)" == failure ]] && ok "fail: result=failure" || bad "fail: result=failure"
+[[ "$(rf .ran)" == true ]] && ok "fail: ran=true" || bad "fail: ran=true"
+teardown
 
-# --- 3. failure path: e2e exits non-zero => pending then failure -------------
-new_sandbox
-run_entry MOCK_STATUSES="" \
-          E2E_CMD="exit 7" \
-          WORKTREE_ADD_CMD="true"
-assert_eq   "fail: exit code is non-zero" 1 "$RC"
-assert_contains "fail: posts pending" "$GH_CALLS" "state=pending"
-assert_contains "fail: posts failure" "$GH_CALLS" "state=failure"
-assert_not_contains "fail: never posts success" "$GH_CALLS" "state=success"
-assert_contains "fail: still clears the label" "$GH_CALLS" "--remove-label"
-drop_sandbox
-
-# --- 4. THE HARD ONE: killed mid-run (SIGTERM) => trap still posts failure ---
-#        Never leaves pending. This is the whole reason it is a script.
-#        Faithful simulation: launch the entrypoint in the background with an
-#        e2e step that blocks, wait until it has posted `pending`, then deliver
-#        an EXTERNAL SIGTERM mid-run (not a self-kill, which would race the
-#        RESULT=success assignment). The EXIT trap must still post `failure`.
-new_sandbox
-env PR_NUMBER=4242 REPO=internetarchive/openlibrary \
-    HEAD_SHA=deadbeefdeadbeefdeadbeefdeadbeefdeadbeef \
-    STATUS_CONTEXT=check/tested-e2e LABEL="Needs: e2e testing" \
-    GH_CALLS="$GH_CALLS" \
-    MOCK_STATUSES="" \
-    E2E_CMD='while true; do sleep 0.2; done' \
-    WORKTREE_ADD_CMD="true" \
-    bash "$RUN_E2E" >"$TESTDIR/out.log" 2>&1 &
+# --- 3. (a) killed mid-run (SIGTERM) => trap STILL writes failure ------------
+#        The whole reason this is a script. Launch it with an e2e step that
+#        signals it has started then blocks; once started, deliver an external
+#        SIGTERM; the EXIT trap must still write a `failure` artifact.
+setup
+STARTED="$TESTDIR/started"
+env PR_NUMBER=4242 HEAD_SHA="$GOODSHA" RESULT_FILE="$TESTDIR/result.json" \
+    SKIP_SHA_VERIFY=1 CHANGED_PATHS="openlibrary/app.py" \
+    E2E_CMD="touch '$STARTED'; while true; do sleep 0.2; done" \
+    bash "$RUN" >"$TESTDIR/out.log" 2>&1 &
 kpid=$!
-for _ in $(seq 1 100); do grep -Fq "state=pending" "$GH_CALLS" && break; sleep 0.1; done
+for _ in $(seq 1 100); do [[ -f "$STARTED" ]] && break; sleep 0.1; done
 kill -TERM "$kpid" 2>/dev/null
-wait "$kpid"; RC=$?
-assert_contains "sigterm: posted pending before dying" "$GH_CALLS" "state=pending"
-assert_contains "sigterm: EXIT trap posts failure"     "$GH_CALLS" "state=failure"
-assert_not_contains "sigterm: never leaves it at success" "$GH_CALLS" "state=success"
-# A terminal status must exist — the commit must never be left only-pending.
-if grep -Fq "state=failure" "$GH_CALLS"; then
-  _ok "sigterm: a terminal status was posted (not left pending)"
-else
-  _fail "sigterm: a terminal status was posted (not left pending)" "only pending in $GH_CALLS"
-fi
-if (( RC != 0 )); then _ok "sigterm: exit code is non-zero"; else _fail "sigterm: exit code is non-zero" "got 0"; fi
-drop_sandbox
+wait "$kpid" 2>/dev/null; krc=$?
+[[ -f "$TESTDIR/result.json" ]] && ok "sigterm: artifact written" || bad "sigterm: artifact written"
+[[ "$(rf .result)" == failure ]] && ok "sigterm: result=failure (never absent)" || bad "sigterm: result=failure"
+[[ "$(rf .reason)" == *abort* || "$(rf .reason)" == *SIG* ]] && ok "sigterm: reason notes the abort" || bad "sigterm: reason" "$(rf .reason)"
+[[ $krc -gt 128 ]] && ok "sigterm: exit code reflects the signal" || bad "sigterm: exit code" "krc=$krc"
+teardown
 
-# --- 4b. THE EVEN-HARDER ONE: SIGTERM lands DURING the pending POST ----------
-#        (the window where PENDING_POSTED may not be set yet). The mock gh kills
-#        the script the instant it posts `pending`. A terminal status must still
-#        be posted — the commit must never be left only-pending.
-new_sandbox
-run_entry MOCK_STATUSES="" \
-          MOCK_KILL_ON_PENDING="1" \
-          E2E_CMD="true" \
-          WORKTREE_ADD_CMD="true"
-assert_contains "kill-during-pending-post: pending was posted" "$GH_CALLS" "state=pending"
-assert_contains "kill-during-pending-post: terminal status STILL posted (not left pending)" "$GH_CALLS" "state=failure"
-drop_sandbox
+# --- 4. (c) unsafe denylist path => failure WITHOUT executing the harness ----
+setup
+SENTINEL="$TESTDIR/e2e-ran"
+run_entry CHANGED_PATHS=".github/workflows/evil.yml" E2E_CMD="touch '$SENTINEL'"
+[[ $RC -ne 0 ]] && ok "unsafe: non-zero exit" || bad "unsafe: non-zero exit" "rc=$RC"
+[[ "$(rf .result)" == failure ]] && ok "unsafe: result=failure" || bad "unsafe: result=failure"
+[[ "$(rf .ran)" == false ]] && ok "unsafe: ran=false" || bad "unsafe: ran=false"
+[[ ! -f "$SENTINEL" ]] && ok "unsafe: harness NEVER executed" || bad "unsafe: harness executed (!)"
+[[ "$(rf .reason)" == *unsafe* ]] && ok "unsafe: reason explains" || bad "unsafe: reason" "$(rf .reason)"
+teardown
 
-# --- 4c. HUNG terminal gh post must NOT wedge finalize (bounded write) -------
-#        finalize ignores TERM/INT; a hung terminal `gh` would otherwise block
-#        forever. The bounded() SIGKILL watchdog must let the script exit well
-#        inside the mock's hang time. E2E_STATUS_TIMEOUT=2, mock hangs 20s.
-new_sandbox
-start=$(date +%s)
-run_entry MOCK_STATUSES="" \
-          MOCK_HANG_TERMINAL="20" \
-          E2E_STATUS_TIMEOUT="2" \
-          E2E_CMD="exit 1" \
-          WORKTREE_ADD_CMD="true"
-dur=$(( $(date +%s) - start ))
-if (( dur < 12 )); then _ok "hung-terminal-post: script exits bounded (${dur}s < 12s), not wedged"; \
-  else _fail "hung-terminal-post: script exits bounded" "took ${dur}s (hang not bounded)"; fi
-drop_sandbox
+# --- 4b. denylist matches nested Dockerfile / compose ------------------------
+setup
+run_entry CHANGED_PATHS="docker/ol-nginx/Dockerfile" E2E_CMD="true"
+[[ "$(rf .result)" == failure ]] && ok "unsafe: docker/ path caught" || bad "unsafe: docker path"
+teardown
+setup
+run_entry CHANGED_PATHS="some/dir/compose.yaml" E2E_CMD="true"
+[[ "$(rf .result)" == failure ]] && ok "unsafe: nested compose.yaml caught" || bad "unsafe: nested compose"
+teardown
 
-# --- 5. sha-pinning: worktree is added at the exact HEAD_SHA, detached -------
-new_sandbox
-# Capture the real worktree-add invocation by having the seam echo its args.
-run_entry MOCK_STATUSES="" \
-          HEAD_SHA="cafed00dcafed00dcafed00dcafed00dcafed00d" \
-          E2E_CMD="true" \
-          WORKTREE_ADD_CMD='echo "WT_ARGS: $*" >> "'"$GH_CALLS"'.wt"'
-if [[ -f "$GH_CALLS.wt" ]]; then
-  assert_contains "sha-pin: worktree add uses --detach" "$GH_CALLS.wt" "--detach"
-  assert_contains "sha-pin: worktree add targets the exact HEAD_SHA" "$GH_CALLS.wt" "cafed00dcafed00dcafed00dcafed00dcafed00d"
-else
-  _fail "sha-pin: worktree add was invoked via the seam" "no $GH_CALLS.wt written"
-fi
-drop_sandbox
+# --- 5. safe diff with several files => runs ---------------------------------
+setup
+run_entry CHANGED_PATHS=$'openlibrary/a.py\nstatic/css/b.css\ntests/c.py' E2E_CMD="true"
+[[ "$(rf .result)" == success ]] && ok "safe: multi-file safe diff runs" || bad "safe: multi-file" "$(rf .reason)"
+teardown
 
-# --- 6. terminal post is guarded: if we never posted pending (died before),
-#        we must not fabricate a terminal status. Simulate the gh GET failing
-#        so the script aborts before step 2.
-new_sandbox
-run_entry MOCK_STATUSES="" \
-          MOCK_GH_EXIT="1" \
-          E2E_CMD="true" \
-          WORKTREE_ADD_CMD="true"
-assert_not_contains "guard: no terminal status when pending was never posted (success)" "$GH_CALLS" "state=success"
-assert_not_contains "guard: no terminal status when pending was never posted (failure)" "$GH_CALLS" "state=failure"
-drop_sandbox
+# --- 6. diff source UNREADABLE => fail CLOSED (no run) -----------------------
+setup
+SENTINEL="$TESTDIR/e2e-ran"
+run_entry CHANGED_PATHS="" CHANGED_PATHS_CMD="exit 3" E2E_CMD="touch '$SENTINEL'"
+[[ "$(rf .result)" == failure ]] && ok "diff-unreadable: fails closed" || bad "diff-unreadable: failure"
+[[ "$(rf .ran)" == false ]] && ok "diff-unreadable: ran=false" || bad "diff-unreadable: ran=false"
+[[ ! -f "$SENTINEL" ]] && ok "diff-unreadable: harness not executed" || bad "diff-unreadable: executed"
+teardown
 
-# --- 7. missing required inputs => fails loudly, posts nothing ---------------
-new_sandbox
-run_entry PR_NUMBER="" HEAD_SHA="" MOCK_STATUSES="" E2E_CMD="true" WORKTREE_ADD_CMD="true"
-assert_eq   "validation: non-zero exit on missing inputs" 2 "$RC"
-assert_not_contains "validation: posts no pending on bad input" "$GH_CALLS" "state=pending"
-drop_sandbox
+# --- 7. sha-pin mismatch => failure, no run ----------------------------------
+setup
+SENTINEL="$TESTDIR/e2e-ran"
+env PR_NUMBER=4242 HEAD_SHA="$GOODSHA" RESULT_FILE="$TESTDIR/result.json" \
+    CHANGED_PATHS="openlibrary/app.py" \
+    SHA_VERIFY_CMD="echo 1111111111111111111111111111111111111111" \
+    E2E_CMD="touch '$SENTINEL'" \
+    bash "$RUN" >"$TESTDIR/out.log" 2>&1; RC=$?
+[[ "$(rf .result)" == failure ]] && ok "sha-mismatch: result=failure" || bad "sha-mismatch: failure"
+[[ "$(rf .ran)" == false ]] && ok "sha-mismatch: ran=false" || bad "sha-mismatch: ran=false"
+[[ ! -f "$SENTINEL" ]] && ok "sha-mismatch: harness not executed" || bad "sha-mismatch: executed"
+[[ "$(rf .reason)" == *sha-pin* ]] && ok "sha-mismatch: reason explains" || bad "sha-mismatch: reason" "$(rf .reason)"
+teardown
 
-# --- 8. code-review precondition: review absent => no-op, no pending ---------
-new_sandbox
-run_entry MOCK_STATUSES="" MOCK_REVIEW_STATE="" \
-          E2E_CMD="echo SHOULD_NOT_RUN" WORKTREE_ADD_CMD="echo SHOULD_NOT_RUN"
-assert_eq   "review-absent: exits 0 no-op" 0 "$RC"
-assert_not_contains "review-absent: posts no pending" "$GH_CALLS" "state=pending"
-assert_not_contains "review-absent: runs no e2e" "$TESTDIR/out.log" "SHOULD_NOT_RUN"
-drop_sandbox
+# --- 8. sha-pin match => runs ------------------------------------------------
+setup
+env PR_NUMBER=4242 HEAD_SHA="$GOODSHA" RESULT_FILE="$TESTDIR/result.json" \
+    CHANGED_PATHS="openlibrary/app.py" \
+    SHA_VERIFY_CMD="echo $GOODSHA" E2E_CMD="true" \
+    bash "$RUN" >"$TESTDIR/out.log" 2>&1
+[[ "$(rf .result)" == success ]] && ok "sha-match: runs and succeeds" || bad "sha-match: success" "$(rf .reason)"
+teardown
 
-# --- 9. review present but not success (failure/pending) => no-op ------------
-new_sandbox
-run_entry MOCK_STATUSES="" MOCK_REVIEW_STATE="failure" \
-          E2E_CMD="true" WORKTREE_ADD_CMD="true"
-assert_eq   "review-failed: exits 0 no-op" 0 "$RC"
-assert_not_contains "review-failed: posts no pending" "$GH_CALLS" "state=pending"
-drop_sandbox
+# --- 9. validation: missing PR_NUMBER => die before the trap, no artifact ----
+setup
+env HEAD_SHA="$GOODSHA" RESULT_FILE="$TESTDIR/result.json" SKIP_SHA_VERIFY=1 \
+    CHANGED_PATHS="x" E2E_CMD="true" bash "$RUN" >"$TESTDIR/out.log" 2>&1; RC=$?
+[[ $RC -eq 2 ]] && ok "validate: missing PR_NUMBER exits 2" || bad "validate: PR_NUMBER exit" "rc=$RC"
+[[ ! -f "$TESTDIR/result.json" ]] && ok "validate: no artifact (POST fail-safes)" || bad "validate: artifact present"
+teardown
 
-# --- 10. review=success => proceeds (pending + terminal posted) --------------
-new_sandbox
-run_entry MOCK_STATUSES="" MOCK_REVIEW_STATE="success" \
-          E2E_CMD="true" WORKTREE_ADD_CMD="true"
-assert_eq   "review-green: proceeds and succeeds" 0 "$RC"
-assert_contains "review-green: posts pending" "$GH_CALLS" "state=pending"
-assert_contains "review-green: posts success" "$GH_CALLS" "state=success"
-drop_sandbox
+# --- 10. validation: malformed HEAD_SHA => exit 2 ---------------------------
+setup
+env PR_NUMBER=4242 HEAD_SHA="deadbeef" RESULT_FILE="$TESTDIR/result.json" SKIP_SHA_VERIFY=1 \
+    CHANGED_PATHS="x" E2E_CMD="true" bash "$RUN" >"$TESTDIR/out.log" 2>&1; RC=$?
+[[ $RC -eq 2 ]] && ok "validate: bad HEAD_SHA exits 2" || bad "validate: HEAD_SHA exit" "rc=$RC"
+teardown
 
-# --- 11. REVIEW_STATUS_CONTEXT empty => precondition skipped (runs anyway) ----
-new_sandbox
-run_entry MOCK_STATUSES="" MOCK_REVIEW_STATE="" REVIEW_STATUS_CONTEXT="" \
-          E2E_CMD="true" WORKTREE_ADD_CMD="true"
-assert_eq   "review-disabled: proceeds despite absent review" 0 "$RC"
-assert_contains "review-disabled: posts pending" "$GH_CALLS" "state=pending"
-drop_sandbox
+# --- 11. guard: sourcing does not run main ----------------------------------
+setup
+( set +u; source "$RUN" ) >"$TESTDIR/out.log" 2>&1; RC=$?
+[[ $RC -eq 0 ]] && ok "guard: sourceable without running main" || bad "guard: source" "rc=$RC"
+[[ ! -f "$TESTDIR/result.json" ]] && ok "guard: sourcing writes no artifact" || bad "guard: artifact on source"
+teardown
 
-# ===========================================================================
-echo
-echo "passed: $PASS   failed: $FAIL"
-if (( FAIL > 0 )); then
-  printf 'FAILED:\n'; printf '  - %s\n' "${FAILED_NAMES[@]}"
-  exit 1
-fi
-exit 0
+echo ""
+echo "passed: $pass   failed: $fail"
+[[ $fail -eq 0 ]]
