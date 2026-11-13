@@ -104,9 +104,10 @@ jobs:
           ARTIFACT_FILE: ${{ github.workspace }}/artifact/e2e-result.json
           WORKFLOW_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           EVENT_PR: ${{ steps.pr.outputs.number }}
-          # CHECK_PREFIX is the single swappable status-context prefix (check/ vs
-          # pr/ is still open). STATUS_CONTEXT => ${CHECK_PREFIX}tested-e2e.
-          CHECK_PREFIX: check/
+          # Status context is plain `tested-e2e` — the check/ prefix was dropped
+          # fleet-wide (matches the unprefixed required `code-review`). The prefix
+          # stays a single swappable constant in e2e-post.sh (CHECK_PREFIX, default
+          # ""); do NOT re-inject it here, or the live context drifts from the docs.
           LABEL: "Needs: e2e testing"
         run: bash scripts/e2e/e2e-post.sh > "${{ github.workspace }}/decision.json" || true
 
