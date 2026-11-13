@@ -21,6 +21,12 @@ from openlibrary.utils.request_context import site as site_context
 from openlibrary.utils.solr import Solr
 
 
+@pytest.fixture(autouse=True)
+def no_request_home(monkeypatch):
+    # get_url() falls back to https://openlibrary.org only when web.ctx has no home, and another test can leave one behind.
+    monkeypatch.delattr(web.ctx, "home", raising=False)
+
+
 def build_data0():
     return {
         "/books/OL0M": {"key": "/books/OL0M", "title": "book-0"},

@@ -28,6 +28,12 @@ CREATE TABLE likes (
 """
 
 
+@pytest.fixture(autouse=True)
+def response_headers(monkeypatch):
+    # web.HTTPError adds its headers to the real web.ctx (through web.webapi), not to a patched web.ctx.
+    monkeypatch.setattr(web.webapi.ctx, "headers", [], raising=False)
+
+
 @pytest.fixture
 def likes_db(monkeypatch):
     oldb = web.database(dbn="sqlite", db=":memory:")
