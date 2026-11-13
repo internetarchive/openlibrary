@@ -1054,12 +1054,12 @@ class TestLoanFromNode:
         mutation: with the `tzinfo` tagging removed, the UTC-container version
         of this test stayed green.
         """
-        monkeypatch.setenv("TZ", "America/Los_Angeles")
-        time.tzset()
         try:
-            loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "borrowed_at": "2026-09-20T12:00:00"})
+            with monkeypatch.context() as mp:
+                mp.setenv("TZ", "America/Los_Angeles")
+                time.tzset()
+                loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "borrowed_at": "2026-09-20T12:00:00"})
         finally:
-            monkeypatch.undo()
             time.tzset()
         assert loan is not None
         assert loan["loaned_at"] == dt.datetime(2026, 9, 20, 12, 0, tzinfo=dt.UTC).timestamp()

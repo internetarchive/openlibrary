@@ -99,7 +99,7 @@ def test_gaps_list_open_fields_and_set_aside_ones_nobody_could_find():
     gaps = initiatives.build_gaps(make_initiative([]), site)
     assert gaps == [["/books/OL1M", 9, ["publishers"], ["lccn"], "/works/OL1W"], ["/books/OL2M", 8, [], [], "/works/OL1W"]]
     # 1 detail still open; with no start recorded, today is the start. The unfound LCCN isn't one of the fields, so it doesn't count.
-    assert initiatives.progress(gaps, FOUR) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "start": 1, "percent": 0}
+    assert initiatives.progress(gaps, FOUR) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "start": 1, "percent": 0, "goal": 90, "reached": False}
 
 
 def test_a_work_level_gap_is_read_from_the_edition_s_work():
@@ -132,21 +132,57 @@ def test_a_work_field_counts_once_per_work_and_an_edition_field_once_per_edition
     assert initiatives.field_counts(gaps, "genres") == {"total": 2, "open": 1, "not_found": 1}
     assert initiatives.field_counts(gaps, "covers") == {"total": 3, "open": 1, "not_found": 0}
     # Two open: one edition's cover and one work's genres. Eight open at the start, so six closed.
-    assert initiatives.progress(gaps, ("covers", "genres"), {"open": 8}) == {"done": 1, "total": 3, "open": 2, "not_found": 1, "start": 8, "percent": 75}
+    assert initiatives.progress(gaps, ("covers", "genres"), {"open": 8}) == {
+        "done": 1,
+        "total": 3,
+        "open": 2,
+        "not_found": 1,
+        "start": 8,
+        "percent": 75,
+        "goal": 90,
+        "reached": False,
+    }
     # Rows cached before they carried the work each stand for themselves.
     assert initiatives.field_counts([row[:4] for row in gaps], "genres") == {"total": 3, "open": 2, "not_found": 1}
 
 
 def test_progress_counts_only_the_initiative_s_fields():
     gaps = [["/books/OL1M", 9, ["literary_forms"], []], ["/books/OL2M", 8, ["publishers"], ["literary_forms"]]]
-    assert initiatives.progress(gaps, ("publishers", "covers"), {"open": 4}) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "start": 4, "percent": 75}
-    assert initiatives.progress(gaps, initiatives.TAGS.fields, {"open": 4}) == {"done": 1, "total": 2, "open": 1, "not_found": 1, "start": 4, "percent": 75}
+    assert initiatives.progress(gaps, ("publishers", "covers"), {"open": 4}) == {
+        "done": 1,
+        "total": 2,
+        "open": 1,
+        "not_found": 0,
+        "start": 4,
+        "percent": 75,
+        "goal": 90,
+        "reached": False,
+    }
+    assert initiatives.progress(gaps, initiatives.TAGS.fields, {"open": 4}) == {
+        "done": 1,
+        "total": 2,
+        "open": 1,
+        "not_found": 1,
+        "start": 4,
+        "percent": 75,
+        "goal": 90,
+        "reached": False,
+    }
     assert initiatives.progress(gaps, tuple(tasks.POINTS))["open"] == 2
 
 
 def test_progress_leaves_out_fields_the_initiative_does_not_ask_about():
     gaps = [["/books/OL1M", 9, ["lccn", "oclc_numbers"], []], ["/books/OL2M", 8, ["covers"], ["oclc_numbers"]]]
-    assert initiatives.progress(gaps, FOUR, {"open": 2}) == {"done": 1, "total": 2, "open": 1, "not_found": 0, "start": 2, "percent": 50}
+    assert initiatives.progress(gaps, FOUR, {"open": 2}) == {
+        "done": 1,
+        "total": 2,
+        "open": 1,
+        "not_found": 0,
+        "start": 2,
+        "percent": 50,
+        "goal": 90,
+        "reached": False,
+    }
 
 
 def test_progress_counts_up_from_what_was_open_at_the_start():
@@ -184,6 +220,18 @@ def test_a_deleted_project_gets_no_start_written_back():
     assert site.store.get("contribute-project-gone") is None
 
 
+def test_progress_says_whether_the_goal_is_reached():
+    gaps = [["/books/OL1M", 1, ["covers"], []], ["/books/OL2M", 1, [], []]]
+    assert initiatives.progress(gaps, ("covers",), {"open": 10}, goal=90)["reached"] is True
+    assert initiatives.progress(gaps, ("covers",), {"open": 10}, goal=95)["reached"] is False
+
+
+@pytest.mark.parametrize(("goal", "expected"), [(75, 75), (100, 100), (0, 90), (101, 90), ("80", 90), (None, 90)])
+def test_a_stored_goal_reaches_the_initiative_and_a_bad_one_is_ignored(goal, expected):
+    doc = {"slug": "x", "title": "X", "fields": ["covers"], "goal": goal}
+    assert initiatives.from_definition(doc).goal == expected
+
+
 def test_a_stored_start_reaches_the_initiative():
     doc = {"slug": "x", "title": "X", "fields": ["covers"], "start": {"open": 5}}
     assert initiatives.from_definition(doc).start == {"open": 5}
@@ -213,6 +261,44 @@ def test_not_found_counts_each_person_once():
     for user in ["/people/a", "/people/a", "/people/b"]:
         initiatives.record_not_found(site, "/books/OL1M", "lccn", user)
     assert site.store["contribute-notfound-OL1M-lccn"]["people"] == ["/people/a", "/people/b"]
+
+
+def test_not_found_keeps_each_persons_comment():
+    site = FakeSite()
+    initiatives.record_not_found(site, "/books/OL1M", "lccn", "/people/a", "  Checked the LOC catalog  ")
+    initiatives.record_not_found(site, "/books/OL1M", "lccn", "/people/b")
+    initiatives.record_not_found(site, "/books/OL1M", "lccn", "/people/a", "Not in WorldCat either")
+    doc = site.store["contribute-notfound-OL1M-lccn"]
+    assert doc["people"] == ["/people/a", "/people/b"]
+    assert doc["notes"] == {"/people/a": "Not in WorldCat either"}
+
+
+def test_not_found_note_is_capped():
+    site = FakeSite()
+    initiatives.record_not_found(site, "/books/OL1M", "lccn", "/people/a", "x" * 5000)
+    assert len(site.store["contribute-notfound-OL1M-lccn"]["notes"]["/people/a"]) == initiatives.NOTE_MAX
+
+
+def test_a_bare_task_link_belongs_to_the_project_listing_the_book(monkeypatch):
+    lead = replace(initiatives.MOST_READ, slug="lead", fields=("lccn",))
+    hugo = replace(initiatives.MOST_READ, slug="hugo", fields=("lccn", "covers"))
+    gaps = {"lead": [["/books/OL1M", 1, [], []]], "hugo": [["/books/OL1M", 1, [], []], ["/books/OL2M", 1, [], []]]}
+    monkeypatch.setattr(initiatives, "running", lambda: [hugo, lead])
+    monkeypatch.setattr(initiatives, "get_gaps", lambda i: gaps[i.slug])
+    assert initiatives.containing("/books/OL2M", "lccn", lead) is hugo
+    assert initiatives.containing("/books/OL2M", "covers", lead) is hugo
+    # Headline links are bare too, so the headline keeps every book it lists, whatever the field.
+    assert initiatives.containing("/books/OL1M", "lccn", lead) is None
+    assert initiatives.containing("/books/OL1M", "covers", lead) is None
+    assert initiatives.containing("/books/OL3M", "lccn", lead) is None
+
+
+def test_a_bare_task_link_stays_with_the_headline_while_its_gaps_build(monkeypatch):
+    lead = replace(initiatives.MOST_READ, slug="lead", fields=("lccn",))
+    hugo = replace(initiatives.MOST_READ, slug="hugo", fields=("lccn",))
+    monkeypatch.setattr(initiatives, "running", lambda: [hugo, lead])
+    monkeypatch.setattr(initiatives, "get_gaps", lambda i: None if i is lead else [["/books/OL1M", 1, [], []]])
+    assert initiatives.containing("/books/OL1M", "lccn", lead) is None
 
 
 def test_most_shelved_keeps_isbn_editions_two_per_work_and_tops_up_from_search(monkeypatch):

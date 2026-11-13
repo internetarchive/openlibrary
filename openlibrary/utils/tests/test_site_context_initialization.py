@@ -3,7 +3,7 @@
 from contextlib import suppress
 from contextvars import Context
 from queue import Queue
-from threading import Thread
+from threading import Thread, current_thread
 from unittest.mock import Mock
 
 import pytest
@@ -181,12 +181,17 @@ def test_affiliate_worker_initializes_context(monkeypatch):
 
     observed = Queue()
     worker_site = Mock()
+    real_time = affiliate_server.time.time
 
     def stop():
+        # time.time is patched process-wide; give other threads (e.g. Sentry's monitor) the real clock
+        if current_thread() is not thread:
+            return real_time()
         observed.put((site.get(), req_context.get()))
         raise StopWorker
 
     monkeypatch.setattr(affiliate_server.time, "time", stop)
+    monkeypatch.setattr(affiliate_server.stats, "client", affiliate_server.stats.client)  # amazon_lookup() replaces it
 
     def run():
         with suppress(StopWorker):

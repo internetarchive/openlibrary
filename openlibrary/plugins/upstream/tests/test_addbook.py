@@ -649,6 +649,7 @@ class TestDaisyPage:
         assert redirects == ["https://archive.org/details/test%20item%2Farchive"]
 
 
+@pytest.mark.usefixtures("mock_site")
 class TestMakeWork:
     def test_make_author_adds_the_correct_key(self):
         author_key = "OL123A"

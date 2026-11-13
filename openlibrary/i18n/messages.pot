@@ -3663,7 +3663,7 @@ msgstr ""
 msgid "For example: <i>The Story of Civilization, Part III</i>"
 msgstr ""
 
-#: books/edit/edition.html type/edition/view.html type/work/view.html
+#: books/edit/edition.html openlibrary/plugins/openlibrary/contribute.py type/edition/view.html type/work/view.html
 msgid "Contributors"
 msgstr ""
 
@@ -4088,7 +4088,7 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
-#: contribute/admin/index.html.jinja contribute/dashboard.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
+#: contribute/admin/index.html.jinja contribute/dashboard.html.jinja contribute/faq.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
 msgid "Tasks"
 msgstr ""
 
@@ -4101,10 +4101,14 @@ msgid "Your Tasks pages"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Manage projects"
+msgid "FAQ"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
+msgid "Manage projects"
+msgstr ""
+
+#: contribute/dashboard.html.jinja contribute/faq.html.jinja
 msgid "Your edits"
 msgstr ""
 
@@ -4159,6 +4163,10 @@ msgid "See it in the record's history"
 msgstr ""
 
 #: contribute/done.html.jinja
+msgid "Nothing on the record changed. We noted your answer, and once enough people give it, this task leaves the list."
+msgstr ""
+
+#: contribute/done.html.jinja
 msgid "Nothing on the record changed."
 msgstr ""
 
@@ -4172,6 +4180,107 @@ msgstr ""
 
 #: contribute/done.html.jinja
 msgid "Pick a different book"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Questions about Tasks"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Answering"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Does my answer change this edition or the whole book?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Most tasks are about one edition: a particular printing, like the 2003 Penguin paperback. Its cover, page count, publisher, language and identifiers can differ from other editions, so your answer is saved on that edition only."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Fiction or nonfiction, and genres, describe the book itself, so they are saved on the work and every edition shows them. The line under each question says which one your answer covers."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Where should I look?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "The best source is the book itself: if you have a copy in hand, the title page and copyright page answer most tasks. The publisher's website is also good. Each task also links to places that usually have the answer, such as WorldCat, Google Books and the Library of Congress, searched by the edition's ISBN."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "If sources disagree, go with the one that is clearly about this edition: same ISBN, same publisher, same year. If you can't tell, it's fine to move on."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "When there's no answer"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "What's the difference between \"Skip\" and \"I couldn't find it\"?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "\"Skip\" records nothing. The book stays on the list for the next person, and you may see it again. Use it when you'd rather not answer this one: you don't know where to look, or you don't have time."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "\"I couldn't find it\" is an answer. It says you looked and the detail doesn't seem to exist. The record doesn't change, but once a few people say the same, the book leaves the list so nobody else spends time on it."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "What if the book doesn't have this detail at all?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "That happens. Many books never got a Library of Congress number or an OCLC number. Say \"I couldn't find it\" rather than guessing: a wrong value is harder to catch than a blank one. We note your answer, and if a few other people can't find it either, we take it that the book doesn't have this detail and remove the task from the list."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "What does \"Not sure\" mean on fiction and genre tasks?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "These are judgment calls, not lookups. \"Not sure\" means you can't decide from what you see, and it counts like \"I couldn't find it\": when a few people are unsure, the book is set aside."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "What if something else on the record is wrong?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+#, python-format
+msgid "Tasks only fill in blanks. To fix a wrong title, author or anything else, open the book's edit page from the task. If the problem is bigger, like two books mixed up in one record, %(link_start)stell us about it%(link_end)s."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Does my answer show up right away? Can it be undone?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Yes to both. A saved answer is an ordinary edit: it is live on the book at once, appears in the book's history and in your edits, and anyone can revert it. Made a mistake? Open the book and fix it the usual way."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Who can do tasks?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Anyone with a free Open Library account. Saves go through the same checks as the edit page, so a save from a blocked account, or one that looks like spam, won't go through."
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "Projects"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "What is a project?"
+msgstr ""
+
+#: contribute/faq.html.jinja
+msgid "A fixed list of books and the details it asks about, like \"covers and page counts for the most-read books.\" Open Library librarians set them up. Tasks come from the list in random order."
 msgstr ""
 
 #: contribute/landing.html.jinja
@@ -4231,12 +4340,24 @@ msgstr ""
 msgid "Back to the list"
 msgstr ""
 
-#: contribute/admin/index.html.jinja
-msgid "The projects on the Tasks page: what is running, what is coming and what is over."
+#: contribute/admin/goal_field.html.jinja
+msgid "Goal, in percent"
+msgstr ""
+
+#: contribute/admin/goal_field.html.jinja
+msgid "Suggested for these details:"
+msgstr ""
+
+#: contribute/admin/goal_field.html.jinja
+msgid "The share of the tasks open at the start that counts as success. Some gaps can't be filled, so a goal of 100 is rarely reachable: 90 suits most projects. Many books have no LCCN or OCLC number, so a project asking for them starts lower."
+msgstr ""
+
+#: contribute/admin/goal_field.html.jinja
+msgid "Reaching the goal doesn't end the project. Its progress ring turns green and reads “Goal reached”, and it keeps handing out tasks, which still count, until its end date or until it's stopped. Once it ends, it hands out no more tasks and stays on the Tasks page as finished, with its final numbers."
 msgstr ""
 
 #: contribute/admin/index.html.jinja
-msgid "Project pages"
+msgid "The projects on the Tasks page: what is running, what is coming and what is over."
 msgstr ""
 
 #: contribute/admin/index.html.jinja contribute/admin/new.html.jinja openlibrary/fastapi/tasks.py
@@ -4289,40 +4410,12 @@ msgid "Choose any from either group. These can't be changed once the project is 
 msgstr ""
 
 #: contribute/admin/new.html.jinja
+msgid "A work's details are shared by all its editions, so each is asked once per work, however many of its editions are in the project."
+msgstr ""
+
+#: contribute/admin/new.html.jinja
 #, python-format
 msgid "The list is fixed when the project is made, so progress always counts the same books. Up to %(count)s."
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "Books I list"
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "Open Library edition or work IDs, book URLs, or ISBNs."
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "An Open Library list"
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "Every book on the list as it is today."
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "The most-shelved books missing these details"
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "The books readers shelve most that still need one of the details above."
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "The most-shelved books"
-msgstr ""
-
-#: contribute/admin/new.html.jinja
-msgid "Whether or not they need anything. Books with nothing missing add no tasks."
 msgstr ""
 
 #: contribute/admin/new.html.jinja
@@ -4342,15 +4435,31 @@ msgid "How many most-shelved books"
 msgstr ""
 
 #: contribute/admin/new.html.jinja
+msgid "Schedule and goal"
+msgstr ""
+
+#: contribute/admin/new.html.jinja
 msgid "Start date (optional)"
+msgstr ""
+
+#: contribute/admin/new.html.jinja contribute/admin/project.html.jinja
+msgid "Clear the start date"
 msgstr ""
 
 #: contribute/admin/new.html.jinja contribute/admin/project.html.jinja
 msgid "End date (optional)"
 msgstr ""
 
+#: contribute/admin/new.html.jinja contribute/admin/project.html.jinja
+msgid "Clear the end date"
+msgstr ""
+
 #: contribute/admin/new.html.jinja
 msgid "The project runs from the start of its start date through the end of its end date, UTC. Both can be set or changed later."
+msgstr ""
+
+#: contribute/admin/new.html.jinja contribute/admin/project.html.jinja
+msgid "Asks for"
 msgstr ""
 
 #: contribute/admin/new.html.jinja
@@ -4358,15 +4467,23 @@ msgid "Create project"
 msgstr ""
 
 #: contribute/admin/parts.html.jinja
-msgid "Hidden"
+msgid "Featured: the Tasks page opens on this project"
 msgstr ""
 
 #: contribute/admin/parts.html.jinja
 msgid "The default project. The Tasks page opens on it, the thank-you after a book edit points to it unless another project lists that book, and the stats page charts it first."
 msgstr ""
 
+#: contribute/admin/parts.html.jinja openlibrary/plugins/openlibrary/home_genres.py
+msgid "Featured"
+msgstr ""
+
 #: contribute/admin/parts.html.jinja
-msgid "Headline"
+msgid "Hidden from the Tasks and stats pages"
+msgstr ""
+
+#: contribute/admin/parts.html.jinja
+msgid "Hidden"
 msgstr ""
 
 #: contribute/admin/parts.html.jinja contribute/admin/project.html.jinja openlibrary/contribute/manage.py openlibrary/plugins/openlibrary/contribute.py
@@ -4374,12 +4491,28 @@ msgstr ""
 msgid "%(percent)s%%"
 msgstr ""
 
-#: contribute/admin/project.html.jinja
-msgid "View on Tasks"
+#: contribute/admin/parts.html.jinja openlibrary/plugins/openlibrary/contribute.py
+msgid "Goal reached"
+msgstr ""
+
+#: contribute/admin/parts.html.jinja
+msgid "Clear"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Make headline"
+msgid "Make this the project the Tasks page opens on. The project featured now stays live."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Feature"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Take it off the Tasks and stats pages, so nobody new picks up its tasks. The Tasks page opens on another project while it is hidden. You can unhide it any time."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Take it off the Tasks and stats pages, so nobody new picks up its tasks. Tasks already open still save toward it, and you can unhide it any time."
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -4387,7 +4520,19 @@ msgid "Hide"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
+msgid "Put it back on the Tasks and stats pages."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
 msgid "Unhide"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "Remove the project and its book list for good. Only a project that has not started can be deleted."
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+msgid "End it now: it hands out no more tasks and shows as finished on the Tasks page, with its final numbers. To run it again, set a later end date."
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -4419,15 +4564,15 @@ msgid "The project and its book list are removed. This can't be undone."
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Make this the headline project?"
+msgid "Feature this project?"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Links to the Tasks page that don't name a project will open this one from now on, in place of the current headline."
+msgid "Feature project"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Asks for"
+msgid "Links to the Tasks page that don't name a project will open this one from now on, in place of the current featured project."
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -4441,6 +4586,15 @@ msgid "%(count)s entries left out, listed below"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
+msgid "Goal"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+#, python-format
+msgid "%(percent)s%% of the tasks open at the start"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
 msgid "Defined in code"
 msgstr ""
 
@@ -4450,7 +4604,12 @@ msgid "Tasks done, of %(count)s"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Complete"
+msgid "Done, goal reached"
+msgstr ""
+
+#: contribute/admin/project.html.jinja
+#, python-format
+msgid "Done, goal %(percent)s%%"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -8375,7 +8534,7 @@ msgid "How to answer"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "This edition has no ISBN to search by, so look it up by title and author."
+msgid "This edition has no ISBN, so these links search by title and author. Check that the publisher and year match before you copy anything."
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8607,7 +8766,7 @@ msgid "Fill in language"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "Look the ISBN up in WorldCat or Google Books; both list the language of the text. The title page and cover tell you too."
+msgid "Start with the title, subtitle and publisher on this page. Then look the ISBN up: WorldCat lists the language, and Google Books shows a “Translated by” line when the edition is a translation."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8635,7 +8794,10 @@ msgid "How many pages does this edition have?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "WorldCat lists the page count in the record's description. Google Books calls it Length. Make sure the record is for this ISBN, not another printing."
+msgid ""
+"Google Books lists the page count as Length. WorldCat has it in the record's description, sometimes only after you sign in. Amazon's print length often counts every page, so use it to check a number rather than to find one.\n"
+"\n"
+"Make sure the record is for this edition, not another printing."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8718,7 +8880,7 @@ msgid "Who published this edition?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The imprint is printed on the title page and the spine. WorldCat and the Library of Congress list it under Publisher."
+msgid "The imprint is printed on the title page and the spine. The Library of Congress copies it from the title page, and WorldCat lists it under Publisher. Google Books often names the parent company instead."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8813,6 +8975,22 @@ msgstr ""
 msgid "I opened a print record and its publisher and edition match this one."
 msgstr ""
 
+#: openlibrary/contribute/field_guides.py
+msgid "This edition has a Library of Congress number. Its record states the language and gives the publisher as printed on the title page."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Library of Congress record"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "This book is science fiction or fantasy, which ISFDB covers well. It lists each printing on its own, and a record marked as verified was checked against a physical copy."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "ISFDB"
+msgstr ""
+
 #: openlibrary/contribute/initiatives.py
 msgid "Sort the Stacks"
 msgstr ""
@@ -8870,6 +9048,11 @@ msgstr ""
 msgid "%(start)s to %(end)s"
 msgstr ""
 
+#: openlibrary/contribute/manage.py openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "Goal: %(percent)s%%"
+msgstr ""
+
 #: openlibrary/contribute/manage.py
 #, python-format
 msgid "%(count)s work"
@@ -8894,6 +9077,10 @@ msgid "end date"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
+msgid "goal"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
 msgid "Created the project"
 msgstr ""
 
@@ -8910,11 +9097,11 @@ msgid "Stopped the project early"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
-msgid "Made it the headline project"
+msgid "Made it the featured project"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
-msgid "Another project became the headline"
+msgid "Another project was featured"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
@@ -8925,6 +9112,10 @@ msgstr ""
 #: openlibrary/contribute/manage.py
 #, python-format
 msgid "%(time)s UTC"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "The goal is a percent from 1 to 100."
 msgstr ""
 
 #: openlibrary/contribute/manage.py
@@ -8981,11 +9172,15 @@ msgid "Past the limit of %(count)s books"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
-msgid "About the edition"
+msgid "None yet"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
-msgid "One published version of a book. Asked of every edition in the project."
+msgid "Every book on the list"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "About the edition"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
@@ -8993,7 +9188,19 @@ msgid "About the work"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
-msgid "Shared by every edition of a book. Asked once per work, however many of its editions are in the project."
+msgid "Custom list"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "(work IDs, book URLs, or ISBNs)"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Open Library list"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Most-shelved books"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
@@ -9763,6 +9970,10 @@ msgid "Someone else changed this project while you had it open. Check it below, 
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py
+msgid "Tasks FAQ"
+msgstr ""
+
+#: openlibrary/fastapi/tasks.py
 msgid "The project is set up. Check its books below."
 msgstr ""
 
@@ -9783,11 +9994,11 @@ msgid "The project has ended. It hands out no more tasks."
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py
-msgid "Only a live project that isn't hidden can be the headline."
+msgid "Only a live project that isn't hidden can be featured."
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py
-msgid "This is now the headline project."
+msgid "This is now the featured project."
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py
@@ -9981,7 +10192,12 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "%(percent)s%% done"
+msgid "%(percent)s%% done, goal reached"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(percent)s%% done, goal %(goal)s%%"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -9990,6 +10206,10 @@ msgid "%(done)s of %(count)s task done"
 msgid_plural "%(done)s of %(count)s tasks done"
 msgstr[0] ""
 msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Finished · goal reached"
+msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
@@ -10009,6 +10229,11 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
+msgid "Together we reached the goal: %(percent)s%% of its details were filled in. Thank you to everyone who helped."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
 msgid "%(count)s person filled in %(percent)s%% of its details. Thank you."
 msgid_plural "%(count)s people filled in %(percent)s%% of its details. Thank you."
 msgstr[0] ""
@@ -10017,6 +10242,10 @@ msgstr[1] ""
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
 msgid "%(percent)s%% of its details were filled in. Thank you to everyone who helped."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "This project reached its goal"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -10283,10 +10512,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home_genres.py
 msgid "Most wanted"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home_genres.py
-msgid "Featured"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py

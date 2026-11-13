@@ -16,7 +16,7 @@ from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
 from openlibrary.contribute import feed, initiatives, pitch, save, supply, tasks
-from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides
+from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides, is_speculative
 from openlibrary.contribute.tasks import field_values, work_of
 from openlibrary.core import admin, helpers
 from openlibrary.core.tags import GENRES, LITERARY_FORMS, find_tag, subject_matches, tag_choices, tag_key_named, tag_options, work_tag_names
@@ -86,6 +86,15 @@ def normalize_filter(raw: str, fields: tuple[str, ...] = tuple(tasks.POINTS)) ->
 def get_initiative(slug: str) -> initiatives.Initiative:
     """The initiative a request names, or the headline one."""
     return initiatives.get(slug) or initiatives.headline()
+
+
+def get_task_initiative(slug: str, edition_key: str, fld: str) -> initiatives.Initiative:
+    """The initiative a task page works in: the one its URL names (hidden too, as the save honors it), else the headline,
+    unless only another project lists the book, so a bare link from elsewhere keeps "Skip" and "Save and next" in that project."""
+    if found := initiatives.get(slug, hidden=True):
+        return found
+    lead = initiatives.headline()
+    return initiatives.containing(edition_key, fld, lead) or lead
 
 
 def initiative_param(initiative: initiatives.Initiative) -> str:
@@ -195,12 +204,30 @@ def describe_saved(edition, fld: str, picked: str = "") -> tuple[str, str]:
     return get_field_guides()[fld].label, format_field_value(edition, fld)
 
 
+CONTRIBUTORS_SHOWN = 6
+
+
+def format_contributors(edition) -> str:
+    """The edition's contributors with their roles, as "Ken Liu (Translator), Stephan Martiniere (Cover artist)".
+
+    A translator, narrator or illustrator says what kind of edition this is. Older records keep them as plain strings.
+    """
+    out = []
+    for c in edition.get("contributors") or []:
+        name, role = str(c.get("name") or "").strip(), str(c.get("role") or "").strip()
+        if name:
+            out.append(f"{name} ({role})" if role else name)
+    out += [text for c in edition.get("contributions") or [] if (text := str(c).strip())]
+    return ", ".join(list(dict.fromkeys(out))[:CONTRIBUTORS_SHOWN])
+
+
 def build_edition_field_rows(edition, fld: str) -> list[dict]:
     """The edition's record as the task page shows it: the fields it has, plus the one being asked about, in place."""
     rows = [
         ("publishers", _("Publisher")),
         ("publish_date", _("Published")),
         ("physical_format", _("Format")),
+        ("contributors", _("Contributors")),
         ("number_of_pages", _("Pages")),
         ("languages", _("Language")),
         ("isbn", _("ISBN")),
@@ -211,7 +238,12 @@ def build_edition_field_rows(edition, fld: str) -> list[dict]:
     ]
     out = []
     for f, label in rows:
-        value = (edition.get_isbn13() or ", ".join(edition.get("isbn_10") or [])) if f == "isbn" else format_field_value(edition, f)
+        if f == "isbn":
+            value = edition.get_isbn13() or ", ".join(edition.get("isbn_10") or [])
+        elif f == "contributors":
+            value = format_contributors(edition)
+        else:
+            value = format_field_value(edition, f)
         if value or f == fld:
             out.append({"label": label, "value": value, "ask": f == fld})
     return out
@@ -226,6 +258,13 @@ def work_subjects(edition) -> list[str]:
     """The work's free-text subjects as the task page shows them: the first few, which is where the catalog's own go."""
     work = work_of(edition)
     return [str(s) for s in (work.get("subjects") or [])[:8]] if work else []
+
+
+def genre_labels(edition) -> list[str]:
+    """What the work says about its genre in words: its genre tags' names, then all of its subjects."""
+    if not (work := work_of(edition)):
+        return []
+    return [*work_tag_names(work, GENRES), *(str(s) for s in work.get("subjects") or [])]
 
 
 def genre_hints(edition) -> dict[str, list[str]]:
@@ -437,7 +476,7 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
         listed.append(current)
     for initiative in listed:
         gaps = initiatives.get_gaps(initiative)
-        p = initiatives.progress(gaps, initiative.fields, initiative.start) if gaps else None
+        p = initiatives.progress(gaps, initiative.fields, initiative.start, initiative.goal) if gaps else None
         people = get_initiative_people(initiative) if p else 0
         finished = initiative.status() == "ended"
         cards.append(
@@ -449,7 +488,21 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
                 # None while the list is still being built.
                 "percent": p["percent"] if p else None,
                 "figure": _("%(percent)s%%", percent=p["percent"]) if p else "",
-                "done_label": _("%(percent)s%% done", percent=p["percent"]) if p else "",
+                "done_label": (
+                    (
+                        _("%(percent)s%% done, goal reached", percent=p["percent"])
+                        if p["reached"]
+                        else _("%(percent)s%% done, goal %(goal)s%%", percent=p["percent"], goal=p["goal"])
+                    )
+                    if p
+                    else ""
+                ),
+                # The goal is where the project counts as a success; the ring keeps filling past it.
+                "goal": initiative.goal,
+                # Where the ring's goal mark sits, in degrees from twelve o'clock: 3.6 a percent.
+                "goal_angle": round(initiative.goal * 3.6, 1),
+                "reached": bool(p and p["reached"]),
+                "goal_label": _("Goal reached") if p and p["reached"] else _("Goal: %(percent)s%%", percent=initiative.goal),
                 # Out of the tasks open at the start, the same count the percent is taken from.
                 "tasks_done": (
                     ungettext(
@@ -465,7 +518,9 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
                 "tasks_left": ungettext("%(count)s task left", "%(count)s tasks left", p["open"], count=helpers.commify(p["open"])) if p else "",
                 # An ended one hands out no tasks, so its row says how it finished instead of what is left.
                 "finished": finished,
-                "finished_label": _("Finished · %(percent)s%% filled", percent=p["percent"]) if p else _("Finished"),
+                "finished_label": (
+                    (_("Finished · goal reached") if p["reached"] else _("Finished · %(percent)s%% filled", percent=p["percent"])) if p else _("Finished")
+                ),
                 "people_count": people,
                 "people": (
                     ungettext("%(count)s person helping", "%(count)s people helping", people, count=helpers.commify(people))
@@ -484,6 +539,8 @@ def build_finished(card: dict) -> dict | None:
     people = card["people_count"]
     if card["percent"] is None:
         note = _("Thank you to everyone who helped.")
+    elif card["reached"]:
+        note = _("Together we reached the goal: %(percent)s%% of its details were filled in. Thank you to everyone who helped.", percent=card["percent"])
     elif people >= MIN_PEOPLE_SHOWN:
         note = ungettext(
             "%(count)s person filled in %(percent)s%% of its details. Thank you.",
@@ -497,7 +554,7 @@ def build_finished(card: dict) -> dict | None:
     running = initiatives.running()
     following = initiatives.headline() if running else None
     return {
-        "title": _("This project has finished"),
+        "title": _("This project reached its goal") if card["reached"] else _("This project has finished"),
         "note": note,
         "next_url": build_dashboard_url(initiative=initiative_param(following)) if following else "",
         "next_label": _("Go to %(project)s", project=initiatives.describe(following)["title"]) if following else "",
@@ -722,7 +779,16 @@ def build_task_context(
         else None,
         "field_guide": field_guide,
         "scope": build_scope(task.field, book["edition_line"]),
-        "link_outs": build_link_outs(field_guide, book["isbn13"]),
+        "link_outs": build_link_outs(
+            field_guide,
+            book["isbn13"],
+            title=book["title"],
+            authors=book["authors"],
+            lccn=next((str(n).strip() for n in edition.get("lccn") or [] if str(n).strip()), ""),
+            speculative=field_guide.isfdb and is_speculative(genre_labels(edition)),
+        ),
+        # Without an ISBN the links search on the title and author, and the page says so.
+        "links_by_title": not book["isbn13"],
         # Nothing to compare against when no other edition has a value.
         "siblings": siblings if any(s["value"] for s in siblings) else [],
         "sibling_total": len(others),
@@ -743,6 +809,7 @@ def build_task_context(
         "error": error,
         "value": value,
         "note": note,
+        "note_max": initiatives.NOTE_MAX,
         # Only "Save and next" brings a receipt; the error re-render never does.
         "receipt": None,
     }
@@ -820,9 +887,9 @@ class contribute_task(delegate.page):
     def GET(self, olid, fld):
         require_login(f"/tasks/task/{olid}/{fld}")
         back = get_back_filter()
-        initiative = get_initiative(query_param("initiative", ""))
-        slug = initiative_param(initiative)
         edition = get_edition_or_404(olid)
+        initiative = get_task_initiative(query_param("initiative", ""), edition.key, fld)
+        slug = initiative_param(initiative)
         if not (task := tasks.task_for(edition, fld)):
             return render_nothing_page(edition, fld, back, slug)
         receipt = build_receipt(query_param("saved", ""), query_param("picked", ""))
@@ -848,7 +915,7 @@ class contribute_task(delegate.page):
             return render_nothing_page(edition, fld, back, slug)
         if i.then == "notfound" or (is_choice_list(fld) and i.value == UNSURE):
             # "Not sure" counts like "I couldn't find it": enough people and the gap is set aside.
-            initiatives.record_not_found(site.get(), edition.key, fld, user.key)
+            initiatives.record_not_found(site.get(), edition.key, fld, user.key, i.note)
             if i.then == "next":
                 raise web.seeother(build_next_url(back, task, saved=False, initiative=slug, surprise=surprise))
             raise web.seeother(build_done_url(olid, fld, "unsure", back, slug, surprise))
@@ -881,21 +948,25 @@ class contribute_done(delegate.page):
     def GET(self, olid, fld):
         require_login(f"/tasks/task/{olid}/{fld}/done")
         back = get_back_filter()
-        initiative = get_initiative(query_param("initiative", ""))
-        slug = initiative_param(initiative)
         edition = get_edition_or_404(olid)
+        initiative = get_task_initiative(query_param("initiative", ""), edition.key, fld)
+        slug = initiative_param(initiative)
         field_guides = get_field_guides()
-        saved = query_param("choice", "") == "saved"
+        choice = query_param("choice", "")
+        saved = choice == "saved"
+        not_found = choice == "unsure"
         same_book = [build_task_summary(t, field_guides, back, slug) for t in tasks.tasks_for_edition(edition) if t.field != fld and t.field in initiative.fields]
         # A work answer lands in the work's history.
         edited = work_of(edition) if fld in tasks.WORK_FIELDS and work_of(edition) else edition
         field_label, value = describe_saved(edition, fld, query_param("picked", "")) if saved else (field_guides[fld].label, "")
+        not_found_label = field_guides[fld].not_found or _("I couldn't find it")
         return render_contribute(
             "contribute/done.html.jinja",
-            _("Saved") if saved else _("Skipped"),
+            _("Saved") if saved else not_found_label if not_found else _("Skipped"),
             book=build_book_header(edition),
             field_label=field_label,
             saved=saved,
+            not_found_label=not_found_label if not_found else "",
             value=value,
             cover_url=edition.get_cover_url("M") if saved and fld == "covers" else "",
             history_url=f"{edited.key}?m=history",

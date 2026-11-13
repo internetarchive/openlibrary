@@ -61,7 +61,18 @@ def is_missing(edition, fld: str, work=None) -> bool:
             return False
         # The genre vocabulary describes fiction, so a nonfiction work has no genre to fill in.
         return not (fld == GENRES and is_nonfiction(work))
+    if fld == "number_of_pages" and is_audio(edition):
+        return False
     return edition.get(fld) in (None, "", [])
+
+
+AUDIO_FORMAT_WORDS = ("audio", "mp3", "cassette", "compact disc")
+
+
+def is_audio(edition) -> bool:
+    """Whether the edition's format names a recording ("Audio CD", "MP3 CD", "Audiobook"), which has no page count."""
+    fmt = (edition.get("physical_format") or "").strip().lower()
+    return fmt == "cd" or any(word in fmt for word in AUDIO_FORMAT_WORDS)
 
 
 def tasks_for_edition(edition, work=None) -> list[Task]:

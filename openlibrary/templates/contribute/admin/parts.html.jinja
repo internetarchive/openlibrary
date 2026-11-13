@@ -1,17 +1,22 @@
 {#- Shared by the /tasks/admin pages. Each macro takes a project summary from manage.build_summary. -#}
-{% macro status(project) %}
-    <span class="contrib-admin__badges">
-        <span class="contrib-admin__badge" data-status="{{ project.status }}">{{ project.status_label }}</span>
-        {% if project.hidden %}
-            <span class="contrib-admin__badge" data-status="hidden">{{ _("Hidden") }}</span>
-        {% endif %}
+{#- A project's status as plain text, not pills, so nothing reads as a button: a coloured dot on each state.
+    With `explain`, the detail page spells out what each state means; the table keeps the words short. -#}
+{% macro state(project, explain=false) %}
+    <span class="contrib-admin__state">
+        <span class="contrib-admin__state-item" data-status="{{ project.status }}">{{ project.status_label }}</span>
         {% if project.featured %}
-            {#- Focusable, so the explanation reaches keyboard and screen-reader users too. -#}
-            <ol-tooltip placement="bottom-start" content="{{ _('The default project. The Tasks page opens on it, the thank-you after a book edit points to it unless another project lists that book, and the stats page charts it first.') }}">
-                <span class="contrib-admin__badge contrib-admin__badge--hint"
-                      data-status="featured"
-                      tabindex="0">{{ _("Headline") }}</span>
-            </ol-tooltip>
+            {% if explain %}
+                <span class="contrib-admin__state-item contrib-admin__state-item--featured">{{ _("Featured: the Tasks page opens on this project") }}</span>
+            {% else %}
+                {#- Focusable, so the explanation reaches keyboard and screen-reader users too. -#}
+                <ol-tooltip placement="bottom-start" content="{{ _('The default project. The Tasks page opens on it, the thank-you after a book edit points to it unless another project lists that book, and the stats page charts it first.') }}">
+                    <span class="contrib-admin__state-item contrib-admin__state-item--featured"
+                          tabindex="0">{{ _("Featured") }}</span>
+                </ol-tooltip>
+            {% endif %}
+        {% endif %}
+        {% if project.hidden %}
+            <span class="contrib-admin__state-item contrib-admin__state-item--hidden">{{ _("Hidden from the Tasks and stats pages") if explain else _("Hidden") }}</span>
         {% endif %}
     </span>
 {% endmacro %}
@@ -19,14 +24,38 @@
     {% if project.progress %}
         <span class="contrib-admin__progress">
             <span class="contrib-admin__meter" aria-hidden="true">
-                <span class="contrib-admin__meter-fill"
+                <span class="contrib-admin__meter-fill{{ ' is-reached' if project.progress.reached else '' }}"
                       style="width: {{ project.progress.percent }}%"></span>
+                <span class="contrib-admin__meter-goal"
+                      style="inset-inline-start: {{ project.goal }}%"></span>
             </span>
             <span class="contrib-admin__percent">{{ _("%(percent)s%%", percent=project.progress.percent) }}</span>
+            {% if project.progress.reached %}
+                <span class="contrib-admin__reached">{{ _("Goal reached") }}</span>
+            {% else %}
+                <span class="contrib-visually-hidden">{{ project.goal_label }}</span>
+            {% endif %}
         </span>
     {% elif project.building %}
         <span class="contrib-muted">{{ _("Getting the list ready…") }}</span>
     {% else %}
         <span class="contrib-muted">—</span>
     {% endif %}
+{% endmacro %}
+{#- A date input with a Clear button, which contribute.js shows while the input has a date. -#}
+{% macro date_field(id, name, label, clear_label, value, hint_id) %}
+    <div class="contrib-admin__field">
+        <label for="{{ id }}">{{ label }}</label>
+        <div class="contrib-admin__date">
+            <input class="contrib-input"
+                   id="{{ id }}"
+                   type="date"
+                   name="{{ name }}"
+                   value="{{ value }}"
+                   aria-describedby="{{ hint_id }}" />
+            <ol-button type="button" variant="ghost" size="small" aria-label="{{ clear_label }}" data-clear-date="{{ id }}" {% if not value %}hidden{% endif %}>
+                {{ _("Clear") }}
+            </ol-button>
+        </div>
+    </div>
 {% endmacro %}

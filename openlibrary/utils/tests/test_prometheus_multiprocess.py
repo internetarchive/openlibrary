@@ -65,9 +65,11 @@ def test_merge_dead_worker_keeps_totals(metrics_dir, monkeypatch):
 def test_merge_dead_worker_leaves_gauges(metrics_dir, monkeypatch):
     monkeypatch.setattr(values, "ValueClass", values.MultiProcessValue(lambda: 1))
     Gauge("in_progress", "In progress", multiprocess_mode="all", registry=None).set(1)
+    Gauge("in_flight", "In flight", multiprocess_mode="livesum", registry=None).set(1)
 
     merge_dead_worker(str(metrics_dir), 1)
     assert (metrics_dir / "gauge_all_1.db").exists()
+    assert not (metrics_dir / "gauge_livesum_1.db").exists()  # a live gauge counts only live workers
     assert not (metrics_dir / "gauge_archive.db").exists()
 
 
@@ -129,12 +131,12 @@ def test_merge_during_scrape_waits(metrics_dir, monkeypatch):
             merged.append(merge_dead_worker(str(metrics_dir), 1))
         return read_all_values_from_file(filename)
 
-    monkeypatch.setattr(MmapedDict, "read_all_values_from_file", staticmethod(read_while_merging))
-    assert totals(metrics_dir) == (5, 5)
+    with monkeypatch.context() as mp:
+        mp.setattr(MmapedDict, "read_all_values_from_file", staticmethod(read_while_merging))
+        assert totals(metrics_dir) == (5, 5)
     assert merged == [False]  # it didn't wait for the scrape, and changed nothing
     assert (metrics_dir / "counter_1.db").exists()
 
-    monkeypatch.undo()
     assert merge_dead_worker(str(metrics_dir), 1)
     assert totals(metrics_dir) == (5, 5)
 

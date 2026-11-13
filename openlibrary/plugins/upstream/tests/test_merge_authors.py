@@ -1,3 +1,4 @@
+import pytest
 import web
 
 from infogami.infobase import client, common
@@ -15,12 +16,13 @@ from openlibrary.utils import dicthash
 from openlibrary.utils.request_context import site
 
 
-def setup_module(mod):
-    # delegate.fakeload()
-
+@pytest.fixture(autouse=True, scope="module")
+def setup_models():
     # Configure test database settings before calling models.setup().
-    web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
-    models.setup()
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setitem(web.config, "db_parameters", {"dbn": "sqlite", "db": ":memory:"})
+        models.setup()
+        yield
 
 
 class MockSite(client.Site):

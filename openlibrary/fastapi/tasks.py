@@ -41,6 +41,8 @@ ProjectManagerDep = Annotated[ShellUser, Depends(require_project_manager)]
 
 # On the router, so a page added here can't be left ungated.
 pages = APIRouter(route_class=SitePageRoute, dependencies=[Depends(require_project_manager)])
+# The pages anyone may read, visitors included.
+public_pages = APIRouter(route_class=SitePageRoute)
 
 
 def admin_page(title: str) -> PageMeta:
@@ -115,6 +117,13 @@ def change_project(slug: str, user: ShellUser, rev: str, action: str, changes: d
     return back_to_project(slug, "note", done)
 
 
+@public_pages.get("/tasks/faq")
+async def tasks_faq() -> SitePage:
+    """Answers for the people doing tasks: what an answer covers, skipping versus "I couldn't find it", and how projects work."""
+    body = render_jinja_template("contribute/faq.html.jinja")
+    return SitePage(body, page=PageMeta(title=_("Tasks FAQ"), cssfile="contribute", bodyclass=("contribute-body",)))
+
+
 # Plain defs: the gaps come from memcache and the counts from the store, both blocking.
 @pages.get("/tasks/admin")
 def tasks_admin() -> SitePage:
@@ -135,6 +144,7 @@ class NewProject(BaseModel):
     size: str = ""
     starts: str = ""
     ends: str = ""
+    goal: str = ""
 
 
 def new_project_page(form: dict, status_code: int = status.HTTP_200_OK) -> SitePage:
@@ -195,8 +205,8 @@ def tasks_admin_stop(slug: str, user: ProjectManagerDep, rev: Rev = "") -> Redir
 def tasks_admin_headline(slug: str, user: ProjectManagerDep, rev: Rev = "") -> RedirectResponse:
     initiative = find_project(slug)
     if initiative.status() != "live" or initiative.hidden:
-        return back_to_project(slug, "error", _("Only a live project that isn't hidden can be the headline."))
-    return change_project(slug, user, rev, "headline", {}, _("This is now the headline project."))
+        return back_to_project(slug, "error", _("Only a live project that isn't hidden can be featured."))
+    return change_project(slug, user, rev, "headline", {}, _("This is now the featured project."))
 
 
 @pages.post("/tasks/admin/{slug}/edit")
@@ -208,9 +218,10 @@ def tasks_admin_edit(
     description: Annotated[str, Form()] = "",
     starts: Annotated[str, Form()] = "",
     ends: Annotated[str, Form()] = "",
+    goal: Annotated[str, Form()] = "",
 ) -> RedirectResponse:
     initiative = find_project(slug)
-    changes, error = manage.parse_edit(initiative, title, description, starts, ends)
+    changes, error = manage.parse_edit(initiative, title, description, starts, ends, goal)
     if not error and changes.get("starts_at") and not initiative.pick and not initiatives.load_frozen(initiative, site.get()):
         error = _("A project needs books before it can start.")
     if error:
