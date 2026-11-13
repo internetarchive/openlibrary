@@ -10,6 +10,8 @@
 # Covers wally's prove-the-test-fails requirements:
 #   (a) a crash / external kill mid-run still yields a `failure` artifact.
 #   (c) the unsafe-path denylist yields `failure` WITHOUT executing the harness.
+#   (gate) a non-green code-review status yields `failure` WITHOUT executing the
+#          harness — the SHA-bound status, not the label, authorises execution.
 
 # SC2015: `[[ cond ]] && ok || bad` is intentional — ok/bad always return 0, so
 # the `bad` branch never runs when the condition holds. SC1090: the guard test
@@ -143,6 +145,54 @@ teardown
 setup
 run_entry CHANGED_PATHS="" E2E_CMD="true"
 [[ "$(rf .result)" == success ]] && ok "empty-list: runs when denylist not required" || bad "empty-list: runs" "$(rf .reason)"
+teardown
+
+# --- 6e. CODE-REVIEW GATE: success authorises the run ------------------------
+setup
+run_entry REQUIRE_CODE_REVIEW=1 CODE_REVIEW_STATUS=success E2E_CMD="true"
+[[ "$(rf .result)" == success ]] && ok "gate: code-review=success runs" || bad "gate: success runs" "$(rf .reason)"
+[[ "$(rf .ran)" == true ]] && ok "gate: success => ran=true" || bad "gate: success ran"
+teardown
+
+# --- 6f. (prove-the-fail) non-green gate => failure, harness NEVER executed ---
+# The authorization belt: a stale/mis-applied label cannot run PR code when the
+# SHA-bound code-review status is not green on this commit.
+for st in pending failure error; do
+  setup
+  SENTINEL="$TESTDIR/e2e-ran"
+  run_entry REQUIRE_CODE_REVIEW=1 CODE_REVIEW_STATUS="$st" E2E_CMD="touch '$SENTINEL'"
+  [[ $RC -ne 0 ]] && ok "gate($st): non-zero exit" || bad "gate($st): non-zero exit" "rc=$RC"
+  [[ "$(rf .result)" == failure ]] && ok "gate($st): result=failure" || bad "gate($st): failure"
+  [[ "$(rf .ran)" == false ]] && ok "gate($st): ran=false" || bad "gate($st): ran=false"
+  [[ ! -f "$SENTINEL" ]] && ok "gate($st): harness NEVER executed" || bad "gate($st): harness executed (!)"
+  [[ "$(rf .reason)" == *code-review* ]] && ok "gate($st): reason names the gate" || bad "gate($st): reason" "$(rf .reason)"
+  teardown
+done
+
+# --- 6g. absent status (env unset) => fail-safe to not-green -----------------
+setup
+SENTINEL="$TESTDIR/e2e-ran"
+# REQUIRE_CODE_REVIEW set but NO CODE_REVIEW_STATUS => treated as absent/not-green.
+run_entry REQUIRE_CODE_REVIEW=1 E2E_CMD="touch '$SENTINEL'"
+[[ "$(rf .result)" == failure ]] && ok "gate(absent): result=failure" || bad "gate(absent): failure"
+[[ "$(rf .ran)" == false ]] && ok "gate(absent): ran=false" || bad "gate(absent): ran=false"
+[[ ! -f "$SENTINEL" ]] && ok "gate(absent): harness not executed" || bad "gate(absent): executed"
+[[ "$(rf .reason)" == *absent* ]] && ok "gate(absent): reason notes absent" || bad "gate(absent): reason" "$(rf .reason)"
+teardown
+
+# --- 6h. gate precedes the denylist: non-green blocks before path checks ------
+# A non-green gate with an ALSO-unsafe path must report the code-review gate (the
+# authorization gate runs first), proving the belt sits ahead of defense-in-depth.
+setup
+run_entry REQUIRE_CODE_REVIEW=1 CODE_REVIEW_STATUS=pending \
+          CHANGED_PATHS=".github/workflows/evil.yml" E2E_CMD="true"
+[[ "$(rf .reason)" == *code-review* ]] && ok "gate: authorization precedes denylist" || bad "gate: order" "$(rf .reason)"
+teardown
+
+# --- 6i. gate SKIPPED without REQUIRE_CODE_REVIEW (host/standalone use) -------
+setup
+run_entry CODE_REVIEW_STATUS=failure E2E_CMD="true"
+[[ "$(rf .result)" == success ]] && ok "gate: skipped when not required (host)" || bad "gate: skip host" "$(rf .reason)"
 teardown
 
 # --- 7. sha-pin mismatch => failure, no run ----------------------------------

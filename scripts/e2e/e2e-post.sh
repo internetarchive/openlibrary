@@ -29,14 +29,17 @@
 #                          attacker-controlled (the sandbox runs the PR's code,
 #                          which writes the artifact) and is IGNORED entirely —
 #                          trusting it would let a PR aim writes at any issue.
-#   CHECK_PREFIX           default "check/" — the single swappable status-context
-#                          prefix (the `check/` vs `pr/` choice is still open).
+#   CHECK_PREFIX           default "" — the single swappable status-context prefix.
+#                          Dropped fleet-wide 2026-11-13: Mek's required-check
+#                          names are unprefixed (`code-review`), so e2e posts the
+#                          unprefixed `tested-e2e` to keep the pair consistent. The
+#                          constant stays so a prefix can be reinstated in one place.
 #   STATUS_CONTEXT         default "${CHECK_PREFIX}tested-e2e"
 #   LABEL                  default "Needs: e2e testing"
 #
 # NON-REQUIRED INVARIANT: because the sandbox runs untrusted PR code and that
 # code writes the result artifact, a `success` is forgeable by any PR that is
-# allowed to run. That is acceptable ONLY while check/tested-e2e stays an
+# allowed to run. That is acceptable ONLY while tested-e2e stays an
 # OPTIONAL, label-gated check. It MUST NEVER be made a required merge check, or a
 # labeled malicious PR could self-certify green. Keep this check non-required.
 #
@@ -61,7 +64,7 @@ command -v jq >/dev/null 2>&1 || { err "jq is required"; exit 2; }
 ARTIFACT_FILE="${ARTIFACT_FILE:-}"
 WORKFLOW_RUN_HEAD_SHA="${WORKFLOW_RUN_HEAD_SHA:-}"
 EVENT_PR="${EVENT_PR:-}"
-CHECK_PREFIX="${CHECK_PREFIX:-check/}"
+CHECK_PREFIX="${CHECK_PREFIX:-}"
 STATUS_CONTEXT="${STATUS_CONTEXT:-${CHECK_PREFIX}tested-e2e}"
 LABEL="${LABEL:-Needs: e2e testing}"
 

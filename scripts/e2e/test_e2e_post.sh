@@ -59,7 +59,7 @@ d="$(run_post "$TESTDIR/r.json")"; rc=$?
 [[ "$(field "$d" .head_sha)" == "$GOODSHA" ]] && ok "success: posts on authoritative sha" || bad "success: sha" "$d"
 [[ "$(field "$d" .remove_label)" == true ]] && ok "success: clears label" || bad "success: remove_label" "$d"
 [[ "$(field "$d" .comment)" == false ]] && ok "success: no comment" || bad "success: comment" "$d"
-[[ "$(field "$d" .status_context)" == "check/tested-e2e" ]] && ok "success: default context" || bad "success: ctx" "$d"
+[[ "$(field "$d" .status_context)" == "tested-e2e" ]] && ok "success: default context (unprefixed)" || bad "success: ctx" "$d"
 teardown
 
 # --- 2. clean failure => failure, clear label, comment -----------------------

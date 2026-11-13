@@ -127,7 +127,7 @@ jobs:
             catch (e) { d = null; }
             if (!d || typeof d !== 'object') {
               d = { state: 'failure', head_sha: eventSha, pr: null,
-                    status_context: 'check/tested-e2e',
+                    status_context: 'tested-e2e',
                     description: 'e2e could not be reported', remove_label: false,
                     label: 'Needs: e2e testing', comment: false, comment_body: '' };
             }
@@ -136,7 +136,7 @@ jobs:
             // already-tested decider).
             const state = (d.state === 'success' || d.state === 'failure') ? d.state : 'failure';
             const sha = sha40.test(d.head_sha) ? d.head_sha : eventSha;
-            const ctx = (typeof d.status_context === 'string' && d.status_context) ? d.status_context : 'check/tested-e2e';
+            const ctx = (typeof d.status_context === 'string' && d.status_context) ? d.status_context : 'tested-e2e';
             const desc = (typeof d.description === 'string') ? d.description.slice(0, 140) : '';
             const pr = Number.isInteger(d.pr) && d.pr > 0 ? d.pr : null;
 

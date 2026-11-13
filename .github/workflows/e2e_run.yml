@@ -28,9 +28,12 @@ concurrency:
   cancel-in-progress: true
 
 # Minimal, read-only. No write scope, no secrets are referenced anywhere below.
+# statuses:read is a READ — it lets the authorization gate re-check the SHA-bound
+# `code-review` status on this head; it grants no ability to post.
 permissions:
   contents: read
   pull-requests: read
+  statuses: read
 
 jobs:
   run:
@@ -55,6 +58,37 @@ jobs:
         uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
         with:
           egress-policy: audit
+
+      # THE AUTHORIZATION GATE (read before editing). The `Needs: e2e testing`
+      # label is only a TRIGGER; the SHA-bound `code-review` commit status is the
+      # GATE. Read its state on THIS exact head sha with the read-only token (no
+      # secret) and hand it to run-e2e.sh, which REFUSES to execute PR code unless
+      # it is `success`. Fail-SAFE: any read error becomes a non-green state, so
+      # e2e skips rather than running on an unverified head.
+      #   - The context string is exactly `code-review` (plain; Mek's required-
+      #     check name, produced by #14455 — do NOT rename once it is required).
+      #   - DEPENDENCY: this can only ever pass once #14455 posts that status, so
+      #     #14454 stays parked for GO-LIVE behind the code-review piece.
+      - name: Read code-review gate status
+        id: codereview
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const sha = context.payload.pull_request.head.sha;
+            let state = 'absent';
+            try {
+              // Newest-first; the first hit for the context is its latest state.
+              const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, {
+                owner: context.repo.owner, repo: context.repo.repo, ref: sha, per_page: 100,
+              });
+              const cr = statuses.find(s => s.context === 'code-review');
+              state = cr ? cr.state : 'absent';
+            } catch (e) {
+              core.warning(`could not read code-review status (fail-safe to non-green): ${e.message}`);
+              state = 'error';
+            }
+            core.info(`code-review status on ${sha}: ${state}`);
+            core.setOutput('state', state);
 
       # The PR's changed files, from the API — not a local git diff, so it is
       # correct for fork PRs and needs no base fetch. Feeds the denylist.
@@ -120,6 +154,10 @@ jobs:
           # Fail the denylist CLOSED if the changed-paths lookup glitched to empty
           # or produced no source, instead of silently skipping the gate.
           DENYLIST_REQUIRED: "1"
+          # Enforce the code-review authorization gate: only a `success` status on
+          # this head authorises execution; anything else fail-safes to skip.
+          REQUIRE_CODE_REVIEW: "1"
+          CODE_REVIEW_STATUS: ${{ steps.codereview.outputs.state }}
         run: bash scripts/e2e/run-e2e.sh
 
       # Save images for the next run of THIS PR (only needed on a cache miss).

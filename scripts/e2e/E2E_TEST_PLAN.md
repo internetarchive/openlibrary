@@ -1,15 +1,28 @@
 # Open Library e2e test plan
 
 > Authored and maintained by `@openlibrary-bot` (epic #14461). This document is
-> the persistent, human-readable definition of what the `check/tested-e2e` gate
+> the persistent, human-readable definition of what the `tested-e2e` gate
 > verifies and what "pass" means. Per-run results accumulate natively — in each
 > PR's commit-status history and in the retained workflow-run artifacts
 > (`e2e-result.json` + the Playwright HTML report) — not in a bespoke ledger.
 
+## What authorises a run (the gate vs. the trigger)
+
+The `Needs: e2e testing` label is only a **trigger**. The **gate** is the
+SHA-bound `code-review` commit status: before it brings up docker, RUN
+independently re-checks that `code-review` is `success` on the *runtime* head
+commit (read via the read-only token — no secret). A stale or mis-applied label
+can never, by itself, authorise executing untrusted code: if `code-review` is not
+green on this exact commit (absent / pending / failure / error all count), e2e
+fail-safes to `failure` and the PR's code is **never executed**. This is the
+pipeline's honesty rule applied to e2e, and the belt behind the untrusted→e2e
+path. (`code-review` is produced by #14455, so e2e's go-live depends on it.)
+
 ## What runs
 
-A label-triggered GitHub Action runs the Open Library Playwright end-to-end
-suite against a from-scratch docker stack, on the PR's exact head commit.
+A label-triggered, code-review-gated GitHub Action runs the Open Library
+Playwright end-to-end suite against a from-scratch docker stack, on the PR's
+exact head commit.
 
 - **Command (v1):**
   `npx playwright test --project=desktop --grep @smoke --grep-invert "logged in"`
@@ -47,13 +60,14 @@ Two workflows, split for fork safety (see the headers of
    (`success`/`failure`, never absent — an EXIT trap guarantees it on crash,
    kill, or timeout). It makes no GitHub writes.
 2. **POST** (`workflow_run`, trusted, never checks out fork code) reads that
-   artifact as data, validates it, and posts the `check/tested-e2e` commit
-   status, clears the `Needs: e2e testing` label, and comments on failure.
+   artifact as data, validates it, and posts the `tested-e2e` commit status,
+   clears the `Needs: e2e testing` label, and comments on failure.
 
 There is **no `pending`** state: anything short of a clean success artifact
 resolves to `failure`. e2e is an **optional** check (not required for merge) and
-**never auto-runs on untrusted code** — it is gated by the maintainer-only label,
-with an auto-run path only for `openlibrary-bot`'s own same-repo PRs.
+**never auto-runs on untrusted code** — it is triggered by the maintainer-only
+label, authorised by the SHA-bound `code-review` gate above, with an auto-run
+path on push only for `openlibrary-bot`'s own same-repo PRs.
 
 ## Local / CI verification of the harness itself
 

@@ -50,16 +50,29 @@
 #   REPO         default internetarchive/openlibrary — for the compose project name
 #   BASE_SHA     the PR base sha; used to compute the changed-paths denylist diff
 #                when CHANGED_PATHS / CHANGED_PATHS_CMD are not provided.
+#   CODE_REVIEW_STATUS   the state of the `code-review` commit status on HEAD_SHA,
+#                read by the RUN workflow via the read-only token (NO secret) and
+#                passed in as DATA. Only the exact value `success` authorises the
+#                run; everything else is treated as not-green.
+#   REQUIRE_CODE_REVIEW  if set, ENFORCE the code-review gate (the workflow sets
+#                it to "1"). Unset => skip the gate (host/standalone harness use,
+#                where there is no commit status to read).
 #
 # Behaviour, in order:
 #   1. Validate inputs; arm the result-guarantee trap.
-#   2. SAFETY DENYLIST (defense-in-depth): if the diff touches a sandbox/CI-
+#   2. CODE-REVIEW GATE (authorization): the SHA-bound `code-review` commit status
+#      must be `success` on HEAD_SHA. The `Needs: e2e testing` label is only a
+#      TRIGGER; this status is the GATE. A non-SHA-bound label must never be the
+#      sole thing authorizing execution of untrusted code. Not green (absent /
+#      pending / failure / error / stale all count) => failure, exit WITHOUT
+#      executing the PR's code.
+#   3. SAFETY DENYLIST (defense-in-depth): if the diff touches a sandbox/CI-
 #      sensitive path, write `failure` and exit WITHOUT executing the PR's
 #      (possibly rewritten) harness.
-#   3. SHA-PIN: verify the workspace HEAD is exactly HEAD_SHA (the checkout
+#   4. SHA-PIN: verify the workspace HEAD is exactly HEAD_SHA (the checkout
 #      pinned it; this asserts the pin held). Mismatch => failure, no run.
-#   4. Run the OL e2e target (docker stack + Playwright @smoke).
-#   5. The EXIT trap writes the terminal result artifact. Exit mirrors pass/fail.
+#   5. Run the OL e2e target (docker stack + Playwright @smoke).
+#   6. The EXIT trap writes the terminal result artifact. Exit mirrors pass/fail.
 #
 # ----------------------------------------------------------------------------
 # Test seams (used ONLY by scripts/e2e/test_run_e2e.sh; unset in production):
@@ -89,6 +102,7 @@ RAN="false"             # becomes "true" only once the e2e step is entered
 RESULT_WRITTEN=0        # write the artifact exactly once
 E2E_PID=""              # pid of the backgrounded e2e child, for the signal trap
 UNSAFE_PATH=""          # set by safety_check when a denied path is found
+CODE_REVIEW_STATE=""    # set by code_review_gate to the blocking status value
 
 log()  { printf '[run-e2e] %s\n' "$*"; }
 warn() { printf '[run-e2e] WARN: %s\n' "$*" >&2; }
@@ -122,6 +136,25 @@ write_result() {
     warn "could not write result artifact ($RESULT_FILE)"
     rm -f "$tmp" 2>/dev/null || true
   fi
+}
+
+# --- code-review gate (the AUTHORIZATION gate) -------------------------------
+# The pipeline's honesty rule applied to e2e: the `Needs: e2e testing` label is
+# only a TRIGGER; the SHA-bound `code-review` commit status is the GATE. The RUN
+# workflow reads `code-review`'s state on THIS exact HEAD_SHA (read-only token, no
+# secret) and passes it in as CODE_REVIEW_STATUS. We refuse to execute the PR's
+# code unless that state is exactly `success` on this commit — so a stale or
+# mis-applied label can never, by itself, authorise running untrusted code on an
+# unverified head. Fail-SAFE: absent / pending / failure / error / empty all count
+# as not-green and block the run. Enforced only when REQUIRE_CODE_REVIEW is set
+# (the workflow sets it); host/standalone runs with no status to read skip it.
+# 0 = authorised to run; 1 = blocked (sets CODE_REVIEW_STATE to the seen value).
+code_review_gate() {
+  [[ -z "${REQUIRE_CODE_REVIEW:-}" ]] && return 0
+  local state="${CODE_REVIEW_STATUS:-}"
+  if [[ "$state" == "success" ]]; then return 0; fi
+  CODE_REVIEW_STATE="${state:-absent}"
+  return 1
 }
 
 # --- safety denylist (DEFENSE-IN-DEPTH, not the primary control) --------------
@@ -291,7 +324,15 @@ main() {
   trap 'on_signal TERM 15' TERM
   trap 'on_signal INT 2' INT
 
-  # --- step 2: safety denylist (defense-in-depth, NOT the primary control) ---
+  # --- step 2: code-review gate (AUTHORIZATION — the label is only a trigger) -
+  if ! code_review_gate; then
+    RESULT="failure"; RAN="false"
+    REASON="code-review is not green on this commit (code-review=${CODE_REVIEW_STATE:-absent}): the SHA-bound code-review status is the e2e gate, not the label; refusing to execute PR code on an unverified head"
+    log "$REASON"
+    exit 1   # -> finalize writes failure, ran=false; the e2e step never runs
+  fi
+
+  # --- step 3: safety denylist (defense-in-depth, NOT the primary control) ---
   if ! safety_check; then
     RESULT="failure"; RAN="false"
     REASON="unsafe to auto-run: changes ${UNSAFE_PATH:-a sandbox/CI-sensitive path}; needs manual review"
@@ -299,7 +340,7 @@ main() {
     exit 1   # -> finalize writes failure, ran=false; the e2e step never runs
   fi
 
-  # --- step 3: sha-pin ------------------------------------------------------
+  # --- step 4: sha-pin ------------------------------------------------------
   if ! verify_sha; then
     RESULT="failure"; RAN="false"
     REASON="sha-pin mismatch: workspace HEAD is not $HEAD_SHA"
@@ -307,7 +348,7 @@ main() {
     exit 1   # -> finalize writes failure
   fi
 
-  # --- step 4: run the e2e target -------------------------------------------
+  # --- step 5: run the e2e target -------------------------------------------
   RAN="true"
   if run_e2e; then
     RESULT="success"; REASON="e2e passed (@smoke)"
@@ -316,7 +357,7 @@ main() {
   fi
   log "e2e result: $RESULT"
 
-  # --- step 5 happens in finalize; exit code mirrors pass/fail --------------
+  # --- step 6 happens in finalize; exit code mirrors pass/fail --------------
   [[ "$RESULT" == "success" ]] && exit 0 || exit 1
 }
 
