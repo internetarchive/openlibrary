@@ -212,19 +212,24 @@ on:
         type: string
 
 concurrency:
-  # Per-PR group, and the burst belt on model spend: duplicate triggers on ONE PR (an opened +
-  # auto_assign's review_requested bounce, or rapid re-requests) collapse to a single in-flight
-  # review instead of spawning parallel model runs. A superseded run is cancelled; its SHA-bound
-  # `code-review` status is simply re-derived by the newer run on whatever head is current -- the
-  # status is per-commit, so a cancelled run never leaves a stale merge signal (an unreviewed head
-  # just has no status, which the required ruleset blocks).
-  # NOT a repo-wide group ON PURPOSE: GitHub concurrency is mutual-exclusion (one running + one
-  # pending per key), not a max-N limiter, so a single global group would either cross-cancel other
-  # PRs' reviews (cancel-in-progress) or silently DROP queued reviews (depth-1 pending) -- stranding
-  # a PR with no `code-review` status, i.e. unmergeable forever. The real spend cap is the `if`
-  # below (forks don't auto-review; external authors can't request a reviewer), not concurrency.
+  # Per-PR group with cancel-in-progress FALSE -- correctness over efficiency, because this status
+  # is a REQUIRED merge gate. cancel-in-progress:true would create a STRAND: if a run posts its
+  # review on commit H and is then cancelled (by a second trigger on the same PR) BEFORE its separate
+  # `status` job posts, the next run sees "already reviewed H" -> skips -> the status job never runs
+  # -> H gets NO `code-review` status -> unmergeable until a new head is pushed (on a fork, until a
+  # maintainer re-requests). With FALSE, the in-flight run always completes (review AND status); a
+  # second trigger QUEUES and then runs -- and on the SAME head it is cheap (the range step returns
+  # "already reviewed this SHA" and skips the model), so the common opened + auto_assign
+  # review_requested bounce costs one review, not two. The only cost of FALSE is an occasional wasted
+  # review when a NEW head arrives mid-review (the old head is reviewed to completion first); that is
+  # bounded by the `if` below (forks don't auto-review; external authors can't request a reviewer)
+  # and is a deliberate trade for never stranding a required status. A superseded head's status is
+  # harmless -- the ruleset checks the CURRENT head, which gets its own run.
+  # NOT a repo-wide group: GitHub concurrency is mutual-exclusion (one running + one pending per key),
+  # not a max-N limiter, so a single global group would DROP queued reviews (depth-1 pending) ->
+  # strand a PR with no status. The real spend cap is the `if` below, not concurrency.
   group: code-review-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   analyze:
@@ -443,6 +448,14 @@ jobs:
             // catch them; this count is exactly that guard). On a withhold it is 0: the count is
             // PUBLIC by construction and a withheld review exposes nothing, so 0 never signals
             // "a review was withheld". A withheld run still blocks via post.result != success.
+            //
+            // KNOWN GAP (#14471, accepted for v1): this count is scoped to THIS run's review, and a
+            // re-review is INCREMENTAL (only the diff since our last pass). An orphaned/summary-only
+            // finding from a PRIOR run creates no thread, so once a later incremental run returns 0
+            // the status can go green with that finding unaddressed. v1 ships with this because the
+            // `code-review` status is a required FLOOR (an automated review ran clean-ish), NOT a
+            // CEILING (good to merge) -- it is "not an approval" and is paired with human review, who
+            // stays in the loop for exactly this case. Fast-follow #14471: count over the full PR.
             const pubCount = res.publish ? res.clean.findings.length : 0;
             core.setOutput('public_findings_count', String(pubCount));
             core.info('Gate evaluated; artifact prepared.');
@@ -616,6 +629,11 @@ jobs:
   # ----------------------------------------------------------------------------------------------
   # status -- the SHA-bound required merge signal (issue #14453 A/B). Posts commit status
   # `code-review` on the exact SHA that was reviewed; a branch-protection ruleset requires it.
+  #
+  # FLOOR, NOT CEILING: a green `code-review` means "an automated review ran on this SHA and came
+  # back clean-ish", NOT "this PR is good to merge". It can be green on a bad PR -- an orphaned
+  # finding from a prior incremental run (#14471) or a prompt-injected clean review -- so it is "not
+  # an approval or sign-off" and MUST be deployed ALONGSIDE human review, never as the sole gate.
   #
   # Runs after analyze+post on every reviewed head (review_requested / @-mention / dispatch), never
   # on a bare push. It does NOT touch any label -- the e2e piece (#14454) owns `Needs: e2e testing`.
