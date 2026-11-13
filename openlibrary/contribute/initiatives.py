@@ -50,6 +50,9 @@ NOT_FOUND_TYPE = "contribute-notfound"
 
 # Picking scans Solr for the whole list, so it gets the same room as the old Tasks query.
 PICK_TIMEOUT_SECONDS = 120
+# The share of the tasks open at the start that counts as success. Not 100: some gaps can't be filled, and the last few
+# cost far more than the rest. A project can set its own.
+DEFAULT_GOAL = 90
 # How long the open gaps are shared before a background rebuild re-reads every edition on the list.
 OPEN_TTL = 10 * MINUTE_SECS
 OPEN_LOCK_TTL = 5 * MINUTE_SECS
@@ -72,6 +75,8 @@ class Initiative:
     # Off the public pages whatever its dates; its saves and stats carry on.
     hidden: bool = False
     featured: bool = False
+    # The percent (see ``progress``) at which the project has reached its goal; it keeps counting past it.
+    goal: int = DEFAULT_GOAL
     # What was open when the list was frozen, so progress counts up from 0%: ``{"open": n, "fields": {field: {"open": n,
     # "not_found": n}}}``. None until the first gaps build records it (``record_start``).
     start: dict | None = field(default=None, hash=False, compare=False)
@@ -353,6 +358,8 @@ def from_definition(doc: dict, base: Initiative | None = None) -> Initiative | N
         changes["size"] = doc["size"]
     changes |= {key: parse_time(doc[key]) for key in ("starts_at", "ends_at") if key in doc}
     changes |= {key: bool(doc[key]) for key in ("hidden", "featured") if key in doc}
+    if isinstance(doc.get("goal"), int) and 1 <= doc["goal"] <= 100:
+        changes["goal"] = doc["goal"]
     if isinstance(doc.get("start"), dict):
         changes["start"] = doc["start"]
     initiative = replace(start, **changes)
@@ -614,30 +621,57 @@ def closed_share(start: int, still_open: int) -> int:
     return max(0, (start - still_open) * 100 // start)
 
 
-def progress(gaps: list[list], fields: tuple[str, ...], start: dict | None = None) -> dict[str, int]:
+def progress(gaps: list[list], fields: tuple[str, ...], start: dict | None = None, goal: int = DEFAULT_GOAL) -> dict:
     """How far an initiative has come: editions with nothing left to fill, out of all of them, the gaps still open, and the
     share of the gaps open at ``start`` (``Initiative.start``) closed since; without one, today is the start.
     A detail nobody could find counts as closed, so every save or "couldn't find it" moves it.
     Only ``fields`` count, the initiative's own; the gaps keep the rest for the unlinked filters. A work field counts
-    once per work (see ``field_counts``), so one answer is one gap closed."""
+    once per work (see ``field_counts``), so one answer is one gap closed. ``reached`` is whether the percent has met ``goal``."""
     wanted = set(fields)
     counts = [field_counts(gaps, f) for f in wanted]
     open_count = sum(c["open"] for c in counts)
     began = start["open"] if start and "open" in start else open_count
+    percent = closed_share(began, open_count)
     return {
         "done": sum(1 for row in gaps if not wanted.intersection(row[2])),
         "total": len(gaps),
         "open": open_count,
         "not_found": sum(c["not_found"] for c in counts),
         "start": began,
-        "percent": closed_share(began, open_count),
+        "percent": percent,
+        "goal": goal,
+        "reached": percent >= goal,
     }
 
 
-def record_not_found(site, edition_key: str, fld: str, user_key: str) -> None:
-    """Note that ``user_key`` looked for ``fld`` on the edition and couldn't find it. Kept apart from the record, so it isn't an edit."""
+NOTE_MAX = 500
+"""The longest "couldn't find it" note kept; the task form's textarea stops at it too."""
+
+
+def record_not_found(site, edition_key: str, fld: str, user_key: str, note: str = "") -> None:
+    """Note that ``user_key`` looked for ``fld`` on the edition and couldn't find it. Kept apart from the record, so it isn't an edit.
+
+    ``note`` is their comment (where they looked, say), kept by person; a later one replaces theirs.
+    """
     key = f"{NOT_FOUND_TYPE}-{edition_key.rsplit('/', maxsplit=1)[-1]}-{fld}"
     doc = site.store.get(key) or {"type": NOT_FOUND_TYPE, "edition": edition_key, "field": fld, "people": []}
-    if user_key not in doc["people"]:
+    changed = user_key not in doc["people"]
+    if changed:
         doc["people"] = [*doc["people"], user_key]
+    if (note := note.strip()[:NOTE_MAX]) and doc.get("notes", {}).get(user_key) != note:
+        doc["notes"] = doc.get("notes", {}) | {user_key: note}
+        changed = True
+    if changed:
         site.store[key] = doc
+
+
+def containing(edition_key: str, fld: str, lead: Initiative) -> Initiative | None:
+    """The running initiative a task belongs to, for a task link that doesn't name one. Headline links are bare too, so the
+    headline ``lead`` keeps any book on its list, and while its gaps are still building; only a book it doesn't list goes to
+    the first other initiative that lists it and asks for ``fld``. None leaves the task with the headline."""
+    if (lead_gaps := get_gaps(lead)) is None or any(row[0] == edition_key for row in lead_gaps):
+        return None
+    for initiative in running():
+        if initiative.slug != lead.slug and fld in initiative.fields and (gaps := get_gaps(initiative)) and any(row[0] == edition_key for row in gaps):
+            return initiative
+    return None

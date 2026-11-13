@@ -9,10 +9,10 @@ from datetime import UTC, date, datetime, time, timedelta
 from openlibrary.contribute import booklist, initiatives, tasks
 from openlibrary.contribute.field_guides import get_field_guides
 from openlibrary.core import admin
-from openlibrary.core.helpers import commify, format_date
+from openlibrary.core.helpers import _get_babel_locale, commify, format_date
 from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import get_request_lang, site
 
 BASE_URL = "/tasks/admin"
 # The list's order: what is running, then what is coming, then what is over.
@@ -60,7 +60,7 @@ def build_summary(initiative: initiatives.Initiative, docs: list[dict]) -> dict:
     status = initiative.status()
     started = status in ("live", "ended") or not initiatives.is_builtin(initiative)
     gaps = initiatives.get_gaps(initiative) if started else None
-    progress = initiatives.progress(gaps, initiative.fields, initiative.start) if gaps is not None else None
+    progress = initiatives.progress(gaps, initiative.fields, initiative.start, initiative.goal) if gaps is not None else None
     guides = get_field_guides()
     return initiatives.describe(initiative) | {
         "slug": initiative.slug,
@@ -75,6 +75,8 @@ def build_summary(initiative: initiatives.Initiative, docs: list[dict]) -> dict:
         # Started, but the shared gaps aren't built yet; the page says so rather than showing zeros.
         "building": started and progress is None,
         "progress": progress,
+        "goal": initiative.goal,
+        "goal_label": _("Goal: %(percent)s%%", percent=initiative.goal),
         "tasks_left": format_count(progress["open"]) if progress else BLANK,
         # Closed since the start, out of what was open then; a gap emptied after the start can't push it below 0.
         "tasks_done": format_count(max(0, progress["start"] - progress["open"])) if progress else BLANK,
@@ -175,8 +177,6 @@ def build_detail(initiative: initiatives.Initiative) -> dict:
     return {
         "project": summary,
         "index_url": BASE_URL,
-        # The public page only lists it once it has started and while it isn't hidden.
-        "public_url": f"/tasks?initiative={initiative.slug}" if started and not initiative.hidden else "",
         "picked": format_day(picked),
         "builtin": builtin,
         "skipped": build_skipped(doc.get("skipped") or [], doc.get("skipped_count") or 0),
@@ -211,6 +211,7 @@ def build_controls(initiative: initiatives.Initiative, status: str, doc: dict) -
             "description": initiative.description if initiative.title else "",
             "starts": initiative.starts_at.date().isoformat() if initiative.starts_at else "",
             "ends": day.isoformat() if (day := initiatives.last_day(initiative.ends_at)) else "",
+            "goal": str(initiative.goal),
             "title_max": TITLE_MAX,
             "description_max": DESCRIPTION_MAX,
         },
@@ -219,7 +220,7 @@ def build_controls(initiative: initiatives.Initiative, status: str, doc: dict) -
 
 
 def edit_labels() -> dict[str, str]:
-    return {"title": _("title"), "description": _("description"), "starts_at": _("start date"), "ends_at": _("end date")}
+    return {"title": _("title"), "description": _("description"), "starts_at": _("start date"), "ends_at": _("end date"), "goal": _("goal")}
 
 
 def describe_change(entry: dict) -> str:
@@ -229,8 +230,8 @@ def describe_change(entry: dict) -> str:
         "hide": _("Hid the project"),
         "unhide": _("Made the project visible again"),
         "stop": _("Stopped the project early"),
-        "headline": _("Made it the headline project"),
-        "unheadline": _("Another project became the headline"),
+        "headline": _("Made it the featured project"),
+        "unheadline": _("Another project was featured"),
     }
     if (action := entry.get("action")) in plain:
         return plain[action]
@@ -259,7 +260,36 @@ def midnight(day: date) -> str:
     return datetime.combine(day, time(), tzinfo=UTC).isoformat(timespec="seconds")
 
 
-def parse_edit(initiative: initiatives.Initiative, title: str, description: str, starts: str, ends: str) -> tuple[dict, str]:
+# Details many books really don't have: a project asking for them starts with a lower goal.
+HARD_FIELDS = frozenset({"lccn", "oclc_numbers"})
+GOAL_SOME_HARD = 75
+GOAL_ALL_HARD = 50
+
+
+def suggested_goal(fields) -> int:
+    """The goal the create form starts with for these details: lower when some are often missing, lowest when all are."""
+    chosen = set(fields)
+    if not chosen & HARD_FIELDS:
+        return initiatives.DEFAULT_GOAL
+    return GOAL_ALL_HARD if chosen <= HARD_FIELDS else GOAL_SOME_HARD
+
+
+def goal_rule() -> dict:
+    """``suggested_goal`` as data, so the create form's script follows the details as they're ticked."""
+    return {"hard": sorted(HARD_FIELDS), "default": initiatives.DEFAULT_GOAL, "some": GOAL_SOME_HARD, "all": GOAL_ALL_HARD}
+
+
+def parse_goal(raw: str) -> int | None:
+    """A goal as typed, a whole percent from 1 to 100 with or without its sign; None for anything else."""
+    raw = raw.strip().removesuffix("%").strip()
+    return int(raw) if raw.isascii() and raw.isdigit() and 1 <= int(raw) <= 100 else None
+
+
+def goal_error() -> str:
+    return _("The goal is a percent from 1 to 100.")
+
+
+def parse_edit(initiative: initiatives.Initiative, title: str, description: str, starts: str, ends: str, goal: str = "") -> tuple[dict, str]:
     """The edit form as changes to the definition, or an error to show. Only what differs is a change, so the log says what moved.
 
     A built-in project may leave the title blank: it then keeps its own name and description, which are translated.
@@ -277,6 +307,10 @@ def parse_edit(initiative: initiatives.Initiative, title: str, description: str,
         return {}, _("A project with an end date needs a start date.")
     if end_day and start_day and end_day < start_day:
         return {}, _("The end date is before the start date.")
+    # Left blank, the goal stays as it was.
+    new_goal = parse_goal(goal) if goal.strip() else initiative.goal
+    if new_goal is None:
+        return {}, goal_error()
     if not title:
         description = ""
     changes: dict = {}
@@ -289,10 +323,13 @@ def parse_edit(initiative: initiatives.Initiative, title: str, description: str,
     # Compared as days: a project stopped at 2pm still shows that day, and saving the form again mustn't restart it until midnight.
     if end_day != initiatives.last_day(initiative.ends_at):
         changes["ends_at"] = midnight(end_day + timedelta(days=1)) if end_day else None
+    if new_goal != initiative.goal:
+        changes["goal"] = new_goal
     return changes, ""
 
 
-SOURCES = ("pasted", "list", "most-shelved", "most-shelved-missing")
+# "most-shelved" (whether or not a book needs anything) is no longer offered, but a project made with it still runs.
+SOURCES = ("pasted", "list", "most-shelved-missing")
 SKIPPED_KEPT = 50
 DEFAULT_SIZE = 500
 
@@ -320,6 +357,28 @@ def build_skipped(skipped: list[dict], count: int) -> dict:
     }
 
 
+def plural_forms(singular: str, plural: str) -> dict[str, str]:
+    """A count string for the browser to fill: one per plural category of the request's language (CLDR's one, few, many,
+    other...), each translated at a count in that category, for ``Intl.PluralRules`` to choose from. ``{count}`` marks the number."""
+    locale = _get_babel_locale(get_request_lang())
+    forms: dict[str, str] = {}
+    for n in range(200):
+        forms.setdefault(locale.plural_form(n), ungettext(singular, plural, n, count="{count}"))
+    # Whole counts never reach "other" in some languages; the script falls back to it.
+    forms.setdefault("other", ungettext(singular, plural, 2, count="{count}"))
+    return forms
+
+
+def build_create_strings() -> dict:
+    """The create summary's strings, built here because Jinja's ``_()`` would format the ``{count}`` placeholders away."""
+    return {
+        "none": _("None yet"),
+        "books": plural_forms("%(count)s book", "%(count)s books"),
+        "shelved": plural_forms("The %(count)s most-shelved book missing a detail", "The %(count)s most-shelved books missing a detail"),
+        "list": _("Every book on the list"),
+    }
+
+
 def build_new_form(values: dict | None = None, error: str = "") -> dict:
     """The create form, blank or as it was posted with what was wrong."""
     guides = get_field_guides()
@@ -330,23 +389,26 @@ def build_new_form(values: dict | None = None, error: str = "") -> dict:
         "action": f"{BASE_URL}/new",
         "error": error,
         "form": dict.fromkeys(("title", "description", "books", "list_url", "starts", "ends"), "")
-        | {"source": "pasted", "size": str(DEFAULT_SIZE)}
+        | {"source": "pasted", "size": str(DEFAULT_SIZE), "goal": str(suggested_goal(chosen))}
         | {k: v for k, v in values.items() if k != "fields" and v},
         "field_groups": [
             {
                 "id": group,
                 "legend": legend,
-                "hint": hint,
                 "fields": [
                     {"value": f, "label": guides[f].label if f in guides else f, "checked": f in chosen}
                     for f in tasks.POINTS
                     if (f in tasks.WORK_FIELDS) == (group == "work")
                 ],
             }
-            for group, legend, hint in (
-                ("edition", _("About the edition"), _("One published version of a book. Asked of every edition in the project.")),
-                ("work", _("About the work"), _("Shared by every edition of a book. Asked once per work, however many of its editions are in the project.")),
-            )
+            for group, legend in (("edition", _("About the edition")), ("work", _("About the work")))
+        ],
+        "goal_rule": goal_rule(),
+        "create_strings": build_create_strings(),
+        "sources": [
+            {"value": "pasted", "label": _("Custom list"), "note": _("(work IDs, book URLs, or ISBNs)")},
+            {"value": "list", "label": _("Open Library list"), "note": ""},
+            {"value": "most-shelved-missing", "label": _("Most-shelved books"), "note": ""},
         ],
         "title_max": TITLE_MAX,
         "description_max": DESCRIPTION_MAX,
@@ -378,15 +440,18 @@ def parse_create(values: dict) -> tuple[dict, booklist.Resolved | None, str]:
         return {}, None, _("A project with an end date needs a start date.")
     if end_day and start_day and end_day < start_day:
         return {}, None, _("The end date is before the start date.")
+    if (goal := parse_goal(str(values.get("goal") or suggested_goal(fields)))) is None:
+        return {}, None, goal_error()
     definition: dict = {
         "title": title,
         "description": description,
         "fields": fields,
         "starts_at": midnight(start_day) if start_day else None,
         "ends_at": midnight(end_day + timedelta(days=1)) if end_day else None,
+        "goal": goal,
         "source": source,
     }
-    if source in ("most-shelved", "most-shelved-missing"):
+    if source == "most-shelved-missing":
         size = str(values.get("size", "")).strip()
         if not (size.isascii() and size.isdigit() and 1 <= int(size) <= booklist.MAX_BOOKS):
             return {}, None, _("Choose how many books, from 1 to %(count)s.", count=commify(booklist.MAX_BOOKS))
