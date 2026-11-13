@@ -36,7 +36,11 @@ name: Code Review Action
 # process that read it has nothing to write with.
 #
 # Do not "simplify" this into one job. Do not add any PAT to `analyze`. Do not add write
-# scopes to `analyze`'s permissions block.
+# scopes to `analyze`'s permissions block. And -- load-bearing under pull_request_target, where
+# `analyze` runs with secrets on untrusted fork PRs -- `analyze` MUST NOT execute PR content: no
+# build, install, test, cache (actions/cache), cloud-auth (configure-aws/gcp/azure, azure/login)
+# or language-setup (actions/setup-*) step. A CI test asserts this (see ANALYZE-EXECUTION INVARIANT
+# below) and fails the build if `analyze` gains such a step.
 #
 # DISCLOSURE GATE -- a security finding is never published, per pm/workflows/code_review.md
 # ("do NOT post publicly. Follow security.md"). REVIEW_GATE_JS below is the one definition of
@@ -54,13 +58,33 @@ name: Code Review Action
 # backstop hit, a malformed or missing review. Logs on a public repo are public, so the reason
 # is never written anywhere.
 #
-# Fork PRs: `pull_request` from a fork gets no secrets, so the review_requested path covers
-# same-repo PRs only. The `issue_comment` path runs in base-repo context WITH secrets and does
-# cover fork PRs -- which is why that path is staff-gated by an explicit allowlist below.
-# `analyze` never checks fork code into the working tree. It fetches the PR head into a ref and
-# extracts a copy into pr-head/ with executable bits, symlinks and agent config (.claude/,
-# .mcp.json, CLAUDE.md) removed; nothing runs it. The model has no shell, can read only inside
-# the workspace, and can write only review.json -- see the Review step.
+# Fork PRs -- the fork-inclusive REQUIRED status (issue #14453 D): a required `code-review`
+# status forks cannot earn would brick every external PR, so the review must run and post on fork
+# PRs too. `pull_request` from a fork gets NO secrets (can't post), so this workflow uses
+# `pull_request_target`, which runs in the BASE-repo context with secrets for same-repo AND fork
+# PRs alike. The usual pull_request_target footgun -- running with secrets AND executing fork code
+# -- is structurally avoided here, and this is the whole reason the two-job split exists:
+#   * `analyze` reads the untrusted PR content but holds NO PAT and NO write scope. It checks out
+#     the BASE sha (never the PR head into the tree), fetches the PR head into a ref, and extracts
+#     a copy into pr-head/ with executable bits, symlinks and agent config (.claude/, .mcp.json,
+#     CLAUDE.md) removed. NOTHING from the fork is ever executed (see the analyze-execution
+#     invariant below). The model has no shell, can read only inside the workspace, and can write
+#     only review.json.
+#   * The PATs live only in `post`/`status`, which run no model and re-validate.
+#   * pull_request_target runs the BASE-branch copy of this workflow, so a fork PR cannot alter the
+#     hardening or the permissions blocks below.
+# Spend/abuse: auto-review (opened/ready_for_review) is gated to SAME-REPO PRs; a FORK earns the
+# status only after a staff member requests openlibrary-bot as reviewer (or @-mentions it, staff
+# allowlist) -- requesting a reviewer needs write/triage, so an external author cannot auto-trigger
+# the model. See the analyze `if` for the exact legs.
+#
+# ANALYZE-EXECUTION INVARIANT (load-bearing for the pull_request_target safety above -- a reviewer
+# re-diffs this on every change): the `analyze` job MUST NOT execute PR content. No build, install,
+# test, cache (actions/cache is fork-poisonable), cloud-auth (configure-aws/gcp/azure, azure/login)
+# or language-setup (actions/setup-*) step may be added to it, and it must keep NO PAT and NO write
+# scope. Its only `run:` steps are the git fetch-into-a-ref and the inert `git archive | tar`
+# extraction. A CI test (tests/unit/js/code_review_status_gate.test.js) asserts this and fails if
+# `analyze` gains a disallowed action or a build/install/test/cache command.
 
 env:
   # Evaluates to { dimensions, check(review) }. check() fails closed: anything not positively
@@ -158,16 +182,26 @@ env:
       },
     })
 
+# pull_request_target is REQUIRED for the fork-inclusive status (issue #14453 D): a fork
+# `pull_request` gets no secrets and cannot post `code-review`, so a required status would be
+# unearnable by every external PR. The pull_request_target footgun (secrets + fork-code execution)
+# is structurally avoided -- see the Fork PRs / ANALYZE-EXECUTION INVARIANT notes above: analyze
+# checks out the BASE sha, extracts the PR head INERT, holds no PAT/write, and never executes fork
+# code; pull_request_target runs the base-branch workflow so a fork can't alter the hardening. A CI
+# test asserts the analyze no-execution invariant. (zizmor ignore pragma is inline on the trigger.)
 on:
-  pull_request:
-    # A review fires on review_requested only (issue #14453 C). A bare push NEVER reviews --
-    # `synchronize` is deliberately not a trigger, which is the property that makes the SHA-bound
+  pull_request_target:  # zizmor: ignore[dangerous-triggers]
+    # NEVER `synchronize` -- a bare push does not review, which is what makes the SHA-bound
     # `code-review` status an honest merge gate (a new head has no status until it is re-reviewed).
-    #  - review_requested (reviewer == openlibrary-bot): explicit (re-)review requests. The FIRST
-    #    review still happens automatically because auto_assign_reviewer *adds* openlibrary-bot as a
-    #    reviewer on open, which itself emits review_requested. To re-run on a new head, a human (or
-    #    auto-assign on re-open) re-requests openlibrary-bot -- standard GitHub "re-request review".
-    types: [review_requested]
+    #  - opened / ready_for_review: the FIRST review. Gated to SAME-REPO PRs in the `if` below --
+    #    this covers our own openlibrary-bot/ada-authored PRs, which auto_assign_reviewer cannot
+    #    cover (it excludes bot-authored PRs and fork PRs; a PR also can't request its own author as
+    #    reviewer, 422). It does NOT auto-run on forks -- that's the spend gate (next line).
+    #  - review_requested (reviewer == openlibrary-bot): explicit (re-)review requests, ANY repo
+    #    incl. forks (no same-repo guard on this leg). Requesting a reviewer needs write/triage, so
+    #    a FORK earns the status only after a maintainer requests it -- which doubles as the human
+    #    "worth the CI spend" gate and closes the external auto-spend vector.
+    types: [opened, ready_for_review, review_requested]
   issue_comment:
     types: [created]
   workflow_dispatch:
@@ -178,40 +212,53 @@ on:
         type: string
 
 concurrency:
+  # Per-PR group, and the burst belt on model spend: duplicate triggers on ONE PR (an opened +
+  # auto_assign's review_requested bounce, or rapid re-requests) collapse to a single in-flight
+  # review instead of spawning parallel model runs. A superseded run is cancelled; its SHA-bound
+  # `code-review` status is simply re-derived by the newer run on whatever head is current -- the
+  # status is per-commit, so a cancelled run never leaves a stale merge signal (an unreviewed head
+  # just has no status, which the required ruleset blocks).
+  # NOT a repo-wide group ON PURPOSE: GitHub concurrency is mutual-exclusion (one running + one
+  # pending per key), not a max-N limiter, so a single global group would either cross-cancel other
+  # PRs' reviews (cancel-in-progress) or silently DROP queued reviews (depth-1 pending) -- stranding
+  # a PR with no `code-review` status, i.e. unmergeable forever. The real spend cap is the `if`
+  # below (forks don't auto-review; external authors can't request a reviewer), not concurrency.
   group: code-review-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
-  # true: duplicate review requests on the same PR collapse to one in-flight review. A superseded
-  # run is cancelled; its SHA-bound `code-review` status is simply re-derived by the newer run on
-  # whatever head is current. The status is per-commit, so a cancelled run never leaves a stale
-  # merge signal -- an unreviewed head just has no status, which the required ruleset blocks.
   cancel-in-progress: true
 
 jobs:
   analyze:
     runs-on: ubuntu-latest
-    # Trigger paths (this workflow has no `synchronize` trigger at all, so a bare push never
-    # reviews):
-    #   1. pull_request review_requested with openlibrary-bot as the reviewer -- explicit
-    #      (re-)review requests and the auto_assign_reviewer add-on-open. No staff-login check:
-    #      requesting any reviewer already requires write/triage access on GitHub's side.
-    #   2. issue_comment @-mention on a PR -- open to any commenter including external
-    #      contributors, and it runs with secrets in scope, so this path keeps an explicit
-    #      staff allowlist.
-    # NOTE (issue #14453 D -- fork-inclusive status): same-repo `review_requested` gets secrets;
-    # a FORK's review_requested does not, so this condition still covers same-repo PRs only. The
-    # fork-PR status path (pull_request_target, reusing the analyze hardening) is added separately
-    # and is lead/Locke-gated -- see the PR. Until it lands, forks are covered by the staff
-    # @-mention path (2), which runs in base-repo context with secrets.
-    # Drafts: the pull_request path skips draft PRs (!draft) -- no reviewing unfinished work. A
-    # manual workflow_dispatch reviews a draft deliberately; it is the staff debug path, and
+    # Trigger paths (no `synchronize` trigger at all, so a bare push never reviews). All
+    # pull_request_target legs run in base-repo context with secrets, for same-repo AND fork PRs:
+    #   1. pull_request_target opened / ready_for_review -- the FIRST review, gated to SAME-REPO
+    #      PRs only (fork auto-review is the spend vector we close). This covers our own
+    #      openlibrary-bot/ada-authored PRs, which auto_assign_reviewer does NOT cover (it has a
+    #      same-repo guard AND excludes bot-authored PRs), and which cannot request themselves (422).
+    #   2. pull_request_target review_requested with openlibrary-bot as the reviewer -- explicit
+    #      (re-)review requests, ANY repo INCLUDING FORKS (no same-repo guard here). This is how a
+    #      fork earns the required status: a maintainer requests the review. Requesting a reviewer
+    #      needs write/triage, so an external author cannot auto-trigger the model -- the spend gate.
+    #   3. issue_comment @-mention on a PR -- any commenter incl. external, runs with secrets, so
+    #      this path keeps an explicit staff allowlist.
+    # Drafts: the pull_request_target legs skip draft PRs (!draft) -- no reviewing unfinished work.
+    # A manual workflow_dispatch reviews a draft deliberately; it is the staff debug path, and
     # GitHub already requires write access to dispatch.
     if: >
       github.event_name == 'workflow_dispatch' ||
       (
-        github.event_name == 'pull_request' &&
+        github.event_name == 'pull_request_target' &&
         !github.event.pull_request.draft &&
-        github.event.pull_request.head.repo.full_name == github.repository &&
-        github.event.action == 'review_requested' &&
-        github.event.requested_reviewer.login == 'openlibrary-bot'
+        (
+          (
+            (github.event.action == 'opened' || github.event.action == 'ready_for_review') &&
+            github.event.pull_request.head.repo.full_name == github.repository
+          ) ||
+          (
+            github.event.action == 'review_requested' &&
+            github.event.requested_reviewer.login == 'openlibrary-bot'
+          )
+        )
       ) || (
         github.event_name == 'issue_comment' &&
         github.event.issue.pull_request != null &&
@@ -618,10 +665,13 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           # IDENTITY: posts the commit status as openlibrary-bot (default, per issue open-decision 1).
-          # SWAP POINT -- this one token line is the identity. Needs Commit statuses: write (post the
-          # status) and repo/PR read (the reviewThreads GraphQL below). PENDING Locke scope-confirm on
-          # OL_BOT_ACTIONS_PAT (see PR body); if it lacks statuses:write, Locke names the right one.
-          github-token: ${{ secrets.OL_BOT_ACTIONS_PAT }}
+          # SWAP POINT -- this one token line is the identity. OL_BOT_STATUS_PAT is a fine-grained PAT
+          # TO BE MINTED BY MEK (Locke's review, c): scoped to internetarchive/openlibrary ONLY, with
+          # exactly Commit statuses: write + Pull requests: read (reviewThreads GraphQL). Deliberately
+          # NOT the broad OL_BOT_ACTIONS_PAT -- under pull_request_target this token is present on
+          # attacker-initiated fork runs, so least privilege here is containment. The status job cannot
+          # go live on the fork path until this secret exists.
+          github-token: ${{ secrets.OL_BOT_STATUS_PAT }}
           script: |
             const owner = context.repo.owner, repo = context.repo.repo;
             const pr = Number(process.env.PR);
