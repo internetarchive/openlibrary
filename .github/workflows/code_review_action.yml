@@ -73,10 +73,11 @@ name: Code Review Action
 #   * The PATs live only in `post`/`status`, which run no model and re-validate.
 #   * pull_request_target runs the BASE-branch copy of this workflow, so a fork PR cannot alter the
 #     hardening or the permissions blocks below.
-# Spend/abuse: auto-review (opened/ready_for_review) is gated to SAME-REPO PRs; a FORK earns the
-# status only after a staff member requests openlibrary-bot as reviewer (or @-mentions it, staff
-# allowlist) -- requesting a reviewer needs write/triage, so an external author cannot auto-trigger
-# the model. See the analyze `if` for the exact legs.
+# Spend/abuse: the model runs on ONE path -- a `review_requested` for the team
+# `openlibrary-agentic-code-reviewer` (plus a staff @-mention and manual dispatch). auto_assign
+# requests that team automatically on SAME-REPO PRs only (any author, incl. our own bot); a FORK
+# earns the status only after a maintainer requests the team by hand -- requesting a reviewer needs
+# write/triage, so an external author cannot auto-trigger the model. See the analyze `if`.
 #
 # ANALYZE-EXECUTION INVARIANT (load-bearing for the pull_request_target safety above -- a reviewer
 # re-diffs this on every change): the `analyze` job MUST NOT execute PR content. No build, install,
@@ -193,15 +194,14 @@ on:
   pull_request_target:  # zizmor: ignore[dangerous-triggers]
     # NEVER `synchronize` -- a bare push does not review, which is what makes the SHA-bound
     # `code-review` status an honest merge gate (a new head has no status until it is re-reviewed).
-    #  - opened / ready_for_review: the FIRST review. Gated to SAME-REPO PRs in the `if` below --
-    #    this covers our own openlibrary-bot/ada-authored PRs, which auto_assign_reviewer cannot
-    #    cover (it excludes bot-authored PRs and fork PRs; a PR also can't request its own author as
-    #    reviewer, 422). It does NOT auto-run on forks -- that's the spend gate (next line).
-    #  - review_requested (reviewer == openlibrary-bot): explicit (re-)review requests, ANY repo
-    #    incl. forks (no same-repo guard on this leg). Requesting a reviewer needs write/triage, so
-    #    a FORK earns the status only after a maintainer requests it -- which doubles as the human
-    #    "worth the CI spend" gate and closes the external auto-spend vector.
-    types: [opened, ready_for_review, review_requested]
+    # ONE model-run path: `review_requested` for the team `openlibrary-agentic-code-reviewer`
+    # (the `if` below keys on github.event.requested_team.slug). auto_assign_reviewer.yml requests
+    # that team on opened/ready_for_review for SAME-REPO PRs (any author, incl. our own bot -- a team
+    # request is NOT blocked by the author-exclusion that stops requesting a PR's own author as an
+    # individual reviewer, proven on #14450). A FORK gets no auto-request (auto_assign is same-repo
+    # only); it earns the status only after a maintainer requests the team by hand -- the spend gate.
+    # A re-review is just another team request, which fires this same path again.
+    types: [review_requested]
   issue_comment:
     types: [created]
   workflow_dispatch:
@@ -220,7 +220,8 @@ concurrency:
   # maintainer re-requests). With FALSE, the in-flight run always completes (review AND status); a
   # second trigger QUEUES and then runs -- and on the SAME head it is USUALLY cheap: the range step
   # returns "already reviewed this SHA" (keyed on our prior review existing on that head) and skips
-  # the model, so the common opened + auto_assign review_requested bounce costs one review, not two.
+  # the model, so a duplicate team request on the same head (auto_assign plus a manual re-request)
+  # costs one review, not two.
   # (Edge: a prior run that WITHHELD posts no review, so a same-head re-trigger there re-runs the
   # model -- rare, and that trigger is authorized/same-repo.) The only cost of FALSE is an occasional wasted
   # review when a NEW head arrives mid-review (the old head is reviewed to completion first); that is
@@ -236,36 +237,28 @@ concurrency:
 jobs:
   analyze:
     runs-on: ubuntu-latest
-    # Trigger paths (no `synchronize` trigger at all, so a bare push never reviews). All
-    # pull_request_target legs run in base-repo context with secrets, for same-repo AND fork PRs:
-    #   1. pull_request_target opened / ready_for_review -- the FIRST review, gated to SAME-REPO
-    #      PRs only (fork auto-review is the spend vector we close). This covers our own
-    #      openlibrary-bot/ada-authored PRs, which auto_assign_reviewer does NOT cover (it has a
-    #      same-repo guard AND excludes bot-authored PRs), and which cannot request themselves (422).
-    #   2. pull_request_target review_requested with openlibrary-bot as the reviewer -- explicit
-    #      (re-)review requests, ANY repo INCLUDING FORKS (no same-repo guard here). This is how a
-    #      fork earns the required status: a maintainer requests the review. Requesting a reviewer
-    #      needs write/triage, so an external author cannot auto-trigger the model -- the spend gate.
-    #   3. issue_comment @-mention on a PR -- any commenter incl. external, runs with secrets, so
+    # Trigger paths (no `synchronize` trigger at all, so a bare push never reviews). The
+    # pull_request_target leg runs in base-repo context with secrets, for same-repo AND fork PRs:
+    #   1. pull_request_target review_requested whose requested_team.slug is the reviewer team
+    #      `openlibrary-agentic-code-reviewer` -- the ONE model-run path. auto_assign requests that
+    #      team automatically on SAME-REPO PRs (any author); a FORK earns the status only after a
+    #      maintainer requests the team by hand. Requesting a reviewer needs write/triage, so an
+    #      external author cannot auto-trigger the model -- the spend gate. A re-review is another
+    #      team request, which fires this leg again. (A team request carries requested_team and no
+    #      requested_reviewer; keying on the team is also what lets our own bot-authored PRs be
+    #      reviewed -- a PR cannot request its own author individually, but it CAN request a team.)
+    #   2. issue_comment @-mention on a PR -- any commenter incl. external, runs with secrets, so
     #      this path keeps an explicit staff allowlist.
-    # Drafts: the pull_request_target legs skip draft PRs (!draft) -- no reviewing unfinished work.
+    # Drafts: the pull_request_target leg skips draft PRs (!draft) -- no reviewing unfinished work.
     # A manual workflow_dispatch reviews a draft deliberately; it is the staff debug path, and
     # GitHub already requires write access to dispatch.
     if: >
       github.event_name == 'workflow_dispatch' ||
       (
         github.event_name == 'pull_request_target' &&
+        github.event.action == 'review_requested' &&
         !github.event.pull_request.draft &&
-        (
-          (
-            (github.event.action == 'opened' || github.event.action == 'ready_for_review') &&
-            github.event.pull_request.head.repo.full_name == github.repository
-          ) ||
-          (
-            github.event.action == 'review_requested' &&
-            github.event.requested_reviewer.login == 'openlibrary-bot'
-          )
-        )
+        github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer'
       ) || (
         github.event_name == 'issue_comment' &&
         github.event.issue.pull_request != null &&
