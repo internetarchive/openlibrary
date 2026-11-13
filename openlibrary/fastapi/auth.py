@@ -195,6 +195,36 @@ async def require_librarian(
 LibrarianDep = Annotated[AuthenticatedUser, Depends(require_librarian)]
 
 
+async def require_super_librarian(
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> AuthenticatedUser:
+    """FastAPI dependency that requires super-librarian-level access.
+
+    Checks that the authenticated user is an admin or super-librarian
+    (``is_super_librarian_or_higher``). Returns 403 if the user lacks
+    sufficient permissions. Narrower than ``require_librarian``, which also
+    admits ordinary librarians.
+
+    Usage:
+        @router.delete("/protected")
+        async def protected_route(
+            _: Annotated[AuthenticatedUser, Depends(require_super_librarian)],
+        ):
+            return {"message": "You have super-librarian access!"}
+    """
+    user = get_current_user()
+    if not (user and user.is_super_librarian_or_higher()):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions",
+        )
+
+    return _
+
+
+SuperLibrarianDep = Annotated[AuthenticatedUser, Depends(require_super_librarian)]
+
+
 async def require_maintainer(
     _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> AuthenticatedUser:
