@@ -5,8 +5,8 @@ const mockTrackEvent = vi.fn();
 vi.mock('../../../openlibrary/plugins/openlibrary/js/ol.analytics.js', () => ({
     trackEvent: (...args) => mockTrackEvent(...args)
 }));
-vi.mock('../../../openlibrary/plugins/openlibrary/js/carousel', () => ({
-    initialzeCarousels: () => {}
+vi.mock('../../../openlibrary/plugins/openlibrary/js/carousel/native.js', () => ({
+    initNativeCarousels: () => {}
 }));
 
 const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0));
@@ -55,7 +55,7 @@ describe('lazy carousel impressions', () => {
     });
 
     test('reports one impression for a carousel with books', async () => {
-        respondWith('<div class="carousel carousel--progressively-enhanced"></div>');
+        respondWith('<ol-carousel></ol-carousel>');
         initLazyCarousel([makePlaceholder({ key: 'nearby-books' })]);
         await flushPromises();
 
@@ -96,7 +96,7 @@ describe('pre-loaded row impressions', () => {
         const shelf = document.createElement('div');
         shelf.innerHTML = `
             <div class="lazy-carousel-loaded" data-config='{"key": "genre-horror"}'>
-                <div class="carousel carousel--progressively-enhanced"></div>
+                <ol-carousel></ol-carousel>
             </div>
             <div class="lazy-carousel-loaded" data-config='{"key": "genre-horror-empty"}'></div>`;
         document.body.replaceChildren(shelf);

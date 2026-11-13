@@ -75,33 +75,6 @@
   margin-top: 0;
 }
 
-.ol-cover-form .carousel-container {
-  padding: var(--spacing-inset-sm) 0;
-  margin: 0;
-  border-radius: 10px;
-}
-
-.ol-cover-form .carousel {
-  padding: 0;
-}
-
-.ol-cover-form .carousel__item {
-  margin: 0;
-}
-
-.ol-cover-form .book-cover {
-  height: auto;
-  flex-direction: column;
-  gap: var(--spacing-stack-sm);
-}
-
-.ol-cover-form .carousel .cta-btn {
-  color: var(--color-text-secondary);
-  border: 2px solid var(--color-border-muted);
-  border-radius: 6px;
-  position: relative;
-}
-
 .ol-cover-form--external a {
   text-decoration: none;
 }
@@ -128,19 +101,11 @@
   min-width: 1px;
 }
 
-div#covers.input {
-  max-height: 132px;
-  overflow: hidden;
-  margin-left: -80px;
-  text-align: center;
-}
-
 div.imageIntro {
   margin: 0 0 var(--spacing-stack-sm);
 }
 
 @media only screen and (min-width: 768px) /* @width-breakpoint-tablet */ {
-  .floatform div#covers.input,
   .floatform .label,
   .floatform .input {
     width: 560px;

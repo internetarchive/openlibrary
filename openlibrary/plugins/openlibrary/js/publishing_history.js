@@ -24,7 +24,7 @@ export function init() {
     const years = Array.from({ length: last - first + 1 }, (_, i) => first + i);
 
     /**
-     * Filter the carousels (see Carousel.js) and show the reset link while zoomed in
+     * Filter the carousels (see carousel/native.js) and show the reset link while zoomed in
      * @param {number} from
      * @param {number} to
      */

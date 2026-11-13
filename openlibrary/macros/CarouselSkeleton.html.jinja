@@ -2,7 +2,7 @@
   A book row's loading state, sized like the loaded row so nothing shifts.
   `header` stubs the heading when `title` isn't known yet.
 #}
-{% macro carousel_skeleton(layout="carousel", title="", title_link=false, header=false, see_all=false) %}
+{% macro carousel_skeleton(title="", title_link=false, header=false, see_all=false) %}
     <div class="carousel-skeleton">
         <span class="shift">{{ _("Loading carousel") }}</span>
         <div class="carousel-section" aria-hidden="true">
@@ -21,18 +21,16 @@
                 </div>
             {% endif %}
             <div class="carousel-container carousel-container-decorated">
-                <div class="carousel-skeleton__row{% if layout == 'ol-carousel' %} carousel--native{% endif %}">
+                <div class="carousel-skeleton__row carousel--native">
                     {% for _card in range(8) %}
                         <div class="book carousel__item">
                             <div class="book-cover">
                                 <span class="skeleton carousel-skeleton__cover"></span>
                             </div>
-                            {% if layout == 'ol-carousel' %}
-                                <span class="carousel-caption">
-                                    <span class="carousel-caption__title"><span class="skeleton carousel-skeleton__text"></span></span>
-                                    <span class="carousel-caption__meta"><span class="skeleton carousel-skeleton__text carousel-skeleton__text--short"></span></span>
-                                </span>
-                            {% endif %}
+                            <span class="carousel-caption">
+                                <span class="carousel-caption__title"><span class="skeleton carousel-skeleton__text"></span></span>
+                                <span class="carousel-caption__meta"><span class="skeleton carousel-skeleton__text carousel-skeleton__text--short"></span></span>
+                            </span>
                             <div class="ol-action-row">
                                 <span class="skeleton carousel-skeleton__button"></span>
                             </div>

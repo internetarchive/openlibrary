@@ -3,6 +3,8 @@ import { buildPartialsUrl } from '../utils.js';
 
 /** @type {WeakMap<HTMLElement, (detail: {yearFrom: number, yearTo: number}) => void>} */
 const filterHandlers = new WeakMap();
+/** Rows already set up: a page-rendered row can be offered by main.js and by a shelf's initLoadedCarousels. */
+const initialized = new WeakSet();
 let filterListening = false;
 
 /**
@@ -20,6 +22,8 @@ export function initNativeCarousels(elems) {
         });
     }
     elems.forEach(carousel => {
+        if (initialized.has(carousel)) return;
+        initialized.add(carousel);
         const config = JSON.parse(carousel.dataset.config || '{}');
         const category = config.analyticsCategory || 'Carousel';
         const key = config.carouselKey || '';

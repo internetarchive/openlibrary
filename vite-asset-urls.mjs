@@ -16,9 +16,8 @@
  *   /static/build/js/ + /static/images/... = /static/build/js/static/images/...
  *
  * The path contains the word "static" two times. The browser cannot find
- * the file. The server returns 404. The carousel arrows show this problem.
- * Their background image is in static/css/lib/slick-theme.css. Other icons
- * in CSS from JS chunks have the same problem.
+ * the file. The server returns 404. Any icon that CSS imported from a JS
+ * chunk references by public url shows this problem.
  *
  * Fix
  * ===
