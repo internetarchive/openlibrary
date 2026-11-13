@@ -1,22 +1,24 @@
 name: Code Review Action
 
 # ============================================================================================
-# E2E GATE INVARIANT -- read before touching the status/label logic at the bottom of this file.
+# REQUIRED-STATUS INVARIANT -- read before touching the `status` job at the bottom of this file.
 #
-# This workflow is the SOLE PRODUCER of the `Needs: e2e testing` label. It adds that label ONLY
-# after a code review has PASSED on a specific head SHA (see the `status` job). The forge
-# dispatches docker e2e off this label, so if a bare push -- or a human -- could add it, untrusted
-# PR code would run in e2e BEFORE any review. Nothing else, anywhere, may add `Needs: e2e testing`.
+# This workflow makes a code review a REQUIRED CI gate. On every reviewed head it posts the commit
+# status `code-review` on the exact SHA that was reviewed: `success` on a PASS, `failure` otherwise.
+# A branch-protection ruleset (configured by a maintainer, out of this file) requires that status,
+# so the status IS the gate and the ruleset only reads it. This is fork-agnostic by construction:
+# GitHub attaches statuses to a commit, and the ruleset reads the head SHA, fork or same-repo alike.
 #
-# A review PASS is TWO things: the review posted successfully for this SHA, AND every review thread
-# is resolved-or-outdated (GitHub's own isResolved/isOutdated). On a pass we post commit status
-# `check/code-review = success` on the reviewed SHA and add the label; otherwise `= failure`, no
-# label. The status is SHA-bound: a later push leaves the new head unreviewed (no status). The
-# AUTHORITATIVE gate is that status -- the e2e entrypoint re-checks `check/code-review=success` on the
-# run-time head before running docker, so an unreviewed head never runs e2e. The companion workflow
-# strip_verification_labels.yml also strips the stale label on every push (defense in depth); it is
-# SEPARATE so its strip can never be cancelled mid-flight by a review run. This workflow does not
-# strip -- `synchronize` is not one of its triggers.
+# A PASS is THREE things (issue #14453 B): the review posted successfully for this SHA, AND its own
+# blocking-findings count is KNOWN to be 0 this run (produced inside this workflow -- see the
+# analyze-gate producer -- and FAIL CLOSED on an absent/unparseable count), AND no review thread is
+# unresolved-and-not-outdated (GitHub's own isResolved/isOutdated). The status is SHA-bound: a later
+# push leaves the new head with no `code-review` status at all, which is correct -- that head has not
+# been reviewed -- and the required ruleset therefore blocks it until a re-review posts success. A
+# bare push never reviews: `synchronize` is not a trigger of this workflow.
+#
+# This workflow NO LONGER touches the `Needs: e2e testing` label -- that label's whole lifecycle
+# (add-on-pass, strip-on-push) belongs to the e2e piece (#14454), which keys off THIS status.
 # ============================================================================================
 
 # Implements the Code Review Action from epic #13160:
@@ -158,16 +160,14 @@ env:
 
 on:
   pull_request:
-    # PENDING MEK (see PR body): the exact review-trigger set is awaiting a final ruling. Working
-    # assumption below. A review NEVER runs on a bare push -- `synchronize` is NOT a trigger of this
-    # workflow at all (the separate strip_verification_labels.yml owns the push path), which is the
-    # property that makes the SHA-bound status an honest merge gate.
-    #  - opened / ready_for_review: review every PR on open or on draft->ready (post-by-default),
-    #    including bot/ada-authored PRs, which cannot request the bot as their own reviewer (422).
-    #    Giving review its OWN trigger here removes the hidden dependency on auto_assign_reviewer.
-    #  - review_requested (reviewer == openlibrary-bot): explicit (re-)review requests, and the
-    #    auto_assign_reviewer bounce on open. cancel-in-progress collapses the opened+bounce pair.
-    types: [opened, ready_for_review, review_requested]
+    # A review fires on review_requested only (issue #14453 C). A bare push NEVER reviews --
+    # `synchronize` is deliberately not a trigger, which is the property that makes the SHA-bound
+    # `code-review` status an honest merge gate (a new head has no status until it is re-reviewed).
+    #  - review_requested (reviewer == openlibrary-bot): explicit (re-)review requests. The FIRST
+    #    review still happens automatically because auto_assign_reviewer *adds* openlibrary-bot as a
+    #    reviewer on open, which itself emits review_requested. To re-run on a new head, a human (or
+    #    auto-assign on re-open) re-requests openlibrary-bot -- standard GitHub "re-request review".
+    types: [review_requested]
   issue_comment:
     types: [created]
   workflow_dispatch:
@@ -179,41 +179,39 @@ on:
 
 concurrency:
   group: code-review-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
-  # PENDING MEK (see PR body): true so an `opened` run and auto_assign_reviewer's `review_requested`
-  # bounce collapse to ONE review per head. A superseded head's run is cancelled (its status/label
-  # are re-derived by the new head's run; the stale label is stripped by strip_verification_labels.yml
-  # and ignored by the e2e entrypoint, which rechecks the status). This group covers only review
-  # events -- strip lives in its own workflow/group, so a review run can never cancel a strip.
+  # true: duplicate review requests on the same PR collapse to one in-flight review. A superseded
+  # run is cancelled; its SHA-bound `code-review` status is simply re-derived by the newer run on
+  # whatever head is current. The status is per-commit, so a cancelled run never leaves a stale
+  # merge signal -- an unreviewed head just has no status, which the required ruleset blocks.
   cancel-in-progress: true
 
 jobs:
   analyze:
     runs-on: ubuntu-latest
     # Trigger paths (this workflow has no `synchronize` trigger at all, so a bare push never
-    # reviews; the push path lives in strip_verification_labels.yml):
-    #   1. pull_request opened / ready_for_review -- review every same-repo, non-draft PR once on
-    #      open or on draft->ready (post-by-default), including bot/ada-authored PRs.
-    #   2. pull_request review_requested with openlibrary-bot as the reviewer -- explicit
-    #      (re-)review requests and the auto_assign_reviewer bounce. No staff-login check:
+    # reviews):
+    #   1. pull_request review_requested with openlibrary-bot as the reviewer -- explicit
+    #      (re-)review requests and the auto_assign_reviewer add-on-open. No staff-login check:
     #      requesting any reviewer already requires write/triage access on GitHub's side.
-    #   3. issue_comment @-mention on a PR -- open to any commenter including external
+    #   2. issue_comment @-mention on a PR -- open to any commenter including external
     #      contributors, and it runs with secrets in scope, so this path keeps an explicit
     #      staff allowlist.
-    # Drafts: the pull_request paths skip draft PRs (!draft) -- no reviewing unfinished work. A
+    # NOTE (issue #14453 D -- fork-inclusive status): same-repo `review_requested` gets secrets;
+    # a FORK's review_requested does not, so this condition still covers same-repo PRs only. The
+    # fork-PR status path (pull_request_target, reusing the analyze hardening) is added separately
+    # and is lead/Locke-gated -- see the PR. Until it lands, forks are covered by the staff
+    # @-mention path (2), which runs in base-repo context with secrets.
+    # Drafts: the pull_request path skips draft PRs (!draft) -- no reviewing unfinished work. A
     # manual workflow_dispatch reviews a draft deliberately; it is the staff debug path, and
     # GitHub already requires write access to dispatch.
-    # PENDING MEK (see PR body): paths 1/2 are the working-assumption trigger set.
     if: >
       github.event_name == 'workflow_dispatch' ||
       (
         github.event_name == 'pull_request' &&
         !github.event.pull_request.draft &&
         github.event.pull_request.head.repo.full_name == github.repository &&
-        (
-          github.event.action == 'opened' ||
-          github.event.action == 'ready_for_review' ||
-          (github.event.action == 'review_requested' && github.event.requested_reviewer.login == 'openlibrary-bot')
-        )
+        github.event.action == 'review_requested' &&
+        github.event.requested_reviewer.login == 'openlibrary-bot'
       ) || (
         github.event_name == 'issue_comment' &&
         github.event.issue.pull_request != null &&
@@ -234,6 +232,12 @@ jobs:
       base_sha: ${{ steps.range.outputs.base_sha }}
       incremental: ${{ steps.range.outputs.incremental }}
       skip: ${{ steps.range.outputs.skip }}
+      # Count of PUBLIC blocking findings in this run's review, produced INSIDE this workflow by the
+      # analyze-gate step (issue #14453 B.2 -- the count must not depend on a cross-PR producer).
+      # Bracket form because `analyze-gate` has a hyphen (`steps.analyze-gate` parses `-` as minus).
+      # Only set when skip == 'false' (the gate step is skip-guarded); the `status` job that reads it
+      # is itself gated on skip == 'false', so it is never read unset.
+      public_findings_count: ${{ steps['analyze-gate'].outputs.public_findings_count }}
     steps:
       # The base commit, never the PR head: on `pull_request` the default ref would be the
       # merge of the PR into base, so pin the base SHA; other events check out the default
@@ -386,6 +390,14 @@ jobs:
             // the run log is public, and a difference would say which.
             const res = gate.check(review);
             fs.writeFileSync(file, JSON.stringify(res.publish ? res.clean : { withheld: true }));
+            // Count of PUBLIC findings this run, for the `code-review` status decision (issue B.2).
+            // On publish it is the allowlisted findings length (includes orphaned/summary-only
+            // findings, which create no review thread -- so the status's thread check alone cannot
+            // catch them; this count is exactly that guard). On a withhold it is 0: the count is
+            // PUBLIC by construction and a withheld review exposes nothing, so 0 never signals
+            // "a review was withheld". A withheld run still blocks via post.result != success.
+            const pubCount = res.publish ? res.clean.findings.length : 0;
+            core.setOutput('public_findings_count', String(pubCount));
             core.info('Gate evaluated; artifact prepared.');
 
       - name: Upload analysis
@@ -555,59 +567,59 @@ jobs:
             core.info(`Posted review ${posted.id}: ${inline.length} inline, ${orphaned.length} in summary.`);
 
   # ----------------------------------------------------------------------------------------------
-  # status -- the SHA-bound merge signal and the SOLE producer of `Needs: e2e testing`.
+  # status -- the SHA-bound required merge signal (issue #14453 A/B). Posts commit status
+  # `code-review` on the exact SHA that was reviewed; a branch-protection ruleset requires it.
   #
-  # Runs after analyze+post on every reviewed head (opened / ready_for_review / review_requested /
-  # @-mention / dispatch), never on a bare push. It posts commit status `check/code-review` on the
-  # exact SHA that was reviewed and, only on a PASS, adds `Needs: e2e testing`. See the E2E GATE
-  # INVARIANT banner at the top.
+  # Runs after analyze+post on every reviewed head (review_requested / @-mention / dispatch), never
+  # on a bare push. It does NOT touch any label -- the e2e piece (#14454) owns `Needs: e2e testing`.
   #
-  # PASS = BOTH:
-  #   (a) the review posted successfully for this SHA with NO public finding in this pass, AND
-  #   (b) no review thread is unresolved-and-not-outdated (GitHub's own isResolved/isOutdated --
+  # PASS = ALL THREE (issue B):
+  #   (a) the review posted successfully for this SHA (a withheld/failed/malformed review is not a
+  #       pass -- post.result must be success), AND
+  #   (b) the review's PUBLIC blocking-findings count is KNOWN to be 0 this run -- produced inside
+  #       this workflow (analyze-gate) and read as a declared analyze output; an absent/unparseable
+  #       count FAILS CLOSED (blocks), never passes by default, AND
+  #   (c) no review thread is unresolved-and-not-outdated (GitHub's own isResolved/isOutdated --
   #       authoritative, not a heuristic, to keep false blocks low).
-  # The model never says "approved" (code_review.md), so (a)'s greenlight is "a clean review ran":
-  # post.result==success AND the analyze job's declared public findings count is 0 (we read that
-  # DECLARED OUTPUT, never analyze's artifact internals, which #14451 rewrites). POST-#14451, a post
-  # that WITHHELD a private disclosure still succeeds and still shows 0 PUBLIC findings -- the
-  # deliberate indistinguishability of the disclosure gate; a private finding is handled out-of-band
-  # and must NOT block public e2e, so we never read, infer, or surface a "withheld" marker here.
-  # (Before that rebase, master's post fails on a withhold -> post.result=failure -> this blocks,
-  # which is also safe; the green-on-private behaviour above arrives with the #14451 post semantics.)
-  # Any public finding becomes a review comment/thread too, so (b) reinforces (a); (a) additionally
-  # catches a finding that landed in the summary with no in-diff anchor (no thread to resolve).
-  # We bias toward BLOCKING: anything short of (posted-clean AND fully-resolved) posts `failure`.
+  # (b) and (c) are complementary: every public finding also becomes a review thread, so (c)
+  # reinforces (b); (b) additionally catches a finding that landed in the summary with no in-diff
+  # anchor (no thread to resolve -- see #13548, 3 of 9). We bias toward BLOCKING: anything short of
+  # (posted AND known-0-findings AND fully-resolved) posts `failure`.
+  #
+  # SKIP paths (draft / not-open / already-reviewed-this-exact-SHA) resolve to skip == 'true' in
+  # analyze, and this job is gated on skip == 'false', so it does not run on them. That is correct:
+  # on the already-reviewed-this-SHA re-request, the `code-review` status for that SHA was already
+  # decided on the prior run and is SHA-bound, so leaving it intact (this job not running) re-affirms
+  # it rather than overwriting it -- never a false failure on a commit that already passed.
   status:
     needs: [analyze, post]
     if: always() && needs.analyze.outputs.skip == 'false'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read   # GITHUB_TOKEN, for the pre-label head re-check (race guard) only
+    # No GITHUB_TOKEN scopes: the status post and the reviewThreads GraphQL both use the bot PAT
+    # (github-token input below); no step here uses the default token. Least privilege -> none.
+    permissions: {}
     steps:
-      - name: Decide the gate and post the check/code-review status
+      - name: Decide the gate and post the code-review status
         id: decide
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           PR: ${{ needs.analyze.outputs.pr }}
           HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
           POST_RESULT: ${{ needs.post.result }}
-          # Count of PUBLIC findings this pass, read as a DECLARED analyze-job OUTPUT -- never by
-          # parsing analyze's artifact, whose internal format is not a stable contract across the
-          # #14451 rewrite. The producer (`core.setOutput('public_findings_count', ...)` in the
-          # analyze-gate step) and its `outputs:` declaration are added when this branch REBASES onto
-          # merged #14451, off #14451's own lines so that merge stays conflict-resolution-only. Until
-          # then this output is unset -> parsed as null below -> FAIL CLOSED (the status blocks, never
-          # passes): absent is NOT treated as clean, since orphaned/summary-only findings create no
-          # thread and threads-only cannot catch them. A withheld/all-private review reports 0 (public
-          # by construction), so green-on-private is preserved: this is NOT the withheld marker, which
-          # we never read, infer, or surface.
+          # Count of PUBLIC findings this run, read as a DECLARED analyze-job OUTPUT -- produced by
+          # the analyze-gate step IN THIS WORKFLOW (issue B.2: the count must not depend on a cross-PR
+          # producer, or the gate is permanently red). Read as an output, never by parsing analyze's
+          # artifact (whose internal format is not a stable contract). Parsed below as null if ever
+          # absent/non-integer -> FAIL CLOSED (the status blocks, never passes): absent is NOT treated
+          # as clean, since orphaned/summary-only findings create no thread and threads-only cannot
+          # catch them. In practice it is always set when this job runs (analyze-gate and this job
+          # share the skip == 'false' gate); the fail-closed parse is a belt-and-suspenders guard.
           PUBLIC_FINDINGS_COUNT: ${{ needs.analyze.outputs.public_findings_count }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
-          # IDENTITY: posts the commit status as openlibrary-bot (confirmed by Mek). SWAP POINT --
-          # this one token line is the identity. Needs Commit statuses: write (post the status) and
-          # repo/PR read (the reviewThreads GraphQL below). PENDING Locke scope-confirm on
+          # IDENTITY: posts the commit status as openlibrary-bot (default, per issue open-decision 1).
+          # SWAP POINT -- this one token line is the identity. Needs Commit statuses: write (post the
+          # status) and repo/PR read (the reviewThreads GraphQL below). PENDING Locke scope-confirm on
           # OL_BOT_ACTIONS_PAT (see PR body); if it lacks statuses:write, Locke names the right one.
           github-token: ${{ secrets.OL_BOT_ACTIONS_PAT }}
           script: |
@@ -617,12 +629,12 @@ jobs:
             const postSucceeded = process.env.POST_RESULT === 'success';
             if (!/^[0-9a-f]{40}$/.test(headSha)) { core.setFailed('Unexpected head sha.'); return; }
 
-            // Public findings this pass, from the analyze job's declared output. FAIL CLOSED: an
-            // absent output (before the #14451 producer lands, or on a skip path) or any non-integer
-            // returns null = "unknown", which decideStatus treats as BLOCKING -- NOT as 0/clean.
-            // Treating absent-as-clean would be a gate bypass: orphaned/summary-only findings create
-            // no review thread, so threads-only cannot catch them (see #13548, 3 of 9). Post-rebase
-            // the producer always emits a non-negative integer (public findings incl. orphaned).
+            // Public findings this run, from the analyze job's declared output. FAIL CLOSED: an
+            // absent output or any non-integer returns null = "unknown", which decideStatus treats
+            // as BLOCKING -- NOT as 0/clean. Treating absent-as-clean would be a gate bypass:
+            // orphaned/summary-only findings create no review thread, so threads-only cannot catch
+            // them (see #13548, 3 of 9). The analyze-gate producer always emits a non-negative
+            // integer (public findings incl. orphaned) whenever this job runs.
             const parseFindings = (raw) => {
               return /^\d+$/.test((raw ?? '').toString().trim()) ? Number(raw) : null;
             };
@@ -675,53 +687,9 @@ jobs:
             const d = decideStatus({ postSucceeded, findings, unresolved });
             await github.rest.repos.createCommitStatus({
               owner, repo, sha: headSha,
-              context: 'check/code-review',
+              context: 'code-review',
               state: d.state,
               target_url: process.env.RUN_URL,
               description: d.description,
             });
-            // The label add is a separate step: it needs Issues: write, a different bot PAT scope.
-            core.setOutput('pass', d.pass ? 'true' : 'false');
-            core.info(`check/code-review=${d.state} on ${headSha.slice(0, 8)} (post=${process.env.POST_RESULT}, findings=${findings}, unresolved=${unresolved}).`);
-
-      # Race guard for the PR-scoped label (the commit STATUS is already SHA-bound and immune). If a
-      # push landed between the review and now, the reviewed head is no longer current, so the label
-      # -- which is not SHA-bound -- must NOT be added: it would assert a pass on unreviewed code, and
-      # with cancel-in-progress a superseded run could otherwise add it after strip_verification_labels.yml
-      # ran. We re-read the head with the job's own GITHUB_TOKEN right before the write and skip on a
-      # mismatch. NOTE: the authoritative, SHA-bound gate is the `check/code-review` status, which the
-      # e2e entrypoint rechecks on the run-time head before running docker; this label is advisory.
-      - name: Re-check the reviewed head is still current
-        id: recheck
-        if: steps.decide.outputs.pass == 'true'
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          PR: ${{ needs.analyze.outputs.pr }}
-          HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner, repo: context.repo.repo, pull_number: Number(process.env.PR),
-            });
-            const current = pr.head.sha === process.env.HEAD_SHA;
-            if (!current) core.info('Head advanced since review -- not labeling; a later push supersedes this pass.');
-            core.setOutput('current', current ? 'true' : 'false');
-
-      # The SOLE PRODUCER of `Needs: e2e testing` -- added here, only on a pass whose reviewed head is
-      # still current, and nowhere else in the repo (see the E2E GATE INVARIANT banner). Separate step
-      # because the label write needs a bot PAT with Issues: write, distinct from the status step's
-      # Commit statuses: write.
-      - name: Add the e2e-testing label on a pass
-        if: steps.decide.outputs.pass == 'true' && steps.recheck.outputs.current == 'true'
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          PR: ${{ needs.analyze.outputs.pr }}
-        with:
-          github-token: ${{ secrets.OL_BOT_ISSUE_PAT }}
-          script: |
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner, repo: context.repo.repo,
-              issue_number: Number(process.env.PR), labels: ['Needs: e2e testing'],
-            });
-            core.info(`Added 'Needs: e2e testing' to PR #${process.env.PR}.`);
+            core.info(`code-review=${d.state} on ${headSha.slice(0, 8)} (post=${process.env.POST_RESULT}, findings=${findings}, unresolved=${unresolved}).`);

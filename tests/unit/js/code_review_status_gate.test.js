@@ -1,15 +1,12 @@
-// Unit tests for the STATUS-GATE logic (#14453). Four pure helpers are embedded inline in two
-// workflows' github-script steps; this test extracts the EXACT text that ships and exercises it, so
-// the tested logic and the deployed logic cannot drift. The helpers and their home file:
-//   code_review_action.yml (the `status` job -- SHA-bound `check/code-review` status + the SOLE
-//   producer of the `Needs: e2e testing` label):
+// Unit tests for the STATUS-GATE logic (#14453). Three pure helpers are embedded inline in the
+// `status` job's github-script step; this test extracts the EXACT text that ships and exercises it,
+// so the tested logic and the deployed logic cannot drift. The helpers, all in code_review_action.yml
+// (the `status` job -- the SHA-bound required `code-review` commit status):
 //     - parseFindings(raw)                 -- the env->findings derivation, FAIL CLOSED on absent
 //     - unresolvedThreadCount(threads)     -- threads that are unresolved AND not outdated
 //     - decideStatus({postSucceeded,...})  -- the pass/fail + state + non-leaky description
-//   strip_verification_labels.yml (the standalone strip-on-push workflow):
-//     - verificationLabelsToStrip(names)   -- which labels a push invalidates
-// (The public-findings COUNT itself is a declared output of the analyze job, produced and tested by
-// #14451; this gate derives a number from it via parseFindings and blocks when it is absent.)
+// (The public-findings COUNT itself is now produced INSIDE this workflow's analyze-gate step -- the
+// `public_findings_count` output -- and consumed here via parseFindings, which blocks when absent.)
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -19,7 +16,6 @@ import { dirname, join } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const WF = join(here, '..', '..', '..', '.github', 'workflows');
 const statusLines = readFileSync(join(WF, 'code_review_action.yml'), 'utf8').split('\n');
-const stripLines = readFileSync(join(WF, 'strip_verification_labels.yml'), 'utf8').split('\n');
 
 // Extract a `const <name> = (…) => { … };` block from a workflow's lines, keyed on the closing line
 // that matches the declaration's own indentation (so a nested `};` cannot truncate it), and eval it.
@@ -51,7 +47,6 @@ function extractFn(lines, name) {
 const parseFindings = extractFn(statusLines, 'parseFindings');
 const unresolvedThreadCount = extractFn(statusLines, 'unresolvedThreadCount');
 const decideStatus = extractFn(statusLines, 'decideStatus');
-const verificationLabelsToStrip = extractFn(stripLines, 'verificationLabelsToStrip');
 
 // ---- parseFindings: the env->findings derivation. FAIL CLOSED (absent/garbage -> null, blocks) ----
 test('parseFindings returns the integer for a well-formed non-negative count', () => {
@@ -132,19 +127,4 @@ test('decideStatus never leaks finding content -- description is counts and fixe
             /^(Review passed; all feedback resolved\.|No clean review for this commit\.|Review findings count unavailable\.|\d+ findings? to address\.|\d+ unresolved review threads?\.)$/
         );
     }
-});
-
-// ---- verificationLabelsToStrip: a push invalidates POSITIVE per-commit verification labels ----
-test('verificationLabelsToStrip strips e2e + Passed labels, but KEEPS Needs: Code Review and unrelated labels', () => {
-    const current = [
-        'Needs: e2e testing',
-        'Needs: Code Review', // NOT stripped -- a "still needs review" request, not a passed-state
-        'Passed: e2e testing',
-        'Passed: automated testing',
-        'Priority: 1 (highest)',
-        'bug',
-        'Theme: Design'
-    ];
-    assert.deepEqual(verificationLabelsToStrip(current), ['Needs: e2e testing', 'Passed: e2e testing', 'Passed: automated testing']);
-    assert.deepEqual(verificationLabelsToStrip(['bug', 'Priority: 1 (highest)', 'Needs: Code Review']), []);
 });
