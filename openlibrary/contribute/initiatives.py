@@ -644,6 +644,10 @@ def progress(gaps: list[list], fields: tuple[str, ...], start: dict | None = Non
     }
 
 
+NOTE_MAX = 500
+"""The longest "couldn't find it" note kept; the task form's textarea stops at it too."""
+
+
 def record_not_found(site, edition_key: str, fld: str, user_key: str, note: str = "") -> None:
     """Note that ``user_key`` looked for ``fld`` on the edition and couldn't find it. Kept apart from the record, so it isn't an edit.
 
@@ -654,18 +658,20 @@ def record_not_found(site, edition_key: str, fld: str, user_key: str, note: str 
     changed = user_key not in doc["people"]
     if changed:
         doc["people"] = [*doc["people"], user_key]
-    if (note := note.strip()) and doc.get("notes", {}).get(user_key) != note:
+    if (note := note.strip()[:NOTE_MAX]) and doc.get("notes", {}).get(user_key) != note:
         doc["notes"] = doc.get("notes", {}) | {user_key: note}
         changed = True
     if changed:
         site.store[key] = doc
 
 
-def containing(edition_key: str, fld: str) -> Initiative | None:
-    """The running initiative a task belongs to, for a task link that doesn't name one: the headline if it lists the edition and
-    asks for ``fld``, else the first that does. None when none does, or their gaps are still being built."""
-    lead = headline()
-    for initiative in sorted(running(), key=lambda i: i.slug != lead.slug):
-        if fld in initiative.fields and (gaps := get_gaps(initiative)) and any(row[0] == edition_key for row in gaps):
+def containing(edition_key: str, fld: str, lead: Initiative) -> Initiative | None:
+    """The running initiative a task belongs to, for a task link that doesn't name one. Headline links are bare too, so the
+    headline ``lead`` keeps any book on its list, and while its gaps are still building; only a book it doesn't list goes to
+    the first other initiative that lists it and asks for ``fld``. None leaves the task with the headline."""
+    if (lead_gaps := get_gaps(lead)) is None or any(row[0] == edition_key for row in lead_gaps):
+        return None
+    for initiative in running():
+        if initiative.slug != lead.slug and fld in initiative.fields and (gaps := get_gaps(initiative)) and any(row[0] == edition_key for row in gaps):
             return initiative
     return None

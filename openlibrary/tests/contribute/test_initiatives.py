@@ -273,18 +273,32 @@ def test_not_found_keeps_each_persons_comment():
     assert doc["notes"] == {"/people/a": "Not in WorldCat either"}
 
 
+def test_not_found_note_is_capped():
+    site = FakeSite()
+    initiatives.record_not_found(site, "/books/OL1M", "lccn", "/people/a", "x" * 5000)
+    assert len(site.store["contribute-notfound-OL1M-lccn"]["notes"]["/people/a"]) == initiatives.NOTE_MAX
+
+
 def test_a_bare_task_link_belongs_to_the_project_listing_the_book(monkeypatch):
     lead = replace(initiatives.MOST_READ, slug="lead", fields=("lccn",))
     hugo = replace(initiatives.MOST_READ, slug="hugo", fields=("lccn", "covers"))
     gaps = {"lead": [["/books/OL1M", 1, [], []]], "hugo": [["/books/OL1M", 1, [], []], ["/books/OL2M", 1, [], []]]}
     monkeypatch.setattr(initiatives, "running", lambda: [hugo, lead])
-    monkeypatch.setattr(initiatives, "headline", lambda: lead)
     monkeypatch.setattr(initiatives, "get_gaps", lambda i: gaps[i.slug])
-    assert initiatives.containing("/books/OL2M", "lccn") is hugo
-    # The headline wins a book both list, unless it doesn't ask for the field.
-    assert initiatives.containing("/books/OL1M", "lccn") is lead
-    assert initiatives.containing("/books/OL1M", "covers") is hugo
-    assert initiatives.containing("/books/OL3M", "lccn") is None
+    assert initiatives.containing("/books/OL2M", "lccn", lead) is hugo
+    assert initiatives.containing("/books/OL2M", "covers", lead) is hugo
+    # Headline links are bare too, so the headline keeps every book it lists, whatever the field.
+    assert initiatives.containing("/books/OL1M", "lccn", lead) is None
+    assert initiatives.containing("/books/OL1M", "covers", lead) is None
+    assert initiatives.containing("/books/OL3M", "lccn", lead) is None
+
+
+def test_a_bare_task_link_stays_with_the_headline_while_its_gaps_build(monkeypatch):
+    lead = replace(initiatives.MOST_READ, slug="lead", fields=("lccn",))
+    hugo = replace(initiatives.MOST_READ, slug="hugo", fields=("lccn",))
+    monkeypatch.setattr(initiatives, "running", lambda: [hugo, lead])
+    monkeypatch.setattr(initiatives, "get_gaps", lambda i: None if i is lead else [["/books/OL1M", 1, [], []]])
+    assert initiatives.containing("/books/OL1M", "lccn", lead) is None
 
 
 def test_most_shelved_keeps_isbn_editions_two_per_work_and_tops_up_from_search(monkeypatch):

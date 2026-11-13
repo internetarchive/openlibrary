@@ -89,9 +89,12 @@ def get_initiative(slug: str) -> initiatives.Initiative:
 
 
 def get_task_initiative(slug: str, edition_key: str, fld: str) -> initiatives.Initiative:
-    """The initiative a task page works in: the one its URL names, else the one listing the book, so a bare task link keeps
-    "Skip" and "Save and next" in that book's project rather than the headline's."""
-    return initiatives.get(slug) or initiatives.containing(edition_key, fld) or initiatives.headline()
+    """The initiative a task page works in: the one its URL names (hidden too, as the save honors it), else the headline,
+    unless only another project lists the book, so a bare link from elsewhere keeps "Skip" and "Save and next" in that project."""
+    if found := initiatives.get(slug, hidden=True):
+        return found
+    lead = initiatives.headline()
+    return initiatives.containing(edition_key, fld, lead) or lead
 
 
 def initiative_param(initiative: initiatives.Initiative) -> str:
@@ -767,6 +770,7 @@ def build_task_context(
         "error": error,
         "value": value,
         "note": note,
+        "note_max": initiatives.NOTE_MAX,
         # Only "Save and next" brings a receipt; the error re-render never does.
         "receipt": None,
     }

@@ -9,10 +9,10 @@ from datetime import UTC, date, datetime, time, timedelta
 from openlibrary.contribute import booklist, initiatives, tasks
 from openlibrary.contribute.field_guides import get_field_guides
 from openlibrary.core import admin
-from openlibrary.core.helpers import commify, format_date
+from openlibrary.core.helpers import _get_babel_locale, commify, format_date
 from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import get_request_lang, site
 
 BASE_URL = "/tasks/admin"
 # The list's order: what is running, then what is coming, then what is over.
@@ -359,6 +359,28 @@ def build_skipped(skipped: list[dict], count: int) -> dict:
     }
 
 
+def plural_forms(singular: str, plural: str) -> dict[str, str]:
+    """A count string for the browser to fill: one per plural category of the request's language (CLDR's one, few, many,
+    other...), each translated at a count in that category, for ``Intl.PluralRules`` to choose from. ``{count}`` marks the number."""
+    locale = _get_babel_locale(get_request_lang())
+    forms: dict[str, str] = {}
+    for n in range(200):
+        forms.setdefault(locale.plural_form(n), ungettext(singular, plural, n, count="{count}"))
+    # Whole counts never reach "other" in some languages; the script falls back to it.
+    forms.setdefault("other", ungettext(singular, plural, 2, count="{count}"))
+    return forms
+
+
+def build_create_strings() -> dict:
+    """The create summary's strings, built here because Jinja's ``_()`` would format the ``{count}`` placeholders away."""
+    return {
+        "none": _("None yet"),
+        "books": plural_forms("%(count)s book", "%(count)s books"),
+        "shelved": plural_forms("The %(count)s most-shelved book missing a detail", "The %(count)s most-shelved books missing a detail"),
+        "list": _("Every book on the list"),
+    }
+
+
 def build_new_form(values: dict | None = None, error: str = "") -> dict:
     """The create form, blank or as it was posted with what was wrong."""
     guides = get_field_guides()
@@ -384,6 +406,7 @@ def build_new_form(values: dict | None = None, error: str = "") -> dict:
             for group, legend in (("edition", _("About the edition")), ("work", _("About the work")))
         ],
         "goal_rule": goal_rule(),
+        "create_strings": build_create_strings(),
         "sources": [
             {"value": "pasted", "label": _("Custom list"), "note": _("(work IDs, book URLs, or ISBNs)")},
             {"value": "list", "label": _("Open Library list"), "note": ""},

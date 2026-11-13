@@ -628,7 +628,9 @@ function initCreateSummary(root) {
     const books = root.querySelector('[data-summary-books]');
     const fields = root.querySelector('[data-summary-fields]');
     const submit = root.querySelector('[data-create-submit]');
-    const plural = (key, count) => i18n[`${key}_${count === 1 ? 'one' : 'other'}`].replace('{count}', count.toLocaleString());
+    // The server sends a string per plural category of the page's language.
+    const rules = new Intl.PluralRules(document.documentElement.lang || undefined);
+    const plural = (key, count) => (i18n[key][rules.select(count)] ?? i18n[key].other).replace('{count}', count.toLocaleString());
     const describeBooks = () => {
         const source = form.querySelector('input[name="source"]:checked')?.value;
         if (source === 'pasted') {
