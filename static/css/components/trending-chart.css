@@ -1,0 +1,91 @@
+/**
+ * The chart line under a row on /trending: move since the last period, count and streak. The
+ * rank itself is the result row's own (`.sri__rank`, search-result-item.css).
+ * Used in openlibrary/templates/trending.html — http://localhost:8080/trending/weekly
+ */
+
+/* The title takes the serif, led by the browse menu's trending icon at the
+   heading's own size. */
+.trending-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  font-family: var(--font-family-title);
+  font-weight: 650;
+  line-height: var(--line-height-heading);
+}
+
+/* The glyph fills only the middle of its box, so the box runs past 1em to
+   bring the arrow up to the cap height; the stroke matches the bold title. */
+.trending-title__icon {
+  width: 1.25em;
+  height: 1.25em;
+  stroke-width: 2.25;
+  color: var(--color-icon-muted);
+}
+
+/* The tab row's own spacing matches an ol-tabs panel: one stack gap below. */
+.trending-tabs {
+  margin-block-end: var(--spacing-stack-md);
+}
+
+.trending-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-stack-xs) var(--spacing-inline-md);
+  margin-block-end: var(--spacing-stack-md);
+}
+
+.trending-toolbar__note {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.trending-chart-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-stack-xs) var(--spacing-inline-md);
+  margin-top: var(--spacing-stack-xs);
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-muted);
+}
+
+.trending-chart-row__move {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The arrow is decoration; the hidden word carries the direction for screen readers. */
+.trending-chart-row__move--up {
+  color: var(--color-success-fg);
+}
+
+.trending-chart-row__move--up::before {
+  content: "▲";
+}
+
+.trending-chart-row__move--down {
+  color: var(--color-error-fg);
+}
+
+.trending-chart-row__move--down::before {
+  content: "▼";
+}
+
+.trending-chart-row__move--new {
+  color: var(--color-info-fg);
+}
+
+.trending-chart-row__hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.trending-empty {
+  color: var(--color-text-secondary);
+}

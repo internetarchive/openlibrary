@@ -1,7 +1,9 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, extra_row=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None, show_title_year=False, reading_states=None, layout=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, extra_row=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None, show_title_year=False, reading_states=None, layout=None, rank=None, show_details=True)
 
 $# reading_states: get_reading_states() for the whole page, keyed by work key,
 $# so one page is one round of queries. Left out, the row looks its own up.
+$# rank: the row's position in a ranked list, drawn large beside the cover.
+$# show_details: the publish year, edition and ebook counts under the byline.
 
 $code:
   max_rendered_authors = 9
@@ -81,6 +83,8 @@ $ shelf_button = shelf_button_for(doc, variant=('icon' if layout == 'grid' else 
       <a href="/people/$(doc['log']['username'])/books/$(doc['log']['shelf'].replace(' ', '-'))" class="feed-item--shelf">$doc['log']['shelf']</a> $datestr(doc['log']['updated'])
     </div>
   <div class="sri__main">
+    $if rank is not None:
+      <span class="sri__rank">$_('#%(rank)d', rank=rank)</span>
     <span class="bookcover $blur_cover">
       $ cover_url = get_cover_url(selected_ed)
       $ cover = cover_url or "/static/images/icons/avatar_book-sm.png"
@@ -207,7 +211,7 @@ $ shelf_button = shelf_button_for(doc, variant=('icon' if layout == 'grid' else 
                 </$tag>
             </ol-read-more>
 
-        $if doc.get('ia') and len(doc.get('ia')) > 1:
+        $if show_details and doc.get('ia') and len(doc.get('ia')) > 1:
           $ blur_preview = "search-result-item__preview-covers--blur" if blur else ""
 
           <div class="search-result-item__preview-covers-container">
@@ -240,7 +244,7 @@ $ shelf_button = shelf_button_for(doc, variant=('icon' if layout == 'grid' else 
             </span>
           </div>
 
-        $else:
+        $elif show_details:
           <span class="resultDetails">
             $if doc.get('first_publish_year'):
               <span>
