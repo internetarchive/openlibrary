@@ -3405,7 +3405,7 @@ msgstr ""
 msgid "E.g. Harry Potter, The Sword of Truth"
 msgstr ""
 
-#: books/edit.html type/edition/view.html type/work/view.html
+#: books/edit.html
 msgid "Work Identifiers"
 msgstr ""
 
@@ -6871,7 +6871,7 @@ msgstr ""
 msgid "For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please list one name per line."
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/contribute.py type/author/edit.html
+#: openlibrary/plugins/openlibrary/contribute.py type/author/edit.html type/edition/view.html type/work/view.html
 msgid "Identifiers"
 msgstr ""
 
@@ -6947,7 +6947,7 @@ msgstr ""
 msgid "Inventaire.io:"
 msgstr ""
 
-#: type/author/view.html type/edition/view.html type/work/view.html
+#: type/author/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
 msgstr ""
 
@@ -7039,6 +7039,10 @@ msgstr ""
 #: type/edition/title_and_author.html
 #, python-format
 msgid "Book %s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Wikipedia"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7136,7 +7140,7 @@ msgid "Translated From"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "External Links"
+msgid "Original languages"
 msgstr ""
 
 #: OlPagination.html.jinja OlPaginationArrows.html type/edition/view.html type/work/editions_datatable.html type/work/view.html
@@ -7152,7 +7156,11 @@ msgid "Weight"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "Edition Identifiers"
+msgid "Work ID"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "External Links"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7161,10 +7169,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Work Description"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
-msgid "Original languages"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7183,10 +7187,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "added anonymously."
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
-msgid "Wikipedia"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html

@@ -105,11 +105,6 @@ div.editionAbout p.featured-count {
   margin-bottom: 10px;
 }
 
-.source-records li a {
-  font-size: var(--font-size-label-medium);
-  padding: 6px 0;
-}
-
 .workFooter .lists-heading {
   display: flex;
 }

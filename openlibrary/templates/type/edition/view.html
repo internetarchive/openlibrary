@@ -42,6 +42,39 @@ $code:
     def has_any(*keys):
         return any(edition[k] for k in keys)
 
+    def unique_ids(ids):
+        """Drop values that differ only in spacing or case (BF503 .C34 vs BF503.C34)."""
+        seen = set()
+        unique = []
+        for id in ids:
+            squashed = "".join(str(id.value).split()).lower()
+            if squashed not in seen:
+                seen.add(squashed)
+                unique.append(id)
+        return unique
+
+    def pagination_repeats_page_count(pagination, pages):
+        """True for a collation like "119 p. ;" that says nothing the page count doesn't."""
+        if not (pagination and pages):
+            return False
+        rest = str(pagination).lower().replace(str(pages), "", 1).strip(" .;:,[]")
+        return rest in ("", "p", "pp", "page", "pages")
+
+    def get_book_links():
+        """Edition links, then the work's Wikipedia page and links, without repeats."""
+        links = list(edition.get_links() or []) if edition.key.startswith("/books/") else []
+        if work:
+            if work.wikipedia and work.wikipedia.startswith("http"):
+                links.append(storage(url=work.wikipedia, title=_("Wikipedia")))
+            links.extend(work.links or [])
+        seen = set()
+        unique = []
+        for link in links:
+            if link.url and link.url not in seen:
+                seen.add(link.url)
+                unique.append(link)
+        return unique
+
 $code:
     def get_description(book):
         """Share/meta description: the book's blurb, else when and by whom this edition was published."""
@@ -94,8 +127,13 @@ $def display_identifiers(label, ids, itemprop=None):
 $def display_goodreads(label, ids):
     $if label == "Goodreads":
         <dt>$label</dt>
-        $for id in ids:
-            <dd><a href="$id.url">$id.value</a></dd>
+        <dd>
+            $for id in ids:
+                <a href="$id.url">$id.value</a>$cond(loop.last, "", ", ")
+        </dd>
+
+$def details_heading(icon_name, text):
+    <h3 class="book-details__heading">$:macros.icon(icon_name, size="sm")<span>$text</span></h3>
 
 $:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
@@ -266,152 +304,159 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
       </div>
 
       <a id="details" name="details" class="section-anchor"></a>
-      <div class="tab-section edition-info">
+      <div class="tab-section edition-info book-details">
         $if edition:
-          <h2 class="details-title" itemprop="name">$_("Book Details")</h2>
-          <hr>
-          $if edition.first_sentence:
-            <div>
-              <h3>$_("First Sentence")</h3>
-              <p>"$(edition.first_sentence)"</p>
-            </div>
+          <h2 class="details-title book-details__title">$_("Book Details")</h2>
 
           $ table_of_contents = edition.get_table_of_contents()
-          $if table_of_contents and len(table_of_contents.entries) > 1:
-            <div class="section">
-              <h3>$_("Table of Contents")</h3>
-              $ component_times['TableOfContents'] = time()
-              <ol-read-more max-height="200px" style="min-height: 241px" more-text="$_('Read More')" less-text="$_('Read Less')">
-                $:macros.TableOfContents(table_of_contents, ocaid)
-              </ol-read-more>
-              $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
-            </div>
-
-          $if edition.notes or edition.publish_places or edition.series or edition.volume or edition.genres or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
-            <div class="section">
-                <h3>$_("Edition Notes")</h3>
-                $if edition.notes:
-                    <div class="edition-notes">
-                    $:format(edition.notes)
-                    </div>
-                <dl class="meta">
-                    $:display_value(_("Published in"), edition.publish_places)
-                    $:display_value(_("Series"), edition.series)
-                    $:display_value(_("Volume"), edition.volume)
-                    $:display_value(_("Genre"), edition.genres)
-                    $:display_value(_("Other Titles"), edition.other_titles)
-                    $:display_value(_("Copyright Date"), edition.copyright_date)
-                    $:display_value(_("Translation Of"), edition.translation_of)
-                    $:display_value(_("Translated From"), edition.translated_from)
-                </dl>
-            </div>
-
+          $ edition_first_sentence = str(edition.first_sentence or "")
+          $ work_first_sentence = str((work and not work.excerpts and work.first_sentence) or "")
+          $ original_languages = work and work.original_languages
           $ classifications = edition.get_classifications().multi_items()
-          $if classifications:
-            <div class="section">
-                <h3>$_("Classifications")</h3>
-                <dl class="meta">
-                    $ explorer_prefix = None
-                    $for name, values in classifications:
-                        $if name == 'lc_classifications':
-                            $ explorer_prefix = 'lcc'
-                        $elif name == 'dewey_decimal_class':
-                            $ explorer_prefix = 'ddc'
-                        $if explorer_prefix:
-                            $for v in values:
-                                $ v['url'] = '/explore?' + urlencode({ 'jumpTo': explorer_prefix + ':' + v['value'] }, plus=False)
-                        $:display_identifiers(values[0].label, values)
-                </dl>
-            </div>
-
-          $ links = page.get_links()
-          $if links:
-            <div id="external-links">
-              <h3 class="header">
-                <span class="icon download"></span>
-                <span class="head">$_('External Links')</span>
-              </h3>
-              <div class="panel">
-                <ul class="booklinks sansserif">
-                  $for link in links:
-                    <li><a href="$link.url">$link.title</a></li>
-                </ul>
-              </div>
-            </div>
-
+          $ links = get_book_links()
           $ contributors = edition.get('contributors', [])
-          $if contributors:
-            <div class="section">
-              <h3>$_("Contributors")</h3>
-              <dl class="meta">
-              $for c in contributors:
+          $ pagination = None if pagination_repeats_page_count(edition.pagination, edition.number_of_pages) else edition.pagination
+          $ is_work_only = not edition.key.startswith('/books/')
+          $ source_records = edition.get('source_records')
+
+          <div class="book-details__groups">
+            $if table_of_contents and len(table_of_contents.entries) > 1:
+              <div class="book-details__group">
+                $:details_heading("list-ordered", _("Table of Contents"))
+                $ component_times['TableOfContents'] = time()
+                <ol-read-more max-height="200px" style="min-height: 241px" more-text="$_('Read More')" less-text="$_('Read Less')">
+                  $:macros.TableOfContents(table_of_contents, ocaid)
+                </ol-read-more>
+                $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
+              </div>
+
+            $if edition_first_sentence or work_first_sentence:
+              <div class="book-details__group">
+                $:details_heading("quote", _("First Sentence"))
+                $if edition_first_sentence:
+                  <p>"$edition_first_sentence"</p>
+                $if work_first_sentence and work_first_sentence != edition_first_sentence:
+                  <p>"$work_first_sentence"</p>
+              </div>
+
+            $if edition.notes or original_languages or has_any("publish_places", "series", "volume", "genres", "other_titles", "copyright_date", "translation_of", "translated_from"):
+              <div class="book-details__group">
+                $:details_heading("book-open", _("Edition Notes"))
+                $if edition.notes:
+                  <div class="edition-notes">
+                    $:format(edition.notes)
+                  </div>
+                <dl class="book-details__list">
+                  $:display_value(_("Published in"), edition.publish_places)
+                  $:display_value(_("Series"), edition.series)
+                  $:display_value(_("Volume"), edition.volume)
+                  $:display_value(_("Genre"), edition.genres)
+                  $:display_value(_("Other Titles"), edition.other_titles)
+                  $:display_value(_("Copyright Date"), edition.copyright_date)
+                  $:display_value(_("Translation Of"), edition.translation_of)
+                  $:display_value(_("Translated From"), edition.translated_from)
+                  $if original_languages:
+                    $# TODO: Double check that these language names are localized
+                    <dt>$_("Original languages")</dt>
+                    <dd class="object">$', '.join(lang.name for lang in original_languages)</dd>
+                </dl>
+              </div>
+
+            $if contributors:
+              <div class="book-details__group">
+                $:details_heading("user", _("Contributors"))
+                <dl class="book-details__list">
+                  $for c in contributors:
                     $:display_value(c.role, c.name)
+                </dl>
+              </div>
+
+            $if pagination or has_any("physical_format", "number_of_pages", "physical_dimensions", "weight"):
+              <div class="book-details__group">
+                $:details_heading("ruler", _("The Physical Object"))
+                <dl class="book-details__list">
+                  $:display_value(_("Format"), edition.physical_format)
+                  $:display_value(_("Pagination"), pagination)
+                  $:display_value(_("Number of pages"), edition.number_of_pages, itemprop="numberOfPages")
+                  $:display_value(_("Dimensions"), edition.physical_dimensions)
+                  $:display_value(_("Weight"), edition.weight)
+                </dl>
+              </div>
+
+            $if classifications:
+              <div class="book-details__group">
+                $:details_heading("library-big", _("Classifications"))
+                <dl class="book-details__list">
+                  $for name, values in classifications:
+                    $ explorer_prefix = {'lc_classifications': 'lcc', 'dewey_decimal_class': 'ddc'}.get(name)
+                    $if explorer_prefix:
+                      $for v in values:
+                        $ v['url'] = '/explore?' + urlencode({ 'jumpTo': explorer_prefix + ':' + v['value'] }, plus=False)
+                    $:display_identifiers(values[0].label, unique_ids(values))
+                </dl>
+              </div>
+
+            <div class="book-details__group">
+              $:details_heading("scan-barcode", _("Identifiers"))
+              <dl class="book-details__list">
+                $if not is_work_only:
+                  $:display_identifiers("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
+                $if work:
+                  $:display_identifiers(_("Work ID"), [storage(url=None, value=work.key.split("/")[-1])])
+                $ is_viewable_book = edition["availability"].get("is_readable", False) or edition["availability"].get("is_lendable", False)
+                $ edition_identifiers = edition.get_identifiers().multi_items()
+                $for name, values in edition_identifiers:
+                  $ identifier_label = values[0].label
+                  $if identifier_label != "Internet Archive" or is_viewable_book or is_librarian or is_privileged_user:
+                    $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
+                $if work and not is_work_only:
+                  $for name, values in work.get_identifiers().multi_items():
+                    $:display_identifiers(values[0].label, values)
+                $for name, values in edition_identifiers:
+                  $:display_goodreads(values[0].label, values)
               </dl>
             </div>
 
-          $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
-            <div class="section">
-                <h3>$_("The Physical Object")</h3>
-                <dl class="meta">
-                    $:display_value(_("Format"), edition.physical_format)
-                    $:display_value(_("Pagination"), edition.pagination)
-                    $:display_value(_("Number of pages"), edition.number_of_pages, itemprop="numberOfPages")
-                    $:display_value(_("Dimensions"), edition.physical_dimensions)
-                    $:display_value(_("Weight"), edition.weight)
-                </dl>
-            </div>
-
-
-          <div class="section">
-            <h3>$_("Edition Identifiers")</h3>
-            <dl class="meta">
-                $:display_identifiers("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
-                $ is_viewable_book = edition["availability"].get("is_readable", False) or edition["availability"].get("is_lendable", False)
-                $for name, values in edition.get_identifiers().multi_items():
-                    $ identifier_label = values[0].label
-                    $if identifier_label != "Internet Archive" or is_viewable_book or is_librarian or is_privileged_user:
-                        $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
-            $:display_goodreads("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
-            $for name, values in edition.get_identifiers().multi_items():
-                $:display_goodreads(values[0].label, values)
-            </dl>
-            <h3>$_("Work Identifiers")</h3>
-            <dl class="meta">
-                $:display_identifiers("Work ID", [storage(url=None, value=work.key.split("/")[-1])])
-                $for name, values in work.get_identifiers().multi_items():
-                    $ identifier_label = values[0].label
-                    $:display_identifiers(identifier_label, values)
-            </dl>
-          </div>
-	  $ source_records = edition.get('source_records')
-          $if source_records:
-              <div class="section">
-                <h3>$_("Source records")</h3>
-                <ul class="source-records">
-                  $ get_source_html = render_template("history/sources").get_source_html
-                  $for source_record in source_records:
-                    <li>$:get_source_html(source_record)</li>
+            $if links:
+              <div class="book-details__group" id="external-links">
+                $:details_heading("external-link", _("External Links"))
+                <ul class="book-details__links">
+                  $for link in links:
+                    <li><a href="$link.url">$(link.title or link.url)</a></li>
                 </ul>
               </div>
+
+            $# The raw catalog records an edition was imported from: librarians and admins only.
+            $if source_records and (is_librarian or is_privileged_user):
+              <div class="book-details__group">
+                $:details_heading("database", _("Source records"))
+                $ get_source_html = render_template("history/sources").get_source_html
+                $def source_list():
+                  <ul class="book-details__sources">
+                    $for source_record in source_records:
+                      <li>$:get_source_html(source_record)</li>
+                  </ul>
+                $if len(source_records) > 8:
+                  <ol-read-more max-height="200px" more-text="$_('Read More')" less-text="$_('Read Less')">
+                    $:source_list()
+                  </ol-read-more>
+                $else:
+                  $:source_list()
+              </div>
+          </div>
+
           $if work:
-            $if not work.excerpts and work.first_sentence:
-              <h4>$_("First Sentence")</h4>
-              <p class="largest" title=$_("First Sentence")><em>"$work.first_sentence"</em></p>
-
             $if work.description and work.description != overview_desc:
-              <h4>$_("Work Description")</h4>
-              <ol-read-more more-text="$_('Read More')" less-text="$_('Read Less')">
-                $:sanitize(format(work.description))
-              </ol-read-more>
-
-            $if work.original_languages:
-              <div class="sansserif smallest">$_("Original languages")</div>
-              $# TODO: Double check that these language names are localized
-              $', '.join(lang.name for lang in work.original_languages)<p>
+              <div class="book-details__group book-details__group--prose">
+                $:details_heading("book-open-text", _("Work Description"))
+                <ol-read-more more-text="$_('Read More')" less-text="$_('Read Less')">
+                  $:sanitize(format(work.description))
+                </ol-read-more>
+              </div>
 
             $if work.excerpts:
-              <h4>$_("Excerpts")</h4>
-              <div class="section">
+              <div class="book-details__group book-details__group--prose">
+                $:details_heading("quote", _("Excerpts"))
                 $for excerpt in work.excerpts:
                   <div class="excerpt">
                     <div class="text">
@@ -430,17 +475,6 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
                         $:format(excerpt.comment)
                     </div>
                   </div>
-              </div>
-
-            $if work.links or (work.wikipedia and work.wikipedia.startswith("http")):
-              <h4>$:_('Links <span class="gray small sansserif">outside Open Library</span>')</h4>
-              <div class="section">
-                <ul class="booklinks sansserif">
-                $if work.wikipedia and work.wikipedia.startswith("http"):
-                  <li><a href="$page.wikipedia">$_('Wikipedia')</a></li>
-                $for link in work.links:
-                  <li><a href="$link.url">$link.title</a></li>
-                </ul>
               </div>
       </div>
 
