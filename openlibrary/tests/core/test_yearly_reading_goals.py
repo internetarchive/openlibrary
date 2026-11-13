@@ -163,15 +163,15 @@ class TestYearlyReadingGoalsIntegration:
     @pytest.mark.asyncio
     async def test_create_stamps_utc_timestamps(self, pg_db, monkeypatch):
         # Run the app in a far-from-UTC zone so a local-time value would stand out.
-        monkeypatch.setenv("TZ", "Pacific/Kiritimati")  # UTC+14
-        time.tzset()
         try:
-            await YearlyReadingGoals.create("alice", 2026, 25)
-            first = await YearlyReadingGoals.select_by_username_and_year("alice", 2026)
-            await YearlyReadingGoals.create("alice", 2026, 50)
-            second = await YearlyReadingGoals.select_by_username_and_year("alice", 2026)
+            with monkeypatch.context() as mp:
+                mp.setenv("TZ", "Pacific/Kiritimati")  # UTC+14
+                time.tzset()
+                await YearlyReadingGoals.create("alice", 2026, 25)
+                first = await YearlyReadingGoals.select_by_username_and_year("alice", 2026)
+                await YearlyReadingGoals.create("alice", 2026, 50)
+                second = await YearlyReadingGoals.select_by_username_and_year("alice", 2026)
         finally:
-            monkeypatch.undo()
             time.tzset()
 
         utc_now = datetime.now(UTC).replace(tzinfo=None)

@@ -48,6 +48,4 @@ def mock_memcache(request, monkeypatch):
     m.setattr(memcache.Client, "set", proxy("set"))
     m.setattr(memcache.Client, "add", proxy("add"))
 
-    yield mock_memcache
-
-    m.undo()
+    return mock_memcache
