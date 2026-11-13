@@ -126,8 +126,12 @@ div.editionAbout p.featured-count {
   color: var(--color-link);
   font-size: var(--font-size-title-medium);
 }
-/* stylelint-enable selector-max-specificity */
 
+.workFooter .lists-heading a.carousel-see-all {
+  font-size: var(--font-size-body-medium);
+}
+
+/* stylelint-enable selector-max-specificity */
 .edition-notes,
 .book-description {
   font-size: var(--font-size-label-medium);

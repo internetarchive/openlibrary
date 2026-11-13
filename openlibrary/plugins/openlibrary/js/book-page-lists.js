@@ -29,13 +29,16 @@ export async function initListsSection(elem) {
 
     listSection.replaceChildren(fragment);
 
-    // Show "See All" link
-    if (data.hasLists) {
-        const showAllLink = elem.querySelector('.lists-heading a');
-        if (showAllLink) {
-            showAllLink.classList.remove('hidden');
+    // Move the link from the fetched partial beside the existing Lists heading.
+    const showAllLink = listSection.querySelector('.list-follow-showcase__see-all');
+    if (showAllLink) {
+        const heading = elem.querySelector('.lists-heading');
+        if (heading) {
+            showAllLink.classList.remove('list-follow-showcase__see-all');
+            heading.append(showAllLink);
         }
     }
+
     // Initialize private buttons after content is loaded
     initPrivateButtonsAfterLoad(listSection);
 
