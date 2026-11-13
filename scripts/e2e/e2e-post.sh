@@ -22,10 +22,23 @@
 #                          workflow_run event — NOT from the artifact. The commit
 #                          status is always posted on this sha; the artifact's
 #                          own head_sha is only cross-checked against it.
+#   EVENT_PR               (optional) the AUTHORITATIVE PR number, resolved by the
+#                          caller from the TRUSTED workflow_run event (never from
+#                          the artifact). This is the ONLY source of the label/
+#                          comment write target. The artifact's own `pr` field is
+#                          attacker-controlled (the sandbox runs the PR's code,
+#                          which writes the artifact) and is IGNORED entirely —
+#                          trusting it would let a PR aim writes at any issue.
 #   CHECK_PREFIX           default "check/" — the single swappable status-context
 #                          prefix (the `check/` vs `pr/` choice is still open).
 #   STATUS_CONTEXT         default "${CHECK_PREFIX}tested-e2e"
 #   LABEL                  default "Needs: e2e testing"
+#
+# NON-REQUIRED INVARIANT: because the sandbox runs untrusted PR code and that
+# code writes the result artifact, a `success` is forgeable by any PR that is
+# allowed to run. That is acceptable ONLY while check/tested-e2e stays an
+# OPTIONAL, label-gated check. It MUST NEVER be made a required merge check, or a
+# labeled malicious PR could self-certify green. Keep this check non-required.
 #
 # Output: a single-line decision JSON on stdout, consumed by the github-script
 # API wrapper:
@@ -47,6 +60,7 @@ command -v jq >/dev/null 2>&1 || { err "jq is required"; exit 2; }
 
 ARTIFACT_FILE="${ARTIFACT_FILE:-}"
 WORKFLOW_RUN_HEAD_SHA="${WORKFLOW_RUN_HEAD_SHA:-}"
+EVENT_PR="${EVENT_PR:-}"
 CHECK_PREFIX="${CHECK_PREFIX:-check/}"
 STATUS_CONTEXT="${STATUS_CONTEXT:-${CHECK_PREFIX}tested-e2e}"
 LABEL="${LABEL:-Needs: e2e testing}"
@@ -55,6 +69,12 @@ LABEL="${LABEL:-Needs: e2e testing}"
 # The authoritative sha must itself be well-formed, or we have nothing safe to
 # post a status on.
 [[ "$WORKFLOW_RUN_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]] || { err "WORKFLOW_RUN_HEAD_SHA is not a 40-hex sha"; exit 2; }
+
+# The ONLY label/comment write target, from the trusted event. Never the
+# artifact. Empty/invalid => status-only (no label clear, no comment). This is
+# the fix for the cross-PR write break: a PR cannot aim writes at another issue.
+PR_FOR_WRITES=""
+[[ "$EVENT_PR" =~ ^[0-9]+$ ]] && PR_FOR_WRITES="$EVENT_PR"
 
 # Neutralise an attacker-influenced string before it goes into a PR comment: the
 # RUN artifact is untrusted data, and its `reason` can embed a PR-chosen path
@@ -74,7 +94,8 @@ sanitize() {
 clip_desc() { local s="$1"; if (( ${#s} > 140 )); then printf '%s' "${s:0:137}..."; else printf '%s' "$s"; fi; }
 
 emit() {
-  # $1 state, $2 pr (integer or empty => null), $3 description, $4 comment_body ("" => no comment)
+  # $1 state, $2 pr (the TRUSTED EVENT_PR; integer or empty => null), $3
+  # description, $4 comment_body ("" => no comment)
   local state="$1" pr="$2" desc comment_body="$4"
   desc="$(clip_desc "$3")"
   local do_comment="false" do_label="false" pr_json="null"
@@ -98,51 +119,48 @@ emit() {
 }
 
 # --- read + validate the artifact (fail-safe to failure on any problem) -------
+# The label/comment target is always PR_FOR_WRITES (the trusted event PR); the
+# artifact below only ever decides the STATE and the (sanitised) reason text.
 if [[ -z "$ARTIFACT_FILE" || ! -f "$ARTIFACT_FILE" ]]; then
-  emit "failure" "" "e2e did not produce a result (no artifact)" \
-    "e2e (@smoke) could not be reported: the RUN job produced no result artifact — it likely crashed or timed out before writing one. A maintainer can re-run e2e by re-applying the label."
+  emit "failure" "$PR_FOR_WRITES" "e2e did not produce a result (no artifact)" \
+    "e2e (@smoke) could not be reported: the RUN job produced no result artifact — it likely crashed or timed out before writing one. A maintainer can re-run e2e by re-applying the \`${LABEL}\` label."
   exit 0
 fi
 
 artifact="$(cat "$ARTIFACT_FILE" 2>/dev/null)"
 if ! a_json="$(printf '%s' "$artifact" | jq -ce . 2>/dev/null)"; then
-  emit "failure" "" "e2e result artifact was malformed" \
-    "e2e (@smoke) could not be reported: the result artifact was not valid JSON. Re-run e2e by re-applying the label."
+  emit "failure" "$PR_FOR_WRITES" "e2e result artifact was malformed" \
+    "e2e (@smoke) could not be reported: the result artifact was not valid JSON. Re-run e2e by re-applying the \`${LABEL}\` label."
   exit 0
 fi
 
 a_result="$(printf '%s' "$a_json" | jq -r '.result // empty' 2>/dev/null)"
-a_pr="$(printf '%s' "$a_json" | jq -r '.pr // empty' 2>/dev/null)"
 a_head="$(printf '%s' "$a_json" | jq -r '.head_sha // empty' 2>/dev/null)"
 a_reason="$(printf '%s' "$a_json" | jq -r '.reason // empty' 2>/dev/null)"
+# NB: the artifact's own `.pr` is deliberately NOT read — it is attacker data.
 
 # The artifact's sha must be well-formed AND equal the authoritative event sha.
-# A mismatch means the artifact does not describe this run — don't trust its PR
-# number for label/comment; still post a failure status on the authoritative sha.
+# A mismatch means the artifact does not describe this run; still post failure on
+# the authoritative sha and (via PR_FOR_WRITES) clear the label on the real PR.
 if [[ ! "$a_head" =~ ^[0-9a-f]{40}$ || "$a_head" != "$WORKFLOW_RUN_HEAD_SHA" ]]; then
-  emit "failure" "" "e2e result did not match this commit" \
-    "e2e (@smoke) could not be reported: the result artifact's head sha did not match this run. Re-run e2e by re-applying the label."
+  emit "failure" "$PR_FOR_WRITES" "e2e result did not match this commit" \
+    "e2e (@smoke) could not be reported: the result artifact's head sha did not match this run. Re-run e2e by re-applying the \`${LABEL}\` label."
   exit 0
 fi
 
-# The PR number must be a positive integer to be used for label/comment; if not,
-# still post the status, just without label/comment (pr=null).
-pr_for_writes=""
-[[ "$a_pr" =~ ^[0-9]+$ ]] && pr_for_writes="$a_pr"
-
 case "$a_result" in
   success)
-    emit "success" "$pr_for_writes" "e2e @smoke passed" ""
+    emit "success" "$PR_FOR_WRITES" "e2e @smoke passed" ""
     ;;
   failure)
     reason="$(sanitize "${a_reason:-e2e failed}")"
-    emit "failure" "$pr_for_writes" "e2e @smoke failed" \
+    emit "failure" "$PR_FOR_WRITES" "e2e @smoke failed" \
       "❌ **e2e (@smoke) failed.** Reason: \`${reason}\`. See the e2e workflow run for logs and the Playwright report. Push a fix (or a maintainer can re-apply the \`${LABEL}\` label) to re-run."
     ;;
   *)
     # Unknown / absent result value — fail-safe.
-    emit "failure" "$pr_for_writes" "e2e result was not recognised" \
-      "e2e (@smoke) could not be reported: the result value was not recognised. Re-run e2e by re-applying the label."
+    emit "failure" "$PR_FOR_WRITES" "e2e result was not recognised" \
+      "e2e (@smoke) could not be reported: the result value was not recognised. Re-run e2e by re-applying the \`${LABEL}\` label."
     ;;
 esac
 exit 0

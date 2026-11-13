@@ -70,11 +70,40 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: artifact
 
+      # Resolve the AUTHORITATIVE PR number from the TRUSTED event — never from
+      # the artifact (the sandbox runs PR code that writes the artifact, so its
+      # `pr` field is attacker-controlled; trusting it would let a PR aim the
+      # label-clear / comment at any issue). Same-repo PRs are in the event
+      # payload; fork PRs need a commit->pulls lookup. This is trusted-data
+      # retrieval, not validation — the targeting decision stays in e2e-post.sh.
+      - name: Resolve authoritative PR
+        id: pr
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const owner = context.repo.owner, repo = context.repo.repo;
+            const sha = context.payload.workflow_run.head_sha;
+            let pr = '';
+            const fromEvent = (context.payload.workflow_run.pull_requests || [])
+              .find(p => p.head && p.head.sha === sha);
+            if (fromEvent) pr = String(fromEvent.number);
+            if (!pr) {
+              try {
+                const { data } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                  owner, repo, commit_sha: sha,
+                });
+                const m = data.find(p => p.head && p.head.sha === sha && p.state === 'open');
+                if (m) pr = String(m.number);
+              } catch (e) { core.info(`PR lookup failed: ${e.message}`); }
+            }
+            core.setOutput('number', pr);
+
       # Validate the artifact and decide what to post. Thin wrapper follows.
       - name: Decide
         env:
           ARTIFACT_FILE: ${{ github.workspace }}/artifact/e2e-result.json
           WORKFLOW_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          EVENT_PR: ${{ steps.pr.outputs.number }}
           # CHECK_PREFIX is the single swappable status-context prefix (check/ vs
           # pr/ is still open). STATUS_CONTEXT => ${CHECK_PREFIX}tested-e2e.
           CHECK_PREFIX: check/
@@ -111,6 +140,10 @@ jobs:
             const desc = (typeof d.description === 'string') ? d.description.slice(0, 140) : '';
             const pr = Number.isInteger(d.pr) && d.pr > 0 ? d.pr : null;
 
+            // NON-REQUIRED INVARIANT: the sandbox runs untrusted PR code that
+            // writes the result, so a `success` here is forgeable by any PR
+            // allowed to run. This status MUST stay OPTIONAL — never a required
+            // merge check — or a labeled malicious PR could self-certify green.
             await github.rest.repos.createCommitStatus({
               owner, repo, sha, state, context: ctx, description: desc,
             });

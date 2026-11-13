@@ -99,6 +99,11 @@ json_str() {
   local s="$1"
   s="${s//\\/\\\\}"; s="${s//\"/\\\"}"
   s="${s//$'\n'/\\n}"; s="${s//$'\t'/\\t}"; s="${s//$'\r'/\\r}"
+  # Strip any remaining raw C0 control bytes (an attacker-chosen path can reach
+  # REASON via UNSAFE_PATH): a stray control byte would otherwise make the JSON
+  # invalid. No field injection is possible — quotes/backslashes are escaped
+  # above — so this only keeps the artifact parseable.
+  s="$(printf '%s' "$s" | LC_ALL=C tr -d '\000-\010\013\014\016-\037')"
   printf '"%s"' "$s"
 }
 
@@ -126,41 +131,58 @@ write_result() {
 # read. It is a second layer behind the no-secrets/read-only/ephemeral sandbox.
 is_unsafe_path() {
   case "$1" in
+    # CI / container / build machinery, anywhere.
     .github/*|docker/*|scripts/*) return 0 ;;
     Dockerfile|Dockerfile.*|Makefile|package.json|package-lock.json) return 0 ;;
     compose*.yml|compose*.yaml|docker-compose*.yml|docker-compose*.yaml) return 0 ;;
-    */Dockerfile|*/Dockerfile.*|*/Makefile) return 0 ;;
+    */Dockerfile|*/Dockerfile.*|*/Makefile|*/package.json) return 0 ;;
     */compose.yml|*/compose.yaml|*/docker-compose.yml|*/docker-compose.yaml) return 0 ;;
+    # Files that run arbitrary code during install / test, or redirect a registry.
+    .npmrc|*/.npmrc|playwright.config.*|*/playwright.config.*) return 0 ;;
+    requirements*.txt|*/requirements*.txt|pyproject.toml|setup.py|setup.cfg) return 0 ;;
   esac
   return 1
 }
 
-# Emit the PR's changed paths, one per line. Prefer an explicit list, then a
-# seam, then a git diff against BASE_SHA. With no source configured at all the
-# denylist is skipped (the workflow always configures one; see header).
+# Emit the PR's changed paths, one per line. Prefer an explicit list (honoured
+# even when empty — an empty list is a real answer, not a missing source), then a
+# seam, then a git diff against BASE_SHA. Only with no source AT ALL do we report
+# __NO_DIFF_SOURCE__.
 get_changed_paths() {
-  if [[ -n "${CHANGED_PATHS:-}" ]]; then printf '%s\n' "$CHANGED_PATHS"; return 0; fi
+  if [[ -n "${CHANGED_PATHS+x}" ]]; then printf '%s\n' "$CHANGED_PATHS"; return 0; fi
   if [[ -n "${CHANGED_PATHS_CMD:-}" ]]; then eval "$CHANGED_PATHS_CMD"; return $?; fi
   if [[ -n "${BASE_SHA:-}" ]]; then git diff --name-only "$BASE_SHA" "$HEAD_SHA"; return $?; fi
   printf '__NO_DIFF_SOURCE__\n'
 }
 
-# 0 = safe to run; 1 = unsafe (sets UNSAFE_PATH) OR the diff could not be read
-# (fail CLOSED — an unreadable diff is treated as unsafe).
+# 0 = safe to run; 1 = unsafe (sets UNSAFE_PATH). Fails CLOSED when the diff
+# cannot be read, and — when DENYLIST_REQUIRED is set (the workflow sets it) —
+# also when no source is configured or the list is empty, so a glitched/empty
+# changed-files lookup can never silently skip the gate. Without DENYLIST_REQUIRED
+# (host/standalone use) a missing source just skips the denylist.
 safety_check() {
-  local paths p
+  local paths p nonempty=0
   if ! paths="$(get_changed_paths)"; then
     UNSAFE_PATH="(could not read the PR diff)"
     return 1
   fi
   if [[ "$paths" == "__NO_DIFF_SOURCE__" ]]; then
+    if [[ -n "${DENYLIST_REQUIRED:-}" ]]; then
+      UNSAFE_PATH="(no changed-paths source; denylist required)"
+      return 1
+    fi
     warn "no changed-paths source configured — safety denylist SKIPPED"
     return 0
   fi
   while IFS= read -r p; do
     [[ -z "$p" ]] && continue
+    nonempty=1
     if is_unsafe_path "$p"; then UNSAFE_PATH="$p"; return 1; fi
   done <<<"$paths"
+  if [[ "$nonempty" == "0" && -n "${DENYLIST_REQUIRED:-}" ]]; then
+    UNSAFE_PATH="(empty changed-paths list; denylist required)"
+    return 1
+  fi
   return 0
 }
 

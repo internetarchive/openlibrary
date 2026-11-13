@@ -117,6 +117,9 @@ jobs:
         env:
           RESULT_FILE: ${{ github.workspace }}/e2e-result.json
           CHANGED_PATHS: ${{ steps.files.outputs.paths }}
+          # Fail the denylist CLOSED if the changed-paths lookup glitched to empty
+          # or produced no source, instead of silently skipping the gate.
+          DENYLIST_REQUIRED: "1"
         run: bash scripts/e2e/run-e2e.sh
 
       # Save images for the next run of THIS PR (only needed on a cache miss).

@@ -112,12 +112,37 @@ run_entry CHANGED_PATHS=$'openlibrary/a.py\nstatic/css/b.css\ntests/c.py' E2E_CM
 teardown
 
 # --- 6. diff source UNREADABLE => fail CLOSED (no run) -----------------------
+# CHANGED_PATHS must be UNSET so get_changed_paths falls through to the CMD seam
+# (an explicitly-set empty CHANGED_PATHS is a valid empty list, not "no source").
 setup
 SENTINEL="$TESTDIR/e2e-ran"
-run_entry CHANGED_PATHS="" CHANGED_PATHS_CMD="exit 3" E2E_CMD="touch '$SENTINEL'"
+env PR_NUMBER=4242 HEAD_SHA="$GOODSHA" RESULT_FILE="$TESTDIR/result.json" SKIP_SHA_VERIFY=1 \
+    CHANGED_PATHS_CMD="exit 3" E2E_CMD="touch '$SENTINEL'" \
+    bash "$RUN" >"$TESTDIR/out.log" 2>&1; RC=$?
 [[ "$(rf .result)" == failure ]] && ok "diff-unreadable: fails closed" || bad "diff-unreadable: failure"
 [[ "$(rf .ran)" == false ]] && ok "diff-unreadable: ran=false" || bad "diff-unreadable: ran=false"
 [[ ! -f "$SENTINEL" ]] && ok "diff-unreadable: harness not executed" || bad "diff-unreadable: executed"
+teardown
+
+# --- 6b. playwright.config.* is denylisted (runs arbitrary code on test) -----
+setup
+run_entry CHANGED_PATHS="playwright.config.ts" E2E_CMD="true"
+[[ "$(rf .result)" == failure ]] && ok "unsafe: playwright.config.* caught" || bad "unsafe: playwright.config"
+teardown
+
+# --- 6c. DENYLIST_REQUIRED + empty list => fail CLOSED, no run ----------------
+setup
+SENTINEL="$TESTDIR/e2e-ran"
+run_entry CHANGED_PATHS="" DENYLIST_REQUIRED=1 E2E_CMD="touch '$SENTINEL'"
+[[ "$(rf .result)" == failure ]] && ok "denylist-required: empty list fails closed" || bad "denylist-required: failure"
+[[ "$(rf .ran)" == false ]] && ok "denylist-required: ran=false" || bad "denylist-required: ran=false"
+[[ ! -f "$SENTINEL" ]] && ok "denylist-required: harness not executed" || bad "denylist-required: executed"
+teardown
+
+# --- 6d. without DENYLIST_REQUIRED, an empty list is allowed (zero-file PR) ---
+setup
+run_entry CHANGED_PATHS="" E2E_CMD="true"
+[[ "$(rf .result)" == success ]] && ok "empty-list: runs when denylist not required" || bad "empty-list: runs" "$(rf .reason)"
 teardown
 
 # --- 7. sha-pin mismatch => failure, no run ----------------------------------
