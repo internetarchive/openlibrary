@@ -155,9 +155,39 @@ const analyzeJob = workflow.jobs.analyze;
 
 // Action name = the part before `@`, e.g. `actions/cache` from `actions/cache@<sha>`.
 const ALLOWED_ANALYZE_ACTIONS = new Set(['actions/checkout', 'actions/github-script', 'anthropics/claude-code-action', 'actions/upload-artifact']);
-// Commands that would mean analyze is building/installing/running fork code.
-const FORBIDDEN_RUN =
-    /\b(npm|yarn|pnpm|npx|pip|pipenv|poetry|uv|make|docker|docker-compose|gradle|mvn|cargo|go\s+(build|test|run)|bundle|composer|node|python[0-9.]*|setup\.py)\b/;
+// ALLOWLIST (not a blocklist -- adversarial review found a blocklist porous: `bash pr-head/x.sh`,
+// `./configure`, `source`, `eval` all slipped a keyword blocklist). analyze's run steps may ONLY
+// fetch + inertly extract the PR head, so only these leading commands are permitted. Anything else
+// (a shell, interpreter, build tool, or executing a path) means analyze might run fork content.
+const ANALYZE_RUN_ALLOWED_CMDS = new Set(['git', 'mkdir', 'printf', 'tar', 'rm', 'find', 'chmod', 'cd', 'echo', 'true', ':', 'test', '[']);
+// Belt for execution hidden in args/substitutions even when the leading command is allowed, e.g.
+// `find ... -exec bash {}` or `mkdir "$(sh x)"` or a `./path` / `/abs/path` invocation. `-exec`
+// (find's own flag, hyphen-prefixed) is deliberately NOT matched.
+const EXEC_SHAPE =
+    /(?<![-\w])(bash|sh|zsh|ksh|dash|source|eval|exec|xargs|env|ruby|perl|php|node|nodejs|python[0-9.]*|dotnet|java|gradlew|make|cmake|configure|awk|sed)(?![\w])|(?:^|[\s|&;(])\.{0,2}\/[\w.]/m;
+
+// Drop full-line comments (so a `;` or `/` inside a comment is never read as a command/path).
+const codeOnly = run =>
+    run
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l && !l.startsWith('#'))
+        .join('\n');
+
+// Leading command of each pipeline segment of a `run:` block. Pure VAR=value assignment segments
+// (value may be a quoted string or a $(...) substitution with spaces, e.g. ATTR="$(git ...)")
+// contribute no command and are dropped FIRST; a leading inline env-assignment prefix
+// (FOO=bar cmd ...) is then stripped so the real command is checked.
+const PURE_ASSIGN = /^[A-Za-z_]\w*=(?:"[^"]*"|'[^']*'|\$\([^)]*\)|\S*)$/;
+const leadingCommands = run =>
+    codeOnly(run)
+        .split(/\n|&&|\|\||\||;/)
+        .map(seg => seg.trim())
+        .filter(Boolean)
+        .filter(seg => !PURE_ASSIGN.test(seg))
+        .map(seg => seg.replace(/^(?:[A-Za-z_]\w*=(?:"[^"]*"|'[^']*'|\S+)\s+)+/, ''))
+        .filter(Boolean)
+        .map(seg => seg.split(/\s+/)[0]);
 
 test('analyze job uses only allowlisted actions (no cache/cloud/setup -> no fork-code execution)', () => {
     const used = (analyzeJob.steps || []).filter(s => s.uses).map(s => s.uses.split('@')[0]);
@@ -172,15 +202,37 @@ test('analyze job uses only allowlisted actions (no cache/cloud/setup -> no fork
     }
 });
 
-test('analyze job runs no build/install/test/cache command (reads the diff as data, never runs it)', () => {
+test('analyze run steps invoke only allowlisted commands (no shell/interpreter/build/./path -> no fork-code exec)', () => {
     for (const step of analyzeJob.steps || []) {
         if (typeof step.run !== 'string') continue;
+        for (const cmd of leadingCommands(step.run)) {
+            assert.ok(
+                ANALYZE_RUN_ALLOWED_CMDS.has(cmd),
+                `analyze run step leads with non-allowlisted command "${cmd}" -- it could execute or parse ` +
+                    `fork content. analyze may only fetch + inertly extract the PR head. Step:\n${step.run}`
+            );
+        }
         assert.ok(
-            !FORBIDDEN_RUN.test(step.run),
-            `analyze has a run step that looks like it executes PR content:\n${step.run}\n` +
-                `analyze must only fetch + inertly extract the PR head (git/tar/find/chmod), never build/install/run it.`
+            !EXEC_SHAPE.test(codeOnly(step.run)),
+            `analyze run step contains an execution shape (shell/interpreter/./path) that could run fork content:\n${step.run}`
         );
     }
+});
+
+// The model's shell+network are OFF -- this is the actual injection->exec barrier under
+// pull_request_target, and the adversarial review flagged it was unasserted. Pin it so flipping
+// claude_args to allow Bash (or dropping --disallowedTools) fails CI.
+test('the Review (model) step keeps Bash/WebFetch/WebSearch disabled and does not allow a shell', () => {
+    const review = (analyzeJob.steps || []).find(s => (s.uses || '').includes('claude-code-action'));
+    assert.ok(review, 'expected a claude-code-action Review step in analyze');
+    const args = String((review.with && review.with.claude_args) || '');
+    const disallowed = args.match(/--disallowedTools\s+"([^"]*)"/);
+    assert.ok(disallowed, 'Review step must pass --disallowedTools (the model must have no shell/network)');
+    for (const tool of ['Bash', 'WebFetch', 'WebSearch']) {
+        assert.ok(new RegExp(`\\b${tool}\\b`).test(disallowed[1]), `--disallowedTools must include ${tool}`);
+    }
+    const allowed = (args.match(/--allowedTools\s+"([^"]*)"/) || ['', ''])[1];
+    assert.ok(!/\bBash\b/.test(allowed), 'Review step must not re-enable Bash via --allowedTools');
 });
 
 test('analyze job holds no PAT and no write permission (the no-write half of the split)', () => {
