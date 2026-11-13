@@ -4357,28 +4357,6 @@ msgstr ""
 msgid "The project runs from the start of its start date through the end of its end date, UTC. Both can be set or changed later."
 msgstr ""
 
-#: contribute/admin/new.html.jinja
-msgid "None yet"
-msgstr ""
-
-#: contribute/admin/new.html.jinja openlibrary/contribute/initiatives.py type/page/view.html
-#, python-format
-msgid "%(count)s book"
-msgid_plural "%(count)s books"
-msgstr[0] ""
-msgstr[1] ""
-
-#: contribute/admin/new.html.jinja
-#, python-format
-msgid "The %(count)s most-shelved book missing a detail"
-msgid_plural "The %(count)s most-shelved books missing a detail"
-msgstr[0] ""
-msgstr[1] ""
-
-#: contribute/admin/new.html.jinja
-msgid "Every book on the list"
-msgstr ""
-
 #: contribute/admin/new.html.jinja contribute/admin/project.html.jinja
 msgid "Asks for"
 msgstr ""
@@ -7314,6 +7292,13 @@ msgstr ""
 msgid "Collection"
 msgstr ""
 
+#: openlibrary/contribute/initiatives.py type/page/view.html
+#, python-format
+msgid "%(count)s book"
+msgid_plural "%(count)s books"
+msgstr[0] ""
+msgstr[1] ""
+
 #: type/permission/edit.html type/usergroup/edit.html
 msgid "Description:"
 msgstr ""
@@ -9032,6 +9017,14 @@ msgstr ""
 #: openlibrary/contribute/manage.py
 #, python-format
 msgid "Past the limit of %(count)s books"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "None yet"
+msgstr ""
+
+#: openlibrary/contribute/manage.py
+msgid "Every book on the list"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
