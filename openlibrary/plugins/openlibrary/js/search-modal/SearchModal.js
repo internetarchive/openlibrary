@@ -11,7 +11,7 @@ import { debounce } from '../nonjquery_utils.js';
 import { sprintf } from '../i18n.js';
 import { trackEvent } from '../ol.analytics.js';
 import { buildPartialsUrl } from '../utils.js';
-import { readLabels } from '../book-state.js';
+import { isWorkKey, orphanedEditionKey, readLabels } from '../book-state.js';
 import {
     AVAILABILITY_OPTIONS,
     AVAILABILITY_TO_PARAMS,
@@ -2131,7 +2131,19 @@ export class SearchModal extends LitElement {
 
     // Shelf is work-level, so the button acts on the work even when the row
     // links to an edition; the edition rides along so the shelf records the copy.
+    // An edition with no work has no shelf, so its button only offers lists.
     _renderShelfButton(work, edition, title) {
+        const orphan = orphanedEditionKey(work.key);
+        if (orphan) {
+            return html`<ol-shelf-button
+                variant="outline"
+                lists-only
+                work-key=${orphan}
+                book-title=${title}
+                user-key=${this._userKey}
+                .labels=${this._shelfLabels || {}}
+            ></ol-shelf-button>`;
+        }
         const state = this._readingState.get(olidOf(work.key));
         return html`<ol-shelf-button
             variant="outline"
@@ -2161,7 +2173,9 @@ export class SearchModal extends LitElement {
     // A failed batch is forgotten so the next intent tries it again.
     async _loadShelfState() {
         if (!this._userKey) return;
-        const olids = this._results.map(work => olidOf(work.key)).filter(olid => !this._readingState.has(olid) && !this._stateRequested.has(olid));
+        const olids = this._results
+            .map(work => olidOf(work.key))
+            .filter(olid => isWorkKey(olid) && !this._readingState.has(olid) && !this._stateRequested.has(olid));
         if (olids.length === 0) return;
         olids.forEach(olid => this._stateRequested.add(olid));
         let works;

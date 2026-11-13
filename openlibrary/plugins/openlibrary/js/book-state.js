@@ -43,6 +43,27 @@ const NOTICE_LABELS = {
     errorGeneric: 'Something went wrong. Please try again.'
 };
 
+const WORK_OLID = /^OL\d+W$/;
+const ORPHAN_KEY = /^\/works\/(OL\d+M)$/;
+
+/**
+ * The edition behind a search "work" that is really an edition with no work:
+ * Solr indexes those under /works/ with the edition's own OLID.
+ * @param {string} key
+ * @returns {string|null} "/books/OL…M", or null for a real work.
+ */
+export function orphanedEditionKey(key) {
+    const match = ORPHAN_KEY.exec(key || '');
+    return match ? `/books/${match[1]}` : null;
+}
+
+/**
+ * Whether ReadingState can be asked about this key. One OLID that is not a
+ * work fails the whole batch, so everything else is left out of it.
+ * @param {string} key
+ */
+export const isWorkKey = key => WORK_OLID.test((key || '').split('/').pop());
+
 /** @type {Object<string, string|Object<string, string>>|null} */
 let labels = null;
 /** Buttons that have their labels and user key. */
@@ -248,7 +269,7 @@ function onCheckIn(e) {
  * @returns {Promise<void>}
  */
 async function fetchState(buttons) {
-    const olids = [...new Set(buttons.map(b => b.getAttribute('work-key').split('/').pop()))];
+    const olids = [...new Set(buttons.map(b => b.getAttribute('work-key').split('/').pop()))].filter(isWorkKey);
     for (let i = 0; i < olids.length; i += BATCH_SIZE) {
         const chunk = olids.slice(i, i + BATCH_SIZE);
         let works;
@@ -282,7 +303,15 @@ export async function hydrate() {
             if (labels) button.labels = labels;
             if (key && !button.hasAttribute('user-key')) button.userKey = key;
         }
-        if (key && !button.hasAttribute('data-hydrated') && !requested.has(button)) {
+        // An edition with no work has no shelf to ask about, only lists to
+        // join; cached carousel HTML can still carry it as a work.
+        const orphan = orphanedEditionKey(button.getAttribute('work-key'));
+        if (orphan) {
+            button.setAttribute('work-key', orphan);
+            button.listsOnly = true;
+        }
+        const shelvable = !button.listsOnly && isWorkKey(button.getAttribute('work-key'));
+        if (key && shelvable && !button.hasAttribute('data-hydrated') && !requested.has(button)) {
             requested.add(button);
             // Held until its state lands: the shelf POST is a toggle, so a tap
             // now would read the unknown shelf as "none" and take the book off it.
