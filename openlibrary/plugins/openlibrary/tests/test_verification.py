@@ -13,13 +13,14 @@ from openlibrary.utils.request_context import RequestContextVars, req_context
 class TestCookieValidationProcessor:
     """Tests for the CookieValidationProcessor global processor."""
 
-    def setup_method(self):
+    @pytest.fixture(autouse=True)
+    def cookie_processor(self, monkeypatch):
         ctx = web.storage()
         ctx.env = {"REQUEST_URI": "/books/OL1M"}
         ctx.path = "/books/OL1M"
         ctx.home = "http://localhost"
-        web.ctx = ctx
-        web.webapi.ctx = web.ctx
+        monkeypatch.setattr(web, "ctx", ctx)
+        monkeypatch.setattr(web.webapi, "ctx", ctx)
         config.infobase = web.storage(secret_key="test-secret-key")
         config.login_cookie_name = "session"
         self._req_context_token = req_context.set(
@@ -35,8 +36,7 @@ class TestCookieValidationProcessor:
             )
         )
         self.processor = CookieValidationProcessor()
-
-    def teardown_method(self):
+        yield
         req_context.reset(self._req_context_token)
 
     def _make_handler(self):

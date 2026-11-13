@@ -1,13 +1,5 @@
 """pytest configuration for openlibrary"""
 
-import os
-
-# Tests must behave the same in the dev container as in CI, so drop the
-# deployment flags compose sets before anything reads them (some modules do at
-# import time). A test that needs dev-mode behaviour uses the local_dev fixture.
-os.environ.pop("LOCAL_DEV", None)
-os.environ.pop("OL_DEPLOYMENT_NAME", None)
-
 import pytest
 import web
 
