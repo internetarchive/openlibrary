@@ -59,17 +59,30 @@ jobs:
         with:
           egress-policy: audit
 
-      # THE AUTHORIZATION GATE (read before editing). The `Needs: e2e testing`
-      # label is only a TRIGGER; the SHA-bound `code-review` commit status is the
-      # GATE. Read its state on THIS exact head sha with the read-only token (no
-      # secret) and hand it to run-e2e.sh, which REFUSES to execute PR code unless
-      # it is `success`. Fail-SAFE: any read error becomes a non-green state, so
-      # e2e skips rather than running on an unverified head.
-      #   - The context string is exactly `code-review` (plain; Mek's required-
-      #     check name, produced by #14455 — do NOT rename once it is required).
-      #   - DEPENDENCY: this can only ever pass once #14455 posts that status, so
-      #     #14454 stays parked for GO-LIVE behind the code-review piece.
-      - name: Read code-review gate status
+      # THE AUTHORIZATION GATE — read AND ENFORCED here, in TRUSTED workflow code,
+      # BEFORE any fork code is checked out or run (read before editing).
+      #
+      # The `Needs: e2e testing` label is only a TRIGGER; the SHA-bound
+      # `code-review` commit status is the GATE. This step reads that status on THIS
+      # exact head sha with the read-only token (no secret) and, unless it is
+      # `success`, writes a terminal `failure` result and FAILS THE JOB — so the
+      # checkout and every fork-controlled step below are skipped and no PR code
+      # ever executes on an unverified head.
+      #
+      # WHY ENFORCE HERE, NOT IN run-e2e.sh: for a `pull_request` event the
+      # workflow YAML is the trusted base-repo copy, but any script invoked from
+      # the checked-out tree (run-e2e.sh included) is FORK-CONTROLLED. A malicious
+      # fork could rewrite run-e2e.sh to neuter its internal gate. The gate that
+      # actually stops execution must therefore live in this trusted step, ahead of
+      # checkout. (run-e2e.sh keeps its own gate purely as defense-in-depth and for
+      # host/standalone runs — it is NOT the control relied on here.)
+      #
+      # Fail-SAFE / default-deny: absent / pending / failure / error (API threw) —
+      # anything but an exact `success` — blocks. The context string is exactly
+      # `code-review` (plain; Mek's required-check name, produced by #14455 — do NOT
+      # rename once required). DEPENDENCY: this can only pass once #14455 posts that
+      # status, so #14454 stays parked for GO-LIVE behind the code-review piece.
+      - name: Code-review gate (read + enforce)
         id: codereview
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
@@ -89,6 +102,23 @@ jobs:
             }
             core.info(`code-review status on ${sha}: ${state}`);
             core.setOutput('state', state);
+
+            if (state !== 'success') {
+              // Trusted gate enforcement: write a clean terminal result (so POST
+              // reports a precise reason, not a generic "no artifact") and stop the
+              // job BEFORE checkout. The upload step (if:always) ships this file.
+              const fs = require('fs');
+              const result = {
+                schema: 'ol-e2e-result/1',
+                pr: context.payload.pull_request.number,
+                head_sha: sha,
+                result: 'failure',
+                reason: `code-review is not green on this commit (code-review=${state}): the SHA-bound code-review status is the e2e gate, not the label`,
+                ran: false,
+              };
+              fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/e2e-result.json`, JSON.stringify(result) + '\n');
+              core.setFailed(`code-review gate not satisfied (code-review=${state}); refusing to execute PR code`);
+            }
 
       # The PR's changed files, from the API — not a local git diff, so it is
       # correct for fork PRs and needs no base fetch. Feeds the denylist.
@@ -148,6 +178,10 @@ jobs:
       # absent — an EXIT trap guarantees it even on crash/kill/timeout). It makes
       # NO GitHub writes; the trusted post workflow reads this artifact.
       - name: Run e2e
+        # Explicit, auditable enforcement point: the fork's harness runs ONLY when
+        # the trusted gate above saw `code-review`==success. Belt to the gate step's
+        # setFailed (which already skips this) and to run-e2e.sh's own gate.
+        if: steps.codereview.outputs.state == 'success'
         env:
           RESULT_FILE: ${{ github.workspace }}/e2e-result.json
           CHANGED_PATHS: ${{ steps.files.outputs.paths }}
@@ -162,7 +196,8 @@ jobs:
 
       # Save images for the next run of THIS PR (only needed on a cache miss).
       - name: Save docker images to cache
-        if: always() && steps.imgcache.outputs.cache-hit != 'true'
+        # Only after an actual run (gate passed); never on a gate-blocked job.
+        if: always() && steps.codereview.outputs.state == 'success' && steps.imgcache.outputs.cache-hit != 'true'
         run: |
           mkdir -p /tmp/ol-e2e-images
           imgs="$(docker compose config --images 2>/dev/null | sort -u || true)"
