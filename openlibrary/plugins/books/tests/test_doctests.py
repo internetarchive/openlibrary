@@ -10,7 +10,7 @@ def find_doctests(modules):
         yield from finder.find(mod, mod.__name__)
 
 
-@pytest.mark.parametrize("test", find_doctests(["openlibrary.plugins.books.dynlinks"]))
+@pytest.mark.parametrize("test", list(find_doctests(["openlibrary.plugins.books.dynlinks"])))
 def test_doctest(test):
     runner = doctest.DocTestRunner(verbose=True)
     failures, _tries = runner.run(test)
