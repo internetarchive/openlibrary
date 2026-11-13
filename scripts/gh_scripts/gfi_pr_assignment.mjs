@@ -38,7 +38,7 @@ export async function handleGfiPr(octokit, fullRepoName, prNumber, prBody, autho
         comments = await octokit.paginate('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', { ...base, issue_number: prNumber, per_page: 100 });
         if (decision.reason === 'duplicate') {
             const assignee = issue.assignees[0].login;
-            body = `Hi @${author} — thanks for the PR! **#${reference.number}** is already assigned to @${assignee}, so this looks like a duplicate and we've closed it to avoid two people doing the same work.
+            body = `Hi @${author} — thanks for the PR! **#${reference.number}** is already assigned to @${assignee}, so this looks like a duplicate and we've closed it to avoid two people doing the same work. (Good First Issues are assigned to the first person who opens a ready, non-draft PR after commenting on the issue.)
 
 If you think that's wrong, or you'd like to pick it up if @${assignee} steps back, leave a comment on #${reference.number}${leadName ? ` and tag @${leadName}` : ''} — we'll help from there.`;
         } else {

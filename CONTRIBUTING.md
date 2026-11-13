@@ -8,7 +8,7 @@ For setup instructions, see the [Quick Start](https://docs.openlibrary.org/devel
 
 1. Find an unassigned issue
 2. Comment to describe your plan. For `Good First Issue`, say you are working on it; for other issues, request assignment.
-3. For `Good First Issue`, check nobody else is working on it and start without waiting. For other issues, wait for assignment.
+3. For `Good First Issue`, start without waiting (see [Good First Issues](#good-first-issues) for the courtesy rules). For other issues, wait for assignment.
 4. Complete the work and test it
 5. Open a self-contained PR
 6. Respond to review comments clearly
@@ -27,7 +27,7 @@ Our community thrives on mutual respect. Please consider others who may already 
 - **Give space for follow-through**: If an assigned issue has been inactive for 2 weeks, kindly ask whether it can be reassigned rather than assuming it's abandoned
 ### Requesting Issue Assignments
 
-For issues labelled `Good First Issue`, comment to say you are working on it, check nobody else is already working on it, and start without waiting for assignment. The bot assigns you when you open a PR that closes the issue. Leads do not assign these issues by hand.
+For issues labelled `Good First Issue`, start without waiting for assignment and comment on the issue before you open your PR (see [Good First Issues](#good-first-issues) below). The bot assigns you when you open a PR that closes the issue. Leads do not assign these issues by hand.
 
 For all other issues, please **request assignment** before starting work. Our maintainers triage issues weekly (or immediately for high-priority items) to ensure your contribution aligns with current priorities and prevent duplicate effort.
 
@@ -46,7 +46,10 @@ When requesting assignment:
 [Browse Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) — ideal for first-time contributors.
 
 - Only work on issues that are not assigned to anyone
-- Check the comments for someone already working on it, then leave a comment saying you are taking it on
+- Check the issue's comments and linked pull requests first. If there's already an open PR for the issue, please pick a different one
+- If someone else has commented that they're working on it, give them a day to work on it first. If there's still no PR after that, it's fine for you to take it on too
+- Leave a comment on the issue before you open your PR, ideally when you start, so others know it's being worked on
+- The issue is assigned automatically to the first person who opens a ready (non-draft) PR after commenting, not to whoever commented first. A draft PR doesn't claim the issue
 - Open a PR with a closing reference (for example, `Closes #123`); the bot assigns you automatically
 - If you skip the comment, the bot closes your PR with instructions: comment on the issue, then reopen the PR or open a new one if reopening is unavailable
 - If the issue is already assigned, coordinate with the assignee and lead before proceeding
