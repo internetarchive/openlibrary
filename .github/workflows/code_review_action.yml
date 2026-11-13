@@ -685,13 +685,13 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           # IDENTITY: posts the commit status as openlibrary-bot (default, per issue open-decision 1).
-          # SWAP POINT -- this one token line is the identity. OL_BOT_STATUS_PAT is a fine-grained PAT
+          # SWAP POINT -- this one token line is the identity. OL_BOT_COMMIT_STATUS_PAT is a fine-grained PAT
           # TO BE MINTED BY MEK (Locke's review, c): scoped to internetarchive/openlibrary ONLY, with
           # exactly Commit statuses: write + Pull requests: read (reviewThreads GraphQL). Deliberately
           # NOT the broad OL_BOT_ACTIONS_PAT -- under pull_request_target this token is present on
           # attacker-initiated fork runs, so least privilege here is containment. The status job cannot
           # go live on the fork path until this secret exists.
-          github-token: ${{ secrets.OL_BOT_STATUS_PAT }}
+          github-token: ${{ secrets.OL_BOT_COMMIT_STATUS_PAT }}
           script: |
             const owner = context.repo.owner, repo = context.repo.repo;
             const pr = Number(process.env.PR);
