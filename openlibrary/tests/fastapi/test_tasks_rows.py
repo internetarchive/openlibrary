@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from openlibrary.contribute import initiatives
+from openlibrary.contribute.rows import dump_rows
 
 URL = "/tasks/rows.json"
 BUILD = "openlibrary.fastapi.tasks.contribute.build_task_rows"
@@ -60,3 +61,10 @@ def test_rows_draw_from_the_initiative_named(fastapi_client, mock_authenticated_
         response = fastapi_client.get(URL, params={"task": "genres", "initiative": initiatives.TAGS.slug})
     assert response.json() == {"rows": []}
     assert build.call_args.args == ("genres", initiatives.TAGS)
+
+
+def test_first_paint_embeds_the_json_the_endpoint_returns(fastapi_client, mock_authenticated_user):
+    """The dashboard hands ol-task-rows dump_rows(rows) inline; a late fetch must get the very same JSON."""
+    with patch(BUILD, return_value=[ROW]):
+        fetched = fastapi_client.get(URL).json()["rows"]
+    assert dump_rows([ROW]) == fetched

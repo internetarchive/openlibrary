@@ -16,6 +16,7 @@ from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
 from openlibrary.contribute import feed, initiatives, pitch, save, supply, tasks
+from openlibrary.contribute.rows import dump_book, dump_rows, dump_tasks
 from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides, is_speculative
 from openlibrary.contribute.tasks import field_values, work_of
 from openlibrary.core import admin, helpers
@@ -699,7 +700,8 @@ class contribute_index(delegate.page):
             "contribute/dashboard.html.jinja",
             _("Tasks"),
             rail=build_filter_rail(task, initiative, gaps),
-            rows=rows,
+            # Through the /tasks/rows.json models, so first paint and the late fetch hand ol-task-rows the same JSON.
+            rows=dump_rows(rows) if rows is not None else None,
             book_labels=get_task_book_labels(),
             # While the pool builds, the script fetches the rows from here.
             rows_url=build_dashboard_url(task, base="/tasks/rows.json", initiative=slug) if rows is None else "",
@@ -868,7 +870,7 @@ def render_nothing_page(edition, fld: str, back: str, initiative: str = ""):
     return render_contribute(
         "contribute/nothing.html.jinja",
         _("Nothing to fill in here"),
-        book=build_book_header(edition),
+        book=dump_book(build_book_header(edition)),
         book_labels=get_task_book_labels(),
         field_label=label,
         on_work=fld in tasks.WORK_FIELDS,
@@ -977,7 +979,7 @@ class contribute_done(delegate.page):
         return render_contribute(
             "contribute/done.html.jinja",
             _("Saved") if saved else not_found_label if not_found else _("Skipped"),
-            book=build_book_header(edition),
+            book=dump_book(build_book_header(edition)),
             book_labels=get_task_book_labels(),
             field_label=field_label,
             saved=saved,
@@ -985,7 +987,7 @@ class contribute_done(delegate.page):
             value=value,
             cover_url=edition.get_cover_url("M") if saved and fld == "covers" else "",
             history_url=f"{edited.key}?m=history",
-            same_book=same_book,
+            same_book=dump_tasks(same_book),
             next_url=build_next_url(back, tasks.Task(olid, fld), saved=False, initiative=slug, surprise=bool(query_param("surprise", ""))),
             list_url=build_dashboard_url(back, initiative=slug),
         )

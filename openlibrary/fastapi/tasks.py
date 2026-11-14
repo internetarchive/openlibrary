@@ -12,6 +12,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from openlibrary.contribute import feed, initiatives, manage
+from openlibrary.contribute.rows import TaskRowsResponse
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell.request import PageMeta
 from openlibrary.core.shell.user import ShellUser
@@ -79,38 +80,6 @@ def tasks_feed(
     return FeedResponse(rows=[FeedRow(**r) for r in rows])
 
 
-class TaskBook(BaseModel):
-    key: str
-    olid: str
-    edit_url: str
-    title: str
-    authors: str
-    cover_url: str | None
-    edition_line: str
-    isbn13: str | None
-    edition_count: int | None
-    work_key: str | None
-    readers: int | None
-
-
-class TaskSummary(BaseModel):
-    key: str
-    field: str
-    label: str
-    action_label: str
-    url: str
-    weight: float
-
-
-class TaskRow(BaseModel):
-    book: TaskBook
-    tasks: list[TaskSummary]
-
-
-class TaskRowsResponse(BaseModel):
-    rows: list[TaskRow]
-
-
 # Plain def: the memcache read and the edition loads are blocking I/O, so they run in the threadpool.
 @router.get("/tasks/rows.json", response_model=TaskRowsResponse, include_in_schema=False)
 def tasks_rows(
@@ -124,7 +93,7 @@ def tasks_rows(
     """
     if (rows := contribute.build_task_rows(contribute.normalize_filter(task), contribute.get_initiative(initiative))) is None:
         return Response(status_code=202)
-    return TaskRowsResponse(rows=[TaskRow(**r) for r in rows])
+    return TaskRowsResponse(rows=rows)
 
 
 def find_project(slug: str) -> initiatives.Initiative:
