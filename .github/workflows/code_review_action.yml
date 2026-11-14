@@ -73,10 +73,11 @@ name: Code Review Action
 #   * The PATs live only in `post`/`status`, which run no model and re-validate.
 #   * pull_request_target runs the BASE-branch copy of this workflow, so a fork PR cannot alter the
 #     hardening or the permissions blocks below.
-# Spend/abuse: auto-review (opened/ready_for_review) is gated to SAME-REPO PRs; a FORK earns the
-# status only after a staff member requests openlibrary-bot as reviewer (or @-mentions it, staff
-# allowlist) -- requesting a reviewer needs write/triage, so an external author cannot auto-trigger
-# the model. See the analyze `if` for the exact legs.
+# Spend/abuse: the model runs on ONE path -- a `review_requested` for the team
+# `openlibrary-agentic-code-reviewer` (plus a staff @-mention and manual dispatch). auto_assign
+# requests that team automatically on SAME-REPO PRs only (any author, incl. our own bot); a FORK
+# earns the status only after a maintainer requests the team by hand -- requesting a reviewer needs
+# write/triage, so an external author cannot auto-trigger the model. See the analyze `if`.
 #
 # ANALYZE-EXECUTION INVARIANT (load-bearing for the pull_request_target safety above -- a reviewer
 # re-diffs this on every change): the `analyze` job MUST NOT execute PR content. No build, install,
@@ -92,6 +93,12 @@ env:
   # copy holding exactly the fields `post` renders -- that copy, never the model's own file, is
   # what gets uploaded and posted, so no unscanned field or extra key reaches a public surface.
   # The security dimension's note is not in `clean`: it is never published, so it is not scanned.
+  # check() also returns `findingsTotal` (the model's structured finding count, or null when the
+  # review is too malformed to count) and `blocking` (#14476 D3a): a 1-bit, trusted-side verdict
+  # that drives the SHA-bound `code-review` status without leaking content. blocking is true for
+  # any malformed review, any model-security-classified withhold, and any withhold with >=1
+  # finding; it is false ONLY for a clean publishable review or a pure text-backstop trip whose
+  # structured finding count is 0 (the one case a withhold is allowed to green). Fail-closed.
   REVIEW_GATE_JS: |
     ({
       dimensions: {
@@ -137,10 +144,10 @@ env:
       // A repository-relative path: no spaces, markdown, absolute paths or `..` segments.
       path: /^(?!.*(^|\/)\.\.(\/|$))[A-Za-z0-9_.][A-Za-z0-9_.\/-]*$/,
       check(review) {
-        try { return this.evaluate(review); } catch (e) { return { publish: false }; }
+        try { return this.evaluate(review); } catch (e) { return { publish: false, findingsTotal: null, blocking: true }; }
       },
       evaluate(review) {
-        const no = { publish: false };
+        const no = { publish: false, findingsTotal: null, blocking: true };
         const str = (v) => typeof v === 'string';
         const absent = (v) => v === undefined || v === null;
         const line = (v) => absent(v) || (Number.isInteger(v) && v > 0);
@@ -169,16 +176,25 @@ env:
           if (k !== 'security' && !absent(d.note) && !str(d.note)) return no;
           clean.dimensions[k] = k === 'security' ? { status: d.status } : { status: d.status, note: d.note };
         }
-        if (clean.dimensions.security.status !== 'none') return no;
+        // A withhold caused by the MODEL's own security classification is BLOCKING regardless of the
+        // structured count (#14476 D3a, Locke constraint 3): never greenable. (The security dim is
+        // 'findings' only with >=1 security finding, by the consistency check above, so findingsTotal
+        // is >=1 here; forcing blocking:true is belt-and-suspenders against any future drift.)
+        if (clean.dimensions.security.status !== 'none') return { publish: false, findingsTotal: clean.findings.length, blocking: true };
         const text = [clean.summary];
         for (const [k, d] of Object.entries(clean.dimensions)) if (k !== 'security') text.push(d.note);
         for (const f of clean.findings) text.push(f.title, f.body, f.suggestion, f.path);
         const raw = text.filter((t) => t != null).join('\n');
-        if (raw.length > this.maxText) return no;
+        // The remaining withholds are TEXT-backstop trips (length / secrets / vocabulary) on a review
+        // the model classified security=none. The structured finding count is trustworthy, so blocking
+        // tracks it: 0 findings -> NON-blocking (the backstop-false-positive case greens itself);
+        // any finding -> blocking. This is the ONLY greenable withheld case (D3a).
+        const withholdByText = { publish: false, findingsTotal: clean.findings.length, blocking: clean.findings.length > 0 };
+        if (raw.length > this.maxText) return withholdByText;
         const plain = this.plain(raw);
-        if (plain === null || this.secrets.test(plain)) return no;
-        for (const t of [plain, this.words(plain)]) if (this.terms.test(t) || this.patterns.test(t)) return no;
-        return { publish: true, clean };
+        if (plain === null || this.secrets.test(plain)) return withholdByText;
+        for (const t of [plain, this.words(plain)]) if (this.terms.test(t) || this.patterns.test(t)) return withholdByText;
+        return { publish: true, clean, findingsTotal: clean.findings.length, blocking: false };
       },
     })
 
@@ -193,15 +209,14 @@ on:
   pull_request_target:  # zizmor: ignore[dangerous-triggers]
     # NEVER `synchronize` -- a bare push does not review, which is what makes the SHA-bound
     # `code-review` status an honest merge gate (a new head has no status until it is re-reviewed).
-    #  - opened / ready_for_review: the FIRST review. Gated to SAME-REPO PRs in the `if` below --
-    #    this covers our own openlibrary-bot/ada-authored PRs, which auto_assign_reviewer cannot
-    #    cover (it excludes bot-authored PRs and fork PRs; a PR also can't request its own author as
-    #    reviewer, 422). It does NOT auto-run on forks -- that's the spend gate (next line).
-    #  - review_requested (reviewer == openlibrary-bot): explicit (re-)review requests, ANY repo
-    #    incl. forks (no same-repo guard on this leg). Requesting a reviewer needs write/triage, so
-    #    a FORK earns the status only after a maintainer requests it -- which doubles as the human
-    #    "worth the CI spend" gate and closes the external auto-spend vector.
-    types: [opened, ready_for_review, review_requested]
+    # ONE model-run path: `review_requested` for the team `openlibrary-agentic-code-reviewer`
+    # (the `if` below keys on github.event.requested_team.slug). auto_assign_reviewer.yml requests
+    # that team on opened/ready_for_review for SAME-REPO PRs (any author, incl. our own bot -- a team
+    # request is NOT blocked by the author-exclusion that stops requesting a PR's own author as an
+    # individual reviewer, proven on #14450). A FORK gets no auto-request (auto_assign is same-repo
+    # only); it earns the status only after a maintainer requests the team by hand -- the spend gate.
+    # A re-review is just another team request, which fires this same path again.
+    types: [review_requested]
   issue_comment:
     types: [created]
   workflow_dispatch:
@@ -220,7 +235,8 @@ concurrency:
   # maintainer re-requests). With FALSE, the in-flight run always completes (review AND status); a
   # second trigger QUEUES and then runs -- and on the SAME head it is USUALLY cheap: the range step
   # returns "already reviewed this SHA" (keyed on our prior review existing on that head) and skips
-  # the model, so the common opened + auto_assign review_requested bounce costs one review, not two.
+  # the model, so a duplicate team request on the same head (auto_assign plus a manual re-request)
+  # costs one review, not two.
   # (Edge: a prior run that WITHHELD posts no review, so a same-head re-trigger there re-runs the
   # model -- rare, and that trigger is authorized/same-repo.) The only cost of FALSE is an occasional wasted
   # review when a NEW head arrives mid-review (the old head is reviewed to completion first); that is
@@ -236,36 +252,28 @@ concurrency:
 jobs:
   analyze:
     runs-on: ubuntu-latest
-    # Trigger paths (no `synchronize` trigger at all, so a bare push never reviews). All
-    # pull_request_target legs run in base-repo context with secrets, for same-repo AND fork PRs:
-    #   1. pull_request_target opened / ready_for_review -- the FIRST review, gated to SAME-REPO
-    #      PRs only (fork auto-review is the spend vector we close). This covers our own
-    #      openlibrary-bot/ada-authored PRs, which auto_assign_reviewer does NOT cover (it has a
-    #      same-repo guard AND excludes bot-authored PRs), and which cannot request themselves (422).
-    #   2. pull_request_target review_requested with openlibrary-bot as the reviewer -- explicit
-    #      (re-)review requests, ANY repo INCLUDING FORKS (no same-repo guard here). This is how a
-    #      fork earns the required status: a maintainer requests the review. Requesting a reviewer
-    #      needs write/triage, so an external author cannot auto-trigger the model -- the spend gate.
-    #   3. issue_comment @-mention on a PR -- any commenter incl. external, runs with secrets, so
+    # Trigger paths (no `synchronize` trigger at all, so a bare push never reviews). The
+    # pull_request_target leg runs in base-repo context with secrets, for same-repo AND fork PRs:
+    #   1. pull_request_target review_requested whose requested_team.slug is the reviewer team
+    #      `openlibrary-agentic-code-reviewer` -- the ONE model-run path. auto_assign requests that
+    #      team automatically on SAME-REPO PRs (any author); a FORK earns the status only after a
+    #      maintainer requests the team by hand. Requesting a reviewer needs write/triage, so an
+    #      external author cannot auto-trigger the model -- the spend gate. A re-review is another
+    #      team request, which fires this leg again. (A team request carries requested_team and no
+    #      requested_reviewer; keying on the team is also what lets our own bot-authored PRs be
+    #      reviewed -- a PR cannot request its own author individually, but it CAN request a team.)
+    #   2. issue_comment @-mention on a PR -- any commenter incl. external, runs with secrets, so
     #      this path keeps an explicit staff allowlist.
-    # Drafts: the pull_request_target legs skip draft PRs (!draft) -- no reviewing unfinished work.
+    # Drafts: the pull_request_target leg skips draft PRs (!draft) -- no reviewing unfinished work.
     # A manual workflow_dispatch reviews a draft deliberately; it is the staff debug path, and
     # GitHub already requires write access to dispatch.
     if: >
       github.event_name == 'workflow_dispatch' ||
       (
         github.event_name == 'pull_request_target' &&
+        github.event.action == 'review_requested' &&
         !github.event.pull_request.draft &&
-        (
-          (
-            (github.event.action == 'opened' || github.event.action == 'ready_for_review') &&
-            github.event.pull_request.head.repo.full_name == github.repository
-          ) ||
-          (
-            github.event.action == 'review_requested' &&
-            github.event.requested_reviewer.login == 'openlibrary-bot'
-          )
-        )
+        github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer'
       ) || (
         github.event_name == 'issue_comment' &&
         github.event.issue.pull_request != null &&
@@ -276,6 +284,10 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+      # Read-only. #14476 D2: the range step lists a head's commit statuses (listCommitStatusesForRef)
+      # to decide whether an already-reviewed head still needs its `code-review` status posted. This
+      # is a READ scope only -- it does not weaken the no-write half of the analyze/post split.
+      statuses: read
       # Required by claude-code-action's OIDC fetch. GitHub accepts only `write` or `none`
       # here; `none` breaks the token exchange. This is NOT repository write access -- see
       # #13604, where removing it silently broke the PR auto-responder.
@@ -286,6 +298,13 @@ jobs:
       base_sha: ${{ steps.range.outputs.base_sha }}
       incremental: ${{ steps.range.outputs.incremental }}
       skip: ${{ steps.range.outputs.skip }}
+      # #14476 D2: 'true' when an already-reviewed head is missing its `code-review` status and the
+      # status must be re-posted from the existing review (no model re-run); post is skipped, status runs.
+      repost: ${{ steps.range.outputs.repost }}
+      # #14476 D3a: finding-driven status signals. `withheld` = was the public review withheld;
+      # `withheld_blocking` = the 1-bit "a blocking finding exists" verdict (never a count/content).
+      withheld: ${{ steps['analyze-gate'].outputs.withheld }}
+      withheld_blocking: ${{ steps['analyze-gate'].outputs.withheld_blocking }}
       # Count of PUBLIC blocking findings in this run's review, produced INSIDE this workflow by the
       # analyze-gate step (issue #14453 B.2 -- the count must not depend on a cross-PR producer).
       # Bracket form because `analyze-gate` has a hyphen (`steps.analyze-gate` parses `-` as minus).
@@ -349,8 +368,28 @@ jobs:
                 core.info(`Could not compare against the prior review commit (${e.message}) -- full review.`);
               }
             } else if (prior && prior.commit_id === head) {
-              core.info('Already reviewed this exact commit -- skipping.');
-              core.setOutput('skip','true'); return;
+              // #14476 D2 -- status-aware skip. "Already reviewed this SHA" must NEVER mean "no
+              // status". Skip only when a `code-review` status is ALSO present on this head; a head
+              // that has our review but no status is STRANDED (the Defect-1 re-anchor race, or a
+              // transient status-post failure) and must get its status (re)posted, not be skipped
+              // forever. If it is missing, route to an idempotent status repost (no model re-run):
+              // the status job reconstructs the verdict from the review-body marker + live threads.
+              const codeReviewStatusPresent = (statuses) => {
+                return Array.isArray(statuses) && statuses.some((s) => s && s.context === 'code-review');
+              };
+              const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, {
+                owner, repo, ref: head, per_page: 100,
+              });
+              if (codeReviewStatusPresent(statuses)) {
+                core.info('Already reviewed this exact commit and a code-review status is present -- skipping.');
+                core.setOutput('skip', 'true'); return;
+              }
+              core.info('Already reviewed this exact commit but no code-review status is present -- reposting the status.');
+              core.setOutput('pr', String(prNumber));
+              core.setOutput('head_sha', head);
+              core.setOutput('skip', 'false');
+              core.setOutput('repost', 'true');
+              return;
             }
 
             const { data: diff } = await github.rest.repos.compareCommitsWithBasehead({
@@ -370,17 +409,18 @@ jobs:
             core.setOutput('base_sha', base);
             core.setOutput('incremental', String(incremental));
             core.setOutput('skip', 'false');
+            core.setOutput('repost', 'false');
             core.info(`PR #${prNumber}: ${incremental ? 'incremental' : 'full'} review, ${base.slice(0,8)}..${head.slice(0,8)}`);
 
       - name: Fetch PR head into a ref (never into the working tree)
-        if: steps.range.outputs.skip == 'false'
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
         env:
           PR: ${{ steps.range.outputs.pr }}
         run: |
           git fetch --no-tags --depth=50 origin "pull/${PR}/head:refs/remotes/pr/head"
 
       - name: Extract the PR head as inert files (the model has no shell to read git with)
-        if: steps.range.outputs.skip == 'false'
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
         run: |
           mkdir pr-head
           # $GIT_DIR/info/attributes outranks the PR's own .gitattributes, so the PR cannot hide
@@ -399,7 +439,7 @@ jobs:
           find pr-head -type f -exec chmod a-x {} +
 
       - name: Review
-        if: steps.range.outputs.skip == 'false'
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
         # Pinned deliberately -- do not restore the floating `@v1`. Same upstream regression as
         # issue_enrichment.yml and pr_autoresponder.yml: from a later version every run reports
         # success while producing nothing, in workflows that set `allowed_non_write_users`.
@@ -431,7 +471,7 @@ jobs:
 
       - name: Gate the analysis before upload
         id: analyze-gate
-        if: steps.range.outputs.skip == 'false'
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
@@ -449,7 +489,12 @@ jobs:
             // findings, which create no review thread -- so the status's thread check alone cannot
             // catch them; this count is exactly that guard). On a withhold it is 0: the count is
             // PUBLIC by construction and a withheld review exposes nothing, so 0 never signals
-            // "a review was withheld". A withheld run still blocks via post.result != success.
+            // "a review was withheld". #14476 D3a: a withhold is NO LONGER an automatic block -- the
+            // status is finding-driven. The `withheld` + 1-bit `withheld_blocking` outputs below (NOT
+            // this count) carry the withhold verdict: the status job blocks only when a blocking
+            // finding exists, so a backstop false-positive with 0 findings greens itself. (post now
+            // returns cleanly on a withhold rather than failing -- do NOT restore a setFailed there,
+            // or you re-break the green path; the status job is the sole gate decider.)
             //
             // KNOWN GAP (#14471, accepted for v1): this count is scoped to THIS run's review, and a
             // re-review is INCREMENTAL (only the diff since our last pass). An orphaned/summary-only
@@ -460,10 +505,18 @@ jobs:
             // stays in the loop for exactly this case. Fast-follow #14471: count over the full PR.
             const pubCount = res.publish ? res.clean.findings.length : 0;
             core.setOutput('public_findings_count', String(pubCount));
+            // #14476 D3a -- the SHA-bound status is finding-driven, not withhold-driven. The PUBLIC
+            // count above keeps its documented "0 on every withhold" invariant, so no finding count
+            // ever leaks. The only new signal is two booleans: `withheld` (was the public copy
+            // withheld) and `withheld_blocking` (does a BLOCKING finding exist -- the 1-bit verdict
+            // the gate computed trusted-side, fail-closed). Never a count, dimension, severity,
+            // location or text. A withhold with withheld_blocking=false greens itself; true -> blocks.
+            core.setOutput('withheld', res.publish ? 'false' : 'true');
+            core.setOutput('withheld_blocking', res.publish ? 'false' : (res.blocking ? 'true' : 'false'));
             core.info('Gate evaluated; artifact prepared.');
 
       - name: Upload analysis
-        if: steps.range.outputs.skip == 'false'
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: code-review-${{ steps.range.outputs.pr }}
@@ -475,7 +528,8 @@ jobs:
 
   post:
     needs: analyze
-    if: needs.analyze.outputs.skip == 'false'
+    # Skipped on a D2 repost: no new review is posted, the status job recomputes from the existing one.
+    if: needs.analyze.outputs.skip == 'false' && needs.analyze.outputs.repost != 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read        # the diff fetch below, with the job's own GITHUB_TOKEN
@@ -520,16 +574,25 @@ jobs:
             const headSha = process.env.HEAD_SHA;
             const gate = eval(process.env.REVIEW_GATE_JS);
 
-            // --- The disclosure gate. Nothing below this block runs unless it passes. One fixed
-            // message for every reason, and no reason, count or text from the review in the log:
-            // the log is public.
+            // #14476 D1 -- the reviewed SHA must still be the live head when we post (shared by the
+            // status job). createReview re-anchors its comments to the LIVE head and ignores commit_id.
+            const headIsCurrent = (pinnedHead, liveHead) => {
+              return pinnedHead === liveHead;
+            };
+
+            // --- The disclosure gate. Nothing below this block runs unless it passes.
             let review = null;
             try { review = JSON.parse(fs.readFileSync('review.json', 'utf8')); } catch (e) { review = null; }
             const verdict = gate.check(review);
             if (!verdict.publish) {
-              core.setFailed('Review not published: the analysis did not pass the pre-publication gate, '
-                + 'and this run does not retain it. A maintainer should re-run the review privately '
-                + 'before anything is posted -- see .github/workflows/code_review.md.');
+              // #14476 D3a -- nothing PUBLIC to post for this commit (withheld or empty). Exit
+              // CLEANLY, not failed: this job still publishes nothing (the enforcer property is
+              // intact), but a withhold is no longer a hard job failure. The SHA-bound `code-review`
+              // status job is the sole gate decider and derives pass/fail from analyze's
+              // finding-driven outputs (withheld + the 1-bit withheld_blocking), so a backstop
+              // false-positive with zero findings can green while a real finding still blocks.
+              // No reason, count or text in the log (the log is public).
+              core.info('Nothing public to post for this commit; the code-review status job decides the gate.');
               return;
             }
             // Everything below renders from the allowlisted copy only.
@@ -604,14 +667,28 @@ jobs:
                 `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body).replace(/\n/g, '\n  ')}`
               ).join('\n\n');
             }
-            summary += `\n\n---\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot -->`;
+            summary += `\n\n---\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${review.findings.length} -->`;
+
+            // #14476 D1 -- review + status must describe the SAME commit. createReview re-anchors its
+            // inline comments to the PR's LIVE head at post time (it ignores commit_id), so if a push
+            // landed since this run pinned headSha, posting now attaches the review to a commit this
+            // run did NOT review, while the status job binds headSha -> the stranded head (observed on
+            // #14475 ae775e7d: two reviews, no status). If the head has moved, post NEITHER: the new
+            // head is unreviewed and correctly earns its own run (a required status it has not yet
+            // satisfied). The superseded headSha is left as-is -- the ruleset reads the current head.
+            const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            if (!headIsCurrent(headSha, livePr.head.sha)) {
+              core.info(`Head moved ${headSha.slice(0,8)}->${String(livePr.head.sha).slice(0,8)} since this review was pinned; not posting. The new head earns its own run.`);
+              return;
+            }
 
             // --- One batched review. The per-comment endpoint (POST /pulls/{n}/comments) is
             // documented but returns 422 `pull_request_review_thread.base` in practice
-            // (cli/cli#13358); the batched payload with identical anchors succeeds.
+            // (cli/cli#13358); the batched payload with identical anchors succeeds. commit_id is
+            // headSha, now re-confirmed as the live head, so the review and the status agree.
             const { data: posted } = await github.rest.pulls.createReview({
               owner, repo, pull_number: prNumber,
-              commit_id: headSha,          // resolved at post time -- an older SHA silently outdates comments
+              commit_id: headSha,
               event: 'COMMENT',            // never APPROVE or REQUEST_CHANGES
               body: summary,
               comments: inline,
@@ -640,24 +717,33 @@ jobs:
   # Runs after analyze+post on every reviewed head (review_requested / @-mention / dispatch), never
   # on a bare push. It does NOT touch any label -- the e2e piece (#14454) owns `Needs: e2e testing`.
   #
-  # PASS = ALL THREE (issue B):
-  #   (a) the review posted successfully for this SHA (a withheld/failed/malformed review is not a
-  #       pass -- post.result must be success), AND
-  #   (b) the review's PUBLIC blocking-findings count is KNOWN to be 0 this run -- produced inside
-  #       this workflow (analyze-gate) and read as a declared analyze output; an absent/unparseable
-  #       count FAILS CLOSED (blocks), never passes by default, AND
+  # PASS = ALL THREE (issue B, as amended by #14476 D3a -- FINDING-driven, not withhold-driven):
+  #   (a) the review was POSTED (post.result == success) -- OR cleanly withheld. #14476 D3a: post now
+  #       returns cleanly on a withhold, so a withhold is NOT an automatic block; what blocks is a
+  #       FINDING, not the act of withholding. A failed/malformed post is still not a pass.
+  #   (b) the review's blocking-findings count is KNOWN to be 0 this run -- for a PUBLISHED review the
+  #       declared public count; for a WITHHELD review the 1-bit `withheld_blocking` verdict (true =>
+  #       >=1 blocking finding). Either absent/unparseable FAILS CLOSED (blocks), never passes by
+  #       default. A withhold with 0 blocking findings (a backstop false-positive) greens itself; a
+  #       real finding (public or withheld) blocks, AND
   #   (c) no review thread is unresolved-and-not-outdated (GitHub's own isResolved/isOutdated --
   #       authoritative, not a heuristic, to keep false blocks low).
   # (b) and (c) are complementary: every public finding also becomes a review thread, so (c)
   # reinforces (b); (b) additionally catches a finding that landed in the summary with no in-diff
   # anchor (no thread to resolve -- see #13548, 3 of 9). We bias toward BLOCKING: anything short of
-  # (posted AND known-0-findings AND fully-resolved) posts `failure`.
+  # (posted-or-cleanly-withheld AND known-0-blocking AND fully-resolved) posts `failure`.
   #
-  # SKIP paths (draft / not-open / already-reviewed-this-exact-SHA) resolve to skip == 'true' in
-  # analyze, and this job is gated on skip == 'false', so it does not run on them. That is correct:
-  # on the already-reviewed-this-SHA re-request, the `code-review` status for that SHA was already
-  # decided on the prior run and is SHA-bound, so leaving it intact (this job not running) re-affirms
-  # it rather than overwriting it -- never a false failure on a commit that already passed.
+  # #14476 D1 -- SHA binding: before posting, this job re-confirms the reviewed SHA is still the live
+  # head (createReview re-anchors to the live head and ignores commit_id). If the head moved, it posts
+  # NO status; the new head is unreviewed and earns its own run. The review (post) guards identically,
+  # so review and status always describe the same commit.
+  #
+  # SKIP paths: draft / not-open resolve to skip == 'true' in analyze (this job gated off). #14476 D2 --
+  # an already-reviewed-this-exact-SHA head is NO LONGER a blanket skip: analyze skips only when a
+  # `code-review` status is already present on that head; if it is missing (the Defect-1 strand, or a
+  # transient status failure) analyze sets repost == 'true' and THIS job runs to (re)post the status
+  # from the review-body marker + live threads, so an already-reviewed head is never stranded without a
+  # status. When a status IS present, analyze skips and the SHA-bound status is left intact (re-affirmed).
   status:
     needs: [analyze, post]
     if: always() && needs.analyze.outputs.skip == 'false'
@@ -682,6 +768,15 @@ jobs:
           # catch them. In practice it is always set when this job runs (analyze-gate and this job
           # share the skip == 'false' gate); the fail-closed parse is a belt-and-suspenders guard.
           PUBLIC_FINDINGS_COUNT: ${{ needs.analyze.outputs.public_findings_count }}
+          # #14476 D3a -- finding-driven status. WITHHELD: was the public review withheld. WITHHELD_BLOCKING:
+          # the 1-bit "a blocking finding exists" verdict (never a count/content). On a published review
+          # the PUBLIC count drives the state; on a withheld review these two drive it (0 findings ->
+          # success, >=1 -> failure). Absent/garbage -> fail closed. The count output stays 0 on withhold.
+          WITHHELD: ${{ needs.analyze.outputs.withheld }}
+          WITHHELD_BLOCKING: ${{ needs.analyze.outputs.withheld_blocking }}
+          # #14476 D2 -- 'true' when reconstructing the status for an already-reviewed head whose status
+          # went missing (no model ran); the verdict is read back from the review-body marker + live threads.
+          REPOST: ${{ needs.analyze.outputs.repost }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           # IDENTITY: posts the commit status as openlibrary-bot (default, per issue open-decision 1).
@@ -696,8 +791,15 @@ jobs:
             const owner = context.repo.owner, repo = context.repo.repo;
             const pr = Number(process.env.PR);
             const headSha = process.env.HEAD_SHA;
-            const postSucceeded = process.env.POST_RESULT === 'success';
+            const repost = process.env.REPOST === 'true';
             if (!/^[0-9a-f]{40}$/.test(headSha)) { core.setFailed('Unexpected head sha.'); return; }
+
+            // #14476 D1 -- the reviewed SHA must still be the live head when we post the status, or we
+            // post NO status (the current head is unreviewed and earns its own run; the superseded
+            // headSha is harmless -- the ruleset reads the current head). Shared with the post job.
+            const headIsCurrent = (pinnedHead, liveHead) => {
+              return pinnedHead === liveHead;
+            };
 
             // Public findings this run, from the analyze job's declared output. FAIL CLOSED: an
             // absent output or any non-integer returns null = "unknown", which decideStatus treats
@@ -707,6 +809,23 @@ jobs:
             // integer (public findings incl. orphaned) whenever this job runs.
             const parseFindings = (raw) => {
               return /^\d+$/.test((raw ?? '').toString().trim()) ? Number(raw) : null;
+            };
+
+            // #14476 D3a -- a withheld review exposes no inline findings, so its gate verdict arrives
+            // as the 1-bit WITHHELD_BLOCKING signal instead of a count. Map it to 0/1 for decideStatus,
+            // FAIL CLOSED (null -> blocks) on anything but the two expected literals.
+            const withheldFindings = (withheldBlocking) => {
+              if (withheldBlocking === 'true') return 1;
+              if (withheldBlocking === 'false') return 0;
+              return null;
+            };
+
+            // #14476 D2 -- read the public findings count back from the review-body marker the post
+            // job embeds, so an already-reviewed head whose status went missing can be re-decided
+            // without re-running the model. A legacy review with no `f=` marker -> null -> FAIL CLOSED.
+            const parseReviewMarker = (body) => {
+              const m = /<!-- ol-pr-review-bot f=(\d+) -->/.exec(String(body || ''));
+              return m ? Number(m[1]) : null;
             };
 
             // Feedback resolved: a thread blocks only when it is BOTH unresolved AND not outdated.
@@ -721,16 +840,32 @@ jobs:
             // unresolved threads, and a clean post. The description is non-leaky (counts and fixed
             // phrases only -- never a finding's content). A public findings count is public by
             // construction; it is NOT the withheld-marker we must never read, infer, or surface.
-            const decideStatus = ({ postSucceeded, findings, unresolved }) => {
+            const decideStatus = ({ postSucceeded, findings, withheld, unresolved }) => {
               const pass = postSucceeded && findings === 0 && unresolved === 0;
               let description;
               if (pass) description = 'Review passed; all feedback resolved.';
               else if (!postSucceeded) description = 'No clean review for this commit.';
               else if (findings === null) description = 'Review findings count unavailable.';
+              // #14476 D3a -- a WITHHELD blocking finding is reported with a FIXED phrase, byte-identical
+              // regardless of count/dimension/severity/location (Locke constraint 1): the status may
+              // reveal only that a finding EXISTS, never anything about it. No digit may appear here.
+              else if (withheld && findings > 0) description = 'A finding was delivered privately; maintainer review required.';
+              // A PUBLISHED finding count is public by construction (the findings are posted inline).
               else if (findings > 0) description = `${findings} finding${findings === 1 ? '' : 's'} to address.`;
               else description = `${unresolved} unresolved review thread${unresolved === 1 ? '' : 's'}.`;
               return { pass, state: pass ? 'success' : 'failure', description };
             };
+
+            // #14476 D1 -- re-confirm the reviewed SHA is still the live head before posting ANY
+            // status. If a push landed since this run pinned headSha, leave headSha without a status:
+            // the new head is unreviewed and earns its own run, and we never post on the new head
+            // (createCommitStatus below is bound to headSha). This mirrors the post job's guard so the
+            // review and the status always describe the same commit.
+            const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: pr });
+            if (!headIsCurrent(headSha, livePr.head.sha)) {
+              core.info(`Head moved ${headSha.slice(0,8)}->${String(livePr.head.sha).slice(0,8)} since review; leaving the reviewed SHA without a status. The current head is unreviewed and earns its own run.`);
+              return;
+            }
 
             // Enumerate review threads (GraphQL -- the REST reviews API carries no resolved state).
             let threads = [], cursor = null;
@@ -753,8 +888,47 @@ jobs:
             }
             const unresolved = unresolvedThreadCount(threads);
 
-            const findings = parseFindings(process.env.PUBLIC_FINDINGS_COUNT);
-            const d = decideStatus({ postSucceeded, findings, unresolved });
+            // Derive the three decideStatus inputs. Two paths:
+            //  - NORMAL run: postSucceeded from the post job; findings/withheld from analyze's
+            //    finding-driven outputs (published -> the public count; withheld -> the 1-bit signal).
+            //  - #14476 D2 REPOST: no model ran. Reconstruct from the existing openlibrary-bot review
+            //    on THIS exact head (the status-aware skip routed us here because a review exists but
+            //    the status was missing). The marker carries the public findings count; a legacy
+            //    review with no marker -> null -> FAIL CLOSED (red), never a fabricated green.
+            let postSucceeded, findings, withheld;
+            if (repost) {
+              const reviews = await github.paginate(github.rest.pulls.listReviews, {
+                owner, repo, pull_number: pr, per_page: 100,
+              });
+              const ours = reviews.filter((r) => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === headSha && r.body);
+              const last = ours.length ? ours[ours.length - 1] : null;
+              postSucceeded = last != null;   // a published review exists on this exact head
+              withheld = false;               // withheld heads post no review, so never reach a repost
+              findings = last ? parseReviewMarker(last.body) : null;
+            } else if (process.env.WITHHELD === 'true') {
+              // Withheld: nothing is posted publicly, so there is no review to confirm; post returned
+              // cleanly and the gate's 1-bit verdict decides. postSucceeded means "the withhold ran".
+              postSucceeded = process.env.POST_RESULT === 'success';
+              withheld = true;
+              findings = withheldFindings(process.env.WITHHELD_BLOCKING);
+            } else {
+              // Published: POST_RESULT == 'success' is NOT proof a review was posted -- post ALSO
+              // returns success without posting when its own D1 head-guard fires (head moved). A
+              // force-push back to the reviewed SHA would then let the status head-guard pass and green
+              // an UNREVIEWED commit. So confirm GROUND TRUTH: a bot review actually exists on THIS
+              // exact head (mirrors the repost path). No review on the head -> not a pass. This also
+              // fail-closes the residual createReview re-anchor window (a review that landed on a
+              // different head is not found here).
+              const reviews = await github.paginate(github.rest.pulls.listReviews, {
+                owner, repo, pull_number: pr, per_page: 100,
+              });
+              const posted = reviews.some((r) => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === headSha);
+              postSucceeded = (process.env.POST_RESULT === 'success') && posted;
+              withheld = false;
+              findings = parseFindings(process.env.PUBLIC_FINDINGS_COUNT);
+            }
+
+            const d = decideStatus({ postSucceeded, findings, withheld, unresolved });
             await github.rest.repos.createCommitStatus({
               owner, repo, sha: headSha,
               context: 'code-review',
@@ -762,4 +936,4 @@ jobs:
               target_url: process.env.RUN_URL,
               description: d.description,
             });
-            core.info(`code-review=${d.state} on ${headSha.slice(0, 8)} (post=${process.env.POST_RESULT}, findings=${findings}, unresolved=${unresolved}).`);
+            core.info(`code-review=${d.state} on ${headSha.slice(0, 8)} (repost=${repost}, post=${process.env.POST_RESULT}, withheld=${withheld}, findings=${findings}, unresolved=${unresolved}).`);
