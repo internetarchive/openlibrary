@@ -60,26 +60,24 @@ function evalIf(expr, github) {
 // A fully-populated context (every leaf the `if` reads exists, defaulting to a non-matching value)
 // so the JS eval never dereferences undefined; overrides are deep-merged per case.
 function ctx(overrides = {}) {
-    const base = {
-        event_name: '',
+    // Build the context explicitly from the known override leaves the tests set, rather than a
+    // hand-rolled deep merge. A deep merge would assign `a[k] = b[k]` for a dynamically-computed
+    // key `k` taken from the overrides object -- a prototype-pollution shape (CodeQL flags it, and
+    // a __proto__/constructor/prototype guard to silence it is then dead code in a test helper that
+    // only ever sees literal overrides). The explicit builder has no dynamic-key assignment at all,
+    // so neither the alert nor a guard applies, and every leaf still defaults to a non-matching value.
+    const e = overrides.event ?? {};
+    return {
+        event_name: overrides.event_name ?? '',
         event: {
-            action: '',
-            pull_request: { draft: false },
-            requested_team: { slug: null },
-            requested_reviewer: { login: null },
-            issue: { pull_request: null, number: 1 },
-            comment: { body: '', user: { login: '' } }
+            action: e.action ?? '',
+            pull_request: { draft: e.pull_request?.draft ?? false },
+            requested_team: { slug: e.requested_team?.slug ?? null },
+            requested_reviewer: { login: e.requested_reviewer?.login ?? null },
+            issue: { pull_request: e.issue?.pull_request ?? null, number: e.issue?.number ?? 1 },
+            comment: { body: e.comment?.body ?? '', user: { login: e.comment?.user?.login ?? '' } }
         }
     };
-    const merge = (a, b) => {
-        for (const k of Object.keys(b)) {
-            // Guard against prototype pollution: never copy __proto__/constructor/prototype keys.
-            if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
-            a[k] = b[k] && typeof b[k] === 'object' && !Array.isArray(b[k]) ? merge(a[k] ?? {}, b[k]) : b[k];
-        }
-        return a;
-    };
-    return merge(base, overrides);
 }
 
 const reviewIf = reviewWf.jobs.analyze.if;
