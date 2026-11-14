@@ -29,11 +29,19 @@ jobs:
     # the author-exclusion GitHub applies to requesting a PR's own author (proven on #14450), so this
     # covers our own openlibrary-bot-authored PRs too -- no bot-author exclusion needed here.
     #
-    # SAME-REPO only: a fork gets no auto-request (the spend gate). A fork earns the code-review
-    # status only after a maintainer requests the team by hand. Drafts are skipped.
+    # EVERY non-draft PR, forks included (#14482). The former same-repo clause
+    # (head.repo.full_name == github.repository) was a "spend gate" that excluded forks, so an
+    # external contribution got no auto-review until a maintainer requested the team by hand.
+    # Maintainer decision (2026-11-14): accept the spend and cover forks -- external coverage
+    # matters more. Accepted trade: every non-draft fork PR (incl. drive-by/spam from brand-new
+    # accounts) now spends the bot's Claude budget, with NO first-time-contributor throttle. This
+    # runs on pull_request_target, which GitHub documents as always running in base-repo context
+    # regardless of the fork-PR "Approve and run" approval gate -- that gate applies to a
+    # pull_request run from a fork, not to pull_request_target. So nothing holds a brand-new
+    # account's first run here. This worsens the fail-closed subscription-exhaustion exposure
+    # tracked on #14461; a real spend cap is follow-up there. Drafts are still skipped.
     if: >
-      !github.event.pull_request.draft &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      !github.event.pull_request.draft
     steps:
       - name: Request the code-reviewer team if not already requested
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -41,10 +49,12 @@ jobs:
           # Fine-grained PAT (openlibrary-bot) -- the same org-aware identity the review-post step in
           # code_review_action.yml uses. Requesting a TEAM reviewer needs an identity that can resolve
           # the org team; the default GITHUB_TOKEN is repo-scoped and cannot reliably do so, which would
-          # make requestReviewers a silent no-op and leave this PR's single same-repo auto-review path
-          # dead. This job runs SAME-REPO only (the if: below), checks out no code, and executes nothing
-          # from the PR, so holding the PAT under pull_request_target is safe -- same posture as the
-          # post/status jobs. The GET-verify below still catches the no-op if the team is not resolvable.
+          # make requestReviewers a silent no-op and leave the auto-review path dead. This job runs on
+          # every non-draft PR including forks (#14482), checks out no code, and executes nothing from
+          # the PR -- it only calls the GitHub API with payload metadata -- so holding the PAT under
+          # pull_request_target is safe for forks too: widening to forks adds no code-execution surface.
+          # Same posture as the post/status jobs. The GET-verify below still catches the no-op if the
+          # team is not resolvable.
           github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
           script: |
             const owner = context.repo.owner;

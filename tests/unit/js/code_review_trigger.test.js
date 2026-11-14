@@ -2,7 +2,8 @@
 //
 // The design DRYs the code reviewer onto ONE model-run path, keyed on a TEAM:
 //   * auto_assign_reviewer.yml requests the team `openlibrary-agentic-code-reviewer` on
-//     opened/ready_for_review (same-repo only).
+//     opened/ready_for_review for every non-draft PR, forks included (#14482 dropped the
+//     same-repo spend gate).
 //   * code_review_action.yml runs the model ONLY on `review_requested` whose `requested_team.slug`
 //     is that team (plus the staff `issue_comment` path and `workflow_dispatch`). It no longer
 //     auto-runs on `opened`/`ready_for_review`, and no longer keys on an INDIVIDUAL reviewer.
@@ -179,8 +180,40 @@ test('auto_assign requests the TEAM (team_reviewers), not the individual bot, an
 
 test('auto_assign no longer excludes bot-authored PRs (team request works on them -- proven on #14450)', () => {
     assert.ok(!/user\.login\s*!=\s*'openlibrary-bot'/.test(assignWf.jobs.assign.if), 'the bot-authored exclusion must be dropped');
-    // ...but it still only auto-requests on SAME-REPO PRs (the fork spend gate).
-    assert.ok(/head\.repo\.full_name\s*==\s*github\.repository/.test(assignWf.jobs.assign.if), 'auto_assign must stay same-repo only');
+    // #14482: the same-repo spend gate is removed -- forks are now auto-requested too, so the
+    // head.repo.full_name == github.repository clause must NO LONGER be present in the guard.
+    assert.ok(
+        !/head\.repo\.full_name\s*==\s*github\.repository/.test(assignWf.jobs.assign.if),
+        'the same-repo fork gate must be dropped (forks now covered -- #14482)'
+    );
+});
+
+// ---- The assign `if:` guard, evaluated like the model-run guard above ----
+// #14482 widens auto_assign to forks. We evaluate the ACTUAL assign `if:` string (transpiled 1:1 to
+// JS by the same evalIf harness used for the model guard) against synthetic PR events, so the tested
+// logic == the deployed logic -- not just a regex over the source.
+const assignIf = assignWf.jobs.assign.if;
+assert.ok(typeof assignIf === 'string' && assignIf.trim(), 'assign job must have an if: guard');
+
+// Post-#14482 the deployed guard reads only github.event.pull_request.draft; assignCtx still
+// over-provides github.repository and head.repo.full_name so these cases keep exercising the real
+// fork-vs-same-repo distinction and would also catch a regression that re-added the same-repo gate.
+function assignCtx({ draft = false, headRepo = 'internetarchive/openlibrary', repository = 'internetarchive/openlibrary' } = {}) {
+    return { repository, event: { pull_request: { draft, head: { repo: { full_name: headRepo } } } } };
+}
+
+test('auto_assign FIRES on a non-draft FORK PR (same-repo spend gate removed -- #14482)', () => {
+    const fork = assignCtx({ headRepo: 'someexternaluser/openlibrary' });
+    assert.equal(evalIf(assignIf, fork), true, 'a non-draft fork PR must now get the reviewer team auto-requested');
+});
+
+test('auto_assign FIRES on a non-draft same-repo PR (unchanged)', () => {
+    assert.equal(evalIf(assignIf, assignCtx({})), true, 'a non-draft same-repo PR must still fire');
+});
+
+test('auto_assign SKIPS a draft PR, fork or same-repo (draft exclusion kept)', () => {
+    assert.equal(evalIf(assignIf, assignCtx({ draft: true, headRepo: 'someexternaluser/openlibrary' })), false, 'a draft fork PR must not fire');
+    assert.equal(evalIf(assignIf, assignCtx({ draft: true })), false, 'a draft same-repo PR must not fire');
 });
 
 // ---- The team is requested with the elevated (org-aware) PAT, not the default GITHUB_TOKEN ----
