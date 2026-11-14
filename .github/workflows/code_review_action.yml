@@ -905,10 +905,27 @@ jobs:
               postSucceeded = last != null;   // a published review exists on this exact head
               withheld = false;               // withheld heads post no review, so never reach a repost
               findings = last ? parseReviewMarker(last.body) : null;
-            } else {
+            } else if (process.env.WITHHELD === 'true') {
+              // Withheld: nothing is posted publicly, so there is no review to confirm; post returned
+              // cleanly and the gate's 1-bit verdict decides. postSucceeded means "the withhold ran".
               postSucceeded = process.env.POST_RESULT === 'success';
-              withheld = process.env.WITHHELD === 'true';
-              findings = withheld ? withheldFindings(process.env.WITHHELD_BLOCKING) : parseFindings(process.env.PUBLIC_FINDINGS_COUNT);
+              withheld = true;
+              findings = withheldFindings(process.env.WITHHELD_BLOCKING);
+            } else {
+              // Published: POST_RESULT == 'success' is NOT proof a review was posted -- post ALSO
+              // returns success without posting when its own D1 head-guard fires (head moved). A
+              // force-push back to the reviewed SHA would then let the status head-guard pass and green
+              // an UNREVIEWED commit. So confirm GROUND TRUTH: a bot review actually exists on THIS
+              // exact head (mirrors the repost path). No review on the head -> not a pass. This also
+              // fail-closes the residual createReview re-anchor window (a review that landed on a
+              // different head is not found here).
+              const reviews = await github.paginate(github.rest.pulls.listReviews, {
+                owner, repo, pull_number: pr, per_page: 100,
+              });
+              const posted = reviews.some((r) => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === headSha);
+              postSucceeded = (process.env.POST_RESULT === 'success') && posted;
+              withheld = false;
+              findings = parseFindings(process.env.PUBLIC_FINDINGS_COUNT);
             }
 
             const d = decideStatus({ postSucceeded, findings, withheld, unresolved });

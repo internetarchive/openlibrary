@@ -174,9 +174,13 @@ test('D1 status: head MOVED -> createCommitStatus is NOT called', async () => {
     await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
     assert.equal(calls.createCommitStatus.length, 0, 'no status may be posted when the reviewed SHA is no longer the head');
 });
-test('D1 status: head UNCHANGED + clean -> success on the reviewed SHA', async () => {
+test('D1 status: head UNCHANGED + clean + a review actually posted -> success on the reviewed SHA', async () => {
     const head = SHA('a');
-    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: head } } }),
+        // A bot review actually exists on this exact head (post really posted it).
+        listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, body: 'x\n<!-- ol-pr-review-bot f=0 -->' }] })
+    });
     const env = {
         PR: '1',
         HEAD_SHA: head,
@@ -191,6 +195,31 @@ test('D1 status: head UNCHANGED + clean -> success on the reviewed SHA', async (
     assert.equal(calls.createCommitStatus.length, 1);
     assert.equal(calls.createCommitStatus[0].sha, head);
     assert.equal(calls.createCommitStatus[0].state, 'success');
+});
+test('D1 status FALSE-GREEN guard: POST_RESULT=success but NO review on this head (force-push revert) -> NOT success', async () => {
+    // Finding 1 (adversarial): post returns success WITHOUT posting when its head-guard fires. If the
+    // head is then force-pushed back to the reviewed SHA, the status head-guard passes (same SHA) and
+    // the normal path would green an UNREVIEWED commit. The normal path must confirm a bot review was
+    // actually posted on this exact head (ground truth), mirroring the repost path -- not trust
+    // POST_RESULT alone. With no bot review on the head, success is forbidden.
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: head } } }),
+        listReviews: async () => ({ data: [] }) // post did NOT post a review on this head this run
+    });
+    const env = {
+        PR: '1',
+        HEAD_SHA: head,
+        POST_RESULT: 'success',
+        PUBLIC_FINDINGS_COUNT: '0',
+        WITHHELD: 'false',
+        WITHHELD_BLOCKING: 'false',
+        REPOST: 'false',
+        RUN_URL: 'u'
+    };
+    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    assert.equal(calls.createCommitStatus.length, 1);
+    assert.notEqual(calls.createCommitStatus[0].state, 'success', 'a head with no posted review must never read success');
 });
 
 // ===================== D2: status-aware skip + idempotent repost =====================
