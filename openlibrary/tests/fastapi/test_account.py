@@ -549,7 +549,7 @@ class TestAnonymizeAccount:
         assert resp.status_code == 200
         data = resp.json()
         assert data["new_username"] == "anonymous-abc123"
-        mock_account.anonymize.assert_awaited_once_with(test=False)
+        mock_account.anonymize.assert_awaited_once_with(test=False, client_ip="127.0.0.1")
 
     def test_success_with_test_mode(self, fastapi_client):
         resp, mock_account = _anonymize_post(
@@ -558,7 +558,7 @@ class TestAnonymizeAccount:
         )
 
         assert resp.status_code == 200
-        mock_account.anonymize.assert_awaited_once_with(test=True)
+        mock_account.anonymize.assert_awaited_once_with(test=True, client_ip="127.0.0.1")
 
     def test_hmac_failure(self, fastapi_client):
         resp, _ = _anonymize_post(fastapi_client, hmac_return_value=False)

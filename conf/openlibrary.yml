@@ -1,6 +1,9 @@
 # Open Library Docker (dev) configuration
 
 connection_type: hybrid
+# Keep local Infobase writes disabled until the Solr updater no longer depends on
+# the Infobase write log.
+in_process_writes: false
 
 site: openlibrary.org
 

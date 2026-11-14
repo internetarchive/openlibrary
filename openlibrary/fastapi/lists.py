@@ -286,6 +286,11 @@ def _update_list_seeds(key: str, payload: dict) -> dict:
             return _process_seeds_update(lst, data, key)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except client.ClientException as e:
+        raise HTTPException(
+            status_code=int(e.status.split()[0]),
+            detail=e.json.decode("utf-8") if isinstance(e.json, bytes) else e.json or str(e),
+        )
 
 
 @router.get("/people/{username}/lists/{olid}/seeds.json")
