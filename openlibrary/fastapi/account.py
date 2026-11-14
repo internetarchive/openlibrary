@@ -9,7 +9,9 @@ import os
 from typing import Annotated
 from urllib.parse import unquote, urlencode, urlparse
 
+import web
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response, status
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
@@ -34,13 +36,14 @@ from openlibrary.fastapi.auth import (
     get_authenticated_user,
     require_authenticated_user,
 )
+from openlibrary.fastapi.shared.dependencies import get_client_ip
 from openlibrary.fastapi.shared.site_page import SitePage, SitePageRoute
 from openlibrary.fastapi.shared.utils import set_flash_cookie
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import account as legacy_account
 from openlibrary.plugins.upstream.account import get_login_error
 from openlibrary.plugins.upstream.utils import is_safe_redirect
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import site, web_ctx_ip
 
 logger = logging.getLogger("openlibrary.fastapi.account")
 
@@ -51,6 +54,31 @@ router = APIRouter()
 pages = APIRouter(route_class=SitePageRoute)
 
 SHOW_INTERNAL_IN_SCHEMA = get_ol_env().LOCAL_DEV
+
+
+def _current_client_ip() -> str:
+    """Return the request IP, with a loopback fallback for direct test callers."""
+    try:
+        return get_client_ip()
+    except LookupError:
+        return "127.0.0.1"
+
+
+def _run_with_web_ctx_ip(client_ip: str, cookie_header: str, func, *args, **kwargs):
+    """Run legacy code with the request IP and cookies set on web.ctx."""
+    original_env = web.ctx.get("env")
+    env = dict(original_env or {})
+    env["HTTP_COOKIE"] = cookie_header
+    web.ctx.env = env
+    with web_ctx_ip(client_ip):
+        try:
+            return func(*args, **kwargs)
+        finally:
+            if original_env is None:
+                del web.ctx.env
+            else:
+                web.ctx.env = original_env
+
 
 # Allow overriding ia_sync_secret via env var (for dev/test environments).
 # Legacy production config sets this value outside the repo.
@@ -333,7 +361,7 @@ def _json_login_error(error: str) -> JSONResponse:
     )
 
 
-async def _login_json(request: Request) -> Response:
+async def _login_json(request: Request, client_ip: str) -> Response:
     """Mirror web.py's account_login_json for JSON request bodies.
 
     S3 keys (access/secret) log the user in directly; username/password falls
@@ -346,7 +374,11 @@ async def _login_json(request: Request) -> Response:
 
     # Try S3 authentication first, fallback to infogami user/pass
     if access and secret:
-        audit = audit_accounts(
+        audit = await run_in_threadpool(
+            _run_with_web_ctx_ip,
+            client_ip,
+            request.headers.get("cookie", ""),
+            audit_accounts,
             email=None,
             password=None,
             require_link=True,
@@ -360,14 +392,14 @@ async def _login_json(request: Request) -> Response:
             return _json_login_error("undefined_error")
         email = audit.get("ia_email") or audit.get("ol_email")
         response = Response(status_code=status.HTTP_200_OK)
-        _set_login_cookies_on_response(response, audit, ol_username, email=email or "")
+        await run_in_threadpool(_set_login_cookies_on_response, response, audit, ol_username, email=email or "")
         return response
 
     # Fallback to infogami user/pass (same as legacy)
     username = body.get("username", "")
     password = body.get("password", "")
     try:
-        site.get().login(username, password)
+        await run_in_threadpool(_run_with_web_ctx_ip, client_ip, request.headers.get("cookie", ""), site.get().login, username, password)
     except Exception as e:  # noqa: BLE001 - mirror web.py, which 400s on any login failure
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     response = Response(status_code=status.HTTP_200_OK)
@@ -392,7 +424,7 @@ async def _perform_post_login_action(response: Response, action: str, ol_account
     op, _, args = action.partition(":")
     if op != "follow" or not args or not ol_account:
         return
-    if publisher_account := OpenLibraryAccount.get_by_username(args):
+    if publisher_account := await run_in_threadpool(OpenLibraryAccount.get_by_username, args):
         await PubSub.subscribe(subscriber=ol_account.username, publisher=args)
         publisher_name = publisher_account["data"]["displayname"]
         set_flash_cookie(response, "note", f"You are now following {publisher_name}!")
@@ -433,10 +465,12 @@ async def login(
     This reuses all existing authentication logic from the legacy system.
     """
 
+    client_ip = _current_client_ip()
+
     # A JSON body follows web.py's account_login_json: S3 keys (access/secret)
     # are required for password-less login.
     if (request.headers.get("content-type") or "").lower().startswith("application/json"):
-        return await _login_json(request)
+        return await _login_json(request, client_ip)
 
     # web.py's web.input() merges query string params with the posted form
     # (the public openlibrary/api.py client logs in via query string).
@@ -451,7 +485,11 @@ async def login(
     test = form_data.test or q.get("test", "").lower() in ("yes", "true", "on", "1")
 
     # Call the EXACT same audit function that web.py uses
-    audit = audit_accounts(
+    audit = await run_in_threadpool(
+        _run_with_web_ctx_ip,
+        client_ip,
+        request.headers.get("cookie", ""),
+        audit_accounts,
         email="" if (access and secret) else username,
         password=password,
         require_link=True,
@@ -490,7 +528,7 @@ async def login(
 
     email = ("" if (access and secret) else username) or audit.get("ia_email") or audit.get("ol_email")
 
-    ol_account = _set_login_cookies_on_response(response, audit, ol_username, email=email, remember=remember)
+    ol_account = await run_in_threadpool(_set_login_cookies_on_response, response, audit, ol_username, email=email, remember=remember)
 
     # Perform any post-login action (same as web.py's perform_post_login_action)
     await _perform_post_login_action(response, action, ol_account)
@@ -552,6 +590,7 @@ async def anonymize_account(
     digest: Annotated[str, Form()] = "",
     msg: Annotated[str, Form()] = "",
 ) -> AnonymizeResponse:
+    client_ip = _current_client_ip()
     test_mode = test == "true"
 
     try:
@@ -573,11 +612,11 @@ async def anonymize_account(
     except ValueError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Malformed Authorization Header")
 
-    xauthn_response = InternetArchiveAccount.s3auth(s3_access, s3_secret)
+    xauthn_response = await run_in_threadpool(InternetArchiveAccount.s3auth, s3_access, s3_secret)
     if "error" in xauthn_response:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
 
-    ol_account = OpenLibraryAccount.get_by_link(xauthn_response.get("itemname", ""))
+    ol_account = await run_in_threadpool(OpenLibraryAccount.get_by_link, xauthn_response.get("itemname", ""))
     if not ol_account:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
 
@@ -587,7 +626,7 @@ async def anonymize_account(
         # This endpoint authenticates via HMAC+S3, not a user session, so
         # there is no auth token on the connection without RunAs.
         with RunAs(ol_account.username):
-            result = await ol_account.anonymize(test=test_mode)
+            result = await ol_account.anonymize(test=test_mode, client_ip=client_ip)
     except Exception as e:  # noqa: BLE001
         logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
