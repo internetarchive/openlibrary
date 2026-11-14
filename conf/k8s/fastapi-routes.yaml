@@ -98,7 +98,7 @@ fastapiRoutes:
   - GET /subjects/{key:path}.json
   - GET /subjects/{subject_key:path}/lists.json
   - GET /tasks/feed.json
-  - GET /tasks/rows
+  - GET /tasks/rows.json
   - GET /trending/{period}.json
   - POST /works/OL{work_id}W/awards.json
   - GET POST /works/OL{work_id}W/bookshelves.json

@@ -1,62 +1,5 @@
 {#- Shared pieces of the /tasks pages. Data arrives precomputed from
     openlibrary/plugins/openlibrary/contribute.py; nothing here calls functions on it. -#}
-{% macro book_header(book, compact=False, href=None, track=None) %}
-    {#- ``href`` is where the cover and title lead: the book page by default, or a task on the dashboard,
-        where people click the title expecting to start one. When it isn't the book page, view/edit
-        buttons in the corner reach the book instead. ``track`` is the title link's "Category|Action|Label". -#}
-    {% set href = href or book.key %}
-    {% set cover %}
-        {% if book.cover_url %}
-            <img class="contrib-book__cover"
-                 src="{{ book.cover_url }}"
-                 alt=""
-                 width="60"
-                 height="90"
-                 loading="lazy" />
-        {% else %}
-            <div class="contrib-book__cover contrib-book__cover--empty"
-                 aria-hidden="true">{{ icon("book-open", size="md") }}</div>
-        {% endif %}
-    {% endset %}
-    <div class="contrib-book{% if compact %} contrib-book--compact{% endif %}">
-        {#- A second way to the title's link, so keep it out of the tab order and the accessibility tree. -#}
-        <a class="contrib-cover-link"
-           href="{{ href }}"
-           tabindex="-1"
-           aria-hidden="true">{{ cover }}</a>
-        <div class="contrib-book__meta">
-            <div class="contrib-book__title">
-                <a href="{{ href }}"
-                   {% if track %} data-ol-link-track="{{ track }}"{% endif %}>{{ book.title }}</a>
-            </div>
-            {% if book.authors %}<div class="contrib-book__authors">{{ book.authors }}</div>{% endif %}
-            <div class="contrib-book__line">
-                {% if book.edition_line %}<span>{{ book.edition_line }}</span>{% endif %}
-                {% if book.isbn13 %}<span>ISBN {{ book.isbn13 }}</span>{% endif %}
-                {% if book.edition_count and book.edition_count > 1 %}
-                    <span>{{ _("one of %(count)s editions of this work", count=book.edition_count) }}</span>
-                {% endif %}
-            </div>
-            {% if book.readers and not compact %}
-                <div class="contrib-book__why">{{ _("Why this book: on about %(count)s readers' shelves.", count="{:,}".format(book.readers)) }}</div>
-            {% endif %}
-        </div>
-        {% if href != book.key %}
-            <div class="contrib-book__actions">
-                <ol-tooltip content="{{ _('Go to book page') }}">
-                    <ol-button variant="ghost" shape="icon" size="small" href="{{ book.key }}" aria-label="{{ _('Go to book page') }}">
-                        {{ icon("eye", size="sm") }}
-                    </ol-button>
-                </ol-tooltip>
-                <ol-tooltip content="{{ _('Go to edit page') }}">
-                    <ol-button variant="ghost" shape="icon" size="small" href="{{ book.edit_url }}" aria-label="{{ _('Go to edit page') }}">
-                        {{ icon("pencil", size="sm") }}
-                    </ol-button>
-                </ol-tooltip>
-            </div>
-        {% endif %}
-    </div>
-{% endmacro %}
 {% macro saved_receipt(receipt) %}
     {#- What "Save and next" just saved. -#}
     <div class="contrib-saved" role="status" data-receipt>
@@ -90,17 +33,6 @@
             </ol-tooltip>
         </div>
     </div>
-{% endmacro %}
-{% macro task_row(task, track) %}
-    {#- One to-do per field, styled as a menu item: an icon and the action it leads to.
-        ``track`` is the analytics "Category|Action"; the field becomes the label. -#}
-    <li class="contrib-row__task" data-task-key="{{ task.key }}">
-        <a href="{{ task.url }}"
-           data-ol-link-track="{{ track }}|{{ task.field }}">
-            <span class="contrib-row__badge">{{ icon("plus", size="sm") }}</span>
-            <span>{{ task.action_label }}</span>
-        </a>
-    </li>
 {% endmacro %}
 {% macro how_to(field_guide, links, by_title=False) %}
     <section class="contrib-help">
@@ -549,25 +481,34 @@
         </div>
     </li>
 {% endmacro %}
-{% macro row_skeleton(tasks=2) %}
-    {#- A dashboard card's shape while a cold cache builds the list in the background; contribute.js swaps them for the rows. -#}
-    <li class="contrib-row contrib-row--skeleton"
-        data-row-skeleton
-        aria-hidden="true">
-        <div class="contrib-book contrib-book--compact">
-            <span class="skeleton contrib-row__cover-skeleton"></span>
-            <div class="contrib-book__meta">
-                <span class="skeleton contrib-book__title"></span>
-                <span class="skeleton contrib-book__authors"></span>
-                <span class="skeleton contrib-book__line"></span>
-            </div>
+{% macro book_skeleton(tasks=2, compact=True) %}
+    {#- An ol-task-book's shape until it upgrades, each block the size of the text it stands in for. -#}
+    <div class="contrib-book{% if compact %} contrib-book--compact{% endif %}"
+         aria-hidden="true">
+        <span class="skeleton contrib-row__cover-skeleton"></span>
+        <div class="contrib-book__meta">
+            <span class="skeleton contrib-book__title"></span>
+            <span class="skeleton contrib-book__authors"></span>
+            <span class="skeleton contrib-book__line"></span>
         </div>
-        <ul class="contrib-row__tasks">
+    </div>
+    {% if tasks %}
+        <ul class="contrib-row__tasks" aria-hidden="true">
             {% for _i in range(tasks) %}
                 <li class="contrib-row__task">
                     <span class="skeleton"></span>
                 </li>
             {% endfor %}
         </ul>
-    </li>
+    {% endif %}
+{% endmacro %}
+{% macro row_skeleton(tasks=2) %}
+    {#- A dashboard card's shape until ol-task-rows renders the real one. -#}
+    <li class="contrib-row contrib-skeleton" aria-hidden="true">{{ book_skeleton(tasks) }}</li>
+{% endmacro %}
+{% macro task_book(book, labels, tasks=[], compact=False, track="") %}
+    {#- An ol-task-book with placeholders shaped like it. ``track`` is the task links' "Category|Action". -#}
+    <ol-task-book book="{{ book | tojson | force_escape }}" labels="{{ labels | tojson | force_escape }}" {%- if tasks %} tasks="{{ tasks | tojson | force_escape }}"{% endif %} {%- if compact %} compact{% endif %} {%- if track %} task-track="{{ track }}"{% endif %}>
+        {{ book_skeleton(tasks=tasks | length, compact=compact) }}
+    </ol-task-book>
 {% endmacro %}

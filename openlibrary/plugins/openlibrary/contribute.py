@@ -17,6 +17,7 @@ from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
 from openlibrary.contribute import feed, initiatives, pitch, save, supply, tasks
 from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides, is_speculative
+from openlibrary.contribute.rows import dump_book, dump_rows, dump_tasks
 from openlibrary.contribute.tasks import field_values, work_of
 from openlibrary.core import admin, helpers
 from openlibrary.core.tags import GENRES, LITERARY_FORMS, find_tag, subject_matches, tag_choices, tag_key_named, tag_options, work_tag_names
@@ -381,7 +382,10 @@ def count_sibling_values(fld: str, others: list, limit: int = 5) -> dict:
 
 
 def build_book_header(edition, readers: int | None = None) -> dict:
-    """What the book header shows. Live from the local record."""
+    """What the book header shows. Live from the local record.
+
+    Missing fields come back from the models as infogami's Nothing, which can't be serialized to JSON, hence the ``or``s.
+    """
     work = edition.works[0] if edition.works else None
     year = edition.get_publish_year()
     edition_line_parts = [p for p in [", ".join(edition.get("publishers") or []), str(year) if year else "", edition.get("physical_format") or ""] if p]
@@ -395,14 +399,23 @@ def build_book_header(edition, readers: int | None = None) -> dict:
         "key": edition.key,
         "olid": edition.key.split("/")[-1],
         "edit_url": edition.url(suffix="/edit"),
-        "title": edition.get_title(),
+        "title": edition.get_title() or "",
         "authors": ", ".join(author_names),
-        "cover_url": edition.get_cover_url("M"),
+        "cover_url": edition.get_cover_url("M") or None,
         "edition_line": " · ".join(edition_line_parts),
-        "isbn13": edition.get_isbn13(),
-        "edition_count": work.get_edition_count() if work else 1,
+        "isbn13": edition.get_isbn13() or None,
+        "edition_count": (work.get_edition_count() or 1) if work else 1,
         "work_key": work.key if work else None,
         "readers": readers,
+    }
+
+
+def get_task_book_labels() -> dict[str, str]:
+    """The translated strings <ol-task-book> shows, keyed as in its DEFAULT_LABELS; it fills in the placeholders."""
+    return {
+        "editionCount": _("one of %(count)s editions of this work"),
+        "viewBook": _("Go to book page"),
+        "editBook": _("Go to edit page"),
     }
 
 
@@ -687,9 +700,11 @@ class contribute_index(delegate.page):
             "contribute/dashboard.html.jinja",
             _("Tasks"),
             rail=build_filter_rail(task, initiative, gaps),
-            rows=rows,
+            # Through the /tasks/rows.json models, so first paint and the late fetch hand ol-task-rows the same JSON.
+            rows=dump_rows(rows) if rows is not None else None,
+            book_labels=get_task_book_labels(),
             # While the pool builds, the script fetches the rows from here.
-            rows_url=build_dashboard_url(task, base="/tasks/rows", initiative=slug) if rows is None else "",
+            rows_url=build_dashboard_url(task, base="/tasks/rows.json", initiative=slug) if rows is None else "",
             skeleton_rows=LIST_SKELETON_ROWS if rows is None else 0,
             heading=get_filter_headings()[task] if task else _("All project tasks"),
             empty=_("Nothing missing here right now. Thank you."),
@@ -855,7 +870,8 @@ def render_nothing_page(edition, fld: str, back: str, initiative: str = ""):
     return render_contribute(
         "contribute/nothing.html.jinja",
         _("Nothing to fill in here"),
-        book=build_book_header(edition),
+        book=dump_book(build_book_header(edition)),
+        book_labels=get_task_book_labels(),
         field_label=label,
         on_work=fld in tasks.WORK_FIELDS,
         list_url=build_dashboard_url(back, initiative=initiative),
@@ -963,14 +979,15 @@ class contribute_done(delegate.page):
         return render_contribute(
             "contribute/done.html.jinja",
             _("Saved") if saved else not_found_label if not_found else _("Skipped"),
-            book=build_book_header(edition),
+            book=dump_book(build_book_header(edition)),
+            book_labels=get_task_book_labels(),
             field_label=field_label,
             saved=saved,
             not_found_label=not_found_label if not_found else "",
             value=value,
             cover_url=edition.get_cover_url("M") if saved and fld == "covers" else "",
             history_url=f"{edited.key}?m=history",
-            same_book=same_book,
+            same_book=dump_tasks(same_book),
             next_url=build_next_url(back, tasks.Task(olid, fld), saved=False, initiative=slug, surprise=bool(query_param("surprise", ""))),
             list_url=build_dashboard_url(back, initiative=slug),
         )

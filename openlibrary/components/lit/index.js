@@ -35,3 +35,5 @@ export { OlShelfActions } from './OlShelfActions.js';
 export { OlShelfButton } from './OlShelfButton.js';
 export { OlBookLists } from './OlBookLists.js';
 export { OlTabs } from './OlTabs.js';
+export { OlTaskBook } from './OlTaskBook.js';
+export { OlTaskRows } from './OlTaskRows.js';

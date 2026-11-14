@@ -1,4 +1,4 @@
-"""What the /tasks pages fetch after load (the "happening now" feed and the dashboard's list, both polled by contribute.js),
+"""What the /tasks pages fetch after load (the "happening now" feed, and the dashboard's rows that <ol-task-rows> polls for),
 and the /tasks/admin pages, where the community projects are run."""
 
 from __future__ import annotations
@@ -8,10 +8,11 @@ from typing import Annotated
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response, status
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from openlibrary.contribute import feed, initiatives, manage
+from openlibrary.contribute.rows import TaskRowsResponse
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell.request import PageMeta
 from openlibrary.core.shell.user import ShellUser
@@ -80,16 +81,19 @@ def tasks_feed(
 
 
 # Plain def: the memcache read and the edition loads are blocking I/O, so they run in the threadpool.
-@router.get("/tasks/rows", response_class=HTMLResponse, include_in_schema=False)
+@router.get("/tasks/rows.json", response_model=TaskRowsResponse, include_in_schema=False)
 def tasks_rows(
     _user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     task: Annotated[str, Query(description="The dashboard filter; unknown values mean all tasks.")] = "",
     initiative: Annotated[str, Query(description="The initiative's slug; unknown values mean the headline one.")] = "",
-) -> Response:
-    """The dashboard's list on its own, for a page that rendered placeholders: 202 while the pool is still being built."""
+) -> TaskRowsResponse | Response:
+    """The dashboard's rows for <ol-task-rows>: 202 with no body while the pool is still being built.
+
+    Internal: the shape follows the component and can change without notice.
+    """
     if (rows := contribute.build_task_rows(contribute.normalize_filter(task), contribute.get_initiative(initiative))) is None:
         return Response(status_code=202)
-    return HTMLResponse(render_jinja_template("contribute/rows.html.jinja", rows=rows))
+    return TaskRowsResponse.model_validate({"rows": rows})
 
 
 def find_project(slug: str) -> initiatives.Initiative:

@@ -127,20 +127,20 @@
                     {% endfor %}
                 </nav>
                 <h3 class="contrib-visually-hidden">{{ data.heading }}</h3>
-                {#- While a cold cache builds the list in the background, placeholders stand in and contribute.js fetches the rows from data-rows-url. -#}
-                <ol class="contrib-rows"
-                    data-rows
-                    {% if data.rows_url %}data-rows-url="{{ data.rows_url }}"{% endif %}>
-                    {% if data.rows_url %}
-                        {% for _i in range(data.skeleton_rows or 0) %}
-                            {{ parts.row_skeleton(tasks=2 + loop.index % 2) }}
-                        {% endfor %}
-                    {% else %}
-                        {% with rows = data.rows %}
-                            {% include "contribute/rows.html.jinja" %}
-                        {% endwith %}
-                    {% endif %}
-                </ol>
+                {#- While a cold cache builds the list in the background, placeholders stand in and ol-task-rows fetches the rows from rows_url. -#}
+                <ol-task-rows data-rows {% if data.rows_url %}src="{{ data.rows_url }}"{% else %}rows="{{ data.rows | tojson | force_escape }}"{% endif %} title-track="TasksDashboard|OpenTaskTitle" task-track="TasksDashboard|OpenTask" labels="{{ data.book_labels | tojson | force_escape }}">
+                    <ol class="contrib-rows">
+                        {% if data.rows_url %}
+                            {% for _i in range(data.skeleton_rows or 0) %}
+                                {{ parts.row_skeleton(tasks=2 + loop.index % 2) }}
+                            {% endfor %}
+                        {% else %}
+                            {% for row in data.rows %}
+                                {{ parts.row_skeleton(tasks=row.tasks | length) }}
+                            {% endfor %}
+                        {% endif %}
+                    </ol>
+                </ol-task-rows>
                 <div class="contrib-empty"
                      data-list-empty
                      {% if data.rows or data.rows_url %}hidden{% endif %}>
