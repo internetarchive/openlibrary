@@ -361,6 +361,19 @@ async def test_reading_log_passes_sort_to_shelf_query(sort_order, expected):
     assert get_users_logged_books.await_args.kwargs["sort"] == expected
 
 
+def _render_reading_log(monkeypatch, requested: str, owners_page: bool, shelf_count: int = 0, used: str | None = "created desc") -> MagicMock:
+    """Renders a shelf where `requested` is the sort asked for and `used` the one the shelf came back in."""
+    monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, sort=requested))
+    monkeypatch.setattr(mybooks, "add_availability", lambda docs, mode: docs)
+    monkeypatch.setattr(mybooks, "get_internet_archive_id", lambda key: "")
+    monkeypatch.setattr(mybooks, "render", MagicMock())
+    mb = MagicMock(key="want-to-read", is_my_page=owners_page, counts={"want-to-read": shelf_count})
+    mb.readlog.get_works.return_value = MagicMock(docs=[], total_results=0, ratings=[], sort=used)
+
+    mybooks.mybooks_readinglog().render_template(mb)
+    return mb
+
+
 @pytest.mark.parametrize(
     ("requested", "owners_page", "used", "asked_for", "shown"),
     [
@@ -368,17 +381,27 @@ async def test_reading_log_passes_sort_to_shelf_query(sort_order, expected):
         ("rating", False, "created desc", "desc", "desc"),
         ("title", False, "title", "title", "title"),
         ("title", True, "created desc", "title", "desc"),
+        ("title", True, None, "title", None),
     ],
 )
 def test_reading_log_menu_shows_the_sort_actually_used(monkeypatch, requested, owners_page, used, asked_for, shown):
-    monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, sort=requested))
-    monkeypatch.setattr(mybooks, "add_availability", lambda docs, mode: docs)
-    monkeypatch.setattr(mybooks, "get_internet_archive_id", lambda key: "")
-    monkeypatch.setattr(mybooks, "render", MagicMock())
-    mb = MagicMock(key="want-to-read", is_my_page=owners_page, counts={"want-to-read": 0})
-    mb.readlog.get_works.return_value = MagicMock(docs=[], total_results=0, ratings=[], sort=used)
-
-    mybooks.mybooks_readinglog().render_template(mb)
+    mb = _render_reading_log(monkeypatch, requested, owners_page, used=used)
 
     assert mb.readlog.get_works.call_args.kwargs["sort_order"] == asked_for
     assert mybooks.render["account/reading_log"].call_args.kwargs["sort_order"] == shown
+
+
+@pytest.mark.parametrize(
+    ("requested", "owners_page", "shelf_count", "asked_for", "unavailable"),
+    [
+        ("title", True, 10, "title", []),
+        ("rating", False, 10, "desc", ["rating"]),
+        ("title", True, Bookshelves.MAX_SOLR_ORDERED_SHELF_SIZE + 1, "desc", ["title", "old", "want_to_read"]),
+        ("rating", True, Bookshelves.MAX_SOLR_ORDERED_SHELF_SIZE + 1, "rating", ["title", "old", "want_to_read"]),
+    ],
+)
+def test_reading_log_menu_leaves_out_unavailable_sorts(monkeypatch, requested, owners_page, shelf_count, asked_for, unavailable):
+    mb = _render_reading_log(monkeypatch, requested, owners_page, shelf_count=shelf_count)
+
+    assert mb.readlog.get_works.call_args.kwargs["sort_order"] == asked_for
+    assert mybooks.render["account/reading_log"].call_args.kwargs["unavailable_sorts"] == unavailable

@@ -1,6 +1,8 @@
 """Unit and integration tests for the Bookshelves model. See ``docs/core/database.md``."""
 
 import asyncio
+from collections.abc import Collection
+from contextlib import asynccontextmanager
 from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -11,6 +13,10 @@ import web
 from openlibrary.core import async_db
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
+from openlibrary.core.cache import MemoryCache, _sf_local_locks
+from openlibrary.core.ratings import Ratings
+
+READABLE_ONLY = ["ebook_access:[borrowable TO *]"]
 
 
 @pytest.fixture
@@ -20,6 +26,13 @@ def helpers():
         patch("openlibrary.core.bookshelves.fetch_val", new_callable=AsyncMock) as fetch_val,
     ):
         yield SimpleNamespace(fetch_all=fetch_all, fetch_val=fetch_val)
+
+
+@pytest.fixture(autouse=True)
+def memcache():
+    """A cache per test, so a shelf order cached by one test can't leak into the next."""
+    with patch("openlibrary.core.cache.get_memcache", return_value=MemoryCache()) as get_memcache:
+        yield get_memcache.return_value
 
 
 # --- Unit tests (no postgres required) ------------------------------------------
@@ -79,6 +92,57 @@ class TestBookshelvesReadStatusIntegration:
 
 def _solr_doc(work_id: int) -> web.storage:
     return web.storage(key=f"/works/OL{work_id}W", title=f"Work {work_id}")
+
+
+def _solr_docs(keys, fields) -> list[web.storage]:
+    """Stands in for get_many_async: Solr has every work asked for, and no editions."""
+    return [_solr_doc(int(key[len("/works/OL") : -1])) for key in keys if key.startswith("/works/")]
+
+
+def _shelf(*work_ids: int) -> list[dict]:
+    """Rows for a shelf holding `work_ids`, newest added first."""
+    return [{"work_id": work_id, "created": datetime(2025, 1, work_id), "edition_id": None} for work_id in work_ids]
+
+
+def _shelf_queries(shelf: list[dict]):
+    """Stands in for fetch_all on a shelf holding `shelf`, newest added first."""
+
+    async def fetch_all(query, params):
+        if "ANY(%(work_ids)s)" in query:
+            return [book for book in shelf if book["work_id"] in params["work_ids"]]
+        if "LIMIT" in query:
+            return shelf[params["offset"] : params["offset"] + params["limit"]]
+        return shelf
+
+    return fetch_all
+
+
+def _fake_solr(sorted_keys: list[str], readable: Collection[str] = (), partial: bool = False) -> AsyncMock:
+    """
+    Stands in for run_solr_query_async over the works in its {!terms f=key} filter: Solr has a
+    sort value for `sorted_keys`, in that order, and `readable` pass the Readable Only filter.
+    """
+
+    async def run_solr_query_async(*, rows, extra_params, sort=None, **kwargs):
+        (_, terms), *filters = extra_params
+        keys = terms.removeprefix("{!terms f=key}").split(",")
+        if ("fq", READABLE_ONLY[0]) in filters:
+            keys = [key for key in keys if key in readable]
+        if sort:
+            keys = [key for key in sorted_keys if key in keys]
+        return MagicMock(
+            error=None,
+            num_found=len(keys),
+            docs=[{"key": key} for key in keys[:rows]],
+            raw_resp={"responseHeader": {"partialResults": True} if partial else {}},
+        )
+
+    return AsyncMock(side_effect=run_solr_query_async)
+
+
+def _shelf_count(count: int):
+    """Patches the shelf totals, which set the size limit, to `count` books on shelf 1."""
+    return patch.object(Bookshelves, "count_total_books_logged_by_user_per_shelf", new_callable=AsyncMock, return_value={1: count})
 
 
 @pytest.fixture
@@ -175,28 +239,13 @@ async def test_get_users_logged_books_uses_async_query_when_filtering(mock_readi
     run_solr_query.assert_awaited_once()
 
 
-def _fake_solr_sort(sorted_keys: list[str], partial: bool = False) -> AsyncMock:
-    """Stands in for run_solr_query_async: Solr has a sort value for `sorted_keys`, in that order."""
-
-    async def run_solr_query_async(*, rows, offset=None, **kwargs):
-        start = offset or 0
-        return MagicMock(
-            error=None,
-            num_found=len(sorted_keys),
-            docs=[{"key": key} for key in sorted_keys[start : start + rows]],
-            raw_resp={"responseHeader": {"partialResults": True} if partial else {}},
-        )
-
-    return AsyncMock(side_effect=run_solr_query_async)
-
-
 @pytest.mark.asyncio
 async def test_get_users_logged_books_sorts_with_solr(mock_reading_log_dependencies):
     fetch_all, solr = mock_reading_log_dependencies
-    fetch_all.return_value = [{"work_id": i, "created": datetime(2025, 1, i), "edition_id": None} for i in (5, 4, 3, 2, 1)]
-    solr.get_many_async = AsyncMock(side_effect=lambda keys, fields: [_solr_doc(int(key[len("/works/OL") : -1])) for key in keys])
-    run_solr_query = _fake_solr_sort(["/works/OL2W", "/works/OL4W", "/works/OL5W"])
-    with patch("openlibrary.plugins.worksearch.code.run_solr_query_async", run_solr_query):
+    fetch_all.side_effect = _shelf_queries(_shelf(5, 4, 3, 2, 1))
+    solr.get_many_async = AsyncMock(side_effect=_solr_docs)
+    run_solr_query = _fake_solr(["/works/OL2W", "/works/OL4W", "/works/OL5W"])
+    with _shelf_count(5), patch("openlibrary.plugins.worksearch.code.run_solr_query_async", run_solr_query):
         pages = [await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, limit=2, page=page, sort="old") for page in (1, 2, 3)]
 
     assert [[doc.key for doc in page.docs] for page in pages] == [
@@ -204,28 +253,28 @@ async def test_get_users_logged_books_sorts_with_solr(mock_reading_log_dependenc
         ["/works/OL5W", "/works/OL3W"],
         ["/works/OL1W"],
     ]
-    assert all(page.sort == "old" for page in pages)
-    query, _ = fetch_all.await_args.args
-    assert "ORDER BY created DESC, work_id DESC" in query
-    assert "LIMIT" not in query
+    assert all(page.sort == "old" and page.total_results == 5 for page in pages)
 
-    first_page_query, *later_queries = run_solr_query.await_args_list
-    assert first_page_query.kwargs["sort"] == "old,key"
-    assert first_page_query.kwargs["rows"] == 2
-    assert first_page_query.kwargs["offset"] == 0
-    assert first_page_query.kwargs["spellcheck_count"] == 0
-    assert first_page_query.kwargs["request_label"] == "READING_LOG_SORT"
-    assert first_page_query.kwargs["extra_params"] == [
+    run_solr_query.assert_awaited_once()
+    solr_query = run_solr_query.await_args.kwargs
+    assert solr_query["sort"] == "old,key"
+    assert solr_query["rows"] == 5
+    assert solr_query["fields"] == ["key"]
+    assert solr_query["spellcheck_count"] == 0
+    assert solr_query["request_label"] == "READING_LOG_SORT"
+    assert solr_query["extra_params"] == [
         ("fq", "{!terms f=key}/works/OL5W,/works/OL4W,/works/OL3W,/works/OL2W,/works/OL1W"),
         ("fq", "first_publish_year:[* TO *]"),
     ]
-    assert [(call.kwargs["offset"], call.kwargs["rows"]) for call in later_queries if "sort" in call.kwargs] == [(2, 2), (4, 2)]
-    assert [call.kwargs["rows"] for call in later_queries if "sort" not in call.kwargs] == [3, 3]
+    (shelf_query, _), *page_queries = [call.args for call in fetch_all.await_args_list]
+    assert "ORDER BY created DESC, work_id DESC" in shelf_query
+    assert "LIMIT" not in shelf_query
+    assert [params["work_ids"] for _, params in page_queries] == [[2, 4], [5, 3], [1]]
 
 
 @pytest.mark.asyncio
 async def test_get_users_logged_books_title_sort_keeps_every_book(mock_reading_log_dependencies):
-    run_solr_query = _fake_solr_sort(["/works/OL42W"])
+    run_solr_query = _fake_solr(["/works/OL42W"])
     with patch("openlibrary.plugins.worksearch.code.run_solr_query_async", run_solr_query):
         result = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, sort="title")
 
@@ -238,23 +287,24 @@ async def test_get_users_logged_books_title_sort_keeps_every_book(mock_reading_l
 @pytest.mark.parametrize("error", [{"msg": "Solr is down"}, None])
 async def test_get_users_logged_books_falls_back_to_date_added_when_solr_fails(mock_reading_log_dependencies, caplog, error):
     fetch_all, solr = mock_reading_log_dependencies
-    fetch_all.return_value = [{"work_id": i, "created": datetime(2025, 1, i), "edition_id": None} for i in (3, 2, 1)]
-    solr.get_many_async = AsyncMock(side_effect=lambda keys, fields: [_solr_doc(int(key[len("/works/OL") : -1])) for key in keys])
+    fetch_all.side_effect = _shelf_queries(_shelf(3, 2, 1))
+    solr.get_many_async = AsyncMock(side_effect=_solr_docs)
     solr_response = MagicMock(error=error, num_found=None, docs=[])
-    with patch("openlibrary.plugins.worksearch.code.run_solr_query_async", new_callable=AsyncMock, return_value=solr_response):
-        result = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, limit=2, page=1, sort="want_to_read")
+    with patch("openlibrary.plugins.worksearch.code.run_solr_query_async", new_callable=AsyncMock, return_value=solr_response) as run_solr_query:
+        results = [await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, limit=2, page=1, sort="want_to_read") for _ in range(2)]
 
-    assert [doc.key for doc in result.docs] == ["/works/OL3W", "/works/OL2W"]
-    assert result.sort == "created desc"
-    assert "falling back to date added" in caplog.text
+    assert all([doc.key for doc in result.docs] == ["/works/OL3W", "/works/OL2W"] for result in results)
+    assert all(result.sort == "created desc" for result in results)
+    assert "Reading log sort 'want_to_read'" in caplog.text
+    assert run_solr_query.await_count == 2
 
 
 @pytest.mark.asyncio
 async def test_get_users_logged_books_falls_back_to_date_added_on_partial_solr_results(mock_reading_log_dependencies, caplog):
     fetch_all, solr = mock_reading_log_dependencies
-    fetch_all.return_value = [{"work_id": i, "created": datetime(2025, 1, i), "edition_id": None} for i in (3, 2, 1)]
-    solr.get_many_async = AsyncMock(side_effect=lambda keys, fields: [_solr_doc(int(key[len("/works/OL") : -1])) for key in keys])
-    with patch("openlibrary.plugins.worksearch.code.run_solr_query_async", _fake_solr_sort(["/works/OL1W"], partial=True)):
+    fetch_all.side_effect = _shelf_queries(_shelf(3, 2, 1))
+    solr.get_many_async = AsyncMock(side_effect=_solr_docs)
+    with patch("openlibrary.plugins.worksearch.code.run_solr_query_async", _fake_solr(["/works/OL1W"], partial=True)):
         result = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, limit=2, page=1, sort="title")
 
     assert [doc.key for doc in result.docs] == ["/works/OL3W", "/works/OL2W"]
@@ -288,6 +338,219 @@ async def test_get_users_logged_books_sorts_by_own_rating_in_db(mock_reading_log
     assert params["offset"] == 25
     assert result.sort == "rating"
     run_solr_query.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_get_users_logged_books_reuses_the_order_until_the_patrons_reading_log_changes(mock_reading_log_dependencies):
+    run_solr_query = _fake_solr(["/works/OL42W"])
+    with patch("openlibrary.plugins.worksearch.code.run_solr_query_async", run_solr_query):
+        for _ in range(2):
+            await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, sort="title")
+        run_solr_query.assert_awaited_once()
+
+        Bookshelves.reading_log_changed("bob")
+        await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, sort="title")
+        run_solr_query.assert_awaited_once()
+
+        Bookshelves.reading_log_changed("alice")
+        await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, sort="title")
+        assert run_solr_query.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_get_users_logged_books_rebuilds_the_order_when_the_reading_log_version_is_evicted(mock_reading_log_dependencies, memcache):
+    run_solr_query = _fake_solr(["/works/OL42W"])
+    with patch("openlibrary.plugins.worksearch.code.run_solr_query_async", run_solr_query):
+        await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, sort="title")
+        memcache.delete(Bookshelves._reading_log_version_key("alice"))
+        await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, sort="title")
+
+    assert run_solr_query.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_get_users_logged_books_caches_orders_and_versions_with_an_expiry(mock_reading_log_dependencies):
+    memcache = MagicMock(wraps=MemoryCache())
+    with (
+        patch("openlibrary.core.cache.get_memcache", return_value=memcache),
+        patch("openlibrary.plugins.worksearch.code.run_solr_query_async", _fake_solr(["/works/OL42W"])),
+    ):
+        await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, sort="title")
+
+    writes = memcache.set.call_args_list + memcache.add.call_args_list
+    assert {call.args[0].rsplit(".", 1)[0]: call.kwargs["expires"] for call in writes} == {
+        "bookshelves.reading_log_version": Bookshelves.READING_LOG_VERSION_TTL,
+        "bookshelves.shelf_order": Bookshelves.SHELF_ORDER_TTL,
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_users_logged_books_keeps_no_lock_per_patron(mock_reading_log_dependencies):
+    """web.py runs one long-lived event loop, so a lock kept per patron would never be freed."""
+    locks_before = dict(_sf_local_locks())
+    with patch("openlibrary.plugins.worksearch.code.run_solr_query_async", _fake_solr(["/works/OL42W"])):
+        for username in ("alice", "bob", "carol"):
+            await Bookshelves.get_users_logged_books(username, bookshelf_id=1, sort="title")
+
+    assert _sf_local_locks() == locks_before
+
+
+def _connection_recording_commits(events: list[str]):
+    """Stands in for async_db.connection: every statement changes one row, and leaving the block commits."""
+
+    @asynccontextmanager
+    async def connection():
+        conn = MagicMock()
+        conn.execute = AsyncMock(return_value=MagicMock(rowcount=1))
+        yield conn
+        events.append("committed")
+
+    return connection
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "change",
+    [lambda: Bookshelves.add("alice", "1", "42"), lambda: Bookshelves.remove("alice", "42")],
+    ids=["add", "remove"],
+)
+async def test_shelf_changes_invalidate_cached_orders_once_committed(change):
+    events: list[str] = []
+    with (
+        patch("openlibrary.core.bookshelves.connection", _connection_recording_commits(events)),
+        patch.object(Bookshelves, "reading_log_changed", side_effect=lambda username: events.append(f"invalidated {username}")),
+    ):
+        assert await change() == 1
+
+    assert events == ["committed", "invalidated alice"]
+
+
+@pytest.mark.asyncio
+async def test_get_users_logged_books_skips_books_that_left_the_shelf_after_it_was_sorted(mock_reading_log_dependencies):
+    fetch_all, solr = mock_reading_log_dependencies
+    shelf = _shelf(3, 2, 1)
+    fetch_all.side_effect = _shelf_queries(shelf)
+    solr.get_many_async = AsyncMock(side_effect=_solr_docs)
+    with _shelf_count(3), patch("openlibrary.plugins.worksearch.code.run_solr_query_async", _fake_solr(["/works/OL1W", "/works/OL2W", "/works/OL3W"])):
+        await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, limit=2, sort="title")
+        del shelf[1]
+        result = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, limit=2, sort="title")
+
+    assert [doc.key for doc in result.docs] == ["/works/OL1W"]
+
+
+@pytest.mark.asyncio
+async def test_get_users_logged_books_sorts_huge_shelves_by_date_added(mock_reading_log_dependencies):
+    fetch_all, _ = mock_reading_log_dependencies
+    with (
+        _shelf_count(Bookshelves.MAX_SOLR_ORDERED_SHELF_SIZE + 1),
+        patch("openlibrary.plugins.worksearch.code.run_solr_query_async", new_callable=AsyncMock) as run_solr_query,
+    ):
+        result = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, sort="title")
+
+    assert result.sort == "created desc"
+    query, _ = fetch_all.await_args.args
+    assert "ORDER BY created DESC LIMIT" in query
+    run_solr_query.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_get_users_logged_books_sorts_a_filtered_shelf_by_date_added(mock_reading_log_dependencies):
+    fetch_all, solr = mock_reading_log_dependencies
+    fetch_all.side_effect = _shelf_queries(_shelf(5, 4, 3, 2, 1))
+    solr.get_many_async = AsyncMock(side_effect=_solr_docs)
+    run_solr_query = _fake_solr([], readable={"/works/OL4W", "/works/OL2W", "/works/OL1W"})
+    with _shelf_count(5), patch("openlibrary.plugins.worksearch.code.run_solr_query_async", run_solr_query):
+        pages = [await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, limit=2, page=page, fq=READABLE_ONLY) for page in (1, 2)]
+
+    assert [[doc.key for doc in page.docs] for page in pages] == [["/works/OL4W", "/works/OL2W"], ["/works/OL1W"]]
+    assert all(page.sort == "created desc" and page.total_results == 3 for page in pages)
+    run_solr_query.assert_awaited_once()
+    assert run_solr_query.await_args.kwargs["sort"] is None
+    assert run_solr_query.await_args.kwargs["extra_params"] == [
+        ("fq", "{!terms f=key}/works/OL5W,/works/OL4W,/works/OL3W,/works/OL2W,/works/OL1W"),
+        ("fq", "ebook_access:[borrowable TO *]"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_get_users_logged_books_sorts_a_filtered_shelf_with_solr(mock_reading_log_dependencies):
+    fetch_all, solr = mock_reading_log_dependencies
+    fetch_all.side_effect = _shelf_queries(_shelf(5, 4, 3, 2, 1))
+    solr.get_many_async = AsyncMock(side_effect=_solr_docs)
+    run_solr_query = _fake_solr(["/works/OL2W", "/works/OL4W", "/works/OL5W"], readable={"/works/OL5W", "/works/OL4W", "/works/OL3W", "/works/OL1W"})
+    with _shelf_count(5), patch("openlibrary.plugins.worksearch.code.run_solr_query_async", run_solr_query):
+        result = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, sort="old", fq=READABLE_ONLY)
+
+    assert [doc.key for doc in result.docs] == ["/works/OL4W", "/works/OL5W", "/works/OL3W", "/works/OL1W"]
+    assert result.sort == "old"
+    assert result.total_results == 4
+    _, sort_query = run_solr_query.await_args_list
+    assert sort_query.kwargs["sort"] == "old,key"
+    assert sort_query.kwargs["extra_params"] == [
+        ("fq", "{!terms f=key}/works/OL5W,/works/OL4W,/works/OL3W,/works/OL1W"),
+        ("fq", "first_publish_year:[* TO *]"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_get_users_logged_books_sorts_a_filtered_shelf_by_own_rating(mock_reading_log_dependencies):
+    fetch_all, solr = mock_reading_log_dependencies
+    fetch_all.side_effect = _shelf_queries(_shelf(2, 1, 4, 3))
+    solr.get_many_async = AsyncMock(side_effect=_solr_docs)
+    with _shelf_count(4), patch("openlibrary.plugins.worksearch.code.run_solr_query_async", _fake_solr([], readable={"/works/OL1W", "/works/OL3W"})):
+        result = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, sort="rating", fq=READABLE_ONLY)
+
+    assert [doc.key for doc in result.docs] == ["/works/OL1W", "/works/OL3W"]
+    assert result.sort == "rating"
+    shelf_query, _ = fetch_all.await_args_list[0].args
+    assert "LEFT JOIN ratings r ON r.username = b.username AND r.work_id = b.work_id" in shelf_query
+    assert "LIMIT" not in shelf_query
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("q", "checkin_year", "shelf_count"),
+    [
+        pytest.param("tolkien", None, 1, id="search"),
+        pytest.param("", 2023, 1, id="year-page"),
+        pytest.param("", None, Bookshelves.MAX_SOLR_ORDERED_SHELF_SIZE + 1, id="huge-shelf"),
+    ],
+)
+async def test_get_users_logged_books_leaves_some_filtered_shelves_in_solr_order(mock_reading_log_dependencies, q, checkin_year, shelf_count):
+    solr_response = MagicMock(num_found=1, docs=[_solr_doc(42)])
+    with (
+        _shelf_count(shelf_count),
+        patch("openlibrary.plugins.worksearch.code.run_solr_query_async", new_callable=AsyncMock, return_value=solr_response) as run_solr_query,
+    ):
+        result = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, sort="title", q=q, checkin_year=checkin_year, fq=READABLE_ONLY)
+
+    assert result.sort is None
+    assert result.total_results == 1
+    run_solr_query.assert_awaited_once()
+    assert "sort" not in run_solr_query.await_args.kwargs
+
+
+@pytest.mark.asyncio
+async def test_get_users_logged_books_leaves_a_filtered_shelf_in_solr_order_when_sorting_fails(mock_reading_log_dependencies, caplog):
+    solr_responses = [MagicMock(error={"msg": "Solr is down"}, num_found=None, docs=[]), MagicMock(num_found=1, docs=[_solr_doc(42)])]
+    with patch("openlibrary.plugins.worksearch.code.run_solr_query_async", new_callable=AsyncMock, side_effect=solr_responses) as run_solr_query:
+        result = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, fq=READABLE_ONLY)
+
+    assert result.sort is None
+    assert result.docs[0].key == "/works/OL42W"
+    assert run_solr_query.await_args.kwargs["rows"] == 100
+    assert "Solr is down" in caplog.text
+
+
+def _use_fake_solr(monkeypatch, run_solr_query: AsyncMock) -> None:
+    """Serves Solr from `run_solr_query` for sorting and filtering, and from _solr_docs for the books themselves."""
+    solr = MagicMock()
+    solr.get_many_async = AsyncMock(side_effect=_solr_docs)
+    monkeypatch.setattr("openlibrary.core.bookshelves.get_solr", lambda: solr)
+    monkeypatch.setattr("openlibrary.plugins.worksearch.code.run_solr_query_async", run_solr_query)
+    monkeypatch.setattr(Bookshelves, "add_storage_items_for_redirects", AsyncMock())
+    monkeypatch.setattr(Bookshelves, "link_editions_to_works", lambda docs: docs)
 
 
 class TestPublicReadingLogIntegration:
@@ -338,6 +601,89 @@ class TestPublicReadingLogIntegration:
         pages = [await Bookshelves.get_users_logged_books("alice", bookshelf_id=3, limit=3, page=page, sort="rating") for page in (1, 2)]
 
         assert [[doc.key for doc in page.docs] for page in pages] == [["/works/OL2W", "/works/OL1W", "/works/OL4W"], ["/works/OL3W"]]
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_solr_sorted_shelf_pages_are_slices_of_one_order(self, pg_db, monkeypatch):
+        await async_db.execute(
+            "INSERT INTO bookshelves_books (username, bookshelf_id, work_id, edition_id, created) "
+            "VALUES ('alice', 1, 1, 11, '2025-01-01'), ('alice', 1, 2, NULL, '2025-01-02'), ('alice', 1, 3, NULL, '2025-01-03'), "
+            "('bob', 1, 4, NULL, '2025-01-04')"
+        )
+        solr = MagicMock()
+        solr.get_many_async = AsyncMock(side_effect=_solr_docs)
+        monkeypatch.setattr("openlibrary.core.bookshelves.get_solr", lambda: solr)
+        monkeypatch.setattr("openlibrary.plugins.worksearch.code.run_solr_query_async", _fake_solr(["/works/OL3W", "/works/OL1W"]))
+        monkeypatch.setattr(Bookshelves, "add_storage_items_for_redirects", AsyncMock())
+        monkeypatch.setattr(Bookshelves, "link_editions_to_works", lambda docs: docs)
+
+        pages = [await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, limit=2, page=page, sort="title") for page in (1, 2)]
+
+        assert [[doc.key for doc in page.docs] for page in pages] == [["/works/OL3W", "/works/OL1W"], ["/works/OL2W"]]
+        assert pages[0].docs[1].logged_edition == "/books/OL11M"
+        assert pages[0].total_results == 3
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_filtered_shelf_sorted_by_rating(self, pg_db, monkeypatch):
+        await async_db.execute(
+            "INSERT INTO bookshelves_books (username, bookshelf_id, work_id, created) "
+            "VALUES ('alice', 3, 1, '2025-01-01'), ('alice', 3, 2, '2025-01-02'), ('alice', 3, 3, '2025-01-03'), ('alice', 3, 4, '2025-01-04')"
+        )
+        await async_db.execute("INSERT INTO ratings (username, work_id, rating) VALUES ('alice', 1, 2), ('alice', 2, 5), ('bob', 4, 5)")
+        solr = MagicMock()
+        solr.get_many_async = AsyncMock(side_effect=_solr_docs)
+        monkeypatch.setattr("openlibrary.core.bookshelves.get_solr", lambda: solr)
+        monkeypatch.setattr("openlibrary.plugins.worksearch.code.run_solr_query_async", _fake_solr([], readable={"/works/OL1W", "/works/OL2W", "/works/OL4W"}))
+        monkeypatch.setattr(Bookshelves, "add_storage_items_for_redirects", AsyncMock())
+        monkeypatch.setattr(Bookshelves, "link_editions_to_works", lambda docs: docs)
+
+        pages = [await Bookshelves.get_users_logged_books("alice", bookshelf_id=3, limit=2, page=page, sort="rating", fq=READABLE_ONLY) for page in (1, 2)]
+
+        assert [[doc.key for doc in page.docs] for page in pages] == [["/works/OL2W", "/works/OL1W"], ["/works/OL4W"]]
+        assert pages[0].total_results == 3
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_swapping_one_book_for_another_shows_the_new_book(self, pg_db, monkeypatch):
+        await async_db.execute(
+            "INSERT INTO bookshelves_books (username, bookshelf_id, work_id, created) "
+            "VALUES ('alice', 1, 1, '2025-01-01'), ('alice', 1, 2, '2025-01-02'), ('alice', 1, 3, '2025-01-03')"
+        )
+        _use_fake_solr(monkeypatch, _fake_solr([f"/works/OL{work_id}W" for work_id in (1, 2, 3, 4)]))
+
+        async def want_to_read() -> tuple[list[str], int]:
+            result = await Bookshelves.get_users_logged_books("alice", bookshelf_id=1, sort="title")
+            return [doc.key for doc in result.docs], result.total_results
+
+        assert await want_to_read() == (["/works/OL1W", "/works/OL2W", "/works/OL3W"], 3)
+
+        await Bookshelves.add("alice", "2", "2")
+        await Bookshelves.add("alice", "1", "4")
+
+        assert await want_to_read() == (["/works/OL1W", "/works/OL3W", "/works/OL4W"], 3)
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_rating_changes_reorder_a_readable_only_shelf_right_away(self, pg_db, monkeypatch):
+        await async_db.execute(
+            "INSERT INTO bookshelves_books (username, bookshelf_id, work_id, created) "
+            "VALUES ('alice', 3, 1, '2025-01-01'), ('alice', 3, 2, '2025-01-02'), ('alice', 3, 3, '2025-01-03')"
+        )
+        await async_db.execute("INSERT INTO ratings (username, work_id, rating) VALUES ('alice', 1, 2), ('alice', 2, 4)")
+        _use_fake_solr(monkeypatch, _fake_solr([], readable={"/works/OL1W", "/works/OL2W", "/works/OL3W"}))
+
+        async def top_rated_readable() -> list[str]:
+            result = await Bookshelves.get_users_logged_books("alice", bookshelf_id=3, sort="rating", fq=READABLE_ONLY)
+            return [doc.key for doc in result.docs]
+
+        assert await top_rated_readable() == ["/works/OL2W", "/works/OL1W", "/works/OL3W"]
+
+        await Ratings.add("alice", 3, 5)
+        assert await top_rated_readable() == ["/works/OL3W", "/works/OL2W", "/works/OL1W"]
+
+        await Ratings.remove("alice", 2)
+        assert await top_rated_readable() == ["/works/OL3W", "/works/OL1W", "/works/OL2W"]
 
     @pytest.mark.integration
     @pytest.mark.asyncio
