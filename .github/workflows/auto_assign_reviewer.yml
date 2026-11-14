@@ -29,17 +29,24 @@ jobs:
     # the author-exclusion GitHub applies to requesting a PR's own author (proven on #14450), so this
     # covers our own openlibrary-bot-authored PRs too -- no bot-author exclusion needed here.
     #
-    # EVERY non-draft PR, forks included (#14482). The former same-repo clause
-    # (head.repo.full_name == github.repository) was a "spend gate" that excluded forks, so an
+    # Covers forks (#14482), but auto-requests only for KNOWN authors -- a soft spend gate. The
+    # former same-repo clause (head.repo.full_name == github.repository) excluded ALL forks, so an
     # external contribution got no auto-review until a maintainer requested the team by hand.
-    # Maintainer decision (2026-11-14): accept the spend and cover forks -- external coverage
-    # matters more. Accepted trade: every non-draft fork PR (incl. drive-by/spam from brand-new
-    # accounts) now spends the bot's Claude budget, with NO first-time-contributor throttle. This
-    # runs on pull_request_target, which GitHub documents as always running in base-repo context
-    # regardless of the fork-PR "Approve and run" approval gate -- that gate applies to a
-    # pull_request run from a fork, not to pull_request_target. So nothing holds a brand-new
-    # account's first run here. This worsens the fail-closed subscription-exhaustion exposure
-    # tracked on #14461; a real spend cap is follow-up there. Drafts are still skipped.
+    # Dropping it covers external contributions (the goal; maintainer decision 2026-11-14).
+    #
+    # Why a throttle is still needed: the fork-PR "Approve and run" gate that holds a brand-new
+    # account's first workflow run does NOT apply here -- this runs on pull_request_target, which
+    # GitHub always runs in base-repo context regardless of that approval setting (it gates a
+    # pull_request run from a fork, not pull_request_target). So without a gate, every drive-by /
+    # throwaway fork PR would trigger a full model review and spend the bot's Claude budget -- a
+    # merge-gate DoS and the fail-closed subscription-exhaustion exposure tracked on #14461.
+    #
+    # SOFT SPEND GATE (in the script below, not this if:): auto-request the team only when the PR's
+    # author_association is a known contributor (OWNER/MEMBER/COLLABORATOR/CONTRIBUTOR). A genuine
+    # first-timer (NONE/FIRST_TIME_CONTRIBUTOR/FIRST_TIMER/MANNEQUIN) is skipped and stays reviewable
+    # via a manual maintainer reviewer-request (the path used on #14480), so no coverage is lost --
+    # we just stop auto-spending on unknown actors until the real #14461 spend cap/monitor lands.
+    # Same-repo PRs are always MEMBER+, so they are unaffected. Drafts are skipped.
     if: >
       !github.event.pull_request.draft
     steps:
@@ -68,7 +75,23 @@ jobs:
             // Extracted as a named fn (closing over nothing) so a unit test can drive it with a mock
             // github/core and prove both the happy path and the fail-loud silent-no-op path. See
             // tests/unit/js/code_review_trigger.test.js.
-            const requestReviewTeam = async ({ github, core, owner, repo, prNumber, team }) => {
+            const requestReviewTeam = async ({ github, core, owner, repo, prNumber, team, authorAssociation }) => {
+              // SOFT SPEND GATE: auto-request only for a known author_association. pull_request_target
+              // is NOT held by GitHub's first-time-contributor "Approve and run" gate, so without this
+              // every drive-by/throwaway fork PR would spend the bot's Claude budget (merge-gate DoS;
+              // #14461). A first-timer is skipped here and stays reviewable via a manual maintainer
+              // reviewer-request. Allowlist (not denylist) so any unexpected/empty association fails
+              // safe toward NOT spending. author_association is payload metadata -- no fetch, no fork code.
+              const AUTO_REQUEST_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR', 'CONTRIBUTOR']);
+              if (!AUTO_REQUEST_ASSOCIATIONS.has(String(authorAssociation || '').toUpperCase())) {
+                core.info(
+                  `PR #${prNumber} author_association=${authorAssociation} is not a known contributor -- ` +
+                  `skipping auto-request (first-timers are reviewable via a manual maintainer reviewer-request; ` +
+                  `soft spend gate until the #14461 cap lands).`
+                );
+                return;
+              }
+
               const { data: requested } = await github.rest.pulls.listRequestedReviewers({
                 owner, repo, pull_number: prNumber,
               });
@@ -109,4 +132,7 @@ jobs:
               core.info(`Requested the ${team} team as reviewer on PR #${prNumber}.`);
             };
 
-            await requestReviewTeam({ github, core, owner, repo, prNumber, team: TEAM });
+            await requestReviewTeam({
+              github, core, owner, repo, prNumber, team: TEAM,
+              authorAssociation: context.payload.pull_request.author_association,
+            });

@@ -189,9 +189,11 @@ test('auto_assign no longer excludes bot-authored PRs (team request works on the
 });
 
 // ---- The assign `if:` guard, evaluated like the model-run guard above ----
-// #14482 widens auto_assign to forks. We evaluate the ACTUAL assign `if:` string (transpiled 1:1 to
-// JS by the same evalIf harness used for the model guard) against synthetic PR events, so the tested
-// logic == the deployed logic -- not just a regex over the source.
+// #14482 widens the assign JOB to forks: the if: now gates only on !draft (no same-repo clause), so
+// the job RUNS for every non-draft PR, forks included. WHO actually gets the team requested is then
+// decided inside the script by the author_association spend gate (tested separately below). We
+// evaluate the ACTUAL assign `if:` string (transpiled 1:1 to JS by the same evalIf harness used for
+// the model guard) against synthetic PR events, so the tested logic == the deployed logic.
 const assignIf = assignWf.jobs.assign.if;
 assert.ok(typeof assignIf === 'string' && assignIf.trim(), 'assign job must have an if: guard');
 
@@ -202,9 +204,9 @@ function assignCtx({ draft = false, headRepo = 'internetarchive/openlibrary', re
     return { repository, event: { pull_request: { draft, head: { repo: { full_name: headRepo } } } } };
 }
 
-test('auto_assign FIRES on a non-draft FORK PR (same-repo spend gate removed -- #14482)', () => {
+test('auto_assign the JOB runs on a non-draft FORK PR (same-repo if: gate removed -- #14482)', () => {
     const fork = assignCtx({ headRepo: 'someexternaluser/openlibrary' });
-    assert.equal(evalIf(assignIf, fork), true, 'a non-draft fork PR must now get the reviewer team auto-requested');
+    assert.equal(evalIf(assignIf, fork), true, 'the assign job if: must fire for a non-draft fork (author gate applies inside the script)');
 });
 
 test('auto_assign FIRES on a non-draft same-repo PR (unchanged)', () => {
@@ -295,7 +297,7 @@ const TEAM_OBJ = { slug: TEAM_SLUG };
 test('requestReviewTeam: team lands after the request -> succeeds, no setFailed', async () => {
     const gh = mockGithub({ before: [], after: [TEAM_OBJ], reviews: [] });
     const { core, state } = mockCore();
-    await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG });
+    await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG, authorAssociation: 'MEMBER' });
     assert.equal(gh.calls.requested, true, 'it must call requestReviewers');
     assert.deepEqual(gh.calls.requestedWith.team_reviewers, [TEAM_SLUG], 'it must request the team by slug');
     assert.equal(state.failed, null, 'a landed request must not fail the job');
@@ -304,7 +306,7 @@ test('requestReviewTeam: team lands after the request -> succeeds, no setFailed'
 test('requestReviewTeam: request returns OK but team is ABSENT afterward -> fails loud (silent no-op caught)', async () => {
     const gh = mockGithub({ before: [], after: [], reviews: [] }); // post-request read still empty
     const { core, state } = mockCore();
-    await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG });
+    await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG, authorAssociation: 'MEMBER' });
     assert.equal(gh.calls.requested, true, 'it must have attempted the request');
     assert.ok(state.failed, 'an unlanded team request MUST core.setFailed, not pass silently');
     assert.ok(state.failed.includes(TEAM_SLUG), 'the failure message must name the team');
@@ -313,7 +315,7 @@ test('requestReviewTeam: request returns OK but team is ABSENT afterward -> fail
 test('requestReviewTeam: team already requested -> skips without requesting again', async () => {
     const gh = mockGithub({ before: [TEAM_OBJ], after: [TEAM_OBJ], reviews: [] });
     const { core, state } = mockCore();
-    await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG });
+    await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG, authorAssociation: 'MEMBER' });
     assert.equal(gh.calls.requested, false, 'an already-requested team must not be re-requested');
     assert.equal(state.failed, null, 'the skip path must not fail the job');
 });
@@ -321,7 +323,43 @@ test('requestReviewTeam: team already requested -> skips without requesting agai
 test('requestReviewTeam: an existing openlibrary-bot review -> skips without requesting', async () => {
     const gh = mockGithub({ before: [], after: [], reviews: [{ user: { login: 'openlibrary-bot' } }] });
     const { core, state } = mockCore();
-    await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG });
+    await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG, authorAssociation: 'MEMBER' });
     assert.equal(gh.calls.requested, false, 'a PR already reviewed by the bot must not get a fresh request');
     assert.equal(state.failed, null, 'the skip path must not fail the job');
+});
+
+// ---- The soft spend gate: auto-request only for KNOWN authors (#14482 follow-up) ----
+// pull_request_target is NOT held by GitHub's first-time-contributor "Approve and run" gate, so the
+// JS requestReviewTeam path self-gates on author_association: a genuine first-timer / drive-by fork
+// author is skipped (and left to a manual maintainer reviewer-request), while a known contributor --
+// including every same-repo author, who is always MEMBER+ -- still gets the team auto-requested.
+// The throttle is in the JS fn (not the YAML if:), so it is unit-tested here directly.
+for (const association of ['OWNER', 'MEMBER', 'COLLABORATOR', 'CONTRIBUTOR']) {
+    test(`requestReviewTeam: a known author (${association}) STILL gets the team requested (incl. forks)`, async () => {
+        const gh = mockGithub({ before: [], after: [TEAM_OBJ], reviews: [] });
+        const { core, state } = mockCore();
+        await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG, authorAssociation: association });
+        assert.equal(gh.calls.requested, true, `a ${association} author must get the team auto-requested`);
+        assert.equal(state.failed, null, 'a landed request must not fail the job');
+    });
+}
+
+for (const association of ['NONE', 'FIRST_TIME_CONTRIBUTOR', 'FIRST_TIMER', 'MANNEQUIN']) {
+    test(`requestReviewTeam: a first-timer/untrusted author (${association}) is SKIPPED -- no request, no fail (spend gate)`, async () => {
+        const gh = mockGithub({ before: [], after: [TEAM_OBJ], reviews: [] });
+        const { core, state } = mockCore();
+        await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG, authorAssociation: association });
+        assert.equal(gh.calls.requested, false, `a ${association} author must NOT trigger an auto-request (the fork spend gate)`);
+        assert.equal(state.failed, null, 'the spend-gate skip is normal, not a failure');
+    });
+}
+
+test('requestReviewTeam: an unexpected/empty author_association fails SAFE -> skipped (allowlist, not denylist)', async () => {
+    for (const association of [undefined, '', 'SOMETHING_NEW', 'member' /* wrong case still normalized -> MEMBER fires */]) {
+        const gh = mockGithub({ before: [], after: [TEAM_OBJ], reviews: [] });
+        const { core } = mockCore();
+        await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG, authorAssociation: association });
+        const shouldFire = association === 'member'; // normalized to MEMBER
+        assert.equal(gh.calls.requested, shouldFire, `author_association=${JSON.stringify(association)} -> requested should be ${shouldFire}`);
+    }
 });
