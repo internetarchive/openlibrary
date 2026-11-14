@@ -47,6 +47,13 @@ export const E2E_EMAIL = process.env.OL_E2E_EMAIL || (isLocal ? 'openlibrary@exa
 const E2E_S3 =
     process.env.OL_E2E_S3_ACCESS && process.env.OL_E2E_S3_SECRET ? { access: process.env.OL_E2E_S3_ACCESS, secret: process.env.OL_E2E_S3_SECRET } : null;
 
+/**
+ * The header's account avatar, rendered only for a logged-in patron. My Books
+ * shows for everyone, so it proves nothing. Patrons without a linked
+ * archive.org account get the glyph instead of the image.
+ */
+export const ACCOUNT_AVATAR = '.hamburger-trigger :is(.account__icon, .account__icon-glyph)';
+
 /** True when this environment has credentials for logged-in tests. */
 export const HAS_CREDENTIALS = Boolean(E2E_S3 || E2E_USERNAME);
 
