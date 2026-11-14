@@ -400,7 +400,8 @@ def build_book_header(edition, readers: int | None = None) -> dict:
         "cover_url": edition.get_cover_url("M"),
         "edition_line": " · ".join(edition_line_parts),
         "isbn13": edition.get_isbn13(),
-        "edition_count": work.get_edition_count() if work else 1,
+        # An unindexed work counts as Nothing, which JSON and the component can't take.
+        "edition_count": (work.get_edition_count() or 1) if work else 1,
         "work_key": work.key if work else None,
         "readers": readers,
     }
