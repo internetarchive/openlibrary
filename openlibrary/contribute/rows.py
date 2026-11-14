@@ -40,7 +40,7 @@ class TaskRowsResponse(BaseModel):
 
 def dump_rows(rows: list[dict]) -> list[dict]:
     """``rows`` through the same models as /tasks/rows.json, so the embedded and fetched JSON can't drift apart."""
-    return TaskRowsResponse(rows=rows).model_dump()["rows"]
+    return TaskRowsResponse.model_validate({"rows": rows}).model_dump()["rows"]
 
 
 def dump_book(book: dict) -> dict:

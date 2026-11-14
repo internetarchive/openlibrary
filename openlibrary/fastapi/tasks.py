@@ -93,7 +93,7 @@ def tasks_rows(
     """
     if (rows := contribute.build_task_rows(contribute.normalize_filter(task), contribute.get_initiative(initiative))) is None:
         return Response(status_code=202)
-    return TaskRowsResponse(rows=rows)
+    return TaskRowsResponse.model_validate({"rows": rows})
 
 
 def find_project(slug: str) -> initiatives.Initiative:
