@@ -14,11 +14,6 @@ import { trackEvent } from './ol.analytics.js';
 const SKIPPED_KEY = 'ol-contribute-skipped';
 // The "Not sure" row's value on a choice list; mirrors ``UNSURE`` in contribute.py.
 const UNSURE = 'unsure';
-// While placeholder cards are up, the server is building the list in the background: ask again soon, then
-// every few seconds, for as long as its Solr query may take, then give up and say the list couldn't load.
-const ROWS_RETRY_MS = [1000, 1000, 2000, 3000, 5000];
-const ROWS_MAX_TRIES = 36;
-
 // Same normalization the server applies, so the verdict on screen matches what is stored.
 const ID_RULES = {
     lccn: { parse: parseLccn, isValid: isValidLccn },
@@ -80,51 +75,23 @@ function settleTaskList(root) {
 }
 
 /**
- * Fetch the rows a page rendered placeholders for. The server answers 202 until the pool is built.
- * An error status, or running out of tries, shows the "couldn't load" message rather than the empty state.
- * @param {ParentNode} root - the ``[data-contribute-list]`` container
- * @param {HTMLOListElement} list - the ``[data-rows-url]`` list of placeholders
- * @returns {Promise<void>}
- */
-async function loadTaskRows(root, list) {
-    let loaded = false;
-    for (let attempt = 0; attempt < ROWS_MAX_TRIES; attempt++) {
-        try {
-            const res = await fetch(list.dataset.rowsUrl);
-            if (res.ok && res.status !== 202) {
-                list.innerHTML = (await res.json()).partials;
-                loaded = true;
-                break;
-            }
-            if (!res.ok) break;
-        } catch (e) {
-            // Offline or a dropped request: try again.
-        }
-        const delay = ROWS_RETRY_MS[Math.min(attempt, ROWS_RETRY_MS.length - 1)];
-        await new Promise(resolve => setTimeout(resolve, delay));
-    }
-    list.querySelectorAll('[data-row-skeleton]').forEach(li => li.remove());
-    delete list.dataset.rowsUrl;
-    if (loaded) {
-        settleTaskList(root);
-        return;
-    }
-    const error = root.querySelector('[data-list-error]');
-    if (error) error.hidden = false;
-}
-
-/**
- * Wire the dashboard list: load it when the page rendered placeholders, else settle what's there.
+ * Wire the dashboard list: settle the rows ``ol-task-rows`` renders, and show the error if it couldn't fetch them.
  * @param {ParentNode} root - the ``[data-contribute-list]`` container
  * @returns {void}
  */
 function initTaskList(root) {
-    const pending = root.querySelector('[data-rows-url]');
-    if (pending) {
-        loadTaskRows(root, pending);
-    } else {
+    root.addEventListener('ol-task-rows-render', () => settleTaskList(root));
+    root.addEventListener('ol-task-rows-error', () => {
+        const error = root.querySelector('[data-list-error]');
+        if (error) error.hidden = false;
+    });
+    const list = root.querySelector('ol-task-rows');
+    if (!list) {
         settleTaskList(root);
+        return;
     }
+    // Upgrading renders inline rows at once; rows still being fetched settle on the render event.
+    customElements.whenDefined('ol-task-rows').then(() => list.rows && settleTaskList(root));
 }
 
 /**
@@ -680,5 +647,8 @@ export function init() {
     if (document.querySelector('[data-receipt]')) clearSavedReceipt();
     document.querySelectorAll('form[data-id-form]').forEach(initIdentifierForm);
     document.querySelectorAll('form[data-cover-form]').forEach(initCoverForm);
-    document.querySelectorAll('[data-contribute-done]').forEach(root => hideSkippedTasks(root, '[data-same-book]'));
+    // The same-book tasks are ol-task-book's, so they exist once it upgrades.
+    customElements
+        .whenDefined('ol-task-book')
+        .then(() => document.querySelectorAll('[data-contribute-done]').forEach(root => hideSkippedTasks(root, '[data-same-book]')));
 }

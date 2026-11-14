@@ -29,7 +29,7 @@ from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary import contribute, home_genres
+from openlibrary.plugins.openlibrary import home_genres
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import (
     convert_list,
@@ -144,17 +144,6 @@ class ReadingStatePartial:
     async def generate_async(cls, username: str, work_olids: list[str]) -> dict[str, ReadingState]:
         work_ids = [int(extract_numeric_id_from_olid(olid)) for olid in work_olids]
         return {f"OL{work_id}W": state for work_id, state in (await get_reading_state(username, work_ids)).items()}
-
-
-class TaskRowsPartial:
-    """The Tasks dashboard's list, for a page that rendered placeholders while the pool was being built."""
-
-    @classmethod
-    def generate(cls, task: str, initiative: str) -> dict | None:
-        """None while the pool is still being built; unknown filters and initiatives fall back to the defaults."""
-        if (rows := contribute.build_task_rows(contribute.normalize_filter(task), contribute.get_initiative(initiative))) is None:
-            return None
-        return {"partials": render_jinja_template("contribute/rows.html.jinja", rows=rows)}
 
 
 class CarouselLoadMoreParams(BaseModel):

@@ -406,6 +406,15 @@ def build_book_header(edition, readers: int | None = None) -> dict:
     }
 
 
+def get_task_book_labels() -> dict[str, str]:
+    """The translated strings <ol-task-book> shows, keyed as in its DEFAULT_LABELS; it fills in the placeholders."""
+    return {
+        "editionCount": _("one of %(count)s editions of this work"),
+        "viewBook": _("Go to book page"),
+        "editBook": _("Go to edit page"),
+    }
+
+
 def build_task_url(task: tasks.Task, back: str = "", initiative: str = "", surprise: bool = False) -> str:
     url = f"/tasks/task/{task.olid}/{task.field}"
     params = {"back": back, "initiative": initiative, "surprise": "1" if surprise else ""}
@@ -688,8 +697,9 @@ class contribute_index(delegate.page):
             _("Tasks"),
             rail=build_filter_rail(task, initiative, gaps),
             rows=rows,
+            book_labels=get_task_book_labels(),
             # While the pool builds, the script fetches the rows from here.
-            rows_url=build_dashboard_url(task, base="/partials/TaskRows.json", initiative=slug) if rows is None else "",
+            rows_url=build_dashboard_url(task, base="/tasks/rows.json", initiative=slug) if rows is None else "",
             skeleton_rows=LIST_SKELETON_ROWS if rows is None else 0,
             heading=get_filter_headings()[task] if task else _("All project tasks"),
             empty=_("Nothing missing here right now. Thank you."),
@@ -856,6 +866,7 @@ def render_nothing_page(edition, fld: str, back: str, initiative: str = ""):
         "contribute/nothing.html.jinja",
         _("Nothing to fill in here"),
         book=build_book_header(edition),
+        book_labels=get_task_book_labels(),
         field_label=label,
         on_work=fld in tasks.WORK_FIELDS,
         list_url=build_dashboard_url(back, initiative=initiative),
@@ -964,6 +975,7 @@ class contribute_done(delegate.page):
             "contribute/done.html.jinja",
             _("Saved") if saved else not_found_label if not_found else _("Skipped"),
             book=build_book_header(edition),
+            book_labels=get_task_book_labels(),
             field_label=field_label,
             saved=saved,
             not_found_label=not_found_label if not_found else "",

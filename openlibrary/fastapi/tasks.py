@@ -1,5 +1,5 @@
-"""The Tasks page's "happening now" feed, polled by contribute-feed.js, and the /tasks/admin pages, where the community projects are run.
-The dashboard's list is the TaskRows partial."""
+"""What the /tasks pages fetch after load (the "happening now" feed, and the dashboard's rows that <ol-task-rows> polls for),
+and the /tasks/admin pages, where the community projects are run."""
 
 from __future__ import annotations
 
@@ -15,9 +15,11 @@ from openlibrary.contribute import feed, initiatives, manage
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell.request import PageMeta
 from openlibrary.core.shell.user import ShellUser
+from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
 from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SitePageRoute
 from openlibrary.fastapi.shared.utils import FlashType, set_flash_cookie
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary import contribute
 from openlibrary.utils.request_context import site
 
 router = APIRouter()
@@ -75,6 +77,54 @@ def tasks_feed(
     """Recent human edits to catalog records as rows for the Tasks page feed, rotated and restamped back from now."""
     rows = feed.recent_rows(limit, offset)
     return FeedResponse(rows=[FeedRow(**r) for r in rows])
+
+
+class TaskBook(BaseModel):
+    key: str
+    olid: str
+    edit_url: str
+    title: str
+    authors: str
+    cover_url: str | None
+    edition_line: str
+    isbn13: str | None
+    edition_count: int | None
+    work_key: str | None
+    readers: int | None
+
+
+class TaskSummary(BaseModel):
+    key: str
+    field: str
+    label: str
+    action_label: str
+    url: str
+    weight: float
+
+
+class TaskRow(BaseModel):
+    book: TaskBook
+    tasks: list[TaskSummary]
+
+
+class TaskRowsResponse(BaseModel):
+    rows: list[TaskRow]
+
+
+# Plain def: the memcache read and the edition loads are blocking I/O, so they run in the threadpool.
+@router.get("/tasks/rows.json", response_model=TaskRowsResponse, include_in_schema=False)
+def tasks_rows(
+    _user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    task: Annotated[str, Query(description="The dashboard filter; unknown values mean all tasks.")] = "",
+    initiative: Annotated[str, Query(description="The initiative's slug; unknown values mean the headline one.")] = "",
+) -> TaskRowsResponse | Response:
+    """The dashboard's rows for <ol-task-rows>: 202 with no body while the pool is still being built.
+
+    Internal: the shape follows the component and can change without notice.
+    """
+    if (rows := contribute.build_task_rows(contribute.normalize_filter(task), contribute.get_initiative(initiative))) is None:
+        return Response(status_code=202)
+    return TaskRowsResponse(rows=[TaskRow(**r) for r in rows])
 
 
 def find_project(slug: str) -> initiatives.Initiative:

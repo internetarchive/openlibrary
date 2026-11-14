@@ -35,7 +35,6 @@ from openlibrary.plugins.openlibrary.partials import (
     SearchFacetsPartial,
     SubjectPublishingHistoryPartial,
     SubjectRelatedPartial,
-    TaskRowsPartial,
     WorkEditionsPartial,
 )
 
@@ -244,19 +243,6 @@ async def reading_state_partial(
     """
     states = await ReadingStatePartial.generate_async(user.username, work_ids)
     return ReadingStateResponse(user_key=user.user_key, works={olid: ReadingStateEntry(**state) for olid, state in states.items()})
-
-
-# Plain def: the memcache read and the edition loads are blocking I/O, so they run in the threadpool.
-@router.get("/partials/TaskRows.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA, response_model=None)
-def task_rows_partial(
-    _user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
-    task: Annotated[str, Query(description="The dashboard filter; unknown values mean all tasks.")] = "",
-    initiative: Annotated[str, Query(description="The initiative's slug; unknown values mean the headline one.")] = "",
-) -> dict | Response:
-    """The Tasks dashboard's list HTML. 202 with no body while the task pool is still being built; contribute.js retries."""
-    if (result := TaskRowsPartial.generate(task, initiative)) is None:
-        return Response(status_code=202)
-    return result
 
 
 @router.get("/partials/LazyCarousel.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
