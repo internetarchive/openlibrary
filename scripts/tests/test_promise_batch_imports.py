@@ -1,4 +1,10 @@
+import sys
+from unittest.mock import MagicMock
+
 import pytest
+
+# promise_batch_imports imports _init_path (for its side effect), which only works from the scripts directory.
+sys.modules["_init_path"] = MagicMock()
 
 from ..promise_batch_imports import format_date, map_book_to_olbook
 

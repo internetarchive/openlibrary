@@ -1,17 +1,19 @@
 {#- /tasks/admin: every community project with its status and progress. Takes `page` from manage.build_index. -#}
 {% import "contribute/admin/parts.html.jinja" as parts %}
 <div class="contrib-dash contrib-admin">
-    <header class="contrib-dash__head">
-        <hgroup class="contrib-dash__heading">
-            <h1 class="contrib-title">{{ _("Community projects") }}</h1>
-            <p class="contrib-dash__lede">{{ _("The projects on the Tasks page: what is running, what is coming and what is over.") }}</p>
-        </hgroup>
-        <nav class="contrib-dash__links" aria-label="{{ _('Project pages') }}">
-            <a class="contrib-dash__edits" href="/tasks">{{ _("Tasks") }}</a>
+    <header class="contrib-admin__head">
+        <ol-button class="contrib-admin__back" variant="ghost" size="small" href="/tasks">
+            {{ icon("chevron-left", slot="icon-start") }}{{ _("Tasks") }}
+        </ol-button>
+        <div class="contrib-dash__head">
+            <hgroup class="contrib-dash__heading">
+                <h1 class="contrib-title">{{ _("Community projects") }}</h1>
+                <p class="contrib-dash__lede">{{ _("The projects on the Tasks page: what is running, what is coming and what is over.") }}</p>
+            </hgroup>
             <ol-button variant="primary" size="small" href="{{ page.new_url }}">
                 {{ _("New project") }}
             </ol-button>
-        </nav>
+        </div>
     </header>
     <div class="contrib-admin__scroll">
         <table class="contrib-admin__table no-table-collapse">
@@ -33,7 +35,7 @@
                             <a class="contrib-admin__name" href="{{ project.url }}">{{ project.title }}</a>
                             <span class="contrib-admin__fields">{{ project.fields | join(" · ") }}</span>
                         </th>
-                        <td>{{ parts.status(project) }}</td>
+                        <td>{{ parts.state(project) }}</td>
                         <td>{{ project.run }}</td>
                         <td class="contrib-admin__num">{{ project.books }}</td>
                         <td>{{ parts.progress(project) }}</td>

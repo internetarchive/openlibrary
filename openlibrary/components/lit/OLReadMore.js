@@ -128,7 +128,7 @@ export class OLReadMore extends LitElement {
         }
 
         .toggle-btn.small {
-            font-size: 12px;
+            font-size: var(--font-size-label-medium);
             padding-top: var(--spacing-inset-md);
             padding-bottom: var(--spacing-inset-sm);
         }

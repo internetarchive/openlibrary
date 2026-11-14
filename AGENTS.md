@@ -63,6 +63,10 @@ npm run watch               # Dev mode with hot reload
 - **i18n (Internationalization):** Do not split sentences into separate translatable strings/fragments with HTML links. Instead, use single, unified translatable strings with Python formatting placeholders (e.g. `%(link_start)s` / `%(link_end)s`) so translators can position links according to the target language's grammatical structure.
 - **Branches:** `{issue-number}/{type}/{slug}`
 
+### Picking Up an Issue
+
+Agents opening PRs follow [`CONTRIBUTING.md`](CONTRIBUTING.md) like everyone else: read it before starting work on an issue, including the `Good First Issue` rules (the bot closes PRs from authors who haven't commented on the issue).
+
 ### Entry Points
 
 | What | Where |

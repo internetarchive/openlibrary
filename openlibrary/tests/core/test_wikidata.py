@@ -243,12 +243,16 @@ CREATE TABLE wikidata (
 """
 
 
-class TestAddToCache:
-    @classmethod
-    def setup_class(cls):
-        web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
+@pytest.fixture(scope="class")
+def wikidata_db():
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setitem(web.config, "db_parameters", {"dbn": "sqlite", "db": ":memory:"})
         db.get_db().query(WIKIDATA_DDL)
+        yield
 
+
+@pytest.mark.usefixtures("wikidata_db")
+class TestAddToCache:
     def teardown_method(self):
         db.get_db().query("delete from wikidata")
 

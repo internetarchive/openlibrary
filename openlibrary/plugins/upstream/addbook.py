@@ -91,6 +91,7 @@ def make_author(key: str, name: str) -> Author:
     """
     Use author_key and author_name and return an Author.
 
+    >>> _ = getfixture("mock_site")
     >>> make_author("OL123A", "Samuel Clemens")
     <Author: '/authors/OL123A'>
     """
