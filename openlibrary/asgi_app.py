@@ -6,17 +6,22 @@ import re
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import urljoin
 
 import yaml
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from prometheus_fastapi_instrumentator import Instrumentator
 from sentry_sdk import set_tag
+from starlette.routing import Route
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
+from infogami.utils import app as infogami_app
 from openlibrary.core.env import get_deployment_name, get_ol_env
+from openlibrary.core.infobase_async import get_redirect_location
 from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.fastapi.middleware.server_timing import add_server_timing
@@ -203,6 +208,20 @@ async def lifespan(app: FastAPI):
         await close_pool()
 
 
+def _is_current_document_view(request: Request) -> bool:
+    """Leave edit modes, historical revisions and alternate representations to web.py."""
+    if request.method not in ("GET", "HEAD") or request.query_params.get("m", "view") != "view" or "v" in request.query_params:
+        return False
+
+    # Match Infogami's find_encoding(): GET negotiates Accept, HEAD uses Content-Type.
+    if request.method == "GET":
+        media_type = infogami_app.parse_accept(request.headers.get("accept", ""))[0]["media_type"]
+    else:
+        media_type = request.headers.get("content-type")
+    extension = request.url.path.rpartition(".")[2]
+    return media_type not in infogami_app.media_types and extension not in infogami_app.encodings
+
+
 def create_app() -> FastAPI | None:
     install_connection_recovery()
     if "pytest" not in sys.modules:
@@ -302,19 +321,37 @@ def create_app() -> FastAPI | None:
 
     _include_routers(app)
 
-    # FastAPI is the front door for local dev and testing; proxy the rest to
-    # web.py (production keeps web.py on :8080, so the proxy stays off). Outside
-    # local dev, serve only the real testing and staging hosts.
-    if get_ol_env().LOCAL_DEV or get_deployment_name() == "testing":
+    local_dev = get_ol_env().LOCAL_DEV
+    testing = get_deployment_name() == "testing"
 
-        @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
-        async def fallback(request: Request, path: str) -> Response:
-            host = request.headers.get("host", "").split(":")[0]
-            if not get_ol_env().LOCAL_DEV and host not in ("testing.openlibrary.org", "staging.openlibrary.org"):
-                raise HTTPException(status_code=404)
-            if request.headers.get("X-Proxied-By") == "FastAPI":
-                raise HTTPException(status_code=404)
+    async def fallback(request: Request) -> Response:
+        if testing and not local_dev and request.url.hostname not in ("testing.openlibrary.org", "staging.openlibrary.org"):
+            raise HTTPException(status_code=404)
+        if request.headers.get("X-Proxied-By") == "FastAPI":
+            raise HTTPException(status_code=404)
+
+        if _is_current_document_view(request):
+            key = f"/{request.path_params['path']}"
+            if location := await get_redirect_location(key):
+                target = urljoin(key, location)
+                if target.startswith("/"):
+                    # web.py resolves even //host/path against the current origin.
+                    scheme = request.headers.get("x-forwarded-proto") or request.headers.get("x-scheme") or request.url.scheme
+                    target = f"{scheme}://{request.url.netloc}{target}"
+                # These links can be repointed by editors. Browsers should request the current target.
+                return RedirectResponse(target, status_code=302)
+
+        if local_dev or testing:
             return await proxy.proxy_to_webpy(request)
+        raise HTTPException(status_code=404)
+
+    catch_all = Route("/{path:path}", fallback, methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"], include_in_schema=False)
+    if local_dev or testing:
+        # The front door must pass unmatched methods and paths through to web.py.
+        app.router.routes.append(catch_all)
+    else:
+        # Let explicit routes handle method mismatches (405) and trailing slashes first.
+        app.router.default = catch_all
 
     return app
 
