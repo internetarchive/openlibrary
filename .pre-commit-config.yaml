@@ -93,6 +93,23 @@ repos:
         types: [python]
         exclude: (^|/)tests?/
 
+  - repo: local
+    hooks:
+      - id: no-legacy-site
+        name: No legacy web.ctx.site access
+        description: >
+          Thread-local site access can crash or use the wrong site under FastAPI.
+          Use the request-local site ContextVar instead.
+        entry: python ./scripts/check_no_legacy_site.py
+        language: python
+        files: ^(openlibrary|scripts)/.*\.py$
+        exclude: |
+          (?x)
+          (^|/)tests?/ |
+          (^|/)test_[^/]*\.py$ |
+          ^openlibrary/(utils/request_context|setup|solr/data_provider|mocks/mock_infobase|admin/stats)\.py$ |
+          ^scripts/affiliate_server\.py$
+
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v2.4.1
     hooks:

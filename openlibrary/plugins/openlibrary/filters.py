@@ -25,7 +25,7 @@ def url(**params):
 def loggedin(**kw):
     """Returns True if any user is logged in."""
     # Assuming that presence of cookie is an indication of logged-in user.
-    # Avoiding validation or calling web.ctx.site.get_user() as they are expensive.
+    # Avoiding validation or calling site.get().get_user() as they are expensive.
     return config.login_cookie_name in web.cookies()
 
 

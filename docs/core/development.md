@@ -108,39 +108,31 @@ git commit -n                                  # skip hooks for one commit
 
 pre-commit runs: `mypy`, `black`, `ruff`, JS lint, Stylelint. Python version must match `default_language_version` in `.pre-commit-config.yaml` — use `pyenv` if your system Python doesn't match.
 
-**Rendering a real Templetor/web.py template against the actual dev DB (not the `render_template` pytest fixture's mocks).** The `render_template` fixture in `openlibrary/conftest.py` is great for template-syntax/output tests, but it never touches a real site — `get_current_user()` and anything else that reads `web.ctx.site` or the `site` ContextVar will raise `LookupError`. For a one-off script (e.g. to prove an escaping fix with a real payload, or to seed/inspect real dev-DB state — accounts, lists, preferences — for a review's Playwright setup) that needs the *actual* running infobase behind `docker compose`, wire it up like this instead, run via `docker compose run --rm --no-deps home python your_script.py` (with `OL_MOUNT_DIR="$(pwd)"` so it sees your worktree's code):
+**Rendering a real Templetor/web.py template against the actual dev DB (not the `render_template` pytest fixture's mocks).** The `render_template` fixture in `openlibrary/conftest.py` is great for template-syntax/output tests, but it does not connect to a real infobase. For a one-off script (e.g. to prove an escaping fix with a real payload, or to seed/inspect real dev-DB state — accounts, lists, preferences — for a review's Playwright setup) that needs the *actual* running infobase behind `docker compose`, wire it up like this instead, run via `docker compose run --rm --no-deps home python your_script.py` (with `OL_MOUNT_DIR="$(pwd)"` so it sees your worktree's code):
 
 ```python
-import web
-from openlibrary.config import load_config  # NOT infogami.config.load — that has no .load()
-from infogami.utils import delegate
+from openlibrary.setup import setup_for_script
+from openlibrary.utils.request_context import site
 
-load_config("/openlibrary/conf/openlibrary.yml")
-delegate.fakeload()  # connects web.ctx.site to the REAL infobase over its client, disables permission checks
-
-site = web.ctx.site
+setup_for_script("/openlibrary/conf/openlibrary.yml")  # connects to the real infobase and initializes ContextVars
+_site = site.get()
 # Now real reads/writes work, e.g.:
 prefs_key = "/people/AccountBot/preferences"
-prefs = site.store.get(prefs_key) or {"update": "no", "public_readlog": "no", "type": "preferences"}
+prefs = _site.store.get(prefs_key) or {"update": "no", "public_readlog": "no", "type": "preferences"}
 prefs["public_readlog"] = "yes"
 prefs["_rev"] = None
-site.store[prefs_key] = prefs  # writes for real — same DB the `web` container reads from
+_site.store[prefs_key] = prefs  # writes for real — same DB the `web` container reads from
 ```
 
-If you also need `get_current_user()`/`accounts.get_current_user()` or anything gated on the `site` ContextVar specifically (as opposed to `web.ctx.site`) to resolve inside a *pytest* test (as opposed to a standalone script, where `fakeload()` above is enough on its own), additionally pull in `site as site_context` from `openlibrary.utils.request_context` and set it explicitly — `fakeload()` alone does not populate that ContextVar:
+For pytest template tests, the `mock_site` fixture already sets both the legacy site handle and the `site` ContextVar; no manual ContextVar assignment is needed:
 
 ```python
-import web
-from openlibrary.utils.request_context import site as site_context
-
-
 def test_something(render_template, request_context_fixture, mock_site):
     request_context_fixture(lang="en")
-    site_context.set(web.ctx.site)  # mock_site fixture already set web.ctx.site = MockSite()
     html = str(render_template("follow/follow", "somepublisher", following=True, link_track=PAYLOAD))
 ```
 
-Confirmed working on PR #12985's review (2026-07-20): used the standalone-script form to flip a test account's `public_readlog` preference (`site.store[...] = prefs`, as above) so Playwright could exercise a real call site end-to-end against the dev DB, and the pytest-fixture form to render `follow/follow.html` with an XSS payload and inspect the actual escaped output.
+Confirmed working on PR #12985's review (2026-07-20): used the standalone-script form to flip a test account's `public_readlog` preference (`_site.store[...] = prefs`, as above) so Playwright could exercise a real call site end-to-end against the dev DB, and the pytest-fixture form to render `follow/follow.html` with an XSS payload and inspect the actual escaped output.
 
 ⚠️ **Unresolved gap**: creating a *real* `/type/list` doc this way (`owner.new_list(name=..., description=..., seeds=[...])` followed by `lst._save(comment=...)`, per the docstring on `core/models.py`'s `new_list`) did **not** work in this same session — `lst.key`, `lst.owner`, and `lst.seeds` all read back as `<Nothing>`/empty both before and after calling `_save()`, so nothing was actually persisted. Root cause not isolated (possibly the `List` model class resolving `.key`/`.owner` as computed properties that need something `fakeload()` doesn't set up, as opposed to genuine `Thing.__init__` behavior which does set `self.key` directly). Store-key read/write (above) is solid; new-entity creation via a model's `new_*()` + `_save()` convenience method needs more digging before relying on it.
 
