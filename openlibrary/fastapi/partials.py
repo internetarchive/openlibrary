@@ -30,6 +30,8 @@ from openlibrary.plugins.openlibrary.partials import (
     MyBooksDropperListsPartial,
     NearbyBooksParams,
     NearbyBooksPartial,
+    ReadersAlsoReadParams,
+    ReadersAlsoReadPartial,
     ReadingGoalProgressPartial,
     ReadingStatePartial,
     SearchFacetsPartial,
@@ -272,6 +274,17 @@ async def nearby_books_partial(
     Get the book page's "Nearby Books" (DDC shelf-adjacency) carousel HTML.
     """
     return await NearbyBooksPartial.generate_async(params=params, full_path=full_path)
+
+
+@router.get("/partials/ReadersAlsoRead.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+async def readers_also_read_partial(
+    params: Annotated[ReadersAlsoReadParams, Query()],
+    full_path: Annotated[str, Depends(get_fullpath)],
+) -> dict:
+    """
+    Get the book page's "Readers also read" carousel HTML.
+    """
+    return await ReadersAlsoReadPartial.generate_async(params=params, full_path=full_path)
 
 
 @router.get("/partials/CarouselLoadMore.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

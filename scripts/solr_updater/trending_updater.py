@@ -9,6 +9,7 @@ import infogami
 from openlibrary.config import load_config
 from openlibrary.utils.sentry import init_sentry
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
+from scripts.solr_updater.readers_also_read import run_readers_also_read_update
 from scripts.solr_updater.trending_updater_daily import run_daily_update
 from scripts.solr_updater.trending_updater_hourly import run_hourly_update
 from scripts.solr_updater.trending_updater_init import (
@@ -44,10 +45,14 @@ async def main(
     # current sum of greater than zero for those 24 hours.
     scheduler.add_job(run_daily_update, "cron", hour=0, minute=0, id="trending_updater_daily")
 
+    scheduler.add_job(run_readers_also_read_update, "cron", hour=3, minute=30, id="readers_also_read")
+
     if trending_offset_file:
         # If an offset file is specified, add an event listener to the scheduler
-        # to update the offset file whenever a job is run.
+        # to update the offset file whenever a trending job is run.
         def update_offset(event):
+            if not event.job_id.startswith("trending_updater_"):
+                return
             new_offset = dt.datetime.now().isoformat()
             print(f"Updating {trending_offset_file} to {new_offset}")
             trending_offset_file.write_text(new_offset + "\n")
