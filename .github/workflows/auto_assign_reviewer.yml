@@ -38,51 +38,65 @@ jobs:
       - name: Request the code-reviewer team if not already requested
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
+          # Fine-grained PAT (openlibrary-bot) -- the same org-aware identity the review-post step in
+          # code_review_action.yml uses. Requesting a TEAM reviewer needs an identity that can resolve
+          # the org team; the default GITHUB_TOKEN is repo-scoped and cannot reliably do so, which would
+          # make requestReviewers a silent no-op and leave this PR's single same-repo auto-review path
+          # dead. This job runs SAME-REPO only (the if: below), checks out no code, and executes nothing
+          # from the PR, so holding the PAT under pull_request_target is safe -- same posture as the
+          # post/status jobs. The GET-verify below still catches the no-op if the team is not resolvable.
+          github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const prNumber = context.payload.pull_request.number;
             // Keep this slug in sync with the requested_team.slug guard in code_review_action.yml
             // (a unit test pins them equal). The team must be a repo collaborator with >=read access,
-            // or the default GITHUB_TOKEN cannot resolve/request it -- the GET-verify below catches that.
+            // and OL_BOT_REVIEW_PAT must be able to resolve it -- the GET-verify below catches failure.
             const TEAM = 'openlibrary-agentic-code-reviewer';
 
-            const { data: requested } = await github.rest.pulls.listRequestedReviewers({
-              owner, repo, pull_number: prNumber,
-            });
-            if ((requested.teams || []).some((t) => t.slug === TEAM)) {
-              core.info(`PR #${prNumber} already has the ${TEAM} team requested -- skipping.`);
-              return;
-            }
+            // Extracted as a named fn (closing over nothing) so a unit test can drive it with a mock
+            // github/core and prove both the happy path and the fail-loud silent-no-op path. See
+            // tests/unit/js/code_review_trigger.test.js.
+            const requestReviewTeam = async ({ github, core, owner, repo, prNumber, team }) => {
+              const { data: requested } = await github.rest.pulls.listRequestedReviewers({
+                owner, repo, pull_number: prNumber,
+              });
+              if ((requested.teams || []).some((t) => t.slug === team)) {
+                core.info(`PR #${prNumber} already has the ${team} team requested -- skipping.`);
+                return;
+              }
 
-            const reviews = await github.paginate(github.rest.pulls.listReviews, {
-              owner, repo, pull_number: prNumber, per_page: 100,
-            });
-            if (reviews.some((r) => r.user && r.user.login === 'openlibrary-bot')) {
-              core.info(`PR #${prNumber} already has an openlibrary-bot review -- skipping.`);
-              return;
-            }
+              const reviews = await github.paginate(github.rest.pulls.listReviews, {
+                owner, repo, pull_number: prNumber, per_page: 100,
+              });
+              if (reviews.some((r) => r.user && r.user.login === 'openlibrary-bot')) {
+                core.info(`PR #${prNumber} already has an openlibrary-bot review -- skipping.`);
+                return;
+              }
 
-            await github.rest.pulls.requestReviewers({
-              owner, repo, pull_number: prNumber,
-              team_reviewers: [TEAM],
-            });
+              await github.rest.pulls.requestReviewers({
+                owner, repo, pull_number: prNumber,
+                team_reviewers: [team],
+              });
 
-            // Verify the request actually took. requestReviewers can return 200/201 yet leave
-            // requested_reviewers EMPTY -- neither 422 nor 404 (documented in this repo at
-            // pr_autoresponder.md:72). For a TEAM request that silent no-op is the EXPECTED failure
-            // when the default (repo-scoped) GITHUB_TOKEN cannot resolve the org team, so a success
-            // log here would hide a dead same-repo auto-review path. Re-GET and assert the team is
-            // present; fail loudly (not a false info) if it is not.
-            const { data: after } = await github.rest.pulls.listRequestedReviewers({
-              owner, repo, pull_number: prNumber,
-            });
-            if (!(after.teams || []).some((t) => t.slug === TEAM)) {
-              core.setFailed(
-                `Requested the ${TEAM} team on PR #${prNumber} but it is absent on a follow-up read -- ` +
-                `the request silently no-opped. The default GITHUB_TOKEN likely cannot resolve the org ` +
-                `team; auto_assign needs a token with org read (a PAT) to request it.`
-              );
-              return;
-            }
-            core.info(`Requested the ${TEAM} team as reviewer on PR #${prNumber}.`);
+              // Verify the request actually took. requestReviewers can return 200/201 yet leave
+              // requested_reviewers EMPTY -- neither 422 nor 404 (documented in this repo at
+              // pr_autoresponder.md:72). That silent no-op is the EXPECTED failure if the identity
+              // cannot resolve the org team, so a success log here would hide a dead same-repo
+              // auto-review path. Re-GET and assert the team is present; fail loudly if it is not.
+              const { data: after } = await github.rest.pulls.listRequestedReviewers({
+                owner, repo, pull_number: prNumber,
+              });
+              if (!(after.teams || []).some((t) => t.slug === team)) {
+                core.setFailed(
+                  `Requested the ${team} team on PR #${prNumber} but it is absent on a follow-up read -- ` +
+                  `the request silently no-opped. Confirm the ${team} team is a repo collaborator (>=read) ` +
+                  `and that OL_BOT_REVIEW_PAT can resolve the org team (Members: read).`
+                );
+                return;
+              }
+              core.info(`Requested the ${team} team as reviewer on PR #${prNumber}.`);
+            };
+
+            await requestReviewTeam({ github, core, owner, repo, prNumber, team: TEAM });

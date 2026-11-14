@@ -73,6 +73,8 @@ function ctx(overrides = {}) {
     };
     const merge = (a, b) => {
         for (const k of Object.keys(b)) {
+            // Guard against prototype pollution: never copy __proto__/constructor/prototype keys.
+            if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
             a[k] = b[k] && typeof b[k] === 'object' && !Array.isArray(b[k]) ? merge(a[k] ?? {}, b[k]) : b[k];
         }
         return a;
@@ -181,4 +183,114 @@ test('auto_assign no longer excludes bot-authored PRs (team request works on the
     assert.ok(!/user\.login\s*!=\s*'openlibrary-bot'/.test(assignWf.jobs.assign.if), 'the bot-authored exclusion must be dropped');
     // ...but it still only auto-requests on SAME-REPO PRs (the fork spend gate).
     assert.ok(/head\.repo\.full_name\s*==\s*github\.repository/.test(assignWf.jobs.assign.if), 'auto_assign must stay same-repo only');
+});
+
+// ---- The team is requested with the elevated (org-aware) PAT, not the default GITHUB_TOKEN ----
+test('auto_assign supplies OL_BOT_REVIEW_PAT to the team-request step', () => {
+    // Requesting a TEAM reviewer needs an identity that can resolve the org team; the default
+    // repo-scoped GITHUB_TOKEN cannot reliably do so (silent no-op). The step must wire the PAT.
+    assert.ok(
+        /github-token:\s*\$\{\{\s*secrets\.OL_BOT_REVIEW_PAT\s*\}\}/.test(assignText),
+        'the team-request step must set github-token to secrets.OL_BOT_REVIEW_PAT'
+    );
+});
+
+// ---- The request/verify script itself (extracted and driven with a mock github/core) ----
+// Mirrors tests/unit/js/code_review_status_gate.test.js's extractFn: pull the EXACT `const NAME =`
+// arrow block that ships (keyed on the closer at the declaration's indentation) and eval it, so the
+// tested logic == the deployed logic.
+function extractFn(lines, name) {
+    const start = lines.findIndex(l => l.includes(`const ${name} =`));
+    assert.ok(start >= 0, `${name} not found in workflow`);
+    const indent = lines[start].match(/^(\s*)/)[1];
+    const closer = `${indent}};`;
+    const body = [lines[start]];
+    let end = -1;
+    for (let j = start + 1; j < lines.length; j++) {
+        body.push(lines[j]);
+        if (lines[j] === closer) {
+            end = j;
+            break;
+        }
+    }
+    assert.ok(end >= 0, `end of ${name} not found`);
+    const src = body
+        .join('\n')
+        .trim()
+        .replace(new RegExp(`^const ${name} =\\s*`), '')
+        .replace(/;\s*$/, '');
+    // eslint-disable-next-line no-new-func
+    return new Function(`return (${src});`)();
+}
+
+const requestReviewTeam = extractFn(assignText.split('\n'), 'requestReviewTeam');
+
+// Build a mock `github` whose two listRequestedReviewers reads (pre-request, post-request) return the
+// given team arrays, records whether requestReviewers fired, and serves listReviews via paginate.
+function mockGithub({ before = [], after = [], reviews = [] }) {
+    const calls = { requested: false, requestedWith: null };
+    let reads = 0;
+    return {
+        calls,
+        paginate: async () => reviews,
+        rest: {
+            pulls: {
+                listReviews: 'listReviews',
+                listRequestedReviewers: async () => {
+                    reads += 1;
+                    return { data: { teams: reads === 1 ? before : after } };
+                },
+                requestReviewers: async params => {
+                    calls.requested = true;
+                    calls.requestedWith = params;
+                    return { data: {} };
+                }
+            }
+        }
+    };
+}
+function mockCore() {
+    const state = { failed: null, infos: [] };
+    const core = {
+        setFailed: m => {
+            state.failed = m;
+        },
+        info: m => state.infos.push(m)
+    };
+    return { core, state };
+}
+const TEAM_OBJ = { slug: TEAM_SLUG };
+
+test('requestReviewTeam: team lands after the request -> succeeds, no setFailed', async () => {
+    const gh = mockGithub({ before: [], after: [TEAM_OBJ], reviews: [] });
+    const { core, state } = mockCore();
+    await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG });
+    assert.equal(gh.calls.requested, true, 'it must call requestReviewers');
+    assert.deepEqual(gh.calls.requestedWith.team_reviewers, [TEAM_SLUG], 'it must request the team by slug');
+    assert.equal(state.failed, null, 'a landed request must not fail the job');
+});
+
+test('requestReviewTeam: request returns OK but team is ABSENT afterward -> fails loud (silent no-op caught)', async () => {
+    const gh = mockGithub({ before: [], after: [], reviews: [] }); // post-request read still empty
+    const { core, state } = mockCore();
+    await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG });
+    assert.equal(gh.calls.requested, true, 'it must have attempted the request');
+    assert.ok(state.failed, 'an unlanded team request MUST core.setFailed, not pass silently');
+    assert.ok(state.failed.includes(TEAM_SLUG), 'the failure message must name the team');
+});
+
+test('requestReviewTeam: team already requested -> skips without requesting again', async () => {
+    const gh = mockGithub({ before: [TEAM_OBJ], after: [TEAM_OBJ], reviews: [] });
+    const { core, state } = mockCore();
+    await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG });
+    assert.equal(gh.calls.requested, false, 'an already-requested team must not be re-requested');
+    assert.equal(state.failed, null, 'the skip path must not fail the job');
+});
+
+test('requestReviewTeam: an existing openlibrary-bot review -> skips without requesting', async () => {
+    const gh = mockGithub({ before: [], after: [], reviews: [{ user: { login: 'openlibrary-bot' } }] });
+    const { core, state } = mockCore();
+    await requestReviewTeam({ github: gh, core, owner: 'o', repo: 'r', prNumber: 1, team: TEAM_SLUG });
+    assert.equal(gh.calls.requested, false, 'a PR already reviewed by the bot must not get a fresh request');
+    assert.equal(state.failed, null, 'the skip path must not fail the job');
 });
