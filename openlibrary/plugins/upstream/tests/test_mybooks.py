@@ -10,7 +10,7 @@ from infogami.utils import macro
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.plugins.upstream import mybooks
-from openlibrary.plugins.upstream.mybooks import PatronBooknotes, ReadingLog, edition_key_of, get_reading_states, shelf_button_for, work_key_of
+from openlibrary.plugins.upstream.mybooks import PatronBooknotes, ReadingLog, edition_key_of, get_reading_states, list_seed_of, shelf_button_for, work_key_of
 
 
 class Thing:
@@ -43,6 +43,25 @@ class TestWorkKeyOf:
 
     def test_a_carousel_hands_an_edition_doc_its_work(self):
         assert work_key_of({"key": "/books/OL2M", "work_key": "/works/OL1W"}) == "/works/OL1W"
+
+    def test_an_orphaned_edition_indexed_as_a_work_has_none(self):
+        # Solr's "fake work" for an edition with no work: the edition's OLID under /works/.
+        assert work_key_of({"key": "/works/OL7M"}) is None
+        assert work_key_of(web.storage(key="/works/OL7M")) is None
+        assert work_key_of({"key": "/books/OL7M", "work_key": "/works/OL7M"}) is None
+
+
+class TestListSeedOf:
+    def test_an_author_or_an_edition_is_its_own_seed(self):
+        assert list_seed_of({"key": "/authors/OL3A"}) == "/authors/OL3A"
+        assert list_seed_of({"key": "/books/OL2M"}) == "/books/OL2M"
+
+    def test_an_orphaned_edition_indexed_as_a_work_is_the_edition(self):
+        assert list_seed_of({"key": "/works/OL7M"}) == "/books/OL7M"
+
+    def test_nothing_else_is_a_seed(self):
+        assert list_seed_of({"key": "/works/OL1W"}) is None
+        assert list_seed_of({}) is None
 
 
 class TestEditionKeyOf:
@@ -93,6 +112,16 @@ class TestShelfButtonFor:
         assert 'shelf="3"' in html
         assert 'rating="4"' in html
         assert 'read-date="2026-08" event-id="7"' in html
+
+    def test_an_orphaned_edition_from_search_can_only_join_a_list(self):
+        html, get_state = self.render(web.storage(key="/works/OL7M", title="An orphan", edition_key=["OL7M"]))
+        assert 'work-key="/books/OL7M"' in html
+        assert "lists-only" in html
+        assert "edition-key" not in html
+        get_state.assert_not_called()
+
+        _, get_state = self.render(web.storage(key="/works/OL7M"), async_load=True)
+        get_state.assert_not_called()
 
     def test_the_page_state_is_used_when_given(self):
         html, get_state = self.render(web.storage(key="/works/OL1W", title="Dune"), reading_states={"/works/OL1W": {"shelf": 1}})

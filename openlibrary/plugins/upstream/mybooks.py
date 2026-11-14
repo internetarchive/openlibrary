@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import urllib.parse
 from datetime import datetime
 from types import MappingProxyType
@@ -618,17 +619,22 @@ class ReadingLog:
     get_works = async_bridge.wrap(get_works_async)
 
 
+_WORK_KEY = re.compile(r"^/works/OL\d+W$")
+# Solr indexes an edition with no work as a "fake work": the edition's own OLID under /works/.
+_ORPHAN_KEY = re.compile(r"^/works/(OL\d+M)$")
+
+
 def work_key_of(doc) -> str | None:
     """The work behind a doc: a work, an edition with its work, or an edition a carousel handed a `work_key`; None for anything else (an author, a subject)."""
     if not hasattr(doc, "get"):
-        return getattr(doc, "key", None) if str(getattr(doc, "key", "")).startswith("/works/") else None
+        return key if _WORK_KEY.match(key := str(getattr(doc, "key", ""))) else None
     if work_key := doc.get("work_key"):
-        return work_key
+        return work_key if _WORK_KEY.match(work_key) else None
     key = doc.get("key")
     if not key:
         return None
     if key.startswith("/works/"):
-        return key
+        return key if _WORK_KEY.match(key) else None
     if key.startswith("/books/") and (works := doc.get("works")):
         work = works[0]
         return work.key if hasattr(work, "key") else work.get("key")
@@ -659,7 +665,11 @@ def edition_key_of(doc) -> str | None:
 def list_seed_of(doc) -> str | None:
     """A seed with no work to shelve but a list to join: an author, or an edition on its own."""
     key = doc.get("key") if hasattr(doc, "get") else None
-    return key if key and key.startswith(("/authors/", "/books/")) else None
+    if not key:
+        return None
+    if orphan := _ORPHAN_KEY.match(key):
+        return f"/books/{orphan.group(1)}"
+    return key if key.startswith(("/authors/", "/books/")) else None
 
 
 def _shelf_title_of(doc) -> str:
