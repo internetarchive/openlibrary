@@ -381,7 +381,10 @@ def count_sibling_values(fld: str, others: list, limit: int = 5) -> dict:
 
 
 def build_book_header(edition, readers: int | None = None) -> dict:
-    """What the book header shows. Live from the local record."""
+    """What the book header shows. Live from the local record.
+
+    Missing fields come back from the models as infogami's Nothing, which can't be serialized to JSON, hence the ``or``s.
+    """
     work = edition.works[0] if edition.works else None
     year = edition.get_publish_year()
     edition_line_parts = [p for p in [", ".join(edition.get("publishers") or []), str(year) if year else "", edition.get("physical_format") or ""] if p]
@@ -395,12 +398,11 @@ def build_book_header(edition, readers: int | None = None) -> dict:
         "key": edition.key,
         "olid": edition.key.split("/")[-1],
         "edit_url": edition.url(suffix="/edit"),
-        "title": edition.get_title(),
+        "title": edition.get_title() or "",
         "authors": ", ".join(author_names),
-        "cover_url": edition.get_cover_url("M"),
+        "cover_url": edition.get_cover_url("M") or None,
         "edition_line": " · ".join(edition_line_parts),
-        "isbn13": edition.get_isbn13(),
-        # An unindexed work counts as Nothing, which JSON and the component can't take.
+        "isbn13": edition.get_isbn13() or None,
         "edition_count": (work.get_edition_count() or 1) if work else 1,
         "work_key": work.key if work else None,
         "readers": readers,
