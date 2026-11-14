@@ -489,7 +489,12 @@ jobs:
             // findings, which create no review thread -- so the status's thread check alone cannot
             // catch them; this count is exactly that guard). On a withhold it is 0: the count is
             // PUBLIC by construction and a withheld review exposes nothing, so 0 never signals
-            // "a review was withheld". A withheld run still blocks via post.result != success.
+            // "a review was withheld". #14476 D3a: a withhold is NO LONGER an automatic block -- the
+            // status is finding-driven. The `withheld` + 1-bit `withheld_blocking` outputs below (NOT
+            // this count) carry the withhold verdict: the status job blocks only when a blocking
+            // finding exists, so a backstop false-positive with 0 findings greens itself. (post now
+            // returns cleanly on a withhold rather than failing -- do NOT restore a setFailed there,
+            // or you re-break the green path; the status job is the sole gate decider.)
             //
             // KNOWN GAP (#14471, accepted for v1): this count is scoped to THIS run's review, and a
             // re-review is INCREMENTAL (only the diff since our last pass). An orphaned/summary-only
@@ -712,24 +717,33 @@ jobs:
   # Runs after analyze+post on every reviewed head (review_requested / @-mention / dispatch), never
   # on a bare push. It does NOT touch any label -- the e2e piece (#14454) owns `Needs: e2e testing`.
   #
-  # PASS = ALL THREE (issue B):
-  #   (a) the review posted successfully for this SHA (a withheld/failed/malformed review is not a
-  #       pass -- post.result must be success), AND
-  #   (b) the review's PUBLIC blocking-findings count is KNOWN to be 0 this run -- produced inside
-  #       this workflow (analyze-gate) and read as a declared analyze output; an absent/unparseable
-  #       count FAILS CLOSED (blocks), never passes by default, AND
+  # PASS = ALL THREE (issue B, as amended by #14476 D3a -- FINDING-driven, not withhold-driven):
+  #   (a) the review was POSTED (post.result == success) -- OR cleanly withheld. #14476 D3a: post now
+  #       returns cleanly on a withhold, so a withhold is NOT an automatic block; what blocks is a
+  #       FINDING, not the act of withholding. A failed/malformed post is still not a pass.
+  #   (b) the review's blocking-findings count is KNOWN to be 0 this run -- for a PUBLISHED review the
+  #       declared public count; for a WITHHELD review the 1-bit `withheld_blocking` verdict (true =>
+  #       >=1 blocking finding). Either absent/unparseable FAILS CLOSED (blocks), never passes by
+  #       default. A withhold with 0 blocking findings (a backstop false-positive) greens itself; a
+  #       real finding (public or withheld) blocks, AND
   #   (c) no review thread is unresolved-and-not-outdated (GitHub's own isResolved/isOutdated --
   #       authoritative, not a heuristic, to keep false blocks low).
   # (b) and (c) are complementary: every public finding also becomes a review thread, so (c)
   # reinforces (b); (b) additionally catches a finding that landed in the summary with no in-diff
   # anchor (no thread to resolve -- see #13548, 3 of 9). We bias toward BLOCKING: anything short of
-  # (posted AND known-0-findings AND fully-resolved) posts `failure`.
+  # (posted-or-cleanly-withheld AND known-0-blocking AND fully-resolved) posts `failure`.
   #
-  # SKIP paths (draft / not-open / already-reviewed-this-exact-SHA) resolve to skip == 'true' in
-  # analyze, and this job is gated on skip == 'false', so it does not run on them. That is correct:
-  # on the already-reviewed-this-SHA re-request, the `code-review` status for that SHA was already
-  # decided on the prior run and is SHA-bound, so leaving it intact (this job not running) re-affirms
-  # it rather than overwriting it -- never a false failure on a commit that already passed.
+  # #14476 D1 -- SHA binding: before posting, this job re-confirms the reviewed SHA is still the live
+  # head (createReview re-anchors to the live head and ignores commit_id). If the head moved, it posts
+  # NO status; the new head is unreviewed and earns its own run. The review (post) guards identically,
+  # so review and status always describe the same commit.
+  #
+  # SKIP paths: draft / not-open resolve to skip == 'true' in analyze (this job gated off). #14476 D2 --
+  # an already-reviewed-this-exact-SHA head is NO LONGER a blanket skip: analyze skips only when a
+  # `code-review` status is already present on that head; if it is missing (the Defect-1 strand, or a
+  # transient status failure) analyze sets repost == 'true' and THIS job runs to (re)post the status
+  # from the review-body marker + live threads, so an already-reviewed head is never stranded without a
+  # status. When a status IS present, analyze skips and the SHA-bound status is left intact (re-affirmed).
   status:
     needs: [analyze, post]
     if: always() && needs.analyze.outputs.skip == 'false'
