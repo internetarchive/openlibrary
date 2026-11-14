@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Literal, TypedDict
 
+import anyio
 import requests
 import web
 from validate_email import validate_email
@@ -496,7 +497,7 @@ class Account(web.storage):
         self.bot = flag
         self._save()
 
-    async def anonymize(self, ip: str, test: bool = False) -> AccountAnonymizationResult:
+    async def anonymize(self, ip: str = "127.0.0.1", test: bool = False, client_ip: str | None = None) -> AccountAnonymizationResult:
         """Anonymize the account from a FastAPI route.
 
         ``ip`` is the client IP. Infobase stamps it on the transaction that
@@ -506,9 +507,13 @@ class Account(web.storage):
         requests running on the same event loop.
         """
         if not test:
-            with web_ctx_ip(ip):
-                self._delete_infobase_data()
+            await anyio.to_thread.run_sync(self._delete_infobase_data_with_ip, client_ip or ip)
         return await self._anonymize_tables(test)
+
+    def _delete_infobase_data_with_ip(self, client_ip: str) -> None:
+        """Run Infobase cleanup with the request IP on its worker thread."""
+        with web_ctx_ip(client_ip):
+            self._delete_infobase_data()
 
     def anonymize_sync(self, test: bool = False) -> AccountAnonymizationResult:
         """Synchronous bridge for the legacy web.py account and admin routes.
