@@ -590,6 +590,56 @@ jobs:
               return pinnedHead === liveHead;
             };
 
+            // #14487 PART A -- the verdict. GitHub clears a reviewer's pending request ONLY on APPROVE
+            // or REQUEST_CHANGES; a COMMENT never does, so the bot's team request sat pending forever
+            // (#14450). Post a real verdict driven by the SAME signal the status job uses on the published
+            // path -- review.findings.length (== analyze's public_findings_count): >0 blocking ->
+            // REQUEST_CHANGES, 0 -> APPROVE, so the verdict and the code-review status can never disagree.
+            // EXCEPTION -- self-review: GitHub returns 422 for approving/requesting-changes on your OWN PR,
+            // so a bot-authored (same-repo) PR falls back to COMMENT (its loop is driven by forge off the
+            // submitted review and by the status check, not the reviewer pill).
+            const selectReviewEvent = ({ selfAuthored, findingCount }) => {
+              if (selfAuthored) return 'COMMENT';
+              return findingCount > 0 ? 'REQUEST_CHANGES' : 'APPROVE';
+            };
+
+            // #14487 PART A.2 -- clearing the pending pill on a BOT-AUTHORED PR. A contributor PR's pill is
+            // cleared by the APPROVE/REQUEST_CHANGES verdict itself. A bot-authored PR can only post COMMENT
+            // (self-review 422), which never clears the team request -- so after a real COMMENT post we must
+            // explicitly dismiss the team request (removeRequestedReviewers) or the pill sits pending forever
+            // (live proof: #14450). Only on a self-authored PR that actually posted a COMMENT -- never on a
+            // contributor verdict, and never on skip/withhold/failed/head-moved (those return before the post).
+            const shouldDismissTeamRequest = ({ selfAuthored, event }) => {
+              return selfAuthored && event === 'COMMENT';
+            };
+
+            // #14487 PART B -- on a re-review, select OUR OWN unresolved review threads whose finding is no
+            // longer present in this run's review (machine-verified fixed -- never a blind resolve-all) so
+            // `unresolved` falls to 0 honestly and a genuinely-addressed PR can go green. A finding's
+            // identity is its repo path + the published "<DimLabel> — <Title>" header, line-independent
+            // (lines shift between pushes; the post step renders thread bodies from the SAME template, so a
+            // recurring finding yields a byte-identical key). GUARDS: only threads whose first comment is
+            // the bot's; only files THIS run actually re-reviewed (reviewedPaths) -- an incremental run
+            // examines only base..head, so a still-open finding on an untouched file must NOT be resolved; a
+            // thread whose finding still stands is left open and keeps the PR red.
+            const threadsToResolve = ({ threads, findings, dimensions, botLogin, reviewedPaths }) => {
+              const live = new Set();
+              for (const f of findings || []) {
+                if (f && f.path) live.add(`${f.path}\u0000${dimensions[f.dimension]} — ${f.title}`);
+              }
+              const out = [];
+              for (const t of threads || []) {
+                if (!t || t.isResolved) continue;
+                if (reviewedPaths && !reviewedPaths.has(t.path)) continue;
+                const c = t.comments && t.comments.nodes && t.comments.nodes[0];
+                if (!c || !c.author || c.author.login !== botLogin) continue;
+                const m = /^\*\*\s*\S+\s*·\s*([\s\S]+?)\s*\*\*/.exec(String(c.body || ''));
+                if (!m) continue;
+                if (!live.has(`${t.path ?? ''}\u0000${m[1]}`)) out.push(t.id);
+              }
+              return out;
+            };
+
             // --- The disclosure gate. Nothing below this block runs unless it passes.
             let review = null;
             try { review = JSON.parse(fs.readFileSync('review.json', 'utf8')); } catch (e) { review = null; }
@@ -696,17 +746,39 @@ jobs:
               return;
             }
 
+            // --- #14487 PART A: pick the verdict. selfAuthored uses the authoritative PR author from the
+            // live-head re-fetch above; findingCount is the published count -- the SAME signal the status
+            // job reads on the published path (public_findings_count) -- so verdict and status agree.
+            const selfAuthored = (livePr.user && livePr.user.login) === 'openlibrary-bot';
+            const findingCount = (review.findings || []).length;
+            let event = selectReviewEvent({ selfAuthored, findingCount });
+
             // --- One batched review. The per-comment endpoint (POST /pulls/{n}/comments) is
             // documented but returns 422 `pull_request_review_thread.base` in practice
             // (cli/cli#13358); the batched payload with identical anchors succeeds. commit_id is
             // headSha, now re-confirmed as the live head, so the review and the status agree.
-            const { data: posted } = await github.rest.pulls.createReview({
+            // #14487: a self-review verdict is a 422 -- selfAuthored already routes those to COMMENT; this
+            // try/catch is the belt-and-suspenders degrade so an UNEXPECTED 422 can never fail the post job
+            // (it posts a COMMENT instead; the code-review status check remains the merge gate).
+            const postReview = (ev) => github.rest.pulls.createReview({
               owner, repo, pull_number: prNumber,
               commit_id: headSha,
-              event: 'COMMENT',            // never APPROVE or REQUEST_CHANGES
+              event: ev,
               body: summary,
               comments: inline,
             });
+            let posted;
+            try {
+              ({ data: posted } = await postReview(event));
+            } catch (e) {
+              if (event !== 'COMMENT' && e && e.status === 422) {
+                core.warning(`Verdict ${event} was rejected (422); posting as COMMENT instead.`);
+                event = 'COMMENT';
+                ({ data: posted } = await postReview(event));
+              } else {
+                throw e;
+              }
+            }
 
             // --- Verify. Step 4 of pr_autoresponder.md documents this API surface returning
             // 2xx while changing nothing, so confirm rather than trusting the status code.
@@ -717,7 +789,60 @@ jobs:
               core.setFailed(`createReview returned ${posted.id} but it is not present on the PR.`);
               return;
             }
-            core.info(`Posted review ${posted.id}: ${inline.length} inline, ${orphaned.length} in summary.`);
+            core.info(`Posted ${event} review ${posted.id}: ${inline.length} inline, ${orphaned.length} in summary.`);
+
+            // --- #14487 PART A.2: on a bot-authored PR the COMMENT above does not clear the pending team
+            // request, so dismiss it explicitly (only after a verified real post). Never fails the job.
+            if (shouldDismissTeamRequest({ selfAuthored, event })) {
+              try {
+                await github.rest.pulls.removeRequestedReviewers({
+                  owner, repo, pull_number: prNumber,
+                  reviewers: [], team_reviewers: ['openlibrary-agentic-code-reviewer'],
+                });
+                core.info('Dismissed the pending team review request (bot-authored PR, COMMENT posted).');
+              } catch (e) {
+                core.warning(`Could not dismiss the team review request: ${e.message}`);
+              }
+            }
+
+            // --- #14487 PART B: resolve our own threads whose finding is now fixed (see threadsToResolve
+            // above). Runs after a successful post so the newly-created threads for THIS run's findings are
+            // present and correctly kept (their keys are in `live`). reviewedPaths is the set of files this
+            // run actually examined -- the incremental guard. resolveReviewThread is GraphQL; one thread
+            // failing to resolve is a warning, never a job failure.
+            const reviewedPaths = new Set(anchorable.keys());
+            let allThreads = [], tCursor = null;
+            for (;;) {
+              const page = await github.graphql(
+                `query($owner:String!,$repo:String!,$pr:Int!,$cursor:String){
+                   repository(owner:$owner,name:$repo){
+                     pullRequest(number:$pr){
+                       reviewThreads(first:100, after:$cursor){
+                         nodes { id isResolved path comments(first:1){ nodes { author { login } body } } }
+                         pageInfo { hasNextPage endCursor }
+                       }
+                     }
+                   }
+                 }`, { owner, repo, pr: prNumber, cursor: tCursor });
+              const rt = page.repository.pullRequest.reviewThreads;
+              allThreads = allThreads.concat(rt.nodes);
+              if (!rt.pageInfo.hasNextPage) break;
+              tCursor = rt.pageInfo.endCursor;
+            }
+            const toResolve = threadsToResolve({
+              threads: allThreads, findings: review.findings, dimensions: gate.dimensions,
+              botLogin: 'openlibrary-bot', reviewedPaths,
+            });
+            for (const id of toResolve) {
+              try {
+                await github.graphql(
+                  `mutation($id:ID!){ resolveReviewThread(input:{threadId:$id}){ thread { id isResolved } } }`,
+                  { id });
+              } catch (e) {
+                core.warning(`Could not resolve review thread ${id}: ${e.message}`);
+              }
+            }
+            if (toResolve.length) core.info(`Resolved ${toResolve.length} fixed review thread(s).`);
 
   # ----------------------------------------------------------------------------------------------
   # status -- the SHA-bound required merge signal (issue #14453 A/B). Posts commit status
