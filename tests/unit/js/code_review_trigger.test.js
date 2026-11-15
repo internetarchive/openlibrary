@@ -75,7 +75,11 @@ function ctx(overrides = {}) {
             pull_request: { draft: e.pull_request?.draft ?? false },
             requested_team: { slug: e.requested_team?.slug ?? null },
             requested_reviewer: { login: e.requested_reviewer?.login ?? null },
-            issue: { pull_request: e.issue?.pull_request ?? null, number: e.issue?.number ?? 1, user: { login: e.issue?.user?.login ?? '' } },
+            // issue.user.login (the PR author) defaults to a sentinel that matches NOBODY, so the
+            // #14484 author clause (comment.user.login == issue.user.login) defaults to non-matching
+            // -- a test that omits both logins must not fire via '' == ''. Keeps the builder's
+            // "every leaf defaults to a non-matching value" invariant true for the author comparison.
+            issue: { pull_request: e.issue?.pull_request ?? null, number: e.issue?.number ?? 1, user: { login: e.issue?.user?.login ?? '__no_author__' } },
             comment: { body: e.comment?.body ?? '', user: { login: e.comment?.user?.login ?? '' } }
         }
     };
@@ -192,6 +196,16 @@ test('#14484: the author guard still requires the @openlibrary-bot mention (a pl
         }
     });
     assert.equal(evalIf(reviewIf, noMention), false);
+});
+
+test('#14484: an issue_comment with neither login set does NOT fire (author clause cannot match via empty defaults)', () => {
+    // Guards the ctx default: if issue.user.login defaulted to '' like comment.user.login, an
+    // event that omits both would spuriously fire via '' == ''. The sentinel default keeps it false.
+    const empty = ctx({
+        event_name: 'issue_comment',
+        event: { issue: { pull_request: { url: 'x' } }, comment: { body: '@openlibrary-bot review' } }
+    });
+    assert.equal(evalIf(reviewIf, empty), false);
 });
 
 test('workflow_dispatch fires', () => {
