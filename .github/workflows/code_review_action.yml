@@ -256,10 +256,10 @@ jobs:
     # pull_request_target leg runs in base-repo context with secrets, for same-repo AND fork PRs:
     #   1. pull_request_target review_requested whose requested_team.slug is the reviewer team
     #      `openlibrary-agentic-code-reviewer` -- the ONE model-run path. auto_assign requests that
-    #      team automatically on SAME-REPO PRs (any author); a FORK earns the status only after a
-    #      maintainer requests the team by hand. Requesting a reviewer needs write/triage, so an
-    #      external author cannot auto-trigger the model -- the spend gate. A re-review is another
-    #      team request, which fires this leg again. (A team request carries requested_team and no
+    #      team automatically on every non-draft PR, forks included (#14482 dropped the same-repo
+    #      spend gate). An external author still cannot request a reviewer themselves (that needs
+    #      write/triage); the model runs only via auto_assign's bot-driven team request or a staff
+    #      action. A re-review is another team request, which fires this leg again. (A team request carries requested_team and no
     #      requested_reviewer; keying on the team is also what lets our own bot-authored PRs be
     #      reviewed -- a PR cannot request its own author individually, but it CAN request a team.)
     #   2. issue_comment @-mention on a PR -- any commenter incl. external, runs with secrets, so
