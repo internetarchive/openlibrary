@@ -352,31 +352,39 @@ test('D2 status repost: a LEGACY review with no marker FAILS CLOSED (red), never
 // each (marker, unresolved-thread) input we (1) run the real status repost to learn the authoritative
 // state, then (2) assert the resolver skips iff the present status equals that state and reposts iff it
 // differs -- so the two code paths are pinned to the same verdict by construction.
+const HEAD_SHA = SHA('a');
+const reviewObjs = bodies => bodies.map(body => ({ user: { login: 'openlibrary-bot' }, commit_id: HEAD_SHA, submitted_at: '2026-01-01', body }));
 for (const scenario of [
-    { body: 'x\n<!-- ol-pr-review-bot f=0 -->', threads: [] }, // clean -> success
-    { body: 'x\n<!-- ol-pr-review-bot f=3 -->', threads: [] }, // findings -> failure
-    { body: 'x\n<!-- ol-pr-review-bot f=0 -->', threads: [{ isResolved: false, isOutdated: false }] }, // open thread -> failure
-    { body: 'legacy, no marker', threads: [] } // unreadable -> failure (fail closed)
+    { reviews: ['x\n<!-- ol-pr-review-bot f=0 -->'], threads: [] }, // clean -> success
+    { reviews: ['x\n<!-- ol-pr-review-bot f=3 -->'], threads: [] }, // findings -> failure
+    { reviews: ['x\n<!-- ol-pr-review-bot f=0 -->'], threads: [{ isResolved: false, isOutdated: false }] }, // open thread -> failure
+    { reviews: ['legacy, no marker'], threads: [] }, // unreadable -> failure (fail closed)
+    // Finding 1 divergence class: >=2 bot reviews on the head where the LAST has an empty body and an
+    // EARLIER one carries the readable marker. The status path filters `&& r.body` (picks the f=0 one);
+    // the resolver must select the SAME review, or it picks the trailing empty body (-> fail closed)
+    // and the two verdicts disagree -- re-stranding the head. Pins resolver selection == status path.
+    { reviews: ['first\n<!-- ol-pr-review-bot f=0 -->', ''], threads: [] }, // trailing-empty -> still success
+    { reviews: ['first\n<!-- ol-pr-review-bot f=1 -->', null], threads: [] } // trailing-null, earlier f=1 -> failure
 ]) {
-    test(`D2 drift pin: resolver matches status-job verdict for ${JSON.stringify(scenario.body)} + ${scenario.threads.length} thread(s)`, async () => {
-        const head = SHA('a');
+    const label = `${JSON.stringify(scenario.reviews)} + ${scenario.threads.length} thread(s)`;
+    test(`D2 drift pin: resolver matches status-job verdict for ${label}`, async () => {
         // (1) Authoritative state from the real status repost path.
         const s = mockGitHub({
-            prGet: async () => ({ data: { head: { sha: head } } }),
-            listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, body: scenario.body }] }),
+            prGet: async () => ({ data: { head: { sha: HEAD_SHA } } }),
+            listReviews: async () => ({ data: reviewObjs(scenario.reviews) }),
             reviewThreads: scenario.threads
         });
         await runScript(scriptOf('status', 'Decide the gate'), {
             github: s.github,
             context,
-            env: { PR: '1', HEAD_SHA: head, POST_RESULT: 'skipped', REPOST: 'true', RUN_URL: 'u' }
+            env: { PR: '1', HEAD_SHA, POST_RESULT: 'skipped', REPOST: 'true', RUN_URL: 'u' }
         });
         const authoritative = s.calls.createCommitStatus[0].state;
 
         const runResolver = async presentState => {
             const { github } = mockGitHub({
-                prGet: async () => ({ data: { number: 1, head: { sha: head }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
-                listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, submitted_at: '2026-01-01', body: scenario.body }] }),
+                prGet: async () => ({ data: { number: 1, head: { sha: HEAD_SHA }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
+                listReviews: async () => ({ data: reviewObjs(scenario.reviews) }),
                 listStatuses: async () => ({ data: [{ context: 'code-review', state: presentState }] }),
                 reviewThreads: scenario.threads
             });
@@ -394,6 +402,28 @@ for (const scenario of [
         assert.equal(mismatch.outputs.repost, 'true');
     });
 }
+test('#14486 Finding 2: a transient reviewThreads GraphQL error routes to a repost, never fails the run', async () => {
+    // The resolver's new threads read must not throw out of the range step: an unset `skip` would stop
+    // the status job (its `if` needs skip=='false'), so a transient GraphQL 502/rate-limit would make
+    // the run red AND skip the repost. On a threads-read failure we fail SAFE -> repost, and the
+    // authoritative status job recomputes.
+    const head = SHA('a');
+    const { github } = mockGitHub({
+        prGet: async () => ({ data: { number: 1, head: { sha: head }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
+        listReviews: async () => ({
+            data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, submitted_at: '2026-01-01', body: 'x\n<!-- ol-pr-review-bot f=0 -->' }]
+        }),
+        listStatuses: async () => ({ data: [{ context: 'code-review', state: 'success' }] })
+    });
+    github.graphql = async () => {
+        throw new Error('API rate limit exceeded (secondary)');
+    };
+    const ctx = { ...context, payload: { pull_request: { number: 1 } } };
+    const res = await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env: { PR: '1', GITHUB_WORKSPACE: dir } });
+    assert.equal(res.failed, null, 'a transient threads read must not fail the analyze job');
+    assert.equal(res.outputs.skip, 'false', 'it falls back to NOT skipping');
+    assert.equal(res.outputs.repost, 'true', 'and routes to the authoritative status repost');
+});
 
 // ===================== D3a: finding-driven status (withhold -> not automatically red) =========
 test('D3a analyze-gate: a backstop-tripping review with 0 findings -> withheld, NON-blocking', async () => {

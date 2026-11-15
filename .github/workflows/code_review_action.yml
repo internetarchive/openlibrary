@@ -403,29 +403,58 @@ jobs:
               const unresolvedThreadCount = (threads) => {
                 return threads.reduce((n, t) => n + ((!t.isResolved && !t.isOutdated) ? 1 : 0), 0);
               };
+              // Select the review to read the verdict from EXACTLY as the status job's repost path does
+              // (its `ours`/`last`): the last openlibrary-bot review ON THIS HEAD WITH A BODY. `prior`
+              // above intentionally has no `&& r.body` filter (it drives the incremental-range choice),
+              // so reusing it here could pick a trailing body-less bot review while the status job picked
+              // an earlier one with the marker -- the two verdicts would then disagree and re-strand the
+              // head. Selecting identically keeps the two copies of the rule reading byte-identical input.
+              const onHead = reviews.filter((r) => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === head && r.body);
+              const reviewForVerdict = onHead.length ? onHead[onHead.length - 1] : null;
+
               // Live review threads (GraphQL -- the REST reviews API carries no resolved/outdated
               // state), the same query and filter the status job uses. Read-only; pull-requests: read.
+              // A transient threads read (secondary rate limit, 502) must NOT throw out of this step: an
+              // unset `skip` output would make the status job's `if: skip == 'false'` false and SKIP the
+              // repost, so a flaky API would leave a stale status un-corrected. On failure we fail SAFE
+              // -> repost, and the authoritative status job recomputes the threads and posts the state.
               let threads = [], cursor = null;
-              for (;;) {
-                const page = await github.graphql(
-                  `query($owner:String!,$repo:String!,$pr:Int!,$cursor:String){
-                     repository(owner:$owner,name:$repo){
-                       pullRequest(number:$pr){
-                         reviewThreads(first:100, after:$cursor){
-                           nodes { isResolved isOutdated }
-                           pageInfo { hasNextPage endCursor }
+              try {
+                for (;;) {
+                  const page = await github.graphql(
+                    `query($owner:String!,$repo:String!,$pr:Int!,$cursor:String){
+                       repository(owner:$owner,name:$repo){
+                         pullRequest(number:$pr){
+                           reviewThreads(first:100, after:$cursor){
+                             nodes { isResolved isOutdated }
+                             pageInfo { hasNextPage endCursor }
+                           }
                          }
                        }
-                     }
-                   }`, { owner, repo, pr: prNumber, cursor });
-                const rt = page.repository.pullRequest.reviewThreads;
-                threads = threads.concat(rt.nodes);
-                if (!rt.pageInfo.hasNextPage) break;
-                cursor = rt.pageInfo.endCursor;
+                     }`, { owner, repo, pr: prNumber, cursor });
+                  const rt = page.repository.pullRequest.reviewThreads;
+                  threads = threads.concat(rt.nodes);
+                  if (!rt.pageInfo.hasNextPage) break;
+                  cursor = rt.pageInfo.endCursor;
+                }
+              } catch (e) {
+                core.info(`Could not read review threads (${e.message}) -- routing to a status repost (the status job recomputes the verdict).`);
+                core.setOutput('pr', String(prNumber));
+                core.setOutput('head_sha', head);
+                core.setOutput('skip', 'false');
+                core.setOutput('repost', 'true');
+                return;
               }
-              const findings = parseReviewMarker(prior.body);
+
+              // expectedState mirrors the status job's decideStatus() pass rule on the repost branch
+              // (withheld is always false there): postSucceeded = a bot review WITH A BODY exists on this
+              // head; PASS needs that AND a readable finding count of 0 AND zero blocking threads. An
+              // unreadable/legacy marker -> null and a body-less/absent review -> postSucceeded false
+              // both FAIL CLOSED to 'failure', never a fabricated green.
+              const postSucceeded = reviewForVerdict != null;
+              const findings = reviewForVerdict ? parseReviewMarker(reviewForVerdict.body) : null;
               const unresolved = unresolvedThreadCount(threads);
-              const expectedState = (findings === 0 && unresolved === 0) ? 'success' : 'failure';
+              const expectedState = (postSucceeded && findings === 0 && unresolved === 0) ? 'success' : 'failure';
 
               // listCommitStatusesForRef returns statuses newest-first, so the first `code-review`
               // entry is the current one; undefined when none is present (absent -> never matches).
