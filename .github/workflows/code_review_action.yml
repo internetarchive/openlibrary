@@ -378,23 +378,66 @@ jobs:
                 core.info(`Could not compare against the prior review commit (${e.message}) -- full review.`);
               }
             } else if (prior && prior.commit_id === head) {
-              // #14476 D2 -- status-aware skip. "Already reviewed this SHA" must NEVER mean "no
-              // status". Skip only when a `code-review` status is ALSO present on this head; a head
-              // that has our review but no status is STRANDED (the Defect-1 re-anchor race, or a
-              // transient status-post failure) and must get its status (re)posted, not be skipped
-              // forever. If it is missing, route to an idempotent status repost (no model re-run):
-              // the status job reconstructs the verdict from the review-body marker + live threads.
-              const codeReviewStatusPresent = (statuses) => {
-                return Array.isArray(statuses) && statuses.some((s) => s && s.context === 'code-review');
+              // #14486 -- STATE-aware skip (extends #14476 D2's presence-aware skip). "Already reviewed
+              // this SHA" must NEVER leave the head on a `code-review` status that CONTRADICTS its
+              // review: #14476 D2 returned on the mere PRESENCE of any code-review status, so a stale
+              // `failure` left by an earlier run (observed on #14450 head 703ce9e8) stranded the PR red
+              // forever -- no re-review could turn it green. We now compare the PRESENT status state
+              // against the verdict the existing review IMPLIES for this exact head, computed the SAME
+              // way the status job's repost path computes it (review-body marker `f=<count>` + live
+              // review threads -- NO model re-run). Match -> skip; absent/stale/contradicting -> route
+              // to an idempotent status repost (skip=false, repost=true), and the status job recomputes
+              // from the review and posts the correct state. Still bound to the resolver-pinned head SHA
+              // (the #14476 D1 invariant -- review and status describe the same commit).
+              //
+              // expectedState mirrors the status job's decideStatus() on the repost branch, where
+              // postSucceeded = a bot review with a readable marker exists on this head and withheld is
+              // always false: PASS needs a readable finding count of 0 AND zero blocking threads;
+              // anything else (including an unreadable/legacy marker -> null) FAILS CLOSED to 'failure'.
+              // A drift-pin unit test runs BOTH this resolver and the status repost against the same
+              // inputs and asserts they agree, so the two copies of the verdict rule cannot diverge.
+              const parseReviewMarker = (body) => {
+                const m = /<!-- ol-pr-review-bot f=(\d+) -->/.exec(String(body || ''));
+                return m ? Number(m[1]) : null;
               };
+              const unresolvedThreadCount = (threads) => {
+                return threads.reduce((n, t) => n + ((!t.isResolved && !t.isOutdated) ? 1 : 0), 0);
+              };
+              // Live review threads (GraphQL -- the REST reviews API carries no resolved/outdated
+              // state), the same query and filter the status job uses. Read-only; pull-requests: read.
+              let threads = [], cursor = null;
+              for (;;) {
+                const page = await github.graphql(
+                  `query($owner:String!,$repo:String!,$pr:Int!,$cursor:String){
+                     repository(owner:$owner,name:$repo){
+                       pullRequest(number:$pr){
+                         reviewThreads(first:100, after:$cursor){
+                           nodes { isResolved isOutdated }
+                           pageInfo { hasNextPage endCursor }
+                         }
+                       }
+                     }
+                   }`, { owner, repo, pr: prNumber, cursor });
+                const rt = page.repository.pullRequest.reviewThreads;
+                threads = threads.concat(rt.nodes);
+                if (!rt.pageInfo.hasNextPage) break;
+                cursor = rt.pageInfo.endCursor;
+              }
+              const findings = parseReviewMarker(prior.body);
+              const unresolved = unresolvedThreadCount(threads);
+              const expectedState = (findings === 0 && unresolved === 0) ? 'success' : 'failure';
+
+              // listCommitStatusesForRef returns statuses newest-first, so the first `code-review`
+              // entry is the current one; undefined when none is present (absent -> never matches).
               const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, {
                 owner, repo, ref: head, per_page: 100,
               });
-              if (codeReviewStatusPresent(statuses)) {
-                core.info('Already reviewed this exact commit and a code-review status is present -- skipping.');
+              const current = statuses.find((s) => s && s.context === 'code-review');
+              if (current && current.state === expectedState) {
+                core.info(`Already reviewed this exact commit and the code-review status (${current.state}) matches the review verdict -- skipping.`);
                 core.setOutput('skip', 'true'); return;
               }
-              core.info('Already reviewed this exact commit but no code-review status is present -- reposting the status.');
+              core.info(`Already reviewed this exact commit but the code-review status (${current ? current.state : 'absent'}) does not match the review verdict (${expectedState}) -- reposting the status.`);
               core.setOutput('pr', String(prNumber));
               core.setOutput('head_sha', head);
               core.setOutput('skip', 'false');
