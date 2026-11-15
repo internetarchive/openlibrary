@@ -263,7 +263,14 @@ jobs:
     #      requested_reviewer; keying on the team is also what lets our own bot-authored PRs be
     #      reviewed -- a PR cannot request its own author individually, but it CAN request a team.)
     #   2. issue_comment @-mention on a PR -- any commenter incl. external, runs with secrets, so
-    #      this path keeps an explicit staff allowlist.
+    #      this path keeps an explicit staff allowlist, PLUS the PR author on their OWN PR (#14484:
+    #      a fork contributor cannot re-request a reviewer -- that needs base-repo write -- so after
+    #      they push fixes the review never re-runs; commenting needs no write access, so letting the
+    #      author re-fire their own review by @-mention is fork-safe. Author + staff only). In real
+    #      payloads comment.user.login and issue.user.login are always populated, so the author-equals
+    #      clause matches only the genuine author. (Exotic: two deleted accounts both render as login
+    #      `ghost`, so a `ghost` commenter could match a `ghost` author -- but the run is inert and
+    #      read-only and the @-mention + non-bot guards still apply, so impact is negligible.)
     # Drafts: the pull_request_target leg skips draft PRs (!draft) -- no reviewing unfinished work.
     # A manual workflow_dispatch reviews a draft deliberately; it is the staff debug path, and
     # GitHub already requires write access to dispatch.
@@ -279,7 +286,10 @@ jobs:
         github.event.issue.pull_request != null &&
         contains(github.event.comment.body, '@openlibrary-bot') &&
         github.event.comment.user.login != 'openlibrary-bot' &&
-        contains(fromJSON('["mekarpeles","cdrini","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login)
+        (
+          contains(fromJSON('["mekarpeles","cdrini","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login) ||
+          github.event.comment.user.login == github.event.issue.user.login
+        )
       )
     permissions:
       contents: read
@@ -667,7 +677,11 @@ jobs:
                 `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body).replace(/\n/g, '\n  ')}`
               ).join('\n\n');
             }
-            summary += `\n\n---\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${review.findings.length} -->`;
+            // #14484: tell the contributor -- who may have no write access and cannot use the
+            // "re-request review" button -- exactly how to re-run the review after pushing fixes.
+            // A plain instruction so a stranger needs no prior knowledge of the magic comment.
+            summary += `\n\n---\n> [!TIP]\n> When you've addressed the feedback and pushed your changes, comment \`@openlibrary-bot review\` on this PR to run a fresh review.`;
+            summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${review.findings.length} -->`;
 
             // #14476 D1 -- review + status must describe the SAME commit. createReview re-anchors its
             // inline comments to the PR's LIVE head at post time (it ignores commit_id), so if a push
