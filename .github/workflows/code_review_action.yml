@@ -817,7 +817,10 @@ jobs:
 
             // --- #14487 PART A: pick the verdict now that thread state is known. selfAuthored -> COMMENT
             // (self-review 422); findings>0 -> REQUEST_CHANGES; clean AND no surviving own thread -> APPROVE;
-            // otherwise COMMENT. This keeps the verdict from ever contradicting the code-review status.
+            // otherwise COMMENT. The APPROVE gate is scoped to the bot's OWN findings -- it never approves
+            // over a standing bot finding. A purely-human open thread can still leave the status red while
+            // the bot approves (cosmetic): by design the pill tracks the bot's findings, and the all-author
+            // `code-review` status (which counts human threads too) stays the merge authority.
             let event = selectReviewEvent({ selfAuthored, findingCount, unresolvedOwnThreads });
 
             // --- One batched review. The per-comment endpoint (POST /pulls/{n}/comments) is
