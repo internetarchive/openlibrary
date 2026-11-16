@@ -120,8 +120,8 @@ class addtag(delegate.page):
             slugs="",
         )
 
-        if spamcheck.is_spam(i, allow_privileged_edits=True):
-            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
+        if reason := spamcheck.check_contribution(i, captcha=False):
+            return spamcheck.render_rejection(reason)
 
         if not (patron := get_current_user()):
             raise web.seeother(f"/account/login?redirect={self.path}")

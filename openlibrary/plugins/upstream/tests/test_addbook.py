@@ -573,7 +573,7 @@ class TestAddBookOcaid:
         def _post(user_factory):
             monkeypatch.setattr(accounts, "get_current_user", user_factory)
             monkeypatch.setattr(web, "input", lambda **kw: web.storage(kw, book_title="Book", id_name="ocaid", id_value="newitem00arch"))
-            monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *a, **kw: False)
+            monkeypatch.setattr(addbook.spamcheck, "check_contribution", lambda *a, **kw: None)
             monkeypatch.setattr(addbook, "render_template", lambda *a, **kw: a)
 
             class PastOcaidCheck(Exception):
@@ -787,9 +787,9 @@ class TestSiteContextMigration:
         monkeypatch.setattr(mock_site, "seq", Mock(next_value=Mock(return_value=17)), raising=False)
         for key, value in {"home": "http://openlibrary.org", "path": "/books/add", "fullpath": "/books/add", "lang": "en"}.items():
             monkeypatch.setitem(web.ctx, key, value)
-        monkeypatch.setattr(addbook, "get_recaptcha", lambda: None)
+        monkeypatch.setattr(addbook.spamcheck, "get_recaptcha", lambda: None)
         monkeypatch.setattr(accounts, "get_current_user", lambda: Mock(can_edit_ocaid=lambda: True))
-        monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *args, **kwargs: False)
+        monkeypatch.setattr(addbook.spamcheck, "spam_reason", lambda *args, **kwargs: None)
         monkeypatch.setattr(addbook, "add_edit_saved_flash", lambda *keys: None)
         monkeypatch.setattr(addbook.utils, "get_message", lambda key: "Saved book")
         return mock_site

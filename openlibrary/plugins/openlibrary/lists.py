@@ -348,8 +348,8 @@ class lists_edit(delegate.page):
             raise web.badrequest("A list name is required.")
 
         # Block spam lists at creation time (issue #11905)
-        if spamcheck.is_spam(list_record.to_thing_json()):
-            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
+        if reason := spamcheck.spam_reason(list_record.to_thing_json()):
+            return spamcheck.render_rejection(reason)
 
         # Creating a new list
         if not list_id:

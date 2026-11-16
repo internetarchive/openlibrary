@@ -11,6 +11,7 @@ from PIL import UnidentifiedImageError
 from infogami.utils import delegate
 from infogami.utils.view import safeint
 from openlibrary import accounts
+from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.models import Image
 from openlibrary.plugins.upstream.utils import (
     get_coverstore_public_url,
@@ -65,7 +66,7 @@ class add_cover(delegate.page):
             raise web.notfound("")
 
         user = accounts.get_current_user()
-        if user and user.is_read_only():
+        if spamcheck.account_restriction(user):
             raise web.forbidden(message="Patron not permitted to upload images")
 
         i = web.input(file={}, url="")

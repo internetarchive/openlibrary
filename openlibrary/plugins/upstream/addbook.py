@@ -1,7 +1,6 @@
 """Handlers for adding and editing books."""
 
 import csv
-import datetime as dt
 import io
 import logging
 import re
@@ -10,7 +9,6 @@ from typing import TYPE_CHECKING, Literal, NoReturn, overload
 
 import web
 
-from infogami import config
 from infogami.core.db import ValidationException
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
@@ -19,7 +17,6 @@ from openlibrary import accounts
 from openlibrary.contribute import pitch
 from openlibrary.core.helpers import uniq
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
 from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
@@ -60,31 +57,6 @@ def can_edit_ocaid() -> bool:
     """Whether the current user may add, change or remove an edition's ocaid. See `User.can_edit_ocaid`."""
     user = accounts.get_current_user()
     return bool(user and user.can_edit_ocaid())
-
-
-def get_recaptcha():
-    def recaptcha_exempt() -> bool:
-        """Check to see if account is an admin, or more than two years old."""
-        user = accounts.get_current_user()
-        account = user and user.get_account()
-
-        if not (user and account):
-            return False
-
-        if account.has_tag("trusted-user") or user.is_admin() or user.is_librarian():
-            return True
-
-        create_dt = account.creation_time()
-        now_dt = dt.datetime.now(dt.UTC).replace(tzinfo=None)
-        delta = now_dt - create_dt
-        return delta.days > 30
-
-    if not recaptcha_exempt():
-        public_key = config.plugin_recaptcha.public_key
-        private_key = config.plugin_recaptcha.private_key
-        return recaptcha.Recaptcha(public_key, private_key)
-    else:
-        return None
 
 
 def make_author(key: str, name: str) -> Author:
@@ -252,7 +224,7 @@ class addbook(delegate.page):
         if author and author not in authors:
             authors.append(author)
 
-        return render_template("books/add", work=work, authors=authors, recaptcha=get_recaptcha())
+        return render_template("books/add", work=work, authors=authors, recaptcha=spamcheck.get_recaptcha())
 
     def has_permission(self) -> bool:
         """
@@ -273,17 +245,9 @@ class addbook(delegate.page):
         )
         i.title = i.book_title
 
-        if spamcheck.is_spam(i, allow_privileged_edits=True):
-            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
-
-        if not accounts.get_current_user():
-            recap = get_recaptcha()
-            if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip):
-                return render_template(
-                    "message.html",
-                    "Recaptcha solution was incorrect",
-                    'Please <a href="javascript:history.back()">go back</a> and try again.',
-                )
+        # Adding a book requires login, so this captcha never runs; #14501 drops the condition.
+        if reason := spamcheck.check_contribution(i, captcha=not accounts.get_current_user()):
+            return spamcheck.render_rejection(reason)
 
         i.web_book_url = i.web_book_url.strip()
         if not is_valid_web_book_url(i.web_book_url):
@@ -852,22 +816,14 @@ class book_edit(delegate.page):
 
         work = (edition.works and edition.works[0]) or edition.make_work_from_orphaned_edition()
 
-        return render_template("books/edit", work, edition, recaptcha=get_recaptcha())
+        return render_template("books/edit", work, edition, recaptcha=spamcheck.get_recaptcha())
 
     def POST(self, key):
         i = web.input(v=None, work_key=None, _method="GET")
         form_data = web.input()
 
-        if spamcheck.is_spam(form_data, allow_privileged_edits=True):
-            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
-
-        recap = get_recaptcha()
-        if recap and not recap.validate_response(form_data.get("g-recaptcha-response"), web.ctx.ip):
-            return render_template(
-                "message.html",
-                "Recaptcha solution was incorrect",
-                'Please <a href="javascript:history.back()">go back</a> and try again.',
-            )
+        if reason := spamcheck.check_contribution(form_data):
+            return spamcheck.render_rejection(reason)
         v = i.v and safeint(i.v, None)
         edition = site.get().get(key, v)
 
@@ -917,23 +873,14 @@ class work_edit(delegate.page):
         if work is None:
             raise web.notfound()
 
-        return render_template("books/edit", work, recaptcha=get_recaptcha())
+        return render_template("books/edit", work, recaptcha=spamcheck.get_recaptcha())
 
     def POST(self, key):
         i = web.input(v=None, _method="GET")
         form_data = web.input()
 
-        if spamcheck.is_spam(form_data, allow_privileged_edits=True):
-            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
-
-        recap = get_recaptcha()
-
-        if recap and not recap.validate_response(form_data.get("g-recaptcha-response"), web.ctx.ip):
-            return render_template(
-                "message.html",
-                "Recaptcha solution was incorrect",
-                'Please <a href="javascript:history.back()">go back</a> and try again.',
-            )
+        if reason := spamcheck.check_contribution(form_data):
+            return spamcheck.render_rejection(reason)
 
         v = i.v and safeint(i.v, None)
         work = site.get().get(key, v)
@@ -975,6 +922,9 @@ class author_edit(delegate.page):
             raise web.notfound()
 
         i = web.input(_comment=None)
+        # Author pages have no captcha widget yet, so only the account and spam-word checks apply.
+        if reason := spamcheck.check_contribution(i, captcha=False):
+            return spamcheck.render_rejection(reason)
         formdata = self.process_input(i)
         try:
             if not formdata:
