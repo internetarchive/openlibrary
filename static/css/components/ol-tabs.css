@@ -18,10 +18,29 @@
  * Panels are only collapsed early when JS is expected (`body.client-js`):
  * without JS every panel stays visible and the tabs work as in-page links. If
  * the component fails to load, the tabs still switch panels through `:target`.
+ *
+ * `nav.ol-tab-nav` is the same row for page navigation: links to other pages,
+ * the current one marked `aria-current="page"`. There is no component, so
+ * nothing intercepts the click; the rules below are shared so both look alike.
  */
 
 ol-tabs {
   display: block;
+}
+
+/* Mirrors the component's shadow tablist: scrolls rather than wraps, and the
+   track line is an inset shadow so each link's own underline paints over it. */
+nav.ol-tab-nav {
+  display: flex;
+  gap: var(--spacing-lg);
+  overflow-x: auto;
+  scrollbar-width: none;
+  box-shadow: inset 0 calc(-1 * var(--border-width-divider)) 0
+    var(--color-border-muted);
+}
+
+nav.ol-tab-nav::-webkit-scrollbar {
+  display: none;
 }
 
 /* Before upgrade the host lays out the row itself; after, its shadow tablist does. */
@@ -34,11 +53,13 @@ ol-tabs:not(:defined) {
 /* Height-locked to the medium control token, so a tab row lines up with the
    select or segmented control it shares a toolbar with. The top padding
    balances the underline's width, keeping the label centred in the box. */
-ol-tabs > a[slot="tab"] {
+ol-tabs > a[slot="tab"],
+nav.ol-tab-nav > a {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
   box-sizing: border-box;
+  gap: var(--spacing-inline-sm);
   height: var(--control-height-medium);
   padding: var(--border-width-thick) 0 0;
   border-bottom: var(--border-width-thick) solid transparent;
@@ -49,6 +70,16 @@ ol-tabs > a[slot="tab"] {
   line-height: var(--line-height-control);
   text-decoration: none;
   white-space: nowrap;
+}
+
+/* Padded variant: the space sits inside each tab instead of between them, so
+   the underline runs past the label and the hit area grows with it. */
+nav.ol-tab-nav--padded {
+  gap: 0;
+}
+
+nav.ol-tab-nav--padded > a {
+  padding-inline: var(--spacing-md);
 }
 
 /* Before upgrade, mark the first tab when it's the one that will be selected.
@@ -67,21 +98,33 @@ ol-tabs > a[slot="tab"] {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  ol-tabs > a[slot="tab"]:hover {
+  ol-tabs > a[slot="tab"]:hover,
+  nav.ol-tab-nav > a:hover {
     color: var(--color-text);
   }
 }
 
-ol-tabs > a[slot="tab"][aria-selected="true"] {
+ol-tabs > a[slot="tab"][aria-selected="true"],
+nav.ol-tab-nav > a[aria-current="page"] {
   border-bottom-color: var(--color-text);
   color: var(--color-text);
   cursor: default;
 }
 
-ol-tabs > a[slot="tab"]:focus-visible {
+ol-tabs > a[slot="tab"]:focus-visible,
+nav.ol-tab-nav > a:focus-visible {
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: calc(-1 * var(--focus-width));
   border-radius: var(--border-radius-sm);
+}
+
+/* An optional leading icon, muted until its tab is the current one. */
+.ol-tab-nav__icon {
+  color: var(--color-icon-muted);
+}
+
+.ol-tab-nav [aria-current="page"] .ol-tab-nav__icon {
+  color: inherit;
 }
 
 /* A panel is only focusable when it has no focusable content; ring it

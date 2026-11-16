@@ -175,3 +175,86 @@ class TestTrendingNowCaching:
 
         loanstats.activity_stream().GET(mode="/now")
         mock_cached.assert_called_once_with(limit=loanstats.TRENDING_NOW_LIMIT, page=1)
+
+
+def chart_rows(blocks: dict[int, list[int]]) -> list[dict]:
+    """``period_rankings`` rows from ``{block: [work_id, ...]}`` listed in rank order; counts fall with rank."""
+    return [{"work_id": work_id, "block": block, "cnt": 100 - rank, "rank": rank} for block, ids in blocks.items() for rank, work_id in enumerate(ids, 1)]
+
+
+class TestBuildChart:
+    def test_ranks_the_current_block_with_moves_and_streaks(self):
+        rows = chart_rows({0: [1, 2, 3, 4], 1: [2, 1, 3], 2: [1, 3], 3: [3]})
+        chart = loanstats.build_chart(rows)
+        assert [e["work_id"] for e in chart] == [1, 2, 3, 4]
+        by_id = {e["work_id"]: e for e in chart}
+        assert by_id[1] == {"work_id": 1, "rank": 1, "cnt": 99, "delta": 1, "streak": 3}  # 2nd → 1st, on the list 3 periods
+        assert by_id[2]["delta"] == -1  # 1st → 2nd
+        assert by_id[2]["streak"] == 2  # missing from block 2 ends the streak
+        assert by_id[3] == {"work_id": 3, "rank": 3, "cnt": 97, "delta": 0, "streak": 4}
+        assert by_id[4]["delta"] is None  # new to the list
+        assert by_id[4]["streak"] == 1
+
+    def test_empty(self):
+        assert loanstats.build_chart([]) == []
+
+
+class TestChartViews:
+    @pytest.fixture
+    def charts(self, monkeypatch):
+        weekly = loanstats.build_chart(chart_rows({0: [1, 2, 3, 4, 5], 1: [5, 4, 1, 2]}))
+        forever = loanstats.build_chart(chart_rows({0: [1, 2]}))
+        monkeypatch.setattr(loanstats, "cached_chart", lambda period: {"weekly": weekly, "forever": forever}[period])
+        return weekly
+
+    def test_breakouts_drop_the_all_time_favourites(self, charts):
+        assert [e["work_id"] for e in loanstats.chart_for("breakouts")] == [3, 4, 5]
+
+    def test_a_period_is_its_own_chart(self, charts):
+        assert loanstats.chart_for("weekly") is charts
+
+
+class TestActivityStream:
+    @pytest.fixture
+    def view(self, monkeypatch):
+        web.ctx.env = web.ctx.environ = web.storage(REQUEST_METHOD="GET", QUERY_STRING="page=2")
+        # web.seeother() and web.notfound() write the response through ctx.
+        web.ctx.home, web.ctx.path, web.ctx.status, web.ctx.headers, web.ctx.output = "http://localhost", "/trending", "200 OK", [], ""
+        monkeypatch.setattr(Bookshelves, "add_solr_works", MagicMock())
+        rendered = {}
+        monkeypatch.setattr(loanstats.app, "render_template", lambda name, **kw: rendered.update(kw) or web.storage())
+        return rendered
+
+    def test_chart_modes_page_the_cached_chart(self, view, monkeypatch):
+        chart = loanstats.build_chart(chart_rows({0: list(range(1, 46))}))
+        monkeypatch.setattr(loanstats, "chart_for", lambda mode: chart)
+        loanstats.activity_stream().GET(mode="/weekly")
+        assert [e["work_id"] for e in view["logged_books"]] == list(range(21, 41))
+        assert view["total_pages"] == 3
+        assert view["page"] == 2
+
+    def test_rising_uses_solr(self, view, monkeypatch):
+        mock_rising = MagicMock(return_value=[{"work_id": 7}])
+        monkeypatch.setattr(loanstats, "cached_rising_work_ids", mock_rising)
+        loanstats.activity_stream().GET(mode="/rising")
+        mock_rising.assert_called_once_with(loanstats.TRENDING_NOW_LIMIT, 2)
+        assert view["logged_books"] == [{"work_id": 7}]
+        assert view["total_pages"] == loanstats.TRENDING_LIST_SIZE // loanstats.TRENDING_NOW_LIMIT
+
+    def test_unknown_mode_is_404(self, view):
+        with pytest.raises(web.HTTPError):
+            loanstats.activity_stream().GET(mode="/bogus")
+
+    def test_root_redirects_to_rising(self, view):
+        with pytest.raises(web.HTTPError):
+            loanstats.activity_stream().GET(mode="")
+        assert dict(web.ctx.headers)["Location"].endswith("/trending/rising")
+
+
+@pytest.mark.asyncio
+async def test_rising_work_ids_keeps_only_works(monkeypatch):
+    search = AsyncMock(return_value={"docs": [{"key": "/works/OL12W"}, {"key": "/books/OL3M"}, {"key": "/works/OL7W"}]})
+    monkeypatch.setattr(loanstats, "work_search_async", search)
+    assert await loanstats.rising_work_ids(20, 3) == [{"work_id": 12}, {"work_id": 7}]
+    assert search.await_args.kwargs["sort"] == "trending"
+    assert search.await_args.kwargs["page"] == 3

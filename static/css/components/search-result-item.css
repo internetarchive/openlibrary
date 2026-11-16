@@ -415,3 +415,20 @@
   display: block;
   margin-bottom: var(--spacing-stack-sm);
 }
+
+/* A ranked list's position (the macro's `rank`), in the large serif beside the
+   cover. Top-aligned with the cover, and wide enough for three digits so the
+   covers stay in one column down the list. */
+.searchResultItem .sri__rank {
+  align-self: flex-start;
+  flex-shrink: 0;
+  min-inline-size: 3em;
+  margin-block-start: var(--spacing-inline-sm);
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-display-small);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-heading);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+  text-align: center;
+}

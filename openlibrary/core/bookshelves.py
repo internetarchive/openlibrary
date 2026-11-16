@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from types import MappingProxyType
 from typing import Any, Literal, TypedDict, cast
 
@@ -752,6 +752,45 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def most_logged_editions_sync(cls, limit: int) -> list[dict]:
         return async_bridge.run(cls.most_logged_editions(limit))
+
+    @classmethod
+    async def period_rankings(
+        cls,
+        shelf_ids: list[int],
+        period_secs: int | None,
+        periods: int,
+        depth: int,
+        now: datetime,
+    ) -> list[dict]:
+        """The ``depth`` most-shelved works in each of the last ``periods`` blocks of ``period_secs`` ending at ``now``.
+
+        Block 0 is the most recent. Rows are ``work_id``, ``block``, ``cnt`` and ``rank`` (1-based, unique:
+        ties break on work_id). ``period_secs=None`` is one all-time block.
+        """
+        if period_secs:
+            block = "floor(extract(epoch FROM %(now)s - created) / %(period_secs)s)::int"
+            since = "AND created >= %(since)s "
+        else:
+            block = "0"
+            since = ""
+        query = (
+            "WITH counted AS ("
+            f"SELECT work_id, {block} AS block, count(*) AS cnt FROM {cls.TABLENAME} "
+            f"WHERE bookshelf_id = ANY(%(shelf_ids)s) {since}AND created < %(now)s "
+            "GROUP BY work_id, block"
+            "), ranked AS ("
+            "SELECT work_id, block, cnt, row_number() OVER (PARTITION BY block ORDER BY cnt DESC, work_id) AS rank FROM counted"
+            ") "
+            "SELECT work_id, block, cnt, rank FROM ranked WHERE rank <= %(depth)s ORDER BY block, rank"
+        )
+        params = {
+            "shelf_ids": shelf_ids,
+            "now": now,
+            "period_secs": period_secs,
+            "since": now - timedelta(seconds=period_secs * periods) if period_secs else None,
+            "depth": depth,
+        }
+        return await fetch_all(query, params)
 
     @classmethod
     async def get_num_users_by_bookshelf_by_work_id(cls, work_id: str) -> dict[int, int]:

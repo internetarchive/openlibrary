@@ -1,7 +1,7 @@
 """Unit and integration tests for the Bookshelves model. See ``docs/core/database.md``."""
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -50,6 +50,28 @@ async def test_most_logged_editions_counts_shelvings_that_name_an_edition(helper
 async def test_get_users_read_status_of_works_empty_skips_query(helpers):
     assert await Bookshelves.get_users_read_status_of_works("alice", []) == []
     helpers.fetch_all.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_period_rankings_blocks_by_period(helpers):
+    helpers.fetch_all.return_value = []
+    now = datetime(2026, 10, 29, 12)
+    await Bookshelves.period_rankings([1, 2, 3], period_secs=604800, periods=4, depth=200, now=now)
+    (query, params), _kwargs = helpers.fetch_all.await_args
+    assert "floor(extract(epoch FROM %(now)s - created) / %(period_secs)s)::int AS block" in query
+    assert "row_number() OVER (PARTITION BY block ORDER BY cnt DESC, work_id)" in query
+    assert "created >= %(since)s" in query
+    assert params == {"shelf_ids": [1, 2, 3], "now": now, "period_secs": 604800, "since": datetime(2026, 10, 1, 12), "depth": 200}
+
+
+@pytest.mark.asyncio
+async def test_period_rankings_all_time_is_one_block(helpers):
+    helpers.fetch_all.return_value = []
+    await Bookshelves.period_rankings([1], period_secs=None, periods=1, depth=10, now=datetime(2026, 10, 29))
+    (query, params), _kwargs = helpers.fetch_all.await_args
+    assert "SELECT work_id, 0 AS block" in query
+    assert "created >=" not in query
+    assert params["since"] is None
 
 
 # --- Integration tests (real postgres, marked `integration`) -------------------
@@ -437,3 +459,35 @@ class TestBookshelvesIntegration:
             {"username": "alice", "work_id": 42},
         )
         assert {row["bookshelf_id"] for row in shelf_ids} == {custom_shelf_id, 2}
+
+
+@pytest.mark.integration
+class TestPeriodRankingsIntegration:
+    @pytest.mark.asyncio
+    async def test_ranks_each_block(self, pg_db):
+        now = datetime(2026, 10, 29, 12)
+        day = 86400
+        # Work 1: two shelvings this week, one last week. Work 2: one this week, three last week.
+        # Work 3: one shelving two weeks ago. A fourth, on the stopped shelf, is not counted.
+        rows = [
+            ("a", 1, 1, now - timedelta(days=1)),
+            ("b", 1, 1, now - timedelta(days=2)),
+            ("c", 1, 3, now - timedelta(days=8)),
+            ("a", 2, 1, now - timedelta(days=3)),
+            ("b", 2, 1, now - timedelta(days=9)),
+            ("c", 2, 1, now - timedelta(days=10)),
+            ("d", 2, 1, now - timedelta(days=11)),
+            ("a", 3, 1, now - timedelta(days=15)),
+            ("a", 4, 4, now - timedelta(hours=1)),
+        ]
+        async with async_db.connection() as conn:
+            for username, work_id, shelf, created in rows:
+                await conn.execute(
+                    "INSERT INTO bookshelves_books (username, work_id, bookshelf_id, created) VALUES (%s, %s, %s, %s)",
+                    (username, work_id, shelf, created),
+                )
+        ranked = await Bookshelves.period_rankings([1, 2, 3], period_secs=7 * day, periods=3, depth=200, now=now)
+        assert [(r["block"], r["work_id"], r["cnt"], r["rank"]) for r in ranked] == [(0, 1, 2, 1), (0, 2, 1, 2), (1, 2, 3, 1), (1, 1, 1, 2), (2, 3, 1, 1)]
+
+        all_time = await Bookshelves.period_rankings([1, 2, 3], period_secs=None, periods=1, depth=1, now=now)
+        assert [(r["block"], r["work_id"], r["cnt"], r["rank"]) for r in all_time] == [(0, 2, 4, 1)]

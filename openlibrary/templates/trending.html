@@ -1,36 +1,91 @@
-$def with (logged_books=None, mode='now')
+$def with (logged_books=None, mode='rising', page=1, total_pages=10, rank_offset=0)
 
-$ page = int(input(page=1).page)
+$# Two kinds of tab. The charts (a period, or breakouts, a view of the weekly chart) rank
+$# shelvings and carry each book's move and streak. Rising is Solr's z-score and now is the live
+$# stream; neither has a rank.
+$code:
+  periods = {'daily': _('Today'), 'weekly': _('This Week'), 'monthly': _('This Month'), 'yearly': _('This Year'), 'forever': _('All Time')}
+  lens = 'popular' if mode in periods else mode
+  lenses = [
+    ('rising', '/trending/rising', _('Rising'), 'flame'),
+    ('breakouts', '/trending/breakouts', _('Breakouts'), 'rocket'),
+    ('popular', '/trending/weekly', _('Most Shelved'), 'library'),
+    ('now', '/trending/now', _('Live'), 'radio'),
+  ]
+  blurbs = {
+    'rising': _("Books getting far more attention today than they usually do. Each book is measured against its own past week, so a quiet book with a sudden spike ranks above a bestseller having an ordinary day."),
+    'breakouts': _("This week's most shelved books, leaving out the 200 most shelved of all time. The same favorites top every list, so this is what's popular right now that isn't always popular."),
+    'popular': _("The books readers added to their shelves most in the period. Each shows its rank, its move since the previous period, and how many periods in a row it has been in the top 200."),
+    'now': _("Shelvings as they happen: what readers from the community are adding to their bookshelves right now."),
+  }
+  # Breakouts is the weekly chart, so its rows read in weeks. All-time has no previous period to
+  # move against.
+  chart_period = mode if mode in periods else 'weekly'
+  time_unit = periods[chart_period]
+  show_moves = mode != 'forever'
+  streak_units = {
+    'daily': lambda n: ungettext('%(count)d day on the list', '%(count)d days on the list', n, count=n),
+    'weekly': lambda n: ungettext('%(count)d week on the list', '%(count)d weeks on the list', n, count=n),
+    'monthly': lambda n: ungettext('%(count)d month on the list', '%(count)d months on the list', n, count=n),
+    'yearly': lambda n: ungettext('%(count)d year on the list', '%(count)d years on the list', n, count=n),
+  }
+
+$def chart_row(entry):
+  <div class="trending-chart-row">
+    $if show_moves:
+      $if entry['delta'] is None:
+        <span class="trending-chart-row__move trending-chart-row__move--new">$_('New')</span>
+      $elif entry['delta'] > 0:
+        <span class="trending-chart-row__move trending-chart-row__move--up"><span class="trending-chart-row__hidden">$_('Up')</span> $entry['delta']</span>
+      $elif entry['delta'] < 0:
+        <span class="trending-chart-row__move trending-chart-row__move--down"><span class="trending-chart-row__hidden">$_('Down')</span> $(-entry['delta'])</span>
+      $else:
+        <span class="trending-chart-row__move trending-chart-row__move--flat"><span class="trending-chart-row__hidden">$_('No change')</span></span>
+    <span class="trending-chart-row__count">$ungettext('Logged %(count)i time %(time_unit)s', 'Logged %(count)i times %(time_unit)s', entry['cnt'], count=entry['cnt'], time_unit=time_unit)</span>
+    $if show_moves and entry['streak'] > 1:
+      <span class="trending-chart-row__streak">$streak_units[chart_period](entry['streak'])</span>
+  </div>
+
+$ _x = ctx.setdefault('cssfile', 'trending')
 
 <div id="contentBody">
-  $ pages = {'now': _('Now'), 'daily': _('Today'), 'weekly': _('This Week'), 'monthly': _('This Month'), 'yearly': _('This Year'), 'forever': _('All Time')}
-  <h1>$_('Trending Books'): $(pages[mode])</h1>
-  <p>$_("See what readers from the community are adding to their bookshelves")</p>
-  $if mode == 'forever':
-    <p>$_("Earliest trending data is from October 2017")</p>
-  <ul class="nav-bar">
-    $for p in pages:
-    <li class="$('selected' if p==mode else '')">
-      <a
-         href="/trending/$(p)">$pages[p]
-      </a>
-    </li>
-  </ul>
+  <h1 class="trending-title">$:macros.icon("trending-up", size="lg", extra_class="trending-title__icon") $_('Trending Books')</h1>
+  $# Each tab is its own page, so this is the tab look on plain navigation (see ol-tabs.css).
+  <nav class="ol-tab-nav ol-tab-nav--padded trending-tabs" aria-label="$_('Trending views')">
+    $for key, href, label, icon_name in lenses:
+      <a href="$href"$:(' aria-current="page"' if key == lens else '')>$:macros.icon(icon_name, size="sm", extra_class="ol-tab-nav__icon")$label</a>
+  </nav>
+  <p class="trending-blurb">$blurbs[lens]</p>
+  $if lens == 'popular':
+    $# Each period is its own page too; trending.js navigates on change.
+    <div class="trending-toolbar">
+      <ol-segmented-control class="trending-periods" size="small" value="$mode" accessible-label="$_('Period')">
+        $for p in periods:
+          <ol-segment value="$p">$periods[p]</ol-segment>
+      </ol-segmented-control>
+      $if mode == 'forever':
+        <span class="trending-toolbar__note">$_("Earliest trending data is from October 2017")</span>
+    </div>
 
   <div class="mybooks-list">
-    <ul class="list-books">
-      $if logged_books:
-        $ valid_entries = [entry for entry in logged_books if entry.get('work')]
+    $ valid_entries = [entry for entry in (logged_books or []) if entry.get('work')]
+    $if valid_entries:
+      <ul class="list-books">
         $ reading_states = get_reading_states(ctx.user, [entry['work'] for entry in valid_entries])
         $for entry in valid_entries:
+          $# Every tab but the live stream is ranked; rising ranks by position on the page.
+          $ rank = None if 'bookshelf_id' in entry else entry.get('rank', rank_offset + loop.index)
           $if 'bookshelf_id' in entry:
             $ shelf = {1: _("Want to Read"), 2: _("Currently Reading"), 3: _("Read"), 4: _("Stopped Reading")}[entry['bookshelf_id']]
             $ extra = _("Someone marked as %(shelf)s %(k_hours_ago)s", shelf=shelf, k_hours_ago=datestr(entry['created']))
+          $elif 'rank' in entry:
+            $ extra = chart_row(entry)
           $else:
-            $ extra = ungettext('Logged %(count)i time %(time_unit)s', 'Logged %(count)i times %(time_unit)s', entry['cnt'], count=entry['cnt'], time_unit=pages[mode])
-
-          $:macros.SearchResultsWork(entry['work'], extra=extra, availability=entry['work'].get('availability'), seq_index=loop.index0, include_dropper=True, reading_states=reading_states)
-    </ul>
+            $ extra = None
+          $:macros.SearchResultsWork(entry['work'], extra=extra, availability=entry['work'].get('availability'), seq_index=loop.index0, include_dropper=True, reading_states=reading_states, rank=rank, show_details=False)
+      </ul>
+    $else:
+      <p class="trending-empty">$_("Nothing to show here yet. Check back soon.")</p>
   </div>
-  $:macros.OlPagination(page, total_pages=200 // 20)
+  $:macros.OlPagination(page, total_pages=total_pages)
 </div>
