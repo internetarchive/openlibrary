@@ -5,12 +5,12 @@ import random
 from datetime import UTC, date, datetime, timedelta
 
 import requests
-import web
 
 from openlibrary.core import cache
 from openlibrary.core.async_db import fetch_val
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.helpers import commify, format_date
+from openlibrary.utils.request_context import site as site_context
 
 
 class Stats:
@@ -213,7 +213,7 @@ def get_count_docs(ndays: int) -> list[dict]:
 
     This function is memoized to avoid accessing the db for every request.
     """
-    return read_count_docs(web.ctx.site, ndays)
+    return read_count_docs(site_context.get(), ndays)
 
 
 def get_stats(ndays=30, use_mock_data=False):

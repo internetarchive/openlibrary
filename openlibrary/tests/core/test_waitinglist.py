@@ -7,6 +7,9 @@ import datetime as dt
 import json
 from unittest.mock import Mock
 
+import pytest
+import web
+
 from openlibrary.core import lending
 from openlibrary.core.waitinglist import WaitingLoan
 
@@ -239,3 +242,13 @@ class TestWaitingLoanGetUserKey:
 
         w = WaitingLoan({"userid": "@ol_user1"})
         assert w.get_user_key() == "/people/user1"
+
+
+@pytest.mark.parametrize("legacy", ["missing", "different"])
+def test_waiting_book_uses_current_site(mock_site, monkeypatch, legacy):
+    mock_site.quicksave("/books/OL1M", "/type/edition", title="Waiting book", ocaid="test-book")
+    if legacy == "missing":
+        monkeypatch.delitem(web.ctx, "site")
+    else:
+        monkeypatch.setitem(web.ctx, "site", Mock())
+    assert WaitingLoan(identifier="test-book").get_book().title == "Waiting book"

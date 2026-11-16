@@ -48,13 +48,13 @@ def connect_to_pg(config_file):
 def store_data(data, date):
     uid = "counts-%s" % date
     logger.debug(" Updating stats for %s - %s", uid, data)
-    doc = web.ctx.site.store.get(uid) or {}
+    doc = site.get().store.get(uid) or {}
     doc.update(data)
     doc["type"] = "admin-stats"
     # as per https://github.com/internetarchive/infogami/blob/master/infogami/infobase/_dbstore/store.py#L79-L83
     # avoid document collisions if multiple tasks updating stats in competition (race)
     doc["_rev"] = None
-    web.ctx.site.store[uid] = doc
+    site.get().store[uid] = doc
 
 
 def run_gathering_functions(infobase_db, coverstore_db, start, end, prefix, key_prefix=None):

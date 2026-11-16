@@ -78,7 +78,7 @@ div.merge .ol-num {
 }
 
 div.merge .name {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--black);
 }
 

@@ -316,8 +316,8 @@ export class OlDialog extends LitElement {
             gap: var(--spacing-sm);
             margin: 0;
             padding: 0;
-            font-size: 1.25rem;
-            font-weight: 600;
+            font-size: var(--font-size-title-large);
+            font-weight: var(--font-weight-semibold);
         }
 
         .body {

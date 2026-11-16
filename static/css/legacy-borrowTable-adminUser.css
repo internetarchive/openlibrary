@@ -15,7 +15,7 @@
   padding-bottom: var(--spacing-inset-sm);
   font-family: var(--font-family-body);
   color: var(--color-text-heading);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   font-size: 0.6875em;
   text-transform: uppercase;
   white-space: nowrap;

@@ -1,7 +1,7 @@
 a.ghost-btn {
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
   border-radius: 5px;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   text-decoration: none;
   text-align: center;
   /* Important is necessary to override default link color */

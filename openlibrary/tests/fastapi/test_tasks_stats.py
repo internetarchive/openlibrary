@@ -27,6 +27,7 @@ def test_series_line_up_with_one_entry_per_calendar_day(fastapi_client):
     assert body["dates"] == [(today - timedelta(days=2)).isoformat(), yesterday.isoformat(), today.isoformat()]
     assert body["series"]["catalog_editors_1d"] == [None, 140, 61]
     assert body["series"]["tasks_saves_1d"] == [None, 3, None]
+    assert body["series"]["catalog_edits"] == [None, None, None]
     assert body["saves_by_field"] == [None, {"covers": 2, "lccn": 1}, None]
     # Yesterday's doc predates per-initiative snapshots, so its flat keys still read as the headline initiative's.
     assert body["initiatives"] == {"most-read-2026-11": [None, 900, 880], "fiction-2026-11": [None, None, 40]}

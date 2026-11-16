@@ -198,3 +198,67 @@ def test_source_url_is_absent_when_the_feed_gives_no_self_link():
     rec = to_import_record(pub, BWB)
     assert rec is not None
     assert "source_url" not in rec["acquisitions"][0]["data"]
+
+
+def test_gutenberg_descriptive_metadata():
+    pub = Publication(**json.loads((SAMPLES / "gutenberg_2641.json").read_text()))
+    rec = to_import_record(pub, GUTENBERG)
+
+    assert rec["description"].startswith("Creators: E. M. Forster")
+    # Bookshelves and LCSH-style headings are topics; the LCC entry is not.
+    assert "Novels" in rec["subjects"]
+    assert "Florence (Italy) -- Fiction" in rec["subjects"]
+    assert not any("PR" in s for s in rec["subjects"])
+    assert rec["lc_classifications"] == ["PR"]
+
+
+def test_lenny_descriptive_metadata():
+    rec = to_import_record(_pubs("lenny")[0], LENNY)
+    assert rec["description"].startswith("<p><i>Flatland</i>")
+    assert rec["number_of_pages"] == 110
+
+
+def test_metadata_field_shapes():
+    """OPDS allows a bare string, a language map, an object, or a list of these."""
+    pub = Publication(
+        metadata={
+            "title": "X",
+            "author": "Jane Doe",
+            "subtitle": {"fr": "Un sous-titre", "en": "A subtitle"},
+            "description": {"en": " Described. "},
+            "publisher": {"name": "Some Press"},
+            "subject": ["Cats", {"name": {"en": "Dogs"}, "scheme": "https://example.org/"}, "Cats"],
+            "numberOfPages": "12",
+        },
+        links=[Link(rel="self", href="https://lenny/v1/api/opds/pub/1")],
+    )
+    rec = to_import_record(pub, LENNY)
+
+    assert rec["authors"] == [{"name": "Jane Doe"}]
+    assert rec["subtitle"] == "A subtitle"
+    assert rec["description"] == "Described."
+    assert rec["publishers"] == ["Some Press"]
+    assert rec["subjects"] == ["Cats", "Dogs"]
+    assert "number_of_pages" not in rec  # not an integer
+
+
+def test_absent_metadata_adds_no_fields():
+    rec = to_import_record(_pubs("bwb")[0], BWB)
+    for field in ("subtitle", "description", "subjects", "lc_classifications", "number_of_pages"):
+        assert field not in rec
+
+
+def test_gutenberg_author_id_becomes_remote_id():
+    pub = Publication(**json.loads((SAMPLES / "gutenberg_2641.json").read_text()))
+    assert to_import_record(pub, GUTENBERG)["authors"] == [
+        {"name": "Forster, E. M. (Edward Morgan)", "remote_ids": {"project_gutenberg": "975"}},
+    ]
+
+
+@pytest.mark.parametrize("identifier", [None, "https://example.org/authors/975", "https://www.gutenberg.org/ebooks/975"])
+def test_unrecognised_author_identifiers_are_ignored(identifier):
+    pub = Publication(
+        metadata={"title": "X", "author": {"name": "Jane Doe", "identifier": identifier}},
+        links=[Link(rel="self", href="https://lenny/v1/api/opds/pub/1")],
+    )
+    assert to_import_record(pub, LENNY)["authors"] == [{"name": "Jane Doe"}]

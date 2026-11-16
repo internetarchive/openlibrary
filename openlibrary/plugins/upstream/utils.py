@@ -386,7 +386,7 @@ def _get_changes_v1_raw(query: dict[str, str | int], revision: int | None = None
         delegate.fakeload()
         request_context.set_context_from_legacy_web_py()
 
-    versions = web.ctx.site.versions(query)
+    versions = request_context.site.get().versions(query)
 
     for v in versions:
         v.created = v.created.isoformat()
@@ -405,7 +405,7 @@ def get_changes_v1(query: dict[str, str | int], revision: int | None = None) -> 
     def process(v):
         v = Storage(v)
         v.created = parse_datetime(v.created)
-        v.author = v.author and web.ctx.site.get(v.author, lazy=True)
+        v.author = v.author and request_context.site.get().get(v.author, lazy=True)
         return v
 
     return [process(v) for v in _get_changes_v1_raw(query, revision)]
@@ -420,7 +420,7 @@ def _get_changes_v2_raw(query: dict[str, str | int], revision: int | None = None
         delegate.fakeload()
         request_context.set_context_from_legacy_web_py()
 
-    changes = web.ctx.site.recentchanges(query)
+    changes = request_context.site.get().recentchanges(query)
     return [c.dict() for c in changes]
 
 
@@ -429,7 +429,7 @@ def _get_changes_v2_raw(query: dict[str, str | int], revision: int | None = None
 
 
 def get_changes_v2(query: dict[str, str | int], revision: int | None = None) -> list[Changeset]:
-    page = web.ctx.site.get(query["key"])
+    page = request_context.site.get().get(query["key"])
 
     def first(seq, default=None):
         try:
@@ -438,7 +438,7 @@ def get_changes_v2(query: dict[str, str | int], revision: int | None = None) -> 
             return default
 
     def process_change(change):
-        change = Changeset.create(web.ctx.site, storify(change))
+        change = Changeset.create(request_context.site.get(), storify(change))
         change.thing = page
         change.key = page.key
         change.revision = first(c.revision for c in change.changes if c.key == page.key)
@@ -483,7 +483,7 @@ def get_history(page: Work | Author | Edition) -> Storage:
 @public
 def get_version(key, revision):
     try:
-        return web.ctx.site.versions({"key": key, "revision": revision, "limit": 1})[0]
+        return request_context.site.get().versions({"key": key, "revision": revision, "limit": 1})[0]
     except IndexError:
         return None
 
@@ -498,8 +498,8 @@ def get_recent_author(doc: Work) -> Thing | None:
 
 @public
 def get_recent_accounts(limit=5, offset=0):
-    versions = web.ctx.site.versions({"type": "/type/user", "revision": 1, "limit": limit, "offset": offset})
-    return web.ctx.site.get_many([v.key for v in versions])
+    versions = request_context.site.get().versions({"type": "/type/user", "revision": 1, "limit": limit, "offset": offset})
+    return request_context.site.get().get_many([v.key for v in versions])
 
 
 def get_locale():
@@ -525,7 +525,7 @@ def process_version(v: HasGetKeyRevision) -> HasGetKeyRevision:
     ]
 
     if v.key.startswith("/books/") and not v.get("machine_comment"):
-        thing = v.get("thing") or web.ctx.site.get(v.key, v.revision)
+        thing = v.get("thing") or request_context.site.get().get(v.key, v.revision)
         if (thing.source_records and v.revision == 1) or (
             v.comment and v.comment.lower() in comments  # type: ignore [attr-defined]
         ):
@@ -1204,7 +1204,7 @@ def _get_identifier_config(identifier: Literal["work", "edition", "author"]) -> 
         identifiers = [Storage(id) for id in id_config.get("identifiers", []) if "name" in id]
 
     if identifier == "edition":
-        thing = web.ctx.site.get("/config/edition")
+        thing = request_context.site.get().get("/config/edition")
         classifications = [Storage(t.dict()) for t in thing.classifications if "name" in t]
         roles = thing.roles
         return Storage(classifications=classifications, identifiers=identifiers, roles=roles)
@@ -1294,7 +1294,7 @@ if config.get("upstream_memcache_servers"):
 
 
 def _get_recent_changes():
-    site = web.ctx.get("site") or delegate.create_site()
+    site = request_context.site.get()
     web.ctx.setdefault("ip", "127.0.0.1")
 
     # The recentchanges can have multiple revisions for a document if it has been
@@ -1347,7 +1347,7 @@ def _get_recent_changes2():
         request_context.set_context_from_legacy_web_py()
 
     q = {"bot": False, "limit": 100}
-    changes = web.ctx.site.recentchanges(q)
+    changes = request_context.site.get().recentchanges(q)
 
     def is_ignored(c):
         return (
@@ -1419,7 +1419,7 @@ def create_thing(data: dict) -> Thing:
     classes. Will change the dict to be the same type as when fetched from
     the database via `web.ctx.site.get`.
     """
-    return client.create_thing(web.ctx.site, data["key"], web.ctx.site._process_dict(parse_query(data)))
+    return client.create_thing(request_context.site.get(), data["key"], request_context.site.get()._process_dict(parse_query(data)))
 
 
 @public
@@ -1519,7 +1519,7 @@ class HTMLTagRemover(HTMLParser):
 
 @public
 def get_user_object(username):
-    user = web.ctx.site.get(f"/people/{username}")
+    user = request_context.site.get().get(f"/people/{username}")
     return user
 
 
@@ -1664,7 +1664,7 @@ def get_collection_book_count(page) -> int:
     keys = {"/".join(m.split("/")[:5]) for m in LIST_CAROUSEL_RE.findall(str(body))}
     # A deleted list still resolves to a Thing, and a non-list key to one with no
     # seed_count, so both would otherwise count as a list holding zero books.
-    lists = web.ctx.site.get_many(sorted(keys))
+    lists = request_context.site.get().get_many(sorted(keys))
     return sum(lst.seed_count for lst in lists if lst.type.key == "/type/list")
 
 

@@ -13,7 +13,7 @@
 /* .Tools .btn-notice is a legacy selector. Remove at earliest opportunity. */
 .read-options,
 .btn-notice {
-  font-size: 1em;
+  font-size: inherit;
   padding: var(--spacing-md);
   margin-bottom: 10px;
   background-color: var(--white);
@@ -45,15 +45,15 @@
 
 .read-options strong,
 .btn-notice strong {
-  font-size: 12.5px;
-  font-weight: bold;
+  font-size: var(--font-size-label-medium);
+  font-weight: var(--font-weight-bold);
 }
 
 .read-options .cta-section-title,
 .btn-notice .cta-section-title {
-  font-size: 12.5px;
+  font-size: var(--font-size-label-medium);
   display: block;
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 /* stylelint-disable selector-max-specificity */

@@ -165,7 +165,7 @@ cd openlibrary && pip install -r requirements.txt
 cd tests/integration && pytest
 ```
 
-**Bundle size errors** (`FAIL static/build/page-plain.css: 18.81KB > maxSize 18.8KB`): Move styles to a JS entry point (`<file>--js.less`, import in `static/css/js-all.less`) — JS bundle has a higher threshold. Or adjust `openlibrary/package.json` thresholds if justified.
+**Bundle size errors** (`FAIL static/build/css/page-plain.css: 28.01KB > maxSize 28KB`): Move styles to a JS-loaded stylesheet (`<name>--js.css`, imported from the JS module that needs it, or add them to `static/css/js-all.css`) — these are off the critical path and have a higher threshold. Or adjust the thresholds in `bundlesize.config.json` if justified.
 
 **Critical paths that must be tested before any release:**
 Auth (register/login), Lending (borrow/return/waitlist), Search (all/title/author/subject/advanced + facets), Navigation, Reading Log (set/change/remove status), Lists, Editions/Works pages, Carousels, Import, Stats.

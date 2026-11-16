@@ -254,9 +254,7 @@ async def get_available_async(
     archive.org advancedsearch which are available, in the inlibrary
     collection, and optionally apart of an `openlibrary_subject`.
 
-    Returns a list of editions (one available edition per work). Is
-    used in such things as 'Staff Picks' carousel to retrieve a list
-    of unique available books.
+    Returns a list of editions (one available edition per work).
     """
 
     url = url or compose_ia_url(

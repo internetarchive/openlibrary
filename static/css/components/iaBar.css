@@ -28,18 +28,18 @@
 /* Changes color of heart unicode character */
 .heart {
   color: var(--heart-color);
-  font-size: 1em;
+  font-size: inherit;
 }
 
 /* stylelint-disable selector-max-specificity */
 #topNotice {
-  font-size: 0.9em;
+  font-size: var(--font-size-body-medium);
 }
 
 /* @width-breakpoint-mobile: 450px */
 @media only screen and (max-width: 450px) {
   #topNotice .iabar-mobile {
-    font-size: 0.9em;
+    font-size: var(--font-size-body-small);
   }
   #topNotice .ghost-btn.iabar-mobile {
     padding: var(--spacing-inset-xs) var(--spacing-inset-sm);

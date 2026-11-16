@@ -91,6 +91,7 @@ def make_author(key: str, name: str) -> Author:
     """
     Use author_key and author_name and return an Author.
 
+    >>> _ = getfixture("mock_site")
     >>> make_author("OL123A", "Samuel Clemens")
     <Author: '/authors/OL123A'>
     """
@@ -144,13 +145,13 @@ def new_doc(type_: str, **data) -> Author | Edition | Work | List | Series:
     if type_ in ("/type/list", "/type/series"):
         # When lists were created they didn't have their sequence registered correctly,
         # so we need to do this a bit differently
-        next_value = web.ctx.site.seq.next_value("list")
+        next_value = site.get().seq.next_value("list")
         key = f"/{type_.rsplit('/', maxsplit=1)[-1]}/OL{next_value}L"
     else:
-        key = web.ctx.site.new_key(type_)
+        key = site.get().new_key(type_)
     data["key"] = key
     data["type"] = {"key": type_}
-    return web.ctx.site.new(key, data)
+    return site.get().new(key, data)
 
 
 class DocSaveHelper:
@@ -168,7 +169,7 @@ class DocSaveHelper:
     def commit(self, **kw) -> None:
         """Saves all the collected docs."""
         if self.docs:
-            web.ctx.site.save_many(self.docs, **kw)
+            site.get().save_many(self.docs, **kw)
 
     def create_authors_from_form_data(self, authors: list[dict], author_names: list[str], _test: bool = False) -> bool:
         """
@@ -240,8 +241,8 @@ class addbook(delegate.page):
             return safe_seeother(f"/account/login?redirect={self.path}")
 
         i = web.input(work=None, author=None)
-        work = i.work and web.ctx.site.get(i.work)
-        author = i.author and web.ctx.site.get(i.author)
+        work = i.work and site.get().get(i.work)
+        author = i.author and site.get().get(i.author)
 
         # pre-filling existing author(s) if adding new edition from existing work page
         authors = (work and work.authors) or []
@@ -257,7 +258,7 @@ class addbook(delegate.page):
         """
         Can a book be added?
         """
-        return web.ctx.site.can_write("/books/add")
+        return site.get().can_write("/books/add")
 
     def POST(self):
         i = web.input(
@@ -345,7 +346,7 @@ class addbook(delegate.page):
         if work_key == "none-of-these":
             return None  # Case 1, from check page
 
-        work = work_key and web.ctx.site.get(work_key)
+        work = work_key and site.get().get(work_key)
         if work:
             edition = self.try_edition_match(
                 work=work,
@@ -446,7 +447,7 @@ class addbook(delegate.page):
             work = result.docs[0]
             publisher = publisher and fuzzy_find(publisher, work.publisher, stopwords=("publisher", "publishers", "and"))
 
-            editions = web.ctx.site.get_many(["/books/" + key for key in work.edition_key])
+            editions = site.get().get_many(["/books/" + key for key in work.edition_key])
             for e in editions:
                 if publisher and (not e.publishers or e.publishers[0] != publisher):
                     continue
@@ -702,7 +703,7 @@ class SaveBookHelper:
 
     @staticmethod
     def delete(key, comment=""):
-        doc = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
+        doc = site.get().new(key, {"key": key, "type": {"key": "/type/delete"}})
         doc._save(comment=comment)
 
     def process_input(self, i):
@@ -837,7 +838,7 @@ class book_edit(delegate.page):
         i = web.input(v=None)
         v = i.v and safeint(i.v, None)
 
-        if not web.ctx.site.can_write(key):
+        if not site.get().can_write(key):
             web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
@@ -845,7 +846,7 @@ class book_edit(delegate.page):
                 "Permission denied to edit " + key + ".",
             )
 
-        edition = web.ctx.site.get(key, v)
+        edition = site.get().get(key, v)
         if edition is None:
             raise web.notfound()
 
@@ -868,7 +869,7 @@ class book_edit(delegate.page):
                 'Please <a href="javascript:history.back()">go back</a> and try again.',
             )
         v = i.v and safeint(i.v, None)
-        edition = web.ctx.site.get(key, v)
+        edition = site.get().get(key, v)
 
         if edition is None:
             raise web.notfound()
@@ -904,7 +905,7 @@ class work_edit(delegate.page):
         i = web.input(v=None, _method="GET")
         v = i.v and safeint(i.v, None)
 
-        if not web.ctx.site.can_write(key):
+        if not site.get().can_write(key):
             web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
@@ -912,7 +913,7 @@ class work_edit(delegate.page):
                 "Permission denied to edit " + key + ".",
             )
 
-        work = web.ctx.site.get(key, v)
+        work = site.get().get(key, v)
         if work is None:
             raise web.notfound()
 
@@ -935,7 +936,7 @@ class work_edit(delegate.page):
             )
 
         v = i.v and safeint(i.v, None)
-        work = web.ctx.site.get(key, v)
+        work = site.get().get(key, v)
         if work is None:
             raise web.notfound()
 
@@ -953,7 +954,7 @@ class author_edit(delegate.page):
     path = r"(/authors/OL\d+A)/edit"
 
     def GET(self, key):
-        if not web.ctx.site.can_write(key):
+        if not site.get().can_write(key):
             web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
@@ -961,7 +962,7 @@ class author_edit(delegate.page):
                 "Permission denied to edit " + key + ".",
             )
 
-        author = web.ctx.site.get(key)
+        author = site.get().get(key)
         if author is None:
             raise web.notfound()
         return render_template("type/author/edit", author)
@@ -969,7 +970,7 @@ class author_edit(delegate.page):
     def POST(self, key):
         if not accounts.get_current_user():
             raise web.unauthorized()
-        author = web.ctx.site.get(key)
+        author = site.get().get(key)
         if author is None:
             raise web.notfound()
 
@@ -983,7 +984,7 @@ class author_edit(delegate.page):
                 author._save(comment=i._comment)
                 raise safe_seeother(key)
             elif "_delete" in i:
-                author = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
+                author = site.get().new(key, {"key": key, "type": {"key": "/type/delete"}})
                 author._save(comment=i._comment)
                 raise safe_seeother(key)
         except (ClientException, ValidationException) as e:
@@ -1008,7 +1009,7 @@ class daisy(delegate.page):
     path = "(/books/.*)/daisy"
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
 
         if not page:
             raise web.notfound()

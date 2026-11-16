@@ -7,6 +7,7 @@ import web
 
 from openlibrary.admin import numbers
 from openlibrary.contribute import initiatives, save
+from openlibrary.utils.request_context import site as site_context
 
 
 class FakeDB:
@@ -164,17 +165,21 @@ def fake_initiatives(monkeypatch):
         raise AssertionError("the stats run must not pick and freeze a list")
 
     def initiative(slug, fields):
-        return SimpleNamespace(slug=slug, store_key=f"contribute-initiative-{slug}", fields=fields)
+        return SimpleNamespace(slug=slug, store_key=f"contribute-initiative-{slug}", fields=fields, ends_at=None, start=None)
 
+    registry = [initiative("most-read-test", ("covers", "publishers")), initiative("genres-test", ("genres",))]
     initiatives = SimpleNamespace(
-        INITIATIVES=(initiative("most-read-test", ("covers", "publishers")), initiative("genres-test", ("genres",))),
+        registry=registry,
+        read_definitions=lambda site: [],
+        started=lambda definitions: registry,
         gaps_for=gaps_for,
         build_gaps=build_gaps,
-        progress=lambda gaps, fields: {"open": 1, "done": 1, "not_found": 1, "total": 2, "percent": 91},
+        progress=lambda gaps, fields, start: {"open": 1, "done": 1, "not_found": 1, "total": 2, "percent": 91},
         calls=calls,
     )
     monkeypatch.setattr(numbers, "_initiative", lambda: initiatives)
     monkeypatch.setattr(web.ctx, "site", SimpleNamespace(store=FakeStore({"contribute-initiative-most-read-test": FROZEN})), raising=False)
+    site_context.set(web.ctx.site)
     return initiatives
 
 
@@ -184,7 +189,9 @@ def today_kargs(db=None):
 
 
 def test_initiatives_counts_each_frozen_list_and_skips_the_rest(fake_initiatives):
-    assert numbers.admin_range__initiatives(**today_kargs()) == {"most-read-test": {"open": 1, "done": 1, "not_found": 1, "editions": 2, "people": 7}}
+    assert numbers.admin_range__initiatives(**today_kargs()) == {
+        "most-read-test": {"open": 1, "done": 1, "not_found": 1, "editions": 2, "percent": 91, "people": 7}
+    }
     assert fake_initiatives.calls == [2]
 
 
@@ -197,6 +204,19 @@ def test_initiatives_survive_a_run_that_crosses_midnight(fake_initiatives):
     "A run started at 23:5x reaches this after midnight; the window, not the clock, says it's today's."
     start = datetime(2026, 10, 29)
     assert "most-read-test" in numbers.admin_range__initiatives(thingdb=FakeDB(), start=start, end=start.replace(hour=23, minute=55))
+
+
+def test_an_ended_initiative_carries_its_last_snapshot_forward(fake_initiatives):
+    ended = fake_initiatives.registry[1]
+    ended.ends_at = datetime(2026, 10, 1)
+    last = {"open": 3, "done": 40, "not_found": 2, "editions": 50, "percent": 90, "people": 12}
+    # Two nights missed: the newest doc within reach still has it.
+    web.ctx.site.store["counts-2026-10-27"] = {"initiatives": {"genres-test": last}}
+    start = datetime(2026, 10, 30)
+    counts = numbers.admin_range__initiatives(thingdb=FakeDB(), start=start, end=start.replace(hour=1))
+    assert counts["genres-test"] == last
+    # Never recounted: only the live one's list is read.
+    assert fake_initiatives.calls == [2]
 
 
 def test_initiatives_wait_for_the_web_app_to_freeze_a_list(fake_initiatives):
@@ -241,7 +261,7 @@ def test_other_fills_are_one_query_for_both_keys(monkeypatch):
 
 
 def test_tasks_fields_match_what_the_headline_initiative_offers():
-    assert set(numbers.TASKS_FIELDS) == set(initiatives.ACTIVE.fields)
+    assert set(numbers.TASKS_FIELDS) == set(initiatives.MOST_READ.fields)
 
 
 def test_tasks_source_matches_what_tasks_saves_write():
@@ -253,3 +273,31 @@ def test_catalog_change_matches_record_keys_only():
     assert pattern.search('[{"key": "/books/OL1M", "revision": 2}]')
     assert pattern.search('[{"key": "/authors/OL1A", "revision": 2}]')
     assert not pattern.search('[{"key": "/people/x/lists/OL1L", "revision": 2}]')
+
+
+@pytest.fixture(autouse=True)
+def restore_site_context():
+    token = site_context.set(site_context.get(None))
+    yield
+    site_context.reset(token)
+
+
+def test_saves_by_initiative_is_a_dict_of_the_days_saves_that_name_one():
+    db = FakeDB(rows=[web.storage(initiative="most-read-2026-11", count=9), web.storage(initiative=None, count=4)])
+    assert run(numbers.admin_range__tasks_saves_by_initiative_1d, db) == {"most-read-2026-11": 9}
+    [(q, vars)] = db.queries
+    sql = str(web.db.reparam(q, vars))
+    assert "key = 'source' AND value = 'contribute'" in sql
+    assert "t.created >= '2026-10-15' AND t.created < '2026-10-15 21:00:00'" in sql
+
+
+def test_the_28_day_saves_by_initiative_pair_each_count_with_its_undone():
+    class TwoQueries(FakeDB):
+        def query(self, q, vars=None):
+            self.queries.append((q, vars))
+            undone = "latest.data" in q
+            return [web.storage(initiative="most-read-2026-11", count=2 if undone else 40), web.storage(initiative=None, count=1)]
+
+    db = TwoQueries()
+    assert run(numbers.admin_range__tasks_saves_by_initiative_28d, db) == {"most-read-2026-11": {"saves": 40, "undone": 2}}
+    assert len(db.queries) == 2
