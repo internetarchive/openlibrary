@@ -19,7 +19,7 @@ $var title: $_("Add a book")
     <form method="POST" id="addbook" class="olform addbook1$cond(not recaptcha, ' hidden')" name="edit">
         $if recaptcha:
             $:render_template("recaptcha", recaptcha.public_key, error=None)
-            <p id="recaptcha-needed" class="invalid" hidden>$_("Please complete the reCAPTCHA above before choosing a book.")</p>
+            <p id="recaptcha-needed" class="invalid" role="alert" aria-live="polite" aria-atomic="true" hidden>$_("Please complete the reCAPTCHA above before choosing a book.")</p>
         <input type="hidden" id="work" name="work" value="none-of-these"/>
         <input type="hidden" name="book_title" value="$d.title"/>
         <input type="hidden" name="publisher" value="$d.publisher"/>
