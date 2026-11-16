@@ -9965,6 +9965,15 @@ msgstr ""
 msgid "Subject search"
 msgstr ""
 
+#: openlibrary/fastapi/search.py
+#, python-format
+msgid "%(query)s - Publisher search"
+msgstr ""
+
+#: openlibrary/fastapi/search.py
+msgid "Publisher search"
+msgstr ""
+
 #: openlibrary/fastapi/tasks.py
 msgid "Someone else changed this project while you had it open. Check it below, then try again."
 msgstr ""

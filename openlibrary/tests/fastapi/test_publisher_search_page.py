@@ -42,8 +42,7 @@ def test_page_without_query(client, monkeypatch):
 
     assert response.status_code == 200
     html = response.text
-    # No explicit title, so the shell uses the path, as web.py does
-    assert "<title>search/publishers | Open Library</title>" in html
+    assert "<title>Publisher search | Open Library</title>" in html
     assert "<h1>Publishers Search</h1>" in " ".join(html.split())
     # The form submits back to this page
     assert 'action=""' in html
@@ -60,6 +59,15 @@ def test_page_without_query(client, monkeypatch):
         facet_contains_ignoreCase="true",
         rows=0,
     )
+
+
+def test_page_title_leads_with_the_query(client, monkeypatch):
+    solr = mock_solr(solr_result())
+    monkeypatch.setattr("openlibrary.fastapi.search.get_solr", lambda: solr)
+    response = client.get("/search/publishers?q=penguin+%3Cstuff%3E")
+
+    assert response.status_code == 200
+    assert "<title>penguin &lt;stuff&gt; - Publisher search | Open Library</title>" in response.text
 
 
 def test_page_results(client, monkeypatch):
@@ -103,7 +111,9 @@ def test_webpy_handler_renders_the_fastapi_body(monkeypatch, request_context_fix
     for key, value in {"path": "/search/publishers", "env": {"QUERY_STRING": "q=penguin", "REQUEST_METHOD": "GET"}}.items():
         monkeypatch.setattr(web.ctx, key, value, raising=False)
 
-    webpy_body = str(publishers_code.publisher_search().GET())
+    webpy_result = publishers_code.publisher_search().GET()
+    webpy_body = str(webpy_result)
+    assert str(webpy_result.title) == "penguin - Publisher search"
 
     expected = render_jinja_template("search/publishers.html.jinja", q="penguin", publishers=publisher_results(result.facets["publisher_facet"]))
     assert webpy_body == expected
