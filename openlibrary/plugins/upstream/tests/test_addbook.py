@@ -574,6 +574,7 @@ class TestAddBookOcaid:
             monkeypatch.setattr(accounts, "get_current_user", user_factory)
             monkeypatch.setattr(web, "input", lambda **kw: web.storage(kw, book_title="Book", id_name="ocaid", id_value="newitem00arch"))
             monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *a, **kw: False)
+            monkeypatch.setattr(addbook, "get_recaptcha", lambda: None)
             monkeypatch.setattr(addbook, "render_template", lambda *a, **kw: a)
 
             class PastOcaidCheck(Exception):
@@ -601,6 +602,49 @@ class TestAddBookOcaid:
             return u
 
         assert post(admin) is None
+
+
+class TestAddBookRecaptcha:
+    @pytest.fixture
+    def post(self, monkeypatch):
+        """POST /books/add as a logged-in user; returns render_template's (args, kwargs), or None if nothing was rendered."""
+
+        def _post(recap, matches=None):
+            monkeypatch.setattr(accounts, "get_current_user", mock_user)
+            monkeypatch.setattr(web, "input", lambda **kw: web.storage(kw, book_title="Book", authors=[], author_names=[]))
+            monkeypatch.setitem(web.ctx, "ip", "127.0.0.1")
+            monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *a, **kw: False)
+            monkeypatch.setattr(addbook, "get_recaptcha", lambda: recap)
+            monkeypatch.setattr(addbook, "render_template", lambda *a, **kw: (a, kw))
+            monkeypatch.setattr(addbook.utils, "unflatten", lambda i: i)
+            monkeypatch.setattr(addbook, "DocSaveHelper", lambda: Mock(create_authors_from_form_data=Mock(return_value=None)))
+            page = delegate.pages["/books/add"][None]()
+            monkeypatch.setattr(page, "find_matches", lambda i: matches)
+            monkeypatch.setattr(page, "no_match", lambda *a: None)
+            return page.POST()
+
+        return _post
+
+    @staticmethod
+    def recaptcha(solved: bool):
+        return Mock(public_key="key", validate_response=Mock(return_value=solved))
+
+    def test_logged_in_user_must_solve_captcha(self, post):
+        (template, title, _), _ = post(self.recaptcha(solved=False))
+        assert template == "message.html"
+        assert title == "Recaptcha solution was incorrect"
+
+    def test_solved_captcha_gets_through(self, post):
+        assert post(self.recaptcha(solved=True)) is None
+
+    def test_exempt_user_skips_captcha(self, post):
+        assert post(None) is None
+
+    def test_match_page_gets_its_own_captcha(self, post):
+        recap = self.recaptcha(solved=True)
+        (template, *_), kw = post(recap, matches=[web.storage(key="/works/OL1W")])
+        assert template == "books/check"
+        assert kw["recaptcha"] is recap
 
 
 class TestDaisyPage:

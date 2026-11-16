@@ -64,7 +64,7 @@ def can_edit_ocaid() -> bool:
 
 def get_recaptcha():
     def recaptcha_exempt() -> bool:
-        """Check to see if account is an admin, or more than two years old."""
+        """Trusted users, librarians, admins and accounts over 30 days old skip the captcha."""
         user = accounts.get_current_user()
         account = user and user.get_account()
 
@@ -276,14 +276,13 @@ class addbook(delegate.page):
         if spamcheck.is_spam(i, allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
-        if not accounts.get_current_user():
-            recap = get_recaptcha()
-            if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip):
-                return render_template(
-                    "message.html",
-                    "Recaptcha solution was incorrect",
-                    'Please <a href="javascript:history.back()">go back</a> and try again.',
-                )
+        recap = get_recaptcha()
+        if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip):
+            return render_template(
+                "message.html",
+                "Recaptcha solution was incorrect",
+                'Please <a href="javascript:history.back()">go back</a> and try again.',
+            )
 
         i.web_book_url = i.web_book_url.strip()
         if not is_valid_web_book_url(i.web_book_url):
@@ -305,7 +304,8 @@ class addbook(delegate.page):
 
         if isinstance(match, list):
             # multiple matches
-            return render_template("books/check", i, match)
+            # The choice re-posts here, and captcha tokens are single-use, so it needs its own.
+            return render_template("books/check", i, match, recaptcha=recap)
 
         elif match and match.key.startswith("/books"):
             # work match and edition match, match is an Edition

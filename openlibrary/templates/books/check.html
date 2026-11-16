@@ -1,4 +1,4 @@
-$def with (d, matches)
+$def with (d, matches, recaptcha=None)
 
 $# :param web.Storage d: form data
 $# :param list matches:
@@ -42,7 +42,10 @@ $var title: $_("Add a book")
 
     <p class="small sansserif clearfix">$_("None of these match the book I want to add.") <a href="javascript:;" id="bookAddCont">$_('Continue')</a></p>
 
-    <form method="POST" id="addbook" class="olform addbook1 hidden" name="edit">
+    $# Only the captcha is visible; picking a book above submits the form.
+    <form method="POST" id="addbook" class="olform addbook1$cond(not recaptcha, ' hidden')" name="edit">
+        $if recaptcha:
+            $:render_template("recaptcha", recaptcha.public_key, error=None)
         <input type="hidden" id="work" name="work" value="none-of-these"/>
         <input type="hidden" name="title" value="$d.title"/>
         <input type="hidden" name="publisher" value="$d.publisher"/>
