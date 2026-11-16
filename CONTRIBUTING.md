@@ -85,3 +85,4 @@ Please read our [Code of Conduct](https://github.com/internetarchive/openlibrary
 - Join Slack — request an invite on our [volunteers page](https://openlibrary.org/volunteer)
 - Attend weekly community calls — check the [community call page](https://docs.openlibrary.org/everyone/community-call.html) for times
 - Review the [Open Library Roadmap](https://docs.google.com/document/d/1KJr3A81Gew7nfuyo9PnCLCjNBDs5c7iR4loOGm1Pafs/edit) to understand current priorities
+- Browse [good first issues](https://github.com/internetarchive/openlibrary/labels/Good%20First%20Issue) to find a beginner-friendly task
