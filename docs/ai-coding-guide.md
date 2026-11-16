@@ -167,7 +167,7 @@ The app is loaded through Infogami's plugin system. `openlibrary/code.py` is the
 
 **Routes (web.py/Infogami):** Defined as classes extending `delegate.page` in plugin `code.py` files. The class attribute `path` is a regex pattern, and `GET`/`POST` methods handle requests.
 
-**Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app. In local dev, FastAPI is the primary entry point on port 8080; requests it has no route for are proxied to web.py via `openlibrary/fastapi/proxy.py`.
+**Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app. In local dev, FastAPI is the primary entry point on port 8080; requests it has no route for are proxied to web.py via `openlibrary/fastapi/proxy.py`. To move an HTML page to FastAPI, follow [Serving HTML pages from FastAPI](core/fastapi-pages.md).
 
 **Key plugins:**
 - `plugins/openlibrary/` — Main plugin: site routes, JS source files (`js/`), processors
@@ -254,6 +254,7 @@ These companion docs cover specific areas in depth:
 - [CSS](frontend/css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
 - [Design](frontend/design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations, mobile
 - [Web Component Standards](frontend/web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM, testing in jsdom vs browser mode
+- [Serving HTML pages from FastAPI](core/fastapi-pages.md) — Porting a web.py page: typed query models, request-derived dependencies, the site shell, sync routes, tests to copy
 - [Internationalization](i18n/i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings
 
 ## Domain Knowledge Bases

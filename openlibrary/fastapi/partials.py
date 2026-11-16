@@ -55,13 +55,20 @@ async def search_facets_partial(
 
     The data parameter should contain:
     - param: dict with search parameters (q, author_key, subject_facet, etc.)
-    - path: str (e.g., '/search')
+    - path: str, required: the page the facet links point at (e.g., '/search')
     - query: str (e.g., '?q=python')
     """
     try:
         parsed_data = json.loads(data)
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON in data parameter")
+    if not isinstance(parsed_data, dict):
+        raise HTTPException(status_code=422, detail="data must be a JSON object")
+    # Only the caller knows which page the facet links belong on. Without a path,
+    # changequery() falls back to web.ctx.path, which under FastAPI is a startup placeholder.
+    path = parsed_data.get("path")
+    if not isinstance(path, str) or not path.startswith("/") or path.startswith("//"):
+        raise HTTPException(status_code=422, detail="data.path is required: the path of the page the facet links point at, e.g. '/search'")
 
     return await SearchFacetsPartial.generate_async(data=parsed_data, sfw=sfw == "yes", show_merge_authors=is_librarian)
 
@@ -220,7 +227,7 @@ class ReadingStateResponse(BaseModel):
 
 
 @router.get("/partials/ReadingState.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
-def reading_state_partial(
+async def reading_state_partial(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     work_ids: Annotated[
         list[str],
@@ -234,7 +241,7 @@ def reading_state_partial(
     Every requested work is present, with nulls where the reader has no state.
     book-state.js hydrates carousel shelf buttons from this.
     """
-    states = ReadingStatePartial.generate(user.username, work_ids)
+    states = await ReadingStatePartial.generate_async(user.username, work_ids)
     return ReadingStateResponse(user_key=user.user_key, works={olid: ReadingStateEntry(**state) for olid, state in states.items()})
 
 

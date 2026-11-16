@@ -63,7 +63,28 @@ export async function toggleListSeed(listKey, seedKey, inList) {
     lists = { [listKey]: list, ...lists };
     notify();
     try {
-        await (inList ? addToList(listKey, seedKey) : removeFromList(listKey, seedKey));
+        await (inList ? addToList(listKey, seedKey) : removeFromList(listKey, [seedKey]));
+    } catch (error) {
+        list.members = before;
+        lists = beforeOrder;
+        notify();
+        throw error;
+    }
+}
+
+/**
+ * Take several keys out of a list at once, optimistically, as one request:
+ * the book page's strip removes every form of the book the list holds.
+ */
+export async function removeListSeeds(listKey, seedKeys) {
+    const list = lists[listKey];
+    const before = list.members;
+    const beforeOrder = lists;
+    list.members = before.filter(k => !seedKeys.includes(k));
+    lists = { [listKey]: list, ...lists };
+    notify();
+    try {
+        await removeFromList(listKey, seedKeys);
     } catch (error) {
         list.members = before;
         lists = beforeOrder;

@@ -31,9 +31,16 @@ ol-tabs:not(:defined) {
   column-gap: var(--spacing-lg);
 }
 
+/* Height-locked to the medium control token, so a tab row lines up with the
+   select or segmented control it shares a toolbar with. The top padding
+   balances the underline's width, keeping the label centred in the box. */
 ol-tabs > a[slot="tab"] {
+  display: inline-flex;
+  align-items: center;
   flex-shrink: 0;
-  padding: var(--spacing-sm) 0;
+  box-sizing: border-box;
+  height: var(--control-height-medium);
+  padding: var(--border-width-thick) 0 0;
   border-bottom: var(--border-width-thick) solid transparent;
   color: var(--color-text-secondary);
   font-family: var(--font-family-body);

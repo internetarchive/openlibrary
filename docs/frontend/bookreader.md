@@ -129,14 +129,14 @@ Page references: `page/23` (number), `page/iv` (Roman), `page/title` (named). Mo
 ## Dependencies
 
 **Depends on:**
-- [[lending]] — loan lifecycle, HMAC secret management, availability check
+- [lending](../lending/README.md) — loan lifecycle, HMAC secret management, availability check
 - [[infrastructure]] — `ia_access_secret` in olsystem; archive.org hosts BookReader and image server
-- [[auth]] — user identity (`ia_userid`) embedded in the auth link
+- [auth](../core/auth.md) — user identity (`ia_userid`) embedded in the auth link
 
 **Depended on by:**
-- [[lending]] — BookReader is the reading UI for all borrowed books
-- [[features]] — reading progress, bookmarks within BookReader
+- [lending](../lending/README.md) — BookReader is the reading UI for all borrowed books
+- [features](../features/README.md) — reading progress, bookmarks within BookReader
 
 ---
 
-*Sources: `dev_docs_bookreader.json`, `dev_docs_bookurls.json`, `borrow.py` · GH #10096, #12500 · See [[README]] · [[METHODOLOGY]]*
+*Sources: `dev_docs_bookreader.json`, `dev_docs_bookurls.json`, `borrow.py` · GH #10096, #12500 · See [README](../README.md) · [[METHODOLOGY]]*

@@ -3,6 +3,7 @@
  * All progressive: the page is fully readable with this bundle absent.
  */
 import { olAlert, olConfirm } from '../../../../components/lit/alert-dialog.js';
+import { showToast } from '../../../../components/lit/toast.js';
 import { copyText } from '../copy-text.js';
 import { WHITE, compositeOver, contrastOn, luminanceFromCssColor, parseCssColor } from './contrast.js';
 
@@ -45,47 +46,67 @@ async function highlightCode(root) {
  * Badge every color token with its contrast, measured off what the browser
  * paints so `color-mix()` and deep `var()` chains stay honest. Reads and writes
  * stay in separate passes: interleaved, each token forces a style recalc.
+ *
+ * A badge scores its token against white and the page canvas by default. With
+ * `data-ds-contrast-on="--some-surface"` it scores against that surface
+ * instead, so the playground can ask "is muted text still AA on the header
+ * grey" rather than only "on white".
  */
 function renderContrastBadges(root) {
     const targets = [...root.querySelectorAll('[data-ds-contrast-for]')];
     if (!targets.length) return;
 
-    // Write: one probe per token, appended in a single insertion.
+    // Write: one probe per token, appended in a single insertion. A target with
+    // a surface gets a second probe carrying that surface as its background.
     const fragment = document.createDocumentFragment();
-    const probes = targets.map(target => {
-        const probe = document.createElement('span');
-        probe.style.cssText = `position:absolute;visibility:hidden;pointer-events:none;color:var(${target.dataset.dsContrastFor})`;
-        fragment.appendChild(probe);
-        return probe;
-    });
+    const probe = cssText => {
+        const el = document.createElement('span');
+        el.style.cssText = `position:absolute;visibility:hidden;pointer-events:none;${cssText}`;
+        fragment.appendChild(el);
+        return el;
+    };
+    const probes = targets.map(target => ({
+        color: probe(`color:var(${target.dataset.dsContrastFor})`),
+        surface: target.dataset.dsContrastOn ? probe(`background-color:var(${target.dataset.dsContrastOn})`) : null
+    }));
     root.appendChild(fragment);
 
     // Read: only the first getComputedStyle costs a recalc, since nothing
     // dirties the tree in between.
     const canvas = parseCssColor(getComputedStyle(document.body).backgroundColor);
-    const measured = probes.map(probe => parseCssColor(getComputedStyle(probe).color));
-    probes.forEach(probe => probe.remove());
+    const measured = probes.map(({ color, surface }) => ({
+        color: parseCssColor(getComputedStyle(color).color),
+        surface: surface && parseCssColor(getComputedStyle(surface).backgroundColor)
+    }));
+    probes.forEach(({ color, surface }) => {
+        color.remove();
+        surface?.remove();
+    });
 
     // Write: build every badge, touching no computed style. Each ratio is
     // measured against its own backdrop, so a translucent token (the
     // color-mix() control tints) is composited rather than scored as if the
-    // color it was mixed from were painted solid.
+    // color it was mixed from were painted solid. A translucent surface is
+    // itself composited over white first, which is where these surfaces sit.
     const canvasRgb = canvas && compositeOver(canvas);
     targets.forEach((target, index) => {
-        const color = measured[index];
+        const { color, surface } = measured[index];
         if (color === null) return;
+        const onSurface = surface ? contrastOn(color, compositeOver(surface)) : null;
         const onWhite = contrastOn(color, WHITE);
         const onCanvas = canvasRgb === null ? null : contrastOn(color, canvasRgb);
+        const scored = onSurface ?? onWhite;
 
-        const level = onWhite >= 7 ? 'AAA' : onWhite >= 4.5 ? 'AA' : onWhite >= 3 ? 'AA·lg' : '—';
+        const level = scored >= 7 ? 'AAA' : scored >= 4.5 ? 'AA' : scored >= 3 ? 'AA·lg' : '—';
         target.innerHTML = '';
 
         const ratio = document.createElement('span');
         ratio.className = 'ds-contrast__ratio';
-        ratio.textContent = `${onWhite.toFixed(1)}:1`;
-        ratio.title =
-            `${onWhite.toFixed(2)}:1 on white, ${onCanvas === null ? '—' : `${onCanvas.toFixed(2)}:1`} on the page canvas. ` +
-            'Text needs 4.5:1 (AA) or 3:1 at 18pt+; non-text needs 3:1.';
+        ratio.textContent = `${scored.toFixed(1)}:1`;
+        ratio.title = onSurface
+            ? `${onSurface.toFixed(2)}:1 on ${target.dataset.dsContrastOn}. Text needs 4.5:1 (AA) or 3:1 at 18pt+; non-text needs 3:1.`
+            : `${onWhite.toFixed(2)}:1 on white, ${onCanvas === null ? '—' : `${onCanvas.toFixed(2)}:1`} on the page canvas. ` +
+              'Text needs 4.5:1 (AA) or 3:1 at 18pt+; non-text needs 3:1.';
 
         const badge = document.createElement('span');
         badge.className = `ds-contrast__level ds-contrast__level--${level === '—' ? 'fail' : 'pass'}`;
@@ -327,6 +348,49 @@ function initIconFilter(root) {
     });
 }
 
+/**
+ * The ol-popover a pinnable host opens: the host itself, or the first one
+ * found through its shadow roots (ol-shelf-button keeps its popover two
+ * levels down, inside ol-shelf-actions).
+ */
+function findPopover(host, depth = 0) {
+    if (host.tagName === 'OL-POPOVER') return host;
+    const shadow = host.shadowRoot;
+    if (!shadow || depth > 3) return null;
+    const direct = shadow.querySelector('ol-popover');
+    if (direct) return direct;
+    for (const child of shadow.querySelectorAll('*')) {
+        const found = child.shadowRoot && findPopover(child, depth + 1);
+        if (found) return found;
+    }
+    return null;
+}
+
+/**
+ * Playground "Pin open": hold every panel in the menus check open at once so
+ * their rows can be compared side by side. The composed popovers (menu,
+ * options, select, shelf actions) keep their ol-popover in their shadow root
+ * and expose no open/auto-close of their own, so this QA surface reaches in
+ * for it — a playground-only liberty, not a pattern for product code.
+ */
+function initPinnedMenus(root) {
+    const toggle = root.querySelector('[data-ds-pin-menus]');
+    if (!toggle) return;
+    const section = toggle.closest('.ds-section');
+    const panels = [...root.querySelectorAll('[data-ds-pinnable]')];
+
+    toggle.addEventListener('ol-toggle-change', event => {
+        const pinned = event.detail.checked;
+        section?.classList.toggle('ds--menus-pinned', pinned);
+        panels.forEach(host => {
+            const popover = findPopover(host);
+            if (!popover) return;
+            popover.autoClose = !pinned;
+            popover.open = pinned;
+        });
+    });
+}
+
 /** The Dialog helper demos call the real olConfirm()/olAlert(), which inline page scripts can't import. */
 function initDialogHelperDemos(root) {
     const helpers = { confirm: olConfirm, alert: olAlert };
@@ -342,6 +406,16 @@ function initDialogHelperDemos(root) {
     });
 }
 
+/** The Toast demos call the real showToast(), which inline page scripts can't import. */
+function initToastDemos(root) {
+    root.querySelectorAll('[data-ds-toast], [data-ds-toast-template]').forEach(trigger => {
+        trigger.addEventListener('click', () => {
+            const { dsToast, dsToastTemplate, dsToastOptions } = trigger.dataset;
+            showToast(dsToastTemplate ? root.querySelector(dsToastTemplate) : dsToast, JSON.parse(dsToastOptions || '{}'));
+        });
+    });
+}
+
 export function initDesignSystem(root) {
     initCodeToggle(root);
     initCopy(root);
@@ -352,4 +426,6 @@ export function initDesignSystem(root) {
     initIconFilter(root);
     initIconPopover(root);
     initDialogHelperDemos(root);
+    initToastDemos(root);
+    initPinnedMenus(root);
 }

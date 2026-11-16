@@ -216,7 +216,7 @@ class IAMiddleware(ConnectionMiddleware):
                     "_key": key,
                     "type": "ia-scan",
                     "identifier": identifier,
-                    "created": dt.datetime.utcnow().isoformat(),
+                    "created": dt.datetime.now(dt.UTC).replace(tzinfo=None).isoformat(),
                 }
                 self.store_put(sitename, store_key, json.dumps(doc))
                 return doc

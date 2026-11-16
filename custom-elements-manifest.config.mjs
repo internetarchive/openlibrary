@@ -13,10 +13,12 @@
 export default {
     globs: ['openlibrary/components/lit/**/*.js'],
     // index.js is pure re-exports; icons.generated.js is a bag of svg templates;
-    // editor-core/html-block are internal helpers for the markdown editor.
-    // None of them define a public custom element.
+    // control-styles.js is shared css fragments; editor-core/html-block are
+    // internal helpers for the markdown editor. None of them define a public
+    // custom element.
     exclude: [
         'openlibrary/components/lit/index.js',
+        'openlibrary/components/lit/control-styles.js',
         'openlibrary/components/lit/icons.generated.js',
         'openlibrary/components/lit/editor-core.js',
         'openlibrary/components/lit/html-block.js'

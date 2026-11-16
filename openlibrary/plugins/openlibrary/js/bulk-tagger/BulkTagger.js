@@ -7,7 +7,7 @@ import { debounce } from '../nonjquery_utils.js';
 import { MenuOption, MenuOptionState } from './BulkTagger/MenuOption';
 import { SortedMenuOptionContainer } from './BulkTagger/SortedMenuOptionContainer';
 import { Tag } from './models/Tag';
-import { FadingToast } from '../Toast';
+import { showToast } from '../../../../components/lit/toast.js';
 
 /**
  * Maximum amount of search result to be returned by subject
@@ -537,10 +537,10 @@ export class BulkTagger {
             if (!response.ok) {
                 this.submitButton.disabled = false;
                 this.submitButton.textContent = 'Submit';
-                new FadingToast('Batch subject update failed. Please try again in a few minutes.').show();
+                showToast('Batch subject update failed. Please try again in a few minutes.', { type: 'error' });
             } else {
                 this.hideTaggingMenu();
-                new FadingToast('Subjects successfully updated.').show();
+                showToast('Subjects successfully updated.', { type: 'success' });
                 this.submitButton.textContent = 'Submit';
                 this.updateFetchedSubjects();
                 this.resetTaggingMenu();

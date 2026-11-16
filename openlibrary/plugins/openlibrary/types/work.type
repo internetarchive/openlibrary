@@ -246,6 +246,46 @@
                 "key": "/type/property"
             },
             "name": "audiences"
+        },
+        {
+            "expected_type": {
+                "key": "/type/tag"
+            },
+            "unique": false,
+            "type": {
+                "key": "/type/property"
+            },
+            "name": "content_warnings"
+        },
+        {
+            "expected_type": {
+                "key": "/type/tag"
+            },
+            "unique": false,
+            "type": {
+                "key": "/type/property"
+            },
+            "name": "content_formats"
+        },
+        {
+            "expected_type": {
+                "key": "/type/tag"
+            },
+            "unique": false,
+            "type": {
+                "key": "/type/property"
+            },
+            "name": "literary_forms"
+        },
+        {
+            "expected_type": {
+                "key": "/type/tag"
+            },
+            "unique": false,
+            "type": {
+                "key": "/type/property"
+            },
+            "name": "awards"
         }
     ],
     "revision": 14

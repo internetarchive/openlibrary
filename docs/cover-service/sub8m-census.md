@@ -96,4 +96,4 @@ written here, but `flagcontrol` and the serving retry were run as one-off snippe
 13769 reproduces the same 400 IDs (seed 1, as a control, doesn't). Treat the first full rerun as a
 test of the script, not only a measurement.
 
-Related: [[archival-loss-9836]], #13766, and [epic #13803](https://github.com/internetarchive/openlibrary/issues/13803).
+Related: [archival-loss-9836](archival-loss-9836.md), #13766, and [epic #13803](https://github.com/internetarchive/openlibrary/issues/13803).

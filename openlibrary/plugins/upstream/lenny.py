@@ -67,7 +67,7 @@ import logging
 import secrets
 import time
 from typing import Any, NamedTuple
-from urllib.parse import urlencode, urlsplit, urlunsplit
+from urllib.parse import urlencode
 
 import httpx
 import requests
@@ -88,6 +88,7 @@ from openlibrary.core.provider_tokens import (
     TokenRefreshFailed,
 )
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.async_utils import async_bridge, cache_per_event_loop
 
@@ -1064,19 +1065,8 @@ class lenny_borrow(delegate.page):
 
 
 def _return_redirect(raw_redirect: str, edition_key: str) -> str:
-    """The book page to land on after a return, with any host stripped.
-
-    The same open-redirect guard ``handle_borrow_async`` applies to its own
-    ``redirect`` field: only the path, query and fragment of a submitted value
-    survive, so a borrowed ``redirect`` cannot bounce the patron off-site. The
-    edition page is the fallback when nothing usable was submitted.
-    """
-    if raw_redirect:
-        parsed = urlsplit(raw_redirect)
-        path = urlunsplit(("", "", parsed.path, parsed.query, parsed.fragment))
-        if path:
-            return path
-    return edition_key
+    """The page to land on after a return: the submitted path, or the edition page."""
+    return raw_redirect if is_safe_redirect(raw_redirect) else edition_key
 
 
 class lenny_return(delegate.page):
@@ -1285,10 +1275,10 @@ def _popup_page(**kwargs: Any) -> delegate.RawText:
     it is the only way the flash message survives the popup.
 
     ``flash_processor`` writes the flash cookie only when ``web.ctx.flash``
-    differs from what arrived in the request, and ``get_flash_messages()``
-    *drains* ``web.ctx.flash`` as a side effect of reading it
-    (``vendor/infogami/infogami/utils/flash.py:18-21, 42-50``). The site layout
-    calls it on every render (``_extract_flash_messages`` in ``openlibrary/core/shell/chrome.py``). So a
+    differs from what arrived in the request
+    (``vendor/infogami/infogami/utils/flash.py``). The site layout shows the
+    messages and then empties ``web.ctx.flash`` on every render
+    (``SiteLayoutTemplate`` in ``openlibrary/core/shell/context.py``). So a
     page that renders the layout shows the message here -- inside a window that
     is about to leave -- and leaves ``web.ctx.flash`` empty, matching the empty
     request value, so no cookie is written and the page that opened the popup

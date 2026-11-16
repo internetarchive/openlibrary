@@ -6,7 +6,7 @@
 <html lang="{{ layout.lang }}">
     {% include "shell/head.html.jinja" %}
     <body class="{{ layout.body_class }}"
-          {% for attr in layout.body_attrs %} {{ attr | safe }}{% endfor %}>
+          {% for attr in layout.body_attrs %} {{ attr }}{% endfor %}>
         <script>
             // Provide a signal that JS will load
             document.body.className += ' client-js';
@@ -19,10 +19,13 @@
         {% if layout.show_ol_shell %}
             {% include "shell/alert.html.jinja" %}
             {% include "shell/header.html.jinja" %}
-            {{ render_templetor_template("my_books/shelf_button_i18n") }}
+            <input type="hidden"
+                   name="shelf-button-i18n-strings"
+                   value="{{ layout.shelf_button_labels_json }}">
         {% endif %}
         <main {% if layout.show_ol_shell %} id="test-body-mobile" tabindex="-1"{% endif %}>
             {% if layout.show_ol_shell %}
+                {% include "shell/edit_saved.html.jinja" %}
                 {% if layout.flash_messages %}
                     <div class="flash-messages">
                         {% for flash in layout.flash_messages %}
@@ -46,7 +49,7 @@
             {% include "shell/stats.html.jinja" %}
         {% endif %}
         {% if not layout.is_bot %}
-            <script src="/cdn/archive.org/athena.js" type="text/javascript"></script>
+            <script src="/cdn/archive.org/athena.js" async></script>
         {% endif %}
         <script src="{{ static_url('build/js/all.js') }}" type="module"></script>
         <script src="{{ static_url('build/components/production/ol-components.js') }}"

@@ -69,13 +69,15 @@ jobs:
             @.github/workflows/issue_enrichment.md
 
             ${{ github.event_name == 'workflow_dispatch' && format('Manual test dispatch: enrich issue #{0}. Fetch its data yourself in Step 1 -- do not assume anything about it from this line.', inputs.issue_number) || format('Issue #{0} was just opened by @{1}.\nTitle: {2}', github.event.issue.number, github.event.issue.user.login, github.event.issue.title) }}
+          # Read/Grep/Glob and `gh pr view` are read-only: the model reaches for them
+          # anyway, and each denied call cost a turn (10-16 per failed run at 30 turns).
           claude_args: >-
-            --max-turns 30
-            --allowedTools "Bash(git *) Bash(grep:*) Bash(cat:*) Bash(gh issue view:*)
+            --max-turns 50
+            --allowedTools "Read Grep Glob Bash(git *) Bash(grep:*) Bash(cat:*) Bash(gh issue view:*)
             Bash(gh issue comment:*) Bash(gh issue edit:*) Bash(gh issue close:*)
-            Bash(gh issue list:*) Bash(gh pr list:*) Bash(gh label list:*)"
+            Bash(gh issue list:*) Bash(gh pr list:*) Bash(gh pr view:*) Bash(gh label list:*)"
           claude_code_oauth_token: ${{ secrets.OL_BOT_CLAUDE_OAUTH_TOKEN }}
-          github_token: ${{ secrets.OL_BOT_PAT }}
+          github_token: ${{ secrets.OL_BOT_ISSUE_PAT }}
           # Issues are opened by any public contributor, most of whom have only
           # read access. claude-code-action's default actor-permission check
           # requires write access, so it rejects every issue except ones filed

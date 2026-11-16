@@ -1,0 +1,23 @@
+{#-
+  The banner an edit-page save lands on: the thank-you and, at most once a day, a link to a Tasks project.
+  `layout.edit_saved` comes from openlibrary/contribute/pitch.py. Closing a banner that names a project, or
+  following its link, sets `dismiss_cookie` (js/banner/index.js), which keeps the pitch away until a new
+  project starts.
+-#}
+{% if layout.edit_saved %}
+    {% set saved = layout.edit_saved %}
+    <ol-banner class="edit-saved" variant="success" dismissible label-close="{{ _('Close') }}" {% if saved.project %} dismiss-id="{{ saved.dismiss_cookie }}" data-cookie-duration-days="{{ saved.dismiss_days }}" data-dismiss-on-link{% endif %}>
+        <div class="edit-saved__body">
+            <p class="edit-saved__thanks">
+                {{ icon("circle-check") }}
+                <span>{{ _("Thank you for improving the Open Library catalog!") }}</span>
+            </p>
+            {% if saved.project %}
+                <div class="edit-saved__project">
+                    <span class="edit-saved__label">{{ _("Got a minute? Help with a community project") }}</span>
+                    <ol-chip size="small" href="{{ saved.project.url }}" {% if saved.project.left %}count="{{ saved.project.left }}"{% endif %} data-ol-link-track="EditSaved|Initiative|{{ saved.project.slug }}">{{ saved.project.title }}</ol-chip>
+                    </div>
+            {% endif %}
+        </div>
+    </ol-banner>
+{% endif %}

@@ -114,7 +114,7 @@ class MyProvider(JSONLProvider):
 
 For paginated APIs or OPDS feeds, subclass `PaginatedAPIProvider` or `OPDSProvider` instead. Reference implementation: `sources/itan/record.py` + `sources/itan/provider.py`.
 
-**Identifier registration:** If the source uses a proprietary ID (not ISBN/OCLC/LCCN), add it to `openlibrary/plugins/openlibrary/config/edition/identifiers.yml` BEFORE batch submission. OL silently drops unknown identifier keys — no error, no warning. The identifier PR must merge AND deploy (weekly cycle) before any records with that identifier are submitted. See [[Known Limitations]].
+**Identifier registration:** If the source uses a proprietary ID (not ISBN/OCLC/LCCN), add it to `openlibrary/plugins/openlibrary/config/edition/identifiers.yml` BEFORE batch submission. OL silently drops unknown identifier keys — no error, no warning. The identifier PR must merge AND deploy (weekly cycle) before any records with that identifier are submitted. See [Known Limitations](#known-limitations).
 
 ### Submitting a batch
 
@@ -170,7 +170,7 @@ The `importbot` service in `compose.near-prod.yaml` sets `LOCAL_DEV=true` (logs 
 | `import_edition_builder.py` | Converts parsed data → edition dict for add_book |
 | `import_validator.py` | Quality gate: tries `CompleteBook` then `StrongIdentifierBook` Pydantic models |
 
-See [[public-apis]] for endpoint contracts.
+See [public-apis](../public-apis/README.md) for endpoint contracts.
 
 ### Validation gate
 
@@ -284,7 +284,7 @@ ImportBot runs as a configurable multiprocessing pool (default 8 workers in prod
 ## Related Processes
 
 - **ImportBot** (`scripts/manage-imports.py`) — cron daemon consuming the batch queue; see [[infrastructure]]
-- **Solr updater** — new Editions from imports propagate to search; see [[search]]
+- **Solr updater** — new Editions from imports propagate to search; see [search](../search/README.md)
 - **openlibrary-bots** — source adapters run independently on their own schedules; submit to `/import/batch/new`
 - **Promise items** — IA placeholder editions (revision=1) that get overwritten wholesale when a MARC record arrives (full `load_data()` replace, not merge)
 
@@ -427,7 +427,7 @@ unreadable.
 So **94 is the post-validation import count**, and it is reached by two
 independent subtractions, not one. `search.json?q=id_lenny:*` returning
 exactly 94 in production (measured 2026-09-21) is therefore *expected* rather
-than coincidental — it corroborates the [[features/feed-registry-import-system]]
+than coincidental — it corroborates the [feed-registry](feed-registry.md)
 finding that nothing schedules a harvest, since the count matches one
 hand-run harvest and has not grown.
 
@@ -542,11 +542,11 @@ rather than of the database contents.
 - [[core-operations]] — Infogami object model, plugin routing; importapi is a plugin
 - [[ol-client]] — DataProvider/DataProviderRecord/OLImportRecord live in openlibrary-client
 - [[infrastructure]] — ImportBot scheduling, Infobase writes, deploy cycle for identifier registration
-- [[search]] — Solr must index newly created/updated editions
+- [search](../search/README.md) — Solr must index newly created/updated editions
 
 **Depended on by:**
 - openlibrary-bots — all source adapters submit through this pipeline
-- [[public-apis]] — `/api/import` endpoints are documented public-facing API
+- [public-apis](../public-apis/README.md) — `/api/import` endpoints are documented public-facing API
 
 ---
 
@@ -561,4 +561,4 @@ ImportBot runs as a supervised process in production (see [[infrastructure]]). L
 
 ---
 
-*Sources: `raw/openlibrary-docs-ai/imports/` (7 files) · See [[README]] · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-docs-ai/imports/` (7 files) · See [README](../README.md) · [[METHODOLOGY]]*

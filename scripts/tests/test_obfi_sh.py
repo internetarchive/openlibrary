@@ -1,6 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 
+from openlibrary.utils.request_context import USER_AGENT_BOTS
 from scripts.monitoring.utils import bash_run
 
 SAMPLE_LOG = Path("./scripts/tests/sample_nginx_access.log")
@@ -57,3 +58,17 @@ class TestObfiMatchRange:
         end = iso_to_ms(end_iso)
         output = bash_w_obfi(f"cat {SAMPLE_LOG} | obfi_match_range {start} {end}")
         assert output.stdout == ""
+
+
+class TestObfiGrepBots:
+    def test_matches_same_bots_as_app(self, tmp_path):
+        user_agents = tmp_path / "user_agents.txt"
+        user_agents.write_text("".join(f"Mozilla/5.0 (compatible; {bot.upper()}/1.0)\n" for bot in USER_AGENT_BOTS))
+        output = bash_w_obfi(f"cat {user_agents} | obfi_grep_bots -o")
+        assert output.stdout.lower().splitlines() == USER_AGENT_BOTS
+
+    def test_dot_matches_only_a_dot(self, tmp_path):
+        user_agents = tmp_path / "user_agents.txt"
+        user_agents.write_text("Mozilla/5.0 (+http://yandexxcom/bots)\n")
+        output = bash_w_obfi(f"cat {user_agents} | obfi_grep_bots -v")
+        assert output.stdout == user_agents.read_text()

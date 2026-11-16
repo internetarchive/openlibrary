@@ -3,7 +3,7 @@ from collections.abc import Callable
 from typing import Literal
 
 from luqum.parser import parser
-from luqum.tree import BaseOperation, Group, Item, SearchField, Unary, Word
+from luqum.tree import BaseGroup, BaseOperation, Group, Item, OrOperation, Plus, SearchField, Unary, Word
 
 
 class EmptyTreeError(Exception):
@@ -273,6 +273,41 @@ def luqum_remove_field(query: Item, predicate: Callable[[str], bool]) -> None:
     for sf, parents in luqum_traverse(query):
         if isinstance(sf, SearchField) and predicate(sf.name):
             luqum_remove_child(sf, parents)
+
+
+def _luqum_is_fully_fielded(query: Item) -> bool:
+    if isinstance(query, SearchField):
+        return True
+    return bool(query.children) and all(_luqum_is_fully_fielded(c) for c in query.children)
+
+
+def luqum_remove_unfielded(query: Item) -> Item | None:
+    """
+    In-place removes the unfielded parts of a query (e.g. `foo` in `foo title:bar`),
+    returning what remains, or None if nothing does.
+
+    Never makes the query stricter: an OR or negation containing an unfielded part
+    is removed as a whole, since removing just that part would narrow it.
+
+    >>> from luqum.parser import parser
+    >>> str(luqum_remove_unfielded(parser.parse('foo +title:bar -baz'))).strip()
+    '+title:bar'
+    >>> str(luqum_remove_unfielded(parser.parse('(foo OR title:bar) +publisher:x'))).strip()
+    '+publisher:x'
+    >>> luqum_remove_unfielded(parser.parse('foo bar')) is None
+    True
+    """
+    if _luqum_is_fully_fielded(query):
+        return query
+    if isinstance(query, (BaseOperation, BaseGroup, Plus)) and not isinstance(query, OrOperation):
+        children = tuple(c for c in (luqum_remove_unfielded(c) for c in query.children) if c is not None)
+        if not children:
+            return None
+        if isinstance(query, BaseOperation) and len(children) == 1:
+            return children[0]
+        query.children = children
+        return query
+    return None
 
 
 def luqum_deepcopy(query: Item) -> Item:
