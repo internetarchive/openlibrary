@@ -293,22 +293,39 @@ test('D1 the status step guards createCommitStatus with a live-head re-fetch', (
     assert.ok(s.indexOf('headIsCurrent(') < s.indexOf('repos.createCommitStatus'), 'the head guard must precede repos.createCommitStatus');
 });
 
-// ---- D2: codeReviewStatusPresent + parseReviewMarker -- status-aware skip + idempotent repost ----
-test("D2 codeReviewStatusPresent detects a code-review commit status among a ref's statuses", () => {
-    const codeReviewStatusPresent = extractFn(statusLines, 'codeReviewStatusPresent');
-    assert.equal(codeReviewStatusPresent([{ context: 'ci' }, { context: 'code-review' }]), true);
-    assert.equal(codeReviewStatusPresent([{ context: 'ci' }, { context: 'other' }]), false);
-    assert.equal(codeReviewStatusPresent([]), false, 'no statuses -> stranded head -> must NOT skip');
-    assert.equal(codeReviewStatusPresent(null), false, 'defensive: non-array -> treat as absent');
-});
-test('D2 the range resolver checks for a code-review status before skipping an already-reviewed head', () => {
-    // The already-reviewed skip must be STATUS-AWARE: it may skip only when a code-review status is
-    // already present on that head; otherwise it must route to a status repost, not strand the head.
+// ---- D2/#14486: STATE-aware skip -- compare the present status STATE to the review's verdict ----
+test('#14486 the range resolver is STATE-aware: it compares the present status to the implied verdict', () => {
+    // The already-reviewed skip must be STATE-aware, not merely presence-aware (the #14486 bug): it may
+    // skip only when the present `code-review` status STATE matches the verdict the review implies for
+    // this head; a stale/contradicting/absent status must route to a repost, never strand the head red.
     const s = JSON.stringify(workflow.jobs.analyze);
     assert.ok(/listCommitStatusesForRef/.test(s), "range step must list the head's commit statuses");
-    assert.ok(/codeReviewStatusPresent\s*\(/.test(s), 'range step must gate the skip on codeReviewStatusPresent');
-    // analyze must declare a `repost` output so post can be skipped while status recomputes.
+    assert.ok(/reviewThreads/.test(s), 'range step must read live review threads to imply the verdict');
+    assert.ok(/expectedState/.test(s), 'range step must compute the implied verdict (expectedState)');
+    assert.ok(/\.state === expectedState/.test(s), 'range step must skip ONLY when the present status state matches the verdict');
+    assert.ok(/context === 'code-review'/.test(s), 'range step must select the code-review status by context');
+    // The old presence-only gate must be gone -- a mere-presence skip is the stale-status bug.
+    assert.ok(!/codeReviewStatusPresent/.test(s), 'the presence-only skip (codeReviewStatusPresent) must be removed');
+    // analyze must still declare a `repost` output so post can be skipped while status recomputes.
     assert.ok(workflow.jobs.analyze.outputs && 'repost' in workflow.jobs.analyze.outputs, 'analyze must expose a `repost` output');
+});
+test('#14486 the resolver and the status job share the same verdict helpers (no drift)', () => {
+    // Both the resolver (expectedState) and the status repost (decideStatus) read the review-body marker
+    // and count unresolved threads. The helpers are byte-identical copies; extractFn returns the first
+    // occurrence (the resolver's). A behavioural drift pin lives in the integration test.
+    const parseReviewMarker = extractFn(statusLines, 'parseReviewMarker');
+    assert.equal(parseReviewMarker('text\n<!-- ol-pr-review-bot f=0 -->'), 0);
+    assert.equal(parseReviewMarker('text\n<!-- ol-pr-review-bot -->'), null, 'legacy marker -> null -> fail closed');
+    const unresolvedThreadCount = extractFn(statusLines, 'unresolvedThreadCount');
+    assert.equal(unresolvedThreadCount([{ isResolved: false, isOutdated: false }]), 1, 'unresolved + current -> blocks');
+    assert.equal(
+        unresolvedThreadCount([
+            { isResolved: true, isOutdated: false },
+            { isResolved: false, isOutdated: true }
+        ]),
+        0,
+        'resolved or outdated -> does not block'
+    );
 });
 test('D2 parseReviewMarker reads the public findings count from the review-body marker', () => {
     const parseReviewMarker = extractFn(statusLines, 'parseReviewMarker');

@@ -378,23 +378,75 @@ jobs:
                 core.info(`Could not compare against the prior review commit (${e.message}) -- full review.`);
               }
             } else if (prior && prior.commit_id === head) {
-              // #14476 D2 -- status-aware skip. "Already reviewed this SHA" must NEVER mean "no
-              // status". Skip only when a `code-review` status is ALSO present on this head; a head
-              // that has our review but no status is STRANDED (the Defect-1 re-anchor race, or a
-              // transient status-post failure) and must get its status (re)posted, not be skipped
-              // forever. If it is missing, route to an idempotent status repost (no model re-run):
-              // the status job reconstructs the verdict from the review-body marker + live threads.
-              const codeReviewStatusPresent = (statuses) => {
-                return Array.isArray(statuses) && statuses.some((s) => s && s.context === 'code-review');
+              // #14486 -- STATE-aware skip: skip only when the present `code-review` status MATCHES the
+              // verdict this head's existing review implies; absent/stale/contradicting -> idempotent
+              // status repost (skip=false, repost=true) and the status job recomputes it. Bound to the
+              // resolver-pinned head SHA (#14476 D1). NO model re-run.
+              //
+              // parseReviewMarker + unresolvedThreadCount + the reviewForVerdict selector below must
+              // stay byte-identical to the status job's repost path; a drift-pin unit test runs both
+              // against the same inputs and asserts they agree.
+              const parseReviewMarker = (body) => {
+                const m = /<!-- ol-pr-review-bot f=(\d+) -->/.exec(String(body || ''));
+                return m ? Number(m[1]) : null;
               };
+              const unresolvedThreadCount = (threads) => {
+                return threads.reduce((n, t) => n + ((!t.isResolved && !t.isOutdated) ? 1 : 0), 0);
+              };
+              // Last openlibrary-bot review on this head WITH A BODY -- matches the status job's
+              // selection. `prior` omits the `&& r.body` filter (it drives the incremental range), so
+              // reusing it here could pick a different review and make the two verdicts disagree.
+              const onHead = reviews.filter((r) => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === head && r.body);
+              const reviewForVerdict = onHead.length ? onHead[onHead.length - 1] : null;
+
+              // Live review threads (GraphQL -- REST carries no resolved/outdated state). Fail SAFE on a
+              // transient read error -> repost, so a flaky API never leaves a stale status un-corrected
+              // (an unset `skip` output would make the status job's `if: skip == 'false'` skip the repost).
+              let threads = [], cursor = null;
+              try {
+                for (;;) {
+                  const page = await github.graphql(
+                    `query($owner:String!,$repo:String!,$pr:Int!,$cursor:String){
+                       repository(owner:$owner,name:$repo){
+                         pullRequest(number:$pr){
+                           reviewThreads(first:100, after:$cursor){
+                             nodes { isResolved isOutdated }
+                             pageInfo { hasNextPage endCursor }
+                           }
+                         }
+                       }
+                     }`, { owner, repo, pr: prNumber, cursor });
+                  const rt = page.repository.pullRequest.reviewThreads;
+                  threads = threads.concat(rt.nodes);
+                  if (!rt.pageInfo.hasNextPage) break;
+                  cursor = rt.pageInfo.endCursor;
+                }
+              } catch (e) {
+                core.info(`Could not read review threads (${e.message}) -- routing to a status repost (the status job recomputes the verdict).`);
+                core.setOutput('pr', String(prNumber));
+                core.setOutput('head_sha', head);
+                core.setOutput('skip', 'false');
+                core.setOutput('repost', 'true');
+                return;
+              }
+
+              // PASS needs a bot review with a readable f=0 marker AND zero blocking threads; anything
+              // else (unreadable marker -> null, body-less/absent review) fails closed to 'failure'.
+              const postSucceeded = reviewForVerdict != null;
+              const findings = reviewForVerdict ? parseReviewMarker(reviewForVerdict.body) : null;
+              const unresolved = unresolvedThreadCount(threads);
+              const expectedState = (postSucceeded && findings === 0 && unresolved === 0) ? 'success' : 'failure';
+
+              // First code-review entry (listCommitStatusesForRef is newest-first); undefined when absent.
               const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, {
                 owner, repo, ref: head, per_page: 100,
               });
-              if (codeReviewStatusPresent(statuses)) {
-                core.info('Already reviewed this exact commit and a code-review status is present -- skipping.');
+              const current = statuses.find((s) => s && s.context === 'code-review');
+              if (current && current.state === expectedState) {
+                core.info(`Already reviewed this exact commit and the code-review status (${current.state}) matches the review verdict -- skipping.`);
                 core.setOutput('skip', 'true'); return;
               }
-              core.info('Already reviewed this exact commit but no code-review status is present -- reposting the status.');
+              core.info(`Already reviewed this exact commit but the code-review status (${current ? current.state : 'absent'}) does not match the review verdict (${expectedState}) -- reposting the status.`);
               core.setOutput('pr', String(prNumber));
               core.setOutput('head_sha', head);
               core.setOutput('skip', 'false');

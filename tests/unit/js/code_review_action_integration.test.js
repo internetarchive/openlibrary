@@ -223,17 +223,80 @@ test('D1 status FALSE-GREEN guard: POST_RESULT=success but NO review on this hea
 });
 
 // ===================== D2: status-aware skip + idempotent repost =====================
-test('D2 range: already-reviewed head WITH a code-review status -> skip', async () => {
+test('D2 range: already-reviewed head WITH a MATCHING code-review status -> skip', async () => {
+    // #14486: "skip" now means the present status MATCHES the review's implied verdict -- here a clean
+    // review (marker f=0, no unresolved threads) and a present `success`. (Pre-#14486 this skipped on
+    // mere presence of any code-review status; that is exactly the bug the stale-status test below pins.)
     const head = SHA('a');
     const { github } = mockGitHub({
         prGet: async () => ({ data: { number: 1, head: { sha: head }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
-        listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, submitted_at: '2026-01-01' }] }),
-        listStatuses: async () => ({ data: [{ context: 'code-review', state: 'success' }] })
+        listReviews: async () => ({
+            data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, submitted_at: '2026-01-01', body: 'ok\n<!-- ol-pr-review-bot f=0 -->' }]
+        }),
+        listStatuses: async () => ({ data: [{ context: 'code-review', state: 'success' }] }),
+        reviewThreads: []
     });
     const env = { PR: '1', GITHUB_WORKSPACE: dir };
     const ctx = { ...context, eventName: 'pull_request_target', payload: { pull_request: { number: 1 } } };
     const res = await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env });
-    assert.equal(res.outputs.skip, 'true', 'a reviewed head that already has a status is skipped');
+    assert.equal(res.outputs.skip, 'true', 'a reviewed head whose status matches the verdict is skipped');
+});
+// #14486 -- STATE-aware skip. The headline blocker: an already-reviewed head carrying a STALE status
+// (a prior `failure` that should now be `success`) was skipped on mere presence and stranded red
+// forever. These cases must re-post the correct status instead of skipping.
+test('D2 range STATE-AWARE: reviewed head + STALE failure status + now-clean verdict -> repost (NOT skip)', async () => {
+    const head = SHA('a');
+    const { github } = mockGitHub({
+        prGet: async () => ({ data: { number: 1, head: { sha: head }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
+        // The existing review is clean: marker f=0 and no unresolved threads -> implied verdict success.
+        listReviews: async () => ({
+            data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, submitted_at: '2026-01-01', body: 'clean\n<!-- ol-pr-review-bot f=0 -->' }]
+        }),
+        // ...but the present status is a stale `failure` ("No clean review for this commit").
+        listStatuses: async () => ({ data: [{ context: 'code-review', state: 'failure' }] }),
+        reviewThreads: []
+    });
+    const env = { PR: '1', GITHUB_WORKSPACE: dir };
+    const ctx = { ...context, payload: { pull_request: { number: 1 } } };
+    const res = await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env });
+    assert.equal(res.outputs.skip, 'false', 'a head on a status that contradicts its review must NOT be skipped');
+    assert.equal(res.outputs.repost, 'true', 'it routes to an idempotent status repost (no model re-run)');
+    assert.equal(res.outputs.head_sha, head);
+});
+test('D2 range STATE-AWARE: reviewed head + status already MATCHING (failure for f=2) -> skip', async () => {
+    const head = SHA('a');
+    const { github } = mockGitHub({
+        prGet: async () => ({ data: { number: 1, head: { sha: head }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
+        // The review has findings (marker f=2) -> implied verdict failure, and the present status is
+        // already failure -> they match -> skip (no wasted repost).
+        listReviews: async () => ({
+            data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, submitted_at: '2026-01-01', body: 'has findings\n<!-- ol-pr-review-bot f=2 -->' }]
+        }),
+        listStatuses: async () => ({ data: [{ context: 'code-review', state: 'failure' }] }),
+        reviewThreads: []
+    });
+    const env = { PR: '1', GITHUB_WORKSPACE: dir };
+    const ctx = { ...context, payload: { pull_request: { number: 1 } } };
+    const res = await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env });
+    assert.equal(res.outputs.skip, 'true', 'a reviewed head whose failure status matches its findings is skipped');
+});
+test('D2 range STATE-AWARE: reviewed head (clean f=0) but an UNRESOLVED thread + present success -> repost', async () => {
+    // The marker says 0 findings, but a live unresolved+current thread means the implied verdict is
+    // failure; a present `success` contradicts it and must be corrected, mirroring the status job.
+    const head = SHA('a');
+    const { github } = mockGitHub({
+        prGet: async () => ({ data: { number: 1, head: { sha: head }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
+        listReviews: async () => ({
+            data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, submitted_at: '2026-01-01', body: 'clean marker\n<!-- ol-pr-review-bot f=0 -->' }]
+        }),
+        listStatuses: async () => ({ data: [{ context: 'code-review', state: 'success' }] }),
+        reviewThreads: [{ isResolved: false, isOutdated: false }]
+    });
+    const env = { PR: '1', GITHUB_WORKSPACE: dir };
+    const ctx = { ...context, payload: { pull_request: { number: 1 } } };
+    const res = await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env });
+    assert.equal(res.outputs.skip, 'false', 'an unresolved thread makes success stale -> not skipped');
+    assert.equal(res.outputs.repost, 'true');
 });
 test('D2 range: already-reviewed head with NO code-review status -> repost (not skip)', async () => {
     const head = SHA('a');
@@ -281,6 +344,85 @@ test('D2 status repost: a LEGACY review with no marker FAILS CLOSED (red), never
     const env = { PR: '1', HEAD_SHA: head, POST_RESULT: 'skipped', REPOST: 'true', RUN_URL: 'u' };
     await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
     assert.equal(calls.createCommitStatus[0].state, 'failure', 'an unreadable count must never fabricate a green');
+});
+
+// #14486 DRIFT PIN: the resolver's implied-verdict comparison must agree with the state the status
+// job's repost path would actually post for the SAME inputs. If they drift, the resolver could skip a
+// head the status job would have flipped (re-stranding it) or repost one that is already correct. For
+// each (marker, unresolved-thread) input we (1) run the real status repost to learn the authoritative
+// state, then (2) assert the resolver skips iff the present status equals that state and reposts iff it
+// differs -- so the two code paths are pinned to the same verdict by construction.
+const HEAD_SHA = SHA('a');
+const reviewObjs = bodies => bodies.map(body => ({ user: { login: 'openlibrary-bot' }, commit_id: HEAD_SHA, submitted_at: '2026-01-01', body }));
+for (const scenario of [
+    { reviews: ['x\n<!-- ol-pr-review-bot f=0 -->'], threads: [] }, // clean -> success
+    { reviews: ['x\n<!-- ol-pr-review-bot f=3 -->'], threads: [] }, // findings -> failure
+    { reviews: ['x\n<!-- ol-pr-review-bot f=0 -->'], threads: [{ isResolved: false, isOutdated: false }] }, // open thread -> failure
+    { reviews: ['legacy, no marker'], threads: [] }, // unreadable -> failure (fail closed)
+    // Finding 1 divergence class: >=2 bot reviews on the head where the LAST has an empty body and an
+    // EARLIER one carries the readable marker. The status path filters `&& r.body` (picks the f=0 one);
+    // the resolver must select the SAME review, or it picks the trailing empty body (-> fail closed)
+    // and the two verdicts disagree -- re-stranding the head. Pins resolver selection == status path.
+    { reviews: ['first\n<!-- ol-pr-review-bot f=0 -->', ''], threads: [] }, // trailing-empty -> still success
+    { reviews: ['first\n<!-- ol-pr-review-bot f=1 -->', null], threads: [] } // trailing-null, earlier f=1 -> failure
+]) {
+    const label = `${JSON.stringify(scenario.reviews)} + ${scenario.threads.length} thread(s)`;
+    test(`D2 drift pin: resolver matches status-job verdict for ${label}`, async () => {
+        // (1) Authoritative state from the real status repost path.
+        const s = mockGitHub({
+            prGet: async () => ({ data: { head: { sha: HEAD_SHA } } }),
+            listReviews: async () => ({ data: reviewObjs(scenario.reviews) }),
+            reviewThreads: scenario.threads
+        });
+        await runScript(scriptOf('status', 'Decide the gate'), {
+            github: s.github,
+            context,
+            env: { PR: '1', HEAD_SHA, POST_RESULT: 'skipped', REPOST: 'true', RUN_URL: 'u' }
+        });
+        const authoritative = s.calls.createCommitStatus[0].state;
+
+        const runResolver = async presentState => {
+            const { github } = mockGitHub({
+                prGet: async () => ({ data: { number: 1, head: { sha: HEAD_SHA }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
+                listReviews: async () => ({ data: reviewObjs(scenario.reviews) }),
+                listStatuses: async () => ({ data: [{ context: 'code-review', state: presentState }] }),
+                reviewThreads: scenario.threads
+            });
+            const ctx = { ...context, payload: { pull_request: { number: 1 } } };
+            return runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env: { PR: '1', GITHUB_WORKSPACE: dir } });
+        };
+
+        // (2a) present status equals the authoritative verdict -> skip.
+        const match = await runResolver(authoritative);
+        assert.equal(match.outputs.skip, 'true', `present=${authoritative} matches the verdict -> skip`);
+        // (2b) present status differs -> repost.
+        const other = authoritative === 'success' ? 'failure' : 'success';
+        const mismatch = await runResolver(other);
+        assert.equal(mismatch.outputs.skip, 'false', `present=${other} contradicts the verdict -> not skip`);
+        assert.equal(mismatch.outputs.repost, 'true');
+    });
+}
+test('#14486 Finding 2: a transient reviewThreads GraphQL error routes to a repost, never fails the run', async () => {
+    // The resolver's new threads read must not throw out of the range step: an unset `skip` would stop
+    // the status job (its `if` needs skip=='false'), so a transient GraphQL 502/rate-limit would make
+    // the run red AND skip the repost. On a threads-read failure we fail SAFE -> repost, and the
+    // authoritative status job recomputes.
+    const head = SHA('a');
+    const { github } = mockGitHub({
+        prGet: async () => ({ data: { number: 1, head: { sha: head }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
+        listReviews: async () => ({
+            data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, submitted_at: '2026-01-01', body: 'x\n<!-- ol-pr-review-bot f=0 -->' }]
+        }),
+        listStatuses: async () => ({ data: [{ context: 'code-review', state: 'success' }] })
+    });
+    github.graphql = async () => {
+        throw new Error('API rate limit exceeded (secondary)');
+    };
+    const ctx = { ...context, payload: { pull_request: { number: 1 } } };
+    const res = await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env: { PR: '1', GITHUB_WORKSPACE: dir } });
+    assert.equal(res.failed, null, 'a transient threads read must not fail the analyze job');
+    assert.equal(res.outputs.skip, 'false', 'it falls back to NOT skipping');
+    assert.equal(res.outputs.repost, 'true', 'and routes to the authoritative status repost');
 });
 
 // ===================== D3a: finding-driven status (withhold -> not automatically red) =========
