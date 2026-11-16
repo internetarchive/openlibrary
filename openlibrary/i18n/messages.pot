@@ -3190,6 +3190,10 @@ msgid "Rather than creating a duplicate record, please click through the result 
 msgstr ""
 
 #: books/check.html
+msgid "Please complete the reCAPTCHA above before choosing a book."
+msgstr ""
+
+#: books/check.html
 msgid "Select this book"
 msgstr ""
 

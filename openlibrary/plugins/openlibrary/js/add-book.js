@@ -23,16 +23,25 @@ let i18nStrings;
 export function initAddBookImport() {
     const addBookForm = document.querySelector('form#addbook');
 
+    // On the matches page, picking a book posts the form, so hold it until the captcha is solved.
+    function submitMatchChoice(work) {
+        const needed = document.getElementById('recaptcha-needed');
+        if (needed && !window.grecaptcha?.getResponse()) {
+            needed.hidden = false;
+            addBookForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+        document.querySelector('input#work').value = work;
+        addBookForm.requestSubmit();
+    }
+
     for (const link of document.querySelectorAll('.list-books a')) {
         link.addEventListener('click', function () {
-            const li = this.closest('li');
-            document.querySelector('input#work').value = `/works/${li.id}`;
-            addBookForm.requestSubmit();
+            submitMatchChoice(`/works/${this.closest('li').id}`);
         });
     }
     document.getElementById('bookAddCont')?.addEventListener('click', function () {
-        document.querySelector('input#work').value = 'none-of-these';
-        addBookForm.requestSubmit();
+        submitMatchChoice('none-of-these');
     });
 
     // `data-i18n` (and everything below that depends on it) is only rendered on

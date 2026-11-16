@@ -276,6 +276,14 @@ class addbook(delegate.page):
         if spamcheck.is_spam(i, allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
+        i.web_book_url = i.web_book_url.strip()
+        if not is_valid_web_book_url(i.web_book_url):
+            return render_template("message.html", _("Invalid Book URL"), _("Please enter a valid URL starting with http:// or https://"))
+
+        if i.id_name == "ocaid" and i.id_value and not can_edit_ocaid():
+            return render_template("message.html", _("Permission denied"), _("You are not allowed to add an Internet Archive ID."))
+
+        # After the cheap checks, so a typo there doesn't spend the single-use captcha token.
         recap = get_recaptcha()
         if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip):
             return render_template(
@@ -283,13 +291,6 @@ class addbook(delegate.page):
                 "Recaptcha solution was incorrect",
                 'Please <a href="javascript:history.back()">go back</a> and try again.',
             )
-
-        i.web_book_url = i.web_book_url.strip()
-        if not is_valid_web_book_url(i.web_book_url):
-            return render_template("message.html", _("Invalid Book URL"), _("Please enter a valid URL starting with http:// or https://"))
-
-        if i.id_name == "ocaid" and i.id_value and not can_edit_ocaid():
-            return render_template("message.html", _("Permission denied"), _("You are not allowed to add an Internet Archive ID."))
 
         i = utils.unflatten(i)
         saveutil = DocSaveHelper()

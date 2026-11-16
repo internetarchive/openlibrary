@@ -1,5 +1,6 @@
 """py.test tests for addbook"""
 
+import datetime as dt
 from unittest.mock import Mock
 
 import pytest
@@ -645,6 +646,48 @@ class TestAddBookRecaptcha:
         (template, *_), kw = post(recap, matches=[web.storage(key="/works/OL1W")])
         assert template == "books/check"
         assert kw["recaptcha"] is recap
+
+    def test_bad_input_is_rejected_before_spending_the_token(self, post, monkeypatch):
+        monkeypatch.setattr(addbook, "is_valid_web_book_url", lambda url: False)
+        recap = self.recaptcha(solved=True)
+        (template, title, _), _ = post(recap)
+        assert (template, title) == ("message.html", "Invalid Book URL")
+        recap.validate_response.assert_not_called()
+
+
+class TestGetRecaptcha:
+    @pytest.fixture
+    def recaptcha_for(self, monkeypatch):
+        """get_recaptcha() for a user whose account is `age_days` old; None means exempt."""
+        monkeypatch.setattr(addbook.config, "plugin_recaptcha", web.storage(public_key="pk", private_key="sk"), raising=False)
+
+        def _for(age_days=0, tags=(), librarian=False, admin=False, logged_in=True):
+            created = dt.datetime.now(dt.UTC).replace(tzinfo=None) - dt.timedelta(days=age_days)
+            account = Mock(creation_time=Mock(return_value=created), has_tag=lambda tag: tag in tags)
+            user = mock_user()
+            user.get_account = lambda: account
+            user.is_librarian = lambda: librarian
+            user.is_admin = lambda: admin
+            monkeypatch.setattr(accounts, "get_current_user", lambda: user if logged_in else None)
+            return addbook.get_recaptcha()
+
+        return _for
+
+    def test_new_account_gets_a_captcha(self, recaptcha_for):
+        assert recaptcha_for(age_days=5) is not None
+
+    def test_thirty_day_old_account_still_gets_one(self, recaptcha_for):
+        assert recaptcha_for(age_days=30) is not None
+
+    def test_older_account_is_exempt(self, recaptcha_for):
+        assert recaptcha_for(age_days=60) is None
+
+    def test_logged_out_gets_a_captcha(self, recaptcha_for):
+        assert recaptcha_for(logged_in=False) is not None
+
+    @pytest.mark.parametrize("kw", [{"tags": ("trusted-user",)}, {"librarian": True}, {"admin": True}])
+    def test_trusted_new_accounts_are_exempt(self, recaptcha_for, kw):
+        assert recaptcha_for(age_days=1, **kw) is None
 
 
 class TestDaisyPage:
