@@ -17,6 +17,7 @@ from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.solr_types import SolrDocument
+from openlibrary.utils.request_context import site
 
 # Import from manage-imports, but get around hyphen problem.
 imports_module = "scripts.manage-imports"
@@ -125,7 +126,7 @@ async def ol_query(name: str, value: str) -> str | None:
     try:
         keys = await infobase_async.things(query)
     except infobase_async.UnsupportedQuery:
-        keys = web.ctx.site.things(query)
+        keys = site.get().things(query)
     return keys[0] if keys else None
 
 
@@ -141,7 +142,7 @@ def ol_get_many_as_dict(keys: Iterable[str]) -> dict[str, OpenLibraryEdition]:
 
     for k in keys_with_revisions:
         key, revision = k.split("@", 1)
-        doc = web.ctx.site.get(key, h.safeint(revision) or None)
+        doc = site.get().get(key, h.safeint(revision) or None)
         result[k] = doc and doc.dict()
 
     return result
@@ -149,7 +150,7 @@ def ol_get_many_as_dict(keys: Iterable[str]) -> dict[str, OpenLibraryEdition]:
 
 # TODO: Wrong type; can be any infobase Thing
 def ol_get_many(keys: Iterable[str]) -> list[OpenLibraryEdition]:
-    return [doc.dict() for doc in web.ctx.site.get_many(keys)]
+    return [doc.dict() for doc in site.get().get_many(keys)]
 
 
 async def query_keys(bib_keys: Iterable[str]) -> dict[str, str]:

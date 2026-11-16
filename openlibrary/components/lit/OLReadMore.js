@@ -72,7 +72,7 @@ export class OLReadMore extends LitElement {
             position: relative;
             color: var(--ol-readmore-link-color);
             font-family: inherit;
-            font-weight: 500;
+            font-weight: var(--font-weight-medium);
             text-align: center;
             width: 100%;
             padding: var(--spacing-inset-lg) var(--spacing-md) var(--spacing-md) var(--spacing-md);
@@ -128,7 +128,7 @@ export class OLReadMore extends LitElement {
         }
 
         .toggle-btn.small {
-            font-size: 12px;
+            font-size: var(--font-size-label-medium);
             padding-top: var(--spacing-inset-md);
             padding-bottom: var(--spacing-inset-sm);
         }

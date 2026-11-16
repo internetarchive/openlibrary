@@ -176,3 +176,33 @@ export function needsLeadChange(labelNames) {
     if (hasLead && hasNeedsLead) return 'remove';
     return null;
 }
+
+/**
+ * Decides whether an issue a PR references should move from `Needs: Response`
+ * to `Needs: Review`: once an open PR works on it, the next step is reviewing
+ * the PR, not answering on the issue. Closed issues are left alone.
+ *
+ * @param {{state: string, labelNames: string[]}} issue `state` is GraphQL's OPEN or CLOSED.
+ * @returns {boolean}
+ */
+export function needsReviewSwap({ state, labelNames }) {
+    return state === 'OPEN' && labelNames.includes('Needs: Response');
+}
+
+/** Pure decision for the first closing reference only. Comments must be fully fetched before deciding to close. */
+export function decideGfiAction({ pr, issue, kind, hasCommented }) {
+    const skip = reason => ({ action: 'skip', reason });
+    const labels = item => item.labels.map(label => (typeof label === 'string' ? label : label.name));
+    const sameName = (a, b) => a.toLowerCase() === b.toLowerCase();
+    if (kind !== 'closing') return skip('no closing reference');
+    if (issue.pull_request || issue.state !== 'open' || !labels(issue).includes('Good First Issue')) return skip('not an open Good First Issue');
+    if (pr.state !== 'open' || pr.draft) return skip('PR is closed or draft');
+    if (labels(pr).includes('no-automation') || labels(issue).includes('no-automation')) return skip('no-automation');
+    if (['MEMBER', 'OWNER', 'COLLABORATOR'].includes(pr.author_association)) return skip('staff author');
+    const author = pr.user.login;
+    if (sameName(author, 'openlibrary-bot') || /\[bot\]$/i.test(author)) return skip('bot author');
+    if (issue.assignees.some(user => sameName(user.login, author))) return skip('already assigned to author');
+    if (issue.assignees.length) return { action: 'close', reason: 'duplicate' };
+    if (hasCommented === undefined) return skip('comments not fetched');
+    return hasCommented ? { action: 'assign', reason: 'author commented' } : { action: 'close', reason: 'missing comment' };
+}

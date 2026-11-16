@@ -30,7 +30,7 @@ mkdir -p $DEPLOY_DIR
 WEB_HOSTNAMES="ol-web0 ol-web2 ol-web3"
 # Note: ol-solr0 and ol-solr2 are currently excluded due to a version
 # upgrade pending full reindex
-ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www1 $WEB_HOSTNAMES"
+ALL_HOSTNAMES="ol-home0 ol-covers1 ol-www1 $WEB_HOSTNAMES"
 SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 
 KILL_CRON=${KILL_CRON:-""}
@@ -745,7 +745,7 @@ nginx_service_for() {
     case "$1" in
         ol-www1)    echo "web_nginx" ;;
         ol-home0)   echo "infobase_nginx" ;;
-        ol-covers0) echo "covers_nginx" ;;
+        ol-covers1) echo "covers_nginx" ;;
         *)          echo "" ;;
     esac
 }

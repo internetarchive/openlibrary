@@ -15,6 +15,7 @@ TAG_PRELOAD_CASES = [
     ("content_warning", "content_warnings", "/tags/OL401T", "Violence"),
     ("content_format", "content_formats", "/tags/OL501T", "Graphic Novel"),
     ("literary_form", "literary_forms", "/tags/OL183T", "Fiction"),
+    ("award", "awards", "/tags/OL47T", "Nebula Award"),
 ]
 
 

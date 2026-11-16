@@ -1,3 +1,5 @@
+from datetime import datetime
+from types import SimpleNamespace
 from typing import cast
 
 import pytest
@@ -87,3 +89,46 @@ def test_list_add_seed_with_blank_annotated_seed():
     # AnnotatedSeedDict with blank key should raise ValueError
     with pytest.raises(ValueError, match="Seed key cannot be empty"):
         lst.add_seed({"thing": {"key": ""}, "notes": "some notes"})
+
+
+class TestListCard:
+    """`List.card` only reads plain attributes, so a stand-in for the list is enough."""
+
+    @staticmethod
+    def _preview(viewer=None, *, owner_name="Jane", description="", cover=None):
+        owner = SimpleNamespace(key="/people/jane", name=owner_name)
+        lst = SimpleNamespace(
+            key="/people/jane/lists/OL1L",
+            name="Dogs",
+            seeds=[object(), object()],
+            last_modified=datetime(2020, 1, 15),
+            description=description,
+            get_owner=lambda: owner,
+            get_cover=lambda: cover,
+            get_default_cover=lambda: None,
+        )
+        return List.card(cast(List, lst), viewer)
+
+    def test_values(self):
+        preview = self._preview("/people/bob", description="**bold**")
+        assert preview.key == "/people/jane/lists/OL1L"
+        assert preview.name == "Dogs"
+        assert preview.cover_url == "/static/images/icons/avatar_book-sm.png"
+        assert (preview.owner_key, preview.owner_name, preview.is_owner) == ("/people/jane", "Jane", False)
+        assert preview.item_count == 2
+        assert preview.modified == "January 15, 2020"
+        assert "<strong>bold</strong>" in preview.description_html
+
+    def test_cover_url_comes_from_the_cover(self):
+        cover = SimpleNamespace(url=lambda size: f"/covers/{size}.jpg")
+        assert self._preview(cover=cover).cover_url == "/covers/M.jpg"
+
+    def test_viewer_is_the_owner(self):
+        assert self._preview("/people/jane").is_owner
+        assert not self._preview(None).is_owner
+
+    def test_owner_name_is_truncated_for_the_byline(self):
+        assert self._preview(owner_name="N" * 60).owner_name == "N" * 40 + "..."
+
+    def test_no_description(self):
+        assert self._preview().description_html == ""

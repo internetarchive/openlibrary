@@ -29,7 +29,6 @@ import re
 import uuid
 from collections import defaultdict
 from collections.abc import Iterable
-from copy import copy
 from html import unescape as html_unescape
 from time import sleep
 from typing import TYPE_CHECKING, Any, Final
@@ -82,12 +81,22 @@ SUSPECT_PUBLICATION_DATES: Final = [
 SUSPECT_DATE_EXEMPT_SOURCES: Final = ["wikisource"]
 SUSPECT_AUTHOR_NAMES: Final = ["unknown", "n/a"]
 SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
+# source_records prefix -> identifiers key. These sources' records are
+# separate e-editions identified by the source's own id, so an import from one
+# only ever matches an edition carrying that same id; matching on title would
+# merge it into some other edition of the work, or miss and duplicate it.
+ID_MATCHED_SOURCES: Final = {
+    "project_gutenberg": "project_gutenberg",
+    "wikisource": "wikisource",
+}
 ALLOWED_COVER_HOSTS: Final = (
     "archive.org",
     "books.google.com",
+    "cdn.sanity.io",
     "commons.wikimedia.org",
     "covers.openlibrary.org",
     "m.media-amazon.com",
+    "www.gutenberg.org",
 )
 
 
@@ -265,13 +274,11 @@ def load_author_import_records(authors_in, edits, source, save: bool = True):
             a["source_records"] = [source]
         else:
             stored = site.get().get(a["key"])  # Fresh read to check for modifications
-            if a.dict() != stored.dict():
-                edits.append(a.dict())
-                status = "modified"
-            else:
-                status = "matched"
-        if status in ("created", "modified"):
+            status = "modified" if a.dict() != stored.dict() else "matched"
+        if status == "created":
             edits.append(a)
+        elif status == "modified":
+            edits.append(a.dict())
         authors.append({"key": a["key"]})
         author_reply.append(
             {
@@ -381,24 +388,6 @@ def modify_ia_item(item, data):
     return item.modify_metadata(data, access_key=access_key, secret_key=secret_key)
 
 
-def create_ol_subjects_for_ocaid(ocaid, subjects):
-    item = get_ia_item(ocaid)
-    openlibrary_subjects = copy(item.metadata.get("openlibrary_subject")) or []
-
-    if not isinstance(openlibrary_subjects, list):
-        openlibrary_subjects = [openlibrary_subjects]
-
-    for subject in subjects:
-        if subject not in openlibrary_subjects:
-            openlibrary_subjects.append(subject)
-
-    r = modify_ia_item(item, {"openlibrary_subject": openlibrary_subjects})
-    if r.status_code != 200:
-        return f"{item.identifier} failed: {r.content}"
-    else:
-        return f"success for {item.identifier}"
-
-
 def update_ia_metadata_for_ol_edition(edition_id):
     """
     Writes the Open Library Edition and Work id to a linked
@@ -455,13 +444,15 @@ def isbns_from_record(rec: dict) -> list[str]:
     return isbns
 
 
-def find_wikisource_src(rec: dict) -> str | None:
-    if not rec.get("source_records"):
-        return None
-    ws_prefix = "wikisource:"
-    ws_match = next((src for src in rec["source_records"] if src.startswith(ws_prefix)), None)
-    if ws_match:
-        return ws_match[len(ws_prefix) :]
+def find_id_matched_source(rec: dict) -> tuple[str, str] | None:
+    """The ``(identifiers key, id)`` of a source whose imports match on id alone.
+
+    E.g. ``project_gutenberg:1661`` -> ``("project_gutenberg", "1661")``.
+    """
+    for src in rec.get("source_records") or []:
+        prefix, _, source_id = src.partition(":")
+        if source_id and (key := ID_MATCHED_SOURCES.get(prefix)):
+            return key, source_id
     return None
 
 
@@ -512,7 +503,7 @@ def build_pool(rec: dict) -> dict[str, list[str]]:
         if verified := resolve_edition_ref(ol_key):
             # The record names its edition and that edition exists: this IS the
             # answer, not a candidate to weigh against title evidence. Narrow the
-            # pool to it, the same way a wikisource id narrows to itself.
+            # pool to it, the same way an ID_MATCHED_SOURCES id narrows to itself.
             #
             # Deliberately checked BEFORE the title pool rather than relying on
             # find_quick_match, which only runs when build_pool returned
@@ -537,12 +528,11 @@ def build_pool(rec: dict) -> dict[str, list[str]]:
             ol_key,
         )
 
-    if ws_match := find_wikisource_src(rec):
-        # If this is a wikisource import, ONLY consider a match if the same wikisource ID
-        ekeys = set(editions_matched(rec, "identifiers.wikisource", ws_match))
-        if ekeys:
-            pool["wikisource"] = ekeys
-        return {k: list(v) for k, v in pool.items() if v}
+    if id_source := find_id_matched_source(rec):
+        id_key, source_id = id_source
+        if ekeys := editions_matched(rec, f"identifiers.{id_key}", source_id):
+            return {id_key: ekeys}
+        return {}
 
     # Find records with matching fields
     for field in match_fields:
@@ -571,13 +561,10 @@ def find_quick_match(rec: dict) -> str | None:
         # and raise on.
         return verified
 
-    if ws_match := find_wikisource_src(rec):
-        # If this is a wikisource import, ONLY consider a match if the same wikisource ID
-        ekeys = editions_matched(rec, "identifiers.wikisource", ws_match)
-        if ekeys:
-            return ekeys[0]
-        else:
-            return None
+    if id_source := find_id_matched_source(rec):
+        id_key, source_id = id_source
+        ekeys = editions_matched(rec, f"identifiers.{id_key}", source_id)
+        return ekeys[0] if ekeys else None
 
     ekeys = editions_matched(rec, "ocaid")
     if ekeys:
@@ -1082,8 +1069,12 @@ def load(
     """
     acquisitions = rec.pop("acquisitions", None)
     reply = _load(rec, account_key=account_key, from_marc_record=from_marc_record, save=save)
-    if acquisitions and save and reply.get("success"):
-        _save_acquisitions(reply, acquisitions)
+    if acquisitions and reply.get("success"):
+        if save:
+            _save_acquisitions(reply, acquisitions)
+        else:
+            # Previews write nothing, so report what an import would add.
+            reply["acquisitions"] = acquisitions
     return reply
 
 

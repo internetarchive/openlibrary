@@ -73,7 +73,7 @@
 .subjectAuthors-name {
   display: block;
   font-size: var(--font-size-label-large);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   line-height: 1.25;
   color: var(--color-link);
   overflow: hidden;

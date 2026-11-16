@@ -25,6 +25,13 @@ Ruff enforces this with rule `TID251`, which flags imports of `openlibrary.core.
 - The rule only sees imports, so it can't stop new sync queries in those files. Write them async anyway, with a `_sync` bridge if web.py needs them.
 - When a file's last legacy use goes, Ruff's `RUF100` flags the leftover `noqa`; delete it.
 
+## Legacy connections under FastAPI
+
+web.py opens a fresh `web.database` connection per request; FastAPI keeps each thread's connection between requests. So both FastAPI apps (main and covers) call `openlibrary.utils.legacy_db.install_connection_recovery()` at startup: once a connection is found closed, it's dropped and the next query reconnects.
+
+- psycopg2 only notices a drop when a query fails, so after a database restart each thread fails one request, then recovers.
+- Nothing is retried. A drop inside a transaction fails the rest of it, savepoints included, and the outermost rollback lets the thread reconnect.
+
 ## The async pool: `openlibrary/core/async_db.py`
 
 Single-statement helpers. Each takes a connection from the pool, runs one query, commits, and returns the connection:

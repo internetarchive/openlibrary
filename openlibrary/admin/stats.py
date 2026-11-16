@@ -12,6 +12,7 @@ import yaml
 
 from openlibrary.admin import numbers
 from openlibrary.admin.vitals import gather_participation_scores, write_to_statsd
+from openlibrary.utils.request_context import create_context_for_script, req_context, site
 
 logger = logging.getLogger(__name__)
 
@@ -47,13 +48,13 @@ def connect_to_pg(config_file):
 def store_data(data, date):
     uid = "counts-%s" % date
     logger.debug(" Updating stats for %s - %s", uid, data)
-    doc = web.ctx.site.store.get(uid) or {}
+    doc = site.get().store.get(uid) or {}
     doc.update(data)
     doc["type"] = "admin-stats"
     # as per https://github.com/internetarchive/infogami/blob/master/infogami/infobase/_dbstore/store.py#L79-L83
     # avoid document collisions if multiple tasks updating stats in competition (race)
     doc["_rev"] = None
-    web.ctx.site.store[uid] = doc
+    site.get().store[uid] = doc
 
 
 def run_gathering_functions(infobase_db, coverstore_db, start, end, prefix, key_prefix=None):
@@ -103,6 +104,8 @@ def setup_ol_config(openlibrary_config_file):
             config.infobase = yaml.safe_load(file)
 
     infogami._setup()
+    site.set(web.ctx.site)
+    req_context.set(create_context_for_script())
 
 
 def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):

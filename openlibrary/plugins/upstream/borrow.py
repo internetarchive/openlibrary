@@ -8,7 +8,7 @@ import logging
 import time
 import urllib
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Literal
 
 import web
@@ -32,6 +32,7 @@ from openlibrary.core import (
 )
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import req_context, site
@@ -234,12 +235,8 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
 
     error_redirect = archive_url
 
-    # Strip scheme/host to prevent open-redirect attacks.
-    if i.redirect:
-        parsed = urllib.parse.urlsplit(i.redirect)
-        edition_redirect = urllib.parse.urlunsplit(("", "", parsed.path, parsed.query, parsed.fragment))
-    else:
-        edition_redirect = edition.url()
+    # Only same-site paths; anything else lands on the edition page.
+    edition_redirect = i.redirect if is_safe_redirect(i.redirect) else edition.url()
 
     user = accounts.get_current_user()
 
@@ -436,7 +433,7 @@ def datetime_from_isoformat(expiry):
 
 @public
 def datetime_from_utc_timestamp(seconds):
-    return datetime.utcfromtimestamp(seconds)
+    return datetime.fromtimestamp(seconds, UTC).replace(tzinfo=None)
 
 
 def get_bookreader_stream_url(itemid: str) -> str:

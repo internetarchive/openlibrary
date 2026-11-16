@@ -7,10 +7,9 @@ WARNING: This will delete all of the records if the `--batches` argument is excl
 
 import argparse
 
-import web
-
 from infogami.infobase.client import ClientException
 from openlibrary.setup import setup_for_script
+from openlibrary.utils.request_context import site
 from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 
 DEFAULT_CONFIG_PATH = "/opt/olsystem/etc/openlibrary.yml"
@@ -33,10 +32,10 @@ def delete_records(batches):
     :param batches: The number of records to delete.
     :return:
     """
-    while not was_shutdown_requested() and (batches != 0) and (keys := web.ctx.site.store.keys(type=RECORD_TYPE)):
+    while not was_shutdown_requested() and (batches != 0) and (keys := site.get().store.keys(type=RECORD_TYPE)):
         for key in keys:
             try:
-                web.ctx.site.store.delete(key)
+                site.get().store.delete(key)
             except ClientException:
                 print(f"Failed to delete record with key {key}\nContinuing...")
                 continue

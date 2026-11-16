@@ -450,6 +450,7 @@ WORK_TAG_CASES = [
     ("content_warning", "content_warnings"),
     ("content_format", "content_formats"),
     ("literary_form", "literary_forms"),
+    ("award", "awards"),
 ]
 
 

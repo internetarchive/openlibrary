@@ -153,7 +153,7 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
 
     This doesn't update the index tables. Avoid this function if you have any change that requires updating the index tables.
     """
-    now = dt.datetime.utcnow()
+    now = dt.datetime.now(dt.UTC).replace(tzinfo=None)
     author_id = get_thing_id(author)
     t = db.transaction()
     try:

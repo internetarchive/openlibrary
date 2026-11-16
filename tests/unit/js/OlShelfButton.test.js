@@ -507,9 +507,9 @@ describe('ol-shelf-button lists-only', () => {
         expect(q(el, 'ol-shelf-actions').listsOnly).toBe(true);
     });
 
-    test('the icon shape draws a list-plus and says so', async () => {
+    test('the icon shape draws a list and says so', async () => {
         const el = await mount({ userKey: '/people/tester', variant: 'icon', workKey: '/books/OL2M', bookTitle: 'Orphan', listsOnly: true });
-        expect(q(el, 'ol-icon.glyph').getAttribute('name')).toBe('list-plus');
+        expect(q(el, 'ol-icon.glyph').getAttribute('name')).toBe('list');
         expect(q(el, '.save').getAttribute('aria-label')).toBe('Add Orphan to a list');
     });
 

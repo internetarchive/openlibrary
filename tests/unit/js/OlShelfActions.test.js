@@ -269,7 +269,7 @@ describe('ol-shelf-actions lists pane', () => {
         // Neither row is ticked: OL2L holds the book with no edition named, so
         // it carries the label instead of the tick.
         expect(rows.map(r => r.querySelector('input').checked)).toEqual([false, false]);
-        expect(rows.map(r => r.querySelector('.other-form')?.textContent ?? null)).toEqual([null, 'Any edition']);
+        expect(rows.map(r => r.querySelector('.other-form')?.textContent ?? null)).toEqual([null, 'Already on this list']);
         expect(rows.map(r => r.querySelector('.count').textContent)).toEqual(['1', '1']);
     });
 
@@ -426,7 +426,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(q(el, '.loading')).toBeNull();
         // OL2L holds the work, which this button names itself, so that much is
         // still known without the fetch — only sibling editions go unseen.
-        expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('Any edition');
+        expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('Already on this list');
     });
 
     test('a list holding the book with no edition named says so', async () => {
@@ -438,9 +438,21 @@ describe('ol-shelf-actions lists pane', () => {
         // writes an edition, so the row is unticked and labelled.
         const [, second] = qa(el, '.list-row');
         expect(second.querySelector('input').checked).toBe(false);
-        expect(second.querySelector('.other-form').textContent).toBe('Any edition');
+        expect(second.querySelector('.other-form').textContent).toBe('Already on this list');
         // It still counts as the book being on a list.
         expect(el._listCount).toBe(1);
+    });
+
+    test('ticking a list that already holds the book drops the note', async () => {
+        stubFetch();
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        const input = qa(el, '.list-row')[1].querySelector('input');
+        input.checked = true;
+        input.dispatchEvent(new Event('change'));
+        await tick(el);
+        expect(qa(el, '.list-row')[1].querySelector('.other-form')).toBeNull();
     });
 
     test('a list with neither the book nor any edition of it is bare', async () => {
@@ -1987,5 +1999,25 @@ describe('ol-shelf-actions analytics labels', () => {
         qa(el, '.group.shelves .row[data-shelf]')[0].click();
         await tick(el);
         expect(events()).toEqual([['ShelfActions', 'Error', 'shelf:no-response']]);
+    });
+});
+
+describe('ol-shelf-actions lists-only', () => {
+    test('an edition with no work says why the shelves and stars are missing', async () => {
+        stubFetch();
+        const el = await mount({ listsOnly: true, book: { key: '/books/OL7M', title: 'An orphan' } });
+        await tick(el);
+        expect(q(el, '.note').textContent).toContain('has no work record yet');
+        expect(q(el, '.header .heading').textContent).toBe('An orphan');
+        expect(q(el, '.lists-title')).toBeNull();
+        expect(q(el, '.group.shelves')).toBeNull();
+    });
+
+    test('an author needs no explanation', async () => {
+        stubFetch();
+        const el = await mount({ listsOnly: true, book: { key: '/authors/OL9A', title: 'An author' } });
+        await tick(el);
+        expect(q(el, '.lists-title').textContent).toBe('An author');
+        expect(q(el, '.note')).toBeNull();
     });
 });

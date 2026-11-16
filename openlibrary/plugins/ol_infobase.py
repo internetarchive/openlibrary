@@ -294,7 +294,7 @@ def save_error(dir, prefix):
     try:
         logger.error("Error", exc_info=True)
         error = web.djangoerror()
-        now = dt.datetime.utcnow()
+        now = dt.datetime.now(dt.UTC).replace(tzinfo=None)
         path = "%s/%04d-%02d-%02d/%s-%02d%02d%02d.%06d.html" % (
             dir,
             now.year,

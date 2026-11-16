@@ -17,6 +17,7 @@ from markupsafe import Markup
 from openlibrary.core.shell._util import _safe
 
 if TYPE_CHECKING:
+    from openlibrary.contribute.pitch import EditSaved
     from openlibrary.core.shell.request import PageMeta
     from openlibrary.core.shell.user import ShellUser
 
@@ -102,6 +103,18 @@ def _extract_announcement_banner(banner_dismissed: bool) -> AnnouncementBanner |
     if not ANNOUNCEMENT or not ANNOUNCEMENT_COOKIE or banner_dismissed:
         return None
     return AnnouncementBanner(content=ANNOUNCEMENT, cookie_name=ANNOUNCEMENT_COOKIE, cookie_duration_days=ANNOUNCEMENT_COOKIE_DAYS)
+
+
+def _extract_edit_saved(flash: tuple[dict[str, str], ...]) -> tuple[list[dict[str, str]], EditSaved | None]:
+    """Take the edit pages' thank-you out of the flash messages: it gets a banner of its own (``shell/edit_saved.html.jinja``)."""
+    from openlibrary.contribute import pitch
+    from openlibrary.plugins.openlibrary.contribute import build_edit_saved
+
+    rest = [m for m in flash if m["type"] != pitch.FLASH_TYPE]
+    if (saved := next((m for m in flash if m["type"] == pitch.FLASH_TYPE), None)) is None:
+        return rest, None
+    # The thank-you still shows if the pitch can't be read.
+    return rest, _safe(lambda: build_edit_saved(saved["message"]), pitch.EditSaved())
 
 
 def _extract_ol_env() -> str:

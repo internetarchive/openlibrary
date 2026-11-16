@@ -50,6 +50,7 @@ WORK_TAG_TYPES = (
     "content_warning",
     "content_format",
     "literary_form",
+    "award",
 )
 
 

@@ -19,7 +19,7 @@ import functools
 import logging
 from datetime import timedelta
 
-import web
+from openlibrary.utils.request_context import site
 
 logger = logging.getLogger(__name__)
 
@@ -221,11 +221,15 @@ def new_catalog_editors(days, **kargs):
 TASKS_SAVES = "SELECT tx_id FROM transaction_index WHERE key = 'source' AND value = $tasks_source"
 
 
+def _count_tasks_editors(db, since, end):
+    sql = f"SELECT count(DISTINCT t.author_id) AS count FROM transaction t WHERE t.created >= $since AND t.created < $end AND t.id IN ({TASKS_SAVES})"
+    return db.query(sql, vars={"since": since, "end": end, "tasks_source": TASKS_SOURCE})[0].count
+
+
 def tasks_editors(days, **kargs):
     "Accounts that saved from the Tasks page in the `days` before `end`."
     db, since, end = _window_args(f"admin_range__tasks_editors_{days}d", kargs, days)
-    sql = f"SELECT count(DISTINCT t.author_id) AS count FROM transaction t WHERE t.created >= $since AND t.created < $end AND t.id IN ({TASKS_SAVES})"
-    return db.query(sql, vars={"since": since, "end": end, "tasks_source": TASKS_SOURCE})[0].count
+    return _count_tasks_editors(db, since, end)
 
 
 def tasks_saves(days, **kargs):
@@ -261,62 +265,104 @@ def admin_range__tasks_saves_by_field_1d(**kargs):
     return {row.field: row.count for row in rows if row.field}
 
 
-# Initiative counts. The frozen edition list and the not-found marks live in the store, so these read through
+def admin_range__tasks_saves_by_initiative_1d(**kargs):
+    """The day's Tasks saves by the initiative they count toward, e.g. `{'most-read-2026-11': 9}`. Stored as a dict.
+    A save from before saves named their initiative is left out."""
+    db, start, end = _range_args("admin_range__tasks_saves_by_initiative_1d", kargs)
+    sql = f"""
+        SELECT t.data::json->>'initiative' AS initiative, count(*) AS count FROM transaction t
+        WHERE t.created >= $start AND t.created < $end AND t.id IN ({TASKS_SAVES})
+        GROUP BY 1
+    """
+    rows = db.query(sql, vars={"start": start, "end": end, "tasks_source": TASKS_SOURCE})
+    return {row.initiative: row.count for row in rows if row.initiative}
+
+
+# Initiative counts. The frozen edition lists and the not-found marks live in the store, so these read through
 # `web.ctx.site`, which `stats.setup_ol_config` provides, rather than through `thingdb`.
-_cached_initiative_progress: dict | None = None
-
-
 def _initiative():
     from openlibrary.contribute import initiatives
 
     return initiatives
 
 
-def _initiative_progress(kargs) -> dict:
-    """`initiatives.progress` for the active initiative, as of now. Only for today: a snapshot has no history, and the
-    backfill loop would otherwise stamp today's figure onto every past day. Read once per run, for all four keys.
-    Never picks the list: freezing it is the web app's job, so until it has, there's nothing to report."""
-    global _cached_initiative_progress
+# How far back to look for an ended initiative's last snapshot, so a few nights the job missed don't drop it.
+LAST_SNAPSHOT_DAYS = 14
+
+
+def _last_snapshot(slug: str, before) -> dict | None:
+    """The initiative's figures in the newest count doc before ``before``, or None if none in ``LAST_SNAPSHOT_DAYS`` has them."""
+    from openlibrary.core.admin import initiative_counts
+
+    for days in range(1, LAST_SNAPSHOT_DAYS + 1):
+        if (doc := site.get().store.get((before - timedelta(days=days)).strftime("counts-%Y-%m-%d"))) and (snap := initiative_counts(doc).get(slug)):
+            return snap
+    return None
+
+
+def _initiative_people(db, initiative, since: str, end: str) -> int:
+    """Accounts that saved for ``initiative`` from ``since`` to ``end``. A save names its initiative; one from before saves did
+    is matched by its field, which no two initiatives shared then."""
+    sql = f"""
+        SELECT count(DISTINCT t.author_id) AS count FROM transaction t
+        WHERE t.created >= $since AND t.created < $end AND t.id IN ({TASKS_SAVES})
+          AND COALESCE(t.data::json->>'initiative' = $slug, t.data::json->>'field' IN $fields)
+    """
+    vars = {"since": since, "end": end, "tasks_source": TASKS_SOURCE, "slug": initiative.slug, "fields": list(initiative.fields)}
+    return db.query(sql, vars=vars)[0].count
+
+
+def admin_range__initiatives(**kargs):
+    """Every initiative's progress as of now, by slug: details still open, editions done, details nobody could find, editions
+    on the list, and people who have saved for it since the list was frozen. Stored as a dict, so an initiative added to the
+    registry is counted from the next run, with nothing to set up. Read with `openlibrary.core.admin.initiative_counts`.
+
+    Only for today: a snapshot has no history, and the backfill loop would otherwise stamp today's figures onto every past
+    day. An initiative whose list the web app hasn't frozen yet is left out; this never picks one."""
     try:
         start, end = kargs["start"], kargs["end"]
     except KeyError as k:
-        raise TypeError(f"{k} is a required argument for the initiative counts")
+        raise TypeError(f"{k} is a required argument for admin_range__initiatives")
     # Only the run's first window, which ends at "now", is shorter than a day. Checking the clock instead would
     # skip the snapshot when a run that started before midnight gets here after it.
     if end - start >= timedelta(days=1):
         raise NoStats
-    if _cached_initiative_progress is None:
-        initiatives = _initiative()
-        if not (picks := initiatives.load_frozen(initiatives.ACTIVE, web.ctx.site)):
-            raise NoStats
-        _cached_initiative_progress = initiatives.progress(initiatives.gaps_for(picks, web.ctx.site))
-    return _cached_initiative_progress
+    db, _start, end_str = _range_args("admin_range__initiatives", kargs)
+    initiatives = _initiative()
+    counts = {}
+    # Read fresh, not through the web app's cache. One that ended before this day keeps its last snapshot, carried
+    # into today's doc so pages reading only the last few days still find its final figures.
+    for initiative in initiatives.started(initiatives.read_definitions(site.get())):
+        if initiative.ends_at and initiative.ends_at.replace(tzinfo=None) < start:
+            if last := _last_snapshot(initiative.slug, start):
+                counts[initiative.slug] = last
+            continue
+        if not (frozen := site.get().store.get(initiative.store_key)):
+            continue
+        p = initiatives.progress(initiatives.gaps_for(frozen["editions"], site.get()), initiative.fields, initiative.start)
+        counts[initiative.slug] = {
+            "open": p["open"],
+            "done": p["done"],
+            "not_found": p["not_found"],
+            "editions": p["total"],
+            "percent": p["percent"],
+            "people": _initiative_people(db, initiative, frozen["frozen_at"], end_str),
+        }
+    if not counts:
+        raise NoStats
+    return counts
 
 
-def admin_range__initiative_slug(**kargs):
-    "Which initiative the day's `initiative_*` counts describe, so a new list doesn't continue the old one's lines."
-    _initiative_progress(kargs)
-    return _initiative().ACTIVE.slug
-
-
-def admin_range__initiative_open_gaps(**kargs):
-    "Fields still missing across the active initiative's editions, less those enough people couldn't find."
-    return _initiative_progress(kargs)["open"]
-
-
-def admin_range__initiative_done_editions(**kargs):
-    "Editions on the active initiative's list with nothing left to fill."
-    return _initiative_progress(kargs)["done"]
-
-
-def admin_range__initiative_not_found(**kargs):
-    "Fields on the active initiative's list that enough people couldn't find."
-    return _initiative_progress(kargs)["not_found"]
-
-
-def admin_range__initiative_editions(**kargs):
-    "Editions on the active initiative's list still in the catalog."
-    return _initiative_progress(kargs)["total"]
+# Tasks saves from $since to $end whose value the record no longer holds; the caller writes the SELECT list.
+TASKS_SAVES_UNDONE = f"""
+    FROM transaction t
+    JOIN thing th ON th.key = t.changes::json->0->>'key'
+    JOIN data saved ON saved.thing_id = th.id AND saved.revision = (t.changes::json->0->>'revision')::int
+    JOIN data latest ON latest.thing_id = th.id AND latest.revision = th.latest_revision
+    WHERE t.created >= $since AND t.created < $end AND t.id IN ({TASKS_SAVES})
+      AND latest.data::jsonb->'type' = saved.data::jsonb->'type'
+      AND NOT COALESCE((latest.data::jsonb -> (t.data::json->>'field')) @> (saved.data::jsonb -> (t.data::json->>'field')), false)
+"""
 
 
 def admin_range__tasks_saves_undone_28d(**kargs):
@@ -325,20 +371,29 @@ def admin_range__tasks_saves_undone_28d(**kargs):
     Checked against the record as it is when this runs. Merged or deleted records are left out.
     """
     db, since, end = _window_args("admin_range__tasks_saves_undone_28d", kargs, 28)
-    sql = f"""
-        SELECT count(*) AS count
-        FROM transaction t
-        JOIN thing th ON th.key = t.changes::json->0->>'key'
-        JOIN data saved ON saved.thing_id = th.id AND saved.revision = (t.changes::json->0->>'revision')::int
-        JOIN data latest ON latest.thing_id = th.id AND latest.revision = th.latest_revision
-        WHERE t.created >= $since AND t.created < $end AND t.id IN ({TASKS_SAVES})
-          AND latest.data::jsonb->'type' = saved.data::jsonb->'type'
-          AND NOT COALESCE((latest.data::jsonb -> (t.data::json->>'field')) @> (saved.data::jsonb -> (t.data::json->>'field')), false)
-    """
+    sql = f"SELECT count(*) AS count {TASKS_SAVES_UNDONE}"
     return db.query(sql, vars={"since": since, "end": end, "tasks_source": TASKS_SOURCE})[0].count
 
 
-# The fields Tasks offers; matches `openlibrary.contribute.tasks.OFFERED`. Only the gatherer's own constants go into the SQL.
+def admin_range__tasks_saves_by_initiative_28d(**kargs):
+    """Each initiative's Tasks saves in the 28 days before `end`, as `{slug: {"saves": n, "undone": n}}`: how many, and how
+    many of those the record no longer holds, counted as `tasks_saves_undone_28d` does. Stored as a dict."""
+    db, since, end = _window_args("admin_range__tasks_saves_by_initiative_28d", kargs, 28)
+    vars = {"since": since, "end": end, "tasks_source": TASKS_SOURCE}
+    saves = f"""
+        SELECT t.data::json->>'initiative' AS initiative, count(*) AS count FROM transaction t
+        WHERE t.created >= $since AND t.created < $end AND t.id IN ({TASKS_SAVES})
+        GROUP BY 1
+    """
+    undone = f"SELECT t.data::json->>'initiative' AS initiative, count(*) AS count {TASKS_SAVES_UNDONE} GROUP BY 1"
+    counts = {row.initiative: {"saves": row.count, "undone": 0} for row in db.query(saves, vars=vars) if row.initiative}
+    for row in db.query(undone, vars=vars):
+        if row.initiative in counts:
+            counts[row.initiative]["undone"] = row.count
+    return counts
+
+
+# The fields the headline initiative offers; matches `openlibrary.contribute.initiatives.MOST_READ.fields`. Only the gatherer's own constants go into the SQL.
 TASKS_FIELDS = ("covers", "languages", "number_of_pages", "publishers")
 _cached_other_fills: dict[tuple[str, str], dict[str, int]] = {}
 

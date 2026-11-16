@@ -43,20 +43,20 @@ CREATE TABLE bookshelves_events (
 """
 
 
-class TestUpdateWorkID:
-    @classmethod
-    def setup_class(cls):
-        web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
+@pytest.fixture(scope="class")
+def reading_log_db():
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setitem(web.config, "db_parameters", {"dbn": "sqlite", "db": ":memory:"})
         db = get_db()
         db.query(READING_LOG_DDL)
         db.query(BOOKNOTES_DDL)
-
-    @classmethod
-    def teardown_class(cls):
-        db = get_db()
+        yield
         db.query("delete from bookshelves_books;")
         db.query("delete from booknotes;")
 
+
+@pytest.mark.usefixtures("reading_log_db")
+class TestUpdateWorkID:
     def setup_method(self, method):
         self.db = get_db()
         self.source_book = {
@@ -200,13 +200,16 @@ BOOKSHELVES_EVENTS_SETUP_ROWS = [
 ]
 
 
-class TestCheckIns:
-    @classmethod
-    def setup_class(cls):
-        web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
-        db = get_db()
-        db.query(BOOKSHELVES_EVENTS_DDL)
+@pytest.fixture(scope="class")
+def check_ins_db():
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setitem(web.config, "db_parameters", {"dbn": "sqlite", "db": ":memory:"})
+        get_db().query(BOOKSHELVES_EVENTS_DDL)
+        yield
 
+
+@pytest.mark.usefixtures("check_ins_db")
+class TestCheckIns:
     def setup_method(self):
         self.db = get_db()
         self.db.multiple_insert("bookshelves_events", BOOKSHELVES_EVENTS_SETUP_ROWS)

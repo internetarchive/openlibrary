@@ -226,8 +226,12 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             .count {
                 margin-inline-start: var(--spacing-2xs);
                 color: var(--_chip-count-fg);
-                font-size: 0.85em;
+                font-size: var(--font-size-label-medium);
                 font-variant-numeric: tabular-nums;
+            }
+
+            :host([size='small']) .count {
+                font-size: var(--font-size-label-small);
             }
         `
     ];

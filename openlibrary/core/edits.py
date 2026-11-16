@@ -280,7 +280,7 @@ class CommunityEditsQueue:
                 where="id=$rid",
                 reviewer=reviewer,
                 status=cls.STATUS["PENDING"],
-                updated=dt.datetime.utcnow(),
+                updated=dt.datetime.now(dt.UTC).replace(tzinfo=None),
                 vars={"rid": rid},
             )
             return {
@@ -300,7 +300,7 @@ class CommunityEditsQueue:
             where="id=$rid",
             status=cls.STATUS["PENDING"],
             reviewer=None,
-            updated=dt.datetime.utcnow(),
+            updated=dt.datetime.now(dt.UTC).replace(tzinfo=None),
             vars={"rid": rid},
         )
 
@@ -315,7 +315,7 @@ class CommunityEditsQueue:
             cls.TABLENAME,
             where="id=$rid",
             comments=json.dumps(comments),
-            updated=dt.datetime.utcnow(),
+            updated=dt.datetime.now(dt.UTC).replace(tzinfo=None),
             vars={"rid": rid},
         )
 
@@ -336,7 +336,7 @@ class CommunityEditsQueue:
         """
         return {
             # isoformat to avoid to-json issues
-            "timestamp": dt.datetime.utcnow().isoformat(),
+            "timestamp": dt.datetime.now(dt.UTC).replace(tzinfo=None).isoformat(),
             "username": username,
             "message": message,
             # XXX It may be easier to update these comments if they had IDs

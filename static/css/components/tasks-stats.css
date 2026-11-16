@@ -1,8 +1,16 @@
 /**
- * Tasks Stats
- * openlibrary/templates/stats/tasks.html.jinja; charts drawn by tasks_stats.js, which reads
- * --color-stats-chart-bar for every bar and data line so the page matches the other stats charts.
+ * Editing Stats (/stats/tasks)
+ * openlibrary/templates/stats/tasks.html.jinja; charts drawn by tasks_stats.js, which reads the
+ * --color-stats-chart-* tokens so the page matches the other stats charts.
  */
+.tasks-stats__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
 .tasks-stats {
   display: grid;
   gap: var(--spacing-xl);
@@ -20,7 +28,14 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--spacing-sm) var(--spacing-lg);
+  gap: var(--spacing-sm);
+}
+
+/* Scope on its own row; the cards' period and the compare toggle under it. */
+.tasks-stats__toolbar {
+  display: grid;
+  justify-items: start;
+  gap: var(--spacing-sm);
 }
 
 .tasks-stats__cards {
@@ -48,6 +63,11 @@
   outline-offset: 2px;
 }
 
+.tasks-stats__cards[hidden],
+.tasks-stats__panels[hidden] {
+  display: none;
+}
+
 .tasks-stats__card-label,
 .tasks-stats__card-change,
 .tasks-stats__card-window {
@@ -65,6 +85,35 @@
   font-size: var(--font-size-headline-small);
   font-weight: var(--font-weight-semibold);
   line-height: 1.2;
+}
+
+.tasks-stats__card-detail {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text);
+}
+
+.tasks-stats__card-detail:empty {
+  display: none;
+}
+
+/* Compare off hides every card's change line along with the chart's dashed line */
+.tasks-stats--no-compare .tasks-stats__card-change {
+  display: none;
+}
+
+/* Returning editors, with the first-time share laid over from the end */
+.tasks-stats__split {
+  display: flex;
+  justify-content: flex-end;
+  height: 6px;
+  margin-block: var(--spacing-3xs);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  background: var(--color-stats-chart-bar);
+}
+
+.tasks-stats__split-first {
+  background: var(--color-stats-chart-accent);
 }
 
 .tasks-stats__card-change--up {
@@ -123,7 +172,26 @@
   color: var(--color-text-secondary);
 }
 
+.tasks-stats__parts {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2xs) var(--spacing-md);
+  margin-inline-end: var(--spacing-md);
+}
+
+.tasks-stats__part::before {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-inline-end: var(--spacing-2xs);
+  vertical-align: -1px;
+  border-radius: 2px;
+  background: var(--swatch);
+}
+
 .tasks-stats__legend-tasks::before,
+.tasks-stats__legend-accent::before,
 .tasks-stats__legend-previous::before {
   content: "";
   display: inline-block;
@@ -135,6 +203,14 @@
 
 .tasks-stats__legend-tasks::before {
   border-top: 3px solid var(--color-stats-chart-bar);
+}
+
+.tasks-stats__legend-accent::before {
+  border-top: 3px solid var(--color-stats-chart-accent);
+}
+
+.tasks-stats__legend-previous[hidden] {
+  display: none;
 }
 
 .tasks-stats__legend[hidden] {
@@ -167,6 +243,10 @@
 
 .tasks-stats__figures b {
   color: var(--color-text);
+}
+
+.tasks-stats__figures[hidden] {
+  display: none;
 }
 
 .tasks-stats__panels {
@@ -223,6 +303,16 @@
   max-width: 70%;
   border-radius: var(--border-radius-sm);
   background: var(--color-stats-chart-bar);
+}
+
+/* Fine print closing the page, set off from the last panels by a rule */
+.tasks-stats__fine-print {
+  display: grid;
+  gap: var(--spacing-3xs);
+  padding-block-start: var(--spacing-md);
+  padding-inline-start: 0;
+  border-block-start: 1px solid var(--color-border-subtle);
+  list-style: none;
 }
 
 .tasks-stats__error {

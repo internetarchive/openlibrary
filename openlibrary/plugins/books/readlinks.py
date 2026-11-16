@@ -14,6 +14,7 @@ from infogami.utils import stats
 from infogami.utils.delegate import register_exception
 from openlibrary.core import helpers, ia, lending
 from openlibrary.plugins.books import dynlinks
+from openlibrary.utils.request_context import site
 
 
 def key_to_olid(key):
@@ -244,7 +245,7 @@ class ReadProcessor:
                 "type": "/type/edition",
                 "ocaid": iaids,
             }
-            result = web.ctx.site.things(query)
+            result = site.get().things(query)
             return result
 
         ekeys = lookup_iaids(iaids)

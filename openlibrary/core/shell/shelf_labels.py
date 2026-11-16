@@ -39,6 +39,7 @@ def build_shelf_button_labels() -> dict[str, Any]:
         "rateStar": _("Rate %(rating)s of 5"),
         "clearRating": _("Clear rating"),
         "addToList": _("Add to list"),
+        "listsOnlyEdition": _("This edition has no work record yet, so it can be added to lists but not to your reading log."),
         "back": _("Back"),
         "createList": _("Create a list"),
         "listName": _("List name"),
@@ -65,7 +66,7 @@ def build_shelf_button_labels() -> dict[str, Any]:
             "many": ungettext("%(count)s other edition", "%(count)s other editions", 11),
             "other": ungettext("%(count)s other edition", "%(count)s other editions", 100),
         },
-        "anyEdition": _("Any edition"),
+        "alreadyOnList": _("Already on this list"),
         "onLists": {
             "one": ungettext("On %(count)s list", "On %(count)s lists", 1),
             "two": ungettext("On %(count)s list", "On %(count)s lists", 2),
