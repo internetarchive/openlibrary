@@ -3,11 +3,11 @@
 > **Status:** partial
 > **Sources:** code synthesis (`openlibrary/core/lending.py`, `openlibrary/core/waitinglist.py`, `openlibrary/plugins/upstream/borrow.py`, `openlibrary/book_providers.py`)
 > **Last ingested:** 2026-06-27 · **Corrected:** 2026-08-29 (verified against `aced0c079`, origin/master 2026-08-28)
-> **History:** see [[history]] — where this system came from and what each migration left behind
+> **History:** see [history](history.md) — where this system came from and what each migration left behind
 
 OL's lending system manages controlled digital lending (CDL) of books from the Internet Archive collection. The actual loan state, waiting list state, and S3 authentication all live on archive.org's servers — OL is the front-end orchestrator: it checks eligibility, calls IA's loan API, and redirects users to BookReader.
 
-**This was not always true, and the code shows it.** OL was the system of record for lending from 2010 until November 2014. Much of `lending.py` is machinery from that era, or from the incomplete migrations since. OL currently talks to archive.org through **two different loan APIs simultaneously** — the modern `s3_loan_api` and the 2014-era `openlibrary.php` shim (`IA_Lending_API`). Read [[history]] before changing anything here; most of what looks arbitrary is dated.
+**This was not always true, and the code shows it.** OL was the system of record for lending from 2010 until November 2014. Much of `lending.py` is machinery from that era, or from the incomplete migrations since. OL currently talks to archive.org through **two different loan APIs simultaneously** — the modern `s3_loan_api` and the 2014-era `openlibrary.php` shim (`IA_Lending_API`). Read [history](history.md) before changing anything here; most of what looks arbitrary is dated.
 
 ---
 
@@ -16,9 +16,9 @@ OL's lending system manages controlled digital lending (CDL) of books from the I
 | Page | What it covers |
 |---|---|
 | **README** (this page) | How lending works today: access states, the borrow flow, availability, authentication, configuration. |
-| [[history]] | Why the code looks the way it does — six eras, what each left behind, and how to tell a live path from a fossil. |
-| [[acquisitions]] | Where a provider's acquisition links are stored, how they reach Solr and the book page, and the consumer contract. |
-| [[lenny]] | Borrowing from a Lenny node over OAuth 2.0 — the flow, its design assumptions, and a response playbook. |
+| [history](history.md) | Why the code looks the way it does — six eras, what each left behind, and how to tell a live path from a fossil. |
+| [acquisitions](acquisitions.md) | Where a provider's acquisition links are stored, how they reach Solr and the book page, and the consumer contract. |
+| [lenny](lenny.md) | Borrowing from a Lenny node over OAuth 2.0 — the flow, its design assumptions, and a response playbook. |
 
 ## Book Access States
 
@@ -57,7 +57,7 @@ When a user clicks "Borrow" on an edition page:
 6. Calls `lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action="borrow_book")` → POSTs to `https://archive.org/services/loans/loan/`
 7. IA creates the loan record on their side; OL gets confirmation
 8. OL calls `make_bookreader_auth_link(loan["_key"], edition.ocaid, bookPath, ia_userid=ia_itemname)` → HMAC tokens + redirect URL
-9. **Redirects user** to `https://archive.org/bookreader/BookReaderAuth.php?...` — see [[bookreader]] for token details
+9. **Redirects user** to `https://archive.org/bookreader/BookReaderAuth.php?...` — see [bookreader](../frontend/bookreader.md) for token details
 
 **Loan duration:** 14 days (`BOOKREADER_LOAN_DAYS = 14`)
 
@@ -90,7 +90,7 @@ Status flow: `waiting` → `available` (when a slot opens) → deleted (when pat
 > `on_waitinglist_update()` has **zero callers** anywhere in the repo, which makes
 > `sendmail_book_available()` unreachable, since that is its only caller. If patrons receive
 > "your book is available" mail, **archive.org sends it**, not OL. Do not reason about OL's
-> waitlist notification behaviour from this code. See [[history]] (Era 2 fossils).
+> waitlist notification behaviour from this code. See [history](history.md) (Era 2 fossils).
 
 The dead chain, for reference when removing it:
 1. `waitinglist.on_waitinglist_update(identifier)` — **entry point, never called**
@@ -239,7 +239,7 @@ back to back.
 
 **The OL-store read in the same function is also discarded** — *verified*, `lending.py:628-633`. `d` is
 fetched from the store and wrapped in a `Loan`, but `loan` is never returned; it only affects control flow
-if the loan is expired. Era-1 residue (see [[history]]).
+if the loan is expired. Era-1 residue (see [history](history.md)).
 
 **`is_loaned_out()` costs three round-trips to answer one boolean** — *verified*, `lending.py:589-594`:
 `is_loaned_out_on_ol()` (2 identical POSTs, per above) `or` `is_loaned_out_on_ia()` (1 GET to
@@ -323,12 +323,12 @@ on the current behaviour. **Do not flip it without tracing callers.**
 
 ### Dead code
 
-An inventory of zero-caller symbols, with the era each belongs to, is in [[history]].
+An inventory of zero-caller symbols, with the era each belongs to, is in [history](history.md).
 
 ### Structural
 
 - **Two loan APIs are live at once** — `s3_loan_api` (2020) for writes, `IA_Lending_API`/`openlibrary.php`
-  (2014) for all loan reads and all waitlist reads. See [[history]] Era 5.
+  (2014) for all loan reads and all waitlist reads. See [history](history.md) Era 5.
 - **Sync/async twins** — `get_available`, `get_availability`, `add_availability` each exist as an
   `async def` plus an `async_bridge.wrap()` alias. This has already caused a production deadlock
   (`49b1e4021`, 2026-08-21). Two `/borrow` endpoints (web.py + FastAPI) also coexist.
@@ -347,7 +347,7 @@ An inventory of zero-caller symbols, with the era each belongs to, is in [[histo
 
 - **OL does not store loans** — all canonical loan records are on archive.org. OL's `store["loan-{ocaid}"]` entries are OL-originated loans only; IA-originated loans come back via `ia_lending_api.get_loan()`.
 - **`borrow_book` vs `browse_book`** — "borrow" = 14-day checkout; "browse" = 1-hour browse (same endpoint, different `action` param to IA's loan API). `user_can_borrow_edition()` determines which the user gets.
-- **Availability v2 vs ground-truth** — `get_availability()` hits the v2 API (cached, fast). `get_groundtruth_availability()` hits a different endpoint with fresher data but slightly higher latency. Both exist; ground-truth is a "stopgap" — one dating from 2016, see [[history]] Era 3.
+- **Availability v2 vs ground-truth** — `get_availability()` hits the v2 API (cached, fast). `get_groundtruth_availability()` hits a different endpoint with fresher data but slightly higher latency. Both exist; ground-truth is a "stopgap" — one dating from 2016, see [history](history.md) Era 3.
 - **`s3_loan_api` vs `ia_lending_api`** — these are two *different transports to archive.org*, not two layers. `s3_loan_api` (2020) is a REST service authenticated with the patron's own S3 keys; `ia_lending_api` (2014) is an RPC-style POST to `openlibrary.php` authenticated with OL's shared token. Both are live. If you are adding a call, use `s3_loan_api`.
 - **Four endpoints answer "is this on loan?"** — `openlibrary.php` (`loan.query`), `services/loans/loan/?action=availability`, `services/borrow/{id}?action=status`, and the bulk availability v2 API. They have different freshness, caching, and failure modes.
 
@@ -357,18 +357,18 @@ An inventory of zero-caller symbols, with the era each belongs to, is in [[histo
 
 **Depends on:**
 - [[infrastructure]] — IA loan API, IA S3, `ia_access_secret` in olsystem; Memcached for availability cache
-- [[auth]] — user S3 keys come from OL account model; `ia_itemname` identifies patron to IA
-- [[bookreader]] — lending hands off to BookReader via HMAC auth link after loan is created
+- [auth](../core/auth.md) — user S3 keys come from OL account model; `ia_itemname` identifies patron to IA
+- [bookreader](../frontend/bookreader.md) — lending hands off to BookReader via HMAC auth link after loan is created
 
 **Depended on by:**
-- [[bookreader]] — BookReader needs a valid loan + HMAC token to start a session
-- [[features]] — reading log, reading goals reference loan state
+- [bookreader](../frontend/bookreader.md) — BookReader needs a valid loan + HMAC token to start a session
+- [features](../features/README.md) — reading log, reading goals reference loan state
 
 **See also:**
-- [[history]] — the migration history; why this code looks the way it does, and what each era left behind
+- [history](history.md) — the migration history; why this code looks the way it does, and what each era left behind
 
 ---
 
-*Sources: `lending.py`, `waitinglist.py`, `borrow.py`, `book_providers.py` (code synthesis) · See [[README]] · [[METHODOLOGY]]*
+*Sources: `lending.py`, `waitinglist.py`, `borrow.py`, `book_providers.py` (code synthesis) · See [README](../README.md) · [[METHODOLOGY]]*
 
 ---

@@ -8,7 +8,7 @@ These rules apply to every line you write or modify, in any file. Much of `stati
 
 - **Don't match the surrounding legacy convention when it conflicts with a rule here.** The file's existing `--grey` or ungated `:hover` is not a precedent.
 - **Fix the declaration you touch, not the file.** Changing a hover background? Move that value to a semantic token. Rewriting the whole rule block? Gate it to hover-capable pointers too. Leave untouched neighbors alone — whole-file migrations are their own PR.
-- **`legacy.css` and `legacy-tools.css` are delete-only.** Move rules out; never edit them toward compliance in place.
+- **`legacy.css` and `legacy-tools.css` are delete-only.** Move rules out; never edit them toward compliance in place. The exception is a mechanical token swap across the whole file (as #14298 did for weights), done as its own PR.
 
 The principles these rules serve — and the tensions between them — are on `/developers/design/principles`, registered as `PRINCIPLES` and `TENSIONS` in `openlibrary/plugins/openlibrary/design.py`. When a rule here feels arbitrary, that page has the reason; when two rules conflict, the *Tensions* list says which wins.
 
@@ -46,7 +46,7 @@ The principles these rules serve — and the tensions between them — are on `/
 
 ### Text-style roles
 
-`tokens/typography.css` holds every text token: the primitives (families, the size ramp, the four weights `--font-weight-regular/medium/semibold/bold`, line heights) and the roles built from them, one token per property. Apply a role's tokens **together** — setting the size from the token and hand-coding the weight or tracking is how six copies of "overline" drifted apart. Never write a bare weight; take it from a role, or from a weight primitive where no role fits. Headings take the **heading** role (h1–h3) or **subheading** (h4–h6) in `base/common.css`. The **overline** role is the small all-caps heading over a group (a popover's "Sort by", the search modal's "Top results", a scorecard label):
+`tokens/typography.css` holds every text token: the primitives (families, the size ramp, the four weights `--font-weight-regular/medium/semibold/bold`, line heights) and the roles built from them, one token per property. Apply a role's tokens **together** — setting the size from the token and hand-coding the weight or tracking is how six copies of "overline" drifted apart. Never write a bare weight or font size (`bold`, `600`, `14px`, `0.9rem`); take it from a role, or from a weight or size primitive where no role fits. When a literal is genuinely right, such as an `em` size that must scale with its parent text, keep it with a comment giving the reason and a `/* stylelint-disable-next-line declaration-property-value-allowed-list */` above it. Headings take the **heading** role (h1–h3) or **subheading** (h4–h6) in `base/common.css`. The **overline** role is the small all-caps heading over a group (a popover's "Sort by", the search modal's "Top results", a scorecard label):
 
 ```css
 .section-heading {
@@ -147,7 +147,7 @@ Before writing new markup or CSS, check whether an existing component already do
 | Read More | `ol-read-more` | Collapse long prose behind an expander | Only for prose. Don't hide controls or lists behind it. |
 | Markdown Editor | `ol-markdown-editor` | WYSIWYG editing of a Markdown body | For a plain text field use <textarea>; this is for Markdown bodies only. |
 | Icon | `ol-icon` | One icon from the Open Library set | Only for icons from the set; don't use it to embed arbitrary SVG. |
-| Book Cover | `ol-book-cover` | A cover at a fixed 2:3 ratio, with a title/author panel when there is no artwork and an `overlay` slot for a control | |
+| Book Cover | `ol-book-cover` | A cover in a 2:3 slot that keeps the artwork's own proportions, with a title/author panel when there is no artwork and an `overlay` slot for a control | |
 | Shelf Button | `ol-shelf-button` | Put a book on a reading-log shelf; split, icon, and outline shapes all open Shelf Actions | |
 | Shelf Actions | `ol-shelf-actions` | The per-book popover: shelves, rating, add to list, check-in | |
 
@@ -238,7 +238,8 @@ Semantic tokens reference primitives and describe purpose, not appearance.
 The radius tokens carry one extra rule, because a shape says what kind of object
 it is: **12px floats** (dialog, popover, toast, tray), **8px sits in the page**
 (card, banner, button, input, menu row), **4px is a small object in its own
-right** (badge, tag). Reach for the token whose tier matches the thing, not the
+right** (badge, tag), **2px is a printed object** (a book cover, which has an
+edge of its own). Reach for the token whose tier matches the thing, not the
 one whose number you like — a card at the overlay radius makes a search result
 and a modal the same shape, and the page loses a distinction it was using.
 
@@ -597,6 +598,9 @@ What checks each rule today. "Review" means only a human or the Copilot UI check
 | Rule | Checked by |
 |---|---|
 | No raw colors; tokens for `color`, `background-color`, `font-family`, `z-index` | stylelint `color-no-hex`, `color-named`, `declaration-strict-value` — `static/**/*.css` and `openlibrary/**/*.css` only, **not** CSS inside Lit `static styles` |
+| Font weight via `--font-weight-*` tokens | stylelint `declaration-property-value-allowed-list` (**warning**), static CSS and Lit `static styles`; `base/common.css` is an error via `declaration-strict-value`; `static/css/fonts/` exempt |
+| Font size via `--font-size-*` tokens | stylelint `declaration-property-value-allowed-list` (**warning**), Lit `static styles` only; static CSS is Review |
+| `z-index` via tokens in Lit | stylelint `declaration-strict-value`, Lit `static styles` |
 | Semantic tokens meet WCAG AA | `tests/unit/js/token-contrast.test.js` (palette matrix), `tests/unit/js/design-contrast.test.js` (design-page badges) |
 | Deprecated aliases | Review |
 | No font-weight change on hover | Review |

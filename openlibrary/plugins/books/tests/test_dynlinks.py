@@ -17,6 +17,7 @@ import web
 
 from openlibrary.mocks import mock_infobase
 from openlibrary.plugins.books import dynlinks
+from openlibrary.utils.request_context import site as site_context
 from openlibrary.utils.solr import Solr
 
 
@@ -215,7 +216,12 @@ def monkeypatch_ol(monkeypatch, solr_overrides: list[dict] | None = None):
     mock.setup_call("isbn_", "1234567890", _return="/books/OL1M")
     mock.setup_call("key", "/books/OL2M", _return="/books/OL2M")
     mock.setup_call("ocaid", "ia-bar", _return="/books/OL2M")
-    monkeypatch.setattr(dynlinks, "ol_query", mock)
+    ol_query = mock
+
+    async def async_ol_query(name, value):
+        return ol_query(name, value)
+
+    monkeypatch.setattr(dynlinks, "ol_query", async_ol_query)
 
     mock = Mock()
     mock.setup_call(["/books/OL1M"], _return=[{"key": "/books/OL1M", "title": "foo"}])
@@ -244,19 +250,21 @@ def monkeypatch_solr(monkeypatch, solr_overrides: list[dict] | None = None):
     monkeypatch.setattr(dynlinks, "get_solr", lambda: mock_solr)
 
 
-def test_query_keys(monkeypatch):
+@pytest.mark.asyncio
+async def test_query_keys(monkeypatch):
     monkeypatch_ol(monkeypatch)
-    assert dynlinks.query_keys(["isbn:1234567890"]) == {"isbn:1234567890": "/books/OL1M"}
-    assert dynlinks.query_keys(["isbn:9876543210"]) == {}
-    assert dynlinks.query_keys(["isbn:1234567890", "isbn:9876543210"]) == {"isbn:1234567890": "/books/OL1M"}
+    assert await dynlinks.query_keys(["isbn:1234567890"]) == {"isbn:1234567890": "/books/OL1M"}
+    assert await dynlinks.query_keys(["isbn:9876543210"]) == {}
+    assert await dynlinks.query_keys(["isbn:1234567890", "isbn:9876543210"]) == {"isbn:1234567890": "/books/OL1M"}
 
 
-def test_query_docs(monkeypatch):
+@pytest.mark.asyncio
+async def test_query_docs(monkeypatch):
     monkeypatch_ol(monkeypatch)
 
-    assert dynlinks.query_docs(["isbn:1234567890"]) == {"isbn:1234567890": {"key": "/books/OL1M", "title": "foo"}}
-    assert dynlinks.query_docs(["isbn:9876543210"]) == {}
-    assert dynlinks.query_docs(["isbn:1234567890", "isbn:9876543210"]) == {"isbn:1234567890": {"key": "/books/OL1M", "title": "foo"}}
+    assert await dynlinks.query_docs(["isbn:1234567890"]) == {"isbn:1234567890": {"key": "/books/OL1M", "title": "foo"}}
+    assert await dynlinks.query_docs(["isbn:9876543210"]) == {}
+    assert await dynlinks.query_docs(["isbn:1234567890", "isbn:9876543210"]) == {"isbn:1234567890": {"key": "/books/OL1M", "title": "foo"}}
 
 
 def test_process_doc_for_view_api(monkeypatch):
@@ -454,6 +462,13 @@ async def test_isbnx(monkeypatch):
     )
 
     monkeypatch.setattr(web.ctx, "site", site, raising=False)
+    site_context.set(web.ctx.site)
+
+    async def things(query):
+        # infobase_async reads Postgres; serve the lookup from the mock site instead.
+        return site.things(query)
+
+    monkeypatch.setattr(dynlinks.infobase_async, "things", things)
     json_data = await dynlinks.dynlinks(["isbn:123456789X"], {"format": "json"})
     d = json.loads(json_data)
     assert list(d) == ["isbn:123456789X"]
@@ -529,3 +544,10 @@ class TestDataProcessor:
         doc["preview"] = "full"
 
         assert p.process_doc(doc) == data9["result"]["data"]
+
+
+@pytest.fixture(autouse=True)
+def restore_site_context():
+    token = site_context.set(site_context.get(None))
+    yield
+    site_context.reset(token)

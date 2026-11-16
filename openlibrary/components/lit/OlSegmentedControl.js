@@ -227,6 +227,12 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
                 /* Non-selected segments are dimmed so the selected one reads as
                active; hover and the selected pill darken back to full strength. */
                 color: var(--color-text-muted);
+                /* The UA resets these on <button> but the ghost <span> inherits them, so a page's
+               tabular-nums or letter-spacing would set the two layers' text at different widths. */
+                font: inherit;
+                letter-spacing: inherit;
+                word-spacing: inherit;
+                text-transform: inherit;
                 font-family: var(--font-family-button);
                 font-size: var(--font-size-body-medium);
                 font-weight: var(--font-weight-button);

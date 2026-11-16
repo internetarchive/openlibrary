@@ -3,7 +3,7 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.async_utils import async_bridge
 
-from . import db
+from . import db  # noqa: TID251
 
 
 class Bestbook(db.CommonExtras):

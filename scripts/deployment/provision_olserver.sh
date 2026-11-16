@@ -179,4 +179,4 @@ echo "To start everything up, run:"
 echo "SERVERS=ol-web3 ./scripts/deployment/deploy.sh images"
 echo "SERVERS=ol-web3 ./scripts/deployment/restart_servers.sh"
 
-# TODO: For ol-www0 and ol-home0, follow instructions in https://github.com/internetarchive/olsystem/wiki/Solr-Re%E2%80%90Indexing#setting-up-trending-nginx-log-access
+# TODO: For ol-www1 and ol-home0, follow instructions in https://github.com/internetarchive/olsystem/wiki/Solr-Re%E2%80%90Indexing#setting-up-trending-nginx-log-access

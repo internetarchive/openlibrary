@@ -62,7 +62,9 @@ def sentry_events():
     global_scope = sentry_sdk.get_global_scope()
     previous_client = global_scope.client
     with sentry_sdk.isolation_scope() as scope, sentry_sdk.new_scope():
-        sentry_sdk.init(dsn="http://test@localhost/1", transport=transport, traces_sample_rate=1.0, default_integrations=False)
+        sentry_sdk.init(
+            dsn="http://test@localhost/1", transport=transport, traces_sample_rate=1.0, default_integrations=False, enable_backpressure_handling=False
+        )
         scope.set_client(global_scope.client)
         try:
             yield transport.events

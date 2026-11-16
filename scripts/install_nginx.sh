@@ -3,7 +3,7 @@
 apt-get update
 
 # log rotation service for ol-nginx
-# rsync service for pulling monthly sitemaps from ol-home0 to ol-www0
+# rsync service for pulling monthly sitemaps from ol-home0 to ol-www1
 apt-get install -y --no-install-recommends curl \
     logrotate \
     rsync \

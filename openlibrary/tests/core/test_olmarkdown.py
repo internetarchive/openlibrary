@@ -1,3 +1,5 @@
+import pytest
+
 from openlibrary.core.olmarkdown import FencedCodePreprocessor, OLMarkdown
 
 
@@ -203,3 +205,42 @@ def test_olmarkdown_link_url_with_parentheses():
     assert md("[plain](https://example.com/foo)") == p('<a href="https://example.com/foo" rel="nofollow">plain</a>')
     assert md('[a link](https://example.com/foo "a title")') == p('<a href="https://example.com/foo" title="a title" rel="nofollow">a link</a>')
     assert md("no link here (just parens) at all") == p("no link here (just parens) at all")
+
+
+def _a(text, url="https://example.com"):
+    return f'<a href="{url}" rel="nofollow">{text}</a>'
+
+
+@pytest.mark.parametrize(
+    ("text", "html"),
+    [
+        pytest.param("**[Bold link](https://example.com)**", f"<strong>{_a('Bold link')}</strong>", id="bold-link"),
+        pytest.param("__[Bold link](https://example.com)__", f"<strong>{_a('Bold link')}</strong>", id="bold-link-underscores"),
+        pytest.param("*[Italic link](https://example.com)*", f"<em>{_a('Italic link')}</em>", id="italic-link"),
+        pytest.param("_[Italic link](https://example.com)_", f"<em>{_a('Italic link')}</em>", id="italic-link-underscores"),
+        pytest.param("**bold [link](https://example.com) bold**", f"<strong>bold {_a('link')} bold</strong>", id="bold-text-with-link"),
+        pytest.param("_italic [link](https://example.com) italic_", f"<em>italic {_a('link')} italic</em>", id="italic-text-with-link"),
+        pytest.param(
+            "_see [this](https://example.com/a_b_c)_",
+            f"<em>see {_a('this', 'https://example.com/a_b_c')}</em>",
+            id="italic-link-with-underscores-in-url",
+        ),
+        pytest.param(
+            "The second part came out as *[Die Verschwender vom Mars][1]* in German.\n\n[1]: https://example.com",
+            f"The second part came out as <em>{_a('Die Verschwender vom Mars')}</em> in German.",
+            id="italic-reference-link",
+        ),
+        pytest.param("[**Bold inside**](https://example.com)", _a("<strong>Bold inside</strong>"), id="bold-inside-link"),
+        pytest.param("[_Italic inside_](https://example.com)", _a("<em>Italic inside</em>"), id="italic-inside-link"),
+        pytest.param(
+            "Text **bold** then [a link](https://example.com) and _italic_.",
+            f"Text <strong>bold</strong> then {_a('a link')} and <em>italic</em>.",
+            id="emphasis-beside-link",
+        ),
+        pytest.param("**a** [b](https://example.com) **c**", f"<strong>a</strong> {_a('b')} <strong>c</strong>", id="bold-on-both-sides-of-link"),
+        pytest.param("foo_bar [x](https://example.com) baz_qux", f"foo_bar {_a('x')} baz_qux", id="underscores-inside-words"),
+    ],
+)
+def test_olmarkdown_emphasis_around_links(text, html):
+    """Bold and italic text keeps its formatting when it is, or contains, a link (internetarchive/openlibrary#3714)."""
+    assert OLMarkdown(text).convert().strip() == f"<p>{html}\n</p>"

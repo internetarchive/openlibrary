@@ -4,7 +4,7 @@ from typing import TypedDict
 
 import web
 
-from openlibrary.core.async_db import execute, fetch_all, fetch_one, fetch_val
+from openlibrary.core.async_db import class_row, execute, fetch_all, fetch_one, fetch_val
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -72,7 +72,7 @@ class PubSub:
             where += " OFFSET %(offset)s"
             params["offset"] = offset
         query = f"SELECT subscriber, publisher, disabled, created, updated FROM {cls.TABLENAME} WHERE {where}"
-        return await fetch_all(query, params)
+        return await fetch_all(query, params, row_factory=class_row(Follow))
 
     @classmethod
     def get_followers_sync(cls, publisher: str, limit: int | None = None, offset: int = 0) -> list[Follow]:
@@ -92,7 +92,7 @@ class PubSub:
             where += " OFFSET %(offset)s"
             params["offset"] = offset
         query = f"SELECT subscriber, publisher, disabled, created, updated FROM {cls.TABLENAME} WHERE {where}"
-        return await fetch_all(query, params)
+        return await fetch_all(query, params, row_factory=class_row(Follow))
 
     @classmethod
     def get_following_sync(cls, subscriber: str, limit: int | None = None, offset: int = 0, exclude_disabled: bool = False) -> list[Follow]:
