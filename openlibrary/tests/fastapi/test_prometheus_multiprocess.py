@@ -21,11 +21,12 @@ MAX_REQUESTS = 60
 def _request(base_url, path):
     for attempt in range(30):
         try:
-            with urllib.request.urlopen(base_url + path, timeout=2) as response:
+            # A timeout isn't retried, because the server may have counted the request. 30s so a busy runner doesn't hit it.
+            with urllib.request.urlopen(base_url + path, timeout=30) as response:
                 return response.read().decode()
         except urllib.error.HTTPError:
             raise
-        except urllib.error.URLError, ConnectionError, TimeoutError:
+        except urllib.error.URLError, ConnectionError:
             # A recycled Uvicorn worker closes the connections it accepted but hadn't read a request from yet
             if attempt == 29:
                 raise

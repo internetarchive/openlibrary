@@ -106,7 +106,7 @@ export class OlMenuPopover extends LitElement {
                 /* A real <button>, so the page ink has to be inherited explicitly. */
                 color: inherit;
                 font-family: inherit;
-                font-size: 14px;
+                font-size: var(--font-size-label-large);
                 text-align: left;
                 /* The shared .focus-ring, pulled inside the row: an outer ring would
                be clipped by the panel. */

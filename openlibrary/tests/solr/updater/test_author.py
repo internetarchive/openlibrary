@@ -1,6 +1,7 @@
 import httpx
 import pytest
 
+from openlibrary.solr import utils as solr_utils
 from openlibrary.solr.updater.author import AuthorSolrUpdater
 from openlibrary.tests.solr.test_update import FakeDataProvider, make_author
 
@@ -43,6 +44,8 @@ class TestAuthorUpdater:
                 )
 
         monkeypatch.setattr(httpx, "AsyncClient", MockAsyncClient)
+        # Otherwise get_solr_base_url() loads conf/openlibrary.yml, which also sets up infobase's server state
+        monkeypatch.setattr(solr_utils, "solr_base_url", "http://solr:8983/solr/openlibrary")
         req, _ = await AuthorSolrUpdater(FakeDataProvider()).update_key(make_author(key="/authors/OL25A", name="Somebody"))
         assert req.deletes == []
         assert len(req.adds) == 1

@@ -61,7 +61,7 @@
   background: var(--color-success-bg);
   color: var(--color-success-fg);
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .testing-env__status--idle {
@@ -252,7 +252,7 @@
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
   color: var(--color-text-muted);
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   letter-spacing: 0.06em;
   text-align: left;
   text-transform: uppercase;
@@ -332,7 +332,7 @@
   -webkit-line-clamp: 3;
   overflow: hidden;
   color: var(--color-text);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   text-decoration: none;
 }
 
@@ -387,7 +387,7 @@
   background: var(--color-surface-sunken);
   color: var(--color-text-secondary);
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   line-height: 1;
 }
 
@@ -624,7 +624,7 @@ a.testing-env__pill:focus-visible {
   margin: 0 0 var(--spacing-xs);
   color: var(--color-text-secondary);
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .testing-env__plan-empty {
@@ -675,7 +675,7 @@ a.testing-env__pill:focus-visible {
   min-width: 6em;
   color: var(--color-text-muted);
   font-size: 0.65rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }

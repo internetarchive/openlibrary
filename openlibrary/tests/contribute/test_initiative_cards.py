@@ -118,3 +118,19 @@ def test_the_fine_print_of_a_finished_project_says_when_it_ran(cards, ended):
 def test_a_card_counts_the_tasks_done_out_of_those_open_at_the_start(cards):
     assert cards()[ACTIVE.slug]["tasks_done"] == "0 of 1 task done"
     assert cards(gaps=None)[ACTIVE.slug]["tasks_done"] == ""
+
+
+def test_a_card_shows_its_goal_until_it_is_reached(cards):
+    card = cards()[ACTIVE.slug]
+    assert (card["goal"], card["reached"], card["goal_label"]) == (90, False, "Goal: 90%")
+    assert card["done_label"] == "0% done, goal 90%"
+    reached = cards(gaps=[["/books/OL1M", 9, [], []]])[ACTIVE.slug]
+    assert (reached["reached"], reached["goal_label"], reached["done_label"]) == (True, "Goal reached", "100% done, goal reached")
+
+
+def test_a_finished_project_that_reached_its_goal_says_so(cards, ended):
+    built = cards(gaps=[["/books/OL1M", 9, [], []]])
+    assert built[ended.slug]["finished_label"] == "Finished · goal reached"
+    finished = contribute.build_finished(built[ended.slug])
+    assert finished["title"] == "This project reached its goal"
+    assert finished["note"] == "Together we reached the goal: 100% of its details were filled in. Thank you to everyone who helped."
