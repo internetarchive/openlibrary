@@ -3,6 +3,8 @@
 fastapiRoutes:
   # Pages (SitePageRoute)
   - GET /advancedsearch
+  - GET /publishers
+  - GET /publishers/{name}
   - GET /search/lists
   - GET /search/publishers
   - GET /tasks/admin

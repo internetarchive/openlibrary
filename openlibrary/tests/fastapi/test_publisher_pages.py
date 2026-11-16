@@ -11,6 +11,9 @@ import pytest
 import web
 from fastapi.testclient import TestClient
 
+# The web.py plugin setup, which loads plugins.openlibrary.partials before
+# fastapi.publishers imports its carousel helper from there.
+import openlibrary.plugins.openlibrary.code  # noqa: F401
 from openlibrary.core.helpers import commify
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.fastapi.publishers import pages
@@ -95,7 +98,7 @@ def test_publisher_without_works_is_404(client, monkeypatch):
 
     assert response.status_code == 404
     html = response.text
-    assert "no books published by Penguin Books" in html
+    assert "find any books published by Penguin Books" in html
     # No explicit title, so the shell uses the path, as web.py does
     assert "<title>publishers/Penguin_Books | Open Library</title>" in html
 
