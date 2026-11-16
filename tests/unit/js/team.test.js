@@ -15,10 +15,10 @@ import {
     allRoleYears,
     classifyTeam,
     slugify,
-    assignSlugs,
+    assignSlugs
 } from '../../../openlibrary/plugins/openlibrary/js/team.js';
 
-const byName = (name) => team.find((p) => p.name === name);
+const byName = name => team.find(p => p.name === name);
 
 describe('team.json schema', () => {
     it('is a non-empty list where every record has a roles history list', () => {
@@ -79,12 +79,12 @@ describe('leads', () => {
 
     it('pulls leads out of their cohort group in classifyTeam', () => {
         const g = classifyTeam(team, 2026);
-        const leadNames = g.leads.map((p) => p.name);
+        const leadNames = g.leads.map(p => p.name);
         expect(leadNames).toContain('Roni Bhakta');
         expect(leadNames).toContain('Bharat Kalluri');
         // A lead must not also appear under fellows or volunteers.
-        expect(g.currentFellows.map((p) => p.name)).not.toContain('Roni Bhakta');
-        expect(g.volunteers.map((p) => p.name)).not.toContain('Bharat Kalluri');
+        expect(g.currentFellows.map(p => p.name)).not.toContain('Roni Bhakta');
+        expect(g.volunteers.map(p => p.name)).not.toContain('Bharat Kalluri');
     });
 });
 
@@ -133,32 +133,26 @@ describe('year facet', () => {
         expect(years).toEqual([...years].sort((a, b) => b - a)); // descending
         expect(new Set(years).size).toBe(years.length); // distinct
         expect(years).toContain(2026);
-        expect(years.every((y) => typeof y === 'number')).toBe(true);
+        expect(years.every(y => typeof y === 'number')).toBe(true);
     });
 });
 
 describe('classifyTeam', () => {
     it('partitions non-leads into staff/fellow/volunteer groups', () => {
         const groups = classifyTeam(team, 2026);
-        const nonLeads = team.filter((p) => !isLead(p));
+        const nonLeads = team.filter(p => !isLead(p));
         const staff = nonLeads.filter(isStaff);
         const fellows = nonLeads.filter(isFellow);
         expect(groups.staffCurrent.length + groups.staffEmeritus.length).toBe(staff.length);
         expect(groups.currentFellows.length + groups.pastFellows.length).toBe(fellows.length);
         // Leads are disjoint from every cohort group.
-        const cohorts = [
-            ...groups.staffCurrent,
-            ...groups.staffEmeritus,
-            ...groups.currentFellows,
-            ...groups.pastFellows,
-            ...groups.volunteers,
-        ];
-        expect(cohorts.some((p) => groups.leads.includes(p))).toBe(false);
+        const cohorts = [...groups.staffCurrent, ...groups.staffEmeritus, ...groups.currentFellows, ...groups.pastFellows, ...groups.volunteers];
+        expect(cohorts.some(p => groups.leads.includes(p))).toBe(false);
     });
 
     it('never lists the same person as both current and emeritus staff', () => {
         const groups = classifyTeam(team, 2026);
-        const overlap = groups.staffCurrent.filter((p) => groups.staffEmeritus.includes(p));
+        const overlap = groups.staffCurrent.filter(p => groups.staffEmeritus.includes(p));
         expect(overlap).toEqual([]);
     });
 });
@@ -181,7 +175,7 @@ describe('slugs', () => {
     it('assigns a unique slug to every person', () => {
         const people = JSON.parse(JSON.stringify(team));
         assignSlugs(people);
-        const slugs = people.map((p) => p.slug);
+        const slugs = people.map(p => p.slug);
         expect(slugs.every(Boolean)).toBe(true);
         expect(new Set(slugs).size).toBe(slugs.length);
     });
@@ -211,7 +205,7 @@ describe('initTeamFilter (DOM wiring)', () => {
     it('populates the Year dropdown from the data and renders cards', () => {
         mountPage();
         initTeamFilter();
-        const years = [...document.querySelectorAll('#year option')].map((o) => o.value);
+        const years = [...document.querySelectorAll('#year option')].map(o => o.value);
         expect(years[0]).toBe('All');
         expect(years).toContain('2026');
         expect(years.length).toBeGreaterThan(2);
@@ -234,9 +228,7 @@ describe('initTeamFilter (DOM wiring)', () => {
     it('labels fellows current/past relative to the selected year', () => {
         mountPage('/?role=fellow&year=2023');
         initTeamFilter();
-        const subs = [...document.querySelectorAll('.subsectionSeparator')].map(
-            (e) => e.textContent
-        );
+        const subs = [...document.querySelectorAll('.subsectionSeparator')].map(e => e.textContent);
         // A 2023 fellow is "Current" when the view is scoped to 2023.
         expect(subs).toContain('Current');
     });
@@ -244,9 +236,7 @@ describe('initTeamFilter (DOM wiring)', () => {
     it('renders a Leads section with the current leads', () => {
         mountPage();
         initTeamFilter();
-        const headings = [...document.querySelectorAll('.sectionSeparator')].map(
-            (e) => e.textContent
-        );
+        const headings = [...document.querySelectorAll('.sectionSeparator')].map(e => e.textContent);
         expect(headings).toContain('Leads');
         // Roni (Lenny Lead) should sit under Leads, not Fellows.
         const roni = document.getElementById('roni-bhakta');
@@ -256,14 +246,12 @@ describe('initTeamFilter (DOM wiring)', () => {
     it('filters to just leads via ?role=lead', () => {
         mountPage('/?role=lead');
         initTeamFilter();
-        const headings = [...document.querySelectorAll('.sectionSeparator')].map(
-            (e) => e.textContent
-        );
+        const headings = [...document.querySelectorAll('.sectionSeparator')].map(e => e.textContent);
         expect(headings).toEqual(['Leads']);
         expect(document.querySelectorAll('.teamCard').length).toBeGreaterThan(0);
     });
 
-    it('shows each card\'s latest project and join year', () => {
+    it("shows each card's latest project and join year", () => {
         mountPage();
         initTeamFilter();
         const mek = document.getElementById('mek');
@@ -295,9 +283,7 @@ describe('initTeamFilter (DOM wiring)', () => {
         mountPage('/?contributor=year');
         initTeamFilter();
         // #year is the dropdown, not a person card — it must not get highlighted.
-        expect(
-            document.getElementById('year').classList.contains('teamCard__container--highlighted')
-        ).toBe(false);
+        expect(document.getElementById('year').classList.contains('teamCard__container--highlighted')).toBe(false);
     });
 
     it('reveals a filtered-out person when deep-linked', () => {

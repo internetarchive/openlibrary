@@ -17,22 +17,25 @@ import { initBannerAnalytics } from '../banner-analytics.js';
 
 /**
  * Persist a banner dismissal by POSTing to /hide_banner.
+ * Also used for other seen-once pages (the Tasks intro), which dismiss the same way.
  *
  * @param {string} cookieName
  * @param {number} cookieDurationDays
  * @returns {Promise<Response>}
  */
-function setBannerCookie(cookieName, cookieDurationDays) {
+export function setBannerCookie(cookieName, cookieDurationDays) {
     return fetch('/hide_banner', {
         method: 'POST',
+        // A dismissal can be the last thing a page does before it navigates away.
+        keepalive: true,
         headers: {
             'Content-Type': 'application/json',
-            Accept: 'application/json',
+            Accept: 'application/json'
         },
         body: JSON.stringify({
             'cookie-name': cookieName,
-            'cookie-duration-days': cookieDurationDays,
-        }),
+            'cookie-duration-days': cookieDurationDays
+        })
     });
 }
 
@@ -43,11 +46,19 @@ function setBannerCookie(cookieName, cookieDurationDays) {
 export function initOlBannerDismissals() {
     initBannerAnalytics();
 
-    document.addEventListener('ol-banner-dismiss', (e) => {
+    document.addEventListener('ol-banner-dismiss', e => {
         const dismissId = e.detail?.dismissId;
         if (!dismissId) return;
         const days = Number(e.target?.dataset?.cookieDurationDays) || 30;
         setBannerCookie(dismissId, days).catch(() => {});
+    });
+
+    // A banner marked data-dismiss-on-link has done its job once one of its links is followed.
+    document.addEventListener('click', e => {
+        const banner = e.target.closest?.('ol-banner[dismiss-id][data-dismiss-on-link]');
+        if (!banner || !e.target.closest('[href]')) return;
+        const days = Number(banner.dataset.cookieDurationDays) || 30;
+        setBannerCookie(banner.getAttribute('dismiss-id'), days).catch(() => {});
     });
 }
 
@@ -64,7 +75,7 @@ export function initDismissibleBanners(banners) {
         const dismissButton = banner.querySelector('.page-banner--dismissable-close');
         dismissButton.addEventListener('click', () => {
             setBannerCookie(cookieName, cookieDurationDays)
-                .then((res) => {
+                .then(res => {
                     if (res.ok) banner.remove();
                 })
                 .catch(() => {});

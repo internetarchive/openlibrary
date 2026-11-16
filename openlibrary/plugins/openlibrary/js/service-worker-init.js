@@ -1,8 +1,9 @@
-export default function initServiceWorker(){
+export default function initServiceWorker() {
     if ('serviceWorker' in navigator) {
         const register = () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(() => { })
+            navigator.serviceWorker
+                .register('/sw.js')
+                .then(() => {})
                 .catch(error => {
                     // eslint-disable-next-line no-console
                     console.error(`Service worker registration failed: ${error}`);
@@ -16,7 +17,7 @@ export default function initServiceWorker(){
         }
     }
 
-    window.addEventListener('beforeinstallprompt', (e) => {
+    window.addEventListener('beforeinstallprompt', e => {
         // Prevent the mini-infobar from appearing on mobile
         e.preventDefault();
     });

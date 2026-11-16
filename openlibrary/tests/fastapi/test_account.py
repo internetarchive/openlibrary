@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import unquote
 
 from infogami import config
@@ -42,15 +42,18 @@ def _anonymize_post(
     if get_by_link_result is _SENTINEL:
         mock_account = MagicMock()
         mock_account.username = "testuser"
-        mock_account.anonymize.return_value = anonymize_return_value or {
-            "new_username": "anonymous-abc123",
-            "booknotes_count": 0,
-            "ratings_count": 0,
-            "observations_count": 0,
-            "bookshelves_count": 0,
-            "merge_request_count": 0,
-            "bestbooks_count": 0,
-        }
+        mock_account.anonymize = AsyncMock(
+            return_value=anonymize_return_value
+            or {
+                "new_username": "anonymous-abc123",
+                "booknotes_count": 0,
+                "ratings_count": 0,
+                "observations_count": 0,
+                "bookshelves_count": 0,
+                "merge_request_count": 0,
+                "bestbooks_count": 0,
+            }
+        )
         get_by_link_return = mock_account
     else:
         mock_account = get_by_link_result
@@ -499,7 +502,7 @@ def test_login_follow_action_subscribes_and_flashes(fastapi_client):
             "openlibrary.fastapi.account.OpenLibraryAccount.get_by_username",
             return_value={"data": {"displayname": "Some Publisher"}},
         ),
-        patch("openlibrary.fastapi.account.PubSub.subscribe") as mock_subscribe,
+        patch("openlibrary.fastapi.account.PubSub.subscribe", new_callable=AsyncMock) as mock_subscribe,
     ):
         mock_audit.return_value = {"ol_username": "testuser"}
         mock_gen_code.return_value = "token"
@@ -546,7 +549,7 @@ class TestAnonymizeAccount:
         assert resp.status_code == 200
         data = resp.json()
         assert data["new_username"] == "anonymous-abc123"
-        mock_account.anonymize.assert_called_once_with(test=False)
+        mock_account.anonymize.assert_awaited_once_with(test=False)
 
     def test_success_with_test_mode(self, fastapi_client):
         resp, mock_account = _anonymize_post(
@@ -555,7 +558,7 @@ class TestAnonymizeAccount:
         )
 
         assert resp.status_code == 200
-        mock_account.anonymize.assert_called_once_with(test=True)
+        mock_account.anonymize.assert_awaited_once_with(test=True)
 
     def test_hmac_failure(self, fastapi_client):
         resp, _ = _anonymize_post(fastapi_client, hmac_return_value=False)
@@ -606,7 +609,7 @@ class TestAnonymizeAccount:
     def test_internal_error(self, fastapi_client):
         mock_account = MagicMock()
         mock_account.username = "testuser"
-        mock_account.anonymize.side_effect = RuntimeError("something went wrong")
+        mock_account.anonymize = AsyncMock(side_effect=RuntimeError("something went wrong"))
 
         resp, _ = _anonymize_post(fastapi_client, get_by_link_result=mock_account)
 

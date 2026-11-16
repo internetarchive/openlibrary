@@ -36,7 +36,10 @@ def _build_preview_response(
         return {"success": False, "error": str(e)}
 
     with web_ctx_ip(client_ip):
-        return dict(req.metadata_provider.do_import(req.identifier, req.save))
+        try:
+            return dict(req.metadata_provider.do_import(req.identifier, req.save))
+        except ValueError as e:
+            return {"success": False, "error": str(e)}
 
 
 @router.get("/import/preview.json")
@@ -52,7 +55,7 @@ def import_preview_json_get(
     provider: Annotated[
         str | None,
         Query(
-            description="Metadata provider: amazon, ia, or marc",
+            description="Metadata provider: amazon, ia, marc, project_gutenberg, or json",
         ),
     ] = None,
     identifier: Annotated[

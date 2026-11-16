@@ -23,7 +23,7 @@ from pathlib import Path
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary import accounts
-from openlibrary.core.reading_state import get_reading_state
+from openlibrary.core.reading_state import get_reading_state_sync
 from openlibrary.plugins.openlibrary.design_tokens import load_token_categories
 from openlibrary.utils import extract_numeric_id_from_olid
 
@@ -349,6 +349,16 @@ COMPONENTS = (
         avoid="Inline, next to the thing it describes. For page-level notices use Banner.",
     ),
     Component(
+        "choice-list",
+        "Choice list",
+        "design/components/choice-list.html.jinja",
+        group="Actions",
+        avoid=(
+            "One answer from a few, each needing a line of explanation. "
+            "Plain options with no explanation fit a Segmented Control; more than about five belong in an Options Popover."
+        ),
+    ),
+    Component(
         "scorecard",
         "Scorecard",
         "design/components/scorecard.html.jinja",
@@ -372,6 +382,14 @@ COMPONENTS = (
         group="Content",
         tag="ol-read-more",
         avoid="Only for prose. Don't hide controls or lists behind it.",
+    ),
+    Component(
+        "tabs",
+        "Tabs",
+        "design/components/tabs.html.jinja",
+        group="Content",
+        tag="ol-tabs",
+        avoid="To pick a value or filter in place, use Segmented Control; tabs switch between sections of content.",
     ),
     Component(
         "markdown-editor",
@@ -416,6 +434,13 @@ COMPONENTS = (
         "design/components/shelf-actions.html.jinja",
         group="Books",
         tag="ol-shelf-actions",
+    ),
+    Component(
+        "book-lists",
+        "Book Lists",
+        "design/components/book-lists.html.jinja",
+        group="Books",
+        tag="ol-book-lists",
     ),
 )
 
@@ -559,7 +584,7 @@ DEMO_WORK_OLIDS = ("OL69612W", "OL27448W")
 def demo_reading_state(username: str) -> dict[str, dict]:
     """The reader's shelf, rating, and last finish date for each demo work, keyed by OLID."""
     numeric_ids = [int(extract_numeric_id_from_olid(olid)) for olid in DEMO_WORK_OLIDS]
-    states = get_reading_state(username, numeric_ids)
+    states = get_reading_state_sync(username, numeric_ids)
     return {olid: dict(states[work_id]) for olid, work_id in zip(DEMO_WORK_OLIDS, numeric_ids)}
 
 

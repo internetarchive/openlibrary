@@ -13,7 +13,7 @@ class MockBase extends HTMLElement {
         this._fakeInternals = {
             setFormValue: vi.fn(),
             form: { id: 'f' },
-            labels: ['label-el'],
+            labels: ['label-el']
         };
     }
 

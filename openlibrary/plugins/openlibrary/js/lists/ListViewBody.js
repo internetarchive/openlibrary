@@ -11,7 +11,7 @@ import { confirmFromTemplate } from '../confirm-template';
 const itemsWithDeleteList = $('.deleteList .resultTitle');
 if (itemsWithDeleteList.length) {
     const deleteListLink = $('.listDelete--myLists');
-    itemsWithDeleteList.each(function() {
+    itemsWithDeleteList.each(function () {
         $(deleteListLink).clone().prependTo(this).removeClass('hidden');
     });
 
@@ -25,7 +25,7 @@ if (itemsWithDeleteList.length) {
 const itemsWithDeleteSeed = $('.deleteSeed .resultTitle');
 if (itemsWithDeleteSeed.length) {
     const deleteSeedLink = $('.seedDelete--myLists');
-    itemsWithDeleteSeed.each(function() {
+    itemsWithDeleteSeed.each(function () {
         $(deleteSeedLink).clone().prependTo(this).removeClass('hidden');
     });
 
@@ -41,7 +41,7 @@ if (itemsWithDeleteSeed.length) {
  */
 function remove_seed(list_key, seed, success) {
     if (seed[0] === '/') {
-        seed = {key: seed};
+        seed = { key: seed };
     }
 
     $.ajax({
@@ -53,7 +53,7 @@ function remove_seed(list_key, seed, success) {
         }),
         dataType: 'json',
 
-        beforeSend: function(xhr) {
+        beforeSend: function (xhr) {
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.setRequestHeader('Accept', 'application/json');
         },
@@ -70,14 +70,14 @@ function get_seed_count() {
 
 // Add listeners to each .listDelete link element
 // Sometimes .listDelete is dynamically added to the DOM, so we'll add the listener to a parent element
-$('#listResults').on('click', '.listDelete a', async function() {
+$('#listResults').on('click', '.listDelete a', async function () {
     const listKey = $(this).closest('[data-list-key]').data('list-key');
 
     if (get_seed_count() > 1 && !$(this).parent().hasClass('listDelete--myLists')) {
         const seedKey = $(this).closest('[data-seed-key]').data('seed-key');
         const template = document.getElementById('remove-seed-dialog');
-        if (template && await confirmFromTemplate(template)) {
-            remove_seed(listKey, seedKey, function() {
+        if (template && (await confirmFromTemplate(template))) {
+            remove_seed(listKey, seedKey, function () {
                 $(`[data-seed-key='${seedKey}']`).remove();
                 // update seed count
                 $('#list-items-count').load(`${location.href} #list-items-count`);
@@ -87,8 +87,8 @@ $('#listResults').on('click', '.listDelete a', async function() {
         }
     } else {
         const template = document.getElementById('delete-list-dialog');
-        if (template && await confirmFromTemplate(template)) {
-            $.post(`${listKey}/delete.json`, function() {
+        if (template && (await confirmFromTemplate(template))) {
+            $.post(`${listKey}/delete.json`, function () {
                 window.location.reload();
             });
         }

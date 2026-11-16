@@ -32,6 +32,8 @@ test('identifiers of repeated elements are never the same.', () => {
     $('#id-value').text('44415839');
     $('.repeat-add').trigger('click');
     expect($('.repeat-item').length).toBe(6);
-    const ids = $('[id]').map((_, node) => node.getAttribute('id')).toArray();
+    const ids = $('[id]')
+        .map((_, node) => node.getAttribute('id'))
+        .toArray();
     expect(ids.length).toBe(new Set(ids).size);
 });

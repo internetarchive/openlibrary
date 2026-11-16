@@ -88,7 +88,7 @@ export function useActions({ busy, payload, setToast, strings }) {
      * ordered queue barriers.
      */
     function enqueue(action, fields, kind = 'action', method = 'POST') {
-        const waiter = new Promise((resolve) => {
+        const waiter = new Promise(resolve => {
             const last = queue[queue.length - 1];
             if (kind === 'pull-latest' && last?.kind === kind) {
                 last.fields.prs.push(...fields.prs);
@@ -111,13 +111,13 @@ export function useActions({ busy, payload, setToast, strings }) {
         const current = payload?.value?.prs;
         if (!Array.isArray(current)) return;
         for (const pr of result?.removed_prs ?? []) {
-            const index = current.findIndex((r) => r.pr === pr);
+            const index = current.findIndex(r => r.pr === pr);
             if (index !== -1) current.splice(index, 1);
         }
         const rows = result?.prs;
         if (!Array.isArray(rows)) return;
         for (const update of rows) {
-            const row = current.find((r) => r.pr === update.pr);
+            const row = current.find(r => r.pr === update.pr);
             if (row) {
                 row.pending_active = update.pending_active ?? null;
                 row.pending_remove = update.pending_remove ?? false;
@@ -129,14 +129,14 @@ export function useActions({ busy, payload, setToast, strings }) {
     // snapshot. (A same-row rapid re-toggle supersedes the snapshot; the
     // drain-end apply corrects it.)
     function optimisticRow(prNumber, patch, action, fields, method = 'POST') {
-        const row = payload?.value?.prs?.find((r) => r.pr === prNumber);
+        const row = payload?.value?.prs?.find(r => r.pr === prNumber);
         const snapshot = row ? { ...row } : null;
         if (row) Object.assign(row, typeof patch === 'function' ? patch(row) : patch);
         const waiter = enqueue(action, fields, 'action', method);
         if (snapshot) {
-            waiter.then((result) => {
+            waiter.then(result => {
                 if (result === false || result?.ok === false) {
-                    const current = payload?.value?.prs?.find((r) => r.pr === prNumber);
+                    const current = payload?.value?.prs?.find(r => r.pr === prNumber);
                     if (current) Object.assign(current, snapshot);
                 }
             });
@@ -145,10 +145,10 @@ export function useActions({ busy, payload, setToast, strings }) {
     }
 
     function togglePr(pr) {
-        const row = payload?.value?.prs?.find((r) => r.pr === pr.pr);
+        const row = payload?.value?.prs?.find(r => r.pr === pr.pr);
         const target = !effectiveActive(row ?? pr);
         // Mirror the server: staging back to the live state clears the flag.
-        const patch = (r) => ({ pending_active: target === r.active ? null : target });
+        const patch = r => ({ pending_active: target === r.active ? null : target });
         return optimisticRow(pr.pr, patch, '/status/testing/prs', { prs: [pr.pr], active: target }, 'PATCH');
     }
 
@@ -193,7 +193,7 @@ export function useActions({ busy, payload, setToast, strings }) {
         recentlyAdded.value = new Set([...recentlyAdded.value, ...prs]);
         setTimeout(() => {
             const remaining = new Set(recentlyAdded.value);
-            prs.forEach((pr) => remaining.delete(pr));
+            prs.forEach(pr => remaining.delete(pr));
             recentlyAdded.value = remaining;
         }, RECENT_HIGHLIGHT_MS);
     }

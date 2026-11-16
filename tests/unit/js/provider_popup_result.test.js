@@ -6,8 +6,8 @@
  * refuses to navigate, and the script touches only `window.*`, `document.*`
  * and `screen.*`.
  */
-import {readFileSync} from 'fs';
-import {resolve} from 'path';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
 const TEMPLATE = resolve(__dirname, '../../../openlibrary/templates/borrow/provider_popup_result.html.jinja');
 const READ_URL = 'https://lennyforlibraries.org/v1/api/items/51008637/read';
@@ -21,7 +21,7 @@ function shippedScript() {
 }
 
 /** The attributes `lenny.render_borrowed` / `render_error` put on the div. */
-function mount({ok = true, readUrl = READ_URL, returnUrl = '/books/OL51008637M'} = {}) {
+function mount({ ok = true, readUrl = READ_URL, returnUrl = '/books/OL51008637M' } = {}) {
     document.body.innerHTML = `
         <div id="provider-borrow-result"
              data-ok="${ok ? '1' : '0'}"
@@ -35,22 +35,21 @@ function mount({ok = true, readUrl = READ_URL, returnUrl = '/books/OL51008637M'}
 function fakeWindow(opener) {
     return {
         opener,
-        location: {origin: 'https://openlibrary.org', replace: vi.fn(), assign: vi.fn()},
+        location: { origin: 'https://openlibrary.org', replace: vi.fn(), assign: vi.fn() },
         close: vi.fn(),
-        resizeTo: vi.fn(),
+        resizeTo: vi.fn()
     };
 }
 
 function run(win) {
-
-    new Function('window', 'document', 'screen', shippedScript())(win, document, {availWidth: 1600, availHeight: 1200});
+    new Function('window', 'document', 'screen', shippedScript())(win, document, { availWidth: 1600, availHeight: 1200 });
 }
 
 describe('the popup result script', () => {
     let opener;
 
     beforeEach(() => {
-        opener = {closed: false, postMessage: vi.fn(), focus: vi.fn(), location: {assign: vi.fn()}};
+        opener = { closed: false, postMessage: vi.fn(), focus: vi.fn(), location: { assign: vi.fn() } };
     });
 
     test('the script it runs is the one in the shipped template', () => {
@@ -76,7 +75,7 @@ describe('the popup result script', () => {
 
         run(win);
 
-        expect(opener.postMessage).toHaveBeenCalledWith({type: MESSAGE_TYPE, ok: true}, 'https://openlibrary.org');
+        expect(opener.postMessage).toHaveBeenCalledWith({ type: MESSAGE_TYPE, ok: true }, 'https://openlibrary.org');
     });
 
     test('the opener is told before this window navigates', () => {
@@ -125,30 +124,28 @@ describe('the popup result script', () => {
     });
 
     test('a failure stays on screen rather than navigating', () => {
-        mount({ok: false, readUrl: ''});
+        mount({ ok: false, readUrl: '' });
         const win = fakeWindow(opener);
 
         run(win);
 
         expect(win.location.replace).not.toHaveBeenCalled();
-        expect(opener.postMessage).toHaveBeenCalledWith({type: MESSAGE_TYPE, ok: false}, 'https://openlibrary.org');
+        expect(opener.postMessage).toHaveBeenCalledWith({ type: MESSAGE_TYPE, ok: false }, 'https://openlibrary.org');
     });
 
     test('a failure sends the Back link to the page the patron came from', () => {
-        mount({ok: false, readUrl: ''});
+        mount({ ok: false, readUrl: '' });
         const win = fakeWindow(opener);
         run(win);
 
-        document.querySelector('.js-provider-borrow-return').dispatchEvent(
-            new MouseEvent('click', {bubbles: true, cancelable: true})
-        );
+        document.querySelector('.js-provider-borrow-return').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
 
         expect(opener.location.assign).toHaveBeenCalledWith(expect.stringContaining('/books/OL51008637M'));
         expect(win.close).toHaveBeenCalledOnce();
     });
 
     test('a success with no reader to go to closes instead of hanging', () => {
-        mount({readUrl: ''});
+        mount({ readUrl: '' });
         const win = fakeWindow(opener);
 
         run(win);
@@ -173,7 +170,7 @@ describe('the popup result script', () => {
     test('a reader URL that is not http(s) is refused', () => {
         // `issuer` comes from config and is f-stringed into the URL unchecked;
         // the stored-grant path never calls discover(), so nothing else vets it.
-        mount({readUrl: 'javascript:alert(1)'});
+        mount({ readUrl: 'javascript:alert(1)' });
         const win = fakeWindow(opener);
 
         run(win);

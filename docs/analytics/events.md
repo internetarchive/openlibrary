@@ -1,12 +1,12 @@
 # Analytics Events (client-side)
 
 > **Status:** `partial`
-> **Sources:** codebase investigation against `origin/master` 2026-08-05 (`js/ol.analytics.js`, `js/banner-analytics.js`, `components/lit/OlBanner.js`, `plugins/upstream/account.py`, `fastapi/account.py`, `templates/site/head.html`); PRs #13038, #12910, #12849, #12764; issue #13020; filed as #13261
+> **Sources:** codebase investigation against `origin/master` 2026-08-05 (`js/ol.analytics.js`, `js/banner-analytics.js`, `components/lit/OlBanner.js`, `plugins/upstream/account.py`, `fastapi/account.py`, `templates/shell/head.html.jinja` — then `templates/site/head.html`); PRs #13038, #12910, #12849, #12764; issue #13020; filed as #13261
 > **Last ingested:** 2026-08-05
 
 How Open Library custom interaction events reach Matomo — and the two-pipeline split that has now silently swallowed events three separate times.
 
-See [[core-vitals]] for Matomo *scoring* (Retention Score, dimension 1, `MatomoClient`). This page is about **event tracking wiring**, which is a different failure surface.
+See [core-vitals](core-vitals.md) for Matomo *scoring* (Retention Score, dimension 1, `MatomoClient`). This page is about **event tracking wiring**, which is a different failure surface.
 
 ---
 
@@ -209,9 +209,9 @@ path.** In `plugins/upstream/account.py` (~617–625):
 
 ```python
 if not is_safe_redirect(redirect) or any(path in redirect for path in blacklist):
-    redirect = "/account/books"                        # cookie KEPT  → banner renders
+    redirect = "/account/books"  # cookie KEPT  → banner renders
 else:
-    web.setcookie("pending_action", "", expires=-1)    # cookie CLEARED → straight to the action
+    web.setcookie("pending_action", "", expires=-1)  # cookie CLEARED → straight to the action
 ```
 
 - Safe redirect (the normal case — `js/index.js` sends `/account/login?redirect=<targetUrl>`):
@@ -284,8 +284,8 @@ missing `action`/`url`, so a malformed cookie fails silently.
 / athena.js (CDN-loaded, guarded by `if (window.archive_analytics)`) · `head.html` analytics block
 (skipped entirely for bots and when `ctx.disable_analytics` is set).
 
-**Depended on by:** [[core-vitals]] Engagement/Retention scoring · any Behaviour → Events reporting.
+**Depended on by:** [core-vitals](core-vitals.md) Engagement/Retention scoring · any Behaviour → Events reporting.
 
 ---
 
-*See [[README]] · [[METHODOLOGY]] for ingest rules*
+*See [README](../README.md) · [[METHODOLOGY]] for ingest rules*

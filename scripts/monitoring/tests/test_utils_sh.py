@@ -185,6 +185,66 @@ stats.ol-covers.http_status.http_200 2 1741054377
             assert f.read().strip() == expected_output
 
 
+def _bot_statuses_events(fixture: str) -> list[str]:
+    """Run log_recent_bot_statuses against a log fixture, returning what it sent to graphite."""
+    with (
+        tempfile.NamedTemporaryFile(mode="w", delete_on_close=False) as aliases_fp,
+        tempfile.NamedTemporaryFile(delete_on_close=False) as nc_fp,
+    ):
+        aliases_fp.write(f"""
+                obfi_in_docker() {{
+                    cat {fixture}
+                }}
+                export -f obfi_in_docker
+
+                nc() {{
+                    # Read stdin and write to nc_fp
+                    cat >> {nc_fp.name}
+                }}
+                export -f nc
+
+                date() {{
+                    echo "1741054377"
+                }}
+            """)
+        aliases_fp.close()
+        nc_fp.close()
+
+        bash_run(
+            "log_recent_bot_statuses stats.ol.bot_status",
+            sources=["../obfi.sh", aliases_fp.name, "utils.sh"],
+        )
+
+        with open(nc_fp.name) as f:
+            return f.read().strip().splitlines()
+
+
+def test_log_recent_bot_statuses():
+    events = _bot_statuses_events("scripts/monitoring/tests/sample_bot_statuses_nginx_logs.log")
+
+    # meta-externalagent's UA also says "Googlebot-compatible", but only the first
+    # bot in a UA is counted. The browser request for /search?q=googlebot (with a
+    # googlebot referer) isn't a bot at all, since only the UA is looked at.
+    # The googlebot request logged with status 000 is skipped.
+    assert sorted(events) == [
+        "stats.ol.bot_status.bingbot.http_4xx 1 1741054377",
+        "stats.ol.bot_status.googlebot.http_2xx 2 1741054377",
+        "stats.ol.bot_status.googlebot.http_3xx 1 1741054377",
+        "stats.ol.bot_status.googlebot.http_429 2 1741054377",
+        "stats.ol.bot_status.googlebot.http_5xx 1 1741054377",
+        "stats.ol.bot_status.gptbot.http_5xx 1 1741054377",
+        "stats.ol.bot_status.meta_externalagent.http_2xx 1 1741054377",
+    ]
+
+
+def test_log_recent_bot_statuses_with_no_bots():
+    # bash_run uses `set -e`, so a minute with no bot traffic must not fail the job
+    # or send a malformed event.
+    with tempfile.NamedTemporaryFile(mode="w", delete_on_close=False) as empty_fp:
+        empty_fp.close()
+        assert _bot_statuses_events(empty_fp.name) == []
+
+
 def test_log_top_response_times():
     with (
         tempfile.NamedTemporaryFile(mode="w", delete_on_close=False) as aliases_fp,

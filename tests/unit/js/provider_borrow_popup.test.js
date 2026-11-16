@@ -17,12 +17,12 @@ function borrowLink(provider) {
 }
 
 function fakePopup() {
-    return {closed: false, close: vi.fn()};
+    return { closed: false, close: vi.fn() };
 }
 
 /** A real click, so preventDefault reports what the browser would do. */
 function click(link, init = {}) {
-    const event = new MouseEvent('click', {bubbles: true, cancelable: true, button: 0, ...init});
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, ...init });
     link.dispatchEvent(event);
     return event;
 }
@@ -31,7 +31,7 @@ const ORIGIN = window.location.origin;
 
 /** The popup's own message, as provider_popup_result.html.jinja posts it. */
 function postFromPopup(data, origin = ORIGIN) {
-    window.dispatchEvent(new MessageEvent('message', {data, origin}));
+    window.dispatchEvent(new MessageEvent('message', { data, origin }));
 }
 
 describe('initProviderBorrowPopup', () => {
@@ -100,7 +100,7 @@ describe('initProviderBorrowPopup', () => {
         const link = borrowLink('lenny');
         initProviderBorrowPopup([link], reload);
 
-        const event = click(link, {metaKey: true});
+        const event = click(link, { metaKey: true });
 
         expect(window.open).not.toHaveBeenCalled();
         expect(event.defaultPrevented).toBe(false);
@@ -111,7 +111,7 @@ describe('initProviderBorrowPopup', () => {
         initProviderBorrowPopup([link], reload);
         click(link);
 
-        postFromPopup({type: 'ol-provider-borrow', ok: true});
+        postFromPopup({ type: 'ol-provider-borrow', ok: true });
 
         expect(reload).toHaveBeenCalledOnce();
     });
@@ -123,7 +123,7 @@ describe('initProviderBorrowPopup', () => {
         initProviderBorrowPopup([link], reload);
         click(link);
 
-        postFromPopup({type: 'ol-provider-borrow', ok: true});
+        postFromPopup({ type: 'ol-provider-borrow', ok: true });
 
         expect(popup.close).not.toHaveBeenCalled();
     });
@@ -136,8 +136,8 @@ describe('initProviderBorrowPopup', () => {
         initProviderBorrowPopup([link], reload);
         click(link);
 
-        postFromPopup({type: 'ol-provider-borrow', ok: true});
-        postFromPopup({type: 'ol-provider-borrow', ok: true});
+        postFromPopup({ type: 'ol-provider-borrow', ok: true });
+        postFromPopup({ type: 'ol-provider-borrow', ok: true });
 
         expect(reload).toHaveBeenCalledOnce();
     });
@@ -149,7 +149,7 @@ describe('initProviderBorrowPopup', () => {
         initProviderBorrowPopup([link], reload);
         click(link);
 
-        postFromPopup({type: 'ol-provider-borrow', ok: true}, 'https://lennyforlibraries.org');
+        postFromPopup({ type: 'ol-provider-borrow', ok: true }, 'https://lennyforlibraries.org');
 
         expect(reload).not.toHaveBeenCalled();
     });
@@ -159,7 +159,7 @@ describe('initProviderBorrowPopup', () => {
         initProviderBorrowPopup([link], reload);
         click(link);
 
-        postFromPopup({type: 'some-other-widget', ok: true});
+        postFromPopup({ type: 'some-other-widget', ok: true });
 
         expect(reload).not.toHaveBeenCalled();
     });
@@ -169,7 +169,7 @@ describe('initProviderBorrowPopup', () => {
         initProviderBorrowPopup([link], reload);
         click(link);
 
-        postFromPopup({type: 'ol-provider-borrow', ok: false});
+        postFromPopup({ type: 'ol-provider-borrow', ok: false });
 
         expect(reload).not.toHaveBeenCalled();
     });
@@ -184,7 +184,7 @@ describe('initProviderBorrowPopup', () => {
 
         popup.closed = true;
         vi.advanceTimersByTime(1000);
-        postFromPopup({type: 'ol-provider-borrow', ok: true});
+        postFromPopup({ type: 'ol-provider-borrow', ok: true });
 
         expect(reload).not.toHaveBeenCalled();
     });

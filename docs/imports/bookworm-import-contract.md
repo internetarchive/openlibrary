@@ -779,4 +779,4 @@ Worth knowing before push time, since GitHub reports missing access as
 
 ---
 
-*See [[features/feed-registry-import-system]] · [[imports]] · [[METHODOLOGY]]*
+*See [feed-registry](feed-registry.md) · [imports](README.md) · [[METHODOLOGY]]*

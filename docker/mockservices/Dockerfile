@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certifi
 
 WORKDIR /app
 COPY docker/mockservices/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade "pip>=26.2.2" && pip install --no-cache-dir -r requirements.txt
 
 COPY docker/mockservices/main.py .
 COPY docker/mockservices/start.sh .

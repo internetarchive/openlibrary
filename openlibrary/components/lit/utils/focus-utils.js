@@ -65,6 +65,19 @@ export function getTabbableElements(root) {
 }
 
 /**
+ * Whether `root` holds any tab stop. Stops at the first one, so it's cheap on
+ * large subtrees where {@link getTabbableElements} would check every element.
+ *
+ * @param {Element|ShadowRoot} root - Subtree to search.
+ * @returns {boolean}
+ */
+export function hasTabbableElement(root) {
+    const out = [];
+    if (root) walkTabbables(root, out, 1);
+    return out.length > 0;
+}
+
+/**
  * Like {@link getTabbableElements} but seeded from a `<slot>`'s assigned content
  * — for a trap that walks named slots (header/body/footer) rather than one
  * subtree. A custom element in slotted content contributes its real inner
@@ -90,16 +103,17 @@ export function getTabbableFromSlot(slot) {
  *
  * @param {Element} el
  * @param {HTMLElement[]} out - Accumulator, mutated in place.
+ * @param {number} [limit] - Stop once `out` holds this many.
  * @returns {void}
  */
-function visitTabbable(el, out) {
-    if (!isFocusable(el)) return;
+function visitTabbable(el, out, limit = Infinity) {
+    if (out.length >= limit || !isFocusable(el)) return;
     // FOCUSABLE_SELECTOR matches native controls regardless of tabindex, so
     // exclude -1 explicitly or a roving composite's items would slip through.
     const isStop = el.matches?.(FOCUSABLE_SELECTOR) && el.getAttribute('tabindex') !== '-1';
     if (isStop) out.push(el);
     if (isStop && el.shadowRoot) return;
-    walkTabbables(el.shadowRoot ?? el, out);
+    walkTabbables(el.shadowRoot ?? el, out, limit);
 }
 
 /**
@@ -108,16 +122,18 @@ function visitTabbable(el, out) {
  *
  * @param {Element|ShadowRoot} node
  * @param {HTMLElement[]} out - Accumulator, mutated in place.
+ * @param {number} [limit] - Stop once `out` holds this many.
  * @returns {void}
  */
-function walkTabbables(node, out) {
+function walkTabbables(node, out, limit = Infinity) {
     for (const child of node.children) {
+        if (out.length >= limit) return;
         if (child.localName === 'slot') {
             for (const assigned of child.assignedElements?.({ flatten: true }) ?? []) {
-                visitTabbable(assigned, out);
+                visitTabbable(assigned, out, limit);
             }
         } else {
-            visitTabbable(child, out);
+            visitTabbable(child, out, limit);
         }
     }
 }

@@ -1,7 +1,7 @@
 a.cancel {
   color: var(--red);
   font-family: var(--font-family-body);
-  font-size: 1em;
+  font-size: inherit;
 }
 a.borrowResults:link {
   color: var(--black);

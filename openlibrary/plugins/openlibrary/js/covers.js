@@ -17,34 +17,30 @@ export function initCoversChange() {
 
     // Add iframes lazily when the dialog opens, clearing them first so they
     // reload fresh each time. This avoids fetching the iframes with the page.
-    $('.coverPop')
-        .on('click', function() {
-            $('.imagesAdd').html('');
-            $('.imagesManage').html('');
-            if (doc_type_key === '/type/work') {
-                $('.imagesAdd').prepend('<div class="throbber"><h3>$_("Searching for covers")</h3></div>');
-            }
-            setTimeout(function() {
-                // add iframe to add images
-                add_iframe('.imagesAdd', add_url);
-                // add iframe to manage images
-                add_iframe('.imagesManage', manage_url);
-            }, 0);
-        });
+    $('.coverPop').on('click', function () {
+        $('.imagesAdd').html('');
+        $('.imagesManage').html('');
+        if (doc_type_key === '/type/work') {
+            $('.imagesAdd').prepend('<div class="throbber"><h3>$_("Searching for covers")</h3></div>');
+        }
+        setTimeout(function () {
+            // add iframe to add images
+            add_iframe('.imagesAdd', add_url);
+            // add iframe to manage images
+            add_iframe('.imagesManage', manage_url);
+        }, 0);
+    });
 
     // Clear the add/manage iframes once the dialog has closed so they stop running;
     // the next open rebuilds them. Waits for the close animation so it doesn't empty mid-fade.
     const coverDialog = document.querySelector('.imagesAdd')?.closest('ol-dialog');
     coverDialog?.addEventListener('ol-after-close', () => {
-        document.querySelectorAll('.imagesAdd, .imagesManage').forEach((el) => el.replaceChildren());
+        document.querySelectorAll('.imagesAdd, .imagesManage').forEach(el => el.replaceChildren());
     });
 }
 
 function add_iframe(selector, src) {
-    $(selector)
-        .append('<iframe height="580" width="100%" style="border: 0;"></iframe>')
-        .find('iframe')
-        .attr('src', src);
+    $(selector).append('<iframe height="580" width="100%" style="border: 0;"></iframe>').find('iframe').attr('src', src);
 }
 
 function showLoadingIndicator() {
@@ -59,7 +55,7 @@ function showLoadingIndicator() {
 
 // covers/manage.html and covers/add.html
 export function initCoversAddManage() {
-    $('.ol-cover-form').on('submit', function() {
+    $('.ol-cover-form').on('submit', function () {
         showLoadingIndicator();
     });
 
@@ -94,26 +90,17 @@ export function initCoversSaved() {
             updateCoverPreview(`${coverstore_url}/b/id/${image}-L.jpg`);
             // XXX-Anand: Fix this hack
             // set url and  show SRPCover  and hide SRPCoverBlank
-            parent.$(cover_selector).attr('src', cover_url)
-                .parents('div:first').show()
-                .next().hide();
-            parent.$(cover_selector).attr('srcset', cover_url)
-                .parents('div:first').show()
-                .next().hide();
-        }
-        else {
+            parent.$(cover_selector).attr('src', cover_url).parents('div:first').show().next().hide();
+            parent.$(cover_selector).attr('srcset', cover_url).parents('div:first').show().next().hide();
+        } else {
             // hide SRPCover and show SRPCoverBlank
-            parent.$(cover_selector)
-                .parents('div:first').hide()
-                .next().show();
+            parent.$(cover_selector).parents('div:first').hide().next().show();
         }
-    }
-    else {
+    } else {
         if (image) {
             cover_url = `${coverstore_url}/a/id/${image}-M.jpg`;
             updateCoverPreview(`${coverstore_url}/a/id/${image}-L.jpg`);
-        }
-        else {
+        } else {
             cover_url = '/static/images/icons/avatar_author-lg.png';
         }
         parent.$(cover_selector).attr('src', cover_url);
@@ -126,7 +113,9 @@ function updateCoverPreview(largeUrl) {
     if (preview) {
         preview.src = largeUrl;
     }
-    parent.document.querySelectorAll('.coverLook[aria-controls="seeImage"]').forEach((link) => { link.href = largeUrl; });
+    parent.document.querySelectorAll('.coverLook[aria-controls="seeImage"]').forEach(link => {
+        link.href = largeUrl;
+    });
 }
 
 // This function will be triggered when the user clicks the "Paste" button
@@ -139,8 +128,8 @@ async function pasteImage() {
                 continue;
             }
 
-            const mimeType = item.types.includes('image/png') ? 'image/png' : (item.types.includes('image/jpeg') ? 'image/jpeg' : 'image/jpg');
-            const fileExtension = mimeType === 'image/png' ? 'png' : (mimeType === 'image/jpeg' ? 'jpeg' : 'jpg');
+            const mimeType = item.types.includes('image/png') ? 'image/png' : item.types.includes('image/jpeg') ? 'image/jpeg' : 'image/jpg';
+            const fileExtension = mimeType === 'image/png' ? 'png' : mimeType === 'image/jpeg' ? 'jpeg' : 'jpg';
             const blob = await item.getType(mimeType);
             const image = document.createElement('img');
             image.src = URL.createObjectURL(blob);
@@ -167,7 +156,7 @@ async function pasteImage() {
         }
         alert('No image found in clipboard');
     } catch (error) {
-    // Silence errors - user alert already shown
+        // Silence errors - user alert already shown
     }
 }
 
@@ -175,12 +164,12 @@ export function initPasteForm(coverForm) {
     const pasteButton = coverForm.querySelector('#pasteButton');
     let formData = null;
 
-    pasteButton.addEventListener('click', async() => {
+    pasteButton.addEventListener('click', async () => {
         formData = await pasteImage(coverForm);
         pasteButton.textContent = 'Change Image';
     });
 
-    coverForm.addEventListener('submit', (event) => {
+    coverForm.addEventListener('submit', event => {
         event.preventDefault();
         if (formData) {
             showLoadingIndicator();

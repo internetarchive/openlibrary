@@ -56,7 +56,9 @@ Define two classes in `openlibrary-bots/sources/<slug>/`:
 class MyRecord(DataProviderRecord):
     title: str
     authors: list[dict]
+
     def to_ol_import(self) -> OLImportRecord | None: ...
+
 
 # sources/<slug>/provider.py
 class MyProvider(JSONLProvider):
@@ -156,12 +158,12 @@ password = admin123
 ## Dependencies
 
 **Depends on:**
-- [[imports]] — `DataProvider` pattern feeds `add_book.load()` via import API
+- [imports](../imports/README.md) — `DataProvider` pattern feeds `add_book.load()` via import API
 - [[core-operations]] — `openlibrary/api.py` talks to OL's web.py/Infogami API
 
 **Depended on by:**
-- [[imports]] — all import adapters in `openlibrary-bots` use `DataProvider` as base class
+- [imports](../imports/README.md) — all import adapters in `openlibrary-bots` use `DataProvider` as base class
 
 ---
 
-*Sources: `imports/index.md`, `imports/adding-sources.md`, `imports/debugging.md`, `openlibrary/api.py` · See [[README]] · [[METHODOLOGY]]*
+*Sources: `imports/index.md`, `imports/adding-sources.md`, `imports/debugging.md`, `openlibrary/api.py` · See [README](../README.md) · [[METHODOLOGY]]*

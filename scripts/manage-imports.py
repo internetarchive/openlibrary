@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import datetime
+import datetime as dt
 import functools
 import json
 import logging
@@ -11,6 +11,7 @@ import time
 
 from openlibrary.api import OLError, OpenLibrary
 from openlibrary.config import load_config
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.ia import get_candidate_ocaids
 from openlibrary.core.imports import Batch, ImportItem
 
@@ -20,7 +21,7 @@ logger = logging.getLogger("openlibrary.importer")
 @functools.cache
 def get_ol(servername: str) -> OpenLibrary:
     ol = OpenLibrary(servername)
-    if os.getenv("LOCAL_DEV"):
+    if get_ol_env().LOCAL_DEV:
         ol.login("openlibrary@example.com", "admin123")
     else:
         # Log in with RC file from OPENLIBRARY_RCFILE env var
@@ -89,7 +90,7 @@ def import_ocaids(*ocaids, **kwargs):
     servername = kwargs.get("servername")
     require_marc = not kwargs.get("no_marc", False)
 
-    date = datetime.date.today()
+    date = dt.date.today()
     if not ocaids:
         raise ValueError("Must provide at least one ocaid")
     batch_name = f"import-{ocaids[0]}-{date.year:04}{date.month:02}"
@@ -115,10 +116,10 @@ def add_new_scans(args):
     if args:
         datestr = args[0]
         yyyy, mm, dd = datestr.split("-")
-        date = datetime.date(int(yyyy), int(mm), int(dd))
+        date = dt.date(int(yyyy), int(mm), int(dd))
     else:
         # yesterday
-        date = datetime.date.today() - datetime.timedelta(days=1)
+        date = dt.date.today() - dt.timedelta(days=1)
 
     items = list(get_candidate_ocaids(date))
     batch_name = f"new-scans-{date.year:04}{date.month:02}"

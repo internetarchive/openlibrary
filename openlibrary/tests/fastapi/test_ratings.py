@@ -1,6 +1,6 @@
 """Tests for the FastAPI ratings endpoints."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -9,14 +9,14 @@ import pytest
 def mock_ratings_model():
     """Prevent real DB calls for Ratings methods."""
     with (
-        patch("openlibrary.fastapi.internal.api.models.Ratings.add", autospec=True) as add_mock,
-        patch("openlibrary.fastapi.internal.api.models.Ratings.remove", autospec=True) as remove_mock,
+        patch("openlibrary.core.ratings.Ratings.add", new_callable=AsyncMock) as add_mock,
+        patch("openlibrary.core.ratings.Ratings.remove", new_callable=AsyncMock) as remove_mock,
     ):
         yield add_mock, remove_mock
 
 
 class TestRatingsEndpoints:
-    def test_get_ratings_returns_legacy_summary(self, fastapi_client):
+    def test_get_ratings_returns_summary(self, fastapi_client):
         expected = {
             "summary": {
                 "average": 4.5,
@@ -32,12 +32,25 @@ class TestRatingsEndpoints:
             },
         }
 
-        with patch("openlibrary.fastapi.internal.api.legacy_ratings.get_ratings_summary", return_value=expected) as mock_summary:
+        with patch(
+            "openlibrary.core.ratings.Ratings.get_work_ratings_summary",
+            new_callable=AsyncMock,
+            return_value={
+                "ratings_average": 4.5,
+                "ratings_sortable": 4.2,
+                "ratings_count": 2,
+                "ratings_count_1": 0,
+                "ratings_count_2": 0,
+                "ratings_count_3": 0,
+                "ratings_count_4": 1,
+                "ratings_count_5": 1,
+            },
+        ) as mock_summary:
             response = fastapi_client.get("/works/OL123W/ratings.json")
 
         assert response.status_code == 200
         assert response.json() == expected
-        mock_summary.assert_called_once_with(123)
+        mock_summary.assert_awaited_once_with(123)
 
     def test_get_ratings_does_not_inject_sortable_for_empty_summary(self, fastapi_client):
         expected = {
@@ -54,7 +67,7 @@ class TestRatingsEndpoints:
             },
         }
 
-        with patch("openlibrary.fastapi.internal.api.legacy_ratings.get_ratings_summary", return_value=expected):
+        with patch("openlibrary.core.ratings.Ratings.get_work_ratings_summary", new_callable=AsyncMock, return_value=None):
             response = fastapi_client.get("/works/OL123W/ratings.json")
 
         assert response.status_code == 200
@@ -69,13 +82,13 @@ class TestRatingsEndpoints:
 
         assert response.status_code == 200
         assert response.json() == {"success": "rating added"}
-        add_mock.assert_called_once_with(
+        add_mock.assert_awaited_once_with(
             username="testuser",
             work_id=123,
             rating=5,
             edition_id=42,
         )
-        remove_mock.assert_not_called()
+        remove_mock.assert_not_awaited()
 
     def test_post_ratings_removes_rating_when_rating_is_missing(self, fastapi_client, mock_authenticated_user, mock_ratings_model):
         add_mock, remove_mock = mock_ratings_model
@@ -83,8 +96,8 @@ class TestRatingsEndpoints:
 
         assert response.status_code == 200
         assert response.json() == {"success": "removed rating"}
-        remove_mock.assert_called_once_with("testuser", 123)
-        add_mock.assert_not_called()
+        remove_mock.assert_awaited_once_with("testuser", 123)
+        add_mock.assert_not_awaited()
 
     def test_post_ratings_requires_authentication(self, fastapi_client):
         response = fastapi_client.post("/works/OL123W/ratings.json", data={"rating": "4"})

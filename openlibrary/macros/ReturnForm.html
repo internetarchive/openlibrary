@@ -1,11 +1,16 @@
-$def with (ocaid, expiry, analytics_track=None)
+$def with (action_url, expiry, analytics_track=None)
+$# `action_url` is the full POST target, so one form serves both returns:
+$#   Internet Archive -> /borrow/ia/<ocaid>   (macros/LoanStatus.html, account/loan_actions.html)
+$#   a Lenny provider  -> /borrow/lenny/<OLID>/return   (book_providers/read_button.html, #13909)
+$# A single form rather than a near-copy on purpose: two copies of one control
+$# is how a latent bug gets a home in the one nobody diffs.
 
 $ i18n_strings = {
   $ "confirm_return": _("Really return this book?")
   $ }
 
 <form
-  action="/borrow/ia/$ocaid"
+  action="$action_url"
   method="post"
   class="return-form"
   data-i18n="$json_encode(i18n_strings)"

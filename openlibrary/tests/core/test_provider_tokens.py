@@ -30,7 +30,7 @@ longer the default -- the shipped store does not have it, and
 :class:`TestSingleFlightUnderConcurrency` is where that is proved.
 """
 
-import datetime
+import datetime as dt
 import json
 import os
 import re
@@ -100,16 +100,16 @@ CREATE TABLE provider_tokens (
 SCHEMA_SQL = os.path.join(os.path.dirname(pt.__file__), "schema.sql")
 
 
-def _utcnow() -> datetime.datetime:
-    return datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+def _utcnow() -> dt.datetime:
+    return dt.datetime.now(dt.UTC).replace(tzinfo=None)
 
 
 def live_grant(access: str = "at-0", refresh: str | None = "rt-0") -> Grant:
-    return Grant(access, refresh, _utcnow() + datetime.timedelta(hours=1), "loans:read borrow")
+    return Grant(access, refresh, _utcnow() + dt.timedelta(hours=1), "loans:read borrow")
 
 
 def expired_grant(access: str = "at-0", refresh: str | None = "rt-0") -> Grant:
-    return Grant(access, refresh, _utcnow() - datetime.timedelta(minutes=5), "loans:read borrow")
+    return Grant(access, refresh, _utcnow() - dt.timedelta(minutes=5), "loans:read borrow")
 
 
 class RecordingRefresher:
@@ -133,7 +133,7 @@ class RecordingRefresher:
         if self._delay:
             # Widen the window a missing lock would leave open.
             threading.Event().wait(self._delay)
-        return Grant(f"at-{n}", f"rt-{n}", _utcnow() + datetime.timedelta(hours=1), "loans:read borrow")
+        return Grant(f"at-{n}", f"rt-{n}", _utcnow() + dt.timedelta(hours=1), "loans:read borrow")
 
 
 class ExplodingRefresher:
@@ -392,8 +392,8 @@ class TestGrant:
         whenever the two happen to agree.
         """
         now = _utcnow()
-        assert Grant("at", "rt", now + EXPIRY_SKEW - datetime.timedelta(seconds=1)).is_expired(now) is True
-        assert Grant("at", "rt", now + EXPIRY_SKEW + datetime.timedelta(seconds=1)).is_expired(now) is False
+        assert Grant("at", "rt", now + EXPIRY_SKEW - dt.timedelta(seconds=1)).is_expired(now) is True
+        assert Grant("at", "rt", now + EXPIRY_SKEW + dt.timedelta(seconds=1)).is_expired(now) is False
 
 
 class TestRefresh:

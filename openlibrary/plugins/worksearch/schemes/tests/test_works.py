@@ -71,6 +71,10 @@ QUERY_PARSER_TESTS = {
         "isbn:978-0-06-093546-7",
         "isbn:9780060935467",
     ),
+    "Normalizes uppercase ISBN field": (
+        "ISBN:978-0-06-093546-7",
+        "isbn:9780060935467",
+    ),
     "Does not normalize ISBN stars": (
         "isbn:979*",
         "isbn:979*",
@@ -78,6 +82,10 @@ QUERY_PARSER_TESTS = {
     # LCCs
     "LCC: quotes added if space present": (
         "lcc:NC760 .B2813 2004",
+        'lcc:"NC-0760.00000000.B2813 2004"',
+    ),
+    "LCC: uppercase field normalized": (
+        "LCC:NC760 .B2813 2004",
         'lcc:"NC-0760.00000000.B2813 2004"',
     ),
     "LCC: star added if no space": (
@@ -121,6 +129,16 @@ QUERY_PARSER_TESTS = {
     "DDC: wildcard integer": ("ddc:2*", "ddc:2*"),
     "DDC: ddc_sort": ("ddc_sort:65.8", "ddc_sort:065.8"),
     "DDC: quotes preserved": ('ddc:"65.8"', 'ddc:"065.8"'),
+    "DDC: uppercase field normalized": ("DDC:65.8", "ddc:065.8"),
+    "Normalizes cased id_ field": ("ID_GOODREADS:123", "id_goodreads:123"),
+    "Normalizes cased edition. prefixed field": ("Edition.Publisher:Harper", "edition.publisher:Harper"),
+    "Uppercase alias resolved": ("AUTHOR:Twain", "author_name:Twain"),
+    "Negated uppercase ISBN": ("-ISBN:978-0-06-093546-7", "-isbn:9780060935467"),
+    "Grouped mixed-case fields": ("(ISBN:9780060935467 OR LCC:PS1303)", "(isbn:9780060935467 OR lcc:PS-1303.00000000)"),
+    "Uppercase LCC range": ("LCC:[PS1 TO PS2]", "lcc:[PS-0001.00000000 TO PS-0002.00000000]"),
+    "Unknown cased field still escaped": ("Foo:bar", "Foo\\:bar"),
+    "Cased field after *:*": ("*:* AND ISBN:123", "*\\:* AND isbn:123"),
+    "Prefixed alias only lowercased": ("Work.Title:foo", "work.title:foo"),
 }
 
 
@@ -154,6 +172,29 @@ def test_q_to_solr_params_edition_key(query, edQuery):
     params_d = dict(params)
     assert params_d["userWorkQuery"] == query
     assert params_d["userEdQuery"] == edQuery
+
+
+EDITION_FILTER_TESTS = {
+    # Unfielded terms already have to match the work, possibly on work-only fields like subject
+    "Unfielded only": ("fantasy", None),
+    "Work-only field": ("subject:fantasy", None),
+    "Edition field": ("fantasy publisher:harper", "+publisher:harper"),
+    "OR with unfielded": ("fantasy OR publisher:harper", None),
+}
+
+
+@pytest.mark.parametrize(("query", "ed_filter_q"), EDITION_FILTER_TESTS.values(), ids=EDITION_FILTER_TESTS.keys())
+def test_q_to_solr_params_edition_filter(query, ed_filter_q):
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params(query, {"editions:[subquery]"}, [])
+    params_d = dict(params)
+    assert params_d.get("userEdFilterQuery") == ed_filter_q
+    # Only fielded edition clauses may stop a work from matching
+    assert ("{!parent" in params_d["q"]) == (ed_filter_q is not None)
 
 
 def test_cover_dimensions_fetched_for_works_and_editions():

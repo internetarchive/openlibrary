@@ -25,11 +25,10 @@ const typeBadgeClasses = {
 export const MenuOptionState = {
     NONE_TAGGED: 0,
     SOME_TAGGED: 1,
-    ALL_TAGGED: 2,
+    ALL_TAGGED: 2
 };
 
 export class MenuOption {
-
     /**
      * Creates a new MenuOption that represents the given tag.
      *
@@ -97,24 +96,36 @@ export class MenuOption {
 
         let bemSuffix = '';
         switch (this.optionState) {
-        case MenuOptionState.NONE_TAGGED:
-            bemSuffix = 'none-tagged';
-            break;
-        case MenuOptionState.SOME_TAGGED:
-            bemSuffix = 'some-tagged';
-            break;
-        case MenuOptionState.ALL_TAGGED:
-            bemSuffix = 'all-tagged';
-            break;
+            case MenuOptionState.NONE_TAGGED:
+                bemSuffix = 'none-tagged';
+                break;
+            case MenuOptionState.SOME_TAGGED:
+                bemSuffix = 'some-tagged';
+                break;
+            case MenuOptionState.ALL_TAGGED:
+                bemSuffix = 'all-tagged';
+                break;
         }
 
-        const markup = `<span class="selected-tag__status selected-tag__status--${bemSuffix}"></span>
-            <span class="selected-tag__name">${this.tag.tagName}</span>
-            <span class="selected-tag__type-container">
-                <span class="selected-tag__type ${typeBadgeClasses[this.tag.tagType]}">${this.tag.displayType}</span>
-            </span>`;
+        // Build with safe DOM construction. `tag.tagName` and `tag.displayType`
+        // are user-controlled tag data and must never be parsed as HTML
+        // (GHSA-6xcf): render them as text, not markup.
+        const statusSpan = document.createElement('span');
+        statusSpan.className = `selected-tag__status selected-tag__status--${bemSuffix}`;
 
-        parentElem.innerHTML = markup;
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'selected-tag__name';
+        nameSpan.textContent = this.tag.tagName;
+
+        const typeContainer = document.createElement('span');
+        typeContainer.className = 'selected-tag__type-container';
+        const typeSpan = document.createElement('span');
+        const badgeClass = typeBadgeClasses[this.tag.tagType];
+        typeSpan.className = badgeClass ? `selected-tag__type ${badgeClass}` : 'selected-tag__type';
+        typeSpan.textContent = this.tag.displayType;
+        typeContainer.appendChild(typeSpan);
+
+        parentElem.replaceChildren(statusSpan, nameSpan, typeContainer);
         this.rootElement = parentElem;
     }
 
@@ -136,25 +147,26 @@ export class MenuOption {
      * @see {initialize}
      */
     updateMenuOptionState(menuOptionState) {
-        if (this.rootElement) {  // `rootElement` not set until `initialize` is called
+        if (this.rootElement) {
+            // `rootElement` not set until `initialize` is called
             this.optionState = menuOptionState;
             const statusIndicator = this.rootElement.querySelector('.selected-tag__status');
             switch (menuOptionState) {
-            case MenuOptionState.NONE_TAGGED:
-                statusIndicator.classList.remove('selected-tag__status--all-tagged', 'selected-tag__status--some-tagged');
-                statusIndicator.classList.add('selected-tag__status--none-tagged');
-                break;
-            case MenuOptionState.SOME_TAGGED:
-                statusIndicator.classList.remove('selected-tag__status--all-tagged', 'selected-tag__status--none-tagged');
-                statusIndicator.classList.add('selected-tag__status--some-tagged');
-                break;
-            case MenuOptionState.ALL_TAGGED:
-                statusIndicator.classList.remove('selected-tag__status--none-tagged', 'selected-tag__status--some-tagged');
-                statusIndicator.classList.add('selected-tag__status--all-tagged');
-                break;
-            default:
-                // XXX : `optionState` is now incorrect
-                throw new Error('Unexpected value passed for menu option state.');
+                case MenuOptionState.NONE_TAGGED:
+                    statusIndicator.classList.remove('selected-tag__status--all-tagged', 'selected-tag__status--some-tagged');
+                    statusIndicator.classList.add('selected-tag__status--none-tagged');
+                    break;
+                case MenuOptionState.SOME_TAGGED:
+                    statusIndicator.classList.remove('selected-tag__status--all-tagged', 'selected-tag__status--none-tagged');
+                    statusIndicator.classList.add('selected-tag__status--some-tagged');
+                    break;
+                case MenuOptionState.ALL_TAGGED:
+                    statusIndicator.classList.remove('selected-tag__status--none-tagged', 'selected-tag__status--some-tagged');
+                    statusIndicator.classList.add('selected-tag__status--all-tagged');
+                    break;
+                default:
+                    // XXX : `optionState` is now incorrect
+                    throw new Error('Unexpected value passed for menu option state.');
             }
         } else {
             throw new Error('MenuOption must be initialized before state can be updated.');

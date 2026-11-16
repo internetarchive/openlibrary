@@ -293,7 +293,7 @@ Written by `trending_updater.py` (parallel daemon):
 - `trending_score_hourly_0` through `_23` — pageviews per hour (rolling 24h)
 - `trending_score_daily_0` through `_6` — daily scores (rolling 7 days)
 - `trending_z_score` — Z-score for trend detection
-- `weekly_demand` — demand weight per edition, computed by Trending code for [[core-vitals]] CVS
+- `weekly_demand` — demand weight per edition, computed by Trending code for [core-vitals](../analytics/core-vitals.md) CVS
 - `weighted_usefulness` — demand × usefulness, used in CVS numerator
 - `trending_score_weekly_sum` — summed to produce `total_demand` for CVS denominator
 
@@ -407,8 +407,8 @@ docker compose run --rm home python -m pytest openlibrary/tests/integration/test
 - **solr-updater** — long-running daemon; see [[infrastructure]] for deployment and supervision
 - **trending_updater** — parallel daemon writing trending scores; also managed by [[infrastructure]]
 - **Full reindex** — Jenkins job using `scripts/solr_builder/`; production uses ReplicationHandler leader/follower (followers poll leader every 60s post-commit)
-- **Imports** — newly created/updated editions from [[imports]] must propagate through the solr-updater to appear in search
-- **Lending** — `ebook_access` enum values come from [[lending]] availability data embedded at index time
+- **Imports** — newly created/updated editions from [imports](../imports/README.md) must propagate through the solr-updater to appear in search
+- **Lending** — `ebook_access` enum values come from [lending](../lending/README.md) availability data embedded at index time
 - **Tags** — `subject_facet`, `person_facet`, `place_facet`, `time_facet` populated from Work subjects; [[tags]] covers the subject/tag relationship
 
 ---
@@ -428,7 +428,7 @@ docker compose run --rm home python -m pytest openlibrary/tests/integration/test
 - **schemaless mode ON** (`update.autoCreateFields=true`) — if app code deploys before a schema update, Solr auto-types new fields. A string field auto-created as `text_general` breaks exact-match filter queries. Any PR adding new Solr fields needs a `Needs: Special Deploy` label and schema-first deployment.
 
 - **English stemming on non-English text** — `text_en_splitting` applies Porter stemming to author/title text, causing false positives and misses for non-English records. [#7551](https://github.com/internetarchive/openlibrary/issues/7551)
-- **Stopword filtering is disabled entirely** — both `stop` filters in `text_en_splitting` are commented out; re-enabling them naively reproduces a position-mismatch bug on consecutive stopwords. See [[search-text-analysis]] for the full chain, the reproduction, and a candidate fix. [#5393](https://github.com/internetarchive/openlibrary/issues/5393)
+- **Stopword filtering is disabled entirely** — both `stop` filters in `text_en_splitting` are commented out; re-enabling them naively reproduces a position-mismatch bug on consecutive stopwords. See [search-text-analysis](text-analysis.md) for the full chain, the reproduction, and a candidate fix. [#5393](https://github.com/internetarchive/openlibrary/issues/5393)
 
 - **`title_suggest` copy-field** — 3.4 GB; noted as unused internally. [TODO] Remove.
 
@@ -501,17 +501,17 @@ docker compose run --rm home python -m pytest openlibrary/tests/integration/test
 
 **Depends on:**
 - [[core-operations]] — Infobase changelog (the event stream solr-updater reads); plugin routing for worksearch
-- [[lending]] — `ebook_access` enum values reflect availability data from the lending system
-- [[imports]] — new editions created by imports must be indexed by solr-updater to appear in search
+- [lending](../lending/README.md) — `ebook_access` enum values reflect availability data from the lending system
+- [imports](../imports/README.md) — new editions created by imports must be indexed by solr-updater to appear in search
 - [[tags]] — Work subjects → Solr `subject_facet`, `person_facet`, etc.
 - [[infrastructure]] — solr-updater and trending_updater are supervised processes; production Solr cluster is IA-managed
 
 **Depended on by:**
 - All search pages (HTML and JSON API)
-- OPDS feeds (see [[public-apis]])
+- OPDS feeds (see [public-apis](../public-apis/README.md))
 - Subject pages (`/subjects/{key}`)
 - Autocomplete
-- [[core-vitals]] — CVS, CLS, Demand, and Usefulness scores are all stored as Solr fields and queried via Solr; `usefulness` and `usefulness_pct` recomputed on Edition update
+- [core-vitals](../analytics/core-vitals.md) — CVS, CLS, Demand, and Usefulness scores are all stored as Solr fields and queried via Solr; `usefulness` and `usefulness_pct` recomputed on Edition update
 
 ---
 
@@ -527,4 +527,4 @@ docker compose run --rm home python -m pytest openlibrary/tests/integration/test
 
 ---
 
-*Sources: `raw/openlibrary-docs-ai/solr/index.md`, `raw/openlibrary-docs-ai/solr/priorities.md` · See [[README]] · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-docs-ai/solr/index.md`, `raw/openlibrary-docs-ai/solr/priorities.md` · See [README](../README.md) · [[METHODOLOGY]]*

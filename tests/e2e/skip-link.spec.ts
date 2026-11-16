@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Skip link @a11y', () => {
     test.beforeEach(async ({ page }) => {
         // Block archive.org so the donation banner can't take the first Tab stop.
-        await page.route('https://archive.org/**', (route) => route.abort());
+        await page.route('https://archive.org/**', route => route.abort());
         await page.goto('/');
         await expect(page.locator('#header-bar').first()).toBeVisible();
     });

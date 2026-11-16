@@ -28,7 +28,7 @@ export function confirmFromTemplate(template, { i18n = JSON.parse(template.datas
         confirmLabel: confirmLabel ?? i18n.confirm,
         cancelLabel: i18n.cancel,
         labelClose: i18n.close,
-        destructive,
+        destructive
     });
 }
 
@@ -42,6 +42,6 @@ export function alertFromTemplate(template) {
         title: i18n.title,
         message: template,
         okLabel: i18n.ok,
-        labelClose: i18n.close,
+        labelClose: i18n.close
     });
 }

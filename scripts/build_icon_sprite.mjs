@@ -13,24 +13,24 @@
  *
  * Usage: node scripts/build_icon_sprite.mjs
  */
-import { readFileSync, readdirSync, renameSync, writeFileSync } from "node:fs";
-import { join, dirname, basename } from "node:path";
-import { fileURLToPath } from "node:url";
+import { readFileSync, readdirSync, renameSync, writeFileSync } from 'node:fs';
+import { join, dirname, basename } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const SRC_DIR = join(ROOT, "static", "icons", "src");
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const SRC_DIR = join(ROOT, 'static', 'icons', 'src');
 // Source groups are discovered, not hardcoded, so a new library's folder needs
 // no edit here. Sorted so the duplicate-name check fails deterministically.
 const SRC_GROUPS = readdirSync(SRC_DIR, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
+    .filter(entry => entry.isDirectory())
+    .map(entry => entry.name)
     .sort();
-const SPRITE_PATH = join(ROOT, "static", "icons", "sprite.svg");
-const JS_MODULE_PATH = join(ROOT, "openlibrary", "components", "lit", "icons.generated.js");
+const SPRITE_PATH = join(ROOT, 'static', 'icons', 'sprite.svg');
+const JS_MODULE_PATH = join(ROOT, 'openlibrary', 'components', 'lit', 'icons.generated.js');
 
 // Namespaces the symbol ids, which are document-wide URL fragments. Callers pass
 // bare names; the macro and <ol-icon> add the prefix.
-const ID_PREFIX = "icon-";
+const ID_PREFIX = 'icon-';
 
 // A name becomes a JS identifier too, so "3d-view.svg" would emit
 // `export const 3dView` and break the build from a generated file.
@@ -41,16 +41,7 @@ const NAME_RE = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 // particular: on the symbol it would outrank the inherited value and CSS can't
 // select into a <use> shadow tree, so it must come from the referencing <svg>
 // (the --icon-stroke-* tokens in static/css/components/ol-icon.css).
-const KEEP_ATTRS = new Set([
-    "viewBox",
-    "fill",
-    "stroke",
-    "stroke-linecap",
-    "stroke-linejoin",
-    "stroke-miterlimit",
-    "fill-rule",
-    "clip-rule",
-]);
+const KEEP_ATTRS = new Set(['viewBox', 'fill', 'stroke', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'fill-rule', 'clip-rule']);
 
 /**
  * Attributes of an SVG open tag, as a plain object. Values are read from the
@@ -89,7 +80,7 @@ function camelCase(name) {
 function parseSvg(svg, name) {
     const open = svg.match(/<svg\b([^>]*)>/);
     if (!open) throw new Error(`No <svg> root in ${name}`);
-    const inner = svg.slice(open.index + open[0].length, svg.lastIndexOf("</svg>")).trim();
+    const inner = svg.slice(open.index + open[0].length, svg.lastIndexOf('</svg>')).trim();
     const attrs = parseAttrs(open[1]);
     if (!attrs.viewBox) throw new Error(`${name} is missing a viewBox`);
     return { attrs, inner };
@@ -105,7 +96,7 @@ function keptAttrs(attrs) {
     return Object.entries(attrs)
         .filter(([key]) => KEEP_ATTRS.has(key))
         .map(([key, value]) => `${key}="${value}"`)
-        .join(" ");
+        .join(' ');
 }
 
 /**
@@ -148,8 +139,8 @@ function collectIcons() {
     for (const group of SRC_GROUPS) {
         const dir = join(SRC_DIR, group);
         for (const file of readdirSync(dir)) {
-            if (!file.endsWith(".svg")) continue;
-            const name = basename(file, ".svg");
+            if (!file.endsWith('.svg')) continue;
+            const name = basename(file, '.svg');
             if (!NAME_RE.test(name)) {
                 throw new Error(`Invalid icon name "${name}" in ${group}/${file} — use kebab-case starting with a letter, e.g. arrow-left.`);
             }
@@ -159,11 +150,11 @@ function collectIcons() {
             const identifier = camelCase(name);
             if (identifiers.has(identifier)) {
                 throw new Error(
-                    `Icon names "${identifiers.get(identifier)}" and "${name}" both map to the JS identifier "${identifier}" in icons.generated.js — rename one.`,
+                    `Icon names "${identifiers.get(identifier)}" and "${name}" both map to the JS identifier "${identifier}" in icons.generated.js — rename one.`
                 );
             }
             identifiers.set(identifier, name);
-            const raw = readFileSync(join(dir, file), "utf8");
+            const raw = readFileSync(join(dir, file), 'utf8');
             // Sources are id-free. An id-bearing glyph (gradient, clip-path)
             // would need its inner ids prefixed here, like ID_PREFIX does.
             const { attrs, inner } = parseSvg(raw, name);
@@ -179,11 +170,11 @@ const names = [...icons.keys()].sort();
 // 1. Sprite sheet, served as a static asset. Written via a temp file and renamed:
 // a rebuild happens under a running server, and a half-written sprite would be
 // served as a broken one. One <symbol> per line, so it stays readable.
-const symbols = names.map((n) => icons.get(n).symbol).join("\n");
+const symbols = names.map(n => icons.get(n).symbol).join('\n');
 const sprite =
     `<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">` +
     `<defs>\n${symbols}\n</defs></svg>\n`;
-writeFileSync(`${SPRITE_PATH}.tmp`, sprite, "utf8");
+writeFileSync(`${SPRITE_PATH}.tmp`, sprite, 'utf8');
 renameSync(`${SPRITE_PATH}.tmp`, SPRITE_PATH);
 
 // 2. Lit glyph module, the source <ol-icon> renders from. Each export is a
@@ -191,20 +182,18 @@ renameSync(`${SPRITE_PATH}.tmp`, SPRITE_PATH);
 // The IIFE puts the PURE annotation before a call expression — the only position
 // Rolldown (and terser) honor, so a named import tree-shakes the rest out. The
 // `glyphs` map is what <ol-icon> imports, and it necessarily retains all of them.
-const jsExports = names
-    .map((n) => `export const ${camelCase(n)} = /*#__PURE__*/ (() => html\`${icons.get(n).svg}\`)();`)
-    .join("\n");
-const jsMap = names.map((n) => `    '${n}': ${camelCase(n)},`).join("\n");
+const jsExports = names.map(n => `export const ${camelCase(n)} = /*#__PURE__*/ (() => html\`${icons.get(n).svg}\`)();`).join('\n');
+const jsMap = names.map(n => `    '${n}': ${camelCase(n)},`).join('\n');
 const jsModule =
-    "/* eslint-disable */\n" +
-    "// @generated by scripts/build_icon_sprite.mjs from static/icons/src/ — DO NOT EDIT.\n" +
-    "// Inline icons for Lit components. Prefer <ol-icon name=\"…\">; import a named\n" +
-    "// export only when you need the bare <svg> template.\n" +
+    '/* eslint-disable */\n' +
+    '// @generated by scripts/build_icon_sprite.mjs from static/icons/src/ — DO NOT EDIT.\n' +
+    '// Inline icons for Lit components. Prefer <ol-icon name="…">; import a named\n' +
+    '// export only when you need the bare <svg> template.\n' +
     "import { html } from 'lit';\n\n" +
     `${jsExports}\n\n` +
     "/** Icon name -> template, for <ol-icon>'s runtime lookup. */\n" +
     `export const glyphs = {\n${jsMap}\n};\n`;
-writeFileSync(JS_MODULE_PATH, jsModule, "utf8");
+writeFileSync(JS_MODULE_PATH, jsModule, 'utf8');
 
 console.log(`Built ${names.length} icons:`);
 console.log(`  sprite → ${SPRITE_PATH}`);

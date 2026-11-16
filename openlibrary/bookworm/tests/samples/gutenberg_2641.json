@@ -1,0 +1,187 @@
+{
+  "metadata": {
+    "@type": "http://schema.org/Book",
+    "identifier": "https://www.gutenberg.org/ebooks/2641",
+    "title": "A Room with a View",
+    "language": "en",
+    "accessibility": {
+      "hazard": [
+        "none"
+      ],
+      "accessMode": [
+        "textual"
+      ],
+      "accessModeSufficient": [
+        [
+          "textual"
+        ]
+      ],
+      "feature": [
+        "displayTransformability",
+        "unlocked"
+      ]
+    },
+    "author": {
+      "name": "Forster, E. M. (Edward Morgan)",
+      "sortAs": "Forster, E. M. (Edward Morgan)",
+      "identifier": "https://www.gutenberg.org/ebooks/author/975",
+      "links": [
+        {
+          "href": "https://opds-test.pglaf.org/opds/search?author_id=975",
+          "type": "application/opds+json"
+        }
+      ]
+    },
+    "published": "2001-05-01",
+    "description": "Creators: E. M. Forster (1879-1970)\n\n\"A Room with a View\" by E. M. Forster is a novel published in 1908. Young Lucy Honeychurch travels to Italy with her uptight cousin as chaperone, where an unexpected encounter with the unconventional George Emerson stirs confusing emotions. Back in England, Lucy becomes engaged to the sophisticated but pompous Cecil Vyse. When the Emersons move nearby, Lucy must confront her true feelings and decide between societal expectations and genuine passion in Edwardian England's restrained culture. (This is an automatically generated summary.)\n\nReading Level: Reading ease score: 84.8 (6th grade). Easy to read.\n\nRights: Public domain in the USA.\n\nDownloads: 52211",
+    "subject": [
+      {
+        "name": "British Literature",
+        "scheme": "https://www.gutenberg.org/ebooks/bookshelf/",
+        "code": "653",
+        "links": [
+          {
+            "href": "https://opds-test.pglaf.org/opds/bookshelves?id=653",
+            "type": "application/opds+json"
+          }
+        ]
+      },
+      {
+        "name": "Novels",
+        "scheme": "https://www.gutenberg.org/ebooks/bookshelf/",
+        "code": "645",
+        "links": [
+          {
+            "href": "https://opds-test.pglaf.org/opds/bookshelves?id=645",
+            "type": "application/opds+json"
+          }
+        ]
+      },
+      {
+        "name": "Romance",
+        "scheme": "https://www.gutenberg.org/ebooks/bookshelf/",
+        "code": "639",
+        "links": [
+          {
+            "href": "https://opds-test.pglaf.org/opds/bookshelves?id=639",
+            "type": "application/opds+json"
+          }
+        ]
+      },
+      {
+        "name": "Italy",
+        "scheme": "https://www.gutenberg.org/ebooks/bookshelf/",
+        "code": "127",
+        "links": [
+          {
+            "href": "https://opds-test.pglaf.org/opds/bookshelves?id=127",
+            "type": "application/opds+json"
+          }
+        ]
+      },
+      {
+        "name": "British -- Italy -- Fiction",
+        "scheme": "https://www.gutenberg.org/ebooks/subject/",
+        "code": "2871",
+        "links": [
+          {
+            "href": "https://opds-test.pglaf.org/opds/subjects?id=2871",
+            "type": "application/opds+json"
+          }
+        ]
+      },
+      {
+        "name": "England -- Fiction",
+        "scheme": "https://www.gutenberg.org/ebooks/subject/",
+        "code": "1702",
+        "links": [
+          {
+            "href": "https://opds-test.pglaf.org/opds/subjects?id=1702",
+            "type": "application/opds+json"
+          }
+        ]
+      },
+      {
+        "name": "Florence (Italy) -- Fiction",
+        "scheme": "https://www.gutenberg.org/ebooks/subject/",
+        "code": "4235",
+        "links": [
+          {
+            "href": "https://opds-test.pglaf.org/opds/subjects?id=4235",
+            "type": "application/opds+json"
+          }
+        ]
+      },
+      {
+        "name": "Humorous stories",
+        "scheme": "https://www.gutenberg.org/ebooks/subject/",
+        "code": "511",
+        "links": [
+          {
+            "href": "https://opds-test.pglaf.org/opds/subjects?id=511",
+            "type": "application/opds+json"
+          }
+        ]
+      },
+      {
+        "name": "Young women -- Fiction",
+        "scheme": "https://www.gutenberg.org/ebooks/subject/",
+        "code": "2481",
+        "links": [
+          {
+            "href": "https://opds-test.pglaf.org/opds/subjects?id=2481",
+            "type": "application/opds+json"
+          }
+        ]
+      },
+      {
+        "name": "Language and Literatures: PR",
+        "sortAs": "PR",
+        "scheme": "http://purl.org/dc/terms/LCC",
+        "code": "PR",
+        "links": [
+          {
+            "href": "https://opds-test.pglaf.org/opds/search?locc=PR",
+            "type": "application/opds+json"
+          }
+        ]
+      }
+    ]
+  },
+  "links": [
+    {
+      "rel": "self",
+      "href": "https://opds-test.pglaf.org/opds/publications?id=2641",
+      "type": "application/opds-publication+json"
+    },
+    {
+      "rel": "http://opds-spec.org/acquisition/open-access",
+      "href": "https://www.gutenberg.org/cache/epub/2641/pg2641-images-3.epub",
+      "type": "application/epub+zip",
+      "length": 453885,
+      "title": "EPUB3 (E-readers incl. Send-to-Kindle)"
+    },
+    {
+      "rel": "related",
+      "href": "https://opds-test.pglaf.org/opds/also?id=2641",
+      "type": "application/opds+json",
+      "title": "Readers also downloaded"
+    }
+  ],
+  "images": [
+    {
+      "href": "https://www.gutenberg.org/cache/epub/2641/pg2641.cover.medium.jpg",
+      "type": "image/jpeg",
+      "width": 200,
+      "height": 288,
+      "rel": "http://opds-spec.org/image"
+    },
+    {
+      "href": "https://www.gutenberg.org/cache/epub/2641/pg2641.cover.small.jpg",
+      "type": "image/jpeg",
+      "width": 66,
+      "height": 95,
+      "rel": "http://opds-spec.org/image/thumbnail"
+    }
+  ]
+}

@@ -176,7 +176,7 @@ In `load_book.py` around line 324:
 ```python
 # CURRENT (buggy):
 for k in "last_modified", "id", "revision", "created":
-    if existing.k:      # accesses literal attribute named "k", not variable k
+    if existing.k:  # accesses literal attribute named "k", not variable k
         del existing.k  # never executes — "k" is not a key in the dict
 ```
 

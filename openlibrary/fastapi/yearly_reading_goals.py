@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form, Query
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 from openlibrary.fastapi.auth import (
@@ -42,45 +42,27 @@ class ReadingGoalUpdateResponse(BaseModel):
 
 
 class ReadingGoalForm(BaseModel):
-    """Form data for creating or updating a reading goal.
+    """Form data for setting or deleting a reading goal.
 
-    Uses Pydantic model_validator to handle complex conditional validation
-    that depends on multiple fields (is_update flag affects goal validation).
+    ``goal == 0`` deletes the goal for ``year``; any other value creates or
+    updates it (upsert). ``year`` defaults to the current year.
     """
 
     goal: int = Field(
-        default=0,
         ge=0,
         le=MAX_READING_GOAL,
-        description="Target number of books to read (0-10000). Use 0 with is_update to delete.",
+        description="Target number of books to read (0-10000). Use 0 to delete the goal.",
     )
     year: int | None = Field(
         default=None,
         gt=0,
         le=9999,
-        description="Year for this reading goal. Defaults to current year for creates, required for updates.",
+        description="Year for this reading goal. Defaults to the current year.",
     )
     is_update: str | None = Field(
         default=None,
-        description="Set to any value to indicate this is an update operation (not create).",
+        description="Deprecated and ignored. Accepted so existing API callers don't break.",
     )
-
-    @model_validator(mode="after")
-    def validate_goal_logic(self) -> ReadingGoalForm:
-        """Validate goal based on whether this is an update or create operation.
-
-        - For creates: goal must be >= 1
-        - For updates: goal must be >= 0, and year is required
-        """
-        is_update = self.is_update is not None
-
-        if is_update:
-            if not self.year:
-                raise ValueError("Year required to update reading goals")
-        elif not self.goal:
-            raise ValueError("Reading goal must be a positive integer")
-
-        return self
 
 
 @router.get("/reading-goal.json", response_model=ReadingGoalsResponse)
@@ -110,16 +92,11 @@ async def update_reading_goal_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     form: Annotated[ReadingGoalForm, Form()],
 ) -> ReadingGoalUpdateResponse:
-    """Create or update a reading goal for the authenticated user."""
-    current_year = form.year or datetime.now().year
-    if form.is_update is not None:
-        # year is guaranteed to be not None here due to model_validator
-        assert form.year is not None
-        if form.goal == 0:
-            await YearlyReadingGoals.delete_by_username_and_year(user.username, form.year)
-        else:
-            await YearlyReadingGoals.update_target(user.username, form.year, form.goal)
+    """Create or update a reading goal, or delete it when ``goal`` is 0."""
+    year = form.year or datetime.now().year
+    if form.goal == 0:
+        await YearlyReadingGoals.delete_by_username_and_year(user.username, year)
     else:
-        await YearlyReadingGoals.create(user.username, current_year, form.goal)
+        await YearlyReadingGoals.create(user.username, year, form.goal)
 
     return ReadingGoalUpdateResponse(status="ok")

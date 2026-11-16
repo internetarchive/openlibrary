@@ -73,7 +73,7 @@ const CLEANUP_POLL_MS = 500;
 export function initProviderBorrowPopup(links, refresh = () => window.location.reload()) {
     for (const link of links) {
         if (OAUTH_BORROW_PROVIDERS.has(link.dataset.olProvider)) {
-            link.addEventListener('click', (event) => onBorrowClick(event, refresh));
+            link.addEventListener('click', event => onBorrowClick(event, refresh));
         }
     }
 }
@@ -113,7 +113,7 @@ function onBorrowClick(event, refresh) {
  * @param {() => void} refresh
  */
 function awaitLoan(popup, refresh) {
-    const onMessage = (event) => {
+    const onMessage = event => {
         if (event.origin !== window.location.origin) {
             return;
         }

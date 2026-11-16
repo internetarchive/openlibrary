@@ -9,6 +9,7 @@ import web
 
 from openlibrary.catalog.get_ia import get_from_archive_bulk
 from openlibrary.catalog.marc import html
+from openlibrary.utils.request_context import site
 
 from .. import app
 
@@ -52,12 +53,12 @@ class show_ia(app.view):
                 return "ERROR:" + str(e)
             raise web.seeother("https://archive.org/details/" + ia)
 
-        books = web.ctx.site.things(
+        books = site.get().things(
             {
                 "type": "/type/edition",
                 "source_records": "ia:" + ia,
             }
-        ) or web.ctx.site.things(
+        ) or site.get().things(
             {
                 "type": "/type/edition",
                 "ocaid": ia,
@@ -81,7 +82,7 @@ class show_ia(app.view):
         # Precompute the edition document for the breadcrumb
         edition = books[0] if books else None
         if edition:
-            edition = web.ctx.site.get(edition)
+            edition = site.get().get(edition)
 
         return app.render_template("showia", ia, record, edition=edition)
 
@@ -122,7 +123,7 @@ class show_marc(app.view):
         if (len_in_rec := int(result[:5])) != length:
             raise web.seeother(f"/show-records/{filename}:{offset}:{len_in_rec}")
 
-        books = web.ctx.site.things(
+        books = site.get().things(
             {
                 "type": "/type/edition",
                 "source_records": loc,
@@ -137,6 +138,6 @@ class show_marc(app.view):
 
         # Precompute the edition document for the breadcrumb
         if edition:
-            edition = web.ctx.site.get(edition)
+            edition = site.get().get(edition)
 
         return app.render_template("showmarc", record, filename, offset, length, edition=edition, next_length=next_length)

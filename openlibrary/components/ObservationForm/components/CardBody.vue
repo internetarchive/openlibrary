@@ -1,16 +1,16 @@
 <template>
-  <div class="card-body">
-    <OLChip
-      v-for="item in values"
-      :key="item + type"
-      :ref="'chip-' + item"
-      :text="item"
-      selectable
-      :selected="selectedValues.includes(item)"
-      class="value-chip"
-      @update-selected="updateSelected"
-    />
-  </div>
+    <div class="card-body">
+        <OLChip
+            v-for="item in values"
+            :key="item + type"
+            :ref="'chip-' + item"
+            :text="item"
+            selectable
+            :selected="selectedValues.includes(item)"
+            class="value-chip"
+            @update-selected="updateSelected"
+        />
+    </div>
 </template>
 
 <script>
@@ -37,7 +37,7 @@ export default {
         multiSelect: {
             type: Boolean,
             required: false,
-            default: false,
+            default: false
         },
         /**
          * The currently selected book tag type.
@@ -81,7 +81,7 @@ export default {
         /**
          * Returns an array of all of this book tag type's currently selected values.
          */
-        selectedValues: function() {
+        selectedValues: function () {
             return this.allSelectedValues[this.type]?.length ? this.allSelectedValues[this.type] : [];
         }
     },
@@ -94,7 +94,7 @@ export default {
          * @param {boolean} isSelected `true` if a chip is selected, `false` otherwise.
          * @param {String} text The text that the updated chip is displaying.
          */
-        updateSelected: function(isSelected, text) {
+        updateSelected: function (isSelected, text) {
             let updatedValues = this.allSelectedValues[this.type] ? this.allSelectedValues[this.type] : [];
 
             if (isSelected) {
@@ -130,10 +130,9 @@ export default {
             } else {
                 const index = updatedValues.indexOf(text);
                 updatedValues.splice(index, 1);
-                updateObservation('delete', this.type, text, this.workKey, this.username)
-                    .catch(() => {
-                        updatedValues.push(text);
-                    });
+                updateObservation('delete', this.type, text, this.workKey, this.username).catch(() => {
+                    updatedValues.push(text);
+                });
             }
         }
     }
@@ -142,13 +141,13 @@ export default {
 
 <style scoped>
 .card-body {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 1em;
+    display: flex;
+    flex-wrap: wrap;
+    padding: 1em;
 }
 
 .value-chip {
-  margin-right: 1em;
-  margin-bottom: .5em;
+    margin-right: 1em;
+    margin-bottom: 0.5em;
 }
 </style>

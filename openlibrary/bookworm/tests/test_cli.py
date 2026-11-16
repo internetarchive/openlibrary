@@ -15,7 +15,7 @@ progressed, and never silently ignoring config it cannot apply.
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import logging
 from typing import Final
 
@@ -342,7 +342,7 @@ class TestIdempotence:
         """The dangerous case: re-applying registration must not replay history."""
         cli.register_command(ol_config="x.yml", provider="lenny")
         feed = registered()["lenny"]
-        FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2026, 9, 1))
+        FeedRegistry.advance(feed.id, last_updated=dt.datetime(2026, 9, 1))
 
         cli.register_command(ol_config="x.yml", provider="lenny", since="2020-01-01")
 
@@ -384,7 +384,7 @@ class TestReseed:
         """The recovery path for 'registered it, then realised the backfill is
         too large' -- without hand-written SQL."""
         cli.register_command(ol_config="x.yml", provider="project_gutenberg")
-        FeedRegistry.advance(registered()["project_gutenberg"].id, last_updated=datetime.datetime(2020, 1, 1))
+        FeedRegistry.advance(registered()["project_gutenberg"].id, last_updated=dt.datetime(2020, 1, 1))
 
         cli.register_command(ol_config="x.yml", provider="project_gutenberg", since="2026-08-28", reseed=True)
 
@@ -392,7 +392,7 @@ class TestReseed:
 
     def test_reseed_is_required_to_move_it(self, registry_db):
         cli.register_command(ol_config="x.yml", provider="project_gutenberg")
-        FeedRegistry.advance(registered()["project_gutenberg"].id, last_updated=datetime.datetime(2020, 1, 1))
+        FeedRegistry.advance(registered()["project_gutenberg"].id, last_updated=dt.datetime(2020, 1, 1))
 
         cli.register_command(ol_config="x.yml", provider="project_gutenberg", since="2026-08-28")
 
@@ -452,7 +452,7 @@ class TestActivation:
         """The two-step rollout: register, validate, then activate -- without
         rewinding whatever progress a validation run made."""
         cli.register_command(ol_config="x.yml", provider="lenny")
-        FeedRegistry.advance(registered()["lenny"].id, last_updated=datetime.datetime(2026, 9, 1))
+        FeedRegistry.advance(registered()["lenny"].id, last_updated=dt.datetime(2026, 9, 1))
 
         cli.register_command(ol_config="x.yml", provider="lenny", activate=True)
 

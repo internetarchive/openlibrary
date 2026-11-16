@@ -17,6 +17,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
+from openlibrary.utils.legacy_db import install_connection_recovery
+
 logger = logging.getLogger("openlibrary.coverstore.asgi_app")
 
 # Kept in sync with the allow_* arguments to CORSMiddleware below.
@@ -28,7 +30,9 @@ CORS_HEADERS = {
 
 
 def create_app(configfile: str | None = None) -> FastAPI:
+    install_connection_recovery()
     from openlibrary.coverstore import code, server
+    from openlibrary.utils import prometheus_multiprocess
 
     if configfile := configfile or os.getenv("COVERSTORE_CONFIG"):
         server.setup(configfile)
@@ -78,7 +82,8 @@ def create_app(configfile: str | None = None) -> FastAPI:
     Instrumentator(
         should_group_status_codes=False,
         excluded_handlers=["/health", "/metrics"],
-    ).instrument(app).expose(app, include_in_schema=False)
+    ).instrument(app)
+    prometheus_multiprocess.expose(app)
 
     @app.api_route("/health", methods=["GET", "HEAD"], include_in_schema=False)
     def health() -> dict[str, str]:

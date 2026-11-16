@@ -8,6 +8,7 @@ from typing import Any, ClassVar
 from unittest.mock import MagicMock, patch
 
 import pytest
+import web
 
 # TODO: Can we remove _init_path someday :(
 sys.modules["_init_path"] = MagicMock()
@@ -70,7 +71,7 @@ def test_get_editions_for_books(mock_site):  # noqa: F811
     Attempting to save many ol editions and then get them back...
     """
     start = len(mock_site.docs)
-    mock_site.save_many(ol_editions.values())
+    mock_site.save_many(list(ol_editions.values()))
     assert len(mock_site.docs) - start == len(ol_editions)
     editions = get_editions_for_books(amz_books.values())
     assert len(editions) == len(ol_editions)
@@ -85,7 +86,7 @@ def test_get_pending_books(mock_site):  # noqa: F811
     assert len(get_pending_books(amz_books.values())) == len(amz_books)
     # Save corresponding ol editions into the mock site
     start = len(mock_site.docs)
-    mock_site.save_many(ol_editions.values())  # Save the ol editions
+    mock_site.save_many(list(ol_editions.values()))  # Save the ol editions
     assert len(mock_site.docs) - start == len(ol_editions)
     books = get_pending_books(amz_books.values())
     assert len(books) == 6  # Only 6 books are missing covers, titles, authors, etc.
@@ -376,10 +377,11 @@ class TestLoadConfigRequiresCreatorsAPI:
             cfg["amazon_api"] = legacy
 
         with (
-            patch("scripts.affiliate_server.openlibrary_load_config"),
+            patch("scripts.affiliate_server.setup_for_script"),
             patch("scripts.affiliate_server.stats"),
             patch("scripts.affiliate_server.config", new=cfg),
             patch("scripts.affiliate_server.AmazonCreatorsAPI") as creators_cls,
+            patch.object(web, "amazon_api", None, create=True),  # load_config() sets it
         ):
             load_config("openlibrary.yml")
             return creators_cls

@@ -11,6 +11,7 @@ import web
 from infogami.utils.view import render
 from openlibrary.core import helpers as h
 from openlibrary.core.helpers import is_exclusion
+from openlibrary.utils.request_context import site as site_context
 
 logger = logging.getLogger("openlibrary.readableurls")
 
@@ -38,10 +39,10 @@ class ReadableUrlProcessor:
         if web.ctx.path.startswith("/l/"):
             raise web.seeother("/languages/" + web.ctx.path[len("/l/") :])
 
-        if web.ctx.path.startswith("/user/") and not web.ctx.site.get(web.ctx.path):
+        if web.ctx.path.startswith("/user/") and not site_context.get().get(web.ctx.path):
             raise web.seeother("/people/" + web.ctx.path[len("/user/") :])
 
-        real_path, readable_path = get_readable_path(web.ctx.site, web.ctx.path, self.patterns, encoding=web.ctx.encoding)
+        real_path, readable_path = get_readable_path(site_context.get(), web.ctx.path, self.patterns, encoding=web.ctx.encoding)
 
         # @@ web.ctx.path is either quoted or unquoted depends on whether the application is running
         # @@ using builtin-server. That is probably a bug in web.py.

@@ -1,6 +1,6 @@
 """Tests for the read-only Matomo client used by Core Vitals retention scoring."""
 
-import datetime
+import datetime as dt
 from unittest.mock import Mock, patch
 
 import pytest
@@ -131,14 +131,14 @@ class TestWindowBounds:
     def test_rejects_a_window_longer_than_matomo_will_serve(self):
         """`date` is derived from `since`, but Matomo's raw retention is finite."""
         client = _client()
-        since = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=30)
+        since = dt.datetime.now(dt.UTC) - dt.timedelta(days=30)
         with pytest.raises(ValueError, match="longer than"):
             client.get_visits_since(since)
 
     def test_rejects_a_future_since(self):
         client = _client()
         with pytest.raises(ValueError, match="in the future"):
-            client.get_visits_since(datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1))
+            client.get_visits_since(dt.datetime.now(dt.UTC) + dt.timedelta(hours=1))
 
     def test_the_date_range_covers_the_requested_window(self):
         """A fixed `date=last7` silently clamped anything longer to seven days.
@@ -148,14 +148,14 @@ class TestWindowBounds:
         earliest hour entirely against the real instance.
         """
         client = _client()
-        now = datetime.datetime.now(datetime.UTC)
-        since = now - datetime.timedelta(days=3)
+        now = dt.datetime.now(dt.UTC)
+        since = now - dt.timedelta(days=3)
         with patch.object(client, "_post", return_value=[]) as mock_post:
             client.get_visits_since(since)
 
         start, _, end = mock_post.call_args.kwargs["date"].partition(",")
-        assert datetime.date.fromisoformat(start) < since.date()
-        assert datetime.date.fromisoformat(end) > now.date()
+        assert dt.date.fromisoformat(start) < since.date()
+        assert dt.date.fromisoformat(end) > now.date()
 
 
 class TestGetVisitsSince:
@@ -167,7 +167,7 @@ class TestGetVisitsSince:
             [],
         ]
         with patch.object(client, "_post", side_effect=pages) as mock_post:
-            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=3)
+            fetch = client.get_visits_since(dt.datetime.now(dt.UTC), page_size=3)
 
         assert [v["idVisit"] for v in fetch.visits] == list(range(6))
         assert mock_post.call_count == 3
@@ -184,7 +184,7 @@ class TestGetVisitsSince:
             [],
         ]
         with patch.object(client, "_post", side_effect=pages):
-            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=500)
+            fetch = client.get_visits_since(dt.datetime.now(dt.UTC), page_size=500)
         assert len(fetch.visits) == 150
         assert fetch.truncated is False
 
@@ -193,7 +193,7 @@ class TestGetVisitsSince:
         client = _client()
         pages = [[{"idVisit": i} for i in range(10)], []]
         with patch.object(client, "_post", side_effect=pages) as mock_post:
-            client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=500)
+            client.get_visits_since(dt.datetime.now(dt.UTC), page_size=500)
         assert [call.kwargs["filter_offset"] for call in mock_post.call_args_list] == [0, 10]
 
     def test_duplicate_visits_across_pages_are_dropped(self):
@@ -205,7 +205,7 @@ class TestGetVisitsSince:
             [],
         ]
         with patch.object(client, "_post", side_effect=pages):
-            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=3)
+            fetch = client.get_visits_since(dt.datetime.now(dt.UTC), page_size=3)
         assert [v["idVisit"] for v in fetch.visits] == [1, 2, 3, 4]
 
     def test_a_live_feed_shifting_by_a_full_page_loses_nothing(self):
@@ -227,7 +227,7 @@ class TestGetVisitsSince:
             return [{"idVisit": str(v)} for v in feed[offset : offset + limit]]
 
         with patch.object(client, "_post", side_effect=growing_feed):
-            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=5)
+            fetch = client.get_visits_since(dt.datetime.now(dt.UTC), page_size=5)
 
         collected = {int(v["idVisit"]) for v in fetch.visits}
         assert set(range(1, 11)) <= collected, "lost visits past the window shift"
@@ -242,7 +242,7 @@ class TestGetVisitsSince:
             [],
         ]
         with patch.object(client, "_post", side_effect=pages) as mock_post:
-            client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=2)
+            client.get_visits_since(dt.datetime.now(dt.UTC), page_size=2)
         # 0, then 2 (rows served), then 4 -- not 0, 2, 3 (rows kept).
         assert [call.kwargs["filter_offset"] for call in mock_post.call_args_list] == [0, 2, 4]
 
@@ -250,13 +250,13 @@ class TestGetVisitsSince:
         client = _client()
         pages = [[{"idVisit": 1}], [{"idVisit": 1}], []]
         with patch.object(client, "_post", side_effect=pages) as mock_post:
-            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=1)
+            fetch = client.get_visits_since(dt.datetime.now(dt.UTC), page_size=1)
         assert len(fetch.visits) == 1
         assert mock_post.call_count == 3
 
     def test_passes_min_timestamp(self):
         client = _client()
-        since = datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=1)
+        since = dt.datetime.now(dt.UTC) - dt.timedelta(hours=1)
         with patch.object(client, "_post", return_value=[]) as mock_post:
             client.get_visits_since(since)
         assert mock_post.call_args.kwargs["minTimestamp"] == int(since.timestamp())
@@ -272,7 +272,7 @@ class TestGetVisitsSince:
         """A truncated window must not be reported as a quiet one."""
         client = _client()
         with patch.object(client, "_post", side_effect=lambda *a, **k: [{"idVisit": f"{k['filter_offset']}-{n}"} for n in range(2)]):
-            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=2)
+            fetch = client.get_visits_since(dt.datetime.now(dt.UTC), page_size=2)
         assert fetch.truncated is True
         assert "page cap" in fetch.truncated_reason
 
@@ -280,7 +280,7 @@ class TestGetVisitsSince:
         """`timeout` is per socket read and bounds no overall duration."""
         client = _client()
         with patch.object(client, "_post", return_value=[{"idVisit": 1}]) as mock_post:
-            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), budget_seconds=0)
+            fetch = client.get_visits_since(dt.datetime.now(dt.UTC), budget_seconds=0)
         assert fetch.truncated is True
         assert "budget" in fetch.truncated_reason
         assert fetch.visits == []
@@ -290,12 +290,12 @@ class TestGetVisitsSince:
         """It bounds one fetch, so a client is not permanently poisoned by a tight budget."""
         client = _client()
         with patch.object(client, "_post", return_value=[]):
-            assert client.get_visits_since(datetime.datetime.now(datetime.UTC), budget_seconds=0).truncated is True
-            assert client.get_visits_since(datetime.datetime.now(datetime.UTC), budget_seconds=300).truncated is False
+            assert client.get_visits_since(dt.datetime.now(dt.UTC), budget_seconds=0).truncated is True
+            assert client.get_visits_since(dt.datetime.now(dt.UTC), budget_seconds=300).truncated is False
 
     def test_a_clean_run_is_not_flagged_truncated(self):
         client = _client()
         with patch.object(client, "_post", return_value=[]):
-            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC))
+            fetch = client.get_visits_since(dt.datetime.now(dt.UTC))
         assert fetch.truncated is False
         assert fetch.truncated_reason is None

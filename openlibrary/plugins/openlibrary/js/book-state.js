@@ -9,7 +9,7 @@
  * It also fills in what the server could not. Carousel buttons arrive without
  * state (their HTML is cached, or fetched lazily): they get the
  * reader's key from <body data-user-key>, labels from the hidden input in
- * site.html.jinja, and their state from one batched request, repeated for
+ * shell/base.html.jinja, and their state from one batched request, repeated for
  * buttons that arrive later. They stay pending until that lands, so nobody can
  * act on a shelf we have not read yet.
  *
@@ -23,7 +23,7 @@
 import { SHELF_LABEL, setShelf } from '../../../components/lit/utils/books-api.js';
 import { translate } from '../../../components/lit/utils/labels.js';
 import { debounce } from './nonjquery_utils.js';
-import { FadingToast } from './Toast.js';
+import { showToast } from '../../../components/lit/toast.js';
 import { buildPartialsUrl } from './utils';
 
 /** The server's cap on one ReadingState.json request. */
@@ -31,7 +31,7 @@ export const BATCH_SIZE = 100;
 /** How long insertions are pooled before a pass. Long enough to outlast a lazy carousel's fetch. */
 export const HYDRATE_DELAY = 100;
 const LABELS_INPUT = 'input[name="shelf-button-i18n-strings"]';
-/** English fallbacks for the left-shelf notice; my_books/shelf_button_i18n.html carries the translations. */
+/** English fallbacks for the left-shelf notice; core/shell/shelf_labels.py carries the translations. */
 const NOTICE_LABELS = {
     wantToRead: 'Want to Read',
     currentlyReading: 'Currently Reading',
@@ -40,8 +40,29 @@ const NOTICE_LABELS = {
     movedTo: 'Moved to %(shelf)s',
     removedFromShelf: 'Removed from shelf',
     undo: 'Undo',
-    errorGeneric: 'Something went wrong. Please try again.',
+    errorGeneric: 'Something went wrong. Please try again.'
 };
+
+const WORK_OLID = /^OL\d+W$/;
+const ORPHAN_KEY = /^\/works\/(OL\d+M)$/;
+
+/**
+ * The edition behind a search "work" that is really an edition with no work:
+ * Solr indexes those under /works/ with the edition's own OLID.
+ * @param {string} key
+ * @returns {string|null} "/books/OL…M", or null for a real work.
+ */
+export function orphanedEditionKey(key) {
+    const match = ORPHAN_KEY.exec(key || '');
+    return match ? `/books/${match[1]}` : null;
+}
+
+/**
+ * Whether ReadingState can be asked about this key. One OLID that is not a
+ * work fails the whole batch, so everything else is left out of it.
+ * @param {string} key
+ */
+export const isWorkKey = key => WORK_OLID.test((key || '').split('/').pop());
 
 /** @type {Object<string, string|Object<string, string>>|null} */
 let labels = null;
@@ -53,7 +74,7 @@ const requested = new WeakSet();
 let listening = false;
 
 /**
- * The labels site.html.jinja rendered.
+ * The labels shell/base.html.jinja rendered.
  * @returns {Object<string, string|Object<string, string>>|null}
  */
 export function readLabels() {
@@ -186,9 +207,7 @@ function markRowLeftShelf(button, workKey, next) {
         return;
     }
     const notice = existing ?? createLeftShelfNotice(row, workKey, pageShelf);
-    notice.querySelector('.left-shelf-notice__text').textContent = next === null
-        ? t('removedFromShelf')
-        : t('movedTo', { shelf: t(SHELF_LABEL[next]) });
+    notice.querySelector('.left-shelf-notice__text').textContent = next === null ? t('removedFromShelf') : t('movedTo', { shelf: t(SHELF_LABEL[next]) });
     notice.dataset.from = next ?? '';
 }
 
@@ -231,7 +250,7 @@ async function undoShelfChange(workKey, pageShelf, notice) {
         await setShelf(workKey, pageShelf, { editionKey: button?.editionKey });
     } catch {
         emit(workKey, from, rating);
-        new FadingToast(t('errorGeneric')).show();
+        showToast(t('errorGeneric'), { type: 'error' });
     }
 }
 
@@ -250,7 +269,7 @@ function onCheckIn(e) {
  * @returns {Promise<void>}
  */
 async function fetchState(buttons) {
-    const olids = [...new Set(buttons.map(b => b.getAttribute('work-key').split('/').pop()))];
+    const olids = [...new Set(buttons.map(b => b.getAttribute('work-key').split('/').pop()))].filter(isWorkKey);
     for (let i = 0; i < olids.length; i += BATCH_SIZE) {
         const chunk = olids.slice(i, i + BATCH_SIZE);
         let works;
@@ -284,7 +303,15 @@ export async function hydrate() {
             if (labels) button.labels = labels;
             if (key && !button.hasAttribute('user-key')) button.userKey = key;
         }
-        if (key && !button.hasAttribute('data-hydrated') && !requested.has(button)) {
+        // An edition with no work has no shelf to ask about, only lists to
+        // join; cached carousel HTML can still carry it as a work.
+        const orphan = orphanedEditionKey(button.getAttribute('work-key'));
+        if (orphan) {
+            button.setAttribute('work-key', orphan);
+            button.listsOnly = true;
+        }
+        const shelvable = !button.listsOnly && isWorkKey(button.getAttribute('work-key'));
+        if (key && shelvable && !button.hasAttribute('data-hydrated') && !requested.has(button)) {
             requested.add(button);
             // Held until its state lands: the shelf POST is a toggle, so a tap
             // now would read the unknown shelf as "none" and take the book off it.

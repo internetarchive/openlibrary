@@ -1,6 +1,6 @@
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from functools import cached_property
 from typing import TYPE_CHECKING, Required, TypedDict, TypeVar
 
@@ -84,7 +84,9 @@ class TocEntry:
         )
 
     def to_dict(self) -> dict:
-        return {key: value for key, value in self.__dict__.items() if value is not None}
+        # Only the declared fields; `__dict__` would also carry the value a
+        # `cached_property` such as `extra_fields` stores on first access.
+        return {f.name: value for f in fields(self) if (value := getattr(self, f.name)) is not None}
 
     @staticmethod
     def from_markdown(line: str) -> TocEntry:

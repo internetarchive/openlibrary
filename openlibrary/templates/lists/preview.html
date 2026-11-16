@@ -1,33 +1,3 @@
 $def with (list)
-    <span class="imageLg">
-        $ cover = list.get_cover() or list.get_default_cover()
-        $ cover_url = cover and cover.url("M") or "/static/images/icons/avatar_book-sm.png"
-        <a href="$list.key"><img src="$cover_url" alt="$_('Cover of: %(title)s', title=list.name)" title="$_('Cover of: %(title)s', title=list.name)"/></a>
-    </span>
-    <span class="details">
-        <span class="resultTitle">
-            $ owner = list.get_owner()
-            <h3><a href="$list.key">$list.name</a></h3>
-            $if owner:
-                $ is_owner = ctx.user and ctx.user.key == owner.key
-                <span class="list-owner small grey">
-                    $if is_owner:
-                        $:_('by <a href="%s">You</a>', websafe(owner.key))
-                    $else:
-                        $:macros.BookByline([{'name': owner.name, 'url': owner.key}])
-                </span>
 
-            <div class="editions smaller">
-                $ungettext("%(count)d item", "%(count)d items", len(list.seeds), count=len(list.seeds))
-
-                <span class="lightgreen">
-                  $_('Last modified %(date)s', date=datestr(list.last_modified))
-                </span>
-            </div>
-
-            <span class="description no-img">
-                $if list.description:
-                    $:format(list.description)
-            </span>
-        </span>
-    </span>
+$:render_jinja_template("lists/preview.html.jinja", preview=list.card(ctx.user and ctx.user.key))

@@ -83,24 +83,23 @@ async def create_or_update_patron_check_in(
     date_str = make_date_string(data.year, data.month, data.day)
 
     if data.event_id:
-        events = BookshelvesEvents.select_by_id(data.event_id)
-        if not events:
+        event = await BookshelvesEvents.select_by_id(data.event_id)
+        if event is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Event not found",
             )
 
-        event = events[0]
-        if user.username != event["username"]:
+        if user.username != event.username:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Forbidden",
             )
 
-        BookshelvesEvents.update_event(data.event_id, event_date=date_str, edition_id=edition_id)
+        await BookshelvesEvents.update_event(data.event_id, event_date=date_str, edition_id=edition_id)
         event_id = data.event_id
     else:
-        event_id = BookshelvesEvents.create_event(user.username, work_id, edition_id, date_str, event_type=data.event_type)
+        event_id = await BookshelvesEvents.create_event(user.username, work_id, edition_id, date_str, event_type=data.event_type)
 
     return CheckInResponse(status="ok", id=event_id)
 
@@ -115,19 +114,18 @@ async def delete_patron_check_in(
     The user can only delete their own check-in events.
     Returns 200 OK with empty body on success (matching web.py behavior).
     """
-    events = BookshelvesEvents.select_by_id(check_in_id)
-    if not events:
+    event = await BookshelvesEvents.select_by_id(check_in_id)
+    if event is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Event does not exist",
         )
 
-    event = events[0]
-    if user.username != event["username"]:
+    if user.username != event.username:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Forbidden",
         )
 
-    BookshelvesEvents.delete_by_id(check_in_id)
+    await BookshelvesEvents.delete_by_id(check_in_id)
     return Response(status_code=status.HTTP_200_OK, content="")

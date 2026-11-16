@@ -16,37 +16,37 @@
 /** Minimal Popover API stand-in: jsdom implements neither the methods nor the pseudo-class. */
 function installPopoverApiStub() {
     const open = new WeakSet();
-    HTMLElement.prototype.showPopover = vi.fn(function() {
+    HTMLElement.prototype.showPopover = vi.fn(function () {
         if (open.has(this)) throw new DOMException('already open', 'InvalidStateError');
         open.add(this);
     });
-    HTMLElement.prototype.hidePopover = vi.fn(function() {
+    HTMLElement.prototype.hidePopover = vi.fn(function () {
         if (!open.has(this)) throw new DOMException('not open', 'InvalidStateError');
         open.delete(this);
     });
     const realMatches = Element.prototype.matches;
-    Element.prototype.matches = function(selector) {
+    Element.prototype.matches = function (selector) {
         if (selector === ':popover-open') return open.has(this);
         return realMatches.call(this, selector);
     };
     return {
-        isOpen: (el) => open.has(el),
+        isOpen: el => open.has(el),
         restore: () => {
             delete HTMLElement.prototype.showPopover;
             delete HTMLElement.prototype.hidePopover;
             Element.prototype.matches = realMatches;
-        },
+        }
     };
 }
 
 function installMatchMediaStub(matches = false) {
-    window.matchMedia = (query) => ({
+    window.matchMedia = query => ({
         matches: typeof matches === 'function' ? matches(query) : matches,
         media: query,
         addEventListener() {},
         removeEventListener() {},
         addListener() {},
-        removeListener() {},
+        removeListener() {}
     });
 }
 
@@ -68,7 +68,7 @@ async function mountPopover() {
     return el;
 }
 
-const panelOf = (el) => el.shadowRoot.querySelector('.panel');
+const panelOf = el => el.shadowRoot.querySelector('.panel');
 
 /**
  * Opening runs across several update cycles: `open` triggers `_show()`, which
@@ -97,7 +97,7 @@ describe('ol-popover top-layer promotion', () => {
         document.body.innerHTML = '';
     });
 
-    it('promotes the panel to the top layer when the Popover API exists', async() => {
+    it('promotes the panel to the top layer when the Popover API exists', async () => {
         popoverApi = installPopoverApiStub();
         const el = await mountPopover();
 
@@ -109,7 +109,7 @@ describe('ol-popover top-layer promotion', () => {
         expect(popoverApi.isOpen(panel)).toBe(true);
     });
 
-    it('uses popover="manual", never "auto"', async() => {
+    it('uses popover="manual", never "auto"', async () => {
         // "auto" would light-dismiss and force-close sibling popovers outside the
         // ancestor chain, collapsing the component's own nesting stack.
         popoverApi = installPopoverApiStub();
@@ -120,7 +120,7 @@ describe('ol-popover top-layer promotion', () => {
         expect(panelOf(el).getAttribute('popover')).not.toBe('auto');
     });
 
-    it('falls back to plain position: fixed without the Popover API', async() => {
+    it('falls back to plain position: fixed without the Popover API', async () => {
         // No stub installed — jsdom has no showPopover, standing in for Safari < 17.
         const el = await mountPopover();
 
@@ -129,7 +129,7 @@ describe('ol-popover top-layer promotion', () => {
         expect(panelOf(el).hasAttribute('popover')).toBe(false);
     });
 
-    it('demotes the panel out of the top layer when it closes', async() => {
+    it('demotes the panel out of the top layer when it closes', async () => {
         popoverApi = installPopoverApiStub();
         const el = await mountPopover();
 
@@ -143,7 +143,7 @@ describe('ol-popover top-layer promotion', () => {
         expect(HTMLElement.prototype.hidePopover).toHaveBeenCalled();
     });
 
-    it('does not throw when cleanup runs on an already-hidden panel', async() => {
+    it('does not throw when cleanup runs on an already-hidden panel', async () => {
         popoverApi = installPopoverApiStub();
         const el = await mountPopover();
 
@@ -182,7 +182,7 @@ describe('ol-popover close fallback', () => {
         document.body.innerHTML = '';
     });
 
-    it('demotes and restores focus when transitionend never fires', async() => {
+    it('demotes and restores focus when transitionend never fires', async () => {
         popoverApi = installPopoverApiStub();
         const el = await mountPopover();
         const trigger = el.querySelector('[slot="trigger"]');
@@ -204,7 +204,7 @@ describe('ol-popover close fallback', () => {
         expect(document.activeElement).toBe(trigger);
     });
 
-    it('lets a real transitionend win, without a second cleanup', async() => {
+    it('lets a real transitionend win, without a second cleanup', async () => {
         popoverApi = installPopoverApiStub();
         const el = await mountPopover();
 
@@ -222,7 +222,7 @@ describe('ol-popover close fallback', () => {
         expect(HTMLElement.prototype.hidePopover.mock.calls.length).toBe(hideCalls);
     });
 
-    it('cancels the pending close when reopened mid-exit', async() => {
+    it('cancels the pending close when reopened mid-exit', async () => {
         popoverApi = installPopoverApiStub();
         const el = await mountPopover();
 
@@ -237,10 +237,10 @@ describe('ol-popover close fallback', () => {
         expect(popoverApi.isOpen(panelOf(el))).toBe(true);
     });
 
-    it('takes only one body scroll lock when reopened mid-exit', async() => {
+    it('takes only one body scroll lock when reopened mid-exit', async () => {
         // A second lock would outlive the single _releaseScrollLock() and leave
         // <body> pinned at position: fixed for the rest of the session.
-        installMatchMediaStub((q) => q.includes('max-width'));
+        installMatchMediaStub(q => q.includes('max-width'));
         popoverApi = installPopoverApiStub();
         const el = await mountPopover();
 
@@ -276,15 +276,15 @@ describe('ol-popover block-outside-clicks', () => {
         document.body.innerHTML = '';
     });
 
-    const backdropOf = (el) => el.shadowRoot.querySelector('.backdrop');
+    const backdropOf = el => el.shadowRoot.querySelector('.backdrop');
 
-    it('renders no backdrop on desktop by default', async() => {
+    it('renders no backdrop on desktop by default', async () => {
         const el = await mountPopover();
         await openAndSettle(el);
         expect(backdropOf(el)).toBeNull();
     });
 
-    it('renders a transparent guard backdrop under the panel when set', async() => {
+    it('renders a transparent guard backdrop under the panel when set', async () => {
         popoverApi = installPopoverApiStub();
         const el = await mountPopover();
         el.blockOutsideClicks = true;
@@ -302,7 +302,7 @@ describe('ol-popover block-outside-clicks', () => {
         expect(panelOf(el).hasAttribute('aria-modal')).toBe(false);
     });
 
-    it('closes on a backdrop click and keeps it from reaching the page', async() => {
+    it('closes on a backdrop click and keeps it from reaching the page', async () => {
         const el = await mountPopover();
         el.blockOutsideClicks = true;
         await openAndSettle(el);
@@ -322,8 +322,8 @@ describe('ol-popover block-outside-clicks', () => {
         expect(el._animState).toBe('exiting');
     });
 
-    it('keeps the tray scrim, not the guard, on mobile', async() => {
-        installMatchMediaStub((q) => q.includes('max-width'));
+    it('keeps the tray scrim, not the guard, on mobile', async () => {
+        installMatchMediaStub(q => q.includes('max-width'));
         const el = await mountPopover();
         el.blockOutsideClicks = true;
         await openAndSettle(el);
@@ -350,7 +350,7 @@ describe('ol-popover anchor', () => {
 
     const rect = (left, width) => ({ left, right: left + width, width, top: 100, bottom: 136, height: 36 });
 
-    it('centers the panel on the matching ancestor', async() => {
+    it('centers the panel on the matching ancestor', async () => {
         const el = await mountPopover();
         const group = document.createElement('div');
         group.className = 'split';
@@ -367,14 +367,14 @@ describe('ol-popover anchor', () => {
         expect(el._position.left).toBe(80);
     });
 
-    it('falls back to the trigger when the selector matches nothing', async() => {
+    it('falls back to the trigger when the selector matches nothing', async () => {
         const el = await mountPopover();
         el.anchor = '.missing';
 
         expect(el._anchorEl).toBe(el.querySelector('[slot="trigger"]'));
     });
 
-    it('prefers anchorElement over the selector', async() => {
+    it('prefers anchorElement over the selector', async () => {
         const el = await mountPopover();
         const host = document.createElement('div');
         el.anchor = '.missing';
@@ -383,7 +383,7 @@ describe('ol-popover anchor', () => {
         expect(el._anchorEl).toBe(host);
     });
 
-    it('widens a narrow panel to the anchor and positions the widened size', async() => {
+    it('widens a narrow panel to the anchor and positions the widened size', async () => {
         const el = await mountPopover();
         const host = document.createElement('div');
         el.anchorElement = host;
