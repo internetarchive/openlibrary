@@ -6,7 +6,7 @@ within some amount of time, in hours.
 If called with a Slack token and channel, publishes a digest of
 the issues that were identified to the given channel.
 
-Adds the "Needs: Response" label to the issues in Github.
+Adds the "Needs: Response" label to the issues in Github, and removes it once staff or the issue's lead has replied.
 """
 
 import argparse
@@ -17,6 +17,7 @@ import sys
 import time
 from datetime import datetime, timedelta
 from typing import Any
+from urllib.parse import quote
 
 import requests
 
@@ -97,12 +98,14 @@ def fetch_issues():
     return results
 
 
-def filter_issues(issues: list, hours: int, leads: list[dict[str, str]], bots: list[dict[str, str | bool]]):
+def filter_issues(issues: list, hours: int, staff: list[str], bots: list[dict[str, str | bool]]) -> tuple[list[dict[str, str]], list[int]]:
     """
     Returns list of issues that have the following criteria:
     - Issues have at least one comment
     - Issues have been last updated since the given number of hours
-    - Latest comment is not from an issue lead, nor an excluded bot account
+    - Latest comment is not from staff or the issue's lead, nor an excluded bot account
+
+    Also returns the numbers of issues whose latest comment is from staff or the issue's lead and that still have the "Needs: Response" label.
 
     Checking who left the last comment requires making up to two calls to
     GitHub's REST API.
@@ -116,6 +119,7 @@ def filter_issues(issues: list, hours: int, leads: list[dict[str, str]], bots: l
         print(f"Documentation URL: {_d.get('documentation_url', '')}")
 
     results = []
+    lead_replied = []
 
     since, _date_string = time_since(hours)
 
@@ -176,7 +180,7 @@ def filter_issues(issues: list, hours: int, leads: list[dict[str, str]], bots: l
         if created > since:
             # Next step: Determine if the last commenter is a lead
             last_commenter = last_comment["user"]["login"]
-            if should_label_issue(last_commenter, leads, bots):
+            if should_label_issue(last_commenter, i["labels"], staff, bots):
                 lead_label = find_lead_label(i.get("labels", []))
                 results.append(
                     {
@@ -187,16 +191,26 @@ def filter_issues(issues: list, hours: int, leads: list[dict[str, str]], bots: l
                         "lead_label": lead_label,
                     }
                 )
+            elif is_lead_reply(last_commenter, i["labels"], staff) and any(label["name"] == "Needs: Response" for label in i["labels"]):
+                lead_replied.append(i["number"])
 
-    return results
+    return results, lead_replied
 
 
-def should_label_issue(last_commenter: str, leads: list[dict[str, str]], bots: list[dict[str, str | bool]]) -> bool:
+def is_lead_reply(commenter: str, labels: list[dict[str, Any]], staff: list[str]) -> bool:
+    """
+    Returns `True` if the commenter is staff, or is named in one of the issue's own "Lead: @name" labels.
+    """
+    commenter = commenter.lower()
+    return commenter in staff or f"lead: @{commenter}" in (label["name"].lower() for label in labels)
+
+
+def should_label_issue(last_commenter: str, labels: list[dict[str, Any]], staff: list[str], bots: list[dict[str, str | bool]]) -> bool:
     """
     Returns `True` if the last commenter's comment should trigger "Needs: Response" labeling
     of an issue or PR.
     """
-    if last_commenter in (lead["githubUsername"] for lead in leads):
+    if is_lead_reply(last_commenter, labels, staff):
         return False
     if bot_acct := next((bot for bot in bots if bot["githubUsername"] == last_commenter), None):
         return bool(bot_acct["triggersNeedsResponse"])
@@ -347,6 +361,25 @@ def add_label_to_issues(issues) -> bool:
     return all_issues_labeled
 
 
+def remove_label_from_issues(issue_numbers: list[int]) -> bool:
+    """Removes "Needs: Response" from the given issues. Returns `False` if any removal failed."""
+    all_removed = True
+    for number in issue_numbers:
+        # GitHub recommends waiting at least one second between mutative requests
+        time.sleep(1)
+
+        label_url = f"https://api.github.com/repos/internetarchive/openlibrary/issues/{number}/labels/{quote('Needs: Response')}"
+        response = requests.delete(label_url, headers=github_headers)
+
+        # 404 means the label is already gone, which is the state we want
+        if response.status_code not in (200, 404):
+            all_removed = False
+            print(f"Failed to remove label from issue #{number} --- status code: {response.status_code}")
+            print(label_url)
+
+    return all_removed
+
+
 def verbose_output(issues):
     """
     Prints detailed information about the given issues.
@@ -396,6 +429,7 @@ def start_job():
         print("Reading configuration file...")
         config = read_config(args.config)
         leads = config.get("leads", [])
+        staff = [lead["githubUsername"].lower() for lead in leads if lead.get("clearsNeedsResponseOnAnyIssue")]
         bots = config.get("bots", [])
     except OSError, json.JSONDecodeError:
         raise ConfigurationError("An error occurred while parsing the configuration file.")
@@ -405,8 +439,9 @@ def start_job():
     print(f"{len(issues)} found")
 
     print("Filtering issues...")
-    filtered_issues = filter_issues(issues, args.hours, leads, bots)
+    filtered_issues, lead_replied_issues = filter_issues(issues, args.hours, staff, bots)
     print(f"{len(filtered_issues)} remain after filtering.")
+    print(f"{len(lead_replied_issues)} had a lead reply and still carry the label.")
 
     all_issues_labeled = True
     if not args.no_labels:
@@ -414,6 +449,9 @@ def start_job():
         all_issues_labeled = add_label_to_issues(filtered_issues)
         if not all_issues_labeled:
             print("Failed to label some issues")
+        print('Removing "Needs: Response" from issues a lead replied to...')
+        if not remove_label_from_issues(lead_replied_issues):
+            print("Failed to remove the label from some issues")
     if args.slack_channel:
         print("Publishing digest to Slack...")
         publish_digest(filtered_issues, args.slack_channel, args.hours, leads, all_issues_labeled)

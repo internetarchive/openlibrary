@@ -1,0 +1,19 @@
+{% macro searchbox(q, placeholder="", autofocus=False) %}
+    <div class="searchbox">
+        <input type="search"
+               enterkeyhint="search"
+               class="searchbox__input"
+               name="q"
+               size="100"
+               placeholder="{{ placeholder or _('Search') }}"
+               aria-label="{{ _('Search') }}"
+               value="{{ q }}"
+               {% if autofocus %}autofocus{% endif %}>
+        <div>
+            <input type="submit"
+                   value=""
+                   class="searchbox__btn-icon"
+                   aria-label="{{ _('Search') }}">
+        </div>
+    </div>
+{% endmacro %}

@@ -22,7 +22,7 @@ Participation (community contribution)
 Content Value
 ```
 
-Each vital has a score with a formula. All scores are computed via [[search|Solr]] and emitted to statsd. The goal is to have all three scores growing simultaneously — a system where improving one improves the others.
+Each vital has a score with a formula. All scores are computed via [Solr](../search/README.md) and emitted to statsd. The goal is to have all three scores growing simultaneously — a system where improving one improves the others.
 
 ---
 
@@ -123,7 +123,7 @@ demand(r) = (ε × α)
 **Scenario:** A cold edition of a hot work (0 page views, 0 reading logs, work has 20K historical logs):
 `demand = (ε × α) + 0 + (0.2 × min(25, log(21000))) ≈ 1.98`
 
-**Implementation:** Daily diff — compute what fell out of the 30-day window and what came in from the last 24h. Partial atomic update on Solr records. `bookshelves_books` table (see [[features]]) is the primary data source.
+**Implementation:** Daily diff — compute what fell out of the 30-day window and what came in from the last 24h. Partial atomic update on Solr records. `bookshelves_books` table (see [features](../features/README.md)) is the primary data source.
 
 **Open work:**
 - [ ] Endpoint on edition page for computing demand of a record
@@ -421,8 +421,8 @@ Implementation extends the Infogami `transaction` table to join with `transactio
 ## Dependencies
 
 **This system depends on:**
-- [[search|Solr]] — all scores stored and queried here; CVS requires Trending code for demand computation
-- [[features|Reading Log / Bookshelves]] — `bookshelves_books` is the primary demand signal
+- [Solr](../search/README.md) — all scores stored and queried here; CVS requires Trending code for demand computation
+- [Reading Log / Bookshelves](../features/README.md) — `bookshelves_books` is the primary demand signal
 - Matomo — patron class counts (P_τ) for Retention Score
 - statsd — score emission
 
@@ -443,4 +443,4 @@ Implementation extends the Infogami `transaction` table to join with `transactio
 
 ---
 
-*See [[README]] · [[METHODOLOGY]] for ingest rules*
+*See [README](../README.md) · [[METHODOLOGY]] for ingest rules*

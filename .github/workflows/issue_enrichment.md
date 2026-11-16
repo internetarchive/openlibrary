@@ -18,8 +18,8 @@ Blessed staff list: `mekarpeles`, `lokesh`, `cdrini`, `scottbarnes`, `RayBB`, `s
 **If the author is a blessed staff member**: run the full enrichment workflow.
 
 **If the author is not staff**:
-- `Type: Question` → reply only: "Thanks for reaching out! You may also get a faster response by posting on our [Discussions](https://github.com/internetarchive/openlibrary/discussions) board." Stop.
-- Feature Request → reply only: "Thanks for the suggestion! A staff member will review this and follow up when they can." Stop.
+- Label `Type: Question` → reply only: "Thanks for reaching out! You may also get a faster response by posting on our [Discussions](https://github.com/internetarchive/openlibrary/discussions) board." Stop.
+- Issue type `Feature` (the `issueType` field from Step 1) → reply only: "Thanks for the suggestion! A staff member will review this and follow up when they can." Stop.
 - All other non-staff issues → run the full enrichment workflow.
 
 **Always skip if**:
@@ -34,7 +34,7 @@ Blessed staff list: `mekarpeles`, `lokesh`, `cdrini`, `scottbarnes`, `RayBB`, `s
 
 ```bash
 gh issue view {ISSUE_NUMBER} --repo internetarchive/openlibrary \
-  --json number,title,body,labels,assignees,state,comments,author
+  --json number,title,body,labels,issueType,assignees,state,comments,author
 ```
 
 Derive `{ISSUE_NUMBER}` from the issue number provided in your prompt context.
@@ -215,6 +215,10 @@ gh issue comment {ISSUE_NUMBER} --repo internetarchive/openlibrary --body "COMME
 Always end every comment with `<!-- ol-issue-bot -->`.
 
 ### Comment structure
+
+**For an unassigned `Good First Issue`**, include this guidance when applying or retaining the label:
+
+> No assignment is needed for this Good First Issue. Before you start, read [how to pick up a Good First Issue](https://docs.openlibrary.org/developers/CONTRIBUTING.html#good-first-issues), and leave a comment here before you open your PR.
 
 **Opening line** (non-staff authors only — omit for staff):
 

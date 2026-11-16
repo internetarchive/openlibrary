@@ -53,7 +53,7 @@ async def test_failed_query_counts_as_failed(timings):
 
 
 async def test_checkout_includes_waiting_for_a_free_connection(timings):
-    max_size = 20  # async_db's pool size
+    max_size = 2  # async_db's pool size
     release = asyncio.Event()
     checked_out = asyncio.Semaphore(0)
 

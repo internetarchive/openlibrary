@@ -30,7 +30,7 @@ mkdir -p $DEPLOY_DIR
 WEB_HOSTNAMES="ol-web0 ol-web2 ol-web3"
 # Note: ol-solr0 and ol-solr2 are currently excluded due to a version
 # upgrade pending full reindex
-ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 $WEB_HOSTNAMES"
+ALL_HOSTNAMES="ol-home0 ol-covers1 ol-www1 $WEB_HOSTNAMES"
 SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 
 KILL_CRON=${KILL_CRON:-""}
@@ -472,6 +472,9 @@ deploy_openlibrary() {
     cp -r openlibrary/docker openlibrary_new
     cp -r openlibrary/scripts openlibrary_new
     cp -r openlibrary/conf openlibrary_new
+    # scripts/obfi.sh reads the shared bot list from ../openlibrary/utils/
+    mkdir -p openlibrary_new/openlibrary/utils
+    cp openlibrary/openlibrary/utils/bot_user_agents.txt openlibrary_new/openlibrary/utils/
     COPYFILE_DISABLE=1 tar -czf openlibrary_new.tar.gz openlibrary_new
 
     if [[ "$SKIP_OL_TRANSFER_CODE" != "1" ]]; then
@@ -731,18 +734,18 @@ prune_docker () {
 # Which compose service runs nginx on each host; the compose profile is the
 # hostname. Hosts absent from this list don't run nginx.
 #
-# All three belong here, even though ol-www0/web_nginx is the only one that loads
+# All three belong here, even though ol-www1/web_nginx is the only one that loads
 # the ModSecurity ruleset (`modsecurity on` appears in docker/web_nginx.conf and
 # nowhere else). Every nginx service mounts the shared docker/nginx.conf, which
 # includes seven files out of /olsystem -- logging.conf, tagger.js, deny.conf,
 # is_blessed_ip.conf, is_blessed_ua.conf, is_sus_ip.conf, ua_rate_limit_key.conf
 # -- so a bad olsystem include crash-loops infobase_nginx and covers_nginx just
-# as readily. Narrowing this map to ol-www0 would leave those unguarded.
+# as readily. Narrowing this map to ol-www1 would leave those unguarded.
 nginx_service_for() {
     case "$1" in
-        ol-www0)    echo "web_nginx" ;;
+        ol-www1)    echo "web_nginx" ;;
         ol-home0)   echo "infobase_nginx" ;;
-        ol-covers0) echo "covers_nginx" ;;
+        ol-covers1) echo "covers_nginx" ;;
         *)          echo "" ;;
     esac
 }

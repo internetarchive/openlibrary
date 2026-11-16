@@ -14,6 +14,7 @@ from infogami.utils import stats
 from infogami.utils.delegate import register_exception
 from openlibrary.core import helpers, ia, lending
 from openlibrary.plugins.books import dynlinks
+from openlibrary.utils.request_context import site
 
 
 def key_to_olid(key):
@@ -214,7 +215,7 @@ class ReadProcessor:
         # filter out 'id:foo' before passing to dynlinks
         bib_keys = [k for k in bib_keys if k[:3].lower() != "id:"]
 
-        self.docs = await dynlinks.add_availability(dynlinks.query_docs(bib_keys))
+        self.docs = await dynlinks.add_availability(await dynlinks.query_docs(bib_keys))
         if not self.options.get("no_details"):
             self.detailss = dynlinks.process_result_for_details(self.docs, self.base_url)
         else:
@@ -244,7 +245,7 @@ class ReadProcessor:
                 "type": "/type/edition",
                 "ocaid": iaids,
             }
-            result = web.ctx.site.things(query)
+            result = site.get().things(query)
             return result
 
         ekeys = lookup_iaids(iaids)

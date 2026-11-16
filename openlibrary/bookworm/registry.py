@@ -22,12 +22,12 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 import web
 
 from openlibrary.bookworm.opds import Feed
-from openlibrary.core import db
+from openlibrary.core import db  # noqa: TID251
 
 logger = logging.getLogger("openlibrary.bookworm.registry")
 
 if TYPE_CHECKING:
-    from web.db import ResultSet
+    from web.db import ResultSet  # noqa: TID251
 
 CursorStyle = Literal["client", "modified_since"]
 """How a feed lets us fetch only what changed since the last run:

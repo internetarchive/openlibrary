@@ -1,10 +1,12 @@
 import pytest
+from luqum.parser import parser
 
 from openlibrary.solr.query_utils import (
     EmptyTreeError,
     luqum_parser,
     luqum_remove_child,
     luqum_remove_field,
+    luqum_remove_unfielded,
     luqum_replace_child,
     luqum_replace_field,
     luqum_traverse,
@@ -120,3 +122,22 @@ def test_luqum_remove_field():
     assert fn("(edition.title:Bob OR work.title:OL5M)") == "( work.title:OL5M)"
     assert fn("edition.title:Bob OR (work.title:OL5M)") == "(work.title:OL5M)"
     assert fn("edition.title: foo bar bar author: blah") == "author:blah"
+
+
+REMOVE_UNFIELDED_TESTS = {
+    "Fielded only": ("+title:foo", "+title:foo"),
+    "Unfielded only": ("foo bar", None),
+    "Mixed": ("foo +title:bar", "+title:bar"),
+    "Negated unfielded": ("+title:bar -foo", "+title:bar"),
+    "Negated fielded": ("foo -title:bar", "-title:bar"),
+    "OR with unfielded": ("(foo OR title:bar) +publisher:x", "+publisher:x"),
+    "OR fully fielded": ("foo (title:bar OR publisher:x)", "(title:bar OR publisher:x)"),
+    "Nested group": ("+(foo +title:bar)", "+(+title:bar)"),
+    "Match all": ("*:*", "*:*"),
+}
+
+
+@pytest.mark.parametrize(("query", "expected"), REMOVE_UNFIELDED_TESTS.values(), ids=REMOVE_UNFIELDED_TESTS.keys())
+def test_luqum_remove_unfielded(query: str, expected: str | None):
+    result = luqum_remove_unfielded(parser.parse(query))
+    assert (result if result is None else str(result).strip()) == expected

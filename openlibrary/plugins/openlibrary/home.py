@@ -21,7 +21,7 @@ from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.plugins.worksearch.code import work_search_async
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import async_bridge
-from openlibrary.utils.request_context import caching_prethread, get_request_lang, req_context
+from openlibrary.utils.request_context import caching_prethread, get_request_lang, req_context, set_context_from_legacy_web_py
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -233,6 +233,7 @@ def get_featured_subjects():
     # web.ctx must be initialized as it won't be available to the background thread.
     if "env" not in web.ctx:
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
     FEATURED_SUBJECTS = [
         {
@@ -345,6 +346,7 @@ def get_featured_genres():
     """Tiles for home/browse_stacks.html.jinja, Featured first. A genre without picked covers gets no tile."""
     if "env" not in web.ctx:
         delegate.fakeload()
+        set_context_from_legacy_web_py()
     picked = home_genres.load_tile_covers()
     # Fall back to the picked Featured covers when the live query is empty (Solr error, or a dev index with no trending data).
     picked = {**picked, home_genres.FEATURED["slug"]: get_featured_tile_covers() or picked.get(home_genres.FEATURED["slug"], [])}

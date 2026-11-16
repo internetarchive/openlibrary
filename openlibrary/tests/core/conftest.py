@@ -45,18 +45,21 @@ def pg_db(pg_proc, monkeypatch):
         password=pg_proc.password,
         template_dbname=pg_proc.template_dbname,
     ):
-        web.config.db_parameters = {
-            "dbn": "postgres",
-            "db": dbname,
-            "user": pg_proc.user,
-            "pw": pg_proc.password or "",
-            "host": pg_proc.host,
-            "port": pg_proc.port,
-        }
+        monkeypatch.setitem(
+            web.config,
+            "db_parameters",
+            {
+                "dbn": "postgres",
+                "db": dbname,
+                "user": pg_proc.user,
+                "pw": pg_proc.password or "",
+                "host": pg_proc.host,
+                "port": pg_proc.port,
+            },
+        )
         # Fresh pool per test database.
         with async_db._entries_lock:
             async_db._entries.clear()
         yield
         with async_db._entries_lock:
             async_db._entries.clear()
-        web.config.db_parameters = {}

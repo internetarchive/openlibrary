@@ -4,11 +4,13 @@ from collections.abc import Callable
 from types import MappingProxyType
 
 from luqum.exceptions import ParseError
+from luqum.tree import SearchField
 
 from openlibrary.solr.query_utils import (
     escape_unknown_fields,
     fully_escape_query,
     luqum_parser,
+    luqum_traverse,
 )
 from openlibrary.utils.request_context import get_request_lang
 
@@ -46,6 +48,20 @@ class SearchScheme:
 
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map
+
+    def canonical_field_name(self, field: str) -> str | None:
+        """
+        The schema field a user-typed search field refers to, or None if it
+        isn't searchable. Matching is case-insensitive and unprefixed aliases in
+        `field_name_map` are resolved, e.g. "ISBN" -> "isbn", "AUTHOR" -> "author_name".
+        Prefixed fields are only lowercased: "Work.Author" -> "work.author".
+        """
+        lowered = field.lower()
+        if lowered in self.field_name_map:
+            return self.field_name_map[lowered]
+        if self.is_search_field(lowered):
+            return lowered
+        return None
 
     def process_user_sort(self, user_sort: str) -> str:
         """
@@ -104,8 +120,8 @@ class SearchScheme:
                     .replace("?", "\\?")
                     .replace("~", "\\~")
                 ),
-                self.is_search_field,
-                lower=True,
+                lambda field: self.canonical_field_name(field) is not None,
+                lower=False,
             )
             q_tree = luqum_parser(q_param)
         except ParseError:
@@ -113,6 +129,12 @@ class SearchScheme:
             logger.warning("Invalid lucene query", exc_info=True)
             # Escape everything we can
             q_tree = luqum_parser(fully_escape_query(q_param))
+
+        # Rewrite the fields that passed validation above to their schema names,
+        # so Solr and transform_user_query only ever see canonical names.
+        for node, _ in luqum_traverse(q_tree):
+            if isinstance(node, SearchField) and (name := self.canonical_field_name(node.name)):
+                node.name = name
 
         q_tree = self.transform_user_query(q_param, q_tree)
         return str(q_tree)

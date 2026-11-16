@@ -41,7 +41,7 @@ ol-dialog img.cover-preview {
   padding: var(--spacing-inset-md);
   text-align: center;
   background: var(--lighter-grey);
-  font-size: 1em;
+  font-size: inherit;
   display: none;
 }
 .illustration .SRPCoverBlank .innerBorder {
@@ -57,7 +57,7 @@ ol-dialog img.cover-preview {
   text-align: center;
   background: transparent url(/static/images/icons/avatar_author-lg.png) 15px
     15px no-repeat;
-  font-size: 1em;
+  font-size: inherit;
   margin: 0 auto;
   display: none;
 }

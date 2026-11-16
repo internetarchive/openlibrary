@@ -1,6 +1,6 @@
 import logging
 
-from . import db
+from . import db  # noqa: TID251
 
 logger = logging.getLogger(__name__)
 

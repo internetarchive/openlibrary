@@ -1,7 +1,7 @@
 .toc__entry {
   line-height: 1.2em;
   border-radius: var(--border-radius-button);
-  font-size: 14px;
+  font-size: var(--font-size-body-medium);
   padding: 3px 0;
 }
 

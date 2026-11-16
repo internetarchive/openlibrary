@@ -234,6 +234,18 @@ class TestInterstitialWording:
     def test_a_hand_off_still_offers_a_way_out(self):
         assert "close-window" in self._render()
 
+    def test_the_countdown_line_renders_a_real_link(self):
+        """Guards against autoescape turning the anchor itself into text:
+        under autoescape `~` escapes every non-Markup operand."""
+        assert '<a href="https://standardebooks.org/x">https://standardebooks.org/x</a>' in self._render()
+
+    def test_the_url_is_html_escaped_in_the_link(self):
+        """An https URL can still carry a quote, so this escaping is what
+        keeps it inside the href attribute."""
+        html = self._render(url='https://e.test/?a="><img src=x onerror=alert(1)>')
+        assert "<img src=x" not in html
+        assert '<a href="https://e.test/?a=&#34;&gt;&lt;img src=x onerror=alert(1)&gt;">' in html
+
 
 class TestBorrowPostAdapter:
     """Tests the web.py `borrow.POST` translation of outcomes into

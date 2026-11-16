@@ -4,7 +4,6 @@ import logging
 import os
 import re
 import sys
-import time
 import traceback
 from types import TracebackType
 from typing import Any
@@ -18,7 +17,6 @@ from infogami.utils.app import find_mode, find_page, find_view
 from openlibrary.core import stats as graphite_stats
 
 logger = logging.getLogger("openlibrary.stats")
-TIME_BUCKETS = [10, 100, 1000, 5000, 10000, 20000]  # in ms
 
 filters: dict[str, Any] = {}
 
@@ -163,80 +161,6 @@ def _get_top_level_path_for_metric(full_path: str) -> str:
     return path.replace(".", "_")[:50]
 
 
-class GraphiteRequestStats:
-    def __init__(self):
-        self.start: float | None = None
-        self.end: float | None = None
-        self.state = None  # oneof 'started', 'completed'
-        self.method = "unknown"
-        self.path_page_name = "unknown"
-        self.path_level_one = "unknown"
-        self.response_code = "unknown"
-        self.time_bucket = "unknown"
-        self.user = "not_logged_in"
-        self.duration = None
-
-    def request_loaded(self):
-        self.start = time.time()
-        self.state = "started"
-        self._compute_fields()
-
-    def request_unloaded(self):
-        self.end = time.time()
-        self.state = "completed"
-        self._compute_fields()
-
-    def _compute_fields(self):
-        if hasattr(web.ctx, "method") and web.ctx.method:
-            self.method = web.ctx.method
-
-        if hasattr(web.ctx, "path") and web.ctx.path:
-            self.path_page_name = _get_path_page_name()
-            # This can be entered by a user to be anything! We record 404s.
-            self.path_level_one = _get_top_level_path_for_metric(web.ctx.path)
-
-        if hasattr(web.ctx, "status"):
-            self.response_code = web.ctx.status.split(" ")[0]
-
-        if self.end is not None:
-            self.duration = (self.end - self.start) * 1000
-            self.time_bucket = "LONG"
-            for upper in TIME_BUCKETS:
-                if self.duration < upper:
-                    self.time_bucket = "%dms" % upper
-                    break
-
-        if stats_filters.loggedin():
-            self.user = "logged_in"
-
-    def to_metric(self):
-        return ".".join(
-            [
-                "ol",
-                "requests",
-                self.state,
-                self.method,
-                self.response_code,
-                self.user,
-                self.path_level_one,
-                "class_" + self.path_page_name,
-                self.time_bucket,
-                "count",
-            ]
-        )
-
-
-def page_load_hook():
-    web.ctx.graphiteRequestStats = GraphiteRequestStats()
-    web.ctx.graphiteRequestStats.request_loaded()
-    graphite_stats.increment(web.ctx.graphiteRequestStats.to_metric())
-
-
-def page_unload_hook():
-    web.ctx.graphiteRequestStats.request_unloaded()
-    graphite_stats.increment(web.ctx.graphiteRequestStats.to_metric())
-
-
 def increment_error_count(key: str) -> None:
     """
     :param str key: e.g. ol.exceptions or el.internal-errors-segmented
@@ -311,9 +235,3 @@ def setup():
     register_filter("url", stats_filters.url)
     register_filter("loggedin", stats_filters.loggedin)
     register_filter("not_loggedin", stats_filters.not_loggedin)
-
-    # Disabled temporarily (2020-04-07); they (the first two more specifically) looked
-    # like they were causing too much load on graphite servers.
-    # delegate.app.add_processor(web.loadhook(page_load_hook))
-    # delegate.app.add_processor(web.unloadhook(page_unload_hook))
-    # delegate.add_exception_hook(lambda: increment_error_count('ol.exceptions'))

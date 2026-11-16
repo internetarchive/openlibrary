@@ -1,7 +1,7 @@
 /**
  * JS only module.
- * Defined in:
- * - vendor/js/jquery-datatables/jquery.dataTables.min.js
+ * Styles the `datatables.net-dt` npm package. Imported by:
+ * - openlibrary/plugins/openlibrary/js/editions-table/index.js
  * It will be refactored at the earliest opportunity.
  * DO NOT ADD NEW CSS here
  * Unless... you are removing an inline style and moving it into here.
@@ -100,7 +100,7 @@ div.box {
 .dataTables_empty {
   text-align: center;
   font-size: var(--font-size-label-large);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   padding: var(--spacing-inset-md) 0;
   color: var(--red);
 }
