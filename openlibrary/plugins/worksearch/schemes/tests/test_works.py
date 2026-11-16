@@ -139,6 +139,13 @@ QUERY_PARSER_TESTS = {
     "Unknown cased field still escaped": ("Foo:bar", "Foo\\:bar"),
     "Cased field after *:*": ("*:* AND ISBN:123", "*\\:* AND isbn:123"),
     "Prefixed alias only lowercased": ("Work.Title:foo", "work.title:foo"),
+    "Unknown field after OR": ("tolkien OR the:hobbit", "tolkien OR the\\:hobbit"),
+    "Unknown field after NOT": ("tolkien NOT the:hobbit", "tolkien NOT the\\:hobbit"),
+    "Unknown field after AND": ("tolkien AND the:hobbit", "tolkien AND the\\:hobbit"),
+    "Unknown field after a word": ("tolkien the:hobbit", "tolkien the\\:hobbit"),
+    "Known title alias": ("tolkien title:hobbit", "tolkien alternative_title:hobbit"),
+    "Known title alias after AND": ("tolkien AND title:hobbit", "tolkien AND alternative_title:hobbit"),
+    "Multiple spaced colons": ("foo : bar baz : qux", "foo\\: bar baz\\: qux"),
 }
 
 
