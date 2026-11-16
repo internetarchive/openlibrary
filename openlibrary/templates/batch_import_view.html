@@ -55,6 +55,12 @@ $var title: $_("Batch Import Status")
                                 <input type="hidden" name="identifier" value="$row.data">
                                 <button type="submit">$_("Preview")</button>
                             </form>
+                        $elif row.ia_id and (':' not in row.ia_id or row.ia_id.split(':', 1)[0] in ('amazon', 'project_gutenberg')):
+                            $# A bare id is an archive.org item; these prefixes match the import preview's provider names.
+                            <form method="POST" action="/import/preview" target="_blank" style="display: inline;">
+                                <input type="hidden" name="source" value="$(row.ia_id if ':' in row.ia_id else 'ia:' + row.ia_id)">
+                                <button type="submit">$_("Preview")</button>
+                            </form>
                     </td>
                     <td>
                     $if row.ol_key:

@@ -61,6 +61,18 @@ def test_a_cover_is_missing_with_only_deleted_covers_but_not_on_a_scanned_book()
     assert not tasks.is_missing(FakeEdition(ocaid="goody"), "covers")
 
 
+@pytest.mark.parametrize("fmt", ["Audio CD", "audiobook", "MP3 CD", "Audio Cassette", "CD", "Compact Disc"])
+def test_a_recording_has_no_page_count_task(fmt):
+    assert not tasks.is_missing(FakeEdition(physical_format=fmt), "number_of_pages")
+    # Only the page count: a recording still has a publisher to fill in.
+    assert tasks.is_missing(FakeEdition(physical_format=fmt), "publishers")
+
+
+@pytest.mark.parametrize("fmt", ["", "Paperback", "Hardcover", "ebook", "CD-ROM"])
+def test_print_and_ebook_editions_keep_the_page_count_task(fmt):
+    assert tasks.is_missing(FakeEdition(physical_format=fmt), "number_of_pages")
+
+
 def test_impact_is_readers_times_points():
     assert tasks.impact(100, Task("OL1M", "publishers")) == 200
     assert tasks.impact(None, Task("OL1M", "languages")) == 15

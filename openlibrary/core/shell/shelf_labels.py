@@ -39,6 +39,7 @@ def build_shelf_button_labels() -> dict[str, Any]:
         "rateStar": _("Rate %(rating)s of 5"),
         "clearRating": _("Clear rating"),
         "addToList": _("Add to list"),
+        "listsOnlyEdition": _("This edition has no work record yet, so it can be added to lists but not to your reading log."),
         "back": _("Back"),
         "createList": _("Create a list"),
         "listName": _("List name"),
