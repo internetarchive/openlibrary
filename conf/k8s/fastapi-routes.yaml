@@ -63,6 +63,7 @@ fastapiRoutes:
   - GET /partials/LazyCarousel.json
   - GET /partials/MyBooksDropperLists.json
   - GET /partials/NearbyBooks.json
+  - GET /partials/ReadersAlsoRead.json
   - GET /partials/ReadingGoalProgress.json
   - GET /partials/ReadingState.json
   - GET /partials/SearchFacets.json

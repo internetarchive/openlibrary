@@ -2,6 +2,8 @@ $def with(work)
 
 $if work and not is_bot():
     <div class="related-books">
+        $if work.key:
+            $:render_jinja_template("RawQueryCarouselPlaceholder.html.jinja", **build_readers_also_read_placeholder_config(work.key))
         $ subjects = work.get_related_books_subjects()
         $ author_keys = [a.key.split('/')[-1] for a in work.get_authors()]
 
