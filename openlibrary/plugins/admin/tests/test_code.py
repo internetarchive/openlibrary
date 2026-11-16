@@ -10,7 +10,7 @@ from openlibrary.accounts.model import (
 )
 from openlibrary.mocks.mock_infobase import MockSite
 from openlibrary.plugins.admin import code as admin_code
-from openlibrary.plugins.admin.code import revert_all_user_edits
+from openlibrary.plugins.admin.code import LIST_CREATE_ACTIONS, revert_all_user_edits
 
 
 def make_test_account(username: str) -> OpenLibraryAccount:
@@ -153,7 +153,8 @@ class TestRevertAllUserEdits:
 
         assert web.ctx.site.get("/people/spam_alice/lists/OL2L").type.key == "/type/delete"
 
-    def test_does_not_delete_edited_lists(self, mock_site):
+    @pytest.mark.parametrize("action", LIST_CREATE_ACTIONS)
+    def test_does_not_delete_edited_lists(self, mock_site, action):
         good_alice = make_test_account("good_alice")
         spam_alice = make_test_account("spam_alice")
 
@@ -161,14 +162,14 @@ class TestRevertAllUserEdits:
         web.ctx.site.save(
             author=good_alice.get_user(),
             query=make_thing("/people/good_alice/lists/OL1L", "Good List"),
-            action="lists",
+            action=action,
         )
 
         # Spam alice edits good alice's list (revision 2 — spam alice did NOT create it)
         web.ctx.site.save(
             author=spam_alice.get_user(),
             query=make_thing("/people/good_alice/lists/OL1L", "Vandalized List"),
-            action="lists",
+            action=action,
         )
 
         revert_all_user_edits(spam_alice)
