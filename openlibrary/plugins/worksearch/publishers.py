@@ -5,9 +5,12 @@ from dataclasses import dataclass
 from typing import override
 
 import web
+from markupsafe import escape
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from openlibrary.core.helpers import commify
+from openlibrary.core.jinja import render_jinja_template
+from openlibrary.i18n import gettext as _
 
 from . import search, subjects
 
@@ -27,16 +30,23 @@ class publishers(subjects.subjects):
 
         if not page or page.work_count == 0:
             web.ctx.status = "404 Not Found"
-            return render_template("publishers/notfound.tmpl", key)
+            body = render_jinja_template("publishers/notfound.html.jinja", key=key)
+            return web.template.TemplateResult(__body__=body)
 
-        return render_template("publishers/view", page)
+        # Local import: this plugin is imported during web.py's plugin setup.
+        from openlibrary.plugins.openlibrary.partials import query_carousel
+
+        body = render_jinja_template("publishers/view.html.jinja", page=page, commify=commify, query_carousel=query_carousel)
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(_("Publisher: %(name)s", name=page.name)))
 
 
 class index(delegate.page):
     path = "/publishers"
 
     def GET(self):
-        return render_template("publishers/index")
+        body = render_jinja_template("publishers/index.html.jinja")
+        return web.template.TemplateResult(__body__=body)
 
 
 class publisher_search(delegate.page):
