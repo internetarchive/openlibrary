@@ -90,14 +90,22 @@ def escape_unknown_fields(
     >>> escape_unknown_fields('(title:foo) OR (blah:bah)', {'title'}.__contains__)
     '(title:foo) OR (blah\\\\:bah)'
     """
+    # Note we use the string of the tree, because it strips spaces
+    # like: "title : foo" -> "title:foo". The second parse is intentional:
+    # it makes the node positions match the normalized string we are editing.
     escaped_query = str(parser.parse(query))
     tree = parser.parse(escaped_query)
     offset = 0
     for sf, _ in luqum_traverse(tree):
         if isinstance(sf, SearchField) and not is_valid_field(sf.name.lower() if lower else sf.name):
+            # sf.head and sf.tail are used for whitespace between fields.
+            # sf.head is already present in escaped_query, so do not copy it
+            # into the replacement or the slice will skip part of the value.
             start = sf.pos + offset
             end = start + len(sf.name) + 1
             escaped_query = escaped_query[:start] + sf.name + r"\:" + escaped_query[end:]
+            # We move left to right, so adjust for the extra character added
+            # by each replacement.
             offset += 1
     return escaped_query
 
