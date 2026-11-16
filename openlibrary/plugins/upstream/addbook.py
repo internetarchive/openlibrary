@@ -87,6 +87,29 @@ def get_recaptcha():
         return None
 
 
+# New accounts can add only a few books a day; spam accounts post dozens within minutes of signing up.
+NEW_ACCOUNT_DAYS = 7
+NEW_ACCOUNT_DAILY_BOOKS = 5
+
+
+def over_new_account_book_limit() -> bool:
+    """Whether the current user is a new account that has used up its books for the last 24 hours."""
+    user = accounts.get_current_user()
+    account = user and user.get_account()
+    if not (user and account):
+        return False
+    if account.has_tag("trusted-user") or user.is_admin() or user.is_librarian():
+        return False
+
+    now = dt.datetime.now(dt.UTC).replace(tzinfo=None)
+    if now - account.creation_time() >= dt.timedelta(days=NEW_ACCOUNT_DAYS):
+        return False
+
+    since = (now - dt.timedelta(days=1)).isoformat()
+    query = {"author": user.key, "kind": "add-book", "begin_date": since, "limit": NEW_ACCOUNT_DAILY_BOOKS}
+    return len(site.get().recentchanges(query)) >= NEW_ACCOUNT_DAILY_BOOKS
+
+
 def make_author(key: str, name: str) -> Author:
     """
     Use author_key and author_name and return an Author.
@@ -291,6 +314,13 @@ class addbook(delegate.page):
 
         if i.id_name == "ocaid" and i.id_value and not can_edit_ocaid():
             return render_template("message.html", _("Permission denied"), _("You are not allowed to add an Internet Archive ID."))
+
+        if over_new_account_book_limit():
+            return render_template(
+                "message.html",
+                _("Daily limit reached"),
+                _("New accounts can add up to %(count)d books a day. Please try again tomorrow.", count=NEW_ACCOUNT_DAILY_BOOKS),
+            )
 
         i = utils.unflatten(i)
         saveutil = DocSaveHelper()
