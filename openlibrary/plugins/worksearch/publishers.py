@@ -55,7 +55,7 @@ class publisher_search(delegate.page):
     def GET(self):
         # Local imports: openlibrary.fastapi.search imports this plugin, and this handler is temporary.
         from openlibrary.core.jinja import render_jinja_template
-        from openlibrary.fastapi.search import publisher_results, publisher_search_query
+        from openlibrary.fastapi.search import publisher_results, publisher_search_query, publisher_search_title
 
         i = web.input(q="")
         result = search.get_solr().select(**publisher_search_query(i.q))
@@ -64,8 +64,7 @@ class publisher_search(delegate.page):
             q=i.q,
             publishers=publisher_results((result.get("facets") or {}).get("publisher_facet", [])),
         )
-        # web.py's layout reads the title off the result; without one it uses the path, as FastAPI does.
-        return web.template.TemplateResult(__body__=body)
+        return web.template.TemplateResult(__body__=body, title=escape(publisher_search_title(i.q)))
 
 
 @dataclass
