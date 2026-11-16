@@ -21,25 +21,37 @@ $def list_card(list):
         </div>
     </a>
 
-
 <div class="carousel-section">
-    <div class="carousel-section-header">
+    $ displayed_lists = 5
+    <div class="carousel-section-header carousel-section-header--inline">
         <h2 class="home-h2">
-            <a href="/people/$username/lists">$_('My Lists (%(count)d)', count=len(lists))</a>
+            $if len(lists) > displayed_lists:
+                $_('My Lists (%(count)d)', count=len(lists))
+            $else:
+                <a href="/people/$username/lists">
+                    $_('My Lists (%(count)d)', count=len(lists))
+                </a>
         </h2>
+        $if len(lists) > displayed_lists:
+            <a class="carousel-see-all" href="/people/$username/lists">
+                $_("See all")$:macros.icon("chevron-right", size="sm")
+            </a>
     </div>
-    <div class="list-showcase">
-        $if lists:
-            $ displayed_lists = 5
+
+    $if lists:
+        <ol-carousel
+            class="carousel--native list-showcase"
+            label="$_('My Lists')"
+            label-previous="$_('Previous page')"
+            label-next="$_('Next page')"
+            label-pages="$_('Carousel pages')"
+            label-go-to-page="$_('Go to page {page} of {total}')"
+            label-page-announcement="$_('Page {page} of {total}')"
+            breakpoints="[[480, 1], [768, 2], [1024, 3], [null, 4]]"
+        >
             $for list in lists[:displayed_lists]
                 $:list_card(list)
-
-            $if len(lists) > displayed_lists:
-                <a
-                    class="list-showcase__see-all cta-btn cta-btn--vanilla"
-                    href="/people/$username/lists"
-                >$_("See all")</a>
-        $else:
-            <p>$_('You have no lists.')</p>
-    </div>
+        </ol-carousel>
+    $else:
+        <p>$_('You have no lists.')</p>
 </div>

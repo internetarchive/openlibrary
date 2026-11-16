@@ -1,21 +1,3 @@
-.list-follow-showcase {
-  display: flex;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  padding: var(--spacing-inset-sm) 0;
-}
-
-.list-follow-showcase .list-follow-card {
-  margin-right: 24px;
-  flex-shrink: 0;
-}
-
-.list-follow-showcase__see-all {
-  margin-right: 24px;
-  align-self: center;
-  width: auto;
-}
-
 /* stylelint-disable-next-line no-descending-specificity */
 .list-follow-card {
   display: flex;
@@ -32,6 +14,10 @@
   border: 1px solid hsla(0, 0%, 0%, 0.25);
   border-radius: var(--border-radius-card);
   box-shadow: 2px 2px 4px hsla(0, 0%, 0%, 0.15);
+}
+
+.list-follow-showcase > .list-follow-card {
+  flex: 0 0 auto;
 }
 
 a.list-follow-card {
