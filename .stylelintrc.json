@@ -25,6 +25,13 @@
         "message": "Use a semantic or local z-index token, not a --z-index-level-* primitive (#12363)"
       }
     ],
+    "declaration-property-value-allowed-list": [
+      { "font-weight": ["/^var\\(/", "inherit"] },
+      {
+        "severity": "warning",
+        "message": "Use a --font-weight-* token (#14298)"
+      }
+    ],
     "color-no-hex": true,
     "color-named": "never",
     "declaration-block-no-duplicate-properties": true,
@@ -61,7 +68,14 @@
             "disableFix": true,
             "ignoreValues": ["inherit", "transparent", "none"]
           }
-        ]
+        ],
+        "declaration-property-value-allowed-list": null
+      }
+    },
+    {
+      "files": ["static/css/fonts/*.css"],
+      "rules": {
+        "declaration-property-value-allowed-list": null
       }
     },
     {
@@ -71,6 +85,13 @@
         "scale-unlimited/declaration-strict-value": [
           ["z-index"],
           { "disableFix": true, "ignoreValues": ["inherit", "transparent", "none"] }
+        ],
+        "declaration-property-value-allowed-list": [
+          { "font-size": ["/^var\\(/", "inherit"], "font-weight": ["/^var\\(/", "inherit"] },
+          {
+            "severity": "warning",
+            "message": "Use a --font-size-* or --font-weight-* token (#14298)"
+          }
         ],
         "color-no-hex": null,
         "color-named": null,

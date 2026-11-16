@@ -104,4 +104,4 @@ isn't one, it is a preference, and it gets labelled as one.
 
 ---
 
-*See [[bookworm-import-contract]] · [[METHODOLOGY]]*
+*See [bookworm-import-contract](bookworm-import-contract.md) · [[METHODOLOGY]]*

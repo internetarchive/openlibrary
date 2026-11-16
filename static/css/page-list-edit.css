@@ -13,7 +13,7 @@
 }
 
 #list-edit [name="name"] {
-  font-size: 1.5em;
+  font-size: var(--font-size-headline-small);
 }
 
 #list-edit .floating-label:has([name="name"]) {

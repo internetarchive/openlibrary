@@ -1,13 +1,3 @@
 $def with (caption, additional_classes='', hidden=True)
 
-$ hidden = "hidden" if hidden else ""
-
-<div class="$hidden loadingIndicator $additional_classes">
-  <figure>
-  <img src="/static/images/ajax-loader-bar.gif" alt="$_('Loading indicator')" loading="lazy">
-  <figcaption style="
-      justify-content: center;
-      display: flex;
-  ">$caption</figcaption>
-  </figure>
-</div>
+$:render_jinja_template("LoadingIndicator.html.jinja", caption=caption, additional_classes=additional_classes, hidden=hidden)

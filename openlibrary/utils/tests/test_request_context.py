@@ -1,5 +1,6 @@
 """Tests for request context parsing and management."""
 
+import re
 from unittest.mock import Mock, patch
 
 import pytest
@@ -8,6 +9,7 @@ from fastapi import Request
 
 from openlibrary.accounts.model import generate_hash
 from openlibrary.utils.request_context import (
+    USER_AGENT_BOTS,
     Visitor,
     _parse_solr_editions_from_fastapi,
     _parse_solr_editions_from_web,
@@ -145,7 +147,30 @@ def signed_cookie(user_key, secret="secret"):
 
 
 # Cookie parsing and signature checks are tested in openlibrary/tests/fastapi/test_auth.py
-@pytest.mark.parametrize(("cookie", "user_key"), [(signed_cookie("/people/alice"), "/people/alice"), (signed_cookie("/people/alice", secret="wrong"), None)])
+@pytest.mark.parametrize(
+    ("cookie", "user_key"),
+    [(signed_cookie("/people/alice"), "/people/alice"), (signed_cookie("/people/alice", secret="wrong"), None)],
+    # The cookies have a random salt, so they can't be the test ids: every xdist worker must collect the same ids.
+    ids=["valid-signature", "wrong-secret"],
+)
 def test_visitor_from_session_cookie(monkeypatch, cookie, user_key):
     monkeypatch.setattr("openlibrary.fastapi.auth.get_secret_key", lambda: "secret")
-    assert _visitor(cookie) == Visitor(user_key=user_key)
+    assert _visitor(cookie, is_bot=True) == Visitor(user_key=user_key, is_bot=True)
+
+
+@pytest.mark.parametrize(
+    ("visitor", "label"),
+    [
+        (Visitor(user_key=None, is_bot=True), "bot"),
+        (Visitor(user_key="/people/alice", is_bot=True), "logged_in"),  # a logged-in bot account is still logged in
+    ],
+)
+def test_visitor_label(visitor, label):
+    assert visitor.label == label
+
+
+def test_user_agent_bots_format():
+    # Only the User-Agent is lowercased before matching, and scripts/obfi.sh uses each
+    # name as a regex with only dots escaped.
+    assert sorted(set(USER_AGENT_BOTS)) == USER_AGENT_BOTS
+    assert all(re.fullmatch(r"[a-z0-9./-]+", bot) for bot in USER_AGENT_BOTS)

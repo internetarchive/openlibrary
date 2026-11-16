@@ -4,7 +4,7 @@
 > **Sources:** `openlibrary/conf/solr/conf/managed-schema.xml`, issues [#5393](https://github.com/internetarchive/openlibrary/issues/5393) / [#3317](https://github.com/internetarchive/openlibrary/issues/3317), PR [#4337](https://github.com/internetarchive/openlibrary/pull/4337), empirical testing against `solr:10.0.0` with OL's configset
 > **Last ingested:** 2026-08-10
 
-How Open Library turns text into searchable tokens, why stopword filtering is currently switched **off**, and how to test a change to it. Companion to [[search]].
+How Open Library turns text into searchable tokens, why stopword filtering is currently switched **off**, and how to test a change to it. Companion to [search](README.md).
 
 ---
 
@@ -139,7 +139,7 @@ Everything above is **analysis-time only** — it proves tokens and positions li
 - index size and query latency
 - the other fieldTypes that reference the empty `stopwords.txt`
 
-Those need the full local stack, a reindex, and a relevance evaluation pass. See [[search]] for local dev commands.
+Those need the full local stack, a reindex, and a relevance evaluation pass. See [search](README.md) for local dev commands.
 
 ## Key Files
 
@@ -161,5 +161,5 @@ Those need the full local stack, a reindex, and a relevance evaluation pass. See
 
 ## Related
 
-- [[search]] — indexing flow, schemes, query construction, local dev commands
-- [[development]] — local environment setup
+- [search](README.md) — indexing flow, schemes, query construction, local dev commands
+- [development](../core/development.md) — local environment setup

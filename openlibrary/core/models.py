@@ -956,6 +956,17 @@ class User(Thing):
     def is_admin(self) -> bool:
         return self.is_usergroup_member("/usergroup/admin")
 
+    def can_edit_ocaid(self) -> bool:
+        """Whether the user can add, change or remove an edition's Internet Archive ID (ocaid).
+
+        The single place that decides who may edit ocaids, in templates and on the server.
+        """
+        return self.is_admin()
+
+    def can_manage_tasks(self) -> bool:
+        """Whether the user can set up and run the community projects on /tasks. Its pages check `ShellUser.is_super_librarian`, the same two groups."""
+        return self.is_super_librarian_or_higher()
+
     def is_maintainer(self) -> bool:
         """Whether the user can manage the testing environment (maintainers + admins)."""
         return self.is_member_of_any(["/usergroup/maintainers", "/usergroup/admin"])

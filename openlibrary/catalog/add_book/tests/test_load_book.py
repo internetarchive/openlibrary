@@ -5,7 +5,6 @@ from openlibrary.catalog.add_book.load_book import (
     author_import_record_to_author,
     find_entity,
     import_record_to_edition,
-    remove_author_honorifics,
 )
 from openlibrary.catalog.utils import InvalidLanguage
 from openlibrary.core.models import Author, AuthorRemoteIdConflictError
@@ -89,28 +88,6 @@ class TestImportAuthor:
                 "type": {"key": "/type/author"},
             }
             mock_site.save(existing_author)
-
-    @pytest.mark.parametrize(
-        ("name", "expected"),
-        [
-            ("Drake von Drake", "Drake von Drake"),
-            ("Dr. Seuss", "Dr. Seuss"),
-            ("dr. Seuss", "dr. Seuss"),
-            ("Dr Seuss", "Dr Seuss"),
-            ("M. Anicet-Bourgeois", "Anicet-Bourgeois"),
-            ("Mr Blobby", "Blobby"),
-            ("Mr. Blobby", "Blobby"),
-            ("monsieur Anicet-Bourgeois", "Anicet-Bourgeois"),
-            # Don't strip from last name.
-            ("Anicet-Bourgeois M.", "Anicet-Bourgeois M."),
-            ('Doctor Ivo "Eggman" Robotnik', 'Ivo "Eggman" Robotnik'),
-            ("John M. Keynes", "John M. Keynes"),
-            ("Mr.", "Mr."),
-        ],
-    )
-    def test_author_importer_drops_honorifics(self, name, expected):
-        got = remove_author_honorifics(name=name)
-        assert got == expected
 
     def test_author_match_is_case_insensitive_for_names(self, mock_site):
         """Ensure name searches for John Smith and JOHN SMITH return the same record."""
@@ -197,6 +174,22 @@ class TestImportAuthor:
         }
         with pytest.raises(AuthorRemoteIdConflictError):
             author_import_record_to_author(searched_author)
+
+    def test_name_match_with_a_conflicting_id_is_a_different_author(self, mock_site):
+        mock_site.save({"name": "E. M. Forster", "key": "/authors/OL1A", "type": {"key": "/type/author"}, "remote_ids": {"project_gutenberg": "999"}})
+
+        new = author_import_record_to_author({"name": "E. M. Forster", "remote_ids": {"project_gutenberg": "975"}})
+
+        assert "key" not in new
+        assert new["remote_ids"] == {"project_gutenberg": "975"}
+
+    def test_name_match_without_a_conflicting_id_gains_the_id(self, mock_site):
+        mock_site.save({"name": "E. M. Forster", "key": "/authors/OL1A", "type": {"key": "/type/author"}, "remote_ids": {"viaf": "1"}})
+
+        found = author_import_record_to_author({"name": "E. M. Forster", "remote_ids": {"project_gutenberg": "975"}})
+
+        assert found.key == "/authors/OL1A"
+        assert found["remote_ids"] == {"viaf": "1", "project_gutenberg": "975"}
 
     def test_second_match_remote_identifier(self, mock_site):
         """

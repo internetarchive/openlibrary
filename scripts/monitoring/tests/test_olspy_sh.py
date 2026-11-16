@@ -1,4 +1,6 @@
 import tempfile
+import time
+from pathlib import Path
 
 from scripts.monitoring.utils import bash_run
 
@@ -39,6 +41,15 @@ root  102  0.0  0.1 100 100 ?   Sl   10:00 0:01 python /openlibrary/scripts/cove
 """
 
 
+def _read_nc_output(path: str) -> str:
+    """olspy.sh writes to nc through `tee >(nc ...)`, and bash doesn't wait for that nc,
+    so its output can arrive just after log_workers_cur_fn returns."""
+    deadline = time.monotonic() + 10
+    while not (text := Path(path).read_text().strip()) and time.monotonic() < deadline:
+        time.sleep(0.05)
+    return text
+
+
 def _classify_lines(lines: str) -> str:
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as input_fp:
         input_fp.write(lines)
@@ -59,12 +70,11 @@ def test_log_workers_cur_fn_webpy():
         aliases_fp.write(_make_aliases(nc_fp.name, "scripts/monitoring/tests/sample_py_spy_webpy_dump.txt"))
 
     bash_run(
-        "log_workers_cur_fn webpy stats.ol-covers0.workers.webpy.cur_fn",
+        "log_workers_cur_fn webpy stats.ol-covers1.workers.webpy.cur_fn",
         sources=[aliases_fp.name, "olspy.sh"],
     )
 
-    with open(nc_fp.name) as f:
-        assert f.read().strip() == "stats.ol-covers0.workers.webpy.cur_fn.db._db_execute 1 1741054377"
+    assert _read_nc_output(nc_fp.name) == "stats.ol-covers1.workers.webpy.cur_fn.db._db_execute 1 1741054377"
 
 
 def test_log_workers_cur_fn_fastapi():
@@ -79,8 +89,7 @@ def test_log_workers_cur_fn_fastapi():
         sources=[aliases_fp.name, "olspy.sh"],
     )
 
-    with open(nc_fp.name) as f:
-        assert f.read().strip() == "stats.ol-web0.workers.fastapi.cur_fn.ia.get_api_response 2 1741054377"
+    assert _read_nc_output(nc_fp.name) == "stats.ol-web0.workers.fastapi.cur_fn.ia.get_api_response 2 1741054377"
 
 
 def test_coverstore_workers_are_found_under_fastapi():
@@ -93,12 +102,11 @@ def test_coverstore_workers_are_found_under_fastapi():
         aliases_fp.write(_make_aliases_with_ps(nc_fp.name, "scripts/monitoring/tests/sample_py_spy_fastapi_dump.txt", COVERSTORE_PS))
 
     bash_run(
-        "log_workers_cur_fn fastapi stats.ol-covers0.workers.fastapi.cur_fn",
+        "log_workers_cur_fn fastapi stats.ol-covers1.workers.fastapi.cur_fn",
         sources=[aliases_fp.name, "olspy.sh"],
     )
-    with open(nc_fp.name) as f:
-        # one worker (the Ss master is excluded)
-        assert f.read().strip() == "stats.ol-covers0.workers.fastapi.cur_fn.ia.get_api_response 1 1741054377"
+    # one worker (the Ss master is excluded)
+    assert _read_nc_output(nc_fp.name) == "stats.ol-covers1.workers.fastapi.cur_fn.ia.get_api_response 1 1741054377"
 
 
 def test_coverstore_workers_are_not_found_under_webpy():
@@ -109,7 +117,7 @@ def test_coverstore_workers_are_not_found_under_webpy():
         aliases_fp.write(_make_aliases_with_ps(nc_fp.name, "scripts/monitoring/tests/sample_py_spy_webpy_dump.txt", COVERSTORE_PS))
 
     bash_run(
-        "log_workers_cur_fn webpy stats.ol-covers0.workers.webpy.cur_fn",
+        "log_workers_cur_fn webpy stats.ol-covers1.workers.webpy.cur_fn",
         sources=[aliases_fp.name, "olspy.sh"],
     )
     with open(nc_fp.name) as f:

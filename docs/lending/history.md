@@ -7,7 +7,7 @@ Why the lending code looks the way it does. Six eras left overlapping mechanisms
 > **Status:** verified
 > **Sources:** git history of `internetarchive/openlibrary` (279 commits touching `openlibrary/core/lending.py` alone), read against `aced0c079` (origin/master, 2026-08-28)
 > **Last ingested:** 2026-08-29
-> **See also:** [[lending]] for the current-state reference
+> **See also:** [lending](README.md) for the current-state reference
 
 This page exists because the lending code cannot be understood from its current state alone. Open Library
 *was* the lending platform in 2010; almost everything since has been migration away from that, and each
@@ -218,7 +218,7 @@ There are now *two* `/borrow` endpoints (web.py and FastAPI) as well.
 
 **Near-realtime availability in Solr (2026-07, in progress):** `scripts/solr_updater/loan_availability_updater.py`
 — pushes loan status into Solr so carousels and search can read it without calling IA per request. This is
-the first attempt to fix the Era-3 performance problem at its root. Not merged; see [[lending]] for detail.
+the first attempt to fix the Era-3 performance problem at its root. Not merged; see [lending](README.md) for detail.
 
 ---
 
@@ -250,7 +250,7 @@ Verified against `aced0c079` (origin/master, 2026-08-28). Everything here is pre
 `on_waitinglist_update()` → `is_loaned_out()` → `sendmail_book_available()` is how OL is *documented* to
 notify the next patron in a queue, and it is **dead code** — nothing calls the entry point. If patrons are
 being emailed when a book becomes available, archive.org is sending those mails, not Open Library. The
-[[lending]] page previously described this chain as live; that has been corrected.
+[lending](README.md) page previously described this chain as live; that has been corrected.
 
 ---
 
@@ -280,11 +280,11 @@ being emailed when a book becomes available, archive.org is sending those mails,
 
 ## Dependencies
 
-**Related:** [[lending]] (current state) · [[bookreader]] · [[auth]] · [[infrastructure]]
+**Related:** [lending](README.md) (current state) · [bookreader](../frontend/bookreader.md) · [auth](../core/auth.md) · [[infrastructure]]
 
 ---
 
 *Sources: git archaeology of `internetarchive/openlibrary`, verified against `aced0c079`
-(origin/master) on 2026-08-29 · See [[README]] · [[METHODOLOGY]]*
+(origin/master) on 2026-08-29 · See [README](../README.md) · [[METHODOLOGY]]*
 
 ---

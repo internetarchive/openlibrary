@@ -15,14 +15,14 @@
 set -e
 
 # Adjust the PR number and token!!
-for node in ol-home0 ol-web2 ol-covers0; do
+for node in ol-home0 ol-web2 ol-covers1; do
     ssh $node "
         cd /opt/olsystem
         curl 'https://patch-diff.githubusercontent.com/raw/internetarchive/olsystem/pull/145.diff?token=ABPWKCUDSAEHNTDZTWG2YBDBTPT7I' | sudo git apply
     "
 done
 
-for node in ol-home0 ol-web2 ol-covers0; do
+for node in ol-home0 ol-web2 ol-covers1; do
     ssh $node "
         cd /opt/olsystem
         sudo git status
@@ -31,7 +31,7 @@ done
 
 ssh ol-web2 "docker restart openlibraryweb1"
 # Adjust for covers deploy replicas
-ssh ol-covers0 "docker restart openlibrarycovers1 openlibrarycovers2 openlibrarycoversnginx1"
+ssh ol-covers1 "docker restart openlibrarycovers1 openlibrarycovers2 openlibrarycoversnginx1"
 ssh ol-home0 "docker restart openlibraryinfobase1 openlibraryinfobasenginx1"
 
 exit
@@ -39,7 +39,7 @@ exit
 # =====
 
 # If need to revert
-for node in ol-home0 ol-web2 ol-covers0; do
+for node in ol-home0 ol-web2 ol-covers1; do
     ssh $node "
         cd /opt/olsystem curl 'https://patch-diff.githubusercontent.com/raw/internetarchive/olsystem/pull/145.diff?token=ABPWKCUDSAEHNTDZTWG2YBDBTPT7I' | sudo git apply -R
     "

@@ -347,13 +347,24 @@ form.return-form > ol-button {
   text-align: center;
 }
 
-/* Block, not flex, so the label can ellipsize; the fixed height levels the padded variants. */
+/* Block, not flex, so the label can ellipsize. Sized to match LoanStatus's cta_size='small'. */
 /* stylelint-disable-next-line no-descending-specificity */
 .carousel--native .ol-macro-wrapper .cta-btn {
   display: block;
-  height: var(--control-height-medium);
+  height: var(--control-height-small);
+  min-height: var(--control-height-small);
   padding-block: 0;
-  line-height: calc(var(--control-height-medium) - 2px);
+  padding-inline: var(--spacing-sm);
+  font-size: var(--font-size-label-medium);
+  line-height: calc(var(--control-height-small) - 2px);
+}
+
+/* vertical-align: middle sits the icon low in block flow; centre it by hand. */
+.carousel--native :where(.ol-macro-wrapper) .cta-btn .ol-icon {
+  vertical-align: top;
+  margin-block-start: calc(
+    (var(--control-height-small) - 2px - var(--icon-size-sm)) / 2
+  );
 }
 
 /* A phone card is ~90px wide: just enough to keep "Join Waitlist" whole. */

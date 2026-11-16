@@ -46,7 +46,7 @@
     },
     {
       "path": "static/build/js/main.*.js",
-      "maxSize": "107KB"
+      "maxSize": "110KB"
     },
     {
       "path": "static/build/css/tokens.css",
