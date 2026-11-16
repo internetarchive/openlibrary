@@ -39,6 +39,7 @@ def mock_user():
             "is_librarian": lambda slf: False,
             "is_usergroup_member": lambda slf, grp: False,
             "can_edit_ocaid": User.can_edit_ocaid,
+            "get_account": lambda slf: None,
         },
     )()
 
@@ -572,7 +573,6 @@ class TestAddBookOcaid:
         """POST /books/add with an ocaid; returns render_template's args, or None if it got past the ocaid check."""
 
         def _post(user_factory):
-            monkeypatch.setattr(addbook, "over_new_account_book_limit", lambda: False)
             monkeypatch.setattr(accounts, "get_current_user", user_factory)
             monkeypatch.setattr(web, "input", lambda **kw: web.storage(kw, book_title="Book", id_name="ocaid", id_value="newitem00arch"))
             monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *a, **kw: False)
