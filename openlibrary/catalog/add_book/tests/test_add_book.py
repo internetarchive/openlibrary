@@ -23,6 +23,7 @@ from openlibrary.catalog.add_book import (
     load,
     load_data,
     normalize_import_record,
+    normalize_record_bibids,
     should_overwrite_promise_item,
     split_subtitle,
     validate_record,
@@ -161,6 +162,77 @@ def test_find_matching_work_outside_the_default_query_limit(mock_site):
 
     edition = {"title": "Tom Sawyer", "authors": [{"key": author_key}]}
     assert find_matching_work(edition) == matching_key
+
+
+@pytest.mark.parametrize(
+    ("stored_oclc", "incoming_oclc"),
+    [
+        pytest.param("30877728", "ocm30877728", id="ocm-prefix"),
+        pytest.param("30182", "ocm00030182", id="ocm-prefix-with-leading-zeros"),
+        pytest.param("30877728", "ocn30877728", id="ocn-prefix"),
+        pytest.param("30877728", "on30877728", id="on-prefix"),
+        pytest.param("30877728", "(ocolc)30877728", id="ocolc-prefix"),
+        pytest.param("30877728", "30877728", id="bare-number"),
+    ],
+)
+def test_import_preview_matches_equivalent_oclc_numbers(mock_site, add_languages, stored_oclc, incoming_oclc):
+    work = mock_site.quicksave("/works/OL1W", "/type/work", title="Catalog title")
+    edition = mock_site.quicksave(
+        "/books/OL1M",
+        "/type/edition",
+        title="Catalog title",
+        works=[{"key": work.key}],
+        oclc_numbers=[stored_oclc],
+    )
+    assert edition.oclc_numbers == [stored_oclc]
+
+    reply = load(
+        {
+            "title": "Different import title",
+            "source_records": ["test:oclc-preview"],
+            "oclc_numbers": [incoming_oclc],
+        },
+        save=False,
+    )
+
+    assert reply["success"] is True
+    assert reply["preview"] is True
+    assert reply["edition"]["key"] == edition.key
+
+
+def test_normalize_record_bibids_oclc():
+    rec = {
+        "title": "Test Title",
+        "isbn_10": ["0-19-090676-7"],
+        "lccn": ["  2001000001  "],
+        "oclc_numbers": [
+            "ocm30877728",
+            "30877728",
+            "ocm00030182",
+            "ocn123456789",
+            "(OCoLC)987654",
+            "on11223344",
+            "invalid",
+            "",
+            None,
+        ],
+    }
+    cleaned = normalize_record_bibids(rec)
+    assert cleaned["isbn_10"] == ["0190906767"]
+    assert cleaned["lccn"] == ["2001000001"]
+    assert cleaned["oclc_numbers"] == [
+        "30877728",
+        "30182",
+        "123456789",
+        "987654",
+        "11223344",
+    ]
+
+
+def test_normalize_record_bibids_string_oclc():
+    rec = {"oclc_numbers": "ocm30877728"}
+    cleaned = normalize_record_bibids(rec)
+    assert cleaned["oclc_numbers"] == ["30877728"]
 
 
 def test_force_new_wikisource_edition(mock_site, add_languages, ia_writeback):

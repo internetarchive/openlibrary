@@ -61,6 +61,7 @@ from openlibrary.plugins.upstream.utils import safeget, setup_requests, strip_ac
 from openlibrary.utils import dicthash, extract_numeric_id_from_olid, uniq
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn
+from openlibrary.utils.oclc import normalize_oclc
 from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
@@ -455,17 +456,21 @@ def update_ia_metadata_for_ol_edition(edition_id):
 
 def normalize_record_bibids(rec: dict):
     """
-    Returns the Edition import record with all ISBN fields and LCCNs cleaned.
+    Returns the Edition import record with ISBNs, LCCNs, and OCLC numbers cleaned.
 
     :param dict rec: Edition import record
     :rtype: dict
-    :return: A record with cleaned LCCNs, and ISBNs in the various possible ISBN locations.
+    :return: A record with cleaned ISBN, LCCN, and OCLC fields.
     """
     for field in ("isbn_13", "isbn_10", "isbn"):
         if rec.get(field):
             rec[field] = [normalize_isbn(isbn) for isbn in rec.get(field, "") if normalize_isbn(isbn)]
     if rec.get("lccn"):
         rec["lccn"] = [normalize_lccn(lccn) for lccn in rec.get("lccn", "") if normalize_lccn(lccn)]
+    if oclc_numbers := rec.get("oclc_numbers"):
+        if isinstance(oclc_numbers, str):
+            oclc_numbers = [oclc_numbers]
+        rec["oclc_numbers"] = list(dict.fromkeys(number for value in oclc_numbers if value is not None and (number := normalize_oclc(str(value)))))
     return rec
 
 
