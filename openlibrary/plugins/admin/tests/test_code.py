@@ -139,6 +139,20 @@ class TestRevertAllUserEdits:
         # Spam list is deleted
         assert web.ctx.site.get("/people/spam_alice/lists/OL2L").type.key == "/type/delete"
 
+    @pytest.mark.parametrize("action", ["create-list", "create-series"])
+    def test_deletes_spam_lists_with_create_actions(self, mock_site, action):
+        spam_alice = make_test_account("spam_alice")
+
+        web.ctx.site.save(
+            author=spam_alice.get_user(),
+            query=make_thing("/people/spam_alice/lists/OL2L", "Spam List"),
+            action=action,
+        )
+
+        revert_all_user_edits(spam_alice)
+
+        assert web.ctx.site.get("/people/spam_alice/lists/OL2L").type.key == "/type/delete"
+
     def test_does_not_delete_edited_lists(self, mock_site):
         good_alice = make_test_account("good_alice")
         spam_alice = make_test_account("spam_alice")
