@@ -298,6 +298,24 @@ class Batch(web.storage):
 
         return None
 
+    def retry_failed(self) -> int:
+        """Re-queue this batch's failed items, returning how many were re-queued.
+
+        Resubmitting a batch can't do this: ``dedupe_items`` skips every
+        ``ia_id`` already in ``import_item``, failed ones included. ``failed``
+        is terminal, so no worker is holding these rows, and ``set_status``
+        keeps ``data`` on failure, so they can be imported again as-is.
+        """
+        return db.update(
+            "import_item",
+            where="batch_id=$batch_id AND status='failed'",
+            vars={"batch_id": self.id},
+            status="pending",
+            error=None,
+            import_time=None,
+            ol_key=None,
+        )
+
     def get_items(self, status="pending"):
         result = db.where("import_item", batch_id=self.id, status=status)
         return [ImportItem(row) for row in result]

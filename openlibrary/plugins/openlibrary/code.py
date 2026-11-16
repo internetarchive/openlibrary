@@ -613,6 +613,23 @@ class BatchImportList(delegate.page):
         )
 
 
+class BatchImportRetryFailed(delegate.page):
+    """Re-queue the failed items of `batch_id` as `pending`. Admins only."""
+
+    path = r"/import/batch/retry_failed/(\d+)"
+
+    def POST(self, batch_id):
+        _require_admin()
+
+        batch = db.select("import_batch", where="id=$batch_id", vars={"batch_id": int(batch_id)})
+        if not batch:
+            raise web.notfound()
+
+        count = Batch(batch[0]).retry_failed()
+        add_flash_message("success", _("Re-queued %(count)d failed item(s).", count=count))
+        return web.seeother(f"/import/batch/{batch_id}")
+
+
 class BatchImportPendingView(delegate.page):
     """
     Old URL for the list of batches awaiting review.

@@ -426,3 +426,30 @@ class TestLegacyBatchInsertsPostgres(TestLegacyBatchInserts):
     @pytest.fixture
     def batch_insert_db(self, pg_import_db):
         return pg_import_db
+
+
+class TestRetryFailed:
+    def test_failed_items_are_requeued_with_their_data(self, import_db):
+        batch = Batch.new("mixed")
+        other = Batch.new("other")
+        batch.add_items([item("isbn:1", 1.0), item("isbn:2", 1.0), item("isbn:3", 1.0)])
+        other.add_items([item("isbn:4", 1.0)])
+        import_db.update("import_item", where="ia_id IN ('isbn:1', 'isbn:4')", status="failed", error="bad", import_time="2026-09-01 00:00:00")
+        import_db.update("import_item", where="ia_id='isbn:2'", status="created", ol_key="/books/OL1M", data=None)
+
+        assert batch.retry_failed() == 1
+
+        r = rows(import_db)
+        assert r["isbn:1"].status == "pending"
+        assert r["isbn:1"].error is None
+        assert r["isbn:1"].import_time is None
+        assert json.loads(r["isbn:1"].data)["source_records"] == ["isbn:1"]
+        # Other statuses, and other batches' failures, are left alone.
+        assert r["isbn:2"].status == "created"
+        assert r["isbn:3"].status == "pending"
+        assert r["isbn:4"].status == "failed"
+
+    def test_no_failed_items(self, import_db):
+        batch = Batch.new("clean")
+        batch.add_items([item("isbn:1", 1.0)])
+        assert batch.retry_failed() == 0
