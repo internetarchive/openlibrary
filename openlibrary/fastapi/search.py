@@ -698,6 +698,11 @@ def publisher_results(facet_values: Iterable[Any]) -> list[PublisherResult]:
     return [PublisherResult(name=p.value, key="/publishers/" + p.value.replace(" ", "_"), count=p.count) for p in facet_values]
 
 
+def publisher_search_title(q: str) -> str:
+    """Page title for /search/publishers: led by the query, as in Wikipedia's, so tabs and history tell searches apart."""
+    return _("%(query)s - Publisher search", query=q) if q else _("Publisher search")
+
+
 @pages.get("/search/publishers")
 async def search_publishers(q: str = "") -> SitePage:
     # TODO: Retire the web.py `publisher_search` handler (it still serves
@@ -708,4 +713,4 @@ async def search_publishers(q: str = "") -> SitePage:
         q=q,
         publishers=publisher_results((result.get("facets") or {}).get("publisher_facet", [])),
     )
-    return SitePage(body)
+    return SitePage(body, page=PageMeta(title=publisher_search_title(q)))
