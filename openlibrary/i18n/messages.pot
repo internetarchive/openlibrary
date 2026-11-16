@@ -3528,6 +3528,14 @@ msgstr ""
 msgid "Not sure"
 msgstr ""
 
+#: books/edit/about.html openlibrary/contribute/field_guides.py
+msgid "Genres"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Pick any that fit. Genres are only specified for fiction books at this time."
+msgstr ""
+
 #: books/edit/about.html
 msgid "Subject keywords?"
 msgstr ""
@@ -4922,6 +4930,14 @@ msgstr ""
 
 #: follow/follow.html
 msgid "Failed to update followers. Please try again in a few moments."
+msgstr ""
+
+#: forms/tag_chips.html.jinja
+msgid "Other genres"
+msgstr ""
+
+#: forms/tag_chips.html.jinja
+msgid "Suggested by the subjects"
 msgstr ""
 
 #: history/sources.html
@@ -8581,14 +8597,6 @@ msgid "And %(count)s more."
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Suggested by the subjects"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Other genres"
-msgstr ""
-
-#: contribute/parts.html.jinja
 msgid "Click again to save and continue"
 msgstr ""
 
@@ -8834,10 +8842,6 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "Anthologies and collections take the form of what's inside. A book of essays about novels is nonfiction."
-msgstr ""
-
-#: openlibrary/contribute/field_guides.py
-msgid "Genres"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -9660,6 +9664,11 @@ msgstr ""
 msgid "Hard to call, like a book based on a true story or a collection that mixes fiction and nonfiction."
 msgstr ""
 
+#: openlibrary/core/tags.py
+#, python-format
+msgid "Subjects mention %(subjects)s"
+msgstr ""
+
 #: openlibrary/edition_scorecard.py
 msgid "Can be accessed in full online (read / borrowed)"
 msgstr ""
@@ -10183,11 +10192,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "Editions"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-#, python-format
-msgid "Subjects mention %(subjects)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

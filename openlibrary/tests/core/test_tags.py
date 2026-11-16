@@ -100,6 +100,22 @@ def test_the_subjects_name_genres_by_slug_as_whole_words(monkeypatch):
     assert tags.subject_matches("genres", []) == {}
 
 
+def test_a_picker_marks_the_work_s_genres_and_suggests_from_its_subjects(monkeypatch):
+    found = {
+        "/tags/OL1T": web.storage(key="/tags/OL1T", name="Horror", tag_type="genre"),
+        "/tags/OL2T": web.storage(key="/tags/OL2T", name="Romance", tag_type="genre"),
+    }
+    site = fake_site(found, {"genre": list(found)})
+    monkeypatch.setattr(tags, "site", SimpleNamespace(get=lambda: site))
+    work = {"genres": [{"key": "/tags/OL2T"}], "subjects": ["Horror stories"]}
+    picker = tags.tag_picker(work, "genres")
+    assert [o.label for o in picker["options"]] == ["Horror", "Romance"]
+    assert picker["selected"] == ["/tags/OL2T"]
+    assert picker["suggested"]["/tags/OL1T"]["subjects"] == ["Horror stories"]
+    # A re-rendered form keeps what was posted, not what was saved.
+    assert tags.tag_picker(work, "genres", selected=[])["selected"] == []
+
+
 def test_the_tag_list_is_read_once_per_window(monkeypatch):
     reads = []
     site = SimpleNamespace(things=lambda q: reads.append(q) or [], get_many=lambda keys: [])

@@ -55,6 +55,24 @@ class TestSaveBookHelper:
         assert f({"authors": []}) == {}
         assert f({"authors": [{"type": "/type/author_role"}]}) == {}
 
+    @pytest.mark.parametrize(
+        ("posted", "expected"),
+        [
+            (["", "/tags/OL1T", "/tags/OL2T"], [{"key": "/tags/OL1T"}, {"key": "/tags/OL2T"}]),
+            (["", "/tags/OL1T", "/tags/OL1T"], [{"key": "/tags/OL1T"}]),
+            ([""], None),
+        ],
+    )
+    def test_genres(self, monkeypatch, posted, expected):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        work = addbook.SaveBookHelper(None, None).process_work(web.storage({"genres": posted}))
+        assert "genres" in work
+        assert work.genres == expected
+
+    def test_genres_not_posted_are_left_alone(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        assert "genres" not in addbook.SaveBookHelper(None, None).process_work(web.storage({"title": "A"}))
+
     def test_editing_orphan_creates_work(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 

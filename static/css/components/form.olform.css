@@ -158,6 +158,11 @@
 /* stylelint-enable selector-max-specificity */
 
 .olform.books .input,
+/* The tag questions (fiction or nonfiction, genres): a little more room under each, as they're groups of options. */
+.olform .formElement--spaced {
+  margin-block-end: var(--spacing-stack-sm);
+}
+
 .olform.books .label {
   width: auto !important;
 }

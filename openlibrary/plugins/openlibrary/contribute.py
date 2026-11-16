@@ -19,7 +19,18 @@ from openlibrary.contribute import feed, initiatives, pitch, save, supply, tasks
 from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides, is_speculative
 from openlibrary.contribute.tasks import field_values, work_of
 from openlibrary.core import admin, helpers
-from openlibrary.core.tags import GENRES, LITERARY_FORMS, find_tag, subject_matches, tag_choices, tag_key_named, tag_options, work_tag_names
+from openlibrary.core.tags import (
+    GENRES,
+    LITERARY_FORMS,
+    build_suggestions,
+    find_tag,
+    subject_matches,
+    suggestion_subjects,
+    tag_choices,
+    tag_key_named,
+    tag_options,
+    work_tag_names,
+)
 from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream import spamcheck
@@ -256,8 +267,7 @@ def text_of(block) -> str:
 
 def work_subjects(edition) -> list[str]:
     """The work's free-text subjects as the task page shows them: the first few, which is where the catalog's own go."""
-    work = work_of(edition)
-    return [str(s) for s in (work.get("subjects") or [])[:8]] if work else []
+    return suggestion_subjects(work_of(edition))
 
 
 def genre_labels(edition) -> list[str]:
@@ -316,14 +326,6 @@ def build_choices(field_guide, reveals: str = "") -> list:
             if row.value == fiction:
                 row.reveals = reveals
     return rows
-
-
-def build_suggestions(hints: dict[str, list[str]] | None) -> dict[str, dict]:
-    """A suggested chip's reasons, by tag key: the subjects behind it, and the line the chip shows on hover."""
-    return {
-        key: {"subjects": subjects, "why": _("Subjects mention %(subjects)s", subjects=", ".join(f"“{s}”" for s in subjects))}
-        for key, subjects in (hints or {}).items()
-    }
 
 
 def build_many(field_guide, selected: Sequence[str], suggested: dict[str, list[str]] | None = None) -> dict | None:

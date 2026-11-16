@@ -203,41 +203,11 @@
     </section>
 {% endmacro %}
 {% macro chip_choices(name, many, labelled_by) %}
-    {#- Any number of a field's tags, as chips: a tap toggles one. contribute.js keeps a hidden input per pick, so the
-        form posts the picked keys under ``name``; the ones rendered here are the picks an error re-render carries over.
-        The tags the work's subjects name come first, in a row of their own, never picked in advance: with "Save and next"
-        a pre-made pick would write the subjects' noise into the record at speed. Each says why on hover, and lights the
-        subjects behind it in the record (contribute.js). The headings name genres: that is the one many-tags field. -#}
-    <div class="contrib-chips" data-many-choice="{{ name }}">
-        {% if many.suggested %}
-            <div class="contrib-chips__group">
-                <span class="contrib-h" id="{{ labelled_by }}-suggested">{{ _("Suggested by the subjects") }}</span>
-                <ol-chip-group aria-labelledby="{{ labelled_by }} {{ labelled_by }}-suggested">
-                    {% for opt in many.options if opt.value in many.suggested %}
-                        <ol-tooltip content="{{ many.suggested[opt.value].why }}">
-                            <ol-chip data-value="{{ opt.value }}" data-subjects='{{ many.suggested[opt.value].subjects | tojson }}' {% if opt.value in many.selected %}selected{% endif %}>
-                                {{ opt.label }}
-                            </ol-chip>
-                        </ol-tooltip>
-                    {% endfor %}
-                </ol-chip-group>
-            </div>
-        {% endif %}
-        <div class="contrib-chips__group">
-            {% set others_labels = labelled_by ~ " " ~ labelled_by ~ "-others" if many.suggested else labelled_by %}
-            {% if many.suggested %}<span class="contrib-h" id="{{ labelled_by }}-others">{{ _("Other genres") }}</span>{% endif %}
-            <ol-chip-group aria-labelledby="{{ others_labels }}">
-                {% for opt in many.options if opt.value not in many.suggested %}
-                    <ol-chip data-value="{{ opt.value }}" {% if opt.value in many.selected %}selected{% endif %}>
-                        {{ opt.label }}
-                    </ol-chip>
-                {% endfor %}
-            </ol-chip-group>
-        </div>
-        {% for picked in many.selected %}
-            <input type="hidden" name="{{ name }}" value="{{ picked }}" />
-        {% endfor %}
-    </div>
+    {#- Any number of a field's tags, as chips (forms/tag_chips.html.jinja). With "Save and next" a pre-made pick would
+        write the subjects' noise into the record at speed, so suggestions are never picked in advance. -#}
+    {% with name=name, picker=many, labelled_by=labelled_by %}
+        {% include "forms/tag_chips.html.jinja" %}
+    {% endwith %}
 {% endmacro %}
 {% macro chip_label(id, label, hint) %}
     {#- The label row over a full-width chip group, with the how-many hint beside it. -#}

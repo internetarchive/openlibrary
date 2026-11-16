@@ -1,0 +1,23 @@
+/**
+ * Tag chips: a work's many-tags field (genres) as toggling chips, in two groups when the subjects suggest some:
+ * the suggested row over the rest, each under an overline. Markup: openlibrary/templates/forms/tag_chips.html.jinja.
+ */
+
+.ol-tag-chips {
+  justify-self: stretch;
+  display: grid;
+  gap: var(--spacing-stack-md);
+}
+
+.ol-tag-chips__group {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.ol-tag-chips__heading {
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+  color: var(--color-text-secondary);
+}

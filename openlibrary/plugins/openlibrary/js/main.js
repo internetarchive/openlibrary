@@ -60,6 +60,16 @@ $(function () {
         import('./contribute').then(module => module.init());
     }
 
+    // A many-tags field as chips: Tasks and the book edit page (forms/tag_chips.html.jinja)
+    if (document.querySelector('[data-many-choice]')) {
+        import('./tag-chips').then(module => module.init());
+    }
+
+    // Form rows that hide on another field's answer (the edit page's genres under nonfiction)
+    if (document.querySelector('[data-hide-when]')) {
+        import('./hide-when').then(module => module.init());
+    }
+
     // hide all images in .no-img
     $('.no-img img').hide();
 
