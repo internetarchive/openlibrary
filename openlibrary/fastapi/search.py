@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from math import ceil
 from typing import Annotated, Any, Literal, Self
@@ -43,6 +43,7 @@ from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.request_context import req_context, site
 
 router = APIRouter()
@@ -631,3 +632,82 @@ async def search_lists(nav: SearchNavDep, user: CurrentUserDep, q: str = "", pag
         total_pages=ceil(response.num_found / limit),
     )
     return SitePage(body, page=PageMeta(title=lists_search_title(q)))
+
+
+def subjects_search_title(q: str) -> str:
+    """Page title for /search/subjects: led by the query, as in Wikipedia's, so tabs and history tell searches apart."""
+    return _("%(query)s - Subject search", query=q) if q else _("Subject search")
+
+@pages.get("/search/subjects")
+async def search_subjects(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePage:
+    # TODO: Retire the web.py `subject_search` handler (it still serves /search/subjects
+    # in production) once production routes /search/subjects here.
+    q = q.strip()
+    page = max(1, page)
+    limit = 100
+    response = (
+        await run_solr_query_async(
+            SubjectSearchScheme(),
+            {"q": q},
+            offset=(page - 1) * limit,
+            rows=limit,
+            sort="work_count desc",
+            request_label="SUBJECT_SEARCH",
+        )
+        if q
+        else None
+    )
+
+    body = render_jinja_template(
+        "search/subjects.html.jinja",
+        nav=nav,
+        q=q,
+        search_response=response,
+        commified_num_found=commify(response.num_found) if response and response.num_found is not None else "",
+        page=page,
+        total_pages=ceil((response.num_found or 0) / limit) if response else 0,
+    )
+    return SitePage(body, page=PageMeta(title=subjects_search_title(q)))
+
+
+@dataclass(frozen=True)
+class PublisherResult:
+    """One row of /search/publishers: a publisher's name, page link and book count."""
+
+    name: str
+    key: str
+    count: int
+
+
+def publisher_search_query(q: str) -> dict[str, Any]:
+    """The facet-only Solr query behind /search/publishers, shared with web.py's handler.
+
+    ``select`` and ``select_async`` take the same arguments, so this splats into either.
+    """
+    return {
+        "query": {"publisher": q, "type": "work"},
+        "facets": ["publisher_facet"],
+        "facet_mincount": 1,
+        "facet_limit": 25,
+        "facet_contains": q,
+        "facet_contains_ignoreCase": "true",
+        "rows": 0,
+    }
+
+
+def publisher_results(facet_values: Iterable[Any]) -> list[PublisherResult]:
+    """Map Solr's ``publisher_facet`` values to the page's rows."""
+    return [PublisherResult(name=p.value, key="/publishers/" + p.value.replace(" ", "_"), count=p.count) for p in facet_values]
+
+
+@pages.get("/search/publishers")
+async def search_publishers(q: str = "") -> SitePage:
+    # TODO: Retire the web.py `publisher_search` handler (it still serves
+    # /search/publishers in production) once production routes it here.
+    result = await get_solr().select_async(**publisher_search_query(q))
+    body = render_jinja_template(
+        "search/publishers.html.jinja",
+        q=q,
+        publishers=publisher_results((result.get("facets") or {}).get("publisher_facet", [])),
+    )
+    return SitePage(body)
