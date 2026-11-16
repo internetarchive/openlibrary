@@ -158,13 +158,19 @@
 /* stylelint-enable selector-max-specificity */
 
 .olform.books .input,
+.olform.books .label {
+  width: auto !important;
+}
+
 /* The tag questions (fiction or nonfiction, genres): a little more room under each, as they're groups of options. */
 .olform .formElement--spaced {
   margin-block-end: var(--spacing-stack-sm);
 }
 
-.olform.books .label {
-  width: auto !important;
+/* A row that is a fieldset so hide-when.js can disable it whole: drop the legacy fieldset box. */
+.olform fieldset.formElement {
+  padding: 0;
+  min-inline-size: 0;
 }
 
 .olform.books .TitleAuthor {

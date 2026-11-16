@@ -40,8 +40,10 @@ $jsdef render_subject_autocomplete_item(item):
     </div>
 
     $# Picking none clears the field: the partial also posts an empty value (clearable), which the save drops.
-    $# Hidden while Nonfiction is picked (hide-when.js); its inputs don't post then, so saved genres stay as they were.
-    <div class="formElement formElement--spaced" data-hide-when="work--literary_forms" data-hide-value="$(tag_key_named('literary_forms', 'nonfiction') or '')" $('hidden' if is_nonfiction(work) else '')>
+    $# Hidden while Nonfiction is picked (hide-when.js); the fieldset is disabled then, so saved genres stay as they were.
+    $# Without a Nonfiction tag there's nothing to hide on: "" would match "Not sure".
+    $ nonfiction_key = tag_key_named('literary_forms', 'nonfiction')
+    <fieldset class="formElement formElement--spaced" $:(('data-hide-when="work--literary_forms" data-hide-value="%s"' % websafe(nonfiction_key)) if nonfiction_key else '') $('hidden disabled' if is_nonfiction(work) else '')>
         <div class="label">
             <label id="label-genres">$_("Genres")</label>
             <span class="tip">$_("Pick any that fit. Genres are only specified for fiction books at this time.")</span>
@@ -49,7 +51,7 @@ $jsdef render_subject_autocomplete_item(item):
         <div class="input">
             $:render_jinja_template("forms/tag_chips.html.jinja", name="work--genres", picker=tag_picker(work, "genres"), labelled_by="label-genres", clearable=True)
         </div>
-    </div>
+    </fieldset>
 
     <div class="formElement">
         <div class="label">

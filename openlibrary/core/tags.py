@@ -137,14 +137,14 @@ def build_suggestions(hints: dict[str, list[str]] | None) -> dict[str, dict]:
 
 
 @public
-def tag_picker(work, fld: str, selected: list[str] | None = None) -> dict:
+def tag_picker(work, fld: str, selected: list[str] | None = None, suggested: dict[str, list[str]] | None = None) -> dict:
     """A many-tags field as chips (``forms/tag_chips.html.jinja``), for any page that edits the work: every tag of the
-    field, the ones picked (the work's own unless ``selected`` overrides them) and the ones its subjects suggest."""
-    return {
-        "options": tag_options(fld),
-        "selected": list(work_tag_keys(work, fld) if selected is None else selected),
-        "suggested": build_suggestions(subject_matches(fld, suggestion_subjects(work))),
-    }
+    field, the ones picked and the ones its subjects suggest. ``selected`` and ``suggested`` override what the work says."""
+    if selected is None:
+        selected = work_tag_keys(work, fld) if work else []
+    if suggested is None:
+        suggested = subject_matches(fld, suggestion_subjects(work))
+    return {"options": tag_options(fld), "selected": list(selected), "suggested": build_suggestions(suggested)}
 
 
 def find_tag(fld: str, key: str):

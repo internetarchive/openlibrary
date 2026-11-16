@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from openlibrary.contribute import tasks
+from openlibrary.core import tags as core_tags
 from openlibrary.plugins.openlibrary import contribute
 
 HORROR = "/tags/OL2T"
@@ -15,7 +16,7 @@ FANTASY = "/tags/OL3T"
 def genres(monkeypatch):
     """A genre vocabulary of two, with Horror named by any "horror" subject."""
     options = [{"value": HORROR, "label": "Horror"}, {"value": FANTASY, "label": "Fantasy"}]
-    monkeypatch.setattr(contribute, "tag_options", lambda fld: options)
+    monkeypatch.setattr(core_tags, "tag_options", lambda fld: options)
     monkeypatch.setattr(
         contribute, "subject_matches", lambda fld, subjects: {HORROR: hits} if (hits := [s for s in subjects if "horror" in s.casefold()]) else {}
     )
