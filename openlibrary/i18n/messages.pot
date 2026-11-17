@@ -8989,10 +8989,6 @@ msgid "The number is already on another edition of this work. That's right when 
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "Pasting the web address instead of the number itself."
-msgstr ""
-
-#: openlibrary/contribute/field_guides.py
 msgid "For example 75425165"
 msgstr ""
 

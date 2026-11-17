@@ -305,7 +305,6 @@ def get_field_guides() -> dict[str, FieldGuide]:
                     "The number is already on another edition of this work. That's right when it's the hardcover, paperback or a later printing "
                     "from the same publisher; a different publisher or a revised edition means one of the two records is wrong."
                 ),
-                _("Pasting the web address instead of the number itself."),
             ],
             placeholder=_("For example 75425165"),
             confirm=_("I opened the record and its publisher and edition match this one."),
