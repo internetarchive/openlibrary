@@ -53,7 +53,7 @@ test('summarizeRuns: counts by conclusion, job medians, failures, and only runs 
     assert.equal(s.jobs.analyze.median_seconds, 300);
     assert.equal(s.jobs.analyze.max_seconds, 1000);
     assert.equal(s.jobs.resolve, undefined, 'skipped jobs are not counted');
-    assert.deepEqual(s.failures, [{ workflow: 'a', job: 'analyze', cause: 'turn_limit', run_url: 'u', at: IN }]);
+    assert.deepEqual(s.failures, [{ workflow: 'a', job: 'analyze', cause: 'turn_limit', message: '', run_url: 'u', at: IN }]);
 });
 
 test('parseFindingHeader: reads the bot header', () => {
@@ -132,7 +132,7 @@ test('summarizeReviews: the bot reviews and threads in the window, outcomes and 
 });
 
 const quiet = () => ({
-    runs: { failure_rate: 0, failures: [], jobs: { analyze: { median_seconds: 200 } } },
+    runs: { total: 20, skipped: 0, cancelled: 0, failure: 0, failures: [], jobs: { analyze: { median_seconds: 200 } } },
     reviews: { threads: 10, ignored_rate: 0.2 }
 });
 test('checkThresholds: a quiet week trips nothing', () => {
@@ -143,7 +143,7 @@ test('checkThresholds: each threshold trips on its own', () => {
     lost.runs.failures = [{ job: 'resolve', cause: 'not_accessible' }];
     assert.match(stats.checkThresholds(lost)[0], /`post` or `resolve`/);
     const failing = quiet();
-    failing.runs.failure_rate = 0.1;
+    failing.runs.failure = 2;
     assert.match(stats.checkThresholds(failing)[0], /10\.0% of runs failed/);
     const slow = quiet();
     slow.runs.jobs.analyze.median_seconds = 900;
@@ -160,7 +160,13 @@ test('checkThresholds: each threshold trips on its own', () => {
 
 // ========================= publish =========================
 test('parseReport: the expected shape, or null', () => {
-    const ok = { markdown: 'Fine.', needs_attention: false, reasons: [], follow_ups: ['Do x.'] };
+    const ok = {
+        markdown: 'Fine.',
+        needs_attention: false,
+        reasons: [],
+        follow_ups: ['Do x.'],
+        failure_fixes: [{ failure_id: 0, pr: 5, status: 'fixed', why: 'It does.' }]
+    };
     assert.deepEqual(post.parseReport(JSON.stringify(ok)), ok);
     for (const bad of [
         'nope',
@@ -170,7 +176,11 @@ test('parseReport: the expected shape, or null', () => {
         { ...ok, reasons: 'x' },
         { ...ok, follow_ups: ['a', 'b', 'c', 'd', 'e', 'f'] },
         { ...ok, reasons: ['x'.repeat(501)] },
-        { ...ok, markdown: 'x'.repeat(20001) }
+        { ...ok, markdown: 'x'.repeat(20001) },
+        { ...ok, failure_fixes: undefined },
+        { ...ok, failure_fixes: [{ failure_id: '0', pr: 5, status: 'fixed', why: 'x' }] },
+        { ...ok, failure_fixes: [{ failure_id: 0, pr: 5, status: 'maybe', why: 'x' }] },
+        { ...ok, failure_fixes: [{ failure_id: 0, pr: 5, status: 'fixed', why: '' }] }
     ]) {
         assert.equal(post.parseReport(typeof bad === 'string' ? bad : JSON.stringify(bad)), null, JSON.stringify(bad).slice(0, 60));
     }
@@ -208,11 +218,12 @@ const sampleStats = (alerts = []) => {
     };
     return { days: 7, window: { start: '2026-11-09T13:00:00Z', end: '2026-11-16T13:00:00Z' }, alerts, current: period, previous: period };
 };
-const goodReport = (needs = false) => ({
+const goodReport = (needs = false, failure_fixes = []) => ({
     markdown: 'It went fine, @RayBB.',
     needs_attention: needs,
     reasons: needs ? ['Something broke.'] : [],
-    follow_ups: []
+    follow_ups: [],
+    failure_fixes
 });
 test('render: a quiet week opens nothing; the summary still has the highlights', () => {
     const r = post.render({ stats: sampleStats(), report: goodReport(), runUrl: 'RUN' });
@@ -223,7 +234,7 @@ test('render: a quiet week opens nothing; the summary still has the highlights',
 });
 test('render: an alert or the model opens an issue with why, highlights, the report and a link', () => {
     for (const [s, rep, why] of [
-        [sampleStats(['3 runs failed.']), goodReport(), /⚠️ 3 runs failed\./],
+        [withFailures(), goodReport(), /⚠️ 1 `post` or `resolve` job/],
         [sampleStats(), goodReport(true), /- Something broke\./],
         [sampleStats(), null, /report job failed/]
     ]) {
@@ -277,16 +288,16 @@ async function runPublish({ statsObj, report, env, existing = [] }) {
     return calls;
 }
 test('publish: a scheduled run with an alert opens a labelled issue', async () => {
-    const calls = await runPublish({ statsObj: sampleStats(['x']), report: goodReport(), env: { EVENT: 'schedule' } });
+    const calls = await runPublish({ statsObj: withFailures(), report: goodReport(), env: { EVENT: 'schedule' } });
     assert.equal(calls.created.length, 1);
     assert.deepEqual(calls.created[0].labels, ['Theme: Bots', 'Needs: Triage']);
     assert.ok(calls.summary);
 });
 test('publish: a manual run is a dry run unless dry_run is false', async () => {
-    let calls = await runPublish({ statsObj: sampleStats(['x']), report: goodReport(), env: { EVENT: 'workflow_dispatch', DRY_RUN: 'true' } });
+    let calls = await runPublish({ statsObj: withFailures(), report: goodReport(), env: { EVENT: 'workflow_dispatch', DRY_RUN: 'true' } });
     assert.equal(calls.created.length, 0);
     assert.ok(calls.summary, 'the summary is still written');
-    calls = await runPublish({ statsObj: sampleStats(['x']), report: goodReport(), env: { EVENT: 'workflow_dispatch', DRY_RUN: 'false' } });
+    calls = await runPublish({ statsObj: withFailures(), report: goodReport(), env: { EVENT: 'workflow_dispatch', DRY_RUN: 'false' } });
     assert.equal(calls.created.length, 1);
 });
 test('publish: a quiet scheduled week opens nothing', async () => {
@@ -295,9 +306,70 @@ test('publish: a quiet scheduled week opens nothing', async () => {
 });
 test('publish: comments on an open report issue instead of opening another', async () => {
     const existing = [{ number: 42, title: 'Review bot weekly report: 2026-11-02 to 2026-11-09 needs attention' }];
-    const calls = await runPublish({ statsObj: sampleStats(['x']), report: goodReport(), env: { EVENT: 'schedule' }, existing });
+    const calls = await runPublish({ statsObj: withFailures(), report: goodReport(), env: { EVENT: 'schedule' }, existing });
     assert.equal(calls.created.length, 0);
     assert.equal(calls.comments[0].issue_number, 42);
+});
+
+// ========================= matching failures to fixes =========================
+test('attachCandidates: ids, and only bot PRs merged after the failure', () => {
+    const prs = [
+        { number: 1, merged_at: '2026-11-10T00:00:00Z' },
+        { number: 2, merged_at: '2026-11-12T00:00:00Z' }
+    ];
+    const out = stats.attachCandidates([{ at: '2026-11-11T00:00:00Z' }, { at: '2026-11-13T00:00:00Z' }], prs);
+    assert.deepEqual(
+        out.map(f => [f.id, f.candidate_fixes]),
+        [
+            [0, [2]],
+            [1, []]
+        ]
+    );
+});
+
+// A week with one lost review (failure 0, fixed by #14527 later) and one turn-limit hit (failure 1).
+const withFailures = () => {
+    const s = structuredClone(sampleStats());
+    s.thresholds = stats.THRESHOLDS;
+    s.current.runs.total = 10;
+    s.current.runs.failure = 2;
+    s.current.runs.failure_rate = 0.25;
+    s.current.runs.failures = [
+        { id: 0, job: 'post', cause: 'line_not_resolved', at: '2026-11-17T08:13:00Z', run_url: 'r0', workflow: 'w', candidate_fixes: [14527] },
+        { id: 1, job: 'analyze', cause: 'turn_limit', at: '2026-11-17T01:01:00Z', run_url: 'r1', workflow: 'w', candidate_fixes: [14527] }
+    ];
+    s.bot_prs = [{ number: 14527, url: 'pr14527', merged_at: '2026-11-17T09:31:00Z' }];
+    return s;
+};
+const fix = (failure_id, pr = 14527, status = 'fixed') => ({ failure_id, pr, status, why: 'Handles @RayBB the rejected line.' });
+test('verifyFixes: only a candidate PR for a real failure counts, once per failure', () => {
+    const v = post.verifyFixes(withFailures(), [fix(0), fix(0, 14527, 'probably_fixed'), fix(1, 999), fix(7)]);
+    assert.deepEqual([...v.keys()], [0]);
+    assert.equal(v.get(0).status, 'fixed');
+    assert.equal(v.get(0).url, 'pr14527');
+});
+test('render: a fixed failure stops counting and is listed as already fixed', () => {
+    const before = post.render({ stats: withFailures(), report: goodReport(), runUrl: 'RUN' });
+    assert.match(before.issue, /1 `post` or `resolve` job/);
+    const after = post.render({ stats: withFailures(), report: goodReport(false, [fix(0)]), runUrl: 'RUN' });
+    assert.doesNotMatch(after.issue, /`post` or `resolve` job/);
+    assert.match(
+        after.issue,
+        /## Already fixed \(not counted\)\n\n- 2026-11-17 `post` \(line_not_resolved\): \[run\]\(r0\) — fixed by \[#14527\]\(pr14527\): Handles @\u200bRayBB/
+    );
+    assert.match(after.issue, /turn limit/, 'the unfixed failure still alerts');
+    assert.equal(after.open, true);
+});
+test('render: once every failure is fixed, nothing opens', () => {
+    const r = post.render({ stats: withFailures(), report: goodReport(false, [fix(0), fix(1)]), runUrl: 'RUN' });
+    assert.equal(r.open, false);
+    assert.match(r.summary, /Nothing needs attention/);
+    assert.match(r.summary, /fixed by \[#14527\]/);
+});
+test('render: a probably-fixed failure still counts, with the PR shown', () => {
+    const r = post.render({ stats: withFailures(), report: goodReport(false, [fix(0, 14527, 'probably_fixed')]), runUrl: 'RUN' });
+    assert.match(r.issue, /1 `post` or `resolve` job/);
+    assert.match(r.issue, /## Probably fixed \(still counted\)/);
 });
 
 // ========================= workflow =========================

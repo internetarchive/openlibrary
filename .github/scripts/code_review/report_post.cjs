@@ -3,12 +3,16 @@
 // model's text is checked and its @-mentions defused; the title, labels and highlights come from here.
 'use strict';
 
+const { checkThresholds } = require('./report_stats.cjs');
+
 const BOT = 'openlibrary-bot';
 const TITLE_PREFIX = 'Review bot weekly report';
 const LABELS = ['Theme: Bots', 'Needs: Triage'];
 const MAX_MARKDOWN = 20000;
 const MAX_ITEMS = 5;
 const MAX_ITEM = 500;
+const MAX_FIXES = 50;
+const FIX_STATUSES = ['fixed', 'probably_fixed'];
 
 const str = (x, n) => typeof x === 'string' && x.trim().length > 0 && x.length <= n;
 
@@ -24,7 +28,27 @@ const parseReport = raw => {
     for (const k of ['reasons', 'follow_ups']) {
         if (!Array.isArray(r[k]) || r[k].length > MAX_ITEMS || !r[k].every(x => str(x, MAX_ITEM))) return null;
     }
-    return { markdown: r.markdown, needs_attention: r.needs_attention, reasons: r.reasons, follow_ups: r.follow_ups };
+    const fixes = r.failure_fixes;
+    if (!Array.isArray(fixes) || fixes.length > MAX_FIXES) return null;
+    for (const f of fixes) {
+        if (!f || typeof f !== 'object' || !Number.isInteger(f.failure_id) || !Number.isInteger(f.pr)) return null;
+        if (!FIX_STATUSES.includes(f.status) || !str(f.why, MAX_ITEM)) return null;
+    }
+    return { markdown: r.markdown, needs_attention: r.needs_attention, reasons: r.reasons, follow_ups: r.follow_ups, failure_fixes: fixes };
+};
+
+// The model's fix claims that hold up: the failure exists and the PR is one of its candidates, a
+// bot PR merged after it. One claim per failure. Returns failure id -> { pr, status, why, url }.
+const verifyFixes = (stats, fixes) => {
+    const out = new Map();
+    const failures = new Map(stats.current.runs.failures.map(f => [f.id, f]));
+    const prs = new Map((stats.bot_prs || []).map(p => [p.number, p]));
+    for (const f of fixes || []) {
+        const failure = failures.get(f.failure_id);
+        if (!failure || out.has(f.failure_id) || !(failure.candidate_fixes || []).includes(f.pr) || !prs.has(f.pr)) continue;
+        out.set(f.failure_id, { pr: f.pr, status: f.status, why: f.why, url: prs.get(f.pr).url });
+    }
+    return out;
 };
 
 // So the model's text can't ping a person or team, or close an issue.
@@ -52,12 +76,16 @@ const highlights = stats => {
     return ['| | This period | Previous |', '|---|---|---|', ...rows.map(r => `| ${r.join(' | ')} |`)].join('\n');
 };
 
-const fullTables = stats => {
+const fixNote = fix => (fix ? ` — ${fix.status === 'fixed' ? 'fixed' : 'probably fixed'} by [#${fix.pr}](${fix.url}): ${defuse(fix.why)}` : '');
+
+const fullTables = (stats, fixes = new Map()) => {
     const c = stats.current;
     const jobs = Object.entries(c.runs.jobs).map(
         ([n, j]) => `| ${n} | ${j.count} | ${j.failed} | ${fmtSeconds(j.median_seconds)} | ${fmtSeconds(j.max_seconds)} |`
     );
-    const failures = c.runs.failures.map(f => `- \`${f.job}\` (${f.cause}) in ${f.workflow}: [run](${f.run_url})`);
+    const failures = c.runs.failures.map(
+        f => `- ${f.at.slice(0, 10)} \`${f.job}\` (${f.cause}) in ${f.workflow}: [run](${f.run_url})${fixNote(fixes.get(f.id))}`
+    );
     const prs = c.reviews.prs.map(
         p =>
             `| [#${p.number}](${p.url}) | ${p.state} | ${p.reviews} | ${p.findings.map(f => `${f.severity} ${f.dimension}: ${f.outcome}`).join('<br>') || '–'} |`
@@ -90,18 +118,35 @@ const fullTables = stats => {
 
 const period = stats => `${stats.window.start.slice(0, 10)} to ${stats.window.end.slice(0, 10)}`;
 
+// The failures a merged PR fixed or probably fixed, as list lines.
+const fixedLines = (stats, fixes, status) =>
+    stats.current.runs.failures
+        .filter(f => fixes.has(f.id) && fixes.get(f.id).status === status)
+        .map(f => `- ${f.at.slice(0, 10)} \`${f.job}\` (${f.cause}): [run](${f.run_url})${fixNote(fixes.get(f.id))}`);
+
 function render({ stats, report, runUrl }) {
-    const why = stats.alerts.map(a => `- ⚠️ ${a}`);
+    // Only failures a verified PR fixed stop counting; "probably fixed" still counts, with the PR shown.
+    const fixes = verifyFixes(stats, report && report.failure_fixes);
+    const fixedIds = new Set([...fixes].filter(([, f]) => f.status === 'fixed').map(([id]) => id));
+    const alerts = checkThresholds(stats.current, stats.thresholds, fixedIds);
+    const why = alerts.map(a => `- ⚠️ ${a}`);
     if (!report) why.push('- ⚠️ The report job failed or wrote an invalid report, so only the numbers are below.');
     else if (report.needs_attention) why.push(...report.reasons.map(r => `- ${defuse(r)}`));
     const narrative = report ? defuse(report.markdown) : '';
     const followUps = report && report.follow_ups.length ? `\n\n## Suggested follow-ups\n\n${report.follow_ups.map(f => `- ${defuse(f)}`).join('\n')}` : '';
     const open = why.length > 0;
+    const fixed = fixedLines(stats, fixes, 'fixed');
+    const probably = fixedLines(stats, fixes, 'probably_fixed');
+    const fixSection = [
+        fixed.length ? `\n## Already fixed (not counted)\n\n${fixed.join('\n')}` : '',
+        probably.length ? `\n## Probably fixed (still counted)\n\n${probably.join('\n')}` : ''
+    ].join('\n');
     const head = `How the code review bot did from ${period(stats)}.`;
     const issue = [
         head,
         '\n## Why this opened\n',
         why.join('\n'),
+        fixSection,
         '\n## Highlights\n',
         highlights(stats),
         narrative ? `\n## Report\n\n${narrative}` : '',
@@ -112,12 +157,13 @@ function render({ stats, report, runUrl }) {
         `# ${TITLE_PREFIX}`,
         head,
         open ? `\n**Needs attention:**\n${why.join('\n')}` : '\nNothing needs attention.',
+        fixSection,
         '\n## Highlights\n',
         highlights(stats),
         narrative ? `\n## Report\n\n${narrative}` : '',
         followUps,
         '\n## Details\n',
-        fullTables(stats)
+        fullTables(stats, fixes)
     ].join('\n');
     return { open, issue, summary, title: `${TITLE_PREFIX}: ${period(stats)} needs attention` };
 }
@@ -144,4 +190,4 @@ async function publish({ github, context, core, require, process }) {
     core.info(`Opened #${data.number}.`);
 }
 
-module.exports = { TITLE_PREFIX, LABELS, parseReport, defuse, highlights, render, publish };
+module.exports = { TITLE_PREFIX, LABELS, parseReport, verifyFixes, defuse, highlights, render, publish };

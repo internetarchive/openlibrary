@@ -5,6 +5,13 @@
 
 const BOT = 'openlibrary-bot';
 const WORKFLOWS = ['code_review_action.yml', 'code_review_awaiting.yml'];
+// A merged PR that touched any of these could have fixed a review bot failure.
+const BOT_PATHS = [
+    '.github/scripts/code_review',
+    '.github/workflows/code_review_action.yml',
+    '.github/workflows/code_review_awaiting.yml',
+    '.github/workflows/code_review.md'
+];
 
 // An issue opens when any of these trips, whatever the model says. Tune them here.
 const THRESHOLDS = {
@@ -78,7 +85,14 @@ function summarizeRuns(runs, w) {
             s.count++;
             if (j.conclusion === 'failure') {
                 s.failed++;
-                out.failures.push({ workflow: r.workflow, job: j.name, cause: j.cause || 'other', run_url: r.html_url, at: r.created_at });
+                out.failures.push({
+                    workflow: r.workflow,
+                    job: j.name,
+                    cause: j.cause || 'other',
+                    message: j.message || '',
+                    run_url: r.html_url,
+                    at: r.created_at
+                });
             }
             s.durations.push(seconds(j.started_at, j.completed_at));
         }
@@ -173,22 +187,36 @@ function summarizeReviews(prs, w) {
     return out;
 }
 
-function checkThresholds({ runs, reviews }, t = THRESHOLDS) {
+// Failures a merged PR already fixed (`fixed`: failure ids) don't count. A run counts as failed
+// while any of its failures is not fixed.
+function checkThresholds({ runs, reviews }, t = THRESHOLDS, fixed = new Set()) {
     const alerts = [];
-    const lost = runs.failures.filter(f => f.job === 'post' || f.job === 'resolve');
+    const failures = runs.failures.filter((f, i) => !fixed.has(f.id === undefined ? i : f.id));
+    const fixedRuns = new Set(runs.failures.map(f => f.run_url).filter(u => !failures.some(f => f.run_url === u)));
+    const worked = runs.total - runs.skipped - runs.cancelled;
+    const failureRate = worked ? (runs.failure - fixedRuns.size) / worked : 0;
+    const lost = failures.filter(f => f.job === 'post' || f.job === 'resolve');
     if (lost.length > t.maxPostOrResolveFailures) alerts.push(`${lost.length} \`post\` or \`resolve\` job(s) failed, so reviews or resolves were lost.`);
-    if (runs.failure_rate > t.maxRunFailureRate)
-        alerts.push(`${(runs.failure_rate * 100).toFixed(1)}% of runs failed (threshold ${t.maxRunFailureRate * 100}%).`);
+    if (failureRate > t.maxRunFailureRate) alerts.push(`${(failureRate * 100).toFixed(1)}% of runs failed (threshold ${t.maxRunFailureRate * 100}%).`);
     const analyze = runs.jobs.analyze && runs.jobs.analyze.median_seconds;
     if (analyze > t.maxMedianAnalyzeSeconds)
         alerts.push(`The median \`analyze\` job took ${Math.round(analyze / 60)} min (threshold ${t.maxMedianAnalyzeSeconds / 60} min).`);
-    const turns = runs.failures.filter(f => f.cause === 'turn_limit').length;
+    const turns = failures.filter(f => f.cause === 'turn_limit').length;
     if (turns > t.maxTurnLimitHits) alerts.push(`${turns} review(s) hit the model's turn limit.`);
     if (reviews.threads >= t.minFindingsForRate && reviews.ignored_rate > t.maxIgnoredFindingRate) {
         alerts.push(`${(reviews.ignored_rate * 100).toFixed(0)}% of blocking findings were never acted on (threshold ${t.maxIgnoredFindingRate * 100}%).`);
     }
     return alerts;
 }
+
+// Each failure gets an `id` and the numbers of the bot PRs merged after it: the only PRs that can
+// be credited with fixing it.
+const attachCandidates = (failures, botPrs) =>
+    failures.map((f, id) => ({
+        id,
+        ...f,
+        candidate_fixes: botPrs.filter(p => new Date(p.merged_at) > new Date(f.at)).map(p => p.number)
+    }));
 
 const PR_QUERY = `query($q:String!,$cursor:String){ search(query:$q, type:ISSUE, first:25, after:$cursor){
   pageInfo { hasNextPage endCursor }
@@ -211,16 +239,19 @@ async function collect({ github, context, core, require, process }) {
             if (r.conclusion !== 'skipped') {
                 const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, { owner, repo, run_id: r.id, per_page: 100 });
                 for (const j of jobs) {
-                    let cause;
+                    let cause, message;
                     if (j.conclusion === 'failure') {
                         try {
                             const { data: notes } = await github.rest.checks.listAnnotations({ owner, repo, check_run_id: j.id, per_page: 50 });
-                            cause = failureCause(notes.map(n => n.message || ''));
+                            const messages = notes.map(n => n.message || '');
+                            cause = failureCause(messages);
+                            // The first error, for matching against fixes. It can quote PR text, so it is untrusted.
+                            message = (messages.find(x => /error/i.test(x)) || messages[0] || '').slice(0, 300);
                         } catch (e) {
                             core.warning(`Could not read the annotations of job ${j.id}: ${e.message}`);
                         }
                     }
-                    run.jobs.push({ name: j.name, conclusion: j.conclusion, started_at: j.started_at, completed_at: j.completed_at, cause });
+                    run.jobs.push({ name: j.name, conclusion: j.conclusion, started_at: j.started_at, completed_at: j.completed_at, cause, message });
                 }
             }
             runs.push(run);
@@ -236,7 +267,21 @@ async function collect({ github, context, core, require, process }) {
         cursor = page.search.pageInfo.endCursor;
     }
 
+    // Merged PRs that touched the review bot, as candidate fixes for the failures.
+    const fixes = new Map();
+    for (const path of BOT_PATHS) {
+        const commits = await github.paginate(github.rest.repos.listCommits, { owner, repo, path, since, per_page: 100 });
+        for (const c of commits) {
+            const { data: assoc } = await github.rest.repos.listPullRequestsAssociatedWithCommit({ owner, repo, commit_sha: c.sha });
+            for (const p of assoc) {
+                if (!p.merged_at || fixes.has(p.number)) continue;
+                fixes.set(p.number, { number: p.number, title: p.title, url: p.html_url, merged_at: p.merged_at, body: (p.body || '').slice(0, 1500) });
+            }
+        }
+    }
+
     const current = { runs: summarizeRuns(runs, w.current), reviews: summarizeReviews(prs, w.current) };
+    current.runs.failures = attachCandidates(current.runs.failures, [...fixes.values()]);
     const previous = { runs: summarizeRuns(runs, w.previous), reviews: summarizeReviews(prs, w.previous) };
     delete previous.reviews.prs;
     previous.runs.failures = previous.runs.failures.length;
@@ -244,6 +289,7 @@ async function collect({ github, context, core, require, process }) {
         days,
         window: { start: w.current.start.toISOString(), end: w.current.end.toISOString() },
         thresholds: THRESHOLDS,
+        bot_prs: [...fixes.values()].sort((a, b) => a.number - b.number),
         alerts: checkThresholds(current),
         current,
         previous
@@ -254,6 +300,7 @@ async function collect({ github, context, core, require, process }) {
 
 module.exports = {
     THRESHOLDS,
+    attachCandidates,
     parseDays,
     windows,
     failureCause,
