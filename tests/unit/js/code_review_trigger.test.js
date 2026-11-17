@@ -5,8 +5,8 @@
 //     opened/ready_for_review for every non-draft PR, forks included (#14482 dropped the
 //     same-repo spend gate).
 //   * code_review_action.yml runs the model ONLY on `review_requested` whose `requested_team.slug`
-//     is that team (plus the staff `issue_comment` path and `workflow_dispatch`). It no longer
-//     auto-runs on `opened`/`ready_for_review`, and no longer keys on an INDIVIDUAL reviewer.
+//     is that team or the `openlibrary-bot` user (GitHub's re-request button), plus the staff
+//     `issue_comment` path and `workflow_dispatch`. It no longer auto-runs on `opened`/`ready_for_review`.
 //
 // A team-request event carries `github.event.requested_team` and NO `requested_reviewer`; an
 // individual request is the reverse. These tests evaluate the ACTUAL `if:` expression that ships
@@ -121,14 +121,21 @@ test('a team review_requested for a DIFFERENT team does NOT fire', () => {
     assert.equal(evalIf(reviewIf, ev), false);
 });
 
-test('an INDIVIDUAL reviewer request (requested_reviewer, no requested_team) no longer fires', () => {
-    // The old design keyed on github.event.requested_reviewer.login == 'openlibrary-bot'. The single
-    // team-keyed path replaces it: an individual request carries no requested_team.slug, so it skips.
+test('a request for the openlibrary-bot user fires (the re-request button on its review)', () => {
     const ev = ctx({
         event_name: 'pull_request_target',
         event: { action: 'review_requested', requested_reviewer: { login: 'openlibrary-bot' }, requested_team: { slug: null } }
     });
-    assert.equal(evalIf(reviewIf, ev), false);
+    assert.equal(evalIf(reviewIf, ev), true);
+});
+
+test('a request for any other user, or for the bot on a draft, does NOT fire', () => {
+    for (const event of [
+        { action: 'review_requested', requested_reviewer: { login: 'someone-else' }, requested_team: { slug: null } },
+        { action: 'review_requested', pull_request: { draft: true }, requested_reviewer: { login: 'openlibrary-bot' }, requested_team: { slug: null } }
+    ]) {
+        assert.equal(evalIf(reviewIf, ctx({ event_name: 'pull_request_target', event })), false);
+    }
 });
 
 test('a DRAFT PR does not fire even with the right team requested', () => {

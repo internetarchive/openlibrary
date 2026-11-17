@@ -149,8 +149,16 @@ test('the status job posts commit status context === "code-review" (ruleset-requ
     // A rename makes the required gate unsatisfiable (ruleset requires a string nothing posts) or
     // unenforcing. Pin the single source of truth: the createCommitStatus `context:` line.
     const contextLines = statusLines.filter(l => /^\s*context:\s*/.test(l));
-    assert.equal(contextLines.length, 1, 'expected exactly one `context:` line in the workflow');
-    assert.match(contextLines[0], /^\s*context:\s*'code-review',?\s*$/, `status context must be exactly 'code-review', got: ${contextLines[0].trim()}`);
+    assert.ok(contextLines.length >= 1, 'expected at least one `context:` line in the workflow');
+    for (const line of contextLines) {
+        assert.match(line, /^\s*context:\s*'code-review',?\s*$/, `status context must be exactly 'code-review', got: ${line.trim()}`);
+    }
+});
+
+test('pending fires on the same triggers as analyze, and status runs whenever pending posted', () => {
+    assert.equal(workflow.jobs.pending.if, workflow.jobs.analyze.if);
+    assert.ok(workflow.jobs.status.needs.includes('pending'));
+    assert.match(workflow.jobs.status.if, /needs\.pending\.outputs\.head_sha != ''/);
 });
 
 // ---- ANALYZE-EXECUTION INVARIANT: analyze never executes PR content (the pull_request_target belt) ----

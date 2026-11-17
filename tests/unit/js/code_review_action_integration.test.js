@@ -495,3 +495,36 @@ test('D3a post: a withheld stub -> createReview NOT called, exits clean (no hard
     assert.equal(calls.createReview.length, 0, 'nothing public is posted for a withheld review');
     assert.equal(res.failed, null, 'and the job does not hard-fail -- the status job decides');
 });
+
+// ===================== pending: early "review in progress" status =====================
+const prCtx = { ...context, payload: { pull_request: { number: 1 } } };
+const runPending = async handlers => {
+    const { github, calls } = mockGitHub(handlers);
+    await runScript(scriptOf('pending', 'review in progress'), { github, context: prCtx, env: { RUN_URL: 'u' } });
+    return calls;
+};
+
+test('pending: head with no code-review status -> posts pending', async () => {
+    const calls = await runPending({ prGet: async () => ({ data: { head: { sha: SHA('a') }, draft: false, state: 'open' } }) });
+    assert.equal(calls.createCommitStatus.length, 1);
+    assert.equal(calls.createCommitStatus[0].sha, SHA('a'));
+    assert.equal(calls.createCommitStatus[0].state, 'pending');
+});
+test('pending: posts nothing on a head with a status, a draft, or a closed PR', async () => {
+    for (const handlers of [
+        { listStatuses: async () => ({ data: [{ context: 'code-review', state: 'success' }] }) },
+        { prGet: async () => ({ data: { head: { sha: SHA('a') }, draft: true, state: 'open' } }) },
+        { prGet: async () => ({ data: { head: { sha: SHA('a') }, draft: false, state: 'closed' } }) }
+    ]) {
+        const calls = await runPending(handlers);
+        assert.equal(calls.createCommitStatus.length, 0);
+    }
+});
+test('status: analyze died before posting a review -> the pending head gets failure', async () => {
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const env = { PR: '1', HEAD_SHA: head, POST_RESULT: 'skipped', RUN_URL: 'u' };
+    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    assert.equal(calls.createCommitStatus.length, 1);
+    assert.equal(calls.createCommitStatus[0].state, 'failure');
+});
