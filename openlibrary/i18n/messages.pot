@@ -4093,6 +4093,10 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
+#: contribute/dashboard.html.jinja
+msgid "Help needed"
+msgstr ""
+
 #: contribute/admin/parts.html.jinja contribute/dashboard.html.jinja
 msgid "Getting the list ready…"
 msgstr ""

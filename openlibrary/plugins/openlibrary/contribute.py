@@ -550,6 +550,8 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
                     if people >= MIN_PEOPLE_SHOWN
                     else None
                 ),
+                # Too few helpers to show a count: the row asks for help instead.
+                "help_needed": bool(p) and not finished and not reached and people < MIN_PEOPLE_SHOWN,
                 # Past the goal the tasks left stop being the news; who got it there is.
                 "people_helped": (
                     ungettext("%(count)s person helped", "%(count)s people helped", people, count=helpers.commify(people)) if people >= MIN_PEOPLE_SHOWN else None

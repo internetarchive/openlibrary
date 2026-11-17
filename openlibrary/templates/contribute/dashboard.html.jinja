@@ -25,6 +25,9 @@
                     {% if card.people %}
                         <span aria-hidden="true">·</span>
                         <span>{{ card.people }}</span>
+                    {% elif card.help_needed %}
+                        <span aria-hidden="true">·</span>
+                        <span>{{ _("Help needed") }}</span>
                     {% endif %}
                 {% else %}
                     <span>{{ _("Getting the list ready…") }}</span>
