@@ -450,7 +450,7 @@ async def test_get_users_logged_books_sorts_huge_shelves_by_date_added(mock_read
 
     assert result.sort == "created desc"
     query, _ = fetch_all.await_args.args
-    assert "ORDER BY created DESC LIMIT" in query
+    assert "ORDER BY created DESC, work_id DESC LIMIT" in query
     run_solr_query.assert_not_awaited()
 
 
