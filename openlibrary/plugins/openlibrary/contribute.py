@@ -460,12 +460,13 @@ def build_task_rows(task: str, initiative: initiatives.Initiative, fields: tuple
     return rows
 
 
-def get_initiative_people(initiative: initiatives.Initiative) -> int:
-    """How many people have saved for ``initiative``, from the stats job's latest counts. Yesterday's doc covers just after midnight."""
+def get_initiative_people(initiative: initiatives.Initiative) -> int | None:
+    """How many people have saved for ``initiative``, from the stats job's latest counts; None until it has counted.
+    Yesterday's doc covers just after midnight."""
     for doc in reversed(admin.get_count_docs(2)):
         if (people := admin.initiative_counts(doc).get(initiative.slug, {}).get("people")) is not None:
             return people
-    return 0
+    return None
 
 
 def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
@@ -483,7 +484,8 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
     for initiative in listed:
         gaps = initiatives.get_gaps(initiative)
         p = initiatives.progress(gaps, initiative.fields, initiative.start, initiative.goal) if gaps else None
-        people = get_initiative_people(initiative) if p else 0
+        counted = get_initiative_people(initiative) if p else None
+        people = counted or 0
         finished = initiative.status() == "ended"
         cards.append(
             initiatives.describe(initiative)
@@ -527,12 +529,16 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
                 "finished_label": (
                     (_("Finished · goal reached") if p["reached"] else _("Finished · %(percent)s%% filled", percent=p["percent"])) if p else _("Finished")
                 ),
+                # Finished, or past its goal: listed apart from the projects still asking for help.
+                "completed": finished or bool(p and p["reached"]),
                 "people_count": people,
                 "people": (
                     ungettext("%(count)s person helping", "%(count)s people helping", people, count=helpers.commify(people))
                     if people >= MIN_PEOPLE_SHOWN
                     else None
                 ),
+                # Counted, but too few to show: the row asks for help instead.
+                "help_needed": bool(p and not finished and not p["reached"] and counted is not None and counted < MIN_PEOPLE_SHOWN),
             }
         )
     return cards

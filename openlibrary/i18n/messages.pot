@@ -4093,6 +4093,14 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
+#: contribute/dashboard.html.jinja
+msgid "Help needed"
+msgstr ""
+
+#: contribute/admin/parts.html.jinja contribute/dashboard.html.jinja
+msgid "Getting the list ready…"
+msgstr ""
+
 #: contribute/admin/index.html.jinja contribute/dashboard.html.jinja contribute/faq.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
 msgid "Tasks"
 msgstr ""
@@ -4121,8 +4129,8 @@ msgstr ""
 msgid "Community projects"
 msgstr ""
 
-#: contribute/admin/parts.html.jinja contribute/dashboard.html.jinja
-msgid "Getting the list ready…"
+#: contribute/dashboard.html.jinja
+msgid "Completed"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
