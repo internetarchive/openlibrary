@@ -226,7 +226,9 @@ async function runScript(body, { github, context, env, cwd }) {
             return target[prop];
         }
     });
-    const wrappedRequire = id => (id === 'fs' ? wrappedFs : realRequire(id));
+    // GITHUB_WORKSPACE is a temp dir here; the base checkout's scripts come from this repo.
+    const wrappedRequire = id =>
+        id === 'fs' ? wrappedFs : realRequire(env.GITHUB_WORKSPACE ? id.replace(env.GITHUB_WORKSPACE, join(here, '..', '..', '..')) : id);
     const fn = new AsyncFunction('github', 'context', 'core', 'require', 'process', body);
     await fn(github, context, core, wrappedRequire, fakeProcess);
     return { ...recorded, core };

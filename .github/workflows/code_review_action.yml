@@ -344,6 +344,8 @@ jobs:
       base_sha: ${{ steps.range.outputs.base_sha }}
       incremental: ${{ steps.range.outputs.incremental }}
       skip: ${{ steps.range.outputs.skip }}
+      # From .pr_agent.toml, read before the model ran.
+      inline_key_issues: ${{ steps.range.outputs.inline_key_issues }}
       # #14476 D2: 'true' when an already-reviewed head is missing its `code-review` status and the
       # status must be re-posted from the existing review (no model re-run); post is skipped, status runs.
       repost: ${{ steps.range.outputs.repost }}
@@ -495,6 +497,14 @@ jobs:
               headers: { accept: 'application/vnd.github.v3.diff' },
             });
             fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review.diff`, diff);
+            // Settings from the BASE checkout's .pr_agent.toml, before the PR head is extracted. The model
+            // reads review-config.json. Later steps use these outputs, which the model cannot change.
+            const reviewConfig = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/config.cjs`);
+            const settings = reviewConfig.load(process.env.GITHUB_WORKSPACE, core.info);
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review-config.json`, JSON.stringify(settings, null, 2));
+            core.setOutput('off_dimensions', JSON.stringify(reviewConfig.offDimensions(settings)));
+            core.setOutput('inline_key_issues', String(settings.pr_reviewer.inline_key_issues));
+            core.setOutput('ticket_analysis', String(settings.pr_reviewer.require_ticket_analysis_review));
             fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review-range.json`, JSON.stringify({
               pr: prNumber, base_sha: base, head_sha: head,
               incremental, prior_review_at: prior ? prior.submitted_at : null,
@@ -550,7 +560,7 @@ jobs:
             core.info(`PR #${prNumber}: ${incremental ? 'incremental' : 'full'} review, ${base.slice(0,8)}..${head.slice(0,8)}`);
 
       # Ticket context, after PR-Agent's `require_ticket_analysis_review` ([pr_reviewer] in its
-      # configuration.toml; hardcoded on here). Finds the issues the PR links to and writes them to
+      # configuration.toml; also in our .pr_agent.toml). Finds the issues the PR links to and writes them to
       # linked-issues.json for the model (code_review.md Step 5). Same rules as PR-Agent's
       # pr_agent/commands/ticket_pr_compliance_check.py: `#123`, issue URLs and `owner/repo#123` in the
       # PR body, the issue number the branch name starts with, then the title; this repo's issues only
@@ -564,6 +574,7 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           PR: ${{ steps.range.outputs.pr }}
+          TICKET_ANALYSIS: ${{ steps.range.outputs.ticket_analysis }}
         with:
           script: |
             const fs = require('fs');
@@ -609,7 +620,8 @@ jobs:
             };
 
             const tickets = [];
-            try {
+            if (process.env.TICKET_ANALYSIS === 'false') core.info('Ticket analysis is turned off in .pr_agent.toml.');
+            else try {
               const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
               const candidates = [];
               for (const n of [...findIssueNumbers(pr.body, owner, repo), ...branchIssueNumbers(pr.head && pr.head.ref), ...findIssueNumbers(pr.title, owner, repo)]) {
@@ -705,6 +717,8 @@ jobs:
         id: analyze-gate
         if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          OFF_DIMENSIONS: ${{ steps.range.outputs.off_dimensions }}
         with:
           script: |
             const fs = require('fs');
@@ -715,6 +729,14 @@ jobs:
             // Upload the gate's allowlisted copy, never the model's file. Same log line either way:
             // the run log is public, and a difference would say which.
             const res = gate.check(review);
+            // Drop findings in dimensions .pr_agent.toml turned off. After the gate, so a security
+            // concern filed under one of them still withholds the review.
+            if (res.publish) {
+              for (const d of JSON.parse(process.env.OFF_DIMENSIONS || '[]')) {
+                res.clean.findings = res.clean.findings.filter((f) => f.dimension !== d);
+                res.clean.dimensions[d] = { status: 'none', note: 'Not reviewed (turned off in .pr_agent.toml).' };
+              }
+            }
             fs.writeFileSync(file, JSON.stringify(res.publish ? res.clean : { withheld: true }));
             // Count of PUBLIC findings this run, for the `code-review` status decision (issue B.2).
             // On publish it is the allowlisted findings length (includes orphaned/summary-only
@@ -795,6 +817,7 @@ jobs:
           HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
           BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
           INCREMENTAL: ${{ needs.analyze.outputs.incremental }}
+          INLINE_KEY_ISSUES: ${{ needs.analyze.outputs.inline_key_issues }}
         with:
           # Fine-grained PAT (openlibrary-bot) scoped to internetarchive/openlibrary only, with
           # Pull requests: Read and write and nothing else. Deliberately NOT the broad
@@ -806,6 +829,7 @@ jobs:
             const prNumber = Number(process.env.PR);
             const headSha = process.env.HEAD_SHA;
             const gate = eval(process.env.REVIEW_GATE_JS);
+            const inlineKeyIssues = process.env.INLINE_KEY_ISSUES !== 'false';
 
             // #14476 D1 -- the reviewed SHA must still be the live head when we post (shared by the
             // status job). createReview re-anchors its comments to the LIVE head and ignores commit_id.
@@ -943,6 +967,8 @@ jobs:
             const inline = [], orphaned = [], suggestions = [];
             for (const f of (review.findings || [])) {
               if (f.severity === 'low') { suggestions.push(f); continue; }
+              // .pr_agent.toml inline_key_issues = false keeps every finding in the review summary.
+              if (!inlineKeyIssues) { orphaned.push(f); continue; }
               const hasAnchor = f.path && f.line;
               const start = f.start_line || f.line;
               const ok = hasAnchor
@@ -990,7 +1016,7 @@ jobs:
             }).join('\n');
 
             if (orphaned.length) {
-              summary += `\n\n### Findings without an in-diff anchor\n\n` + orphaned.map(f =>
+              summary += `\n\n### ${inlineKeyIssues ? 'Findings without an in-diff anchor' : 'Findings'}\n\n` + orphaned.map(f =>
                 `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body).replace(/\n/g, '\n  ')}`
               ).join('\n\n');
             }
