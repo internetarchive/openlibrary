@@ -29,7 +29,7 @@ const DIMS = {
     styleguide: 'Styleguide'
 };
 
-const { selectReviewEvent, shouldDismissTeamRequest, threadsToResolve, fixedInSha } = post;
+const { selectReviewEvent, shouldDismissTeamRequest, threadsToResolve, fixedInSha, agentPrompt, threadStateLine } = post;
 
 // A review thread as GraphQL returns it, with the bot's finding header as its first comment.
 function thread(id, path, dim, title, { resolved = false, outdated = false, author = 'openlibrary-bot', severity = 'MEDIUM', line = 1 } = {}) {
@@ -39,7 +39,7 @@ function thread(id, path, dim, title, { resolved = false, outdated = false, auth
         line,
         isResolved: resolved,
         isOutdated: outdated,
-        comments: { nodes: [{ author: { login: author }, body: `**${severity} · ${DIMS[dim]} — ${title}**\n\nsome body text` }] }
+        comments: { nodes: [{ id: `C_${id}`, author: { login: author }, body: `**${severity} · ${DIMS[dim]} — ${title}**\n\nsome body text` }] }
     };
 }
 
@@ -114,7 +114,7 @@ test('threadsToResolve: mixed -- resolves only the listed thread; keeps the othe
     assert.deepEqual(threadsToResolve({ threads, resolvedIds: ['FIXED'], botLogin: BOT }), ['FIXED']);
 });
 
-// ========================= fixedInSha (which commit the "Fixed in" reply credits) =========================
+// ========================= fixedInSha (which commit the "Addressed in" note credits) =========================
 test('fixedInSha: the newest in-range commit that touched the file', () => {
     // rangeShas and pathShas are newest-first. 'old' touched the file before this range.
     assert.equal(fixedInSha({ rangeShas: ['c3', 'c2', 'c1'], pathShas: ['c2', 'c1', 'old'], headSha: 'c3' }), 'c2');
@@ -144,6 +144,51 @@ test('gate: a resolved entry that is not an id (prose, markdown, non-string) wit
     for (const bad of [['fixed it'], ['[x](http://e)'], [42], 'PRRT_1']) {
         assert.equal(gate.check(cleanReview({ resolved: bad })).publish, false, JSON.stringify(bad));
     }
+});
+
+test('gate: dismissed thread ids pass through deduped, and a non-id withholds the review', () => {
+    const res = gate.check(cleanReview({ dismissed: ['PRRT_1', 'PRRT_1'] }));
+    assert.equal(res.publish, true);
+    assert.deepEqual(res.clean.dismissed, ['PRRT_1']);
+    assert.deepEqual(gate.check(cleanReview({})).clean.dismissed, []);
+    for (const bad of [['not valid, see reply'], [42], 'PRRT_1']) {
+        assert.equal(gate.check(cleanReview({ dismissed: bad })).publish, false, JSON.stringify(bad));
+    }
+});
+
+// ========================= the gate requires `confidence` and demotes low-confidence findings =========================
+const withFinding = f =>
+    cleanReview({
+        dimensions: { ...cleanReview({}).dimensions, correctness: { status: 'findings', note: 'ok' } },
+        findings: [{ dimension: 'correctness', severity: 'high', title: 'Bug', body: 'Fix it.', ...f }]
+    });
+test('gate: a finding without an integer confidence from 1 to 10 withholds the review', () => {
+    for (const confidence of [undefined, null, 0, 11, 5.5, '8', -1]) {
+        assert.equal(gate.check(withFinding({ confidence })).publish, false, String(confidence));
+    }
+    for (const confidence of [1, 10]) assert.equal(gate.check(withFinding({ confidence })).publish, true);
+});
+test('gate: confidence below 6 demotes the finding to low; 6 and up keeps its severity', () => {
+    assert.equal(gate.check(withFinding({ confidence: 5 })).clean.findings[0].severity, 'low');
+    assert.equal(gate.check(withFinding({ confidence: 6 })).clean.findings[0].severity, 'high');
+    // A withheld-by-text review whose only finding is unsure doesn't block.
+    const res = gate.check(withFinding({ confidence: 3, body: 'Store the password here.' }));
+    assert.equal(res.publish, false);
+    assert.equal(res.blocking, false);
+});
+
+// ========================= agentPrompt and threadStateLine =========================
+test('agentPrompt: no location without a path, and a longer fence when the text has backticks', () => {
+    const out = agentPrompt({ title: 'T', body: 'See:\n```\ncode\n```' }, '', false);
+    assert.doesNotMatch(out, / At `/);
+    assert.doesNotMatch(out, /file context/);
+    assert.match(out, /````text\n/);
+    assert.match(out, /say why in a comment on the PR/);
+});
+test('threadStateLine: only non-zero counts, with a check mark once nothing is open', () => {
+    assert.equal(threadStateLine({ addressed: 2, dismissed: 1, open: 1 }), 'Earlier findings: 2 addressed, 1 dismissed, 1 still open.');
+    assert.equal(threadStateLine({ addressed: 2, dismissed: 0, open: 0 }), '✅ Earlier findings: 2 addressed.');
+    assert.equal(threadStateLine({ addressed: 0, dismissed: 0, open: 0 }), '');
 });
 
 // ========================= Integration: drive the real post step end-to-end =========================
@@ -192,7 +237,7 @@ const SHA = c => c.repeat(40);
 // and can throw a 422 on the first verdict attempt (self-review fallback) or throw on the thread
 // enumeration (false-red guard).
 function mockGitHub({ author = 'contributor', reviewThreads = [], throw422 = false, enumThrows = false, postedReviewId = 999 } = {}) {
-    const calls = { createReview: [], resolved: [], replies: [], removedTeams: [] };
+    const calls = { createReview: [], resolved: [], edits: [], removedTeams: [] };
     let threw = false;
     const github = {
         rest: {
@@ -222,9 +267,9 @@ function mockGitHub({ author = 'contributor', reviewThreads = [], throw422 = fal
         },
         paginate: async (method, params) => (await method(params)).data,
         graphql: async (query, vars) => {
-            if (/addPullRequestReviewThreadReply/.test(query)) {
-                calls.replies.push({ id: vars.id, body: vars.body });
-                return { addPullRequestReviewThreadReply: { comment: { id: 'C' } } };
+            if (/updatePullRequestReviewComment/.test(query)) {
+                calls.edits.push({ id: vars.id, body: vars.body });
+                return { updatePullRequestReviewComment: { pullRequestReviewComment: { id: vars.id } } };
             }
             if (/resolveReviewThread/.test(query)) {
                 calls.resolved.push(vars.id);
@@ -272,7 +317,7 @@ test('post: a clean review on a CONTRIBUTOR PR with no prior threads posts event
     }
 });
 test('post: a review WITH findings on a CONTRIBUTOR PR posts event REQUEST_CHANGES', async () => {
-    const d = setup(reviewWith([{ dimension: 'correctness', severity: 'high', title: 'Bug here', body: 'details', path: 'a.py', line: 1 }]));
+    const d = setup(reviewWith([{ dimension: 'correctness', severity: 'high', confidence: 8, title: 'Bug here', body: 'details', path: 'a.py', line: 1 }]));
     try {
         const { github, calls } = mockGitHub({ author: 'contributor' });
         await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
@@ -297,7 +342,7 @@ test('post: a clean CONTRIBUTOR PR with a SURVIVING own thread posts COMMENT, no
     }
 });
 test('post: a BOT-AUTHORED (self) PR falls back to event COMMENT and dismisses the team request', async () => {
-    const d = setup(reviewWith([{ dimension: 'correctness', severity: 'high', title: 'Bug here', body: 'details', path: 'a.py', line: 1 }]));
+    const d = setup(reviewWith([{ dimension: 'correctness', severity: 'high', confidence: 8, title: 'Bug here', body: 'details', path: 'a.py', line: 1 }]));
     try {
         const { github, calls } = mockGitHub({ author: 'openlibrary-bot' });
         await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
@@ -355,7 +400,8 @@ test('post: a thread-enumeration failure never fails the job and never auto-appr
         teardown();
     }
 });
-test('post: a thread the model judged fixed gets a "Fixed in" reply and is resolved; others stay open', async () => {
+const addressed = sha => `\n\n✅ Addressed in [\`${sha.slice(0, 7)}\`](https://github.com/internetarchive/openlibrary/commit/${sha})`;
+test('post: a thread the model judged fixed gets an "Addressed in" note on its comment and is resolved; others stay open', async () => {
     // This run is clean and lists FIXED in review.resolved. NOT_LISTED stays open and keeps it off APPROVE.
     const d = setup({ ...reviewWith([]), resolved: ['FIXED'] });
     try {
@@ -366,7 +412,11 @@ test('post: a thread the model judged fixed gets a "Fixed in" reply and is resol
         const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
         await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.deepEqual(calls.resolved, ['FIXED']);
-        assert.deepEqual(calls.replies, [{ id: 'FIXED', body: 'Fixed in c1.' }], 'credits the in-range commit that touched a.py');
+        assert.deepEqual(
+            calls.edits,
+            [{ id: 'C_FIXED', body: threads[0].comments.nodes[0].body + addressed('c1') }],
+            'credits the in-range commit that touched a.py'
+        );
         assert.equal(calls.createReview[0].event, 'COMMENT', 'the open NOT_LISTED thread keeps it off APPROVE');
     } finally {
         teardown();
@@ -380,20 +430,24 @@ test('post: #14515 -- once every own thread is judged fixed, a clean re-review A
         const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
         await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.deepEqual(calls.resolved, ['T34']);
-        assert.deepEqual(calls.replies, [{ id: 'T34', body: `Fixed in ${SHA('a')}.` }], 'no in-range commit touched it -> the head');
+        assert.deepEqual(
+            calls.edits.map(e => e.body.endsWith(addressed(SHA('a')))),
+            [true],
+            'no in-range commit touched it -> the head'
+        );
         assert.equal(calls.createReview[0].event, 'APPROVE');
     } finally {
         teardown();
     }
 });
-test('post: a reply failure still resolves the thread', async () => {
+test('post: an edit failure still resolves the thread', async () => {
     const d = setup({ ...reviewWith([]), resolved: ['FIXED'] });
     try {
         const threads = [thread('FIXED', 'a.py', 'correctness', 'Prior finding now gone', { line: 1 })];
         const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
         const graphql = github.graphql;
         github.graphql = async (q, v) => {
-            if (/addPullRequestReviewThreadReply/.test(q)) throw new Error('reply 502');
+            if (/updatePullRequestReviewComment/.test(q)) throw new Error('edit 502');
             return graphql(q, v);
         };
         const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
@@ -406,13 +460,65 @@ test('post: a reply failure still resolves the thread', async () => {
 });
 test('post: a standing finding keeps its thread open and the PR off APPROVE', async () => {
     // This run re-reports the same finding on a.py:1 -> REQUEST_CHANGES, and the thread is NOT resolved.
-    const d = setup(reviewWith([{ dimension: 'correctness', severity: 'high', title: 'Still broken', body: 'details', path: 'a.py', line: 1 }]));
+    const d = setup(reviewWith([{ dimension: 'correctness', severity: 'high', confidence: 8, title: 'Still broken', body: 'details', path: 'a.py', line: 1 }]));
     try {
         const threads = [thread('STANDS', 'a.py', 'correctness', 'Still broken', { line: 1 })];
         const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
         await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.deepEqual(calls.resolved, [], 'a finding that still stands is never resolved');
         assert.equal(calls.createReview[0].event, 'REQUEST_CHANGES');
+    } finally {
+        teardown();
+    }
+});
+
+test('post: inline and summary findings carry the agent prompt with diff context; the visible text is unchanged', async () => {
+    const d = setup(
+        reviewWith([
+            { dimension: 'correctness', severity: 'high', confidence: 8, title: 'Bug here', body: 'details', path: 'a.py', line: 1 },
+            { dimension: 'correctness', severity: 'medium', confidence: 8, title: 'Elsewhere', body: 'in another file' },
+            { dimension: 'correctness', severity: 'high', confidence: 4, title: 'Maybe', body: 'not sure', path: 'a.py', line: 1 }
+        ])
+    );
+    try {
+        const { github, calls } = mockGitHub({ author: 'contributor' });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        const { body: summary, comments } = calls.createReview[0];
+        assert.equal(comments.length, 1, 'the unsure finding is a suggestion, not a thread');
+        assert.ok(comments[0].body.startsWith('**HIGH · Correctness — Bug here**\n\ndetails\n\n<details>'), comments[0].body);
+        assert.match(comments[0].body, /At `a\.py`, line `1`:[\s\S]*<file context>\n\+print\(1\)\n<\/file context>/);
+        // The unanchored finding and the suggestion are in the summary, each with its own block.
+        assert.equal(summary.match(/<summary>Prompt for AI agents<\/summary>/g).length, 2, summary);
+        assert.match(summary, /### Suggestions \(won't block\)\n\n- \*\*Maybe\*\*/);
+        assert.match(summary, /<!-- ol-pr-review-bot f=2 -->/, 'the demoted finding does not count');
+        // Dimensions are collapsed; no state line on a first review.
+        assert.match(summary, /<details>\n<summary>Dimensions<\/summary>\n\n- \*\*Correctness\*\* — 3 findings/);
+        assert.ok(summary.startsWith('A plain summary.'), summary);
+    } finally {
+        teardown();
+    }
+});
+test('post: a thread the model dismissed is noted and resolved, and the summary opens with the state', async () => {
+    const d = setup({ ...reviewWith([]), resolved: ['FIXED'], dismissed: ['WRONG', 'FIXED', 'HUMAN'] });
+    try {
+        const threads = [
+            thread('FIXED', 'a.py', 'correctness', 'Now gone', { line: 1 }),
+            thread('WRONG', 'b.py', 'correctness', 'Author explained', { line: 2 }),
+            thread('HUMAN', 'b.py', 'correctness', 'Not ours', { line: 3, author: 'alice' }),
+            thread('OPEN', 'c.py', 'correctness', 'Still there', { line: 4 })
+        ];
+        const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        assert.deepEqual(calls.resolved, ['FIXED', 'WRONG'], "a human's thread is never touched");
+        assert.deepEqual(
+            calls.edits.map(e => [e.id, e.body.split('\n\n').pop()]),
+            [
+                ['C_FIXED', addressed('c1').trim()],
+                ['C_WRONG', 'Dismissed: a reply below shows this does not apply.']
+            ]
+        );
+        assert.ok(calls.createReview[0].body.startsWith('Earlier findings: 1 addressed, 1 dismissed, 1 still open.\n\n'), calls.createReview[0].body);
+        assert.equal(calls.createReview[0].event, 'COMMENT');
     } finally {
         teardown();
     }
@@ -429,7 +535,13 @@ test('range: writes our own OPEN threads (outdated included, line falls back to 
             path: 'a.py',
             line,
             originalLine,
-            comments: { nodes: [{ author: { login: author }, body: `**LOW · Correctness — ${id}**\n\nbody` }] }
+            comments: {
+                nodes: [
+                    { author: { login: author }, body: `**LOW · Correctness — ${id}**\n\nbody` },
+                    { author: { login: 'contributor' }, body: 'x'.repeat(3000) },
+                    { author: { login: 'openlibrary-bot' }, body: 'Fixed in abc.' }
+                ]
+            }
         });
         const nodes = [
             node('OPEN'),
@@ -459,6 +571,7 @@ test('range: writes our own OPEN threads (outdated included, line falls back to 
             ]
         );
         assert.match(prior[0].comment, /Correctness — OPEN/);
+        assert.deepEqual(prior[0].replies, [{ author: 'contributor', body: 'x'.repeat(2000) }], "others' replies, capped; the bot's own left out");
     } finally {
         rmSync(d, { recursive: true, force: true });
     }

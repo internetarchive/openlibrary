@@ -2,7 +2,7 @@
 // uploading the analysis and `post` runs it again before posting.
 //
 // check(review) withholds anything that is not a well-formed review. On success it returns
-// `clean`, a copy with only the fields `post` renders; that copy is what gets uploaded and posted,
+// `clean`, a copy with only the fields `post` renders or re-checks; that copy is what gets uploaded and posted,
 // so no unscanned field reaches a public surface. It also returns `findingsTotal` (null when the
 // review is malformed) and `blocking`, the one bit the `code-review` status uses for a withheld
 // review. `blocking` is false only for a publishable review, or a review withheld by the text scan
@@ -18,6 +18,8 @@ module.exports = {
         styleguide: 'Styleguide'
     },
     severities: ['high', 'medium', 'low'],
+    // A finding's confidence is an integer 1-10; below this it is demoted to low. It is never rendered.
+    minConfidence: 6,
     // Backstop for a security concern the model filed under another dimension or wrote into
     // prose. The model's own classification is the main control; this cannot catch every phrasing.
     // A false positive costs a withheld review; a false negative costs a disclosure.
@@ -110,10 +112,17 @@ module.exports = {
         if (!review || typeof review !== 'object' || Array.isArray(review)) return no;
         const { dimensions: dims, findings } = review;
         if (!str(review.summary) || !Array.isArray(findings) || !dims || typeof dims !== 'object') return no;
-        // `resolved`: ids of our earlier review threads the model judged fixed. `post` checks each
-        // against the live threads before acting on it.
-        if (!absent(review.resolved) && !(Array.isArray(review.resolved) && review.resolved.every(id => str(id) && this.threadId.test(id)))) return no;
-        const clean = { summary: review.summary, dimensions: {}, findings: [], resolved: [...new Set(review.resolved || [])] };
+        // `resolved`: ids of our earlier review threads the model judged fixed; `dismissed`: ids whose
+        // replies showed the finding doesn't apply. `post` checks each against the live threads.
+        const ids = v => absent(v) || (Array.isArray(v) && v.every(id => str(id) && this.threadId.test(id)));
+        if (!ids(review.resolved) || !ids(review.dismissed)) return no;
+        const clean = {
+            summary: review.summary,
+            dimensions: {},
+            findings: [],
+            resolved: [...new Set(review.resolved || [])],
+            dismissed: [...new Set(review.dismissed || [])]
+        };
         const counts = {};
         for (const f of findings) {
             if (!f || typeof f !== 'object' || !str(f.dimension) || !Object.hasOwn(this.dimensions, f.dimension)) return no;
@@ -121,8 +130,10 @@ module.exports = {
             if (!line(f.line) || !line(f.start_line)) return no;
             if (!absent(f.path) && !(str(f.path) && this.path.test(f.path))) return no;
             if (!absent(f.suggestion) && !str(f.suggestion)) return no;
+            if (!Number.isInteger(f.confidence) || f.confidence < 1 || f.confidence > 10) return no;
             counts[f.dimension] = (counts[f.dimension] || 0) + 1;
-            const c = { dimension: f.dimension, severity: f.severity, title: f.title, body: f.body };
+            const severity = f.confidence < this.minConfidence ? 'low' : f.severity;
+            const c = { dimension: f.dimension, severity, confidence: f.confidence, title: f.title, body: f.body };
             for (const k of ['path', 'start_line', 'line', 'suggestion']) if (!absent(f[k])) c[k] = f[k];
             clean.findings.push(c);
         }

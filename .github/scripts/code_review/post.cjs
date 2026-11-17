@@ -35,12 +35,34 @@ const threadsToResolve = ({ threads, resolvedIds, botLogin }) => {
     return out;
 };
 
-// The commit to credit in the "Fixed in" reply: the newest commit in this run's range that touched
+// The commit to credit in the "Addressed in" note: the newest commit in this run's range that touched
 // the thread's file (the fix is usually there), else the reviewed head. rangeShas is newest-first.
 const fixedInSha = ({ rangeShas, pathShas, headSha }) => {
     const inRange = new Set(rangeShas || []);
     for (const sha of pathShas || []) if (inRange.has(sha)) return sha;
     return headSha;
+};
+
+// The collapsed "Prompt for AI agents" block under a finding, for a reader to paste into a coding
+// agent. Built from the gate's clean fields and the diff, which is already public.
+const agentPrompt = (f, context, inThread) => {
+    const where = f.path ? ` At \`${f.path}\`${f.line ? `, line \`${f.line}\`` : ''}:` : '';
+    const reply = inThread ? 'reply in its thread with the reason and resolve the thread' : 'say why in a comment on the PR';
+    let text = `Check if this issue is valid — if so, understand the root cause and fix it. If it isn't valid or won't be fixed in this PR, ${reply}.${where}\n\n<comment>${f.title}\n\n${f.body}</comment>`;
+    if (context) text += `\n\n<file context>\n${context}\n</file context>`;
+    // A fence longer than any run of backticks inside, so the text can't close it.
+    const fence = '`'.repeat(Math.max(3, ...(text.match(/`+/g) || []).map(run => run.length + 1)));
+    return `\n\n<details>\n<summary>Prompt for AI agents</summary>\n\n${fence}text\n${text}\n${fence}\n\n</details>`;
+};
+
+// The line a re-review's summary opens with: what happened to the bot's earlier threads.
+const threadStateLine = ({ addressed, dismissed, open }) => {
+    const parts = [];
+    if (addressed) parts.push(`${addressed} addressed`);
+    if (dismissed) parts.push(`${dismissed} dismissed`);
+    if (open) parts.push(`${open} still open`);
+    if (!parts.length) return '';
+    return `${open ? '' : '✅ '}Earlier findings: ${parts.join(', ')}.`;
 };
 
 // The ticket compliance section, as PR-Agent's ticket_markdown_logic (pr_agent/algo/utils.py)
@@ -133,6 +155,8 @@ async function validateAndPost({ github, context, core, require, process }) {
     // GitHub doesn't document what happens with an anchor outside the diff, so findings with one
     // go in the summary instead.
     const anchorable = new Map();
+    // Every line of each file's diff, with the new-side line it sits at, for the agent prompt.
+    const diffLines = new Map();
     {
         let file = null,
             newLn = 0;
@@ -140,7 +164,10 @@ async function validateAndPost({ github, context, core, require, process }) {
             if (raw.startsWith('+++ ')) {
                 const p = raw.slice(4).trim();
                 file = p === '/dev/null' ? null : p.replace(/^b\//, '');
-                if (file) anchorable.set(file, new Set());
+                if (file) {
+                    anchorable.set(file, new Set());
+                    diffLines.set(file, []);
+                }
                 continue;
             }
             const h = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
@@ -149,11 +176,23 @@ async function validateAndPost({ github, context, core, require, process }) {
                 continue;
             }
             if (!file) continue;
+            if (/^[-+ ]/.test(raw)) diffLines.get(file).push({ ln: newLn, raw: raw.slice(0, 200) });
             if (raw.startsWith('+') || raw.startsWith(' ')) {
                 anchorable.get(file).add(newLn++);
             }
         }
     }
+
+    // A few diff lines around a finding's line, capped so a long range or deletion can't bloat the comment.
+    const contextFor = f => {
+        if (!f.path || !f.line || !diffLines.has(f.path)) return '';
+        return diffLines
+            .get(f.path)
+            .filter(l => Math.abs(l.ln - f.line) <= 3)
+            .slice(0, 10)
+            .map(l => l.raw)
+            .join('\n');
+    };
 
     // Low severity findings are listed as suggestions in the summary, not as threads, which block.
     const inline = [],
@@ -192,6 +231,7 @@ async function validateAndPost({ github, context, core, require, process }) {
             if (want === got) body += `\n\n\`\`\`suggestion\n${f.suggestion}\n\`\`\``;
             else core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (${got} lines for a ${want}-line range).`);
         }
+        body += agentPrompt(f, contextFor(f), true);
         const c = { path: f.path, line: Number(f.line), side: 'RIGHT', body };
         if (Number(start) !== Number(f.line)) {
             c.start_line = Number(start);
@@ -204,6 +244,8 @@ async function validateAndPost({ github, context, core, require, process }) {
     // Summary. Findings without a valid anchor go here rather than on an approximate line.
     const findingCount = inline.length + orphaned.length; // blocking findings only (LOW excluded)
     const baseSha = process.env.BASE_SHA;
+    // Set once the earlier threads are handled; the summary opens with it.
+    let stateLine = '';
     // A function, so a rejected post can render it again with every finding in the summary.
     const renderSummary = () => {
         let summary = review.summary || '';
@@ -211,6 +253,7 @@ async function validateAndPost({ github, context, core, require, process }) {
         if (process.env.INCREMENTAL === 'true') {
             summary = `*Re-reviewing only the files changed since my last pass. Merges of the base branch are skipped.*\n\n${summary}`;
         }
+        if (stateLine) summary = `${stateLine}\n\n${summary}`;
 
         summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
 
@@ -218,26 +261,29 @@ async function validateAndPost({ github, context, core, require, process }) {
         // Security is a fixed line: a review with a security finding never gets this far.
         const count = {};
         for (const f of review.findings) count[f.dimension] = (count[f.dimension] || 0) + 1;
-        summary += `\n\n### Dimensions\n\n${Object.entries(gate.dimensions)
+        summary += `\n\n<details>\n<summary>Dimensions</summary>\n\n${Object.entries(gate.dimensions)
             .map(([k, label]) => {
                 if (k === 'security') return `- **${label}** — no findings in this range. This is not a security audit.`;
                 if (count[k]) return `- **${label}** — ${count[k]} finding${count[k] === 1 ? '' : 's'}`;
                 return `- **${label}** — no findings. ${review.dimensions[k].note}`;
             })
-            .join('\n')}`;
+            .join('\n')}\n\n</details>`;
 
         if (orphaned.length) {
             summary += `\n\n### ${inlineKeyIssues ? 'Findings without an in-diff anchor' : 'Findings'}\n\n${orphaned
                 .map(
                     f =>
-                        `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body).replace(/\n/g, '\n  ')}`
+                        `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body + agentPrompt(f, contextFor(f), false)).replace(/\n/g, '\n  ')}`
                 )
                 .join('\n\n')}`;
         }
         if (suggestions.length) {
             summary += `\n\n### Suggestions (won't block)\n\n${suggestions
-                .map(f => `- **${f.title}**${f.path ? ` (\`${f.path}${f.line ? `:${f.line}` : ''}\`)` : ''}: ${String(f.body).replace(/\n/g, ' ')}`)
-                .join('\n')}`;
+                .map(
+                    f =>
+                        `- **${f.title}**${f.path ? ` (\`${f.path}${f.line ? `:${f.line}` : ''}\`)` : ''}: ${String(f.body).replace(/\n/g, ' ')}${agentPrompt(f, contextFor(f), false).replace(/\n/g, '\n  ')}`
+                )
+                .join('\n\n')}`;
         }
         // A contributor without write access can't re-request a review, but can comment.
         const minutes = process.env.PUSH_REVIEW_MINUTES;
@@ -247,8 +293,6 @@ async function validateAndPost({ github, context, core, require, process }) {
         summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md). This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
         return summary;
     };
-    let summary = renderSummary();
-
     // If the head moved since the review, post nothing (see headIsCurrent).
     const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
     if (!headIsCurrent(headSha, livePr.head.sha)) {
@@ -260,9 +304,9 @@ async function validateAndPost({ github, context, core, require, process }) {
 
     const selfAuthored = (livePr.user && livePr.user.login) === 'openlibrary-bot';
 
-    // Before posting, because it decides the verdict: reply "Fixed in <sha>" on the bot's threads
-    // the model judged fixed, resolve them, and count the bot's threads still open. A GraphQL error
-    // must not fail the post; it leaves the count null, which means no APPROVE.
+    // Before posting, because it decides the verdict: resolve the bot's threads the model judged
+    // fixed or dismissed, noting why on the thread's first comment, and count the bot's threads still
+    // open. A GraphQL error must not fail the post; it leaves the count null, which means no APPROVE.
     let unresolvedOwnThreads = null;
     try {
         let allThreads = [],
@@ -273,7 +317,7 @@ async function validateAndPost({ github, context, core, require, process }) {
              repository(owner:$owner,name:$repo){
                pullRequest(number:$pr){
                  reviewThreads(first:100, after:$cursor){
-                   nodes { id isResolved isOutdated path line comments(first:1){ nodes { author { login } body } } }
+                   nodes { id isResolved isOutdated path line comments(first:1){ nodes { id author { login } body } } }
                    pageInfo { hasNextPage endCursor }
                  }
                }
@@ -287,7 +331,11 @@ async function validateAndPost({ github, context, core, require, process }) {
             tCursor = rt.pageInfo.endCursor;
         }
         const toResolve = threadsToResolve({ threads: allThreads, resolvedIds: review.resolved, botLogin: 'openlibrary-bot' });
-        // Commits in the reviewed range, newest first, for the "Fixed in" reply.
+        // A thread listed as both counts as fixed.
+        const toDismiss = threadsToResolve({ threads: allThreads, resolvedIds: review.dismissed, botLogin: 'openlibrary-bot' }).filter(
+            id => !toResolve.includes(id)
+        );
+        // Commits in the reviewed range, newest first, for the "Addressed in" note.
         let rangeShas = [];
         if (toResolve.length) {
             try {
@@ -297,35 +345,46 @@ async function validateAndPost({ github, context, core, require, process }) {
                 core.warning(`Could not list the reviewed commits: ${e.message}`);
             }
         }
-        const pathOf = new Map(allThreads.filter(Boolean).map(t => [t.id, t.path]));
+        const byId = new Map(allThreads.filter(Boolean).map(t => [t.id, t]));
         const resolvedOk = new Set();
-        for (const id of toResolve) {
-            let sha = headSha;
-            try {
-                const path = pathOf.get(id);
-                if (path && rangeShas.length) {
-                    const { data: touching } = await github.rest.repos.listCommits({ owner, repo, sha: headSha, path, per_page: 30 });
-                    sha = fixedInSha({ rangeShas, pathShas: (touching || []).map(c => c.sha), headSha });
+        let addressed = 0,
+            dismissed = 0;
+        for (const id of [...toResolve, ...toDismiss]) {
+            const fixed = toResolve.includes(id);
+            let note = 'Dismissed: a reply below shows this does not apply.';
+            if (fixed) {
+                let sha = headSha;
+                try {
+                    const path = byId.get(id).path;
+                    if (path && rangeShas.length) {
+                        const { data: touching } = await github.rest.repos.listCommits({ owner, repo, sha: headSha, path, per_page: 30 });
+                        sha = fixedInSha({ rangeShas, pathShas: (touching || []).map(c => c.sha), headSha });
+                    }
+                } catch (e) {
+                    core.warning(`Could not find the commit that fixed thread ${id}: ${e.message}`);
                 }
-            } catch (e) {
-                core.warning(`Could not find the commit that fixed thread ${id}: ${e.message}`);
+                note = `✅ Addressed in [\`${sha.slice(0, 7)}\`](https://github.com/${owner}/${repo}/commit/${sha})`;
             }
+            // Noted on the bot's comment rather than as a reply. A failed edit still resolves.
+            const first = byId.get(id).comments.nodes[0];
             try {
                 await github.graphql(
-                    `mutation($id:ID!,$body:String!){ addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$id, body:$body}){ comment { id } } }`,
-                    { id, body: `Fixed in ${sha}.` }
+                    `mutation($id:ID!,$body:String!){ updatePullRequestReviewComment(input:{pullRequestReviewCommentId:$id, body:$body}){ pullRequestReviewComment { id } } }`,
+                    { id: first.id, body: `${first.body}\n\n${note}` }
                 );
             } catch (e) {
-                core.warning(`Could not reply on review thread ${id}: ${e.message}`);
+                core.warning(`Could not edit the comment on review thread ${id}: ${e.message}`);
             }
             try {
                 await github.graphql(`mutation($id:ID!){ resolveReviewThread(input:{threadId:$id}){ thread { id isResolved } } }`, { id });
                 resolvedOk.add(id);
+                if (fixed) addressed++;
+                else dismissed++;
             } catch (e) {
                 core.warning(`Could not resolve review thread ${id}: ${e.message}`);
             }
         }
-        if (resolvedOk.size) core.info(`Resolved ${resolvedOk.size} fixed review thread(s).`);
+        if (resolvedOk.size) core.info(`Resolved ${addressed} fixed and ${dismissed} dismissed review thread(s).`);
         // Counted the way the status job counts, limited to the bot's threads. A thread whose
         // resolve failed still counts, so it blocks APPROVE.
         unresolvedOwnThreads = allThreads.filter(t => {
@@ -333,6 +392,7 @@ async function validateAndPost({ github, context, core, require, process }) {
             const c = t.comments && t.comments.nodes && t.comments.nodes[0];
             return !!(c && c.author && c.author.login === 'openlibrary-bot');
         }).length;
+        stateLine = threadStateLine({ addressed, dismissed, open: unresolvedOwnThreads });
     } catch (e) {
         core.warning(`Thread enumeration failed; skipping resolution and not auto-approving: ${e.message}`);
     }
@@ -340,6 +400,7 @@ async function validateAndPost({ github, context, core, require, process }) {
     // A human's open thread doesn't stop APPROVE, though it keeps the status red. The status, not
     // the verdict, is what merging requires.
     let event = selectReviewEvent({ selfAuthored, findingCount, unresolvedOwnThreads });
+    let summary = renderSummary();
 
     // One batched review. POST /pulls/{n}/comments returns 422 `pull_request_review_thread.base`
     // in practice (cli/cli#13358), while the same anchors in a batched review work. On a 422,
@@ -406,4 +467,14 @@ async function validateAndPost({ github, context, core, require, process }) {
     }
 }
 
-module.exports = { refetchDiff, validateAndPost, selectReviewEvent, shouldDismissTeamRequest, threadsToResolve, fixedInSha, renderTicketCompliance };
+module.exports = {
+    refetchDiff,
+    validateAndPost,
+    selectReviewEvent,
+    shouldDismissTeamRequest,
+    threadsToResolve,
+    fixedInSha,
+    renderTicketCompliance,
+    agentPrompt,
+    threadStateLine
+};
