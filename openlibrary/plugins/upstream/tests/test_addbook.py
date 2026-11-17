@@ -58,7 +58,7 @@ class TestSaveBookHelper:
     def test_editing_orphan_creates_work(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many(
+        site.get().save_many(
             [
                 {
                     "type": {"key": "/type/edition"},
@@ -67,7 +67,7 @@ class TestSaveBookHelper:
                 }
             ]
         )
-        edition = web.ctx.site.get("/books/OL1M")
+        edition = site.get().get("/books/OL1M")
 
         formdata = web.storage(
             {
@@ -80,14 +80,14 @@ class TestSaveBookHelper:
         s = addbook.SaveBookHelper(None, edition)
         s.save(formdata)
 
-        assert len(web.ctx.site.docs) == 2
-        assert web.ctx.site.get("/works/OL1W") is not None
-        assert web.ctx.site.get("/works/OL1W").title == "Original Edition Title"
+        assert len(site.get().docs) == 2
+        assert site.get().get("/works/OL1W") is not None
+        assert site.get().get("/works/OL1W").title == "Original Edition Title"
 
     def test_never_create_an_orphan(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many(
+        site.get().save_many(
             [
                 {
                     "type": {"key": "/type/work"},
@@ -102,8 +102,8 @@ class TestSaveBookHelper:
                 },
             ]
         )
-        edition = web.ctx.site.get("/books/OL1M")
-        work = web.ctx.site.get("/works/OL1W")
+        edition = site.get().get("/books/OL1M")
+        work = site.get().get("/works/OL1W")
 
         formdata = web.storage(
             {
@@ -116,13 +116,13 @@ class TestSaveBookHelper:
 
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
-        print(web.ctx.site.get("/books/OL1M").title)
-        assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
+        print(site.get().get("/books/OL1M").title)
+        assert site.get().get("/books/OL1M").works[0].key == "/works/OL1W"
 
     def test_moving_orphan(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many(
+        site.get().save_many(
             [
                 {
                     "type": {"key": "/type/edition"},
@@ -131,7 +131,7 @@ class TestSaveBookHelper:
                 }
             ]
         )
-        edition = web.ctx.site.get("/books/OL1M")
+        edition = site.get().get("/books/OL1M")
 
         formdata = web.storage(
             {
@@ -145,13 +145,13 @@ class TestSaveBookHelper:
         s = addbook.SaveBookHelper(None, edition)
         s.save(formdata)
 
-        assert len(web.ctx.site.docs) == 1
-        assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
+        assert len(site.get().docs) == 1
+        assert site.get().get("/books/OL1M").works[0].key == "/works/OL1W"
 
     def test_moving_orphan_ignores_work_edits(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many(
+        site.get().save_many(
             [
                 {
                     "type": {"key": "/type/work"},
@@ -165,7 +165,7 @@ class TestSaveBookHelper:
                 },
             ]
         )
-        edition = web.ctx.site.get("/books/OL1M")
+        edition = site.get().get("/books/OL1M")
 
         formdata = web.storage(
             {
@@ -179,12 +179,12 @@ class TestSaveBookHelper:
         s = addbook.SaveBookHelper(None, edition)
         s.save(formdata)
 
-        assert web.ctx.site.get("/works/OL1W").title == "Original Work Title"
+        assert site.get().get("/works/OL1W").title == "Original Work Title"
 
     def test_editing_work(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many(
+        site.get().save_many(
             [
                 {
                     "type": {"key": "/type/work"},
@@ -200,8 +200,8 @@ class TestSaveBookHelper:
             ]
         )
 
-        work = web.ctx.site.get("/works/OL1W")
-        edition = web.ctx.site.get("/books/OL1M")
+        work = site.get().get("/works/OL1W")
+        edition = site.get().get("/books/OL1M")
 
         formdata = web.storage(
             {
@@ -215,13 +215,13 @@ class TestSaveBookHelper:
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
 
-        assert web.ctx.site.get("/works/OL1W").title == "Modified Work Title"
-        assert web.ctx.site.get("/books/OL1M").title == "Original Edition Title"
+        assert site.get().get("/works/OL1W").title == "Modified Work Title"
+        assert site.get().get("/books/OL1M").title == "Original Edition Title"
 
     def test_editing_edition(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many(
+        site.get().save_many(
             [
                 {
                     "type": {"key": "/type/work"},
@@ -237,8 +237,8 @@ class TestSaveBookHelper:
             ]
         )
 
-        work = web.ctx.site.get("/works/OL1W")
-        edition = web.ctx.site.get("/books/OL1M")
+        work = site.get().get("/works/OL1W")
+        edition = site.get().get("/books/OL1M")
 
         formdata = web.storage(
             {
@@ -252,13 +252,13 @@ class TestSaveBookHelper:
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
 
-        assert web.ctx.site.get("/works/OL1W").title == "Original Work Title"
-        assert web.ctx.site.get("/books/OL1M").title == "Modified Edition Title"
+        assert site.get().get("/works/OL1W").title == "Original Work Title"
+        assert site.get().get("/books/OL1M").title == "Modified Edition Title"
 
     def test_editing_work_and_edition(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many(
+        site.get().save_many(
             [
                 {
                     "type": {"key": "/type/work"},
@@ -274,8 +274,8 @@ class TestSaveBookHelper:
             ]
         )
 
-        work = web.ctx.site.get("/works/OL1W")
-        edition = web.ctx.site.get("/books/OL1M")
+        work = site.get().get("/works/OL1W")
+        edition = site.get().get("/books/OL1M")
 
         formdata = web.storage(
             {
@@ -289,13 +289,13 @@ class TestSaveBookHelper:
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
 
-        assert web.ctx.site.get("/works/OL1W").title == "Modified Work Title"
-        assert web.ctx.site.get("/books/OL1M").title == "Modified Edition Title"
+        assert site.get().get("/works/OL1W").title == "Modified Work Title"
+        assert site.get().get("/books/OL1M").title == "Modified Edition Title"
 
     def test_moving_edition(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many(
+        site.get().save_many(
             [
                 {
                     "type": {"key": "/type/work"},
@@ -311,8 +311,8 @@ class TestSaveBookHelper:
             ]
         )
 
-        work = web.ctx.site.get("/works/OL1W")
-        edition = web.ctx.site.get("/books/OL1M")
+        work = site.get().get("/works/OL1W")
+        edition = site.get().get("/books/OL1M")
 
         formdata = web.storage(
             {
@@ -326,12 +326,12 @@ class TestSaveBookHelper:
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
 
-        assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL2W"
+        assert site.get().get("/books/OL1M").works[0].key == "/works/OL2W"
 
     def test_moving_edition_ignores_changes_to_work(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many(
+        site.get().save_many(
             [
                 {
                     "type": {"key": "/type/work"},
@@ -347,8 +347,8 @@ class TestSaveBookHelper:
             ]
         )
 
-        work = web.ctx.site.get("/works/OL1W")
-        edition = web.ctx.site.get("/books/OL1M")
+        work = site.get().get("/works/OL1W")
+        edition = site.get().get("/books/OL1M")
 
         formdata = web.storage(
             {
@@ -362,12 +362,12 @@ class TestSaveBookHelper:
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
 
-        assert web.ctx.site.get("/works/OL1W").title == "Original Work Title"
+        assert site.get().get("/works/OL1W").title == "Original Work Title"
 
     def test_moving_edition_to_new_work(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many(
+        site.get().save_many(
             [
                 {
                     "type": {"key": "/type/work"},
@@ -385,8 +385,8 @@ class TestSaveBookHelper:
             ]
         )
 
-        work = web.ctx.site.get("/works/OL100W")
-        edition = web.ctx.site.get("/books/OL1M")
+        work = site.get().get("/works/OL100W")
+        edition = site.get().get("/books/OL1M")
 
         formdata = web.storage(
             {
@@ -400,14 +400,14 @@ class TestSaveBookHelper:
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
 
-        assert len(web.ctx.site.docs) == 3
+        assert len(site.get().docs) == 3
         # Should create new work with edition data
-        assert web.ctx.site.get("/works/OL1W") is not None
-        new_work = web.ctx.site.get("/books/OL1M").works[0]
+        assert site.get().get("/works/OL1W") is not None
+        new_work = site.get().get("/books/OL1M").works[0]
         assert new_work.key == "/works/OL1W"
         assert new_work.title == "Original Edition Title"
         # Should ignore edits to work data
-        assert web.ctx.site.get("/works/OL100W").title == "Original Work Title"
+        assert site.get().get("/works/OL100W").title == "Original Work Title"
         # Should ignore authors/subjects by default
         assert not new_work.authors
         assert not new_work.subjects
@@ -415,7 +415,7 @@ class TestSaveBookHelper:
     def test_moving_edition_to_new_work_can_copy_data(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many(
+        site.get().save_many(
             [
                 {
                     "type": {"key": "/type/work"},
@@ -433,8 +433,8 @@ class TestSaveBookHelper:
             ]
         )
 
-        work = web.ctx.site.get("/works/OL100W")
-        edition = web.ctx.site.get("/books/OL1M")
+        work = site.get().get("/works/OL100W")
+        edition = site.get().get("/books/OL1M")
 
         formdata = web.storage(
             {
@@ -450,9 +450,9 @@ class TestSaveBookHelper:
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
 
-        assert len(web.ctx.site.docs) == 3
-        old_work = web.ctx.site.get("/works/OL100W")
-        new_work = web.ctx.site.get("/books/OL1M").works[0]
+        assert len(site.get().docs) == 3
+        old_work = site.get().get("/works/OL100W")
+        new_work = site.get().get("/books/OL1M").works[0]
         assert new_work.key != old_work.key
         # Should ignore authors/subjects by default
         assert new_work.authors == old_work.authors
@@ -461,7 +461,7 @@ class TestSaveBookHelper:
     def test_moving_edition_to_new_work_copy_when_none(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many(
+        site.get().save_many(
             [
                 {
                     "type": {"key": "/type/work"},
@@ -477,8 +477,8 @@ class TestSaveBookHelper:
             ]
         )
 
-        work = web.ctx.site.get("/works/OL100W")
-        edition = web.ctx.site.get("/books/OL1M")
+        work = site.get().get("/works/OL100W")
+        edition = site.get().get("/books/OL1M")
 
         formdata = web.storage(
             {
@@ -494,9 +494,9 @@ class TestSaveBookHelper:
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
 
-        assert len(web.ctx.site.docs) == 3
-        old_work = web.ctx.site.get("/works/OL100W")
-        new_work = web.ctx.site.get("/books/OL1M").works[0]
+        assert len(site.get().docs) == 3
+        old_work = site.get().get("/works/OL100W")
+        new_work = site.get().get("/books/OL1M").works[0]
         assert new_work.key != old_work.key
         # Should ignore authors/subjects by default
         assert not new_work.authors
@@ -556,8 +556,8 @@ class TestSaveBookHelper:
         doc = {"type": {"key": "/type/edition"}, "key": "/books/OL1M", "title": "Edition"}
         if ocaid:
             doc["ocaid"] = ocaid
-        web.ctx.site.save(doc)
-        return web.ctx.site.get("/books/OL1M")
+        site.get().save(doc)
+        return site.get().get("/books/OL1M")
 
     @staticmethod
     def _ocaid_form(ocaid):
@@ -605,7 +605,7 @@ class TestAddBookOcaid:
 
 class TestDaisyPage:
     def test_redirects_to_archive_item_for_edition_with_ocaid(self, monkeypatch):
-        web.ctx.site.save(
+        site.get().save(
             {
                 "type": {"key": "/type/edition"},
                 "key": "/books/OL1M",
@@ -627,7 +627,7 @@ class TestDaisyPage:
         assert redirects == ["https://archive.org/details/testitem00archive"]
 
     def test_redirect_escapes_archive_item_identifier(self, monkeypatch):
-        web.ctx.site.save(
+        site.get().save(
             {
                 "type": {"key": "/type/edition"},
                 "key": "/books/OL1M",
@@ -653,7 +653,7 @@ class TestMakeWork:
     def test_make_author_adds_the_correct_key(self):
         author_key = "OL123A"
         author_name = "Samuel Clemens"
-        author = web.ctx.site.new(
+        author = site.get().new(
             "/authors/OL123A",
             {"key": author_key, "type": {"key": "/type/author"}, "name": author_name},
         )
@@ -671,7 +671,7 @@ class TestMakeWork:
 
         author_key = "OL123A"
         author_name = "Samuel Clemens"
-        author = web.ctx.site.new(
+        author = site.get().new(
             "/authors/OL123A",
             {"key": author_key, "type": {"key": "/type/author"}, "name": author_name},
         )

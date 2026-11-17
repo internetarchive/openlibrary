@@ -35,10 +35,10 @@ class TestInvalidationProcessor:
         self._monkeypatch_web(monkeypatch)
 
         doc = {"key": "/templates/site.tmpl", "type": "/type/template"}
-        web.ctx.site.save(doc, timestamp=dt.datetime(2010, 1, 1))
+        site_context.get().save(doc, timestamp=dt.datetime(2010, 1, 1))
 
         hook = invalidation._InvalidationHook("/templates/site.tmpl", cookie_name="invalidation-cookie", expire_time=120)
-        hook.on_new_version(web.ctx.site.get(doc["key"]))
+        hook.on_new_version(site_context.get().get(doc["key"]))
 
         assert self.cookie == {
             "name": "invalidation-cookie",
@@ -56,16 +56,16 @@ class TestInvalidationProcessor:
 
         # save a doc after creating the processor
         doc = {"key": "/templates/site.tmpl", "type": "/type/template"}
-        web.ctx.site.save(doc)
+        site_context.get().save(doc)
 
         # reload and make sure the hook gets called
         p.reload()
 
         assert self.hook.call_count == 1
-        assert self.hook.recent_doc.dict() == web.ctx.site.get("/templates/site.tmpl").dict()
+        assert self.hook.recent_doc.dict() == site_context.get().get("/templates/site.tmpl").dict()
 
         # last_update_time must get updated
-        assert p.last_update_time == web.ctx.site.get("/templates/site.tmpl").last_modified
+        assert p.last_update_time == site_context.get().get("/templates/site.tmpl").last_modified
 
     def test_reload_on_timeout(self, monkeypatch):
         # create the processor at 60 seconds past in time
@@ -83,12 +83,12 @@ class TestInvalidationProcessor:
 
         # save a doc
         doc = {"key": "/templates/site.tmpl", "type": "/type/template"}
-        web.ctx.site.save(doc)
+        site_context.get().save(doc)
 
         # call the processor
         p(lambda: None)
         assert self.hook.call_count == 1
-        assert self.hook.recent_doc.dict() == web.ctx.site.get("/templates/site.tmpl").dict()
+        assert self.hook.recent_doc.dict() == site_context.get().get("/templates/site.tmpl").dict()
 
     def test_is_timeout(self, monkeypatch):
         # create the processor at 60 seconds past in time
@@ -117,7 +117,7 @@ class TestInvalidationProcessor:
 
         # save a doc
         doc = {"key": "/templates/site.tmpl", "type": "/type/template"}
-        web.ctx.site.save(doc)
+        site_context.get().save(doc)
 
         # call the processor
         p(lambda: None)
@@ -133,7 +133,7 @@ class TestInvalidationProcessor:
 
         # cookie is set, hook call is expected
         assert self.hook.call_count == 1
-        assert self.hook.recent_doc.dict() == web.ctx.site.get("/templates/site.tmpl").dict()
+        assert self.hook.recent_doc.dict() == site_context.get().get("/templates/site.tmpl").dict()
 
     def test_setcookie_after_reload(self, monkeypatch):
         self._monkeypatch_web(monkeypatch)
@@ -143,7 +143,7 @@ class TestInvalidationProcessor:
 
         # save a doc
         doc = {"key": "/templates/site.tmpl", "type": "/type/template"}
-        web.ctx.site.save(doc)
+        site_context.get().save(doc)
 
         p.reload()
 
@@ -153,7 +153,7 @@ class TestInvalidationProcessor:
         assert self.cookie == {
             "name": "invalidation_cookie",
             "expires": p.expire_time,
-            "value": web.ctx.site.get("/templates/site.tmpl").last_modified.isoformat(),
+            "value": site_context.get().get("/templates/site.tmpl").last_modified.isoformat(),
         }
 
     def _load_fake_context(self):
