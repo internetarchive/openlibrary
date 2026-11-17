@@ -177,6 +177,14 @@ test('gate: confidence below 6 demotes the finding to low; 6 and up keeps its se
     assert.equal(res.blocking, false);
 });
 
+test('gate: a test-coverage finding is always low, so it never blocks', () => {
+    const review = cleanReview({
+        dimensions: { ...cleanReview({}).dimensions, test_coverage: { status: 'findings', note: 'ok' } },
+        findings: [{ dimension: 'test_coverage', severity: 'high', confidence: 9, title: 'No regression test', body: 'Add one.' }]
+    });
+    assert.equal(gate.check(review).clean.findings[0].severity, 'low');
+});
+
 // ========================= agentPrompt and threadStateLine =========================
 test('agentPrompt: no location without a path, and a longer fence when the text has backticks', () => {
     const out = agentPrompt({ title: 'T', body: 'See:\n```\ncode\n```' }, false);
