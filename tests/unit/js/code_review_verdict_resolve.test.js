@@ -584,6 +584,45 @@ test('range: writes our own OPEN threads (outdated included, line falls back to 
         rmSync(d, { recursive: true, force: true });
     }
 });
+test('range: a PR whose author account was deleted (user: null) still keeps maintainer replies', async () => {
+    const d = mkdtempSync(join(tmpdir(), 'cr-prior-'));
+    try {
+        const nodes = [
+            {
+                id: 'OPEN',
+                isResolved: false,
+                isOutdated: false,
+                path: 'a.py',
+                line: 5,
+                originalLine: 5,
+                comments: {
+                    nodes: [
+                        { author: { login: 'openlibrary-bot' }, body: '**LOW · Correctness — OPEN**\n\nbody' },
+                        { author: { login: 'staffer' }, authorAssociation: 'MEMBER', body: 'Intended.' },
+                        { author: { login: 'someone' }, authorAssociation: 'NONE', body: 'Wrong.' }
+                    ]
+                }
+            }
+        ];
+        const github = {
+            rest: {
+                pulls: {
+                    get: async () => ({ data: { draft: false, state: 'open', user: null, head: { sha: SHA('a') }, base: { sha: SHA('b') } } }),
+                    listReviews: async () => ({ data: [] })
+                },
+                repos: { compareCommitsWithBasehead: async () => ({ data: 'diff' }) }
+            },
+            paginate: async (method, params) => (await method(params)).data,
+            graphql: async () => ({ repository: { pullRequest: { reviewThreads: { nodes, pageInfo: { hasNextPage: false, endCursor: null } } } } })
+        };
+        const ctx = { ...context, payload: { pull_request: { number: 1 } } };
+        await runScript(range.resolveRange, { github, context: ctx, env: { GITHUB_WORKSPACE: d }, cwd: d });
+        const prior = JSON.parse(readFileSync(join(d, 'prior-threads.json'), 'utf8'));
+        assert.deepEqual(prior[0].replies, [{ author: 'staffer', body: 'Intended.' }]);
+    } finally {
+        rmSync(d, { recursive: true, force: true });
+    }
+});
 test('range: a thread-read failure still writes an empty prior-threads.json and reviews', async () => {
     const d = mkdtempSync(join(tmpdir(), 'cr-prior-'));
     try {
