@@ -504,7 +504,7 @@ msgstr ""
 
 #: internalerror.html
 #, python-format
-msgid "The reference code %s and Sentry trace ID %s have been created to track this error and we will investigate as we're able."
+msgid "The reference code %(code)s and Sentry trace ID %(trace_id)s have been created to track this error and we will investigate as we're able."
 msgstr ""
 
 #: internalerror.html
@@ -9377,7 +9377,7 @@ msgstr ""
 
 #: openlibrary/core/shell/search_modal.py
 #, python-format
-msgid "Showing %s of %s results"
+msgid "Showing %(shown)s of %(total)s results"
 msgstr ""
 
 #: openlibrary/core/shell/search_modal.py
@@ -10057,8 +10057,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
 #, python-format
-msgid "Re-queued %(count)d failed item(s)."
-msgstr ""
+msgid "Re-queued %(count)d failed item."
+msgid_plural "Re-queued %(count)d failed items."
+msgstr[0] ""
+msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"

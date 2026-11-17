@@ -1,10 +1,12 @@
 // used in templates/lists/preview.html
+// Fills %s in order, or %(name)s from an object passed as the only argument.
 export function sprintf(s) {
     var args = arguments;
     var i = 1;
-    return s.replace(/%[%s]/g, function (match) {
+    return s.replace(/%(?:\((\w+)\))?[%s]/g, function (match, name) {
         if (match === '%%') return '%';
-        else return args[i++];
+        if (name) return args[1][name];
+        return args[i++];
     });
 }
 
