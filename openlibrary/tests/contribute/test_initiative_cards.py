@@ -57,7 +57,10 @@ def test_tasks_left_uses_the_plural_and_groups_thousands(cards):
     ],
 )
 def test_people_line_hides_low_counts(cards, people, expected):
-    assert cards(docs=[{"initiative_slug": ACTIVE.slug, "initiative_people": people}])[ACTIVE.slug]["people"] == expected
+    card = cards(docs=[{"initiative_slug": ACTIVE.slug, "initiative_people": people}])[ACTIVE.slug]
+    assert card["people"] == expected
+    # Below the threshold the row asks for help instead.
+    assert card["help_needed"] is (expected is None)
 
 
 def test_people_line_waits_for_the_stats_job(cards):
