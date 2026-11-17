@@ -142,7 +142,32 @@ Only material violations — confusing, error-prone, or tech debt. Open Library'
 Not findings: formatting a linter already enforces, subjective naming, or missing type
 annotations in a file that has none.
 
-## Step 4: Write `review.json`
+## Step 4: Re-check your earlier comments
+
+Read `$GITHUB_WORKSPACE/prior-threads.json`. It lists the review comments you left on earlier
+passes that are still open, one object per thread:
+
+```json
+[{ "id": "PRRT_kwDO...", "path": "openlibrary/templates/lists/header.html", "line": 34, "outdated": false, "comment": "**MEDIUM · Correctness — ...**\n\n..." }]
+```
+
+For each one, decide whether the PR head now fixes what the comment asked for. Check the code
+in `pr-head/`, not just this range's diff: a fix often lands on other lines or in another file
+than the one the comment sits on. `outdated: true` means a later push changed the lines under the
+comment, so `line` points at an older version of the file. Find the code it was about in the
+current file.
+
+- **Fixed**: add the thread's `id` to `resolved` in `review.json`. The bot replies "Fixed in
+  <commit>" on the thread and resolves it.
+- **Not fixed**, or you are not sure: leave it out. The thread stays open for the author. Do not
+  report it again as a new finding.
+
+Only mark a thread fixed when the current code clearly addresses it. A thread you resolve by
+mistake hides a real problem; one you leave open costs a human one click.
+
+If the file is an empty array, `resolved` is an empty array.
+
+## Step 5: Write `review.json`
 
 ```json
 {
@@ -165,7 +190,8 @@ annotations in a file that has none.
       "line": 428,
       "suggestion": "    limit = max(0, int(params.get(\"limit\", 25)))"
     }
-  ]
+  ],
+  "resolved": ["PRRT_kwDOAAaBcD5abc123"]
 }
 ```
 
@@ -190,6 +216,9 @@ Field rules:
   touch, **omit `path`/`start_line`/`line`** (or set them to `null`) and write it into the finding `body` —
   the posting step will fold it into the summary. Do not invent a nearby anchor to make a
   finding postable; a misplaced comment is worse than a summarised one.
+- `resolved` — the `id`s from `prior-threads.json` that the PR head fixes (Step 4), copied
+  exactly. Any other id is ignored; a value that is not an id string makes the review
+  unpublishable.
 - `suggestion` — optional. The replacement text for **exactly** the `start_line..line` range,
   rendered as a GitHub suggestion block. The line count must match the range exactly, or the
   suggestion is unappliable. Omit it unless you are confident; prose is fine.
@@ -201,8 +230,8 @@ If the PR is clean, say so in `summary`, mark every dimension `"none"` with its 
 an empty `findings` array. That is a useful review and a cheap one. Do not restate what the PR
 description already says.
 
-## Step 5: Ignore our own bot
+## Step 6: Ignore our own bot
 
-Never report on, or respond to, content authored by `openlibrary-bot` — including its own prior
-review comments. Every automation in this epic must ignore its own actions to avoid feedback
-loops (#13160).
+Apart from re-checking your earlier comments in Step 4, never report on, or respond to, content
+authored by `openlibrary-bot`. Every automation in this epic must ignore its own actions to avoid
+feedback loops (#13160).
