@@ -8615,10 +8615,6 @@ msgstr ""
 msgid "No matching language"
 msgstr ""
 
-#: contribute/parts.html.jinja openlibrary/plugins/openlibrary/contribute.py
-msgid "Go to edit page"
-msgstr ""
-
 #: contribute/parts.html.jinja
 #, python-format
 msgid "And 1 more."
@@ -8632,6 +8628,10 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 msgid "View scan"
+msgstr ""
+
+#: contribute/parts.html.jinja openlibrary/plugins/openlibrary/contribute.py
+msgid "Go to edit page"
 msgstr ""
 
 #: contribute/parts.html.jinja
