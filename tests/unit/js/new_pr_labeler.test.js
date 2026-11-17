@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
+    decideGfiAction,
     decideLabelsAndAssignee,
     findIssueReferences,
     getLinkedIssueMetadata,
@@ -8,6 +9,7 @@ import {
     sweepLabels,
     sweepSkipReason
 } from '../../../scripts/gh_scripts/new_pr_labeler_core.mjs';
+import { handleGfiPr } from '../../../scripts/gh_scripts/gfi_pr_assignment.mjs';
 import { formatNeedsLeadSummary, syncNeedsLead } from '../../../scripts/gh_scripts/needs_lead_sync.mjs';
 import { formatSweepSummary, linkify, planForPr, runSweep, swapNeedsResponseForReview } from '../../../scripts/gh_scripts/pr_lead_resolver.mjs';
 
@@ -506,5 +508,183 @@ describe('syncNeedsLead', () => {
         const summary = formatNeedsLeadSummary(result, REPO);
         expect(summary).toContain('Added to issues with no lead (1): [#1](https://github.com/internetarchive/openlibrary/issues/1)');
         expect(summary).toContain('Listing open issues failed partway');
+    });
+});
+
+describe('Good First Issue assignment', () => {
+    const pr = () => ({ state: 'open', draft: false, user: { login: 'newcomer' }, labels: [], author_association: 'NONE' });
+    const issue = () => ({ state: 'open', labels: [{ name: 'Good First Issue' }, { name: 'Lead: @mentor' }], assignees: [] });
+    const comment = (login, body = '') => ({ user: { login }, body });
+
+    test.each([
+        [{ hasCommented: true }, 'assign', 'author commented'],
+        [{ hasCommented: false }, 'close', 'missing comment'],
+        [{ hasCommented: undefined }, 'skip', 'comments not fetched'],
+        [{ kind: 'reference' }, 'skip', 'no closing reference'],
+        [{ issue: { ...issue(), labels: [] } }, 'skip', 'not an open Good First Issue'],
+        [{ issue: { ...issue(), state: 'closed' } }, 'skip', 'not an open Good First Issue'],
+        [{ issue: { ...issue(), pull_request: {} } }, 'skip', 'not an open Good First Issue'],
+        [{ issue: { ...issue(), labels: ['Good First Issue', 'no-automation'] } }, 'skip', 'no-automation'],
+        [{ pr: { ...pr(), labels: ['no-automation'] } }, 'skip', 'no-automation'],
+        ...['MEMBER', 'OWNER', 'COLLABORATOR'].map(author_association => [{ pr: { ...pr(), author_association } }, 'skip', 'staff author']),
+        ...['OpenLibrary-Bot', 'dependabot[bot]'].map(login => [{ pr: { ...pr(), user: { login, type: 'User' } } }, 'skip', 'bot author']),
+        [{ pr: { ...pr(), state: 'closed' } }, 'skip', 'PR is closed or draft'],
+        [{ pr: { ...pr(), draft: true } }, 'skip', 'PR is closed or draft'],
+        [{ issue: { ...issue(), assignees: [{ login: 'NEWCOMER' }, { login: 'someone' }] } }, 'skip', 'already assigned to author'],
+        [{ issue: { ...issue(), assignees: [{ login: 'someone' }] } }, 'close', 'duplicate']
+    ])('decides %o', (change, action, reason) => {
+        expect(decideGfiAction({ pr: pr(), issue: issue(), kind: 'closing', hasCommented: true, ...change })).toEqual({ action, reason });
+    });
+
+    // Stateful REST fake: records only writes and models full pagination, including
+    // a later-page failure. Reopening retains comments, like a real fork PR.
+    function fakeGfi({ pull = pr(), ticket = issue(), issuePages = [[]], prPages = [[]], assignable = true } = {}) {
+        const writes = [];
+        const reads = [];
+        return {
+            writes,
+            reads,
+            pull,
+            ticket,
+            request: async (route, params) => {
+                if (route.startsWith('GET')) {
+                    reads.push(params.pull_number ?? params.issue_number);
+                    return { data: route.includes('/pulls/') ? pull : ticket };
+                }
+                writes.push({ route, ...params });
+                if (route.endsWith('/assignees') && assignable) ticket.assignees = params.assignees.map(login => ({ login }));
+                if (route.endsWith('/comments')) {
+                    const pages = params.issue_number === 1 ? issuePages : prPages;
+                    pages[0].push(comment('github-actions[bot]', params.body));
+                }
+                if (route.startsWith('PATCH')) pull.state = params.state;
+                return { data: ticket };
+            },
+            paginate: async (_route, params) => {
+                expect(params.per_page).toBe(100);
+                const pages = params.issue_number === 1 ? issuePages : prPages;
+                const result = [];
+                for (const page of pages) {
+                    if (page instanceof Error) throw page;
+                    result.push(...page);
+                }
+                return result;
+            }
+        };
+    }
+    const run = (api, body = 'Closes #1') => handleGfiPr(api, REPO, 10, body, 'NONE');
+
+    test('assigns using a later-page comment, posts one note, and is a no-op on rerun', async () => {
+        const api = fakeGfi({ issuePages: [[comment('other')], [comment('NEWCOMER')]] });
+        expect((await run(api)).action).toBe('assign');
+        expect(api.writes).toHaveLength(2);
+        expect(api.writes[1].body).toContain('opened #10');
+        expect(api.writes[1].body).toContain('<!-- ol-bot -->');
+        await run(api);
+        expect(api.writes).toHaveLength(2);
+    });
+
+    test('closes without a comment, then assigns after a comment and reopen', async () => {
+        const pages = [[]];
+        const api = fakeGfi({ issuePages: pages });
+        expect(await run(api)).toEqual({ action: 'close', reason: 'missing comment' });
+        expect(api.writes[0].body).toContain('or open a new one');
+        expect(api.writes[0].body).toContain('or tag @mentor');
+        await run(api);
+        expect(api.writes).toHaveLength(2);
+        api.pull.state = 'open';
+        // A retry before commenting closes again but does not repeat the bot comment.
+        await run(api);
+        expect(api.writes).toHaveLength(3);
+        pages[0].push(comment('newcomer'));
+        api.pull.state = 'open';
+        expect((await run(api)).action).toBe('assign');
+        expect(api.pull.state).toBe('open');
+        expect(api.ticket.assignees).toEqual([{ login: 'newcomer' }]);
+    });
+
+    test('closes an already-owned issue as duplicate, without requiring an author comment', async () => {
+        const api = fakeGfi({ ticket: { ...issue(), assignees: [{ login: 'owner' }] } });
+        expect(await run(api)).toEqual({ action: 'close', reason: 'duplicate' });
+        expect(api.writes[0].body).toContain('already assigned to @owner');
+    });
+
+    test.each(['issue', 'PR'])('failed %s comment pagination never closes or writes', async target => {
+        const api = fakeGfi({ [target === 'issue' ? 'issuePages' : 'prPages']: [[], new Error('rate limited')] });
+        await expect(run(api)).rejects.toThrow('rate limited');
+        expect(api.writes).toEqual([]);
+    });
+
+    test('ignores non-closing references and only evaluates the first closing reference', async () => {
+        const api = fakeGfi({ ticket: { ...issue(), labels: [] } });
+        await run(api, 'Part of #2');
+        expect(api.reads).toEqual([10]);
+        api.reads.length = 0;
+        await run(api, 'Part of #2. Closes #1. Fixes #3');
+        expect(api.reads).toEqual([10, 1]);
+        expect(api.writes).toEqual([]);
+    });
+
+    test.each([
+        { pull: { ...pr(), labels: ['no-automation'] } },
+        { ticket: { ...issue(), labels: ['Good First Issue', 'no-automation'] } },
+        { pull: { ...pr(), author_association: 'MEMBER' } },
+        { pull: { ...pr(), user: { login: 'openlibrary-bot', type: 'User' } } }
+    ])('excluded PRs are untouched: %o', async options => {
+        const api = fakeGfi(options);
+        expect((await run(api)).action).toBe('skip');
+        expect(api.writes).toEqual([]);
+    });
+
+    test('does not announce an assignment GitHub silently rejected', async () => {
+        const api = fakeGfi({ issuePages: [[comment('newcomer')]], assignable: false });
+        await expect(run(api)).rejects.toThrow('did not assign');
+        expect(api.writes).toHaveLength(1);
+    });
+
+    test('finds an existing bot marker on a later PR-comment page', async () => {
+        const pages = [[]];
+        const api = fakeGfi({ prPages: pages });
+        await run(api);
+        pages.push(pages[0].splice(0));
+        api.pull.state = 'open';
+        await run(api);
+        expect(api.writes.filter(write => write.route.endsWith('/comments'))).toHaveLength(1);
+        expect(api.writes.filter(write => write.route.startsWith('PATCH'))).toHaveLength(2);
+    });
+
+    test.each(['Part of #2', null, ''])('uses the live PR body %s instead of an outdated event closing reference', async body => {
+        const api = fakeGfi({ pull: { ...pr(), body } });
+        expect((await run(api, 'Closes #1')).action).toBe('skip');
+        expect(api.reads).toEqual([10]);
+        expect(api.writes).toEqual([]);
+    });
+
+    test('does not repeat a closure comment when its lead mention changes', async () => {
+        const api = fakeGfi();
+        await run(api);
+        api.pull.state = 'open';
+        api.ticket.labels = [{ name: 'Good First Issue' }, { name: 'Lead: @new-mentor' }];
+        await run(api);
+        expect(api.writes.filter(write => write.route.endsWith('/comments'))).toHaveLength(1);
+    });
+
+    test('a failed explanatory comment leaves the PR open', async () => {
+        const api = fakeGfi();
+        const request = api.request;
+        api.request = async (route, params) => {
+            if (route.endsWith('/comments')) throw new Error('comment failed');
+            return request(route, params);
+        };
+        await expect(run(api)).rejects.toThrow('comment failed');
+        expect(api.pull.state).toBe('open');
+        expect(api.writes).toEqual([]);
+    });
+
+    test('omits the lead mention when the issue has no lead', async () => {
+        const api = fakeGfi({ ticket: { ...issue(), labels: [{ name: 'Good First Issue' }] } });
+        await run(api);
+        expect(api.writes[0].body).not.toContain('@undefined');
+        expect(api.writes[0].body).toContain('reply here and');
     });
 });

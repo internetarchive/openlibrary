@@ -95,11 +95,12 @@ IMPORT_ITEM_DATA_STAGED_AND_PENDING: Final = [
 
 @pytest.fixture(scope="module")
 def setup_item_db():
-    web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
-    db = get_db()
-    db.query(IMPORT_ITEM_DDL)
-    yield db
-    db.query("delete from import_item;")
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setitem(web.config, "db_parameters", {"dbn": "sqlite", "db": ":memory:"})
+        db = get_db()
+        db.query(IMPORT_ITEM_DDL)
+        yield db
+        db.query("delete from import_item;")
 
 
 @pytest.fixture
@@ -164,11 +165,12 @@ class TestImportItem:
 
 @pytest.fixture(scope="module")
 def setup_batch_db():
-    web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
-    db = get_db()
-    db.query(IMPORT_BATCH_DDL)
-    yield db
-    db.query("delete from import_batch;")
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setitem(web.config, "db_parameters", {"dbn": "sqlite", "db": ":memory:"})
+        db = get_db()
+        db.query(IMPORT_BATCH_DDL)
+        yield db
+        db.query("delete from import_batch;")
 
 
 class TestBatchItem:

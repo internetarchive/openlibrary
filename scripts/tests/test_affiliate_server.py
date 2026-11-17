@@ -8,6 +8,7 @@ from typing import Any, ClassVar
 from unittest.mock import MagicMock, patch
 
 import pytest
+import web
 
 # TODO: Can we remove _init_path someday :(
 sys.modules["_init_path"] = MagicMock()
@@ -380,6 +381,7 @@ class TestLoadConfigRequiresCreatorsAPI:
             patch("scripts.affiliate_server.stats"),
             patch("scripts.affiliate_server.config", new=cfg),
             patch("scripts.affiliate_server.AmazonCreatorsAPI") as creators_cls,
+            patch.object(web, "amazon_api", None, create=True),  # load_config() sets it
         ):
             load_config("openlibrary.yml")
             return creators_cls
