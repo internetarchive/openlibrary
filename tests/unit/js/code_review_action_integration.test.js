@@ -35,8 +35,15 @@ function scriptOf(jobName, stepMatch) {
 // post step reads from the working directory) into the test's temp dir -- process.chdir() is not
 // available in vitest workers, so we wrap fs instead.
 async function runScript(body, { github, context, env, cwd }) {
-    const recorded = { outputs: {}, failed: null };
+    const recorded = { outputs: {}, failed: null, summary: '' };
     const core = {
+        summary: {
+            addRaw(text) {
+                recorded.summary += text;
+                return this;
+            },
+            write: async () => {}
+        },
         setOutput: (k, v) => {
             recorded.outputs[k] = v;
         },
@@ -527,4 +534,42 @@ test('status: analyze died before posting a review -> the pending head gets fail
     await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
     assert.equal(calls.createCommitStatus.length, 1);
     assert.equal(calls.createCommitStatus[0].state, 'failure');
+});
+
+// ===================== run-page summary =====================
+test('summary: a clean review lists the commit, range, counts and status', async () => {
+    const head = SHA('a');
+    const { github } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: head } } }),
+        listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, body: 'x\n<!-- ol-pr-review-bot f=0 -->' }] })
+    });
+    const env = {
+        PR: '7',
+        HEAD_SHA: head,
+        POST_RESULT: 'success',
+        PUBLIC_FINDINGS_COUNT: '0',
+        WITHHELD: 'false',
+        INCREMENTAL: 'true',
+        BASE_SHA: SHA('b'),
+        RUN_URL: 'u'
+    };
+    const { summary } = await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    assert.match(summary, /## Code review: #7 @ aaaaaaa/);
+    assert.match(summary, /\| Range \| incremental since bbbbbbb \|/);
+    assert.match(summary, /\| Findings \| 0 \|/);
+    assert.match(summary, /\| Status \| success: Review passed; all feedback resolved\. \|/);
+});
+test('summary: a withheld review shows no findings count', async () => {
+    const head = SHA('a');
+    const { github } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const env = { PR: '7', HEAD_SHA: head, POST_RESULT: 'success', PUBLIC_FINDINGS_COUNT: '0', WITHHELD: 'true', WITHHELD_BLOCKING: 'true', RUN_URL: 'u' };
+    const { summary } = await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    assert.match(summary, /\| Findings \| — \|/);
+    assert.ok(!/\d+ findings?/.test(summary), 'no count of withheld findings');
+});
+test('summary: head moved during the review -> says so and that no status was posted', async () => {
+    const { github } = mockGitHub({ prGet: async () => ({ data: { head: { sha: SHA('c') } } }) });
+    const env = { PR: '7', HEAD_SHA: SHA('a'), POST_RESULT: 'success', RUN_URL: 'u' };
+    const { summary } = await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    assert.match(summary, /\| Status \| none: the PR moved to ccccccc during the review/);
 });

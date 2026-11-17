@@ -1066,6 +1066,8 @@ jobs:
           # #14476 D2 -- 'true' when reconstructing the status for an already-reviewed head whose status
           # went missing (no model ran); the verdict is read back from the review-body marker + live threads.
           REPOST: ${{ needs.analyze.outputs.repost }}
+          BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
+          INCREMENTAL: ${{ needs.analyze.outputs.incremental }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           # IDENTITY: posts the commit status as openlibrary-bot (default, per issue open-decision 1).
@@ -1150,9 +1152,17 @@ jobs:
             // the new head is unreviewed and earns its own run, and we never post on the new head
             // (createCommitStatus below is bound to headSha). This mirrors the post job's guard so the
             // review and the status always describe the same commit.
+            // Run-page summary. Counts and the status's fixed wording only: never a withheld review's content or count.
+            const range = repost ? 'none (re-posting the status of an existing review)'
+              : process.env.INCREMENTAL === 'true' ? `incremental since ${String(process.env.BASE_SHA).slice(0, 7)}` : 'full';
+            const writeSummary = (rows) => core.summary
+              .addRaw(`## Code review: #${pr} @ ${headSha.slice(0, 7)}\n\n| | |\n|---|---|\n${rows.map(([k, v]) => `| ${k} | ${v} |`).join('\n')}\n`)
+              .write();
+
             const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: pr });
             if (!headIsCurrent(headSha, livePr.head.sha)) {
               core.info(`Head moved ${headSha.slice(0,8)}->${String(livePr.head.sha).slice(0,8)} since review; leaving the reviewed SHA without a status. The current head is unreviewed and earns its own run.`);
+              await writeSummary([['Range', range], ['Status', `none: the PR moved to ${String(livePr.head.sha).slice(0, 7)} during the review; request a new one`]]);
               return;
             }
 
@@ -1226,3 +1236,10 @@ jobs:
               description: d.description,
             });
             core.info(`code-review=${d.state} on ${headSha.slice(0, 8)} (repost=${repost}, post=${process.env.POST_RESULT}, withheld=${withheld}, findings=${findings}, unresolved=${unresolved}).`);
+            await writeSummary([
+              ['Range', range],
+              ['Review', repost ? 'existing' : withheld ? 'not posted publicly' : postSucceeded ? 'posted' : 'not posted'],
+              ['Findings', withheld ? '—' : (findings ?? 'unknown')],
+              ['Unresolved threads', unresolved],
+              ['Status', `${d.state}: ${d.description}`],
+            ]);
