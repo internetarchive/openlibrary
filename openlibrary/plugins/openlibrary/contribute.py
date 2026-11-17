@@ -475,13 +475,11 @@ def get_initiative_people(initiative: initiatives.Initiative) -> int:
 
 def build_thanks(initiative: initiatives.Initiative) -> dict | None:
     """Everyone who saved for a completed project, most saves first, by display name. None until the stats job has named them."""
-    snap = get_initiative_snapshot(initiative)
-    if not (helpers := snap.get("helpers")):
+    if not (helpers := get_initiative_snapshot(initiative).get("helpers")):
         return None
     keys = [f"/people/{username}" for username, _saves in helpers]
-    names = {p.key: p.get("displayname") or p.key.rsplit("/", maxsplit=1)[-1] for p in site.get().get_many(keys)}
-    people = [{"name": names[key], "url": key} for key in keys if key in names]
-    return {"people": people, "more": max(0, (snap.get("people") or 0) - len(people))}
+    names = {p.key: p.get("displayname") for p in site.get().get_many(keys)}
+    return {"people": [{"name": names.get(key) or key.removeprefix("/people/"), "url": key} for key in keys]}
 
 
 def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
