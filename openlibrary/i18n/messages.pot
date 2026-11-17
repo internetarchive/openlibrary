@@ -5248,7 +5248,7 @@ msgstr[1] ""
 
 #: lists/header.html
 #, python-format
-msgid "This is edition is on <strong>1 list</strong>."
+msgid "This edition is on <strong>1 list</strong>."
 msgid_plural "This edition is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
