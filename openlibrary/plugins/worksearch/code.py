@@ -1172,7 +1172,7 @@ class author_search(delegate.page):
             q=q,
             sort=sort,
             search_response=resp,
-            user=web.ctx.site.get_user(),
+            user=site.get().get_user(),
             urlsafe=urlsafe,
             coverstore_url=get_coverstore_public_url(),
             commified_num_found=commify(num_found),
