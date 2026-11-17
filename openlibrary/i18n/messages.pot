@@ -8824,6 +8824,10 @@ msgid "Is this book fiction or nonfiction?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
+msgid "Google Books lists Categories such as Fiction / Fantasy, and WorldCat lists Genre headings such as Fiction or Biography."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
 msgid "Nonfiction can read like a story. A memoir that bends the truth is still nonfiction: it is presented as fact."
 msgstr ""
 

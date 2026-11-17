@@ -161,7 +161,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
             label=_("Literary form"),
             action=_("Pick fiction or nonfiction"),
             question=_("Is this book fiction or nonfiction?"),
-            how="",
+            how=_("Google Books lists Categories such as Fiction / Fantasy, and WorldCat lists Genre headings such as Fiction or Biography."),
             sources=[google, worldcat],
             notes=[
                 GuidelineNote(_("Nonfiction can read like a story. A memoir that bends the truth is still nonfiction: it is presented as fact.")),
