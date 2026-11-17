@@ -46,6 +46,14 @@ PR changes, and the tests. You have no shell. Two trees are on disk:
 
 You can read only inside the workspace, and the only file you can write is `review.json`.
 
+**The codebase is Python 3.14** (`requires-python` in `pyproject.toml`; Ruff targets `py314`).
+Judge syntax against 3.14, not against older Python 3 releases you may know better. In
+particular, `except ValueError, TypeError:` without parentheses is valid since PEP 758 (3.14)
+and catches both types, and Ruff's formatter writes it that way. It is not Python 2 syntax and
+not a finding. Since you cannot run the code, never report a `SyntaxError` unless you have
+checked it against the 3.14 grammar. Code that is already on the base branch passed CI, so
+it compiles.
+
 ## Step 3: Review every dimension
 
 Evaluate **all five** dimensions for every PR. Each one gets an explicit result in
