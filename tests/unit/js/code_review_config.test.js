@@ -93,8 +93,10 @@ afterEach(() => {
 });
 
 // ================================= parsing and validation =================================
-test('the committed .pr_agent.toml equals the defaults', () => {
-    assert.deepEqual(config.load(ROOT), config.defaults());
+test('the committed .pr_agent.toml equals the defaults, except that push reviews are on', () => {
+    const expected = config.defaults();
+    expected.github_action_config.handle_push_trigger = true;
+    assert.deepEqual(config.load(ROOT), expected);
 });
 
 test('no .pr_agent.toml gives the defaults', () => {

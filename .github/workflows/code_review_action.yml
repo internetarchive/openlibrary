@@ -24,8 +24,9 @@ name: Code Review Action
 # keeps checkout credentials.
 #
 # Required status: `status` posts `code-review` on the reviewed SHA, and a ruleset requires it.
-# `synchronize` is not a trigger, so a push leaves the new head without a status until it is
-# reviewed. A green status means a review ran clean on this commit. It is not an approval.
+# `synchronize` is not a trigger here: a new head is pending until it is reviewed. With
+# handle_push_trigger on, code_review_awaiting.yml requests that review once pushes stop.
+# A green status means a review ran clean on this commit. It is not an approval.
 #
 # We don't run PR-Agent (https://github.com/The-PR-Agent/pr-agent): it has no disclosure gate, no
 # model job without write access, and no SHA-bound status. Where the two overlap we use its names

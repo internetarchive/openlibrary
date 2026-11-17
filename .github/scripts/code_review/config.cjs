@@ -17,9 +17,15 @@ const SCHEMA = {
         require_ticket_analysis_review: bool,
         inline_key_issues: bool
     },
+    github_action_config: {
+        handle_push_trigger: bool,
+        push_trigger_ignore_bot_commits: bool,
+        push_trigger_ignore_merge_commits: bool
+    },
     openlibrary_reviewer: {
         require_accessibility_review: bool,
-        require_styleguide_review: bool
+        require_styleguide_review: bool,
+        push_review_delay_minutes: v => Number.isInteger(v) && v >= 1 && v <= 120
     }
 };
 
@@ -32,7 +38,9 @@ const defaults = () => ({
         require_ticket_analysis_review: true,
         inline_key_issues: true
     },
-    openlibrary_reviewer: { require_accessibility_review: true, require_styleguide_review: true }
+    // PR-Agent's defaults: no review on push unless turned on.
+    github_action_config: { handle_push_trigger: false, push_trigger_ignore_bot_commits: true, push_trigger_ignore_merge_commits: true },
+    openlibrary_reviewer: { require_accessibility_review: true, require_styleguide_review: true, push_review_delay_minutes: 10 }
 });
 
 // Review dimensions a setting can turn off. Correctness and security are always reviewed.
