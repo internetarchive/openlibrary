@@ -138,9 +138,6 @@
          {% if page.scope != "tasks" %}hidden{% endif %}>
         <section class="tasks-stats__panel tasks-stats__panel--wide">
             <h2>{{ _("Community projects") }}</h2>
-            <p class="tasks-stats__note">
-                {{ _("How much of each project's missing details people have filled since it started. A detail nobody could find counts as filled.") }}
-            </p>
             <ul class="tasks-stats__projects">
                 {% for project in page.initiatives %}
                     <li class="tasks-stats__project">
@@ -168,7 +165,6 @@
         </section>
         <section class="tasks-stats__panel">
             <h2>{{ _("Saves by field, last 28 days") }}</h2>
-            <p class="tasks-stats__note">{{ _("Which details people are filling in.") }}</p>
             {% if page.saves_by_field %}
                 <table class="tasks-stats__fields no-table-collapse">
                     <thead>
