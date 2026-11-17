@@ -429,7 +429,7 @@ test('every checkout is github.sha (never a PR-head ref or a stale base.sha) wit
     const checkouts = Object.entries(workflow.jobs).flatMap(([job, j]) =>
         (j.steps || []).filter(s => (s.uses || '').startsWith('actions/checkout@')).map(s => [job, s.with || {}])
     );
-    assert.deepEqual([...new Set(checkouts.map(([job]) => job))].sort(), ['analyze', 'pending', 'post', 'status']);
+    assert.deepEqual([...new Set(checkouts.map(([job]) => job))].sort(), ['analyze', 'pending', 'post', 'resolve', 'status']);
     for (const [job, w] of checkouts) {
         assert.equal(w['persist-credentials'], false, `${job}: checkout must set persist-credentials: false`);
         assert.equal(w.repository, undefined, `${job}: checkout must be of this repo, not the PR's fork`);
@@ -440,8 +440,8 @@ test('every checkout is github.sha (never a PR-head ref or a stale base.sha) wit
         assert.equal(ref, '${{ github.sha }}', `${job}: checkout must use github.sha (got ${ref})`);
     }
 });
-test('post, pending and status check out only the scripts, before any step that uses them', () => {
-    for (const job of ['post', 'pending', 'status']) {
+test('post, resolve, pending and status check out only the scripts, before any step that uses them', () => {
+    for (const job of ['post', 'resolve', 'pending', 'status']) {
         const steps = workflow.jobs[job].steps;
         assert.ok((steps[0].uses || '').startsWith('actions/checkout@'), `${job}: the checkout is the first step`);
         assert.equal(steps[0].with['sparse-checkout'], '/.github/scripts/');
