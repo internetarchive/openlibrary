@@ -4,6 +4,7 @@ A work field (the literary form, the genres) is still keyed by the edition, so t
 URLs stay one shape; its answer saves to the edition's work.
 """
 
+import re
 from dataclasses import dataclass
 
 from openlibrary.core.tags import GENRES, LITERARY_FORMS, is_nonfiction, work_tag_keys
@@ -16,19 +17,24 @@ from openlibrary.core.tags import GENRES, LITERARY_FORMS, is_nonfiction, work_ta
 # rather than imported because the scorecard exposes no field -> weight mapping: its checks are
 # attributes spread across section classes, under their own names.
 # The work tags have no scorecard counterpart either; they sit with the page count as quick, useful answers.
+# isbn == ``isbn`` (15); the publish date has no check, and sits with the page count too.
 
 POINTS = {
     "covers": 35,
     "lccn": 25,
     "oclc_numbers": 25,
+    "isbn": 15,
     "languages": 15,
     "number_of_pages": 10,
+    "publish_date": 10,
     LITERARY_FORMS: 10,
     GENRES: 10,
     "publishers": 2,
 }
 # Fields that live on the work rather than the edition.
 WORK_FIELDS = frozenset({LITERARY_FORMS, GENRES})
+# ISBNs began in 1970; an edition published before then has none to find.
+FIRST_ISBN_YEAR = 1970
 # A field asked on another field's page when both are open: the form is the lead, the genres follow a "fiction".
 COMPANIONS = {LITERARY_FORMS: GENRES}
 
@@ -63,7 +69,17 @@ def is_missing(edition, fld: str, work=None) -> bool:
         return not (fld == GENRES and is_nonfiction(work))
     if fld == "number_of_pages" and is_audio(edition):
         return False
+    if fld == "isbn":
+        # Unlike the other fields, two keys hold it. An edition with no date may be from any year, so it stays a task.
+        year = publish_year(edition)
+        return not (edition.get("isbn_13") or edition.get("isbn_10")) and not (year and year < FIRST_ISBN_YEAR)
     return edition.get(fld) in (None, "", [])
+
+
+def publish_year(edition) -> int | None:
+    if m := re.search(r"\d{4}", str(edition.get("publish_date") or "")):
+        return int(m.group())
+    return None
 
 
 AUDIO_FORMAT_WORDS = ("audio", "mp3", "cassette", "compact disc")
@@ -92,6 +108,8 @@ def impact(readers: int | None, task: Task) -> int:
 
 def field_values(edition, fld: str) -> list:
     """The edition's values for ``fld`` as a flat list; languages as their codes."""
+    if fld == "isbn":
+        return [*(edition.get("isbn_13") or []), *(edition.get("isbn_10") or [])]
     raw = edition.get(fld)
     if raw in (None, "", []):
         return []

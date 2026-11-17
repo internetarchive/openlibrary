@@ -317,7 +317,8 @@
                name="value"
                class="contrib-input contrib-input--id"
                placeholder="{{ field_guide.placeholder }}"
-               inputmode="numeric"
+               {#- An ISBN-10 can end in X. -#}
+               inputmode="{{ 'text' if task.field == 'isbn' else 'numeric' }}"
                autocomplete="off"
                data-id-input
                data-id-field="{{ task.field }}"

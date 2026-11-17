@@ -231,6 +231,63 @@ def get_field_guides() -> dict[str, FieldGuide]:
             ],
             placeholder=_("Publisher as printed"),
         ),
+        "publish_date": FieldGuide(
+            field="publish_date",
+            label=_("Publish date"),
+            action=_("Fill in publish date"),
+            question=_("When was this edition published?"),
+            how=_(
+                "The copyright page gives the year, often next to the publisher; when the book has a scan, look there first. "
+                "Google Books lists it as Published, WorldCat as Date, "
+                "and the Library of Congress record as part of the Published line.\n\n"
+                "Make sure the record is for this edition: a paperback or a reissue comes out years after the first printing."
+            ),
+            sources=[google, worldcat, loc],
+            loc_record=True,
+            isfdb=True,
+            notes=[
+                GuidelineNote(
+                    _(
+                        "Enter the year this edition came out, or the full date if a catalog gives one, such as March 2005. "
+                        "A later printing of the same edition keeps the edition's year."
+                    )
+                ),
+            ],
+            traps=[
+                _("The year the book was first published, when this edition is a later one. The work keeps the first year."),
+                _("A copyright date renewed for a new printing, or the date a seller listed the book."),
+            ],
+            placeholder=_("For example 2005 or March 2005"),
+        ),
+        "isbn": FieldGuide(
+            field="isbn",
+            label=_("ISBN"),
+            action=_("Fill in ISBN"),
+            question=_("What is this edition's ISBN?"),
+            how=_(
+                "The ISBN is printed on the copyright page and on the back cover, above the barcode; when the book has a scan, look there first. "
+                "Without the book in hand, search WorldCat or Google Books by title and author, open the record whose publisher, year and "
+                "format match this one, and copy the ISBN it lists."
+            ),
+            sources=[worldcat, google, amazon],
+            loc_record=True,
+            isfdb=True,
+            why=_("The ISBN is how libraries, bookshops and barcode scanners find this edition, and how new records are matched to it."),
+            notes=[
+                GuidelineNote(
+                    _(
+                        "An ISBN-10 and an ISBN-13 can name the same edition: 0140449264 and 9780140449266. Paste either, with or without hyphens. "
+                        "Books from before 1970 don't have one."
+                    )
+                ),
+            ],
+            traps=[
+                _("The ISBN belongs to another format of the book: a hardcover, paperback, ebook and audiobook each have their own."),
+                _("Copying an ISBN from a catalog record that lists several, without checking which one is for this format."),
+            ],
+            placeholder=_("For example 9780140449266"),
+            confirm=_("I checked that the publisher, year and format match this edition."),
+        ),
         "lccn": FieldGuide(
             field="lccn",
             label=_("Library of Congress number (LCCN)"),

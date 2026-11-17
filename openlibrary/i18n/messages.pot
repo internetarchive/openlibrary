@@ -5964,7 +5964,7 @@ msgstr ""
 msgid "All fields"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/contribute.py search/advancedsearch.html.jinja
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py search/advancedsearch.html.jinja
 msgid "ISBN"
 msgstr ""
 
@@ -8901,6 +8901,77 @@ msgstr ""
 msgid "Publisher as printed"
 msgstr ""
 
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py
+msgid "Publish date"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Fill in publish date"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "When was this edition published?"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid ""
+"The copyright page gives the year, often next to the publisher; when the book has a scan, look there first. Google Books lists it as Published, WorldCat as Date, and the Library of Congress record as part of the Published line.\n"
+"\n"
+"Make sure the record is for this edition: a paperback or a reissue comes out years after the first printing."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Enter the year this edition came out, or the full date if a catalog gives one, such as March 2005. A later printing of the same edition keeps the edition's year."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "The year the book was first published, when this edition is a later one. The work keeps the first year."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "A copyright date renewed for a new printing, or the date a seller listed the book."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "For example 2005 or March 2005"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Fill in ISBN"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "What is this edition's ISBN?"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "The ISBN is printed on the copyright page and on the back cover, above the barcode; when the book has a scan, look there first. Without the book in hand, search WorldCat or Google Books by title and author, open the record whose publisher, year and format match this one, and copy the ISBN it lists."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "The ISBN is how libraries, bookshops and barcode scanners find this edition, and how new records are matched to it."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "An ISBN-10 and an ISBN-13 can name the same edition: 0140449264 and 9780140449266. Paste either, with or without hyphens. Books from before 1970 don't have one."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "The ISBN belongs to another format of the book: a hardcover, paperback, ebook and audiobook each have their own."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Copying an ISBN from a catalog record that lists several, without checking which one is for this format."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "For example 9780140449266"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "I checked that the publisher, year and format match this edition."
+msgstr ""
+
 #: openlibrary/contribute/field_guides.py
 msgid "Library of Congress number (LCCN)"
 msgstr ""
@@ -9240,6 +9311,23 @@ msgstr ""
 
 #: openlibrary/contribute/save.py
 msgid "Enter the page count as a whole number."
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "That isn't a valid ISBN. Check the digits: an ISBN has 10 or 13, and the last one is a check digit."
+msgstr ""
+
+#: openlibrary/contribute/save.py
+#, python-format
+msgid "That ISBN is already on another edition, %(olid)s. If it's the same book, the two records may need merging; if not, check the number."
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "Enter the date with its year, for example 2005 or March 2005."
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "That year doesn't look right. Enter the year this edition came out."
 msgstr ""
 
 #: openlibrary/contribute/save.py
@@ -10165,6 +10253,14 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "Books missing a publisher"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Books missing a publish date"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Books missing an ISBN"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
