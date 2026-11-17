@@ -400,11 +400,10 @@ def format_people(people: int | None) -> str:
 
 
 def build_initiatives(docs: list[dict]) -> list[dict]:
-    """Every initiative in the registry with its latest snapshot, headline one first selected. A figure is a dash until the
+    """Every initiative in the registry with its latest snapshot. A figure is a dash until the
     stats script has counted that initiative, which it does from the first run after its list is frozen."""
     by_day = [initiative_counts(doc) for doc in reversed(docs)]
     result = []
-    headline = initiatives.headline().slug
     for initiative in initiatives.listed():
         snap = next((day[initiative.slug] for day in by_day if initiative.slug in day), {})
         open_gaps, editions = snap.get("open"), snap.get("editions")
@@ -413,7 +412,8 @@ def build_initiatives(docs: list[dict]) -> list[dict]:
             initiatives.describe(initiative)
             | {
                 "slug": initiative.slug,
-                "on": initiative.slug == headline,
+                # The details open when it started, which the percent counts against: the top of its chart.
+                "start": (initiative.start or {}).get("open") or (slots if "percent" not in snap else None) or None,
                 "finished": initiative.status() == "ended",
                 "open": format_count(open_gaps),
                 "done": format_count(snap.get("done")),

@@ -101,10 +101,9 @@ def test_initiative_counts_read_the_nested_snapshot_and_the_older_flat_keys():
     assert admin.initiative_counts({"saves": 3}) == {}
 
 
-def test_every_initiative_gets_a_card_headline_first_selected(request_lang):
+def test_every_initiative_gets_a_column(request_lang):
     projects = loanstats.build_initiatives([])
     assert [p["slug"] for p in projects] == [i.slug for i in initiatives.BUILTIN]
-    assert [p["on"] for p in projects] == [i is initiatives.MOST_READ for i in initiatives.BUILTIN]
     assert all(p["percent"] == "—" for p in projects)
 
 
@@ -114,6 +113,8 @@ def test_initiative_percent_counts_every_field_it_asks_about_on_every_book(reque
     most_read = loanstats.build_initiatives(docs)[0]
     assert len(MOST_READ.fields) == 4
     assert (most_read["percent"], most_read["done"], most_read["not_found"]) == ("62%", "1", "—")
+    # Without a recorded start, the chart tops out at every slot
+    assert most_read["start"] == 8
 
 
 def test_each_initiative_reads_its_own_latest_snapshot(request_lang):
