@@ -8,6 +8,7 @@ name: Code Review Action
 # Jobs:
 #   analyze  runs the model on the untrusted PR. It has no write permission and no PAT.
 #   post     re-checks the analysis and posts the review. It holds the review PAT and runs no model.
+#   resolve  resolves the bot's threads `post` lists as fixed or dismissed, and does nothing else.
 #   pending  marks the head `code-review=pending` while the review runs.
 #   status   posts the `code-review` commit status.
 # A prompt injection in a PR can change what the review says, but the job that read it has nothing
@@ -231,6 +232,9 @@ jobs:
     permissions:
       contents: read        # the checkout and the diff fetch below, with the job's own GITHUB_TOKEN
       pull-requests: write
+    outputs:
+      # A JSON list of review thread ids for the resolve job, set only once the review is posted.
+      resolve_thread_ids: ${{ steps.post.outputs.resolve_thread_ids }}
     steps:
       # Only the review scripts, from the same commit as this workflow (see the analyze checkout).
       # Before the artifact download, because a checkout empties the workspace.
@@ -257,6 +261,7 @@ jobs:
             await refetchDiff({ github, context, core, require, process });
 
       - name: Validate anchors and post one batched review
+        id: post
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           PR: ${{ needs.analyze.outputs.pr }}
@@ -271,6 +276,36 @@ jobs:
           script: |
             const { validateAndPost } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/post.cjs`);
             await validateAndPost({ github, context, core, require, process });
+
+  # Resolves the review threads `post` listed, and nothing else. resolveReviewThread needs
+  # Contents: write, which we won't give the bot's long-lived PAT (#14533). This job's GITHUB_TOKEN
+  # holds it only while the job runs. It runs no model and reads nothing from the PR: its one input
+  # is post's list of thread ids, which resolve.cjs checks before any API call.
+  resolve:
+    needs: post
+    if: needs.post.outputs.resolve_thread_ids != '' && needs.post.outputs.resolve_thread_ids != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # Only the review scripts, from the same commit as this workflow (see the analyze checkout).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: /.github/scripts/
+          sparse-checkout-cone-mode: false
+
+      - name: Resolve the listed review threads
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          THREAD_IDS: ${{ needs.post.outputs.resolve_thread_ids }}
+        with:
+          # The job's own GITHUB_TOKEN (the default), not a PAT.
+          script: |
+            const { resolveThreads } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/resolve.cjs`);
+            await resolveThreads({ github, core, process });
 
   # Marks the head code-review=pending, unless it already has a status: analyze may then skip, and
   # nothing would replace the pending. Same `if` as analyze.
@@ -342,7 +377,8 @@ jobs:
   # If the head moved since the review, it posts nothing: the new head needs its own review.
   # On a repost it rebuilds the verdict from the existing review's marker and the live threads.
   status:
-    needs: [analyze, post, pending]
+    # After resolve, so the open-thread count it reads is current.
+    needs: [analyze, post, resolve, pending]
     if: always() && (needs.analyze.outputs.skip == 'false' || needs.pending.outputs.head_sha != '')
     runs-on: ubuntu-latest
     # API calls use the bot PAT. The default token only checks out the scripts.

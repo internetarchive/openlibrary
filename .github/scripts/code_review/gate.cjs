@@ -20,6 +20,9 @@ module.exports = {
     severities: ['high', 'medium', 'low'],
     // A finding's confidence is an integer 1-10; below this it is demoted to low. It is never rendered.
     minConfidence: 6,
+    // Findings in these dimensions are always demoted to low, so they are suggestions that never block.
+    // We don't want to push contributors into writing tests for their own sake.
+    nonBlockingDimensions: ['test_coverage'],
     // Backstop for a security concern the model filed under another dimension or wrote into
     // prose. The model's own classification is the main control; this cannot catch every phrasing.
     // A false positive costs a withheld review; a false negative costs a disclosure.
@@ -132,7 +135,7 @@ module.exports = {
             if (!absent(f.suggestion) && !str(f.suggestion)) return no;
             if (!Number.isInteger(f.confidence) || f.confidence < 1 || f.confidence > 10) return no;
             counts[f.dimension] = (counts[f.dimension] || 0) + 1;
-            const severity = f.confidence < this.minConfidence ? 'low' : f.severity;
+            const severity = f.confidence < this.minConfidence || this.nonBlockingDimensions.includes(f.dimension) ? 'low' : f.severity;
             const c = { dimension: f.dimension, severity, confidence: f.confidence, title: f.title, body: f.body };
             for (const k of ['path', 'start_line', 'line', 'suggestion']) if (!absent(f[k])) c[k] = f[k];
             clean.findings.push(c);

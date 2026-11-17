@@ -603,10 +603,10 @@ test('summary: head moved during the review -> says the commit was superseded', 
 // ===================== LOW findings are non-blocking suggestions =====================
 test('analyze-gate: LOW findings do not count toward the public findings count', async () => {
     const review = cleanReview();
-    review.dimensions.test_coverage = { status: 'findings' };
+    review.dimensions.correctness = { status: 'findings' };
     review.findings = [
-        { dimension: 'test_coverage', severity: 'medium', confidence: 8, title: 'a', body: 'b' },
-        { dimension: 'test_coverage', severity: 'low', confidence: 8, title: 'c', body: 'd' }
+        { dimension: 'correctness', severity: 'medium', confidence: 8, title: 'a', body: 'b' },
+        { dimension: 'correctness', severity: 'low', confidence: 8, title: 'c', body: 'd' }
     ];
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
     const { github } = mockGitHub();

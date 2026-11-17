@@ -215,7 +215,7 @@ async function resolveRange({ github, context, core, require, process }) {
 
     // The bot's earlier threads that are still open, for the model to re-check. Outdated ones are
     // included: a fix usually edits the commented line, which is what makes a thread outdated.
-    // `post` re-reads the live threads before resolving any of them. `replies` are the PR author's
+    // `post` re-reads the live threads before choosing any to resolve. `replies` are the PR author's
     // and maintainers' answers, so the model can weigh them; other people can't get a finding dismissed.
     const canAnswer = r => r.author.login === pr.user?.login || ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(r.authorAssociation);
     const ownOpenThreads = (nodes, botLogin) => {
