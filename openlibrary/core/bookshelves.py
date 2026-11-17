@@ -644,11 +644,10 @@ class Bookshelves(db.CommonExtras):
             elif sort == "rating":
                 query = RATING_SORTED_SHELF_QUERY + " LIMIT %(limit)s OFFSET %(offset)s"
             else:
-                direction = "DESC" if sort == "created desc" else "ASC"
                 query = (
                     "SELECT work_id, created, edition_id FROM bookshelves_books WHERE "
                     "bookshelf_id = %(bookshelf_id)s AND username = %(username)s "
-                    f"ORDER BY created {direction}, work_id {direction} "
+                    f"ORDER BY created {'DESC' if sort == 'created desc' else 'ASC'}, work_id {'DESC' if sort == 'created desc' else 'ASC'} "
                     "LIMIT %(limit)s OFFSET %(offset)s"
                 )
 
