@@ -1,3 +1,4 @@
+import asyncio
 import copy
 import functools
 import itertools
@@ -7,21 +8,26 @@ import time
 import urllib
 from collections.abc import Iterable
 from dataclasses import dataclass
+from math import ceil
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 from unicodedata import normalize
 
 import httpx
 import web
+from markupsafe import escape
 
 from infogami import config
 from infogami.infobase.client import storify
 from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
+from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import is_passage_query
-from openlibrary.core.lending import add_availability, add_availability_async
+from openlibrary.core.helpers import commify
+from openlibrary.core.jinja import render_jinja_template
+from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Edition
 from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.i18n import gettext as _
@@ -43,7 +49,7 @@ from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.query_utils import fully_escape_query
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
-from openlibrary.utils.request_context import get_request_lang, req_context
+from openlibrary.utils.request_context import get_request_lang, req_context, set_context_from_legacy_web_py, site
 from openlibrary.utils.solr import (
     DEFAULT_PASS_TIME_ALLOWED,
     DEFAULT_SOLR_TIMEOUT_SECONDS,
@@ -179,24 +185,18 @@ def get_availability_label(value: str) -> str:
     }.get(value, value)
 
 
-def _get_readable_count(param: dict, search_response) -> int | None:
+async def _get_readable_count_async(param: dict) -> int:
     """Count of the current search's results that are readable in-browser, for
     the "Readable Only" toggle sublabel on work_search.html. Mirrors the
-    'readable' availability filter (has_fulltext=true). Reuses the main result
-    count when the search is already readable-scoped; otherwise runs one cheap
-    rows=0 count query. Returns None when there's nothing to count.
+    'readable' availability filter (has_fulltext=true) with a rows=0 query.
 
     Note we can't use the has_fulltext facet count here: has_fulltext is indexed
     as ebook_access > UNCLASSIFIED (includes printdisabled), but the toggle's
     filter is ebook_access:[borrowable TO *], so the facet would over-count.
     """
-    if not param or not search_response.num_found:
-        return None
-    if get_active_availability(param) == "readable":
-        return search_response.num_found  # the main query already counted it
     readable_param = {k: v for k, v in param.items() if k != "public_scan"}
     readable_param["has_fulltext"] = "true"
-    resp = run_solr_query(
+    resp = await run_solr_query_async(
         WorkSearchScheme(solr_editions=req_context.get().solr_editions),
         readable_param,
         rows=0,
@@ -206,6 +206,43 @@ def _get_readable_count(param: dict, search_response) -> int | None:
         request_label="BOOK_SEARCH_READABLE_COUNT",
     )
     return resp.num_found
+
+
+async def _run_work_search_async(
+    param: dict,
+    rows: int,
+    page: int,
+    sort: str | None,
+    solr_internals_params: SolrInternalsParams | None,
+) -> tuple[SearchResponse, list[web.storage], int | None]:
+    """Run the /search page's Solr queries and availability lookup. The readable
+    count only needs `param`, so it runs alongside the main query and the
+    availability lookup that follows it, rather than after them."""
+
+    async def search_with_availability() -> tuple[SearchResponse, list[web.storage]]:
+        resp = await run_solr_query_async(
+            WorkSearchScheme(solr_editions=req_context.get().solr_editions),
+            param,
+            rows=rows,
+            page=page,
+            sort=sort,
+            spellcheck_count=3,
+            fields=compute_work_search_html_fields(sort, req_context.get().sfw),
+            facet=False,
+            highlight=True,
+            request_label="BOOK_SEARCH",
+            solr_internals_params=solr_internals_params,
+        )
+        works = [get_doc(doc) for doc in resp.docs]
+        await add_availability_async([(w.get("editions") or [None])[0] or w for w in works])
+        return resp, works
+
+    if get_active_availability(param) == "readable":
+        resp, works = await search_with_availability()
+        readable_count = resp.num_found  # the main query already counted it
+    else:
+        (resp, works), readable_count = await asyncio.gather(search_with_availability(), _get_readable_count_async(param))
+    return resp, works, readable_count if resp.num_found else None
 
 
 # Make public
@@ -380,6 +417,14 @@ def _prepare_solr_query_params(  # noqa: PLR0912
         ("ol.label", request_label),
         ("wt", param.get("wt", "json")),
     ] + (extra_params or [])
+
+    # Callers (e.g. rewrite_list_query) may supply pre-built fq filters. These
+    # bypass query processing, which would mangle local-params syntax such as
+    # `{!terms f=key}`.
+    fq_params = param.get("fq") or []
+    if isinstance(fq_params, str):
+        fq_params = [fq_params]
+    params += [("fq", fq) for fq in fq_params]
 
     if spellcheck_count is None:
         spellcheck_count = default_spellcheck_count
@@ -866,32 +911,18 @@ class search(delegate.page):
             solr_internals_params = None
 
         if param:
-            search_response = run_solr_query(
-                WorkSearchScheme(solr_editions=req_context.get().solr_editions),
-                param,
-                rows=rows,
-                page=page,
-                sort=sort,
-                spellcheck_count=3,
-                fields=compute_work_search_html_fields(sort, req_context.get().sfw),
-                facet=False,
-                highlight=True,
-                request_label="BOOK_SEARCH",
-                solr_internals_params=solr_internals_params,
+            search_response, works, readable_count = async_bridge.run(
+                _run_work_search_async(param, rows=rows, page=page, sort=sort, solr_internals_params=solr_internals_params)
             )
         else:
             search_response = SearchResponse(facet_counts=None, sort="", docs=[], num_found=0, solr_select="")
-
-        readable_count = _get_readable_count(param, search_response)
+            works, readable_count = [], None
 
         # Surface an author row above the results when the query names the author
         # of one of the top works (see author_suggestion.derive_authors). No extra
         # Solr round-trip: it reuses the docs this same search already returned.
         q_joined = " ".join(q_list)
         author_suggestions = derive_authors(search_response.docs, q_joined)
-
-        works = [get_doc(doc) for doc in search_response.docs]
-        add_availability([(w.get("editions") or [None])[0] or w for w in works])
 
         return render.work_search(
             q_joined,
@@ -964,10 +995,21 @@ def top_books_from_author(akey: str, rows=5) -> SearchResponse:
 
 
 class advancedsearch(delegate.page):
+    """Retire once production routes /advancedsearch to FastAPI (``openlibrary/fastapi/search.py``)."""
+
     path = "/advancedsearch"
 
     def GET(self):
-        return render_template("search/advancedsearch.html")
+        # Local imports: openlibrary.fastapi.search imports this module, and this handler is temporary.
+        from markupsafe import escape
+
+        from openlibrary.fastapi.search import AdvancedSearchForm, SearchNav
+
+        params = web.input(_method="get")
+        form = AdvancedSearchForm.model_validate(dict(params))
+        body = render_jinja_template("search/advancedsearch.html.jinja", form=form, nav=SearchNav.from_query(web.ctx.path, params))
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(_("Advanced Search")))
 
 
 @dataclass
@@ -1012,13 +1054,28 @@ class ListSearchRequest:
 class list_search(delegate.page):
     path = "/search/lists"
 
-    def GET(self):  # referenced subject_search
+    def GET(self):
         req = ListSearchRequest.from_web_input(web.input(api="next"))
         # Can't set fields when rendering html
         req.fields = "key"
         resp = self.get_results(req, "LIST_SEARCH")
-        lists = list(web.ctx.site.get_many([doc["key"] for doc in resp.docs]))
-        return render_template("search/lists.html", req, resp, lists)
+        lists = list(site.get().get_many([doc["key"] for doc in resp.docs]))
+
+        # Local import: openlibrary.fastapi.search imports this module.
+        from openlibrary.fastapi.search import SearchNav, lists_search_title
+
+        body = render_jinja_template(
+            "search/lists.html.jinja",
+            nav=SearchNav.from_query(web.ctx.path, web.input(_method="get")),
+            q=req.q,
+            search_response=resp,
+            previews=[lst.card(user.key if (user := get_current_user()) else None) for lst in lists],
+            commified_num_found=commify(resp.num_found),
+            page=req.page,
+            total_pages=ceil(resp.num_found / req.limit),
+        )
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(lists_search_title(req.q)))
 
     def get_results(
         self,
@@ -1121,15 +1178,20 @@ def random_author_search(limit=10) -> SearchResponse:
     )
 
 
-def rewrite_list_query(q, page, offset, limit):
+def rewrite_list_query(q: str, page, offset, limit, params: dict):
     """Takes a solr query. If it doesn't contain a /lists/ key, then
     return the query, unchanged, exactly as it entered the
     function. If it does contain a lists key, then use the pagination
     information to fetch the right block of keys from the
     lists_editions and lists_works API and then feed these editions resulting work
-    keys into solr with the form key:(OL123W, OL234W). This way, we
+    keys into solr as a `{!terms f=key}` filter. This way, we
     can use the solr API to fetch list works and render them in
     carousels in the right format.
+
+    The filter goes into `params["fq"]`, not into the query itself:
+    inside the main query the keys would be parsed by edismax as user
+    text, which is expensive for long key lists and does not support
+    `{!terms}` syntax.
     """
     from openlibrary.core.lists.model import List
 
@@ -1140,19 +1202,23 @@ def rewrite_list_query(q, page, offset, limit):
         # make cacheable
         if "env" not in web.ctx:
             delegate.fakeload()
-        lst = cast(List, web.ctx.site.get(key))
+            set_context_from_legacy_web_py()
+        lst = cast(List, site.get().get(key))
         return list(itertools.islice(lst.get_work_keys(), offset, offset + limit))
 
     if list_key_match := re.match(r"^(/people/[^/]+)?/lists/OL\d+L", q):
         # we're making an assumption that q is just a list key
         book_keys = cache.memcache_memoize(cached_get_list_book_keys, "search.list_books_query", timeout=5 * 60)(list_key_match.group(0), offset, limit)
 
-        # Compose a query for book_keys or fallback special query w/ no results
-        q = re.sub(
-            r"^(/people/[^/]+)?/lists/OL\d+L",
-            f"key:({' OR '.join(book_keys)})" if book_keys else "-key:*",
-            q,
-        )
+        # {!terms} avoids parsing every key as a BooleanQuery clause; an
+        # empty list must match nothing. Append rather than overwrite so any
+        # fq filters already present on the query are preserved.
+        existing_fq = params.get("fq") or []
+        if isinstance(existing_fq, str):
+            existing_fq = [existing_fq]
+        fq_filter = "{!terms f=key}" + ",".join(book_keys) if book_keys else "-key:*"
+        params["fq"] = [*existing_fq, fq_filter]
+        q = "*:*"
 
         # We've applied the offset to fetching get_list_editions to
         # produce the right set of discrete work IDs. We don't want
@@ -1202,7 +1268,7 @@ def _prepare_work_search_query(query: dict, page: int, offset: int, limit: int) 
     prepared_query_dict["wt"] = "json"
 
     # Deal with special /lists/ key queries
-    q_val, new_page, new_offset, new_limit = rewrite_list_query(prepared_query_dict.get("q", ""), page, offset, limit)
+    q_val, new_page, new_offset, new_limit = rewrite_list_query(prepared_query_dict.get("q", ""), page, offset, limit, params=prepared_query_dict)
     prepared_query_dict["q"] = q_val
 
     return PreparedQuery(

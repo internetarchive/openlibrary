@@ -1,0 +1,64 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    <p class="ds-lead">
+        Tabs are <code>&lt;a slot="tab" href="#panel-id"&gt;</code> links; panels are the other children, matched by id. Everything stays server-rendered light DOM, so without JavaScript the tabs are in-page links to sections that are all visible, and form fields in a hidden panel still submit.
+    </p>
+    {% call ex.example("Default", "The first tab is selected unless the URL hash or a data-selected panel names another.", output_style="max-width: 560px;") %}
+        <ol-tabs>
+            <a slot="tab" href="#demo-tabs-humans">By Humans</a>
+            <a slot="tab" href="#demo-tabs-bots">By Bots</a>
+            <a slot="tab" href="#demo-tabs-all">Everything</a>
+            <div id="demo-tabs-humans">
+                <p>Edits made by people.</p>
+            </div>
+            <div id="demo-tabs-bots">
+                <p>Edits made by bots.</p>
+            </div>
+            <div id="demo-tabs-all">
+                <p>Every edit.</p>
+            </div>
+        </ol-tabs>
+    {% endcall %}
+    {% call ex.example("Initially selected", "Mark the panel to show first with data-selected; the page CSS shows it before the component loads, too. A hash of the form #panel-id or #panel-id/anything overrides it, so a link can open a specific tab. To switch tabs from script, set the selected property.", output_style="max-width: 560px;") %}
+        <ol-tabs>
+            <a slot="tab" href="#demo-tabs-work">Work Details</a>
+            <a slot="tab" href="#demo-tabs-edition">Penguin edition, 2004</a>
+            <div id="demo-tabs-work">
+                <p>Fields shared by every edition.</p>
+            </div>
+            <div id="demo-tabs-edition" data-selected>
+                <p>Fields for this edition only.</p>
+            </div>
+        </ol-tabs>
+    {% endcall %}
+    {% call ex.example("Change event", "Switching fires ol-tabs-change with the panel id in event.detail.selected. Click, or focus a tab and use the arrow / Home / End keys.", output_style="max-width: 560px;") %}
+        <ol-tabs id="demo-tabs-events">
+            <a slot="tab" href="#demo-tabs-day">Today</a>
+            <a slot="tab" href="#demo-tabs-week">This Week</a>
+            <a slot="tab" href="#demo-tabs-month">This Month</a>
+            <div id="demo-tabs-day">
+                <p>Today's numbers.</p>
+            </div>
+            <div id="demo-tabs-week">
+                <p>This week's numbers.</p>
+            </div>
+            <div id="demo-tabs-month">
+                <p>This month's numbers.</p>
+            </div>
+        </ol-tabs>
+        <p>Selected panel: <strong id="demo-tabs-output">demo-tabs-day</strong></p>
+        <script>
+            document.getElementById('demo-tabs-events').addEventListener('ol-tabs-change', (e) => {
+                document.getElementById('demo-tabs-output').textContent = e.detail.selected;
+            });
+        </script>
+    {% endcall %}
+    <div class="ds-notes">
+        <p>
+            <b>Keyboard &amp; accessibility.</b> Follows the ARIA tabs pattern: a <code>tablist</code> of <code>tab</code>s, each controlling a <code>tabpanel</code>, with ids and labels wired up automatically. Tab moves into the selected tab; arrow keys and Home / End switch tabs, wrapping at the ends. Modified clicks (Ctrl / Cmd / Shift) behave like the links they are. A panel with nothing focusable inside is itself a tab stop, so its content stays reachable. When the row overflows it scrolls sideways, keeping the selected tab in view.
+        </p>
+        <p>
+            <b>URL hash.</b> Add <code>sync-hash</code> to write the selected panel's id to the URL as the user switches, so a reload or a shared link reopens the same tab. It replaces the current history entry rather than adding one, and never scrolls. A later hash change, from an in-page link to a panel or Back / Forward, switches tabs too, with or without <code>sync-hash</code>.
+        </p>
+    </div>
+{% endmacro %}

@@ -11,7 +11,14 @@ if [ "${LOCAL_DEV:-false}" = "true" ]; then
 else
     # We use gunicorn on prod because it supports --max-requests, which we use to
     # help avoid memory leaks
+    # Share Prometheus metrics across workers. The directory is scoped to this
+    # container and must be cleared before each Gunicorn master starts.
+    export PROMETHEUS_MULTIPROC_DIR="${PROMETHEUS_MULTIPROC_DIR:-/tmp/prometheus-multiproc}"
+    mkdir -p "$PROMETHEUS_MULTIPROC_DIR"
+    rm -f "$PROMETHEUS_MULTIPROC_DIR"/*.db
+
     exec scripts/coverstore-server "$COVERSTORE_CONFIG" \
         --gunicorn $GUNICORN_OPTS \
+        --config docker/gunicorn_prometheus_conf.py \
         --bind :7075
 fi

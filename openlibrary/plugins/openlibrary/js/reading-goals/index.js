@@ -65,7 +65,7 @@ export function initGoalEditLinks(editLinks) {
  * @param {HTMLDialogElement} modal The modal that will be shown
  */
 function addGoalEditClickListener(editLink, modal) {
-    editLink.addEventListener('click', function() {
+    editLink.addEventListener('click', function () {
         modal.showModal();
     });
 }
@@ -86,11 +86,12 @@ export function initGoalSubmitButtons(submitButtons) {
  * Adds click listener to given reading goal form submission button.
  *
  * On click, POSTs form to server.  Updates view depending on whether
- * the action set a new goal, or updated an existing goal.
+ * the form edits an existing goal (it is rendered inside a
+ * `.reading-goal-progress` component), or sets a new one.
  * @param {HTMLELement} submitButton Reading goal form submit button
  */
 function addGoalSubmissionListener(submitButton) {
-    submitButton.addEventListener('click', function(event) {
+    submitButton.addEventListener('click', function (event) {
         event.preventDefault();
 
         const form = submitButton.closest('form');
@@ -100,6 +101,7 @@ function addGoalSubmissionListener(submitButton) {
             throw new Error('Form invalid');
         }
         const formData = new FormData(form);
+        const progressComponent = form.closest('.reading-goal-progress');
 
         fetch(form.action, {
             method: 'POST',
@@ -107,50 +109,49 @@ function addGoalSubmissionListener(submitButton) {
                 'content-type': 'application/x-www-form-urlencoded'
             },
             body: new URLSearchParams(formData)
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error('Failed to set reading goal');
-                }
-                const modal = form.closest('dialog');
-                if (modal) {
-                    modal.close();
-                }
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to set reading goal');
+            }
+            const modal = form.closest('dialog');
+            if (modal) {
+                modal.close();
+            }
 
-                const yearlyGoalSections = document.querySelectorAll('.yearly-goal-section');
-                if (formData.get('is_update')) {  // Progress component exists on page
-                    yearlyGoalSections.forEach((yearlyGoalSection) => {
-                        const goalInput = form.querySelector('input[name=goal]');
-                        const isDeleted = Number(goalInput.value) === 0;
+            const yearlyGoalSections = document.querySelectorAll('.yearly-goal-section');
+            if (progressComponent) {
+                // Progress component exists on page
+                yearlyGoalSections.forEach(yearlyGoalSection => {
+                    const goalInput = form.querySelector('input[name=goal]');
+                    const isDeleted = Number(goalInput.value) === 0;
 
-                        if (isDeleted) {
-                            const chipGroup = yearlyGoalSection.querySelector('.chip-group');
-                            const goalContainer = yearlyGoalSection.querySelector('#reading-goal-container');
-                            if (chipGroup) {
-                                chipGroup.classList.remove('hidden');
-                            }
-                            if (goalContainer) {
-                                goalContainer.remove();
-                            }
-                            // Restore "Set reading goal" link hidden when goal was first set
-                            const setGoalLink = yearlyGoalSection.querySelector('.set-reading-goal-link');
-                            if (setGoalLink) {
-                                setGoalLink.classList.remove('hidden');
-                            }
-                        } else {
-                            const progressComponent = modal.closest('.reading-goal-progress');
-                            updateProgressComponent(progressComponent, Number(formData.get('goal')));
+                    if (isDeleted) {
+                        const chipGroup = yearlyGoalSection.querySelector('.chip-group');
+                        const goalContainer = yearlyGoalSection.querySelector('#reading-goal-container');
+                        if (chipGroup) {
+                            chipGroup.classList.remove('hidden');
                         }
-                    });
-                } else {
-                    const goalYear = formData.get('year');
-                    fetchProgressAndUpdateViews(yearlyGoalSections, goalYear);
-                    const banner = document.querySelector('.page-banner-mybooks');
-                    if (banner) {
-                        banner.remove();
+                        if (goalContainer) {
+                            goalContainer.remove();
+                        }
+                        // Restore "Set reading goal" link hidden when goal was first set
+                        const setGoalLink = yearlyGoalSection.querySelector('.set-reading-goal-link');
+                        if (setGoalLink) {
+                            setGoalLink.classList.remove('hidden');
+                        }
+                    } else {
+                        updateProgressComponent(progressComponent, Number(formData.get('goal')));
                     }
+                });
+            } else {
+                const goalYear = formData.get('year');
+                fetchProgressAndUpdateViews(yearlyGoalSections, goalYear);
+                const banner = document.querySelector('.page-banner-mybooks');
+                if (banner) {
+                    banner.remove();
                 }
-            });
+            }
+        });
     });
 }
 
@@ -184,16 +185,16 @@ function updateProgressComponent(elem, goal) {
  * @param {string} goalYear Year that the goal is set for.
  */
 function fetchProgressAndUpdateViews(yearlyGoalElems, goalYear) {
-    fetch(buildPartialsUrl('ReadingGoalProgress', {year: goalYear}))
-        .then((response) => {
+    fetch(buildPartialsUrl('ReadingGoalProgress', { year: goalYear }))
+        .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to fetch progress element');
             }
             return response.json();
         })
-        .then(function(data) {
+        .then(function (data) {
             const html = data['partials'];
-            yearlyGoalElems.forEach((yearlyGoalElem) => {
+            yearlyGoalElems.forEach(yearlyGoalElem => {
                 const progress = document.createElement('SPAN');
                 progress.id = 'reading-goal-container';
                 progress.innerHTML = html;

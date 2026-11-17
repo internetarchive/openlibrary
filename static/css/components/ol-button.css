@@ -31,7 +31,11 @@ ol-button:not(:defined),
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-inline-md);
+  /* The shared icon-to-label gap, mirroring the component's .label. The icon,
+     text and any chevron are flattened into one flex box here, so a trailing
+     chevron that wants the component's tighter 4px pulls itself in with a
+     negative margin (see .down-arrow in header-bar.css). */
+  gap: var(--spacing-icon-gap);
   box-sizing: border-box;
   vertical-align: middle;
   --ol-button-height: var(--control-height-medium);
@@ -39,6 +43,7 @@ ol-button:not(:defined),
   padding: 0 var(--spacing-md);
   font-family: var(--font-family-button);
   font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-button);
   line-height: var(--line-height-control);
   text-align: center;
   white-space: nowrap;
@@ -84,6 +89,26 @@ ol-button[size="large"]:not(:defined) {
   font-size: var(--font-size-body-large);
 }
 
+/* Slotted icons, at the component's sizes: ol-icon.css leaves them unsized
+   for the component, so without these an SVG flashes large before it loads. */
+ol-button:not(:defined) > :where([slot="icon-start"], [slot="icon-end"]) {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+ol-button[size="small"]:not(:defined)
+  > :where([slot="icon-start"], [slot="icon-end"]) {
+  width: 14px;
+  height: 14px;
+}
+
+ol-button[size="large"]:not(:defined)
+  > :where([slot="icon-start"], [slot="icon-end"]) {
+  width: 18px;
+  height: 18px;
+}
+
 /* Icon-only shapes: a square on the size's control height. */
 ol-button[shape="icon"]:not(:defined),
 ol-button[shape="circle"]:not(:defined) {
@@ -110,10 +135,10 @@ ol-button[elevation="floating"]:not(:defined) {
 ol-button[variant="primary"]:not(:defined),
 .ol-button-static--primary {
   background-color: var(--color-primary);
-  border-color: var(--color-primary);
+  border-color: var(--color-primary-border);
   color: var(--white);
   --control-surface: var(--color-primary);
-  --control-highlight-strength: 18%;
+  --control-highlight-strength: var(--control-highlight-strength-filled);
 }
 
 ol-button[variant="ghost"]:not(:defined),
@@ -147,7 +172,7 @@ ol-button[variant="primary"][tone="danger"]:not(:defined) {
   border-color: var(--color-border-error);
   color: var(--white);
   --control-surface: var(--color-destructive);
-  --control-highlight-strength: 18%;
+  --control-highlight-strength: var(--control-highlight-strength-filled);
 }
 /* stylelint-enable selector-max-specificity */
 

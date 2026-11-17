@@ -1,0 +1,37 @@
+{# A list's preview card. Takes `preview`: a ListPreview (openlibrary/core/lists/model.py). #}
+{% macro list_card(preview) %}
+    <span class="imageLg">
+        <a href="{{ preview.key }}">
+            <img src="{{ preview.cover_url }}"
+                 alt="{{ _('Cover of: %(title)s', title=preview.name) }}"
+                 title="{{ _('Cover of: %(title)s', title=preview.name) }}" />
+        </a>
+    </span>
+    <span class="details">
+        <span class="resultTitle">
+            <h3>
+                <a href="{{ preview.key }}">{{ preview.name }}</a>
+            </h3>
+            {% if preview.owner_key %}
+                <span class="list-owner small grey">
+                    {% if preview.is_owner %}
+                        {{ _('by <a href="%(key)s">You</a>', key=preview.owner_key) }}
+                    {% else %}
+                        {# Same markup as the BookByline macro for a single author. #}
+                        {% set owner_link %}<a href="{{ preview.owner_key }}">{{ preview.owner_name or _("Unknown author") }}</a>{% endset %}
+                        {{ _("by %(name)s", name=owner_link) }}
+                    {% endif %}
+                </span>
+            {% endif %}
+            <div class="editions smaller">
+                {{ ngettext("%(count)d item", "%(count)d items", preview.item_count, count=preview.item_count) }}
+                <span class="lightgreen">{{ _('Last modified %(date)s', date=preview.modified) }}</span>
+            </div>
+            <span class="description no-img">{{ preview.description_html | safe }}</span>
+        </span>
+    </span>
+{% endmacro %}
+{#- Rendering this file directly (from Templetor's lists/preview) draws the card. -#}
+{% if preview is defined %}
+    {{ list_card(preview) }}
+{% endif %}

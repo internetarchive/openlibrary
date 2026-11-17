@@ -1,28 +1,17 @@
 <template>
-  <tr>
-    <td>{{ index + 1 }}</td>
-    <td
-      v-for="(column, colIndex) in columns"
-      :key="colIndex"
-    >
-      {{ bookMatch.extractedBook[column] || '' }}
-    </td>
-    <td>
-      <div class="bookCards">
-        <a
-          :href="searchUrl"
-          title="View results in Open Library"
-        >🔎</a>
-        <BookCard
-          v-for="(doc, docIndex) in bookMatch.solrDocs.docs"
-          :key="docIndex"
-          :doc="doc"
-          :is-primary="docIndex === 0"
-        />
-        <NoBookCard v-if="bookMatch.solrDocs.numFound===0" />
-      </div>
-    </td>
-  </tr>
+    <tr>
+        <td>{{ index + 1 }}</td>
+        <td v-for="(column, colIndex) in columns" :key="colIndex">
+            {{ bookMatch.extractedBook[column] || '' }}
+        </td>
+        <td>
+            <div class="bookCards">
+                <a :href="searchUrl" title="View results in Open Library">🔎</a>
+                <BookCard v-for="(doc, docIndex) in bookMatch.solrDocs.docs" :key="docIndex" :doc="doc" :is-primary="docIndex === 0" />
+                <NoBookCard v-if="bookMatch.solrDocs.numFound === 0" />
+            </div>
+        </td>
+    </tr>
 </template>
 
 <script>
@@ -32,7 +21,8 @@ import BookCard from './BookCard.vue';
 import NoBookCard from './NoBookCard.vue';
 export default {
     components: {
-        BookCard, NoBookCard
+        BookCard,
+        NoBookCard
     },
     props: {
         bulkSearchState: BulkSearchState,
@@ -58,19 +48,17 @@ export default {
 td,
 th {
     padding: 5px;
-    text-align:center;
+    text-align: center;
 }
 .bookCards {
     display: flex;
     flex-direction: row;
     align-items: center;
-    overflow-x:auto;
-    scrollbar-width:thin;
+    overflow-x: auto;
+    scrollbar-width: thin;
 
     .book-card--primary {
         margin-right: 20px;
     }
 }
-
-
 </style>

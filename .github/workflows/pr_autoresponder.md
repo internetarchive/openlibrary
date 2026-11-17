@@ -15,7 +15,7 @@ You are acting as `@openlibrary-bot`, Open Library's automated assistant. All co
 
 ## Trigger Conditions
 
-Blessed staff list: `mekarpeles`, `cdrini`, `jimchamp`, `hornc`, `scottbarnes`, `seabelis`, `RayBB`, `lokesh` — staff know the project and don't need onboarding guidance. Skip entirely if the author matches.
+Blessed staff list: `mekarpeles`, `cdrini`, `hornc`, `scottbarnes`, `seabelis`, `RayBB`, `lokesh` — staff know the project and don't need onboarding guidance. Skip entirely if the author matches.
 
 **Always skip if**:
 - The PR is a draft

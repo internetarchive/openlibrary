@@ -3,7 +3,7 @@ applyTo: "static/css/**,openlibrary/components/**,openlibrary/templates/**,openl
 ---
 # UI review checklist
 
-Derived from [`docs/ai/design.md`](../../docs/ai/design.md) and [`docs/ai/web-components.md`](../../docs/ai/web-components.md), which hold the rules and their rationale. Flag any added or modified line that:
+Derived from [`docs/frontend/design.md`](../../docs/frontend/design.md) and [`docs/frontend/web-components.md`](../../docs/frontend/web-components.md), which hold the rules and their rationale. Flag any added or modified line that:
 
 - Uses a raw color (hex, `rgb()`, `hsl()`, named) instead of a semantic `--color-*` token.
 - Uses a deprecated alias such as `--grey`, `--white`, `--light-grey`, `--lightest-grey`, `--beige`, or `--primary-blue`. Point to the semantic token.
@@ -18,6 +18,7 @@ Derived from [`docs/ai/design.md`](../../docs/ai/design.md) and [`docs/ai/web-co
 - Scales a menu row, drawer item, or surface on `:active`, or uses a press-scale literal instead of `--press-scale`, `-compact`, or `-wide`.
 - Gives an overlay its own scrim value, or blurs/dims behind a non-modal panel — the scrim is `--overlay-backdrop-color` / `--overlay-backdrop-blur`, modal surfaces only.
 - Hard-codes a menu-row height or inset instead of `--menu-row-height` / `--menu-row-inset` / `--menu-row-padding-inline`, or tints a selected row.
+- Writes a bare `font-weight` (`bold`, `600`) or `font-size` (`14px`, `0.9rem`) instead of a `--font-weight-*` / `--font-size-*` token, unless a `stylelint-disable-next-line` comment gives the reason.
 - Hard-codes overline styling (small caps heading) instead of the `--*-overline` typography tokens.
 - Uses `left`, `right`, `margin-left`, `padding-right`, or `text-align: left` where a logical property (`inset-inline-end`, `margin-inline-start`, `text-align: start`) would mirror under `dir="rtl"`.
 - Uses a breakpoint off the scale in `static/css/tokens/breakpoints.css`, or `min-width: N+1` instead of `max-width: N-1`.

@@ -27,18 +27,15 @@ describe('SearchModal result-click tracking', () => {
         expect(modal._navigatingKey).toBe('/works/OL1W');
     });
 
-    test.each(['metaKey', 'ctrlKey', 'shiftKey', 'altKey'])(
-        '%s-click still tracks and saves, but shows no loading treatment',
-        (modifier) => {
-            const modal = setup();
+    test.each(['metaKey', 'ctrlKey', 'shiftKey', 'altKey'])('%s-click still tracks and saves, but shows no loading treatment', modifier => {
+        const modal = setup();
 
-            modal._onResultPress(clickEvent({ modifier }), '/works/OL1W', WORK);
+        modal._onResultPress(clickEvent({ modifier }), '/works/OL1W', WORK);
 
-            expect(modal._track).toHaveBeenCalledWith('ResultClick', 'work:3');
-            expect(modal._saveCurrentSearch).toHaveBeenCalled();
-            expect(modal._navigatingKey).toBeNull();
-        },
-    );
+        expect(modal._track).toHaveBeenCalledWith('ResultClick', 'work:3');
+        expect(modal._saveCurrentSearch).toHaveBeenCalled();
+        expect(modal._navigatingKey).toBeNull();
+    });
 
     test('a non-primary button tracks but does not flag the row', () => {
         const modal = setup();
@@ -64,7 +61,7 @@ describe('SearchModal result-click tracking', () => {
 
         modal._onResultPress(clickEvent({ modifier: 'metaKey' }), 'https://archive.org/details/x', {
             event: 'FulltextClick',
-            label: 'rank:2',
+            label: 'rank:2'
         });
 
         expect(modal._track).toHaveBeenCalledWith('FulltextClick', 'rank:2');
@@ -274,14 +271,14 @@ describe('FulltextBand attempt reporting', () => {
         return new FulltextBand({
             getFilters: () => FILTERS,
             onChange: () => {},
-            onAttempt,
+            onAttempt
         });
     }
 
-    test('a resolved fetch reports the attempt', async() => {
+    test('a resolved fetch reports the attempt', async () => {
         global.fetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: async() => ({ hits: { hits: [], total: 0 } }),
+            json: async () => ({ hits: { hits: [], total: 0 } })
         });
         const onAttempt = vi.fn();
 
@@ -291,7 +288,7 @@ describe('FulltextBand attempt reporting', () => {
         expect(onAttempt).toHaveBeenCalledWith('resolved');
     });
 
-    test('a failed fetch reports the attempt too, so it is not lost', async() => {
+    test('a failed fetch reports the attempt too, so it is not lost', async () => {
         global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 502 });
         const onAttempt = vi.fn();
 

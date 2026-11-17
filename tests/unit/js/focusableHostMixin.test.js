@@ -24,9 +24,7 @@ function defineFocusableElement(tagName, { renderHTML = '', focusTargetSelector 
             if (!this.shadowRoot.innerHTML) this.shadowRoot.innerHTML = renderHTML;
         }
         get _focusTarget() {
-            return focusTargetSelector
-                ? this.shadowRoot.querySelector(focusTargetSelector)
-                : null;
+            return focusTargetSelector ? this.shadowRoot.querySelector(focusTargetSelector) : null;
         }
     };
     customElements.define(tagName, cls);
@@ -34,12 +32,12 @@ function defineFocusableElement(tagName, { renderHTML = '', focusTargetSelector 
 }
 
 defineFocusableElement('mixin-test-default', {
-    renderHTML: '<button class="trigger">trigger</button><button class="other">other</button>',
+    renderHTML: '<button class="trigger">trigger</button><button class="other">other</button>'
 });
 
 defineFocusableElement('mixin-test-with-target', {
     renderHTML: '<button class="trigger">trigger</button><button class="other">other</button>',
-    focusTargetSelector: '.trigger',
+    focusTargetSelector: '.trigger'
 });
 
 afterEach(() => {
@@ -50,7 +48,7 @@ describe('FocusableHostMixin', () => {
     test('does NOT add a host tabindex (avoids the delegatesFocus double tab stop)', () => {
         // The inner native focusable is tabbable on its own, and our focus
         // traps find it via the shadow-piercing walker — so the host must not
-        // be a second tab stop. See docs/ai/web-components.md (Focus and Shadow DOM).
+        // be a second tab stop. See docs/frontend/web-components.md (Focus and Shadow DOM).
         const el = document.createElement('mixin-test-default');
         document.body.appendChild(el);
 

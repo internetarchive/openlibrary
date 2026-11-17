@@ -22,7 +22,10 @@ export const AUTHOR_SUGGESTION_MAX = 3;
 
 /** Lowercase and strip diacritics so "garcia" matches "García". */
 function fold(s) {
-    return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return (s || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
 }
 
 /**
@@ -38,15 +41,13 @@ function fold(s) {
  * @returns {boolean}
  */
 export function queryMatchesName(query, name) {
-    const q    = fold(query).trim();
+    const q = fold(query).trim();
     const full = fold(name).trim();
     if (!q || !full) return false;
     if (full.startsWith(q)) return true;
     if (` ${q} `.includes(` ${full} `)) return true;
     const nameTokens = full.split(/\s+/).filter(Boolean);
-    return q.split(/\s+/).some(
-        token => token.length >= 3 && nameTokens.some(nt => nt.startsWith(token)),
-    );
+    return q.split(/\s+/).some(token => token.length >= 3 && nameTokens.some(nt => nt.startsWith(token)));
 }
 
 /**
@@ -64,7 +65,7 @@ export function deriveAuthors(docs, query) {
     const seen = new Set();
     const authors = [];
     for (const doc of docs.slice(0, AUTHOR_SCAN_LIMIT)) {
-        const key  = doc.author_key?.[0];
+        const key = doc.author_key?.[0];
         const name = doc.author_name?.[0];
         if (!key || !name || seen.has(key)) continue;
         if (queryMatchesName(query, name)) {

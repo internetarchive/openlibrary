@@ -64,14 +64,14 @@ $var title: $header_title
 
       $if 'followers' in mb.counts:
         <div class="social-wrapper">
-          <a class="cta-btn cta-btn--unstyled" href="$(mb.user.key)/following"><strong>$mb.counts['following']</strong> $_("Following")</a>
-          <a class="cta-btn cta-btn--unstyled" href="$(mb.user.key)/followers"><strong>$mb.counts['followers']</strong> $_("Followers")</a>
+          <a class="ol-button-static ol-button-static--ghost" href="$(mb.user.key)/following"><strong>$mb.counts['following']</strong> $_("Following")</a>
+          <a class="ol-button-static ol-button-static--ghost" href="$(mb.user.key)/followers"><strong>$mb.counts['followers']</strong> $_("Followers")</a>
           $if mb.is_public and mb.key in mb.PUBLIC_KEYS:
             $set_share_links(url=request.canonical_url, title=header_title, view_context=ctx)
             $if ctx.get('share_links'):
               $ share_str = _('Share')
-              $ share_glyph = macros.icon("share-2", extra_class="icon-link__image")
-              $ share_content = '<a slot="trigger" class="cta-btn cta-btn--unstyled share-modal-link icon-link" href="javascript:;" data-ol-link-track="MyBooksModalLinkClick|ShareIcon">%s %s</a>' % (share_glyph, share_str)
+              $ share_glyph = macros.icon("share-2", size="sm", extra_class="ol-button-static__icon")
+              $ share_content = '<button type="button" slot="trigger" class="ol-button-static ol-button-static--ghost share-modal-link" data-ol-link-track="MyBooksModalLinkClick|ShareIcon">%s %s</button>' % (share_glyph, share_str)
               $ page_url = request.home
               $ share_links = ctx.get('share_links')
               $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper", show_embed=False)

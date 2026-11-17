@@ -1,11 +1,11 @@
 # Copilot Instructions
 
-> **Canonical guides:** [`AGENTS.md`](../AGENTS.md) for stack, commands, and conventions; [`docs/ai/README.md`](../docs/ai/README.md) for architecture and data-model. Path-specific review guidance lives in [`instructions/`](instructions/).
+> **Canonical guides:** [`AGENTS.md`](../AGENTS.md) for stack, commands, and conventions; [`docs/ai-coding-guide.md`](../docs/ai-coding-guide.md) for architecture and data-model. Path-specific review guidance lives in [`instructions/`](instructions/).
 
 ### Code Style
 
 - **Python:** Ruff for linting and `ruff format` for formatting, line length 162, double quotes
-- **JS:** ESLint, single quotes, no jQuery in new code
+- **JS:** oxlint + oxfmt (ESLint for Vue files only), single quotes, no jQuery in new code
 - **CSS:** Stylelint — semantic tokens only, no hex/named colors
 - **Templates:** Jinja2 for new templates; Templetor is legacy
 - **Branches:** `{issue-number}/{type}/{slug}`

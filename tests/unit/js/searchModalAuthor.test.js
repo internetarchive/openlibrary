@@ -1,8 +1,4 @@
-import {
-    AUTHOR_SUGGESTION_MAX,
-    deriveAuthors,
-    queryMatchesName,
-} from '../../../openlibrary/plugins/openlibrary/js/search-modal/authorSuggestion';
+import { AUTHOR_SUGGESTION_MAX, deriveAuthors, queryMatchesName } from '../../../openlibrary/plugins/openlibrary/js/search-modal/authorSuggestion';
 
 /** Build a /search.json-style work doc with a single primary author. */
 function work(key, authorName, authorKey) {
@@ -10,7 +6,7 @@ function work(key, authorName, authorKey) {
         key,
         title: `Work ${key}`,
         author_name: authorName ? [authorName] : undefined,
-        author_key: authorKey ? [authorKey] : undefined,
+        author_key: authorKey ? [authorKey] : undefined
     };
 }
 
@@ -58,10 +54,7 @@ describe('queryMatchesName', () => {
 
 describe('deriveAuthors', () => {
     test('surfaces a named author even with a single book in the results', () => {
-        const docs = [
-            work('/works/OL1W', 'Octavia E. Butler', 'OL11A'),
-            work('/works/OL2W', 'Someone Else', 'OL22A'),
-        ];
+        const docs = [work('/works/OL1W', 'Octavia E. Butler', 'OL11A'), work('/works/OL2W', 'Someone Else', 'OL22A')];
         expect(deriveAuthors(docs, 'octavia butler')).toEqual([{ key: 'OL11A', name: 'Octavia E. Butler' }]);
     });
 
@@ -69,11 +62,11 @@ describe('deriveAuthors', () => {
         const docs = [
             work('/works/OL1W', 'Stephen King', 'OL19A'),
             work('/works/OL2W', 'Stephen Hawking', 'OL20A'),
-            work('/works/OL3W', 'Stephen King', 'OL19A'), // dupe key → collapsed
+            work('/works/OL3W', 'Stephen King', 'OL19A') // dupe key → collapsed
         ];
         expect(deriveAuthors(docs, 'stephen')).toEqual([
             { key: 'OL19A', name: 'Stephen King' },
-            { key: 'OL20A', name: 'Stephen Hawking' },
+            { key: 'OL20A', name: 'Stephen Hawking' }
         ]);
     });
 
@@ -87,7 +80,7 @@ describe('deriveAuthors', () => {
             work('/works/OL1W', 'John Smith', 'OL1A'),
             work('/works/OL2W', 'Jane Smith', 'OL2A'),
             work('/works/OL3W', 'Adam Smith', 'OL3A'),
-            work('/works/OL4W', 'Zadie Smith', 'OL4A'),
+            work('/works/OL4W', 'Zadie Smith', 'OL4A')
         ];
         expect(deriveAuthors(docs, 'smith')).toHaveLength(AUTHOR_SUGGESTION_MAX);
     });
@@ -96,7 +89,7 @@ describe('deriveAuthors', () => {
         // Asimov is the 6th result — past the scan window — so no row.
         const docs = [
             ...Array.from({ length: 5 }, (_, i) => work(`/works/OL${i}W`, 'Filler Writer', `OL9${i}A`)),
-            work('/works/OLaW', 'Isaac Asimov', 'OL34221A'),
+            work('/works/OLaW', 'Isaac Asimov', 'OL34221A')
         ];
         expect(deriveAuthors(docs, 'asimov')).toEqual([]);
     });

@@ -5750,7 +5750,7 @@ msgstr "Saznaj kako stvoriti tvoj prvi popis."
 #: lists/preview.html
 #, python-format
 msgid "by <a href=\"%s\">You</a>"
-msgstr "autor: <a href=\"%(link)s\">ti</a>"
+msgstr ""
 
 #: lists/showcase.html
 #, python-format

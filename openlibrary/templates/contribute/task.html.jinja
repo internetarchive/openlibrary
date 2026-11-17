@@ -1,0 +1,23 @@
+{#- /tasks/task/OL…M/<field> — one book, one missing field, answered in place on the record. -#}
+{% import "contribute/parts.html.jinja" as parts %}
+<div class="contrib-page contrib-page--task" data-contribute-task>
+    <a class="contrib-back"
+       href="{{ data.list_url }}"
+       data-ol-link-track="TaskForm|Back">{{ icon("chevron-left", size="sm") }}{{ _("Back to the list") }}</a>
+    {#- Ahead of the question so phones see it first; on desktop the grid moves it atop the right column. -#}
+    {% if data.receipt %}{{ parts.saved_receipt(data.receipt) }}{% endif %}
+    <div class="contrib-question">
+        <h1 class="contrib-question__text">{{ data.field_guide.question }}</h1>
+        <p class="contrib-question__scope contrib-muted">{{ data.scope }}</p>
+        {% if data.field_guide.why %}<p class="contrib-muted">{{ data.field_guide.why }}</p>{% endif %}
+    </div>
+    <div class="contrib-task__main">{{ parts.record_form(data) }}</div>
+    <aside class="contrib-task__help">
+        {% if data.evidence is not none %}{{ parts.evidence(data.evidence) }}{% endif %}
+        {{ parts.how_to(data.field_guide, data.link_outs, data.links_by_title) }}
+        {% if data.field_guide.traps %}{{ parts.traps(data.field_guide.traps) }}{% endif %}
+        {% if data.siblings %}
+            {{ parts.sibling_tally(data.tally, data.siblings, data.sibling_total, data.field_guide.sibling_hint) }}
+        {% endif %}
+    </aside>
+</div>

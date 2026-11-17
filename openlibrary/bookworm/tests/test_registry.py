@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 from typing import Final
 
 import pytest
@@ -71,7 +71,7 @@ def test_the_ol_edition_flag_defaults_off(registry_db):
 
 def test_advance_moves_cursor(registry_db):
     row = FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
-    cursor = datetime.datetime(2026, 7, 20, 12, 0, 0)
+    cursor = dt.datetime(2026, 7, 20, 12, 0, 0)
     assert FeedRegistry.advance(row.id, last_updated=cursor) == 1
     assert str(FeedRegistry.get_by_id(row.id).last_updated).startswith("2026-07-20 12:00:00")
 
@@ -109,12 +109,12 @@ class TestStatusGating:
 
     def test_activating_does_not_disturb_the_cursor(self, registry_db):
         feed = FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
-        FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2026, 9, 1))
+        FeedRegistry.advance(feed.id, last_updated=dt.datetime(2026, 9, 1))
         FeedRegistry.set_status(feed.id, "active")
         assert str(FeedRegistry.get_by_id(feed.id).last_updated).startswith("2026-09-01")
 
     def test_a_row_with_no_status_is_treated_as_active(self, registry_db):
         """Rows created before status existed must keep harvesting."""
         feed = FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
-        FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2026, 9, 1), data={"id_strategy": "self_link"})
+        FeedRegistry.advance(feed.id, last_updated=dt.datetime(2026, 9, 1), data={"id_strategy": "self_link"})
         assert FeedRegistry.get_by_id(feed.id).is_active is True

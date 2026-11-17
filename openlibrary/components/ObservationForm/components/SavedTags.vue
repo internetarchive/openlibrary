@@ -1,47 +1,28 @@
 <template>
-  <div
-    v-show="selectedValues.length"
-    class="selections"
-  >
-    <div
-      v-if="!selectedValues.length"
-      class="no-selections-message"
-    >
-      No tags selected.
+    <div v-show="selectedValues.length" class="selections">
+        <div v-if="!selectedValues.length" class="no-selections-message">No tags selected.</div>
+        <div v-else class="selection-panel">
+            <OLChip v-for="value in selectedValues" :key="value" :ref="value" :text="value" :class-list="getClassList(value)" class="selection-chip">
+                <template #after>
+                    <span
+                        class="close-icon"
+                        title="Remove value"
+                        @mouseover="addHoverClass(value)"
+                        @mouseout="removeHoverClass(value)"
+                        @click="removeItem(value)"
+                    >
+                        &times;
+                    </span>
+                </template>
+            </OLChip>
+        </div>
     </div>
-    <div
-      v-else
-      class="selection-panel"
-    >
-      <OLChip
-        v-for="value in selectedValues"
-        :key="value"
-        :ref="value"
-        :text="value"
-        :class-list="getClassList(value)"
-        class="selection-chip"
-      >
-        <template #after>
-          <span
-            class="close-icon"
-            title="Remove value"
-            @mouseover="addHoverClass(value)"
-            @mouseout="removeHoverClass(value)"
-            @click="removeItem(value)"
-          >
-            &times;
-          </span>
-        </template>
-      </OLChip>
-    </div>
-  </div>
 </template>
 
 <script>
 import OLChip from './OLChip.vue';
 
 import { updateObservation } from '../ObservationService';
-
 
 export default {
     name: 'SavedTags',
@@ -80,7 +61,7 @@ export default {
             required: true
         }
     },
-    data: function() {
+    data: function () {
         return {
             /**
              * Contains class strings for each selected book tag
@@ -100,7 +81,7 @@ export default {
         /**
          * An array of a patron's book tags.
          */
-        selectedValues: function() {
+        selectedValues: function () {
             const results = [];
 
             for (const type in this.allSelectedValues) {
@@ -118,7 +99,7 @@ export default {
          *
          * @param {String} chipText The text of the selected tag chip, in the form "<type>: <value>"
          */
-        removeItem: function(chipText) {
+        removeItem: function (chipText) {
             const [type, value] = chipText.split(': ');
 
             const valueIndex = this.allSelectedValues[type].indexOf(value);
@@ -143,7 +124,7 @@ export default {
          *
          * @param {String} value The chip's key.
          */
-        addHoverClass: function(value) {
+        addHoverClass: function (value) {
             this.classLists[value] = 'hover';
         },
         /**
@@ -151,7 +132,7 @@ export default {
          *
          * @param {String} value The chip's key.
          */
-        removeHoverClass: function(value) {
+        removeHoverClass: function (value) {
             this.classLists[value] = '';
         },
         /**
@@ -160,7 +141,7 @@ export default {
          * @param {String} value The chip's key
          * @returns The chip's class list string.
          */
-        getClassList: function(value) {
+        getClassList: function (value) {
             return this.classLists[value] ? this.classLists[value] : '';
         }
     }
@@ -169,25 +150,25 @@ export default {
 
 <style scoped>
 .no-selections-message {
-  margin-bottom: 1em;
+    margin-bottom: 1em;
 }
 
 .selection-panel {
-  display: flex;
-  flex-wrap: wrap;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .selection-chip {
-  margin-right: 1em;
-  margin-bottom: .5em;
+    margin-right: 1em;
+    margin-bottom: 0.5em;
 }
 
 .close-icon {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .hover {
-  border-color: red;
-  color: red;
+    border-color: red;
+    color: red;
 }
 </style>

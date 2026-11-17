@@ -1179,7 +1179,7 @@ msgstr "1 커밋 뒤처짐"
 #: status.html
 #, python-format
 msgid "%(count)s commits behind"
-msgstr "%(count)개 커밋 뒤처짐"
+msgstr ""
 
 #: admin/solr.html status.html
 msgid "Update"

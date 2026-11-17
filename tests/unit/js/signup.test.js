@@ -159,7 +159,6 @@ describe('Username tests', () => {
     });
 });
 
-
 describe('Password tests', () => {
     let passwordLabel, passwordField;
 

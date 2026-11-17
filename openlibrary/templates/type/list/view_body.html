@@ -58,7 +58,7 @@ $def seed_meta_line(seed):
 
     $if sort == 'last_modified' and seed.last_update:
         <span class="time">
-            $:_('Last modified <span>%(date)s</span>', date=datestr(seed.last_update))
+            $:_('Edited <span>%(date)s</span>', date=datestr(seed.last_update))
         </span>
 
 $def seed_attrs(seed):

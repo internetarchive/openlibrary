@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-labels */
-javascript:(async()=> {
+javascript: (async () => {
     const url = prompt('Enter the book URL you want to import:');
     if (!url) return;
     const promptText = `You are an expert book metadata librarian and research assistant. Your role is to search the web and collect accurate data to produce the most useful, factual, complete, and patron-oriented book page possible for the URL:

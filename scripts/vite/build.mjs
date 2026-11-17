@@ -25,26 +25,26 @@
  * selected job succeeds, swap each staging dir over its live dir
  * (static/build/<job>). Watch builds write straight to the live dirs.
  */
-import { build } from "vite";
-import vue from "@vitejs/plugin-vue";
-import { readdirSync, renameSync, rmSync } from "node:fs";
-import { join, resolve } from "node:path";
-import { parseArgs } from "node:util";
-import { renderBuiltAssetUrl } from "../../vite-asset-urls.mjs";
+import { build } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import { readdirSync, renameSync, rmSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { parseArgs } from 'node:util';
+import { renderBuiltAssetUrl } from '../../vite-asset-urls.mjs';
 
-const root = resolve(import.meta.dirname, "../..");
+const root = resolve(import.meta.dirname, '../..');
 
 const { values } = parseArgs({
     options: {
-        watch: { type: "boolean", default: false },
-        mode: { type: "string" },
-        only: { type: "string" },
-        help: { type: "boolean", default: false },
-    },
+        watch: { type: 'boolean', default: false },
+        mode: { type: 'string' },
+        only: { type: 'string' },
+        help: { type: 'boolean', default: false }
+    }
 });
 const isWatch = values.watch;
-const mode = values.mode ?? (isWatch ? "development" : "production");
-const forcePolling = process.env.FORCE_POLLING === "true";
+const mode = values.mode ?? (isWatch ? 'development' : 'production');
+const forcePolling = process.env.FORCE_POLLING === 'true';
 
 if (values.help) {
     console.log(`Use: node scripts/vite/build.mjs [--only css[,js,components]] [--watch] [--mode development|production]
@@ -60,17 +60,17 @@ watchers on bind mounts (see npm run watch-polling).`);
     process.exit(0);
 }
 
-const ALL_JOBS = ["css", "js", "components"];
+const ALL_JOBS = ['css', 'js', 'components'];
 const onlyRaw = values.only
     ? values.only
-          .split(",")
-          .map((s) => s.trim())
+          .split(',')
+          .map(s => s.trim())
           .filter(Boolean)
     : null;
 if (onlyRaw) {
-    const invalid = onlyRaw.filter((j) => !ALL_JOBS.includes(j));
+    const invalid = onlyRaw.filter(j => !ALL_JOBS.includes(j));
     if (invalid.length > 0) {
-        console.error(`Unknown job(s): ${invalid.join(", ")} (valid: ${ALL_JOBS.join(", ")})`);
+        console.error(`Unknown job(s): ${invalid.join(', ')} (valid: ${ALL_JOBS.join(', ')})`);
         process.exit(1);
     }
 }
@@ -87,24 +87,24 @@ function baseConfig() {
         mode,
         root,
         configFile: false,
-        publicDir: ".",
-        clearScreen: false,
+        publicDir: '.',
+        clearScreen: false
     };
 }
 
-const BUILD_ROOT = join(root, "static/build");
+const BUILD_ROOT = join(root, 'static/build');
 
 // Staging (<job>_new) and live (<job>) directories per job.
 // One-shot builds write to staging. After every selected job succeeds,
 // each staging dir is renamed over its live dir. Watch builds write
 // straight to the live dirs and never stage, delete, or rename.
 const JOBS = {
-    css: { staging: join(BUILD_ROOT, "css_new"), live: join(BUILD_ROOT, "css") },
-    js: { staging: join(BUILD_ROOT, "js_new"), live: join(BUILD_ROOT, "js") },
-    components: { staging: join(BUILD_ROOT, "components_new"), live: join(BUILD_ROOT, "components") },
+    css: { staging: join(BUILD_ROOT, 'css_new'), live: join(BUILD_ROOT, 'css') },
+    js: { staging: join(BUILD_ROOT, 'js_new'), live: join(BUILD_ROOT, 'js') },
+    components: { staging: join(BUILD_ROOT, 'components_new'), live: join(BUILD_ROOT, 'components') }
 };
 
-function outDirForJob(job, subdir = "") {
+function outDirForJob(job, subdir = '') {
     const base = isWatch ? JOBS[job].live : JOBS[job].staging;
     return subdir ? join(base, subdir) : base;
 }
@@ -113,29 +113,29 @@ function outDirForJob(job, subdir = "") {
 // CSS: tokens, ol-components, page-*.css -> static/build/css
 // -----------------------------------------------------------------
 function getCssConfig() {
-    const cssFiles = readdirSync(join(root, "static/css")).filter((f) => f.startsWith("page-") && f.endsWith(".css"));
+    const cssFiles = readdirSync(join(root, 'static/css')).filter(f => f.startsWith('page-') && f.endsWith('.css'));
     const entries = {
-        tokens: resolve(root, "static/css/tokens.css"),
-        "ol-components": resolve(root, "static/css/ol-components.css"),
+        tokens: resolve(root, 'static/css/tokens.css'),
+        'ol-components': resolve(root, 'static/css/ol-components.css')
     };
     for (const f of cssFiles) {
-        entries[f.replace(/\.css$/, "")] = resolve(root, "static/css", f);
+        entries[f.replace(/\.css$/, '')] = resolve(root, 'static/css', f);
     }
 
     return {
         ...baseConfig(),
         build: {
-            outDir: outDirForJob("css"),
+            outDir: outDirForJob('css'),
             emptyOutDir: true,
             copyPublicDir: false,
-            cssMinify: mode !== "development",
+            cssMinify: mode !== 'development',
             sourcemap: false,
             watch: watchOption,
             rolldownOptions: {
                 input: entries,
-                output: { assetFileNames: "[name][extname]" },
-            },
-        },
+                output: { assetFileNames: '[name][extname]' }
+            }
+        }
     };
 }
 
@@ -147,8 +147,8 @@ function getCssConfig() {
  * `output.postBanner` / `output.postFooter` so every emitted file carries
  * the license after minification.
  */
-const AGPL_LICENSE_HEADER = "// @license magnet:?xt=urn:btih:0b31508aeb0634b347b8270c7bee4d411b5d4109&dn=agpl-3.0.txt AGPL-v3.0";
-const AGPL_LICENSE_FOOTER = "\n// @license-end";
+const AGPL_LICENSE_HEADER = '// @license magnet:?xt=urn:btih:0b31508aeb0634b347b8270c7bee4d411b5d4109&dn=agpl-3.0.txt AGPL-v3.0';
+const AGPL_LICENSE_FOOTER = '\n// @license-end';
 
 /*
  * Options shared by the JS builds. Only the output-shape keys
@@ -158,13 +158,13 @@ function commonJsBuildOptions() {
     return {
         copyPublicDir: false,
         sourcemap: true,
-        minify: mode !== "development",
+        minify: mode !== 'development',
         // Mirror package.json's browserslist; Safari/iOS 15.4 is the binding
         // constraint. Oxc lowers syntax only, so APIs newer than that floor
         // (e.g. Object.groupBy, Array#toSorted) must not be used unguarded.
-        target: ["safari15.4", "ios15.4"],
+        target: ['safari15.4', 'ios15.4'],
         // Vite only warns about big chunks; `bundlesize` (CI) is the real gate.
-        chunkSizeWarningLimit: 3000,
+        chunkSizeWarningLimit: 3000
     };
 }
 
@@ -172,7 +172,7 @@ function agplOutput(extra) {
     return {
         postBanner: AGPL_LICENSE_HEADER,
         postFooter: AGPL_LICENSE_FOOTER,
-        ...extra,
+        ...extra
     };
 }
 
@@ -180,7 +180,7 @@ function getJsEsmConfig(outDir) {
     return {
         ...baseConfig(),
         experimental: { renderBuiltUrl: renderBuiltAssetUrl },
-        base: "/static/build/js/",
+        base: '/static/build/js/',
         build: {
             ...commonJsBuildOptions(),
             outDir,
@@ -190,14 +190,14 @@ function getJsEsmConfig(outDir) {
             emptyOutDir: false,
             watch: watchOption,
             rolldownOptions: {
-                input: { all: resolve(root, "openlibrary/plugins/openlibrary/js/main-entry.js") },
+                input: { all: resolve(root, 'openlibrary/plugins/openlibrary/js/main-entry.js') },
                 output: agplOutput({
-                    entryFileNames: "[name].js",
-                    chunkFileNames: "[name].[hash].js",
-                    assetFileNames: "[name].[hash][extname]",
-                }),
-            },
-        },
+                    entryFileNames: '[name].js',
+                    chunkFileNames: '[name].[hash].js',
+                    assetFileNames: '[name].[hash][extname]'
+                })
+            }
+        }
     };
 }
 
@@ -213,13 +213,13 @@ function getJsIifeConfig(name, entryPath, outDir) {
             rolldownOptions: {
                 input: { [name]: entryPath },
                 output: agplOutput({
-                    format: "iife",
-                    entryFileNames: "[name].js",
-                    chunkFileNames: "[name].[hash].js",
-                    assetFileNames: "[name][extname]",
-                }),
-            },
-        },
+                    format: 'iife',
+                    entryFileNames: '[name].js',
+                    chunkFileNames: '[name].[hash].js',
+                    assetFileNames: '[name][extname]'
+                })
+            }
+        }
     };
 }
 
@@ -227,42 +227,42 @@ function getJsIifeConfig(name, entryPath, outDir) {
 // Components: Vue + Lit merged -> static/build/components/production
 // -----------------------------------------------------------------
 function getVueNames() {
-    return readdirSync(join(root, "openlibrary/components"))
-        .filter((name) => name.endsWith(".vue"))
-        .map((name) => name.replace(/\.vue$/, ""));
+    return readdirSync(join(root, 'openlibrary/components'))
+        .filter(name => name.endsWith('.vue'))
+        .map(name => name.replace(/\.vue$/, ''));
 }
 
 // Vue entries live only in memory.
 function virtualVuePlugin() {
     return {
-        name: "virtual-vue-wc-entries",
+        name: 'virtual-vue-wc-entries',
         resolveId(id) {
-            if (id.startsWith("virtual:vue-wc:")) {
+            if (id.startsWith('virtual:vue-wc:')) {
                 return id;
             }
             return null;
         },
         load(id) {
-            if (id.startsWith("virtual:vue-wc:")) {
-                const name = id.replace("virtual:vue-wc:", "");
+            if (id.startsWith('virtual:vue-wc:')) {
+                const name = id.replace('virtual:vue-wc:', '');
                 // Absolute filesystem paths: virtual modules have no location,
                 // so root-relative `/...` specifiers rely on Vite's root
                 // resolution. Absolute paths resolve deterministically.
-                const compDir = join(root, "openlibrary/components");
+                const compDir = join(root, 'openlibrary/components');
                 return [
-                    `import { createWebComponentSimple } from '${join(compDir, "rollupInputCore.js")}';`,
+                    `import { createWebComponentSimple } from '${join(compDir, 'rollupInputCore.js')}';`,
                     `import rootComponent from '${join(compDir, `${name}.vue`)}';`,
                     `createWebComponentSimple(rootComponent, '${name}');`,
-                    "",
-                ].join("\n");
+                    ''
+                ].join('\n');
             }
             return null;
-        },
+        }
     };
 }
 
 function getComponentsConfig() {
-    const input = { "ol-components": resolve(root, "openlibrary/components/lit/index.js") };
+    const input = { 'ol-components': resolve(root, 'openlibrary/components/lit/index.js') };
     for (const name of getVueNames()) {
         // `[name].js` emits Vue as `ol-<Name>.js` and Lit as `ol-components.js`.
         // Pages load those filenames directly, so keep this pattern.
@@ -274,26 +274,26 @@ function getComponentsConfig() {
         // Entries are served from this path. Without a base, the modulepreload
         // links `__vite__mapDeps` emits for code-split chunks resolve to
         // `/assets/...` and 404. renderBuiltUrl keeps /static/ public urls intact.
-        base: "/static/build/components/production/",
+        base: '/static/build/components/production/',
         experimental: { renderBuiltUrl: renderBuiltAssetUrl },
         plugins: [vue({ customElement: true }), virtualVuePlugin()],
         build: {
-            target: ["safari15.4", "ios15.4"],
-            outDir: outDirForJob("components", "production"),
+            target: ['safari15.4', 'ios15.4'],
+            outDir: outDirForJob('components', 'production'),
             emptyOutDir: true,
             copyPublicDir: false,
             chunkSizeWarningLimit: 600,
-            minify: mode !== "development",
+            minify: mode !== 'development',
             sourcemap: true,
             watch: watchOption,
             rolldownOptions: {
                 input,
                 output: {
-                    entryFileNames: "[name].js",
-                    format: "es",
-                },
-            },
-        },
+                    entryFileNames: '[name].js',
+                    format: 'es'
+                }
+            }
+        }
     };
 }
 
@@ -302,22 +302,18 @@ async function runCss() {
 }
 
 async function runJs() {
-    const outDir = outDirForJob("js");
+    const outDir = outDirForJob('js');
     // Run ESM first, then the IIFE files. The three builds share one
     // outDir, so keep them sequential instead of parallel.
     await build(getJsEsmConfig(outDir));
     const iifeJobs = [
-        ["sw", resolve(root, "openlibrary/plugins/openlibrary/js/service-worker.js")],
-        ["partnerLib", resolve(root, "openlibrary/plugins/openlibrary/js/partner_ol_lib.js")],
+        ['sw', resolve(root, 'openlibrary/plugins/openlibrary/js/service-worker.js')],
+        ['partnerLib', resolve(root, 'openlibrary/plugins/openlibrary/js/partner_ol_lib.js')]
     ];
-    const iifeResults = await Promise.allSettled(
-        iifeJobs.map(([name, entry]) => build(getJsIifeConfig(name, entry, outDir))),
-    );
-    const iifeFailures = iifeResults
-        .map((res, i) => ({ res, name: iifeJobs[i][0] }))
-        .filter(({ res }) => res.status === "rejected");
+    const iifeResults = await Promise.allSettled(iifeJobs.map(([name, entry]) => build(getJsIifeConfig(name, entry, outDir))));
+    const iifeFailures = iifeResults.map((res, i) => ({ res, name: iifeJobs[i][0] })).filter(({ res }) => res.status === 'rejected');
     if (iifeFailures.length > 0) {
-        const detail = iifeFailures.map(({ name, res }) => `[${name}] ${res.reason?.stack ?? res.reason}`).join("\n");
+        const detail = iifeFailures.map(({ name, res }) => `[${name}] ${res.reason?.stack ?? res.reason}`).join('\n');
         throw new Error(`js IIFE build(s) failed:\n${detail}`);
     }
 }
@@ -328,24 +324,24 @@ async function runComponents() {
 
 async function run() {
     const jobs = [];
-    if (selectedJobs.has("css")) {
-        jobs.push(["css", runCss]);
+    if (selectedJobs.has('css')) {
+        jobs.push(['css', runCss]);
     }
-    if (selectedJobs.has("js")) {
-        jobs.push(["js", runJs]);
+    if (selectedJobs.has('js')) {
+        jobs.push(['js', runJs]);
     }
-    if (selectedJobs.has("components")) {
-        jobs.push(["components", runComponents]);
+    if (selectedJobs.has('components')) {
+        jobs.push(['components', runComponents]);
     }
 
-    console.log(`Build start (mode: ${mode}${isWatch ? ", watch" : ""}): ${jobs.map(([name]) => name).join(", ")}`);
+    console.log(`Build start (mode: ${mode}${isWatch ? ', watch' : ''}): ${jobs.map(([name]) => name).join(', ')}`);
 
     if (isWatch) {
         // Watchers never settle; build straight into the live dirs and keep
         // the process alive. Never stage, delete, or rename in watch mode.
         const results = await Promise.allSettled(jobs.map(([, fn]) => fn()));
-        const failed = results.filter((r) => r.status === "rejected");
-        if (failed.length) throw new Error(failed.map((r) => r.reason).join("\n"));
+        const failed = results.filter(r => r.status === 'rejected');
+        if (failed.length) throw new Error(failed.map(r => r.reason).join('\n'));
         jobs.forEach(([n]) => console.log(`${n} watching...`));
         return;
     }
@@ -362,13 +358,13 @@ async function run() {
     const results = await Promise.allSettled(jobs.map(([, fn]) => fn()));
     let hasFailure = false;
     results.forEach((res, i) => {
-        if (res.status === "rejected") {
+        if (res.status === 'rejected') {
             hasFailure = true;
             console.error(`[${jobs[i][0]}] build failed:`, res.reason);
         }
     });
     if (hasFailure) {
-        throw new Error("Build failed; live directories left untouched.");
+        throw new Error('Build failed; live directories left untouched.');
     }
 
     // All jobs succeeded: swap each staging dir over its live dir.
@@ -376,10 +372,10 @@ async function run() {
         rmSync(JOBS[name].live, { recursive: true, force: true });
         renameSync(JOBS[name].staging, JOBS[name].live);
     }
-    console.log("All builds done.");
+    console.log('All builds done.');
 }
 
-await run().catch((err) => {
-    console.error("Build failed:", err);
+await run().catch(err => {
+    console.error('Build failed:', err);
     process.exit(1);
 });

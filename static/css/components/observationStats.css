@@ -26,7 +26,7 @@
 }
 
 .reviews__label {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   margin-top: 4px;
   color: var(--color-text-secondary);
   text-transform: uppercase;
@@ -43,7 +43,7 @@
 }
 
 .reviews__label .reviews__count {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   margin-right: 5px;
   font-size: 0.9em;
   color: var(--color-text-muted);

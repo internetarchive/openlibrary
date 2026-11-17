@@ -110,7 +110,7 @@ services:
       - ${OL_MOUNT_DIR:-.}:/openlibrary
 
   db:
-    image: postgres:${POSTGRES_VERSION:-18.3}
+    image: postgres:${POSTGRES_VERSION:-18.7}
     networks:
       - dbnet
     environment:

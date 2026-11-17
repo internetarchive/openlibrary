@@ -23,11 +23,12 @@ from openlibrary.accounts import get_current_user
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_changes
 from openlibrary.utils import dateutil
+from openlibrary.utils.request_context import site
 
 
 @public
 def recentchanges(query):
-    return web.ctx.site.recentchanges(query)
+    return site.get().recentchanges(query)
 
 
 class index2(delegate.page):
@@ -92,7 +93,7 @@ class index(delegate.page):
         query["limit"] = limit
         query["offset"] = offset
 
-        result = [c.dict() for c in web.ctx.site.recentchanges(query)]
+        result = [c.dict() for c in site.get().recentchanges(query)]
 
         if encoding == "json":
             response = json.dumps(result)
@@ -128,7 +129,7 @@ class recentchanges_redirect(delegate.page):
 
     def GET(self, id):
         id = int(id)
-        change = web.ctx.site.get_change(id)
+        change = site.get().get_change(id)
         if not change:
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path)
@@ -151,7 +152,7 @@ class recentchanges_view(delegate.page):
 
     def GET(self, id):
         id = int(id)
-        change = web.ctx.site.get_change(id)
+        change = site.get().get_change(id)
         if not change:
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path)
@@ -178,7 +179,7 @@ class recentchanges_view(delegate.page):
         if not (user := get_current_user()) or not user.is_super_librarian_or_higher():
             raise web.unauthorized()
         id = int(id)
-        change = web.ctx.site.get_change(id)
+        change = site.get().get_change(id)
         if not change:
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path)
@@ -200,7 +201,7 @@ class recentchanges_view(delegate.page):
 
 class history(delegate.mode):
     def GET(self, path):
-        page = web.ctx.site.get(path)
+        page = site.get().get(path)
         if not page:
             raise web.seeother(path)
         i = web.input(page=1)
