@@ -60,11 +60,21 @@ async function postStatus({ github, context, core, process }) {
     const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: pr });
     if (!headIsCurrent(headSha, livePr.head.sha)) {
         core.info(
-            `Head moved ${headSha.slice(0, 8)}->${String(livePr.head.sha).slice(0, 8)} since review; leaving the reviewed SHA without a status. The current head is unreviewed and earns its own run.`
+            `Head moved ${headSha.slice(0, 8)}->${String(livePr.head.sha).slice(0, 8)} since review; marking the reviewed SHA superseded. The current head is unreviewed and earns its own run.`
         );
+        // Replaces "Review in progress", which would otherwise stay on this commit. Still pending: it was never reviewed.
+        await github.rest.repos.createCommitStatus({
+            owner,
+            repo,
+            sha: headSha,
+            context: 'code-review',
+            state: 'pending',
+            target_url: process.env.RUN_URL,
+            description: `Superseded by ${String(livePr.head.sha).slice(0, 7)}: the PR changed during the review.`
+        });
         await writeSummary([
             ['Range', range],
-            ['Status', `none: the PR moved to ${String(livePr.head.sha).slice(0, 7)} during the review; request a new one`]
+            ['Status', `pending: superseded by ${String(livePr.head.sha).slice(0, 7)}, which gets its own review`]
         ]);
         return;
     }

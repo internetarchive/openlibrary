@@ -44,7 +44,10 @@ async function markAwaiting({ github, context, core, settings, runUrl }) {
     if (statuses.some(s => s.context === 'code-review')) return;
 
     const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pr.number, per_page: 100 });
-    const reviewedBefore = reviews.some(r => r.user && r.user.login === BOT);
+    // A review still running, or one that was withheld, has posted nothing yet, but the team is still requested.
+    const { data: requested } = await github.rest.pulls.listRequestedReviewers({ owner, repo, pull_number: pr.number });
+    const reviewedBefore =
+        reviews.some(r => r.user && r.user.login === BOT) || requested.teams.some(t => t.slug === TEAM) || requested.users.some(u => u.login === BOT);
     const skip = await pushReview({ github, owner, repo, payload, settings, reviewedBefore });
     const minutes = settings.openlibrary_reviewer.push_review_delay_minutes;
     if (skip) core.info(`No review on this push: ${skip}.`);
