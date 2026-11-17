@@ -5262,7 +5262,7 @@ msgstr[1] ""
 
 #: lists/header.html
 #, python-format
-msgid "%(name)s has 1 list."
+msgid "%(name)s has %(count)s list."
 msgid_plural "%(name)s has %(count)s lists."
 msgstr[0] ""
 msgstr[1] ""
@@ -5919,14 +5919,14 @@ msgstr ""
 
 #: recentchanges/merge/message.html
 #, python-format
-msgid "%(who)s merged one duplicate of %(master)s"
+msgid "%(who)s merged %(count)d duplicate of %(master)s"
 msgid_plural "%(who)s merged %(count)d duplicates of %(master)s"
 msgstr[0] ""
 msgstr[1] ""
 
 #: recentchanges/merge/message.html
 #, python-format
-msgid "one duplicate of %(master)s was merged anonymously"
+msgid "%(count)d duplicate of %(master)s was merged anonymously"
 msgid_plural "%(count)d duplicates of %(master)s were merged anonymously"
 msgstr[0] ""
 msgstr[1] ""
@@ -8654,7 +8654,7 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 #, python-format
-msgid "%(value)s, on 1 edition"
+msgid "%(value)s, on %(count)d edition"
 msgid_plural "%(value)s, on %(count)d editions"
 msgstr[0] ""
 msgstr[1] ""
