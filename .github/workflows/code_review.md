@@ -46,6 +46,14 @@ PR changes, and the tests. You have no shell. Two trees are on disk:
 
 You can read only inside the workspace, and the only file you can write is `review.json`.
 
+**The codebase is Python 3.14** (`requires-python` in `pyproject.toml`; Ruff targets `py314`).
+Judge syntax against 3.14, not against older Python 3 releases you may know better. In
+particular, `except ValueError, TypeError:` without parentheses is valid since PEP 758 (3.14)
+and catches both types, and Ruff's formatter writes it that way. It is not Python 2 syntax and
+not a finding. Since you cannot run the code, never report a `SyntaxError` unless you have
+checked it against the 3.14 grammar. Code that is already on the base branch passed CI, so
+it compiles.
+
 ## Step 3: Review every dimension
 
 Evaluate **all five** dimensions for every PR. Each one gets an explicit result in
@@ -134,11 +142,36 @@ Only material violations — confusing, error-prone, or tech debt. Open Library'
 Not findings: formatting a linter already enforces, subjective naming, or missing type
 annotations in a file that has none.
 
-## Step 4: Write `review.json`
+## Step 4: Re-check your earlier comments
+
+Read `$GITHUB_WORKSPACE/prior-threads.json`. It lists the review comments you left on earlier
+passes that are still open, one object per thread:
+
+```json
+[{ "id": "PRRT_kwDO...", "path": "openlibrary/templates/lists/header.html", "line": 34, "outdated": false, "comment": "**MEDIUM · Correctness — ...**\n\n..." }]
+```
+
+For each one, decide whether the PR head now fixes what the comment asked for. Check the code
+in `pr-head/`, not just this range's diff: a fix often lands on other lines or in another file
+than the one the comment sits on. `outdated: true` means a later push changed the lines under the
+comment, so `line` points at an older version of the file. Find the code it was about in the
+current file.
+
+- **Fixed**: add the thread's `id` to `resolved` in `review.json`. The bot replies "Fixed in
+  <commit>" on the thread and resolves it.
+- **Not fixed**, or you are not sure: leave it out. The thread stays open for the author. Do not
+  report it again as a new finding.
+
+Only mark a thread fixed when the current code clearly addresses it. A thread you resolve by
+mistake hides a real problem; one you leave open costs a human one click.
+
+If the file is an empty array, `resolved` is an empty array.
+
+## Step 5: Write `review.json`
 
 ```json
 {
-  "summary": "One or two paragraphs. Lead with what the PR does...",
+  "summary": "One or two sentences on what the PR does.",
   "dimensions": {
     "correctness":   { "status": "findings", "note": "One edge case." },
     "security":      { "status": "none",     "note": "What you checked." },
@@ -151,13 +184,14 @@ annotations in a file that has none.
       "dimension": "correctness",
       "severity": "high",
       "title": "Short noun phrase",
-      "body": "What is wrong, why it matters, and what to do...",
+      "body": "What is wrong and what to do, in two or three short sentences.",
       "path": "docker/mockservices/main.py",
       "start_line": 421,
       "line": 428,
       "suggestion": "    limit = max(0, int(params.get(\"limit\", 25)))"
     }
-  ]
+  ],
+  "resolved": ["PRRT_kwDOAAaBcD5abc123"]
 }
 ```
 
@@ -165,12 +199,14 @@ Field rules:
 
 - `dimensions` — all five keys, always. `status` is exactly `"none"` or `"findings"`, and it
   must agree with `findings`: `"none"` means no finding carries that dimension, `"findings"`
-  means at least one does. A `"none"` needs a `note` saying what you checked.
+  means at least one does. A `"none"` needs a `note` saying what you checked, in a few words.
 - `dimension` — on every finding, one of the five keys above.
 - `severity` — exactly `high`, `medium`, or `low`; anything else makes the review
-  unpublishable. Rank the array most severe first.
-- `title` and `body` — required, non-empty strings. Keys not shown in the schema are discarded
-  before anything is posted, so do not put content anywhere else.
+  unpublishable. Rank the array most severe first. `low` findings are posted as suggestions
+  that don't block merging; use `medium` or `high` for anything that should be fixed first.
+- `title` and `body` — required, non-empty strings. Keep the `body` to two or three short
+  sentences: the problem and the fix. Skip what the reader can see in the diff. Keys not shown
+  in the schema are discarded before anything is posted, so do not put content anywhere else.
 - `path` — repository-relative, exactly as it appears in `review.diff` (`openlibrary/core/models.py`),
   never with a `pr-head/` prefix. A path containing spaces, markdown, `..` or a leading `/` makes
   the review unpublishable.
@@ -180,9 +216,13 @@ Field rules:
   touch, **omit `path`/`start_line`/`line`** (or set them to `null`) and write it into the finding `body` —
   the posting step will fold it into the summary. Do not invent a nearby anchor to make a
   finding postable; a misplaced comment is worse than a summarised one.
+- `resolved` — the `id`s from `prior-threads.json` that the PR head fixes (Step 4), copied
+  exactly. Any other id is ignored; a value that is not an id string makes the review
+  unpublishable.
 - `suggestion` — optional. The replacement text for **exactly** the `start_line..line` range,
   rendered as a GitHub suggestion block. The line count must match the range exactly, or the
   suggestion is unappliable. Omit it unless you are confident; prose is fine.
+- Write for a busy reader: short sentences, no restating the code, no walls of text.
 - Keep `findings` to the things worth a maintainer's attention. Ten real findings beat forty
   padded ones, and this review costs money per run.
 
@@ -190,8 +230,8 @@ If the PR is clean, say so in `summary`, mark every dimension `"none"` with its 
 an empty `findings` array. That is a useful review and a cheap one. Do not restate what the PR
 description already says.
 
-## Step 5: Ignore our own bot
+## Step 6: Ignore our own bot
 
-Never report on, or respond to, content authored by `openlibrary-bot` — including its own prior
-review comments. Every automation in this epic must ignore its own actions to avoid feedback
-loops (#13160).
+Apart from re-checking your earlier comments in Step 4, never report on, or respond to, content
+authored by `openlibrary-bot`. Every automation in this epic must ignore its own actions to avoid
+feedback loops (#13160).

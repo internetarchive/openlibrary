@@ -143,6 +143,8 @@ env:
       maxText: 65536,
       // A repository-relative path: no spaces, markdown, absolute paths or `..` segments.
       path: /^(?!.*(^|\/)\.\.(\/|$))[A-Za-z0-9_.][A-Za-z0-9_.\/-]*$/,
+      // A GraphQL node id of an earlier review thread (PRRT_...). Ids only -- never published text.
+      threadId: /^[A-Za-z0-9_=-]{1,128}$/,
       check(review) {
         try { return this.evaluate(review); } catch (e) { return { publish: false, findingsTotal: null, blocking: true }; }
       },
@@ -154,7 +156,10 @@ env:
         if (!review || typeof review !== 'object' || Array.isArray(review)) return no;
         const { dimensions: dims, findings } = review;
         if (!str(review.summary) || !Array.isArray(findings) || !dims || typeof dims !== 'object') return no;
-        const clean = { summary: review.summary, dimensions: {}, findings: [] };
+        // `resolved`: ids of our own earlier review threads the model judged fixed (code_review.md
+        // Step 4). Optional. Each id is checked against the live threads before `post` acts on it.
+        if (!absent(review.resolved) && !(Array.isArray(review.resolved) && review.resolved.every((id) => str(id) && this.threadId.test(id)))) return no;
+        const clean = { summary: review.summary, dimensions: {}, findings: [], resolved: [...new Set(review.resolved || [])] };
         const counts = {};
         for (const f of findings) {
           if (!f || typeof f !== 'object' || !str(f.dimension) || !Object.hasOwn(this.dimensions, f.dimension)) return no;
@@ -188,8 +193,8 @@ env:
         // The remaining withholds are TEXT-backstop trips (length / secrets / vocabulary) on a review
         // the model classified security=none. The structured finding count is trustworthy, so blocking
         // tracks it: 0 findings -> NON-blocking (the backstop-false-positive case greens itself);
-        // any finding -> blocking. This is the ONLY greenable withheld case (D3a).
-        const withholdByText = { publish: false, findingsTotal: clean.findings.length, blocking: clean.findings.length > 0 };
+        // any non-LOW finding -> blocking. This is the ONLY greenable withheld case (D3a).
+        const withholdByText = { publish: false, findingsTotal: clean.findings.length, blocking: clean.findings.some((f) => f.severity !== 'low') };
         if (raw.length > this.maxText) return withholdByText;
         const plain = this.plain(raw);
         if (plain === null || this.secrets.test(plain)) return withholdByText;
@@ -216,6 +221,7 @@ on:
     # individual reviewer, proven on #14450). A FORK gets no auto-request (auto_assign is same-repo
     # only); it earns the status only after a maintainer requests the team by hand -- the spend gate.
     # A re-review is just another team request, which fires this same path again.
+    # GitHub's re-request button asks the bot user (who posted the review), not the team, so that fires too.
     types: [review_requested]
   issue_comment:
     types: [created]
@@ -280,7 +286,10 @@ jobs:
         github.event_name == 'pull_request_target' &&
         github.event.action == 'review_requested' &&
         !github.event.pull_request.draft &&
-        github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer'
+        (
+          github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer' ||
+          github.event.requested_reviewer.login == 'openlibrary-bot'
+        )
       ) || (
         github.event_name == 'issue_comment' &&
         github.event.issue.pull_request != null &&
@@ -464,6 +473,45 @@ jobs:
               incremental, prior_review_at: prior ? prior.submitted_at : null,
             }, null, 2));
 
+            // Our own earlier review threads that are still open, for the model to re-check against the
+            // PR head (code_review.md Step 4). Outdated threads are included: a fix usually edits the very
+            // line a comment sits on, which is what makes GitHub mark it outdated. This file only informs
+            // the model; `post` re-reads the live threads and resolves only ids that are still ours and open.
+            const ownOpenThreads = (nodes, botLogin) => {
+              const out = [];
+              for (const t of nodes || []) {
+                const c = t && t.comments && t.comments.nodes && t.comments.nodes[0];
+                if (!t || !t.id || t.isResolved || !c || !c.author || c.author.login !== botLogin) continue;
+                out.push({ id: t.id, path: t.path, line: t.line ?? t.originalLine ?? null, outdated: !!t.isOutdated, comment: String(c.body || '') });
+              }
+              return out;
+            };
+            let priorThreads = [];
+            try {
+              let nodes = [], cursor = null;
+              for (;;) {
+                const page = await github.graphql(
+                  `query($owner:String!,$repo:String!,$pr:Int!,$cursor:String){
+                     repository(owner:$owner,name:$repo){
+                       pullRequest(number:$pr){
+                         reviewThreads(first:100, after:$cursor){
+                           nodes { id isResolved isOutdated path line originalLine comments(first:1){ nodes { author { login } body } } }
+                           pageInfo { hasNextPage endCursor }
+                         }
+                       }
+                     }
+                   }`, { owner, repo, pr: prNumber, cursor });
+                const rt = page.repository.pullRequest.reviewThreads;
+                nodes = nodes.concat(rt.nodes);
+                if (!rt.pageInfo.hasNextPage) break;
+                cursor = rt.pageInfo.endCursor;
+              }
+              priorThreads = ownOpenThreads(nodes, 'openlibrary-bot');
+            } catch (e) {
+              core.info(`Could not read earlier review threads (${e.message}) -- reviewing without them.`);
+            }
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/prior-threads.json`, JSON.stringify(priorThreads, null, 2));
+
             core.setOutput('pr', String(prNumber));
             core.setOutput('head_sha', head);
             // Job outputs, set before the model runs, are what `post` trusts for the range --
@@ -565,7 +613,8 @@ jobs:
             // `code-review` status is a required FLOOR (an automated review ran clean-ish), NOT a
             // CEILING (good to merge) -- it is "not an approval" and is paired with human review, who
             // stays in the loop for exactly this case. Fast-follow #14471: count over the full PR.
-            const pubCount = res.publish ? res.clean.findings.length : 0;
+            // LOW findings are suggestions: they don't count toward the status.
+            const pubCount = res.publish ? res.clean.findings.filter((f) => f.severity !== 'low').length : 0;
             core.setOutput('public_findings_count', String(pubCount));
             // #14476 D3a -- the SHA-bound status is finding-driven, not withhold-driven. The PUBLIC
             // count above keeps its documented "0 on every withhold" invariant, so no finding count
@@ -672,34 +721,32 @@ jobs:
               return selfAuthored && event === 'COMMENT';
             };
 
-            // #14487 PART B -- on a re-review, select OUR OWN unresolved review threads whose finding is no
-            // longer present in this run's review (machine-verified fixed -- never a blind resolve-all) so
-            // `unresolved` falls to 0 honestly and a genuinely-addressed PR can go green. A finding's
-            // identity is its repo path + the published "<DimLabel> — <Title>" header, line-independent in
-            // the KEY (the post step renders thread bodies from the SAME template, so a recurring finding
-            // yields a byte-identical key). GUARDS: only threads whose first comment is the bot's; and
-            // LINE-granular re-examination -- reviewedLines maps path -> the RIGHT-side lines THIS run
-            // actually saw (from the reviewed diff). An incremental run feeds the model only base..head, so
-            // a prior finding on an unchanged line of a file touched elsewhere was NEVER re-examined and
-            // must NOT be resolved (that would be a false green that un-blocks a real, standing finding). A
-            // thread whose finding still stands, or that this run did not re-examine, is left open.
-            const threadsToResolve = ({ threads, findings, dimensions, botLogin, reviewedLines }) => {
-              const live = new Set();
-              for (const f of findings || []) {
-                if (f && f.path) live.add(`${f.path}\u0000${dimensions[f.dimension]} — ${f.title}`);
-              }
+            // #14487 PART B -- on a re-review, select OUR OWN open review threads the model judged fixed.
+            // The model re-checks every earlier thread against the PR head (code_review.md Step 4) and lists
+            // the fixed ones' ids in review.resolved. That replaced a "finding not re-reported on a
+            // re-examined line" heuristic, which never resolved a thread whose fix landed on other lines
+            // (#14515: a comment saying "the sibling strings have the same bug" stayed open after they were
+            // fixed, so the PR got COMMENT instead of APPROVE and a red status). GUARDS: only a live,
+            // unresolved thread whose first comment is the bot's -- an id the model invents, or a human's
+            // thread, is never touched. The reply is fixed text, so no model prose reaches it.
+            const threadsToResolve = ({ threads, resolvedIds, botLogin }) => {
+              const want = new Set(resolvedIds || []);
               const out = [];
               for (const t of threads || []) {
-                if (!t || t.isResolved) continue;
-                const lines = reviewedLines && reviewedLines.get(t.path);
-                if (!lines || t.line == null || !lines.has(t.line)) continue;
+                if (!t || t.isResolved || !want.has(t.id)) continue;
                 const c = t.comments && t.comments.nodes && t.comments.nodes[0];
                 if (!c || !c.author || c.author.login !== botLogin) continue;
-                const m = /^\*\*\s*\S+\s*·\s*([\s\S]+?)\s*\*\*/.exec(String(c.body || ''));
-                if (!m) continue;
-                if (!live.has(`${t.path ?? ''}\u0000${m[1]}`)) out.push(t.id);
+                out.push(t.id);
               }
               return out;
+            };
+
+            // The commit to credit in the "Fixed in" reply: the newest commit in this run's range that touched
+            // the thread's file (the fix is usually there), else the reviewed head. rangeShas is newest-first.
+            const fixedInSha = ({ rangeShas, pathShas, headSha }) => {
+              const inRange = new Set(rangeShas || []);
+              for (const sha of pathShas || []) if (inRange.has(sha)) return sha;
+              return headSha;
             };
 
             // --- The disclosure gate. Nothing below this block runs unless it passes.
@@ -740,8 +787,10 @@ jobs:
               }
             }
 
-            const inline = [], orphaned = [];
+            // LOW findings become a non-blocking suggestions list in the summary, not threads (threads block).
+            const inline = [], orphaned = [], suggestions = [];
             for (const f of (review.findings || [])) {
+              if (f.severity === 'low') { suggestions.push(f); continue; }
               const hasAnchor = f.path && f.line;
               const start = f.start_line || f.line;
               const ok = hasAnchor
@@ -767,6 +816,7 @@ jobs:
             // --- Summary body. Findings with no honest in-diff anchor live here rather than
             // being pinned to an approximate line: on a real review of #13548, 3 of 9 findings
             // proved themselves in files the diff never touched.
+            const findingCount = inline.length + orphaned.length; // blocking findings only (LOW excluded)
             let summary = review.summary || '';
             // The range comes from analyze's job outputs, set before the model ran.
             const sha = /^[0-9a-f]{40}$/, baseSha = process.env.BASE_SHA;
@@ -789,11 +839,16 @@ jobs:
                 `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body).replace(/\n/g, '\n  ')}`
               ).join('\n\n');
             }
+            if (suggestions.length) {
+              summary += `\n\n### Suggestions (won't block)\n\n` + suggestions.map(f =>
+                `- **${f.title}**${f.path ? ` (\`${f.path}${f.line ? `:${f.line}` : ''}\`)` : ''}: ${String(f.body).replace(/\n/g, ' ')}`
+              ).join('\n');
+            }
             // #14484: tell the contributor -- who may have no write access and cannot use the
             // "re-request review" button -- exactly how to re-run the review after pushing fixes.
             // A plain instruction so a stranger needs no prior knowledge of the magic comment.
             summary += `\n\n---\n> [!TIP]\n> When you've addressed the feedback and pushed your changes, comment \`@openlibrary-bot review\` on this PR to run a fresh review.`;
-            summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${review.findings.length} -->`;
+            summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
 
             // #14476 D1 -- review + status must describe the SAME commit. createReview re-anchors its
             // inline comments to the PR's LIVE head at post time (it ignores commit_id), so if a push
@@ -811,14 +866,12 @@ jobs:
             // --- #14487: the PR author (authoritative, from the live-head re-fetch above) and the published
             // finding count -- the SAME signal the status job reads on the published path.
             const selfAuthored = (livePr.user && livePr.user.login) === 'openlibrary-bot';
-            const findingCount = (review.findings || []).length;
 
             // --- #14487 PART B (runs BEFORE the post, because it gates the verdict): enumerate the review
-            // threads, resolve our OWN threads whose finding is now fixed (threadsToResolve -- line-granular,
-            // never a blind resolve-all), and count our OWN threads that remain unresolved. The whole block
+            // threads, reply "Fixed in <sha>" on and resolve our OWN threads the model judged fixed
+            // (threadsToResolve -- never a blind resolve-all), and count our OWN threads that remain unresolved. The whole block
             // is wrapped: a transient GraphQL failure must never fail a post that otherwise succeeds -- it
             // leaves unresolvedOwnThreads unknown (null), which selectReviewEvent treats as "do not APPROVE".
-            const reviewedLines = anchorable; // path -> Set of RIGHT-side lines THIS run examined
             let unresolvedOwnThreads = null;  // null = unknown -> fail safe (no auto-approve)
             try {
               let allThreads = [], tCursor = null;
@@ -839,12 +892,37 @@ jobs:
                 if (!rt.pageInfo.hasNextPage) break;
                 tCursor = rt.pageInfo.endCursor;
               }
-              const toResolve = threadsToResolve({
-                threads: allThreads, findings: review.findings, dimensions: gate.dimensions,
-                botLogin: 'openlibrary-bot', reviewedLines,
-              });
+              const toResolve = threadsToResolve({ threads: allThreads, resolvedIds: review.resolved, botLogin: 'openlibrary-bot' });
+              // Commits in the reviewed range, newest first, for the "Fixed in" reply.
+              let rangeShas = [];
+              if (toResolve.length) {
+                try {
+                  const { data: cmp } = await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${baseSha}...${headSha}` });
+                  rangeShas = (cmp.commits || []).map((c) => c.sha).reverse();
+                } catch (e) {
+                  core.warning(`Could not list the reviewed commits: ${e.message}`);
+                }
+              }
+              const pathOf = new Map(allThreads.filter(Boolean).map((t) => [t.id, t.path]));
               const resolvedOk = new Set();
               for (const id of toResolve) {
+                let sha = headSha;
+                try {
+                  const path = pathOf.get(id);
+                  if (path && rangeShas.length) {
+                    const { data: touching } = await github.rest.repos.listCommits({ owner, repo, sha: headSha, path, per_page: 30 });
+                    sha = fixedInSha({ rangeShas, pathShas: (touching || []).map((c) => c.sha), headSha });
+                  }
+                } catch (e) {
+                  core.warning(`Could not find the commit that fixed thread ${id}: ${e.message}`);
+                }
+                try {
+                  await github.graphql(
+                    `mutation($id:ID!,$body:String!){ addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$id, body:$body}){ comment { id } } }`,
+                    { id, body: `Fixed in ${sha}.` });
+                } catch (e) {
+                  core.warning(`Could not reply on review thread ${id}: ${e.message}`);
+                }
                 try {
                   await github.graphql(
                     `mutation($id:ID!){ resolveReviewThread(input:{threadId:$id}){ thread { id isResolved } } }`,
@@ -927,6 +1005,69 @@ jobs:
               }
             }
 
+  # Posts code-review=pending; skipped if the head already has a status (analyze may skip and nothing would replace it).
+  pending:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'pull_request_target' &&
+        github.event.action == 'review_requested' &&
+        !github.event.pull_request.draft &&
+        (
+          github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer' ||
+          github.event.requested_reviewer.login == 'openlibrary-bot'
+        )
+      ) || (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request != null &&
+        contains(github.event.comment.body, '@openlibrary-bot') &&
+        github.event.comment.user.login != 'openlibrary-bot' &&
+        (
+          contains(fromJSON('["mekarpeles","cdrini","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login) ||
+          github.event.comment.user.login == github.event.issue.user.login
+        )
+      )
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      pr: ${{ steps.mark.outputs.pr }}
+      head_sha: ${{ steps.mark.outputs.head_sha }}
+    steps:
+      - name: Mark the head as review in progress
+        id: mark
+        continue-on-error: true
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          github-token: ${{ secrets.OL_BOT_COMMIT_STATUS_PAT }}
+          script: |
+            const owner = context.repo.owner, repo = context.repo.repo;
+            const prNumber = context.eventName === 'workflow_dispatch'
+              ? Number(context.payload.inputs.pr_number)
+              : (context.payload.pull_request
+                  ? context.payload.pull_request.number
+                  : context.payload.issue.number);
+
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            if ((pr.draft && context.eventName !== 'workflow_dispatch') || pr.state !== 'open') return;
+            const head = pr.head.sha;
+
+            const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, {
+              owner, repo, ref: head, per_page: 100,
+            });
+            if (statuses.some((s) => s.context === 'code-review')) return;
+
+            await github.rest.repos.createCommitStatus({
+              owner, repo, sha: head,
+              context: 'code-review',
+              state: 'pending',
+              target_url: process.env.RUN_URL,
+              description: 'Review in progress.',
+            });
+            core.setOutput('pr', String(prNumber));
+            core.setOutput('head_sha', head);
+
   # ----------------------------------------------------------------------------------------------
   # status -- the SHA-bound required merge signal (issue #14453 A/B). Posts commit status
   # `code-review` on the exact SHA that was reviewed; a branch-protection ruleset requires it.
@@ -967,8 +1108,8 @@ jobs:
   # from the review-body marker + live threads, so an already-reviewed head is never stranded without a
   # status. When a status IS present, analyze skips and the SHA-bound status is left intact (re-affirmed).
   status:
-    needs: [analyze, post]
-    if: always() && needs.analyze.outputs.skip == 'false'
+    needs: [analyze, post, pending]
+    if: always() && (needs.analyze.outputs.skip == 'false' || needs.pending.outputs.head_sha != '')
     runs-on: ubuntu-latest
     # No GITHUB_TOKEN scopes: the status post and the reviewThreads GraphQL both use the bot PAT
     # (github-token input below); no step here uses the default token. Least privilege -> none.
@@ -978,8 +1119,8 @@ jobs:
         id: decide
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          PR: ${{ needs.analyze.outputs.pr }}
-          HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
+          PR: ${{ needs.analyze.outputs.pr || needs.pending.outputs.pr }}
+          HEAD_SHA: ${{ needs.analyze.outputs.head_sha || needs.pending.outputs.head_sha }}
           POST_RESULT: ${{ needs.post.result }}
           # Count of PUBLIC findings this run, read as a DECLARED analyze-job OUTPUT -- produced by
           # the analyze-gate step IN THIS WORKFLOW (issue B.2: the count must not depend on a cross-PR
@@ -999,6 +1140,8 @@ jobs:
           # #14476 D2 -- 'true' when reconstructing the status for an already-reviewed head whose status
           # went missing (no model ran); the verdict is read back from the review-body marker + live threads.
           REPOST: ${{ needs.analyze.outputs.repost }}
+          BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
+          INCREMENTAL: ${{ needs.analyze.outputs.incremental }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           # IDENTITY: posts the commit status as openlibrary-bot (default, per issue open-decision 1).
@@ -1083,9 +1226,17 @@ jobs:
             // the new head is unreviewed and earns its own run, and we never post on the new head
             // (createCommitStatus below is bound to headSha). This mirrors the post job's guard so the
             // review and the status always describe the same commit.
+            // Run-page summary. Counts and the status's fixed wording only: never a withheld review's content or count.
+            const range = repost ? 'none (re-posting the status of an existing review)'
+              : process.env.INCREMENTAL === 'true' ? `incremental since ${String(process.env.BASE_SHA).slice(0, 7)}` : 'full';
+            const writeSummary = (rows) => core.summary
+              .addRaw(`## Code review: #${pr} @ ${headSha.slice(0, 7)}\n\n| | |\n|---|---|\n${rows.map(([k, v]) => `| ${k} | ${v} |`).join('\n')}\n`)
+              .write();
+
             const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: pr });
             if (!headIsCurrent(headSha, livePr.head.sha)) {
               core.info(`Head moved ${headSha.slice(0,8)}->${String(livePr.head.sha).slice(0,8)} since review; leaving the reviewed SHA without a status. The current head is unreviewed and earns its own run.`);
+              await writeSummary([['Range', range], ['Status', `none: the PR moved to ${String(livePr.head.sha).slice(0, 7)} during the review; request a new one`]]);
               return;
             }
 
@@ -1159,3 +1310,10 @@ jobs:
               description: d.description,
             });
             core.info(`code-review=${d.state} on ${headSha.slice(0, 8)} (repost=${repost}, post=${process.env.POST_RESULT}, withheld=${withheld}, findings=${findings}, unresolved=${unresolved}).`);
+            await writeSummary([
+              ['Range', range],
+              ['Review', repost ? 'existing' : withheld ? 'not posted publicly' : postSucceeded ? 'posted' : 'not posted'],
+              ['Findings', withheld ? '—' : (findings ?? 'unknown')],
+              ['Unresolved threads', unresolved],
+              ['Status', `${d.state}: ${d.description}`],
+            ]);

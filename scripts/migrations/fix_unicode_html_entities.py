@@ -109,7 +109,7 @@ def process_dump(dump_path: str) -> None:
 def setup(config_path: str) -> None:
     """
     Initialize the Infogami/OL environment required for database access.
-    Loads config, sets up the web.ctx.site connection, and registers
+    Loads config, sets up the site ContextVar, and registers
     a graceful shutdown signal handler.
 
     Args:
