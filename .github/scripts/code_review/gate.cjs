@@ -59,16 +59,22 @@ module.exports = {
                 Object.hasOwn(this.entities, n.toLowerCase()) ? this.entities[n.toLowerCase()] : ((unknown = true), ' ')
             );
         if (unknown) return null;
-        // The tag strip below runs once on purpose. This is not an HTML sanitizer: the output is only
-        // scanned, never published, and repeating it would hide visible text, e.g. `secret` in `<x<y>secret>`.
-        return t
-            .replace(/<!--[\s\S]*?(-->|$)/g, '')
-            .replace(/<[^<>]*>/g, '')
-            .normalize('NFKD')
-            .replace(/[\p{Cf}\p{M}]/gu, '')
-            .replace(/\[([^[\]]*)\]\([^()]*\)/g, '$1')
-            .replace(/[*`~]/g, '')
-            .normalize('NFKC');
+        // Two readings, both scanned. Tags stripped until none are left, so `sec<b>ret</b>` reads as
+        // `secret`; and tags kept, because GitHub shows a tag inside a code span as text and stripping
+        // can join or drop words a reader sees. Not an HTML sanitizer: the output is never published.
+        let stripped = t;
+        for (let prev = null; stripped !== prev;) {
+            prev = stripped;
+            stripped = stripped.replace(/<!--[\s\S]*?(-->|$)/g, '').replace(/<[^<>]*>/g, '');
+        }
+        return [stripped, t].map(r =>
+            r
+                .normalize('NFKD')
+                .replace(/[\p{Cf}\p{M}]/gu, '')
+                .replace(/\[([^[\]]*)\]\([^()]*\)/g, '$1')
+                .replace(/[*`~]/g, '')
+                .normalize('NFKC')
+        );
     },
     // The same text with identifiers split into words. Scanned in addition to plain(), not
     // instead: splitting would break shapes like HttpOnly or a token's mixed case.
@@ -164,9 +170,12 @@ module.exports = {
         // `blocking`: a false positive on a review with no blocking findings can still pass.
         const withholdByText = { publish: false, findingsTotal: clean.findings.length, blocking: clean.findings.some(f => f.severity !== 'low') };
         if (raw.length > this.maxText) return withholdByText;
-        const plain = this.plain(raw);
-        if (plain === null || this.secrets.test(plain)) return withholdByText;
-        for (const t of [plain, this.words(plain)]) if (this.terms.test(t) || this.patterns.test(t)) return withholdByText;
+        const readings = this.plain(raw);
+        if (readings === null) return withholdByText;
+        for (const plain of readings) {
+            if (this.secrets.test(plain)) return withholdByText;
+            for (const t of [plain, this.words(plain)]) if (this.terms.test(t) || this.patterns.test(t)) return withholdByText;
+        }
         return { publish: true, clean, findingsTotal: clean.findings.length, blocking: false };
     }
 };

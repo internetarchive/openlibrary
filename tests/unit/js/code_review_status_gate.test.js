@@ -366,6 +366,13 @@ test('D3a gate: a clean publishable review reports findingsTotal (0 and N) and b
     assert.equal(two.publish, true);
     assert.equal(two.findingsTotal, 2);
 });
+test('gate: the text scan reads markup both with tags stripped and with tags kept', () => {
+    const withSummary = summary => gate.check({ summary, dimensions: cleanDims(), findings: [] }).publish;
+    assert.equal(withSummary('Rename the sec<b>ret</b> helper.'), false, 'tags stripped: a word split by a tag');
+    assert.equal(withSummary('Rename the sec<x<y>>ret helper.'), false, 'tags stripped until none are left');
+    assert.equal(withSummary('Label the `<input type="password">` field.'), false, 'tags kept: a tag in a code span is shown as text');
+    assert.equal(withSummary('Wrap the <b>helper</b> name in a <code>tag</code>.'), true, 'harmless markup still publishes');
+});
 test('gate: a backstop withhold blocks only on a non-LOW finding', () => {
     const dims = cleanDims();
     dims.correctness = { status: 'findings' };
