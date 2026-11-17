@@ -1,11 +1,13 @@
 $def with (batch, rows, total_rows, page, limit, sort, status_counts)
-$var title: $_("Batch Import Status")
+$var title: $_("Batch #%(id)s", id=batch.id)
 
 <div id="contentHead">
-    <h1>$_("Batch Import Status")</h1>
+    $# The all-batches listing is admin-only; submitters can still view their own batch.
+    $if ctx.user and ctx.user.is_admin():
+        <div class="breadcrumbs"><a href="/import/batch">$_("All Batches")</a> /</div>
+    <h1>$_("Batch #%(id)s", id=batch.id)</h1>
 </div>
 <div id="contentBody" class="batchImportStatus">
-    <p>$_('Batch ID:') $batch.id</p>
     <p>$_('Batch Name:') $batch.name</p>
     <p>$_('Submitter:') $batch.submitter</p>
     <p>$_('Submit Time:') $datestr(batch.submit_time)</p>

@@ -207,11 +207,12 @@ msgid "Comments"
 msgstr ""
 
 #: batch_import_view.html
-msgid "Batch Import Status"
+#, python-format
+msgid "Batch #%(id)s"
 msgstr ""
 
-#: batch_import_view.html
-msgid "Batch ID:"
+#: BatchImportNavigation.html batch_import_view.html
+msgid "All Batches"
 msgstr ""
 
 #: batch_import_view.html
@@ -7804,10 +7805,6 @@ msgstr ""
 
 #: AffiliateLinks.html.jinja
 msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
-msgstr ""
-
-#: BatchImportNavigation.html
-msgid "All Batches"
 msgstr ""
 
 #: BookByline.html
