@@ -18,10 +18,12 @@ from openlibrary.catalog.add_book import (
     check_cover_url_host,
     editions_matched,
     find_match,
+    find_matching_work,
     isbns_from_record,
     load,
     load_data,
     normalize_import_record,
+    normalize_record_bibids,
     should_overwrite_promise_item,
     split_subtitle,
     validate_record,
@@ -123,6 +125,114 @@ def test_editions_matched(mock_site, add_languages, ia_writeback):
     # searching on key isbn_ will return a matching record on either isbn_10 or isbn_13 metadata fields
     result = editions_matched(rec, "isbn_", isbns)
     assert result == ["/books/OL1M"]
+
+
+def test_find_matching_work_outside_the_default_query_limit(mock_site):
+    """
+    Matching has to consider every work by an author, not just the page the
+    backend returns by default.
+
+    `things()` returns a limited page when no limit is passed -- 20 results in
+    Infobase -- so a work outside that page was invisible to matching, and the
+    import created a duplicate work for a book that was already here.
+    """
+    author_key = "/authors/OL100A"
+    mock_site.save({"key": author_key, "type": {"key": "/type/author"}, "name": "Prolific Author"})
+
+    # Deliberately far more works than any default `things()` page. Fixed-width
+    # OLIDs keep the sort order the mock applies the same as the numeric order, so
+    # the match is placed at a known position: the very end.
+    work_keys = [f"/works/OL{1000 + i}W" for i in range(150)]
+    matching_key = max(work_keys)
+    for i, key in enumerate(work_keys):
+        mock_site.save(
+            {
+                "key": key,
+                "type": {"key": "/type/work"},
+                "title": "Tom Sawyer" if key == matching_key else f"Another Book {i}",
+                "authors": [{"author": {"key": author_key}}],
+            }
+        )
+
+    # Assert the premise rather than trusting it: if the match were inside the
+    # default window this test would pass with or without the paging fix.
+    default_page = mock_site.things({"type": "/type/work", "authors": {"author": {"key": author_key}}})
+    assert len(default_page) < len(work_keys)
+    assert matching_key not in default_page
+
+    edition = {"title": "Tom Sawyer", "authors": [{"key": author_key}]}
+    assert find_matching_work(edition) == matching_key
+
+
+@pytest.mark.parametrize(
+    ("stored_oclc", "incoming_oclc"),
+    [
+        pytest.param("30877728", "ocm30877728", id="ocm-prefix"),
+        pytest.param("30182", "ocm00030182", id="ocm-prefix-with-leading-zeros"),
+        pytest.param("30877728", "ocn30877728", id="ocn-prefix"),
+        pytest.param("30877728", "on30877728", id="on-prefix"),
+        pytest.param("30877728", "(ocolc)30877728", id="ocolc-prefix"),
+        pytest.param("30877728", "30877728", id="bare-number"),
+    ],
+)
+def test_import_preview_matches_equivalent_oclc_numbers(mock_site, add_languages, stored_oclc, incoming_oclc):
+    work = mock_site.quicksave("/works/OL1W", "/type/work", title="Catalog title")
+    edition = mock_site.quicksave(
+        "/books/OL1M",
+        "/type/edition",
+        title="Catalog title",
+        works=[{"key": work.key}],
+        oclc_numbers=[stored_oclc],
+    )
+    assert edition.oclc_numbers == [stored_oclc]
+
+    reply = load(
+        {
+            "title": "Different import title",
+            "source_records": ["test:oclc-preview"],
+            "oclc_numbers": [incoming_oclc],
+        },
+        save=False,
+    )
+
+    assert reply["success"] is True
+    assert reply["preview"] is True
+    assert reply["edition"]["key"] == edition.key
+
+
+def test_normalize_record_bibids_oclc():
+    rec = {
+        "title": "Test Title",
+        "isbn_10": ["0-19-090676-7"],
+        "lccn": ["  2001000001  "],
+        "oclc_numbers": [
+            "ocm30877728",
+            "30877728",
+            "ocm00030182",
+            "ocn123456789",
+            "(OCoLC)987654",
+            "on11223344",
+            "invalid",
+            "",
+            None,
+        ],
+    }
+    cleaned = normalize_record_bibids(rec)
+    assert cleaned["isbn_10"] == ["0190906767"]
+    assert cleaned["lccn"] == ["2001000001"]
+    assert cleaned["oclc_numbers"] == [
+        "30877728",
+        "30182",
+        "123456789",
+        "987654",
+        "11223344",
+    ]
+
+
+def test_normalize_record_bibids_string_oclc():
+    rec = {"oclc_numbers": "ocm30877728"}
+    cleaned = normalize_record_bibids(rec)
+    assert cleaned["oclc_numbers"] == ["30877728"]
 
 
 def test_force_new_wikisource_edition(mock_site, add_languages, ia_writeback):

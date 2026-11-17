@@ -27,6 +27,7 @@ from openlibrary.core.imports import BATCH_SORT_COLUMNS, IMPORT_ITEM_STATUSES, B
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell import SiteLayoutTemplate
 from openlibrary.i18n import gettext as _
+from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
 from openlibrary.utils.request_context import (
     req_context,
@@ -611,6 +612,23 @@ class BatchImportList(delegate.page):
             sort_order=sort_order,
             default_sort=self.DEFAULT_SORT,
         )
+
+
+class BatchImportRetryFailed(delegate.page):
+    """Re-queue the failed items of `batch_id` as `pending`. Admins only."""
+
+    path = r"/import/batch/retry_failed/(\d+)"
+
+    def POST(self, batch_id):
+        _require_admin()
+
+        batch = db.select("import_batch", where="id=$batch_id", vars={"batch_id": int(batch_id)})
+        if not batch:
+            raise web.notfound()
+
+        count = Batch(batch[0]).retry_failed()
+        add_flash_message("success", ungettext("Re-queued %(count)d failed item.", "Re-queued %(count)d failed items.", count, count=count))
+        return web.seeother(f"/import/batch/{batch_id}")
 
 
 class BatchImportPendingView(delegate.page):

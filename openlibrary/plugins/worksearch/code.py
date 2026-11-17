@@ -1103,7 +1103,21 @@ class subject_search(delegate.page):
         page = safeint(i.page, 1) if i.page else 1
         offset = (page - 1) * results_per_page
         response = self.get_results(q, offset=offset, limit=results_per_page, request_label="SUBJECT_SEARCH") if q else None
-        return render_template("search/subjects", q, page, results_per_page, response)
+
+        # Local import: openlibrary.fastapi.search imports this module.
+        from openlibrary.fastapi.search import SearchNav, subjects_search_title
+
+        body = render_jinja_template(
+            "search/subjects.html.jinja",
+            nav=SearchNav.from_query(web.ctx.path, web.input(_method="get")),
+            q=q,
+            search_response=response,
+            commified_num_found=commify(response.num_found) if response and response.num_found is not None else "",
+            page=page,
+            total_pages=ceil((response.num_found or 0) / results_per_page) if response else 0,
+        )
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(subjects_search_title(q)))
 
     def get_results(
         self,

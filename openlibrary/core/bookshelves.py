@@ -369,7 +369,8 @@ class Bookshelves(db.CommonExtras):
         """
         Make every cached shelf order of `username` out of date. Call it once the
         change has committed, or a page built in between could cache the old shelf
-        under the new version.
+        under the new version. Work merges (CommonExtras.update_work_id) don't call
+        this; affected shelves catch up when their order expires (SHELF_ORDER_TTL).
         """
         cache.get_memcache().set(cls._reading_log_version_key(username), uuid4().hex, expires=cls.READING_LOG_VERSION_TTL)
 
@@ -646,7 +647,7 @@ class Bookshelves(db.CommonExtras):
                 query = (
                     "SELECT work_id, created, edition_id FROM bookshelves_books WHERE "
                     "bookshelf_id = %(bookshelf_id)s AND username = %(username)s "
-                    f"ORDER BY created {'DESC' if sort == 'created desc' else 'ASC'} "
+                    f"ORDER BY created {'DESC' if sort == 'created desc' else 'ASC'}, work_id {'DESC' if sort == 'created desc' else 'ASC'} "
                     "LIMIT %(limit)s OFFSET %(offset)s"
                 )
 

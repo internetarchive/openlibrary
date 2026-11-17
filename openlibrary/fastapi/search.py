@@ -673,7 +673,6 @@ async def search_subjects(nav: SearchNavDep, q: str = "", page: int = 1) -> Site
 @dataclass(frozen=True)
 class PublisherResult:
     """One row of /search/publishers: a publisher's name, page link and book count."""
-
     name: str
     key: str
     count: int
@@ -681,7 +680,6 @@ class PublisherResult:
 
 def publisher_search_query(q: str) -> dict[str, Any]:
     """The facet-only Solr query behind /search/publishers, shared with web.py's handler.
-
     ``select`` and ``select_async`` take the same arguments, so this splats into either.
     """
     return {
