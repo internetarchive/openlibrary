@@ -176,7 +176,8 @@ Field rules:
   means at least one does. A `"none"` needs a `note` saying what you checked.
 - `dimension` — on every finding, one of the five keys above.
 - `severity` — exactly `high`, `medium`, or `low`; anything else makes the review
-  unpublishable. Rank the array most severe first.
+  unpublishable. Rank the array most severe first. `low` findings are posted as suggestions
+  that don't block merging; use `medium` or `high` for anything that should be fixed first.
 - `title` and `body` — required, non-empty strings. Keys not shown in the schema are discarded
   before anything is posted, so do not put content anywhere else.
 - `path` — repository-relative, exactly as it appears in `review.diff` (`openlibrary/core/models.py`),
