@@ -35,8 +35,15 @@ function scriptOf(jobName, stepMatch) {
 // post step reads from the working directory) into the test's temp dir -- process.chdir() is not
 // available in vitest workers, so we wrap fs instead.
 async function runScript(body, { github, context, env, cwd }) {
-    const recorded = { outputs: {}, failed: null };
+    const recorded = { outputs: {}, failed: null, summary: '' };
     const core = {
+        summary: {
+            addRaw(text) {
+                recorded.summary += text;
+                return this;
+            },
+            write: async () => {}
+        },
         setOutput: (k, v) => {
             recorded.outputs[k] = v;
         },
@@ -494,4 +501,105 @@ test('D3a post: a withheld stub -> createReview NOT called, exits clean (no hard
     const res = await runScript(scriptOf('post', 'Validate anchors'), { github, context, env, cwd: dir });
     assert.equal(calls.createReview.length, 0, 'nothing public is posted for a withheld review');
     assert.equal(res.failed, null, 'and the job does not hard-fail -- the status job decides');
+});
+
+// ===================== pending: early "review in progress" status =====================
+const prCtx = { ...context, payload: { pull_request: { number: 1 } } };
+const runPending = async handlers => {
+    const { github, calls } = mockGitHub(handlers);
+    await runScript(scriptOf('pending', 'review in progress'), { github, context: prCtx, env: { RUN_URL: 'u' } });
+    return calls;
+};
+
+test('pending: head with no code-review status -> posts pending', async () => {
+    const calls = await runPending({ prGet: async () => ({ data: { head: { sha: SHA('a') }, draft: false, state: 'open' } }) });
+    assert.equal(calls.createCommitStatus.length, 1);
+    assert.equal(calls.createCommitStatus[0].sha, SHA('a'));
+    assert.equal(calls.createCommitStatus[0].state, 'pending');
+});
+test('pending: posts nothing on a head with a status, a draft, or a closed PR', async () => {
+    for (const handlers of [
+        { listStatuses: async () => ({ data: [{ context: 'code-review', state: 'success' }] }) },
+        { prGet: async () => ({ data: { head: { sha: SHA('a') }, draft: true, state: 'open' } }) },
+        { prGet: async () => ({ data: { head: { sha: SHA('a') }, draft: false, state: 'closed' } }) }
+    ]) {
+        const calls = await runPending(handlers);
+        assert.equal(calls.createCommitStatus.length, 0);
+    }
+});
+test('status: analyze died before posting a review -> the pending head gets failure', async () => {
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const env = { PR: '1', HEAD_SHA: head, POST_RESULT: 'skipped', RUN_URL: 'u' };
+    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    assert.equal(calls.createCommitStatus.length, 1);
+    assert.equal(calls.createCommitStatus[0].state, 'failure');
+});
+
+// ===================== run-page summary =====================
+test('summary: a clean review lists the commit, range, counts and status', async () => {
+    const head = SHA('a');
+    const { github } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: head } } }),
+        listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, body: 'x\n<!-- ol-pr-review-bot f=0 -->' }] })
+    });
+    const env = {
+        PR: '7',
+        HEAD_SHA: head,
+        POST_RESULT: 'success',
+        PUBLIC_FINDINGS_COUNT: '0',
+        WITHHELD: 'false',
+        INCREMENTAL: 'true',
+        BASE_SHA: SHA('b'),
+        RUN_URL: 'u'
+    };
+    const { summary } = await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    assert.match(summary, /## Code review: #7 @ aaaaaaa/);
+    assert.match(summary, /\| Range \| incremental since bbbbbbb \|/);
+    assert.match(summary, /\| Findings \| 0 \|/);
+    assert.match(summary, /\| Status \| success: Review passed; all feedback resolved\. \|/);
+});
+test('summary: a withheld review shows no findings count', async () => {
+    const head = SHA('a');
+    const { github } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const env = { PR: '7', HEAD_SHA: head, POST_RESULT: 'success', PUBLIC_FINDINGS_COUNT: '0', WITHHELD: 'true', WITHHELD_BLOCKING: 'true', RUN_URL: 'u' };
+    const { summary } = await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    assert.match(summary, /\| Findings \| — \|/);
+    assert.ok(!/\d+ findings?/.test(summary), 'no count of withheld findings');
+});
+test('summary: head moved during the review -> says so and that no status was posted', async () => {
+    const { github } = mockGitHub({ prGet: async () => ({ data: { head: { sha: SHA('c') } } }) });
+    const env = { PR: '7', HEAD_SHA: SHA('a'), POST_RESULT: 'success', RUN_URL: 'u' };
+    const { summary } = await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    assert.match(summary, /\| Status \| none: the PR moved to ccccccc during the review/);
+});
+
+// ===================== LOW findings are non-blocking suggestions =====================
+test('analyze-gate: LOW findings do not count toward the public findings count', async () => {
+    const review = cleanReview();
+    review.dimensions.test_coverage = { status: 'findings' };
+    review.findings = [
+        { dimension: 'test_coverage', severity: 'medium', title: 'a', body: 'b' },
+        { dimension: 'test_coverage', severity: 'low', title: 'c', body: 'd' }
+    ];
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    const { github } = mockGitHub();
+    const res = await runScript(scriptOf('analyze', 'Gate the analysis'), { github, context, env: { REVIEW_GATE_JS, GITHUB_WORKSPACE: dir } });
+    assert.equal(res.outputs.public_findings_count, '1');
+});
+test('post: a LOW finding becomes a suggestion in the summary, not a blocking inline thread', async () => {
+    const review = cleanReview();
+    review.dimensions.test_coverage = { status: 'findings' };
+    review.findings = [{ dimension: 'test_coverage', severity: 'low', title: 'Untested label', body: 'Add a test.', path: 'x', line: 1 }];
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', REVIEW_GATE_JS, GITHUB_WORKSPACE: dir };
+    await runScript(scriptOf('post', 'Validate anchors'), { github, context, env, cwd: dir });
+    const posted = calls.createReview[0];
+    assert.equal((posted.comments || []).length, 0, 'no inline thread for a LOW finding');
+    assert.match(posted.body, /### Suggestions \(won't block\)\n\n- \*\*Untested label\*\* \(`x:1`\): Add a test\./);
+    assert.match(posted.body, /<!-- ol-pr-review-bot f=0 -->/);
+    assert.notEqual(posted.event, 'REQUEST_CHANGES');
 });

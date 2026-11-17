@@ -227,7 +227,7 @@ class readinglog_stats(app.view):
         solr_docs = get_solr_works(all_keys)
 
         # Batch-fetch any works Solr missed in a single call instead of
-        # one web.ctx.site.get() per work (N+1).
+        # one site.get().get() per work (N+1).
         miss_keys = [key for key in all_keys if key not in solr_docs]
         db_works = {w.key: w for w in site.get().get_many(miss_keys)} if miss_keys else {}
 

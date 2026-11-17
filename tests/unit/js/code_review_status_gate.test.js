@@ -149,8 +149,16 @@ test('the status job posts commit status context === "code-review" (ruleset-requ
     // A rename makes the required gate unsatisfiable (ruleset requires a string nothing posts) or
     // unenforcing. Pin the single source of truth: the createCommitStatus `context:` line.
     const contextLines = statusLines.filter(l => /^\s*context:\s*/.test(l));
-    assert.equal(contextLines.length, 1, 'expected exactly one `context:` line in the workflow');
-    assert.match(contextLines[0], /^\s*context:\s*'code-review',?\s*$/, `status context must be exactly 'code-review', got: ${contextLines[0].trim()}`);
+    assert.ok(contextLines.length >= 1, 'expected at least one `context:` line in the workflow');
+    for (const line of contextLines) {
+        assert.match(line, /^\s*context:\s*'code-review',?\s*$/, `status context must be exactly 'code-review', got: ${line.trim()}`);
+    }
+});
+
+test('pending fires on the same triggers as analyze, and status runs whenever pending posted', () => {
+    assert.equal(workflow.jobs.pending.if, workflow.jobs.analyze.if);
+    assert.ok(workflow.jobs.status.needs.includes('pending'));
+    assert.match(workflow.jobs.status.if, /needs\.pending\.outputs\.head_sha != ''/);
 });
 
 // ---- ANALYZE-EXECUTION INVARIANT: analyze never executes PR content (the pull_request_target belt) ----
@@ -404,6 +412,14 @@ test('D3a gate: a clean publishable review reports findingsTotal (0 and N) and b
     assert.equal(two.publish, true);
     assert.equal(two.findingsTotal, 2);
 });
+test('gate: a backstop withhold blocks only on a non-LOW finding', () => {
+    const dims = cleanDims();
+    dims.correctness = { status: 'findings' };
+    const withFindings = findings => gate.check({ summary: 'This hardens against SQL injection risk.', dimensions: dims, findings });
+    const low = { dimension: 'correctness', severity: 'low', title: 'a', body: 'b' };
+    assert.equal(withFindings([low]).blocking, false, 'LOW only -> not blocking');
+    assert.equal(withFindings([low, { ...low, severity: 'medium' }]).blocking, true, 'any MEDIUM/HIGH -> blocking');
+});
 test('D3a gate: a withhold triggered by the backstop with 0 findings is NON-blocking (-> success)', () => {
     // Summary mentions a security term so the text backstop withholds the public copy, but the MODEL
     // classified security=none and filed no finding. This is the ONLY greenable withheld case
@@ -443,9 +459,7 @@ test('D3a analyze emits withheld + withheld_blocking outputs, and public_finding
     assert.ok('withheld_blocking' in outs, 'analyze must expose the 1-bit `withheld_blocking`');
     // The gate step must NOT emit the withheld finding count anywhere (count stays 0 on withhold).
     assert.ok(
-        /public_findings_count.*res\.publish \? res\.clean\.findings\.length : 0|res\.publish \? res\.clean\.findings\.length : 0/.test(
-            workflowText.replace(/\n/g, ' ')
-        ),
+        /res\.publish \? res\.clean\.findings\.filter\(\(f\) => f\.severity !== 'low'\)\.length : 0/.test(workflowText.replace(/\n/g, ' ')),
         'public_findings_count must remain `0` on a withhold (no count leak)'
     );
 });

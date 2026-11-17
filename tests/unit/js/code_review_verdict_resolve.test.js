@@ -8,9 +8,9 @@
 //          (PART A). APPROVE requires 0 findings AND 0 surviving own threads, so it can never
 //          contradict a red code-review status.
 //        - shouldDismissTeamRequest({selfAuthored, event})  -- clear a bot-authored PR's pill (A.2).
-//        - threadsToResolve({threads, findings, dimensions, botLogin, reviewedLines}) -- which of OUR
-//          OWN threads are now fixed and may be resolved (PART B), guarded LINE-granular so an
-//          incremental run never resolves a finding on a line it did not re-examine.
+//        - threadsToResolve({threads, resolvedIds, botLogin}) -- which of OUR OWN open threads the
+//          model judged fixed (review.resolved) and may be resolved (PART B).
+//        - fixedInSha({rangeShas, pathShas, headSha}) -- the commit the "Fixed in" reply credits.
 //   2. The ACTUAL post step driven end-to-end against a mocked GitHub, to prove the wiring: the
 //      verdict reaches createReview, the self-review 422 degrades to COMMENT, a bot-authored PR
 //      dismisses the team request, a fixed finding's thread is resolved while a surviving one is
@@ -83,9 +83,6 @@ function thread(id, path, dim, title, { resolved = false, outdated = false, auth
         comments: { nodes: [{ author: { login: author }, body: `**${severity} · ${DIMS[dim]} — ${title}**\n\nsome body text` }] }
     };
 }
-const finding = (path, dim, title) => ({ path, dimension: dim, title });
-// reviewedLines: path -> Set of RIGHT-side lines this run examined. rl(['a.py', 1, 2]) => Map{'a.py'=>{1,2}}.
-const rl = (...entries) => new Map(entries.map(([p, ...ls]) => [p, new Set(ls)]));
 
 // ========================= PART A: selectReviewEvent (the verdict) =========================
 test('selectReviewEvent: blocking findings on a contributor PR -> REQUEST_CHANGES', () => {
@@ -118,76 +115,80 @@ test('shouldDismissTeamRequest: a contributor verdict clears the pill itself -> 
     assert.equal(shouldDismissTeamRequest({ selfAuthored: false, event: 'COMMENT' }), false);
 });
 
-// ========================= PART B: threadsToResolve (resolve fixed only, line-granular) =========================
-test('threadsToResolve: a fixed finding (gone, line re-examined) -> its thread resolves', () => {
+// ========================= PART B: threadsToResolve (only threads the model judged fixed) =========================
+const BOT = 'openlibrary-bot';
+test('threadsToResolve: a thread the model listed as fixed resolves', () => {
     const threads = [thread('T1', 'a.py', 'correctness', 'Off-by-one in the loop bound', { line: 50 })];
-    const ids = threadsToResolve({ threads, findings: [], dimensions: DIMS, botLogin: 'openlibrary-bot', reviewedLines: rl(['a.py', 50]) });
-    assert.deepEqual(ids, ['T1']);
+    assert.deepEqual(threadsToResolve({ threads, resolvedIds: ['T1'], botLogin: BOT }), ['T1']);
 });
-test('threadsToResolve: a still-present finding -> its thread stays open (byte-identical key match)', () => {
-    // The key threadsToResolve parses from the shipped thread body must equal the key it builds from a
-    // live finding, or a standing finding would be wrongly resolved (false green).
+test('threadsToResolve: a thread the model did NOT list stays open', () => {
     const threads = [thread('T1', 'a.py', 'correctness', 'Off-by-one in the loop bound', { line: 50 })];
-    const findings = [finding('a.py', 'correctness', 'Off-by-one in the loop bound')];
-    const ids = threadsToResolve({ threads, findings, dimensions: DIMS, botLogin: 'openlibrary-bot', reviewedLines: rl(['a.py', 50]) });
-    assert.deepEqual(ids, []);
+    assert.deepEqual(threadsToResolve({ threads, resolvedIds: [], botLogin: BOT }), []);
+    assert.deepEqual(threadsToResolve({ threads, resolvedIds: undefined, botLogin: BOT }), []);
 });
-test('threadsToResolve: LINE-granular -- a finding on a line this run did NOT re-examine stays open', () => {
-    // The incremental HIGH bug: file a.py is in the diff (line 200 changed), but the prior finding is at
-    // line 50, which this run never saw. It must NOT be resolved even though it is absent from findings.
-    const threads = [thread('T1', 'a.py', 'correctness', 'Unaddressed, on an unchanged line', { line: 50 })];
-    const ids = threadsToResolve({ threads, findings: [], dimensions: DIMS, botLogin: 'openlibrary-bot', reviewedLines: rl(['a.py', 200]) });
-    assert.deepEqual(ids, []);
+test('threadsToResolve: #14515 -- a fix on OTHER lines resolves the thread (no line-in-diff requirement)', () => {
+    // The comment sat on line 34 and said "lines 10, 22, 28 have the same bug"; the fix touched only those.
+    const threads = [thread('T1', 'header.html', 'correctness', 'Same bug left in 4 sibling strings', { line: 34 })];
+    assert.deepEqual(threadsToResolve({ threads, resolvedIds: ['T1'], botLogin: BOT }), ['T1']);
 });
-test('threadsToResolve: a thread on a file NOT reviewed this run stays open', () => {
-    const threads = [thread('T1', 'untouched.py', 'correctness', 'Old finding', { line: 10 })];
-    const ids = threadsToResolve({ threads, findings: [], dimensions: DIMS, botLogin: 'openlibrary-bot', reviewedLines: rl(['a.py', 10]) });
-    assert.deepEqual(ids, []);
+test('threadsToResolve: an OUTDATED thread (null line) the model listed as fixed resolves', () => {
+    const threads = [thread('T1', 'a.py', 'correctness', 'Moved code', { line: null, outdated: true })];
+    assert.deepEqual(threadsToResolve({ threads, resolvedIds: ['T1'], botLogin: BOT }), ['T1']);
 });
-test('threadsToResolve: a thread with a null line (outdated anchor) stays open', () => {
-    const threads = [thread('T1', 'a.py', 'correctness', 'Moved code', { line: null })];
-    const ids = threadsToResolve({ threads, findings: [], dimensions: DIMS, botLogin: 'openlibrary-bot', reviewedLines: rl(['a.py', 50]) });
-    assert.deepEqual(ids, []);
-});
-test('threadsToResolve: a NON-bot thread is never resolved', () => {
+test('threadsToResolve: a NON-bot thread is never resolved, even if listed', () => {
     const threads = [thread('T1', 'a.py', 'correctness', 'Someone else said this', { author: 'alice', line: 10 })];
-    const ids = threadsToResolve({ threads, findings: [], dimensions: DIMS, botLogin: 'openlibrary-bot', reviewedLines: rl(['a.py', 10]) });
-    assert.deepEqual(ids, []);
+    assert.deepEqual(threadsToResolve({ threads, resolvedIds: ['T1'], botLogin: BOT }), []);
 });
 test('threadsToResolve: an already-resolved thread is not re-emitted', () => {
     const threads = [thread('T1', 'a.py', 'correctness', 'Already handled', { resolved: true, line: 10 })];
-    const ids = threadsToResolve({ threads, findings: [], dimensions: DIMS, botLogin: 'openlibrary-bot', reviewedLines: rl(['a.py', 10]) });
-    assert.deepEqual(ids, []);
+    assert.deepEqual(threadsToResolve({ threads, resolvedIds: ['T1'], botLogin: BOT }), []);
 });
-test('threadsToResolve: an unparseable thread body is left open (fail safe)', () => {
-    const threads = [
-        {
-            id: 'T1',
-            path: 'a.py',
-            line: 10,
-            isResolved: false,
-            isOutdated: false,
-            comments: { nodes: [{ author: { login: 'openlibrary-bot' }, body: 'not a finding header' }] }
-        }
-    ];
-    const ids = threadsToResolve({ threads, findings: [], dimensions: DIMS, botLogin: 'openlibrary-bot', reviewedLines: rl(['a.py', 10]) });
-    assert.deepEqual(ids, []);
+test('threadsToResolve: an id that matches no live thread is ignored', () => {
+    const threads = [thread('T1', 'a.py', 'correctness', 'Real one', { line: 10 })];
+    assert.deepEqual(threadsToResolve({ threads, resolvedIds: ['INVENTED'], botLogin: BOT }), []);
 });
-test('threadsToResolve: mixed -- resolves only the fixed, re-examined thread; keeps the standing one', () => {
+test('threadsToResolve: mixed -- resolves only the listed thread; keeps the other', () => {
     const threads = [
         thread('FIXED', 'a.py', 'styleguide', 'Prefer double quotes', { line: 3 }),
         thread('STANDS', 'a.py', 'correctness', 'Null deref on empty list', { line: 7 })
     ];
-    const findings = [finding('a.py', 'correctness', 'Null deref on empty list')];
-    const ids = threadsToResolve({ threads, findings, dimensions: DIMS, botLogin: 'openlibrary-bot', reviewedLines: rl(['a.py', 3, 7]) });
-    assert.deepEqual(ids, ['FIXED']);
+    assert.deepEqual(threadsToResolve({ threads, resolvedIds: ['FIXED'], botLogin: BOT }), ['FIXED']);
 });
-test('threadsToResolve: a title containing an em-dash is matched whole (no spurious resolve)', () => {
-    const title = 'Guard — then dereference';
-    const threads = [thread('T1', 'a.py', 'correctness', title, { line: 4 })];
-    const findings = [finding('a.py', 'correctness', title)];
-    const ids = threadsToResolve({ threads, findings, dimensions: DIMS, botLogin: 'openlibrary-bot', reviewedLines: rl(['a.py', 4]) });
-    assert.deepEqual(ids, []);
+
+// ========================= fixedInSha (which commit the "Fixed in" reply credits) =========================
+const fixedInSha = extractFn('fixedInSha');
+test('fixedInSha: the newest in-range commit that touched the file', () => {
+    // rangeShas and pathShas are newest-first. 'old' touched the file before this range.
+    assert.equal(fixedInSha({ rangeShas: ['c3', 'c2', 'c1'], pathShas: ['c2', 'c1', 'old'], headSha: 'c3' }), 'c2');
+});
+test('fixedInSha: falls back to the head when no in-range commit touched the file', () => {
+    assert.equal(fixedInSha({ rangeShas: ['c3', 'c2'], pathShas: ['old'], headSha: 'c3' }), 'c3');
+    assert.equal(fixedInSha({ rangeShas: [], pathShas: [], headSha: 'c3' }), 'c3');
+});
+
+// ========================= the gate keeps `resolved` (ids only) =========================
+// The workflow evaluates this env string with eval() too, so the test exercises the shipped gate text.
+// eslint-disable-next-line no-eval
+const gate = eval(REVIEW_GATE_JS);
+const cleanReview = extra => {
+    const dims = {};
+    for (const k of Object.keys(DIMS)) dims[k] = { status: 'none', note: 'ok' };
+    return { summary: 'A plain summary.', dimensions: dims, findings: [], ...extra };
+};
+test('gate: resolved thread ids pass through to the clean copy (deduped)', () => {
+    const res = gate.check(cleanReview({ resolved: ['PRRT_kwDOAB1', 'PRRT_kwDOAB1', 'PRRT_kwDOAB2'] }));
+    assert.equal(res.publish, true);
+    assert.deepEqual(res.clean.resolved, ['PRRT_kwDOAB1', 'PRRT_kwDOAB2']);
+});
+test('gate: no resolved field -> an empty list', () => {
+    const res = gate.check(cleanReview({}));
+    assert.equal(res.publish, true);
+    assert.deepEqual(res.clean.resolved, []);
+});
+test('gate: a resolved entry that is not an id (prose, markdown, non-string) withholds the review', () => {
+    for (const bad of [['fixed it'], ['[x](http://e)'], [42], 'PRRT_1']) {
+        assert.equal(gate.check(cleanReview({ resolved: bad })).publish, false, JSON.stringify(bad));
+    }
 });
 
 // ========================= Integration: drive the real post step end-to-end =========================
@@ -244,7 +245,7 @@ const SHA = c => c.repeat(40);
 // and can throw a 422 on the first verdict attempt (self-review fallback) or throw on the thread
 // enumeration (false-red guard).
 function mockGitHub({ author = 'contributor', reviewThreads = [], throw422 = false, enumThrows = false, postedReviewId = 999 } = {}) {
-    const calls = { createReview: [], resolved: [], removedTeams: [] };
+    const calls = { createReview: [], resolved: [], replies: [], removedTeams: [] };
     let threw = false;
     const github = {
         rest: {
@@ -267,11 +268,17 @@ function mockGitHub({ author = 'contributor', reviewThreads = [], throw422 = fal
                 }
             },
             repos: {
-                compareCommitsWithBasehead: async () => ({ data: '' })
+                // Reviewed range b..a holds commits c1 (older) and c2; only c1 touched a.py.
+                compareCommitsWithBasehead: async () => ({ data: { commits: [{ sha: 'c1' }, { sha: 'c2' }] } }),
+                listCommits: async ({ path }) => ({ data: path === 'a.py' ? [{ sha: 'c1' }, { sha: 'old' }] : [] })
             }
         },
         paginate: async (method, params) => (await method(params)).data,
         graphql: async (query, vars) => {
+            if (/addPullRequestReviewThreadReply/.test(query)) {
+                calls.replies.push({ id: vars.id, body: vars.body });
+                return { addPullRequestReviewThreadReply: { comment: { id: 'C' } } };
+            }
             if (/resolveReviewThread/.test(query)) {
                 calls.resolved.push(vars.id);
                 return { resolveReviewThread: { thread: { id: vars.id, isResolved: true } } };
@@ -401,19 +408,51 @@ test('post: a thread-enumeration failure never fails the job and never auto-appr
         teardown();
     }
 });
-test('post: a fixed finding on a re-examined line gets its thread resolved on re-review', async () => {
-    // This run is clean. A prior bot thread on a.py:1 (a line this run reviewed) has no matching current
-    // finding -> fixed -> resolved. A prior thread on an untouched file stays open (and keeps it off APPROVE).
-    const d = setup(reviewWith([]));
+test('post: a thread the model judged fixed gets a "Fixed in" reply and is resolved; others stay open', async () => {
+    // This run is clean and lists FIXED in review.resolved. NOT_LISTED stays open and keeps it off APPROVE.
+    const d = setup({ ...reviewWith([]), resolved: ['FIXED'] });
     try {
         const threads = [
             thread('FIXED', 'a.py', 'correctness', 'Prior finding now gone', { line: 1 }),
-            thread('UNTOUCHED', 'other.py', 'correctness', 'On a file this run did not review', { line: 9 })
+            thread('NOT_LISTED', 'other.py', 'correctness', 'Model did not judge this fixed', { line: 9 })
         ];
         const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
         await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
-        assert.deepEqual(calls.resolved, ['FIXED'], 'only the fixed finding on a re-examined line is resolved');
-        assert.equal(calls.createReview[0].event, 'COMMENT', 'the surviving UNTOUCHED thread keeps it off APPROVE');
+        assert.deepEqual(calls.resolved, ['FIXED']);
+        assert.deepEqual(calls.replies, [{ id: 'FIXED', body: 'Fixed in c1.' }], 'credits the in-range commit that touched a.py');
+        assert.equal(calls.createReview[0].event, 'COMMENT', 'the open NOT_LISTED thread keeps it off APPROVE');
+    } finally {
+        teardown();
+    }
+});
+test('post: #14515 -- once every own thread is judged fixed, a clean re-review APPROVEs', async () => {
+    // The comment sat on header.html:34, outside this run's diff; the model judged it fixed.
+    const d = setup({ ...reviewWith([]), resolved: ['T34'] });
+    try {
+        const threads = [thread('T34', 'openlibrary/templates/lists/header.html', 'correctness', 'Same bug in sibling strings', { line: 34 })];
+        const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
+        await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
+        assert.deepEqual(calls.resolved, ['T34']);
+        assert.deepEqual(calls.replies, [{ id: 'T34', body: `Fixed in ${SHA('a')}.` }], 'no in-range commit touched it -> the head');
+        assert.equal(calls.createReview[0].event, 'APPROVE');
+    } finally {
+        teardown();
+    }
+});
+test('post: a reply failure still resolves the thread', async () => {
+    const d = setup({ ...reviewWith([]), resolved: ['FIXED'] });
+    try {
+        const threads = [thread('FIXED', 'a.py', 'correctness', 'Prior finding now gone', { line: 1 })];
+        const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
+        const graphql = github.graphql;
+        github.graphql = async (q, v) => {
+            if (/addPullRequestReviewThreadReply/.test(q)) throw new Error('reply 502');
+            return graphql(q, v);
+        };
+        const res = await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
+        assert.equal(res.failed, null);
+        assert.deepEqual(calls.resolved, ['FIXED']);
+        assert.equal(calls.createReview[0].event, 'APPROVE');
     } finally {
         teardown();
     }
@@ -429,5 +468,75 @@ test('post: a standing finding keeps its thread open and the PR off APPROVE', as
         assert.equal(calls.createReview[0].event, 'REQUEST_CHANGES');
     } finally {
         teardown();
+    }
+});
+
+// ========================= analyze range step: prior-threads.json for the model =========================
+test('range: writes our own OPEN threads (outdated included, line falls back to originalLine) to prior-threads.json', async () => {
+    const d = mkdtempSync(join(tmpdir(), 'cr-prior-'));
+    try {
+        const node = (id, { author = 'openlibrary-bot', resolved = false, outdated = false, line = 5, originalLine = 5 } = {}) => ({
+            id,
+            isResolved: resolved,
+            isOutdated: outdated,
+            path: 'a.py',
+            line,
+            originalLine,
+            comments: { nodes: [{ author: { login: author }, body: `**LOW · Correctness — ${id}**\n\nbody` }] }
+        });
+        const nodes = [
+            node('OPEN'),
+            node('OUTDATED', { outdated: true, line: null, originalLine: 22 }),
+            node('DONE', { resolved: true }),
+            node('HUMAN', { author: 'alice' })
+        ];
+        const github = {
+            rest: {
+                pulls: {
+                    get: async () => ({ data: { draft: false, state: 'open', head: { sha: SHA('a') }, base: { sha: SHA('b') } } }),
+                    listReviews: async () => ({ data: [] })
+                },
+                repos: { compareCommitsWithBasehead: async () => ({ data: 'diff' }) }
+            },
+            paginate: async (method, params) => (await method(params)).data,
+            graphql: async () => ({ repository: { pullRequest: { reviewThreads: { nodes, pageInfo: { hasNextPage: false, endCursor: null } } } } })
+        };
+        const ctx = { ...context, payload: { pull_request: { number: 1 } } };
+        await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env: { GITHUB_WORKSPACE: d }, cwd: d });
+        const prior = JSON.parse(readFileSync(join(d, 'prior-threads.json'), 'utf8'));
+        assert.deepEqual(
+            prior.map(t => [t.id, t.line, t.outdated]),
+            [
+                ['OPEN', 5, false],
+                ['OUTDATED', 22, true]
+            ]
+        );
+        assert.match(prior[0].comment, /Correctness — OPEN/);
+    } finally {
+        rmSync(d, { recursive: true, force: true });
+    }
+});
+test('range: a thread-read failure still writes an empty prior-threads.json and reviews', async () => {
+    const d = mkdtempSync(join(tmpdir(), 'cr-prior-'));
+    try {
+        const github = {
+            rest: {
+                pulls: {
+                    get: async () => ({ data: { draft: false, state: 'open', head: { sha: SHA('a') }, base: { sha: SHA('b') } } }),
+                    listReviews: async () => ({ data: [] })
+                },
+                repos: { compareCommitsWithBasehead: async () => ({ data: 'diff' }) }
+            },
+            paginate: async (method, params) => (await method(params)).data,
+            graphql: async () => {
+                throw new Error('502');
+            }
+        };
+        const ctx = { ...context, payload: { pull_request: { number: 1 } } };
+        const res = await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env: { GITHUB_WORKSPACE: d }, cwd: d });
+        assert.equal(res.failed, null);
+        assert.deepEqual(JSON.parse(readFileSync(join(d, 'prior-threads.json'), 'utf8')), []);
+    } finally {
+        rmSync(d, { recursive: true, force: true });
     }
 });

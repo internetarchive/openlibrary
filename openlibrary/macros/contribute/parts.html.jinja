@@ -415,7 +415,7 @@
                                     <div class="contrib-suggest" data-suggest>
                                         <span class="contrib-suggest__label">{{ _("Other editions say…") }}</span>
                                         {% for s in data.suggestions %}
-                                            <ol-chip size="small" count="{{ s.count }}" data-value="{{ s.value }}" accessible-label="{{ ngettext('%(value)s, on 1 edition', '%(value)s, on %(count)d editions', s.count, value=s.label, count=s.count) }}">
+                                            <ol-chip size="small" count="{{ s.count }}" data-value="{{ s.value }}" accessible-label="{{ ngettext('%(value)s, on %(count)d edition', '%(value)s, on %(count)d editions', s.count, value=s.label, count=s.count) }}">
                                                 {{ s.label }}
                                             </ol-chip>
                                         {% endfor %}

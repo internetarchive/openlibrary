@@ -154,7 +154,7 @@ FROZEN = {"frozen_at": "2026-10-28T12:00:00+00:00", "editions": [["/books/OL1M",
 
 @pytest.fixture
 def fake_initiatives(monkeypatch):
-    """A stand-in for `openlibrary.contribute.initiatives` with two initiatives, only the first frozen, plus a `web.ctx.site` holding its store doc."""
+    """A stand-in for `openlibrary.contribute.initiatives` with two initiatives, only the first frozen, plus a current site holding its store doc."""
     calls = []
 
     def gaps_for(picks, site):
@@ -196,7 +196,7 @@ def test_initiatives_counts_each_frozen_list_and_skips_the_rest(fake_initiatives
 
 
 def test_a_newly_frozen_initiative_is_counted_on_the_next_run(fake_initiatives):
-    web.ctx.site.store["contribute-initiative-genres-test"] = FROZEN
+    site_context.get().store["contribute-initiative-genres-test"] = FROZEN
     assert set(numbers.admin_range__initiatives(**today_kargs())) == {"most-read-test", "genres-test"}
 
 
@@ -220,7 +220,7 @@ def test_an_ended_initiative_carries_its_last_snapshot_forward(fake_initiatives)
 
 
 def test_initiatives_wait_for_the_web_app_to_freeze_a_list(fake_initiatives):
-    web.ctx.site.store.clear()
+    site_context.get().store.clear()
     with pytest.raises(numbers.NoStats):
         numbers.admin_range__initiatives(**today_kargs())
     assert fake_initiatives.calls == []

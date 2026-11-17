@@ -313,7 +313,7 @@ def test_layout_build_search_modal_preserves_client_fill_placeholders(request_co
     modal = _build().header.search_modal
     assert modal.availability["all"]["label"] == "All books"
     assert modal.strings["seeOne"] == "See %s book"
-    assert modal.strings["resultsAnnounce"] == "Showing %s of %s results"
+    assert modal.strings["resultsAnnounce"] == "Showing %(shown)s of %(total)s results"
     assert modal.strings["removeRecent"] == 'Remove "%s" from recent searches'
 
 

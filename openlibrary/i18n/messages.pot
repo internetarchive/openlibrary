@@ -504,7 +504,7 @@ msgstr ""
 
 #: internalerror.html
 #, python-format
-msgid "The reference code %s and Sentry trace ID %s have been created to track this error and we will investigate as we're able."
+msgid "The reference code %(code)s and Sentry trace ID %(trace_id)s have been created to track this error and we will investigate as we're able."
 msgstr ""
 
 #: internalerror.html
@@ -542,7 +542,7 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: RelatedSubjects.html.jinja account/create.html librarian_dashboard/data_quality_table.html login.html openlibrary/plugins/openlibrary/partials.py search/work_search_facets.html.jinja
+#: RelatedSubjects.html.jinja account/create.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html.jinja
 msgid "Loading..."
 msgstr ""
 
@@ -3222,24 +3222,24 @@ msgstr ""
 msgid "See all"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 msgid "Previous page"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 msgid "Next page"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 msgid "Carousel pages"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 #, python-brace-format
 msgid "Go to page {page} of {total}"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 #, python-brace-format
 msgid "Page {page} of {total}"
 msgstr ""
@@ -4780,6 +4780,11 @@ msgid "<strong>Pick one</strong> from the existing covers"
 msgstr ""
 
 #: covers/add.html
+#, python-format
+msgid "Cover %(index)d of %(total)d"
+msgstr ""
+
+#: covers/add.html
 msgid "Use this image"
 msgstr ""
 
@@ -5236,35 +5241,35 @@ msgstr ""
 
 #: lists/header.html
 #, python-format
-msgid "This author is on <strong>1 list</strong>."
+msgid "This author is on <strong>%(count)s list</strong>."
 msgid_plural "This author is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
 
 #: lists/header.html
 #, python-format
-msgid "This is edition is on <strong>1 list</strong>."
+msgid "This edition is on <strong>%(count)s list</strong>."
 msgid_plural "This edition is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
 
 #: lists/header.html
 #, python-format
-msgid "This work is on <strong>1 list</strong>."
+msgid "This work is on <strong>%(count)s list</strong>."
 msgid_plural "This work is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
 
 #: lists/header.html
 #, python-format
-msgid "%(name)s has 1 list."
+msgid "%(name)s has %(count)s list."
 msgid_plural "%(name)s has %(count)s lists."
 msgstr[0] ""
 msgstr[1] ""
 
 #: lists/header.html
 #, python-format
-msgid "This subject is on <strong>1 list</strong>."
+msgid "This subject is on <strong>%(count)s list</strong>."
 msgid_plural "This subject is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
@@ -5914,14 +5919,14 @@ msgstr ""
 
 #: recentchanges/merge/message.html
 #, python-format
-msgid "%(who)s merged one duplicate of %(master)s"
+msgid "%(who)s merged %(count)d duplicate of %(master)s"
 msgid_plural "%(who)s merged %(count)d duplicates of %(master)s"
 msgstr[0] ""
 msgstr[1] ""
 
 #: recentchanges/merge/message.html
 #, python-format
-msgid "one duplicate of %(master)s was merged anonymously"
+msgid "%(count)d duplicate of %(master)s was merged anonymously"
 msgid_plural "%(count)d duplicates of %(master)s were merged anonymously"
 msgstr[0] ""
 msgstr[1] ""
@@ -8649,7 +8654,7 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 #, python-format
-msgid "%(value)s, on 1 edition"
+msgid "%(value)s, on %(count)d edition"
 msgid_plural "%(value)s, on %(count)d editions"
 msgstr[0] ""
 msgstr[1] ""
@@ -9372,7 +9377,7 @@ msgstr ""
 
 #: openlibrary/core/shell/search_modal.py
 #, python-format
-msgid "Showing %s of %s results"
+msgid "Showing %(shown)s of %(total)s results"
 msgstr ""
 
 #: openlibrary/core/shell/search_modal.py
@@ -10052,8 +10057,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
 #, python-format
-msgid "Re-queued %(count)d failed item(s)."
-msgstr ""
+msgid "Re-queued %(count)d failed item."
+msgid_plural "Re-queued %(count)d failed items."
+msgstr[0] ""
+msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"
