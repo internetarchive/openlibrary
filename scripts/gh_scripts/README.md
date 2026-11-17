@@ -130,3 +130,10 @@ The script prepares a digest containing the following sections:
 *Staff PRs* : List of all open staff PRs.  Only present if `publishFullDigest` is `true`.
 
 *Submitter Input for PRs* : List of PRs that are labeled https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Submitter%20Input, broken down by leads.
+
+## `search_discussions.sh`
+Read-only search of this repo's GitHub Discussions, used by the issue enrichment workflow (`.github/workflows/issue_enrichment.md`).
+
+<pre><b>scripts/gh_scripts/search_discussions.sh</b> keywords...</pre>
+
+Returns up to 10 discussions in every state (open, answered, closed), each with its state and category, plus the accepted answer when there is one. The GraphQL query is fixed and the keywords are passed as a variable, so callers can't run other GraphQL through it. It always exits 0: if the token can't read Discussions it prints `Discussions search unavailable (skip this source): ...` instead.

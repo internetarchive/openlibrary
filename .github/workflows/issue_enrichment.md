@@ -135,6 +135,18 @@ gh pr list --repo internetarchive/openlibrary \
   --json number,title,state
 ```
 
+### Find related Discussions
+
+Search the repo's [Discussions](https://github.com/internetarchive/openlibrary/discussions) with the helper script. Run it exactly as written, from `$GITHUB_WORKSPACE`; `gh` has no discussions command and `gh api` is not available to you.
+
+```bash
+scripts/gh_scripts/search_discussions.sh {keywords}
+```
+
+- It searches discussions in **every state**. Do not add `is:open` or other state qualifiers — closed and answered threads are often the most useful context.
+- Each result shows its state: `open`, `answered` (followed by the accepted answer), `closed: resolved`, `closed: outdated` or `closed: duplicate`. Treat `outdated` and `duplicate` threads as background only; they may describe old behavior.
+- If it prints `Discussions search unavailable`, skip Discussions and carry on with the rest of this step. Do not retry it, and do not mention the failure in your comment.
+
 ### What to look for
 
 - **Existing patterns** — does the repo already solve a similar problem?
@@ -264,6 +276,7 @@ List only things materially useful to a contributor or maintainer. Every item mu
 
 - An existing file or function that already does something related (with permalink to specific lines)
 - A prior PR or issue that attempted this or was closed as a duplicate
+- A related Discussion, with its state (e.g. "closed as resolved", "answered: …") and the gist of any accepted answer
 - A pattern the proposal should follow or conflicts with
 - A relevant commit surfaced by `git blame` or `git log -S` (with link)
 - A doc page directly covering the feature area
@@ -331,7 +344,7 @@ Mark each item `[x]` if it is actually satisfied for **this specific issue**, `[
 
 1. **No endorsements.** Never say "great issue", "well-scoped", "the use case is clear."
 2. **Context section is evidence-based only.** Nothing goes there that wasn't found by actually running a command.
-3. **Only reference public information.** No internal Slack, private discussions, or staff-only knowledge.
+3. **Only reference public information.** No internal Slack, private conversations, or staff-only knowledge. Public GitHub Discussions on this repo are fine.
 4. **@mention tags must never be wrapped in backticks** — contributors need to receive the notification.
 5. **Tag at most one lead per comment**, and only if their area is directly relevant.
 6. **Never @mention `mekarpeles` in the comment body** — the footer already covers attribution.
