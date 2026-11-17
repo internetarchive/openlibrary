@@ -398,6 +398,8 @@ def build_book_header(edition, readers: int | None = None) -> dict:
         "title": edition.get_title(),
         "authors": ", ".join(author_names),
         "cover_url": edition.get_cover_url("M"),
+        # The Internet Archive scan, where the title and copyright pages answer most questions.
+        "scan_url": f"https://archive.org/details/{ocaid}" if (ocaid := edition.get("ocaid")) else "",
         "edition_line": " · ".join(edition_line_parts),
         "isbn13": edition.get_isbn13(),
         "edition_count": work.get_edition_count() if work else 1,

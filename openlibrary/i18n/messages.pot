@@ -8649,6 +8649,10 @@ msgid "No matching language"
 msgstr ""
 
 #: contribute/parts.html.jinja
+msgid "View scan"
+msgstr ""
+
+#: contribute/parts.html.jinja
 msgid "Other editions say…"
 msgstr ""
 
