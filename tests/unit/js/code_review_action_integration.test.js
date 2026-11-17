@@ -527,6 +527,42 @@ test('pending: posts nothing on a head with a status, a draft, or a closed PR', 
         assert.equal(calls.createCommitStatus.length, 0);
     }
 });
+// ===================== pending: 👀 on the @-mention that asked for the review =====================
+test('pending: an @-mention review request gets an eyes reaction on that comment', async () => {
+    const step = workflow.jobs.pending.steps.find(s => (s.name || '').includes('React to the review request'));
+    assert.ok(step, 'react step exists');
+    assert.equal(step.if, "github.event_name == 'issue_comment'", 'only comments get a reaction');
+    assert.equal(step['continue-on-error'], true, 'a failed reaction never blocks the review');
+    const reactions = [];
+    const github = {
+        rest: {
+            reactions: {
+                createForIssueComment: async p => {
+                    reactions.push(p);
+                    return { data: {} };
+                }
+            }
+        }
+    };
+    const ctx = { ...context, eventName: 'issue_comment', payload: { comment: { id: 42 }, issue: { number: 1 } } };
+    const res = await runScript(scriptOf('pending', 'React to the review request'), { github, context: ctx, env: {} });
+    assert.equal(res.failed, null);
+    assert.deepEqual(reactions, [{ owner: 'internetarchive', repo: 'openlibrary', comment_id: 42, content: 'eyes' }]);
+});
+test('pending: a refused reaction only warns', async () => {
+    const github = {
+        rest: {
+            reactions: {
+                createForIssueComment: async () => {
+                    throw new Error('Resource not accessible by personal access token');
+                }
+            }
+        }
+    };
+    const ctx = { ...context, eventName: 'issue_comment', payload: { comment: { id: 42 }, issue: { number: 1 } } };
+    const res = await runScript(scriptOf('pending', 'React to the review request'), { github, context: ctx, env: {} });
+    assert.equal(res.failed, null);
+});
 test('status: analyze died before posting a review -> the pending head gets failure', async () => {
     const head = SHA('a');
     const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });

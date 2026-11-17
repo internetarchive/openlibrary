@@ -1033,6 +1033,25 @@ jobs:
       pr: ${{ steps.mark.outputs.pr }}
       head_sha: ${{ steps.mark.outputs.head_sha }}
     steps:
+      # An @-mention gets a 👀 reaction straight away, so whoever asked can see the bot picked it up.
+      # This job shares analyze's `if`, so only a comment that actually starts a review gets one.
+      # Uses the bot's review PAT (Pull requests: write) so the reaction shows as openlibrary-bot.
+      - name: React to the review request comment
+        if: github.event_name == 'issue_comment'
+        continue-on-error: true
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
+          script: |
+            try {
+              await github.rest.reactions.createForIssueComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: context.payload.comment.id, content: 'eyes',
+              });
+            } catch (e) {
+              core.warning(`Could not react to the review request comment: ${e.message}`);
+            }
+
       - name: Mark the head as review in progress
         id: mark
         continue-on-error: true
