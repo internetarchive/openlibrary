@@ -306,8 +306,26 @@
   gap: var(--spacing-stack-xs);
 }
 
+/* The cover with the link to its scan. Phones: no box, so the link sits under the title, where it has room. */
+.contrib-record__aside {
+  display: contents;
+}
+
+.contrib-record--scan {
+  grid-template-areas:
+    "cover head"
+    "cover scan"
+    "fields fields";
+}
+
+.contrib-record__scan {
+  grid-area: scan;
+  justify-self: start;
+}
+
 @media (min-width: 768px) {
-  .contrib-record {
+  .contrib-record,
+  .contrib-record--scan {
     grid-template-columns: 96px minmax(0, 1fr);
     grid-template-areas:
       "cover head"
@@ -315,6 +333,18 @@
     column-gap: var(--spacing-2xl);
     padding: var(--spacing-inset-lg);
     position: relative;
+  }
+
+  .contrib-record__aside {
+    grid-area: cover;
+    display: grid;
+    gap: var(--spacing-stack-sm);
+    justify-items: center;
+  }
+
+  .contrib-record__aside > *,
+  .contrib-record__aside .contrib-record__cover {
+    grid-area: auto;
   }
 
   .contrib-record__head {
@@ -1990,4 +2020,25 @@ ol-task-book {
 
 .contrib-faq__item p {
   max-width: 65ch;
+}
+
+/* An ISBN other editions already carry: the editions to compare, then save again */
+.contrib-shared {
+  display: grid;
+  gap: var(--spacing-xs);
+}
+
+.contrib-shared p,
+.contrib-shared ul {
+  margin: 0;
+}
+
+.contrib-shared ul {
+  display: grid;
+  gap: var(--spacing-3xs);
+  padding-inline-start: var(--spacing-lg);
+}
+
+.contrib-shared li .contrib-muted {
+  margin-inline-start: var(--spacing-xs);
 }

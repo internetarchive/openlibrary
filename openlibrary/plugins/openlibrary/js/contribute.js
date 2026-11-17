@@ -8,7 +8,17 @@
 import { setBannerCookie } from './banner';
 import { confirmFromTemplate } from './confirm-template';
 import { initFeed } from './contribute-feed';
-import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
+import {
+    parseIsbn,
+    isFormatValidIsbn10,
+    isChecksumValidIsbn10,
+    isFormatValidIsbn13,
+    isChecksumValidIsbn13,
+    parseLccn,
+    isValidLccn,
+    parseOclc,
+    isValidOclc
+} from './idValidation';
 import { trackEvent } from './ol.analytics.js';
 
 const SKIPPED_KEY = 'ol-contribute-skipped';
@@ -17,7 +27,11 @@ const UNSURE = 'unsure';
 // Same normalization the server applies, so the verdict on screen matches what is stored.
 const ID_RULES = {
     lccn: { parse: parseLccn, isValid: isValidLccn },
-    oclc_numbers: { parse: parseOclc, isValid: isValidOclc }
+    oclc_numbers: { parse: parseOclc, isValid: isValidOclc },
+    isbn: {
+        parse: raw => parseIsbn(raw).toUpperCase(),
+        isValid: isbn => (isFormatValidIsbn10(isbn) && isChecksumValidIsbn10(isbn)) || (isFormatValidIsbn13(isbn) && isChecksumValidIsbn13(isbn))
+    }
 };
 
 /**

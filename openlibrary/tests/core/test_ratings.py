@@ -15,8 +15,16 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from openlibrary.core import async_db
+from openlibrary.core.cache import MemoryCache
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+
+
+@pytest.fixture(autouse=True)
+def memcache():
+    """A cache per test, so a reading log version set by one test can't leak into the next."""
+    with patch("openlibrary.core.cache.get_memcache", return_value=MemoryCache()):
+        yield
 
 
 class TestAddAutoShelve:
@@ -268,6 +276,31 @@ async def test_add_rating_invalid_rating(helpers, bookshelves, rating):
     helpers.execute.assert_not_awaited()
     bookshelves.read_status.assert_not_called()
     bookshelves.add.assert_not_called()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "change",
+    [lambda: Ratings.add("alice", 42, 5), lambda: Ratings.remove("alice", 42)],
+    ids=["rate", "unrate"],
+)
+async def test_rating_changes_invalidate_cached_shelf_orders_once_saved(bookshelves, change):
+    events: list[str] = []
+    with (
+        patch("openlibrary.core.ratings.execute", new_callable=AsyncMock, side_effect=lambda *args: events.append("saved")),
+        patch("openlibrary.core.bookshelves.Bookshelves.reading_log_changed", side_effect=lambda username: events.append(f"invalidated {username}")),
+    ):
+        await change()
+
+    assert events == ["saved", "invalidated alice"]
+
+
+@pytest.mark.asyncio
+async def test_an_invalid_rating_leaves_cached_shelf_orders_alone(helpers, bookshelves):
+    with patch("openlibrary.core.bookshelves.Bookshelves.reading_log_changed") as reading_log_changed:
+        await Ratings.add("alice", 42, 6)
+
+    reading_log_changed.assert_not_called()
 
 
 SUMMARY_ROW = {"books_total": 30, "books_month": 20, "books_week": 10, "raters_total": 3, "raters_month": 2, "raters_week": 1}

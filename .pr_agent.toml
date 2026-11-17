@@ -1,0 +1,33 @@
+# Settings for the @openlibrary-bot code reviewer (.github/workflows/code_review_action.yml).
+# Open Library does not run PR-Agent. Our reviewer reads this file using PR-Agent's format and
+# key names (https://docs.pr-agent.ai/usage-guide/configuration_options/), so we can reuse its
+# patterns and send fixes upstream. Keys under [openlibrary_reviewer] are ours.
+# The bot reads this file from the base branch, so a PR's changes to it apply after it merges.
+# Values may be strings, integers or booleans. Other TOML syntax makes the bot use its defaults.
+
+[pr_reviewer]
+extra_instructions = ""
+# Most findings per review, 1 to 50. Unset means no limit.
+# num_max_findings = 10
+require_tests_review = true
+# Cannot be turned off.
+require_security_review = true
+# Check the PR against the issues it links to.
+require_ticket_analysis_review = true
+# false puts every finding in the review summary instead of inline comments.
+inline_key_issues = true
+
+[github_action_config]
+# Review new commits on a PR the bot has already reviewed, once no more arrive for
+# push_review_delay_minutes. Off by default in PR-Agent.
+handle_push_trigger = true
+push_trigger_ignore_bot_commits = true
+# Skip a push that only merges the base branch in ("Update branch").
+push_trigger_ignore_merge_commits = true
+
+# Settings PR-Agent does not have.
+[openlibrary_reviewer]
+require_accessibility_review = true
+require_styleguide_review = true
+# Minutes with no new commits before a push review starts, 1 to 120.
+push_review_delay_minutes = 10

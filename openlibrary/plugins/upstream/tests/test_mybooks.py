@@ -10,7 +10,7 @@ from infogami.utils import macro
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.plugins.upstream import mybooks
-from openlibrary.plugins.upstream.mybooks import PatronBooknotes, ReadingLog, edition_key_of, get_reading_states, shelf_button_for, work_key_of
+from openlibrary.plugins.upstream.mybooks import PatronBooknotes, ReadingLog, edition_key_of, get_reading_states, list_seed_of, shelf_button_for, work_key_of
 
 
 class Thing:
@@ -43,6 +43,25 @@ class TestWorkKeyOf:
 
     def test_a_carousel_hands_an_edition_doc_its_work(self):
         assert work_key_of({"key": "/books/OL2M", "work_key": "/works/OL1W"}) == "/works/OL1W"
+
+    def test_an_orphaned_edition_indexed_as_a_work_has_none(self):
+        # Solr's "fake work" for an edition with no work: the edition's OLID under /works/.
+        assert work_key_of({"key": "/works/OL7M"}) is None
+        assert work_key_of(web.storage(key="/works/OL7M")) is None
+        assert work_key_of({"key": "/books/OL7M", "work_key": "/works/OL7M"}) is None
+
+
+class TestListSeedOf:
+    def test_an_author_or_an_edition_is_its_own_seed(self):
+        assert list_seed_of({"key": "/authors/OL3A"}) == "/authors/OL3A"
+        assert list_seed_of({"key": "/books/OL2M"}) == "/books/OL2M"
+
+    def test_an_orphaned_edition_indexed_as_a_work_is_the_edition(self):
+        assert list_seed_of({"key": "/works/OL7M"}) == "/books/OL7M"
+
+    def test_nothing_else_is_a_seed(self):
+        assert list_seed_of({"key": "/works/OL1W"}) is None
+        assert list_seed_of({}) is None
 
 
 class TestEditionKeyOf:
@@ -93,6 +112,16 @@ class TestShelfButtonFor:
         assert 'shelf="3"' in html
         assert 'rating="4"' in html
         assert 'read-date="2026-08" event-id="7"' in html
+
+    def test_an_orphaned_edition_from_search_can_only_join_a_list(self):
+        html, get_state = self.render(web.storage(key="/works/OL7M", title="An orphan", edition_key=["OL7M"]))
+        assert 'work-key="/books/OL7M"' in html
+        assert "lists-only" in html
+        assert "edition-key" not in html
+        get_state.assert_not_called()
+
+        _, get_state = self.render(web.storage(key="/works/OL7M"), async_load=True)
+        get_state.assert_not_called()
 
     def test_the_page_state_is_used_when_given(self):
         html, get_state = self.render(web.storage(key="/works/OL1W", title="Dune"), reading_states={"/works/OL1W": {"shelf": 1}})
@@ -361,6 +390,19 @@ async def test_reading_log_passes_sort_to_shelf_query(sort_order, expected):
     assert get_users_logged_books.await_args.kwargs["sort"] == expected
 
 
+def _render_reading_log(monkeypatch, requested: str, owners_page: bool, shelf_count: int = 0, used: str | None = "created desc") -> MagicMock:
+    """Renders a shelf where `requested` is the sort asked for and `used` the one the shelf came back in."""
+    monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, sort=requested))
+    monkeypatch.setattr(mybooks, "add_availability", lambda docs, mode: docs)
+    monkeypatch.setattr(mybooks, "get_internet_archive_id", lambda key: "")
+    monkeypatch.setattr(mybooks, "render", MagicMock())
+    mb = MagicMock(key="want-to-read", is_my_page=owners_page, counts={"want-to-read": shelf_count})
+    mb.readlog.get_works.return_value = MagicMock(docs=[], total_results=0, ratings=[], sort=used)
+
+    mybooks.mybooks_readinglog().render_template(mb)
+    return mb
+
+
 @pytest.mark.parametrize(
     ("requested", "owners_page", "used", "asked_for", "shown"),
     [
@@ -368,17 +410,27 @@ async def test_reading_log_passes_sort_to_shelf_query(sort_order, expected):
         ("rating", False, "created desc", "desc", "desc"),
         ("title", False, "title", "title", "title"),
         ("title", True, "created desc", "title", "desc"),
+        ("title", True, None, "title", None),
     ],
 )
 def test_reading_log_menu_shows_the_sort_actually_used(monkeypatch, requested, owners_page, used, asked_for, shown):
-    monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, sort=requested))
-    monkeypatch.setattr(mybooks, "add_availability", lambda docs, mode: docs)
-    monkeypatch.setattr(mybooks, "get_internet_archive_id", lambda key: "")
-    monkeypatch.setattr(mybooks, "render", MagicMock())
-    mb = MagicMock(key="want-to-read", is_my_page=owners_page, counts={"want-to-read": 0})
-    mb.readlog.get_works.return_value = MagicMock(docs=[], total_results=0, ratings=[], sort=used)
-
-    mybooks.mybooks_readinglog().render_template(mb)
+    mb = _render_reading_log(monkeypatch, requested, owners_page, used=used)
 
     assert mb.readlog.get_works.call_args.kwargs["sort_order"] == asked_for
     assert mybooks.render["account/reading_log"].call_args.kwargs["sort_order"] == shown
+
+
+@pytest.mark.parametrize(
+    ("requested", "owners_page", "shelf_count", "asked_for", "unavailable"),
+    [
+        ("title", True, 10, "title", []),
+        ("rating", False, 10, "desc", ["rating"]),
+        ("title", True, Bookshelves.MAX_SOLR_ORDERED_SHELF_SIZE + 1, "desc", ["title", "old", "want_to_read"]),
+        ("rating", True, Bookshelves.MAX_SOLR_ORDERED_SHELF_SIZE + 1, "rating", ["title", "old", "want_to_read"]),
+    ],
+)
+def test_reading_log_menu_leaves_out_unavailable_sorts(monkeypatch, requested, owners_page, shelf_count, asked_for, unavailable):
+    mb = _render_reading_log(monkeypatch, requested, owners_page, shelf_count=shelf_count)
+
+    assert mb.readlog.get_works.call_args.kwargs["sort_order"] == asked_for
+    assert mybooks.render["account/reading_log"].call_args.kwargs["unavailable_sorts"] == unavailable
