@@ -2,7 +2,7 @@
 // status of an existing review, or skips, and writes the range, diff and settings the model reads.
 'use strict';
 
-const { parseReviewMarker, unresolvedThreadCount } = require('./shared.cjs');
+const { filterDiff, parseReviewMarker, unresolvedThreadCount } = require('./shared.cjs');
 
 async function resolveRange({ github, context, core, require, process }) {
     const fs = require('fs');
@@ -30,7 +30,7 @@ async function resolveRange({ github, context, core, require, process }) {
 
     const head = pr.head.sha;
 
-    // Incremental: diff from the commit of the bot's newest review.
+    // Incremental: only the files changed since the bot's newest review.
     const reviews = await github.paginate(github.rest.pulls.listReviews, {
         owner,
         repo,
@@ -41,21 +41,50 @@ async function resolveRange({ github, context, core, require, process }) {
     const prior = ours.length ? ours[ours.length - 1] : null;
 
     let base = pr.base.sha,
-        incremental = false;
+        incremental = false,
+        files = null;
     if (prior && prior.commit_id !== head) {
         // Use the prior SHA only if it is an ancestor of head. After a force-push it may not be,
         // and diffing from it would review the wrong changes.
         try {
-            const cmp = await github.rest.repos.compareCommitsWithBasehead({
+            const { data: since } = await github.rest.repos.compareCommitsWithBasehead({
                 owner,
                 repo,
                 basehead: `${prior.commit_id}...${head}`
             });
-            if (cmp.data.status === 'ahead' && cmp.data.files && cmp.data.files.length) {
-                base = prior.commit_id;
+            if (since.status === 'ahead' && since.files && since.files.length) {
+                // The PR's own commits and its merge base, as GitHub's PR diff has them.
+                const { data: own } = await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${pr.base.ref}...${head}` });
+                if (since.total_commits > since.commits.length || own.total_commits > own.commits.length) throw new Error('too many commits');
+                const ownShas = new Set(own.commits.map(c => c.sha));
+                // The author's commits since the last review. Commits from the base branch are not PR
+                // commits, and a merge whose second parent is not a PR commit only merges the base in.
+                const authored = since.commits.filter(c => ownShas.has(c.sha) && !(c.parents.length === 2 && !ownShas.has(c.parents[1].sha)));
+                if (!authored.length) {
+                    // Nothing new to review: `status` carries the last review's verdict, no model runs.
+                    core.info('Only base branch merges since the last review -- reposting its verdict.');
+                    core.setOutput('pr', String(prNumber));
+                    core.setOutput('head_sha', head);
+                    core.setOutput('verdict_sha', prior.commit_id);
+                    core.setOutput('skip', 'false');
+                    core.setOutput('repost', 'true');
+                    return;
+                }
+                // Review the PR's diff, limited to the files those commits touched, so every line
+                // the model can comment on is in the PR's diff.
+                const touched = new Set();
+                for (const c of authored) {
+                    const { data: commit } = await github.rest.repos.getCommit({ owner, repo, ref: c.sha });
+                    for (const f of commit.files || []) {
+                        touched.add(f.filename);
+                        if (f.previous_filename) touched.add(f.previous_filename);
+                    }
+                }
+                base = own.merge_base_commit.sha;
+                files = [...touched].sort();
                 incremental = true;
             } else {
-                core.info(`Prior review commit is ${cmp.data.status} -- falling back to a full review.`);
+                core.info(`Prior review commit is ${since.status} -- falling back to a full review.`);
             }
         } catch (e) {
             core.info(`Could not compare against the prior review commit (${e.message}) -- full review.`);
@@ -137,7 +166,7 @@ async function resolveRange({ github, context, core, require, process }) {
         basehead: `${base}...${head}`,
         headers: { accept: 'application/vnd.github.v3.diff' }
     });
-    fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review.diff`, diff);
+    fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review.diff`, files ? filterDiff(diff, files) : diff);
     // Settings from the base checkout's .pr_agent.toml, so a PR can't change them. Later steps use
     // these outputs, which the model cannot change; the model reads review-config.json.
     const reviewConfig = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/config.cjs`);
@@ -146,6 +175,9 @@ async function resolveRange({ github, context, core, require, process }) {
     core.setOutput('off_dimensions', JSON.stringify(reviewConfig.offDimensions(settings)));
     core.setOutput('inline_key_issues', String(settings.pr_reviewer.inline_key_issues));
     core.setOutput('ticket_analysis', String(settings.pr_reviewer.require_ticket_analysis_review));
+    // Empty when push reviews are off. `post` words the review's tip from it.
+    const pushReviews = settings.github_action_config.handle_push_trigger;
+    core.setOutput('push_review_minutes', pushReviews ? String(settings.openlibrary_reviewer.push_review_delay_minutes) : '');
     fs.writeFileSync(
         `${process.env.GITHUB_WORKSPACE}/review-range.json`,
         JSON.stringify(
@@ -154,7 +186,9 @@ async function resolveRange({ github, context, core, require, process }) {
                 base_sha: base,
                 head_sha: head,
                 incremental,
-                prior_review_at: prior ? prior.submitted_at : null
+                prior_review_sha: incremental ? prior.commit_id : null,
+                prior_review_at: prior ? prior.submitted_at : null,
+                files
             },
             null,
             2
@@ -207,9 +241,10 @@ async function resolveRange({ github, context, core, require, process }) {
     // `post` takes the range from these outputs, not from review-range.json, which the model can rewrite.
     core.setOutput('base_sha', base);
     core.setOutput('incremental', String(incremental));
+    core.setOutput('files', files ? JSON.stringify(files) : '');
     core.setOutput('skip', 'false');
     core.setOutput('repost', 'false');
-    core.info(`PR #${prNumber}: ${incremental ? 'incremental' : 'full'} review, ${base.slice(0, 8)}..${head.slice(0, 8)}`);
+    core.info(`PR #${prNumber}: ${incremental ? `incremental review of ${files.length} file(s)` : 'full review'}, ${base.slice(0, 8)}..${head.slice(0, 8)}`);
 }
 
 module.exports = { resolveRange };

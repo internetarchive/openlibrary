@@ -21,4 +21,17 @@ const unresolvedThreadCount = threads => {
     return threads.reduce((n, t) => n + (!t.isResolved && !t.isOutdated ? 1 : 0), 0);
 };
 
-module.exports = { headIsCurrent, parseReviewMarker, unresolvedThreadCount };
+// The parts of a unified diff for the given paths (old or new name). A re-review sees only these,
+// and `post` validates anchors against the same cut.
+const filterDiff = (diff, paths) => {
+    const want = new Set(paths);
+    return String(diff)
+        .split(/^(?=diff --git )/m)
+        .filter(part => {
+            const m = /^diff --git a\/(.*) b\/(.*)\n/.exec(part);
+            return m && (want.has(m[1]) || want.has(m[2]));
+        })
+        .join('');
+};
+
+module.exports = { headIsCurrent, parseReviewMarker, unresolvedThreadCount, filterDiff };

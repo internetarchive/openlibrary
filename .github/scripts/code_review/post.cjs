@@ -3,7 +3,7 @@
 'use strict';
 
 const gate = require('./gate.cjs');
-const { headIsCurrent } = require('./shared.cjs');
+const { filterDiff, headIsCurrent } = require('./shared.cjs');
 
 // The review's verdict. Only APPROVE or REQUEST_CHANGES clears a pending review request; COMMENT
 // leaves it pending. Findings request changes. A clean review approves only when none of the bot's
@@ -82,8 +82,15 @@ const renderTicketCompliance = (entries, owner, repo) => {
 
 async function refetchDiff({ github, context, core, require, process }) {
     const sha = /^[0-9a-f]{40}$/;
-    const { BASE_SHA: base, HEAD_SHA: head } = process.env;
-    if (!sha.test(base) || !sha.test(head)) {
+    const { BASE_SHA: base, HEAD_SHA: head, FILES: files } = process.env;
+    let paths = null;
+    try {
+        paths = files ? JSON.parse(files) : null;
+    } catch (e) {
+        paths = undefined;
+    }
+    const pathsOk = paths === null || (Array.isArray(paths) && paths.every(p => typeof p === 'string'));
+    if (!sha.test(base) || !sha.test(head) || !pathsOk) {
         core.setFailed('Unexpected review range.');
         return;
     }
@@ -93,7 +100,8 @@ async function refetchDiff({ github, context, core, require, process }) {
         basehead: `${base}...${head}`,
         headers: { accept: 'application/vnd.github.v3.diff' }
     });
-    require('fs').writeFileSync('review.diff', diff);
+    // A re-review covers only the files analyze listed, before the model ran.
+    require('fs').writeFileSync('review.diff', paths ? filterDiff(diff, paths) : diff);
 }
 
 async function validateAndPost({ github, context, core, require, process }) {
@@ -149,6 +157,7 @@ async function validateAndPost({ github, context, core, require, process }) {
 
     // Low severity findings are listed as suggestions in the summary, not as threads, which block.
     const inline = [],
+        inlineFindings = [],
         orphaned = [],
         suggestions = [];
     for (const f of review.findings || []) {
@@ -189,48 +198,56 @@ async function validateAndPost({ github, context, core, require, process }) {
             c.start_side = 'RIGHT';
         }
         inline.push(c);
+        inlineFindings.push(f);
     }
 
     // Summary. Findings without a valid anchor go here rather than on an approximate line.
     const findingCount = inline.length + orphaned.length; // blocking findings only (LOW excluded)
-    let summary = review.summary || '';
-    // The range comes from analyze's job outputs, set before the model ran.
-    const sha = /^[0-9a-f]{40}$/,
-        baseSha = process.env.BASE_SHA;
-    if (process.env.INCREMENTAL === 'true' && sha.test(baseSha) && sha.test(headSha)) {
-        summary = `*Reviewing only the ${baseSha.slice(0, 8)}..${headSha.slice(0, 8)} range — the commits pushed since my last pass.*\n\n${summary}`;
-    }
+    const baseSha = process.env.BASE_SHA;
+    // A function, so a rejected post can render it again with every finding in the summary.
+    const renderSummary = () => {
+        let summary = review.summary || '';
+        // The range comes from analyze's job outputs, set before the model ran.
+        if (process.env.INCREMENTAL === 'true') {
+            summary = `*Re-reviewing only the files changed since my last pass. Merges of the base branch are skipped.*\n\n${summary}`;
+        }
 
-    summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
+        summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
 
-    // State every dimension, because leaving one out reads the same as having checked it.
-    // Security is a fixed line: a review with a security finding never gets this far.
-    const count = {};
-    for (const f of review.findings) count[f.dimension] = (count[f.dimension] || 0) + 1;
-    summary += `\n\n### Dimensions\n\n${Object.entries(gate.dimensions)
-        .map(([k, label]) => {
-            if (k === 'security') return `- **${label}** — no findings in this range. This is not a security audit.`;
-            if (count[k]) return `- **${label}** — ${count[k]} finding${count[k] === 1 ? '' : 's'}`;
-            return `- **${label}** — no findings. ${review.dimensions[k].note}`;
-        })
-        .join('\n')}`;
-
-    if (orphaned.length) {
-        summary += `\n\n### ${inlineKeyIssues ? 'Findings without an in-diff anchor' : 'Findings'}\n\n${orphaned
-            .map(
-                f =>
-                    `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body).replace(/\n/g, '\n  ')}`
-            )
-            .join('\n\n')}`;
-    }
-    if (suggestions.length) {
-        summary += `\n\n### Suggestions (won't block)\n\n${suggestions
-            .map(f => `- **${f.title}**${f.path ? ` (\`${f.path}${f.line ? `:${f.line}` : ''}\`)` : ''}: ${String(f.body).replace(/\n/g, ' ')}`)
+        // State every dimension, because leaving one out reads the same as having checked it.
+        // Security is a fixed line: a review with a security finding never gets this far.
+        const count = {};
+        for (const f of review.findings) count[f.dimension] = (count[f.dimension] || 0) + 1;
+        summary += `\n\n### Dimensions\n\n${Object.entries(gate.dimensions)
+            .map(([k, label]) => {
+                if (k === 'security') return `- **${label}** — no findings in this range. This is not a security audit.`;
+                if (count[k]) return `- **${label}** — ${count[k]} finding${count[k] === 1 ? '' : 's'}`;
+                return `- **${label}** — no findings. ${review.dimensions[k].note}`;
+            })
             .join('\n')}`;
-    }
-    // A contributor without write access can't re-request a review, but can comment.
-    summary += `\n\n---\n> [!TIP]\n> When you've addressed the feedback and pushed your changes, comment \`@openlibrary-bot review\` on this PR to run a fresh review.`;
-    summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
+
+        if (orphaned.length) {
+            summary += `\n\n### ${inlineKeyIssues ? 'Findings without an in-diff anchor' : 'Findings'}\n\n${orphaned
+                .map(
+                    f =>
+                        `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body).replace(/\n/g, '\n  ')}`
+                )
+                .join('\n\n')}`;
+        }
+        if (suggestions.length) {
+            summary += `\n\n### Suggestions (won't block)\n\n${suggestions
+                .map(f => `- **${f.title}**${f.path ? ` (\`${f.path}${f.line ? `:${f.line}` : ''}\`)` : ''}: ${String(f.body).replace(/\n/g, ' ')}`)
+                .join('\n')}`;
+        }
+        // A contributor without write access can't re-request a review, but can comment.
+        const minutes = process.env.PUSH_REVIEW_MINUTES;
+        summary += /^\d+$/.test(minutes || '')
+            ? `\n\n---\n> [!TIP]\n> A new review starts automatically about ${minutes} minutes after your last push. To start it sooner, a maintainer can re-request a review, or you can comment \`@openlibrary-bot review\` on this PR.`
+            : `\n\n---\n> [!TIP]\n> When you've addressed the feedback and pushed your changes, comment \`@openlibrary-bot review\` on this PR to run a fresh review.`;
+        summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md). This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
+        return summary;
+    };
+    let summary = renderSummary();
 
     // If the head moved since the review, post nothing (see headIsCurrent).
     const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
@@ -325,28 +342,37 @@ async function validateAndPost({ github, context, core, require, process }) {
     let event = selectReviewEvent({ selfAuthored, findingCount, unresolvedOwnThreads });
 
     // One batched review. POST /pulls/{n}/comments returns 422 `pull_request_review_thread.base`
-    // in practice (cli/cli#13358), while the same anchors in a batched review work. If a verdict
-    // is rejected with 422 anyway, fall back to COMMENT rather than fail.
-    const postReview = ev =>
+    // in practice (cli/cli#13358), while the same anchors in a batched review work. On a 422,
+    // first move the inline comments into the summary (GitHub rejects a line it can't find in the
+    // PR's diff), then fall back from a verdict to COMMENT, rather than fail and lose the review.
+    const postReview = () =>
         github.rest.pulls.createReview({
             owner,
             repo,
             pull_number: prNumber,
             commit_id: headSha,
-            event: ev,
+            event,
             body: summary,
             comments: inline
         });
     let posted;
-    try {
-        ({ data: posted } = await postReview(event));
-    } catch (e) {
-        if (event !== 'COMMENT' && e && e.status === 422) {
-            core.warning(`Verdict ${event} was rejected (422); posting as COMMENT instead.`);
-            event = 'COMMENT';
-            ({ data: posted } = await postReview(event));
-        } else {
-            throw e;
+    for (;;) {
+        try {
+            ({ data: posted } = await postReview());
+            break;
+        } catch (e) {
+            if (!e || e.status !== 422) throw e;
+            if (inline.length) {
+                core.warning(`The review was rejected (422: ${e.message}); posting it again with the inline comments in the summary.`);
+                orphaned.push(...inlineFindings);
+                inline.length = 0;
+                summary = renderSummary();
+            } else if (event !== 'COMMENT') {
+                core.warning(`Verdict ${event} was rejected (422); posting as COMMENT instead.`);
+                event = 'COMMENT';
+            } else {
+                throw e;
+            }
         }
     }
 

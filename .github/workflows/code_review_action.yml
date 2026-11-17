@@ -1,7 +1,8 @@
 name: Code Review Action
 
 # @openlibrary-bot's code review (instructions in code_review.md). It posts one review with inline
-# comments, and a re-review covers only the commits since its last one. The JavaScript the steps
+# comments. A re-review covers the PR's diff in the files changed since its last one, skipping merges
+# of the base branch. The JavaScript the steps
 # run lives in .github/scripts/code_review/.
 #
 # Jobs:
@@ -101,6 +102,11 @@ jobs:
       skip: ${{ steps.range.outputs.skip }}
       # From .pr_agent.toml, read before the model ran.
       inline_key_issues: ${{ steps.range.outputs.inline_key_issues }}
+      push_review_minutes: ${{ steps.range.outputs.push_review_minutes }}
+      # On a re-review, the files it covers (JSON), set before the model ran. `post` cuts its diff to them.
+      files: ${{ steps.range.outputs.files }}
+      # On a repost after only base merges, the commit whose review carries the verdict.
+      verdict_sha: ${{ steps.range.outputs.verdict_sha }}
       # 'true' when this head was already reviewed but its status is missing or wrong: `post` is
       # skipped and `status` re-posts the status from the existing review.
       repost: ${{ steps.range.outputs.repost }}
@@ -244,6 +250,7 @@ jobs:
         env:
           BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
           HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
+          FILES: ${{ needs.analyze.outputs.files }}
         with:
           script: |
             const { refetchDiff } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/post.cjs`);
@@ -257,6 +264,7 @@ jobs:
           BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
           INCREMENTAL: ${{ needs.analyze.outputs.incremental }}
           INLINE_KEY_ISSUES: ${{ needs.analyze.outputs.inline_key_issues }}
+          PUSH_REVIEW_MINUTES: ${{ needs.analyze.outputs.push_review_minutes }}
         with:
           # Fine-grained PAT with only Pull requests: read and write, on this repo.
           github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
@@ -361,6 +369,7 @@ jobs:
           WITHHELD: ${{ needs.analyze.outputs.withheld }}
           WITHHELD_BLOCKING: ${{ needs.analyze.outputs.withheld_blocking }}
           REPOST: ${{ needs.analyze.outputs.repost }}
+          VERDICT_SHA: ${{ needs.analyze.outputs.verdict_sha }}
           BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
           INCREMENTAL: ${{ needs.analyze.outputs.incremental }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
