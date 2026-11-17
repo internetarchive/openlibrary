@@ -23,7 +23,7 @@ const core = () => {
     return { out, info: () => {}, setOutput: (k, v) => (out[k] = v) };
 };
 
-function mockGitHub({ statuses = [], reviews = [], parents = [SHA('p')], cmpStatus = 'diverged', live = {} } = {}) {
+function mockGitHub({ statuses = [], reviews = [], requested = { teams: [], users: [] }, parents = [SHA('p')], cmpStatus = 'diverged', live = {} } = {}) {
     const calls = { statuses: [], removed: [], requested: [] };
     const github = {
         paginate: async (method, params) => (await method(params)).data,
@@ -36,6 +36,7 @@ function mockGitHub({ statuses = [], reviews = [], parents = [SHA('p')], cmpStat
             },
             pulls: {
                 listReviews: async () => ({ data: reviews }),
+                listRequestedReviewers: async () => ({ data: requested }),
                 get: async () => ({ data: { head: { sha: SHA('a') }, state: 'open', draft: false, ...live } }),
                 removeRequestedReviewers: async p => calls.removed.push(p),
                 requestReviewers: async p => calls.requested.push(p)
@@ -75,6 +76,14 @@ test('push reviews off: a reviewed PR asks for a re-request instead', async () =
     const { posted, minutes } = await mark(mockGitHub({ reviews: reviewed }), context(), settings({ handle_push_trigger: false }));
     assert.match(posted[0].description, /Re-request review from openlibrary-bot/);
     assert.equal(minutes, undefined);
+});
+test('a push while the first review is still running (team requested, no review yet) still asks for one', async () => {
+    const { minutes } = await mark(mockGitHub({ requested: { teams: [{ slug: 'openlibrary-agentic-code-reviewer' }], users: [] } }));
+    assert.equal(minutes, '10');
+});
+test('a re-requested bot user also counts as a requested review', async () => {
+    const { minutes } = await mark(mockGitHub({ requested: { teams: [], users: [{ login: 'openlibrary-bot' }] } }));
+    assert.equal(minutes, '10');
 });
 test('a PR never reviewed is not reviewed on push: a maintainer requests the first review', async () => {
     const { posted, minutes } = await mark(mockGitHub());

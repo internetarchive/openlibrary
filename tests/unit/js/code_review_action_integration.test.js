@@ -157,7 +157,7 @@ test('D1 post: head MOVED -> createReview is NOT called', async () => {
     assert.equal(calls.createReview.length, 0, 'a review must NOT post on a head the run did not review');
     assert.equal(res.failed, null, 'and it exits cleanly, not failed');
 });
-test('D1 status: head MOVED -> createCommitStatus is NOT called', async () => {
+test('D1 status: head MOVED -> no verdict, only a pending "superseded" status on the reviewed SHA', async () => {
     const pinned = SHA('a'),
         live = SHA('c');
     const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: live } } }) });
@@ -172,7 +172,10 @@ test('D1 status: head MOVED -> createCommitStatus is NOT called', async () => {
         RUN_URL: 'u'
     };
     await runScript(status.postStatus, { github, context, env });
-    assert.equal(calls.createCommitStatus.length, 0, 'no status may be posted when the reviewed SHA is no longer the head');
+    assert.equal(calls.createCommitStatus.length, 1);
+    assert.equal(calls.createCommitStatus[0].sha, pinned);
+    assert.equal(calls.createCommitStatus[0].state, 'pending', 'no pass/fail verdict when the reviewed SHA is no longer the head');
+    assert.match(calls.createCommitStatus[0].description, /^Superseded by ccccccc/);
 });
 test('D1 status: head UNCHANGED + clean + a review actually posted -> success on the reviewed SHA', async () => {
     const head = SHA('a');
@@ -590,11 +593,11 @@ test('summary: a withheld review shows no findings count', async () => {
     assert.match(summary, /\| Findings \| — \|/);
     assert.ok(!/\d+ findings?/.test(summary), 'no count of withheld findings');
 });
-test('summary: head moved during the review -> says so and that no status was posted', async () => {
+test('summary: head moved during the review -> says the commit was superseded', async () => {
     const { github } = mockGitHub({ prGet: async () => ({ data: { head: { sha: SHA('c') } } }) });
     const env = { PR: '7', HEAD_SHA: SHA('a'), POST_RESULT: 'success', RUN_URL: 'u' };
     const { summary } = await runScript(status.postStatus, { github, context, env });
-    assert.match(summary, /\| Status \| none: the PR moved to ccccccc during the review/);
+    assert.match(summary, /\| Status \| pending: superseded by ccccccc/);
 });
 
 // ===================== LOW findings are non-blocking suggestions =====================
