@@ -927,6 +927,66 @@ jobs:
               }
             }
 
+  # Posts code-review=pending; skipped if the head already has a status (analyze may skip and nothing would replace it).
+  pending:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'pull_request_target' &&
+        github.event.action == 'review_requested' &&
+        !github.event.pull_request.draft &&
+        github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer'
+      ) || (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request != null &&
+        contains(github.event.comment.body, '@openlibrary-bot') &&
+        github.event.comment.user.login != 'openlibrary-bot' &&
+        (
+          contains(fromJSON('["mekarpeles","cdrini","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login) ||
+          github.event.comment.user.login == github.event.issue.user.login
+        )
+      )
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      pr: ${{ steps.mark.outputs.pr }}
+      head_sha: ${{ steps.mark.outputs.head_sha }}
+    steps:
+      - name: Mark the head as review in progress
+        id: mark
+        continue-on-error: true
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          github-token: ${{ secrets.OL_BOT_COMMIT_STATUS_PAT }}
+          script: |
+            const owner = context.repo.owner, repo = context.repo.repo;
+            const prNumber = context.eventName === 'workflow_dispatch'
+              ? Number(context.payload.inputs.pr_number)
+              : (context.payload.pull_request
+                  ? context.payload.pull_request.number
+                  : context.payload.issue.number);
+
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            if ((pr.draft && context.eventName !== 'workflow_dispatch') || pr.state !== 'open') return;
+            const head = pr.head.sha;
+
+            const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, {
+              owner, repo, ref: head, per_page: 100,
+            });
+            if (statuses.some((s) => s.context === 'code-review')) return;
+
+            await github.rest.repos.createCommitStatus({
+              owner, repo, sha: head,
+              context: 'code-review',
+              state: 'pending',
+              target_url: process.env.RUN_URL,
+              description: 'Review in progress.',
+            });
+            core.setOutput('pr', String(prNumber));
+            core.setOutput('head_sha', head);
+
   # ----------------------------------------------------------------------------------------------
   # status -- the SHA-bound required merge signal (issue #14453 A/B). Posts commit status
   # `code-review` on the exact SHA that was reviewed; a branch-protection ruleset requires it.
@@ -967,8 +1027,8 @@ jobs:
   # from the review-body marker + live threads, so an already-reviewed head is never stranded without a
   # status. When a status IS present, analyze skips and the SHA-bound status is left intact (re-affirmed).
   status:
-    needs: [analyze, post]
-    if: always() && needs.analyze.outputs.skip == 'false'
+    needs: [analyze, post, pending]
+    if: always() && (needs.analyze.outputs.skip == 'false' || needs.pending.outputs.head_sha != '')
     runs-on: ubuntu-latest
     # No GITHUB_TOKEN scopes: the status post and the reviewThreads GraphQL both use the bot PAT
     # (github-token input below); no step here uses the default token. Least privilege -> none.
@@ -978,8 +1038,8 @@ jobs:
         id: decide
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          PR: ${{ needs.analyze.outputs.pr }}
-          HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
+          PR: ${{ needs.analyze.outputs.pr || needs.pending.outputs.pr }}
+          HEAD_SHA: ${{ needs.analyze.outputs.head_sha || needs.pending.outputs.head_sha }}
           POST_RESULT: ${{ needs.post.result }}
           # Count of PUBLIC findings this run, read as a DECLARED analyze-job OUTPUT -- produced by
           # the analyze-gate step IN THIS WORKFLOW (issue B.2: the count must not depend on a cross-PR
