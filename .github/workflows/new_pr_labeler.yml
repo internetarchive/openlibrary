@@ -7,10 +7,11 @@ on:  # zizmor: ignore[dangerous-triggers] -- FIX ME!
     # all -- no priority label, no lead, not even `Needs: Lead`. A PR opened ready
     # never emits `ready_for_review`, so this does not double-label.
     #
-    # Same trigger pair as auto_assign_reviewer.yml, which handles this correctly.
+    # Reopened also retries GFI assignment after the author comments on the issue.
     types:
       - opened
       - ready_for_review
+      - reopened
 env:
   NODE_VERSION: '24'
 jobs:
@@ -20,6 +21,10 @@ jobs:
     # Note this guard intentionally does NOT exclude fork-authored PRs -- those should
     # be labeled too, and pull_request_target keeps the write token needed to do it.
     if: ${{ github.repository == 'internetarchive/openlibrary' && !github.event.pull_request.draft }}
+    # Serialize opened/ready/reopened runs for this PR to avoid duplicate bot writes.
+    concurrency:
+      group: new-pr-labeler-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
     permissions:
       contents: read
       issues: write  # swaps Needs: Response for Needs: Review on issues the PR references
@@ -44,5 +49,6 @@ jobs:
       - run: node scripts/gh_scripts/new_pr_labeler.mjs ${{ github.repository }} ${GITHUB_EVENT_PULL_REQUEST_USER_LOGIN} ${{ github.event.pull_request.number }} "$PR_BODY"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
           PR_BODY: ${{ github.event.pull_request.body }}
           GITHUB_EVENT_PULL_REQUEST_USER_LOGIN: ${{ github.event.pull_request.user.login }}

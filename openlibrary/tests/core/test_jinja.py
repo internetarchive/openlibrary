@@ -613,4 +613,4 @@ def test_header_search_i18n_attributes_are_json_with_raw_placeholders(monkeypatc
     strings = json.loads(trigger["data-i18n-ui"])
     assert availability["all"]["label"] == "All books"
     assert strings["seeOne"] == "See %s book"
-    assert strings["resultsAnnounce"] == "Showing %s of %s results"
+    assert strings["resultsAnnounce"] == "Showing %(shown)s of %(total)s results"

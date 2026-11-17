@@ -298,3 +298,19 @@ def test_validate_rejects_type_change_only_babel_sees():
 )
 def test_form0_may_carry_plural_placeholders(msgid, form0, allowed):
     assert _form0_may_carry_plural_placeholders(Message(msgid, (form0,))) == allowed
+
+
+def test_check_source_strings_reports_each_location():
+    catalog = Catalog()
+    catalog.add("Showing %s of %s results", locations=[("a.py", 3), ("b.html", 7)])
+    catalog.add(("%(count)d file(s)", "%(count)d files"), locations=[("c.py", 1)])
+    catalog.add("See %s book", locations=[("d.py", 2)])
+    problems = i18n.check_source_strings(catalog)
+    assert [p.split(":")[0] for p in problems] == ["a.py", "b.html", "c.py"]
+    assert "unnamed placeholders" in problems[0]
+    assert "ungettext" in problems[2]
+
+
+def test_messages_pot_has_no_untranslatable_source_strings():
+    with open(os.path.join(root, "messages.pot"), "rb") as f:
+        assert i18n.check_source_strings(read_po(f)) == []

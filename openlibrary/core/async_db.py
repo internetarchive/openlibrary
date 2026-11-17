@@ -176,6 +176,15 @@ async def _pool_for_loop() -> Pool | None:
         return entry.pool
 
 
+def pool_stats() -> dict[str, int] | None:
+    """The running loop's pool statistics (``pool_size``, ``pool_available``, ``requests_waiting``, ...), or None without a pool."""
+    with _entries_lock:
+        entry = _entries.get(asyncio.get_running_loop())
+    if entry is None or entry.pool is None:
+        return None
+    return entry.pool.get_stats()
+
+
 async def init_pool() -> None:
     """Pre-warm the running loop's pool. Reuses an existing pool."""
     await _pool_for_loop()

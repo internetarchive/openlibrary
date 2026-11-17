@@ -179,7 +179,7 @@ class VisitorStats(Stats):
 
 def read_count_docs(site, ndays: int) -> list[dict]:
     """The daily count docs `scripts/store_counts.py` writes, oldest first, for the last `ndays` up to today. Days with no
-    doc are left out. Takes the site so FastAPI (`site.get()`) and web.py (`web.ctx.site`) can both read them."""
+    doc are left out. Takes the current site (`site.get()`) for both FastAPI and web.py callers."""
     today = date.today()
     dates = [today - timedelta(days=i) for i in reversed(range(ndays))]
     docs = [site.store.get(d.strftime("counts-%Y-%m-%d")) for d in dates]

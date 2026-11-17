@@ -2001,3 +2001,23 @@ describe('ol-shelf-actions analytics labels', () => {
         expect(events()).toEqual([['ShelfActions', 'Error', 'shelf:no-response']]);
     });
 });
+
+describe('ol-shelf-actions lists-only', () => {
+    test('an edition with no work says why the shelves and stars are missing', async () => {
+        stubFetch();
+        const el = await mount({ listsOnly: true, book: { key: '/books/OL7M', title: 'An orphan' } });
+        await tick(el);
+        expect(q(el, '.note').textContent).toContain('has no work record yet');
+        expect(q(el, '.header .heading').textContent).toBe('An orphan');
+        expect(q(el, '.lists-title')).toBeNull();
+        expect(q(el, '.group.shelves')).toBeNull();
+    });
+
+    test('an author needs no explanation', async () => {
+        stubFetch();
+        const el = await mount({ listsOnly: true, book: { key: '/authors/OL9A', title: 'An author' } });
+        await tick(el);
+        expect(q(el, '.lists-title').textContent).toBe('An author');
+        expect(q(el, '.note')).toBeNull();
+    });
+});

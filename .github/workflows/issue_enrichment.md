@@ -216,6 +216,10 @@ Always end every comment with `<!-- ol-issue-bot -->`.
 
 ### Comment structure
 
+**For an unassigned `Good First Issue`**, include this guidance when applying or retaining the label:
+
+> No assignment is needed for this Good First Issue. Before you start, read [how to pick up a Good First Issue](https://docs.openlibrary.org/developers/CONTRIBUTING.html#good-first-issues), and leave a comment here before you open your PR.
+
 **Opening line** (non-staff authors only — omit for staff):
 
 > Thank you @{author} for submitting this issue!

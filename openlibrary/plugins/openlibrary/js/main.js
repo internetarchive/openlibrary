@@ -56,7 +56,7 @@ $(function () {
     }
 
     // Open Library Tasks pages (/tasks)
-    if (document.querySelector('[data-contribute-list], [data-contribute-landing], [data-contribute-task], [data-contribute-done]')) {
+    if (document.querySelector('[data-contribute-list], [data-contribute-landing], [data-contribute-task], [data-contribute-done], [data-contribute-admin]')) {
         import('./contribute').then(module => module.init());
     }
 
@@ -193,12 +193,10 @@ $(function () {
         import('./lists/ListViewBody.js');
     }
 
-    // Enable any carousels in the page
-    const carouselElements = document.querySelectorAll('.carousel--progressively-enhanced');
-    if (carouselElements.length) {
-        import('./carousel').then(module => {
-            module.initialzeCarousels(carouselElements);
-        });
+    // Carousels rendered with the page (home/welcome.html, account/mybooks.html); lazy rows are set up by lazy-carousel.js.
+    const nativeCarousels = document.querySelectorAll('ol-carousel[data-config]');
+    if (nativeCarousels.length) {
+        import('./carousel/native.js').then(module => module.initNativeCarousels(nativeCarousels));
     }
     if (document.getElementById('chartPubHistory')) {
         import('./publishing_history').then(module => module.init());
