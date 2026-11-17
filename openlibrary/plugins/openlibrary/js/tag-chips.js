@@ -40,7 +40,7 @@ export function initTagChips(group) {
         event.target.closest('ol-chip').selected = event.detail.selected;
         sync();
     });
-    sync();
+    // No sync() on load: the server renders the picks, and an un-upgraded ol-chip has no ``selected`` property.
 }
 
 export function init() {
