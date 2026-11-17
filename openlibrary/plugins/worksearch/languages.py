@@ -91,7 +91,6 @@ class index(delegate.page):
         return True
 
 
-
 @dataclass
 class LanguageEngine(subjects.SubjectEngine):
     name: str = "language"
