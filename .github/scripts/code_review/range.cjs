@@ -59,8 +59,34 @@ async function resolveRange({ github, context, core, require, process }) {
                 const ownShas = new Set(own.commits.map(c => c.sha));
                 // The author's commits since the last review. Commits from the base branch are not PR
                 // commits, and a merge whose second parent is not a PR commit only merges the base in.
-                const authored = since.commits.filter(c => ownShas.has(c.sha) && !(c.parents.length === 2 && !ownShas.has(c.parents[1].sha)));
-                if (!authored.length) {
+                const ownSince = since.commits.filter(c => ownShas.has(c.sha));
+                const isBaseMerge = c => c.parents.length === 2 && !ownShas.has(c.parents[1].sha);
+                const authored = ownSince.filter(c => !isBaseMerge(c));
+                // GitHub lists at most 300 files per commit or compare; past that, review everything.
+                const filesOf = list => {
+                    if ((list || []).length >= 300) throw new Error('too many files in one commit');
+                    return list || [];
+                };
+                const touched = new Set();
+                const add = f => {
+                    touched.add(f.filename);
+                    if (f.previous_filename) touched.add(f.previous_filename);
+                };
+                for (const c of authored) {
+                    const { data: commit } = await github.rest.repos.getCommit({ owner, repo, ref: c.sha });
+                    filesOf(commit.files).forEach(add);
+                }
+                // A base merge can carry hand-resolved conflicts. Those files differ from both parents:
+                // they are in the merge's diff against the PR side and against the base side.
+                for (const m of ownSince.filter(isBaseMerge)) {
+                    const { data: commit } = await github.rest.repos.getCommit({ owner, repo, ref: m.sha });
+                    const { data: vsBase } = await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${m.parents[1].sha}...${m.sha}` });
+                    const fromBase = new Set(filesOf(vsBase.files).map(f => f.filename));
+                    filesOf(commit.files)
+                        .filter(f => fromBase.has(f.filename))
+                        .forEach(add);
+                }
+                if (!touched.size) {
                     // Nothing new to review: `status` carries the last review's verdict, no model runs.
                     core.info('Only base branch merges since the last review -- reposting its verdict.');
                     core.setOutput('pr', String(prNumber));
@@ -70,16 +96,8 @@ async function resolveRange({ github, context, core, require, process }) {
                     core.setOutput('repost', 'true');
                     return;
                 }
-                // Review the PR's diff, limited to the files those commits touched, so every line
-                // the model can comment on is in the PR's diff.
-                const touched = new Set();
-                for (const c of authored) {
-                    const { data: commit } = await github.rest.repos.getCommit({ owner, repo, ref: c.sha });
-                    for (const f of commit.files || []) {
-                        touched.add(f.filename);
-                        if (f.previous_filename) touched.add(f.previous_filename);
-                    }
-                }
+                // Review the PR's diff, limited to those files, so every line the model can comment on
+                // is in the PR's diff.
                 base = own.merge_base_commit.sha;
                 files = [...touched].sort();
                 incremental = true;

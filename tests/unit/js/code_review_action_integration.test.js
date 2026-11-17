@@ -639,7 +639,7 @@ const P = SHA('1'),
 const commit = (sha, ...parents) => ({ sha, parents: parents.map(p => ({ sha: p })) });
 const PR_DIFF =
     'diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -1 +1 @@\n+a\n' + 'diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1,2 @@\n+b\n+b2\n';
-function baseMergeGitHub({ sinceCommits }) {
+function baseMergeGitHub({ sinceCommits, mergeFiles = ['master_only.py'], authorFiles = ['b.py'] }) {
     const calls = { getCommit: [], compare: [] };
     const github = {
         rest: {
@@ -653,6 +653,9 @@ function baseMergeGitHub({ sinceCommits }) {
                 compareCommitsWithBasehead: async ({ basehead, headers }) => {
                     calls.compare.push(basehead);
                     if (headers) return { data: PR_DIFF };
+                    // The merge against its base-side parent: the PR's own changes, plus any conflict fixes.
+                    if (basehead === `${X2}...${M}`)
+                        return { data: { files: ['a.py', 'b.py', ...mergeFiles.filter(f => f !== 'master_only.py')].map(filename => ({ filename })) } };
                     if (basehead === `${P}...${A}`)
                         return { data: { status: 'ahead', files: [{}], total_commits: sinceCommits.length, commits: sinceCommits } };
                     // master...head: the PR's own commits.
@@ -661,7 +664,8 @@ function baseMergeGitHub({ sinceCommits }) {
                 },
                 getCommit: async ({ ref }) => {
                     calls.getCommit.push(ref);
-                    return { data: { files: ref === A ? [{ filename: 'b.py' }] : [{ filename: 'master_only.py' }] } };
+                    // A merge's own files are its diff against the PR-side parent: master's changes.
+                    return { data: { files: (ref === A ? authorFiles : mergeFiles).map(filename => ({ filename })) } };
                 }
             }
         },
@@ -678,7 +682,7 @@ test("range: a base merge plus one author commit reviews the PR diff for that co
     assert.equal(res.outputs.incremental, 'true');
     assert.equal(res.outputs.base_sha, MB, 'the PR diff, from the merge base');
     assert.equal(res.outputs.files, JSON.stringify(['b.py']));
-    assert.deepEqual(calls.getCommit, [A], "neither the merge nor master's own commits count");
+    assert.deepEqual(calls.getCommit, [A, M], "master's own commits are never read; the merge only for conflict fixes");
     assert.equal(readFileSync(join(dir, 'review.diff'), 'utf8'), 'diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1,2 @@\n+b\n+b2\n');
     const rangeJson = JSON.parse(readFileSync(join(dir, 'review-range.json'), 'utf8'));
     assert.equal(rangeJson.prior_review_sha, P);
@@ -690,7 +694,21 @@ test('range: only a base merge since the last review -> no model, carry the last
     assert.equal(res.outputs.skip, 'false');
     assert.equal(res.outputs.repost, 'true');
     assert.equal(res.outputs.verdict_sha, P);
-    assert.deepEqual(calls.getCommit, []);
+    assert.deepEqual(calls.getCommit, [M]);
+});
+test('range: a conflict fixed by hand in a base merge is re-reviewed', async () => {
+    // The merge changed a.py relative to both parents: the author resolved a conflict there.
+    const { github } = baseMergeGitHub({ sinceCommits: [commit(X1, MB), commit(X2, X1), commit(M, P, X2)], mergeFiles: ['master_only.py', 'a.py'] });
+    const res = await runScript(range.resolveRange, { github, context: prCtx, env: { GITHUB_WORKSPACE: dir }, cwd: dir });
+    assert.equal(res.outputs.repost, 'false', 'a resolved conflict is new code to review');
+    assert.equal(res.outputs.files, JSON.stringify(['a.py']));
+});
+test('range: a commit listing 300 files (GitHub truncates there) falls back to a full review', async () => {
+    const many = Array.from({ length: 300 }, (_, i) => `f${i}.py`);
+    const { github } = baseMergeGitHub({ sinceCommits: [commit(M, P, X2), commit(A, M)], authorFiles: many });
+    const res = await runScript(range.resolveRange, { github, context: prCtx, env: { GITHUB_WORKSPACE: dir }, cwd: dir });
+    assert.equal(res.outputs.incremental, 'false');
+    assert.equal(res.outputs.files || '', '');
 });
 test('status repost: carries the verdict of the review on VERDICT_SHA, an earlier commit', async () => {
     for (const [f, state] of [
