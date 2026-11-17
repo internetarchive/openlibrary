@@ -217,7 +217,7 @@ async function resolveRange({ github, context, core, require, process }) {
     // included: a fix usually edits the commented line, which is what makes a thread outdated.
     // `post` re-reads the live threads before resolving any of them. `replies` are the PR author's
     // and maintainers' answers, so the model can weigh them; other people can't get a finding dismissed.
-    const canAnswer = r => r.author.login === pr.user.login || ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(r.authorAssociation);
+    const canAnswer = r => r.author.login === pr.user?.login || ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(r.authorAssociation);
     const ownOpenThreads = (nodes, botLogin) => {
         const out = [];
         for (const t of nodes || []) {
