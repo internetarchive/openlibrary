@@ -183,14 +183,18 @@ def fake_initiatives(monkeypatch):
     return initiatives
 
 
+# Two people saved for an initiative: three saves and one.
+HELPER_ROWS = [web.storage(key="/people/ann", saves=3), web.storage(key="/people/bo", saves=1)]
+
+
 def today_kargs(db=None):
     now = datetime.now()
-    return {"thingdb": db or FakeDB(), "start": now.replace(hour=0, minute=0, second=0, microsecond=0), "end": now}
+    return {"thingdb": db or FakeDB(rows=HELPER_ROWS), "start": now.replace(hour=0, minute=0, second=0, microsecond=0), "end": now}
 
 
 def test_initiatives_counts_each_frozen_list_and_skips_the_rest(fake_initiatives):
     assert numbers.admin_range__initiatives(**today_kargs()) == {
-        "most-read-test": {"open": 1, "done": 1, "not_found": 1, "editions": 2, "percent": 91, "people": 7}
+        "most-read-test": {"open": 1, "done": 1, "not_found": 1, "editions": 2, "percent": 91, "people": 2, "helpers": [["ann", 3], ["bo", 1]]}
     }
     assert fake_initiatives.calls == [2]
 
@@ -203,17 +207,17 @@ def test_a_newly_frozen_initiative_is_counted_on_the_next_run(fake_initiatives):
 def test_initiatives_survive_a_run_that_crosses_midnight(fake_initiatives):
     "A run started at 23:5x reaches this after midnight; the window, not the clock, says it's today's."
     start = datetime(2026, 10, 29)
-    assert "most-read-test" in numbers.admin_range__initiatives(thingdb=FakeDB(), start=start, end=start.replace(hour=23, minute=55))
+    assert "most-read-test" in numbers.admin_range__initiatives(thingdb=FakeDB(rows=HELPER_ROWS), start=start, end=start.replace(hour=23, minute=55))
 
 
 def test_an_ended_initiative_carries_its_last_snapshot_forward(fake_initiatives):
     ended = fake_initiatives.registry[1]
     ended.ends_at = datetime(2026, 10, 1)
-    last = {"open": 3, "done": 40, "not_found": 2, "editions": 50, "percent": 90, "people": 12}
+    last = {"open": 3, "done": 40, "not_found": 2, "editions": 50, "percent": 90, "people": 12, "helpers": [["ann", 30]]}
     # Two nights missed: the newest doc within reach still has it.
     web.ctx.site.store["counts-2026-10-27"] = {"initiatives": {"genres-test": last}}
     start = datetime(2026, 10, 30)
-    counts = numbers.admin_range__initiatives(thingdb=FakeDB(), start=start, end=start.replace(hour=1))
+    counts = numbers.admin_range__initiatives(thingdb=FakeDB(rows=HELPER_ROWS), start=start, end=start.replace(hour=1))
     assert counts["genres-test"] == last
     # Never recounted: only the live one's list is read.
     assert fake_initiatives.calls == [2]
@@ -226,13 +230,25 @@ def test_initiatives_wait_for_the_web_app_to_freeze_a_list(fake_initiatives):
     assert fake_initiatives.calls == []
 
 
-def test_initiative_people_count_savers_since_the_freeze_by_tag_or_field(fake_initiatives):
-    db = FakeDB()
+def test_an_ended_initiative_from_before_helpers_were_named_gets_them_once(fake_initiatives):
+    ended = fake_initiatives.registry[0]
+    ended.ends_at = datetime(2026, 10, 1)
+    web.ctx.site.store["counts-2026-10-29"] = {"initiatives": {"most-read-test": {"open": 3, "percent": 90, "people": 12}}}
+    db = FakeDB(rows=HELPER_ROWS)
+    counts = numbers.admin_range__initiatives(thingdb=db, start=datetime(2026, 10, 30), end=datetime(2026, 10, 30, 1))
+    assert counts["most-read-test"] == {"open": 3, "percent": 90, "people": 2, "helpers": [["ann", 3], ["bo", 1]]}
+    [(q, vars)] = db.queries
+    assert "t.created < '2026-10-01T00:00:00'" in str(web.db.reparam(q, vars))
+
+
+def test_initiative_helpers_are_savers_since_the_freeze_by_tag_or_field(fake_initiatives):
+    db = FakeDB(rows=HELPER_ROWS)
     start = datetime(2026, 11, 2)
     numbers.admin_range__initiatives(thingdb=db, start=start, end=start.replace(hour=21))
     [(q, vars)] = db.queries
     sql = str(web.db.reparam(q, vars))
-    assert "count(DISTINCT t.author_id)" in sql
+    assert "GROUP BY th.key ORDER BY saves DESC" in sql
+    assert "si.name = 'status' AND si.value = 'blocked'" in sql
     assert "t.created >= '2026-10-28T12:00:00+00:00' AND t.created < '2026-11-02 21:00:00'" in sql
     assert "key = 'source' AND value = 'contribute'" in sql
     # A save tagged with an initiative counts only there; an untagged one by its field.

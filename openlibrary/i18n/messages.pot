@@ -4093,6 +4093,17 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
+#: contribute/admin/parts.html.jinja contribute/dashboard.html.jinja
+msgid "Getting the list ready…"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+#, python-format
+msgid "and 1 more"
+msgid_plural "and %(count)s more"
+msgstr[0] ""
+msgstr[1] ""
+
 #: contribute/admin/index.html.jinja contribute/dashboard.html.jinja contribute/faq.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
 msgid "Tasks"
 msgstr ""
@@ -4121,12 +4132,16 @@ msgstr ""
 msgid "Community projects"
 msgstr ""
 
-#: contribute/admin/parts.html.jinja contribute/dashboard.html.jinja
-msgid "Getting the list ready…"
+#: contribute/dashboard.html.jinja
+msgid "Completed"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
 msgid "Go further"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Thank you to everyone who helped"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
@@ -10227,6 +10242,13 @@ msgstr ""
 #, python-format
 msgid "%(count)s person helping"
 msgid_plural "%(count)s people helping"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "%(count)s person helped"
+msgid_plural "%(count)s people helped"
 msgstr[0] ""
 msgstr[1] ""
 
