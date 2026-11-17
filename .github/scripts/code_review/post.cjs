@@ -1,0 +1,469 @@
+// The `post` job: re-fetches the reviewed diff, runs gate.cjs again, and posts one batched review.
+// It publishes nothing the gate rejects, whatever `analyze` uploaded.
+'use strict';
+
+const gate = require('./gate.cjs');
+const { filterDiff, headIsCurrent } = require('./shared.cjs');
+
+// The review's verdict. Only APPROVE or REQUEST_CHANGES clears a pending review request; COMMENT
+// leaves it pending. Findings request changes. A clean review approves only when none of the bot's
+// own threads is still open, so it never approves while the status is red; an unknown (null)
+// count gives COMMENT. GitHub rejects (422) a verdict on your own PR, so the bot's PRs get COMMENT.
+const selectReviewEvent = ({ selfAuthored, findingCount, unresolvedOwnThreads }) => {
+    if (selfAuthored) return 'COMMENT';
+    if (findingCount > 0) return 'REQUEST_CHANGES';
+    if (unresolvedOwnThreads !== 0) return 'COMMENT';
+    return 'APPROVE';
+};
+
+// A COMMENT on the bot's own PR doesn't clear the team's review request, so `post` removes it.
+const shouldDismissTeamRequest = ({ selfAuthored, event }) => {
+    return selfAuthored && event === 'COMMENT';
+};
+
+// On a re-review, the threads the model listed as fixed (review.resolved) that are still open and
+// were started by the bot. An id the model invents, or a human's thread, is never touched.
+const threadsToResolve = ({ threads, resolvedIds, botLogin }) => {
+    const want = new Set(resolvedIds || []);
+    const out = [];
+    for (const t of threads || []) {
+        if (!t || t.isResolved || !want.has(t.id)) continue;
+        const c = t.comments && t.comments.nodes && t.comments.nodes[0];
+        if (!c || !c.author || c.author.login !== botLogin) continue;
+        out.push(t.id);
+    }
+    return out;
+};
+
+// The commit to credit in the "Addressed in" note: the newest commit in this run's range that touched
+// the thread's file (the fix is usually there), else the reviewed head. rangeShas is newest-first.
+const fixedInSha = ({ rangeShas, pathShas, headSha }) => {
+    const inRange = new Set(rangeShas || []);
+    for (const sha of pathShas || []) if (inRange.has(sha)) return sha;
+    return headSha;
+};
+
+// The collapsed "Prompt for AI agents" block under a finding, for a reader to paste into a coding
+// agent. Only the gate's clean fields: no PR text, which could carry instructions for that agent.
+const agentPrompt = (f, inThread) => {
+    const where = f.path ? ` At \`${f.path}\`${f.line ? `, line \`${f.line}\`` : ''}:` : '';
+    const reply = inThread ? 'reply in its thread with the reason and resolve the thread' : 'say why in a comment on the PR';
+    const text = `Check if this issue is valid — if so, understand the root cause and fix it. If it isn't valid or won't be fixed in this PR, ${reply}.${where}\n\n<comment>${f.title}\n\n${f.body}</comment>`;
+    // A fence longer than any run of backticks inside, so the text can't close it.
+    const fence = '`'.repeat(Math.max(3, ...(text.match(/`+/g) || []).map(run => run.length + 1)));
+    return `\n\n<details>\n<summary>Prompt for AI agents</summary>\n\n${fence}text\n${text}\n${fence}\n\n</details>`;
+};
+
+// The line a re-review's summary opens with: what happened to the bot's earlier threads.
+const threadStateLine = ({ addressed, dismissed, open }) => {
+    const parts = [];
+    if (addressed) parts.push(`${addressed} addressed`);
+    if (dismissed) parts.push(`${dismissed} dismissed`);
+    if (open) parts.push(`${open} still open`);
+    if (!parts.length) return '';
+    return `${open ? '' : '✅ '}Earlier findings: ${parts.join(', ')}.`;
+};
+
+// The ticket compliance section, as PR-Agent's ticket_markdown_logic (pr_agent/algo/utils.py)
+// renders it. Each issue's level is computed from the model's lists, not chosen by the model.
+// Only this repo's issues are shown. It does not affect the verdict or the status.
+const renderTicketCompliance = (entries, owner, repo) => {
+    const prefix = `https://github.com/${owner}/${repo}/issues/`.toLowerCase();
+    const bullets = list => list.map(s => `- ${String(s).replace(/\s*\n\s*/g, ' ')}`).join('\n');
+    const levels = [];
+    let out = '';
+    for (const t of entries || []) {
+        if (!String(t.ticket_url).toLowerCase().startsWith(prefix)) continue;
+        const met = t.fully_compliant_requirements,
+            notMet = t.not_compliant_requirements,
+            human = t.requires_further_human_verification;
+        if (!met.length && !notMet.length && !human.length) continue;
+        const level = met.length
+            ? notMet.length
+                ? 'Partially compliant'
+                : human.length
+                  ? 'PR Code Verified'
+                  : 'Fully compliant'
+            : notMet.length
+              ? 'Not compliant'
+              : 'PR Code Verified';
+        levels.push(level);
+        out += `\n\n**[#${t.ticket_url.split('/').pop()}](${t.ticket_url}) - ${level}**`;
+        if (met.length) out += `\n\nCompliant requirements:\n\n${bullets(met)}`;
+        if (notMet.length) out += `\n\nNon-compliant requirements:\n\n${bullets(notMet)}`;
+        if (human.length) out += `\n\nRequires further human verification:\n\n${bullets(human)}`;
+    }
+    if (!levels.length) return '';
+    // Overall, as in PR-Agent: any mix of Fully compliant and PR Code Verified passes.
+    let mark = '✅';
+    if (levels.includes('Not compliant')) mark = levels.every(l => l === 'Not compliant') ? '❌' : '🔶';
+    else if (levels.includes('Partially compliant')) mark = '🔶';
+    return `\n\n### 🎫 Ticket compliance analysis ${mark}${out}`;
+};
+
+async function refetchDiff({ github, context, core, require, process }) {
+    const sha = /^[0-9a-f]{40}$/;
+    const { BASE_SHA: base, HEAD_SHA: head, FILES: files } = process.env;
+    let paths = null;
+    try {
+        paths = files ? JSON.parse(files) : null;
+    } catch (e) {
+        paths = undefined;
+    }
+    const pathsOk = paths === null || (Array.isArray(paths) && paths.every(p => typeof p === 'string'));
+    if (!sha.test(base) || !sha.test(head) || !pathsOk) {
+        core.setFailed('Unexpected review range.');
+        return;
+    }
+    const { data: diff } = await github.rest.repos.compareCommitsWithBasehead({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        basehead: `${base}...${head}`,
+        headers: { accept: 'application/vnd.github.v3.diff' }
+    });
+    // A re-review covers only the files analyze listed, before the model ran.
+    require('fs').writeFileSync('review.diff', paths ? filterDiff(diff, paths) : diff);
+}
+
+async function validateAndPost({ github, context, core, require, process }) {
+    const fs = require('fs');
+    const owner = context.repo.owner,
+        repo = context.repo.repo;
+    const prNumber = Number(process.env.PR);
+    const headSha = process.env.HEAD_SHA;
+    const inlineKeyIssues = process.env.INLINE_KEY_ISSUES !== 'false';
+
+    // Nothing below runs unless the gate passes.
+    let review = null;
+    try {
+        review = JSON.parse(fs.readFileSync('review.json', 'utf8'));
+    } catch (e) {
+        review = null;
+    }
+    const verdict = gate.check(review);
+    if (!verdict.publish) {
+        // Return without failing: the status job decides pass or fail from analyze's outputs. Log no
+        // reason, count or text, because the log is public.
+        core.info('Nothing public to post for this commit; the code-review status job decides the gate.');
+        return;
+    }
+    // Everything below renders from the allowlisted copy only.
+    review = verdict.clean;
+
+    // Lines a comment can anchor to: the right side (added and context lines) of the diff.
+    // GitHub doesn't document what happens with an anchor outside the diff, so findings with one
+    // go in the summary instead.
+    const anchorable = new Map();
+    {
+        let file = null,
+            newLn = 0;
+        for (const raw of fs.readFileSync('review.diff', 'utf8').split(/\r?\n/)) {
+            if (raw.startsWith('+++ ')) {
+                const p = raw.slice(4).trim();
+                file = p === '/dev/null' ? null : p.replace(/^b\//, '');
+                if (file) anchorable.set(file, new Map());
+                continue;
+            }
+            const h = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+            if (h) {
+                newLn = Number(h[1]);
+                continue;
+            }
+            if (!file) continue;
+            if (raw.startsWith('+') || raw.startsWith(' ')) {
+                anchorable.get(file).set(newLn++, raw.slice(1));
+            }
+        }
+    }
+
+    // Low severity findings are listed as suggestions in the summary, not as threads, which block.
+    const inline = [],
+        inlineFindings = [],
+        orphaned = [],
+        suggestions = [];
+    for (const f of review.findings || []) {
+        if (f.severity === 'low') {
+            suggestions.push(f);
+            continue;
+        }
+        // .pr_agent.toml inline_key_issues = false keeps every finding in the review summary.
+        if (!inlineKeyIssues) {
+            orphaned.push(f);
+            continue;
+        }
+        const hasAnchor = f.path && f.line;
+        const start = f.start_line || f.line;
+        const ok =
+            hasAnchor &&
+            anchorable.has(f.path) &&
+            anchorable.get(f.path).has(Number(f.line)) &&
+            anchorable.get(f.path).has(Number(start)) &&
+            Number(start) <= Number(f.line);
+        if (!ok) {
+            orphaned.push(f);
+            continue;
+        }
+
+        let body = `**${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`;
+        // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
+        if (f.suggestion != null) {
+            // A suggestion must replace exactly start..line, and change something, or it is no use.
+            const want = Number(f.line) - Number(start) + 1;
+            const got = String(f.suggestion).split('\n').length;
+            const current = Array.from({ length: want }, (_, i) => anchorable.get(f.path).get(Number(start) + i)).join('\n');
+            // Longer than any backtick run inside, so the suggestion can't close the fence.
+            const fence = '`'.repeat(Math.max(2, ...(f.suggestion.match(/`+/g) || []).map(r => r.length)) + 1);
+            if (want !== got) core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (${got} lines for a ${want}-line range).`);
+            else if (f.suggestion === current) core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (no change).`);
+            else body += `\n\n${fence}suggestion\n${f.suggestion}\n${fence}`;
+        }
+        body += agentPrompt(f, true);
+        const c = { path: f.path, line: Number(f.line), side: 'RIGHT', body };
+        if (Number(start) !== Number(f.line)) {
+            c.start_line = Number(start);
+            c.start_side = 'RIGHT';
+        }
+        inline.push(c);
+        inlineFindings.push(f);
+    }
+
+    // Summary. Findings without a valid anchor go here rather than on an approximate line.
+    const findingCount = inline.length + orphaned.length; // blocking findings only (LOW excluded)
+    const baseSha = process.env.BASE_SHA;
+    // Set once the earlier threads are handled; the summary opens with it.
+    let stateLine = '';
+    // A function, so a rejected post can render it again with every finding in the summary.
+    const renderSummary = () => {
+        let summary = review.summary || '';
+        // The range comes from analyze's job outputs, set before the model ran.
+        if (process.env.INCREMENTAL === 'true') {
+            summary = `*Re-reviewing only the files changed since my last pass. Merges of the base branch are skipped.*\n\n${summary}`;
+        }
+        if (stateLine) summary = `${stateLine}\n\n${summary}`;
+
+        summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
+
+        // State every dimension, because leaving one out reads the same as having checked it.
+        // Security is a fixed line: a review with a security finding never gets this far.
+        const count = {};
+        for (const f of review.findings) count[f.dimension] = (count[f.dimension] || 0) + 1;
+        summary += `\n\n<details>\n<summary>Dimensions</summary>\n\n${Object.entries(gate.dimensions)
+            .map(([k, label]) => {
+                if (k === 'security') return `- **${label}** — no findings in this range. This is not a security audit.`;
+                if (count[k]) return `- **${label}** — ${count[k]} finding${count[k] === 1 ? '' : 's'}`;
+                return `- **${label}** — no findings. ${review.dimensions[k].note}`;
+            })
+            .join('\n')}\n\n</details>`;
+
+        if (orphaned.length) {
+            summary += `\n\n### ${inlineKeyIssues ? 'Findings without an in-diff anchor' : 'Findings'}\n\n${orphaned
+                .map(
+                    f =>
+                        `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body + agentPrompt(f, false)).replace(/\n/g, '\n  ')}`
+                )
+                .join('\n\n')}`;
+        }
+        if (suggestions.length) {
+            summary += `\n\n### Suggestions (won't block)\n\n${suggestions
+                .map(
+                    f =>
+                        `- **${f.title}**${f.path ? ` (\`${f.path}${f.line ? `:${f.line}` : ''}\`)` : ''}: ${String(f.body).replace(/\n/g, ' ')}${agentPrompt(f, false).replace(/\n/g, '\n  ')}`
+                )
+                .join('\n\n')}`;
+        }
+        // A contributor without write access can't re-request a review, but can comment.
+        const minutes = process.env.PUSH_REVIEW_MINUTES;
+        summary += /^\d+$/.test(minutes || '')
+            ? `\n\n---\n> [!TIP]\n> A new review starts automatically about ${minutes} minutes after your last push. To start it sooner, a maintainer can re-request a review, or you can comment \`@openlibrary-bot review\` on this PR.`
+            : `\n\n---\n> [!TIP]\n> When you've addressed the feedback and pushed your changes, comment \`@openlibrary-bot review\` on this PR to run a fresh review.`;
+        summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md). This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
+        return summary;
+    };
+    // If the head moved since the review, post nothing (see headIsCurrent).
+    const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+    if (!headIsCurrent(headSha, livePr.head.sha)) {
+        core.info(
+            `Head moved ${headSha.slice(0, 8)}->${String(livePr.head.sha).slice(0, 8)} since this review was pinned; not posting. The new head earns its own run.`
+        );
+        return;
+    }
+
+    const selfAuthored = (livePr.user && livePr.user.login) === 'openlibrary-bot';
+
+    // Before posting, because it decides the verdict: pick the bot's threads the model judged fixed or
+    // dismissed for the resolve job, noting why on the thread's first comment, and count the bot's threads still
+    // open. A GraphQL error must not fail the post; it leaves the count null, which means no APPROVE.
+    let unresolvedOwnThreads = null;
+    const toResolveIds = [];
+    const noteEdits = [];
+    try {
+        let allThreads = [],
+            tCursor = null;
+        for (;;) {
+            const page = await github.graphql(
+                `query($owner:String!,$repo:String!,$pr:Int!,$cursor:String){
+             repository(owner:$owner,name:$repo){
+               pullRequest(number:$pr){
+                 reviewThreads(first:100, after:$cursor){
+                   nodes { id isResolved isOutdated path line comments(first:1){ nodes { id author { login } body } } }
+                   pageInfo { hasNextPage endCursor }
+                 }
+               }
+             }
+           }`,
+                { owner, repo, pr: prNumber, cursor: tCursor }
+            );
+            const rt = page.repository.pullRequest.reviewThreads;
+            allThreads = allThreads.concat(rt.nodes);
+            if (!rt.pageInfo.hasNextPage) break;
+            tCursor = rt.pageInfo.endCursor;
+        }
+        const toResolve = threadsToResolve({ threads: allThreads, resolvedIds: review.resolved, botLogin: 'openlibrary-bot' });
+        // A thread listed as both counts as fixed.
+        const toDismiss = threadsToResolve({ threads: allThreads, resolvedIds: review.dismissed, botLogin: 'openlibrary-bot' }).filter(
+            id => !toResolve.includes(id)
+        );
+        // Commits in the reviewed range, newest first, for the "Addressed in" note.
+        let rangeShas = [];
+        if (toResolve.length) {
+            try {
+                const { data: cmp } = await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${baseSha}...${headSha}` });
+                rangeShas = (cmp.commits || []).map(c => c.sha).reverse();
+            } catch (e) {
+                core.warning(`Could not list the reviewed commits: ${e.message}`);
+            }
+        }
+        const byId = new Map(allThreads.filter(Boolean).map(t => [t.id, t]));
+        let addressed = 0,
+            dismissed = 0;
+        for (const id of [...toResolve, ...toDismiss]) {
+            const fixed = toResolve.includes(id);
+            let note = 'Dismissed: a reply below shows this does not apply.';
+            if (fixed) {
+                let sha = headSha;
+                try {
+                    const path = byId.get(id).path;
+                    if (path && rangeShas.length) {
+                        const { data: touching } = await github.rest.repos.listCommits({ owner, repo, sha: headSha, path, per_page: 30 });
+                        sha = fixedInSha({ rangeShas, pathShas: (touching || []).map(c => c.sha), headSha });
+                    }
+                } catch (e) {
+                    core.warning(`Could not find the commit that fixed thread ${id}: ${e.message}`);
+                }
+                note = `✅ Addressed in [\`${sha.slice(0, 7)}\`](https://github.com/${owner}/${repo}/commit/${sha})`;
+            }
+            // Noted on the bot's comment rather than as a reply, once the review is posted.
+            const first = byId.get(id).comments.nodes[0];
+            noteEdits.push({ threadId: id, commentId: first.id, body: `${first.body}\n\n${note}` });
+            toResolveIds.push(id);
+            if (fixed) addressed++;
+            else dismissed++;
+        }
+        // The `resolve` job resolves these after this job ends. This job's tokens can't (#14533).
+        if (toResolveIds.length) core.info(`Handing ${addressed} fixed and ${dismissed} dismissed review thread(s) to the resolve job.`);
+        // Counted the way the status job counts, limited to the bot's threads, as if the resolve
+        // job succeeds. If it fails, the status job still sees the thread open and stays red.
+        unresolvedOwnThreads = allThreads.filter(t => {
+            if (!t || t.isResolved || t.isOutdated || toResolveIds.includes(t.id)) return false;
+            const c = t.comments && t.comments.nodes && t.comments.nodes[0];
+            return !!(c && c.author && c.author.login === 'openlibrary-bot');
+        }).length;
+        stateLine = threadStateLine({ addressed, dismissed, open: unresolvedOwnThreads });
+    } catch (e) {
+        core.warning(`Thread enumeration failed; resolving no threads and not auto-approving: ${e.message}`);
+    }
+
+    // A human's open thread doesn't stop APPROVE, though it keeps the status red. The status, not
+    // the verdict, is what merging requires.
+    let event = selectReviewEvent({ selfAuthored, findingCount, unresolvedOwnThreads });
+    let summary = renderSummary();
+
+    // One batched review. POST /pulls/{n}/comments returns 422 `pull_request_review_thread.base`
+    // in practice (cli/cli#13358), while the same anchors in a batched review work. On a 422,
+    // first move the inline comments into the summary (GitHub rejects a line it can't find in the
+    // PR's diff), then fall back from a verdict to COMMENT, rather than fail and lose the review.
+    const postReview = () =>
+        github.rest.pulls.createReview({
+            owner,
+            repo,
+            pull_number: prNumber,
+            commit_id: headSha,
+            event,
+            body: summary,
+            comments: inline
+        });
+    let posted;
+    for (;;) {
+        try {
+            ({ data: posted } = await postReview());
+            break;
+        } catch (e) {
+            if (!e || e.status !== 422) throw e;
+            if (inline.length) {
+                core.warning(`The review was rejected (422: ${e.message}); posting it again with the inline comments in the summary.`);
+                orphaned.push(...inlineFindings);
+                inline.length = 0;
+                summary = renderSummary();
+            } else if (event !== 'COMMENT') {
+                core.warning(`Verdict ${event} was rejected (422); posting as COMMENT instead.`);
+                event = 'COMMENT';
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    // This API has returned 2xx without changing anything (pr_autoresponder.md, Step 4), so check.
+    const after = await github.paginate(github.rest.pulls.listReviews, {
+        owner,
+        repo,
+        pull_number: prNumber,
+        per_page: 100
+    });
+    if (!after.some(r => r.id === posted.id)) {
+        core.setFailed(`createReview returned ${posted.id} but it is not present on the PR.`);
+        return;
+    }
+    core.info(`Posted ${event} review ${posted.id}: ${inline.length} inline, ${orphaned.length} in summary.`);
+    // Only once the review is up, so a failed post leaves the threads and their comments as they were.
+    // A failed edit still hands the thread on.
+    for (const { threadId, commentId, body } of noteEdits) {
+        try {
+            await github.graphql(
+                `mutation($id:ID!,$body:String!){ updatePullRequestReviewComment(input:{pullRequestReviewCommentId:$id, body:$body}){ pullRequestReviewComment { id } } }`,
+                { id: commentId, body }
+            );
+        } catch (e) {
+            core.warning(`Could not edit the comment on review thread ${threadId}: ${e.message}`);
+        }
+    }
+    core.setOutput('resolve_thread_ids', JSON.stringify(toResolveIds));
+
+    // See shouldDismissTeamRequest. Never fails the job.
+    if (shouldDismissTeamRequest({ selfAuthored, event })) {
+        try {
+            await github.rest.pulls.removeRequestedReviewers({
+                owner,
+                repo,
+                pull_number: prNumber,
+                reviewers: [],
+                team_reviewers: ['openlibrary-agentic-code-reviewer']
+            });
+            core.info('Dismissed the pending team review request (bot-authored PR, COMMENT posted).');
+        } catch (e) {
+            core.warning(`Could not dismiss the team review request: ${e.message}`);
+        }
+    }
+}
+
+module.exports = {
+    refetchDiff,
+    validateAndPost,
+    selectReviewEvent,
+    shouldDismissTeamRequest,
+    threadsToResolve,
+    fixedInSha,
+    renderTicketCompliance,
+    agentPrompt,
+    threadStateLine
+};

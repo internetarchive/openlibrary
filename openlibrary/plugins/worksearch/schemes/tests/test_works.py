@@ -139,6 +139,23 @@ QUERY_PARSER_TESTS = {
     "Unknown cased field still escaped": ("Foo:bar", "Foo\\:bar"),
     "Cased field after *:*": ("*:* AND ISBN:123", "*\\:* AND isbn:123"),
     "Prefixed alias only lowercased": ("Work.Title:foo", "work.title:foo"),
+    "Unknown field after OR": ("tolkien OR the:hobbit", "tolkien OR the\\:hobbit"),
+    "Unknown field after NOT": ("tolkien NOT the:hobbit", "tolkien NOT the\\:hobbit"),
+    "Unknown field after AND": ("tolkien AND the:hobbit", "tolkien AND the\\:hobbit"),
+    "Unknown field after a word": ("tolkien the:hobbit", "tolkien the\\:hobbit"),
+    "Known title alias": ("tolkien title:hobbit", "tolkien alternative_title:hobbit"),
+    "Known title alias after AND": ("tolkien AND title:hobbit", "tolkien AND alternative_title:hobbit"),
+    "Multiple spaced colons": ("foo : bar baz : qux", "foo\\: bar baz\\: qux"),
+    "Unknown field with quoted value after AND": ('tolkien AND the:"hobbit"', 'tolkien AND the\\:"hobbit"'),
+    "Unknown field with grouped value after AND": ("tolkien AND the:(hobbit OR rings)", "tolkien AND the\\:(hobbit OR rings)"),
+    "Unknown field nested in an unknown field's group": ("foo:(a AND bar:baz)", "foo\\:(a AND bar\\:baz)"),
+    "Unknown field after AND inside parens": ("(tolkien AND the:hobbit)", "(tolkien AND the\\:hobbit)"),
+    "Unknown field after AND with tabs": ("tolkien\tAND\tthe:hobbit", "tolkien\tAND\tthe\\:hobbit"),
+    "Unknown field after AND with extra spaces": ("tolkien AND    the:hobbit", "tolkien AND    the\\:hobbit"),
+    "Several unknown fields after operators": ("a AND foo:bar OR b NOT c:d", "a AND foo\\:bar OR b NOT c\\:d"),
+    "Escaped slash kept after AND": ("tolkien AND the:/works/OL1W", "tolkien AND the\\:\\/works\\/OL1W"),
+    "Escaped paren kept after AND": ("tolkien AND the:\\(hobbit\\)", "tolkien AND the\\:\\(hobbit\\)"),
+    "Unknown field after spaced colon and AND": ("foo : bar AND baz:qux", "foo\\: bar AND baz\\:qux"),
 }
 
 

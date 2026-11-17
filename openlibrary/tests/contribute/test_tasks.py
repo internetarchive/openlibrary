@@ -22,7 +22,7 @@ def nonfiction_by_key(monkeypatch):
 
 
 def test_tasks_are_the_empty_fields_most_valuable_first():
-    ed = FakeEdition(covers=[1], publishers=[], languages=None, lccn=["75425165"], number_of_pages=320)
+    ed = FakeEdition(covers=[1], publishers=[], languages=None, lccn=["75425165"], number_of_pages=320, isbn_13=["9780140449266"], publish_date="2003")
     assert [t.field for t in tasks.tasks_for_edition(ed)] == ["oclc_numbers", "languages", "publishers"]
     ed["covers"] = []
     assert tasks.tasks_for_edition(ed)[0].field == "covers"
@@ -71,6 +71,26 @@ def test_a_recording_has_no_page_count_task(fmt):
 @pytest.mark.parametrize("fmt", ["", "Paperback", "Hardcover", "ebook", "CD-ROM"])
 def test_print_and_ebook_editions_keep_the_page_count_task(fmt):
     assert tasks.is_missing(FakeEdition(physical_format=fmt), "number_of_pages")
+
+
+def test_an_isbn_is_missing_until_either_form_is_there_but_not_before_isbns_existed():
+    assert tasks.is_missing(FakeEdition(publish_date="1998"), "isbn")
+    # No date: it could be from any year, so it stays a task.
+    assert tasks.is_missing(FakeEdition(), "isbn")
+    assert not tasks.is_missing(FakeEdition(isbn_10=["0140449264"]), "isbn")
+    assert not tasks.is_missing(FakeEdition(isbn_13=["9780140449266"]), "isbn")
+    assert not tasks.is_missing(FakeEdition(publish_date="March 1962"), "isbn")
+    assert tasks.is_missing(FakeEdition(publish_date="Reprint of 1920 ed., 1998"), "isbn")
+
+
+def test_an_isbn_s_values_are_both_forms():
+    assert tasks.field_values(FakeEdition(isbn_13=["9780140449266"], isbn_10=["0140449264"]), "isbn") == ["9780140449266", "0140449264"]
+    assert tasks.field_values(FakeEdition(), "isbn") == []
+
+
+def test_a_publish_date_is_missing_when_blank():
+    assert tasks.is_missing(FakeEdition(publish_date=""), "publish_date")
+    assert not tasks.is_missing(FakeEdition(publish_date="2005"), "publish_date")
 
 
 def test_impact_is_readers_times_points():

@@ -1,22 +1,13 @@
-import { initialzeCarousels } from './carousel';
-import { initNativeCarousels } from './carousel/native.js';
+import { initNativeCarousels as initCarousels } from './carousel/native.js';
 import { trackEvent } from './ol.analytics.js';
 import { buildPartialsUrl, whenVisible } from './utils';
 
 let relatedBooksTracked = false;
 let bannerClicked = false;
 
-const CAROUSEL_SELECTOR = '.carousel--progressively-enhanced, ol-carousel';
+const CAROUSEL_SELECTOR = 'ol-carousel';
 // Includes grid rows, which have nothing to initialize.
 const ROW_SELECTOR = '.carousel, ol-carousel';
-
-function initCarousels(elems) {
-    const slick = [];
-    const native = [];
-    elems.forEach(elem => (elem.localName === 'ol-carousel' ? native : slick).push(elem));
-    initialzeCarousels(slick);
-    initNativeCarousels(native);
-}
 
 /**
  * Sets up rows that arrive already loaded, like the "Browse the stacks" genre row.

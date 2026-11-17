@@ -69,8 +69,7 @@
 }
 
 .tasks-stats__card-label,
-.tasks-stats__card-change,
-.tasks-stats__card-window {
+.tasks-stats__card-change {
   font-size: var(--font-size-body-small);
   color: var(--color-text-secondary);
 }
@@ -245,8 +244,67 @@
   color: var(--color-text);
 }
 
-.tasks-stats__figures[hidden] {
-  display: none;
+/* Community projects: up to four columns, each with its own progress chart */
+.tasks-stats__projects {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(max(200px, (100% - 3 * var(--spacing-xl)) / 4), 1fr)
+  );
+  gap: var(--spacing-lg) var(--spacing-xl);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tasks-stats__project {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--spacing-2xs);
+  min-width: 0;
+}
+
+.tasks-stats h3.tasks-stats__project-title {
+  margin: 0;
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-body);
+}
+
+.tasks-stats__project-value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+  margin: 0;
+  font-size: var(--font-size-headline-small);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+}
+
+.tasks-stats__project-status {
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-secondary);
+}
+
+.tasks-stats__canvas--project {
+  height: 96px;
+}
+
+.tasks-stats__project-figures {
+  display: grid;
+  gap: var(--spacing-3xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.tasks-stats__project-figures b {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
 }
 
 .tasks-stats__panels {
@@ -277,8 +335,16 @@
   text-align: start;
 }
 
+/* Plain rows: no site-wide zebra stripes */
+.tasks-stats__fields tr {
+  background: none;
+}
+
 .tasks-stats__fields th {
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
   color: var(--color-text-secondary);
 }
 
