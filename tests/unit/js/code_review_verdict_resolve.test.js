@@ -1,37 +1,26 @@
-// Unit + integration tests for #14487 -- the code-review action must post a real VERDICT
-// (Approve / Request changes, not a bare Comment) and RESOLVE fixed threads on re-review.
-//
-// Two layers, both "tested bytes == shipped bytes":
-//   1. The three PURE helpers embedded in the `post` job's github-script step, extracted verbatim
-//      from the workflow YAML and exercised directly:
-//        - selectReviewEvent({selfAuthored, findingCount, unresolvedOwnThreads})  -- the verdict
-//          (PART A). APPROVE requires 0 findings AND 0 surviving own threads, so it can never
-//          contradict a red code-review status.
-//        - shouldDismissTeamRequest({selfAuthored, event})  -- clear a bot-authored PR's pill (A.2).
-//        - threadsToResolve({threads, resolvedIds, botLogin}) -- which of OUR OWN open threads the
-//          model judged fixed (review.resolved) and may be resolved (PART B).
-//        - fixedInSha({rangeShas, pathShas, headSha}) -- the commit the "Fixed in" reply credits.
-//   2. The ACTUAL post step driven end-to-end against a mocked GitHub, to prove the wiring: the
-//      verdict reaches createReview, the self-review 422 degrades to COMMENT, a bot-authored PR
-//      dismisses the team request, a fixed finding's thread is resolved while a surviving one is
-//      kept (and keeps the verdict off APPROVE), and a thread-enumeration failure never fails the job.
+// Tests for the review verdict and for resolving fixed threads (post.cjs):
+//   1. The helpers: selectReviewEvent (APPROVE needs no findings and none of the bot's threads
+//      open), shouldDismissTeamRequest, threadsToResolve and fixedInSha.
+//   2. The post step against a mock GitHub: the verdict reaches createReview, a 422 falls back to
+//      COMMENT, a bot-authored PR drops the team request, fixed threads are resolved and open ones
+//      kept, and a thread-enumeration failure doesn't fail the job.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import yaml from 'js-yaml';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const WF = join(here, '..', '..', '..', '.github', 'workflows', 'code_review_action.yml');
-const workflowText = readFileSync(WF, 'utf8');
-const workflow = yaml.load(workflowText);
-const REVIEW_GATE_JS = workflow.env.REVIEW_GATE_JS;
-const lines = workflowText.split('\n');
+const SCRIPTS = join(here, '..', '..', '..', '.github', 'scripts', 'code_review');
+const load = createRequire(import.meta.url);
+const post = load(join(SCRIPTS, 'post.cjs'));
+const range = load(join(SCRIPTS, 'range.cjs'));
+const gate = load(join(SCRIPTS, 'gate.cjs'));
 
 // The gate's dimension LABELS -- the post step renders a finding header as "<SEV> · <Label> — <Title>",
-// and threadsToResolve rebuilds the same identity. Keep this in lockstep with REVIEW_GATE_JS.dimensions.
+// and threadsToResolve rebuilds the same identity. Keep this in lockstep with gate.cjs's dimensions.
 const DIMS = {
     correctness: 'Correctness',
     security: 'Security',
@@ -40,39 +29,9 @@ const DIMS = {
     styleguide: 'Styleguide'
 };
 
-// Extract a `const <name> = (…) => { … };` block from the workflow lines, keyed on the closing line
-// that matches the declaration's own indentation (so a nested `};` cannot truncate it), and eval it.
-// Pure helpers close over nothing, so a bare `new Function` suffices. (Same technique as the
-// status-gate test -- if the helper is absent, this throws, which is exactly the red state pre-fix.)
-function extractFn(name) {
-    const start = lines.findIndex(l => l.includes(`const ${name} =`));
-    assert.ok(start >= 0, `${name} not found in workflow (expected a const ${name} = (…) => {…};)`);
-    const indent = lines[start].match(/^(\s*)/)[1];
-    const closer = `${indent}};`;
-    const body = [lines[start]];
-    let end = -1;
-    for (let j = start + 1; j < lines.length; j++) {
-        body.push(lines[j]);
-        if (lines[j] === closer) {
-            end = j;
-            break;
-        }
-    }
-    assert.ok(end >= 0, `end of ${name} not found`);
-    const src = body
-        .join('\n')
-        .trim()
-        .replace(new RegExp(`^const ${name} =\\s*`), '')
-        .replace(/;\s*$/, '');
-    // eslint-disable-next-line no-new-func
-    return new Function(`return (${src});`)();
-}
+const { selectReviewEvent, shouldDismissTeamRequest, threadsToResolve, fixedInSha } = post;
 
-const selectReviewEvent = extractFn('selectReviewEvent');
-const shouldDismissTeamRequest = extractFn('shouldDismissTeamRequest');
-const threadsToResolve = extractFn('threadsToResolve');
-
-// A review thread as GraphQL returns it for PART B, with the bot's finding header as its first comment.
+// A review thread as GraphQL returns it, with the bot's finding header as its first comment.
 function thread(id, path, dim, title, { resolved = false, outdated = false, author = 'openlibrary-bot', severity = 'MEDIUM', line = 1 } = {}) {
     return {
         id,
@@ -84,7 +43,7 @@ function thread(id, path, dim, title, { resolved = false, outdated = false, auth
     };
 }
 
-// ========================= PART A: selectReviewEvent (the verdict) =========================
+// ========================= selectReviewEvent (the verdict) =========================
 test('selectReviewEvent: blocking findings on a contributor PR -> REQUEST_CHANGES', () => {
     assert.equal(selectReviewEvent({ selfAuthored: false, findingCount: 1, unresolvedOwnThreads: 0 }), 'REQUEST_CHANGES');
     assert.equal(selectReviewEvent({ selfAuthored: false, findingCount: 9, unresolvedOwnThreads: 3 }), 'REQUEST_CHANGES');
@@ -104,7 +63,7 @@ test('selectReviewEvent: a bot-authored (self) PR -> COMMENT regardless (422 avo
     assert.equal(selectReviewEvent({ selfAuthored: true, findingCount: 4, unresolvedOwnThreads: 2 }), 'COMMENT');
 });
 
-// ========================= PART A.2: shouldDismissTeamRequest (clear the bot-PR pill) =========================
+// ========================= shouldDismissTeamRequest (bot-authored PRs) =========================
 test('shouldDismissTeamRequest: a bot-authored PR that posted COMMENT -> dismiss the team request', () => {
     assert.equal(shouldDismissTeamRequest({ selfAuthored: true, event: 'COMMENT' }), true);
 });
@@ -115,7 +74,7 @@ test('shouldDismissTeamRequest: a contributor verdict clears the pill itself -> 
     assert.equal(shouldDismissTeamRequest({ selfAuthored: false, event: 'COMMENT' }), false);
 });
 
-// ========================= PART B: threadsToResolve (only threads the model judged fixed) =========================
+// ========================= threadsToResolve (only threads the model judged fixed) =========================
 const BOT = 'openlibrary-bot';
 test('threadsToResolve: a thread the model listed as fixed resolves', () => {
     const threads = [thread('T1', 'a.py', 'correctness', 'Off-by-one in the loop bound', { line: 50 })];
@@ -156,7 +115,6 @@ test('threadsToResolve: mixed -- resolves only the listed thread; keeps the othe
 });
 
 // ========================= fixedInSha (which commit the "Fixed in" reply credits) =========================
-const fixedInSha = extractFn('fixedInSha');
 test('fixedInSha: the newest in-range commit that touched the file', () => {
     // rangeShas and pathShas are newest-first. 'old' touched the file before this range.
     assert.equal(fixedInSha({ rangeShas: ['c3', 'c2', 'c1'], pathShas: ['c2', 'c1', 'old'], headSha: 'c3' }), 'c2');
@@ -167,9 +125,6 @@ test('fixedInSha: falls back to the head when no in-range commit touched the fil
 });
 
 // ========================= the gate keeps `resolved` (ids only) =========================
-// The workflow evaluates this env string with eval() too, so the test exercises the shipped gate text.
-// eslint-disable-next-line no-eval
-const gate = eval(REVIEW_GATE_JS);
 const cleanReview = extra => {
     const dims = {};
     for (const k of Object.keys(DIMS)) dims[k] = { status: 'none', note: 'ok' };
@@ -192,16 +147,7 @@ test('gate: a resolved entry that is not an id (prose, markdown, non-string) wit
 });
 
 // ========================= Integration: drive the real post step end-to-end =========================
-const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
-
-function scriptOf(jobName, stepMatch) {
-    const job = workflow.jobs[jobName];
-    const step = (job.steps || []).find(s => s.with && typeof s.with.script === 'string' && (s.name || '').includes(stepMatch));
-    assert.ok(step, `step "${stepMatch}" not found in job ${jobName}`);
-    return step.with.script;
-}
-
-async function runScript(body, { github, context, env, cwd }) {
+async function runScript(stepFn, { github, context, env, cwd }) {
     const recorded = { failed: null, warnings: [] };
     const core = {
         setOutput: () => {},
@@ -229,8 +175,7 @@ async function runScript(body, { github, context, env, cwd }) {
     // GITHUB_WORKSPACE is a temp dir here; the base checkout's scripts come from this repo.
     const wrappedRequire = id =>
         id === 'fs' ? wrappedFs : realRequire(env.GITHUB_WORKSPACE ? id.replace(env.GITHUB_WORKSPACE, join(here, '..', '..', '..')) : id);
-    const fn = new AsyncFunction('github', 'context', 'core', 'require', 'process', body);
-    await fn(github, context, core, wrappedRequire, fakeProcess);
+    await stepFn({ github, context, core, require: wrappedRequire, process: fakeProcess });
     return { ...recorded, core };
 }
 
@@ -313,13 +258,13 @@ function teardown() {
     if (dir) rmSync(dir, { recursive: true, force: true });
 }
 
-const baseEnv = d => ({ PR: '1', HEAD_SHA: SHA('a'), BASE_SHA: SHA('b'), INCREMENTAL: 'false', REVIEW_GATE_JS, GITHUB_WORKSPACE: d });
+const baseEnv = d => ({ PR: '1', HEAD_SHA: SHA('a'), BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: d });
 
 test('post: a clean review on a CONTRIBUTOR PR with no prior threads posts event APPROVE', async () => {
     const d = setup(reviewWith([]));
     try {
         const { github, calls } = mockGitHub({ author: 'contributor' });
-        await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.equal(calls.createReview.length, 1);
         assert.equal(calls.createReview[0].event, 'APPROVE');
     } finally {
@@ -330,7 +275,7 @@ test('post: a review WITH findings on a CONTRIBUTOR PR posts event REQUEST_CHANG
     const d = setup(reviewWith([{ dimension: 'correctness', severity: 'high', title: 'Bug here', body: 'details', path: 'a.py', line: 1 }]));
     try {
         const { github, calls } = mockGitHub({ author: 'contributor' });
-        await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.equal(calls.createReview.length, 1);
         assert.equal(calls.createReview[0].event, 'REQUEST_CHANGES');
     } finally {
@@ -344,7 +289,7 @@ test('post: a clean CONTRIBUTOR PR with a SURVIVING own thread posts COMMENT, no
     try {
         const threads = [thread('SURVIVES', 'other.py', 'correctness', 'Still open on an untouched file', { line: 20 })];
         const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
-        await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.equal(calls.createReview[0].event, 'COMMENT', 'never APPROVE while an own finding is unresolved');
         assert.deepEqual(calls.resolved, [], 'the untouched-file thread is not resolved');
     } finally {
@@ -355,7 +300,7 @@ test('post: a BOT-AUTHORED (self) PR falls back to event COMMENT and dismisses t
     const d = setup(reviewWith([{ dimension: 'correctness', severity: 'high', title: 'Bug here', body: 'details', path: 'a.py', line: 1 }]));
     try {
         const { github, calls } = mockGitHub({ author: 'openlibrary-bot' });
-        await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.equal(calls.createReview[0].event, 'COMMENT');
         assert.deepEqual(calls.removedTeams, ['openlibrary-agentic-code-reviewer']);
     } finally {
@@ -366,7 +311,7 @@ test('post: a CONTRIBUTOR PR does NOT dismiss the team request (the verdict clea
     const d = setup(reviewWith([]));
     try {
         const { github, calls } = mockGitHub({ author: 'contributor' });
-        await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.equal(calls.createReview[0].event, 'APPROVE');
         assert.deepEqual(calls.removedTeams, []);
     } finally {
@@ -378,7 +323,7 @@ test('post: a withheld review (no post) never dismisses the team request', async
     writeFileSync(join(d, 'review.diff'), '');
     try {
         const { github, calls } = mockGitHub({ author: 'openlibrary-bot' });
-        await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.equal(calls.createReview.length, 0);
         assert.deepEqual(calls.removedTeams, []);
     } finally {
@@ -389,7 +334,7 @@ test('post: an unexpected 422 on a verdict degrades to COMMENT without failing t
     const d = setup(reviewWith([]));
     try {
         const { github, calls } = mockGitHub({ author: 'contributor', throw422: true });
-        const res = await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
+        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.equal(res.failed, null, 'a 422 must not hard-fail the post job');
         assert.equal(calls.createReview.length, 1);
         assert.equal(calls.createReview[0].event, 'COMMENT');
@@ -401,7 +346,7 @@ test('post: a thread-enumeration failure never fails the job and never auto-appr
     const d = setup(reviewWith([]));
     try {
         const { github, calls } = mockGitHub({ author: 'contributor', enumThrows: true });
-        const res = await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
+        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.equal(res.failed, null, 'a transient GraphQL failure must not fail a post that succeeds');
         assert.equal(calls.createReview.length, 1, 'the review still posts');
         assert.equal(calls.createReview[0].event, 'COMMENT', 'unknown thread state -> COMMENT, never APPROVE');
@@ -419,7 +364,7 @@ test('post: a thread the model judged fixed gets a "Fixed in" reply and is resol
             thread('NOT_LISTED', 'other.py', 'correctness', 'Model did not judge this fixed', { line: 9 })
         ];
         const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
-        await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.deepEqual(calls.resolved, ['FIXED']);
         assert.deepEqual(calls.replies, [{ id: 'FIXED', body: 'Fixed in c1.' }], 'credits the in-range commit that touched a.py');
         assert.equal(calls.createReview[0].event, 'COMMENT', 'the open NOT_LISTED thread keeps it off APPROVE');
@@ -433,7 +378,7 @@ test('post: #14515 -- once every own thread is judged fixed, a clean re-review A
     try {
         const threads = [thread('T34', 'openlibrary/templates/lists/header.html', 'correctness', 'Same bug in sibling strings', { line: 34 })];
         const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
-        await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.deepEqual(calls.resolved, ['T34']);
         assert.deepEqual(calls.replies, [{ id: 'T34', body: `Fixed in ${SHA('a')}.` }], 'no in-range commit touched it -> the head');
         assert.equal(calls.createReview[0].event, 'APPROVE');
@@ -451,7 +396,7 @@ test('post: a reply failure still resolves the thread', async () => {
             if (/addPullRequestReviewThreadReply/.test(q)) throw new Error('reply 502');
             return graphql(q, v);
         };
-        const res = await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
+        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.equal(res.failed, null);
         assert.deepEqual(calls.resolved, ['FIXED']);
         assert.equal(calls.createReview[0].event, 'APPROVE');
@@ -465,7 +410,7 @@ test('post: a standing finding keeps its thread open and the PR off APPROVE', as
     try {
         const threads = [thread('STANDS', 'a.py', 'correctness', 'Still broken', { line: 1 })];
         const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
-        await runScript(scriptOf('post', 'Validate anchors'), { github, context, env: baseEnv(d), cwd: d });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.deepEqual(calls.resolved, [], 'a finding that still stands is never resolved');
         assert.equal(calls.createReview[0].event, 'REQUEST_CHANGES');
     } finally {
@@ -504,7 +449,7 @@ test('range: writes our own OPEN threads (outdated included, line falls back to 
             graphql: async () => ({ repository: { pullRequest: { reviewThreads: { nodes, pageInfo: { hasNextPage: false, endCursor: null } } } } })
         };
         const ctx = { ...context, payload: { pull_request: { number: 1 } } };
-        await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env: { GITHUB_WORKSPACE: d }, cwd: d });
+        await runScript(range.resolveRange, { github, context: ctx, env: { GITHUB_WORKSPACE: d }, cwd: d });
         const prior = JSON.parse(readFileSync(join(d, 'prior-threads.json'), 'utf8'));
         assert.deepEqual(
             prior.map(t => [t.id, t.line, t.outdated]),
@@ -535,7 +480,7 @@ test('range: a thread-read failure still writes an empty prior-threads.json and 
             }
         };
         const ctx = { ...context, payload: { pull_request: { number: 1 } } };
-        const res = await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env: { GITHUB_WORKSPACE: d }, cwd: d });
+        const res = await runScript(range.resolveRange, { github, context: ctx, env: { GITHUB_WORKSPACE: d }, cwd: d });
         assert.equal(res.failed, null);
         assert.deepEqual(JSON.parse(readFileSync(join(d, 'prior-threads.json'), 'utf8')), []);
     } finally {

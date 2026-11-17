@@ -17,7 +17,17 @@ require_ticket_analysis_review = true
 # false puts every finding in the review summary instead of inline comments.
 inline_key_issues = true
 
+[github_action_config]
+# Review new commits on a PR the bot has already reviewed, once no more arrive for
+# push_review_delay_minutes. Off by default in PR-Agent.
+handle_push_trigger = true
+push_trigger_ignore_bot_commits = true
+# Skip a push that only merges the base branch in ("Update branch").
+push_trigger_ignore_merge_commits = true
+
 # Settings PR-Agent does not have.
 [openlibrary_reviewer]
 require_accessibility_review = true
 require_styleguide_review = true
+# Minutes with no new commits before a push review starts, 1 to 120.
+push_review_delay_minutes = 10
