@@ -7,7 +7,7 @@ $def render_author():
     <!-- Include number of works: ### works -->
     </p>
     <p class="sansserif lightgreen large">
-        $:ungettext("This author is on <strong>1 list</strong>.", "This author is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
+        $:ungettext("This author is on <strong>%(count)s list</strong>.", "This author is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
     </p>
 
 $def render_edition():
@@ -19,13 +19,13 @@ $def render_edition():
     </p>
 
     <p class="sansserif lightgreen large">
-        $:ungettext("This edition is on <strong>1 list</strong>.", "This edition is on <strong>%(count)s lists</strong>.", len(lists),  count=commify(len(lists)))
+        $:ungettext("This edition is on <strong>%(count)s list</strong>.", "This edition is on <strong>%(count)s lists</strong>.", len(lists),  count=commify(len(lists)))
     </p>
 
 $def render_work():
     <h1>$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.title)</h1>
     <p class="sansserif lightgreen large">
-        $:ungettext("This work is on <strong>1 list</strong>.", "This work is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
+        $:ungettext("This work is on <strong>%(count)s list</strong>.", "This work is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
     </p>
 
 $def render_user():
@@ -38,7 +38,7 @@ $def render_subject():
     <h1>$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.name)</h1>
 
     <p class="sansserif lightgreen large">
-        $:ungettext("This subject is on <strong>1 list</strong>.", "This subject is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
+        $:ungettext("This subject is on <strong>%(count)s list</strong>.", "This subject is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
     </p>
 
 $ type = doc.get("type") and doc.type.key

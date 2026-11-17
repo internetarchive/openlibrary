@@ -5241,21 +5241,21 @@ msgstr ""
 
 #: lists/header.html
 #, python-format
-msgid "This author is on <strong>1 list</strong>."
+msgid "This author is on <strong>%(count)s list</strong>."
 msgid_plural "This author is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
 
 #: lists/header.html
 #, python-format
-msgid "This edition is on <strong>1 list</strong>."
+msgid "This edition is on <strong>%(count)s list</strong>."
 msgid_plural "This edition is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
 
 #: lists/header.html
 #, python-format
-msgid "This work is on <strong>1 list</strong>."
+msgid "This work is on <strong>%(count)s list</strong>."
 msgid_plural "This work is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
@@ -5269,7 +5269,7 @@ msgstr[1] ""
 
 #: lists/header.html
 #, python-format
-msgid "This subject is on <strong>1 list</strong>."
+msgid "This subject is on <strong>%(count)s list</strong>."
 msgid_plural "This subject is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
