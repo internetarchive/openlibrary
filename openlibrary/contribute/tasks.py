@@ -77,9 +77,9 @@ def is_missing(edition, fld: str, work=None) -> bool:
 
 
 def publish_year(edition) -> int | None:
-    if m := re.search(r"\d{4}", str(edition.get("publish_date") or "")):
-        return int(m.group())
-    return None
+    """The latest year in the date, since library records often name an earlier one ("Reprint of 1920 ed., 1998")."""
+    years = [int(y) for y in re.findall(r"(?<!\d)\d{4}(?!\d)", str(edition.get("publish_date") or ""))]
+    return max(years, default=None)
 
 
 AUDIO_FORMAT_WORDS = ("audio", "mp3", "cassette", "compact disc")

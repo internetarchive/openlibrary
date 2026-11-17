@@ -80,6 +80,7 @@ def test_an_isbn_is_missing_until_either_form_is_there_but_not_before_isbns_exis
     assert not tasks.is_missing(FakeEdition(isbn_10=["0140449264"]), "isbn")
     assert not tasks.is_missing(FakeEdition(isbn_13=["9780140449266"]), "isbn")
     assert not tasks.is_missing(FakeEdition(publish_date="March 1962"), "isbn")
+    assert tasks.is_missing(FakeEdition(publish_date="Reprint of 1920 ed., 1998"), "isbn")
 
 
 def test_an_isbn_s_values_are_both_forms():

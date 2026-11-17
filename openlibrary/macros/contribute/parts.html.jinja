@@ -404,7 +404,7 @@
                         {% endif %}
                     </a>
                     {% if book.scan_url %}
-                        <ol-button class="contrib-record__scan" variant="ghost" size="small" href="{{ book.scan_url }}" target="_blank" rel="noopener" data-ol-link-track="TaskForm|ViewScan">
+                        <ol-button class="contrib-record__scan" variant="ghost" size="small" href="{{ book.scan_url }}" target="_blank" rel="noopener noreferrer" data-ol-link-track="TaskForm|ViewScan">
                             {{ _("View scan") }}
                         </ol-button>
                     {% endif %}
