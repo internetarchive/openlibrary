@@ -209,14 +209,39 @@ function checkThresholds({ runs, reviews }, t = THRESHOLDS, fixed = new Set()) {
     return alerts;
 }
 
-// Each failure gets an `id` and the numbers of the bot PRs merged after it: the only PRs that can
-// be credited with fixing it.
-const attachCandidates = (failures, botPrs) =>
-    failures.map((f, id) => ({
-        id,
-        ...f,
-        candidate_fixes: botPrs.filter(p => new Date(p.merged_at) > new Date(f.at)).map(p => p.number)
-    }));
+// What a PR changed in the review bot's files, as one diff, cut to `max` characters. PR descriptions
+// often don't say which failures a change fixes; the diff does (a removed error message, a new catch).
+const MAX_CHANGES = 5000;
+const botDiff = files =>
+    (files || [])
+        .filter(f => BOT_PATHS.some(p => f.filename === p || f.filename.startsWith(`${p}/`)))
+        .map(f => `--- ${f.filename}\n${f.patch || '(no textual diff)'}`)
+        .join('\n');
+const botChanges = (files, max = MAX_CHANGES) => {
+    const diff = botDiff(files);
+    return diff.length > max ? `${diff.slice(0, max)}\n[cut at ${max} characters]` : diff;
+};
+
+// The start of an error message, as it would appear in the code that raised it, or null if too
+// short to match on. "Unhandled error: Error: Review not published: ..." -> "Review not published: ...".
+const messageKey = message => {
+    const key = (message || '').replace(/^(Unhandled error: )?(\w*Error: )?/, '').slice(0, 40);
+    return key.length >= 20 ? key : null;
+};
+// The lines a diff removed.
+const removedLines = patch => (patch || '').split('\n').filter(l => l.startsWith('-') && !l.startsWith('---'));
+
+// Each failure gets an `id`, the numbers of the bot PRs merged after it (the only PRs that can be
+// credited with fixing it), and `removed_by`: those of them whose diff removed a line containing the
+// start of its error message. That is strong evidence the code that failed is gone.
+// patches: PR number -> its full diff to the bot's files.
+const attachCandidates = (failures, botPrs, patches = new Map()) =>
+    failures.map((f, id) => {
+        const candidates = botPrs.filter(p => new Date(p.merged_at) > new Date(f.at)).map(p => p.number);
+        const key = messageKey(f.message);
+        const removedBy = key ? candidates.filter(n => removedLines(patches.get(n)).some(l => l.includes(key))) : [];
+        return { id, ...f, candidate_fixes: candidates, removed_by: removedBy };
+    });
 
 const PR_QUERY = `query($q:String!,$cursor:String){ search(query:$q, type:ISSUE, first:25, after:$cursor){
   pageInfo { hasNextPage endCursor }
@@ -279,9 +304,20 @@ async function collect({ github, context, core, require, process }) {
             }
         }
     }
+    const patches = new Map();
+    for (const p of fixes.values()) {
+        try {
+            const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: p.number, per_page: 100 });
+            patches.set(p.number, botDiff(files));
+            p.changes = botChanges(files);
+        } catch (e) {
+            core.warning(`Could not read the files of #${p.number}: ${e.message}`);
+            p.changes = '';
+        }
+    }
 
     const current = { runs: summarizeRuns(runs, w.current), reviews: summarizeReviews(prs, w.current) };
-    current.runs.failures = attachCandidates(current.runs.failures, [...fixes.values()]);
+    current.runs.failures = attachCandidates(current.runs.failures, [...fixes.values()], patches);
     const previous = { runs: summarizeRuns(runs, w.previous), reviews: summarizeReviews(prs, w.previous) };
     delete previous.reviews.prs;
     previous.runs.failures = previous.runs.failures.length;
@@ -301,6 +337,8 @@ async function collect({ github, context, core, require, process }) {
 module.exports = {
     THRESHOLDS,
     attachCandidates,
+    botChanges,
+    messageKey,
     parseDays,
     windows,
     failureCause,
