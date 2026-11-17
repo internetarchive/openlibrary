@@ -49,7 +49,7 @@ async function postStatus({ github, context, core, process }) {
     const range = repost
         ? 'none (re-posting the status of an existing review)'
         : process.env.INCREMENTAL === 'true'
-          ? `incremental since ${String(process.env.BASE_SHA).slice(0, 7)}`
+          ? 'incremental: files changed since the last review'
           : 'full';
     const writeSummary = rows =>
         core.summary
@@ -93,7 +93,8 @@ async function postStatus({ github, context, core, process }) {
     }
     const unresolved = unresolvedThreadCount(threads);
 
-    // On a repost no model ran: read the verdict back from the bot's last review on this head.
+    // On a repost no model ran: read the verdict back from the bot's last review on this head, or
+    // on VERDICT_SHA when the commits since that review only merged the base branch.
     let postSucceeded, findings, withheld;
     if (repost) {
         const reviews = await github.paginate(github.rest.pulls.listReviews, {
@@ -102,7 +103,8 @@ async function postStatus({ github, context, core, process }) {
             pull_number: pr,
             per_page: 100
         });
-        const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === headSha && r.body);
+        const verdictSha = process.env.VERDICT_SHA || headSha;
+        const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === verdictSha && r.body);
         const last = ours.length ? ours[ours.length - 1] : null;
         // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
         postSucceeded = last != null;

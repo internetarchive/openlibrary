@@ -27,7 +27,7 @@ const status = load(join(SCRIPTS, 'status.cjs'));
 // `cwd` redirects the step's relative fs paths (review.json, review.diff) into the temp dir, since
 // vitest workers can't process.chdir().
 async function runScript(stepFn, { github, context, env, cwd }) {
-    const recorded = { outputs: {}, failed: null, summary: '' };
+    const recorded = { outputs: {}, failed: null, summary: '', warnings: [] };
     const core = {
         summary: {
             addRaw(text) {
@@ -43,7 +43,7 @@ async function runScript(stepFn, { github, context, env, cwd }) {
             recorded.failed = m;
         },
         info: () => {},
-        warning: () => {},
+        warning: m => recorded.warnings.push(m),
         notice: () => {},
         debug: () => {}
     };
@@ -578,7 +578,7 @@ test('summary: a clean review lists the commit, range, counts and status', async
     };
     const { summary } = await runScript(status.postStatus, { github, context, env });
     assert.match(summary, /## Code review: #7 @ aaaaaaa/);
-    assert.match(summary, /\| Range \| incremental since bbbbbbb \|/);
+    assert.match(summary, /\| Range \| incremental: files changed since the last review \|/);
     assert.match(summary, /\| Findings \| 0 \|/);
     assert.match(summary, /\| Status \| success: Review passed; all feedback resolved\. \|/);
 });
@@ -625,4 +625,157 @@ test('post: a LOW finding becomes a suggestion in the summary, not a blocking in
     assert.match(posted.body, /### Suggestions \(won't block\)\n\n- \*\*Untested label\*\* \(`x:1`\): Add a test\./);
     assert.match(posted.body, /<!-- ol-pr-review-bot f=0 -->/);
     assert.notEqual(posted.event, 'REQUEST_CHANGES');
+});
+
+// ===================== Re-review after the author merges the base branch =====================
+// Shaped like #14495: since the last review (P), the author merged master (M, bringing in master's
+// commits X1 and X2) and then pushed one commit (A). The PR's diff touches a.py and b.py.
+const P = SHA('1'),
+    M = SHA('2'),
+    A = SHA('3'),
+    X1 = SHA('4'),
+    X2 = SHA('5'),
+    MB = SHA('6');
+const commit = (sha, ...parents) => ({ sha, parents: parents.map(p => ({ sha: p })) });
+const PR_DIFF =
+    'diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -1 +1 @@\n+a\n' + 'diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1,2 @@\n+b\n+b2\n';
+function baseMergeGitHub({ sinceCommits, mergeFiles = ['master_only.py'], authorFiles = ['b.py'] }) {
+    const calls = { getCommit: [], compare: [] };
+    const github = {
+        rest: {
+            pulls: {
+                get: async () => ({ data: { number: 1, draft: false, state: 'open', head: { sha: A }, base: { sha: SHA('b'), ref: 'master' } } }),
+                listReviews: async () => ({
+                    data: [{ user: { login: 'openlibrary-bot' }, commit_id: P, submitted_at: '2026-01-01', body: 'x\n<!-- ol-pr-review-bot f=0 -->' }]
+                })
+            },
+            repos: {
+                compareCommitsWithBasehead: async ({ basehead, headers }) => {
+                    calls.compare.push(basehead);
+                    if (headers) return { data: PR_DIFF };
+                    // The merge against its base-side parent: the PR's own changes, plus any conflict fixes.
+                    if (basehead === `${X2}...${M}`)
+                        return { data: { files: ['a.py', 'b.py', ...mergeFiles.filter(f => f !== 'master_only.py')].map(filename => ({ filename })) } };
+                    if (basehead === `${P}...${A}`)
+                        return { data: { status: 'ahead', files: [{}], total_commits: sinceCommits.length, commits: sinceCommits } };
+                    // master...head: the PR's own commits.
+                    const own = [commit(SHA('0'), MB), commit(P, SHA('0')), commit(M, P, X2), commit(A, M)];
+                    return { data: { status: 'diverged', merge_base_commit: { sha: MB }, total_commits: own.length, commits: own } };
+                },
+                getCommit: async ({ ref }) => {
+                    calls.getCommit.push(ref);
+                    // A merge's own files are its diff against the PR-side parent: master's changes.
+                    return { data: { files: (ref === A ? authorFiles : mergeFiles).map(filename => ({ filename })) } };
+                }
+            }
+        },
+        paginate: async (method, params) => (await method(params)).data,
+        graphql: async () => ({ repository: { pullRequest: { reviewThreads: { nodes: [], pageInfo: { hasNextPage: false, endCursor: null } } } } })
+    };
+    return { github, calls };
+}
+
+test("range: a base merge plus one author commit reviews the PR diff for that commit's files only", async () => {
+    const { github, calls } = baseMergeGitHub({ sinceCommits: [commit(X1, MB), commit(X2, X1), commit(M, P, X2), commit(A, M)] });
+    const res = await runScript(range.resolveRange, { github, context: prCtx, env: { GITHUB_WORKSPACE: dir }, cwd: dir });
+    assert.equal(res.outputs.repost, 'false');
+    assert.equal(res.outputs.incremental, 'true');
+    assert.equal(res.outputs.base_sha, MB, 'the PR diff, from the merge base');
+    assert.equal(res.outputs.files, JSON.stringify(['b.py']));
+    assert.deepEqual(calls.getCommit, [A, M], "master's own commits are never read; the merge only for conflict fixes");
+    assert.equal(readFileSync(join(dir, 'review.diff'), 'utf8'), 'diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1,2 @@\n+b\n+b2\n');
+    const rangeJson = JSON.parse(readFileSync(join(dir, 'review-range.json'), 'utf8'));
+    assert.equal(rangeJson.prior_review_sha, P);
+    assert.deepEqual(rangeJson.files, ['b.py']);
+});
+test('range: only a base merge since the last review -> no model, carry the last verdict', async () => {
+    const { github, calls } = baseMergeGitHub({ sinceCommits: [commit(X1, MB), commit(X2, X1), commit(M, P, X2)] });
+    const res = await runScript(range.resolveRange, { github, context: prCtx, env: { GITHUB_WORKSPACE: dir }, cwd: dir });
+    assert.equal(res.outputs.skip, 'false');
+    assert.equal(res.outputs.repost, 'true');
+    assert.equal(res.outputs.verdict_sha, P);
+    assert.deepEqual(calls.getCommit, [M]);
+});
+test('range: a conflict fixed by hand in a base merge is re-reviewed', async () => {
+    // The merge changed a.py relative to both parents: the author resolved a conflict there.
+    const { github } = baseMergeGitHub({ sinceCommits: [commit(X1, MB), commit(X2, X1), commit(M, P, X2)], mergeFiles: ['master_only.py', 'a.py'] });
+    const res = await runScript(range.resolveRange, { github, context: prCtx, env: { GITHUB_WORKSPACE: dir }, cwd: dir });
+    assert.equal(res.outputs.repost, 'false', 'a resolved conflict is new code to review');
+    assert.equal(res.outputs.files, JSON.stringify(['a.py']));
+});
+test('range: a commit listing 300 files (GitHub truncates there) falls back to a full review', async () => {
+    const many = Array.from({ length: 300 }, (_, i) => `f${i}.py`);
+    const { github } = baseMergeGitHub({ sinceCommits: [commit(M, P, X2), commit(A, M)], authorFiles: many });
+    const res = await runScript(range.resolveRange, { github, context: prCtx, env: { GITHUB_WORKSPACE: dir }, cwd: dir });
+    assert.equal(res.outputs.incremental, 'false');
+    assert.equal(res.outputs.files || '', '');
+});
+test('status repost: carries the verdict of the review on VERDICT_SHA, an earlier commit', async () => {
+    for (const [f, state] of [
+        [0, 'success'],
+        [2, 'failure']
+    ]) {
+        const { github, calls } = mockGitHub({
+            prGet: async () => ({ data: { head: { sha: A } } }),
+            listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: P, body: `x\n<!-- ol-pr-review-bot f=${f} -->` }] })
+        });
+        await runScript(status.postStatus, { github, context, env: { PR: '1', HEAD_SHA: A, REPOST: 'true', VERDICT_SHA: P, RUN_URL: 'u' } });
+        assert.equal(calls.createCommitStatus[0].sha, A);
+        assert.equal(calls.createCommitStatus[0].state, state);
+    }
+});
+test('post refetchDiff: cuts the PR diff to the files analyze listed', async () => {
+    const { github } = baseMergeGitHub({ sinceCommits: [] });
+    const env = { BASE_SHA: MB, HEAD_SHA: A, FILES: JSON.stringify(['b.py']) };
+    await runScript(post.refetchDiff, { github, context, env: { ...env, GITHUB_WORKSPACE: dir }, cwd: dir });
+    assert.equal(readFileSync(join(dir, 'review.diff'), 'utf8'), 'diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1,2 @@\n+b\n+b2\n');
+    const bad = await runScript(post.refetchDiff, { github, context, env: { ...env, FILES: '{"x":1}', GITHUB_WORKSPACE: dir }, cwd: dir });
+    assert.equal(bad.failed, 'Unexpected review range.');
+});
+
+// ===================== A comment anchor GitHub can't resolve =====================
+test('post: a 422 on an anchor posts again with the inline comments in the summary', async () => {
+    const review = cleanReview();
+    review.dimensions.correctness = { status: 'findings' };
+    review.findings = [{ dimension: 'correctness', severity: 'medium', title: 'Off by one', body: 'Use <=.', path: 'x', line: 1 }];
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    github.rest.pulls.createReview = async p => {
+        calls.createReview.push(p);
+        if (p.comments.length) throw Object.assign(new Error('Unprocessable Entity: "Line could not be resolved"'), { status: 422 });
+        return { data: { id: 999 } };
+    };
+    github.rest.pulls.listReviews = async () => ({ data: [{ id: 999 }] });
+    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir };
+    const res = await runScript(post.validateAndPost, { github, context, env, cwd: dir });
+    assert.equal(res.failed, null);
+    assert.equal(calls.createReview.length, 2);
+    const retry = calls.createReview[1];
+    assert.equal(retry.event, 'REQUEST_CHANGES', 'the verdict is kept');
+    assert.deepEqual(retry.comments, []);
+    assert.match(retry.body, /### Findings without an in-diff anchor\n\n- \*\*MEDIUM · Correctness — Off by one\*\*/);
+    assert.match(retry.body, /<!-- ol-pr-review-bot f=1 -->/);
+    assert.equal(res.warnings.length, 1);
+});
+
+// ===================== Review text =====================
+test('post: the tip follows push reviews, and the footer names no one', async () => {
+    const head = SHA('a');
+    const bodies = [];
+    for (const minutes of ['10', '']) {
+        writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
+        writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
+        const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+        const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', PUSH_REVIEW_MINUTES: minutes, GITHUB_WORKSPACE: dir };
+        await runScript(post.validateAndPost, { github, context, env, cwd: dir });
+        bodies.push(calls.createReview[0].body);
+    }
+    assert.match(bodies[0], /A new review starts automatically about 10 minutes after your last push\./);
+    assert.match(bodies[1], /comment `@openlibrary-bot review` on this PR to run a fresh review\./);
+    for (const b of bodies) {
+        assert.doesNotMatch(b, /on behalf of/);
+        assert.match(b, /Automated review by \[@openlibrary-bot\]\([^)]*code_review\.md\)\. This is \*\*not\*\* an approval/);
+    }
 });

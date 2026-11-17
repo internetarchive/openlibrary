@@ -19,12 +19,13 @@ whether to approve and merge. Never phrase the review as "looks good" or "approv
 Read `$GITHUB_WORKSPACE/review-range.json`, written for you by an earlier step:
 
 ```json
-{ "pr": 13548, "base_sha": "...", "head_sha": "...", "incremental": true, "prior_review_at": "..." }
+{ "pr": 13548, "base_sha": "...", "head_sha": "...", "incremental": true, "prior_review_sha": "...", "prior_review_at": "...", "files": ["..."] }
 ```
 
-- `incremental: true` — you are re-reviewing. **Review only `base_sha..head_sha`**, the commits
-  pushed since the last pass. Do not re-report findings on code you already reviewed; the
-  author has seen them.
+- `incremental: true` — you are re-reviewing. `review.diff` is the PR's diff (`base_sha..head_sha`)
+  for only the `files` the author's commits since your last pass (`prior_review_sha`) touched.
+  Merges of the base branch are left out. Review what changed since that pass. Do not re-report
+  findings on code you already reviewed; the author has seen them.
 - `incremental: false` — first pass. Review the whole PR diff.
 
 The diff for your range is already on disk at `$GITHUB_WORKSPACE/review.diff`. Read that file
@@ -254,7 +255,8 @@ Field rules:
 
 - `dimensions` — all five keys, always. `status` is exactly `"none"` or `"findings"`, and it
   must agree with `findings`: `"none"` means no finding carries that dimension, `"findings"`
-  means at least one does. A `"none"` needs a `note` saying what you checked, in a few words.
+  means at least one does. A `"none"` needs a `note`: one short sentence, under 20 words, naming
+  what you checked. Not a paragraph, and no explanation of why each thing is fine.
 - `dimension` — on every finding, one of the five keys above.
 - `severity` — exactly `high`, `medium`, or `low`; anything else makes the review
   unpublishable. Rank the array most severe first. `low` findings are posted as suggestions
