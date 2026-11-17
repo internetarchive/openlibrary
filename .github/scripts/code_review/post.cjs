@@ -290,10 +290,11 @@ async function validateAndPost({ github, context, core, require, process }) {
 
     const selfAuthored = (livePr.user && livePr.user.login) === 'openlibrary-bot';
 
-    // Before posting, because it decides the verdict: resolve the bot's threads the model judged
-    // fixed or dismissed, noting why on the thread's first comment, and count the bot's threads still
+    // Before posting, because it decides the verdict: pick the bot's threads the model judged fixed or
+    // dismissed for the resolve job, noting why on the thread's first comment, and count the bot's threads still
     // open. A GraphQL error must not fail the post; it leaves the count null, which means no APPROVE.
     let unresolvedOwnThreads = null;
+    const toResolveIds = [];
     try {
         let allThreads = [],
             tCursor = null;
@@ -332,7 +333,6 @@ async function validateAndPost({ github, context, core, require, process }) {
             }
         }
         const byId = new Map(allThreads.filter(Boolean).map(t => [t.id, t]));
-        const resolvedOk = new Set();
         let addressed = 0,
             dismissed = 0;
         for (const id of [...toResolve, ...toDismiss]) {
@@ -351,7 +351,7 @@ async function validateAndPost({ github, context, core, require, process }) {
                 }
                 note = `✅ Addressed in [\`${sha.slice(0, 7)}\`](https://github.com/${owner}/${repo}/commit/${sha})`;
             }
-            // Noted on the bot's comment rather than as a reply. A failed edit still resolves.
+            // Noted on the bot's comment rather than as a reply. A failed edit is still resolved.
             const first = byId.get(id).comments.nodes[0];
             try {
                 await github.graphql(
@@ -361,20 +361,16 @@ async function validateAndPost({ github, context, core, require, process }) {
             } catch (e) {
                 core.warning(`Could not edit the comment on review thread ${id}: ${e.message}`);
             }
-            try {
-                await github.graphql(`mutation($id:ID!){ resolveReviewThread(input:{threadId:$id}){ thread { id isResolved } } }`, { id });
-                resolvedOk.add(id);
-                if (fixed) addressed++;
-                else dismissed++;
-            } catch (e) {
-                core.warning(`Could not resolve review thread ${id}: ${e.message}`);
-            }
+            toResolveIds.push(id);
+            if (fixed) addressed++;
+            else dismissed++;
         }
-        if (resolvedOk.size) core.info(`Resolved ${addressed} fixed and ${dismissed} dismissed review thread(s).`);
-        // Counted the way the status job counts, limited to the bot's threads. A thread whose
-        // resolve failed still counts, so it blocks APPROVE.
+        // The `resolve` job resolves these after this job ends. This job's tokens can't (#14533).
+        if (toResolveIds.length) core.info(`Handing ${addressed} fixed and ${dismissed} dismissed review thread(s) to the resolve job.`);
+        // Counted the way the status job counts, limited to the bot's threads, as if the resolve
+        // job succeeds. If it fails, the status job still sees the thread open and stays red.
         unresolvedOwnThreads = allThreads.filter(t => {
-            if (!t || t.isResolved || t.isOutdated || resolvedOk.has(t.id)) return false;
+            if (!t || t.isResolved || t.isOutdated || toResolveIds.includes(t.id)) return false;
             const c = t.comments && t.comments.nodes && t.comments.nodes[0];
             return !!(c && c.author && c.author.login === 'openlibrary-bot');
         }).length;
@@ -435,6 +431,8 @@ async function validateAndPost({ github, context, core, require, process }) {
         return;
     }
     core.info(`Posted ${event} review ${posted.id}: ${inline.length} inline, ${orphaned.length} in summary.`);
+    // Only once the review is up, so a failed post leaves the threads as they were.
+    core.setOutput('resolve_thread_ids', JSON.stringify(toResolveIds));
 
     // See shouldDismissTeamRequest. Never fails the job.
     if (shouldDismissTeamRequest({ selfAuthored, event })) {

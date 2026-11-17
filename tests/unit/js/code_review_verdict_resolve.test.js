@@ -2,8 +2,8 @@
 //   1. The helpers: selectReviewEvent (APPROVE needs no findings and none of the bot's threads
 //      open), shouldDismissTeamRequest, threadsToResolve and fixedInSha.
 //   2. The post step against a mock GitHub: the verdict reaches createReview, a 422 falls back to
-//      COMMENT, a bot-authored PR drops the team request, fixed threads are resolved and open ones
-//      kept, and a thread-enumeration failure doesn't fail the job.
+//      COMMENT, a bot-authored PR drops the team request, fixed threads are handed to the resolve
+//      job and open ones kept, and a thread-enumeration failure doesn't fail the job.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
@@ -193,9 +193,11 @@ test('threadStateLine: only non-zero counts, with a check mark once nothing is o
 
 // ========================= Integration: drive the real post step end-to-end =========================
 async function runScript(stepFn, { github, context, env, cwd }) {
-    const recorded = { failed: null, warnings: [] };
+    const recorded = { failed: null, warnings: [], outputs: {} };
     const core = {
-        setOutput: () => {},
+        setOutput: (k, v) => {
+            recorded.outputs[k] = v;
+        },
         setFailed: m => {
             recorded.failed = m;
         },
@@ -233,11 +235,11 @@ const context = {
 };
 const SHA = c => c.repeat(40);
 
-// A mock octokit that records createReview payloads, resolveReviewThread mutations, and team dismissals,
+// A mock octokit that records createReview payloads, comment edits, and team dismissals,
 // and can throw a 422 on the first verdict attempt (self-review fallback) or throw on the thread
 // enumeration (false-red guard).
 function mockGitHub({ author = 'contributor', reviewThreads = [], throw422 = false, enumThrows = false, postedReviewId = 999 } = {}) {
-    const calls = { createReview: [], resolved: [], edits: [], removedTeams: [] };
+    const calls = { createReview: [], edits: [], removedTeams: [] };
     let threw = false;
     const github = {
         rest: {
@@ -271,10 +273,8 @@ function mockGitHub({ author = 'contributor', reviewThreads = [], throw422 = fal
                 calls.edits.push({ id: vars.id, body: vars.body });
                 return { updatePullRequestReviewComment: { pullRequestReviewComment: { id: vars.id } } };
             }
-            if (/resolveReviewThread/.test(query)) {
-                calls.resolved.push(vars.id);
-                return { resolveReviewThread: { thread: { id: vars.id, isResolved: true } } };
-            }
+            // post's tokens can't resolve threads (#14533); it hands them to the resolve job instead.
+            if (/resolveReviewThread/.test(query)) throw new Error('post must not resolve threads itself');
             if (enumThrows) throw new Error('transient GraphQL 502');
             return { repository: { pullRequest: { reviewThreads: { nodes: reviewThreads, pageInfo: { hasNextPage: false, endCursor: null } } } } };
         }
@@ -302,6 +302,9 @@ function setup(reviewObj) {
 function teardown() {
     if (dir) rmSync(dir, { recursive: true, force: true });
 }
+
+// The thread ids post handed to the resolve job.
+const handedOff = res => JSON.parse(res.outputs.resolve_thread_ids || '[]');
 
 const baseEnv = d => ({ PR: '1', HEAD_SHA: SHA('a'), BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: d });
 
@@ -334,9 +337,9 @@ test('post: a clean CONTRIBUTOR PR with a SURVIVING own thread posts COMMENT, no
     try {
         const threads = [thread('SURVIVES', 'other.py', 'correctness', 'Still open on an untouched file', { line: 20 })];
         const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
-        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.equal(calls.createReview[0].event, 'COMMENT', 'never APPROVE while an own finding is unresolved');
-        assert.deepEqual(calls.resolved, [], 'the untouched-file thread is not resolved');
+        assert.deepEqual(handedOff(res), [], 'the untouched-file thread is not resolved');
     } finally {
         teardown();
     }
@@ -395,7 +398,7 @@ test('post: a thread-enumeration failure never fails the job and never auto-appr
         assert.equal(res.failed, null, 'a transient GraphQL failure must not fail a post that succeeds');
         assert.equal(calls.createReview.length, 1, 'the review still posts');
         assert.equal(calls.createReview[0].event, 'COMMENT', 'unknown thread state -> COMMENT, never APPROVE');
-        assert.deepEqual(calls.resolved, []);
+        assert.deepEqual(handedOff(res), []);
     } finally {
         teardown();
     }
@@ -410,8 +413,8 @@ test('post: a thread the model judged fixed gets an "Addressed in" note on its c
             thread('NOT_LISTED', 'other.py', 'correctness', 'Model did not judge this fixed', { line: 9 })
         ];
         const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
-        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
-        assert.deepEqual(calls.resolved, ['FIXED']);
+        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        assert.deepEqual(handedOff(res), ['FIXED']);
         assert.deepEqual(
             calls.edits,
             [{ id: 'C_FIXED', body: threads[0].comments.nodes[0].body + addressed('c1') }],
@@ -428,8 +431,8 @@ test('post: #14515 -- once every own thread is judged fixed, a clean re-review A
     try {
         const threads = [thread('T34', 'openlibrary/templates/lists/header.html', 'correctness', 'Same bug in sibling strings', { line: 34 })];
         const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
-        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
-        assert.deepEqual(calls.resolved, ['T34']);
+        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        assert.deepEqual(handedOff(res), ['T34']);
         assert.deepEqual(
             calls.edits.map(e => e.body.endsWith(addressed(SHA('a')))),
             [true],
@@ -440,7 +443,7 @@ test('post: #14515 -- once every own thread is judged fixed, a clean re-review A
         teardown();
     }
 });
-test('post: an edit failure still resolves the thread', async () => {
+test('post: an edit failure still hands the thread to the resolve job', async () => {
     const d = setup({ ...reviewWith([]), resolved: ['FIXED'] });
     try {
         const threads = [thread('FIXED', 'a.py', 'correctness', 'Prior finding now gone', { line: 1 })];
@@ -452,7 +455,7 @@ test('post: an edit failure still resolves the thread', async () => {
         };
         const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.equal(res.failed, null);
-        assert.deepEqual(calls.resolved, ['FIXED']);
+        assert.deepEqual(handedOff(res), ['FIXED']);
         assert.equal(calls.createReview[0].event, 'APPROVE');
     } finally {
         teardown();
@@ -464,8 +467,8 @@ test('post: a standing finding keeps its thread open and the PR off APPROVE', as
     try {
         const threads = [thread('STANDS', 'a.py', 'correctness', 'Still broken', { line: 1 })];
         const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
-        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
-        assert.deepEqual(calls.resolved, [], 'a finding that still stands is never resolved');
+        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        assert.deepEqual(handedOff(res), [], 'a finding that still stands is never resolved');
         assert.equal(calls.createReview[0].event, 'REQUEST_CHANGES');
     } finally {
         teardown();
@@ -509,8 +512,8 @@ test('post: a thread the model dismissed is noted and resolved, and the summary 
             thread('OPEN', 'c.py', 'correctness', 'Still there', { line: 4 })
         ];
         const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
-        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
-        assert.deepEqual(calls.resolved, ['FIXED', 'WRONG'], "a human's thread is never touched");
+        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        assert.deepEqual(handedOff(res), ['FIXED', 'WRONG'], "a human's thread is never touched");
         assert.deepEqual(
             calls.edits.map(e => [e.id, e.body.split('\n\n').pop()]),
             [
