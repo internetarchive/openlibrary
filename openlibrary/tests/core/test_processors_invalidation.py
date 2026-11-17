@@ -70,12 +70,9 @@ class TestInvalidationProcessor:
     def test_reload_on_timeout(self, monkeypatch):
         # create the processor at 60 seconds past in time
         mock_now = dt.datetime.now() - dt.timedelta(seconds=60)
-        monkeypatch.setattr(dt, "datetime", MockDatetime(mock_now))
-
-        p = invalidation.InvalidationProcessor(prefixes=["/templates"], timeout=60)
-
-        # come back to real time
-        monkeypatch.undo()
+        with monkeypatch.context() as mp:
+            mp.setattr(dt, "datetime", MockDatetime(mock_now))
+            p = invalidation.InvalidationProcessor(prefixes=["/templates"], timeout=60)
 
         # monkeypatch web
         self._monkeypatch_web(monkeypatch)
@@ -93,12 +90,9 @@ class TestInvalidationProcessor:
     def test_is_timeout(self, monkeypatch):
         # create the processor at 60 seconds past in time
         mock_now = dt.datetime.now() - dt.timedelta(seconds=60)
-        monkeypatch.setattr(dt, "datetime", MockDatetime(mock_now))
-
-        p = invalidation.InvalidationProcessor(prefixes=["/templates"], timeout=60)
-
-        # come back to real time
-        monkeypatch.undo()
+        with monkeypatch.context() as mp:
+            mp.setattr(dt, "datetime", MockDatetime(mock_now))
+            p = invalidation.InvalidationProcessor(prefixes=["/templates"], timeout=60)
 
         # monkeypatch web
         self._monkeypatch_web(monkeypatch)

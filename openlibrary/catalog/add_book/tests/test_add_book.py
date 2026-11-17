@@ -695,6 +695,9 @@ class Test_From_MARC:
         existing = mock_site.get("/authors/OL1A")
         assert existing.death_date == "1970"
         assert existing.remote_ids.get("isni") == isni
+        # One save of each of the author, work and edition
+        saved_keys = sorted(c["key"] for c in mock_site.changesets[-1]["changes"])
+        assert saved_keys == sorted(["/authors/OL1A", reply["work"]["key"], reply["edition"]["key"]])
 
 
 def test_build_pool(mock_site):

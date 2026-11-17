@@ -649,6 +649,7 @@ class TestDaisyPage:
         assert redirects == ["https://archive.org/details/test%20item%2Farchive"]
 
 
+@pytest.mark.usefixtures("mock_site")
 class TestMakeWork:
     def test_make_author_adds_the_correct_key(self):
         author_key = "OL123A"
@@ -751,9 +752,10 @@ class TestEditSavedFlash:
         assert saved.flash == [("edit-saved", "most-read-2026-11:485")]
         assert saved.set_cookies == {addbook.pitch.SEEN_COOKIE: 24 * 60 * 60}
 
-    @pytest.mark.parametrize("cookie", [addbook.pitch.SEEN_COOKIE, addbook.pitch.dismiss_cookie()])
+    # The dismiss cookie names the running projects, which it reads from the store: worked out in the test, not at import.
+    @pytest.mark.parametrize("cookie", [lambda: addbook.pitch.SEEN_COOKIE, addbook.pitch.dismiss_cookie])
     def test_only_thanks_once_seen_today_or_closed(self, saved, cookie):
-        saved.cookies[cookie] = "1"
+        saved.cookies[cookie()] = "1"
         addbook.add_edit_saved_flash("/books/OL1M")
         assert saved.flash == [("edit-saved", "")]
         assert saved.set_cookies == {}

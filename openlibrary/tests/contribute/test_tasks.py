@@ -2,6 +2,7 @@ import pytest
 
 from openlibrary.contribute import initiatives, supply, tasks
 from openlibrary.contribute.tasks import Task
+from openlibrary.plugins.openlibrary import contribute
 
 NONFICTION = "/tags/OL9T"
 
@@ -60,6 +61,18 @@ def test_a_cover_is_missing_with_only_deleted_covers_but_not_on_a_scanned_book()
     assert not tasks.is_missing(FakeEdition(ocaid="goody"), "covers")
 
 
+@pytest.mark.parametrize("fmt", ["Audio CD", "audiobook", "MP3 CD", "Audio Cassette", "CD", "Compact Disc"])
+def test_a_recording_has_no_page_count_task(fmt):
+    assert not tasks.is_missing(FakeEdition(physical_format=fmt), "number_of_pages")
+    # Only the page count: a recording still has a publisher to fill in.
+    assert tasks.is_missing(FakeEdition(physical_format=fmt), "publishers")
+
+
+@pytest.mark.parametrize("fmt", ["", "Paperback", "Hardcover", "ebook", "CD-ROM"])
+def test_print_and_ebook_editions_keep_the_page_count_task(fmt):
+    assert tasks.is_missing(FakeEdition(physical_format=fmt), "number_of_pages")
+
+
 def test_impact_is_readers_times_points():
     assert tasks.impact(100, Task("OL1M", "publishers")) == 200
     assert tasks.impact(None, Task("OL1M", "languages")) == 15
@@ -68,7 +81,7 @@ def test_impact_is_readers_times_points():
 
 def test_candidates_are_none_while_the_gaps_build(monkeypatch):
     monkeypatch.setattr(supply.initiatives, "get_gaps", lambda initiative: None)
-    assert supply.candidates(initiatives.ACTIVE, ("languages",)) is None
+    assert supply.candidates(initiatives.MOST_READ, ("languages",)) is None
 
 
 def test_candidates_are_the_initiative_s_editions_with_an_open_gap_in_the_fields(monkeypatch):
@@ -84,3 +97,11 @@ def test_candidates_are_the_initiative_s_editions_with_an_open_gap_in_the_fields
     list(supply.candidates(initiatives.TAGS, ("languages", "publishers")))
     assert asked == [initiatives.TAGS]
     assert sorted(loaded) == [["/books/OL1M", 10, []], ["/books/OL2M", 20, ["lccn"]]]
+
+
+def test_a_task_says_whether_the_answer_is_for_one_edition_or_every_edition(request_context_fixture):
+    request_context_fixture(lang="en")
+    assert "Penguin · 2008" in contribute.build_scope("number_of_pages", "Penguin · 2008")
+    assert "this edition only" in contribute.build_scope("covers", "")
+    assert "every edition" in contribute.build_scope("genres", "Penguin · 2008")
+    assert "Penguin" not in contribute.build_scope("genres", "Penguin · 2008")

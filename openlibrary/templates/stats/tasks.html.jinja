@@ -151,7 +151,9 @@
                             aria-pressed="{{ 'true' if project.on else 'false' }}">
                         <span class="tasks-stats__card-label">{{ project.title }}</span>
                         <span class="tasks-stats__card-value">{{ project.percent }}</span>
-                        <span class="tasks-stats__card-window">{{ _("of details filled") }}</span>
+                        <span class="tasks-stats__card-window">
+                            {{ _("of details filled · Finished") if project.finished else _("of details filled") }}
+                        </span>
                     </button>
                 {% endfor %}
             </div>
@@ -159,7 +161,7 @@
                 <p class="tasks-stats__figures"
                    data-initiative-figures="{{ project.slug }}"
                    {% if not project.on %}hidden{% endif %}>
-                    <span>{{ _("<b>%(done)s of %(count)s</b> books complete", done=project.done, count=project.editions) | safe }}</span>
+                    <span>{{ _("<b>%(done)s of %(count)s</b> editions complete", done=project.done, count=project.editions) | safe }}</span>
                     <span><b>{{ project.open }}</b> {{ _("details still open") }}</span>
                     <span><b>{{ project.not_found }}</b> {{ _("marked not found") }}</span>
                     <span>{{ project.people | safe }}</span>

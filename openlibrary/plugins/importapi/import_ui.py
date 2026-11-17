@@ -1,3 +1,4 @@
+import json
 import re
 from dataclasses import dataclass
 from typing import Literal, cast, override
@@ -48,7 +49,11 @@ class import_preview(delegate.page):
             add_flash_message("error", str(e))
             return render_template("import_preview.html", metadata_provider_factory)
 
-        result = req.metadata_provider.do_import(req.identifier, req.save)
+        try:
+            result = req.metadata_provider.do_import(req.identifier, req.save)
+        except ValueError as e:
+            add_flash_message("error", str(e))
+            return render_template("import_preview.html", metadata_provider_factory, req=req)
 
         if req.save:
             add_flash_message("success", "Import successful")
@@ -213,6 +218,30 @@ class GutenbergMetadataProvider(AbstractMetadataProvider):
         )
 
 
+class RawJsonMetadataProvider(AbstractMetadataProvider):
+    full_name = "Raw import JSON"
+    id_name = "json"
+
+    @override
+    def do_import(self, identifier: str, save: bool):
+        # Avoids the same circular import as IaMetadataProvider.
+        from openlibrary.plugins.importapi.code import json_edition_builder
+
+        try:
+            obj = json.loads(identifier)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON: {e}") from e
+        if not isinstance(obj, dict):
+            raise ValueError("The import record must be a JSON object")
+        # Built like a JSON POST to /api/import, so the preview shows what that would do.
+        import_record = json_edition_builder(obj).get_dict()
+        return add_book.load(
+            import_record,
+            account_key="account/ImportBot",
+            save=save,
+        )
+
+
 class MetadataProviderFactory:
     def __init__(self):
         providers = [
@@ -220,6 +249,7 @@ class MetadataProviderFactory:
             IaMetadataProvider(),
             RawMarcMetadataProvider(),
             GutenbergMetadataProvider(),
+            RawJsonMetadataProvider(),
         ]
         self.metadata_providers = {provider.id_name: provider for provider in providers}
 

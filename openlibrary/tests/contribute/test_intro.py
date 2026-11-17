@@ -54,9 +54,9 @@ def test_filter_chips_count_the_open_tasks_in_their_fields():
 
 
 def test_urls_name_the_initiative_only_when_it_is_not_the_headline_one():
-    assert contribute.initiative_param(contribute.initiatives.ACTIVE) == ""
-    assert contribute.get_initiative("") is contribute.initiatives.ACTIVE
-    assert contribute.get_initiative("nope") is contribute.initiatives.ACTIVE
+    assert contribute.initiative_param(contribute.initiatives.MOST_READ) == ""
+    assert contribute.get_initiative("") is contribute.initiatives.MOST_READ
+    assert contribute.get_initiative("nope") is contribute.initiatives.MOST_READ
     assert contribute.get_initiative("genres-2026-11") is contribute.initiatives.TAGS
     task = contribute.tasks.Task("OL1M", "genres")
     assert contribute.build_task_url(task, "genres", "genres-2026-11") == "/tasks/task/OL1M/genres?back=genres&initiative=genres-2026-11"
