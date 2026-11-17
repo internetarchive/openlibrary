@@ -457,7 +457,7 @@ test('D3a analyze emits withheld + withheld_blocking outputs, and public_finding
 // ---- Checkouts: base-repo code only, no credentials left behind ----
 // Under pull_request_target every job runs with secrets, so a checkout of the PR head would put fork
 // code where a github-script step `require`s it. post, pending and status hold PATs.
-test('no job checks out a PR-head ref, and every checkout sets persist-credentials: false', () => {
+test('every checkout is github.sha (never a PR-head ref or a stale base.sha) with persist-credentials: false', () => {
     const checkouts = Object.entries(workflow.jobs).flatMap(([job, j]) =>
         (j.steps || []).filter(s => (s.uses || '').startsWith('actions/checkout@')).map(s => [job, s.with || {}])
     );
@@ -467,7 +467,9 @@ test('no job checks out a PR-head ref, and every checkout sets persist-credentia
         assert.equal(w.repository, undefined, `${job}: checkout must be of this repo, not the PR's fork`);
         const ref = String(w.ref || '');
         assert.doesNotMatch(ref, /head|merge|refs\/pull|pull_request\.number|github\.ref\b/i, `${job}: checkout must not use a PR-head ref (got ${ref})`);
-        assert.ok(['', '${{ github.sha }}', '${{ github.event.pull_request.base.sha }}'].includes(ref), `${job}: unexpected checkout ref ${ref}`);
+        // github.sha is the commit this workflow was loaded from. pull_request.base.sha is stale on a PR
+        // not pushed since master moved, so it can lack the scripts the steps require.
+        assert.equal(ref, '${{ github.sha }}', `${job}: checkout must use github.sha (got ${ref})`);
     }
 });
 test('post, pending and status check out only the scripts, before any step that uses them', () => {

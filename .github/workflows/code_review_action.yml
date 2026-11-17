@@ -228,13 +228,14 @@ jobs:
       # is itself gated on skip == 'false', so it is never read unset.
       public_findings_count: ${{ steps['analyze-gate'].outputs.public_findings_count }}
     steps:
-      # The base commit, never the PR head: on `pull_request` the default ref would be the
-      # merge of the PR into base, so pin the base SHA; other events check out the default
-      # branch, which is the base. See the SECURITY note above. The github-script steps below run
-      # the code review scripts from this checkout (never from pr-head/).
+      # The base branch, never the PR head. github.sha is the commit this workflow file was loaded
+      # from: the base branch tip under pull_request_target, the default branch otherwise. Not
+      # pull_request.base.sha, which GitHub only updates when the PR is pushed, so on an older PR it
+      # is a stale master without these scripts. See the SECURITY note above. The github-script
+      # steps below run the code review scripts from this checkout (never from pr-head/).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
 
       - name: Resolve review range (incremental since our last pass)
