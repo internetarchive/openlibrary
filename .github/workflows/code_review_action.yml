@@ -927,22 +927,7 @@ jobs:
               }
             }
 
-  # ----------------------------------------------------------------------------------------------
-  # pending -- an early "review in progress" signal. Runs ALONGSIDE analyze (same trigger guard) and
-  # posts `code-review = pending` on the PR head so the PR's checks show the review has started,
-  # instead of nothing until the status job finishes minutes later. Pending is not success, so the
-  # required gate keeps blocking exactly as before.
-  #
-  # NO-STRAND RULES -- a pending must never outlive this run:
-  #   * Posted ONLY when the head has NO `code-review` status yet. A head that already has one is
-  #     left alone: analyze's state-aware resolver may SKIP it (status matches the review), and then
-  #     no status job runs to replace a pending we posted.
-  #   * The status job needs this job and runs whenever a pending was posted (even if analyze failed
-  #     or was cancelled before resolving the range), so the pending is always replaced: by the real
-  #     verdict, by `failure` if no review landed, or by `error` if the run finalized another commit.
-  # Separate job, not an analyze step: analyze holds no PAT and no write scope (it runs the model on
-  # untrusted PR content), and this job never touches PR content -- one pulls.get + status calls.
-  # continue-on-error: a failure here only loses the early signal; it can never affect the verdict.
+  # Posts code-review=pending; skipped if the head already has a status (analyze may skip and nothing would replace it).
   pending:
     if: >
       github.event_name == 'workflow_dispatch' ||
@@ -962,10 +947,8 @@ jobs:
         )
       )
     runs-on: ubuntu-latest
-    # The status post uses the bot PAT (same identity as the status job); no GITHUB_TOKEN scopes.
     permissions: {}
     outputs:
-      posted: ${{ steps.mark.outputs.posted }}
       pr: ${{ steps.mark.outputs.pr }}
       head_sha: ${{ steps.mark.outputs.head_sha }}
     steps:
@@ -985,18 +968,14 @@ jobs:
                   ? context.payload.pull_request.number
                   : context.payload.issue.number);
 
-            // Same skips as analyze's range resolver: those runs post no final status, so no pending.
             const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
-            if (pr.draft && context.eventName !== 'workflow_dispatch') { core.info('Draft PR -- no pending status.'); return; }
-            if (pr.state !== 'open') { core.info(`PR is ${pr.state} -- no pending status.`); return; }
+            if ((pr.draft && context.eventName !== 'workflow_dispatch') || pr.state !== 'open') return;
             const head = pr.head.sha;
 
-            // Only on a head with no code-review status yet (see NO-STRAND RULES above).
             const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, {
               owner, repo, ref: head, per_page: 100,
             });
-            const current = statuses.find((s) => s && s.context === 'code-review');
-            if (current) { core.info(`Head already has code-review=${current.state} -- leaving it for the status job.`); return; }
+            if (statuses.some((s) => s.context === 'code-review')) return;
 
             await github.rest.repos.createCommitStatus({
               owner, repo, sha: head,
@@ -1005,10 +984,8 @@ jobs:
               target_url: process.env.RUN_URL,
               description: 'Review in progress.',
             });
-            core.setOutput('posted', 'true');
             core.setOutput('pr', String(prNumber));
             core.setOutput('head_sha', head);
-            core.info(`code-review=pending on ${head.slice(0, 8)}.`);
 
   # ----------------------------------------------------------------------------------------------
   # status -- the SHA-bound required merge signal (issue #14453 A/B). Posts commit status
@@ -1049,14 +1026,9 @@ jobs:
   # transient status failure) analyze sets repost == 'true' and THIS job runs to (re)post the status
   # from the review-body marker + live threads, so an already-reviewed head is never stranded without a
   # status. When a status IS present, analyze skips and the SHA-bound status is left intact (re-affirmed).
-  #
-  # PENDING HANDOFF: this job also runs whenever the `pending` job posted `code-review = pending`, even
-  # if analyze failed or was cancelled before resolving the range (skip unset). Then PR/HEAD_SHA fall
-  # back to the pending job's, POST_RESULT is not success, and the head gets `failure` -- never a
-  # pending left behind. A pending on a commit this job does not finalize is replaced with `error`.
   status:
     needs: [analyze, post, pending]
-    if: always() && (needs.analyze.outputs.skip == 'false' || needs.pending.outputs.posted == 'true')
+    if: always() && (needs.analyze.outputs.skip == 'false' || needs.pending.outputs.head_sha != '')
     runs-on: ubuntu-latest
     # No GITHUB_TOKEN scopes: the status post and the reviewThreads GraphQL both use the bot PAT
     # (github-token input below); no step here uses the default token. Least privilege -> none.
@@ -1068,8 +1040,6 @@ jobs:
         env:
           PR: ${{ needs.analyze.outputs.pr || needs.pending.outputs.pr }}
           HEAD_SHA: ${{ needs.analyze.outputs.head_sha || needs.pending.outputs.head_sha }}
-          # The commit the pending job marked `pending` this run ('' when it posted nothing).
-          PENDING_SHA: ${{ needs.pending.outputs.head_sha }}
           POST_RESULT: ${{ needs.post.result }}
           # Count of PUBLIC findings this run, read as a DECLARED analyze-job OUTPUT -- produced by
           # the analyze-gate step IN THIS WORKFLOW (issue B.2: the count must not depend on a cross-PR
@@ -1105,8 +1075,6 @@ jobs:
             const headSha = process.env.HEAD_SHA;
             const repost = process.env.REPOST === 'true';
             if (!/^[0-9a-f]{40}$/.test(headSha)) { core.setFailed('Unexpected head sha.'); return; }
-            // The commit the pending job marked this run; see clearPending below.
-            const pendingSha = process.env.PENDING_SHA || '';
 
             // #14476 D1 -- the reviewed SHA must still be the live head when we post the status, or we
             // post NO status (the current head is unreviewed and earns its own run; the superseded
@@ -1176,30 +1144,9 @@ jobs:
             // (createCommitStatus below is bound to headSha). This mirrors the post job's guard so the
             // review and the status always describe the same commit.
             const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: pr });
-            if (pendingSha && pendingSha !== headSha) await clearPending(pendingSha);
             if (!headIsCurrent(headSha, livePr.head.sha)) {
               core.info(`Head moved ${headSha.slice(0,8)}->${String(livePr.head.sha).slice(0,8)} since review; leaving the reviewed SHA without a status. The current head is unreviewed and earns its own run.`);
-              if (pendingSha === headSha) await clearPending(headSha);
               return;
-            }
-
-            // Replace this run's own `pending` on a commit this job will NOT finalize (a push between
-            // the pending job's and analyze's head reads, or the head moved before we post). Only
-            // touches it while it is still `pending`, so a real verdict is never overwritten.
-            // A hoisted declaration, placed after the live-head guard it serves.
-            async function clearPending(sha) {
-              if (!/^[0-9a-f]{40}$/.test(sha)) return;
-              const list = await github.paginate(github.rest.repos.listCommitStatusesForRef, { owner, repo, ref: sha, per_page: 100 });
-              const cur = list.find((s) => s && s.context === 'code-review');
-              if (!cur || cur.state !== 'pending') return;
-              await github.rest.repos.createCommitStatus({
-                owner, repo, sha,
-                context: 'code-review',
-                state: 'error',
-                target_url: process.env.RUN_URL,
-                description: 'Review did not run on this commit; re-request it.',
-              });
-              core.info(`Replaced this run's pending code-review on ${sha.slice(0, 8)} with error.`);
             }
 
             // Enumerate review threads (GraphQL -- the REST reviews API carries no resolved state).

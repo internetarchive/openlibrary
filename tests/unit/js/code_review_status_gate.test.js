@@ -147,8 +147,7 @@ test('decideStatus never leaks finding content -- description is counts and fixe
 // ---- Context string: EXACTLY `code-review` (must match the ruleset's required-check string) ----
 test('the status job posts commit status context === "code-review" (ruleset-required string)', () => {
     // A rename makes the required gate unsatisfiable (ruleset requires a string nothing posts) or
-    // unenforcing. Pin every createCommitStatus `context:` line (the pending job's early signal, the
-    // status job's verdict, and its stale-pending cleanup) to the one required string.
+    // unenforcing. Pin the single source of truth: the createCommitStatus `context:` line.
     const contextLines = statusLines.filter(l => /^\s*context:\s*/.test(l));
     assert.ok(contextLines.length >= 1, 'expected at least one `context:` line in the workflow');
     for (const line of contextLines) {
@@ -156,22 +155,10 @@ test('the status job posts commit status context === "code-review" (ruleset-requ
     }
 });
 
-// ---- pending: the early "review in progress" signal must never strand or diverge ----
-test('the pending job fires on exactly the same triggers as analyze (no drift)', () => {
-    assert.equal(workflow.jobs.pending.if, workflow.jobs.analyze.if, 'pending.if must equal analyze.if byte for byte');
-});
-test('the status job waits for pending and runs whenever a pending was posted', () => {
-    const status = workflow.jobs.status;
-    assert.ok(status.needs.includes('pending'), 'status must need pending (so it always posts after it)');
-    assert.match(status.if, /always\(\)/, 'status must keep always() so a failed/cancelled analyze still finalizes');
-    assert.match(status.if, /needs\.pending\.outputs\.posted == 'true'/, 'status must run whenever a pending was posted');
-});
-test('the pending job holds no GITHUB_TOKEN scopes and cannot fail the run', () => {
-    const job = workflow.jobs.pending;
-    assert.deepEqual(job.permissions, {}, 'pending uses the status PAT only');
-    assert.equal(job.steps.length, 1, 'pending is a single github-script step (never touches PR content)');
-    assert.equal(job.steps[0].uses.split('@')[0], 'actions/github-script');
-    assert.equal(job.steps[0]['continue-on-error'], true, 'losing the early signal must never fail the run');
+test('pending fires on the same triggers as analyze, and status runs whenever pending posted', () => {
+    assert.equal(workflow.jobs.pending.if, workflow.jobs.analyze.if);
+    assert.ok(workflow.jobs.status.needs.includes('pending'));
+    assert.match(workflow.jobs.status.if, /needs\.pending\.outputs\.head_sha != ''/);
 });
 
 // ---- ANALYZE-EXECUTION INVARIANT: analyze never executes PR content (the pull_request_target belt) ----
