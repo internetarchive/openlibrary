@@ -21,21 +21,22 @@ collection_tag = "{http://www.loc.gov/MARC21/slim}collection"
 record_tag = "{http://www.loc.gov/MARC21/slim}record"
 
 xml_samples = [
-    "39002054008678_yale_edu",
-    "flatlandromanceo00abbouoft",
-    "nybc200247",
-    "secretcodeofsucc00stjo",
-    "warofrebellionco1473unit",
-    "zweibchersatir01horauoft",
-    "onquietcomedyint00brid",
     "00schlgoog",
     "0descriptionofta1682unit",
-    "1733mmoiresdel00vill",
     "13dipolarcycload00burk",
+    "1733mmoiresdel00vill",
+    "39002054008678_yale_edu",
     "bijouorannualofl1828cole",
-    "soilsurveyrepor00statgoog",
     "cu31924091184469",  # MARC XML collection record
+    "duplicatebnp",
     "engineercorpsofh00sher",
+    "flatlandromanceo00abbouoft",
+    "nybc200247",
+    "onquietcomedyint00brid",
+    "secretcodeofsucc00stjo",
+    "soilsurveyrepor00statgoog",
+    "warofrebellionco1473unit",
+    "zweibchersatir01horauoft",
 ]
 
 bin_samples = [
@@ -97,6 +98,18 @@ date_tests = [  # MARC, expected publish_date
 TEST_DATA = Path(__file__).with_name("test_data")
 
 
+def sort_keys(obj):
+    """Sort dict keys and internal lists for test comparisons."""
+    if isinstance(obj, dict):
+        return {k: sort_keys(obj[k]) for k in sorted(obj, key=str)}
+    if isinstance(obj, (list, tuple)):
+        try:
+            return sorted(obj)
+        except TypeError:
+            return [sort_keys(v) for v in obj]
+    return obj
+
+
 class TestParseMARCXML:
     @pytest.mark.parametrize("i", xml_samples)
     def test_xml(self, i):
@@ -113,14 +126,7 @@ class TestParseMARCXML:
         assert j, f"Unable to open test data: {expect_filepath}"
         msg = f"Processed MARCXML values do not match expectations in {expect_filepath}."
         assert sorted(edition_marc_xml) == sorted(j), msg
-        msg += " Key: "
-        for key, value in edition_marc_xml.items():
-            if isinstance(value, Iterable):  # can not sort a list of dicts
-                assert len(value) == len(j[key]), msg + key
-                for item in j[key]:
-                    assert item in value, msg + key
-            else:
-                assert value == j[key], msg + key
+        assert sort_keys(edition_marc_xml) == sort_keys(j)
 
 
 class TestParseMARCBinary:
