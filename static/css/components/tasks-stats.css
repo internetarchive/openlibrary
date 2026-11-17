@@ -335,8 +335,16 @@
   text-align: start;
 }
 
+/* Plain rows: no site-wide zebra stripes */
+.tasks-stats__fields tr {
+  background: none;
+}
+
 .tasks-stats__fields th {
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
   color: var(--color-text-secondary);
 }
 
