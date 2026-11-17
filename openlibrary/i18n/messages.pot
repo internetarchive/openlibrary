@@ -8925,14 +8925,6 @@ msgid "Enter the year this edition came out, or the full date if a catalog gives
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The year the book was first published, when this edition is a later one. The work keeps the first year."
-msgstr ""
-
-#: openlibrary/contribute/field_guides.py
-msgid "A copyright date renewed for a new printing, or the date a seller listed the book."
-msgstr ""
-
-#: openlibrary/contribute/field_guides.py
 msgid "For example 2005 or March 2005"
 msgstr ""
 

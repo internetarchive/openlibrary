@@ -253,10 +253,6 @@ def get_field_guides() -> dict[str, FieldGuide]:
                     )
                 ),
             ],
-            traps=[
-                _("The year the book was first published, when this edition is a later one. The work keeps the first year."),
-                _("A copyright date renewed for a new printing, or the date a seller listed the book."),
-            ],
             placeholder=_("For example 2005 or March 2005"),
         ),
         "isbn": FieldGuide(
