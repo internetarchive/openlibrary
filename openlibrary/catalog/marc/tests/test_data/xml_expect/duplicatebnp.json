@@ -1,0 +1,24 @@
+{
+  "publish_date": "1930",
+  "publish_country": "sp",
+  "languages": [
+    "spa"
+  ],
+  "title": "Catálogo de la colección de documentos inéditos para la história de España",
+  "by_statement": "por Julían Paz",
+  "identifiers": {
+    "bnp": [
+      "197984"
+    ]
+  },
+  "authors": [
+    {"name": "Paz, Julián", "entity_type": "person"}
+  ],
+  "publishers": [
+    "Instituto de Valencia de Don Juan"
+  ],
+  "publish_places": [
+    "Madrid"
+  ],
+  "pagination": "2 v."
+}
