@@ -300,8 +300,6 @@ def _last_snapshot(slug: str, before) -> dict | None:
     return None
 
 
-# The most helpers a snapshot names, so a crowd can't bloat the count doc. The count covers everyone.
-HELPERS_KEPT = 300
 BLOCKED_PEOPLE = """
     SELECT REPLACE(s.key, 'account/', '/people/') FROM store s JOIN store_index si ON si.store_id = s.id
     WHERE si.type = 'account' AND si.name = 'status' AND si.value = 'blocked'
@@ -349,7 +347,7 @@ def admin_range__initiatives(**kargs):
                 # Snapshots from before helpers were named get them once, over the project's whole run.
                 if "helpers" not in last and (frozen := site.get().store.get(initiative.store_key)):
                     helpers = _initiative_helpers(db, initiative, frozen["frozen_at"], initiative.ends_at.isoformat())
-                    last = last | {"people": len(helpers), "helpers": helpers[:HELPERS_KEPT]}
+                    last = last | {"people": len(helpers), "helpers": helpers}
                 counts[initiative.slug] = last
             continue
         if not (frozen := site.get().store.get(initiative.store_key)):
@@ -363,7 +361,7 @@ def admin_range__initiatives(**kargs):
             "editions": p["total"],
             "percent": p["percent"],
             "people": len(helpers),
-            "helpers": helpers[:HELPERS_KEPT],
+            "helpers": helpers,
         }
     if not counts:
         raise NoStats

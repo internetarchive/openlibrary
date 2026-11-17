@@ -147,7 +147,7 @@ def test_a_project_past_its_goal_is_completed_and_says_who_helped(cards):
 
 
 def test_thanks_names_the_helpers_most_saves_first(monkeypatch):
-    snap = {"people": 3, "helpers": [["ann", 9], ["bo", 2]]}
+    snap = {"people": 3, "helpers": [["ann", 9], ["bo", 2], ["cy", 1]]}
     monkeypatch.setattr(contribute, "get_initiative_snapshot", lambda initiative: snap)
 
     class Person(dict):
@@ -160,6 +160,8 @@ def test_thanks_names_the_helpers_most_saves_first(monkeypatch):
             return [Person("/people/bo"), Person("/people/ann", displayname="Ann A.")]
 
     monkeypatch.setattr(contribute, "site", SimpleNamespace(get=FakeSite))
-    assert contribute.build_thanks(ACTIVE) == {"people": [{"name": "Ann A.", "url": "/people/ann"}, {"name": "bo", "url": "/people/bo"}], "more": 1}
+    # Everyone is listed, by username when there's no display name or no profile.
+    people = [{"name": "Ann A.", "url": "/people/ann"}, {"name": "bo", "url": "/people/bo"}, {"name": "cy", "url": "/people/cy"}]
+    assert contribute.build_thanks(ACTIVE) == {"people": people}
     snap.pop("helpers")
     assert contribute.build_thanks(ACTIVE) is None

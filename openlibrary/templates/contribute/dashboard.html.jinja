@@ -6,10 +6,7 @@
            href="{{ card.url }}"
            data-ol-link-track="TasksDashboard|Initiative|{{ card.slug }}"
            {% if card.on %}aria-current="page"{% endif %}>
-            <span class="contrib-projects__name">
-                {%- if card.completed -%}<span class="contrib-projects__check">{{ icon("circle-check", size="sm") }}</span>{%- endif -%}
-                {{ card.title }}
-            </span>
+            <span class="contrib-projects__name">{{ card.title }}</span>
             <span class="contrib-projects__meta">
                 {% if card.finished %}
                     <span>{{ card.finished_label }}</span>
@@ -42,9 +39,6 @@
         {% for person in thanks.people %}
             <li><a href="{{ person.url }}">{{ person.name }}</a></li>
         {% endfor %}
-        {% if thanks.more %}
-            <li class="contrib-muted">{{ ngettext("and 1 more", "and %(count)s more", thanks.more, count=thanks.more) }}</li>
-        {% endif %}
     </ul>
 {% endmacro %}
 {% import "contribute/parts.html.jinja" as parts %}
