@@ -288,7 +288,7 @@ test('auto_assign supplies OL_BOT_REVIEW_PAT to the team-request step', () => {
 });
 
 // ---- The request/verify script itself (extracted and driven with a mock github/core) ----
-// Mirrors tests/unit/js/code_review_status_gate.test.js's extractFn: pull the EXACT `const NAME =`
+// auto_assign_reviewer.yml still keeps its script inline, so pull the EXACT `const NAME =`
 // arrow block that ships (keyed on the closer at the declaration's indentation) and eval it, so the
 // tested logic == the deployed logic.
 function extractFn(lines, name) {

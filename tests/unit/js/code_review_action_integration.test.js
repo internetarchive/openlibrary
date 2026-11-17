@@ -1,40 +1,38 @@
-// Integration tests for #14476 -- drive the ACTUAL github-script step bodies from
-// code_review_action.yml against a mocked GitHub, end to end, for the three defect scenarios.
+// Integration tests for #14476 -- drive the ACTUAL step functions the code_review_action.yml
+// github-script steps call (.github/scripts/code_review/*.cjs) against a mocked GitHub, end to
+// end, for the three defect scenarios.
 //
 // Why this exists: a workflow-file change cannot be exercised from a PR (pull_request_target and
 // workflow_dispatch both run the DEFAULT branch's copy of the workflow, never the PR branch's), so
 // the real live run only happens post-merge. These tests are the closest pre-merge substitute: they
-// extract each step's `script:` verbatim, wrap it the way actions/github-script does (an async fn
-// with github/context/core/require/process injected), and run it with a mock octokit that records
-// the API calls. Tested bytes == shipped bytes.
+// call each step's module function with what actions/github-script passes it
+// (github/context/core/require/process), and run it with a mock octokit that records the API calls.
 import { test, beforeEach, afterEach } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const WF = join(here, '..', '..', '..', '.github', 'workflows', 'code_review_action.yml');
+const ROOT = join(here, '..', '..', '..');
+const WF = join(ROOT, '.github', 'workflows', 'code_review_action.yml');
 const workflow = yaml.load(readFileSync(WF, 'utf8'));
-const REVIEW_GATE_JS = workflow.env.REVIEW_GATE_JS;
+const SCRIPTS = join(ROOT, '.github', 'scripts', 'code_review');
+const load = createRequire(import.meta.url);
+const range = load(join(SCRIPTS, 'range.cjs'));
+const analyzeGate = load(join(SCRIPTS, 'analyze_gate.cjs'));
+const post = load(join(SCRIPTS, 'post.cjs'));
+const pending = load(join(SCRIPTS, 'pending.cjs'));
+const status = load(join(SCRIPTS, 'status.cjs'));
 
-const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
-
-// Pull a step's script body straight out of the parsed workflow (js-yaml hands back the literal).
-function scriptOf(jobName, stepMatch) {
-    const job = workflow.jobs[jobName];
-    const step = (job.steps || []).find(s => s.with && typeof s.with.script === 'string' && (s.name || '').includes(stepMatch));
-    assert.ok(step, `step "${stepMatch}" not found in job ${jobName}`);
-    return step.with.script;
-}
-
-// Run a github-script body with injected globals, exactly as actions/github-script does.
+// Run a step function with injected globals, as the workflow's github-script step does.
 // `cwd` (optional) redirects the script's RELATIVE fs paths (review.json / review.diff, which the
 // post step reads from the working directory) into the test's temp dir -- process.chdir() is not
 // available in vitest workers, so we wrap fs instead.
-async function runScript(body, { github, context, env, cwd }) {
+async function runScript(stepFn, { github, context, env, cwd }) {
     const recorded = { outputs: {}, failed: null, summary: '' };
     const core = {
         summary: {
@@ -73,8 +71,7 @@ async function runScript(body, { github, context, env, cwd }) {
     // GITHUB_WORKSPACE is a temp dir here; the base checkout's scripts come from this repo.
     const wrappedRequire = id =>
         id === 'fs' ? wrappedFs : realRequire(env.GITHUB_WORKSPACE ? id.replace(env.GITHUB_WORKSPACE, join(here, '..', '..', '..')) : id);
-    const fn = new AsyncFunction('github', 'context', 'core', 'require', 'process', body);
-    await fn(github, context, core, wrappedRequire, fakeProcess);
+    await stepFn({ github, context, core, require: wrappedRequire, process: fakeProcess });
     return { ...recorded, core };
 }
 
@@ -149,9 +146,9 @@ test('D1 post: head UNCHANGED -> createReview IS called', async () => {
     writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
     const head = SHA('a');
     const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
-    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', REVIEW_GATE_JS, GITHUB_WORKSPACE: dir };
+    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir };
     // post reads review.json/review.diff from cwd; run with cwd = dir.
-    await runScript(scriptOf('post', 'Validate anchors'), { github, context, env, cwd: dir });
+    await runScript(post.validateAndPost, { github, context, env, cwd: dir });
     assert.equal(calls.createReview.length, 1, 'a review on the still-current head must post');
     assert.equal(calls.createReview[0].commit_id, head);
 });
@@ -161,8 +158,8 @@ test('D1 post: head MOVED -> createReview is NOT called', async () => {
     const pinned = SHA('a'),
         live = SHA('c');
     const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: live } } }) });
-    const env = { PR: '1', HEAD_SHA: pinned, BASE_SHA: SHA('b'), INCREMENTAL: 'false', REVIEW_GATE_JS, GITHUB_WORKSPACE: dir };
-    const res = await runScript(scriptOf('post', 'Validate anchors'), { github, context, env, cwd: dir });
+    const env = { PR: '1', HEAD_SHA: pinned, BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir };
+    const res = await runScript(post.validateAndPost, { github, context, env, cwd: dir });
     assert.equal(calls.createReview.length, 0, 'a review must NOT post on a head the run did not review');
     assert.equal(res.failed, null, 'and it exits cleanly, not failed');
 });
@@ -180,7 +177,7 @@ test('D1 status: head MOVED -> createCommitStatus is NOT called', async () => {
         REPOST: 'false',
         RUN_URL: 'u'
     };
-    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    await runScript(status.postStatus, { github, context, env });
     assert.equal(calls.createCommitStatus.length, 0, 'no status may be posted when the reviewed SHA is no longer the head');
 });
 test('D1 status: head UNCHANGED + clean + a review actually posted -> success on the reviewed SHA', async () => {
@@ -200,7 +197,7 @@ test('D1 status: head UNCHANGED + clean + a review actually posted -> success on
         REPOST: 'false',
         RUN_URL: 'u'
     };
-    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    await runScript(status.postStatus, { github, context, env });
     assert.equal(calls.createCommitStatus.length, 1);
     assert.equal(calls.createCommitStatus[0].sha, head);
     assert.equal(calls.createCommitStatus[0].state, 'success');
@@ -226,7 +223,7 @@ test('D1 status FALSE-GREEN guard: POST_RESULT=success but NO review on this hea
         REPOST: 'false',
         RUN_URL: 'u'
     };
-    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    await runScript(status.postStatus, { github, context, env });
     assert.equal(calls.createCommitStatus.length, 1);
     assert.notEqual(calls.createCommitStatus[0].state, 'success', 'a head with no posted review must never read success');
 });
@@ -247,7 +244,7 @@ test('D2 range: already-reviewed head WITH a MATCHING code-review status -> skip
     });
     const env = { PR: '1', GITHUB_WORKSPACE: dir };
     const ctx = { ...context, eventName: 'pull_request_target', payload: { pull_request: { number: 1 } } };
-    const res = await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env });
+    const res = await runScript(range.resolveRange, { github, context: ctx, env });
     assert.equal(res.outputs.skip, 'true', 'a reviewed head whose status matches the verdict is skipped');
 });
 // #14486 -- STATE-aware skip. The headline blocker: an already-reviewed head carrying a STALE status
@@ -267,7 +264,7 @@ test('D2 range STATE-AWARE: reviewed head + STALE failure status + now-clean ver
     });
     const env = { PR: '1', GITHUB_WORKSPACE: dir };
     const ctx = { ...context, payload: { pull_request: { number: 1 } } };
-    const res = await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env });
+    const res = await runScript(range.resolveRange, { github, context: ctx, env });
     assert.equal(res.outputs.skip, 'false', 'a head on a status that contradicts its review must NOT be skipped');
     assert.equal(res.outputs.repost, 'true', 'it routes to an idempotent status repost (no model re-run)');
     assert.equal(res.outputs.head_sha, head);
@@ -286,7 +283,7 @@ test('D2 range STATE-AWARE: reviewed head + status already MATCHING (failure for
     });
     const env = { PR: '1', GITHUB_WORKSPACE: dir };
     const ctx = { ...context, payload: { pull_request: { number: 1 } } };
-    const res = await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env });
+    const res = await runScript(range.resolveRange, { github, context: ctx, env });
     assert.equal(res.outputs.skip, 'true', 'a reviewed head whose failure status matches its findings is skipped');
 });
 test('D2 range STATE-AWARE: reviewed head (clean f=0) but an UNRESOLVED thread + present success -> repost', async () => {
@@ -303,7 +300,7 @@ test('D2 range STATE-AWARE: reviewed head (clean f=0) but an UNRESOLVED thread +
     });
     const env = { PR: '1', GITHUB_WORKSPACE: dir };
     const ctx = { ...context, payload: { pull_request: { number: 1 } } };
-    const res = await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env });
+    const res = await runScript(range.resolveRange, { github, context: ctx, env });
     assert.equal(res.outputs.skip, 'false', 'an unresolved thread makes success stale -> not skipped');
     assert.equal(res.outputs.repost, 'true');
 });
@@ -316,7 +313,7 @@ test('D2 range: already-reviewed head with NO code-review status -> repost (not 
     });
     const env = { PR: '1', GITHUB_WORKSPACE: dir };
     const ctx = { ...context, payload: { pull_request: { number: 1 } } };
-    const res = await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env });
+    const res = await runScript(range.resolveRange, { github, context: ctx, env });
     assert.equal(res.outputs.skip, 'false', 'a stranded head must NOT be skipped');
     assert.equal(res.outputs.repost, 'true', 'it routes to a status repost');
     assert.equal(res.outputs.head_sha, head);
@@ -330,7 +327,7 @@ test('D2 status repost: reconstructs SUCCESS from an f=0 marker, no model', asyn
         reviewThreads: []
     });
     const env = { PR: '1', HEAD_SHA: head, POST_RESULT: 'skipped', REPOST: 'true', RUN_URL: 'u' };
-    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    await runScript(status.postStatus, { github, context, env });
     assert.equal(calls.createCommitStatus.length, 1);
     assert.equal(calls.createCommitStatus[0].state, 'success', 'a clean reviewed head reposts as success');
 });
@@ -341,7 +338,7 @@ test('D2 status repost: an f=2 marker reposts FAILURE', async () => {
         listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, body: 'x\n<!-- ol-pr-review-bot f=2 -->' }] })
     });
     const env = { PR: '1', HEAD_SHA: head, POST_RESULT: 'skipped', REPOST: 'true', RUN_URL: 'u' };
-    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    await runScript(status.postStatus, { github, context, env });
     assert.equal(calls.createCommitStatus[0].state, 'failure');
 });
 test('D2 status repost: a LEGACY review with no marker FAILS CLOSED (red), never green', async () => {
@@ -351,7 +348,7 @@ test('D2 status repost: a LEGACY review with no marker FAILS CLOSED (red), never
         listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, body: 'old review\n<!-- ol-pr-review-bot -->' }] })
     });
     const env = { PR: '1', HEAD_SHA: head, POST_RESULT: 'skipped', REPOST: 'true', RUN_URL: 'u' };
-    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    await runScript(status.postStatus, { github, context, env });
     assert.equal(calls.createCommitStatus[0].state, 'failure', 'an unreadable count must never fabricate a green');
 });
 
@@ -383,7 +380,7 @@ for (const scenario of [
             listReviews: async () => ({ data: reviewObjs(scenario.reviews) }),
             reviewThreads: scenario.threads
         });
-        await runScript(scriptOf('status', 'Decide the gate'), {
+        await runScript(status.postStatus, {
             github: s.github,
             context,
             env: { PR: '1', HEAD_SHA, POST_RESULT: 'skipped', REPOST: 'true', RUN_URL: 'u' }
@@ -398,7 +395,7 @@ for (const scenario of [
                 reviewThreads: scenario.threads
             });
             const ctx = { ...context, payload: { pull_request: { number: 1 } } };
-            return runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env: { PR: '1', GITHUB_WORKSPACE: dir } });
+            return runScript(range.resolveRange, { github, context: ctx, env: { PR: '1', GITHUB_WORKSPACE: dir } });
         };
 
         // (2a) present status equals the authoritative verdict -> skip.
@@ -428,7 +425,7 @@ test('#14486 Finding 2: a transient reviewThreads GraphQL error routes to a repo
         throw new Error('API rate limit exceeded (secondary)');
     };
     const ctx = { ...context, payload: { pull_request: { number: 1 } } };
-    const res = await runScript(scriptOf('analyze', 'Resolve review range'), { github, context: ctx, env: { PR: '1', GITHUB_WORKSPACE: dir } });
+    const res = await runScript(range.resolveRange, { github, context: ctx, env: { PR: '1', GITHUB_WORKSPACE: dir } });
     assert.equal(res.failed, null, 'a transient threads read must not fail the analyze job');
     assert.equal(res.outputs.skip, 'false', 'it falls back to NOT skipping');
     assert.equal(res.outputs.repost, 'true', 'and routes to the authoritative status repost');
@@ -440,8 +437,8 @@ test('D3a analyze-gate: a backstop-tripping review with 0 findings -> withheld, 
     review.summary = 'This change guards against a SQL injection in the query builder.'; // trips the backstop
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
     const { github } = mockGitHub();
-    const env = { REVIEW_GATE_JS, GITHUB_WORKSPACE: dir };
-    const res = await runScript(scriptOf('analyze', 'Gate the analysis'), { github, context, env });
+    const env = { GITHUB_WORKSPACE: dir };
+    const res = await runScript(analyzeGate.gateAnalysis, { github, context, env });
     assert.equal(res.outputs.withheld, 'true', 'the backstop withholds the public copy');
     assert.equal(res.outputs.withheld_blocking, 'false', 'but with 0 findings it is NON-blocking');
     assert.equal(res.outputs.public_findings_count, '0', 'the public count stays 0 (no leak)');
@@ -454,8 +451,8 @@ test('D3a analyze-gate: a real security finding -> withheld AND blocking', async
     review.findings = [{ dimension: 'security', severity: 'high', title: 'authz gap', body: 'missing owner check' }];
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
     const { github } = mockGitHub();
-    const env = { REVIEW_GATE_JS, GITHUB_WORKSPACE: dir };
-    const res = await runScript(scriptOf('analyze', 'Gate the analysis'), { github, context, env });
+    const env = { GITHUB_WORKSPACE: dir };
+    const res = await runScript(analyzeGate.gateAnalysis, { github, context, env });
     assert.equal(res.outputs.withheld, 'true');
     assert.equal(res.outputs.withheld_blocking, 'true');
     assert.equal(res.outputs.public_findings_count, '0', 'the public count stays 0 even for a real finding (no count leak)');
@@ -473,7 +470,7 @@ test('D3a status: withheld + non-blocking -> SUCCESS (the no-defect PR greens it
         REPOST: 'false',
         RUN_URL: 'u'
     };
-    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    await runScript(status.postStatus, { github, context, env });
     assert.equal(calls.createCommitStatus[0].state, 'success');
 });
 test('D3a status: withheld + blocking -> FAILURE with the non-leaky private-delivery phrase', async () => {
@@ -489,7 +486,7 @@ test('D3a status: withheld + blocking -> FAILURE with the non-leaky private-deli
         REPOST: 'false',
         RUN_URL: 'u'
     };
-    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    await runScript(status.postStatus, { github, context, env });
     assert.equal(calls.createCommitStatus[0].state, 'failure');
     assert.equal(calls.createCommitStatus[0].description, 'A finding was delivered privately; maintainer review required.');
     assert.ok(!/\d/.test(calls.createCommitStatus[0].description), 'the description carries no count');
@@ -499,8 +496,8 @@ test('D3a post: a withheld stub -> createReview NOT called, exits clean (no hard
     writeFileSync(join(dir, 'review.diff'), '');
     const head = SHA('a');
     const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
-    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', REVIEW_GATE_JS, GITHUB_WORKSPACE: dir };
-    const res = await runScript(scriptOf('post', 'Validate anchors'), { github, context, env, cwd: dir });
+    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir };
+    const res = await runScript(post.validateAndPost, { github, context, env, cwd: dir });
     assert.equal(calls.createReview.length, 0, 'nothing public is posted for a withheld review');
     assert.equal(res.failed, null, 'and the job does not hard-fail -- the status job decides');
 });
@@ -509,7 +506,7 @@ test('D3a post: a withheld stub -> createReview NOT called, exits clean (no hard
 const prCtx = { ...context, payload: { pull_request: { number: 1 } } };
 const runPending = async handlers => {
     const { github, calls } = mockGitHub(handlers);
-    await runScript(scriptOf('pending', 'review in progress'), { github, context: prCtx, env: { RUN_URL: 'u' } });
+    await runScript(pending.markPending, { github, context: prCtx, env: { RUN_URL: 'u' } });
     return calls;
 };
 
@@ -549,7 +546,7 @@ test('pending: an @-mention review request gets an eyes reaction on that comment
         }
     };
     const ctx = { ...context, eventName: 'issue_comment', payload: { comment: { id: 42 }, issue: { number: 1 } } };
-    const res = await runScript(scriptOf('pending', 'React to the review request'), { github, context: ctx, env: {} });
+    const res = await runScript(pending.reactToComment, { github, context: ctx, env: {} });
     assert.equal(res.failed, null);
     assert.deepEqual(reactions, [{ owner: 'internetarchive', repo: 'openlibrary', comment_id: 42, content: 'eyes' }]);
 });
@@ -564,14 +561,14 @@ test('pending: a refused reaction only warns', async () => {
         }
     };
     const ctx = { ...context, eventName: 'issue_comment', payload: { comment: { id: 42 }, issue: { number: 1 } } };
-    const res = await runScript(scriptOf('pending', 'React to the review request'), { github, context: ctx, env: {} });
+    const res = await runScript(pending.reactToComment, { github, context: ctx, env: {} });
     assert.equal(res.failed, null);
 });
 test('status: analyze died before posting a review -> the pending head gets failure', async () => {
     const head = SHA('a');
     const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
     const env = { PR: '1', HEAD_SHA: head, POST_RESULT: 'skipped', RUN_URL: 'u' };
-    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    await runScript(status.postStatus, { github, context, env });
     assert.equal(calls.createCommitStatus.length, 1);
     assert.equal(calls.createCommitStatus[0].state, 'failure');
 });
@@ -593,7 +590,7 @@ test('summary: a clean review lists the commit, range, counts and status', async
         BASE_SHA: SHA('b'),
         RUN_URL: 'u'
     };
-    const { summary } = await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    const { summary } = await runScript(status.postStatus, { github, context, env });
     assert.match(summary, /## Code review: #7 @ aaaaaaa/);
     assert.match(summary, /\| Range \| incremental since bbbbbbb \|/);
     assert.match(summary, /\| Findings \| 0 \|/);
@@ -603,14 +600,14 @@ test('summary: a withheld review shows no findings count', async () => {
     const head = SHA('a');
     const { github } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
     const env = { PR: '7', HEAD_SHA: head, POST_RESULT: 'success', PUBLIC_FINDINGS_COUNT: '0', WITHHELD: 'true', WITHHELD_BLOCKING: 'true', RUN_URL: 'u' };
-    const { summary } = await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    const { summary } = await runScript(status.postStatus, { github, context, env });
     assert.match(summary, /\| Findings \| — \|/);
     assert.ok(!/\d+ findings?/.test(summary), 'no count of withheld findings');
 });
 test('summary: head moved during the review -> says so and that no status was posted', async () => {
     const { github } = mockGitHub({ prGet: async () => ({ data: { head: { sha: SHA('c') } } }) });
     const env = { PR: '7', HEAD_SHA: SHA('a'), POST_RESULT: 'success', RUN_URL: 'u' };
-    const { summary } = await runScript(scriptOf('status', 'Decide the gate'), { github, context, env });
+    const { summary } = await runScript(status.postStatus, { github, context, env });
     assert.match(summary, /\| Status \| none: the PR moved to ccccccc during the review/);
 });
 
@@ -624,7 +621,7 @@ test('analyze-gate: LOW findings do not count toward the public findings count',
     ];
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
     const { github } = mockGitHub();
-    const res = await runScript(scriptOf('analyze', 'Gate the analysis'), { github, context, env: { REVIEW_GATE_JS, GITHUB_WORKSPACE: dir } });
+    const res = await runScript(analyzeGate.gateAnalysis, { github, context, env: { GITHUB_WORKSPACE: dir } });
     assert.equal(res.outputs.public_findings_count, '1');
 });
 test('post: a LOW finding becomes a suggestion in the summary, not a blocking inline thread', async () => {
@@ -635,8 +632,8 @@ test('post: a LOW finding becomes a suggestion in the summary, not a blocking in
     writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
     const head = SHA('a');
     const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
-    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', REVIEW_GATE_JS, GITHUB_WORKSPACE: dir };
-    await runScript(scriptOf('post', 'Validate anchors'), { github, context, env, cwd: dir });
+    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir };
+    await runScript(post.validateAndPost, { github, context, env, cwd: dir });
     const posted = calls.createReview[0];
     assert.equal((posted.comments || []).length, 0, 'no inline thread for a LOW finding');
     assert.match(posted.body, /### Suggestions \(won't block\)\n\n- \*\*Untested label\*\* \(`x:1`\): Add a test\./);

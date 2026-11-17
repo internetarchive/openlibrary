@@ -1,6 +1,6 @@
 // Unit tests for the CODE-REVIEW STATUS gate (#14453). Covers three things that must not drift:
-//   1. The three pure helpers embedded inline in the `status` job's github-script step; this test
-//      extracts the EXACT text that ships and exercises it, so tested logic == deployed logic:
+//   1. The three pure helpers the `status` job's step uses (.github/scripts/code_review/status.cjs
+//      and shared.cjs); this test imports the module that ships, so tested logic == deployed logic:
 //        - parseFindings(raw)                 -- the env->findings derivation, FAIL CLOSED on absent
 //        - unresolvedThreadCount(threads)     -- threads that are unresolved AND not outdated
 //        - decideStatus({postSucceeded,...})  -- the pass/fail + state + non-leaky description
@@ -12,48 +12,29 @@
 //      PRs under pull_request_target) must NEVER execute PR content -- no build/install/test/cache/
 //      cloud-auth/language-setup step. This is the load-bearing control that makes pull_request_target
 //      safe here, so a CI test fails the build if analyze gains a disallowed action or run command.
+//   4. Every checkout is of base-repo code (never a PR-head ref) and leaves no credentials behind, and
+//      every github-script step runs a module from that checkout.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import yaml from 'js-yaml';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const WF = join(here, '..', '..', '..', '.github', 'workflows');
+const SCRIPTS = join(here, '..', '..', '..', '.github', 'scripts', 'code_review');
 const workflowText = readFileSync(join(WF, 'code_review_action.yml'), 'utf8');
-const statusLines = workflowText.split('\n');
+const load = createRequire(import.meta.url);
+const shared = load(join(SCRIPTS, 'shared.cjs'));
+const status = load(join(SCRIPTS, 'status.cjs'));
+const range = load(join(SCRIPTS, 'range.cjs'));
+const post = load(join(SCRIPTS, 'post.cjs'));
+const source = file => readFileSync(join(SCRIPTS, file), 'utf8');
 
-// Extract a `const <name> = (…) => { … };` block from a workflow's lines, keyed on the closing line
-// that matches the declaration's own indentation (so a nested `};` cannot truncate it), and eval it.
-// The helpers are pure -- they close over nothing from the step -- so a bare `new Function` suffices.
-function extractFn(lines, name) {
-    const start = lines.findIndex(l => l.includes(`const ${name} =`));
-    assert.ok(start >= 0, `${name} not found in workflow`);
-    const indent = lines[start].match(/^(\s*)/)[1];
-    const closer = `${indent}};`;
-    const body = [lines[start]];
-    let end = -1;
-    for (let j = start + 1; j < lines.length; j++) {
-        body.push(lines[j]);
-        if (lines[j] === closer) {
-            end = j;
-            break;
-        }
-    }
-    assert.ok(end >= 0, `end of ${name} not found`);
-    const src = body
-        .join('\n')
-        .trim()
-        .replace(new RegExp(`^const ${name} =\\s*`), '')
-        .replace(/;\s*$/, '');
-    // eslint-disable-next-line no-new-func
-    return new Function(`return (${src});`)();
-}
-
-const parseFindings = extractFn(statusLines, 'parseFindings');
-const unresolvedThreadCount = extractFn(statusLines, 'unresolvedThreadCount');
-const decideStatus = extractFn(statusLines, 'decideStatus');
+const { parseFindings, decideStatus } = status;
+const { unresolvedThreadCount } = shared;
 
 // ---- parseFindings: the env->findings derivation. FAIL CLOSED (absent/garbage -> null, blocks) ----
 test('parseFindings returns the integer for a well-formed non-negative count', () => {
@@ -147,9 +128,11 @@ test('decideStatus never leaks finding content -- description is counts and fixe
 // ---- Context string: EXACTLY `code-review` (must match the ruleset's required-check string) ----
 test('the status job posts commit status context === "code-review" (ruleset-required string)', () => {
     // A rename makes the required gate unsatisfiable (ruleset requires a string nothing posts) or
-    // unenforcing. Pin the single source of truth: the createCommitStatus `context:` line.
-    const contextLines = statusLines.filter(l => /^\s*context:\s*/.test(l));
-    assert.ok(contextLines.length >= 1, 'expected at least one `context:` line in the workflow');
+    // unenforcing. Pin the single source of truth: the createCommitStatus `context:` line, in the
+    // workflow and in every code review module.
+    const files = readdirSync(SCRIPTS).filter(f => f.endsWith('.cjs'));
+    const contextLines = [workflowText, ...files.map(source)].flatMap(t => t.split('\n')).filter(l => /^\s*context:\s*/.test(l));
+    assert.ok(contextLines.length >= 1, 'expected at least one `context:` line in the code review scripts');
     for (const line of contextLines) {
         assert.match(line, /^\s*context:\s*'code-review',?\s*$/, `status context must be exactly 'code-review', got: ${line.trim()}`);
     }
@@ -270,12 +253,12 @@ test('analyze job holds no PAT and no write permission (the no-write half of the
 //       code-review status gets the status re-posted (idempotent, from the review-body marker).
 //   D3a status is finding-driven, not withhold-driven: a withhold with 0 findings -> success;
 //       any finding (public or withheld) -> failure with a NON-LEAKY description; absent -> closed.
-// Each helper below is extracted from the EXACT shipped text, so tested logic == deployed logic.
+// Each helper below is imported from the shipped module, so tested logic == deployed logic.
 // ============================================================================================
 
 // ---- D1: headIsCurrent -- the live-head guard shared by `post` and `status` ----
 test('D1 headIsCurrent is true only when the pinned reviewed SHA still equals the live head', () => {
-    const headIsCurrent = extractFn(statusLines, 'headIsCurrent');
+    const { headIsCurrent } = shared;
     const a = 'a'.repeat(40),
         b = 'b'.repeat(40);
     assert.equal(headIsCurrent(a, a), true, 'same SHA -> current -> safe to post');
@@ -285,7 +268,7 @@ test('D1 the post step guards createReview with a live-head re-fetch (pulls.get)
     // The post job must re-read the live head and bail before createReview when it moved -- otherwise
     // createReview re-anchors the review to the new head while the status binds the old one (the
     // ae775e7d strand). Structural: a pulls.get and a headIsCurrent guard precede createReview.
-    const postScript = JSON.stringify(workflow.jobs.post);
+    const postScript = post.validateAndPost.toString();
     assert.ok(/pulls\.get/.test(postScript), 'post must re-fetch the live head (pulls.get) before posting');
     assert.ok(/headIsCurrent\(/.test(postScript), 'post must guard the review with a headIsCurrent() call');
     // The guard (pulls.get + headIsCurrent call) must precede the createReview API call. Use the
@@ -294,7 +277,7 @@ test('D1 the post step guards createReview with a live-head re-fetch (pulls.get)
     assert.ok(postScript.indexOf('headIsCurrent(') < postScript.indexOf('pulls.createReview'), 'the head guard must precede pulls.createReview');
 });
 test('D1 the status step guards createCommitStatus with a live-head re-fetch', () => {
-    const s = JSON.stringify(workflow.jobs.status);
+    const s = status.postStatus.toString();
     assert.ok(/pulls\.get/.test(s), 'status must re-fetch the live head (pulls.get) before posting the status');
     assert.ok(/headIsCurrent\(/.test(s), 'status must guard createCommitStatus with a headIsCurrent() call');
     assert.ok(s.indexOf('pulls.get') < s.indexOf('repos.createCommitStatus'), 'the live-head re-fetch must precede repos.createCommitStatus');
@@ -306,7 +289,7 @@ test('#14486 the range resolver is STATE-aware: it compares the present status t
     // The already-reviewed skip must be STATE-aware, not merely presence-aware (the #14486 bug): it may
     // skip only when the present `code-review` status STATE matches the verdict the review implies for
     // this head; a stale/contradicting/absent status must route to a repost, never strand the head red.
-    const s = JSON.stringify(workflow.jobs.analyze);
+    const s = range.resolveRange.toString();
     assert.ok(/listCommitStatusesForRef/.test(s), "range step must list the head's commit statuses");
     assert.ok(/reviewThreads/.test(s), 'range step must read live review threads to imply the verdict');
     assert.ok(/expectedState/.test(s), 'range step must compute the implied verdict (expectedState)');
@@ -319,12 +302,21 @@ test('#14486 the range resolver is STATE-aware: it compares the present status t
 });
 test('#14486 the resolver and the status job share the same verdict helpers (no drift)', () => {
     // Both the resolver (expectedState) and the status repost (decideStatus) read the review-body marker
-    // and count unresolved threads. The helpers are byte-identical copies; extractFn returns the first
-    // occurrence (the resolver's). A behavioural drift pin lives in the integration test.
-    const parseReviewMarker = extractFn(statusLines, 'parseReviewMarker');
+    // and count unresolved threads. Both import the ONE definition in shared.cjs and define no copy of
+    // their own. A behavioural drift pin (which also covers the review selection) lives in the
+    // integration test.
+    for (const file of ['range.cjs', 'status.cjs']) {
+        const src = source(file);
+        assert.match(
+            src,
+            /\{[^}]*\bparseReviewMarker\b[^}]*\bunresolvedThreadCount\b[^}]*\} = require\('\.\/shared\.cjs'\)/,
+            `${file} imports the shared helpers`
+        );
+        assert.doesNotMatch(src, /const (parseReviewMarker|unresolvedThreadCount) =/, `${file} keeps no copy of its own`);
+    }
+    const { parseReviewMarker } = shared;
     assert.equal(parseReviewMarker('text\n<!-- ol-pr-review-bot f=0 -->'), 0);
     assert.equal(parseReviewMarker('text\n<!-- ol-pr-review-bot -->'), null, 'legacy marker -> null -> fail closed');
-    const unresolvedThreadCount = extractFn(statusLines, 'unresolvedThreadCount');
     assert.equal(unresolvedThreadCount([{ isResolved: false, isOutdated: false }]), 1, 'unresolved + current -> blocks');
     assert.equal(
         unresolvedThreadCount([
@@ -336,7 +328,7 @@ test('#14486 the resolver and the status job share the same verdict helpers (no 
     );
 });
 test('D2 parseReviewMarker reads the public findings count from the review-body marker', () => {
-    const parseReviewMarker = extractFn(statusLines, 'parseReviewMarker');
+    const { parseReviewMarker } = shared;
     assert.equal(parseReviewMarker('text\n<!-- ol-pr-review-bot f=0 -->'), 0);
     assert.equal(parseReviewMarker('text\n<!-- ol-pr-review-bot f=3 -->'), 3);
     // A legacy review body with the old marker (no f=) -> null -> the repost FAILS CLOSED (red),
@@ -348,7 +340,7 @@ test('D2 parseReviewMarker reads the public findings count from the review-body 
 test('D2 the post step embeds the findings-count marker in the review body', () => {
     // Without an `f=<count>` marker in the posted body, a later status repost cannot reconstruct the
     // count and would strand the head. The marker is the public findings count (public by construction).
-    assert.ok(/ol-pr-review-bot f=\$\{/.test(workflowText), 'post must embed `<!-- ol-pr-review-bot f=${...} -->` in the review body');
+    assert.ok(/ol-pr-review-bot f=\$\{/.test(post.validateAndPost.toString()), 'post must embed `<!-- ol-pr-review-bot f=${...} -->` in the review body');
 });
 
 // ---- D3a: decideStatus withheld paths + withheldFindings + gate findingsTotal ----
@@ -372,7 +364,7 @@ test('D3a decideStatus: an unknown finding count on a withheld review FAILS CLOS
     assert.equal(d.state, 'failure');
 });
 test('D3a withheldFindings maps the one-bit blocking signal to 0/1, fail-closed on unknown', () => {
-    const withheldFindings = extractFn(statusLines, 'withheldFindings');
+    const { withheldFindings } = status;
     assert.equal(withheldFindings('true'), 1, 'a blocking withheld finding -> counts as >0 -> failure');
     assert.equal(withheldFindings('false'), 0, 'no blocking withheld finding -> 0 -> success');
     assert.equal(withheldFindings(''), null, 'absent -> null -> fail closed');
@@ -381,10 +373,8 @@ test('D3a withheldFindings maps the one-bit blocking signal to 0/1, fail-closed 
 });
 
 // ---- D3a: the pre-publication gate reports a trustworthy finding COUNT even when it withholds ----
-// The workflow itself evaluates this exact env string with eval() in both jobs, so the test uses the
-// same mechanism to exercise the shipped gate text verbatim (tested logic == deployed logic).
-// eslint-disable-next-line no-eval
-const gate = eval(workflow.env.REVIEW_GATE_JS);
+// Both jobs run this exact module, so the test exercises the shipped gate (tested logic == deployed logic).
+const gate = load(join(SCRIPTS, 'gate.cjs'));
 const dimNone = note => ({ status: 'none', note });
 const cleanDims = () => ({
     correctness: dimNone('ok'),
@@ -459,7 +449,45 @@ test('D3a analyze emits withheld + withheld_blocking outputs, and public_finding
     assert.ok('withheld_blocking' in outs, 'analyze must expose the 1-bit `withheld_blocking`');
     // The gate step must NOT emit the withheld finding count anywhere (count stays 0 on withhold).
     assert.ok(
-        /res\.publish \? res\.clean\.findings\.filter\(\(f\) => f\.severity !== 'low'\)\.length : 0/.test(workflowText.replace(/\n/g, ' ')),
+        /res\.publish \? res\.clean\.findings\.filter\(f => f\.severity !== 'low'\)\.length : 0/.test(source('analyze_gate.cjs').replace(/\n/g, ' ')),
         'public_findings_count must remain `0` on a withhold (no count leak)'
     );
+});
+
+// ---- Checkouts: base-repo code only, no credentials left behind ----
+// Under pull_request_target every job runs with secrets, so a checkout of the PR head would put fork
+// code where a github-script step `require`s it. post, pending and status hold PATs.
+test('no job checks out a PR-head ref, and every checkout sets persist-credentials: false', () => {
+    const checkouts = Object.entries(workflow.jobs).flatMap(([job, j]) =>
+        (j.steps || []).filter(s => (s.uses || '').startsWith('actions/checkout@')).map(s => [job, s.with || {}])
+    );
+    assert.deepEqual([...new Set(checkouts.map(([job]) => job))].sort(), ['analyze', 'pending', 'post', 'status']);
+    for (const [job, w] of checkouts) {
+        assert.equal(w['persist-credentials'], false, `${job}: checkout must set persist-credentials: false`);
+        assert.equal(w.repository, undefined, `${job}: checkout must be of this repo, not the PR's fork`);
+        const ref = String(w.ref || '');
+        assert.doesNotMatch(ref, /head|merge|refs\/pull|pull_request\.number|github\.ref\b/i, `${job}: checkout must not use a PR-head ref (got ${ref})`);
+        assert.ok(['', '${{ github.sha }}', '${{ github.event.pull_request.base.sha }}'].includes(ref), `${job}: unexpected checkout ref ${ref}`);
+    }
+});
+test('post, pending and status check out only the scripts, before any step that uses them', () => {
+    for (const job of ['post', 'pending', 'status']) {
+        const steps = workflow.jobs[job].steps;
+        assert.ok((steps[0].uses || '').startsWith('actions/checkout@'), `${job}: the checkout is the first step`);
+        assert.equal(steps[0].with['sparse-checkout'], '/.github/scripts/');
+        assert.equal(steps[0].with['sparse-checkout-cone-mode'], false);
+    }
+});
+test('every github-script step runs a code review module from the base checkout, never from pr-head/', () => {
+    for (const [job, j] of Object.entries(workflow.jobs)) {
+        for (const s of j.steps || []) {
+            if (!(s.uses || '').startsWith('actions/github-script@')) continue;
+            const m = /require\(`\$\{process\.env\.GITHUB_WORKSPACE\}\/\.github\/scripts\/code_review\/(\w+\.cjs)`\)/.exec(s.with.script);
+            assert.ok(m, `${job} / ${s.name}: script must require a module from .github/scripts/code_review`);
+            assert.doesNotMatch(s.with.script, /pr-head/);
+            const fn = /await (\w+)\(\{/.exec(s.with.script);
+            assert.ok(fn, `${job} / ${s.name}: script must call the module's function`);
+            assert.equal(typeof load(join(SCRIPTS, m[1]))[fn[1]], 'function', `${m[1]} must export ${fn[1]}`);
+        }
+    }
 });

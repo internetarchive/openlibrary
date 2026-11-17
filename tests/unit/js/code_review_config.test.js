@@ -1,6 +1,6 @@
 // Tests for the code review bot's .pr_agent.toml settings (.github/scripts/code_review/config.cjs)
-// and the workflow steps that use them. The steps run from their `script:` bodies in
-// code_review_action.yml against a mocked GitHub.
+// and the workflow steps that use them. The steps run from the module functions their `script:`
+// in code_review_action.yml calls, against a mocked GitHub.
 import { test, beforeEach, afterEach } from 'vitest';
 import assert from 'node:assert/strict';
 import { copyFileSync, readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
@@ -11,15 +11,23 @@ import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
-const MODULE = join(ROOT, '.github', 'scripts', 'code_review', 'config.cjs');
+const SCRIPTS = join(ROOT, '.github', 'scripts', 'code_review');
+const MODULE = join(SCRIPTS, 'config.cjs');
 const require = createRequire(import.meta.url);
 const config = require(MODULE);
 const workflow = yaml.load(readFileSync(join(ROOT, '.github', 'workflows', 'code_review_action.yml'), 'utf8'));
-const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
 
 const step = (job, name) => workflow.jobs[job].steps.find(s => (s.name || '').includes(name));
+// The module file and function each step's `script:` calls.
+const STEPS = {
+    'analyze/Resolve review range': ['range.cjs', 'resolveRange'],
+    'analyze/Fetch linked issues': ['linked_issues.cjs', 'fetchLinkedIssues'],
+    'analyze/Gate the analysis': ['analyze_gate.cjs', 'gateAnalysis'],
+    'post/Validate anchors': ['post.cjs', 'validateAndPost']
+};
+const moduleSource = (job, name) => readFileSync(join(SCRIPTS, STEPS[`${job}/${name}`][0]), 'utf8');
 
-// Run a github-script body the way actions/github-script does. Relative fs paths resolve in `dir`.
+// Run a step's module function the way its github-script step does. Relative fs paths resolve in `dir`.
 async function runScript(job, name, env, github = {}) {
     const recorded = { outputs: {}, failed: null };
     const core = {
@@ -33,9 +41,9 @@ async function runScript(job, name, env, github = {}) {
     const at = p => (typeof p === 'string' && !p.startsWith('/') ? join(dir, p) : p);
     const wrappedFs = { ...fs, readFileSync: (p, ...a) => fs.readFileSync(at(p), ...a), writeFileSync: (p, ...a) => fs.writeFileSync(at(p), ...a) };
     const context = { repo: { owner: 'internetarchive', repo: 'openlibrary' }, eventName: 'pull_request_target', payload: { pull_request: { number: 1 } } };
-    const fn = new AsyncFunction('github', 'context', 'core', 'require', 'process', step(job, name).with.script);
-    const processEnv = { env: { REVIEW_GATE_JS: workflow.env.REVIEW_GATE_JS, GITHUB_WORKSPACE: dir, ...env } };
-    await fn(github, context, core, id => (id === 'fs' ? wrappedFs : require(id)), processEnv);
+    const [file, fn] = STEPS[`${job}/${name}`];
+    const processEnv = { env: { GITHUB_WORKSPACE: dir, ...env } };
+    await require(join(SCRIPTS, file))[fn]({ github, context, core, require: id => (id === 'fs' ? wrappedFs : require(id)), process: processEnv });
     return recorded;
 }
 
@@ -181,13 +189,15 @@ test('SECURITY: settings are read before the PR head is extracted, and steps aft
     const names = workflow.jobs.analyze.steps.map(s => s.name || '');
     assert.ok(names.findIndex(n => n.includes('Resolve review range')) < names.findIndex(n => n.includes('Extract the PR head')));
     assert.doesNotMatch(step('analyze', 'Resolve review range').with.script, /pr-head/);
+    assert.doesNotMatch(moduleSource('analyze', 'Resolve review range'), /pr-head/);
     for (const [job, name] of [
         ['analyze', 'Gate the analysis'],
         ['post', 'Validate anchors']
     ]) {
         assert.doesNotMatch(step(job, name).with.script, /review-config\.json|config\.cjs/);
+        assert.doesNotMatch(moduleSource(job, name), /review-config\.json|config\.cjs/);
     }
-    assert.doesNotMatch(workflow.env.REVIEW_GATE_JS, /pr_reviewer|require_|OFF_DIMENSIONS/);
+    assert.doesNotMatch(readFileSync(join(SCRIPTS, 'gate.cjs'), 'utf8'), /pr_reviewer|require_|OFF_DIMENSIONS/);
 });
 
 // ================================= gate step: turned-off dimensions =================================
