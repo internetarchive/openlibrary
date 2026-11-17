@@ -1,60 +1,32 @@
-// Tests for #14519 -- ticket context: the code reviewer checks a PR against the issues it links to,
-// after PR-Agent's `require_ticket_analysis_review`.
-//
-// Same approach as the other code_review_* tests: the shipped JS is pulled out of
-// code_review_action.yml and run as-is.
-//   1. The "Fetch linked issues" step in `analyze`: its pure helpers (findIssueNumbers,
-//      branchIssueNumbers) and the whole step against a mocked GitHub.
-//   2. REVIEW_GATE_JS on the new `ticket_compliance` field.
-//   3. The `post` job's renderTicketCompliance helper, and the whole post step.
+// Tests for ticket context, where the reviewer checks a PR against the issues it links to:
+//   1. linked_issues.cjs: findIssueNumbers, branchIssueNumbers and the whole step.
+//   2. gate.cjs on the `ticket_compliance` field.
+//   3. post.cjs's renderTicketCompliance and the whole post step.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { createRequire } from 'node:module';
 import yaml from 'js-yaml';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const WF = join(here, '..', '..', '..', '.github', 'workflows', 'code_review_action.yml');
 const workflowText = readFileSync(WF, 'utf8');
 const workflow = yaml.load(workflowText);
-const REVIEW_GATE_JS = workflow.env.REVIEW_GATE_JS;
-// The workflow evaluates this env string with eval() too, so the test exercises the shipped gate text.
-// eslint-disable-next-line no-eval
-const gate = eval(REVIEW_GATE_JS);
-const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
+const SCRIPTS = join(here, '..', '..', '..', '.github', 'scripts', 'code_review');
+const load = createRequire(import.meta.url);
+const gate = load(join(SCRIPTS, 'gate.cjs'));
+const linkedIssues = load(join(SCRIPTS, 'linked_issues.cjs'));
+const post = load(join(SCRIPTS, 'post.cjs'));
 const SHA = c => c.repeat(40);
 const OWNER = 'internetarchive',
     REPO = 'openlibrary';
 const URL = n => `https://github.com/${OWNER}/${REPO}/issues/${n}`;
 const context = { repo: { owner: OWNER, repo: REPO }, eventName: 'pull_request_target', payload: {}, runId: 1, serverUrl: 'https://github.com' };
 
-function scriptOf(jobName, stepMatch) {
-    const step = (workflow.jobs[jobName].steps || []).find(s => s.with && typeof s.with.script === 'string' && (s.name || '').includes(stepMatch));
-    assert.ok(step, `step "${stepMatch}" not found in job ${jobName}`);
-    return step.with.script;
-}
-
-// A `const <name> = (…) => { … };` helper from a step's script, evaluated on its own. The helpers
-// close over nothing, so this is the shipped function.
-function helperOf(script, name) {
-    const lines = script.split('\n');
-    const start = lines.findIndex(l => l.includes(`const ${name} =`));
-    assert.ok(start >= 0, `${name} not found`);
-    const indent = lines[start].match(/^(\s*)/)[1];
-    const end = lines.findIndex((l, j) => j > start && l === `${indent}};`);
-    assert.ok(end > start, `end of ${name} not found`);
-    const src = lines
-        .slice(start, end + 1)
-        .join('\n')
-        .trim()
-        .replace(new RegExp(`^const ${name} =\\s*`), '')
-        .replace(/;\s*$/, '');
-    return new Function(`return (${src});`)();
-}
-
-async function runScript(body, { github, env, cwd }) {
+async function runScript(stepFn, { github, env, cwd }) {
     const recorded = { failed: null, infos: [] };
     const core = {
         setOutput: () => {},
@@ -77,8 +49,7 @@ async function runScript(body, { github, env, cwd }) {
             return target[prop];
         }
     });
-    const fn = new AsyncFunction('github', 'context', 'core', 'require', 'process', body);
-    await fn(github, context, core, id => (id === 'fs' ? fs : realRequire(id)), { env: { ...env } });
+    await stepFn({ github, context, core, require: id => (id === 'fs' ? fs : realRequire(id)), process: { env: { ...env } } });
     return recorded;
 }
 
@@ -88,9 +59,8 @@ function withDir(fn) {
 }
 
 // ================================ 1. Fetching the linked issues ================================
-const FETCH = scriptOf('analyze', 'Fetch linked issues');
-const findIssueNumbers = helperOf(FETCH, 'findIssueNumbers');
-const branchIssueNumbers = helperOf(FETCH, 'branchIssueNumbers');
+const FETCH = linkedIssues.fetchLinkedIssues;
+const { findIssueNumbers, branchIssueNumbers } = linkedIssues;
 
 test("findIssueNumbers: #N, this repo's issue URLs and owner/repo#N, in order, deduped", () => {
     const body = `Closes #12. See ${URL(34)} and internetarchive/openlibrary#56, and #12 again. Also https://github.com/InternetArchive/OpenLibrary/issues/0078.`;
@@ -312,8 +282,8 @@ test('gate: ticket compliance never changes the finding count or the blocking bi
 });
 
 // ================================ 3. Rendering ================================
-const POST = scriptOf('post', 'Validate anchors');
-const render = helperOf(POST, 'renderTicketCompliance');
+const POST = post.validateAndPost;
+const render = post.renderTicketCompliance;
 const entry = (n, met, notMet, human) => ({
     ticket_url: URL(n),
     fully_compliant_requirements: met,
@@ -393,7 +363,7 @@ test('post: the compliance section sits before Dimensions and does not change th
         writeFileSync(join(d, 'review.json'), JSON.stringify(gate.check(reviewWith([ticket()])).clean));
         writeFileSync(join(d, 'review.diff'), '');
         const { github, calls } = postGitHub();
-        const env = { PR: '1', HEAD_SHA: SHA('a'), BASE_SHA: SHA('b'), INCREMENTAL: 'false', REVIEW_GATE_JS, GITHUB_WORKSPACE: d };
+        const env = { PR: '1', HEAD_SHA: SHA('a'), BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: d };
         const res = await runScript(POST, { github, env, cwd: d });
         assert.equal(res.failed, null);
         assert.equal(calls.createReview.length, 1);
@@ -410,7 +380,7 @@ test('post: a review without ticket_compliance renders no compliance section', (
         writeFileSync(join(d, 'review.json'), JSON.stringify(gate.check(reviewWith(undefined)).clean));
         writeFileSync(join(d, 'review.diff'), '');
         const { github, calls } = postGitHub();
-        const env = { PR: '1', HEAD_SHA: SHA('a'), BASE_SHA: SHA('b'), INCREMENTAL: 'false', REVIEW_GATE_JS, GITHUB_WORKSPACE: d };
+        const env = { PR: '1', HEAD_SHA: SHA('a'), BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: d };
         await runScript(POST, { github, env, cwd: d });
         assert.ok(!calls.createReview[0].body.includes('Ticket compliance'));
     }));

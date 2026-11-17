@@ -1,18 +1,8 @@
-// Unit tests for the CODE-REVIEW TRIGGER ROUTING (#14461 follow-up to the merged #14455).
-//
-// The design DRYs the code reviewer onto ONE model-run path, keyed on a TEAM:
-//   * auto_assign_reviewer.yml requests the team `openlibrary-agentic-code-reviewer` on
-//     opened/ready_for_review for every non-draft PR, forks included (#14482 dropped the
-//     same-repo spend gate).
-//   * code_review_action.yml runs the model ONLY on `review_requested` whose `requested_team.slug`
-//     is that team or the `openlibrary-bot` user (GitHub's re-request button), plus the staff
-//     `issue_comment` path and `workflow_dispatch`. It no longer auto-runs on `opened`/`ready_for_review`.
-//
-// A team-request event carries `github.event.requested_team` and NO `requested_reviewer`; an
-// individual request is the reverse. These tests evaluate the ACTUAL `if:` expression that ships
-// (parsed from the YAML and transpiled 1:1 to JS) against synthetic events, so tested logic ==
-// deployed logic -- and pin the team slug identically in BOTH workflows (a drift silently breaks
-// the open->request->review chain: auto_assign would request a team the reviewer never matches).
+// Tests for what triggers a code review. auto_assign_reviewer.yml requests the team
+// `openlibrary-agentic-code-reviewer`, and code_review_action.yml runs the model on a
+// `review_requested` for that team or the bot user, a staff or author @-mention, or a dispatch.
+// The `if:` expressions are transpiled to JS and evaluated against synthetic events. The team slug
+// must match in both workflows, or the request would never start a review.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -61,12 +51,8 @@ function evalIf(expr, github) {
 // A fully-populated context (every leaf the `if` reads exists, defaulting to a non-matching value)
 // so the JS eval never dereferences undefined; overrides are deep-merged per case.
 function ctx(overrides = {}) {
-    // Build the context explicitly from the known override leaves the tests set, rather than a
-    // hand-rolled deep merge. A deep merge would assign `a[k] = b[k]` for a dynamically-computed
-    // key `k` taken from the overrides object -- a prototype-pollution shape (CodeQL flags it, and
-    // a __proto__/constructor/prototype guard to silence it is then dead code in a test helper that
-    // only ever sees literal overrides). The explicit builder has no dynamic-key assignment at all,
-    // so neither the alert nor a guard applies, and every leaf still defaults to a non-matching value.
+    // Built from known leaves rather than a deep merge, which assigns dynamic keys (a
+    // prototype-pollution shape CodeQL flags).
     const e = overrides.event ?? {};
     return {
         event_name: overrides.event_name ?? '',
@@ -75,10 +61,7 @@ function ctx(overrides = {}) {
             pull_request: { draft: e.pull_request?.draft ?? false },
             requested_team: { slug: e.requested_team?.slug ?? null },
             requested_reviewer: { login: e.requested_reviewer?.login ?? null },
-            // issue.user.login (the PR author) defaults to a sentinel that matches NOBODY, so the
-            // #14484 author clause (comment.user.login == issue.user.login) defaults to non-matching
-            // -- a test that omits both logins must not fire via '' == ''. Keeps the builder's
-            // "every leaf defaults to a non-matching value" invariant true for the author comparison.
+            // Defaults to a value that matches nobody, so the author clause can't fire via '' == ''.
             issue: { pull_request: e.issue?.pull_request ?? null, number: e.issue?.number ?? 1, user: { login: e.issue?.user?.login ?? '__no_author__' } },
             comment: { body: e.comment?.body ?? '', user: { login: e.comment?.user?.login ?? '' } }
         }
@@ -167,11 +150,8 @@ test('a staff @openlibrary-bot comment on a PR still fires; a non-staff comment 
     assert.equal(evalIf(reviewIf, outsider), false);
 });
 
-// ---- #14484: the PR AUTHOR may re-fire the review on their OWN PR by @-mention ----
-// A fork contributor cannot re-request a reviewer (that needs base-repo write), so after they push
-// fixes the review never re-runs. The fix widens the issue_comment leg to also allow the author
-// commenting on their own PR -- commenting needs no write access, so it is fork-safe. Author + staff
-// only; arbitrary commenters stay blocked.
+// ---- The PR author may re-run the review on their own PR by @-mention ----
+// A fork contributor can't re-request a reviewer but can comment. Other commenters stay blocked.
 test('#14484: the PR author @-mentioning the bot on their OWN PR fires the re-review (fork-safe)', () => {
     const author = ctx({
         event_name: 'issue_comment',
@@ -239,8 +219,7 @@ test('auto_assign requests the TEAM (team_reviewers), not the individual bot, an
 
 test('auto_assign no longer excludes bot-authored PRs (team request works on them -- proven on #14450)', () => {
     assert.ok(!/user\.login\s*!=\s*'openlibrary-bot'/.test(assignWf.jobs.assign.if), 'the bot-authored exclusion must be dropped');
-    // #14482: the same-repo spend gate is removed -- forks are now auto-requested too, so the
-    // head.repo.full_name == github.repository clause must NO LONGER be present in the guard.
+    // Forks are auto-requested too, so the same-repo clause must not come back.
     assert.ok(
         !/head\.repo\.full_name\s*==\s*github\.repository/.test(assignWf.jobs.assign.if),
         'the same-repo fork gate must be dropped (forks now covered -- #14482)'
@@ -248,17 +227,12 @@ test('auto_assign no longer excludes bot-authored PRs (team request works on the
 });
 
 // ---- The assign `if:` guard, evaluated like the model-run guard above ----
-// #14482 widens the assign JOB to forks: the if: now gates only on !draft (no same-repo clause), so
-// the job RUNS for every non-draft PR, forks included. WHO actually gets the team requested is then
-// decided inside the script by the author_association spend gate (tested separately below). We
-// evaluate the ACTUAL assign `if:` string (transpiled 1:1 to JS by the same evalIf harness used for
-// the model guard) against synthetic PR events, so the tested logic == the deployed logic.
+// The job runs for every non-draft PR, forks included; the script decides who gets the team.
 const assignIf = assignWf.jobs.assign.if;
 assert.ok(typeof assignIf === 'string' && assignIf.trim(), 'assign job must have an if: guard');
 
-// Post-#14482 the deployed guard reads only github.event.pull_request.draft; assignCtx still
-// over-provides github.repository and head.repo.full_name so these cases keep exercising the real
-// fork-vs-same-repo distinction and would also catch a regression that re-added the same-repo gate.
+// assignCtx still sets github.repository and head.repo.full_name, so re-adding a same-repo
+// clause would fail these cases.
 function assignCtx({ draft = false, headRepo = 'internetarchive/openlibrary', repository = 'internetarchive/openlibrary' } = {}) {
     return { repository, event: { pull_request: { draft, head: { repo: { full_name: headRepo } } } } };
 }
@@ -288,9 +262,8 @@ test('auto_assign supplies OL_BOT_REVIEW_PAT to the team-request step', () => {
 });
 
 // ---- The request/verify script itself (extracted and driven with a mock github/core) ----
-// Mirrors tests/unit/js/code_review_status_gate.test.js's extractFn: pull the EXACT `const NAME =`
-// arrow block that ships (keyed on the closer at the declaration's indentation) and eval it, so the
-// tested logic == the deployed logic.
+// auto_assign_reviewer.yml keeps its script inline, so extract the shipped `const NAME =` block
+// and eval it.
 function extractFn(lines, name) {
     const start = lines.findIndex(l => l.includes(`const ${name} =`));
     assert.ok(start >= 0, `${name} not found in workflow`);
@@ -387,12 +360,10 @@ test('requestReviewTeam: an existing openlibrary-bot review -> skips without req
     assert.equal(state.failed, null, 'the skip path must not fail the job');
 });
 
-// ---- The soft spend gate: auto-request only for KNOWN authors (#14482 follow-up) ----
-// pull_request_target is NOT held by GitHub's first-time-contributor "Approve and run" gate, so the
-// JS requestReviewTeam path self-gates on author_association: a genuine first-timer / drive-by fork
-// author is skipped (and left to a manual maintainer reviewer-request), while a known contributor --
-// including every same-repo author, who is always MEMBER+ -- still gets the team auto-requested.
-// The throttle is in the JS fn (not the YAML if:), so it is unit-tested here directly.
+// ---- Spend gate: auto-request only for known authors ----
+// pull_request_target skips GitHub's "Approve and run" gate for first-time contributors, so
+// requestReviewTeam checks author_association itself: unknown authors are left for a maintainer.
+// Same-repo authors are always MEMBER or above.
 for (const association of ['OWNER', 'MEMBER', 'COLLABORATOR', 'CONTRIBUTOR']) {
     test(`requestReviewTeam: a known author (${association}) STILL gets the team requested (incl. forks)`, async () => {
         const gh = mockGithub({ before: [], after: [TEAM_OBJ], reviews: [] });
