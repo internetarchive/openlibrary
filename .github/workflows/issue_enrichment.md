@@ -137,15 +137,15 @@ gh pr list --repo internetarchive/openlibrary \
 
 ### Find related Discussions
 
-Search the repo's [Discussions](https://github.com/internetarchive/openlibrary/discussions) with the helper script. Run it exactly as written, from `$GITHUB_WORKSPACE`; `gh` has no discussions command and `gh api` is not available to you.
+Search the repo's Discussions with the helper script, run exactly as written from `$GITHUB_WORKSPACE` (`gh api` is not available to you).
 
 ```bash
 scripts/gh_scripts/search_discussions.sh {keywords}
 ```
 
-- It searches discussions in **every state**. Do not add `is:open` or other state qualifiers — closed and answered threads are often the most useful context.
-- Each result shows its state: `open`, `answered` (followed by the accepted answer), `closed: resolved`, `closed: outdated` or `closed: duplicate`. Treat `outdated` and `duplicate` threads as background only; they may describe old behavior.
-- If it prints `Discussions search unavailable`, skip Discussions and carry on with the rest of this step. Do not retry it, and do not mention the failure in your comment.
+- It already searches every state; do not add state qualifiers.
+- Each result shows its state, plus the accepted answer if any. Treat `closed: outdated` and `closed: duplicate` as background only.
+- If it prints `Discussions search unavailable`, skip Discussions silently; do not retry.
 
 ### What to look for
 
@@ -276,7 +276,7 @@ List only things materially useful to a contributor or maintainer. Every item mu
 
 - An existing file or function that already does something related (with permalink to specific lines)
 - A prior PR or issue that attempted this or was closed as a duplicate
-- A related Discussion, with its state (e.g. "closed as resolved", "answered: …") and the gist of any accepted answer
+- A related Discussion, with its state and the gist of any accepted answer
 - A pattern the proposal should follow or conflicts with
 - A relevant commit surfaced by `git blame` or `git log -S` (with link)
 - A doc page directly covering the feature area

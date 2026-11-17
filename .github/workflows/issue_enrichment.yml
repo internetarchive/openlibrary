@@ -71,9 +71,7 @@ jobs:
             ${{ github.event_name == 'workflow_dispatch' && format('Manual test dispatch: enrich issue #{0}. Fetch its data yourself in Step 1 -- do not assume anything about it from this line.', inputs.issue_number) || format('Issue #{0} was just opened by @{1}.\nTitle: {2}', github.event.issue.number, github.event.issue.user.login, github.event.issue.title) }}
           # Read/Grep/Glob and `gh pr view` are read-only: the model reaches for them
           # anyway, and each denied call cost a turn (10-16 per failed run at 30 turns).
-          # Discussions are searched through a fixed read-only script rather than
-          # `gh api graphql`, which would also allow mutations with the bot's token.
-          # The script exits 0 even when the token can't read Discussions.
+          # Discussions go through a fixed read-only script, not `gh api graphql` (which allows mutations).
           claude_args: >-
             --max-turns 50
             --allowedTools "Read Grep Glob Bash(git *) Bash(grep:*) Bash(cat:*) Bash(gh issue view:*)
