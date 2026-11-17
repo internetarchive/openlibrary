@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import pytest
 
 from openlibrary.plugins.openlibrary import contribute
@@ -134,3 +136,30 @@ def test_a_finished_project_that_reached_its_goal_says_so(cards, ended):
     finished = contribute.build_finished(built[ended.slug])
     assert finished["title"] == "This project reached its goal"
     assert finished["note"] == "Together we reached the goal: 100% of its details were filled in. Thank you to everyone who helped."
+
+
+def test_a_project_past_its_goal_is_completed_and_says_who_helped(cards):
+    # Nothing left open: the percent is 100 and the goal is reached.
+    done = cards(gaps=[["/books/OL1M", 9, [], []]], docs=[{"initiatives": {ACTIVE.slug: {"people": 60}}}])[ACTIVE.slug]
+    assert (done["reached"], done["completed"], done["people_helped"]) == (True, True, "60 people helped")
+    running = cards(docs=[{"initiatives": {ACTIVE.slug: {"people": 60}}}])[ACTIVE.slug]
+    assert (running["completed"], running["people"]) == (False, "60 people helping")
+
+
+def test_thanks_names_the_helpers_most_saves_first(monkeypatch):
+    snap = {"people": 3, "helpers": [["ann", 9], ["bo", 2]]}
+    monkeypatch.setattr(contribute, "get_initiative_snapshot", lambda initiative: snap)
+
+    class Person(dict):
+        def __init__(self, key, **kw):
+            super().__init__(kw)
+            self.key = key
+
+    class FakeSite:
+        def get_many(self, keys):
+            return [Person("/people/bo"), Person("/people/ann", displayname="Ann A.")]
+
+    monkeypatch.setattr(contribute, "site", SimpleNamespace(get=FakeSite))
+    assert contribute.build_thanks(ACTIVE) == {"people": [{"name": "Ann A.", "url": "/people/ann"}, {"name": "bo", "url": "/people/bo"}], "more": 1}
+    snap.pop("helpers")
+    assert contribute.build_thanks(ACTIVE) is None
