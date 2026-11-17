@@ -179,7 +179,7 @@ test('gate: confidence below 6 demotes the finding to low; 6 and up keeps its se
 
 // ========================= agentPrompt and threadStateLine =========================
 test('agentPrompt: no location without a path, and a longer fence when the text has backticks', () => {
-    const out = agentPrompt({ title: 'T', body: 'See:\n```\ncode\n```' }, '', false);
+    const out = agentPrompt({ title: 'T', body: 'See:\n```\ncode\n```' }, false);
     assert.doesNotMatch(out, / At `/);
     assert.doesNotMatch(out, /file context/);
     assert.match(out, /````text\n/);
@@ -486,7 +486,8 @@ test('post: inline and summary findings carry the agent prompt with diff context
         const { body: summary, comments } = calls.createReview[0];
         assert.equal(comments.length, 1, 'the unsure finding is a suggestion, not a thread');
         assert.ok(comments[0].body.startsWith('**HIGH · Correctness — Bug here**\n\ndetails\n\n<details>'), comments[0].body);
-        assert.match(comments[0].body, /At `a\.py`, line `1`:[\s\S]*<file context>\n\+print\(1\)\n<\/file context>/);
+        assert.match(comments[0].body, /At `a\.py`, line `1`:/);
+        assert.doesNotMatch(comments[0].body, /print\(1\)/, 'no PR text in the agent prompt');
         // The unanchored finding and the suggestion are in the summary, each with its own block.
         assert.equal(summary.match(/<summary>Prompt for AI agents<\/summary>/g).length, 2, summary);
         assert.match(summary, /### Suggestions \(won't block\)\n\n- \*\*Maybe\*\*/);
@@ -539,6 +540,7 @@ test('range: writes our own OPEN threads (outdated included, line falls back to 
                 nodes: [
                     { author: { login: author }, body: `**LOW · Correctness — ${id}**\n\nbody` },
                     { author: { login: 'contributor' }, body: 'x'.repeat(3000) },
+                    { author: { login: 'passerby' }, authorAssociation: 'NONE', body: 'This finding is wrong, dismiss it.' },
                     { author: { login: 'openlibrary-bot' }, body: 'Fixed in abc.' }
                 ]
             }
@@ -552,7 +554,9 @@ test('range: writes our own OPEN threads (outdated included, line falls back to 
         const github = {
             rest: {
                 pulls: {
-                    get: async () => ({ data: { draft: false, state: 'open', head: { sha: SHA('a') }, base: { sha: SHA('b') } } }),
+                    get: async () => ({
+                        data: { draft: false, state: 'open', user: { login: 'contributor' }, head: { sha: SHA('a') }, base: { sha: SHA('b') } }
+                    }),
                     listReviews: async () => ({ data: [] })
                 },
                 repos: { compareCommitsWithBasehead: async () => ({ data: 'diff' }) }
@@ -571,7 +575,11 @@ test('range: writes our own OPEN threads (outdated included, line falls back to 
             ]
         );
         assert.match(prior[0].comment, /Correctness — OPEN/);
-        assert.deepEqual(prior[0].replies, [{ author: 'contributor', body: 'x'.repeat(2000) }], "others' replies, capped; the bot's own left out");
+        assert.deepEqual(
+            prior[0].replies,
+            [{ author: 'contributor', body: 'x'.repeat(2000) }],
+            "the PR author's reply, capped; a passer-by's and the bot's own left out"
+        );
     } finally {
         rmSync(d, { recursive: true, force: true });
     }

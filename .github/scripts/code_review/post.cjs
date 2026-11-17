@@ -44,12 +44,11 @@ const fixedInSha = ({ rangeShas, pathShas, headSha }) => {
 };
 
 // The collapsed "Prompt for AI agents" block under a finding, for a reader to paste into a coding
-// agent. Built from the gate's clean fields and the diff, which is already public.
-const agentPrompt = (f, context, inThread) => {
+// agent. Only the gate's clean fields: no PR text, which could carry instructions for that agent.
+const agentPrompt = (f, inThread) => {
     const where = f.path ? ` At \`${f.path}\`${f.line ? `, line \`${f.line}\`` : ''}:` : '';
     const reply = inThread ? 'reply in its thread with the reason and resolve the thread' : 'say why in a comment on the PR';
-    let text = `Check if this issue is valid — if so, understand the root cause and fix it. If it isn't valid or won't be fixed in this PR, ${reply}.${where}\n\n<comment>${f.title}\n\n${f.body}</comment>`;
-    if (context) text += `\n\n<file context>\n${context}\n</file context>`;
+    const text = `Check if this issue is valid — if so, understand the root cause and fix it. If it isn't valid or won't be fixed in this PR, ${reply}.${where}\n\n<comment>${f.title}\n\n${f.body}</comment>`;
     // A fence longer than any run of backticks inside, so the text can't close it.
     const fence = '`'.repeat(Math.max(3, ...(text.match(/`+/g) || []).map(run => run.length + 1)));
     return `\n\n<details>\n<summary>Prompt for AI agents</summary>\n\n${fence}text\n${text}\n${fence}\n\n</details>`;
@@ -155,8 +154,6 @@ async function validateAndPost({ github, context, core, require, process }) {
     // GitHub doesn't document what happens with an anchor outside the diff, so findings with one
     // go in the summary instead.
     const anchorable = new Map();
-    // Every line of each file's diff, with the new-side line it sits at, for the agent prompt.
-    const diffLines = new Map();
     {
         let file = null,
             newLn = 0;
@@ -164,10 +161,7 @@ async function validateAndPost({ github, context, core, require, process }) {
             if (raw.startsWith('+++ ')) {
                 const p = raw.slice(4).trim();
                 file = p === '/dev/null' ? null : p.replace(/^b\//, '');
-                if (file) {
-                    anchorable.set(file, new Set());
-                    diffLines.set(file, []);
-                }
+                if (file) anchorable.set(file, new Set());
                 continue;
             }
             const h = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
@@ -176,23 +170,11 @@ async function validateAndPost({ github, context, core, require, process }) {
                 continue;
             }
             if (!file) continue;
-            if (/^[-+ ]/.test(raw)) diffLines.get(file).push({ ln: newLn, raw: raw.slice(0, 200) });
             if (raw.startsWith('+') || raw.startsWith(' ')) {
                 anchorable.get(file).add(newLn++);
             }
         }
     }
-
-    // A few diff lines around a finding's line, capped so a long range or deletion can't bloat the comment.
-    const contextFor = f => {
-        if (!f.path || !f.line || !diffLines.has(f.path)) return '';
-        return diffLines
-            .get(f.path)
-            .filter(l => Math.abs(l.ln - f.line) <= 3)
-            .slice(0, 10)
-            .map(l => l.raw)
-            .join('\n');
-    };
 
     // Low severity findings are listed as suggestions in the summary, not as threads, which block.
     const inline = [],
@@ -231,7 +213,7 @@ async function validateAndPost({ github, context, core, require, process }) {
             if (want === got) body += `\n\n\`\`\`suggestion\n${f.suggestion}\n\`\`\``;
             else core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (${got} lines for a ${want}-line range).`);
         }
-        body += agentPrompt(f, contextFor(f), true);
+        body += agentPrompt(f, true);
         const c = { path: f.path, line: Number(f.line), side: 'RIGHT', body };
         if (Number(start) !== Number(f.line)) {
             c.start_line = Number(start);
@@ -273,7 +255,7 @@ async function validateAndPost({ github, context, core, require, process }) {
             summary += `\n\n### ${inlineKeyIssues ? 'Findings without an in-diff anchor' : 'Findings'}\n\n${orphaned
                 .map(
                     f =>
-                        `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body + agentPrompt(f, contextFor(f), false)).replace(/\n/g, '\n  ')}`
+                        `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body + agentPrompt(f, false)).replace(/\n/g, '\n  ')}`
                 )
                 .join('\n\n')}`;
         }
@@ -281,7 +263,7 @@ async function validateAndPost({ github, context, core, require, process }) {
             summary += `\n\n### Suggestions (won't block)\n\n${suggestions
                 .map(
                     f =>
-                        `- **${f.title}**${f.path ? ` (\`${f.path}${f.line ? `:${f.line}` : ''}\`)` : ''}: ${String(f.body).replace(/\n/g, ' ')}${agentPrompt(f, contextFor(f), false).replace(/\n/g, '\n  ')}`
+                        `- **${f.title}**${f.path ? ` (\`${f.path}${f.line ? `:${f.line}` : ''}\`)` : ''}: ${String(f.body).replace(/\n/g, ' ')}${agentPrompt(f, false).replace(/\n/g, '\n  ')}`
                 )
                 .join('\n\n')}`;
         }
