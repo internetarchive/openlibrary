@@ -9,8 +9,8 @@ from typing import Any, Literal, TypedDict, cast
 from uuid import uuid4
 
 import web
-from infogami.infobase.utils import flatten
 
+from infogami.infobase.utils import flatten
 from openlibrary.core import cache
 from openlibrary.core.async_db import connection, fetch_all, fetch_val
 from openlibrary.i18n import gettext as _
