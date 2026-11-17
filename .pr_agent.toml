@@ -1,5 +1,7 @@
-# Settings for the @openlibrary-bot code reviewer (.github/workflows/code_review_action.yml),
-# in PR-Agent's format: https://docs.pr-agent.ai/usage-guide/configuration_options/
+# Settings for the @openlibrary-bot code reviewer (.github/workflows/code_review_action.yml).
+# Open Library does not run PR-Agent. Our reviewer reads this file using PR-Agent's format and
+# key names (https://docs.pr-agent.ai/usage-guide/configuration_options/), so we can reuse its
+# patterns and send fixes upstream. Keys under [openlibrary_reviewer] are ours.
 # The bot reads this file from the base branch, so a PR's changes to it apply after it merges.
 # Values may be strings, integers or booleans. Other TOML syntax makes the bot use its defaults.
 

@@ -27,6 +27,12 @@ name: Code Review Action
 #    inline suggestion-style comments on specific code blocks/lines, similar to Copilot's
 #    review UX. On re-trigger, should review only the diff since its last pass."
 #
+# PR-AGENT -- we do not run PR-Agent (https://github.com/The-PR-Agent/pr-agent). We built our own
+# reviewer because we need what it lacks: security findings never published (the disclosure gate
+# below), a model job with no write access on fork PRs, and a SHA-bound required status. Where the
+# two overlap we follow PR-Agent's names and behaviour, so we can build from it and contribute back:
+# .pr_agent.toml settings, ticket compliance for linked issues, and (planned) risk checks.
+#
 # SECURITY -- the two-job split below is the whole design, read before editing.
 #
 # `analyze` reads untrusted PR content (diff, source) and holds NO write permission and NO PAT.
