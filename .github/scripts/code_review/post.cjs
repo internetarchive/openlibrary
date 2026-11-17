@@ -1,48 +1,28 @@
-// The `post` job: re-fetches the reviewed diff, runs the disclosure gate (gate.cjs) again as the
-// enforcer, and posts one batched review. Holds the review PAT and runs no model.
+// The `post` job: re-fetches the reviewed diff, runs gate.cjs again, and posts one batched review.
+// It publishes nothing the gate rejects, whatever `analyze` uploaded.
 'use strict';
 
 const gate = require('./gate.cjs');
 const { headIsCurrent } = require('./shared.cjs');
 
-// #14487 PART A -- the verdict. GitHub clears a reviewer's pending request ONLY on APPROVE
-// or REQUEST_CHANGES; a COMMENT never does, so the bot's team request sat pending forever
-// (#14450). Post a real verdict driven by the SAME signal the status job uses on the published
-// path -- review.findings.length (== analyze's public_findings_count): >0 blocking ->
-// REQUEST_CHANGES. A clean run APPROVEs ONLY when no finding of OUR OWN is still unresolved
-// (unresolvedOwnThreads === 0), so the verdict never says APPROVE while the code-review status
-// is still red on a standing bot finding; any surviving (or unknown) thread -> COMMENT.
-// EXCEPTION -- self-review: GitHub returns 422 for approving/requesting-changes on your OWN PR,
-// so a bot-authored (same-repo) PR falls back to COMMENT (its loop is driven by forge off the
-// submitted review and by the status check, not the reviewer pill).
+// The review's verdict. Only APPROVE or REQUEST_CHANGES clears a pending review request; COMMENT
+// leaves it pending. Findings request changes. A clean review approves only when none of the bot's
+// own threads is still open, so it never approves while the status is red; an unknown (null)
+// count gives COMMENT. GitHub rejects (422) a verdict on your own PR, so the bot's PRs get COMMENT.
 const selectReviewEvent = ({ selfAuthored, findingCount, unresolvedOwnThreads }) => {
     if (selfAuthored) return 'COMMENT';
     if (findingCount > 0) return 'REQUEST_CHANGES';
-    // Do NOT auto-APPROVE while any of our OWN prior findings is still unresolved -- or while the
-    // thread state is unknown (null, e.g. enumeration failed): APPROVE would then contradict a
-    // red code-review status. Exactly 0 surviving own threads is required to approve.
     if (unresolvedOwnThreads !== 0) return 'COMMENT';
     return 'APPROVE';
 };
 
-// #14487 PART A.2 -- clearing the pending pill on a BOT-AUTHORED PR. A contributor PR's pill is
-// cleared by the APPROVE/REQUEST_CHANGES verdict itself. A bot-authored PR can only post COMMENT
-// (self-review 422), which never clears the team request -- so after a real COMMENT post we must
-// explicitly dismiss the team request (removeRequestedReviewers) or the pill sits pending forever
-// (live proof: #14450). Only on a self-authored PR that actually posted a COMMENT -- never on a
-// contributor verdict, and never on skip/withhold/failed/head-moved (those return before the post).
+// A COMMENT on the bot's own PR doesn't clear the team's review request, so `post` removes it.
 const shouldDismissTeamRequest = ({ selfAuthored, event }) => {
     return selfAuthored && event === 'COMMENT';
 };
 
-// #14487 PART B -- on a re-review, select OUR OWN open review threads the model judged fixed.
-// The model re-checks every earlier thread against the PR head (code_review.md Step 4) and lists
-// the fixed ones' ids in review.resolved. That replaced a "finding not re-reported on a
-// re-examined line" heuristic, which never resolved a thread whose fix landed on other lines
-// (#14515: a comment saying "the sibling strings have the same bug" stayed open after they were
-// fixed, so the PR got COMMENT instead of APPROVE and a red status). GUARDS: only a live,
-// unresolved thread whose first comment is the bot's -- an id the model invents, or a human's
-// thread, is never touched. The reply is fixed text, so no model prose reaches it.
+// On a re-review, the threads the model listed as fixed (review.resolved) that are still open and
+// were started by the bot. An id the model invents, or a human's thread, is never touched.
 const threadsToResolve = ({ threads, resolvedIds, botLogin }) => {
     const want = new Set(resolvedIds || []);
     const out = [];
@@ -63,10 +43,9 @@ const fixedInSha = ({ rangeShas, pathShas, headSha }) => {
     return headSha;
 };
 
-// Ticket compliance section (code_review.md Step 5), rendered as PR-Agent's
-// ticket_markdown_logic does (pr_agent/algo/utils.py): a level per issue computed here from
-// the model's lists, not chosen by the model, and an overall level. Only this repo's issues
-// are shown. Informational: it does not change the verdict or the code-review status.
+// The ticket compliance section, as PR-Agent's ticket_markdown_logic (pr_agent/algo/utils.py)
+// renders it. Each issue's level is computed from the model's lists, not chosen by the model.
+// Only this repo's issues are shown. It does not affect the verdict or the status.
 const renderTicketCompliance = (entries, owner, repo) => {
     const prefix = `https://github.com/${owner}/${repo}/issues/`.toLowerCase();
     const bullets = list => list.map(s => `- ${String(s).replace(/\s*\n\s*/g, ' ')}`).join('\n');
@@ -125,7 +104,7 @@ async function validateAndPost({ github, context, core, require, process }) {
     const headSha = process.env.HEAD_SHA;
     const inlineKeyIssues = process.env.INLINE_KEY_ISSUES !== 'false';
 
-    // --- The disclosure gate. Nothing below this block runs unless it passes.
+    // Nothing below runs unless the gate passes.
     let review = null;
     try {
         review = JSON.parse(fs.readFileSync('review.json', 'utf8'));
@@ -134,22 +113,17 @@ async function validateAndPost({ github, context, core, require, process }) {
     }
     const verdict = gate.check(review);
     if (!verdict.publish) {
-        // #14476 D3a -- nothing PUBLIC to post for this commit (withheld or empty). Exit
-        // CLEANLY, not failed: this job still publishes nothing (the enforcer property is
-        // intact), but a withhold is no longer a hard job failure. The SHA-bound `code-review`
-        // status job is the sole gate decider and derives pass/fail from analyze's
-        // finding-driven outputs (withheld + the 1-bit withheld_blocking), so a backstop
-        // false-positive with zero findings can green while a real finding still blocks.
-        // No reason, count or text in the log (the log is public).
+        // Return without failing: the status job decides pass or fail from analyze's outputs. Log no
+        // reason, count or text, because the log is public.
         core.info('Nothing public to post for this commit; the code-review status job decides the gate.');
         return;
     }
     // Everything below renders from the allowlisted copy only.
     review = verdict.clean;
 
-    // --- Anchorable lines: RIGHT-side (added + context) lines of the reviewed diff.
-    // GitHub documents no behaviour for an out-of-diff anchor, and this API surface is
-    // already known to no-op silently here, so we drop bad anchors rather than find out.
+    // Lines a comment can anchor to: the right side (added and context lines) of the diff.
+    // GitHub doesn't document what happens with an anchor outside the diff, so findings with one
+    // go in the summary instead.
     const anchorable = new Map();
     {
         let file = null,
@@ -173,7 +147,7 @@ async function validateAndPost({ github, context, core, require, process }) {
         }
     }
 
-    // LOW findings become a non-blocking suggestions list in the summary, not threads (threads block).
+    // Low severity findings are listed as suggestions in the summary, not as threads, which block.
     const inline = [],
         orphaned = [],
         suggestions = [];
@@ -217,9 +191,7 @@ async function validateAndPost({ github, context, core, require, process }) {
         inline.push(c);
     }
 
-    // --- Summary body. Findings with no honest in-diff anchor live here rather than
-    // being pinned to an approximate line: on a real review of #13548, 3 of 9 findings
-    // proved themselves in files the diff never touched.
+    // Summary. Findings without a valid anchor go here rather than on an approximate line.
     const findingCount = inline.length + orphaned.length; // blocking findings only (LOW excluded)
     let summary = review.summary || '';
     // The range comes from analyze's job outputs, set before the model ran.
@@ -229,11 +201,10 @@ async function validateAndPost({ github, context, core, require, process }) {
         summary = `*Reviewing only the ${baseSha.slice(0, 8)}..${headSha.slice(0, 8)} range — the commits pushed since my last pass.*\n\n${summary}`;
     }
 
-    // --- Ticket compliance against the linked issues (empty when there are none).
     summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
 
-    // --- Every dimension, stated. Silence on one reads identically to having checked it.
-    // Security is a fixed line: a review that reaches this point has none by construction.
+    // State every dimension, because leaving one out reads the same as having checked it.
+    // Security is a fixed line: a review with a security finding never gets this far.
     const count = {};
     for (const f of review.findings) count[f.dimension] = (count[f.dimension] || 0) + 1;
     summary += `\n\n### Dimensions\n\n${Object.entries(gate.dimensions)
@@ -257,19 +228,11 @@ async function validateAndPost({ github, context, core, require, process }) {
             .map(f => `- **${f.title}**${f.path ? ` (\`${f.path}${f.line ? `:${f.line}` : ''}\`)` : ''}: ${String(f.body).replace(/\n/g, ' ')}`)
             .join('\n')}`;
     }
-    // #14484: tell the contributor -- who may have no write access and cannot use the
-    // "re-request review" button -- exactly how to re-run the review after pushing fixes.
-    // A plain instruction so a stranger needs no prior knowledge of the magic comment.
+    // A contributor without write access can't re-request a review, but can comment.
     summary += `\n\n---\n> [!TIP]\n> When you've addressed the feedback and pushed your changes, comment \`@openlibrary-bot review\` on this PR to run a fresh review.`;
     summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
 
-    // #14476 D1 -- review + status must describe the SAME commit. createReview re-anchors its
-    // inline comments to the PR's LIVE head at post time (it ignores commit_id), so if a push
-    // landed since this run pinned headSha, posting now attaches the review to a commit this
-    // run did NOT review, while the status job binds headSha -> the stranded head (observed on
-    // #14475 ae775e7d: two reviews, no status). If the head has moved, post NEITHER: the new
-    // head is unreviewed and correctly earns its own run (a required status it has not yet
-    // satisfied). The superseded headSha is left as-is -- the ruleset reads the current head.
+    // If the head moved since the review, post nothing (see headIsCurrent).
     const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
     if (!headIsCurrent(headSha, livePr.head.sha)) {
         core.info(
@@ -278,16 +241,12 @@ async function validateAndPost({ github, context, core, require, process }) {
         return;
     }
 
-    // --- #14487: the PR author (authoritative, from the live-head re-fetch above) and the published
-    // finding count -- the SAME signal the status job reads on the published path.
     const selfAuthored = (livePr.user && livePr.user.login) === 'openlibrary-bot';
 
-    // --- #14487 PART B (runs BEFORE the post, because it gates the verdict): enumerate the review
-    // threads, reply "Fixed in <sha>" on and resolve our OWN threads the model judged fixed
-    // (threadsToResolve -- never a blind resolve-all), and count our OWN threads that remain unresolved. The whole block
-    // is wrapped: a transient GraphQL failure must never fail a post that otherwise succeeds -- it
-    // leaves unresolvedOwnThreads unknown (null), which selectReviewEvent treats as "do not APPROVE".
-    let unresolvedOwnThreads = null; // null = unknown -> fail safe (no auto-approve)
+    // Before posting, because it decides the verdict: reply "Fixed in <sha>" on the bot's threads
+    // the model judged fixed, resolve them, and count the bot's threads still open. A GraphQL error
+    // must not fail the post; it leaves the count null, which means no APPROVE.
+    let unresolvedOwnThreads = null;
     try {
         let allThreads = [],
             tCursor = null;
@@ -350,9 +309,8 @@ async function validateAndPost({ github, context, core, require, process }) {
             }
         }
         if (resolvedOk.size) core.info(`Resolved ${resolvedOk.size} fixed review thread(s).`);
-        // Our own threads still unresolved-and-not-outdated AFTER resolution -- the exact shape the
-        // status job counts, restricted to the bot's own finding threads. Only a SUCCESSFULLY resolved
-        // thread is excluded, so a failed resolve keeps the PR from auto-approving.
+        // Counted the way the status job counts, limited to the bot's threads. A thread whose
+        // resolve failed still counts, so it blocks APPROVE.
         unresolvedOwnThreads = allThreads.filter(t => {
             if (!t || t.isResolved || t.isOutdated || resolvedOk.has(t.id)) return false;
             const c = t.comments && t.comments.nodes && t.comments.nodes[0];
@@ -362,21 +320,13 @@ async function validateAndPost({ github, context, core, require, process }) {
         core.warning(`Thread enumeration failed; skipping resolution and not auto-approving: ${e.message}`);
     }
 
-    // --- #14487 PART A: pick the verdict now that thread state is known. selfAuthored -> COMMENT
-    // (self-review 422); findings>0 -> REQUEST_CHANGES; clean AND no surviving own thread -> APPROVE;
-    // otherwise COMMENT. The APPROVE gate is scoped to the bot's OWN findings -- it never approves
-    // over a standing bot finding. A purely-human open thread can still leave the status red while
-    // the bot approves (cosmetic): by design the pill tracks the bot's findings, and the all-author
-    // `code-review` status (which counts human threads too) stays the merge authority.
+    // A human's open thread doesn't stop APPROVE, though it keeps the status red. The status, not
+    // the verdict, is what merging requires.
     let event = selectReviewEvent({ selfAuthored, findingCount, unresolvedOwnThreads });
 
-    // --- One batched review. The per-comment endpoint (POST /pulls/{n}/comments) is
-    // documented but returns 422 `pull_request_review_thread.base` in practice
-    // (cli/cli#13358); the batched payload with identical anchors succeeds. commit_id is
-    // headSha, now re-confirmed as the live head, so the review and the status agree.
-    // #14487: a self-review verdict is a 422 -- selfAuthored already routes those to COMMENT; this
-    // try/catch is the belt-and-suspenders degrade so an UNEXPECTED 422 can never fail the post job
-    // (it posts a COMMENT instead; the code-review status check remains the merge gate).
+    // One batched review. POST /pulls/{n}/comments returns 422 `pull_request_review_thread.base`
+    // in practice (cli/cli#13358), while the same anchors in a batched review work. If a verdict
+    // is rejected with 422 anyway, fall back to COMMENT rather than fail.
     const postReview = ev =>
         github.rest.pulls.createReview({
             owner,
@@ -400,8 +350,7 @@ async function validateAndPost({ github, context, core, require, process }) {
         }
     }
 
-    // --- Verify. Step 4 of pr_autoresponder.md documents this API surface returning
-    // 2xx while changing nothing, so confirm rather than trusting the status code.
+    // This API has returned 2xx without changing anything (pr_autoresponder.md, Step 4), so check.
     const after = await github.paginate(github.rest.pulls.listReviews, {
         owner,
         repo,
@@ -414,8 +363,7 @@ async function validateAndPost({ github, context, core, require, process }) {
     }
     core.info(`Posted ${event} review ${posted.id}: ${inline.length} inline, ${orphaned.length} in summary.`);
 
-    // --- #14487 PART A.2: on a bot-authored PR the COMMENT above does not clear the pending team
-    // request, so dismiss it explicitly (only after a verified real post). Never fails the job.
+    // See shouldDismissTeamRequest. Never fails the job.
     if (shouldDismissTeamRequest({ selfAuthored, event })) {
         try {
             await github.rest.pulls.removeRequestedReviewers({

@@ -1,12 +1,7 @@
-// Tests for #14519 -- ticket context: the code reviewer checks a PR against the issues it links to,
-// after PR-Agent's `require_ticket_analysis_review`.
-//
-// Same approach as the other code_review_* tests: the shipped modules the workflow calls
-// (.github/scripts/code_review/*.cjs) are imported and run as-is.
-//   1. The "Fetch linked issues" step in `analyze`: its pure helpers (findIssueNumbers,
-//      branchIssueNumbers) and the whole step against a mocked GitHub.
-//   2. The gate (gate.cjs) on the new `ticket_compliance` field.
-//   3. The `post` job's renderTicketCompliance helper, and the whole post step.
+// Tests for ticket context, where the reviewer checks a PR against the issues it links to:
+//   1. linked_issues.cjs: findIssueNumbers, branchIssueNumbers and the whole step.
+//   2. gate.cjs on the `ticket_compliance` field.
+//   3. post.cjs's renderTicketCompliance and the whole post step.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';

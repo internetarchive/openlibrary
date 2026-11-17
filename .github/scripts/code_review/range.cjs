@@ -1,6 +1,5 @@
 // The `analyze` job's "Resolve review range" step: decides whether this run reviews, re-posts the
 // status of an existing review, or skips, and writes the range, diff and settings the model reads.
-// Runs before the model, from the BASE checkout.
 'use strict';
 
 const { parseReviewMarker, unresolvedThreadCount } = require('./shared.cjs');
@@ -17,8 +16,7 @@ async function resolveRange({ github, context, core, require, process }) {
               : context.payload.issue.number;
 
     const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
-    // Draft check for the automatic paths -- issue_comment's payload has no draft field.
-    // A manual dispatch reviews drafts on purpose (see the trigger comment in code_review_action.yml).
+    // issue_comment's payload has no draft field, so check here. A manual dispatch reviews drafts.
     if (pr.draft && context.eventName !== 'workflow_dispatch') {
         core.info(`PR #${prNumber} is a draft -- skipping.`);
         core.setOutput('skip', 'true');
@@ -32,9 +30,7 @@ async function resolveRange({ github, context, core, require, process }) {
 
     const head = pr.head.sha;
 
-    // Incremental: find the newest review WE submitted and diff from its commit.
-    // Epic #13160's cross-cutting rule -- ignore our own bot -- is why we look for our
-    // own reviews here rather than any review.
+    // Incremental: diff from the commit of the bot's newest review.
     const reviews = await github.paginate(github.rest.pulls.listReviews, {
         owner,
         repo,
@@ -47,9 +43,8 @@ async function resolveRange({ github, context, core, require, process }) {
     let base = pr.base.sha,
         incremental = false;
     if (prior && prior.commit_id !== head) {
-        // Only trust the prior SHA if it is still reachable AND an ancestor of head; a
-        // force-push can leave a commit_id that no longer describes this PR's history,
-        // and diffing from it would silently mis-scope the review.
+        // Use the prior SHA only if it is an ancestor of head. After a force-push it may not be,
+        // and diffing from it would review the wrong changes.
         try {
             const cmp = await github.rest.repos.compareCommitsWithBasehead({
                 owner,
@@ -66,23 +61,15 @@ async function resolveRange({ github, context, core, require, process }) {
             core.info(`Could not compare against the prior review commit (${e.message}) -- full review.`);
         }
     } else if (prior && prior.commit_id === head) {
-        // #14486 -- STATE-aware skip: skip only when the present `code-review` status MATCHES the
-        // verdict this head's existing review implies; absent/stale/contradicting -> idempotent
-        // status repost (skip=false, repost=true) and the status job recomputes it. Bound to the
-        // resolver-pinned head SHA (#14476 D1). NO model re-run.
-        //
-        // parseReviewMarker + unresolvedThreadCount come from shared.cjs, the same definitions the
-        // status job's repost path uses. The reviewForVerdict selector below must match that path's
-        // selection; a drift-pin test runs both against the same inputs and asserts they agree.
-        // Last openlibrary-bot review on this head WITH A BODY -- matches the status job's
-        // selection. `prior` omits the `&& r.body` filter (it drives the incremental range), so
-        // reusing it here could pick a different review and make the two verdicts disagree.
+        // Already reviewed. Skip only if the current `code-review` status matches the verdict the
+        // existing review implies; otherwise re-post the status without running the model.
+        // This must pick the same review as status.cjs's repost path (the last bot review on this
+        // head with a body); a test checks the two agree. `prior` has no body filter, so it can differ.
         const onHead = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === head && r.body);
         const reviewForVerdict = onHead.length ? onHead[onHead.length - 1] : null;
 
-        // Live review threads (GraphQL -- REST carries no resolved/outdated state). Fail SAFE on a
-        // transient read error -> repost, so a flaky API never leaves a stale status un-corrected
-        // (an unset `skip` output would make the status job's `if: skip == 'false'` skip the repost).
+        // GraphQL, because REST has no resolved/outdated state. On an error, re-post: the status
+        // job recomputes the verdict itself, so a flaky read can't leave a stale status in place.
         let threads = [],
             cursor = null;
         try {
@@ -114,15 +101,14 @@ async function resolveRange({ github, context, core, require, process }) {
             return;
         }
 
-        // PASS needs a bot review with a readable f=0 marker AND zero blocking threads; anything
-        // else (unreadable marker -> null, body-less/absent review) fails closed to 'failure'.
+        // The same pass rule as status.cjs's decideStatus.
         // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
         const postSucceeded = reviewForVerdict != null;
         const findings = reviewForVerdict ? parseReviewMarker(reviewForVerdict.body) : null;
         const unresolved = unresolvedThreadCount(threads);
         const expectedState = postSucceeded && findings === 0 && unresolved === 0 ? 'success' : 'failure';
 
-        // First code-review entry (listCommitStatusesForRef is newest-first); undefined when absent.
+        // listCommitStatusesForRef is newest first.
         const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, {
             owner,
             repo,
@@ -152,8 +138,8 @@ async function resolveRange({ github, context, core, require, process }) {
         headers: { accept: 'application/vnd.github.v3.diff' }
     });
     fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review.diff`, diff);
-    // Settings from the BASE checkout's .pr_agent.toml, before the PR head is extracted. The model
-    // reads review-config.json. Later steps use these outputs, which the model cannot change.
+    // Settings from the base checkout's .pr_agent.toml, so a PR can't change them. Later steps use
+    // these outputs, which the model cannot change; the model reads review-config.json.
     const reviewConfig = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/config.cjs`);
     const settings = reviewConfig.load(process.env.GITHUB_WORKSPACE, core.info);
     fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review-config.json`, JSON.stringify(settings, null, 2));
@@ -175,10 +161,9 @@ async function resolveRange({ github, context, core, require, process }) {
         )
     );
 
-    // Our own earlier review threads that are still open, for the model to re-check against the
-    // PR head (code_review.md Step 4). Outdated threads are included: a fix usually edits the very
-    // line a comment sits on, which is what makes GitHub mark it outdated. This file only informs
-    // the model; `post` re-reads the live threads and resolves only ids that are still ours and open.
+    // The bot's earlier threads that are still open, for the model to re-check. Outdated ones are
+    // included: a fix usually edits the commented line, which is what makes a thread outdated.
+    // `post` re-reads the live threads before resolving any of them.
     const ownOpenThreads = (nodes, botLogin) => {
         const out = [];
         for (const t of nodes || []) {
@@ -219,8 +204,7 @@ async function resolveRange({ github, context, core, require, process }) {
 
     core.setOutput('pr', String(prNumber));
     core.setOutput('head_sha', head);
-    // Job outputs, set before the model runs, are what `post` trusts for the range --
-    // not review-range.json, which the model can rewrite.
+    // `post` takes the range from these outputs, not from review-range.json, which the model can rewrite.
     core.setOutput('base_sha', base);
     core.setOutput('incremental', String(incremental));
     core.setOutput('skip', 'false');

@@ -1,5 +1,5 @@
 // The `pending` job: reacts to the @-mention that asked for a review, and marks the head
-// `code-review=pending` while the review runs. Runs no model.
+// `code-review=pending` while the review runs.
 'use strict';
 
 async function reactToComment({ github, context, core }) {

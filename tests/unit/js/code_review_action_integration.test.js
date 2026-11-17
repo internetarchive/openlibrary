@@ -1,12 +1,7 @@
-// Integration tests for #14476 -- drive the ACTUAL step functions the code_review_action.yml
-// github-script steps call (.github/scripts/code_review/*.cjs) against a mocked GitHub, end to
-// end, for the three defect scenarios.
-//
-// Why this exists: a workflow-file change cannot be exercised from a PR (pull_request_target and
-// workflow_dispatch both run the DEFAULT branch's copy of the workflow, never the PR branch's), so
-// the real live run only happens post-merge. These tests are the closest pre-merge substitute: they
-// call each step's module function with what actions/github-script passes it
-// (github/context/core/require/process), and run it with a mock octokit that records the API calls.
+// End-to-end tests of the code review steps: each step's module function is called the way its
+// github-script step calls it, against a mock GitHub that records the API calls. Workflow changes
+// only run after merge (pull_request_target runs the base branch's copy), so these are the
+// closest pre-merge check.
 import { test, beforeEach, afterEach } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
@@ -29,9 +24,8 @@ const pending = load(join(SCRIPTS, 'pending.cjs'));
 const status = load(join(SCRIPTS, 'status.cjs'));
 
 // Run a step function with injected globals, as the workflow's github-script step does.
-// `cwd` (optional) redirects the script's RELATIVE fs paths (review.json / review.diff, which the
-// post step reads from the working directory) into the test's temp dir -- process.chdir() is not
-// available in vitest workers, so we wrap fs instead.
+// `cwd` redirects the step's relative fs paths (review.json, review.diff) into the temp dir, since
+// vitest workers can't process.chdir().
 async function runScript(stepFn, { github, context, env, cwd }) {
     const recorded = { outputs: {}, failed: null, summary: '' };
     const core = {
@@ -140,7 +134,7 @@ afterEach(() => {
     rmSync(dir, { recursive: true, force: true });
 });
 
-// ===================== D1: a push mid-run -> post NEITHER review nor status =====================
+// ===================== A push mid-run: post neither review nor status =====================
 test('D1 post: head UNCHANGED -> createReview IS called', async () => {
     writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
     writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
@@ -203,11 +197,8 @@ test('D1 status: head UNCHANGED + clean + a review actually posted -> success on
     assert.equal(calls.createCommitStatus[0].state, 'success');
 });
 test('D1 status FALSE-GREEN guard: POST_RESULT=success but NO review on this head (force-push revert) -> NOT success', async () => {
-    // Finding 1 (adversarial): post returns success WITHOUT posting when its head-guard fires. If the
-    // head is then force-pushed back to the reviewed SHA, the status head-guard passes (same SHA) and
-    // the normal path would green an UNREVIEWED commit. The normal path must confirm a bot review was
-    // actually posted on this exact head (ground truth), mirroring the repost path -- not trust
-    // POST_RESULT alone. With no bot review on the head, success is forbidden.
+    // `post` succeeds without posting when the head moved. If the head then moves back to the
+    // reviewed SHA, the status must still not pass unless a bot review exists on it.
     const head = SHA('a');
     const { github, calls } = mockGitHub({
         prGet: async () => ({ data: { head: { sha: head } } }),
@@ -228,11 +219,9 @@ test('D1 status FALSE-GREEN guard: POST_RESULT=success but NO review on this hea
     assert.notEqual(calls.createCommitStatus[0].state, 'success', 'a head with no posted review must never read success');
 });
 
-// ===================== D2: status-aware skip + idempotent repost =====================
+// ===================== Already reviewed: skip or repost the status =====================
 test('D2 range: already-reviewed head WITH a MATCHING code-review status -> skip', async () => {
-    // #14486: "skip" now means the present status MATCHES the review's implied verdict -- here a clean
-    // review (marker f=0, no unresolved threads) and a present `success`. (Pre-#14486 this skipped on
-    // mere presence of any code-review status; that is exactly the bug the stale-status test below pins.)
+    // Skip when the present status matches the verdict: a clean review and a present `success`.
     const head = SHA('a');
     const { github } = mockGitHub({
         prGet: async () => ({ data: { number: 1, head: { sha: head }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
@@ -247,9 +236,7 @@ test('D2 range: already-reviewed head WITH a MATCHING code-review status -> skip
     const res = await runScript(range.resolveRange, { github, context: ctx, env });
     assert.equal(res.outputs.skip, 'true', 'a reviewed head whose status matches the verdict is skipped');
 });
-// #14486 -- STATE-aware skip. The headline blocker: an already-reviewed head carrying a STALE status
-// (a prior `failure` that should now be `success`) was skipped on mere presence and stranded red
-// forever. These cases must re-post the correct status instead of skipping.
+// A stale status on an already-reviewed head must be re-posted, not skipped.
 test('D2 range STATE-AWARE: reviewed head + STALE failure status + now-clean verdict -> repost (NOT skip)', async () => {
     const head = SHA('a');
     const { github } = mockGitHub({
@@ -352,12 +339,9 @@ test('D2 status repost: a LEGACY review with no marker FAILS CLOSED (red), never
     assert.equal(calls.createCommitStatus[0].state, 'failure', 'an unreadable count must never fabricate a green');
 });
 
-// #14486 DRIFT PIN: the resolver's implied-verdict comparison must agree with the state the status
-// job's repost path would actually post for the SAME inputs. If they drift, the resolver could skip a
-// head the status job would have flipped (re-stranding it) or repost one that is already correct. For
-// each (marker, unresolved-thread) input we (1) run the real status repost to learn the authoritative
-// state, then (2) assert the resolver skips iff the present status equals that state and reposts iff it
-// differs -- so the two code paths are pinned to the same verdict by construction.
+// The resolver must skip exactly when the present status equals what the status job's repost path
+// would post for the same inputs. For each input, run the real repost to get that state, then check
+// the resolver skips if the present status matches and reposts if it doesn't.
 const HEAD_SHA = SHA('a');
 const reviewObjs = bodies => bodies.map(body => ({ user: { login: 'openlibrary-bot' }, commit_id: HEAD_SHA, submitted_at: '2026-01-01', body }));
 for (const scenario of [
@@ -365,10 +349,8 @@ for (const scenario of [
     { reviews: ['x\n<!-- ol-pr-review-bot f=3 -->'], threads: [] }, // findings -> failure
     { reviews: ['x\n<!-- ol-pr-review-bot f=0 -->'], threads: [{ isResolved: false, isOutdated: false }] }, // open thread -> failure
     { reviews: ['legacy, no marker'], threads: [] }, // unreadable -> failure (fail closed)
-    // Finding 1 divergence class: >=2 bot reviews on the head where the LAST has an empty body and an
-    // EARLIER one carries the readable marker. The status path filters `&& r.body` (picks the f=0 one);
-    // the resolver must select the SAME review, or it picks the trailing empty body (-> fail closed)
-    // and the two verdicts disagree -- re-stranding the head. Pins resolver selection == status path.
+    // The last bot review on the head has an empty body and an earlier one has the marker. Both
+    // paths must pick the earlier one.
     { reviews: ['first\n<!-- ol-pr-review-bot f=0 -->', ''], threads: [] }, // trailing-empty -> still success
     { reviews: ['first\n<!-- ol-pr-review-bot f=1 -->', null], threads: [] } // trailing-null, earlier f=1 -> failure
 ]) {
@@ -409,10 +391,8 @@ for (const scenario of [
     });
 }
 test('#14486 Finding 2: a transient reviewThreads GraphQL error routes to a repost, never fails the run', async () => {
-    // The resolver's new threads read must not throw out of the range step: an unset `skip` would stop
-    // the status job (its `if` needs skip=='false'), so a transient GraphQL 502/rate-limit would make
-    // the run red AND skip the repost. On a threads-read failure we fail SAFE -> repost, and the
-    // authoritative status job recomputes.
+    // A failed threads read must not throw: an unset `skip` would also skip the status job. It reposts
+    // instead, and the status job recomputes.
     const head = SHA('a');
     const { github } = mockGitHub({
         prGet: async () => ({ data: { number: 1, head: { sha: head }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
@@ -431,7 +411,7 @@ test('#14486 Finding 2: a transient reviewThreads GraphQL error routes to a repo
     assert.equal(res.outputs.repost, 'true', 'and routes to the authoritative status repost');
 });
 
-// ===================== D3a: finding-driven status (withhold -> not automatically red) =========
+// ===================== A withheld review is not automatically red =====================
 test('D3a analyze-gate: a backstop-tripping review with 0 findings -> withheld, NON-blocking', async () => {
     const review = cleanReview();
     review.summary = 'This change guards against a SQL injection in the query builder.'; // trips the backstop

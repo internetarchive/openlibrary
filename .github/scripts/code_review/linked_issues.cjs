@@ -1,5 +1,7 @@
 // The `analyze` job's "Fetch linked issues" step: writes the issues a PR links to into
-// linked-issues.json for the model (ticket context). See the step's comment in code_review_action.yml.
+// linked-issues.json for the model. Follows PR-Agent's ticket_pr_compliance_check.py: issues
+// referenced in the PR body, then the branch name, then the title; this repo's issues only, no
+// pull requests; title, body and labels; at most 3 issues of 10,000 characters each.
 'use strict';
 
 // Issue numbers referenced in `text`, in order of appearance. Only this repo's issues count.
@@ -45,8 +47,7 @@ async function fetchLinkedIssues({ github, context, core, require, process }) {
     const owner = context.repo.owner,
         repo = context.repo.repo;
     const prNumber = Number(process.env.PR);
-    // PR-Agent's caps (MAX_GITHUB_TICKETS, MAX_GITHUB_TICKET_LOOKUPS, MAX_TICKET_CHARACTERS,
-    // MAX_SHORTHAND_ISSUE_DIGITS).
+    // PR-Agent's MAX_GITHUB_TICKETS, MAX_GITHUB_TICKET_LOOKUPS and MAX_TICKET_CHARACTERS.
     const MAX_TICKETS = 3,
         MAX_LOOKUPS = 30,
         MAX_CHARS = 10000;

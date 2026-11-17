@@ -1,19 +1,9 @@
-// Unit + integration tests for #14487 -- the code-review action must post a real VERDICT
-// (Approve / Request changes, not a bare Comment) and RESOLVE fixed threads on re-review.
-//
-// Two layers, both importing the shipped module (.github/scripts/code_review/post.cjs):
-//   1. The PURE helpers the `post` job's step uses, exercised directly:
-//        - selectReviewEvent({selfAuthored, findingCount, unresolvedOwnThreads})  -- the verdict
-//          (PART A). APPROVE requires 0 findings AND 0 surviving own threads, so it can never
-//          contradict a red code-review status.
-//        - shouldDismissTeamRequest({selfAuthored, event})  -- clear a bot-authored PR's pill (A.2).
-//        - threadsToResolve({threads, resolvedIds, botLogin}) -- which of OUR OWN open threads the
-//          model judged fixed (review.resolved) and may be resolved (PART B).
-//        - fixedInSha({rangeShas, pathShas, headSha}) -- the commit the "Fixed in" reply credits.
-//   2. The ACTUAL post step function driven end-to-end against a mocked GitHub, to prove the wiring: the
-//      verdict reaches createReview, the self-review 422 degrades to COMMENT, a bot-authored PR
-//      dismisses the team request, a fixed finding's thread is resolved while a surviving one is
-//      kept (and keeps the verdict off APPROVE), and a thread-enumeration failure never fails the job.
+// Tests for the review verdict and for resolving fixed threads (post.cjs):
+//   1. The helpers: selectReviewEvent (APPROVE needs no findings and none of the bot's threads
+//      open), shouldDismissTeamRequest, threadsToResolve and fixedInSha.
+//   2. The post step against a mock GitHub: the verdict reaches createReview, a 422 falls back to
+//      COMMENT, a bot-authored PR drops the team request, fixed threads are resolved and open ones
+//      kept, and a thread-enumeration failure doesn't fail the job.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
@@ -41,7 +31,7 @@ const DIMS = {
 
 const { selectReviewEvent, shouldDismissTeamRequest, threadsToResolve, fixedInSha } = post;
 
-// A review thread as GraphQL returns it for PART B, with the bot's finding header as its first comment.
+// A review thread as GraphQL returns it, with the bot's finding header as its first comment.
 function thread(id, path, dim, title, { resolved = false, outdated = false, author = 'openlibrary-bot', severity = 'MEDIUM', line = 1 } = {}) {
     return {
         id,
@@ -53,7 +43,7 @@ function thread(id, path, dim, title, { resolved = false, outdated = false, auth
     };
 }
 
-// ========================= PART A: selectReviewEvent (the verdict) =========================
+// ========================= selectReviewEvent (the verdict) =========================
 test('selectReviewEvent: blocking findings on a contributor PR -> REQUEST_CHANGES', () => {
     assert.equal(selectReviewEvent({ selfAuthored: false, findingCount: 1, unresolvedOwnThreads: 0 }), 'REQUEST_CHANGES');
     assert.equal(selectReviewEvent({ selfAuthored: false, findingCount: 9, unresolvedOwnThreads: 3 }), 'REQUEST_CHANGES');
@@ -73,7 +63,7 @@ test('selectReviewEvent: a bot-authored (self) PR -> COMMENT regardless (422 avo
     assert.equal(selectReviewEvent({ selfAuthored: true, findingCount: 4, unresolvedOwnThreads: 2 }), 'COMMENT');
 });
 
-// ========================= PART A.2: shouldDismissTeamRequest (clear the bot-PR pill) =========================
+// ========================= shouldDismissTeamRequest (bot-authored PRs) =========================
 test('shouldDismissTeamRequest: a bot-authored PR that posted COMMENT -> dismiss the team request', () => {
     assert.equal(shouldDismissTeamRequest({ selfAuthored: true, event: 'COMMENT' }), true);
 });
@@ -84,7 +74,7 @@ test('shouldDismissTeamRequest: a contributor verdict clears the pill itself -> 
     assert.equal(shouldDismissTeamRequest({ selfAuthored: false, event: 'COMMENT' }), false);
 });
 
-// ========================= PART B: threadsToResolve (only threads the model judged fixed) =========================
+// ========================= threadsToResolve (only threads the model judged fixed) =========================
 const BOT = 'openlibrary-bot';
 test('threadsToResolve: a thread the model listed as fixed resolves', () => {
     const threads = [thread('T1', 'a.py', 'correctness', 'Off-by-one in the loop bound', { line: 50 })];

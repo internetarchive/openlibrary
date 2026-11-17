@@ -1,120 +1,40 @@
 name: Code Review Action
 
-# ============================================================================================
-# REQUIRED-STATUS INVARIANT -- read before touching the `status` job at the bottom of this file.
+# @openlibrary-bot's code review (instructions in code_review.md). It posts one review with inline
+# comments, and a re-review covers only the commits since its last one. The JavaScript the steps
+# run lives in .github/scripts/code_review/.
 #
-# This workflow makes a code review a REQUIRED CI gate. On every reviewed head it posts the commit
-# status `code-review` on the exact SHA that was reviewed: `success` on a PASS, `failure` otherwise.
-# A branch-protection ruleset (configured by a maintainer, out of this file) requires that status,
-# so the status IS the gate and the ruleset only reads it. This is fork-agnostic by construction:
-# GitHub attaches statuses to a commit, and the ruleset reads the head SHA, fork or same-repo alike.
+# Jobs:
+#   analyze  runs the model on the untrusted PR. It has no write permission and no PAT.
+#   post     re-checks the analysis and posts the review. It holds the review PAT and runs no model.
+#   pending  marks the head `code-review=pending` while the review runs.
+#   status   posts the `code-review` commit status.
+# A prompt injection in a PR can change what the review says, but the job that read it has nothing
+# to write with. Keep `analyze` and `post` separate, and keep write scopes and PATs out of `analyze`.
 #
-# A PASS is THREE things (issue #14453 B): the review posted successfully for this SHA, AND its own
-# blocking-findings count is KNOWN to be 0 this run (produced inside this workflow -- see the
-# analyze-gate producer -- and FAIL CLOSED on an absent/unparseable count), AND no review thread is
-# unresolved-and-not-outdated (GitHub's own isResolved/isOutdated). The status is SHA-bound: a later
-# push leaves the new head with no `code-review` status at all, which is correct -- that head has not
-# been reviewed -- and the required ruleset therefore blocks it until a re-review posts success. A
-# bare push never reviews: `synchronize` is not a trigger of this workflow.
+# Security findings are never published. gate.cjs decides what may be: `analyze` runs it before
+# uploading the analysis and `post` runs it again before posting. A withheld review logs the same
+# message whatever the reason, because logs and artifacts on a public repo are public.
 #
-# This workflow NO LONGER touches the `Needs: e2e testing` label -- that label's whole lifecycle
-# (add-on-pass, strip-on-push) belongs to the e2e piece (#14454), which keys off THIS status.
-# ============================================================================================
-
-# Implements the Code Review Action from epic #13160:
-#   "an @openlibrary-bot-driven code review, triggered when staff request it as a PR reviewer
-#    or @-mention it directly in a PR comment (staff-only trigger, for security). Should post
-#    inline suggestion-style comments on specific code blocks/lines, similar to Copilot's
-#    review UX. On re-trigger, should review only the diff since its last pass."
+# Forks: the status is required, so fork PRs must be able to earn it, and posting it needs secrets.
+# So the trigger is pull_request_target, which runs this file as it is on the base branch, with
+# secrets. That is safe only because `analyze` never executes PR content: it checks out the base
+# branch, extracts the PR head as inert files, and has no build, install, test, cache, cloud-auth
+# or setup-* step (code_review_status_gate.test.js checks this). No job checks out the PR head or
+# keeps checkout credentials.
 #
-# PR-AGENT -- we do not run PR-Agent (https://github.com/The-PR-Agent/pr-agent). We built our own
-# reviewer because we need what it lacks: security findings never published (the disclosure gate
-# below), a model job with no write access on fork PRs, and a SHA-bound required status. Where the
-# two overlap we follow PR-Agent's names and behaviour, so we can build from it and contribute back:
-# .pr_agent.toml settings, ticket compliance for linked issues, and (planned) risk checks.
+# Required status: `status` posts `code-review` on the reviewed SHA, and a ruleset requires it.
+# `synchronize` is not a trigger, so a push leaves the new head without a status until it is
+# reviewed. A green status means a review ran clean on this commit. It is not an approval.
 #
-# SECURITY -- the two-job split below is the whole design, read before editing.
-#
-# `analyze` reads untrusted PR content (diff, source) and holds NO write permission and NO PAT.
-# `post` holds the write permission and the scoped PAT, runs no model, and takes the analysis only as
-# a JSON artifact which it re-validates against the diff before posting. A prompt injection in
-# a PR can therefore change what the review *says*, but cannot reach a write API, because the
-# process that read it has nothing to write with.
-#
-# Do not "simplify" this into one job. Do not add any PAT to `analyze`. Do not add write
-# scopes to `analyze`'s permissions block. And -- load-bearing under pull_request_target, where
-# `analyze` runs with secrets on untrusted fork PRs -- `analyze` MUST NOT execute PR content: no
-# build, install, test, cache (actions/cache), cloud-auth (configure-aws/gcp/azure, azure/login)
-# or language-setup (actions/setup-*) step. A CI test asserts this (see ANALYZE-EXECUTION INVARIANT
-# below) and fails the build if `analyze` gains such a step.
-#
-# DISCLOSURE GATE -- a security finding is never published, per pm/workflows/code_review.md
-# ("do NOT post publicly. Follow security.md"). .github/scripts/code_review/gate.cjs is the one
-# definition of what may be published; both jobs run that module:
-#   - `analyze` runs it after the model and uploads ONLY what it returns: the allowlisted copy
-#     of the review if it passes, a {"withheld": true} stub if not. The model's own files never
-#     leave the runner -- not review.json, and not review.diff or review-range.json, which the
-#     model could have rewritten. Artifacts on a public repo are downloadable by any signed-in
-#     GitHub user, so anything unscanned in the artifact is a disclosure.
-#   - `post` runs it again on a fresh runner and is the enforcer: it publishes nothing unless
-#     the gate passes, whatever `analyze` claims, and renders only from the allowlisted copy.
-#     It re-fetches the diff itself from the range the pre-model step resolved.
-# The gate withholds the WHOLE review: a security finding suppresses every other finding too.
-# A withheld run fails with one fixed message whatever the reason -- a security finding, a
-# backstop hit, a malformed or missing review. Logs on a public repo are public, so the reason
-# is never written anywhere.
-#
-# Fork PRs -- the fork-inclusive REQUIRED status (issue #14453 D): a required `code-review`
-# status forks cannot earn would brick every external PR, so the review must run and post on fork
-# PRs too. `pull_request` from a fork gets NO secrets (can't post), so this workflow uses
-# `pull_request_target`, which runs in the BASE-repo context with secrets for same-repo AND fork
-# PRs alike. The usual pull_request_target footgun -- running with secrets AND executing fork code
-# -- is structurally avoided here, and this is the whole reason the two-job split exists:
-#   * `analyze` reads the untrusted PR content but holds NO PAT and NO write scope. It checks out
-#     the BASE sha (never the PR head into the tree), fetches the PR head into a ref, and extracts
-#     a copy into pr-head/ with executable bits, symlinks and agent config (.claude/, .mcp.json,
-#     CLAUDE.md) removed. NOTHING from the fork is ever executed (see the analyze-execution
-#     invariant below). The model has no shell, can read only inside the workspace, and can write
-#     only review.json.
-#   * The PATs live only in `post`/`status`, which run no model and re-validate.
-#   * The JavaScript every job runs lives in .github/scripts/code_review/. `analyze` requires it
-#     from its BASE checkout; `post`, `pending` and `status` check out only .github/scripts, from
-#     this workflow's own commit. No job checks out the PR head, and no checkout keeps credentials.
-#   * pull_request_target runs the BASE-branch copy of this workflow, so a fork PR cannot alter the
-#     hardening or the permissions blocks below.
-# Spend/abuse: the model runs on ONE path -- a `review_requested` for the team
-# `openlibrary-agentic-code-reviewer` (plus a staff @-mention and manual dispatch). auto_assign
-# requests that team automatically on SAME-REPO PRs only (any author, incl. our own bot); a FORK
-# earns the status only after a maintainer requests the team by hand -- requesting a reviewer needs
-# write/triage, so an external author cannot auto-trigger the model. See the analyze `if`.
-#
-# ANALYZE-EXECUTION INVARIANT (load-bearing for the pull_request_target safety above -- a reviewer
-# re-diffs this on every change): the `analyze` job MUST NOT execute PR content. No build, install,
-# test, cache (actions/cache is fork-poisonable), cloud-auth (configure-aws/gcp/azure, azure/login)
-# or language-setup (actions/setup-*) step may be added to it, and it must keep NO PAT and NO write
-# scope. Its only `run:` steps are the git fetch-into-a-ref and the inert `git archive | tar`
-# extraction. A CI test (tests/unit/js/code_review_status_gate.test.js) asserts this and fails if
-# `analyze` gains a disallowed action or a build/install/test/cache command.
-
-# pull_request_target is REQUIRED for the fork-inclusive status (issue #14453 D): a fork
-# `pull_request` gets no secrets and cannot post `code-review`, so a required status would be
-# unearnable by every external PR. The pull_request_target footgun (secrets + fork-code execution)
-# is structurally avoided -- see the Fork PRs / ANALYZE-EXECUTION INVARIANT notes above: analyze
-# checks out the BASE sha, extracts the PR head INERT, holds no PAT/write, and never executes fork
-# code; pull_request_target runs the base-branch workflow so a fork can't alter the hardening. A CI
-# test asserts the analyze no-execution invariant. (zizmor ignore pragma is inline on the trigger.)
+# We don't run PR-Agent (https://github.com/The-PR-Agent/pr-agent): it has no disclosure gate, no
+# model job without write access, and no SHA-bound status. Where the two overlap we use its names
+# and behaviour (.pr_agent.toml settings, ticket compliance).
 on:
   pull_request_target:  # zizmor: ignore[dangerous-triggers]
-    # NEVER `synchronize` -- a bare push does not review, which is what makes the SHA-bound
-    # `code-review` status an honest merge gate (a new head has no status until it is re-reviewed).
-    # ONE model-run path: `review_requested` for the team `openlibrary-agentic-code-reviewer`
-    # (the `if` below keys on github.event.requested_team.slug). auto_assign_reviewer.yml requests
-    # that team on opened/ready_for_review for SAME-REPO PRs (any author, incl. our own bot -- a team
-    # request is NOT blocked by the author-exclusion that stops requesting a PR's own author as an
-    # individual reviewer, proven on #14450). A FORK gets no auto-request (auto_assign is same-repo
-    # only); it earns the status only after a maintainer requests the team by hand -- the spend gate.
-    # A re-review is just another team request, which fires this same path again.
-    # GitHub's re-request button asks the bot user (who posted the review), not the team, so that fires too.
+    # The model runs when the team `openlibrary-agentic-code-reviewer` is requested.
+    # auto_assign_reviewer.yml requests it on new PRs; otherwise a maintainer does. GitHub's
+    # re-request button requests the bot user, not the team, so that is accepted too.
     types: [review_requested]
   issue_comment:
     types: [created]
@@ -126,53 +46,22 @@ on:
         type: string
 
 concurrency:
-  # Per-PR group with cancel-in-progress FALSE -- correctness over efficiency, because this status
-  # is a REQUIRED merge gate. cancel-in-progress:true would create a STRAND: if a run posts its
-  # review on commit H and is then cancelled (by a second trigger on the same PR) BEFORE its separate
-  # `status` job posts, the next run sees "already reviewed H" -> skips -> the status job never runs
-  # -> H gets NO `code-review` status -> unmergeable until a new head is pushed (on a fork, until a
-  # maintainer re-requests). With FALSE, the in-flight run always completes (review AND status); a
-  # second trigger QUEUES and then runs -- and on the SAME head it is USUALLY cheap: the range step
-  # returns "already reviewed this SHA" (keyed on our prior review existing on that head) and skips
-  # the model, so a duplicate team request on the same head (auto_assign plus a manual re-request)
-  # costs one review, not two.
-  # (Edge: a prior run that WITHHELD posts no review, so a same-head re-trigger there re-runs the
-  # model -- rare, and that trigger is authorized/same-repo.) The only cost of FALSE is an occasional wasted
-  # review when a NEW head arrives mid-review (the old head is reviewed to completion first); that is
-  # bounded by the `if` below (forks don't auto-review; external authors can't request a reviewer)
-  # and is a deliberate trade for never stranding a required status. A superseded head's status is
-  # harmless -- the ruleset checks the CURRENT head, which gets its own run.
-  # NOT a repo-wide group: GitHub concurrency is mutual-exclusion (one running + one pending per key),
-  # not a max-N limiter, so a single global group would DROP queued reviews (depth-1 pending) ->
-  # strand a PR with no status. The real spend cap is the `if` below, not concurrency.
+  # One group per PR, and runs are never cancelled. A run cancelled after posting its review but
+  # before `status` would leave the head without a status. A second trigger waits instead, and on
+  # the same head the range step finds the existing review and skips the model.
+  # Not one repo-wide group: GitHub keeps only one pending run per group and drops the rest.
   group: code-review-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
   cancel-in-progress: false
 
 jobs:
   analyze:
     runs-on: ubuntu-latest
-    # Trigger paths (no `synchronize` trigger at all, so a bare push never reviews). The
-    # pull_request_target leg runs in base-repo context with secrets, for same-repo AND fork PRs:
-    #   1. pull_request_target review_requested whose requested_team.slug is the reviewer team
-    #      `openlibrary-agentic-code-reviewer` -- the ONE model-run path. auto_assign requests that
-    #      team automatically on every non-draft PR, forks included (#14482 dropped the same-repo
-    #      spend gate). An external author still cannot request a reviewer themselves (that needs
-    #      write/triage); the model runs only via auto_assign's bot-driven team request or a staff
-    #      action. A re-review is another team request, which fires this leg again. (A team request carries requested_team and no
-    #      requested_reviewer; keying on the team is also what lets our own bot-authored PRs be
-    #      reviewed -- a PR cannot request its own author individually, but it CAN request a team.)
-    #   2. issue_comment @-mention on a PR -- any commenter incl. external, runs with secrets, so
-    #      this path keeps an explicit staff allowlist, PLUS the PR author on their OWN PR (#14484:
-    #      a fork contributor cannot re-request a reviewer -- that needs base-repo write -- so after
-    #      they push fixes the review never re-runs; commenting needs no write access, so letting the
-    #      author re-fire their own review by @-mention is fork-safe. Author + staff only). In real
-    #      payloads comment.user.login and issue.user.login are always populated, so the author-equals
-    #      clause matches only the genuine author. (Exotic: two deleted accounts both render as login
-    #      `ghost`, so a `ghost` commenter could match a `ghost` author -- but the run is inert and
-    #      read-only and the @-mention + non-bot guards still apply, so impact is negligible.)
-    # Drafts: the pull_request_target leg skips draft PRs (!draft) -- no reviewing unfinished work.
-    # A manual workflow_dispatch reviews a draft deliberately; it is the staff debug path, and
-    # GitHub already requires write access to dispatch.
+    # Runs on:
+    #   - a non-draft PR's review request for the team or the bot. A PR can't request its own author
+    #     but can request a team, so the team path also reviews the bot's own PRs.
+    #   - an @openlibrary-bot comment on a PR, from staff or the PR's author. The author is allowed
+    #     because a fork contributor can't re-request a review but can comment.
+    #   - workflow_dispatch, which needs write access and also reviews drafts.
     if: >
       github.event_name == 'workflow_dispatch' ||
       (
@@ -196,15 +85,12 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-      # Read-only. #14476 D2: the range step lists a head's commit statuses (listCommitStatusesForRef)
-      # to decide whether an already-reviewed head still needs its `code-review` status posted. This
-      # is a READ scope only -- it does not weaken the no-write half of the analyze/post split.
+      # The range step reads the head's commit statuses.
       statuses: read
-      # Read-only: the linked-issues step reads the issues a PR links to (ticket context).
+      # The linked-issues step reads the issues a PR links to.
       issues: read
-      # Required by claude-code-action's OIDC fetch. GitHub accepts only `write` or `none`
-      # here; `none` breaks the token exchange. This is NOT repository write access -- see
-      # #13604, where removing it silently broke the PR auto-responder.
+      # claude-code-action's OIDC token exchange needs this, and GitHub accepts only `write` or
+      # `none`. It grants no repository write access. Removing it broke the PR auto-responder (#13604).
       id-token: write
     outputs:
       pr: ${{ steps.range.outputs.pr }}
@@ -214,25 +100,20 @@ jobs:
       skip: ${{ steps.range.outputs.skip }}
       # From .pr_agent.toml, read before the model ran.
       inline_key_issues: ${{ steps.range.outputs.inline_key_issues }}
-      # #14476 D2: 'true' when an already-reviewed head is missing its `code-review` status and the
-      # status must be re-posted from the existing review (no model re-run); post is skipped, status runs.
+      # 'true' when this head was already reviewed but its status is missing or wrong: `post` is
+      # skipped and `status` re-posts the status from the existing review.
       repost: ${{ steps.range.outputs.repost }}
-      # #14476 D3a: finding-driven status signals. `withheld` = was the public review withheld;
-      # `withheld_blocking` = the 1-bit "a blocking finding exists" verdict (never a count/content).
+      # Whether the review was withheld, and whether a withheld review had a blocking finding.
+      # One bit each, never a count or content.
       withheld: ${{ steps['analyze-gate'].outputs.withheld }}
       withheld_blocking: ${{ steps['analyze-gate'].outputs.withheld_blocking }}
-      # Count of PUBLIC blocking findings in this run's review, produced INSIDE this workflow by the
-      # analyze-gate step (issue #14453 B.2 -- the count must not depend on a cross-PR producer).
-      # Bracket form because `analyze-gate` has a hyphen (`steps.analyze-gate` parses `-` as minus).
-      # Only set when skip == 'false' (the gate step is skip-guarded); the `status` job that reads it
-      # is itself gated on skip == 'false', so it is never read unset.
+      # Blocking findings in the published review. Bracket form because `-` would parse as minus.
       public_findings_count: ${{ steps['analyze-gate'].outputs.public_findings_count }}
     steps:
-      # The base branch, never the PR head. github.sha is the commit this workflow file was loaded
-      # from: the base branch tip under pull_request_target, the default branch otherwise. Not
-      # pull_request.base.sha, which GitHub only updates when the PR is pushed, so on an older PR it
-      # is a stale master without these scripts. See the SECURITY note above. The github-script
-      # steps below run the code review scripts from this checkout (never from pr-head/).
+      # The base branch, never the PR head. github.sha is the commit this workflow was loaded from:
+      # the base branch tip under pull_request_target, the default branch otherwise. Not
+      # pull_request.base.sha, which GitHub updates only when the PR is pushed, so on an older PR
+      # it can predate these scripts. The github-script steps below require the scripts from here.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
@@ -246,16 +127,9 @@ jobs:
             const { resolveRange } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/range.cjs`);
             await resolveRange({ github, context, core, require, process });
 
-      # Ticket context, after PR-Agent's `require_ticket_analysis_review` ([pr_reviewer] in its
-      # configuration.toml; also in our .pr_agent.toml). Finds the issues the PR links to and writes them to
-      # linked-issues.json for the model (code_review.md Step 5). Same rules as PR-Agent's
-      # pr_agent/commands/ticket_pr_compliance_check.py: `#123`, issue URLs and `owner/repo#123` in the
-      # PR body, the issue number the branch name starts with, then the title; this repo's issues only
-      # (PR-Agent fetches other repos only from an allowlist, empty by default); pull requests skipped;
-      # title, body and labels, no comments; at most 3 issues, 10,000 characters of body each.
-      # Runs before the model, with the job's read-only GITHUB_TOKEN. Issue text is untrusted (anyone
-      # can open an issue): the model reads it as data, and nothing it writes about it is published
-      # without passing the gate (gate.cjs). A failure here never fails the run; the model gets [].
+      # Ticket context, after PR-Agent's `require_ticket_analysis_review`: the issues the PR links
+      # to, for the model to check the PR against. Issue text is untrusted, so anything the model
+      # writes about it still goes through the gate. A failure here leaves the list empty.
       - name: Fetch linked issues (ticket context)
         if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -295,9 +169,8 @@ jobs:
 
       - name: Review
         if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
-        # Pinned deliberately -- do not restore the floating `@v1`. Same upstream regression as
-        # issue_enrichment.yml and pr_autoresponder.yml: from a later version every run reports
-        # success while producing nothing, in workflows that set `allowed_non_write_users`.
+        # Pinned, not the floating `@v1`: later versions report success while producing nothing
+        # in workflows that set `allowed_non_write_users` (as in issue_enrichment.yml and pr_autoresponder.yml).
         uses: anthropics/claude-code-action@700e7f8316990de46bed556429765647af760efc # v1 @ SDK 0.3.212
         with:
           prompt: |
@@ -315,12 +188,10 @@ jobs:
             --allowedTools "Edit(./review.json) Read(./**) Grep(./**) Glob(./**)"
             --disallowedTools "Bash WebFetch WebSearch"
           claude_code_oauth_token: ${{ secrets.OL_BOT_CLAUDE_OAUTH_TOKEN }}
-          # Deliberately the job's own read-only GITHUB_TOKEN, NOT secrets.OL_BOT_PAT. This job
-          # reads untrusted PR content; it must not hold a credential that can write. The PAT
-          # lives in the `post` job below, which runs no model.
+          # The job's read-only token, not a PAT: this job reads untrusted PR content.
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # Both are the defaults at this pin, stated because the disclosure gate depends on them:
-          # either one writes the model's text into the public run log or step summary.
+          # Both are the defaults at this pin. Either one would write the model's text into the
+          # public run log or step summary, past the gate.
           show_full_output: false
           display_report: false
 
@@ -348,19 +219,14 @@ jobs:
 
   post:
     needs: analyze
-    # Skipped on a D2 repost: no new review is posted, the status job recomputes from the existing one.
     if: needs.analyze.outputs.skip == 'false' && needs.analyze.outputs.repost != 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read        # the checkout and the diff fetch below, with the job's own GITHUB_TOKEN
       pull-requests: write
     steps:
-      # The code review scripts (.github/scripts/code_review/) and nothing else, from the commit this
-      # workflow file was loaded from, so the two always match: the base branch's tip on
-      # pull_request_target, the default branch on issue_comment and workflow_dispatch. Never the PR
-      # head. Not github.event.pull_request.base.sha: that is the base as of the PR's last push, which
-      # can predate these scripts. No credentials are left on disk. It runs before the artifact
-      # download because a checkout empties the workspace.
+      # Only the review scripts, from the same commit as this workflow (see the analyze checkout).
+      # Before the artifact download, because a checkout empties the workspace.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
@@ -391,15 +257,14 @@ jobs:
           INCREMENTAL: ${{ needs.analyze.outputs.incremental }}
           INLINE_KEY_ISSUES: ${{ needs.analyze.outputs.inline_key_issues }}
         with:
-          # Fine-grained PAT (openlibrary-bot) scoped to internetarchive/openlibrary only, with
-          # Pull requests: Read and write and nothing else. Deliberately NOT the broad
-          # OL_BOT_PAT, and deliberately not present in `analyze`.
+          # Fine-grained PAT with only Pull requests: read and write, on this repo.
           github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
           script: |
             const { validateAndPost } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/post.cjs`);
             await validateAndPost({ github, context, core, require, process });
 
-  # Posts code-review=pending; skipped if the head already has a status (analyze may skip and nothing would replace it).
+  # Marks the head code-review=pending, unless it already has a status: analyze may then skip, and
+  # nothing would replace the pending. Same `if` as analyze.
   pending:
     if: >
       github.event_name == 'workflow_dispatch' ||
@@ -428,11 +293,7 @@ jobs:
       pr: ${{ steps.mark.outputs.pr }}
       head_sha: ${{ steps.mark.outputs.head_sha }}
     steps:
-      # The code review scripts (.github/scripts/code_review/) and nothing else, from the commit this
-      # workflow file was loaded from, so the two always match: the base branch's tip on
-      # pull_request_target, the default branch on issue_comment and workflow_dispatch. Never the PR
-      # head. Not github.event.pull_request.base.sha: that is the base as of the PR's last push, which
-      # can predate these scripts. No credentials are left on disk.
+      # Only the review scripts, from the same commit as this workflow (see the analyze checkout).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
@@ -440,11 +301,8 @@ jobs:
           sparse-checkout: /.github/scripts/
           sparse-checkout-cone-mode: false
 
-      # An @-mention gets a 👀 reaction straight away, so whoever asked can see the bot picked it up.
-      # This job shares analyze's `if`, so only a comment that actually starts a review gets one.
-      # A PR conversation comment is an issue comment, so reacting needs Issues: write, which
-      # OL_BOT_REVIEW_PAT lacks. OL_BOT_PR_PAT (issues + pull-requests write, this repo only, see
-      # pr_autoresponder.yml) has it and posts as openlibrary-bot. This job runs no model.
+      # A 👀 reaction shows whoever asked that the review started. A PR comment is an issue comment,
+      # so reacting needs Issues: write, which OL_BOT_REVIEW_PAT lacks and OL_BOT_PR_PAT has.
       - name: React to the review request comment
         if: github.event_name == 'issue_comment'
         continue-on-error: true
@@ -467,59 +325,22 @@ jobs:
             const { markPending } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/pending.cjs`);
             await markPending({ github, context, core, process });
 
-  # ----------------------------------------------------------------------------------------------
-  # status -- the SHA-bound required merge signal (issue #14453 A/B). Posts commit status
-  # `code-review` on the exact SHA that was reviewed; a branch-protection ruleset requires it.
-  #
-  # FLOOR, NOT CEILING: a green `code-review` means "an automated review ran on this SHA and came
-  # back clean-ish", NOT "this PR is good to merge". It can be green on a bad PR -- an orphaned
-  # finding from a prior incremental run (#14471) or a prompt-injected clean review -- so it is "not
-  # an approval or sign-off" and MUST be deployed ALONGSIDE human review, never as the sole gate.
-  #
-  # Runs after analyze+post on every reviewed head (review_requested / @-mention / dispatch), never
-  # on a bare push. It does NOT touch any label -- the e2e piece (#14454) owns `Needs: e2e testing`.
-  #
-  # PASS = ALL THREE (issue B, as amended by #14476 D3a -- FINDING-driven, not withhold-driven):
-  #   (a) the review was POSTED (post.result == success) -- OR cleanly withheld. #14476 D3a: post now
-  #       returns cleanly on a withhold, so a withhold is NOT an automatic block; what blocks is a
-  #       FINDING, not the act of withholding. A failed/malformed post is still not a pass.
-  #   (b) the review's blocking-findings count is KNOWN to be 0 this run -- for a PUBLISHED review the
-  #       declared public count; for a WITHHELD review the 1-bit `withheld_blocking` verdict (true =>
-  #       >=1 blocking finding). Either absent/unparseable FAILS CLOSED (blocks), never passes by
-  #       default. A withhold with 0 blocking findings (a backstop false-positive) greens itself; a
-  #       real finding (public or withheld) blocks, AND
-  #   (c) no review thread is unresolved-and-not-outdated (GitHub's own isResolved/isOutdated --
-  #       authoritative, not a heuristic, to keep false blocks low).
-  # (b) and (c) are complementary: every public finding also becomes a review thread, so (c)
-  # reinforces (b); (b) additionally catches a finding that landed in the summary with no in-diff
-  # anchor (no thread to resolve -- see #13548, 3 of 9). We bias toward BLOCKING: anything short of
-  # (posted-or-cleanly-withheld AND known-0-blocking AND fully-resolved) posts `failure`.
-  #
-  # #14476 D1 -- SHA binding: before posting, this job re-confirms the reviewed SHA is still the live
-  # head (createReview re-anchors to the live head and ignores commit_id). If the head moved, it posts
-  # NO status; the new head is unreviewed and earns its own run. The review (post) guards identically,
-  # so review and status always describe the same commit.
-  #
-  # SKIP paths: draft / not-open resolve to skip == 'true' in analyze (this job gated off). #14476 D2 --
-  # an already-reviewed-this-exact-SHA head is NO LONGER a blanket skip: analyze skips only when a
-  # `code-review` status is already present on that head; if it is missing (the Defect-1 strand, or a
-  # transient status failure) analyze sets repost == 'true' and THIS job runs to (re)post the status
-  # from the review-body marker + live threads, so an already-reviewed head is never stranded without a
-  # status. When a status IS present, analyze skips and the SHA-bound status is left intact (re-affirmed).
+  # Posts the required `code-review` status on the reviewed SHA. It is `success` only when:
+  #   - the review was posted, or withheld cleanly;
+  #   - its count of blocking findings is known to be 0. A missing or unparseable count fails.
+  #     The count catches findings with no line in the diff to anchor to, which have no thread;
+  #   - no review thread is unresolved and not outdated (GitHub's own isResolved/isOutdated).
+  # If the head moved since the review, it posts nothing: the new head needs its own review.
+  # On a repost it rebuilds the verdict from the existing review's marker and the live threads.
   status:
     needs: [analyze, post, pending]
     if: always() && (needs.analyze.outputs.skip == 'false' || needs.pending.outputs.head_sha != '')
     runs-on: ubuntu-latest
-    # The status post and the reviewThreads GraphQL both use the bot PAT (github-token input
-    # below). The default token only checks out the scripts, so it gets contents: read and nothing else.
+    # API calls use the bot PAT. The default token only checks out the scripts.
     permissions:
       contents: read
     steps:
-      # The code review scripts (.github/scripts/code_review/) and nothing else, from the commit this
-      # workflow file was loaded from, so the two always match: the base branch's tip on
-      # pull_request_target, the default branch on issue_comment and workflow_dispatch. Never the PR
-      # head. Not github.event.pull_request.base.sha: that is the base as of the PR's last push, which
-      # can predate these scripts. No credentials are left on disk.
+      # Only the review scripts, from the same commit as this workflow (see the analyze checkout).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
@@ -534,35 +355,17 @@ jobs:
           PR: ${{ needs.analyze.outputs.pr || needs.pending.outputs.pr }}
           HEAD_SHA: ${{ needs.analyze.outputs.head_sha || needs.pending.outputs.head_sha }}
           POST_RESULT: ${{ needs.post.result }}
-          # Count of PUBLIC findings this run, read as a DECLARED analyze-job OUTPUT -- produced by
-          # the analyze-gate step IN THIS WORKFLOW (issue B.2: the count must not depend on a cross-PR
-          # producer, or the gate is permanently red). Read as an output, never by parsing analyze's
-          # artifact (whose internal format is not a stable contract). Parsed below as null if ever
-          # absent/non-integer -> FAIL CLOSED (the status blocks, never passes): absent is NOT treated
-          # as clean, since orphaned/summary-only findings create no thread and threads-only cannot
-          # catch them. In practice it is always set when this job runs (analyze-gate and this job
-          # share the skip == 'false' gate); the fail-closed parse is a belt-and-suspenders guard.
+          # A job output, not read from the artifact, whose format is not a contract.
           PUBLIC_FINDINGS_COUNT: ${{ needs.analyze.outputs.public_findings_count }}
-          # #14476 D3a -- finding-driven status. WITHHELD: was the public review withheld. WITHHELD_BLOCKING:
-          # the 1-bit "a blocking finding exists" verdict (never a count/content). On a published review
-          # the PUBLIC count drives the state; on a withheld review these two drive it (0 findings ->
-          # success, >=1 -> failure). Absent/garbage -> fail closed. The count output stays 0 on withhold.
           WITHHELD: ${{ needs.analyze.outputs.withheld }}
           WITHHELD_BLOCKING: ${{ needs.analyze.outputs.withheld_blocking }}
-          # #14476 D2 -- 'true' when reconstructing the status for an already-reviewed head whose status
-          # went missing (no model ran); the verdict is read back from the review-body marker + live threads.
           REPOST: ${{ needs.analyze.outputs.repost }}
           BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
           INCREMENTAL: ${{ needs.analyze.outputs.incremental }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
-          # IDENTITY: posts the commit status as openlibrary-bot (default, per issue open-decision 1).
-          # SWAP POINT -- this one token line is the identity. OL_BOT_COMMIT_STATUS_PAT is a fine-grained PAT
-          # TO BE MINTED BY MEK (Locke's review, c): scoped to internetarchive/openlibrary ONLY, with
-          # exactly Commit statuses: write + Pull requests: read (reviewThreads GraphQL). Deliberately
-          # NOT the broad OL_BOT_ACTIONS_PAT -- under pull_request_target this token is present on
-          # attacker-initiated fork runs, so least privilege here is containment. The status job cannot
-          # go live on the fork path until this secret exists.
+          # Fine-grained PAT with only Commit statuses: write and Pull requests: read (for
+          # reviewThreads), on this repo. Fork-triggered runs hold it too, so keep it that narrow.
           github-token: ${{ secrets.OL_BOT_COMMIT_STATUS_PAT }}
           script: |
             const { postStatus } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/status.cjs`);

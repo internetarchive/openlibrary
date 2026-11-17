@@ -1,43 +1,34 @@
-// The `status` job: decides the gate and posts the SHA-bound `code-review` commit status. Holds the
-// commit-status PAT and runs no model. See the comment above the job in code_review_action.yml.
+// The `status` job: decides and posts the `code-review` commit status for the reviewed SHA. The pass
+// rule is in decideStatus and in the comment above the job in code_review_action.yml.
 'use strict';
 
 const { headIsCurrent, parseReviewMarker, unresolvedThreadCount } = require('./shared.cjs');
 
-// Public findings this run, from the analyze job's declared output. FAIL CLOSED: an
-// absent output or any non-integer returns null = "unknown", which decideStatus treats
-// as BLOCKING -- NOT as 0/clean. Treating absent-as-clean would be a gate bypass:
-// orphaned/summary-only findings create no review thread, so threads-only cannot catch
-// them (see #13548, 3 of 9). The analyze-gate producer always emits a non-negative
-// integer (public findings incl. orphaned) whenever this job runs.
+// The public findings count from `analyze`. null (blocks) unless it is a non-negative integer:
+// findings with no anchor in the diff have no thread, so the thread count alone can't catch them.
 const parseFindings = raw => {
     return /^\d+$/.test((raw ?? '').toString().trim()) ? Number(raw) : null;
 };
 
-// #14476 D3a -- a withheld review exposes no inline findings, so its gate verdict arrives
-// as the 1-bit WITHHELD_BLOCKING signal instead of a count. Map it to 0/1 for decideStatus,
-// FAIL CLOSED (null -> blocks) on anything but the two expected literals.
+// A withheld review's verdict arrives as one bit instead of a count. null (blocks) on anything else.
 const withheldFindings = withheldBlocking => {
     if (withheldBlocking === 'true') return 1;
     if (withheldBlocking === 'false') return 0;
     return null;
 };
 
-// The decision. Bias to blocking: PASS needs findings KNOWN-to-be-0 (null blocks), zero
-// unresolved threads, and a clean post. The description is non-leaky (counts and fixed
-// phrases only -- never a finding's content). A public findings count is public by
-// construction; it is NOT the withheld-marker we must never read, infer, or surface.
+// Pass needs a clean post, a findings count known to be 0, and no unresolved threads. The
+// description holds only counts and fixed phrases, never a finding's content.
 const decideStatus = ({ postSucceeded, findings, withheld, unresolved }) => {
     const pass = postSucceeded && findings === 0 && unresolved === 0;
     let description;
     if (pass) description = 'Review passed; all feedback resolved.';
     else if (!postSucceeded) description = 'No clean review for this commit.';
     else if (findings === null) description = 'Review findings count unavailable.';
-    // #14476 D3a -- a WITHHELD blocking finding is reported with a FIXED phrase, byte-identical
-    // regardless of count/dimension/severity/location (Locke constraint 1): the status may
-    // reveal only that a finding EXISTS, never anything about it. No digit may appear here.
+    // A withheld finding gets one fixed phrase with no number: the status may reveal only that a
+    // finding exists.
     else if (withheld && findings > 0) description = 'A finding was delivered privately; maintainer review required.';
-    // A PUBLISHED finding count is public by construction (the findings are posted inline).
+    // Published findings are already public, so their count is too.
     else if (findings > 0) description = `${findings} finding${findings === 1 ? '' : 's'} to address.`;
     else description = `${unresolved} unresolved review thread${unresolved === 1 ? '' : 's'}.`;
     return { pass, state: pass ? 'success' : 'failure', description };
@@ -54,11 +45,6 @@ async function postStatus({ github, context, core, process }) {
         return;
     }
 
-    // #14476 D1 -- re-confirm the reviewed SHA is still the live head before posting ANY
-    // status. If a push landed since this run pinned headSha, leave headSha without a status:
-    // the new head is unreviewed and earns its own run, and we never post on the new head
-    // (createCommitStatus below is bound to headSha). This mirrors the post job's guard so the
-    // review and the status always describe the same commit.
     // Run-page summary. Counts and the status's fixed wording only: never a withheld review's content or count.
     const range = repost
         ? 'none (re-posting the status of an existing review)'
@@ -70,6 +56,7 @@ async function postStatus({ github, context, core, process }) {
             .addRaw(`## Code review: #${pr} @ ${headSha.slice(0, 7)}\n\n| | |\n|---|---|\n${rows.map(([k, v]) => `| ${k} | ${v} |`).join('\n')}\n`)
             .write();
 
+    // If the head moved since the review, post no status (see headIsCurrent).
     const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: pr });
     if (!headIsCurrent(headSha, livePr.head.sha)) {
         core.info(
@@ -82,7 +69,7 @@ async function postStatus({ github, context, core, process }) {
         return;
     }
 
-    // Enumerate review threads (GraphQL -- the REST reviews API carries no resolved state).
+    // GraphQL, because REST has no resolved/outdated state.
     let threads = [],
         cursor = null;
     for (;;) {
@@ -106,13 +93,7 @@ async function postStatus({ github, context, core, process }) {
     }
     const unresolved = unresolvedThreadCount(threads);
 
-    // Derive the three decideStatus inputs. Two paths:
-    //  - NORMAL run: postSucceeded from the post job; findings/withheld from analyze's
-    //    finding-driven outputs (published -> the public count; withheld -> the 1-bit signal).
-    //  - #14476 D2 REPOST: no model ran. Reconstruct from the existing openlibrary-bot review
-    //    on THIS exact head (the status-aware skip routed us here because a review exists but
-    //    the status was missing). The marker carries the public findings count; a legacy
-    //    review with no marker -> null -> FAIL CLOSED (red), never a fabricated green.
+    // On a repost no model ran: read the verdict back from the bot's last review on this head.
     let postSucceeded, findings, withheld;
     if (repost) {
         const reviews = await github.paginate(github.rest.pulls.listReviews, {
@@ -124,23 +105,17 @@ async function postStatus({ github, context, core, process }) {
         const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === headSha && r.body);
         const last = ours.length ? ours[ours.length - 1] : null;
         // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
-        postSucceeded = last != null; // a published review exists on this exact head
-        withheld = false; // withheld heads post no review, so never reach a repost
+        postSucceeded = last != null;
+        withheld = false; // a withheld review posts nothing, so it is never reposted
         findings = last ? parseReviewMarker(last.body) : null;
     } else if (process.env.WITHHELD === 'true') {
-        // Withheld: nothing is posted publicly, so there is no review to confirm; post returned
-        // cleanly and the gate's 1-bit verdict decides. postSucceeded means "the withhold ran".
+        // Nothing was posted, so there is no review to confirm. postSucceeded means `post` ran cleanly.
         postSucceeded = process.env.POST_RESULT === 'success';
         withheld = true;
         findings = withheldFindings(process.env.WITHHELD_BLOCKING);
     } else {
-        // Published: POST_RESULT == 'success' is NOT proof a review was posted -- post ALSO
-        // returns success without posting when its own D1 head-guard fires (head moved). A
-        // force-push back to the reviewed SHA would then let the status head-guard pass and green
-        // an UNREVIEWED commit. So confirm GROUND TRUTH: a bot review actually exists on THIS
-        // exact head (mirrors the repost path). No review on the head -> not a pass. This also
-        // fail-closes the residual createReview re-anchor window (a review that landed on a
-        // different head is not found here).
+        // `post` also succeeds without posting when the head moved. If the head then moved back
+        // to this SHA, the head check above would pass, so confirm a bot review exists on it.
         const reviews = await github.paginate(github.rest.pulls.listReviews, {
             owner,
             repo,

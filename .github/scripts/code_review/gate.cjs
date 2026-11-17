@@ -1,17 +1,12 @@
-// The disclosure gate: the one definition of what the code review bot may publish. Both `analyze`
-// (before upload) and `post` (before posting) run it. See DISCLOSURE GATE in code_review_action.yml.
+// The disclosure gate: decides what the code review bot may publish. `analyze` runs it before
+// uploading the analysis and `post` runs it again before posting.
 //
-// Exports { dimensions, check(review) }. check() fails closed: anything not positively
-// shaped as a publishable review is withheld. On success it returns `clean`, an allowlisted
-// copy holding exactly the fields `post` renders -- that copy, never the model's own file, is
-// what gets uploaded and posted, so no unscanned field or extra key reaches a public surface.
-// The security dimension's note is not in `clean`: it is never published, so it is not scanned.
-// check() also returns `findingsTotal` (the model's structured finding count, or null when the
-// review is too malformed to count) and `blocking` (#14476 D3a): a 1-bit, trusted-side verdict
-// that drives the SHA-bound `code-review` status without leaking content. blocking is true for
-// any malformed review, any model-security-classified withhold, and any withhold with >=1
-// finding; it is false ONLY for a clean publishable review or a pure text-backstop trip whose
-// structured finding count is 0 (the one case a withhold is allowed to green). Fail-closed.
+// check(review) withholds anything that is not a well-formed review. On success it returns
+// `clean`, a copy with only the fields `post` renders; that copy is what gets uploaded and posted,
+// so no unscanned field reaches a public surface. It also returns `findingsTotal` (null when the
+// review is malformed) and `blocking`, the one bit the `code-review` status uses for a withheld
+// review. `blocking` is false only for a publishable review, or a review withheld by the text scan
+// whose findings are all low severity.
 'use strict';
 
 module.exports = {
@@ -23,10 +18,9 @@ module.exports = {
         styleguide: 'Styleguide'
     },
     severities: ['high', 'medium', 'low'],
-    // Non-model backstop for a security concern the model filed under another dimension or
-    // wrote into prose. It is best-effort -- it cannot recognise every phrasing -- and the
-    // primary control is the model's classification. False positives cost a withheld review;
-    // false negatives cost a disclosure.
+    // Backstop for a security concern the model filed under another dimension or wrote into
+    // prose. The model's own classification is the main control; this cannot catch every phrasing.
+    // A false positive costs a withheld review; a false negative costs a disclosure.
     terms: /\b(secur\w*|vulnerab\w*|exploit\w*|attack\w*|malicious\w*|inject\w*|xss|cross[- ]site|csrf|xsrf|ssrf|rce|remote code|code execution|open[- ]redirect|traversal|privilege\w*|escalat\w* (to|privilege\w*)|(un)?authori[sz]\w*|impersonat\w*|exfiltrat\w*|(auth\w*|permission|access|login|csrf|validation) bypass\w*|bypass\w* (the )?(auth\w*|permission|access|login|csrf|validation)|(credential|secret|password|pii|personal data)s? (are |is )?leak\w*|leak\w* (of )?(the )?(credential|secret|password|pii|personal data|patron|user|reader)\w*|secrets?|credentials?|passwords?|api[- _]?keys?|(auth|access|api|session|csrf|bearer|oauth|refresh)[- _]?tokens?|cve-\d+|ghsa-\w+|deserializ\w*|pickle|shell\s*=\s*true|sql\w* (string|injection)|(concatenat|interpolat|format|substitut)\w* into (the |a )?(sql|query|shell|command)|(missing|no|without( an?)?|lacks?( an?)?) (auth\w*|permission|access|ownership|owner|csrf|host|origin) (check|validation|verification)\w*|without (checking|validating|verifying) the (host|origin|domain|scheme|redirect|owner\w*)|another (patron|user|account|reader)'?s|yaml\.load|httponly|samesite|unsaniti[sz]ed|sanitiz\w*|unescaped|clickjack\w*|denial of service|redos)\b/i,
     // Shapes that are not words, so they cannot sit inside the \b...\b list above.
     patterns:
@@ -65,6 +59,8 @@ module.exports = {
                 Object.hasOwn(this.entities, n.toLowerCase()) ? this.entities[n.toLowerCase()] : ((unknown = true), ' ')
             );
         if (unknown) return null;
+        // The tag strip below runs once on purpose. This is not an HTML sanitizer: the output is only
+        // scanned, never published, and repeating it would hide visible text, e.g. `secret` in `<x<y>secret>`.
         return t
             .replace(/<!--[\s\S]*?(-->|$)/g, '')
             .replace(/<[^<>]*>/g, '')
@@ -108,8 +104,8 @@ module.exports = {
         if (!review || typeof review !== 'object' || Array.isArray(review)) return no;
         const { dimensions: dims, findings } = review;
         if (!str(review.summary) || !Array.isArray(findings) || !dims || typeof dims !== 'object') return no;
-        // `resolved`: ids of our own earlier review threads the model judged fixed (code_review.md
-        // Step 4). Optional. Each id is checked against the live threads before `post` acts on it.
+        // `resolved`: ids of our earlier review threads the model judged fixed. `post` checks each
+        // against the live threads before acting on it.
         if (!absent(review.resolved) && !(Array.isArray(review.resolved) && review.resolved.every(id => str(id) && this.threadId.test(id)))) return no;
         const clean = { summary: review.summary, dimensions: {}, findings: [], resolved: [...new Set(review.resolved || [])] };
         const counts = {};
@@ -134,10 +130,10 @@ module.exports = {
             if (k !== 'security' && !absent(d.note) && !str(d.note)) return no;
             clean.dimensions[k] = k === 'security' ? { status: d.status } : { status: d.status, note: d.note };
         }
-        // `ticket_compliance`: PR-Agent's TicketCompliance, one entry per linked issue (code_review.md
-        // Step 5). Optional. `ticket_requirements` is the model's working list: never published, so
-        // neither kept nor scanned, and optional here because `post` re-checks the kept copy, which
-        // lacks it (like the security note). The three result lists are published: kept and scanned.
+        // `ticket_compliance`: PR-Agent's TicketCompliance, one entry per linked issue. The three
+        // result lists are published, so they are kept and scanned. `ticket_requirements` is the
+        // model's working list and is never published, so it is dropped, and optional because
+        // `post` re-checks the clean copy.
         const tc = review.ticket_compliance;
         if (!absent(tc) && !(Array.isArray(tc) && tc.length <= this.maxTickets)) return no;
         const items = v => Array.isArray(v) && v.every(s => str(s) && s.trim());
@@ -153,10 +149,7 @@ module.exports = {
             }
             clean.ticket_compliance.push(c);
         }
-        // A withhold caused by the MODEL's own security classification is BLOCKING regardless of the
-        // structured count (#14476 D3a, Locke constraint 3): never greenable. (The security dim is
-        // 'findings' only with >=1 security finding, by the consistency check above, so findingsTotal
-        // is >=1 here; forcing blocking:true is belt-and-suspenders against any future drift.)
+        // A review the model itself flagged for security is always blocking.
         if (clean.dimensions.security.status !== 'none') return { publish: false, findingsTotal: clean.findings.length, blocking: true };
         const text = [clean.summary];
         for (const [k, d] of Object.entries(clean.dimensions)) if (k !== 'security') text.push(d.note);
@@ -167,10 +160,8 @@ module.exports = {
         }
         // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
         const raw = text.filter(t => t != null).join('\n');
-        // The remaining withholds are TEXT-backstop trips (length / secrets / vocabulary) on a review
-        // the model classified security=none. The structured finding count is trustworthy, so blocking
-        // tracks it: 0 findings -> NON-blocking (the backstop-false-positive case greens itself);
-        // any non-LOW finding -> blocking. This is the ONLY greenable withheld case (D3a).
+        // Withheld by the text scan below. The findings are still well formed, so they decide
+        // `blocking`: a false positive on a review with no blocking findings can still pass.
         const withholdByText = { publish: false, findingsTotal: clean.findings.length, blocking: clean.findings.some(f => f.severity !== 'low') };
         if (raw.length > this.maxText) return withholdByText;
         const plain = this.plain(raw);
