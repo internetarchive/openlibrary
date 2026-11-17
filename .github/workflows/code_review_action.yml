@@ -216,6 +216,7 @@ on:
     # individual reviewer, proven on #14450). A FORK gets no auto-request (auto_assign is same-repo
     # only); it earns the status only after a maintainer requests the team by hand -- the spend gate.
     # A re-review is just another team request, which fires this same path again.
+    # GitHub's re-request button asks the bot user (who posted the review), not the team, so that fires too.
     types: [review_requested]
   issue_comment:
     types: [created]
@@ -280,7 +281,10 @@ jobs:
         github.event_name == 'pull_request_target' &&
         github.event.action == 'review_requested' &&
         !github.event.pull_request.draft &&
-        github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer'
+        (
+          github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer' ||
+          github.event.requested_reviewer.login == 'openlibrary-bot'
+        )
       ) || (
         github.event_name == 'issue_comment' &&
         github.event.issue.pull_request != null &&
@@ -935,7 +939,10 @@ jobs:
         github.event_name == 'pull_request_target' &&
         github.event.action == 'review_requested' &&
         !github.event.pull_request.draft &&
-        github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer'
+        (
+          github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer' ||
+          github.event.requested_reviewer.login == 'openlibrary-bot'
+        )
       ) || (
         github.event_name == 'issue_comment' &&
         github.event.issue.pull_request != null &&
