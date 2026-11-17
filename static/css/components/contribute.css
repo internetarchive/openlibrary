@@ -844,46 +844,6 @@ textarea.contrib-input {
   font-size: var(--font-size-title-large);
 }
 
-/* Everyone who helped a completed project, most saves first: a run of names in body text, each a profile link that
-   underlines on hover. */
-.contrib-thanks {
-  display: grid;
-  gap: var(--spacing-stack-xs);
-}
-
-.contrib-thanks__title {
-  margin: 0;
-  font-size: var(--font-size-title-medium);
-}
-
-.contrib-thanks__people {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: var(--color-text-secondary);
-}
-
-/* A name stays on one line; the list wraps between names. */
-.contrib-thanks__people li {
-  display: inline;
-  white-space: nowrap;
-}
-
-.contrib-thanks__people li:not(:last-child)::after {
-  content: ", ";
-}
-
-.contrib-thanks__people a:is(:link, :visited) {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .contrib-thanks__people a:hover {
-    text-decoration: underline;
-  }
-}
-
 /* Receipt */
 .contrib-receipt {
   display: flex;

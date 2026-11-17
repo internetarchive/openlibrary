@@ -4138,10 +4138,6 @@ msgid "Go further"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Thank you to everyone who helped"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
 msgid "Filter tasks"
 msgstr ""
 
@@ -10239,13 +10235,6 @@ msgstr ""
 #, python-format
 msgid "%(count)s person helping"
 msgid_plural "%(count)s people helping"
-msgstr[0] ""
-msgstr[1] ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-#, python-format
-msgid "%(count)s person helped"
-msgid_plural "%(count)s people helped"
 msgstr[0] ""
 msgstr[1] ""
 

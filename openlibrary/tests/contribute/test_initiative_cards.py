@@ -1,5 +1,3 @@
-from types import SimpleNamespace
-
 import pytest
 
 from openlibrary.plugins.openlibrary import contribute
@@ -64,8 +62,9 @@ def test_people_line_hides_low_counts(cards, people, expected):
 
 
 def test_people_line_waits_for_the_stats_job(cards):
-    assert cards()[ACTIVE.slug]["people"] is None
-    assert cards(docs=[{"saves": 3}])[ACTIVE.slug]["people"] is None
+    # Not counted yet is not the same as nobody helping: no count, and no call for help either.
+    for card in (cards()[ACTIVE.slug], cards(docs=[{"saves": 3}])[ACTIVE.slug]):
+        assert (card["people"], card["help_needed"]) == (None, False)
 
 
 def test_people_prefers_todays_count_and_falls_back_to_yesterdays(cards):
@@ -141,30 +140,9 @@ def test_a_finished_project_that_reached_its_goal_says_so(cards, ended):
     assert finished["note"] == "Together we reached the goal: 100% of its details were filled in. Thank you to everyone who helped."
 
 
-def test_a_project_past_its_goal_is_completed_and_says_who_helped(cards):
+def test_a_project_past_its_goal_is_completed(cards):
     # Nothing left open: the percent is 100 and the goal is reached.
-    done = cards(gaps=[["/books/OL1M", 9, [], []]], docs=[{"initiatives": {ACTIVE.slug: {"people": 60}}}])[ACTIVE.slug]
-    assert (done["reached"], done["completed"], done["people_helped"]) == (True, True, "60 people helped")
+    done = cards(gaps=[["/books/OL1M", 9, [], []]], docs=[{"initiatives": {ACTIVE.slug: {"people": 2}}}])[ACTIVE.slug]
+    assert (done["reached"], done["completed"], done["help_needed"]) == (True, True, False)
     running = cards(docs=[{"initiatives": {ACTIVE.slug: {"people": 60}}}])[ACTIVE.slug]
     assert (running["completed"], running["people"]) == (False, "60 people helping")
-
-
-def test_thanks_names_the_helpers_most_saves_first(monkeypatch):
-    snap = {"people": 3, "helpers": [["ann", 9], ["bo", 2], ["cy", 1]]}
-    monkeypatch.setattr(contribute, "get_initiative_snapshot", lambda initiative: snap)
-
-    class Person(dict):
-        def __init__(self, key, **kw):
-            super().__init__(kw)
-            self.key = key
-
-    class FakeSite:
-        def get_many(self, keys):
-            return [Person("/people/bo"), Person("/people/ann", displayname="Ann A.")]
-
-    monkeypatch.setattr(contribute, "site", SimpleNamespace(get=FakeSite))
-    # Everyone is listed, by username when there's no display name or no profile.
-    people = [{"name": "Ann A.", "url": "/people/ann"}, {"name": "bo", "url": "/people/bo"}, {"name": "cy", "url": "/people/cy"}]
-    assert contribute.build_thanks(ACTIVE) == {"people": people}
-    snap.pop("helpers")
-    assert contribute.build_thanks(ACTIVE) is None
