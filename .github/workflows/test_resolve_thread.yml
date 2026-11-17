@@ -1,0 +1,77 @@
+name: TEMP test resolve thread with GITHUB_TOKEN
+
+# Throwaway test for #14533. DO NOT MERGE.
+# Each job posts a review thread as openlibrary-bot (OL_BOT_REVIEW_PAT), then tries to resolve it
+# with the job's GITHUB_TOKEN, to find which permission resolveReviewThread needs.
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  pr-write-only:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          LABEL: "pull-requests: write, contents: read"
+          ACTIONS_TOKEN: ${{ github.token }}
+        with:
+          github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request.number;
+            const label = process.env.LABEL;
+            const { data: rev } = await github.rest.pulls.createReview({
+              owner, repo, pull_number: pr, commit_id: context.payload.pull_request.head.sha, event: 'COMMENT',
+              comments: [{ path: '.github/workflows/test_resolve_thread.yml', line: 1, side: 'RIGHT', body: `Test thread (${label})` }],
+            });
+            const { data: comments } = await github.rest.pulls.listCommentsForReview({ owner, repo, pull_number: pr, review_id: rev.id });
+            const commentId = comments[0].id;
+            const q = await github.graphql(`query($o:String!,$r:String!,$n:Int!){ repository(owner:$o,name:$r){ pullRequest(number:$n){
+              reviewThreads(first:100){ nodes { id isResolved comments(first:1){ nodes { databaseId author { login } } } } } } } }`, { o: owner, r: repo, n: pr });
+            const thread = q.repository.pullRequest.reviewThreads.nodes.find(t => t.comments.nodes[0].databaseId === commentId);
+            core.info(`Thread ${thread.id} authored by ${thread.comments.nodes[0].author.login}`);
+            const actions = getOctokit(process.env.ACTIONS_TOKEN);
+            try {
+              const res = await actions.graphql(`mutation($id:ID!){ resolveReviewThread(input:{threadId:$id}){ thread { id isResolved resolvedBy { login } } } }`, { id: thread.id });
+              core.notice(`[${label}] RESOLVE OK: ${JSON.stringify(res.resolveReviewThread.thread)}`);
+            } catch (e) {
+              core.notice(`[${label}] RESOLVE FAILED: ${e.message}`);
+            }
+
+  contents-write:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          LABEL: "pull-requests: write, contents: write"
+          ACTIONS_TOKEN: ${{ github.token }}
+        with:
+          github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request.number;
+            const label = process.env.LABEL;
+            const { data: rev } = await github.rest.pulls.createReview({
+              owner, repo, pull_number: pr, commit_id: context.payload.pull_request.head.sha, event: 'COMMENT',
+              comments: [{ path: '.github/workflows/test_resolve_thread.yml', line: 1, side: 'RIGHT', body: `Test thread (${label})` }],
+            });
+            const { data: comments } = await github.rest.pulls.listCommentsForReview({ owner, repo, pull_number: pr, review_id: rev.id });
+            const commentId = comments[0].id;
+            const q = await github.graphql(`query($o:String!,$r:String!,$n:Int!){ repository(owner:$o,name:$r){ pullRequest(number:$n){
+              reviewThreads(first:100){ nodes { id isResolved comments(first:1){ nodes { databaseId author { login } } } } } } } }`, { o: owner, r: repo, n: pr });
+            const thread = q.repository.pullRequest.reviewThreads.nodes.find(t => t.comments.nodes[0].databaseId === commentId);
+            core.info(`Thread ${thread.id} authored by ${thread.comments.nodes[0].author.login}`);
+            const actions = getOctokit(process.env.ACTIONS_TOKEN);
+            try {
+              const res = await actions.graphql(`mutation($id:ID!){ resolveReviewThread(input:{threadId:$id}){ thread { id isResolved resolvedBy { login } } } }`, { id: thread.id });
+              core.notice(`[${label}] RESOLVE OK: ${JSON.stringify(res.resolveReviewThread.thread)}`);
+            } catch (e) {
+              core.notice(`[${label}] RESOLVE FAILED: ${e.message}`);
+            }
