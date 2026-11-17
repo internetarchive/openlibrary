@@ -295,6 +295,7 @@ async function validateAndPost({ github, context, core, require, process }) {
     // open. A GraphQL error must not fail the post; it leaves the count null, which means no APPROVE.
     let unresolvedOwnThreads = null;
     const toResolveIds = [];
+    const noteEdits = [];
     try {
         let allThreads = [],
             tCursor = null;
@@ -351,16 +352,9 @@ async function validateAndPost({ github, context, core, require, process }) {
                 }
                 note = `✅ Addressed in [\`${sha.slice(0, 7)}\`](https://github.com/${owner}/${repo}/commit/${sha})`;
             }
-            // Noted on the bot's comment rather than as a reply. A failed edit is still resolved.
+            // Noted on the bot's comment rather than as a reply, once the review is posted.
             const first = byId.get(id).comments.nodes[0];
-            try {
-                await github.graphql(
-                    `mutation($id:ID!,$body:String!){ updatePullRequestReviewComment(input:{pullRequestReviewCommentId:$id, body:$body}){ pullRequestReviewComment { id } } }`,
-                    { id: first.id, body: `${first.body}\n\n${note}` }
-                );
-            } catch (e) {
-                core.warning(`Could not edit the comment on review thread ${id}: ${e.message}`);
-            }
+            noteEdits.push({ threadId: id, commentId: first.id, body: `${first.body}\n\n${note}` });
             toResolveIds.push(id);
             if (fixed) addressed++;
             else dismissed++;
@@ -376,7 +370,7 @@ async function validateAndPost({ github, context, core, require, process }) {
         }).length;
         stateLine = threadStateLine({ addressed, dismissed, open: unresolvedOwnThreads });
     } catch (e) {
-        core.warning(`Thread enumeration failed; skipping resolution and not auto-approving: ${e.message}`);
+        core.warning(`Thread enumeration failed; resolving no threads and not auto-approving: ${e.message}`);
     }
 
     // A human's open thread doesn't stop APPROVE, though it keeps the status red. The status, not
@@ -431,7 +425,18 @@ async function validateAndPost({ github, context, core, require, process }) {
         return;
     }
     core.info(`Posted ${event} review ${posted.id}: ${inline.length} inline, ${orphaned.length} in summary.`);
-    // Only once the review is up, so a failed post leaves the threads as they were.
+    // Only once the review is up, so a failed post leaves the threads and their comments as they were.
+    // A failed edit still hands the thread on.
+    for (const { threadId, commentId, body } of noteEdits) {
+        try {
+            await github.graphql(
+                `mutation($id:ID!,$body:String!){ updatePullRequestReviewComment(input:{pullRequestReviewCommentId:$id, body:$body}){ pullRequestReviewComment { id } } }`,
+                { id: commentId, body }
+            );
+        } catch (e) {
+            core.warning(`Could not edit the comment on review thread ${threadId}: ${e.message}`);
+        }
+    }
     core.setOutput('resolve_thread_ids', JSON.stringify(toResolveIds));
 
     // See shouldDismissTeamRequest. Never fails the job.

@@ -461,6 +461,22 @@ test('post: an edit failure still hands the thread to the resolve job', async ()
         teardown();
     }
 });
+test('post: a failed review post leaves the fixed thread unedited and hands nothing to resolve', async () => {
+    const d = setup({ ...reviewWith([]), resolved: ['FIXED'] });
+    try {
+        const threads = [thread('FIXED', 'a.py', 'correctness', 'Prior finding now gone', { line: 1 })];
+        const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: threads });
+        github.rest.pulls.createReview = async () => {
+            throw Object.assign(new Error('Bad Gateway'), { status: 502 });
+        };
+        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d }).catch(e => ({ thrown: e, outputs: {} }));
+        assert.ok(res.thrown, 'the post fails');
+        assert.deepEqual(calls.edits, [], 'no "Addressed in" note without a posted review');
+        assert.deepEqual(handedOff(res), []);
+    } finally {
+        teardown();
+    }
+});
 test('post: a standing finding keeps its thread open and the PR off APPROVE', async () => {
     // This run re-reports the same finding on a.py:1 -> REQUEST_CHANGES, and the thread is NOT resolved.
     const d = setup(reviewWith([{ dimension: 'correctness', severity: 'high', confidence: 8, title: 'Still broken', body: 'details', path: 'a.py', line: 1 }]));
