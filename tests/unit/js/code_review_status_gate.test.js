@@ -359,8 +359,8 @@ test('D3a gate: a clean publishable review reports findingsTotal (0 and N) and b
         summary: 'has findings',
         dimensions: dims,
         findings: [
-            { dimension: 'correctness', severity: 'low', title: 'a', body: 'b' },
-            { dimension: 'correctness', severity: 'low', title: 'c', body: 'd' }
+            { dimension: 'correctness', severity: 'low', confidence: 8, title: 'a', body: 'b' },
+            { dimension: 'correctness', severity: 'low', confidence: 8, title: 'c', body: 'd' }
         ]
     });
     assert.equal(two.publish, true);
@@ -377,7 +377,7 @@ test('gate: a backstop withhold blocks only on a non-LOW finding', () => {
     const dims = cleanDims();
     dims.correctness = { status: 'findings' };
     const withFindings = findings => gate.check({ summary: 'This hardens against SQL injection risk.', dimensions: dims, findings });
-    const low = { dimension: 'correctness', severity: 'low', title: 'a', body: 'b' };
+    const low = { dimension: 'correctness', severity: 'low', confidence: 8, title: 'a', body: 'b' };
     assert.equal(withFindings([low]).blocking, false, 'LOW only -> not blocking');
     assert.equal(withFindings([low, { ...low, severity: 'medium' }]).blocking, true, 'any MEDIUM/HIGH -> blocking');
 });
@@ -396,7 +396,7 @@ test('D3a gate (Locke constraint 3): a MODEL security-classification is blocking
     const res = gate.check({
         summary: 'review',
         dimensions: dims,
-        findings: [{ dimension: 'security', severity: 'high', title: 'authz gap', body: 'missing owner check' }]
+        findings: [{ dimension: 'security', severity: 'high', confidence: 8, title: 'authz gap', body: 'missing owner check' }]
     });
     assert.equal(res.publish, false, 'a security finding is never published');
     assert.equal(res.blocking, true, 'model-classified security -> BLOCKING -> failure');

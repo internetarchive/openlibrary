@@ -428,7 +428,7 @@ test('D3a analyze-gate: a backstop-tripping review with 0 findings -> withheld, 
 test('D3a analyze-gate: a real security finding -> withheld AND blocking', async () => {
     const review = cleanReview();
     review.dimensions.security = { status: 'findings' };
-    review.findings = [{ dimension: 'security', severity: 'high', title: 'authz gap', body: 'missing owner check' }];
+    review.findings = [{ dimension: 'security', severity: 'high', confidence: 8, title: 'authz gap', body: 'missing owner check' }];
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
     const { github } = mockGitHub();
     const env = { GITHUB_WORKSPACE: dir };
@@ -602,8 +602,8 @@ test('analyze-gate: LOW findings do not count toward the public findings count',
     const review = cleanReview();
     review.dimensions.test_coverage = { status: 'findings' };
     review.findings = [
-        { dimension: 'test_coverage', severity: 'medium', title: 'a', body: 'b' },
-        { dimension: 'test_coverage', severity: 'low', title: 'c', body: 'd' }
+        { dimension: 'test_coverage', severity: 'medium', confidence: 8, title: 'a', body: 'b' },
+        { dimension: 'test_coverage', severity: 'low', confidence: 8, title: 'c', body: 'd' }
     ];
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
     const { github } = mockGitHub();
@@ -613,7 +613,7 @@ test('analyze-gate: LOW findings do not count toward the public findings count',
 test('post: a LOW finding becomes a suggestion in the summary, not a blocking inline thread', async () => {
     const review = cleanReview();
     review.dimensions.test_coverage = { status: 'findings' };
-    review.findings = [{ dimension: 'test_coverage', severity: 'low', title: 'Untested label', body: 'Add a test.', path: 'x', line: 1 }];
+    review.findings = [{ dimension: 'test_coverage', severity: 'low', confidence: 8, title: 'Untested label', body: 'Add a test.', path: 'x', line: 1 }];
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
     writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
     const head = SHA('a');
@@ -737,7 +737,7 @@ test('post refetchDiff: cuts the PR diff to the files analyze listed', async () 
 test('post: a 422 on an anchor posts again with the inline comments in the summary', async () => {
     const review = cleanReview();
     review.dimensions.correctness = { status: 'findings' };
-    review.findings = [{ dimension: 'correctness', severity: 'medium', title: 'Off by one', body: 'Use <=.', path: 'x', line: 1 }];
+    review.findings = [{ dimension: 'correctness', severity: 'medium', confidence: 8, title: 'Off by one', body: 'Use <=.', path: 'x', line: 1 }];
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
     writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
     const head = SHA('a');

@@ -77,7 +77,7 @@ function reviewWith(findings) {
     for (const f of findings) dimensions[f.dimension] = { status: 'findings', note: 'ok' };
     return { summary: 'A plain summary.', dimensions, findings };
 }
-const finding = (dimension, title = `${dimension} issue`) => ({ dimension, severity: 'medium', title, body: 'Fix it.', path: 'a.py', line: 1 });
+const finding = (dimension, title = `${dimension} issue`) => ({ dimension, severity: 'medium', confidence: 8, title, body: 'Fix it.', path: 'a.py', line: 1 });
 
 function loadText(text) {
     writeFileSync(join(dir, '.pr_agent.toml'), text);

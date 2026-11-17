@@ -215,13 +215,18 @@ async function resolveRange({ github, context, core, require, process }) {
 
     // The bot's earlier threads that are still open, for the model to re-check. Outdated ones are
     // included: a fix usually edits the commented line, which is what makes a thread outdated.
-    // `post` re-reads the live threads before resolving any of them.
+    // `post` re-reads the live threads before resolving any of them. `replies` are the PR author's
+    // and maintainers' answers, so the model can weigh them; other people can't get a finding dismissed.
+    const canAnswer = r => r.author.login === pr.user?.login || ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(r.authorAssociation);
     const ownOpenThreads = (nodes, botLogin) => {
         const out = [];
         for (const t of nodes || []) {
-            const c = t && t.comments && t.comments.nodes && t.comments.nodes[0];
+            const [c, ...rest] = (t && t.comments && t.comments.nodes) || [];
             if (!t || !t.id || t.isResolved || !c || !c.author || c.author.login !== botLogin) continue;
-            out.push({ id: t.id, path: t.path, line: t.line ?? t.originalLine ?? null, outdated: !!t.isOutdated, comment: String(c.body || '') });
+            const replies = rest
+                .filter(r => r && r.author && r.author.login !== botLogin && canAnswer(r))
+                .map(r => ({ author: r.author.login, body: String(r.body || '').slice(0, 2000) }));
+            out.push({ id: t.id, path: t.path, line: t.line ?? t.originalLine ?? null, outdated: !!t.isOutdated, comment: String(c.body || ''), replies });
         }
         return out;
     };
@@ -235,7 +240,7 @@ async function resolveRange({ github, context, core, require, process }) {
              repository(owner:$owner,name:$repo){
                pullRequest(number:$pr){
                  reviewThreads(first:100, after:$cursor){
-                   nodes { id isResolved isOutdated path line originalLine comments(first:1){ nodes { author { login } body } } }
+                   nodes { id isResolved isOutdated path line originalLine comments(first:10){ nodes { author { login } authorAssociation body } } }
                    pageInfo { hasNextPage endCursor }
                  }
                }

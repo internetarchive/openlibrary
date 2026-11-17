@@ -370,7 +370,7 @@ test('post: the compliance section sits before Dimensions and does not change th
         const { body, event } = calls.createReview[0];
         assert.equal(event, 'APPROVE', 'a not-compliant requirement is information, not a blocking finding');
         const at = body.indexOf('### 🎫 Ticket compliance analysis 🔶');
-        assert.ok(at > 0 && at < body.indexOf('### Dimensions'), body);
+        assert.ok(at > 0 && at < body.indexOf('<summary>Dimensions</summary>'), body);
         assert.ok(body.includes(`**[#123](${URL(123)}) - Partially compliant**`));
         assert.ok(body.includes('<!-- ol-pr-review-bot f=0 -->'), 'the findings marker is unchanged');
     }));
