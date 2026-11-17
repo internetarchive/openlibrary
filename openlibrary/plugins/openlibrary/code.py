@@ -27,6 +27,7 @@ from openlibrary.core.imports import BATCH_SORT_COLUMNS, IMPORT_ITEM_STATUSES, B
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell import SiteLayoutTemplate
 from openlibrary.i18n import gettext as _
+from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
 from openlibrary.utils.request_context import (
     req_context,
@@ -626,7 +627,7 @@ class BatchImportRetryFailed(delegate.page):
             raise web.notfound()
 
         count = Batch(batch[0]).retry_failed()
-        add_flash_message("success", _("Re-queued %(count)d failed item(s).", count=count))
+        add_flash_message("success", ungettext("Re-queued %(count)d failed item.", "Re-queued %(count)d failed items.", count, count=count))
         return web.seeother(f"/import/batch/{batch_id}")
 
 

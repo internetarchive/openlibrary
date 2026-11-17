@@ -2488,7 +2488,7 @@ export class SearchModal extends LitElement {
         }
         const shown = this._results.length;
         const total = typeof this._numFound === 'number' ? this._numFound : shown;
-        return sprintf(this._i18n.resultsAnnounce, shown.toLocaleString(), total.toLocaleString());
+        return sprintf(this._i18n.resultsAnnounce, { shown: shown.toLocaleString(), total: total.toLocaleString() });
     }
 
     // Rows on screen, not the backend total (that's on the see-all).
