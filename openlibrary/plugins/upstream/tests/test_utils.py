@@ -268,7 +268,7 @@ def test_get_abbrev_from_full_lang_name(
     monkeypatch.setattr(web, "ctx", web.storage())
     web.ctx.site = mock_site
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "eng",
             "key": "/languages/eng",
@@ -284,7 +284,7 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "fre",
             "key": "/languages/fre",
@@ -298,7 +298,7 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "spa",
             "key": "/languages/spa",
@@ -307,7 +307,7 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "por",
             "key": "/languages/por",
