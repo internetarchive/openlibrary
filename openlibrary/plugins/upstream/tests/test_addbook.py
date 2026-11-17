@@ -4,6 +4,7 @@ import datetime as dt
 from unittest.mock import Mock
 
 import pytest
+import requests
 import web
 
 from infogami.utils import delegate
@@ -37,6 +38,7 @@ def mock_user():
             "is_super_librarian": lambda slf: False,
             "is_super_librarian_or_higher": lambda slf: slf.is_admin() or slf.is_super_librarian(),
             "is_librarian": lambda slf: False,
+            "is_librarian_or_higher": lambda slf: False,
             "is_usergroup_member": lambda slf, grp: False,
             "can_edit_ocaid": User.can_edit_ocaid,
         },
@@ -610,9 +612,9 @@ class TestAddBookRecaptcha:
     def post(self, monkeypatch):
         """POST /books/add as a logged-in user; returns render_template's (args, kwargs), or None if nothing was rendered."""
 
-        def _post(recap, matches=None):
-            monkeypatch.setattr(accounts, "get_current_user", mock_user)
-            monkeypatch.setattr(web, "input", lambda **kw: web.storage(kw, book_title="Book", authors=[], author_names=[]))
+        def _post(recap, matches=None, user=None, **form):
+            monkeypatch.setattr(accounts, "get_current_user", lambda: user or mock_user())
+            monkeypatch.setattr(web, "input", lambda **kw: web.storage(kw, book_title="Book", authors=[], author_names=[], **form))
             monkeypatch.setitem(web.ctx, "ip", "127.0.0.1")
             monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *a, **kw: False)
             monkeypatch.setattr(addbook, "get_recaptcha", lambda: recap)
@@ -653,6 +655,65 @@ class TestAddBookRecaptcha:
         (template, title, _), _ = post(recap)
         assert (template, title) == ("message.html", "Invalid Book URL")
         recap.validate_response.assert_not_called()
+
+    def test_captcha_fails_closed(self, post):
+        recap = self.recaptcha(solved=True)
+        post(recap)
+        assert recap.validate_response.call_args.kwargs["fail_open"] is False
+
+    def test_non_librarian_cannot_post_a_book_url(self, post):
+        recap = self.recaptcha(solved=True)
+        (template, title, _), _ = post(recap, web_book_url="https://coupons.example")
+        assert (template, title) == ("message.html", "Permission denied")
+        recap.validate_response.assert_not_called()
+
+    def test_librarian_can_post_a_book_url(self, post):
+        librarian = mock_user()
+        librarian.is_librarian_or_higher = lambda: True
+        assert post(None, user=librarian, web_book_url="https://example.org/book") is None
+
+
+class TestValidateResponse:
+    @pytest.fixture
+    def validate(self, monkeypatch):
+        """Recaptcha.validate_response against a canned reply from Google; `reply` may be an exception."""
+        from openlibrary.plugins.recaptcha import recaptcha
+
+        def _validate(reply, fail_open):
+            def fake_get(*a, **kw):
+                if isinstance(reply, Exception):
+                    raise reply
+                return reply
+
+            monkeypatch.setattr(recaptcha.requests, "get", fake_get)
+            return recaptcha.Recaptcha("pk", "sk").validate_response("token", "127.0.0.1", fail_open=fail_open)
+
+        return _validate
+
+    @staticmethod
+    def reply(json=None, status=200):
+        r = Mock(status_code=status)
+        r.raise_for_status = Mock(side_effect=None if status < 400 else requests.exceptions.HTTPError())
+        r.json = Mock(return_value=json) if json is not None else Mock(side_effect=ValueError("not json"))
+        return r
+
+    @pytest.mark.parametrize("fail_open", [True, False])
+    @pytest.mark.parametrize(
+        "reply",
+        [requests.exceptions.Timeout(), "html", "5xx"],
+        ids=["timeout", "non-json", "server-error"],
+    )
+    def test_unreachable_google_follows_fail_open(self, validate, reply, fail_open):
+        reply = {"html": self.reply(), "5xx": self.reply(json={}, status=502)}.get(reply, reply)
+        assert validate(reply, fail_open) is fail_open
+
+    def test_unknown_error_code_refused_when_failing_closed(self, validate):
+        reply = self.reply(json={"success": False, "error-codes": ["something-new"]})
+        assert validate(reply, fail_open=True) is True
+        assert validate(reply, fail_open=False) is False
+
+    def test_solved_token_passes_either_way(self, validate):
+        assert validate(self.reply(json={"success": True}), fail_open=False) is True
 
 
 class TestGetRecaptcha:

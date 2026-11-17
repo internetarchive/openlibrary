@@ -23,10 +23,19 @@ let i18nStrings;
 export function initAddBookImport() {
     const addBookForm = document.querySelector('form#addbook');
 
+    // getResponse() is missing until api.js finishes loading, and throws if the widget never rendered.
+    function captchaSolved() {
+        try {
+            return Boolean(window.grecaptcha?.getResponse?.());
+        } catch {
+            return false;
+        }
+    }
+
     // On the matches page, picking a book posts the form, so hold it until the captcha is solved.
     function submitMatchChoice(work) {
         const needed = document.getElementById('recaptcha-needed');
-        if (needed && !window.grecaptcha?.getResponse()) {
+        if (needed && !captchaSolved()) {
             needed.hidden = false;
             addBookForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;

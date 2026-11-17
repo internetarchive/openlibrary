@@ -56,6 +56,12 @@ def is_valid_web_book_url(url: str) -> bool:
     return parsed.scheme in ("http", "https") and bool(parsed.netloc)
 
 
+def can_add_web_book_url() -> bool:
+    """Only librarians see the Book URL field; spam accounts post it directly to plant links."""
+    user = accounts.get_current_user()
+    return bool(user and user.is_librarian_or_higher())
+
+
 def can_edit_ocaid() -> bool:
     """Whether the current user may add, change or remove an edition's ocaid. See `User.can_edit_ocaid`."""
     user = accounts.get_current_user()
@@ -283,9 +289,13 @@ class addbook(delegate.page):
         if i.id_name == "ocaid" and i.id_value and not can_edit_ocaid():
             return render_template("message.html", _("Permission denied"), _("You are not allowed to add an Internet Archive ID."))
 
+        if i.web_book_url and not can_add_web_book_url():
+            return render_template("message.html", _("Permission denied"), _("You are not allowed to add a Book URL."))
+
         # After the cheap checks, so a typo there doesn't spend the single-use captcha token.
         recap = get_recaptcha()
-        if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip):
+        # Fail closed: bots flood new books during reCAPTCHA outages, and a new account can wait.
+        if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip, fail_open=False):
             return render_template(
                 "message.html",
                 "Recaptcha solution was incorrect",

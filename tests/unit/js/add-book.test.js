@@ -68,6 +68,24 @@ describe('initAddBookImport on the possible-matches page', () => {
         expect(form.requestSubmit).not.toHaveBeenCalled();
     });
 
+    it('shows the prompt while the script is half-loaded or the widget never rendered', () => {
+        setup({ captcha: true });
+        for (const stub of [
+            { ready() {} },
+            {
+                getResponse: () => {
+                    throw new Error('No reCAPTCHA clients exist.');
+                }
+            }
+        ]) {
+            window.grecaptcha = stub;
+            document.getElementById('recaptcha-needed').hidden = true;
+            document.querySelector('.list-books a').click();
+            expect(form.requestSubmit).not.toHaveBeenCalled();
+            expect(document.getElementById('recaptcha-needed').hidden).toBe(false);
+        }
+    });
+
     it('submits the picked work once the captcha is solved', () => {
         setup({ captcha: true });
         window.grecaptcha = { getResponse: () => 'token' };
