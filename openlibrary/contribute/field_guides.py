@@ -105,7 +105,6 @@ def get_field_guides() -> dict[str, FieldGuide]:
                 ),
             ],
             traps=[
-                _("The cover belongs to another edition. A paperback, a reissue or a translation usually has a different cover; check the publisher."),
                 _("Making a cover yourself. If you can't find the real one, leave it for someone who can."),
             ],
             input_type="file",
@@ -140,8 +139,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
             question=_("How many pages does this edition have?"),
             how=_(
                 "Google Books lists the page count as Length. WorldCat has it in the record's description, sometimes only after you sign in. "
-                "Amazon's print length often counts every page, so use it to check a number rather than to find one.\n\n"
-                "Make sure the record is for this edition, not another printing."
+                "Amazon's print length often counts every page, so use it to check a number rather than to find one."
             ),
             sources=[google, worldcat, amazon],
             isfdb=True,
@@ -163,7 +161,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
             label=_("Literary form"),
             action=_("Pick fiction or nonfiction"),
             question=_("Is this book fiction or nonfiction?"),
-            how=_("If you know the book, answer from what you know. If you don't, look it up."),
+            how="",
             sources=[google, worldcat],
             notes=[
                 GuidelineNote(_("Nonfiction can read like a story. A memoir that bends the truth is still nonfiction: it is presented as fact.")),
@@ -186,12 +184,6 @@ def get_field_guides() -> dict[str, FieldGuide]:
             ),
             sources=[google, worldcat, LookupSource(_("Goodreads"), GOODREADS, GOODREADS_BY_TITLE)],
             notes=[
-                GuidelineNote(
-                    _(
-                        "Some genres are settings (fantasy, historical), some are plot shapes (mystery, romance) and some are tones (humor). "
-                        "A book takes at most one of each, and usually just one or two in all."
-                    )
-                ),
                 GuidelineNote(
                     _(
                         "Go by what the book is sold as, not every element in it. "
@@ -239,8 +231,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
             how=_(
                 "The copyright page gives the year, often next to the publisher; when the book has a scan, look there first. "
                 "Google Books lists it as Published, WorldCat as Date, "
-                "and the Library of Congress record as part of the Published line.\n\n"
-                "Make sure the record is for this edition: a paperback or a reissue comes out years after the first printing."
+                "and the Library of Congress record as part of the Published line."
             ),
             sources=[google, worldcat, loc],
             loc_record=True,
@@ -278,7 +269,6 @@ def get_field_guides() -> dict[str, FieldGuide]:
             ],
             traps=[
                 _("The ISBN belongs to another format of the book: a hardcover, paperback, ebook and audiobook each have their own."),
-                _("Copying an ISBN from a catalog record that lists several, without checking which one is for this format."),
             ],
             placeholder=_("For example 9780140449266"),
             confirm=_("I checked that the publisher, year and format match this edition."),
@@ -288,10 +278,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
             label=_("Library of Congress number (LCCN)"),
             action=_("Fill in LCCN"),
             question=_("What is this edition's Library of Congress number?"),
-            how=_(
-                "Search the Library of Congress catalog for this ISBN. Open the record whose publisher and edition match this one, "
-                "and copy the number shown as LCCN. A paperback or later printing can show a different year and still be the same record."
-            ),
+            how=_("Search the Library of Congress catalog for this ISBN, open the matching record and copy the number shown as LCCN."),
             sources=[loc],
             notes=[
                 GuidelineNote(
@@ -310,15 +297,8 @@ def get_field_guides() -> dict[str, FieldGuide]:
             label=_("OCLC/WorldCat number"),
             action=_("Fill in OCLC number"),
             question=_("What is this edition's WorldCat (OCLC) number?"),
-            how=_(
-                "Search WorldCat for this ISBN. Open the print record whose publisher and edition match this one, and copy the number shown as OCLC Number. "
-                "A paperback or later printing can show a different year and still be the same record."
-            ),
+            how=_("Search WorldCat for this ISBN, open the matching print record and copy the number shown as OCLC Number."),
             sources=[worldcat],
-            why=_(
-                "The OCLC number is how libraries the world over refer to one catalogued edition. "
-                "It is one of the few fields Open Library uses to find duplicates of this book when new records arrive."
-            ),
             notes=[
                 GuidelineNote(
                     _("The prefixes ocm, ocn, on and (OCoLC) are padding added by library systems, not part of the number. ocm00047810608 is 47810608."),
@@ -349,13 +329,10 @@ def record_sources(field_guide: FieldGuide, lccn: str = "", speculative: bool = 
     """The sources this record brings in, most telling first."""
     out = []
     if field_guide.loc_record and lccn:
-        tip = _("This edition has a Library of Congress number. Its record states the language and gives the publisher as printed on the title page.")
+        tip = _("This edition has a Library of Congress record, which gives the language and the publisher as printed.")
         out.append(LookupSource(_("Library of Congress record"), LOC_RECORD.format(lccn=quote(lccn)), tip=tip))
     if field_guide.isfdb and speculative:
-        tip = _(
-            "This book is science fiction or fantasy, which ISFDB covers well. It lists each printing on its own, "
-            "and a record marked as verified was checked against a physical copy."
-        )
+        tip = _("ISFDB covers science fiction and fantasy printing by printing.")
         out.append(LookupSource(_("ISFDB"), ISFDB, ISFDB_BY_TITLE, tip=tip))
     return out
 

@@ -111,7 +111,7 @@
                 <div class="contrib-steps__text">
                     {#- A source the record brought in says why it leads, ahead of the standing advice. -#}
                     {% for link in links if link.tip %}<p>{{ link.tip }}</p>{% endfor %}
-                    {% for para in field_guide.how.split("\n\n") %}<p>{{ para }}</p>{% endfor %}
+                    {% for para in field_guide.how.split("\n\n") if para %}<p>{{ para }}</p>{% endfor %}
                 </div>
                 {% if links %}
                     <ul class="contrib-linkouts">
