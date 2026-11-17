@@ -506,6 +506,12 @@ test('pending: posts nothing on a head with a status, a draft, or a closed PR', 
         assert.equal(calls.createCommitStatus.length, 0);
     }
 });
+test('pending: replaces an earlier pending status (e.g. awaiting review) with review in progress', async () => {
+    const calls = await runPending({ listStatuses: async () => ({ data: [{ context: 'code-review', state: 'pending', description: 'Not reviewed yet.' }] }) });
+    assert.equal(calls.createCommitStatus.length, 1);
+    assert.equal(calls.createCommitStatus[0].description, 'Review in progress.');
+});
+
 // ===================== pending: 👀 on the @-mention that asked for the review =====================
 test('pending: an @-mention review request gets an eyes reaction on that comment', async () => {
     const step = workflow.jobs.pending.steps.find(s => (s.name || '').includes('React to the review request'));

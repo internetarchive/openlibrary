@@ -35,7 +35,10 @@ async function markPending({ github, context, core, process }) {
         ref: head,
         per_page: 100
     });
-    if (statuses.some(s => s.context === 'code-review')) return;
+    // Newest first. A final status means this head was reviewed, and analyze may skip without
+    // replacing a pending. A pending one (awaiting, or an earlier run) is replaced.
+    const current = statuses.find(s => s.context === 'code-review');
+    if (current && current.state !== 'pending') return;
 
     await github.rest.repos.createCommitStatus({
         owner,
