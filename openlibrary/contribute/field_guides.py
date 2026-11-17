@@ -301,10 +301,6 @@ def get_field_guides() -> dict[str, FieldGuide]:
             ],
             traps=[
                 _("The number belongs to a different edition: another publisher's, a revised edition, a translation or the ebook. Each has its own record."),
-                _(
-                    "The number is already on another edition of this work. That's right when it's the hardcover, paperback or a later printing "
-                    "from the same publisher; a different publisher or a revised edition means one of the two records is wrong."
-                ),
             ],
             placeholder=_("For example 75425165"),
             confirm=_("I opened the record and its publisher and edition match this one."),
@@ -332,10 +328,6 @@ def get_field_guides() -> dict[str, FieldGuide]:
             ],
             traps=[
                 _("The number belongs to a different record: the ebook, another publisher's edition, a revised edition, large print or a translation."),
-                _(
-                    "The number is already on another edition of this work. That's right when it's the hardcover, paperback or a later printing "
-                    "from the same publisher; a different publisher or a revised edition means one of the two records is wrong."
-                ),
                 _("Pasting the web address, or leaving the ocm/ocn prefix on."),
             ],
             placeholder=_("Digits only, for example 47810608"),

@@ -8985,10 +8985,6 @@ msgid "The number belongs to a different edition: another publisher's, a revised
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The number is already on another edition of this work. That's right when it's the hardcover, paperback or a later printing from the same publisher; a different publisher or a revised edition means one of the two records is wrong."
-msgstr ""
-
-#: openlibrary/contribute/field_guides.py
 msgid "For example 75425165"
 msgstr ""
 
