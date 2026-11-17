@@ -495,3 +495,97 @@ test('D3a post: a withheld stub -> createReview NOT called, exits clean (no hard
     assert.equal(calls.createReview.length, 0, 'nothing public is posted for a withheld review');
     assert.equal(res.failed, null, 'and the job does not hard-fail -- the status job decides');
 });
+
+// ===================== pending: early "review in progress" status =====================
+const statusEnv = (o = {}) => ({
+    PR: '1',
+    HEAD_SHA: SHA('a'),
+    PENDING_SHA: '',
+    POST_RESULT: 'success',
+    PUBLIC_FINDINGS_COUNT: '0',
+    WITHHELD: 'false',
+    WITHHELD_BLOCKING: 'false',
+    REPOST: 'false',
+    RUN_URL: 'u',
+    ...o
+});
+const prCtx = { ...context, payload: { pull_request: { number: 1 } } };
+
+test('pending: head with no code-review status -> posts pending and hands its SHA to the status job', async () => {
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { number: 1, head: { sha: head }, draft: false, state: 'open' } }) });
+    const res = await runScript(scriptOf('pending', 'review in progress'), { github, context: prCtx, env: { RUN_URL: 'u' } });
+    assert.equal(calls.createCommitStatus.length, 1);
+    assert.deepEqual(
+        { sha: calls.createCommitStatus[0].sha, context: calls.createCommitStatus[0].context, state: calls.createCommitStatus[0].state },
+        { sha: head, context: 'code-review', state: 'pending' }
+    );
+    assert.equal(res.outputs.posted, 'true');
+    assert.equal(res.outputs.head_sha, head);
+});
+test('pending: head that already has a code-review status -> posts nothing (analyze may skip it)', async () => {
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { number: 1, head: { sha: SHA('a') }, draft: false, state: 'open' } }),
+        listStatuses: async () => ({ data: [{ context: 'code-review', state: 'success' }] })
+    });
+    const res = await runScript(scriptOf('pending', 'review in progress'), { github, context: prCtx, env: { RUN_URL: 'u' } });
+    assert.equal(calls.createCommitStatus.length, 0, 'a present verdict must never be replaced by pending');
+    assert.equal(res.outputs.posted, undefined);
+});
+test('pending: draft or closed PR -> posts nothing', async () => {
+    for (const data of [
+        { draft: true, state: 'open' },
+        { draft: false, state: 'closed' }
+    ]) {
+        const { github, calls } = mockGitHub({ prGet: async () => ({ data: { number: 1, head: { sha: SHA('a') }, ...data } }) });
+        await runScript(scriptOf('pending', 'review in progress'), { github, context: prCtx, env: { RUN_URL: 'u' } });
+        assert.equal(calls.createCommitStatus.length, 0);
+    }
+});
+test('status: analyze died before resolving the range -> the pending head gets failure, not a stranded pending', async () => {
+    // HEAD_SHA falls back to the pending job's SHA in the workflow env; post never ran.
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    await runScript(scriptOf('status', 'Decide the gate'), {
+        github,
+        context,
+        env: statusEnv({ HEAD_SHA: head, PENDING_SHA: head, POST_RESULT: 'skipped', PUBLIC_FINDINGS_COUNT: '', WITHHELD: '', WITHHELD_BLOCKING: '' })
+    });
+    assert.equal(calls.createCommitStatus.length, 1);
+    assert.equal(calls.createCommitStatus[0].sha, head);
+    assert.equal(calls.createCommitStatus[0].state, 'failure');
+});
+test('status: pending landed on a different commit than the one reviewed -> that pending becomes error', async () => {
+    const reviewed = SHA('a'),
+        pendingOn = SHA('c');
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: reviewed } } }),
+        listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: reviewed, body: 'x\n<!-- ol-pr-review-bot f=0 -->' }] }),
+        listStatuses: async p => ({ data: p.ref === pendingOn ? [{ context: 'code-review', state: 'pending' }] : [] })
+    });
+    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env: statusEnv({ HEAD_SHA: reviewed, PENDING_SHA: pendingOn }) });
+    const bySha = Object.fromEntries(calls.createCommitStatus.map(c => [c.sha, c.state]));
+    assert.equal(bySha[pendingOn], 'error', 'our stray pending must be replaced');
+    assert.equal(bySha[reviewed], 'success', 'the reviewed head still gets its verdict');
+});
+test('status: head moved after a pending on the reviewed SHA -> that pending becomes error, never left hanging', async () => {
+    const reviewed = SHA('a');
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: SHA('c') } } }),
+        listStatuses: async () => ({ data: [{ context: 'code-review', state: 'pending' }] })
+    });
+    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env: statusEnv({ HEAD_SHA: reviewed, PENDING_SHA: reviewed }) });
+    assert.equal(calls.createCommitStatus.length, 1);
+    assert.equal(calls.createCommitStatus[0].sha, reviewed);
+    assert.equal(calls.createCommitStatus[0].state, 'error');
+});
+test('status: the stale-pending cleanup never overwrites a real verdict', async () => {
+    const reviewed = SHA('a'),
+        other = SHA('c');
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: SHA('d') } } }),
+        listStatuses: async () => ({ data: [{ context: 'code-review', state: 'success' }] })
+    });
+    await runScript(scriptOf('status', 'Decide the gate'), { github, context, env: statusEnv({ HEAD_SHA: reviewed, PENDING_SHA: other }) });
+    assert.equal(calls.createCommitStatus.length, 0);
+});
