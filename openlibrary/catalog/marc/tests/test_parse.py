@@ -1,5 +1,4 @@
 import json
-from collections.abc import Iterable
 from pathlib import Path
 
 import lxml.etree
@@ -103,10 +102,11 @@ def sort_keys(obj):
     if isinstance(obj, dict):
         return {k: sort_keys(obj[k]) for k in sorted(obj, key=str)}
     if isinstance(obj, (list, tuple)):
+        items = [sort_keys(v) for v in obj]
         try:
-            return sorted(obj)
+            return sorted(items)
         except TypeError:
-            return [sort_keys(v) for v in obj]
+            return sorted(items, key=lambda v: json.dumps(v, sort_keys=True, default=str))
     return obj
 
 
@@ -145,13 +145,7 @@ class TestParseMARCBinary:
         assert j, f"Unable to open test data: {expect_filepath}"
         msg = f"Processed binary MARC values do not match expectations in {expect_filepath}"
         assert sorted(edition_marc_bin) == sorted(j), msg
-        for key, value in edition_marc_bin.items():
-            if isinstance(value, Iterable):  # can not sort a list of dicts
-                assert len(value) == len(j[key]), msg
-                for item in j[key]:
-                    assert item in value, f"{msg}. Key: {key}"
-            else:
-                assert value == j[key], msg
+        assert sort_keys(edition_marc_bin) == sort_keys(j)
 
     def test_raises_see_also(self):
         filepath = TEST_DATA / "bin_input" / "talis_see_also.mrc"
