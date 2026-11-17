@@ -300,25 +300,16 @@ def _last_snapshot(slug: str, before) -> dict | None:
     return None
 
 
-BLOCKED_PEOPLE = """
-    SELECT REPLACE(s.key, 'account/', '/people/') FROM store s JOIN store_index si ON si.store_id = s.id
-    WHERE si.type = 'account' AND si.name = 'status' AND si.value = 'blocked'
-"""
-
-
-def _initiative_helpers(db, initiative, since: str, end: str) -> list[list]:
-    """``[username, saves]`` for each account that saved for ``initiative`` from ``since`` to ``end``, most saves first;
-    blocked accounts left out. A save names its initiative; one from before saves did is matched by its field, which no
-    two initiatives shared then."""
+def _initiative_people(db, initiative, since: str, end: str) -> int:
+    """Accounts that saved for ``initiative`` from ``since`` to ``end``. A save names its initiative; one from before saves did
+    is matched by its field, which no two initiatives shared then."""
     sql = f"""
-        SELECT th.key, count(*) AS saves FROM transaction t JOIN thing th ON th.id = t.author_id
+        SELECT count(DISTINCT t.author_id) AS count FROM transaction t
         WHERE t.created >= $since AND t.created < $end AND t.id IN ({TASKS_SAVES})
           AND COALESCE(t.data::json->>'initiative' = $slug, t.data::json->>'field' IN $fields)
-          AND th.key NOT IN ({BLOCKED_PEOPLE})
-        GROUP BY th.key ORDER BY saves DESC, th.key
     """
     vars = {"since": since, "end": end, "tasks_source": TASKS_SOURCE, "slug": initiative.slug, "fields": list(initiative.fields)}
-    return [[row.key.removeprefix("/people/"), row.saves] for row in db.query(sql, vars=vars)]
+    return db.query(sql, vars=vars)[0].count
 
 
 def admin_range__initiatives(**kargs):
@@ -344,24 +335,18 @@ def admin_range__initiatives(**kargs):
     for initiative in initiatives.started(initiatives.read_definitions(site.get())):
         if initiative.ends_at and initiative.ends_at.replace(tzinfo=None) < start:
             if last := _last_snapshot(initiative.slug, start):
-                # Snapshots from before helpers were named get them once, over the project's whole run.
-                if "helpers" not in last and (frozen := site.get().store.get(initiative.store_key)):
-                    helpers = _initiative_helpers(db, initiative, frozen["frozen_at"], initiative.ends_at.isoformat())
-                    last = last | {"people": len(helpers), "helpers": helpers}
                 counts[initiative.slug] = last
             continue
         if not (frozen := site.get().store.get(initiative.store_key)):
             continue
         p = initiatives.progress(initiatives.gaps_for(frozen["editions"], site.get()), initiative.fields, initiative.start)
-        helpers = _initiative_helpers(db, initiative, frozen["frozen_at"], end_str)
         counts[initiative.slug] = {
             "open": p["open"],
             "done": p["done"],
             "not_found": p["not_found"],
             "editions": p["total"],
             "percent": p["percent"],
-            "people": len(helpers),
-            "helpers": helpers,
+            "people": _initiative_people(db, initiative, frozen["frozen_at"], end_str),
         }
     if not counts:
         raise NoStats

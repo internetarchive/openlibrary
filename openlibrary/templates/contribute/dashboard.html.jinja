@@ -10,16 +10,8 @@
             <span class="contrib-projects__meta">
                 {% if card.finished %}
                     <span>{{ card.finished_label }}</span>
-                    {% if card.people_helped %}
-                        <span aria-hidden="true">·</span>
-                        <span>{{ card.people_helped }}</span>
-                    {% endif %}
                 {% elif card.reached %}
                     <span>{{ card.goal_label }}</span>
-                    {% if card.people_helped %}
-                        <span aria-hidden="true">·</span>
-                        <span>{{ card.people_helped }}</span>
-                    {% endif %}
                 {% elif card.percent is not none %}
                     <span>{{ card.tasks_left }}</span>
                     {% if card.people %}
@@ -35,14 +27,6 @@
             </span>
         </a>
     </li>
-{% endmacro %}
-{% macro thanks_list(thanks) %}
-    {#- Most saves first. -#}
-    <ul class="contrib-thanks__people">
-        {% for person in thanks.people %}
-            <li><a href="{{ person.url }}">{{ person.name }}</a></li>
-        {% endfor %}
-    </ul>
 {% endmacro %}
 {% import "contribute/parts.html.jinja" as parts %}
 <div class="contrib-dash" data-contribute-list>
@@ -128,7 +112,6 @@
                 <section class="contrib-finished">
                     <h3 class="contrib-finished__title">{{ data.finished.title }}</h3>
                     <p class="contrib-muted">{{ data.finished.note }}</p>
-                    {% if data.thanks %}{{ thanks_list(data.thanks) }}{% endif %}
                     {% if data.finished.next_url %}
                         <ol-button variant="primary" href="{{ data.finished.next_url }}" data-ol-link-track="TasksDashboard|FinishedNext">
                             {{ data.finished.next_label }}
@@ -136,12 +119,6 @@
                     {% endif %}
                 </section>
             {% else %}
-                {% if data.thanks %}
-                    <section class="contrib-thanks">
-                        <h3 class="contrib-thanks__title">{{ _("Thank you to everyone who helped") }}</h3>
-                        {{ thanks_list(data.thanks) }}
-                    </section>
-                {% endif %}
                 <nav class="contrib-rail" aria-label="{{ _('Filter tasks') }}">
                     <a class="contrib-rail__item{{ ' is-on' if data.rail.all.on else '' }}"
                        href="{{ data.rail.all.url }}"

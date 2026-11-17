@@ -460,26 +460,13 @@ def build_task_rows(task: str, initiative: initiatives.Initiative, fields: tuple
     return rows
 
 
-def get_initiative_snapshot(initiative: initiatives.Initiative) -> dict:
-    """The stats job's latest figures for ``initiative``. Yesterday's doc covers just after midnight."""
+def get_initiative_people(initiative: initiatives.Initiative) -> int | None:
+    """How many people have saved for ``initiative``, from the stats job's latest counts; None until it has counted.
+    Yesterday's doc covers just after midnight."""
     for doc in reversed(admin.get_count_docs(2)):
-        if (snap := admin.initiative_counts(doc).get(initiative.slug)) is not None:
-            return snap
-    return {}
-
-
-def get_initiative_people(initiative: initiatives.Initiative) -> int:
-    """How many people have saved for ``initiative``, from the stats job's latest counts."""
-    return get_initiative_snapshot(initiative).get("people") or 0
-
-
-def build_thanks(initiative: initiatives.Initiative) -> dict | None:
-    """Everyone who saved for a completed project, most saves first, by display name. None until the stats job has named them."""
-    if not (helpers := get_initiative_snapshot(initiative).get("helpers")):
-        return None
-    keys = [f"/people/{username}" for username, _saves in helpers]
-    names = {p.key: p.get("displayname") for p in site.get().get_many(keys)}
-    return {"people": [{"name": names.get(key) or key.removeprefix("/people/"), "url": key} for key in keys]}
+        if (people := admin.initiative_counts(doc).get(initiative.slug, {}).get("people")) is not None:
+            return people
+    return None
 
 
 def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
@@ -497,9 +484,9 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
     for initiative in listed:
         gaps = initiatives.get_gaps(initiative)
         p = initiatives.progress(gaps, initiative.fields, initiative.start, initiative.goal) if gaps else None
-        people = get_initiative_people(initiative) if p else 0
+        counted = get_initiative_people(initiative) if p else None
+        people = counted or 0
         finished = initiative.status() == "ended"
-        reached = bool(p and p["reached"])
         cards.append(
             initiatives.describe(initiative)
             | {
@@ -542,20 +529,16 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
                 "finished_label": (
                     (_("Finished · goal reached") if p["reached"] else _("Finished · %(percent)s%% filled", percent=p["percent"])) if p else _("Finished")
                 ),
-                # Finished, or past its goal: listed apart from the projects still asking for help, with a check.
-                "completed": finished or reached,
+                # Finished, or past its goal: listed apart from the projects still asking for help.
+                "completed": finished or bool(p and p["reached"]),
                 "people_count": people,
                 "people": (
                     ungettext("%(count)s person helping", "%(count)s people helping", people, count=helpers.commify(people))
                     if people >= MIN_PEOPLE_SHOWN
                     else None
                 ),
-                # Too few helpers to show a count: the row asks for help instead.
-                "help_needed": bool(p) and not finished and not reached and people < MIN_PEOPLE_SHOWN,
-                # Past the goal the tasks left stop being the news; who got it there is.
-                "people_helped": (
-                    ungettext("%(count)s person helped", "%(count)s people helped", people, count=helpers.commify(people)) if people >= MIN_PEOPLE_SHOWN else None
-                ),
+                # Counted, but too few to show: the row asks for help instead.
+                "help_needed": bool(p and not finished and not p["reached"] and counted is not None and counted < MIN_PEOPLE_SHOWN),
             }
         )
     return cards
@@ -728,7 +711,6 @@ class contribute_index(delegate.page):
             initiatives=projects,
             project=project,
             finished=build_finished(project),
-            thanks=build_thanks(initiative) if project["completed"] else None,
             fine_print=initiatives.fine_print(initiative, site.get()),
         )
 
