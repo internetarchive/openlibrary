@@ -3,6 +3,8 @@
 // review once no more commits arrive for push_review_delay_minutes.
 'use strict';
 
+const { inBaseBranch } = require('./shared.cjs');
+
 const BOT = 'openlibrary-bot';
 const TEAM = 'openlibrary-agentic-code-reviewer';
 const WAITING = 'New commits. A review starts after';
@@ -13,12 +15,7 @@ async function mergesOnlyBase({ github, owner, repo, payload }) {
     const { data: commit } = await github.rest.repos.getCommit({ owner, repo, ref: payload.after });
     const parents = commit.parents.map(p => p.sha);
     if (parents.length !== 2 || parents[0] !== payload.before) return false;
-    const { data: cmp } = await github.rest.repos.compareCommitsWithBasehead({
-        owner,
-        repo,
-        basehead: `${parents[1]}...${payload.pull_request.base.ref}`
-    });
-    return cmp.status === 'ahead' || cmp.status === 'identical';
+    return inBaseBranch({ github, owner, repo, sha: parents[1], baseRef: payload.pull_request.base.ref });
 }
 
 // Whether this push should start a review after the quiet period, and why not if it shouldn't.

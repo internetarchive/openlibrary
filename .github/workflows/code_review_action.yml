@@ -1,8 +1,8 @@
 name: Code Review Action
 
 # @openlibrary-bot's code review (instructions in code_review.md). It posts one review with inline
-# comments, and a re-review covers only the commits since its last one. The JavaScript the steps
-# run lives in .github/scripts/code_review/.
+# comments, and a re-review covers only the commits since its last one, leaving out merges of the
+# base branch. The JavaScript the steps run lives in .github/scripts/code_review/.
 #
 # Jobs:
 #   analyze  runs the model on the untrusted PR. It has no write permission and no PAT.
@@ -99,11 +99,16 @@ jobs:
       base_sha: ${{ steps.range.outputs.base_sha }}
       incremental: ${{ steps.range.outputs.incremental }}
       skip: ${{ steps.range.outputs.skip }}
+      # JSON list of the files a re-review after a base-branch merge covers; empty otherwise.
+      review_paths: ${{ steps.range.outputs.review_paths }}
       # From .pr_agent.toml, read before the model ran.
       inline_key_issues: ${{ steps.range.outputs.inline_key_issues }}
-      # 'true' when this head was already reviewed but its status is missing or wrong: `post` is
-      # skipped and `status` re-posts the status from the existing review.
+      push_review_minutes: ${{ steps.range.outputs.push_review_minutes }}
+      # 'true' when this head was already reviewed but its status is missing or wrong, or when only
+      # base-branch merges arrived since the last review: `post` is skipped and `status` re-posts
+      # the status from the existing review (the one on verdict_sha, when set).
       repost: ${{ steps.range.outputs.repost }}
+      verdict_sha: ${{ steps.range.outputs.verdict_sha }}
       # Whether the review was withheld, and whether a withheld review had a blocking finding.
       # One bit each, never a count or content.
       withheld: ${{ steps['analyze-gate'].outputs.withheld }}
@@ -244,6 +249,7 @@ jobs:
         env:
           BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
           HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
+          REVIEW_PATHS: ${{ needs.analyze.outputs.review_paths }}
         with:
           script: |
             const { refetchDiff } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/post.cjs`);
@@ -256,7 +262,9 @@ jobs:
           HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
           BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
           INCREMENTAL: ${{ needs.analyze.outputs.incremental }}
+          REVIEW_PATHS: ${{ needs.analyze.outputs.review_paths }}
           INLINE_KEY_ISSUES: ${{ needs.analyze.outputs.inline_key_issues }}
+          PUSH_REVIEW_MINUTES: ${{ needs.analyze.outputs.push_review_minutes }}
         with:
           # Fine-grained PAT with only Pull requests: read and write, on this repo.
           github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
@@ -361,6 +369,7 @@ jobs:
           WITHHELD: ${{ needs.analyze.outputs.withheld }}
           WITHHELD_BLOCKING: ${{ needs.analyze.outputs.withheld_blocking }}
           REPOST: ${{ needs.analyze.outputs.repost }}
+          VERDICT_SHA: ${{ needs.analyze.outputs.verdict_sha }}
           BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
           INCREMENTAL: ${{ needs.analyze.outputs.incremental }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

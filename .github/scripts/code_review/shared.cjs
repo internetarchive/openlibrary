@@ -21,4 +21,26 @@ const unresolvedThreadCount = threads => {
     return threads.reduce((n, t) => n + (!t.isResolved && !t.isOutdated ? 1 : 0), 0);
 };
 
-module.exports = { headIsCurrent, parseReviewMarker, unresolvedThreadCount };
+// True when `sha` is already on the base branch, so a merge of it only brings base changes in.
+const inBaseBranch = async ({ github, owner, repo, sha, baseRef }) => {
+    const { data: cmp } = await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${sha}...${baseRef}` });
+    return cmp.status === 'ahead' || cmp.status === 'identical';
+};
+
+// The parts of a unified diff for the given paths. A renamed file is kept if either name matches.
+const filterDiff = (diff, paths) => {
+    const want = new Set(paths);
+    const blocks = String(diff).split(/^(?=diff --git )/m);
+    return blocks
+        .filter(block => {
+            if (!block.startsWith('diff --git ')) return false;
+            const names = [];
+            const header = /^diff --git a\/(.+) b\/(.+)$/m.exec(block);
+            if (header) names.push(header[1], header[2]);
+            for (const m of block.matchAll(/^(?:--- a\/|\+\+\+ b\/|rename from |rename to )(.+)$/gm)) names.push(m[1]);
+            return names.some(n => want.has(n));
+        })
+        .join('');
+};
+
+module.exports = { headIsCurrent, parseReviewMarker, unresolvedThreadCount, inBaseBranch, filterDiff };

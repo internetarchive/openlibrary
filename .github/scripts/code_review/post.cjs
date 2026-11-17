@@ -3,7 +3,37 @@
 'use strict';
 
 const gate = require('./gate.cjs');
-const { headIsCurrent } = require('./shared.cjs');
+const { headIsCurrent, filterDiff } = require('./shared.cjs');
+
+// analyze's review_paths output: the files a re-review after a base-branch merge covers, or null
+// when the whole range is reviewed.
+const parseReviewPaths = raw => {
+    try {
+        const paths = JSON.parse(raw || 'null');
+        return Array.isArray(paths) && paths.every(p => typeof p === 'string') ? paths : null;
+    } catch (e) {
+        return null;
+    }
+};
+
+// The attempts at posting, in order. GitHub answers 422 both for a verdict it won't take and for
+// a comment line outside the PR's diff, so try COMMENT, then the review with every finding in the
+// summary. A finding moved to the summary is still counted, so the status is the same either way.
+const postAttempts = ({ event, hasInline }) => {
+    const all = [
+        { event, inline: true },
+        { event: 'COMMENT', inline: true },
+        { event, inline: false },
+        { event: 'COMMENT', inline: false }
+    ];
+    const seen = new Set();
+    return all.filter(a => {
+        const key = `${a.event}/${a.inline}`;
+        if ((!hasInline && a.inline === false) || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+};
 
 // The review's verdict. Only APPROVE or REQUEST_CHANGES clears a pending review request; COMMENT
 // leaves it pending. Findings request changes. A clean review approves only when none of the bot's
@@ -93,7 +123,8 @@ async function refetchDiff({ github, context, core, require, process }) {
         basehead: `${base}...${head}`,
         headers: { accept: 'application/vnd.github.v3.diff' }
     });
-    require('fs').writeFileSync('review.diff', diff);
+    const paths = parseReviewPaths(process.env.REVIEW_PATHS);
+    require('fs').writeFileSync('review.diff', paths ? filterDiff(diff, paths) : diff);
 }
 
 async function validateAndPost({ github, context, core, require, process }) {
@@ -148,7 +179,9 @@ async function validateAndPost({ github, context, core, require, process }) {
     }
 
     // Low severity findings are listed as suggestions in the summary, not as threads, which block.
+    // inlineFindings[i] is the finding inline[i] was made from, for the summary-only fallback.
     const inline = [],
+        inlineFindings = [],
         orphaned = [],
         suggestions = [];
     for (const f of review.findings || []) {
@@ -189,48 +222,66 @@ async function validateAndPost({ github, context, core, require, process }) {
             c.start_side = 'RIGHT';
         }
         inline.push(c);
+        inlineFindings.push(f);
     }
 
     // Summary. Findings without a valid anchor go here rather than on an approximate line.
     const findingCount = inline.length + orphaned.length; // blocking findings only (LOW excluded)
-    let summary = review.summary || '';
     // The range comes from analyze's job outputs, set before the model ran.
     const sha = /^[0-9a-f]{40}$/,
         baseSha = process.env.BASE_SHA;
-    if (process.env.INCREMENTAL === 'true' && sha.test(baseSha) && sha.test(headSha)) {
-        summary = `*Reviewing only the ${baseSha.slice(0, 8)}..${headSha.slice(0, 8)} range — the commits pushed since my last pass.*\n\n${summary}`;
-    }
+    const reviewPaths = parseReviewPaths(process.env.REVIEW_PATHS);
+    const pushMinutes = /^\d+$/.test(process.env.PUSH_REVIEW_MINUTES || '') ? Number(process.env.PUSH_REVIEW_MINUTES) : null;
 
-    summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
+    // summaryOnly: GitHub rejected an inline comment's line, so every finding goes in the summary.
+    const renderSummary = summaryOnly => {
+        let summary = review.summary || '';
+        if (process.env.INCREMENTAL === 'true' && reviewPaths) {
+            summary = `*Reviewing the PR's own changes to the files its commits since my last pass touched. Merges of the base branch are skipped.*\n\n${summary}`;
+        } else if (process.env.INCREMENTAL === 'true' && sha.test(baseSha) && sha.test(headSha)) {
+            summary = `*Reviewing only the ${baseSha.slice(0, 8)}..${headSha.slice(0, 8)} range — the commits pushed since my last pass.*\n\n${summary}`;
+        }
 
-    // State every dimension, because leaving one out reads the same as having checked it.
-    // Security is a fixed line: a review with a security finding never gets this far.
-    const count = {};
-    for (const f of review.findings) count[f.dimension] = (count[f.dimension] || 0) + 1;
-    summary += `\n\n### Dimensions\n\n${Object.entries(gate.dimensions)
-        .map(([k, label]) => {
-            if (k === 'security') return `- **${label}** — no findings in this range. This is not a security audit.`;
-            if (count[k]) return `- **${label}** — ${count[k]} finding${count[k] === 1 ? '' : 's'}`;
-            return `- **${label}** — no findings. ${review.dimensions[k].note}`;
-        })
-        .join('\n')}`;
+        summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
 
-    if (orphaned.length) {
-        summary += `\n\n### ${inlineKeyIssues ? 'Findings without an in-diff anchor' : 'Findings'}\n\n${orphaned
-            .map(
-                f =>
-                    `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body).replace(/\n/g, '\n  ')}`
-            )
-            .join('\n\n')}`;
-    }
-    if (suggestions.length) {
-        summary += `\n\n### Suggestions (won't block)\n\n${suggestions
-            .map(f => `- **${f.title}**${f.path ? ` (\`${f.path}${f.line ? `:${f.line}` : ''}\`)` : ''}: ${String(f.body).replace(/\n/g, ' ')}`)
+        // State every dimension, because leaving one out reads the same as having checked it.
+        // Security is a fixed line: a review with a security finding never gets this far.
+        const count = {};
+        for (const f of review.findings) count[f.dimension] = (count[f.dimension] || 0) + 1;
+        summary += `\n\n### Dimensions\n\n${Object.entries(gate.dimensions)
+            .map(([k, label]) => {
+                if (k === 'security') return `- **${label}** — no findings in this range. This is not a security audit.`;
+                if (count[k]) return `- **${label}** — ${count[k]} finding${count[k] === 1 ? '' : 's'}`;
+                return `- **${label}** — no findings. ${review.dimensions[k].note}`;
+            })
             .join('\n')}`;
-    }
-    // A contributor without write access can't re-request a review, but can comment.
-    summary += `\n\n---\n> [!TIP]\n> When you've addressed the feedback and pushed your changes, comment \`@openlibrary-bot review\` on this PR to run a fresh review.`;
-    summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
+
+        // A finding moved out of an inline comment keeps its line, which was in the diff.
+        const listed = summaryOnly ? inlineFindings.map(f => ({ f, at: `${f.path}:${f.line}` })) : [];
+        for (const f of orphaned) listed.push({ f, at: f.path && anchorable.has(f.path) ? f.path : null });
+        if (listed.length) {
+            const heading = inlineKeyIssues && !summaryOnly ? 'Findings without an in-diff anchor' : 'Findings';
+            summary += `\n\n### ${heading}\n\n${listed
+                .map(
+                    ({ f, at }) =>
+                        `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${at ? ` (\`${at}\`)` : ''}\n  ${String(f.body).replace(/\n/g, '\n  ')}`
+                )
+                .join('\n\n')}`;
+        }
+        if (suggestions.length) {
+            summary += `\n\n### Suggestions (won't block)\n\n${suggestions
+                .map(f => `- **${f.title}**${f.path ? ` (\`${f.path}${f.line ? `:${f.line}` : ''}\`)` : ''}: ${String(f.body).replace(/\n/g, ' ')}`)
+                .join('\n')}`;
+        }
+        // A contributor without write access can't re-request a review, but can comment.
+        const tip =
+            pushMinutes === null
+                ? "When you've addressed the feedback and pushed your changes, comment `@openlibrary-bot review` on this PR to run a fresh review."
+                : `When you push new commits, I review them once no more arrive for ${pushMinutes} minute${pushMinutes === 1 ? '' : 's'}. To review sooner, comment \`@openlibrary-bot review\` on this PR.`;
+        summary += `\n\n---\n> [!TIP]\n> ${tip}`;
+        summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md). This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
+        return summary;
+    };
 
     // If the head moved since the review, post nothing (see headIsCurrent).
     const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
@@ -322,31 +373,31 @@ async function validateAndPost({ github, context, core, require, process }) {
 
     // A human's open thread doesn't stop APPROVE, though it keeps the status red. The status, not
     // the verdict, is what merging requires.
-    let event = selectReviewEvent({ selfAuthored, findingCount, unresolvedOwnThreads });
+    const reviewEvent = selectReviewEvent({ selfAuthored, findingCount, unresolvedOwnThreads });
 
     // One batched review. POST /pulls/{n}/comments returns 422 `pull_request_review_thread.base`
-    // in practice (cli/cli#13358), while the same anchors in a batched review work. If a verdict
-    // is rejected with 422 anyway, fall back to COMMENT rather than fail.
-    const postReview = ev =>
-        github.rest.pulls.createReview({
-            owner,
-            repo,
-            pull_number: prNumber,
-            commit_id: headSha,
-            event: ev,
-            body: summary,
-            comments: inline
-        });
-    let posted;
-    try {
-        ({ data: posted } = await postReview(event));
-    } catch (e) {
-        if (event !== 'COMMENT' && e && e.status === 422) {
-            core.warning(`Verdict ${event} was rejected (422); posting as COMMENT instead.`);
-            event = 'COMMENT';
-            ({ data: posted } = await postReview(event));
-        } else {
-            throw e;
+    // in practice (cli/cli#13358), while the same anchors in a batched review work. A 422 moves on
+    // to the next of postAttempts, so a bad verdict or a bad comment line never loses the review.
+    let posted, event, summaryOnly;
+    const attempts = postAttempts({ event: reviewEvent, hasInline: inline.length > 0 });
+    for (const [i, attempt] of attempts.entries()) {
+        try {
+            ({ data: posted } = await github.rest.pulls.createReview({
+                owner,
+                repo,
+                pull_number: prNumber,
+                commit_id: headSha,
+                event: attempt.event,
+                body: renderSummary(!attempt.inline),
+                comments: attempt.inline ? inline : []
+            }));
+            event = attempt.event;
+            summaryOnly = !attempt.inline;
+            break;
+        } catch (e) {
+            if (!(e && e.status === 422) || i === attempts.length - 1) throw e;
+            const next = attempts[i + 1];
+            core.warning(`Review rejected (422: ${e.message}); retrying as ${next.event}${next.inline ? '' : ' with every finding in the summary'}.`);
         }
     }
 
@@ -361,7 +412,8 @@ async function validateAndPost({ github, context, core, require, process }) {
         core.setFailed(`createReview returned ${posted.id} but it is not present on the PR.`);
         return;
     }
-    core.info(`Posted ${event} review ${posted.id}: ${inline.length} inline, ${orphaned.length} in summary.`);
+    const inSummary = orphaned.length + (summaryOnly ? inline.length : 0);
+    core.info(`Posted ${event} review ${posted.id}: ${summaryOnly ? 0 : inline.length} inline, ${inSummary} in summary.`);
 
     // See shouldDismissTeamRequest. Never fails the job.
     if (shouldDismissTeamRequest({ selfAuthored, event })) {
@@ -380,4 +432,13 @@ async function validateAndPost({ github, context, core, require, process }) {
     }
 }
 
-module.exports = { refetchDiff, validateAndPost, selectReviewEvent, shouldDismissTeamRequest, threadsToResolve, fixedInSha, renderTicketCompliance };
+module.exports = {
+    refetchDiff,
+    validateAndPost,
+    selectReviewEvent,
+    shouldDismissTeamRequest,
+    threadsToResolve,
+    fixedInSha,
+    renderTicketCompliance,
+    postAttempts
+};

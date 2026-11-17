@@ -2,7 +2,55 @@
 // status of an existing review, or skips, and writes the range, diff and settings the model reads.
 'use strict';
 
-const { parseReviewMarker, unresolvedThreadCount } = require('./shared.cjs');
+const { parseReviewMarker, unresolvedThreadCount, inBaseBranch, filterDiff } = require('./shared.cjs');
+
+// How far back splitBaseMerges walks before giving up and reviewing the whole PR instead.
+const MAX_WALK = 100;
+
+// Walks the first-parent chain from `head` back to `from`, the commit the bot last reviewed, and
+// splits it into merges that only bring the base branch in, and the PR's own commits with the
+// files they touched. null when the chain does not reach `from` within MAX_WALK commits.
+async function splitBaseMerges({ github, owner, repo, from, head, baseRef }) {
+    const merges = [],
+        own = [],
+        paths = new Set(),
+        seen = new Map();
+    let sha = head;
+    for (let i = 0; i < MAX_WALK && sha !== from; i++) {
+        const { data: commit } = await github.rest.repos.getCommit({ owner, repo, ref: sha });
+        const parents = (commit.parents || []).map(p => p.sha);
+        if (!parents.length) return null;
+        let baseMerge = parents.length > 1;
+        for (const p of parents.slice(1)) {
+            if (!seen.has(p)) seen.set(p, await inBaseBranch({ github, owner, repo, sha: p, baseRef }));
+            if (!seen.get(p)) baseMerge = false;
+        }
+        if (baseMerge) {
+            merges.push(sha);
+        } else {
+            own.push(sha);
+            for (const f of commit.files || []) {
+                paths.add(f.filename);
+                if (f.previous_filename) paths.add(f.previous_filename);
+            }
+        }
+        sha = parents[0];
+    }
+    return sha === from ? { merges, own, paths: [...paths].sort() } : null;
+}
+
+// Where the PR's own diff starts: the merge base of the base branch and head, the same diff
+// GitHub checks review comment lines against.
+async function prMergeBase({ github, owner, repo, pr, head, core }) {
+    try {
+        const { data } = await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${pr.base.ref}...${head}` });
+        const sha = data && data.merge_base_commit && data.merge_base_commit.sha;
+        if (/^[0-9a-f]{40}$/.test(sha || '')) return sha;
+    } catch (e) {
+        core.info(`Could not find the PR's merge base (${e.message}) -- using the PR's base commit.`);
+    }
+    return pr.base.sha;
+}
 
 async function resolveRange({ github, context, core, require, process }) {
     const fs = require('fs');
@@ -41,12 +89,16 @@ async function resolveRange({ github, context, core, require, process }) {
     const prior = ours.length ? ours[ours.length - 1] : null;
 
     let base = pr.base.sha,
-        incremental = false;
+        incremental = false,
+        // Set when base-branch merges arrived since the last review: the files the PR's own new
+        // commits touched. The review then covers the PR's own diff for only these files.
+        reviewPaths = null;
     if (prior && prior.commit_id !== head) {
         // Use the prior SHA only if it is an ancestor of head. After a force-push it may not be,
         // and diffing from it would review the wrong changes.
+        let cmp = null;
         try {
-            const cmp = await github.rest.repos.compareCommitsWithBasehead({
+            cmp = await github.rest.repos.compareCommitsWithBasehead({
                 owner,
                 repo,
                 basehead: `${prior.commit_id}...${head}`
@@ -59,6 +111,40 @@ async function resolveRange({ github, context, core, require, process }) {
             }
         } catch (e) {
             core.info(`Could not compare against the prior review commit (${e.message}) -- full review.`);
+        }
+
+        // A merge of the base branch puts everything the base gained into prior..head. Those
+        // changes are not the PR's, and comments on them are not on lines of the PR's diff.
+        const commits = (incremental && cmp.data.commits) || [];
+        const mayHaveMerge = commits.some(c => (c.parents || []).length > 1) || (cmp && cmp.data.total_commits) > commits.length;
+        if (incremental && mayHaveMerge) {
+            let split = null;
+            try {
+                split = await splitBaseMerges({ github, owner, repo, from: prior.commit_id, head, baseRef: pr.base.ref });
+            } catch (e) {
+                core.info(`Could not read the commits since the last review (${e.message}).`);
+            }
+            if (!split) {
+                core.info('Could not tell base-branch merges from the PR commits -- full review.');
+                base = await prMergeBase({ github, owner, repo, pr, head, core });
+                incremental = false;
+            } else if (split.merges.length && !split.own.length) {
+                // Nothing of the PR's own changed, so the last verdict still holds. The status job
+                // reads it from the review on `verdict_sha` and posts it on this head.
+                core.info(
+                    `Only base-branch merges since the review of ${prior.commit_id.slice(0, 8)} -- carrying its verdict to ${head.slice(0, 8)} without a review.`
+                );
+                core.setOutput('pr', String(prNumber));
+                core.setOutput('head_sha', head);
+                core.setOutput('verdict_sha', prior.commit_id);
+                core.setOutput('skip', 'false');
+                core.setOutput('repost', 'true');
+                return;
+            } else if (split.merges.length) {
+                base = await prMergeBase({ github, owner, repo, pr, head, core });
+                reviewPaths = split.paths;
+                core.info(`Skipping ${split.merges.length} base-branch merge(s); reviewing the PR's diff for ${reviewPaths.length} file(s).`);
+            }
         }
     } else if (prior && prior.commit_id === head) {
         // Already reviewed. Skip only if the current `code-review` status matches the verdict the
@@ -137,7 +223,7 @@ async function resolveRange({ github, context, core, require, process }) {
         basehead: `${base}...${head}`,
         headers: { accept: 'application/vnd.github.v3.diff' }
     });
-    fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review.diff`, diff);
+    fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review.diff`, reviewPaths ? filterDiff(diff, reviewPaths) : diff);
     // Settings from the base checkout's .pr_agent.toml, so a PR can't change them. Later steps use
     // these outputs, which the model cannot change; the model reads review-config.json.
     const reviewConfig = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/config.cjs`);
@@ -146,6 +232,11 @@ async function resolveRange({ github, context, core, require, process }) {
     core.setOutput('off_dimensions', JSON.stringify(reviewConfig.offDimensions(settings)));
     core.setOutput('inline_key_issues', String(settings.pr_reviewer.inline_key_issues));
     core.setOutput('ticket_analysis', String(settings.pr_reviewer.require_ticket_analysis_review));
+    // For the review's tip: with push reviews on, a push is re-reviewed after this many minutes.
+    core.setOutput(
+        'push_review_minutes',
+        settings.github_action_config.handle_push_trigger ? String(settings.openlibrary_reviewer.push_review_delay_minutes) : ''
+    );
     fs.writeFileSync(
         `${process.env.GITHUB_WORKSPACE}/review-range.json`,
         JSON.stringify(
@@ -154,6 +245,7 @@ async function resolveRange({ github, context, core, require, process }) {
                 base_sha: base,
                 head_sha: head,
                 incremental,
+                paths: reviewPaths,
                 prior_review_at: prior ? prior.submitted_at : null
             },
             null,
@@ -207,9 +299,11 @@ async function resolveRange({ github, context, core, require, process }) {
     // `post` takes the range from these outputs, not from review-range.json, which the model can rewrite.
     core.setOutput('base_sha', base);
     core.setOutput('incremental', String(incremental));
+    // `post` filters its own copy of the diff to these paths, so anchors match what the model read.
+    core.setOutput('review_paths', reviewPaths ? JSON.stringify(reviewPaths) : '');
     core.setOutput('skip', 'false');
     core.setOutput('repost', 'false');
     core.info(`PR #${prNumber}: ${incremental ? 'incremental' : 'full'} review, ${base.slice(0, 8)}..${head.slice(0, 8)}`);
 }
 
-module.exports = { resolveRange };
+module.exports = { resolveRange, splitBaseMerges };

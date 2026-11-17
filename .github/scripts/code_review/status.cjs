@@ -44,10 +44,15 @@ async function postStatus({ github, context, core, process }) {
         core.setFailed('Unexpected head sha.');
         return;
     }
+    // On a repost, the commit whose review holds the verdict. It differs from the head only when
+    // nothing but base-branch merges arrived since that review, so its verdict carries over.
+    const verdictSha = repost && /^[0-9a-f]{40}$/.test(process.env.VERDICT_SHA || '') ? process.env.VERDICT_SHA : headSha;
 
     // Run-page summary. Counts and the status's fixed wording only: never a withheld review's content or count.
     const range = repost
-        ? 'none (re-posting the status of an existing review)'
+        ? verdictSha !== headSha
+            ? `none (only base-branch merges since the review of ${verdictSha.slice(0, 7)}; its verdict is carried over)`
+            : 'none (re-posting the status of an existing review)'
         : process.env.INCREMENTAL === 'true'
           ? `incremental since ${String(process.env.BASE_SHA).slice(0, 7)}`
           : 'full';
@@ -93,7 +98,7 @@ async function postStatus({ github, context, core, process }) {
     }
     const unresolved = unresolvedThreadCount(threads);
 
-    // On a repost no model ran: read the verdict back from the bot's last review on this head.
+    // On a repost no model ran: read the verdict back from the bot's last review on verdictSha.
     let postSucceeded, findings, withheld;
     if (repost) {
         const reviews = await github.paginate(github.rest.pulls.listReviews, {
@@ -102,7 +107,7 @@ async function postStatus({ github, context, core, process }) {
             pull_number: pr,
             per_page: 100
         });
-        const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === headSha && r.body);
+        const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === verdictSha && r.body);
         const last = ours.length ? ours[ours.length - 1] : null;
         // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
         postSucceeded = last != null;
