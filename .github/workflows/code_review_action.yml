@@ -1035,13 +1035,15 @@ jobs:
     steps:
       # An @-mention gets a 👀 reaction straight away, so whoever asked can see the bot picked it up.
       # This job shares analyze's `if`, so only a comment that actually starts a review gets one.
-      # Uses the bot's review PAT (Pull requests: write) so the reaction shows as openlibrary-bot.
+      # A PR conversation comment is an issue comment, so reacting needs Issues: write, which
+      # OL_BOT_REVIEW_PAT lacks. OL_BOT_PR_PAT (issues + pull-requests write, this repo only, see
+      # pr_autoresponder.yml) has it and posts as openlibrary-bot. This job runs no model.
       - name: React to the review request comment
         if: github.event_name == 'issue_comment'
         continue-on-error: true
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
-          github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
+          github-token: ${{ secrets.OL_BOT_PR_PAT }}
           script: |
             try {
               await github.rest.reactions.createForIssueComment({

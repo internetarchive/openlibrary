@@ -533,6 +533,8 @@ test('pending: an @-mention review request gets an eyes reaction on that comment
     assert.ok(step, 'react step exists');
     assert.equal(step.if, "github.event_name == 'issue_comment'", 'only comments get a reaction');
     assert.equal(step['continue-on-error'], true, 'a failed reaction never blocks the review');
+    // Reacting to an issue comment needs Issues: write; OL_BOT_REVIEW_PAT has only Pull requests.
+    assert.equal(step.with['github-token'], '${{ secrets.OL_BOT_PR_PAT }}');
     const reactions = [];
     const github = {
         rest: {
