@@ -18,6 +18,7 @@ Blessed staff list: `mekarpeles`, `lokesh`, `cdrini`, `scottbarnes`, `RayBB`, `s
 **If the author is a blessed staff member**: run the full enrichment workflow.
 
 **If the author is not staff**:
+- The issue asks us to bring an external source into Open Library (see `Type: Import Request` in Step 6) → apply that label, remove `Type: Question` if present, and run the full enrichment workflow. Check this before the `Type: Question` rule below.
 - Label `Type: Question` → reply only: "Thanks for reaching out! You may also get a faster response by posting on our [Discussions](https://github.com/internetarchive/openlibrary/discussions) board." Stop.
 - Issue type `Feature` (the `issueType` field from Step 1) → reply only: "Thanks for the suggestion! A staff member will review this and follow up when they can." Stop.
 - All other non-staff issues → run the full enrichment workflow.
@@ -193,6 +194,12 @@ For every label below, make an active decision: **add**, **remove**, or **leave 
 | `Good First Issue` | Well-scoped, clear acceptance criteria, ≤1 day of work, no deep knowledge required, NOT blocked | — |
 | `State: Blocked` | Hard external dependency: unavailable credential/service, incomplete external work | Dependency resolved |
 | *(no label — flag in comment body)* | The proposal introduces a security or privacy risk. No label exists for this; do not invent one. Instead add a `> [!WARNING]` block to the comment stating the risk plainly, and tag the relevant lead. | Risk resolved |
+
+### Import requests
+
+Add `Type: Import Request` when the issue asks us to bring a specific external source into Open Library: a catalog, dataset, MARC dump, feed or collection, a request to add a Trusted Book Provider, or a bot account whose purpose is importing records. Keep `Bot Request` on bot-account asks.
+
+Do not add it to bugs or features in the importer itself, or to bot accounts that only edit existing records. Do not add `Module: Import` to import requests; that label is for importer code.
 
 ### Module / Theme labels
 
