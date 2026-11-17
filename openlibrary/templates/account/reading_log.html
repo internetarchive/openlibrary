@@ -1,4 +1,4 @@
-$def with (docs, key, shelf_count, doc_count, owners_page, current_page, sort_order='desc', user=None, include_ratings=False, q=None, results_per_page=25, ratings=[], checkin_year=None, mode='everything', meta_photo_url=None)
+$def with (docs, key, shelf_count, doc_count, owners_page, current_page, sort_order='desc', user=None, include_ratings=False, q=None, results_per_page=25, ratings=[], checkin_year=None, mode='everything', meta_photo_url=None, unavailable_sorts=None)
 
 $ username = user.key.split('/')[-1]
 $ userDisplayName = user.displayname or ctx.user.displayname
@@ -69,8 +69,8 @@ $add_metatag(property="og:image", content=meta_photo_url)
       $# at the far end of the row — same split as the search page.
       <div class="search-results-stats__tools">
         $# Year pages always list by check-in date, so sorting would do nothing.
-        $if not is_filtered and not checkin_year:
-          $:render_template("search/sort_options.html", sort_order, exclude=None if owners_page else ['rating'], default_sort='desc', search_scheme='reading_log')
+        $if sort_order and not checkin_year:
+          $:render_template("search/sort_options.html", sort_order, exclude=unavailable_sorts, default_sort='desc', search_scheme='reading_log')
 
         $ layout = get_remembered_layout()
         $:render_template("search/layout_options.html", selected_layout=layout)

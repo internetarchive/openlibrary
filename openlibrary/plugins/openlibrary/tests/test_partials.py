@@ -31,6 +31,8 @@ from openlibrary.plugins.openlibrary.partials import (
     build_nearby_books_placeholder_config,
     build_stores,
     gather_nearby_books_async,
+    get_carousel_card_data,
+    normalize_carousel_layout,
     query_carousel,
 )
 from openlibrary.plugins.upstream import utils
@@ -257,9 +259,6 @@ class TestCarouselLabel:
             title=title,
             url=None,
             key="",
-            grid="",
-            compact="",
-            loadjs="",
             config_json="{}",
             cards=[],
             count=None,
@@ -375,6 +374,33 @@ class TestCarouselCardFormat:
 
     def test_book_without_a_provider_has_no_format(self):
         assert _carousel_card_format({"key": "/books/OL1M"}) == ""
+
+
+class TestCarouselLayout:
+    @pytest.mark.parametrize(("layout", "expected"), [("grid", "grid"), ("ol-carousel", "ol-carousel"), ("carousel", "ol-carousel"), (None, "ol-carousel")])
+    def test_anything_but_grid_is_an_ol_carousel(self, layout, expected):
+        assert normalize_carousel_layout(layout) == expected
+
+    def test_params_take_the_legacy_slick_layout_as_ol_carousel(self):
+        assert LazyCarouselParams(layout="carousel").layout == "ol-carousel"
+        assert CarouselLoadMoreParams(queryType="SEARCH").layout == "ol-carousel"
+        assert CarouselLoadMoreParams(queryType="SEARCH", layout="grid").layout == "grid"
+
+    @pytest.mark.parametrize(("layout", "in_cover"), [("carousel", True), ("grid", False)])
+    def test_loan_badge_goes_in_the_covers_overlay_slot(self, request_context_fixture, layout, in_cover):
+        request_context_fixture(lang="en")
+        book = web.storage(key="/books/OL1M", title="T", loan={"resource_type": "epub", "expiry": None, "loan_link": "/x"})
+        with (
+            patch("openlibrary.plugins.openlibrary.partials._render_carousel_card_loan_status", return_value=""),
+            patch("openlibrary.plugins.openlibrary.partials.shelf_button_for", return_value=""),
+            patch("openlibrary.plugins.openlibrary.partials._carousel_card_format", return_value=""),
+        ):
+            data = get_carousel_card_data(book, False, layout, "loans", "/account/books")
+        html = render_jinja_template("books/custom_carousel_card.html.jinja", **data)
+
+        assert data["book_cover"] is in_cover
+        assert ('<div class="loan-overlay-badge" slot="overlay">' in html) is in_cover
+        assert "Not yet downloaded." in html
 
 
 class TestSolrQueryToSubjectKey:
@@ -575,8 +601,8 @@ def test_build_nearby_books_placeholder_config_targets_the_nearby_books_partial(
     config = build_nearby_books_placeholder_config("/works/OL1W", "eng")
     assert json.loads(config["lazy_config_json"]) == {"partial": "NearbyBooks", "work_key": "/works/OL1W", "language": "eng"}
     assert config["fallback"] is None
-    # The skeleton stands in for NearbyBooksPartial's ol-carousel row and its unlinked heading.
-    assert (config["layout"], config["title_link"]) == ("ol-carousel", False)
+    # The skeleton stands in for NearbyBooksPartial's row and its unlinked heading.
+    assert config["title_link"] is False
 
 
 def _community_card(title: str) -> dict:

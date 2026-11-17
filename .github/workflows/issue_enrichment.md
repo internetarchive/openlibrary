@@ -18,6 +18,7 @@ Blessed staff list: `mekarpeles`, `lokesh`, `cdrini`, `scottbarnes`, `RayBB`, `s
 **If the author is a blessed staff member**: run the full enrichment workflow.
 
 **If the author is not staff**:
+- The issue asks us to bring an external source into Open Library (see `Type: Import Request` in Step 6) → apply that label, remove `Type: Question` if present, and run the full enrichment workflow. Check this before the `Type: Question` rule below.
 - Label `Type: Question` → reply only: "Thanks for reaching out! You may also get a faster response by posting on our [Discussions](https://github.com/internetarchive/openlibrary/discussions) board." Stop.
 - Issue type `Feature` (the `issueType` field from Step 1) → reply only: "Thanks for the suggestion! A staff member will review this and follow up when they can." Stop.
 - All other non-staff issues → run the full enrichment workflow.
@@ -135,6 +136,18 @@ gh pr list --repo internetarchive/openlibrary \
   --json number,title,state
 ```
 
+### Find related Discussions
+
+Search the repo's Discussions with the helper script, run exactly as written from `$GITHUB_WORKSPACE` (`gh api` is not available to you).
+
+```bash
+scripts/gh_scripts/search_discussions.sh {keywords}
+```
+
+- It already searches every state; do not add state qualifiers.
+- Each result shows its state, plus the accepted answer if any. Treat `closed: outdated` and `closed: duplicate` as background only.
+- If it prints `Discussions search unavailable`, skip Discussions silently; do not retry.
+
 ### What to look for
 
 - **Existing patterns** — does the repo already solve a similar problem?
@@ -182,6 +195,12 @@ For every label below, make an active decision: **add**, **remove**, or **leave 
 | `State: Blocked` | Hard external dependency: unavailable credential/service, incomplete external work | Dependency resolved |
 | *(no label — flag in comment body)* | The proposal introduces a security or privacy risk. No label exists for this; do not invent one. Instead add a `> [!WARNING]` block to the comment stating the risk plainly, and tag the relevant lead. | Risk resolved |
 
+### Import requests
+
+Add `Type: Import Request` when the issue asks us to bring a specific external source into Open Library: a catalog, dataset, MARC dump, feed or collection, a request to add a Trusted Book Provider, or a bot account whose purpose is importing records. Keep `Bot Request` on bot-account asks.
+
+Do not add it to bugs or features in the importer itself, or to bot accounts that only edit existing records. Do not add `Module: Import` to import requests; that label is for importer code.
+
 ### Module / Theme labels
 
 | Condition | Labels to add |
@@ -215,6 +234,10 @@ gh issue comment {ISSUE_NUMBER} --repo internetarchive/openlibrary --body "COMME
 Always end every comment with `<!-- ol-issue-bot -->`.
 
 ### Comment structure
+
+**For an unassigned `Good First Issue`**, include this guidance when applying or retaining the label:
+
+> No assignment is needed for this Good First Issue. Before you start, read [how to pick up a Good First Issue](https://docs.openlibrary.org/developers/CONTRIBUTING.html#good-first-issues), and leave a comment here before you open your PR.
 
 **Opening line** (non-staff authors only — omit for staff):
 
@@ -260,6 +283,7 @@ List only things materially useful to a contributor or maintainer. Every item mu
 
 - An existing file or function that already does something related (with permalink to specific lines)
 - A prior PR or issue that attempted this or was closed as a duplicate
+- A related Discussion, with its state and the gist of any accepted answer
 - A pattern the proposal should follow or conflicts with
 - A relevant commit surfaced by `git blame` or `git log -S` (with link)
 - A doc page directly covering the feature area
@@ -327,7 +351,7 @@ Mark each item `[x]` if it is actually satisfied for **this specific issue**, `[
 
 1. **No endorsements.** Never say "great issue", "well-scoped", "the use case is clear."
 2. **Context section is evidence-based only.** Nothing goes there that wasn't found by actually running a command.
-3. **Only reference public information.** No internal Slack, private discussions, or staff-only knowledge.
+3. **Only reference public information.** No internal Slack, private conversations, or staff-only knowledge. Public GitHub Discussions on this repo are fine.
 4. **@mention tags must never be wrapped in backticks** — contributors need to receive the notification.
 5. **Tag at most one lead per comment**, and only if their area is directly relevant.
 6. **Never @mention `mekarpeles` in the comment body** — the footer already covers attribution.

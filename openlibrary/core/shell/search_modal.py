@@ -61,7 +61,7 @@ def build_search_modal_i18n() -> SearchModalContext:
             "searchingInside": _("Searching inside books…"),
             "noResults": _("No results found"),
             "noCatalogResults": _("No matching books or authors"),
-            "resultsAnnounce": _("Showing %s of %s results"),
+            "resultsAnnounce": _("Showing %(shown)s of %(total)s results"),
             "authorResults": _("Authors"),
             "topResults": _("Books"),
             "untitled": _("Untitled"),

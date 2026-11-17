@@ -5,7 +5,9 @@ The page links to each source on the edition's ISBN; Open Library fetches nothin
 
 from dataclasses import dataclass
 from dataclasses import field as dc_field
+from urllib.parse import quote, quote_plus
 
+from openlibrary.core.tags import _words
 from openlibrary.i18n import gettext as _
 
 HELP_BASE = "https://openlibrary.org/help/faq/editing"
@@ -15,13 +17,26 @@ COVER_GUIDELINES = f"{HELP_BASE}#picture"
 LCCN_SPEC = "https://www.loc.gov/marc/lccn-namespace.html"
 OCLC_SPEC = "https://help.oclc.org/Librarian_Toolbox/Searching_WorldCat_Indexes/Bibliographic_records/OCLC_control_number"
 
-# Search pages opened on an ISBN-13.
+# Search pages opened on an ISBN-13, each with the title-and-author search an edition without an ISBN gets instead.
 WORLDCAT = "https://search.worldcat.org/search?q=bn:{isbn}"
+WORLDCAT_BY_TITLE = "https://search.worldcat.org/search?q={q}"
 GOOGLE_BOOKS = "https://books.google.com/books?vid=ISBN{isbn}"
+GOOGLE_BOOKS_BY_TITLE = "https://www.google.com/search?tbm=bks&q={q}"
 AMAZON = "https://www.amazon.com/s?k={isbn}"
+AMAZON_BY_TITLE = "https://www.amazon.com/s?k={q}&i=stripbooks"
 LOC = "https://catalog.loc.gov/vwebv/search?searchArg={isbn}&searchCode=GKEY%5E*&searchType=0"
+LOC_BY_TITLE = "https://catalog.loc.gov/vwebv/search?searchArg={q}&searchCode=GKEY%5E*&searchType=0"
 BETTER_WORLD_BOOKS = "https://www.betterworldbooks.com/product/detail/{isbn}"
+BETTER_WORLD_BOOKS_BY_TITLE = "https://www.betterworldbooks.com/search/results?q={q}"
 GOODREADS = "https://www.goodreads.com/search?q={isbn}"
+GOODREADS_BY_TITLE = "https://www.goodreads.com/search?q={q}"
+# The Internet Speculative Fiction Database lists each printing; its title search takes the title alone.
+ISFDB = "https://www.isfdb.org/cgi-bin/se.cgi?arg={isbn}&type=ISBN"
+ISFDB_BY_TITLE = "https://www.isfdb.org/cgi-bin/se.cgi?arg={title}&type=Fiction+Titles"
+# The Library of Congress record an LCCN names, with no search in between.
+LOC_RECORD = "https://lccn.loc.gov/{lccn}"
+# Genre tags and subjects that mark a work as ISFDB's kind of book, as word stems (see ``tags._words``).
+SPECULATIVE_PHRASES = (["science", "fiction"], ["sci", "fi"], ["speculative", "fiction"], ["fantasy"])
 # A book's Amazon product id is its ISBN-10; L is the large image. A 1x1 GIF when Amazon has none.
 AMAZON_COVER = "https://m.media-amazon.com/images/P/{isbn10}.01.L.jpg"
 
@@ -36,6 +51,8 @@ class GuidelineNote:
 class LookupSource:
     label: str
     url: str  # may hold an {isbn} placeholder
+    by_title: str = ""  # the same site searched on {q} (title and author) or {title}, for an edition with no ISBN
+    tip: str = ""  # why this source leads, shown under the how-to when the record brings the source in
 
 
 @dataclass(frozen=True)
@@ -60,13 +77,16 @@ class FieldGuide:
     many: bool = False  # choices only: any number of tags, as a row of chips rather than a list of one-pick rows
     not_found: str = ""  # the honest exit's label when it isn't "I couldn't find it"
     quick_next: bool = False  # choices only: clicking the picked row again saves and moves on
+    # Sources the record brings in, ahead of the standing ones.
+    loc_record: bool = False  # the Library of Congress record, when the edition has an LCCN
+    isfdb: bool = False  # ISFDB, when the work is science fiction or fantasy
 
 
 def get_field_guides() -> dict[str, FieldGuide]:
-    worldcat = LookupSource(_("WorldCat"), WORLDCAT)
-    google = LookupSource(_("Google Books"), GOOGLE_BOOKS)
-    amazon = LookupSource(_("Amazon"), AMAZON)
-    loc = LookupSource(_("Library of Congress"), LOC)
+    worldcat = LookupSource(_("WorldCat"), WORLDCAT, WORLDCAT_BY_TITLE)
+    google = LookupSource(_("Google Books"), GOOGLE_BOOKS, GOOGLE_BOOKS_BY_TITLE)
+    amazon = LookupSource(_("Amazon"), AMAZON, AMAZON_BY_TITLE)
+    loc = LookupSource(_("Library of Congress"), LOC, LOC_BY_TITLE)
     return {
         "covers": FieldGuide(
             field="covers",
@@ -77,7 +97,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
                 "Look the ISBN up on Google Books, Amazon or Better World Books and save the front cover image. "
                 "Check that the title, author and publisher on the image match this edition, then upload it here."
             ),
-            sources=[google, amazon, LookupSource(_("Better World Books"), BETTER_WORLD_BOOKS)],
+            sources=[google, amazon, LookupSource(_("Better World Books"), BETTER_WORLD_BOOKS, BETTER_WORLD_BOOKS_BY_TITLE)],
             notes=[
                 GuidelineNote(
                     _("Upload the cover only, flat and in full: no photos of the book on a table, no 3D mockups, no store badges or watermarks."),
@@ -85,7 +105,6 @@ def get_field_guides() -> dict[str, FieldGuide]:
                 ),
             ],
             traps=[
-                _("The cover belongs to another edition. A paperback, a reissue or a translation usually has a different cover; check the publisher."),
                 _("Making a cover yourself. If you can't find the real one, leave it for someone who can."),
             ],
             input_type="file",
@@ -96,8 +115,12 @@ def get_field_guides() -> dict[str, FieldGuide]:
             label=_("Language"),
             action=_("Fill in language"),
             question=_("What language is this edition written in?"),
-            how=_("Look the ISBN up in WorldCat or Google Books; both list the language of the text. The title page and cover tell you too."),
+            how=_(
+                "Start with the title, subtitle and publisher on this page. Then look the ISBN up: WorldCat lists the language, "
+                "and Google Books shows a “Translated by” line when the edition is a translation."
+            ),
             sources=[worldcat, google],
+            loc_record=True,
             show_siblings=True,
             suggest_from_siblings=True,
             sibling_hint=_("Editions of a work usually share a language, but a translation won't. Check this edition's own text."),
@@ -115,10 +138,11 @@ def get_field_guides() -> dict[str, FieldGuide]:
             action=_("Fill in page count"),
             question=_("How many pages does this edition have?"),
             how=_(
-                "WorldCat lists the page count in the record's description. Google Books calls it Length. "
-                "Make sure the record is for this ISBN, not another printing."
+                "Google Books lists the page count as Length. WorldCat has it in the record's description, sometimes only after you sign in. "
+                "Amazon's print length often counts every page, so use it to check a number rather than to find one."
             ),
-            sources=[worldcat, google, amazon],
+            sources=[google, worldcat, amazon],
+            isfdb=True,
             notes=[
                 GuidelineNote(
                     _(
@@ -137,7 +161,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
             label=_("Literary form"),
             action=_("Pick fiction or nonfiction"),
             question=_("Is this book fiction or nonfiction?"),
-            how=_("If you know the book, answer from what you know. If you don't, look it up."),
+            how=_("Google Books lists Categories such as Fiction / Fantasy, and WorldCat lists Genre headings such as Fiction or Biography."),
             sources=[google, worldcat],
             notes=[
                 GuidelineNote(_("Nonfiction can read like a story. A memoir that bends the truth is still nonfiction: it is presented as fact.")),
@@ -158,14 +182,8 @@ def get_field_guides() -> dict[str, FieldGuide]:
                 "Otherwise look it up. Google Books lists Categories such as Fiction / Horror, WorldCat lists Genre/Form headings such as "
                 "Fantasy fiction, and Goodreads shows what readers shelve it as."
             ),
-            sources=[google, worldcat, LookupSource(_("Goodreads"), GOODREADS)],
+            sources=[google, worldcat, LookupSource(_("Goodreads"), GOODREADS, GOODREADS_BY_TITLE)],
             notes=[
-                GuidelineNote(
-                    _(
-                        "Some genres are settings (fantasy, historical), some are plot shapes (mystery, romance) and some are tones (humor). "
-                        "A book takes at most one of each, and usually just one or two in all."
-                    )
-                ),
                 GuidelineNote(
                     _(
                         "Go by what the book is sold as, not every element in it. "
@@ -189,8 +207,13 @@ def get_field_guides() -> dict[str, FieldGuide]:
             label=_("Publisher"),
             action=_("Fill in publisher"),
             question=_("Who published this edition?"),
-            how=_("The imprint is printed on the title page and the spine. WorldCat and the Library of Congress list it under Publisher."),
-            sources=[worldcat, loc, google],
+            how=_(
+                "The imprint is printed on the title page and the spine. The Library of Congress copies it from the title page, and WorldCat "
+                "lists it under Publisher. Google Books often names the parent company instead."
+            ),
+            sources=[loc, worldcat, google],
+            loc_record=True,
+            isfdb=True,
             show_siblings=True,
             notes=[
                 GuidelineNote(
@@ -200,15 +223,62 @@ def get_field_guides() -> dict[str, FieldGuide]:
             ],
             placeholder=_("Publisher as printed"),
         ),
+        "publish_date": FieldGuide(
+            field="publish_date",
+            label=_("Publish date"),
+            action=_("Fill in publish date"),
+            question=_("When was this edition published?"),
+            how=_(
+                "The copyright page gives the year, often next to the publisher; when the book has a scan, look there first. "
+                "Google Books lists it as Published, WorldCat as Date, "
+                "and the Library of Congress record as part of the Published line."
+            ),
+            sources=[google, worldcat, loc],
+            loc_record=True,
+            isfdb=True,
+            notes=[
+                GuidelineNote(
+                    _(
+                        "Enter the year this edition came out, or the full date if a catalog gives one, such as March 2005. "
+                        "A later printing of the same edition keeps the edition's year."
+                    )
+                ),
+            ],
+            placeholder=_("For example 2005 or March 2005"),
+        ),
+        "isbn": FieldGuide(
+            field="isbn",
+            label=_("ISBN"),
+            action=_("Fill in ISBN"),
+            question=_("What is this edition's ISBN?"),
+            how=_(
+                "The ISBN is printed on the copyright page and on the back cover, above the barcode; when the book has a scan, look there first. "
+                "Without the book in hand, search WorldCat or Google Books by title and author, open the record whose publisher, year and "
+                "format match this one, and copy the ISBN it lists."
+            ),
+            sources=[worldcat, google, amazon],
+            loc_record=True,
+            isfdb=True,
+            notes=[
+                GuidelineNote(
+                    _(
+                        "An ISBN-10 and an ISBN-13 can name the same edition: 0140449264 and 9780140449266. Paste either, with or without hyphens. "
+                        "Books from before 1970 don't have one."
+                    )
+                ),
+            ],
+            traps=[
+                _("The ISBN belongs to another format of the book: a hardcover, paperback, ebook and audiobook each have their own."),
+            ],
+            placeholder=_("For example 9780140449266"),
+            confirm=_("I checked that the publisher, year and format match this edition."),
+        ),
         "lccn": FieldGuide(
             field="lccn",
             label=_("Library of Congress number (LCCN)"),
             action=_("Fill in LCCN"),
             question=_("What is this edition's Library of Congress number?"),
-            how=_(
-                "Search the Library of Congress catalog for this ISBN. Open the record whose publisher and edition match this one, "
-                "and copy the number shown as LCCN. A paperback or later printing can show a different year and still be the same record."
-            ),
+            how=_("Search the Library of Congress catalog for this ISBN, open the matching record and copy the number shown as LCCN."),
             sources=[loc],
             notes=[
                 GuidelineNote(
@@ -218,11 +288,6 @@ def get_field_guides() -> dict[str, FieldGuide]:
             ],
             traps=[
                 _("The number belongs to a different edition: another publisher's, a revised edition, a translation or the ebook. Each has its own record."),
-                _(
-                    "The number is already on another edition of this work. That's right when it's the hardcover, paperback or a later printing "
-                    "from the same publisher; a different publisher or a revised edition means one of the two records is wrong."
-                ),
-                _("Pasting the web address instead of the number itself."),
             ],
             placeholder=_("For example 75425165"),
             confirm=_("I opened the record and its publisher and edition match this one."),
@@ -232,15 +297,8 @@ def get_field_guides() -> dict[str, FieldGuide]:
             label=_("OCLC/WorldCat number"),
             action=_("Fill in OCLC number"),
             question=_("What is this edition's WorldCat (OCLC) number?"),
-            how=_(
-                "Search WorldCat for this ISBN. Open the print record whose publisher and edition match this one, and copy the number shown as OCLC Number. "
-                "A paperback or later printing can show a different year and still be the same record."
-            ),
+            how=_("Search WorldCat for this ISBN, open the matching print record and copy the number shown as OCLC Number."),
             sources=[worldcat],
-            why=_(
-                "The OCLC number is how libraries the world over refer to one catalogued edition. "
-                "It is one of the few fields Open Library uses to find duplicates of this book when new records arrive."
-            ),
             notes=[
                 GuidelineNote(
                     _("The prefixes ocm, ocn, on and (OCoLC) are padding added by library systems, not part of the number. ocm00047810608 is 47810608."),
@@ -250,10 +308,6 @@ def get_field_guides() -> dict[str, FieldGuide]:
             ],
             traps=[
                 _("The number belongs to a different record: the ebook, another publisher's edition, a revised edition, large print or a translation."),
-                _(
-                    "The number is already on another edition of this work. That's right when it's the hardcover, paperback or a later printing "
-                    "from the same publisher; a different publisher or a revised edition means one of the two records is wrong."
-                ),
                 _("Pasting the web address, or leaving the ocm/ocn prefix on."),
             ],
             placeholder=_("Digits only, for example 47810608"),
@@ -262,8 +316,45 @@ def get_field_guides() -> dict[str, FieldGuide]:
     }
 
 
-def build_link_outs(field_guide: FieldGuide, isbn13: str | None) -> list[LookupSource]:
-    """The field guide's sources, opened on this ISBN."""
-    if not isbn13:
-        return []
-    return [LookupSource(s.label, s.url.format(isbn=isbn13)) for s in field_guide.sources]
+def is_speculative(labels: list[str]) -> bool:
+    """Whether any of a work's genre names or subjects says science fiction or fantasy."""
+    for label in labels:
+        words = _words(label)
+        if any(words[i : i + len(p)] == p for p in SPECULATIVE_PHRASES for i in range(len(words) - len(p) + 1)):
+            return True
+    return False
+
+
+def record_sources(field_guide: FieldGuide, lccn: str = "", speculative: bool = False) -> list[LookupSource]:
+    """The sources this record brings in, most telling first."""
+    out = []
+    if field_guide.loc_record and lccn:
+        tip = _("This edition has a Library of Congress record, which gives the language and the publisher as printed.")
+        out.append(LookupSource(_("Library of Congress record"), LOC_RECORD.format(lccn=quote(lccn)), tip=tip))
+    if field_guide.isfdb and speculative:
+        tip = _("ISFDB covers science fiction and fantasy printing by printing.")
+        out.append(LookupSource(_("ISFDB"), ISFDB, ISFDB_BY_TITLE, tip=tip))
+    return out
+
+
+def build_link_outs(
+    field_guide: FieldGuide, isbn13: str | None, title: str = "", authors: str = "", lccn: str = "", speculative: bool = False
+) -> list[LookupSource]:
+    """The field guide's sources opened on this edition: on its ISBN, or on its title and author when it has none.
+
+    The sources the record brings in come first. A Library of Congress record stands in for the catalog search that would find it.
+    """
+    extra = record_sources(field_guide, lccn, speculative)
+    standing = [s for s in field_guide.sources if not (s.url == LOC and any(e.url.startswith("https://lccn.loc.gov/") for e in extra))]
+    out = []
+    for s in [*extra, *standing]:
+        if "{isbn}" not in s.url:
+            url = s.url
+        elif isbn13:
+            url = s.url.format(isbn=isbn13)
+        elif s.by_title and title:
+            url = s.by_title.format(q=quote_plus(f"{title} {authors}".strip()), title=quote_plus(title))
+        else:
+            continue
+        out.append(LookupSource(s.label, url, tip=s.tip))
+    return out

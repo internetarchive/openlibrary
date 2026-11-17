@@ -98,13 +98,11 @@ def test_a_project_page_breaks_progress_down_by_detail(client, request_context_f
     html = client.get(f"/tasks/admin/{MOST_READ.slug}").text
     assert "40 saves, 2 since undone (5%)" in html
     assert "From 9 to 5 over 2 days" in html
-    assert f'href="/tasks?initiative={MOST_READ.slug}"' in html
 
 
-def test_a_draft_has_no_public_link_and_no_progress(client):
+def test_a_draft_has_no_progress(client):
     html = client.get("/tasks/admin/winter-covers").text
     assert "Getting the list ready" in html  # counted before it starts, so its books can be checked
-    assert "View on Tasks" not in html
     assert "No saves counted yet." in html
 
 
@@ -227,6 +225,8 @@ def test_editing_saves_only_what_differs(client, changes):
         ({"title": "T", "ends": "2026-12-31"}, "needs a start date"),
         ({"title": "T", "starts": "2026-12-31", "ends": "2026-12-01"}, "before the start date"),
         ({"title": "T", "starts": "soon"}, "isn't one we can read"),
+        ({"title": "T", "goal": "0"}, "The goal is a percent from 1 to 100."),
+        ({"title": "T", "goal": "120"}, "The goal is a percent from 1 to 100."),
     ],
 )
 def test_a_bad_edit_is_refused_with_its_reason(client, changes, form, error):
@@ -238,6 +238,35 @@ def test_a_built_in_project_may_blank_its_title_to_keep_its_translated_name():
     renamed = replace(MOST_READ, title="Gaps!", description="Fill them.")
     assert manage.parse_edit(renamed, "", "ignored without a title", "2026-11-01", "") == ({"title": "", "description": ""}, "")
     assert manage.parse_edit(MOST_READ, "", "", "2026-11-01", "") == ({}, "")
+
+
+def test_the_goal_is_saved_only_when_it_changes_and_a_blank_keeps_it():
+    assert manage.parse_edit(MOST_READ, "", "", "2026-11-01", "", "75") == ({"goal": 75}, "")
+    assert manage.parse_edit(MOST_READ, "", "", "2026-11-01", "", "90%") == ({}, "")
+    assert manage.parse_edit(MOST_READ, "", "", "2026-11-01", "", " ") == ({}, "")
+    assert manage.build_controls(replace(MOST_READ, goal=80), "live", {})["form"]["goal"] == "80"
+    assert manage.describe_change({"action": "edit", "changes": {"goal": 75}}) == "Edited: goal"
+
+
+def test_creating_takes_the_goal_typed_or_the_default(client, created):
+    client.post("/tasks/admin/new", data=NEW | {"goal": "75"})
+    client.post("/tasks/admin/new", data=NEW)
+    assert [definition["goal"] for definition, _editions, _by in created] == [75, initiatives.DEFAULT_GOAL]
+    assert 'name="goal"' in client.get("/tasks/admin/new").text
+
+
+@pytest.mark.parametrize(
+    ("fields", "goal"),
+    [(["covers"], 90), (["covers", "lccn"], 75), (["lccn", "oclc_numbers"], 50), (["oclc_numbers"], 50), ([], 90)],
+)
+def test_the_suggested_goal_is_lower_for_details_many_books_lack(fields, goal):
+    assert manage.suggested_goal(fields) == goal
+
+
+def test_a_blank_goal_on_create_takes_the_suggestion_for_its_details(client, created):
+    client.post("/tasks/admin/new", data=NEW | {"fields": ["lccn"], "goal": ""})
+    assert created[0][0]["goal"] == 50
+    assert "data-goal-rule" in client.get("/tasks/admin/new").text
 
 
 def test_saving_the_form_again_does_not_restart_a_project_stopped_today():
@@ -299,6 +328,7 @@ def test_creating_freezes_the_books_named_and_keeps_what_was_left_out(client, cr
         "fields": ["covers"],
         "starts_at": "2026-12-01T00:00:00+00:00",
         "ends_at": None,
+        "goal": 90,
         "source": "pasted",
         "size": 2,
         "skipped": [{"entry": "nonsense", "reason": "unknown"}],
@@ -333,9 +363,12 @@ def test_a_picker_project_names_no_books_and_is_picked_later(client, created):
         ({"source": ""}, "Choose where the books come from."),
         ({"books": "nonsense"}, "None of those are books the project can use."),
         ({"source": "list", "list_url": "not a list"}, "isn&#39;t an Open Library list"),
-        ({"source": "most-shelved", "size": "0"}, "Choose how many books"),
-        ({"source": "most-shelved", "size": "99999"}, "Choose how many books"),
+        ({"source": "most-shelved-missing", "size": "0"}, "Choose how many books"),
+        ({"source": "most-shelved-missing", "size": "99999"}, "Choose how many books"),
+        # No longer offered: whether or not a book needs anything.
+        ({"source": "most-shelved"}, "Choose where the books come from."),
         ({"ends": "2026-12-01"}, "needs a start date"),
+        ({"goal": "ninety"}, "The goal is a percent from 1 to 100."),
     ],
 )
 def test_a_bad_create_comes_back_on_the_form_with_what_was_typed(client, created, change, error):

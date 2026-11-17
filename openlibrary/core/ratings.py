@@ -163,11 +163,14 @@ class Ratings(db.CommonExtras):
 
     @classmethod
     async def remove(cls, username, work_id):
+        from openlibrary.core.bookshelves import Bookshelves
+
         work_id = int(work_id)
         await execute(
             "DELETE FROM ratings WHERE work_id = %(work_id)s AND username = %(username)s",
             {"work_id": work_id, "username": username},
         )
+        Bookshelves.reading_log_changed(username)
 
     @classmethod
     async def add(cls, username, work_id, rating, edition_id=None):
@@ -203,6 +206,7 @@ class Ratings(db.CommonExtras):
             """,
             {"username": username, "work_id": work_id, "rating": rating, "edition_id": edition_id},
         )
+        Bookshelves.reading_log_changed(username)
 
     @classmethod
     async def calc_star_rating_counts(cls) -> dict[str, int]:

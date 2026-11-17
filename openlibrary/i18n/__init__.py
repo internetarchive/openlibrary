@@ -21,7 +21,7 @@ from babel.support import Translations
 
 from openlibrary.utils.request_context import req_context
 
-from .validators import _parse_cfmt, validate
+from .validators import _parse_cfmt, check_source_string, validate
 
 root = os.path.dirname(__file__)
 
@@ -219,6 +219,21 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
         write_po(f, catalog, include_lineno=False, width=POT_WIDTH)
 
     print("Updated strings written to", path)
+    return check_source_strings(catalog)
+
+
+def check_source_strings(catalog: Catalog) -> list[str]:
+    """`path:line: problem` for every English msgid that translators can't translate well."""
+    problems = []
+    for message in catalog:
+        if not message.id:
+            continue
+        msgids = message.id if message.pluralizable else (message.id,)
+        found = [p for msgid in msgids for p in check_source_string(str(msgid))]
+        for problem in dict.fromkeys(found):
+            for path, lineno in message.locations:
+                problems.append(f"{path}:{lineno}: {problem}\n    {msgids[0]!r}")
+    return problems
 
 
 def compile_translations(locales: list[str]):

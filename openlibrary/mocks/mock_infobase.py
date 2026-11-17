@@ -11,7 +11,6 @@ import web
 
 from infogami import config
 from infogami.infobase import account, client, common
-from infogami.infobase import config as infobase_config
 from openlibrary.plugins.upstream.models import Changeset
 from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.utils.request_context import site as site_context
@@ -29,12 +28,6 @@ class MockSite:
 
     def reset(self):
         self.store = MockStore()
-        if config.get("infobase") is None:
-            config.infobase = {}
-
-        infobase_config.secret_key = "foobar"
-        config.infobase["secret_key"] = "foobar"
-
         self.account_manager = self.create_account_manager()
 
         self._cache = {}
@@ -45,9 +38,7 @@ class MockSite:
         self.keys = {"work": 0, "author": 0, "edition": 0}
 
     def create_account_manager(self):
-        # Hack to use the accounts stuff from Infogami
-        infobase_config.user_root = "/people"
-
+        # Hack to use the accounts stuff from Infogami. The root conftest sets the config it reads.
         store = web.storage(store=self.store)
         site = web.storage(store=store, save_many=self.save_many)
         return account.AccountManager(site, config.infobase["secret_key"])
@@ -204,8 +195,14 @@ class MockSite:
         return [self.get(k) for k in keys if k in self.docs]
 
     def things(self, query):
-        limit = query.pop("limit", 100)
+        # Matches Infobase's default (`infobase/readquery.py`). A more generous
+        # default here hides bugs that only production's limit can cause: see #13778,
+        # where matching silently only saw an author's first 20 works.
+        limit = query.pop("limit", 20)
         offset = query.pop("offset", 0)
+        # Results are always returned sorted by key below, so accept a sort rather
+        # than treating it as a filter on a field called "sort".
+        query.pop("sort", None)
 
         keys = set(self.docs)
 

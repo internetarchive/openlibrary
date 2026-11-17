@@ -631,3 +631,40 @@ async def search_lists(nav: SearchNavDep, user: CurrentUserDep, q: str = "", pag
         total_pages=ceil(response.num_found / limit),
     )
     return SitePage(body, page=PageMeta(title=lists_search_title(q)))
+
+
+def subjects_search_title(q: str) -> str:
+    """Page title for /search/subjects: led by the query, as in Wikipedia's, so tabs and history tell searches apart."""
+    return _("%(query)s - Subject search", query=q) if q else _("Subject search")
+
+
+@pages.get("/search/subjects")
+async def search_subjects(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePage:
+    # TODO: Retire the web.py `subject_search` handler (it still serves /search/subjects
+    # in production) once production routes /search/subjects here.
+    q = q.strip()
+    page = max(1, page)
+    limit = 100
+    response = (
+        await run_solr_query_async(
+            SubjectSearchScheme(),
+            {"q": q},
+            offset=(page - 1) * limit,
+            rows=limit,
+            sort="work_count desc",
+            request_label="SUBJECT_SEARCH",
+        )
+        if q
+        else None
+    )
+
+    body = render_jinja_template(
+        "search/subjects.html.jinja",
+        nav=nav,
+        q=q,
+        search_response=response,
+        commified_num_found=commify(response.num_found) if response and response.num_found is not None else "",
+        page=page,
+        total_pages=ceil((response.num_found or 0) / limit) if response else 0,
+    )
+    return SitePage(body, page=PageMeta(title=subjects_search_title(q)))
