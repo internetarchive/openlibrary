@@ -176,7 +176,8 @@ Field rules:
   means at least one does. A `"none"` needs a `note` saying what you checked, in a few words.
 - `dimension` — on every finding, one of the five keys above.
 - `severity` — exactly `high`, `medium`, or `low`; anything else makes the review
-  unpublishable. Rank the array most severe first.
+  unpublishable. Rank the array most severe first. `low` findings are posted as suggestions
+  that don't block merging; use `medium` or `high` for anything that should be fixed first.
 - `title` and `body` — required, non-empty strings. Keep the `body` to two or three short
   sentences: the problem and the fix. Skip what the reader can see in the diff. Keys not shown
   in the schema are discarded before anything is posted, so do not put content anywhere else.

@@ -188,8 +188,8 @@ env:
         // The remaining withholds are TEXT-backstop trips (length / secrets / vocabulary) on a review
         // the model classified security=none. The structured finding count is trustworthy, so blocking
         // tracks it: 0 findings -> NON-blocking (the backstop-false-positive case greens itself);
-        // any finding -> blocking. This is the ONLY greenable withheld case (D3a).
-        const withholdByText = { publish: false, findingsTotal: clean.findings.length, blocking: clean.findings.length > 0 };
+        // any non-LOW finding -> blocking. This is the ONLY greenable withheld case (D3a).
+        const withholdByText = { publish: false, findingsTotal: clean.findings.length, blocking: clean.findings.some((f) => f.severity !== 'low') };
         if (raw.length > this.maxText) return withholdByText;
         const plain = this.plain(raw);
         if (plain === null || this.secrets.test(plain)) return withholdByText;
@@ -569,7 +569,8 @@ jobs:
             // `code-review` status is a required FLOOR (an automated review ran clean-ish), NOT a
             // CEILING (good to merge) -- it is "not an approval" and is paired with human review, who
             // stays in the loop for exactly this case. Fast-follow #14471: count over the full PR.
-            const pubCount = res.publish ? res.clean.findings.length : 0;
+            // LOW findings are suggestions: they don't count toward the status.
+            const pubCount = res.publish ? res.clean.findings.filter((f) => f.severity !== 'low').length : 0;
             core.setOutput('public_findings_count', String(pubCount));
             // #14476 D3a -- the SHA-bound status is finding-driven, not withhold-driven. The PUBLIC
             // count above keeps its documented "0 on every withhold" invariant, so no finding count
@@ -744,8 +745,10 @@ jobs:
               }
             }
 
-            const inline = [], orphaned = [];
+            // LOW findings become a non-blocking suggestions list in the summary, not threads (threads block).
+            const inline = [], orphaned = [], suggestions = [];
             for (const f of (review.findings || [])) {
+              if (f.severity === 'low') { suggestions.push(f); continue; }
               const hasAnchor = f.path && f.line;
               const start = f.start_line || f.line;
               const ok = hasAnchor
@@ -771,6 +774,7 @@ jobs:
             // --- Summary body. Findings with no honest in-diff anchor live here rather than
             // being pinned to an approximate line: on a real review of #13548, 3 of 9 findings
             // proved themselves in files the diff never touched.
+            const findingCount = inline.length + orphaned.length; // blocking findings only (LOW excluded)
             let summary = review.summary || '';
             // The range comes from analyze's job outputs, set before the model ran.
             const sha = /^[0-9a-f]{40}$/, baseSha = process.env.BASE_SHA;
@@ -793,11 +797,16 @@ jobs:
                 `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body).replace(/\n/g, '\n  ')}`
               ).join('\n\n');
             }
+            if (suggestions.length) {
+              summary += `\n\n### Suggestions (won't block)\n\n` + suggestions.map(f =>
+                `- **${f.title}**${f.path ? ` (\`${f.path}${f.line ? `:${f.line}` : ''}\`)` : ''}: ${String(f.body).replace(/\n/g, ' ')}`
+              ).join('\n');
+            }
             // #14484: tell the contributor -- who may have no write access and cannot use the
             // "re-request review" button -- exactly how to re-run the review after pushing fixes.
             // A plain instruction so a stranger needs no prior knowledge of the magic comment.
             summary += `\n\n---\n> [!TIP]\n> When you've addressed the feedback and pushed your changes, comment \`@openlibrary-bot review\` on this PR to run a fresh review.`;
-            summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${review.findings.length} -->`;
+            summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
 
             // #14476 D1 -- review + status must describe the SAME commit. createReview re-anchors its
             // inline comments to the PR's LIVE head at post time (it ignores commit_id), so if a push
@@ -815,7 +824,6 @@ jobs:
             // --- #14487: the PR author (authoritative, from the live-head re-fetch above) and the published
             // finding count -- the SAME signal the status job reads on the published path.
             const selfAuthored = (livePr.user && livePr.user.login) === 'openlibrary-bot';
-            const findingCount = (review.findings || []).length;
 
             // --- #14487 PART B (runs BEFORE the post, because it gates the verdict): enumerate the review
             // threads, resolve our OWN threads whose finding is now fixed (threadsToResolve -- line-granular,
