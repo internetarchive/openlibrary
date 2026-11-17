@@ -294,9 +294,11 @@ Field rules:
   item. Every item in every list is a non-empty string; use `[]` for an empty list. Anything
   else makes the review unpublishable. The three result lists are posted, one short line per
   item; `ticket_requirements` is not.
-- `suggestion` — optional. The replacement text for **exactly** the `start_line..line` range,
-  rendered as a GitHub suggestion block. The line count must match the range exactly, or the
-  suggestion is unappliable. Omit it unless you are confident; prose is fine.
+- `suggestion` — the replacement text for **exactly** the `start_line..line` range, rendered as
+  a GitHub suggestion the author can apply in one click. Include one whenever the fix only
+  changes the anchored lines: copy those lines exactly from `pr-head/<path>`, keep their
+  indentation, and edit them. The line count must match the range. Leave it out when the fix
+  touches other lines or files, or when you aren't sure the replacement is right.
 - Write for a busy reader: short sentences, no restating the code, no walls of text.
 - Keep `findings` to the things worth a maintainer's attention. Ten real findings beat forty
   padded ones, and this review costs money per run.

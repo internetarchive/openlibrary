@@ -647,3 +647,27 @@ test('range: a thread-read failure still writes an empty prior-threads.json and 
         rmSync(d, { recursive: true, force: true });
     }
 });
+
+// ========================= Suggestions the author can apply =========================
+// DIFF's only anchorable line is a.py:1, `print(1)`.
+async function postedBody(suggestion) {
+    const d = setup(
+        reviewWith([{ dimension: 'correctness', severity: 'high', confidence: 8, title: 'Bug here', body: 'details', path: 'a.py', line: 1, suggestion }])
+    );
+    try {
+        const { github, calls } = mockGitHub({ author: 'contributor' });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        return calls.createReview[0].comments[0].body;
+    } finally {
+        teardown();
+    }
+}
+test('post: a suggestion that changes the anchored line is posted as an applicable suggestion', async () => {
+    assert.match(await postedBody('print(2)'), /\n```suggestion\nprint\(2\)\n```/);
+});
+test('post: a suggestion with the wrong line count, or no change, is dropped', async () => {
+    for (const s of ['print(2)\nprint(3)', 'print(1)']) assert.doesNotMatch(await postedBody(s), /suggestion\n/, JSON.stringify(s));
+});
+test('post: a suggestion containing backticks gets a longer fence', async () => {
+    assert.match(await postedBody('x = "```"'), /\n````suggestion\nx = "```"\n````/);
+});

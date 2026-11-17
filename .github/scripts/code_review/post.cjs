@@ -157,11 +157,11 @@ async function validateAndPost({ github, context, core, require, process }) {
     {
         let file = null,
             newLn = 0;
-        for (const raw of fs.readFileSync('review.diff', 'utf8').split('\n')) {
+        for (const raw of fs.readFileSync('review.diff', 'utf8').split(/\r?\n/)) {
             if (raw.startsWith('+++ ')) {
                 const p = raw.slice(4).trim();
                 file = p === '/dev/null' ? null : p.replace(/^b\//, '');
-                if (file) anchorable.set(file, new Set());
+                if (file) anchorable.set(file, new Map());
                 continue;
             }
             const h = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
@@ -171,7 +171,7 @@ async function validateAndPost({ github, context, core, require, process }) {
             }
             if (!file) continue;
             if (raw.startsWith('+') || raw.startsWith(' ')) {
-                anchorable.get(file).add(newLn++);
+                anchorable.get(file).set(newLn++, raw.slice(1));
             }
         }
     }
@@ -207,11 +207,15 @@ async function validateAndPost({ github, context, core, require, process }) {
         let body = `**${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`;
         // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
         if (f.suggestion != null) {
-            // A suggestion must replace exactly start..line or it cannot be applied.
+            // A suggestion must replace exactly start..line, and change something, or it is no use.
             const want = Number(f.line) - Number(start) + 1;
             const got = String(f.suggestion).split('\n').length;
-            if (want === got) body += `\n\n\`\`\`suggestion\n${f.suggestion}\n\`\`\``;
-            else core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (${got} lines for a ${want}-line range).`);
+            const current = Array.from({ length: want }, (_, i) => anchorable.get(f.path).get(Number(start) + i)).join('\n');
+            // Longer than any backtick run inside, so the suggestion can't close the fence.
+            const fence = '`'.repeat(Math.max(2, ...(f.suggestion.match(/`+/g) || []).map(r => r.length)) + 1);
+            if (want !== got) core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (${got} lines for a ${want}-line range).`);
+            else if (f.suggestion === current) core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (no change).`);
+            else body += `\n\n${fence}suggestion\n${f.suggestion}\n${fence}`;
         }
         body += agentPrompt(f, true);
         const c = { path: f.path, line: Number(f.line), side: 'RIGHT', body };
