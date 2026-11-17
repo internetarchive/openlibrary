@@ -146,7 +146,7 @@ annotations in a file that has none.
 
 ```json
 {
-  "summary": "One or two paragraphs. Lead with what the PR does...",
+  "summary": "One or two sentences on what the PR does.",
   "dimensions": {
     "correctness":   { "status": "findings", "note": "One edge case." },
     "security":      { "status": "none",     "note": "What you checked." },
@@ -159,7 +159,7 @@ annotations in a file that has none.
       "dimension": "correctness",
       "severity": "high",
       "title": "Short noun phrase",
-      "body": "What is wrong, why it matters, and what to do...",
+      "body": "What is wrong and what to do, in two or three short sentences.",
       "path": "docker/mockservices/main.py",
       "start_line": 421,
       "line": 428,
@@ -173,12 +173,13 @@ Field rules:
 
 - `dimensions` — all five keys, always. `status` is exactly `"none"` or `"findings"`, and it
   must agree with `findings`: `"none"` means no finding carries that dimension, `"findings"`
-  means at least one does. A `"none"` needs a `note` saying what you checked.
+  means at least one does. A `"none"` needs a `note` saying what you checked, in a few words.
 - `dimension` — on every finding, one of the five keys above.
 - `severity` — exactly `high`, `medium`, or `low`; anything else makes the review
   unpublishable. Rank the array most severe first.
-- `title` and `body` — required, non-empty strings. Keys not shown in the schema are discarded
-  before anything is posted, so do not put content anywhere else.
+- `title` and `body` — required, non-empty strings. Keep the `body` to two or three short
+  sentences: the problem and the fix. Skip what the reader can see in the diff. Keys not shown
+  in the schema are discarded before anything is posted, so do not put content anywhere else.
 - `path` — repository-relative, exactly as it appears in `review.diff` (`openlibrary/core/models.py`),
   never with a `pr-head/` prefix. A path containing spaces, markdown, `..` or a leading `/` makes
   the review unpublishable.
@@ -191,6 +192,7 @@ Field rules:
 - `suggestion` — optional. The replacement text for **exactly** the `start_line..line` range,
   rendered as a GitHub suggestion block. The line count must match the range exactly, or the
   suggestion is unappliable. Omit it unless you are confident; prose is fine.
+- Write for a busy reader: short sentences, no restating the code, no walls of text.
 - Keep `findings` to the things worth a maintainer's attention. Ten real findings beat forty
   padded ones, and this review costs money per run.
 
