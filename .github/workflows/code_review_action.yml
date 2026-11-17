@@ -145,6 +145,11 @@ env:
       path: /^(?!.*(^|\/)\.\.(\/|$))[A-Za-z0-9_.][A-Za-z0-9_.\/-]*$/,
       // A GraphQL node id of an earlier review thread (PRRT_...). Ids only -- never published text.
       threadId: /^[A-Za-z0-9_=-]{1,128}$/,
+      // Ticket compliance (code_review.md Step 5): a GitHub issue URL, at most one entry per linked
+      // issue (the linked-issues step fetches at most 3), and the published result lists.
+      ticketUrl: /^https:\/\/github\.com\/[A-Za-z0-9-]+\/[A-Za-z0-9._-]+\/issues\/[1-9][0-9]{0,8}$/,
+      maxTickets: 3,
+      ticketLists: ['fully_compliant_requirements', 'not_compliant_requirements', 'requires_further_human_verification'],
       check(review) {
         try { return this.evaluate(review); } catch (e) { return { publish: false, findingsTotal: null, blocking: true }; }
       },
@@ -181,6 +186,25 @@ env:
           if (k !== 'security' && !absent(d.note) && !str(d.note)) return no;
           clean.dimensions[k] = k === 'security' ? { status: d.status } : { status: d.status, note: d.note };
         }
+        // `ticket_compliance`: PR-Agent's TicketCompliance, one entry per linked issue (code_review.md
+        // Step 5). Optional. `ticket_requirements` is the model's working list: never published, so
+        // neither kept nor scanned, and optional here because `post` re-checks the kept copy, which
+        // lacks it (like the security note). The three result lists are published: kept and scanned.
+        const tc = review.ticket_compliance;
+        if (!absent(tc) && !(Array.isArray(tc) && tc.length <= this.maxTickets)) return no;
+        const items = (v) => Array.isArray(v) && v.every((s) => str(s) && s.trim());
+        clean.ticket_compliance = [];
+        for (const t of tc || []) {
+          if (!t || typeof t !== 'object' || Array.isArray(t) || !str(t.ticket_url) || !this.ticketUrl.test(t.ticket_url)) return no;
+          if (clean.ticket_compliance.some((c) => c.ticket_url === t.ticket_url)) return no;
+          if (!absent(t.ticket_requirements) && !(items(t.ticket_requirements) && t.ticket_requirements.length)) return no;
+          const c = { ticket_url: t.ticket_url };
+          for (const k of this.ticketLists) {
+            if (!absent(t[k]) && !items(t[k])) return no;
+            c[k] = [...(t[k] || [])];
+          }
+          clean.ticket_compliance.push(c);
+        }
         // A withhold caused by the MODEL's own security classification is BLOCKING regardless of the
         // structured count (#14476 D3a, Locke constraint 3): never greenable. (The security dim is
         // 'findings' only with >=1 security finding, by the consistency check above, so findingsTotal
@@ -189,6 +213,7 @@ env:
         const text = [clean.summary];
         for (const [k, d] of Object.entries(clean.dimensions)) if (k !== 'security') text.push(d.note);
         for (const f of clean.findings) text.push(f.title, f.body, f.suggestion, f.path);
+        for (const t of clean.ticket_compliance) { text.push(t.ticket_url); for (const k of this.ticketLists) text.push(...t[k]); }
         const raw = text.filter((t) => t != null).join('\n');
         // The remaining withholds are TEXT-backstop trips (length / secrets / vocabulary) on a review
         // the model classified security=none. The structured finding count is trustworthy, so blocking
@@ -307,6 +332,8 @@ jobs:
       # to decide whether an already-reviewed head still needs its `code-review` status posted. This
       # is a READ scope only -- it does not weaken the no-write half of the analyze/post split.
       statuses: read
+      # Read-only: the linked-issues step reads the issues a PR links to (ticket context).
+      issues: read
       # Required by claude-code-action's OIDC fetch. GitHub accepts only `write` or `none`
       # here; `none` breaks the token exchange. This is NOT repository write access -- see
       # #13604, where removing it silently broke the PR auto-responder.
@@ -521,6 +548,101 @@ jobs:
             core.setOutput('skip', 'false');
             core.setOutput('repost', 'false');
             core.info(`PR #${prNumber}: ${incremental ? 'incremental' : 'full'} review, ${base.slice(0,8)}..${head.slice(0,8)}`);
+
+      # Ticket context, after PR-Agent's `require_ticket_analysis_review` ([pr_reviewer] in its
+      # configuration.toml; hardcoded on here). Finds the issues the PR links to and writes them to
+      # linked-issues.json for the model (code_review.md Step 5). Same rules as PR-Agent's
+      # pr_agent/commands/ticket_pr_compliance_check.py: `#123`, issue URLs and `owner/repo#123` in the
+      # PR body, the issue number the branch name starts with, then the title; this repo's issues only
+      # (PR-Agent fetches other repos only from an allowlist, empty by default); pull requests skipped;
+      # title, body and labels, no comments; at most 3 issues, 10,000 characters of body each.
+      # Runs before the model, with the job's read-only GITHUB_TOKEN. Issue text is untrusted (anyone
+      # can open an issue): the model reads it as data, and nothing it writes about it is published
+      # without passing REVIEW_GATE_JS. A failure here never fails the run; the model gets [].
+      - name: Fetch linked issues (ticket context)
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR: ${{ steps.range.outputs.pr }}
+        with:
+          script: |
+            const fs = require('fs');
+            const owner = context.repo.owner, repo = context.repo.repo;
+            const prNumber = Number(process.env.PR);
+            // PR-Agent's caps (MAX_GITHUB_TICKETS, MAX_GITHUB_TICKET_LOOKUPS, MAX_TICKET_CHARACTERS,
+            // MAX_SHORTHAND_ISSUE_DIGITS).
+            const MAX_TICKETS = 3, MAX_LOOKUPS = 30, MAX_CHARS = 10000;
+
+            // Issue numbers referenced in `text`, in order of appearance. Only this repo's issues count.
+            // Skipped, as in PR-Agent: HTML comments (the PR template's hints), a `#N` that is the whole
+            // text of a link (the link's target is what counts), a `#N` glued to a word or an `&` (`a#1`,
+            // `&#123;`), and a bare `#N` of more than 6 digits.
+            const findIssueNumbers = (text, owner, repo) => {
+              const same = (o, r) => o.toLowerCase() === owner.toLowerCase() && r.toLowerCase() === repo.toLowerCase();
+              const t = String(text || '')
+                .replace(/<!--[\s\S]*?(-->|$)/g, ' ')
+                .replace(/\[\s*#\d+\s*\](?=[(\[])/g, '[]')
+                .replace(/(<a\b[^<>]*>)\s*#\d+\s*(<\/a\s*>)/gi, '$1$2');
+              const re = /(?<![\w@\/])https:\/\/github\.com\/([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+)\/issues\/0*([1-9]\d{0,8})(?![\w-]|\/[\w-])|(?<![\w.\/-])([A-Za-z0-9]+(?:-[A-Za-z0-9]+)*)\/([A-Za-z0-9._-]+)#(\d{1,9})\b|(?<![\w&])#(\d{1,6})(?!\d)\b/g;
+              const out = [];
+              for (const m of t.matchAll(re)) {
+                let n = null;
+                if (m[3]) { if (same(m[1], m[2])) n = Number(m[3]); }
+                else if (m[6]) { if (same(m[4], m[5])) n = Number(m[6]); }
+                else n = Number(m[7]);
+                if (n > 0 && !out.includes(n)) out.push(n);
+              }
+              return out;
+            };
+            // The issue number a branch name starts with. PR-Agent's default pattern (`123-fix`,
+            // `feature/123-fix`, not a `2026-11` date) plus this repo's `{issue}/{type}/{slug}` convention.
+            const branchIssueNumbers = (branch) => {
+              const out = [];
+              const b = String(branch || '');
+              const ours = /^(\d{1,6})\//.exec(b);
+              if (ours) out.push(Number(ours[1]));
+              for (const m of b.matchAll(/(?:^|\/)(?!(?:19|20)\d\d-(?:0[1-9]|1[0-2])(?:[-\/._]|$))(\d{1,6})(?=-|$)/g)) {
+                const n = Number(m[1]);
+                if (n > 0 && !out.includes(n)) out.push(n);
+              }
+              return out;
+            };
+
+            const tickets = [];
+            try {
+              const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+              const candidates = [];
+              for (const n of [...findIssueNumbers(pr.body, owner, repo), ...branchIssueNumbers(pr.head && pr.head.ref), ...findIssueNumbers(pr.title, owner, repo)]) {
+                if (!candidates.includes(n)) candidates.push(n);
+              }
+              const prefix = `https://github.com/${owner}/${repo}/issues/`.toLowerCase();
+              for (const n of candidates.slice(0, MAX_LOOKUPS)) {
+                if (tickets.length >= MAX_TICKETS) break;
+                let issue;
+                try {
+                  ({ data: issue } = await github.rest.issues.get({ owner, repo, issue_number: n }));
+                } catch (e) {
+                  core.info(`Could not read #${n} (${e.status || e.message}) -- skipping it.`);
+                  continue;
+                }
+                // A `#N` that is a pull request, or an issue since moved to another repo, is not ticket context.
+                if (!issue || issue.pull_request || !String(issue.html_url || '').toLowerCase().startsWith(prefix)) continue;
+                // HTML comments are the issue template's hints, not requirements. Dropped to save the budget.
+                let body = String(issue.body || '').replace(/<!--[\s\S]*?(-->|$)/g, '').trim();
+                if (body.length > MAX_CHARS) body = body.slice(0, MAX_CHARS) + '...';
+                tickets.push({
+                  ticket_id: issue.number,
+                  ticket_url: `https://github.com/${owner}/${repo}/issues/${issue.number}`,
+                  title: String(issue.title || ''),
+                  body,
+                  labels: (issue.labels || []).map((l) => (typeof l === 'string' ? l : l && l.name)).filter(Boolean),
+                });
+              }
+            } catch (e) {
+              core.info(`Could not look up linked issues (${e.message}) -- reviewing without them.`);
+            }
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/linked-issues.json`, JSON.stringify(tickets, null, 2));
+            core.info(`Linked issues for the review: ${tickets.length ? tickets.map((t) => `#${t.ticket_id}`).join(', ') : 'none'}.`);
 
       - name: Fetch PR head into a ref (never into the working tree)
         if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
@@ -749,6 +871,36 @@ jobs:
               return headSha;
             };
 
+            // Ticket compliance section (code_review.md Step 5), rendered as PR-Agent's
+            // ticket_markdown_logic does (pr_agent/algo/utils.py): a level per issue computed here from
+            // the model's lists, not chosen by the model, and an overall level. Only this repo's issues
+            // are shown. Informational: it does not change the verdict or the code-review status.
+            const renderTicketCompliance = (entries, owner, repo) => {
+              const prefix = `https://github.com/${owner}/${repo}/issues/`.toLowerCase();
+              const bullets = (list) => list.map((s) => `- ${String(s).replace(/\s*\n\s*/g, ' ')}`).join('\n');
+              const levels = [];
+              let out = '';
+              for (const t of entries || []) {
+                if (!String(t.ticket_url).toLowerCase().startsWith(prefix)) continue;
+                const met = t.fully_compliant_requirements, notMet = t.not_compliant_requirements, human = t.requires_further_human_verification;
+                if (!met.length && !notMet.length && !human.length) continue;
+                const level = met.length
+                  ? (notMet.length ? 'Partially compliant' : (human.length ? 'PR Code Verified' : 'Fully compliant'))
+                  : (notMet.length ? 'Not compliant' : 'PR Code Verified');
+                levels.push(level);
+                out += `\n\n**[#${t.ticket_url.split('/').pop()}](${t.ticket_url}) - ${level}**`;
+                if (met.length) out += `\n\nCompliant requirements:\n\n${bullets(met)}`;
+                if (notMet.length) out += `\n\nNon-compliant requirements:\n\n${bullets(notMet)}`;
+                if (human.length) out += `\n\nRequires further human verification:\n\n${bullets(human)}`;
+              }
+              if (!levels.length) return '';
+              // Overall, as in PR-Agent: any mix of Fully compliant and PR Code Verified passes.
+              let mark = '✅';
+              if (levels.includes('Not compliant')) mark = levels.every((l) => l === 'Not compliant') ? '❌' : '🔶';
+              else if (levels.includes('Partially compliant')) mark = '🔶';
+              return `\n\n### 🎫 Ticket compliance analysis ${mark}${out}`;
+            };
+
             // --- The disclosure gate. Nothing below this block runs unless it passes.
             let review = null;
             try { review = JSON.parse(fs.readFileSync('review.json', 'utf8')); } catch (e) { review = null; }
@@ -823,6 +975,9 @@ jobs:
             if (process.env.INCREMENTAL === 'true' && sha.test(baseSha) && sha.test(headSha)) {
               summary = `*Reviewing only the ${baseSha.slice(0,8)}..${headSha.slice(0,8)} range — the commits pushed since my last pass.*\n\n${summary}`;
             }
+
+            // --- Ticket compliance against the linked issues (empty when there are none).
+            summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
 
             // --- Every dimension, stated. Silence on one reads identically to having checked it.
             // Security is a fixed line: a review that reaches this point has none by construction.
