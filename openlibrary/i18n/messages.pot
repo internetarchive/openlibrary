@@ -8949,10 +8949,6 @@ msgid "The ISBN is printed on the copyright page and on the back cover, above th
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The ISBN is how libraries, bookshops and barcode scanners find this edition, and how new records are matched to it."
-msgstr ""
-
-#: openlibrary/contribute/field_guides.py
 msgid "An ISBN-10 and an ISBN-13 can name the same edition: 0140449264 and 9780140449266. Paste either, with or without hyphens. Books from before 1970 don't have one."
 msgstr ""
 

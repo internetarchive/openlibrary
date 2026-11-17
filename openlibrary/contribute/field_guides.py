@@ -272,7 +272,6 @@ def get_field_guides() -> dict[str, FieldGuide]:
             sources=[worldcat, google, amazon],
             loc_record=True,
             isfdb=True,
-            why=_("The ISBN is how libraries, bookshops and barcode scanners find this edition, and how new records are matched to it."),
             notes=[
                 GuidelineNote(
                     _(
