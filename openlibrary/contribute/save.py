@@ -98,17 +98,25 @@ def editions_with_isbn(isbn: str) -> list[str]:
     return [key for form in forms for key in site.get().things({"type": "/type/edition", f"isbn_{len(form)}": form})]
 
 
-def _isbn(edition, raw: str) -> dict[str, list[str]]:
-    """The ISBN under the key for its length. One already on another edition is refused: an ISBN names one edition."""
+class SharedIsbn(InvalidAnswer):
+    """The ISBN is already on other editions. Usually the records are duplicates, but publishers do reuse ISBNs, so it
+    saves once the librarian has compared them and submits the same ISBN again."""
+
+    def __init__(self, isbn: str, others: list[str]):
+        self.isbn, self.others = isbn, others
+        super().__init__(_("This ISBN is already on another edition. Compare them: if they're the same book, this record is probably a duplicate."))
+
+
+def other_editions_with_isbn(edition, isbn: str) -> list[str]:
+    return [k for k in editions_with_isbn(isbn) if k != edition.key]
+
+
+def _isbn(edition, raw: str, shared_ok: str = "") -> dict[str, list[str]]:
+    """The ISBN under the key for its length. One already on another edition needs ``shared_ok`` to name it."""
     if not (isbn := normalize_isbn_value(raw)):
         raise InvalidAnswer(_("That isn't a valid ISBN. Check the digits: an ISBN has 10 or 13, and the last one is a check digit."))
-    if others := [k for k in editions_with_isbn(isbn) if k != edition.key]:
-        raise InvalidAnswer(
-            _(
-                "That ISBN is already on another edition, %(olid)s. If it's the same book, the two records may need merging; if not, check the number.",
-                olid=others[0].rsplit("/", maxsplit=1)[-1],
-            )
-        )
+    if shared_ok != isbn and (others := other_editions_with_isbn(edition, isbn)):
+        raise SharedIsbn(isbn, others)
     key = f"isbn_{len(isbn)}"
     return {key: [*(str(v) for v in edition.get(key) or []), isbn]}
 
@@ -127,11 +135,11 @@ def _publish_date(raw: str) -> str:
     return date
 
 
-def answer_changes(edition, fld: str, raw: str) -> dict:
+def answer_changes(edition, fld: str, raw: str, shared_ok: str = "") -> dict:
     """The keys ``raw`` sets on ``edition`` for ``fld``, or InvalidAnswer. Only an ISBN's key differs from its field's."""
     if not raw.strip():
         raise InvalidAnswer(_("Fill in an answer, or choose “I couldn't find it”."))
-    return _isbn(edition, raw) if fld == "isbn" else {fld: answer_value(edition, fld, raw)}
+    return _isbn(edition, raw, shared_ok) if fld == "isbn" else {fld: answer_value(edition, fld, raw)}
 
 
 def answer_value(edition, fld: str, raw: str):
@@ -154,11 +162,14 @@ def change_data(fld: str, initiative: str, **more) -> dict:
     return {"source": SOURCE, "field": fld} | ({"initiative": initiative} if initiative else {}) | more
 
 
-def save_answer(edition, fld: str, raw: str, label: str, note: str = "", initiative: str = "") -> None:
-    """Write the answer to the edition as a normal edit by the current user."""
-    doc = edition.dict() | answer_changes(edition, fld, raw)
+def save_answer(edition, fld: str, raw: str, label: str, note: str = "", initiative: str = "", shared_ok: str = "") -> None:
+    """Write the answer to the edition as a normal edit by the current user. ``shared_ok`` is an ISBN the librarian
+    saved knowing other editions carry it; the edit names them, so the pairs can be found and merged or corrected."""
+    doc = edition.dict() | answer_changes(edition, fld, raw, shared_ok)
     comment = note.strip() or _("Filled in %(field)s from Open Library Tasks", field=label)
-    site.get().save(doc, comment=comment, action=ACTION, data=change_data(fld, initiative))
+    shared = other_editions_with_isbn(edition, shared_ok) if fld == "isbn" and shared_ok == normalize_isbn_value(raw) else []
+    data = change_data(fld, initiative, **({"isbn_shared_with": shared} if shared else {}))
+    site.get().save(doc, comment=comment, action=ACTION, data=data)
 
 
 def tag_answers(fld: str, raws: list[str]) -> list[dict]:

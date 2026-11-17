@@ -2006,3 +2006,24 @@ textarea.contrib-input {
 .contrib-faq__item p {
   max-width: 65ch;
 }
+
+/* An ISBN other editions already carry: the editions to compare, then save again */
+.contrib-shared {
+  display: grid;
+  gap: var(--spacing-xs);
+}
+
+.contrib-shared p,
+.contrib-shared ul {
+  margin: 0;
+}
+
+.contrib-shared ul {
+  display: grid;
+  gap: var(--spacing-3xs);
+  padding-inline-start: var(--spacing-lg);
+}
+
+.contrib-shared li .contrib-muted {
+  margin-inline-start: var(--spacing-xs);
+}

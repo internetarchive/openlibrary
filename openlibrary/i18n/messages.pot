@@ -8649,6 +8649,17 @@ msgid "No matching language"
 msgstr ""
 
 #: contribute/parts.html.jinja
+#, python-format
+msgid "And 1 more."
+msgid_plural "And %(count)d more."
+msgstr[0] ""
+msgstr[1] ""
+
+#: contribute/parts.html.jinja
+msgid "If this edition really has the same ISBN, save again."
+msgstr ""
+
+#: contribute/parts.html.jinja
 msgid "View scan"
 msgstr ""
 
@@ -9272,12 +9283,11 @@ msgid "Enter the page count as a whole number."
 msgstr ""
 
 #: openlibrary/contribute/save.py
-msgid "That isn't a valid ISBN. Check the digits: an ISBN has 10 or 13, and the last one is a check digit."
+msgid "This ISBN is already on another edition. Compare them: if they're the same book, this record is probably a duplicate."
 msgstr ""
 
 #: openlibrary/contribute/save.py
-#, python-format
-msgid "That ISBN is already on another edition, %(olid)s. If it's the same book, the two records may need merging; if not, check the number."
+msgid "That isn't a valid ISBN. Check the digits: an ISBN has 10 or 13, and the last one is a check digit."
 msgstr ""
 
 #: openlibrary/contribute/save.py
