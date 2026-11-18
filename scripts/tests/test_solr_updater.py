@@ -330,3 +330,54 @@ class TestFindTransactionsStart:
 
     def test_defaults_to_the_beginning_of_today(self, tmp_path):
         assert self.start(tmp_path) == dt.datetime.combine(dt.datetime.now(dt.UTC).date(), dt.time())
+
+
+def test_switching_back_to_infobase_log_replays_transactions_day(tmp_path, monkeypatch):
+    log_offset_file = tmp_path / "solr.offset"
+    transactions_offset_file = tmp_path / "solr.transactions-offset.json"
+    log_offset_file.write_text("2026-11-02:4284441")
+    os.utime(log_offset_file, (1, 1))
+    transactions_offset_file.write_text('{"transaction": 1234, "force_update": 7}')
+
+    transaction_ids = []
+
+    async def get_transaction_created_at(transaction_id):
+        transaction_ids.append(transaction_id)
+        return dt.datetime(2026, 11, 3, 18, 45)
+
+    class StopPolling(Exception):
+        pass
+
+    log_instances = []
+
+    class FakeInfobaseLog:
+        def __init__(self, hostname, exclude=None):
+            self.offset = None
+            log_instances.append(self)
+
+        def seek(self, offset):
+            self.offset = offset
+
+        def read_records(self):
+            return []
+
+        def tell(self):
+            return self.offset
+
+    async def stop_after_first_poll(_seconds):
+        raise StopPolling
+
+    async def update_keys(_keys):
+        return 0
+
+    monkeypatch.setattr(solr_updater, "get_transaction_created_at", get_transaction_created_at)
+    monkeypatch.setattr(solr_updater, "InfobaseLog", FakeInfobaseLog)
+    monkeypatch.setattr(solr_updater, "update_keys", update_keys)
+    monkeypatch.setattr(solr_updater.asyncio, "sleep", stop_after_first_poll)
+
+    with pytest.raises(StopPolling):
+        asyncio.run(solr_updater.run_from_infobase_log(str(log_offset_file), None, None))
+
+    assert transaction_ids == [1234]
+    assert [log.offset for log in log_instances] == ["2026-11-03:0"]
+    assert log_offset_file.read_text() == "2026-11-03:0"
