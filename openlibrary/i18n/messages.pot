@@ -5095,6 +5095,10 @@ msgstr ""
 msgid "Want to Read, available now"
 msgstr ""
 
+#: home/member_skeleton.html.jinja
+msgid "Loading your books"
+msgstr ""
+
 #: home/welcome.html
 msgid "Read Free Library Books Online"
 msgstr ""
