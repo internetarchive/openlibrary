@@ -45,14 +45,37 @@ A review starts in one of these ways:
   spend the bot's budget.
 - **After new commits, once the pushes stop.** If the bot has reviewed the PR before, it reviews
   the new commits once 10 minutes pass with no further push (`push_review_delay_minutes` in
-  [`.pr_agent.toml`](../.pr_agent.toml)). Every new push restarts the wait, so a burst of commits
-  gets one review. It skips pushes made by bots, pushes that only merge the base branch in (the
-  "Update branch" button), and PRs labelled `no-automation`.
+  [`.pr_agent.toml`](../.pr_agent.toml)). See [What happens when you push](#what-happens-when-you-push).
 - **When someone asks.** Request a review from the `openlibrary-agentic-code-reviewer` team, use
   the re-request button next to `openlibrary-bot`, or comment `@openlibrary-bot` on the PR. The bot
   adds 👀 to your comment when the review starts.
 
 It never reviews a draft or a closed PR.
+
+### What happens when you push
+
+- **Another push within the 10 minutes** cancels the wait and starts it over, so the review starts
+  10 minutes after your *last* push. A burst of commits gets one review.
+- **A push while a review is running** doesn't stop that review, but when it finishes it sees the
+  PR has moved on and posts nothing. The old commit's check changes to "Superseded by
+  `<commit>`". Your new commit waits its own 10 quiet minutes, then gets one review that covers
+  both sets of changes.
+- **Asking for a review during the wait** starts it right away instead.
+- **No re-review** for pushes made by bots, pushes that only merge the base branch in (the "Update
+  branch" button), or PRs labelled `no-automation`. Ask for a review if you want one.
+
+```mermaid
+sequenceDiagram
+    participant You
+    participant Bot as Review bot
+    You->>Bot: Push commit A
+    Note over Bot: Waits until 10 minutes pass with no new pushes
+    Bot->>Bot: Starts reviewing A
+    You->>Bot: Push commit B while A is being reviewed
+    Bot-->>You: The review of A finishes but posts nothing. A's check says Superseded by B
+    Note over Bot: Waits until 10 minutes pass with no new pushes after B
+    Bot->>You: One review on B, covering the changes in A and B
+```
 
 ### Who can ask for a review
 
@@ -160,7 +183,7 @@ flowchart TD
     recheck -- "fixed" --> addressed["Bot notes ✅ Addressed in &lt;commit&gt; and resolves the thread"]
     recheck -- "not fixed" --> open["Thread stays open"]
     choice -- "Disagree" --> reply["Reply in the thread with your reasoning"]
-    reply --> weigh["Next re-review reads the reply"]
+    reply --> weigh["The re-review after your next push reads the reply"]
     weigh -- "convinced" --> dismissed["Bot notes Dismissed and resolves the thread"]
     weigh -- "not convinced" --> open
     choice -- "Resolve it yourself" --> resolved["Thread resolved by you"]
@@ -169,11 +192,26 @@ flowchart TD
 - **Fix it.** Push the fix. On the next re-review the bot checks the code. If it's fixed, the bot
   adds **✅ Addressed in `<commit>`** to its comment and resolves the thread. Threads are resolved
   by `github-actions`.
-- **Disagree.** Reply in the thread and say why. On the next re-review the bot reads replies from
-  the PR's author and maintainers. If a reply shows the finding is wrong or out of scope, the bot
-  notes **Dismissed** and resolves the thread. A reply that only asks it to dismiss isn't enough.
-- **Resolve it yourself.** Anyone with write access can resolve a thread. Use your judgment; the
-  bot can be wrong.
+- **Disagree.** Reply in the thread and say why. On its next re-review the bot reads replies from
+  the PR's author and the repository's members. If a reply shows the finding is wrong or out of
+  scope, the bot notes **Dismissed** and resolves the thread. A reply that only asks it to dismiss
+  isn't enough.
+
+  The bot doesn't answer in the thread, and a reply alone doesn't start a re-review. Asking
+  again doesn't help either, because the bot doesn't review the same commit twice. So the bot
+  reads your reply only after your next push. If you have nothing more to push, resolve the
+  thread yourself or ask a maintainer to.
+- **Resolve it yourself.** The PR's author and anyone with write access can resolve a thread. Use
+  your judgment; the bot can be wrong.
+
+A few more things worth knowing:
+
+- **Suggestions (won't block)** are in the review summary, not threads. Nothing to resolve: use
+  them or don't.
+- **Changing the lines under a comment** makes GitHub mark its thread "outdated". An outdated
+  thread doesn't hold up the `code-review` check, but the bot still re-checks it and resolves it
+  once the problem is fixed.
+- **A finding the bot still sees** stays open; it doesn't post the same finding again.
 
 If the bot gets something wrong in a way worth fixing, open an issue with the `Theme: Bots` label.
 
