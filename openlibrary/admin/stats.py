@@ -25,23 +25,24 @@ class InvalidType(TypeError):
 
 
 def connect_to_pg(config_file):
-    """Connects to the postgres database specified in the dictionary
-    `config`. Needs a top level key `db_parameters` and under that
-    `database` (or `db`) at the least. If `user`, `host` and `port` are
-    provided, they're used as well."""
+    """Connects to the postgres database specified by the `db_parameters`
+    key of the YAML file at `config_file`. Accepts either key style found in
+    our configs (`database`/`username`/`password` or `db`/`user`/`pw`); `host`,
+    `port` and the password are used when present."""
     with open(config_file) as f:
         config = yaml.safe_load(f)
-    conf = {}
-    conf["db"] = config["db_parameters"].get("database") or config["db_parameters"].get("db")
+    params = config["db_parameters"]
+    conf = {
+        "db": params.get("database") or params.get("db"),
+        "pw": params.get("password") or params.get("pw") or "",
+    }
     if not conf["db"]:
         raise KeyError("database/db")
-    host = config["db_parameters"].get("host")
-    user = config["db_parameters"].get("user") or config["db_parameters"].get("username")
-    if host:
-        conf["host"] = host
-    if user:
+    if user := params.get("username") or params.get("user"):
         conf["user"] = user
-    if port := config["db_parameters"].get("port"):
+    if host := params.get("host"):
+        conf["host"] = host
+    if port := params.get("port"):
         conf["port"] = port
     logger.debug(" Postgres Database : %(db)s" % conf)
     return web.database(dbn="postgres", **conf)  # noqa: TID251
