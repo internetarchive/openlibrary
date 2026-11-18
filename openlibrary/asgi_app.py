@@ -135,6 +135,8 @@ def _include_routers(app: FastAPI) -> None:
     """Include all FastAPI routers."""
     from openlibrary.fastapi.account import pages as account_pages
     from openlibrary.fastapi.account import router as account_router
+    from openlibrary.fastapi.atproto import install_error_handlers
+    from openlibrary.fastapi.atproto import router as atproto_router
     from openlibrary.fastapi.books import router as books_router
     from openlibrary.fastapi.borrow import router as borrow_router
     from openlibrary.fastapi.cdn import router as cdn_router
@@ -161,6 +163,8 @@ def _include_routers(app: FastAPI) -> None:
     )
 
     app.include_router(account_router)
+    app.include_router(atproto_router)
+    install_error_handlers(app)
     app.include_router(books_router)
     app.include_router(borrow_router)
     app.include_router(cdn_router)
@@ -249,7 +253,7 @@ def create_app() -> FastAPI | None:
         CORSMiddleware,
         allow_origins=["*"],  # Allows all origins
         allow_credentials=False,  # We don't want to allow cookies because then we have to limit origins.
-        allow_methods=["GET", "OPTIONS"],
+        allow_methods=["GET", "POST", "OPTIONS"],
         max_age=3600 * 24,  # Cache preflight response for 24 hours
         # Keep in sync with
         # https://github.com/internetarchive/openlibrary/blob/1606a0d27d16f1fe64991884002a86d3597d9ecb/openlibrary/plugins/openlibrary/processors.py#L70-L89

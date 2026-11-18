@@ -110,3 +110,5 @@ fastapiRoutes:
   - POST /works/OL{work_id}W/notes
   - POST /works/OL{work_id}W/notes.json
   - GET POST /works/OL{work_id}W/ratings.json
+  - POST /xrpc/community.lexicon.media.book.resolveEditions
+  - POST /xrpc/community.lexicon.media.book.searchEditions
