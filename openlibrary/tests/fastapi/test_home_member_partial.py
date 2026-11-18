@@ -98,14 +98,14 @@ def test_reading_now_offers_a_button_only_for_a_free_copy(request_context_fixtur
             return web.storage(docs=docs)
 
     with (
-        patch("openlibrary.core.lending.add_availability", side_effect=add_availability),
+        patch("openlibrary.core.lending.add_availability_async", side_effect=add_availability),
         patch("openlibrary.plugins.openlibrary.partials._render_carousel_card_loan_status", side_effect=lambda book, **kw: f"<{kw['layout']}>") as cta,
         patch("openlibrary.plugins.upstream.mybooks.shelf_button_for", side_effect=lambda doc, **kw: f"<shelf {kw.get('size')}>"),
     ):
         # Availability that answers for no book: the same books, none with a button.
-        with patch("openlibrary.core.lending.add_availability"):
-            unchecked, unchecked_known = _home_member().reading_now(ReadLog())
-        books, known = _home_member().reading_now(ReadLog())
+        with patch("openlibrary.core.lending.add_availability_async"):
+            unchecked, unchecked_known = _home_member().reading_now(ReadLog(), _home_member().AvailabilityBudget())
+        books, known = _home_member().reading_now(ReadLog(), _home_member().AvailabilityBudget())
 
     assert known
     assert not unchecked_known
@@ -135,8 +135,8 @@ def test_want_available_keeps_only_copies_free_now(request_context_fixture):
             assert key == "want-to-read"
             return web.storage(docs=docs)
 
-    with patch("openlibrary.core.lending.add_availability", side_effect=add_availability):
-        free, known = _home_member().want_available(ReadLog())
+    with patch("openlibrary.core.lending.add_availability_async", side_effect=add_availability):
+        free, known = _home_member().want_available(ReadLog(), _home_member().AvailabilityBudget())
 
     assert known
     assert [doc["title"] for doc in free] == ["free", "open"]
@@ -156,10 +156,40 @@ def test_want_available_shows_the_shelf_when_availability_cannot_be_read(request
 
     # The service answers with nothing (`success: false`), or with an error for every book (a timeout).
     for add_availability in (lambda items: None, errors):
-        with patch("openlibrary.core.lending.add_availability", side_effect=add_availability):
-            want, known = _home_member().want_available(ReadLog())
+        with patch("openlibrary.core.lending.add_availability_async", side_effect=add_availability):
+            want, known = _home_member().want_available(ReadLog(), _home_member().AvailabilityBudget())
         assert not known
         assert [doc["title"] for doc in want] == ["one", "two"]
+
+
+def test_want_brief_links_to_the_copy_that_was_checked(request_context_fixture):
+    request_context_fixture(lang="en")
+    doc = web.storage(key="/works/OL1W", title="free", ia=["free00"], availability={"status": "open", "identifier": "free00"})
+
+    assert _home_member().want_brief(doc, checked=True)["url"] == "/works/OL1W?edition=ia:free00"
+    # Not checked for a free copy: the work page chooses.
+    assert _home_member().want_brief(doc, checked=False)["url"] == "/works/OL1W"
+
+
+def test_availability_gets_one_budget_for_the_section(request_context_fixture):
+    request_context_fixture(lang="en")
+    import asyncio  # noqa: PLC0415
+
+    calls = []
+
+    async def slow(items):
+        calls.append(items)
+        await asyncio.sleep(5)
+
+    docs = [web.storage(key="/works/OL1W", title="one", ia=["one00"])]
+    budget = _home_member().AvailabilityBudget(0.05)
+    with patch("openlibrary.core.lending.add_availability_async", side_effect=slow):
+        assert not budget.add(docs)
+        # The time is spent: the next check isn't made.
+        assert not budget.add(docs)
+        # Books with nothing to check cost nothing.
+        assert budget.add([web.storage(key="/works/OL2W", title="no ebook")])
+    assert len(calls) == 1
 
 
 def test_generate_keeps_the_request_context(request_context_fixture):

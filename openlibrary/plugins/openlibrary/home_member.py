@@ -5,7 +5,9 @@ The home page itself is cached and the same for everyone, so this is fetched aft
 HomeMemberPartial (partials.py) and rendered with home/member.html.jinja.
 """
 
+import asyncio
 import logging
+import time
 from datetime import UTC, datetime
 
 import web
@@ -15,6 +17,7 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
 from openlibrary.utils import dateutil
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import get_request_lang, req_context, site
 
 logger = logging.getLogger("openlibrary.home")
@@ -24,6 +27,8 @@ WANT_CHECKED = 40
 WANT_SHOWN = 14
 # How many books are listed under the one in hand.
 AGENDA_SIDE = 2
+# How long the section waits on availability, over its checks together, before it goes on without.
+AVAILABILITY_BUDGET_SECS = 3
 # How long a reader's rendered section is kept. Shelf changes, borrows and returns drop it sooner.
 MEMBER_CACHE_SECS = 5 * dateutil.MINUTE_SECS
 # A loan this close to its due date is marked.
@@ -197,7 +202,31 @@ def availability_known(docs: list) -> bool:
     return not statuses or any(status and status != "error" for status in statuses)
 
 
-def want_available(readlog) -> tuple[list, bool]:
+class AvailabilityBudget:
+    """The time the section's availability checks may take between them. The lending timeout is far longer,
+    and the reader is looking at a skeleton meanwhile."""
+
+    def __init__(self, secs: float = AVAILABILITY_BUDGET_SECS):
+        self.left = secs
+
+    def add(self, docs: list) -> bool:
+        """Reads availability onto `docs`. False when time ran out or the service answered for none of them."""
+        if not any(lending.get_ocaid(doc) for doc in docs):
+            return True
+        if self.left <= 0:
+            return False
+        started = time.monotonic()
+        try:
+            async_bridge.run(asyncio.wait_for(lending.add_availability_async(docs), self.left))
+        except TimeoutError:
+            logger.warning("home: availability took longer than the %ss the section allows", AVAILABILITY_BUDGET_SECS)
+            return False
+        finally:
+            self.left -= time.monotonic() - started
+        return availability_known(docs)
+
+
+def want_available(readlog, budget: AvailabilityBudget) -> tuple[list, bool]:
     """Want to Read, narrowed twice: to works Solr says can be borrowed at all, then to the ones with a copy
     free at this moment. When availability can't be read the second narrowing is skipped, and False is returned
     with the books so the row doesn't promise "now"."""
@@ -205,13 +234,21 @@ def want_available(readlog) -> tuple[list, bool]:
 
     works = readlog.get_works("want-to-read", limit=WANT_CHECKED, fq=[f"ebook_access:[{get_fulltext_min()} TO *]"])
     docs = [doc for doc in works.docs if doc.get("title")]
-    lending.add_availability(docs)
-    if not availability_known(docs):
+    if not budget.add(docs):
         return docs[:WANT_SHOWN], False
     return [doc for doc in docs if (doc.get("availability") or {}).get("status") in ("open", "borrow_available")][:WANT_SHOWN], True
 
 
-def reading_now(readlog) -> tuple[list[dict], bool]:
+def want_brief(doc: dict, checked: bool) -> dict:
+    """A Want to Read card. A book found free links to the copy that was checked, since the work page
+    picks its edition by other rules and can land on one that isn't."""
+    brief = brief_from_doc(doc)
+    if checked and brief["url"] and (ocaid := (doc.get("availability") or {}).get("identifier") or lending.get_ocaid(doc)):
+        brief["url"] += f"?edition=ia:{ocaid}"
+    return brief
+
+
+def reading_now(readlog, budget: AvailabilityBudget) -> tuple[list[dict], bool]:
     """The newest of the Currently Reading shelf, as many as the card can hold. Each book carries a Read or Borrow button when a copy is
     free right now, and the shelf control that moves it to Already Read or off the list. False is returned with
     the books when availability can't be read, which leaves them all without a button."""
@@ -222,7 +259,7 @@ def reading_now(readlog) -> tuple[list[dict], bool]:
 
     # A few more than the card holds: a shelved work that search doesn't know comes back without a title.
     docs = [doc for doc in readlog.get_works("currently-reading", limit=AGENDA_SIDE + 3).docs if doc.get("title")][: AGENDA_SIDE + 1]
-    lending.add_availability(docs)
+    known = budget.add(docs)
     books = []
     for doc in docs:
         free = (doc.get("availability") or {}).get("status") in ("open", "borrow_available")
@@ -241,7 +278,7 @@ def reading_now(readlog) -> tuple[list[dict], bool]:
                 "shelf": Markup(shelf_button_for(doc, variant="menu", size="small", async_load=True)),
             }
         )
-    return books, availability_known(docs)
+    return books, known
 
 
 def greeting_name(user) -> str:
@@ -268,20 +305,21 @@ def build_member(user) -> dict:
             return fallback
 
     readlog = ReadingLog(user)
+    budget = AvailabilityBudget()
     loans = attempt("loans", lambda: get_loans(user.key), [])
     holds = attempt("holds", lambda: get_holds(user), [])
-    reading, reading_known = attempt("currently reading", lambda: reading_now(readlog), ([], True))
+    reading, reading_known = attempt("currently reading", lambda: reading_now(readlog, budget), ([], True))
     # A borrowed book is usually on Currently Reading too; it is shown once, as the loan.
     on_loan = {loan["title"] for loan in loans}
     reading = [brief for brief in reading if brief["title"] not in on_loan]
 
-    want, want_known = attempt("want to read", lambda: want_available(readlog), ([], True))
+    want, want_known = attempt("want to read", lambda: want_available(readlog, budget), ([], True))
 
     return {
         "name": greeting_name(user),
         "agenda": build_agenda(loans, holds, reading),
         "side": AGENDA_SIDE,
-        "want": [brief_from_doc(doc) for doc in want],
+        "want": [want_brief(doc, want_known) for doc in want],
         # False when `want` is the shelf as it stands, not checked for a free copy.
         "want_checked": want_known,
         # A section built without availability is shown, and built again on the next view.
