@@ -16,6 +16,10 @@ $add_metatag(property="og:site_name", content="Open Library")
 
   $:macros.BookPreviewFloater()
 
+  $# A signed-in reader's own books (home/member.html.jinja). The page is cached and shared, so home-member.js fetches them.
+  $if not test:
+    <div class="home-member-slot"></div>
+
   $:render_template("home/welcome")
 
   $:render_jinja_template("home/browse_stacks.html.jinja", genres=featured_genres if not test else [], i18n_json=json_encode({"error": _("Couldn't load this shelf. Try again?")}))

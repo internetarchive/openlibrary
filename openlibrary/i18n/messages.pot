@@ -25,7 +25,7 @@ msgstr ""
 msgid "Settings & Privacy"
 msgstr ""
 
-#: account.html databarDiff.html
+#: account.html databarDiff.html openlibrary/plugins/openlibrary/home_member.py
 msgid "View"
 msgstr ""
 
@@ -5053,6 +5053,23 @@ msgstr ""
 msgid "Up %(percent)d%% over the month"
 msgstr ""
 
+#: home/member.html.jinja
+#, python-format
+msgid "Pick up where you left off, %(name)s"
+msgstr ""
+
+#: home/member.html.jinja
+msgid "Loans and holds"
+msgstr ""
+
+#: home/member.html.jinja
+msgid "Available now from your Want to Read list"
+msgstr ""
+
+#: home/member.html.jinja
+msgid "Open the whole list"
+msgstr ""
+
 #: home/welcome.html
 msgid "Read Free Library Books Online"
 msgstr ""
@@ -8114,7 +8131,7 @@ msgid "Want to read"
 msgstr ""
 
 #. Short label displayed next to the count of readers currently reading this book, shown in the stats bar on a book page. Example: "1,247 Currently reading".
-#: StarRatingsStats.html
+#: StarRatingsStats.html openlibrary/plugins/openlibrary/home_member.py
 msgid "Currently reading"
 msgstr ""
 
@@ -9464,7 +9481,7 @@ msgstr ""
 msgid "Showing %(shown)s of %(total)s results"
 msgstr ""
 
-#: openlibrary/core/shell/search_modal.py
+#: openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/home_member.py
 msgid "Untitled"
 msgstr ""
 
@@ -10630,6 +10647,66 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home_genres.py
 msgid "Most wanted"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+msgid "Due back today"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+msgid "Due back tomorrow"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+#, python-format
+msgid "Due back in %(count)d days"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+msgid "Borrow it soon, or it goes to the next reader."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+#, python-format
+msgid "Held for you for %(count)d more hour."
+msgid_plural "Held for you for %(count)d more hours."
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+#, python-format
+msgid "Held for you for %(count)d more day."
+msgid_plural "Held for you for %(count)d more days."
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+msgid "You're next in line"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+#, python-format
+msgid "You're number %(position)d of %(size)d in line"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+msgid "On loan"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+msgid "Continue reading"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+msgid "Your hold is ready"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+msgid "Borrow now"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+msgid "Open the book"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py

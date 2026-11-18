@@ -380,7 +380,7 @@ $(function () {
     }
 
     // Shelf buttons: hydrate the ones the server rendered without state and keep every copy of a book in step.
-    if (document.querySelector('ol-shelf-button, .lazy-carousel, .browse-stacks')) {
+    if (document.querySelector('ol-shelf-button, .lazy-carousel, .browse-stacks, .home-member-slot')) {
         import('./book-state').then(module => module.initBookState());
     }
 
@@ -605,6 +605,12 @@ $(function () {
     const browseStacks = document.querySelector('.browse-stacks');
     if (browseStacks) {
         import('./browse-stacks').then(module => module.initBrowseStacks(browseStacks));
+    }
+
+    // Home page: a signed-in reader's loans, holds and Want to Read row
+    const homeMemberSlot = document.querySelector('.home-member-slot');
+    if (homeMemberSlot) {
+        import('./home-member').then(module => module.initHomeMember(homeMemberSlot));
     }
 
     // Home page librarian call-out: /tasks can be slow to start painting.

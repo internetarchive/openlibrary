@@ -13,6 +13,7 @@ import web
 from markupsafe import Markup
 from pydantic import BaseModel, BeforeValidator, Field
 
+from infogami.utils import delegate
 from infogami.utils.view import public
 from openlibrary.book_providers import get_book_provider
 from openlibrary.core import cache
@@ -29,7 +30,7 @@ from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary import home_genres
+from openlibrary.plugins.openlibrary import home_genres, home_member
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import (
     convert_list,
@@ -63,7 +64,7 @@ from openlibrary.plugins.worksearch.subjects import (
     get_subject_async,
 )
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.request_context import get_request_lang
+from openlibrary.utils.request_context import get_request_lang, set_context_from_legacy_web_py
 from openlibrary.views.loanstats import get_trending_books
 
 if TYPE_CHECKING:
@@ -1204,6 +1205,25 @@ class HomeGenrePartial:
             subgenre_rows=subgenre_rows,
         )
         return {"partials": html}
+
+
+class HomeMemberPartial:
+    """The home page's top for a signed-in reader (home_member.py). The page is cached and the same for
+    everyone, so the reader's own part is fetched after load."""
+
+    @classmethod
+    def generate(cls, username: str) -> dict:
+        # FastAPI runs this sync handler on a threadpool worker with no web.ctx;
+        # the LoanStatus macro and the lending calls need one.
+        if "env" not in web.ctx:
+            delegate.fakeload()
+            set_context_from_legacy_web_py()
+        if not (user := get_user_object(username)):
+            return {"partials": ""}
+        member = home_member.build_member(user)
+        if not (member["agenda"] or member["want_html"]):
+            return {"partials": ""}
+        return {"partials": render_jinja_template("home/member.html.jinja", member=member).strip()}
 
 
 @public

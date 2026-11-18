@@ -1,0 +1,111 @@
+{#
+  The top of the home page for a signed-in reader: the book they have in hand, large, with what else needs
+  them beside it, then the books on their Want to Read list with a copy free now.
+  `member` is home_member.build_member(); `member.agenda` is their loans, holds and Currently Reading books
+  as one list, the book in hand first. Fetched after load by home-member.js (HomeMemberPartial).
+#}
+{% set member = member | default(none) %}
+{% set agenda = member.agenda if member else [] %}
+{% macro small_cover(item) %}
+    <ol-book-cover class="home-member__thumb" src="{{ item.cover_url }}" book-title="{{ item.title }}" authors="{{ item.author }}" href="{{ item.url }}">
+    </ol-book-cover>
+{% endmacro %}
+{# The large card's cover stands at its own height, top-aligned with the text beside it. #}
+{% macro big_cover(item) %}
+    {% if item.cover_url %}
+        <a class="home-continue__cover"
+           href="{{ item.url }}"
+           tabindex="-1"
+           aria-hidden="true">
+            <img class="home-continue__art"
+                 src="{{ item.cover_url }}"
+                 alt=""
+                 width="136"
+                 height="204">
+        </a>
+    {% else %}
+        <ol-book-cover class="home-continue__cover" src="" book-title="{{ item.title }}" authors="{{ item.author }}" href="{{ item.url }}">
+        </ol-book-cover>
+    {% endif %}
+{% endmacro %}
+{% macro action(item, variant="secondary", size="medium") %}
+    {% if item.action.form %}
+        <form class="home-member__action"
+              method="post"
+              action="{{ item.action.form.action }}">
+            <input type="hidden" name="action" value="{{ item.action.form.value }}">
+            <ol-button type="submit" variant="{{ variant }}" size="{{ size }}" data-ol-link-track="HomeMember|{{ item.kind }}">
+                {{ item.action.label }}
+            </ol-button>
+        </form>
+    {% else %}
+        <ol-button variant="{{ variant }}" size="{{ size }}" href="{{ item.action.href }}" data-ol-link-track="HomeMember|{{ item.kind }}">
+            {{ item.action.label }}
+        </ol-button>
+    {% endif %}
+{% endmacro %}
+{% macro status(item) %}
+    <p class="home-status home-status--{{ item.tone }}">
+        {% if item.tone == "ready" %}
+            {{ icon("circle-check-filled", size="sm") }}
+        {% elif item.tone == "urgent" %}
+            {{ icon("clock", size="sm") }}
+        {% endif %}
+        {{ item.status }}
+    </p>
+{% endmacro %}
+{% if agenda %}
+    {% set first = agenda[0] %}
+    {% set rest = agenda[1:member.side + 1] %}
+    <section class="home-member" aria-labelledby="home-member-title">
+        <div class="home-member__head">
+            <h2 class="home-member__title" id="home-member-title">{{ _("Pick up where you left off, %(name)s", name=member.name) }}</h2>
+            <a class="carousel-see-all"
+               href="/account/loans"
+               data-ol-link-track="HomeMember|Loans">{{ _("Loans and holds") }}{{ icon("chevron-right", size="sm") }}</a>
+        </div>
+        <div class="home-continue{{ ' home-continue--solo' if not rest else '' }}">
+            <article class="home-continue__main">
+                {{ big_cover(first) }}
+                <div class="home-continue__text">
+                    {{ status(first) }}
+                    <h3 class="home-continue__book">
+                        <a href="{{ first.url }}">{{ first.title }}</a>
+                    </h3>
+                    <p class="home-continue__author">{{ first.author }}</p>
+                    {% if first.note is defined %}<p class="home-continue__note">{{ first.note }}</p>{% endif %}
+                    <div class="home-continue__actions">{{ action(first, "primary", "large") }}</div>
+                </div>
+            </article>
+            {% if rest %}
+                <ul class="home-continue__side">
+                    {% for item in rest %}
+                        <li class="home-continue__item">
+                            {{ small_cover(item) }}
+                            <div class="home-continue__item-text">
+                                {{ status(item) }}
+                                <a class="home-continue__item-title" href="{{ item.url }}">{{ item.title }}</a>
+                                <p class="home-continue__item-note">{{ item.note | default(item.author) }}</p>
+                            </div>
+                            {% if item.kind in ("ready", "loan") %}{{ action(item, "secondary", "small") }}{% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </section>
+{% endif %}
+{% if member and member.want_html %}
+    <section class="home-want" aria-labelledby="home-want-title">
+        <div class="home-want__head">
+            <h2 class="home-want__title" id="home-want-title">
+                {{ icon("bookmark", extra_class="home-want__icon") }}
+                {{ _("Available now from your Want to Read list") }}
+            </h2>
+            <a class="carousel-see-all"
+               href="/account/books/want-to-read"
+               data-ol-link-track="HomeMember|WantToRead">{{ _("Open the whole list") }}{{ icon("chevron-right", size="sm") }}</a>
+        </div>
+        {{ member.want_html | safe }}
+    </section>
+{% endif %}
