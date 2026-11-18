@@ -1,3 +1,4 @@
+<!-- If you change how the code review bot behaves here, update docs/code-review-bot.md to match. -->
 # Open Library Code Review — `@openlibrary-bot`
 
 You are performing a code review on an Open Library pull request, triggered by a staff

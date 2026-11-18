@@ -1,3 +1,4 @@
+// If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 // The `analyze` job's "Fetch linked issues" step: writes the issues a PR links to into
 // linked-issues.json for the model. Follows PR-Agent's ticket_pr_compliance_check.py: issues
 // referenced in the PR body, then the branch name, then the title; this repo's issues only, no

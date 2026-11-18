@@ -134,7 +134,7 @@ afterEach(() => {
     rmSync(dir, { recursive: true, force: true });
 });
 
-// ===================== A push mid-run: post neither review nor status =====================
+// ===================== A push mid-run: the review posts on its own commit, as a COMMENT, and sets no verdict =====================
 test('D1 post: head UNCHANGED -> createReview IS called', async () => {
     writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
     writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
@@ -146,16 +146,39 @@ test('D1 post: head UNCHANGED -> createReview IS called', async () => {
     assert.equal(calls.createReview.length, 1, 'a review on the still-current head must post');
     assert.equal(calls.createReview[0].commit_id, head);
 });
-test('D1 post: head MOVED -> createReview is NOT called', async () => {
+test('D1 post: head MOVED -> the review posts on the commit it read, as a COMMENT, saying so', async () => {
     writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
     writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
     const pinned = SHA('a'),
         live = SHA('c');
-    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: live } } }) });
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: live } } }),
+        // The posted review, so post's check that it landed passes.
+        listReviews: async () => ({ data: [{ id: 999 }] })
+    });
     const env = { PR: '1', HEAD_SHA: pinned, BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir };
     const res = await runScript(post.validateAndPost, { github, context, env, cwd: dir });
-    assert.equal(calls.createReview.length, 0, 'a review must NOT post on a head the run did not review');
-    assert.equal(res.failed, null, 'and it exits cleanly, not failed');
+    assert.equal(res.failed, null, 'it exits cleanly, not failed');
+    assert.equal(calls.createReview.length, 1, 'the feedback is not thrown away');
+    const r = calls.createReview[0];
+    assert.equal(r.commit_id, pinned, 'pinned to the commit the model read, never the live head');
+    assert.equal(r.event, 'COMMENT', 'a clean review of an old commit must not APPROVE the PR');
+    assert.ok(r.body.startsWith(`*This review is of \`${pinned.slice(0, 7)}\`. \`${live.slice(0, 7)}\` was pushed while it ran`), r.body);
+    assert.ok(r.body.endsWith(`<!-- ol-pr-review-bot superseded reviewed=${pinned} -->`), 'marked superseded, naming the commit it read');
+});
+test('D1 post: head MOVED by a force-push -> nothing is posted, since the reviewed commit left the PR', async () => {
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
+    const pinned = SHA('a'),
+        live = SHA('c');
+    for (const compare of [async () => ({ data: { status: 'diverged' } }), async () => Promise.reject(new Error('No common ancestor'))]) {
+        const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: live } } }) });
+        github.rest.repos.compareCommitsWithBasehead = compare;
+        const env = { PR: '1', HEAD_SHA: pinned, BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir };
+        const res = await runScript(post.validateAndPost, { github, context, env, cwd: dir });
+        assert.equal(res.failed, null, 'a clean exit, not a failed job');
+        assert.equal(calls.createReview.length, 0);
+    }
 });
 test('D1 status: head MOVED -> no verdict, only a pending "superseded" status on the reviewed SHA', async () => {
     const pinned = SHA('a'),
@@ -320,6 +343,78 @@ test('D2 status repost: reconstructs SUCCESS from an f=0 marker, no model', asyn
     await runScript(status.postStatus, { github, context, env });
     assert.equal(calls.createCommitStatus.length, 1);
     assert.equal(calls.createCommitStatus[0].state, 'success', 'a clean reviewed head reposts as success');
+});
+// A review posted after the PR moved on carries a superseded marker naming the commit it read. Even if
+// GitHub recorded it on the head, it must never count as the head's review or verdict.
+const supersededBody = (sha, f = 0) => `summary\n<!-- ol-pr-review-bot f=${f} -->\n<!-- ol-pr-review-bot superseded reviewed=${sha} -->`;
+test('superseded status repost: a clean superseded review on the head never reposts SUCCESS', async () => {
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: head } } }),
+        listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, body: supersededBody(SHA('e')) }] }),
+        reviewThreads: []
+    });
+    const env = { PR: '1', HEAD_SHA: head, POST_RESULT: 'skipped', REPOST: 'true', RUN_URL: 'u' };
+    await runScript(status.postStatus, { github, context, env });
+    assert.equal(calls.createCommitStatus[0].state, 'failure', 'no verdict to carry: fail closed');
+});
+test('superseded range: a superseded review recorded on the head does not make the head count as reviewed', async () => {
+    const head = SHA('a');
+    const { github } = mockGitHub({
+        prGet: async () => ({ data: { number: 1, head: { sha: head }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
+        listReviews: async () => ({
+            data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, submitted_at: '2026-01-01', body: supersededBody(SHA('e')) }]
+        }),
+        // A matching status would make a real review of the head skip.
+        listStatuses: async () => ({ data: [{ context: 'code-review', state: 'success' }] })
+    });
+    // The full diff for the review that follows; the compare from the superseded commit fails, so it's a full review.
+    github.rest.repos.compareCommitsWithBasehead = async p => {
+        if (p.headers) return { data: 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n' };
+        throw new Error('not an ancestor');
+    };
+    const env = { PR: '1', GITHUB_WORKSPACE: dir };
+    const ctx = { ...context, payload: { pull_request: { number: 1 } } };
+    const res = await runScript(range.resolveRange, { github, context: ctx, env });
+    assert.equal(res.outputs.skip, 'false', 'the head still gets its own review');
+    assert.notEqual(res.outputs.repost, 'true', 'and not a repost of the superseded verdict');
+});
+test('superseded range: the next review starts from the last review that was not superseded', async () => {
+    // A real review of P, then a superseded review of A; the head is now B.
+    const P = SHA('p'),
+        A = SHA('e'),
+        B = SHA('a');
+    const { github } = mockGitHub({
+        prGet: async () => ({ data: { number: 1, head: { sha: B }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
+        listReviews: async () => ({
+            data: [
+                { user: { login: 'openlibrary-bot' }, commit_id: P, submitted_at: '2026-01-01', body: 'x\n<!-- ol-pr-review-bot f=0 -->' },
+                { user: { login: 'openlibrary-bot' }, commit_id: A, submitted_at: '2026-01-02', body: supersededBody(A, 1) }
+            ]
+        })
+    });
+    const compared = [];
+    github.rest.repos.compareCommitsWithBasehead = async p => {
+        if (p.headers) return { data: 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n' };
+        compared.push(p.basehead);
+        throw new Error('stop here: only the base matters');
+    };
+    const ctx = { ...context, payload: { pull_request: { number: 1 } } };
+    const res = await runScript(range.resolveRange, { github, context: ctx, env: { PR: '1', GITHUB_WORKSPACE: dir } });
+    assert.equal(compared[0], `${P}...${B}`, "from P, so B's review covers everything the superseded review of A saw");
+    assert.equal(res.outputs.skip, 'false');
+});
+test('superseded status: a superseded review on the head does not count as the posted review', async () => {
+    // The head moved back to A after post marked A's review superseded.
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: head } } }),
+        listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, body: supersededBody(head) }] }),
+        reviewThreads: []
+    });
+    const env = { PR: '1', HEAD_SHA: head, POST_RESULT: 'success', PUBLIC_FINDINGS_COUNT: '0', WITHHELD: 'false', RUN_URL: 'u' };
+    await runScript(status.postStatus, { github, context, env });
+    assert.equal(calls.createCommitStatus[0].state, 'failure', 'no real review of this commit: not green');
 });
 test('D2 status repost: an f=2 marker reposts FAILURE', async () => {
     const head = SHA('a');
@@ -779,6 +874,6 @@ test('post: the tip follows push reviews, and the footer names no one', async ()
     assert.match(bodies[1], /comment `@openlibrary-bot review` on this PR to run a fresh review\./);
     for (const b of bodies) {
         assert.doesNotMatch(b, /on behalf of/);
-        assert.match(b, /Automated review by \[@openlibrary-bot\]\([^)]*code_review\.md\)\. This is \*\*not\*\* an approval/);
+        assert.match(b, /Automated review by \[@openlibrary-bot\]\([^)]*docs\/code-review-bot\.md\)\. This is \*\*not\*\* an approval/);
     }
 });

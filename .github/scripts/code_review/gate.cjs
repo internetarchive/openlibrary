@@ -1,3 +1,4 @@
+// If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 // The disclosure gate: decides what the code review bot may publish. `analyze` runs it before
 // uploading the analysis and `post` runs it again before posting.
 //

@@ -1,3 +1,4 @@
+// If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 // Reads the code review bot's settings from .pr_agent.toml (PR-Agent's format).
 // code_review_action.yml loads this module and the file from the BASE checkout, before the
 // PR head is extracted, so a PR cannot change the settings that review it.

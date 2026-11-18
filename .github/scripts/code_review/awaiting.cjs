@@ -1,3 +1,4 @@
+// If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 // code_review_awaiting.yml: on a new or pushed-to PR, mark a head that has no review yet as
 // code-review=pending with what happens next, and with handle_push_trigger on, re-request the
 // review once no more commits arrive for push_review_delay_minutes.
