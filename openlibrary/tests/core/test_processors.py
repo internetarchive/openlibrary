@@ -141,7 +141,7 @@ def test_list_urls():
         ("/series/OL1L", "/type/series"),
     ],
 )
-@pytest.mark.parametrize("action", ["export", "embed", "edit", "editions"])
+@pytest.mark.parametrize("action", ["export", "embed", "edit", "editions", "preview.png"])
 def test_list_action_urls(key, type_key, action):
     site = MockSite()
     site.add({"key": key, "type": {"key": type_key}, "name": "foo"})
@@ -155,7 +155,7 @@ def test_list_action_urls(key, type_key, action):
 
 
 @pytest.mark.parametrize(("key", "type_key"), [("/people/joe/lists/OL1L", "/type/list"), ("/series/OL1L", "/type/series")])
-@pytest.mark.parametrize("action", ["export", "embed", "edit", "editions"])
+@pytest.mark.parametrize("action", ["export", "embed", "edit", "editions", "preview.png"])
 def test_list_action_name_is_canonical_slug(key, type_key, action):
     site = MockSite()
     site.add({"key": key, "type": {"key": type_key}, "name": action})
@@ -187,7 +187,7 @@ def test_list_action_name_with_nested_suffix():
     )
 
 
-@pytest.mark.parametrize("action", ["export", "embed"])
+@pytest.mark.parametrize("action", ["export", "embed", "preview.png"])
 @pytest.mark.parametrize("method", ["GET", "POST"])
 def test_list_action_request_preserves_query(action, method):
     class ActionHandler:
@@ -199,7 +199,7 @@ def test_list_action_request_preserves_query(action, method):
     key = "/people/joe/lists/OL1L"
     token = site_context.set(_get_mock_site())
     try:
-        app = web.application((rf"{key}/(export|embed)", ActionHandler), {})
+        app = web.application((rf"{key}/(export|embed|preview\.png)", ActionHandler), {})
         app.add_processor(web.loadhook(lambda: setattr(web.ctx, "encoding", None)))
         app.add_processor(processors.ReadableUrlProcessor())
         response = app.request(f"{key}/{action}?format=json", method=method)

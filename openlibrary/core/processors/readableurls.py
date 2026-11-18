@@ -165,7 +165,7 @@ def get_readable_path(site, path, patterns, encoding=None):
         title = thing.get(_property) or default_title
         title_slug = quote_plus(h.urlsafe(title.strip()))
         # Keep a bare list action as the suffix, unless it is the canonical title.
-        if _type in ("/type/list", "/type/series") and not suffix and middle in ("export", "embed", "edit", "editions") and middle != title_slug:
+        if _type in ("/type/list", "/type/series") and not suffix and middle in ("export", "embed", "edit", "editions", "preview.png") and middle != title_slug:
             suffix = "/" + middle
         middle = "/" + title_slug
     else:
