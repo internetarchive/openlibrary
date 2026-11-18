@@ -91,6 +91,16 @@ test('suggestionCount: bullets under the suggestions heading', () => {
     assert.equal(stats.suggestionCount("Sum.\n\n### Suggestions (won't block)\n\n- **A** x\n- **B** y\n\n> [!NOTE]\n> bot"), 2);
     assert.equal(stats.suggestionCount('Sum.'), 0);
 });
+test('suggestionCount: reads the status line of the short summary', () => {
+    const body = (status, bullets) =>
+        `${status}\n\n### Suggestions (won't block)\n\n${bullets}\n\n<details>\n<summary>Prompt for AI agents (2 open items)</summary>\n\n- **not a suggestion**\n\n</details>\n\n<sub>Please address the feedback above</sub>`;
+    assert.equal(stats.suggestionCount(body('**No blocking findings** · 2 suggestions on `4e3eb02`', '- **A** · `a.py:1`\n  x\n\n- **B**\n  y')), 2);
+    assert.equal(stats.suggestionCount(body('**1 finding** · 1 suggestion on `4e3eb02`', '- **A**\n  x')), 1);
+    assert.equal(stats.suggestionCount('**2 findings** on `4e3eb02`\n\n<sub>x</sub>'), 0);
+    assert.equal(stats.suggestionCount('**No issues found** on `4e3eb02`.'), 0);
+    // Without the status line, the section ends at the agent prompt rather than running on.
+    assert.equal(stats.suggestionCount(body('Old summary.', '- **A** x')), 1);
+});
 
 const pr = (number, { reviews = [], threads = [], merged = false } = {}) => ({
     number,
