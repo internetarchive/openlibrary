@@ -23,7 +23,7 @@ logger = logging.getLogger("openlibrary.home")
 WANT_CHECKED = 40
 WANT_SHOWN = 14
 # How many books are listed under the one in hand.
-AGENDA_SIDE = 5
+AGENDA_SIDE = 3
 # How long a reader's rendered section is kept. Shelf changes, borrows and returns drop it sooner.
 MEMBER_CACHE_SECS = 5 * dateutil.MINUTE_SECS
 # A loan this close to its due date is marked.
@@ -194,14 +194,14 @@ def want_available(readlog) -> list:
 
 
 def reading_now(readlog) -> list[dict]:
-    """The Currently Reading shelf, newest first. Each book carries a Read or Borrow button when a copy is
+    """The newest of the Currently Reading shelf, as many as the card can hold. Each book carries a Read or Borrow button when a copy is
     free right now, and the shelf control that moves it to Already Read or off the list."""
     from markupsafe import Markup
 
     from openlibrary.plugins.openlibrary.partials import _render_carousel_card_loan_status
     from openlibrary.plugins.upstream.mybooks import shelf_button_for
 
-    docs = [doc for doc in readlog.get_works("currently-reading", limit=6).docs if doc.get("title")]
+    docs = [doc for doc in readlog.get_works("currently-reading", limit=AGENDA_SIDE + 1).docs if doc.get("title")]
     lending.add_availability(docs)
     books = []
     for doc in docs:

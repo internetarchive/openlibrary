@@ -74,7 +74,7 @@ def test_reading_now_offers_a_button_only_for_a_free_copy(request_context_fixtur
 
     class ReadLog:
         def get_works(self, key, limit):
-            assert key == "currently-reading"
+            assert (key, limit) == ("currently-reading", 4)
             return web.storage(docs=docs)
 
     with (
