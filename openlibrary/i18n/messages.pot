@@ -837,7 +837,7 @@ msgstr ""
 msgid "Earliest trending data is from October 2017"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html openlibrary/core/shell/shelf_labels.py search/sort_options.html trending.html
+#: account/mybooks.html account/sidebar.html home/member.html.jinja openlibrary/core/shell/shelf_labels.py search/sort_options.html trending.html
 msgid "Want to Read"
 msgstr ""
 
@@ -5054,8 +5054,11 @@ msgid "Up %(percent)d%% over the month"
 msgstr ""
 
 #: home/member.html.jinja
-#, python-format
-msgid "Pick up where you left off, %(name)s"
+msgid "Pick up where you left off"
+msgstr ""
+
+#: home/member.html.jinja
+msgid "Ready to read from your list"
 msgstr ""
 
 #: home/member.html.jinja
@@ -5063,11 +5066,7 @@ msgid "Loans and holds"
 msgstr ""
 
 #: home/member.html.jinja
-msgid "Available now from your Want to Read list"
-msgstr ""
-
-#: home/member.html.jinja
-msgid "Open the whole list"
+msgid "Free now from your Want to Read list"
 msgstr ""
 
 #: home/welcome.html

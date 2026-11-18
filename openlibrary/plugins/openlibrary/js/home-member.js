@@ -1,6 +1,6 @@
 /**
- * The home page's top for a signed-in reader: the book they have in hand, their
- * loans and holds, and their Want to Read books with a copy free now.
+ * The home page's top for a signed-in reader: the book they have in hand, what
+ * else is in progress, and their Want to Read books with a copy free now.
  *
  * The home page is cached and the same for everyone, so the reader's own part
  * is fetched here and put in the slot home/index.html leaves for it. Signed
@@ -8,7 +8,6 @@
  *
  * @module home-member
  */
-import { initNativeCarousels } from './carousel/native.js';
 import { buildPartialsUrl } from './utils';
 
 /**
@@ -29,7 +28,6 @@ export async function initHomeMember(slot) {
             return;
         }
         slot.innerHTML = html;
-        initNativeCarousels(slot.querySelectorAll('ol-carousel'));
     } catch {
         // The rest of the home page stands without it.
         slot.remove();

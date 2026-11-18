@@ -1,5 +1,5 @@
 """What the home page shows a signed-in reader above everything else: the book they have in hand, whatever else
-has a clock on it, and the books on their Want to Read list they could start today.
+is in progress, and the books on their Want to Read list they could start today.
 
 The home page itself is cached and the same for everyone, so this is fetched after load by
 HomeMemberPartial (partials.py) and rendered with home/member.html.jinja.
@@ -15,10 +15,10 @@ from openlibrary.utils.request_context import site
 
 logger = logging.getLogger("openlibrary.home")
 
-# Want to Read books checked for a free copy, and how many of those the row shows.
+# Want to Read books checked for a free copy, and how many of those are shown (two rows of covers).
 WANT_CHECKED = 40
 WANT_SHOWN = 14
-# How many books sit beside the one in hand.
+# How many books are listed under the one in hand.
 AGENDA_SIDE = 3
 # A loan this close to its due date is marked.
 URGENT_DAYS = 2
@@ -178,19 +178,12 @@ def want_available(readlog) -> list:
     works = readlog.get_works("want-to-read", limit=WANT_CHECKED, fq=[f"ebook_access:[{get_fulltext_min()} TO *]"])
     docs = [doc for doc in works.docs if doc.get("title")]
     lending.add_availability(docs)
-    free = [doc for doc in docs if (doc.get("availability") or {}).get("status") in ("open", "borrow_available")][:WANT_SHOWN]
-    # A card draws a doc's first edition, which here is the one the reader logged and often not the copy that
-    # is free. Without it the card is the work, whose availability names the copy to open.
-    for doc in free:
-        doc.pop("editions", None)
-    return free
+    return [doc for doc in docs if (doc.get("availability") or {}).get("status") in ("open", "borrow_available")][:WANT_SHOWN]
 
 
-def build_member(user, full_path: str = "/") -> dict:
+def build_member(user) -> dict:
     """Everything of the reader's own the home page shows. Each part fails on its own, so a lending outage
     costs the loans and not the section."""
-    from openlibrary.core.jinja import render_jinja_template
-    from openlibrary.plugins.openlibrary.partials import get_book_carousel_data
     from openlibrary.plugins.upstream.mybooks import ReadingLog
 
     def attempt(what, fn, fallback):
@@ -208,14 +201,10 @@ def build_member(user, full_path: str = "/") -> dict:
     on_loan = {loan["title"] for loan in loans}
     reading = [brief for brief in map(brief_from_doc, reading) if brief["title"] not in on_loan]
 
-    want_html = ""
-    if want := attempt("want to read", lambda: want_available(readlog), []):
-        data = get_book_carousel_data(books=want, title="", url="", key="home-want-to-read", layout="ol-carousel", full_path=full_path)
-        want_html = render_jinja_template("books/custom_carousel.html.jinja", **data)
+    want = attempt("want to read", lambda: want_available(readlog), [])
 
     return {
-        "name": user.displayname or user.key.split("/")[-1],
         "agenda": build_agenda(loans, holds, reading),
         "side": AGENDA_SIDE,
-        "want_html": want_html,
+        "want": [brief_from_doc(doc) for doc in want],
     }

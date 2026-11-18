@@ -59,7 +59,7 @@ def test_agenda_without_a_loan_leads_with_currently_reading(request_context_fixt
 def test_want_available_keeps_only_copies_free_now(request_context_fixture):
     request_context_fixture(lang="en")
     docs = [
-        web.storage(key="/works/OL1W", title="free", editions={"docs": [{"key": "/books/OL1M"}]}),
+        web.storage(key="/works/OL1W", title="free"),
         web.storage(key="/works/OL2W", title="out"),
         web.storage(key="/works/OL3W", title="open"),
         web.storage(key="/works/OL4W", title="unknown"),
@@ -79,5 +79,3 @@ def test_want_available_keeps_only_copies_free_now(request_context_fixture):
         free = _home_member().want_available(ReadLog())
 
     assert [doc["title"] for doc in free] == ["free", "open"]
-    # The card must draw the work, whose availability names the free copy, not the logged edition.
-    assert "editions" not in free[0]

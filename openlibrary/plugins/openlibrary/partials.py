@@ -1221,7 +1221,7 @@ class HomeMemberPartial:
         if not (user := get_user_object(username)):
             return {"partials": ""}
         member = home_member.build_member(user)
-        if not (member["agenda"] or member["want_html"]):
+        if not (member["agenda"] or member["want"]):
             return {"partials": ""}
         return {"partials": render_jinja_template("home/member.html.jinja", member=member).strip()}
 

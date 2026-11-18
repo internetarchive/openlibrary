@@ -1,16 +1,11 @@
 /**
- * The top of the home page for a signed-in reader: the book in hand, what else
- * needs them, and their Want to Read books with a copy free now.
+ * The top of the home page for a signed-in reader: one section about now. The
+ * book in hand as a small card with what else is in progress under it, and the
+ * covers of their Want to Read books that have a copy free.
  * Defined in:
  *  - openlibrary/templates/home/member.html.jinja
  *  - openlibrary/templates/home/welcome.html (hidden when signed in)
  */
-
-/* Sections are separated by their own bottom margin; gap is kept for things inside one. */
-.home-member,
-.home-want {
-  margin-block: var(--spacing-stack-lg) var(--spacing-stack-xl);
-}
 
 /* The welcome cards introduce the site, so a signed-in reader doesn't get them.
    The page is cached and shared; the shell marks the reader on <body>. */
@@ -18,29 +13,27 @@ body[data-user-key] .home-welcome {
   display: none;
 }
 
-/* A section's heading line: the title, and a link at the end. */
-.home-member__head,
-.home-want__head {
+/* Sections are separated by their own bottom margin; gap is kept for things inside one. */
+.home-now {
+  margin-block: var(--spacing-stack-lg) var(--spacing-stack-xl);
+}
+
+.home-now :where(ul) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The heading line: the title, and the ways out at its end. */
+.home-now__head {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: baseline;
   gap: var(--spacing-stack-xs) var(--spacing-inline-lg);
   margin-bottom: var(--spacing-stack-md);
 }
 
-.home-member__title {
-  margin: 0;
-  font-size: var(--font-size-headline-small);
-  font-weight: var(--font-weight-heading);
-  line-height: var(--line-height-heading);
-  color: var(--color-text-heading);
-  text-wrap: balance;
-}
-
-.home-want__title {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-inline-md);
+.home-now__title {
   margin: 0;
   font-size: var(--font-size-title-large);
   font-weight: var(--font-weight-heading);
@@ -48,24 +41,90 @@ body[data-user-key] .home-welcome {
   color: var(--color-text-heading);
 }
 
-.home-want__icon {
-  flex: none;
-  color: var(--color-icon-muted);
+.home-now__links {
+  display: flex;
+  gap: var(--spacing-inline-xl);
+  margin-inline-start: auto;
+}
+
+/* In progress on one side, the list's covers on the other. */
+.home-now__body {
+  display: grid;
+  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  gap: var(--spacing-inline-xl);
+  align-items: start;
+}
+
+.home-now--no-reading .home-now__body,
+.home-now--no-want .home-now__body {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* The book in hand. */
+.home-now__main {
+  display: flex;
+  gap: var(--spacing-inset-md);
+  padding: var(--spacing-inset-md);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface-sunken);
 }
 
 /* ol-book-cover keeps the 2:3 slot. */
-.home-member__thumb {
+.home-now__cover {
   flex: none;
-  width: 44px;
+  width: 72px;
+}
+
+.home-now__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-3xs);
+  min-width: 0;
+}
+
+.home-now__book {
+  margin: 0;
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-heading);
+  text-wrap: balance;
+}
+
+.home-now__book a:link,
+.home-now__book a:visited {
+  color: var(--color-text-heading);
+  text-decoration: none;
+}
+
+.home-now__author,
+.home-now__note {
+  margin: 0;
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
+}
+
+.home-now__main-action {
+  margin-top: auto;
+  padding-top: var(--spacing-stack-sm);
+}
+
+.home-now__action {
+  margin: 0;
 }
 
 /* One status line by a book: plain, urgent (a loan nearly due) or ready (a hold to collect). */
 .home-status {
   display: flex;
+  flex: none;
   align-items: center;
   gap: var(--spacing-inline-sm);
   margin: 0;
-  font-size: var(--font-size-label-large);
+  font-size: var(--font-size-label-medium);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-meta);
   color: var(--color-text-secondary);
@@ -79,174 +138,109 @@ body[data-user-key] .home-welcome {
   color: var(--color-success-fg);
 }
 
-.home-member__action {
-  margin: 0;
+/* What else is in progress: a line each. */
+.home-now__rest {
+  margin-top: var(--spacing-stack-sm);
 }
 
-/* The book in hand, large; what else needs them beside it. */
-.home-continue {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-  gap: var(--spacing-inline-xl);
-}
-
-.home-continue--solo {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.home-continue__main {
+.home-now__item {
   display: flex;
-  gap: var(--spacing-inset-lg);
-  padding: var(--spacing-inset-card);
-  border: var(--border-card);
-  border-radius: var(--border-radius-card);
-  background: var(--color-surface-sunken);
-  box-shadow: var(--box-shadow-raised);
-}
-
-.home-continue__cover {
-  flex: none;
-  align-self: flex-start;
-  width: 136px;
-}
-
-.home-continue__art {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: var(--border-radius-thumbnail);
-  box-shadow: var(--box-shadow-cover);
-}
-
-.home-continue__text {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--spacing-stack-xs);
-  min-width: 0;
-}
-
-.home-continue__book {
-  margin: var(--spacing-stack-xs) 0 0;
-  font-family: var(--font-family-title);
-  font-size: var(--font-size-headline-medium);
-  font-weight: var(--font-weight-heading);
-  line-height: var(--line-height-display);
-  text-wrap: balance;
-}
-
-.home-continue__book a:link,
-.home-continue__book a:visited {
-  color: var(--color-text-heading);
-  text-decoration: none;
-}
-
-.home-continue__author,
-.home-continue__note {
-  margin: 0;
-  max-width: 52ch;
-  font-size: var(--font-size-body-large);
-  line-height: var(--line-height-body);
-  color: var(--color-text-secondary);
-}
-
-.home-continue__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-inline-md);
-  margin-top: auto;
-  padding-top: var(--spacing-stack-md);
-}
-
-.home-continue__side {
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: 0 var(--spacing-inset-md);
-  border: var(--border-card);
-  border-radius: var(--border-radius-card);
-  background: var(--color-surface);
-  box-shadow: var(--box-shadow-raised);
-  list-style: none;
-}
-
-.home-continue__item {
-  display: flex;
-  flex: 1;
   align-items: center;
-  gap: var(--spacing-inline-lg);
-  padding-block: var(--spacing-md);
-  border-top: 1px solid var(--color-border-extra-subtle);
+  gap: var(--spacing-inline-md);
+  min-height: var(--control-height-medium);
+  padding-block: var(--spacing-stack-xs);
 }
 
-.home-continue__item:first-child {
-  border-top: 0;
+.home-now__thumb {
+  flex: none;
+  width: 24px;
 }
 
-.home-continue__item-text {
-  display: flex;
+.home-now__item-title {
   flex: 1;
-  flex-direction: column;
-  gap: var(--spacing-3xs);
-  min-width: 0;
-}
-
-.home-continue__item-title:link,
-.home-continue__item-title:visited {
-  display: block;
-  overflow: hidden;
-  color: var(--color-text-heading);
-  font-size: var(--font-size-body-large);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-heading);
-  text-decoration: none;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.home-continue__item-note {
-  margin: 0;
   overflow: hidden;
   font-size: var(--font-size-body-medium);
-  line-height: var(--line-height-meta);
-  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* The row's own header is replaced by .home-want__head. */
-.home-want .carousel-section {
-  margin: 0;
+.home-now__item-title:link,
+.home-now__item-title:visited {
+  color: var(--color-text-heading);
+  text-decoration: none;
 }
 
-/* Every book in this row is on the same shelf, so the saved mark says nothing
-   book by book: the badge waits for the pointer, as it does on an unsaved book
-   elsewhere. Touch has no hover and keeps it. */
-@media (hover: hover) and (pointer: fine) {
-  .home-want
-    ol-book-cover:where(:not(:hover, [link-focus]))
-    > ol-shelf-button:where(:not(:focus-within, [open])) {
-    opacity: 0;
-  }
+/* With no list to show, the other books in progress move up beside the card. */
+.home-now--no-want .home-now__reading {
+  display: flex;
+  gap: var(--spacing-inline-xl);
+  align-items: flex-start;
+}
+
+.home-now--no-want .home-now__main {
+  flex: 0 1 22rem;
+}
+
+.home-now--no-want .home-now__rest {
+  flex: 1;
+  margin-top: 0;
+}
+
+/* The list's small heading. */
+.home-now__label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  margin: 0 0 var(--spacing-stack-sm);
+  font-size: var(--font-size-label-large);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
+}
+
+.home-now__label-icon {
+  flex: none;
+  color: var(--color-icon-muted);
+}
+
+/* Covers only, two rows at most: the rows past them have no height and are
+   clipped. Each cover carries the row gap as its own top margin, so a hidden
+   row starts clear of the padding that holds the shadows and focus rings. */
+.home-now__wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  grid-template-rows: auto auto;
+  grid-auto-rows: 0;
+  column-gap: var(--spacing-inline-md);
+  overflow: hidden;
+  margin: calc(-1 * var(--spacing-md)) calc(-1 * var(--spacing-xs))
+    calc(-1 * var(--spacing-xs));
+  padding: 0 var(--spacing-xs) var(--spacing-xs);
+}
+
+.home-now__wall > li {
+  margin-top: var(--spacing-md);
+}
+
+/* With nothing in progress the list has the full width: one row, a little larger. */
+.home-now--no-reading .home-now__wall {
+  grid-template-columns: repeat(auto-fill, 80px);
+  grid-template-rows: auto;
 }
 
 /* --width-breakpoint-tablet */
 @media (max-width: 767px) {
-  .home-continue {
+  .home-now__body {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .home-continue__cover {
-    width: 96px;
+  .home-now--no-want .home-now__reading {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .home-continue__main {
-    gap: var(--spacing-inset-md);
-    padding: var(--spacing-inset-md);
-  }
-
-  .home-continue__book {
-    font-size: var(--font-size-headline-small);
+  .home-now--no-want .home-now__main {
+    flex: none;
   }
 }
