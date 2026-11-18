@@ -418,12 +418,11 @@ class TestSiteContextMigration:
     def test_solr_update_uses_current_store(self, current, monkeypatch):
         monkeypatch.setattr(web, "input", lambda **defaults: web.storage(keys=" /works/OL1W \n /books/OL2M "))
         admin_code.solr().POST()
-        assert current.store["solr-force-update"] == {
-            "_key": "solr-force-update",
-            "type": "solr-force-update",
-            "keys": ["/works/OL1W", "/books/OL2M"],
-            "_rev": None,
-        }
+        doc = current.store["solr-force-update"]
+        assert doc["keys"] == ["/works/OL1W", "/books/OL2M"]
+        assert [(request["seq"], request["keys"]) for request in doc["requests"]] == [
+            (1, ["/works/OL1W", "/books/OL2M"])
+        ]
 
 def test_add_solr_force_update_keeps_latest_keys_and_recent_numbered_requests(monkeypatch):
     monkeypatch.setattr(admin_code, "SOLR_FORCE_UPDATE_HISTORY", 2)
