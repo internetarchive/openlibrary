@@ -144,14 +144,15 @@
                     {{ icon("bookmark", size="sm", extra_class="home-now__label-icon") }}
                     {{ _("Want to Read, available now") if member.want_checked else _("Want to Read") }}
                 </h3>
-                <a class="carousel-see-all"
-                   href="/account/books/want-to-read"
-                   aria-label="{{ _('See all %(title)s', title=_('Want to Read')) }}"
-                   data-ol-link-track="HomeMember|WantToRead">{{ _("See all") }}{{ icon("chevron-right", size="sm") }}</a>
             </div>
             <ul class="home-now__wall">
                 {% for item in want %}<li>{{ cover(item, "", "small") }}</li>{% endfor %}
             </ul>
+            <p class="home-now__more">
+                <a class="carousel-see-all"
+                   href="/account/books/want-to-read"
+                   data-ol-link-track="HomeMember|WantToRead">{{ _('See all %(title)s', title=_('Want to Read')) }}{{ icon("chevron-right", size="sm") }}</a>
+            </p>
         </div>
     {% endif %}
 {% endif %}

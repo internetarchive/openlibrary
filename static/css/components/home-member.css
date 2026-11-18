@@ -227,10 +227,11 @@ body[data-user-key] .home-welcome {
   color: var(--color-success-fg);
 }
 
-/* What else is in progress: a line each, under a rule. */
+/* What else is in progress: a line each, under a rule. With the first line's
+   own padding, the rule has the same room under it as over it. */
 .home-now__rest {
   margin-top: var(--spacing-inset-md);
-  padding-top: var(--spacing-stack-xs);
+  padding-top: var(--spacing-md);
   border-top: 1px solid var(--color-border-subtle);
 }
 
@@ -285,7 +286,7 @@ body[data-user-key] .home-welcome {
   display: flex;
   align-items: center;
   gap: var(--spacing-inline-lg);
-  margin-bottom: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-md);
 }
 
 .home-now__label {
@@ -330,7 +331,7 @@ body[data-user-key] .home-welcome {
   border-inline-start: 1px solid var(--color-border-subtle);
 }
 
-/* The way to the rest of the card's books, under the last of them. */
+/* The way to the rest of a part's books, under the last of them. */
 .home-now__more {
   margin: var(--spacing-stack-sm) 0 0;
 }
@@ -381,7 +382,7 @@ body[data-user-key] .home-welcome {
 
   .home-now--no-want .home-now__rest {
     margin-top: var(--spacing-inset-md);
-    padding-top: var(--spacing-stack-xs);
+    padding-top: var(--spacing-md);
     padding-inline-start: 0;
     border-top: 1px solid var(--color-border-subtle);
     border-inline-start: 0;
