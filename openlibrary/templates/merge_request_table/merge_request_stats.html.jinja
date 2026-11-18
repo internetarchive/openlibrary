@@ -17,7 +17,8 @@
     {% endfor %}
   </div>
 
-  <table class="mr-stats-table">
+  <div class="mr-stats-table-wrapper">
+  <table class="mr-stats-table no-table-collapse">
     <thead>
       <tr>
         <th>{{ _('Reviewer') if form.group == 'reviewers' else _('Submitter') }}</th>
@@ -45,5 +46,6 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
   {{ ol_pagination(form.page, data.total_pages) }}
 </div>

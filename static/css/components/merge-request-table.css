@@ -357,6 +357,10 @@
 }
 
 /* Statistics page */
+.mr-stats-table-wrapper {
+  overflow-x: auto;
+}
+
 .mr-stats-table {
   width: 100%;
   background-color: var(--white);
