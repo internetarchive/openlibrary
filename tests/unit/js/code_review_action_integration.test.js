@@ -166,6 +166,20 @@ test('D1 post: head MOVED -> the review posts on the commit it read, as a COMMEN
     assert.ok(r.body.startsWith(`*This review is of \`${pinned.slice(0, 7)}\`. \`${live.slice(0, 7)}\` was pushed while it ran`), r.body);
     assert.ok(r.body.endsWith(`<!-- ol-pr-review-bot superseded reviewed=${pinned} -->`), 'marked superseded, naming the commit it read');
 });
+test('D1 post: head MOVED by a force-push -> nothing is posted, since the reviewed commit left the PR', async () => {
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
+    const pinned = SHA('a'),
+        live = SHA('c');
+    for (const compare of [async () => ({ data: { status: 'diverged' } }), async () => Promise.reject(new Error('No common ancestor'))]) {
+        const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: live } } }) });
+        github.rest.repos.compareCommitsWithBasehead = compare;
+        const env = { PR: '1', HEAD_SHA: pinned, BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir };
+        const res = await runScript(post.validateAndPost, { github, context, env, cwd: dir });
+        assert.equal(res.failed, null, 'a clean exit, not a failed job');
+        assert.equal(calls.createReview.length, 0);
+    }
+});
 test('D1 status: head MOVED -> no verdict, only a pending "superseded" status on the reviewed SHA', async () => {
     const pinned = SHA('a'),
         live = SHA('c');

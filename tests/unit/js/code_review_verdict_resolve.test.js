@@ -271,7 +271,7 @@ function mockGitHub({ author = 'contributor', reviewThreads = [], throw422 = fal
             },
             repos: {
                 // Reviewed range b..a holds commits c1 (older) and c2; only c1 touched a.py.
-                compareCommitsWithBasehead: async () => ({ data: { commits: [{ sha: 'c1' }, { sha: 'c2' }] } }),
+                compareCommitsWithBasehead: async () => ({ data: { status: 'ahead', commits: [{ sha: 'c1' }, { sha: 'c2' }] } }),
                 listCommits: async ({ path }) => ({ data: path === 'a.py' ? [{ sha: 'c1' }, { sha: 'old' }] : [] })
             }
         },

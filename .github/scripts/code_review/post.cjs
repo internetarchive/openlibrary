@@ -291,6 +291,21 @@ async function validateAndPost({ github, context, core, require, process }) {
     const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
     const superseded = !headIsCurrent(headSha, livePr.head.sha);
     if (superseded) {
+        // After a force-push the reviewed commit may no longer be in the PR, and a review can't be
+        // posted on it. Then post nothing, as before: the new head gets its own review regardless.
+        let inHistory = false;
+        try {
+            const { data: cmp } = await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${headSha}...${livePr.head.sha}` });
+            inHistory = cmp.status === 'ahead';
+        } catch (e) {
+            core.info(`Could not compare ${headSha.slice(0, 8)} with the new head (${e.message}).`);
+        }
+        if (!inHistory) {
+            core.info(
+                `Head moved ${headSha.slice(0, 8)}->${String(livePr.head.sha).slice(0, 8)} and the reviewed commit is no longer in the PR (force-push); not posting. The new head gets its own review.`
+            );
+            return;
+        }
         const reviewed = headSha.slice(0, 7),
             live = String(livePr.head.sha).slice(0, 7);
         core.info(`Head moved ${headSha.slice(0, 8)}->${String(livePr.head.sha).slice(0, 8)} during the review; posting it on ${reviewed} as a comment.`);

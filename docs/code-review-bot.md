@@ -62,6 +62,9 @@ draft, a closed PR, or a commit it already reviewed), the bot replies to say so.
   blocks. That commit's check changes to "Superseded by `<commit>`". Your new commit waits its own
   10 quiet minutes, then gets its own review. That review also covers the changes the superseded
   one saw, so nothing it found is lost.
+- **A force-push while a review is running** is the exception: the commit that review read is no
+  longer part of the PR, so the review is dropped. The new head still gets its own review, of the
+  whole PR.
 - **Asking for a review during the wait** starts it right away instead.
 - **No re-review** for pushes made by bots, pushes that only merge the base branch in (the "Update
   branch" button), or PRs labelled `no-automation`. Ask for a review if you want one.
