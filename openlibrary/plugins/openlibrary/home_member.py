@@ -8,10 +8,12 @@ HomeMemberPartial (partials.py) and rendered with home/member.html.jinja.
 import logging
 from datetime import UTC, datetime
 
-from openlibrary.core import lending
+from openlibrary.core import cache, lending
+from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
-from openlibrary.utils.request_context import site
+from openlibrary.utils import dateutil
+from openlibrary.utils.request_context import get_request_lang, req_context, site
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -19,21 +21,23 @@ logger = logging.getLogger("openlibrary.home")
 WANT_CHECKED = 40
 WANT_SHOWN = 14
 # How many books are listed under the one in hand.
-AGENDA_SIDE = 3
+AGENDA_SIDE = 5
+# How long a reader's rendered section is kept. Shelf changes, borrows and returns drop it sooner.
+MEMBER_CACHE_SECS = 5 * dateutil.MINUTE_SECS
 # A loan this close to its due date is marked.
 URGENT_DAYS = 2
 
 
+def _brief(title: str, author: str, url: str, cover_url: str) -> dict:
+    """What a card shows. `thumb_url` is the small rendition, for the 24px covers on the one-line rows."""
+    return {"title": title or _("Untitled"), "author": author, "url": url, "cover_url": cover_url, "thumb_url": cover_url.replace("-M.jpg", "-S.jpg")}
+
+
 def brief_from_doc(doc: dict) -> dict:
-    """A Solr work doc, cut down to what a card shows."""
+    """A Solr work doc as a card."""
     from openlibrary.plugins.openlibrary.partials import _resolve_carousel_card_cover_url
 
-    return {
-        "title": doc.get("title") or _("Untitled"),
-        "author": ", ".join((doc.get("author_name") or [])[:2]),
-        "url": doc.get("key", ""),
-        "cover_url": _resolve_carousel_card_cover_url(doc) or "",
-    }
+    return _brief(doc.get("title", ""), ", ".join((doc.get("author_name") or [])[:2]), doc.get("key", ""), _resolve_carousel_card_cover_url(doc) or "")
 
 
 def brief_from_book(book) -> dict:
@@ -46,7 +50,7 @@ def brief_from_book(book) -> dict:
         cover = book.get_cover_url("M") or ""
     except Exception:  # noqa: BLE001
         cover = ""
-    return {"title": book.title or _("Untitled"), "author": authors, "url": book.url(), "cover_url": cover}
+    return _brief(book.title, authors, book.url(), cover)
 
 
 def due_label(days_left: int) -> str:
@@ -142,6 +146,7 @@ def build_agenda(loans: list[dict], holds: list[dict], reading: list[dict]) -> l
             "author": book["author"],
             "url": book["url"],
             "cover_url": book["cover_url"],
+            "thumb_url": book["thumb_url"],
             "status": status,
             "tone": tone,
             "action": {"label": label, "href": book["url"], "form": form},
@@ -186,11 +191,14 @@ def build_member(user) -> dict:
     costs the loans and not the section."""
     from openlibrary.plugins.upstream.mybooks import ReadingLog
 
+    failed = []
+
     def attempt(what, fn, fallback):
         try:
             return fn()
         except Exception:
             logger.error("home: could not load %s", what, exc_info=True)
+            failed.append(what)
             return fallback
 
     readlog = ReadingLog(user)
@@ -207,4 +215,34 @@ def build_member(user) -> dict:
         "agenda": build_agenda(loans, holds, reading),
         "side": AGENDA_SIDE,
         "want": [brief_from_doc(doc) for doc in want],
+        "complete": not failed,
     }
+
+
+# The rendered section is kept per reader. One memcache entry holds a rendering per language (and per
+# print-disabled setting, which changes what counts as borrowable), each tagged with the reading log's
+# version so a shelf change makes it stale. A borrow or return deletes the entry.
+
+
+def _cache_key(username: str) -> str:
+    return cache.build_memcache_key("home.member", username)
+
+
+def _cache_variant(username: str) -> str:
+    return ":".join([Bookshelves.reading_log_version(username), get_request_lang() or "", "pd" if req_context.get().print_disabled else ""])
+
+
+def get_cached_html(username: str) -> str | None:
+    return (cache.get_memcache().get(_cache_key(username)) or {}).get(_cache_variant(username))
+
+
+def cache_html(username: str, html: str) -> None:
+    mc = cache.get_memcache()
+    variant = _cache_variant(username)
+    version = variant.split(":", 1)[0]
+    current = {k: v for k, v in (mc.get(_cache_key(username)) or {}).items() if k.startswith(version)}
+    mc.set(_cache_key(username), current | {variant: html}, expires=MEMBER_CACHE_SECS)
+
+
+def invalidate_cache(username: str) -> None:
+    cache.get_memcache().delete(_cache_key(username))

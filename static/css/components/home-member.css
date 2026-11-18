@@ -13,6 +13,13 @@ body[data-user-key] .home-welcome {
   display: none;
 }
 
+/* Room held for the section while it loads, so the page under it moves less
+   when it arrives: about the height of a card with two more books in progress.
+   Only a signed-in reader gets the request. */
+[data-user-key] .home-member-slot:empty {
+  min-height: 22rem;
+}
+
 /* Sections are separated by their own bottom margin; gap is kept for things inside one. */
 .home-now {
   margin-block: var(--spacing-stack-lg) var(--spacing-stack-xl);
@@ -60,14 +67,18 @@ body[data-user-key] .home-welcome {
   grid-template-columns: minmax(0, 1fr);
 }
 
-/* The book in hand. */
-.home-now__main {
-  display: flex;
-  gap: var(--spacing-inset-md);
+/* One card for everything in progress. */
+.home-now__reading {
   padding: var(--spacing-inset-md);
   border: var(--border-card);
   border-radius: var(--border-radius-card);
   background: var(--color-surface-sunken);
+}
+
+/* The book in hand. */
+.home-now__main {
+  display: flex;
+  gap: var(--spacing-inset-md);
 }
 
 /* ol-book-cover keeps the 2:3 slot. */
@@ -138,9 +149,11 @@ body[data-user-key] .home-welcome {
   color: var(--color-success-fg);
 }
 
-/* What else is in progress: a line each. */
+/* What else is in progress: a line each, under a rule. */
 .home-now__rest {
-  margin-top: var(--spacing-stack-sm);
+  margin-top: var(--spacing-inset-md);
+  padding-top: var(--spacing-stack-xs);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .home-now__item {
@@ -171,7 +184,7 @@ body[data-user-key] .home-welcome {
   text-decoration: none;
 }
 
-/* With no list to show, the other books in progress move up beside the card. */
+/* With no list to show, the card takes the width and the other books sit beside the one in hand. */
 .home-now--no-want .home-now__reading {
   display: flex;
   gap: var(--spacing-inline-xl);
@@ -185,6 +198,10 @@ body[data-user-key] .home-welcome {
 .home-now--no-want .home-now__rest {
   flex: 1;
   margin-top: 0;
+  padding-top: 0;
+  padding-inline-start: var(--spacing-inline-xl);
+  border-top: 0;
+  border-inline-start: 1px solid var(--color-border-subtle);
 }
 
 /* The list's small heading. */
@@ -231,6 +248,11 @@ body[data-user-key] .home-welcome {
 
 /* --width-breakpoint-tablet */
 @media (max-width: 767px) {
+  /* Stacked, the section is taller. */
+  [data-user-key] .home-member-slot:empty {
+    min-height: 30rem;
+  }
+
   .home-now__body {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -242,5 +264,12 @@ body[data-user-key] .home-welcome {
 
   .home-now--no-want .home-now__main {
     flex: none;
+  }
+
+  .home-now--no-want .home-now__rest {
+    padding-top: var(--spacing-stack-xs);
+    padding-inline-start: 0;
+    border-top: 1px solid var(--color-border-subtle);
+    border-inline-start: 0;
   }
 }

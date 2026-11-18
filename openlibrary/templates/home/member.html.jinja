@@ -1,6 +1,6 @@
 {#
-  The top of the home page for a signed-in reader, as one section about now: the book they have in hand as a
-  small card with what else is in progress listed under it, and beside it the covers of their Want to Read
+  The top of the home page for a signed-in reader, as one section about now: a card holding the book they
+  have in hand and a line for each other book in progress, and beside it the covers of their Want to Read
   books that have a copy free.
   `member` is home_member.build_member(): `member.agenda` is their loans, holds and Currently Reading books
   as one list, the book in hand first; `member.want` is the free Want to Read books.
@@ -66,6 +66,7 @@
         </div>
         <div class="home-now__body">
             {% if first %}
+                {# One card for everything in progress: the book in hand, then a line for each of the others. #}
                 <div class="home-now__reading">
                     <article class="home-now__main">
                         {{ cover(first, "home-now__cover") }}
@@ -83,7 +84,8 @@
                         <ul class="home-now__rest">
                             {% for item in agenda[1:member.side + 1] %}
                                 <li class="home-now__item">
-                                    {{ cover(item, "home-now__thumb", "small") }}
+                                    <ol-book-cover class="home-now__thumb" size="small" src="{{ item.thumb_url }}" book-title="{{ item.title }}" authors="{{ item.author }}" href="{{ item.url }}">
+                                    </ol-book-cover>
                                     <a class="home-now__item-title" href="{{ item.url }}">{{ item.title }}</a>
                                     {{ status(item) }}
                                     {% if item.kind in ("ready", "loan") %}{{ action(item, "secondary", "small") }}{% endif %}

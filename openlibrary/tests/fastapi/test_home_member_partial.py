@@ -13,7 +13,7 @@ def _home_member():
 
 
 def _book(title: str, **extra) -> dict:
-    return {"title": title, "author": "", "url": f"/works/{title}", "cover_url": ""} | extra
+    return {"title": title, "author": "", "url": f"/works/{title}", "cover_url": "", "thumb_url": ""} | extra
 
 
 def _loan(title: str, days_left: int) -> dict:
@@ -79,3 +79,49 @@ def test_want_available_keeps_only_copies_free_now(request_context_fixture):
         free = _home_member().want_available(ReadLog())
 
     assert [doc["title"] for doc in free] == ["free", "open"]
+
+
+def test_generate_keeps_the_request_context(request_context_fixture):
+    """Replacing it from the bare web.ctx marks the request a bot, and availability then skips the real check."""
+    from openlibrary.plugins.openlibrary import partials  # noqa: PLC0415
+    from openlibrary.utils.request_context import req_context  # noqa: PLC0415
+
+    request_context_fixture(lang="en", is_bot=False)
+    before = req_context.get()
+    with (
+        patch.object(partials.delegate, "fakeload"),
+        patch.object(partials.home_member, "get_cached_html", return_value=None),
+        patch.object(partials, "get_user_object", return_value=None),
+    ):
+        assert partials.HomeMemberPartial.generate("someone") == {"partials": ""}
+    assert req_context.get() is before
+
+
+def test_cached_section_is_served_until_the_shelves_change(request_context_fixture):
+    request_context_fixture(lang="en")
+    home_member = _home_member()
+    store: dict = {}
+
+    class Memcache:
+        def get(self, key):
+            return store.get(key)
+
+        def set(self, key, value, expires=0):
+            store[key] = value
+
+        def delete(self, key):
+            store.pop(key, None)
+
+    version = ["v1"]
+    with (
+        patch.object(home_member.cache, "get_memcache", return_value=Memcache()),
+        patch.object(home_member.Bookshelves, "reading_log_version", side_effect=lambda username: version[0]),
+    ):
+        assert home_member.get_cached_html("reader") is None
+        home_member.cache_html("reader", "<section>")
+        assert home_member.get_cached_html("reader") == "<section>"
+        version[0] = "v2"  # a book was shelved
+        assert home_member.get_cached_html("reader") is None
+        home_member.cache_html("reader", "<new>")
+        home_member.invalidate_cache("reader")  # a borrow or return
+        assert home_member.get_cached_html("reader") is None

@@ -64,7 +64,7 @@ from openlibrary.plugins.worksearch.subjects import (
     get_subject_async,
 )
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.request_context import get_request_lang, set_context_from_legacy_web_py
+from openlibrary.utils.request_context import get_request_lang
 from openlibrary.views.loanstats import get_trending_books
 
 if TYPE_CHECKING:
@@ -1213,17 +1213,21 @@ class HomeMemberPartial:
 
     @classmethod
     def generate(cls, username: str) -> dict:
-        # FastAPI runs this sync handler on a threadpool worker with no web.ctx;
-        # the LoanStatus macro and the lending calls need one.
+        # FastAPI runs this sync handler on a threadpool worker with no web.ctx; the lending calls need one.
+        # Only web.ctx: the request context FastAPI set (language, bot or not) must stay as it is, or
+        # availability takes its bot shortcut and reports every borrowable book as free.
         if "env" not in web.ctx:
             delegate.fakeload()
-            set_context_from_legacy_web_py()
+        if (html := home_member.get_cached_html(username)) is not None:
+            return {"partials": html}
         if not (user := get_user_object(username)):
             return {"partials": ""}
         member = home_member.build_member(user)
-        if not (member["agenda"] or member["want"]):
-            return {"partials": ""}
-        return {"partials": render_jinja_template("home/member.html.jinja", member=member).strip()}
+        html = render_jinja_template("home/member.html.jinja", member=member).strip() if member["agenda"] or member["want"] else ""
+        # A part that failed to load (a lending outage) is retried on the next view, not kept for five minutes.
+        if member["complete"]:
+            home_member.cache_html(username, html)
+        return {"partials": html}
 
 
 @public
