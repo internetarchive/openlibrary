@@ -41,7 +41,9 @@ export function buildFailuresCsv(table) {
 
 /**
  * Shows how many books were imported and how many were not, and offers the ones that were not as
- * a CSV. Called once every row has its outcome.
+ * a CSV. Called once every row has its outcome. The summary box is a status region that is on the
+ * page from the start, and only its contents appear here: screen readers announce a change to a
+ * live region that is already in the accessibility tree, not one that is revealed and filled at once.
  * @param {HTMLTableElement} table
  */
 function showImportSummary(table) {
@@ -52,9 +54,10 @@ function showImportSummary(table) {
     const i18n = JSON.parse(summary.dataset.i18n);
     const imported = table.querySelectorAll('td.success-imported').length;
     const failed = getFailedRows(table).length;
-    summary.querySelector('.import-summary-text').textContent = i18n.summary.replace('%(imported)s', imported).replace('%(failed)s', failed);
+    const text = summary.querySelector('.import-summary-text');
+    text.textContent = i18n.summary.replace('%(imported)s', imported).replace('%(failed)s', failed);
+    text.classList.remove('hidden');
     summary.querySelector('.download-failures').classList.toggle('hidden', failed === 0);
-    summary.classList.remove('hidden');
 }
 
 export function initGoodreadsImport() {

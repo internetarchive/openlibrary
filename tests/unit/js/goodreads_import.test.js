@@ -24,8 +24,8 @@ function renderPage(rows) {
             <div><button class="hidden cancel-button">Cancel</button></div>
         </div>
         <input type="submit" class="import-submit" value="Import ${rows.length} Books">
-        <div class="import-summary hidden" role="status" data-i18n='${i18n}'>
-            <p class="import-summary-text"></p>
+        <div class="import-summary" role="status" data-i18n='${i18n}'>
+            <p class="import-summary-text hidden"></p>
             <button type="button" class="download-failures hidden">Download</button>
         </div>
         <table class="import-table">
@@ -74,10 +74,11 @@ function stubPosts(failing = []) {
 const edition = n => ({ key: `/books/OL${n}M`, works: [{ key: `/works/OL${n}W` }] });
 const row = isbn => document.querySelector(`[isbn="${isbn}"]`);
 const summary = () => document.querySelector('.import-summary');
+const summaryText = () => document.querySelector('.import-summary-text');
 
 async function runImport() {
     $('.import-submit').trigger('click');
-    await vi.waitFor(() => expect(summary().classList.contains('hidden')).toBe(false));
+    await vi.waitFor(() => expect(summaryText().classList.contains('hidden')).toBe(false));
 }
 
 afterEach(() => {
@@ -117,6 +118,24 @@ describe('Goodreads import', () => {
         expect(row('111').lastElementChild.textContent).toBe('Imported');
         expect(row('222').lastElementChild.textContent).toBe('Book not in collection');
         expect(row('333').lastElementChild.textContent).toBe('Custom shelves are not supported');
+    });
+
+    test('fills a status region that was on the page before the import, so screen readers announce it', async () => {
+        stubEditionLookup({ 111: edition(1) });
+        stubPosts();
+        renderPage([bookRow({ isbn: '111', title: 'Found' })]);
+
+        $('.import-submit').trigger('click');
+
+        // While the import runs, the live region is already in the accessibility tree and still empty
+        expect(summary().getAttribute('role')).toBe('status');
+        expect(summary().classList.contains('hidden')).toBe(false);
+        expect(summaryText().classList.contains('hidden')).toBe(true);
+        expect(summaryText().textContent).toBe('');
+
+        await vi.waitFor(() => expect(summaryText().classList.contains('hidden')).toBe(false));
+        expect(summary().classList.contains('hidden')).toBe(false);
+        expect(summaryText().textContent).toBe('1 imported, 0 could not be imported');
     });
 
     test('hides the download button when every book was imported', async () => {
@@ -184,7 +203,7 @@ describe('Goodreads import', () => {
 
         // The skipped book alone must not fill the bar while the checked one is still importing
         expect(document.querySelector('#myBar a')).toBeNull();
-        await vi.waitFor(() => expect(summary().classList.contains('hidden')).toBe(false));
+        await vi.waitFor(() => expect(summaryText().classList.contains('hidden')).toBe(false));
         expect(document.querySelector('#myBar a')).not.toBeNull();
     });
 

@@ -120,8 +120,8 @@ $def with (books=None, books_wo_isbns=None)
     $ summary_i18n = {
         $ "summary": _("%(imported)s imported, %(failed)s could not be imported"),
         $ }
-    <div class="import-summary hidden" role="status" data-i18n="$json_encode(summary_i18n)">
-      <p class="import-summary-text"></p>
+    <div class="import-summary" role="status" data-i18n="$json_encode(summary_i18n)">
+      <p class="import-summary-text hidden"></p>
       <button type="button" class="download-failures hidden cta-btn cta-btn--available cta-btn--small">
         $_("Download the books that could not be imported")
       </button>
