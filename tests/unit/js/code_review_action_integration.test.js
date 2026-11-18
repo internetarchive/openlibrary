@@ -774,6 +774,7 @@ test('post: a LOW finding becomes a suggestion in the summary, not a blocking in
     const posted = calls.createReview[0];
     assert.equal((posted.comments || []).length, 0, 'no inline thread for a LOW finding');
     assert.match(posted.body, /### Suggestions \(won't block\)\n\n- \*\*Untested label\*\* \(`x:1`\): Add a test\./);
+    assert.match(posted.body, /- \*\*Test coverage\*\* — 1 suggestion\n/, 'a suggestion is not called a finding');
     assert.match(posted.body, /<!-- ol-pr-review-bot f=0 -->/);
     assert.notEqual(posted.event, 'REQUEST_CHANGES');
 });
