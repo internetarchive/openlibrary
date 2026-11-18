@@ -102,6 +102,8 @@ class Image:
 
 ThingKey = str
 
+NEW_ACCOUNT_AGE = timedelta(days=30)
+
 
 class Thing(client.Thing):
     """Base class for all OL models."""
@@ -154,6 +156,17 @@ class Thing(client.Thing):
             # v.changes is not used and it contrinutes to memcache bloat in a big way.
             v.changes = "[]"
         return versions
+
+    def is_created_by_new_account(self) -> bool:
+        """True if this page is under NEW_ACCOUNT_AGE old and was created by an
+        account that was itself under that age at the time."""
+        if not self.created or datetime.now() - self.created >= NEW_ACCOUNT_AGE:
+            return False
+        initial = self.history_preview.initial
+        creator = initial and initial[0].author
+        if not creator or not creator.created:
+            return False
+        return self.created - creator.created < NEW_ACCOUNT_AGE
 
     def get_most_recent_change(self):
         """Returns the most recent change."""

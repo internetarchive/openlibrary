@@ -20,6 +20,10 @@ $ editions_limit = book_page_context.editions_limit
 $ previews = book_page_context.previews
 $ show_observations = book_page_context.show_observations
 $ lending_state = book_page_context.lending_state
+$# Keep pages by new accounts out of search engines while they're new, so spam
+$# has no search value before moderators can remove it.
+$if (work and work.is_created_by_new_account()) or (edition and edition.is_created_by_new_account()):
+    $ putctx('robots', 'noindex')
 
 $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')

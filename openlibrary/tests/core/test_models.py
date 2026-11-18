@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
@@ -332,3 +333,33 @@ class TestLoggedBooksDataLoadRatings:
 
         get_ratings.assert_called_once_with("alice", [3, 1, 2])
         assert data.ratings == [2, 5, 0]
+
+
+class TestIsCreatedByNewAccount:
+    @staticmethod
+    def _make_work(created, creator_created, monkeypatch):
+        work = models.Work(MockSite(), "/works/OL1W", data={"key": "/works/OL1W", "type": {"key": "/type/work"}})
+        monkeypatch.setattr(models.Work, "created", created, raising=False)
+        creator = creator_created and web.storage(created=creator_created)
+        work.__dict__["history_preview"] = web.storage(initial=[web.storage(author=creator)])
+        return work
+
+    @pytest.mark.parametrize(
+        ("page_age", "account_age_at_creation", "expected"),
+        [
+            (timedelta(days=1), timedelta(0), True),
+            (timedelta(days=29, hours=23), timedelta(days=29, hours=23), True),
+            (timedelta(days=30), timedelta(0), False),
+            (timedelta(days=1), timedelta(days=30), False),
+            (timedelta(days=1), None, False),
+        ],
+    )
+    def test_ages(self, monkeypatch, page_age, account_age_at_creation, expected):
+        created = datetime.now() - page_age
+        creator_created = None if account_age_at_creation is None else created - account_age_at_creation
+        work = self._make_work(created, creator_created, monkeypatch)
+        assert work.is_created_by_new_account() is expected
+
+    def test_unsaved_page(self, monkeypatch):
+        work = self._make_work(None, datetime.now(), monkeypatch)
+        assert work.is_created_by_new_account() is False
