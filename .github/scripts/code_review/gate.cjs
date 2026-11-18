@@ -105,9 +105,11 @@ module.exports = {
     ticketUrl: /^https:\/\/github\.com\/[A-Za-z0-9-]+\/[A-Za-z0-9._-]+\/issues\/[1-9][0-9]{0,8}$/,
     maxTickets: 3,
     ticketLists: ['fully_compliant_requirements', 'not_compliant_requirements', 'requires_further_human_verification'],
-    // Lines the PR adds, per file, from a unified diff.
+    // Lines the PR adds, per file, from a unified diff. A `+` line whose text (ignoring whitespace)
+    // is also a `-` line anywhere in the diff is moved or reindented code, not new code: left out.
     addedLines(diff) {
-        const added = new Map();
+        const added = new Map(),
+            removed = new Set();
         let file = null,
             ln = 0,
             header = true;
@@ -127,15 +129,18 @@ module.exports = {
                 if (raw.startsWith('+++ ')) {
                     const p = raw.slice(4).trim();
                     file = p === '/dev/null' ? null : p.replace(/^b\//, '');
-                    if (file && !added.has(file)) added.set(file, new Set());
+                    if (file && !added.has(file)) added.set(file, new Map());
                 }
                 continue;
             }
+            if (raw.startsWith('-')) removed.add(raw.slice(1).trim());
             if (!file) continue;
-            if (raw.startsWith('+')) added.get(file).add(ln++);
+            if (raw.startsWith('+')) added.get(file).set(ln++, raw.slice(1).trim());
             else if (raw.startsWith(' ')) ln++;
         }
-        return added;
+        const out = new Map();
+        for (const [f, lines] of added) out.set(f, new Set([...lines].filter(([, text]) => !removed.has(text)).map(([n]) => n)));
+        return out;
     },
     // Whether every line of a finding's range is one the PR adds.
     onAddedLines(added, f) {
@@ -158,8 +163,9 @@ module.exports = {
         }
         return true;
     },
-    // Stands in for a dimension note that was held back. It must pass safe().
-    heldBackNote: 'Held back for a maintainer.',
+    // Stands in for a dimension note that was held back, and for the note of a dimension whose
+    // findings all were. Neutral, so it doesn't point at what was held back. It must pass safe().
+    heldBackNote: 'Checked.',
     check(review, diff) {
         try {
             return this.evaluate(review, diff);
@@ -262,7 +268,13 @@ module.exports = {
                 hold(false);
             }
         }
+        // A dimension whose findings were all held back now has none; `post` re-checks that they agree.
+        for (const [k, d] of Object.entries(clean.dimensions)) {
+            if (k === 'security' || d.status !== 'findings' || clean.findings.some(f => f.dimension === k)) continue;
+            clean.dimensions[k] = { status: 'none', note: this.heldBackNote };
+        }
         clean.dimensions.security = { status: clean.findings.some(f => f.dimension === 'security') ? 'findings' : 'none' };
+        clean.ticket_compliance = clean.ticket_compliance.filter(t => ok(t.ticket_url) || (hold(false), false));
         for (const t of clean.ticket_compliance) {
             for (const k of this.ticketLists) {
                 const kept = t[k].filter(ok);

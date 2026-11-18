@@ -994,3 +994,42 @@ test('status: a repost reads a blocking held-back part from the marker', async (
     assert.equal(calls.createCommitStatus[0].state, 'failure');
     assert.equal(calls.createCommitStatus[0].description, 'Feedback withheld for maintainer review.');
 });
+test('status: a later clean review stays red while an earlier blocking held-back part is not dismissed', async () => {
+    const head = SHA('a');
+    for (const [state, want] of [
+        ['CHANGES_REQUESTED', 'failure'],
+        ['DISMISSED', 'success']
+    ]) {
+        const { github, calls } = mockGitHub({
+            prGet: async () => ({ data: { head: { sha: head } } }),
+            listReviews: async () => ({
+                data: [
+                    { user: { login: 'openlibrary-bot' }, commit_id: SHA('c'), state, body: 'x\n<!-- ol-pr-review-bot f=0 h=1 -->' },
+                    { user: { login: 'openlibrary-bot' }, commit_id: head, state: 'APPROVED', body: 'y\n<!-- ol-pr-review-bot f=0 -->' }
+                ]
+            })
+        });
+        const env = {
+            PR: '1',
+            HEAD_SHA: head,
+            POST_RESULT: 'success',
+            PUBLIC_FINDINGS_COUNT: '0',
+            WITHHELD: 'false',
+            HELD_BACK: 'false',
+            REPOST: 'false',
+            RUN_URL: 'u'
+        };
+        await runScript(status.postStatus, { github, context, env });
+        assert.equal(calls.createCommitStatus[0].state, want, state);
+    }
+});
+test('post: never approves while a blocking part is held back', async () => {
+    const review = cleanReview();
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), '');
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), GITHUB_WORKSPACE: dir, HELD_BACK: 'true', WITHHELD_BLOCKING: 'true' };
+    await runScript(post.validateAndPost, { github, context, env, cwd: dir });
+    assert.equal(calls.createReview[0].event, 'REQUEST_CHANGES');
+});

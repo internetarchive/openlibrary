@@ -285,10 +285,10 @@ test('#14486 the resolver and the status job share the same verdict helpers (no 
         const src = source(file);
         assert.match(
             src,
-            /\{[^}]*\bparseReviewMarker\b[^}]*\bunresolvedThreadCount\b[^}]*\} = require\('\.\/shared\.cjs'\)/,
+            /\{[^}]*\bverdictFindings\b[^}]*\bheldBackOpen\b[^}]*\bunresolvedThreadCount\b[^}]*\} = require\('\.\/shared\.cjs'\)/,
             `${file} imports the shared helpers`
         );
-        assert.doesNotMatch(src, /const (parseReviewMarker|unresolvedThreadCount) =/, `${file} keeps no copy of its own`);
+        assert.doesNotMatch(src, /const (parseReviewMarker|verdictFindings|heldBackOpen|unresolvedThreadCount) =/, `${file} keeps no copy of its own`);
     }
     const { parseReviewMarker } = shared;
     assert.equal(parseReviewMarker('text\n<!-- ol-pr-review-bot f=0 -->'), 0);
@@ -543,4 +543,43 @@ test('every github-script step runs a code review module from the base checkout,
             assert.equal(typeof load(join(SCRIPTS, m[1]))[fn[1]], 'function', `${m[1]} must export ${fn[1]}`);
         }
     }
+});
+
+test('gate: a dimension whose findings were all held back passes the gate again in post', () => {
+    const dims = cleanDims();
+    dims.accessibility = { status: 'findings' };
+    const first = gate.check({
+        summary: 'fine',
+        dimensions: dims,
+        findings: [{ dimension: 'accessibility', severity: 'medium', confidence: 8, title: 'Label', body: 'Guard against injection here.' }]
+    });
+    assert.equal(first.heldBack, true);
+    assert.deepEqual(first.clean.dimensions.accessibility, { status: 'none', note: gate.heldBackNote });
+    const again = gate.check(JSON.parse(JSON.stringify(first.clean)));
+    assert.equal(again.publish, true);
+    assert.equal(again.heldBack, false);
+});
+test('SECURITY gate: moved or reindented code is not "added", so an introduced concern on it is held back', () => {
+    const moved =
+        'diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -1,1 +0,0 @@\n-    run(cmd)\ndiff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -0,0 +1,2 @@\n+run(cmd)\n+fresh()\n';
+    assert.deepEqual([...gate.addedLines(moved).get('b.py')], [2]);
+    assert.equal(withSecurity([sec({ scope: 'introduced', path: 'b.py', line: 1 })], moved).heldBack, true);
+    assert.equal(withSecurity([sec({ scope: 'introduced', path: 'b.py', line: 2 })], moved).heldBack, false);
+});
+test('gate: a ticket_url that trips the scan drops that entry', () => {
+    const dims = cleanDims();
+    const tc = [{ ticket_url: 'https://github.com/secret-org/repo/issues/1', ticket_requirements: ['a'], fully_compliant_requirements: ['a'] }];
+    const res = gate.check({ summary: 'fine', dimensions: dims, findings: [], ticket_compliance: tc });
+    assert.equal(res.heldBack, true);
+    assert.deepEqual(res.clean.ticket_compliance, []);
+});
+test('a blocking held-back part stays open until its review is dismissed', () => {
+    const { heldBackOpen, verdictFindings } = shared;
+    const held = { state: 'CHANGES_REQUESTED', body: 'x\n<!-- ol-pr-review-bot f=0 h=1 -->' };
+    const later = { state: 'APPROVED', body: 'y\n<!-- ol-pr-review-bot f=0 -->' };
+    assert.equal(heldBackOpen([held, later]), true);
+    assert.equal(heldBackOpen([{ ...held, state: 'DISMISSED' }, later]), false);
+    assert.equal(verdictFindings(held), 1);
+    assert.equal(verdictFindings({ ...held, state: 'DISMISSED' }), 0);
+    assert.equal(verdictFindings({ state: 'DISMISSED', body: 'x\n<!-- ol-pr-review-bot f=2 -->' }), 2);
 });

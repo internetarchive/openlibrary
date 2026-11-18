@@ -4,7 +4,7 @@
 'use strict';
 
 const gate = require('./gate.cjs');
-const { filterDiff, headIsCurrent, supersededMarker, reviewMarker } = require('./shared.cjs');
+const { filterDiff, headIsCurrent, supersededMarker, supersededCommit, reviewMarker, heldBackOpen } = require('./shared.cjs');
 
 // The review's verdict. Only APPROVE or REQUEST_CHANGES clears a pending review request; COMMENT
 // leaves it pending. Findings request changes. A clean review approves only when none of the bot's
@@ -151,7 +151,7 @@ async function validateAndPost({ github, context, core, require, process }) {
     // analyze already took out anything held back, so the gate must hold back nothing more. If it
     // would (this diff differs from analyze's), post nothing: `status` doesn't know about it.
     if (verdict.heldBack) {
-        core.setFailed('The gate gave a different result than in analyze; not posting.');
+        core.setFailed('The review did not pass the gate again; not posting.');
         return;
     }
     // Everything below renders from the allowlisted copy only.
@@ -271,7 +271,8 @@ async function validateAndPost({ github, context, core, require, process }) {
             .map(([k, label]) => {
                 if (count[k]) return `- **${label}** — ${count[k]} finding${count[k] === 1 ? '' : 's'}`;
                 if (k === 'security') return `- **${label}** — no published findings in this range. This is not a security audit.`;
-                return `- **${label}** — no findings. ${review.dimensions[k].note}`;
+                // With part held back, every empty dimension says "published", so none stands out.
+                return `- **${label}** — no ${heldBack ? 'published ' : ''}findings. ${review.dimensions[k].note}`;
             })
             .join('\n')}\n\n</details>`;
 
@@ -417,7 +418,14 @@ async function validateAndPost({ github, context, core, require, process }) {
 
     // A human's open thread doesn't stop APPROVE, though it keeps the status red. The status, not
     // the verdict, is what merging requires.
-    let event = superseded ? 'COMMENT' : selectReviewEvent({ selfAuthored, findingCount, unresolvedOwnThreads });
+    // Never approve while a blocking part is held back, from this review or an earlier one a
+    // maintainer hasn't dismissed: count it as one more finding.
+    let blocked = heldBackBlocks;
+    if (!blocked && !superseded) {
+        const earlier = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
+        blocked = heldBackOpen(earlier.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.body && !supersededCommit(r.body)));
+    }
+    let event = superseded ? 'COMMENT' : selectReviewEvent({ selfAuthored, findingCount: findingCount + (blocked ? 1 : 0), unresolvedOwnThreads });
     let summary = renderSummary();
 
     // One batched review. POST /pulls/{n}/comments returns 422 `pull_request_review_thread.base`

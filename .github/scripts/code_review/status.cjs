@@ -3,7 +3,7 @@
 // rule is in decideStatus and in the comment above the job in code_review_action.yml.
 'use strict';
 
-const { headIsCurrent, parseReviewMarker, heldBackBlocking, unresolvedThreadCount, supersededCommit } = require('./shared.cjs');
+const { headIsCurrent, verdictFindings, heldBackOpen, unresolvedThreadCount, supersededCommit } = require('./shared.cjs');
 
 // The public findings count from `analyze`. null (blocks) unless it is a non-negative integer:
 // findings with no anchor in the diff have no thread, so the thread count alone can't catch them.
@@ -107,22 +107,22 @@ async function postStatus({ github, context, core, process }) {
     // On a repost no model ran: read the verdict back from the bot's last review on this head, or
     // on VERDICT_SHA when the commits since that review only merged the base branch.
     let postSucceeded, findings, withheld;
+    const reviews = await github.paginate(github.rest.pulls.listReviews, {
+        owner,
+        repo,
+        pull_number: pr,
+        per_page: 100
+    });
+    // The bot's reviews, without superseded ones, which are never a verdict (see shared.cjs).
+    const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.body && !supersededCommit(r.body));
     if (repost) {
-        const reviews = await github.paginate(github.rest.pulls.listReviews, {
-            owner,
-            repo,
-            pull_number: pr,
-            per_page: 100
-        });
         const verdictSha = process.env.VERDICT_SHA || headSha;
-        // A superseded review is never a verdict (see shared.cjs).
-        const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === verdictSha && r.body && !supersededCommit(r.body));
-        const last = ours.length ? ours[ours.length - 1] : null;
+        const onSha = ours.filter(r => r.commit_id === verdictSha);
+        const last = onSha.length ? onSha[onSha.length - 1] : null;
         // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
         postSucceeded = last != null;
-        // A review withheld in full posts nothing, so it is never reposted; one with a part held back is.
-        withheld = last ? heldBackBlocking(last.body) : false;
-        findings = last ? parseReviewMarker(last.body) : null;
+        withheld = false;
+        findings = last ? verdictFindings(last) : null;
     } else if (process.env.WITHHELD === 'true') {
         // Withheld in full (the review was malformed). Nothing was posted, so there is no review to
         // confirm. postSucceeded means `post` ran cleanly.
@@ -133,13 +133,7 @@ async function postStatus({ github, context, core, process }) {
         // When the head moved, `post` posts only a superseded review, which is no verdict. If the head
         // then moved back to this SHA, the head check above would pass, so confirm a real bot review
         // exists on it.
-        const reviews = await github.paginate(github.rest.pulls.listReviews, {
-            owner,
-            repo,
-            pull_number: pr,
-            per_page: 100
-        });
-        const posted = reviews.some(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === headSha && !supersededCommit(r.body));
+        const posted = ours.some(r => r.commit_id === headSha);
         postSucceeded = process.env.POST_RESULT === 'success' && posted;
         findings = parseFindings(process.env.PUBLIC_FINDINGS_COUNT);
         // Part of the review was held back: its one blocking bit counts as one more finding.
@@ -152,6 +146,11 @@ async function postStatus({ github, context, core, process }) {
         }
     }
 
+    // A blocking part held back from any earlier review still blocks, until a maintainer dismisses it.
+    if (heldBackOpen(ours)) {
+        withheld = true;
+        if (findings === 0) findings = 1;
+    }
     const d = decideStatus({ postSucceeded, findings, withheld, unresolved });
     await github.rest.repos.createCommitStatus({
         owner,

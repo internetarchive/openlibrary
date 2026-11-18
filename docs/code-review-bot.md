@@ -141,9 +141,11 @@ so the bot posts it like any other finding, on the line that adds it; a security
 blocks. If it isn't sure which kind a concern is, it holds it back.
 
 When part of a review is held back, the rest is still posted, with a note saying some of it was
-held back. If the held-back part blocks, the `code-review` check fails with "Feedback withheld for
-maintainer review." and a maintainer needs to look at the PR before it can merge. The held-back
-text isn't sent anywhere: the bot keeps nothing that it can't post publicly.
+held back. If the held-back part blocks, the bot requests changes and the `code-review` check fails
+with "Feedback withheld for maintainer review." It stays failed through later reviews, until a
+maintainer has looked at the PR, dismissed that review, and commented `@openlibrary-bot review` to
+refresh the check. The held-back text isn't sent anywhere: the bot keeps nothing that it can't post
+publicly.
 
 The full instructions the bot follows are in
 [`.github/workflows/code_review.md`](../.github/workflows/code_review.md).

@@ -23,6 +23,16 @@ const heldBackBlocking = body => {
     const m = MARKER.exec(String(body || ''));
     return Boolean(m && m[2]);
 };
+// A blocking held-back part keeps the PR blocked across later reviews, which may cover other files,
+// until a maintainer has looked and dismissed the review that held it back. These read that from the
+// bot's reviews (with superseded ones already left out).
+const heldBackOpen = reviews => reviews.some(r => r.state !== 'DISMISSED' && heldBackBlocking(r.body));
+// The findings a review's marker counts toward the verdict: its own, plus the held-back part unless
+// a maintainer dismissed the review.
+const verdictFindings = review => {
+    const n = parseReviewMarker(review.body);
+    return n !== null && review.state === 'DISMISSED' && heldBackBlocking(review.body) ? n - 1 : n;
+};
 
 // A review `post` made of a commit the PR had already moved past (see post.cjs). It is feedback on
 // that commit, never a verdict on the PR: range and status leave it out entirely, so it never counts
@@ -52,4 +62,15 @@ const filterDiff = (diff, paths) => {
         .join('');
 };
 
-module.exports = { headIsCurrent, reviewMarker, parseReviewMarker, heldBackBlocking, unresolvedThreadCount, filterDiff, supersededMarker, supersededCommit };
+module.exports = {
+    headIsCurrent,
+    reviewMarker,
+    parseReviewMarker,
+    heldBackBlocking,
+    heldBackOpen,
+    verdictFindings,
+    unresolvedThreadCount,
+    filterDiff,
+    supersededMarker,
+    supersededCommit
+};
