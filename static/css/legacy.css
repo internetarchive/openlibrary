@@ -501,33 +501,6 @@ div#noLogin {
     var(--spacing-inset-sm) 44px;
 }
 
-/* openlibrary/templates/type/author/view.html */
-div#preMerge {
-  min-height: 32px;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
-    var(--spacing-inset-sm) 52px;
-  background: transparent url(/static/images/icons/icon_merge.png) no-repeat
-    10px 10px;
-}
-
-/* openlibrary/templates/type/author/view.html */
-div#postMerge {
-  min-height: 32px;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
-    var(--spacing-inset-sm) 52px;
-  background: transparent url(/static/images/icons/icon_check.png) no-repeat
-    10px 10px;
-}
-
-/* openlibrary/templates/type/author/view.html */
-div#errorMerge {
-  min-height: 32px;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
-    var(--spacing-inset-sm) 52px;
-  background: transparent url(/static/images/icons/icon_alert.png) no-repeat
-    10px 10px;
-}
-
 /* FORMS */
 div.formElement {
   padding-bottom: 8px;
