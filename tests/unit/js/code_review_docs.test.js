@@ -55,3 +55,22 @@ test('every file the doc links to exists', () => {
     assert.ok(targets.length > 0);
     for (const t of targets) assert.ok(existsSync(join(ROOT, t)), t);
 });
+
+// The files whose behaviour the doc describes. Each starts with a note to keep the doc in step.
+const DESCRIBED = [
+    '.github/workflows/code_review_action.yml',
+    '.github/workflows/code_review_awaiting.yml',
+    '.github/workflows/auto_assign_reviewer.yml',
+    '.github/workflows/code_review_report.yml',
+    '.github/workflows/code_review.md',
+    '.pr_agent.toml',
+    ...['range', 'post', 'resolve', 'status', 'pending', 'awaiting', 'gate', 'analyze_gate', 'config', 'linked_issues', 'shared'].map(
+        n => `${SCRIPTS}/${n}.cjs`
+    )
+];
+test('every file the doc describes starts with a note to update the doc', () => {
+    for (const f of DESCRIBED) {
+        const first = read(f).split('\n')[0];
+        assert.match(first, /If you change how the code review bot behaves here, update docs\/code-review-bot\.md to match\./, f);
+    }
+});

@@ -1,3 +1,4 @@
+// If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 // The `status` job: decides and posts the `code-review` commit status for the reviewed SHA. The pass
 // rule is in decideStatus and in the comment above the job in code_review_action.yml.
 'use strict';

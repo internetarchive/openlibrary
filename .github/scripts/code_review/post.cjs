@@ -1,3 +1,4 @@
+// If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 // The `post` job: re-fetches the reviewed diff, runs gate.cjs again, and posts one batched review.
 // It publishes nothing the gate rejects, whatever `analyze` uploaded.
 'use strict';

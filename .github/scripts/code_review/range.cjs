@@ -1,3 +1,4 @@
+// If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 // The `analyze` job's "Resolve review range" step: decides whether this run reviews, re-posts the
 // status of an existing review, or skips, and writes the range, diff and settings the model reads.
 'use strict';

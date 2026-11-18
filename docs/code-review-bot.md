@@ -11,21 +11,29 @@ reviews and merges every PR.
 
 ```mermaid
 flowchart TD
-    open["PR opened or marked ready for review"] --> known{"Is the author a known contributor?"}
+    subgraph starts["What starts a review"]
+        direction LR
+        open["PR opened or marked ready for review"]
+        push["New commits pushed"]
+        ask["Someone comments @openlibrary-bot"]
+    end
+    open --> known{"Is the author a known contributor?"}
     known -- "yes, automatically" --> request["The review team is requested"]
     known -- "no, first-time contributor" --> manual["A maintainer requests the review by hand"]
     manual --> request
-    push["New commits pushed"] --> before{"Already reviewed by the bot?"}
+    push --> before{"Already reviewed by the bot?"}
     before -- "no" --> waitmaint["Waits for a maintainer to request the first review"]
     before -- "yes" --> quiet["Waits until 10 minutes pass with no new pushes"]
     quiet --> request
-    ask["Someone comments @openlibrary-bot"] --> allowed{"Is it a maintainer or the PR's author?"}
+    ask --> allowed{"Is it a maintainer or the PR's author?"}
     allowed -- "yes" --> review
     allowed -- "no" --> nothing["No review"]
     request --> review["Review runs"]
-    review --> current{"Was this exact commit already reviewed?"}
-    current -- "yes" --> same["Nothing new: the check keeps the last verdict"]
+    review --> current{"Has the bot already reviewed this exact commit?"}
     current -- "no" --> posted["Review posted and the code-review check updated"]
+    current -- "yes" --> matches{"Does the check match that review?"}
+    matches -- "yes" --> same["Nothing new: no review runs"]
+    matches -- "no" --> repost["The check is re-posted from that review, without running the model"]
 ```
 
 A review starts in one of these ways:
@@ -69,6 +77,18 @@ rewrites the history it reviewed, the bot reviews the whole PR again.
 
 On each re-review the bot also re-checks its own open comments, as described in
 [Responding to a finding](#responding-to-a-finding).
+
+### If a review gets stuck or fails
+
+Ask again: comment `@openlibrary-bot`, or re-request the review.
+
+- If the bot hasn't posted a review for the PR's latest commit (the review failed, or the check
+  says "No clean review for this commit."), asking again runs a full review.
+- If it has, asking again doesn't review the same commit twice. It re-posts the `code-review`
+  check from that review if the check is stuck or out of date, without running the model.
+- To get a fresh review of a commit the bot already reviewed, push a new commit.
+
+A maintainer can also open the failed run in the Actions tab and use **Re-run failed jobs**.
 
 ## What it checks
 

@@ -1,3 +1,4 @@
+// If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 // Helpers used by more than one job of code_review_action.yml.
 'use strict';
 
