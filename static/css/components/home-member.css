@@ -173,11 +173,29 @@ body[data-user-key] .home-welcome {
   width: 24px;
 }
 
-.home-now__item-title {
+/* Title over author, as under a carousel cover. */
+.home-now__item-text {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-3xs);
+  min-width: 0;
+}
+
+.home-now__item-title {
   overflow: hidden;
   font-size: var(--font-size-body-medium);
   font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-now__item-author {
+  overflow: hidden;
+  font-size: var(--font-size-label-medium);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-secondary);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -321,12 +339,7 @@ body[data-user-key] .home-welcome {
 }
 
 .is-moved
-  :is(
-    ol-book-cover,
-    .home-now__book,
-    .home-now__author,
-    .home-now__item-title
-  ) {
+  :is(ol-book-cover, .home-now__book, .home-now__author, .home-now__item-text) {
   opacity: 0.5;
 }
 

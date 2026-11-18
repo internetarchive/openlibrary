@@ -115,7 +115,10 @@
                                     <ol-book-cover class="home-now__thumb" size="small" src="{{ item.thumb_url }}" book-title="{{ item.title }}" authors="{{ item.author }}" href="{{ item.url }}">
                                     </ol-book-cover>
                                     <div class="home-now__item-body">
-                                        <a class="home-now__item-title" href="{{ item.url }}">{{ item.title }}</a>
+                                        <div class="home-now__item-text">
+                                            <a class="home-now__item-title" href="{{ item.url }}">{{ item.title }}</a>
+                                            {% if item.author %}<span class="home-now__item-author">{{ item.author }}</span>{% endif %}
+                                        </div>
                                         <p class="home-now__moved" role="status"></p>
                                         {% if item.status %}{{ status(item) }}{% endif %}
                                         <div class="home-now__item-actions">
