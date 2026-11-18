@@ -57,10 +57,14 @@ draft, a closed PR, or a commit it already reviewed), the bot replies to say so.
 
 - **Another push within the 10 minutes** cancels the wait and starts it over, so the review starts
   10 minutes after your *last* push. A burst of commits gets one review.
-- **A push while a review is running** doesn't stop that review, but when it finishes it sees the
-  PR has moved on and posts nothing. The old commit's check changes to "Superseded by
-  `<commit>`". Your new commit waits its own 10 quiet minutes, then gets one review that covers
-  both sets of changes.
+- **A push while a review is running** doesn't stop that review or waste it. When it finishes, the
+  bot posts it on the commit it read, marked as superseded, as a comment that neither approves nor
+  blocks. That commit's check changes to "Superseded by `<commit>`". Your new commit waits its own
+  10 quiet minutes, then gets its own review. That review also covers the changes the superseded
+  one saw, so nothing it found is lost.
+- **A force-push while a review is running** is the exception: the commit that review read is no
+  longer part of the PR, so the review is dropped. The new head still gets its own review, of the
+  whole PR.
 - **Asking for a review during the wait** starts it right away instead.
 - **No re-review** for pushes made by bots, pushes that only merge the base branch in (the "Update
   branch" button), or PRs labelled `no-automation`. Ask for a review if you want one.
@@ -73,9 +77,9 @@ sequenceDiagram
     Note over Bot: Waits until 10 minutes pass with no new pushes
     Bot->>Bot: Starts reviewing A
     You->>Bot: Push commit B while A is being reviewed
-    Bot-->>You: The review of A finishes but posts nothing. A's check says Superseded by B
+    Bot-->>You: The review of A is posted on A as a comment. A's check says Superseded by B
     Note over Bot: Waits until 10 minutes pass with no new pushes after B
-    Bot->>You: One review on B, covering the changes in A and B
+    Bot->>You: A review of B, covering the changes in A and B
 ```
 
 ### Who can ask for a review
@@ -153,7 +157,8 @@ The full instructions the bot follows are in
 
 - **Request changes** when there is at least one finding that blocks.
 - **Approve** when there are none and none of the bot's earlier comments are still open.
-- **Comment** otherwise, and always on PRs the bot wrote itself.
+- **Comment** otherwise, and always on PRs the bot wrote itself and on a superseded review (one
+  of a commit the PR moved past during the review).
 
 **The `code-review` check.** This check is required to merge. It shows:
 
@@ -163,7 +168,7 @@ The full instructions the bot follows are in
 | ⏳ pending | New commits. A review starts after 10 minutes with no more pushes. | A re-review starts when the pushes stop. |
 | ⏳ pending | New commits since the last review. Re-request review from openlibrary-bot to review them. | This push doesn't start a re-review (for example, the PR is labelled `no-automation`). |
 | ⏳ pending | Not reviewed yet. A maintainer can request review from openlibrary-agentic-code-reviewer. | No review has been requested yet. |
-| ⏳ pending | Superseded by `<commit>`: the PR changed during the review. | New commits arrived mid-review; the newest commit gets its own review. |
+| ⏳ pending | Superseded by `<commit>`: the PR changed during the review. | New commits arrived mid-review. The review was posted on this commit; the newest commit gets its own review. |
 | ❌ failure | N findings to address. | The review found problems that block. |
 | ❌ failure | N unresolved review threads. | No blocking findings, but some review threads are still open. |
 | ❌ failure | A finding was delivered privately; maintainer review required. | See the security note above. |

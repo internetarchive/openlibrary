@@ -4,7 +4,7 @@
 'use strict';
 
 const gate = require('./gate.cjs');
-const { filterDiff, headIsCurrent } = require('./shared.cjs');
+const { filterDiff, headIsCurrent, supersededMarker } = require('./shared.cjs');
 
 // The review's verdict. Only APPROVE or REQUEST_CHANGES clears a pending review request; COMMENT
 // leaves it pending. Findings request changes. A clean review approves only when none of the bot's
@@ -233,6 +233,8 @@ async function validateAndPost({ github, context, core, require, process }) {
     const baseSha = process.env.BASE_SHA;
     // Set once the earlier threads are handled; the summary opens with it.
     let stateLine = '';
+    // Set when the PR moved on during the review; the summary opens with it.
+    let supersededLine = '';
     // A function, so a rejected post can render it again with every finding in the summary.
     const renderSummary = () => {
         let summary = review.summary || '';
@@ -241,6 +243,7 @@ async function validateAndPost({ github, context, core, require, process }) {
             summary = `*Re-reviewing only the files changed since my last pass. Merges of the base branch are skipped.*\n\n${summary}`;
         }
         if (stateLine) summary = `${stateLine}\n\n${summary}`;
+        if (supersededLine) summary = `${supersededLine}\n\n${summary}`;
 
         summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
 
@@ -278,15 +281,35 @@ async function validateAndPost({ github, context, core, require, process }) {
             ? `\n\n---\n> [!TIP]\n> A new review starts automatically about ${minutes} minutes after your last push. To start it sooner, a maintainer can re-request a review, or you can comment \`@openlibrary-bot review\` on this PR.`
             : `\n\n---\n> [!TIP]\n> When you've addressed the feedback and pushed your changes, comment \`@openlibrary-bot review\` on this PR to run a fresh review.`;
         summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/docs/code-review-bot.md). This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
+        if (supersededLine) summary += `\n${supersededMarker(headSha)}`;
         return summary;
     };
-    // If the head moved since the review, post nothing (see headIsCurrent).
+    // If the head moved during the review, the review is still real feedback on the commit it read, so
+    // post it there, but only as a COMMENT: it must not approve or block a PR whose newest commit it
+    // never saw. It also leaves the bot's earlier threads alone; the new head's review re-checks them,
+    // and covers everything this review did (see supersededCommit, and range.cjs).
     const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
-    if (!headIsCurrent(headSha, livePr.head.sha)) {
-        core.info(
-            `Head moved ${headSha.slice(0, 8)}->${String(livePr.head.sha).slice(0, 8)} since this review was pinned; not posting. The new head earns its own run.`
-        );
-        return;
+    const superseded = !headIsCurrent(headSha, livePr.head.sha);
+    if (superseded) {
+        // After a force-push the reviewed commit may no longer be in the PR, and a review can't be
+        // posted on it. Then post nothing, as before: the new head gets its own review regardless.
+        let inHistory = false;
+        try {
+            const { data: cmp } = await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${headSha}...${livePr.head.sha}` });
+            inHistory = cmp.status === 'ahead';
+        } catch (e) {
+            core.info(`Could not compare ${headSha.slice(0, 8)} with the new head (${e.message}).`);
+        }
+        if (!inHistory) {
+            core.info(
+                `Head moved ${headSha.slice(0, 8)}->${String(livePr.head.sha).slice(0, 8)} and the reviewed commit is no longer in the PR (force-push); not posting. The new head gets its own review.`
+            );
+            return;
+        }
+        const reviewed = headSha.slice(0, 7),
+            live = String(livePr.head.sha).slice(0, 7);
+        core.info(`Head moved ${headSha.slice(0, 8)}->${String(livePr.head.sha).slice(0, 8)} during the review; posting it on ${reviewed} as a comment.`);
+        supersededLine = `*This review is of \`${reviewed}\`. \`${live}\` was pushed while it ran, so it neither approves nor blocks, and \`${live}\` gets its own review.*`;
     }
 
     const selfAuthored = (livePr.user && livePr.user.login) === 'openlibrary-bot';
@@ -297,12 +320,13 @@ async function validateAndPost({ github, context, core, require, process }) {
     let unresolvedOwnThreads = null;
     const toResolveIds = [];
     const noteEdits = [];
-    try {
-        let allThreads = [],
-            tCursor = null;
-        for (;;) {
-            const page = await github.graphql(
-                `query($owner:String!,$repo:String!,$pr:Int!,$cursor:String){
+    if (!superseded) {
+        try {
+            let allThreads = [],
+                tCursor = null;
+            for (;;) {
+                const page = await github.graphql(
+                    `query($owner:String!,$repo:String!,$pr:Int!,$cursor:String){
              repository(owner:$owner,name:$repo){
                pullRequest(number:$pr){
                  reviewThreads(first:100, after:$cursor){
@@ -312,71 +336,72 @@ async function validateAndPost({ github, context, core, require, process }) {
                }
              }
            }`,
-                { owner, repo, pr: prNumber, cursor: tCursor }
+                    { owner, repo, pr: prNumber, cursor: tCursor }
+                );
+                const rt = page.repository.pullRequest.reviewThreads;
+                allThreads = allThreads.concat(rt.nodes);
+                if (!rt.pageInfo.hasNextPage) break;
+                tCursor = rt.pageInfo.endCursor;
+            }
+            const toResolve = threadsToResolve({ threads: allThreads, resolvedIds: review.resolved, botLogin: 'openlibrary-bot' });
+            // A thread listed as both counts as fixed.
+            const toDismiss = threadsToResolve({ threads: allThreads, resolvedIds: review.dismissed, botLogin: 'openlibrary-bot' }).filter(
+                id => !toResolve.includes(id)
             );
-            const rt = page.repository.pullRequest.reviewThreads;
-            allThreads = allThreads.concat(rt.nodes);
-            if (!rt.pageInfo.hasNextPage) break;
-            tCursor = rt.pageInfo.endCursor;
-        }
-        const toResolve = threadsToResolve({ threads: allThreads, resolvedIds: review.resolved, botLogin: 'openlibrary-bot' });
-        // A thread listed as both counts as fixed.
-        const toDismiss = threadsToResolve({ threads: allThreads, resolvedIds: review.dismissed, botLogin: 'openlibrary-bot' }).filter(
-            id => !toResolve.includes(id)
-        );
-        // Commits in the reviewed range, newest first, for the "Addressed in" note.
-        let rangeShas = [];
-        if (toResolve.length) {
-            try {
-                const { data: cmp } = await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${baseSha}...${headSha}` });
-                rangeShas = (cmp.commits || []).map(c => c.sha).reverse();
-            } catch (e) {
-                core.warning(`Could not list the reviewed commits: ${e.message}`);
-            }
-        }
-        const byId = new Map(allThreads.filter(Boolean).map(t => [t.id, t]));
-        let addressed = 0,
-            dismissed = 0;
-        for (const id of [...toResolve, ...toDismiss]) {
-            const fixed = toResolve.includes(id);
-            let note = 'Dismissed: a reply below shows this does not apply.';
-            if (fixed) {
-                let sha = headSha;
+            // Commits in the reviewed range, newest first, for the "Addressed in" note.
+            let rangeShas = [];
+            if (toResolve.length) {
                 try {
-                    const path = byId.get(id).path;
-                    if (path && rangeShas.length) {
-                        const { data: touching } = await github.rest.repos.listCommits({ owner, repo, sha: headSha, path, per_page: 30 });
-                        sha = fixedInSha({ rangeShas, pathShas: (touching || []).map(c => c.sha), headSha });
-                    }
+                    const { data: cmp } = await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${baseSha}...${headSha}` });
+                    rangeShas = (cmp.commits || []).map(c => c.sha).reverse();
                 } catch (e) {
-                    core.warning(`Could not find the commit that fixed thread ${id}: ${e.message}`);
+                    core.warning(`Could not list the reviewed commits: ${e.message}`);
                 }
-                note = `✅ Addressed in [\`${sha.slice(0, 7)}\`](https://github.com/${owner}/${repo}/commit/${sha})`;
             }
-            // Noted on the bot's comment rather than as a reply, once the review is posted.
-            const first = byId.get(id).comments.nodes[0];
-            noteEdits.push({ threadId: id, commentId: first.id, body: `${first.body}\n\n${note}` });
-            toResolveIds.push(id);
-            if (fixed) addressed++;
-            else dismissed++;
+            const byId = new Map(allThreads.filter(Boolean).map(t => [t.id, t]));
+            let addressed = 0,
+                dismissed = 0;
+            for (const id of [...toResolve, ...toDismiss]) {
+                const fixed = toResolve.includes(id);
+                let note = 'Dismissed: a reply below shows this does not apply.';
+                if (fixed) {
+                    let sha = headSha;
+                    try {
+                        const path = byId.get(id).path;
+                        if (path && rangeShas.length) {
+                            const { data: touching } = await github.rest.repos.listCommits({ owner, repo, sha: headSha, path, per_page: 30 });
+                            sha = fixedInSha({ rangeShas, pathShas: (touching || []).map(c => c.sha), headSha });
+                        }
+                    } catch (e) {
+                        core.warning(`Could not find the commit that fixed thread ${id}: ${e.message}`);
+                    }
+                    note = `✅ Addressed in [\`${sha.slice(0, 7)}\`](https://github.com/${owner}/${repo}/commit/${sha})`;
+                }
+                // Noted on the bot's comment rather than as a reply, once the review is posted.
+                const first = byId.get(id).comments.nodes[0];
+                noteEdits.push({ threadId: id, commentId: first.id, body: `${first.body}\n\n${note}` });
+                toResolveIds.push(id);
+                if (fixed) addressed++;
+                else dismissed++;
+            }
+            // The `resolve` job resolves these after this job ends. This job's tokens can't (#14533).
+            if (toResolveIds.length) core.info(`Handing ${addressed} fixed and ${dismissed} dismissed review thread(s) to the resolve job.`);
+            // Counted the way the status job counts, limited to the bot's threads, as if the resolve
+            // job succeeds. If it fails, the status job still sees the thread open and stays red.
+            unresolvedOwnThreads = allThreads.filter(t => {
+                if (!t || t.isResolved || t.isOutdated || toResolveIds.includes(t.id)) return false;
+                const c = t.comments && t.comments.nodes && t.comments.nodes[0];
+                return !!(c && c.author && c.author.login === 'openlibrary-bot');
+            }).length;
+            stateLine = threadStateLine({ addressed, dismissed, open: unresolvedOwnThreads });
+        } catch (e) {
+            core.warning(`Thread enumeration failed; resolving no threads and not auto-approving: ${e.message}`);
         }
-        // The `resolve` job resolves these after this job ends. This job's tokens can't (#14533).
-        if (toResolveIds.length) core.info(`Handing ${addressed} fixed and ${dismissed} dismissed review thread(s) to the resolve job.`);
-        // Counted the way the status job counts, limited to the bot's threads, as if the resolve
-        // job succeeds. If it fails, the status job still sees the thread open and stays red.
-        unresolvedOwnThreads = allThreads.filter(t => {
-            if (!t || t.isResolved || t.isOutdated || toResolveIds.includes(t.id)) return false;
-            const c = t.comments && t.comments.nodes && t.comments.nodes[0];
-            return !!(c && c.author && c.author.login === 'openlibrary-bot');
-        }).length;
-        stateLine = threadStateLine({ addressed, dismissed, open: unresolvedOwnThreads });
-    } catch (e) {
-        core.warning(`Thread enumeration failed; resolving no threads and not auto-approving: ${e.message}`);
     }
 
     // A human's open thread doesn't stop APPROVE, though it keeps the status red. The status, not
     // the verdict, is what merging requires.
-    let event = selectReviewEvent({ selfAuthored, findingCount, unresolvedOwnThreads });
+    let event = superseded ? 'COMMENT' : selectReviewEvent({ selfAuthored, findingCount, unresolvedOwnThreads });
     let summary = renderSummary();
 
     // One batched review. POST /pulls/{n}/comments returns 422 `pull_request_review_thread.base`
@@ -440,8 +465,8 @@ async function validateAndPost({ github, context, core, require, process }) {
     }
     core.setOutput('resolve_thread_ids', JSON.stringify(toResolveIds));
 
-    // See shouldDismissTeamRequest. Never fails the job.
-    if (shouldDismissTeamRequest({ selfAuthored, event })) {
+    // See shouldDismissTeamRequest. Never fails the job. A superseded review leaves the request for the new head.
+    if (!superseded && shouldDismissTeamRequest({ selfAuthored, event })) {
         try {
             await github.rest.pulls.removeRequestedReviewers({
                 owner,
