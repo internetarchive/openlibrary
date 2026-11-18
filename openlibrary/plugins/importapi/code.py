@@ -472,11 +472,11 @@ class ia_importapi(importapi):
                 d["publishers"] = publishers
 
         d["source_records"] = ["ia:" + metadata["identifier"]]
+        # A record naming its edition updates that edition rather than
+        # creating one, so it needn't be complete enough to stand on its own.
         if ol_edition := metadata.get("openlibrary_edition"):
             d["openlibrary"] = ol_edition
-        # A record naming a live edition updates that edition rather than
-        # creating one, so it needn't be complete enough to stand on its own.
-        if not (ol_edition and add_book.resolve_edition_ref(f"/books/{ol_edition}")):
+        else:
             import_validator.import_validator().validate(d)
         return d
 

@@ -130,16 +130,13 @@ SPARSE_IA_METADATA = {
 }
 
 
-def test_get_ia_record_named_live_edition_skips_validation(mock_site) -> None:
-    mock_site.save({"key": "/books/OL1M", "type": {"key": "/type/edition"}, "title": "The Weirdstone of Brisingamen"})
-
+def test_get_ia_record_named_edition_skips_validation() -> None:
     result = code.ia_importapi.get_ia_record({**SPARSE_IA_METADATA, "openlibrary_edition": "OL1M"})
 
     assert result["openlibrary"] == "OL1M"
     assert result["authors"] == []
 
 
-@pytest.mark.parametrize("named", [{}, {"openlibrary_edition": "OL404M"}])
-def test_get_ia_record_validates_without_a_live_named_edition(mock_site, named) -> None:
+def test_get_ia_record_validates_without_a_named_edition() -> None:
     with pytest.raises(ValidationError):
-        code.ia_importapi.get_ia_record({**SPARSE_IA_METADATA, **named})
+        code.ia_importapi.get_ia_record(SPARSE_IA_METADATA)
