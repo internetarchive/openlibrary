@@ -14,6 +14,7 @@ import traceback
 import requests
 import web
 
+from infogami import config as app_config
 from infogami.infobase import cache as _ib_cache
 from infogami.infobase import common, config, dbstore, server
 from openlibrary.plugins.upstream.utils import strip_accents
@@ -41,8 +42,9 @@ def init_plugin():
 
     ol = server.get_site("openlibrary.org")
     ib = server._infobase
+    in_process_writes = app_config.get("in_process_writes", False)
 
-    if config.get("writelog"):
+    if config.get("writelog") and not in_process_writes:
         ib.add_event_listener(infobase_logger.Logger(config.writelog))
 
     ib.add_event_listener(invalidate_most_recent_change)
@@ -53,7 +55,7 @@ def init_plugin():
         # XXX-Anand: this might create some trouble. Commenting out.
         # ol.store.indexer = Indexer()
 
-        if config.get("http_listeners"):
+        if config.get("http_listeners") and not in_process_writes:
             logger.info("setting up http listeners")
             ol.add_trigger(None, http_notify)
 

@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Literal, TypedDict
 
+import anyio
 import requests
 import web
 from validate_email import validate_email
@@ -32,7 +33,7 @@ from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.openlibrary.pd import get_pd_org
 from openlibrary.utils import server_timing
 from openlibrary.utils.async_utils import async_bridge
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import site, web_ctx_ip
 
 try:
     from simplejson.errors import JSONDecodeError
@@ -496,10 +497,15 @@ class Account(web.storage):
         self.bot = flag
         self._save()
 
-    async def anonymize(self, test: bool = False) -> AccountAnonymizationResult:
+    async def anonymize(self, test: bool = False, client_ip: str = "127.0.0.1") -> AccountAnonymizationResult:
         if not test:
-            self._delete_infobase_data()
+            await anyio.to_thread.run_sync(self._delete_infobase_data_with_ip, client_ip)
         return await self._anonymize_tables(test)
+
+    def _delete_infobase_data_with_ip(self, client_ip: str) -> None:
+        """Run Infobase cleanup with the request IP on its worker thread."""
+        with web_ctx_ip(client_ip):
+            self._delete_infobase_data()
 
     def anonymize_sync(self, test: bool = False) -> AccountAnonymizationResult:
         """Synchronous bridge for the legacy web.py account and admin routes.

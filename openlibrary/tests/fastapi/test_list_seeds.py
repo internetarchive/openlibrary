@@ -4,6 +4,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from infogami.infobase.client import ClientException
+
 FAKE_SEEDS = {"entries": [{"url": "/works/OL123W", "type": "work"}], "size": 1}
 
 
@@ -108,3 +110,22 @@ class TestListSeedsPost:
 
         assert response.status_code == 403
         assert response.json() == {"detail": "Permission denied."}
+
+    def test_post_seeds_conflict_returns_409(self, fastapi_client, mock_authenticated_user):
+        """Concurrent edits should surface Infobase's conflict response, not a 500."""
+        with (
+            patch("openlibrary.fastapi.lists.site") as mock_site_context,
+            patch(
+                "openlibrary.fastapi.lists._process_seeds_update",
+                side_effect=ClientException("409 Conflict", "conflict", '{"error":"conflict"}'),
+            ),
+        ):
+            mock_list = MagicMock()
+            mock_site = MagicMock()
+            mock_site.get.return_value = mock_list
+            mock_site.can_write.return_value = True
+            mock_site_context.get.return_value = mock_site
+
+            response = fastapi_client.post("/lists/OL3L/seeds.json", json={"add": [], "remove": []})
+
+        assert response.status_code == 409

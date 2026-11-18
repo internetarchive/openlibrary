@@ -101,6 +101,25 @@ def test_anonymize_sync_deletes_infobase_data_on_calling_thread(monkeypatch):
     assert threads == [threading.current_thread()]
 
 
+@pytest.mark.asyncio
+async def test_anonymize_async_runs_infobase_write_in_worker_thread_with_request_ip(monkeypatch):
+    account = OpenLibraryAccount(_key="/people/testuser")
+    calls = []
+
+    def delete_infobase_data(self):
+        calls.append((threading.current_thread(), model.web.ctx.ip))
+
+    monkeypatch.setattr(OpenLibraryAccount, "_delete_infobase_data", delete_infobase_data)
+    monkeypatch.setattr(OpenLibraryAccount, "_anonymize_tables", AsyncMock(return_value={"new_username": "anonymous-abc123"}))
+
+    result = await account.anonymize(client_ip="192.0.2.10")
+
+    assert result == {"new_username": "anonymous-abc123"}
+    assert len(calls) == 1
+    assert calls[0][0] is not threading.current_thread()
+    assert calls[0][1] == "192.0.2.10"
+
+
 @mock.patch("openlibrary.accounts.model.site")
 @mock.patch("openlibrary.accounts.model.web")
 def test_get(mock_web, mock_site):

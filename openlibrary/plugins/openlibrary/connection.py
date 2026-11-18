@@ -372,6 +372,37 @@ class MemcacheMiddleware(ConnectionMiddleware):
         self.memcache.delete_multi(keys)
         stats.end()
 
+    @staticmethod
+    def _keys_from_write(data):
+        """Return document keys carried by Infobase write requests."""
+        query = data.get("query") if isinstance(data, dict) else None
+        if isinstance(query, bytes):
+            query = query.decode()
+        if isinstance(query, str):
+            query = json.loads(query)
+        docs = query if isinstance(query, list) else [query]
+        return [doc["key"] for doc in docs if isinstance(doc, dict) and doc.get("key")]
+
+    def write(self, sitename, data):
+        keys = self._keys_from_write(data)
+        result = ConnectionMiddleware.write(self, sitename, data)
+        if keys:
+            self.mc_delete_multi(keys)
+        return result
+
+    def save(self, sitename, path, data):
+        result = ConnectionMiddleware.save(self, sitename, path, data)
+        if key := path.removeprefix("/save"):
+            self.mc_delete(key)
+        return result
+
+    def save_many(self, sitename, data):
+        keys = self._keys_from_write(data)
+        result = ConnectionMiddleware.save_many(self, sitename, data)
+        if keys:
+            self.mc_delete_multi(keys)
+        return result
+
     def store_get(self, sitename, path):
         # path will be "/_store/$key"
         result = self.mc_get(path)
@@ -534,10 +565,10 @@ class HybridConnection(client.Connection):
 
     The local connection is used for reads and the remote connection is used for writes.
 
-    Some services in the OL infrastructure depends of the log written by the
-    writer, so remote connection is used, which takes care of writing logs. By
-    using a local connection for reads improves the performance by cutting
-    down the overhead of http calls present in case of remote connections.
+    This compatibility mode keeps writes on the Infobase service so its write
+    listeners continue to run. The opt-in ``in_process_writes`` setting uses a
+    local connection for both reads and writes after downstream services no
+    longer depend on those listeners.
     """
 
     def __init__(self, reader: client.Connection, writer: client.Connection):
@@ -575,7 +606,7 @@ def _update_infobase_config():
 
 
 def OLConnection() -> client.Connection | ConnectionMiddleware:
-    """Create a connection to Open Library infobase server."""
+    """Create a connection to Open Library Infobase, honoring the write-mode flag."""
 
     def create_local_connection():
         _update_infobase_config()
@@ -591,7 +622,9 @@ def OLConnection() -> client.Connection | ConnectionMiddleware:
         )
 
     conn: client.Connection | ConnectionMiddleware
-    if config.get("connection_type") == "hybrid":
+    if config.get("in_process_writes", False):
+        conn = create_local_connection()
+    elif config.get("connection_type") == "hybrid":
         conn = HybridConnection(
             reader=create_local_connection(),
             writer=create_remote_connection(),
