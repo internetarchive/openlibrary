@@ -420,9 +420,8 @@ class TestSiteContextMigration:
         admin_code.solr().POST()
         doc = current.store["solr-force-update"]
         assert doc["keys"] == ["/works/OL1W", "/books/OL2M"]
-        assert [(request["seq"], request["keys"]) for request in doc["requests"]] == [
-            (1, ["/works/OL1W", "/books/OL2M"])
-        ]
+        assert [(request["seq"], request["keys"]) for request in doc["requests"]] == [(1, ["/works/OL1W", "/books/OL2M"])]
+
 
 def test_add_solr_force_update_keeps_latest_keys_and_recent_numbered_requests(monkeypatch):
     monkeypatch.setattr(admin_code, "SOLR_FORCE_UPDATE_HISTORY", 2)
