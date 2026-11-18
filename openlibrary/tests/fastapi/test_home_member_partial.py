@@ -104,8 +104,8 @@ def test_reading_now_offers_a_button_only_for_a_free_copy(request_context_fixtur
     ):
         books = _home_member().reading_now(ReadLog())
 
-    assert [(b["title"], b["cta"], b["cta_small"]) for b in books] == [("free", "<None>", "<ol-carousel>"), ("out", "", "")]
-    assert [(b["shelf"], b["shelf_small"]) for b in books] == [("<shelf None>", "<shelf small>")] * 2
+    assert [(b["title"], b["cta"]) for b in books] == [("free", "<ol-carousel>"), ("out", "")]
+    assert [b["shelf"] for b in books] == ["<shelf small>"] * 2
     # The button is for the work, whose availability names the free copy, not the edition the reader logged.
     assert "editions" not in cta.call_args.args[0]
 

@@ -179,7 +179,7 @@ def build_agenda(loans: list[dict], holds: list[dict], reading: list[dict]) -> l
     # A Currently Reading book says nothing about itself and has no button of ours: the template gives it a
     # Read or Borrow button when a copy is free (`cta`), and the control that moves it off the shelf (`shelf`).
     reading_cards = [
-        card(book, "reading", "", "plain", "") | {"action": None} | {key: book.get(key, "") for key in ("cta", "cta_small", "shelf", "shelf_small", "work_key")}
+        card(book, "reading", "", "plain", "") | {"action": None} | {key: book.get(key, "") for key in ("cta", "shelf", "work_key")}
         for book in reading
     ]
     if not loan_cards:
@@ -220,18 +220,16 @@ def reading_now(readlog) -> list[dict]:
         # Without `editions` the button is for the work, whose availability names the free copy.
         work = web.storage({k: v for k, v in doc.items() if k != "editions"})
 
-        def cta(layout, work=work, free=free):
-            return _render_carousel_card_loan_status(work, work_key=work.get("key"), key="home-reading", layout=layout) if free else ""
+        # `ol-carousel` is the layout that gets the small button.
+        cta = _render_carousel_card_loan_status(work, work_key=work.get("key"), key="home-reading", layout="ol-carousel") if free else ""
 
         books.append(
             brief_from_doc(doc)
             | {
                 "work_key": doc.get("key", ""),
-                "cta": cta(None),
-                "cta_small": cta("ol-carousel"),
-                # A caret button that opens the shelf menu, at the lead book's size and at a row's.
-                "shelf": Markup(shelf_button_for(doc, variant="menu", async_load=True)),
-                "shelf_small": Markup(shelf_button_for(doc, variant="menu", size="small", async_load=True)),
+                "cta": cta,
+                # A caret button that opens the shelf menu.
+                "shelf": Markup(shelf_button_for(doc, variant="menu", size="small", async_load=True)),
             }
         )
     return books

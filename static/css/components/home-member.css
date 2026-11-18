@@ -22,8 +22,7 @@ body[data-user-key] .home-welcome {
 
 /* Sections are separated by their own bottom margin; gap is kept for things inside one. */
 .home-now {
-  margin-block: var(--spacing-stack-lg) var(--spacing-stack-xl);
-}
+  margin-block: var(--spacing-stack-lg) var(--spacing-stack-xl);}
 
 .home-now :where(ul) {
   margin: 0;
@@ -31,12 +30,7 @@ body[data-user-key] .home-welcome {
   list-style: none;
 }
 
-/* The heading line: the title, and the ways out at its end. */
 .home-now__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--spacing-stack-xs) var(--spacing-inline-lg);
   margin-bottom: var(--spacing-stack-md);
 }
 
@@ -46,12 +40,6 @@ body[data-user-key] .home-welcome {
   font-weight: var(--font-weight-heading);
   line-height: var(--line-height-heading);
   color: var(--color-text-heading);
-}
-
-.home-now__links {
-  display: flex;
-  gap: var(--spacing-inline-xl);
-  margin-inline-start: auto;
 }
 
 /* In progress on one side, the list's covers on the other. */
@@ -81,7 +69,7 @@ body[data-user-key] .home-welcome {
   gap: var(--spacing-inset-md);
 }
 
-/* ol-book-cover keeps the 2:3 slot. */
+/* ol-book-cover is as tall as its artwork (`fit`), so the text beside it runs top to bottom of the image. */
 .home-now__cover {
   flex: none;
   width: 72px;
@@ -98,9 +86,9 @@ body[data-user-key] .home-welcome {
 
 .home-now__book {
   margin: 0;
-  font-family: var(--font-family-title);
-  font-size: var(--font-size-title-large);
-  font-weight: var(--font-weight-heading);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-subheading);
   line-height: var(--line-height-heading);
   text-wrap: balance;
 }
@@ -209,8 +197,14 @@ body[data-user-key] .home-welcome {
 /* With no list to show, the card takes the width and the other books sit beside the one in hand. */
 .home-now--no-want .home-now__reading {
   display: flex;
-  gap: var(--spacing-inline-xl);
+  flex-wrap: wrap;
+  gap: 0 var(--spacing-inline-xl);
   align-items: flex-start;
+}
+
+.home-now--no-want .home-now__label-row {
+  flex: none;
+  width: 100%;
 }
 
 .home-now--no-want .home-now__main {
@@ -226,12 +220,28 @@ body[data-user-key] .home-welcome {
   border-inline-start: 1px solid var(--color-border-subtle);
 }
 
-/* The list's small heading. */
+/* The way to the rest of the card's books, under the last of them. */
+.home-now__more {
+  margin: var(--spacing-stack-sm) 0 0;
+}
+
+.home-now--no-want .home-now__more {
+  width: 100%;
+}
+
+/* A part's small heading, and the way to the rest of it at the line's end. */
+.home-now__label-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-lg);
+  margin-bottom: var(--spacing-stack-sm);
+}
+
 .home-now__label {
   display: flex;
   align-items: center;
   gap: var(--spacing-inline-sm);
-  margin: 0 0 var(--spacing-stack-sm);
+  margin: 0;
   font-size: var(--font-size-label-large);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-meta);
@@ -289,6 +299,7 @@ body[data-user-key] .home-welcome {
   }
 
   .home-now--no-want .home-now__rest {
+    margin-top: var(--spacing-inset-md);
     padding-top: var(--spacing-stack-xs);
     padding-inline-start: 0;
     border-top: 1px solid var(--color-border-subtle);
@@ -306,14 +317,11 @@ body[data-user-key] .home-welcome {
   gap: var(--spacing-inline-sm);
 }
 
-.home-now__cta .cta-btn {
-  margin: 0;
-}
-
-/* On a line the legacy button takes the small control height,
+/* The legacy button takes the small control height,
    as it does on a carousel card (buttonCta.css). */
-.home-now__item .home-now__cta .cta-btn {
+.home-now__cta .cta-btn {
   display: block;
+  margin: 0;
   height: var(--control-height-small);
   min-height: var(--control-height-small);
   padding-block: 0;

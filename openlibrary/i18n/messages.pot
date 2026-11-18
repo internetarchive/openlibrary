@@ -3213,12 +3213,12 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/member.html.jinja
 #, python-format
 msgid "See all %(title)s"
 msgstr ""
 
-#: CarouselSkeleton.html.jinja books/custom_carousel.html.jinja lists/carousel.html.jinja lists/home.html lists/showcase.html
+#: CarouselSkeleton.html.jinja books/custom_carousel.html.jinja home/member.html.jinja lists/carousel.html.jinja lists/home.html lists/showcase.html
 msgid "See all"
 msgstr ""
 
@@ -5078,13 +5078,17 @@ msgstr ""
 msgid "Welcome back"
 msgstr ""
 
-#: home/member.html.jinja
-msgid "Loans and holds"
-msgstr ""
-
 #. Short label displayed next to the count of readers currently reading this book, shown in the stats bar on a book page. Example: "1,247 Currently reading".
 #: StarRatingsStats.html home/member.html.jinja
 msgid "Currently reading"
+msgstr ""
+
+#: home/member.html.jinja
+msgid "See all loans and holds"
+msgstr ""
+
+#: home/member.html.jinja
+msgid "See all currently reading"
 msgstr ""
 
 #: home/member.html.jinja

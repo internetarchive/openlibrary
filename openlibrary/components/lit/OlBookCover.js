@@ -36,6 +36,8 @@ export const DEFAULT_LABELS = {
  * @prop {String} href - Link target; empty renders the cover unlinked
  * @prop {String} size - "medium" (default) or "small"; small drops the author
  *     from the blank cover, which has no room for it
+ * @prop {Boolean} fit - Takes the artwork's own height instead of holding the 2:3 slot, for a
+ *     cover with text beside it that lines up with its top and bottom
  * @prop {"web" | "pdf" | "epub" | "audio"} format - How the book is read, matching the backend's
  *     acquisition format. "audio" keeps the edge and shadow but drops the spine shading
  * @prop {Boolean} deferred - Holds the artwork back until removed (ol-carousel removes it near view)
@@ -57,6 +59,7 @@ export class OlBookCover extends LitElement {
         year: { type: String },
         href: { type: String },
         size: { type: String, reflect: true },
+        fit: { type: Boolean, reflect: true },
         format: { type: String, reflect: true },
         deferred: { type: Boolean, reflect: true },
         loading: { type: Boolean, reflect: true },
@@ -81,6 +84,14 @@ export class OlBookCover extends LitElement {
             place-items: end center;
             width: 100%;
             height: 100%;
+        }
+
+        :host([fit]) {
+            aspect-ratio: auto;
+        }
+
+        :host([fit]) ol-tooltip {
+            height: auto;
         }
 
         /* The slot is 150% as tall as wide, so 150% × ratio caps a tall cover at the slot's height. */
@@ -207,6 +218,13 @@ export class OlBookCover extends LitElement {
             border: 2px solid var(--color-text-inverse);
             border-right-color: transparent;
             border-radius: var(--border-radius-circle);
+        }
+
+        /* A small cover can be as narrow as the full-size ring. */
+        :host([size='small']) .spinner::before {
+            width: 12px;
+            height: 12px;
+            border-width: 1.5px;
         }
 
         :host([loading]) .spinner {
