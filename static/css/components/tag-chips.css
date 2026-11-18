@@ -14,6 +14,11 @@
   gap: var(--spacing-stack-sm);
 }
 
+.ol-tag-chips__group + .ol-tag-chips__group {
+  padding-block-start: var(--spacing-stack-md);
+  border-block-start: var(--border-width) solid var(--color-border-extra-subtle);
+}
+
 .ol-tag-chips__heading {
   font-size: var(--font-size-overline);
   font-weight: var(--font-weight-overline);

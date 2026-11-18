@@ -65,9 +65,21 @@ class TestSaveBookHelper:
     )
     def test_genres(self, monkeypatch, posted, expected):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(addbook, "get_tags_of_type", lambda fld: [web.storage(key="/tags/OL1T"), web.storage(key="/tags/OL2T")])
         work = addbook.SaveBookHelper(None, None).process_work(web.storage({"genres": posted}))
         assert "genres" in work
         assert work.genres == expected
+
+    def test_genres_outside_the_vocabulary_are_refused_unless_already_saved(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(addbook, "get_tags_of_type", lambda fld: [web.storage(key="/tags/OL1T")])
+        saved = web.storage(key="/works/OL1W", genres=[{"key": "/tags/OL5T"}])
+        helper = addbook.SaveBookHelper(saved, None)
+        work = helper.process_work(web.storage({"genres": ["", "/tags/OL1T", "/tags/OL5T"]}))
+        assert work.genres == [{"key": "/tags/OL1T"}, {"key": "/tags/OL5T"}]
+        for stray in ("/tags/OL9T", "/people/foo"):
+            with pytest.raises(addbook.ValidationException):
+                helper.process_work(web.storage({"genres": ["", stray]}))
 
     def test_genres_not_posted_are_left_alone(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)

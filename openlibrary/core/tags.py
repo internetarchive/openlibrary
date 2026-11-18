@@ -144,7 +144,12 @@ def tag_picker(work, fld: str, selected: list[str] | None = None, suggested: dic
         selected = work_tag_keys(work, fld) if work else []
     if suggested is None:
         suggested = subject_matches(fld, suggestion_subjects(work))
-    return {"options": tag_options(fld), "selected": list(selected), "suggested": build_suggestions(suggested)}
+    options = tag_options(fld)
+    # A picked key the vocabulary lacks (retired, renamed away, or mistyped) still gets a chip, so it can be seen and removed.
+    if strays := [k for k in dict.fromkeys(selected) if k not in {o["value"] for o in options}]:
+        names = {t.key: t.get("name") for t in site.get().get_many(strays)}
+        options += [web.storage(value=k, label=names.get(k) or k, description="") for k in strays]
+    return {"options": options, "selected": list(selected), "suggested": build_suggestions(suggested)}
 
 
 def find_tag(fld: str, key: str):

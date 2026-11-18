@@ -18,6 +18,7 @@ from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
 from openlibrary.contribute import pitch
 from openlibrary.core.helpers import uniq
+from openlibrary.core.tags import GENRES, get_tags_of_type, work_tag_keys
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
@@ -786,7 +787,12 @@ class SaveBookHelper:
             work.literary_forms = [{"key": work.literary_forms}] if work.literary_forms else None
         # The chips post one key each, plus an empty value so picking none clears the field.
         if "genres" in work:
-            work.genres = [{"key": k} for k in uniq(work.genres) if k] or None
+            keys = [k for k in uniq(work.genres) if k]
+            # Only the vocabulary's genres, or ones the work already had (a retired tag stays until someone removes it).
+            allowed = {t.key for t in get_tags_of_type(GENRES)} | set(work_tag_keys(self.work, GENRES) if self.work else [])
+            if any(k not in allowed for k in keys):
+                raise ValidationException(_("Choose genres from the list."))
+            work.genres = [{"key": k} for k in keys] or None
         if ": " in work.get("title", ""):
             work.title, work.subtitle = work.title.split(": ", 1)
         else:

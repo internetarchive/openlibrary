@@ -19,11 +19,6 @@ export function initTagChips(group) {
         chip.addEventListener('focusin', () => light(chip, true));
         chip.addEventListener('focusout', () => light(chip, false));
     }
-    // A saved key with no chip (a retired or unnamed tag) keeps its input, so a save doesn't drop it.
-    const values = new Set([...group.querySelectorAll('ol-chip')].map(chip => chip.dataset.value));
-    group.querySelectorAll('input[data-pick]').forEach(input => {
-        if (!values.has(input.value)) delete input.dataset.pick;
-    });
     const sync = () => {
         group.querySelectorAll('input[data-pick]').forEach(input => input.remove());
         // By property: the chip reflects ``selected`` to its attribute only on its next render.

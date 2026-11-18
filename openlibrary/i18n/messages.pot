@@ -10711,6 +10711,10 @@ msgstr ""
 msgid "You are not allowed to add an Internet Archive ID."
 msgstr ""
 
+#: openlibrary/plugins/upstream/addbook.py
+msgid "Choose genres from the list."
+msgstr ""
+
 #: openlibrary/plugins/upstream/borrow.py
 msgid "this book"
 msgstr ""
