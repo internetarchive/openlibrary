@@ -64,6 +64,7 @@ def test_reading_now_offers_a_button_only_for_a_free_copy(request_context_fixtur
     request_context_fixture(lang="en")
     docs = [
         web.storage(key="/works/OL1W", title="free", editions={"docs": [{"key": "/books/OL1M"}]}),
+        web.storage(key="/works/OL9W"),  # not in search: no title, dropped
         web.storage(key="/works/OL2W", title="out"),
     ]
     statuses = {"free": "borrow_available", "out": "borrow_unavailable"}
@@ -74,7 +75,7 @@ def test_reading_now_offers_a_button_only_for_a_free_copy(request_context_fixtur
 
     class ReadLog:
         def get_works(self, key, limit):
-            assert (key, limit) == ("currently-reading", 4)
+            assert (key, limit) == ("currently-reading", 6)
             return web.storage(docs=docs)
 
     with (

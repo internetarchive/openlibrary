@@ -201,7 +201,8 @@ def reading_now(readlog) -> list[dict]:
     from openlibrary.plugins.openlibrary.partials import _render_carousel_card_loan_status
     from openlibrary.plugins.upstream.mybooks import shelf_button_for
 
-    docs = [doc for doc in readlog.get_works("currently-reading", limit=AGENDA_SIDE + 1).docs if doc.get("title")]
+    # A few more than the card holds: a shelved work that search doesn't know comes back without a title.
+    docs = [doc for doc in readlog.get_works("currently-reading", limit=AGENDA_SIDE + 3).docs if doc.get("title")][: AGENDA_SIDE + 1]
     lending.add_availability(docs)
     books = []
     for doc in docs:
