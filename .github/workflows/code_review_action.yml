@@ -202,6 +202,12 @@ jobs:
           # public run log or step summary, past the gate.
           show_full_output: false
           display_report: false
+          # The action rejects anyone without write access, but the `if` above also lets a PR's author
+          # re-run the review by commenting, and fork authors only have read access. So on a comment
+          # trigger, allow exactly the commenter, whom the `if` already vetted; other triggers are
+          # unchanged. This job has no write access either way. Setting it turns on the action's
+          # subprocess sandbox for that run (see the pin note above); the review step has no shell.
+          allowed_non_write_users: ${{ github.event_name == 'issue_comment' && github.event.comment.user.login || '' }}
 
       - name: Gate the analysis before upload
         id: analyze-gate
