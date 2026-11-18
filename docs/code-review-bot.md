@@ -60,7 +60,8 @@ draft, a closed PR, or a commit it already reviewed), the bot replies to say so.
 - **A push while a review is running** doesn't stop that review or waste it. When it finishes, the
   bot posts it on the commit it read, marked as superseded, as a comment that neither approves nor
   blocks. That commit's check changes to "Superseded by `<commit>`". Your new commit waits its own
-  10 quiet minutes, then gets its own review, covering only what changed since the superseded one.
+  10 quiet minutes, then gets its own review. That review also covers the changes the superseded
+  one saw, so nothing it found is lost.
 - **Asking for a review during the wait** starts it right away instead.
 - **No re-review** for pushes made by bots, pushes that only merge the base branch in (the "Update
   branch" button), or PRs labelled `no-automation`. Ask for a review if you want one.
@@ -75,7 +76,7 @@ sequenceDiagram
     You->>Bot: Push commit B while A is being reviewed
     Bot-->>You: The review of A is posted on A as a comment. A's check says Superseded by B
     Note over Bot: Waits until 10 minutes pass with no new pushes after B
-    Bot->>You: A review of B, covering what changed since A
+    Bot->>You: A review of B, covering the changes in A and B
 ```
 
 ### Who can ask for a review

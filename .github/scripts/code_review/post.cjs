@@ -286,8 +286,8 @@ async function validateAndPost({ github, context, core, require, process }) {
     };
     // If the head moved during the review, the review is still real feedback on the commit it read, so
     // post it there, but only as a COMMENT: it must not approve or block a PR whose newest commit it
-    // never saw. It also leaves the bot's earlier threads alone; the new head's review re-checks them
-    // and starts from this review's commit (see headIsCurrent, and range.cjs).
+    // never saw. It also leaves the bot's earlier threads alone; the new head's review re-checks them,
+    // and covers everything this review did (see supersededCommit, and range.cjs).
     const { data: livePr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
     const superseded = !headIsCurrent(headSha, livePr.head.sha);
     if (superseded) {

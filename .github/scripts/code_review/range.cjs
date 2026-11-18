@@ -3,7 +3,7 @@
 // status of an existing review, or skips, and writes the range, diff and settings the model reads.
 'use strict';
 
-const { filterDiff, parseReviewMarker, unresolvedThreadCount, supersededCommit, reviewedCommit } = require('./shared.cjs');
+const { filterDiff, parseReviewMarker, unresolvedThreadCount, supersededCommit } = require('./shared.cjs');
 
 async function resolveRange({ github, context, core, require, process }) {
     const fs = require('fs');
@@ -40,10 +40,12 @@ async function resolveRange({ github, context, core, require, process }) {
         pull_number: prNumber,
         per_page: 100
     });
-    const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id);
+    // Superseded reviews (see shared.cjs) are left out: the next review starts from the last review
+    // that was not overtaken, so it covers everything a superseded one saw, including findings that
+    // never became threads, and a commit whose only review was superseded still gets reviewed.
+    const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id && !supersededCommit(r.body));
     const prior = ours.length ? ours[ours.length - 1] : null;
-    // The commit the last review read: for a superseded review, the one in its marker.
-    const priorSha = prior ? reviewedCommit(prior) : null;
+    const priorSha = prior ? prior.commit_id : null;
 
     let base = pr.base.sha,
         incremental = false,
@@ -91,7 +93,7 @@ async function resolveRange({ github, context, core, require, process }) {
                         .filter(f => fromBase.has(f.filename))
                         .forEach(add);
                 }
-                if (!touched.size && !supersededCommit(prior.body)) {
+                if (!touched.size) {
                     // Nothing new to review: `status` carries the last review's verdict, no model runs.
                     core.info('Only base branch merges since the last review -- reposting its verdict.');
                     core.setOutput('pr', String(prNumber));
@@ -101,16 +103,11 @@ async function resolveRange({ github, context, core, require, process }) {
                     core.setOutput('repost', 'true');
                     return;
                 }
-                if (touched.size) {
-                    // Review the PR's diff, limited to those files, so every line the model can comment on
-                    // is in the PR's diff.
-                    base = own.merge_base_commit.sha;
-                    files = [...touched].sort();
-                    incremental = true;
-                } else {
-                    // A superseded review has no verdict to carry over, so review the whole PR.
-                    core.info('Only base branch merges since a superseded review -- full review.');
-                }
+                // Review the PR's diff, limited to those files, so every line the model can comment on
+                // is in the PR's diff.
+                base = own.merge_base_commit.sha;
+                files = [...touched].sort();
+                incremental = true;
             } else {
                 core.info(`Prior review commit is ${since.status} -- falling back to a full review.`);
             }
@@ -122,7 +119,7 @@ async function resolveRange({ github, context, core, require, process }) {
         // existing review implies; otherwise re-post the status without running the model.
         // This must pick the same review as status.cjs's repost path (the last bot review on this
         // head with a body); a test checks the two agree. `prior` has no body filter, so it can differ.
-        const onHead = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === head && r.body && !supersededCommit(r.body));
+        const onHead = ours.filter(r => r.commit_id === head && r.body);
         const reviewForVerdict = onHead.length ? onHead[onHead.length - 1] : null;
 
         // GraphQL, because REST has no resolved/outdated state. On an error, re-post: the status

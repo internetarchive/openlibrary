@@ -128,15 +128,16 @@ async function postStatus({ github, context, core, process }) {
         withheld = true;
         findings = withheldFindings(process.env.WITHHELD_BLOCKING);
     } else {
-        // `post` also succeeds without posting when the head moved. If the head then moved back
-        // to this SHA, the head check above would pass, so confirm a bot review exists on it.
+        // When the head moved, `post` posts only a superseded review, which is no verdict. If the head
+        // then moved back to this SHA, the head check above would pass, so confirm a real bot review
+        // exists on it.
         const reviews = await github.paginate(github.rest.pulls.listReviews, {
             owner,
             repo,
             pull_number: pr,
             per_page: 100
         });
-        const posted = reviews.some(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === headSha);
+        const posted = reviews.some(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === headSha && !supersededCommit(r.body));
         postSucceeded = process.env.POST_RESULT === 'success' && posted;
         withheld = false;
         findings = parseFindings(process.env.PUBLIC_FINDINGS_COUNT);

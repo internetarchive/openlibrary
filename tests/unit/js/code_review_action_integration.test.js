@@ -365,6 +365,43 @@ test('superseded range: a superseded review recorded on the head does not make t
     assert.equal(res.outputs.skip, 'false', 'the head still gets its own review');
     assert.notEqual(res.outputs.repost, 'true', 'and not a repost of the superseded verdict');
 });
+test('superseded range: the next review starts from the last review that was not superseded', async () => {
+    // A real review of P, then a superseded review of A; the head is now B.
+    const P = SHA('p'),
+        A = SHA('e'),
+        B = SHA('a');
+    const { github } = mockGitHub({
+        prGet: async () => ({ data: { number: 1, head: { sha: B }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
+        listReviews: async () => ({
+            data: [
+                { user: { login: 'openlibrary-bot' }, commit_id: P, submitted_at: '2026-01-01', body: 'x\n<!-- ol-pr-review-bot f=0 -->' },
+                { user: { login: 'openlibrary-bot' }, commit_id: A, submitted_at: '2026-01-02', body: supersededBody(A, 1) }
+            ]
+        })
+    });
+    const compared = [];
+    github.rest.repos.compareCommitsWithBasehead = async p => {
+        if (p.headers) return { data: 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n' };
+        compared.push(p.basehead);
+        throw new Error('stop here: only the base matters');
+    };
+    const ctx = { ...context, payload: { pull_request: { number: 1 } } };
+    const res = await runScript(range.resolveRange, { github, context: ctx, env: { PR: '1', GITHUB_WORKSPACE: dir } });
+    assert.equal(compared[0], `${P}...${B}`, "from P, so B's review covers everything the superseded review of A saw");
+    assert.equal(res.outputs.skip, 'false');
+});
+test('superseded status: a superseded review on the head does not count as the posted review', async () => {
+    // The head moved back to A after post marked A's review superseded.
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: head } } }),
+        listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, body: supersededBody(head) }] }),
+        reviewThreads: []
+    });
+    const env = { PR: '1', HEAD_SHA: head, POST_RESULT: 'success', PUBLIC_FINDINGS_COUNT: '0', WITHHELD: 'false', RUN_URL: 'u' };
+    await runScript(status.postStatus, { github, context, env });
+    assert.equal(calls.createCommitStatus[0].state, 'failure', 'no real review of this commit: not green');
+});
 test('D2 status repost: an f=2 marker reposts FAILURE', async () => {
     const head = SHA('a');
     const { github, calls } = mockGitHub({

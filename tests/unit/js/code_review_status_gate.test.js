@@ -228,15 +228,12 @@ test('analyze job holds no PAT and no write permission (the no-write half of the
 // ---- The status always matches the review it describes ----
 
 // ---- The superseded marker: a review of a commit the PR had moved past ----
-test('supersededMarker round-trips, and reviewedCommit prefers it over commit_id', () => {
-    const { supersededMarker, supersededCommit, reviewedCommit } = shared;
-    const a = 'a'.repeat(40),
-        b = 'b'.repeat(40);
+test('supersededMarker round-trips', () => {
+    const { supersededMarker, supersededCommit } = shared;
+    const a = 'a'.repeat(40);
     assert.equal(supersededCommit(`x\n${supersededMarker(a)}`), a);
     assert.equal(supersededCommit('x\n<!-- ol-pr-review-bot f=0 -->'), null);
     assert.equal(supersededCommit('<!-- ol-pr-review-bot superseded reviewed=nope -->'), null);
-    assert.equal(reviewedCommit({ commit_id: b, body: supersededMarker(a) }), a);
-    assert.equal(reviewedCommit({ commit_id: b, body: 'plain' }), b);
 });
 
 // ---- headIsCurrent: the live-head check `post` and `status` share ----
