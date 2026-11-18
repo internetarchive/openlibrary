@@ -1,0 +1,29 @@
+{#
+  The subject search form, embedded in wiki page bodies through the Templetor
+  macro beside this file. A verbatim port of it: same markup, same classes,
+  same ids. (That macro's name is deliberately not written out here -- it is
+  listed in check_unused_templates.DB_USED_EXCLUSIONS, and naming it in code
+  makes that hook read the exclusion as dead.)
+
+  `q` is passed in rather than read from the request. Called from FastAPI, a
+  request read inside a template can return a value left over from another
+  visitor's request -- see "only the route touches the request" in
+  docs/core/fastapi-pages.md.
+#}
+{% macro subject_search(q="") %}
+    <form action="/search/subjects" class="olform">
+        <p>
+            <label for="searchSubjects" class="shift">{{ _("Search for a subject") }}</label>
+            <input type="text"
+                   name="q"
+                   id="searchSubjects"
+                   size="100"
+                   class="larger"
+                   placeholder="{{ _('Search for a subject') }}"
+                   value="{{ q }}" />
+            <input type="submit" class="large" value="{{ _('Search') }}" />
+        </p>
+    </form>
+{% endmacro %}
+{#- Rendering this file directly (from the Templetor wrapper) draws the form. -#}
+{{ subject_search(q | default("")) }}
