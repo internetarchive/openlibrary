@@ -3,7 +3,7 @@
 // status of an existing review, or skips, and writes the range, diff and settings the model reads.
 'use strict';
 
-const { filterDiff, parseReviewMarker, unresolvedThreadCount } = require('./shared.cjs');
+const { filterDiff, parseReviewMarker, unresolvedThreadCount, supersededCommit, reviewedCommit } = require('./shared.cjs');
 
 async function resolveRange({ github, context, core, require, process }) {
     const fs = require('fs');
@@ -42,18 +42,20 @@ async function resolveRange({ github, context, core, require, process }) {
     });
     const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id);
     const prior = ours.length ? ours[ours.length - 1] : null;
+    // The commit the last review read: for a superseded review, the one in its marker.
+    const priorSha = prior ? reviewedCommit(prior) : null;
 
     let base = pr.base.sha,
         incremental = false,
         files = null;
-    if (prior && prior.commit_id !== head) {
+    if (prior && priorSha !== head) {
         // Use the prior SHA only if it is an ancestor of head. After a force-push it may not be,
         // and diffing from it would review the wrong changes.
         try {
             const { data: since } = await github.rest.repos.compareCommitsWithBasehead({
                 owner,
                 repo,
-                basehead: `${prior.commit_id}...${head}`
+                basehead: `${priorSha}...${head}`
             });
             if (since.status === 'ahead' && since.files && since.files.length) {
                 // The PR's own commits and its merge base, as GitHub's PR diff has them.
@@ -89,7 +91,7 @@ async function resolveRange({ github, context, core, require, process }) {
                         .filter(f => fromBase.has(f.filename))
                         .forEach(add);
                 }
-                if (!touched.size) {
+                if (!touched.size && !supersededCommit(prior.body)) {
                     // Nothing new to review: `status` carries the last review's verdict, no model runs.
                     core.info('Only base branch merges since the last review -- reposting its verdict.');
                     core.setOutput('pr', String(prNumber));
@@ -99,23 +101,28 @@ async function resolveRange({ github, context, core, require, process }) {
                     core.setOutput('repost', 'true');
                     return;
                 }
-                // Review the PR's diff, limited to those files, so every line the model can comment on
-                // is in the PR's diff.
-                base = own.merge_base_commit.sha;
-                files = [...touched].sort();
-                incremental = true;
+                if (touched.size) {
+                    // Review the PR's diff, limited to those files, so every line the model can comment on
+                    // is in the PR's diff.
+                    base = own.merge_base_commit.sha;
+                    files = [...touched].sort();
+                    incremental = true;
+                } else {
+                    // A superseded review has no verdict to carry over, so review the whole PR.
+                    core.info('Only base branch merges since a superseded review -- full review.');
+                }
             } else {
                 core.info(`Prior review commit is ${since.status} -- falling back to a full review.`);
             }
         } catch (e) {
             core.info(`Could not compare against the prior review commit (${e.message}) -- full review.`);
         }
-    } else if (prior && prior.commit_id === head) {
+    } else if (prior && priorSha === head) {
         // Already reviewed. Skip only if the current `code-review` status matches the verdict the
         // existing review implies; otherwise re-post the status without running the model.
         // This must pick the same review as status.cjs's repost path (the last bot review on this
         // head with a body); a test checks the two agree. `prior` has no body filter, so it can differ.
-        const onHead = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === head && r.body);
+        const onHead = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === head && r.body && !supersededCommit(r.body));
         const reviewForVerdict = onHead.length ? onHead[onHead.length - 1] : null;
 
         // GraphQL, because REST has no resolved/outdated state. On an error, re-post: the status
@@ -210,7 +217,7 @@ async function resolveRange({ github, context, core, require, process }) {
                 base_sha: base,
                 head_sha: head,
                 incremental,
-                prior_review_sha: incremental ? prior.commit_id : null,
+                prior_review_sha: incremental ? priorSha : null,
                 prior_review_at: prior ? prior.submitted_at : null,
                 files
             },

@@ -3,7 +3,7 @@
 // rule is in decideStatus and in the comment above the job in code_review_action.yml.
 'use strict';
 
-const { headIsCurrent, parseReviewMarker, unresolvedThreadCount } = require('./shared.cjs');
+const { headIsCurrent, parseReviewMarker, unresolvedThreadCount, supersededCommit } = require('./shared.cjs');
 
 // The public findings count from `analyze`. null (blocks) unless it is a non-negative integer:
 // findings with no anchor in the diff have no thread, so the thread count alone can't catch them.
@@ -115,7 +115,8 @@ async function postStatus({ github, context, core, process }) {
             per_page: 100
         });
         const verdictSha = process.env.VERDICT_SHA || headSha;
-        const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === verdictSha && r.body);
+        // A superseded review is never a verdict (see shared.cjs).
+        const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id === verdictSha && r.body && !supersededCommit(r.body));
         const last = ours.length ? ours[ours.length - 1] : null;
         // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
         postSucceeded = last != null;
