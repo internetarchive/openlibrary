@@ -122,9 +122,9 @@ $def with (books=None, books_wo_isbns=None)
         $ }
     <div class="import-summary" role="status" data-i18n="$json_encode(summary_i18n)">
       <p class="import-summary-text hidden"></p>
-      <button type="button" class="download-failures hidden cta-btn cta-btn--available cta-btn--small">
+      <ol-button variant="primary" size="small" class="download-failures hidden">
         $_("Download the books that could not be imported")
-      </button>
+      </ol-button>
     </div>
     $ keys = ['ISBN', 'Title', 'My Rating', 'Exclusive Shelf', 'Date Read']
     <div class="div-class">

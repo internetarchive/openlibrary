@@ -26,7 +26,7 @@ function renderPage(rows) {
         <input type="submit" class="import-submit" value="Import ${rows.length} Books">
         <div class="import-summary" role="status" data-i18n='${i18n}'>
             <p class="import-summary-text hidden"></p>
-            <button type="button" class="download-failures hidden">Download</button>
+            <ol-button variant="primary" size="small" class="download-failures hidden">Download</ol-button>
         </div>
         <table class="import-table">
             <thead><tr>
