@@ -317,13 +317,16 @@ async function validateAndPost({ github, context, core, require, process }) {
         summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
 
         // One small line instead of callouts. Comments and re-requests are in the doc: most authors
-        // just push, and a push gets its own review.
+        // just push, and a push gets its own review. "Not a security audit" is in the doc too.
+        // The first part is the next step, which also says this isn't an approval. Suggestions count
+        // as feedback: we want it taken seriously, and the author can judge what applies.
         const minutes = process.env.PUSH_REVIEW_MINUTES;
+        const feedback = blocking || suggestions.length;
         const footer = [
-            'Automated review: not an approval or a security audit',
+            feedback ? 'Please address the feedback above before a maintainer reviews this PR' : 'A maintainer will review this PR next',
             '[How this bot works](https://github.com/internetarchive/openlibrary/blob/master/docs/code-review-bot.md)'
         ];
-        if (/^\d+$/.test(minutes || '')) footer.push(`Reviews new pushes after ${minutes} minutes`);
+        if (feedback && /^\d+$/.test(minutes || '')) footer.push(`Reviews new pushes after ${minutes} minutes`);
         summary += `\n\n<sub>${footer.join(' · ')}</sub>\n\n${reviewMarker(findingCount, heldBackBlocks)}`;
         if (supersededLine) summary += `\n${supersededMarker(headSha)}`;
         return summary;

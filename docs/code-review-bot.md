@@ -4,8 +4,8 @@
 pass, with inline comments on the problems it finds, and posts the `code-review` check that a PR
 needs to merge. This page explains when it runs, what it checks, and what to do with its feedback.
 
-The bot is a first reader, not a maintainer. Its approval is not a sign-off, and a person still
-reviews and merges every PR.
+The bot is a first reader, not a maintainer. Its approval is not a sign-off or a security audit,
+and a person still reviews and merges every PR.
 
 ## When it reviews
 
@@ -164,6 +164,9 @@ The full instructions the bot follows are in
   inline comment, and one in the summary covering everything the review found.
 - **🎫 Linked issues**, collapsed, when the PR links to issues: which of their requirements the PR
   meets.
+- **A last line with the next step:** address the feedback before a maintainer reviews the PR,
+  or, when the bot found nothing, that a maintainer will review it next. Treat suggestions as
+  feedback too, and use your judgement on each.
 
 **The verdict.** The review is one of:
 
