@@ -96,21 +96,36 @@ Scan every PR. Read closely anything touching auth, sessions, cookies, redirects
 reaching SQL, shell, file paths or templates, `eval`/`exec`/`__import__`, `subprocess`, or
 `innerHTML`/`.html()` with user content.
 
-**Security concerns are never published by this bot.** Open Library routes them to
-maintainers privately (`pm/workflows/security.md`); a public review comment is a disclosure,
-and editing it afterwards does not undo that. So:
+**Security concerns about existing code are never published by this bot.** Code already on
+`master` may be live on openlibrary.org, so a public comment about it is a disclosure, and editing
+the comment afterwards does not undo that. A problem in code this PR adds is different: it isn't
+live yet, and the author needs to hear about it to fix it before it merges. So every security
+concern — however minor, however speculative, and **including one in code the diff does not
+touch** — goes in `findings` with `"dimension": "security"`, plus a `scope`:
 
-- Every security concern — however minor, however speculative, and **including one in code the
-  diff does not touch** — goes in `findings` with `"dimension": "security"`, and the security
-  dimension's `status` is `"findings"`. Never file it under another dimension, and never
-  mention it in the `summary`, another finding, or another dimension's `note`.
+- `"scope": "introduced"`: the problem exists only because of lines this PR adds, and the same
+  attack would not work against `master`. For example, a new endpoint with no ownership check, or
+  a new template that outputs user input with `|safe`. Anchor it with `path`/`start_line`/`line`
+  on lines the PR **adds** (`+` lines in `review.diff`), not context lines. It is posted like any
+  other finding and always blocks the merge. Describe the problem and the fix as you would any
+  bug; don't write out an exploit.
+- `"scope": "existing"`: everything else. That includes a problem in code the diff only touches
+  or moves, a new call into an existing unsafe helper (the helper is the problem), a gap this
+  PR's fix leaves open when the PR is itself a security fix, and anything you aren't sure
+  about. It is held back: never posted, and the merge is blocked until a maintainer looks.
+
+When in doubt, use `"existing"`. Holding back a finding that could have been posted costs a
+maintainer a look; posting one that should have been held back can't be undone.
+
+Either way:
+
+- Never file a security concern under another dimension, and never mention one in the
+  `summary`, another finding, another dimension's `note`, or ticket compliance.
 - Do not discuss security in the `summary` at all, not even to say there is nothing to report.
-  That is what the security dimension's `status` and `note` are for.
-- A review containing any security finding is withheld in full: nothing from it is posted,
-  including its other findings. That is the intended outcome, not a failure on your part.
-  Report what you find; do not soften or omit a concern to get the rest of the review posted.
-- The posting step also withholds any review whose published text reads as security-related,
-  so misfiling a concern does not get it posted — it only loses the rest of the review.
+- The posting step also holds back any other finding, `summary`, `note` or compliance item whose
+  text reads as security-related, and a security finding marked `"introduced"` that doesn't sit
+  on lines the PR adds. The rest of the review is still posted. Report what you find; do not
+  soften or omit a concern.
 
 ### 3. Accessibility — `accessibility`
 
@@ -273,10 +288,13 @@ Field rules:
   means at least one does. A `"none"` needs a `note`: one short sentence, under 20 words, naming
   what you checked. Not a paragraph, and no explanation of why each thing is fine.
 - `dimension` — on every finding, one of the five keys above.
+- `scope` — on `security` findings only: `"introduced"` or `"existing"` (Step 3, Security).
+  Leaving it out means `"existing"`; any other value makes the review unpublishable.
 - `severity` — exactly `high`, `medium`, or `low`; anything else makes the review
   unpublishable. Rank the array most severe first. `low` findings are posted as suggestions
   that don't block merging; use `medium` or `high` for anything that should be fixed first.
-  `test_coverage` findings are always posted as suggestions, whatever their `severity`.
+  `test_coverage` findings are always posted as suggestions, whatever their `severity`, and
+  `security` findings always block.
 - `confidence` — required on every finding: an integer from 1 to 10 for how sure you are the
   finding is real, after reading the code around it. Anything else makes the review
   unpublishable. A finding below 6 is posted as a suggestion that doesn't block, whatever its

@@ -18,9 +18,11 @@ name: Code Review Action
 # A prompt injection in a PR can change what the review says, but the job that read it has nothing
 # to write with. Keep `analyze` and `post` separate, and keep write scopes and PATs out of `analyze`.
 #
-# Security findings are never published. gate.cjs decides what may be: `analyze` runs it before
-# uploading the analysis and `post` runs it again before posting. A withheld review logs the same
-# message whatever the reason, because logs and artifacts on a public repo are public.
+# A security concern is published only when it is about code the PR adds; one about existing code
+# is held back, along with anything else whose text reads as security-related, and the rest of the
+# review is posted. gate.cjs decides: `analyze` runs it before uploading the analysis and `post`
+# runs it again before posting. What is held back is never logged, because logs and artifacts on a
+# public repo are public.
 #
 # Forks: the status is required, so fork PRs must be able to earn it, and posting it needs secrets.
 # So the trigger is pull_request_target, which runs this file as it is on the base branch, with
@@ -118,9 +120,10 @@ jobs:
       # 'true' when this head was already reviewed but its status is missing or wrong: `post` is
       # skipped and `status` re-posts the status from the existing review.
       repost: ${{ steps.range.outputs.repost }}
-      # Whether the review was withheld, and whether a withheld review had a blocking finding.
-      # One bit each, never a count or content.
+      # Whether the whole review was withheld (malformed), whether part of it was held back, and
+      # whether what wasn't published blocks. One bit each, never a count or content.
       withheld: ${{ steps['analyze-gate'].outputs.withheld }}
+      held_back: ${{ steps['analyze-gate'].outputs.held_back }}
       withheld_blocking: ${{ steps['analyze-gate'].outputs.withheld_blocking }}
       # Blocking findings in the published review. Bracket form because `-` would parse as minus.
       public_findings_count: ${{ steps['analyze-gate'].outputs.public_findings_count }}
@@ -283,6 +286,8 @@ jobs:
           INCREMENTAL: ${{ needs.analyze.outputs.incremental }}
           INLINE_KEY_ISSUES: ${{ needs.analyze.outputs.inline_key_issues }}
           PUSH_REVIEW_MINUTES: ${{ needs.analyze.outputs.push_review_minutes }}
+          HELD_BACK: ${{ needs.analyze.outputs.held_back }}
+          WITHHELD_BLOCKING: ${{ needs.analyze.outputs.withheld_blocking }}
         with:
           # Fine-grained PAT with only Pull requests: read and write, on this repo.
           github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
@@ -454,6 +459,7 @@ jobs:
 
   # Posts the required `code-review` status on the reviewed SHA. It is `success` only when:
   #   - the review was posted, or withheld cleanly;
+  #   - nothing held back from it blocks;
   #   - its count of blocking findings is known to be 0. A missing or unparseable count fails.
   #     The count catches findings with no line in the diff to anchor to, which have no thread;
   #   - no review thread is unresolved and not outdated (GitHub's own isResolved/isOutdated).
@@ -488,6 +494,7 @@ jobs:
           PUBLIC_FINDINGS_COUNT: ${{ needs.analyze.outputs.public_findings_count }}
           WITHHELD: ${{ needs.analyze.outputs.withheld }}
           WITHHELD_BLOCKING: ${{ needs.analyze.outputs.withheld_blocking }}
+          HELD_BACK: ${{ needs.analyze.outputs.held_back }}
           REPOST: ${{ needs.analyze.outputs.repost }}
           VERDICT_SHA: ${{ needs.analyze.outputs.verdict_sha }}
           BASE_SHA: ${{ needs.analyze.outputs.base_sha }}

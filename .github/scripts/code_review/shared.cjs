@@ -11,10 +11,17 @@ const headIsCurrent = (pinnedHead, liveHead) => {
 };
 
 // The blocking-findings count `post` embeds in the review body, so a status can be re-decided
-// without re-running the model. null (blocks) when the marker is missing.
+// without re-running the model. ` h=1` means part of the review was held back and that part blocks;
+// it counts as one more finding. null (blocks) when the marker is missing.
+const reviewMarker = (findings, heldBackBlocking) => `<!-- ol-pr-review-bot f=${findings}${heldBackBlocking ? ' h=1' : ''} -->`;
+const MARKER = /<!-- ol-pr-review-bot f=(\d+)( h=1)? -->/;
 const parseReviewMarker = body => {
-    const m = /<!-- ol-pr-review-bot f=(\d+) -->/.exec(String(body || ''));
-    return m ? Number(m[1]) : null;
+    const m = MARKER.exec(String(body || ''));
+    return m ? Number(m[1]) + (m[2] ? 1 : 0) : null;
+};
+const heldBackBlocking = body => {
+    const m = MARKER.exec(String(body || ''));
+    return Boolean(m && m[2]);
 };
 
 // A review `post` made of a commit the PR had already moved past (see post.cjs). It is feedback on
@@ -45,4 +52,4 @@ const filterDiff = (diff, paths) => {
         .join('');
 };
 
-module.exports = { headIsCurrent, parseReviewMarker, unresolvedThreadCount, filterDiff, supersededMarker, supersededCommit };
+module.exports = { headIsCurrent, reviewMarker, parseReviewMarker, heldBackBlocking, unresolvedThreadCount, filterDiff, supersededMarker, supersededCommit };

@@ -256,14 +256,16 @@ test('gate: a malformed ticket_compliance withholds the whole review', () => {
 });
 
 test('gate: published compliance text goes through the security scan; the unpublished requirements do not', () => {
-    const tripped = gate.check(reviewWith([ticket({ not_compliant_requirements: ['The password reset token is never checked'] })]));
-    assert.equal(tripped.publish, false);
+    const tripped = gate.check(reviewWith([ticket({ not_compliant_requirements: ['The password reset token is never checked', 'Hide the count'] })]));
+    assert.equal(tripped.publish, true);
+    assert.equal(tripped.heldBack, true);
     assert.equal(tripped.blocking, false, 'a backstop hit with no findings does not block (unchanged D3a rule)');
+    assert.deepEqual(tripped.clean.ticket_compliance[0].not_compliant_requirements, ['Hide the count'], 'only the tripped item is held back');
     const internal = gate.check(reviewWith([ticket({ ticket_requirements: ['Rotate the password reset token'] })]));
     assert.equal(internal.publish, true, 'ticket_requirements is never published, so it is not scanned');
     assert.ok(!JSON.stringify(internal.clean).includes('password'));
     // A secret shape in a published list withholds too.
-    assert.equal(gate.check(reviewWith([ticket({ fully_compliant_requirements: [`ghp_${'a'.repeat(36)}`] })])).publish, false);
+    assert.equal(gate.check(reviewWith([ticket({ fully_compliant_requirements: [`ghp_${'a'.repeat(36)}`] })])).heldBack, true);
 });
 
 test('gate: the allowlisted copy passes the gate again (post re-checks it)', () => {
