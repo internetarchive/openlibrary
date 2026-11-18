@@ -12,6 +12,9 @@ name: Code Review Action
 #   resolve  resolves the bot's threads `post` lists as fixed or dismissed, and does nothing else.
 #   pending  marks the head `code-review=pending` while the review runs.
 #   status   posts the `code-review` commit status.
+#   decline  replies to an @openlibrary-bot comment from someone who can't ask for a review.
+#   skipped  replies to an @openlibrary-bot comment when there's nothing to review.
+#   decline and skipped post fixed text with a PAT and run no model.
 # A prompt injection in a PR can change what the review says, but the job that read it has nothing
 # to write with. Keep `analyze` and `post` separate, and keep write scopes and PATs out of `analyze`.
 #
@@ -102,6 +105,9 @@ jobs:
       base_sha: ${{ steps.range.outputs.base_sha }}
       incremental: ${{ steps.range.outputs.incremental }}
       skip: ${{ steps.range.outputs.skip }}
+      # Why a run skipped (draft, closed or reviewed), and the commit already reviewed, for `skipped`.
+      skip_reason: ${{ steps.range.outputs.skip_reason }}
+      skip_sha: ${{ steps.range.outputs.skip_sha }}
       # From .pr_agent.toml, read before the model ran.
       inline_key_issues: ${{ steps.range.outputs.inline_key_issues }}
       push_review_minutes: ${{ steps.range.outputs.push_review_minutes }}
@@ -313,6 +319,76 @@ jobs:
           script: |
             const { resolveThreads } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/resolve.cjs`);
             await resolveThreads({ github, core, process });
+
+  # Replies once per person per PR to an @openlibrary-bot comment from someone the `analyze` `if`
+  # turns away, so they know who can ask and that reviews mostly start on their own. The `if` is
+  # analyze's comment branch with the permission check inverted; a test keeps the two in step.
+  decline:
+    if: >
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request != null &&
+      contains(github.event.comment.body, '@openlibrary-bot') &&
+      github.event.comment.user.login != 'openlibrary-bot' &&
+      github.event.comment.user.type != 'Bot' &&
+      !(
+        contains(fromJSON('["mekarpeles","cdrini","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login) ||
+        github.event.comment.user.login == github.event.issue.user.login
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read        # the checkout below; the reply uses a bot PAT
+    steps:
+      # Only the review scripts and settings, from the same commit as this workflow.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            /.github/scripts/
+            /.pr_agent.toml
+          sparse-checkout-cone-mode: false
+
+      - name: Say who can ask for a review
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          # Commenting on a PR needs Issues: write, which OL_BOT_PR_PAT has (see `pending`).
+          github-token: ${{ secrets.OL_BOT_PR_PAT }}
+          script: |
+            const { replyDecline } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/reply.cjs`);
+            await replyDecline({ github, context, core, require, process });
+
+  # Replies once per commit when someone allowed to ask gets no review: a draft, a closed PR, or a
+  # commit already reviewed whose check is up to date. Without it, the 👀 reaction is all they see.
+  skipped:
+    needs: analyze
+    if: >
+      github.event_name == 'issue_comment' &&
+      needs.analyze.outputs.skip == 'true' &&
+      needs.analyze.outputs.skip_reason != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read        # the checkout below; the reply uses a bot PAT
+    steps:
+      # Only the review scripts and settings, from the same commit as this workflow.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            /.github/scripts/
+            /.pr_agent.toml
+          sparse-checkout-cone-mode: false
+
+      - name: Say why there is no review
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          SKIP_REASON: ${{ needs.analyze.outputs.skip_reason }}
+          SKIP_SHA: ${{ needs.analyze.outputs.skip_sha }}
+        with:
+          github-token: ${{ secrets.OL_BOT_PR_PAT }}
+          script: |
+            const { replySkipped } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/reply.cjs`);
+            await replySkipped({ github, context, core, require, process });
 
   # Marks the head code-review=pending, unless it already has a status: analyze may then skip, and
   # nothing would replace the pending. Same `if` as analyze.

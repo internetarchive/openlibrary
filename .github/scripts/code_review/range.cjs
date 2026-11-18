@@ -21,11 +21,13 @@ async function resolveRange({ github, context, core, require, process }) {
     if (pr.draft && context.eventName !== 'workflow_dispatch') {
         core.info(`PR #${prNumber} is a draft -- skipping.`);
         core.setOutput('skip', 'true');
+        core.setOutput('skip_reason', 'draft');
         return;
     }
     if (pr.state !== 'open') {
         core.info(`PR #${prNumber} is ${pr.state} -- skipping.`);
         core.setOutput('skip', 'true');
+        core.setOutput('skip_reason', 'closed');
         return;
     }
 
@@ -167,6 +169,9 @@ async function resolveRange({ github, context, core, require, process }) {
         if (current && current.state === expectedState) {
             core.info(`Already reviewed this exact commit and the code-review status (${current.state}) matches the review verdict -- skipping.`);
             core.setOutput('skip', 'true');
+            // Not head_sha: the status job reads that, and must not run for a skip.
+            core.setOutput('skip_reason', 'reviewed');
+            core.setOutput('skip_sha', head);
             return;
         }
         core.info(

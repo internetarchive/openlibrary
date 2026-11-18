@@ -27,12 +27,12 @@ flowchart TD
     quiet --> request
     ask --> allowed{"Is it a maintainer or the PR's author?"}
     allowed -- "yes" --> review
-    allowed -- "no" --> nothing["No review"]
+    allowed -- "no" --> nothing["No review; the bot replies once to say who can ask"]
     request --> review["Review runs"]
     review --> current{"Has the bot already reviewed this exact commit?"}
     current -- "no" --> posted["Review posted and the code-review check updated"]
     current -- "yes" --> matches{"Does the check match that review?"}
-    matches -- "yes" --> same["Nothing new: no review runs"]
+    matches -- "yes" --> same["Nothing new: no review runs, and the bot says so if you asked"]
     matches -- "no" --> repost["The check is re-posted from that review, without running the model"]
 ```
 
@@ -50,7 +50,8 @@ A review starts in one of these ways:
   the re-request button next to `openlibrary-bot`, or comment `@openlibrary-bot` on the PR. The bot
   adds 👀 to your comment when the review starts.
 
-It never reviews a draft or a closed PR.
+It never reviews a draft or a closed PR. If you ask for a review and there's nothing to review (a
+draft, a closed PR, or a commit it already reviewed), the bot replies to say so.
 
 ### What happens when you push
 
@@ -84,12 +85,13 @@ flowchart TD
     who{"Who is asking?"}
     who -- "A maintainer" --> anyway["Any of the three ways works"]
     who -- "The PR's author" --> author["Comment @openlibrary-bot on your PR"]
-    who -- "Anyone else" --> other["The bot ignores the comment; ask a maintainer"]
+    who -- "Anyone else" --> other["The bot replies once to say who can ask; ask a maintainer"]
 ```
 
 Commenting works for the PR's author and for these maintainers: `mekarpeles`, `cdrini`,
 `hornc`, `scottbarnes`, `seabelis`, `RayBB` and `lokesh`. Requesting the review team or using the
-re-request button needs triage or write access to the repository.
+re-request button needs triage or write access to the repository. If anyone else comments
+`@openlibrary-bot`, the bot replies once on that PR to say who can ask.
 
 ### What a re-review covers
 

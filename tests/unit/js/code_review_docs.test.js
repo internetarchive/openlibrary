@@ -64,7 +64,7 @@ const DESCRIBED = [
     '.github/workflows/code_review_report.yml',
     '.github/workflows/code_review.md',
     '.pr_agent.toml',
-    ...['range', 'post', 'resolve', 'status', 'pending', 'awaiting', 'gate', 'analyze_gate', 'config', 'linked_issues', 'shared'].map(
+    ...['range', 'post', 'resolve', 'status', 'pending', 'awaiting', 'gate', 'analyze_gate', 'config', 'linked_issues', 'shared', 'reply'].map(
         n => `${SCRIPTS}/${n}.cjs`
     )
 ];
