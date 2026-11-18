@@ -1208,25 +1208,25 @@ class HomeGenrePartial:
 
 
 class HomeMemberPartial:
-    """The home page's top for a signed-in reader (home_member.py). The page is cached and the same for
-    everyone, so the reader's own part is fetched after load."""
+    """One half of the home page's top for a signed-in reader (home_member.py). The page is cached and the
+    same for everyone, so the reader's own part is fetched after load, each half on its own."""
 
     @classmethod
-    def generate(cls, username: str) -> dict:
+    def generate(cls, username: str, part: str = "reading") -> dict:
         # FastAPI runs this sync handler on a threadpool worker with no web.ctx; the lending calls need one.
         # Only web.ctx: the request context FastAPI set (language, bot or not) must stay as it is, or
         # availability takes its bot shortcut and reports every borrowable book as free.
         if "env" not in web.ctx:
             delegate.fakeload()
-        if (html := home_member.get_cached_html(username)) is not None:
+        if (html := home_member.get_cached_html(username, part)) is not None:
             return {"partials": html}
         if not (user := get_user_object(username)):
             return {"partials": ""}
-        member = home_member.build_member(user)
-        html = render_jinja_template("home/member.html.jinja", member=member).strip() if member["agenda"] or member["want"] else ""
+        member = home_member.build_part(user, part)
+        html = render_jinja_template("home/member.html.jinja", member=member).strip()
         # A part that failed to load (a lending outage) is retried on the next view, not kept for five minutes.
         if member["complete"]:
-            home_member.cache_html(username, html)
+            home_member.cache_html(username, part, html)
         return {"partials": html}
 
 

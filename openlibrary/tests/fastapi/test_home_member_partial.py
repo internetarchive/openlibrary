@@ -351,11 +351,69 @@ def test_cached_section_is_served_until_the_shelves_change(request_context_fixtu
         patch.object(home_member.cache, "get_memcache", return_value=Memcache()),
         patch.object(home_member.Bookshelves, "reading_log_version", side_effect=lambda username: version[0]),
     ):
-        assert home_member.get_cached_html("reader") is None
-        home_member.cache_html("reader", "<section>")
-        assert home_member.get_cached_html("reader") == "<section>"
+        assert home_member.get_cached_html("reader", "reading") is None
+        home_member.cache_html("reader", "reading", "<section>")
+        assert home_member.get_cached_html("reader", "reading") == "<section>"
+        # The halves are kept apart.
+        assert home_member.get_cached_html("reader", "want") is None
+        home_member.cache_html("reader", "want", "<wall>")
+        assert home_member.get_cached_html("reader", "reading") == "<section>"
         version[0] = "v2"  # a book was shelved
-        assert home_member.get_cached_html("reader") is None
-        home_member.cache_html("reader", "<new>")
+        assert home_member.get_cached_html("reader", "reading") is None
+        assert home_member.get_cached_html("reader", "want") is None
+        home_member.cache_html("reader", "reading", "<new>")
+        home_member.cache_html("reader", "want", "<new wall>")
         home_member.invalidate_cache("reader")  # a borrow or return
-        assert home_member.get_cached_html("reader") is None
+        assert home_member.get_cached_html("reader", "reading") is None
+        assert home_member.get_cached_html("reader", "want") is None
+
+
+def test_each_half_builds_only_its_own_books(request_context_fixture):
+    request_context_fixture(lang="en")
+    home_member = _home_member()
+    user = SimpleNamespace(key="/people/mek", displayname="Mek K")
+    with (
+        patch("openlibrary.plugins.upstream.mybooks.ReadingLog"),
+        patch.object(home_member, "get_loans", return_value=[_loan("borrowed", 5)]) as loans,
+        patch.object(home_member, "get_holds", return_value=[]),
+        patch.object(home_member, "reading_now", return_value=([_book("borrowed"), _book("shelf")], True)) as reading,
+        patch.object(home_member, "want_available", return_value=([{"key": "/works/OL1W", "title": "wanted"}], False)) as want,
+    ):
+        member = home_member.build_part(user, "reading")
+        assert [card["title"] for card in member["agenda"]] == ["borrowed", "shelf"]
+        assert member["complete"]
+        assert "want" not in member
+        want.assert_not_called()
+
+        member = home_member.build_part(user, "want")
+        assert [book["title"] for book in member["want"]] == ["wanted"]
+        assert "agenda" not in member
+        # Built without availability: shown, and not kept.
+        assert not member["want_checked"]
+        assert not member["complete"]
+        assert loans.call_count == reading.call_count == 1
+
+
+def test_a_half_renders_the_heading_and_itself_or_nothing(request_context_fixture):
+    request_context_fixture(lang="en")
+    from openlibrary.core.jinja import get_jinja_env, render_jinja_template  # noqa: PLC0415
+
+    def render(member):
+        # The icon macro needs the running site.
+        with patch.dict(get_jinja_env().globals, {"icon": lambda *args, **kwargs: ""}):
+            return render_jinja_template("home/member.html.jinja", member={"name": "Mek K", "complete": True} | member).strip()
+
+    want = render({"part": "want", "want": [_book("wanted")], "want_checked": True})
+    assert "Welcome back, Mek K" in want
+    assert 'class="home-now__want"' in want
+    assert "home-now__reading" not in want
+    assert "available now" in want
+
+    agenda = _home_member().build_agenda(loans=[_loan("borrowed", 5)], holds=[], reading=[])
+    reading = render({"part": "reading", "agenda": agenda, "side": 2})
+    assert "Welcome back, Mek K" in reading
+    assert 'class="home-now__reading"' in reading
+    assert "home-now__want" not in reading
+
+    assert render({"part": "want", "want": [], "want_checked": True}) == ""
+    assert render({"part": "reading", "agenda": [], "side": 2}) == ""

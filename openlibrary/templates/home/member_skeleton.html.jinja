@@ -1,55 +1,54 @@
 {#
-  The loading state of a signed-in reader's section, in the shape of home/member.html.jinja at its fullest:
-  the card with the book in hand and two lines under it, and two rows of covers beside it.
-  home-member.js replaces it with the section, or removes it when the reader has nothing to show.
+  The signed-in reader's section before their books arrive, in the shape of it at its fullest: the card with
+  the book in hand and two lines under it, and two rows of covers beside it.
+  home-member.js fetches the two halves (home/member.html.jinja) and puts each in place of its skeleton as
+  it arrives, or takes the skeleton away when that half has nothing to show.
   Signed out it is not displayed (home-member.css).
 #}
-<div class="home-now home-now--skeleton">
-    <span class="shift">{{ _("Loading your books") }}</span>
-    <div aria-hidden="true">
-        <div class="home-now__head">
-            <span class="skeleton home-now__sk-title"></span>
+<section class="home-now home-now--skeleton">
+    <span class="shift home-now__loading">{{ _("Loading your books") }}</span>
+    <div class="home-now__head" aria-hidden="true">
+        <span class="skeleton home-now__sk-title"></span>
+    </div>
+    <div class="home-now__body">
+        <div class="home-now__reading" aria-hidden="true">
+            <div class="home-now__label-row">
+                <span class="skeleton home-now__sk-line home-now__sk-line--label"></span>
+            </div>
+            <div class="home-now__main">
+                <span class="skeleton home-now__cover home-now__sk-cover"></span>
+                <div class="home-now__text">
+                    <span class="skeleton home-now__sk-line home-now__sk-line--book"></span>
+                    <span class="skeleton home-now__sk-line home-now__sk-line--author"></span>
+                    <span class="skeleton home-now__sk-button"></span>
+                </div>
+            </div>
+            <ul class="home-now__rest">
+                {% for _line in range(2) %}
+                    <li class="home-now__item">
+                        <span class="skeleton home-now__thumb home-now__sk-cover"></span>
+                        <div class="home-now__item-text">
+                            <span class="skeleton home-now__sk-line home-now__sk-line--item"></span>
+                            <span class="skeleton home-now__sk-line home-now__sk-line--item-author"></span>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+            <p class="home-now__more">
+                <span class="skeleton home-now__sk-line home-now__sk-line--more"></span>
+            </p>
         </div>
-        <div class="home-now__body">
-            <div class="home-now__reading">
-                <div class="home-now__label-row">
-                    <span class="skeleton home-now__sk-line home-now__sk-line--label"></span>
-                </div>
-                <div class="home-now__main">
-                    <span class="skeleton home-now__cover home-now__sk-cover"></span>
-                    <div class="home-now__text">
-                        <span class="skeleton home-now__sk-line home-now__sk-line--book"></span>
-                        <span class="skeleton home-now__sk-line home-now__sk-line--author"></span>
-                        <span class="skeleton home-now__sk-button"></span>
-                    </div>
-                </div>
-                <ul class="home-now__rest">
-                    {% for _line in range(2) %}
-                        <li class="home-now__item">
-                            <span class="skeleton home-now__thumb home-now__sk-cover"></span>
-                            <div class="home-now__item-text">
-                                <span class="skeleton home-now__sk-line home-now__sk-line--item"></span>
-                                <span class="skeleton home-now__sk-line home-now__sk-line--item-author"></span>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-                <p class="home-now__more">
-                    <span class="skeleton home-now__sk-line home-now__sk-line--more"></span>
-                </p>
+        <div class="home-now__want" aria-hidden="true">
+            <div class="home-now__label-row">
+                <span class="skeleton home-now__sk-line home-now__sk-line--label"></span>
             </div>
-            <div class="home-now__want">
-                <div class="home-now__label-row">
-                    <span class="skeleton home-now__sk-line home-now__sk-line--label"></span>
-                </div>
-                <ul class="home-now__wall">
-                    {% for _cover in range(14) %}
-                        <li>
-                            <span class="skeleton home-now__sk-cover"></span>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
+            <ul class="home-now__wall">
+                {% for _cover in range(14) %}
+                    <li>
+                        <span class="skeleton home-now__sk-cover"></span>
+                    </li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
-</div>
+</section>

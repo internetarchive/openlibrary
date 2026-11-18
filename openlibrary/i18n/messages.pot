@@ -5054,6 +5054,15 @@ msgid "Up %(percent)d%% over the month"
 msgstr ""
 
 #: home/member.html.jinja
+#, python-format
+msgid "Welcome back, %(name)s"
+msgstr ""
+
+#: home/member.html.jinja
+msgid "Welcome back"
+msgstr ""
+
+#: home/member.html.jinja
 msgid "Moved to Want to Read"
 msgstr ""
 
@@ -5067,15 +5076,6 @@ msgstr ""
 
 #: home/member.html.jinja
 msgid "Removed from your shelves"
-msgstr ""
-
-#: home/member.html.jinja
-#, python-format
-msgid "Welcome back, %(name)s"
-msgstr ""
-
-#: home/member.html.jinja
-msgid "Welcome back"
 msgstr ""
 
 #. Short label displayed next to the count of readers currently reading this book, shown in the stats bar on a book page. Example: "1,247 Currently reading".

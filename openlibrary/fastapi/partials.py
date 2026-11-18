@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, BeforeValidator
@@ -267,12 +267,13 @@ async def home_genre_partial(params: Annotated[HomeGenreParams, Query()]) -> dic
 @router.get("/partials/HomeMember.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 def home_member_partial(
     user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
+    part: Annotated[Literal["reading", "want"], Query(description="Which half of the section")] = "reading",
 ) -> dict:
-    """The signed-in reader's own top of the home page: the book in hand, loans and holds, and their
-    Want to Read books with a copy free now. Empty when signed out."""
+    """One half of the signed-in reader's own top of the home page: `reading` is the book in hand with
+    their loans and holds, `want` their Want to Read books with a copy free now. Empty when signed out."""
     if not user:
         return {"partials": ""}
-    return HomeMemberPartial.generate(user.username)
+    return HomeMemberPartial.generate(user.username, part)
 
 
 @router.get("/partials/NearbyBooks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

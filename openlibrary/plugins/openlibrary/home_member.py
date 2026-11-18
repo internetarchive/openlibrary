@@ -2,7 +2,7 @@
 is in progress, and the books on their Want to Read list they could start today.
 
 The home page itself is cached and the same for everyone, so this is fetched after load by
-HomeMemberPartial (partials.py) and rendered with home/member.html.jinja.
+HomeMemberPartial (partials.py) and rendered with home/member.html.jinja, in two halves.
 """
 
 import asyncio
@@ -361,10 +361,15 @@ def greeting_name(user) -> str:
     return name if name and name != username and len(name) <= GREETING_NAME_MAX else ""
 
 
-def build_member(user) -> dict:
-    """Everything of the reader's own the home page shows. Each part fails on its own, so a lending outage
-    costs the loans and not the section. Without availability the Want to Read row is the shelf as it stands
-    and no book offers a Read or Borrow button."""
+# The section's two halves, each fetched and kept on its own so the quicker one doesn't wait for the other.
+PARTS = ("reading", "want")
+
+
+def build_part(user, part: str) -> dict:
+    """One half of what the home page shows of the reader's own: `reading` is the book in hand with their
+    loans, holds and Currently Reading books, `want` their Want to Read books with a copy free.
+    Each piece fails on its own, so a lending outage costs the loans and not the half. Without availability
+    the Want to Read row is the shelf as it stands and no book offers a Read or Borrow button."""
     from openlibrary.plugins.upstream.mybooks import ReadingLog
 
     failed = []
@@ -379,51 +384,48 @@ def build_member(user) -> dict:
 
     readlog = ReadingLog(user)
     budget = AvailabilityBudget()
-    loans = attempt("loans", lambda: get_loans(user.key), [])
-    holds = attempt("holds", lambda: get_holds(user), [])
-    reading, reading_known = attempt("currently reading", lambda: reading_now(readlog, budget), ([], True))
-    # A borrowed book is usually on Currently Reading too; it is shown once, as the loan.
-    on_loan = {loan["title"] for loan in loans}
-    reading = [brief for brief in reading if brief["title"] not in on_loan]
-
-    want, want_known = attempt("want to read", lambda: want_available(readlog, budget), ([], True))
-
-    return {
-        "name": greeting_name(user),
-        "agenda": build_agenda(loans, holds, reading),
-        "side": AGENDA_SIDE,
-        "want": [want_brief(doc, want_known) for doc in want],
-        # False when `want` is the shelf as it stands, not checked for a free copy.
-        "want_checked": want_known,
-        # A section built without availability is shown, and built again on the next view.
-        "complete": not failed and reading_known and want_known,
-    }
+    member: dict = {"name": greeting_name(user), "part": part}
+    if part == "want":
+        want, known = attempt("want to read", lambda: want_available(readlog, budget), ([], True))
+        # `want_checked` is false when `want` is the shelf as it stands, not checked for a free copy.
+        member |= {"want": [want_brief(doc, known) for doc in want], "want_checked": known}
+    else:
+        loans = attempt("loans", lambda: get_loans(user.key), [])
+        holds = attempt("holds", lambda: get_holds(user), [])
+        reading, known = attempt("currently reading", lambda: reading_now(readlog, budget), ([], True))
+        # A borrowed book is usually on Currently Reading too; it is shown once, as the loan.
+        on_loan = {loan["title"] for loan in loans}
+        reading = [brief for brief in reading if brief["title"] not in on_loan]
+        member |= {"agenda": build_agenda(loans, holds, reading), "side": AGENDA_SIDE}
+    # A half built without availability is shown, and built again on the next view.
+    return member | {"complete": not failed and known}
 
 
-# The rendered section is kept per reader. One memcache entry holds a rendering per language (and per
+# Each rendered half is kept per reader. One memcache entry holds a rendering per language (and per
 # print-disabled setting, which changes what counts as borrowable), each tagged with the reading log's
-# version so a shelf change makes it stale. A borrow or return deletes the entry.
+# version so a shelf change makes it stale. A borrow or return deletes both halves' entries.
 
 
-def _cache_key(username: str) -> str:
-    return cache.build_memcache_key("home.member", username)
+def _cache_key(username: str, part: str) -> str:
+    return cache.build_memcache_key("home.member", part, username)
 
 
 def _cache_variant(username: str) -> str:
     return ":".join([Bookshelves.reading_log_version(username), get_request_lang() or "", "pd" if req_context.get().print_disabled else ""])
 
 
-def get_cached_html(username: str) -> str | None:
-    return (cache.get_memcache().get(_cache_key(username)) or {}).get(_cache_variant(username))
+def get_cached_html(username: str, part: str) -> str | None:
+    return (cache.get_memcache().get(_cache_key(username, part)) or {}).get(_cache_variant(username))
 
 
-def cache_html(username: str, html: str) -> None:
+def cache_html(username: str, part: str, html: str) -> None:
     mc = cache.get_memcache()
     variant = _cache_variant(username)
     version = variant.split(":", 1)[0]
-    current = {k: v for k, v in (mc.get(_cache_key(username)) or {}).items() if k.startswith(version)}
-    mc.set(_cache_key(username), current | {variant: html}, expires=MEMBER_CACHE_SECS)
+    current = {k: v for k, v in (mc.get(_cache_key(username, part)) or {}).items() if k.startswith(version)}
+    mc.set(_cache_key(username, part), current | {variant: html}, expires=MEMBER_CACHE_SECS)
 
 
 def invalidate_cache(username: str) -> None:
-    cache.get_memcache().delete(_cache_key(username))
+    for part in PARTS:
+        cache.get_memcache().delete(_cache_key(username, part))
