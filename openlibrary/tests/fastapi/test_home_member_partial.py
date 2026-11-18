@@ -122,6 +122,9 @@ def test_reading_now_offers_a_button_only_for_a_free_copy(request_context_fixtur
     assert [(b["title"], b["cta"]) for b in unchecked] == [("free", ""), ("out", "")]
     assert [(b["title"], b["cta"]) for b in books] == [("free", "<ol-carousel>"), ("out", "")]
     assert [b["shelf"] for b in books] == ["<shelf small>"] * 2
+    # A book with a button links to the copy the button offers; the others to the work.
+    assert [b["url"] for b in books] == ["/works/OL1W?edition=ia:free00", "/works/OL2W"]
+    assert [b["url"] for b in unchecked] == ["/works/OL1W", "/works/OL2W"]
     # The button is for the work, whose availability names the copy to offer.
     assert "editions" not in cta.call_args.args[0]
 

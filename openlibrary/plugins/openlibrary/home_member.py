@@ -313,7 +313,7 @@ def want_available(readlog, budget: AvailabilityBudget) -> tuple[list, bool]:
 
 
 def want_brief(doc: dict, checked: bool) -> dict:
-    """A Want to Read card. A book found free links to the copy that was checked, since the work page
+    """A card for a shelved book. A book found free links to the copy that was checked, since the work page
     picks its edition by other rules and can land on one that isn't."""
     brief = brief_from_doc(doc)
     if checked and brief["url"] and (ocaid := (doc.get("availability") or {}).get("identifier") or lending.get_ocaid(doc)):
@@ -343,7 +343,8 @@ def reading_now(readlog, budget: AvailabilityBudget) -> tuple[list[dict], bool]:
         cta = _render_carousel_card_loan_status(work, work_key=work.get("key"), key="home-reading", layout="ol-carousel") if free else ""
 
         books.append(
-            brief_from_doc(doc)
+            # The title and cover go to the copy the button offers.
+            want_brief(doc, free)
             | {
                 "work_key": doc.get("key", ""),
                 "cta": cta,
