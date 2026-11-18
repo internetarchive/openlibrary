@@ -360,10 +360,10 @@ body[data-user-key] .home-welcome {
     opacity: 0;
   }
 
-  :is(.home-now__main, .home-now__item):hover .home-now__shelf,
   .home-now__shelf:focus-within,
   .home-now__shelf:has([open]),
-  .is-moved .home-now__shelf {
+  .is-moved .home-now__shelf,
+  :is(.home-now__main, .home-now__item):hover .home-now__shelf {
     max-width: none;
     overflow: visible;
     margin-inline-end: 0;
