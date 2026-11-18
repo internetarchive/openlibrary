@@ -18,7 +18,7 @@ $add_metatag(property="og:site_name", content="Open Library")
 
   $# A signed-in reader's own books (home/member.html.jinja). The page is cached and shared, so home-member.js fetches them.
   $if not test:
-    <div class="home-member-slot"></div>
+    <div class="home-member-slot">$:render_jinja_template("home/member_skeleton.html.jinja")</div>
 
   $:render_template("home/welcome")
 

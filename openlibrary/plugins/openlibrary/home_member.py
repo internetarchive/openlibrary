@@ -23,7 +23,7 @@ logger = logging.getLogger("openlibrary.home")
 WANT_CHECKED = 40
 WANT_SHOWN = 14
 # How many books are listed under the one in hand.
-AGENDA_SIDE = 3
+AGENDA_SIDE = 2
 # How long a reader's rendered section is kept. Shelf changes, borrows and returns drop it sooner.
 MEMBER_CACHE_SECS = 5 * dateutil.MINUTE_SECS
 # A loan this close to its due date is marked.

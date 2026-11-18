@@ -13,11 +13,75 @@ body[data-user-key] .home-welcome {
   display: none;
 }
 
-/* Room held for the section while it loads, so the page under it moves less
-   when it arrives: about the height of a card with two more books in progress.
-   Only a signed-in reader gets the request. */
-[data-user-key] .home-member-slot:empty {
-  min-height: 22rem;
+/* While the section loads, a skeleton in its shape holds its room
+   (home/member_skeleton.html.jinja). Only a signed-in reader gets the request. */
+.home-now--skeleton {
+  display: none;
+}
+
+[data-user-key] .home-now--skeleton {
+  display: block;
+}
+
+.home-now__sk-title {
+  width: 11em;
+  height: calc(var(--font-size-title-large) * var(--line-height-heading));
+}
+
+/* A bar the height of the text it stands for, a little short of the line. */
+.home-now__sk-line {
+  width: var(--sk-width);
+  max-width: 100%;
+  height: 0.8em;
+  margin-block: calc((var(--sk-leading) - 0.8) * 0.5em);
+  font-size: var(--sk-size);
+}
+
+.home-now__sk-line--label {
+  --sk-width: 9em;
+  --sk-size: var(--font-size-label-large);
+  --sk-leading: var(--line-height-meta);
+}
+
+.home-now__sk-line--book {
+  --sk-width: 10em;
+  --sk-size: var(--font-size-title-medium);
+  --sk-leading: var(--line-height-heading);
+}
+
+.home-now__sk-line--author {
+  --sk-width: 7em;
+  --sk-size: var(--font-size-body-medium);
+  --sk-leading: var(--line-height-meta);
+}
+
+.home-now__sk-line--item {
+  --sk-width: 11em;
+  --sk-size: var(--font-size-body-medium);
+  --sk-leading: var(--line-height-tight);
+}
+
+.home-now__sk-line--item-author {
+  --sk-width: 7em;
+  --sk-size: var(--font-size-label-medium);
+  --sk-leading: var(--line-height-tight);
+}
+
+.home-now__sk-line--more {
+  --sk-width: 12em;
+  --sk-size: var(--font-size-body-medium);
+  --sk-leading: var(--line-height-meta);
+}
+
+.home-now__sk-cover {
+  aspect-ratio: 2 / 3;
+}
+
+.home-now__sk-button {
+  width: 9em;
+  height: var(--control-height-medium);
+  margin-top: var(--spacing-stack-md);
+  border-radius: var(--border-radius-button);
 }
 
 /* Sections are separated by their own bottom margin; gap is kept for things inside one. */
@@ -46,7 +110,7 @@ body[data-user-key] .home-welcome {
 /* In progress on one side, the list's covers on the other. */
 .home-now__body {
   display: grid;
-  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
   gap: var(--spacing-inline-xl);
   align-items: start;
 }
@@ -106,6 +170,13 @@ body[data-user-key] .home-welcome {
   font-size: var(--font-size-body-medium);
   line-height: var(--line-height-meta);
   color: var(--color-text-secondary);
+}
+
+.home-now__author {
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .home-now__main-action {
@@ -195,6 +266,30 @@ body[data-user-key] .home-welcome {
   text-decoration: none;
 }
 
+/* A part's small heading, and the way to the rest of it at the line's end. */
+.home-now__label-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-lg);
+  margin-bottom: var(--spacing-stack-sm);
+}
+
+.home-now__label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  margin: 0;
+  font-size: var(--font-size-label-large);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
+}
+
+.home-now__label-icon {
+  flex: none;
+  color: var(--color-icon-muted);
+}
+
 /* With no list to show, the card takes the width and the other books sit beside the one in hand. */
 .home-now--no-want .home-now__reading {
   display: flex;
@@ -230,30 +325,6 @@ body[data-user-key] .home-welcome {
   width: 100%;
 }
 
-/* A part's small heading, and the way to the rest of it at the line's end. */
-.home-now__label-row {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-inline-lg);
-  margin-bottom: var(--spacing-stack-sm);
-}
-
-.home-now__label {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-inline-sm);
-  margin: 0;
-  font-size: var(--font-size-label-large);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-meta);
-  color: var(--color-text-secondary);
-}
-
-.home-now__label-icon {
-  flex: none;
-  color: var(--color-icon-muted);
-}
-
 /* Covers only, two rows at most: the rows past them have no height and are
    clipped. Each cover carries the row gap as its own top margin, so a hidden
    row starts clear of the padding that holds the shadows and focus rings. */
@@ -281,11 +352,6 @@ body[data-user-key] .home-welcome {
 
 /* --width-breakpoint-tablet */
 @media (max-width: 767px) {
-  /* Stacked, the section is taller. */
-  [data-user-key] .home-member-slot:empty {
-    min-height: 30rem;
-  }
-
   .home-now__body {
     grid-template-columns: minmax(0, 1fr);
   }

@@ -85,7 +85,6 @@
                              data-work-key="{{ first.work_key | default('') }}">
                         {{ cover(first, "home-now__cover", tip=false, fit=true) }}
                         <div class="home-now__text">
-                            {% if first.status %}{{ status(first) }}{% endif %}
                             <h4 class="home-now__book">
                                 <a href="{{ first.url }}">{{ first.title }}</a>
                             </h4>
@@ -95,6 +94,8 @@
                             <div class="home-now__main-action">
                                 {{ read_button(first, "primary") }}
                                 {{ shelf_menu(first) }}
+                                {# Beside the button to save a line; it wraps under it when the two don't fit. #}
+                                {% if first.status %}{{ status(first) }}{% endif %}
                             </div>
                         </div>
                     </article>
