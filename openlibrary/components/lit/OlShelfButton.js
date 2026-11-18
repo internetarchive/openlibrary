@@ -416,12 +416,14 @@ export class OlShelfButton extends LitElement {
         /* The outline shape, wide enough for the shelf's glyph and a caret.
            It stays neutral when the book is shelved: the glyph carries the
            state, and a row of tinted buttons would outweigh the books. */
+        /* Side padding and the glyph-to-caret gap are ol-button's for a button
+           that ends in an icon: 8px at medium, 4px at small, 4px between. */
         :host([variant='menu']) .save {
             box-sizing: border-box;
-            gap: var(--spacing-inline-xs);
+            gap: var(--spacing-inline-sm);
             width: auto;
             height: var(--control-height-medium);
-            padding-inline: var(--spacing-inset-xs);
+            padding-inline: var(--spacing-inset-sm);
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-button);
             background: var(--white);
@@ -432,6 +434,7 @@ export class OlShelfButton extends LitElement {
 
         :host([variant='menu'][size='small']) .save {
             height: var(--control-height-small);
+            padding-inline: var(--spacing-inset-xs);
         }
 
         :host([variant='menu']) .save::before {
