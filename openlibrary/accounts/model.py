@@ -397,7 +397,7 @@ class Account(web.storage):
 
             # Verify that the profile and an active account already exist.
             profile = site.get().get(f"/people/{self.username}")
-            account_doc = site.get().get(f"/account/{self.username}")
+            account_doc = site.get().store.get(f"account/{self.username}")
             if profile and isinstance(account_doc, dict) and account_doc.get("status") == "active":
                 # Activation succeeded elsewhere.
                 return
@@ -717,7 +717,7 @@ class OpenLibraryAccount(Account):
             key = f"account/{username}/verify"
             doc = create_link_doc(key, username, email)
             site.get().store[key] = doc
-            site.get().activate_account(username=username)
+            cls(username=username).activate()
 
         ol_account = cls.get_by_email(email)
 

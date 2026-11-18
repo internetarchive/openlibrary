@@ -1,3 +1,4 @@
+import json
 import threading
 from unittest import mock
 from unittest.mock import AsyncMock
@@ -269,6 +270,51 @@ def test_create_treats_concurrent_duplicate_registration_as_success(mock_site, m
     mock_site.get.return_value.register.assert_called_once()
     # The losing request still finishes the shared post-registration setup.
     mock_site.get.return_value.activate_account.assert_called_once_with(username="racer")
+    mock_run_as.assert_called_once_with("racer")
+
+
+@mock.patch("openlibrary.accounts.RunAs")
+@mock.patch("openlibrary.accounts.model.site")
+def test_create_recovers_when_activation_races_concurrently(mock_site, mock_run_as):
+    """When a concurrent registration has also raced to activate the account,
+    activate_account() inside Account.activate() encounters a conflict
+    ClientException. create() must route through Account.activate() recovery,
+    inspect the key-value store, and complete successfully when the account
+    is already active."""
+    docs, matches = _wire_racing_store(mock_site)
+    winner = _account_doc()
+    # The competing request completed registration and activation
+    winner["status"] = "active"
+
+    def competing_register(**kwargs):
+        docs["account/racer"] = winner
+        docs["account-email/racer@example.com"] = _email_doc("racer@example.com", "racer")
+        matches[("username", "racer")] = [winner]
+        raise ClientException("400 Bad Data", "User already exists: racer")
+
+    def racing_activate(username):
+        payload = json.dumps({"code": "conflict"})
+        raise ClientException("409 Conflict", "conflict", payload)
+
+    mock_site.get.return_value.register.side_effect = competing_register
+    mock_site.get.return_value.activate_account.side_effect = racing_activate
+
+    user_profile = mock.Mock()
+    user_profile.key = "/people/racer"
+    mock_site.get.return_value.get.side_effect = lambda key: user_profile if key == "/people/racer" else None
+
+    ol_account = OpenLibraryAccount.create(
+        username="racer",
+        email="racer@example.com",
+        password="password",
+        displayname="Racer",
+        verified=True,
+    )
+
+    assert ol_account.username == "racer"
+    assert ol_account["email"] == "racer@example.com"
+    mock_site.get.return_value.register.assert_called_once()
+    mock_site.get.return_value.store.get.assert_any_call("account/racer")
     mock_run_as.assert_called_once_with("racer")
 
 

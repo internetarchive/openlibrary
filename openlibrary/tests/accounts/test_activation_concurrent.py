@@ -22,31 +22,37 @@ def mock_site():
     site = mock.Mock()
     # ``site.get()`` returns a mock representing the Infobase API.
     api = mock.Mock()
+    api.store = mock.Mock()
     site.get.return_value = api
     return site
 
 
-# Utility to configure the mock API's ``get`` method for profile and account lookups.
+# Utility to configure the mock API's profile and account lookups.
 def configure_profile_and_account_lookup(api, username: str, *, profile_exists: bool = True, account_active: bool = True):
-    """Set ``api.get`` side-effects.
+    """Set ``api.get`` and ``api.store.get`` side-effects.
 
     * ``/people/<username>`` returns a minimal profile document when
-      ``profile_exists`` is True, otherwise ``None``.
-    * ``/account/<username>`` returns an account document with a ``status`` field
-      equal to ``"active"`` when ``account_active`` is True, otherwise ``"pending"``.
+      ``profile_exists`` is True, otherwise ``None`` via ``api.get``.
+    * ``account/<username>`` returns an account document with a ``status`` field
+      equal to ``"active"`` when ``account_active`` is True, otherwise ``"pending"``
+      via ``api.store.get``.
     """
 
     def get_side_effect(key):
         if key == f"/people/{username}":
             return {"key": f"/people/{username}"} if profile_exists else None
-        if key == f"/account/{username}":
+        raise KeyError(key)
+
+    def store_get_side_effect(key):
+        if key == f"account/{username}":
             return {
-                "key": f"/account/{username}",
+                "_key": f"account/{username}",
                 "status": "active" if account_active else "pending",
             }
         raise KeyError(key)
 
     api.get.side_effect = get_side_effect
+    api.store.get.side_effect = store_get_side_effect
 
 
 # ---------------------------------------------------------------------------
@@ -84,7 +90,7 @@ def test_concurrent_activation(mock_site, monkeypatch):
     def worker():
         try:
             OpenLibraryAccount(_key=f"/people/{username}", username=username).activate()
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001 - propagate worker-thread failures to the test.
             excs.append(e)
 
     threads = [threading.Thread(target=worker) for _ in range(2)]
