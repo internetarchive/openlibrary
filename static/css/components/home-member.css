@@ -3,12 +3,19 @@
  * needs them, and their Want to Read books with a copy free now.
  * Defined in:
  *  - openlibrary/templates/home/member.html.jinja
+ *  - openlibrary/templates/home/welcome.html (hidden when signed in)
  */
 
 /* Sections are separated by their own bottom margin; gap is kept for things inside one. */
 .home-member,
 .home-want {
   margin-block: var(--spacing-stack-lg) var(--spacing-stack-xl);
+}
+
+/* The welcome cards introduce the site, so a signed-in reader doesn't get them.
+   The page is cached and shared; the shell marks the reader on <body>. */
+body[data-user-key] .home-welcome {
+  display: none;
 }
 
 /* A section's heading line: the title, and a link at the end. */
