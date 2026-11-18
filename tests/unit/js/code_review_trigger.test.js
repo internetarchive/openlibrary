@@ -393,3 +393,15 @@ test('requestReviewTeam: an unexpected/empty author_association fails SAFE -> sk
         assert.equal(gh.calls.requested, shouldFire, `author_association=${JSON.stringify(association)} -> requested should be ${shouldFire}`);
     }
 });
+
+// #14485 lets a PR's author re-run the review by commenting, but claude-code-action rejects anyone
+// without write access unless they're allowed (a fork author on #14495 hit this).
+test('the Review step allows only the vetted commenter, and only on comment triggers', () => {
+    const step = reviewWf.jobs.analyze.steps.find(s => s.name === 'Review');
+    assert.equal(step.with.allowed_non_write_users, "${{ github.event_name == 'issue_comment' && github.event.comment.user.login || '' }}");
+    assert.match(
+        reviewIf,
+        /github\.event\.comment\.user\.login == github\.event\.issue\.user\.login/,
+        'the `if` still limits comment triggers to staff and the PR author'
+    );
+});

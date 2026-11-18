@@ -326,6 +326,51 @@ test('attachCandidates: ids, and only bot PRs merged after the failure', () => {
         ]
     );
 });
+test('attachCandidates: removed_by is a candidate whose diff removed the failure message', () => {
+    const prs = [
+        { number: 1, merged_at: '2026-11-12T00:00:00Z' },
+        { number: 2, merged_at: '2026-11-12T00:00:00Z' },
+        { number: 3, merged_at: '2026-11-10T00:00:00Z' }
+    ];
+    const gone = "-        core.setFailed('Review not published: the analysis did not pass the pre-publication gate.');";
+    const patches = new Map([
+        [1, `@@ -1,2 +1 @@\n${gone}\n+        core.info('withheld');`],
+        [2, `@@ +1 @@\n+// Review not published: the analysis did not pass the pre-publication gate.`],
+        [3, `@@ -1 @@\n${gone}`]
+    ]);
+    const failure = {
+        at: '2026-11-11T00:00:00Z',
+        message: 'Unhandled error: Error: Review not published: the analysis did not pass the pre-publication gate, and'
+    };
+    const [f] = stats.attachCandidates([failure], prs, patches);
+    assert.deepEqual(f.candidate_fixes, [1, 2]);
+    assert.deepEqual(f.removed_by, [1], 'only a removed line counts, and only from a candidate');
+    assert.deepEqual(stats.attachCandidates([{ ...failure, message: 'boom' }], prs, patches)[0].removed_by, [], 'too short to match');
+});
+test('messageKey: strips the error prefixes', () => {
+    assert.equal(
+        stats.messageKey('Unhandled error: HttpError: Unprocessable Entity: "Line could not be resolved"'),
+        'Unprocessable Entity: "Line could not be'
+    );
+    assert.equal(stats.messageKey(''), null);
+});
+
+test('botChanges: only the review bot files, cut to the limit', () => {
+    const files = [
+        { filename: '.github/scripts/code_review/post.cjs', patch: "@@ -1 +1 @@\n-core.setFailed('did not pass the gate')" },
+        { filename: '.github/workflows/code_review.md', patch: '@@ +1 @@\n+text' },
+        { filename: '.github/scripts/code_review_other/x.cjs', patch: 'not ours' },
+        { filename: 'openlibrary/app.py', patch: 'not ours' },
+        { filename: '.github/workflows/code_review_action.yml' }
+    ];
+    const out = stats.botChanges(files);
+    assert.match(out, /--- \.github\/scripts\/code_review\/post\.cjs\n@@ -1 \+1 @@\n-core\.setFailed/);
+    assert.match(out, /--- \.github\/workflows\/code_review\.md/);
+    assert.match(out, /--- \.github\/workflows\/code_review_action\.yml\n\(no textual diff\)/);
+    assert.doesNotMatch(out, /not ours/);
+    assert.equal(stats.botChanges(files, 20), `${out.slice(0, 20)}\n[cut at 20 characters]`);
+    assert.equal(stats.botChanges([]), '');
+});
 
 // A week with one lost review (failure 0, fixed by #14527 later) and one turn-limit hit (failure 1).
 const withFailures = () => {
