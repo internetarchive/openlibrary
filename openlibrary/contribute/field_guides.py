@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from dataclasses import field as dc_field
 from urllib.parse import quote, quote_plus
 
+from markupsafe import Markup
+
 from openlibrary.core.tags import _words
 from openlibrary.i18n import gettext as _
 
@@ -80,6 +82,7 @@ class FieldGuide:
     # Sources the record brings in, ahead of the standing ones.
     loc_record: bool = False  # the Library of Congress record, when the edition has an LCCN
     isfdb: bool = False  # ISFDB, when the work is science fiction or fantasy
+    scan: str = ""  # what to look for in the Internet Archive scan, when the edition has one; %(link_start)s/%(link_end)s link it
 
 
 def get_field_guides() -> dict[str, FieldGuide]:
@@ -121,6 +124,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
             ),
             sources=[worldcat, google],
             loc_record=True,
+            scan=_("%(link_start)sThe scan%(link_end)s shows the text itself, and a translation names its translator on the title page."),
             show_siblings=True,
             suggest_from_siblings=True,
             sibling_hint=_("Editions of a work usually share a language, but a translation won't. Check this edition's own text."),
@@ -143,6 +147,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
             ),
             sources=[google, worldcat, amazon],
             isfdb=True,
+            scan=_("%(link_start)sThe scan%(link_end)s has every page. Go to the end of the main text and use the last numbered page."),
             notes=[
                 GuidelineNote(
                     _(
@@ -163,6 +168,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
             question=_("Is this book fiction or nonfiction?"),
             how=_("Google Books lists Categories such as Fiction / Fantasy, and WorldCat lists Genre headings such as Fiction or Biography."),
             sources=[google, worldcat],
+            scan=_("%(link_start)sThe scan%(link_end)s shows the back cover and any jacket flaps, which usually say what kind of book it is."),
             notes=[
                 GuidelineNote(_("Nonfiction can read like a story. A memoir that bends the truth is still nonfiction: it is presented as fact.")),
                 GuidelineNote(_("Anthologies and collections take the form of what's inside. A book of essays about novels is nonfiction.")),
@@ -183,6 +189,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
                 "Fantasy fiction, and Goodreads shows what readers shelve it as."
             ),
             sources=[google, worldcat, LookupSource(_("Goodreads"), GOODREADS, GOODREADS_BY_TITLE)],
+            scan=_("%(link_start)sThe scan%(link_end)s shows the back cover and any jacket flaps, which usually say what kind of book it is."),
             notes=[
                 GuidelineNote(
                     _(
@@ -214,6 +221,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
             sources=[loc, worldcat, google],
             loc_record=True,
             isfdb=True,
+            scan=_("%(link_start)sThe scan%(link_end)s shows the title page. Copy the imprint as it's printed there."),
             show_siblings=True,
             notes=[
                 GuidelineNote(
@@ -229,13 +237,14 @@ def get_field_guides() -> dict[str, FieldGuide]:
             action=_("Fill in publish date"),
             question=_("When was this edition published?"),
             how=_(
-                "The copyright page gives the year, often next to the publisher; when the book has a scan, look there first. "
+                "The copyright page gives the year, often next to the publisher. "
                 "Google Books lists it as Published, WorldCat as Date, "
                 "and the Library of Congress record as part of the Published line."
             ),
             sources=[google, worldcat, loc],
             loc_record=True,
             isfdb=True,
+            scan=_("%(link_start)sThe scan%(link_end)s shows the copyright page, which gives the year this edition came out."),
             notes=[
                 GuidelineNote(
                     _(
@@ -252,13 +261,14 @@ def get_field_guides() -> dict[str, FieldGuide]:
             action=_("Fill in ISBN"),
             question=_("What is this edition's ISBN?"),
             how=_(
-                "The ISBN is printed on the copyright page and on the back cover, above the barcode; when the book has a scan, look there first. "
+                "The ISBN is printed on the copyright page and on the back cover, above the barcode. "
                 "Without the book in hand, search WorldCat or Google Books by title and author, open the record whose publisher, year and "
                 "format match this one, and copy the ISBN it lists."
             ),
             sources=[worldcat, google, amazon],
             loc_record=True,
             isfdb=True,
+            scan=_("%(link_start)sThe scan%(link_end)s shows the copyright page and the back cover, where the ISBN is printed."),
             notes=[
                 GuidelineNote(
                     _(
@@ -280,6 +290,7 @@ def get_field_guides() -> dict[str, FieldGuide]:
             question=_("What is this edition's Library of Congress number?"),
             how=_("Search the Library of Congress catalog for this ISBN, open the matching record and copy the number shown as LCCN."),
             sources=[loc],
+            scan=_("%(link_start)sThe scan%(link_end)s shows the copyright page. Books from the 1970s on often print the LCCN there, in the cataloging data."),
             notes=[
                 GuidelineNote(
                     _("Hyphenated and padded forms are the same number: 75-425165 and 75425165. Paste either; Open Library stores the padded form."),
@@ -323,6 +334,15 @@ def is_speculative(labels: list[str]) -> bool:
         if any(words[i : i + len(p)] == p for p in SPECULATIVE_PHRASES for i in range(len(words) - len(p) + 1)):
             return True
     return False
+
+
+def scan_tip(field_guide: FieldGuide, scan_url: str) -> Markup:
+    """The field's pointer into the edition's scan, with the scan linked, or nothing when either is missing."""
+    if not (field_guide.scan and scan_url):
+        return Markup()
+    link_start = Markup('<a href="{}" target="_blank" rel="noopener noreferrer" data-ol-link-track="TaskForm|ScanTip">').format(scan_url)
+    # Escapes the translated text; only the link markup goes in as is.
+    return Markup.escape(field_guide.scan) % {"link_start": link_start, "link_end": Markup("</a>")}
 
 
 def record_sources(field_guide: FieldGuide, lccn: str = "", speculative: bool = False) -> list[LookupSource]:

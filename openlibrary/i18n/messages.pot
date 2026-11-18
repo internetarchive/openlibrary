@@ -8776,6 +8776,11 @@ msgid "Start with the title, subtitle and publisher on this page. Then look the 
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
+#, python-format
+msgid "%(link_start)sThe scan%(link_end)s shows the text itself, and a translation names its translator on the title page."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
 msgid "Editions of a work usually share a language, but a translation won't. Check this edition's own text."
 msgstr ""
 
@@ -8804,6 +8809,11 @@ msgid "Google Books lists the page count as Length. WorldCat has it in the recor
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
+#, python-format
+msgid "%(link_start)sThe scan%(link_end)s has every page. Go to the end of the main text and use the last numbered page."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
 msgid "Catalogs count front matter differently, so numbers within a few pages of each other are the same count. Use the last numbered page of the main text."
 msgstr ""
 
@@ -8825,6 +8835,11 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "Google Books lists Categories such as Fiction / Fantasy, and WorldCat lists Genre headings such as Fiction or Biography."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+#, python-format
+msgid "%(link_start)sThe scan%(link_end)s shows the back cover and any jacket flaps, which usually say what kind of book it is."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8883,6 +8898,11 @@ msgid "The imprint is printed on the title page and the spine. The Library of Co
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
+#, python-format
+msgid "%(link_start)sThe scan%(link_end)s shows the title page. Copy the imprint as it's printed there."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
 msgid "Open Library records the imprint printed on the book, not the parent company. Anchor Books, not Penguin Random House."
 msgstr ""
 
@@ -8903,7 +8923,12 @@ msgid "When was this edition published?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The copyright page gives the year, often next to the publisher; when the book has a scan, look there first. Google Books lists it as Published, WorldCat as Date, and the Library of Congress record as part of the Published line."
+msgid "The copyright page gives the year, often next to the publisher. Google Books lists it as Published, WorldCat as Date, and the Library of Congress record as part of the Published line."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+#, python-format
+msgid "%(link_start)sThe scan%(link_end)s shows the copyright page, which gives the year this edition came out."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8923,7 +8948,12 @@ msgid "What is this edition's ISBN?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The ISBN is printed on the copyright page and on the back cover, above the barcode; when the book has a scan, look there first. Without the book in hand, search WorldCat or Google Books by title and author, open the record whose publisher, year and format match this one, and copy the ISBN it lists."
+msgid "The ISBN is printed on the copyright page and on the back cover, above the barcode. Without the book in hand, search WorldCat or Google Books by title and author, open the record whose publisher, year and format match this one, and copy the ISBN it lists."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+#, python-format
+msgid "%(link_start)sThe scan%(link_end)s shows the copyright page and the back cover, where the ISBN is printed."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8956,6 +8986,11 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "Search the Library of Congress catalog for this ISBN, open the matching record and copy the number shown as LCCN."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+#, python-format
+msgid "%(link_start)sThe scan%(link_end)s shows the copyright page. Books from the 1970s on often print the LCCN there, in the cataloging data."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py

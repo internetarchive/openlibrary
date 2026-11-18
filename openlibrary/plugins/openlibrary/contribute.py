@@ -16,7 +16,7 @@ from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
 from openlibrary.contribute import feed, initiatives, pitch, save, supply, tasks
-from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides, is_speculative
+from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides, is_speculative, scan_tip
 from openlibrary.contribute.tasks import field_values, work_of
 from openlibrary.core import admin, helpers
 from openlibrary.core.tags import GENRES, LITERARY_FORMS, find_tag, subject_matches, tag_choices, tag_key_named, tag_options, work_tag_names
@@ -800,6 +800,7 @@ def build_task_context(
             lccn=next((str(n).strip() for n in edition.get("lccn") or [] if str(n).strip()), ""),
             speculative=field_guide.isfdb and is_speculative(genre_labels(edition)),
         ),
+        "scan_tip": scan_tip(field_guide, book["scan_url"]),
         # Without an ISBN the links search on the title and author, and the page says so.
         "links_by_title": not book["isbn13"],
         # Nothing to compare against when no other edition has a value.

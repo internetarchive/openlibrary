@@ -102,14 +102,15 @@
         </a>
     </li>
 {% endmacro %}
-{% macro how_to(field_guide, links, by_title=False) %}
+{% macro how_to(field_guide, links, by_title=False, scan_tip="") %}
     <section class="contrib-help">
         <h2 class="contrib-h">{{ _("How to answer") }}</h2>
         {#- One step needs no number. -#}
         <ol class="contrib-steps{% if not field_guide.notes %} contrib-steps--one{% endif %}">
             <li>
                 <div class="contrib-steps__text">
-                    {#- A source the record brought in says why it leads, ahead of the standing advice. -#}
+                    {#- The book's own pages lead when there's a scan, then the sources the record brought in, then the standing advice. -#}
+                    {% if scan_tip %}<p>{{ scan_tip }}</p>{% endif %}
                     {% for link in links if link.tip %}<p>{{ link.tip }}</p>{% endfor %}
                     {% for para in field_guide.how.split("\n\n") if para %}<p>{{ para }}</p>{% endfor %}
                 </div>
@@ -405,6 +406,7 @@
                     </a>
                     {% if book.scan_url %}
                         <ol-button class="contrib-record__scan" variant="ghost" size="small" href="{{ book.scan_url }}" target="_blank" rel="noopener noreferrer" data-ol-link-track="TaskForm|ViewScan">
+                            {{ icon("book-open-text", size="sm", slot="icon-start") }}
                             {{ _("View scan") }}
                         </ol-button>
                     {% endif %}
