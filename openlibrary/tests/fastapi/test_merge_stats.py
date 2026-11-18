@@ -85,6 +85,17 @@ def test_links_sort_and_reset_page(client):
     assert links["Declined"] == {"sort": ["declined"], "order": ["desc"], "range": ["year"]}
 
 
+def test_username_is_escaped_and_url_encoded(client, stats_queries):
+    username = "<script>&a=b#c"
+    stats_queries[0].return_value = [{**ROWS[0], "username": username}]
+    response = client.get("/merges/stats")
+    assert username not in response.text
+    html = BeautifulSoup(response.text, "html.parser")
+    link = html.select_one("tbody a")
+    assert link.get_text() == username
+    assert parse_qs(urlsplit(link["href"]).query) == {"mode": ["closed"], "reviewer": [username]}
+
+
 def test_empty_table(client, stats_queries):
     stats_queries[0].return_value = []
     stats_queries[1].return_value = 0

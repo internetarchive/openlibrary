@@ -34,7 +34,7 @@
       {% endif %}
       {% for row in data.rows %}
         <tr>
-          <td><a href="/merges?mode=closed&amp;{{ filter_name }}={{ row.username }}">{{ row.username }}</a></td>
+          <td><a href="/merges?mode=closed&amp;{{ filter_name }}={{ row.username|urlencode }}">{{ row.username }}</a></td>
           <td>{{ row.total }}</td>
           <td>{{ row.merged }}</td>
           <td>{{ row.declined }}</td>
