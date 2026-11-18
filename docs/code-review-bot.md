@@ -152,15 +152,18 @@ The full instructions the bot follows are in
 
 ## What you'll see
 
-**The review.** A short summary, then:
+**The review.** It opens with one status line, such as "**2 findings** · 1 suggestion on
+`abc1234`", or "**No issues found**". Then:
 
 - **Inline comments** for findings that should be fixed before merging, each headed with its
   severity and area, for example **MEDIUM · Correctness — …**. Where the fix is small, the comment
   includes a suggestion you can apply in one click.
 - **Suggestions (won't block)** in the summary, for low-severity findings, findings the bot isn't
   sure about, and every test-coverage finding.
-- **Prompt for AI agents**, a collapsed block under each finding that you can paste into a coding
-  agent.
+- **Prompt for AI agents**, collapsed blocks you can paste into a coding agent: one under each
+  inline comment, and one in the summary covering everything the review found.
+- **🎫 Linked issues**, collapsed, when the PR links to issues: which of their requirements the PR
+  meets.
 
 **The verdict.** The review is one of:
 
