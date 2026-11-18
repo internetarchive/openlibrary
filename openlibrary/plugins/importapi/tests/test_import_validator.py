@@ -362,3 +362,20 @@ def test_records_with_substantively_bad_authors_should_not_validate(authors: dic
             validator.validate(record)
     else:
         assert validator.validate(record) is True
+
+
+def test_record_naming_its_edition_need_not_be_complete() -> None:
+    assert import_validator().validate({"title": "", "source_records": ["ia:foo"], "openlibrary": "OL1M"})
+
+
+def test_record_naming_its_edition_still_drops_suspect_date_and_author() -> None:
+    record = {
+        "title": "A Title",
+        "source_records": ["ia:foo"],
+        "authors": [{"name": "Unknown"}],
+        "publish_date": "1900",
+        "openlibrary": "OL1M",
+    }
+    assert import_validator().validate(record)
+    assert record["authors"] == []
+    assert "publish_date" not in record

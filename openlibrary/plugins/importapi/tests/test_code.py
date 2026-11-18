@@ -130,7 +130,7 @@ SPARSE_IA_METADATA = {
 }
 
 
-def test_get_ia_record_named_edition_skips_validation() -> None:
+def test_get_ia_record_named_edition_is_not_required_to_be_complete() -> None:
     result = code.ia_importapi.get_ia_record({**SPARSE_IA_METADATA, "openlibrary_edition": "OL1M"})
 
     assert result["openlibrary"] == "OL1M"
@@ -140,3 +140,10 @@ def test_get_ia_record_named_edition_skips_validation() -> None:
 def test_get_ia_record_validates_without_a_named_edition() -> None:
     with pytest.raises(ValidationError):
         code.ia_importapi.get_ia_record(SPARSE_IA_METADATA)
+
+
+def test_get_ia_record_named_edition_still_drops_suspect_date_and_author() -> None:
+    result = code.ia_importapi.get_ia_record({**SPARSE_IA_METADATA, "creator": "Unknown", "date": "1900", "openlibrary_edition": "OL1M"})
+
+    assert result["authors"] == []
+    assert "publish_date" not in result
