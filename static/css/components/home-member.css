@@ -22,7 +22,8 @@ body[data-user-key] .home-welcome {
 
 /* Sections are separated by their own bottom margin; gap is kept for things inside one. */
 .home-now {
-  margin-block: var(--spacing-stack-lg) var(--spacing-stack-xl);}
+  margin-block: var(--spacing-stack-lg) var(--spacing-stack-xl);
+}
 
 .home-now :where(ul) {
   margin: 0;

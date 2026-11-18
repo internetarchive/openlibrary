@@ -179,8 +179,7 @@ def build_agenda(loans: list[dict], holds: list[dict], reading: list[dict]) -> l
     # A Currently Reading book says nothing about itself and has no button of ours: the template gives it a
     # Read or Borrow button when a copy is free (`cta`), and the control that moves it off the shelf (`shelf`).
     reading_cards = [
-        card(book, "reading", "", "plain", "") | {"action": None} | {key: book.get(key, "") for key in ("cta", "shelf", "work_key")}
-        for book in reading
+        card(book, "reading", "", "plain", "") | {"action": None} | {key: book.get(key, "") for key in ("cta", "shelf", "work_key")} for book in reading
     ]
     if not loan_cards:
         # The large card should have something to press: the newest book with a free copy, else the newest.
