@@ -9,6 +9,7 @@ from urllib.parse import urlsplit, urlunsplit
 import httpx
 from fastapi.responses import StreamingResponse
 
+from openlibrary.utils import server_timing
 from openlibrary.utils.async_utils import cache_per_event_loop
 
 if TYPE_CHECKING:
@@ -73,15 +74,18 @@ async def proxy_to_webpy(request: Request) -> Response:
     headers.pop("host", None)
 
     client = get_async_session()
-    resp = await client.send(
-        client.build_request(
-            method=request.method,
-            url=url,
-            headers=headers,
-            content=request.stream(),
-        ),
-        stream=True,
-    )
+    # Time until web.py's response headers arrive; the body streams afterwards.
+    with server_timing.timed("webpy-proxy") as call:
+        resp = await client.send(
+            client.build_request(
+                method=request.method,
+                url=url,
+                headers=headers,
+                content=request.stream(),
+            ),
+            stream=True,
+        )
+        call.failed = resp.status_code >= 500
     excluded = {"content-encoding", "transfer-encoding", "content-length", "x-served-by", "set-cookie"}
     filtered_headers = {k: v for k, v in resp.headers.items() if k.lower() not in excluded}
     filtered_headers["X-Proxied-By"] = "FastAPI"

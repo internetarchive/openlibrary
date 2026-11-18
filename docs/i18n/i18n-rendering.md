@@ -3,12 +3,12 @@
 > **Status:** reference — the rendering mechanics below are stable.
 > **Companion:** this is *how* a string gets translated at render time. *Where* translations
 > live and how they flow to production (the authoritative `openlibrary-i18n` store, the AI
-> pipeline, the `olbase` bake, the rules about fuzzy entries) is [[i18n-pipeline]] — read that
+> pipeline, the `olbase` bake, the rules about fuzzy entries) is [i18n-pipeline](i18n-pipeline.md) — read that
 > before editing a `.po`.
-> **Note:** a11y (accessibility) is a separate domain — see [[a11y]].
+> **Note:** a11y (accessibility) is a separate domain — see [a11y](../frontend/a11y.md).
 > **Sources:** `raw/openlibrary-docs-ai/i18n.md` · **Last reviewed:** 2026-10-06
 
-Internationalization (i18n) covers translation of UI strings across two template engines (Templetor and Jinja) and a bridge pattern for JavaScript/Lit components. This page is the render-time half; the pipeline that *produces* the translations these mechanics consume is [[i18n-pipeline]].
+Internationalization (i18n) covers translation of UI strings across two template engines (Templetor and Jinja) and a bridge pattern for JavaScript/Lit components. This page is the render-time half; the pipeline that *produces* the translations these mechanics consume is [i18n-pipeline](i18n-pipeline.md).
 
 ---
 
@@ -24,7 +24,7 @@ Internationalization (i18n) covers translation of UI strings across two template
 
 All paths use the same `.po`/`.mo` locale files under `openlibrary/i18n/<lang>/`. Those files are
 populated at image-build time from the authoritative `openlibrary-i18n` store and compiled to `.mo`
-by the `olbase` bake — see [[i18n-pipeline]]. At render time the engines only ever read the compiled
+by the `olbase` bake — see [i18n-pipeline](i18n-pipeline.md). At render time the engines only ever read the compiled
 `.mo`; this page is about that read side.
 
 ### Jinja environment
@@ -43,30 +43,37 @@ JavaScript cannot call `$_()`. The `ugettext` JS helper in the codebase is a **p
 
 **The pattern** (4 steps):
 
-**1. Write a `_i18n.html` partial** that returns a JSON dict of translated strings:
+**1. Build the strings server-side.** For Jinja pages, build the dict in Python —
+plain `gettext` leaves client-side `sprintf` placeholders (`%s`) intact, while
+Jinja's formatting `_()` would consume them. Its docstring must name which JS
+file consumes the strings and which JS constant holds the English defaults
+(see `openlibrary/core/shell/search_modal.py`):
 
-```html
-$def with ()
-$ search_modal_i18n = {
-$     "inputPlaceholder":  _("Search books, authors…"),
-$     "closeAria":         _("Close search"),
-$     "noResults":         _("No results found"),
-$ }
-$json_encode(search_modal_i18n)
+```python
+# openlibrary/core/shell/search_modal.py
+"strings": {
+    "inputPlaceholder": _("Search books, authors…"),
+    "closeAria":        _("Close search"),
+    "noResults":        _("No results found"),
+},
 ```
 
-Leading comment must name: which JS file consumes this partial, and which JS constant holds the English defaults.
+(Templetor templates do the same with a `_i18n.html` partial that builds the
+dict and emits it with `$json_encode` — see `type/edition/notes_modal_i18n.html`.)
 
 **2. Drop the JSON into a `data-*` attribute** on the element your JS already targets:
 
-```html
+```jinja
 <button
   class="search-bar-trigger"
-  data-i18n-ui="$:render_template('search/search_modal_i18n')"
+  data-i18n-ui="{{ layout.header.search_modal.strings | tojson | force_escape }}"
 ></button>
 ```
 
-Use `$:` (not `$`) — without the colon, Templetor HTML-escapes the JSON. For two independent payloads on one element, use two attribute names (`data-i18n` and `data-i18n-ui`).
+`tojson` makes the JSON HTML-safe and `force_escape` protects the quotes inside
+the attribute. In a Templetor template, render the partial with `$:` instead —
+without the colon, Templetor HTML-escapes the JSON. For two independent payloads
+on one element, use two attribute names (`data-i18n` and `data-i18n-ui`).
 
 **3. Keep English defaults in the JS module** — they are the fallback AND the extraction source:
 
@@ -164,10 +171,11 @@ for readability, with multiple HTML elements.
 |------|---------|
 | `openlibrary/core/jinja.py` | Jinja environment setup; `install_gettext_callables` |
 | `openlibrary/i18n/` | `messages.pot` + per-locale `<lang>/` directories |
-| `openlibrary/templates/search/availability_i18n.html` | Reference `_i18n.html` partial |
-| `openlibrary/templates/search/search_modal_i18n.html` | Reference `_i18n.html` partial |
+| `openlibrary/core/shell/search_modal.py` | Builds the search modal's client-fill strings in Python (keeps `%s` for browser-side sprintf) |
+| `openlibrary/core/shell/shelf_labels.py` | Builds the shelf buttons' client-fill strings in Python, including plurals |
+| `openlibrary/templates/type/edition/notes_modal_i18n.html` | Reference Templetor `_i18n.html` partial |
 | `openlibrary/plugins/openlibrary/js/search-modal/constants.js` | Reference JS reader + English defaults |
-| `openlibrary/templates/lib/nav_head.html` | How partials are wired onto trigger buttons |
+| `openlibrary/templates/shell/header.html.jinja` | How client-fill payloads are wired onto trigger buttons |
 | `openlibrary/macros/AffiliateLinks.html.jinja` | Reference Jinja template using all i18n patterns |
 | `openlibrary/tests/core/test_jinja.py` | `test_translations_via_gettext_callables` — all four paths |
 | `tests/unit/js/searchModalConstants.test.js` | Tests for the reader/merge logic |
@@ -182,7 +190,7 @@ No runtime env vars. Translation files under `openlibrary/i18n/<lang>/` are comp
 store, where translations are AI-generated on each `.pot` change (humans correct via Weblate) →
 `olbase` pulls `openlibrary-i18n` at image build and compiles to `.mo` → served per-request. The
 authoritative source is `openlibrary-i18n`, not the `.po` files committed in `openlibrary`. See
-[[i18n-pipeline]] for the full flow. *(This replaced the older POEditor-based management flow.)*
+[i18n-pipeline](i18n-pipeline.md) for the full flow. *(This replaced the older POEditor-based management flow.)*
 
 ---
 
@@ -223,8 +231,8 @@ grep -A3 'msgid "Recently added"' openlibrary/i18n/messages.pot
 
 **Depends on:**
 - [[core-operations]] — Jinja environment wired into the web.py/Infogami request lifecycle; `openlibrary/core/jinja.py` is the setup point
-- [[frontend]] — Lit components use the `data-i18n` bridge
-- [[a11y]] — accessibility patterns are a separate domain
+- [frontend](../frontend/README.md) — Lit components use the `data-i18n` bridge
+- [a11y](../frontend/a11y.md) — accessibility patterns are a separate domain
 
 **Depended on by:**
 - All user-facing pages (via `$_()` and `{{ _() }}`)
@@ -232,4 +240,4 @@ grep -A3 'msgid "Recently added"' openlibrary/i18n/messages.pot
 
 ---
 
-*Sources: `raw/openlibrary-docs-ai/i18n.md` · a11y is a separate domain → [[a11y]] · See [[README]] · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-docs-ai/i18n.md` · a11y is a separate domain → [a11y](../frontend/a11y.md) · See [README](../README.md) · [[METHODOLOGY]]*

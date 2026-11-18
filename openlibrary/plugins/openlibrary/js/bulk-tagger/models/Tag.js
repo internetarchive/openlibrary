@@ -7,7 +7,7 @@ const displayTypeMapping = {
     subject_people: 'person',
     subject_places: 'place',
     subject_times: 'time',
-    collections: 'collection',
+    collections: 'collection'
 };
 
 /**
@@ -39,14 +39,12 @@ export function compare(tagA, tagB) {
 
     if (lowerA.tagName < lowerB.tagName) {
         return -1;
-    }
-    else if (lowerA.tagName > lowerB.tagName) {
+    } else if (lowerA.tagName > lowerB.tagName) {
         return 1;
     } else {
         if (lowerA.tagType < lowerB.tagType) {
             return -1;
-        }
-        else if (lowerA.tagType > lowerB.tagtype) {
+        } else if (lowerA.tagType > lowerB.tagtype) {
             return 1;
         }
     }

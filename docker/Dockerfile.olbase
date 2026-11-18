@@ -24,6 +24,10 @@ RUN groupadd --system --gid 999 openlibrary \
 
 # Misc OL dependencies
 RUN apt-get -qq update && apt-get install -y \
+# Listed so they're upgraded from trixie-security, not kept at the base image's version
+# (ca-certificates >= 20250419+deb13u1 drops emSign ECC Root CA - G3; libbrotli1 >= 1.1.0-2+deb13u1 fixes CVE-2026-111497)
+    ca-certificates \
+    libbrotli1 \
     postgresql-client \
     build-essential \
     git \
@@ -74,7 +78,7 @@ ENV UV_SYSTEM_PYTHON=1
 # Util to make scripts like copydocs work without needing to manually specify PYTHONPATH
 ENV PYTHONPATH=/openlibrary
 USER root
-RUN uv pip install --upgrade wheel
+RUN uv pip install --upgrade wheel "pip>=26.2.2"
 RUN uv pip install -r requirements.txt
 
 USER openlibrary

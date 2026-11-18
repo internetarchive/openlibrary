@@ -17,7 +17,7 @@ export default class SelectionManager {
     /**
      * @param {import('../../index.js').IntegratedLibrarianEnvironment} ile
      */
-    constructor(ile, curpath=location.pathname) {
+    constructor(ile, curpath = location.pathname) {
         this.ile = ile;
         this.curpath = curpath;
         this.inited = false;
@@ -33,7 +33,7 @@ export default class SelectionManager {
         this.allowDrop = this.allowDrop.bind(this);
 
         // Collator used to naturally order OLIDs before constructing URL
-        this.collator = new Intl.Collator('en-US', {numeric: true});
+        this.collator = new Intl.Collator('en-US', { numeric: true });
     }
 
     init() {
@@ -43,9 +43,7 @@ export default class SelectionManager {
         // Label each selectable element with a class, and bind the click event
         const providers = this.getPossibleProviders();
         const providerSelectors = providers.map(p => p.selector);
-        $(providerSelectors.join(', '))
-            .addClass('ile-selectable')
-            .on('click', this.processClick);
+        $(providerSelectors.join(', ')).addClass('ile-selectable').on('click', this.processClick);
 
         for (const provider of providers) {
             for (const el of $(provider.selector).toArray()) {
@@ -93,8 +91,7 @@ export default class SelectionManager {
         if (onControl && !clickEvent.target.classList.contains('ile-select-handle')) return;
 
         const el = clickEvent.currentTarget;
-        if (clickEvent.shiftKey && this.lastClicked)
-        {
+        if (clickEvent.shiftKey && this.lastClicked) {
             // clear selection ranges created by shift-clicking since they're not suppressed by preventDefault().
             clearTextSelection();
             const siblingSet = this.getSelectableRange(el);
@@ -112,8 +109,7 @@ export default class SelectionManager {
             } else {
                 this.toggleSelected(el);
             }
-        }
-        else {
+        } else {
             this.toggleSelected(el);
         }
         this.lastClicked = el;
@@ -166,13 +162,14 @@ export default class SelectionManager {
         this.setElementSelectionAttributes(el, !isCurSelected);
         if (isCurSelected) {
             this.removeSelectedItem(olid);
-            const img_el = $('#ile-drag-status .images img').toArray().find(el => el.src === img_src);
+            const img_el = $('#ile-drag-status .images img')
+                .toArray()
+                .find(el => el.src === img_src);
             $(img_el).remove();
         } else {
             this.addSelectedItem(olid);
             this.ile.$statusImages.append(`<li><img title="${olid}" src="${img_src}"/></li>`);
         }
-
     }
 
     setElementSelectionAttributes(el, selected) {
@@ -212,7 +209,11 @@ export default class SelectionManager {
                     if (action.href) {
                         this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
                     } else if (action.onclick && action.name === 'Tag Works') {
-                        this.ile.$actions.append($(`<a href="javascript:;">${action.name}</a>`).on('click', () => this.ile.updateAndShowBulkTagger(this.getOlidsFromSelectionList(items))));
+                        this.ile.$actions.append(
+                            $(`<a href="javascript:;">${action.name}</a>`).on('click', () =>
+                                this.ile.updateAndShowBulkTagger(this.getOlidsFromSelectionList(items))
+                            )
+                        );
                     }
             }
         }
@@ -237,7 +238,9 @@ export default class SelectionManager {
             if (sessionStorage.getItem('ile-items')) {
                 this.selectedItems = JSON.parse(sessionStorage.getItem('ile-items'));
             } else {
-                SelectionManager.TYPES.forEach(type => {this.selectedItems[type.singular] = [];});
+                SelectionManager.TYPES.forEach(type => {
+                    this.selectedItems[type.singular] = [];
+                });
             }
         }
 
@@ -263,7 +266,7 @@ export default class SelectionManager {
             ev.dataTransfer.setDragImage($('#ile-drag-status')[0], 0, 0);
         }
         const data = {
-            from: (from ? from[0] : null),
+            from: from ? from[0] : null,
             items: this.getOlidsFromSelectionList(items)
         };
         ev.dataTransfer.setData('text/plain', JSON.stringify(data));
@@ -314,8 +317,7 @@ export default class SelectionManager {
      * @param {HTMLElement} el
      */
     getProvider(el) {
-        return SelectionManager.SELECTION_PROVIDERS
-            .find(p => p.path.test(this.curpath) && el.matches(p.selector));
+        return SelectionManager.SELECTION_PROVIDERS.find(p => p.path.test(this.curpath) && el.matches(p.selector));
     }
 
     getOlidsFromSelectionList(list) {
@@ -383,7 +385,7 @@ SelectionManager.DROP_HANDLERS = [
                 throw e;
             }
         }
-    },
+    }
 ];
 
 SelectionManager.TYPES = [
@@ -395,21 +397,20 @@ SelectionManager.TYPES = [
             const imgOlid = olid.split(':').pop();
             if (imgOlid.slice(-1) === 'M')
                 return `https://covers.openlibrary.org/b/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
-            else
-                return `https://covers.openlibrary.org/w/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
-        },
+            else return `https://covers.openlibrary.org/w/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
+        }
     },
     {
         singular: 'edition',
         plural: 'editions',
         regex: /OL\d+M/,
-        image: olid => `https://covers.openlibrary.org/b/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`,
+        image: olid => `https://covers.openlibrary.org/b/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`
     },
     {
         singular: 'author',
         plural: 'authors',
         regex: /OL\d+A/,
-        image: olid => `https://covers.openlibrary.org/a/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png`,
+        image: olid => `https://covers.openlibrary.org/a/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png`
     }
 ];
 
@@ -430,9 +431,11 @@ SelectionManager.SELECTION_PROVIDERS = [
          * @return {import('../ol.js').WorkOLID}
          **/
         data: el => {
-            const parts = $(el).find('.booktitle a')[0].href.match(/OL\d+[WM]/g);
-            return (parts.length > 1 && parts[0] !== parts[1]) ? parts.join(':') : parts[0];
-        },
+            const parts = $(el)
+                .find('.booktitle a')[0]
+                .href.match(/OL\d+[WM]/g);
+            return parts.length > 1 && parts[0] !== parts[1] ? parts.join(':') : parts[0];
+        }
     },
     /**
      * This selection provider makes editions in the editions table selectable.
@@ -445,7 +448,10 @@ SelectionManager.SELECTION_PROVIDERS = [
          * @param {HTMLElement} el
          * @return {import('../ol.js').EditionOLID}
          **/
-        data: el => $(el).find('.title a')[0].href.match(/OL\d+M/)[0],
+        data: el =>
+            $(el)
+                .find('.title a')[0]
+                .href.match(/OL\d+M/)[0]
     },
     /**
      * This selection provider makes author names on the books page selectable.
@@ -459,7 +465,7 @@ SelectionManager.SELECTION_PROVIDERS = [
          * @param {HTMLAnchorElement} el
          * @return {import('../ol.js').AuthorOLID}
          **/
-        data: el => el.href.match(/OL\d+A/)[0],
+        data: el => el.href.match(/OL\d+A/)[0]
     },
     /**
      * This selection provider makes work on the books page selectable.
@@ -473,7 +479,7 @@ SelectionManager.SELECTION_PROVIDERS = [
          * @param {HTMLAnchorElement} el
          * @return {import('../ol.js').WorkOLID}
          **/
-        data: el => el.href.match(/OL\d+W/)[0],
+        data: el => el.href.match(/OL\d+W/)[0]
     },
     /**
      * This selection provider makes authors selectable on search result pages
@@ -482,8 +488,11 @@ SelectionManager.SELECTION_PROVIDERS = [
         path: /^(\/search\/authors)$/,
         selector: '.searchResultItem',
         type: ['author'],
-        data: el => $(el).find('a')[0].href.match(/OL\d+A/)[0],
-    },
+        data: el =>
+            $(el)
+                .find('a')[0]
+                .href.match(/OL\d+A/)[0]
+    }
 ];
 
 /**
@@ -495,21 +504,21 @@ SelectionManager.ACTIONS = [
         requires_type: ['work'],
         multiple_only: false,
         name: 'Tag Works',
-        onclick: true,
+        onclick: true
     },
     {
         applies_to_type: ['work', 'edition', 'author'],
         requires_type: [],
         multiple_only: false,
         name: 'Create list...',
-        href: olids => `/account/lists/add?seeds=${olids.join(',')}`,
+        href: olids => `/account/lists/add?seeds=${olids.join(',')}`
     },
     {
         applies_to_type: ['work', 'edition'],
         requires_type: ['work'],
         multiple_only: true,
         name: 'Merge Works...',
-        href: olids => `/works/merge?records=${olids.join(',')}`,
+        href: olids => `/works/merge?records=${olids.join(',')}`
     },
     /* Uncomment this when edition merging is available.
     {
@@ -525,6 +534,6 @@ SelectionManager.ACTIONS = [
         requires_type: ['author'],
         multiple_only: true,
         name: 'Merge Authors...',
-        href: olids => `/authors/merge?records=${olids.join(',')}`,
-    },
+        href: olids => `/authors/merge?records=${olids.join(',')}`
+    }
 ];

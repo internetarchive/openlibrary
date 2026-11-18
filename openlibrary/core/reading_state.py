@@ -10,6 +10,7 @@ from typing import TypedDict
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.core.ratings import Ratings
+from openlibrary.utils.async_utils import async_bridge
 
 
 class ReadingState(TypedDict):
@@ -19,13 +20,13 @@ class ReadingState(TypedDict):
     event_id: int | None
 
 
-def get_reading_state(username: str, work_ids: list[int]) -> dict[int, ReadingState]:
+async def get_reading_state(username: str, work_ids: list[int]) -> dict[int, ReadingState]:
     """Every requested work is present, with `None` where the reader has no state."""
     if not work_ids:
         return {}
-    shelves = {row.work_id: row.bookshelf_id for row in Bookshelves.get_users_read_status_of_works(username, work_ids)}
-    ratings = Ratings.get_users_ratings_of_works(username, work_ids)
-    finishes = BookshelvesEvents.get_latest_event_dates(username, work_ids, BookshelfEvent.FINISH)
+    shelves = {row["work_id"]: row["bookshelf_id"] for row in await Bookshelves.get_users_read_status_of_works(username, work_ids)}
+    ratings = await Ratings.get_users_ratings_of_works(username, work_ids)
+    finishes = await BookshelvesEvents.get_latest_event_dates(username, work_ids, BookshelfEvent.FINISH)
     return {
         work_id: {
             "shelf": shelves.get(work_id),
@@ -35,3 +36,7 @@ def get_reading_state(username: str, work_ids: list[int]) -> dict[int, ReadingSt
         }
         for work_id in work_ids
     }
+
+
+def get_reading_state_sync(username: str, work_ids: list[int]) -> dict[int, ReadingState]:
+    return async_bridge.run(get_reading_state(username, work_ids))

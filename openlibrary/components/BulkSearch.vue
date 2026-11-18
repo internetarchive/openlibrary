@@ -1,15 +1,10 @@
 <template>
-  <div class="ol-bulk-search">
-    <BulkSearchControls :bulk-search-state="bulkSearchState" />
-    <hr>
-    <MatchTable
-      v-if="bulkSearchState.matchedBooks.length"
-      :bulk-search-state="bulkSearchState"
-      :list-url="bulkSearchState.listUrl"
-    />
-  </div>
+    <div class="ol-bulk-search">
+        <BulkSearchControls :bulk-search-state="bulkSearchState" />
+        <hr />
+        <MatchTable v-if="bulkSearchState.matchedBooks.length" :bulk-search-state="bulkSearchState" :list-url="bulkSearchState.listUrl" />
+    </div>
 </template>
-
 
 <script>
 import BulkSearchControls from './BulkSearch/components/BulkSearchControls.vue';
@@ -17,7 +12,8 @@ import { BulkSearchState } from './BulkSearch/utils/classes.js';
 import MatchTable from './BulkSearch/components/MatchTable.vue';
 export default {
     components: {
-        BulkSearchControls, MatchTable
+        BulkSearchControls,
+        MatchTable
     },
     data() {
         return {
@@ -28,17 +24,22 @@ export default {
 </script>
 
 <style>
-.ol-bulk-search{
-    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+.ol-bulk-search {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
 }
 
-button, select, input{
-    font-family:inherit;
+button,
+select,
+input {
+    font-family: inherit;
 }
-button, textarea{
-    font-size:inherit;
+button,
+textarea {
+    font-size: inherit;
 }
-select, input, textarea{
-    padding:6px;
+select,
+input,
+textarea {
+    padding: 6px;
 }
 </style>

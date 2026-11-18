@@ -15,8 +15,8 @@ export const AXE_COMPONENT_CONFIG = {
     rules: {
         region: { enabled: false },
         'landmark-one-main': { enabled: false },
-        'page-has-heading-one': { enabled: false },
-    },
+        'page-has-heading-one': { enabled: false }
+    }
 };
 
 /**
@@ -35,8 +35,8 @@ export function toHaveNoViolations(received) {
             : `expected no accessibility violations, but found ${received.violations.length}`;
 
         const details = received.violations
-            .map((v) => {
-                const nodes = v.nodes.map((n) => `    - ${n.html}`).join('\n');
+            .map(v => {
+                const nodes = v.nodes.map(n => `    - ${n.html}`).join('\n');
                 return `  ${v.id}: ${v.description}\n${nodes}`;
             })
             .join('\n');
@@ -62,9 +62,9 @@ export function stubMatchMedia({ mobile = false, reducedMotion = true, hover = t
     const answers = {
         '(prefers-reduced-motion: reduce)': reducedMotion,
         '(max-width: 767px)': mobile,
-        '(hover: hover) and (pointer: fine)': hover,
+        '(hover: hover) and (pointer: fine)': hover
     };
-    window.matchMedia = vi.fn().mockImplementation((query) => {
+    window.matchMedia = vi.fn().mockImplementation(query => {
         if (!(query in answers)) {
             throw new Error(`stubMatchMedia has no answer for "${query}". Add it to the map in test-utils/a11y.js.`);
         }
@@ -76,7 +76,7 @@ export function stubMatchMedia({ mobile = false, reducedMotion = true, hover = t
             removeEventListener: vi.fn(),
             addListener: vi.fn(),
             removeListener: vi.fn(),
-            dispatchEvent: vi.fn(),
+            dispatchEvent: vi.fn()
         };
     });
 }
@@ -118,8 +118,8 @@ export function setupComponentEnv(mediaOptions) {
 
 /** Advance past a requestAnimationFrame chain (OlToast defers its announce). */
 export function nextFrames(count = 3) {
-    return new Promise((resolve) => {
-        const step = (n) => (n === 0 ? resolve() : requestAnimationFrame(() => step(n - 1)));
+    return new Promise(resolve => {
+        const step = n => (n === 0 ? resolve() : requestAnimationFrame(() => step(n - 1)));
         step(count);
     });
 }

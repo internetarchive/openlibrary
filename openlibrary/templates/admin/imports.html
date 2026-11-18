@@ -100,11 +100,12 @@ $ component_times['TotalTime'] = time()
 </div>
 
 $ component_times['stats.get_books_imported_per_day'] = time()
-<script type="text/json+graph" id="graph-json-books-added-per-day">$:json_encode(stats.get_books_imported_per_day(use_cache=not recache))</script>
+<script type="application/json" id="books-added-per-day-data">$:json_encode(stats.get_books_imported_per_day(use_cache=not recache))</script>
 $ component_times['stats.get_books_imported_per_day'] = time() - component_times['stats.get_books_imported_per_day']
 
 <style type="text/css">
 div.graph, div.chart{
+    position:relative;
     width:838px;
     height:180px;
     float:none;

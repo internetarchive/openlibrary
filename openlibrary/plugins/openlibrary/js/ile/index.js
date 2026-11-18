@@ -15,7 +15,8 @@ export class IntegratedLibrarianEnvironment {
     constructor() {
         this.selectionManager = new SelectionManager(this);
         /** This is the main ILE toolbar. Should be moved to a Vue component. */
-        this.$toolbar = $(`
+        this.$toolbar = $(
+            `
             <div id="ile-toolbar">
                 <div id="ile-selections">
                     <div id="ile-drag-status">
@@ -26,7 +27,8 @@ export class IntegratedLibrarianEnvironment {
                 </div>
                 <div id="ile-drag-actions"></div>
                 <div id="ile-hidden-forms"></div>
-            </div>`.trim());
+            </div>`.trim()
+        );
         this.$selectionActions = this.$toolbar.find('#ile-selection-actions');
         this.$statusText = this.$toolbar.find('.text');
         this.$statusImages = this.$toolbar.find('.images ul');
@@ -49,6 +51,8 @@ export class IntegratedLibrarianEnvironment {
     setStatusText(text) {
         this.$statusText.text(text);
         this.$toolbar.toggle(text.length > 0);
+        // Lets the bottom-center toast stack lift itself clear of the toolbar.
+        document.body.classList.toggle('ile-toolbar-open', text.length > 0);
     }
 
     /**

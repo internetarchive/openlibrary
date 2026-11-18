@@ -1,9 +1,9 @@
 /**
-* OpenLibrary-specific convenience functions for use with Archive.org athena.js
-*
-* Depends on Archive.org athena.js function archive_analytics.send_ping()
-*
-*/
+ * OpenLibrary-specific convenience functions for use with Archive.org athena.js
+ *
+ * Depends on Archive.org athena.js function archive_analytics.send_ping()
+ *
+ */
 
 /**
  * Report a custom interaction event from JS, the same way a `data-ol-link-track`
@@ -32,13 +32,22 @@ export function trackEvent(category, action, label) {
 }
 
 export default function initAnalytics() {
+    const startTime = new Date();
+    if (window.archive_analytics) {
+        setUpAthena(startTime);
+        return;
+    }
+    // athena.js loads async, so it can arrive after this bundle runs.
+    document.querySelector('script[src$="/cdn/archive.org/athena.js"]')?.addEventListener('load', () => setUpAthena(startTime), { once: true });
+}
+
+function setUpAthena(startTime) {
     var vs, i;
-    var startTime = new Date();
     if (window.archive_analytics) {
         // Setup analytics, depends on script loaded from CDN
         window.archive_analytics.set_up_event_tracking();
 
-        window.archive_analytics.ol_send_event_ping = function(values) {
+        window.archive_analytics.ol_send_event_ping = function (values) {
             var endTime = new Date();
             window.archive_analytics.send_ping({
                 service: 'ol',
@@ -47,22 +56,22 @@ export default function initAnalytics() {
                 ea: values['action'],
                 el: values['label'] || location.pathname,
                 ev: 1,
-                loadtime: (endTime.getTime() - startTime.getTime()),
+                loadtime: endTime.getTime() - startTime.getTime(),
                 cache_bust: Math.random()
             });
         };
 
         vs = window.archive_analytics.get_data_packets();
         for (i in vs) {
-            vs[i]['cache_bust']=Math.random();
-            vs[i]['server_ms']=Number(document.querySelector('.analytics-stats-time-calculator')?.dataset.time);
-            vs[i]['server_name']='ol-web.us.archive.org';
-            vs[i]['service']='ol';
+            vs[i]['cache_bust'] = Math.random();
+            vs[i]['server_ms'] = Number(document.querySelector('.analytics-stats-time-calculator')?.dataset.time);
+            vs[i]['server_name'] = 'ol-web.us.archive.org';
+            vs[i]['service'] = 'ol';
         }
-        if (window.flights){
+        if (window.flights) {
             window.flights.init();
         }
-        document.addEventListener('click', (event) => {
+        document.addEventListener('click', event => {
             let link = event.target.closest('[data-ol-link-track]');
             while (link) {
                 const category_action = link.getAttribute('data-ol-link-track').split('|');

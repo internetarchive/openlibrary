@@ -1,5 +1,5 @@
 import array
-import datetime
+import datetime as dt
 import functools
 import io
 import itertools
@@ -26,11 +26,14 @@ from openlibrary.coverstore.utils import (
     changequery,
     download_external_image,
     get_async_session,
+    is_allowed_default_redirect_url,
     ol_get,
     ol_things,
+    safe_redirect_target,
     safeint,
 )
 from openlibrary.plugins.upstream.utils import setup_requests
+from openlibrary.utils.request_context import site
 
 if coverstore_config := os.getenv("COVERSTORE_CONFIG"):
     load_config(coverstore_config)
@@ -79,7 +82,7 @@ class PartialCoverDetails(web.storage):
     filename_s: str
     filename_m: str
     filename_l: str
-    created: datetime.datetime
+    created: dt.datetime
 
 
 async def get_cover_id(olkeys: list[str]) -> int | None:
@@ -117,15 +120,15 @@ ERROR_INVALID_URL = 2, "Invalid URL"
 ERROR_BAD_IMAGE = 3, "Invalid Image"
 
 
-def _httpdate(date: datetime.datetime) -> str:
-    return format_datetime(date.replace(tzinfo=datetime.UTC), usegmt=True)
+def _httpdate(date: dt.datetime) -> str:
+    return format_datetime(date.replace(tzinfo=dt.UTC), usegmt=True)
 
 
 def _expires_header(seconds: int) -> str:
-    return _httpdate(datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=seconds))
+    return _httpdate(dt.datetime.now(dt.UTC) + dt.timedelta(seconds=seconds))
 
 
-def is_cached_copy_fresh(request: Request, date: datetime.datetime, etag: str) -> bool:
+def is_cached_copy_fresh(request: Request, date: dt.datetime, etag: str) -> bool:
     """Whether the client's cached copy is still good, i.e. we can answer 304."""
     if_none_match = {x.strip('" ') for x in request.headers.get("if-none-match", "").split(",")}
     if "*" in if_none_match or etag in if_none_match:
@@ -137,9 +140,9 @@ def is_cached_copy_fresh(request: Request, date: datetime.datetime, etag: str) -
         except TypeError, ValueError:
             return False
         if since.tzinfo is not None:
-            since = since.astimezone(datetime.UTC).replace(tzinfo=None)
+            since = since.astimezone(dt.UTC).replace(tzinfo=None)
         # HTTP dates have no sub-second precision, so allow a second of slack
-        return date - datetime.timedelta(seconds=1) <= since
+        return date - dt.timedelta(seconds=1) <= since
     return False
 
 
@@ -191,7 +194,7 @@ async def upload2(
 
 def trim_microsecond(date):
     # ignore microseconds
-    return datetime.datetime(*date.timetuple()[:6])
+    return dt.datetime(*date.timetuple()[:6])
 
 
 # Number of images stored in one archive.org item
@@ -232,7 +235,7 @@ def get_details(coverid: int, size: CoverSizeLower = "") -> PartialCoverDetails 
             key = f"filename_{size}" if size else "filename"
             return cast(
                 PartialCoverDetails,
-                web.storage({"id": coverid, key: path, "created": datetime.datetime(2010, 1, 1)}),
+                web.storage({"id": coverid, key: path, "created": dt.datetime(2010, 1, 1)}),
             )
 
     return db.details(coverid)
@@ -316,7 +319,9 @@ def _serve_default(default: str) -> Response:
     if config.default_image and default.lower() != "false" and not is_valid_url(default):
         media_type = mimetypes.guess_type(config.default_image)[0] or "image/jpeg"
         return Response(content=read_file(config.default_image), media_type=media_type)
-    elif is_valid_url(default):
+    # GHSA-8ffj: only 303 to a vetted OL/IA/cover host, never an arbitrary
+    # attacker-supplied ?default= URL (open redirect / phishing).
+    elif is_allowed_default_redirect_url(default):
         return RedirectResponse(default, status_code=303)
     else:
         return Response(status_code=404)
@@ -408,7 +413,7 @@ async def cover_details(category: CoverCategory, key: str, value: str) -> Respon
         d = db.details(safeint(value))
         if not d:
             return Response(status_code=404)
-        if isinstance(d["created"], datetime.datetime):
+        if isinstance(d["created"], dt.datetime):
             d["created"] = d["created"].isoformat()
             d["last_modified"] = d["last_modified"].isoformat()
         return Response(content=json.dumps(d), media_type="application/json")
@@ -471,7 +476,7 @@ def touch(
         return Response(content=f"no such id: {cover_id}", media_type="text/plain")
 
     db.touch(cover_id)
-    return RedirectResponse(redirect_url or request.headers.get("referer") or "/", status_code=303)
+    return RedirectResponse(safe_redirect_target(redirect_url or request.headers.get("referer")), status_code=303)
 
 
 @router.post("/{category}/delete", include_in_schema=False)
@@ -486,7 +491,7 @@ def delete(
 
     db.delete(cover_id)
     if redirect_url:
-        return RedirectResponse(redirect_url, status_code=303)
+        return RedirectResponse(safe_redirect_target(redirect_url), status_code=303)
     return Response(content="cover has been deleted successfully.", media_type="text/plain")
 
 
@@ -502,8 +507,10 @@ async def upload(
     failure_url: Annotated[str | None, Form()] = None,
 ) -> Response:
     referer = request.headers.get("referer")
-    success = success_url or referer or "/"
-    failure = failure_url or referer or "/"
+    # Validate the caller-supplied redirect targets so upload cannot be used as
+    # an open redirect (same class as GHSA-8ffj).
+    success = safe_redirect_target(success_url or referer)
+    failure = safe_redirect_target(failure_url or referer)
 
     def error(code__msg: tuple[int, str]) -> RedirectResponse:
         code, msg = code__msg
@@ -540,7 +547,7 @@ def render_list_preview_image(lst_key: str):
     locations to create a new image for social-card"""
     from openlibrary.core.lists.model import List
 
-    lst = cast(List, web.ctx.site.get(lst_key))
+    lst = cast(List, site.get().get(lst_key))
     five_covers = itertools.islice(
         (cover for seed in lst.get_seeds() if seed._type != "subject" and (cover := seed.get_cover())),
         0,

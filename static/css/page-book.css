@@ -36,7 +36,6 @@
 @import "components/illustration.css";
 @import "components/rating-form.css";
 @import "components/generic-dropper.css";
-@import "components/listLists.css";
 @import "components/readerStats.css";
 @import "components/link-box.css";
 @import "components/read-panel.css";
@@ -44,7 +43,6 @@
 @import "components/work.css";
 @import "components/book.css";
 @import "components/carousel.css";
-@import "components/category-item.css";
 @import "components/loading-indicator.css";
 @import "components/page-history.css";
 @import "components/copy-button.css";

@@ -120,6 +120,23 @@ class TestTableOfContents:
             TocEntry(level=0, title="Section 1.2", pagenum="3"),
         ]
 
+    def test_to_db_after_is_complex_and_to_markdown(self):
+        toc = TableOfContents(
+            [
+                TocEntry(level=1, title="Chapter 1", subtitle="Subtitle 1"),
+                TocEntry(level=2, title="Section 1.1"),
+            ]
+        )
+        expected = [
+            {"level": 1, "title": "Chapter 1", "subtitle": "Subtitle 1"},
+            {"level": 2, "title": "Section 1.1"},
+        ]
+
+        assert toc.to_db() == expected
+        assert toc.is_complex()
+        toc.to_markdown()
+        assert toc.to_db() == expected
+
 
 class TestTocEntry:
     def test_from_dict(self):
@@ -177,6 +194,22 @@ class TestTocEntry:
 
         entry = TocEntry(level=1, title="")
         assert entry.to_dict() == {"level": 1, "title": ""}
+
+    def test_to_dict_after_extra_fields_accessed(self):
+        entry = TocEntry(level=1, title="Chapter 1", subtitle="Subtitle 1")
+        expected = {"level": 1, "title": "Chapter 1", "subtitle": "Subtitle 1"}
+
+        assert entry.to_dict() == expected
+        assert entry.extra_fields == {"subtitle": "Subtitle 1"}
+        assert entry.to_dict() == expected
+
+    def test_to_dict_after_to_markdown(self):
+        entry = TocEntry(level=1, title="Chapter 1", subtitle="Subtitle 1")
+        expected = {"level": 1, "title": "Chapter 1", "subtitle": "Subtitle 1"}
+
+        assert entry.to_dict() == expected
+        entry.to_markdown()
+        assert entry.to_dict() == expected
 
     def test_from_markdown(self):
         line = "| Chapter 1 | 1"

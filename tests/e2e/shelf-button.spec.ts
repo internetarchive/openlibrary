@@ -12,9 +12,7 @@ import { collectConsoleErrors, login } from './helpers';
 
 // A work of this spec's own, since it changes the reader's shelves while other
 // specs scan theirs in parallel. OL20600W is in the dev seed; OL27448W is prod.
-const WORK_URL = process.env.OL_BASE_URL?.startsWith('https')
-    ? '/works/OL27448W'
-    : '/works/OL20600W';
+const WORK_URL = process.env.OL_BASE_URL?.startsWith('https') ? '/works/OL27448W' : '/works/OL20600W';
 const WORK_OLID = WORK_URL.split('/').pop()!;
 
 const WANT_TO_READ = '1';
@@ -22,7 +20,7 @@ const WANT_TO_READ = '1';
 /** Take a work off whatever shelf it is on. */
 async function clearShelf(page: Page, olid: string): Promise<void> {
     const response = await page.request.post(`/works/${olid}/bookshelves.json`, {
-        form: { bookshelf_id: '-1' },
+        form: { bookshelf_id: '-1' }
     });
     expect(response.ok(), `could not clear ${olid}: ${await response.text()}`).toBe(true);
 }
@@ -46,8 +44,7 @@ test.describe('ol-shelf-button', () => {
             await expect(button).not.toHaveAttribute('shelf');
             await expect(main).toHaveAttribute('aria-pressed', 'false');
 
-            const saved = page.waitForResponse((r) =>
-                r.url().includes(`/works/${WORK_OLID}/bookshelves.json`) && r.request().method() === 'POST');
+            const saved = page.waitForResponse(r => r.url().includes(`/works/${WORK_OLID}/bookshelves.json`) && r.request().method() === 'POST');
             await main.click();
             expect((await saved).ok()).toBe(true);
 
@@ -103,11 +100,13 @@ test.describe('ol-shelf-button', () => {
     test.describe('carousel hydration', () => {
         // Home-page carousel cards are cached, so they arrive without
         // a user key or state. Solr has to be up for a carousel to have cards at all.
-        const CAROUSEL_BUTTON = '.book-cover-wrapper > ol-shelf-button[variant="icon"]';
+        const CAROUSEL_BUTTON = '.carousel__item ol-shelf-button[variant="icon"]';
 
         test('anonymous: carousel buttons render, and nothing is fetched', async ({ page }) => {
             const stateRequests: string[] = [];
-            page.on('request', (r) => { if (r.url().includes('/partials/ReadingState.json')) stateRequests.push(r.url()); });
+            page.on('request', r => {
+                if (r.url().includes('/partials/ReadingState.json')) stateRequests.push(r.url());
+            });
             await page.goto('/');
             const button = page.locator(CAROUSEL_BUTTON).first();
             await expect(button).toBeAttached({ timeout: 15_000 });
@@ -116,15 +115,13 @@ test.describe('ol-shelf-button', () => {
             expect(stateRequests).toHaveLength(0);
         });
 
-        test('buttons in off-screen slides are inert, so a hidden slide holds nothing focusable', async ({ page }) => {
-            await page.route('https://archive.org/**', (route) => route.abort());
+        test('off-page buttons stay reachable, and no card is hidden from assistive tech', async ({ page }) => {
+            await page.route('https://archive.org/**', route => route.abort());
             await page.goto('/');
-            const hidden = page.locator(`.slick-slide[aria-hidden="true"] ${CAROUSEL_BUTTON}`).first();
-            const shown = page.locator(`.slick-slide[aria-hidden="false"] ${CAROUSEL_BUTTON}`).first();
-            await expect(hidden).toBeAttached({ timeout: 15_000 });
-            await expect(hidden).toHaveAttribute('inert');
-            await expect(shown).not.toHaveAttribute('inert');
-            // The rule the a11y suite would trip on if the sync were missing.
+            // <ol-carousel> is a scroll container: every card is in the tab order, none is aria-hidden.
+            const offPage = page.locator(`ol-carousel > .carousel__item:not([data-in-view]) ol-shelf-button[variant="icon"]`).first();
+            await expect(offPage).toBeAttached({ timeout: 15_000 });
+            await expect(offPage).not.toHaveAttribute('inert');
             expectNoViolations(await a11yCheck(page, { rules: ['aria-hidden-focus'] }));
         });
 
@@ -139,7 +136,7 @@ test.describe('ol-shelf-button', () => {
 
             test('one batched request fills in the reader and their shelves', async ({ page }) => {
                 const errors = collectConsoleErrors(page);
-                const firstFetch = page.waitForResponse((r) => r.url().includes('/partials/ReadingState.json'));
+                const firstFetch = page.waitForResponse(r => r.url().includes('/partials/ReadingState.json'));
                 await page.goto('/');
                 const response = await firstFetch;
                 expect(response.ok()).toBe(true);
@@ -161,7 +158,7 @@ test.describe('ol-shelf-button', () => {
                 // Shelve it behind the page's back; the next load draws it shelved.
                 await clearShelf(page, olid);
                 const shelved = await page.request.post(`/works/${olid}/bookshelves.json`, {
-                    form: { bookshelf_id: WANT_TO_READ },
+                    form: { bookshelf_id: WANT_TO_READ }
                 });
                 expect(shelved.ok()).toBe(true);
 

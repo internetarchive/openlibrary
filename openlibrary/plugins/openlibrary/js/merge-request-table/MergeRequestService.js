@@ -1,4 +1,3 @@
-
 export const REQUEST_TYPES = {
     WORK_MERGE: 1,
     AUTHOR_MERGE: 2

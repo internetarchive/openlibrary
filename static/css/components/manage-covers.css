@@ -17,3 +17,11 @@
 .manageCoversContainer .manageCovers:focus-within {
   opacity: 1;
 }
+
+/* @width-breakpoint-tablet: 768px */
+@media only screen and (min-width: 768px) {
+  .imagesAdd,
+  .imagesManage {
+    padding: 0 var(--spacing-3xl) var(--spacing-lg);
+  }
+}

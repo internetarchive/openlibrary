@@ -1,12 +1,12 @@
-import { FadingToast } from './Toast';
+import { showToast } from '../../../components/lit/toast.js';
 
 export function initPrivateButtons(buttons) {
     buttons.forEach(button => {
-        button.addEventListener('click', (event) => {
+        button.addEventListener('click', event => {
             event.preventDefault();
-            const toast = new FadingToast('This patron has not enabled following', null, 3000);
-            toast.show();
-
+            // The wrapper's title carries the translated explanation.
+            const message = button.closest('[title]')?.title || 'This patron has not enabled following';
+            showToast(message);
         });
     });
 }

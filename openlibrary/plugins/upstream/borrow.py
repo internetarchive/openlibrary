@@ -8,7 +8,7 @@ import logging
 import time
 import urllib
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Literal
 
 import web
@@ -32,6 +32,7 @@ from openlibrary.core import (
 )
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import req_context, site
@@ -180,14 +181,34 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         and (provider := get_book_provider(edition))
         and provider.short_name != "ia"
         and (acquisitions := provider.get_acquisitions(edition))
-        and acquisitions[0].access == "open-access"
+        # `borrow` as well as `open-access`: a provider that lends its own
+        # copies sends the patron to its own sign-in. `sample` too: a "Preview"
+        # web link is read on the provider's site (#12345). Falling through
+        # reaches `get_bookreader_stream_url(edition.ocaid)`, and on a non-IA
+        # edition `ocaid` is infogami's `Nothing`, whose `__radd__` returns the
+        # left operand -- so that path yields a bare `archive.org/stream/`
+        # instead of raising.
+        and acquisitions[0].access in ("open-access", "borrow", "sample")
     ):
         stats.increment("ol.loans.webbook")
+        url = acquisitions[0].url
         raw_name = acquisitions[0].provider_name or ""
-        book_provider = Markup("<strong>") + escape(raw_name.replace("_", " ").title()) + Markup("</strong>") if raw_name else Markup("")
+        display_name = raw_name.replace("_", " ").title()
+        if acquisitions[0].access == "borrow":
+            # Borrowed *through* Open Library, so no interstitial: that screen
+            # warns the patron they are leaving for a third party, and the next
+            # page here is an openlibrary.org route. A node with no configured
+            # credentials returns None and keeps the interstitial below, since
+            # that one really is a handoff to the node's own sign-in.
+            from openlibrary.plugins.upstream import lenny
+
+            if mediated := lenny.mediated_borrow(key):
+                return BorrowRedirect(mediated)
+
+        book_provider = Markup("<strong>") + escape(display_name) + Markup("</strong>") if raw_name else Markup("")
         return render_jinja_template(
             "interstitial.html.jinja",
-            url=acquisitions[0].url,
+            url=url,
             book_provider=book_provider,
             wait=5,
             fastapi=fastapi,
@@ -214,12 +235,8 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
 
     error_redirect = archive_url
 
-    # Strip scheme/host to prevent open-redirect attacks.
-    if i.redirect:
-        parsed = urllib.parse.urlsplit(i.redirect)
-        edition_redirect = urllib.parse.urlunsplit(("", "", parsed.path, parsed.query, parsed.fragment))
-    else:
-        edition_redirect = edition.url()
+    # Only same-site paths; anything else lands on the edition page.
+    edition_redirect = i.redirect if is_safe_redirect(i.redirect) else edition.url()
 
     user = accounts.get_current_user()
 
@@ -416,7 +433,7 @@ def datetime_from_isoformat(expiry):
 
 @public
 def datetime_from_utc_timestamp(seconds):
-    return datetime.utcfromtimestamp(seconds)
+    return datetime.fromtimestamp(seconds, UTC).replace(tzinfo=None)
 
 
 def get_bookreader_stream_url(itemid: str) -> str:

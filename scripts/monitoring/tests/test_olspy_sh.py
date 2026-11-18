@@ -1,4 +1,6 @@
 import tempfile
+import time
+from pathlib import Path
 
 from scripts.monitoring.utils import bash_run
 
@@ -39,6 +41,15 @@ root  102  0.0  0.1 100 100 ?   Sl   10:00 0:01 python /openlibrary/scripts/cove
 """
 
 
+def _read_nc_output(path: str) -> str:
+    """olspy.sh writes to nc through `tee >(nc ...)`, and bash doesn't wait for that nc,
+    so its output can arrive just after log_workers_cur_fn returns."""
+    deadline = time.monotonic() + 10
+    while not (text := Path(path).read_text().strip()) and time.monotonic() < deadline:
+        time.sleep(0.05)
+    return text
+
+
 def _classify_lines(lines: str) -> str:
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as input_fp:
         input_fp.write(lines)
@@ -59,12 +70,11 @@ def test_log_workers_cur_fn_webpy():
         aliases_fp.write(_make_aliases(nc_fp.name, "scripts/monitoring/tests/sample_py_spy_webpy_dump.txt"))
 
     bash_run(
-        "log_workers_cur_fn webpy stats.ol-covers0.workers.webpy.cur_fn",
+        "log_workers_cur_fn webpy stats.ol-covers1.workers.webpy.cur_fn",
         sources=[aliases_fp.name, "olspy.sh"],
     )
 
-    with open(nc_fp.name) as f:
-        assert f.read().strip() == "stats.ol-covers0.workers.webpy.cur_fn.db._db_execute 1 1741054377"
+    assert _read_nc_output(nc_fp.name) == "stats.ol-covers1.workers.webpy.cur_fn.db._db_execute 1 1741054377"
 
 
 def test_log_workers_cur_fn_fastapi():
@@ -79,8 +89,7 @@ def test_log_workers_cur_fn_fastapi():
         sources=[aliases_fp.name, "olspy.sh"],
     )
 
-    with open(nc_fp.name) as f:
-        assert f.read().strip() == "stats.ol-web0.workers.fastapi.cur_fn.ia.get_api_response 2 1741054377"
+    assert _read_nc_output(nc_fp.name) == "stats.ol-web0.workers.fastapi.cur_fn.ia.get_api_response 2 1741054377"
 
 
 def test_coverstore_workers_are_found_under_fastapi():
@@ -93,12 +102,11 @@ def test_coverstore_workers_are_found_under_fastapi():
         aliases_fp.write(_make_aliases_with_ps(nc_fp.name, "scripts/monitoring/tests/sample_py_spy_fastapi_dump.txt", COVERSTORE_PS))
 
     bash_run(
-        "log_workers_cur_fn fastapi stats.ol-covers0.workers.fastapi.cur_fn",
+        "log_workers_cur_fn fastapi stats.ol-covers1.workers.fastapi.cur_fn",
         sources=[aliases_fp.name, "olspy.sh"],
     )
-    with open(nc_fp.name) as f:
-        # one worker (the Ss master is excluded)
-        assert f.read().strip() == "stats.ol-covers0.workers.fastapi.cur_fn.ia.get_api_response 1 1741054377"
+    # one worker (the Ss master is excluded)
+    assert _read_nc_output(nc_fp.name) == "stats.ol-covers1.workers.fastapi.cur_fn.ia.get_api_response 1 1741054377"
 
 
 def test_coverstore_workers_are_not_found_under_webpy():
@@ -109,7 +117,7 @@ def test_coverstore_workers_are_not_found_under_webpy():
         aliases_fp.write(_make_aliases_with_ps(nc_fp.name, "scripts/monitoring/tests/sample_py_spy_webpy_dump.txt", COVERSTORE_PS))
 
     bash_run(
-        "log_workers_cur_fn webpy stats.ol-covers0.workers.webpy.cur_fn",
+        "log_workers_cur_fn webpy stats.ol-covers1.workers.webpy.cur_fn",
         sources=[aliases_fp.name, "olspy.sh"],
     )
     with open(nc_fp.name) as f:
@@ -156,3 +164,28 @@ something_else (totally/custom.py:1)
 ol.render_list_preview_image
 other.other"""
     )
+
+
+def test_classify_async_bridge_call():
+    """A worker waiting on AsyncBridge is named after the wrapped coroutine, not its caller."""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as input_fp:
+        input_fp.write(
+            """    wait (threading.py:369)
+    result (concurrent/futures/_base.py:445)
+    run (openlibrary/utils/async_utils.py:38)
+    run_solr_query_async (openlibrary/utils/async_utils.py:54)
+    GET (openlibrary/plugins/worksearch/code.py:600)
+"""
+        )
+
+    result = bash_run(
+        f"cat {input_fp.name} | exclude_internal_methods | head -n1 | classify_workers_cur_fn",
+        sources=["olspy.sh"],
+        capture_output=True,
+    )
+    assert result.stdout.strip() == "async.run_solr_query"
+
+
+def test_classify_ignores_other_libraries_async_utils():
+    """jinja2 ships its own async_utils.py with a `wrapper` function; it is not an AsyncBridge call."""
+    assert _classify_lines("    wrapper (jinja2/async_utils.py:45)\n") == "other.other"

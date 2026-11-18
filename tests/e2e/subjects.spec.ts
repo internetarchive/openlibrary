@@ -11,7 +11,10 @@ const skipIfNoSolr = async ({ page }: { page: import('@playwright/test').Page })
     if (response?.status() === 404) {
         test.skip(true, 'Subjects require Solr data — not available in this environment');
     }
-    const hasHeader = await page.locator('#header-bar').isVisible().catch(() => false);
+    const hasHeader = await page
+        .locator('#header-bar')
+        .isVisible()
+        .catch(() => false);
     if (!hasHeader) {
         test.skip(true, 'Subjects page returned an error (Solr likely unhealthy) — skipping');
     }
@@ -22,7 +25,10 @@ test.describe('Subjects page @smoke', () => {
         const errors = collectConsoleErrors(page);
         const response = await page.goto(SUBJECT_URL);
         test.skip(response?.status() === 404, 'Subjects require Solr data — not available in this environment');
-        const hasHeader = await page.locator('#header-bar').isVisible().catch(() => false);
+        const hasHeader = await page
+            .locator('#header-bar')
+            .isVisible()
+            .catch(() => false);
         test.skip(!hasHeader, 'Subjects page returned an error (Solr likely unhealthy) — skipping');
         // h1.inline is the subject name heading (from subjects.html template)
         const heading = page.locator('h1.inline, h1').first();

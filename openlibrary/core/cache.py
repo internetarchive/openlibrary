@@ -138,6 +138,7 @@ class memcache_memoize[**P, T]:
 
         if not self.memcache.add(key, "true"):
             # already somebody else is computing this value.
+            self.active_threads.pop(threading.current_thread().name, None)
             return
 
         try:

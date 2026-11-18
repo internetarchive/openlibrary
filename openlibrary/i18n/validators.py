@@ -26,6 +26,35 @@ def validate(message: Message, catalog: Catalog) -> list[str]:
     return errors
 
 
+PAREN_PLURAL_RE = re.compile(r"\w\((?:s|es)\)")
+
+
+def check_source_string(msgid: str) -> list[str]:
+    """
+    Problems in an English msgid that translators can't work around: a language that
+    needs the values in another order can't reorder bare `%s`, and "item(s)" has no
+    correct form in languages with several plurals.
+    >>> check_source_string("Showing %(shown)s of %(total)s results")
+    []
+    >>> check_source_string("See %s book")
+    []
+    >>> check_source_string("%(percent)s%% done, goal %(goal)s%%")
+    []
+    >>> check_source_string("Showing %s of %s results")
+    ['2 unnamed placeholders (%s, %s): name them, e.g. %(count)s, so translators can reorder them']
+    >>> check_source_string("Re-queued %(count)d failed item(s).")
+    ['"item(s)" is not a plural: use ungettext() with singular and plural strings']
+    """
+    problems = []
+    unnamed = [p for p in _parse_cfmt(msgid) if p != "%%" and not p.startswith("%(")]
+    if len(unnamed) > 1:
+        problems.append(f"{len(unnamed)} unnamed placeholders ({', '.join(unnamed)}): name them, e.g. %(count)s, so translators can reorder them")
+    if m := PAREN_PLURAL_RE.search(msgid):
+        word = msgid[: m.end()].rsplit(maxsplit=1)[-1]
+        problems.append(f'"{word}" is not a plural: use ungettext() with singular and plural strings')
+    return problems
+
+
 def _form0_selected_beyond_one(catalog: Catalog) -> bool:
     try:
         rule = gettext.c2py(catalog.plural_expr)

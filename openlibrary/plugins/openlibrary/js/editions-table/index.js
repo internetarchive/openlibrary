@@ -27,7 +27,7 @@ function initPagination(table) {
         wrapper.hidden = info.pages < 2;
     }
 
-    pagination.addEventListener('ol-pagination-change', function(e) {
+    pagination.addEventListener('ol-pagination-change', function (e) {
         // The component renders anchors; cancelling keeps paging client-side.
         e.preventDefault();
         table.page(e.detail.page - 1).draw('page');
@@ -44,7 +44,7 @@ export function initEditionsTable() {
     if ($.fn.DataTable.isDataTable($('#editions'))) {
         return;
     }
-    $('#editions th.title').on('mouseover', function(){
+    $('#editions th.title').on('mouseover', function () {
         if ($(this).hasClass('sorting_asc')) {
             $(this).attr('title', 'Sort latest to earliest');
         } else if ($(this).hasClass('sorting_desc')) {
@@ -53,7 +53,7 @@ export function initEditionsTable() {
             $(this).attr('title', 'Sort by publish date');
         }
     });
-    $('#editions th.read').on('mouseover', function(){
+    $('#editions th.read').on('mouseover', function () {
         if ($(this).hasClass('sorting_asc')) {
             $(this).attr('title', 'Push readable versions to the bottom');
         } else if ($(this).hasClass('sorting_desc')) {
@@ -63,15 +63,15 @@ export function initEditionsTable() {
         }
     });
 
-    $('#editions').on('length.dt', function(e, settings, length) {
+    $('#editions').on('length.dt', function (e, settings, length) {
         localStorage.setItem(LS_RESULTS_LENGTH_KEY, length);
     });
 
     rowCount = $('#editions tbody tr').length;
     if (rowCount < 4) {
         $('#editions').DataTable({
-            aoColumns: [{sType: 'html'}, null],
-            order: [ [1, 'asc'] ],
+            aoColumns: [{ sType: 'html' }, null],
+            order: [[1, 'asc']],
             bPaginate: false,
             bInfo: false,
             bFilter: false,
@@ -81,9 +81,12 @@ export function initEditionsTable() {
     } else {
         currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY));
         const table = $('#editions').DataTable({
-            aoColumns: [{sType: 'html'}, null],
-            order: [ [1, 'asc'] ],
-            lengthMenu: [ [3, 10, 25, 50, 100, -1], [3, 10, 25, 50, 100, 'All'] ],
+            aoColumns: [{ sType: 'html' }, null],
+            order: [[1, 'asc']],
+            lengthMenu: [
+                [3, 10, 25, 50, 100, -1],
+                [3, 10, 25, 50, 100, 'All']
+            ],
             dom: DATATABLES_DOM,
             bPaginate: true,
             bInfo: true,
@@ -91,12 +94,12 @@ export function initEditionsTable() {
             bStateSave: false,
             bAutoWidth: false,
             pageLength: currentLength ? currentLength : DEFAULT_LENGTH,
-            drawCallback: function() {
+            drawCallback: function () {
                 // A jQuery object is always truthy, so check its length for the toolbar's presence.
                 if ($('#ile-toolbar').length) {
                     // `ile-items` is unset until the first ILE selection is made.
                     const editionStorage = JSON.parse(sessionStorage.getItem('ile-items') || '{}').edition || [];
-                    const matchEdition = (string) => {
+                    const matchEdition = string => {
                         return string.match(/OL[0-9]+[a-zA-Z]/);
                     };
                     for (const el of $('.ile-selected')) {

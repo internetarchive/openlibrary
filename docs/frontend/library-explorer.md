@@ -10,7 +10,7 @@ A Vue 3 web component (`<ol-library-explorer>`) that lets a reader browse the ca
 
 ## How It Works
 
-**How the Vue → `<ol-library-explorer>` build works is generic to every Vue component in this codebase, not specific to Library Explorer — see [[frontend]]'s "Vue component pipeline" section** (Vite, `customElement: true`, the `isCustomElement` predicate that lets these templates use Lit's `<ol-*>` tags directly) rather than duplicating it here.
+**How the Vue → `<ol-library-explorer>` build works is generic to every Vue component in this codebase, not specific to Library Explorer — see [frontend](README.md)'s "Vue component pipeline" section** (Vite, `customElement: true`, the `isCustomElement` predicate that lets these templates use Lit's `<ol-*>` tags directly) rather than duplicating it here.
 
 `LibraryExplorer.vue` is the root component. It builds a `classifications` array — one `ClassificationTree` object per scheme:
 
@@ -174,13 +174,13 @@ No automated test suite for this component tree as of this writing. All verifica
 ## Dependencies
 
 **Depends on:**
-- [[frontend]] — Lit component library (`ol-toggle`, `ol-select-popover`, `ol-options-popover`) used by `GenreFilterBar.vue`; Vue is the exception-case framework noted there
+- [frontend](README.md) — Lit component library (`ol-toggle`, `ol-select-popover`, `ol-options-popover`) used by `GenreFilterBar.vue`; Vue is the exception-case framework noted there
 - [[tags]] — Dewey's Open-Book-Genome-Project/tags vocabulary is genre.json's data source
-- [[search]] — all book data comes from `search.json` (Solr), including `subject_key` faceting genre mode is built on
+- [search](../search/README.md) — all book data comes from `search.json` (Solr), including `subject_key` faceting genre mode is built on
 
 **Depended on by:**
 - Homepage "Browse by Genre" carousel (`openlibrary/plugins/openlibrary/home.py`, `openlibrary/templates/home/genres.html`) — sourced from `genre.json`, links into `/explore/genres`
 
 ---
 
-*See [[README]] · [[METHODOLOGY]]*
+*See [README](../README.md) · [[METHODOLOGY]]*

@@ -1,6 +1,6 @@
 """Tests for GET /observations.json (FastAPI)."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -26,7 +26,7 @@ SAMPLE_METRICS = {
 @pytest.fixture
 def mock_get_metrics():
     """Prevent real DB calls for get_observation_metrics."""
-    with patch("openlibrary.fastapi.internal.api.get_observation_metrics", autospec=True) as mock:
+    with patch("openlibrary.fastapi.internal.api.get_observation_metrics", new_callable=AsyncMock) as mock:
         mock.side_effect = lambda olid: SAMPLE_METRICS.get(olid, {})
         yield mock
 
@@ -41,11 +41,11 @@ class TestPublicObservations:
         response = fastapi_client.get("/observations.json?olid=OL27482W")
         data = response.json()
         assert data["observations"]["OL27482W"] == SAMPLE_METRICS["OL27482W"]
-        mock_get_metrics.assert_called_once_with("OL27482W")
+        mock_get_metrics.assert_awaited_once_with("OL27482W")
 
     def test_multiple_olids(self, fastapi_client, mock_get_metrics):
         response = fastapi_client.get("/observations.json?olid=OL27482W&olid=OL24204W")
         observations = response.json()["observations"]
         assert observations["OL27482W"] == SAMPLE_METRICS["OL27482W"]
         assert observations["OL24204W"] == SAMPLE_METRICS["OL24204W"]
-        assert mock_get_metrics.call_count == 2
+        assert mock_get_metrics.await_count == 2

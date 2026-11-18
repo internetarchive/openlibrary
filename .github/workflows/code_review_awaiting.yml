@@ -1,0 +1,60 @@
+# If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
+name: Code Review Awaiting
+
+# Marks a PR head that has no review yet as code-review=pending, saying what happens next, so the
+# required check never just goes missing after a push. With handle_push_trigger on in .pr_agent.toml,
+# it also re-requests the review once a reviewed PR gets no new commits for a while (see
+# .github/scripts/code_review/awaiting.cjs). It runs no model itself.
+#
+# pull_request_target so fork PRs get the status too. Safe: it checks out only the review scripts
+# and settings from this workflow's own commit, never the PR.
+on:
+  pull_request_target:  # zizmor: ignore[dangerous-triggers]
+    types: [opened, reopened, ready_for_review, synchronize]
+
+# A new push cancels the previous run, including one still waiting to request a review.
+concurrency:
+  group: code-review-awaiting-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  awaiting:
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read        # the checkout below; the API calls use bot PATs
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            /.github/scripts/
+            /.pr_agent.toml
+          sparse-checkout-cone-mode: false
+
+      - name: Mark an unreviewed head as awaiting review
+        id: mark
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          # Commit statuses: write and Pull requests: read, on this repo only.
+          github-token: ${{ secrets.OL_BOT_COMMIT_STATUS_PAT }}
+          script: |
+            const dir = `${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review`;
+            const settings = require(`${dir}/config.cjs`).load(process.env.GITHUB_WORKSPACE, core.info);
+            const { markAwaiting } = require(`${dir}/awaiting.cjs`);
+            await markAwaiting({ github, context, core, settings, runUrl: process.env.RUN_URL });
+
+      - name: Request a review once pushes stop
+        if: steps.mark.outputs.review_after_minutes
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          MINUTES: ${{ steps.mark.outputs.review_after_minutes }}
+        with:
+          # Pull requests: read and write, on this repo only.
+          github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
+          script: |
+            const { requestAfterQuiet } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/awaiting.cjs`);
+            await requestAfterQuiet({ github, context, core, minutes: Number(process.env.MINUTES) });

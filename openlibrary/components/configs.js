@@ -3,7 +3,7 @@
 
 const urlParams = new URLSearchParams(location.search);
 
-const IS_VUE_APP =  document.title === 'Vue App';
+const IS_VUE_APP = document.title === 'Vue App';
 const OL_BASE_DEFAULT = urlParams.get('ol_base') || (IS_VUE_APP ? 'openlibrary.org' : '');
 
 const CONFIGS = {
@@ -17,7 +17,7 @@ const CONFIGS = {
     OL_BASE_SAVES: urlParams.get('ol_base_saves') || '',
     OL_BASE_PUBLIC: urlParams.get('ol_base') || 'openlibrary.org',
     DEBUG_MODE: urlParams.get('debug') === 'true',
-    LANG: urlParams.get('lang'),
+    LANG: urlParams.get('lang')
 };
 
 for (const key of ['OL_BASE_COVERS', 'OL_BASE_SEARCH', 'OL_BASE_BOOKS', 'OL_BASE_LANGS', 'OL_BASE_SAVES']) {

@@ -13,26 +13,26 @@
 /** Minimal Popover API stand-in: jsdom implements neither the methods nor the pseudo-class. */
 function installPopoverApiStub() {
     const open = new WeakSet();
-    HTMLElement.prototype.showPopover = vi.fn(function() {
+    HTMLElement.prototype.showPopover = vi.fn(function () {
         if (open.has(this)) throw new DOMException('already open', 'InvalidStateError');
         open.add(this);
     });
-    HTMLElement.prototype.hidePopover = vi.fn(function() {
+    HTMLElement.prototype.hidePopover = vi.fn(function () {
         if (!open.has(this)) throw new DOMException('not open', 'InvalidStateError');
         open.delete(this);
     });
     const realMatches = Element.prototype.matches;
-    Element.prototype.matches = function(selector) {
+    Element.prototype.matches = function (selector) {
         if (selector === ':popover-open') return open.has(this);
         return realMatches.call(this, selector);
     };
     return {
-        isOpen: (el) => open.has(el),
+        isOpen: el => open.has(el),
         restore: () => {
             delete HTMLElement.prototype.showPopover;
             delete HTMLElement.prototype.hidePopover;
             Element.prototype.matches = realMatches;
-        },
+        }
     };
 }
 
@@ -56,7 +56,7 @@ async function mountTooltip() {
     return el;
 }
 
-const tooltipOf = (el) => el.shadowRoot.querySelector('.tooltip');
+const tooltipOf = el => el.shadowRoot.querySelector('.tooltip');
 
 /** Showing spans several update cycles; the promotion runs in a follow-up callback. */
 async function settle(el) {
@@ -71,13 +71,13 @@ describe('ol-tooltip top-layer promotion', () => {
 
     beforeEach(() => {
         // jsdom has no matchMedia; the component reads it on construction.
-        window.matchMedia = (query) => ({
+        window.matchMedia = query => ({
             matches: false,
             media: query,
             addEventListener() {},
             removeEventListener() {},
             addListener() {},
-            removeListener() {},
+            removeListener() {}
         });
         document.body.innerHTML = '';
     });
@@ -88,7 +88,7 @@ describe('ol-tooltip top-layer promotion', () => {
         document.body.innerHTML = '';
     });
 
-    it('promotes the tooltip to the top layer when it shows', async() => {
+    it('promotes the tooltip to the top layer when it shows', async () => {
         popoverApi = installPopoverApiStub();
         const el = await mountTooltip();
 
@@ -100,7 +100,7 @@ describe('ol-tooltip top-layer promotion', () => {
         expect(popoverApi.isOpen(tooltip)).toBe(true);
     });
 
-    it('demotes the tooltip when it hides', async() => {
+    it('demotes the tooltip when it hides', async () => {
         popoverApi = installPopoverApiStub();
         const el = await mountTooltip();
 
@@ -115,7 +115,7 @@ describe('ol-tooltip top-layer promotion', () => {
         expect(popoverApi.isOpen(tooltip)).toBe(false);
     });
 
-    it('falls back to plain position: fixed without the Popover API', async() => {
+    it('falls back to plain position: fixed without the Popover API', async () => {
         // No stub installed — jsdom has no showPopover, standing in for Safari < 17.
         const el = await mountTooltip();
 
@@ -125,7 +125,7 @@ describe('ol-tooltip top-layer promotion', () => {
         expect(tooltipOf(el).hasAttribute('popover')).toBe(false);
     });
 
-    it('does not throw when hide runs without a preceding show', async() => {
+    it('does not throw when hide runs without a preceding show', async () => {
         popoverApi = installPopoverApiStub();
         const el = await mountTooltip();
 

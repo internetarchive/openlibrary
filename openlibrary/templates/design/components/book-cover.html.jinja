@@ -4,7 +4,7 @@
        same work, and the sync script only keeps them in step after a change. #}
     {% set garden = reading_state.get('OL69612W') or {} %}
     <p class="ds-lead">
-        A book cover at a fixed 2:3 ratio, with somewhere to float a control over it. It knows nothing about shelves, availability or search — give it an image URL and a title. When there is no artwork it draws a title/author panel instead, so a shelf of covers keeps its rhythm rather than opening a hole. The <code>overlay</code> slot is where the save button goes; the component owns the corner so a consumer never positions it.
+        A book cover in a 2:3 slot, with somewhere to float a control over it. The slot keeps a row's rhythm; the artwork inside it keeps its own proportions, standing on the slot's bottom edge, with a soft shadow and a spine shading on its left so it reads as a printed object rather than a tile. It knows nothing about shelves, availability or search — give it an image URL and a title. When there is no artwork it draws a title/author panel instead, so a shelf of covers keeps its rhythm rather than opening a hole. The <code>overlay</code> slot is where the save button goes; the component owns the corner so a consumer never positions it.
     </p>
     {% call ex.example("With artwork", "The common case. The image is lazy, and its alt text is the title and author — a cover is a picture of the book, not decoration.", output_style="display: flex; gap: 16px; width: 420px;") %}
         <ol-book-cover src="https://covers.openlibrary.org/b/id/12622062-M.jpg" book-title="The Secret Garden" authors="Frances Hodgson Burnett" href="/works/OL69612W" style="width: 128px;">

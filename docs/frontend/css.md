@@ -72,10 +72,10 @@ If no semantic token exists for your use case, create one in the appropriate fil
 Page-specific CSS files are named `page-*.css` (e.g., `page-home.css`, `page-book.css`). Templates declare which CSS file to load via `putctx()`:
 
 ```python
-$putctx("cssfile", "page-book")
+$putctx("cssfile", "book")
 ```
 
-This passes the value up to `site.html`, which loads the corresponding stylesheet in `<head>`.
+This passes the value up to the shell layout. `openlibrary/core/shell/head.py` reads `cssfile` (defaulting to `user` if a page sets none) and builds the path `page-<cssfile>.css` (the value omits the `page-` prefix), and `openlibrary/templates/shell/head.html.jinja` loads that stylesheet (here, `page-book.css`) in `<head>`.
 
 ## Bundle Size Limits
 

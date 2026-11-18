@@ -3,7 +3,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { translate } from './utils/labels.js';
 import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin, trackError } from './utils/books-api.js';
-import { showToast } from './OlToastRegion.js';
+import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { DEFAULT_LABELS as ACTION_LABELS } from './OlShelfActions.js';
 import './OlShelfActions.js';
@@ -18,7 +18,7 @@ export const DEFAULT_LABELS = {
     // it is the visible label.
     shelfToggle: '%(shelf)s: %(title)s',
     shelfMenu: 'More options for %(title)s',
-    addToListFor: 'Add %(title)s to a list',
+    addToListFor: 'Add %(title)s to a list'
 };
 
 /**
@@ -35,7 +35,7 @@ export const DEFAULT_LABELS = {
  * a main half that toggles Want to Read on and off without opening anything.
  * With `lists-only` the same shapes serve a seed that has no work to shelve
  * (an author, an edition on its own): the split becomes one "Add to list"
- * trigger, the glyph a list-plus, and the popover opens on its lists pane.
+ * trigger, the glyph a list, and the popover opens on its lists pane.
  * Once the book is on one of the three reading shelves the main half opens the
  * popover instead: those shelves carry dates, ratings and goal progress, so
  * leaving one goes through the menu, which takes Already Read via its date
@@ -120,7 +120,7 @@ export class OlShelfButton extends LitElement {
         hideRating: { type: Boolean, attribute: 'hide-rating' },
         listsOnly: { type: Boolean, attribute: 'lists-only', reflect: true },
         pending: { type: Boolean, reflect: true },
-        _announce: { state: true },
+        _announce: { state: true }
     };
 
     static styles = css`
@@ -153,12 +153,7 @@ export class OlShelfButton extends LitElement {
             --control-highlight-strength: 35%;
             box-shadow:
                 var(--box-shadow-raised),
-                inset 0 1px 0
-                    color-mix(
-                        in srgb,
-                        var(--white) var(--control-highlight-strength),
-                        var(--control-surface)
-                    );
+                inset 0 1px 0 color-mix(in srgb, var(--white) var(--control-highlight-strength), var(--control-surface));
             transition: transform var(--duration-press);
         }
 
@@ -186,6 +181,7 @@ export class OlShelfButton extends LitElement {
             color: var(--color-text);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
+            font-weight: var(--font-weight-button);
             cursor: pointer;
         }
 
@@ -288,28 +284,18 @@ export class OlShelfButton extends LitElement {
            passes under the glyph: a slanted band of shade three circles wide,
            parked off one edge until a page slides it across. */
         .save::before {
-            content: "";
+            content: '';
             position: absolute;
             inset: 4px;
             border-radius: var(--border-radius-circle);
-            background: linear-gradient(
-                    100deg,
-                    transparent 40%,
-                    color-mix(in srgb, var(--color-text) 12%, transparent) 50%,
-                    transparent 60%
-                )
+            background: linear-gradient(100deg, transparent 40%, color-mix(in srgb, var(--color-text) 12%, transparent) 50%, transparent 60%)
                 var(--ol-shelf-badge-sheen-position, 100%) 0 / 300% 100% no-repeat;
             background-color: var(--control-surface);
             --control-surface: var(--color-control-bg);
             transition: background-position var(--ol-shelf-badge-sheen-duration, 0.8s);
             box-shadow:
                 0 1px 4px var(--boxshadow-black),
-                inset 0 1px 0
-                    color-mix(
-                        in srgb,
-                        var(--white) var(--control-highlight-strength),
-                        var(--control-surface)
-                    );
+                inset 0 1px 0 color-mix(in srgb, var(--white) var(--control-highlight-strength), var(--control-surface));
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -332,23 +318,25 @@ export class OlShelfButton extends LitElement {
         /* Large, for a book page cover: the circle a shade translucent so the
            scan tints it, the glyph stamped in with a hairline of light below
            its edge and of shade above. */
-        :host([size="large"]) .save {
+        :host([size='large']) .save {
             width: 40px;
             height: 40px;
         }
 
-        :host([size="large"]) .save::before {
+        :host([size='large']) .save::before {
             --control-surface: color-mix(in srgb, var(--color-control-bg) 88%, transparent);
         }
 
-        :host([size="large"]) .glyph {
+        :host([size='large']) .glyph {
             width: 20px;
             height: 20px;
             filter: drop-shadow(0 1px 0 color-mix(in srgb, var(--white) 85%, transparent))
                 drop-shadow(0 -0.5px 0 color-mix(in srgb, var(--black) 25%, transparent));
         }
 
-        .glyph[name="bookmark"] {
+        /* Blue is for a book that is on a shelf; the two resting glyphs stay neutral. */
+        .glyph[name='bookmark'],
+        .glyph[name='list'] {
             color: var(--color-text);
         }
 
@@ -373,7 +361,7 @@ export class OlShelfButton extends LitElement {
 
         /* The split button's bordered, raised shape at icon width. No circle or
            drop shadow, and the hover is a tint, not a grow. */
-        :host([variant="outline"]) .save {
+        :host([variant='outline']) .save {
             box-sizing: border-box;
             width: var(--control-height-medium);
             height: var(--control-height-medium);
@@ -382,44 +370,39 @@ export class OlShelfButton extends LitElement {
             background: var(--white);
             box-shadow:
                 var(--box-shadow-raised),
-                inset 0 1px 0
-                    color-mix(
-                        in srgb,
-                        var(--white) var(--control-highlight-strength),
-                        var(--control-surface)
-                    );
+                inset 0 1px 0 color-mix(in srgb, var(--white) var(--control-highlight-strength), var(--control-surface));
         }
 
-        :host([variant="outline"]) .save::before {
+        :host([variant='outline']) .save::before {
             content: none;
         }
 
-        :host([variant="outline"]) .glyph {
+        :host([variant='outline']) .glyph {
             width: 16px;
             height: 16px;
             --ol-icon-stroke-width: 2;
         }
 
-        :host([variant="outline"]) .save--on {
+        :host([variant='outline']) .save--on {
             border-color: var(--color-control-selected-border);
             background: var(--color-control-selected-bg);
             --control-surface: var(--color-control-selected-surface);
         }
 
-        :host([variant="outline"]) .save:hover {
+        :host([variant='outline']) .save:hover {
             transform: none;
             background: var(--color-hover-overlay);
         }
 
-        :host([variant="outline"]) .save--on:hover {
+        :host([variant='outline']) .save--on:hover {
             background: var(--color-control-selected-bg-hover);
         }
 
-        :host([variant="outline"]) .save:active {
+        :host([variant='outline']) .save:active {
             transform: scale(var(--press-scale));
         }
 
-        :host([variant="outline"]) .save:focus-visible {
+        :host([variant='outline']) .save:focus-visible {
             outline: 2px solid var(--color-focus-ring);
             outline-offset: -2px;
         }
@@ -465,9 +448,9 @@ export class OlShelfButton extends LitElement {
         this._announce = '';
     }
 
-    /** The badge's glyph: the shelf's own once shelved, a list-plus in lists-only mode. */
+    /** The badge's glyph: the shelf's own once shelved, a plain list in lists-only mode. */
     get _icon() {
-        return this.listsOnly ? 'list-plus' : this._on ? SHELF_ICON_FILLED[this.shelf] : 'bookmark';
+        return this.listsOnly ? 'list' : this._on ? SHELF_ICON_FILLED[this.shelf] : 'bookmark';
     }
 
     t(key, vars) {
@@ -523,7 +506,8 @@ export class OlShelfButton extends LitElement {
                 ?pending=${this.pending}
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
-            >${trigger}</ol-shelf-actions>
+                >${trigger}</ol-shelf-actions
+            >
         `;
     }
 
@@ -539,7 +523,9 @@ export class OlShelfButton extends LitElement {
                 aria-label=${label}
                 aria-busy=${ifDefined(this.pending || undefined)}
                 @click=${this.userKey ? undefined : this._onLoggedOut}
-            ><ol-icon class="glyph" name=${this._icon}></ol-icon></button>
+            >
+                <ol-icon class="glyph" name=${this._icon}></ol-icon>
+            </button>
         `);
     }
 
@@ -557,7 +543,9 @@ export class OlShelfButton extends LitElement {
                             aria-label=${this.t('shelfToggle', { shelf: label, title: this.bookTitle })}
                             aria-busy=${ifDefined(this.pending || undefined)}
                             @click=${this.userKey ? undefined : this._onLoggedOut}
-                        ><ol-icon name="list-plus"></ol-icon><span>${label}</span></button>
+                        >
+                            <ol-icon name="list-plus"></ol-icon><span>${label}</span>
+                        </button>
                     `)}
                 </div>
             `;
@@ -576,7 +564,9 @@ export class OlShelfButton extends LitElement {
                     aria-label=${this.t('shelfToggle', { shelf: label, title: this.bookTitle })}
                     aria-busy=${ifDefined(this.pending || undefined)}
                     @click=${this._onMainClick}
-                >${on ? html`<ol-icon name=${SHELF_ICON_FILLED[this.shelf]}></ol-icon>` : nothing}<span>${label}</span></button>
+                >
+                    ${on ? html`<ol-icon name=${SHELF_ICON_FILLED[this.shelf]}></ol-icon>` : nothing}<span>${label}</span>
+                </button>
                 <span class="sr-only" role="status">${this._announce}</span>
                 ${this._withActions(html`
                     <button
@@ -585,18 +575,22 @@ export class OlShelfButton extends LitElement {
                         class="more"
                         aria-label=${this.t('shelfMenu', { title: this.bookTitle })}
                         @click=${this.userKey ? undefined : this._onLoggedOut}
-                    ><ol-icon name="chevron-down"></ol-icon></button>
+                    >
+                        <ol-icon name="chevron-down"></ol-icon>
+                    </button>
                 `)}
             </div>
         `;
     }
 
     _emitState(shelf, rating = this.rating) {
-        this.dispatchEvent(new CustomEvent('ol-book-state-change', {
-            bubbles: true,
-            composed: true,
-            detail: { key: this.workKey, shelf, rating },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-book-state-change', {
+                bubbles: true,
+                composed: true,
+                detail: { key: this.workKey, shelf, rating }
+            })
+        );
     }
 
     _openActions() {

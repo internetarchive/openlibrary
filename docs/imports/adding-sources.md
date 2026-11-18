@@ -12,15 +12,17 @@ class MyRecord(DataProviderRecord):
     # Source-native fields as Pydantic attrs
     title: str
     authors: list[dict]
+
     # ...
     def to_ol_import(self) -> OLImportRecord | None:
         # Map source fields → OLImportRecord; return None to skip this record
         ...
 
+
 # sources/<slug>/provider.py
 class MyProvider(JSONLProvider):
-    SOURCE_SLUG = "myslug"          # prefix for source_records, e.g. "myslug:ID123"
-    SOURCE_URL = "https://..."      # JSONL URL
+    SOURCE_SLUG = "myslug"  # prefix for source_records, e.g. "myslug:ID123"
+    SOURCE_URL = "https://..."  # JSONL URL
     RECORD_CLASS = MyRecord
 ```
 

@@ -1,12 +1,12 @@
 # Analytics
 
 > **Status:** `partial`
-> **Sources:** codebase investigation against `origin/master` 2026-08-05 (`templates/site/head.html`, `templates/site/footer.html`, `js/ol.analytics.js`, `core/matomo.py`, `admin/vitals.py`); live MTM container contents and production Matomo figures supplied by Mek 2026-08-05; PRs #13038, #13213, #12910, #12227; issues #13020, #13261
+> **Sources:** codebase investigation against `origin/master` 2026-08-05 (`templates/shell/head.html.jinja`, `templates/shell/footer.html.jinja`, `js/ol.analytics.js`, `core/matomo.py`, `admin/vitals.py`; head/footer were `templates/site/` at the time); live MTM container contents and production Matomo figures supplied by Mek 2026-08-05; PRs #13038, #13213, #12910, #12227; issues #13020, #13261
 > **Last ingested:** 2026-08-05
 
 Open Library runs **four independent telemetry systems**. Knowing which one is authoritative for a given question is most of the work — they disagree, and each has blind spots the others don't.
 
-See [[analytics-events]] for the mechanics of client-side event wiring, and [[core-vitals]] for the product metrics computed on top of Matomo.
+See [analytics-events](events.md) for the mechanics of client-side event wiring, and [core-vitals](core-vitals.md) for the product metrics computed on top of Matomo.
 
 ---
 
@@ -59,7 +59,7 @@ Three distinct pieces, easily conflated:
 | Tracking endpoint | `apollo.archive.org` | Receives events/pageviews |
 | Reporting API | `matomo.archive.org` | Read data back out (IP-restricted) |
 
-Bootstrapped in `templates/site/head.html`, gated on `$if not is_bot() and not ctx.get('disable_analytics')`:
+Bootstrapped in `templates/shell/head.html.jinja`, gated on `{% if not layout.is_bot and not layout.head.disable_analytics %}`:
 
 ```js
 var _paq = window._paq = window._paq || [];
@@ -79,7 +79,7 @@ request classified as a bot gets **no analytics at all**, server-side; and `veri
 Set per visit from `get_days_registered()` (`openlibrary/accounts/__init__.py`, #12227). Buckets are
 discrete, not cumulative: `visitor`, `d0`, `d1+` (1–6d), `d7+`, `d14+`, `d30+`, `d90+`. Read back via
 `Live.getLastVisitsDetails` as a **flat `dimension1` field** — *not* nested under `customDimensions`.
-This is the foundation of the [[core-vitals]] Retention Score.
+This is the foundation of the [core-vitals](core-vitals.md) Retention Score.
 
 `setUserId` is **not** wired anywhere, so registered patrons cannot be tracked across visits — which
 is why Retention Score is a snapshot metric, not a cohort one.
@@ -91,7 +91,7 @@ token stays out of query strings. Token is `matomo_api` in `openlibrary.yml`. **
 2026-08-05** — it lives in PR #13213, not on master.
 
 `matomo.archive.org` is IP-restricted to IA's network. Production reaches it directly; from a dev
-machine use an allowlisted forward proxy (`HTTPS_PROXY`) — see [[core-vitals]].
+machine use an allowlisted forward proxy (`HTTPS_PROXY`) — see [core-vitals](core-vitals.md).
 
 ---
 
@@ -101,6 +101,7 @@ The only lossless counter. Plain Python:
 
 ```python
 from openlibrary.core import stats
+
 stats.increment("ol.account.verify.success")
 ```
 
@@ -145,7 +146,7 @@ Every one of these has cost real investigation time.
 - **MTM's container is `async`; Athena's script is blocking.** Athena's click handler is bound during
   page load; MTM's may not be. A fast click on an above-the-fold CTA can reach Athena and miss Matomo.
 - **The MTM container config is not in the repo.** Tags, triggers, and variables live server-side and
-  can only be read in the Matomo UI. Never infer them from code — see [[analytics-events]] for the
+  can only be read in the Matomo UI. Never infer them from code — see [analytics-events](events.md) for the
   confirmed contents.
 - **DevTools console context.** OL pages embed archive.org iframes; if the context dropdown is on a
   frame, `document.querySelector` and `window._paq` both lie. Check `window.top === window`.
@@ -162,9 +163,9 @@ Every one of these has cost real investigation time.
 **Depends on:** IA's `athena.js` CDN script · the MTM container (@cdrini administers) · statsd/Graphite ·
 `get_days_registered()` for dimension 1.
 
-**Depended on by:** [[core-vitals]] (Retention, Engagement, Participation scores) · any Behaviour →
+**Depended on by:** [core-vitals](core-vitals.md) (Retention, Engagement, Participation scores) · any Behaviour →
 Events reporting · funnel analysis.
 
 ---
 
-*See [[README]] · [[METHODOLOGY]] for ingest rules*
+*See [README](../README.md) · [[METHODOLOGY]] for ingest rules*

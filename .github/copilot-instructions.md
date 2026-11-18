@@ -5,7 +5,7 @@
 ### Code Style
 
 - **Python:** Ruff for linting and `ruff format` for formatting, line length 162, double quotes
-- **JS:** ESLint, single quotes, no jQuery in new code
+- **JS:** oxlint + oxfmt (ESLint for Vue files only), single quotes, no jQuery in new code
 - **CSS:** Stylelint — semantic tokens only, no hex/named colors
 - **Templates:** Jinja2 for new templates; Templetor is legacy
 - **Branches:** `{issue-number}/{type}/{slug}`

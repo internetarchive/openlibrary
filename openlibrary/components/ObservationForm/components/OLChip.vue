@@ -1,13 +1,9 @@
 <template>
-  <span
-    class="chip"
-    :class="[{ 'chip--selectable': selectable, 'chip--selected': isSelected }, classList]"
-    @[canSelect]="onClick"
-  >
-    <slot name="before" />
-    {{ text }}
-    <slot name="after" />
-  </span>
+    <span class="chip" :class="[{ 'chip--selectable': selectable, 'chip--selected': isSelected }, classList]" @[canSelect]="onClick">
+        <slot name="before" />
+        {{ text }}
+        <slot name="after" />
+    </span>
 </template>
 
 <script>
@@ -52,7 +48,7 @@ export default {
         }
     },
     emits: ['update-selected'],
-    data: function() {
+    data: function () {
         return {
             /**
              * Tracks whether this chip is currently selected.
@@ -68,7 +64,7 @@ export default {
          *
          * @returns 'click' if this chip can be selected, otherwise `null`
          */
-        canSelect: function() {
+        canSelect: function () {
             return this.selectable ? 'click' : null;
         }
     },
@@ -81,7 +77,7 @@ export default {
         /**
          * Toggles the value of `isSelected` and fires an `update-selected` event.
          */
-        onClick: function() {
+        onClick: function () {
             this.toggleSelected();
             /**
              * Update selected event.
@@ -94,7 +90,7 @@ export default {
         /**
          * Toggles the state of `isSelected`
          */
-        toggleSelected: function() {
+        toggleSelected: function () {
             this.isSelected = !this.isSelected;
         }
     }
@@ -103,28 +99,28 @@ export default {
 
 <style scoped>
 .chip {
-  padding: 4px 12px;
-  border: 1px solid #999999;
-  border-radius: 16px;
-  user-select: none;
+    padding: 4px 12px;
+    border: 1px solid #999999;
+    border-radius: 16px;
+    user-select: none;
 }
 
 .chip--selectable {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .chip--selectable:hover {
-  background-color: #e6e6e6;
+    background-color: #e6e6e6;
 }
 
 .chip--selected {
-  background-color: white;
-  border-color: #1976d2;
-  color: #1976d2;
-  background-color: #f6fafe;
+    background-color: white;
+    border-color: #1976d2;
+    color: #1976d2;
+    background-color: #f6fafe;
 }
 
 .chip--selected:hover {
-  background-color: white;
+    background-color: white;
 }
 </style>
