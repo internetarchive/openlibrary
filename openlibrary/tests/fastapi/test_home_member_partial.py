@@ -258,27 +258,31 @@ def test_readable_editions_asks_for_the_readers_language(request_context_fixture
             from urllib.parse import parse_qs  # noqa: PLC0415
 
             asked.update(parse_qs(payload))
-            return SimpleNamespace(
-                json=lambda: {"response": {"docs": [{"key": "/works/OL1W", "copies": {"docs": [{"key": "/books/OL1M"}]}}, {"key": "/works/OL2W"}]}}
-            )
+            return SimpleNamespace(json=lambda: {"response": {"docs": [{"key": "/works/OL1W", "copies": {"docs": copies}}, {"key": "/works/OL2W"}]}})
 
     real = no_search.real
     docs = [web.storage(key="/works/OL1W"), web.storage(key="/works/OL2W")]
-    with (
-        patch("openlibrary.plugins.worksearch.search.get_solr", return_value=Solr()),
-        patch("openlibrary.plugins.upstream.utils.convert_iso_to_marc", return_value="fre"),
-    ):
-        found = real(docs)
-        assert found == {"/works/OL1W": [{"key": "/books/OL1M"}], "/works/OL2W": []}
-    assert asked["q"] == ["{!terms f=key}/works/OL1W,/works/OL2W"]
-    assert "(language:fre OR (*:* -language:*))" in asked["copies.fq"]
+    french, unrecorded = {"key": "/books/OL1M", "ia": ["fr"], "language": ["fre"]}, {"key": "/books/OL2M", "ia": ["none"]}
+    # Search sends every ebook edition, the reader's language first. A translation and an edition with no scan are left out.
+    copies = [french, {"key": "/books/OL3M", "ia": ["tr"], "language": ["tur"]}, unrecorded, {"key": "/books/OL4M", "language": ["fre"]}]
 
     class Down:
         async def raw_request(self, path, payload, _timeout=None):
             raise OSError
 
-    with patch("openlibrary.plugins.worksearch.search.get_solr", return_value=Down()):
-        assert real(docs) is None
+    class OutOfTime:
+        async def raw_request(self, path, payload, _timeout=None):
+            return SimpleNamespace(json=lambda: {"responseHeader": {"partialResults": True}, "response": {"docs": []}})
+
+    with patch("openlibrary.plugins.upstream.utils.convert_iso_to_marc", return_value="fre"):
+        with patch("openlibrary.plugins.worksearch.search.get_solr", return_value=Solr()):
+            assert real(docs) == {"/works/OL1W": [french, unrecorded], "/works/OL2W": []}
+        assert asked["q"] == ["{!terms f=key}/works/OL1W,/works/OL2W"]
+        assert "language:fre^40" in asked["copies.q"][0]
+        # Search that is down, or that ran out of time before seeing every edition, has no answer to use.
+        for solr in (Down(), OutOfTime()):
+            with patch("openlibrary.plugins.worksearch.search.get_solr", return_value=solr):
+                assert real(docs) is None
 
 
 def test_want_brief_links_to_the_copy_that_was_checked(request_context_fixture):

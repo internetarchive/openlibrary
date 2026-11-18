@@ -30,6 +30,9 @@ WANT_SHOWN = 14
 AGENDA_SIDE = 2
 # Editions of a work checked for a free copy, after the one the reader shelved.
 COPIES_CHECKED = 5
+# How many of a work's ebook editions search hands over to choose those from, the reader's language first.
+COPIES_FETCHED = 12
+EDITIONS_TIMEOUT_SECS = 2
 # How long the section waits on availability, over its checks together, before it goes on without.
 AVAILABILITY_BUDGET_SECS = 3
 # How long a reader's rendered section is kept. Shelf changes, borrows and returns drop it sooner.
@@ -234,18 +237,25 @@ def readable_editions(docs: list) -> dict[str, list[dict]] | None:
             ("rows", len(docs)),
             ("copies.q", f"+({{!terms f=_root_ v=$row.key}}) language:{lang}^40 ebook_access:public^10 ebook_access:borrowable^8"),
             ("copies.fq", "type:edition"),
-            ("copies.fq", "ia:*"),
             ("copies.fq", f"ebook_access:[{get_fulltext_min()} TO *]"),
-            ("copies.fq", f"(language:{lang} OR (*:* -language:*))"),
-            ("copies.rows", COPIES_CHECKED),
+            ("copies.rows", COPIES_FETCHED),
             ("copies.fl", "key,ia,language,ebook_access,cover_i"),
             ("wt", "json"),
         ]
-        found = async_bridge.run(get_solr().raw_request("select", urlencode(params), _timeout=2)).json()["response"]["docs"]
+        answer = async_bridge.run(get_solr().raw_request("select", urlencode(params), _timeout=EDITIONS_TIMEOUT_SECS)).json()
+        if answer.get("responseHeader", {}).get("partialResults"):
+            # Search ran out of time: what it sent is not every edition, and would leave books off wrongly.
+            raise TimeoutError("partial results")
+        found = answer["response"]["docs"]
     except Exception:
         logger.warning("home: could not read editions by language", exc_info=True)
         return None
-    return {work["key"]: (work.get("copies") or {}).get("docs") or [] for work in found}
+
+    def readable(edition: dict) -> bool:
+        return bool(edition.get("ia")) and (not edition.get("language") or lang in edition["language"])
+
+    # Narrowed here and not in the query: a filter on "no language recorded" is built over every edition there is.
+    return {work["key"]: [e for e in (work.get("copies") or {}).get("docs") or [] if readable(e)][:COPIES_CHECKED] for work in found}
 
 
 class AvailabilityBudget:
