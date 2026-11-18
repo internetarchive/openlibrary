@@ -7,9 +7,9 @@ from typing import Literal, override
 
 import web
 from icu import Collator, Locale
-
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+
 from openlibrary.core import cache
 from openlibrary.plugins.upstream.utils import get_language_name
 from openlibrary.utils.async_utils import async_bridge
@@ -89,32 +89,6 @@ class index(delegate.page):
 
     def is_enabled(self):
         return True
-
-
-class language_search(delegate.page):
-    path = "/search/languages"
-
-    def GET(self):
-        i = web.input(q="")
-        solr = search.get_solr()
-        q = {"language": i.q}
-
-        result = solr.select(q, facets=["language"], fields=["language"], rows=0)
-        result = self.process_result(result)
-        return render_template("search/languages", i.q, result)
-
-    def process_result(self, result):
-        solr = search.get_solr()
-
-        def process(p):
-            return web.storage(
-                name=p.value,
-                key="/languages/" + p.value.replace(" ", "_"),
-                count=solr.select({"language": p.value}, rows=0)["num_found"],
-            )
-
-        language_facets = result["facets"]["language"][:25]
-        return [process(p) for p in language_facets]
 
 
 @dataclass
