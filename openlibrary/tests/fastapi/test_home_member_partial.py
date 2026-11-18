@@ -82,9 +82,9 @@ def test_greeting_name_skips_usernames_and_long_names():
 def test_reading_now_offers_a_button_only_for_a_free_copy(request_context_fixture):
     request_context_fixture(lang="en")
     docs = [
-        web.storage(key="/works/OL1W", title="free", editions={"docs": [{"key": "/books/OL1M"}]}),
+        web.storage(key="/works/OL1W", title="free", ia=["free00"], editions={"docs": [{"key": "/books/OL1M"}]}),
         web.storage(key="/works/OL9W"),  # not in search: no title, dropped
-        web.storage(key="/works/OL2W", title="out"),
+        web.storage(key="/works/OL2W", title="out", ia=["out00"]),
     ]
     statuses = {"free": "borrow_available", "out": "borrow_unavailable"}
 
@@ -102,8 +102,14 @@ def test_reading_now_offers_a_button_only_for_a_free_copy(request_context_fixtur
         patch("openlibrary.plugins.openlibrary.partials._render_carousel_card_loan_status", side_effect=lambda book, **kw: f"<{kw['layout']}>") as cta,
         patch("openlibrary.plugins.upstream.mybooks.shelf_button_for", side_effect=lambda doc, **kw: f"<shelf {kw.get('size')}>"),
     ):
-        books = _home_member().reading_now(ReadLog())
+        # Availability that answers for no book: the same books, none with a button.
+        with patch("openlibrary.core.lending.add_availability"):
+            unchecked, unchecked_known = _home_member().reading_now(ReadLog())
+        books, known = _home_member().reading_now(ReadLog())
 
+    assert known
+    assert not unchecked_known
+    assert [(b["title"], b["cta"]) for b in unchecked] == [("free", ""), ("out", "")]
     assert [(b["title"], b["cta"]) for b in books] == [("free", "<ol-carousel>"), ("out", "")]
     assert [b["shelf"] for b in books] == ["<shelf small>"] * 2
     # The button is for the work, whose availability names the free copy, not the edition the reader logged.
@@ -113,10 +119,10 @@ def test_reading_now_offers_a_button_only_for_a_free_copy(request_context_fixtur
 def test_want_available_keeps_only_copies_free_now(request_context_fixture):
     request_context_fixture(lang="en")
     docs = [
-        web.storage(key="/works/OL1W", title="free"),
-        web.storage(key="/works/OL2W", title="out"),
-        web.storage(key="/works/OL3W", title="open"),
-        web.storage(key="/works/OL4W", title="unknown"),
+        web.storage(key="/works/OL1W", title="free", ia=["free00"]),
+        web.storage(key="/works/OL2W", title="out", ia=["out00"]),
+        web.storage(key="/works/OL3W", title="open", ia=["open00"]),
+        web.storage(key="/works/OL4W", title="unknown", ia=["unknown00"]),
     ]
     statuses = {"free": "borrow_available", "out": "borrow_unavailable", "open": "open", "unknown": "error"}
 
@@ -130,9 +136,30 @@ def test_want_available_keeps_only_copies_free_now(request_context_fixture):
             return web.storage(docs=docs)
 
     with patch("openlibrary.core.lending.add_availability", side_effect=add_availability):
-        free = _home_member().want_available(ReadLog())
+        free, known = _home_member().want_available(ReadLog())
 
+    assert known
     assert [doc["title"] for doc in free] == ["free", "open"]
+
+
+def test_want_available_shows_the_shelf_when_availability_cannot_be_read(request_context_fixture):
+    request_context_fixture(lang="en")
+    docs = [web.storage(key="/works/OL1W", title="one", ia=["one00"]), web.storage(key="/works/OL2W", title="two", ia=["two00"])]
+
+    class ReadLog:
+        def get_works(self, key, limit, fq):
+            return web.storage(docs=docs)
+
+    def errors(items):
+        for item in items:
+            item["availability"] = {"status": "error"}
+
+    # The service answers with nothing (`success: false`), or with an error for every book (a timeout).
+    for add_availability in (lambda items: None, errors):
+        with patch("openlibrary.core.lending.add_availability", side_effect=add_availability):
+            want, known = _home_member().want_available(ReadLog())
+        assert not known
+        assert [doc["title"] for doc in want] == ["one", "two"]
 
 
 def test_generate_keeps_the_request_context(request_context_fixture):

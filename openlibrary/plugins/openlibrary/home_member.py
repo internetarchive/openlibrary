@@ -191,20 +191,30 @@ def build_agenda(loans: list[dict], holds: list[dict], reading: list[dict]) -> l
     return in_hand + rest
 
 
-def want_available(readlog) -> list:
+def availability_known(docs: list) -> bool:
+    """False when the availability service answered for none of the books: an outage, not a shelf with nothing free."""
+    statuses = [(doc.get("availability") or {}).get("status") for doc in docs if lending.get_ocaid(doc)]
+    return not statuses or any(status and status != "error" for status in statuses)
+
+
+def want_available(readlog) -> tuple[list, bool]:
     """Want to Read, narrowed twice: to works Solr says can be borrowed at all, then to the ones with a copy
-    free at this moment. Empty when availability can't be read: the row promises "now"."""
+    free at this moment. When availability can't be read the second narrowing is skipped, and False is returned
+    with the books so the row doesn't promise "now"."""
     from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 
     works = readlog.get_works("want-to-read", limit=WANT_CHECKED, fq=[f"ebook_access:[{get_fulltext_min()} TO *]"])
     docs = [doc for doc in works.docs if doc.get("title")]
     lending.add_availability(docs)
-    return [doc for doc in docs if (doc.get("availability") or {}).get("status") in ("open", "borrow_available")][:WANT_SHOWN]
+    if not availability_known(docs):
+        return docs[:WANT_SHOWN], False
+    return [doc for doc in docs if (doc.get("availability") or {}).get("status") in ("open", "borrow_available")][:WANT_SHOWN], True
 
 
-def reading_now(readlog) -> list[dict]:
+def reading_now(readlog) -> tuple[list[dict], bool]:
     """The newest of the Currently Reading shelf, as many as the card can hold. Each book carries a Read or Borrow button when a copy is
-    free right now, and the shelf control that moves it to Already Read or off the list."""
+    free right now, and the shelf control that moves it to Already Read or off the list. False is returned with
+    the books when availability can't be read, which leaves them all without a button."""
     from markupsafe import Markup
 
     from openlibrary.plugins.openlibrary.partials import _render_carousel_card_loan_status
@@ -231,7 +241,7 @@ def reading_now(readlog) -> list[dict]:
                 "shelf": Markup(shelf_button_for(doc, variant="menu", size="small", async_load=True)),
             }
         )
-    return books
+    return books, availability_known(docs)
 
 
 def greeting_name(user) -> str:
@@ -243,7 +253,8 @@ def greeting_name(user) -> str:
 
 def build_member(user) -> dict:
     """Everything of the reader's own the home page shows. Each part fails on its own, so a lending outage
-    costs the loans and not the section."""
+    costs the loans and not the section. Without availability the Want to Read row is the shelf as it stands
+    and no book offers a Read or Borrow button."""
     from openlibrary.plugins.upstream.mybooks import ReadingLog
 
     failed = []
@@ -259,19 +270,22 @@ def build_member(user) -> dict:
     readlog = ReadingLog(user)
     loans = attempt("loans", lambda: get_loans(user.key), [])
     holds = attempt("holds", lambda: get_holds(user), [])
-    reading = attempt("currently reading", lambda: reading_now(readlog), [])
+    reading, reading_known = attempt("currently reading", lambda: reading_now(readlog), ([], True))
     # A borrowed book is usually on Currently Reading too; it is shown once, as the loan.
     on_loan = {loan["title"] for loan in loans}
     reading = [brief for brief in reading if brief["title"] not in on_loan]
 
-    want = attempt("want to read", lambda: want_available(readlog), [])
+    want, want_known = attempt("want to read", lambda: want_available(readlog), ([], True))
 
     return {
         "name": greeting_name(user),
         "agenda": build_agenda(loans, holds, reading),
         "side": AGENDA_SIDE,
         "want": [brief_from_doc(doc) for doc in want],
-        "complete": not failed,
+        # False when `want` is the shelf as it stands, not checked for a free copy.
+        "want_checked": want_known,
+        # A section built without availability is shown, and built again on the next view.
+        "complete": not failed and reading_known and want_known,
     }
 
 

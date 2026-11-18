@@ -6,7 +6,8 @@
   opens the shelf menu, the way to mark it finished or take it off the list. On a line that button shows on
   hover or focus (always on touch); home-member.js marks a book that has left the shelf.
   `member` is home_member.build_member(): `member.agenda` is their loans, holds and Currently Reading books
-  as one list, the book in hand first; `member.want` is the free Want to Read books.
+  as one list, the book in hand first; `member.want` is the free Want to Read books, or when
+  availability can't be read (`member.want_checked` is false) the shelf's borrowable books, free or not.
   Fetched after load by home-member.js (HomeMemberPartial).
 #}
 {% set member = member | default(none) %}
@@ -141,7 +142,7 @@
                     <div class="home-now__label-row">
                         <h3 class="home-now__label">
                             {{ icon("bookmark", size="sm", extra_class="home-now__label-icon") }}
-                            {{ _("Want to Read, available now") }}
+                            {{ _("Want to Read, available now") if member.want_checked else _("Want to Read") }}
                         </h3>
                         <a class="carousel-see-all"
                            href="/account/books/want-to-read"
