@@ -27,7 +27,7 @@ class InvalidType(TypeError):
 def connect_to_pg(config_file):
     """Connects to the postgres database specified in the dictionary
     `config`. Needs a top level key `db_parameters` and under that
-    `database` (or `db`) at the least. If `user` and `host` are
+    `database` (or `db`) at the least. If `user`, `host` and `port` are
     provided, they're used as well."""
     with open(config_file) as f:
         config = yaml.safe_load(f)
@@ -41,6 +41,8 @@ def connect_to_pg(config_file):
         conf["host"] = host
     if user:
         conf["user"] = user
+    if port := config["db_parameters"].get("port"):
+        conf["port"] = port
     logger.debug(" Postgres Database : %(db)s" % conf)
     return web.database(dbn="postgres", **conf)  # noqa: TID251
 
