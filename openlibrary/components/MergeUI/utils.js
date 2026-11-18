@@ -6,6 +6,15 @@ const collator = new Intl.Collator('en-US', { numeric: true });
 export const DEFAULT_EDITION_LIMIT = 200;
 
 /**
+ * Whether the editions response reached the API limit while more editions exist.
+ * @param {{ entries: unknown[], size: number }} editionList
+ * @returns {boolean}
+ */
+export function isEditionListTruncated(editionList) {
+    return editionList.entries.length === DEFAULT_EDITION_LIMIT && editionList.size > DEFAULT_EDITION_LIMIT;
+}
+
+/**
  * Deep copy of a JSON record. Unlike structuredClone, this also accepts Vue reactive proxies.
  * @template T
  * @param {T} value

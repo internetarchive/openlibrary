@@ -58,7 +58,7 @@
 <script>
 /* eslint no-console: 0 */
 import MergeRow from './MergeRow.vue';
-import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_author_names, fetchWithRetry, cloneJSON } from './utils.js';
+import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_author_names, fetchWithRetry, cloneJSON, isEditionListTruncated } from './utils.js';
 import CONFIGS from '../configs.js';
 
 function olidToKey(olid) {
@@ -261,7 +261,7 @@ export default {
                         work.type.key === '/type/work' &&
                         this.selected[work.key] &&
                         work.key !== this.master_key &&
-                        this.editions[work.key].entries.length < this.editions[work.key].size
+                        isEditionListTruncated(this.editions[work.key])
                 )
                 .map(r => r.key);
 
