@@ -124,13 +124,17 @@ function fetchGitHub({ pr, issues = {}, prThrows = false }) {
 }
 const issue = (n, extra = {}) => ({ number: n, html_url: URL(n), title: `Issue ${n}`, body: `Body ${n}`, labels: [], ...extra });
 
-test('fetch step: writes up to 3 linked issues with title, body and labels; skips PRs, missing and moved issues', () =>
+test('fetch step: writes up to 3 linked issues with title, body, type and labels; skips PRs, missing and moved issues', () =>
     withDir(async d => {
         const { github, asked } = fetchGitHub({
             pr: { title: 'Fix the thing (#16)', body: 'Closes #10\nCloses #11, #12, #13, #14, #15', head: { ref: '17/fix/thing' } },
             issues: {
                 10: issue(10, { pull_request: { url: 'x' } }), // a PR, not an issue
-                11: issue(11, { body: `<!-- template hint -->Real ask.${'x'.repeat(20000)}`, labels: [{ name: 'Type: Bug' }, 'Priority: 2'] }),
+                11: issue(11, {
+                    body: `<!-- template hint -->Real ask.${'x'.repeat(20000)}`,
+                    type: { name: 'Bug' },
+                    labels: [{ name: 'Good First Issue' }, 'Priority: 2']
+                }),
                 12: 410, // deleted
                 13: issue(13, { html_url: 'https://github.com/elsewhere/repo/issues/99' }), // transferred
                 14: issue(14, { body: null }),
@@ -150,11 +154,13 @@ test('fetch step: writes up to 3 linked issues with title, body and labels; skip
         const [first, second] = out;
         assert.equal(first.ticket_url, URL(11));
         assert.equal(first.title, 'Issue 11');
-        assert.deepEqual(first.labels, ['Type: Bug', 'Priority: 2']);
+        assert.equal(first.type, 'Bug');
+        assert.deepEqual(first.labels, ['Good First Issue', 'Priority: 2']);
         assert.ok(first.body.startsWith('Real ask.'), 'HTML comments are dropped');
         assert.equal(first.body.length, 10000 + 3, 'body capped at 10,000 characters plus "..."');
         assert.ok(first.body.endsWith('...'));
         assert.equal(second.body, '');
+        assert.equal(second.type, null, 'an issue with no type');
     }));
 
 test('fetch step: the branch name comes after the body and before the title', () =>
