@@ -48,7 +48,9 @@ def brief_from_doc(doc: dict) -> dict:
     """A Solr work doc as a card."""
     from openlibrary.plugins.openlibrary.partials import _resolve_carousel_card_cover_url
 
-    return _brief(doc.get("title", ""), ", ".join((doc.get("author_name") or [])[:2]), doc.get("key", ""), _resolve_carousel_card_cover_url(doc) or "")
+    # The cover of the edition on offer when it has one of its own (see AvailabilityBudget.add), else the work's.
+    cover_of = {"cover_i": cover} if (cover := (doc.get("offered_edition") or {}).get("cover_i")) else doc
+    return _brief(doc.get("title", ""), ", ".join((doc.get("author_name") or [])[:2]), doc.get("key", ""), _resolve_carousel_card_cover_url(cover_of) or "")
 
 
 def brief_from_book(book) -> dict:
@@ -202,6 +204,17 @@ def availability_known(docs: list) -> bool:
     return not statuses or any(status and status != "error" for status in statuses)
 
 
+FREE = ("open", "borrow_available")
+
+
+def _logged_edition(doc) -> dict | None:
+    """The edition the reader shelved, when they shelved one. Solr hands it as a list, or as a dict holding `docs`."""
+    editions = doc.get("editions") or []
+    if isinstance(editions, dict):
+        editions = editions.get("docs") or []
+    return editions[0] if isinstance(editions, list) and editions else None
+
+
 class AvailabilityBudget:
     """The time the section's availability checks may take between them. The lending timeout is far longer,
     and the reader is looking at a skeleton meanwhile."""
@@ -210,20 +223,30 @@ class AvailabilityBudget:
         self.left = secs
 
     def add(self, docs: list) -> bool:
-        """Reads availability onto `docs`. False when time ran out or the service answered for none of them."""
-        if not any(lending.get_ocaid(doc) for doc in docs):
+        """Reads availability onto `docs`. False when time ran out or the service answered for none of them.
+
+        Each work gets the copy to offer: the edition the reader shelved when that one is free, since it's
+        the version they chose, else the work's own lending copy. One request covers both."""
+        logged = {doc["key"]: edition for doc in docs if (edition := _logged_edition(doc)) and lending.get_ocaid(edition)}
+        if not any(lending.get_ocaid(doc) for doc in docs) and not logged:
             return True
         if self.left <= 0:
             return False
         started = time.monotonic()
         try:
-            async_bridge.run(asyncio.wait_for(lending.add_availability_async(docs), self.left))
+            async_bridge.run(asyncio.wait_for(lending.add_availability_async(docs + list(logged.values())), self.left))
         except TimeoutError:
             logger.warning("home: availability took longer than the %ss the section allows", AVAILABILITY_BUDGET_SECS)
             return False
         finally:
             self.left -= time.monotonic() - started
-        return availability_known(docs)
+        known = availability_known(docs + list(logged.values()))
+        for doc in docs:
+            edition = logged.get(doc["key"])
+            if edition and (edition.get("availability") or {}).get("status") in FREE:
+                doc["availability"] = edition["availability"] | {"identifier": lending.get_ocaid(edition)}
+                doc["offered_edition"] = edition
+        return known
 
 
 def want_available(readlog, budget: AvailabilityBudget) -> tuple[list, bool]:
@@ -236,7 +259,7 @@ def want_available(readlog, budget: AvailabilityBudget) -> tuple[list, bool]:
     docs = [doc for doc in works.docs if doc.get("title")]
     if not budget.add(docs):
         return docs[:WANT_SHOWN], False
-    return [doc for doc in docs if (doc.get("availability") or {}).get("status") in ("open", "borrow_available")][:WANT_SHOWN], True
+    return [doc for doc in docs if (doc.get("availability") or {}).get("status") in FREE][:WANT_SHOWN], True
 
 
 def want_brief(doc: dict, checked: bool) -> dict:
@@ -262,8 +285,8 @@ def reading_now(readlog, budget: AvailabilityBudget) -> tuple[list[dict], bool]:
     known = budget.add(docs)
     books = []
     for doc in docs:
-        free = (doc.get("availability") or {}).get("status") in ("open", "borrow_available")
-        # Without `editions` the button is for the work, whose availability names the free copy.
+        free = (doc.get("availability") or {}).get("status") in FREE
+        # Without `editions` the button is for the work, whose availability names the copy to offer.
         work = web.storage({k: v for k, v in doc.items() if k != "editions"})
 
         # `ol-carousel` is the layout that gets the small button.

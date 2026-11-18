@@ -112,7 +112,7 @@ def test_reading_now_offers_a_button_only_for_a_free_copy(request_context_fixtur
     assert [(b["title"], b["cta"]) for b in unchecked] == [("free", ""), ("out", "")]
     assert [(b["title"], b["cta"]) for b in books] == [("free", "<ol-carousel>"), ("out", "")]
     assert [b["shelf"] for b in books] == ["<shelf small>"] * 2
-    # The button is for the work, whose availability names the free copy, not the edition the reader logged.
+    # The button is for the work, whose availability names the copy to offer.
     assert "editions" not in cta.call_args.args[0]
 
 
@@ -160,6 +160,38 @@ def test_want_available_shows_the_shelf_when_availability_cannot_be_read(request
             want, known = _home_member().want_available(ReadLog(), _home_member().AvailabilityBudget())
         assert not known
         assert [doc["title"] for doc in want] == ["one", "two"]
+
+
+def test_want_available_prefers_the_shelved_edition_when_it_is_free(request_context_fixture):
+    request_context_fixture(lang="en")
+    docs = [
+        # The shelved edition is free: it is the copy offered, even with the work's own copy free too.
+        web.storage(key="/works/OL1W", title="mine", ia=["work1"], cover_i=1, editions=[{"key": "/books/OL1M", "ia": ["mine1"], "cover_i": 11}]),
+        # The shelved edition is out: the work's copy stands in.
+        web.storage(key="/works/OL2W", title="other", ia=["work2"], cover_i=2, editions={"docs": [{"key": "/books/OL2M", "ia": ["mine2"], "cover_i": 22}]}),
+        # Neither is free.
+        web.storage(key="/works/OL3W", title="none", ia=["work3"], editions=[{"key": "/books/OL3M", "ia": ["mine3"]}]),
+    ]
+    free = {"work1", "mine1", "work2"}
+    calls = []
+
+    def add_availability(items):
+        calls.append(len(items))
+        for item in items:
+            item["availability"] = {"status": "borrow_available" if item["ia"][0] in free else "borrow_unavailable", "identifier": item["ia"][0]}
+
+    class ReadLog:
+        def get_works(self, key, limit, fq):
+            return web.storage(docs=docs)
+
+    with patch("openlibrary.core.lending.add_availability_async", side_effect=add_availability):
+        want, known = _home_member().want_available(ReadLog(), _home_member().AvailabilityBudget())
+
+    assert known
+    assert calls == [6]  # works and shelved editions in one request
+    assert [_home_member().want_brief(doc, checked=True)["url"] for doc in want] == ["/works/OL1W?edition=ia:mine1", "/works/OL2W?edition=ia:work2"]
+    # The cover follows the copy: the shelved edition's when that is the one offered, else the work's.
+    assert [_home_member().brief_from_doc(doc)["cover_url"].rsplit("/", 1)[-1] for doc in want] == ["11-M.jpg", "2-M.jpg"]
 
 
 def test_want_brief_links_to_the_copy_that_was_checked(request_context_fixture):
