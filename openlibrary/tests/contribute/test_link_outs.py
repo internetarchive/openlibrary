@@ -2,7 +2,7 @@
 
 from types import SimpleNamespace
 
-from openlibrary.contribute.field_guides import build_link_outs, get_field_guides, is_speculative
+from openlibrary.contribute.field_guides import build_link_outs, get_field_guides, is_speculative, scan_tip
 from openlibrary.plugins.openlibrary import contribute
 
 ISBN = "9780441172719"
@@ -52,6 +52,19 @@ def test_an_edition_without_an_isbn_gets_title_and_author_searches():
     # ISFDB's title search takes the title alone.
     assert links[0].url.endswith("arg=The+Dispossessed&type=Fiction+Titles")
     assert build_link_outs(get_field_guides()["publishers"], None) == []
+
+
+def test_a_scan_leads_the_fields_it_answers_with_a_link():
+    guides = get_field_guides()
+    url = "https://archive.org/details/evilthirst00pike"
+    tip = scan_tip(guides["publishers"], url)
+    assert f'<a href="{url}" target="_blank"' in tip
+    assert tip.startswith("<a ")
+    assert "The scan</a>" in tip
+    # No scan, or a field the scan doesn't answer, adds nothing.
+    assert scan_tip(guides["publishers"], "") == ""
+    assert scan_tip(guides["oclc_numbers"], url) == ""
+    assert scan_tip(guides["covers"], url) == ""
 
 
 def test_contributors_show_with_their_roles():
