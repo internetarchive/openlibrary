@@ -88,6 +88,16 @@ describe('ol-shelf-button shapes', () => {
         expect(q(el, 'ol-icon').getAttribute('name')).toBe('circle-check-filled');
     });
 
+    test('menu is a glyph and a caret that only opens the menu', async () => {
+        const el = await mount({ variant: 'menu', shelf: SHELF.CURRENTLY_READING, userKey: '/people/tester' });
+        const trigger = q(el, '.save');
+        expect(trigger.getAttribute('aria-label')).toBe('More options for The Two Towers');
+        expect([...trigger.querySelectorAll('ol-icon')].map(i => i.getAttribute('name'))).toEqual(['book-open-filled', 'chevron-down']);
+        // No main half: nothing here toggles a shelf in one tap.
+        expect(q(el, '.main')).toBeNull();
+        expect(trigger.getAttribute('slot')).toBe('trigger');
+    });
+
     test('on a shelf, both shapes show it', async () => {
         const split = await mount({ shelf: SHELF.ALREADY_READ, userKey: '/people/tester' });
         expect(q(split, '.main').textContent.trim()).toBe('Already Read');

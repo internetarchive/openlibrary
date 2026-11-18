@@ -2,6 +2,9 @@
   The top of the home page for a signed-in reader, as one section about now: a card holding the book they
   have in hand and a line for each other book in progress, and beside it the covers of their Want to Read
   books that have a copy free.
+  A Currently Reading book gets a Read or Borrow button only when a copy is free, and a caret button that
+  opens the shelf menu, the way to mark it finished or take it off the list. On a line that button shows on
+  hover or focus (always on touch); home-member.js marks a book that has left the shelf.
   `member` is home_member.build_member(): `member.agenda` is their loans, holds and Currently Reading books
   as one list, the book in hand first; `member.want` is the free Want to Read books.
   Fetched after load by home-member.js (HomeMemberPartial).
@@ -39,10 +42,25 @@
         {{ item.status }}
     </p>
 {% endmacro %}
+{# A loan or hold has its own button; a Currently Reading book gets Read or Borrow when a copy is free, else none. #}
+{% macro read_button(item, size) %}
+    {% if item.action %}
+        {{ action(item, "primary" if size == "medium" else "secondary", size) }}
+    {% elif item.cta is defined and item.cta %}
+        <div class="home-now__cta">{{ item.cta if size == "medium" else item.cta_small }}</div>
+    {% endif %}
+{% endmacro %}
+{# The caret button that opens the shelf menu: the way to mark a book finished, stopped or off the list. #}
+{% macro shelf_menu(item, small=false) %}
+    {% if item.shelf is defined and item.shelf %}
+        <div class="home-now__shelf">{{ item.shelf_small if small else item.shelf }}</div>
+    {% endif %}
+{% endmacro %}
 {% if agenda or want %}
     {% set first = agenda[0] if agenda else none %}
     <section class="home-now{{ ' home-now--no-reading' if not agenda else '' }}{{ ' home-now--no-want' if not want else '' }}"
-             aria-labelledby="home-now-title">
+             aria-labelledby="home-now-title"
+             data-moved-labels="{{ {'1': _('Moved to Want to Read') , '3': _('Moved to Already Read'), '4': _('Moved to Stopped Reading'), 'none': _('Removed from your shelves')} | tojson | forceescape }}">
         <div class="home-now__head">
             <h2 class="home-now__title" id="home-now-title">
                 {% if agenda %}
@@ -68,27 +86,43 @@
             {% if first %}
                 {# One card for everything in progress: the book in hand, then a line for each of the others. #}
                 <div class="home-now__reading">
-                    <article class="home-now__main">
+                    <h3 class="home-now__label">
+                        {{ icon("book-open", size="sm", extra_class="home-now__label-icon") }}
+                        {{ _("Currently reading") }}
+                    </h3>
+                    <article class="home-now__main"
+                             data-work-key="{{ first.work_key | default('') }}">
                         {{ cover(first, "home-now__cover") }}
                         <div class="home-now__text">
-                            {{ status(first) }}
-                            <h3 class="home-now__book">
+                            {% if first.status %}{{ status(first) }}{% endif %}
+                            <h4 class="home-now__book">
                                 <a href="{{ first.url }}">{{ first.title }}</a>
-                            </h3>
+                            </h4>
                             <p class="home-now__author">{{ first.author }}</p>
                             {% if first.note is defined %}<p class="home-now__note">{{ first.note }}</p>{% endif %}
-                            <div class="home-now__main-action">{{ action(first, "primary", "medium") }}</div>
+                            <p class="home-now__moved" role="status"></p>
+                            <div class="home-now__main-action">
+                                {{ read_button(first, "medium") }}
+                                {{ shelf_menu(first) }}
+                            </div>
                         </div>
                     </article>
                     {% if agenda[1:] %}
                         <ul class="home-now__rest">
                             {% for item in agenda[1:member.side + 1] %}
-                                <li class="home-now__item">
+                                <li class="home-now__item"
+                                    data-work-key="{{ item.work_key | default('') }}">
                                     <ol-book-cover class="home-now__thumb" size="small" src="{{ item.thumb_url }}" book-title="{{ item.title }}" authors="{{ item.author }}" href="{{ item.url }}">
                                     </ol-book-cover>
-                                    <a class="home-now__item-title" href="{{ item.url }}">{{ item.title }}</a>
-                                    {{ status(item) }}
-                                    {% if item.kind in ("ready", "loan") %}{{ action(item, "secondary", "small") }}{% endif %}
+                                    <div class="home-now__item-body">
+                                        <a class="home-now__item-title" href="{{ item.url }}">{{ item.title }}</a>
+                                        <p class="home-now__moved" role="status"></p>
+                                        {% if item.status %}{{ status(item) }}{% endif %}
+                                        <div class="home-now__item-actions">
+                                            {{ shelf_menu(item, true) }}
+                                            {{ read_button(item, "small") }}
+                                        </div>
+                                    </div>
                                 </li>
                             {% endfor %}
                         </ul>
@@ -99,7 +133,7 @@
                 <div class="home-now__want">
                     <h3 class="home-now__label">
                         {{ icon("bookmark", size="sm", extra_class="home-now__label-icon") }}
-                        {{ _("Free now from your Want to Read list") }}
+                        {{ _("Want to Read, available now") }}
                     </h3>
                     <ul class="home-now__wall">
                         {% for item in want %}<li>{{ cover(item, "", "small") }}</li>{% endfor %}

@@ -51,9 +51,43 @@ def test_agenda_leads_with_the_loan_then_what_has_a_clock(request_context_fixtur
 
 def test_agenda_without_a_loan_leads_with_currently_reading(request_context_fixture):
     request_context_fixture(lang="en")
-    agenda = _home_member().build_agenda(loans=[], holds=[_hold("ready", ready=True)], reading=[_book("first"), _book("second")])
+    agenda = _home_member().build_agenda(loans=[], holds=[_hold("ready", ready=True)], reading=[_book("first", cta="<read>"), _book("second")])
     assert [card["title"] for card in agenda] == ["first", "ready", "second"]
-    assert agenda[0]["action"]["form"] is None
+    # A Currently Reading book has no button or status of ours, only what the shelf gave it.
+    assert agenda[0]["action"] is None
+    assert agenda[0]["status"] == ""
+    assert agenda[0]["cta"] == "<read>"
+    assert agenda[2]["cta"] == ""
+
+
+def test_reading_now_offers_a_button_only_for_a_free_copy(request_context_fixture):
+    request_context_fixture(lang="en")
+    docs = [
+        web.storage(key="/works/OL1W", title="free", editions={"docs": [{"key": "/books/OL1M"}]}),
+        web.storage(key="/works/OL2W", title="out"),
+    ]
+    statuses = {"free": "borrow_available", "out": "borrow_unavailable"}
+
+    def add_availability(items):
+        for item in items:
+            item["availability"] = {"status": statuses[item["title"]]}
+
+    class ReadLog:
+        def get_works(self, key, limit):
+            assert key == "currently-reading"
+            return web.storage(docs=docs)
+
+    with (
+        patch("openlibrary.core.lending.add_availability", side_effect=add_availability),
+        patch("openlibrary.plugins.openlibrary.partials._render_carousel_card_loan_status", side_effect=lambda book, **kw: f"<{kw['layout']}>") as cta,
+        patch("openlibrary.plugins.upstream.mybooks.shelf_button_for", side_effect=lambda doc, **kw: f"<shelf {kw.get('size')}>"),
+    ):
+        books = _home_member().reading_now(ReadLog())
+
+    assert [(b["title"], b["cta"], b["cta_small"]) for b in books] == [("free", "<None>", "<ol-carousel>"), ("out", "", "")]
+    assert [(b["shelf"], b["shelf_small"]) for b in books] == [("<shelf None>", "<shelf small>")] * 2
+    # The button is for the work, whose availability names the free copy, not the edition the reader logged.
+    assert "editions" not in cta.call_args.args[0]
 
 
 def test_want_available_keeps_only_copies_free_now(request_context_fixture):

@@ -120,6 +120,10 @@ body[data-user-key] .home-welcome {
 }
 
 .home-now__main-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-md);
   margin-top: auto;
   padding-top: var(--spacing-stack-sm);
 }
@@ -271,5 +275,106 @@ body[data-user-key] .home-welcome {
     padding-inline-start: 0;
     border-top: 1px solid var(--color-border-subtle);
     border-inline-start: 0;
+  }
+}
+
+/* The buttons on a book in progress ------------------------------------------- */
+
+.home-now__cta,
+.home-now__shelf {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+}
+
+.home-now__cta .cta-btn {
+  margin: 0;
+}
+
+/* On a line the legacy button takes the small control height,
+   as it does on a carousel card (buttonCta.css). */
+.home-now__item .home-now__cta .cta-btn {
+  display: block;
+  height: var(--control-height-small);
+  min-height: var(--control-height-small);
+  padding-block: 0;
+  padding-inline: var(--spacing-sm);
+  font-size: var(--font-size-label-medium);
+  line-height: calc(var(--control-height-small) - 2px);
+}
+
+/* Where a book went once it has left Currently Reading; empty until then. */
+.home-now__moved {
+  margin: 0;
+  font-size: var(--font-size-label-medium);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.home-now__moved:empty {
+  display: none;
+}
+
+.is-moved .home-now__cta {
+  display: none;
+}
+
+.is-moved
+  :is(
+    ol-book-cover,
+    .home-now__book,
+    .home-now__author,
+    .home-now__item-title
+  ) {
+  opacity: 0.5;
+}
+
+/* A line: cover, title, then its buttons at the right edge. The body's
+   children sit on the line itself. */
+.home-now__item-body {
+  display: contents;
+}
+
+.home-now__item-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+}
+
+/* On a line the shelf menu waits for the pointer, and until then takes no
+   room: the title runs the full line, and gives way only while the button is
+   showing. It is clipped, not removed, so the keyboard still reaches it. Touch
+   has no hover and keeps it. The book in hand always shows its own. */
+@media (hover: hover) and (pointer: fine) {
+  .home-now__item .home-now__shelf {
+    max-width: 0;
+    overflow: hidden;
+    margin-inline-end: calc(-1 * var(--spacing-inline-sm));
+    opacity: 0;
+  }
+
+  .home-now__item:hover .home-now__shelf,
+  .home-now__item .home-now__shelf:focus-within,
+  .home-now__item .home-now__shelf:has([open]),
+  .home-now__item.is-moved .home-now__shelf {
+    max-width: none;
+    overflow: visible;
+    margin-inline-end: 0;
+    opacity: 1;
+  }
+}
+
+/* A line with no button of ours ends in the menu alone. */
+.home-now__item-actions:not(:has(.home-now__cta, .home-now__action))
+  .home-now__shelf {
+  margin-inline-end: 0;
+}
+
+/* Beside the card, the list's heading drops to the line of the card's own. */
+@media (min-width: 768px) {
+  .home-now:not(.home-now--no-reading) .home-now__want {
+    padding-top: calc(var(--spacing-inset-md) + 1px);
   }
 }

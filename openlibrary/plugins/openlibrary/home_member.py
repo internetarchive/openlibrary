@@ -8,6 +8,8 @@ HomeMemberPartial (partials.py) and rendered with home/member.html.jinja.
 import logging
 from datetime import UTC, datetime
 
+import web
+
 from openlibrary.core import cache, lending
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.i18n import gettext as _
@@ -169,7 +171,12 @@ def build_agenda(loans: list[dict], holds: list[dict], reading: list[dict]) -> l
         if hold["ready"]
     ]
     waiting = [card(hold, "waiting", hold["note"], "plain", _("View")) for hold in holds if not hold["ready"]]
-    reading_cards = [card(book, "reading", _("Currently reading"), "plain", _("Open the book")) for book in reading]
+    # A Currently Reading book says nothing about itself and has no button of ours: the template gives it a
+    # Read or Borrow button when a copy is free (`cta`), and the control that moves it off the shelf (`shelf`).
+    reading_cards = [
+        card(book, "reading", "", "plain", "") | {"action": None} | {key: book.get(key, "") for key in ("cta", "cta_small", "shelf", "shelf_small", "work_key")}
+        for book in reading
+    ]
     in_hand = loan_cards[:1] or reading_cards[:1]
     rest = ready + loan_cards[1:] + (reading_cards if loan_cards else reading_cards[1:]) + waiting
     return in_hand + rest
@@ -184,6 +191,39 @@ def want_available(readlog) -> list:
     docs = [doc for doc in works.docs if doc.get("title")]
     lending.add_availability(docs)
     return [doc for doc in docs if (doc.get("availability") or {}).get("status") in ("open", "borrow_available")][:WANT_SHOWN]
+
+
+def reading_now(readlog) -> list[dict]:
+    """The Currently Reading shelf, newest first. Each book carries a Read or Borrow button when a copy is
+    free right now, and the shelf control that moves it to Already Read or off the list."""
+    from markupsafe import Markup
+
+    from openlibrary.plugins.openlibrary.partials import _render_carousel_card_loan_status
+    from openlibrary.plugins.upstream.mybooks import shelf_button_for
+
+    docs = [doc for doc in readlog.get_works("currently-reading", limit=6).docs if doc.get("title")]
+    lending.add_availability(docs)
+    books = []
+    for doc in docs:
+        free = (doc.get("availability") or {}).get("status") in ("open", "borrow_available")
+        # Without `editions` the button is for the work, whose availability names the free copy.
+        work = web.storage({k: v for k, v in doc.items() if k != "editions"})
+
+        def cta(layout, work=work, free=free):
+            return _render_carousel_card_loan_status(work, work_key=work.get("key"), key="home-reading", layout=layout) if free else ""
+
+        books.append(
+            brief_from_doc(doc)
+            | {
+                "work_key": doc.get("key", ""),
+                "cta": cta(None),
+                "cta_small": cta("ol-carousel"),
+                # A caret button that opens the shelf menu, at the lead book's size and at a row's.
+                "shelf": Markup(shelf_button_for(doc, variant="menu", async_load=True)),
+                "shelf_small": Markup(shelf_button_for(doc, variant="menu", size="small", async_load=True)),
+            }
+        )
+    return books
 
 
 def build_member(user) -> dict:
@@ -204,10 +244,10 @@ def build_member(user) -> dict:
     readlog = ReadingLog(user)
     loans = attempt("loans", lambda: get_loans(user.key), [])
     holds = attempt("holds", lambda: get_holds(user), [])
-    reading = attempt("currently reading", lambda: readlog.get_works("currently-reading", limit=6).docs, [])
+    reading = attempt("currently reading", lambda: reading_now(readlog), [])
     # A borrowed book is usually on Currently Reading too; it is shown once, as the loan.
     on_loan = {loan["title"] for loan in loans}
-    reading = [brief for brief in map(brief_from_doc, reading) if brief["title"] not in on_loan]
+    reading = [brief for brief in reading if brief["title"] not in on_loan]
 
     want = attempt("want to read", lambda: want_available(readlog), [])
 

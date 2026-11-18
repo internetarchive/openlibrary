@@ -708,7 +708,7 @@ def shelf_button_for(
     `reading_states` is the page's `get_reading_states()`; left out, the button looks its own up.
     `async_load` renders the button without the reader's key and state, for HTML that is not
     per-reader (carousel cards, which are cached or fetched lazily); book-state.js fills both in.
-    `size="large"` is the `icon` badge for a book page's big cover.
+    `size="large"` is the `icon` badge for a book page's big cover; `size="small"` fits the `menu` button to a row of small buttons.
     `slot` places the button in a host's named slot, e.g. `<ol-book-cover>`'s "overlay".
     """
     work_key = work_key_of(doc)

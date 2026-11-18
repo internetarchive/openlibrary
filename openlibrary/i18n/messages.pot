@@ -5054,6 +5054,22 @@ msgid "Up %(percent)d%% over the month"
 msgstr ""
 
 #: home/member.html.jinja
+msgid "Moved to Want to Read"
+msgstr ""
+
+#: home/member.html.jinja
+msgid "Moved to Already Read"
+msgstr ""
+
+#: home/member.html.jinja
+msgid "Moved to Stopped Reading"
+msgstr ""
+
+#: home/member.html.jinja
+msgid "Removed from your shelves"
+msgstr ""
+
+#: home/member.html.jinja
 msgid "Pick up where you left off"
 msgstr ""
 
@@ -5065,8 +5081,13 @@ msgstr ""
 msgid "Loans and holds"
 msgstr ""
 
+#. Short label displayed next to the count of readers currently reading this book, shown in the stats bar on a book page. Example: "1,247 Currently reading".
+#: StarRatingsStats.html home/member.html.jinja
+msgid "Currently reading"
+msgstr ""
+
 #: home/member.html.jinja
-msgid "Free now from your Want to Read list"
+msgid "Want to Read, available now"
 msgstr ""
 
 #: home/welcome.html
@@ -8129,11 +8150,6 @@ msgstr[1] ""
 msgid "Want to read"
 msgstr ""
 
-#. Short label displayed next to the count of readers currently reading this book, shown in the stats bar on a book page. Example: "1,247 Currently reading".
-#: StarRatingsStats.html openlibrary/plugins/openlibrary/home_member.py
-msgid "Currently reading"
-msgstr ""
-
 #. Short label displayed next to the count of readers who have finished this book, shown in the stats bar on a book page. Example: "15,420 Have read". This refers to the same shelf as the "Already Read" button.
 #: StarRatingsStats.html
 msgid "Have read"
@@ -10702,10 +10718,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home_member.py
 msgid "Borrow now"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home_member.py
-msgid "Open the book"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py

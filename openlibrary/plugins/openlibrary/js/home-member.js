@@ -8,6 +8,7 @@
  *
  * @module home-member
  */
+import { SHELF } from '../../../components/lit/utils/books-api.js';
 import { buildPartialsUrl } from './utils';
 
 /**
@@ -28,8 +29,32 @@ export async function initHomeMember(slot) {
             return;
         }
         slot.innerHTML = html;
+        watchShelves(slot);
     } catch {
         // The rest of the home page stands without it.
         slot.remove();
     }
+}
+
+/**
+ * Keeps the books in progress honest after a shelf change made here: a book
+ * that has left Currently Reading stays in place, dimmed, and says where it
+ * went, so the menu beside it can still bring it back. The next load drops it.
+ *
+ * @param {HTMLElement} slot
+ */
+function watchShelves(slot) {
+    const section = slot.querySelector('.home-now');
+    if (!section) return;
+    const labels = JSON.parse(section.dataset.movedLabels || '{}');
+
+    document.addEventListener('ol-book-state-change', e => {
+        const { key, shelf } = e.detail;
+        for (const row of section.querySelectorAll(`[data-work-key="${key}"]`)) {
+            const moved = shelf !== SHELF.CURRENTLY_READING;
+            row.classList.toggle('is-moved', moved);
+            const note = row.querySelector('.home-now__moved');
+            if (note) note.textContent = moved ? labels[shelf ?? 'none'] || '' : '';
+        }
+    });
 }

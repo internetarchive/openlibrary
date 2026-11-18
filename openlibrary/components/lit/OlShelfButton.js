@@ -50,7 +50,11 @@ export const DEFAULT_LABELS = {
  *
  * @element ol-shelf-button
  *
- * @prop {"split" | "icon" | "outline"} variant - Default: "split"
+ * @prop {"split" | "icon" | "outline" | "menu"} variant - Default: "split".
+ *     `menu` is the outline square with a caret beside the glyph: one button
+ *     that only opens the menu, for a row whose book is already on a shelf
+ *     and needs a way off it more than a way on. `size="small"` fits it to a
+ *     row of small buttons
  * @prop {"large"} size - Scales the `icon` badge up for a big cover:
  *     a bigger circle a shade translucent, so the cover tints it, and the
  *     glyph stamped into it. Unset is the carousel-card size
@@ -407,6 +411,65 @@ export class OlShelfButton extends LitElement {
             outline-offset: -2px;
         }
 
+        /* ── Menu variant ─────────────────────────────────────────── */
+
+        /* The outline shape, wide enough for the shelf's glyph and a caret.
+           It stays neutral when the book is shelved: the glyph carries the
+           state, and a row of tinted buttons would outweigh the books. */
+        :host([variant='menu']) .save {
+            box-sizing: border-box;
+            gap: var(--spacing-inline-xs);
+            width: auto;
+            height: var(--control-height-medium);
+            padding-inline: var(--spacing-inset-xs);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--border-radius-button);
+            background: var(--white);
+            box-shadow:
+                var(--box-shadow-raised),
+                inset 0 1px 0 color-mix(in srgb, var(--white) var(--control-highlight-strength), var(--control-surface));
+        }
+
+        :host([variant='menu'][size='small']) .save {
+            height: var(--control-height-small);
+        }
+
+        :host([variant='menu']) .save::before {
+            content: none;
+        }
+
+        :host([variant='menu']) .glyph {
+            width: 16px;
+            height: 16px;
+            --ol-icon-stroke-width: 2;
+        }
+
+        :host([variant='menu']) .caret {
+            width: 14px;
+            height: 14px;
+            flex: none;
+            color: var(--color-text-secondary);
+        }
+
+        :host([variant='menu']) .save:hover {
+            transform: none;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            :host([variant='menu']) .save:hover {
+                background: var(--color-control-hover);
+            }
+        }
+
+        :host([variant='menu']) .save:active {
+            transform: scale(var(--press-scale));
+        }
+
+        :host([variant='menu']) .save:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: -2px;
+        }
+
         /* ── Pending ──────────────────────────────────────────────── */
 
         /* The handlers drop clicks until the reader's state arrives; this says
@@ -470,7 +533,7 @@ export class OlShelfButton extends LitElement {
 
     /** The badge and the square share one trigger: a glyph, no label. */
     get _glyphShaped() {
-        return this.variant === 'icon' || this.variant === 'outline';
+        return this.variant === 'icon' || this.variant === 'outline' || this.variant === 'menu';
     }
 
     /** The control's shape for analytics labels: the variant, marked when lists-only. */
@@ -514,7 +577,14 @@ export class OlShelfButton extends LitElement {
     _renderIcon() {
         const on = this._on;
         const title = this.bookTitle;
-        const label = this.listsOnly ? this.t('addToListFor', { title }) : on ? this.t('saved', { title }) : this.t('save', { title });
+        const menu = this.variant === 'menu';
+        const label = menu
+            ? this.t('shelfMenu', { title })
+            : this.listsOnly
+              ? this.t('addToListFor', { title })
+              : on
+                ? this.t('saved', { title })
+                : this.t('save', { title });
         return this._withActions(html`
             <button
                 type="button"
@@ -525,6 +595,7 @@ export class OlShelfButton extends LitElement {
                 @click=${this.userKey ? undefined : this._onLoggedOut}
             >
                 <ol-icon class="glyph" name=${this._icon}></ol-icon>
+                ${menu ? html`<ol-icon class="caret" name="chevron-down"></ol-icon>` : nothing}
             </button>
         `);
     }
