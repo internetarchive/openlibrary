@@ -1,5 +1,6 @@
 import pytest
 import web
+from pydantic import ValidationError
 
 from openlibrary.catalog.add_book.tests.conftest import add_languages  # noqa: F401
 
@@ -120,3 +121,25 @@ def test_get_ia_record_handles_very_short_books(tc, exp) -> None:
 
     result = code.ia_importapi.get_ia_record(ia_metadata)
     assert result.get("number_of_pages") == exp
+
+
+SPARSE_IA_METADATA = {
+    "date": "1963",
+    "identifier": "bwb_KS-054-861",
+    "title": "The Weirdstone of Brisingamen",
+}
+
+
+def test_get_ia_record_named_live_edition_skips_validation(mock_site) -> None:
+    mock_site.save({"key": "/books/OL1M", "type": {"key": "/type/edition"}, "title": "The Weirdstone of Brisingamen"})
+
+    result = code.ia_importapi.get_ia_record({**SPARSE_IA_METADATA, "openlibrary_edition": "OL1M"})
+
+    assert result["openlibrary"] == "OL1M"
+    assert result["authors"] == []
+
+
+@pytest.mark.parametrize("named", [{}, {"openlibrary_edition": "OL404M"}])
+def test_get_ia_record_validates_without_a_live_named_edition(mock_site, named) -> None:
+    with pytest.raises(ValidationError):
+        code.ia_importapi.get_ia_record({**SPARSE_IA_METADATA, **named})
