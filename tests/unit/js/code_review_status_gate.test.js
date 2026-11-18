@@ -227,6 +227,15 @@ test('analyze job holds no PAT and no write permission (the no-write half of the
 
 // ---- The status always matches the review it describes ----
 
+// ---- The superseded marker: a review of a commit the PR had moved past ----
+test('supersededMarker round-trips', () => {
+    const { supersededMarker, supersededCommit } = shared;
+    const a = 'a'.repeat(40);
+    assert.equal(supersededCommit(`x\n${supersededMarker(a)}`), a);
+    assert.equal(supersededCommit('x\n<!-- ol-pr-review-bot f=0 -->'), null);
+    assert.equal(supersededCommit('<!-- ol-pr-review-bot superseded reviewed=nope -->'), null);
+});
+
 // ---- headIsCurrent: the live-head check `post` and `status` share ----
 test('D1 headIsCurrent is true only when the pinned reviewed SHA still equals the live head', () => {
     const { headIsCurrent } = shared;
@@ -429,7 +438,7 @@ test('every checkout is github.sha (never a PR-head ref or a stale base.sha) wit
     const checkouts = Object.entries(workflow.jobs).flatMap(([job, j]) =>
         (j.steps || []).filter(s => (s.uses || '').startsWith('actions/checkout@')).map(s => [job, s.with || {}])
     );
-    assert.deepEqual([...new Set(checkouts.map(([job]) => job))].sort(), ['analyze', 'pending', 'post', 'resolve', 'status']);
+    assert.deepEqual([...new Set(checkouts.map(([job]) => job))].sort(), ['analyze', 'decline', 'pending', 'post', 'resolve', 'skipped', 'status']);
     for (const [job, w] of checkouts) {
         assert.equal(w['persist-credentials'], false, `${job}: checkout must set persist-credentials: false`);
         assert.equal(w.repository, undefined, `${job}: checkout must be of this repo, not the PR's fork`);

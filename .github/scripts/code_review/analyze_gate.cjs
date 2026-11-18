@@ -1,3 +1,4 @@
+// If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 // The `analyze` job's "Gate the analysis before upload" step: runs gate.cjs on the model's
 // review.json, replaces the file with what may be uploaded, and sets the outputs `status` reads.
 'use strict';

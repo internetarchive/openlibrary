@@ -271,7 +271,7 @@ function mockGitHub({ author = 'contributor', reviewThreads = [], throw422 = fal
             },
             repos: {
                 // Reviewed range b..a holds commits c1 (older) and c2; only c1 touched a.py.
-                compareCommitsWithBasehead: async () => ({ data: { commits: [{ sha: 'c1' }, { sha: 'c2' }] } }),
+                compareCommitsWithBasehead: async () => ({ data: { status: 'ahead', commits: [{ sha: 'c1' }, { sha: 'c2' }] } }),
                 listCommits: async ({ path }) => ({ data: path === 'a.py' ? [{ sha: 'c1' }, { sha: 'old' }] : [] })
             }
         },
@@ -481,6 +481,28 @@ test('post: a failed review post leaves the fixed thread unedited and hands noth
         assert.ok(res.thrown, 'the post fails');
         assert.deepEqual(calls.edits, [], 'no "Addressed in" note without a posted review');
         assert.deepEqual(handedOff(res), []);
+    } finally {
+        teardown();
+    }
+});
+test('post: a superseded review posts its findings as a COMMENT and leaves the threads and team request alone', async () => {
+    // The model read SHA('d'), but the live head is SHA('a'): a push landed during the review.
+    const d = setup({
+        ...reviewWith([{ dimension: 'correctness', severity: 'high', confidence: 8, title: 'Bug here', body: 'details', path: 'a.py', line: 1 }]),
+        resolved: ['FIXED']
+    });
+    try {
+        const threads = [thread('FIXED', 'a.py', 'correctness', 'Prior finding now gone', { line: 1 })];
+        const { github, calls } = mockGitHub({ author: 'openlibrary-bot', reviewThreads: threads });
+        const res = await runScript(post.validateAndPost, { github, context, env: { ...baseEnv(d), HEAD_SHA: SHA('d') }, cwd: d });
+        assert.equal(res.failed, null);
+        assert.equal(calls.createReview.length, 1);
+        assert.equal(calls.createReview[0].event, 'COMMENT', 'a finding on an old commit must not request changes on the PR');
+        assert.equal(calls.createReview[0].commit_id, SHA('d'));
+        assert.equal(calls.createReview[0].comments.length, 1, 'the finding still posts inline');
+        assert.deepEqual(handedOff(res), [], "the new head's review re-checks the threads instead");
+        assert.deepEqual(calls.edits, []);
+        assert.deepEqual(calls.removedTeams, [], 'the team request stays for the new head');
     } finally {
         teardown();
     }
