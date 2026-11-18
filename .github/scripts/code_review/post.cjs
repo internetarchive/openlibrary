@@ -316,13 +316,15 @@ async function validateAndPost({ github, context, core, require, process }) {
 
         summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
 
-        // One small line instead of callouts. The push delay only matters when there is something to fix.
+        // One small line instead of callouts. Comments and re-requests are in the doc: most authors
+        // just push, and a push gets its own review.
         const minutes = process.env.PUSH_REVIEW_MINUTES;
-        const rerun =
-            blocking && /^\d+$/.test(minutes || '')
-                ? `A new review starts about ${minutes} minutes after your last push, or comment \`@openlibrary-bot review\``
-                : 'Comment `@openlibrary-bot review` to re-run';
-        summary += `\n\n<sub>Automated review: not an approval or a security audit · [How this bot works](https://github.com/internetarchive/openlibrary/blob/master/docs/code-review-bot.md) · ${rerun}</sub>\n\n${reviewMarker(findingCount, heldBackBlocks)}`;
+        const footer = [
+            'Automated review: not an approval or a security audit',
+            '[How this bot works](https://github.com/internetarchive/openlibrary/blob/master/docs/code-review-bot.md)'
+        ];
+        if (/^\d+$/.test(minutes || '')) footer.push(`Reviews new pushes after ${minutes} minutes`);
+        summary += `\n\n<sub>${footer.join(' · ')}</sub>\n\n${reviewMarker(findingCount, heldBackBlocks)}`;
         if (supersededLine) summary += `\n${supersededMarker(headSha)}`;
         return summary;
     };

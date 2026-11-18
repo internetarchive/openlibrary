@@ -913,31 +913,22 @@ test('post: a 422 on an anchor posts again with the inline comments in the summa
 });
 
 // ===================== Review text =====================
-test('post: the one-line footer mentions the push delay only when there are findings to fix', async () => {
+test('post: the one-line footer says pushes get reviewed, and asks for no comments', async () => {
     const head = SHA('a');
     const bodies = [];
-    const withFinding = cleanReview();
-    withFinding.dimensions.correctness = { status: 'findings' };
-    withFinding.findings = [{ dimension: 'correctness', severity: 'medium', confidence: 8, title: 'Off by one', body: 'Use <=.', path: 'x', line: 1 }];
-    for (const [minutes, review] of [
-        ['10', withFinding],
-        ['', withFinding],
-        ['10', cleanReview()]
-    ]) {
-        writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    for (const minutes of ['10', '']) {
+        writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
         writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
         const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
         const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', PUSH_REVIEW_MINUTES: minutes, GITHUB_WORKSPACE: dir };
         await runScript(post.validateAndPost, { github, context, env, cwd: dir });
         bodies.push(calls.createReview[0].body);
     }
-    assert.match(bodies[0], /· A new review starts about 10 minutes after your last push, or comment `@openlibrary-bot review`<\/sub>/);
-    assert.match(bodies[1], /· Comment `@openlibrary-bot review` to re-run<\/sub>/);
-    assert.match(bodies[2], /^\*\*No issues found\*\* on `aaaaaaa`\.\n\nA plain summary with nothing sensitive\.\n\n<sub>/);
-    assert.match(bodies[2], /· Comment `@openlibrary-bot review` to re-run<\/sub>/);
+    assert.match(bodies[0], /^\*\*No issues found\*\* on `aaaaaaa`\.\n\nA plain summary with nothing sensitive\.\n\n<sub>/);
+    assert.match(bodies[0], / · Reviews new pushes after 10 minutes<\/sub>/);
+    assert.match(bodies[1], /code-review-bot\.md\)<\/sub>/, 'no push line when push reviews are off');
     for (const b of bodies) {
-        assert.doesNotMatch(b, /on behalf of/);
-        assert.doesNotMatch(b, /\[!TIP\]|Dimensions/);
+        assert.doesNotMatch(b, /on behalf of|@openlibrary-bot review|\[!TIP\]|Dimensions/);
         assert.match(b, /<sub>Automated review: not an approval or a security audit · \[How this bot works\]\([^)]*docs\/code-review-bot\.md\)/);
     }
 });
