@@ -1,4 +1,6 @@
 $def with (url, **attrs)
 
-$if url.startswith("http://www.archive.org/") or url.startswith("http://archive.org/") or url.startswith("//archive.org/"):
-    <iframe src="$url" $:' '.join('%s="%s"' % (k, v) for k, v in attrs.items())></iframe>
+$# The markup lives in iframe.html.jinja so it can be rendered without
+$# Templetor. Attributes go across as one dict rather than as loose keyword
+$# arguments, so the Jinja side can hand them to `xmlattr` whole.
+$:render_jinja_template("iframe.html.jinja", url=url, attrs=attrs)
