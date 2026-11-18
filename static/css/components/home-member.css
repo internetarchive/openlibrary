@@ -478,10 +478,3 @@ body[data-user-key] .home-welcome {
   .home-now__shelf {
   margin-inline-end: 0;
 }
-
-/* Beside the card, the list's heading drops to the line of the card's own. */
-@media (min-width: 768px) {
-  .home-now:not(.home-now--no-reading) .home-now__want {
-    padding-top: calc(var(--spacing-inset-md) + 1px);
-  }
-}
