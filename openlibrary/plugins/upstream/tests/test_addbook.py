@@ -1,5 +1,6 @@
 """py.test tests for addbook"""
 
+import io
 from unittest.mock import Mock
 
 import pytest
@@ -80,6 +81,28 @@ class TestSaveBookHelper:
         for stray in ("/tags/OL9T", "/people/foo"):
             with pytest.raises(addbook.ValidationException):
                 helper.process_work(web.storage({"genres": ["", stray]}))
+
+    @pytest.mark.parametrize(
+        ("body", "expected"),
+        [
+            (b"work--title=A&work--genres=&work--genres=%2Ftags%2FOL1T&work--genres=%2Ftags%2FOL2T", ["", "/tags/OL1T", "/tags/OL2T"]),
+            (b"work--title=A&work--genres=", [""]),
+            (b"work--title=A", None),
+        ],
+    )
+    def test_the_edit_form_keeps_every_posted_genre(self, monkeypatch, body, expected):
+        env = {
+            "REQUEST_METHOD": "POST",
+            "CONTENT_TYPE": "application/x-www-form-urlencoded",
+            "CONTENT_LENGTH": str(len(body)),
+            "wsgi.input": io.BytesIO(body),
+        }
+        monkeypatch.setattr(web.ctx, "env", env, raising=False)
+        # web.py keeps the parsed body on ctx; each case is a new request.
+        monkeypatch.delattr(web.ctx, "data", raising=False)
+        i = addbook.edit_form_input()
+        assert i["work--title"] == "A"
+        assert i.get("work--genres") == expected
 
     def test_genres_not_posted_are_left_alone(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
