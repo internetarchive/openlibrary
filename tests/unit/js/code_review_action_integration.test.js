@@ -773,8 +773,8 @@ test('post: a LOW finding becomes a suggestion in the summary, not a blocking in
     await runScript(post.validateAndPost, { github, context, env, cwd: dir });
     const posted = calls.createReview[0];
     assert.equal((posted.comments || []).length, 0, 'no inline thread for a LOW finding');
-    assert.match(posted.body, /### Suggestions \(won't block\)\n\n- \*\*Untested label\*\* \(`x:1`\): Add a test\./);
-    assert.match(posted.body, /- \*\*Test coverage\*\* — 1 suggestion\n/, 'a suggestion is not called a finding');
+    assert.match(posted.body, /### Suggestions \(won't block\)\n\n- \*\*Untested label\*\* · `x:1`\n {2}Add a test\./);
+    assert.match(posted.body, /^\*\*No blocking findings\*\* · 1 suggestion on `/, 'a suggestion is not called a finding');
     assert.match(posted.body, /<!-- ol-pr-review-bot f=0 -->/);
     assert.notEqual(posted.event, 'REQUEST_CHANGES');
 });
@@ -913,23 +913,31 @@ test('post: a 422 on an anchor posts again with the inline comments in the summa
 });
 
 // ===================== Review text =====================
-test('post: the tip follows push reviews, and the footer names no one', async () => {
+test('post: the one-line footer gives the next step, and asks for no comments', async () => {
     const head = SHA('a');
     const bodies = [];
-    for (const minutes of ['10', '']) {
-        writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
+    const withFinding = cleanReview();
+    withFinding.dimensions.correctness = { status: 'findings' };
+    withFinding.findings = [{ dimension: 'correctness', severity: 'low', confidence: 8, title: 'Off by one', body: 'Use <=.', path: 'x', line: 1 }];
+    for (const [minutes, review] of [
+        ['10', withFinding],
+        ['', withFinding],
+        ['10', cleanReview()]
+    ]) {
+        writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
         writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
         const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
         const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', PUSH_REVIEW_MINUTES: minutes, GITHUB_WORKSPACE: dir };
         await runScript(post.validateAndPost, { github, context, env, cwd: dir });
         bodies.push(calls.createReview[0].body);
     }
-    assert.match(bodies[0], /A new review starts automatically about 10 minutes after your last push\./);
-    assert.match(bodies[1], /comment `@openlibrary-bot review` on this PR to run a fresh review\./);
-    for (const b of bodies) {
-        assert.doesNotMatch(b, /on behalf of/);
-        assert.match(b, /Automated review by \[@openlibrary-bot\]\([^)]*docs\/code-review-bot\.md\)\. This is \*\*not\*\* an approval/);
-    }
+    const link = String.raw`\[How this bot works\]\([^)]*docs/code-review-bot\.md\)`;
+    const ask = 'Please address the feedback above before a maintainer reviews this PR';
+    assert.match(bodies[0], new RegExp(`<sub>${ask} · ${link} · Reviews new pushes after 10 minutes</sub>`), 'a suggestion is feedback too');
+    assert.match(bodies[1], new RegExp(`<sub>${ask} · ${link}</sub>`));
+    assert.match(bodies[2], /^\*\*No issues found\*\* on `aaaaaaa`\.\n\nA plain summary with nothing sensitive\.\n\n<sub>/);
+    assert.match(bodies[2], new RegExp(`<sub>A maintainer will review this PR next · ${link}</sub>`));
+    for (const b of bodies) assert.doesNotMatch(b, /on behalf of|@openlibrary-bot review|\[!TIP\]|Dimensions|optional/);
 });
 
 // ===================== Part of a review held back =====================

@@ -537,13 +537,17 @@ test('post: inline and summary findings carry the agent prompt with diff context
         assert.ok(comments[0].body.startsWith('**HIGH · Correctness — Bug here**\n\ndetails\n\n<details>'), comments[0].body);
         assert.match(comments[0].body, /At `a\.py`, line `1`:/);
         assert.doesNotMatch(comments[0].body, /print\(1\)/, 'no PR text in the agent prompt');
-        // The unanchored finding and the suggestion are in the summary, each with its own block.
-        assert.equal(summary.match(/<summary>Prompt for AI agents<\/summary>/g).length, 2, summary);
-        assert.match(summary, /### Suggestions \(won't block\)\n\n- \*\*Maybe\*\*/);
+        // The summary opens with the status line, and one prompt covers all three findings.
+        assert.ok(summary.startsWith('**2 findings** · 1 suggestion on `'), summary);
+        assert.match(summary, /\n\nA plain summary\.\n\n/, "the model's summary follows the status line");
+        assert.match(summary, /### Findings without an in-diff anchor\n\n- \*\*MEDIUM · Correctness — Elsewhere\*\*\n {2}in another file/);
+        assert.match(summary, /### Suggestions \(won't block\)\n\n- \*\*Maybe\*\* · `a\.py:1`\n {2}not sure/);
+        assert.equal(summary.match(/<summary>Prompt for AI agents/g).length, 1, summary);
+        assert.match(summary, /<summary>Prompt for AI agents \(3 open items\)<\/summary>/);
+        assert.match(summary, /<file name="a\.py">\n<item location="1">Bug here: details<\/item>\n<item location="1">Maybe: not sure<\/item>\n<\/file>/);
+        assert.match(summary, /<item>Elsewhere: in another file<\/item>/);
+        assert.doesNotMatch(summary, /Dimensions/);
         assert.match(summary, /<!-- ol-pr-review-bot f=2 -->/, 'the demoted finding does not count');
-        // Dimensions are collapsed; no state line on a first review.
-        assert.match(summary, /<details>\n<summary>Dimensions<\/summary>\n\n- \*\*Correctness\*\* — 2 findings, 1 suggestion/);
-        assert.ok(summary.startsWith('A plain summary.'), summary);
     } finally {
         teardown();
     }
@@ -567,7 +571,8 @@ test('post: a thread the model dismissed is noted and resolved, and the summary 
                 ['C_WRONG', 'Dismissed: a reply below shows this does not apply.']
             ]
         );
-        assert.ok(calls.createReview[0].body.startsWith('Earlier findings: 1 addressed, 1 dismissed, 1 still open.\n\n'), calls.createReview[0].body);
+        assert.ok(calls.createReview[0].body.startsWith('**No issues found** on `'), calls.createReview[0].body);
+        assert.match(calls.createReview[0].body, /`\.\n\nEarlier findings: 1 addressed, 1 dismissed, 1 still open\.\n\n/);
         assert.equal(calls.createReview[0].event, 'COMMENT');
     } finally {
         teardown();

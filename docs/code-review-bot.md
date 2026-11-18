@@ -4,8 +4,8 @@
 pass, with inline comments on the problems it finds, and posts the `code-review` check that a PR
 needs to merge. This page explains when it runs, what it checks, and what to do with its feedback.
 
-The bot is a first reader, not a maintainer. Its approval is not a sign-off, and a person still
-reviews and merges every PR.
+The bot is a first reader, not a maintainer. Its approval is not a sign-off or a security audit,
+and a person still reviews and merges every PR.
 
 ## When it reviews
 
@@ -152,15 +152,21 @@ The full instructions the bot follows are in
 
 ## What you'll see
 
-**The review.** A short summary, then:
+**The review.** It opens with one status line, such as "**2 findings** · 1 suggestion on
+`abc1234`", or "**No issues found**". Then:
 
 - **Inline comments** for findings that should be fixed before merging, each headed with its
   severity and area, for example **MEDIUM · Correctness — …**. Where the fix is small, the comment
   includes a suggestion you can apply in one click.
 - **Suggestions (won't block)** in the summary, for low-severity findings, findings the bot isn't
   sure about, and every test-coverage finding.
-- **Prompt for AI agents**, a collapsed block under each finding that you can paste into a coding
-  agent.
+- **Prompt for AI agents**, collapsed blocks you can paste into a coding agent: one under each
+  inline comment, and one in the summary covering everything the review found.
+- **🎫 Linked issues**, collapsed, when the PR links to issues: which of their requirements the PR
+  meets.
+- **A last line with the next step:** address the feedback before a maintainer reviews the PR,
+  or, when the bot found nothing, that a maintainer will review it next. Treat suggestions as
+  feedback too, and use your judgement on each.
 
 **The verdict.** The review is one of:
 

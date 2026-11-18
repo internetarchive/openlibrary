@@ -320,12 +320,12 @@ test('render: overall mark follows PR-Agent', () => {
         verified = entry(2, ['a'], [], ['c']),
         partial = entry(3, ['a'], ['b'], []),
         none = entry(4, [], ['b'], []);
-    const mark = es => render(es, OWNER, REPO).split('\n')[2];
-    assert.equal(mark([full]), '### 🎫 Ticket compliance analysis ✅');
-    assert.equal(mark([full, verified]), '### 🎫 Ticket compliance analysis ✅');
-    assert.equal(mark([full, partial]), '### 🎫 Ticket compliance analysis 🔶');
-    assert.equal(mark([full, none]), '### 🎫 Ticket compliance analysis 🔶');
-    assert.equal(mark([none]), '### 🎫 Ticket compliance analysis ❌');
+    const mark = es => render(es, OWNER, REPO).split('\n')[3];
+    assert.equal(mark([full]), '<summary>🎫 Linked issues ✅: #1 ✅</summary>');
+    assert.equal(mark([full, verified]), '<summary>🎫 Linked issues ✅: #1 ✅ · #2 ✅</summary>');
+    assert.equal(mark([full, partial]), '<summary>🎫 Linked issues 🔶: #1 ✅ · #3 🔶</summary>');
+    assert.equal(mark([full, none]), '<summary>🎫 Linked issues 🔶: #1 ✅ · #4 ❌</summary>');
+    assert.equal(mark([none]), '<summary>🎫 Linked issues ❌: #4 ❌</summary>');
 });
 
 test('render: lists as bullets on one line each; skips empty entries and other repos', () => {
@@ -366,7 +366,7 @@ function postGitHub() {
     return { github, calls };
 }
 
-test('post: the compliance section sits before Dimensions and does not change the verdict', () =>
+test('post: the compliance section is collapsed, sits before the footer and does not change the verdict', () =>
     withDir(async d => {
         writeFileSync(join(d, 'review.json'), JSON.stringify(gate.check(reviewWith([ticket()])).clean));
         writeFileSync(join(d, 'review.diff'), '');
@@ -377,8 +377,8 @@ test('post: the compliance section sits before Dimensions and does not change th
         assert.equal(calls.createReview.length, 1);
         const { body, event } = calls.createReview[0];
         assert.equal(event, 'APPROVE', 'a not-compliant requirement is information, not a blocking finding');
-        const at = body.indexOf('### 🎫 Ticket compliance analysis 🔶');
-        assert.ok(at > 0 && at < body.indexOf('<summary>Dimensions</summary>'), body);
+        const at = body.indexOf('<details>\n<summary>🎫 Linked issues 🔶: #123 🔶</summary>');
+        assert.ok(at > 0 && at < body.indexOf('<sub>'), body);
         assert.ok(body.includes(`**[#123](${URL(123)}) - Partially compliant**`));
         assert.ok(body.includes('<!-- ol-pr-review-bot f=0 -->'), 'the findings marker is unchanged');
     }));
@@ -390,5 +390,5 @@ test('post: a review without ticket_compliance renders no compliance section', (
         const { github, calls } = postGitHub();
         const env = { PR: '1', HEAD_SHA: SHA('a'), BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: d };
         await runScript(POST, { github, env, cwd: d });
-        assert.ok(!calls.createReview[0].body.includes('Ticket compliance'));
+        assert.ok(!calls.createReview[0].body.includes('Linked issues'));
     }));

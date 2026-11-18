@@ -254,7 +254,7 @@ If the file is an empty array, `ticket_compliance` is an empty array.
 
 ```json
 {
-  "summary": "One or two sentences on what the PR does.",
+  "summary": "",
   "dimensions": {
     "correctness":   { "status": "findings", "note": "One edge case." },
     "security":      { "status": "none",     "note": "What you checked." },
@@ -291,6 +291,9 @@ If the file is an empty array, `ticket_compliance` is an empty array.
 
 Field rules:
 
+- `summary` — usually `""`. The review opens with a status line and the findings, and the author
+  knows what their PR does, so never restate it. Write one or two sentences only for something a
+  reviewer needs that no single finding carries, such as a risk that spans several files.
 - `dimensions` — all five keys, always. `status` is exactly `"none"` or `"findings"`, and it
   must agree with `findings`: `"none"` means no finding carries that dimension, `"findings"`
   means at least one does. A `"none"` needs a `note`: one short sentence, under 20 words, naming
@@ -339,8 +342,8 @@ Field rules:
 - Keep `findings` to the things worth a maintainer's attention. Ten real findings beat forty
   padded ones, and this review costs money per run.
 
-If the PR is clean, say so in `summary`, mark every dimension `"none"` with its note, and return
-an empty `findings` array. That is a useful review and a cheap one. Do not restate what the PR
+If the PR is clean, mark every dimension `"none"` with its note and return an empty `findings`
+array; the posting step says no issues were found. That is a useful review and a cheap one. Do not restate what the PR
 description already says.
 
 ## Step 7: Ignore our own bot
