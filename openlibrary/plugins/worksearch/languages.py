@@ -7,9 +7,9 @@ from typing import Literal, override
 
 import web
 from icu import Collator, Locale
+
 from infogami.utils import delegate
 from infogami.utils.view import render_template
-
 from openlibrary.core import cache
 from openlibrary.plugins.upstream.utils import get_language_name
 from openlibrary.utils.async_utils import async_bridge
