@@ -131,7 +131,7 @@ def _failing_request(exc: Exception) -> ImportPreviewRequest:
         (ValueError("Invalid JSON"), {"success": False, "error": "Invalid JSON"}),
         (
             add_book.RequiredFields(["title"]),
-            {"success": False, "error_code": "unhandled-exception", "error": repr(add_book.RequiredFields(["title"]))},
+            {"success": False, "error_code": "unhandled-exception", "error": "Unexpected RequiredFields; details have been logged."},
         ),
     ],
 )

@@ -112,8 +112,13 @@ class ImportPreviewRequest:
         except ValueError as e:
             return {"success": False, "error": str(e)}
         except Exception as e:
+            # Unexpected exceptions can carry internal hosts, SQL, etc., so only their type is shown.
             logger.exception("Import preview failed for %s:%s", self.metadata_provider.id_name, self.identifier)
-            return {"success": False, "error_code": "unhandled-exception", "error": repr(e)}
+            return {
+                "success": False,
+                "error_code": "unhandled-exception",
+                "error": f"Unexpected {type(e).__name__}; details have been logged.",
+            }
 
 
 class AbstractMetadataProvider:
