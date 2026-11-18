@@ -3,6 +3,7 @@
 fastapiRoutes:
   # Pages (SitePageRoute)
   - GET /advancedsearch
+  - GET /merges/stats
   - GET /search/lists
   - GET /search/subjects
   - GET /tasks/admin

@@ -1,0 +1,49 @@
+{# Takes form (MergeStatsForm), nav (MergeStatsNav), data (MergeStatsData), rate_label (translated str). No request globals. #}
+{% from 'OlPagination.html.jinja' import ol_pagination with context %}
+{% set ranges = [('all', _('All time')), ('year', _('Last year')), ('month', _('Last month'))] %}
+{% set columns = [('total', _('Requests')), ('merged', _('Merged')), ('declined', _('Declined')), ('rate', rate_label)] %}
+{% set filter_name = 'reviewer' if form.group == 'reviewers' else 'submitter' %}
+
+<div class="librarian-queue-page merge-stats">
+  <h1>{{ _('Community Edit Request Statistics') }}</h1>
+  <p class="description">{{ _('Closed requests only. Requests still waiting for review are not counted.') }}</p>
+
+  <div class="table-header">
+    <a class="{{ 'selected' if form.group == 'reviewers' else '' }}" href="{{ nav.reviewers }}">{{ _('Reviewers') }}</a>
+    <a class="{{ 'selected' if form.group == 'submitters' else '' }}" href="{{ nav.submitters }}">{{ _('Submitters') }}</a>
+    <div class="flex-auto"></div>
+    {% for value, label in ranges %}
+      <a class="{{ 'selected' if form.range == value else '' }}" href="{{ nav.ranges[value] }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  <table class="mr-stats-table">
+    <thead>
+      <tr>
+        <th>{{ _('Reviewer') if form.group == 'reviewers' else _('Submitter') }}</th>
+        {% for value, label in columns %}
+          <th><a href="{{ nav.sorts[value] }}">{{ label }}{{ ' ▾' if form.sort == value and form.order == 'desc' else (' ▴' if form.sort == value else '') }}</a></th>
+        {% endfor %}
+        <th>{{ _('Author requests') }}</th>
+        <th>{{ _('Work requests') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if not data.rows %}
+        <tr><td colspan="7">{{ _('No entries here!') }}</td></tr>
+      {% endif %}
+      {% for row in data.rows %}
+        <tr>
+          <td><a href="/merges?mode=closed&amp;{{ filter_name }}={{ row.username }}">{{ row.username }}</a></td>
+          <td>{{ row.total }}</td>
+          <td>{{ row.merged }}</td>
+          <td>{{ row.declined }}</td>
+          <td>{{ '%.0f'|format(row.merge_rate) }}%</td>
+          <td>{{ row.author_requests }}</td>
+          <td>{{ row.work_requests }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {{ ol_pagination(form.page, data.total_pages) }}
+</div>
