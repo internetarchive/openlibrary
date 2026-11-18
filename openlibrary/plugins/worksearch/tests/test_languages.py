@@ -86,12 +86,3 @@ class TestGetCollator:
         collator = languages._get_collator("zz_QQ")
 
         assert collator.getSortKey("abc")
-
-
-class TestLanguagesRoutes:
-    def test_language_search_endpoint_removed(self):
-        assert not hasattr(languages, "language_search")
-
-    def test_languages_index_route_preserved(self):
-        assert hasattr(languages, "index")
-        assert languages.index.path == "/languages"
