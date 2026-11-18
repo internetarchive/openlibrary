@@ -3218,7 +3218,7 @@ msgstr ""
 msgid "See all %(title)s"
 msgstr ""
 
-#: CarouselSkeleton.html.jinja books/custom_carousel.html.jinja home/member.html.jinja lists/carousel.html.jinja lists/home.html lists/showcase.html
+#: CarouselSkeleton.html.jinja books/custom_carousel.html.jinja lists/carousel.html.jinja lists/home.html lists/showcase.html
 msgid "See all"
 msgstr ""
 
