@@ -266,10 +266,17 @@ async function validateAndPost({ github, context, core, require, process }) {
         // State every dimension, because leaving one out reads the same as having checked it.
         // Security never shows a note: only findings about code this PR adds are published.
         const count = {};
-        for (const f of review.findings) count[f.dimension] = (count[f.dimension] || 0) + 1;
+        const suggestionCount = {};
+        for (const f of review.findings) {
+            const c = f.severity === 'low' ? suggestionCount : count;
+            c[f.dimension] = (c[f.dimension] || 0) + 1;
+        }
+        // Findings block and suggestions don't, so say which.
+        const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
         summary += `\n\n<details>\n<summary>Dimensions</summary>\n\n${Object.entries(gate.dimensions)
             .map(([k, label]) => {
-                if (count[k]) return `- **${label}** — ${count[k]} finding${count[k] === 1 ? '' : 's'}`;
+                const parts = [count[k] && plural(count[k], 'finding'), suggestionCount[k] && plural(suggestionCount[k], 'suggestion')].filter(Boolean);
+                if (parts.length) return `- **${label}** — ${parts.join(', ')}`;
                 if (k === 'security') return `- **${label}** — no published findings in this range. This is not a security audit.`;
                 // With part held back, every empty dimension says "published", so none stands out.
                 return `- **${label}** — no ${heldBack ? 'published ' : ''}findings. ${review.dimensions[k].note}`;

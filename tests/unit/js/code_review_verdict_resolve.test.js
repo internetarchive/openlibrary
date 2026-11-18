@@ -542,7 +542,7 @@ test('post: inline and summary findings carry the agent prompt with diff context
         assert.match(summary, /### Suggestions \(won't block\)\n\n- \*\*Maybe\*\*/);
         assert.match(summary, /<!-- ol-pr-review-bot f=2 -->/, 'the demoted finding does not count');
         // Dimensions are collapsed; no state line on a first review.
-        assert.match(summary, /<details>\n<summary>Dimensions<\/summary>\n\n- \*\*Correctness\*\* — 3 findings/);
+        assert.match(summary, /<details>\n<summary>Dimensions<\/summary>\n\n- \*\*Correctness\*\* — 2 findings, 1 suggestion/);
         assert.ok(summary.startsWith('A plain summary.'), summary);
     } finally {
         teardown();
