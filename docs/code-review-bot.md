@@ -1,0 +1,210 @@
+# How the code review bot works
+
+`@openlibrary-bot` reviews pull requests on this repository with Claude. It leaves one review per
+pass, with inline comments on the problems it finds, and posts the `code-review` check that a PR
+needs to merge. This page explains when it runs, what it checks, and what to do with its feedback.
+
+The bot is a first reader, not a maintainer. Its approval is not a sign-off, and a person still
+reviews and merges every PR.
+
+## When it reviews
+
+```mermaid
+flowchart TD
+    open["PR opened or marked ready for review"] --> known{"Is the author a known contributor?"}
+    known -- "yes, automatically" --> request["The review team is requested"]
+    known -- "no, first-time contributor" --> manual["A maintainer requests the review by hand"]
+    manual --> request
+    push["New commits pushed"] --> before{"Already reviewed by the bot?"}
+    before -- "no" --> waitmaint["Waits for a maintainer to request the first review"]
+    before -- "yes" --> quiet["Waits until 10 minutes pass with no new pushes"]
+    quiet --> request
+    ask["Someone comments @openlibrary-bot"] --> allowed{"Is it a maintainer or the PR's author?"}
+    allowed -- "yes" --> review
+    allowed -- "no" --> nothing["No review"]
+    request --> review["Review runs"]
+    review --> current{"Was this exact commit already reviewed?"}
+    current -- "yes" --> same["Nothing new: the check keeps the last verdict"]
+    current -- "no" --> posted["Review posted and the code-review check updated"]
+```
+
+A review starts in one of these ways:
+
+- **When a PR is opened or marked ready for review.** The review team
+  (`openlibrary-agentic-code-reviewer`) is requested automatically if the author is a known
+  contributor: an owner, member, collaborator or past contributor of this repository. A
+  first-time contributor's PR waits for a maintainer to request the team, so drive-by PRs don't
+  spend the bot's budget.
+- **After new commits, once the pushes stop.** If the bot has reviewed the PR before, it reviews
+  the new commits once 10 minutes pass with no further push (`push_review_delay_minutes` in
+  [`.pr_agent.toml`](../.pr_agent.toml)). Every new push restarts the wait, so a burst of commits
+  gets one review. It skips pushes made by bots, pushes that only merge the base branch in (the
+  "Update branch" button), and PRs labelled `no-automation`.
+- **When someone asks.** Request a review from the `openlibrary-agentic-code-reviewer` team, use
+  the re-request button next to `openlibrary-bot`, or comment `@openlibrary-bot` on the PR. The bot
+  adds 👀 to your comment when the review starts.
+
+It never reviews a draft or a closed PR.
+
+### Who can ask for a review
+
+```mermaid
+flowchart TD
+    who{"Who is asking?"}
+    who -- "A maintainer" --> anyway["Any of the three ways works"]
+    who -- "The PR's author" --> author["Comment @openlibrary-bot on your PR"]
+    who -- "Anyone else" --> other["The bot ignores the comment; ask a maintainer"]
+```
+
+Commenting works for the PR's author and for these maintainers: `mekarpeles`, `cdrini`,
+`hornc`, `scottbarnes`, `seabelis`, `RayBB` and `lokesh`. Requesting the review team or using the
+re-request button needs triage or write access to the repository.
+
+### What a re-review covers
+
+A re-review looks only at the files changed since the bot's last review, so it doesn't repeat
+itself. Commits that only merge the base branch in are skipped. If nothing but base-branch merges
+arrived, no new review runs and the check keeps the previous verdict. After a force-push that
+rewrites the history it reviewed, the bot reviews the whole PR again.
+
+On each re-review the bot also re-checks its own open comments, as described in
+[Responding to a finding](#responding-to-a-finding).
+
+## What it checks
+
+Every review covers five areas:
+
+| Area | What it looks for |
+|---|---|
+| Correctness | Bugs, unhandled edge cases, callers that rely on the old behaviour, blocking calls on the async path |
+| Security | Anything touching auth, sessions, redirects, user input in SQL, shell, files or templates |
+| Accessibility | Templates, JS and CSS against WCAG 2.1 AA: alt text, labels, keyboard access, contrast |
+| Test coverage | A missing test that would catch a real bug, a test that can't fail, and tests that aren't worth keeping |
+| Styleguide | Material problems only: unrelated edits, error-prone patterns, speculative abstractions |
+
+It also checks the PR against the issues it links to and lists which of their requirements the
+PR meets, doesn't meet, or needs a person to verify.
+
+**Security concerns are never posted publicly.** If the bot finds one, it withholds the whole
+review, and the `code-review` check fails with "A finding was delivered privately; maintainer
+review required." A maintainer needs to look at the PR before it can merge.
+
+The full instructions the bot follows are in
+[`.github/workflows/code_review.md`](../.github/workflows/code_review.md).
+
+## What you'll see
+
+**The review.** A short summary, then:
+
+- **Inline comments** for findings that should be fixed before merging, each headed with its
+  severity and area, for example **MEDIUM · Correctness — …**. Where the fix is small, the comment
+  includes a suggestion you can apply in one click.
+- **Suggestions (won't block)** in the summary, for low-severity findings, findings the bot isn't
+  sure about, and every test-coverage finding.
+- **Prompt for AI agents**, a collapsed block under each finding that you can paste into a coding
+  agent.
+
+**The verdict.** The review is one of:
+
+- **Request changes** when there is at least one finding that blocks.
+- **Approve** when there are none and none of the bot's earlier comments are still open.
+- **Comment** otherwise, and always on PRs the bot wrote itself.
+
+**The `code-review` check.** This check is required to merge. It shows:
+
+| Check | Message | Meaning |
+|---|---|---|
+| ⏳ pending | Review in progress. | The bot is reviewing this commit. |
+| ⏳ pending | New commits. A review starts after 10 minutes with no more pushes. | A re-review starts when the pushes stop. |
+| ⏳ pending | New commits since the last review. Re-request review from openlibrary-bot to review them. | This push doesn't start a re-review (for example, the PR is labelled `no-automation`). |
+| ⏳ pending | Not reviewed yet. A maintainer can request review from openlibrary-agentic-code-reviewer. | No review has been requested yet. |
+| ⏳ pending | Superseded by `<commit>`: the PR changed during the review. | New commits arrived mid-review; the newest commit gets its own review. |
+| ❌ failure | N findings to address. | The review found problems that block. |
+| ❌ failure | N unresolved review threads. | No blocking findings, but some review threads are still open. |
+| ❌ failure | A finding was delivered privately; maintainer review required. | See the security note above. |
+| ❌ failure | No clean review for this commit. | The review failed to post. Ask for a new review. |
+| ❌ failure | Review findings count unavailable. | The review ran but its result couldn't be read. Ask for a new review. |
+| ✅ success | Review passed; all feedback resolved. | Clean review, and no open threads. |
+
+The check passes only when the latest commit has a clean review with no blocking findings, **and**
+no review thread on the PR is unresolved, including threads people opened. A thread on lines that
+a later push changed (GitHub marks it "outdated") doesn't count. After each new push, the check
+waits for that commit's review.
+
+## Responding to a finding
+
+```mermaid
+flowchart TD
+    finding["Inline comment from the bot"] --> choice{"What do you do?"}
+    choice -- "Fix it and push" --> recheck["Next re-review checks the code"]
+    recheck -- "fixed" --> addressed["Bot notes ✅ Addressed in &lt;commit&gt; and resolves the thread"]
+    recheck -- "not fixed" --> open["Thread stays open"]
+    choice -- "Disagree" --> reply["Reply in the thread with your reasoning"]
+    reply --> weigh["Next re-review reads the reply"]
+    weigh -- "convinced" --> dismissed["Bot notes Dismissed and resolves the thread"]
+    weigh -- "not convinced" --> open
+    choice -- "Resolve it yourself" --> resolved["Thread resolved by you"]
+```
+
+- **Fix it.** Push the fix. On the next re-review the bot checks the code. If it's fixed, the bot
+  adds **✅ Addressed in `<commit>`** to its comment and resolves the thread. Threads are resolved
+  by `github-actions`.
+- **Disagree.** Reply in the thread and say why. On the next re-review the bot reads replies from
+  the PR's author and maintainers. If a reply shows the finding is wrong or out of scope, the bot
+  notes **Dismissed** and resolves the thread. A reply that only asks it to dismiss isn't enough.
+- **Resolve it yourself.** Anyone with write access can resolve a thread. Use your judgment; the
+  bot can be wrong.
+
+If the bot gets something wrong in a way worth fixing, open an issue with the `Theme: Bots` label.
+
+## Settings
+
+The bot reads [`.pr_agent.toml`](../.pr_agent.toml) from the base branch, so a PR's changes to it
+take effect after it merges. The file uses [PR-Agent](https://docs.pr-agent.ai/)'s format and key
+names, though Open Library doesn't run PR-Agent itself.
+
+| Setting | What it does |
+|---|---|
+| `handle_push_trigger` | Re-review after new commits (on) |
+| `push_review_delay_minutes` | How long to wait with no new pushes before that re-review (10) |
+| `push_trigger_ignore_bot_commits`, `push_trigger_ignore_merge_commits` | Skip pushes by bots, and pushes that only merge the base branch |
+| `require_*_review` | Turn each review area on or off; security can't be turned off |
+| `require_ticket_analysis_review` | Check the PR against its linked issues |
+| `inline_key_issues` | Post findings as inline comments, or put them all in the summary |
+| `num_max_findings` | Cap the findings per review |
+
+## How it's built
+
+The review runs in GitHub Actions, in separate jobs so that the job that reads the PR can't
+write anything:
+
+```mermaid
+flowchart LR
+    analyze["analyze: Claude reads the PR as plain files and writes review.json. No write access."] --> post["post: checks review.json and posts the review. No model."]
+    post --> resolve["resolve: resolves the threads post lists. No model."]
+    resolve --> status["status: posts the code-review check. No model."]
+    pending["pending: marks the check as in progress"] --> status
+```
+
+- **`analyze`** never runs the PR's code. It extracts the PR as plain files, and Claude can only
+  read them and write `review.json`. It has no shell, no web access and no write access to the
+  repository, so instructions hidden in a PR can change what the review says, but not what the
+  workflow does.
+- **`post`** re-checks `review.json` before posting: it withholds anything malformed or
+  security-related.
+- **`resolve`** resolves the threads `post` lists, with a token that exists only while that job
+  runs.
+- **`status`** decides the `code-review` check from the posted review and the PR's live threads.
+
+A weekly report on how the bot is doing runs on Sundays. It opens an issue only when something
+needs attention, and always writes its numbers to the workflow run's summary.
+
+| File | Purpose |
+|---|---|
+| [`.github/workflows/code_review_action.yml`](../.github/workflows/code_review_action.yml) | The review workflow |
+| [`.github/workflows/code_review.md`](../.github/workflows/code_review.md) | The bot's instructions |
+| [`.github/workflows/code_review_awaiting.yml`](../.github/workflows/code_review_awaiting.yml) | Marks new commits pending, and starts re-reviews after pushes |
+| [`.github/workflows/auto_assign_reviewer.yml`](../.github/workflows/auto_assign_reviewer.yml) | Requests the review on new PRs |
+| [`.github/workflows/code_review_report.yml`](../.github/workflows/code_review_report.yml) | The weekly report |
+| [`.github/scripts/code_review/`](../.github/scripts/code_review/) | The scripts the workflows run |
+| [`.pr_agent.toml`](../.pr_agent.toml) | Settings |

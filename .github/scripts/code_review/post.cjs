@@ -276,7 +276,7 @@ async function validateAndPost({ github, context, core, require, process }) {
         summary += /^\d+$/.test(minutes || '')
             ? `\n\n---\n> [!TIP]\n> A new review starts automatically about ${minutes} minutes after your last push. To start it sooner, a maintainer can re-request a review, or you can comment \`@openlibrary-bot review\` on this PR.`
             : `\n\n---\n> [!TIP]\n> When you've addressed the feedback and pushed your changes, comment \`@openlibrary-bot review\` on this PR to run a fresh review.`;
-        summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md). This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
+        summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/docs/code-review-bot.md). This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
         return summary;
     };
     // If the head moved since the review, post nothing (see headIsCurrent).

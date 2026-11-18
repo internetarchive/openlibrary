@@ -779,6 +779,6 @@ test('post: the tip follows push reviews, and the footer names no one', async ()
     assert.match(bodies[1], /comment `@openlibrary-bot review` on this PR to run a fresh review\./);
     for (const b of bodies) {
         assert.doesNotMatch(b, /on behalf of/);
-        assert.match(b, /Automated review by \[@openlibrary-bot\]\([^)]*code_review\.md\)\. This is \*\*not\*\* an approval/);
+        assert.match(b, /Automated review by \[@openlibrary-bot\]\([^)]*docs\/code-review-bot\.md\)\. This is \*\*not\*\* an approval/);
     }
 });
