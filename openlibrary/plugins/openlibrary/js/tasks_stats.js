@@ -219,6 +219,7 @@ export async function init(root) {
     const numberFormat = new Intl.NumberFormat(lang, { maximumFractionDigits: 0 });
     const decimalFormat = new Intl.NumberFormat(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const percentFormat = new Intl.NumberFormat(lang, { style: 'percent', maximumFractionDigits: 1 });
+    const compactFormat = new Intl.NumberFormat(lang, { notation: 'compact', maximumFractionDigits: 1 });
     const formats = {
         count: (/** @type {number} */ v) => numberFormat.format(v),
         decimal: (/** @type {number} */ v) => decimalFormat.format(v),
@@ -303,8 +304,6 @@ export async function init(root) {
         return { parts: [{ label: '', color: colors.bar, buckets }], total: buckets, format };
     }
 
-    const projects = /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.tasks-stats__card[data-initiative]'));
-    const pressed = [...projects].find(card => card.getAttribute('aria-pressed') === 'true');
     const state = {
         scope: root.dataset.scope || 'all',
         days: 90,
@@ -312,8 +311,7 @@ export async function init(root) {
         compare: true,
         metric: '',
         // The cards' window, and how far back the chart's dashed line reaches
-        window: 28,
-        initiative: pressed?.dataset.initiative || ''
+        window: 28
     };
 
     /** @param {Bucket} bucket */
@@ -330,11 +328,11 @@ export async function init(root) {
     const bucketCount = () => Math.max(1, Math.floor(state.days / BUCKET_DAYS[state.granularity]));
 
     /**
-     * @param {string} name
+     * @param {string | HTMLCanvasElement} target a `data-chart` name, or the canvas itself
      * @param {import('chart.js').ChartConfiguration} config
      */
-    function draw(name, config) {
-        const canvas = /** @type {HTMLCanvasElement} */ (root.querySelector(`canvas[data-chart="${name}"]`));
+    function draw(target, config) {
+        const canvas = typeof target === 'string' ? /** @type {HTMLCanvasElement} */ (root.querySelector(`canvas[data-chart="${target}"]`)) : target;
         const existing = Chart.getChart(canvas);
         if (existing) {
             existing.data = config.data;
@@ -358,16 +356,17 @@ export async function init(root) {
      * @param {object} [overrides]
      * @param {Partial<import('chart.js').TooltipCallbacks<any>>} [overrides.tooltip]
      * @param {object} [overrides.y]
+     * @param {object} [overrides.xTickOptions]
      * @param {boolean} [overrides.stacked]
      * @param {number} [overrides.xTicks]
      */
-    function options({ tooltip = {}, y = {}, stacked = false, xTicks = 8 } = {}) {
+    function options({ tooltip = {}, y = {}, xTickOptions = {}, stacked = false, xTicks = 8 } = {}) {
         return {
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode: /** @type {const} */ ('index'), intersect: false },
             scales: {
-                x: { stacked, grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: xTicks } },
+                x: { stacked, grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: xTicks, ...xTickOptions } },
                 y: { stacked, beginAtZero: true, border: { display: false }, grid: { color: colors.grid }, ticks: { precision: 0 }, ...y }
             },
             plugins: {
@@ -536,34 +535,62 @@ export async function init(root) {
         );
     }
 
-    function drawTasksPanels() {
-        const openGaps = data.initiatives?.[state.initiative] || dates.map(() => null);
-        const days = bucketize(openGaps, 1).slice(-state.days);
-        draw('initiative', {
+    /**
+     * One project's open details from its first snapshot to today, on an axis from zero to the details open when it
+     * started, so the line's distance from the floor is how much is left.
+     * @param {HTMLCanvasElement} canvas
+     */
+    function drawProject(canvas) {
+        const openGaps = data.initiatives?.[canvas.dataset.initiative || ''] || [];
+        const first = openGaps.findIndex(v => v !== null);
+        const days = first < 0 ? [] : bucketize(openGaps, 1).slice(first);
+        const values = days.map(b => b.value);
+        const top = Math.max(Number(canvas.dataset.start) || 0, ...values.map(v => v ?? 0)) || 1;
+        const labels = days.map(shortLabel);
+        draw(canvas, {
             type: 'line',
             data: {
-                labels: days.map(shortLabel),
+                labels,
                 datasets: [
                     {
-                        data: days.map(b => b.value),
+                        data: values,
                         borderColor: colors.bar,
                         backgroundColor: colors.area,
                         pointBackgroundColor: colors.bar,
                         fill: true,
-                        borderWidth: 2.5,
-                        pointRadius: pointRadii(days.map(b => b.value)),
+                        borderWidth: 2,
+                        pointRadius: values.map((_, i) => (i === values.length - 1 ? 3 : 0)),
+                        // A missed nightly count shouldn't break the line
+                        spanGaps: true,
                         tension: 0.2
                     }
                 ]
             },
             options: options({
-                y: { beginAtZero: false },
+                // A sparkline has room to label only the first and last day.
+                xTickOptions: {
+                    autoSkip: false,
+                    align: 'inner',
+                    callback: (/** @type {number} */ _, /** @type {number} */ i) => (i === 0 || i === days.length - 1 ? labels[i] : '')
+                },
+                y: {
+                    min: 0,
+                    max: top,
+                    afterBuildTicks: (/** @type {import('chart.js').Scale} */ scale) => {
+                        scale.ticks = [{ value: 0 }, { value: top }];
+                    },
+                    ticks: { callback: (/** @type {number} */ v) => compactFormat.format(v) }
+                },
                 tooltip: {
                     title: items => fullLabel(days[items[0].dataIndex]),
                     label: item => fill(strings.openDetails, { count: numberFormat.format(item.raw) })
                 }
             })
         });
+    }
+
+    function drawTasksPanels() {
+        root.querySelectorAll('canvas[data-chart="initiative"]').forEach(canvas => drawProject(/** @type {HTMLCanvasElement} */ (canvas)));
 
         // Each line is a share of the 28 days to that day, left out where fewer than `minSample` saves stand behind it.
         const minSample = Number(root.dataset.minSample) || 0;
@@ -663,16 +690,6 @@ export async function init(root) {
         history.replaceState(null, '', url);
         showScope(scope);
     });
-    projects.forEach(card =>
-        card.addEventListener('click', () => {
-            state.initiative = card.dataset.initiative || '';
-            projects.forEach(other => other.setAttribute('aria-pressed', String(other === card)));
-            root.querySelectorAll('[data-initiative-figures]').forEach(figures => {
-                /** @type {HTMLElement} */ (figures).hidden = /** @type {HTMLElement} */ (figures).dataset.initiativeFigures !== state.initiative;
-            });
-            drawTasksPanels();
-        })
-    );
     root.querySelector('.tasks-stats__range')?.addEventListener('ol-segmented-control-change', event => {
         state.days = Number(/** @type {CustomEvent} */ (event).detail.value);
         drawMain();

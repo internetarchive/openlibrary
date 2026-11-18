@@ -207,11 +207,12 @@ msgid "Comments"
 msgstr ""
 
 #: batch_import_view.html
-msgid "Batch Import Status"
+#, python-format
+msgid "Batch #%(id)s"
 msgstr ""
 
-#: batch_import_view.html
-msgid "Batch ID:"
+#: BatchImportNavigation.html batch_import_view.html
+msgid "All Batches"
 msgstr ""
 
 #: batch_import_view.html
@@ -232,6 +233,10 @@ msgstr ""
 
 #: batch_import_view.html
 msgid "Approve"
+msgstr ""
+
+#: batch_import_view.html
+msgid "Retry failed"
 msgstr ""
 
 #: batch_import_view.html
@@ -499,7 +504,7 @@ msgstr ""
 
 #: internalerror.html
 #, python-format
-msgid "The reference code %s and Sentry trace ID %s have been created to track this error and we will investigate as we're able."
+msgid "The reference code %(code)s and Sentry trace ID %(trace_id)s have been created to track this error and we will investigate as we're able."
 msgstr ""
 
 #: internalerror.html
@@ -537,7 +542,7 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: RelatedSubjects.html.jinja account/create.html librarian_dashboard/data_quality_table.html login.html openlibrary/plugins/openlibrary/partials.py search/work_search_facets.html.jinja
+#: RelatedSubjects.html.jinja account/create.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html.jinja
 msgid "Loading..."
 msgstr ""
 
@@ -927,7 +932,7 @@ msgstr ""
 msgid "on <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>"
 msgstr ""
 
-#: search/authors.html search/lists.html.jinja search/subjects.html work_search.html
+#: search/authors.html search/lists.html.jinja search/subjects.html.jinja work_search.html
 msgid "Checking Search Inside matches"
 msgstr ""
 
@@ -1362,7 +1367,7 @@ msgstr ""
 msgid "You will lose your place in line for <strong>%(title)s</strong>."
 msgstr ""
 
-#: account/loans.html authors/index.html.jinja lists/list_follow.html.jinja lists/showcase.html publishers/view.html search/authors.html search/publishers.html search/subjects.html
+#: account/loans.html authors/index.html.jinja lists/list_follow.html.jinja lists/showcase.html publishers/view.html search/authors.html search/publishers.html search/subjects.html.jinja
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
@@ -1641,7 +1646,7 @@ msgstr ""
 msgid "Search your reading log"
 msgstr ""
 
-#: account/reading_log.html search/authors.html search/lists.html.jinja search/subjects.html
+#: account/reading_log.html search/authors.html search/lists.html.jinja search/subjects.html.jinja
 #, python-format
 msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
@@ -3217,24 +3222,24 @@ msgstr ""
 msgid "See all"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 msgid "Previous page"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 msgid "Next page"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 msgid "Carousel pages"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 #, python-brace-format
 msgid "Go to page {page} of {total}"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
+#: books/custom_carousel.html.jinja home/welcome.html
 #, python-brace-format
 msgid "Page {page} of {total}"
 msgstr ""
@@ -4088,6 +4093,14 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
+#: contribute/dashboard.html.jinja
+msgid "Help needed"
+msgstr ""
+
+#: contribute/admin/parts.html.jinja contribute/dashboard.html.jinja
+msgid "Getting the list ready…"
+msgstr ""
+
 #: contribute/admin/index.html.jinja contribute/dashboard.html.jinja contribute/faq.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
 msgid "Tasks"
 msgstr ""
@@ -4116,8 +4129,8 @@ msgstr ""
 msgid "Community projects"
 msgstr ""
 
-#: contribute/admin/parts.html.jinja contribute/dashboard.html.jinja
-msgid "Getting the list ready…"
+#: contribute/dashboard.html.jinja
+msgid "Completed"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
@@ -4775,6 +4788,11 @@ msgid "<strong>Pick one</strong> from the existing covers"
 msgstr ""
 
 #: covers/add.html
+#, python-format
+msgid "Cover %(index)d of %(total)d"
+msgstr ""
+
+#: covers/add.html
 msgid "Use this image"
 msgstr ""
 
@@ -4900,7 +4918,7 @@ msgstr ""
 msgid "Add another image"
 msgstr ""
 
-#: covers/saved.html openlibrary/plugins/openlibrary/contribute.py
+#: covers/saved.html openlibrary/plugins/openlibrary/contribute.py stats/tasks.html.jinja
 msgid "Finished"
 msgstr ""
 
@@ -5231,35 +5249,35 @@ msgstr ""
 
 #: lists/header.html
 #, python-format
-msgid "This author is on <strong>1 list</strong>."
+msgid "This author is on <strong>%(count)s list</strong>."
 msgid_plural "This author is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
 
 #: lists/header.html
 #, python-format
-msgid "This is edition is on <strong>1 list</strong>."
+msgid "This edition is on <strong>%(count)s list</strong>."
 msgid_plural "This edition is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
 
 #: lists/header.html
 #, python-format
-msgid "This work is on <strong>1 list</strong>."
+msgid "This work is on <strong>%(count)s list</strong>."
 msgid_plural "This work is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
 
 #: lists/header.html
 #, python-format
-msgid "%(name)s has 1 list."
+msgid "%(name)s has %(count)s list."
 msgid_plural "%(name)s has %(count)s lists."
 msgstr[0] ""
 msgstr[1] ""
 
 #: lists/header.html
 #, python-format
-msgid "This subject is on <strong>1 list</strong>."
+msgid "This subject is on <strong>%(count)s list</strong>."
 msgid_plural "This subject is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
@@ -5909,14 +5927,14 @@ msgstr ""
 
 #: recentchanges/merge/message.html
 #, python-format
-msgid "%(who)s merged one duplicate of %(master)s"
+msgid "%(who)s merged %(count)d duplicate of %(master)s"
 msgid_plural "%(who)s merged %(count)d duplicates of %(master)s"
 msgstr[0] ""
 msgstr[1] ""
 
 #: recentchanges/merge/message.html
 #, python-format
-msgid "one duplicate of %(master)s was merged anonymously"
+msgid "%(count)d duplicate of %(master)s was merged anonymously"
 msgid_plural "%(count)d duplicates of %(master)s were merged anonymously"
 msgstr[0] ""
 msgstr[1] ""
@@ -5954,7 +5972,7 @@ msgstr ""
 msgid "All fields"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/contribute.py search/advancedsearch.html.jinja
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py search/advancedsearch.html.jinja
 msgid "ISBN"
 msgstr ""
 
@@ -6169,40 +6187,40 @@ msgstr ""
 msgid "Shuffle"
 msgstr ""
 
-#: search/subjects.html
-msgid "Search Subjects"
-msgstr ""
-
-#: search/subjects.html
-msgid "No <strong>subjects</strong> directly matched your search"
-msgstr ""
-
-#: search/subjects.html
+#: search/subjects.html.jinja
 msgid "time"
 msgstr ""
 
-#: search/subjects.html
+#: search/subjects.html.jinja
 msgid "subject"
 msgstr ""
 
-#: search/subjects.html
+#: search/subjects.html.jinja
 msgid "place"
 msgstr ""
 
-#: search/subjects.html
+#: search/subjects.html.jinja
 msgid "org"
 msgstr ""
 
-#: search/subjects.html
+#: search/subjects.html.jinja
 msgid "event"
 msgstr ""
 
-#: search/subjects.html
+#: search/subjects.html.jinja
 msgid "person"
 msgstr ""
 
-#: search/subjects.html
+#: search/subjects.html.jinja
 msgid "work"
+msgstr ""
+
+#: search/subjects.html.jinja
+msgid "Search Subjects"
+msgstr ""
+
+#: search/subjects.html.jinja
+msgid "No <strong>subjects</strong> directly matched your search"
 msgstr ""
 
 #: search/work_search_facets.html.jinja
@@ -6696,19 +6714,8 @@ msgid "Share of edits and of editors through Tasks, by day"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Details still missing across each project's books. A detail nobody could find counts as filled."
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Community projects. Choose one to chart it."
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "of details filled · Finished"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "of details filled"
+#, python-format
+msgid "Details still open on %(project)s, by day"
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -6725,15 +6732,7 @@ msgid "marked not found"
 msgstr ""
 
 #: stats/tasks.html.jinja
-msgid "Details still open on the chosen project, by day"
-msgstr ""
-
-#: stats/tasks.html.jinja
 msgid "Saves by field, last 28 days"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Which details people are filling in."
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -7786,10 +7785,6 @@ msgstr ""
 msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
 msgstr ""
 
-#: BatchImportNavigation.html
-msgid "All Batches"
-msgstr ""
-
 #: BookByline.html
 #, python-format
 msgid "%(n)s other"
@@ -8643,12 +8638,27 @@ msgid "No matching language"
 msgstr ""
 
 #: contribute/parts.html.jinja
+#, python-format
+msgid "And 1 more."
+msgid_plural "And %(count)d more."
+msgstr[0] ""
+msgstr[1] ""
+
+#: contribute/parts.html.jinja
+msgid "If this edition really has the same ISBN, save again."
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "View scan"
+msgstr ""
+
+#: contribute/parts.html.jinja
 msgid "Other editions say…"
 msgstr ""
 
 #: contribute/parts.html.jinja
 #, python-format
-msgid "%(value)s, on 1 edition"
+msgid "%(value)s, on %(count)d edition"
 msgid_plural "%(value)s, on %(count)d editions"
 msgstr[0] ""
 msgstr[1] ""
@@ -8750,10 +8760,6 @@ msgid "Upload the cover only, flat and in full: no photos of the book on a table
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "The cover belongs to another edition. A paperback, a reissue or a translation usually has a different cover; check the publisher."
-msgstr ""
-
-#: openlibrary/contribute/field_guides.py
 msgid "Making a cover yourself. If you can't find the real one, leave it for someone who can."
 msgstr ""
 
@@ -8767,6 +8773,11 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "Start with the title, subtitle and publisher on this page. Then look the ISBN up: WorldCat lists the language, and Google Books shows a “Translated by” line when the edition is a translation."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+#, python-format
+msgid "%(link_start)sThe scan%(link_end)s shows the text itself, and a translation names its translator on the title page."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8794,10 +8805,12 @@ msgid "How many pages does this edition have?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid ""
-"Google Books lists the page count as Length. WorldCat has it in the record's description, sometimes only after you sign in. Amazon's print length often counts every page, so use it to check a number rather than to find one.\n"
-"\n"
-"Make sure the record is for this edition, not another printing."
+msgid "Google Books lists the page count as Length. WorldCat has it in the record's description, sometimes only after you sign in. Amazon's print length often counts every page, so use it to check a number rather than to find one."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+#, python-format
+msgid "%(link_start)sThe scan%(link_end)s has every page. Go to the end of the main text and use the last numbered page."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8821,7 +8834,12 @@ msgid "Is this book fiction or nonfiction?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "If you know the book, answer from what you know. If you don't, look it up."
+msgid "Google Books lists Categories such as Fiction / Fantasy, and WorldCat lists Genre headings such as Fiction or Biography."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+#, python-format
+msgid "%(link_start)sThe scan%(link_end)s shows the back cover and any jacket flaps, which usually say what kind of book it is."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8856,10 +8874,6 @@ msgid "Goodreads"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "Some genres are settings (fantasy, historical), some are plot shapes (mystery, romance) and some are tones (humor). A book takes at most one of each, and usually just one or two in all."
-msgstr ""
-
-#: openlibrary/contribute/field_guides.py
 msgid "Go by what the book is sold as, not every element in it. A fantasy with a love story is fantasy; a love story in a fantasy setting is romance."
 msgstr ""
 
@@ -8884,11 +8898,78 @@ msgid "The imprint is printed on the title page and the spine. The Library of Co
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
+#, python-format
+msgid "%(link_start)sThe scan%(link_end)s shows the title page. Copy the imprint as it's printed there."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
 msgid "Open Library records the imprint printed on the book, not the parent company. Anchor Books, not Penguin Random House."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "Publisher as printed"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py
+msgid "Publish date"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Fill in publish date"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "When was this edition published?"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "The copyright page gives the year, often next to the publisher. Google Books lists it as Published, WorldCat as Date, and the Library of Congress record as part of the Published line."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+#, python-format
+msgid "%(link_start)sThe scan%(link_end)s shows the copyright page, which gives the year this edition came out."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Enter the year this edition came out, or the full date if a catalog gives one, such as March 2005. A later printing of the same edition keeps the edition's year."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "For example 2005 or March 2005"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "Fill in ISBN"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "What is this edition's ISBN?"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "The ISBN is printed on the copyright page and on the back cover, above the barcode. Without the book in hand, search WorldCat or Google Books by title and author, open the record whose publisher, year and format match this one, and copy the ISBN it lists."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+#, python-format
+msgid "%(link_start)sThe scan%(link_end)s shows the copyright page and the back cover, where the ISBN is printed."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "An ISBN-10 and an ISBN-13 can name the same edition: 0140449264 and 9780140449266. Paste either, with or without hyphens. Books from before 1970 don't have one."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "The ISBN belongs to another format of the book: a hardcover, paperback, ebook and audiobook each have their own."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "For example 9780140449266"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "I checked that the publisher, year and format match this edition."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8904,7 +8985,12 @@ msgid "What is this edition's Library of Congress number?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "Search the Library of Congress catalog for this ISBN. Open the record whose publisher and edition match this one, and copy the number shown as LCCN. A paperback or later printing can show a different year and still be the same record."
+msgid "Search the Library of Congress catalog for this ISBN, open the matching record and copy the number shown as LCCN."
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+#, python-format
+msgid "%(link_start)sThe scan%(link_end)s shows the copyright page. Books from the 1970s on often print the LCCN there, in the cataloging data."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8913,14 +8999,6 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "The number belongs to a different edition: another publisher's, a revised edition, a translation or the ebook. Each has its own record."
-msgstr ""
-
-#: openlibrary/contribute/field_guides.py
-msgid "The number is already on another edition of this work. That's right when it's the hardcover, paperback or a later printing from the same publisher; a different publisher or a revised edition means one of the two records is wrong."
-msgstr ""
-
-#: openlibrary/contribute/field_guides.py
-msgid "Pasting the web address instead of the number itself."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8944,11 +9022,7 @@ msgid "What is this edition's WorldCat (OCLC) number?"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "Search WorldCat for this ISBN. Open the print record whose publisher and edition match this one, and copy the number shown as OCLC Number. A paperback or later printing can show a different year and still be the same record."
-msgstr ""
-
-#: openlibrary/contribute/field_guides.py
-msgid "The OCLC number is how libraries the world over refer to one catalogued edition. It is one of the few fields Open Library uses to find duplicates of this book when new records arrive."
+msgid "Search WorldCat for this ISBN, open the matching print record and copy the number shown as OCLC Number."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8976,7 +9050,7 @@ msgid "I opened a print record and its publisher and edition match this one."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "This edition has a Library of Congress number. Its record states the language and gives the publisher as printed on the title page."
+msgid "This edition has a Library of Congress record, which gives the language and the publisher as printed."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -8984,7 +9058,7 @@ msgid "Library of Congress record"
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "This book is science fiction or fantasy, which ISFDB covers well. It lists each printing on its own, and a record marked as verified was checked against a physical copy."
+msgid "ISFDB covers science fiction and fantasy printing by printing."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
@@ -9233,6 +9307,22 @@ msgid "Enter the page count as a whole number."
 msgstr ""
 
 #: openlibrary/contribute/save.py
+msgid "This ISBN is already on another edition. Compare them: if they're the same book, this record is probably a duplicate."
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "That isn't a valid ISBN. Check the digits: an ISBN has 10 or 13, and the last one is a check digit."
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "Enter the date with its year, for example 2005 or March 2005."
+msgstr ""
+
+#: openlibrary/contribute/save.py
+msgid "That year doesn't look right. Enter the year this edition came out."
+msgstr ""
+
+#: openlibrary/contribute/save.py
 msgid "Fill in an answer, or choose “I couldn't find it”."
 msgstr ""
 
@@ -9371,7 +9461,7 @@ msgstr ""
 
 #: openlibrary/core/shell/search_modal.py
 #, python-format
-msgid "Showing %s of %s results"
+msgid "Showing %(shown)s of %(total)s results"
 msgstr ""
 
 #: openlibrary/core/shell/search_modal.py
@@ -9969,6 +10059,15 @@ msgstr ""
 msgid "List search"
 msgstr ""
 
+#: openlibrary/fastapi/search.py
+#, python-format
+msgid "%(query)s - Subject search"
+msgstr ""
+
+#: openlibrary/fastapi/search.py
+msgid "Subject search"
+msgstr ""
+
 #: openlibrary/fastapi/tasks.py
 msgid "Someone else changed this project while you had it open. Check it below, then try again."
 msgstr ""
@@ -10048,6 +10147,13 @@ msgstr ""
 #: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Textbooks"
 msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+#, python-format
+msgid "Re-queued %(count)d failed item."
+msgid_plural "Re-queued %(count)d failed items."
+msgstr[0] ""
+msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"
@@ -10139,6 +10245,14 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "Books missing a publisher"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Books missing a publish date"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Books missing an ISBN"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
