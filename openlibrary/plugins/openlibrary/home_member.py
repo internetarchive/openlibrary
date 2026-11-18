@@ -30,6 +30,10 @@ MEMBER_CACHE_SECS = 5 * dateutil.MINUTE_SECS
 URGENT_DAYS = 2
 
 
+# A display name longer than this is left out of the greeting.
+GREETING_NAME_MAX = 30
+
+
 def _brief(title: str, author: str, url: str, cover_url: str) -> dict:
     """What a card shows. `thumb_url` is the small rendition, for the 24px covers on the one-line rows."""
     return {"title": title or _("Untitled"), "author": author, "url": url, "cover_url": cover_url, "thumb_url": cover_url.replace("-M.jpg", "-S.jpg")}
@@ -233,6 +237,13 @@ def reading_now(readlog) -> list[dict]:
     return books
 
 
+def greeting_name(user) -> str:
+    """The name to greet the reader by, or "" when all we have is a username or something too long for a heading."""
+    name = (getattr(user, "displayname", None) or "").strip()
+    username = (getattr(user, "key", None) or "").split("/")[-1]
+    return name if name and name != username and len(name) <= GREETING_NAME_MAX else ""
+
+
 def build_member(user) -> dict:
     """Everything of the reader's own the home page shows. Each part fails on its own, so a lending outage
     costs the loans and not the section."""
@@ -259,6 +270,7 @@ def build_member(user) -> dict:
     want = attempt("want to read", lambda: want_available(readlog), [])
 
     return {
+        "name": greeting_name(user),
         "agenda": build_agenda(loans, holds, reading),
         "side": AGENDA_SIDE,
         "want": [brief_from_doc(doc) for doc in want],

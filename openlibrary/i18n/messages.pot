@@ -5070,11 +5070,12 @@ msgid "Removed from your shelves"
 msgstr ""
 
 #: home/member.html.jinja
-msgid "Pick up where you left off"
+#, python-format
+msgid "Welcome back, %(name)s"
 msgstr ""
 
 #: home/member.html.jinja
-msgid "Ready to read from your list"
+msgid "Welcome back"
 msgstr ""
 
 #: home/member.html.jinja

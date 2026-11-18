@@ -1,5 +1,6 @@
 """Tests for the home page's signed-in section (HomeMember partial)."""
 
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import web
@@ -68,6 +69,14 @@ def test_agenda_without_a_loan_leads_with_a_book_that_has_a_free_copy(request_co
     # With no free copy anywhere the shelf order stands.
     agenda = _home_member().build_agenda(loans=[], holds=[], reading=[_book("newest"), _book("oldest")])
     assert [card["title"] for card in agenda] == ["newest", "oldest"]
+
+
+def test_greeting_name_skips_usernames_and_long_names():
+    name = _home_member().greeting_name
+    assert name(SimpleNamespace(key="/people/mek", displayname="Mek K")) == "Mek K"
+    assert name(SimpleNamespace(key="/people/mek", displayname="mek")) == ""
+    assert name(SimpleNamespace(key="/people/mek", displayname=None)) == ""
+    assert name(SimpleNamespace(key="/people/mek", displayname="x" * 31)) == ""
 
 
 def test_reading_now_offers_a_button_only_for_a_free_copy(request_context_fixture):

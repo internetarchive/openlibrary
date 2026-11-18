@@ -64,10 +64,10 @@
              data-moved-labels="{{ {'1': _('Moved to Want to Read') , '3': _('Moved to Already Read'), '4': _('Moved to Stopped Reading'), 'none': _('Removed from your shelves')} | tojson | forceescape }}">
         <div class="home-now__head">
             <h2 class="home-now__title" id="home-now-title">
-                {% if agenda %}
-                    {{ _("Pick up where you left off") }}
+                {% if member.name %}
+                    {{ _("Welcome back, %(name)s", name=member.name) }}
                 {% else %}
-                    {{ _("Ready to read from your list") }}
+                    {{ _("Welcome back") }}
                 {% endif %}
             </h2>
             <div class="home-now__links">
