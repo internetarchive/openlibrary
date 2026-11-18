@@ -25,14 +25,16 @@
               method="post"
               action="{{ item.action.form.action }}">
             <input type="hidden" name="action" value="{{ item.action.form.value }}">
-            <ol-button type="submit" variant="{{ variant }}" size="{{ size }}" data-ol-link-track="HomeMember|{{ item.kind }}">
+            <ol-button type="submit" variant="{{ variant }}" size="{{ size }}" full-width data-ol-link-track="HomeMember|{{ item.kind }}">
                 {{ item.action.label }}
             </ol-button>
         </form>
     {% else %}
-        <ol-button variant="{{ variant }}" size="{{ size }}" href="{{ item.action.href }}" data-ol-link-track="HomeMember|{{ item.kind }}">
-            {{ item.action.label }}
-        </ol-button>
+        <div class="home-now__action">
+            <ol-button variant="{{ variant }}" size="{{ size }}" full-width href="{{ item.action.href }}" data-ol-link-track="HomeMember|{{ item.kind }}">
+                {{ item.action.label }}
+            </ol-button>
+        </div>
     {% endif %}
 {% endmacro %}
 {% macro status(item) %}
@@ -90,12 +92,12 @@
                     <p class="home-now__author">{{ first.author }}</p>
                     {% if first.note is defined %}<p class="home-now__note">{{ first.note }}</p>{% endif %}
                     <p class="home-now__moved" role="status"></p>
-                    <div class="home-now__main-action">
-                        {{ read_button(first, "primary") }}
-                        {{ shelf_menu(first) }}
-                        {# Beside the button to save a line; it wraps under it when the two don't fit. #}
-                        {% if first.status %}{{ status(first) }}{% endif %}
-                    </div>
+                    {% if first.status %}{{ status(first) }}{% endif %}
+                </div>
+                {# At the card's right edge, over the lines' buttons; the shelf menu shows under it. #}
+                <div class="home-now__main-action">
+                    {{ read_button(first, "primary") }}
+                    {{ shelf_menu(first) }}
                 </div>
             </article>
             {% if agenda[1:] %}

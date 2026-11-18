@@ -78,9 +78,9 @@ body[data-user-key] .home-welcome {
 }
 
 .home-now__sk-button {
-  width: 9em;
-  height: var(--control-height-medium);
-  margin-top: var(--spacing-stack-md);
+  flex: none;
+  width: var(--home-now-button-width);
+  height: var(--control-height-small);
   border-radius: var(--border-radius-button);
 }
 
@@ -122,6 +122,9 @@ body[data-user-key] .home-welcome {
 
 /* One card for everything in progress. */
 .home-now__reading {
+  /* Every Read or Borrow button on the card is at least as wide as "Borrow", so they stack as one column. */
+  --home-now-button-width: 4.75rem;
+
   padding: var(--spacing-inset-md);
   border: var(--border-card);
   border-radius: var(--border-radius-card);
@@ -179,17 +182,28 @@ body[data-user-key] .home-welcome {
   white-space: nowrap;
 }
 
+/* The button sits at the card's right edge, in line with the buttons of the lines under it. */
 .home-now__main-action {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-inline-md);
-  margin-top: auto;
-  padding-top: var(--spacing-stack-sm);
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-stack-xs);
 }
 
 .home-now__action {
+  flex: none;
   margin: 0;
+}
+
+.home-now__action,
+.home-now__cta {
+  min-width: var(--home-now-button-width);
+}
+
+/* The legacy button's wrapper takes the width, and the button fills it. */
+.home-now__cta > * {
+  flex: 1;
 }
 
 /* One status line by a book: plain, urgent (a loan nearly due) or ready (a hold to collect). */
