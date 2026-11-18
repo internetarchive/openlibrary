@@ -9,6 +9,7 @@ import asyncio
 import logging
 import time
 from datetime import UTC, datetime
+from urllib.parse import urlencode
 
 import web
 
@@ -27,6 +28,8 @@ WANT_CHECKED = 40
 WANT_SHOWN = 14
 # How many books are listed under the one in hand.
 AGENDA_SIDE = 2
+# Editions of a work checked for a free copy, after the one the reader shelved.
+COPIES_CHECKED = 5
 # How long the section waits on availability, over its checks together, before it goes on without.
 AVAILABILITY_BUDGET_SECS = 3
 # How long a reader's rendered section is kept. Shelf changes, borrows and returns drop it sooner.
@@ -215,6 +218,36 @@ def _logged_edition(doc) -> dict | None:
     return editions[0] if isinstance(editions, list) and editions else None
 
 
+def readable_editions(docs: list) -> dict[str, list[dict]] | None:
+    """For each work, the editions with an ebook that this reader could read: in the language they browse in,
+    or with no language recorded, the first kind first. A work whose ebooks are all known to be in other
+    languages gets none. None when search can't say, and the work's own lending copy is used as before."""
+    from openlibrary.plugins.upstream.utils import convert_iso_to_marc
+    from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
+    from openlibrary.plugins.worksearch.search import get_solr
+
+    try:
+        lang = convert_iso_to_marc(get_request_lang() or "en") or "eng"
+        params = [
+            ("q", "{!terms f=key}" + ",".join(doc["key"] for doc in docs)),
+            ("fl", "key,copies:[subquery]"),
+            ("rows", len(docs)),
+            ("copies.q", f"+({{!terms f=_root_ v=$row.key}}) language:{lang}^40 ebook_access:public^10 ebook_access:borrowable^8"),
+            ("copies.fq", "type:edition"),
+            ("copies.fq", "ia:*"),
+            ("copies.fq", f"ebook_access:[{get_fulltext_min()} TO *]"),
+            ("copies.fq", f"(language:{lang} OR (*:* -language:*))"),
+            ("copies.rows", COPIES_CHECKED),
+            ("copies.fl", "key,ia,language,ebook_access,cover_i"),
+            ("wt", "json"),
+        ]
+        found = async_bridge.run(get_solr().raw_request("select", urlencode(params), _timeout=2)).json()["response"]["docs"]
+    except Exception:
+        logger.warning("home: could not read editions by language", exc_info=True)
+        return None
+    return {work["key"]: (work.get("copies") or {}).get("docs") or [] for work in found}
+
+
 class AvailabilityBudget:
     """The time the section's availability checks may take between them. The lending timeout is far longer,
     and the reader is looking at a skeleton meanwhile."""
@@ -225,28 +258,35 @@ class AvailabilityBudget:
     def add(self, docs: list) -> bool:
         """Reads availability onto `docs`. False when time ran out or the service answered for none of them.
 
-        Each work gets the copy to offer: the edition the reader shelved when that one is free, since it's
-        the version they chose, else the work's own lending copy. One request covers both."""
+        Each work gets the copy to offer, the first one free of: the edition the reader shelved, since it's
+        the version they chose, then the editions they could read (readable_editions). A translation they
+        didn't choose is never offered. One request covers every copy."""
         logged = {doc["key"]: edition for doc in docs if (edition := _logged_edition(doc)) and lending.get_ocaid(edition)}
         if not any(lending.get_ocaid(doc) for doc in docs) and not logged:
             return True
         if self.left <= 0:
             return False
+        readable = readable_editions(docs)
+        copies = {doc["key"]: [logged[doc["key"]]] if doc["key"] in logged else [] for doc in docs}
+        for doc in docs:
+            copies[doc["key"]] += [doc] if readable is None else readable.get(doc["key"], [])
+        checked = [copy for of_work in copies.values() for copy in of_work]
         started = time.monotonic()
         try:
-            async_bridge.run(asyncio.wait_for(lending.add_availability_async(docs + list(logged.values())), self.left))
+            async_bridge.run(asyncio.wait_for(lending.add_availability_async(checked), self.left))
         except TimeoutError:
             logger.warning("home: availability took longer than the %ss the section allows", AVAILABILITY_BUDGET_SECS)
             return False
         finally:
             self.left -= time.monotonic() - started
-        known = availability_known(docs + list(logged.values()))
         for doc in docs:
-            edition = logged.get(doc["key"])
-            if edition and (edition.get("availability") or {}).get("status") in FREE:
-                doc["availability"] = edition["availability"] | {"identifier": lending.get_ocaid(edition)}
-                doc["offered_edition"] = edition
-        return known
+            of_work = [copy for copy in copies[doc["key"]] if copy.get("availability")]
+            pick = next((copy for copy in of_work if copy["availability"].get("status") in FREE), of_work[0] if of_work else None)
+            doc["availability"] = pick["availability"] | {"identifier": lending.get_ocaid(pick)} if pick else {}
+            # Only the shelved edition lends its cover: the reader knows the book by it.
+            if pick is logged.get(doc["key"]) and pick and pick["availability"].get("status") in FREE:
+                doc["offered_edition"] = pick
+        return availability_known(checked)
 
 
 def want_available(readlog, budget: AvailabilityBudget) -> tuple[list, bool]:

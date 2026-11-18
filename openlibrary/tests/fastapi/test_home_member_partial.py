@@ -3,6 +3,7 @@
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import pytest
 import web
 
 
@@ -11,6 +12,15 @@ def _home_member():
     from openlibrary.plugins.openlibrary import home_member  # noqa: PLC0415
 
     return home_member
+
+
+@pytest.fixture(autouse=True)
+def no_search():
+    """Search can't say which editions a reader could read, so the work's own copy is checked. Tests of the language rule say otherwise."""
+    real = _home_member().readable_editions
+    with patch("openlibrary.plugins.openlibrary.home_member.readable_editions", return_value=None) as readable:
+        readable.real = real
+        yield readable
 
 
 def _book(title: str, **extra) -> dict:
@@ -192,6 +202,83 @@ def test_want_available_prefers_the_shelved_edition_when_it_is_free(request_cont
     assert [_home_member().want_brief(doc, checked=True)["url"] for doc in want] == ["/works/OL1W?edition=ia:mine1", "/works/OL2W?edition=ia:work2"]
     # The cover follows the copy: the shelved edition's when that is the one offered, else the work's.
     assert [_home_member().brief_from_doc(doc)["cover_url"].rsplit("/", 1)[-1] for doc in want] == ["11-M.jpg", "2-M.jpg"]
+
+
+def test_want_available_offers_only_copies_the_reader_could_read(request_context_fixture, no_search):
+    request_context_fixture(lang="en")
+    docs = [
+        # The work's own lending copy is a translation, and free. An English edition is free too: that one is offered.
+        web.storage(key="/works/OL1W", title="english free", ia=["turkish1"]),
+        # The first English edition is out, the next is free.
+        web.storage(key="/works/OL2W", title="second english", ia=["turkish2"]),
+        # Every English edition is out: left off, though the translation is free.
+        web.storage(key="/works/OL3W", title="english out", ia=["turkish3"]),
+        # Only translations have an ebook: left off.
+        web.storage(key="/works/OL4W", title="translations only", ia=["turkish4"]),
+        # A translation the reader shelved themselves is their choice, and is offered.
+        web.storage(key="/works/OL5W", title="shelved translation", ia=["turkish5"], editions=[{"key": "/books/OL5M", "ia": ["shelved5"], "language": ["tur"]}]),
+    ]
+    no_search.return_value = {
+        "/works/OL1W": [{"key": "/books/OL11M", "ia": ["english1"]}],
+        "/works/OL2W": [{"key": "/books/OL21M", "ia": ["out2"]}, {"key": "/books/OL22M", "ia": ["english2"]}],
+        "/works/OL3W": [{"key": "/books/OL31M", "ia": ["out3"]}],
+        "/works/OL4W": [],
+        "/works/OL5W": [],
+    }
+    checked = []
+
+    def add_availability(items):
+        for item in items:
+            checked.append(item["ia"][0])
+            item["availability"] = {"status": "borrow_unavailable" if item["ia"][0].startswith("out") else "borrow_available"}
+
+    class ReadLog:
+        def get_works(self, key, limit, fq):
+            return web.storage(docs=docs)
+
+    with patch("openlibrary.core.lending.add_availability_async", side_effect=add_availability):
+        want, known = _home_member().want_available(ReadLog(), _home_member().AvailabilityBudget())
+
+    assert known
+    # No translation the reader didn't choose is even asked about.
+    assert sorted(checked) == ["english1", "english2", "out2", "out3", "shelved5"]
+    assert [_home_member().want_brief(doc, checked=True)["url"] for doc in want] == [
+        "/works/OL1W?edition=ia:english1",
+        "/works/OL2W?edition=ia:english2",
+        "/works/OL5W?edition=ia:shelved5",
+    ]
+
+
+def test_readable_editions_asks_for_the_readers_language(request_context_fixture, no_search):
+    request_context_fixture(lang="fr")
+    asked = {}
+
+    class Solr:
+        async def raw_request(self, path, payload, _timeout=None):
+            from urllib.parse import parse_qs  # noqa: PLC0415
+
+            asked.update(parse_qs(payload))
+            return SimpleNamespace(
+                json=lambda: {"response": {"docs": [{"key": "/works/OL1W", "copies": {"docs": [{"key": "/books/OL1M"}]}}, {"key": "/works/OL2W"}]}}
+            )
+
+    real = no_search.real
+    docs = [web.storage(key="/works/OL1W"), web.storage(key="/works/OL2W")]
+    with (
+        patch("openlibrary.plugins.worksearch.search.get_solr", return_value=Solr()),
+        patch("openlibrary.plugins.upstream.utils.convert_iso_to_marc", return_value="fre"),
+    ):
+        found = real(docs)
+        assert found == {"/works/OL1W": [{"key": "/books/OL1M"}], "/works/OL2W": []}
+    assert asked["q"] == ["{!terms f=key}/works/OL1W,/works/OL2W"]
+    assert "(language:fre OR (*:* -language:*))" in asked["copies.fq"]
+
+    class Down:
+        async def raw_request(self, path, payload, _timeout=None):
+            raise OSError
+
+    with patch("openlibrary.plugins.worksearch.search.get_solr", return_value=Down()):
+        assert real(docs) is None
 
 
 def test_want_brief_links_to_the_copy_that_was_checked(request_context_fixture):
