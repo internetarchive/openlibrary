@@ -134,9 +134,18 @@ Every review covers five areas:
 It also checks the PR against the issues it links to and lists which of their requirements the
 PR meets, doesn't meet, or needs a person to verify.
 
-**Security concerns are never posted publicly.** If the bot finds one, it withholds the whole
-review, and the `code-review` check fails with "A finding was delivered privately; maintainer
-review required." A maintainer needs to look at the PR before it can merge.
+**Security concerns about existing code are never posted publicly.** Code already on `master`
+may be live on openlibrary.org, so the bot holds back any concern about it, and anything else in
+the review that reads as security-related. A concern about code the PR itself adds isn't live yet,
+so the bot posts it like any other finding, on the line that adds it; a security finding always
+blocks. If it isn't sure which kind a concern is, it holds it back.
+
+When part of a review is held back, the rest is still posted, with a note saying some of it was
+held back. If the held-back part blocks, the bot requests changes and the `code-review` check fails
+with "Feedback withheld for maintainer review." It stays failed through later reviews, until a
+maintainer has looked at the PR, dismissed that review, and commented `@openlibrary-bot review` to
+refresh the check. The held-back text isn't sent anywhere: the bot keeps nothing that it can't post
+publicly.
 
 The full instructions the bot follows are in
 [`.github/workflows/code_review.md`](../.github/workflows/code_review.md).
@@ -171,7 +180,7 @@ The full instructions the bot follows are in
 | ⏳ pending | Superseded by `<commit>`: the PR changed during the review. | New commits arrived mid-review. The review was posted on this commit; the newest commit gets its own review. |
 | ❌ failure | N findings to address. | The review found problems that block. |
 | ❌ failure | N unresolved review threads. | No blocking findings, but some review threads are still open. |
-| ❌ failure | A finding was delivered privately; maintainer review required. | See the security note above. |
+| ❌ failure | Feedback withheld for maintainer review. | Part of the review was held back. See the security note above. |
 | ❌ failure | No clean review for this commit. | The review failed to post. Ask for a new review. |
 | ❌ failure | Review findings count unavailable. | The review ran but its result couldn't be read. Ask for a new review. |
 | ✅ success | Review passed; all feedback resolved. | Clean review, and no open threads. |
@@ -255,8 +264,8 @@ flowchart LR
   read them and write `review.json`. It has no shell, no web access and no write access to the
   repository, so instructions hidden in a PR can change what the review says, but not what the
   workflow does.
-- **`post`** re-checks `review.json` before posting: it withholds anything malformed or
-  security-related.
+- **`post`** re-checks `review.json` before posting: it posts nothing from a malformed review,
+  and nothing security-related except a concern on lines the PR adds.
 - **`resolve`** resolves the threads `post` lists, with a token that exists only while that job
   runs.
 - **`status`** decides the `code-review` check from the posted review and the PR's live threads.

@@ -4,7 +4,7 @@
 'use strict';
 
 const gate = require('./gate.cjs');
-const { filterDiff, headIsCurrent, supersededMarker } = require('./shared.cjs');
+const { filterDiff, headIsCurrent, supersededMarker, supersededCommit, reviewMarker, heldBackOpen } = require('./shared.cjs');
 
 // The review's verdict. Only APPROVE or REQUEST_CHANGES clears a pending review request; COMMENT
 // leaves it pending. Findings request changes. A clean review approves only when none of the bot's
@@ -141,15 +141,24 @@ async function validateAndPost({ github, context, core, require, process }) {
     } catch (e) {
         review = null;
     }
-    const verdict = gate.check(review);
+    const verdict = gate.check(review, fs.readFileSync('review.diff', 'utf8'));
     if (!verdict.publish) {
         // Return without failing: the status job decides pass or fail from analyze's outputs. Log no
         // reason, count or text, because the log is public.
         core.info('Nothing public to post for this commit; the code-review status job decides the gate.');
         return;
     }
+    // analyze already took out anything held back, so the gate must hold back nothing more. If it
+    // would (this diff differs from analyze's), post nothing: `status` doesn't know about it.
+    if (verdict.heldBack) {
+        core.setFailed('The review did not pass the gate again; not posting.');
+        return;
+    }
     // Everything below renders from the allowlisted copy only.
     review = verdict.clean;
+    // From analyze's gate: whether part of the review was held back, and whether that part blocks.
+    const heldBack = process.env.HELD_BACK === 'true';
+    const heldBackBlocks = heldBack && process.env.WITHHELD_BLOCKING === 'true';
 
     // Lines a comment can anchor to: the right side (added and context lines) of the diff.
     // GitHub doesn't document what happens with an anchor outside the diff, so findings with one
@@ -245,17 +254,25 @@ async function validateAndPost({ github, context, core, require, process }) {
         if (stateLine) summary = `${stateLine}\n\n${summary}`;
         if (supersededLine) summary = `${supersededLine}\n\n${summary}`;
 
+        // Fixed text only: no count, and nothing about what was held back or why.
+        if (heldBack) {
+            summary += heldBackBlocks
+                ? '\n\n> [!IMPORTANT]\n> Part of this review was held back because it may be security-sensitive. A maintainer needs to look at this PR before it can merge.'
+                : '\n\n> [!NOTE]\n> Part of this review was held back because it may be security-sensitive. None of it blocks this PR.';
+        }
+
         summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
 
         // State every dimension, because leaving one out reads the same as having checked it.
-        // Security is a fixed line: a review with a security finding never gets this far.
+        // Security never shows a note: only findings about code this PR adds are published.
         const count = {};
         for (const f of review.findings) count[f.dimension] = (count[f.dimension] || 0) + 1;
         summary += `\n\n<details>\n<summary>Dimensions</summary>\n\n${Object.entries(gate.dimensions)
             .map(([k, label]) => {
-                if (k === 'security') return `- **${label}** — no findings in this range. This is not a security audit.`;
                 if (count[k]) return `- **${label}** — ${count[k]} finding${count[k] === 1 ? '' : 's'}`;
-                return `- **${label}** — no findings. ${review.dimensions[k].note}`;
+                if (k === 'security') return `- **${label}** — no published findings in this range. This is not a security audit.`;
+                // With part held back, every empty dimension says "published", so none stands out.
+                return `- **${label}** — no ${heldBack ? 'published ' : ''}findings. ${review.dimensions[k].note}`;
             })
             .join('\n')}\n\n</details>`;
 
@@ -280,7 +297,7 @@ async function validateAndPost({ github, context, core, require, process }) {
         summary += /^\d+$/.test(minutes || '')
             ? `\n\n---\n> [!TIP]\n> A new review starts automatically about ${minutes} minutes after your last push. To start it sooner, a maintainer can re-request a review, or you can comment \`@openlibrary-bot review\` on this PR.`
             : `\n\n---\n> [!TIP]\n> When you've addressed the feedback and pushed your changes, comment \`@openlibrary-bot review\` on this PR to run a fresh review.`;
-        summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/docs/code-review-bot.md). This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
+        summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/docs/code-review-bot.md). This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n${reviewMarker(findingCount, heldBackBlocks)}`;
         if (supersededLine) summary += `\n${supersededMarker(headSha)}`;
         return summary;
     };
@@ -401,7 +418,14 @@ async function validateAndPost({ github, context, core, require, process }) {
 
     // A human's open thread doesn't stop APPROVE, though it keeps the status red. The status, not
     // the verdict, is what merging requires.
-    let event = superseded ? 'COMMENT' : selectReviewEvent({ selfAuthored, findingCount, unresolvedOwnThreads });
+    // Never approve while a blocking part is held back, from this review or an earlier one a
+    // maintainer hasn't dismissed: count it as one more finding.
+    let blocked = heldBackBlocks;
+    if (!blocked && !superseded) {
+        const earlier = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
+        blocked = heldBackOpen(earlier.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.body && !supersededCommit(r.body)));
+    }
+    let event = superseded ? 'COMMENT' : selectReviewEvent({ selfAuthored, findingCount: findingCount + (blocked ? 1 : 0), unresolvedOwnThreads });
     let summary = renderSummary();
 
     // One batched review. POST /pulls/{n}/comments returns 422 `pull_request_review_thread.base`

@@ -171,9 +171,9 @@ test('gate: a finding without an integer confidence from 1 to 10 withholds the r
 test('gate: confidence below 6 demotes the finding to low; 6 and up keeps its severity', () => {
     assert.equal(gate.check(withFinding({ confidence: 5 })).clean.findings[0].severity, 'low');
     assert.equal(gate.check(withFinding({ confidence: 6 })).clean.findings[0].severity, 'high');
-    // A withheld-by-text review whose only finding is unsure doesn't block.
+    // A finding held back by the text scan that is unsure doesn't block.
     const res = gate.check(withFinding({ confidence: 3, body: 'Store the password here.' }));
-    assert.equal(res.publish, false);
+    assert.equal(res.heldBack, true);
     assert.equal(res.blocking, false);
 });
 

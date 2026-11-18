@@ -3,7 +3,7 @@
 // status of an existing review, or skips, and writes the range, diff and settings the model reads.
 'use strict';
 
-const { filterDiff, parseReviewMarker, unresolvedThreadCount, supersededCommit } = require('./shared.cjs');
+const { filterDiff, verdictFindings, heldBackOpen, unresolvedThreadCount, supersededCommit } = require('./shared.cjs');
 
 async function resolveRange({ github, context, core, require, process }) {
     const fs = require('fs');
@@ -158,7 +158,8 @@ async function resolveRange({ github, context, core, require, process }) {
         // The same pass rule as status.cjs's decideStatus.
         // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
         const postSucceeded = reviewForVerdict != null;
-        const findings = reviewForVerdict ? parseReviewMarker(reviewForVerdict.body) : null;
+        let findings = reviewForVerdict ? verdictFindings(reviewForVerdict) : null;
+        if (findings === 0 && heldBackOpen(ours)) findings = 1;
         const unresolved = unresolvedThreadCount(threads);
         const expectedState = postSucceeded && findings === 0 && unresolved === 0 ? 'success' : 'failure';
 

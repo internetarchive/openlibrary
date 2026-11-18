@@ -160,7 +160,7 @@ function summarizeReviews(prs, w) {
         for (const r of reviews) {
             out.reviews++;
             out.states[r.state] = (out.states[r.state] || 0) + 1;
-            const f = /<!-- ol-pr-review-bot f=(\d+) -->/.exec(r.body || '');
+            const f = /<!-- ol-pr-review-bot f=(\d+)(?: h=1)? -->/.exec(r.body || '');
             if (f) out.blocking_findings += Number(f[1]);
             out.suggestions += suggestionCount(r.body);
         }
