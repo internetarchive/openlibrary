@@ -41,6 +41,8 @@ export const DEFAULT_LABELS = {
  * @prop {Boolean} deferred - Holds the artwork back until removed (ol-carousel removes it near view)
  * @prop {Boolean} loading - Darkens the cover under a spinner; set by a plain click on the
  *     link while the next page loads, cleared when the page is restored from the bfcache
+ * @prop {Boolean} noTip - Drops the hover card, for a cover that already has its title and
+ *     author written beside it
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
  *
  * @slot overlay - Pinned to the cover's top-right corner, over the artwork
@@ -58,6 +60,7 @@ export class OlBookCover extends LitElement {
         format: { type: String, reflect: true },
         deferred: { type: Boolean, reflect: true },
         loading: { type: Boolean, reflect: true },
+        noTip: { type: Boolean, attribute: 'no-tip' },
         labels: { type: Object },
         _ratio: { state: true },
         _missing: { state: true }
@@ -365,12 +368,12 @@ export class OlBookCover extends LitElement {
             : html`<span class=${frame}>${this._renderArt()}</span>`;
         const ratio = hasArt && this._ratio ? `--_ratio: ${this._ratio}` : nothing;
         return html`
-            <ol-tooltip placement="top" arrow style=${ratio}>
+            <ol-tooltip placement="top" arrow style=${ratio} .disabled=${Boolean(this.noTip)}>
                 ${art}${this.href ? html`<span class="spinner" aria-hidden="true"></span>` : nothing}
                 <div class="corner">
                     <slot name="overlay" @pointerdown=${this._hideTip} @ol-popover-open=${this._onOverlayOpen} @ol-popover-close=${this._onOverlayClose}></slot>
                 </div>
-                ${this._renderTip()}
+                ${this.noTip ? nothing : this._renderTip()}
             </ol-tooltip>
         `;
     }
@@ -413,7 +416,7 @@ export class OlBookCover extends LitElement {
     }
 
     _onOverlayClose(e) {
-        if (!e.defaultPrevented) this._tooltip.disabled = false;
+        if (!e.defaultPrevented) this._tooltip.disabled = Boolean(this.noTip);
     }
 
     _renderArt() {

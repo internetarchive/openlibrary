@@ -137,8 +137,9 @@ def get_holds(user) -> list[dict]:
 def build_agenda(loans: list[dict], holds: list[dict], reading: list[dict]) -> list[dict]:
     """Loans, holds and Currently Reading books as one list of cards, each with a status line and one action.
 
-    The first is the large card: the book in hand (the loan due soonest, else what they're reading), since
-    that's what most visits are for. After it comes whatever has a clock on it: ready holds, then the other loans.
+    The first is the large card: the book in hand (the loan due soonest, else the newest Currently Reading
+    book with a free copy, else the newest), since that's what most visits are for. After it comes whatever
+    has a clock on it: ready holds, then the other loans.
     """
 
     def card(book: dict, kind: str, status: str, tone: str, label: str, form: dict | None = None) -> dict:
@@ -177,6 +178,11 @@ def build_agenda(loans: list[dict], holds: list[dict], reading: list[dict]) -> l
         card(book, "reading", "", "plain", "") | {"action": None} | {key: book.get(key, "") for key in ("cta", "cta_small", "shelf", "shelf_small", "work_key")}
         for book in reading
     ]
+    if not loan_cards:
+        # The large card should have something to press: the newest book with a free copy, else the newest.
+        lead = next((book for book in reading_cards if book["cta"]), None)
+        if lead:
+            reading_cards = [lead] + [book for book in reading_cards if book is not lead]
     in_hand = loan_cards[:1] or reading_cards[:1]
     rest = ready + loan_cards[1:] + (reading_cards if loan_cards else reading_cards[1:]) + waiting
     return in_hand + rest

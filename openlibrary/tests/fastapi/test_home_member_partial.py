@@ -60,6 +60,16 @@ def test_agenda_without_a_loan_leads_with_currently_reading(request_context_fixt
     assert agenda[2]["cta"] == ""
 
 
+def test_agenda_without_a_loan_leads_with_a_book_that_has_a_free_copy(request_context_fixture):
+    request_context_fixture(lang="en")
+    reading = [_book("newest"), _book("free", cta="<borrow>"), _book("also free", cta="<borrow>"), _book("oldest")]
+    agenda = _home_member().build_agenda(loans=[], holds=[], reading=reading)
+    assert [card["title"] for card in agenda] == ["free", "newest", "also free", "oldest"]
+    # With no free copy anywhere the shelf order stands.
+    agenda = _home_member().build_agenda(loans=[], holds=[], reading=[_book("newest"), _book("oldest")])
+    assert [card["title"] for card in agenda] == ["newest", "oldest"]
+
+
 def test_reading_now_offers_a_button_only_for_a_free_copy(request_context_fixture):
     request_context_fixture(lang="en")
     docs = [
