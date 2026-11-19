@@ -73,10 +73,10 @@ pending → processing (atomic claim by import_first_staged)
          → created   (new edition created)
          → modified  (existing edition updated)
          → failed    (error_code set)
+```
 
 An administrator can retry failed items from their batch status page. Retrying
 requeues only failed rows that still contain their original import data.
-```
 
 `processing` is the race guard — atomic `UPDATE ... RETURNING *` prevents two ImportBot workers from claiming the same item.
 
