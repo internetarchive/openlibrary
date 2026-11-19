@@ -18,7 +18,7 @@ from ..core.admin import get_count_docs, initiative_counts, rolling_counts
 from ..core.booknotes import Booknotes
 from ..core.bookshelves import Bookshelves
 from ..core.follows import PubSub
-from ..core.helpers import commify, format_date
+from ..core.helpers import commify
 from ..core.lending import get_availabilities
 from ..core.observations import Observations
 from ..core.ratings import Ratings
@@ -281,18 +281,10 @@ def day_keys(end: dt.date, days: int = 28) -> list[str]:
     return [(end - dt.timedelta(days=i)).strftime("counts-%Y-%m-%d") for i in range(days)]
 
 
-def edits_without_lists(docs: list[dict], days: list[str]) -> int | None:
-    "Catalog edits over `days`, less list edits: lists are their own kind of editing. A day without a list count had none."
-    if (edits := window_sum(docs, "catalog_edits", days)) is None:
-        return None
-    by_key = {d["_key"]: d for d in docs}
-    return max(0, edits - sum(by_key.get(day, {}).get("list_edits") or 0 for day in days))
-
-
 def build_editing_cards(counts: dict, docs: list[dict], today: dt.date) -> list[dict]:
     "The All editing cards, each on the trailing 28 days."
-    editors, first_time = latest(counts, "catalog_editors_28d"), latest(counts, "new_catalog_editors_28d")
-    edits = edits_without_lists(docs, day_keys(today))
+    editors, first_time = latest(counts, "book_editors_28d"), latest(counts, "new_book_editors_28d")
+    edits = window_sum(docs, "book_edits", day_keys(today))
     tasks_saves, tasks_editors = latest(counts, "tasks_saves_28d"), latest(counts, "tasks_editors_28d")
     split = None
     if editors and first_time is not None:
@@ -305,21 +297,21 @@ def build_editing_cards(counts: dict, docs: list[dict], today: dt.date) -> list[
         card(
             "edits",
             _("Edits"),
-            _("Edits saved by people, not bots: to books, works, authors and other pages, and from the Tasks page. Lists aren't counted."),
+            _("Changes people, not bots, saved to editions and works, from the Tasks page or anywhere else."),
             format_count(edits),
             detail=_("≈ %(count)s per editor", count=commify(round(edits / editors))) if edits and editors else "",
         ),
         card(
             "editors",
             _("Editors"),
-            _("People who changed a book, work or author record, and those whose first edit ever it was. Week and month views count each person once."),
+            _("People who changed an edition or work, and those whose first such change ever it was. Week and month views count each person once."),
             format_count(editors),
             split=split,
         ),
         card(
             "new_editors",
             _("New editors"),
-            _("People whose first change ever to a book, work or author record falls in the period, wherever they made it."),
+            _("People whose first change ever to an edition or work falls in the period, wherever they made it."),
             format_count(first_time),
             detail=_("%(share)s of editors", share=share(first_time, editors)) if share(first_time, editors) else "",
         ),
@@ -339,7 +331,7 @@ def build_editing_cards(counts: dict, docs: list[dict], today: dt.date) -> list[
 def build_tasks_stats_cards(counts: dict, edits: int | None) -> list[dict]:
     "The Through Tasks cards, each on the trailing 28 days."
     saves, editors = latest(counts, "tasks_saves_28d"), latest(counts, "tasks_editors_28d")
-    all_editors = latest(counts, "catalog_editors_28d")
+    all_editors = latest(counts, "book_editors_28d")
     return [
         card(
             "saves",
@@ -469,7 +461,7 @@ def build_tasks_stats_i18n() -> dict[str, str]:
         "noData": _("No counts for this range yet."),
         "returning": _("Returning"),
         "firstTime": _("First edit ever"),
-        "otherEdits": _("Records and other pages"),
+        "otherEdits": _("Outside Tasks"),
         "tasks": _("Tasks"),
         "total": _("Total: %(count)s"),
         "ofEdits": _("Of edits"),
@@ -479,14 +471,12 @@ def build_tasks_stats_i18n() -> dict[str, str]:
 
 
 SCOPES = ("all", "tasks")
-# The first day the stats script wrote `catalog_edits` (openlibrary/admin/numbers.py), so edit charts start there.
-EDITS_COUNTED_SINCE = dt.datetime(2026, 10, 15)
 
 
 def build_tasks_stats_page(scope: str = "all") -> dict:
     keys = [
-        "catalog_editors_28d",
-        "new_catalog_editors_28d",
+        "book_editors_28d",
+        "new_book_editors_28d",
         "tasks_saves_28d",
         "tasks_editors_28d",
         "tasks_saves_undone_28d",
@@ -496,7 +486,7 @@ def build_tasks_stats_page(scope: str = "all") -> dict:
     docs = get_count_docs(28)
     counts = rolling_counts(docs, keys)
     today = dt.date.today()
-    edits = edits_without_lists(docs, day_keys(today))
+    edits = window_sum(docs, "book_edits", day_keys(today))
     since = (today - dt.timedelta(days=27)).strftime("counts-%Y-%m-%d")
     return {
         "scope": scope if scope in SCOPES else "all",
@@ -508,7 +498,6 @@ def build_tasks_stats_page(scope: str = "all") -> dict:
         "initiatives": build_initiatives(docs),
         "saves_by_field": build_saves_by_field([d for d in docs if d["_key"] >= since]),
         "i18n": build_tasks_stats_i18n(),
-        "edits_since": format_date(EDITS_COUNTED_SINCE),
     }
 
 

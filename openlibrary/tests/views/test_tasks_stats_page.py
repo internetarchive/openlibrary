@@ -33,12 +33,12 @@ def day_docs(today, values: dict[str, int], days: int = 28) -> list[dict]:
 def test_editing_cards_lead_with_edits_and_count_new_editors(request_lang):
     today = dt.date(2026, 11, 9)
     counts = {
-        "catalog_editors_28d": {"latest": 2500, "earlier": 2000},
-        "new_catalog_editors_28d": {"latest": 2000},
+        "book_editors_28d": {"latest": 2500, "earlier": 2000},
+        "new_book_editors_28d": {"latest": 2000},
         "tasks_saves_28d": {"latest": 280},
         "tasks_editors_28d": {"latest": 50},
     }
-    docs = day_docs(today, {"catalog_edits": 110, "list_edits": 10})
+    docs = day_docs(today, {"book_edits": 100})
     by_metric = {c["metric"]: c for c in loanstats.build_editing_cards(counts, docs, today)}
     assert list(by_metric) == ["edits", "editors", "new_editors", "tasks_share"]
     assert by_metric["editors"]["split"] == {"returning": "500", "first_time": "2,000", "first_time_width": 80.0}
@@ -51,7 +51,7 @@ def test_editing_cards_lead_with_edits_and_count_new_editors(request_lang):
 
 def test_edits_need_every_day_of_the_window(request_lang):
     today = dt.date(2026, 11, 9)
-    docs = day_docs(today, {"catalog_edits": 100}, days=27)
+    docs = day_docs(today, {"book_edits": 100}, days=27)
     by_metric = {c["metric"]: c for c in loanstats.build_editing_cards({}, docs, today)}
     assert by_metric["edits"]["value"] == "—"
     assert by_metric["tasks_share"]["value"] == "—"

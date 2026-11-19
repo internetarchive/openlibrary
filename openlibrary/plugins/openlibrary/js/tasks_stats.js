@@ -23,7 +23,7 @@ export const DEFAULT_STRINGS = {
     noData: 'No counts for this range yet.',
     returning: 'Returning',
     firstTime: 'First edit ever',
-    otherEdits: 'Records and other pages',
+    otherEdits: 'Outside Tasks',
     tasks: 'Tasks',
     total: 'Total: %(count)s',
     ofEdits: 'Of edits',
@@ -202,16 +202,15 @@ export async function init(root) {
      */
     function buildMetrics(n) {
         const series = (/** @type {string} */ key) => fullSeries(key).slice(0, n);
-        // Edits less list edits, split by where they were saved. A day with edits but no list or Tasks count had none of those.
-        const catalogEdits = series('catalog_edits');
-        const orZero = (/** @type {(number | null)[]} */ values) => values.map((v, i) => (catalogEdits[i] === null ? null : (v ?? 0)));
-        const edits = subtract(catalogEdits, orZero(series('list_edits')));
+        // Edits to editions and works, split by where they were saved. A day with edits but no Tasks count had none.
+        const edits = series('book_edits');
+        const orZero = (/** @type {(number | null)[]} */ values) => values.map((v, i) => (edits[i] === null ? null : (v ?? 0)));
         const tasksSaves = orZero(series('tasks_saves_1d'));
 
         /**
          * People can't be added up across days, so week and month views of them take the stored 7- or 28-day window ending on
          * the period's last day instead.
-         * @param {string} prefix e.g. `catalog_editors`, with `_1d`, `_7d` and `_28d` keys
+         * @param {string} prefix e.g. `book_editors`, with `_1d`, `_7d` and `_28d` keys
          * @param {number} size
          */
         const people = (prefix, size) => bucketize(series(`${prefix}_1d`), size, size === 1 ? undefined : series(`${prefix}_${size === 7 ? 7 : 28}d`));
@@ -226,8 +225,8 @@ export async function init(root) {
         /** @type {Record<string, (size: number) => Metric>} */
         const METRICS = {
             editors: size => {
-                const all = people('catalog_editors', size);
-                const firstTime = people('new_catalog_editors', size);
+                const all = people('book_editors', size);
+                const firstTime = people('new_book_editors', size);
                 const returning = all.map((b, i) => ({
                     ...b,
                     value: b.value === null || firstTime[i].value === null ? null : Math.max(0, b.value - firstTime[i].value)
@@ -248,7 +247,7 @@ export async function init(root) {
                 ];
                 return { parts, total: stackTotal(parts), format: 'count', complete: [edits] };
             },
-            new_editors: size => single(people('new_catalog_editors', size), 'count', colors.accent),
+            new_editors: size => single(people('new_book_editors', size), 'count', colors.accent),
             tasks_share: size => ({ ...single(ratio(sum(tasksSaves, size), sum(edits, size), 100), 'percent'), complete: [edits] }),
             saves: size => single(sum(series('tasks_saves_1d'), size), 'count'),
             tasks_editors: size => single(people('tasks_editors', size), 'count'),
@@ -257,7 +256,7 @@ export async function init(root) {
         return { METRICS, edits, tasksSaves };
     }
     const { METRICS, edits, tasksSaves } = buildMetrics(dates.length);
-    const gathered = Math.max(...['catalog_editors_1d', 'catalog_edits', 'tasks_saves_1d'].map(key => fullSeries(key).findLastIndex(v => v !== null)));
+    const gathered = Math.max(...['book_editors_1d', 'book_edits', 'tasks_saves_1d'].map(key => fullSeries(key).findLastIndex(v => v !== null)));
     const CARD_METRICS = gathered >= 0 ? buildMetrics(gathered + 1).METRICS : METRICS;
 
     /**
@@ -453,7 +452,7 @@ export async function init(root) {
             [
                 { values: perDay(tasksSaves, edits, 100), color: colors.accent, label: strings.ofEdits },
                 {
-                    values: perDay(series('tasks_editors_1d'), series('catalog_editors_1d'), 100),
+                    values: perDay(series('tasks_editors_1d'), series('book_editors_1d'), 100),
                     color: colors.previous,
                     dashed: true,
                     label: strings.ofEditors

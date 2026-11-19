@@ -6771,8 +6771,7 @@ msgid "Community project progress is counted nightly."
 msgstr ""
 
 #: stats/tasks.html.jinja
-#, python-format
-msgid "Edit totals start on %(date)s, so longer ranges begin partway through."
+msgid "Edit and editor totals start on the day they were first counted, so longer ranges may begin partway through."
 msgstr ""
 
 #: subjects/notfound.html
@@ -10928,7 +10927,7 @@ msgid "%(title)s - search"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "Edits saved by people, not bots: to books, works, authors and other pages, and from the Tasks page. Lists aren't counted."
+msgid "Changes people, not bots, saved to editions and works, from the Tasks page or anywhere else."
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -10941,7 +10940,7 @@ msgid "Editors"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "People who changed a book, work or author record, and those whose first edit ever it was. Week and month views count each person once."
+msgid "People who changed an edition or work, and those whose first such change ever it was. Week and month views count each person once."
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -10949,7 +10948,7 @@ msgid "New editors"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "People whose first change ever to a book, work or author record falls in the period, wherever they made it."
+msgid "People whose first change ever to an edition or work falls in the period, wherever they made it."
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -11060,7 +11059,7 @@ msgid "First edit ever"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "Records and other pages"
+msgid "Outside Tasks"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
