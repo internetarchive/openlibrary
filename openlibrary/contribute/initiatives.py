@@ -557,7 +557,7 @@ def first_counted_open(initiative: Initiative, site) -> int | None:
     """The open details the stats job first counted for the initiative, the first point of its "Tasks left" line; None if it never has."""
     if not (frozen := site.store.get(initiative.store_key)):
         return None
-    days = (date.today() - datetime.fromisoformat(frozen["frozen_at"]).date()).days + 1
+    days = (datetime.now(UTC).date() - datetime.fromisoformat(frozen["frozen_at"]).date()).days + 1
     counts = (admin.initiative_counts(doc).get(initiative.slug, {}) for doc in admin.read_count_docs(site, max(days, 1)))
     return next((c["open"] for c in counts if "open" in c), None)
 

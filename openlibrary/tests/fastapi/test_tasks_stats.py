@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 
 def test_series_line_up_with_one_entry_per_calendar_day(fastapi_client):
-    today = date.today()
+    today = datetime.now(UTC).date()
     yesterday = today - timedelta(days=1)
     # The day before yesterday was never gathered; yesterday has the daily keys, today only some.
     docs = {

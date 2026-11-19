@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Query
@@ -68,7 +68,7 @@ def tasks_series(
 ) -> TasksSeries:
     """The counts behind /stats/tasks as aligned daily series, one entry per calendar day whether or not it was gathered."""
     docs = _count_docs_by_day()
-    today = date.today()
+    today = datetime.now(UTC).date()
     dates = [(today - timedelta(days=i)).isoformat() for i in reversed(range(days))]
     day_docs = [docs.get(d, {}) for d in dates]
     return TasksSeries(
