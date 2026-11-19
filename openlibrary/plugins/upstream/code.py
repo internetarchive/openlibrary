@@ -87,8 +87,8 @@ class edit(core.edit):
             return core.edit.GET(self, key)
 
     def POST(self, key):
-        if re.compile("/(people/[^/]+)").match(key) and spamcheck.is_spam(web.input()):
-            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
+        if re.compile("/(people/[^/]+)").match(key) and (reason := spamcheck.spam_reason(web.input())):
+            return spamcheck.render_rejection(reason)
         return core.edit.POST(self, key)
 
 

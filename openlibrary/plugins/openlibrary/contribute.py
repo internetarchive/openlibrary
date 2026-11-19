@@ -927,8 +927,8 @@ class contribute_task(delegate.page):
         # Drop the upload's field storage, as the add-cover page does.
         web.ctx.pop("_fieldstorage", None)
         # Same check as the edit form; it also stops read-only and blocked accounts. Only the text is checked: not the image, not the picked keys.
-        if spamcheck.is_spam(web.storage((k, v) for k, v in i.items() if isinstance(v, str)), allow_privileged_edits=True):
-            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
+        if reason := spamcheck.check_contribution(web.storage((k, v) for k, v in i.items() if isinstance(v, str)), captcha=False):
+            return spamcheck.render_rejection(reason)
         back = normalize_filter(i.back)
         # A task opened before its initiative was hidden still saves toward it. The form names its project; the URL's
         # ``initiative`` covers a form rendered before it did.
