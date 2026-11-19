@@ -93,6 +93,8 @@ $ i18n_strings = {
         $if recaptcha and not ctx.user:
             $:render_template("recaptcha", recaptcha.public_key, error=None)
 
+        $:render_template("lib/form_signals", "add-book")
+
         <div class="formElement bottom">
             <br/>
             <div class="cclicense">

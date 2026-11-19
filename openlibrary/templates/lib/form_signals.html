@@ -1,0 +1,8 @@
+$def with (surface)
+$# Log-only spam signals, read by spamcheck.record_form_signals: a signed rendered-at token and a honeypot.
+$# The honeypot is moved off-screen rather than display:none, and its name is one that autofill and password managers leave alone.
+<input type="hidden" name="ol_form_token" value="$make_form_token(surface)"/>
+<div class="shift" aria-hidden="true">
+    <label for="ol_extra_notes">$_("Leave this field empty")</label>
+    <input type="text" id="ol_extra_notes" name="ol_extra_notes" value="" tabindex="-1" autocomplete="off" data-1p-ignore data-lpignore="true"/>
+</div>

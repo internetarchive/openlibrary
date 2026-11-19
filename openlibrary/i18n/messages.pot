@@ -5170,6 +5170,10 @@ msgstr ""
 msgid "Copy Wikipedia citation"
 msgstr ""
 
+#: lib/form_signals.html
+msgid "Leave this field empty"
+msgstr ""
+
 #: lib/history.html
 #, python-format
 msgid "Created %(date)s"

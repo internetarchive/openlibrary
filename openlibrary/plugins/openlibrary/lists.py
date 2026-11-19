@@ -347,6 +347,9 @@ class lists_edit(delegate.page):
         if not list_record.name:
             raise web.badrequest("A list name is required.")
 
+        if not list_id:
+            spamcheck.record_form_signals("list" if list_type_plural == "lists" else "series")
+
         # Block spam lists at creation time (issue #11905)
         if spamcheck.is_spam(list_record.to_thing_json()):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
@@ -567,6 +570,7 @@ class lists_json:
             seeds=seeds,
         )
 
+        spamcheck.record_formless_submission("list-json")
         if spamcheck.is_spam(lst):
             raise SpamListError
 
