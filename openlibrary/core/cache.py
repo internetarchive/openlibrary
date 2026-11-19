@@ -16,10 +16,10 @@ from typing import Any, Literal, ParamSpec, TypeVar, cast
 
 import memcache
 import web
+
 from infogami import config
 from infogami.infobase.client import Nothing
 from infogami.utils import stats
-
 from openlibrary.core.helpers import NothingEncoder
 from openlibrary.utils import olmemcache
 from openlibrary.utils.async_utils import cache_per_event_loop

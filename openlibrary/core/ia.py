@@ -7,9 +7,9 @@ from urllib.parse import urlencode
 
 import httpx
 import web
+
 from infogami import config
 from infogami.utils import stats
-
 from openlibrary.core import cache
 from openlibrary.utils import server_timing
 from openlibrary.utils.async_utils import cache_per_event_loop
