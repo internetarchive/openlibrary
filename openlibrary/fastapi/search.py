@@ -639,11 +639,6 @@ def subjects_search_title(q: str) -> str:
     return _("%(query)s - Subject search", query=q) if q else _("Subject search")
 
 
-def subjects_search_title(q: str) -> str:
-    """Page title for /search/subjects: led by the query, as in Wikipedia's, so tabs and history tell searches apart."""
-    return _("%(query)s - Subject search", query=q) if q else _("Subject search")
-
-
 @pages.get("/search/subjects")
 async def search_subjects(nav: SearchNavDep, q: str = "", page: int = 1) -> SitePage:
     # TODO: Retire the web.py `subject_search` handler (it still serves /search/subjects
