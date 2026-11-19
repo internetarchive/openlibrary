@@ -178,6 +178,7 @@
 .batch-table__count {
   min-width: 3em;
   margin-inline-start: auto;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
   text-align: end;
 }
