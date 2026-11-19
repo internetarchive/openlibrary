@@ -2645,6 +2645,14 @@ msgid "Activated on <span class=\"time\">%(date)s</span> from <a href=\"/admin/i
 msgstr ""
 
 #: admin/people/view.html
+msgid "continue reverting edits"
+msgstr ""
+
+#: admin/people/view.html
+msgid "revert all edits"
+msgstr ""
+
+#: admin/people/view.html
 msgid "unblock this account"
 msgstr ""
 
