@@ -21,11 +21,7 @@ def test_batch_status_get_renders_retry_action(render_template, monkeypatch, is_
     monkeypatch.setattr(
         code.db,
         "select",
-        lambda table, **_: (
-            [web.storage(id=42, name="batch", submitter=username, submit_time=datetime(2026, 1, 1))]
-            if table == "import_batch"
-            else []
-        ),
+        lambda table, **_: [web.storage(id=42, name="batch", submitter=username, submit_time=datetime(2026, 1, 1))] if table == "import_batch" else [],
     )
 
     def query(statement, **_):

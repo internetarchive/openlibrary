@@ -145,10 +145,10 @@ curl -X POST "http://localhost:8080/api/import?preview=true" \
 ### Retrying failed items
 
 Open the batch status page (`/import/batch/<batch-id>`). An administrator sees
-**Retry Failed Imports** when the batch has failed rows with saved import data.
-Submitting the form sends a POST and requeues those rows in that batch, clearing
-the previous error, import time, and Open Library key while preserving the
-original data. Other batches and non-failed rows are untouched.
+**Retry failed** when the batch has failed rows. Submitting the form sends a
+POST and requeues those rows in that batch, clearing the previous error, import
+time, and Open Library key while preserving the original data. Other batches
+and non-failed rows are untouched.
 
 The retry uses the same payload. It is useful for transient failures, but it
 does not repair invalid or otherwise permanently failing records.
