@@ -32,7 +32,8 @@ from openlibrary.fastapi.models import (
 )
 from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SitePageRoute
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.inside.code import RESULTS_PER_PAGE, render_inside_body
+from openlibrary.plugins.inside.code import RESULTS_PER_PAGE, hit_editions, render_inside_body
+from openlibrary.plugins.upstream.mybooks import get_reading_states_async
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
     run_solr_query_async,
@@ -705,6 +706,11 @@ async def search_inside(params: Annotated[InsideSearchParams, Query()], nav: Sea
         else {}
     )
 
+    # One reading-state lookup for the page, awaited rather than bridged: the sync
+    # get_reading_states() waits on async_bridge's loop thread, which stalls every
+    # other request this worker is serving for the round trip.
+    reading_states = await get_reading_states_async(user, hit_editions(data))
+
     body = render_inside_body(
         nav=nav,
         inside_nav=inside_nav,
@@ -714,11 +720,12 @@ async def search_inside(params: Annotated[InsideSearchParams, Query()], nav: Sea
         readable=readable,
         phrase=phrase,
         data=data,
-        user=user,
+        reading_states=reading_states,
     )
     # The search pages size their covers and rows differently, so they set bodyclass just as the Templetor page did.
     return SitePage(body, page=PageMeta(title=inside_search_title(query), bodyclass=("search-page",)))
-    
+
+
 def subjects_search_title(q: str) -> str:
     """Page title for /search/subjects: led by the query, as in Wikipedia's, so tabs and history tell searches apart."""
     return _("%(query)s - Subject search", query=q) if q else _("Subject search")

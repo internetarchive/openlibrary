@@ -24,6 +24,7 @@ from openlibrary.utils.async_utils import async_bridge
 
 if TYPE_CHECKING:
     from openlibrary.core.fulltext import FulltextRow
+    from openlibrary.core.reading_state import ReadingState
     from openlibrary.fastapi.search import InsideNav, SearchNav
 
 RESULTS_PER_PAGE = 20
@@ -51,16 +52,21 @@ def empty_reason(query: str, rows: list, total: int, filtered: bool) -> str | No
     return "filtered_out" if filtered else "past_end"
 
 
-def render_hit_rows(rows: list[FulltextRow], phrase: str, user: Any | None) -> list[Markup]:
-    """Render one search row per hit, in one round of reading-state queries.
+def hit_editions(data: dict) -> list[Any]:
+    """The OL editions behind an FTS response's hits: the page's one reading-state lookup."""
+    return [row.edition for row in fulltext_page(data)[0] if row.edition]
+
+
+def render_hit_rows(rows: list[FulltextRow], phrase: str, reading_states: dict[str, ReadingState]) -> list[Markup]:
+    """Render one search row per hit.
 
     `SearchResultsWork` is still Templetor (8 other callers, each with its own
     request state), so it renders here as a bridge, as /search's full text band
-    does (`partials.render_fulltext_suggestion_row`). `reading_states` is passed
-    in so the shelf button shows this reader's state rather than looking up its
-    own, per row.
+    does (`partials.render_fulltext_suggestion_row`). `reading_states` is the
+    page's single lookup, passed in so the shelf button shows this reader's state
+    rather than looking up its own per row: rendering does no I/O, so FastAPI may
+    call this on its event loop.
     """
-    reading_states = get_reading_states(user, [row.edition for row in rows if row.edition])
     rendered = []
     for seq_index, row in enumerate(rows):
         if row.edition:
@@ -90,7 +96,7 @@ def render_inside_body(
     readable: bool,
     phrase: bool,
     data: dict,
-    user: Any | None,
+    reading_states: dict[str, ReadingState],
 ) -> str:
     """Render /search/inside's page body from an FTS response, for either server.
 
@@ -109,7 +115,7 @@ def render_inside_body(
         q=query,
         page=page,
         results_per_page=RESULTS_PER_PAGE,
-        rows=render_hit_rows(rows, snippet_phrase, user) if rows else [],
+        rows=render_hit_rows(rows, snippet_phrase, reading_states) if rows else [],
         total=total,
         commified_total=commify(total),
         range_start=(page - 1) * RESULTS_PER_PAGE + 1,
@@ -167,7 +173,8 @@ class search_inside(delegate.page):
             readable=readable,
             phrase=phrase,
             data=data,
-            user=get_current_user(),
+            # web.py renders on its own thread, so the sync lookup is fine here.
+            reading_states=get_reading_states(get_current_user(), hit_editions(data)),
         )
         context.setdefault("bodyclass", []).append("search-page")
         # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.

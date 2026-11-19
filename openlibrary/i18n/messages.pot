@@ -10057,6 +10057,7 @@ msgstr ""
 #: openlibrary/fastapi/search.py
 #, python-format
 msgid "Search Open Library for %(query)s"
+msgstr ""
 
 #: openlibrary/fastapi/search.py
 #, python-format

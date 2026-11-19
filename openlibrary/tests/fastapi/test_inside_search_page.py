@@ -100,7 +100,30 @@ def test_inside_page_results(client):
     rows.assert_called_once()
     # The snippets search for the phrase FTS was sent; no reader, so no reading states
     assert rows.call_args.args[1] == '"dogs"'
-    assert rows.call_args.args[2] is None
+    assert rows.call_args.args[2] == {}
+
+
+def test_inside_page_awaits_the_reading_state_lookup(client):
+    """The rows' shelf state comes from the async lookup, never the sync bridge.
+
+    `get_reading_states()` waits on `async_bridge`'s loop thread from inside this
+    coroutine, holding up every other request on the worker for the round trip.
+    """
+    states = {"/works/OL1W": {"shelf": 1}}
+    with ExitStack() as stack:
+        async_states = stack.enter_context(patch("openlibrary.fastapi.search.get_reading_states_async", new_callable=AsyncMock))
+        async_states.return_value = states
+        blocking = stack.enter_context(
+            patch("openlibrary.plugins.inside.code.get_reading_states", side_effect=AssertionError("blocking reading-state lookup on the async path"))
+        )
+        fts, rows = patched_search(stack, _fts_response("a", total=1))
+        response = client.get("/search/inside?q=dogs")
+
+    assert response.status_code == 200
+    fts.assert_awaited_once()
+    async_states.assert_awaited_once()
+    blocking.assert_not_called()
+    assert rows.call_args.args[2] == states
 
 
 def test_inside_page_single_hit_uses_the_singular_form(client):
@@ -128,6 +151,27 @@ def test_inside_page_shows_the_bare_total_when_filtered(client):
     assert fts.await_args.kwargs["readable"] is True
     # FTS takes the language name, not the MARC code
     assert fts.await_args.kwargs["language"] == "French"
+
+
+@pytest.mark.parametrize(
+    ("flag", "value", "expected"),
+    [
+        # Both fields are plain strings, not Literal["true", "false"], for these: a
+        # bookmark carrying readable=yes must render as false, not 422, as on web.py.
+        ("readable", "yes", False),
+        ("readable", "1", False),
+        ("phrase", "yes", True),  # only phrase=false opts out of the phrase search
+        ("phrase", "no", True),
+    ],
+)
+def test_inside_page_renders_flag_values_that_are_not_true_or_false(client, flag, value, expected):
+    """A legacy value for `readable` or `phrase` renders with web.py's reading of it."""
+    with ExitStack() as stack:
+        fts, _ = patched_search(stack, _fts_response("a", total=3))
+        response = client.get(f"/search/inside?q=dogs&{flag}={value}")
+
+    assert response.status_code == 200
+    assert fts.await_args.kwargs[flag] is expected
 
 
 def test_inside_page_respects_page_param(client):
@@ -244,7 +288,7 @@ def test_concurrent_requests_each_get_only_their_own_page(site_page_app, webpy_l
         fts = stack.enter_context(patch("openlibrary.fastapi.search.fulltext_search_async", new_callable=AsyncMock))
         fts.side_effect = lambda q, **kwargs: _fts_response(f"{q}-ocaid", total=1)
         rows = stack.enter_context(patch("openlibrary.plugins.inside.code.render_hit_rows", autospec=True))
-        rows.side_effect = lambda hits, phrase, user: [Markup(f"<li>{hit.ocaid}</li>") for hit in hits]
+        rows.side_effect = lambda hits, phrase, reading_states: [Markup(f"<li>{hit.ocaid}</li>") for hit in hits]
         responses = fetch_concurrently(site_page_app(pages), [(f"/search/inside?q=query-{i}", {}) for i in range(n)])
 
     for i, response in enumerate(responses):
@@ -257,7 +301,11 @@ def test_concurrent_requests_each_get_only_their_own_page(site_page_app, webpy_l
 
 
 def test_render_hit_rows_bridges_the_templetor_row_with_the_readers_shelf_state(monkeypatch, request_context_fixture):
-    """The row macro stays Templetor, so this is the contract that keeps it right under FastAPI."""
+    """The row macro stays Templetor, so this is the contract that keeps it right under FastAPI.
+
+    Rendering takes the page's reading states and looks nothing up itself, so the
+    route can call it on the event loop.
+    """
     request_context_fixture(lang="en")
     edition = {"key": "/books/OL1M"}
     rows = [
@@ -265,16 +313,11 @@ def test_render_hit_rows_bridges_the_templetor_row_with_the_readers_shelf_state(
         FulltextRow(ocaid="b", snippets=[], title="No OL record"),
     ]
     states = {"/works/OL1W": {"shelf": "want_to_read"}}
-    reading_states = MagicMock(return_value=states)
     macro = MagicMock(return_value={"__body__": "<li>edition row</li>"})
-    monkeypatch.setattr(inside_code, "get_reading_states", reading_states)
     monkeypatch.setattr(inside_code, "render_macro", macro)
 
-    rendered = inside_code.render_hit_rows(rows, '"rabbit"', user=object())
+    rendered = inside_code.render_hit_rows(rows, '"rabbit"', states)
 
-    # One reading-state lookup for the page, passed into the row
-    reading_states.assert_called_once()
-    assert reading_states.call_args.args[1] == [edition]
     assert macro.call_args.args == ("SearchResultsWork", (edition,))
     assert macro.call_args.kwargs["include_dropper"] is True
     assert macro.call_args.kwargs["reading_states"] == states
