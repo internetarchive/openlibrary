@@ -5,12 +5,25 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import unquote
 
+import pytest
+import web
+
 from infogami import config
 from openlibrary.core.auth import ExpiredTokenError, MissingKeyError
+from openlibrary.fastapi.shared.dependencies import get_client_ip
 from openlibrary.utils.request_context import RequestContextVars, req_context, site
 
 _DEFAULT_HEADER = "LOW ak:sk"
 _SENTINEL = object()
+_CLIENT_IP = "203.0.113.7"
+
+
+@pytest.fixture(autouse=True)
+def _client_ip(fastapi_client):
+    """The bare test app has no middleware to set req_context, which get_client_ip reads."""
+    fastapi_client.app.dependency_overrides[get_client_ip] = lambda: _CLIENT_IP
+    yield
+    fastapi_client.app.dependency_overrides.pop(get_client_ip, None)
 
 
 def _anonymize_post(
@@ -540,6 +553,46 @@ def test_login_forwards_s3_headers_to_audit(fastapi_client):
         assert kwargs["email"] == ""
         assert kwargs["s3_access_key"] == "ak"
         assert kwargs["s3_secret_key"] == "sk"
+
+
+def _record_ctx_ip(result):
+    """An audit_accounts stand-in that records web.ctx.ip, which Infobase stamps on the transactions it writes."""
+    seen = {}
+
+    def fake_audit(**kwargs):
+        seen["ip"] = web.ctx.get("ip")
+        return result
+
+    return fake_audit, seen
+
+
+def test_login_sets_client_ip_for_infobase_writes(fastapi_client):
+    """audit_accounts can create or activate the OL account; an empty ip made Postgres reject the transaction row."""
+    fake_audit, seen = _record_ctx_ip({"ol_username": "testuser"})
+    with (
+        patch("openlibrary.fastapi.account.audit_accounts", side_effect=fake_audit),
+        patch("openlibrary.fastapi.account.generate_login_code_for_user", return_value="token"),
+        patch("openlibrary.fastapi.account.OpenLibraryAccount.get_by_email", return_value=None),
+    ):
+        response = fastapi_client.post(
+            "/account/login",
+            data={"username": "testuser", "password": "password"},
+            follow_redirects=False,
+        )
+    assert response.status_code == 303
+    assert seen["ip"] == _CLIENT_IP
+
+
+def test_login_json_sets_client_ip_for_infobase_writes(fastapi_client):
+    fake_audit, seen = _record_ctx_ip({"ol_username": "testuser"})
+    with (
+        patch("openlibrary.fastapi.account.audit_accounts", side_effect=fake_audit),
+        patch("openlibrary.fastapi.account.generate_login_code_for_user", return_value="token"),
+        patch("openlibrary.fastapi.account.OpenLibraryAccount.get_by_email", return_value=None),
+    ):
+        response = fastapi_client.post("/account/login", json={"access": "ak", "secret": "sk"})
+    assert response.status_code == 200
+    assert seen["ip"] == _CLIENT_IP
 
 
 class TestAnonymizeAccount:
