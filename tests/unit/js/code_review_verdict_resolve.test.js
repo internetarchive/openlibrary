@@ -477,8 +477,14 @@ test('post: a failed review post leaves the fixed thread unedited and hands noth
         github.rest.pulls.createReview = async () => {
             throw Object.assign(new Error('Bad Gateway'), { status: 502 });
         };
-        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d }).catch(e => ({ thrown: e, outputs: {} }));
-        assert.ok(res.thrown, 'the post fails');
+        // No real waits between the 5xx retries.
+        const res = await runScript(args => post.validateAndPost({ ...args, sleep: async () => {} }), { github, context, env: baseEnv(d), cwd: d }).catch(
+            e => ({
+                thrown: e,
+                outputs: {}
+            })
+        );
+        assert.ok(res.thrown, 'the post fails, after its retries');
         assert.deepEqual(calls.edits, [], 'no "Addressed in" note without a posted review');
         assert.deepEqual(handedOff(res), []);
     } finally {
