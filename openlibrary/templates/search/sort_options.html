@@ -33,13 +33,6 @@ $code:
          { 'sort': 'title', 'name': _("Title"), 'ga_key': 'ListTitle' },
          { 'sort': 'last_modified', 'name': _("Recently Edited"), 'ga_key': 'LastModified' },
        ]
-     elif search_scheme == 'batch_imports':
-       sort_options = [
-         { 'sort': 'added_time desc', 'name': _("Newest"), 'ga_key': 'BatchNewest' },
-         { 'sort': 'added_time asc', 'name': _("Oldest"), 'ga_key': 'BatchOldest' },
-         { 'sort': 'batch_id desc', 'name': _("Batch ID (highest)"), 'ga_key': 'BatchIdDesc' },
-         { 'sort': 'batch_id asc', 'name': _("Batch ID (lowest)"), 'ga_key': 'BatchIdAsc' },
-       ]
      elif search_scheme == 'languages':
        sort_options = [
          { 'sort': 'count', 'name': _("Work Count"), 'ga_key': 'WorkCount' },

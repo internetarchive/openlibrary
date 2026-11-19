@@ -14,14 +14,7 @@ $ total = sum(batch.status_counts.values())
       <div class="batch-card__comments">$batch.comments</div>
   </div>
   <div class="batch-card__progress">
-    <ul class="batch-progress" aria-label="$_('Status')">
-      $for s in statuses:
-        $if batch.status_counts.get(s):
-          $ label = "%s: %s" % (s, commify(batch.status_counts[s]))
-          <li class="batch-progress__segment batch-status--$s" style="flex-grow: $batch.status_counts[s];">
-            <a href="/import/batch/$batch.batch_id?status=$s" title="$label" aria-label="$label"></a>
-          </li>
-    </ul>
+    $:render_template("batch_import_progress", batch, statuses)
     <div class="batch-card__count">$ungettext("%(count)s item", "%(count)s items", total, count=commify(total))</div>
   </div>
 </div>

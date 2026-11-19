@@ -1,21 +1,9 @@
 /**
- * Batch import listing: one card per batch, with a progress bar segmented by
- * import_item status.
- * See openlibrary/templates/batch_import_list.html
+ * Batch imports: the listing table and a batch's card, each with a progress bar
+ * segmented by import_item status.
+ * See openlibrary/templates/batch_import_list.html, batch_import_card.html and
+ * batch_import_progress.html
  */
-
-.batch-list-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-stack-sm) var(--spacing-inline-xl);
-  align-items: center;
-  justify-content: space-between;
-  margin-block: var(--spacing-stack-md);
-}
-
-.batch-status-filter {
-  margin: 0;
-}
 
 /* Each status's colour: the filter's legend swatch and its progress-bar segment. */
 .batch-status--staged {
@@ -50,15 +38,6 @@
   margin-inline-end: var(--spacing-inline-sm);
   border-radius: var(--border-radius-xs);
   background-color: var(--batch-status-color);
-}
-
-.batch-cards {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-stack-sm);
-  margin: 0 0 var(--spacing-stack-md);
-  padding: 0;
-  list-style: none;
 }
 
 .batch-card {
@@ -176,6 +155,31 @@
   .batch-progress__segment:hover {
     filter: brightness(1.1);
   }
+}
+
+.batch-table__progress {
+  width: 30%;
+  min-width: 10rem;
+}
+
+.batch-table__bar {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  align-items: center;
+}
+
+/* 3px per item, so small batches read as small at a glance; a large batch fills the column. */
+.batch-table__bar .batch-progress {
+  flex: 0 1 auto;
+  width: min(100%, calc(var(--batch-item-count) * 3px));
+  height: var(--spacing-sm);
+}
+
+.batch-table__count {
+  min-width: 3em;
+  margin-inline-start: auto;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
 }
 
 /* --width-breakpoint-tablet */

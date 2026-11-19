@@ -1,0 +1,10 @@
+$def with (batch, statuses)
+$# A bar segmented by import_item status; each segment links to the batch filtered to that status.
+<ul class="batch-progress" aria-label="$_('Status')">
+  $for s in statuses:
+    $if batch.status_counts.get(s):
+      $ label = "%s: %s" % (s, commify(batch.status_counts[s]))
+      <li class="batch-progress__segment batch-status--$s" style="flex-grow: $batch.status_counts[s];">
+        <a href="/import/batch/$batch.batch_id?status=$s" title="$label" aria-label="$label"></a>
+      </li>
+</ul>

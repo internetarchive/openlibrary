@@ -170,10 +170,6 @@ msgstr ""
 msgid "View Batch Status"
 msgstr ""
 
-#: account/import.html account/loans.html admin/imports.html admin/imports_by_date.html admin/loans_table.html admin/menu.html batch_import_card.html batch_import_view.html contribute/admin/index.html.jinja librarian_dashboard/data_quality_table.html status.html
-msgid "Status"
-msgstr ""
-
 #: batch_import_card.html openlibrary/core/shell/shelf_labels.py
 #, python-format
 msgid "%(count)s item"
@@ -187,6 +183,26 @@ msgstr ""
 
 #: about/index.html batch_import_list.html batch_import_view.html type/tag/index.html
 msgid "All"
+msgstr ""
+
+#: batch_import_list.html
+msgid "Default sort: date added, newest first."
+msgstr ""
+
+#: admin/inspect/store.html admin/people/index.html batch_import_list.html search/sort_options.html status.html type/author/edit.html type/language/view.html
+msgid "Name"
+msgstr ""
+
+#: batch_import_list.html batch_import_view.html merge_request_table/table_header.html
+msgid "Submitter"
+msgstr ""
+
+#: admin/imports.html admin/imports_by_date.html batch_import_list.html batch_import_view.html
+msgid "Added Time"
+msgstr ""
+
+#: account/import.html account/loans.html admin/imports.html admin/imports_by_date.html admin/loans_table.html admin/menu.html batch_import_list.html batch_import_progress.html batch_import_view.html contribute/admin/index.html.jinja librarian_dashboard/data_quality_table.html status.html
+msgid "Status"
 msgstr ""
 
 #: batch_import_view.html
@@ -218,10 +234,6 @@ msgstr ""
 msgid "Import Items"
 msgstr ""
 
-#: admin/imports.html admin/imports_by_date.html batch_import_view.html
-msgid "Added Time"
-msgstr ""
-
 #: batch_import_view.html
 msgid "Import Time"
 msgstr ""
@@ -244,10 +256,6 @@ msgstr ""
 
 #: batch_import_view.html
 msgid "Comments"
-msgstr ""
-
-#: batch_import_view.html merge_request_table/table_header.html
-msgid "Submitter"
 msgstr ""
 
 #: batch_import_view.html
@@ -754,10 +762,6 @@ msgstr ""
 
 #: status.html
 msgid "Show changed files"
-msgstr ""
-
-#: admin/inspect/store.html admin/people/index.html search/sort_options.html status.html type/author/edit.html type/language/view.html
-msgid "Name"
 msgstr ""
 
 #: status.html
@@ -4975,7 +4979,7 @@ msgstr ""
 msgid "%(genre)s subgenres"
 msgstr ""
 
-#: home/genre_shelf.html.jinja merge_request_table/table_header.html search/sort_options.html
+#: home/genre_shelf.html.jinja merge_request_table/table_header.html
 msgid "Newest"
 msgstr ""
 
@@ -5637,7 +5641,7 @@ msgstr ""
 msgid "Sort"
 msgstr ""
 
-#: merge_request_table/table_header.html search/sort_options.html
+#: merge_request_table/table_header.html
 msgid "Oldest"
 msgstr ""
 
@@ -6120,14 +6124,6 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Recently Edited"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Batch ID (highest)"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Batch ID (lowest)"
 msgstr ""
 
 #: search/sort_options.html
