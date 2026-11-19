@@ -46,8 +46,10 @@ $def sort_link(field, label):
           <td>$row.name</td>
           <td>$datestr(row.added_time)</td>
           <td>
-            $for s, count in row.status_counts.items():
-              $s: $count<br>
+            <ul>
+              $for s, count in row.status_counts.items():
+                <li><a href="/import/batch/$row.batch_id?status=$s">$s</a>: $count</li>
+            </ul>
           </td>
           <td>$row.submitter</td>
           <td>$row.comments</td>
