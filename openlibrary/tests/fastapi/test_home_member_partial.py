@@ -396,21 +396,71 @@ def test_cached_section_is_served_until_the_shelves_change(request_context_fixtu
         patch.object(home_member.cache, "get_memcache", return_value=Memcache()),
         patch.object(home_member.Bookshelves, "reading_log_version", side_effect=lambda username: version[0]),
     ):
-        assert home_member.get_cached_html("reader", "reading") is None
-        home_member.cache_html("reader", "reading", "<section>")
-        assert home_member.get_cached_html("reader", "reading") == "<section>"
+
+        def get(part):
+            return home_member.get_cached_html("reader", part, home_member.cache_variant("reader"))
+
+        def put(part, html):
+            home_member.cache_html("reader", part, html, home_member.cache_variant("reader"))
+
+        assert get("reading") is None
+        put("reading", "<section>")
+        assert get("reading") == "<section>"
         # The halves are kept apart.
-        assert home_member.get_cached_html("reader", "want") is None
-        home_member.cache_html("reader", "want", "<wall>")
-        assert home_member.get_cached_html("reader", "reading") == "<section>"
+        assert get("want") is None
+        put("want", "<wall>")
+        assert get("reading") == "<section>"
         version[0] = "v2"  # a book was shelved
-        assert home_member.get_cached_html("reader", "reading") is None
-        assert home_member.get_cached_html("reader", "want") is None
-        home_member.cache_html("reader", "reading", "<new>")
-        home_member.cache_html("reader", "want", "<new wall>")
+        assert get("reading") is None
+        assert get("want") is None
+        put("reading", "<new>")
+        put("want", "<new wall>")
         home_member.invalidate_cache("reader")  # a borrow or return
-        assert home_member.get_cached_html("reader", "reading") is None
-        assert home_member.get_cached_html("reader", "want") is None
+        assert get("reading") is None
+        assert get("want") is None
+        # A shelf change while a half is being built: it is stored under the version it was built from.
+        variant = home_member.cache_variant("reader")
+        version[0] = "v3"
+        home_member.cache_html("reader", "reading", "<built from v2>", variant)
+        assert get("reading") is None
+
+
+def test_due_dates_count_calendar_days(request_context_fixture):
+    """A loan due tomorrow night is due tomorrow, though it's more than a day away; one due just after midnight is due tomorrow too."""
+    from datetime import datetime  # noqa: PLC0415
+
+    request_context_fixture(lang="en")
+    home_member = _home_member()
+
+    class Now(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 11, 18, 23, 0, tzinfo=tz)
+
+    loans = [{"book": "/books/OL1M", "ocaid": "a", "expiry": "2026-11-19T00:30:00"}, {"book": "/books/OL2M", "ocaid": "b", "expiry": "2026-11-20T22:00:00"}]
+    book = SimpleNamespace(title="Book", works=[], url=lambda: "/books/OL1M", get_authors=list, get_cover_url=lambda size: "")
+    with (
+        patch.object(home_member, "datetime", Now),
+        patch.object(home_member.lending, "get_cached_loans_of_user", return_value=loans),
+        patch.object(home_member, "site", SimpleNamespace(get=lambda: SimpleNamespace(get=lambda key: book))),
+    ):
+        assert [loan["days_left"] for loan in home_member.get_loans("/people/reader")] == [1, 2]
+
+
+def test_a_card_holding_only_holds_is_labelled_as_holds(request_context_fixture):
+    request_context_fixture(lang="en")
+    from openlibrary.core.jinja import get_jinja_env, render_jinja_template  # noqa: PLC0415
+
+    def label(**books):
+        agenda = _home_member().build_agenda(**{"loans": [], "holds": [], "reading": []} | books)
+        with patch.dict(get_jinja_env().globals, {"icon": lambda *args, **kwargs: ""}):
+            html = render_jinja_template("home/member.html.jinja", member={"name": "", "complete": True, "part": "reading", "agenda": agenda, "side": 2})
+        return html.split('class="home-now__label">', 1)[1].split("</h3>", 1)[0].strip()
+
+    assert label(holds=[_hold("waiting", ready=False)]) == "Your holds"
+    assert label(holds=[_hold("ready", ready=True)]) == "Your holds"
+    assert label(holds=[_hold("ready", ready=True)], reading=[_book("shelf")]) == "Currently reading"
+    assert label(loans=[_loan("borrowed", 5)]) == "Currently reading"
 
 
 def test_each_half_builds_only_its_own_books(request_context_fixture):

@@ -80,7 +80,12 @@
             <div class="home-now__label-row">
                 <h3 class="home-now__label">
                     {{ icon("book-open", size="sm", extra_class="home-now__label-icon") }}
-                    {{ _("Currently reading") }}
+                    {# With no loans or Currently Reading books, the card holds only holds. #}
+                    {% if first.kind in ("ready", "waiting") %}
+                        {{ _("Your holds") }}
+                    {% else %}
+                        {{ _("Currently reading") }}
+                    {% endif %}
                 </h3>
             </div>
             <article class="home-now__main"

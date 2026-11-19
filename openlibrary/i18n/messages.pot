@@ -5078,6 +5078,10 @@ msgstr ""
 msgid "Removed from your shelves"
 msgstr ""
 
+#: home/member.html.jinja
+msgid "Your holds"
+msgstr ""
+
 #. Short label displayed next to the count of readers currently reading this book, shown in the stats bar on a book page. Example: "1,247 Currently reading".
 #: StarRatingsStats.html home/member.html.jinja
 msgid "Currently reading"
@@ -10683,8 +10687,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home_member.py
 #, python-format
-msgid "Due back in %(count)d days"
-msgstr ""
+msgid "Due back in %(count)d day"
+msgid_plural "Due back in %(count)d days"
+msgstr[0] ""
+msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/home_member.py
 msgid "Borrow it soon, or it goes to the next reader."

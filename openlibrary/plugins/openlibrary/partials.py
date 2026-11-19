@@ -1218,7 +1218,8 @@ class HomeMemberPartial:
         # availability takes its bot shortcut and reports every borrowable book as free.
         if "env" not in web.ctx:
             delegate.fakeload()
-        if (html := home_member.get_cached_html(username, part)) is not None:
+        variant = home_member.cache_variant(username)
+        if (html := home_member.get_cached_html(username, part, variant)) is not None:
             return {"partials": html}
         if not (user := get_user_object(username)):
             return {"partials": ""}
@@ -1226,7 +1227,7 @@ class HomeMemberPartial:
         html = render_jinja_template("home/member.html.jinja", member=member).strip()
         # A part that failed to load (a lending outage) is retried on the next view, not kept for five minutes.
         if member["complete"]:
-            home_member.cache_html(username, part, html)
+            home_member.cache_html(username, part, html, variant)
         return {"partials": html}
 
 

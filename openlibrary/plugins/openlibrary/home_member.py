@@ -77,7 +77,7 @@ def due_label(days_left: int) -> str:
         return _("Due back today")
     if days_left == 1:
         return _("Due back tomorrow")
-    return _("Due back in %(count)d days", count=days_left)
+    return ungettext("Due back in %(count)d day", "Due back in %(count)d days", days_left, count=days_left)
 
 
 def ready_label(hours_left: float) -> str:
@@ -118,14 +118,15 @@ def _work_key(book) -> str:
 def get_loans(user_key: str) -> list[dict]:
     """Active loans, soonest due first."""
     loans = []
-    now = datetime.now(UTC).replace(tzinfo=None)
+    today = datetime.now(UTC).date()
     for loan in lending.get_cached_loans_of_user(user_key):
         if not (book_key := loan.get("book")) or not (book := _resolve(site.get().get(book_key))):
             continue
         days_left = None
         if expiry := loan.get("expiry"):
             try:
-                days_left = max(0, (datetime.fromisoformat(expiry).replace(tzinfo=None) - now).days)
+                # Calendar days, not whole 24-hour periods, so "tomorrow" is the next date (in UTC, as IA keeps it).
+                days_left = max(0, (datetime.fromisoformat(expiry).date() - today).days)
             except ValueError:
                 days_left = None
         loans.append(
@@ -429,17 +430,17 @@ def _cache_key(username: str, part: str) -> str:
     return cache.build_memcache_key("home.member", part, username)
 
 
-def _cache_variant(username: str) -> str:
+def cache_variant(username: str) -> str:
+    """Read once before a half is built and stored under, so a shelf change during the build leaves it stale."""
     return ":".join([Bookshelves.reading_log_version(username), get_request_lang() or "", "pd" if req_context.get().print_disabled else ""])
 
 
-def get_cached_html(username: str, part: str) -> str | None:
-    return (cache.get_memcache().get(_cache_key(username, part)) or {}).get(_cache_variant(username))
+def get_cached_html(username: str, part: str, variant: str) -> str | None:
+    return (cache.get_memcache().get(_cache_key(username, part)) or {}).get(variant)
 
 
-def cache_html(username: str, part: str, html: str) -> None:
+def cache_html(username: str, part: str, html: str, variant: str) -> None:
     mc = cache.get_memcache()
-    variant = _cache_variant(username)
     version = variant.split(":", 1)[0]
     current = {k: v for k, v in (mc.get(_cache_key(username, part)) or {}).items() if k.startswith(version)}
     mc.set(_cache_key(username, part), current | {variant: html}, expires=MEMBER_CACHE_SECS)
