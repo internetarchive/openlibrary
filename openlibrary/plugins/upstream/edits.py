@@ -57,6 +57,36 @@ async def perform_merge_update(username: str, mrid: int | None, olids: str, comm
     )
 
 
+class community_edits_queue_stats(delegate.page):
+    path = "/merges/stats"
+
+    @require_login
+    def GET(self):
+        # Temporary wrapper until production routes this path to FastAPI.
+        from urllib.parse import parse_qsl
+
+        from fastapi import HTTPException
+        from markupsafe import escape
+
+        from openlibrary.core.jinja import render_jinja_template
+        from openlibrary.fastapi.merge_stats import MergeStatsData, MergeStatsForm, MergeStatsNav
+        from openlibrary.i18n import gettext as _
+
+        params = web.input(_method="get")
+        try:
+            form = MergeStatsForm.model_validate(dict(params))
+        except HTTPException as exc:
+            return web.badrequest(str(exc.detail))
+        body = render_jinja_template(
+            "merge_request_table/merge_request_stats.html.jinja",
+            form=form,
+            nav=MergeStatsNav.from_query(web.ctx.path, parse_qsl(web.ctx.env.get("QUERY_STRING", ""), keep_blank_values=True)),
+            data=MergeStatsData.read_sync(form),
+            rate_label=_("Merged %"),
+        )
+        return web.template.TemplateResult(__body__=body, title=escape(_("Community Edit Request Statistics")))
+
+
 class community_edits_queue(delegate.page):
     path = "/merges"
 
