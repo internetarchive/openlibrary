@@ -9,6 +9,8 @@ import os
 import sys
 import time
 
+import requests
+
 from openlibrary.api import OLError, OpenLibrary
 from openlibrary.config import load_config
 from openlibrary.core.env import get_ol_env
@@ -30,7 +32,10 @@ def get_ol(servername: str) -> OpenLibrary:
 
 
 def ol_import_request(item, retries=5, servername=None, require_marc=True):
-    """Requests OL to import an item and retries on server errors."""
+    """Return the response and failure reason, retrying transport and server errors."""
+    if retries < 1:
+        raise ValueError("retries must be at least 1")
+
     # logger uses batch_id:id for item.data identifier if no item.ia_id
     _id = item.ia_id or f"{item.batch_id}:{item.id}"
     logger.info(f"importing {_id}")
@@ -41,33 +46,42 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
         try:
             ol = get_ol(servername)
             if item.data:
-                return ol.import_data(item.data)
-            return ol.import_ocaid(item.ia_id, require_marc=require_marc)
+                return ol.import_data(item.data), None
+            return ol.import_ocaid(item.ia_id, require_marc=require_marc), None
+        except (requests.Timeout, TimeoutError) as e:
+            logger.warning(f"Failed to contact OL server. error={e!r}")
+            failure_reason = "timeout"
         except OSError as e:
             logger.warning(f"Failed to contact OL server. error={e!r}")
+            failure_reason = "transport-error"
         except OLError as e:
             logger.warning(f"Failed to contact OL server. error={e!r}")
             if e.code < 500:
-                return e.text
+                return e.text, f"http-4xx:{e.code}"
+            failure_reason = f"server-5xx:{e.code}"
+    return None, failure_reason
 
 
 def do_import(item, servername=None, require_marc=True):
 
     logger.info(f"do_import START (pid:{os.getpid()})")
-    response = ol_import_request(item, servername=servername, require_marc=require_marc)
-    if response and response.startswith("{"):
-        d = json.loads(response)
-        if d.get("success") and "edition" in d:
-            edition = d["edition"]
-            logger.info(f"success: {edition['status']} {edition['key']}")
-            item.set_status(edition["status"], ol_key=edition["key"])
-        else:
-            error_code = d.get("error_code", "unknown-error")
-            logger.error(f"failed with error code: {error_code}")
-            item.set_status("failed", error=error_code)
+    response, failure_reason = ol_import_request(item, servername=servername, require_marc=require_marc)
+    try:
+        result = json.loads(response) if response else None
+    except json.JSONDecodeError:
+        result = None
+
+    edition = result.get("edition") if isinstance(result, dict) else None
+    if not failure_reason and isinstance(result, dict) and result.get("success") and isinstance(edition, dict) and "status" in edition and "key" in edition:
+        logger.info(f"success: {edition['status']} {edition['key']}")
+        item.set_status(edition["status"], ol_key=edition["key"])
     else:
-        logger.error(f"failed with internal error: {response}")
-        item.set_status("failed", error="internal-error")
+        if isinstance(result, dict) and not result.get("success"):
+            error_code = result.get("error_code") or failure_reason or "unknown-error"
+        else:
+            error_code = failure_reason or "bad-response"
+        logger.error("failed with error code: %s", error_code)
+        item.set_status("failed", error=error_code)
     logger.info(f"do_import END (pid:{os.getpid()})")
 
 

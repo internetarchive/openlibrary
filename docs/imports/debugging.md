@@ -68,6 +68,17 @@ Previously tracked as [#7236](https://github.com/internetarchive/openlibrary/iss
 
 ## Debug Playbook
 
+### Batch item failures
+
+The batch status page shows the error recorded for each failed item. ImportBot
+preserves API error codes and records `timeout`, `transport-error`,
+`server-5xx:<status>`, `http-4xx:<status>`, or `bad-response` when it cannot
+obtain a usable API result. The final failed attempt determines the recorded
+reason after retries; older items may still show `internal-error`.
+
+The admin retry action currently requeues all failed items in the batch; these
+error codes do not yet determine which failures are retryable.
+
 ### Record not appearing after import
 
 ```bash
