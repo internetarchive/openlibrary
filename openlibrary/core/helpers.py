@@ -55,7 +55,7 @@ __docformat__ = "restructuredtext en"
 
 def sanitize(html: str, encoding: str = "utf8", beautify: bool = True) -> str:
     """Removes unsafe tags and attributes from html and adds
-    ``rel="nofollow"`` attribute to all external links.
+    ``rel="ugc nofollow"`` attribute to all external links.
     Using encoding=None if passing Unicode strings.
     encoding="utf8" matches default format for earlier versions of Genshi
     https://genshi.readthedocs.io/en/latest/upgrade/#upgrading-from-genshi-0-6-x-to-the-development-version
@@ -65,10 +65,10 @@ def sanitize(html: str, encoding: str = "utf8", beautify: bool = True) -> str:
         attrs = event[1][1]
 
         if href := attrs.get("href", ""):
-            # add rel=nofollow to all absolute links
+            # User-written links earn no search ranking: mark all absolute links
             _, host, _, _, _ = urlsplit(href)
             if host:
-                return "nofollow"
+                return "ugc nofollow"
 
     try:
         html_stream = genshi.HTML(html, encoding=encoding)

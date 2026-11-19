@@ -334,7 +334,7 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
               <div class="panel">
                 <ul class="booklinks sansserif">
                   $for link in links:
-                    <li><a href="$link.url">$link.title</a></li>
+                    <li><a href="$link.url" rel="ugc nofollow">$link.title</a></li>
                 </ul>
               </div>
             </div>
@@ -437,9 +437,9 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
               <div class="section">
                 <ul class="booklinks sansserif">
                 $if work.wikipedia and work.wikipedia.startswith("http"):
-                  <li><a href="$page.wikipedia">$_('Wikipedia')</a></li>
+                  <li><a href="$page.wikipedia" rel="ugc nofollow">$_('Wikipedia')</a></li>
                 $for link in work.links:
-                  <li><a href="$link.url">$link.title</a></li>
+                  <li><a href="$link.url" rel="ugc nofollow">$link.title</a></li>
                 </ul>
               </div>
       </div>
