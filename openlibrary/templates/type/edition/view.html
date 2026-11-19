@@ -20,6 +20,8 @@ $ editions_limit = book_page_context.editions_limit
 $ previews = book_page_context.previews
 $ show_observations = book_page_context.show_observations
 $ lending_state = book_page_context.lending_state
+$# Empty fields a signed-in reader can fill in from here, each in the slot where its value would show.
+$ fill_slots = book_page_context.fill_slots
 
 $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
@@ -195,6 +197,8 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
                 <div>$_("Publish Date")</div>
                 <span itemprop="datePublished">$edition.publish_date</span>
               </div>
+            $elif "publish_date" in fill_slots:
+              $:render_jinja_template("books/fill/slot.html.jinja", field="publish_date", label=_("Publish Date"), action=fill_slots["publish_date"])
             $if edition.publishers:
               <div class="edition-omniline-item">
                 <div>$_("Publisher")</div>
@@ -205,11 +209,15 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
                      >$p</a>$cond(loop.last, "", ", ")
                 </span>
               </div>
+            $elif "publishers" in fill_slots:
+              $:render_jinja_template("books/fill/slot.html.jinja", field="publishers", label=_("Publisher"), action=fill_slots["publishers"])
             $if edition.languages:
               <div class="edition-omniline-item">
                 <div class="language">$_("Language")</div>
                 <span itemprop="inLanguage">$:thingrepr(edition.languages)</span>
               </div>
+            $elif "languages" in fill_slots:
+              $:render_jinja_template("books/fill/slot.html.jinja", field="languages", label=_("Language"), action=fill_slots["languages"])
             $if edition.number_of_pages:
               <div class="edition-omniline-item">
                 <div class="pages">$_("Pages")</div>
@@ -217,6 +225,8 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
                       itemprop="numberOfPages"
                       >$edition.number_of_pages</span>
               </div>
+            $elif "number_of_pages" in fill_slots:
+              $:render_jinja_template("books/fill/slot.html.jinja", field="number_of_pages", label=_("Pages"), action=fill_slots["number_of_pages"])
             $if is_librarian:
               $if ocaid:
                 <div class="edition-omniline-item">
@@ -493,6 +503,9 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
     $ component_times['NearbyBooksCarousel'] = time()
     $:render_jinja_template("RawQueryCarouselPlaceholder.html.jinja", **build_nearby_books_placeholder_config(work.key, nearby_books_lang))
     $ component_times['NearbyBooksCarousel'] = time() - component_times['NearbyBooksCarousel']
+
+  $if fill_slots:
+    $:render_jinja_template("books/fill/drawer.html.jinja", olid=edition.key.split("/")[-1], url="/tasks/fill")
 
   $:render_template("lib/exports", page)
   $ component_times['TotalTime'] = time() - component_times['TotalTime']

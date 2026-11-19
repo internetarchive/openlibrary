@@ -292,7 +292,7 @@ Browsers without the Popover API (Safari < 17, below [the Lit layer's floor](#fo
 |---|---|---|
 | Anchored to a trigger (`ol-popover`, `ol-tooltip`) | Popover API via `utils/top-layer.js` | Top layer; containing block is always the viewport |
 | Modal (`ol-dialog`) | native `<dialog>.showModal()` | Promoted to the top layer by the browser — nothing to add |
-| Viewport-fixed, unanchored (`ol-toast-region`, `OpenLibraryOTP`) | portal to `document.body` | No transformed ancestor exists on that path — **an invariant, not an accident**: mount these on `body`, never inside page content |
+| Viewport-fixed, unanchored (`ol-toast-region`, `OpenLibraryOTP`, `ol-drawer[modeless]`) | portal to `document.body` | No transformed ancestor exists on that path — **an invariant, not an accident**: mount these on `body`, never inside page content |
 | Small panel anchored *inside* the component's own box (`OLMarkdownEditor`'s link/image/overflow menus) | in-flow `position: absolute` against a `position: relative` wrapper | Never reads viewport coordinates, so the containing-block trap cannot apply — but see the conditions below |
 
 Composed components (`ol-menu-popover`, `ol-select-popover`, `ol-options-popover`) render through `ol-popover` and inherit the fix — don't add a second panel.

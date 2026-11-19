@@ -15,7 +15,7 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
-from openlibrary.contribute import feed, initiatives, pitch, save, supply, tasks
+from openlibrary.contribute import book_page, feed, initiatives, pitch, save, supply, tasks
 from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides, is_speculative, scan_tip
 from openlibrary.contribute.tasks import field_values, work_of
 from openlibrary.core import admin, helpers
@@ -828,6 +828,61 @@ def build_task_context(
         "note_max": initiatives.NOTE_MAX,
         # Only "Save and next" brings a receipt; the error re-render never does.
         "receipt": None,
+    }
+
+
+def build_fill_context(edition, fld: str, error: str = "", value: str = "", note: str = "") -> dict:
+    """What the book page's drawer shows for one empty field: the task page's question, answer and lookups, without the
+    record around them, since the page beside the drawer is the record."""
+    field_guide = get_field_guides()[fld]
+    book = build_book_header(edition)
+    others = get_sibling_editions(edition) if field_guide.suggest_from_siblings else []
+    return {
+        "book": book,
+        "field": fld,
+        "url": f"{book_page.URL}/{book['olid']}/{fld}",
+        "field_guide": field_guide,
+        "scope": build_scope(fld, book["edition_line"]),
+        "link_outs": build_link_outs(
+            field_guide,
+            book["isbn13"],
+            title=book["title"],
+            authors=book["authors"],
+            lccn=next((str(n).strip() for n in edition.get("lccn") or [] if str(n).strip()), ""),
+            speculative=field_guide.isfdb and is_speculative(genre_labels(edition)),
+        ),
+        "links_by_title": not book["isbn13"],
+        "scan_tip": scan_tip(field_guide, book["scan_url"]),
+        # Quick picks for the answer, only where the other editions are good evidence for this one.
+        "suggestions": count_sibling_values(fld, others)["values"][:3],
+        "languages": save.language_options() if fld == "languages" else [],
+        "not_found_label": field_guide.not_found or _("I couldn't find it"),
+        "error": error,
+        "value": value,
+        "note": note,
+        "note_max": initiatives.NOTE_MAX,
+    }
+
+
+def format_answer(fld: str, raw: str) -> str:
+    """A just-saved answer as the page shows it. Read from the answer: the record may still come back cached from before the save."""
+    if fld == "languages":
+        wanted = raw.strip().casefold()
+        return next((o["label"] for o in save.language_options() if wanted in (o["value"].casefold(), o["label"].casefold())), raw.strip())
+    return " ".join(raw.split())
+
+
+def build_fill_done(edition, fld: str, outcome: str, value: str = "", others: Sequence[str] = ()) -> dict:
+    """What the drawer shows once a field is dealt with. ``outcome`` is "saved", "notfound", or "filled" when someone
+    else got there first; ``others`` are the fields this edition still leaves open, offered as the next thing to do."""
+    field_guides = get_field_guides()
+    return {
+        "field": fld,
+        "label": field_guides[fld].label,
+        "outcome": outcome,
+        "value": value,
+        "history_url": f"{edition.key}?m=history",
+        "others": [{"field": f, "action": field_guides[f].action} for f in others if f != fld],
     }
 
 

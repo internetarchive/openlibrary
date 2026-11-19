@@ -48,6 +48,35 @@ def logged_in_user(*, loan=None, printdisabled=False):
     return user
 
 
+class TestFillSlots:
+    """Which pages offer their empty fields to fill in. The fields themselves are book_page.open_fields' to choose."""
+
+    @pytest.fixture(autouse=True)
+    def _stub_open_fields(self, monkeypatch):
+        monkeypatch.setattr(code.book_page, "open_fields", lambda edition, site, user_key: ["publishers"])
+        monkeypatch.setattr(code, "site", Mock())
+
+    def _edition(self, key="/books/OL1M", fake=False):
+        return make_edition(key, type=web.storage(key="/type/edition"), is_fake_record=lambda: fake)
+
+    def test_a_member_on_an_edition_page_gets_its_empty_fields_named(self):
+        edition = self._edition()
+        assert code._fill_slots(edition, edition, {}, Mock(key="/people/me")) == {"publishers": "Fill in publisher"}
+
+    def test_a_visitor_gets_none(self):
+        edition = self._edition()
+        assert code._fill_slots(edition, edition, {}, None) == {}
+
+    def test_a_work_page_gets_none_for_the_edition_it_shows(self):
+        work = make_work("/works/OL1W", [])
+        assert code._fill_slots(work, self._edition(), {}, Mock(key="/people/me")) == {}
+
+    def test_an_old_revision_and_a_record_made_from_a_scan_get_none(self):
+        edition, scan = self._edition(), self._edition("/books/ia:foo", fake=True)
+        assert code._fill_slots(edition, edition, {"v": "2"}, Mock(key="/people/me")) == {}
+        assert code._fill_slots(scan, scan, {}, Mock(key="/people/me")) == {}
+
+
 class TestPrepareBookPageEditionSelection:
     @pytest.fixture(autouse=True)
     def _stub_lending_state(self, monkeypatch):
@@ -217,6 +246,7 @@ class TestPrepareBookPageLendingState:
             patch.object(lending, "get_cached_groundtruth_availability", return_value=gt or {}) as mock_gt,
             patch("openlibrary.book_providers.get_book_provider", return_value=provider or ia_provider()),
             patch("openlibrary.accounts.get_current_user") as mock_get_user,
+            patch.object(code, "_fill_slots", return_value={}),
         ):
             context = code.prepare_book_page(page, {}, user=user)
         return context, mock_gt, mock_get_user
@@ -274,7 +304,7 @@ class TestPrepareBookPageLendingState:
     )
     def test_resolved_user_is_passed_to_get_lending_state(self, user, expect_check):
         page = make_direct_page({"status": "open", "is_readable": True})
-        with patch.object(lending, "get_lending_state", return_value="open") as mock_gls:
+        with patch.object(lending, "get_lending_state", return_value="open") as mock_gls, patch.object(code, "_fill_slots", return_value={}):
             code.prepare_book_page(page, {}, user=user)
         mock_gls.assert_called_once()
         assert mock_gls.call_args.kwargs["user"] is user

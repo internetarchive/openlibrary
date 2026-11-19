@@ -93,3 +93,79 @@ test('Escape closes the drawer through the native dialog cancel event', async ()
     expect(el.open).toBe(false);
     expect(el.dialog.open).toBe(false);
 });
+
+/** Mount a modeless drawer beside a page button, and open it. */
+async function openModelessDrawer() {
+    render(html`
+        <button id="page-button" style="position: fixed; top: 20px; left: 20px">On the page</button>
+        <ol-drawer modeless label="Add a detail" style="--ol-drawer-enter-duration: 0ms; --ol-drawer-exit-duration: 0ms">
+            <input id="answer" aria-label="Answer" />
+        </ol-drawer>
+    `);
+    const el = document.querySelector('ol-drawer');
+    el.open = true;
+    await el.updateComplete;
+    return { el, panel: el.shadowRoot.querySelector('.panel') };
+}
+
+test('a modeless drawer leaves the page beside it in use', async () => {
+    await page.viewport(1000, 600);
+    const { el, panel } = await openModelessDrawer();
+
+    // Not modal: no scrim, no aria-modal claim, no scroll lock on the page.
+    expect(el.shadowRoot.querySelector('.scrim')).toBeNull();
+    expect(el.dialog.hasAttribute('aria-modal')).toBe(false);
+    expect(el.dialog.matches(':modal')).toBe(false);
+    expect(getComputedStyle(document.body).overflow).not.toBe('hidden');
+
+    // A side panel on the end edge, full height.
+    const box = panel.getBoundingClientRect();
+    expect(box.right).toBeCloseTo(1000, 0);
+    expect(box.height).toBeCloseTo(600, 0);
+
+    // The viewport-filling dialog must not swallow clicks meant for the page.
+    let clicks = 0;
+    const button = document.getElementById('page-button');
+    button.addEventListener('click', () => clicks++);
+    await userEvent.click(button);
+    expect(clicks).toBe(1);
+    expect(el.open).toBe(true);
+});
+
+test('Escape closes a modeless drawer from inside it, not from the page', async () => {
+    await page.viewport(1000, 600);
+    const { el } = await openModelessDrawer();
+    const reasons = [];
+    el.addEventListener('ol-drawer-hide', event => reasons.push(event.detail.reason));
+
+    document.getElementById('page-button').focus();
+    await userEvent.keyboard('{Escape}');
+    await el.updateComplete;
+    expect(el.open).toBe(true);
+
+    document.getElementById('answer').focus();
+    await userEvent.keyboard('{Escape}');
+    await el.updateComplete;
+    expect(reasons).toEqual(['escape']);
+    expect(el.open).toBe(false);
+    expect(el.dialog.open).toBe(false);
+});
+
+test('Tab leaves a modeless drawer instead of cycling inside it', async () => {
+    await page.viewport(1000, 600);
+    await openModelessDrawer();
+    document.getElementById('answer').focus();
+    await userEvent.keyboard('{Shift>}{Tab}{/Shift}');
+    expect(document.activeElement.id).toBe('page-button');
+});
+
+test('under the tablet breakpoint a modeless drawer is a bottom sheet', async () => {
+    await page.viewport(390, 700);
+    const { panel } = await openModelessDrawer();
+    const box = panel.getBoundingClientRect();
+    expect(box.left).toBeCloseTo(0, 0);
+    expect(box.width).toBeCloseTo(390, 0);
+    expect(box.bottom).toBeCloseTo(700, 0);
+    // Leaves the top of the page in view.
+    expect(box.top).toBeGreaterThan(700 * 0.1);
+});

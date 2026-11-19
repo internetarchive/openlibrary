@@ -500,14 +500,24 @@ def load_or_freeze(initiative: Initiative, site) -> list[list]:
     return editions
 
 
+def is_set_aside(doc: dict) -> bool:
+    """Whether enough people couldn't find the field. A mark for a field no longer on offer has no threshold; leave it be."""
+    return bool((threshold := NOT_FOUND_PEOPLE.get(doc["field"])) and len(doc.get("people", [])) >= threshold)
+
+
 def not_found_fields(site) -> dict[str, set[str]]:
     """Fields enough people couldn't find, by edition key."""
     found: dict[str, set[str]] = {}
     for doc in site.store.values(type=NOT_FOUND_TYPE, limit=100_000):
-        # A mark for a field no longer on offer has no threshold; leave it be.
-        if (threshold := NOT_FOUND_PEOPLE.get(doc["field"])) and len(doc.get("people", [])) >= threshold:
+        if is_set_aside(doc):
             found.setdefault(doc["edition"], set()).add(doc["field"])
     return found
+
+
+def not_found_on(site, edition_key: str, user_key: str = "") -> set[str]:
+    """One edition's fields to stop asking about: those enough people couldn't find, and those ``user_key`` couldn't."""
+    docs = site.store.values(type=NOT_FOUND_TYPE, name="edition", value=edition_key)
+    return {doc["field"] for doc in docs if is_set_aside(doc) or (user_key and user_key in doc.get("people", []))}
 
 
 def build_gaps(initiative: Initiative, site, batch: int = 100) -> list[list]:
@@ -666,6 +676,16 @@ def record_not_found(site, edition_key: str, fld: str, user_key: str, note: str 
         changed = True
     if changed:
         site.store[key] = doc
+
+
+def listing(edition_key: str, fld: str) -> Initiative | None:
+    """The running initiative that lists the edition and asks for ``fld``, the headline one first, for a save made away from
+    the Tasks pages. None when no project lists the book, or while the gaps are still building."""
+    lead = headline()
+    for initiative in sorted(running(), key=lambda i: i.slug != lead.slug):
+        if fld in initiative.fields and (gaps := get_gaps(initiative)) and any(row[0] == edition_key for row in gaps):
+            return initiative
+    return None
 
 
 def containing(edition_key: str, fld: str, lead: Initiative) -> Initiative | None:
