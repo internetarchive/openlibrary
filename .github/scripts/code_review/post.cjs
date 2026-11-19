@@ -152,7 +152,7 @@ async function refetchDiff({ github, context, core, require, process }) {
     require('fs').writeFileSync('review.diff', paths ? filterDiff(diff, paths) : diff);
 }
 
-async function validateAndPost({ github, context, core, require, process }) {
+async function validateAndPost({ github, context, core, require, process, sleep = ms => new Promise(r => setTimeout(r, ms)) }) {
     const fs = require('fs');
     const owner = context.repo.owner,
         repo = context.repo.repo;
@@ -472,12 +472,49 @@ async function validateAndPost({ github, context, core, require, process }) {
             body: summary,
             comments: inline
         });
+    // A 5xx can come back after GitHub created the review (#14292 got a 500 and no review), so
+    // before posting again, look for it: a bot review on this commit, posted since we started,
+    // that opens with this summary's first line.
+    const startedAt = Date.now();
+    const alreadyPosted = async () => {
+        const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
+        const first = summary.split('\n')[0];
+        return reviews.find(
+            r =>
+                r.user &&
+                r.user.login === 'openlibrary-bot' &&
+                r.commit_id === headSha &&
+                Date.parse(r.submitted_at) >= startedAt - 60 * 1000 &&
+                String(r.body || '').startsWith(first)
+        );
+    };
+    const MAX_SERVER_RETRIES = 2;
+    let serverErrors = 0;
     let posted;
     for (;;) {
         try {
             ({ data: posted } = await postReview());
             break;
         } catch (e) {
+            if (e && e.status >= 500 && serverErrors < MAX_SERVER_RETRIES) {
+                serverErrors++;
+                await sleep(10 * 1000 * serverErrors);
+                // GitHub may be failing reads too. Treat a failed check as "not found" so the retry
+                // still runs: a rare duplicate review beats losing the review.
+                let found;
+                try {
+                    found = await alreadyPosted();
+                } catch (checkError) {
+                    core.warning(`Could not check whether the review was posted (${checkError.message}); trying again anyway.`);
+                }
+                if (found) {
+                    core.info(`GitHub returned ${e.status}, but review ${found.id} was posted; using it.`);
+                    posted = found;
+                    break;
+                }
+                core.warning(`GitHub returned ${e.status} posting the review; trying again (${serverErrors} of ${MAX_SERVER_RETRIES}).`);
+                continue;
+            }
             if (!e || e.status !== 422) throw e;
             if (inline.length) {
                 core.warning(`The review was rejected (422: ${e.message}); posting it again with the inline comments in the summary.`);
