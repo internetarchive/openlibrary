@@ -203,7 +203,7 @@ Do not add it to bugs or features in the importer itself, or to bot accounts tha
 
 ### Issue type
 
-Bugs and features use GitHub's issue type field (`issueType` from Step 1), not labels. Never add `~Type: Bug` or `~Type: Feature Request`; both are deprecated labels.
+Bugs and features use GitHub's issue type field (`issueType` from Step 1), not labels. There is no bug or feature label; don't create one.
 
 If `issueType` is null (issues filed with `gh issue create` or the API skip the template's type) and the issue is clearly a bug or a feature request, set the type:
 
@@ -211,7 +211,7 @@ If `issueType` is null (issues filed with `gh issue create` or the API skip the 
 gh issue edit {ISSUE_NUMBER} --repo internetarchive/openlibrary --type Bug   # or --type Feature
 ```
 
-Leave it unset when unsure. Never change a type that is already set. If the issue has a `~Type: Bug` or `~Type: Feature Request` label, set the matching type and remove the label.
+Leave it unset when unsure. Never change a type that is already set.
 
 ### Module / Theme labels
 
