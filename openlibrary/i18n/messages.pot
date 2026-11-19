@@ -4499,7 +4499,7 @@ msgstr ""
 msgid "%(percent)s%%"
 msgstr ""
 
-#: contribute/admin/parts.html.jinja openlibrary/plugins/openlibrary/contribute.py
+#: contribute/admin/parts.html.jinja openlibrary/plugins/openlibrary/contribute.py stats/tasks.html.jinja
 msgid "Goal reached"
 msgstr ""
 
@@ -6615,11 +6615,6 @@ msgstr ""
 msgid "%(returning)s returning · %(first_time)s first-time"
 msgstr ""
 
-#: openlibrary/views/loanstats.py stats/tasks.html.jinja
-#, python-format
-msgid "%(change)s vs previous 28 days"
-msgstr ""
-
 #: stats/tasks.html.jinja
 msgid "Scope"
 msgstr ""
@@ -6636,16 +6631,8 @@ msgstr ""
 msgid "Period"
 msgstr ""
 
-#: stats/tasks.html.jinja
-msgid "Compare to previous period"
-msgstr ""
-
 #: openlibrary/views/loanstats.py stats/tasks.html.jinja
 msgid "Per day"
-msgstr ""
-
-#: openlibrary/views/loanstats.py stats/tasks.html.jinja
-msgid "4 weeks earlier"
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -9117,7 +9104,7 @@ msgstr ""
 msgid "%(start)s to %(end)s"
 msgstr ""
 
-#: openlibrary/contribute/manage.py openlibrary/plugins/openlibrary/contribute.py
+#: openlibrary/contribute/manage.py openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
 #, python-format
 msgid "Goal: %(percent)s%%"
 msgstr ""
@@ -10941,6 +10928,15 @@ msgid "%(title)s - search"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
+msgid "Edits saved by people, not bots: to books, works, authors and other pages, to lists, and from the Tasks page."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "≈ %(count)s per editor"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
 msgid "Editors"
 msgstr ""
 
@@ -10949,12 +10945,16 @@ msgid "People who changed a book, work or author record, and those whose first e
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "Edits saved by people, not bots: to books, works, authors and other pages, to lists, and from the Tasks page."
+msgid "New editors"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "People whose first change ever to a book, work or author record falls in the period, wherever they made it."
 msgstr ""
 
 #: openlibrary/views/loanstats.py
 #, python-format
-msgid "≈ %(count)s per editor"
+msgid "%(share)s of editors"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -11022,35 +11022,6 @@ msgstr ""
 
 #: openlibrary/views/loanstats.py
 msgid "Per 4 weeks"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "A week earlier"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "A week earlier: %(count)s"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "4 weeks earlier: %(count)s"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "%(change)s vs a week earlier"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "%(change)s vs 4 weeks earlier"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "%(change)s vs previous 7 days"
 msgstr ""
 
 #: openlibrary/views/loanstats.py

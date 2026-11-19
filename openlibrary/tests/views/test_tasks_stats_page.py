@@ -18,23 +18,10 @@ def request_lang():
     req_context.reset(token)
 
 
-def test_change_reads_as_a_percentage_with_a_direction():
-    assert loanstats.format_change(120, 100) == {"direction": "up", "text": "20.0%"}
-    assert loanstats.format_change(90, 100) == {"direction": "down", "text": "10.0%"}
-    assert loanstats.format_change(100, 100)["direction"] == "flat"
-
-
-def test_change_needs_an_earlier_count():
-    assert loanstats.format_change(5, None) is None
-    assert loanstats.format_change(5, 0) is None
-    assert loanstats.format_change(None, 5) is None
-
-
 def test_tasks_cards_show_dashes_until_the_counts_exist(request_lang):
     cards = loanstats.build_tasks_stats_cards({"tasks_saves_28d": {"latest": 1200, "earlier": 1000}}, None)
     assert [c["metric"] for c in cards] == ["saves", "tasks_editors", "saves_per_editor"]
     assert cards[0]["value"] == "1,200"
-    assert cards[0]["change"] == {"direction": "up", "text": "20.0%"}
     assert cards[1]["value"] == "—"
     assert cards[2]["value"] == "—"
 
@@ -43,7 +30,7 @@ def day_docs(today, values: dict[str, int], days: int = 28) -> list[dict]:
     return [{"_key": key, **values} for key in reversed(loanstats.day_keys(today, days))]
 
 
-def test_editing_cards_split_editors_and_compare_with_traffic(request_lang):
+def test_editing_cards_lead_with_edits_and_count_new_editors(request_lang):
     today = dt.date(2026, 11, 9)
     counts = {
         "catalog_editors_28d": {"latest": 2500, "earlier": 2000},
@@ -53,11 +40,11 @@ def test_editing_cards_split_editors_and_compare_with_traffic(request_lang):
     }
     docs = day_docs(today, {"catalog_edits": 100})
     by_metric = {c["metric"]: c for c in loanstats.build_editing_cards(counts, docs, today)}
-    assert list(by_metric) == ["editors", "edits", "tasks_share"]
+    assert list(by_metric) == ["edits", "editors", "new_editors", "tasks_share"]
     assert by_metric["editors"]["split"] == {"returning": "500", "first_time": "2,000", "first_time_width": 80.0}
     assert by_metric["edits"]["value"] == "2,800"
-    # The 28 days before have no edit counts, so there's nothing to compare with.
-    assert by_metric["edits"]["change"] is None
+    assert by_metric["new_editors"]["value"] == "2,000"
+    assert by_metric["new_editors"]["detail"] == "80.0% of editors"
     assert by_metric["tasks_share"]["value"] == "10.0%"
     assert by_metric["tasks_share"]["detail"] == "of edits · 2.0% of editors"
 
@@ -69,6 +56,7 @@ def test_edits_need_every_day_of_the_window(request_lang):
     assert by_metric["edits"]["value"] == "—"
     assert by_metric["tasks_share"]["value"] == "—"
     assert by_metric["tasks_share"]["detail"] == ""
+    assert by_metric["new_editors"]["value"] == "—"
 
 
 def test_guardrail_compares_tasks_with_the_same_fields_filled_elsewhere():
@@ -104,7 +92,19 @@ def test_initiative_counts_read_the_nested_snapshot_and_the_older_flat_keys():
 def test_every_initiative_gets_a_column(request_lang):
     projects = loanstats.build_initiatives([])
     assert [p["slug"] for p in projects] == [i.slug for i in initiatives.BUILTIN]
-    assert all(p["percent"] == "—" for p in projects)
+    assert all(p["percent"] == "—" and not p["complete"] for p in projects)
+    # Each links to its project on /tasks; the headline one is /tasks itself.
+    assert {p["url"] for p in projects if p["slug"] != initiatives.headline().slug} == {
+        f"/tasks?initiative={i.slug}" for i in initiatives.BUILTIN if i.slug != initiatives.headline().slug
+    }
+
+
+def test_an_initiative_past_its_goal_is_complete(request_lang):
+    docs = [{"initiatives": {MOST_READ.slug: {"percent": MOST_READ.goal}, TAGS.slug: {"percent": TAGS.goal - 1}}}]
+    by_slug = {p["slug"]: p for p in loanstats.build_initiatives(docs)}
+    assert by_slug[MOST_READ.slug]["complete"]
+    assert not by_slug[TAGS.slug]["complete"]
+    assert by_slug[MOST_READ.slug]["goal"] == f"Goal: {MOST_READ.goal}%"
 
 
 def test_initiative_percent_counts_every_field_it_asks_about_on_every_book(request_lang):

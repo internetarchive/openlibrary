@@ -28,12 +28,6 @@
                         {{ card.detail }}
                     {%- endif -%}
                 </span>
-                <span class="tasks-stats__card-change{% if card.change %} tasks-stats__card-change--{{ card.change.direction }}{% endif %}"
-                      {% if not card.change %}hidden{% endif %}>
-                    {%- if card.change -%}
-                        {{ _("%(change)s vs previous 28 days", change=("▲ " if card.change.direction == "up" else "▼ " if card.change.direction == "down" else "") ~ card.change.text) }}
-                    {%- endif -%}
-                </span>
             </button>
         {% endfor %}
     </div>
@@ -56,18 +50,14 @@
                 {{ _("Through Tasks") }}
             </ol-segment>
         </ol-segmented-control>
-        <div class="tasks-stats__controls">
-            <ol-segmented-control class="tasks-stats__window" size="small" value="28" accessible-label="{{ _('Period') }}">
-                <ol-segment value="7">
-                    {{ _("Last 7 days") }}
-                </ol-segment>
-                <ol-segment value="28">
-                    {{ _("Last 28 days") }}
-                </ol-segment>
-            </ol-segmented-control>
-            <ol-toggle class="tasks-stats__compare" variant="button" size="small" checked label="{{ _('Compare to previous period') }}">
-            </ol-toggle>
-        </div>
+        <ol-segmented-control class="tasks-stats__window" size="small" value="28" accessible-label="{{ _('Period') }}">
+            <ol-segment value="7">
+                {{ _("Last 7 days") }}
+            </ol-segment>
+            <ol-segment value="28">
+                {{ _("Last 28 days") }}
+            </ol-segment>
+        </ol-segmented-control>
     </div>
     {{ metric_cards(page.cards.all, "all") }}
     {{ metric_cards(page.cards.tasks, "tasks") }}
@@ -75,10 +65,7 @@
         <div class="tasks-stats__chart-head">
             <h2 class="tasks-stats__chart-title">{{ first_card.label }}</h2>
             <span class="tasks-stats__chart-unit">{{ _("Per day") }}</span>
-            <span class="tasks-stats__legend">
-                <span class="tasks-stats__parts"></span>
-                <span class="tasks-stats__legend-previous">{{ _("4 weeks earlier") }}</span>
-            </span>
+            <span class="tasks-stats__legend tasks-stats__parts"></span>
         </div>
         <div class="tasks-stats__controls">
             <ol-segmented-control class="tasks-stats__range" size="small" value="90" accessible-label="{{ _('Date range') }}">
@@ -141,10 +128,18 @@
             <ul class="tasks-stats__projects">
                 {% for project in page.initiatives %}
                     <li class="tasks-stats__project">
-                        <h3 class="tasks-stats__project-title">{{ project.title }}</h3>
+                        <h3 class="tasks-stats__project-title">
+                            {%- if project.complete -%}
+                                {{ icon("circle-check-filled", size="sm", label=_("Finished") if project.finished else _("Goal reached"), extra_class="tasks-stats__project-check") }}
+                            {%- endif -%}
+                            <a href="{{ project.url }}">{{ project.title }}</a>
+                        </h3>
                         <p class="tasks-stats__project-value">
                             {{ project.percent }}
-                            {% if project.finished %}<span class="tasks-stats__project-status">{{ _("Finished") }}</span>{% endif %}
+                            <span class="tasks-stats__project-status">
+                                {{- project.goal -}}
+                                {%- if project.finished %} · {{ _("Finished") }}{% endif -%}
+                            </span>
                         </p>
                         <div class="tasks-stats__canvas tasks-stats__canvas--project">
                             <canvas data-chart="initiative"
