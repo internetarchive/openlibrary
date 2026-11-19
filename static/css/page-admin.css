@@ -4,10 +4,12 @@
  * - openlibrary/templates/admin/people/view.html
  * - openlibrary/templates/admin/ip/index.html
  * - openlibrary/templates/admin/index.html
+ * - openlibrary/templates/admin/new_accounts.html.jinja
  * Pages:
  * - /admin
  */
 
+@import "components/admin-new-accounts.css";
 @import "components/admin-table.css";
 @import "components/batch-import-list.css";
 @import "components/flash-messages.css";

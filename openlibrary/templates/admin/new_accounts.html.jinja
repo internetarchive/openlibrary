@@ -1,0 +1,101 @@
+{#- /admin/new-accounts: accounts a few days old, ranked by their recent edits. Takes `report` (plugins/admin/new_accounts.Report).
+    Titles, comments and names are user text: escaped by Jinja, never marked safe and never turned into links. -#}
+<div id="contentHead">
+    {{ render_templetor_template("admin/menu") }}
+    <h1>{{ _("New accounts writing fast") }}</h1>
+</div>
+<div id="contentBody" class="new-accounts">
+    <p class="new-accounts__lede">
+        {{ _("Accounts under %(age)s old, ordered by the edits they made in the last %(window)s. Times are in UTC.", age=report.age_label, window=report.window_label) }}
+    </p>
+    {% if report.scan_capped %}
+        <p class="new-accounts__notice">
+            {{ _("Only the newest %(count)s edits were scanned, back to %(time)s. Edits before then are not counted, and accounts that only wrote before then are missing.", count=report.changes_scanned, time=report.scanned_back_to_label) }}
+        </p>
+    {% endif %}
+    {% if report.rows %}
+        {% if report.matching_accounts > report.max_accounts %}
+            <p class="new-accounts__notice">
+                {{ _("Showing the %(shown)s busiest of %(total)s accounts.", shown=report.max_accounts, total=report.matching_accounts) }}
+            </p>
+        {% endif %}
+        <div class="new-accounts__scroll">
+            <table class="new-accounts__table no-table-collapse">
+                <thead>
+                    <tr>
+                        <th scope="col">{{ _("Account") }}</th>
+                        <th scope="col">{{ _("Signed up") }}</th>
+                        <th scope="col" class="new-accounts__num">{{ _("Signup to first edit") }}</th>
+                        <th scope="col" class="new-accounts__num">{{ _("Edits, last %(window)s", window=report.window_label) }}</th>
+                        <th scope="col">{{ _("Last edits") }}</th>
+                        <th scope="col">{{ _("Actions") }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in report.rows %}
+                        <tr>
+                            <th scope="row">
+                                <a class="new-accounts__name" href="{{ row.key }}">{{ row.username }}</a>
+                                <span class="new-accounts__minor">{{ row.displayname }}</span>
+                                {% if row.email %}<span class="new-accounts__minor">{{ row.email }}</span>{% endif %}
+                                <span class="new-accounts__minor">
+                                    <span class="new-accounts__status{% if not row.can_block %} new-accounts__status--inactive{% endif %}">{{ row.status }}</span>
+                                    <a href="/admin/people/{{ row.username }}">{{ _("Admin page") }}</a>
+                                </span>
+                            </th>
+                            <td>
+                                {{ _("%(duration)s ago", duration=row.age) }}
+                                <span class="new-accounts__minor">{{ row.created_label }}</span>
+                            </td>
+                            <td class="new-accounts__num">
+                                <span class="new-accounts__figure{% if row.first_write_is_fast %} new-accounts__figure--fast{% endif %}">{{ row.first_write_label }}</span>
+                            </td>
+                            <td class="new-accounts__num">
+                                <span class="new-accounts__figure">{{ row.edits_in_window_label }}</span>
+                                <span class="new-accounts__minor">
+                                    {{ _("%(books)s books added · %(lists)s lists · %(other)s other", books=row.books_added, lists=row.lists_created, other=row.other_edits) }}
+                                </span>
+                                <a class="new-accounts__minor"
+                                   href="/admin/people/{{ row.username }}/edits">{{ _("%(count)s in total", count=row.total_edits_label) }}</a>
+                            </td>
+                            <td>
+                                <ol class="new-accounts__edits">
+                                    {% for edit in row.recent_edits %}
+                                        <li>
+                                            <span class="new-accounts__kind">{{ edit.kind }}</span>
+                                            {% if edit.key %}<a class="new-accounts__title" href="{{ edit.key }}">{{ edit.title or edit.key }}</a>{% endif %}
+                                            {% if edit.deleted %}
+                                                <span class="new-accounts__status new-accounts__status--inactive">{{ _("deleted") }}</span>
+                                            {% endif %}
+                                            <span class="new-accounts__minor">
+                                                {{ _("%(duration)s ago", duration=edit.ago) }}
+                                                {% if edit.comment %}· {{ edit.comment }}{% endif %}
+                                            </span>
+                                        </li>
+                                    {% endfor %}
+                                </ol>
+                            </td>
+                            <td>
+                                {% if row.can_block %}
+                                    <form method="post" class="new-accounts__actions">
+                                        <input type="hidden" name="username" value="{{ row.username }}">
+                                        <ol-button class="do-confirm" type="submit" name="action" value="block_account" size="small">
+                                            {{ _("Block") }}
+                                        </ol-button>
+                                        <ol-button class="do-confirm" type="submit" name="action" value="block_account_and_revert" size="small" tone="danger">
+                                            {{ _("Block and revert") }}
+                                        </ol-button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="new-accounts__empty">
+            {{ _("No accounts under %(age)s old have made edits in the last %(window)s.", age=report.age_label, window=report.window_label) }}
+        </p>
+    {% endif %}
+</div>

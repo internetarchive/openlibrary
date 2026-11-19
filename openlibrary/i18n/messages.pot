@@ -1369,7 +1369,7 @@ msgid_plural "%(count)d books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: TestingEnvironment.html.jinja account/loans.html admin/loans_table.html
+#: TestingEnvironment.html.jinja account/loans.html admin/loans_table.html admin/new_accounts.html.jinja
 msgid "Actions"
 msgstr ""
 
@@ -2271,6 +2271,10 @@ msgid "People"
 msgstr ""
 
 #: admin/menu.html
+msgid "New accounts"
+msgstr ""
+
+#: admin/menu.html
 msgid "PD Access Requests"
 msgstr ""
 
@@ -2296,6 +2300,82 @@ msgstr ""
 
 #: admin/menu.html
 msgid "Inspect memcache"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "New accounts writing fast"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "Accounts under %(age)s old, ordered by the edits they made in the last %(window)s. Times are in UTC."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "Only the newest %(count)s edits were scanned, back to %(time)s. Edits before then are not counted, and accounts that only wrote before then are missing."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "Showing the %(shown)s busiest of %(total)s accounts."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Account"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Signed up"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Signup to first edit"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "Edits, last %(window)s"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Last edits"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Admin page"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "%(duration)s ago"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "%(books)s books added · %(lists)s lists · %(other)s other"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "%(count)s in total"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "deleted"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Block"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Block and revert"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "No accounts under %(age)s old have made edits in the last %(window)s."
 msgstr ""
 
 #: admin/pd_dashboard.html
@@ -10097,6 +10177,49 @@ msgstr ""
 #: openlibrary/fastapi/tasks.py
 msgid "The project is deleted."
 msgstr ""
+
+#: openlibrary/plugins/admin/code.py
+msgid "[Admin Center] New accounts"
+msgstr ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "%(n)s s"
+msgstr ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "%(n)s min"
+msgstr ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "%(n)s h"
+msgstr ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "%(n)s d"
+msgstr ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "at most %(duration)s"
+msgstr ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "%(count)s day"
+msgid_plural "%(count)s days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "%(count)s hour"
+msgid_plural "%(count)s hours"
+msgstr[0] ""
+msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/api.py
 msgid "Search Results"

@@ -31,7 +31,10 @@ from openlibrary.core import (
     cache,
     imports,
 )
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.models import Work
+from openlibrary.i18n import gettext as _
+from openlibrary.plugins.admin import new_accounts
 from openlibrary.plugins.openlibrary.pd import get_pd_dashboard_data
 from openlibrary.plugins.upstream import forms, spamcheck
 from openlibrary.utils.request_context import site
@@ -420,6 +423,41 @@ class people_edits:
         raise web.seeother(web.ctx.fullpath)
 
 
+# The people_view actions offered on each row of /admin/new-accounts.
+NEW_ACCOUNT_ACTIONS = {
+    "block_account": "POST_block_account",
+    "block_account_and_revert": "POST_block_account_and_revert",
+}
+
+
+class new_accounts_view:
+    """New accounts writing fast: young accounts ranked by recent edits, with block actions on each row."""
+
+    def GET(self):
+        i = web.input(days=None, hours=None)
+        report = new_accounts.build_report(
+            site.get(),
+            days=new_accounts.clamp_param(i.days, new_accounts.MAX_ACCOUNT_AGE_DAYS, new_accounts.MAX_ACCOUNT_AGE_DAYS_LIMIT),
+            hours=new_accounts.clamp_param(i.hours, new_accounts.WINDOW_HOURS, new_accounts.WINDOW_HOURS_LIMIT),
+        )
+        body = render_jinja_template("admin/new_accounts.html.jinja", report=report)
+        return web.template.TemplateResult(__body__=body, title=_("[Admin Center] New accounts"))
+
+    def POST(self):
+        i = web.input(username="", action="")
+        if i.action not in NEW_ACCOUNT_ACTIONS:
+            raise web.badrequest()
+        if not (account := accounts.find(username=i.username)):
+            raise web.notfound()
+        try:
+            getattr(people_view(), NEW_ACCOUNT_ACTIONS[i.action])(account)
+        except web.SeeOther:
+            # The action redirects to the account's own page; drop that and return to this list.
+            web.ctx.headers = [(name, value) for name, value in web.ctx.headers if name.lower() != "location"]
+        # fullpath keeps ?days= and ?hours=
+        raise web.seeother(web.ctx.fullpath)
+
+
 class ipaddress:
     def GET(self):
         return render_template("admin/ip/index")
@@ -725,6 +763,7 @@ def setup():
     register_admin_page("/admin/git-pull", gitpull, label="git-pull")
     register_admin_page("/admin/reload", reload, label="Reload Templates")
     register_admin_page("/admin/people", people, label="People")
+    register_admin_page("/admin/new-accounts", new_accounts_view, label="New accounts")
     register_admin_page("/admin/people/([^/]*)", people_view, label="View People")
     register_admin_page("/admin/people/([^/]*)/edits", people_edits, label="Edits")
     register_admin_page("/admin/ip", ipaddress, label="IP")

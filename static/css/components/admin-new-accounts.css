@@ -1,0 +1,127 @@
+/* /admin/new-accounts — openlibrary/templates/admin/new_accounts.html.jinja */
+.new-accounts__lede,
+.new-accounts__notice,
+.new-accounts__empty {
+  margin: 0 0 var(--spacing-stack-md);
+  font-size: var(--font-size-body-medium);
+}
+
+.new-accounts__lede {
+  color: var(--color-text-secondary);
+}
+
+.new-accounts__notice {
+  padding: var(--spacing-inset-sm);
+  border: var(--border-width-thin) solid var(--color-warning-border);
+  border-radius: var(--border-radius-card);
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+}
+
+.new-accounts__scroll {
+  overflow-x: auto;
+  margin-block-end: var(--spacing-stack-xl);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background-color: var(--color-surface);
+}
+
+.new-accounts__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text);
+}
+
+.new-accounts__table :is(th, td) {
+  padding: var(--spacing-inset-sm);
+  text-align: start;
+  vertical-align: top;
+  font-weight: var(--font-weight-regular);
+}
+
+.new-accounts__table :is(th, td):first-child {
+  padding-inline-start: var(--spacing-inset-md);
+}
+
+.new-accounts__table :is(th, td):last-child {
+  padding-inline-end: var(--spacing-inset-md);
+}
+
+.new-accounts__table thead th {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.new-accounts__table tbody tr + tr :is(th, td) {
+  border-block-start: var(--border-width-thin) solid
+    var(--color-border-extra-subtle);
+}
+
+/* The two columns compared down the page: right-aligned, digits in fixed columns. */
+.new-accounts__table :is(th, td).new-accounts__num {
+  text-align: end;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.new-accounts__figure {
+  display: block;
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A first edit within minutes of signup. The figure itself says how fast; the colour only draws the eye. */
+.new-accounts__figure--fast {
+  color: var(--color-error-fg);
+}
+
+.new-accounts__name {
+  font-weight: var(--font-weight-medium);
+}
+
+.new-accounts__minor {
+  display: block;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.new-accounts__status,
+.new-accounts__kind {
+  display: inline-block;
+  padding-inline: var(--spacing-inset-xs);
+  border-radius: var(--border-radius-badge);
+  background-color: var(--color-surface-sunken);
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.new-accounts__status--inactive {
+  background-color: var(--color-error-bg);
+  color: var(--color-error-fg);
+}
+
+.new-accounts__edits {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.new-accounts__edits li + li {
+  margin-block-start: var(--spacing-stack-sm);
+}
+
+/* Titles are how spam is recognised, so they wrap in full rather than truncate. */
+.new-accounts__title {
+  overflow-wrap: anywhere;
+}
+
+.new-accounts__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-stack-sm);
+}
