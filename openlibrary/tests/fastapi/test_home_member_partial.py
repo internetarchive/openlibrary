@@ -28,7 +28,9 @@ def _book(title: str, **extra) -> dict:
 
 
 def _loan(title: str, days_left: int) -> dict:
-    return _book(title, ocaid=f"ia_{title}", can_read_here=True, days_left=days_left, due=f"due in {days_left}", urgent=days_left <= 2)
+    return _book(
+        title, work_key=f"/works/{title}", ocaid=f"ia_{title}", can_read_here=True, days_left=days_left, due=f"due in {days_left}", urgent=days_left <= 2
+    )
 
 
 def _hold(title: str, *, ready: bool) -> dict:
@@ -379,11 +381,19 @@ def test_each_half_builds_only_its_own_books(request_context_fixture):
         patch("openlibrary.plugins.upstream.mybooks.ReadingLog"),
         patch.object(home_member, "get_loans", return_value=[_loan("borrowed", 5)]) as loans,
         patch.object(home_member, "get_holds", return_value=[]),
-        patch.object(home_member, "reading_now", return_value=([_book("borrowed"), _book("shelf")], True)) as reading,
+        # The loan is on the shelf too, and shown once; a different work of the same title is still shown.
+        patch.object(
+            home_member,
+            "reading_now",
+            return_value=(
+                [_book("borrowed", work_key="/works/borrowed"), _book("borrowed", work_key="/works/other"), _book("shelf", work_key="/works/shelf")],
+                True,
+            ),
+        ) as reading,
         patch.object(home_member, "want_available", return_value=([{"key": "/works/OL1W", "title": "wanted"}], False)) as want,
     ):
         member = home_member.build_part(user, "reading")
-        assert [card["title"] for card in member["agenda"]] == ["borrowed", "shelf"]
+        assert [(card["title"], card["kind"]) for card in member["agenda"]] == [("borrowed", "loan"), ("borrowed", "reading"), ("shelf", "reading")]
         assert member["complete"]
         assert "want" not in member
         want.assert_not_called()

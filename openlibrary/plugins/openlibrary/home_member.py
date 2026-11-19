@@ -107,6 +107,14 @@ def _resolve(book):
     return book
 
 
+def _work_key(book) -> str:
+    """The key of the work a book is, or is an edition of. "" when it has none."""
+    if getattr(getattr(book, "type", None), "key", None) == "/type/work":
+        return book.key
+    works = getattr(book, "works", None) or []
+    return (getattr(works[0], "key", "") or "") if works else ""
+
+
 def get_loans(user_key: str) -> list[dict]:
     """Active loans, soonest due first."""
     loans = []
@@ -123,6 +131,8 @@ def get_loans(user_key: str) -> list[dict]:
         loans.append(
             brief_from_book(book)
             | {
+                # The work it's an edition of, to match it against the Currently Reading shelf.
+                "work_key": _work_key(book),
                 "ocaid": loan.get("ocaid"),
                 "can_read_here": loan.get("resource_type") == "bookreader" and bool(loan.get("ocaid")),
                 "days_left": days_left,
@@ -395,8 +405,8 @@ def build_part(user, part: str) -> dict:
         holds = attempt("holds", lambda: get_holds(user), [])
         reading, known = attempt("currently reading", lambda: reading_now(readlog, budget), ([], True))
         # A borrowed book is usually on Currently Reading too; it is shown once, as the loan.
-        on_loan = {loan["title"] for loan in loans}
-        reading = [brief for brief in reading if brief["title"] not in on_loan]
+        on_loan = {key for loan in loans if (key := loan.get("work_key"))}
+        reading = [brief for brief in reading if brief["work_key"] not in on_loan]
         member |= {"agenda": build_agenda(loans, holds, reading), "side": AGENDA_SIDE}
     # A half built without availability is shown, and built again on the next view.
     return member | {"complete": not failed and known}
