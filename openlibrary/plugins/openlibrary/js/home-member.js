@@ -9,6 +9,7 @@
  * @module home-member
  */
 import { SHELF } from '../../../components/lit/utils/books-api.js';
+import { trackEvent } from './ol.analytics.js';
 import { buildPartialsUrl } from './utils';
 
 /** The section's halves, each fetched on its own so the quicker one doesn't wait for the other. */
@@ -29,6 +30,11 @@ export async function initHomeMember(slot) {
         slot.remove();
         return;
     }
+    // The cover link is in ol-book-cover's shadow root, out of reach of `data-ol-link-track`.
+    section.addEventListener('ol-book-cover-click', e => {
+        const track = e.target.closest('[data-cover-track]')?.dataset.coverTrack;
+        if (track) trackEvent(...track.split('|'));
+    });
     section.classList.remove('home-now--skeleton');
     section.querySelector('.home-now__loading')?.remove();
 }
@@ -65,6 +71,8 @@ async function loadPart(section, part) {
         section.setAttribute('aria-labelledby', 'home-now-title');
     }
     if (part === 'reading') watchShelves(content);
+    // Seen, for the share of readers who go on to click.
+    trackEvent('HomeMember', 'View', part);
     return true;
 }
 

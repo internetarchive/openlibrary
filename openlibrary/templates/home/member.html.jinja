@@ -14,9 +14,10 @@
 {% set member = member | default(none) %}
 {% set agenda = (member.agenda | default([])) if member else [] %}
 {% set want = (member.want | default([])) if member else [] %}
-{# `tip=false` drops the cover's hover card where the title and author are already written beside it. #}
-{% macro cover(item, cls="", size="", tip=true, fit=false) %}
-    <ol-book-cover class="{{ cls }}" {% if size %}size="{{ size }}"{% endif %} {% if fit %}fit{% endif %} {% if not tip %}no-tip{% endif %} src="{{ item.cover_url }}" book-title="{{ item.title }}" authors="{{ item.author }}" href="{{ item.url }}">
+{# `tip=false` drops the cover's hover card where the title and author are already written beside it.
+   `kind` labels its click, which home-member.js reports: the link is in the cover's shadow root. #}
+{% macro cover(item, cls="", size="", tip=true, fit=false, kind="") %}
+    <ol-book-cover class="{{ cls }}" {% if size %}size="{{ size }}"{% endif %} {% if fit %}fit{% endif %} {% if not tip %}no-tip{% endif %} src="{{ item.cover_url }}" book-title="{{ item.title }}" authors="{{ item.author }}" href="{{ item.url }}" data-cover-track="HomeMember|CoverClick|{{ kind or item.kind }}">
     </ol-book-cover>
 {% endmacro %}
 {% macro action(item, variant="secondary", size="small") %}
@@ -87,7 +88,8 @@
                 {{ cover(first, "home-now__cover", tip=false, fit=true) }}
                 <div class="home-now__text">
                     <h4 class="home-now__book">
-                        <a href="{{ first.url }}">{{ first.title }}</a>
+                        <a href="{{ first.url }}"
+                           data-ol-link-track="HomeMember|TitleClick|{{ first.kind }}">{{ first.title }}</a>
                     </h4>
                     <p class="home-now__author">{{ first.author }}</p>
                     {% if first.note is defined %}<p class="home-now__note">{{ first.note }}</p>{% endif %}
@@ -105,11 +107,13 @@
                     {% for item in agenda[1:member.side + 1] %}
                         <li class="home-now__item"
                             data-work-key="{{ item.work_key | default('') }}">
-                            <ol-book-cover class="home-now__thumb" size="small" no-tip src="{{ item.thumb_url }}" book-title="{{ item.title }}" authors="{{ item.author }}" href="{{ item.url }}">
+                            <ol-book-cover class="home-now__thumb" size="small" no-tip src="{{ item.thumb_url }}" book-title="{{ item.title }}" authors="{{ item.author }}" href="{{ item.url }}" data-cover-track="HomeMember|CoverClick|{{ item.kind }}">
                             </ol-book-cover>
                             <div class="home-now__item-body">
                                 <div class="home-now__item-text">
-                                    <a class="home-now__item-title" href="{{ item.url }}">{{ item.title }}</a>
+                                    <a class="home-now__item-title"
+                                       href="{{ item.url }}"
+                                       data-ol-link-track="HomeMember|TitleClick|{{ item.kind }}">{{ item.title }}</a>
                                     {% if item.author %}<span class="home-now__item-author">{{ item.author }}</span>{% endif %}
                                 </div>
                                 <p class="home-now__moved" role="status"></p>
@@ -146,7 +150,7 @@
                 </h3>
             </div>
             <ul class="home-now__wall">
-                {% for item in want %}<li>{{ cover(item, "", "small") }}</li>{% endfor %}
+                {% for item in want %}<li>{{ cover(item, "", "small", kind="want") }}</li>{% endfor %}
             </ul>
             <p class="home-now__more">
                 <a class="carousel-see-all"
