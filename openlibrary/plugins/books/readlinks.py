@@ -9,10 +9,9 @@ from collections.abc import Iterable
 from collections.abc import Set as AbstractSet
 
 import web
-from fastapi.concurrency import run_in_threadpool
-
 from infogami.utils import stats
 from infogami.utils.delegate import register_exception
+
 from openlibrary.core import helpers, ia, lending
 from openlibrary.plugins.books import dynlinks
 from openlibrary.utils.request_context import site
@@ -230,8 +229,7 @@ class ReadProcessor:
         # Note that it's available thru above works/docs
         self.wkey_to_iaids = await get_solr_fields_for_works("ia", self.works, 500)
         iaids = [value for sublist in self.wkey_to_iaids.values() for value in sublist]
-        # ia.get_metadata makes blocking memcache and archive.org calls, so run them in a worker thread, not on the event loop.
-        self.iaid_to_meta = await run_in_threadpool(lambda: {iaid: ia.get_metadata(iaid) for iaid in iaids})
+        self.iaid_to_meta = await ia.get_metadata_many_async(iaids)
         lendable_iaids = [iaid for iaid, meta in self.iaid_to_meta.items() if meta and "inlibrary" in meta.get("collection", [])]
         self.checked_out_ocaids = await lending.get_checked_out_async(lendable_iaids)
 

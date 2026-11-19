@@ -1,4 +1,7 @@
+import asyncio
 import inspect
+import json
+import threading
 import time
 
 import pytest
@@ -104,6 +107,267 @@ class Test_memcache_memoize:
 
         m(10)
         assert m.stats.updates == 2
+
+    @pytest.mark.asyncio
+    async def test_call_many_async_empty(self):
+        m = self.square_memoize()
+
+        async def square_async(x):
+            return x * x
+
+        assert await m.call_many_async([], square_async) == []
+        assert m.stats.calls == 0
+
+    @pytest.mark.asyncio
+    async def test_call_many_async_invalid_concurrency(self):
+        m = self.square_memoize()
+
+        async def square_async(x):
+            return x * x
+
+        with pytest.raises(ValueError, match="max_concurrency must be at least 1"):
+            await m.call_many_async([(1,)], square_async, max_concurrency=0)
+
+    @pytest.mark.asyncio
+    async def test_call_many_async_miss_hit_stale(self, monkeytime):
+        m = self.square_memoize()
+        m.timeout = 0.1
+        s = m.stats
+
+        computed = []
+
+        async def square_async(x):
+            computed.append(x)
+            return x * x
+
+        # 1. Cache misses
+        result = await m.call_many_async([(2,), (3,), (2,)], square_async)
+        assert result == [4, 9, 4]
+        assert sorted(computed) == [2, 3]  # deduplicated in computation
+        assert [s.calls, s.hits, s.updates, s.async_updates] == [3, 0, 3, 0]
+
+        # 2. Cache hits
+        computed.clear()
+        result = await m.call_many_async([(2,), (3,)], square_async)
+        assert result == [4, 9]
+        assert computed == []
+        assert [s.calls, s.hits, s.updates, s.async_updates] == [5, 2, 3, 0]
+
+        # 3. Cache stale
+        await asyncio.sleep(0.12)
+        computed.clear()
+        result = await m.call_many_async([(2,)], square_async)
+        assert result == [4]  # Returns stale value immediately
+        assert [s.calls, s.hits, s.updates, s.async_updates] == [6, 3, 3, 1]
+
+        # Wait for background refresh
+        await cache.wait_for_background_tasks()
+        assert computed == [2]
+
+    @pytest.mark.asyncio
+    async def test_call_many_async_concurrency_bounding(self):
+        m = self.square_memoize()
+        in_flight = 0
+        max_in_flight = 0
+
+        async def worker_async(x):
+            nonlocal in_flight, max_in_flight
+            in_flight += 1
+            max_in_flight = max(max_in_flight, in_flight)
+            await asyncio.sleep(0.02)
+            in_flight -= 1
+            return x * 10
+
+        args_list = [(i,) for i in range(12)]
+        results = await m.call_many_async(args_list, worker_async, max_concurrency=3)
+        assert results == [i * 10 for i in range(12)]
+        assert max_in_flight == 3
+
+    @pytest.mark.asyncio
+    async def test_call_many_async_stale_refresh_flag_contention(self):
+        m = self.square_memoize()
+        # Seed stale value
+        m.memcache_set((5,), {}, 25, time.time() - 3600)
+
+        # Another worker is already refreshing it (flag set)
+        flag = m.compute_key((5,), {}) + "/flag"
+        m.memcache.add(flag, "other_worker")
+
+        refreshed = False
+
+        async def square_async(x):
+            nonlocal refreshed
+            refreshed = True
+            return x * x
+
+        res = await m.call_many_async([(5,)], square_async)
+        assert res == [25]
+
+        await cache.wait_for_background_tasks()
+        assert not refreshed  # skipped because flag was acquired by someone else
+        assert m.memcache.get(flag) == "other_worker"  # did not delete someone else's flag
+
+    @pytest.mark.asyncio
+    async def test_call_many_async_stale_refresh_cancellation_cleans_flag(self):
+        m = self.square_memoize()
+        m.memcache_set((5,), {}, 25, time.time() - 3600)
+        flag = m.compute_key((5,), {}) + "/flag"
+
+        started = asyncio.Event()
+
+        async def hung_async(x):
+            started.set()
+            await asyncio.sleep(100)
+            return x * x
+
+        semaphore = asyncio.Semaphore(1)
+        task = asyncio.create_task(m._refresh_async([(5,)], hung_async, semaphore))
+        await started.wait()
+        # Flag is held by the task
+        assert m.memcache.get(flag) == "true"
+
+        # Cancel the task
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+        # Flag must be cleaned up in finally block
+        assert m.memcache.get(flag) is None
+
+    @pytest.mark.asyncio
+    async def test_call_many_async_stale_refresh_cancellation_during_flag_add(self):
+        m = self.square_memoize()
+        m.memcache_set((5,), {}, 25, time.time() - 3600)
+        flag = m.compute_key((5,), {}) + "/flag"
+
+        add_started = threading.Event()
+        can_finish_add = threading.Event()
+
+        orig_add = m._memcache_add_flag
+
+        def slow_add_flag(f):
+            add_started.set()
+            assert can_finish_add.wait(timeout=5), "Timed out waiting for test to release add_flag"
+            return orig_add(f)
+
+        m._memcache_add_flag = slow_add_flag
+
+        async def square_async(x):
+            return x * x
+
+        semaphore = asyncio.Semaphore(1)
+        task = asyncio.create_task(m._refresh_async([(5,)], square_async, semaphore))
+
+        # Wait until the worker thread is blocked inside _memcache_add_flag
+        await asyncio.to_thread(add_started.wait, 5)
+
+        # Cancel the task while add_flag is blocked in the worker thread
+        task.cancel()
+
+        # Release the worker thread so it finishes acquiring the flag
+        can_finish_add.set()
+
+        # Await the task - it should catch cancellation, determine the flag was acquired, and delete it
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+        # The flag must NOT remain in memcache indefinitely
+        assert m.memcache.get(flag) is None
+
+    @pytest.mark.asyncio
+    async def test_call_many_async_cache_failures_resilience(self):
+        m = self.square_memoize()
+
+        async def square_async(x):
+            return x * x
+
+        # 1. Corrupted JSON in cache for one key
+        key1 = m.compute_key((1,), {})
+        m.memcache.set(key1, "not-valid-json{{{")
+
+        # 2. Malformed envelope (not a 2-item list)
+        key2 = m.compute_key((2,), {})
+        m.memcache.set(key2, json.dumps("not-a-list"))
+
+        # 3. Malformed envelope (timestamp not numeric)
+        key3 = m.compute_key((3,), {})
+        m.memcache.set(key3, json.dumps([9, "invalid-timestamp"]))
+
+        # 4. Valid cached byte string
+        key4 = m.compute_key((4,), {})
+        m.memcache.set(key4, json.dumps([16, time.time()]).encode("utf-8"))
+
+        res = await m.call_many_async([(1,), (2,), (3,), (4,)], square_async)
+        assert res == [1, 4, 9, 16]
+
+    @pytest.mark.asyncio
+    async def test_call_many_async_invalid_utf8_treated_as_miss(self):
+        m = self.square_memoize()
+
+        async def square_async(x):
+            return x * x
+
+        # Key 1 has invalid UTF-8 bytes in memcache
+        key1 = m.compute_key((1,), {})
+        m.memcache.set(key1, b"\xff\xfe\x80")
+
+        # Key 2 has valid cached data
+        key2 = m.compute_key((2,), {})
+        m.memcache.set(key2, json.dumps([4, time.time()]))
+
+        res = await m.call_many_async([(1,), (2,)], square_async)
+        assert res == [1, 4]
+
+    @pytest.mark.asyncio
+    async def test_call_many_async_get_multi_failure_treated_as_miss(self, monkeypatch):
+        m = self.square_memoize()
+
+        async def square_async(x):
+            return x * x
+
+        # When get_multi raises an exception, it should be logged and treated as misses
+        def bad_get_multi(keys):
+            raise RuntimeError("memcache connection failure")
+
+        monkeypatch.setattr(m.memcache, "get_multi", bad_get_multi)
+        res = await m.call_many_async([(2,), (3,)], square_async)
+        assert res == [4, 9]
+
+    @pytest.mark.asyncio
+    async def test_call_many_async_set_multi_failure_returns_results(self, monkeypatch):
+        m = self.square_memoize()
+
+        async def square_async(x):
+            return x * x
+
+        def bad_set_multi(mapping):
+            raise RuntimeError("memcache write failure")
+
+        monkeypatch.setattr(m.memcache, "set_multi", bad_set_multi)
+        # Should log exception and still return fetched results without throwing
+        res = await m.call_many_async([(5,)], square_async)
+        assert res == [25]
+
+    @pytest.mark.asyncio
+    async def test_call_many_async_negative_caching(self):
+        m = cache.memcache_memoize(lambda x: {}, key_prefix="negative")
+        m._memcache = mock_memcache.Client([])
+
+        call_count = 0
+
+        async def fetch_empty(x):
+            nonlocal call_count
+            call_count += 1
+            return {}
+
+        res1 = await m.call_many_async([("item",)], fetch_empty)
+        assert res1 == [{}]
+        assert call_count == 1
+
+        # Second call should hit cache (empty dict is valid)
+        res2 = await m.call_many_async([("item",)], fetch_empty)
+        assert res2 == [{}]
+        assert call_count == 1
 
 
 class Test_memoize:

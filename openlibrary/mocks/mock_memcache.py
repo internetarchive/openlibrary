@@ -28,6 +28,18 @@ class Client:
     def delete(self, key):
         self.cache.pop(key, None)
 
+    def get_multi(self, keys):
+        return {k: self.cache[k] for k in keys if k in self.cache}
+
+    def set_multi(self, mapping):
+        self.cache.update(mapping)
+        return []
+
+    def delete_multi(self, keys):
+        for k in keys:
+            self.cache.pop(k, None)
+        return True
+
 
 @pytest.fixture
 def mock_memcache(request, monkeypatch):
@@ -47,5 +59,9 @@ def mock_memcache(request, monkeypatch):
     m.setattr(memcache.Client, "get", proxy("get"))
     m.setattr(memcache.Client, "set", proxy("set"))
     m.setattr(memcache.Client, "add", proxy("add"))
+    m.setattr(memcache.Client, "delete", proxy("delete"))
+    m.setattr(memcache.Client, "get_multi", proxy("get_multi"))
+    m.setattr(memcache.Client, "set_multi", proxy("set_multi"))
+    m.setattr(memcache.Client, "delete_multi", proxy("delete_multi"))
 
     return mock_memcache

@@ -1,9 +1,11 @@
 import asyncio
-import threading
+import time
 
 import pytest
+from pymemcache.test.utils import MockMemcacheClient
 
-from openlibrary.plugins.books import readlinks
+from openlibrary.core import ia
+from openlibrary.plugins.books import dynlinks, readlinks
 
 
 @pytest.mark.parametrize(
@@ -54,37 +56,107 @@ async def test_readlinks_forwards_base_url(monkeypatch, mock_site):
     assert result == {}
 
 
-@pytest.mark.asyncio
-async def test_process_fetches_ia_metadata_off_the_event_loop(monkeypatch, mock_site):
-    loop_ran = threading.Event()
+IA_METADATA = {
+    "ia-full": {"metadata": {"identifier": "ia-full", "collection": ["americana"]}},
+    "ia-lendable": {"metadata": {"identifier": "ia-lendable", "collection": ["inlibrary", "printdisabled"]}},
+    "ia-checkedout": {"metadata": {"identifier": "ia-checkedout", "collection": ["inlibrary", "printdisabled"]}},
+    "ia-restricted": {"metadata": {"identifier": "ia-restricted", "collection": ["printdisabled"]}},
+    # ia-gone: archive.org returns no metadata for it (timeout, error or dark item).
+}
 
-    def get_metadata(iaid):
-        # Waits for a coroutine that can only run if this call isn't holding the event loop.
-        assert loop_ran.wait(timeout=5), "ia.get_metadata blocked the event loop"
-        return {"collection": ["inlibrary"]}
 
-    async def no_docs(bib_keys):
-        return {}
+def ia_metadata_response(url, params=None):
+    return IA_METADATA.get(url.rsplit("/", 1)[-1], {})
 
-    async def same_docs(docs):
-        return docs
 
-    async def nothing_checked_out(ocaids):
-        return set()
+def setup_read_api(monkeypatch, mock_site):
+    """One work with five scanned editions, and everything ReadProcessor.process talks to mocked."""
+    mock_site.save({"key": "/works/OL1W", "type": {"key": "/type/work"}, "title": "A Work"})
+    for i, ocaid in enumerate(["ia-full", "ia-lendable", "ia-checkedout", "ia-restricted", "ia-gone"], start=1):
+        mock_site.save(
+            {
+                "key": f"/books/OL{i}M",
+                "type": {"key": "/type/edition"},
+                "title": f"Edition {i}",
+                "works": [{"key": "/works/OL1W"}],
+                "ocaid": ocaid,
+                "publish_date": str(1990 + i),
+                "covers": [i],
+            }
+        )
+
+    things = mock_site.things
+
+    def things_with_list_values(query):
+        # MockSite can't match a list of values; Infobase matches any of them.
+        if isinstance(ocaids := query.get("ocaid"), list):
+            return sorted(key for ocaid in ocaids for key in things({**query, "ocaid": ocaid}))
+        return things(query)
+
+    monkeypatch.setattr(mock_site, "things", things_with_list_values)
+
+    async def query_docs(bib_keys):
+        return {k: mock_site.get("/books/OL2M").dict() for k in bib_keys if k == "olid:OL2M"}
+
+    async def add_availability(docs):
+        return {k: {**doc, "preview": "borrow"} for k, doc in docs.items()}
+
+    async def get_checked_out(ocaids):
+        return {"ia-checkedout"} & set(ocaids)
 
     async def get_solr_fields_for_works(field, wkeys, clip_limit=None):
-        return {"/works/OL1W": ["ia1", "ia2"]}
+        return {"/works/OL1W": ["ia-full", "ia-lendable", "ia-checkedout", "ia-restricted", "ia-gone"]}
 
-    monkeypatch.setattr(readlinks.dynlinks, "query_docs", no_docs)
-    monkeypatch.setattr(readlinks.dynlinks, "add_availability", same_docs)
-    monkeypatch.setattr(readlinks.lending, "get_checked_out_async", nothing_checked_out)
+    monkeypatch.setattr(dynlinks, "query_docs", query_docs)
+    monkeypatch.setattr(dynlinks, "add_availability", add_availability)
+    monkeypatch.setattr(dynlinks.lending, "get_checked_out_async", get_checked_out)
     monkeypatch.setattr(readlinks, "get_solr_fields_for_works", get_solr_fields_for_works)
-    monkeypatch.setattr(readlinks.ia, "get_metadata", get_metadata)
+    monkeypatch.setattr(ia.get_metadata, "_memcache", MockMemcacheClient())
 
-    async def run_on_loop():
-        loop_ran.set()
 
-    processor = readlinks.ReadProcessor({})
-    await asyncio.gather(processor.process("olid:OL1M"), run_on_loop())
+@pytest.mark.asyncio
+@pytest.mark.parametrize("options", [{}, {"show_all_items": True}])
+async def test_process_output_unchanged_by_async_metadata(monkeypatch, mock_site, options):
+    setup_read_api(monkeypatch, mock_site)
+    monkeypatch.setattr(ia, "get_api_response", ia_metadata_response)
 
-    assert processor.iaid_to_meta == {"ia1": {"collection": ["inlibrary"]}, "ia2": {"collection": ["inlibrary"]}}
+    async def get_api_response_async(url, params=None):
+        return ia_metadata_response(url)
+
+    monkeypatch.setattr(ia, "get_api_response_async", get_api_response_async)
+
+    # The new, concurrent lookup...
+    new = await readlinks.ReadProcessor(options).process("olid:OL2M")
+
+    # ...against the sequential one it replaced, on an empty cache.
+    async def get_metadata_sequentially(iaids):
+        return {iaid: ia.get_metadata(iaid) for iaid in iaids}
+
+    monkeypatch.setattr(ia.get_metadata, "_memcache", MockMemcacheClient())
+    monkeypatch.setattr(ia, "get_metadata_many_async", get_metadata_sequentially)
+    old = await readlinks.ReadProcessor(options).process("olid:OL2M")
+
+    assert new == old
+    statuses = {item["ol-edition-id"]: item["status"] for item in new["olid:OL2M"]["items"]}
+    if options:
+        assert statuses == {"OL1M": "full access", "OL2M": "lendable", "OL3M": "checked out", "OL4M": "restricted"}
+    else:
+        assert statuses == {"OL1M": "full access", "OL2M": "lendable"}
+
+
+@pytest.mark.asyncio
+async def test_process_fetches_ia_metadata_concurrently(monkeypatch, mock_site):
+    setup_read_api(monkeypatch, mock_site)
+
+    async def slow_get_api_response_async(url, params=None):
+        await asyncio.sleep(0.2)
+        return ia_metadata_response(url)
+
+    monkeypatch.setattr(ia, "get_api_response_async", slow_get_api_response_async)
+
+    start = time.monotonic()
+    result = await readlinks.ReadProcessor({}).process("olid:OL2M")
+    elapsed = time.monotonic() - start
+
+    assert elapsed < 0.6  # five scans fetched at once, not one after another (1 s)
+    assert [item["ol-edition-id"] for item in result["olid:OL2M"]["items"]] == ["OL2M", "OL1M"]  # the requested edition first
