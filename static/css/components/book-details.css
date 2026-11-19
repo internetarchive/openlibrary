@@ -1,0 +1,99 @@
+/* The "Book Details" panel on the book page (type/edition/view.html):
+   small icon headings over label/value lists, flowing into two columns. */
+.book-details__title {
+  margin: 0 0 var(--spacing-stack-md);
+  font-size: var(--font-size-title-large);
+}
+
+.book-details__groups {
+  columns: 2 20rem;
+  column-gap: var(--spacing-5xl);
+}
+
+.book-details__group {
+  break-inside: avoid;
+  margin-bottom: var(--spacing-stack-lg);
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-table);
+}
+
+.book-details__group--prose {
+  max-width: 70ch;
+}
+
+.book-details > :last-child {
+  margin-bottom: 0;
+}
+
+.book-details__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-icon-gap);
+  margin: 0 0 var(--spacing-stack-sm);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: var(--font-size-title-small);
+  font-weight: var(--font-weight-subheading);
+  line-height: var(--line-height-heading);
+}
+
+.book-details__heading .ol-icon {
+  flex: none;
+  color: var(--color-icon-muted);
+}
+
+.book-details__list {
+  display: grid;
+  grid-template-columns: minmax(6rem, 9.5rem) minmax(0, 1fr);
+  gap: var(--spacing-stack-xs) var(--spacing-inline-xl);
+  margin: 0;
+}
+
+/* base/dl.css floats dt/dd and clears with a pseudo-element, which would take a grid cell. */
+.book-details__list::after {
+  display: none;
+}
+
+.book-details__list dt,
+.book-details__list dd {
+  float: none;
+  width: auto;
+  max-width: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.book-details__list dt {
+  grid-column: 1;
+}
+
+.book-details__list dd {
+  grid-column: 2;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.book-details__links,
+.book-details__sources {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.book-details .book-details__group p,
+.book-details .edition-notes {
+  margin: 0 0 var(--spacing-stack-sm);
+  font-size: inherit;
+}
+
+/* The notes are prose; the list under them is data, so they sit a full step apart. */
+.book-details .edition-notes {
+  margin-bottom: var(--spacing-stack-md);
+}
+
+.book-details .edition-notes > :last-child {
+  margin-bottom: 0;
+}

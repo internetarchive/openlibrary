@@ -17,6 +17,16 @@ export async function initListsSection(elem) {
 
     const data = await fetchPartials(ids.work, ids.edition).then(resp => resp.json());
 
+    // A book on no lists gets no section, and no tab pointing at one
+    if (!data.hasLists) {
+        for (const tab of document.querySelectorAll('a[href="#lists-section"]')) {
+            tab.closest('li').remove();
+        }
+        document.getElementById('lists-section')?.remove();
+        elem.remove();
+        return;
+    }
+
     // Replace loading indicator with partials
     const listSection = loadingIndicator.parentElement;
     const fragment = document.createDocumentFragment();
