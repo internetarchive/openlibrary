@@ -81,7 +81,7 @@ class community_edits_queue_stats(delegate.page):
             "merge_request_table/merge_request_stats.html.jinja",
             form=form,
             nav=MergeStatsNav.from_query(web.ctx.path, parse_qsl(web.ctx.env.get("QUERY_STRING", ""), keep_blank_values=True)),
-            data=MergeStatsData.read(form),
+            data=MergeStatsData.read_sync(form),
             rate_label=_("Merged %"),
         )
         return web.template.TemplateResult(__body__=body, title=escape(_("Community Edit Request Statistics")))

@@ -363,7 +363,7 @@
 
 .mr-stats-table {
   width: 100%;
-  background-color: var(--white);
+  background-color: var(--color-surface);
   border-collapse: collapse;
 }
 

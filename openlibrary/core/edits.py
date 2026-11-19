@@ -1,14 +1,14 @@
 import datetime as dt
 import json
 from types import MappingProxyType
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict
 
 from psycopg.errors import UniqueViolation
 from psycopg.types.json import Json
 
 from infogami.utils.view import public
 from openlibrary.core import cache
-from openlibrary.core.async_db import connection, fetch_one
+from openlibrary.core.async_db import connection, fetch_all, fetch_one, fetch_val
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import async_bridge
@@ -51,6 +51,16 @@ STATS_SORT_COLUMNS: MappingProxyType[str, str] = MappingProxyType(
         "username": "username",
     }
 )
+
+
+class MergeStatsRow(TypedDict):
+    username: str
+    total: int
+    merged: int
+    declined: int
+    author_requests: int
+    work_requests: int
+    merge_rate: float
 
 
 class CommunityEditsQueue:
@@ -142,11 +152,11 @@ class CommunityEditsQueue:
         closed = f"status IN ({cls.STATUS['DECLINED']}, {cls.STATUS['MERGED']})"
         where = f"{role} IS NOT NULL AND {closed}"
         if since:
-            where += " AND updated >= $since"
+            where += " AND updated >= %(since)s"
         return where
 
     @classmethod
-    def get_stats(
+    async def get_stats(
         cls,
         role: StatsRole,
         since: dt.date | None = None,
@@ -154,7 +164,7 @@ class CommunityEditsQueue:
         order: Literal["asc", "desc"] = "desc",
         limit: int = 25,
         page: int = 1,
-    ) -> list[dict]:
+    ) -> list[MergeStatsRow]:
         """Per-librarian counts of closed merge requests.
 
         `role` picks whether requests are grouped by `reviewer` or `submitter`.
@@ -183,11 +193,11 @@ class CommunityEditsQueue:
             WHERE {cls._stats_where(role, since)}
             GROUP BY {role}
             ORDER BY {sort_column} {direction}, username ASC
-            LIMIT $limit OFFSET $offset
+            LIMIT %(limit)s OFFSET %(offset)s
         """
-        rows = db.get_db().query(
+        rows = await fetch_all(
             query,
-            vars={
+            {
                 "since": since.isoformat() if since else None,
                 "limit": limit,
                 "offset": limit * (max(page, 1) - 1),
@@ -207,12 +217,12 @@ class CommunityEditsQueue:
         ]
 
     @classmethod
-    def get_stats_count(cls, role: StatsRole, since: dt.date | None = None) -> int:
+    async def get_stats_count(cls, role: StatsRole, since: dt.date | None = None) -> int:
         """Number of librarians `get_stats` would list across all pages."""
         if role not in ("reviewer", "submitter"):
             raise ValueError(f"Unknown stats role: {role}")
         query = f"SELECT count(DISTINCT {role}) AS count FROM {cls.TABLENAME} WHERE {cls._stats_where(role, since)}"
-        return db.get_db().query(query, vars={"since": since.isoformat() if since else None})[0]["count"]
+        return int(await fetch_val(query, {"since": since.isoformat() if since else None}))
 
     @classmethod
     def where_clause(cls, mode: ApiMode, **kwargs):

@@ -11,11 +11,12 @@ from urllib.parse import urlencode
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ValidationInfo, field_validator
 
-from openlibrary.core.edits import STATS_RANGES, STATS_SORT_COLUMNS, CommunityEditsQueue, StatsRole, StatsSort
+from openlibrary.core.edits import STATS_RANGES, STATS_SORT_COLUMNS, CommunityEditsQueue, MergeStatsRow, StatsRole, StatsSort
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell.request import PageMeta
 from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SitePageRoute
 from openlibrary.i18n import gettext as _
+from openlibrary.utils.async_utils import async_bridge
 
 if TYPE_CHECKING:
     from openlibrary.core.shell.user import ShellUser
@@ -103,23 +104,27 @@ PAGE_SIZE = 25
 
 @dataclass(frozen=True)
 class MergeStatsData:
-    rows: list[dict]
+    rows: list[MergeStatsRow]
     total_pages: int
 
     @classmethod
-    def read(cls, form: MergeStatsForm) -> MergeStatsData:
+    async def read(cls, form: MergeStatsForm) -> MergeStatsData:
         days = STATS_RANGES[form.range]
         since = dt.date.today() - dt.timedelta(days=days) if days else None
         role = form.GROUPS[form.group]
-        rows = CommunityEditsQueue.get_stats(role, since=since, sort=form.sort, order=form.order, limit=PAGE_SIZE, page=form.page)
-        total = CommunityEditsQueue.get_stats_count(role, since=since)
+        rows = await CommunityEditsQueue.get_stats(role, since=since, sort=form.sort, order=form.order, limit=PAGE_SIZE, page=form.page)
+        total = await CommunityEditsQueue.get_stats_count(role, since=since)
         return cls(rows=rows, total_pages=(total + PAGE_SIZE - 1) // PAGE_SIZE)
 
+    @classmethod
+    def read_sync(cls, form: MergeStatsForm) -> MergeStatsData:
+        """Sync bridge for the temporary web.py wrapper."""
+        return async_bridge.run(cls.read(form))
 
-# Synchronous database reads run in FastAPI's worker thread, not its event loop.
+
 @pages.get("/merges/stats")
-def merge_stats(form: Annotated[MergeStatsForm, Query()], nav: MergeStatsNavDep) -> SitePage:
+async def merge_stats(form: Annotated[MergeStatsForm, Query()], nav: MergeStatsNavDep) -> SitePage:
     body = render_jinja_template(
-        "merge_request_table/merge_request_stats.html.jinja", form=form, nav=nav, data=MergeStatsData.read(form), rate_label=_("Merged %")
+        "merge_request_table/merge_request_stats.html.jinja", form=form, nav=nav, data=await MergeStatsData.read(form), rate_label=_("Merged %")
     )
     return SitePage(body, page=PageMeta(title=_("Community Edit Request Statistics")))

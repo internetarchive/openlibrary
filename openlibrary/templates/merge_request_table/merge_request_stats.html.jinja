@@ -21,12 +21,12 @@
         <table class="mr-stats-table no-table-collapse">
             <thead>
                 <tr>
-                    <th>{{ _("Reviewer") if form.group == 'reviewers' else _('Submitter') }}</th>
+                    <th scope="col">{{ _("Reviewer") if form.group == 'reviewers' else _('Submitter') }}</th>
                     {% for value, label in columns %}
-                        <th><a href="{{ nav.sorts[value] }}">{{ label }}{{ ' ▾' if form.sort == value and form.order == 'desc' else (' ▴' if form.sort == value else '') }}</a></th>
+                        <th scope="col"{% if form.sort == value %} aria-sort="{{ 'ascending' if form.order == 'asc' else 'descending' }}"{% endif %}><a href="{{ nav.sorts[value] }}">{{ label }}{{ ' ▾' if form.sort == value and form.order == 'desc' else (' ▴' if form.sort == value else '') }}</a></th>
                     {% endfor %}
-                    <th>{{ _("Author requests") }}</th>
-                    <th>{{ _("Work requests") }}</th>
+                    <th scope="col">{{ _("Author requests") }}</th>
+                    <th scope="col">{{ _("Work requests") }}</th>
                 </tr>
             </thead>
             <tbody>

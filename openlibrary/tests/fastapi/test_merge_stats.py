@@ -1,7 +1,7 @@
 """The stats page's inputs, links and per-request isolation on both servers."""
 
 import datetime as dt
-from unittest.mock import Mock
+from unittest.mock import AsyncMock
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
@@ -18,8 +18,8 @@ ROWS = [{"username": "alice", "total": 4, "merged": 3, "declined": 1, "merge_rat
 
 @pytest.fixture
 def stats_queries(monkeypatch):
-    get_stats = Mock(return_value=ROWS)
-    get_count = Mock(return_value=51)
+    get_stats = AsyncMock(return_value=ROWS)
+    get_count = AsyncMock(return_value=51)
     monkeypatch.setattr(CommunityEditsQueue, "get_stats", get_stats)
     monkeypatch.setattr(CommunityEditsQueue, "get_stats_count", get_count)
     return get_stats, get_count
@@ -39,8 +39,8 @@ def test_stats_page_renders_rows_and_pagination(client, stats_queries):
     assert 'total-pages="3"' in response.text
     assert 'href="/merges?mode=closed&amp;reviewer=alice"' in response.text
     get_stats, get_count = stats_queries
-    get_stats.assert_called_once_with("reviewer", since=None, sort="total", order="desc", limit=25, page=1)
-    get_count.assert_called_once_with("reviewer", since=None)
+    get_stats.assert_awaited_once_with("reviewer", since=None, sort="total", order="desc", limit=25, page=1)
+    get_count.assert_awaited_once_with("reviewer", since=None)
 
 
 @pytest.mark.parametrize(("date_range", "days"), [("year", 365), ("month", 30)])
@@ -49,8 +49,8 @@ def test_filters_reach_the_queries(client, stats_queries, date_range, days):
     assert response.status_code == 200
     since = dt.date.today() - dt.timedelta(days=days)
     get_stats, get_count = stats_queries
-    get_stats.assert_called_once_with("submitter", since=since, sort="rate", order="asc", limit=25, page=2)
-    get_count.assert_called_once_with("submitter", since=since)
+    get_stats.assert_awaited_once_with("submitter", since=since, sort="rate", order="asc", limit=25, page=2)
+    get_count.assert_awaited_once_with("submitter", since=since)
 
 
 @pytest.mark.parametrize("query", ["group=other", "range=week", "sort=evil", "order=sideways", "page=abc", "page=1.5"])
@@ -58,20 +58,20 @@ def test_invalid_inputs_are_400_without_reading_database(client, stats_queries, 
     response = client.get("/merges/stats?" + query)
     assert response.status_code == 400
     for query_mock in stats_queries:
-        query_mock.assert_not_called()
+        query_mock.assert_not_awaited()
 
 
 @pytest.mark.parametrize("page", ["0", "-3"])
 def test_nonpositive_page_is_clamped(client, stats_queries, page):
     assert client.get(f"/merges/stats?page={page}").status_code == 200
-    assert stats_queries[0].call_args.kwargs["page"] == 1
+    assert stats_queries[0].await_args.kwargs["page"] == 1
 
 
 def test_last_repeated_parameter_wins_and_unknown_is_ignored(client, stats_queries):
     response = client.get("/merges/stats?group=reviewers&group=submitters&extra=kept&page=2&page=3")
     assert response.status_code == 200
-    assert stats_queries[0].call_args.args == ("submitter",)
-    assert stats_queries[0].call_args.kwargs["page"] == 3
+    assert stats_queries[0].await_args.args == ("submitter",)
+    assert stats_queries[0].await_args.kwargs["page"] == 3
     html = BeautifulSoup(response.text, "html.parser")
     link = html.select_one(".table-header a")
     assert parse_qs(urlsplit(link["href"]).query) == {"group": ["reviewers"], "extra": ["kept"]}
@@ -112,7 +112,7 @@ def test_visitor_is_sent_to_login_with_full_return_path(site_page_app, stats_que
     assert location.path == "/account/login"
     assert parse_qs(location.query) == {"redirect": ["/merges/stats?range=month&page=2"]}
     for query_mock in stats_queries:
-        query_mock.assert_not_called()
+        query_mock.assert_not_awaited()
 
 
 def test_head_is_supported(client):
@@ -154,7 +154,7 @@ def test_webpy_wrapper_rejects_invalid_inputs(monkeypatch, request_context_fixtu
     assert isinstance(result, web.HTTPError)
     assert web.ctx.status == "400 Bad Request"
     for query_mock in stats_queries:
-        query_mock.assert_not_called()
+        query_mock.assert_not_awaited()
 
 
 def test_nav_preserves_repeated_and_blank_parameters(client):
@@ -167,3 +167,18 @@ def test_nav_preserves_repeated_and_blank_parameters(client):
         "empty": [""],
         "range": ["all"],
     }
+
+
+@pytest.mark.parametrize("sort", ["total", "merged", "declined", "rate"])
+@pytest.mark.parametrize("order", ["asc", "desc"])
+def test_table_headers_expose_sort_state(client, sort, order):
+    response = client.get(f"/merges/stats?sort={sort}&order={order}")
+    html = BeautifulSoup(response.text, "html.parser")
+    headers = html.select(".mr-stats-table th")
+    assert len(headers) == 7
+    assert all(header.get("scope") == "col" for header in headers)
+    sorted_headers = html.select("th[aria-sort]")
+    assert len(sorted_headers) == 1
+    assert sorted_headers[0]["aria-sort"] == ("ascending" if order == "asc" else "descending")
+    query = parse_qs(urlsplit(sorted_headers[0].a["href"]).query)
+    assert query["sort"] == [sort]
