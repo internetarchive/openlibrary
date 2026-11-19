@@ -88,13 +88,14 @@ sequenceDiagram
 flowchart TD
     who{"Who is asking?"}
     who -- "A maintainer" --> anyway["Any of the three ways works"]
-    who -- "The PR's author" --> author["Comment @openlibrary-bot on your PR"]
+    who -- "The PR's author" --> author["Re-request openlibrary-bot, or comment @openlibrary-bot on your PR"]
     who -- "Anyone else" --> other["The bot replies once to say who can ask; ask a maintainer"]
 ```
 
 Commenting works for the PR's author and for these maintainers: `mekarpeles`, `cdrini`,
-`hornc`, `scottbarnes`, `seabelis`, `RayBB` and `lokesh`. Requesting the review team or using the
-re-request button needs triage or write access to the repository. If anyone else comments
+`hornc`, `scottbarnes`, `seabelis`, `RayBB` and `lokesh`. The PR's author can also use the
+re-request button next to `openlibrary-bot` in the Reviewers sidebar, once the bot has reviewed
+the PR. Requesting the review team needs triage or write access to the repository. If anyone else comments
 `@openlibrary-bot`, the bot replies once on that PR to say who can ask.
 
 ### What a re-review covers
