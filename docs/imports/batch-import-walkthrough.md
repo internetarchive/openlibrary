@@ -29,7 +29,7 @@ Retrying resubmits the same data. Resolve a permanent data or source problem bef
 
 ## Local verification
 
-Start the local web stack and ImportBot using the instructions in [Import Pipeline Debugging](debugging.md#running-importbot-locally). Submit only test data to the local instance. The focused automated tests for the retry transition are:
+Start the local web stack and ImportBot using the instructions in [Import Pipeline Debugging](debugging.md#running-importbot-locally-fixed-in-pr-12999). Submit only test data to the local instance. The focused automated tests for the retry transition are:
 
 ```bash
 uv run --with-requirements requirements_test.txt pytest openlibrary/tests/core/test_imports_refresh.py openlibrary/plugins/openlibrary/tests/test_batch_import_retry_failed.py openlibrary/plugins/openlibrary/tests/test_batch_import_retry.py
