@@ -180,7 +180,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             .empty-state {
                 padding: var(--spacing-inset-sm) var(--spacing-inset-md);
                 color: var(--color-text-muted);
-                font-size: 14px;
+                font-size: var(--font-size-body-medium);
             }
 
             .group-heading {
@@ -196,7 +196,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             /* ── Items ───────────────────────────────────────────────── */
 
             .item {
-                font-size: 14px;
+                font-size: var(--font-size-label-large);
             }
 
             /* Geometry and hover are the shared .menu-row (control-styles.js). */
@@ -266,7 +266,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
                 display: block;
                 margin-top: 2px;
                 color: var(--color-text-muted);
-                font-size: 12px;
+                font-size: var(--font-size-body-small);
                 font-weight: var(--font-weight-regular);
                 line-height: 1.35;
             }

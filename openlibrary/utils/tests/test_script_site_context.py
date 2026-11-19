@@ -41,6 +41,7 @@ def test_affiliate_load_config_sets_script_context(monkeypatch, tmp_path):
     script_site = stub_script_setup(monkeypatch)
     monkeypatch.setattr(config, "amazon_creators_api", {"key": "test", "secret": "test", "id": "test"}, raising=False)
     monkeypatch.setattr(affiliate_server, "AmazonCreatorsAPI", Mock())
+    monkeypatch.setattr(web, "amazon_api", None, raising=False)  # load_config() sets it
     config_path = tmp_path / "openlibrary.yml"
     config_path.touch()
 
@@ -57,6 +58,7 @@ def test_stats_initializes_script_context(monkeypatch):
     monkeypatch.setattr(infogami, "load_config", lambda path: None)
     monkeypatch.setattr(config, "infobase_config_file", None, raising=False)
     monkeypatch.setattr(config, "plugin_path", [], raising=False)
+    monkeypatch.setattr(config, "site", None, raising=False)  # setup_ol_config() sets it
 
     def run():
         stats.setup_ol_config("openlibrary.yml")

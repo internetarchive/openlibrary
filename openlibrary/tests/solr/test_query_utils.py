@@ -3,6 +3,7 @@ from luqum.parser import parser
 
 from openlibrary.solr.query_utils import (
     EmptyTreeError,
+    escape_unknown_fields,
     luqum_parser,
     luqum_remove_child,
     luqum_remove_field,
@@ -11,6 +12,11 @@ from openlibrary.solr.query_utils import (
     luqum_replace_field,
     luqum_traverse,
 )
+
+
+def test_escape_unknown_fields_with_spaced_colons():
+    assert escape_unknown_fields("foo : bar baz : qux", {"title"}.__contains__, lower=False) == "foo\\: bar baz\\: qux"
+
 
 REMOVE_TESTS = {
     "Complete match": ("title:foo", "title:foo", ""),

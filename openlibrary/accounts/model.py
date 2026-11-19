@@ -32,7 +32,7 @@ from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.openlibrary.pd import get_pd_org
 from openlibrary.utils import server_timing
 from openlibrary.utils.async_utils import async_bridge
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import site, web_ctx_ip
 
 try:
     from simplejson.errors import JSONDecodeError
@@ -496,9 +496,18 @@ class Account(web.storage):
         self.bot = flag
         self._save()
 
-    async def anonymize(self, test: bool = False) -> AccountAnonymizationResult:
+    async def anonymize(self, ip: str, test: bool = False) -> AccountAnonymizationResult:
+        """Anonymize the account from a FastAPI route.
+
+        ``ip`` is the client IP. Infobase stamps it on the transaction that
+        clears the profile page, read from the thread-local ``web.ctx.ip``,
+        which FastAPI never sets. It is set only around that synchronous
+        step, not across the awaits below, so it can't leak into other
+        requests running on the same event loop.
+        """
         if not test:
-            self._delete_infobase_data()
+            with web_ctx_ip(ip):
+                self._delete_infobase_data()
         return await self._anonymize_tables(test)
 
     def anonymize_sync(self, test: bool = False) -> AccountAnonymizationResult:

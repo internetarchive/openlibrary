@@ -7,7 +7,7 @@ $def render_author():
     <!-- Include number of works: ### works -->
     </p>
     <p class="sansserif lightgreen large">
-        $:ungettext("This author is on <strong>1 list</strong>.", "This author is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
+        $:ungettext("This author is on <strong>%(count)s list</strong>.", "This author is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
     </p>
 
 $def render_edition():
@@ -19,26 +19,26 @@ $def render_edition():
     </p>
 
     <p class="sansserif lightgreen large">
-        $:ungettext("This is edition is on <strong>1 list</strong>.", "This edition is on <strong>%(count)s lists</strong>.", len(lists),  count=commify(len(lists)))
+        $:ungettext("This edition is on <strong>%(count)s list</strong>.", "This edition is on <strong>%(count)s lists</strong>.", len(lists),  count=commify(len(lists)))
     </p>
 
 $def render_work():
     <h1>$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.title)</h1>
     <p class="sansserif lightgreen large">
-        $:ungettext("This work is on <strong>1 list</strong>.", "This work is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
+        $:ungettext("This work is on <strong>%(count)s list</strong>.", "This work is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
     </p>
 
 $def render_user():
     <h1 class="collapse">$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.displayname)</h1>
     <p class="collapse large brown sansserif" id="list_count">
-        $ungettext("%(name)s has 1 list.", "%(name)s has %(count)s lists.", len(lists), name=doc.displayname, count=commify(len(lists)))
+        $ungettext("%(name)s has %(count)s list.", "%(name)s has %(count)s lists.", len(lists), name=doc.displayname, count=commify(len(lists)))
     </p>
 
 $def render_subject():
     <h1>$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.name)</h1>
 
     <p class="sansserif lightgreen large">
-        $:ungettext("This subject is on <strong>1 list</strong>.", "This subject is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
+        $:ungettext("This subject is on <strong>%(count)s list</strong>.", "This subject is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
     </p>
 
 $ type = doc.get("type") and doc.type.key

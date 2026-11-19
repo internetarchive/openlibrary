@@ -27,7 +27,7 @@ def test_rows_render_the_list_for_a_normalized_filter_and_initiative(fastapi_cli
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
     assert response.text == "<li>row</li>"
-    assert build.call_args.args == ("", initiatives.ACTIVE)
+    assert build.call_args.args == ("", initiatives.MOST_READ)
     assert render.call_args.args == ("contribute/rows.html.jinja",)
     assert render.call_args.kwargs == {"rows": []}
 
