@@ -13,7 +13,7 @@ def _view_batch(**params):
     batch = types.SimpleNamespace(id="5", submitter="owner", name="b", submit_time=None)
     db_mock = MagicMock()
     db_mock.select.side_effect = lambda table, **kw: [batch] if table == "import_batch" else []
-    db_mock.query.return_value = [types.SimpleNamespace(count=0)]
+    db_mock.query.return_value = [types.SimpleNamespace(status="created", count=0)]
     render = MagicMock(return_value="RENDERED")
     ctx = MagicMock()
     ctx.user = types.SimpleNamespace(key=ADMIN_KEY)

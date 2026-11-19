@@ -1,5 +1,6 @@
-$def with (batch, rows, total_rows, page, limit, sort, status_counts, error_counts=(), status=None, error=None)
+$def with (batch, rows, total_rows, page, limit, sort, status_counts, error_counts=(), status=None, error=None, summary=None, statuses=())
 $var title: $_("Batch #%(id)s", id=batch.id)
+$putctx("cssfile", "admin")
 
 <div id="contentHead">
     $# The all-batches listing is admin-only; submitters can still view their own batch.
@@ -8,9 +9,8 @@ $var title: $_("Batch #%(id)s", id=batch.id)
     <h1>$_("Batch #%(id)s", id=batch.id)</h1>
 </div>
 <div id="contentBody" class="batchImportStatus">
-    <p>$_('Batch Name:') $batch.name</p>
-    <p>$_('Submitter:') $batch.submitter</p>
-    <p>$_('Submit Time:') $datestr(batch.submit_time)</p>
+    $if summary:
+        $:render_template("batch_import_card", summary, statuses)
 
     $# Each status links to the items table filtered to it; s=None is "All".
     $def status_count_label(s, count):

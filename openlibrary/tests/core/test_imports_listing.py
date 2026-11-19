@@ -66,7 +66,7 @@ class TestBatchListSummaries:
         total, rows = Batch.list_summaries(status="needs_review", order="asc")
         assert total == 2
         assert [r.batch_id for r in rows] == [1, 3]
-        assert [r.status_counts for r in rows] == [{"needs_review": 2}, {"needs_review": 1}]
+        assert [r.status_counts for r in rows] == [{"created": 1, "needs_review": 2}, {"failed": 1, "needs_review": 1}]
 
     def test_pagination(self, listing_db):
         total, rows = Batch.list_summaries(limit=2, offset=2)
