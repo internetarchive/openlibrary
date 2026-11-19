@@ -16,7 +16,7 @@ deliberately leaves as it found it.
 import pytest
 from bs4 import BeautifulSoup
 
-from openlibrary.core.jinja import get_jinja_env
+from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 
 ALLOWED = [
     "http://www.archive.org/details/x",
@@ -88,3 +88,37 @@ def test_an_attribute_name_cannot_smuggle_markup():
     """Jinja >= 3.1.5 rejects keys with whitespace, `/`, `>` or `=`."""
     with pytest.raises(ValueError, match="Invalid character in attribute name"):
         _render(ALLOWED[0], {'x onload="alert(1)"': "1"})
+
+
+# The Templetor wrapper does not import the macro -- it renders the file through
+# render_jinja_template, which goes through the `{% if url is defined %}` guard
+# and the `attrs | default({})` wiring at the bottom. Exercise that path too, or
+# a typo in those kwargs passes every test above.
+
+
+def _frame_via_wrapper(**kwargs):
+    html = render_jinja_template("iframe.html.jinja", **kwargs)
+    return BeautifulSoup(html, "lxml").find("iframe")
+
+
+def test_the_wrapper_entry_point_renders_an_iframe():
+    frame = _frame_via_wrapper(url=ALLOWED[0], attrs={"width": "640"})
+
+    assert frame["src"] == ALLOWED[0]
+    assert frame["width"] == "640"
+
+
+def test_the_wrapper_entry_point_applies_the_allowlist():
+    assert _frame_via_wrapper(url="https://archive.org/details/x", attrs={}) is None
+
+
+def test_the_wrapper_entry_point_defaults_attrs():
+    """`attrs | default({})` -- rendering with only a url must not raise."""
+    assert _frame_via_wrapper(url=ALLOWED[0])["src"] == ALLOWED[0]
+
+
+def test_rendering_the_file_matches_calling_the_macro():
+    """The file-level call and the importable macro must not drift apart."""
+    attrs = {"width": "640", "title": QUOTE_PAYLOAD}
+
+    assert render_jinja_template("iframe.html.jinja", url=ALLOWED[0], attrs=attrs).strip() == _render(ALLOWED[0], attrs).strip()
