@@ -595,9 +595,8 @@ async def anonymize_account(
         # so that anonymize() can write to infobase as the target user.
         # This endpoint authenticates via HMAC+S3, not a user session, so
         # there is no auth token on the connection without RunAs.
-        # web_ctx_ip: clearing the profile page writes an Infobase transaction stamped with web.ctx.ip.
-        with RunAs(ol_account.username), web_ctx_ip(client_ip):
-            result = await ol_account.anonymize(test=test_mode)
+        with RunAs(ol_account.username):
+            result = await ol_account.anonymize(client_ip, test=test_mode)
     except Exception as e:  # noqa: BLE001
         logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
