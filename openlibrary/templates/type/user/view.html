@@ -6,7 +6,7 @@ $ settings = page.get_users_settings()
 $ owners_page = ctx.user and ctx.user.key == page.key
 $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
 $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(username)
-$if days_since(page.created) < 30:
+$if days_since(page.created) < 30 or not page.has_logged_books():
   $ putctx('robots', 'noindex')
 
 $ lists = page.get_lists(limit=3)

@@ -36,7 +36,7 @@ $def render_seed_count(seed_count):
             $for a in authors:
                 <a href="$a.url()" class="results">$a.name</a>$cond(loop.last, "", ", ")
 
-    $if list.description:
+    $if list.description and not list.is_thin:
         $:format(list.description)
 
     <div class="mybooks-list"><ul id="listResults" class="list-books">

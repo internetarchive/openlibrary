@@ -891,6 +891,10 @@ class User(Thing):
         }
     )
 
+    def has_logged_books(self) -> bool:
+        """Whether this patron has any book on a reading log shelf; spam accounts never do."""
+        return Bookshelves.count_total_books_logged_by_user(self.key.split("/")[-1]) > 0
+
     def get_default_preferences(self) -> dict[str, str]:
         return {"update": "no", "public_readlog": "no", "type": "preferences"}
         # New users are now public by default for new patrons

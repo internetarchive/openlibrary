@@ -96,6 +96,11 @@ class ListPreview:
     description_html: str  # rendered markdown, trusted HTML; empty without a description
 
 
+#: Lists with fewer items aren't indexed and only show their description to the owner.
+#: Matches the default ``seed_count`` filter in list search; spam lists are almost always empty.
+MIN_PUBLIC_SEEDS = 2
+
+
 class List(Thing):
     """Class to represent /type/list objects in OL.
 
@@ -118,6 +123,17 @@ class List(Thing):
 
     def get_url_suffix(self):
         return self.name or "unnamed"
+
+    @property
+    def is_thin(self) -> bool:
+        """Too few items to index, or to show the description to anyone but the owner."""
+        return self.seed_count < MIN_PUBLIC_SEEDS
+
+    def is_owned_by(self, user_key: str | None) -> bool:
+        return bool(user_key) and self.key.startswith(f"{user_key}/lists/")
+
+    def show_description_to(self, viewer_key: str | None) -> bool:
+        return bool(self.description) and (not self.is_thin or self.is_owned_by(viewer_key))
 
     def get_owner(self) -> User | None:
         if match := re.compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key):
@@ -143,7 +159,7 @@ class List(Thing):
             is_owner=bool(owner and current_user_key and current_user_key == owner.key),
             item_count=len(self.seeds),
             modified=h.datestr(self.last_modified),
-            description_html=get_markdown(self.description).convert() if self.description else "",
+            description_html=get_markdown(self.description).convert() if self.description and self.show_description_to(current_user_key) else "",
         )
 
     def get_tags(self):
@@ -689,6 +705,12 @@ def get_work_sort_key(
 
 class Series(List):
     SEED_LIMIT = 100
+
+    @property
+    @typing.override
+    def is_thin(self) -> bool:
+        # Series are librarian-curated, and counting their seeds runs a query
+        return False
 
     @cached_property
     @typing.override

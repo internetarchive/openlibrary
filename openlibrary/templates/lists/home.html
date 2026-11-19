@@ -50,7 +50,7 @@ $var title: $_('Lists')
                     | $_('Last modified %(date)s', date=datestr(list.last_modified))
                 </div>
                 <div class="description no-img">
-                $if list.description:
+                $if list.description and not list.is_thin:
                     <p>$:reformat_html(format(list.description), max_length=250)</p>
                 $else:
                     <p><em class="grey">$_('No description.')</em></p>

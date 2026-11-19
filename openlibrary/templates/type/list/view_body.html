@@ -7,11 +7,11 @@ $ component_times = {}
 $ component_times['TotalTime'] = time()
 
 $ meta_description = title
-$if list.description:
+$if list.description and not list.is_thin:
     $ meta_description = _("%(title)s: %(description)s", title=title, description=list.description)
 
 $putctx("description", meta_description)
-$if days_since(list.created) < 30:
+$if days_since(list.created) < 30 or list.is_thin:
     $ putctx('robots', 'noindex')
 
 $add_metatag(property="twitter:card", content="summary_large_image")
@@ -85,7 +85,7 @@ $def seed_attrs(seed):
 
     <div class="mybooks-list">
 
-        $if list.description:
+        $if list.description and (is_owner or not list.is_thin):
             $:format(list.description)
             <div class="clearfix"></div>
 

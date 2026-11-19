@@ -91,16 +91,25 @@ def test_list_add_seed_with_blank_annotated_seed():
         lst.add_seed({"thing": {"key": ""}, "notes": "some notes"})
 
 
+class _ListStandIn(SimpleNamespace):
+    """Plain attributes plus the real List helpers `card` relies on."""
+
+    seed_count = List.seed_count
+    is_thin = List.is_thin
+    is_owned_by = List.is_owned_by
+    show_description_to = List.show_description_to
+
+
 class TestListCard:
     """`List.card` only reads plain attributes, so a stand-in for the list is enough."""
 
     @staticmethod
-    def _preview(viewer=None, *, owner_name="Jane", description="", cover=None):
+    def _preview(viewer=None, *, owner_name="Jane", description="", cover=None, seed_count=2):
         owner = SimpleNamespace(key="/people/jane", name=owner_name)
-        lst = SimpleNamespace(
+        lst = _ListStandIn(
             key="/people/jane/lists/OL1L",
             name="Dogs",
-            seeds=[object(), object()],
+            seeds=[object()] * seed_count,
             last_modified=datetime(2020, 1, 15),
             description=description,
             get_owner=lambda: owner,
@@ -132,3 +141,26 @@ class TestListCard:
 
     def test_no_description(self):
         assert self._preview().description_html == ""
+
+    def test_thin_list_hides_description_from_others(self):
+        assert self._preview("/people/bob", description="Buy now", seed_count=1).description_html == ""
+        assert self._preview(None, description="Buy now", seed_count=0).description_html == ""
+
+    def test_thin_list_shows_description_to_owner(self):
+        assert "Buy now" in self._preview("/people/jane", description="Buy now", seed_count=0).description_html
+
+
+class TestThinList:
+    @staticmethod
+    def _list(seed_count, key="/people/jane/lists/OL1L"):
+        return List(None, key, {"key": key, "type": {"key": "/type/list"}, "seeds": [{"key": f"/works/OL{i}W"} for i in range(seed_count)]})
+
+    @pytest.mark.parametrize(("seed_count", "thin"), [(0, True), (1, True), (2, False), (10, False)])
+    def test_is_thin(self, seed_count, thin):
+        assert self._list(seed_count).is_thin is thin
+
+    def test_is_owned_by(self):
+        lst = self._list(0)
+        assert lst.is_owned_by("/people/jane")
+        assert not lst.is_owned_by("/people/jan")
+        assert not lst.is_owned_by(None)
