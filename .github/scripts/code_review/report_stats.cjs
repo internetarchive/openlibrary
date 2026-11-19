@@ -129,7 +129,11 @@ const threadOutcome = (t, pr) => {
 };
 
 const suggestionCount = body => {
-    const m = /### Suggestions \(won't block\)\n\n([\s\S]*?)(\n\n###|\n\n> \[!NOTE\]|$)/.exec(body || '');
+    // The status line the review opens with: "**2 findings** · 1 suggestion on `abc1234`".
+    const status = /^(?:\*\*[^*\n]+\*\*|[^\n]*?) · (\d+) suggestions? on `[0-9a-f]{7}`/m.exec(body || '');
+    if (status) return Number(status[1]);
+    // Reviews posted before that line existed: count the bullets of the Suggestions section.
+    const m = /### Suggestions \(won't block\)\n\n([\s\S]*?)(\n\n###|\n\n> \[!NOTE\]|\n\n<details>|$)/.exec(body || '');
     return m ? (m[1].match(/^- \*\*/gm) || []).length : 0;
 };
 
@@ -160,7 +164,7 @@ function summarizeReviews(prs, w) {
         for (const r of reviews) {
             out.reviews++;
             out.states[r.state] = (out.states[r.state] || 0) + 1;
-            const f = /<!-- ol-pr-review-bot f=(\d+) -->/.exec(r.body || '');
+            const f = /<!-- ol-pr-review-bot f=(\d+)(?: h=1)? -->/.exec(r.body || '');
             if (f) out.blocking_findings += Number(f[1]);
             out.suggestions += suggestionCount(r.body);
         }

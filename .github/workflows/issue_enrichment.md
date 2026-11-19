@@ -201,6 +201,18 @@ Add `Type: Import Request` when the issue asks us to bring a specific external s
 
 Do not add it to bugs or features in the importer itself, or to bot accounts that only edit existing records. Do not add `Module: Import` to import requests; that label is for importer code.
 
+### Issue type
+
+Bugs and features use GitHub's issue type field (`issueType` from Step 1), not labels. Never add `~Type: Bug` or `~Type: Feature Request`; both are deprecated labels.
+
+If `issueType` is null (issues filed with `gh issue create` or the API skip the template's type) and the issue is clearly a bug or a feature request, set the type:
+
+```bash
+gh issue edit {ISSUE_NUMBER} --repo internetarchive/openlibrary --type Bug   # or --type Feature
+```
+
+Leave it unset when unsure. Never change a type that is already set. If the issue has a `~Type: Bug` or `~Type: Feature Request` label, set the matching type and remove the label.
+
 ### Module / Theme labels
 
 | Condition | Labels to add |

@@ -217,10 +217,12 @@ test('gate: a turned-off dimension loses its findings and is marked not reviewed
     );
     assert.equal(written.dimensions.test_coverage.status, 'none');
 });
-test('SECURITY: a security concern filed under a turned-off dimension still withholds the review', async () => {
+test('SECURITY: a security concern filed under a turned-off dimension is still held back, and blocks', async () => {
     const { res, written } = await runGate(reviewWith([finding('accessibility', 'XSS in the search box')]), ['accessibility']);
-    assert.equal(res.outputs.withheld, 'true');
-    assert.deepEqual(written, { withheld: true });
+    assert.equal(res.outputs.withheld, 'false');
+    assert.equal(res.outputs.held_back, 'true');
+    assert.equal(res.outputs.withheld_blocking, 'true');
+    assert.ok(!JSON.stringify(written).includes('XSS'));
 });
 
 // ================================= post and linked issues =================================

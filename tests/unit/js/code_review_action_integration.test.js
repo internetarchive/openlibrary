@@ -510,20 +510,21 @@ test('#14486 Finding 2: a transient reviewThreads GraphQL error routes to a repo
 });
 
 // ===================== A withheld review is not automatically red =====================
-test('D3a analyze-gate: a backstop-tripping review with 0 findings -> withheld, NON-blocking', async () => {
+test('D3a analyze-gate: a backstop-tripping summary -> held back, NON-blocking, rest kept', async () => {
     const review = cleanReview();
     review.summary = 'This change guards against a SQL injection in the query builder.'; // trips the backstop
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
     const { github } = mockGitHub();
     const env = { GITHUB_WORKSPACE: dir };
     const res = await runScript(analyzeGate.gateAnalysis, { github, context, env });
-    assert.equal(res.outputs.withheld, 'true', 'the backstop withholds the public copy');
-    assert.equal(res.outputs.withheld_blocking, 'false', 'but with 0 findings it is NON-blocking');
-    assert.equal(res.outputs.public_findings_count, '0', 'the public count stays 0 (no leak)');
+    assert.equal(res.outputs.withheld, 'false', 'the review is still posted');
+    assert.equal(res.outputs.held_back, 'true', 'with its summary held back');
+    assert.equal(res.outputs.withheld_blocking, 'false', 'with 0 findings it is NON-blocking');
     const written = JSON.parse(readFileSync(join(dir, 'review.json'), 'utf8'));
-    assert.deepEqual(written, { withheld: true }, 'only the withheld stub is kept, never the content');
+    assert.equal(written.summary, '', 'the summary is never kept');
+    assert.ok(!JSON.stringify(written).includes('injection'));
 });
-test('D3a analyze-gate: a real security finding -> withheld AND blocking', async () => {
+test('D3a analyze-gate: a security finding in existing code -> held back AND blocking; the count leaves it out', async () => {
     const review = cleanReview();
     review.dimensions.security = { status: 'findings' };
     review.findings = [{ dimension: 'security', severity: 'high', confidence: 8, title: 'authz gap', body: 'missing owner check' }];
@@ -531,9 +532,34 @@ test('D3a analyze-gate: a real security finding -> withheld AND blocking', async
     const { github } = mockGitHub();
     const env = { GITHUB_WORKSPACE: dir };
     const res = await runScript(analyzeGate.gateAnalysis, { github, context, env });
-    assert.equal(res.outputs.withheld, 'true');
+    assert.equal(res.outputs.withheld, 'false');
+    assert.equal(res.outputs.held_back, 'true');
     assert.equal(res.outputs.withheld_blocking, 'true');
-    assert.equal(res.outputs.public_findings_count, '0', 'the public count stays 0 even for a real finding (no count leak)');
+    assert.equal(res.outputs.public_findings_count, '0', 'the public count leaves it out (no count leak)');
+    assert.ok(!readFileSync(join(dir, 'review.json'), 'utf8').includes('owner'));
+});
+test('analyze-gate: a security finding the PR introduces, on lines it adds, is published', async () => {
+    const review = cleanReview();
+    review.dimensions.security = { status: 'findings' };
+    review.findings = [
+        { dimension: 'security', scope: 'introduced', severity: 'high', confidence: 8, title: 'authz gap', body: 'Check the owner.', path: 'a.py', line: 1 }
+    ];
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -0,0 +1 @@\n+edit(list)\n');
+    const { github } = mockGitHub();
+    const res = await runScript(analyzeGate.gateAnalysis, { github, context, env: { GITHUB_WORKSPACE: dir } });
+    assert.equal(res.outputs.held_back, 'false');
+    assert.equal(res.outputs.public_findings_count, '1');
+    assert.equal(JSON.parse(readFileSync(join(dir, 'review.json'), 'utf8')).findings[0].title, 'authz gap');
+});
+test('analyze-gate: a malformed review is withheld in full and blocks', async () => {
+    writeFileSync(join(dir, 'review.json'), JSON.stringify({ summary: 5 }));
+    const { github } = mockGitHub();
+    const res = await runScript(analyzeGate.gateAnalysis, { github, context, env: { GITHUB_WORKSPACE: dir } });
+    assert.equal(res.outputs.withheld, 'true');
+    assert.equal(res.outputs.held_back, 'false');
+    assert.equal(res.outputs.withheld_blocking, 'true');
+    assert.deepEqual(JSON.parse(readFileSync(join(dir, 'review.json'), 'utf8')), { withheld: true });
 });
 test('D3a status: withheld + non-blocking -> SUCCESS (the no-defect PR greens itself)', async () => {
     const head = SHA('a');
@@ -551,7 +577,7 @@ test('D3a status: withheld + non-blocking -> SUCCESS (the no-defect PR greens it
     await runScript(status.postStatus, { github, context, env });
     assert.equal(calls.createCommitStatus[0].state, 'success');
 });
-test('D3a status: withheld + blocking -> FAILURE with the non-leaky private-delivery phrase', async () => {
+test('D3a status: withheld + blocking -> FAILURE with the non-leaky withheld phrase', async () => {
     const head = SHA('a');
     const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
     const env = {
@@ -566,9 +592,36 @@ test('D3a status: withheld + blocking -> FAILURE with the non-leaky private-deli
     };
     await runScript(status.postStatus, { github, context, env });
     assert.equal(calls.createCommitStatus[0].state, 'failure');
-    assert.equal(calls.createCommitStatus[0].description, 'A finding was delivered privately; maintainer review required.');
+    assert.equal(calls.createCommitStatus[0].description, 'Feedback withheld for maintainer review.');
     assert.ok(!/\d/.test(calls.createCommitStatus[0].description), 'the description carries no count');
 });
+for (const [blocking, state] of [
+    ['true', 'failure'],
+    ['false', 'success'],
+    ['', 'failure']
+]) {
+    test(`status: a posted review with a part held back (blocking=${blocking || 'missing'}) -> ${state}`, async () => {
+        const head = SHA('a');
+        const { github, calls } = mockGitHub({
+            prGet: async () => ({ data: { head: { sha: head } } }),
+            listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, body: 'x' }] })
+        });
+        const env = {
+            PR: '1',
+            HEAD_SHA: head,
+            POST_RESULT: 'success',
+            PUBLIC_FINDINGS_COUNT: '0',
+            WITHHELD: 'false',
+            HELD_BACK: 'true',
+            WITHHELD_BLOCKING: blocking,
+            REPOST: 'false',
+            RUN_URL: 'u'
+        };
+        await runScript(status.postStatus, { github, context, env });
+        assert.equal(calls.createCommitStatus[0].state, state);
+        if (blocking === 'true') assert.equal(calls.createCommitStatus[0].description, 'Feedback withheld for maintainer review.');
+    });
+}
 test('D3a post: a withheld stub -> createReview NOT called, exits clean (no hard failure)', async () => {
     writeFileSync(join(dir, 'review.json'), JSON.stringify({ withheld: true }));
     writeFileSync(join(dir, 'review.diff'), '');
@@ -720,7 +773,8 @@ test('post: a LOW finding becomes a suggestion in the summary, not a blocking in
     await runScript(post.validateAndPost, { github, context, env, cwd: dir });
     const posted = calls.createReview[0];
     assert.equal((posted.comments || []).length, 0, 'no inline thread for a LOW finding');
-    assert.match(posted.body, /### Suggestions \(won't block\)\n\n- \*\*Untested label\*\* \(`x:1`\): Add a test\./);
+    assert.match(posted.body, /### Suggestions \(won't block\)\n\n- \*\*Untested label\*\* · `x:1`\n {2}Add a test\./);
+    assert.match(posted.body, /^\*\*No blocking findings\*\* · 1 suggestion on `/, 'a suggestion is not called a finding');
     assert.match(posted.body, /<!-- ol-pr-review-bot f=0 -->/);
     assert.notEqual(posted.event, 'REQUEST_CHANGES');
 });
@@ -859,21 +913,132 @@ test('post: a 422 on an anchor posts again with the inline comments in the summa
 });
 
 // ===================== Review text =====================
-test('post: the tip follows push reviews, and the footer names no one', async () => {
+test('post: the one-line footer gives the next step, and asks for no comments', async () => {
     const head = SHA('a');
     const bodies = [];
-    for (const minutes of ['10', '']) {
-        writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
+    const withFinding = cleanReview();
+    withFinding.dimensions.correctness = { status: 'findings' };
+    withFinding.findings = [{ dimension: 'correctness', severity: 'low', confidence: 8, title: 'Off by one', body: 'Use <=.', path: 'x', line: 1 }];
+    for (const [minutes, review] of [
+        ['10', withFinding],
+        ['', withFinding],
+        ['10', cleanReview()]
+    ]) {
+        writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
         writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
         const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
         const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', PUSH_REVIEW_MINUTES: minutes, GITHUB_WORKSPACE: dir };
         await runScript(post.validateAndPost, { github, context, env, cwd: dir });
         bodies.push(calls.createReview[0].body);
     }
-    assert.match(bodies[0], /A new review starts automatically about 10 minutes after your last push\./);
-    assert.match(bodies[1], /comment `@openlibrary-bot review` on this PR to run a fresh review\./);
-    for (const b of bodies) {
-        assert.doesNotMatch(b, /on behalf of/);
-        assert.match(b, /Automated review by \[@openlibrary-bot\]\([^)]*docs\/code-review-bot\.md\)\. This is \*\*not\*\* an approval/);
+    const link = String.raw`\[How this bot works\]\([^)]*docs/code-review-bot\.md\)`;
+    const ask = 'Please address the feedback above before a maintainer reviews this PR';
+    assert.match(bodies[0], new RegExp(`<sub>${ask} · ${link} · Reviews new pushes after 10 minutes</sub>`), 'a suggestion is feedback too');
+    assert.match(bodies[1], new RegExp(`<sub>${ask} · ${link}</sub>`));
+    assert.match(bodies[2], /^\*\*No issues found\*\* on `aaaaaaa`\.\n\nA plain summary with nothing sensitive\.\n\n<sub>/);
+    assert.match(bodies[2], new RegExp(`<sub>A maintainer will review this PR next · ${link}</sub>`));
+    for (const b of bodies) assert.doesNotMatch(b, /on behalf of|@openlibrary-bot review|\[!TIP\]|Dimensions|optional/);
+});
+
+// ===================== Part of a review held back =====================
+const heldBackPost = async env => {
+    const review = cleanReview();
+    review.dimensions.correctness = { status: 'findings' };
+    review.findings = [{ dimension: 'correctness', severity: 'medium', confidence: 8, title: 'Off by one', body: 'Use <=.', path: 'x', line: 1 }];
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const res = await runScript(post.validateAndPost, {
+        github,
+        context,
+        env: { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir, ...env },
+        cwd: dir
+    });
+    return { res, calls };
+};
+test('post: a blocking held-back part -> the rest is posted, with a fixed note and h=1 in the marker', async () => {
+    const { calls } = await heldBackPost({ HELD_BACK: 'true', WITHHELD_BLOCKING: 'true' });
+    const body = calls.createReview[0].body;
+    assert.match(
+        body,
+        /> \[!IMPORTANT\]\n> Part of this review was held back because it may be security-sensitive\. A maintainer needs to look at this PR before it can merge\./
+    );
+    assert.match(body, /<!-- ol-pr-review-bot f=1 h=1 -->/);
+    assert.equal(calls.createReview[0].comments.length, 1, 'the published finding is still posted');
+});
+test('post: a non-blocking held-back part -> a note that says so, and no h=1', async () => {
+    const { calls } = await heldBackPost({ HELD_BACK: 'true', WITHHELD_BLOCKING: 'false' });
+    const body = calls.createReview[0].body;
+    assert.match(body, /None of it blocks this PR\./);
+    assert.match(body, /<!-- ol-pr-review-bot f=1 -->/);
+});
+test('post: nothing held back -> no note', async () => {
+    const { calls } = await heldBackPost({ HELD_BACK: 'false', WITHHELD_BLOCKING: 'false' });
+    assert.ok(!/held back/.test(calls.createReview[0].body));
+});
+test('post: if its own gate would hold back more than analyze did, it posts nothing and fails', async () => {
+    const review = cleanReview();
+    review.summary = 'Guards against SQL injection.';
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), '');
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const res = await runScript(post.validateAndPost, {
+        github,
+        context,
+        env: { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), GITHUB_WORKSPACE: dir },
+        cwd: dir
+    });
+    assert.equal(calls.createReview.length, 0);
+    assert.ok(res.failed);
+});
+test('status: a repost reads a blocking held-back part from the marker', async () => {
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: head } } }),
+        listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, body: 'x\n<!-- ol-pr-review-bot f=0 h=1 -->' }] })
+    });
+    await runScript(status.postStatus, { github, context, env: { PR: '1', HEAD_SHA: head, REPOST: 'true', RUN_URL: 'u' } });
+    assert.equal(calls.createCommitStatus[0].state, 'failure');
+    assert.equal(calls.createCommitStatus[0].description, 'Feedback withheld for maintainer review.');
+});
+test('status: a later clean review stays red while an earlier blocking held-back part is not dismissed', async () => {
+    const head = SHA('a');
+    for (const [state, want] of [
+        ['CHANGES_REQUESTED', 'failure'],
+        ['DISMISSED', 'success']
+    ]) {
+        const { github, calls } = mockGitHub({
+            prGet: async () => ({ data: { head: { sha: head } } }),
+            listReviews: async () => ({
+                data: [
+                    { user: { login: 'openlibrary-bot' }, commit_id: SHA('c'), state, body: 'x\n<!-- ol-pr-review-bot f=0 h=1 -->' },
+                    { user: { login: 'openlibrary-bot' }, commit_id: head, state: 'APPROVED', body: 'y\n<!-- ol-pr-review-bot f=0 -->' }
+                ]
+            })
+        });
+        const env = {
+            PR: '1',
+            HEAD_SHA: head,
+            POST_RESULT: 'success',
+            PUBLIC_FINDINGS_COUNT: '0',
+            WITHHELD: 'false',
+            HELD_BACK: 'false',
+            REPOST: 'false',
+            RUN_URL: 'u'
+        };
+        await runScript(status.postStatus, { github, context, env });
+        assert.equal(calls.createCommitStatus[0].state, want, state);
     }
+});
+test('post: never approves while a blocking part is held back', async () => {
+    const review = cleanReview();
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), '');
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), GITHUB_WORKSPACE: dir, HELD_BACK: 'true', WITHHELD_BLOCKING: 'true' };
+    await runScript(post.validateAndPost, { github, context, env, cwd: dir });
+    assert.equal(calls.createReview[0].event, 'REQUEST_CHANGES');
 });

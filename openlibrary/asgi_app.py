@@ -298,8 +298,10 @@ def create_app() -> FastAPI | None:
     app.mount("/static", StaticFiles(directory=STATIC_ROOT), name="static")
 
     # --- Fast routes (mounted within this app) ---
+    # async: a sync handler runs in the threadpool, so the readiness probe
+    # would queue behind slow sync handlers when the pool is busy.
     @app.get("/health")
-    def health() -> dict[str, str]:
+    async def health() -> dict[str, str]:
         return {"status": "ok"}
 
     _include_routers(app)

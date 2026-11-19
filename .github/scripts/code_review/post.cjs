@@ -4,7 +4,7 @@
 'use strict';
 
 const gate = require('./gate.cjs');
-const { filterDiff, headIsCurrent, supersededMarker } = require('./shared.cjs');
+const { filterDiff, headIsCurrent, supersededMarker, supersededCommit, reviewMarker, heldBackOpen } = require('./shared.cjs');
 
 // The review's verdict. Only APPROVE or REQUEST_CHANGES clears a pending review request; COMMENT
 // leaves it pending. Findings request changes. A clean review approves only when none of the bot's
@@ -55,6 +55,27 @@ const agentPrompt = (f, inThread) => {
     return `\n\n<details>\n<summary>Prompt for AI agents</summary>\n\n${fence}text\n${text}\n${fence}\n\n</details>`;
 };
 
+// ` · `path:line`` after a finding's title in the summary, when it has a path.
+const location = f => (f.path ? ` · \`${f.path}${f.line ? `:${f.line}` : ''}\`` : '');
+
+// One collapsed "Prompt for AI agents" block in the summary covering every published finding, in
+// the shape Cubic uses, so a reader can hand them all to a coding agent at once. Gate fields only.
+const combinedAgentPrompt = findings => {
+    if (!findings.length) return '';
+    const byFile = new Map();
+    for (const f of findings) {
+        const key = f.path || '';
+        if (!byFile.has(key)) byFile.set(key, []);
+        byFile.get(key).push(f);
+    }
+    const item = f => `<item${f.line ? ` location="${f.line}"` : ''}>${f.title}: ${String(f.body).replace(/\s*\n\s*/g, ' ')}</item>`;
+    const files = [...byFile].map(([path, fs]) => (path ? `<file name="${path}">\n${fs.map(item).join('\n')}\n</file>` : fs.map(item).join('\n')));
+    const text = `Check if each issue is valid — if so, understand the root cause and fix it. If one isn't valid or won't be fixed in this PR, say why in its thread, or in a comment on the PR if it has none.\n\n${files.join('\n\n')}`;
+    // A fence longer than any run of backticks inside, so the text can't close it.
+    const fence = '`'.repeat(Math.max(3, ...(text.match(/`+/g) || []).map(run => run.length + 1)));
+    return `\n\n<details>\n<summary>Prompt for AI agents (${findings.length} open item${findings.length === 1 ? '' : 's'})</summary>\n\n${fence}text\n${text}\n${fence}\n\n</details>`;
+};
+
 // The line a re-review's summary opens with: what happened to the bot's earlier threads.
 const threadStateLine = ({ addressed, dismissed, open }) => {
     const parts = [];
@@ -68,10 +89,12 @@ const threadStateLine = ({ addressed, dismissed, open }) => {
 // The ticket compliance section, as PR-Agent's ticket_markdown_logic (pr_agent/algo/utils.py)
 // renders it. Each issue's level is computed from the model's lists, not chosen by the model.
 // Only this repo's issues are shown. It does not affect the verdict or the status.
+const MARKS = { 'Fully compliant': '✅', 'PR Code Verified': '✅', 'Partially compliant': '🔶', 'Not compliant': '❌' };
 const renderTicketCompliance = (entries, owner, repo) => {
     const prefix = `https://github.com/${owner}/${repo}/issues/`.toLowerCase();
     const bullets = list => list.map(s => `- ${String(s).replace(/\s*\n\s*/g, ' ')}`).join('\n');
-    const levels = [];
+    const levels = [],
+        heads = [];
     let out = '';
     for (const t of entries || []) {
         if (!String(t.ticket_url).toLowerCase().startsWith(prefix)) continue;
@@ -89,7 +112,9 @@ const renderTicketCompliance = (entries, owner, repo) => {
               ? 'Not compliant'
               : 'PR Code Verified';
         levels.push(level);
-        out += `\n\n**[#${t.ticket_url.split('/').pop()}](${t.ticket_url}) - ${level}**`;
+        const n = t.ticket_url.split('/').pop();
+        heads.push(`#${n} ${MARKS[level]}`);
+        out += `\n\n**[#${n}](${t.ticket_url}) - ${level}**`;
         if (met.length) out += `\n\nCompliant requirements:\n\n${bullets(met)}`;
         if (notMet.length) out += `\n\nNon-compliant requirements:\n\n${bullets(notMet)}`;
         if (human.length) out += `\n\nRequires further human verification:\n\n${bullets(human)}`;
@@ -99,7 +124,8 @@ const renderTicketCompliance = (entries, owner, repo) => {
     let mark = '✅';
     if (levels.includes('Not compliant')) mark = levels.every(l => l === 'Not compliant') ? '❌' : '🔶';
     else if (levels.includes('Partially compliant')) mark = '🔶';
-    return `\n\n### 🎫 Ticket compliance analysis ${mark}${out}`;
+    // Collapsed: one line names each issue and its level, the requirements are folded underneath.
+    return `\n\n<details>\n<summary>🎫 Linked issues ${mark}: ${heads.join(' · ')}</summary>${out}\n\n</details>`;
 };
 
 async function refetchDiff({ github, context, core, require, process }) {
@@ -141,15 +167,24 @@ async function validateAndPost({ github, context, core, require, process }) {
     } catch (e) {
         review = null;
     }
-    const verdict = gate.check(review);
+    const verdict = gate.check(review, fs.readFileSync('review.diff', 'utf8'));
     if (!verdict.publish) {
         // Return without failing: the status job decides pass or fail from analyze's outputs. Log no
         // reason, count or text, because the log is public.
         core.info('Nothing public to post for this commit; the code-review status job decides the gate.');
         return;
     }
+    // analyze already took out anything held back, so the gate must hold back nothing more. If it
+    // would (this diff differs from analyze's), post nothing: `status` doesn't know about it.
+    if (verdict.heldBack) {
+        core.setFailed('The review did not pass the gate again; not posting.');
+        return;
+    }
     // Everything below renders from the allowlisted copy only.
     review = verdict.clean;
+    // From analyze's gate: whether part of the review was held back, and whether that part blocks.
+    const heldBack = process.env.HELD_BACK === 'true';
+    const heldBackBlocks = heldBack && process.env.WITHHELD_BLOCKING === 'true';
 
     // Lines a comment can anchor to: the right side (added and context lines) of the diff.
     // GitHub doesn't document what happens with an anchor outside the diff, so findings with one
@@ -237,50 +272,62 @@ async function validateAndPost({ github, context, core, require, process }) {
     let supersededLine = '';
     // A function, so a rejected post can render it again with every finding in the summary.
     const renderSummary = () => {
-        let summary = review.summary || '';
-        // The range comes from analyze's job outputs, set before the model ran.
-        if (process.env.INCREMENTAL === 'true') {
-            summary = `*Re-reviewing only the files changed since my last pass. Merges of the base branch are skipped.*\n\n${summary}`;
+        // Short, like the other review bots: a status line, the findings that have no inline thread,
+        // one agent prompt for everything open, and a one-line footer. What the PR does is the
+        // author's to say, so the model's summary appears only when it has something else to add.
+        const short = headSha.slice(0, 7);
+        const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+        const blocking = inline.length + orphaned.length;
+        let status;
+        if (!blocking && !suggestions.length) status = heldBack ? `**No published findings** on \`${short}\`.` : `**No issues found** on \`${short}\`.`;
+        else {
+            const counts = [
+                blocking ? `**${plural(blocking, 'finding')}**` : '**No blocking findings**',
+                suggestions.length && plural(suggestions.length, 'suggestion')
+            ];
+            status = `${counts.filter(Boolean).join(' · ')} on \`${short}\``;
         }
-        if (stateLine) summary = `${stateLine}\n\n${summary}`;
-        if (supersededLine) summary = `${supersededLine}\n\n${summary}`;
+        const lines = [supersededLine, status, stateLine];
+        // The range comes from analyze's job outputs, set before the model ran.
+        if (process.env.INCREMENTAL === 'true') lines.push('*Re-reviewed only the files changed since my last review, skipping merges of the base branch.*');
+        if (review.summary && review.summary.trim()) lines.push(review.summary.trim());
+        let summary = lines.filter(Boolean).join('\n\n');
 
-        summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
-
-        // State every dimension, because leaving one out reads the same as having checked it.
-        // Security is a fixed line: a review with a security finding never gets this far.
-        const count = {};
-        for (const f of review.findings) count[f.dimension] = (count[f.dimension] || 0) + 1;
-        summary += `\n\n<details>\n<summary>Dimensions</summary>\n\n${Object.entries(gate.dimensions)
-            .map(([k, label]) => {
-                if (k === 'security') return `- **${label}** — no findings in this range. This is not a security audit.`;
-                if (count[k]) return `- **${label}** — ${count[k]} finding${count[k] === 1 ? '' : 's'}`;
-                return `- **${label}** — no findings. ${review.dimensions[k].note}`;
-            })
-            .join('\n')}\n\n</details>`;
+        // Fixed text only: no count, and nothing about what was held back or why.
+        if (heldBack) {
+            summary += heldBackBlocks
+                ? '\n\n> [!IMPORTANT]\n> Part of this review was held back because it may be security-sensitive. A maintainer needs to look at this PR before it can merge.'
+                : '\n\n> [!NOTE]\n> Part of this review was held back because it may be security-sensitive. None of it blocks this PR.';
+        }
 
         if (orphaned.length) {
             summary += `\n\n### ${inlineKeyIssues ? 'Findings without an in-diff anchor' : 'Findings'}\n\n${orphaned
                 .map(
                     f =>
-                        `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body + agentPrompt(f, false)).replace(/\n/g, '\n  ')}`
+                        `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${location(f)}\n  ${String(f.body).replace(/\n/g, '\n  ')}`
                 )
                 .join('\n\n')}`;
         }
         if (suggestions.length) {
-            summary += `\n\n### Suggestions (won't block)\n\n${suggestions
-                .map(
-                    f =>
-                        `- **${f.title}**${f.path ? ` (\`${f.path}${f.line ? `:${f.line}` : ''}\`)` : ''}: ${String(f.body).replace(/\n/g, ' ')}${agentPrompt(f, false).replace(/\n/g, '\n  ')}`
-                )
-                .join('\n\n')}`;
+            summary += `\n\n### Suggestions (won't block)\n\n${suggestions.map(f => `- **${f.title}**${location(f)}\n  ${String(f.body).replace(/\n/g, ' ')}`).join('\n\n')}`;
         }
-        // A contributor without write access can't re-request a review, but can comment.
+        // After a rejected post the inline findings have moved into `orphaned`, so count them once.
+        summary += combinedAgentPrompt([...(inline.length ? inlineFindings : []), ...orphaned, ...suggestions]);
+
+        summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
+
+        // One small line instead of callouts. Comments and re-requests are in the doc: most authors
+        // just push, and a push gets its own review. "Not a security audit" is in the doc too.
+        // The first part is the next step, which also says this isn't an approval. Suggestions count
+        // as feedback: we want it taken seriously, and the author can judge what applies.
         const minutes = process.env.PUSH_REVIEW_MINUTES;
-        summary += /^\d+$/.test(minutes || '')
-            ? `\n\n---\n> [!TIP]\n> A new review starts automatically about ${minutes} minutes after your last push. To start it sooner, a maintainer can re-request a review, or you can comment \`@openlibrary-bot review\` on this PR.`
-            : `\n\n---\n> [!TIP]\n> When you've addressed the feedback and pushed your changes, comment \`@openlibrary-bot review\` on this PR to run a fresh review.`;
-        summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/docs/code-review-bot.md). This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
+        const feedback = blocking || suggestions.length;
+        const footer = [
+            feedback ? 'Please address the feedback above before a maintainer reviews this PR' : 'A maintainer will review this PR next',
+            '[How this bot works](https://github.com/internetarchive/openlibrary/blob/master/docs/code-review-bot.md)'
+        ];
+        if (feedback && /^\d+$/.test(minutes || '')) footer.push(`Reviews new pushes after ${minutes} minutes`);
+        summary += `\n\n<sub>${footer.join(' · ')}</sub>\n\n${reviewMarker(findingCount, heldBackBlocks)}`;
         if (supersededLine) summary += `\n${supersededMarker(headSha)}`;
         return summary;
     };
@@ -401,7 +448,14 @@ async function validateAndPost({ github, context, core, require, process }) {
 
     // A human's open thread doesn't stop APPROVE, though it keeps the status red. The status, not
     // the verdict, is what merging requires.
-    let event = superseded ? 'COMMENT' : selectReviewEvent({ selfAuthored, findingCount, unresolvedOwnThreads });
+    // Never approve while a blocking part is held back, from this review or an earlier one a
+    // maintainer hasn't dismissed: count it as one more finding.
+    let blocked = heldBackBlocks;
+    if (!blocked && !superseded) {
+        const earlier = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
+        blocked = heldBackOpen(earlier.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.body && !supersededCommit(r.body)));
+    }
+    let event = superseded ? 'COMMENT' : selectReviewEvent({ selfAuthored, findingCount: findingCount + (blocked ? 1 : 0), unresolvedOwnThreads });
     let summary = renderSummary();
 
     // One batched review. POST /pulls/{n}/comments returns 422 `pull_request_review_thread.base`

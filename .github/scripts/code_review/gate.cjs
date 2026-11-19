@@ -2,12 +2,16 @@
 // The disclosure gate: decides what the code review bot may publish. `analyze` runs it before
 // uploading the analysis and `post` runs it again before posting.
 //
-// check(review) withholds anything that is not a well-formed review. On success it returns
-// `clean`, a copy with only the fields `post` renders or re-checks; that copy is what gets uploaded and posted,
-// so no unscanned field reaches a public surface. It also returns `findingsTotal` (null when the
-// review is malformed) and `blocking`, the one bit the `code-review` status uses for a withheld
-// review. `blocking` is false only for a publishable review, or a review withheld by the text scan
-// whose findings are all low severity.
+// check(review, diff) withholds anything that is not a well-formed review: { publish: false }.
+// Otherwise it returns `clean`, a copy with only the fields `post` renders or re-checks, minus
+// anything held back; that copy is what gets uploaded and posted, so no unscanned field reaches a
+// public surface. Held back:
+//   - a security finding, unless the model scoped it to code this PR adds and it sits on lines the
+//     PR adds. A concern in existing code may be live in production, so it is never published.
+//   - any other finding, summary, note or compliance item whose text reads as security-related.
+// `heldBack` says whether anything was, and `blocking` whether what was held back blocks: always
+// for a security finding, otherwise when it is not low severity. Those two bits are all the
+// `code-review` status learns about held-back content.
 'use strict';
 
 module.exports = {
@@ -90,7 +94,7 @@ module.exports = {
             .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
             .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
     },
-    // Longer published text than this is withheld rather than scanned.
+    // Longer published text than this is held back rather than scanned.
     maxText: 65536,
     // A repository-relative path: no spaces, markdown, absolute paths or `..` segments.
     path: /^(?!.*(^|\/)\.\.(\/|$))[A-Za-z0-9_.][A-Za-z0-9_./-]*$/,
@@ -101,14 +105,75 @@ module.exports = {
     ticketUrl: /^https:\/\/github\.com\/[A-Za-z0-9-]+\/[A-Za-z0-9._-]+\/issues\/[1-9][0-9]{0,8}$/,
     maxTickets: 3,
     ticketLists: ['fully_compliant_requirements', 'not_compliant_requirements', 'requires_further_human_verification'],
-    check(review) {
+    // Lines the PR adds, per file, from a unified diff. A `+` line whose text (ignoring whitespace)
+    // is also a `-` line anywhere in the diff is moved or reindented code, not new code: left out.
+    addedLines(diff) {
+        const added = new Map(),
+            removed = new Set();
+        let file = null,
+            ln = 0,
+            header = true;
+        for (const raw of String(diff || '').split(/\r?\n/)) {
+            if (raw.startsWith('diff --git ')) {
+                header = true;
+                file = null;
+                continue;
+            }
+            const h = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+            if (h) {
+                header = false;
+                ln = Number(h[1]);
+                continue;
+            }
+            if (header) {
+                if (raw.startsWith('+++ ')) {
+                    const p = raw.slice(4).trim();
+                    file = p === '/dev/null' ? null : p.replace(/^b\//, '');
+                    if (file && !added.has(file)) added.set(file, new Map());
+                }
+                continue;
+            }
+            if (raw.startsWith('-')) removed.add(raw.slice(1).trim());
+            if (!file) continue;
+            if (raw.startsWith('+')) added.get(file).set(ln++, raw.slice(1).trim());
+            else if (raw.startsWith(' ')) ln++;
+        }
+        const out = new Map();
+        for (const [f, lines] of added) out.set(f, new Set([...lines].filter(([, text]) => !removed.has(text)).map(([n]) => n)));
+        return out;
+    },
+    // Whether every line of a finding's range is one the PR adds.
+    onAddedLines(added, f) {
+        const end = f.line,
+            start = f.start_line || f.line;
+        if (!f.path || !Number.isInteger(end) || start > end || end - start > 500 || !added.has(f.path)) return false;
+        for (let n = start; n <= end; n++) if (!added.get(f.path).has(n)) return false;
+        return true;
+    },
+    // Whether text may be published. secretsOnly: check only for credential shapes, for a security
+    // finding about code the PR adds, which is security-related by design.
+    safe(text, secretsOnly = false) {
+        if (text.length > this.maxText) return false;
+        const readings = this.plain(text);
+        if (readings === null) return false;
+        for (const plain of readings) {
+            if (this.secrets.test(plain)) return false;
+            if (secretsOnly) continue;
+            for (const t of [plain, this.words(plain)]) if (this.terms.test(t) || this.patterns.test(t)) return false;
+        }
+        return true;
+    },
+    // Stands in for a dimension note that was held back, and for the note of a dimension whose
+    // findings all were. Neutral, so it doesn't point at what was held back. It must pass safe().
+    heldBackNote: 'Checked.',
+    check(review, diff) {
         try {
-            return this.evaluate(review);
+            return this.evaluate(review, diff);
         } catch (e) {
             return { publish: false, findingsTotal: null, blocking: true };
         }
     },
-    evaluate(review) {
+    evaluate(review, diff) {
         const no = { publish: false, findingsTotal: null, blocking: true };
         const str = v => typeof v === 'string';
         const absent = v => v === undefined || v === null;
@@ -135,10 +200,16 @@ module.exports = {
             if (!absent(f.path) && !(str(f.path) && this.path.test(f.path))) return no;
             if (!absent(f.suggestion) && !str(f.suggestion)) return no;
             if (!Number.isInteger(f.confidence) || f.confidence < 1 || f.confidence > 10) return no;
+            // `scope`, security findings only: `introduced` by this PR, or `existing` (the default).
+            if (!absent(f.scope) && f.scope !== 'introduced' && f.scope !== 'existing') return no;
             counts[f.dimension] = (counts[f.dimension] || 0) + 1;
-            const severity = f.confidence < this.minConfidence || this.nonBlockingDimensions.includes(f.dimension) ? 'low' : f.severity;
+            const security = f.dimension === 'security';
+            // A security finding always blocks, whatever its severity or confidence.
+            let severity = f.confidence < this.minConfidence || this.nonBlockingDimensions.includes(f.dimension) ? 'low' : f.severity;
+            if (security) severity = f.severity === 'low' ? 'medium' : f.severity;
             const c = { dimension: f.dimension, severity, confidence: f.confidence, title: f.title, body: f.body };
             for (const k of ['path', 'start_line', 'line', 'suggestion']) if (!absent(f[k])) c[k] = f[k];
+            if (security) c.scope = f.scope === 'introduced' ? 'introduced' : 'existing';
             clean.findings.push(c);
         }
         for (const k of Object.keys(this.dimensions)) {
@@ -170,27 +241,47 @@ module.exports = {
             }
             clean.ticket_compliance.push(c);
         }
-        // A review the model itself flagged for security is always blocking.
-        if (clean.dimensions.security.status !== 'none') return { publish: false, findingsTotal: clean.findings.length, blocking: true };
-        const text = [clean.summary];
-        for (const [k, d] of Object.entries(clean.dimensions)) if (k !== 'security') text.push(d.note);
-        for (const f of clean.findings) text.push(f.title, f.body, f.suggestion, f.path);
+        const findingsTotal = clean.findings.length;
+        let heldBack = false,
+            blocking = false;
+        const hold = blocks => {
+            heldBack = true;
+            if (blocks) blocking = true;
+        };
+        const ok = v => absent(v) || this.safe(v);
+        const added = this.addedLines(diff);
+        clean.findings = clean.findings.filter(f => {
+            const keep =
+                f.dimension === 'security'
+                    ? f.scope === 'introduced' && this.onAddedLines(added, f) && [f.title, f.body, f.suggestion].every(v => absent(v) || this.safe(v, true))
+                    : [f.title, f.body, f.suggestion, f.path].every(ok);
+            if (!keep) hold(f.dimension === 'security' || f.severity !== 'low');
+            return keep;
+        });
+        if (!ok(clean.summary)) {
+            clean.summary = '';
+            hold(false);
+        }
+        for (const [k, d] of Object.entries(clean.dimensions)) {
+            if (k !== 'security' && !ok(d.note)) {
+                d.note = this.heldBackNote;
+                hold(false);
+            }
+        }
+        // A dimension whose findings were all held back now has none; `post` re-checks that they agree.
+        for (const [k, d] of Object.entries(clean.dimensions)) {
+            if (k === 'security' || d.status !== 'findings' || clean.findings.some(f => f.dimension === k)) continue;
+            clean.dimensions[k] = { status: 'none', note: this.heldBackNote };
+        }
+        clean.dimensions.security = { status: clean.findings.some(f => f.dimension === 'security') ? 'findings' : 'none' };
+        clean.ticket_compliance = clean.ticket_compliance.filter(t => ok(t.ticket_url) || (hold(false), false));
         for (const t of clean.ticket_compliance) {
-            text.push(t.ticket_url);
-            for (const k of this.ticketLists) text.push(...t[k]);
+            for (const k of this.ticketLists) {
+                const kept = t[k].filter(ok);
+                if (kept.length !== t[k].length) hold(false);
+                t[k] = kept;
+            }
         }
-        // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
-        const raw = text.filter(t => t != null).join('\n');
-        // Withheld by the text scan below. The findings are still well formed, so they decide
-        // `blocking`: a false positive on a review with no blocking findings can still pass.
-        const withholdByText = { publish: false, findingsTotal: clean.findings.length, blocking: clean.findings.some(f => f.severity !== 'low') };
-        if (raw.length > this.maxText) return withholdByText;
-        const readings = this.plain(raw);
-        if (readings === null) return withholdByText;
-        for (const plain of readings) {
-            if (this.secrets.test(plain)) return withholdByText;
-            for (const t of [plain, this.words(plain)]) if (this.terms.test(t) || this.patterns.test(t)) return withholdByText;
-        }
-        return { publish: true, clean, findingsTotal: clean.findings.length, blocking: false };
+        return { publish: true, clean, findingsTotal, heldBack, blocking };
     }
 };

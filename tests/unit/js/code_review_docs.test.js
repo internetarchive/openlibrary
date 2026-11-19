@@ -46,7 +46,7 @@ test('every fixed code-review check message is in the doc', () => {
 test('the review footer links to the doc', () => {
     assert.match(
         read(`${SCRIPTS}/post.cjs`),
-        /\[@openlibrary-bot\]\(https:\/\/github\.com\/internetarchive\/openlibrary\/blob\/master\/docs\/code-review-bot\.md\)/
+        /\[How this bot works\]\(https:\/\/github\.com\/internetarchive\/openlibrary\/blob\/master\/docs\/code-review-bot\.md\)/
     );
 });
 
