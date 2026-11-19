@@ -66,8 +66,11 @@ draft, a closed PR, or a commit it already reviewed), the bot replies to say so.
   longer part of the PR, so the review is dropped. The new head still gets its own review, of the
   whole PR.
 - **Asking for a review during the wait** starts it right away instead.
-- **No re-review** for pushes made by bots, pushes that only merge the base branch in (the "Update
-  branch" button), or PRs labelled `no-automation`. Ask for a review if you want one.
+- **Updating the branch from master** (the "Update branch" button, or merging master in) waits
+  like any push. Then the bot re-reviews only files where you fixed a merge conflict by hand. If
+  there were none, it doesn't run the model and the check gets the previous verdict.
+- **No re-review** for pushes made by bots, or PRs labelled `no-automation`. Ask for a review if
+  you want one.
 
 ```mermaid
 sequenceDiagram
@@ -102,7 +105,9 @@ the PR. Requesting the review team needs triage or write access to the repositor
 
 A re-review looks only at the files changed since the bot's last review, so it doesn't repeat
 itself. Commits that only merge the base branch in are skipped. If nothing but base-branch merges
-arrived, no new review runs and the check keeps the previous verdict. After a force-push that
+arrived, no new review runs and the check keeps the previous verdict. Files the PR leaves exactly
+as they are on master are skipped too, so master's changes stay out of the review even when they
+reached the branch some other way than a merge, such as copied in by hand. After a force-push that
 rewrites the history it reviewed, the bot reviews the whole PR again.
 
 On each re-review the bot also re-checks its own open comments, as described in
