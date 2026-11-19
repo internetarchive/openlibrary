@@ -1,7 +1,9 @@
 import json
+import time
 from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
+from urllib.parse import urlencode
 
 import pytest
 import web
@@ -9,6 +11,7 @@ from starlette.datastructures import URL
 
 from openlibrary.plugins.openlibrary import lists as legacy_lists
 from openlibrary.plugins.openlibrary.lists import ListRecord
+from openlibrary.utils.request_context import site as request_site
 
 
 class TestListRecord:
@@ -673,6 +676,90 @@ class TestUserListsEviction:
             legacy_lists.site.reset(token)
         fake_site.save.assert_called_once()
         delete.assert_any_call("d/people/alice")
+
+
+class TestListCreationFormSignals:
+    """Creating a list only logs the honeypot and timing; the list is saved either way and carries neither field."""
+
+    @pytest.fixture
+    def current(self, monkeypatch, caplog):
+        user = Mock(key="/people/alice", created=datetime(2020, 1, 1))
+        current = Mock(get_user=lambda: user)
+        current.seq.next_value.return_value = 7
+        token = request_site.set(current)
+        monkeypatch.setattr(legacy_lists.spamcheck, "get_secret_key", lambda: "test-secret")
+        monkeypatch.setattr(legacy_lists.spamcheck, "is_spam", lambda *a, **kw: False)
+        monkeypatch.setattr(web.ctx, "env", {"CONTENT_TYPE": "application/x-www-form-urlencoded"}, raising=False)
+        monkeypatch.setattr(web.ctx, "headers", [], raising=False)
+        monkeypatch.setattr(web.ctx, "home", "", raising=False)
+        monkeypatch.setattr(web.ctx, "path", "/people/alice/lists/add", raising=False)
+        caplog.set_level("INFO", logger="openlibrary.spam_signals")
+        current.logged = lambda: [json.loads(r.getMessage().split(" ", 1)[1]) for r in caplog.records if r.getMessage().startswith("form_signals ")]
+        yield current
+        request_site.reset(token)
+
+    @staticmethod
+    def post_form(monkeypatch, **fields):
+        form = {"name": "Favorites", "description": "", "seeds--0--thing--key": "/works/OL1W"} | fields
+        monkeypatch.setattr(web, "data", lambda: urlencode(form).encode())
+        monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, **form))
+        with pytest.raises(web.HTTPError, match="303 See Other"):
+            raise legacy_lists.lists_add().POST("/people/alice", "lists")
+
+    @pytest.mark.parametrize(
+        ("signal_fields", "timing", "honeypot_filled"),
+        [
+            pytest.param(lambda token: {"ol_extra_notes": "", "ol_form_token": token(60)}, "ok", False, id="normal"),
+            pytest.param(lambda token: {"ol_extra_notes": "cheap pills", "ol_form_token": token(60)}, "ok", True, id="honeypot-filled"),
+            pytest.param(lambda token: {"ol_extra_notes": "", "ol_form_token": token(1)}, "fast", False, id="fast"),
+            pytest.param(lambda token: {}, "missing", False, id="missing-token"),
+            pytest.param(lambda token: {"ol_form_token": "list|1.000|forged"}, "invalid", False, id="forged-token"),
+        ],
+    )
+    def test_html_form(self, current, monkeypatch, signal_fields, timing, honeypot_filled):
+        def token(seconds_ago):
+            now = time.time()
+            monkeypatch.setattr(legacy_lists.spamcheck.time, "time", lambda: now - seconds_ago)
+            try:
+                return legacy_lists.spamcheck.make_form_token("list")
+            finally:
+                monkeypatch.setattr(legacy_lists.spamcheck.time, "time", lambda: now)
+
+        self.post_form(monkeypatch, **signal_fields(token))
+
+        (saved,) = current.save_many.call_args.args
+        assert saved == [
+            {"key": "/people/alice/lists/OL7L", "type": {"key": "/type/list"}, "name": "Favorites", "description": "", "seeds": [{"key": "/works/OL1W"}]}
+        ]
+        (logged,) = current.logged()
+        assert (logged["surface"], logged["username"], logged["timing"], logged["honeypot_filled"]) == ("list", "alice", timing, honeypot_filled)
+
+    def test_html_form_survives_a_failure_to_record(self, current, monkeypatch):
+        monkeypatch.setattr(legacy_lists.spamcheck, "_log_submission", Mock(side_effect=RuntimeError("boom")))
+        self.post_form(monkeypatch, ol_extra_notes="x")
+        current.save_many.assert_called_once()
+
+    def test_editing_a_list_records_nothing(self, current, monkeypatch):
+        form = {"key": "/people/alice/lists/OL7L", "name": "Favorites", "description": ""}
+        monkeypatch.setattr(web, "data", lambda: urlencode(form).encode())
+        monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, **form))
+        with pytest.raises(web.HTTPError, match="303 See Other"):
+            raise legacy_lists.lists_edit().POST("/people/alice", "lists", "OL7L")
+        assert current.logged() == []
+
+    @pytest.mark.parametrize("recording_fails", [False, True])
+    def test_json_api_is_counted_as_formless(self, current, monkeypatch, recording_fails):
+        if recording_fails:
+            monkeypatch.setattr(legacy_lists.spamcheck, "_log_submission", Mock(side_effect=RuntimeError("boom")))
+        user = Mock(key="/people/alice")
+        user.new_list.return_value = Mock(key="/people/alice/lists/OL1L", dict=Mock(return_value={"name": "x"}))
+        with patch.object(legacy_lists.cache.memcache_cache, "delete"):
+            legacy_lists.lists_json.process_new_list(user, {"name": "x", "seeds": []}, current)
+
+        assert current.save.call_args.args == ({"name": "x"},)
+        if not recording_fails:
+            (logged,) = current.logged()
+            assert (logged["surface"], logged["timing"], logged["honeypot_filled"]) == ("list-json", "no-form", False)
 
 
 class TestConvertList:

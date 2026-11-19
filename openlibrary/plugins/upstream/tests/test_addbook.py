@@ -1,5 +1,7 @@
 """py.test tests for addbook"""
 
+import json
+import time
 from unittest.mock import Mock
 
 import pytest
@@ -826,6 +828,56 @@ class TestSiteContextMigration:
         assert current.changesets[-1]["kind"] == "add-book"
         assert current.changesets[-1]["comment"] == "Saved book"
         assert dict(web.ctx.headers)["Location"].endswith("/edit?mode=add-work")
+
+    @pytest.mark.parametrize(
+        ("signal_fields", "timing", "honeypot_filled"),
+        [
+            pytest.param(lambda token: {"ol_extra_notes": "", "ol_form_token": token(60)}, "ok", False, id="normal"),
+            pytest.param(lambda token: {"ol_extra_notes": "cheap pills", "ol_form_token": token(60)}, "ok", True, id="honeypot-filled"),
+            pytest.param(lambda token: {"ol_extra_notes": "", "ol_form_token": token(1)}, "fast", False, id="fast"),
+            pytest.param(lambda token: {"ol_form_token": token(60, "add-book-check")}, "ok", False, id="check-page"),
+            pytest.param(lambda token: {}, "missing", False, id="missing-token"),
+            pytest.param(lambda token: {"ol_form_token": "add-book|1.000|forged"}, "invalid", False, id="forged-token"),
+        ],
+    )
+    def test_add_book_post_only_logs_form_signals(self, current, monkeypatch, caplog, signal_fields, timing, honeypot_filled):
+        """Whatever the honeypot and timing say, the book is added, and neither field reaches the spam check or the saved records."""
+        monkeypatch.setattr(addbook.spamcheck, "get_secret_key", lambda: "test-secret")
+        caplog.set_level("INFO", logger="openlibrary.spam_signals")
+
+        def token(seconds_ago, surface="add-book"):
+            now = time.time()
+            monkeypatch.setattr(addbook.spamcheck.time, "time", lambda: now - seconds_ago)
+            try:
+                return addbook.spamcheck.make_form_token(surface)
+            finally:
+                monkeypatch.setattr(addbook.spamcheck.time, "time", lambda: now)
+
+        form = {"book_title": "New book", "publisher": "Publisher", "publish_date": "2020", "authors--0--author--key": "__new__", "author_names--0": "New author"}
+        form |= signal_fields(token)
+        monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, **form))
+        spam_checked = []
+        monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda i, **kwargs: spam_checked.append(dict(i)) and False)
+
+        with pytest.raises(web.HTTPError, match="303 See Other"):
+            delegate.pages["/books/add"][None]().POST()
+
+        assert current.get("/works/OL1W").title == current.get("/books/OL1M").title == "New book"
+        seen = json.dumps([current.get(key).dict() for key in ("/authors/OL1A", "/works/OL1W", "/books/OL1M")]) + str(spam_checked)
+        assert "New book" in seen
+        assert not any(leak in seen for leak in ("ol_extra_notes", "ol_form_token", "cheap pills"))
+        (logged,) = [json.loads(r.getMessage().split(" ", 1)[1]) for r in caplog.records if r.getMessage().startswith("form_signals ")]
+        assert logged["surface"] == ("add-book-check" if "check" in form.get("ol_form_token", "") else "add-book")
+        assert (logged["timing"], logged["honeypot_filled"]) == (timing, honeypot_filled)
+
+    def test_add_book_post_survives_a_failure_to_record_form_signals(self, current, monkeypatch):
+        form = {"book_title": "New book", "publisher": "Publisher", "publish_date": "2020", "authors--0--author--key": "__new__", "author_names--0": "New author"}
+        monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, **form, ol_extra_notes="x"))
+        monkeypatch.setattr(addbook.spamcheck, "_log_submission", Mock(side_effect=RuntimeError("boom")))
+
+        with pytest.raises(web.HTTPError, match="303 See Other"):
+            delegate.pages["/books/add"][None]().POST()
+        assert current.get("/books/OL1M").title == "New book"
 
     @pytest.mark.parametrize(
         ("handler", "key", "type_"),

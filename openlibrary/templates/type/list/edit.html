@@ -131,7 +131,9 @@ $jsdef lazy_thing_preview(key, render_fn_name):
         class="olform list-edit--$list_type"
         $:cond(action, 'action="%s"' % action)
     >
-        $if not new:
+        $if new:
+            $:render_template("lib/form_signals", list_type)
+        $else:
             <input
                 required
                 type="hidden"
