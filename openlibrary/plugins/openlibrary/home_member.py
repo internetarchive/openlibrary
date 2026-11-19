@@ -198,7 +198,8 @@ def build_agenda(loans: list[dict], holds: list[dict], reading: list[dict]) -> l
         for hold in holds
         if hold["ready"]
     ]
-    waiting = [card(hold, "waiting", hold["note"], "plain", _("View")) for hold in holds if not hold["ready"]]
+    # A hold still in line has nothing to do yet; its title and cover already go to the book.
+    waiting = [card(hold, "waiting", hold["note"], "plain", "") | {"action": None} for hold in holds if not hold["ready"]]
     # A Currently Reading book says nothing about itself and has no button of ours: the template gives it a
     # Read or Borrow button when a copy is free (`cta`), and the control that moves it off the shelf (`shelf`).
     reading_cards = [

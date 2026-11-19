@@ -115,9 +115,9 @@
                                        href="{{ item.url }}"
                                        data-ol-link-track="HomeMember|TitleClick|{{ item.kind }}">{{ item.title }}</a>
                                     {% if item.author %}<span class="home-now__item-author">{{ item.author }}</span>{% endif %}
+                                    {% if item.status %}{{ status(item) }}{% endif %}
                                 </div>
                                 <p class="home-now__moved" role="status"></p>
-                                {% if item.status %}{{ status(item) }}{% endif %}
                                 <div class="home-now__item-actions">
                                     {{ shelf_menu(item) }}
                                     {{ read_button(item) }}

@@ -248,7 +248,8 @@ body[data-user-key] .home-welcome {
   width: 24px;
 }
 
-/* Title over author, as under a carousel cover. */
+/* Title over author, as under a carousel cover; a loan's due date or a hold's
+   place in line goes under them, so the title keeps the line's width. */
 .home-now__item-text {
   display: flex;
   flex: 1;

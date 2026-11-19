@@ -60,6 +60,7 @@ def test_agenda_leads_with_the_loan_then_what_has_a_clock(request_context_fixtur
     assert agenda[0]["tone"] == "urgent"
     assert agenda[0]["action"]["form"] == {"action": "/borrow/ia/ia_soon", "value": "read"}
     assert agenda[1]["action"]["form"] == {"action": "/books/ready/borrow", "value": "borrow"}
+    assert agenda[-1]["action"] is None
 
 
 def test_agenda_without_a_loan_leads_with_currently_reading(request_context_fixture):
