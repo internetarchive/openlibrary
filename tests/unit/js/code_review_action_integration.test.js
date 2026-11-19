@@ -1045,24 +1045,32 @@ test('post: never approves while a blocking part is held back', async () => {
 
 // ===================== GitHub 5xx when posting =====================
 // #14292: createReview returned a 500 and the PR was left with no review.
-const serverErrorPost = async ({ failures, createdAnyway = false }) => {
+const serverErrorPost = async ({ failures, createdAnyway = false, checkFailures = 0 }) => {
     writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
     writeFileSync(join(dir, 'review.diff'), '');
     const head = SHA('a');
     let created = null;
+    let errored = false;
+    let checksLeft = checkFailures;
     const { github, calls } = mockGitHub({
         prGet: async () => ({ data: { head: { sha: head } } }),
-        listReviews: async () => ({
-            data: created
-                ? [{ id: created.id, user: { login: 'openlibrary-bot' }, commit_id: head, submitted_at: new Date().toISOString(), body: created.body }]
-                : []
-        })
+        listReviews: async () => {
+            // After a failed post, the "was it posted anyway?" check can fail too.
+            if (errored && checksLeft-- > 0) throw Object.assign(new Error('Server Error'), { status: 502 });
+            return listed();
+        }
+    });
+    const listed = () => ({
+        data: created
+            ? [{ id: created.id, user: { login: 'openlibrary-bot' }, commit_id: head, submitted_at: new Date().toISOString(), body: created.body }]
+            : []
     });
     let left = failures;
     const create = github.rest.pulls.createReview;
     github.rest.pulls.createReview = async p => {
         if (left-- > 0) {
             calls.createReview.push(p);
+            errored = true;
             if (createdAnyway) created = { id: 555, body: p.body };
             throw Object.assign(new Error('Server Error'), { status: 500 });
         }
@@ -1092,6 +1100,14 @@ test('post: a 5xx after GitHub created the review does not post it twice', async
     assert.equal(res.thrown, undefined);
     assert.equal(res.failed, null, 'the review GitHub created counts as posted');
     assert.equal(calls.createReview.length, 1);
+});
+test('post: a failed "was it posted?" check does not stop the retry', async () => {
+    const { res, calls, sleeps } = await serverErrorPost({ failures: 1, checkFailures: 1 });
+    assert.equal(res.thrown, undefined);
+    assert.equal(res.failed, null);
+    assert.equal(calls.createReview.length, 2);
+    assert.deepEqual(sleeps, [10000]);
+    assert.match(res.warnings.join('\n'), /Could not check whether the review was posted \(Server Error\); trying again anyway/);
 });
 test('post: after two retries a 5xx still fails the job', async () => {
     const { res, calls, sleeps } = await serverErrorPost({ failures: 3 });

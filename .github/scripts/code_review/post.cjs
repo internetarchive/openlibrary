@@ -499,7 +499,14 @@ async function validateAndPost({ github, context, core, require, process, sleep 
             if (e && e.status >= 500 && serverErrors < MAX_SERVER_RETRIES) {
                 serverErrors++;
                 await sleep(10 * 1000 * serverErrors);
-                const found = await alreadyPosted();
+                // GitHub may be failing reads too. Treat a failed check as "not found" so the retry
+                // still runs: a rare duplicate review beats losing the review.
+                let found;
+                try {
+                    found = await alreadyPosted();
+                } catch (checkError) {
+                    core.warning(`Could not check whether the review was posted (${checkError.message}); trying again anyway.`);
+                }
                 if (found) {
                     core.info(`GitHub returned ${e.status}, but review ${found.id} was posted; using it.`);
                     posted = found;
