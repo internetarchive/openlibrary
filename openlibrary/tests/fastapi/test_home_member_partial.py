@@ -157,6 +157,45 @@ def test_want_available_keeps_only_copies_free_now(request_context_fixture):
     assert [doc["title"] for doc in free] == ["free", "open"]
 
 
+def test_print_disabled_readers_can_open_print_disabled_copies(request_context_fixture):
+    """A copy in the print-disabled collection counts as free for a print-disabled reader, lent out or not, and for them only."""
+    docs = [
+        web.storage(key="/works/OL1W", title="free", ia=["free00"]),
+        web.storage(key="/works/OL2W", title="pd only", ia=["pd00"]),
+        web.storage(key="/works/OL3W", title="pd, all lent out", ia=["lent00"]),
+        web.storage(key="/works/OL4W", title="lent out", ia=["out00"]),
+    ]
+    availability = {
+        "free": {"status": "borrow_available"},
+        "pd only": {"status": "private", "is_printdisabled": True},
+        "pd, all lent out": {"status": "borrow_unavailable", "is_printdisabled": True, "is_lendable": True},
+        "lent out": {"status": "borrow_unavailable", "is_lendable": True},
+    }
+
+    def add_availability(items):
+        for item in items:
+            item["availability"] = availability[item["title"]]
+
+    class ReadLog:
+        def get_works(self, key, limit, fq=None):
+            return web.storage(docs=docs)
+
+    def shelves():
+        with (
+            patch("openlibrary.core.lending.add_availability_async", side_effect=add_availability),
+            patch("openlibrary.plugins.openlibrary.partials._render_carousel_card_loan_status", return_value="<read>"),
+            patch("openlibrary.plugins.upstream.mybooks.shelf_button_for", return_value=""),
+        ):
+            want, _known = _home_member().want_available(ReadLog(), _home_member().AvailabilityBudget())
+            reading, _known = _home_member().reading_now(ReadLog(), _home_member().AvailabilityBudget())
+        return [doc["title"] for doc in want], [book["title"] for book in reading if book["cta"]]
+
+    request_context_fixture(lang="en", print_disabled=True)
+    assert shelves() == (["free", "pd only", "pd, all lent out"], ["free", "pd only", "pd, all lent out"])
+    request_context_fixture(lang="en", print_disabled=False)
+    assert shelves() == (["free"], ["free"])
+
+
 def test_want_available_shows_the_shelf_when_availability_cannot_be_read(request_context_fixture):
     request_context_fixture(lang="en")
     docs = [web.storage(key="/works/OL1W", title="one", ia=["one00"]), web.storage(key="/works/OL2W", title="two", ia=["two00"])]

@@ -223,6 +223,13 @@ def availability_known(docs: list) -> bool:
 FREE = ("open", "borrow_available")
 
 
+def is_free(availability: dict | None) -> bool:
+    """Whether this reader can open the copy now. A print-disabled reader can also read any copy in the
+    print-disabled collection, lent out or not, as the Read button (LoanStatus) offers them."""
+    availability = availability or {}
+    return availability.get("status") in FREE or bool(availability.get("is_printdisabled") and req_context.get().print_disabled)
+
+
 def _logged_edition(doc) -> dict | None:
     """The edition the reader shelved, when they shelved one. Solr hands it as a list, or as a dict holding `docs`."""
     editions = doc.get("editions") or []
@@ -301,10 +308,10 @@ class AvailabilityBudget:
             self.left -= time.monotonic() - started
         for doc in docs:
             of_work = [copy for copy in copies[doc["key"]] if copy.get("availability")]
-            pick = next((copy for copy in of_work if copy["availability"].get("status") in FREE), of_work[0] if of_work else None)
+            pick = next((copy for copy in of_work if is_free(copy["availability"])), of_work[0] if of_work else None)
             doc["availability"] = pick["availability"] | {"identifier": lending.get_ocaid(pick)} if pick else {}
             # Only the shelved edition lends its cover: the reader knows the book by it.
-            if pick is logged.get(doc["key"]) and pick and pick["availability"].get("status") in FREE:
+            if pick is logged.get(doc["key"]) and pick and is_free(pick["availability"]):
                 doc["offered_edition"] = pick
         return availability_known(checked)
 
@@ -319,7 +326,7 @@ def want_available(readlog, budget: AvailabilityBudget) -> tuple[list, bool]:
     docs = [doc for doc in works.docs if doc.get("title")]
     if not budget.add(docs):
         return docs[:WANT_SHOWN], False
-    return [doc for doc in docs if (doc.get("availability") or {}).get("status") in FREE][:WANT_SHOWN], True
+    return [doc for doc in docs if is_free(doc.get("availability"))][:WANT_SHOWN], True
 
 
 def want_brief(doc: dict, checked: bool) -> dict:
@@ -345,7 +352,7 @@ def reading_now(readlog, budget: AvailabilityBudget) -> tuple[list[dict], bool]:
     known = budget.add(docs)
     books = []
     for doc in docs:
-        free = (doc.get("availability") or {}).get("status") in FREE
+        free = is_free(doc.get("availability"))
         # Without `editions` the button is for the work, whose availability names the copy to offer.
         work = web.storage({k: v for k, v in doc.items() if k != "editions"})
 
