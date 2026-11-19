@@ -82,9 +82,9 @@
   display: block;
   width: 100%;
   height: auto;
-  /* Snippet images are nearly always 3:2; a fixed box keeps the grid from
-     reflowing as they load, and contain shows the odd one out uncropped. */
-  aspect-ratio: 3 / 2;
+  /* A fixed 1.91:1 (link-preview) box keeps the grid from reflowing as
+     images load; contain shows images of other ratios uncropped. */
+  aspect-ratio: 1.91 / 1;
   object-fit: contain;
   background-color: var(--color-surface-sunken);
 }
