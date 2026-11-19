@@ -258,6 +258,17 @@
   /* The part of a stacked stats bar worth watching (first-time editors, Tasks saves), and a quiet one beside it. */
   --color-stats-chart-accent: var(--blue-400);
   --color-stats-chart-muted: var(--neutral-300);
+
+  /* Segments of a batch import's progress bar, one per import_item status, in
+     pipeline order: waiting is grey and blue, done is green, failed is red. */
+  --color-import-staged: var(--neutral-300);
+  --color-import-needs-review: var(--amber-400);
+  --color-import-pending: var(--blue-200);
+  --color-import-processing: var(--blue-400);
+  --color-import-found: var(--green-300);
+  --color-import-created: var(--green-400);
+  --color-import-modified: var(--green-600);
+  --color-import-failed: var(--red-400);
 }
 
 /**

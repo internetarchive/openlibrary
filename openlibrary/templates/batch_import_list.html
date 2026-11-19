@@ -1,5 +1,6 @@
 $def with (rows, page, total_pages, status, statuses, sort_field, sort_order, default_sort)
 $var title: $_("Batch Imports")
+$putctx("cssfile", "admin")
 
 $def sort_link(field, label):
     $# Clicking the active column flips its order; any other column starts newest/highest first.
@@ -14,6 +15,7 @@ $def sort_link(field, label):
 </div>
 <div id="contentBody" class="batchImportList">
   $:macros.BatchImportNavigation()
+  $# Status filter; each swatch doubles as the legend for the progress bars below.
   <p>
     $_("Status:")
     $if status:
@@ -22,35 +24,38 @@ $def sort_link(field, label):
       <strong>$_("All")</strong>
     $for s in statuses:
       |
+      <span class="batch-status-swatch batch-status--$s" aria-hidden="true"></span>
       $if s == status:
         <strong>$s</strong>
       $else:
         <a href="$changequery(page=None, status=s)">$s</a>
   </p>
   <p>$_("Default sort: date added, newest first.")</p>
-  <table class="changeHistory">
+
+  <table class="changeHistory batch-table">
     <thead>
       <tr>
-        <th>$:sort_link('batch_id', _('batch_id'))</th>
+        <th>$:sort_link('batch_id', '#')</th>
         <th>$_('Name')</th>
-        <th>$:sort_link('added_time', _('Added Time'))</th>
-        <th>$_('Status')</th>
         <th>$_('Submitter')</th>
-        <th>$_('Comments')</th>
+        <th>$:sort_link('added_time', _('Added Time'))</th>
+        <th class="batch-table__progress">$_('Status')</th>
       </tr>
     </thead>
     <tbody>
       $for row in rows:
+        $ total = sum(row.status_counts.values())
         <tr>
           <td><a href="/import/batch/$row.batch_id">$row.batch_id</a></td>
-          <td>$row.name</td>
+          <td><a href="/import/batch/$row.batch_id">$(row.name or "—")</a></td>
+          <td>$(row.submitter or "")</td>
           <td>$datestr(row.added_time)</td>
-          <td>
-            $for s, count in row.status_counts.items():
-              $s: $count<br>
+          <td class="batch-table__progress">
+            <div class="batch-table__bar" style="--batch-item-count: $total;">
+              $:render_template("batch_import_progress", row, statuses)
+              <span class="batch-table__count">$commify(total)</span>
+            </div>
           </td>
-          <td>$row.submitter</td>
-          <td>$row.comments</td>
         </tr>
     </tbody>
   </table>
