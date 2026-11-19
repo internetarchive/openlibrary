@@ -1,8 +1,9 @@
 import pytest
 import web
-from prometheus_client import CollectorRegistry
+from prometheus_client import REGISTRY, CollectorRegistry
 
-from openlibrary.utils import prometheus
+from infogami.utils import stats
+from openlibrary.utils import prometheus, server_timing
 from openlibrary.utils.request_context import Visitor, set_context_from_legacy_web_py, visitor
 from openlibrary.utils.sentry import InfogamiRoute
 
@@ -112,6 +113,18 @@ def app(registry, monkeypatch):
             web.header("Content-Type", "text/html; charset=utf-8")
             if name == "librarian":  # as setup_contextvars and then the page header would
                 visitor.set(Visitor(user_key="/people/alice", is_librarian=True))
+            if name == "backends":
+                for stat in ("memcache.get", "memcache.get_multi", "infobase"):
+                    stats.begin(stat)
+                    stats.end()
+                stats.begin("archive.org")  # as ia.get_api_response does
+                with server_timing.timed("ia-metadata"):
+                    pass
+                stats.end()
+                with server_timing.timed("solr"):  # as the Solr client does, even via async_bridge
+                    pass
+                with server_timing.timed("render-jinja"):  # not a backend
+                    pass
             return "hello"
 
         def POST(self, name=""):
@@ -209,3 +222,59 @@ def test_webpy_records_the_response_type(app, registry):
 
     assert requests_total(registry, "/things/{key}") == 1
     assert requests_total(registry, "/things/{key}", status="303", response_type="redirect") == 1
+
+
+def backend_sample(name, server, backend):
+    return REGISTRY.get_sample_value(name, {"server": server, "backend": backend}) or 0
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("infobase", "infobase"),
+        ("memcache", "memcache"),
+        ("memcache.set_multi", "memcache"),
+        ("db", "db"),
+        ("db-legacy", "db"),
+        ("db-checkout", None),
+        ("solr", "solr"),
+        ("ia", "ia"),
+        ("ia-loans", "ia"),
+        ("archive.org", None),  # timed as ia-metadata too
+        ("render-templetor", None),
+        ("webpy-proxy", None),
+        ("blocking", None),
+        ("get_blog_feeds", None),
+    ],
+)
+def test_backend(name, expected):
+    assert prometheus.backend(name) == expected
+
+
+def test_record_backend_times_observes_each_backend_once_per_request():
+    before = {
+        b: (backend_sample("ol_request_backend_seconds_count", "fastapi", b), backend_sample("ol_request_backend_calls_total", "fastapi", b))
+        for b in ("db", "solr")
+    }
+    sum_before = backend_sample("ol_request_backend_seconds_sum", "fastapi", "db")
+
+    prometheus.record_backend_times("fastapi", [("db", 2, 0.003), ("db-legacy", 1, 0.002), ("solr", 1, 0.01), ("render-jinja", 1, 0.5)])
+
+    assert backend_sample("ol_request_backend_seconds_count", "fastapi", "db") == before["db"][0] + 1
+    assert backend_sample("ol_request_backend_calls_total", "fastapi", "db") == before["db"][1] + 3
+    assert backend_sample("ol_request_backend_seconds_sum", "fastapi", "db") == pytest.approx(sum_before + 0.005)
+    assert backend_sample("ol_request_backend_seconds_count", "fastapi", "solr") == before["solr"][0] + 1
+    assert backend_sample("ol_request_backend_calls_total", "fastapi", "solr") == before["solr"][1] + 1
+
+
+def test_webpy_records_backend_times(app):
+    backends = ("memcache", "infobase", "ia", "solr")
+    before = {b: (backend_sample("ol_request_backend_seconds_count", "webpy", b), backend_sample("ol_request_backend_calls_total", "webpy", b)) for b in backends}
+
+    app.request("/things/backends")
+    app.request("/things/a")  # no backend calls: nothing recorded
+
+    assert {b: backend_sample("ol_request_backend_seconds_count", "webpy", b) - before[b][0] for b in backends} == dict.fromkeys(backends, 1)
+    calls = {b: backend_sample("ol_request_backend_calls_total", "webpy", b) - before[b][1] for b in backends}
+    assert calls == {"memcache": 2, "infobase": 1, "ia": 1, "solr": 1}
+    assert server_timing._current.get() is None  # reset after the request
