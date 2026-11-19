@@ -1,4 +1,4 @@
-$def with (batch, rows, total_rows, page, limit, sort, status_counts)
+$def with (batch, rows, total_rows, page, limit, sort, status_counts, status=None)
 $var title: $_("Batch #%(id)s", id=batch.id)
 
 <div id="contentHead">
@@ -12,24 +12,33 @@ $var title: $_("Batch #%(id)s", id=batch.id)
     <p>$_('Submitter:') $batch.submitter</p>
     <p>$_('Submit Time:') $datestr(batch.submit_time)</p>
 
+    $# Each status links to the items table filtered to it; s=None is "All".
+    $def status_count_label(s, count):
+        $ label = s or _("All")
+        $if s == status:
+            <strong>$label</strong>: $count
+        $else:
+            <a href="$changequery(page=None, status=s)">$label</a>: $count
+
     <h2>$_('Status Summary')</h2>
     <ul>
+        <li>$:status_count_label(None, sum(sc.count for sc in status_counts))</li>
         $for status_count in status_counts:
             $if status_count.status == "needs_review":
               $# Approval changes state, so it is a POST form, not a GET link (CSRF). Shown only to admins; the server re-checks.
               $if ctx.user and ctx.user.is_admin():
-                <li>$status_count.status: $status_count.count (<form method="post" action="/import/batch/approve/$batch.id" class="batch-approve-form"><button type="submit">$_('Approve')</button></form>)</li>
+                <li>$:status_count_label(status_count.status, status_count.count) (<form method="post" action="/import/batch/approve/$batch.id" class="batch-approve-form"><button type="submit">$_('Approve')</button></form>)</li>
               $else:
-                <li>$status_count.status: $status_count.count</li>
+                <li>$:status_count_label(status_count.status, status_count.count)</li>
             $elif status_count.status == "failed" and ctx.user and ctx.user.is_admin():
               <li>
-                $status_count.status: $status_count.count
+                $:status_count_label(status_count.status, status_count.count)
                 <form method="POST" action="/import/batch/retry_failed/$batch.id" style="display: inline;">
                   <button type="submit">$_('Retry failed')</button>
                 </form>
               </li>
             $else:
-              <li>$status_count.status: $status_count.count</li>
+              <li>$:status_count_label(status_count.status, status_count.count)</li>
     </ul>
 
     <h2>$_('Import Items')</h2>

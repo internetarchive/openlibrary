@@ -486,10 +486,12 @@ class BatchImportView(delegate.page):
         if batch is None:
             raise web.notfound()
 
-        i = web.input(page=1, limit=10, sort="added_time asc")
+        i = web.input(page=1, limit=10, sort="added_time asc", status="")
         page = int(i.page)
         limit = int(i.limit)
         sort = i.sort
+        status = i.status if i.status in IMPORT_ITEM_STATUSES else None
+        items_where = "batch_id=$batch_id" + (" AND status=$status" if status else "")
 
         valid_sort_fields = ["added_time", "import_time", "status"]
         sort_field, sort_order = sort.split()
@@ -499,22 +501,24 @@ class BatchImportView(delegate.page):
 
         offset = (page - 1) * limit
         total_rows = db.query(
-            "SELECT COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id",
+            f"SELECT COUNT(*) AS count FROM import_item WHERE {items_where}",
             vars=locals(),
         )[0].count
 
         rows = db.select(
             "import_item",
-            where="batch_id=$batch_id",
+            where=items_where,
             order=f"{sort_field} {sort_order}",
             limit=limit,
             offset=offset,
             vars=locals(),
         )
 
-        status_counts = db.query(
-            "SELECT status, COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id GROUP BY status",
-            vars=locals(),
+        status_counts = list(
+            db.query(
+                "SELECT status, COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id GROUP BY status",
+                vars=locals(),
+            )
         )
 
         return render_template(
@@ -526,6 +530,7 @@ class BatchImportView(delegate.page):
             limit=limit,
             sort=sort,
             status_counts=status_counts,
+            status=status,
         )
 
 

@@ -174,7 +174,7 @@ msgstr ""
 msgid "Status:"
 msgstr ""
 
-#: about/index.html batch_import_list.html type/tag/index.html
+#: about/index.html batch_import_list.html batch_import_view.html type/tag/index.html
 msgid "All"
 msgstr ""
 
