@@ -28,31 +28,7 @@ $putctx("cssfile", "admin")
 
   <ol class="batch-cards">
     $for row in rows:
-      $ total = sum(row.status_counts.values())
-      <li class="batch-card">
-        <a class="batch-card__id" href="/import/batch/$row.batch_id">#$row.batch_id</a>
-        <div class="batch-card__main">
-          <a class="batch-card__name" href="/import/batch/$row.batch_id">$(row.name or "—")</a>
-          <div class="batch-card__meta">
-            $if row.submitter:
-              $row.submitter &bull;
-            $datestr(row.added_time)
-          </div>
-          $if row.comments:
-            <div class="batch-card__comments">$row.comments</div>
-        </div>
-        <div class="batch-card__progress">
-          <ul class="batch-progress" aria-label="$_('Status')">
-            $for s in statuses:
-              $if row.status_counts.get(s):
-                $ label = "%s: %s" % (s, commify(row.status_counts[s]))
-                <li class="batch-progress__segment batch-status--$s" style="flex-grow: $row.status_counts[s];">
-                  <a href="/import/batch/$row.batch_id?status=$s" title="$label" aria-label="$label"></a>
-                </li>
-          </ul>
-          <div class="batch-card__count">$ungettext("%(count)s item", "%(count)s items", total, count=commify(total))</div>
-        </div>
-      </li>
+      <li>$:render_template("batch_import_card", row, statuses)</li>
   </ol>
 
   $:macros.OlPagination(page, total_pages)

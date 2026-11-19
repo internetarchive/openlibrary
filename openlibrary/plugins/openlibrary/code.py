@@ -532,6 +532,15 @@ class BatchImportView(delegate.page):
             )
         )
 
+        summary = web.storage(
+            batch_id=batch.id,
+            name=batch.name,
+            submitter=batch.submitter,
+            added_time=batch.submit_time,
+            comments=None,
+            status_counts={sc.status: sc.count for sc in status_counts},
+        )
+
         return render_template(
             "batch_import_view.html",
             batch=batch,
@@ -544,6 +553,8 @@ class BatchImportView(delegate.page):
             error_counts=error_counts,
             status=status,
             error=error,
+            summary=summary,
+            statuses=IMPORT_ITEM_STATUSES,
         )
 
 

@@ -10,6 +10,7 @@
 
 @import "components/admin-table.css";
 @import "components/batch-import-list.css";
+@import "components/flash-messages.css";
 /* Import all common components */
 @import "legacy.css";
 @import "components/stats-bar-chart.css";

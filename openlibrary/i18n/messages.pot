@@ -170,6 +170,17 @@ msgstr ""
 msgid "View Batch Status"
 msgstr ""
 
+#: account/import.html account/loans.html admin/imports.html admin/imports_by_date.html admin/loans_table.html admin/menu.html batch_import_card.html batch_import_view.html contribute/admin/index.html.jinja librarian_dashboard/data_quality_table.html status.html
+msgid "Status"
+msgstr ""
+
+#: batch_import_card.html openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "%(count)s item"
+msgid_plural "%(count)s items"
+msgstr[0] ""
+msgstr[1] ""
+
 #: batch_import_list.html
 msgid "Status:"
 msgstr ""
@@ -178,17 +189,6 @@ msgstr ""
 msgid "All"
 msgstr ""
 
-#: account/import.html account/loans.html admin/imports.html admin/imports_by_date.html admin/loans_table.html admin/menu.html batch_import_list.html batch_import_view.html contribute/admin/index.html.jinja librarian_dashboard/data_quality_table.html status.html
-msgid "Status"
-msgstr ""
-
-#: batch_import_list.html openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "%(count)s item"
-msgid_plural "%(count)s items"
-msgstr[0] ""
-msgstr[1] ""
-
 #: batch_import_view.html
 #, python-format
 msgid "Batch #%(id)s"
@@ -196,18 +196,6 @@ msgstr ""
 
 #: BatchImportNavigation.html batch_import_view.html
 msgid "All Batches"
-msgstr ""
-
-#: batch_import_view.html
-msgid "Batch Name:"
-msgstr ""
-
-#: batch_import_view.html
-msgid "Submitter:"
-msgstr ""
-
-#: batch_import_view.html
-msgid "Submit Time:"
 msgstr ""
 
 #: batch_import_view.html
