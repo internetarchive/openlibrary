@@ -331,7 +331,7 @@ class Batch(web.storage):
         """Return ``(total, summaries)`` for one page of batches.
 
         With ``status``, only batches holding at least one item of that status
-        are listed, and their ``status_counts`` cover only those items.
+        are listed. ``status_counts`` always cover all of a batch's items.
 
         Batches are driven from ``import_batch`` rather than by grouping
         ``import_item``, which has far too many rows to aggregate in full on
@@ -362,12 +362,11 @@ class Batch(web.storage):
             batch.status_counts = {}
             batch.comments = None
             by_id[batch.batch_id] = batch
-        status_where = " AND status = $status" if status else ""
         counts = db.query(
             "SELECT batch_id, status, COUNT(*) AS count, MIN(comments) AS comments, MAX(submitter) AS submitter"
-            f" FROM import_item WHERE batch_id IN $batch_ids{status_where}"
+            " FROM import_item WHERE batch_id IN $batch_ids"
             " GROUP BY batch_id, status ORDER BY batch_id, status",
-            vars={"batch_ids": list(by_id), "status": status},
+            vars={"batch_ids": list(by_id)},
         )
         for row in counts:
             batch = by_id[row.batch_id]

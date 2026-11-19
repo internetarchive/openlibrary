@@ -140,6 +140,14 @@ def test_ia_import_records_request_failure(import_item, import_client):
     import_item.set_status.assert_called_once_with("failed", error="server-5xx:503")
 
 
+def test_unexpected_error_is_recorded_as_internal_error(import_item, import_client):
+    import_client.import_data.side_effect = RuntimeError("Open Library login returned no session cookie")
+
+    manage_imports.do_import(import_item)
+
+    import_item.set_status.assert_called_once_with("failed", error="internal-error")
+
+
 def test_import_request_rejects_zero_attempts(import_item):
     with pytest.raises(ValueError, match="at least 1"):
         manage_imports.ol_import_request(import_item, retries=0)

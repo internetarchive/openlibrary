@@ -1,5 +1,6 @@
-$def with (batch, rows, total_rows, page, limit, sort, status_counts)
+$def with (batch, rows, total_rows, page, limit, sort, status_counts, error_counts=(), status=None, error=None, summary=None, statuses=())
 $var title: $_("Batch #%(id)s", id=batch.id)
+$putctx("cssfile", "admin")
 
 <div id="contentHead">
     $# The all-batches listing is admin-only; submitters can still view their own batch.
@@ -8,28 +9,51 @@ $var title: $_("Batch #%(id)s", id=batch.id)
     <h1>$_("Batch #%(id)s", id=batch.id)</h1>
 </div>
 <div id="contentBody" class="batchImportStatus">
-    <p>$_('Batch Name:') $batch.name</p>
-    <p>$_('Submitter:') $batch.submitter</p>
-    <p>$_('Submit Time:') $datestr(batch.submit_time)</p>
+    $if summary:
+        $:render_template("batch_import_card", summary, statuses)
+
+    $# Each status links to the items table filtered to it; s=None is "All".
+    $def status_count_label(s, count):
+        $ label = s or _("All")
+        $if s == status and not error:
+            <strong>$label</strong>: $count
+        $else:
+            <a href="$changequery(page=None, status=s, error=None)">$label</a>: $count
+
+    $# Each error of the failed items links to the items table filtered to it.
+    $def error_count_label(e, count):
+        $if not e:
+            $_("(no error)"): $count
+        $elif status == "failed" and e == error:
+            <strong>$e</strong>: $count
+        $else:
+            <a href="$changequery(page=None, status='failed', error=e)">$e</a>: $count
 
     <h2>$_('Status Summary')</h2>
     <ul>
+        <li>$:status_count_label(None, sum(sc.count for sc in status_counts))</li>
         $for status_count in status_counts:
             $if status_count.status == "needs_review":
               $# Approval changes state, so it is a POST form, not a GET link (CSRF). Shown only to admins; the server re-checks.
               $if ctx.user and ctx.user.is_admin():
-                <li>$status_count.status: $status_count.count (<form method="post" action="/import/batch/approve/$batch.id" class="batch-approve-form"><button type="submit">$_('Approve')</button></form>)</li>
+                <li>$:status_count_label(status_count.status, status_count.count) (<form method="post" action="/import/batch/approve/$batch.id" class="batch-approve-form" style="display: inline;"><button type="submit">$_('Approve')</button></form>)</li>
               $else:
-                <li>$status_count.status: $status_count.count</li>
-            $elif status_count.status == "failed" and ctx.user and ctx.user.is_admin():
+                <li>$:status_count_label(status_count.status, status_count.count)</li>
+            $elif status_count.status == "failed":
               <li>
-                $status_count.status: $status_count.count
-                <form method="POST" action="/import/batch/retry_failed/$batch.id" style="display: inline;">
-                  <button type="submit">$_('Retry failed')</button>
-                </form>
+                $:status_count_label(status_count.status, status_count.count)
+                $if ctx.user and ctx.user.is_admin():
+                  <form method="POST" action="/import/batch/retry_failed/$batch.id" style="display: inline;">
+                    <button type="submit">$_('Retry failed')</button>
+                  </form>
+                $if error_counts:
+                  <ul style="padding-left: 2em;">
+                    $for error_count in error_counts:
+                      <li>$:error_count_label(error_count.error, error_count.count)</li>
+                  </ul>
               </li>
             $else:
-              <li>$status_count.status: $status_count.count</li>
+              <li>$:status_count_label(status_count.status, status_count.count)</li>
     </ul>
 
     <h2>$_('Import Items')</h2>
