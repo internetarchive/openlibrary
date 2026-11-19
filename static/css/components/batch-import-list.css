@@ -1,0 +1,195 @@
+/**
+ * Batch import listing: one card per batch, with a progress bar segmented by
+ * import_item status.
+ * See openlibrary/templates/batch_import_list.html
+ */
+
+.batch-list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-stack-sm) var(--spacing-inline-xl);
+  align-items: center;
+  justify-content: space-between;
+  margin-block: var(--spacing-stack-md);
+}
+
+.batch-status-filter {
+  margin: 0;
+}
+
+/* Each status's colour: the filter's legend swatch and its progress-bar segment. */
+.batch-status--staged {
+  --batch-status-color: var(--color-import-staged);
+}
+.batch-status--needs_review {
+  --batch-status-color: var(--color-import-needs-review);
+}
+.batch-status--pending {
+  --batch-status-color: var(--color-import-pending);
+}
+.batch-status--processing {
+  --batch-status-color: var(--color-import-processing);
+}
+.batch-status--found {
+  --batch-status-color: var(--color-import-found);
+}
+.batch-status--created {
+  --batch-status-color: var(--color-import-created);
+}
+.batch-status--modified {
+  --batch-status-color: var(--color-import-modified);
+}
+.batch-status--failed {
+  --batch-status-color: var(--color-import-failed);
+}
+
+.batch-status-swatch {
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  margin-inline-end: var(--spacing-inline-sm);
+  border-radius: var(--border-radius-xs);
+  background-color: var(--batch-status-color);
+}
+
+.batch-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-sm);
+  margin: 0 0 var(--spacing-stack-md);
+  padding: 0;
+  list-style: none;
+}
+
+.batch-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 18rem);
+  column-gap: var(--spacing-inline-xl);
+  align-items: center;
+  padding: var(--spacing-inset-md);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background-color: var(--color-surface);
+  box-shadow: var(--box-shadow-raised);
+}
+
+.batch-card__id {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding-inline-end: var(--spacing-inline-xl);
+  border-inline-end: 1px solid var(--color-border-subtle);
+  font-size: var(--font-size-title-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.batch-card__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-xs);
+  min-width: 0;
+}
+
+.batch-card__name {
+  overflow: hidden;
+  font-family: var(--font-family-subheading);
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-subheading);
+  line-height: var(--line-height-title);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* :link and :visited match the site-wide a:link rule's specificity. */
+.batch-card__id:link,
+.batch-card__id:visited {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.batch-card__name:link,
+.batch-card__name:visited {
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .batch-card__id:hover,
+  .batch-card__name:hover {
+    text-decoration: underline;
+  }
+}
+
+.batch-card__meta,
+.batch-card__count,
+.batch-card__comments {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-small);
+}
+
+.batch-card__comments {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.batch-card__progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-xs);
+}
+
+.batch-card__count {
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.batch-progress {
+  display: flex;
+  gap: var(--spacing-3xs);
+  height: var(--spacing-md);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--border-radius-pill);
+  background-color: var(--color-surface-sunken);
+  list-style: none;
+}
+
+.batch-progress__segment {
+  flex-basis: 0;
+  /* A single item in a large batch still gets a visible sliver. */
+  min-width: var(--spacing-2xs);
+  background-color: var(--batch-status-color);
+}
+
+.batch-progress__segment a {
+  display: block;
+  height: 100%;
+}
+
+.batch-progress__segment a:focus-visible {
+  outline: none;
+  box-shadow: inset var(--box-shadow-focus);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .batch-progress__segment:hover {
+    filter: brightness(1.1);
+  }
+}
+
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .batch-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: var(--spacing-stack-sm);
+  }
+
+  .batch-card__id {
+    grid-row: span 2;
+  }
+
+  .batch-card__progress {
+    grid-column: 2;
+  }
+}

@@ -1,61 +1,59 @@
 $def with (rows, page, total_pages, status, statuses, sort_field, sort_order, default_sort)
 $var title: $_("Batch Imports")
-
-$def sort_link(field, label):
-    $# Clicking the active column flips its order; any other column starts newest/highest first.
-    $ next_order = 'asc' if field == sort_field and sort_order == 'desc' else 'desc'
-    $ is_default = '%s %s' % (field, next_order) == default_sort
-    <a href="$changequery(page=None, sort=None if is_default else '%s %s' % (field, next_order))">$label</a>
-    $if field == sort_field:
-        <span aria-hidden="true">$('▼' if sort_order == 'desc' else '▲')</span>
+$putctx("cssfile", "admin")
 
 <div id="contentHead">
   <h1>$_("Batch Imports")</h1>
 </div>
 <div id="contentBody" class="batchImportList">
   $:macros.BatchImportNavigation()
-  <p>
-    $_("Status:")
-    $if status:
-      <a href="$changequery(page=None, status=None)">$_("All")</a>
-    $else:
-      <strong>$_("All")</strong>
-    $for s in statuses:
-      |
-      $if s == status:
-        <strong>$s</strong>
+  <div class="batch-list-toolbar">
+    $# Status filter; each swatch doubles as the legend for the progress bars below.
+    <p class="batch-status-filter">
+      $_("Status:")
+      $if status:
+        <a href="$changequery(page=None, status=None)">$_("All")</a>
       $else:
-        <a href="$changequery(page=None, status=s)">$s</a>
-  </p>
-  <p>$_("Default sort: date added, newest first.")</p>
-  <table class="changeHistory">
-    <thead>
-      <tr>
-        <th>$:sort_link('batch_id', _('batch_id'))</th>
-        <th>$_('Name')</th>
-        <th>$:sort_link('added_time', _('Added Time'))</th>
-        <th>$_('Status')</th>
-        <th>$_('Submitter')</th>
-        <th>$_('Comments')</th>
-      </tr>
-    </thead>
-    <tbody>
-      $for row in rows:
-        <tr>
-          <td><a href="/import/batch/$row.batch_id">$row.batch_id</a></td>
-          <td>$row.name</td>
-          <td>$datestr(row.added_time)</td>
-          <td>
-            <ul>
-              $for s, count in row.status_counts.items():
-                <li><a href="/import/batch/$row.batch_id?status=$s">$s</a>: $count</li>
-            </ul>
-          </td>
-          <td>$row.submitter</td>
-          <td>$row.comments</td>
-        </tr>
-    </tbody>
-  </table>
+        <strong>$_("All")</strong>
+      $for s in statuses:
+        |
+        <span class="batch-status-swatch batch-status--$s" aria-hidden="true"></span>
+        $if s == status:
+          <strong>$s</strong>
+        $else:
+          <a href="$changequery(page=None, status=s)">$s</a>
+    </p>
+    $:render_template("search/sort_options.html", "%s %s" % (sort_field, sort_order), default_sort=default_sort, search_scheme="batch_imports")
+  </div>
+
+  <ol class="batch-cards">
+    $for row in rows:
+      $ total = sum(row.status_counts.values())
+      <li class="batch-card">
+        <a class="batch-card__id" href="/import/batch/$row.batch_id">#$row.batch_id</a>
+        <div class="batch-card__main">
+          <a class="batch-card__name" href="/import/batch/$row.batch_id">$(row.name or "—")</a>
+          <div class="batch-card__meta">
+            $if row.submitter:
+              $row.submitter &bull;
+            $datestr(row.added_time)
+          </div>
+          $if row.comments:
+            <div class="batch-card__comments">$row.comments</div>
+        </div>
+        <div class="batch-card__progress">
+          <ul class="batch-progress" aria-label="$_('Status')">
+            $for s in statuses:
+              $if row.status_counts.get(s):
+                $ label = "%s: %s" % (s, commify(row.status_counts[s]))
+                <li class="batch-progress__segment batch-status--$s" style="flex-grow: $row.status_counts[s];">
+                  <a href="/import/batch/$row.batch_id?status=$s" title="$label" aria-label="$label"></a>
+                </li>
+          </ul>
+          <div class="batch-card__count">$ungettext("%(count)s item", "%(count)s items", total, count=commify(total))</div>
+        </div>
+      </li>
+  </ol>
 
   $:macros.OlPagination(page, total_pages)
 </div>
