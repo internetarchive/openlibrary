@@ -168,6 +168,24 @@ Windows users may need to see [Fix line endings, symlinks, and git submodules](h
 
 Ensure you're running `docker compose` commands from within the `local-openlibrary-dev-directory`.
 
+### No books showing / search returns nothing
+
+First check whether the database has data. This request skips Solr:
+
+```sh
+curl "http://localhost:8080/query.json?type=/type/work&limit=1"
+```
+
+If it returns a work, the database is fine and Solr is empty or stopped. Check the Solr logs:
+
+```sh
+docker compose logs solr --tail=50
+```
+
+An `[ol-local-solr-start] ERROR` line means the Solr data volume no longer matches the code, often because the Docker images were updated before your branch was rebased onto master. Rebase first, then follow the reset steps printed below the error.
+
+If `query.json` returns `[]`, the database itself is empty. See [Fully Resetting Your Environment](#fully-resetting-your-environment).
+
 ### ConnectionError: HTTPConnectionPool(host='solr', port=8983)
 
 The full error is something like (line breaks added):

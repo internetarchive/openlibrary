@@ -49,11 +49,11 @@ class TestModels:
             assert client._changeset_class_register[key] == value
 
     def test_work_without_data(self):
-        work = models.Work(web.ctx.site, "/works/OL42679M")
+        work = models.Work(site_context.get(), "/works/OL42679M")
         assert repr(work) == str(work) == "<Work: '/works/OL42679M'>"
         assert isinstance(work, client.Thing)
         assert isinstance(work, models.Work)
-        assert work._site == web.ctx.site
+        assert work._site == site_context.get()
         assert work.key == "/works/OL42679M"
         assert work._data is None
         # assert isinstance(work.data, client.Nothing)  # Fails!
@@ -64,11 +64,11 @@ class TestModels:
         # assert not work.revision('data')  # Fails!
 
     def test_work_with_data(self):
-        work = models.Work(web.ctx.site, "/works/OL42679M", web.Storage())
+        work = models.Work(site_context.get(), "/works/OL42679M", web.Storage())
         assert repr(work) == str(work) == "<Work: '/works/OL42679M'>"
         assert isinstance(work, client.Thing)
         assert isinstance(work, models.Work)
-        assert work._site == web.ctx.site
+        assert work._site == site_context.get()
         assert work.key == "/works/OL42679M"
         assert isinstance(work._data, web.Storage)
         assert isinstance(work._data, dict)
@@ -137,35 +137,35 @@ class TestGetAvatarUrl:
         _get_cache("memcache").memcache.flush_all()
 
     def test_returns_correct_avatar_url(self):
-        web.ctx.site.save({"key": "/people/testuser", "type": {"key": "/type/user"}})
-        web.ctx.site.store["account/testuser"] = {
+        site_context.get().save({"key": "/people/testuser", "type": {"key": "/type/user"}})
+        site_context.get().store["account/testuser"] = {
             "internetarchive_itemname": "@testuser-archive",
         }
         url = models.User.get_avatar_url("testuser")
         assert url == "https://archive.org/services/img/@testuser-archive"
 
     def test_caches_result_for_same_username(self, monkeypatch):
-        web.ctx.site.save({"key": "/people/cachetest_user", "type": {"key": "/type/user"}})
-        web.ctx.site.store["account/cachetest_user"] = {
+        site_context.get().save({"key": "/people/cachetest_user", "type": {"key": "/type/user"}})
+        site_context.get().store["account/cachetest_user"] = {
             "internetarchive_itemname": "@cachetest_user-archive",
         }
         call_count = 0
-        original_get = web.ctx.site.get
+        original_get = site_context.get().get
 
         def counting_get(key, *args, **kwargs):
             nonlocal call_count
             call_count += 1
             return original_get(key, *args, **kwargs)
 
-        monkeypatch.setattr(web.ctx.site, "get", counting_get)
+        monkeypatch.setattr(site_context.get(), "get", counting_get)
         models.User.get_avatar_url("cachetest_user")
         models.User.get_avatar_url("cachetest_user")
         assert call_count == 1
 
     def test_caches_independently_per_username(self):
         for username in ("alice", "bob"):
-            web.ctx.site.save({"key": f"/people/{username}", "type": {"key": "/type/user"}})
-            web.ctx.site.store[f"account/{username}"] = {
+            site_context.get().save({"key": f"/people/{username}", "type": {"key": "/type/user"}})
+            site_context.get().store[f"account/{username}"] = {
                 "internetarchive_itemname": f"@{username}-archive",
             }
         assert models.User.get_avatar_url("alice") == "https://archive.org/services/img/@alice-archive"
@@ -175,14 +175,18 @@ class TestGetAvatarUrl:
 class TestEdition:
     def setup_method(self, method):
         web.ctx.site = MockSite()
+        self.site_token = site_context.set(web.ctx.site)
         models.setup()
+
+    def teardown_method(self):
+        site_context.reset(self.site_token)
 
     def _make_edition(self, ocaid=None):
         data = {"key": "/books/OL1M", "type": {"key": "/type/edition"}}
         if ocaid:
             data["ocaid"] = ocaid
-        web.ctx.site.save(data)
-        return web.ctx.site.get("/books/OL1M")
+        site_context.get().save(data)
+        return site_context.get().get("/books/OL1M")
 
     def test_get_available_loans_no_ocaid(self):
         ed = self._make_edition()

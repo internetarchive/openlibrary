@@ -36,7 +36,7 @@ function planFromIssue(issue) {
 
 describe('getLinkedIssueMetadata', () => {
     test('reads the first Lead and a P0-P2 priority label', () => {
-        const metadata = getLinkedIssueMetadata(issueWithLabels('Type: Bug', 'Lead: @foo', 'Priority: 1'));
+        const metadata = getLinkedIssueMetadata(issueWithLabels('Good First Issue', 'Lead: @foo', 'Priority: 1'));
         expect(metadata).toEqual({ leadName: 'foo', priority: 'Priority: 1' });
     });
 
@@ -131,7 +131,7 @@ describe('findIssueReferences', () => {
 
 describe('needsReviewSwap', () => {
     test('swaps only an open issue that has Needs: Response', () => {
-        expect(needsReviewSwap({ state: 'OPEN', labelNames: ['Type: Bug', 'Needs: Response'] })).toBe(true);
+        expect(needsReviewSwap({ state: 'OPEN', labelNames: ['Good First Issue', 'Needs: Response'] })).toBe(true);
         expect(needsReviewSwap({ state: 'CLOSED', labelNames: ['Needs: Response'] })).toBe(false);
         expect(needsReviewSwap({ state: 'OPEN', labelNames: ['Needs: Review'] })).toBe(false);
     });
@@ -474,7 +474,7 @@ describe('syncNeedsLead', () => {
 
     test('adds Needs: Lead where there is no lead and removes it where there is one, across pages', async () => {
         const octokit = fakeOctokit([
-            page([issue(1, 'Type: Bug'), issue(2, 'Lead: @foo', 'Needs: Lead')], 'c1'),
+            page([issue(1, 'Good First Issue'), issue(2, 'Lead: @foo', 'Needs: Lead')], 'c1'),
             page([issue(3, 'Needs: Lead'), issue(4, 'Lead: @foo')])
         ]);
         const result = await syncNeedsLead(octokit, REPO);

@@ -74,6 +74,7 @@ Review comments are a normal part of the process. Most PRs need at least one rou
 - Resolve all review comments before requesting another review
 - When resolving a comment, reply with "DONE" or "WON'T FIX because ..."
 - If the issue has a `Lead: @username` label, that person is usually the best reviewer to tag
+- Most PRs also get an automated review from `@openlibrary-bot`. [How the code review bot works](docs/code-review-bot.md) explains when it runs, what its comments and the `code-review` check mean, and how to respond
 
 For issues other than `Good First Issue`, if you haven't heard back within one week of requesting assignment, feel free to tag the `Lead:` on the issue.
 

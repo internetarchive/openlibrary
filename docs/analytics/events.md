@@ -25,7 +25,7 @@ Athena does **not** forward events into Matomo. Confirmed by @scottbarnes on
 [#13038](https://github.com/internetarchive/openlibrary/pull/13038).
 
 `ol_send_event_ping` still looks like the house style — it is the older, more widely-copied idiom
-(`Carousel.js`, `lazy-carousel.js`, `index.js`, `banner-analytics.js` all use it). **Copying it is
+(`lazy-carousel.js`, `index.js`, `banner-analytics.js` all use it). **Copying it is
 how this bug keeps getting reintroduced.** If an event needs to appear in Matomo, it must go through
 `trackEvent()` or carry a `data-ol-link-track` attribute in the light DOM.
 

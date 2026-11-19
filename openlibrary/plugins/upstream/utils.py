@@ -1417,7 +1417,7 @@ def create_thing(data: dict) -> Thing:
     """
     Helper method to convert a data object recursively to the correct `Thing`
     classes. Will change the dict to be the same type as when fetched from
-    the database via `web.ctx.site.get`.
+    the database via `site.get().get`.
     """
     return client.create_thing(request_context.site.get(), data["key"], request_context.site.get()._process_dict(parse_query(data)))
 

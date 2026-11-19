@@ -39,7 +39,17 @@ class FakeSite:
         return [self.editions[k] for k in keys if k in self.editions]
 
 
-COMPLETE = {"covers": [1], "lccn": ["1"], "oclc_numbers": ["1"], "languages": ["eng"], "number_of_pages": 300, "publishers": ["P"], "works": [WORK]}
+COMPLETE = {
+    "covers": [1],
+    "lccn": ["1"],
+    "oclc_numbers": ["1"],
+    "languages": ["eng"],
+    "number_of_pages": 300,
+    "publishers": ["P"],
+    "isbn_13": ["1"],
+    "publish_date": "2001",
+    "works": [WORK],
+}
 FOUR = ("covers", "languages", "number_of_pages", "publishers")
 
 
@@ -323,6 +333,15 @@ def test_most_shelved_keeps_isbn_editions_two_per_work_and_tops_up_from_search(m
 
     assert initiatives.pick_most_shelved(3, site) == [["/books/OL1M", 900], ["/books/OL2M", 800], ["/books/OL9M", 8]]
     assert initiatives.pick_most_shelved(2, site) == [["/books/OL1M", 900], ["/books/OL2M", 800]]
+
+
+def test_most_shelved_takes_editions_without_an_isbn_when_the_isbn_is_asked_for(monkeypatch):
+    rows = [{"edition_id": 1, "work_id": 10, "readers": 900}, {"edition_id": 4, "work_id": 20, "readers": 600}]
+    site = FakeSite(editions=[FakeEdition("/books/OL1M", isbn_13=["1"]), FakeEdition("/books/OL4M", publish_date="1998")])
+    monkeypatch.setattr(initiatives.Bookshelves, "most_logged_editions_sync", lambda limit: rows)
+    monkeypatch.setattr(initiatives, "pick_most_read", lambda size, site=None: [])
+
+    assert initiatives.pick_most_shelved(2, site, fields=("isbn",)) == [["/books/OL4M", 600]]
 
 
 def test_untagged_works_are_picked_one_edition_each_and_only_while_a_tag_is_missing(monkeypatch):

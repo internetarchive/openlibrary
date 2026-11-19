@@ -54,6 +54,10 @@ def register_admin_page(path, cls, label=None, visible=True, librarians=False):
     admin_tasks.append(t)
 
 
+# `lists` is the pre-#12226 action; older changesets still carry it.
+LIST_CREATE_ACTIONS = ("lists", "create-list", "create-series")
+
+
 def revert_all_user_edits(account: Account) -> tuple[int, int]:
     """
     :return: tuple of (number of edits reverted, number of documents deleted)
@@ -65,11 +69,11 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
     while not stop:
         changes = account.get_recentchanges(limit=100, offset=100 * i)
         added_records: list[list[dict]] = [c.changes for c in changes if c.kind == "add-book"]
-        # Also delete lists `created` by this user
+        # Also delete lists and series `created` by this user
         added_records.extend(
             [r for r in c.changes if r.get("revision") == 1]  # created, not just edited
             for c in changes
-            if c.kind == "lists"
+            if c.kind in LIST_CREATE_ACTIONS
         )
         flattened_records: list[dict] = [record for lst in added_records for record in lst]
         keys_to_delete |= {r["key"] for r in flattened_records}
