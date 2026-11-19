@@ -38,7 +38,7 @@ def test_editing_cards_lead_with_edits_and_count_new_editors(request_lang):
         "tasks_saves_28d": {"latest": 280},
         "tasks_editors_28d": {"latest": 50},
     }
-    docs = day_docs(today, {"catalog_edits": 100})
+    docs = day_docs(today, {"catalog_edits": 110, "list_edits": 10})
     by_metric = {c["metric"]: c for c in loanstats.build_editing_cards(counts, docs, today)}
     assert list(by_metric) == ["edits", "editors", "new_editors", "tasks_share"]
     assert by_metric["editors"]["split"] == {"returning": "500", "first_time": "2,000", "first_time_width": 80.0}

@@ -24,7 +24,6 @@ export const DEFAULT_STRINGS = {
     returning: 'Returning',
     firstTime: 'First edit ever',
     otherEdits: 'Records and other pages',
-    lists: 'Lists',
     tasks: 'Tasks',
     total: 'Total: %(count)s',
     ofEdits: 'Of edits',
@@ -151,11 +150,9 @@ export async function init(root) {
     const token = (/** @type {string} */ name) => style.getPropertyValue(name).trim();
     const bar = resolveColor(root, 'var(--color-stats-chart-bar)');
     const accent = resolveColor(root, 'var(--color-stats-chart-accent)');
-    const muted = resolveColor(root, 'var(--color-stats-chart-muted)');
     const colors = {
         bar,
         accent,
-        muted,
         area: withAlpha(bar, 0.25),
         previous: resolveColor(root, 'var(--color-text-secondary)'),
         grid: token('--color-border-subtle'),
@@ -205,10 +202,10 @@ export async function init(root) {
      */
     function buildMetrics(n) {
         const series = (/** @type {string} */ key) => fullSeries(key).slice(0, n);
-        // Edits split by where they were saved. A day with edits but no list or Tasks count had none of those.
-        const edits = series('catalog_edits');
-        const orZero = (/** @type {(number | null)[]} */ values) => values.map((v, i) => (edits[i] === null ? null : (v ?? 0)));
-        const lists = orZero(series('list_edits'));
+        // Edits less list edits, split by where they were saved. A day with edits but no list or Tasks count had none of those.
+        const catalogEdits = series('catalog_edits');
+        const orZero = (/** @type {(number | null)[]} */ values) => values.map((v, i) => (catalogEdits[i] === null ? null : (v ?? 0)));
+        const edits = subtract(catalogEdits, orZero(series('list_edits')));
         const tasksSaves = orZero(series('tasks_saves_1d'));
 
         /**
@@ -246,8 +243,7 @@ export async function init(root) {
             },
             edits: size => {
                 const parts = [
-                    { label: strings.otherEdits, color: colors.bar, buckets: sum(subtract(edits, lists, tasksSaves), size) },
-                    { label: strings.lists, color: colors.muted, buckets: sum(lists, size) },
+                    { label: strings.otherEdits, color: colors.bar, buckets: sum(subtract(edits, tasksSaves), size) },
                     { label: strings.tasks, color: colors.accent, buckets: sum(tasksSaves, size) }
                 ];
                 return { parts, total: stackTotal(parts), format: 'count', complete: [edits] };

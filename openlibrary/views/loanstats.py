@@ -281,10 +281,18 @@ def day_keys(end: dt.date, days: int = 28) -> list[str]:
     return [(end - dt.timedelta(days=i)).strftime("counts-%Y-%m-%d") for i in range(days)]
 
 
+def edits_without_lists(docs: list[dict], days: list[str]) -> int | None:
+    "Catalog edits over `days`, less list edits: lists are their own kind of editing. A day without a list count had none."
+    if (edits := window_sum(docs, "catalog_edits", days)) is None:
+        return None
+    by_key = {d["_key"]: d for d in docs}
+    return max(0, edits - sum(by_key.get(day, {}).get("list_edits") or 0 for day in days))
+
+
 def build_editing_cards(counts: dict, docs: list[dict], today: dt.date) -> list[dict]:
     "The All editing cards, each on the trailing 28 days."
     editors, first_time = latest(counts, "catalog_editors_28d"), latest(counts, "new_catalog_editors_28d")
-    edits = window_sum(docs, "catalog_edits", day_keys(today))
+    edits = edits_without_lists(docs, day_keys(today))
     tasks_saves, tasks_editors = latest(counts, "tasks_saves_28d"), latest(counts, "tasks_editors_28d")
     split = None
     if editors and first_time is not None:
@@ -297,7 +305,7 @@ def build_editing_cards(counts: dict, docs: list[dict], today: dt.date) -> list[
         card(
             "edits",
             _("Edits"),
-            _("Edits saved by people, not bots: to books, works, authors and other pages, to lists, and from the Tasks page."),
+            _("Edits saved by people, not bots: to books, works, authors and other pages, and from the Tasks page. Lists aren't counted."),
             format_count(edits),
             detail=_("≈ %(count)s per editor", count=commify(round(edits / editors))) if edits and editors else "",
         ),
@@ -462,7 +470,6 @@ def build_tasks_stats_i18n() -> dict[str, str]:
         "returning": _("Returning"),
         "firstTime": _("First edit ever"),
         "otherEdits": _("Records and other pages"),
-        "lists": _("Lists"),
         "tasks": _("Tasks"),
         "total": _("Total: %(count)s"),
         "ofEdits": _("Of edits"),
@@ -489,7 +496,7 @@ def build_tasks_stats_page(scope: str = "all") -> dict:
     docs = get_count_docs(28)
     counts = rolling_counts(docs, keys)
     today = dt.date.today()
-    edits = window_sum(docs, "catalog_edits", day_keys(today))
+    edits = edits_without_lists(docs, day_keys(today))
     since = (today - dt.timedelta(days=27)).strftime("counts-%Y-%m-%d")
     return {
         "scope": scope if scope in SCOPES else "all",
