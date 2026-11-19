@@ -659,6 +659,12 @@
   --ol-popover-content-max-height: min(50vh, 360px);
 }
 
+/* Wider than a text answer: publisher names run long. The dd's grid would otherwise shrink it to the input's default size. */
+.contrib-autocomplete {
+  --ol-autocomplete-max-width: 36rem;
+  width: 100%;
+}
+
 /* The design playground's text field: the input border, radius and control height. */
 .contrib-input {
   width: 100%;

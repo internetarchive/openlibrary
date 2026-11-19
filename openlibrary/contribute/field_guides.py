@@ -82,6 +82,9 @@ class FieldGuide:
     # Sources the record brings in, ahead of the standing ones.
     loc_record: bool = False  # the Library of Congress record, when the edition has an LCCN
     isfdb: bool = False  # ISFDB, when the work is science fiction or fantasy
+    suggest_src: str = ""  # a text answer: where ol-autocomplete reads the values already in use, asked with ?q=
+    suggest_new: str = ""  # suggest_src only: what a value no record carries is called in the list
+    suggest_new_hint: str = ""  # suggest_src only: what the page says under such a value
     scan: str = ""  # what to look for in the Internet Archive scan, when the edition has one; %(link_start)s/%(link_end)s link it
 
 
@@ -230,6 +233,9 @@ def get_field_guides() -> dict[str, FieldGuide]:
                 ),
             ],
             placeholder=_("Publisher as printed"),
+            suggest_src="/publishers/_autocomplete",
+            suggest_new=_("Add “{value}” as a new publisher"),
+            suggest_new_hint=_("No other book uses this exact name. Check the spelling, or keep it if this is how the book prints it."),
         ),
         "publish_date": FieldGuide(
             field="publish_date",

@@ -1,0 +1,17 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    {% call ex.example("Publisher names", "Type three letters or more. Names already in the catalog appear with how many books carry each; arrow keys move through them and Enter picks one. Text that matches none is kept, and the field says it is new.",
+        code='<label for="publisher">Publisher</label>\n<ol-autocomplete\n  id="publisher"\n  name="publisher"\n  src="/publishers/_autocomplete"\n  min-length="3"\n  label-new="Add “{value}” as a new publisher"\n  hint-new="No other book uses this exact name.">\n</ol-autocomplete>') %}
+        <label for="demo-autocomplete">Publisher</label>
+        <ol-autocomplete id="demo-autocomplete" name="publisher" src="/publishers/_autocomplete" placeholder="Publisher as printed" label-suggestions="Names already in use" min-length="3" label-new="Add “{value}” as a new publisher" hint-new="No other book uses this exact name." style="--ol-autocomplete-max-width: 24rem">
+        </ol-autocomplete>
+        <p>
+            Value: <strong id="demo-autocomplete-out"></strong>
+        </p>
+        <script>
+            document.getElementById('demo-autocomplete').addEventListener('input', (e) => {
+                document.getElementById('demo-autocomplete-out').textContent = e.target.value;
+            });
+        </script>
+    {% endcall %}
+{% endmacro %}

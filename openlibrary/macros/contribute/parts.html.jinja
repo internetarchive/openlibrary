@@ -331,6 +331,10 @@
     {% elif languages %}
         <ol-options-popover id="contrib-other-value" class="contrib-picker" name="value" label="{{ _('Choose a language') }}" heading="{{ _('Languages') | upper }}" aria-label="{{ field_guide.label }}" placeholder="{{ _('Filter languages') }}" no-matches-label="{{ _('No matching language') }}" show-selection selected="{{ value }}" items='{{ languages | tojson }}'>
         </ol-options-popover>
+    {% elif field_guide.suggest_src %}
+        {#- Names already in the catalog as you type, each with how many books carry it, so one publisher is spelled one way. -#}
+        <ol-autocomplete id="contrib-other-value" class="contrib-autocomplete" name="value" src="{{ field_guide.suggest_src }}" value="{{ value }}" placeholder="{{ field_guide.placeholder }}" label-suggestions="{{ _('Names already in use') }}" min-length="3" label-new="{{ field_guide.suggest_new }}" hint-new="{{ field_guide.suggest_new_hint }}">
+        </ol-autocomplete>
     {% else %}
         <input id="contrib-other-value"
                type="{{ field_guide.input_type }}"

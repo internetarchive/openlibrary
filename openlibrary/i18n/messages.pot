@@ -8638,6 +8638,10 @@ msgid "No matching language"
 msgstr ""
 
 #: contribute/parts.html.jinja
+msgid "Names already in use"
+msgstr ""
+
+#: contribute/parts.html.jinja
 #, python-format
 msgid "And 1 more."
 msgid_plural "And %(count)d more."
@@ -8908,6 +8912,15 @@ msgstr ""
 
 #: openlibrary/contribute/field_guides.py
 msgid "Publisher as printed"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+#, python-brace-format
+msgid "Add “{value}” as a new publisher"
+msgstr ""
+
+#: openlibrary/contribute/field_guides.py
+msgid "No other book uses this exact name. Check the spelling, or keep it if this is how the book prints it."
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py
