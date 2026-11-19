@@ -225,8 +225,6 @@ export class BulkSearchState{
         ]
         /** @type {Number} */
         this._activeExtractorIndex = 0
-        /** @type {string[]} */
-        this.errorMessage = []
     }
 
     /**@type {AbstractExtractor} */
@@ -251,6 +249,5 @@ export class BulkSearchState{
     }
 
 }
-
 
 

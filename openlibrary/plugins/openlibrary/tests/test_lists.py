@@ -1,9 +1,37 @@
 import json
+from typing import Any, cast
 from unittest.mock import patch
 
 import pytest
 
-from openlibrary.plugins.openlibrary.lists import ListRecord
+from openlibrary.core.lists.model import AnnotatedSeedDict, List, ThingReferenceDict
+from openlibrary.plugins.openlibrary.lists import (
+    ListRecord,
+    _list_record_with_added_seeds,
+    _seed_identifier,
+)
+
+
+class FakeSeed:
+    def __init__(self, seed):
+        self.seed = seed
+
+    def to_json(self):
+        return self.seed
+
+
+class FakeList:
+    key = '/people/openlibrary/lists/OL1L'
+    name = 'Favorites'
+    description = 'Existing description'
+    comment_ = 'Existing comment'
+
+    def get_seeds(self):
+        return [
+            FakeSeed({'key': '/works/OL1W'}),
+            FakeSeed('subject:love'),
+            FakeSeed({'thing': {'key': '/books/OL3M'}, 'notes': 'Keep my note'}),
+        ]
 
 
 class TestListRecord:
@@ -106,3 +134,31 @@ class TestListRecord:
         assert f({"key": "/books/OL1M"}) == {"key": "/books/OL1M"}
         assert f("/subjects/love") == "subject:love"
         assert f("subject:love") == "subject:love"
+
+    def test_seed_identifier(self):
+        assert _seed_identifier('subject:love') == 'subject:love'
+        assert _seed_identifier(cast(ThingReferenceDict, {'key': '/works/OL1W'})) == '/works/OL1W'
+        assert _seed_identifier(cast(AnnotatedSeedDict, {'thing': {'key': '/books/OL1M'}})) == '/books/OL1M'
+
+    def test_list_record_with_added_seeds_flattens_and_deduplicates(self):
+        list_record = _list_record_with_added_seeds(
+            cast(List, FakeList()),
+            cast(Any, [
+                'OL1W, OL2W',
+                ('/subjects/love', {'key': '/books/OL3M'}, '/books/OL4M'),
+            ]),
+        )
+
+        assert list_record == ListRecord(
+            key='/people/openlibrary/lists/OL1L',
+            name='Favorites',
+            description='Existing description',
+            seeds=[
+                {'key': '/works/OL1W'},
+                'subject:love',
+                {'thing': {'key': '/books/OL3M'}, 'notes': 'Keep my note'},
+                {'key': '/works/OL2W'},
+                {'key': '/books/OL4M'},
+            ],
+            comment_='Existing comment',
+        )

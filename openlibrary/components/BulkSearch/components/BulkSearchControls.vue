@@ -32,40 +32,20 @@
               <h3> Extract Books</h3>
               <p><i>How to convert your books above into structured information, like title and author.</i></p>
             </div>
-            <label><strong> Extractor</strong> <br>
-              <div
-                class="custom-dropdown-trigger"
-                :class="{ open: extractorDropdownOpen }"
-                @click="toggleExtractorDropdown"
+            <label for="extractor-select"><strong> Extractor</strong> <br>
+              <select
+                id="extractor-select"
+                v-model.number="bulkSearchState._activeExtractorIndex"
+                class="extractor-select"
               >
-                <span>{{ bulkSearchState.extractors[bulkSearchState._activeExtractorIndex].label }}</span>
-                <svg
-                  class="arrow"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M7 10l5 5 5-5z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </div>
-              <div
-                v-if="extractorDropdownOpen"
-                class="custom-dropdown-menu"
-                :style="extractorDropdownStyle"
-              >
-                <div
+                <option
                   v-for="(extractor, index) in bulkSearchState.extractors"
                   :key="index"
-                  class="dropdown-item"
-                  @click="selectExtractor(index)"
+                  :value="index"
                 >
                   {{ extractor.label }}
-                </div>
-              </div>
+                </option>
+              </select>
             </label>
 
             <label v-if="showApiKey"><strong>OpenAI API Key</strong> <br>
@@ -133,50 +113,26 @@
             </div>
 
             <div class="list-actions">
-              <label>
+              <label for="save-to-list">
                 <strong>Save to</strong>
-                <div
-                  class="custom-dropdown-trigger"
-                  :class="{ open: listDropdownOpen, disabled: createListDisabled }"
-                  @click="toggleListDropdown"
+                <select
+                  id="save-to-list"
+                  v-model="selectedListTarget"
+                  class="list-select"
+                  :disabled="createListDisabled"
                 >
-                  <span>{{ selectedListLabel }}</span>
-                  <svg
-                    class="arrow"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M7 10l5 5 5-5z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </div>
-
-                <div
-                  v-if="listDropdownOpen"
-                  class="custom-dropdown-menu"
-                  :style="listDropdownStyle"
-                >
-                  <div
-                    class="dropdown-item"
-                    @click="selectOption('create', 'Create a new list')"
-                  >
+                  <option value="create">
                     Create a new list
-                  </div>
-                  <div class="dropdown-divider" />
-                  <div
+                  </option>
+                  <option
                     v-for="list in formattedUserLists"
                     :key="list.key"
-                    class="dropdown-item"
+                    :value="list.value"
                     :title="list.tooltip"
-                    @click="selectOption(list.value, list.label)"
                   >
                     {{ list.label }}
-                  </div>
-                </div>
+                  </option>
+                </select>
               </label>
 
               <p
@@ -203,14 +159,6 @@
         </div>
       </div>
     </div>
-    <div v-if="bulkSearchState.errorMessage">
-      <p
-        v-for="error in bulkSearchState.errorMessage"
-        :key="error"
-      >
-        {{ error }}
-      </p>
-    </div>
   </div>
 </template>
 
@@ -223,7 +171,6 @@ export default {
     props: {
         bulkSearchState: BulkSearchState
     },
-    emits: ['list-selected'],
     data() {
         return {
             selectedValue: '',
@@ -238,12 +185,6 @@ export default {
             listOptionsError: '',
             savingMatches: false,
             selectedListTarget: 'create',
-            restoredSelection: false,
-            listDropdownOpen: false,
-            selectedListLabel: 'Create a new list',
-            listDropdownStyle: {},
-            extractorDropdownOpen: false,
-            extractorDropdownStyle: {}
         }
     },
     computed: {
@@ -265,8 +206,9 @@ export default {
         },
         saveButtonDisabled() {
             if (this.savingMatches) return true
-            if (this.selectedListTarget === 'create') return this.createListDisabled
-            return this.matchBooksDisabled || !this.selectedListTarget
+            if (this.createListDisabled) return true
+            if (this.selectedListTarget === 'create') return false
+            return !this.selectedListTarget
         },
         saveButtonText() {
             if (this.savingMatches) return 'Saving...'
@@ -299,72 +241,12 @@ export default {
             if (newValue!==''){
                 this.bulkSearchState.inputText = newValue;
             }
-        },
-        selectedListTarget(newValue) {
-            this.$emit('list-selected', newValue)
         }
     },
     mounted() {
         this.loadUserLists()
-        document.addEventListener('click', this.closeDropdown)
-        window.addEventListener('scroll', this.closeDropdown, true)
-        window.addEventListener('resize', this.closeDropdown)
-    },
-    beforeUnmount() {
-        document.removeEventListener('click', this.closeDropdown)
-        window.removeEventListener('scroll', this.closeDropdown, true)
-        window.removeEventListener('resize', this.closeDropdown)
     },
     methods: {
-        toggleListDropdown(e) {
-            e.stopPropagation()
-            if (this.createListDisabled) return // Don't allow interaction when disabled
-            if (this.listDropdownOpen) {
-                this.closeDropdown()
-                return
-            }
-            this.closeDropdown() // Close others
-            const rect = e.currentTarget.getBoundingClientRect()
-            this.listDropdownStyle = {
-                position: 'fixed',
-                top: `${rect.bottom + 4}px`,
-                left: `${rect.left}px`,
-                width: `${rect.width}px`,
-                zIndex: 9999
-            }
-            this.listDropdownOpen = true
-        },
-        toggleExtractorDropdown(e) {
-            e.stopPropagation()
-            if (this.extractorDropdownOpen) {
-                this.closeDropdown()
-                return
-            }
-            this.closeDropdown() // Close others
-
-            const rect = e.currentTarget.getBoundingClientRect()
-            this.extractorDropdownStyle = {
-                position: 'fixed',
-                top: `${rect.bottom + 4}px`,
-                left: `${rect.left}px`,
-                width: `${rect.width}px`,
-                zIndex: 9999
-            }
-            this.extractorDropdownOpen = true
-        },
-        closeDropdown() {
-            this.listDropdownOpen = false
-            this.extractorDropdownOpen = false
-        },
-        selectExtractor(index) {
-            this.bulkSearchState._activeExtractorIndex = index
-            this.closeDropdown()
-        },
-        selectOption(value, label) {
-            this.selectedListTarget = value
-            this.selectedListLabel = label
-            this.closeDropdown()
-        },
         togglePasswordVisibility(){
             this.showPassword= !this.showPassword
         },
@@ -420,7 +302,7 @@ export default {
             }
         },
         async saveMatches() {
-            if (this.savingMatches || this.matchBooksDisabled || this.createListDisabled) return
+            if (this.savingMatches || this.createListDisabled) return
 
             if (this.selectedListTarget === 'create') {
                 this.savingMatches = true
@@ -446,20 +328,7 @@ export default {
                 return
             }
 
-            const form = document.createElement('form')
-            form.method = 'POST'
-            form.action = '/account/lists/add'
-            form.target = '_blank'
-
-            const seedsInput = document.createElement('input')
-            seedsInput.type = 'hidden'
-            seedsInput.name = 'seeds'
-            seedsInput.value = this.bulkSearchState.listString
-            form.appendChild(seedsInput)
-
-            document.body.appendChild(form)
-            form.submit()
-            document.body.removeChild(form)
+            this.submitSeedsForm('/account/lists/add', this.bulkSearchState.listString)
         },
         async saveToExistingList() {
             if (!this.selectedListTarget || this.selectedListTarget === 'create') {
@@ -475,11 +344,28 @@ export default {
             }
 
             this.listOptionsError = ''
-            const listUrl = `${this.selectedListTarget}?seeds=${encodeURIComponent(seeds)}`
-            window.open(listUrl, '_blank')
+            if (this.bulkSearchState.matchedBooks.length < 50) {
+                window.open(`${this.selectedListTarget}?seeds=${encodeURIComponent(seeds)}`, '_blank')
+                return
+            }
+
+            this.submitSeedsForm(this.selectedListTarget, seeds)
         },
-        canUseLocalStorage() {
-            return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+        submitSeedsForm(action, seeds) {
+            const form = document.createElement('form')
+            form.method = 'POST'
+            form.action = action
+            form.target = '_blank'
+
+            const seedsInput = document.createElement('input')
+            seedsInput.type = 'hidden'
+            seedsInput.name = 'seeds'
+            seedsInput.value = seeds
+            form.appendChild(seedsInput)
+
+            document.body.appendChild(form)
+            form.submit()
+            document.body.removeChild(form)
         }
     }
 }
@@ -573,16 +459,15 @@ textarea {
     user-select: none;
 }
 
-.custom-dropdown-trigger.disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-
 .api-key-bar{
     width:100%;
     box-sizing:border-box;
+}
+
+.extractor-select,
+.list-select {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .list-actions {
@@ -605,75 +490,4 @@ textarea {
   color: #046c9c;
 }
 
-.custom-dropdown-trigger {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #fff;
-  color: #111827;
-  font-size: 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  box-sizing: border-box;
-  font-family: inherit;
-
-  &:hover {
-    border-color: #9ca3af;
-  }
-
-  &.open {
-    border-color: #0376b8;
-    box-shadow: 0 0 0 3px rgba(3, 118, 184, 0.1);
-  }
-
-  .arrow {
-    transition: transform 0.2s ease;
-  }
-
-  &.open .arrow {
-    transform: rotate(180deg);
-  }
-}
-
-.custom-dropdown-menu {
-  /* Position is handled dynamically via inline styles */
-  background-color: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  /* margin-top removed as we position exactly */
-  padding: 0;
-  padding: 0;
-  max-height: 160px; /* Approx 4 items */
-  overflow-y: auto;
-  z-index: 10;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.dropdown-item {
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: background 0.15s ease;
-  font-size: 14px;
-  color: #111827;
-  border-bottom: 1px solid #eee;
-
-  &:hover {
-    background-color: #f3f4f6;
-  }
-}
-
-.dropdown-item:last-child {
-  border-bottom: none;
-}
-
-.dropdown-divider {
-  height: 1px;
-  background-color: #e5e7eb;
-  margin: 0;
-}
 </style>

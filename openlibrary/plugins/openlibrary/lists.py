@@ -55,6 +55,7 @@ Seed = ThingReferenceDict | SeedSubjectString | AnnotatedSeedDict
 The JSON-friendly seed representation (as opposed to `openlibrary.core.lists.model.Seed`).
 Can either a thing reference, a subject key, or an annotated seed.
 """
+SeedInput = ThingReferenceDict | AnnotatedSeedDict | str | list[Seed] | tuple[Seed, ...] | None
 
 
 @dataclass
@@ -67,14 +68,7 @@ class ListRecord:
 
     @staticmethod
     def _flatten_seeds(
-        seeds: (
-            ThingReferenceDict
-            | AnnotatedSeedDict
-            | str
-            | list[Seed]
-            | tuple[Seed, ...]
-            | None
-        ),
+        seeds: SeedInput,
     ):
         if seeds is None:
             return
@@ -230,7 +224,7 @@ def get_list_data(list, seed, include_cover_url=True):
             "name": list.name or "",
             "key": list.key,
             "url": list.url(),
-            "add_url": list.url("/edit"),
+            "add_url": list.url("/add"),
             "active": list.has_seed(seed) if seed else False,
             "list_items": list_items,
         }
@@ -269,6 +263,31 @@ def _seed_identifier(seed: Seed) -> str | None:
         thing_ref = cast(ThingReferenceDict, seed)
         return thing_ref['key']
     return None
+
+
+def _list_record_with_added_seeds(lst: List, seeds: SeedInput) -> ListRecord:
+    existing_seed_json = [seed.to_json() for seed in lst.get_seeds()]
+    existing_identifiers = {
+        ident
+        for seed in existing_seed_json
+        if (ident := _seed_identifier(seed))
+    }
+
+    combined_seeds: list[Seed] = list(existing_seed_json)
+    for seed in ListRecord._flatten_seeds(seeds):
+        normalized_seed = ListRecord.normalize_input_seed(seed)
+        identifier = _seed_identifier(normalized_seed)
+        if identifier and identifier not in existing_identifiers:
+            combined_seeds.append(normalized_seed)
+            existing_identifiers.add(identifier)
+
+    return ListRecord(
+        key=lst.key,
+        name=lst.name or "",
+        description=lst.description or "",
+        seeds=combined_seeds,
+        comment_=getattr(lst, "comment_", ""),
+    )
 
 
 class account_user_lists(delegate.page):
@@ -360,33 +379,7 @@ class lists_edit(delegate.page):
         i = web.input(seeds=None)
 
         if seeds_param := i.get('seeds'):
-            incoming_seeds = list(ListRecord._flatten_seeds(seeds_param))
-
-            existing_seed_json = [seed.to_json() for seed in lst.get_seeds()]
-            existing_identifiers = {
-                ident
-                for seed in existing_seed_json
-                if (ident := _seed_identifier(seed))
-            }
-
-            normalized_new_seeds = [
-                ListRecord.normalize_input_seed(seed) for seed in incoming_seeds
-            ]
-
-            combined_seeds: list[Seed] = list(existing_seed_json)
-            for seed in normalized_new_seeds:
-                identifier = _seed_identifier(seed)
-                if identifier and identifier not in existing_identifiers:
-                    combined_seeds.append(seed)
-                    existing_identifiers.add(identifier)
-
-            list_record = ListRecord(
-                key=lst.key,
-                name=lst.name or "",
-                description=lst.description or "",
-                seeds=combined_seeds,
-                comment_=getattr(lst, "comment_", ""),
-            )
+            list_record = _list_record_with_added_seeds(lst, seeds_param)
             return render_template("type/list/edit", list_record, new=False)
 
         return render_template("type/list/edit", lst, new=False)
@@ -464,46 +457,11 @@ class lists_add(delegate.page):
                     f"Permission denied to edit {list_key}.",
                 )
 
-            seeds_param = i.get('seeds')
-            incoming_seeds = list(ListRecord._flatten_seeds(seeds_param))
-
-            existing_seed_json = [seed.to_json() for seed in lst.get_seeds()]
-            existing_identifiers = {
-                ident
-                for seed in existing_seed_json
-                if (ident := _seed_identifier(seed))
-            }
-
-            normalized_new_seeds = [
-                ListRecord.normalize_input_seed(seed) for seed in incoming_seeds
-            ]
-
-            combined_seeds: list[Seed] = list(existing_seed_json)
-            for seed in normalized_new_seeds:
-                identifier = _seed_identifier(seed)
-                if identifier and identifier not in existing_identifiers:
-                    combined_seeds.append(seed)
-                    existing_identifiers.add(identifier)
-
-            list_record = ListRecord(
-                key=lst.key,
-                name=lst.name or "",
-                description="",
-                seeds=combined_seeds,
-                comment_=getattr(lst, "comment_", ""),
-            )
-
-            current_path = web.ctx.path
-            if current_path.endswith("/add"):
-                action_path = lst.url("/edit")
-            else:
-                action_path = f"{lst.key}/edit"
-
             return render_template(
                 "type/list/edit",
-                list_record,
+                _list_record_with_added_seeds(lst, i.get('seeds')),
                 new=False,
-                action=action_path,
+                action=lst.url("/edit"),
             )
 
         if user_key and not web.ctx.site.can_write(user_key):
@@ -517,8 +475,30 @@ class lists_add(delegate.page):
         return render_template("type/list/edit", list_record, new=True)
 
     def POST(self, user_key: str | None, list_id: str | None):  # type: ignore[override]
-        list_key = f"/lists/{list_id}" if list_id else None
-        return lists_edit().POST(user_key, list_key)
+        if list_id:
+            list_key = f"/lists/{list_id}"
+            if user_key:
+                list_key = f"{user_key}{list_key}"
+
+            lst = cast(List | None, web.ctx.site.get(list_key))
+            if lst is None or lst.type.key != "/type/list":
+                raise web.notfound()
+
+            if not web.ctx.site.can_write(list_key):
+                return render_template(
+                    "permission_denied",
+                    web.ctx.fullpath,
+                    f"Permission denied to edit {list_key}.",
+                )
+
+            return render_template(
+                "type/list/edit",
+                _list_record_with_added_seeds(lst, ListRecord.from_input().seeds),
+                new=False,
+                action=lst.url("/edit"),
+            )
+
+        return lists_edit().POST(user_key, None)
 
 
 class lists_delete(delegate.page):
