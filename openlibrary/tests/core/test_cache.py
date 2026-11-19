@@ -8,6 +8,7 @@ import pytest
 
 from openlibrary.core import cache
 from openlibrary.mocks import mock_memcache
+from openlibrary.utils import server_timing
 
 
 class Test_memcache_memoize:
@@ -117,6 +118,94 @@ class Test_memcache_memoize:
 
         assert await m.call_many_async([], square_async) == []
         assert m.stats.calls == 0
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("operation", ["get_multi", "set_multi"])
+    @pytest.mark.parametrize("fails", [False, True])
+    async def test_bulk_memcache_stats_are_balanced_in_worker(self, monkeypatch, operation, fails):
+        m = self.square_memoize()
+        calls = []
+
+        def begin(name, **kwargs):
+            with pytest.raises(RuntimeError, match="no running event loop"):
+                asyncio.get_running_loop()
+            calls.append(("begin", name, threading.get_ident()))
+
+        def end(**kwargs):
+            calls.append(("end", kwargs, threading.get_ident()))
+
+        monkeypatch.setattr(cache.stats, "begin", begin)
+        monkeypatch.setattr(cache.stats, "end", end)
+        if fails:
+
+            def fail(*args):
+                raise RuntimeError("memcache unavailable")
+
+            monkeypatch.setattr(m.memcache, operation, fail)
+
+        if operation == "get_multi":
+            assert await asyncio.to_thread(m._memcache_get_multi, [(2,)]) == {}
+        else:
+            await asyncio.to_thread(m._memcache_set_multi, {(2,): (4, time.time())})
+
+        assert len(calls) == 2
+        assert calls[0][:2] == ("begin", f"memcache.{operation}")
+        assert calls[1][0] == "end"
+        assert calls[0][2] == calls[1][2]
+
+    @pytest.mark.asyncio
+    async def test_call_many_async_records_request_memcache_timings(self):
+        m = self.square_memoize()
+        server_timing.install_legacy_bridge()
+        timings, token = server_timing.start_request()
+
+        async def square_async(x):
+            return x * x
+
+        try:
+            assert await m.call_many_async([(2,)], square_async) == [4]
+            assert await m.call_many_async([(2,)], square_async) == [4]
+            metrics = timings.snapshot()
+            assert metrics["memcache"][0] == 3  # cold get/set, then warm get
+            assert "blocking" not in metrics
+        finally:
+            server_timing.end_request(token)
+
+    @pytest.mark.asyncio
+    async def test_call_many_async_failure_cancels_and_awaits_siblings(self):
+        m = self.square_memoize()
+        sibling_started = asyncio.Event()
+        sibling_finished = asyncio.Event()
+        completed = []
+        sibling_tasks = []
+        failure = ValueError("unexpected computation failure")
+
+        async def compute(x):
+            if x == 1:
+                completed.append(x)
+                return x * x
+            if x == 2:
+                await sibling_started.wait()
+                raise failure
+            sibling_tasks.append(asyncio.current_task())
+            sibling_started.set()
+            try:
+                await asyncio.Event().wait()
+            finally:
+                sibling_finished.set()
+
+        try:
+            with pytest.raises(ValueError, match="unexpected computation failure") as exc:
+                await m.call_many_async([(1,), (2,), (3,)], compute)
+            assert exc.value is failure
+            assert completed == [1]
+            assert sibling_finished.is_set()
+            assert all(task.cancelled() for task in sibling_tasks)
+            assert m.memcache.get(m.compute_key((1,), {})) is None
+        finally:
+            for task in sibling_tasks:
+                task.cancel()
+            await asyncio.gather(*sibling_tasks, return_exceptions=True)
 
     @pytest.mark.asyncio
     async def test_call_many_async_invalid_concurrency(self):
@@ -368,6 +457,38 @@ class Test_memcache_memoize:
         res2 = await m.call_many_async([("item",)], fetch_empty)
         assert res2 == [{}]
         assert call_count == 1
+
+
+def test_background_refresh_tasks_are_scoped_per_loop():
+    m = cache.memcache_memoize(lambda x: x, key_prefix="loop-isolation")
+    m._memcache = mock_memcache.Client([])
+    m.memcache_set((1,), {}, 1, time.time() - 3600)
+
+    async def start_refresh():
+        started = asyncio.Event()
+        release = asyncio.Event()
+
+        async def compute(x):
+            started.set()
+            await release.wait()
+            return x + 1
+
+        assert await m.call_many_async([(1,)], compute) == [1]
+        await started.wait()
+        return release
+
+    async def finish_refresh(release):
+        release.set()
+        await cache.wait_for_background_tasks()
+
+    with asyncio.Runner() as first, asyncio.Runner() as second:
+        release = first.run(start_refresh())
+        try:
+            second.run(cache.wait_for_background_tasks())
+            assert m.memcache_get((1,), {})[0] == 1
+        finally:
+            first.run(finish_refresh(release))
+        assert m.memcache_get((1,), {})[0] == 2
 
 
 class Test_memoize:

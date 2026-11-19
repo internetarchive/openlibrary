@@ -41,14 +41,18 @@ DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
 
 logger = logging.getLogger("openlibrary.cache")
 
-# Strong references to fire-and-forget refresh tasks, so they aren't garbage collected mid-flight.
-_background_tasks: set[asyncio.Task] = set()
+
+@cache_per_event_loop
+def _background_tasks() -> set[asyncio.Task[None]]:
+    """Keep refresh tasks alive without letting another loop await them."""
+    return set()
 
 
 async def wait_for_background_tasks() -> None:
     """Waits for all in-flight background refresh tasks to complete. Primarily used in tests."""
-    while _background_tasks:
-        await asyncio.gather(*list(_background_tasks), return_exceptions=True)
+    tasks = _background_tasks()
+    while tasks:
+        await asyncio.gather(*list(tasks), return_exceptions=True)
 
 
 P = ParamSpec("P")
@@ -156,6 +160,8 @@ class memcache_memoize[**P, T]:
         Memcache is read and written with one multi-key call each, in a worker thread
         (the memcache client is blocking). As with ``self(...)``, a value older than
         ``self.timeout`` is returned as-is and refreshed in the background.
+        Unexpected computation failures propagate after unfinished siblings are
+        cancelled and awaited; this generic helper does not cache error placeholders.
         """
         if max_concurrency < 1:
             raise ValueError(f"max_concurrency must be at least 1, got {max_concurrency}")
@@ -178,7 +184,16 @@ class memcache_memoize[**P, T]:
         misses = list(dict.fromkeys(args for args in args_list if args not in cached))
         computed: dict[tuple, T] = {}
         if misses:
-            computed_items = await asyncio.gather(*(compute(args) for args in misses))
+            miss_tasks = [asyncio.create_task(compute(args)) for args in misses]
+            try:
+                computed_items = await asyncio.gather(*miss_tasks)
+            except BaseException:
+                # gather propagates failures without stopping siblings. Finish their
+                # cancellation before returning control to the failed caller.
+                for miss_task in miss_tasks:
+                    miss_task.cancel()
+                await asyncio.gather(*miss_tasks, return_exceptions=True)
+                raise
             computed = dict(computed_items)
             now = time.time()
             await asyncio.to_thread(self._memcache_set_multi, {args: (val, now) for args, val in computed.items()})
@@ -187,8 +202,9 @@ class memcache_memoize[**P, T]:
         if stale:
             self.stats.async_updates += sum(1 for args in args_list if args in cached and cached[args][1] + self.timeout < time.time())
             task = asyncio.create_task(self._refresh_async(stale, f_async, semaphore))
-            _background_tasks.add(task)
-            task.add_done_callback(_background_tasks.discard)
+            background_tasks = _background_tasks()
+            background_tasks.add(task)
+            task.add_done_callback(background_tasks.discard)
 
         return [computed[args] if args in computed else cached[args][0] for args in args_list]
 
@@ -251,11 +267,15 @@ class memcache_memoize[**P, T]:
     def _memcache_get_multi(self, args_list: list[tuple]) -> dict[tuple, tuple[T, float]]:
         """The cached (value, time) for each of ``args_list`` found in memcache, in one round trip."""
         keys = {self.compute_key(args, {}): args for args in args_list}
+        found = {}
+        stats.begin("memcache.get_multi")
         try:
             found = self.memcache.get_multi(list(keys))
         except Exception:
             logger.exception("memcache get_multi failed; treating all keys as misses")
             return {}
+        finally:
+            stats.end(hit=bool(found))
 
         result: dict[tuple, tuple[T, float]] = {}
         for key, raw in found.items():
@@ -281,12 +301,15 @@ class memcache_memoize[**P, T]:
         for args, (value, t) in values.items():
             key = self.compute_key(args, {})
             mapping[key] = self.json_encode([value, t])
+        stats.begin("memcache.set_multi")
         try:
             failed_keys = self.memcache.set_multi(mapping)
             if failed_keys:
                 logger.warning("memcache set_multi could not set keys: %s", failed_keys)
         except Exception:
             logger.exception("memcache set_multi failed; returning fetched data anyway")
+        finally:
+            stats.end()
 
     def update_async(self, *args: P.args, **kw: P.kwargs) -> None:
         """Starts the update process asynchronously."""
