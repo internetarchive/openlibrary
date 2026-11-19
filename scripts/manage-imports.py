@@ -9,12 +9,14 @@ import os
 import sys
 import time
 
+from infogami import config
 from openlibrary.api import OLError, OpenLibrary
 from openlibrary.config import load_config
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.ia import get_candidate_ocaids
 from openlibrary.core.imports import Batch, ImportItem
 from openlibrary.utils.retry import RetryStrategy
+from openlibrary.utils.sentry import init_sentry
 
 logger = logging.getLogger("openlibrary.importer")
 
@@ -41,10 +43,19 @@ def get_ol(servername: str) -> OpenLibrary:
     return ol
 
 
-def init_import_worker(configfile: str, session_cookie: str) -> None:
+def setup_sentry() -> None:
+    # Errors still become events; Sentry Logs would also ship the per-item
+    # INFO/WARNING chatter for every import.
+    init_sentry(getattr(config, "sentry", {}) | {"enable_logs": False})
+
+
+def init_import_worker(configfile: str, cookie: str) -> None:
     global _session_cookie
     load_config(configfile)
-    _session_cookie = session_cookie
+    # Pool workers are spawned fresh (forkserver), not forked, so they don't
+    # inherit the parent's Sentry client.
+    setup_sentry()
+    _session_cookie = cookie
 
 
 def ol_import_request(item, retries=5, servername=None, require_marc=True):
@@ -81,7 +92,8 @@ def do_import(item, servername=None, require_marc=True):
                 item.set_status(edition["status"], ol_key=edition["key"])
             else:
                 error_code = d.get("error_code", "unknown-error")
-                logger.error(f"failed with error code: {error_code}")
+                # Routine rejections (e.g. validation errors); not Sentry-worthy.
+                logger.warning(f"failed with error code: {error_code}")
                 item.set_status("failed", error=error_code)
         else:
             logger.error(f"failed with internal error: {response}")
@@ -221,8 +233,7 @@ def main():
         )
 
     load_config(configfile)
-
-    from infogami import config
+    setup_sentry()
 
     cmd = sys.argv[1]
     args, flags = [], {"servername": config.get("servername", "https://openlibrary.org"), "configfile": configfile}
