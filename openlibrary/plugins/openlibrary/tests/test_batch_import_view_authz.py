@@ -69,7 +69,7 @@ def _patches(db_mock, user):
         patch.object(
             code.web,
             "input",
-            lambda **kw: types.SimpleNamespace(page="1", limit="10", sort="added_time asc", status=""),
+            lambda **kw: types.SimpleNamespace(page="1", limit="10", sort="added_time asc", status="", error=""),
         ),
         patch.object(code.web, "notfound", _NotFound),
         patch.object(code.Batch, "list_summaries", MagicMock(return_value=(0, []))),

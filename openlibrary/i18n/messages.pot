@@ -228,6 +228,10 @@ msgid "Submit Time:"
 msgstr ""
 
 #: batch_import_view.html
+msgid "(no error)"
+msgstr ""
+
+#: batch_import_view.html
 msgid "Status Summary"
 msgstr ""
 

@@ -486,12 +486,17 @@ class BatchImportView(delegate.page):
         if batch is None:
             raise web.notfound()
 
-        i = web.input(page=1, limit=10, sort="added_time asc", status="")
+        i = web.input(page=1, limit=10, sort="added_time asc", status="", error="")
         page = int(i.page)
         limit = int(i.limit)
         sort = i.sort
         status = i.status if i.status in IMPORT_ITEM_STATUSES else None
-        items_where = "batch_id=$batch_id" + (" AND status=$status" if status else "")
+        error = i.error or None
+        items_where = "batch_id=$batch_id"
+        if status:
+            items_where += " AND status=$status"
+        if error:
+            items_where += " AND error=$error"
 
         valid_sort_fields = ["added_time", "import_time", "status"]
         sort_field, sort_order = sort.split()
@@ -520,6 +525,12 @@ class BatchImportView(delegate.page):
                 vars=locals(),
             )
         )
+        error_counts = list(
+            db.query(
+                "SELECT error, COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id AND status='failed' GROUP BY error ORDER BY count DESC, error",
+                vars=locals(),
+            )
+        )
 
         return render_template(
             "batch_import_view.html",
@@ -530,7 +541,9 @@ class BatchImportView(delegate.page):
             limit=limit,
             sort=sort,
             status_counts=status_counts,
+            error_counts=error_counts,
             status=status,
+            error=error,
         )
 
 
