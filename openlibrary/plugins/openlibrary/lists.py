@@ -122,7 +122,7 @@ class ListRecord:
         }
         if data := web.data():
             # If the requests has data, parse it and use it to populate the list
-            if web.ctx.env.get('CONTENT_TYPE') == 'application/json':
+            if getattr(web.ctx, 'env', {}).get('CONTENT_TYPE') == 'application/json':
                 i = {} | DEFAULTS | json.loads(data)
             else:
                 form_data = {
@@ -295,8 +295,14 @@ class account_user_lists(delegate.page):
     encoding = "json"
     content_type = "application/json"
 
-    @require_login
     def GET(self):
+        if not get_current_user():
+            raise web.HTTPError(
+                "401 Unauthorized",
+                data=json.dumps({"message": "Authentication required."}),
+                headers={"Content-Type": self.content_type},
+            )
+
         user_lists = get_user_lists(None)
         serializable_lists = []
         for user_list in user_lists:
@@ -411,7 +417,7 @@ class lists_edit(delegate.page):
         )
 
         # If content type json, return json response
-        if web.ctx.env.get('CONTENT_TYPE') == 'application/json':
+        if getattr(web.ctx, 'env', {}).get('CONTENT_TYPE') == 'application/json':
             return delegate.RawText(json.dumps({'key': list_record.key}))
         else:
             return safe_seeother(list_record.key)
@@ -438,24 +444,31 @@ class lists_add_account(delegate.page):
 class lists_add(delegate.page):
     path = r"(/people/[^/]+)?/lists(?:/(OL\d+L)(?:/[^/]+)?)?/add"
 
+    def _get_list_or_permission_error(self, user_key: str | None, list_id: str):
+        list_key = f"/lists/{list_id}"
+        if user_key:
+            list_key = f"{user_key}{list_key}"
+
+        lst = cast(List | None, web.ctx.site.get(list_key))
+        if lst is None or lst.type.key != "/type/list":
+            raise web.notfound()
+
+        if not web.ctx.site.can_write(list_key):
+            return None, render_template(
+                "permission_denied",
+                web.ctx.fullpath,
+                f"Permission denied to edit {list_key}.",
+            )
+
+        return lst, None
+
     def GET(self, user_key: str | None, list_id: str | None):  # type: ignore[override]
         i = web.input(seeds=None)
 
         if list_id:
-            list_key = f"/lists/{list_id}"
-            if user_key:
-                list_key = f"{user_key}{list_key}"
-
-            lst = cast(List | None, web.ctx.site.get(list_key))
-            if lst is None or lst.type.key != "/type/list":
-                raise web.notfound()
-
-            if not web.ctx.site.can_write(list_key):
-                return render_template(
-                    "permission_denied",
-                    web.ctx.fullpath,
-                    f"Permission denied to edit {list_key}.",
-                )
+            lst, permission_error = self._get_list_or_permission_error(user_key, list_id)
+            if permission_error:
+                return permission_error
 
             return render_template(
                 "type/list/edit",
@@ -476,20 +489,9 @@ class lists_add(delegate.page):
 
     def POST(self, user_key: str | None, list_id: str | None):  # type: ignore[override]
         if list_id:
-            list_key = f"/lists/{list_id}"
-            if user_key:
-                list_key = f"{user_key}{list_key}"
-
-            lst = cast(List | None, web.ctx.site.get(list_key))
-            if lst is None or lst.type.key != "/type/list":
-                raise web.notfound()
-
-            if not web.ctx.site.can_write(list_key):
-                return render_template(
-                    "permission_denied",
-                    web.ctx.fullpath,
-                    f"Permission denied to edit {list_key}.",
-                )
+            lst, permission_error = self._get_list_or_permission_error(user_key, list_id)
+            if permission_error:
+                return permission_error
 
             return render_template(
                 "type/list/edit",

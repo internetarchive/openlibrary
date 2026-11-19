@@ -138,12 +138,15 @@
               <p
                 v-if="listOptionsLoading"
                 class="list-message"
+                role="status"
+                aria-live="polite"
               >
                 Loading your lists...
               </p>
               <p
                 v-else-if="listOptionsError"
                 class="list-message list-message-error"
+                role="alert"
               >
                 {{ listOptionsError }}
               </p>
@@ -166,6 +169,7 @@
 import {sampleData} from '../utils/samples.js';
 import { BulkSearchState} from '../utils/classes.js';
 import { buildSearchUrl } from '../utils/searchUtils.js'
+import { getListSaveAction } from '../utils/listSave.js'
 
 export default {
     props: {
@@ -292,6 +296,15 @@ export default {
                     return
                 }
 
+                const contentType = response.headers.get('content-type') || ''
+                if (!contentType.includes('application/json')) {
+                    this.listOptionsError = response.redirected || response.url.includes('/account/login')
+                        ? 'Sign in to add books to an existing list.'
+                        : 'Unable to load your lists.'
+                    this.userLists = []
+                    return
+                }
+
                 const data = await response.json()
                 this.userLists = data.lists || []
             } catch (error) {
@@ -304,52 +317,29 @@ export default {
         async saveMatches() {
             if (this.savingMatches || this.createListDisabled) return
 
-            if (this.selectedListTarget === 'create') {
-                this.savingMatches = true
-                try {
-                    this.saveToNewList()
-                } finally {
-                    this.savingMatches = false
+            this.savingMatches = true
+            try {
+                const saveAction = getListSaveAction(
+                    this.selectedListTarget,
+                    this.bulkSearchState.listString,
+                    this.bulkSearchState.matchedBooks.length,
+                    this.bulkSearchState.listUrl
+                )
+
+                if (saveAction.error) {
+                    this.listOptionsError = saveAction.error
+                    return
                 }
-            } else {
-                this.savingMatches = true
-                try {
-                    await this.saveToExistingList()
-                } finally {
-                    this.savingMatches = false
+
+                this.listOptionsError = ''
+                if (saveAction.method === 'GET') {
+                    window.open(saveAction.url, '_blank')
+                } else {
+                    this.submitSeedsForm(saveAction.action, saveAction.seeds)
                 }
+            } finally {
+                this.savingMatches = false
             }
-        },
-        saveToNewList() {
-            if (!this.bulkSearchState.seedKeys.length) return
-
-            if (this.bulkSearchState.matchedBooks.length < 50) {
-                window.open(this.bulkSearchState.listUrl, '_blank')
-                return
-            }
-
-            this.submitSeedsForm('/account/lists/add', this.bulkSearchState.listString)
-        },
-        async saveToExistingList() {
-            if (!this.selectedListTarget || this.selectedListTarget === 'create') {
-                this.listOptionsError = 'Please select a list.'
-                return
-            }
-
-            const seeds = this.bulkSearchState.listString
-
-            if (!seeds) {
-                this.listOptionsError = 'No matched books to add.'
-                return
-            }
-
-            this.listOptionsError = ''
-            if (this.bulkSearchState.matchedBooks.length < 50) {
-                window.open(`${this.selectedListTarget}?seeds=${encodeURIComponent(seeds)}`, '_blank')
-                return
-            }
-
-            this.submitSeedsForm(this.selectedListTarget, seeds)
         },
         submitSeedsForm(action, seeds) {
             const form = document.createElement('form')
@@ -484,10 +474,6 @@ textarea {
 
 .list-message-error {
   color: #c0392b;
-}
-
-.list-message-hint {
-  color: #046c9c;
 }
 
 </style>
