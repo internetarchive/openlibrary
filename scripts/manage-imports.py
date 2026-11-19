@@ -80,7 +80,10 @@ def do_import(item, servername=None, require_marc=True):
             error_code = result.get("error_code") or failure_reason or "unknown-error"
         else:
             error_code = failure_reason or "bad-response"
-        logger.error("failed with error code: %s", error_code)
+        if response is not None and (not isinstance(result, dict) or result.get("success")):
+            logger.error("failed with error code: %s; response: %s", error_code, response)
+        else:
+            logger.error("failed with error code: %s", error_code)
         item.set_status("failed", error=error_code)
     logger.info(f"do_import END (pid:{os.getpid()})")
 

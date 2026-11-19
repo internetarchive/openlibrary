@@ -61,6 +61,25 @@ def test_import_records_bad_responses(import_item, import_client, response):
     import_item.set_status.assert_called_once_with("failed", error="bad-response")
 
 
+@pytest.mark.parametrize("response", ["upstream returned unexpected HTML", '{"success": true, "edition": {}}'])
+def test_import_logs_unusable_response(import_item, import_client, caplog, response):
+    import_client.import_data.return_value = response
+
+    manage_imports.do_import(import_item)
+
+    assert f"failed with error code: bad-response; response: {response}" in caplog.text
+    import_item.set_status.assert_called_once_with("failed", error="bad-response")
+
+
+def test_import_logs_unusable_http_error_response(import_item, import_client, caplog):
+    import_client.import_data.side_effect = http_error(400, "unexpected HTML")
+
+    manage_imports.do_import(import_item)
+
+    assert "failed with error code: http-4xx:400; response: unexpected HTML" in caplog.text
+    import_item.set_status.assert_called_once_with("failed", error="http-4xx:400")
+
+
 def test_import_preserves_api_error_code_from_http_error(import_item, import_client):
     import_client.import_data.side_effect = http_error(400, '{"success": false, "error_code": "invalid-record"}')
 
@@ -85,6 +104,15 @@ def test_import_recovers_after_request_failure(import_item, import_client):
 
     manage_imports.do_import(import_item)
 
+    import_item.set_status.assert_called_once_with("created", ol_key="/books/OL1M")
+
+
+def test_import_succeeds_on_first_attempt(import_item, import_client):
+    import_client.import_data.return_value = '{"success": true, "edition": {"status": "created", "key": "/books/OL1M"}}'
+
+    manage_imports.do_import(import_item)
+
+    import_client.import_data.assert_called_once_with(import_item.data)
     import_item.set_status.assert_called_once_with("created", ol_key="/books/OL1M")
 
 
