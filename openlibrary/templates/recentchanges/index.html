@@ -91,6 +91,8 @@ $def subnav():
                         </ol-select-popover>
                         <span class="recentchanges-chart__search-box">
                             <input type="search" name="q" required minlength="3" maxlength="100" placeholder="$_('Text in the edited record, e.g. airlines')" aria-label="$_('Text to search edited records for')">
+                            $# "Aa" is an icon, as in VS Code's find box; its title and label carry the text
+                            $# detect-missing-i18n-skip-line
                             <button type="button" class="recentchanges-chart__search-toggle recentchanges-chart__match-case" aria-pressed="false" title="$_('Match case')" aria-label="$_('Match case')">Aa</button>
                             <button type="button" class="recentchanges-chart__search-toggle recentchanges-chart__regex" aria-pressed="false" title="$_('Use regular expression')" aria-label="$_('Use regular expression')">.*</button>
                         </span>
