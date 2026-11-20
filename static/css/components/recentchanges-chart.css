@@ -1,11 +1,11 @@
-/* openlibrary/templates/recentchanges/index.html: the custom-query search beside the chart's controls */
+/* openlibrary/templates/recentchanges/index.html: the custom-query search and its filters, under the chart's controls */
 .recentchanges-chart__query {
   display: inline-flex;
   gap: var(--spacing-2xs);
   align-items: center;
 }
 
-.recentchanges-chart__query[hidden] {
+.recentchanges-chart__query-row[hidden] {
   display: none;
 }
 

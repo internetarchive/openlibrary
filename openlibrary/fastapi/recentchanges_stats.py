@@ -20,13 +20,15 @@ router = APIRouter()
 MAX_DAYS = 365
 
 # Bot accounts are flagged in the account store; their edits are attributed to the matching /people/ thing.
-_DAILY_COUNTS_SQL = """
-WITH bots AS (
+_BOTS_CTE = """bots AS (
     SELECT thing.id FROM store
     JOIN store_index ON store_index.store_id = store.id
     JOIN thing ON thing.key = '/people/' || split_part(store.key, '/', 2)
     WHERE store_index.type = 'account' AND store_index.name = 'bot' AND store_index.value = 'true'
-)
+)"""
+
+_DAILY_COUNTS_SQL = f"""
+WITH {_BOTS_CTE}
 SELECT
     created::date AS day,
     COALESCE(author_id IN (SELECT id FROM bots), false) AS is_bot,
@@ -45,6 +47,8 @@ class RecentChangesCounts(BaseModel):
     bots: list[int]
     kinds: dict[str, list[int]]
     """Counts per change kind (infobase's `action`; `edit` where it has none)."""
+    bot_kinds: dict[str, list[int]]
+    """The part of `kinds` made by bots."""
 
 
 async def daily_change_counts(kind: str | None, days: int) -> dict[str, Any]:
@@ -54,14 +58,16 @@ async def daily_change_counts(kind: str | None, days: int) -> dict[str, Any]:
     index = {d: i for i, d in enumerate(dates)}
     humans, bots = [0] * days, [0] * days
     kinds: dict[str, list[int]] = {}
+    bot_kinds: dict[str, list[int]] = {}
     for row in rows:
         i = index[row["day"]]
         (bots if row["is_bot"] else humans)[i] += row["n"]
         kinds.setdefault(row["kind"], [0] * days)[i] += row["n"]
-    return {"dates": [d.isoformat() for d in dates], "humans": humans, "bots": bots, "kinds": kinds}
+        bot_kinds.setdefault(row["kind"], [0] * days)[i] += row["n"] if row["is_bot"] else 0
+    return {"dates": [d.isoformat() for d in dates], "humans": humans, "bots": bots, "kinds": kinds, "bot_kinds": bot_kinds}
 
 
-@cache.memoize(engine="memcache", key="recentchanges.daily_counts_v2", expires=HALF_HOUR_SECS)
+@cache.memoize(engine="memcache", key="recentchanges.daily_counts_v3", expires=HALF_HOUR_SECS)
 def _cached_daily_change_counts(kind: str | None, days: int) -> dict[str, Any]:
     return async_bridge.run(daily_change_counts(kind, days))
 
@@ -80,10 +86,11 @@ def recentchanges_counts(
 # in the revision that change wrote. `transaction.changes` lists the (key, revision) pairs each change saved and `data`
 # holds every revision in full. The lookups are scalar subqueries so each is a single index probe per saved record: as
 # joins, the planner may hash or scan `thing` or `data`. The page is materialized first so only its rows are searched.
-_MATCH_PAGE_SQL = """
-WITH page AS MATERIALIZED (
+_MATCH_PAGE_SQL = f"""
+WITH {_BOTS_CTE}, page AS MATERIALIZED (
     SELECT id, created, changes FROM transaction
     WHERE (%(before)s::int IS NULL OR id < %(before)s) AND (%(kind)s::text IS NULL OR action = %(kind)s)
+    AND (%(bot)s::boolean IS NULL OR COALESCE(author_id IN (SELECT id FROM bots), false) = %(bot)s)
     ORDER BY id DESC
     LIMIT %(limit)s
 )
@@ -115,10 +122,10 @@ class RecentChangesMatchPage(BaseModel):
     """When the oldest change on this page was made (ISO, UTC): the walk has covered everything since."""
 
 
-async def match_page(text: str, kind: str | None, before: int | None, limit: int) -> RecentChangesMatchPage:
+async def match_page(text: str, kind: str | None, bot: bool | None, before: int | None, limit: int) -> RecentChangesMatchPage:
     async with connection() as conn:
         await conn.execute(f"SET LOCAL statement_timeout = '{MATCH_PAGE_TIMEOUT}'")
-        cursor = await conn.execute(_MATCH_PAGE_SQL, {"text": text, "kind": kind, "before": before, "limit": limit})
+        cursor = await conn.execute(_MATCH_PAGE_SQL, {"text": text, "kind": kind, "bot": bot, "before": before, "limit": limit})
         rows = await cursor.fetchall()
     counts: dict[str, int] = {}
     checked: dict[str, int] = {}
@@ -142,11 +149,12 @@ async def recentchanges_matches(
     _: LibrarianDep,
     q: Annotated[str, Query(min_length=3, max_length=100, description="Text to look for, case-insensitively, in each edited record as that change saved it.")],
     kind: Annotated[str | None, Query(max_length=64, description="Change kind, e.g. add-book; all kinds if omitted.")] = None,
+    bot: Annotated[bool | None, Query(description="Only bots' changes, or only people's; both if omitted.")] = None,
     before: Annotated[int | None, Query(gt=0, description="Only changes with an id below this: the previous page's `next`.")] = None,
     limit: Annotated[int, Query(gt=0, le=MAX_PAGE_SIZE, description="How many changes to check.")] = 200,
 ) -> RecentChangesMatchPage:
     """One page of a newest-first walk through the changes, counting those whose saved records contain `q`."""
     try:
-        return await match_page(q.strip().lower(), kind or None, before, limit)
+        return await match_page(q.strip().lower(), kind or None, bot, before, limit)
     except QueryCanceled:
         raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail=f"This page took longer than {MATCH_PAGE_TIMEOUT}; try a smaller one.")

@@ -2105,7 +2105,7 @@ msgstr ""
 msgid "Human"
 msgstr ""
 
-#: admin/index.html admin/people/view.html
+#: admin/index.html admin/people/view.html recentchanges/index.html
 msgid "Bot"
 msgstr ""
 
@@ -5967,6 +5967,20 @@ msgstr ""
 msgid "The search failed: %(reason)s"
 msgstr ""
 
+#: recentchanges/index.html search/sort_options.html
+msgid "Any"
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "Bot: %(choice)s"
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "Kind: %(choice)s"
+msgstr ""
+
 #: recentchanges/index.html stats/tasks.html.jinja
 msgid "Date range"
 msgstr ""
@@ -6013,6 +6027,10 @@ msgstr ""
 
 #: recentchanges/index.html
 msgid "Text to search edited records for"
+msgstr ""
+
+#: recentchanges/index.html type/type/view.html
+msgid "Kind"
 msgstr ""
 
 #: recentchanges/index.html
@@ -6332,10 +6350,6 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Top Rated"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Any"
 msgstr ""
 
 #: search/sort_options.html
@@ -7664,10 +7678,6 @@ msgstr ""
 
 #: type/template/view.html
 msgid "plugin"
-msgstr ""
-
-#: type/type/view.html
-msgid "Kind"
 msgstr ""
 
 #: type/type/view.html

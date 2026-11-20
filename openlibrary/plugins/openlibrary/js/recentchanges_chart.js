@@ -12,10 +12,12 @@ const BUCKET_DAYS = { day: 1, week: 7, month: 28 };
  * @property {number[]} humans
  * @property {number[]} bots
  * @property {Record<string, number[]>} kinds per change kind
+ * @property {Record<string, number[]>} bot_kinds the part of `kinds` made by bots
  */
 
 /**
- * @typedef {object} Walk a newest-first search through the changes for one query, a page at a time
+ * @typedef {object} Walk a newest-first search through the changes for one query and filters, a page at a time
+ * @property {{query: string, bot: string, kind: string}} search what it looks for: `bot` is any, humans or bots, `kind` empty for any
  * @property {Record<string, number>} counts matching changes per ISO date
  * @property {Record<string, number>} checked changes checked per ISO date
  * @property {number | null} cursor `before` for the next page
@@ -55,7 +57,10 @@ export function init(root) {
     const legend = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__parts'));
     const colorBy = /** @type {HTMLElement & {items: {value: string, label: string}[]}} */ (root.querySelector('.recentchanges-chart__color'));
     const colorTrigger = /** @type {HTMLElement} */ (colorBy.querySelector('[slot="trigger"]'));
+    const queryRow = /** @type {HTMLElement} */ (root.querySelector('.recentchanges-chart__query-row'));
     const queryForm = /** @type {HTMLFormElement} */ (root.querySelector('.recentchanges-chart__query'));
+    const botFilter = /** @type {HTMLElement} */ (root.querySelector('.recentchanges-chart__bot-filter'));
+    const kindFilter = /** @type {HTMLElement & {items: {value: string, label: string}[]}} */ (root.querySelector('.recentchanges-chart__kind-filter'));
     const queryInput = /** @type {HTMLInputElement} */ (queryForm.querySelector('input'));
     const status = /** @type {HTMLElement} */ (root.querySelector('.recentchanges-chart__status'));
     const statusText = /** @type {HTMLElement} */ (status.querySelector('.recentchanges-chart__status-text'));
@@ -98,12 +103,12 @@ export function init(root) {
     const numberFormat = new Intl.NumberFormat(lang, { maximumFractionDigits: 0 });
     const units = { day: strings.perDay, week: strings.perWeek, month: strings.perMonth };
 
-    const state = { days: 28, granularity: /** @type {keyof BUCKET_DAYS} */ ('day'), colorBy: 'none', query: '' };
+    const state = { days: 28, granularity: /** @type {keyof BUCKET_DAYS} */ ('day'), colorBy: 'none', query: '', bot: 'any', kind: '' };
     /** @type {Map<number, Promise<Counts>>} fetched once per range */
     const fetched = new Map();
     // Draws await fetches, so a slow one can finish after a newer one; only the newest may paint.
     let drawId = 0;
-    /** @type {Map<string, Walk>} by query, kept so returning to a query or widening the range resumes its walk */
+    /** @type {Map<string, Walk>} by search, kept so returning to a search or widening the range resumes its walk */
     const walks = new Map();
     let pageSize = 200;
 
@@ -114,32 +119,56 @@ export function init(root) {
         return day.toISOString().slice(0, 10);
     };
 
-    /** @param {string} query */
-    function walkFor(query) {
-        let walk = walks.get(query);
+    /** The walk for the current search, or null without one. */
+    function currentWalk() {
+        if (state.colorBy !== 'query' || !state.query) return null;
+        const search = { query: state.query, bot: state.bot, kind: kind || state.kind };
+        const key = JSON.stringify(search);
+        let walk = walks.get(key);
         if (!walk) {
-            walk = { counts: {}, checked: {}, cursor: null, oldest: null, scanned: 0, done: false, running: false, stopped: false, error: '' };
-            walks.set(query, walk);
+            walk = { search, counts: {}, checked: {}, cursor: null, oldest: null, scanned: 0, done: false, running: false, stopped: false, error: '' };
+            walks.set(key, walk);
         }
         return walk;
+    }
+
+    /** Pause the current walk, before the search or its filters change. */
+    function stopWalk() {
+        const walk = currentWalk();
+        if (walk) walk.stopped = true;
+    }
+
+    /**
+     * Offer every kind in the range, busiest first, in the kind filter.
+     * @param {Counts} data
+     */
+    function updateKindFilter(data) {
+        if (kind) return;
+        const sum = (/** @type {number[]} */ daily) => daily.reduce((a, b) => a + b, 0);
+        const kindLabels = strings.kinds || {};
+        const names = [...new Set([...Object.keys(data.kinds), ...Object.keys(kindLabels)])].sort(
+            (a, b) => sum(data.kinds[b] || []) - sum(data.kinds[a] || [])
+        );
+        const items = [{ value: 'any', label: strings.any }, ...names.map(name => ({ value: name, label: kindLabels[name] || name }))];
+        if (JSON.stringify(items) !== JSON.stringify(kindFilter.items)) kindFilter.items = items;
     }
 
     /** @param {Walk} walk */
     const covered = walk => walk.done || (walk.oldest !== null && walk.oldest < rangeStart());
 
     /**
-     * Fetch older pages of `query`'s walk until it covers the chosen range or is stopped, redrawing after each.
-     * @param {string} query
+     * Fetch older pages of a walk until it covers the chosen range or is stopped, redrawing after each.
+     * @param {Walk} walk
      */
-    async function runWalk(query) {
-        const walk = walkFor(query);
+    async function runWalk(walk) {
         if (walk.running) return;
         walk.running = true;
         walk.error = '';
         try {
             while (!walk.stopped && !covered(walk)) {
-                const params = new URLSearchParams({ q: query, limit: String(pageSize) });
-                if (kind) params.set('kind', kind);
+                const params = new URLSearchParams({ q: walk.search.query, limit: String(pageSize) });
+                if (walk.search.kind) params.set('kind', walk.search.kind);
+                if (walk.search.bot !== 'any') params.set('bot', String(walk.search.bot === 'bots'));
                 if (walk.cursor !== null) params.set('before', String(walk.cursor));
                 const started = performance.now();
                 const response = await fetch(`/stats/recentchanges/matches.json?${params}`);
@@ -167,13 +196,13 @@ export function init(root) {
                 walk.done = page.next === null;
                 // Ids rise with time only roughly, so keep the earliest day seen
                 if (page.oldest && (walk.oldest === null || page.oldest.slice(0, 10) < walk.oldest)) walk.oldest = page.oldest.slice(0, 10);
-                if (state.query === query) draw({ animate: false });
+                if (currentWalk() === walk) draw({ animate: false });
             }
         } catch (error) {
             walk.error = /** @type {Error} */ (error).message;
         } finally {
             walk.running = false;
-            if (state.query === query) draw({ animate: false });
+            if (currentWalk() === walk) draw({ animate: false });
         }
     }
 
@@ -254,21 +283,27 @@ export function init(root) {
             const ranked = Object.entries(data.kinds).sort(([, a], [, b]) => sum(b) - sum(a));
             const kindLabels = strings.kinds || {};
             parts = ranked.map(([name, daily], i) => ({ label: kindLabels[name] || name, color: colors.kinds[i % colors.kinds.length], daily }));
-        } else if (state.colorBy === 'query' && state.query) {
-            const walk = walkFor(state.query);
-            if (!walk.stopped && !walk.error && !covered(walk)) runWalk(state.query);
+        } else if (currentWalk()) {
+            const walk = /** @type {Walk} */ (currentWalk());
+            if (!walk.stopped && !walk.error && !covered(walk)) runWalk(walk);
+            // Only the changes the filters let through, so those it skips don't read as not searched yet
+            const zeros = data.dates.map(() => 0);
+            const all = walk.search.kind ? data.kinds[walk.search.kind] || zeros : total;
+            const bots = walk.search.kind ? data.bot_kinds[walk.search.kind] || zeros : data.bots;
+            const filtered = walk.search.bot === 'bots' ? bots : walk.search.bot === 'humans' ? all.map((n, i) => n - bots[i]) : all;
             const matching = data.dates.map(day => walk.counts[day] || 0);
             // The daily totals are cached, so a day's changes checked can run past its total
-            const checked = data.dates.map((day, i) => Math.min(walk.checked[day] || 0, total[i]));
+            const checked = data.dates.map((day, i) => Math.min(walk.checked[day] || 0, filtered[i]));
             parts = [
                 { label: fill(strings.matches, { text: state.query }), color: colors.match, daily: matching },
                 { label: strings.nonMatches, color: colors.muted, daily: checked.map((n, i) => Math.max(0, n - matching[i])) },
-                { label: strings.notSearched, color: colors.unsearched, daily: total.map((n, i) => n - checked[i]) }
+                { label: strings.notSearched, color: colors.unsearched, daily: filtered.map((n, i) => n - checked[i]) }
             ];
         } else {
             parts = [{ label: '', color: colors.bar, daily: total }];
         }
-        showWalkStatus(state.colorBy === 'query' && state.query ? walkFor(state.query) : null);
+        showWalkStatus(currentWalk());
+        updateKindFilter(data);
         const stacked = parts.length > 1;
         const totals = bucketize(total, size).slice(-count);
 
@@ -398,24 +433,47 @@ export function init(root) {
         draw();
     });
     colorBy.addEventListener('ol-options-popover-change', event => {
-        state.colorBy = /** @type {CustomEvent} */ (event).detail.selected || 'none';
-        const choice = colorBy.items.find(item => item.value === state.colorBy);
+        const selected = /** @type {CustomEvent} */ (event).detail.selected || 'none';
+        const choice = colorBy.items.find(item => item.value === selected);
         colorTrigger.textContent = fill(strings.colorBy, { choice: choice?.label || '' });
-        queryForm.hidden = state.colorBy !== 'query';
-        if (state.colorBy !== 'query' && state.query) walkFor(state.query).stopped = true;
+        stopWalk();
+        state.colorBy = selected;
+        queryRow.hidden = state.colorBy !== 'query';
+        const walk = currentWalk();
+        if (walk) walk.stopped = false;
         draw();
     });
     queryForm.addEventListener('submit', event => {
         event.preventDefault();
-        const query = queryInput.value.trim();
-        if (state.query && state.query !== query) walkFor(state.query).stopped = true;
-        state.query = query;
-        const walk = walkFor(query);
-        walk.stopped = false;
+        stopWalk();
+        state.query = queryInput.value.trim();
+        const walk = currentWalk();
+        if (walk) walk.stopped = false;
         draw();
     });
+    /**
+     * A filter beside the search: keep its value and show it on its trigger.
+     * @param {HTMLElement & {items?: {value: string, label: string}[]}} filter
+     * @param {'bot' | 'kind'} name
+     * @param {string} template
+     */
+    function onFilterChange(filter, name, template) {
+        filter.addEventListener('ol-options-popover-change', event => {
+            const value = /** @type {CustomEvent} */ (event).detail.selected;
+            stopWalk();
+            state[name] = value === 'any' ? (name === 'bot' ? 'any' : '') : value;
+            const choice = (filter.items || []).find(item => item.value === value);
+            /** @type {HTMLElement} */ (filter.querySelector('[slot="trigger"]')).textContent = fill(template, { choice: choice?.label || '' });
+            const walk = currentWalk();
+            if (walk) walk.stopped = false;
+            draw();
+        });
+    }
+    onFilterChange(botFilter, 'bot', strings.botFilter);
+    onFilterChange(kindFilter, 'kind', strings.kindFilter);
     walkToggle.addEventListener('click', () => {
-        const walk = walkFor(state.query);
+        const walk = currentWalk();
+        if (!walk) return;
         walk.stopped = !walk.error && !walk.stopped && walk.running;
         walk.error = '';
         draw();
