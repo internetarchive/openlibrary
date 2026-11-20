@@ -544,16 +544,17 @@ test('post: inline and summary findings carry the agent prompt with diff context
         assert.match(comments[0].body, /At `a\.py`, line `1`:/);
         assert.doesNotMatch(comments[0].body, /print\(1\)/, 'no PR text in the agent prompt');
         // The summary opens with the status line, and one prompt covers all three findings.
-        assert.ok(summary.startsWith('**2 findings** · 1 suggestion on `'), summary);
+        // A finding with no path has no thread to go on, so it is a note that doesn't block (#14471).
+        assert.ok(summary.startsWith('**1 finding** · 1 suggestion · 1 note on `'), summary);
         assert.match(summary, /\n\nA plain summary\.\n\n/, "the model's summary follows the status line");
-        assert.match(summary, /### Findings without an in-diff anchor\n\n- \*\*MEDIUM · Correctness — Elsewhere\*\*\n {2}in another file/);
+        assert.match(summary, /### Notes \(won't block\)\n\n.*\n\n- \*\*Correctness — Elsewhere\*\*\n {2}in another file/);
         assert.match(summary, /### Suggestions \(won't block\)\n\n- \*\*Maybe\*\* · `a\.py:1`\n {2}not sure/);
         assert.equal(summary.match(/<summary>Prompt for AI agents/g).length, 1, summary);
         assert.match(summary, /<summary>Prompt for AI agents \(3 open items\)<\/summary>/);
         assert.match(summary, /<file name="a\.py">\n<item location="1">Bug here: details<\/item>\n<item location="1">Maybe: not sure<\/item>\n<\/file>/);
         assert.match(summary, /<item>Elsewhere: in another file<\/item>/);
         assert.doesNotMatch(summary, /Dimensions/);
-        assert.match(summary, /<!-- ol-pr-review-bot f=2 -->/, 'the demoted finding does not count');
+        assert.match(summary, /<!-- ol-pr-review-bot f=1 -->/, 'neither the demoted finding nor the note counts');
     } finally {
         teardown();
     }

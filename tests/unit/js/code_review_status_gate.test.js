@@ -500,7 +500,7 @@ test('D3a analyze emits withheld + withheld_blocking outputs, and public_finding
     assert.ok('withheld_blocking' in outs, 'analyze must expose the 1-bit `withheld_blocking`');
     // The gate step must NOT emit the withheld finding count anywhere (count stays 0 on withhold).
     assert.ok(
-        /res\.publish \? res\.clean\.findings\.filter\(f => f\.severity !== 'low'\)\.length : 0/.test(source('analyze_gate.cjs').replace(/\n/g, ' ')),
+        /res\.publish \? res\.clean\.findings\.filter\(blocks\)\.length : 0/.test(source('analyze_gate.cjs').replace(/\n/g, ' ')),
         'public_findings_count must remain `0` on a withhold (no count leak)'
     );
 });

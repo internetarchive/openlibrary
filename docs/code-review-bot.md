@@ -186,9 +186,13 @@ The full instructions the bot follows are in
 - **Inline comments** for findings that should be fixed before merging, each headed with its
   severity and area, for example **MEDIUM · Correctness — …**. Where the fix is small, the comment
   includes a suggestion you can apply in one click. A re-review can comment on any line the PR
-  changes, not only the files changed since its last review.
+  changes, not only the files changed since its last review. A finding about a whole file, or one
+  with no line in the diff to sit on, is a comment on the file instead. Every finding that blocks
+  has one of these threads, so you can always reply to it there.
 - **Suggestions (won't block)** in the summary, for low-severity findings, findings the bot isn't
   sure about, and every test-coverage finding.
+- **Notes (won't block)** in the summary, for findings about code outside the PR's changes, which
+  have no thread. Reply in a comment on the PR if one doesn't apply.
 - **Prompt for AI agents**, collapsed blocks you can paste into a coding agent: one under each
   inline comment, and one in the summary covering everything the review found.
 - **🎫 Linked issues**, collapsed, when the PR links to issues: which of their requirements the PR

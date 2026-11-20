@@ -206,6 +206,8 @@ test('SECURITY: settings are read before the PR head is extracted, and steps aft
 // ================================= gate step: turned-off dimensions =================================
 async function runGate(review, off) {
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    // finding() anchors on a.py:1. A finding about a file outside the diff is a note, which doesn't count.
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -1 +1 @@\n+print(1)\n');
     const res = await runScript('analyze', 'Gate the analysis', { OFF_DIMENSIONS: JSON.stringify(off) });
     return { res, written: JSON.parse(readFileSync(join(dir, 'review.json'), 'utf8')) };
 }
