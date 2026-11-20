@@ -76,59 +76,72 @@ def recentchanges_counts(
     return RecentChangesCounts(**_cached_daily_change_counts(kind or None, days))
 
 
-# Edits where any record they saved contains the text, in the revision that edit wrote. `transaction.changes` lists
-# the (key, revision) pairs each edit saved and `data` holds every revision in full. The lookups are scalar subqueries
-# so each one is a single index probe per saved record: as joins, the planner may hash or scan `thing` or `data`.
-# Still reads the full JSON of every record edited in the range.
-_MATCH_COUNTS_SQL = """
-SELECT t.created::date AS day, count(*) AS n
-FROM transaction t
-WHERE t.created >= %(since)s AND (%(kind)s::text IS NULL OR t.action = %(kind)s)
-AND EXISTS (
-    SELECT 1 FROM jsonb_array_elements(t.changes::jsonb) AS change
+# One page of a walk back through the changes, newest first: whether any record each change saved contains the text,
+# in the revision that change wrote. `transaction.changes` lists the (key, revision) pairs each change saved and `data`
+# holds every revision in full. The lookups are scalar subqueries so each is a single index probe per saved record: as
+# joins, the planner may hash or scan `thing` or `data`. The page is materialized first so only its rows are searched.
+_MATCH_PAGE_SQL = """
+WITH page AS MATERIALIZED (
+    SELECT id, created, changes FROM transaction
+    WHERE (%(before)s::int IS NULL OR id < %(before)s) AND (%(kind)s::text IS NULL OR action = %(kind)s)
+    ORDER BY id DESC
+    LIMIT %(limit)s
+)
+SELECT page.id, page.created, EXISTS (
+    SELECT 1 FROM jsonb_array_elements(page.changes::jsonb) AS change
     WHERE strpos(lower((
         SELECT data.data FROM data
         WHERE data.thing_id = (SELECT thing.id FROM thing WHERE thing.key = change->>'key')
         AND data.revision = (change->>'revision')::int
     )), %(text)s) > 0
-)
-GROUP BY day
+) AS matched
+FROM page
 """
-MATCH_TIMEOUT = "60s"
+# Per page, so one slow page fails fast and the walk can retry it smaller.
+MATCH_PAGE_TIMEOUT = "20s"
+MAX_PAGE_SIZE = 5000
 
 
-class RecentChangesMatches(BaseModel):
-    dates: list[str]
-    """One ISO date (UTC) per calendar day, oldest first, ending today."""
-    matches: list[int]
-    """Changes per day that saved a record containing the text."""
+class RecentChangesMatchPage(BaseModel):
+    counts: dict[str, int]
+    """Matching changes per ISO date (UTC), for the days this page reached; days without a match are left out."""
+    scanned: int
+    """How many changes this page checked."""
+    next: int | None
+    """Pass as `before` for the next, older page; None once there are no older changes."""
+    oldest: str | None
+    """When the oldest change on this page was made (ISO, UTC): the walk has covered everything since."""
 
 
-async def daily_match_counts(text: str, kind: str | None, days: int) -> dict[str, Any]:
-    today = date.today()
-    dates = [today - timedelta(days=i) for i in reversed(range(days))]
+async def match_page(text: str, kind: str | None, before: int | None, limit: int) -> RecentChangesMatchPage:
     async with connection() as conn:
-        await conn.execute(f"SET LOCAL statement_timeout = '{MATCH_TIMEOUT}'")
-        cursor = await conn.execute(_MATCH_COUNTS_SQL, {"since": dates[0], "kind": kind, "text": text.lower()})
-        counts = {row["day"]: row["n"] for row in await cursor.fetchall()}
-    return {"dates": [d.isoformat() for d in dates], "matches": [counts.get(d, 0) for d in dates]}
+        await conn.execute(f"SET LOCAL statement_timeout = '{MATCH_PAGE_TIMEOUT}'")
+        cursor = await conn.execute(_MATCH_PAGE_SQL, {"text": text, "kind": kind, "before": before, "limit": limit})
+        rows = await cursor.fetchall()
+    counts: dict[str, int] = {}
+    for row in rows:
+        if row["matched"]:
+            day = row["created"].date().isoformat()
+            counts[day] = counts.get(day, 0) + 1
+    return RecentChangesMatchPage(
+        counts=counts,
+        scanned=len(rows),
+        next=min(row["id"] for row in rows) if len(rows) == limit else None,
+        oldest=min(row["created"] for row in rows).isoformat() if rows else None,
+    )
 
 
-@cache.memoize(engine="memcache", key="recentchanges.daily_match_counts", expires=HALF_HOUR_SECS)
-def _cached_daily_match_counts(text: str, kind: str | None, days: int) -> dict[str, Any]:
-    return async_bridge.run(daily_match_counts(text, kind, days))
-
-
-# Librarians only: each uncached search reads every record edited in the range.
-@router.get("/stats/recentchanges/matches.json", response_model=RecentChangesMatches)
-def recentchanges_matches(
+# Librarians only: each page reads the full record of every change it covers.
+@router.get("/stats/recentchanges/matches.json", response_model=RecentChangesMatchPage)
+async def recentchanges_matches(
     _: LibrarianDep,
-    q: Annotated[str, Query(min_length=3, max_length=100, description="Text to look for, case-insensitively, in each edited record as that edit saved it.")],
+    q: Annotated[str, Query(min_length=3, max_length=100, description="Text to look for, case-insensitively, in each edited record as that change saved it.")],
     kind: Annotated[str | None, Query(max_length=64, description="Change kind, e.g. add-book; all kinds if omitted.")] = None,
-    days: Annotated[int, Query(gt=0, le=MAX_DAYS, description="How many days up to today.")] = 28,
-) -> RecentChangesMatches:
-    """Changes per day whose saved records contain `q`."""
+    before: Annotated[int | None, Query(gt=0, description="Only changes with an id below this: the previous page's `next`.")] = None,
+    limit: Annotated[int, Query(gt=0, le=MAX_PAGE_SIZE, description="How many changes to check.")] = 200,
+) -> RecentChangesMatchPage:
+    """One page of a newest-first walk through the changes, counting those whose saved records contain `q`."""
     try:
-        return RecentChangesMatches(**_cached_daily_match_counts(q.strip().lower(), kind or None, days))
+        return await match_page(q.strip().lower(), kind or None, before, limit)
     except QueryCanceled:
-        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail=f"Search took longer than {MATCH_TIMEOUT}; try a shorter range.")
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail=f"This page took longer than {MATCH_PAGE_TIMEOUT}; try a smaller one.")

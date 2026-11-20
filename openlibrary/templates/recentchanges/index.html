@@ -51,8 +51,8 @@ $def subnav():
                 $ kind_option.update(disabled=True, description=_("Every change here is the same kind"))
             $ color_options = [{"value": "none", "label": _("None")}, {"value": "bot", "label": _("Bots v. Humans")}, kind_option]
             $if ctx.user and ctx.user.is_librarian_or_higher():
-                $ color_options.append({"value": "query", "label": _("Custom query…"), "description": _("Edits whose saved record contains some text. Slow.")})
-            $ chart_i18n.update(matches=_("Matches “%(text)s”"), nonMatches=_("Other changes"), searching=_("Searching edited records… this can take up to a minute."), searchFailed=_("The search failed: %(reason)s"))
+                $ color_options.append({"value": "query", "label": _("Custom query…"), "description": _("Edits whose saved record contains some text, searched newest first.")})
+            $ chart_i18n.update(matches=_("Matches “%(text)s”"), nonMatches=_("Other changes"), notSearched=_("Not searched yet"), walking=_("Searching back through the changes: %(count)s checked so far, back to %(date)s…"), walkStopped=_("Stopped after checking %(count)s changes, back to %(date)s."), walkDone=_("Checked %(count)s changes, back to %(date)s."), stop=_("Stop"), resume=_("Resume"), searchFailed=_("The search failed: %(reason)s"))
             <section class="tasks-stats__main recentchanges-chart" data-kind="$query.get('kind', '')" data-i18n="$json_encode(chart_i18n)">
                 <div class="tasks-stats__chart-head">
                     <span class="tasks-stats__chart-unit">$_("Per day")</span>
@@ -78,7 +78,10 @@ $def subnav():
                         <ol-button type="submit" size="small">$_("Search")</ol-button>
                     </form>
                 </div>
-                <p class="tasks-stats__note recentchanges-chart__status" hidden></p>
+                <p class="tasks-stats__note recentchanges-chart__status" hidden>
+                    <span class="recentchanges-chart__status-text"></span>
+                    <ol-button class="recentchanges-chart__walk-toggle" size="small" variant="ghost" hidden></ol-button>
+                </p>
                 <div class="tasks-stats__canvas tasks-stats__canvas--main">
                     <canvas role="img" aria-label="$_('Changes over the chosen range')"></canvas>
                 </div>

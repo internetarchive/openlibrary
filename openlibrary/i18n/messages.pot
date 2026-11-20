@@ -5923,7 +5923,7 @@ msgid "Custom query…"
 msgstr ""
 
 #: recentchanges/index.html
-msgid "Edits whose saved record contains some text. Slow."
+msgid "Edits whose saved record contains some text, searched newest first."
 msgstr ""
 
 #: recentchanges/index.html
@@ -5936,7 +5936,30 @@ msgid "Other changes"
 msgstr ""
 
 #: recentchanges/index.html
-msgid "Searching edited records… this can take up to a minute."
+msgid "Not searched yet"
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "Searching back through the changes: %(count)s checked so far, back to %(date)s…"
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "Stopped after checking %(count)s changes, back to %(date)s."
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "Checked %(count)s changes, back to %(date)s."
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Stop"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Resume"
 msgstr ""
 
 #: recentchanges/index.html

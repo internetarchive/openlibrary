@@ -15,10 +15,20 @@ const BUCKET_DAYS = { day: 1, week: 7, month: 28 };
  */
 
 /**
- * @typedef {object} Matches
- * @property {string[]} dates
- * @property {number[]} matches changes whose saved record contains the searched text
+ * @typedef {object} Walk a newest-first search through the changes for one query, a page at a time
+ * @property {Record<string, number>} counts matching changes per ISO date
+ * @property {number | null} cursor `before` for the next page
+ * @property {string | null} oldest ISO date of the oldest change checked so far; every day after it is fully covered
+ * @property {number} scanned changes checked
+ * @property {boolean} done no older changes are left
+ * @property {boolean} running a page is in flight
+ * @property {boolean} stopped stopped by the patron
+ * @property {string} error why the last page failed
  */
+
+// Page sizes for the walk, in changes; it aims for pages of a second or two.
+const MIN_PAGE = 10;
+const MAX_PAGE = 5000;
 
 /**
  * @param {string} template
@@ -44,6 +54,8 @@ export function init(root) {
     const queryForm = /** @type {HTMLFormElement} */ (root.querySelector('.recentchanges-chart__query'));
     const queryInput = /** @type {HTMLInputElement} */ (queryForm.querySelector('input'));
     const status = /** @type {HTMLElement} */ (root.querySelector('.recentchanges-chart__status'));
+    const statusText = /** @type {HTMLElement} */ (status.querySelector('.recentchanges-chart__status-text'));
+    const walkToggle = /** @type {HTMLElement} */ (status.querySelector('.recentchanges-chart__walk-toggle'));
 
     const style = getComputedStyle(root);
     const token = (/** @type {string} */ name) => style.getPropertyValue(name).trim();
@@ -52,6 +64,7 @@ export function init(root) {
         accent: resolveColor(root, 'var(--color-stats-chart-accent)'),
         muted: resolveColor(root, 'var(--color-stats-chart-muted)'),
         match: resolveColor(root, 'var(--color-chart-4)'),
+        unsearched: resolveColor(root, 'var(--color-border-subtle)'),
         // One hue per kind, in order of size; reused from the top past the last
         kinds: [
             '--color-stats-chart-bar',
@@ -84,38 +97,106 @@ export function init(root) {
     const state = { days: 28, granularity: /** @type {keyof BUCKET_DAYS} */ ('day'), colorBy: 'none', query: '' };
     /** @type {Map<number, Promise<Counts>>} fetched once per range */
     const fetched = new Map();
-    /** @type {Map<string, Promise<Matches>>} fetched once per range and query */
-    const fetchedMatches = new Map();
     // Draws await fetches, so a slow one can finish after a newer one; only the newest may paint.
     let drawId = 0;
+    /** @type {Map<string, Walk>} by query, kept so returning to a query or widening the range resumes its walk */
+    const walks = new Map();
+    let pageSize = 200;
 
-    /**
-     * @param {number} days
-     * @param {string} query
-     */
-    function loadMatches(days, query) {
-        const key = `${days}\n${query}`;
-        if (!fetchedMatches.has(key)) {
-            const params = new URLSearchParams({ days: String(days), q: query });
-            if (kind) params.set('kind', kind);
-            const request = fetch(`/stats/recentchanges/matches.json?${params}`).then(async response => {
-                if (response.ok) return response.json();
-                const detail = await response.json().then(
-                    body => body.detail,
-                    () => null
-                );
-                throw new Error(typeof detail === 'string' ? detail : `HTTP ${response.status}`);
-            });
-            request.catch(() => fetchedMatches.delete(key));
-            fetchedMatches.set(key, request);
+    /** The first ISO date in the chosen range. */
+    const rangeStart = () => {
+        const day = new Date();
+        day.setUTCDate(day.getUTCDate() - state.days + 1);
+        return day.toISOString().slice(0, 10);
+    };
+
+    /** @param {string} query */
+    function walkFor(query) {
+        let walk = walks.get(query);
+        if (!walk) {
+            walk = { counts: {}, cursor: null, oldest: null, scanned: 0, done: false, running: false, stopped: false, error: '' };
+            walks.set(query, walk);
         }
-        return /** @type {Promise<Matches>} */ (fetchedMatches.get(key));
+        return walk;
     }
 
-    /** @param {string} [text] */
-    function showStatus(text) {
-        status.textContent = text || '';
-        status.hidden = !text;
+    /** @param {Walk} walk */
+    const covered = walk => walk.done || (walk.oldest !== null && walk.oldest < rangeStart());
+
+    /**
+     * Fetch older pages of `query`'s walk until it covers the chosen range or is stopped, redrawing after each.
+     * @param {string} query
+     */
+    async function runWalk(query) {
+        const walk = walkFor(query);
+        if (walk.running) return;
+        walk.running = true;
+        walk.error = '';
+        try {
+            while (!walk.stopped && !covered(walk)) {
+                const params = new URLSearchParams({ q: query, limit: String(pageSize) });
+                if (kind) params.set('kind', kind);
+                if (walk.cursor !== null) params.set('before', String(walk.cursor));
+                const started = performance.now();
+                const response = await fetch(`/stats/recentchanges/matches.json?${params}`);
+                // A page that ran out of time is retried smaller
+                if (response.status === 504 && pageSize > MIN_PAGE) {
+                    pageSize = Math.max(MIN_PAGE, Math.floor(pageSize / 2));
+                    continue;
+                }
+                if (!response.ok) {
+                    const detail = await response.json().then(
+                        body => body.detail,
+                        () => null
+                    );
+                    throw new Error(typeof detail === 'string' ? detail : `HTTP ${response.status}`);
+                }
+                /** @type {{counts: Record<string, number>, scanned: number, next: number | null, oldest: string | null}} */
+                const page = await response.json();
+                const elapsed = performance.now() - started;
+                if (elapsed < 1000) pageSize = Math.min(MAX_PAGE, pageSize * 2);
+                else if (elapsed > 4000) pageSize = Math.max(MIN_PAGE, Math.floor(pageSize / 2));
+                for (const [day, n] of Object.entries(page.counts)) walk.counts[day] = (walk.counts[day] || 0) + n;
+                walk.scanned += page.scanned;
+                walk.cursor = page.next;
+                walk.done = page.next === null;
+                // Ids rise with time only roughly, so keep the earliest day seen
+                if (page.oldest && (walk.oldest === null || page.oldest.slice(0, 10) < walk.oldest)) walk.oldest = page.oldest.slice(0, 10);
+                if (state.query === query) draw({ animate: false });
+            }
+        } catch (error) {
+            walk.error = /** @type {Error} */ (error).message;
+        } finally {
+            walk.running = false;
+            if (state.query === query) draw({ animate: false });
+        }
+    }
+
+    /** @param {Walk | null} walk */
+    function showWalkStatus(walk) {
+        status.hidden = !walk;
+        if (!walk) return;
+        const values = {
+            count: numberFormat.format(walk.scanned),
+            date: walk.oldest ? fullFormat.format(new Date(`${walk.oldest}T00:00:00Z`)) : '…'
+        };
+        let text;
+        let toggle = '';
+        if (walk.error) {
+            text = fill(strings.searchFailed, { reason: walk.error });
+            toggle = strings.resume;
+        } else if (covered(walk)) {
+            text = fill(strings.walkDone, values);
+        } else if (walk.stopped) {
+            text = fill(strings.walkStopped, values);
+            toggle = strings.resume;
+        } else {
+            text = fill(strings.walking, values);
+            toggle = strings.stop;
+        }
+        statusText.textContent = text;
+        walkToggle.textContent = toggle;
+        walkToggle.hidden = !toggle;
     }
 
     /** @param {number} days */
@@ -134,25 +215,13 @@ export function init(root) {
         return /** @type {Promise<Counts>} */ (fetched.get(days));
     }
 
-    async function draw() {
+    /** @param {{animate?: boolean}} [options] animation off for redraws as a walk's pages arrive, which would otherwise restart it every page */
+    async function draw({ animate = true } = {}) {
         const id = ++drawId;
         /** @type {Counts} */
         let data;
-        /** @type {Matches | null} */
-        let matches = null;
         try {
             data = await load(state.days);
-            if (state.colorBy === 'query' && state.query) {
-                showStatus(strings.searching);
-                try {
-                    matches = await loadMatches(state.days, state.query);
-                    if (id === drawId) showStatus();
-                } catch (error) {
-                    if (id === drawId) showStatus(fill(strings.searchFailed, { reason: /** @type {Error} */ (error).message }));
-                }
-            } else {
-                showStatus();
-            }
             if (id !== drawId) return;
         } catch {
             fetched.delete(state.days);
@@ -180,15 +249,21 @@ export function init(root) {
             const ranked = Object.entries(data.kinds).sort(([, a], [, b]) => sum(b) - sum(a));
             const kindLabels = strings.kinds || {};
             parts = ranked.map(([name, daily], i) => ({ label: kindLabels[name] || name, color: colors.kinds[i % colors.kinds.length], daily }));
-        } else if (matches) {
-            const matching = matches.matches;
+        } else if (state.colorBy === 'query' && state.query) {
+            const walk = walkFor(state.query);
+            if (!walk.stopped && !walk.error && !covered(walk)) runWalk(state.query);
+            // A day counts as searched once the walk has reached it; the day it's on is partly searched.
+            const searched = data.dates.map(day => walk.done || (walk.oldest !== null && day >= walk.oldest));
+            const matching = data.dates.map(day => walk.counts[day] || 0);
             parts = [
                 { label: fill(strings.matches, { text: state.query }), color: colors.match, daily: matching },
-                { label: strings.nonMatches, color: colors.muted, daily: total.map((n, i) => Math.max(0, n - matching[i])) }
+                { label: strings.nonMatches, color: colors.muted, daily: total.map((n, i) => (searched[i] ? Math.max(0, n - matching[i]) : 0)) },
+                { label: strings.notSearched, color: colors.unsearched, daily: total.map((n, i) => (searched[i] ? 0 : n)) }
             ];
         } else {
             parts = [{ label: '', color: colors.bar, daily: total }];
         }
+        showWalkStatus(state.colorBy === 'query' && state.query ? walkFor(state.query) : null);
         const stacked = parts.length > 1;
         const totals = bucketize(total, size).slice(-count);
 
@@ -264,7 +339,7 @@ export function init(root) {
         if (existing) {
             existing.data = config.data;
             existing.options = config.options;
-            existing.update();
+            existing.update(animate ? undefined : 'none');
         } else {
             new Chart(canvas, config);
         }
@@ -318,11 +393,22 @@ export function init(root) {
         const choice = colorBy.items.find(item => item.value === state.colorBy);
         colorTrigger.textContent = fill(strings.colorBy, { choice: choice?.label || '' });
         queryForm.hidden = state.colorBy !== 'query';
+        if (state.colorBy !== 'query' && state.query) walkFor(state.query).stopped = true;
         draw();
     });
     queryForm.addEventListener('submit', event => {
         event.preventDefault();
-        state.query = queryInput.value.trim();
+        const query = queryInput.value.trim();
+        if (state.query && state.query !== query) walkFor(state.query).stopped = true;
+        state.query = query;
+        const walk = walkFor(query);
+        walk.stopped = false;
+        draw();
+    });
+    walkToggle.addEventListener('click', () => {
+        const walk = walkFor(state.query);
+        walk.stopped = !walk.error && !walk.stopped && walk.running;
+        walk.error = '';
         draw();
     });
 
