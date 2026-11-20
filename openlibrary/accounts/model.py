@@ -388,8 +388,7 @@ class Account(web.storage):
             return
         except ClientException as e:
             # Check if this is a known activation-race error.
-            data = e.get_data() if hasattr(e, "get_data") else {}
-            code = data.get("code")
+            code = e.get_data().get("code")
             known_codes = {"unique_violation", "lock_not_available", "conflict"}
             if code not in known_codes:
                 # Unexpected error - re-raise original exception.
