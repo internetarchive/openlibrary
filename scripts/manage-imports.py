@@ -98,11 +98,12 @@ def do_import(item, servername=None, require_marc=True, only_pending=False):
             logger.info(f"success: {edition['status']} {edition['key']}")
             item.set_status(edition["status"], ol_key=edition["key"])
         else:
-            if isinstance(result, dict) and not result.get("success"):
+            api_error = isinstance(result, dict) and not result.get("success")
+            if api_error:
                 error_code = result.get("error_code") or failure_reason or "unknown-error"
             else:
                 error_code = failure_reason or "bad-response"
-            if response is not None and (not isinstance(result, dict) or result.get("success")):
+            if response is not None and not api_error:
                 logger.error("failed with error code: %s; response: %s", error_code, response)
             else:
                 logger.error("failed with error code: %s", error_code)
