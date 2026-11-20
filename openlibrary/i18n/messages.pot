@@ -5856,6 +5856,14 @@ msgstr ""
 msgid "Books Added"
 msgstr ""
 
+#: recentchanges/index.html
+msgid "Per hour"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "This hour so far"
+msgstr ""
+
 #: openlibrary/views/loanstats.py recentchanges/index.html stats/tasks.html.jinja
 msgid "Per day"
 msgstr ""
@@ -6008,6 +6016,10 @@ msgstr ""
 
 #: recentchanges/index.html stats/tasks.html.jinja
 msgid "Group by"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Hour"
 msgstr ""
 
 #: openlibrary/core/shell/shelf_labels.py recentchanges/index.html stats/tasks.html.jinja

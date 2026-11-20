@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
-from typing import Annotated, Any
+from datetime import UTC, datetime, timedelta
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, HTTPException, Query, status
 from psycopg.errors import QueryCanceled
@@ -18,6 +18,8 @@ from openlibrary.utils.dateutil import HALF_HOUR_SECS
 router = APIRouter()
 
 MAX_DAYS = 365
+# Hourly slots for longer ranges would be more bars than the chart can show usefully.
+MAX_HOURLY_DAYS = 28
 
 # Bot accounts are flagged in the account store; their edits are attributed to the matching /people/ thing.
 _BOTS_CTE = """bots AS (
@@ -30,19 +32,19 @@ _BOTS_CTE = """bots AS (
 _DAILY_COUNTS_SQL = f"""
 WITH {_BOTS_CTE}
 SELECT
-    created::date AS day,
+    date_trunc(%(unit)s, created) AS slot,
     COALESCE(author_id IN (SELECT id FROM bots), false) AS is_bot,
     COALESCE(action, 'edit') AS kind,
     count(*) AS n
 FROM transaction
 WHERE created >= %(since)s AND (%(kind)s::text IS NULL OR action = %(kind)s)
-GROUP BY day, is_bot, kind
+GROUP BY slot, is_bot, kind
 """
 
 
 class RecentChangesCounts(BaseModel):
     dates: list[str]
-    """One ISO date (UTC) per calendar day, oldest first, ending today, which is still being counted."""
+    """One slot per day (ISO date) or hour (`YYYY-MM-DDTHH`), UTC, oldest first, ending with the one still being counted."""
     humans: list[int]
     bots: list[int]
     kinds: dict[str, list[int]]
@@ -51,25 +53,39 @@ class RecentChangesCounts(BaseModel):
     """The part of `kinds` made by bots."""
 
 
-async def daily_change_counts(kind: str | None, days: int) -> dict[str, Any]:
-    today = date.today()
-    dates = [today - timedelta(days=i) for i in reversed(range(days))]
-    rows = await fetch_all(_DAILY_COUNTS_SQL, {"since": dates[0], "kind": kind})
-    index = {d: i for i, d in enumerate(dates)}
-    humans, bots = [0] * days, [0] * days
+def slot_label(slot: datetime, unit: str) -> str:
+    """How a day or hour is keyed in the responses: `YYYY-MM-DD` or `YYYY-MM-DDTHH`, UTC."""
+    return slot.strftime("%Y-%m-%dT%H" if unit == "hour" else "%Y-%m-%d")
+
+
+async def change_counts(kind: str | None, days: int, unit: str) -> dict[str, Any]:
+    now = datetime.now(UTC).replace(tzinfo=None)
+    since = (now - timedelta(days=days - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    step = timedelta(hours=1) if unit == "hour" else timedelta(days=1)
+    slots = []
+    slot = since
+    while slot <= now:
+        slots.append(slot)
+        slot += step
+    rows = await fetch_all(_DAILY_COUNTS_SQL, {"since": since, "kind": kind, "unit": unit})
+    index = {s: i for i, s in enumerate(slots)}
+    size = len(slots)
+    humans, bots = [0] * size, [0] * size
     kinds: dict[str, list[int]] = {}
     bot_kinds: dict[str, list[int]] = {}
     for row in rows:
-        i = index[row["day"]]
+        # A change stamped after `now` (clock skew between hosts) has no slot yet
+        if (i := index.get(row["slot"])) is None:
+            continue
         (bots if row["is_bot"] else humans)[i] += row["n"]
-        kinds.setdefault(row["kind"], [0] * days)[i] += row["n"]
-        bot_kinds.setdefault(row["kind"], [0] * days)[i] += row["n"] if row["is_bot"] else 0
-    return {"dates": [d.isoformat() for d in dates], "humans": humans, "bots": bots, "kinds": kinds, "bot_kinds": bot_kinds}
+        kinds.setdefault(row["kind"], [0] * size)[i] += row["n"]
+        bot_kinds.setdefault(row["kind"], [0] * size)[i] += row["n"] if row["is_bot"] else 0
+    return {"dates": [slot_label(s, unit) for s in slots], "humans": humans, "bots": bots, "kinds": kinds, "bot_kinds": bot_kinds}
 
 
-@cache.memoize(engine="memcache", key="recentchanges.daily_counts_v3", expires=HALF_HOUR_SECS)
-def _cached_daily_change_counts(kind: str | None, days: int) -> dict[str, Any]:
-    return async_bridge.run(daily_change_counts(kind, days))
+@cache.memoize(engine="memcache", key="recentchanges.change_counts_v4", expires=HALF_HOUR_SECS)
+def _cached_change_counts(kind: str | None, days: int, unit: str) -> dict[str, Any]:
+    return async_bridge.run(change_counts(kind, days, unit))
 
 
 # Plain def: the memcache client is blocking, so the route runs in the threadpool.
@@ -77,9 +93,12 @@ def _cached_daily_change_counts(kind: str | None, days: int) -> dict[str, Any]:
 def recentchanges_counts(
     kind: Annotated[str | None, Query(max_length=64, description="Change kind, e.g. add-book; all kinds if omitted.")] = None,
     days: Annotated[int, Query(gt=0, le=MAX_DAYS, description="How many days up to today.")] = 28,
+    unit: Annotated[Literal["day", "hour"], Query(description=f"Count per day, or per hour for up to {MAX_HOURLY_DAYS} days.")] = "day",
 ) -> RecentChangesCounts:
-    """Changes per day, split into human and bot edits."""
-    return RecentChangesCounts(**_cached_daily_change_counts(kind or None, days))
+    """Changes per day or hour, split into human and bot edits and by kind."""
+    if unit == "hour" and days > MAX_HOURLY_DAYS:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"Hourly counts cover at most {MAX_HOURLY_DAYS} days.")
+    return RecentChangesCounts(**_cached_change_counts(kind or None, days, unit))
 
 
 # One page of a walk back through the changes, newest first: whether any record each change saved contains the text,
@@ -112,9 +131,9 @@ MAX_KINDS = 30
 
 class RecentChangesMatchPage(BaseModel):
     counts: dict[str, int]
-    """Matching changes per ISO date (UTC), for the days this page reached; days without a match are left out."""
+    """Matching changes per hour (`YYYY-MM-DDTHH`, UTC), for the hours this page reached; hours without a match are left out."""
     checked: dict[str, int]
-    """Changes this page checked per ISO date (UTC)."""
+    """Changes this page checked per hour (`YYYY-MM-DDTHH`, UTC)."""
     scanned: int
     """How many changes this page checked."""
     next: int | None
@@ -131,10 +150,10 @@ async def match_page(text: str, kinds: list[str] | None, bot: bool | None, befor
     counts: dict[str, int] = {}
     checked: dict[str, int] = {}
     for row in rows:
-        day = row["created"].date().isoformat()
-        checked[day] = checked.get(day, 0) + 1
+        hour = slot_label(row["created"], "hour")
+        checked[hour] = checked.get(hour, 0) + 1
         if row["matched"]:
-            counts[day] = counts.get(day, 0) + 1
+            counts[hour] = counts.get(hour, 0) + 1
     return RecentChangesMatchPage(
         counts=counts,
         checked=checked,

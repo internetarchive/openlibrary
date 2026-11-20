@@ -4,7 +4,10 @@ import { bucketize } from './tasks_stats.js';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
-const BUCKET_DAYS = { day: 1, week: 7, month: 28 };
+// Slots per bar: the data comes per hour for the hour grouping, per day otherwise.
+const BUCKET_SLOTS = { hour: 1, day: 1, week: 7, month: 28 };
+// Longest range offered per hour; longer ranges switch back to days.
+const MAX_HOURLY_DAYS = 28;
 
 /**
  * @typedef {object} Counts
@@ -53,7 +56,7 @@ export function init(root) {
     const strings = JSON.parse(root.dataset.i18n || '{}');
     const kind = root.dataset.kind || '';
     const canvas = /** @type {HTMLCanvasElement} */ (root.querySelector('canvas'));
-    const unit = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-unit'));
+    const unitLabel = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-unit'));
     const legend = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__parts'));
     const colorBy = /** @type {HTMLElement & {items: {value: string, label: string}[]}} */ (root.querySelector('.recentchanges-chart__color'));
     const colorTrigger = /** @type {HTMLElement} */ (colorBy.querySelector('[slot="trigger"]'));
@@ -100,19 +103,30 @@ export function init(root) {
     const lang = document.documentElement.lang || undefined;
     const dayFormat = new Intl.DateTimeFormat(lang, { month: 'short', day: 'numeric', timeZone: 'UTC' });
     const fullFormat = new Intl.DateTimeFormat(lang, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+    const hourFormat = new Intl.DateTimeFormat(lang, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' });
+    const fullHourFormat = new Intl.DateTimeFormat(lang, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+        timeZone: 'UTC',
+        timeZoneName: 'short'
+    });
     const numberFormat = new Intl.NumberFormat(lang, { maximumFractionDigits: 0 });
-    const units = { day: strings.perDay, week: strings.perWeek, month: strings.perMonth };
+    const units = { hour: strings.perHour, day: strings.perDay, week: strings.perWeek, month: strings.perMonth };
 
     const state = {
         days: 28,
-        granularity: /** @type {keyof BUCKET_DAYS} */ ('day'),
+        granularity: /** @type {keyof BUCKET_SLOTS} */ ('day'),
         colorBy: 'none',
         query: '',
         bot: 'any',
         kinds: /** @type {string[]} */ ([]),
         isolated: /** @type {string | null} */ (null)
     };
-    /** @type {Map<number, Promise<Counts>>} fetched once per range */
+    /** @type {Map<string, Promise<Counts>>} fetched once per range and unit */
     const fetched = new Map();
     // Draws await fetches, so a slow one can finish after a newer one; only the newest may paint.
     let drawId = 0;
@@ -241,43 +255,49 @@ export function init(root) {
         walkToggle.hidden = !toggle;
     }
 
-    /** @param {number} days */
-    function load(days) {
-        if (!fetched.has(days)) {
-            const params = new URLSearchParams({ days: String(days) });
+    /**
+     * @param {number} days
+     * @param {'day' | 'hour'} unit
+     */
+    function load(days, unit) {
+        const key = `${days}/${unit}`;
+        if (!fetched.has(key)) {
+            const params = new URLSearchParams({ days: String(days), unit });
             if (kind) params.set('kind', kind);
             fetched.set(
-                days,
+                key,
                 fetch(`/stats/recentchanges.json?${params}`).then(response => {
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     return response.json();
                 })
             );
         }
-        return /** @type {Promise<Counts>} */ (fetched.get(days));
+        return /** @type {Promise<Counts>} */ (fetched.get(key));
     }
 
     /** @param {{animate?: boolean}} [options] animation off for redraws as a walk's pages arrive, which would otherwise restart it every page */
     async function draw({ animate = true } = {}) {
         const id = ++drawId;
+        const unit = state.granularity === 'hour' ? 'hour' : 'day';
         /** @type {Counts} */
         let data;
         try {
-            data = await load(state.days);
+            data = await load(state.days, unit);
             if (id !== drawId) return;
         } catch {
-            fetched.delete(state.days);
+            fetched.delete(`${state.days}/${unit}`);
             const error = document.createElement('p');
             error.className = 'tasks-stats__error';
             error.textContent = strings.loadFailed;
             canvas.parentElement?.replaceChildren(error);
             return;
         }
-        const dates = data.dates.map(d => new Date(`${d}T00:00:00Z`));
+        // Slots are `YYYY-MM-DD` or, per hour, `YYYY-MM-DDTHH`, in UTC
+        const dates = data.dates.map(d => new Date(unit === 'hour' ? `${d}:00:00Z` : `${d}T00:00:00Z`));
         const lastDay = dates.length - 1;
-        const size = BUCKET_DAYS[state.granularity];
+        const size = BUCKET_SLOTS[state.granularity];
         // Rounded down, so the chart never reaches back further than the chosen range.
-        const count = Math.max(1, Math.floor(state.days / size));
+        const count = Math.max(1, Math.floor(dates.length / size));
         const total = data.humans.map((n, i) => n + data.bots[i]);
         /** @type {{label: string, color: string, daily: number[]}[]} */
         let parts;
@@ -301,9 +321,19 @@ export function init(root) {
             const all = kinds.length ? sumOf(data.kinds) : total;
             const bots = kinds.length ? sumOf(data.bot_kinds) : data.bots;
             const filtered = walk.search.bot === 'bots' ? bots : walk.search.bot === 'humans' ? all.map((n, i) => n - bots[i]) : all;
-            const matching = data.dates.map(day => walk.counts[day] || 0);
+            // The walk counts per hour; per day, sum each day's hours
+            const perSlot = (/** @type {Record<string, number>} */ byHour) => {
+                if (unit === 'hour') return byHour;
+                /** @type {Record<string, number>} */
+                const byDay = {};
+                for (const [hour, n] of Object.entries(byHour)) byDay[hour.slice(0, 10)] = (byDay[hour.slice(0, 10)] || 0) + n;
+                return byDay;
+            };
+            const counts = perSlot(walk.counts);
+            const checkedBySlot = perSlot(walk.checked);
+            const matching = data.dates.map(slot => counts[slot] || 0);
             // The daily totals are cached, so a day's changes checked can run past its total
-            const checked = data.dates.map((day, i) => Math.min(walk.checked[day] || 0, filtered[i]));
+            const checked = data.dates.map((slot, i) => Math.min(checkedBySlot[slot] || 0, filtered[i]));
             parts = [
                 { label: fill(strings.matches, { text: state.query }), color: colors.match, daily: matching },
                 { label: strings.nonMatches, color: colors.muted, daily: checked.map((n, i) => Math.max(0, n - matching[i])) },
@@ -321,12 +351,21 @@ export function init(root) {
 
         /** @param {import('./tasks_stats.js').Bucket} b */
         const shortLabel = b =>
-            b.start === b.end ? dayFormat.format(dates[b.end]) : `${dayFormat.format(dates[b.start])} – ${dayFormat.format(dates[b.end])}`;
+            unit === 'hour'
+                ? hourFormat.format(dates[b.end])
+                : b.start === b.end
+                  ? dayFormat.format(dates[b.end])
+                  : `${dayFormat.format(dates[b.start])} – ${dayFormat.format(dates[b.end])}`;
         /** @param {import('./tasks_stats.js').Bucket} b */
         const fullLabel = b =>
-            b.start === b.end ? fullFormat.format(dates[b.end]) : `${fullFormat.format(dates[b.start])} – ${fullFormat.format(dates[b.end])}`;
+            unit === 'hour'
+                ? fullHourFormat.format(dates[b.end])
+                : b.start === b.end
+                  ? fullFormat.format(dates[b.end])
+                  : `${fullFormat.format(dates[b.start])} – ${fullFormat.format(dates[b.end])}`;
         /** @param {import('./tasks_stats.js').Bucket} b */
-        const inProgressNote = b => (b.end !== lastDay ? '' : b.start === b.end ? strings.todaySoFar : strings.periodSoFar);
+        const inProgressNote = b =>
+            b.end !== lastDay ? '' : unit === 'hour' ? strings.hourSoFar : b.start === b.end ? strings.todaySoFar : strings.periodSoFar;
 
         /**
          * Bar colours for one part. The day or period still being counted is paler, and so is every part but the one
@@ -411,7 +450,7 @@ export function init(root) {
         }
         if (hasData) empty?.remove();
 
-        unit.textContent = units[state.granularity];
+        unitLabel.textContent = units[state.granularity];
         /** @param {number | null} focused index of the hovered legend item, or null for none */
         const focus = focused => {
             const chart = Chart.getChart(canvas);
@@ -447,12 +486,23 @@ export function init(root) {
         );
     }
 
-    root.querySelector('.recentchanges-chart__range')?.addEventListener('ol-segmented-control-change', event => {
+    const rangeControl = /** @type {HTMLElement & {value: string}} */ (root.querySelector('.recentchanges-chart__range'));
+    const granularityControl = /** @type {HTMLElement & {value: string}} */ (root.querySelector('.recentchanges-chart__granularity'));
+    // Hourly bars are kept to MAX_HOURLY_DAYS, so each control gives way to the other rather than draw thousands of bars
+    rangeControl.addEventListener('ol-segmented-control-change', event => {
         state.days = Number(/** @type {CustomEvent} */ (event).detail.value);
+        if (state.granularity === 'hour' && state.days > MAX_HOURLY_DAYS) {
+            state.granularity = 'day';
+            granularityControl.value = 'day';
+        }
         draw();
     });
-    root.querySelector('.recentchanges-chart__granularity')?.addEventListener('ol-segmented-control-change', event => {
+    granularityControl.addEventListener('ol-segmented-control-change', event => {
         state.granularity = /** @type {CustomEvent} */ (event).detail.value;
+        if (state.granularity === 'hour' && state.days > MAX_HOURLY_DAYS) {
+            state.days = MAX_HOURLY_DAYS;
+            rangeControl.value = String(MAX_HOURLY_DAYS);
+        }
         draw();
     });
     colorBy.addEventListener('ol-options-popover-change', event => {
