@@ -110,8 +110,8 @@ const compactCount = n => new Intl.NumberFormat(undefined, { notation: 'compact'
 // A drag the trigger should accept: it carries plain text (a text selection
 // or a URL) and is not an ILE book selection, which stores JSON as text/plain.
 function isTextDrag(dataTransfer) {
-    const types = Array.from(dataTransfer?.types || []);
-    return types.includes('text/plain') && !types.includes('application/x.ile+json');
+    const types = new Set(Array.from(dataTransfer?.types || []));
+    return types.has('text/plain') && !types.has('application/x.ile+json');
 }
 
 export class SearchModal extends LitElement {

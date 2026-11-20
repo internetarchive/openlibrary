@@ -65,7 +65,10 @@
     "unicorn/escape-case": "error",
     "unicorn/no-instanceof-array": "error",
     "unicorn/no-useless-promise-resolve-reject": "error",
-    "no-var": "error"
+    "no-var": "error",
+    "unicorn/no-typeof-undefined": "error",
+    "unicorn/prefer-regexp-test": "error",
+    "unicorn/prefer-set-has": "error"
   },
   "overrides": [
     {

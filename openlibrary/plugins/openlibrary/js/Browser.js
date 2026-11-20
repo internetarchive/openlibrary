@@ -6,7 +6,7 @@
  * @returns {UrlParams}
  */
 export function getJsonFromUrl(urlSearch) {
-    const query = urlSearch.substr(1);
+    const query = urlSearch.slice(1);
     const result = {};
     if (query) {
         query.split('&').forEach(part => {
