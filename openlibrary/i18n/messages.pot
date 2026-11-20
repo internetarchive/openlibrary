@@ -3186,6 +3186,10 @@ msgid "Rather than creating a duplicate record, please click through the result 
 msgstr ""
 
 #: books/check.html
+msgid "Please complete the reCAPTCHA above before choosing a book."
+msgstr ""
+
+#: books/check.html
 msgid "Select this book"
 msgstr ""
 
@@ -10789,6 +10793,10 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/addbook.py
 msgid "You are not allowed to add an Internet Archive ID."
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
+msgid "You are not allowed to add a Book URL."
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py
