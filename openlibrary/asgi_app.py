@@ -148,6 +148,7 @@ def _include_routers(app: FastAPI) -> None:
     from openlibrary.fastapi.partials import router as partials_router
     from openlibrary.fastapi.public_my_books import router as public_my_books_router
     from openlibrary.fastapi.publishers import router as publishers_router
+    from openlibrary.fastapi.recentchanges_stats import router as recentchanges_stats_router
     from openlibrary.fastapi.search import pages as search_pages
     from openlibrary.fastapi.search import router as search_router
     from openlibrary.fastapi.stats import router as stats_router
@@ -174,6 +175,7 @@ def _include_routers(app: FastAPI) -> None:
     app.include_router(partials_router)
     app.include_router(public_my_books_router)
     app.include_router(publishers_router)
+    app.include_router(recentchanges_stats_router)
     app.include_router(search_router)
     app.include_router(stats_router)
     app.include_router(status_router)

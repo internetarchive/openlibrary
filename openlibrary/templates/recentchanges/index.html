@@ -43,6 +43,38 @@ $def subnav():
     $if ip:
         $:render_template("recentchanges/render", limit=50, ip=ip, **query)</div>
     $else:
+        $if "begin_date" not in query:
+            $ chart_i18n = {"perDay": _("Per day"), "perWeek": _("Per week"), "perMonth": _("Per 4 weeks"), "total": _("Total: %(count)s"), "humans": _("Humans"), "bots": _("Bots"), "todaySoFar": _("Today so far"), "periodSoFar": _("Still in progress"), "noData": _("No changes in this range."), "loadFailed": _("The chart couldn't load. Reload the page to try again."), "colorBy": _("Color by: %(choice)s")}
+            $ chart_i18n["kinds"] = {"edit-book": _("Books Edited"), "add-book": _("Books Added"), "add-cover": _("Covers Added"), "merge-authors": _("Author Merges"), "merge-works": _("Work Merges"), "lists": _("Lists")}
+            $ kind_option = {"value": "kind", "label": _("Edit kind")}
+            $if query.get("kind"):
+                $ kind_option.update(disabled=True, description=_("Every change here is the same kind"))
+            $ color_options = [{"value": "none", "label": _("None")}, {"value": "bot", "label": _("Bots v. Humans")}, kind_option]
+            <section class="tasks-stats__main recentchanges-chart" data-kind="$query.get('kind', '')" data-i18n="$json_encode(chart_i18n)">
+                <div class="tasks-stats__chart-head">
+                    <span class="tasks-stats__chart-unit">$_("Per day")</span>
+                    <span class="tasks-stats__legend tasks-stats__parts"></span>
+                </div>
+                <div class="tasks-stats__controls">
+                    <ol-segmented-control class="recentchanges-chart__range" size="small" value="28" accessible-label="$_('Date range')">
+                        <ol-segment value="28">$_("28 days")</ol-segment>
+                        <ol-segment value="90">$_("90 days")</ol-segment>
+                        <ol-segment value="182">$_("6 months")</ol-segment>
+                        <ol-segment value="365">$_("12 months")</ol-segment>
+                    </ol-segmented-control>
+                    <ol-segmented-control class="recentchanges-chart__granularity" size="small" value="day" accessible-label="$_('Group by')">
+                        <ol-segment value="day">$_("Day")</ol-segment>
+                        <ol-segment value="week">$_("Week")</ol-segment>
+                        <ol-segment value="month">$_("Month")</ol-segment>
+                    </ol-segmented-control>
+                    <ol-options-popover class="recentchanges-chart__color" label="$_('Color by')" selected="none" items="$json_encode(color_options)">
+                        <ol-button slot="trigger" size="small">$_("Color by: %(choice)s", choice=_("None"))</ol-button>
+                    </ol-options-popover>
+                </div>
+                <div class="tasks-stats__canvas tasks-stats__canvas--main">
+                    <canvas role="img" aria-label="$_('Changes over the chosen range')"></canvas>
+                </div>
+            </section>
         <ol-tabs sync-hash>
             <a slot="tab" href="#humans">$_('By Humans')</a>
             <a slot="tab" href="#bots">$_('By Bots')</a>

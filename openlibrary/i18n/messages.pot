@@ -5856,6 +5856,112 @@ msgstr ""
 msgid "Books Added"
 msgstr ""
 
+#: openlibrary/views/loanstats.py recentchanges/index.html stats/tasks.html.jinja
+msgid "Per day"
+msgstr ""
+
+#: openlibrary/views/loanstats.py recentchanges/index.html
+msgid "Per week"
+msgstr ""
+
+#: openlibrary/views/loanstats.py recentchanges/index.html
+msgid "Per 4 weeks"
+msgstr ""
+
+#: openlibrary/views/loanstats.py recentchanges/index.html
+#, python-format
+msgid "Total: %(count)s"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Humans"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Bots"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Today so far"
+msgstr ""
+
+#: openlibrary/views/loanstats.py recentchanges/index.html
+msgid "Still in progress"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "No changes in this range."
+msgstr ""
+
+#: recentchanges/index.html
+msgid "The chart couldn't load. Reload the page to try again."
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "Color by: %(choice)s"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Edit kind"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Every change here is the same kind"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "None"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Bots v. Humans"
+msgstr ""
+
+#: recentchanges/index.html stats/tasks.html.jinja
+msgid "Date range"
+msgstr ""
+
+#: recentchanges/index.html stats/tasks.html.jinja
+msgid "28 days"
+msgstr ""
+
+#: recentchanges/index.html stats/tasks.html.jinja
+msgid "90 days"
+msgstr ""
+
+#: recentchanges/index.html stats/tasks.html.jinja
+msgid "6 months"
+msgstr ""
+
+#: recentchanges/index.html stats/tasks.html.jinja
+msgid "12 months"
+msgstr ""
+
+#: recentchanges/index.html stats/tasks.html.jinja
+msgid "Group by"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py recentchanges/index.html stats/tasks.html.jinja
+msgid "Day"
+msgstr ""
+
+#: recentchanges/index.html stats/tasks.html.jinja
+msgid "Week"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py recentchanges/index.html stats/tasks.html.jinja
+msgid "Month"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Color by"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Changes over the chosen range"
+msgstr ""
+
 #: RecentChanges.html recentchanges/index.html
 msgid "By Humans"
 msgstr ""
@@ -6634,46 +6740,6 @@ msgstr ""
 
 #: stats/tasks.html.jinja
 msgid "Period"
-msgstr ""
-
-#: openlibrary/views/loanstats.py stats/tasks.html.jinja
-msgid "Per day"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Date range"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "28 days"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "90 days"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "6 months"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "12 months"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Group by"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py stats/tasks.html.jinja
-msgid "Day"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Week"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py stats/tasks.html.jinja
-msgid "Month"
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -11041,19 +11107,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: openlibrary/views/loanstats.py
-msgid "Per week"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Per 4 weeks"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
 msgid "Today so far, updated hourly"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Still in progress"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -11085,11 +11139,6 @@ msgstr ""
 
 #: openlibrary/views/loanstats.py
 msgid "Outside Tasks"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "Total: %(count)s"
 msgstr ""
 
 #: openlibrary/views/loanstats.py

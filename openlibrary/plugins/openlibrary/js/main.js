@@ -207,6 +207,11 @@ $(function () {
         import('./imports_chart').then(module => module.init(importsChart));
     }
 
+    const recentChangesChart = document.querySelector('.recentchanges-chart');
+    if (recentChangesChart) {
+        import('./recentchanges_chart').then(module => module.init(recentChangesChart));
+    }
+
     const tasksStats = document.querySelector('.tasks-stats');
     if (tasksStats) {
         import('./tasks_stats').then(module => module.init(tasksStats));

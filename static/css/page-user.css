@@ -36,6 +36,8 @@
  * - /works/OL1930026W/No_easy_walk?m=diff&b=5
  */
 @import "components/flash-messages.css";
+/* Chart on /recentchanges, styled like /stats/tasks */
+@import "components/tasks-stats.css";
 @import "components/provider-table.css";
 @import "components/ol-message.css";
 /* Import styles for fulltext-search-suggestion card */
