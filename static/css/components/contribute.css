@@ -306,8 +306,26 @@
   gap: var(--spacing-stack-xs);
 }
 
+/* The cover with the link to its scan. Phones: no box, so the link sits under the title, where it has room. */
+.contrib-record__aside {
+  display: contents;
+}
+
+.contrib-record--scan {
+  grid-template-areas:
+    "cover head"
+    "cover scan"
+    "fields fields";
+}
+
+.contrib-record__scan {
+  grid-area: scan;
+  justify-self: start;
+}
+
 @media (min-width: 768px) {
-  .contrib-record {
+  .contrib-record,
+  .contrib-record--scan {
     grid-template-columns: 96px minmax(0, 1fr);
     grid-template-areas:
       "cover head"
@@ -315,6 +333,18 @@
     column-gap: var(--spacing-2xl);
     padding: var(--spacing-inset-lg);
     position: relative;
+  }
+
+  .contrib-record__aside {
+    grid-area: cover;
+    display: grid;
+    gap: var(--spacing-stack-sm);
+    justify-items: center;
+  }
+
+  .contrib-record__aside > *,
+  .contrib-record__aside .contrib-record__cover {
+    grid-area: auto;
   }
 
   .contrib-record__head {
@@ -629,19 +659,33 @@
   --ol-popover-content-max-height: min(50vh, 360px);
 }
 
+/* The design playground's text field: the input border, radius and control height. */
 .contrib-input {
   width: 100%;
   box-sizing: border-box;
+  min-height: var(--control-height-medium);
   font: inherit;
   font-size: var(--font-size-body-medium);
-  padding: 8px 12px;
-  border: 1px solid var(--color-border);
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+  border: var(--border-input);
   border-radius: var(--border-radius-input);
   background: var(--color-surface);
   color: var(--color-text);
 }
 
+textarea.contrib-input {
+  padding-block: var(--spacing-inset-sm);
+  resize: vertical;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contrib-input:hover {
+    border: var(--border-input-hovered);
+  }
+}
+
 .contrib-input:focus-visible {
+  border: var(--border-input-focused);
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 1px;
 }
@@ -815,6 +859,21 @@
   color: var(--color-text-secondary);
 }
 
+/* An ended project's closing note, where its tasks were. */
+.contrib-finished {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  justify-items: start;
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-inset-lg);
+}
+
+.contrib-finished__title {
+  margin: 0;
+  font-size: var(--font-size-title-large);
+}
+
 /* Receipt */
 .contrib-receipt {
   display: flex;
@@ -849,10 +908,9 @@
   gap: var(--spacing-stack-sm);
 }
 
-/* Tablet and up. Same gutter as .contrib-land below, so the two /tasks pages line up. */
+/* Tablet and up */
 @media (min-width: 768px) {
-  .contrib-page,
-  .contrib-dash {
+  .contrib-page {
     padding-inline: var(--spacing-inset-xl);
   }
 
@@ -1145,6 +1203,8 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--spacing-stack-sm) var(--spacing-inline-xl);
+  padding-block-end: var(--spacing-stack-lg);
+  border-block-end: var(--border-width) solid var(--color-border-subtle);
 }
 
 .contrib-dash__heading {
@@ -1157,8 +1217,17 @@
   font-size: var(--font-size-body-medium);
 }
 
-.contrib-dash__edits {
-  font-size: var(--font-size-body-medium);
+/* Header links are ghost buttons: page-level actions, not links in running text. */
+.contrib-dash__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+}
+
+/* Pulls a medium ghost button's padding out, so its label lines up with the page edge on either side. */
+.contrib-dash__flush {
+  margin-inline: calc(-1 * var(--spacing-md));
 }
 
 .contrib-dash__body {
@@ -1216,6 +1285,13 @@
   font-size: var(--font-size-body-medium);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-title);
+}
+
+/* Completed projects sit under their own heading, a rule above it. */
+.contrib-projects > .contrib-projects__divider {
+  margin-block-start: var(--spacing-stack-sm);
+  padding-block-start: var(--spacing-stack-md);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .contrib-projects__meta {
@@ -1291,6 +1367,22 @@
   font-size: var(--font-size-label-medium);
 }
 
+/* The ring with the count it is taken from under it. */
+.contrib-project__progress {
+  display: grid;
+  flex: none;
+  justify-items: center;
+  gap: var(--spacing-stack-xs);
+}
+
+.contrib-ring__caption {
+  max-inline-size: 14ch;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+  text-align: center;
+  text-wrap: balance;
+}
+
 .contrib-ring {
   position: relative;
   display: grid;
@@ -1329,6 +1421,24 @@
 
 .contrib-ring__fill {
   stroke: var(--color-primary);
+}
+
+/* Past the goal the fill turns green; it keeps filling to 100%. */
+.contrib-ring__fill.is-reached {
+  stroke: var(--color-success-object);
+}
+
+/* The goal: a hairline across the ring's band, kept inside its edges. */
+.contrib-ring__goal {
+  stroke: var(--color-text);
+  stroke-width: 1.1;
+}
+
+.contrib-ring__goal-label {
+  color: var(--color-text);
+  font-size: var(--font-size-label-medium);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
 }
 
 .contrib-ring__figure {
@@ -1870,4 +1980,57 @@
 /* The row's display: grid outranks the UA's [hidden]; the companion row hides until the row that opens it is picked. */
 .contrib-record__row[hidden] {
   display: none;
+}
+
+/* FAQ (/tasks/faq): question groups under an overline, each answer a heading and a few paragraphs. */
+.contrib-faq > :not(:last-child) {
+  margin-block-end: var(--spacing-section-gap);
+}
+
+/* The overline and each question are separate blocks, so they're spaced by margins; a question's own lines take gap. */
+.contrib-faq__group > :not(:last-child) {
+  margin-block-end: var(--spacing-stack-lg);
+}
+
+.contrib-faq__group > .contrib-overline {
+  margin-block-end: var(--spacing-stack-md);
+}
+
+.contrib-faq__item {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  /* Questions are linked to by id from the task pages. */
+  scroll-margin-top: var(--spacing-stack-lg);
+}
+
+.contrib-faq__item h3 {
+  margin: 0;
+  font-size: var(--font-size-title-medium);
+  line-height: var(--line-height-heading);
+  text-wrap: balance;
+}
+
+.contrib-faq__item p {
+  max-width: 65ch;
+}
+
+/* An ISBN other editions already carry: the editions to compare, then save again */
+.contrib-shared {
+  display: grid;
+  gap: var(--spacing-xs);
+}
+
+.contrib-shared p,
+.contrib-shared ul {
+  margin: 0;
+}
+
+.contrib-shared ul {
+  display: grid;
+  gap: var(--spacing-3xs);
+  padding-inline-start: var(--spacing-lg);
+}
+
+.contrib-shared li .contrib-muted {
+  margin-inline-start: var(--spacing-xs);
 }

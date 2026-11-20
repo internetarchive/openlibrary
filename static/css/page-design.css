@@ -81,7 +81,7 @@ html:has(.ds) {
   margin: 0;
   font-family: var(--font-family-serif);
   font-size: var(--font-size-title-large);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-heading);
 }
 
@@ -127,12 +127,12 @@ html:has(.ds) {
   height: 0;
   overflow: hidden;
   visibility: hidden;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .ds__tab--current {
   border-bottom-color: var(--color-text);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 /* Much lighter than the current tab's bar, so a hovered neighbour reads as a
@@ -209,7 +209,7 @@ html:has(.ds) {
 
 .ds__nav-list a.is-current {
   color: var(--color-text);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .ds__nav-group {
@@ -681,7 +681,7 @@ html:has(.ds) {
 .ds-component__tag {
   font-family: var(--font-family-code);
   font-size: var(--font-size-label-medium);
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
   color: var(--color-text-muted);
 }
 
@@ -860,7 +860,7 @@ html:has(.ds) {
 }
 
 .ds-table th {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text);
   white-space: nowrap;
   background: var(--color-surface-sunken);
@@ -1202,7 +1202,7 @@ html:has(.ds) {
   display: block;
   margin-bottom: var(--spacing-stack-xs);
   font-size: var(--font-size-body-medium);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 /* Stands in for the reader's own `.danger` in the icon color example. */
@@ -1304,7 +1304,7 @@ fieldset.ds-demo-row {
 }
 
 .book-tip__title {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .book-tip__year,
@@ -1812,7 +1812,7 @@ fieldset.ds-demo-row {
   margin: 0;
   font-family: var(--font-family-title);
   font-size: var(--font-size-headline-medium);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   line-height: 1.2;
   color: var(--color-text);
 }
@@ -1848,7 +1848,7 @@ fieldset.ds-demo-row {
 }
 
 .rtl-check__hint {
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
   color: var(--color-text-muted);
 }
 
@@ -2430,7 +2430,7 @@ fieldset.ds-demo-row {
 }
 
 .ds-fig__tab--bold {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text);
 }
 
@@ -2777,12 +2777,12 @@ fieldset.ds-demo-row {
 @keyframes ds-fig-weight {
   0%,
   100% {
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     color: var(--color-text-secondary);
   }
 
   50% {
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     color: var(--color-text);
   }
 }

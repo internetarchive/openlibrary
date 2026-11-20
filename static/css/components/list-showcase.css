@@ -43,7 +43,7 @@ a.list-card {
 }
 
 .list-card__title {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   font-size: var(--font-size-label-large);
   color: var(--black);
 

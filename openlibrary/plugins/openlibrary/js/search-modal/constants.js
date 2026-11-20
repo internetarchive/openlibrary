@@ -102,11 +102,11 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     noResults: 'No results found',
     // When only the Search Inside band has matches, "No results found" would contradict it.
     noCatalogResults: 'No matching books or authors',
-    // Screen-reader-only live announcement when results land: first %s = rows
-    // shown in the modal, second %s = total matches. e.g. "Showing 7 of 134,731
+    // Screen-reader-only live announcement when results land: %(shown)s = rows
+    // shown in the modal, %(total)s = total matches. e.g. "Showing 7 of 134,731
     // results". Sighted users see the list appear; this gives assistive tech the
     // same feedback (see the aria-live region in SearchModal.render).
-    resultsAnnounce: 'Showing %s of %s results',
+    resultsAnnounce: 'Showing %(shown)s of %(total)s results',
     authorResults: 'Authors',
     topResults: 'Books',
     untitled: 'Untitled',

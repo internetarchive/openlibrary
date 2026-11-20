@@ -50,6 +50,8 @@ export const DEFAULT_LABELS = {
     rateStar: 'Rate %(rating)s of 5',
     clearRating: 'Clear rating',
     addToList: 'Add to list',
+    // Above the lists of an edition with no work: why the shelves and stars are missing.
+    listsOnlyEdition: 'This edition has no work record yet, so it can be added to lists but not to your reading log.',
     // A plural set: how many other editions of this book the list already holds.
     otherEditions: { one: '%(count)s other edition', other: '%(count)s other editions' },
     // The list holds the book but not this edition; shown while the row is unticked.
@@ -558,6 +560,19 @@ export class OlShelfActions extends LitElement {
             .retract .row {
                 color: var(--color-text-secondary);
                 font-size: var(--font-size-label-medium);
+            }
+
+            /* Under the title of an edition with no work: why this popover is
+           shorter than the reader expects. The title steps up to the text
+           colour so the two lines read as a name and a remark about it. */
+            .header--note .heading {
+                color: var(--color-text);
+            }
+
+            .note {
+                margin: var(--spacing-xs) 0 0;
+                line-height: var(--line-height-snug);
+                text-wrap: pretty;
             }
 
             /* The question, not a heading: the rows under it are the answer. */
@@ -1379,18 +1394,36 @@ export class OlShelfActions extends LitElement {
         `;
     }
 
+    /** An edition with no work: the one lists-only seed a reader would expect shelves and stars for. */
+    get _orphanedEdition() {
+        return this.listsOnly && (this.book?.key || '').startsWith('/books/');
+    }
+
     _renderLists() {
         const creating = this._creating || this._firstList;
+        const orphan = this._orphanedEdition;
         return html`
+            ${
+                orphan
+                    ? html`
+                          <div class="header header--note">
+                              <span class="heading">${this.book.title}</span>
+                              <p class="note">${this.t('listsOnlyEdition')}</p>
+                          </div>
+                      `
+                    : nothing
+            }
             <div class="lists-header">
                 ${
-                    this.listsOnly
-                        ? html` <span class="lists-title">${this.book.title}</span> `
-                        : html`
-                              <ol-button class="back" variant="ghost" size="small" @click=${this._backToMain}>
-                                  <ol-icon slot="icon-start" name="chevron-left"></ol-icon>${this.t('back')}
-                              </ol-button>
-                          `
+                    orphan
+                        ? nothing
+                        : this.listsOnly
+                          ? html` <span class="lists-title">${this.book.title}</span> `
+                          : html`
+                                <ol-button class="back" variant="ghost" size="small" @click=${this._backToMain}>
+                                    <ol-icon slot="icon-start" name="chevron-left"></ol-icon>${this.t('back')}
+                                </ol-button>
+                            `
                 }
                 ${
                     creating

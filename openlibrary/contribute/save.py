@@ -8,16 +8,20 @@ so history shows the image.
 """
 
 import re
+from datetime import UTC, datetime
 
 import web
+from isbnlib import canonical
 
 from openlibrary.contribute.field_guides import AMAZON_COVER
 from openlibrary.core.tags import MANY, find_tag
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.covers import add_cover
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, get_languages
+from openlibrary.utils.isbn import check_digit_10, check_digit_13, isbn_10_to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.utils.lccn import normalize_lccn
 from openlibrary.utils.oclc import normalize_oclc
+from openlibrary.utils.request_context import site
 
 SOURCE = "contribute"
 ACTION = "edit-book"
@@ -31,8 +35,18 @@ def normalize_lccn_value(raw: str) -> str | None:
     return normalize_lccn(re.sub(r"^lccn:?", "", s))
 
 
+def normalize_isbn_value(raw: str) -> str | None:
+    """An ISBN-10 or ISBN-13 without its hyphens and spaces, when its check digit is right."""
+    s = canonical(raw or "").upper()
+    if len(s) == 13 and s.isdigit() and check_digit_13(s[:-1]) == s[-1]:
+        return s
+    if len(s) == 10 and s[:-1].isdigit() and check_digit_10(s[:-1]) == s[-1]:
+        return s
+    return None
+
+
 # Identifier fields, and how to tidy a pasted value into the stored form.
-NORMALIZERS = {"lccn": normalize_lccn_value, "oclc_numbers": normalize_oclc}
+NORMALIZERS = {"lccn": normalize_lccn_value, "oclc_numbers": normalize_oclc, "isbn": normalize_isbn_value}
 
 
 def normalized(fld: str, raw) -> list[str]:
@@ -77,16 +91,67 @@ def _identifier(fld: str, raw: str, current: list) -> list[str]:
     return existing + [v for v in values if v not in existing]
 
 
-def answer_value(edition, fld: str, raw: str):
-    """The stored form of ``raw`` for ``fld`` on ``edition``, or InvalidAnswer."""
+def editions_with_isbn(isbn: str) -> list[str]:
+    """The keys of the editions that already carry this ISBN, in either of its forms."""
+    other = isbn_10_to_isbn_13(isbn) if len(isbn) == 10 else isbn_13_to_isbn_10(isbn)
+    forms = {isbn, other} if other else {isbn}
+    return [key for form in forms for key in site.get().things({"type": "/type/edition", f"isbn_{len(form)}": form})]
+
+
+class SharedIsbn(InvalidAnswer):
+    """The ISBN is already on other editions. Usually the records are duplicates, but publishers do reuse ISBNs, so it
+    saves once the librarian has compared them and submits the same ISBN again."""
+
+    def __init__(self, isbn: str, others: list[str]):
+        self.isbn, self.others = isbn, others
+        super().__init__(_("This ISBN is already on another edition. Compare them: if they're the same book, this record is probably a duplicate."))
+
+
+def other_editions_with_isbn(edition, isbn: str) -> list[str]:
+    return [k for k in editions_with_isbn(isbn) if k != edition.key]
+
+
+def _isbn(edition, raw: str, shared_ok: str = "") -> dict[str, list[str]]:
+    """The ISBN under the key for its length. One already on another edition needs ``shared_ok`` to name it."""
+    if not (isbn := normalize_isbn_value(raw)):
+        raise InvalidAnswer(_("That isn't a valid ISBN. Check the digits: an ISBN has 10 or 13, and the last one is a check digit."))
+    if shared_ok != isbn and (others := other_editions_with_isbn(edition, isbn)):
+        raise SharedIsbn(isbn, others)
+    key = f"isbn_{len(isbn)}"
+    return {key: [*(str(v) for v in edition.get(key) or []), isbn]}
+
+
+# The earliest year a publish date can name; printing with movable type in Europe dates from the 1450s.
+EARLIEST_PUBLISH_YEAR = 1450
+
+
+def _publish_date(raw: str) -> str:
+    """The date as typed, once it names a plausible year. Open Library keeps publish dates as text: "2005", "March 2005"."""
+    date = " ".join(raw.split())
+    if not (m := re.search(r"\d{4}", date)) or len(date) > 40:
+        raise InvalidAnswer(_("Enter the date with its year, for example 2005 or March 2005."))
+    if not EARLIEST_PUBLISH_YEAR <= int(m.group()) <= datetime.now(UTC).year + 1:
+        raise InvalidAnswer(_("That year doesn't look right. Enter the year this edition came out."))
+    return date
+
+
+def answer_changes(edition, fld: str, raw: str, shared_ok: str = "") -> dict:
+    """The keys ``raw`` sets on ``edition`` for ``fld``, or InvalidAnswer. Only an ISBN's key differs from its field's."""
     if not raw.strip():
         raise InvalidAnswer(_("Fill in an answer, or choose “I couldn't find it”."))
+    return _isbn(edition, raw, shared_ok) if fld == "isbn" else {fld: answer_value(edition, fld, raw)}
+
+
+def answer_value(edition, fld: str, raw: str):
+    """The stored form of ``raw`` for ``fld`` on ``edition``, or InvalidAnswer."""
     if fld == "languages":
         return [_language(raw)]
     if fld == "number_of_pages":
         return _pages(raw)
     if fld == "publishers":
         return [raw.strip()]
+    if fld == "publish_date":
+        return _publish_date(raw)
     if fld in NORMALIZERS:
         return _identifier(fld, raw, edition.get(fld))
     raise InvalidAnswer(_("This field can't be filled in here."))
@@ -97,12 +162,14 @@ def change_data(fld: str, initiative: str, **more) -> dict:
     return {"source": SOURCE, "field": fld} | ({"initiative": initiative} if initiative else {}) | more
 
 
-def save_answer(edition, fld: str, raw: str, label: str, note: str = "", initiative: str = "") -> None:
-    """Write the answer to the edition as a normal edit by the current user."""
-    doc = edition.dict()
-    doc[fld] = answer_value(edition, fld, raw)
+def save_answer(edition, fld: str, raw: str, label: str, note: str = "", initiative: str = "", shared_ok: str = "") -> None:
+    """Write the answer to the edition as a normal edit by the current user. ``shared_ok`` is an ISBN the librarian
+    saved knowing other editions carry it; the edit names them, so the pairs can be found and merged or corrected."""
+    doc = edition.dict() | answer_changes(edition, fld, raw, shared_ok)
     comment = note.strip() or _("Filled in %(field)s from Open Library Tasks", field=label)
-    web.ctx.site.save(doc, comment=comment, action=ACTION, data=change_data(fld, initiative))
+    shared = other_editions_with_isbn(edition, shared_ok) if fld == "isbn" and shared_ok == normalize_isbn_value(raw) else []
+    data = change_data(fld, initiative, **({"isbn_shared_with": shared} if shared else {}))
+    site.get().save(doc, comment=comment, action=ACTION, data=data)
 
 
 def tag_answers(fld: str, raws: list[str]) -> list[dict]:
@@ -127,7 +194,7 @@ def save_work_answers(work, answers: dict[str, list[str]], label: str, note: str
         doc[fld] = refs if fld in MANY else refs[:1]
     fields = list(answers)
     comment = note.strip() or _("Filled in %(field)s from Open Library Tasks", field=label)
-    web.ctx.site.save(doc, comment=comment, action=ACTION, data=change_data(fields[0], initiative, fields=fields))
+    site.get().save(doc, comment=comment, action=ACTION, data=change_data(fields[0], initiative, fields=fields))
 
 
 def save_cover(edition, file, from_amazon: bool = False, initiative: str = "") -> None:
@@ -150,7 +217,7 @@ def save_cover(edition, file, from_amazon: bool = False, initiative: str = "") -
 
 def _tasks_changes(query: dict) -> list:
     """The changes matching ``query`` that Tasks saved, newest first. Filtered here: ``data`` filters need an index entry."""
-    changes = [c for kind in (ACTION, COVER_ACTION) for c in web.ctx.site.recentchanges(query | {"kind": kind})]
+    changes = [c for kind in (ACTION, COVER_ACTION) for c in site.get().recentchanges(query | {"kind": kind})]
     return sorted((c for c in changes if (c.data or {}).get("source") == SOURCE), key=lambda c: c.timestamp, reverse=True)
 
 

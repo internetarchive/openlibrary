@@ -8,16 +8,9 @@ export const DEFAULT_STRINGS = {
     perDay: 'Per day',
     perWeek: 'Per week',
     perMonth: 'Per 4 weeks',
-    earlier7: 'A week earlier',
-    earlier28: '4 weeks earlier',
-    earlierValue7: 'A week earlier: %(count)s',
-    earlierValue28: '4 weeks earlier: %(count)s',
-    earlierChange7: '%(change)s vs a week earlier',
-    earlierChange28: '%(change)s vs 4 weeks earlier',
-    cardChange7: '%(change)s vs previous 7 days',
-    cardChange28: '%(change)s vs previous 28 days',
     split: '%(returning)s returning · %(first_time)s first-time',
     perEditor: '≈ %(count)s per editor',
+    ofEditorsDetail: '%(share)s of editors',
     tasksShareDetail: 'of edits · %(share)s of editors',
     shareOfEdits: '%(share)s of all edits',
     shareOfEditors: '%(share)s of all editors',
@@ -30,8 +23,7 @@ export const DEFAULT_STRINGS = {
     noData: 'No counts for this range yet.',
     returning: 'Returning',
     firstTime: 'First edit ever',
-    otherEdits: 'Records and other pages',
-    lists: 'Lists',
+    otherEdits: 'Outside Tasks',
     tasks: 'Tasks',
     total: 'Total: %(count)s',
     ofEdits: 'Of edits',
@@ -76,7 +68,7 @@ function readStrings(root) {
 
 /**
  * Group days into periods of `size` days, counting back from the last day so the latest period ends today. Days left
- * over at the start are dropped, since a short period can't be compared with a full one.
+ * over at the start are dropped, since a short period would read as a drop.
  * @param {(number | null)[]} daily
  * @param {number} size
  * @param {(number | null)[]} [rolling] a rolling series to sample at each period's end, for counts that don't add up
@@ -96,31 +88,6 @@ export function bucketize(daily, size, rolling) {
         buckets.unshift({ start, end, value });
     }
     return buckets;
-}
-
-/**
- * The last `count` buckets, each beside the bucket `shift` before it, null where history runs out.
- * @param {Bucket[]} buckets
- * @param {number} count
- * @param {number} shift
- */
-export function shiftPeriods(buckets, count, shift) {
-    const current = buckets.slice(-count);
-    const offset = buckets.length - current.length - shift;
-    const previous = current.map((_, i) => buckets[offset + i] ?? null);
-    return { current, previous };
-}
-
-/**
- * The change from `before` to `now` the way the server's cards show it: a direction and a one-decimal percentage, or null
- * without an earlier value. Matches format_change in openlibrary/views/loanstats.py.
- * @param {number | null} now
- * @param {number | null | undefined} before
- */
-export function cardChange(now, before) {
-    if (now === null || !before) return null;
-    const change = ((now - before) / before) * 100;
-    return { direction: change >= 0.5 ? 'up' : change <= -0.5 ? 'down' : 'flat', text: `${Math.abs(change).toFixed(1)}%` };
 }
 
 /**
@@ -169,7 +136,7 @@ export function pointRadii(values) {
 /**
  * @typedef {object} Metric
  * @property {Part[]} parts stacked bottom up
- * @property {Bucket[]} total what the previous period and the change compare
+ * @property {Bucket[]} total the stack's height, which the cards and tooltips show
  * @property {'count' | 'percent' | 'decimal'} format
  * @property {(number | null)[][]} [complete] daily series a card needs every day of, or its sum would read as a drop
  */
@@ -183,11 +150,9 @@ export async function init(root) {
     const token = (/** @type {string} */ name) => style.getPropertyValue(name).trim();
     const bar = resolveColor(root, 'var(--color-stats-chart-bar)');
     const accent = resolveColor(root, 'var(--color-stats-chart-accent)');
-    const muted = resolveColor(root, 'var(--color-stats-chart-muted)');
     const colors = {
         bar,
         accent,
-        muted,
         area: withAlpha(bar, 0.25),
         previous: resolveColor(root, 'var(--color-text-secondary)'),
         grid: token('--color-border-subtle'),
@@ -219,6 +184,7 @@ export async function init(root) {
     const numberFormat = new Intl.NumberFormat(lang, { maximumFractionDigits: 0 });
     const decimalFormat = new Intl.NumberFormat(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const percentFormat = new Intl.NumberFormat(lang, { style: 'percent', maximumFractionDigits: 1 });
+    const compactFormat = new Intl.NumberFormat(lang, { notation: 'compact', maximumFractionDigits: 1 });
     const formats = {
         count: (/** @type {number} */ v) => numberFormat.format(v),
         decimal: (/** @type {number} */ v) => decimalFormat.format(v),
@@ -236,16 +202,15 @@ export async function init(root) {
      */
     function buildMetrics(n) {
         const series = (/** @type {string} */ key) => fullSeries(key).slice(0, n);
-        // Edits split by where they were saved. A day with edits but no list or Tasks count had none of those.
-        const edits = series('catalog_edits');
+        // Edits to editions and works, split by where they were saved. A day with edits but no Tasks count had none.
+        const edits = series('book_edits');
         const orZero = (/** @type {(number | null)[]} */ values) => values.map((v, i) => (edits[i] === null ? null : (v ?? 0)));
-        const lists = orZero(series('list_edits'));
         const tasksSaves = orZero(series('tasks_saves_1d'));
 
         /**
          * People can't be added up across days, so week and month views of them take the stored 7- or 28-day window ending on
          * the period's last day instead.
-         * @param {string} prefix e.g. `catalog_editors`, with `_1d`, `_7d` and `_28d` keys
+         * @param {string} prefix e.g. `book_editors`, with `_1d`, `_7d` and `_28d` keys
          * @param {number} size
          */
         const people = (prefix, size) => bucketize(series(`${prefix}_1d`), size, size === 1 ? undefined : series(`${prefix}_${size === 7 ? 7 : 28}d`));
@@ -260,8 +225,8 @@ export async function init(root) {
         /** @type {Record<string, (size: number) => Metric>} */
         const METRICS = {
             editors: size => {
-                const all = people('catalog_editors', size);
-                const firstTime = people('new_catalog_editors', size);
+                const all = people('book_editors', size);
+                const firstTime = people('new_book_editors', size);
                 const returning = all.map((b, i) => ({
                     ...b,
                     value: b.value === null || firstTime[i].value === null ? null : Math.max(0, b.value - firstTime[i].value)
@@ -277,12 +242,12 @@ export async function init(root) {
             },
             edits: size => {
                 const parts = [
-                    { label: strings.otherEdits, color: colors.bar, buckets: sum(subtract(edits, lists, tasksSaves), size) },
-                    { label: strings.lists, color: colors.muted, buckets: sum(lists, size) },
+                    { label: strings.otherEdits, color: colors.bar, buckets: sum(subtract(edits, tasksSaves), size) },
                     { label: strings.tasks, color: colors.accent, buckets: sum(tasksSaves, size) }
                 ];
                 return { parts, total: stackTotal(parts), format: 'count', complete: [edits] };
             },
+            new_editors: size => single(people('new_book_editors', size), 'count', colors.accent),
             tasks_share: size => ({ ...single(ratio(sum(tasksSaves, size), sum(edits, size), 100), 'percent'), complete: [edits] }),
             saves: size => single(sum(series('tasks_saves_1d'), size), 'count'),
             tasks_editors: size => single(people('tasks_editors', size), 'count'),
@@ -291,29 +256,26 @@ export async function init(root) {
         return { METRICS, edits, tasksSaves };
     }
     const { METRICS, edits, tasksSaves } = buildMetrics(dates.length);
-    const gathered = Math.max(...['catalog_editors_1d', 'catalog_edits', 'tasks_saves_1d'].map(key => fullSeries(key).findLastIndex(v => v !== null)));
+    const gathered = Math.max(...['book_editors_1d', 'book_edits', 'tasks_saves_1d'].map(key => fullSeries(key).findLastIndex(v => v !== null)));
     const CARD_METRICS = gathered >= 0 ? buildMetrics(gathered + 1).METRICS : METRICS;
 
     /**
      * @param {Bucket[]} buckets
      * @param {Metric['format']} format
+     * @param {string} [color]
      * @returns {Metric}
      */
-    function single(buckets, format) {
-        return { parts: [{ label: '', color: colors.bar, buckets }], total: buckets, format };
+    function single(buckets, format, color = colors.bar) {
+        return { parts: [{ label: '', color, buckets }], total: buckets, format };
     }
 
-    const projects = /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.tasks-stats__card[data-initiative]'));
-    const pressed = [...projects].find(card => card.getAttribute('aria-pressed') === 'true');
     const state = {
         scope: root.dataset.scope || 'all',
         days: 90,
         granularity: 'day',
-        compare: true,
         metric: '',
-        // The cards' window, and how far back the chart's dashed line reaches
-        window: 28,
-        initiative: pressed?.dataset.initiative || ''
+        // The cards' window
+        window: 28
     };
 
     /** @param {Bucket} bucket */
@@ -330,11 +292,11 @@ export async function init(root) {
     const bucketCount = () => Math.max(1, Math.floor(state.days / BUCKET_DAYS[state.granularity]));
 
     /**
-     * @param {string} name
+     * @param {string | HTMLCanvasElement} target a `data-chart` name, or the canvas itself
      * @param {import('chart.js').ChartConfiguration} config
      */
-    function draw(name, config) {
-        const canvas = /** @type {HTMLCanvasElement} */ (root.querySelector(`canvas[data-chart="${name}"]`));
+    function draw(target, config) {
+        const canvas = typeof target === 'string' ? /** @type {HTMLCanvasElement} */ (root.querySelector(`canvas[data-chart="${target}"]`)) : target;
         const existing = Chart.getChart(canvas);
         if (existing) {
             existing.data = config.data;
@@ -358,16 +320,17 @@ export async function init(root) {
      * @param {object} [overrides]
      * @param {Partial<import('chart.js').TooltipCallbacks<any>>} [overrides.tooltip]
      * @param {object} [overrides.y]
+     * @param {object} [overrides.xTickOptions]
      * @param {boolean} [overrides.stacked]
      * @param {number} [overrides.xTicks]
      */
-    function options({ tooltip = {}, y = {}, stacked = false, xTicks = 8 } = {}) {
+    function options({ tooltip = {}, y = {}, xTickOptions = {}, stacked = false, xTicks = 8 } = {}) {
         return {
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode: /** @type {const} */ ('index'), intersect: false },
             scales: {
-                x: { stacked, grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: xTicks } },
+                x: { stacked, grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: xTicks, ...xTickOptions } },
                 y: { stacked, beginAtZero: true, border: { display: false }, grid: { color: colors.grid }, ticks: { precision: 0 }, ...y }
             },
             plugins: {
@@ -393,11 +356,7 @@ export async function init(root) {
         const metric = METRICS[state.metric](BUCKET_DAYS[state.granularity]);
         const count = bucketCount();
         const format = formats[metric.format];
-        // The dashed line is the chart shifted back by the window, or by one bar when bars are wider than it.
-        const shift = Math.max(1, Math.round(state.window / BUCKET_DAYS[state.granularity]));
-        const ago = shift * BUCKET_DAYS[state.granularity] <= 7 ? 7 : 28;
-        const { current, previous } = shiftPeriods(metric.total, count, shift);
-        legend.textContent = strings[`earlier${ago}`];
+        const current = metric.total.slice(-count);
         const stacked = metric.parts.length > 1;
         const datasets = metric.parts.map(part => {
             const buckets = part.buckets.slice(-count);
@@ -410,34 +369,9 @@ export async function init(root) {
                 borderRadius: stacked ? 0 : 2,
                 barPercentage: buckets.length > 120 ? 1 : 0.8,
                 categoryPercentage: 0.9,
-                stack: 'parts',
-                order: 2
+                stack: 'parts'
             };
         });
-        if (state.compare) {
-            datasets.push(
-                /** @type {any} */ ({
-                    type: 'line',
-                    data: previous.map(b => b?.value ?? null),
-                    borderColor: colors.previous,
-                    borderDash: [4, 4],
-                    borderWidth: 1.5,
-                    pointRadius: 0,
-                    pointHitRadius: 0,
-                    tension: 0.25,
-                    stack: 'previous',
-                    order: 1
-                })
-            );
-        }
-        /** @param {number} index */
-        const changeText = index => {
-            const now = current[index].value;
-            const before = previous[index]?.value;
-            if (!state.compare || !before || now === null) return '';
-            const change = (now - before) / before;
-            return fill(strings[`earlierChange${ago}`], { change: `${change >= 0 ? '+' : ''}${percentFormat.format(change)}` });
-        };
         draw('main', {
             type: 'bar',
             data: { labels: current.map(shortLabel), datasets },
@@ -446,20 +380,12 @@ export async function init(root) {
                 y: axis(metric.format),
                 tooltip: {
                     title: items => fullLabel(current[items[0].dataIndex]),
-                    label: item => {
-                        if (item.dataset.type === 'line') return fill(strings[`earlierValue${ago}`], { count: format(item.raw) });
-                        if (stacked) return `${item.dataset.label}: ${format(item.raw)}`;
-                        const change = changeText(item.dataIndex);
-                        return change ? `${format(item.raw)}  (${change})` : format(item.raw);
-                    },
+                    label: item => (stacked ? `${item.dataset.label}: ${format(item.raw)}` : format(item.raw)),
                     footer: items => {
                         const index = items[0].dataIndex;
                         const total = current[index].value;
                         const lines = [];
-                        if (stacked && total !== null) {
-                            const change = changeText(index);
-                            lines.push(fill(strings.total, { count: format(total) }) + (change ? `  (${change})` : ''));
-                        }
+                        if (stacked && total !== null) lines.push(fill(strings.total, { count: format(total) }));
                         lines.push(inProgressNote(current[index]));
                         return lines.filter(Boolean);
                     }
@@ -526,7 +452,7 @@ export async function init(root) {
             [
                 { values: perDay(tasksSaves, edits, 100), color: colors.accent, label: strings.ofEdits },
                 {
-                    values: perDay(series('tasks_editors_1d'), series('catalog_editors_1d'), 100),
+                    values: perDay(series('tasks_editors_1d'), series('book_editors_1d'), 100),
                     color: colors.previous,
                     dashed: true,
                     label: strings.ofEditors
@@ -536,34 +462,62 @@ export async function init(root) {
         );
     }
 
-    function drawTasksPanels() {
-        const openGaps = data.initiatives?.[state.initiative] || dates.map(() => null);
-        const days = bucketize(openGaps, 1).slice(-state.days);
-        draw('initiative', {
+    /**
+     * One project's open details from its first snapshot to today, on an axis from zero to the details open when it
+     * started, so the line's distance from the floor is how much is left.
+     * @param {HTMLCanvasElement} canvas
+     */
+    function drawProject(canvas) {
+        const openGaps = data.initiatives?.[canvas.dataset.initiative || ''] || [];
+        const first = openGaps.findIndex(v => v !== null);
+        const days = first < 0 ? [] : bucketize(openGaps, 1).slice(first);
+        const values = days.map(b => b.value);
+        const top = Math.max(Number(canvas.dataset.start) || 0, ...values.map(v => v ?? 0)) || 1;
+        const labels = days.map(shortLabel);
+        draw(canvas, {
             type: 'line',
             data: {
-                labels: days.map(shortLabel),
+                labels,
                 datasets: [
                     {
-                        data: days.map(b => b.value),
+                        data: values,
                         borderColor: colors.bar,
                         backgroundColor: colors.area,
                         pointBackgroundColor: colors.bar,
                         fill: true,
-                        borderWidth: 2.5,
-                        pointRadius: pointRadii(days.map(b => b.value)),
+                        borderWidth: 2,
+                        pointRadius: values.map((_, i) => (i === values.length - 1 ? 3 : 0)),
+                        // A missed nightly count shouldn't break the line
+                        spanGaps: true,
                         tension: 0.2
                     }
                 ]
             },
             options: options({
-                y: { beginAtZero: false },
+                // A sparkline has room to label only the first and last day.
+                xTickOptions: {
+                    autoSkip: false,
+                    align: 'inner',
+                    callback: (/** @type {number} */ _, /** @type {number} */ i) => (i === 0 || i === days.length - 1 ? labels[i] : '')
+                },
+                y: {
+                    min: 0,
+                    max: top,
+                    afterBuildTicks: (/** @type {import('chart.js').Scale} */ scale) => {
+                        scale.ticks = [{ value: 0 }, { value: top }];
+                    },
+                    ticks: { callback: (/** @type {number} */ v) => compactFormat.format(v) }
+                },
                 tooltip: {
                     title: items => fullLabel(days[items[0].dataIndex]),
                     label: item => fill(strings.openDetails, { count: numberFormat.format(item.raw) })
                 }
             })
         });
+    }
+
+    function drawTasksPanels() {
+        root.querySelectorAll('canvas[data-chart="initiative"]').forEach(canvas => drawProject(/** @type {HTMLCanvasElement} */ (canvas)));
 
         // Each line is a share of the 28 days to that day, left out where fewer than `minSample` saves stand behind it.
         const minSample = Number(root.dataset.minSample) || 0;
@@ -625,7 +579,6 @@ export async function init(root) {
 
     const title = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-title'));
     const unit = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-unit'));
-    const legend = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__legend-previous'));
     const parts = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__parts'));
     const note = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-note'));
     const cards = /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.tasks-stats__card[data-metric]'));
@@ -663,16 +616,6 @@ export async function init(root) {
         history.replaceState(null, '', url);
         showScope(scope);
     });
-    projects.forEach(card =>
-        card.addEventListener('click', () => {
-            state.initiative = card.dataset.initiative || '';
-            projects.forEach(other => other.setAttribute('aria-pressed', String(other === card)));
-            root.querySelectorAll('[data-initiative-figures]').forEach(figures => {
-                /** @type {HTMLElement} */ (figures).hidden = /** @type {HTMLElement} */ (figures).dataset.initiativeFigures !== state.initiative;
-            });
-            drawTasksPanels();
-        })
-    );
     root.querySelector('.tasks-stats__range')?.addEventListener('ol-segmented-control-change', event => {
         state.days = Number(/** @type {CustomEvent} */ (event).detail.value);
         drawMain();
@@ -682,13 +625,6 @@ export async function init(root) {
         state.granularity = /** @type {CustomEvent} */ (event).detail.value;
         drawMain();
     });
-    root.querySelector('.tasks-stats__compare')?.addEventListener('ol-toggle-change', event => {
-        state.compare = /** @type {CustomEvent} */ (event).detail.checked;
-        legend.hidden = !state.compare;
-        root.classList.toggle('tasks-stats--no-compare', !state.compare);
-        drawMain();
-    });
-
     root.querySelector('.tasks-stats__window')?.addEventListener('ol-segmented-control-change', event => {
         state.window = Number(/** @type {CustomEvent} */ (event).detail.value);
         updateCards();
@@ -696,16 +632,14 @@ export async function init(root) {
     });
 
     /**
-     * A card's value over the window ending today, and over the window before it.
+     * A card's value over the window ending today.
      * @param {string} name
      */
     function cardValues(name) {
         const metric = CARD_METRICS[name](state.window);
-        /** @param {Bucket | undefined} bucket */
-        const covered = bucket => bucket && (metric.complete || []).every(daily => daily.slice(bucket.start, bucket.end + 1).every(v => v !== null));
         const now = metric.total.at(-1);
-        const before = metric.total.at(-2);
-        return { metric, value: covered(now) ? (now?.value ?? null) : null, earlier: covered(before) ? (before?.value ?? null) : null };
+        const covered = now && (metric.complete || []).every(daily => daily.slice(now.start, now.end + 1).every(v => v !== null));
+        return { metric, value: covered ? (now?.value ?? null) : null };
     }
 
     // Card figures match the server's: whole numbers, and percentages to one decimal.
@@ -723,6 +657,7 @@ export async function init(root) {
         /** @type {Record<string, string | null | undefined>} */
         const details = {
             edits: perEditor && fill(strings.perEditor, { count: perEditor }),
+            new_editors: (s => s && fill(strings.ofEditorsDetail, { share: s }))(share(value.new_editors, value.editors)),
             tasks_share: value.tasks_share !== null ? (s => s && fill(strings.tasksShareDetail, { share: s }))(share(value.tasks_editors, value.editors)) : '',
             saves: (s => s && fill(strings.shareOfEdits, { share: s }))(share(value.saves, value.edits)),
             tasks_editors: (s => s && fill(strings.shareOfEditors, { share: s }))(share(value.tasks_editors, value.editors)),
@@ -730,18 +665,10 @@ export async function init(root) {
         };
         cards.forEach(card => {
             const name = card.dataset.metric || '';
-            const { metric, value: now, earlier } = cardValues(name);
+            const { metric, value: now } = cardValues(name);
             const field = (/** @type {string} */ part) => /** @type {HTMLElement | null} */ (card.querySelector(`.tasks-stats__card-${part}`));
             const valueEl = field('value');
             if (valueEl) valueEl.textContent = now === null ? '—' : cardFormats[metric.format](now);
-            const change = cardChange(now, earlier);
-            const changeEl = field('change');
-            if (changeEl) {
-                changeEl.hidden = !change;
-                changeEl.className = `tasks-stats__card-change${change ? ` tasks-stats__card-change--${change.direction}` : ''}`;
-                const arrow = change?.direction === 'up' ? '▲ ' : change?.direction === 'down' ? '▼ ' : '';
-                changeEl.textContent = change ? fill(strings[`cardChange${state.window}`], { change: arrow + change.text }) : '';
-            }
             const detailEl = field('detail');
             if (name === 'editors') {
                 const [returning, firstTime] = metric.parts.map(part => part.buckets.at(-1)?.value ?? null);

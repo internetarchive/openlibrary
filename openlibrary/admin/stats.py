@@ -25,22 +25,25 @@ class InvalidType(TypeError):
 
 
 def connect_to_pg(config_file):
-    """Connects to the postgres database specified in the dictionary
-    `config`. Needs a top level key `db_parameters` and under that
-    `database` (or `db`) at the least. If `user` and `host` are
-    provided, they're used as well."""
+    """Connects to the postgres database specified by the `db_parameters`
+    key of the YAML file at `config_file`. Accepts either key style found in
+    our configs (`database`/`username`/`password` or `db`/`user`/`pw`); `host`,
+    `port` and the password are used when present."""
     with open(config_file) as f:
         config = yaml.safe_load(f)
-    conf = {}
-    conf["db"] = config["db_parameters"].get("database") or config["db_parameters"].get("db")
+    params = config["db_parameters"]
+    conf = {
+        "db": params.get("database") or params.get("db"),
+        "pw": params.get("password") or params.get("pw") or "",
+    }
     if not conf["db"]:
         raise KeyError("database/db")
-    host = config["db_parameters"].get("host")
-    user = config["db_parameters"].get("user") or config["db_parameters"].get("username")
-    if host:
-        conf["host"] = host
-    if user:
+    if user := params.get("username") or params.get("user"):
         conf["user"] = user
+    if host := params.get("host"):
+        conf["host"] = host
+    if port := params.get("port"):
+        conf["port"] = port
     logger.debug(" Postgres Database : %(db)s" % conf)
     return web.database(dbn="postgres", **conf)  # noqa: TID251
 
@@ -48,13 +51,13 @@ def connect_to_pg(config_file):
 def store_data(data, date):
     uid = "counts-%s" % date
     logger.debug(" Updating stats for %s - %s", uid, data)
-    doc = web.ctx.site.store.get(uid) or {}
+    doc = site.get().store.get(uid) or {}
     doc.update(data)
     doc["type"] = "admin-stats"
     # as per https://github.com/internetarchive/infogami/blob/master/infogami/infobase/_dbstore/store.py#L79-L83
     # avoid document collisions if multiple tasks updating stats in competition (race)
     doc["_rev"] = None
-    web.ctx.site.store[uid] = doc
+    site.get().store[uid] = doc
 
 
 def run_gathering_functions(infobase_db, coverstore_db, start, end, prefix, key_prefix=None):

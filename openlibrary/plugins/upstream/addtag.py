@@ -11,6 +11,7 @@ from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.addbook import safe_seeother, trim_doc
 from openlibrary.plugins.upstream.models import Tag
 from openlibrary.plugins.upstream.utils import render_template
+from openlibrary.utils.request_context import site
 
 
 @public
@@ -153,7 +154,7 @@ class tag_edit(delegate.page):
     path = r"(/tags/OL\d+T)/edit"
 
     def GET(self, key):
-        tag = web.ctx.site.get(key)
+        tag = site.get().get(key)
         if tag is None:
             raise web.notfound()
 
@@ -168,7 +169,7 @@ class tag_edit(delegate.page):
         return render_template("type/tag/form", tag, redirect=i.redir)
 
     def POST(self, key):
-        tag = web.ctx.site.get(key)
+        tag = site.get().get(key)
         if tag is None:
             raise web.notfound()
 
@@ -182,7 +183,7 @@ class tag_edit(delegate.page):
         i = web.input(_comment=None, redir=None)
         if "_delete" in i:
             try:
-                tag = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
+                tag = site.get().new(key, {"key": key, "type": {"key": "/type/delete"}})
                 tag._save(comment=i._comment, action="delete-tag")
                 raise safe_seeother(key)
             except (ClientException, ValidationException) as e:
@@ -225,7 +226,7 @@ class tag_edit(delegate.page):
         :param tag: A Tag object
         :return: True if current user can edit a tag, False otherwise
         """
-        if not web.ctx.site.can_write(tag.key):
+        if not site.get().can_write(tag.key):
             return False
         if not (patron := get_current_user()):
             return False
@@ -263,9 +264,9 @@ class tags_index(delegate.page):
         if tag_type:
             q["tag_type"] = tag_type
 
-        tag_keys = web.ctx.site.things(q)
+        tag_keys = site.get().things(q)
         has_next = len(tag_keys) > limit
-        tags = web.ctx.site.get_many(tag_keys[:limit]) if tag_keys else []
+        tags = site.get().get_many(tag_keys[:limit]) if tag_keys else []
 
         return render_template(
             "type/tag/index",

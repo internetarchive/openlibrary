@@ -45,6 +45,7 @@ from openlibrary.plugins.openlibrary.api import (
     get_works_data_async,
     process_work_bookshelves,
 )
+from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import SINCE_DAYS, TRENDING_NOW_LIMIT, get_trending_books
 
@@ -486,7 +487,7 @@ async def post_patron_follows(
         await PubSub.subscribe(user.username, publisher)
     else:
         await PubSub.unsubscribe(user.username, publisher)
-    return RedirectResponse(url=redir_url, status_code=303)
+    return RedirectResponse(url=redir_url if is_safe_redirect(redir_url) else "/", status_code=303)
 
 
 async def patrons_observations():

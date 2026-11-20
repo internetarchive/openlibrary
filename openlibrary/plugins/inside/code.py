@@ -1,14 +1,31 @@
+from math import ceil
+from typing import TYPE_CHECKING, Any
+
 import web
+from markupsafe import Markup, escape
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.context import context
+from infogami.utils.view import safeint
+from openlibrary.accounts import get_current_user
 from openlibrary.core.fulltext import (
+    all_words_query,
     fulltext_page,
     fulltext_search_async,
     is_auto_phrased_query,
+    phrase_query,
     resolve_language,
 )
+from openlibrary.core.helpers import commify
+from openlibrary.core.jinja import render_jinja_template
+from openlibrary.plugins.upstream.mybooks import get_reading_states
+from openlibrary.plugins.upstream.utils import render_macro
 from openlibrary.utils.async_utils import async_bridge
+
+if TYPE_CHECKING:
+    from openlibrary.core.fulltext import FulltextRow
+    from openlibrary.core.reading_state import ReadingState
+    from openlibrary.fastapi.search import InsideNav, SearchNav
 
 RESULTS_PER_PAGE = 20
 
@@ -35,20 +52,100 @@ def empty_reason(query: str, rows: list, total: int, filtered: bool) -> str | No
     return "filtered_out" if filtered else "past_end"
 
 
+def hit_editions(data: dict) -> list[Any]:
+    """The OL editions behind an FTS response's hits: the page's one reading-state lookup."""
+    return [row.edition for row in fulltext_page(data)[0] if row.edition]
+
+
+def render_hit_rows(rows: list[FulltextRow], phrase: str, reading_states: dict[str, ReadingState]) -> list[Markup]:
+    """Render one search row per hit.
+
+    `SearchResultsWork` is still Templetor (8 other callers, each with its own
+    request state), so it renders here as a bridge, as /search's full text band
+    does (`partials.render_fulltext_suggestion_row`). `reading_states` is the
+    page's single lookup, passed in so the shelf button shows this reader's state
+    rather than looking up its own per row: rendering does no I/O, so FastAPI may
+    call this on its event loop.
+    """
+    rendered = []
+    for seq_index, row in enumerate(rows):
+        if row.edition:
+            macro = render_macro(
+                "SearchResultsWork",
+                (row.edition,),
+                availability=row.availability,
+                extra_row=render_jinja_template("FulltextSnippet.html.jinja", row=row, phrase=phrase),
+                include_dropper=True,
+                reading_states=reading_states,
+                seq_index=seq_index,
+                show_title_year=True,
+            )
+            rendered.append(Markup(str(macro["__body__"])))
+        else:
+            rendered.append(Markup(render_jinja_template("FulltextResultIA.html.jinja", row=row, phrase=phrase)))
+    return rendered
+
+
+def render_inside_body(
+    *,
+    nav: SearchNav,
+    inside_nav: InsideNav,
+    query: str,
+    page: int,
+    language: tuple[str, str] | None,
+    readable: bool,
+    phrase: bool,
+    data: dict,
+    reading_states: dict[str, ReadingState],
+) -> str:
+    """Render /search/inside's page body from an FTS response, for either server.
+
+    `phrase` is what the request asked for; a query that fell back to its loose
+    words renders as all-words, and its snippets search for those words.
+    """
+    rows, total = fulltext_page(data)
+    used_fallback = bool(data.get("all_words_fallback"))
+    page_phrase = phrase and not used_fallback
+    snippet_phrase = phrase_query(query) if page_phrase else all_words_query(query)
+
+    return render_jinja_template(
+        "search/inside.html.jinja",
+        nav=nav,
+        inside_nav=inside_nav,
+        q=query,
+        page=page,
+        results_per_page=RESULTS_PER_PAGE,
+        rows=render_hit_rows(rows, snippet_phrase, reading_states) if rows else [],
+        total=total,
+        commified_total=commify(total),
+        range_start=(page - 1) * RESULTS_PER_PAGE + 1,
+        total_pages=ceil(total / RESULTS_PER_PAGE),
+        language=language,
+        readable=readable,
+        was_auto_phrased=phrase and not used_fallback and is_auto_phrased_query(query),
+        used_fallback=used_fallback,
+        opted_out=not phrase and is_auto_phrased_query(query),
+        error=data.get("error"),
+        empty_reason=empty_reason(query, rows, total, filtered=readable or bool(language)),
+    )
+
+
 class search_inside(delegate.page):
+    """Retire once production routes /search/inside to FastAPI (``openlibrary/fastapi/search.py``)."""
+
     path = "/search/inside"
 
     def GET(self):
         i = web.input(q="", page=1, language=[], readable="", phrase="true")
         query = i.q
-        page = int(i.page)
+        page = max(1, safeint(i.page, 1))
         readable = i.readable == "true"
         phrase = i.phrase != "false"
         # (code, name): FTS takes the name; generated URLs keep the code.
-        language = resolve_language(i.language)
+        language = resolve_language(i.language) if i.language else None
 
         # Readable filters fetched hits, not `q` (see the `lang` note in fulltext_search_async).
-        results = (
+        data = (
             async_bridge.run(
                 fulltext_search_async(
                     query,
@@ -63,25 +160,25 @@ class search_inside(delegate.page):
             if query
             else {}
         )
-        rows, total = fulltext_page(results)
-        used_fallback = bool(results.get("all_words_fallback"))
 
-        return render_template(
-            "search/inside.tmpl",
-            query,
-            rows,
-            total,
+        # Local imports: openlibrary.fastapi.search imports this module, and this handler is temporary.
+        from openlibrary.fastapi.search import InsideNav, SearchNav, inside_search_title  # noqa: PLC0415
+
+        body = render_inside_body(
+            nav=SearchNav.from_query(web.ctx.path, web.input(_method="get")),
+            inside_nav=InsideNav.from_query(web.ctx.path, web.ctx.query),
+            query=query,
             page=page,
-            results_per_page=RESULTS_PER_PAGE,
             language=language,
             readable=readable,
-            phrase=phrase and not used_fallback,
-            was_auto_phrased=phrase and not used_fallback and is_auto_phrased_query(query),
-            used_fallback=used_fallback,
-            opted_out=not phrase and is_auto_phrased_query(query),
-            error=results.get("error"),
-            empty_reason=empty_reason(query, rows, total, filtered=readable or bool(language)),
+            phrase=phrase,
+            data=data,
+            # web.py renders on its own thread, so the sync lookup is fine here.
+            reading_states=get_reading_states(get_current_user(), hit_editions(data)),
         )
+        context.setdefault("bodyclass", []).append("search-page")
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(inside_search_title(query)))
 
 
 def setup():

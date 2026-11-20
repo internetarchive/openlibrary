@@ -2,7 +2,7 @@
 Capture some of the unintuitive aspects of Storage, Things, and Works
 """
 
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 import web
@@ -18,6 +18,10 @@ from .. import models
 class TestModels:
     def setup_method(self, method):
         web.ctx.site = MockSite()
+        self.site_token = site_context.set(web.ctx.site)
+
+    def teardown_method(self):
+        site_context.reset(self.site_token)
 
     def test_setup(self):
         expected_things = {
@@ -45,11 +49,11 @@ class TestModels:
             assert client._changeset_class_register[key] == value
 
     def test_work_without_data(self):
-        work = models.Work(web.ctx.site, "/works/OL42679M")
+        work = models.Work(site_context.get(), "/works/OL42679M")
         assert repr(work) == str(work) == "<Work: '/works/OL42679M'>"
         assert isinstance(work, client.Thing)
         assert isinstance(work, models.Work)
-        assert work._site == web.ctx.site
+        assert work._site == site_context.get()
         assert work.key == "/works/OL42679M"
         assert work._data is None
         # assert isinstance(work.data, client.Nothing)  # Fails!
@@ -60,11 +64,11 @@ class TestModels:
         # assert not work.revision('data')  # Fails!
 
     def test_work_with_data(self):
-        work = models.Work(web.ctx.site, "/works/OL42679M", web.Storage())
+        work = models.Work(site_context.get(), "/works/OL42679M", web.Storage())
         assert repr(work) == str(work) == "<Work: '/works/OL42679M'>"
         assert isinstance(work, client.Thing)
         assert isinstance(work, models.Work)
-        assert work._site == web.ctx.site
+        assert work._site == site_context.get()
         assert work.key == "/works/OL42679M"
         assert isinstance(work._data, web.Storage)
         assert isinstance(work._data, dict)
@@ -133,35 +137,35 @@ class TestGetAvatarUrl:
         _get_cache("memcache").memcache.flush_all()
 
     def test_returns_correct_avatar_url(self):
-        web.ctx.site.save({"key": "/people/testuser", "type": {"key": "/type/user"}})
-        web.ctx.site.store["account/testuser"] = {
+        site_context.get().save({"key": "/people/testuser", "type": {"key": "/type/user"}})
+        site_context.get().store["account/testuser"] = {
             "internetarchive_itemname": "@testuser-archive",
         }
         url = models.User.get_avatar_url("testuser")
         assert url == "https://archive.org/services/img/@testuser-archive"
 
     def test_caches_result_for_same_username(self, monkeypatch):
-        web.ctx.site.save({"key": "/people/cachetest_user", "type": {"key": "/type/user"}})
-        web.ctx.site.store["account/cachetest_user"] = {
+        site_context.get().save({"key": "/people/cachetest_user", "type": {"key": "/type/user"}})
+        site_context.get().store["account/cachetest_user"] = {
             "internetarchive_itemname": "@cachetest_user-archive",
         }
         call_count = 0
-        original_get = web.ctx.site.get
+        original_get = site_context.get().get
 
         def counting_get(key, *args, **kwargs):
             nonlocal call_count
             call_count += 1
             return original_get(key, *args, **kwargs)
 
-        monkeypatch.setattr(web.ctx.site, "get", counting_get)
+        monkeypatch.setattr(site_context.get(), "get", counting_get)
         models.User.get_avatar_url("cachetest_user")
         models.User.get_avatar_url("cachetest_user")
         assert call_count == 1
 
     def test_caches_independently_per_username(self):
         for username in ("alice", "bob"):
-            web.ctx.site.save({"key": f"/people/{username}", "type": {"key": "/type/user"}})
-            web.ctx.site.store[f"account/{username}"] = {
+            site_context.get().save({"key": f"/people/{username}", "type": {"key": "/type/user"}})
+            site_context.get().store[f"account/{username}"] = {
                 "internetarchive_itemname": f"@{username}-archive",
             }
         assert models.User.get_avatar_url("alice") == "https://archive.org/services/img/@alice-archive"
@@ -171,14 +175,18 @@ class TestGetAvatarUrl:
 class TestEdition:
     def setup_method(self, method):
         web.ctx.site = MockSite()
+        self.site_token = site_context.set(web.ctx.site)
         models.setup()
+
+    def teardown_method(self):
+        site_context.reset(self.site_token)
 
     def _make_edition(self, ocaid=None):
         data = {"key": "/books/OL1M", "type": {"key": "/type/edition"}}
         if ocaid:
             data["ocaid"] = ocaid
-        web.ctx.site.save(data)
-        return web.ctx.site.get("/books/OL1M")
+        site_context.get().save(data)
+        return site_context.get().get("/books/OL1M")
 
     def test_get_available_loans_no_ocaid(self):
         ed = self._make_edition()
@@ -224,3 +232,61 @@ class TestEdition:
             meta = ed.get_ia_meta_fields()
         assert "external-identifier" not in meta
         assert "collection" in meta
+
+
+class TestSiteContextMigration:
+    @pytest.fixture(params=["missing", "different"])
+    def current(self, mock_site, monkeypatch, request):
+        # Separate the handles so these tests cannot silently use the legacy site.
+        if request.param == "missing":
+            monkeypatch.delitem(web.ctx, "site")
+        else:
+            monkeypatch.setitem(web.ctx, "site", MockSite())
+        return mock_site
+
+    def test_follow_redirect_uses_current_site(self, current):
+        current.quicksave("/authors/OL1A", "/type/redirect", location="/authors/OL2A")
+        current.quicksave("/authors/OL2A", "/type/author", name="Current author")
+        assert models.follow_redirect("/a/OL1A").name == "Current author"
+
+    def test_work_editions_and_covers_use_current_site(self, current, monkeypatch):
+        work = current.quicksave("/works/OL1W", "/type/work", title="Work", covers=[1])
+        current.quicksave("/books/OL1M", "/type/edition", title="Older", works=[{"key": work.key}], publish_date="1990", covers=[2])
+        current.quicksave("/books/OL2M", "/type/edition", title="Newer", works=[{"key": work.key}], publish_date="2020", covers=[1])
+        work._solr_data = {"cover_edition_key": "OL1M"}
+        monkeypatch.setattr(models.lending, "get_availability", lambda *args: {})
+        assert [cover.id for cover in work.get_covers_from_solr()] == [2]
+        assert [ed.key for ed in work.get_sorted_editions()] == ["/books/OL2M", "/books/OL1M"]
+        assert [cover.id for cover in work.get_edition_covers()] == [2]
+
+    def test_user_history_and_admin_info_use_current_site(self, current, monkeypatch):
+        user = current.quicksave("/people/alice", "/type/user", displayname="Alice")
+        history = [web.storage(ip="192.0.2.1", created="2020-01-01")]
+        versions = Mock(return_value=history)
+        count = Mock(return_value=7)
+        monkeypatch.setattr(current, "versions", versions)
+        monkeypatch.setattr(current, "_request", count, raising=False)
+        monkeypatch.setitem(web.ctx, "path", "/admin/people/alice")
+        assert user.get_edit_history(limit=5, offset=10) == history
+        assert versions.call_args.args[0] == {"author": user.key, "limit": 5, "offset": 10}
+        assert user.get_creation_info() == {"ip": "192.0.2.1", "member_since": "2020-01-01"}
+        assert user.get_edit_count() == 7
+        count.assert_called_once_with("/count_edits_by_user", data={"key": user.key})
+
+    def test_changeset_undo_and_links_use_current_site(self, current, monkeypatch):
+        current.quicksave("/works/OL1W", "/type/work", title="Before")
+        current.save({"key": "/works/OL1W", "type": {"key": "/type/work"}, "title": "After"}, comment="edit")
+        change = current.get_change(current.changesets[-1]["id"])
+        assert change.get_undo_error() is None
+        change._undo()
+        assert current.get("/works/OL1W").title == "Before"
+        assert current.changesets[-1]["kind"] == "undo"
+        assert current.changesets[-1]["comment"] == "undo edit"
+        undo = models.Undo(current, current.changesets[-1])
+        undo.data["undo_of"] = change.id
+        assert undo.get_parent_changeset().id == change.id
+        assert undo.get_undo_of().id == change.id
+        recent = Mock(return_value=[undo])
+        monkeypatch.setattr(current, "recentchanges", recent)
+        assert change.get_undo_changeset() is undo
+        recent.assert_called_once_with({"kind": "undo", "data": {"parent_changeset": change.id}})

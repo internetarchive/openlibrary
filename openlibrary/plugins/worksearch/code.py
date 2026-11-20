@@ -49,7 +49,7 @@ from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.query_utils import fully_escape_query
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
-from openlibrary.utils.request_context import get_request_lang, req_context, set_context_from_legacy_web_py
+from openlibrary.utils.request_context import get_request_lang, req_context, set_context_from_legacy_web_py, site
 from openlibrary.utils.solr import (
     DEFAULT_PASS_TIME_ALLOWED,
     DEFAULT_SOLR_TIMEOUT_SECONDS,
@@ -1059,7 +1059,7 @@ class list_search(delegate.page):
         # Can't set fields when rendering html
         req.fields = "key"
         resp = self.get_results(req, "LIST_SEARCH")
-        lists = list(web.ctx.site.get_many([doc["key"] for doc in resp.docs]))
+        lists = list(site.get().get_many([doc["key"] for doc in resp.docs]))
 
         # Local import: openlibrary.fastapi.search imports this module.
         from openlibrary.fastapi.search import SearchNav, lists_search_title
@@ -1103,7 +1103,21 @@ class subject_search(delegate.page):
         page = safeint(i.page, 1) if i.page else 1
         offset = (page - 1) * results_per_page
         response = self.get_results(q, offset=offset, limit=results_per_page, request_label="SUBJECT_SEARCH") if q else None
-        return render_template("search/subjects", q, page, results_per_page, response)
+
+        # Local import: openlibrary.fastapi.search imports this module.
+        from openlibrary.fastapi.search import SearchNav, subjects_search_title
+
+        body = render_jinja_template(
+            "search/subjects.html.jinja",
+            nav=SearchNav.from_query(web.ctx.path, web.input(_method="get")),
+            q=q,
+            search_response=response,
+            commified_num_found=commify(response.num_found) if response and response.num_found is not None else "",
+            page=page,
+            total_pages=ceil((response.num_found or 0) / results_per_page) if response else 0,
+        )
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(subjects_search_title(q)))
 
     def get_results(
         self,
@@ -1203,7 +1217,7 @@ def rewrite_list_query(q: str, page, offset, limit, params: dict):
         if "env" not in web.ctx:
             delegate.fakeload()
             set_context_from_legacy_web_py()
-        lst = cast(List, web.ctx.site.get(key))
+        lst = cast(List, site.get().get(key))
         return list(itertools.islice(lst.get_work_keys(), offset, offset + limit))
 
     if list_key_match := re.match(r"^(/people/[^/]+)?/lists/OL\d+L", q):

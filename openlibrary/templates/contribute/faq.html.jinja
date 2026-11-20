@@ -1,0 +1,84 @@
+{#- /tasks/faq: answers for the people doing tasks, not for whoever runs the projects. Each question has an id, so a page can link straight to it. -#}
+<div class="contrib-page contrib-faq">
+    <header class="contrib-admin__head">
+        <ol-button class="contrib-admin__back" variant="ghost" size="small" href="/tasks">
+            {{ icon("chevron-left", slot="icon-start") }}{{ _("Tasks") }}
+        </ol-button>
+        <h1 class="contrib-title">{{ _("Questions about Tasks") }}</h1>
+    </header>
+    <section class="contrib-faq__group" aria-labelledby="faq-answering">
+        <h2 class="contrib-overline" id="faq-answering">{{ _("Answering") }}</h2>
+        <div class="contrib-faq__item" id="edition-or-work">
+            <h3>{{ _("Does my answer change this edition or the whole book?") }}</h3>
+            <p>
+                {{ _("Most tasks are about one edition: a particular printing, like the 2003 Penguin paperback. Its cover, page count, publisher, language and identifiers can differ from other editions, so your answer is saved on that edition only.") }}
+            </p>
+            <p>
+                {{ _("Fiction or nonfiction, and genres, describe the book itself, so they are saved on the work and every edition shows them. The line under each question says which one your answer covers.") }}
+            </p>
+        </div>
+        <div class="contrib-faq__item" id="where-to-look">
+            <h3>{{ _("Where should I look?") }}</h3>
+            <p>
+                {{ _("The best source is the book itself: if you have a copy in hand, the title page and copyright page answer most tasks. The publisher's website is also good. Each task also links to places that usually have the answer, such as WorldCat, Google Books and the Library of Congress, searched by the edition's ISBN.") }}
+            </p>
+            <p>
+                {{ _("If sources disagree, go with the one that is clearly about this edition: same ISBN, same publisher, same year. If you can't tell, it's fine to move on.") }}
+            </p>
+        </div>
+    </section>
+    <section class="contrib-faq__group" aria-labelledby="faq-no-answer">
+        <h2 class="contrib-overline" id="faq-no-answer">{{ _("When there's no answer") }}</h2>
+        <div class="contrib-faq__item" id="skip-or-not-found">
+            <h3>{{ _("What's the difference between \"Skip\" and \"I couldn't find it\"?") }}</h3>
+            <p>
+                {{ _("\"Skip\" records nothing. The book stays on the list for the next person, and you may see it again. Use it when you'd rather not answer this one: you don't know where to look, or you don't have time.") }}
+            </p>
+            <p>
+                {{ _("\"I couldn't find it\" is an answer. It says you looked and the detail doesn't seem to exist. The record doesn't change, but once a few people say the same, the book leaves the list so nobody else spends time on it.") }}
+            </p>
+        </div>
+        <div class="contrib-faq__item" id="does-not-exist">
+            <h3>{{ _("What if the book doesn't have this detail at all?") }}</h3>
+            <p>
+                {{ _("That happens. Many books never got a Library of Congress number or an OCLC number. Say \"I couldn't find it\" rather than guessing: a wrong value is harder to catch than a blank one. We note your answer, and if a few other people can't find it either, we take it that the book doesn't have this detail and remove the task from the list.") }}
+            </p>
+        </div>
+        <div class="contrib-faq__item" id="not-sure">
+            <h3>{{ _("What does \"Not sure\" mean on fiction and genre tasks?") }}</h3>
+            <p>
+                {{ _("These are judgment calls, not lookups. \"Not sure\" means you can't decide from what you see, and it counts like \"I couldn't find it\": when a few people are unsure, the book is set aside.") }}
+            </p>
+        </div>
+        <div class="contrib-faq__item" id="something-else-wrong">
+            <h3>{{ _("What if something else on the record is wrong?") }}</h3>
+            <p>
+                {{ _("Tasks only fill in blanks. To fix a wrong title, author or anything else, open the book's edit page from the task. If the problem is bigger, like two books mixed up in one record, %(link_start)stell us about it%(link_end)s.", link_start='<a href="/contact">', link_end="</a>") | safe }}
+            </p>
+        </div>
+    </section>
+    <section class="contrib-faq__group" aria-labelledby="faq-edits">
+        <h2 class="contrib-overline" id="faq-edits">{{ _("Your edits") }}</h2>
+        <div class="contrib-faq__item" id="is-it-live">
+            <h3>{{ _("Does my answer show up right away? Can it be undone?") }}</h3>
+            <p>
+                {{ _("Yes to both. A saved answer is an ordinary edit: it is live on the book at once, appears in the book's history and in your edits, and anyone can revert it. Made a mistake? Open the book and fix it the usual way.") }}
+            </p>
+        </div>
+        <div class="contrib-faq__item" id="who-can-help">
+            <h3>{{ _("Who can do tasks?") }}</h3>
+            <p>
+                {{ _("Anyone with a free Open Library account. Saves go through the same checks as the edit page, so a save from a blocked account, or one that looks like spam, won't go through.") }}
+            </p>
+        </div>
+    </section>
+    <section class="contrib-faq__group" aria-labelledby="faq-projects">
+        <h2 class="contrib-overline" id="faq-projects">{{ _("Projects") }}</h2>
+        <div class="contrib-faq__item" id="what-is-a-project">
+            <h3>{{ _("What is a project?") }}</h3>
+            <p>
+                {{ _("A fixed list of books and the details it asks about, like \"covers and page counts for the most-read books.\" Open Library librarians set them up. Tasks come from the list in random order.") }}
+            </p>
+        </div>
+    </section>
+</div>
