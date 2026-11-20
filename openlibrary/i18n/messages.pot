@@ -10043,8 +10043,13 @@ msgstr ""
 msgid "Subject search"
 msgstr ""
 
-#: openlibrary/fastapi/search.py openlibrary/plugins/worksearch/code.py
-msgid "Search results for Authors"
+#: openlibrary/fastapi/search.py
+#, python-format
+msgid "%(query)s - Author search"
+msgstr ""
+
+#: openlibrary/fastapi/search.py
+msgid "Author search"
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py

@@ -71,8 +71,8 @@
                             <span class="small grey"><b>{{ wc }}</b>
                                 {% if 'top_subjects' in doc %}
                                     {{ _('about %(subjects)s', subjects=', '.join(doc['top_subjects'])) }},
-                                    {{ _('including <i>%(topwork)s</i>', topwork=doc.get('top_work', '')) | safe }}
                                 {% endif %}
+                                {{ _('including <i>%(topwork)s</i>', topwork=doc.get('top_work', '')) | safe }}
                             </span>
                         </div>
                     </li>

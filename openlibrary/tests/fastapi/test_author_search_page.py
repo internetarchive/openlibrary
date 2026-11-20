@@ -56,12 +56,14 @@ def _author(olid: str = "OL1A", name: str = "Jane Austen", work_count: int = 8, 
 
 def test_authors_page_without_query(client):
     with ExitStack() as stack:
-        patched_search(stack, _solr_response())
+        solr_mock = patched_search(stack, _solr_response())
         response = client.get("/search/authors")
 
+    # Like web.py, a bare form doesn't query Solr
+    solr_mock.assert_not_called()
     assert response.status_code == 200
     html = response.text
-    assert "<title>Search results for Authors | Open Library</title>" in html
+    assert "<title>Author search | Open Library</title>" in html
     assert 'action="/search/authors"' in html
     # The search tabs, with Authors selected
     assert 'data-ol-link-track="SearchNav|SearchAuthors"' in html
@@ -189,7 +191,9 @@ def test_authors_page_no_results(client):
 
 def test_authors_page_solr_error(client):
     with ExitStack() as stack:
-        patched_search(stack, _solr_response(error="first problem\nsecond problem"))
+        solr_error = _solr_response(error="first problem\nsecond problem")
+        solr_error.num_found = None  # as run_solr_query_async returns it on a Solr error
+        patched_search(stack, solr_error)
         response = client.get("/search/authors?q=broken")
 
     assert response.status_code == 200
@@ -248,3 +252,20 @@ def test_concurrent_requests_each_get_their_own_sort_links(site_page_app, webpy_
         assert webpy_leftovers not in text
         assert f'"url": "/search/authors?q=query-{i}\\u0026sort=name"' in text
         assert not any(f"q=query-{j}\\u0026" in text for j in range(n) if j != i)
+
+
+def test_authors_page_strips_query_and_titles_it(client):
+    with ExitStack() as stack:
+        solr_mock = patched_search(stack, _solr_response(_author()))
+        response = client.get("/search/authors?q=%20austen%20")
+
+    assert solr_mock.call_args.args[1] == {"q": "austen"}
+    assert "<title>austen - Author search | Open Library</title>" in response.text
+
+
+def test_authors_page_shows_top_work_without_subjects(client):
+    with ExitStack() as stack:
+        patched_search(stack, _solr_response(_author(top_work="Emma")))
+        response = client.get("/search/authors?q=austen")
+
+    assert "including <i>Emma</i>" in response.text

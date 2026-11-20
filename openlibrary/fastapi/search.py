@@ -766,24 +766,33 @@ async def search_subjects(nav: SearchNavDep, q: str = "", page: int = 1) -> Site
     return SitePage(body, page=PageMeta(title=subjects_search_title(q)))
 
 
+def authors_search_title(q: str) -> str:
+    """Page title for /search/authors: led by the query, as in Wikipedia's, so tabs and history tell searches apart."""
+    return _("%(query)s - Author search", query=q) if q else _("Author search")
+
+
 @pages.get("/search/authors")
 async def search_authors(nav: SearchNavDep, q: str = "", page: int = 1, sort: AuthorSortOption = "") -> SitePage:  # type: ignore[valid-type]
-    """HTML author search page, rendered from authors.html.jinja.
-
-    Retire the web.py ``author_search`` handler (which still renders the
-    Templetor ``search/authors.html``) once production routes /search/authors here.
-    """
+    # TODO: Retire the web.py `author_search` handler (it still serves /search/authors
+    # in production) once production routes /search/authors here.
+    q = q.strip()
     page = max(1, page)
     limit = 100  # Matches web.py's author_search results_per_page
-    response = await run_solr_query_async(
-        AuthorSearchScheme(),
-        {"q": q},
-        offset=(page - 1) * limit,
-        rows=limit,
-        fields="*",
-        sort=sort,
-        request_label="AUTHOR_SEARCH",
+    response = (
+        await run_solr_query_async(
+            AuthorSearchScheme(),
+            {"q": q},
+            offset=(page - 1) * limit,
+            rows=limit,
+            fields="*",
+            sort=sort,
+            request_label="AUTHOR_SEARCH",
+        )
+        if q
+        else None
     )
+    # num_found is None when Solr errors; the template shows the error instead of results.
+    num_found = (response.num_found or 0) if response else 0
 
     body = render_jinja_template(
         "search/authors.html.jinja",
@@ -794,8 +803,8 @@ async def search_authors(nav: SearchNavDep, q: str = "", page: int = 1, sort: Au
         user=get_current_user(),
         urlsafe=urlsafe,
         coverstore_url=get_coverstore_public_url(),
-        commified_num_found=commify(response.num_found),
+        commified_num_found=commify(num_found),
         page=page,
-        total_pages=ceil(response.num_found / limit),
+        total_pages=ceil(num_found / limit),
     )
-    return SitePage(body, page=PageMeta(title=_("Search results for Authors")))
+    return SitePage(body, page=PageMeta(title=authors_search_title(q)))

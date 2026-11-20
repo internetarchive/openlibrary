@@ -1160,11 +1160,12 @@ class author_search(delegate.page):
             if q
             else None
         )
-        # An empty query renders the bare search form, so there is no response to read.
-        num_found = resp.num_found if resp else 0
+        # An empty query renders the bare search form, so there is no response to read;
+        # num_found is None when Solr errors.
+        num_found = (resp.num_found or 0) if resp else 0
 
         # Local import: openlibrary.fastapi.search imports this module.
-        from openlibrary.fastapi.search import SearchNav
+        from openlibrary.fastapi.search import SearchNav, authors_search_title
 
         body = render_jinja_template(
             "search/authors.html.jinja",
@@ -1180,7 +1181,7 @@ class author_search(delegate.page):
             total_pages=ceil(num_found / results_per_page),
         )
         # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
-        return web.template.TemplateResult(__body__=body, title=escape(_("Search results for Authors")))
+        return web.template.TemplateResult(__body__=body, title=escape(authors_search_title(q)))
 
     def get_results(
         self,
