@@ -23,35 +23,6 @@ export const subjectTypeMapping = {
 };
 
 /**
- * Compare function for determining the order of two tags.
- *
- * Tags are ordered by case-insensitive comparisons of the
- * tag names and, if necessary, tag types.
- *
- * @param {Tag} tagA
- * @param {Tag} tagB
- * @returns {Number}
- * @see {Array.sort}
- */
-export function compare(tagA, tagB) {
-    const lowerA = createComparableTag(tagA);
-    const lowerB = createComparableTag(tagB);
-
-    if (lowerA.tagName < lowerB.tagName) {
-        return -1;
-    } else if (lowerA.tagName > lowerB.tagName) {
-        return 1;
-    }
-    if (lowerA.tagType < lowerB.tagType) {
-        return -1;
-    } else if (lowerA.tagType > lowerB.tagtype) {
-        return 1;
-    }
-
-    return 0;
-}
-
-/**
  * Returns a Tag-like object that can be used for equality checks.
  *
  * The returned object will contain the given tag's `tagName` and `tagType`, both
