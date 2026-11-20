@@ -31,8 +31,9 @@ let _idCounter = 0;
  * @element ol-options-popover
  *
  * @prop {Array} items - List of `{ value, label, description?, count?,
- *     nested? }` objects. Settable as JSON attribute or property. `nested: true`
- *     indents the option to show it's a subset of the option above it.
+ *     nested?, disabled? }` objects. Settable as JSON attribute or property. `nested: true`
+ *     indents the option to show it's a subset of the option above it. `disabled: true`
+ *     shows the option greyed out and unselectable; arrow keys skip it.
  * @prop {String} selected - Currently selected `value`, or empty string for
  *     no selection. Reflects to attribute.
  * @prop {String} name - Form field name. When set, the selected value submits
@@ -234,6 +235,16 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
            tint like hover does, rather than greying it. */
             .item-row:has(> :checked):focus-within {
                 background: var(--color-control-selected-bg-hover);
+            }
+
+            /* Shown so patrons know the option exists, but can't be picked here. */
+            .item--disabled .item-row {
+                color: var(--color-text-muted);
+                cursor: not-allowed;
+            }
+
+            .item--disabled .item-row:hover {
+                background: none;
             }
 
             .item-radio {
@@ -458,9 +469,17 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         // FIX (WCAG 1.3.1): no leading whitespace/newline before <li> — Lit
         // template literal whitespace creates real text nodes that accesslint
         // flags as direct text content inside <ul>.
-        return html`<li class="item ${item.nested ? 'item--nested' : ''}">
+        return html`<li class="item ${item.nested ? 'item--nested' : ''} ${item.disabled ? 'item--disabled' : ''}">
             <label class="item-row menu-row">
-                <input type="radio" class="item-radio" name=${this._radioName} .checked=${isSelected} .value=${item.value} @change=${this._onItemChange} />
+                <input
+                    type="radio"
+                    class="item-radio"
+                    name=${this._radioName}
+                    .checked=${isSelected}
+                    .value=${item.value}
+                    ?disabled=${item.disabled}
+                    @change=${this._onItemChange}
+                />
                 <span class="item-content">
                     <span class="item-label">${item.label}</span>
                     ${item.description ? html`<span class="item-description">${item.description}</span>` : nothing}
@@ -525,13 +544,13 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
     _onFilterKeydown(e) {
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            this.shadowRoot.querySelector('.item-radio')?.focus();
+            this.shadowRoot.querySelector('.item-radio:not(:disabled)')?.focus();
         } else if (e.key === 'Enter') {
             e.preventDefault();
             const items = this._visibleItems;
             const query = this._query.trim().toLowerCase();
             const pick = items.length === 1 ? items[0] : items.find(it => (it.label || '').toLowerCase() === query);
-            if (query && pick) this._commitSelection(pick.value);
+            if (query && pick && !pick.disabled) this._commitSelection(pick.value);
         }
     }
 
@@ -585,7 +604,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
     }
 
     _onListKeydown(e) {
-        const radios = Array.from(this.shadowRoot.querySelectorAll('.item-radio'));
+        const radios = Array.from(this.shadowRoot.querySelectorAll('.item-radio:not(:disabled)'));
         if (radios.length === 0) return;
 
         const active = this.shadowRoot.activeElement;
@@ -632,7 +651,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
     }
 
     _focusSelectedOrFirst() {
-        const radio = this._radio(this.selected) || this.shadowRoot.querySelector('.item-radio');
+        const radio = this._radio(this.selected) || this.shadowRoot.querySelector('.item-radio:not(:disabled)');
         radio?.focus();
     }
 }

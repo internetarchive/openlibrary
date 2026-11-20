@@ -2105,7 +2105,7 @@ msgstr ""
 msgid "Human"
 msgstr ""
 
-#: admin/index.html admin/people/view.html
+#: admin/index.html admin/people/view.html recentchanges/index.html
 msgid "Bot"
 msgstr ""
 
@@ -2754,7 +2754,7 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
-#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html.jinja search/publishers.html search/searchbox.html search/searchbox.html.jinja shell/header.html.jinja type/local_id/view.html
+#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html publishers/notfound.html publishers/view.html recentchanges/index.html search/advancedsearch.html.jinja search/publishers.html search/searchbox.html search/searchbox.html.jinja shell/header.html.jinja type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -5856,6 +5856,220 @@ msgstr ""
 msgid "Books Added"
 msgstr ""
 
+#: recentchanges/index.html
+msgid "This hour so far"
+msgstr ""
+
+#: openlibrary/views/loanstats.py recentchanges/index.html
+#, python-format
+msgid "Total: %(count)s"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Humans"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Bots"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Today so far"
+msgstr ""
+
+#: openlibrary/views/loanstats.py recentchanges/index.html
+msgid "Still in progress"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "No changes in this range."
+msgstr ""
+
+#: recentchanges/index.html
+msgid "The chart couldn't load. Reload the page to try again."
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "Color by: %(choice)s"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Edit kind"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Every change here is the same kind"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "None"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Bots v. Humans"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Custom query…"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Edits whose saved record contains some text, searched newest first."
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "Matches “%(text)s”"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Other changes"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Not searched yet"
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "Searching back through the changes: %(count)s checked so far, back to %(date)s…"
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "Stopped after checking %(count)s changes, back to %(date)s."
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "Checked %(count)s changes, back to %(date)s."
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Stop"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Resume"
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "The search failed: %(reason)s"
+msgstr ""
+
+#: SearchResultsWork.html recentchanges/index.html
+msgid "Show more"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "No matching changes found yet."
+msgstr ""
+
+#: recentchanges/index.html
+msgid "No matching changes in this range."
+msgstr ""
+
+#: recentchanges/index.html search/sort_options.html
+msgid "Any"
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "Bot: %(choice)s"
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "Kind: %(choice)s"
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "%(count)s kinds"
+msgstr ""
+
+#: recentchanges/index.html stats/tasks.html.jinja
+msgid "Date range"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "7 days"
+msgstr ""
+
+#: recentchanges/index.html stats/tasks.html.jinja
+msgid "28 days"
+msgstr ""
+
+#: recentchanges/index.html stats/tasks.html.jinja
+msgid "90 days"
+msgstr ""
+
+#: recentchanges/index.html stats/tasks.html.jinja
+msgid "6 months"
+msgstr ""
+
+#: recentchanges/index.html stats/tasks.html.jinja
+msgid "12 months"
+msgstr ""
+
+#: recentchanges/index.html stats/tasks.html.jinja
+msgid "Group by"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Hour"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py recentchanges/index.html stats/tasks.html.jinja
+msgid "Day"
+msgstr ""
+
+#: recentchanges/index.html stats/tasks.html.jinja
+msgid "Week"
+msgstr ""
+
+#: openlibrary/core/shell/shelf_labels.py recentchanges/index.html stats/tasks.html.jinja
+msgid "Month"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Color by"
+msgstr ""
+
+#: recentchanges/index.html type/type/view.html
+msgid "Kind"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Kinds"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Filter kinds…"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Text in the edited record, e.g. airlines"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Text to search edited records for"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Match case"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Use regular expression"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Changes over the chosen range"
+msgstr ""
+
 #: RecentChanges.html recentchanges/index.html
 msgid "By Humans"
 msgstr ""
@@ -6169,10 +6383,6 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Top Rated"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Any"
 msgstr ""
 
 #: search/sort_options.html
@@ -6638,42 +6848,6 @@ msgstr ""
 
 #: openlibrary/views/loanstats.py stats/tasks.html.jinja
 msgid "Per day"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Date range"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "28 days"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "90 days"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "6 months"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "12 months"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Group by"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py stats/tasks.html.jinja
-msgid "Day"
-msgstr ""
-
-#: stats/tasks.html.jinja
-msgid "Week"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py stats/tasks.html.jinja
-msgid "Month"
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -7544,10 +7718,6 @@ msgid "plugin"
 msgstr ""
 
 #: type/type/view.html
-msgid "Kind"
-msgstr ""
-
-#: type/type/view.html
 msgid "Properties"
 msgstr ""
 
@@ -7991,10 +8161,6 @@ msgstr ""
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
-
-#: SearchResultsWork.html
-msgid "Show more"
 msgstr ""
 
 #: SearchResultsWork.html
@@ -11053,10 +11219,6 @@ msgid "Today so far, updated hourly"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "Still in progress"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
 #, python-format
 msgid "%(count)s details still open"
 msgstr ""
@@ -11085,11 +11247,6 @@ msgstr ""
 
 #: openlibrary/views/loanstats.py
 msgid "Outside Tasks"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "Total: %(count)s"
 msgstr ""
 
 #: openlibrary/views/loanstats.py

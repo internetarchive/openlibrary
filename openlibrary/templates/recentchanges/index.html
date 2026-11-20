@@ -43,12 +43,87 @@ $def subnav():
     $if ip:
         $:render_template("recentchanges/render", limit=50, ip=ip, **query)</div>
     $else:
-        <ol-tabs sync-hash>
-            <a slot="tab" href="#humans">$_('By Humans')</a>
-            <a slot="tab" href="#bots">$_('By Bots')</a>
-            <a slot="tab" href="#all">$_('Everything')</a>
-            <div id="humans">$:render_template("recentchanges/render", limit=50, bot=False, hash="#humans", **query)</div>
-            <div id="bots">$:render_template("recentchanges/render", limit=50, bot=True, hash="#bots", **query)</div>
-            <div id="all">$:render_template("recentchanges/render", limit=50, bot=None, hash="#all", **query)</div>
-        </ol-tabs>
+        $if "begin_date" not in query:
+            $ chart_i18n = {"hourSoFar": _("This hour so far"), "total": _("Total: %(count)s"), "humans": _("Humans"), "bots": _("Bots"), "todaySoFar": _("Today so far"), "periodSoFar": _("Still in progress"), "noData": _("No changes in this range."), "loadFailed": _("The chart couldn't load. Reload the page to try again."), "colorBy": _("Color by: %(choice)s")}
+            $ chart_i18n["kinds"] = {"edit-book": _("Books Edited"), "add-book": _("Books Added"), "add-cover": _("Covers Added"), "merge-authors": _("Author Merges"), "merge-works": _("Work Merges"), "lists": _("Lists")}
+            $ kind_option = {"value": "kind", "label": _("Edit kind")}
+            $if query.get("kind"):
+                $ kind_option.update(disabled=True, description=_("Every change here is the same kind"))
+            $ color_options = [{"value": "none", "label": _("None")}, {"value": "bot", "label": _("Bots v. Humans")}, kind_option]
+            $if ctx.user and ctx.user.is_librarian_or_higher():
+                $ color_options.append({"value": "query", "label": _("Custom query…"), "description": _("Edits whose saved record contains some text, searched newest first.")})
+            $ chart_i18n.update(matches=_("Matches “%(text)s”"), nonMatches=_("Other changes"), notSearched=_("Not searched yet"), walking=_("Searching back through the changes: %(count)s checked so far, back to %(date)s…"), walkStopped=_("Stopped after checking %(count)s changes, back to %(date)s."), walkDone=_("Checked %(count)s changes, back to %(date)s."), stop=_("Stop"), resume=_("Resume"), searchFailed=_("The search failed: %(reason)s"), showMore=_("Show more"), noMatchesYet=_("No matching changes found yet."), noMatches=_("No matching changes in this range."), any=_("Any"), botFilter=_("Bot: %(choice)s"), kindFilter=_("Kind: %(choice)s"), kindCount=_("%(count)s kinds"))
+            $ bot_options = [{"value": "any", "label": _("Any")}, {"value": "humans", "label": _("Humans")}, {"value": "bots", "label": _("Bots")}]
+            $ kind_filter_options = [{"value": k, "label": v} for k, v in chart_i18n["kinds"].items()]
+            <section class="tasks-stats__main recentchanges-chart" data-kind="$query.get('kind', '')" data-i18n="$json_encode(chart_i18n)">
+                <div class="tasks-stats__controls">
+                    <ol-segmented-control class="recentchanges-chart__range" size="small" value="28" accessible-label="$_('Date range')">
+                        <ol-segment value="7">$_("7 days")</ol-segment>
+                        <ol-segment value="28">$_("28 days")</ol-segment>
+                        <ol-segment value="90">$_("90 days")</ol-segment>
+                        <ol-segment value="182">$_("6 months")</ol-segment>
+                        <ol-segment value="365">$_("12 months")</ol-segment>
+                    </ol-segmented-control>
+                    <ol-segmented-control class="recentchanges-chart__granularity" size="small" value="day" accessible-label="$_('Group by')">
+                        <ol-segment value="hour">$_("Hour")</ol-segment>
+                        <ol-segment value="day">$_("Day")</ol-segment>
+                        <ol-segment value="week">$_("Week")</ol-segment>
+                        <ol-segment value="month">$_("Month")</ol-segment>
+                    </ol-segmented-control>
+                    <ol-options-popover class="recentchanges-chart__color" label="$_('Color by')" selected="none" items="$json_encode(color_options)">
+                        <ol-button slot="trigger" size="small">$_("Color by: %(choice)s", choice=_("None"))</ol-button>
+                    </ol-options-popover>
+                </div>
+                <div class="tasks-stats__controls recentchanges-chart__query-row">
+                    <form class="recentchanges-chart__query">
+                        $# Filter the chart in every mode; a search checks only the changes they let through, which is faster
+                        <ol-options-popover class="recentchanges-chart__bot-filter" label="$_('Bot')" selected="any" items="$json_encode(bot_options)">
+                            <ol-button slot="trigger" size="small">$_("Bot: %(choice)s", choice=_("Any"))</ol-button>
+                        </ol-options-popover>
+                        <ol-select-popover class="recentchanges-chart__kind-filter" label="$_('Kind')" unselected-heading="$_('Kinds')" placeholder="$_('Filter kinds…')" items="$json_encode(kind_filter_options)">
+                            $if query.get("kind"):
+                                <ol-button slot="trigger" size="small" disabled>$_("Kind: %(choice)s", choice=chart_i18n["kinds"].get(query["kind"], query["kind"]))</ol-button>
+                            $else:
+                                <ol-button slot="trigger" size="small">$_("Kind: %(choice)s", choice=_("Any"))</ol-button>
+                        </ol-select-popover>
+                        $if ctx.user and ctx.user.is_librarian_or_higher():
+                            <span class="recentchanges-chart__search-box">
+                                <input type="search" name="q" required minlength="3" maxlength="100" placeholder="$_('Text in the edited record, e.g. airlines')" aria-label="$_('Text to search edited records for')">
+                                $# "Aa" is an icon, as in VS Code's find box; its title and label carry the text
+                                $# detect-missing-i18n-skip-line
+                                <button type="button" class="recentchanges-chart__search-toggle recentchanges-chart__match-case" aria-pressed="false" title="$_('Match case')" aria-label="$_('Match case')">Aa</button>
+                                <button type="button" class="recentchanges-chart__search-toggle recentchanges-chart__regex" aria-pressed="false" title="$_('Use regular expression')" aria-label="$_('Use regular expression')">.*</button>
+                            </span>
+                            <ol-button type="submit" size="small">$_("Search")</ol-button>
+                    </form>
+                </div>
+                <p class="tasks-stats__note recentchanges-chart__status" hidden>
+                    <span class="recentchanges-chart__status-text"></span>
+                    <ol-button class="recentchanges-chart__walk-toggle" size="small" variant="ghost" hidden></ol-button>
+                </p>
+                <div class="tasks-stats__chart-head">
+                    <span class="tasks-stats__legend tasks-stats__parts"></span>
+                </div>
+                <div class="tasks-stats__canvas tasks-stats__canvas--main">
+                    <canvas role="img" aria-label="$_('Changes over the chosen range')"></canvas>
+                </div>
+            </section>
+        $# Follows the chart's filters from the URL; the chart swaps it out as they change
+        $ list_filters = get_recentchanges_list_filters(query.get("kind"))
+        $ list_query = dict(query, **list_filters.query)
+        <div class="recentchanges-list">
+            $if list_filters.ids is not None:
+                $:render_template("recentchanges/render", limit=len(list_filters.ids) or 1, paginate=False, ids=list_filters.ids, **query)
+            $elif list_filters.bot is not None:
+                $:render_template("recentchanges/render", limit=50, bot=list_filters.bot, kinds=list_filters.kinds, **list_query)
+            $else:
+                <ol-tabs sync-hash>
+                    <a slot="tab" href="#humans">$_('By Humans')</a>
+                    <a slot="tab" href="#bots">$_('By Bots')</a>
+                    <a slot="tab" href="#all">$_('Everything')</a>
+                    <div id="humans">$:render_template("recentchanges/render", limit=50, bot=False, hash="#humans", kinds=list_filters.kinds, **list_query)</div>
+                    <div id="bots">$:render_template("recentchanges/render", limit=50, bot=True, hash="#bots", kinds=list_filters.kinds, **list_query)</div>
+                    <div id="all">$:render_template("recentchanges/render", limit=50, bot=None, hash="#all", kinds=list_filters.kinds, **list_query)</div>
+                </ol-tabs>
+        </div>
 </div>
