@@ -1,4 +1,4 @@
-$def with (d, matches)
+$def with (d, matches, recaptcha=None)
 
 $# :param web.Storage d: form data
 $# :param list matches:
@@ -15,6 +15,24 @@ $var title: $_("Add a book")
 </div>
 
 <div id="contentBody">
+    $# Only the captcha is visible; picking a book below submits the form, so solve it first.
+    <form method="POST" id="addbook" class="olform addbook1$cond(not recaptcha, ' hidden')" name="edit">
+        $if recaptcha:
+            $:render_template("recaptcha", recaptcha.public_key, error=None)
+            <p id="recaptcha-needed" class="invalid" role="alert" aria-live="polite" aria-atomic="true" hidden>$_("Please complete the reCAPTCHA above before choosing a book.")</p>
+        <input type="hidden" id="work" name="work" value="none-of-these"/>
+        <input type="hidden" name="book_title" value="$d.title"/>
+        <input type="hidden" name="publisher" value="$d.publisher"/>
+        <input type="hidden" name="publish_date" value="$d.publish_date"/>
+        <input type="hidden" name="id_name" value="$d.id_name"/>
+        <input type="hidden" name="id_value" value="$d.id_value"/>
+        <input type="hidden" name="web_book_url" value="$d.web_book_url"/>
+        $for author in d.authors:
+            <input type="hidden" name="authors--$loop.index0--author--key" value="$author['author']['key']"/>
+        $for name in d.author_names:
+            <input type="hidden" name="author_names--$loop.index0" value="$name"/>
+    </form>
+
     <div id="searchResults">
         <ul class="list-books">
         $for work in matches:
@@ -41,17 +59,4 @@ $var title: $_("Add a book")
     </div>
 
     <p class="small sansserif clearfix">$_("None of these match the book I want to add.") <a href="javascript:;" id="bookAddCont">$_('Continue')</a></p>
-
-    <form method="POST" id="addbook" class="olform addbook1 hidden" name="edit">
-        <input type="hidden" id="work" name="work" value="none-of-these"/>
-        <input type="hidden" name="title" value="$d.title"/>
-        <input type="hidden" name="publisher" value="$d.publisher"/>
-        <input type="hidden" name="publish_date" value="$d.publish_date"/>
-        <input type="hidden" name="id_name" value="$d.id_name"/>
-        <input type="hidden" name="id_value" value="$d.id_value"/>
-        $for author in d.authors:
-            <input type="hidden" name="authors--$loop.index0--author--key" value="$author['author']['key']"/>
-        $for name in d.author_names:
-            <input type="hidden" name="author_names--$loop.index0" value="$name"/>
-    </form>
 </div>

@@ -5,6 +5,7 @@ fastapiRoutes:
   - GET /advancedsearch
   - GET /publishers
   - GET /publishers/{name}
+  - GET /search/inside
   - GET /search/lists
   - GET /search/publishers
   - GET /search/subjects

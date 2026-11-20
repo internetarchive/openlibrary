@@ -402,6 +402,25 @@ class TestCarouselLayout:
         assert ('<div class="loan-overlay-badge" slot="overlay">' in html) is in_cover
         assert "Not yet downloaded." in html
 
+    @pytest.mark.parametrize(
+        ("authors", "label"),
+        [(["Ann Leckie"], "Ancillary Justice by Ann Leckie"), (["A", "B"], "Ancillary Justice by A, B"), ([], "Ancillary Justice")],
+    )
+    def test_cover_label_is_one_translatable_string(self, request_context_fixture, authors, label):
+        request_context_fixture(lang="en")
+        book = web.storage(key="/books/OL1M", title="Ancillary Justice", author_name=authors)
+        with (
+            patch("openlibrary.plugins.openlibrary.partials._render_carousel_card_loan_status", return_value=""),
+            patch("openlibrary.plugins.openlibrary.partials.shelf_button_for", return_value=""),
+            patch("openlibrary.plugins.openlibrary.partials._carousel_card_format", return_value=""),
+            patch("openlibrary.plugins.openlibrary.partials._resolve_carousel_card_cover_url", return_value="https://covers.example/1-M.jpg"),
+        ):
+            data = get_carousel_card_data(book, False, "grid", "trending", "/")
+        html = render_jinja_template("books/custom_carousel_card.html.jinja", **data)
+
+        assert data["cover_label"] == label
+        assert f'alt="{label}"' in html
+
 
 class TestSolrQueryToSubjectKey:
     """Tests for _solr_query_to_subject_key conversion."""
