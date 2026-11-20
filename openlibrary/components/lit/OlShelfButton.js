@@ -6,7 +6,6 @@ import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectT
 import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { DEFAULT_LABELS as ACTION_LABELS } from './OlShelfActions.js';
-import './OlShelfActions.js';
 import './OlIcon.js';
 
 export const DEFAULT_LABELS = {

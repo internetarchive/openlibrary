@@ -41,7 +41,6 @@ export function removeURLParameter(url, parameter) {
 
         url = prefix + (params.length > 0 ? `?${params.join('&')}` : '');
         return url;
-    } else {
-        return url;
     }
+    return url;
 }

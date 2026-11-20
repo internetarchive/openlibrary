@@ -1,5 +1,11 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "unicorn",
+    "typescript",
+    "oxc",
+    "import"
+  ],
   "categories": {
     "correctness": "error"
   },
@@ -53,7 +59,12 @@
     "no-prototype-builtins": "error",
     "no-regex-spaces": "error",
     "no-unexpected-multiline": "error",
-    "unicorn/prefer-node-protocol": "error"
+    "unicorn/prefer-node-protocol": "error",
+    "no-else-return": "error",
+    "import/no-duplicates": "error",
+    "unicorn/escape-case": "error",
+    "unicorn/no-instanceof-array": "error",
+    "unicorn/no-useless-promise-resolve-reject": "error"
   },
   "overrides": [
     {

@@ -141,9 +141,8 @@ export default class SelectionManager {
         }
         if (commonParent) {
             return $(commonParent).find('.ile-selectable');
-        } else {
-            return $(clicked);
         }
+        return $(clicked);
     }
 
     /**
@@ -397,7 +396,7 @@ SelectionManager.TYPES = [
             const imgOlid = olid.split(':').pop();
             if (imgOlid.slice(-1) === 'M')
                 return `https://covers.openlibrary.org/b/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
-            else return `https://covers.openlibrary.org/w/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
+            return `https://covers.openlibrary.org/w/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
         }
     },
     {
