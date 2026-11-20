@@ -201,13 +201,21 @@ export function init(root) {
         /** @param {import('./tasks_stats.js').Bucket} b */
         const inProgressNote = b => (b.end !== lastDay ? '' : b.start === b.end ? strings.todaySoFar : strings.periodSoFar);
 
-        const datasets = parts.map(part => {
-            const buckets = bucketize(part.daily, size).slice(-count);
+        /**
+         * Bar colours for one part. The day or period still being counted is paler, and so is every part but the one
+         * whose legend item is hovered.
+         * @param {{color: string}} part
+         * @param {import('./tasks_stats.js').Bucket[]} buckets
+         * @param {boolean} [faded]
+         */
+        const barColors = (part, buckets, faded = false) => buckets.map(b => withAlpha(part.color, (b.end === lastDay ? 0.45 : 1) * (faded ? 0.2 : 1)));
+        const partBuckets = parts.map(part => bucketize(part.daily, size).slice(-count));
+        const datasets = parts.map((part, i) => {
+            const buckets = partBuckets[i];
             return {
                 label: part.label,
                 data: buckets.map(b => b.value),
-                // The day or period still being counted is paler
-                backgroundColor: buckets.map(b => (b.end === lastDay ? withAlpha(part.color, 0.45) : part.color)),
+                backgroundColor: barColors(part, buckets),
                 borderRadius: stacked ? 0 : 2,
                 barPercentage: buckets.length > 120 ? 1 : 0.8,
                 categoryPercentage: 0.9,
@@ -272,12 +280,26 @@ export function init(root) {
         if (hasData) empty?.remove();
 
         unit.textContent = units[state.granularity];
+        /** @param {number | null} focused index of the hovered legend item, or null for none */
+        const focus = focused => {
+            const chart = Chart.getChart(canvas);
+            if (!chart) return;
+            chart.data.datasets.forEach((dataset, i) => {
+                dataset.backgroundColor = barColors(parts[i], partBuckets[i], focused !== null && i !== focused);
+            });
+            chart.update('none');
+            legend
+                .querySelectorAll('.tasks-stats__part')
+                .forEach((item, i) => item.classList.toggle('recentchanges-chart__part--faded', focused !== null && i !== focused));
+        };
         legend.replaceChildren(
-            ...(stacked ? parts : []).map(part => {
+            ...(stacked ? parts : []).map((part, i) => {
                 const item = document.createElement('span');
                 item.className = 'tasks-stats__part';
                 item.style.setProperty('--swatch', part.color);
                 item.textContent = part.label;
+                item.addEventListener('mouseenter', () => focus(i));
+                item.addEventListener('mouseleave', () => focus(null));
                 return item;
             })
         );

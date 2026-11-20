@@ -18,3 +18,8 @@
   font: inherit;
   font-size: var(--font-size-body-small);
 }
+
+/* Hovering a legend item fades the others, along with their bars */
+.recentchanges-chart__part--faded {
+  opacity: 0.35;
+}
