@@ -7095,10 +7095,6 @@ msgstr ""
 msgid "Volume"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/contribute.py type/edition/view.html type/work/view.html
-msgid "Genre"
-msgstr ""
-
 #: type/edition/view.html type/work/view.html
 msgid "Other Titles"
 msgstr ""
@@ -10203,6 +10199,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "Fiction or nonfiction"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Genre"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
