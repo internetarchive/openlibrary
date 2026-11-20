@@ -4,7 +4,7 @@ This walkthrough uses the [Arabooks request](https://github.com/internetarchive/
 
 ## 1. Prepare JSONL
 
-Convert each selected TSV row into one JSON object per line. The batch schema requires `title`, `authors`, `publishers`, `publish_date`, and `source_records`. Use a stable source ID in `source_records`; it identifies the record for queue deduplication.
+Convert each selected TSV row into one JSON object per line. For a complete record the batch schema requires `title`, `authors`, `publishers`, `publish_date`, and `source_records`; a record with `title`, `source_records`, and an ISBN or LCCN is also accepted. Use a stable source ID in `source_records`; it identifies the record for queue deduplication.
 
 ```json
 {"title":"Example title","authors":[{"name":"Example Author"}],"publishers":["Example Publisher"],"publish_date":"2020","source_records":["arabooks:example-1"]}
