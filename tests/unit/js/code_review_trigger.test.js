@@ -58,7 +58,8 @@ function ctx(overrides = {}) {
         event_name: overrides.event_name ?? '',
         event: {
             action: e.action ?? '',
-            pull_request: { draft: e.pull_request?.draft ?? false },
+            pull_request: { draft: e.pull_request?.draft ?? false, base: { ref: e.pull_request?.base?.ref ?? 'master' } },
+            repository: { default_branch: 'master' },
             requested_team: { slug: e.requested_team?.slug ?? null },
             requested_reviewer: { login: e.requested_reviewer?.login ?? null },
             // Defaults to a value that matches nobody, so the author clause can't fire via '' == ''.
@@ -127,6 +128,46 @@ test('a DRAFT PR does not fire even with the right team requested', () => {
         event: { action: 'review_requested', requested_team: { slug: TEAM_SLUG }, pull_request: { draft: true } }
     });
     assert.equal(evalIf(reviewIf, ev), false);
+});
+
+// pull_request_target runs the base branch's copy of the workflow, so on a PR stacked on another PR's
+// branch an automatic review would run that branch's unmerged bot. Only `stacked` runs, to say how to ask.
+test('a review request on a PR stacked on another branch starts no review; `stacked` replies instead', () => {
+    const stackedIf = reviewWf.jobs.stacked.if;
+    const pendingIf = reviewWf.jobs.pending.if;
+    for (const requested of [{ requested_team: { slug: TEAM_SLUG } }, { requested_reviewer: { login: 'openlibrary-bot' }, requested_team: { slug: null } }]) {
+        const onBranch = ctx({
+            event_name: 'pull_request_target',
+            event: { action: 'review_requested', ...requested, pull_request: { base: { ref: 'feature-x' } } }
+        });
+        const onMaster = ctx({ event_name: 'pull_request_target', event: { action: 'review_requested', ...requested } });
+        assert.equal(evalIf(reviewIf, onBranch), false, 'no model run');
+        assert.equal(evalIf(pendingIf, onBranch), false, 'no pending status nothing would replace');
+        assert.equal(evalIf(stackedIf, onBranch), true);
+        assert.equal(evalIf(reviewIf, onMaster), true);
+        assert.equal(evalIf(stackedIf, onMaster), false);
+    }
+    const draft = ctx({
+        event_name: 'pull_request_target',
+        event: { action: 'review_requested', requested_team: { slug: TEAM_SLUG }, pull_request: { draft: true, base: { ref: 'x' } } }
+    });
+    assert.equal(evalIf(stackedIf, draft), false, 'a draft gets no reply');
+    const otherTeam = ctx({
+        event_name: 'pull_request_target',
+        event: { action: 'review_requested', requested_team: { slug: 'other' }, pull_request: { base: { ref: 'x' } } }
+    });
+    assert.equal(evalIf(stackedIf, otherTeam), false);
+});
+test('a stacked PR can still be reviewed by an @openlibrary-bot comment, which runs the default branch copy', () => {
+    const ev = ctx({
+        event_name: 'issue_comment',
+        event: {
+            issue: { pull_request: {}, user: { login: 'someone' } },
+            comment: { body: '@openlibrary-bot review', user: { login: 'RayBB' } },
+            pull_request: { base: { ref: 'x' } }
+        }
+    });
+    assert.equal(evalIf(reviewIf, ev), true);
 });
 
 test('opened / ready_for_review no longer trigger the model directly (routed via auto_assign -> team request)', () => {
@@ -408,4 +449,46 @@ test('the Review step allows only the vetted commenter, or the PR author re-requ
         /github\.event\.comment\.user\.login == github\.event\.issue\.user\.login/,
         'the `if` still limits comment triggers to staff and the PR author'
     );
+});
+
+// ---- A full re-review: maintainers only, by comment or dispatch ----
+// FULL_REVIEW skips the "already reviewed this commit" check and the incremental range, so it costs
+// a full model run: only the maintainers in analyze's `if` can ask for one.
+const fullExpr = reviewWf.jobs.analyze.steps
+    .find(s => s.id === 'range')
+    .env.FULL_REVIEW.trim()
+    .replace(/^\$\{\{([\s\S]*)\}\}$/, '$1');
+function evalFull(github, inputs = {}) {
+    const contains = (a, b) => {
+        const needle = String(b ?? '').toLowerCase();
+        return Array.isArray(a)
+            ? a.some(x => String(x ?? '').toLowerCase() === needle)
+            : String(a ?? '')
+                  .toLowerCase()
+                  .includes(needle);
+    };
+    // eslint-disable-next-line no-new-func
+    return Boolean(new Function('github', 'inputs', 'contains', 'fromJSON', `return (${toJs(fullExpr)});`)(github, inputs, contains, JSON.parse));
+}
+const comment = (login, body) =>
+    ctx({ event_name: 'issue_comment', event: { issue: { pull_request: {}, user: { login: 'author' } }, comment: { body, user: { login } } } });
+test('FULL_REVIEW: a maintainer comment "@openlibrary-bot full review" asks for one', () => {
+    assert.equal(evalFull(comment('RayBB', '@openlibrary-bot full review')), true);
+    assert.equal(evalFull(comment('cdrini', 'please @OpenLibrary-Bot Full Review, the bot changed')), true, 'case-insensitive, like contains()');
+});
+test('FULL_REVIEW: not from the PR author, not from a plain review comment', () => {
+    assert.equal(evalFull(comment('author', '@openlibrary-bot full review')), false, "the author's comment starts an ordinary review");
+    assert.equal(evalFull(comment('someone', '@openlibrary-bot full review')), false);
+    assert.equal(evalFull(comment('RayBB', '@openlibrary-bot review')), false);
+});
+test('FULL_REVIEW: a dispatch with full_review checked; never on a review request', () => {
+    assert.equal(evalFull(ctx({ event_name: 'workflow_dispatch' }), { full_review: true }), true);
+    assert.equal(evalFull(ctx({ event_name: 'workflow_dispatch' }), { full_review: false }), false);
+    assert.equal(evalFull(ctx({ event_name: 'pull_request_target', event: { action: 'review_requested', requested_team: { slug: TEAM_SLUG } } })), false);
+    const input = (onBlock(reviewWf).workflow_dispatch.inputs || {}).full_review;
+    assert.deepEqual([input.type, input.default, input.required], ['boolean', false, false]);
+});
+test('FULL_REVIEW: the same maintainers as analyze', () => {
+    const list = cond => /fromJSON\('(\[[^\]]*\])'\)/.exec(cond)[1];
+    assert.equal(list(fullExpr), list(reviewIf));
 });

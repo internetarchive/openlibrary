@@ -334,7 +334,7 @@ async function collect({ github, context, core, require, process }) {
         current,
         previous
     };
-    require('fs').writeFileSync('stats.json', JSON.stringify(stats, null, 2));
+    require('node:fs').writeFileSync('stats.json', JSON.stringify(stats, null, 2));
     core.info(`Collected ${current.runs.total} runs and ${current.reviews.reviews} reviews; ${stats.alerts.length} alert(s).`);
 }
 

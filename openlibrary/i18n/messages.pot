@@ -227,6 +227,10 @@ msgid "Approve"
 msgstr ""
 
 #: batch_import_view.html
+msgid "Pause"
+msgstr ""
+
+#: batch_import_view.html
 msgid "Retry failed"
 msgstr ""
 
@@ -10136,6 +10140,13 @@ msgstr ""
 #, python-format
 msgid "Re-queued %(count)d failed item."
 msgid_plural "Re-queued %(count)d failed items."
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/code.py
+#, python-format
+msgid "Paused %(count)d pending item."
+msgid_plural "Paused %(count)d pending items."
 msgstr[0] ""
 msgstr[1] ""
 

@@ -16,18 +16,16 @@ export function closePopup() {
 export function truncate(text, limit) {
     if (text.length > limit) {
         return `${text.substr(0, limit)}...`;
-    } else {
-        return text;
     }
+    return text;
 }
 
 // used in openlibrary/templates/books/edit/excerpts.html
 export function cond(predicate, true_value, false_value) {
     if (predicate) {
         return true_value;
-    } else {
-        return false_value;
     }
+    return false_value;
 }
 
 /**

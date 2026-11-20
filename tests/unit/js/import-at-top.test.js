@@ -1,7 +1,7 @@
-import { execFileSync } from 'child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'fs';
-import os from 'os';
-import path from 'path';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 // Invoke the real stylelint CLI (repo config + `ol/import-at-top` plugin) on a
 // fixture file, and return how many times the rule fired. Spawning the CLI

@@ -500,7 +500,7 @@ test('D3a analyze emits withheld + withheld_blocking outputs, and public_finding
     assert.ok('withheld_blocking' in outs, 'analyze must expose the 1-bit `withheld_blocking`');
     // The gate step must NOT emit the withheld finding count anywhere (count stays 0 on withhold).
     assert.ok(
-        /res\.publish \? res\.clean\.findings\.filter\(f => f\.severity !== 'low'\)\.length : 0/.test(source('analyze_gate.cjs').replace(/\n/g, ' ')),
+        /res\.publish \? res\.clean\.findings\.filter\(blocks\)\.length : 0/.test(source('analyze_gate.cjs').replace(/\n/g, ' ')),
         'public_findings_count must remain `0` on a withhold (no count leak)'
     );
 });
@@ -512,7 +512,7 @@ test('every checkout is github.sha (never a PR-head ref or a stale base.sha) wit
     const checkouts = Object.entries(workflow.jobs).flatMap(([job, j]) =>
         (j.steps || []).filter(s => (s.uses || '').startsWith('actions/checkout@')).map(s => [job, s.with || {}])
     );
-    assert.deepEqual([...new Set(checkouts.map(([job]) => job))].sort(), ['analyze', 'decline', 'pending', 'post', 'resolve', 'skipped', 'status']);
+    assert.deepEqual([...new Set(checkouts.map(([job]) => job))].sort(), ['analyze', 'decline', 'pending', 'post', 'resolve', 'skipped', 'stacked', 'status']);
     for (const [job, w] of checkouts) {
         assert.equal(w['persist-credentials'], false, `${job}: checkout must set persist-credentials: false`);
         assert.equal(w.repository, undefined, `${job}: checkout must be of this repo, not the PR's fork`);

@@ -4,9 +4,10 @@
 'use strict';
 
 const gate = require('./gate.cjs');
+const { diffAnchors, threadKind } = require('./shared.cjs');
 
 async function gateAnalysis({ core, require, process }) {
-    const fs = require('fs');
+    const fs = require('node:fs');
     const file = `${process.env.GITHUB_WORKSPACE}/review.json`;
     let review = null;
     try {
@@ -33,12 +34,21 @@ async function gateAnalysis({ core, require, process }) {
         }
     }
     fs.writeFileSync(file, JSON.stringify(res.publish ? res.clean : { withheld: true }));
-    // Blocking findings in the published review; low severity ones are suggestions. This includes
-    // findings with no line to anchor to, which get no review thread. Held-back findings are not
-    // counted, so the count reveals nothing about them.
-    // Known gap (#14471): a re-review counts only its own range, so an unanchored finding from an
-    // earlier pass stops counting once a later pass finds nothing. Human review covers that.
-    const pubCount = res.publish ? res.clean.findings.filter(f => f.severity !== 'low').length : 0;
+    // Blocking findings in the published review: not low severity, and with a thread to go on (see
+    // threadKind), counted the way `post` sorts them. A finding about no file the PR changes is
+    // posted as a note that doesn't block, so it can't block with no thread to clear it (#14471).
+    // With inline comments turned off, every finding is in the summary and blocks, as before.
+    // Held-back findings are not counted, so the count reveals nothing about them.
+    let prDiff = diff;
+    try {
+        prDiff = fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/pr.diff`, 'utf8');
+    } catch (e) {
+        prDiff = diff;
+    }
+    const anchors = diffAnchors(prDiff);
+    const inlineKeyIssues = process.env.INLINE_KEY_ISSUES !== 'false';
+    const blocks = f => f.severity !== 'low' && (!inlineKeyIssues || threadKind(f, anchors) !== null);
+    const pubCount = res.publish ? res.clean.findings.filter(blocks).length : 0;
     core.setOutput('public_findings_count', String(pubCount));
     // About what was not published, `status` gets only these bits: whether the whole review was
     // withheld (it was malformed), whether part of it was held back, and whether what was not
