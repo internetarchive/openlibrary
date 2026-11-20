@@ -1,5 +1,5 @@
 {# djlint:off H021 #}
-{% from "shell/header_dropdown.html.jinja" import header_dropdown %}
+{% from "shell/mybooks_popover.html.jinja" import mybooks_popover %}
 {% from "shell/browse_popover.html.jinja" import browse_popover %}
 <header id="header-bar" class="header-bar">
     <div class="logo-component">
@@ -24,7 +24,7 @@
         {% endif %}
     </div>
     <ul class="navigation-component">
-        <li>{{ header_dropdown(layout.header.my_books_props, "MainNav") }}</li>
+        <li>{{ mybooks_popover(layout.header.mybooks_links, "MainNav") }}</li>
         <li>{{ browse_popover(layout.header.browse_links, layout.header.browse_featured_count, "MainNav") }}</li>
     </ul>
     <div class="search-component">
@@ -184,9 +184,9 @@
 </ol-drawer>
 <header class="header-bar mobile">
     <ul class="navigation-component mobile">
-        <li>{{ header_dropdown(layout.header.my_books_props, "MainNav") }}</li>
-        {# Distinct prefix so browse analytics separate the mobile tray from the
-        desktop popover (see the tracking note in browse_popover.html.jinja). #}
+        {# Distinct prefix so analytics separate the mobile tray from the desktop
+        popover (see the tracking note in browse_popover.html.jinja). #}
+        <li>{{ mybooks_popover(layout.header.mybooks_links, "MainNavMobile") }}</li>
         <li>{{ browse_popover(layout.header.browse_links, layout.header.browse_featured_count, "MainNavMobile") }}</li>
     </ul>
 </header>
