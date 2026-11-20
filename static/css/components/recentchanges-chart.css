@@ -1,7 +1,8 @@
 /* openlibrary/templates/recentchanges/index.html: the custom-query search and its filters, under the chart's controls */
 .recentchanges-chart__query {
   display: inline-flex;
-  gap: var(--spacing-2xs);
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
   align-items: center;
 }
 

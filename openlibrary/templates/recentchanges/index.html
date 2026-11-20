@@ -79,18 +79,18 @@ $def subnav():
                 <div class="tasks-stats__controls recentchanges-chart__query-row" hidden>
                     <form class="recentchanges-chart__query">
                         <input type="search" name="q" required minlength="3" maxlength="100" placeholder="$_('Text in the edited record, e.g. airlines')" aria-label="$_('Text to search edited records for')">
+                        $# Searching only the changes these let through is faster: the others' records are never read
+                        <ol-options-popover class="recentchanges-chart__bot-filter" label="$_('Bot')" selected="any" items="$json_encode(bot_options)">
+                            <ol-button slot="trigger" size="small">$_("Bot: %(choice)s", choice=_("Any"))</ol-button>
+                        </ol-options-popover>
+                        <ol-options-popover class="recentchanges-chart__kind-filter" label="$_('Kind')" selected="any" items="$json_encode(kind_filter_options)">
+                            $if query.get("kind"):
+                                <ol-button slot="trigger" size="small" disabled>$_("Kind: %(choice)s", choice=chart_i18n["kinds"].get(query["kind"], query["kind"]))</ol-button>
+                            $else:
+                                <ol-button slot="trigger" size="small">$_("Kind: %(choice)s", choice=_("Any"))</ol-button>
+                        </ol-options-popover>
                         <ol-button type="submit" size="small">$_("Search")</ol-button>
                     </form>
-                    $# Searching only the changes these let through is faster: the others' records are never read
-                    <ol-options-popover class="recentchanges-chart__bot-filter" label="$_('Bot')" selected="any" items="$json_encode(bot_options)">
-                        <ol-button slot="trigger" size="small">$_("Bot: %(choice)s", choice=_("Any"))</ol-button>
-                    </ol-options-popover>
-                    <ol-options-popover class="recentchanges-chart__kind-filter" label="$_('Kind')" selected="any" items="$json_encode(kind_filter_options)">
-                        $if query.get("kind"):
-                            <ol-button slot="trigger" size="small" disabled>$_("Kind: %(choice)s", choice=chart_i18n["kinds"].get(query["kind"], query["kind"]))</ol-button>
-                        $else:
-                            <ol-button slot="trigger" size="small">$_("Kind: %(choice)s", choice=_("Any"))</ol-button>
-                    </ol-options-popover>
                 </div>
                 <p class="tasks-stats__note recentchanges-chart__status" hidden>
                     <span class="recentchanges-chart__status-text"></span>
